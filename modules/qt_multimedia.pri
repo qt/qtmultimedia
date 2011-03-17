@@ -9,5 +9,6 @@ QT.multimedia.includes = $$QT_MODULE_INCLUDE_BASE $$QT_MODULE_INCLUDE_BASE/QtMul
 QT.multimedia.private_includes = $$QT_MODULE_INCLUDE_BASE/QtMultimedia/private
 QT.multimedia.sources = $$QT_MODULE_BASE/src/multimedia
 QT.multimedia.libs = $$QT_MODULE_LIB_BASE
+QT.multimedia.imports = $$QT_MODULE_IMPORT_BASE
 QT.multimedia.depends = core gui
 QT.multimedia.DEFINES = QT_MULTIMEDIA_LIB
