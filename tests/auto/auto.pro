@@ -8,4 +8,4 @@ SUBDIRS=\
     qaudiooutput \
     qvideoframe \
     qvideosurfaceformat
-
+!cross_compile:                             SUBDIRS += host.pro
