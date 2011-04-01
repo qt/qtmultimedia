@@ -4,6 +4,9 @@ TARGET = QtMultimedia
 QPRO_PWD = $$PWD
 QT = core gui
 
+CONFIG += module
+MODULE_PRI = ../../modules/qt_multimedia.pri
+
 DEFINES += QT_BUILD_MULTIMEDIA_LIB QT_NO_USING_NAMESPACE
 
 unix|win32-g++*:QMAKE_PKGCONFIG_REQUIRES = QtCore QtGui
