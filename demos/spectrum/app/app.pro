@@ -82,7 +82,7 @@ INSTALLS += sources images
 # Deployment
 
 symbian {
-    include($$QT_SOURCE_TREE/demos/symbianpkgrules.pri)
+    CONFIG += qt_demo
 
     !contains(DEFINES, DISABLE_FFT) {
         # Include FFTReal DLL in the SIS file

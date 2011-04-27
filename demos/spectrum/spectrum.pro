@@ -16,7 +16,7 @@ TARGET = spectrum
 symbian {
     # Create a 'make sis' rule which can be run from the top-level
 
-    include($$QT_SOURCE_TREE/demos/symbianpkgrules.pri)
+    CONFIG += qt_demo
 
     # UID for the SIS file
     TARGET.UID3 = 0xA000E402
