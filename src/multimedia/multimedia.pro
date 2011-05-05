@@ -2,7 +2,10 @@ load(qt_module)
 
 TARGET = QtMultimedia
 QPRO_PWD = $$PWD
-QT = core gui
+QT = core-private gui
+
+CONFIG += module
+MODULE_PRI = ../../modules/qt_multimedia.pri
 
 DEFINES += QT_BUILD_MULTIMEDIA_LIB QT_NO_USING_NAMESPACE
 
