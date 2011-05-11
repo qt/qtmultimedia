@@ -4,6 +4,7 @@
 %moduleheaders = ( # restrict the module headers to those found in relative path
 );
 %classnames = (
+    "qtmultimediaversion.h" => "QtMultimediaVersion",
 );
 %mastercontent = (
     "gui" => "#include <QtGui/QtGui>\n",
