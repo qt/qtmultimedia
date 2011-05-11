@@ -13,6 +13,8 @@ unix|win32-g++*:QMAKE_PKGCONFIG_REQUIRES = QtCore QtGui
 
 include($$QT_SOURCE_TREE/src/qbase.pri)
 
+HEADERS += qtmultimediaversion.h
+
 include(audio/audio.pri)
 include(video/video.pri)
 
