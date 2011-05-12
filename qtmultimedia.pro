@@ -14,7 +14,8 @@ module_qtmultimedia_examples.depends = module_qtmultimedia_src
 module_qtmultimedia_tests.subdir = tests
 module_qtmultimedia_tests.target = module-qtmultimedia-tests
 module_qtmultimedia_tests.depends = module_qtmultimedia_src
-module_qtmultimedia_tests.CONFIG = no_default_target no_default_install
+module_qtmultimedia_tests.CONFIG = no_default_install
+!contains(QT_BUILD_PARTS,tests):module_qtmultimedia_tests.CONFIG += no_default_target
 
 SUBDIRS += module_qtmultimedia_src \
            module_qtmultimedia_demos \
