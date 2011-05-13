@@ -1,6 +1,6 @@
-QT.multimedia.VERSION = 4.8.0
-QT.multimedia.MAJOR_VERSION = 4
-QT.multimedia.MINOR_VERSION = 8
+QT.multimedia.VERSION = 5.0.0
+QT.multimedia.MAJOR_VERSION = 5
+QT.multimedia.MINOR_VERSION = 0
 QT.multimedia.PATCH_VERSION = 0
 
 QT.multimedia.name = QtMultimedia
