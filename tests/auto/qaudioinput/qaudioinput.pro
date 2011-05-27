@@ -4,6 +4,8 @@ SOURCES += tst_qaudioinput.cpp
 
 QT = core multimedia
 
+CONFIG += insignificant_test    # QTBUG-19537
+
 wince* {
     deploy.files += 4.wav
     DEPLOYMENT += deploy
