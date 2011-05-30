@@ -11,7 +11,7 @@ DEFINES += QT_BUILD_MULTIMEDIA_LIB QT_NO_USING_NAMESPACE
 
 unix|win32-g++*:QMAKE_PKGCONFIG_REQUIRES = QtCore QtGui
 
-include($$QT_SOURCE_TREE/src/qbase.pri)
+load(qt_module_config)
 
 HEADERS += qtmultimediaversion.h
 
