@@ -15,6 +15,6 @@ symbian {
     TARGET.CAPABILITY += UserEnvironment
     CONFIG += qt_example
 }
-maemo5: include($$QT_SOURCE_TREE/examples/maemo5pkgrules.pri)
+maemo5: CONFIG += qt_example
 
 maemo5: warning(This example might not fully work on Maemo platform)
