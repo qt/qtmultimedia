@@ -55,6 +55,7 @@ int main(int argc, char**argv)
     tst_QMediaPlayer test_api;
     ret = QTest::qExec(&test_api, argc, argv);
 #ifdef Q_OS_SYMBIAN
+#ifdef HAS_OPENMAXAL_MEDIAPLAY_BACKEND
     char *new_argv[3];
     QString str = "C:\\data\\" + QFileInfo(QCoreApplication::applicationFilePath()).baseName() + "_s60.log";
     QByteArray   bytes  = str.toAscii();
@@ -64,6 +65,7 @@ int main(int argc, char**argv)
     new_argv[2] = bytes.data();
     tst_QMediaPlayer_xa test_xa;
     ret = QTest::qExec(&test_xa, 3, new_argv);
+#endif
     char *new_argv1[3];
     QString str1 = "C:\\data\\" + QFileInfo(QCoreApplication::applicationFilePath()).baseName() + "_s60.log";
     QByteArray   bytes1  = str1.toAscii();
