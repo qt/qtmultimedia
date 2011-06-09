@@ -8,7 +8,7 @@ PLUGIN_TYPE=mediaservice
 load(qt_plugin)
 DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
 
-unix:contains(QT_CONFIG, alsa) {
+unix:!maemo*:contains(QT_CONFIG, alsa) {
 DEFINES += HAVE_ALSA
 LIBS += \
     -lasound
