@@ -222,6 +222,11 @@ void tst_QCameraBackend::testCameraStates()
     QTRY_COMPARE(camera.status(), QCamera::UnloadedStatus);
     QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::UnloadedStatus);
 
+#ifdef Q_WS_MAEMO_6
+    //resource policy doesn't work correctly when resource is released and immediately requested again.
+    QTest::qWait(250);
+#endif
+
     camera.start();
     QCOMPARE(camera.state(), QCamera::ActiveState);
     QCOMPARE(stateChangedSignal.last().first().value<QCamera::State>(), QCamera::ActiveState);
@@ -619,6 +624,11 @@ void tst_QCameraBackend::testExposureMode()
     camera.load();
     QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
 #endif // Q_OS_SYMBIAN
+
+#ifdef Q_WS_MAEMO_6
+    //resource policy doesn't work correctly when resource is released and immediately requested again.
+    QTest::qWait(250);
+#endif
 
     // Auto
     exposure->setExposureMode(QCameraExposure::ExposureAuto);
