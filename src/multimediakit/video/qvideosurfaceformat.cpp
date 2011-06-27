@@ -689,6 +689,7 @@ QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)
         break;
     case QVideoFrame::Format_Y16:
         typeName = QLatin1String("Format_Y16");
+        break;
     default:
         typeName = QString(QLatin1String("UserType(%1)" )).arg(int(f.pixelFormat()));
     }

@@ -107,8 +107,6 @@ QMediaObject *QCameraViewfinder::mediaObject() const
 */
 bool QCameraViewfinder::setMediaObject(QMediaObject *object)
 {
-    Q_D(QCameraViewfinder);
-
     return QVideoWidget::setMediaObject(object);
 }
 
