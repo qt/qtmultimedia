@@ -112,6 +112,8 @@ public:
     static void configureAppSrcElement(GObject*, GObject*, GParamSpec*,QGstreamerPlayerSession* _this);
 #endif
 
+    bool isLiveSource() const;
+
 public slots:
     void loadFromUri(const QNetworkRequest &url);
     void loadFromStream(const QNetworkRequest &url, QIODevice *stream);
@@ -208,10 +210,12 @@ private:
         UnknownSrc,
         SoupHTTPSrc,
         UDPSrc,
-        MMSSrc
+        MMSSrc,
+        RTSPSrc,
     };
     SourceType m_sourceType;
     bool m_everPlayed;
+    bool m_isLiveSource;
 };
 
 #endif // QGSTREAMERPLAYERSESSION_H
