@@ -205,6 +205,9 @@ void QGstreamerPlayerSession::configureAppSrcElement(GObject* object, GObject *o
 void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIODevice *appSrcStream)
 {
 #if defined(HAVE_GST_APPSRC)
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
     m_request = request;
     m_duration = -1;
     m_lastPosition = 0;
@@ -234,6 +237,9 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
 
 void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO << request.url();
+#endif
     m_request = request;
     m_duration = -1;
     m_lastPosition = 0;
@@ -277,6 +283,9 @@ qreal QGstreamerPlayerSession::playbackRate() const
 
 void QGstreamerPlayerSession::setPlaybackRate(qreal rate)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO << rate;
+#endif
     if (!qFuzzyCompare(m_playbackRate, rate)) {
         m_playbackRate = rate;
         if (m_playbin) {
@@ -351,6 +360,9 @@ int QGstreamerPlayerSession::activeStream(QMediaStreamsControl::StreamType strea
 
 void QGstreamerPlayerSession::setActiveStream(QMediaStreamsControl::StreamType streamType, int streamNumber)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO << streamType << streamNumber;
+#endif
 
     if (m_usePlaybin2 && streamNumber >= 0)
         streamNumber -= m_playbin2StreamOffset.value(streamType,0);
@@ -423,6 +435,9 @@ void QGstreamerPlayerSession::updateVideoRenderer()
 
 void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
     if (m_videoOutput != videoOutput) {
         if (m_videoOutput) {
             disconnect(m_videoOutput, SIGNAL(sinkChanged()),
@@ -666,6 +681,9 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
 
 void QGstreamerPlayerSession::insertColorSpaceElement(GstElement *element, gpointer data)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
     Q_UNUSED(element);
     QGstreamerPlayerSession* session = reinterpret_cast<QGstreamerPlayerSession*>(data);
 
@@ -718,6 +736,9 @@ bool QGstreamerPlayerSession::isSeekable() const
 
 bool QGstreamerPlayerSession::play()
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
     m_everPlayed = false;
     if (m_playbin) {
         m_pendingState = QMediaPlayer::PlayingState;
@@ -735,6 +756,9 @@ bool QGstreamerPlayerSession::play()
 
 bool QGstreamerPlayerSession::pause()
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
     if (m_playbin) {
         m_pendingState = QMediaPlayer::PausedState;
         if (m_pendingVideoSink != 0)
@@ -755,6 +779,9 @@ bool QGstreamerPlayerSession::pause()
 
 void QGstreamerPlayerSession::stop()
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
     m_everPlayed = false;
     if (m_playbin) {
         if (m_renderer)
@@ -777,6 +804,9 @@ void QGstreamerPlayerSession::stop()
 
 bool QGstreamerPlayerSession::seek(qint64 ms)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO << ms;
+#endif
     //seek locks when the video output sink is changing and pad is blocked
     if (m_playbin && !m_pendingVideoSink && m_state != QMediaPlayer::StoppedState) {
         ms = qMax(ms,qint64(0));
@@ -800,6 +830,10 @@ bool QGstreamerPlayerSession::seek(qint64 ms)
 
 void QGstreamerPlayerSession::setVolume(int volume)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO << volume;
+#endif
+
     if (m_volume != volume) {
         m_volume = volume;
 
@@ -816,6 +850,9 @@ void QGstreamerPlayerSession::setVolume(int volume)
 
 void QGstreamerPlayerSession::setMuted(bool muted)
 {
+#ifdef DEBUG_PLAYBIN
+        qDebug() << Q_FUNC_INFO << muted;
+#endif
     if (m_muted != muted) {
         m_muted = muted;
 
@@ -831,6 +868,9 @@ void QGstreamerPlayerSession::setMuted(bool muted)
 
 void QGstreamerPlayerSession::setSeekable(bool seekable)
 {
+#ifdef DEBUG_PLAYBIN
+        qDebug() << Q_FUNC_INFO << seekable;
+#endif
     if (seekable != m_seekable) {
         m_seekable = seekable;
         emit seekableChanged(m_seekable);
@@ -878,6 +918,10 @@ void QGstreamerPlayerSession::busMessage(const QGstreamerMessage &message)
 #ifdef DEBUG_PLAYBIN
         if (m_sourceType == MMSSrc && qstrcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(gm)), "source") == 0) {
             qDebug() << "Message from MMSSrc: " << GST_MESSAGE_TYPE(gm);
+        } else if (m_sourceType == RTSPSrc && qstrcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(gm)), "source") == 0) {
+            qDebug() << "Message from RTSPSrc: " << GST_MESSAGE_TYPE(gm);
+        } else {
+            qDebug() << "Message from " << GST_OBJECT_NAME(GST_MESSAGE_SRC(gm)) << ":" << GST_MESSAGE_TYPE(gm);
         }
 #endif
 
@@ -1294,6 +1338,9 @@ void QGstreamerPlayerSession::getStreamsInfo()
 
 void QGstreamerPlayerSession::updateVideoResolutionTag()
 {
+#ifdef DEBUG_PLAYBIN
+        qDebug() << Q_FUNC_INFO;
+#endif
     QSize size;
     QSize aspectRatio;
 
@@ -1359,6 +1406,9 @@ void QGstreamerPlayerSession::updateDuration()
         QTimer::singleShot(delay, this, SLOT(updateDuration()));
         m_durationQueries--;
     }
+#ifdef DEBUG_PLAYBIN
+        qDebug() << Q_FUNC_INFO << m_duration;
+#endif
 }
 
 void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpointer d)
@@ -1559,6 +1609,9 @@ void QGstreamerPlayerSession::handleElementAdded(GstBin *bin, GstElement *elemen
 //doing proper operations when detecting an invalidMedia: change media status before signal the erorr
 void QGstreamerPlayerSession::processInvalidMedia(QMediaPlayer::Error errorCode, const QString& errorString)
 {
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
     emit invalidMedia();
     stop();
     emit error(int(errorCode), errorString);
