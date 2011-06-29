@@ -1,0 +1,178 @@
+qt-mobility (1.2.0~git20110225) unstable; urgency=low
+
+  * Bumped up the version
+
+ -- Sunil Thaha <sunil.thaha@nokia.com>  Fri, 25 Feb 2011 13:59:48 +1000
+
+qt-mobility (1.2.0~git20110210) unstable; urgency=low
+
+  * Bump version to 1.2
+  * Fixes: NB#206728
+
+ -- Sunil Thaha <sunil.thaha@nokia.com>  Wed, 10 Feb 2011 13:59:48 +1000
+
+qt-mobility (1.1.1~git20110106) unstable; urgency=low
+
+  * Fixes: NB#212701 : added the commit 95e140e7 as a patch
+
+ -- Sunil Thaha <sunil.thaha@nokia.com>  Thu, 06 Jan 2011 10:02:05 +1000
+
+qt-mobility (1.1.1~git20101224) unstable; urgency=low
+
+  * Fixes: NB#212701 : added the commit feb61b9 as a patch
+
+ -- Sunil Thaha <sunil.thaha@nokia.com> Fri, 24 Dec 2010 17:30:55 +1000
+
+qt-mobility (1.1.1~git20101217) unstable; urgency=low
+
+  * Updated the code base to releases/1.1.1
+  * Fixes: NB#212701 : added the commit feb61b9 as a patch
+
+ -- Sunil Thaha <sunil.thaha@nokia.com>  Fri, 17 Dec 2010 17:30:55 +1000
+
+qt-mobility (1.1.1~git20101207) unstable; urgency=low
+
+  * Fixes: NB#209489
+
+ -- Sunil Thaha <sunil.thaha@nokia.com>  Tue, 07 Dec 2010 17:30:55 +1000
+
+qt-mobility (1.1.1~git20101201) unstable; urgency=low
+  * Fixes: NB#189902
+  * Fixes: NB#189902
+  * Fixes: NB#199411
+  * Fixes: NB#198751
+  * Fixes: NB#201514
+  * Fixes: NB#203941
+  * Fixes: NB#208483
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Wed, 01 Dec 2010 11:39:00 +1000
+
+qt-mobility (1.1.1~git20101119-0maemo1) unstable; urgency=low
+  * Qt Organizer module
+  *   Classes for calendar entries, todo tasks, journal entries and notes
+  * Qt Feedback module
+  *   Classes for feedback (haptic/tactile feedback, general multimedia feedback)
+  *   Initial release has limited multimedia support
+  * Qt Gallery module
+  *   Classes for searching for documents, and viewing document meta-data.
+  * Qt Maps and Navigation API
+     Part of the Location module
+  *   Class for routing, geocoding and reverse geocoding, and for displaying and interacting with maps.
+  * Qt Landmarks module
+  *    Part of the Location module
+  *    Classes for saving, retrieving and deleting landmarks
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Fri, 19 Oct 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20101026-0maemo1) unstable; urgency=low
+  * New Modules:
+  *   Feedback
+  *
+  * Modules Changed:
+  *
+  * Bug Fixes:
+  *   JIRA#MOBILITY-1780
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Tue, 26 Oct 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20101005-0maemo1) unstable; urgency=low
+  * Modules Integrated:
+  *  QtContacts
+  *  QtLocation
+  *  QtMessaging
+  *  QtMultimedia
+  *  QtOrganizer
+  *  QtPublishsubscribe
+  *  QtSensors
+  *  QtServiceframework
+  *  QtSysteminfo
+  *  QtVersit
+  *  Bug Fixes
+  *    NB#189907 : QtPositionProvider has too slow initiation
+  *    NB#195969 : libqtm-organizer depends on libextendedkcal and it is deprecated
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Tue, 05 Oct 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20100922-0maemo1) unstable; urgency=low
+
+  * Updated base code 1.1
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Wed, 22 Sep 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20100917-0maemo1) unstable; urgency=low
+
+  * Updated base code 1.1
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Fri, 17 Sep 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20100916-0maemo2) unstable; urgency=low
+
+  * Updated base code 1.1
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Thu, 16 Sep 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20100909-0maemo2) unstable; urgency=low
+
+  * Updated base code 1.1
+  * Fixes: NB#190298 -  [METABUG] Upgrade Qt Mobility APIs to version 1.1
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Tue, 10 Sep 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20100906-0maemo1) unstable; urgency=low
+
+  * Updated base code 1.1
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Tue, 06 Sep 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20100831-0maemo1) unstable; urgency=low
+
+  * Updated base code 1.1
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Tue, 31 Aug 2010 11:39:00 +1000
+
+qt-mobility (1.1.0~git20100817-0maemo1) unstable; urgency=low
+
+  * Updated base code 1.1
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Fri, 20 Aug 2010 11:39:00 +1000
+
+qt-mobility (1.0.2~git20100721-0maemo1) unstable; urgency=low
+
+  * Move component headers to their specific dev packages.
+  * Add missing pkgconfig files.
+  * Fixes: NB#180932 - Missing QtLocation.pc.
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Wed, 21 Jul 2010 14:39:00 +1000
+
+qt-mobility (1.0.2~git20100714-0maemo1) unstable; urgency=low
+
+  * Pull from upstream (qtmobility-releases/1.0.2)
+  * Fixes: 173824 - [METABUG] Integrate Qt Mobility APIs (contacts, versit, location)
+  * Fixes: 172247 - Headers missing from libqtm-serviceframework-dev package and installation issues.
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Wed, 14 Jul 2010 17:00:00 +1000
+
+qt-mobility (1.0.2~git20100623-0maemo1) unstable; urgency=low
+
+  * Pull from upstream (qtmobility/1.0)
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Thu, 10 Jun 2010 13:50:00 +0200
+
+qt-mobility (1.0.0~git20100429-0maemo1) unstable; urgency=low
+
+  * Pull from upstream
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Fri, 30 Apr 2010 12:30:00 +1000
+
+qt-mobility (1.0.0~git20100422-0maemo1) unstable; urgency=low
+
+  * Pull from upstream
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Fri, 23 Apr 2010 15:10:00 +1000
+
+qt-mobility (1.0.0~git20100304-0maemo1) unstable; urgency=low
+
+  * Initial release
+
+ -- Qt Development Frameworks <qt-info@nokia.com>  Thu, 04 Mar 2010 15:52:12 +1000
+

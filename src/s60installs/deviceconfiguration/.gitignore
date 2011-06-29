@@ -1,0 +1,11 @@
+!bld.inf
+!config.pri
+!mobility.prf
+!mobilityconfig.prf
+!symbian3_qtmobility.pkg
+!symbian4_qtmobility.pkg
+!qtmobility.sisx
+!qtmobility_nonNR.pkg
+!qtmobility_stub.pkg
+!qtmobility_stub.sis
+!qtmobilityexampleapps.pkg

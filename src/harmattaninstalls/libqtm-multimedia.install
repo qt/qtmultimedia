@@ -1,0 +1,8 @@
+usr/lib/libQtMultimediaKit.so.1.2.0
+usr/lib/libQtMultimediaKit.so.1.2
+usr/lib/libQtMultimediaKit.so.1
+usr/lib/qt4/imports/QtMultimediaKit/libdeclarative_multimedia.so
+usr/lib/qt4/imports/QtMultimediaKit/qmldir
+usr/lib/qt4/plugins/audio/libqtmedia_pulse.so
+usr/lib/qt4/plugins/mediaservice/libqgstengine.so
+usr/lib/qt4/plugins/playlistformats/libqtmultimediakit_m3u.so

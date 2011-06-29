@@ -1,0 +1,2 @@
+include(qtmobility-project.qdocconf)
+include(qt-html-templates.qdocconf)

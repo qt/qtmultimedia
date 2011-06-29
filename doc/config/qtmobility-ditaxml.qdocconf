@@ -1,0 +1,13 @@
+include(qtmobility-project.qdocconf)
+
+outputdir               = ../ditaxml
+outputformats           = DITAXML
+
+generateindex           = true
+url                     = .
+
+macro.beginfloatleft.HTML   = " "
+macro.beginfloatright.HTML  = " "
+macro.endfloat.HTML         = " "
+macro.clearfloat.HTML       = " "
+macro.emptyspan.DITAXML	    = " "

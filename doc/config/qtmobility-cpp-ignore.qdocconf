@@ -1,0 +1,18 @@
+Cpp.ignoretokens        +=  \
+                            QTM_BEGIN_NAMESPACE \
+                            QTM_END_NAMESPACE \
+                            Q_BEARER_EXPORT \
+                            Q_PUBLISHSUBSCRIBE_EXPORT \
+                            Q_CONTACTS_EXPORT \
+                            Q_VERSIT_EXPORT \
+                            Q_LOCATION_EXPORT \
+                            Q_MULTIMEDIA_EXPORT \
+                            Q_MESSAGING_EXPORT \
+                            Q_SERVICEFW_EXPORT \
+                            Q_SYSINFO_EXPORT \
+                            Q_SENSORS_EXPORT \
+                            Q_FEEDBACK_EXPORT \
+                            Q_GALLERY_EXPORT \
+                            Q_ORGANIZER_EXPORT
+Cpp.ignoredirectives    +=  \
+                            Q_DECLARE_NDEF_RECORD

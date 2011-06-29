@@ -1,0 +1,142 @@
+include(compat.qdocconf)
+include(macros.qdocconf)
+include(qt-cpp-ignore.qdocconf)
+include(qt-defines.qdocconf)
+include(qtmobility-cpp-ignore.qdocconf)
+
+indexes         = ../src/qt.index
+
+language        = Cpp
+
+sourceencoding  = UTF-8
+outputencoding  = UTF-8
+naturallanguage = en_US
+
+project         = Qt Mobility
+description     = Qt Mobility Project Library Reference Documentation
+versionsym      =
+version         = 1.2
+url             = http://qt.nokia.com/doc/qtmobility-1.2
+
+sources.fileextensions = "*.cpp *.qdoc *.mm *.qml"
+headers.fileextensions  = "*.ch *.h *.h++ *.hh *.hpp *.hxx"
+examples.fileextensions = "*.cpp *.h *.js *.xq *.svg *.xml *.ui *.qhp *.qhcp *.qml"
+examples.imageextensions = "*.png *.jpeg *.jpg *.gif *.mng"
+
+headerdirs = ../../src/global \
+             ../../src/bearer \
+             ../../src/feedback \
+             ../../src/serviceframework \
+             ../../src/location \
+             ../../src/publishsubscribe \
+             ../../src/systeminfo \
+             ../../src/contacts \
+             ../../src/contacts/details \
+             ../../src/multimedia \
+             ../../plugins/declarative/multimedia \
+             ../../plugins/declarative/location \
+             ../../plugins/declarative/organizer \
+             ../../plugins/declarative/connectivity \
+             ../../plugins/declarative/contacts \
+             ../../plugins/declarative/contacts/details \
+             ../../plugins/declarative/contacts/filters \
+             ../../plugins/declarative/gallery \
+             ../../plugins/declarative/serviceframework \
+             ../../plugins/declarative/organizer \
+             ../../plugins/declarative/contacts \
+             ../../plugins/declarative/feedback \
+             ../../plugins/declarative/messaging \
+             ../../plugins/declarative/sensors \
+             ../../plugins/declarative/publishsubscribe \
+             ../../plugins/declarative/systeminfo \
+             ../../src/messaging \
+             ../../src/versit \
+             ../../src/sensors \
+             ../../src/gallery \
+             ../../src/camera \
+             ../../src/organizer \
+             ../../src/versitorganizer \
+             ../../src/connectivity \
+             ../src
+
+sourcedirs = ../../src/global \
+             ../../src/bearer \
+             ../../src/feedback \
+             ../../src/serviceframework \
+             ../../src/location \
+             ../../src/publishsubscribe \
+             ../../src/systeminfo \
+             ../../src/contacts \
+             ../../src/contacts/details \
+             ../../src/multimedia \
+             ../../plugins/declarative/multimedia \
+             ../../plugins/declarative/location \
+             ../../plugins/declarative/organizer \
+             ../../plugins/declarative/connectivity \
+             ../../plugins/declarative/contacts \
+             ../../plugins/declarative/contacts/details \
+             ../../plugins/declarative/contacts/filters \
+             ../../plugins/declarative/messaging \
+             ../../plugins/declarative/serviceframework \
+             ../../plugins/declarative/organizer \
+             ../../plugins/declarative/contacts \
+             ../../plugins/declarative/feedback \
+             ../../plugins/declarative/gallery \
+             ../../plugins/declarative/sensors \
+             ../../plugins/declarative/publishsubscribe \
+             ../../plugins/declarative/systeminfo \
+             ../../plugins/declarative/sensors \
+             ../../src/messaging \
+             ../../src/versit \
+             ../../src/sensors \
+             ../../src/gallery \
+             ../../src/camera \
+             ../../src/organizer \
+             ../../src/connectivity \
+             ../../src/versitorganizer \
+             ../src
+
+excludedirs = ../../src/messaging/win32wce \
+              ../../src/publishsubscribe/symbian \
+              ../../src/serviceframework/ipc/metaobjectbuilder47
+
+exampledirs = ../../examples \
+              ../../demos \
+              ../.. \
+              ../src
+
+imagedirs = images \
+            ../src/images
+
+outputdir = ../html
+tagfile = ../html/qtmobility.tags
+base                    = file:../html
+
+qhp.projects            = QtMobility
+
+qhp.QtMobility.file               = qtmobility.qhp
+qhp.QtMobility.namespace          = com.nokia.qtmobility.114
+qhp.QtMobility.virtualFolder      = mobility
+qhp.QtMobility.indexTitle         = Qt Mobility Project Reference Documentation
+qhp.QtMobility.indexRoot          =
+
+qhp.QtMobility.filterAttributes   = qtmobility 1.2.0
+qhp.QtMobility.customFilters.QtMobility.name = Qt Mobility 1.2.0
+qhp.QtMobility.customFilters.QtMobility.filterAttributes = qtmobility 1.2.0
+qhp.QtMobility.subprojects = classes overviews examples
+qhp.QtMobility.subprojects.classes.title = Classes
+qhp.QtMobility.subprojects.classes.indexTitle = All Qt Mobility Project Classes
+qhp.QtMobility.subprojects.classes.selectors = class
+qhp.QtMobility.subprojects.classes.sortPages = true
+qhp.QtMobility.subprojects.overviews.title = Overviews
+qhp.QtMobility.subprojects.overviews.indexTitle = Qt Mobility Project Overview
+qhp.QtMobility.subprojects.overviews.selectors = fake:page,group
+qhp.QtMobility.subprojects.overviews.sortPages = true
+qhp.QtMobility.subprojects.examples.title = Examples
+qhp.QtMobility.subprojects.examples.indexTitle = Qt Mobility Project Examples
+qhp.QtMobility.subprojects.examples.selectors = fake:example
+qhp.QtMobility.subprojects.examples.sortPages = true
+qhp.QtMobility.subprojects.tutorials.title = Tutorials
+qhp.QtMobility.subprojects.tutorials.indexTitle = Qt Mobility Project Tutorials
+qhp.QtMobility.subprojects.tutorials.selectors = fake:tutorial
+qhp.QtMobility.subprojects.tutorials.sortPages = true

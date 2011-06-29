@@ -1,0 +1,146 @@
+# /****************************************************************************
+# **
+# ** Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies)
+# ** Contact:
+# **
+# ****************************************************************************/
+
+# FLM to generate Qt style headers for QtMobility
+QTMOBILITY_ROOT := $(subst src/s60installs/deviceconfiguration,,$(subst \,/,$(EXTENSION_ROOT)))
+QTMOBILITY_BIN := $(QTMOBILITY_ROOT)bin
+QTMOBILITY_INCLUDE := $(QTMOBILITY_ROOT)include
+QTMOBILITY_BEARER_INCLUDE := $(QTMOBILITY_INCLUDE)/QtBearer
+QTMOBILITY_CONTACTS_INCLUDE := $(QTMOBILITY_INCLUDE)/QtContacts
+QTMOBILITY_LOCATION_INCLUDE := $(QTMOBILITY_INCLUDE)/QtLocation
+QTMOBILITY_MESSAGING_INCLUDE := $(QTMOBILITY_INCLUDE)/QtMessaging
+QTMOBILITY_MULTIMEDIA_INCLUDE := $(QTMOBILITY_INCLUDE)/QtMultimediaKit
+QTMOBILITY_PUBLISHSUBSCRIBE_INCLUDE := $(QTMOBILITY_INCLUDE)/QtPublishSubscribe
+QTMOBILITY_SYSTEMINFO_INCLUDE := $(QTMOBILITY_INCLUDE)/QtSystemInfo
+QTMOBILITY_SERVICEFRAMEWORK_INCLUDE := $(QTMOBILITY_INCLUDE)/QtServiceFramework
+QTMOBILITY_VERSIT_INCLUDE := $(QTMOBILITY_INCLUDE)/QtVersit
+QTMOBILITY_VERSITORGANIZER_INCLUDE := $(QTMOBILITY_INCLUDE)/QtVersitOrganizer
+QTMOBILITY_SENSORS_INCLUDE := $(QTMOBILITY_INCLUDE)/QtSensors
+QTMOBILITY_GALLERY_INCLUDE := $(QTMOBILITY_INCLUDE)/QtGallery
+QTMOBILITY_ORGANIZER_INCLUDE := $(QTMOBILITY_INCLUDE)/QtOrganizer
+QTMOBILITY_FEEDBACK_INCLUDE := $(QTMOBILITY_INCLUDE)/QtFeedback
+QTMOBILITY_CONNECTIVITY_INCLUDE := $(QTMOBILITY_INCLUDE)/QtConnectivity
+QTMOBILITY_SRC := $(QTMOBILITY_ROOT)src
+QTMOBILITY_GLOBAL_SRC := $(QTMOBILITY_SRC)/global
+QTMOBILITY_BEARER_SRC := $(QTMOBILITY_SRC)/bearer
+QTMOBILITY_CONTACTS_SRC := $(QTMOBILITY_SRC)/contacts
+QTMOBILITY_LOCATION_SRC := $(QTMOBILITY_SRC)/location
+QTMOBILITY_MESSAGING_SRC := $(QTMOBILITY_SRC)/messaging
+QTMOBILITY_MULTIMEDIA_SRC := $(QTMOBILITY_SRC)/multimedia
+QTMOBILITY_PUBLISHSUBSCRIBE_SRC := $(QTMOBILITY_SRC)/publishsubscribe
+QTMOBILITY_SYSTEMINFO_SRC := $(QTMOBILITY_SRC)/systeminfo
+QTMOBILITY_SERVICEFRAMEWORK_SRC := $(QTMOBILITY_SRC)/serviceframework
+QTMOBILITY_VERSIT_SRC := $(QTMOBILITY_SRC)/versit
+QTMOBILITY_SENSORS_SRC := $(QTMOBILITY_SRC)/sensors
+QTMOBILITY_VERSITORGANIZER_SRC := $(QTMOBILITY_SRC)/versitorganizer
+QTMOBILITY_GALLERY_SRC := $(QTMOBILITY_SRC)/gallery
+QTMOBILITY_ORGANIZER_SRC := $(QTMOBILITY_SRC)/organizer
+QTMOBILITY_FEEDBACK_SRC := $(QTMOBILITY_SRC)/feedback
+QTMOBILITY_CONNECTIVITY_SRC := $(QTMOBILITY_SRC)/connectivity
+
+define generate_module_headers
+
+EXPORT::
+	$(call startrule,generate_module_headers,FORCESUCCESS) \
+	cd $(QTMOBILITY_ROOT) && \
+	$(PERL) -S $(QTMOBILITY_BIN)/$(SYNCHEADERS) $(1) $(2) \
+	$(call endrule,generate_module_headers)
+
+CLEAN::
+	$(call startrule,clean) \
+	$(GNURM) -rf $(1)  \
+	$(call endrule,clean)
+
+WHAT::
+	@(echo "<whatlog bldinf='$(COMPONENT_META)' mmp='$(PROJECT_META)' config='$(SBS_CONFIGURATION)'>"; \
+	$(GNUFIND) $(1) -type f -print | (read LINE; \
+	while [ $$$$? -eq 0 ]; do \
+		echo "<build>$$$$LINE</build>"; \
+		read LINE; \
+	done); \
+	echo "</whatlog>") $(if $(DESCRAMBLE),2>&1 | $(DESCRAMBLE))
+
+endef
+
+GUARD:=done_$(call sanitise,$(QTMOBILITY_INCLUDE))
+ifeq ($($(GUARD)),)
+$(GUARD) := 1
+
+ifneq (,$(findstring bearer,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_BEARER_INCLUDE), $(QTMOBILITY_BEARER_SRC)))
+endif
+
+ifneq (,$(findstring contacts,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_CONTACTS_INCLUDE), $(QTMOBILITY_CONTACTS_SRC)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_CONTACTS_INCLUDE), $(QTMOBILITY_CONTACTS_SRC)/requests))
+$(eval $(call generate_module_headers, $(QTMOBILITY_CONTACTS_INCLUDE), $(QTMOBILITY_CONTACTS_SRC)/filters))
+$(eval $(call generate_module_headers, $(QTMOBILITY_CONTACTS_INCLUDE), $(QTMOBILITY_CONTACTS_SRC)/details))
+endif
+
+ifneq (,$(findstring location,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_LOCATION_INCLUDE), $(QTMOBILITY_LOCATION_SRC)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_LOCATION_INCLUDE), $(QTMOBILITY_LOCATION_SRC)/landmarks))
+$(eval $(call generate_module_headers, $(QTMOBILITY_LOCATION_INCLUDE), $(QTMOBILITY_LOCATION_SRC)/maps))
+$(eval $(call generate_module_headers, $(QTMOBILITY_LOCATION_INCLUDE), $(QTMOBILITY_LOCATION_SRC)/maps/tiled))
+endif
+
+ifneq (,$(findstring messaging,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_MESSAGING_INCLUDE), $(QTMOBILITY_MESSAGING_SRC)))
+endif
+
+ifneq (,$(findstring multimedia,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_MULTIMEDIA_INCLUDE), $(QTMOBILITY_MULTIMEDIA_SRC)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_MULTIMEDIA_INCLUDE), $(QTMOBILITY_MULTIMEDIA_SRC)/audio))
+$(eval $(call generate_module_headers, $(QTMOBILITY_MULTIMEDIA_INCLUDE), $(QTMOBILITY_MULTIMEDIA_SRC)/video))
+endif
+
+ifneq (,$(findstring publishsubscribe,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_PUBLISHSUBSCRIBE_INCLUDE), $(QTMOBILITY_PUBLISHSUBSCRIBE_SRC)))
+endif
+
+ifneq (,$(findstring systeminfo,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_SYSTEMINFO_INCLUDE), $(QTMOBILITY_SYSTEMINFO_SRC)))
+endif
+
+ifneq (,$(findstring serviceframework,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_SERVICEFRAMEWORK_INCLUDE), $(QTMOBILITY_SERVICEFRAMEWORK_SRC)))
+endif
+
+ifneq (,$(findstring versit,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_VERSIT_INCLUDE), $(QTMOBILITY_VERSIT_SRC)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_VERSITORGANIZER_INCLUDE), $(QTMOBILITY_VERSITORGANIZER_SRC)))
+endif
+
+ifneq (,$(findstring sensors,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_SENSORS_INCLUDE), $(QTMOBILITY_SENSORS_SRC)))
+endif
+
+ifneq (,$(findstring gallery,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_GALLERY_INCLUDE), $(QTMOBILITY_GALLERY_SRC)))
+endif
+
+ifneq (,$(findstring organizer,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_ORGANIZER_INCLUDE), $(QTMOBILITY_ORGANIZER_SRC)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_ORGANIZER_INCLUDE), $(QTMOBILITY_ORGANIZER_SRC)/items))
+$(eval $(call generate_module_headers, $(QTMOBILITY_ORGANIZER_INCLUDE), $(QTMOBILITY_ORGANIZER_SRC)/requests))
+$(eval $(call generate_module_headers, $(QTMOBILITY_ORGANIZER_INCLUDE), $(QTMOBILITY_ORGANIZER_SRC)/filters))
+$(eval $(call generate_module_headers, $(QTMOBILITY_ORGANIZER_INCLUDE), $(QTMOBILITY_ORGANIZER_SRC)/details))
+endif
+
+ifneq (,$(findstring feedback,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_FEEDBACK_INCLUDE), $(QTMOBILITY_FEEDBACK_SRC)))
+endif
+
+ifneq (,$(findstring connectivity,$(MODULES)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_CONNECTIVITY_INCLUDE), $(QTMOBILITY_CONNECTIVITY_SRC)))
+$(eval $(call generate_module_headers, $(QTMOBILITY_CONNECTIVITY_INCLUDE), $(QTMOBILITY_CONNECTIVITY_SRC)/bluetooth))
+$(eval $(call generate_module_headers, $(QTMOBILITY_CONNECTIVITY_INCLUDE), $(QTMOBILITY_CONNECTIVITY_SRC)/nfc))
+endif
+
+$(eval $(call generate_module_headers, $(QTMOBILITY_INCLUDE), $(QTMOBILITY_GLOBAL_SRC)))
+
+endif

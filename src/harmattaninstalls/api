@@ -1,0 +1,92 @@
+interface: QtContacts
+type: library
+scope: Nokia MeeGo
+state: stable
+libs-pkg: libqtm-contacts
+dev-pkg:  libqtm-common-dev libqtm-contacts-dev
+
+interface: QtFeedback
+type: library
+scope: Nokia MeeGo
+state: stable
+libs-pkg: libqtm-feedback
+dev-pkg:  libqtm-common-dev libqtm-feedback-dev
+
+interface: QtGallery
+type: library
+libs-pkg: libqtm-gallery
+dev-pkg:  libqtm-common-dev libqtm-gallery-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtLocation
+type: library
+libs-pkg: libqtm-location
+dev-pkg:  libqtm-common-dev libqtm-location-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtMessaging
+type: library
+libs-pkg: libqtm-messaging
+dev-pkg:  libqtm-common-dev libqtm-messaging-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtMultimediaKit
+type: library
+libs-pkg: libqtm-multimedia
+dev-pkg:  libqtm-common-dev libqtm-multimedia-dev
+state: stable
+scope: Nokia MeeGo
+
+
+interface: QtOrganizer
+type: library
+libs-pkg: libqtm-organizer
+dev-pkg:  libqtm-common-dev libqtm-organizer-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtPublishSubscribe
+type: library
+libs-pkg: libqtm-publishsubscribe
+dev-pkg:  libqtm-common-dev libqtm-publishsubscribe-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtSensors
+type: library
+libs-pkg: libqtm-sensors
+dev-pkg:  libqtm-common-dev libqtm-sensors-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtServiceFramework
+type: library
+libs-pkg: libqtm-serviceframework
+dev-pkg:  libqtm-common-dev libqtm-serviceframework-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtSystemInfo
+type: library
+libs-pkg: libqtm-systeminfo
+dev-pkg:  libqtm-common-dev libqtm-systeminfo-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtVersit
+type: library
+libs-pkg: libqtm-versit
+dev-pkg:  libqtm-common-dev libqtm-versit-dev
+state: stable
+scope: Nokia MeeGo
+
+interface: QtVersitOrganizer
+type: library
+libs-pkg: libqtm-versitorganizer
+dev-pkg:  libqtm-common-dev libqtm-versitorganizer-dev
+state: stable
+scope: Nokia MeeGo
+

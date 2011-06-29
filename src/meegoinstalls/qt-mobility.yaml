@@ -1,0 +1,353 @@
+Name: qt-mobility
+Summary: APIs for mobile device functionality
+Version: 1.1.0+git2438
+Release: 1
+Group: System/Libraries
+License: LGPLv2.1 with exception or GPLv3
+URL: http://qt.gitorious.org/qt-mobility
+Sources:
+    - http://get.qt.nokia.com/qt/add-ons/%{name}-opensource-src-%{version}.tar.gz
+SourcePrefix: "%{name}-opensource-src-%{version}"
+Patches:
+Description: |
+    Qt Mobility delivers a set of new APIs for mobile device functionality. These
+    APIs allow the developer to use these features with ease from one framework and
+    apply them to phones, netbooks and non-mobile personal computers.
+Requires:
+    - libqtconnectivity1 = %{version}
+    - libqtcontacts1 = %{version}
+    - libqtfeedback1 = %{version}
+    - libqtgallery1 = %{version}
+    - libqtlocation1 = %{version}
+    - libqtmessaging1 = %{version}
+    - libqtmultimediakit1 = %{version}
+    - libqtorganizer1 = %{version}
+    - libqtpublishsubscribe1 = %{version}
+    - libqtsensors1 = %{version}
+    - libqtserviceframework1 = %{version}
+    - libqtsysteminfo1 = %{version}
+    - libqtversit1 = %{version}
+    - libqtversitorganizer1 = %{version}
+PkgConfigBR:
+    - QtGui
+    - QtOpenGL
+    - alsa
+    - blkid
+    - bluez
+    - connman
+    - contextsubscriber-1.0
+    - gconf-2.0
+    - geoclue
+    - gstreamer-plugins-bad-free-0.10
+    - gstreamer-plugins-base-0.10
+    - gypsy
+    - libiphb
+    - libpulse
+    - libmkcal
+    - meegotouch
+    - qttracker
+    - qmfclient
+    - sensord
+    - udev
+    - x11
+    - xext
+    - xrandr
+    - xrender
+    - xv
+    - QtSparql
+    - QtSparqlTrackerExtensions
+PkgBR:
+    - qt-devel-tools
+Configure: none
+Builder: none
+RunFdupes: "%{_datadir}/qtmobility/translations"
+SubPackages:
+    - Name: devel
+      Summary: APIs for mobile device functionality - development files
+      Group: Development/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the development files needed to build Qt applications
+          using Qt Mobility libraries.
+      Requires:
+          - servicefw
+
+    - Name: libqtconnectivity1
+      AsWholeName: yes
+      Summary: Qt Mobility Connectivity module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Connectivity API. It provides APIs for working with
+          local devices.
+
+    - Name: libqtcontacts1
+      AsWholeName: yes
+      Summary: Qt Mobility Contacts module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains an API enabling clients to request contact data from
+          local or remote backends.
+
+    - Name: libqtfeedback1
+      AsWholeName: yes
+      Summary: Qt Mobility Feedback module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Feedback API. It enables a client to control
+          the vibration of the device or the piezo feedback from the screen.
+
+    - Name: libqtgallery1
+      AsWholeName: yes
+      Summary: Qt Mobility Document Gallery module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains an API for accessing collections of documents and media
+          and their meta-data.
+
+    - Name: libqtlocation1
+      AsWholeName: yes
+      Summary: Qt Mobility Location module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Location API. It provides a library for distributing
+          and receiving location data using arbitrary data sources.
+
+    - Name: libqtmessaging1
+      AsWholeName: yes
+      Summary: Qt Mobility Messaging module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Messaging API. It is a common interface for handling
+          SMS, MMS, MIME Email and TNEF Email messages.
+
+    - Name: libqtmultimediakit1
+      AsWholeName: yes
+      Summary: Qt Mobility MultimediaKit module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains a set of APIs to play and record media, and manage a
+          collection of media content.
+
+    - Name: libqtorganizer1
+      AsWholeName: yes
+      Summary: Qt Mobility Organizer module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains an API for management of calendar, scheduling and
+          personal data from local or remote backends. It includes the ability to create,
+          edit, list, delete and lookup organizer information whether it is stored
+          locally or remotely.
+
+    - Name: libqtpublishsubscribe1
+      AsWholeName: yes
+      Summary: Qt Mobility Publish and Subscribe module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Publish and Subscribe API (containing Value Space).
+          It enables applications to read item values, navigate through and subscribe to
+          change notifications.
+
+    - Name: libqtsensors1
+      AsWholeName: yes
+      Summary: Qt Mobility Sensors module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Sensors API. It provides access to sensors.
+      Requires:
+          - libqtsql4-sqlite
+          - sensorfw
+
+    - Name: libqtserviceframework1
+      AsWholeName: yes
+      Summary: Qt Mobility Service Framework module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains a set of APIs to that allows clients to discover and
+          instantiate arbitrary services.
+
+    - Name: libqtsysteminfo1
+      AsWholeName: yes
+      Summary: Qt Mobility System Information module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains a set of APIs to discover system related information and
+          capabilities.
+
+    - Name: libqtversit1
+      AsWholeName: yes
+      Summary: Qt Mobility Versit (vCard) module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains an API to manage Versit documents, such as vCards.
+
+    - Name: libqtversitorganizer1
+      AsWholeName: yes
+      Summary: Qt Mobility Versit (Organizer) module
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains an API to manage Versit documents, such as iCalendar
+          documents. It interfaces the Organizer API and uses the same framework as for
+          vCards.
+
+    - Name: libdeclarative-contacts
+      AsWholeName: yes
+      Summary: Qt Mobility Contacts QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Contacts QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-feedback
+      AsWholeName: yes
+      Summary: Qt Mobility Feedback QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Feedback QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-gallery
+      AsWholeName: yes
+      Summary: Qt Mobility Document Gallery QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Document Gallery QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-location
+      AsWholeName: yes
+      Summary: Qt Mobility Location QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Location QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-messaging
+      AsWholeName: yes
+      Summary: Qt Mobility Messaging QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Messaging QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-multimedia
+      AsWholeName: yes
+      Summary: Qt Mobility Multimedia QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Multimedia QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-organizer
+      AsWholeName: yes
+      Summary: Qt Mobility Organizer QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Organizer QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-publishsubscribe
+      AsWholeName: yes
+      Summary: Qt Mobility Publish and Subscribe QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Publish and Subscribe QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-sensors
+      AsWholeName: yes
+      Summary: Qt Mobility Sensors Framework QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Sensors QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-serviceframework
+      AsWholeName: yes
+      Summary: Qt Mobility Service Framework QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Service Framework QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-systeminfo
+      AsWholeName: yes
+      Summary: Qt Mobility System Information QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the System Information QML plugin for QtDeclarative.
+
+    - Name: libdeclarative-connectivity
+      AsWholeName: yes
+      Summary: Qt Mobility Connectivity QML plugin
+      Group: System/Libraries
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Connectivity QML plugin for QtDeclarative.
+
+    - Name: servicefw
+      AsWholeName: yes
+      Summary: Qt Mobility Service Framework tool
+      Group: Development/Tools
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains the Service Framework tool (servicefw). It allows
+          to register services and make them available over the Service Framework.
+
+    - Name: examples
+      Summary: Qt Mobility examples
+      Group: System/X11
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains Qt Mobility examples.
+
+    - Name: l10n
+      Summary: APIs for mobile device functionality - localization files
+      Group: System/I18n
+      Description: |
+          Qt Mobility delivers a set of new APIs for mobile device functionality.
+
+          This package contains Qt Mobility translations.

@@ -1,0 +1,134 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, version 2.1 of the License.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with this program.  If not,
+* see "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html/".
+*
+* Description:
+*
+*/
+
+#ifndef __QT_MOBILITY_IBY__
+#define __QT_MOBILITY_IBY__
+
+#include <bldvariant.hrh>
+#include <data_caging_paths_for_iby.hrh>
+
+#ifndef FF_QT_IN_UDA
+
+//Stub sis
+data=ZSYSTEM\install\qtmobility_stub.sis                                                 \system\install\qtmobility_stub.sis
+
+//Core
+file=ABI_DIR\BUILD_DIR\qtbearer.dll                                                      SHARED_LIB_DIR\qtbearer.dll
+file=ABI_DIR\BUILD_DIR\qtlocation.dll                                                    SHARED_LIB_DIR\qtlocation.dll
+file=ABI_DIR\BUILD_DIR\qtpublishsubscribe.dll                                            SHARED_LIB_DIR\qtpublishsubscribe.dll
+file=ABI_DIR\BUILD_DIR\qpspathmapperserver.exe                                           PROGRAMS_DIR\qpspathmapperserver.exe
+file=ABI_DIR\BUILD_DIR\qtserviceframework.dll                                            SHARED_LIB_DIR\qtserviceframework.dll
+file=ABI_DIR\BUILD_DIR\qsfwdatabasemanagerserver.exe                                     PROGRAMS_DIR\qsfwdatabasemanagerserver.exe
+file=ABI_DIR\BUILD_DIR\qtsysteminfo.dll                                                  SHARED_LIB_DIR\qtsysteminfo.dll
+file=ABI_DIR\BUILD_DIR\qtmessaging.dll                                                   SHARED_LIB_DIR\qtmessaging.dll
+file=ABI_DIR\BUILD_DIR\qtmultimediakit.dll                                               SHARED_LIB_DIR\qtmultimediakit.dll
+file=ABI_DIR\BUILD_DIR\qtsensors.dll                                                     SHARED_LIB_DIR\qtsensors.dll
+file=ABI_DIR\BUILD_DIR\qtcontacts.dll                                                    SHARED_LIB_DIR\qtcontacts.dll
+file=ABI_DIR\BUILD_DIR\qtversit.dll                                                      SHARED_LIB_DIR\qtversit.dll
+file=ABI_DIR\BUILD_DIR\qtversitorganizer.dll                                             SHARED_LIB_DIR\qtversitorganizer.dll
+file=ABI_DIR\BUILD_DIR\qtfeedback.dll                                                    SHARED_LIB_DIR\qtfeedback.dll
+file=ABI_DIR\BUILD_DIR\qtgallery.dll                                                     SHARED_LIB_DIR\qtgallery.dll
+file=ABI_DIR\BUILD_DIR\qtorganizer.dll                                                   SHARED_LIB_DIR\qtorganizer.dll
+
+//Plugins
+file=ABI_DIR\BUILD_DIR\qtcontacts_serviceactionmanager.dll                               SHARED_LIB_DIR\qtcontacts_serviceactionmanager.dll
+data=\epoc32\data\z\resource\qt\plugins\contacts\qtcontacts_serviceactionmanager.qtplugin resource\qt\plugins\contacts\qtcontacts_serviceactionmanager.qtplugin
+file=ABI_DIR\BUILD_DIR\qtcontacts_symbian.dll                                            SHARED_LIB_DIR\qtcontacts_symbian.dll
+data=\epoc32\data\z\resource\qt\plugins\contacts\qtcontacts_symbian.qtplugin             resource\qt\plugins\contacts\qtcontacts_symbian.qtplugin
+file=ABI_DIR\BUILD_DIR\qtcontacts_symbiansim.dll                                         SHARED_LIB_DIR\qtcontacts_symbiansim.dll
+data=\epoc32\data\z\resource\qt\plugins\contacts\qtcontacts_symbiansim.qtplugin          resource\qt\plugins\contacts\qtcontacts_symbiansim.qtplugin
+file=ABI_DIR\BUILD_DIR\qtfeedback_mmk.dll                                                SHARED_LIB_DIR\qtfeedback_mmk.dll
+data=\epoc32\data\z\resource\qt\plugins\feedback\qtfeedback_mmk.qtplugin                 resource\qt\plugins\feedback\qtfeedback_mmk.qtplugin
+file=ABI_DIR\BUILD_DIR\qtfeedback_symbian.dll                                            SHARED_LIB_DIR\qtfeedback_symbian.dll
+data=\epoc32\data\z\resource\qt\plugins\feedback\qtfeedback_symbian.qtplugin             resource\qt\plugins\feedback\qtfeedback_symbian.qtplugin
+file=ABI_DIR\BUILD_DIR\qtgeoservices_nokia.dll                                           SHARED_LIB_DIR\qtgeoservices_nokia.dll
+data=\epoc32\data\z\resource\qt\plugins\geoservices\qtgeoservices_nokia.qtplugin         resource\qt\plugins\geoservices\qtgeoservices_nokia.qtplugin
+file=ABI_DIR\BUILD_DIR\qtlandmarks_symbian.dll                                           SHARED_LIB_DIR\qtlandmarks_symbian.dll
+data=\epoc32\data\z\resource\qt\plugins\landmarks\qtlandmarks_symbian.qtplugin           resource\qt\plugins\landmarks\qtlandmarks_symbian.qtplugin
+file=ABI_DIR\BUILD_DIR\qtmultimediakit_m3u.dll                                           SHARED_LIB_DIR\qtmultimediakit_m3u.dll
+data=\epoc32\data\z\resource\qt\plugins\playlistformats\qtmultimediakit_m3u.qtplugin     resource\qt\plugins\playlistformats\qtmultimediakit_m3u.qtplugin
+file=ABI_DIR\BUILD_DIR\qtmultimediakit_mmfengine.dll                                     SHARED_LIB_DIR\qtmultimediakit_mmfengine.dll
+data=\epoc32\data\z\resource\qt\plugins\mediaservice\qtmultimediakit_mmfengine.qtplugin  resource\qt\plugins\mediaservice\qtmultimediakit_mmfengine.qtplugin
+file=ABI_DIR\BUILD_DIR\qtmultimediakit_ecamengine.dll                                    SHARED_LIB_DIR\qtmultimediakit_ecamengine.dll
+data=\epoc32\data\z\resource\qt\plugins\mediaservice\qtmultimediakit_ecamengine.qtplugin resource\qt\plugins\mediaservice\qtmultimediakit_ecamengine.qtplugin
+file=ABI_DIR\BUILD_DIR\qtorganizer_skeleton.dll                                          SHARED_LIB_DIR\qtorganizer_skeleton.dll
+data=\epoc32\data\z\resource\qt\plugins\organizer\qtorganizer_skeleton.qtplugin          resource\qt\plugins\organizer\qtorganizer_skeleton.qtplugin
+file=ABI_DIR\BUILD_DIR\qtorganizer_symbian.dll                                           SHARED_LIB_DIR\qtorganizer_symbian.dll
+data=\epoc32\data\z\resource\qt\plugins\organizer\qtorganizer_symbian.qtplugin           resource\qt\plugins\organizer\qtorganizer_symbian.qtplugin
+file=ABI_DIR\BUILD_DIR\qtsensors_generic.dll                                             SHARED_LIB_DIR\qtsensors_generic.dll
+data=\epoc32\data\z\resource\qt\plugins\sensors\qtsensors_generic.qtplugin               resource\qt\plugins\sensors\qtsensors_generic.qtplugin
+file=ABI_DIR\BUILD_DIR\qtsensors_sym.dll                                                 SHARED_LIB_DIR\qtsensors_sym.dll
+data=\epoc32\data\z\resource\qt\plugins\sensors\qtsensors_sym.qtplugin                   resource\qt\plugins\sensors\qtsensors_sym.qtplugin
+file=ABI_DIR\BUILD_DIR\qtversit_backuphandler.dll                                        SHARED_LIB_DIR\qtversit_backuphandler.dll
+data=\epoc32\data\z\resource\qt\plugins\versit\qtversit_backuphandler.qtplugin           resource\qt\plugins\versit\qtversit_backuphandler.qtplugin
+file=ABI_DIR\BUILD_DIR\qtversit_vcardpreserver.dll                                       SHARED_LIB_DIR\qtversit_vcardpreserver.dll
+data=\epoc32\data\z\resource\qt\plugins\versit\qtversit_vcardpreserver.qtplugin          resource\qt\plugins\versit\qtversit_vcardpreserver.qtplugin
+file=ABI_DIR\BUILD_DIR\cntversitfavoriteplugin.dll                                       SHARED_LIB_DIR\cntversitfavoriteplugin.dll
+data=\epoc32\data\z\resource\qt\plugins\versit\cntversitfavoriteplugin.qtplugin          resource\qt\plugins\versit\cntversitfavoriteplugin.qtplugin
+file=ABI_DIR\BUILD_DIR\cntversitlandlineplugin.dll                                       SHARED_LIB_DIR\cntversitlandlineplugin.dll
+data=\epoc32\data\z\resource\qt\plugins\versit\cntversitlandlineplugin.qtplugin          resource\qt\plugins\versit\cntversitlandlineplugin.qtplugin
+file=ABI_DIR\BUILD_DIR\cntversitmycardplugin.dll                                         SHARED_LIB_DIR\cntversitmycardplugin.dll
+data=\epoc32\data\z\resource\qt\plugins\versit\cntversitmycardplugin.qtplugin            resource\qt\plugins\versit\cntversitmycardplugin.qtplugin
+file=ABI_DIR\BUILD_DIR\cntversitprefplugin.dll                                           SHARED_LIB_DIR\cntversitprefplugin.dll
+data=\epoc32\data\z\resource\qt\plugins\versit\cntversitprefplugin.qtplugin              resource\qt\plugins\versit\cntversitprefplugin.qtplugin
+file=ABI_DIR\BUILD_DIR\declarative_contacts.dll                                          SHARED_LIB_DIR\declarative_contacts.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\contacts\declarative_contacts.qtplugin resource\qt\imports\qtmobility\contacts\declarative_contacts.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\contacts\qmldir                       resource\qt\imports\qtmobility\contacts\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_feedback.dll                                          SHARED_LIB_DIR\declarative_feedback.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\feedback\declarative_feedback.qtplugin resource\qt\imports\qtmobility\feedback\declarative_feedback.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\feedback\qmldir                       resource\qt\imports\qtmobility\feedback\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_gallery.dll                                           SHARED_LIB_DIR\declarative_gallery.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\gallery\declarative_gallery.qtplugin  resource\qt\imports\qtmobility\gallery\declarative_gallery.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\gallery\qmldir                        resource\qt\imports\qtmobility\gallery\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_location.dll                                          SHARED_LIB_DIR\declarative_location.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\location\declarative_location.qtplugin resource\qt\imports\qtmobility\location\declarative_location.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\location\qmldir                       resource\qt\imports\qtmobility\location\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_messaging.dll                                         SHARED_LIB_DIR\declarative_messaging.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\messaging\declarative_messaging.qtplugin resource\qt\imports\qtmobility\messaging\declarative_messaging.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\messaging\qmldir                      resource\qt\imports\qtmobility\messaging\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_multimedia.dll                                        SHARED_LIB_DIR\declarative_multimedia.dll
+data=\epoc32\data\z\resource\qt\imports\qtmultimediakit\declarative_multimedia.qtplugin  resource\qt\imports\qtmultimediakit\declarative_multimedia.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmultimediakit\qmldir                           resource\qt\imports\qtmultimediakit\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_organizer.dll                                         SHARED_LIB_DIR\declarative_organizer.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\organizer\declarative_organizer.qtplugin resource\qt\imports\qtmobility\organizer\declarative_organizer.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\organizer\qmldir                      resource\qt\imports\qtmobility\organizer\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_publishsubscribe.dll                                  SHARED_LIB_DIR\declarative_publishsubscribe.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\publishsubscribe\declarative_publishsubscribe.qtplugin resource\qt\imports\qtmobility\publishsubscribe\declarative_publishsubscribe.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\publishsubscribe\qmldir               resource\qt\imports\qtmobility\publishsubscribe\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_sensors.dll                                           SHARED_LIB_DIR\declarative_sensors.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\sensors\declarative_sensors.qtplugin  resource\qt\imports\qtmobility\sensors\declarative_sensors.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\sensors\qmldir                        resource\qt\imports\qtmobility\sensors\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_serviceframework.dll                                  SHARED_LIB_DIR\declarative_serviceframework.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\serviceframework\declarative_serviceframework.qtplugin resource\qt\imports\qtmobility\serviceframework\declarative_serviceframework.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\serviceframework\qmldir               resource\qt\imports\qtmobility\serviceframework\qmldir
+file=ABI_DIR\BUILD_DIR\declarative_systeminfo.dll                                        SHARED_LIB_DIR\declarative_systeminfo.dll
+data=\epoc32\data\z\resource\qt\imports\qtmobility\systeminfo\declarative_systeminfo.qtplugin resource\qt\imports\qtmobility\systeminfo\declarative_systeminfo.qtplugin
+data=\epoc32\data\z\resource\qt\imports\qtmobility\systeminfo\qmldir                     resource\qt\imports\qtmobility\systeminfo\qmldir
+
+//Resource
+data=\epoc32\data\z\private\2002ac7f\qtserviceframework_4.7_system.db                    private\2002ac7f\qtserviceframework_4.7_system.db
+data=\epoc32\data\z\private\10202D56\import\packages\2002AC89\backup_registration.xml    private\10202D56\import\packages\2002AC89\backup_registration.xml
+
+// Symbian3 PS1 support
+file=\sf\mw\qtmobility\src\s60installs\deviceconfiguration\QtBearer{000a0000}.dll                                                      SHARED_LIB_DIR\QtBearer{000a0000}.dll
+#endif // FF_QT_IN_UDA
+
+#endif // __QT_MOBILITY_IBY__

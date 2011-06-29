@@ -1,0 +1,19 @@
+This directory contains the metadata for building and
+packaging Qt Mobility on Harmattan.
+
+
+HOW TO BUILD FOR HARMATTAN
+==========================
+
+(note: this is a brief overview and many aspects are uncovered)
+
+From within Scratchbox, at the top level of the Mobility
+source tree:
+
+  $ ln -s src/harmattaninstalls debian
+
+  $ dpkg-checkbuilddeps
+  $ fakeroot apt-get install (any missing dependencies mentioned above)
+
+  $ dpkg-buildpackage -rfakeroot
+

@@ -1,0 +1,68 @@
+/****************************************************************************
+**
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the documentation of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** No Commercial Usage
+** This file contains pre-release code and may not be distributed.
+** You may use this file in accordance with the terms and conditions
+** contained in the Technology Preview License Agreement accompanying
+** this package.
+**
+** GNU Free Documentation License
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of this
+** file.
+**
+** If you have questions regarding the use of this file, please contact
+** Nokia at qt-info@nokia.com.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \example audiorecorder
+    \title Audio Recorder Example
+
+
+
+    This example shows how to create a simple audio recorder using the QtMobility
+    Multimedia API.
+
+    We can easily setup the capture when we create the objects using a
+    QMediaRecorder initialized with a QAudioCaptureSource object.
+
+    \snippet    snippets/multimedia-snippets/audiorecorder.cpp create-objs-1
+
+    Then we set up the display of a list of available sources to use
+
+    \snippet    snippets/multimedia-snippets/audiorecorder.cpp device-list
+
+    And available codecs
+
+    \snippet    snippets/multimedia-snippets/audiorecorder.cpp codec-list
+
+    We display a dialog for the user to select the appropriate codec and the
+    input device to capture. Once selected we can use user interface objects
+    like buttons to start and stop the recording and display elapsed time.
+
+    \snippet    snippets/multimedia-snippets/audiorecorder.cpp get-device
+
+    Then use signals to indicate a change to the output filename, the codec
+    and the audio source.
+
+    When the button to record is pushed the toggleRecord() slot will start
+    or stop the recording process using the \l{QMediaRecorder::record()}
+    and \l{QMediaRecorder::stop()} functions of the QMediaRecorder object.
+
+    \snippet    snippets/multimedia-snippets/audiorecorder.cpp toggle-record
+
+
+*/
+
+

@@ -1,0 +1,110 @@
+#!/usr/bin/make -f
+
+#export DH_VERBOSE=1
+# set MOBILITY_ENABLE_STATIC_CONFIG to 0 to disable using staticconfig in configure
+MOBILITY_ENABLE_STATIC_CONFIG=1
+
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/utils.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+# Find out how many parallel threads to run
+TMP_BUILD_OPTS = $(subst $(comma),$(space),$(DEB_BUILD_OPTIONS))
+ifneq (,$(filter parallel=%,$(TMP_BUILD_OPTS)))
+  NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(TMP_BUILD_OPTS)))
+  PARALLEL_MAKEFLAGS += -j$(NUMJOBS)
+endif
+
+DEB_MAKE_INVOKE := $(MAKE) $(PARALLEL_MAKEFLAGS)
+DEB_MAKE_INSTALL_TARGET := INSTALL_ROOT=$(DEB_DESTDIR) install
+DEB_DH_INSTALL_SOURCEDIR := debian/tmp
+# DEB_DH_INSTALL_ARGS ensures that the build breaks if a file installed 
+# to DEB_DH_INSTALL_SOURCEDIR is not listed in any of the libqtm*.install files
+# except the *.prl files (-X.prl)
+DEB_DH_INSTALL_ARGS := --fail-missing -X.prl
+
+# bearer location contacts multimedia publishsubscribe versit messaging systeminfo serviceframework sensors gallery organizer feedback connectivity
+QTM_MODULES += connectivity
+QTM_MODULES += contacts
+QTM_MODULES += feedback
+QTM_MODULES += gallery
+QTM_MODULES += location
+QTM_MODULES += messaging
+QTM_MODULES += multimedia
+QTM_MODULES += organizer
+QTM_MODULES += publishsubscribe
+QTM_MODULES += sensors
+QTM_MODULES += serviceframework
+QTM_MODULES += systeminfo
+QTM_MODULES += versit
+
+# Add here any variable or target overrides you need.
+# Arguments to configure
+DEB_CONFIGURE_NORMAL_ARGS := -maemo6  -prefix /usr -headerdir /usr/include/qt4 \
+		-plugindir /usr/lib/qt4/plugins -modules "$(QTM_MODULES)" \
+		-examples -examplesdir /usr/lib/qtmobility/examples \
+		-demos -demosdir /usr/lib/qtmobility/demos \
+		-silent -release -tests
+
+# enable static config if set
+ifeq ($(MOBILITY_ENABLE_STATIC_CONFIG),1)
+    TARGET_BUILD=x86
+    ifeq ($(DEB_HOST_ARCH),arm)
+	  TARGET_BUILD=arm
+    endif
+    ifeq ($(DEB_HOST_ARCH),armel)
+	  TARGET_BUILD=arm
+    endif
+	DEB_CONFIGURE_EXTRA_FLAGS := -staticconfig harmattan_$(TARGET_BUILD)
+endif
+
+common-install-arch:: install-autotests
+
+#List of auto tests
+QTM_MAEMO_TESTDIR := debian/tests
+
+QTM_AUTOTESTS_SIMPLE := debian/libqtm-connectivity-tests.install \
+			debian/libqtm-contacts-tests.install \
+			debian/libqtm-feedback-tests.install \
+			debian/libqtm-gallery-tests.install \
+			debian/libqtm-location-tests.install \
+			debian/libqtm-messaging-tests.install \
+			debian/libqtm-multimedia-tests.install \
+			debian/libqtm-organizer-tests.install \
+			debian/libqtm-publishsubscribe-tests.install \
+			debian/libqtm-sensors-tests.install \
+			debian/libqtm-serviceframework-tests.install \
+			debian/libqtm-systeminfo-tests.install \
+			debian/libqtm-versit-tests.install
+
+
+export QTM_TEST_INSTALL_FILE=$(CURDIR)/debian/pkg.install
+
+#installation
+install-autotests:
+	$(DEB_MAKE_INVOKE) -C tests INSTALL_ROOT=$(DEB_DESTDIR) installtests
+	$(QTM_MAEMO_TESTDIR)/install_tests -d debian -t $(QTM_MAEMO_TESTDIR) \
+                -i $(DEB_DESTDIR) -c -xml $(QTM_AUTOTESTS_SIMPLE)
+				
+PACKAGE_TARGETS := $(foreach pkg,$(DEB_ALL_PACKAGES),binary/$(pkg))
+
+$(PACKAGE_TARGETS)::
+	    [ ! -f debian/$(notdir $@).aegis ] || aegis-deb-add -control debian/$(notdir $@)/DEBIAN/control .. debian/$(notdir $@).aegis=_aegis
+
+clean::
+	find  \( -false \
+	    -o -type f -name mobility*.prf \
+	  \) -delete
+	rm -rf include build lib patches
+	# Delete the config tests and 
+	rm -f \
+	  config.tests/maemo-icd-network-wlan/maemo-icd-network-wlan \
+      config.tests/maemo-icd/maemo-icd \
+	  config.tests/sensord/sensord \
+	  config.tests/gstreamer-photography/gstreamer-photography \
+	  config.tests/immersion/immersion \
+	  config.tests/maemo6-landmarks/maemo6-landmarks \
+	  config.tests/pulseaudio/pulseaudio
+

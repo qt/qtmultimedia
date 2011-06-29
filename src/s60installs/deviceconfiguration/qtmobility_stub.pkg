@@ -1,0 +1,12 @@
+
+; Language
+&EN
+
+; SIS header: name, uid, version
+#{"QtMobility"},(0x2002AC89),1,2,0,TYPE=SA
+
+; Localised Vendor name
+%{"Nokia"}
+
+; Unique Vendor name
+:"Nokia"

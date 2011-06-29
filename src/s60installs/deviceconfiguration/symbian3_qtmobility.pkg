@@ -1,0 +1,128 @@
+
+; Language
+&EN
+
+; SIS header: name, uid, version
+#{"QtMobility"},(0x2002AC89),1,2,0,TYPE=SA,RU
+
+; Default dependency to Qt libraries
+(0x2001E61C), 4, 7, 2, {"Qt"}
+; Default HW/platform dependencies
+[0x102032BE],0,0,0,{"S60ProductID"}
+[0x102752AE],0,0,0,{"S60ProductID"}
+[0x1028315F],0,0,0,{"S60ProductID"}
+[0x20022E6D],0,0,0,{"S60ProductID"}
+[0x20032DE7],0,0,0,{"S60ProductID"}
+
+; Localised Vendor name
+%{"Nokia"}
+
+; Unique Vendor name
+:"Nokia"
+
+; DEPLOYMENT
+"/epoc32/release/armv5/urel/qtbearer.dll"                  - "!:\sys\bin\qtbearer.dll"
+"qtbearer{000a0000}.dll"                                   - "!:\sys\bin\qtbearer{000a0000}.dll"
+"/epoc32/release/armv5/urel/qtlocation.dll"                - "!:\sys\bin\qtlocation.dll"
+"/epoc32/release/armv5/urel/qtpublishsubscribe.dll"        - "!:\sys\bin\qtpublishsubscribe.dll"
+"/epoc32/release/armv5/urel/qpspathmapperserver.exe"       - "!:\sys\bin\qpspathmapperserver.exe"
+"/epoc32/release/armv5/urel/qtserviceframework.dll"        - "!:\sys\bin\qtserviceframework.dll"
+"/epoc32/release/armv5/urel/qsfwdatabasemanagerserver.exe" - "!:\sys\bin\qsfwdatabasemanagerserver.exe"
+"/epoc32/release/armv5/urel/qtsysteminfo.dll"              - "!:\sys\bin\qtsysteminfo.dll"
+"/epoc32/release/armv5/urel/qtmessaging.dll"               - "!:\sys\bin\qtmessaging.dll"
+"/epoc32/release/armv5/urel/qtmultimediakit.dll"           - "!:\sys\bin\qtmultimediakit.dll"
+"/epoc32/release/armv5/urel/qtsensors.dll"                 - "!:\sys\bin\qtsensors.dll"
+"/epoc32/release/armv5/urel/qtcontacts.dll"                - "!:\sys\bin\qtcontacts.dll"
+"/epoc32/release/armv5/urel/qtversit.dll"                  - "!:\sys\bin\qtversit.dll"
+"/epoc32/release/armv5/urel/qtversitorganizer.dll"         - "!:\sys\bin\qtversitorganizer.dll"
+"/epoc32/release/armv5/urel/qtfeedback.dll"                - "!:\sys\bin\qtfeedback.dll"
+"/epoc32/release/armv5/urel/qtgallery.dll"                 - "!:\sys\bin\qtgallery.dll"
+"/epoc32/release/armv5/urel/qtorganizer.dll"               - "!:\sys\bin\qtorganizer.dll"
+"/epoc32/release/armv5/urel/qtconnectivity.dll"               - "!:\sys\bin\qtconnectivity.dll"
+
+"/epoc32/release/armv5/urel/qtcontacts_serviceactionmanager.dll"                     - "!:\sys\bin\qtcontacts_serviceactionmanager.dll"
+"/epoc32/data/z/resource/qt/plugins/contacts/qtcontacts_serviceactionmanager.qtplugin" - "!:\resource\qt\plugins\contacts\qtcontacts_serviceactionmanager.qtplugin"
+"/epoc32/release/armv5/urel/qtcontacts_symbian.dll"                                  - "!:\sys\bin\qtcontacts_symbian.dll"
+"/epoc32/data/z/resource/qt/plugins/contacts/qtcontacts_symbian.qtplugin"            - "!:\resource\qt\plugins\contacts\qtcontacts_symbian.qtplugin"
+"/epoc32/release/armv5/urel/qtcontacts_symbiansim.dll"                               - "!:\sys\bin\qtcontacts_symbiansim.dll"
+"/epoc32/data/z/resource/qt/plugins/contacts/qtcontacts_symbiansim.qtplugin"         - "!:\resource\qt\plugins\contacts\qtcontacts_symbiansim.qtplugin"
+"/epoc32/release/armv5/urel/qtfeedback_mmk.dll"                                      - "!:\sys\bin\qtfeedback_mmk.dll"
+"/epoc32/data/z/resource/qt/plugins/feedback/qtfeedback_mmk.qtplugin"                - "!:\resource\qt\plugins\feedback\qtfeedback_mmk.qtplugin"
+"/epoc32/release/armv5/urel/qtfeedback_symbian.dll"                                  - "!:\sys\bin\qtfeedback_symbian.dll"
+"/epoc32/data/z/resource/qt/plugins/feedback/qtfeedback_symbian.qtplugin"            - "!:\resource\qt\plugins\feedback\qtfeedback_symbian.qtplugin"
+"/epoc32/release/armv5/urel/qtgeoservices_nokia.dll"                                 - "!:\sys\bin\qtgeoservices_nokia.dll"
+"/epoc32/data/z/resource/qt/plugins/geoservices/qtgeoservices_nokia.qtplugin"        - "!:\resource\qt\plugins\geoservices\qtgeoservices_nokia.qtplugin"
+"/epoc32/release/armv5/urel/qtlandmarks_symbian.dll"                                 - "!:\sys\bin\qtlandmarks_symbian.dll"
+"/epoc32/data/z/resource/qt/plugins/landmarks/qtlandmarks_symbian.qtplugin"          - "!:\resource\qt\plugins\landmarks\qtlandmarks_symbian.qtplugin"
+"/epoc32/release/armv5/urel/qtmultimediakit_m3u.dll"                                 - "!:\sys\bin\qtmultimediakit_m3u.dll"
+"/epoc32/data/z/resource/qt/plugins/playlistformats/qtmultimediakit_m3u.qtplugin"    - "!:\resource\qt\plugins\playlistformats\qtmultimediakit_m3u.qtplugin"
+"/epoc32/release/armv5/urel/qtmultimediakit_mmfengine.dll"                          - "!:\sys\bin\qtmultimediakit_mmfengine.dll"
+"/epoc32/data/z/resource/qt/plugins/mediaservice/qtmultimediakit_mmfengine.qtplugin" - "!:\resource\qt\plugins\mediaservice\qtmultimediakit_mmfengine.qtplugin"
+"/epoc32/release/armv5/urel/qtmultimediakit_ecamengine.dll"                          - "!:\sys\bin\qtmultimediakit_ecamengine.dll"
+"/epoc32/data/z/resource/qt/plugins/mediaservice/qtmultimediakit_ecamengine.qtplugin" - "!:\resource\qt\plugins\mediaservice\qtmultimediakit_ecamengine.qtplugin"
+"/epoc32/release/armv5/urel/qtorganizer_skeleton.dll"                                - "!:\sys\bin\qtorganizer_skeleton.dll"
+"/epoc32/data/z/resource/qt/plugins/organizer/qtorganizer_skeleton.qtplugin"         - "!:\resource\qt\plugins\organizer\qtorganizer_skeleton.qtplugin"
+"/epoc32/release/armv5/urel/qtorganizer_symbian.dll"                                 - "!:\sys\bin\qtorganizer_symbian.dll"
+"/epoc32/data/z/resource/qt/plugins/organizer/qtorganizer_symbian.qtplugin"          - "!:\resource\qt\plugins\organizer\qtorganizer_symbian.qtplugin"
+"/epoc32/release/armv5/urel/qtsensors_generic.dll"                                   - "!:\sys\bin\qtsensors_generic.dll"
+"/epoc32/data/z/resource/qt/plugins/sensors/qtsensors_generic.qtplugin"              - "!:\resource\qt\plugins\sensors\qtsensors_generic.qtplugin"
+"/epoc32/release/armv5/urel/qtsensors_sym.dll"                                       - "!:\sys\bin\qtsensors_sym.dll"
+"/epoc32/data/z/resource/qt/plugins/sensors/qtsensors_sym.qtplugin"                  - "!:\resource\qt\plugins\sensors\qtsensors_sym.qtplugin"
+"/epoc32/release/armv5/urel/qtversit_backuphandler.dll"                              - "!:\sys\bin\qtversit_backuphandler.dll"
+"/epoc32/data/z/resource/qt/plugins/versit/qtversit_backuphandler.qtplugin"          - "!:\resource\qt\plugins\versit\qtversit_backuphandler.qtplugin"
+"/epoc32/release/armv5/urel/qtversit_vcardpreserver.dll"                              - "!:\sys\bin\qtversit_vcardpreserver.dll"
+"/epoc32/data/z/resource/qt/plugins/versit/qtversit_vcardpreserver.qtplugin"          - "!:\resource\qt\plugins\versit\qtversit_vcardpreserver.qtplugin"
+"/epoc32/release/armv5/urel/cntversitfavoriteplugin.dll"                              - "!:\sys\bin\cntversitfavoriteplugin.dll"
+"/epoc32/data/z/resource/qt/plugins/versit/cntversitfavoriteplugin.qtplugin"          - "!:\resource\qt\plugins\versit\cntversitfavoriteplugin.qtplugin"
+"/epoc32/release/armv5/urel/cntversitlandlineplugin.dll"                              - "!:\sys\bin\cntversitlandlineplugin.dll"
+"/epoc32/data/z/resource/qt/plugins/versit/cntversitlandlineplugin.qtplugin"          - "!:\resource\qt\plugins\versit\cntversitlandlineplugin.qtplugin"
+"/epoc32/release/armv5/urel/cntversitmycardplugin.dll"                              - "!:\sys\bin\cntversitmycardplugin.dll"
+"/epoc32/data/z/resource/qt/plugins/versit/cntversitmycardplugin.qtplugin"          - "!:\resource\qt\plugins\versit\cntversitmycardplugin.qtplugin"
+"/epoc32/release/armv5/urel/cntversitprefplugin.dll"                              - "!:\sys\bin\cntversitprefplugin.dll"
+"/epoc32/data/z/resource/qt/plugins/versit/cntversitprefplugin.qtplugin"          - "!:\resource\qt\plugins\versit\cntversitprefplugin.qtplugin"
+"/epoc32/release/armv5/urel/declarative_contacts.dll"                                - "!:\sys\bin\declarative_contacts.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/contacts/declarative_contacts.qtplugin" - "!:\resource\qt\imports\qtmobility\contacts\declarative_contacts.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/contacts/qmldir"                      - "!:\resource\qt\imports\qtmobility\contacts\qmldir"
+"/epoc32/release/armv5/urel/declarative_feedback.dll"                                - "!:\sys\bin\declarative_feedback.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/feedback/declarative_feedback.qtplugin" - "!:\resource\qt\imports\qtmobility\feedback\declarative_feedback.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/feedback/qmldir"                      - "!:\resource\qt\imports\qtmobility\feedback\qmldir"
+"/epoc32/release/armv5/urel/declarative_gallery.dll"                                 - "!:\sys\bin\declarative_gallery.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/gallery/declarative_gallery.qtplugin" - "!:\resource\qt\imports\qtmobility\gallery\declarative_gallery.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/gallery/qmldir"                       - "!:\resource\qt\imports\qtmobility\gallery\qmldir"
+"/epoc32/release/armv5/urel/declarative_location.dll"                                - "!:\sys\bin\declarative_location.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/location/declarative_location.qtplugin" - "!:\resource\qt\imports\qtmobility\location\declarative_location.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/location/qmldir"                      - "!:\resource\qt\imports\qtmobility\location\qmldir"
+"/epoc32/release/armv5/urel/declarative_messaging.dll"                               - "!:\sys\bin\declarative_messaging.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/messaging/declarative_messaging.qtplugin" - "!:\resource\qt\imports\qtmobility\messaging\declarative_messaging.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/messaging/qmldir"                     - "!:\resource\qt\imports\qtmobility\messaging\qmldir"
+"/epoc32/release/armv5/urel/declarative_multimedia.dll"                              - "!:\sys\bin\declarative_multimedia.dll"
+"/epoc32/data/z/resource/qt/imports/qtmultimediakit/declarative_multimedia.qtplugin" - "!:\resource\qt\imports\qtmultimediakit\declarative_multimedia.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmultimediakit/qmldir"                          - "!:\resource\qt\imports\qtmultimediakit\qmldir"
+"/epoc32/release/armv5/urel/declarative_organizer.dll"                               - "!:\sys\bin\declarative_organizer.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/organizer/declarative_organizer.qtplugin" - "!:\resource\qt\imports\qtmobility\organizer\declarative_organizer.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/organizer/qmldir"                     - "!:\resource\qt\imports\qtmobility\organizer\qmldir"
+"/epoc32/release/armv5/urel/declarative_publishsubscribe.dll"                        - "!:\sys\bin\declarative_publishsubscribe.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/publishsubscribe/declarative_publishsubscribe.qtplugin" - "!:\resource\qt\imports\qtmobility\publishsubscribe\declarative_publishsubscribe.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/publishsubscribe/qmldir"              - "!:\resource\qt\imports\qtmobility\publishsubscribe\qmldir"
+"/epoc32/release/armv5/urel/declarative_sensors.dll"                                 - "!:\sys\bin\declarative_sensors.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/sensors/declarative_sensors.qtplugin" - "!:\resource\qt\imports\qtmobility\sensors\declarative_sensors.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/sensors/qmldir"                       - "!:\resource\qt\imports\qtmobility\sensors\qmldir"
+"/epoc32/release/armv5/urel/declarative_serviceframework.dll"                        - "!:\sys\bin\declarative_serviceframework.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/serviceframework/declarative_serviceframework.qtplugin" - "!:\resource\qt\imports\qtmobility\serviceframework\declarative_serviceframework.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/serviceframework/qmldir"              - "!:\resource\qt\imports\qtmobility\serviceframework\qmldir"
+"/epoc32/release/armv5/urel/declarative_systeminfo.dll"                              - "!:\sys\bin\declarative_systeminfo.dll"
+"/epoc32/data/z/resource/qt/imports/qtmobility/systeminfo/declarative_systeminfo.qtplugin" - "!:\resource\qt\imports\qtmobility\systeminfo\declarative_systeminfo.qtplugin"
+"/epoc32/data/z/resource/qt/imports/qtmobility/systeminfo/qmldir"                    - "!:\resource\qt\imports\qtmobility\systeminfo\qmldir"
+
+"/epoc32/data/z/private/10202D56/import/packages/2002AC89/backup_registration.xml"   - "!:\private\10202D56\import\packages\2002AC89\backup_registration.xml"
+
+"/epoc32/release/armv5/urel/cntsrv.exe"                                              - "!:\sys\bin\cntsrv.exe"
+"/epoc32/release/armv5/urel/cntmodel.dll"                                            - "!:\sys\bin\cntmodel.dll"
+"/epoc32/release/armv5/urel/cntview.dll"                                             - "!:\sys\bin\cntview.dll"
+"/epoc32/release/armv5/urel/cntplsql.dll"                                            - "!:\sys\bin\cntplsql.dll"
+"/epoc32/release/armv5/urel/cntvcard.dll"                                            - "!:\sys\bin\cntvcard.dll"
+"/epoc32/release/armv5/urel/cntphone.dll"                                            - "!:\sys\bin\cntphone.dll"
+"/epoc32/release/armv5/urel/cntmatchlog.dll"                                         - "!:\sys\bin\cntmatchlog.dll"
+"/epoc32/data/z/resource/plugins/cntvcard.rsc"                                       - "!:\resource\plugins\cntvcard.rsc"
+"/epoc32/data/z/resource/plugins/cntphone.rsc"                                       - "!:\resource\plugins\cntphone.rsc"
+"/epoc32/data/z/resource/plugins/cntmatchlog.rsc"                                    - "!:\resource\plugins\cntmatchlog.rsc"

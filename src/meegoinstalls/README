@@ -1,0 +1,95 @@
+This directory contains the MeeGo.com packaging metadata for Qt Mobility,
+for use with the MeeGo.com OpenSuSE Build Service (OBS).
+
+Please see http://build.meego.com/ for more information about OBS.
+
+Quick Start: run `make' in this directory to see some useful things you
+can do.
+
+
+
+PATCHES
+=======
+
+At the time of writing, there are some MeeGo-specific patches hosted
+on the MeeGo OBS.  These patches are unable to be hosted in the Mobility
+git repository at this time.
+
+In order to successfully build Mobility for MeeGo, you must also obtain
+these patches, or you must modify qt-mobility.yaml and qt-mobility.spec
+to remove the usage of the patches.
+
+Please do not add any more patches.
+
+
+
+HOW TO MAKE CHANGES
+===================
+
+Within this directory, there is a yaml file and a spec file.  The yaml
+file is maintained by hand; the spec file is partially generated from the
+yaml file, but partially maintained by hand also, in specially marked
+sections.
+
+The command used to generate the spec file from the yaml file is `specify'.
+This is part of a tool named Spectacle.  This can be installed from the
+MeeGo tools repositories.  It does not require a full MeeGo SDK install.
+For example, on Ubuntu:
+
+  $ sudo /bin/sh -c 'echo deb http://repo.meego.com/MeeGo/tools/repos/ubuntu/10.04/ / > /etc/apt/sources.list.d/meego-tools.list'
+  $ gpg --keyserver pgpkeys.mit.edu --recv 0BC7BEC479FC1F8A && gpg --export --armor 0BC7BEC479FC1F8A | sudo apt-key add -
+  $ sudo apt-get update
+  $ sudo apt-get install meego-packaging-tools
+
+Once you have installed meego-packaging-tools, you can run `make spec-git'
+in this directory to regenerate the spec file from the yaml file.
+The spec file and yaml file should be maintained together, so if you
+modify the yaml file, you should do `make spec-git' and put the
+modifications to the spec file in the same commit.
+
+Please see http://wiki.meego.com/Spectacle for more information about
+spectacle.
+
+
+
+HOW TO BUILD
+============
+
+Note: these instructions are not canonical or supported in any way.
+They are here as a quick start for people who want to contribute to
+Qt Mobility and do not know how to compile for MeeGo.
+
+The most accurate way to build is to use the OpenSuSE build service
+on build.meego.com.  Unfortunately, at time of writing, anonymous
+access to this service is not available.  Therefore, using build.meego.com
+is not an option for most people.
+
+However, a fairly accurate build can still be done using the `build' command
+and referring to the live MeeGo repos.
+
+
+Abbreviated example of how to install `build' for Ubuntu:
+
+  $ sudo /bin/sh -c 'echo deb http://repo.meego.com/MeeGo/tools/repos/ubuntu/10.04/ / > /etc/apt/sources.list.d/meego-tools.list'
+  $ gpg --keyserver pgpkeys.mit.edu --recv 0BC7BEC479FC1F8A && gpg --export --armor 0BC7BEC479FC1F8A | sudo apt-key add -
+  $ sudo apt-get update
+  $ sudo apt-get install build
+  $ gpg --keyserver pgpkeys.mit.edu --recv 79FC1F8A && gpg --export --armor 79FC1F8A | sudo rpm --import -
+
+
+Then, to do the build (for i686):
+
+  $ make build-trunk-i686
+
+
+Or, to use the Trunk:Testing repository (which may contain newer versions of some packages):
+
+  $ make build-trunk-testing-i686
+
+
+These builds will take place in a chroot, and hence will require root access.
+They will attempt to use `sudo' for this.
+
+If you hit an error, `rpm: error while loading shared libraries: liblua-5.1.so',
+edit /usr/lib/build/configs/default.conf and add liblua to one of the `Preinstall:' lines
+(see http://comments.gmane.org/gmane.comp.handhelds.meego.devel/7139 )

@@ -1,0 +1,13 @@
+<aegis>
+    <request>
+        <credential name="GRP::metadata-users" />
+        <credential name="TrackerReadAccess" />
+        <credential name="TrackerWriteAccess" />
+        <for path="/usr/tests/qtm/tst_qcontactasync" />
+        <for path="/usr/tests/qtm/tst_qcontactmanagerdetails" />
+        <for path="/usr/tests/qtm/tst_qcontactmanager" />
+        <for path="/usr/tests/qtm/tst_qcontactmanagerfiltering" />
+        <for path="/usr/tests/qtm/tst_bm_contactsoverhead" />
+        <for path="/usr/tests/qtm/tst_bm_contacts" />
+    </request>
+</aegis>
