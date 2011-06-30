@@ -283,6 +283,8 @@ void QT7MovieViewRenderer::setupVideoOutput()
 
         [movieView setMovie:(QTMovie*)m_movie];
         [movieView setDrawRect:QRect(QPoint(0,0), m_nativeSize)];
+    } else {
+        m_nativeSize = QSize();
     }
 
     if (m_surface && !m_nativeSize.isEmpty()) {
