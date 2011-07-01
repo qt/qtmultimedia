@@ -1,28 +1,19 @@
-# How do we require a module?
-# requires(contains(mobility_modules,multimedia))
 
 TEMPLATE = subdirs
 SUBDIRS += \
     qabstractvideobuffer \
     qabstractvideosurface \
     qaudiocapturesource \
-    qgraphicsvideoitem \
-    qmediaimageviewer \
     qmediaobject \
     qmediaplayer \
     qmediaplayerbackend \
-    qmediaplaylist \
     qmediaplaylistnavigator \
-    qmediapluginloader \
     qmediarecorder \
     qmediaresource \
     qmediaservice \
-    qmediaserviceprovider \
     qmediacontent \
     qradiotuner \
     qcamera \
-    qpaintervideosurface \
-    qvideowidget \
     qmediatimerange \
     qaudiodeviceinfo \
     qaudiooutput \
@@ -32,10 +23,26 @@ SUBDIRS += \
     qvideosurfaceformat \
     qcamerabackend
 
+# Tests depending on private interfaces should only be built if
+# these interfaces are exported.
+contains (QT_CONFIG, private-tests) {
+  SUBDIRS += \
+    qgraphicsvideoitem \
+    qmediaimageviewer \
+    qmediaplaylist \
+    qmediapluginloader \
+    qmediaserviceprovider \
+    qpaintervideosurface \
+    qvideowidget \
+}
+
 contains (QT_CONFIG, declarative) {
+  # All the declarative tests depend on private interfaces
+  contains (QT_CONFIG, private-tests) {
     SUBDIRS += \
-#        qsoundeffect \
-        qdeclarativeaudio \
-        qdeclarativevideo
+#    qsoundeffect \
+    qdeclarativeaudio \
+    qdeclarativevideo
+  }
 }
 
