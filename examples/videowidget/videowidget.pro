@@ -1,13 +1,7 @@
 TEMPLATE = app
-CONFIG += example
+TARGET = videowidget
 
-INCLUDEPATH += ../../src/multimedia ../../src/multimedia/video
-include(../mobility_examples.pri)
-
-CONFIG += mobility
-MOBILITY = multimedia
-
-QMAKE_RPATHDIR += $$DESTDIR
+QT += multimediakit
 
 HEADERS = \
     videoplayer.h \
@@ -19,4 +13,10 @@ SOURCES = \
     videoplayer.cpp \
     videowidget.cpp \
     videowidgetsurface.cpp
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videowidget
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videowidget
+
+INSTALLS += target sources
 

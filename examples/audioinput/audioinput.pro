@@ -1,16 +1,16 @@
 TEMPLATE = app
-CONFIG += example
+TARGET = audioinput
 
-INCLUDEPATH += ../../src/multimedia ../../src/multimedia/audio
-include(../mobility_examples.pri)
-
-CONFIG += mobility
-MOBILITY = multimedia
-
-QMAKE_RPATHDIR += $$DESTDIR
+QT += multimediakit
 
 HEADERS       = audioinput.h
 
 SOURCES       = audioinput.cpp \
                 main.cpp
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audioinput
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audioinput
+
+INSTALLS += target sources
 

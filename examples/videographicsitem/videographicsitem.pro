@@ -1,13 +1,7 @@
 TEMPLATE = app
-CONFIG += example
+TARGET = videographicsitem
 
-INCLUDEPATH += ../../src/multimedia ../../src/multimedia/video
-include(../mobility_examples.pri)
-
-CONFIG += mobility
-MOBILITY = multimedia
-
-QMAKE_RPATHDIR += $$DESTDIR
+QT += multimediakit
 
 !symbian:contains(QT_CONFIG, opengl): QT += opengl
 
@@ -17,3 +11,10 @@ HEADERS   += videoplayer.h \
 SOURCES   += main.cpp \
              videoplayer.cpp \
              videoitem.cpp
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videographicsitem
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videographicsitem
+
+INSTALLS += target sources
+

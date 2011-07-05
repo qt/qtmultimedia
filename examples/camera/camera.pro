@@ -1,13 +1,7 @@
 TEMPLATE = app
 TARGET = camera
 
-INCLUDEPATH+=../../src/multimedia \
-             ../../src/multimedia/video
-
-include(../mobility_examples.pri)
-
-CONFIG += mobility
-MOBILITY = multimedia
+QT += multimediakit
 
 HEADERS = \
     camera.h \
@@ -31,3 +25,10 @@ symbian {
     TARGET.EPOCHEAPSIZE = 0x20000 0x3000000
     LIBS += -lavkon -leiksrv -lcone -leikcore
 }
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/camera
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/camera
+
+INSTALLS += target sources
+

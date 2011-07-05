@@ -1,13 +1,7 @@
 TEMPLATE = app
-CONFIG += example
+TARGET = audiorecorder
 
-INCLUDEPATH += ../../src/multimedia ../../src/multimedia/audio
-include(../mobility_examples.pri)
-
-CONFIG += mobility
-MOBILITY = multimedia
-
-QMAKE_RPATHDIR += $$DESTDIR
+QT += multimediakit
 
 HEADERS = \
     audiorecorder.h
@@ -27,3 +21,10 @@ maemo*: {
 symbian: {
     TARGET.CAPABILITY = UserEnvironment ReadDeviceData WriteDeviceData
 }
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audiorecorder
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audiorecorder
+
+INSTALLS += target sources
+

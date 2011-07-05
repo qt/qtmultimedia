@@ -1,19 +1,12 @@
-include (../mobility_examples.pri)
 
 TEMPLATE=app
 
-QT += declarative network
+QT += declarative network multimediakit
 
 !maemo5 {
     contains(QT_CONFIG, opengl) {
         QT += opengl
     }
-}
-
-win32 {
-    #required by Qt SDK to resolve Mobility libraries
-    CONFIG+=mobility
-    MOBILITY+=multimedia
 }
 
 SOURCES += $$PWD/qmlcamera.cpp
@@ -28,4 +21,10 @@ symbian {
     TARGET.CAPABILITY += UserEnvironment NetworkServices Location ReadUserData WriteUserData
     TARGET.EPOCHEAPSIZE = 0x20000 0x3000000
 }
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/qml_camera
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/qml_camera
+
+INSTALLS += target sources
 

@@ -1,13 +1,11 @@
 TEMPLATE = app
 TARGET = player
+
+CONFIG += qt warn_on
+
 QT += network \
-      xml
-
-INCLUDEPATH += ../../src/multimedia ../../src/multimedia/audio
-
-include(../demos.pri)
-CONFIG += mobility
-MOBILITY = multimedia
+      xml \
+      multimediakit \
 
 HEADERS = \
     player.h \
@@ -28,3 +26,10 @@ symbian {
     LIBS += -lavkon -lcone -leikcore
     TARGET.CAPABILITY = ReadUserData
 }
+
+#install
+target.path = $$[QT_INSTALL_DEMOS]/qtmultimediakit/player
+sources.files = $$SOURCES $HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_DEMOS]/qtmultimediakit/player
+INSTALLS += target sources
+

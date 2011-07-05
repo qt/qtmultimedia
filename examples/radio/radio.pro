@@ -1,13 +1,7 @@
 TEMPLATE = app
-CONFIG += example
+TARGET = radio
 
-INCLUDEPATH += ../../src/multimedia
-include(../mobility_examples.pri)
-
-CONFIG += mobility
-MOBILITY = multimedia
-
-QMAKE_RPATHDIR += $$DESTDIR
+QT += multimediakit
 
 HEADERS = \
     radio.h
@@ -19,3 +13,10 @@ SOURCES = \
 symbian: {
     TARGET.CAPABILITY = UserEnvironment WriteDeviceData ReadDeviceData SwEvent
 }
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/radio
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/radio
+
+INSTALLS += target sources
+

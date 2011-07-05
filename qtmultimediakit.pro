@@ -23,8 +23,7 @@ module_qtmultimediakit_tests.depends = module_qtmultimediakit_src
 module_qtmultimediakit_tests.CONFIG = no_default_target no_default_install
 
 SUBDIRS += module_qtmultimediakit_src \
-# temporarily disable demos and examples
-#           module_qtmultimediakit_demos \
-#           module_qtmultimediakit_examples \
+           module_qtmultimediakit_demos \
+           module_qtmultimediakit_examples \
            module_qtmultimediakit_tests \
 

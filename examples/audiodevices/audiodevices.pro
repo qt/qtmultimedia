@@ -1,13 +1,7 @@
 TEMPLATE = app
-CONFIG += example
+TARGET = audiodevices
 
-INCLUDEPATH += ../../src/multimedia ../../src/multimedia/audio
-include(../mobility_examples.pri)
-
-CONFIG += mobility
-MOBILITY = multimedia
-
-QMAKE_RPATHDIR += $$DESTDIR
+QT += multimediakit
 
 HEADERS       = audiodevices.h
 
@@ -19,3 +13,10 @@ FORMS        += audiodevicesbase.ui
 symbian {
     TARGET.CAPABILITY = UserEnvironment WriteDeviceData ReadDeviceData
 }
+
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audiodevices
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audiodevices
+
+INSTALLS += target sources
+
