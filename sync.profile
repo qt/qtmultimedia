@@ -19,17 +19,16 @@
     "QtMultimediaKit" => "$basedir/modules/qt_multimediakit.pri",
 );
 
-# Modules and programs, and their dependencies.
+# Module dependencies.
+# Every module that is required to build this module should have one entry.
 # Each of the module version specifiers can take one of the following values:
 #   - A specific Git revision.
-#   - "LATEST_REVISION", to always test against the latest revision.
-#   - "LATEST_RELEASE", to always test against the latest public release.
-#   - "THIS_REPOSITORY", to indicate that the module is in this repository.
+#   - any git symbolic ref resolvable from the module's repository (e.g. "refs/heads/master" to track master branch)
+#
 %dependencies = (
-    "QtMultimediaKit" => {
-        "QtGui" => "0c637cb07ba3c9b353e7e483a209537485cc4e2a",
-        "QtNetwork" => "0c637cb07ba3c9b353e7e483a209537485cc4e2a",
-        "QtCore" => "0c637cb07ba3c9b353e7e483a209537485cc4e2a",
-    },
+    "qtbase" => "refs/heads/master",
+    "qtsvg" => "refs/heads/master",
+    "qtscript" => "refs/heads/master",
+    "qtxmlpatterns" => "refs/heads/master",
+    "qtdeclarative" => "refs/heads/master",
 );
-
