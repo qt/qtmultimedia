@@ -40,7 +40,7 @@ contains (QT_CONFIG, declarative) {
   # All the declarative tests depend on private interfaces
   contains (QT_CONFIG, private_tests) {
     SUBDIRS += \
-#    qsoundeffect \
+    qsoundeffect \
     qdeclarativeaudio \
     qdeclarativevideo
   }
