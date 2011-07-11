@@ -74,9 +74,9 @@ symbian {
 # Install
 
 sources.files = $$SOURCES $$HEADERS $$RESOURCES app.pro
-sources.path = $$[QT_INSTALL_DEMOS]/qtmultimedia/spectrum/app
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/multimedia/spectrum/app
 images.files += images/record.png images/settings.png
-images.path = $$[QT_INSTALL_DEMOS]/qtmultimedia/spectrum/app/images
+images.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/multimedia/spectrum/app/images
 INSTALLS += sources images
 
 # Deployment

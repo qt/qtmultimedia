@@ -1,10 +1,10 @@
-Spectrum analyser demo app
+Spectrum analyser app
 ==========================
 
 Introduction
 ------------
 
-This application is a demo which uses the QtMultimedia APIs to capture and play back PCM audio.  While either recording or playback is ongoing, the application performs real-time level and frequency spectrum analysis, displaying the results in its main window.
+This application is an example which uses the QtMultimedia APIs to capture and play back PCM audio.  While either recording or playback is ongoing, the application performs real-time level and frequency spectrum analysis, displaying the results in its main window.
 
 
 Acknowledgments
