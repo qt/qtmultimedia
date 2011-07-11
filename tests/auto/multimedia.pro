@@ -25,7 +25,7 @@ SUBDIRS += \
 
 # Tests depending on private interfaces should only be built if
 # these interfaces are exported.
-contains (QT_CONFIG, private-tests) {
+contains (QT_CONFIG, private_tests) {
   SUBDIRS += \
     qgraphicsvideoitem \
     qmediaimageviewer \
@@ -38,7 +38,7 @@ contains (QT_CONFIG, private-tests) {
 
 contains (QT_CONFIG, declarative) {
   # All the declarative tests depend on private interfaces
-  contains (QT_CONFIG, private-tests) {
+  contains (QT_CONFIG, private_tests) {
     SUBDIRS += \
 #    qsoundeffect \
     qdeclarativeaudio \
