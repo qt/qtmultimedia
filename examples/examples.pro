@@ -4,6 +4,7 @@ SUBDIRS += \
     radio \
     camera \
     slideshow \
+    spectrum \
     audiorecorder \
     audiodevices \
     audioinput \
