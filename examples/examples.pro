@@ -9,7 +9,8 @@ SUBDIRS += \
     audioinput \
     audiooutput \
     videographicsitem \
-    videowidget
+    videowidget \
+    player \
 
 contains(QT_CONFIG, declarative) {
     SUBDIRS += declarative-camera

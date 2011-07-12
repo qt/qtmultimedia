@@ -28,8 +28,8 @@ symbian {
 }
 
 #install
-target.path = $$[QT_INSTALL_DEMOS]/qtmultimediakit/player
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/player
 sources.files = $$SOURCES $HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_DEMOS]/qtmultimediakit/player
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/player
 INSTALLS += target sources
 
