@@ -56,7 +56,7 @@
 #include "qdeclarativemediabase_p.h"
 
 #include <QtCore/qbasictimer.h>
-#include <QtDeclarative/qdeclarativeitem.h>
+#include <QtQuick1/qdeclarativeitem.h>
 
 
 QT_BEGIN_HEADER

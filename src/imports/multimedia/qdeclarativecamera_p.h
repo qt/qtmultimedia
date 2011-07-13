@@ -55,7 +55,7 @@
 
 #include "qgraphicsvideoitem.h"
 #include <QtCore/qbasictimer.h>
-#include <QtDeclarative/qdeclarativeitem.h>
+#include <QtQuick1/qdeclarativeitem.h>
 #include <QtCore/QTime>
 
 #include <qcamera.h>

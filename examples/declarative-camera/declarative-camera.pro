@@ -1,7 +1,7 @@
 
 TEMPLATE=app
 
-QT += declarative network multimediakit
+QT += declarative qtquick1 network multimediakit
 
 !maemo5 {
     contains(QT_CONFIG, opengl) {

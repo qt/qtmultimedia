@@ -40,7 +40,7 @@
 
 #include <QtGui/QApplication>
 #include <QtGui/QDesktopWidget>
-#include <QtDeclarative/QDeclarativeView>
+#include <QtQuick1/qdeclarativeview.h>
 #include <QtDeclarative/QDeclarativeEngine>
 
 #if !defined(QT_NO_OPENGL)
