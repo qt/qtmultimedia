@@ -63,17 +63,22 @@ public:
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimediaKit"));
 
-        qmlRegisterType<QSoundEffect>(uri, 1, 1, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio>(uri, 1, 1, "Audio");
-        qmlRegisterType<QDeclarativeVideo>(uri, 1, 1, "Video");
-        qmlRegisterType<QDeclarativeCamera>(uri, 1, 1, "Camera");
+        qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
+        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
+        /* Disabled until ported to scenegraph */
+#if 0
+        qmlRegisterType<QDeclarativeVideo>(uri, 4, 0, "Video");
+        qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
+#endif
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }
 
     void initializeEngine(QDeclarativeEngine *engine, const char *uri)
     {
         Q_UNUSED(uri);
+#if 0
         engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
+#endif
     }
 };
 

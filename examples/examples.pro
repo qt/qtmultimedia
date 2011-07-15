@@ -14,6 +14,6 @@ SUBDIRS += \
     player \
 
 contains(QT_CONFIG, declarative) {
-    SUBDIRS += declarative-camera
+    disabled:SUBDIRS += declarative-camera
 }
 

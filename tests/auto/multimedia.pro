@@ -42,7 +42,9 @@ contains (QT_CONFIG, declarative) {
     SUBDIRS += \
     qsoundeffect \
     qdeclarativeaudio \
-    qdeclarativevideo
+
+
+    disabled:SUBDIRS += qdeclarativevideo
   }
 }
 
