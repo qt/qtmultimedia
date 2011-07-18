@@ -39,9 +39,6 @@
 **
 ****************************************************************************/
 
-#ifndef QPULSEHELPER_H
-#define QPULSEHELPER_H
-
 //
 //  W A R N I N G
 //  -------------
@@ -53,21 +50,36 @@
 // We mean it.
 //
 
-#include "qaudiodeviceinfo.h"
-#include <qaudioformat.h>
-#include <pulse/pulseaudio.h>
+#ifndef QTMULTIMEDIAKIT_P_H
+#define QTMULTIMEDIAKIT_P_H
 
-QT_BEGIN_NAMESPACE
+#include <QtCore/qglobal.h>
 
-namespace QPulseAudioInternal
-{
-pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format);
-QString stateToQString(pa_stream_state_t state);
-QString stateToQString(pa_context_state_t state);
-QString sampleFormatToQString(pa_sample_format format);
-QAudioFormat sampleSpecToAudioFormat(pa_sample_spec spec);
-}
-
-QT_END_NAMESPACE
-
+#if defined(Q_OS_WIN)
+#  if defined(QT_NODLL)
+#    undef QT_MAKEDLL
+#    undef QT_DLL
+#  elif defined(QT_MAKEDLL)
+#    if defined(QT_DLL)
+#      undef QT_DLL
+#    endif
+#    if defined(QT_BUILD_MULTIMEDIA_LIB)
+#        define Q_MULTIMEDIA_EXPORT Q_DECL_EXPORT
+#    else
+#        define Q_MULTIMEDIA_EXPORT Q_DECL_IMPORT
+#    endif
+#  elif defined(QT_DLL) /* use a Qt DLL library */
+#    define Q_MULTIMEDIA_EXPORT Q_DECL_IMPORT
+#  endif
 #endif
+
+#if !defined(Q_SERVICEFW_EXPORT)
+#  if defined(QT_SHARED)
+#    define Q_MULTIMEDIA_EXPORT Q_DECL_EXPORT
+#  else
+#    define Q_MULTIMEDIA_EXPORT
+#  endif
+#endif
+
+#endif // QMULTIMEDIAKIT_P_H
+

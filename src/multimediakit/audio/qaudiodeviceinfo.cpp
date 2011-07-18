@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -95,8 +95,6 @@ public:
     \brief The QAudioDeviceInfo class provides an interface to query audio devices and their functionality.
     \inmodule QtMultimediaKit
     \ingroup multimedia
-
-    \since QtMobility 1.0
 
     QAudioDeviceInfo lets you query for audio devices--such as sound
     cards and USB headsets--that are currently available on the system.

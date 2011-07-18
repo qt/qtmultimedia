@@ -13,6 +13,7 @@ DEFINES += TESTDATA_DIR=\\\"$$PWD/\\\"
 HEADERS += \
     $$QT.multimediakit.sources/../plugins/m3u/qm3uhandler.h
 
+message($$HEADERS)
 SOURCES += \
     tst_qmediaplaylist.cpp \
     $$QT.multimediakit.sources/../plugins/m3u/qm3uhandler.cpp

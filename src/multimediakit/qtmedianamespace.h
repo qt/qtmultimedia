@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -45,7 +45,7 @@
 #include <QtCore/qpair.h>
 #include <QtCore/qmetatype.h>
 
-#include <qmobilityglobal.h>
+#include <qtmultimediakitdefs.h>
 
 QT_BEGIN_NAMESPACE
 

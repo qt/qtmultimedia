@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -42,7 +42,7 @@
 #ifndef QABSTRACTMEDIACONTROL_H
 #define QABSTRACTMEDIACONTROL_H
 
-#include <qmobilityglobal.h>
+#include <qtmultimediakitdefs.h>
 
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
