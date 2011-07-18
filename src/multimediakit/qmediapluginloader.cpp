@@ -47,10 +47,6 @@
 
 #include "qmediaserviceproviderplugin.h"
 
-#if defined(Q_OS_SYMBIAN)
-# include <f32file.h>
-#endif
-
 #if defined(Q_OS_MAC)
 # include <CoreFoundation/CoreFoundation.h>
 #endif
@@ -59,51 +55,6 @@ QT_BEGIN_NAMESPACE
 
 typedef QMap<QString,QObjectList> ObjectListMap;
 Q_GLOBAL_STATIC(ObjectListMap, staticMediaPlugins);
-
-
-#if defined(Q_OS_SYMBIAN)
-// XXX: Copied over from Mobility, hopefully to be removed at some point
-class DirChecker
-{
-public:
-    DirChecker();
-    ~DirChecker();
-    bool checkDir(const QDir& dir);
-
-private:
-    RFs rfs;
-};
-
-DirChecker::DirChecker()
-{
-    qt_symbian_throwIfError(rfs.Connect());
-}
-
-bool DirChecker::checkDir(const QDir& dir)
-{
-    bool pathFound = false;
-    // In Symbian, going cdUp() in a c:/private/<uid3>/ will result in *platsec* error at fileserver (requires AllFiles capability)
-    // Also, trying to cd() to a nonexistent directory causes *platsec* error. This does not cause functional harm, but should
-    // nevertheless be changed to use native Symbian methods to avoid unnecessary platsec warnings (as per qpluginloader.cpp).
-    // Use native Symbian code to check for directory existence, because checking
-    // for files from under non-existent protected dir like E:/private/<uid> using
-    // QDir::exists causes platform security violations on most apps.
-    QString nativePath = QDir::toNativeSeparators(dir.absolutePath());
-    TPtrC ptr = TPtrC16(static_cast<const TUint16*>(nativePath.utf16()), nativePath.length());
-    TUint attributes;
-    TInt err = rfs.Att(ptr, attributes);
-    if (err == KErrNone) {
-        // yes, the directory exists.
-        pathFound = true;
-    }
-    return pathFound;
-}
-
-DirChecker::~DirChecker()
-{
-    rfs.Close();
-}
-#endif
 
 
 QMediaPluginLoader::QMediaPluginLoader(const char *iid, const QString &location, Qt::CaseSensitivity):
@@ -139,10 +90,6 @@ QStringList QMediaPluginLoader::availablePlugins() const
     QStringList paths;
     QStringList plugins;
 
-#if defined(Q_OS_SYMBIAN)
-    DirChecker dirChecker;
-#endif
-
 #if defined(Q_OS_MAC)
     QString imageSuffix(qgetenv("DYLD_IMAGE_SUFFIX"));
 
@@ -174,31 +121,26 @@ QStringList QMediaPluginLoader::availablePlugins() const
 
     foreach (const QString &path, paths) {
         QDir typeDir(path + m_location);
-#if defined(Q_OS_SYMBIAN)
-        if (dirChecker.checkDir(typeDir))
-#endif
-        {
-            foreach (const QString &file, typeDir.entryList(QDir::Files)) {
+        foreach (const QString &file, typeDir.entryList(QDir::Files)) {
 #if defined(Q_OS_MAC)
-                if (!imageSuffix.isEmpty()) {   // Only add appropriate images
-                    if (file.lastIndexOf(imageSuffix, -6) == -1)
-                        continue;
-                } else {  // Ignore any images with common suffixes
-                    if (file.endsWith(QLatin1String("_debug.dylib")) ||
-                        file.endsWith(QLatin1String("_profile.dylib")))
-                        continue;
-                }
-#elif defined(Q_OS_UNIX)
-                // Ignore separate debug files
-                if (file.endsWith(QLatin1String(".debug")))
+            if (!imageSuffix.isEmpty()) {   // Only add appropriate images
+                if (file.lastIndexOf(imageSuffix, -6) == -1)
                     continue;
-#elif defined(Q_OS_WIN)
-                // Ignore non-dlls
-                if (!file.endsWith(QLatin1String(".dll"), Qt::CaseInsensitive))
+            } else {  // Ignore any images with common suffixes
+                if (file.endsWith(QLatin1String("_debug.dylib")) ||
+                    file.endsWith(QLatin1String("_profile.dylib")))
                     continue;
-#endif
-                plugins << typeDir.absoluteFilePath(file);
             }
+#elif defined(Q_OS_UNIX)
+            // Ignore separate debug files
+            if (file.endsWith(QLatin1String(".debug")))
+                continue;
+#elif defined(Q_OS_WIN)
+            // Ignore non-dlls
+            if (!file.endsWith(QLatin1String(".dll"), Qt::CaseInsensitive))
+                continue;
+#endif
+            plugins << typeDir.absoluteFilePath(file);
         }
     }
 

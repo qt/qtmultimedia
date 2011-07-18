@@ -252,7 +252,7 @@ QDir QGstreamerRecorderControl::defaultDir() const
 {
     QStringList dirCandidates;
 
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6)
     dirCandidates << QLatin1String("/home/user/MyDocs");
 #endif
 

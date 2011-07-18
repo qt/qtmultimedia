@@ -26,13 +26,6 @@ PKGCONFIG += \
 maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
 contains(gstreamer-appsrc_enabled, yes): PKGCONFIG += gstreamer-app-0.10
 
-maemo5 {
-  HEADERS += camerabuttonlistener_maemo.h
-  SOURCES += camerabuttonlistener_maemo.cpp
-
-  QT += dbus
-}
-
 maemo6 {
     HEADERS += camerabuttonlistener_meego.h
     SOURCES += camerabuttonlistener_meego.cpp
@@ -76,7 +69,7 @@ SOURCES += \
     qgstutils.cpp
 
 
-!win32:!contains(QT_CONFIG,embedded):!mac:!symbian:!simulator:!contains(QT_CONFIG, qpa) {
+!win32:!contains(QT_CONFIG,embedded):!mac:!simulator:!contains(QT_CONFIG, qpa) {
     LIBS += -lXv -lX11 -lXext
 
     HEADERS += \

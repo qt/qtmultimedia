@@ -457,13 +457,7 @@ bool QX11VideoSurface::findPort()
     bool portFound = false;
 
     if (XvQueryAdaptors(QX11Info::display(), m_winId, &count, &adaptors) == Success) {
-#ifdef Q_WS_MAEMO_5
-            //the overlay xvideo adapter fails to switch winId,
-            //prefer the "SGX Textured Video" adapter instead
-        for (int i = count-1; i >= 0 && !portFound; --i) {
-#else
         for (unsigned int i = 0; i < count && !portFound; ++i) {
-#endif
             if (adaptors[i].type & XvImageMask) {
                 m_portId = adaptors[i].base_id;
 

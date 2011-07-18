@@ -250,17 +250,10 @@ bool QAudioInputPrivate::open()
                 = (settings.frequency()
                 * settings.channelCount()
                 * settings.sampleSize()
-#ifndef Q_OS_WINCE  // Default buffer size, 200ms, default period size is 40ms
                 + 39) / 40;
         period_size = buffer_size / 5;
     } else {
         period_size = buffer_size / 5;
-#else               // For wince reduce size to 40ms for buffer size and 20ms period
-                + 199) / 200;
-        period_size = buffer_size / 2;
-    } else {
-        period_size = buffer_size / 2;
-#endif
     }
 
     if (period_size == 0) {

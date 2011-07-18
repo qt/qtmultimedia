@@ -117,20 +117,6 @@ QT_BEGIN_NAMESPACE
     \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio input state changed
 
     \sa QAudioOutput, QAudioDeviceInfo
-
-    \section1 Symbian Platform Security Requirements
-
-    On Symbian, processes which use this class must have the
-    \c UserEnvironment platform security capability.  If the client
-    process lacks this capability, calls to either overload of start()
-    will fail.
-    This failure is indicated by the QAudioInput object setting
-    its error() value to \l{QAudio::OpenError} and then emitting a
-    \l{stateChanged()}{stateChanged}(\l{QAudio::StoppedState}) signal.
-
-    Platform security capabilities are added via the
-    \l{qmake-variable-reference.html#target-capability}{TARGET.CAPABILITY}
-    qmake variable.
 */
 
 /*!
@@ -184,8 +170,6 @@ QAudioInput::~QAudioInput()
      If a problem occurs during this process the error() is set to QAudio::OpenError,
      state() is set to QAudio::StoppedState and stateChanged() signal is emitted.
 
-     \l{QAudioInput#Symbian Platform Security Requirements}
-
      \since 1.0
      \sa QIODevice
 */
@@ -206,8 +190,6 @@ void QAudioInput::start(QIODevice* device)
 
     If a problem occurs during this process the error() is set to QAudio::OpenError,
     state() is set to QAudio::StoppedState and stateChanged() signal is emitted.
-
-    \l{QAudioInput#Symbian Platform Security Requirements}
 
     \since 1.0
     \sa QIODevice

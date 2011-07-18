@@ -76,11 +76,7 @@ QGstreamerV4L2Input::~QGstreamerV4L2Input()
 
 GstElement *QGstreamerV4L2Input::buildElement()
 {
-#ifndef Q_WS_MAEMO_5
     GstElement *camera = gst_element_factory_make("v4l2src", "camera_source");
-#else
-    GstElement *camera = gst_element_factory_make("v4l2camsrc", "camera_source");
-#endif
     if (camera && !m_device.isEmpty() )
         g_object_set(G_OBJECT(camera), "device", m_device.constData(), NULL);
 

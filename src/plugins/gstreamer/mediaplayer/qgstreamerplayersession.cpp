@@ -57,7 +57,7 @@
 #include <QtCore/qdir.h>
 #include <QtGui/qdesktopservices.h>
 
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6) || (GST_VERSION_MICRO > 20)
+#if defined(Q_WS_MAEMO_6) || (GST_VERSION_MICRO > 20)
 #define USE_PLAYBIN2
 #endif
 

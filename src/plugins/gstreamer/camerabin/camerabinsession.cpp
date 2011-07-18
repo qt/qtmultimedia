@@ -68,33 +68,6 @@
 //#define CAMERABIN_DEBUG 1
 #define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
 
-#ifdef Q_WS_MAEMO_5
-#define FILENAME_PROPERTY "filename"
-#define MODE_PROPERTY "mode"
-#define MUTE_PROPERTY "mute"
-#define ZOOM_PROPERTY "zoom"
-#define IMAGE_PP_PROPERTY "imagepp"
-#define IMAGE_ENCODER_PROPERTY "imageenc"
-#define VIDEO_PP_PROPERTY "videopp"
-#define VIDEO_ENCODER_PROPERTY "videoenc"
-#define AUDIO_ENCODER_PROPERTY "audioenc"
-#define VIDEO_MUXER_PROPERTY "videomux"
-#define VIEWFINDER_SINK_PROPERTY "vfsink"
-#define VIDEO_SOURCE_PROPERTY "videosrc"
-#define AUDIO_SOURCE_PROPERTY "audiosrc"
-#define VIDEO_SOURCE_CAPS_PROPERTY "inputcaps"
-#define FILTER_CAPS_PROPERTY "filter-caps"
-#define PREVIEW_CAPS_PROPERTY "preview-caps"
-
-#define IMAGE_DONE_SIGNAL "img-done"
-#define CAPTURE_START "user-start"
-#define CAPTURE_STOP "user-stop"
-#define CAPTURE_PAUSE "user-pause"
-#define SET_VIDEO_RESOLUTION_FPS "user-res-fps"
-#define SET_IMAGE_RESOLUTION "user-image-res"
-
-#else
-
 #define FILENAME_PROPERTY "filename"
 #define MODE_PROPERTY "mode"
 #define MUTE_PROPERTY "mute"
@@ -118,7 +91,6 @@
 #define CAPTURE_PAUSE "capture-pause"
 #define SET_VIDEO_RESOLUTION_FPS "set-video-resolution-fps"
 #define SET_IMAGE_RESOLUTION "set-image-resolution"
-#endif
 
 #define CAMERABIN_IMAGE_MODE 0
 #define CAMERABIN_VIDEO_MODE 1
@@ -135,7 +107,7 @@
 
 //using GST_STATE_READY for QCamera::LoadedState
 //doesn't work reliably at least with some webcams.
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6)
 #define USE_READY_STATE_ON_LOADED
 #endif
 
@@ -228,11 +200,6 @@ GstPhotography *CameraBinSession::photography()
 
 CameraBinSession::CameraRole CameraBinSession::cameraRole() const
 {
-#ifdef Q_WS_MAEMO_5
-    return m_inputDevice == QLatin1String("/dev/video1") ?
-                FrontCamera : BackCamera;
-#endif
-
     return BackCamera;
 }
 
@@ -475,7 +442,7 @@ QDir CameraBinSession::defaultDir(QCamera::CaptureMode mode) const
 {
     QStringList dirCandidates;
 
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6)
     dirCandidates << QLatin1String("/home/user/MyDocs/DCIM");
     dirCandidates << QLatin1String("/home/user/MyDocs/");
 #endif
@@ -1218,12 +1185,7 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         QSize minSize = res.first();
         QSize maxSize = res.last();
 
-#ifdef Q_WS_MAEMO_5
-        if (mode == QCamera::CaptureVideo && cameraRole() == BackCamera)
-            maxSize = QSize(848, 480);
-        if (mode == QCamera::CaptureStillImage)
-            minSize = QSize(640, 480);
-#elif defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6)
         if (cameraRole() == FrontCamera && maxSize.width() > 640)
             maxSize = QSize(640, 480);
         else if (mode == QCamera::CaptureVideo && maxSize.width() > 1280)

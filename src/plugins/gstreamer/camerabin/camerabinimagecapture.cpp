@@ -52,12 +52,7 @@
 
 //#define DEBUG_CAPTURE
 
-#ifdef Q_WS_MAEMO_5
-#define IMAGE_DONE_SIGNAL "img-done"
-#else
 #define IMAGE_DONE_SIGNAL "image-done"
-#endif
-
 
 Q_DECLARE_METATYPE(QVideoFrame)
 Q_DECLARE_METATYPE(QtMultimediaKit::MetaData)

@@ -178,12 +178,6 @@ void QGstreamerServicePlugin::updateDevices() const
     m_cameraDevices.clear();
     m_cameraDescriptions.clear();
 
-#ifdef Q_WS_MAEMO_5
-    m_cameraDevices << "/dev/video0" << "/dev/video1";
-    m_cameraDescriptions << tr("Main Camera") << tr("Front Camera");
-    return;
-#endif
-
 #ifdef Q_WS_MAEMO_6
     m_cameraDevices << "primary" << "secondary";
     m_cameraDescriptions << tr("Main camera") << tr("Front camera");

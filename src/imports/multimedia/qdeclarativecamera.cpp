@@ -241,8 +241,6 @@ void QDeclarativeCamera::_q_captureFailed(int id, QCameraImageCapture::Error err
 
     You can use the \c Camera element to capture images from a camera, and manipulate the capture and
     processing settings that get applied to the image.
-
-    \note On Symbian, your process requires the \c UserEnvironment capability to use this element.
 */
 
 /*!
@@ -262,14 +260,6 @@ QDeclarativeCamera::QDeclarativeCamera(QDeclarativeItem *parent) :
     m_isStateSet(false),
     m_isValid(true)
 {
-#if defined(Q_OS_SYMBIAN)
-    RProcess thisProcess;
-    if (!thisProcess.HasCapability(ECapabilityUserEnvironment)) {
-        qmlInfo(this) << "Camera Element requires UserEnvironment Capability to be successfully used on Symbian";
-	m_isValid = false;
-	return;
-    }
-#endif
     m_camera = new QCamera(this);
     m_viewfinderItem = new QGraphicsVideoItem(this);
     m_camera->setViewfinder(m_viewfinderItem);

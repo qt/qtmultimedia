@@ -202,12 +202,7 @@ GstElement *QGstreamerCaptureSession::buildAudioSrc()
     if (m_audioInputFactory)
         audioSrc = m_audioInputFactory->buildElement();
     else {
-
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
         audioSrc = gst_element_factory_make("pulsesrc", "audio_src");
-#elif defined(QT_QWS_N810)
-        audioSrc = gst_element_factory_make("dsppcmsrc", "audio_src");
-#else
         QString elementName = "alsasrc";
         QString device;
 
@@ -225,7 +220,6 @@ GstElement *QGstreamerCaptureSession::buildAudioSrc()
         audioSrc = gst_element_factory_make(elementName.toAscii().constData(), "audio_src");
         if (audioSrc && !device.isEmpty())
             g_object_set(G_OBJECT(audioSrc), "device", device.toLocal8Bit().constData(), NULL);
-#endif
     }
 
     if (!audioSrc) {

@@ -129,12 +129,6 @@ void CameraBinControl::setCaptureMode(QCamera::CaptureMode mode)
 
 bool CameraBinControl::isCaptureModeSupported(QCamera::CaptureMode mode) const
 {
-#ifdef Q_WS_MAEMO_5
-    //Front camera on N900 supports only video capture
-    if (m_session->cameraRole() == CameraBinSession::FrontCamera)
-        return mode == QCamera::CaptureVideo;
-#endif
-
     return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
 }
 

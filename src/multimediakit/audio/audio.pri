@@ -40,29 +40,10 @@ win32 {
     SOURCES += audio/qaudiodeviceinfo_win32_p.cpp \
                audio/qaudiooutput_win32_p.cpp \
                audio/qaudioinput_win32_p.cpp
-    !wince*:LIBS += -lwinmm
-    wince*:LIBS += -lcoredll
-    LIBS += -lstrmiids -lole32 -loleaut32
+    LIBS += -lwinmm -lstrmiids -lole32 -loleaut32
 }
 
-symbian {
-    INCLUDEPATH += $${EPOCROOT}epoc32/include/mmf/common
-    INCLUDEPATH += $${EPOCROOT}epoc32/include/mmf/server
-
-    PRIVATE_HEADERS += audio/qaudio_symbian_p.h \
-               audio/qaudiodeviceinfo_symbian_p.h \
-               audio/qaudioinput_symbian_p.h \
-               audio/qaudiooutput_symbian_p.h
-
-    SOURCES += audio/qaudio_symbian_p.cpp \
-               audio/qaudiodeviceinfo_symbian_p.cpp \
-               audio/qaudioinput_symbian_p.cpp \
-               audio/qaudiooutput_symbian_p.cpp
-
-    LIBS += -lmmfdevsound
-}
-
-unix:!mac:!symbian {
+unix:!mac {
     contains(pulseaudio_enabled, yes) {
         DEFINES += QT_NO_AUDIO_BACKEND
     }

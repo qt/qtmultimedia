@@ -8,7 +8,7 @@ QT = core network gui
 CONFIG += module
 MODULE_PRI += ../../modules/qt_multimediakit.pri
 
-contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2): !symbian {
+contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
    QT += opengl
 } else {
    DEFINES += QT_NO_OPENGL
@@ -167,14 +167,6 @@ mac {
    LIBS += -framework AppKit -framework QuartzCore -framework QTKit
 }
 
-maemo5 {
-    isEqual(QT_ARCH,armv6):QMAKE_CXXFLAGS += -march=armv7a -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon
-    HEADERS += qxvideosurface_maemo5_p.h
-    SOURCES += qxvideosurface_maemo5.cpp
-    SOURCES += qgraphicsvideoitem_maemo5.cpp
-    LIBS += -lXv  -lX11 -lXext
-}
-
 maemo6 {
     isEqual(QT_ARCH,armv6) {
         HEADERS += qeglimagetexturesurface_p.h
@@ -188,30 +180,9 @@ maemo6 {
     }
 }
 
-symbian {
-    contains(surfaces_s60_enabled, yes) {
-        SOURCES += qgraphicsvideoitem_symbian.cpp
-    } else {
-        SOURCES += qgraphicsvideoitem_overlay.cpp
-    }
-}
-
-!maemo*:!symbian {
+!maemo* {
     SOURCES += qgraphicsvideoitem.cpp
 }
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
 
-symbian {
-    contains(S60_VERSION, 5.1) |contains (S60_VERSION, 3.2) | contains(S60_VERSION, 3.1): DEFINES += PRE_S60_52_PLATFORM
-    load(data_caging_paths)
-    QtMediaDeployment.sources = QtMultimediaKit.dll
-    QtMediaDeployment.path = /sys/bin
-    DEPLOYMENT += QtMediaDeployment
-    TARGET.UID3=0x2002AC77
-    TARGET.CAPABILITY = ALL -TCB
-    LIBS += -lefsrv
-}
-
-# CONFIG += middleware
-# include(../../features/deploy.pri)

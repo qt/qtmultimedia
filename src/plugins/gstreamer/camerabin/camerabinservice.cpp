@@ -76,10 +76,6 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qprocess.h>
 
-#if defined(Q_WS_MAEMO_5)
-#include "camerabuttonlistener_maemo.h"
-#endif
-
 #if defined(Q_WS_MAEMO_6)
 #include "camerabuttonlistener_meego.h"
 #endif
@@ -145,22 +141,13 @@ CameraBinService::CameraBinService(const QString &service, QObject *parent):
     connect(m_metaDataControl, SIGNAL(metaDataChanged(QMap<QByteArray,QVariant>)),
             m_captureSession, SLOT(setMetaData(QMap<QByteArray,QVariant>)));
 
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6)
     new CameraButtonListener(this);
-#endif
-
-#if defined(Q_WS_MAEMO_5)
-    //disable the system camera application
-    QProcess::execute("/usr/sbin/dsmetool -k /usr/bin/camera-ui");
 #endif
 }
 
 CameraBinService::~CameraBinService()
 {
-#if defined(Q_WS_MAEMO_5)
-    //restore the system camera application
-    QProcess::execute("/usr/sbin/dsmetool -U user -o /usr/bin/camera-ui");
-#endif
 }
 
 QMediaControl *CameraBinService::requestControl(const char *name)

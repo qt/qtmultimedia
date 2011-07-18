@@ -315,12 +315,10 @@ void QAudioDeviceInfoInternal::updateLists()
 	   || (fmt && WAVE_FORMAT_2S08)
 	   || (fmt && WAVE_FORMAT_4M08)
 	   || (fmt && WAVE_FORMAT_4S08)
-#ifndef Q_OS_WINCE
 	   || (fmt && WAVE_FORMAT_48M08)
 	   || (fmt && WAVE_FORMAT_48S08)
 	   || (fmt && WAVE_FORMAT_96M08)
 	   || (fmt && WAVE_FORMAT_96S08)
-#endif
        ) {
             sizez.append(8);
 	}
@@ -330,12 +328,10 @@ void QAudioDeviceInfoInternal::updateLists()
 	   || (fmt && WAVE_FORMAT_2S16)
 	   || (fmt && WAVE_FORMAT_4M16)
 	   || (fmt && WAVE_FORMAT_4S16)
-#ifndef Q_OS_WINCE
 	   || (fmt && WAVE_FORMAT_48M16)
 	   || (fmt && WAVE_FORMAT_48S16)
 	   || (fmt && WAVE_FORMAT_96M16)
 	   || (fmt && WAVE_FORMAT_96S16)
-#endif
        ) {
             sizez.append(16);
 	}
@@ -357,7 +353,6 @@ void QAudioDeviceInfoInternal::updateLists()
 	   || (fmt && WAVE_FORMAT_4S16)) {
             freqz.append(44100);
 	}
-#ifndef Q_OS_WINCE
         if((fmt && WAVE_FORMAT_48M08)
            || (fmt && WAVE_FORMAT_48S08)
 	   || (fmt && WAVE_FORMAT_48M16)
@@ -370,7 +365,6 @@ void QAudioDeviceInfoInternal::updateLists()
 	   || (fmt && WAVE_FORMAT_96S16)) {
             freqz.append(96000);
         }
-#endif
 	channelz.append(1);
 	channelz.append(2);
         if (mode == QAudio::AudioOutput) {

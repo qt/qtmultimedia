@@ -57,18 +57,18 @@
 #define QTM_PACKAGE_TAG ""
 
 #include <QtCore/qglobal.h>
-#if defined(QTM_BUILD_UNITTESTS) && (defined(Q_OS_WIN) || defined(Q_OS_SYMBIAN)) && defined(QT_MAKEDLL)
+#if defined(QTM_BUILD_UNITTESTS) && (defined(Q_OS_WIN)) && defined(QT_MAKEDLL)
 #    define QM_AUTOTEST_EXPORT Q_DECL_EXPORT
-#elif defined(QTM_BUILD_UNITTESTS) && (defined(Q_OS_WIN) || defined(Q_OS_SYMBIAN)) && defined(QT_DLL)
+#elif defined(QTM_BUILD_UNITTESTS) && (defined(Q_OS_WIN)) && defined(QT_DLL)
 #    define QM_AUTOTEST_EXPORT Q_DECL_IMPORT
-#elif defined(QTM_BUILD_UNITTESTS) && !(defined(Q_OS_WIN) || defined(Q_OS_SYMBIAN)) && defined(QT_SHARED)
+#elif defined(QTM_BUILD_UNITTESTS) && !(defined(Q_OS_WIN)) && defined(QT_SHARED)
 #    define QM_AUTOTEST_EXPORT Q_DECL_EXPORT
 #else
 #    define QM_AUTOTEST_EXPORT
 #endif
 
 
-#if defined(Q_OS_WIN) || defined(Q_OS_SYMBIAN)
+#if defined(Q_OS_WIN)
 #  if defined(QT_NODLL)
 #    undef QT_MAKEDLL
 #    undef QT_DLL
@@ -160,11 +160,6 @@
 #    define Q_LOCATION_EXPORT Q_DECL_IMPORT
 #    define Q_MULTIMEDIA_EXPORT Q_DECL_IMPORT
 #    define Q_MESSAGING_EXPORT Q_DECL_IMPORT
-#    if QTM_SERVICEFW_SYMBIAN_DATABASEMANAGER_SERVER
-#      define Q_SERVICEFW_EXPORT
-#    else
-#      define Q_SERVICEFW_EXPORT Q_DECL_IMPORT
-#    endif
 #    define Q_SYSINFO_EXPORT Q_DECL_IMPORT
 #    define Q_SENSORS_EXPORT Q_DECL_IMPORT
 #    define Q_FEEDBACK_EXPORT Q_DECL_IMPORT
@@ -210,17 +205,6 @@
 #  endif
 #endif
 
-
-#ifdef QTM_SERVICEFW_SYMBIAN_DATABASEMANAGER_SERVER
-#  ifdef Q_SERVICEFW_EXPORT
-#    undef Q_SERVICEFW_EXPORT
-#  endif
-#  define Q_SERVICEFW_EXPORT
-#  ifdef QM_AUTOTEST_EXPORT
-#    undef QM_AUTOTEST_EXPORT
-#  endif
-#  define QM_AUTOTEST_EXPORT
-#endif
 
 // The namespace is hardcoded as moc has issues resolving
 // macros which would be a prerequisite for a dynmamic namespace

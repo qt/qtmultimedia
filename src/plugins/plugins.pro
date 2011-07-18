@@ -12,13 +12,13 @@ win32 {
     SUBDIRS += audiocapture
 }
 
-win32:!wince* {
+win32 {
     contains(directshow_enabled, yes): SUBDIRS += directshow
 }
 
 simulator: SUBDIRS += simulator
 
-unix:!mac:!symbian {
+unix:!mac {
     TMP_GST_LIBS = \
         gstreamer-0.10 >= 0.10.19 \
         gstreamer-base-0.10 >= 0.10.19 \
@@ -42,5 +42,3 @@ unix:!mac:!symbian {
 mac:!simulator {
     SUBDIRS += audiocapture qt7
 }
-
-symbian:SUBDIRS += symbian

@@ -86,7 +86,7 @@ QT_BEGIN_NAMESPACE
     \since 1.0
 
     This property holds the volume of the playback, from 0.0 (silent) to 1.0 (maximum volume).
-    Note: Currently this has no effect on Mac OS X and Symbian.
+    Note: Currently this has no effect on Mac OS X.
 */
 
 /*!

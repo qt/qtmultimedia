@@ -2,7 +2,6 @@
 
 TEMPLATE = lib
 TARGET = qtmmksnippets
-include(../../../../features/basic_examples_setup.pri)
 
 INCLUDEPATH += ../../../../src/global \
                ../../../../src/multimediakit \

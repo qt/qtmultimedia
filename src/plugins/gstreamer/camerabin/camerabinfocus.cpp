@@ -101,26 +101,16 @@ qreal CameraBinFocus::opticalZoom() const
 
 qreal CameraBinFocus::digitalZoom() const
 {
-#ifdef Q_WS_MAEMO_5
-    gint zoomFactor = 0;
-    g_object_get(GST_BIN(m_session->cameraBin()), "zoom", &zoomFactor, NULL);
-    return zoomFactor/100.0;
-#else
     gfloat zoomFactor = 1.0;
     g_object_get(GST_BIN(m_session->cameraBin()), "zoom", &zoomFactor, NULL);
     return zoomFactor;
-#endif
 }
 
 void CameraBinFocus::zoomTo(qreal optical, qreal digital)
 {
     Q_UNUSED(optical);
     digital = qBound(qreal(1.0), digital, qreal(10.0));
-#ifdef Q_WS_MAEMO_5
-    g_object_set(GST_BIN(m_session->cameraBin()), "zoom", qRound(digital*100.0), NULL);
-#else
     g_object_set(GST_BIN(m_session->cameraBin()), "zoom", digital, NULL);
-#endif
     emit digitalZoomChanged(digital);
 }
 
@@ -223,13 +213,6 @@ void CameraBinFocus::_q_handleCameraStateChange(QCamera::State state)
 
 void CameraBinFocus::_q_handleCapturedImage()
 {
-#ifdef Q_WS_MAEMO_5
-    //N900 lost focus after image capture
-    if (m_focusStatus != QCamera::Unlocked) {
-        m_focusStatus = QCamera::Unlocked;
-        emit _q_focusStatusChanged(QCamera::Unlocked, QCamera::LockLost);
-    }
-#endif
 }
 
 void CameraBinFocus::_q_startFocusing()
