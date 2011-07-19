@@ -153,6 +153,7 @@ QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &typ
     return QVideoSurfaceFormat();
 }
 
+#define PAD_TO_DWORD(x)  (((x) + 3) & ~3)
 int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
 {
     switch (format.pixelFormat()) {
@@ -162,13 +163,13 @@ int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
         return format.frameWidth() * 4;
     // 24 bpp packed formats.
     case QVideoFrame::Format_RGB24:
-        return format.frameWidth() * 3 + 3 - format.frameWidth() % 4;
+        return PAD_TO_DWORD(format.frameWidth() * 3);
     // 16 bpp packed formats.
     case QVideoFrame::Format_RGB565:
     case QVideoFrame::Format_RGB555:
     case QVideoFrame::Format_YUYV:
     case QVideoFrame::Format_UYVY:
-        return format.frameWidth() * 2 + 3 - format.frameWidth() % 4;
+        return PAD_TO_DWORD(format.frameWidth() * 2);
     // Planar formats.
     case QVideoFrame::Format_IMC1:
     case QVideoFrame::Format_IMC2:
@@ -177,7 +178,7 @@ int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
     case QVideoFrame::Format_YV12:
     case QVideoFrame::Format_NV12:
     case QVideoFrame::Format_YUV420P:
-        return format.frameWidth() + 3 - format.frameWidth() % 4;
+        return PAD_TO_DWORD(format.frameWidth());
     default:
         return 0;
     }
