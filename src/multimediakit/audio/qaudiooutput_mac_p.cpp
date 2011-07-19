@@ -108,9 +108,14 @@ public:
             QAudioRingBuffer::Region region = m_buffer->acquireReadRegion((maxFrames - framesRead) * m_bytesPerFrame);
 
             if (region.second > 0) {
+                // Ensure that we only read whole frames.
                 region.second -= region.second % m_bytesPerFrame;
-                memcpy(data + (framesRead * m_bytesPerFrame), region.first, region.second);
-                framesRead += region.second / m_bytesPerFrame;
+
+                if (region.second > 0) {
+                    memcpy(data + (framesRead * m_bytesPerFrame), region.first, region.second);
+                    framesRead += region.second / m_bytesPerFrame;
+                } else
+                    wecan = false; // If there is only a partial frame left we should exit.
             }
             else
                 wecan = false;
