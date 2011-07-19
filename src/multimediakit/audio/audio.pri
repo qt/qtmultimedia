@@ -44,7 +44,7 @@ win32 {
 }
 
 unix:!mac {
-    contains(pulseaudio_enabled, yes) {
+    contains(config_test_pulseaudio, yes) {
         DEFINES += QT_NO_AUDIO_BACKEND
     }
     else:contains(QT_CONFIG, alsa) {

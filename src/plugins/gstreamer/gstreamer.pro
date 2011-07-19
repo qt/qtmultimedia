@@ -24,7 +24,7 @@ PKGCONFIG += \
     gstreamer-video-0.10
 
 maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
-contains(gstreamer-appsrc_enabled, yes): PKGCONFIG += gstreamer-app-0.10
+contains(config_test_gstreamer_appsrc, yes): PKGCONFIG += gstreamer-app-0.10
 
 maemo6 {
     HEADERS += camerabuttonlistener_meego.h
@@ -89,7 +89,7 @@ SOURCES += \
 include(mediaplayer/mediaplayer.pri)
 include(mediacapture/mediacapture.pri)
 
-contains(gstreamer-photography_enabled, yes) {
+contains(config_test_gstreamer_photography, yes) {
     include(camerabin/camerabin.pri)
 }
 

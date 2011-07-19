@@ -32,3 +32,16 @@
     "qtxmlpatterns" => "refs/heads/master",
     "qtdeclarative" => "refs/heads/master",
 );
+# Compile tests
+%configtests = (
+    # Windows tests
+    "directshow" => {},
+    "wmsdk" => {},
+    "wmp" => {},
+    "evr" => {},
+
+    # Linux tests
+    "gstreamer_photography" => {},
+    "gstreamer_appsrc" => {},
+    "pulseaudio" => {},
+);

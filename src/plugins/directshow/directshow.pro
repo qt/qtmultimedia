@@ -17,7 +17,7 @@ DEPENDPATH += .
 HEADERS += dsserviceplugin.h
 SOURCES += dsserviceplugin.cpp
 
-!contains(wmsdk_enabled, yes): DEFINES += QT_NO_WMSDK
+!contains(config_test_wmsdk, yes): DEFINES += QT_NO_WMSDK
 
 include (player/player.pri)
 include (camera/camera.pri)

@@ -13,7 +13,7 @@ win32 {
 }
 
 win32 {
-    contains(directshow_enabled, yes): SUBDIRS += directshow
+    contains(config_test_directshow, yes): SUBDIRS += directshow
 }
 
 simulator: SUBDIRS += simulator
@@ -34,7 +34,7 @@ unix:!mac {
 
     !maemo*:SUBDIRS += v4l
 
-    contains(pulseaudio_enabled, yes) {
+    contains(config_test_pulseaudio, yes) {
         SUBDIRS += pulseaudio
     }
 }

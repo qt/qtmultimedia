@@ -1,7 +1,7 @@
 INCLUDEPATH += effects
 
 unix:!mac {
-   contains(pulseaudio_enabled, yes) {
+   contains(config_test_pulseaudio, yes) {
         CONFIG += link_pkgconfig
         PKGCONFIG += libpulse
 

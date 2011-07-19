@@ -1,7 +1,8 @@
 TEMPLATE = app
-TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
+
+requires(unix)
 
 # Input
 SOURCES += main.cpp
