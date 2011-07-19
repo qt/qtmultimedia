@@ -53,7 +53,7 @@
 
 #include <QtGui>
 
-#if (defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)) && QT_VERSION >= 0x040700
+#if (defined(Q_WS_MAEMO_6)) && QT_VERSION >= 0x040700
 #define HAVE_CAMERA_BUTTONS
 #endif
 

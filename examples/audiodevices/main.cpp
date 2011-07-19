@@ -48,11 +48,7 @@ int main(int argv, char **args)
     app.setApplicationName("Audio Device Test");
 
     AudioTest audio;
-#ifdef Q_OS_SYMBIAN
-    audio.showMaximized();
-#else
     audio.show();
-#endif
 
     return app.exec();
 }

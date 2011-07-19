@@ -7,6 +7,4 @@ QT += multimediakit-private
 
 SOURCES += tst_qgraphicsvideoitem.cpp
 
-symbian: TARGET.CAPABILITY = ReadDeviceData WriteDeviceData
-
 maemo*:CONFIG += insignificant_test

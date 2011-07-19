@@ -47,11 +47,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     SlideShow slideShow;
-#ifdef Q_OS_SYMBIAN
-    slideShow.showMaximized();
-#else
     slideShow.show();
-#endif
 
     return app.exec();
 }

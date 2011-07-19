@@ -57,7 +57,7 @@
 
 #include "qsoundeffect_pulse_p.h"
 
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6)
 #include <pulse/ext-stream-restore.h>
 #endif
 
@@ -204,7 +204,7 @@ private:
             case PA_CONTEXT_SETTING_NAME:
                 break;
             case PA_CONTEXT_READY:
-    #if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
+    #if defined(Q_WS_MAEMO_6)
                 pa_ext_stream_restore_read(c, &stream_restore_info_callback, self);
                 pa_ext_stream_restore_set_subscribe_cb(c, &stream_restore_monitor_callback, self);
                 pa_ext_stream_restore_subscribe(c, 1, 0, self);
@@ -216,7 +216,7 @@ private:
         }
     }
 
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6)
 
     static void stream_restore_monitor_callback(pa_context *c, void *userdata)
     {

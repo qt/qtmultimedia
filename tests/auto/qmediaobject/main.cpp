@@ -42,10 +42,6 @@
 #include <QtTest/QtTest>
 
 #include "tst_qmediaobject.h"
-#ifdef Q_OS_SYMBIAN
-#include "tst_qmediaobject_xa.h"
-#include "tst_qmediaobject_mmf.h"
-#endif
 
 int main(int argc, char**argv)
 {
@@ -53,25 +49,5 @@ int main(int argc, char**argv)
     int ret;
     tst_QMediaObject test_api;
     ret = QTest::qExec(&test_api, argc, argv);
-#ifdef Q_OS_SYMBIAN
-    char *new_argv[3];
-    QString str = "C:\\data\\" + QFileInfo(QCoreApplication::applicationFilePath()).baseName() + "_xa.log";
-    QByteArray   bytes  = str.toAscii();
-    char arg1[] = "-o";
-    new_argv[0] = argv[0];
-    new_argv[1] = arg1;
-    new_argv[2] = bytes.data();
-    tst_QMetadata_xa test_xa;
-    ret = QTest::qExec(&test_xa, 3, new_argv);
-    char *new_argv1[3];
-    QString str1 = "C:\\data\\" + QFileInfo(QCoreApplication::applicationFilePath()).baseName() + "_s60.log";
-    QByteArray   bytes1  = str1.toAscii();
-    char arg2[] = "-o";
-    new_argv1[0] = argv[0];
-    new_argv1[1] = arg2;
-    new_argv1[2] = bytes1.data();
-    tst_QMediaObject_mmf test_mmf;
-    ret = QTest::qExec(&test_mmf, 3, new_argv1);
-#endif
     return ret;
 }

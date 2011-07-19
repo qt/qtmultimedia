@@ -3,7 +3,7 @@ TARGET = videographicsitem
 
 QT += multimediakit
 
-!symbian:contains(QT_CONFIG, opengl): QT += opengl
+contains(QT_CONFIG, opengl): QT += opengl
 
 HEADERS   += videoplayer.h \
              videoitem.h

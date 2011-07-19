@@ -84,7 +84,6 @@ PlayerControls::PlayerControls(QWidget *parent)
 
     connect(muteButton, SIGNAL(clicked()), this, SLOT(muteClicked()));
 
-#ifndef Q_WS_MAEMO_5
     volumeSlider = new QSlider(Qt::Horizontal, this);
     volumeSlider->setRange(0, 100);
 
@@ -98,7 +97,6 @@ PlayerControls::PlayerControls(QWidget *parent)
     rateBox->setCurrentIndex(1);
 
     connect(rateBox, SIGNAL(activated(int)), SLOT(updateRate()));
-#endif
 
     QBoxLayout *layout = new QHBoxLayout;
     layout->setMargin(0);

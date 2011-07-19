@@ -6,17 +6,9 @@ QT += core declarative multimediakit-private
 
 SOURCES += tst_qsoundeffect.cpp
 
-wince*|symbian {
-    deploy.files = test.wav
-    DEPLOYMENT = deploy
-    DEFINES += QT_QSOUNDEFFECT_USEAPPLICATIONPATH
-} else:maemo* {
-    DEFINES += QT_QSOUNDEFFECT_USEAPPLICATIONPATH
-} else {
-    DEFINES += SRCDIR=\\\"$$PWD/\\\"
-}
+DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
-unix:!mac:!symbian {
+unix:!mac {
     !contains(QT_CONFIG, pulseaudio) {
         DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER
     }

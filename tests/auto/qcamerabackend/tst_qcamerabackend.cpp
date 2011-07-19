@@ -538,7 +538,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
 void tst_QCameraBackend::testExposureCompensation()
 {
-#if !defined(Q_WS_MAEMO_6) && !defined(Q_WS_MAEMO_5) && !defined(Q_OS_SYMBIAN)
+#if !defined(Q_WS_MAEMO_6)
     QSKIP("Capture exposure parameters are supported only on mobile platforms", SkipAll);
 #endif
 
@@ -546,12 +546,6 @@ void tst_QCameraBackend::testExposureCompensation()
     QCameraExposure *exposure = camera.exposure();
 
     QSignalSpy exposureCompensationSignal(exposure, SIGNAL(exposureCompensationChanged(qreal)));
-
-#ifdef Q_OS_SYMBIAN
-    // Camera needs to be started, see: QTMOBILITY-1566
-    camera.load();
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-#endif // Q_OS_SYMBIAN
 
     //it should be possible to set exposure parameters in Unloaded state
     QCOMPARE(exposure->exposureCompensation()+1.0, 1.0);
@@ -591,7 +585,7 @@ void tst_QCameraBackend::testExposureCompensation()
 
 void tst_QCameraBackend::testExposureMode()
 {
-#if !defined(Q_WS_MAEMO_6) && !defined(Q_WS_MAEMO_5) && !defined(Q_OS_SYMBIAN)
+#if !defined(Q_WS_MAEMO_6)
     QSKIP("Capture exposure parameters are supported only on mobile platforms", SkipAll);
 #endif
 
@@ -603,12 +597,6 @@ void tst_QCameraBackend::testExposureMode()
 #endif
     QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureAuto);
 
-#ifdef Q_OS_SYMBIAN
-    // Camera needs to be started, see: QTMOBILITY-1566
-    camera.load();
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-#endif // Q_OS_SYMBIAN
-
     // Night
     exposure->setExposureMode(QCameraExposure::ExposureNight);
     QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureNight);
@@ -618,12 +606,6 @@ void tst_QCameraBackend::testExposureMode()
 
     camera.unload();
     QTRY_COMPARE(camera.status(), QCamera::UnloadedStatus);
-
-#ifdef Q_OS_SYMBIAN
-    // Camera needs to be started, see: QTMOBILITY-1566
-    camera.load();
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-#endif // Q_OS_SYMBIAN
 
 #ifdef Q_WS_MAEMO_6
     //resource policy doesn't work correctly when resource is released and immediately requested again.

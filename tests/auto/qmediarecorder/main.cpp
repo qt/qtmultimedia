@@ -43,38 +43,11 @@
 
 #include "tst_qmediarecorder.h"
 
-#ifdef Q_OS_SYMBIAN
-#include "s60common.h"
-#include "tst_qmediarecorder_xa.h"
-#include "tst_qmediarecorder_mmf.h"
-#endif
-
 int main(int argc, char**argv)
 {
     QApplication app(argc,argv);
     int ret;
     tst_QMediaRecorder test_api;
     ret = QTest::qExec(&test_api, argc, argv);
-#ifdef Q_OS_SYMBIAN
-    char *new_argv[3];
-    QString str = "C:\\data\\" + QFileInfo(QCoreApplication::applicationFilePath()).baseName() + ".log";
-    QByteArray   bytes  = str.toAscii();
-    char arg1[] = "-o";
-    new_argv[0] = argv[0];
-    new_argv[1] = arg1;
-    new_argv[2] = bytes.data();
-    tst_QMediaRecorder_xa test_xa;
-    ret = QTest::qExec(&test_xa, 3, new_argv);
-    char *new_argv1[3];
-    QString str1 = "C:\\data\\" + QFileInfo(QCoreApplication::applicationFilePath()).baseName() + "_s60.log";
-    QByteArray   bytes1  = str1.toAscii();
-    char arg2[] = "-o";
-    new_argv1[0] = argv[0];
-    new_argv1[1] = arg2;
-    new_argv1[2] = bytes1.data();
-    tst_QMediaRecorder_mmf test_mmf;
-    ret = QTest::qExec(&test_mmf,  3, new_argv1);
-
-#endif
     return ret;
 }

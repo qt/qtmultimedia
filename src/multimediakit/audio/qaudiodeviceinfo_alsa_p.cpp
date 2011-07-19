@@ -465,7 +465,7 @@ QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
     if (idx > 0)
         devices.append("default");
 #endif
-#if (!defined(Q_WS_MAEMO_5) && !defined(Q_WS_MAEMO_6))
+#if !defined(Q_WS_MAEMO_6)
     if (devices.size() == 0 && allDevices.size() > 0)
         return allDevices;
 #endif

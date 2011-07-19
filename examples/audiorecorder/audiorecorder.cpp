@@ -46,7 +46,7 @@
 
 #include "audiorecorder.h"
 
-#if defined(Q_WS_MAEMO_5) || defined(Q_WS_MAEMO_6) || defined(SYMBIAN_S60_3X)
+#if defined(Q_WS_MAEMO_6)
 #include "ui_audiorecorder_small.h"
 #else
 #include "ui_audiorecorder.h"

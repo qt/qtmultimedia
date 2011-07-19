@@ -149,12 +149,7 @@ void MainWidget::infoMessage(const QString &message, int timeoutMs)
 
 void MainWidget::errorMessage(const QString &heading, const QString &detail)
 {
-#ifdef Q_OS_SYMBIAN
-    const QString message = heading + "\n" + detail;
-    QMessageBox::warning(this, "", message, QMessageBox::Close);
-#else
     QMessageBox::warning(this, heading, detail, QMessageBox::Close);
-#endif
 }
 
 void MainWidget::timerEvent(QTimerEvent *event)

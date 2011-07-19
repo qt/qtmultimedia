@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
     Player player;
 
-#if defined(Q_OS_SYMBIAN) || defined(Q_WS_SIMULATOR)
+#if defined(Q_WS_SIMULATOR)
 # if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 2))
     player.setAttribute(Qt::WA_LockLandscapeOrientation);
 # else

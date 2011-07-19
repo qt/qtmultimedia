@@ -102,9 +102,6 @@ QStringList QAudioPluginLoader::pluginList() const
 #endif
         for (int j=0; j < files.count(); j++) {
             const QString &file = files.at(j);
-#if defined(Q_WS_MAEMO_5)
-            if (!file.contains(QLatin1String("n900audio")))
-#endif
             plugins <<  pluginsDir.absoluteFilePath(file);
         }
     }

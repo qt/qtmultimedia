@@ -454,20 +454,12 @@ void tst_QMediaPlaylist::saveAndLoad()
     QCOMPARE(playlist.media(0), playlist2.media(0));
     QCOMPARE(playlist.media(1), playlist2.media(1));
     QCOMPARE(playlist.media(3), playlist2.media(3));
-#ifdef Q_OS_SYMBIAN
-    res = playlist.save(QUrl(QLatin1String("file:///c:/data/test_m3u.m3u")), "m3u");
-#else
     res = playlist.save(QUrl(QLatin1String("tmp.m3u")), "m3u");
-#endif
     QVERIFY(res);
 
     playlist2.clear();
     QVERIFY(playlist2.isEmpty());
-#ifdef Q_OS_SYMBIAN
-    playlist2.load(QUrl(QLatin1String("file:///c:/data/test_m3u.m3u")), "m3u");
-#else
     playlist2.load(QUrl(QLatin1String("tmp.m3u")), "m3u");
-#endif
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
 
     QCOMPARE(playlist.mediaCount(), playlist2.mediaCount());

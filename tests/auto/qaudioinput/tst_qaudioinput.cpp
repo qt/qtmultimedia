@@ -53,10 +53,6 @@
 
 #define AUDIO_BUFFER 192000
 
-#if defined(Q_OS_SYMBIAN)
-#define SRCDIR ""
-#endif
-
 #ifndef QTRY_VERIFY2
 #define QTRY_VERIFY2(__expr,__msg) \
     do { \

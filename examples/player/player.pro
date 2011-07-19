@@ -22,11 +22,6 @@ maemo* {
     DEFINES += PLAYER_NO_COLOROPTIONS
 }
 
-symbian {
-    LIBS += -lavkon -lcone -leikcore
-    TARGET.CAPABILITY = ReadUserData
-}
-
 #install
 target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/player
 sources.files = $$SOURCES $HEADERS $$RESOURCES $$FORMS *.pro

@@ -47,11 +47,7 @@ int main(int argc, char **argv)
     app.setApplicationName("QtMultimediaKit spectrum analyzer");
     MainWidget w;
 
-#ifdef Q_OS_SYMBIAN
-    w.showMaximized();
-#else
     w.show();
-#endif
 
     return app.exec();
 }

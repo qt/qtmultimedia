@@ -1,3 +1,3 @@
 TEMPLATE = subdirs
 
-!symbian: SUBDIRS += multimedia-snippets
+SUBDIRS += multimedia-snippets
