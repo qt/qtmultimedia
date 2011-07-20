@@ -117,7 +117,7 @@ void AudioRecorder::updateProgress(qint64 duration)
     if (capture->error() != QMediaRecorder::NoError || duration < 2000)
         return;
 
-    ui->statusbar->showMessage(tr("Recorded %1 sec").arg(qRound(duration / 1000)));
+    ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
 }
 
 void AudioRecorder::updateState(QMediaRecorder::State state)

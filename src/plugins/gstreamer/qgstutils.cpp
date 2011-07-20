@@ -157,7 +157,7 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
         if (!size.isEmpty() && gst_structure_get_fraction(
                     structure, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
             if (aspectDenum > 0)
-                size.setWidth(qRound(size.width()*aspectNum/aspectDenum));
+                size.setWidth(size.width()*aspectNum/aspectDenum);
         }
     }
 
