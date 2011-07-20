@@ -66,6 +66,7 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     , m_pool(0)
     , m_renderReturn(GST_FLOW_ERROR)
     , m_bytesPerLine(0)
+    , m_startCanceled(false)
 {
     if (m_surface) {
 #if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
@@ -114,9 +115,25 @@ bool QVideoSurfaceGstDelegate::start(const QVideoSurfaceFormat &format, int byte
     if (QThread::currentThread() == thread()) {
         m_started = !m_surface.isNull() ? m_surface->start(m_format) : false;
     } else {
+        m_started = false;
+        m_startCanceled = false;
         QMetaObject::invokeMethod(this, "queuedStart", Qt::QueuedConnection);
 
-        m_setupCondition.wait(&m_mutex);
+        /*
+        Waiting for start() to be invoked in the main thread may block
+        if gstreamer blocks the main thread until this call is finished.
+        This situation is rare and usually caused by setState(Null)
+        while pipeline is being prerolled.
+
+        The proper solution to this involves controlling gstreamer pipeline from
+        other thread than video surface.
+
+        Currently start() fails if wait() timed out.
+        */
+        if (!m_setupCondition.wait(&m_mutex, 1000)) {
+            qWarning() << "Failed to start video surface due to main thread blocked.";
+            m_startCanceled = true;
+        }
     }
 
     m_format = m_surface->surfaceFormat();
@@ -137,7 +154,9 @@ void QVideoSurfaceGstDelegate::stop()
     } else {
         QMetaObject::invokeMethod(this, "queuedStop", Qt::QueuedConnection);
 
-        m_setupCondition.wait(&m_mutex);
+        // Waiting for stop() to be invoked in the main thread may block
+        // if gstreamer blocks the main thread until this call is finished.
+        m_setupCondition.wait(&m_mutex, 500);
     }
 
     m_started = false;
@@ -195,11 +214,11 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 
 void QVideoSurfaceGstDelegate::queuedStart()
 {
-    QMutexLocker locker(&m_mutex);
-
-    m_started = m_surface->start(m_format);
-
-    m_setupCondition.wakeAll();
+    if (!m_startCanceled) {
+        QMutexLocker locker(&m_mutex);
+        m_started = m_surface->start(m_format);
+        m_setupCondition.wakeAll();
+    }
 }
 
 void QVideoSurfaceGstDelegate::queuedStop()

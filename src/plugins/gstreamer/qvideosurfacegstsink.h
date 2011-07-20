@@ -109,6 +109,7 @@ private:
     GstFlowReturn m_renderReturn;
     int m_bytesPerLine;
     bool m_started;
+    bool m_startCanceled;
 };
 
 class QVideoSurfaceGstSink
