@@ -92,3 +92,6 @@ include(mediacapture/mediacapture.pri)
 contains(gstreamer-photography_enabled, yes) {
     include(camerabin/camerabin.pri)
 }
+
+target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
+INSTALLS += target

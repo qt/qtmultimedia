@@ -23,3 +23,6 @@ SOURCES += audioencodercontrol.cpp \
     audiocaptureservice.cpp \
     audiocaptureserviceplugin.cpp \
     audiocapturesession.cpp
+
+target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
+INSTALLS += target

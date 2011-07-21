@@ -21,3 +21,6 @@ SOURCES += dsserviceplugin.cpp
 
 include (player/player.pri)
 include (camera/camera.pri)
+
+target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
+INSTALLS += target

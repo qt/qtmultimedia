@@ -56,3 +56,6 @@ OBJECTIVE_SOURCES += \
 }
 
 include(mediaplayer/mediaplayer.pri)
+
+target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
+INSTALLS += target
