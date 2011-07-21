@@ -53,11 +53,11 @@
 // We mean it.
 //
 
-#include "qdeclarativemediabase_p.h"
-
 #include <QtCore/qbasictimer.h>
-#include <QtQuick1/qdeclarativeitem.h>
+#include <QtDeclarative/qdeclarativeparserstatus.h>
+#include <QtDeclarative/qdeclarative.h>
 
+#include "qdeclarativemediabase_p.h"
 
 QT_BEGIN_HEADER
 
