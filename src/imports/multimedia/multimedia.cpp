@@ -45,11 +45,13 @@
 #include <QtDeclarative/qdeclarativecomponent.h>
 #include "private/qsoundeffect_p.h"
 
-#include "qdeclarativevideo_p.h"
-#include "qdeclarativeaudio_p.h"
 #include "qdeclarativemediametadata_p.h"
+#include "qdeclarativeaudio_p.h"
+#if 0
+#include "qdeclarativevideo_p.h"
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
+#endif
 
 QML_DECLARE_TYPE(QSoundEffect)
 
