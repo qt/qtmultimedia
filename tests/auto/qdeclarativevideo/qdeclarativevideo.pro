@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += multimediakit-private declarative
+QT += multimediakit-private multimediakitwidgets-private declarative
 
 # TARGET = tst_qdeclarativevideo
 # CONFIG += testcase

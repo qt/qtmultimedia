@@ -52,8 +52,6 @@
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodevicecontrol.h>
-#include <qvideowidget.h>
-#include <qgraphicsvideoitem.h>
 #include <qvideosurfaceoutput_p.h>
 
 QT_USE_NAMESPACE
@@ -470,6 +468,8 @@ QCameraImageProcessing *QCamera::imageProcessing() const
   The previously set viewfinder is detached.
   \since 1.1
 */
+
+// QVideoWidget is forward declared
 void QCamera::setViewfinder(QVideoWidget *viewfinder)
 {
     Q_D(QCamera);
@@ -478,7 +478,10 @@ void QCamera::setViewfinder(QVideoWidget *viewfinder)
     if (d->viewfinder)
         unbind(d->viewfinder);
 
-    d->viewfinder = viewfinder && bind(viewfinder) ? viewfinder : 0;
+    // We don't know (in this library) that QVideoWidget inherits QObject
+    QObject *viewFinderObject = reinterpret_cast<QObject*>(viewfinder);
+
+    d->viewfinder = viewFinderObject && bind(viewFinderObject) ? viewFinderObject : 0;
 }
 
 /*!
@@ -486,6 +489,7 @@ void QCamera::setViewfinder(QVideoWidget *viewfinder)
   The previously set viewfinder is detached.
   \since 1.1
 */
+// QGraphicsVideoItem is forward declared
 void QCamera::setViewfinder(QGraphicsVideoItem *viewfinder)
 {
     Q_D(QCamera);
@@ -494,7 +498,11 @@ void QCamera::setViewfinder(QGraphicsVideoItem *viewfinder)
     if (d->viewfinder)
         unbind(d->viewfinder);
 
-    d->viewfinder = viewfinder && bind(viewfinder) ? viewfinder : 0;
+    // We don't know (in this library) that QGraphicsVideoItem (multiply) inherits QObject
+    // but QObject inheritance depends on QObject coming first, so try this out.
+    QObject *viewFinderObject = reinterpret_cast<QObject*>(viewfinder);
+
+    d->viewfinder = viewFinderObject && bind(viewFinderObject) ? viewFinderObject : 0;
 }
 
 /*!

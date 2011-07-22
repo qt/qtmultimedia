@@ -1,5 +1,6 @@
 %modules = ( # path to module name map
     "QtMultimediaKit" => "$basedir/src/multimediakit",
+    "QtMultimediaKitWidgets" => "$basedir/src/multimediakitwidgets",
 );
 
 %moduleheaders = ( # restrict the module headers to those found in relative path
@@ -7,6 +8,7 @@
 
 %classnames = (
     "qtmultimediakitversion.h" => "QtMultimediaKitVersion",
+    "qtmultimediakitwidgetsversion.h" => "QtMultimediaKitWidgetsVersion",
 );
 
 %mastercontent = (
@@ -17,6 +19,7 @@
 
 %modulepris = (
     "QtMultimediaKit" => "$basedir/modules/qt_multimediakit.pri",
+    "QtMultimediaKitWidgets" => "$basedir/modules/qt_multimediakitwidgets.pri",
 );
 
 # Module dependencies.

@@ -6,6 +6,7 @@ CONFIG += qt warn_on
 QT += network \
       xml \
       multimediakit \
+      multimediakitwidgets
 
 HEADERS = \
     player.h \

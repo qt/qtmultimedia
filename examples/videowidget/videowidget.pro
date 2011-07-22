@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = videowidget
 
-QT += multimediakit
+QT += multimediakit multimediakitwidgets
 
 HEADERS = \
     videoplayer.h \

@@ -1,7 +1,7 @@
 load(qt_module)
 
 TARGET = wmfengine
-QT += multimediakit-private network
+QT += multimediakit-private network multimediakitwidgets-private
 PLUGIN_TYPE=mediaservice
 
 load(qt_plugin)

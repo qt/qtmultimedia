@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += multimediakit-private
+QT += multimediakit-private multimediakitwidgets-private
 
 SOURCES += \
     tst_qcameraimagecapture.cpp

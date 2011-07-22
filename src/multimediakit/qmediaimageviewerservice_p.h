@@ -57,8 +57,6 @@
 #include <qmediaservice.h>
 #include <qmediaimageviewer.h>
 #include <qvideorenderercontrol.h>
-#include <qvideowidget.h>
-#include <qvideowidgetcontrol.h>
 
 #include <QtCore/qpointer.h>
 #include <QtGui/qimage.h>

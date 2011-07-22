@@ -28,9 +28,7 @@ PRIVATE_HEADERS += \
     qmediaplaylist_p.h \
     qmediaplaylistprovider_p.h \
     qmediaimageviewerservice_p.h \
-    qvideowidget_p.h \
     qmediapluginloader_p.h \
-    qpaintervideosurface_p.h \
     qvideosurfaceoutput_p.h
 
 PUBLIC_HEADERS += \
@@ -59,9 +57,6 @@ PUBLIC_HEADERS += \
     qradiotuner.h \
     qradiotunercontrol.h \
     qtmedianamespace.h \
-    qvideowidget.h \
-    qvideowindowcontrol.h \
-    qvideowidgetcontrol.h \
     qaudioencodercontrol.h \
     qvideoencodercontrol.h \
     qimageencodercontrol.h \
@@ -71,7 +66,6 @@ PUBLIC_HEADERS += \
     qmediaplaylistsourcecontrol.h \
     qaudioendpointselector.h \
     qvideodevicecontrol.h \
-    qgraphicsvideoitem.h \
     qvideorenderercontrol.h \
     qmediatimerange.h \
     qmedianetworkaccesscontrol.h \
@@ -102,9 +96,6 @@ SOURCES += qmediacontrol.cpp \
     qmediastreamscontrol.cpp \
     qradiotuner.cpp \
     qradiotunercontrol.cpp \
-    qvideowidget.cpp \
-    qvideowindowcontrol.cpp \
-    qvideowidgetcontrol.cpp \
     qaudioencodercontrol.cpp \
     qvideoencodercontrol.cpp \
     qimageencodercontrol.cpp \
@@ -115,7 +106,6 @@ SOURCES += qmediacontrol.cpp \
     qaudioendpointselector.cpp \
     qvideodevicecontrol.cpp \
     qmediapluginloader.cpp \
-    qpaintervideosurface.cpp \
     qvideorenderercontrol.cpp \
     qmediatimerange.cpp \
     qmedianetworkaccesscontrol.cpp \
@@ -124,7 +114,6 @@ SOURCES += qmediacontrol.cpp \
 #Camera
 PUBLIC_HEADERS += \
     qcamera.h \
-    qcameraviewfinder.h \
     qcameraimagecapture.h \
     qcameraimagecapturecontrol.h \
     qcameraexposure.h \
@@ -141,7 +130,6 @@ PUBLIC_HEADERS += \
 
 SOURCES += \
     qcamera.cpp \
-    qcameraviewfinder.cpp \
     qcameraexposure.cpp \
     qcamerafocus.cpp \
     qcameraimageprocessing.cpp \
@@ -161,28 +149,7 @@ include(video/video.pri)
 include(effects/effects.pri)
 
 mac:!qpa {
-!simulator {
-   HEADERS += qpaintervideosurface_mac_p.h
-   OBJECTIVE_SOURCES += qpaintervideosurface_mac.mm
-}
    LIBS += -framework AppKit -framework QuartzCore -framework QTKit
-}
-
-maemo6 {
-    isEqual(QT_ARCH,armv6) {
-        HEADERS += qeglimagetexturesurface_p.h
-        SOURCES += qeglimagetexturesurface.cpp
-
-        SOURCES += qgraphicsvideoitem_maemo6.cpp
-
-        LIBS += -lX11
-    } else {
-        SOURCES += qgraphicsvideoitem.cpp
-    }
-}
-
-!maemo* {
-    SOURCES += qgraphicsvideoitem.cpp
 }
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS

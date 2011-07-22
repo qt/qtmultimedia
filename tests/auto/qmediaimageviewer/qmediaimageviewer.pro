@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += multimediakit-private network
+QT += multimediakit-private multimediakitwidgets-private network
 
 # TARGET = tst_qmediaimageviewer
 # CONFIG += testcase

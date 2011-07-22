@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = slideshow
 
-QT += multimediakit
+QT += multimediakit multimediakitwidgets
 
 HEADERS = \
     slideshow.h

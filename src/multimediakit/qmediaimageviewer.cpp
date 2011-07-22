@@ -44,12 +44,10 @@
 #include "qmediaobject_p.h"
 #include "qmediaimageviewerservice_p.h"
 
-#include <qgraphicsvideoitem.h>
 #include <qmediaplaylist.h>
 #include <qmediaplaylistsourcecontrol.h>
 #include <qmediacontent.h>
 #include <qmediaresource.h>
-#include <qvideowidget.h>
 #include <qvideosurfaceoutput_p.h>
 
 #include <QtCore/qcoreevent.h>
@@ -411,7 +409,10 @@ void QMediaImageViewer::setVideoOutput(QVideoWidget *widget)
     if (d->videoOutput)
         unbind(d->videoOutput);
 
-    d->videoOutput = bind(widget) ? widget : 0;
+    // We don't know (in this library) that QVideoWidget inherits QObject
+    QObject *widgetObject = reinterpret_cast<QObject*>(widget);
+
+    d->videoOutput = widgetObject && bind(widgetObject) ? widgetObject : 0;
 }
 
 /*!
@@ -428,7 +429,11 @@ void QMediaImageViewer::setVideoOutput(QGraphicsVideoItem *item)
     if (d->videoOutput)
         unbind(d->videoOutput);
 
-    d->videoOutput = bind(item) ? item : 0;
+    // We don't know (in this library) that QGraphicsVideoItem (multiply) inherits QObject
+    // but QObject inheritance depends on QObject coming first, so try this out.
+    QObject *itemObject = reinterpret_cast<QObject*>(item);
+
+    d->videoOutput = itemObject && bind(itemObject) ? itemObject : 0;
 }
 
 /*!

@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = camera
 
-QT += multimediakit
+QT += multimediakit multimediakitwidgets
 
 HEADERS = \
     camera.h \

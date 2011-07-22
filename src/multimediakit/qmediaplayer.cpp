@@ -55,9 +55,7 @@
 #include <qmediaplaylist.h>
 #include <qmediaplaylistcontrol.h>
 #include <qmediaplaylistsourcecontrol.h>
-#include <qvideowidget.h>
 #include <qvideosurfaceoutput_p.h>
-#include <qgraphicsvideoitem.h>
 #include <qmedianetworkaccesscontrol.h>
 
 QT_BEGIN_NAMESPACE
@@ -748,7 +746,10 @@ void QMediaPlayer::setVideoOutput(QVideoWidget *output)
     if (d->videoOutput)
         unbind(d->videoOutput);
 
-    d->videoOutput = output && bind(output) ? output : 0;
+    // We don't know (in this library) that QVideoWidget inherits QObject
+    QObject *outputObject = reinterpret_cast<QObject*>(output);
+
+    d->videoOutput = outputObject && bind(outputObject) ? outputObject : 0;
 }
 
 /*!
@@ -767,7 +768,11 @@ void QMediaPlayer::setVideoOutput(QGraphicsVideoItem *output)
     if (d->videoOutput)
         unbind(d->videoOutput);
 
-    d->videoOutput = output && bind(output) ? output : 0;
+    // We don't know (in this library) that QGraphicsVideoItem (multiply) inherits QObject
+    // but QObject inheritance depends on QObject coming first, so try this out.
+    QObject *outputObject = reinterpret_cast<QObject*>(output);
+
+    d->videoOutput = outputObject && bind(outputObject) ? outputObject : 0;
 }
 
 /*!

@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += network multimediakit-private
+QT += network multimediakit-private multimediakitwidgets-private
 
 # TARGET = tst_qmediaplayer
 # CONFIG += testcase

@@ -41,7 +41,7 @@
 
 #include <QDebug>
 
-#include <qmediaobject_p.h>
+#include <private/qmediaobject_p.h>
 
 #include <qcamera.h>
 #include <qcameraviewfinder.h>

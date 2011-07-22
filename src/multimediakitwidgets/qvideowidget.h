@@ -44,7 +44,7 @@
 
 #include <QtGui/qwidget.h>
 
-#include <qtmultimediakitdefs.h>
+#include <qtmultimediakitwidgetdefs.h>
 #include <qmediabindableinterface.h>
 
 QT_BEGIN_NAMESPACE

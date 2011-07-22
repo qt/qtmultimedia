@@ -53,7 +53,7 @@
 // We mean it.
 //
 
-#include <qtmultimediakitdefs.h>
+#include <qtmultimediakitwidgetdefs.h>
 #include "qvideowidget.h"
 
 #ifndef QT_NO_OPENGL

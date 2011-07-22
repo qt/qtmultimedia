@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "qvideowidgetcontrol.h"
-#include "qmediacontrol_p.h"
+#include "private/qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 

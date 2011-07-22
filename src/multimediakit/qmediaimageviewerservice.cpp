@@ -48,13 +48,11 @@
 #include <qmediaresource.h>
 #include <qmediaobject_p.h>
 #include <qvideorenderercontrol.h>
-#include <qvideowidgetcontrol.h>
 
 #include <QtCore/qdebug.h>
 
 #include <QtCore/qurl.h>
 #include <QtGui/qimagereader.h>
-#include <QtGui/qpainter.h>
 
 #include <QtNetwork/qnetworkaccessmanager.h>
 #include <QtNetwork/qnetworkreply.h>

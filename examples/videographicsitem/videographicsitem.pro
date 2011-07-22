@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = videographicsitem
 
-QT += multimediakit
+QT += multimediakit multimediakitwidgets
 
 contains(QT_CONFIG, opengl): QT += opengl
 

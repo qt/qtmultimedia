@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += multimediakit-private
+QT += multimediakit-private multimediakitwidgets
   
 # TARGET = tst_qmediaobject
 # CONFIG += testcase

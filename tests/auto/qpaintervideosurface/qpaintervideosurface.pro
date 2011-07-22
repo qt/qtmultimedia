@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += multimediakit-private
+QT += multimediakit-private multimediakitwidgets-private
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
    QT += opengl
 } else {
