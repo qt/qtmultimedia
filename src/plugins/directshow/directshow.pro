@@ -19,7 +19,7 @@ SOURCES += dsserviceplugin.cpp
 
 !contains(config_test_wmsdk, yes): DEFINES += QT_NO_WMSDK
 
-include (player/player.pri)
+contains(config_test_wmf, no): include (player/player.pri)
 include (camera/camera.pri)
 
 target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}

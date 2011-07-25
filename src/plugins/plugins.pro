@@ -14,6 +14,7 @@ win32 {
 
 win32 {
     contains(config_test_directshow, yes): SUBDIRS += directshow
+    contains(config_test_wmf, yes) : SUBDIRS += wmf
 }
 
 simulator: SUBDIRS += simulator

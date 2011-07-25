@@ -38,6 +38,7 @@
     "directshow" => {},
     "wmsdk" => {},
     "wmp" => {},
+    "wmf" => {},
     "evr" => {},
 
     # Linux tests

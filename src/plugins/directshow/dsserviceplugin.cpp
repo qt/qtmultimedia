@@ -47,6 +47,7 @@
 
 
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
+#include <dshow.h>
 #include "dscameraservice.h"
 #endif
 
