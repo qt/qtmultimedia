@@ -8,3 +8,5 @@ QT += network multimediakit-private
 HEADERS += tst_qmediaplayer.h
 SOURCES += main.cpp tst_qmediaplayer.cpp
 
+include (../qmultimedia_common/mock.pri)
+include (../qmultimedia_common/mockplayer.pri)

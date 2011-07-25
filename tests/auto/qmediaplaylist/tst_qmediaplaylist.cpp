@@ -44,6 +44,7 @@
 #include "qmediaservice.h"
 #include "qmediaplaylist.h"
 #include "qmediaplaylistcontrol.h"
+#include "qmediaplaylistsourcecontrol.h"
 #include "qmediaplaylistnavigator.h"
 #include <private/qmediapluginloader_p.h>
 
@@ -51,91 +52,16 @@
 
 //TESTED_COMPONENT=src/multimedia
 
+#include "mockplaylistservice.h"
+#include "mockmediaplaylistcontrol.h"
+#include "mockmediaplaylistsourcecontrol.h"
+#include "mockreadonlyplaylistprovider.h"
+
 #ifndef TESTDATA_DIR
 #define TESTDATA_DIR "./"
 #endif
 
 QT_USE_NAMESPACE
-class MockReadOnlyPlaylistProvider : public QMediaPlaylistProvider
-{
-    Q_OBJECT
-public:
-    MockReadOnlyPlaylistProvider(QObject *parent)
-        :QMediaPlaylistProvider(parent)
-    {
-        m_items.append(QMediaContent(QUrl(QLatin1String("file:///1"))));
-        m_items.append(QMediaContent(QUrl(QLatin1String("file:///2"))));
-        m_items.append(QMediaContent(QUrl(QLatin1String("file:///3"))));
-    }
-
-    int mediaCount() const { return m_items.size(); }
-    QMediaContent media(int index) const
-    {
-        return index >=0 && index < mediaCount() ? m_items.at(index) : QMediaContent();
-    }
-
-private:
-    QList<QMediaContent> m_items;
-};
-
-class MockPlaylistControl : public QMediaPlaylistControl
-{
-    Q_OBJECT
-public:
-    MockPlaylistControl(QObject *parent) : QMediaPlaylistControl(parent)
-    {        
-        m_navigator = new QMediaPlaylistNavigator(new MockReadOnlyPlaylistProvider(this), this);
-    }
-
-    ~MockPlaylistControl()
-    {
-    }
-
-    QMediaPlaylistProvider* playlistProvider() const { return m_navigator->playlist(); }
-    bool setPlaylistProvider(QMediaPlaylistProvider *playlist) { m_navigator->setPlaylist(playlist); return true; }
-
-    int currentIndex() const { return m_navigator->currentIndex(); }
-    void setCurrentIndex(int position) { m_navigator->jump(position); }
-    int nextIndex(int steps) const { return m_navigator->nextIndex(steps); }
-    int previousIndex(int steps) const { return m_navigator->previousIndex(steps); }
-
-    void next() { m_navigator->next(); }
-    void previous() { m_navigator->previous(); }
-
-    QMediaPlaylist::PlaybackMode playbackMode() const { return m_navigator->playbackMode(); }
-    void setPlaybackMode(QMediaPlaylist::PlaybackMode mode) { m_navigator->setPlaybackMode(mode); }
-
-private:    
-    QMediaPlaylistNavigator *m_navigator;
-};
-
-class MockPlaylistService : public QMediaService
-{
-    Q_OBJECT
-
-public:
-    MockPlaylistService():QMediaService(0)
-    {
-        mockControl = new MockPlaylistControl(this);
-    }
-
-    ~MockPlaylistService()
-    {        
-    }
-
-    QMediaControl* requestControl(const char *iid)
-    {
-        if (qstrcmp(iid, QMediaPlaylistControl_iid) == 0)
-            return mockControl;
-        return 0;
-    }
-
-    void releaseControl(QMediaControl *)
-    {
-    }
-
-    MockPlaylistControl *mockControl;
-};
 
 class MockReadOnlyPlaylistObject : public QMediaObject
 {
@@ -146,7 +72,6 @@ public:
     {
     }
 };
-
 
 class tst_QMediaPlaylist : public QObject
 {
@@ -171,6 +96,19 @@ private slots:
     void readOnlyPlaylist();
     void setMediaObject();
 
+    void testCurrentIndexChanged_signal();
+    void testCurrentMediaChanged_signal();
+    void testLoaded_signal();
+    void testMediaChanged_signal();
+    void testPlaybackModeChanged_signal();
+    void testEnums();
+
+    void mediaPlayListProvider();
+    // TC for Abstract control classes
+    void mediaPlayListControl();
+    void mediaPlayListSourceControl();
+
+
 private:
     QMediaContent content1;
     QMediaContent content2;
@@ -183,6 +121,7 @@ void tst_QMediaPlaylist::init()
 
 void tst_QMediaPlaylist::initTestCase()
 {
+    qRegisterMetaType<QMediaContent>();
     content1 = QMediaContent(QUrl(QLatin1String("file:///1")));
     content2 = QMediaContent(QUrl(QLatin1String("file:///2")));
     content3 = QMediaContent(QUrl(QLatin1String("file:///3")));
@@ -420,7 +359,7 @@ void tst_QMediaPlaylist::saveAndLoad()
 
     bool res = playlist.save(&buffer, "unsupported_format");
     QVERIFY(!res);
-    QVERIFY(playlist.error() != QMediaPlaylist::NoError);
+    QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
     QVERIFY(!playlist.errorString().isEmpty());
 
     QSignalSpy errorSignal(&playlist, SIGNAL(loadFailed()));
@@ -437,7 +376,7 @@ void tst_QMediaPlaylist::saveAndLoad()
     errorSignal.clear();
     playlist.load(QUrl(QLatin1String("tmp.unsupported_format")), "unsupported_format");
     QCOMPARE(errorSignal.size(), 1);
-    QVERIFY(playlist.error() != QMediaPlaylist::NoError);
+    QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
     QVERIFY(!playlist.errorString().isEmpty());
 
     res = playlist.save(&buffer, "m3u");
@@ -509,6 +448,7 @@ void tst_QMediaPlaylist::playbackMode_data()
     QTest::newRow("ItemOnce, 1") << QMediaPlaylist::CurrentItemOnce << -1 << 1 << -1;
     QTest::newRow("ItemInLoop, 1") << QMediaPlaylist::CurrentItemInLoop << 1 << 1 << 1;
 
+    // Bit difficult to test random this way
 }
 
 void tst_QMediaPlaylist::playbackMode()
@@ -651,6 +591,191 @@ void tst_QMediaPlaylist::setMediaObject()
     QCOMPARE(playlist.mediaObject(), qobject_cast<QMediaObject*>(&mediaObject));
     QCOMPARE(playlist.mediaCount(), 3);
     QVERIFY(playlist.isReadOnly());
+}
+
+void tst_QMediaPlaylist::testCurrentIndexChanged_signal()
+{
+    //create an instance of QMediaPlaylist class.
+    QMediaPlaylist playlist;
+    playlist.addMedia(content1); //set the media to playlist
+    playlist.addMedia(content2); //set the media to playlist
+
+    QSignalSpy spy(&playlist, SIGNAL(currentIndexChanged(int)));
+    QVERIFY(spy.size()== 0);
+    QCOMPARE(playlist.currentIndex(), -1);
+
+    //set the current index for playlist.
+    playlist.setCurrentIndex(0);
+    QVERIFY(spy.size()== 1); //verify the signal emission.
+    QCOMPARE(playlist.currentIndex(), 0); //verify the current index of playlist
+
+    //set the current index for playlist.
+    playlist.setCurrentIndex(1);
+    QVERIFY(spy.size()== 2); //verify the signal emission.
+    QCOMPARE(playlist.currentIndex(), 1); //verify the current index of playlist
+}
+
+void tst_QMediaPlaylist::testCurrentMediaChanged_signal()
+{
+    //create an instance of QMediaPlaylist class.
+    QMediaPlaylist playlist;
+    playlist.addMedia(content1); //set the media to playlist
+    playlist.addMedia(content2); //set the media to playlist
+
+    QSignalSpy spy(&playlist, SIGNAL(currentMediaChanged(QMediaContent)));
+    QVERIFY(spy.size()== 0);
+    QCOMPARE(playlist.currentIndex(), -1);
+    QCOMPARE(playlist.currentMedia(), QMediaContent());
+
+    //set the current index for playlist.
+    playlist.setCurrentIndex(0);
+    QVERIFY(spy.size()== 1); //verify the signal emission.
+    QCOMPARE(playlist.currentIndex(), 0); //verify the current index of playlist
+    QCOMPARE(playlist.currentMedia(), content1); //verify the current media of playlist
+
+    //set the current index for playlist.
+    playlist.setCurrentIndex(1);
+    QVERIFY(spy.size()== 2);  //verify the signal emission.
+    QCOMPARE(playlist.currentIndex(), 1); //verify the current index of playlist
+    QCOMPARE(playlist.currentMedia(), content2); //verify the current media of playlist
+}
+
+void tst_QMediaPlaylist::testLoaded_signal()
+{
+    //create an instance of QMediaPlaylist class.
+    QMediaPlaylist playlist;
+    playlist.addMedia(content1); //set the media to playlist
+    playlist.addMedia(content2); //set the media to playlist
+    playlist.addMedia(content3); //set the media to playlist
+
+    QSignalSpy spy(&playlist, SIGNAL(loaded()));
+    QVERIFY(spy.size()== 0);
+
+    QBuffer buffer;
+    buffer.open(QBuffer::ReadWrite);
+
+    //load the playlist
+    playlist.load(&buffer,"m3u");
+    QVERIFY(spy.size()== 1); //verify the signal emission.
+}
+
+void tst_QMediaPlaylist::testMediaChanged_signal()
+{
+    //create an instance of QMediaPlaylist class.
+    QMediaPlaylist playlist;
+
+    QSignalSpy spy(&playlist, SIGNAL(mediaChanged(int,int)));
+
+    // Add media to playlist
+    playlist.addMedia(content1); //set the media to playlist
+    playlist.addMedia(content2); //set the media to playlist
+    playlist.addMedia(content3); //set the media to playlist
+
+    // Adds/inserts do not cause change signals
+    QVERIFY(spy.size() == 0);
+
+    // Now change the list
+    playlist.shuffle();
+
+    QVERIFY(spy.size() == 1);
+    spy.clear();
+
+    //create media.
+    QMediaContent content4(QUrl(QLatin1String("file:///4")));
+    QMediaContent content5(QUrl(QLatin1String("file:///5")));
+
+    //insert media to playlist
+    playlist.insertMedia(1, content4);
+    playlist.insertMedia(2, content5);
+    // Adds/inserts do not cause change signals
+    QVERIFY(spy.size() == 0);
+
+    // And again
+    playlist.shuffle();
+
+    QVERIFY(spy.size() == 1);
+}
+
+void tst_QMediaPlaylist::testPlaybackModeChanged_signal()
+{
+    //create an instance of QMediaPlaylist class.
+    QMediaPlaylist playlist;
+    playlist.addMedia(content1); //set the media to playlist
+    playlist.addMedia(content2); //set the media to playlist
+    playlist.addMedia(content3); //set the media to playlist
+
+    QSignalSpy spy(&playlist, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)));
+    QVERIFY(playlist.playbackMode()== QMediaPlaylist::Sequential);
+    QVERIFY(spy.size() == 0);
+
+    // Set playback mode to the playlist
+    playlist.setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
+    QVERIFY(playlist.playbackMode()== QMediaPlaylist::CurrentItemOnce);
+    QVERIFY(spy.size() == 1);
+
+    // Set playback mode to the playlist
+    playlist.setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+    QVERIFY(playlist.playbackMode()== QMediaPlaylist::CurrentItemInLoop);
+    QVERIFY(spy.size() == 2);
+
+    // Set playback mode to the playlist
+    playlist.setPlaybackMode(QMediaPlaylist::Sequential);
+    QVERIFY(playlist.playbackMode()== QMediaPlaylist::Sequential);
+    QVERIFY(spy.size() == 3);
+
+    // Set playback mode to the playlist
+    playlist.setPlaybackMode(QMediaPlaylist::Loop);
+    QVERIFY(playlist.playbackMode()== QMediaPlaylist::Loop);
+    QVERIFY(spy.size() == 4);
+
+    // Set playback mode to the playlist
+    playlist.setPlaybackMode(QMediaPlaylist::Random);
+    QVERIFY(playlist.playbackMode()== QMediaPlaylist::Random);
+    QVERIFY(spy.size() == 5);
+}
+
+void tst_QMediaPlaylist::testEnums()
+{
+    //create an instance of QMediaPlaylist class.
+    QMediaPlaylist playlist;
+    playlist.addMedia(content1); //set the media to playlist
+    playlist.addMedia(content2); //set the media to playlist
+    playlist.addMedia(content3); //set the media to playlist
+    QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
+
+    QBuffer buffer;
+    buffer.open(QBuffer::ReadWrite);
+
+    // checking for QMediaPlaylist::FormatNotSupportedError enum
+    QVERIFY(!playlist.save(&buffer, "unsupported_format"));
+    QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
+
+    playlist.load(&buffer,"unsupported_format");
+    QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
+}
+
+// MaemoAPI-1849:test QMediaPlayListControl constructor
+void tst_QMediaPlaylist::mediaPlayListControl()
+{
+    // To check changes in abstract classe's pure virtual functions
+    QObject parent;
+    MockMediaPlaylistControl plylistctrl(&parent);
+}
+
+// MaemoAPI-1850:test QMediaPlayListSourceControl constructor
+void tst_QMediaPlaylist::mediaPlayListSourceControl()
+{
+    // To check changes in abstract classe's pure virtual functions
+    QObject parent;
+    MockPlaylistSourceControl plylistsrcctrl(&parent);
+}
+
+// MaemoAPI-1852:test constructor
+void tst_QMediaPlaylist::mediaPlayListProvider()
+{
+    // srcs of QMediaPlaylistProvider is incomplete
+    QObject parent;
+    MockReadOnlyPlaylistProvider provider(&parent);
 }
 
 QTEST_MAIN(tst_QMediaPlaylist)

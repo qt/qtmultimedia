@@ -63,933 +63,16 @@
 #include <qvideowidget.h>
 #include <qvideowindowcontrol.h>
 
+#include "mockcameraservice.h"
+
+#include "mockmediaserviceprovider.h"
+#include "mockvideosurface.h"
+#include "mockvideorenderercontrol.h"
+#include "mockvideowindowcontrol.h"
+
 QT_USE_NAMESPACE
-class MockCaptureControl;
 
 Q_DECLARE_METATYPE(QtMultimediaKit::MetaData)
-
-class MockCameraControl : public QCameraControl
-{
-    friend class MockCaptureControl;
-    Q_OBJECT
-public:
-    MockCameraControl(QObject *parent = 0):
-            QCameraControl(parent),
-            m_state(QCamera::UnloadedState),
-            m_captureMode(QCamera::CaptureStillImage),
-            m_status(QCamera::UnloadedStatus),
-            m_propertyChangesSupported(false)
-    {
-    }
-
-    ~MockCameraControl() {}
-
-    void start() { m_state = QCamera::ActiveState; }
-    virtual void stop() { m_state = QCamera::UnloadedState; }
-    QCamera::State state() const { return m_state; }
-    void setState(QCamera::State state) {
-        if (m_state != state) {
-            m_state = state;
-
-            switch (state) {
-            case QCamera::UnloadedState:
-                m_status = QCamera::UnloadedStatus;
-                break;
-            case QCamera::LoadedState:
-                m_status = QCamera::LoadedStatus;
-                break;
-            case QCamera::ActiveState:
-                m_status = QCamera::ActiveStatus;
-                break;
-            default:
-                emit error(QCamera::NotSupportedFeatureError, "State not supported.");
-                return;
-            }
-
-            emit stateChanged(m_state);
-            emit statusChanged(m_status);
-        }
-    }
-
-    QCamera::Status status() const { return m_status; }
-
-    QCamera::CaptureMode captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureMode mode)
-    {
-        if (m_captureMode != mode) {
-            if (m_state == QCamera::ActiveState)
-                QVERIFY(m_propertyChangesSupported);
-            m_captureMode = mode;
-            emit captureModeChanged(mode);
-        }
-    }
-
-    bool isCaptureModeSupported(QCamera::CaptureMode mode) const
-    {
-        return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
-    }
-
-    QCamera::LockTypes supportedLocks() const
-    {
-        return QCamera::LockExposure | QCamera::LockFocus | QCamera::LockWhiteBalance;
-    }
-
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
-    {
-        Q_UNUSED(changeType);
-        Q_UNUSED(status);
-        return m_propertyChangesSupported;
-    }
-
-    QCamera::State m_state;
-    QCamera::CaptureMode m_captureMode;
-    QCamera::Status m_status;
-    bool m_propertyChangesSupported;
-};
-
-
-class MockCameraLocksControl : public QCameraLocksControl
-{
-    Q_OBJECT
-public:
-    MockCameraLocksControl(QObject *parent = 0):
-            QCameraLocksControl(parent),
-            m_focusLock(QCamera::Unlocked),
-            m_exposureLock(QCamera::Unlocked)
-    {
-    }
-
-    ~MockCameraLocksControl() {}
-
-    QCamera::LockTypes supportedLocks() const
-    {
-        return QCamera::LockExposure | QCamera::LockFocus;
-    }
-
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const
-    {
-        switch (lock) {
-        case QCamera::LockExposure:
-            return m_exposureLock;
-        case QCamera::LockFocus:
-            return m_focusLock;
-        default:
-            return QCamera::Unlocked;
-        }
-    }
-
-    void searchAndLock(QCamera::LockTypes locks)
-    {
-        if (locks & QCamera::LockExposure) {
-            QCamera::LockStatus newStatus = locks & QCamera::LockFocus ? QCamera::Searching : QCamera::Locked;
-
-            if (newStatus != m_exposureLock)
-                emit lockStatusChanged(QCamera::LockExposure,
-                                       m_exposureLock = newStatus,
-                                       QCamera::UserRequest);
-        }
-
-        if (locks & QCamera::LockFocus) {
-            emit lockStatusChanged(QCamera::LockFocus,
-                                   m_focusLock = QCamera::Searching,
-                                   QCamera::UserRequest);
-
-            QTimer::singleShot(5, this, SLOT(focused()));
-        }
-    }
-
-    void unlock(QCamera::LockTypes locks) {
-        if (locks & QCamera::LockFocus && m_focusLock != QCamera::Unlocked) {
-            emit lockStatusChanged(QCamera::LockFocus,
-                                   m_focusLock = QCamera::Unlocked,
-                                   QCamera::UserRequest);
-        }
-
-        if (locks & QCamera::LockExposure && m_exposureLock != QCamera::Unlocked) {
-            emit lockStatusChanged(QCamera::LockExposure,
-                                   m_exposureLock = QCamera::Unlocked,
-                                   QCamera::UserRequest);
-        }
-    }
-
-private slots:
-    void focused()
-    {
-        if (m_focusLock == QCamera::Searching) {
-            emit lockStatusChanged(QCamera::LockFocus,
-                                   m_focusLock = QCamera::Locked,
-                                   QCamera::UserRequest);
-        }
-
-        if (m_exposureLock == QCamera::Searching) {
-            emit lockStatusChanged(QCamera::LockExposure,
-                                   m_exposureLock = QCamera::Locked,
-                                   QCamera::UserRequest);
-        }
-    }
-
-
-private:
-    QCamera::LockStatus m_focusLock;
-    QCamera::LockStatus m_exposureLock;
-};
-
-class MockCaptureControl : public QCameraImageCaptureControl
-{
-    Q_OBJECT
-public:
-    MockCaptureControl(MockCameraControl *cameraControl, QObject *parent = 0)
-        :QCameraImageCaptureControl(parent), m_cameraControl(cameraControl), m_captureRequest(0), m_ready(true), m_captureCanceled(false)
-    {
-    }
-
-    ~MockCaptureControl()
-    {
-    }
-
-    QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode) {}
-
-    bool isReadyForCapture() const { return m_ready && m_cameraControl->state() == QCamera::ActiveState; }
-
-    int capture(const QString &fileName)
-    {
-        if (isReadyForCapture()) {
-            m_fileName = fileName;
-            m_captureRequest++;
-            emit readyForCaptureChanged(m_ready = false);
-            QTimer::singleShot(5, this, SLOT(captured()));
-            return m_captureRequest;
-        } else {
-            emit error(-1, QCameraImageCapture::NotReadyError,
-                       QLatin1String("Could not capture in stopped state"));
-        }
-
-        return -1;
-    }
-
-    void cancelCapture()
-    {
-        m_captureCanceled = true;
-    }
-
-private Q_SLOTS:
-    void captured()
-    {
-        if (!m_captureCanceled) {
-            emit imageCaptured(m_captureRequest, QImage());
-
-            emit imageMetadataAvailable(m_captureRequest,
-                                        QtMultimediaKit::FocalLengthIn35mmFilm,
-                                        QVariant(50));
-
-            emit imageMetadataAvailable(m_captureRequest,
-                                        QtMultimediaKit::DateTimeOriginal,
-                                        QVariant(QDateTime::currentDateTime()));
-
-            emit imageMetadataAvailable(m_captureRequest,
-                                        QLatin1String("Answer to the Ultimate Question of Life, the Universe, and Everything"),
-                                        QVariant(42));
-        }
-
-        if (!m_ready)
-            emit readyForCaptureChanged(m_ready = true);
-
-        if (!m_captureCanceled)
-            emit imageSaved(m_captureRequest, m_fileName);
-
-        m_captureCanceled = false;
-    }
-
-private:
-    MockCameraControl *m_cameraControl;
-    QString m_fileName;
-    int m_captureRequest;
-    bool m_ready;
-    bool m_captureCanceled;
-};
-
-class MockCaptureDestinationControl : public QCameraCaptureDestinationControl
-{
-    Q_OBJECT
-public:
-    MockCaptureDestinationControl(QObject *parent = 0):
-            QCameraCaptureDestinationControl(parent),
-            m_destination(QCameraImageCapture::CaptureToFile)
-    {
-    }
-
-    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
-    {
-        return destination == QCameraImageCapture::CaptureToBuffer ||
-               destination == QCameraImageCapture::CaptureToFile;
-    }
-
-    QCameraImageCapture::CaptureDestinations captureDestination() const
-    {
-        return m_destination;
-    }
-
-    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-    {
-        if (isCaptureDestinationSupported(destination) && destination != m_destination) {
-            m_destination = destination;
-            emit captureDestinationChanged(m_destination);
-        }
-    }
-
-private:
-    QCameraImageCapture::CaptureDestinations m_destination;
-};
-
-class MockCaptureBufferFormatControl : public QCameraCaptureBufferFormatControl
-{
-    Q_OBJECT
-public:
-    MockCaptureBufferFormatControl(QObject *parent = 0):
-            QCameraCaptureBufferFormatControl(parent),
-            m_format(QVideoFrame::Format_Jpeg)
-    {
-    }
-
-    QList<QVideoFrame::PixelFormat> supportedBufferFormats() const
-    {
-        return QList<QVideoFrame::PixelFormat>()
-                << QVideoFrame::Format_Jpeg
-                << QVideoFrame::Format_RGB32
-                << QVideoFrame::Format_AdobeDng;
-    }
-
-    QVideoFrame::PixelFormat bufferFormat() const
-    {
-        return m_format;
-    }
-
-    void setBufferFormat(QVideoFrame::PixelFormat format)
-    {
-        if (format != m_format && supportedBufferFormats().contains(format)) {
-            m_format = format;
-            emit bufferFormatChanged(m_format);
-        }
-    }
-
-private:
-    QVideoFrame::PixelFormat m_format;
-};
-
-class MockCameraExposureControl : public QCameraExposureControl
-{
-    Q_OBJECT
-public:
-    MockCameraExposureControl(QObject *parent = 0):
-        QCameraExposureControl(parent),        
-        m_aperture(2.8),
-        m_shutterSpeed(0.01),
-        m_isoSensitivity(100),
-        m_meteringMode(QCameraExposure::MeteringMatrix),
-        m_exposureCompensation(0),
-        m_exposureMode(QCameraExposure::ExposureAuto),
-        m_flashMode(QCameraExposure::FlashAuto)
-    {
-    }
-
-    ~MockCameraExposureControl() {}
-
-    QCameraExposure::FlashModes flashMode() const
-    {
-        return m_flashMode;
-    }
-
-    void setFlashMode(QCameraExposure::FlashModes mode)
-    {
-        if (isFlashModeSupported(mode)) {
-            m_flashMode = mode;
-        }
-    }
-
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const
-    {
-        return mode & (QCameraExposure::FlashAuto | QCameraExposure::FlashOff | QCameraExposure::FlashOn);
-    }
-
-    bool isFlashReady() const
-    {
-        return true;
-    }
-
-    QCameraExposure::ExposureMode exposureMode() const
-    {
-        return m_exposureMode;
-    }
-
-    void setExposureMode(QCameraExposure::ExposureMode mode)
-    {
-        if (isExposureModeSupported(mode))
-            m_exposureMode = mode;
-    }
-
-    bool isExposureModeSupported(QCameraExposure::ExposureMode mode) const
-    {
-        return mode == QCameraExposure::ExposureAuto ||
-               mode == QCameraExposure::ExposureManual;
-    }
-
-    bool isParameterSupported(ExposureParameter parameter) const
-    {
-        switch (parameter) {
-        case QCameraExposureControl::ExposureCompensation:
-        case QCameraExposureControl::ISO:
-        case QCameraExposureControl::Aperture:
-        case QCameraExposureControl::ShutterSpeed:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    QVariant exposureParameter(ExposureParameter parameter) const
-    {
-        switch (parameter) {
-        case QCameraExposureControl::ExposureCompensation:
-            return QVariant(m_exposureCompensation);
-        case QCameraExposureControl::ISO:
-            return QVariant(m_isoSensitivity);
-        case QCameraExposureControl::Aperture:
-            return QVariant(m_aperture);
-        case QCameraExposureControl::ShutterSpeed:
-            return QVariant(m_shutterSpeed);
-        default:
-            return QVariant();
-        }
-    }
-
-    QVariantList supportedParameterRange(ExposureParameter parameter) const
-    {
-        QVariantList res;
-        switch (parameter) {
-        case QCameraExposureControl::ExposureCompensation:
-            res << -2.0 << 2.0;
-            break;
-        case QCameraExposureControl::ISO:
-            res << 100 << 200 << 400 << 800;
-            break;
-        case QCameraExposureControl::Aperture:
-            res << 2.8 << 4.0 << 5.6 << 8.0 << 11.0 << 16.0;
-            break;
-        case QCameraExposureControl::ShutterSpeed:
-            res << 0.001 << 0.01 << 0.1 << 1.0;
-            break;
-        default:
-            break;
-        }
-
-        return res;
-    }
-
-    ParameterFlags exposureParameterFlags(ExposureParameter parameter) const
-    {
-        ParameterFlags res = 0;
-        switch (parameter) {
-        case QCameraExposureControl::ExposureCompensation:
-        case QCameraExposureControl::Aperture:
-        case QCameraExposureControl::ShutterSpeed:
-            res |= ContinuousRange;
-        default:
-            break;
-        }
-
-        return res;
-    }
-
-    bool setExposureParameter(ExposureParameter parameter, const QVariant& value)
-    {
-        switch (parameter) {
-        case QCameraExposureControl::ExposureCompensation:
-            m_exposureCompensation = qBound<qreal>(-2.0, value.toReal(), 2.0);
-            break;
-        case QCameraExposureControl::ISO:
-            m_isoSensitivity = 100*qRound(qBound(100, value.toInt(), 800)/100.0);
-            break;
-        case QCameraExposureControl::Aperture:
-            m_aperture = qBound<qreal>(2.8, value.toReal(), 16.0);
-            break;
-        case QCameraExposureControl::ShutterSpeed:
-            m_shutterSpeed = qBound<qreal>(0.001, value.toReal(), 1.0);
-            break;
-        default:
-            return false;
-        }
-
-        return true;
-    }
-
-    QString extendedParameterName(ExposureParameter)
-    {
-        return QString();
-    }
-
-    QCameraExposure::MeteringMode meteringMode() const
-    {
-        return m_meteringMode;
-    }
-
-    void setMeteringMode(QCameraExposure::MeteringMode mode)
-    {
-        if (isMeteringModeSupported(mode))
-            m_meteringMode = mode;
-    }
-
-    bool isMeteringModeSupported(QCameraExposure::MeteringMode mode) const
-    {
-        return mode == QCameraExposure::MeteringAverage
-                || mode == QCameraExposure::MeteringMatrix;
-    }
-
-private:
-    qreal m_aperture;
-    qreal m_shutterSpeed;
-    int m_isoSensitivity;
-    QCameraExposure::MeteringMode m_meteringMode;
-    qreal m_exposureCompensation;
-    QCameraExposure::ExposureMode m_exposureMode;
-    QCameraExposure::FlashModes m_flashMode;
-};
-
-class MockCameraFlashControl : public QCameraFlashControl
-{
-    Q_OBJECT
-public:
-    MockCameraFlashControl(QObject *parent = 0):
-        QCameraFlashControl(parent),
-        m_flashMode(QCameraExposure::FlashAuto)
-    {
-    }
-
-    ~MockCameraFlashControl() {}
-
-    QCameraExposure::FlashModes flashMode() const
-    {
-        return m_flashMode;
-    }
-
-    void setFlashMode(QCameraExposure::FlashModes mode)
-    {
-        if (isFlashModeSupported(mode)) {
-            m_flashMode = mode;
-        }
-    }
-
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const
-    {
-        return mode & (QCameraExposure::FlashAuto | QCameraExposure::FlashOff | QCameraExposure::FlashOn);
-    }
-
-    bool isFlashReady() const
-    {
-        return true;
-    }
-
-private:
-    QCameraExposure::FlashModes m_flashMode;
-};
-
-
-class MockCameraFocusControl : public QCameraFocusControl
-{
-    Q_OBJECT
-public:
-    MockCameraFocusControl(QObject *parent = 0):
-        QCameraFocusControl(parent),
-        m_opticalZoom(1.0),
-        m_digitalZoom(1.0),
-        m_focusMode(QCameraFocus::AutoFocus),
-        m_focusPointMode(QCameraFocus::FocusPointAuto),
-        m_focusPoint(0.5, 0.5)
-    {
-    }
-
-    ~MockCameraFocusControl() {}
-
-    QCameraFocus::FocusMode focusMode() const
-    {
-        return m_focusMode;
-    }
-
-    void setFocusMode(QCameraFocus::FocusMode mode)
-    {
-        if (isFocusModeSupported(mode))
-            m_focusMode = mode;
-    }
-
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const
-    {
-        return mode == QCameraFocus::AutoFocus || mode == QCameraFocus::ContinuousFocus;
-    }
-
-    qreal maximumOpticalZoom() const
-    {
-        return 3.0;
-    }
-
-    qreal maximumDigitalZoom() const
-    {
-        return 4.0;
-    }
-
-    qreal opticalZoom() const
-    {
-        return m_opticalZoom;
-    }
-
-    qreal digitalZoom() const
-    {
-        return m_digitalZoom;
-    }
-
-    void zoomTo(qreal optical, qreal digital)
-    {
-        optical = qBound<qreal>(1.0, optical, maximumOpticalZoom());
-        digital = qBound<qreal>(1.0, digital, maximumDigitalZoom());
-
-        if (!qFuzzyCompare(digital, m_digitalZoom)) {
-            m_digitalZoom = digital;
-            emit digitalZoomChanged(m_digitalZoom);
-        }
-
-        if (!qFuzzyCompare(optical, m_opticalZoom)) {
-            m_opticalZoom = optical;
-            emit opticalZoomChanged(m_opticalZoom);
-        }
-    }
-
-    QCameraFocus::FocusPointMode focusPointMode() const
-    {
-        return m_focusPointMode;
-    }
-
-    void setFocusPointMode(QCameraFocus::FocusPointMode mode)
-    {
-        if (isFocusPointModeSupported(mode))
-            m_focusPointMode = mode;
-    }
-
-    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
-    {
-        switch (mode) {
-        case QCameraFocus::FocusPointAuto:
-        case QCameraFocus::FocusPointCenter:
-        case QCameraFocus::FocusPointCustom:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    QPointF customFocusPoint() const
-    {
-        return m_focusPoint;
-    }
-
-    void setCustomFocusPoint(const QPointF &point)
-    {
-        m_focusPoint = point;
-    }
-
-    QCameraFocusZoneList focusZones() const { return QCameraFocusZoneList() << QCameraFocusZone(QRectF(0.45, 0.45, 0.1, 0.1)); }
-
-
-private:
-    qreal m_opticalZoom;
-    qreal m_digitalZoom;
-    QCameraFocus::FocusMode m_focusMode;
-    QCameraFocus::FocusPointMode m_focusPointMode;
-    QPointF m_focusPoint;
-};
-
-class MockImageProcessingControl : public QCameraImageProcessingControl
-{
-    Q_OBJECT
-public:
-    MockImageProcessingControl(QObject *parent = 0)
-        : QCameraImageProcessingControl(parent)
-    {
-        m_supportedWhiteBalance.insert(QCameraImageProcessing::WhiteBalanceAuto);
-    }
-
-    QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const { return m_whiteBalanceMode; }
-    void setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode) { m_whiteBalanceMode = mode; }
-
-    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const {
-        return m_supportedWhiteBalance.contains(mode); }
-
-    void setSupportedWhiteBalanceModes(QSet<QCameraImageProcessing::WhiteBalanceMode> modes) {
-        m_supportedWhiteBalance = modes; }
-
-    bool isProcessingParameterSupported(ProcessingParameter parameter) const
-    {
-        return parameter == Contrast ||  parameter == Sharpening || parameter == ColorTemperature;
-    }
-    QVariant processingParameter(ProcessingParameter parameter) const
-    {
-        switch (parameter) {
-        case Contrast:
-            return m_contrast;
-        case Sharpening:
-            return m_sharpeningLevel;
-        case ColorTemperature:
-            return m_manualWhiteBalance;
-        default:
-            return QVariant();
-        }
-    }
-    void setProcessingParameter(ProcessingParameter parameter, QVariant value)
-    {
-        switch (parameter) {
-        case Contrast:
-            m_contrast = value;
-            break;
-        case Sharpening:
-            m_sharpeningLevel = value;
-            break;
-        case ColorTemperature:
-            m_manualWhiteBalance = value;
-            break;
-        default:
-            break;
-        }
-    }
-
-
-private:
-    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
-    QSet<QCameraImageProcessing::WhiteBalanceMode> m_supportedWhiteBalance;
-    QVariant m_manualWhiteBalance;
-    QVariant m_contrast;
-    QVariant m_sharpeningLevel;
-};
-
-class MockImageEncoderControl : public QImageEncoderControl
-{
-public:
-    MockImageEncoderControl(QObject *parent = 0)
-        : QImageEncoderControl(parent)
-    {
-    }
-
-    QList<QSize> supportedResolutions(const QImageEncoderSettings & = QImageEncoderSettings(),
-                                      bool *continuous = 0) const
-    {
-        if (continuous)
-            *continuous = true;
-
-        return m_supportedResolutions;
-    }
-
-    void setSupportedResolutions(const QList<QSize> &resolutions) {
-        m_supportedResolutions = resolutions; }
-
-    QStringList supportedImageCodecs() const { return m_supportedCodecs; }
-    void setSupportedImageCodecs(const QStringList &codecs) { m_supportedCodecs = codecs; }
-
-    QString imageCodecDescription(const QString &codecName) const {
-        return m_codecDescriptions.value(codecName); }
-    void setImageCodecDescriptions(const QMap<QString, QString> &descriptions) {
-        m_codecDescriptions = descriptions; }
-
-    QImageEncoderSettings imageSettings() const { return m_settings; }
-    void setImageSettings(const QImageEncoderSettings &settings) { m_settings = settings; }
-
-private:
-    QImageEncoderSettings m_settings;
-
-    QList<QSize> m_supportedResolutions;
-    QStringList m_supportedCodecs;
-    QMap<QString, QString> m_codecDescriptions;
-};
-
-class MockVideoSurface : public QAbstractVideoSurface
-{
-public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            const QAbstractVideoBuffer::HandleType) const
-    {
-        return QList<QVideoFrame::PixelFormat>();
-    }
-
-    bool present(const QVideoFrame &) { return false; }
-};
-
-class MockVideoRendererControl : public QVideoRendererControl
-{
-public:
-    MockVideoRendererControl(QObject *parent) : QVideoRendererControl(parent), m_surface(0) {}
-
-    QAbstractVideoSurface *surface() const { return m_surface; }
-    void setSurface(QAbstractVideoSurface *surface) { m_surface = surface; }
-
-    QAbstractVideoSurface *m_surface;
-};
-
-class MockVideoWindowControl : public QVideoWindowControl
-{
-public:
-    MockVideoWindowControl(QObject *parent) : QVideoWindowControl(parent) {}
-    WId winId() const { return 0; }
-    void setWinId(WId) {}
-    QRect displayRect() const { return QRect(); }
-    void setDisplayRect(const QRect &) {}
-    bool isFullScreen() const { return false; }
-    void setFullScreen(bool) {}
-    void repaint() {}
-    QSize nativeSize() const { return QSize(); }
-    Qt::AspectRatioMode aspectRatioMode() const { return Qt::KeepAspectRatio; }
-    void setAspectRatioMode(Qt::AspectRatioMode) {}
-    int brightness() const { return 0; }
-    void setBrightness(int) {}
-    int contrast() const { return 0; }
-    void setContrast(int) {}
-    int hue() const { return 0; }
-    void setHue(int) {}
-    int saturation() const { return 0; }
-    void setSaturation(int) {}
-};
-
-class MockSimpleCameraService : public QMediaService
-{
-    Q_OBJECT
-
-public:
-    MockSimpleCameraService(): QMediaService(0)
-    {
-        mockControl = new MockCameraControl(this);
-    }
-
-    ~MockSimpleCameraService()
-    {
-    }
-
-    QMediaControl* requestControl(const char *iid)
-    {
-        if (qstrcmp(iid, QCameraControl_iid) == 0)
-            return mockControl;
-        return 0;
-    }
-
-    void releaseControl(QMediaControl*) {}
-
-    MockCameraControl *mockControl;
-};
-
-class MockCameraService : public QMediaService
-{
-    Q_OBJECT
-
-public:
-    MockCameraService(): QMediaService(0)
-    {
-        mockControl = new MockCameraControl(this);
-        mockLocksControl = new MockCameraLocksControl(this);
-        mockExposureControl = new MockCameraExposureControl(this);
-        mockFlashControl = new MockCameraFlashControl(this);
-        mockFocusControl = new MockCameraFocusControl(this);
-        mockCaptureControl = new MockCaptureControl(mockControl, this);
-        mockCaptureBufferControl = new MockCaptureBufferFormatControl(this);
-        mockCaptureDestinationControl = new MockCaptureDestinationControl(this);
-        mockImageProcessingControl = new MockImageProcessingControl(this);
-        mockImageEncoderControl = new MockImageEncoderControl(this);
-        rendererControl = new MockVideoRendererControl(this);
-        windowControl = new MockVideoWindowControl(this);
-        rendererRef = 0;
-        windowRef = 0;
-    }
-
-    ~MockCameraService()
-    {
-    }
-
-    QMediaControl* requestControl(const char *iid)
-    {
-        if (qstrcmp(iid, QCameraControl_iid) == 0)
-            return mockControl;
-
-        if (qstrcmp(iid, QCameraLocksControl_iid) == 0)
-            return mockLocksControl;
-
-        if (qstrcmp(iid, QCameraExposureControl_iid) == 0)
-            return mockExposureControl;
-
-        if (qstrcmp(iid, QCameraFlashControl_iid) == 0)
-            return mockFlashControl;
-
-        if (qstrcmp(iid, QCameraFocusControl_iid) == 0)
-            return mockFocusControl;
-
-        if (qstrcmp(iid, QCameraImageCaptureControl_iid) == 0)
-            return mockCaptureControl;
-
-        if (qstrcmp(iid, QCameraCaptureBufferFormatControl_iid) == 0)
-            return mockCaptureBufferControl;
-
-        if (qstrcmp(iid, QCameraCaptureDestinationControl_iid) == 0)
-            return mockCaptureDestinationControl;
-
-        if (qstrcmp(iid, QCameraImageProcessingControl_iid) == 0)
-            return mockImageProcessingControl;
-
-        if (qstrcmp(iid, QImageEncoderControl_iid) == 0)
-            return mockImageEncoderControl;
-
-        if (qstrcmp(iid, QVideoRendererControl_iid) == 0) {
-            if (rendererRef == 0) {
-                rendererRef += 1;
-                return rendererControl;
-            }
-        } else if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
-            if (windowRef == 0) {
-                windowRef += 1;
-                return windowControl;
-            }
-        }
-        return 0;
-    }
-
-    void releaseControl(QMediaControl *control)
-    {
-        if (control == rendererControl)
-            rendererRef -= 1;
-        else if (control == windowControl)
-            windowRef -= 1;
-    }
-
-    MockCameraControl *mockControl;
-    MockCameraLocksControl *mockLocksControl;
-    MockCaptureControl *mockCaptureControl;
-    MockCaptureBufferFormatControl *mockCaptureBufferControl;
-    MockCaptureDestinationControl *mockCaptureDestinationControl;
-    MockCameraExposureControl *mockExposureControl;
-    MockCameraFlashControl *mockFlashControl;
-    MockCameraFocusControl *mockFocusControl;
-    MockImageProcessingControl *mockImageProcessingControl;
-    MockImageEncoderControl *mockImageEncoderControl;
-    MockVideoRendererControl *rendererControl;
-    MockVideoWindowControl *windowControl;
-    int rendererRef;
-    int windowRef;
-};
-
-class MockProvider : public QMediaServiceProvider
-{
-public:
-    QMediaService *requestService(const QByteArray &, const QMediaServiceProviderHint &)
-    {
-        return service;
-    }
-
-    void releaseService(QMediaService *) {}
-
-    QMediaService *service;
-};
-
 
 class tst_QCamera: public QObject
 {
@@ -1024,6 +107,46 @@ private slots:
     void testCaptureDestination();
     void testCaptureFormat();
 
+    void testConstructorWithDefaultProvider();
+    void testCaptureMode();
+    void testIsCaptureModeSupported();
+    void testRequestedLocks();
+    void testSupportedLocks();
+    void testQCameraIsAvailable();
+    void testAvailabilityError();
+    void testSearchAndLockWithLockTypes();
+    void testSetCaptureMode();
+    void testUnlockWithType();
+    void testCaptureModeChangedSignal();
+    void testLockStatusChangedWithTypesSignal();
+    void testErrorSignal();
+    void testError();
+    void testErrorString();
+    void testStatus();
+    void testLockType();
+    void testLockChangeReason();
+
+
+    // Test cases to for QCameraFocus
+    void testCameraFocusIsAvailable();
+    void testFocusModes();
+    void testOpticalAndDigitalZoomChanged();
+    void testMaxOpticalZoomChangedSignal();
+    void testMaxDigitalZoomChangedSignal();
+    void testfocusZonesChangedSignal();
+
+    // Test cases for QCameraControl class.
+    void testCameraControl();
+    void testCaptureModeChanged_signal();
+    void testEnumsOfQCameraControl();
+
+    // Test case for QCameraImageProcessing class
+    void testContrast();
+    void testDenoisingLevel();
+    void testIsAvailable();
+    void testSaturation();
+    void testSharpeningLevel();
+    void testEnumOfQCameraImageProcessing();
 
     void testSetVideoOutput();
     void testSetVideoOutputNoService();
@@ -1032,14 +155,27 @@ private slots:
 
     void testEnumDebug();
 
+    // constructor for QCameraImageProceesing
+    void testImageProcessingControl();
+
+    // Signals test cases for QCameraExposure
+    void testSignalApertureChanged();
+    void testSignalExposureCompensationChanged();
+    void testSignalIsoSensitivityChanged();
+    void testSignalShutterSpeedChanged();
+    void testSignalFlashReady();
+
+    // test constructor
+    void testExposureControlConstructor();
+
 private:
     MockSimpleCameraService  *mockSimpleCameraService;
-    MockProvider *provider;
+    MockMediaServiceProvider *provider;
 };
 
 void tst_QCamera::initTestCase()
 {
-    provider = new MockProvider;
+    provider = new MockMediaServiceProvider;
     mockSimpleCameraService = new MockSimpleCameraService;
     provider->service = mockSimpleCameraService;
     qRegisterMetaType<QtMultimediaKit::MetaData>("QtMultimediaKit::MetaData");
@@ -1349,7 +485,6 @@ void tst_QCamera::testCameraCapture()
     QCamera camera(0, provider);
     QCameraImageCapture imageCapture(&camera);
 
-
     QVERIFY(!imageCapture.isReadyForCapture());
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));    
@@ -1430,7 +565,7 @@ void tst_QCamera::testCameraWhiteBalance()
                 QCameraImageProcessingControl::ColorTemperature,
                 QVariant(34));
 
-    MockProvider provider;
+    MockMediaServiceProvider provider;
     provider.service = &service;
 
     QCamera camera(0, &provider);
@@ -1464,23 +599,75 @@ void tst_QCamera::testCameraExposure()
 
     QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureAuto));
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureAuto);
+
+    // Test Cases For QCameraExposure
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureManual));
     cameraExposure->setExposureMode(QCameraExposure::ExposureManual);
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureManual);
 
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureNight));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureNight);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureNight);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureBacklight));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureBacklight);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureBacklight);
+
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSpotlight ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureSpotlight);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSpotlight);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSports ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureSports);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSports);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSnow ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureSnow);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSnow);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureBeach ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureBeach);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureBeach);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureLargeAperture ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureLargeAperture);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureLargeAperture);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSmallAperture ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureSmallAperture);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSmallAperture);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposurePortrait ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposurePortrait);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposurePortrait);
+
+    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureModeVendor ));
+    cameraExposure->setExposureMode(QCameraExposure::ExposureModeVendor);
+    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureModeVendor);
+
+
+    cameraExposure->setFlashMode(QCameraExposure::FlashAuto);
     QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashAuto);
     QCOMPARE(cameraExposure->isFlashReady(), true);
+    cameraExposure->setFlashMode(QCameraExposure::FlashRedEyeReduction);
+    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashRedEyeReduction);
     cameraExposure->setFlashMode(QCameraExposure::FlashOn);
     QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashOn);
+    cameraExposure->setFlashMode(QCameraExposure::FlashFill);
+    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashFill);
+    cameraExposure->setFlashMode(QCameraExposure::FlashTorch);
+    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashTorch);
+    cameraExposure->setFlashMode(QCameraExposure::FlashSlowSyncFrontCurtain);
+    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashSlowSyncFrontCurtain);
 
-    cameraExposure->setFlashMode(QCameraExposure::FlashRedEyeReduction); // not expected to be supported
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashOn);
 
+    cameraExposure->setMeteringMode(QCameraExposure::MeteringMatrix);
     QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringMatrix);
     cameraExposure->setMeteringMode(QCameraExposure::MeteringAverage);
     QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringAverage);
     cameraExposure->setMeteringMode(QCameraExposure::MeteringSpot);
-    QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringAverage);
-
+    QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringSpot);
 
     QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
     cameraExposure->setExposureCompensation(2.0);
@@ -1782,6 +969,7 @@ void tst_QCamera::testCameraEncodingProperyChange()
     stateChangedSignal.clear();
     statusChangedSignal.clear();
 
+
     camera.setCaptureMode(QCamera::CaptureVideo);
     QCOMPARE(camera.state(), QCamera::ActiveState);
     QCOMPARE(camera.status(), QCamera::LoadedStatus);
@@ -1852,7 +1040,7 @@ void tst_QCamera::testCameraEncodingProperyChange()
     stateChangedSignal.clear();
     statusChangedSignal.clear();
 
-    //setting the viewfinder should also trigget backend to be restarted:
+    //setting the viewfinder should also trigger backend to be restarted:
     camera.setViewfinder(new QGraphicsVideoItem());
     QCOMPARE(camera.state(), QCamera::ActiveState);
     QCOMPARE(camera.status(), QCamera::LoadedStatus);
@@ -1876,7 +1064,6 @@ void tst_QCamera::testCameraEncodingProperyChange()
 
     QCOMPARE(stateChangedSignal.count(), 0);
     QCOMPARE(statusChangedSignal.count(), 0);
-
 }
 
 void tst_QCamera::testSetVideoOutput()
@@ -1886,7 +1073,7 @@ void tst_QCamera::testSetVideoOutput()
     MockVideoSurface surface;
 
     MockCameraService service;
-    MockProvider provider;
+    MockMediaServiceProvider provider;
     provider.service = &service;
     QCamera camera(0, &provider);
 
@@ -1931,7 +1118,7 @@ void tst_QCamera::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    MockProvider provider;
+    MockMediaServiceProvider provider;
     provider.service = 0;
     QCamera camera(0, &provider);
 
@@ -1955,7 +1142,7 @@ void tst_QCamera::testSetVideoOutputNoControl()
     service.rendererRef = 1;
     service.windowRef = 1;
 
-    MockProvider provider;
+    MockMediaServiceProvider provider;
     provider.service = &service;
     QCamera camera(0, &provider);
 
@@ -1974,7 +1161,7 @@ void tst_QCamera::testSetVideoOutputDestruction()
     MockVideoSurface surface;
 
     MockCameraService service;
-    MockProvider provider;
+    MockMediaServiceProvider provider;
     provider.service = &service;
 
     {
@@ -2005,6 +1192,832 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::NoLock;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::LockExposure ");
     qDebug() << QCamera::LockExposure;
+}
+
+void tst_QCamera::testCameraControl()
+{
+    MockCameraControl *m_cameraControl=new MockCameraControl(this);
+    QVERIFY(m_cameraControl != NULL);
+}
+
+/* Test case for constructor with default provider */
+void tst_QCamera::testConstructorWithDefaultProvider()
+{
+    QCamera *camera = new QCamera(0);
+    QVERIFY(camera != NULL);
+    QCOMPARE(camera->state(), QCamera::UnloadedState);
+    delete camera;
+}
+
+/* captureModeChanged Signal test case. */
+void tst_QCamera::testCaptureModeChanged_signal()
+{
+    MockCameraControl *m_cameraControl= new MockCameraControl(this);
+    QSignalSpy spy(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureMode)));
+    QVERIFY(spy.size() == 0);
+
+    m_cameraControl->setCaptureMode(QCamera::CaptureVideo);
+    QVERIFY(spy.size() == 1);
+
+    m_cameraControl->setCaptureMode(QCamera::CaptureStillImage);
+    QVERIFY(spy.size() == 2);
+}
+
+/* Test case for captureMode */
+void tst_QCamera::testCaptureMode()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
+
+    camera.setCaptureMode(QCamera::CaptureVideo);
+    QVERIFY(camera.captureMode() == QCamera::CaptureVideo);
+}
+
+/* Test case for isCaptureModeSupported */
+void tst_QCamera::testIsCaptureModeSupported()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QVERIFY(camera.isCaptureModeSupported(QCamera::CaptureStillImage) == true);
+    QVERIFY(camera.isCaptureModeSupported(QCamera::CaptureVideo) == true);
+}
+
+/* Test case for requestedLocks. LockType is stored in OR combination so all
+   types of combinations are verified here.*/
+void tst_QCamera::testRequestedLocks()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
+
+    camera.searchAndLock(QCamera::LockExposure);
+    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure);
+
+    camera.unlock();
+    camera.searchAndLock(QCamera::LockFocus);
+    QCOMPARE(camera.requestedLocks(),QCamera::LockFocus );
+
+    camera.unlock();
+    camera.searchAndLock(QCamera::LockWhiteBalance);
+    QCOMPARE(camera.requestedLocks(),QCamera::LockWhiteBalance);
+
+    camera.unlock();
+    camera.searchAndLock(QCamera::LockExposure |QCamera::LockFocus );
+    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure |QCamera::LockFocus );
+    camera.searchAndLock(QCamera::LockWhiteBalance);
+    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure |QCamera::LockFocus|QCamera::LockWhiteBalance );
+    camera.unlock(QCamera::LockExposure);
+    QCOMPARE(camera.requestedLocks(),QCamera::LockFocus|QCamera::LockWhiteBalance );
+    camera.unlock(QCamera::LockFocus);
+    camera.searchAndLock(QCamera::LockExposure |QCamera::LockWhiteBalance );
+    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure|QCamera::LockWhiteBalance );
+}
+
+/* Test case for supportedLocks() */
+void tst_QCamera::testSupportedLocks()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QCOMPARE(camera.supportedLocks(),QCamera::LockExposure | QCamera::LockFocus);
+}
+
+/* Test case for isAvailable */
+void tst_QCamera::testQCameraIsAvailable()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QVERIFY(camera.isAvailable());
+
+    QCamera *camera1 = new QCamera("random");
+
+    QVERIFY(camera1->error() == QCamera::ServiceMissingError);
+    QVERIFY(!camera1->isAvailable());
+    delete camera1;
+}
+
+/* Test case for availabilityError */
+void tst_QCamera::testAvailabilityError()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QVERIFY(camera.availabilityError() == QtMultimediaKit::NoError);
+
+    QCamera *camera1 = new QCamera("random");
+    QVERIFY(camera1->availabilityError() == QtMultimediaKit::ServiceMissingError);
+    delete camera1;
+}
+
+/* Test case for searchAndLock ( QCamera::LockTypes locks ) */
+void tst_QCamera::testSearchAndLockWithLockTypes()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
+
+    /* Spy the signals */
+    QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
+    QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+
+    /* search and lock the camera with QCamera::LockExposure and verify if the signal is emitted correctly */
+    camera.searchAndLock(QCamera::LockExposure);
+    QCOMPARE(camera.lockStatus(), QCamera::Locked);
+    QCOMPARE(lockedSignal.count(), 1);
+    QCOMPARE(lockFailedSignal.count(), 0);
+    QCOMPARE(lockStatusChangedSignal.count(), 1);
+    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
+}
+
+/* Test case for setCaptureMode() */
+void tst_QCamera::testSetCaptureMode()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    /* Set the capture mode and verify if it set correctly */
+    camera.setCaptureMode(QCamera::CaptureVideo);
+    QVERIFY(camera.captureMode() == QCamera::CaptureVideo);
+
+    camera.setCaptureMode(QCamera::CaptureStillImage);
+    QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
+}
+
+/* Test case for unlock (QCamera::LockTypes) */
+void tst_QCamera::testUnlockWithType()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
+
+    /* Spy the signal */
+    QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
+    QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+
+    /* lock the camera with QCamera::LockExposure and Verify if the signal is emitted correctly */
+    camera.searchAndLock(QCamera::LockExposure);
+    QCOMPARE(camera.lockStatus(), QCamera::Locked);
+    QCOMPARE(lockedSignal.count(), 1);
+    QCOMPARE(lockFailedSignal.count(), 0);
+    QCOMPARE(lockStatusChangedSignal.count(), 1);
+    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
+
+    /* Clear the signal */
+    lockedSignal.clear();
+    lockFailedSignal.clear();
+    lockStatusChangedSignal.clear();
+    lockStatusChangedSignalWithType.clear();
+
+    /* Unlock the camera and verify if the signal is emitted correctly */
+    camera.unlock(QCamera::LockExposure);
+    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
+    QCOMPARE(lockedSignal.count(), 0);
+    QCOMPARE(lockFailedSignal.count(), 0);
+    QCOMPARE(lockStatusChangedSignal.count(), 1);
+    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
+    QCamera::LockType lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
+    QCamera::LockStatus lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
+    QVERIFY(lockType == QCamera::LockExposure);
+    QVERIFY(lockStatus == QCamera::Unlocked);
+
+    lockedSignal.clear();
+    lockFailedSignal.clear();
+    lockStatusChangedSignal.clear();
+    lockStatusChangedSignalWithType.clear();
+
+    /* Lock the camera with QCamera::LockFocus */
+    camera.searchAndLock(QCamera::LockFocus);
+    lockedSignal.clear();
+    lockFailedSignal.clear();
+    lockStatusChangedSignal.clear();
+    lockStatusChangedSignalWithType.clear();
+
+    /* Unlock the camera and Verify if the signal is emitted correctly */
+    camera.unlock(QCamera::LockFocus);
+    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
+    QCOMPARE(lockedSignal.count(), 0);
+    QCOMPARE(lockFailedSignal.count(), 0);
+    QCOMPARE(lockStatusChangedSignal.count(), 1);
+    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
+    lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
+    lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
+    QVERIFY(lockType == QCamera::LockFocus);
+    QVERIFY(lockStatus == QCamera::Unlocked);
+}
+
+/* Test case for signal captureModeChanged(QCamera::CaptureMode) */
+void tst_QCamera::testCaptureModeChangedSignal()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
+
+    qRegisterMetaType<QCamera::CaptureMode>("QCamera::CaptureMode");
+
+    /* Spy the signal */
+    QSignalSpy lockCaptureModeChangedSignal(&camera, SIGNAL(captureModeChanged(QCamera::CaptureMode)));
+
+    /* set the capture mode and Verify if the signal is emitted */
+    camera.setCaptureMode(QCamera::CaptureVideo);
+    QVERIFY(camera.captureMode() == QCamera::CaptureVideo);
+    QCOMPARE(lockCaptureModeChangedSignal.count(), 1);
+    QCamera::CaptureMode lockCaptureMode = qvariant_cast<QCamera::CaptureMode >(lockCaptureModeChangedSignal.at(0).at(0));
+    QVERIFY(lockCaptureMode == QCamera::CaptureVideo);
+}
+
+/* Test case for signal lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason) */
+void tst_QCamera::testLockStatusChangedWithTypesSignal()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
+
+    /* Spy the signal lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason) */
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+
+    /* Lock the camera with type QCamera::LockExposure */
+    camera.searchAndLock(QCamera::LockExposure);
+
+    /* Verify if the signal is emitted and lock status is set correclty */
+    QCOMPARE(camera.lockStatus(), QCamera::Locked);
+    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
+    QCamera::LockType lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
+    QCamera::LockStatus lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
+    QVERIFY(lockType == QCamera::LockExposure);
+    QVERIFY(lockStatus == QCamera::Locked);
+
+    lockStatusChangedSignalWithType.clear();
+
+    /* Unlock the camera */
+    camera.unlock();
+
+    /* Verify if the signal is emitted and lock status is set correclty */
+    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
+    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
+    lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
+    lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
+    QVERIFY(lockType == QCamera::LockExposure);
+    QVERIFY(lockStatus == QCamera::Unlocked);
+}
+
+/* Test case for verifying if error signal generated correctly */
+void tst_QCamera::testErrorSignal()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QSignalSpy spyError(&camera, SIGNAL(error(QCamera::Error)));
+
+    /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
+    service.mockControl->setError(QCamera::CameraError,QString("Camera Error"));
+
+    QVERIFY(spyError.count() == 1);
+    QCamera::Error err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
+    QVERIFY(err == QCamera::CameraError);
+
+    spyError.clear();
+
+    /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
+    service.mockControl->setError(QCamera::InvalidRequestError,QString("InvalidRequestError Error"));
+    QVERIFY(spyError.count() == 1);
+    err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
+    QVERIFY(err == QCamera::InvalidRequestError);
+
+    spyError.clear();
+
+    /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
+    service.mockControl->setError(QCamera::NotSupportedFeatureError,QString("NotSupportedFeatureError Error"));
+    QVERIFY(spyError.count() == 1);
+    err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
+    QVERIFY(err == QCamera::NotSupportedFeatureError);
+
+}
+
+/* Test case for verifying the QCamera error */
+void tst_QCamera::testError()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    service.mockControl->setError(QCamera::CameraError,QString("Camera Error"));
+    QVERIFY(camera.error() == QCamera::CameraError);
+
+    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    service.mockControl->setError(QCamera::InvalidRequestError,QString("InvalidRequestError Error"));
+    QVERIFY(camera.error() == QCamera::InvalidRequestError);
+
+    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    service.mockControl->setError(QCamera::NotSupportedFeatureError,QString("NotSupportedFeatureError Error"));
+    QVERIFY(camera.error() == QCamera::NotSupportedFeatureError);
+
+}
+
+/* Test the error strings for QCamera class */
+void tst_QCamera::testErrorString()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    service.mockControl->setError(QCamera::CameraError,QString("Camera Error"));
+    QVERIFY(camera.errorString() == QString("Camera Error"));
+
+    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    service.mockControl->setError(QCamera::InvalidRequestError,QString("InvalidRequestError Error"));
+    QVERIFY(camera.errorString() == QString("InvalidRequestError Error"));
+
+    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    service.mockControl->setError(QCamera::NotSupportedFeatureError,QString("NotSupportedFeatureError Error"));
+    QVERIFY(camera.errorString() == QString("NotSupportedFeatureError Error"));
+}
+
+/* Test case for verifying Status of QCamera. */
+void tst_QCamera::testStatus()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    service.mockControl->setStatus(QCamera::StartingStatus);
+    QVERIFY(camera.status() == QCamera::StartingStatus);
+
+    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    service.mockControl->setStatus(QCamera::StandbyStatus);
+    QVERIFY(camera.status() == QCamera::StandbyStatus);
+
+    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    service.mockControl->setStatus(QCamera::LoadingStatus);
+    QVERIFY(camera.status() == QCamera::LoadingStatus);
+
+    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    service.mockControl->setStatus(QCamera::UnavailableStatus);
+    QVERIFY(camera.status() == QCamera::UnavailableStatus);
+}
+
+/* Test case for verifying default locktype QCamera::NoLock */
+void tst_QCamera::testLockType()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
+}
+
+/* Test case for QCamera::LockChangeReason with QCamera::LockAcquired */
+void tst_QCamera::testLockChangeReason()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+
+    /* Set the lockChangeReason */
+    service.mockLocksControl->setLockChangeReason(QCamera::LockAcquired);
+
+    /* Verify if lockChangeReson is eqaul toQCamera::LockAcquired */
+    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
+    QCamera::LockChangeReason LockChangeReason = qvariant_cast<QCamera::LockChangeReason >(lockStatusChangedSignalWithType.at(0).at(2));
+    QVERIFY(LockChangeReason == QCamera::LockAcquired);
+
+}
+/* All the enums test case for QCameraControl class*/
+void tst_QCamera::testEnumsOfQCameraControl()
+{
+    MockCameraControl *m_cameraControl = new MockCameraControl(this);
+    bool result;
+
+    // In still mode, can't change much
+    QVERIFY(m_cameraControl->captureMode() == QCamera::CaptureStillImage);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::CaptureMode, QCamera::ActiveStatus);
+    QVERIFY(!result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
+    QVERIFY(!result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
+    QVERIFY(result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::Viewfinder, QCamera::ActiveStatus);
+    QVERIFY(!result);
+
+    // In video mode can change image encoding settings
+    m_cameraControl->setCaptureMode(QCamera::CaptureVideo);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
+    QVERIFY(result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
+    QVERIFY(result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::Viewfinder, QCamera::ActiveStatus);
+    QVERIFY(!result);
+
+    // Flip the allow everything bit
+    m_cameraControl->m_propertyChangesSupported = true;
+    result = m_cameraControl->canChangeProperty(MockCameraControl::CaptureMode, QCamera::ActiveStatus);
+    QVERIFY(result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
+    QVERIFY(result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
+    QVERIFY(result);
+    result = m_cameraControl->canChangeProperty(MockCameraControl::Viewfinder, QCamera::ActiveStatus);
+    QVERIFY(result);
+}
+
+// Test case for QCameraImageProcessing class
+void tst_QCamera::testContrast()
+{
+    MockCameraService service;
+    MockMediaServiceProvider provider;
+    provider.service = &service;
+
+    QCamera camera(0, &provider);
+    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
+    QVERIFY(cameraImageProcessing->contrast() ==0);
+
+    cameraImageProcessing->setContrast(123);
+    QVERIFY(cameraImageProcessing->contrast() ==123);
+
+    cameraImageProcessing->setContrast(4.56);
+    QVERIFY(cameraImageProcessing->contrast() ==4);
+}
+
+void tst_QCamera::testDenoisingLevel()
+{
+    MockCameraService service;
+    MockMediaServiceProvider provider;
+    provider.service = &service;
+
+    QCamera camera(0, &provider);
+    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
+
+    if (cameraImageProcessing->isDenoisingSupported())
+    {
+        QVERIFY(cameraImageProcessing->denoisingLevel() == -1);
+
+        cameraImageProcessing->setDenoisingLevel(0);
+        QVERIFY(cameraImageProcessing->denoisingLevel() == 0);
+
+        cameraImageProcessing->setDenoisingLevel(12);
+        QVERIFY(cameraImageProcessing->denoisingLevel() == 12);
+    }
+    else
+        QVERIFY(cameraImageProcessing->denoisingLevel() == -1);
+}
+
+void tst_QCamera::testIsAvailable()
+{
+    MockCameraService service;
+    MockMediaServiceProvider provider;
+    provider.service = &service;
+
+    QCamera camera(0, &provider);
+    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
+    QVERIFY(cameraImageProcessing->isAvailable() == true);
+}
+
+void tst_QCamera::testSaturation()
+{
+    MockCameraService service;
+    MockMediaServiceProvider provider;
+    provider.service = &service;
+
+    QCamera camera(0, &provider);
+    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
+    QVERIFY(cameraImageProcessing->saturation() == 0);
+
+    cameraImageProcessing->setSaturation(50);
+    QVERIFY(cameraImageProcessing->saturation() == 50);
+
+    cameraImageProcessing->setSaturation(-50);
+    QVERIFY(cameraImageProcessing->saturation() == -50);
+
+    cameraImageProcessing->setSaturation(100);
+    QVERIFY(cameraImageProcessing->saturation() == 100);
+
+    cameraImageProcessing->setSaturation(-100);
+    QVERIFY(cameraImageProcessing->saturation() == -100);
+}
+
+void tst_QCamera::testSharpeningLevel()
+{
+    MockCameraService service;
+    MockMediaServiceProvider provider;
+    provider.service = &service;
+
+    QCamera camera(0, &provider);
+    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
+    QVERIFY(cameraImageProcessing->isSharpeningSupported());
+    QVERIFY(cameraImageProcessing->sharpeningLevel() == -1);
+
+    cameraImageProcessing->setSharpeningLevel(123);
+    QVERIFY(cameraImageProcessing->sharpeningLevel() == 123);
+
+    cameraImageProcessing->setSharpeningLevel(4.67);
+    QVERIFY(cameraImageProcessing->sharpeningLevel() == 4);
+}
+
+void tst_QCamera::testEnumOfQCameraImageProcessing()
+{
+    QSet<QCameraImageProcessing::WhiteBalanceMode> whiteBalanceModes;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceManual;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceAuto;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceSunlight;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceCloudy;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceShade;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceTungsten;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceFluorescent;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceIncandescent;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceFlash;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceSunset;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceVendor;
+
+    MockCameraService service;
+    service.mockImageProcessingControl->setSupportedWhiteBalanceModes(whiteBalanceModes);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceManual);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceManual));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceManual);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceAuto));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceAuto);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceSunlight);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceSunlight));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceSunlight);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceCloudy);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceCloudy));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceCloudy);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceShade);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceShade));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceShade);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceTungsten);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceTungsten));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceTungsten);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFluorescent);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFluorescent));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceFluorescent);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceIncandescent);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceIncandescent));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceIncandescent);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFlash));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceFlash);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceSunset);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceSunset));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceSunset);
+
+    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceVendor);
+    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceVendor));
+    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceVendor);
+}
+
+//Added test cases for QCameraFocus
+void tst_QCamera::testCameraFocusIsAvailable()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QCameraFocus *cameraFocus = camera.focus();
+    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus->isAvailable());
+}
+
+//Added this code to cover QCameraFocus::HyperfocalFocus and QCameraFocus::MacroFocus
+//As the HyperfocalFocus and MacroFocus are not supported we can not set the focus mode to these Focus Modes
+void tst_QCamera::testFocusModes()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QCameraFocus *cameraFocus = camera.focus();
+    QVERIFY(cameraFocus != 0);
+    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::HyperfocalFocus));
+    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::MacroFocus));
+    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
+    cameraFocus->setFocusMode(QCameraFocus::HyperfocalFocus);
+    QVERIFY(cameraFocus->focusMode()!= QCameraFocus::HyperfocalFocus);
+    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
+    cameraFocus->setFocusMode(QCameraFocus::MacroFocus);
+    QVERIFY(cameraFocus->focusMode()!= QCameraFocus::MacroFocus);
+    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
+}
+
+void tst_QCamera::testOpticalAndDigitalZoomChanged()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QCameraFocus *cameraFocus = camera.focus();
+    QVERIFY(cameraFocus != 0);
+    QSignalSpy spy1(cameraFocus,SIGNAL(digitalZoomChanged(qreal)));
+    QSignalSpy spy2(cameraFocus,SIGNAL(opticalZoomChanged(qreal)));
+    QVERIFY(spy1.count() == 0);
+    QVERIFY(spy2.count() == 0);
+    cameraFocus->zoomTo(2.0,3.0);
+    QVERIFY(spy1.count() == 1);
+    QVERIFY(spy2.count() == 1);
+}
+
+void tst_QCamera::testMaxDigitalZoomChangedSignal()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QCameraFocus *cameraFocus = camera.focus();
+    QVERIFY(cameraFocus != 0);
+    QSignalSpy spy(cameraFocus,SIGNAL(maximumDigitalZoomChanged(qreal)));
+    QVERIFY(spy.count() == 0);
+    cameraFocus->zoomTo(5.0,6.0);
+    QVERIFY(spy.count() == 1);
+}
+
+void tst_QCamera::testMaxOpticalZoomChangedSignal()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QCameraFocus *cameraFocus = camera.focus();
+    QVERIFY(cameraFocus != 0);
+    QSignalSpy spy(cameraFocus,SIGNAL(maximumOpticalZoomChanged(qreal)));
+    QVERIFY(spy.count() == 0);
+    cameraFocus->zoomTo(5.0,6.0);
+    QVERIFY(spy.count() == 1);
+}
+
+void tst_QCamera::testfocusZonesChangedSignal()
+{
+    MockCameraService service;
+    provider->service = &service;
+    QCamera camera(0, provider);
+    QCameraFocus *cameraFocus = camera.focus();
+    QVERIFY(cameraFocus != 0);
+
+    QSignalSpy spy(cameraFocus,SIGNAL(focusZonesChanged()));
+    cameraFocus->zoomTo(5.0,6.0);
+    QVERIFY(spy.count() == 1);
+}
+
+// test constructor for abstract class of ImageProcessingControl
+void tst_QCamera :: testImageProcessingControl()
+{
+    QObject parent;
+    MockImageProcessingControl processCtrl(&parent);
+}
+
+void tst_QCamera::testSignalApertureChanged()
+{
+    MockMediaServiceProvider provider1;
+    MockCameraService service;
+    provider1.service = &service;
+    QCamera camera(0, &provider1);
+
+    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
+    QVERIFY(cameraExposure != 0);
+
+    QSignalSpy spyApertureChanged(cameraExposure , SIGNAL(apertureChanged(qreal)));
+    QSignalSpy spyApertureRangeChanged(cameraExposure , SIGNAL(apertureRangeChanged()));
+
+
+    QVERIFY(spyApertureChanged.count() ==0);
+    cameraExposure->setManualAperture(10.0);//set the ManualAperture to 10.0
+
+    QTest::qWait(100);
+    QVERIFY(spyApertureChanged.count() ==1);
+    QVERIFY(spyApertureRangeChanged.count() ==1);
+}
+
+void tst_QCamera::testSignalExposureCompensationChanged()
+{
+    MockMediaServiceProvider provider1;
+    MockCameraService service;
+    provider1.service = &service;
+    QCamera camera(0, &provider1);
+
+    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
+    QVERIFY(cameraExposure != 0);
+
+    QSignalSpy spyExposureCompensationChanged(cameraExposure , SIGNAL(exposureCompensationChanged(qreal)));
+
+    QVERIFY(spyExposureCompensationChanged.count() ==0);
+
+    QVERIFY(cameraExposure->exposureCompensation() != 800);
+    cameraExposure->setExposureCompensation(2.0);
+
+    QTest::qWait(100);
+
+    QVERIFY(cameraExposure->exposureCompensation() == 2.0);
+
+    QCOMPARE(spyExposureCompensationChanged.count(),1);
+
+    // Setting the same should not result in a signal
+    cameraExposure->setExposureCompensation(2.0);
+    QTest::qWait(100);
+
+    QVERIFY(cameraExposure->exposureCompensation() == 2.0);
+    QCOMPARE(spyExposureCompensationChanged.count(),1);
+}
+
+void tst_QCamera::testSignalIsoSensitivityChanged()
+{
+
+    MockMediaServiceProvider provider1;
+    MockCameraService service;
+    provider1.service = &service;
+    QCamera camera(0, &provider1);
+
+    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
+    QVERIFY(cameraExposure != 0);
+
+    QSignalSpy spyisoSensitivityChanged(cameraExposure , SIGNAL(isoSensitivityChanged(int)));
+
+    QVERIFY(spyisoSensitivityChanged.count() ==0);
+
+    cameraExposure->setManualIsoSensitivity(800); //set the manualiso sentivity to 800
+    QTest::qWait(100);
+    QVERIFY(spyisoSensitivityChanged.count() ==1);
+
+}
+void tst_QCamera::testSignalShutterSpeedChanged()
+{
+
+    MockMediaServiceProvider provider1;
+    MockCameraService service;
+    provider1.service = &service;
+    QCamera camera(0, &provider1);
+
+    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
+    QVERIFY(cameraExposure != 0);
+
+    QSignalSpy spySignalShutterSpeedChanged(cameraExposure , SIGNAL(shutterSpeedChanged(qreal)));
+    QSignalSpy spySignalShutterSpeedRangeChanged(cameraExposure , SIGNAL(shutterSpeedRangeChanged()));
+
+    QVERIFY(spySignalShutterSpeedChanged.count() ==0);
+
+    cameraExposure->setManualShutterSpeed(2.0);//set the ManualShutterSpeed to 2.0
+    QTest::qWait(100);
+
+    QVERIFY(spySignalShutterSpeedChanged.count() ==1);
+    QVERIFY(spySignalShutterSpeedRangeChanged.count() ==1);
+}
+
+void tst_QCamera::testSignalFlashReady()
+{
+    MockMediaServiceProvider provider1;
+    MockCameraService service;
+    provider1.service = &service;
+    QCamera camera(0, &provider1);
+
+    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
+    QVERIFY(cameraExposure != 0);
+
+
+    QSignalSpy spyflashReady(cameraExposure,SIGNAL(flashReady(bool)));
+
+    QVERIFY(spyflashReady.count() ==0);
+
+    QVERIFY(cameraExposure->flashMode() ==QCameraExposure::FlashAuto);
+
+    cameraExposure->setFlashMode(QCameraExposure::FlashOff);//set theFlashMode to QCameraExposure::FlashOff
+
+    QVERIFY(cameraExposure->flashMode() ==QCameraExposure::FlashOff);
+
+    QVERIFY(spyflashReady.count() ==1);
+}
+
+// test constructor
+void tst_QCamera::testExposureControlConstructor()
+{
+    // To check changes in abstract classes's pure virtual functions
+    MockCameraExposureControl obj;
 }
 
 QTEST_MAIN(tst_QCamera)

@@ -4,6 +4,17 @@ SUBDIRS += \
     qabstractvideobuffer \
     qabstractvideosurface \
     qaudiocapturesource \
+    qaudiodeviceinfo \
+    qaudioformat \
+    qaudioinput \
+    qaudiooutput \
+    qcamera \
+    qcamerabackend \
+    qcameraimagecapture \
+    qcameraviewfinder \
+    qmediabindableinterface \
+    qmediacontainercontrol \
+    qmediacontent \
     qmediaobject \
     qmediaplayer \
     qmediaplayerbackend \
@@ -11,17 +22,24 @@ SUBDIRS += \
     qmediarecorder \
     qmediaresource \
     qmediaservice \
-    qmediacontent \
-    qradiotuner \
-    qcamera \
     qmediatimerange \
-    qaudiodeviceinfo \
-    qaudiooutput \
-    qaudioinput \
-    qaudioformat \
+    qradiotuner \
     qvideoframe \
     qvideosurfaceformat \
-    qcamerabackend
+    qmetadatareadercontrol \
+    qmetadatawritercontrol \
+
+# This is disabled because it is unfinished
+# qmediastreamscontrol \
+
+# These is disabled until intent is clearer
+#    qvideodevicecontrol \
+#    qvideoencodercontrol \
+
+# This is a commment for the mock backend directory so that maketestselftest
+# doesn't believe it's an untested directory
+# qmultimedia_common
+
 
 # Tests depending on private interfaces should only be built if
 # these interfaces are exported.
@@ -47,4 +65,3 @@ contains (QT_CONFIG, declarative) {
     disabled:SUBDIRS += qdeclarativevideo
   }
 }
-

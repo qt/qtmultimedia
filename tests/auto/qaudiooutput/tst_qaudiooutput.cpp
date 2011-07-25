@@ -244,7 +244,7 @@ void tst_QAudioOutput::initTestCase()
 
     QVERIFY(testFormats.size());
 
-    foreach (format, testFormats) {
+    foreach (const QAudioFormat &format, testFormats) {
         qint64 len = (format.frequency()*format.channels()*(format.sampleSize()/8)*2); // 2 seconds
         createSineWaveData(format, len);
         // Write generate sine wave data to file
@@ -488,6 +488,7 @@ void tst_QAudioOutput::pull()
         audioFiles.at(i)->seek(WavHeader::headerLength());
 
         audioOutput.start(audioFiles.at(i));
+
         // Check that QAudioOutput immediately transitions to ActiveState
         QTRY_VERIFY2((stateSignal.count() == 1),
                 QString("didn't emit signal on start(), got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());

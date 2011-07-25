@@ -50,16 +50,19 @@ void tst_QRadioTuner::initTestCase()
     qRegisterMetaType<QRadioTuner::State>("QRadioTuner::State");
     qRegisterMetaType<QRadioTuner::Band>("QRadioTuner::Band");
 
-    mock = new MockControl(this);
-    service = new MockService(this, mock);
-    provider = new MockProvider(service);
+    mock = new MockRadioTunerControl(this);
+    service = new MockMediaService(this, mock);
+    provider = new MockMediaServiceProvider(service);
     radio = new QRadioTuner(0,provider);
     QVERIFY(radio->service() != 0);
+    QVERIFY(radio->isAvailable());
+    QVERIFY(radio->availabilityError() == QtMultimediaKit::NoError);
 
     QSignalSpy stateSpy(radio, SIGNAL(stateChanged(QRadioTuner::State)));
 
     QCOMPARE(radio->state(), QRadioTuner::StoppedState);    
     radio->start();
+    QVERIFY(radio->availabilityError() == QtMultimediaKit::NoError);
     QCOMPARE(radio->state(), QRadioTuner::ActiveState);
 
     QCOMPARE(stateSpy.count(), 1);
@@ -74,6 +77,7 @@ void tst_QRadioTuner::cleanupTestCase()
     QSignalSpy stateSpy(radio, SIGNAL(stateChanged(QRadioTuner::State)));
 
     radio->stop();
+    QVERIFY(radio->availabilityError() == QtMultimediaKit::NoError);
     QCOMPARE(radio->state(), QRadioTuner::StoppedState);
     QCOMPARE(stateSpy.count(), 1);
 
@@ -88,9 +92,9 @@ void tst_QRadioTuner::testNullService()
 {
     const QPair<int, int> nullRange(0, 0);
 
-    MockProvider provider(0);
+    MockMediaServiceProvider provider(0);
     QRadioTuner radio(0, &provider);
-
+    QVERIFY(!radio.isAvailable());
     radio.start();
     QCOMPARE(radio.error(), QRadioTuner::ResourceError);
     QCOMPARE(radio.errorString(), QString());
@@ -115,10 +119,10 @@ void tst_QRadioTuner::testNullControl()
 {
     const QPair<int, int> nullRange(0, 0);
 
-    MockService service(0, 0);
-    MockProvider provider(&service);
+    MockMediaService service(0, 0);
+    MockMediaServiceProvider provider(&service);
     QRadioTuner radio(0, &provider);
-
+    QVERIFY(!radio.isAvailable());
     radio.start();
 
     QCOMPARE(radio.error(), QRadioTuner::ResourceError);
@@ -269,7 +273,47 @@ void tst_QRadioTuner::testSignal()
 
 void tst_QRadioTuner::testStereo()
 {
+    /* no set function to toggle stereo status;
+    cannot emit stereoStatusChanged() signal */
+
     QVERIFY(radio->isStereo());
     radio->setStereoMode(QRadioTuner::ForceMono);
     QVERIFY(radio->stereoMode() == QRadioTuner::ForceMono);
+}
+
+// QRadioTuner's errorsignal
+void tst_QRadioTuner::errorSignal()
+{
+    qRegisterMetaType<QRadioTuner::Error>("QRadioTuner::Error");
+    QObject obj;
+    MockRadioTunerControl dctrl(&obj);
+    MockMediaService service(&obj, &dctrl);
+    MockMediaServiceProvider provider(&service);
+    QRadioTuner radio(0,&provider);
+    QSignalSpy spy(&radio, SIGNAL(error(QRadioTuner::Error)));
+    QVERIFY(radio.service() != 0);
+    QVERIFY(radio.isAvailable());
+    radio.start();
+    radio.setBand(QRadioTuner::FM);
+    QVERIFY(spy.count() == 1);
+    QVERIFY(qvariant_cast<QRadioTuner::Error>(spy.at(0).at(0)) == QRadioTuner::NoError);
+    QVERIFY(radio.error() == QRadioTuner::NoError);
+    QVERIFY(radio.error() != QRadioTuner::OpenError);
+    QVERIFY(radio.errorString().isEmpty());
+    spy.clear();
+
+    /* emits QRadioTuner::OutOfRangeError if band is set to FM2 or LW
+           and frequency set to >= 148500000 */
+
+    radio.setBand(QRadioTuner::LW);
+    radio.setBand(QRadioTuner::FM2);
+    radio.setFrequency(148500000);
+    QVERIFY(spy.count() == 3);
+    QVERIFY(qvariant_cast<QRadioTuner::Error>(spy.at(0).at(0)) == QRadioTuner::OutOfRangeError);
+    QVERIFY(qvariant_cast<QRadioTuner::Error>(spy.at(1).at(0)) == QRadioTuner::OutOfRangeError);
+    QVERIFY(qvariant_cast<QRadioTuner::Error>(spy.at(2).at(0)) == QRadioTuner::OutOfRangeError);
+    QVERIFY(radio.error() == QRadioTuner::OutOfRangeError);
+    QVERIFY2(!radio.errorString().isEmpty(), "band and range not supported");
+    spy.clear();
+    radio.stop();
 }

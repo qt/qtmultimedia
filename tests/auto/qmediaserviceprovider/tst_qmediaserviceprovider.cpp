@@ -445,6 +445,16 @@ void tst_QMediaServiceProvider::testProviderHints()
     }
 
     {
+        QMediaServiceProviderHint hint(QMediaServiceProviderHint::RecordingSupport);
+        QVERIFY(!hint.isNull());
+        QCOMPARE(hint.type(), QMediaServiceProviderHint::SupportedFeatures);
+        QVERIFY(hint.device().isEmpty());
+        QVERIFY(hint.mimeType().isEmpty());
+        QVERIFY(hint.codecs().isEmpty());
+        QCOMPARE(hint.features(), QMediaServiceProviderHint::RecordingSupport);
+    }
+
+    {
         QString mimeType(QLatin1String("video/ogg"));
         QStringList codecs;
         codecs << "theora" << "vorbis";

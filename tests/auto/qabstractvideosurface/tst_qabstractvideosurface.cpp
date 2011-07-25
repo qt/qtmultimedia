@@ -67,6 +67,8 @@ private slots:
     void nearestFormat();
     void start_data();
     void start();
+    void nativeResolution();
+    void supportedFormatsChanged();
 };
 
 typedef QMap<QAbstractVideoBuffer::HandleType, QVideoFrame::PixelFormat> SupportedFormatMap;
@@ -92,6 +94,20 @@ public:
     bool present(const QVideoFrame &) { return false; }
 
     using QAbstractVideoSurface::setError;
+
+    /* adding protected setNativeResolution*/
+    using QAbstractVideoSurface::setNativeResolution;
+
+    /* fun to generate supportedFormatsChanged signal */
+    QList<QVideoFrame::PixelFormat> supportedPixelFormatsChange(QList<QVideoFrame::PixelFormat> formats)
+    {
+        supportedFormats.insertMulti(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_RGB32);
+        QList<QVideoFrame::PixelFormat> supportedFormats = supportedPixelFormats();
+        if (supportedFormats.count() != formats.count()) {
+            emit supportedFormatsChanged();
+        }
+        return supportedFormats;
+    }
 
 private:
     SupportedFormatMap supportedFormats;
@@ -137,6 +153,12 @@ void tst_QAbstractVideoSurface::setError()
 
     surface.setError(QAbstractVideoSurface::NoError);
     QCOMPARE(surface.error(), QAbstractVideoSurface::NoError);
+
+    surface.setError(QAbstractVideoSurface::UnsupportedFormatError);
+    QCOMPARE(surface.error(), QAbstractVideoSurface::UnsupportedFormatError);
+
+    surface.setError(QAbstractVideoSurface::IncorrectFormatError);
+    QCOMPARE(surface.error(), QAbstractVideoSurface::IncorrectFormatError);
 }
 
 void tst_QAbstractVideoSurface::isFormatSupported_data()
@@ -305,6 +327,44 @@ void tst_QAbstractVideoSurface::start()
 
     QCOMPARE(activeSpy.count(), 2);
     QCOMPARE(activeSpy.last().at(0).toBool(), false);
+}
+
+// Test nativeResolution property
+void tst_QAbstractVideoSurface::nativeResolution()
+{
+    QtTestVideoSurface surface;
+    QSignalSpy spy(&surface, SIGNAL(nativeResolutionChanged(QSize)));
+    QSize size1 = surface.nativeResolution();
+    QVERIFY(size1.width() == -1);
+    QVERIFY(size1.height() == -1);
+    QVERIFY(spy.count() == 0);
+
+    QSize res(100,150);
+    surface.setNativeResolution(res);
+    QVERIFY(spy.count() == 1);
+
+    QSize size2 = qvariant_cast<QSize>(spy.at(0).at(0));
+    QVERIFY(size2.width() == 100);
+    QVERIFY(size2.height() == 150);
+    spy.clear();
+}
+
+// QAbstractVideoSurface's supported Formats Changed Signal
+void tst_QAbstractVideoSurface::supportedFormatsChanged()
+{
+    SupportedFormatMap formatMap;
+    formatMap.insertMulti(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_RGB24);
+    QtTestVideoSurface surface(formatMap);
+    QSignalSpy spy(&surface, SIGNAL(supportedFormatsChanged()));
+    QList<QVideoFrame::PixelFormat> formats = surface.supportedPixelFormats();
+    QVERIFY(formats.count() == 1);
+    QVERIFY(spy.count() == 0);
+
+    // user defined implementation for generation of supportedFormatsChanged signal
+    QList<QVideoFrame::PixelFormat> newFormats = surface.supportedPixelFormatsChange(formats);
+    QVERIFY(newFormats.count() == (formats.count() + 1));
+    QVERIFY(spy.count() == 1);
+    spy.clear();
 }
 
 QTEST_MAIN(tst_QAbstractVideoSurface)

@@ -62,6 +62,7 @@ private slots:
     void handleType_data();
     void handleType();
     void handle();
+    void mapMode();
 };
 
 class QtTestVideoBuffer : public QAbstractVideoBuffer
@@ -69,7 +70,7 @@ class QtTestVideoBuffer : public QAbstractVideoBuffer
 public:
     QtTestVideoBuffer(QAbstractVideoBuffer::HandleType type) : QAbstractVideoBuffer(type) {}
 
-    MapMode mapMode() const { return NotMapped; }
+    MapMode mapMode() const { return QAbstractVideoBuffer::ReadWrite; }
 
     uchar *map(MapMode, int *, int *) { return 0; }
     void unmap() {}
@@ -107,6 +108,12 @@ void tst_QAbstractVideoBuffer::handleType_data()
             << QAbstractVideoBuffer::NoHandle;
     QTest::newRow("opengl")
             << QAbstractVideoBuffer::GLTextureHandle;
+    QTest::newRow("XvShmImageHandle")
+            << QAbstractVideoBuffer::XvShmImageHandle;
+    QTest::newRow("CoreImageHandle")
+            << QAbstractVideoBuffer::CoreImageHandle;
+    QTest::newRow("QPixmapHandle")
+            << QAbstractVideoBuffer::QPixmapHandle;
     QTest::newRow("user1")
             << QAbstractVideoBuffer::UserHandle;
     QTest::newRow("user2")
@@ -127,6 +134,12 @@ void tst_QAbstractVideoBuffer::handle()
     QtTestVideoBuffer buffer(QAbstractVideoBuffer::NoHandle);
 
     QVERIFY(buffer.handle().isNull());
+}
+
+void tst_QAbstractVideoBuffer::mapMode()
+{
+    QtTestVideoBuffer maptest(QAbstractVideoBuffer::NoHandle);
+    QVERIFY2(maptest.mapMode() == QAbstractVideoBuffer::ReadWrite, "ReadWrite Failed");
 }
 
 QTEST_MAIN(tst_QAbstractVideoBuffer)

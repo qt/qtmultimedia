@@ -48,8 +48,37 @@
 #include <qmediaobject.h>
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>
+#include <qaudiocapturesource.h>
+#include <qaudioendpointselector.h>
 
 //TESTED_COMPONENT=src/multimedia
+
+#include "mockmetadatareadercontrol.h"
+
+class QtTestMetaDataService : public QMediaService
+{
+    Q_OBJECT
+public:
+    QtTestMetaDataService(QObject *parent = 0):QMediaService(parent), metaDataRef(0), hasMetaData(true)
+    {
+    }
+
+    QMediaControl *requestControl(const char *iid)
+    {
+        if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
+            return &metaData;
+        else
+            return 0;
+    }
+
+    void releaseControl(QMediaControl *)
+    {
+    }
+
+    MockMetaDataReaderControl metaData;
+    int metaDataRef;
+    bool hasMetaData;
+};
 
 QT_USE_NAMESPACE
 class tst_QMediaObject : public QObject
@@ -72,70 +101,11 @@ private slots:
     void extendedMetaData_data() { metaData_data(); }
     void extendedMetaData();
 
+    void service();
+    void availabilityChangedSignal();
 
 private:
     void setupNotifyTests();
-};
-
-class QtTestMetaDataProvider : public QMetaDataReaderControl
-{
-    Q_OBJECT
-public:
-    QtTestMetaDataProvider(QObject *parent = 0)
-        : QMetaDataReaderControl(parent)
-        , m_available(false)
-    {
-    }
-
-    bool isMetaDataAvailable() const { return m_available; }
-    void setMetaDataAvailable(bool available) {
-        if (m_available != available)
-            emit metaDataAvailableChanged(m_available = available);
-    }
-    QList<QtMultimediaKit::MetaData> availableMetaData() const { return m_data.keys(); }
-
-
-    QVariant metaData(QtMultimediaKit::MetaData key) const { return m_data.value(key); }
-
-    QVariant extendedMetaData(const QString &key) const { return m_extendedData.value(key); }
-
-    QStringList availableExtendedMetaData() const { return m_extendedData.keys(); }
-
-    using QMetaDataReaderControl::metaDataChanged;
-
-    void populateMetaData()
-    {
-        m_available = true;
-    }
-
-    bool m_available;
-    QMap<QtMultimediaKit::MetaData, QVariant> m_data;
-    QMap<QString, QVariant> m_extendedData;
-};
-
-class QtTestMetaDataService : public QMediaService
-{
-    Q_OBJECT
-public:
-    QtTestMetaDataService(QObject *parent = 0):QMediaService(parent), metaDataRef(0), hasMetaData(true)
-    {
-    }
-
-    QMediaControl *requestControl(const char *iid)
-    {
-        if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
-            return &metaData;
-        else
-            return 0;
-    }
-
-    void releaseControl(QMediaControl *)
-    {
-    }
-
-    QtTestMetaDataProvider metaData;
-    int metaDataRef;
-    bool hasMetaData;
 };
 
 class QtTestMediaObject : public QMediaObject

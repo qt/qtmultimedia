@@ -3,6 +3,8 @@ load(qttest_p4)
 # temporarily blacklist test because is fails miserably
 CONFIG += insignificant_test
 
+include (../qmultimedia_common/mockplaylist.pri)
+
 QT += multimediakit-private
 
 # TARGET = tst_qmediaplaylist
@@ -13,7 +15,6 @@ DEFINES += TESTDATA_DIR=\\\"$$PWD/\\\"
 HEADERS += \
     $$QT.multimediakit.sources/../plugins/m3u/qm3uhandler.h
 
-message($$HEADERS)
 SOURCES += \
     tst_qmediaplaylist.cpp \
     $$QT.multimediakit.sources/../plugins/m3u/qm3uhandler.cpp

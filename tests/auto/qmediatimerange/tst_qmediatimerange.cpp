@@ -45,6 +45,7 @@
 #include <QtCore/qdebug.h>
 
 #include <qmediatimerange.h>
+#include <qmediatimerange.h>
 
 QT_USE_NAMESPACE
 
@@ -56,10 +57,12 @@ public slots:
 
 private slots:
     void testCtor();
+    void testIntervalCtor();
     void testGetters();
     void testAssignment();
-    void testNormalize();
-    void testTranslated();
+    void testIntervalNormalize();
+    void testIntervalTranslate();
+    void testIntervalContains();
     void testEarliestLatest();
     void testContains();
     void testAddInterval();
@@ -70,6 +73,59 @@ private slots:
     void testComparisons();
     void testArithmetic();
 };
+
+void tst_QMediaTimeRange::testIntervalCtor()
+{
+    //Default Ctor for Time Interval
+    /* create an instance for the time interval and verify the default cases */
+    QMediaTimeInterval tInter;
+    QVERIFY(tInter.isNormal());
+    QVERIFY(tInter.start() == 0);
+    QVERIFY(tInter.end() == 0);
+
+    // (qint, qint) Ctor time interval
+    /* create an instace of QMediaTimeInterval passing start and end times and verify the all possible scenario's*/
+    QMediaTimeInterval time(20,50);
+    QVERIFY(time.isNormal());
+    QVERIFY(time.start() == 20);
+    QVERIFY(time.end() == 50);
+
+    // Copy Ctor Time interval
+    QMediaTimeInterval other(time);
+    QVERIFY(other.isNormal() == time.isNormal());
+    QVERIFY(other.start() == time.start());
+    QVERIFY(other.end() == time.end());
+    QVERIFY(other.contains(20) == time.contains(20));
+    QVERIFY(other == time);
+}
+
+void tst_QMediaTimeRange::testIntervalContains()
+{
+    QMediaTimeInterval time(20,50);
+
+    /* start() <= time <= end(). Returns true if the time interval contains the specified time. */
+    QVERIFY(!time.contains(10));
+    QVERIFY(time.contains(20));
+    QVERIFY(time.contains(30));
+    QVERIFY(time.contains(50));
+    QVERIFY(!time.contains(60));
+
+    QMediaTimeInterval x(20, 10); // denormal
+
+    // Check denormal ranges
+    QVERIFY(!x.contains(5));
+    QVERIFY(x.contains(10));
+    QVERIFY(x.contains(15));
+    QVERIFY(x.contains(20));
+    QVERIFY(!x.contains(25));
+
+    QMediaTimeInterval y = x.normalized();
+    QVERIFY(!y.contains(5));
+    QVERIFY(y.contains(10));
+    QVERIFY(y.contains(15));
+    QVERIFY(y.contains(20));
+    QVERIFY(!y.contains(25));
+}
 
 void tst_QMediaTimeRange::testCtor()
 {
@@ -105,6 +161,8 @@ void tst_QMediaTimeRange::testCtor()
     QVERIFY(e.isContinuous());
     QVERIFY(e.earliestTime() == 10);
     QVERIFY(e.latestTime() == 20);
+
+    QVERIFY(e == b);
 }
 
 void tst_QMediaTimeRange::testGetters()
@@ -164,26 +222,35 @@ void tst_QMediaTimeRange::testAssignment()
     QVERIFY(x.latestTime() == 40);
 }
 
-void tst_QMediaTimeRange::testNormalize()
+void tst_QMediaTimeRange::testIntervalNormalize()
 {
     QMediaTimeInterval x(20, 10);
 
     QVERIFY(!x.isNormal());
+    QVERIFY(x.start() == 20);
+    QVERIFY(x.end() == 10);
 
-    x = x.normalized();
+    QMediaTimeInterval y = x.normalized();
 
-    QVERIFY(x.isNormal());
-    QVERIFY(x.start() == 10);
-    QVERIFY(x.end() == 20);
+    QVERIFY(y.isNormal());
+    QVERIFY(y.start() == 10);
+    QVERIFY(y.end() == 20);
+    QVERIFY(x != y);
 }
 
-void tst_QMediaTimeRange::testTranslated()
+void tst_QMediaTimeRange::testIntervalTranslate()
 {
     QMediaTimeInterval x(10, 20);
     x = x.translated(10);
 
     QVERIFY(x.start() == 20);
     QVERIFY(x.end() == 30);
+
+    /* verifying the backward through time with a negative offset.*/
+    x = x.translated(-10);
+
+    QVERIFY(x.start() == 10);
+    QVERIFY(x.end() == 20);
 }
 
 void tst_QMediaTimeRange::testEarliestLatest()

@@ -42,6 +42,10 @@
 //TESTED_COMPONENT=src/multimedia
 
 #include "tst_qmediaobject.h"
+#include "qvideowidget.h"
+
+#include "mockmediarecorderservice.h"
+#include "mockmediaserviceprovider.h"
 
 QT_USE_NAMESPACE
 
@@ -357,3 +361,44 @@ void tst_QMediaObject::availability()
     QCOMPARE(object.isAvailable(), true);
     QCOMPARE(object.availabilityError(), QtMultimediaKit::NoError);
 }
+
+ void tst_QMediaObject::service()
+ {
+     // Create the mediaobject with service.
+     QtTestMetaDataService service;
+     QtTestMediaObject mediaObject1(&service);
+
+     // Get service and Compare if it equal to the service passed as an argument in mediaObject1.
+     QMediaService *service1 = mediaObject1.service();
+     QVERIFY(service1 != NULL);
+     QCOMPARE(service1,&service);
+
+     // Create the mediaobject with empty service and verify that service() returns NULL.
+     QtTestMediaObject mediaObject2;
+     QMediaService *service2 = mediaObject2.service();
+     QVERIFY(service2 == NULL);
+ }
+
+ void tst_QMediaObject::availabilityChangedSignal()
+ {
+     // The availabilityChangedSignal is implemented in QAudioCaptureSource. So using it to test the signal.
+     MockMediaRecorderService *mockAudioSourceService = new MockMediaRecorderService;
+     MockMediaServiceProvider *mockProvider = new MockMediaServiceProvider(mockAudioSourceService);
+     QAudioCaptureSource *audiosource = new QAudioCaptureSource(0, mockProvider);
+
+     QSignalSpy spy(audiosource, SIGNAL(availabilityChanged(bool)));
+
+     // Add the end points and verify if the availablity changed signal emitted with argument true.
+     QMetaObject::invokeMethod(mockAudioSourceService->mockAudioEndpointSelector, "addEndpoints");
+     QVERIFY(spy.count() == 1);
+     bool available = qvariant_cast<bool>(spy.at(0).at(0));
+     QVERIFY(available == true);
+
+     spy.clear();
+
+     // Remove all endpoints and verify if the signal is emitted with argument false.
+     QMetaObject::invokeMethod(mockAudioSourceService->mockAudioEndpointSelector, "removeEndpoints");
+     QVERIFY(spy.count() == 1);
+     available = qvariant_cast<bool>(spy.at(0).at(0));
+     QVERIFY(available == false);
+ }

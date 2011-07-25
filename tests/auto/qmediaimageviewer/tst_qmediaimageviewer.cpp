@@ -85,6 +85,8 @@ private slots:
     void setVideoOutput();
     void debugEnums();
 
+    void mediaChanged_signal();
+
 public:
     tst_QMediaImageViewer() : m_network(0) {}
 
@@ -386,7 +388,17 @@ void tst_QMediaImageViewer::setConsecutiveMedia()
     QMediaImageViewerService *service = qobject_cast<QMediaImageViewerService *>(viewer.service());
     service->setNetworkManager(m_network);
 
+    viewer.setMedia(networkMedia2);
     viewer.setMedia(networkMedia1);
+
+    QCOMPARE(viewer.media(), networkMedia1);
+    QCOMPARE(viewer.mediaStatus(), QMediaImageViewer::LoadingMedia);
+
+    QTestEventLoop::instance().enterLoop(2);
+    QCOMPARE(viewer.media(), networkMedia1);
+    QCOMPARE(viewer.mediaStatus(), QMediaImageViewer::LoadedMedia);
+
+    viewer.setMedia(fileMedia1);
     viewer.setMedia(networkMedia2);
 
     QCOMPARE(viewer.media(), networkMedia2);
@@ -420,6 +432,7 @@ void tst_QMediaImageViewer::setConsecutiveMedia()
 void tst_QMediaImageViewer::setInvalidMedia()
 {
     QMediaImageViewer viewer;
+    viewer.setTimeout(250);
 
     QMediaImageViewerService *service = qobject_cast<QMediaImageViewerService *>(viewer.service());
     service->setNetworkManager(m_network);
@@ -1029,6 +1042,20 @@ void tst_QMediaImageViewer::debugEnums()
     qDebug() << QMediaImageViewer::PlayingState;
     QTest::ignoreMessage(QtDebugMsg, "QMediaImageViewer::NoMedia ");
     qDebug() << QMediaImageViewer::NoMedia;
+}
+
+void tst_QMediaImageViewer::mediaChanged_signal()
+{
+    QMediaContent imageMedia(imageUrl("image.png"));
+    QMediaImageViewer viewer;
+    viewer.setTimeout(250);
+    viewer.setNotifyInterval(150);
+
+    QSignalSpy spy(&viewer, SIGNAL(mediaChanged(QMediaContent)));
+    QVERIFY(spy.size() == 0);
+
+    viewer.setMedia(imageMedia);
+    QVERIFY(spy.size() == 1);
 }
 
 QTEST_MAIN(tst_QMediaImageViewer)
