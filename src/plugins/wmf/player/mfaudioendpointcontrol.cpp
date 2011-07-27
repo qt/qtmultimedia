@@ -100,7 +100,7 @@ void MFAudioEndpointControl::setActiveEndpoint(const QString &name)
     } else {
         //This is the default one that has been inserted in updateEndpoints(),
         //so give the activate a hint that we want to use the device for multimedia playback
-        //then the media foundation will choose an apropriate one.
+        //then the media foundation will choose an appropriate one.
 
         //from MSDN:
         //The ERole enumeration defines constants that indicate the role that the system has assigned to an audio endpoint device.
