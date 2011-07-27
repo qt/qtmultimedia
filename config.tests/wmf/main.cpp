@@ -48,5 +48,9 @@
 
 int main(int, char**)
 {
+    HRESULT hr = MENonFatalError;
+    if (SUCCEEDED(hr)) {
+        return 1;
+    }
     return 0;
 }
