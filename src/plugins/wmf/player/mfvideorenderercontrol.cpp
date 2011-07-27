@@ -1382,8 +1382,7 @@ namespace
                 }
             } else {
                 bool requestSample = true;
-                // If the plugins/multimedia/wmf/player/mfstream.cpp
-time stamp is too early, just discard this sample.
+                // If the time stamp is too early, just discard this sample.
                 if (SUCCEEDED(hr) && time >= m_startTime) {
                     IMFMediaBuffer *pBuffer = NULL;
                     hr = pSample->ConvertToContiguousBuffer(&pBuffer);
