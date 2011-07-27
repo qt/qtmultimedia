@@ -42,6 +42,7 @@
 #include <dshow.h>
 #include <d3d9.h>
 #include <vmr9.h>
+#include <qedit.h>
 
 int main(int, char**)
 {
