@@ -14,4 +14,4 @@ QT.multimediakit.imports = $$QT_MODULE_IMPORT_BASE
 QT.multimediakit.depends = gui network
 QT.multimediakit.DEFINES = QT_MULTIMEDIAKIT_LIB
 
-DEFINES += multimediakit
+QT_CONFIG += multimediakit
