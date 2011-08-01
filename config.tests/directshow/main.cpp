@@ -42,6 +42,12 @@
 #include <dshow.h>
 #include <d3d9.h>
 #include <vmr9.h>
+
+#pragma include_alias("dxtrans.h","qedit.h")
+#define __IDxtCompositor_INTERFACE_DEFINED__
+#define __IDxtAlphaSetter_INTERFACE_DEFINED__
+#define __IDxtJpeg_INTERFACE_DEFINED__
+#define __IDxtKey_INTERFACE_DEFINED__
 #include <qedit.h>
 
 int main(int, char**)
