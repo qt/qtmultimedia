@@ -160,7 +160,7 @@ include(audio/audio.pri)
 include(video/video.pri)
 include(effects/effects.pri)
 
-mac {
+mac:!qpa {
 !simulator {
    HEADERS += qpaintervideosurface_mac_p.h
    OBJECTIVE_SOURCES += qpaintervideosurface_mac.mm

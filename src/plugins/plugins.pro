@@ -41,5 +41,6 @@ unix:!mac {
 }
 
 mac:!simulator {
-    SUBDIRS += audiocapture qt7
+    SUBDIRS += audiocapture
+    !qpa: SUBDIRS += qt7
 }

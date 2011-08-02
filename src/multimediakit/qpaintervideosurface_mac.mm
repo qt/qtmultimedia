@@ -39,6 +39,11 @@
 **
 ****************************************************************************/
 
+#include <AppKit/AppKit.h>
+#include <QuartzCore/CIContext.h>
+#include <CGLCurrent.h>
+#include <OpenGL/gl.h>
+
 #include "qpaintervideosurface_mac_p.h"
 
 #include <QtCore/qdatetime.h>
@@ -50,10 +55,6 @@
 #include <qvideosurfaceformat.h>
 
 #include <QtDebug>
-
-#include <QuartzCore/CIContext.h>
-#include <CGLCurrent.h>
-
 
 QT_BEGIN_NAMESPACE
 
