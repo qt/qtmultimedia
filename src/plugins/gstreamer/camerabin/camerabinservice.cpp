@@ -160,17 +160,16 @@ QMediaControl *CameraBinService::requestControl(const char *name)
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             m_videoOutput = m_videoRenderer;
-            m_captureSession->setViewfinder(m_videoRenderer);
         } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
             m_videoOutput = m_videoWindow;
-            m_captureSession->setViewfinder(m_videoWindow);
         } else if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
-            m_captureSession->setViewfinder(m_videoWidgetControl);
             m_videoOutput = m_videoWidgetControl;
         }
 
-        if (m_videoOutput)
+        if (m_videoOutput) {
+            m_captureSession->setViewfinder(m_videoOutput);
             return m_videoOutput;
+        }
     }
 
     if (qstrcmp(name,QAudioEndpointSelector_iid) == 0)

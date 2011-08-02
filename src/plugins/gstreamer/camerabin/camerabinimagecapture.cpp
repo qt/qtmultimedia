@@ -82,8 +82,8 @@ CameraBinImageCapture::CameraBinImageCapture(CameraBinSession *session)
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
     connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
     connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
-    connect(m_session, SIGNAL(busMessage(QGstreamerMessage)), SLOT(handleBusMessage(QGstreamerMessage)));
 
+    m_session->bus()->installMessageFilter(this);
     g_signal_connect(G_OBJECT(m_session->cameraBin()), IMAGE_DONE_SIGNAL, G_CALLBACK(handleImageSaved), this);
 }
 
@@ -281,7 +281,7 @@ gboolean CameraBinImageCapture::jpegBufferProbe(GstPad *pad, GstBuffer *buffer, 
     return destination & QCameraImageCapture::CaptureToFile;
 }
 
-void CameraBinImageCapture::handleBusMessage(const QGstreamerMessage &message)
+bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
 {
     //Install metadata event and buffer probes
 
@@ -298,7 +298,7 @@ void CameraBinImageCapture::handleBusMessage(const QGstreamerMessage &message)
         if (newState == GST_STATE_READY) {
             GstElement *element = GST_ELEMENT(GST_MESSAGE_SRC(gm));
             if (!element)
-                return;
+                return false;
 
             QString elementName = QString::fromLatin1(gst_element_get_name(element));
             if (elementName.contains("jpegenc") && element != m_jpegEncoderElement) {
@@ -339,4 +339,6 @@ void CameraBinImageCapture::handleBusMessage(const QGstreamerMessage &message)
             }
         }
     }
+
+    return false;
 }

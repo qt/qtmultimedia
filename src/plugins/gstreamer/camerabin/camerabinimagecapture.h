@@ -48,9 +48,10 @@
 
 QT_USE_NAMESPACE
 
-class CameraBinImageCapture : public QCameraImageCaptureControl
+class CameraBinImageCapture : public QCameraImageCaptureControl, public QGstreamerBusMessageFilter
 {
     Q_OBJECT
+    Q_INTERFACES(QGstreamerBusMessageFilter)
 public:
     CameraBinImageCapture(CameraBinSession *session);
     virtual ~CameraBinImageCapture();
@@ -62,9 +63,10 @@ public:
     int capture(const QString &fileName);
     void cancelCapture();
 
+    bool processBusMessage(const QGstreamerMessage &message);
+
 private slots:
     void updateState();
-    void handleBusMessage(const QGstreamerMessage &message);
 
 private:
     static gboolean metadataEventProbe(GstPad *pad, GstEvent *event, CameraBinImageCapture *);

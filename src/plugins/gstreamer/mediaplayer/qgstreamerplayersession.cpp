@@ -155,8 +155,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         // Sort out messages
         m_bus = gst_element_get_bus(m_playbin);
         m_busHelper = new QGstreamerBusHelper(m_bus, this);
-        connect(m_busHelper, SIGNAL(message(QGstreamerMessage)), SLOT(busMessage(QGstreamerMessage)));
-        m_busHelper->installSyncEventFilter(this);
+        m_busHelper->installMessageFilter(this);
 
         g_object_set(G_OBJECT(m_playbin), "video-sink", m_videoOutputBin, NULL);
 
@@ -186,6 +185,11 @@ QGstreamerPlayerSession::~QGstreamerPlayerSession()
         gst_object_unref(GST_OBJECT(m_nullVideoSink));
         gst_object_unref(GST_OBJECT(m_videoOutputBin));
     }
+}
+
+GstElement *QGstreamerPlayerSession::playbin() const
+{
+    return m_playbin;
 }
 
 #if defined(HAVE_GST_APPSRC)
@@ -444,16 +448,20 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
                        this, SLOT(updateVideoRenderer()));
             disconnect(m_videoOutput, SIGNAL(readyChanged(bool)),
                    this, SLOT(updateVideoRenderer()));
-        }
 
-        if (videoOutput) {
-            connect(videoOutput, SIGNAL(sinkChanged()),
-                    this, SLOT(updateVideoRenderer()));
-            connect(videoOutput, SIGNAL(readyChanged(bool)),
-                   this, SLOT(updateVideoRenderer()));
+            m_busHelper->removeMessageFilter(m_videoOutput);
         }
 
         m_videoOutput = videoOutput;
+
+        if (m_videoOutput) {
+            connect(m_videoOutput, SIGNAL(sinkChanged()),
+                    this, SLOT(updateVideoRenderer()));
+            connect(m_videoOutput, SIGNAL(readyChanged(bool)),
+                   this, SLOT(updateVideoRenderer()));
+
+            m_busHelper->installMessageFilter(m_videoOutput);
+        }
     }
 
     QGstreamerVideoRendererInterface* renderer = qobject_cast<QGstreamerVideoRendererInterface*>(videoOutput);   
@@ -877,29 +885,9 @@ void QGstreamerPlayerSession::setSeekable(bool seekable)
     }
 }
 
-bool QGstreamerPlayerSession::processSyncMessage(const QGstreamerMessage &message)
+bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
-
-    if (gm && GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) {
-        if (m_renderer) {
-            if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoSink))
-                m_renderer->handleSyncMessage(gm);
-
-            if (gst_structure_has_name(gm->structure, "prepare-xwindow-id")) {
-                m_renderer->precessNewStream();
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-void QGstreamerPlayerSession::busMessage(const QGstreamerMessage &message)
-{
-    GstMessage* gm = message.rawMessage();
-
     if (gm) {
         //tag message comes from elements inside playbin, not from playbin itself
         if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_TAG) {
@@ -1111,19 +1099,6 @@ void QGstreamerPlayerSession::busMessage(const QGstreamerMessage &message)
             default:
                 break;
             }
-        } else if (m_videoSink
-                   && m_renderer
-                   && GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoSink)) {
-
-            m_renderer->handleBusMessage(gm);
-            if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED) {
-                GstState oldState;
-                GstState newState;
-                gst_message_parse_state_changed(gm, &oldState, &newState, 0);
-
-                if (oldState == GST_STATE_READY && newState == GST_STATE_PAUSED)
-                    m_renderer->precessNewStream();
-            }
         } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ERROR) {
             GError *err;
             gchar *debug;
@@ -1196,6 +1171,8 @@ void QGstreamerPlayerSession::busMessage(const QGstreamerMessage &message)
             }
         }
     }
+
+    return false;
 }
 
 void QGstreamerPlayerSession::getStreamsInfo()

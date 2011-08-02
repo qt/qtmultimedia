@@ -61,7 +61,6 @@ public:
     void setSurface(QAbstractVideoSurface *surface);
 
     GstElement *videoSink();
-    void precessNewStream() {}
 
     bool isReady() const { return m_surface != 0; }
 

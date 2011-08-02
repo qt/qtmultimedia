@@ -115,14 +115,23 @@ void QGstreamerVideoWindow::setWinId(WId id)
         emit readyChanged(false);
 }
 
-void QGstreamerVideoWindow::precessNewStream()
+bool QGstreamerVideoWindow::processSyncMessage(const QGstreamerMessage &message)
 {
-    if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink)) {
+    GstMessage* gm = message.rawMessage();
+
+    if ((GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
+            gst_structure_has_name(gm->structure, "prepare-xwindow-id") &&
+            m_videoSink && GST_IS_X_OVERLAY(m_videoSink)) {
+
         gst_x_overlay_set_xwindow_id(GST_X_OVERLAY(m_videoSink), m_windowId);
 
         GstPad *pad = gst_element_get_static_pad(m_videoSink,"sink");
         m_bufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padBufferProbe), this);
+
+        return true;
     }
+
+    return false;
 }
 
 QRect QGstreamerVideoWindow::displayRect() const

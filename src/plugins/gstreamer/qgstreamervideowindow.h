@@ -45,6 +45,7 @@
 #include <qvideowindowcontrol.h>
 
 #include "qgstreamervideorendererinterface.h"
+#include "qgstreamerbushelper.h"
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
@@ -55,10 +56,12 @@ class QX11VideoSurface;
 
 QT_USE_NAMESPACE
 
-class QGstreamerVideoWindow : public QVideoWindowControl, public QGstreamerVideoRendererInterface
+class QGstreamerVideoWindow : public QVideoWindowControl,
+        public QGstreamerVideoRendererInterface,
+        public QGstreamerSyncMessageFilter
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface)
+    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter)
     Q_PROPERTY(QColor colorKey READ colorKey WRITE setColorKey)
     Q_PROPERTY(bool autopaintColorKey READ autopaintColorKey WRITE setAutopaintColorKey)
 public:
@@ -103,7 +106,7 @@ public:
 
     GstElement *videoSink();
 
-    void precessNewStream();
+    bool processSyncMessage(const QGstreamerMessage &message);
     bool isReady() const { return m_windowId != 0; }
 
 signals:

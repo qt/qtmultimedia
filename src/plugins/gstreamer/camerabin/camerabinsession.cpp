@@ -145,8 +145,8 @@ CameraBinSession::CameraBinSession(QObject *parent)
     m_bus = gst_element_get_bus(m_pipeline);
 
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
-    m_busHelper->installSyncEventFilter(this);
-    connect(m_busHelper, SIGNAL(message(QGstreamerMessage)), SLOT(handleBusMessage(QGstreamerMessage)));
+    m_busHelper->installMessageFilter(this);
+
     m_audioEncodeControl = new CameraBinAudioEncoder(this);
     m_videoEncodeControl = new CameraBinVideoEncoder(this);
     m_imageEncodeControl = new CameraBinImageEncoder(this);
@@ -534,6 +534,8 @@ void CameraBinSession::setViewfinder(QObject *viewfinder)
                        this, SLOT(handleViewfinderChange()));
             disconnect(m_viewfinder, SIGNAL(readyChanged(bool)),
                        this, SIGNAL(readyChanged(bool)));
+
+            m_busHelper->removeMessageFilter(m_viewfinder);
         }
 
         m_viewfinder = viewfinder;
@@ -544,6 +546,8 @@ void CameraBinSession::setViewfinder(QObject *viewfinder)
                        this, SLOT(handleViewfinderChange()));
             connect(m_viewfinder, SIGNAL(readyChanged(bool)),
                     this, SIGNAL(readyChanged(bool)));
+
+            m_busHelper->installMessageFilter(m_viewfinder);
         }
 
         emit viewfinderChanged();
@@ -795,24 +799,14 @@ bool CameraBinSession::processSyncMessage(const QGstreamerMessage &message)
             }
         }
 
-        if (gst_structure_has_name(gm->structure, "prepare-xwindow-id")) {
-            if (m_viewfinderInterface)
-                m_viewfinderInterface->precessNewStream();
-
-            return true;
-        }
-
         if (gst_structure_has_name(gm->structure, GST_PHOTOGRAPHY_AUTOFOCUS_DONE))
             m_cameraFocusControl->handleFocusMessage(gm);
-
-        if (m_viewfinderInterface && GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_viewfinderElement))
-            m_viewfinderInterface->handleSyncMessage(gm);
     }
 
     return false;
 }
 
-void CameraBinSession::handleBusMessage(const QGstreamerMessage &message)
+bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
 
@@ -911,12 +905,9 @@ void CameraBinSession::handleBusMessage(const QGstreamerMessage &message)
             }
             //qDebug() << "New session state:" << ENUM_NAME(CameraBinSession,"State",m_state);
         }
-
-        if (m_viewfinderInterface && GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_viewfinderElement))
-            m_viewfinderInterface->handleBusMessage(gm);
-
-        emit busMessage(message);
     }
+
+    return false;
 }
 
 void CameraBinSession::recordVideo()

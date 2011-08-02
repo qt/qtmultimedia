@@ -96,8 +96,8 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
 
     m_bus = gst_element_get_bus(m_pipeline);
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
-    m_busHelper->installSyncEventFilter(this);
-    connect(m_busHelper, SIGNAL(message(QGstreamerMessage)), SLOT(busMessage(QGstreamerMessage)));
+    m_busHelper->installMessageFilter(this);
+
     m_audioEncodeControl = new QGstreamerAudioEncode(this);
     m_videoEncodeControl = new QGstreamerVideoEncode(this);
     m_imageEncodeControl = new QGstreamerImageEncode(this);
@@ -735,6 +735,8 @@ void QGstreamerCaptureSession::setVideoPreview(QObject *viewfinder)
                        this, SIGNAL(viewfinderChanged()));
             disconnect(m_viewfinder, SIGNAL(readyChanged(bool)),
                        this, SIGNAL(readyChanged(bool)));
+
+            m_busHelper->removeMessageFilter(m_viewfinder);
         }
 
         m_viewfinder = viewfinder;
@@ -745,6 +747,8 @@ void QGstreamerCaptureSession::setVideoPreview(QObject *viewfinder)
                        this, SIGNAL(viewfinderChanged()));
             connect(m_viewfinder, SIGNAL(readyChanged(bool)),
                     this, SIGNAL(readyChanged(bool)));
+
+            m_busHelper->installMessageFilter(m_viewfinder);
         }
 
         emit viewfinderChanged();
@@ -917,29 +921,7 @@ void QGstreamerCaptureSession::setMetaData(const QMap<QByteArray, QVariant> &dat
     }
 }
 
-bool QGstreamerCaptureSession::processSyncMessage(const QGstreamerMessage &message)
-{
-    GstMessage* gm = message.rawMessage();
-
-    if (gm && GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) {
-        if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoPreview))
-            m_viewfinderInterface->handleSyncMessage(gm);
-
-        if (gst_structure_has_name(gm->structure, "prepare-xwindow-id")) {
-            if (m_audioPreviewFactory)
-                m_audioPreviewFactory->prepareWinId();
-
-            if (m_viewfinderInterface)
-                m_viewfinderInterface->precessNewStream();
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void QGstreamerCaptureSession::busMessage(const QGstreamerMessage &message)
+bool QGstreamerCaptureSession::processBusMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
 
@@ -1027,11 +1009,8 @@ void QGstreamerCaptureSession::busMessage(const QGstreamerMessage &message)
             }
             //qDebug() << "New session state:" << ENUM_NAME(QGstreamerCaptureSession,"State",m_state);
         }
-
-        if (m_videoPreview && m_viewfinderInterface &&
-                GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoPreview))
-            m_viewfinderInterface->handleBusMessage(gm);
     }
+    return false;
 }
 
 void QGstreamerCaptureSession::setMuted(bool muted)

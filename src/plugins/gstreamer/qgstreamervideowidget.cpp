@@ -179,10 +179,36 @@ bool QGstreamerVideoWidgetControl::eventFilter(QObject *object, QEvent *e)
     return false;
 }
 
-void QGstreamerVideoWidgetControl::precessNewStream()
+bool QGstreamerVideoWidgetControl::processSyncMessage(const QGstreamerMessage &message)
 {
-    setOverlay();
-    QMetaObject::invokeMethod(this, "updateNativeVideoSize", Qt::QueuedConnection);
+    GstMessage* gm = message.rawMessage();
+
+    if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
+            gst_structure_has_name(gm->structure, "prepare-xwindow-id")) {
+
+        setOverlay();
+        QMetaObject::invokeMethod(this, "updateNativeVideoSize", Qt::QueuedConnection);
+        return true;
+    }
+
+    return false;
+}
+
+bool QGstreamerVideoWidgetControl::processBusMessage(const QGstreamerMessage &message)
+{
+    GstMessage* gm = message.rawMessage();
+
+    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED &&
+            GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoSink)) {
+        GstState oldState;
+        GstState newState;
+        gst_message_parse_state_changed(gm, &oldState, &newState, 0);
+
+        if (oldState == GST_STATE_READY && newState == GST_STATE_PAUSED)
+            updateNativeVideoSize();
+    }
+
+    return false;
 }
 
 void QGstreamerVideoWidgetControl::setOverlay()

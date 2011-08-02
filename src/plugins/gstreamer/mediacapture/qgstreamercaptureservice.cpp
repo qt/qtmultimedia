@@ -160,17 +160,16 @@ QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             m_videoOutput = m_videoRenderer;
-            m_captureSession->setVideoPreview(m_videoRenderer);
         } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
             m_videoOutput = m_videoWindow;
-            m_captureSession->setVideoPreview(m_videoWindow);
         } else if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
-            m_captureSession->setVideoPreview(m_videoWidgetControl);
             m_videoOutput = m_videoWidgetControl;
         }
 
-        if (m_videoOutput)
+        if (m_videoOutput) {
+            m_captureSession->setVideoPreview(m_videoOutput);
             return m_videoOutput;
+        }
     }
 
     return 0;
