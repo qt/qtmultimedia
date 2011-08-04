@@ -2,8 +2,8 @@ load(qttest_p4)
 
 QT += core declarative multimediakit-private
 
-# temporarily blacklist test because it fails
-CONFIG += insignificant_test
+# This is more of a system test
+CONFIG -= testcase
 
 SOURCES += tst_qsoundeffect.cpp
 

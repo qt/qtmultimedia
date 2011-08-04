@@ -1,12 +1,11 @@
 load(qttest_p4)
 
-# temporarily disable on mac
-CONFIG += insignificant_test
-
 QT += core multimediakit-private
 
 # TARGET = tst_qaudioinput
-# CONFIG += testcase
+
+# This is more of a system test
+CONFIG -= testcase
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
