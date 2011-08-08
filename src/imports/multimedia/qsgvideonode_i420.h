@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -39,55 +39,41 @@
 **
 ****************************************************************************/
 
-#include <QtDeclarative/qdeclarativeextensionplugin.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
-#include "private/qsoundeffect_p.h"
+#ifndef QSGVIDEONODE_I420_H
+#define QSGVIDEONODE_I420_H
 
-#include "qdeclarativemediametadata_p.h"
-#include "qdeclarativeaudio_p.h"
-#include "qdeclarativevideooutput_p.h"
-#if 0
-#include "qdeclarativecamera_p.h"
-#include "qdeclarativecamerapreviewprovider_p.h"
-#endif
+#include "qsgvideonode_p.h"
+#include <QtMultimediaKit/qvideosurfaceformat.h>
 
-QML_DECLARE_TYPE(QSoundEffect)
-
-QT_BEGIN_NAMESPACE
-
-class QMultimediaDeclarativeModule : public QDeclarativeExtensionPlugin
+class QSGVideoMaterial_YUV420;
+class QSGVideoNode_I420 : public QSGVideoNode
 {
-    Q_OBJECT
 public:
-    virtual void registerTypes(const char *uri)
-    {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
+    QSGVideoNode_I420(const QVideoSurfaceFormat &format);
+    ~QSGVideoNode_I420();
 
-        qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "MediaPlayer");
-        qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
-        /* Disabled until ported to scenegraph */
-#if 0
-        qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
-#endif
-        qmlRegisterType<QDeclarativeMediaMetaData>();
+    virtual QVideoFrame::PixelFormat pixelFormat() const {
+        return m_format.pixelFormat();
     }
+    void setCurrentFrame(const QVideoFrame &frame);
 
-    void initializeEngine(QDeclarativeEngine *engine, const char *uri)
-    {
-        Q_UNUSED(uri);
-#if 0
-        engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
-#endif
-    }
+private:
+    void bindTexture(int id, int unit, int w, int h, const uchar *bits);
+
+    int m_width;
+    int m_height;
+    GLuint m_id[3];
+
+    QVideoSurfaceFormat m_format;
+    QSGVideoMaterial_YUV420 *m_material;
+    QVideoFrame m_frame;
 };
 
-QT_END_NAMESPACE
+class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactory {
+public:
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
+};
 
-#include "multimedia.moc"
 
-Q_EXPORT_PLUGIN2(qmultimediadeclarativemodule, QT_PREPEND_NAMESPACE(QMultimediaDeclarativeModule));
-
+#endif // QSGVIDEONODE_I420_H

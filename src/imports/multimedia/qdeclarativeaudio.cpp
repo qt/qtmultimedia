@@ -305,6 +305,7 @@ QDeclarativeAudio::Error QDeclarativeAudio::error() const
 void QDeclarativeAudio::classBegin()
 {
     setObject(this);
+    emit mediaObjectChanged();
 }
 
 void QDeclarativeAudio::componentComplete()

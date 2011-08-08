@@ -84,6 +84,7 @@ class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public Q
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
+    Q_PROPERTY(QObject *mediaObject READ mediaObject NOTIFY mediaObjectChanged SCRIPTABLE false DESIGNABLE false)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
     Q_ENUMS(Loop)
@@ -126,6 +127,8 @@ public:
     void classBegin();
     void componentComplete();
 
+    QObject *mediaObject() { return m_mediaObject; }
+
 public Q_SLOTS:
     void play();
     void pause();
@@ -158,6 +161,8 @@ Q_SIGNALS:
 
     void errorChanged();
     void error(QDeclarativeAudio::Error error, const QString &errorString);
+
+    void mediaObjectChanged();
 
 private Q_SLOTS:
     void _q_error(int, const QString &);

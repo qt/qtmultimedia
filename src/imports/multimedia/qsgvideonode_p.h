@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -39,55 +39,34 @@
 **
 ****************************************************************************/
 
-#include <QtDeclarative/qdeclarativeextensionplugin.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
-#include "private/qsoundeffect_p.h"
+#ifndef QSGVIDEONODE_P_H
+#define QSGVIDEONODE_P_H
 
-#include "qdeclarativemediametadata_p.h"
-#include "qdeclarativeaudio_p.h"
-#include "qdeclarativevideooutput_p.h"
-#if 0
-#include "qdeclarativecamera_p.h"
-#include "qdeclarativecamerapreviewprovider_p.h"
-#endif
+#include <QtDeclarative/qsgnode.h>
 
-QML_DECLARE_TYPE(QSoundEffect)
+#include <QtMultimediaKit/qvideoframe.h>
+#include <QtMultimediaKit/qvideosurfaceformat.h>
+#include <QtOpenGL/qglfunctions.h>
 
-QT_BEGIN_NAMESPACE
-
-class QMultimediaDeclarativeModule : public QDeclarativeExtensionPlugin
+class QSGVideoNode : public QSGGeometryNode
 {
-    Q_OBJECT
 public:
-    virtual void registerTypes(const char *uri)
-    {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
+    QSGVideoNode();
 
-        qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "MediaPlayer");
-        qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
-        /* Disabled until ported to scenegraph */
-#if 0
-        qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
-#endif
-        qmlRegisterType<QDeclarativeMediaMetaData>();
-    }
+    virtual void setCurrentFrame(const QVideoFrame &frame) = 0;
+    virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
 
-    void initializeEngine(QDeclarativeEngine *engine, const char *uri)
-    {
-        Q_UNUSED(uri);
-#if 0
-        engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
-#endif
-    }
+    void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect);
+
+private:
+    QRectF m_rect;
+    QRectF m_textureRect;
 };
 
-QT_END_NAMESPACE
+class QSGVideoNodeFactory {
+public:
+    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
+    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
+};
 
-#include "multimedia.moc"
-
-Q_EXPORT_PLUGIN2(qmultimediadeclarativemodule, QT_PREPEND_NAMESPACE(QMultimediaDeclarativeModule));
-
+#endif // QSGVIDEONODE_H
