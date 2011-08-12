@@ -12,11 +12,13 @@ HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediabase_p.h \
         qdeclarativemediametadata_p.h \
+        qdeclarativeradio_p.h
 
 SOURCES += \
         multimedia.cpp \
         qdeclarativeaudio.cpp \
         qdeclarativemediabase.cpp \
+        qdeclarativeradio.cpp
 
 disabled {
     HEADERS += \

@@ -47,6 +47,7 @@
 
 #include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
+#include "qdeclarativeradio_p.h"
 #if 0
 #include "qdeclarativevideo_p.h"
 #include "qdeclarativecamera_p.h"
@@ -67,6 +68,7 @@ public:
 
         qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
         qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
+        qmlRegisterType<QDeclarativeRadio>(uri, 4, 0, "Radio");
         /* Disabled until ported to scenegraph */
 #if 0
         qmlRegisterType<QDeclarativeVideo>(uri, 4, 0, "Video");
