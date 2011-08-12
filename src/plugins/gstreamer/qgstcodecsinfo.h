@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -39,14 +39,34 @@
 **
 ****************************************************************************/
 
-#define GST_USE_UNSTABLE_API
+#ifndef QGSTCODECSINFO_H
+#define QGSTCODECSINFO_H
 
-#include <gst/interfaces/photography.h>
-#include <gst/interfaces/photography-enumtypes.h>
-#include <gst/pbutils/pbutils.h>
-#include <gst/pbutils/encoding-profile.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qstringlist.h>
 
-int main(int argc, char** argv)
+#include <gst/gst.h>
+
+class QGstCodecsInfo
 {
-    return 0;
-}
+public:
+    enum ElementType { AudioEncoder, VideoEncoder, Muxer };
+
+    QGstCodecsInfo(ElementType elementType);
+
+    QStringList supportedCodecs() const;
+    QString codecDescription(const QString &codec) const;
+
+#if GST_CHECK_VERSION(0,10,31)
+    static GstCaps* supportedElementCaps(GstElementFactoryListType elementType,
+                                         GstRank minimumRank = GST_RANK_MARGINAL,
+                                         GstPadDirection padDirection = GST_PAD_SRC);
+#endif
+
+private:
+    QStringList m_codecs;
+    QMap<QString,QString> m_codecDescriptions;
+};
+
+
+#endif

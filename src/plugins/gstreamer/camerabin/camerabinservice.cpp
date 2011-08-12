@@ -237,7 +237,7 @@ void CameraBinService::releaseControl(QMediaControl *control)
 
 bool CameraBinService::isCameraBinAvailable()
 {
-    GstElementFactory *factory = gst_element_factory_find("camerabin");
+    GstElementFactory *factory = gst_element_factory_find("camerabin2");
     if (factory) {
         gst_object_unref(GST_OBJECT(factory));
         return true;

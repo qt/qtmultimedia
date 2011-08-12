@@ -92,7 +92,6 @@ public Q_SLOTS:
 private Q_SLOTS:
     void _q_setFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
     void _q_handleCameraStateChange(QCamera::State state);
-    void _q_handleCapturedImage();
 
 private:
     CameraBinSession *m_session;

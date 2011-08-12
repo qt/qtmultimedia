@@ -48,7 +48,8 @@
 #include <QtCore/qmetaobject.h>
 
 //#define CAMERABIN_DEBUG 1
-#define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
+#define ZOOM_PROPERTY "zoom"
+#define MAX_ZOOM_PROPERTY "max-zoom"
 
 CameraBinFocus::CameraBinFocus(CameraBinSession *session)
     :QCameraFocusControl(session),
@@ -59,8 +60,6 @@ CameraBinFocus::CameraBinFocus(CameraBinSession *session)
 {
     connect(m_session, SIGNAL(stateChanged(QCamera::State)),
             this, SLOT(_q_handleCameraStateChange(QCamera::State)));
-    connect(m_session, SIGNAL(imageCaptured(int,QImage)),
-            this, SLOT(_q_handleCapturedImage()));
 }
 
 CameraBinFocus::~CameraBinFocus()
@@ -91,7 +90,9 @@ qreal CameraBinFocus::maximumOpticalZoom() const
 
 qreal CameraBinFocus::maximumDigitalZoom() const
 {
-    return 10;
+    gfloat zoomFactor = 1.0;
+    g_object_get(GST_BIN(m_session->cameraBin()), MAX_ZOOM_PROPERTY, &zoomFactor, NULL);
+    return zoomFactor;
 }
 
 qreal CameraBinFocus::opticalZoom() const
@@ -102,15 +103,15 @@ qreal CameraBinFocus::opticalZoom() const
 qreal CameraBinFocus::digitalZoom() const
 {
     gfloat zoomFactor = 1.0;
-    g_object_get(GST_BIN(m_session->cameraBin()), "zoom", &zoomFactor, NULL);
+    g_object_get(GST_BIN(m_session->cameraBin()), ZOOM_PROPERTY, &zoomFactor, NULL);
     return zoomFactor;
 }
 
 void CameraBinFocus::zoomTo(qreal optical, qreal digital)
 {
     Q_UNUSED(optical);
-    digital = qBound(qreal(1.0), digital, qreal(10.0));
-    g_object_set(GST_BIN(m_session->cameraBin()), "zoom", digital, NULL);
+    digital = qBound(qreal(1.0), digital, maximumDigitalZoom());
+    g_object_set(GST_BIN(m_session->cameraBin()), ZOOM_PROPERTY, digital, NULL);
     emit digitalZoomChanged(digital);
 }
 
@@ -184,9 +185,9 @@ void CameraBinFocus::_q_setFocusStatus(QCamera::LockStatus status, QCamera::Lock
 {
 #ifdef CAMERABIN_DEBUG
     qDebug() << Q_FUNC_INFO << "Current:"
-                << ENUM_NAME(QCamera, "LockStatus", m_focusStatus)
+                << m_focusStatus
                 << "New:"
-                << ENUM_NAME(QCamera, "LockStatus", status) << ENUM_NAME(QCamera, "LockChangeReason", reason);
+                << status << reason;
 #endif
 
     if (m_focusStatus != status) {
@@ -209,10 +210,6 @@ void CameraBinFocus::_q_handleCameraStateChange(QCamera::State state)
 {
     if (state != QCamera::ActiveState)
         _q_setFocusStatus(QCamera::Unlocked, QCamera::LockLost);
-}
-
-void CameraBinFocus::_q_handleCapturedImage()
-{
 }
 
 void CameraBinFocus::_q_startFocusing()

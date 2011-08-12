@@ -64,8 +64,6 @@ public:
 
     bool isMuted() const;
 
-    bool findCodecs();
-
     void applySettings();
 
 public slots:

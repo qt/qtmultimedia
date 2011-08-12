@@ -93,7 +93,7 @@ public:
     ~CameraBinSession();
 
     GstPhotography *photography();
-    GstElement *cameraBin() { return m_pipeline; }
+    GstElement *cameraBin() { return m_camerabin; }
     QGstreamerBusHelper *bus() { return m_busHelper; }
 
     CameraRole cameraRole() const;
@@ -143,8 +143,6 @@ public:
     qint64 duration() const;
 
     void recordVideo();
-    void pauseVideoRecording();
-    void resumeVideoRecording();
     void stopVideoRecording();
 
     bool isMuted() const;
@@ -176,8 +174,7 @@ private slots:
 private:
     bool setupCameraBin();
     void setupCaptureResolution();
-    void updateVideoSourceCaps();
-    GstElement *buildVideoSrc();
+    GstElement *buildCameraSource();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
     QUrl m_sink;
@@ -214,13 +211,11 @@ private:
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;
-    GstElement *m_pipeline;
+    GstElement *m_camerabin;
     GstElement *m_videoSrc;
     GstElement *m_viewfinderElement;
     bool m_viewfinderHasChanged;
     bool m_videoInputHasChanged;
-
-    GstCaps *m_sourceCaps;
 
     GstElement *m_audioSrc;
     GstElement *m_audioConvert;

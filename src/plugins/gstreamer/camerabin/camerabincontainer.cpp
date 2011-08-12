@@ -40,83 +40,90 @@
 ****************************************************************************/
 
 #include "camerabincontainer.h"
-
+#include <QtCore/qregexp.h>
 
 #include <QtCore/qdebug.h>
 
 CameraBinContainer::CameraBinContainer(QObject *parent)
-    :QMediaContainerControl(parent)
+    :QMediaContainerControl(parent),
+      m_supportedContainers(QGstCodecsInfo::Muxer)
 {
-    QList<QByteArray> formatCandidates;
-    formatCandidates << "mp4" << "ogg" << "wav" << "amr" << "mkv"
-                     << "avi" << "3gp" << "3gp2" << "webm" << "mjpeg" << "asf" << "mov";
+    //extension for containers hard to guess from mimetype
+    m_fileExtensions["video/x-matroska"] = "mkv";
+    m_fileExtensions["video/quicktime"] = "mov";
+    m_fileExtensions["video/x-msvideo"] = "avi";
+    m_fileExtensions["video/msvideo"] = "avi";
+    m_fileExtensions["audio/mpeg"] = "mp3";
+    m_fileExtensions["application/x-shockwave-flash"] = "swf";
+    m_fileExtensions["application/x-pn-realmedia"] = "rm";
+}
 
-    QMap<QString,QByteArray> elementNames;
+QStringList CameraBinContainer::supportedContainers() const
+{
+    return m_supportedContainers.supportedCodecs();
+}
 
-    elementNames.insertMulti("mp4", "ffmux_mp4");
-    elementNames.insertMulti("mp4", "hantromp4mux");
-    elementNames.insertMulti("mp4", "mp4mux");
-    elementNames.insert("ogg", "oggmux");
-    elementNames["wav"] = "wavenc";
-    elementNames["amr"] = "ffmux_amr";
-    elementNames["mkv"] = "matroskamux";
-    elementNames["avi"] = "avimux";
-    elementNames["3gp"] = "ffmux_3gp";
-    elementNames["3gp2"] = "ffmux_3g2";
-    elementNames["webm"] = "webmmux";
-    elementNames["mjpeg"] = "ffmux_mjpeg";
-    elementNames["asf"] = "ffmux_asf";
-    elementNames["mov"] = "qtmux";
+QString CameraBinContainer::containerDescription(const QString &formatMimeType) const
+{
+    return m_supportedContainers.codecDescription(formatMimeType);
+}
 
-    QSet<QString> allTypes;
+QString CameraBinContainer::containerMimeType() const
+{
+    return m_format;
+}
 
-    foreach(const QByteArray &formatName, formatCandidates) {
-        foreach(const QByteArray &elementName, elementNames.values(formatName)) {
-            GstElementFactory *factory = gst_element_factory_find(elementName.constData());
-            if (factory) {
-                m_supportedContainers.append(formatName);
-                const gchar *descr = gst_element_factory_get_description(factory);
-                m_containerDescriptions.insert(formatName, QString::fromUtf8(descr));
+void CameraBinContainer::setContainerMimeType(const QString &formatMimeType)
+{
+    m_format = formatMimeType;
 
-
-                if (formatName == QByteArray("raw")) {
-                    m_streamTypes.insert(formatName, allTypes);
-                } else {
-                    QSet<QString> types = supportedStreamTypes(factory, GST_PAD_SINK);
-                    m_streamTypes.insert(formatName, types);
-                    allTypes.unite(types);
-                }
-
-                gst_object_unref(GST_OBJECT(factory));
-
-                m_elementNames.insert(formatName, elementName);
-                break;
-            }
-        }
+    if (m_userFormat != formatMimeType) {
+        m_userFormat = formatMimeType;
+        emit settingsChanged();
     }
 }
 
-QSet<QString> CameraBinContainer::supportedStreamTypes(GstElementFactory *factory, GstPadDirection direction)
+void CameraBinContainer::setActualContainer(const QString &formatMimeType)
 {
-    QSet<QString> types;
-    const GList *pads = gst_element_factory_get_static_pad_templates(factory);
-    for (const GList *pad = pads; pad; pad = g_list_next(pad)) {
-        GstStaticPadTemplate *templ = (GstStaticPadTemplate*)pad->data;
-        if (templ->direction == direction) {
-            GstCaps *caps = gst_static_caps_get(&templ->static_caps);
-            for (uint i=0; i<gst_caps_get_size(caps); i++) {
-                GstStructure *structure = gst_caps_get_structure(caps, i);
-                types.insert( QString::fromUtf8(gst_structure_get_name(structure)) );
-            }
-            gst_caps_unref(caps);
-        }
-    }
-
-    return types;
+    m_format = formatMimeType;
 }
 
-
-QSet<QString> CameraBinContainer::supportedStreamTypes(const QString &container) const
+void CameraBinContainer::resetActualContainer()
 {
-    return m_streamTypes.value(container);
+    m_format = m_userFormat;
+}
+
+GstEncodingContainerProfile *CameraBinContainer::createProfile()
+{
+    GstCaps *caps;
+
+    if (m_format.isEmpty())
+        caps = gst_caps_new_any();
+    else
+        caps = gst_caps_from_string(m_format.toLatin1());
+
+    return (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
+                                        "camerabin2_profile",
+                                        (gchar *)"custom camera profile",
+                                        caps,
+                                        NULL); //preset
+}
+
+/*!
+  Suggest file extension for current container mimetype.
+ */
+QString CameraBinContainer::suggestedFileExtension() const
+{
+    QString format = m_format.left(m_format.indexOf(','));
+    QString extension = m_fileExtensions.value(format);
+
+    if (!extension.isEmpty() || format.isEmpty())
+        return extension;
+
+    QRegExp rx("[-/]([\\w]+)$");
+
+    if (rx.indexIn(format) != -1)
+        extension = rx.cap(1);
+
+    return extension;
 }

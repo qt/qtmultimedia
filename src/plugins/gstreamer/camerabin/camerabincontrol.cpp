@@ -75,14 +75,6 @@ CameraBinControl::CameraBinControl(CameraBinSession *session)
     connect(m_session, SIGNAL(stateChanged(QCamera::State)),
             this, SLOT(updateStatus()));
 
-    connect(m_session->audioEncodeControl(), SIGNAL(settingsChanged()),
-            SLOT(reloadLater()));
-    connect(m_session->videoEncodeControl(), SIGNAL(settingsChanged()),
-            SLOT(reloadLater()));
-    connect(m_session->mediaContainerControl(), SIGNAL(settingsChanged()),
-            SLOT(reloadLater()));
-    connect(m_session->imageEncodeControl(), SIGNAL(settingsChanged()),
-            SLOT(reloadLater()));
     connect(m_session, SIGNAL(viewfinderChanged()),
             SLOT(reloadLater()));
     connect(m_session, SIGNAL(readyChanged(bool)),
@@ -115,7 +107,6 @@ void CameraBinControl::setCaptureMode(QCamera::CaptureMode mode)
 {
     if (m_session->captureMode() != mode) {
         m_session->setCaptureMode(mode);
-        reloadLater();
 
         if (m_state == QCamera::ActiveState) {
             m_resourcePolicy->setResourceSet(

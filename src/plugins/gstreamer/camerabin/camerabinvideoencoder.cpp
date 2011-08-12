@@ -46,58 +46,10 @@
 #include <QtCore/qdebug.h>
 
 CameraBinVideoEncoder::CameraBinVideoEncoder(CameraBinSession *session)
-    :QVideoEncoderControl(session), m_session(session)
+    :QVideoEncoderControl(session),
+     m_session(session),
+     m_codecs(QGstCodecsInfo::VideoEncoder)
 {
-    QList<QByteArray> codecCandidates;
-#if defined(Q_WS_MAEMO_6)
-    codecCandidates << "video/mpeg4" << "video/h264" << "video/h263";
-
-    m_elementNames["video/h264"] = "dsph264enc";
-    m_elementNames["video/mpeg4"] = "dsphdmp4venc";
-    m_elementNames["video/h263"] = "dsph263enc";
-
-    QStringList options = QStringList() << "mode" << "keyframe-interval" << "max-bitrate" << "intra-refresh";
-    m_codecOptions["video/h264"] = options;
-    m_codecOptions["video/mpeg4"] = options;
-    m_codecOptions["video/h263"] = options;
-#else
-    codecCandidates << "video/h264" << "video/xvid" << "video/mpeg4"
-                    << "video/mpeg1" << "video/mpeg2" << "video/theora"
-                    << "video/VP8" << "video/h261" << "video/mjpeg";
-
-    m_elementNames["video/h264"] = "x264enc";
-    m_elementNames["video/xvid"] = "xvidenc";
-    m_elementNames["video/mpeg4"] = "ffenc_mpeg4";
-    m_elementNames["video/mpeg1"] = "ffenc_mpeg1video";
-    m_elementNames["video/mpeg2"] = "ffenc_mpeg2video";
-    m_elementNames["video/theora"] = "theoraenc";
-    m_elementNames["video/mjpeg"] = "ffenc_mjpeg";
-    m_elementNames["video/VP8"] = "vp8enc";
-    m_elementNames["video/h261"] = "ffenc_h261";
-
-    m_codecOptions["video/h264"] = QStringList() << "quantizer";
-    m_codecOptions["video/xvid"] = QStringList() << "quantizer" << "profile";
-    m_codecOptions["video/mpeg4"] = QStringList() << "quantizer";
-    m_codecOptions["video/mpeg1"] = QStringList() << "quantizer";
-    m_codecOptions["video/mpeg2"] = QStringList() << "quantizer";
-    m_codecOptions["video/theora"] = QStringList();
-
-#endif
-
-    foreach( const QByteArray& codecName, codecCandidates ) {
-        QByteArray elementName = m_elementNames[codecName];
-        GstElementFactory *factory = gst_element_factory_find(elementName.constData());
-        if (factory) {
-            m_codecs.append(codecName);
-            const gchar *descr = gst_element_factory_get_description(factory);
-            m_codecDescriptions.insert(codecName, QString::fromUtf8(descr));
-
-            m_streamTypes.insert(codecName,
-                                 CameraBinContainer::supportedStreamTypes(factory, GST_PAD_SRC));
-
-            gst_object_unref(GST_OBJECT(factory));
-        }
-    }
 }
 
 CameraBinVideoEncoder::~CameraBinVideoEncoder()
@@ -134,12 +86,12 @@ QList< qreal > CameraBinVideoEncoder::supportedFrameRates(const QVideoEncoderSet
 
 QStringList CameraBinVideoEncoder::supportedVideoCodecs() const
 {
-    return m_codecs;
+    return m_codecs.supportedCodecs();
 }
 
 QString CameraBinVideoEncoder::videoCodecDescription(const QString &codecName) const
 {
-    return m_codecDescriptions.value(codecName);
+    return m_codecs.codecDescription(codecName);
 }
 
 QStringList CameraBinVideoEncoder::supportedEncodingOptions(const QString &codec) const
@@ -180,118 +132,6 @@ void CameraBinVideoEncoder::resetActualSettings()
     m_videoSettings = m_userSettings;
 }
 
-GstElement *CameraBinVideoEncoder::createEncoder()
-{
-    QString codec = m_videoSettings.codec();
-    QByteArray elementName = m_elementNames.value(codec);
-
-    GstElement *encoderElement = gst_element_factory_make( elementName.constData(), "video-encoder");
-
-    if (encoderElement) {
-        if (m_videoSettings.encodingMode() == QtMultimediaKit::ConstantQualityEncoding) {
-            QtMultimediaKit::EncodingQuality qualityValue = m_videoSettings.quality();
-
-            if (elementName == "x264enc") {
-                //constant quantizer mode
-                g_object_set(G_OBJECT(encoderElement), "pass", 4, NULL);
-                int qualityTable[] = {
-                    50, //VeryLow
-                    35, //Low
-                    21, //Normal
-                    15, //High
-                    8 //VeryHigh
-                };
-                g_object_set(G_OBJECT(encoderElement), "quantizer", qualityTable[qualityValue], NULL);
-            } else if (elementName == "xvidenc") {
-                //constant quantizer mode
-                g_object_set(G_OBJECT(encoderElement), "pass", 3, NULL);
-                int qualityTable[] = {
-                    32, //VeryLow
-                    12, //Low
-                    5, //Normal
-                    3, //High
-                    2 //VeryHigh
-                };
-                int quant = qualityTable[qualityValue];
-                g_object_set(G_OBJECT(encoderElement), "quantizer", quant, NULL);
-            } else if (elementName == "ffenc_mpeg4" ||
-                       elementName == "ffenc_mpeg1video" ||
-                       elementName == "ffenc_mpeg2video" ) {
-                //constant quantizer mode
-                g_object_set(G_OBJECT(encoderElement), "pass", 2, NULL);
-                //quant from 1 to 30, default ~3
-                double qualityTable[] = {
-                    20, //VeryLow
-                    8.0, //Low
-                    3.0, //Normal
-                    2.5, //High
-                    2.0 //VeryHigh
-                };
-                double quant = qualityTable[qualityValue];
-                g_object_set(G_OBJECT(encoderElement), "quantizer", quant, NULL);
-            } else if (elementName == "theoraenc") {
-                int qualityTable[] = {
-                    8, //VeryLow
-                    16, //Low
-                    32, //Normal
-                    45, //High
-                    60 //VeryHigh
-                };
-                //quality from 0 to 63
-                int quality = qualityTable[qualityValue];
-                g_object_set(G_OBJECT(encoderElement), "quality", quality, NULL);
-            } else if (elementName == "dsph264enc" ||
-                       elementName == "dspmp4venc" ||
-                       elementName == "dsphdmp4venc" ||
-                       elementName == "dsph263enc") {
-                //only bitrate parameter is supported
-                int qualityTable[] = {
-                    1000000, //VeryLow
-                    2000000, //Low
-                    4000000, //Normal
-                    8000000, //High
-                    16000000 //VeryHigh
-                };
-                int bitrate = qualityTable[qualityValue];
-                g_object_set(G_OBJECT(encoderElement), "bitrate", bitrate, NULL);
-            }
-        } else {
-            int bitrate = m_videoSettings.bitRate();
-            if (bitrate > 0) {
-                g_object_set(G_OBJECT(encoderElement), "bitrate", bitrate, NULL);
-            }
-        }
-
-        QMap<QString,QVariant> options = m_options.value(codec);
-        QMapIterator<QString,QVariant> it(options);
-        while (it.hasNext()) {
-            it.next();
-            QString option = it.key();
-            QVariant value = it.value();
-
-            switch (value.type()) {
-            case QVariant::Int:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toInt(), NULL);
-                break;
-            case QVariant::Bool:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toBool(), NULL);
-                break;
-            case QVariant::Double:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toDouble(), NULL);
-                break;
-            case QVariant::String:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toString().toUtf8().constData(), NULL);
-                break;
-            default:
-                qWarning() << "unsupported option type:" << option << value;
-                break;
-            }
-
-        }
-    }
-
-    return encoderElement;
-}
 
 QPair<int,int> CameraBinVideoEncoder::rateAsRational(qreal frameRate) const
 {
@@ -324,8 +164,19 @@ QPair<int,int> CameraBinVideoEncoder::rateAsRational(qreal frameRate) const
     return QPair<int,int>();
 }
 
-
-QSet<QString> CameraBinVideoEncoder::supportedStreamTypes(const QString &codecName) const
+GstEncodingProfile *CameraBinVideoEncoder::createProfile()
 {
-    return m_streamTypes.value(codecName);
+    QString codec = m_videoSettings.codec();
+    GstCaps *caps;
+
+    if (codec.isEmpty())
+        caps = gst_caps_new_any();
+    else
+        caps = gst_caps_from_string(codec.toLatin1());
+
+    return (GstEncodingProfile *)gst_encoding_video_profile_new(
+                caps,
+                NULL, //preset
+                NULL, //restriction
+                0); //presence
 }
