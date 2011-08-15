@@ -94,7 +94,7 @@ public:
     }
 
     void load(const QMediaContent &media, QIODevice *stream);
-    void stop();
+    void stop(bool immediate = false);
     void start();
     void pause();
 

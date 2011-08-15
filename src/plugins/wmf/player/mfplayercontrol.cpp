@@ -72,7 +72,12 @@ MFPlayerControl::~MFPlayerControl()
 
 void MFPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
 {
-    stop();
+    if (m_state != QMediaPlayer::StoppedState) {
+        changeState(QMediaPlayer::StoppedState);
+        m_session->stop(true);
+        refreshState();
+    }
+
     m_media = media;
     m_stream = stream;
     resetAudioVideoAvailable();

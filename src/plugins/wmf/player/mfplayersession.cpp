@@ -681,12 +681,12 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
     return NULL;
 }
 
-void MFPlayerSession::stop()
+void MFPlayerSession::stop(bool immediate)
 {
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "stop";
 #endif
-    if (m_pendingState != NoPending) {
+    if (!immediate && m_pendingState != NoPending) {
         m_request.setCommand(CmdStop);
     } else {
         if (m_state.command == CmdStop)
@@ -1186,7 +1186,11 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         if (m_status != QMediaPlayer::EndOfMedia) {
             m_varStart.vt = VT_I8;
             m_varStart.hVal.QuadPart = 0;
-            changeStatus(QMediaPlayer::LoadedMedia);
+
+            //only change to loadedMedia when not loading a new media source
+            if (m_status != QMediaPlayer::LoadingMedia) {
+                changeStatus(QMediaPlayer::LoadedMedia);
+            }
         }
         updatePendingCommands(CmdStop);
         break;
