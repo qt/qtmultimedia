@@ -16,7 +16,8 @@ HEADERS += \
         qsgvideonode_p.h \
         qsgvideonode_i420.h \
         qsgvideonode_rgb32.h \
-        qdeclarativeradio_p.h
+        qdeclarativeradio_p.h \
+        qdeclarativebackgroundaudio_p.h
 
 SOURCES += \
         multimedia.cpp \
@@ -26,7 +27,8 @@ SOURCES += \
         qsgvideonode.cpp \
         qsgvideonode_i420.cpp \
         qsgvideonode_rgb32.cpp \
-        qdeclarativeradio.cpp
+        qdeclarativeradio.cpp \
+        qdeclarativebackgroundaudio.cpp
 
 disabled {
     HEADERS += \

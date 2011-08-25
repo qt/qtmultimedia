@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -38,60 +38,60 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QDECLARATIVEBACKGROUNDAUDIO_P_H
+#define QDECLARATIVEBACKGROUNDAUDIO_P_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists for the convenience
+// of other Qt classes.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtDeclarative/qdeclarativeextensionplugin.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
-#include "private/qsoundeffect_p.h"
-
-#include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
-#include "qdeclarativevideooutput_p.h"
-#include "qdeclarativeradio_p.h"
-#include "qdeclarativebackgroundaudio_p.h"
-#if 0
-#include "qdeclarativecamera_p.h"
-#include "qdeclarativecamerapreviewprovider_p.h"
-#endif
 
-QML_DECLARE_TYPE(QSoundEffect)
+QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-class QMultimediaDeclarativeModule : public QDeclarativeExtensionPlugin
+class QMediaBackgroundPlaybackControl;
+class QDeclarativeBackgroundAudio : public QDeclarativeAudio
 {
     Q_OBJECT
+    Q_PROPERTY(QString contextId READ contextId WRITE setContextId NOTIFY contextIdChanged)
+    Q_PROPERTY(bool acquired READ isAcquired NOTIFY acquiredChanged)
 public:
-    virtual void registerTypes(const char *uri)
-    {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
+    QDeclarativeBackgroundAudio(QObject *parent = 0);
+    ~QDeclarativeBackgroundAudio();
 
-        qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "MediaPlayer");
-        qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
-        qmlRegisterType<QDeclarativeRadio>(uri, 4, 0, "Radio");
-        qmlRegisterType<QDeclarativeBackgroundAudio>(uri, 4, 0, "BackgroundAudio");
-        /* Disabled until ported to scenegraph */
-#if 0
-        qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
-#endif
-        qmlRegisterType<QDeclarativeMediaMetaData>();
-    }
+    void classBegin();
+    void componentComplete();
 
-    void initializeEngine(QDeclarativeEngine *engine, const char *uri)
-    {
-        Q_UNUSED(uri);
-#if 0
-        engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
-#endif
-    }
+    QString contextId() const;
+    void setContextId(QString contextId);
+    bool isAcquired() const;
+
+public Q_SLOTS:
+    void acquire();
+    void release();
+
+Q_SIGNALS:
+    void contextIdChanged();
+    void acquiredChanged();
+
+private:
+    Q_DISABLE_COPY(QDeclarativeBackgroundAudio)
+    QString m_contextId;
+    QMediaBackgroundPlaybackControl *m_backgroundPlaybackControl;
 };
 
 QT_END_NAMESPACE
 
-#include "multimedia.moc"
+QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeBackgroundAudio))
 
-Q_EXPORT_PLUGIN2(qmultimediadeclarativemodule, QT_PREPEND_NAMESPACE(QMultimediaDeclarativeModule));
+QT_END_HEADER
 
+#endif // QDECLARATIVEBACKGROUNDAUDIO_P_H
