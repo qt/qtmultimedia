@@ -21,6 +21,7 @@ load(qt_module_config)
 
 HEADERS += qtmultimediakitversion.h
 
+
 PRIVATE_HEADERS += \
     qmediacontrol_p.h \
     qmediaobject_p.h \
@@ -44,6 +45,7 @@ PUBLIC_HEADERS += \
     qmediaplaylistnavigator.h \
     qmediaplaylistprovider.h \
     qmediaplaylistioplugin.h \
+    qmediabackgroundplaybackcontrol.h \
     qmediacontent.h \
     qmediaresource.h \
     qmediarecorder.h \
@@ -109,7 +111,8 @@ SOURCES += qmediacontrol.cpp \
     qvideorenderercontrol.cpp \
     qmediatimerange.cpp \
     qmedianetworkaccesscontrol.cpp \
-    qvideosurfaceoutput.cpp
+    qvideosurfaceoutput.cpp \
+    qmediabackgroundplaybackcontrol.cpp
 
 #Camera
 PUBLIC_HEADERS += \
@@ -153,4 +156,3 @@ mac:!qpa {
 }
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
-

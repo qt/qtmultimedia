@@ -61,7 +61,8 @@ public:
         LowLatencyPlayback = 0x01,
         RecordingSupport = 0x02,
         StreamPlayback = 0x04,
-        VideoSurface = 0x08
+        VideoSurface = 0x08,
+        BackgroundPlayback = 0x10,
     };
     Q_DECLARE_FLAGS(Features, Feature)
 
