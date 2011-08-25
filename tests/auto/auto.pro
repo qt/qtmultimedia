@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
-SUBDIRS+=multimedia.pro
+SUBDIRS += multimedia.pro
+contains(QT_CONFIG,multimediakitwidgets): SUBDIRS += multimediawidgets.pro
 
 # These autotests consist of things such as static code checks
 # which require that the autotest is run on the same machine

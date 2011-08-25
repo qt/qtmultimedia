@@ -8,15 +8,9 @@ SUBDIRS += \
     qaudioformat \
     qaudioinput \
     qaudiooutput \
-    qcamera \
-    qcamerabackend \
-    qcameraimagecapture \
-    qcameraviewfinder \
     qmediabindableinterface \
     qmediacontainercontrol \
     qmediacontent \
-    qmediaobject \
-    qmediaplayer \
     qmediaplayerbackend \
     qmediaplaylistnavigator \
     qmediarecorder \
@@ -28,9 +22,6 @@ SUBDIRS += \
     qvideosurfaceformat \
     qmetadatareadercontrol \
     qmetadatawritercontrol \
-
-# This is disabled because it is unfinished
-# qmediastreamscontrol \
 
 # These is disabled until intent is clearer
 #    qvideodevicecontrol \
@@ -44,24 +35,15 @@ SUBDIRS += \
 # Tests depending on private interfaces should only be built if
 # these interfaces are exported.
 contains (QT_CONFIG, private_tests) {
-  SUBDIRS += \
-    qgraphicsvideoitem \
-    qmediaimageviewer \
-    qmediaplaylist \
-    qmediapluginloader \
-    qmediaserviceprovider \
-    qpaintervideosurface \
-    qvideowidget \
-}
-
-contains (QT_CONFIG, declarative) {
-  # All the declarative tests depend on private interfaces
-  contains (QT_CONFIG, private_tests) {
     SUBDIRS += \
-    qsoundeffect \
-    qdeclarativeaudio \
+        qmediaplaylist \
+        qmediapluginloader \
+        qmediaserviceprovider
 
-
-    disabled:SUBDIRS += qdeclarativevideo
-  }
+    contains (QT_CONFIG, declarative) {
+  # All the declarative tests depend on private interfaces
+        SUBDIRS += \
+            qsoundeffect \
+            qdeclarativeaudio
+    }
 }
