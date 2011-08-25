@@ -165,6 +165,26 @@ void tst_QMediaRecorder::testNullControls()
     QCOMPARE(spy.count(), 0);
 }
 
+void tst_QMediaRecorder::testDeleteMediaObject()
+{
+    MockMediaRecorderControl *mock = new MockMediaRecorderControl(this);
+    MockMediaRecorderService *service = new MockMediaRecorderService(this, mock);
+    MockMediaObject *object = new MockMediaObject(this, service);
+    QMediaRecorder *capture = new QMediaRecorder(object);
+
+    QVERIFY(capture->mediaObject() == object);
+    QVERIFY(capture->isAvailable());
+
+    delete object;
+    delete service;
+    delete mock;
+
+    QVERIFY(capture->mediaObject() == 0);
+    QVERIFY(!capture->isAvailable());
+
+    delete capture;
+}
+
 void tst_QMediaRecorder::testError()
 {
     const QString errorString(QLatin1String("format error"));

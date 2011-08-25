@@ -168,7 +168,12 @@ void QMediaRecorderPrivate::_q_error(int error, const QString &errorString)
 
 void QMediaRecorderPrivate::_q_serviceDestroyed()
 {
-    q_func()->setMediaObject(0);
+    mediaObject = 0;
+    control = 0;
+    formatControl = 0;
+    audioControl = 0;
+    videoControl = 0;
+    metaDataControl = 0;
 }
 
 void QMediaRecorderPrivate::_q_notify()
