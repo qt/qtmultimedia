@@ -71,9 +71,8 @@ public:
         WhiteBalanceShade = 4,
         WhiteBalanceTungsten = 5,
         WhiteBalanceFluorescent = 6,
-        WhiteBalanceIncandescent = 7,
-        WhiteBalanceFlash = 8,
-        WhiteBalanceSunset = 9,
+        WhiteBalanceFlash = 7,
+        WhiteBalanceSunset = 8,
         WhiteBalanceVendor = 1000
     };
 

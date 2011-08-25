@@ -343,7 +343,6 @@ void QCameraImageProcessing::setDenoisingLevel(int level)
     \value WhiteBalanceShade        Shade white balance mode.
     \value WhiteBalanceTungsten     Tungsten white balance mode.
     \value WhiteBalanceFluorescent  Fluorescent white balance mode.
-    \value WhiteBalanceIncandescent Incandescent white balance mode.
     \value WhiteBalanceFlash        Flash white balance mode.
     \value WhiteBalanceSunset       Sunset white balance mode.
     \value WhiteBalanceVendor       Vendor defined white balance mode.
