@@ -16,6 +16,14 @@ HEADERS += \
         qsgvideonode_p.h \
         qsgvideonode_i420.h \
         qsgvideonode_rgb32.h \
+        qdeclarativecamera_p.h \
+        qdeclarativecameracapture_p.h \
+        qdeclarativecamerarecorder_p.h \
+        qdeclarativecameraexposure_p.h \
+        qdeclarativecameraflash_p.h \
+        qdeclarativecamerafocus_p.h \
+        qdeclarativecameraimageprocessing_p.h \
+        qdeclarativecamerapreviewprovider_p.h
 
 
 SOURCES += \
@@ -26,17 +34,23 @@ SOURCES += \
         qsgvideonode.cpp \
         qsgvideonode_i420.cpp \
         qsgvideonode_rgb32.cpp \
+        qdeclarativecamera.cpp \
+        qdeclarativecameracapture.cpp \
+        qdeclarativecamerarecorder.cpp \
+        qdeclarativecameraexposure.cpp \
+        qdeclarativecameraflash.cpp \
+        qdeclarativecamerafocus.cpp \
+        qdeclarativecameraimageprocessing.cpp \
+        qdeclarativecamerapreviewprovider.cpp
 
 disabled {
     HEADERS += \
         qdeclarativevideo_p.h \
-        qdeclarativecamera_p.h \
-        qdeclarativecamerapreviewprovider_p.h
+
 
     SOURCES += \
         qdeclarativevideo.cpp \
-        qdeclarativecamera.cpp \
-        qdeclarativecamerapreviewprovider.cpp
+
 }
 
 qmldir.files += $$PWD/qmldir

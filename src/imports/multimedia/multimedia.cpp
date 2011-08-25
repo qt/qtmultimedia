@@ -48,10 +48,13 @@
 #include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativevideooutput_p.h"
-#if 0
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
-#endif
+#include "qdeclarativecameraexposure_p.h"
+#include "qdeclarativecameraflash_p.h"
+#include "qdeclarativecamerafocus_p.h"
+#include "qdeclarativecameraimageprocessing_p.h"
+
 
 QML_DECLARE_TYPE(QSoundEffect)
 
@@ -69,19 +72,24 @@ public:
         qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
         qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
-        /* Disabled until ported to scenegraph */
-#if 0
         qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
-#endif
+        qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 4, 0, "CameraCapture",
+                                trUtf8("CameraCapture is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 4, 0, "CameraRecorder",
+                                trUtf8("CameraRecorder is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 4, 0, "CameraExposure",
+                                trUtf8("CameraExposure is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraFocus>(uri, 4, 0, "CameraFocus",
+                                trUtf8("CameraFocus is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 4, 0, "CameraImageProcessing",
+                                trUtf8("CameraImageProcessing is only provided by Camera element"));
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }
 
     void initializeEngine(QDeclarativeEngine *engine, const char *uri)
     {
         Q_UNUSED(uri);
-#if 0
         engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
-#endif
     }
 };
 
