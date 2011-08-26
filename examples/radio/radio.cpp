@@ -45,8 +45,6 @@
 Radio::Radio()
 {
     radio = new QRadioTuner;
-    connect(radio,SIGNAL(frequencyChanged(int)),this,SLOT(freqChanged(int)));
-    connect(radio,SIGNAL(signalStrengthChanged(int)),this,SLOT(signalChanged(int)));
     connect(radio, SIGNAL(error(QRadioTuner::Error)), this, SLOT(error(QRadioTuner::Error)));
 
     if(radio->isBandSupported(QRadioTuner::FM))
@@ -62,6 +60,7 @@ Radio::Radio()
     freq = new QLabel;
     freq->setText(QString("%1 kHz").arg(radio->frequency()/1000));
     topBar->addWidget(freq);
+    connect(radio,SIGNAL(frequencyChanged(int)),this,SLOT(freqChanged(int)));
 
     signal = new QLabel;
     if (radio->isAvailable())
@@ -69,6 +68,8 @@ Radio::Radio()
     else
         signal->setText(tr("No radio found"));
     topBar->addWidget(signal);
+    connect(radio,SIGNAL(signalStrengthChanged(int)),this,SLOT(signalChanged(int)));
+
     volumeSlider = new QSlider(Qt::Vertical,this);
     volumeSlider->setRange(0,100);
     volumeSlider->setValue(50);
