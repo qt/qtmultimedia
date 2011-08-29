@@ -118,6 +118,7 @@ private Q_SLOTS:
     void processEOS();
     void setBufferProgress(int progress);
     void applyPendingSeek(bool isSeekable);
+    void updatePosition(qint64 pos);
 
     void handleInvalidMedia();
 

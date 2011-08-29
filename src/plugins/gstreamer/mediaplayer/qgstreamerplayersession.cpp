@@ -103,6 +103,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_lastPosition(0),
      m_duration(-1),
      m_durationQueries(0),
+     m_displayPrerolledFrame(true),
      m_sourceType(UnknownSrc),
      m_everPlayed(false),
      m_isLiveSource(false)
@@ -534,6 +535,11 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
 #endif
             gst_bin_add(GST_BIN(m_videoOutputBin), m_colorSpace);
             linked = gst_element_link_many(m_videoIdentity, m_colorSpace, m_videoSink, NULL);
+        }
+
+        if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "show-preroll-frame") != 0) {
+            gboolean value = m_displayPrerolledFrame;
+            g_object_set(G_OBJECT(m_videoSink), "show-preroll-frame", value, NULL);
         }
 
         switch (m_pendingState) {
@@ -1595,4 +1601,18 @@ void QGstreamerPlayerSession::processInvalidMedia(QMediaPlayer::Error errorCode,
     emit invalidMedia();
     stop();
     emit error(int(errorCode), errorString);
+}
+
+void QGstreamerPlayerSession::showPrerollFrames(bool enabled)
+{
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO << enabled;
+#endif
+    if (enabled != m_displayPrerolledFrame && m_videoSink &&
+            g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "show-preroll-frame") != 0) {
+
+        gboolean value = enabled;
+        g_object_set(G_OBJECT(m_videoSink), "show-preroll-frame", value, NULL);
+        m_displayPrerolledFrame = enabled;
+    }
 }
