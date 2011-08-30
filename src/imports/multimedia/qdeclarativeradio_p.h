@@ -72,6 +72,9 @@ class QDeclarativeRadio : public QObject
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool searching READ searching NOTIFY searchingChanged)
+    Q_PROPERTY(int frequencyStep READ frequencyStep NOTIFY bandChanged)
+    Q_PROPERTY(int minimumFrequency READ minimumFrequency NOTIFY bandChanged)
+    Q_PROPERTY(int maximumFrequency READ maximumFrequency NOTIFY bandChanged)
     Q_ENUMS(State)
     Q_ENUMS(Band)
     Q_ENUMS(Error)
@@ -118,8 +121,11 @@ public:
     int signalStrength() const;
     bool searching() const;
 
+    int frequencyStep() const;
+    int minimumFrequency() const;
+    int maximumFrequency() const;
+
     Q_INVOKABLE bool isAvailable() const;
-    Q_INVOKABLE int frequencyStep(QDeclarativeRadio::Band band) const;
 
 public Q_SLOTS:
     void setBand(QDeclarativeRadio::Band band);

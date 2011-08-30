@@ -111,14 +111,24 @@ bool QDeclarativeRadio::searching() const
     return m_radioTuner->isSearching();
 }
 
+int QDeclarativeRadio::frequencyStep() const
+{
+    return m_radioTuner->frequencyStep(m_radioTuner->band());
+}
+
+int QDeclarativeRadio::minimumFrequency() const
+{
+    return m_radioTuner->frequencyRange(m_radioTuner->band()).first;
+}
+
+int QDeclarativeRadio::maximumFrequency() const
+{
+    return m_radioTuner->frequencyRange(m_radioTuner->band()).second;
+}
+
 bool QDeclarativeRadio::isAvailable() const
 {
     return m_radioTuner->isAvailable();
-}
-
-int QDeclarativeRadio::frequencyStep(QDeclarativeRadio::Band band) const
-{
-    return m_radioTuner->frequencyStep(static_cast<QRadioTuner::Band>(band));
 }
 
 void QDeclarativeRadio::setBand(QDeclarativeRadio::Band band)

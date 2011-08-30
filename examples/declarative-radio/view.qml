@@ -46,11 +46,13 @@ Rectangle {
 
     Radio {
         id: radio
+        band: Radio.FM
     }
 
     Column {
         anchors.fill: parent
         anchors.margins: 5
+        spacing: 5
 
         Row {
 
@@ -61,7 +63,7 @@ Rectangle {
                 height: 200
 
                 verticalAlignment: Text.AlignVCenter
-                text: "" + radio.frequency / 1000 + " kHz";
+                text: "" + radio.frequency / 1000 + " kHz"
             }
             Text {
                 id: sig
@@ -71,6 +73,28 @@ Rectangle {
 
                 verticalAlignment: Text.AlignVCenter
                 text: (radio.isAvailable() ? "No Signal " : "No Radio Found")
+            }
+        }
+
+        Row {
+            spacing: 5
+
+            Rectangle {
+                width: 350
+                height: 10
+
+                color: "black"
+
+                Rectangle {
+                    width: 5
+                    height: 10
+                    color: "red"
+
+                    y: 0
+                    x: (parent.width - 5) * ((radio.frequency - radio.minimumFrequency) / (radio.maximumFrequency -
+                    radio.minimumFrequency))
+
+                }
             }
         }
 
@@ -119,7 +143,7 @@ Rectangle {
                     anchors.fill: parent
                     onClicked:  {
                         var f = radio.frequency;
-                        f = f - radio.frequencyStep(Radio.FM);
+                        f = f - radio.frequencyStep;
                         radio.setFrequency(f);
                     }
                 }
@@ -144,7 +168,7 @@ Rectangle {
                     anchors.fill: parent
                     onClicked:  {
                         var f = radio.frequency;
-                        f = f + radio.frequencyStep(Radio.FM);
+                        f = f + radio.frequencyStep;
                         radio.setFrequency(f);
                     }
                 }
