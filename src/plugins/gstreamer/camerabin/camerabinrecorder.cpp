@@ -45,6 +45,8 @@
 #include "camerabincontainer.h"
 #include <QtCore/QDebug>
 
+#include <gst/pbutils/encoding-profile.h>
+
 CameraBinRecorder::CameraBinRecorder(CameraBinSession *session)
     :QMediaRecorderControl(session),
      m_session(session),
@@ -92,10 +94,7 @@ qint64 CameraBinRecorder::duration() const
 void CameraBinRecorder::record()
 {
     if (m_session->state() == QCamera::ActiveState) {
-        if (m_state == QMediaRecorder::PausedState)
-            m_session->resumeVideoRecording();
-        else
-            m_session->recordVideo();
+        m_session->recordVideo();
         emit stateChanged(m_state = QMediaRecorder::RecordingState);
     } else
         emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
@@ -103,11 +102,7 @@ void CameraBinRecorder::record()
 
 void CameraBinRecorder::pause()
 {
-    if (m_session->state() == QCamera::ActiveState) {
-        m_session->pauseVideoRecording();
-        emit stateChanged(m_state = QMediaRecorder::PausedState);
-    } else
-        emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
+    emit error(QMediaRecorder::ResourceError, tr("QMediaRecorder::pause() is not supported by camerabin2."));
 }
 
 void CameraBinRecorder::stop()
@@ -118,100 +113,19 @@ void CameraBinRecorder::stop()
     }
 }
 
-bool CameraBinRecorder::findCodecs()
-{
-    //Check the codecs are compatible with container,
-    //and choose the compatible codecs/container if omitted
-    CameraBinAudioEncoder *audioEncodeControl = m_session->audioEncodeControl();
-    CameraBinVideoEncoder *videoEncodeControl = m_session->videoEncodeControl();
-    CameraBinContainer *mediaContainerControl = m_session->mediaContainerControl();
-
-    audioEncodeControl->resetActualSettings();
-    videoEncodeControl->resetActualSettings();
-    mediaContainerControl->resetActualContainer();
-
-    QStringList containerCandidates;
-    if (mediaContainerControl->containerMimeType().isEmpty())
-        containerCandidates = mediaContainerControl->supportedContainers();
-    else
-        containerCandidates << mediaContainerControl->containerMimeType();
-
-
-    QStringList audioCandidates;
-    QAudioEncoderSettings audioSettings = audioEncodeControl->audioSettings();
-    if (audioSettings.codec().isEmpty())
-        audioCandidates = audioEncodeControl->supportedAudioCodecs();
-    else
-        audioCandidates << audioSettings.codec();
-
-    QStringList videoCandidates;
-    QVideoEncoderSettings videoSettings = videoEncodeControl->videoSettings();
-    if (videoSettings.codec().isEmpty())
-        videoCandidates = videoEncodeControl->supportedVideoCodecs();
-    else
-        videoCandidates << videoSettings.codec();
-
-    QString container;
-    QString audioCodec;
-    QString videoCodec;
-
-    foreach (const QString &containerCandidate, containerCandidates) {
-        QSet<QString> supportedTypes = mediaContainerControl->supportedStreamTypes(containerCandidate);
-
-        audioCodec.clear();
-        videoCodec.clear();
-
-        bool found = false;
-        foreach (const QString &audioCandidate, audioCandidates) {
-            QSet<QString> audioTypes = audioEncodeControl->supportedStreamTypes(audioCandidate);
-            if (!audioTypes.intersect(supportedTypes).isEmpty()) {
-                found = true;
-                audioCodec = audioCandidate;
-                break;
-            }
-        }
-        if (!found)
-            continue;
-
-        found = false;
-        foreach (const QString &videoCandidate, videoCandidates) {
-            QSet<QString> videoTypes = videoEncodeControl->supportedStreamTypes(videoCandidate);
-            if (!videoTypes.intersect(supportedTypes).isEmpty()) {
-                found = true;
-                videoCodec = videoCandidate;
-                break;
-            }
-        }
-        if (!found)
-            continue;
-
-
-        container = containerCandidate;
-        break;
-    }
-
-    if (container.isEmpty()) {
-        qWarning() << "Camera error: Not compatible codecs and container format.";
-        emit error(QMediaRecorder::FormatError, tr("Not compatible codecs and container format."));
-        return false;
-    } else {
-        mediaContainerControl->setActualContainer(container);
-
-        QAudioEncoderSettings audioSettings = audioEncodeControl->audioSettings();
-        audioSettings.setCodec(audioCodec);
-        audioEncodeControl->setActualAudioSettings(audioSettings);
-
-        QVideoEncoderSettings videoSettings = videoEncodeControl->videoSettings();
-        videoSettings.setCodec(videoCodec);
-        videoEncodeControl->setActualVideoSettings(videoSettings);
-    }
-
-    return true;
-}
-
 void CameraBinRecorder::applySettings()
 {
-    findCodecs();
+    GstEncodingContainerProfile *containerProfile = m_session->mediaContainerControl()->createProfile();
+
+    if (containerProfile) {
+        GstEncodingProfile *audioProfile = m_session->audioEncodeControl()->createProfile();
+        GstEncodingProfile *videoProfile = m_session->videoEncodeControl()->createProfile();
+
+        gst_encoding_container_profile_add_profile(containerProfile, audioProfile);
+        gst_encoding_container_profile_add_profile(containerProfile, videoProfile);
+    }
+
+    g_object_set (G_OBJECT(m_session->cameraBin()), "video-profile", containerProfile, NULL);
 }
 
 bool CameraBinRecorder::isMuted() const

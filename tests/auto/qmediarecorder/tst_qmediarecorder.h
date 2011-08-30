@@ -70,6 +70,7 @@ public slots:
 private slots:
     void testNullService();
     void testNullControls();
+    void testDeleteMediaObject();
     void testError();
     void testSink();
     void testRecord();

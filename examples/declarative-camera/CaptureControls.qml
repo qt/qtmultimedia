@@ -136,8 +136,8 @@ FocusScope {
                         }
                         ListElement {
                             icon: "images/camera_white_balance_incandescent.png"
-                            value: Camera.WhiteBalanceIncandescent
-                            text: "Incandescent"
+                            value: Camera.WhiteBalanceTungsten
+                            text: "Tungsten"
                         }
                         ListElement {
                             icon: "images/camera_white_balance_flourescent.png"

@@ -44,6 +44,7 @@
 
 #include <qvideorenderercontrol.h>
 #include "qvideosurfacegstsink.h"
+#include "qgstreamerbushelper.h"
 
 #include "qgstreamervideorendererinterface.h"
 #include <QtGui/qcolor.h>
@@ -54,10 +55,13 @@ QT_USE_NAMESPACE
 
 class QGLContext;
 
-class QGstreamerGLTextureRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
+class QGstreamerGLTextureRenderer : public QVideoRendererControl,
+        public QGstreamerVideoRendererInterface,
+        public QGstreamerSyncMessageFilter,
+        public QGstreamerBusMessageFilter
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface)
+    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 
     Q_PROPERTY(bool overlayEnabled READ overlayEnabled WRITE setOverlayEnabled)
     Q_PROPERTY(qulonglong winId READ winId WRITE setWinId)
@@ -75,9 +79,8 @@ public:
     GstElement *videoSink();
 
     bool isReady() const;
-    void handleBusMessage(GstMessage* gm);
-    void handleSyncMessage(GstMessage* gm);
-    void precessNewStream();
+    bool processBusMessage(const QGstreamerMessage &message);
+    bool processSyncMessage(const QGstreamerMessage &message);
     void stopRenderer();
 
     int framebufferNumber() const;

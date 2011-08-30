@@ -364,13 +364,16 @@ bool QGstreamerGLTextureRenderer::isReady() const
     return m_surface->supportedPixelFormats(EGLImageTextureHandle).isEmpty();
 }
 
-void QGstreamerGLTextureRenderer::handleBusMessage(GstMessage* gm)
+bool QGstreamerGLTextureRenderer::processBusMessage(const QGstreamerMessage &message)
 {
+    GstMessage* gm = message.rawMessage();
+
 #ifdef GL_TEXTURE_SINK_DEBUG
     qDebug() << Q_FUNC_INFO << GST_MESSAGE_TYPE_NAME(gm);
 #endif
 
-    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED) {
+    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED &&
+            GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoSink)) {
         GstState oldState;
         GstState newState;
         gst_message_parse_state_changed(gm, &oldState, &newState, 0);
@@ -387,22 +390,20 @@ void QGstreamerGLTextureRenderer::handleBusMessage(GstMessage* gm)
             updateNativeVideoSize();
         }
     }
+
+    return false;
 }
 
-void QGstreamerGLTextureRenderer::handleSyncMessage(GstMessage* gm)
+bool QGstreamerGLTextureRenderer::processSyncMessage(const QGstreamerMessage &message)
 {
+    GstMessage* gm = message.rawMessage();
+
+    if ((GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
+            gst_structure_has_name(gm->structure, "prepare-xwindow-id") &&
+            m_videoSink && GST_IS_X_OVERLAY(m_videoSink)) {
 #ifdef GL_TEXTURE_SINK_DEBUG
     qDebug() << Q_FUNC_INFO;
 #endif
-
-    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT &&
-            gst_structure_has_name(gm->structure, "prepare-xwindow-id"))
-        precessNewStream();
-}
-
-void QGstreamerGLTextureRenderer::precessNewStream()
-{
-    if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink)) {
         GstXOverlay *overlay = GST_X_OVERLAY(m_videoSink);
 
         gst_x_overlay_set_xwindow_id(overlay, m_winId);
@@ -417,7 +418,11 @@ void QGstreamerGLTextureRenderer::precessNewStream()
 
         GstPad *pad = gst_element_get_static_pad(m_videoSink,"sink");
         m_bufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padBufferProbe), this);
+
+        return true;
     }
+
+    return false;
 }
 
 void QGstreamerGLTextureRenderer::stopRenderer()

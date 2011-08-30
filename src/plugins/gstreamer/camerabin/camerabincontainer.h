@@ -48,6 +48,10 @@
 #include <QtCore/qset.h>
 
 #include <gst/gst.h>
+#include <gst/pbutils/pbutils.h>
+#include <gst/pbutils/encoding-profile.h>
+
+#include "qgstcodecsinfo.h"
 
 QT_USE_NAMESPACE
 
@@ -58,35 +62,18 @@ public:
     CameraBinContainer(QObject *parent);
     virtual ~CameraBinContainer() {}
 
-    virtual QStringList supportedContainers() const { return m_supportedContainers; }
-    virtual QString containerMimeType() const { return m_format; }
-    virtual void setContainerMimeType(const QString &formatMimeType)
-    {
-        m_format = formatMimeType;
+    virtual QStringList supportedContainers() const;
+    virtual QString containerDescription(const QString &formatMimeType) const;
 
-        if (m_userFormat != formatMimeType) {
-            m_userFormat = formatMimeType;
-            emit settingsChanged();
-        }
-    }
+    virtual QString containerMimeType() const;
+    virtual void setContainerMimeType(const QString &formatMimeType);
 
-    void setActualContainer(const QString &formatMimeType)
-    {
-        m_format = formatMimeType;
-    }
+    void setActualContainer(const QString &formatMimeType);
+    void resetActualContainer();
 
-    void resetActualContainer()
-    {
-        m_format = m_userFormat;
-    }
+    QString suggestedFileExtension() const;
 
-    virtual QString containerDescription(const QString &formatMimeType) const { return m_containerDescriptions.value(formatMimeType); }
-
-    QByteArray formatElementName() const { return m_elementNames.value(containerMimeType()); }
-
-    QSet<QString> supportedStreamTypes(const QString &container) const;
-
-    static QSet<QString> supportedStreamTypes(GstElementFactory *factory, GstPadDirection direction);
+    GstEncodingContainerProfile *createProfile();
 
 Q_SIGNALS:
     void settingsChanged();
@@ -94,10 +81,9 @@ Q_SIGNALS:
 private:
     QString m_format; // backend selected format, using m_userFormat
     QString m_userFormat;
-    QStringList m_supportedContainers;
-    QMap<QString,QByteArray> m_elementNames;
-    QMap<QString, QString> m_containerDescriptions;
-    QMap<QString, QSet<QString> > m_streamTypes;
+    QMap<QString, QString> m_fileExtensions;
+
+    QGstCodecsInfo m_supportedContainers;
 };
 
 #endif // CAMERABINMEDIACONTAINERCONTROL_H

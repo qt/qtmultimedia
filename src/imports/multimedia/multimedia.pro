@@ -12,11 +12,20 @@ HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediabase_p.h \
         qdeclarativemediametadata_p.h \
+        qdeclarativevideooutput_p.h \
+        qsgvideonode_p.h \
+        qsgvideonode_i420.h \
+        qsgvideonode_rgb32.h \
+
 
 SOURCES += \
         multimedia.cpp \
         qdeclarativeaudio.cpp \
         qdeclarativemediabase.cpp \
+        qdeclarativevideooutput.cpp \
+        qsgvideonode.cpp \
+        qsgvideonode_i420.cpp \
+        qsgvideonode_rgb32.cpp \
 
 disabled {
     HEADERS += \

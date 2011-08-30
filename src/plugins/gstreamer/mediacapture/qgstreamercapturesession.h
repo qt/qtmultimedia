@@ -76,18 +76,21 @@ public:
     virtual QList<QSize> supportedResolutions(qreal frameRate = -1) const = 0;
 };
 
-class QGstreamerCaptureSession : public QObject, public QGstreamerSyncEventFilter
+class QGstreamerCaptureSession : public QObject, public QGstreamerBusMessageFilter
 {
     Q_OBJECT
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_ENUMS(State)
     Q_ENUMS(CaptureMode)
+    Q_INTERFACES(QGstreamerBusMessageFilter)
 public:
     enum CaptureMode { Audio = 1, Video = 2, Image=4, AudioAndVideo = Audio | Video };
     enum State { StoppedState, PreviewState, PausedState, RecordingState };
 
     QGstreamerCaptureSession(CaptureMode captureMode, QObject *parent);
     ~QGstreamerCaptureSession();
+
+    QGstreamerBusHelper *bus() { return m_busHelper; }
 
     CaptureMode captureMode() const { return m_captureMode; }
     void setCaptureMode(CaptureMode);
@@ -122,7 +125,7 @@ public:
 
     bool isReady() const;
 
-    bool processSyncMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message);
 
 signals:
     void stateChanged(QGstreamerCaptureSession::State state);
@@ -143,9 +146,6 @@ public slots:
 
     void setMetaData(const QMap<QByteArray, QVariant>&);
     void setMuted(bool);
-
-private slots:
-    void busMessage(const QGstreamerMessage &message);
 
 private:
     enum PipelineMode { EmptyPipeline, PreviewPipeline, RecordingPipeline, PreviewAndRecordingPipeline };

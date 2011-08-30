@@ -62,13 +62,18 @@ class QGstreamerVideoRendererInterface;
 
 QT_USE_NAMESPACE
 
-class QGstreamerPlayerSession : public QObject, public QGstreamerSyncEventFilter
+class QGstreamerPlayerSession : public QObject,
+                                public QGstreamerBusMessageFilter
 {
 Q_OBJECT
+Q_INTERFACES(QGstreamerBusMessageFilter)
 
 public:
     QGstreamerPlayerSession(QObject *parent);
     virtual ~QGstreamerPlayerSession();
+
+    GstElement *playbin() const;
+    QGstreamerBusHelper *bus() const { return m_busHelper; }
 
     QNetworkRequest request() const;
 
@@ -105,7 +110,7 @@ public:
     int activeStream(QMediaStreamsControl::StreamType streamType) const;
     void setActiveStream(QMediaStreamsControl::StreamType streamType, int streamNumber);
 
-    bool processSyncMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message);
 
 #if defined(HAVE_GST_APPSRC)
     QGstAppSrc *appsrc() const { return m_appSrc; }
@@ -145,7 +150,6 @@ signals:
     void playbackRateChanged(qreal);
 
 private slots:
-    void busMessage(const QGstreamerMessage &message);
     void getStreamsInfo();
     void setSeekable(bool);
     void finishVideoOutputChange();

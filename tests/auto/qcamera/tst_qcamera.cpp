@@ -556,7 +556,7 @@ void tst_QCamera::testCameraWhiteBalance()
     QSet<QCameraImageProcessing::WhiteBalanceMode> whiteBalanceModes;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceAuto;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceFlash;
-    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceIncandescent;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceTungsten;
 
     MockCameraService service;
     service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
@@ -574,11 +574,11 @@ void tst_QCamera::testCameraWhiteBalance()
     QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceFlash);
     QVERIFY(camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceAuto));
     QVERIFY(camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFlash));
-    QVERIFY(camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceIncandescent));
+    QVERIFY(camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceTungsten));
     QVERIFY(!camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceCloudy));
 
-    cameraImageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceIncandescent);
-    QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceIncandescent);
+    cameraImageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceTungsten);
+    QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceTungsten);
 
     cameraImageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceManual);
     QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceManual);
@@ -1747,7 +1747,6 @@ void tst_QCamera::testEnumOfQCameraImageProcessing()
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceShade;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceTungsten;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceFluorescent;
-    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceIncandescent;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceFlash;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceSunset;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceVendor;
@@ -1782,10 +1781,6 @@ void tst_QCamera::testEnumOfQCameraImageProcessing()
     service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFluorescent);
     QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFluorescent));
     QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceFluorescent);
-
-    service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceIncandescent);
-    QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceIncandescent));
-    QVERIFY(service.mockImageProcessingControl->whiteBalanceMode() == QCameraImageProcessing::WhiteBalanceIncandescent);
 
     service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
     QVERIFY(service.mockImageProcessingControl->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFlash));

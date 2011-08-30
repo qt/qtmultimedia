@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -39,55 +39,34 @@
 **
 ****************************************************************************/
 
-#include <QtDeclarative/qdeclarativeextensionplugin.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
-#include "private/qsoundeffect_p.h"
+#ifndef QGSTCODECSINFO_H
+#define QGSTCODECSINFO_H
 
-#include "qdeclarativemediametadata_p.h"
-#include "qdeclarativeaudio_p.h"
-#include "qdeclarativevideooutput_p.h"
-#if 0
-#include "qdeclarativecamera_p.h"
-#include "qdeclarativecamerapreviewprovider_p.h"
-#endif
+#include <QtCore/qmap.h>
+#include <QtCore/qstringlist.h>
 
-QML_DECLARE_TYPE(QSoundEffect)
+#include <gst/gst.h>
 
-QT_BEGIN_NAMESPACE
-
-class QMultimediaDeclarativeModule : public QDeclarativeExtensionPlugin
+class QGstCodecsInfo
 {
-    Q_OBJECT
 public:
-    virtual void registerTypes(const char *uri)
-    {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
+    enum ElementType { AudioEncoder, VideoEncoder, Muxer };
 
-        qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "MediaPlayer");
-        qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
-        /* Disabled until ported to scenegraph */
-#if 0
-        qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
-#endif
-        qmlRegisterType<QDeclarativeMediaMetaData>();
-    }
+    QGstCodecsInfo(ElementType elementType);
 
-    void initializeEngine(QDeclarativeEngine *engine, const char *uri)
-    {
-        Q_UNUSED(uri);
-#if 0
-        engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
+    QStringList supportedCodecs() const;
+    QString codecDescription(const QString &codec) const;
+
+#if GST_CHECK_VERSION(0,10,31)
+    static GstCaps* supportedElementCaps(GstElementFactoryListType elementType,
+                                         GstRank minimumRank = GST_RANK_MARGINAL,
+                                         GstPadDirection padDirection = GST_PAD_SRC);
 #endif
-    }
+
+private:
+    QStringList m_codecs;
+    QMap<QString,QString> m_codecDescriptions;
 };
 
-QT_END_NAMESPACE
 
-#include "multimedia.moc"
-
-Q_EXPORT_PLUGIN2(qmultimediadeclarativemodule, QT_PREPEND_NAMESPACE(QMultimediaDeclarativeModule));
-
+#endif

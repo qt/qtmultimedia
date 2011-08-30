@@ -145,6 +145,7 @@ private:
     Q_DECLARE_PRIVATE(QCameraImageCapture)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, int, const QString &))
     Q_PRIVATE_SLOT(d_func(), void _q_readyChanged(bool))
+    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraImageCapture::CaptureDestinations)

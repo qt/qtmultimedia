@@ -21,7 +21,8 @@ PKGCONFIG += \
     gstreamer-base-0.10 \
     gstreamer-interfaces-0.10 \
     gstreamer-audio-0.10 \
-    gstreamer-video-0.10
+    gstreamer-video-0.10 \
+    gstreamer-pbutils-0.10
 
 maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
 contains(config_test_gstreamer_appsrc, yes): PKGCONFIG += gstreamer-app-0.10
@@ -53,6 +54,7 @@ HEADERS += \
     qgstreamervideoinputdevicecontrol.h \
     gstvideoconnector.h \
     qabstractgstbufferpool.h \
+    qgstcodecsinfo.h \
     qgstutils.h
 
 SOURCES += \
@@ -65,6 +67,7 @@ SOURCES += \
     qgstvideobuffer.cpp \
     qvideosurfacegstsink.cpp \
     qgstreamervideoinputdevicecontrol.cpp \
+    qgstcodecsinfo.cpp \
     gstvideoconnector.c \
     qgstutils.cpp
 

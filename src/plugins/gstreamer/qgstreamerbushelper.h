@@ -47,11 +47,23 @@
 #include <qgstreamermessage.h>
 #include <gst/gst.h>
 
-class QGstreamerSyncEventFilter {
+class QGstreamerSyncMessageFilter {
 public:
     //returns true if message was processed and should be dropped, false otherwise
     virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
 };
+#define QGstreamerSyncMessageFilter_iid "com.nokia.Qt.QGstreamerSyncMessageFilter/1.0"
+Q_DECLARE_INTERFACE(QGstreamerSyncMessageFilter, QGstreamerSyncMessageFilter_iid)
+
+
+class QGstreamerBusMessageFilter {
+public:
+    //returns true if message was processed and should be dropped, false otherwise
+    virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
+};
+#define QGstreamerBusMessageFilter_iid "com.nokia.Qt.QGstreamerBusMessageFilter/1.0"
+Q_DECLARE_INTERFACE(QGstreamerBusMessageFilter, QGstreamerBusMessageFilter_iid)
+
 
 class QGstreamerBusHelperPrivate;
 
@@ -64,11 +76,11 @@ public:
     QGstreamerBusHelper(GstBus* bus, QObject* parent = 0);
     ~QGstreamerBusHelper();
 
-    void installSyncEventFilter(QGstreamerSyncEventFilter *filter);
+    void installMessageFilter(QObject *filter);
+    void removeMessageFilter(QObject *filter);
 
 signals:
     void message(QGstreamerMessage const& message);
-
 
 private:
     QGstreamerBusHelperPrivate*   d;

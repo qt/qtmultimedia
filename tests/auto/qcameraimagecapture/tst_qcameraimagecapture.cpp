@@ -107,6 +107,7 @@ public slots:
 private slots:
     void constructor();
     void mediaObject();
+    void deleteMediaObject();
     void isReadyForCapture();
     void capture();
     void cancelCapture();
@@ -163,6 +164,29 @@ void tst_QCameraImageCapture::mediaObject()
     QCameraImageCapture imageCapture1(&camera1);
     QMediaObject *medobj1 = imageCapture1.mediaObject();
     QCOMPARE(medobj1, &camera1);
+}
+
+void tst_QCameraImageCapture::deleteMediaObject()
+{
+    MockMediaServiceProvider *provider = new MockMediaServiceProvider;
+    provider->service = new MockCameraService;
+
+    QCamera *camera = new QCamera(0, provider);
+    QCameraImageCapture *capture = new QCameraImageCapture(camera);
+
+    QVERIFY(capture->mediaObject() == camera);
+    QVERIFY(capture->isAvailable());
+
+    delete camera;
+    delete provider->service;
+    delete provider;
+
+    //capture should detach from camera
+    QVERIFY(capture->mediaObject() == 0);
+    QVERIFY(!capture->isAvailable());
+
+    capture->capture();
+    delete capture;
 }
 
 //MaemoAPI-1825:test isReadyForCapture

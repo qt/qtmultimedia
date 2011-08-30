@@ -82,9 +82,8 @@ CameraBinImageCapture::CameraBinImageCapture(CameraBinSession *session)
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
     connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
     connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
-    connect(m_session, SIGNAL(busMessage(QGstreamerMessage)), SLOT(handleBusMessage(QGstreamerMessage)));
 
-    g_signal_connect(G_OBJECT(m_session->cameraBin()), IMAGE_DONE_SIGNAL, G_CALLBACK(handleImageSaved), this);
+    m_session->bus()->installMessageFilter(this);
 }
 
 CameraBinImageCapture::~CameraBinImageCapture()
@@ -127,39 +126,9 @@ void CameraBinImageCapture::updateState()
     }
 }
 
-gboolean CameraBinImageCapture::handleImageSaved(GstElement *camera,
-                                                 const gchar *filename,
-                                                 CameraBinImageCapture *self)
-{
-#ifdef DEBUG_CAPTURE
-    qDebug() << "Image saved" << filename;
-#endif
-
-    Q_UNUSED(camera);
-
-    if (self->m_session->captureDestinationControl()->captureDestination() & QCameraImageCapture::CaptureToFile) {
-        QMetaObject::invokeMethod(self, "imageSaved",
-                                  Qt::QueuedConnection,
-                                  Q_ARG(int, self->m_requestId),
-                                  Q_ARG(QString, QString::fromUtf8(filename)));
-    } else {
-#ifdef DEBUG_CAPTURE
-        qDebug() << Q_FUNC_INFO << "Dropped saving file" << filename;
-#endif
-        //camerabin creates an empty file when captured buffer is dropped,
-        //let's remove it
-        QFileInfo info(QString::fromUtf8(filename));
-        if (info.isFile() &&
-                info.filePath().startsWith("/home") &&
-                info.size() == 0) {
-            QFile(info.absoluteFilePath()).remove();
-        }
-    }
-    return true;
-}
-
 gboolean CameraBinImageCapture::metadataEventProbe(GstPad *pad, GstEvent *event, CameraBinImageCapture *self)
 {
+    Q_UNUSED(pad);
 
     if (GST_EVENT_TYPE(event) == GST_EVENT_TAG) {
         GstTagList *gstTags;
@@ -281,7 +250,7 @@ gboolean CameraBinImageCapture::jpegBufferProbe(GstPad *pad, GstBuffer *buffer, 
     return destination & QCameraImageCapture::CaptureToFile;
 }
 
-void CameraBinImageCapture::handleBusMessage(const QGstreamerMessage &message)
+bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
 {
     //Install metadata event and buffer probes
 
@@ -298,7 +267,7 @@ void CameraBinImageCapture::handleBusMessage(const QGstreamerMessage &message)
         if (newState == GST_STATE_READY) {
             GstElement *element = GST_ELEMENT(GST_MESSAGE_SRC(gm));
             if (!element)
-                return;
+                return false;
 
             QString elementName = QString::fromLatin1(gst_element_get_name(element));
             if (elementName.contains("jpegenc") && element != m_jpegEncoderElement) {
@@ -338,5 +307,33 @@ void CameraBinImageCapture::handleBusMessage(const QGstreamerMessage &message)
                 gst_object_unref(srcpad);
             }
         }
+    } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) {
+        if (GST_MESSAGE_SRC(gm) == (GstObject *)m_session->cameraBin()) {
+            const GstStructure *structure = gst_message_get_structure(gm);
+
+            if (gst_structure_has_name (structure, "image-done")) {
+                const gchar *fileName = gst_structure_get_string (structure, "filename");
+#ifdef DEBUG_CAPTURE
+                qDebug() << "Image saved" << fileName;
+#endif
+
+                if (m_session->captureDestinationControl()->captureDestination() & QCameraImageCapture::CaptureToFile) {
+                    emit imageSaved(m_requestId, QString::fromUtf8(fileName));
+                } else {
+#ifdef DEBUG_CAPTURE
+                    qDebug() << Q_FUNC_INFO << "Dropped saving file" << fileName;
+#endif
+                    //camerabin creates an empty file when captured buffer is dropped,
+                    //let's remove it
+                    QFileInfo info(QString::fromUtf8(fileName));
+                    if (info.exists() && info.isFile() && info.size() == 0) {
+                        QFile(info.absoluteFilePath()).remove();
+                    }
+                }
+            }
+        }
     }
+
+    return false;
 }
+

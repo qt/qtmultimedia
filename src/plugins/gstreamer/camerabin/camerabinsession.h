@@ -76,10 +76,13 @@ public:
     virtual GstElement *buildElement() = 0;
 };
 
-class CameraBinSession : public QObject, public QGstreamerSyncEventFilter
+class CameraBinSession : public QObject,
+                         public QGstreamerBusMessageFilter,
+                         public QGstreamerSyncMessageFilter
 {
     Q_OBJECT
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
+    Q_INTERFACES(QGstreamerBusMessageFilter QGstreamerSyncMessageFilter)
 public:
     enum CameraRole {
        FrontCamera, // Secondary camera
@@ -90,7 +93,8 @@ public:
     ~CameraBinSession();
 
     GstPhotography *photography();
-    GstElement *cameraBin() { return m_pipeline; }
+    GstElement *cameraBin() { return m_camerabin; }
+    QGstreamerBusHelper *bus() { return m_busHelper; }
 
     CameraRole cameraRole() const;
 
@@ -139,13 +143,12 @@ public:
     qint64 duration() const;
 
     void recordVideo();
-    void pauseVideoRecording();
-    void resumeVideoRecording();
     void stopVideoRecording();
 
     bool isMuted() const;
 
     bool processSyncMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message);
 
 signals:
     void stateChanged(QCamera::State state);
@@ -157,7 +160,6 @@ signals:
     void viewfinderChanged();
     void readyChanged(bool);
     void busyChanged(bool);
-    void busMessage(const QGstreamerMessage &message);
 
 public slots:
     void setDevice(const QString &device);
@@ -167,14 +169,12 @@ public slots:
     void setMuted(bool);
 
 private slots:
-    void handleBusMessage(const QGstreamerMessage &message);
     void handleViewfinderChange();
 
 private:
     bool setupCameraBin();
     void setupCaptureResolution();
-    void updateVideoSourceCaps();
-    GstElement *buildVideoSrc();
+    GstElement *buildCameraSource();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
     QUrl m_sink;
@@ -211,13 +211,11 @@ private:
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;
-    GstElement *m_pipeline;
+    GstElement *m_camerabin;
     GstElement *m_videoSrc;
     GstElement *m_viewfinderElement;
     bool m_viewfinderHasChanged;
     bool m_videoInputHasChanged;
-
-    GstCaps *m_sourceCaps;
 
     GstElement *m_audioSrc;
     GstElement *m_audioConvert;

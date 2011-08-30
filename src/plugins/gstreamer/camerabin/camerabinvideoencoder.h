@@ -50,6 +50,9 @@ class CameraBinSession;
 #include <QtCore/qset.h>
 
 #include <gst/gst.h>
+#include <gst/pbutils/pbutils.h>
+#include <gst/pbutils/encoding-profile.h>
+#include "qgstcodecsinfo.h"
 
 QT_USE_NAMESPACE
 
@@ -78,12 +81,10 @@ public:
     QVariant encodingOption(const QString &codec, const QString &name) const;
     void setEncodingOption(const QString &codec, const QString &name, const QVariant &value);
 
-    GstElement *createEncoder();
-
-    QSet<QString> supportedStreamTypes(const QString &codecName) const;
-
     void setActualVideoSettings(const QVideoEncoderSettings&);
     void resetActualSettings();
+
+    GstEncodingProfile *createProfile();
 
 Q_SIGNALS:
     void settingsChanged();
@@ -91,16 +92,12 @@ Q_SIGNALS:
 private:
     CameraBinSession *m_session;
 
-    QStringList m_codecs;
-    QMap<QString,QString> m_codecDescriptions;
-    QMap<QString,QByteArray> m_elementNames;
+    QGstCodecsInfo m_codecs;
     QMap<QString,QStringList> m_codecOptions;
+    QMap<QString, QMap<QString, QVariant> > m_options;
 
     QVideoEncoderSettings m_videoSettings; // backend selected settings, using m_userSettings
     QVideoEncoderSettings m_userSettings;
-
-    QMap<QString, QMap<QString, QVariant> > m_options;
-    QMap<QString, QSet<QString> > m_streamTypes;
 };
 
 #endif

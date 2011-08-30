@@ -50,8 +50,11 @@ class CameraBinSession;
 #include <QtCore/qset.h>
 
 #include <gst/gst.h>
+#include <gst/pbutils/pbutils.h>
+#include <gst/pbutils/encoding-profile.h>
 
 #include <qaudioformat.h>
+#include "qgstcodecsinfo.h"
 
 QT_USE_NAMESPACE
 
@@ -77,26 +80,18 @@ public:
     QAudioEncoderSettings audioSettings() const;
     void setAudioSettings(const QAudioEncoderSettings&);
 
-
-    GstElement *createEncoder();
-
-    QSet<QString> supportedStreamTypes(const QString &codecName) const;
-
     void setActualAudioSettings(const QAudioEncoderSettings&);
     void resetActualSettings();
+
+    GstEncodingProfile *createProfile();
 
 Q_SIGNALS:
     void settingsChanged();
 
 private:
-    QStringList m_codecs;
-    QMap<QString,QByteArray> m_elementNames;
-    QMap<QString,QString> m_codecDescriptions;
+    QGstCodecsInfo m_codecs;
     QMap<QString,QStringList> m_codecOptions;
-
     QMap<QString, QMap<QString, QVariant> > m_options;
-
-    QMap<QString, QSet<QString> > m_streamTypes;
 
     QAudioEncoderSettings m_audioSettings;
     QAudioEncoderSettings m_userSettings;

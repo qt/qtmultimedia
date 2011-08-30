@@ -45,6 +45,7 @@
 #include <qvideowidgetcontrol.h>
 
 #include "qgstreamervideorendererinterface.h"
+#include "qgstreamerbushelper.h"
 
 QT_USE_NAMESPACE
 
@@ -53,15 +54,16 @@ class QGstreamerVideoWidget;
 class QGstreamerVideoWidgetControl
         : public QVideoWidgetControl
         , public QGstreamerVideoRendererInterface
+        , public QGstreamerSyncMessageFilter
+        , public QGstreamerBusMessageFilter
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface)
+    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 public:
     QGstreamerVideoWidgetControl(QObject *parent = 0);
     virtual ~QGstreamerVideoWidgetControl();
 
     GstElement *videoSink();
-    void precessNewStream();
 
     QWidget *videoWidget();
 
@@ -86,6 +88,8 @@ public:
     void setOverlay();
 
     bool eventFilter(QObject *object, QEvent *event);
+    bool processSyncMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message);
 
 public slots:
     void updateNativeVideoSize();

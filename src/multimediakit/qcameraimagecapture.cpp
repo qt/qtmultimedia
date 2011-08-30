@@ -109,6 +109,7 @@ public:
 
     void _q_error(int id, int error, const QString &errorString);
     void _q_readyChanged(bool);
+    void _q_serviceDestroyed();
 
     void unsetError() { error = QCameraImageCapture::NoError; errorString.clear(); }
 
@@ -141,6 +142,14 @@ void QCameraImageCapturePrivate::_q_readyChanged(bool ready)
     emit q->readyForCaptureChanged(ready);
 }
 
+void QCameraImageCapturePrivate::_q_serviceDestroyed()
+{
+    mediaObject = 0;
+    control = 0;
+    encoderControl = 0;
+    captureDestinationControl = 0;
+    bufferFormatControl = 0;
+}
 
 /*!
     Constructs a media recorder which records the media produced by \a mediaObject.
@@ -225,6 +234,8 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
                 service->releaseControl(d->captureDestinationControl);
             if (d->bufferFormatControl)
                 service->releaseControl(d->bufferFormatControl);
+
+            disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
         }
     }
 
@@ -268,6 +279,8 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
                     connect(d->bufferFormatControl, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)),
                             this, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
                 }
+
+                connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
 
                 return true;
             }
