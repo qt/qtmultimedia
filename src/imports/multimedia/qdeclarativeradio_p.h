@@ -134,9 +134,11 @@ public Q_SLOTS:
     void setVolume(int volume);
     void setMuted(bool muted);
 
-    void cancelSearch();
-    void searchBackward();
-    void searchForward();
+    void cancelScan();
+    void scanDown();
+    void scanUp();
+    void tuneUp();
+    void tuneDown();
     void start();
     void stop();
 

@@ -120,7 +120,7 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked:  radio.searchBackward();
+                    onClicked: radio.scanDown();
                 }
             }
             Rectangle {
@@ -141,11 +141,7 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked:  {
-                        var f = radio.frequency;
-                        f = f - radio.frequencyStep;
-                        radio.setFrequency(f);
-                    }
+                    onClicked: radio.tuneDown();
                 }
             }
             Rectangle {
@@ -166,11 +162,7 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked:  {
-                        var f = radio.frequency;
-                        f = f + radio.frequencyStep;
-                        radio.setFrequency(f);
-                    }
+                    onClicked: radio.tuneUp();
                 }
             }
             Rectangle {
@@ -191,7 +183,7 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked:  radio.searchForward();
+                    onClicked: radio.scanUp();
                 }
             }
         }

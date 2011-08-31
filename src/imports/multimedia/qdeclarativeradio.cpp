@@ -156,19 +156,33 @@ void QDeclarativeRadio::setMuted(bool muted)
     m_radioTuner->setMuted(muted);
 }
 
-void QDeclarativeRadio::cancelSearch()
+void QDeclarativeRadio::cancelScan()
 {
     m_radioTuner->cancelSearch();
 }
 
-void QDeclarativeRadio::searchBackward()
+void QDeclarativeRadio::scanDown()
 {
     m_radioTuner->searchBackward();
 }
 
-void QDeclarativeRadio::searchForward()
+void QDeclarativeRadio::scanUp()
 {
     m_radioTuner->searchForward();
+}
+
+void QDeclarativeRadio::tuneDown()
+{
+    int f = frequency();
+    f = f - frequencyStep();
+    setFrequency(f);
+}
+
+void QDeclarativeRadio::tuneUp()
+{
+    int f = frequency();
+    f = f + frequencyStep();
+    setFrequency(f);
 }
 
 void QDeclarativeRadio::start()
