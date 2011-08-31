@@ -15,5 +15,6 @@ SUBDIRS += \
 
 contains(QT_CONFIG, declarative) {
     disabled:SUBDIRS += declarative-camera
+    SUBDIRS += declarative-radio
 }
 

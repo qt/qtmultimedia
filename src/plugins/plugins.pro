@@ -33,7 +33,8 @@ unix:!mac {
         SUBDIRS += audiocapture
     }
 
-    !maemo*:SUBDIRS += v4l
+    # v4l is turned off because it is not supported in Qt 5
+    # !maemo*:SUBDIRS += v4l
 
     contains(config_test_pulseaudio, yes) {
         SUBDIRS += pulseaudio
@@ -44,3 +45,7 @@ mac:!simulator {
     SUBDIRS += audiocapture
     !qpa: SUBDIRS += qt7
 }
+
+# fake radio to test the radio APIs
+SUBDIRS += fakeradio
+

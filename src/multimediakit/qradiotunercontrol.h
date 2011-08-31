@@ -97,7 +97,7 @@ Q_SIGNALS:
     void bandChanged(QRadioTuner::Band band);
     void frequencyChanged(int frequency);
     void stereoStatusChanged(bool stereo);
-    void searchingChanged(bool stereo);
+    void searchingChanged(bool searching);
     void signalStrengthChanged(int signalStrength);
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
