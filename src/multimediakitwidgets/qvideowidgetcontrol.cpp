@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
     implements a video widget.
 
     \inmodule QtMultimediaKit
-    \ingroup multimedia
+    \ingroup multimedia-serv
     \since 1.0
 
     The videoWidget() property of QVideoWidgetControl provides a pointer to a

@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
     Depending on backend capabilities capture to file, buffer or both can be supported.
 
     \inmodule QtMultimediaKit
-    \ingroup camera
+    \ingroup multimedia-serv
 
 
 

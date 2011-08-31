@@ -85,7 +85,7 @@ public:
     \brief The QMediaServiceProviderHint class describes what is required of a QMediaService.
 
     \inmodule QtMultimediaKit
-    \ingroup multimedia
+    \ingroup multimedia-serv
     \since 1.0
 
     The QMediaServiceProvider class uses hints to select an appropriate media service.

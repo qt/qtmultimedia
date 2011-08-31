@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
     to a video surface.
 
     \inmodule QtMultimediaKit
-    \ingroup multimedia
+    \ingroup multimedia-serv
     \since 1.0
 
     Using the surface() property of QVideoRendererControl a

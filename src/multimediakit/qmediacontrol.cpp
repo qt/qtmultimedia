@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QMediaControl
     \inmodule QtMultimediaKit
-    \ingroup multimedia
+    \ingroup multimedia-serv
     \since 1.0
 
 

@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
 
     \brief The QVideoDeviceControl class provides an video device selector media control.
     \inmodule QtMultimediaKit
-    \ingroup multimedia
+    \ingroup multimedia-serv
     \since 1.0
 
     The QVideoDeviceControl class provides descriptions of the video devices

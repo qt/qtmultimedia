@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
     for image capture services.
 
     \inmodule QtMultimediaKit
-    \ingroup camera
+    \ingroup multimedia-serv
     \since 1.1
 
 

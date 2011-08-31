@@ -1,0 +1,126 @@
+/****************************************************************************
+**
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the documentation of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** GNU Free Documentation License
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms
+** and conditions contained in a signed written agreement between you
+** and Nokia.
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+
+/*!
+
+\page multimediabackend.html
+\brief Information for implementing a new multimedia backend.
+\ingroup mobility
+
+\tableofcontents
+
+\section1 Multimedia Backend Development
+
+In some cases the available cross-platform Multimedia APIs or implementations are not sufficient,
+or not immediately available on a certain platform.  In some cases the multimedia
+implementation on a platform might expose certain extra properties or functionality
+that other platforms do not, or a finer degree of control might be possible.  For these
+cases, it is possible to use extended controls directly.
+
+In addition, if you plan to port the Qt Multimedia APIs to a new platform, you do
+this by implementing certain control and service classes, as detailed below.
+
+\section1 Extending the API
+
+For the developer who wishes to extend the functionality of the Multimedia
+classes there are several classes of particular importance. The default
+classes are QMediaService, QMediaServiceProvider and QMediaControl.
+
+Basically, the idea is that to use the Multimedia API you would use these
+three classes or classes derived from them as follows
+
+    \list
+    \o \l QMediaServiceProvider is used by the top level client class to request a service. The top level class knowing what kind of service it needs.
+
+    \o \l QMediaService provides a service and when asked by the top level object, say a component, will return a QMediaControl object.
+
+    \o \l QMediaControl allows the control of the service using a known interface.
+    \endlist
+
+Consider a developer creating, for example, a media player class called MyPlayer.
+It may have special requirements beyond ordinary media players and so may
+need a custom service and a custom control. We can subclass \l QMediaServiceProvider
+to create our MyServiceProvider class. Also we will create a
+MyMediaService, and the MyMediaControl to manipulate the media service.
+
+The MyPlayer object calls MyServiceProvider::requestService() to get an
+instance of MyMediaService. Then the MyPlayer object calls this service
+object it has just received and calling \l {QMediaService::requestControl()}{requestControl()}
+it will receive the control object derived from QMediaControl. Now we have
+all the parts necessary for our media application. We have the service
+provider, the service it provides and the control used to manipulate the
+service. Since our MyPlayer object has instances of the service and its
+control then it would be possible for these to be used by associated classes
+that could do additional actions, perhaps with their own control since the
+parameter to requestControl() is a c-type string, \i {const char *}, for the
+interface.
+
+
+\section2 Adding a Media Service Provider
+
+The base class for creating new service providers is \l{QMediaServiceProvider}.
+The user must implement the \l{QMediaServiceProvider::requestService()}{requestService()}
+function
+
+\code
+    QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint);
+\endcode
+
+The details of implementation will depend on the provider. Looking at the
+class \l QMediaServiceProvider for the default implementation. Notice that
+\l {QMediaServiceProvider::requestService()}{requestService()} uses the
+\l QMediaServiceProviderHint to look for the appropriate plugin and then to
+insert it into the plugin map. However, for a specific service provider there
+is probably no need for this approach, it will simply depend on what the
+developer wants to implement.
+
+Other methods that may be overloaded
+\code
+    void releaseService(QMediaService *service);
+
+    QtMediaServices::SupportEstimate hasSupport(const QByteArray &serviceType,
+                                        const QString &mimeType,
+                                        const QStringList& codecs,
+                                        int flags) const;
+
+    QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const;
+
+    QList<QByteArray> devices(const QByteArray &serviceType) const;
+
+    QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
+\endcode
+
+The choice of what needs to be done depends on what the developer wishes to do with the service.
+
+\section2 Classes for service implementers.
+
+\annotatedlist multimedia-serv
+
+*/
+
+

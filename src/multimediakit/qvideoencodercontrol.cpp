@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
     \class QVideoEncoderControl
 
     \inmodule QtMultimediaKit
-    \ingroup multimedia
+    \ingroup multimedia-serv
     \since 1.0
 
     \brief The QVideoEncoderControl class provides access to the settings

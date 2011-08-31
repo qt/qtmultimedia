@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
     focusing related camera parameters.
 
     \inmodule QtMultimediaKit
-    \ingroup camera
+    \ingroup multimedia-serv
     \since 1.1
 
     The interface name of QCameraFocusControl is \c com.nokia.Qt.QCameraFocusControl/1.0 as

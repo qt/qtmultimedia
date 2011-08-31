@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QMediaRecorderControl
     \inmodule QtMultimediaKit
-    \ingroup multimedia
+    \ingroup multimedia-serv
     \since 1.0
 
 
