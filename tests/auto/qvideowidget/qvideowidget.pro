@@ -7,4 +7,5 @@ QT += multimediakit-private multimediakitwidgets-private
 
 SOURCES += tst_qvideowidget.cpp
 
-maemo*:CONFIG += insignificant_test
+# QPA seems to break some assumptions
+qpa:CONFIG += insignificant_test

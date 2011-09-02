@@ -7,4 +7,5 @@ QT += multimediakit-private multimediakitwidgets-private
 
 SOURCES += tst_qgraphicsvideoitem.cpp
 
-maemo*:CONFIG += insignificant_test
+# QPA minimal crashes with this test in QBackingStore
+qpa:CONFIG += insignificant_test
