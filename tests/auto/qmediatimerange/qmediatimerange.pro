@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private
-
-# TARGET = tst_qmediatimerange
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 SOURCES += tst_qmediatimerange.cpp
 

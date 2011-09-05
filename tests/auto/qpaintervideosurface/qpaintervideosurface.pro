@@ -1,6 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private multimediakitwidgets-private
+CONFIG += no_private_qt_headers_warning
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
    QT += opengl
 } else {

@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private multimediakitwidgets
-  
-# TARGET = tst_qmediaobject
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 include (../qmultimedia_common/mockrecorder.pri)
 

@@ -6,9 +6,7 @@ CONFIG += insignificant_test
 include (../qmultimedia_common/mockplaylist.pri)
 
 QT += multimediakit-private
-
-# TARGET = tst_qmediaplaylist
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 DEFINES += TESTDATA_DIR=\\\"$$PWD/\\\"
 

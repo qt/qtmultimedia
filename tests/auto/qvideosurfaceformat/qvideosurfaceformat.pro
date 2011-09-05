@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += core multimediakit-private
-
-# TARGET = tst_qvideosurfaceformat
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 SOURCES += tst_qvideosurfaceformat.cpp
 

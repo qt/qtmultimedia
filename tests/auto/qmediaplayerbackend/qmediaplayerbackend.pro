@@ -1,8 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private
-
-# TARGET = tst_qmediaplayerbackend
+CONFIG += no_private_qt_headers_warning
 
 # This is more of a system test
 CONFIG -= testcase

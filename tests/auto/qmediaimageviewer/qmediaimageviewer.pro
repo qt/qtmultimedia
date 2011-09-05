@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private multimediakitwidgets-private network
-
-# TARGET = tst_qmediaimageviewer
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 SOURCES += tst_qmediaimageviewer.cpp
 

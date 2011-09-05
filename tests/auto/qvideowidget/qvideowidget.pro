@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private multimediakitwidgets-private
-
-# TARGET = tst_qvideowidget
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 SOURCES += tst_qvideowidget.cpp
 

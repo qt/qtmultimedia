@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private
-
-# TARGET = tst_qradiotuner
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 HEADERS += tst_qradiotuner.h
 SOURCES += main.cpp tst_qradiotuner.cpp

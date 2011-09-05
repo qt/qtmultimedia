@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private declarative
-
-# TARGET = tst_qdeclarativeaudio
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 HEADERS += \
         $$QT.multimediakit.sources/../imports/multimedia/qdeclarativeaudio_p.h \

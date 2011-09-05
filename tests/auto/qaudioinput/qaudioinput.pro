@@ -1,8 +1,7 @@
 load(qttest_p4)
 
 QT += core multimediakit-private
-
-# TARGET = tst_qaudioinput
+CONFIG += no_private_qt_headers_warning
 
 # This is more of a system test
 CONFIG -= testcase

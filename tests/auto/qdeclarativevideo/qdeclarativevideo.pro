@@ -1,9 +1,7 @@
 load(qttest_p4)
 
 QT += multimediakit-private multimediakitwidgets-private declarative
-
-# TARGET = tst_qdeclarativevideo
-# CONFIG += testcase
+CONFIG += no_private_qt_headers_warning
 
 HEADERS += \
         $$QT.multimediakit.sources/../imports/multimedia/qdeclarativevideo_p.h \

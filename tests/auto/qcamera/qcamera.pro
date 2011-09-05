@@ -1,12 +1,10 @@
 load(qttest_p4)
 
 QT += multimediakit-private multimediakitwidgets-private
+CONFIG += no_private_qt_headers_warning
 
 include (../qmultimedia_common/mock.pri)
 include (../qmultimedia_common/mockcamera.pri)
-
-# TARGET = tst_qcamera
-# CONFIG += testcase
 
 SOURCES += tst_qcamera.cpp
 
