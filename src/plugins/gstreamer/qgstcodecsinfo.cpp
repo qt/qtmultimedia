@@ -93,7 +93,8 @@ QGstCodecsInfo::QGstCodecsInfo(QGstCodecsInfo::ElementType elementType)
 
         gst_caps_remove_structure(caps, 0);
     }
-
+#else
+    Q_UNUSED(elementType);
 #endif // GST_CHECK_VERSION(0,10,31)
 }
 

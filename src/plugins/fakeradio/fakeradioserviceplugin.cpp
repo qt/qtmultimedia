@@ -71,11 +71,14 @@ void FakeRadioServicePlugin::release(QMediaService *service)
 
 QList<QByteArray> FakeRadioServicePlugin::devices(const QByteArray &service) const
 {
+    Q_UNUSED(service);
     return QList<QByteArray>();
 }
 
 QString FakeRadioServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
+    Q_UNUSED(service);
+    Q_UNUSED(device);
     return QString();
 }
 

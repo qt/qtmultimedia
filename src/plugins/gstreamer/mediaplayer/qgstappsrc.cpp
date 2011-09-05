@@ -182,6 +182,7 @@ bool QGstAppSrc::doSeek(qint64 value)
 
 gboolean QGstAppSrc::on_seek_data(GstAppSrc *element, guint64 arg0, gpointer userdata)
 {
+    Q_UNUSED(element);
     QGstAppSrc *self = reinterpret_cast<QGstAppSrc*>(userdata);
     if (self && self->isStreamValid()) {
         if (!self->stream()->isSequential())
@@ -195,6 +196,7 @@ gboolean QGstAppSrc::on_seek_data(GstAppSrc *element, guint64 arg0, gpointer use
 
 void QGstAppSrc::on_enough_data(GstAppSrc *element, gpointer userdata)
 {
+    Q_UNUSED(element);
     QGstAppSrc *self = reinterpret_cast<QGstAppSrc*>(userdata);
     if (self)
         self->enoughData() = true;
@@ -202,6 +204,7 @@ void QGstAppSrc::on_enough_data(GstAppSrc *element, gpointer userdata)
 
 void QGstAppSrc::on_need_data(GstAppSrc *element, guint arg0, gpointer userdata)
 {
+    Q_UNUSED(element);
     QGstAppSrc *self = reinterpret_cast<QGstAppSrc*>(userdata);
     if (self) {
         self->dataRequested() = true;

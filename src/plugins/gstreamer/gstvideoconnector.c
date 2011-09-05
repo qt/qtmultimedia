@@ -131,6 +131,7 @@ static void
 gst_video_connector_init (GstVideoConnector *element,
                           GstVideoConnectorClass *g_class)
 {
+    (void) g_class;
     element->sinkpad =
             gst_pad_new_from_static_template (&gst_video_connector_sink_factory,
                                               "sink");
@@ -269,6 +270,9 @@ gst_video_connector_resend_new_segment(GstElement * element, gboolean emitFailed
 
 static gboolean gst_video_connector_new_buffer_probe(GstObject *pad, GstBuffer *buffer, guint * object)
 {
+    (void) pad;
+    (void) buffer;
+
     GstVideoConnector *element = GST_VIDEO_CONNECTOR (object);
 
     /*

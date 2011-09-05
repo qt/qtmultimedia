@@ -359,6 +359,8 @@ void QSoundEffectPrivate::setSource(const QUrl &url)
     case QSample::Error:
         decoderError();
         break;
+    default:
+        break;
     }
 }
 

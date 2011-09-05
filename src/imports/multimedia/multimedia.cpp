@@ -83,6 +83,7 @@ public:
     void initializeEngine(QDeclarativeEngine *engine, const char *uri)
     {
         Q_UNUSED(uri);
+        Q_UNUSED(engine);
 #if 0
         engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
 #endif

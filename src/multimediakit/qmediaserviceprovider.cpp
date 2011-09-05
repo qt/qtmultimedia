@@ -292,7 +292,7 @@ class QPluginServiceProvider : public QMediaServiceProvider
 public:
     QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint)
     {
-        QString key(type);
+        QString key(QLatin1String(type.constData()));
 
         QList<QMediaServiceProviderPlugin *>plugins;
         foreach (QObject *obj, loader()->instances(key)) {
@@ -407,7 +407,7 @@ public:
                                      const QStringList& codecs,
                                      int flags) const
     {
-        QList<QObject*> instances = loader()->instances(serviceType);
+        QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
 
         if (instances.isEmpty())
             return QtMultimediaKit::NotSupported;
@@ -459,7 +459,7 @@ public:
 
     QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const
     {
-        QList<QObject*> instances = loader()->instances(serviceType);
+        QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
 
         QStringList supportedTypes;
 
@@ -508,7 +508,7 @@ public:
     {
         QList<QByteArray> res;
 
-        foreach(QObject *obj, loader()->instances(serviceType)) {
+        foreach (QObject *obj, loader()->instances(QLatin1String(serviceType))) {
             QMediaServiceSupportedDevicesInterface *iface =
                     qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
 
@@ -522,7 +522,7 @@ public:
 
     QString deviceDescription(const QByteArray &serviceType, const QByteArray &device)
     {
-        foreach(QObject *obj, loader()->instances(serviceType)) {
+        foreach (QObject *obj, loader()->instances(QLatin1String(serviceType))) {
             QMediaServiceSupportedDevicesInterface *iface =
                     qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
 

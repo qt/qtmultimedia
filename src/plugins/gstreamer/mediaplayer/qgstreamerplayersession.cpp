@@ -103,8 +103,8 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_lastPosition(0),
      m_duration(-1),
      m_durationQueries(0),
-     m_everPlayed(false) ,
      m_sourceType(UnknownSrc),
+     m_everPlayed(false),
      m_isLiveSource(false)
 {
 #ifdef USE_PLAYBIN2
@@ -195,6 +195,9 @@ GstElement *QGstreamerPlayerSession::playbin() const
 #if defined(HAVE_GST_APPSRC)
 void QGstreamerPlayerSession::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerPlayerSession* self)
 {
+    Q_UNUSED(object);
+    Q_UNUSED(pspec);
+
     if (self->appsrc()->isReady())
         return;
 

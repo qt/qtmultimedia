@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 QAudioPluginLoader::QAudioPluginLoader(const char *iid, const QString &location, Qt::CaseSensitivity):
     m_iid(iid)
 {
-    m_location = location + "/";
+    m_location = location + QLatin1Char('/');
     load();
 }
 

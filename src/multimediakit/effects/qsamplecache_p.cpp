@@ -297,7 +297,7 @@ void QSample::addRef()
 // Called in loading thread
 void QSample::readSample()
 {
-    Q_ASSERT(QThread::currentThread()->objectName() == "QSampleCache::LoadingThread");
+    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
     QMutexLocker m(&m_mutex);
 #ifdef  QT_SAMPLECACHE_DEBUG
     qDebug() << "QSample: readSample";
@@ -316,7 +316,7 @@ void QSample::readSample()
 // Called in loading thread
 void QSample::decoderReady()
 {
-    Q_ASSERT(QThread::currentThread()->objectName() == "QSampleCache::LoadingThread");
+    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
     QMutexLocker m(&m_mutex);
 #ifdef QT_SAMPLECACHE_DEBUG
     qDebug() << "QSample: decoder ready";
@@ -343,7 +343,7 @@ QSample::State QSample::state() const
 // Essentially a second ctor, doesn't need locks (?)
 void QSample::load()
 {
-    Q_ASSERT(QThread::currentThread()->objectName() == "QSampleCache::LoadingThread");
+    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
 #ifdef QT_SAMPLECACHE_DEBUG
     qDebug() << "QSample: load [" << m_url << "]";
 #endif
@@ -358,7 +358,7 @@ void QSample::load()
 // Called in loading thread
 void QSample::decoderError()
 {
-    Q_ASSERT(QThread::currentThread()->objectName() == "QSampleCache::LoadingThread");
+    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
     QMutexLocker m(&m_mutex);
 #ifdef QT_SAMPLECACHE_DEBUG
     qDebug() << "QSample: decoder error";
@@ -371,7 +371,7 @@ void QSample::decoderError()
 // Called in loading thread from decoder when sample is done. Locked already.
 void QSample::onReady()
 {
-    Q_ASSERT(QThread::currentThread()->objectName() == "QSampleCache::LoadingThread");
+    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
 #ifdef QT_SAMPLECACHE_DEBUG
     qDebug() << "QSample: load ready";
 #endif

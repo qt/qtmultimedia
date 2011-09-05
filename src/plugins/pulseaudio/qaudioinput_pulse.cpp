@@ -359,7 +359,7 @@ qint64 QPulseAudioInput::read(char *data, qint64 len)
         emit stateChanged(m_deviceState);
     }
 
-    size_t readBytes = 0;
+    int readBytes = 0;
 
     if (!m_pullMode && !m_tempBuffer.isEmpty()) {
         readBytes = qMin(static_cast<int>(len), m_tempBuffer.size());

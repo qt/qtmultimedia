@@ -363,7 +363,7 @@ QCamera::QCamera(const QByteArray& device, QObject *parent):
     if (d->service != 0) {
         //pass device name to service
         if (d->deviceControl) {
-            QString deviceName(device);
+            QString deviceName = QString::fromLatin1(device);
 
             for (int i=0; i<d->deviceControl->deviceCount(); i++) {
                 if (d->deviceControl->deviceName(i) == deviceName) {
