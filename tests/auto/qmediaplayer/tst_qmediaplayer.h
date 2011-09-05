@@ -54,7 +54,6 @@
 #include <qmediastreamscontrol.h>
 #include <qmedianetworkaccesscontrol.h>
 #include <qvideorenderercontrol.h>
-#include <qvideowindowcontrol.h>
 
 #include "mockmediaserviceprovider.h"
 #include "mockmediaplayerservice.h"

@@ -1,12 +1,9 @@
 
 TEMPLATE = subdirs
 SUBDIRS += \
-    qcamera \
-    qcamerabackend \
-    qcameraimagecapture \
     qcameraviewfinder \
-    qmediaobject \
-    qmediaplayer
+    qcamerawidgets \
+    qmediaplayerwidgets \
 
 # This is a commment for the mock backend directory so that maketestselftest
 # doesn't believe it's an untested directory
@@ -17,8 +14,8 @@ SUBDIRS += \
 contains (QT_CONFIG, private_tests) {
   SUBDIRS += \
     qgraphicsvideoitem \
-    qmediaimageviewer \
     qpaintervideosurface \
+    qmediaimageviewerwidgets \
     qvideowidget \
 
     contains (QT_CONFIG, declarative) {

@@ -48,7 +48,9 @@
 #include "mockmediastreamscontrol.h"
 #include "mockmedianetworkaccesscontrol.h"
 #include "mockvideorenderercontrol.h"
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
 #include "mockvideowindowcontrol.h"
+#endif
 
 class MockMediaPlayerService : public QMediaService
 {
@@ -61,9 +63,11 @@ public:
         mockStreamsControl = new MockStreamsControl;
         mockNetworkControl = new MockNetworkAccessControl;
         rendererControl = new MockVideoRendererControl;
-        windowControl = new MockVideoWindowControl;
         rendererRef = 0;
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
+        windowControl = new MockVideoWindowControl;
         windowRef = 0;
+#endif
     }
 
     ~MockMediaPlayerService()
@@ -72,7 +76,9 @@ public:
         delete mockStreamsControl;
         delete mockNetworkControl;
         delete rendererControl;
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
         delete windowControl;
+#endif
     }
 
     QMediaControl* requestControl(const char *iid)
@@ -84,13 +90,15 @@ public:
                 rendererRef += 1;
                 return rendererControl;
             }
-        } else if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
+        }
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
+        if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
             if (windowRef == 0) {
                 windowRef += 1;
                 return windowControl;
             }
         }
-
+#endif
 
         if (qstrcmp(iid, QMediaNetworkAccessControl_iid) == 0)
             return mockNetworkControl;
@@ -101,8 +109,10 @@ public:
     {
         if (control == rendererControl)
             rendererRef -= 1;
-        else if (control == windowControl)
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
+        if (control == windowControl)
             windowRef -= 1;
+#endif
     }
 
     void setState(QMediaPlayer::State state) { emit mockControl->stateChanged(mockControl->_state = state); }
@@ -154,9 +164,11 @@ public:
     MockStreamsControl *mockStreamsControl;
     MockNetworkAccessControl *mockNetworkControl;
     MockVideoRendererControl *rendererControl;
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
     MockVideoWindowControl *windowControl;
-    int rendererRef;
     int windowRef;
+#endif
+    int rendererRef;
 };
 
 

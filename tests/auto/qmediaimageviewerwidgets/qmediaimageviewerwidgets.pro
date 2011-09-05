@@ -1,9 +1,9 @@
 load(qttest_p4)
 
-QT += multimediakit-private network
+QT += multimediakit-private multimediakitwidgets-private network
 CONFIG += no_private_qt_headers_warning
 
-SOURCES += tst_qmediaimageviewer.cpp
+SOURCES += tst_qmediaimageviewerwidgets.cpp
 
 RESOURCES += \
         images.qrc

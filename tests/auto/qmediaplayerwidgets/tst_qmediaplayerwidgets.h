@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the test suite of the Qt Toolkit.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -38,37 +38,42 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef TST_QMEDIAPLAYER_H
+#define TST_QMEDIAPLAYER_H
 
-#ifndef MOCKMEDIASERVICEPROVIDER_H
-#define MOCKMEDIASERVICEPROVIDER_H
+#include <QtTest/QtTest>
+#include <QtCore/qdebug.h>
+#include <QtCore/qbuffer.h>
+#include <QtNetwork/qnetworkconfiguration.h>
 
-#include "qmediaserviceprovider.h"
-#include "qmediaservice.h"
+#include <qabstractvideosurface.h>
+#include <qmediaplayer.h>
+#include <qmediaplayercontrol.h>
 
-// Simple provider that lets you set the service
-class MockMediaServiceProvider : public QMediaServiceProvider
+#include "mockmediaserviceprovider.h"
+#include "mockmediaplayerservice.h"
+
+QT_USE_NAMESPACE
+
+class tst_QMediaPlayerWidgets: public QObject
 {
-public:
-    MockMediaServiceProvider(QMediaService* s = 0, bool del=false)
-        : service(s), deleteServiceOnRelease(del)
-    {
-    }
+    Q_OBJECT
 
-    QMediaService *requestService(const QByteArray &, const QMediaServiceProviderHint &)
-    {
-        return service;
-    }
+public slots:
+    void initTestCase();
+    void cleanupTestCase();
+    void init();
+    void cleanup();
 
-    void releaseService(QMediaService *service)
-    {
-        if (deleteServiceOnRelease) {
-            delete service;
-            service = 0;
-        }
-    }
+private slots:
+    void testSetVideoOutput();
+    void testSetVideoOutputNoService();
+    void testSetVideoOutputNoControl();
 
-    QMediaService *service;
-    bool deleteServiceOnRelease;
+private:
+    MockMediaServiceProvider *mockProvider;
+    MockMediaPlayerService  *mockService;
+    QMediaPlayer *player;
 };
 
-#endif // MOCKMEDIASERVICEPROVIDER_H
+#endif //TST_QMEDIAPLAYER_H

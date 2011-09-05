@@ -42,7 +42,6 @@
 //TESTED_COMPONENT=src/multimedia
 
 #include "tst_qmediaobject.h"
-#include "qvideowidget.h"
 
 #include "mockmediarecorderservice.h"
 #include "mockmediaserviceprovider.h"

@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the test suite of the Qt Toolkit.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -38,37 +38,16 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include <QtCore/qcoreapplication.h>
+#include <QtTest/QtTest>
 
-#ifndef MOCKMEDIASERVICEPROVIDER_H
-#define MOCKMEDIASERVICEPROVIDER_H
+#include "tst_qmediaplayerwidgets.h"
 
-#include "qmediaserviceprovider.h"
-#include "qmediaservice.h"
-
-// Simple provider that lets you set the service
-class MockMediaServiceProvider : public QMediaServiceProvider
+int main(int argc, char**argv)
 {
-public:
-    MockMediaServiceProvider(QMediaService* s = 0, bool del=false)
-        : service(s), deleteServiceOnRelease(del)
-    {
-    }
-
-    QMediaService *requestService(const QByteArray &, const QMediaServiceProviderHint &)
-    {
-        return service;
-    }
-
-    void releaseService(QMediaService *service)
-    {
-        if (deleteServiceOnRelease) {
-            delete service;
-            service = 0;
-        }
-    }
-
-    QMediaService *service;
-    bool deleteServiceOnRelease;
-};
-
-#endif // MOCKMEDIASERVICEPROVIDER_H
+    QApplication app(argc,argv);
+    int ret;
+    tst_QMediaPlayerWidgets test_api;
+    ret = QTest::qExec(&test_api, argc, argv);
+    return ret;
+}

@@ -22,6 +22,11 @@ SUBDIRS += \
     qvideosurfaceformat \
     qmetadatareadercontrol \
     qmetadatawritercontrol \
+    qmediaplayer \
+    qcameraimagecapture \
+    qmediaobject \
+    qcamera \
+    qcamerabackend \
 
 # These is disabled until intent is clearer
 #    qvideodevicecontrol \
@@ -38,6 +43,7 @@ contains (QT_CONFIG, private_tests) {
     SUBDIRS += \
         qmediaplaylist \
         qmediapluginloader \
+        qmediaimageviewer \
         qmediaserviceprovider
 
     contains (QT_CONFIG, declarative) {

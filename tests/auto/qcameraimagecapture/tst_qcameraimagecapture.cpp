@@ -63,8 +63,6 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
-#include <qgraphicsvideoitem.h>
-#include <qcameraviewfinder.h>
 
 #include "mockcameraservice.h"
 #include "mockmediaserviceprovider.h"

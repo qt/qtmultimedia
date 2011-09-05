@@ -43,7 +43,6 @@
 
 #include "tst_qmediaplayer.h"
 
-#include <qgraphicsvideoitem.h>
 #include <QtNetwork/qnetworkconfigmanager.h>
 
 // Encouraging successful diversity through copy and paste.
@@ -936,29 +935,14 @@ void tst_QMediaPlayer::testNetworkAccess()
 
 void tst_QMediaPlayer::testSetVideoOutput()
 {
-    QVideoWidget widget;
-    QGraphicsVideoItem item;
     MockVideoSurface surface;
 
     MockMediaPlayerService service;
     MockMediaServiceProvider provider(&service);
     QMediaPlayer player(0, 0, &provider);
 
-    player.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == &player);
-
-    player.setVideoOutput(&item);
-    QVERIFY(widget.mediaObject() == 0);
-    QVERIFY(item.mediaObject() == &player);
-
     player.setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(item.mediaObject() == 0);
-
-    player.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == &player);
-
     player.setVideoOutput(reinterpret_cast<QGraphicsVideoItem *>(0));
-    QVERIFY(widget.mediaObject() == 0);
 
     player.setVideoOutput(&surface);
     QVERIFY(service.rendererControl->surface() == &surface);
@@ -969,30 +953,20 @@ void tst_QMediaPlayer::testSetVideoOutput()
     player.setVideoOutput(&surface);
     QVERIFY(service.rendererControl->surface() == &surface);
 
-    player.setVideoOutput(&widget);
+    player.setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
     QVERIFY(service.rendererControl->surface() == 0);
-    QVERIFY(widget.mediaObject() == &player);
 
     player.setVideoOutput(&surface);
     QVERIFY(service.rendererControl->surface() == &surface);
-    QVERIFY(widget.mediaObject() == 0);
 }
 
 
 void tst_QMediaPlayer::testSetVideoOutputNoService()
 {
-    QVideoWidget widget;
-    QGraphicsVideoItem item;
     MockVideoSurface surface;
 
     MockMediaServiceProvider provider(0, true);
     QMediaPlayer player(0, 0, &provider);
-
-    player.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == 0);
-
-    player.setVideoOutput(&item);
-    QVERIFY(item.mediaObject() == 0);
 
     player.setVideoOutput(&surface);
     // Nothing we can verify here other than it doesn't assert.
@@ -1000,22 +974,13 @@ void tst_QMediaPlayer::testSetVideoOutputNoService()
 
 void tst_QMediaPlayer::testSetVideoOutputNoControl()
 {
-    QVideoWidget widget;
-    QGraphicsVideoItem item;
     MockVideoSurface surface;
 
     MockMediaPlayerService service;
     service.rendererRef = 1;
-    service.windowRef = 1;
 
     MockMediaServiceProvider provider(&service);
     QMediaPlayer player(0, 0, &provider);
-
-    player.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == 0);
-
-    player.setVideoOutput(&item);
-    QVERIFY(item.mediaObject() == 0);
 
     player.setVideoOutput(&surface);
     QVERIFY(service.rendererControl->surface() == 0);

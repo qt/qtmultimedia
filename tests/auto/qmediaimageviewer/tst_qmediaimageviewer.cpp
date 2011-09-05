@@ -46,14 +46,11 @@
 
 #include <QtCore/qdir.h>
 
-#include <qgraphicsvideoitem.h>
 #include <qmediaimageviewer.h>
 #include <private/qmediaimageviewerservice_p.h>
 #include <qmediaplaylist.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
-#include <qvideowidget.h>
-#include <qvideowidgetcontrol.h>
 
 #include <QtCore/qfile.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
@@ -998,25 +995,11 @@ void tst_QMediaImageViewer::setVideoOutput()
     if (imageViewer.mediaStatus() != QMediaImageViewer::LoadedMedia)
         QSKIP("failed to load test image", SkipSingle);
 
-    QVideoWidget widget;
-    QGraphicsVideoItem item;
     QtTestVideoSurface surface;
 
-    imageViewer.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == &imageViewer);
-
-    imageViewer.setVideoOutput(&item);
-    QVERIFY(widget.mediaObject() == 0);
-    QVERIFY(item.mediaObject() == &imageViewer);
-
     imageViewer.setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(item.mediaObject() == 0);
-
-    imageViewer.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == &imageViewer);
 
     imageViewer.setVideoOutput(reinterpret_cast<QGraphicsVideoItem *>(0));
-    QVERIFY(widget.mediaObject() == 0);
 
     imageViewer.setVideoOutput(&surface);
     QVERIFY(surface.isActive());
@@ -1027,13 +1010,11 @@ void tst_QMediaImageViewer::setVideoOutput()
     imageViewer.setVideoOutput(&surface);
     QVERIFY(surface.isActive());
 
-    imageViewer.setVideoOutput(&widget);
+    imageViewer.setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
     QVERIFY(!surface.isActive());
-    QVERIFY(widget.mediaObject() == &imageViewer);
 
     imageViewer.setVideoOutput(&surface);
     QVERIFY(surface.isActive());
-    QVERIFY(widget.mediaObject() == 0);
 }
 
 void tst_QMediaImageViewer::debugEnums()

@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += multimediakit-private multimediakitwidgets-private declarative
+QT += multimediakit-private declarative
 CONFIG += no_private_qt_headers_warning
 
 HEADERS += \

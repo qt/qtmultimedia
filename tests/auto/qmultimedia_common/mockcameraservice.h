@@ -55,7 +55,10 @@
 #include "../qmultimedia_common/mockcameracontrol.h"
 #include "../qmultimedia_common/mockvideosurface.h"
 #include "../qmultimedia_common/mockvideorenderercontrol.h"
+
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
 #include "../qmultimedia_common/mockvideowindowcontrol.h"
+#endif
 
 class MockSimpleCameraService : public QMediaService
 {
@@ -102,7 +105,9 @@ public:
         mockImageProcessingControl = new MockImageProcessingControl(this);
         mockImageEncoderControl = new MockImageEncoderControl(this);
         rendererControl = new MockVideoRendererControl(this);
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
         windowControl = new MockVideoWindowControl(this);
+#endif
         rendererRef = 0;
         windowRef = 0;
     }
@@ -148,12 +153,15 @@ public:
                 rendererRef += 1;
                 return rendererControl;
             }
-        } else if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
+        }
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
+        if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
             if (windowRef == 0) {
                 windowRef += 1;
                 return windowControl;
             }
         }
+#endif
         return 0;
     }
 
@@ -161,8 +169,10 @@ public:
     {
         if (control == rendererControl)
             rendererRef -= 1;
-        else if (control == windowControl)
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
+        if (control == windowControl)
             windowRef -= 1;
+#endif
     }
 
     MockCameraControl *mockControl;
@@ -176,7 +186,9 @@ public:
     MockImageProcessingControl *mockImageProcessingControl;
     MockImageEncoderControl *mockImageEncoderControl;
     MockVideoRendererControl *rendererControl;
+#if defined(QT_MULTIMEDIAKIT_MOCK_WIDGETS)
     MockVideoWindowControl *windowControl;
+#endif
     int rendererRef;
     int windowRef;
 };

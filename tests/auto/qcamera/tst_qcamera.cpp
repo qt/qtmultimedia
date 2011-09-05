@@ -58,10 +58,7 @@
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
-#include <qgraphicsvideoitem.h>
 #include <qvideorenderercontrol.h>
-#include <qvideowidget.h>
-#include <qvideowindowcontrol.h>
 
 #include "mockcameraservice.h"
 
@@ -1037,39 +1034,10 @@ void tst_QCamera::testCameraEncodingProperyChange()
     QCOMPARE(camera.status(), QCamera::ActiveStatus);
     QCOMPARE(stateChangedSignal.count(), 0);
     QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    //setting the viewfinder should also trigger backend to be restarted:
-    camera.setViewfinder(new QGraphicsVideoItem());
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(camera.status(), QCamera::LoadedStatus);
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 1);
-
-    QTest::qWait(10);
-
-    service.mockControl->m_propertyChangesSupported = true;
-    //the changes to encoding settings,
-    //capture mode and encoding parameters should not trigger service restart
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    camera.setCaptureMode(QCamera::CaptureStillImage);
-    imageCapture.setEncodingSettings(QImageEncoderSettings());
-    imageCapture.setEncodingSettings(QImageEncoderSettings());
-    camera.setViewfinder(new QGraphicsVideoItem());
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 0);
 }
 
 void tst_QCamera::testSetVideoOutput()
 {
-    QVideoWidget widget;
-    QGraphicsVideoItem item;
     MockVideoSurface surface;
 
     MockCameraService service;
@@ -1077,21 +1045,9 @@ void tst_QCamera::testSetVideoOutput()
     provider.service = &service;
     QCamera camera(0, &provider);
 
-    camera.setViewfinder(&widget);
-    QVERIFY(widget.mediaObject() == &camera);
-
-    camera.setViewfinder(&item);
-    QVERIFY(widget.mediaObject() == 0);
-    QVERIFY(item.mediaObject() == &camera);
-
     camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(item.mediaObject() == 0);
-
-    camera.setViewfinder(&widget);
-    QVERIFY(widget.mediaObject() == &camera);
 
     camera.setViewfinder(reinterpret_cast<QGraphicsVideoItem *>(0));
-    QVERIFY(widget.mediaObject() == 0);
 
     camera.setViewfinder(&surface);
     QVERIFY(service.rendererControl->surface() == &surface);
@@ -1102,31 +1058,21 @@ void tst_QCamera::testSetVideoOutput()
     camera.setViewfinder(&surface);
     QVERIFY(service.rendererControl->surface() == &surface);
 
-    camera.setViewfinder(&widget);
+    camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
     QVERIFY(service.rendererControl->surface() == 0);
-    QVERIFY(widget.mediaObject() == &camera);
 
     camera.setViewfinder(&surface);
     QVERIFY(service.rendererControl->surface() == &surface);
-    QVERIFY(widget.mediaObject() == 0);
 }
 
 
 void tst_QCamera::testSetVideoOutputNoService()
 {
-    QVideoWidget widget;
-    QGraphicsVideoItem item;
     MockVideoSurface surface;
 
     MockMediaServiceProvider provider;
     provider.service = 0;
     QCamera camera(0, &provider);
-
-    camera.setViewfinder(&widget);
-    QVERIFY(widget.mediaObject() == 0);
-
-    camera.setViewfinder(&item);
-    QVERIFY(item.mediaObject() == 0);
 
     camera.setViewfinder(&surface);
     // Nothing we can verify here other than it doesn't assert.
@@ -1134,23 +1080,14 @@ void tst_QCamera::testSetVideoOutputNoService()
 
 void tst_QCamera::testSetVideoOutputNoControl()
 {
-    QVideoWidget widget;
-    QGraphicsVideoItem item;
     MockVideoSurface surface;
 
     MockCameraService service;
     service.rendererRef = 1;
-    service.windowRef = 1;
 
     MockMediaServiceProvider provider;
     provider.service = &service;
     QCamera camera(0, &provider);
-
-    camera.setViewfinder(&widget);
-    QVERIFY(widget.mediaObject() == 0);
-
-    camera.setViewfinder(&item);
-    QVERIFY(item.mediaObject() == 0);
 
     camera.setViewfinder(&surface);
     QVERIFY(service.rendererControl->surface() == 0);
