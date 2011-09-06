@@ -73,7 +73,7 @@
 #  endif
 #endif
 
-#if !defined(Q_SERVICEFW_EXPORT)
+#if !defined(Q_MULTIMEDIA_EXPORT)
 #  if defined(QT_SHARED)
 #    define Q_MULTIMEDIA_EXPORT Q_DECL_EXPORT
 #  else
