@@ -316,9 +316,12 @@ void QDeclarativeMediaBase::setObject(QObject *object, const QMediaServiceProvid
 
 void QDeclarativeMediaBase::componentComplete()
 {
-    m_playerControl->setVolume(m_vol * 100);
-    m_playerControl->setMuted(m_muted);
-    m_playerControl->setPlaybackRate(m_playbackRate);
+    if (!qFuzzyCompare(m_vol, qreal(1.0)))
+        m_playerControl->setVolume(m_vol * 100);
+    if (m_muted)
+        m_playerControl->setMuted(m_muted);
+    if (!qFuzzyCompare(m_playbackRate, qreal(1.0)))
+        m_playerControl->setPlaybackRate(m_playbackRate);
 
     if (!m_source.isEmpty() && (m_autoLoad || m_playing)) // Override autoLoad if playing set
         m_playerControl->setMedia(m_source, 0);
