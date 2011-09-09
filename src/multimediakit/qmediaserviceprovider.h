@@ -137,6 +137,13 @@ public:
 #define Q_MEDIASERVICE_MEDIAPLAYER "com.nokia.qt.mediaplayer"
 
 /*!
+    Service with support for background media playback
+    Required Controls: QMediaPlayerControl, QMediaBackgroundPlaybackControl
+    Optional Controls: QMediaPlaylistControl, QAudioDeviceControl
+*/
+#define Q_MEDIASERVICE_BACKGROUNDMEDIAPLAYER "com.nokia.qt.backgroundmediaplayer"
+
+/*!
    Service with support for recording from audio sources
    Required Controls: QAudioDeviceControl
    Recording Controls (QMediaRecorder):
