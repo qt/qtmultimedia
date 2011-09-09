@@ -48,7 +48,7 @@ void QDeclarativeBackgroundAudio::classBegin()
 
 void QDeclarativeBackgroundAudio::componentComplete()
 {
-    setObject(this, QMediaServiceProviderHint(QMediaServiceProviderHint::BackgroundPlayback));
+    setObject(this, Q_MEDIASERVICE_BACKGROUNDMEDIAPLAYER);
     if (m_mediaService) {
         m_backgroundPlaybackControl =
                 static_cast<QMediaBackgroundPlaybackControl*>(
@@ -61,6 +61,8 @@ void QDeclarativeBackgroundAudio::componentComplete()
         } else {
             qWarning("can not get QMediaBackgroundPlaybackControl!");
         }
+    } else {
+        qWarning("Unable to get any background mediaplayer!");
     }
     QDeclarativeMediaBase::componentComplete();
 }

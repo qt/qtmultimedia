@@ -123,7 +123,7 @@ public:
 protected:
     void shutdown();
 
-    void setObject(QObject *object, const QMediaServiceProviderHint& hint = QMediaServiceProviderHint());
+    void setObject(QObject *object, const QByteArray &type = Q_MEDIASERVICE_MEDIAPLAYER);
 
     virtual void sourceChanged() = 0;
     virtual void autoLoadChanged() = 0;

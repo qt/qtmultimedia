@@ -260,12 +260,12 @@ void QDeclarativeMediaBase::shutdown()
 
 }
 
-void QDeclarativeMediaBase::setObject(QObject *object, const QMediaServiceProviderHint& hint)
+void QDeclarativeMediaBase::setObject(QObject *object, const QByteArray &type)
 {
     m_qmlObject = object;
 
     if ((m_mediaProvider = QMediaServiceProvider::defaultServiceProvider()) != 0) {
-        m_mediaService = m_mediaProvider->requestService(Q_MEDIASERVICE_MEDIAPLAYER, hint);
+        m_mediaService = m_mediaProvider->requestService(type);
         if (m_mediaService != 0) {
             m_playerControl = qobject_cast<QMediaPlayerControl *>(
                     m_mediaService->requestControl(QMediaPlayerControl_iid));
