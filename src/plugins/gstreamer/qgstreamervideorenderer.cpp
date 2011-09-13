@@ -44,7 +44,7 @@
 #include "qabstractvideosurface.h"
 
 #include <QEvent>
-#include <QApplication>
+#include <QtWidgets/QApplication>
 #include <QDebug>
 
 #include <gst/gst.h>

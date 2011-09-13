@@ -41,7 +41,7 @@
 
 #include <QtCore/qstring.h>
 #include <QtCore/qdebug.h>
-#include <QtGui/QIcon>
+#include <QtWidgets/QIcon>
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 

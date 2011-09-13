@@ -42,7 +42,7 @@
 #ifndef QGRAPHICSVIDEOITEM_H
 #define QGRAPHICSVIDEOITEM_H
 
-#include <QtGui/qgraphicsitem.h>
+#include <QtWidgets/qgraphicsitem.h>
 
 #include <qvideowidget.h>
 #include <qmediabindableinterface.h>

@@ -41,7 +41,8 @@
 #include "qsgvideonode_i420.h"
 #include <QtDeclarative/qsgtexturematerial.h>
 #include <QtDeclarative/qsgmaterial.h>
-
+#include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLFunctions>
 #include <QtOpenGL/qglshaderprogram.h>
 
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_I420::supportedPixelFormats(
@@ -271,7 +272,7 @@ void QSGVideoMaterialShader_YUV420::updateState(const RenderState &state,
 {
     Q_UNUSED(oldMaterial);
 
-    QGLFunctions *functions = state.context()->functions();
+    QOpenGLFunctions *functions = state.context()->functions();
     QSGVideoMaterial_YUV420 *mat = static_cast<QSGVideoMaterial_YUV420 *>(newMaterial);
     program()->setUniformValue(m_id_yTexture, 0);
     program()->setUniformValue(m_id_uTexture, 1);

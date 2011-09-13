@@ -3,7 +3,7 @@ load(qt_module)
 # distinct from QtMultimedia
 TARGET = QtMultimediaKit
 QPRO_PWD = $$PWD
-QT = core network gui
+QT = core network gui widgets
 
 CONFIG += module
 MODULE_PRI += ../../modules/qt_multimediakit.pri

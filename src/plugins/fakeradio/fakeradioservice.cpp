@@ -42,7 +42,7 @@
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
-#include <QtGui/qwidget.h>
+#include <QtWidgets/qwidget.h>
 
 #include "fakeradioservice.h"
 #include "fakeradiotunercontrol.h"

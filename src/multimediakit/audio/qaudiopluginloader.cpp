@@ -43,7 +43,7 @@
 #include "qaudiopluginloader_p.h"
 
 #include <QtCore/qcoreapplication.h>
-#include <QtGui/qapplication.h>
+#include <QtWidgets/qapplication.h>
 #include <QtCore/qpluginloader.h>
 #include <QtCore/qfactoryinterface.h>
 #include <QtCore/qdir.h>
