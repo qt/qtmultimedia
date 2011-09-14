@@ -114,6 +114,7 @@ CameraBinService::CameraBinService(const QString &service, QObject *parent):
         m_videoRenderer = new QGstreamerVideoRenderer(this);
 #endif
 
+#if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
 
 #ifdef Q_WS_MAEMO_6
         m_videoWindow = new QGstreamerVideoWindow(this, "omapxvsink");
@@ -123,6 +124,8 @@ CameraBinService::CameraBinService(const QString &service, QObject *parent):
 #endif
 
         m_videoWidgetControl = new QGstreamerVideoWidgetControl(this);
+
+#endif
 
     }
     
