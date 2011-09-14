@@ -42,7 +42,7 @@
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
-#include <QtGui/qwidget.h>
+#include <QtWidgets/qwidget.h>
 
 #include "v4lradioservice.h"
 #include "v4lradiocontrol.h"

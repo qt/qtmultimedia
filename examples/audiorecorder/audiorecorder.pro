@@ -22,3 +22,4 @@ sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audiorecorder
 
 INSTALLS += target sources
 
+QT+=widgets

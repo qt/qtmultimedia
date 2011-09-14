@@ -20,3 +20,4 @@ sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videowidget
 
 INSTALLS += target sources
 
+QT+=widgets

@@ -42,7 +42,7 @@
 #ifndef QX11VIDEOSURFACE_H
 #define QX11VIDEOSURFACE_H
 
-#include <QtGui/qwidget.h>
+#include <QtWidgets/qwidget.h>
 #include <qabstractvideosurface.h>
 
 #ifndef QT_NO_XVIDEO

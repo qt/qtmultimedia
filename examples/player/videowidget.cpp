@@ -40,7 +40,7 @@
 
 #include "videowidget.h"
 
-#include <QtGui>
+#include <QtWidgets>
 
 VideoWidget::VideoWidget(QWidget *parent)
     : QVideoWidget(parent)

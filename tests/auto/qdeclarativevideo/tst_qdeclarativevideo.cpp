@@ -55,7 +55,7 @@
 #include <qvideowindowcontrol.h>
 #include <qvideosurfaceformat.h>
 
-#include <QtGui/qapplication.h>
+#include <QtWidgets/qapplication.h>
 #include <QtGui/qpainter.h>
 
 class tst_QDeclarativeVideo : public QObject

@@ -41,9 +41,9 @@
 
 #include "camerabuttonlistener_meego.h"
 
-#include <QtGui/qapplication.h>
+#include <QtWidgets/qapplication.h>
 #include <QtGui/qevent.h>
-#include <QtGui/qwidget.h>
+#include <QtWidgets/qwidget.h>
 #include <QtCore/qdebug.h>
 
 CameraButtonListener::CameraButtonListener(QObject *parent) :

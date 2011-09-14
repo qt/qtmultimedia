@@ -51,7 +51,7 @@
 #include <qmessagebox.h>
 #include <qpalette.h>
 
-#include <QtGui>
+#include <QtWidgets>
 
 #if (defined(Q_WS_MAEMO_6)) && QT_VERSION >= 0x040700
 #define HAVE_CAMERA_BUTTONS

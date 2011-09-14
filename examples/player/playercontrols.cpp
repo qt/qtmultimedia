@@ -40,11 +40,11 @@
 
 #include "playercontrols.h"
 
-#include <QtGui/qboxlayout.h>
-#include <QtGui/qslider.h>
-#include <QtGui/qstyle.h>
-#include <QtGui/qtoolbutton.h>
-#include <QtGui/qcombobox.h>
+#include <QtWidgets/qboxlayout.h>
+#include <QtWidgets/qslider.h>
+#include <QtWidgets/qstyle.h>
+#include <QtWidgets/qtoolbutton.h>
+#include <QtWidgets/qcombobox.h>
 
 PlayerControls::PlayerControls(QWidget *parent)
     : QWidget(parent)

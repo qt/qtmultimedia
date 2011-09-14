@@ -43,7 +43,7 @@
 #define DSVIDEOWIDGETCONTROL_H
 
 #include <QtCore/qobject.h>
-#include <QtGui>
+#include <QtWidgets>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtMultimedia/qvideosurfaceformat.h>

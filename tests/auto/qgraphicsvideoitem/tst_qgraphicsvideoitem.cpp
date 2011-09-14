@@ -52,9 +52,9 @@
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 
-#include <QtGui/qapplication.h>
-#include <QtGui/qgraphicsscene.h>
-#include <QtGui/qgraphicsview.h>
+#include <QtWidgets/qapplication.h>
+#include <QtWidgets/qgraphicsscene.h>
+#include <QtWidgets/qgraphicsview.h>
 
 QT_USE_NAMESPACE
 class tst_QGraphicsVideoItem : public QObject

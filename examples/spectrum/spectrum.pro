@@ -17,3 +17,4 @@ sources.files = README.txt spectrum.pri spectrum.pro TODO.txt
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/spectrum
 INSTALLS += sources
 
+QT+=widgets

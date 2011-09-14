@@ -41,7 +41,7 @@
 #include "videoplayer.h"
 #include "videoitem.h"
 
-#include <QtGui>
+#include <QtWidgets>
 #include <qvideosurfaceformat.h>
 
 #if !defined(QT_NO_OPENGL)

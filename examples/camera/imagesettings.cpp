@@ -41,7 +41,7 @@
 #include "imagesettings.h"
 #include "ui_imagesettings.h"
 
-#include <QtGui/qcombobox.h>
+#include <QtWidgets/qcombobox.h>
 #include <QtCore/qdebug.h>
 #include <qcameraimagecapture.h>
 #include <qmediaservice.h>

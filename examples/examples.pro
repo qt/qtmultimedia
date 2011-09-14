@@ -18,3 +18,4 @@ contains(QT_CONFIG, declarative) {
     SUBDIRS += declarative-radio
 }
 
+QT+=widgets

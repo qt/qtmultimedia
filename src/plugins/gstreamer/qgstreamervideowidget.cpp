@@ -44,7 +44,7 @@
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qdebug.h>
-#include <QtGui/qapplication.h>
+#include <QtWidgets/qapplication.h>
 #include <QtGui/qpainter.h>
 
 #ifdef Q_WS_X11

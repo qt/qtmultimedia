@@ -56,7 +56,7 @@
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 
-#include <QtGui/qapplication.h>
+#include <QtWidgets/qapplication.h>
 
 QT_USE_NAMESPACE
 class tst_QVideoWidget : public QObject

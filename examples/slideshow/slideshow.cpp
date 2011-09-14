@@ -44,7 +44,7 @@
 #include <qmediaplaylist.h>
 #include <qvideowidget.h>
 
-#include <QtGui>
+#include <QtWidgets>
 
 SlideShow::SlideShow(QWidget *parent)
     : QMainWindow(parent)

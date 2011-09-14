@@ -44,7 +44,7 @@
 #include <private/qpaintervideosurface_p.h>
 #include <QtTest/QtTest>
 
-#include <QtGui/qapplication.h>
+#include <QtWidgets/qapplication.h>
 #include <qvideosurfaceformat.h>
 
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)

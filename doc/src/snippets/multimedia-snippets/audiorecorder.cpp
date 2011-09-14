@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include <QtGui>
+#include <QtWidgets>
 
 #include <qaudiocapturesource.h>
 #include <qmediarecorder.h>

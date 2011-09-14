@@ -40,7 +40,7 @@
 
 #include "radio.h"
 
-#include <QtGui>
+#include <QtWidgets>
 
 Radio::Radio()
 {

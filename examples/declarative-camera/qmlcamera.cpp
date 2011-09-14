@@ -38,8 +38,8 @@
 **
 ****************************************************************************/
 
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopWidget>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
 #include <QtQuick1/qdeclarativeview.h>
 #include <QtDeclarative/QDeclarativeEngine>
 

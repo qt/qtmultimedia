@@ -49,7 +49,7 @@
 #include "qgstvideobuffer.h"
 
 #if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
-#include <QtGui/qx11info_x11.h>
+#include <QtWidgets/qx11info_x11.h>
 #include "qgstxvimagebuffer.h"
 #endif
 

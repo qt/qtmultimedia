@@ -14,3 +14,4 @@ sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audioinput
 
 INSTALLS += target sources
 
+QT+=widgets

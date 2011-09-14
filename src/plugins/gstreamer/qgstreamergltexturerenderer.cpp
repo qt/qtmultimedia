@@ -44,8 +44,8 @@
 #include "qgstutils.h"
 
 #include <QtGui/qevent.h>
-#include <QtGui/qapplication.h>
-#include <QtGui/qx11info_x11.h>
+#include <QtWidgets/qapplication.h>
+#include <QtWidgets/qx11info_x11.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qthread.h>
 

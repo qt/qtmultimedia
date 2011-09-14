@@ -45,7 +45,7 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qbasictimer.h>
 
-#include <QtGui/qgraphicsscene.h>
+#include <QtWidgets/qgraphicsscene.h>
 
 #include <qmediaobject.h>
 #include <qmediaservice.h>

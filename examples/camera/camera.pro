@@ -25,3 +25,4 @@ sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/camera
 
 INSTALLS += target sources
 
+QT+=widgets

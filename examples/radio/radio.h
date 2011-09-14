@@ -41,7 +41,7 @@
 #ifndef RADIO_H
 #define RADIO_H
 
-#include <QtGui>
+#include <QtWidgets>
 
 #include <qradiotuner.h>
 

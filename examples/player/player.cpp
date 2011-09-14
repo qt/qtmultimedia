@@ -46,7 +46,7 @@
 #include <qmediaservice.h>
 #include <qmediaplaylist.h>
 
-#include <QtGui>
+#include <QtWidgets>
 
 
 Player::Player(QWidget *parent)

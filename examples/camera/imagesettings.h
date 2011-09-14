@@ -41,7 +41,7 @@
 #ifndef IMAGESETTINGS_H
 #define IMAGESETTINGS_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 #include <qmediaencodersettings.h>
 
 QT_BEGIN_NAMESPACE

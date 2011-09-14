@@ -41,7 +41,7 @@
 #include "videosettings.h"
 #include "ui_videosettings.h"
 
-#include <QtGui/qcombobox.h>
+#include <QtWidgets/qcombobox.h>
 #include <QtCore/qdebug.h>
 #include <qmediarecorder.h>
 #include <qmediaservice.h>

@@ -51,7 +51,7 @@
 #include <qmediaserviceprovider.h>
 #include <qmetadatareadercontrol.h>
 
-#include <QtGui/qapplication.h>
+#include <QtWidgets/qapplication.h>
 
 class tst_QDeclarativeAudio : public QObject
 {

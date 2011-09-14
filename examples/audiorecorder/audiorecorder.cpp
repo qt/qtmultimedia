@@ -39,7 +39,7 @@
 ****************************************************************************/
 
 #include <QtCore/qdir.h>
-#include <QtGui/qfiledialog.h>
+#include <QtWidgets/qfiledialog.h>
 
 #include <qaudiocapturesource.h>
 #include <qmediarecorder.h>

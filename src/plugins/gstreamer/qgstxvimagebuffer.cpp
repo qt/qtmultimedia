@@ -42,7 +42,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qvariant.h>
-#include <QtGui/qx11info_x11.h>
+#include <QtWidgets/qx11info_x11.h>
 
 #include "qgstxvimagebuffer.h"
 #include "qvideosurfacegstsink.h"

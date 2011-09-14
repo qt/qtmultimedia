@@ -16,3 +16,4 @@ sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/slideshow
 
 INSTALLS += target sources
 
+QT+=widgets

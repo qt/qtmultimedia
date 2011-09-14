@@ -53,7 +53,7 @@
 #include "qsoundeffect_qsound_p.h"
 
 #include <QtCore/qcoreapplication.h>
-#include <QtGui/qsound.h>
+#include <QtWidgets/qsound.h>
 #include <QtCore/qstringlist.h>
 
 

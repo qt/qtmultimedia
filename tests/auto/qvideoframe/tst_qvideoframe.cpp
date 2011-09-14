@@ -650,7 +650,7 @@ void tst_QVideoFrame::mapImage()
     QVERIFY(frame.map(mode));
 
     QVERIFY(frame.bits());
-    QCOMPARE(frame.mappedBytes(), image.numBytes());
+    QCOMPARE(frame.mappedBytes(), image.byteCount());
     QCOMPARE(frame.bytesPerLine(), image.bytesPerLine());
     QCOMPARE(frame.mapMode(), mode);
 

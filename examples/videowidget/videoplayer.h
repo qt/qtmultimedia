@@ -44,7 +44,7 @@
 #include <qmediaplayer.h>
 
 #include <QtGui/QMovie>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAbstractButton;

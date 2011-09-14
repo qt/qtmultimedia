@@ -47,8 +47,7 @@
 #include <qmediacontrol.h>
 #include <qmediaservice.h>
 
-#include <QtGui/qapplication.h>
-#include <QtGui/qstyle.h>
+#include <QtCore/qcoreapplication.h>
 
 QT_BEGIN_NAMESPACE
 

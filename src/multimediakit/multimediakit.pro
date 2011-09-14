@@ -3,13 +3,12 @@ load(qt_module)
 # distinct from QtMultimedia
 TARGET = QtMultimediaKit
 QPRO_PWD = $$PWD
-QT = core network gui widgets
+QT = core network gui
 
 CONFIG += module
 MODULE_PRI += ../../modules/qt_multimediakit.pri
 
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
-   QT += opengl
 } else {
    DEFINES += QT_NO_OPENGL
 }

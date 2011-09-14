@@ -41,7 +41,7 @@
 
 #include "simulatorvideoinputdevicecontrol.h"
 
-#include <QtGui/QIcon>
+#include <QtWidgets/QIcon>
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 #include <QtCore/QStringList>

@@ -42,7 +42,7 @@
 #define AUDIORECORDER_H
 
 #include <QtCore/qurl.h>
-#include <QtGui/qmainwindow.h>
+#include <QtWidgets/qmainwindow.h>
 
 #include <qmediarecorder.h>
 

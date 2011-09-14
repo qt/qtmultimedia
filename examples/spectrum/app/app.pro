@@ -90,3 +90,4 @@ macx {
 }
 
 
+QT+=widgets

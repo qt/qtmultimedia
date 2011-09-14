@@ -41,7 +41,7 @@
 
 #include <QDebug>
 #include <QFile>
-#include <QtGui/QIcon>
+#include <QtWidgets/QIcon>
 
 #include "dsvideodevicecontrol.h"
 #include "dscamerasession.h"

@@ -42,7 +42,7 @@
 
 #include "videowidget.h"
 
-#include <QtGui>
+#include <QtWidgets>
 #include <qvideosurfaceformat.h>
 
 VideoPlayer::VideoPlayer(QWidget *parent)

@@ -41,7 +41,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 #include <qmediaplayer.h>
 #include <qmediaplaylist.h>

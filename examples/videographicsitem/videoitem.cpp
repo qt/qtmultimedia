@@ -40,7 +40,7 @@
 
 #include "videoitem.h"
 
-#include <QtGui>
+#include <QtWidgets>
 #include <qvideosurfaceformat.h>
 
 VideoItem::VideoItem(QGraphicsItem *parent)

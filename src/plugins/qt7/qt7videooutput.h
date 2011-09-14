@@ -50,7 +50,7 @@
 #include <qvideorenderercontrol.h>
 #include <qmediaplayer.h>
 
-#include <QtGui/qmacdefines_mac.h>
+#include <QtWidgets/qmacdefines_mac.h>
 
 
 QT_BEGIN_NAMESPACE

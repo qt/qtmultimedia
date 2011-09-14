@@ -40,7 +40,7 @@
 
 #include "videowidgetsurface.h"
 
-#include <QtGui>
+#include <QtWidgets>
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 
