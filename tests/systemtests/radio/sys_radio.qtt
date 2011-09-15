@@ -1,0 +1,130 @@
+/****************************************************************************
+**
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the Qt Mobility Components.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+//TESTED_COMPONENT=src/multimedia
+
+testcase = {
+
+/* Notes
+Ensure radio reception is available in testing area
+A device specific headset is required to be connected to device for radio testing
+*/
+
+    initTestCase: function()
+    {
+    },
+
+ play_a_radio_transmission: function()
+    {
+        // Test meta data
+        testApplication = "Multimedia - Play Radio Transmission";
+        testBinary = "radio";
+        testGoal = "Verify that radio stations can be played.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
+        testGroups = "BAT";
+
+        // Test steps
+        prompt(twiki("---+++ " + testApplication + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | | Verify that 0 KHz and No Signal is displayed |
+           | Select [Scan Up] | Audible white noise should be heard as the radio searches for a frequency lock. Frequency should be increasing in 100 KHz steps until a strong signal is found |
+           | | Verify that a radio signal can be heard. It is possible for the radio to lock on a silent station signal, in that case progress further up the frequencies |
+           | Once a strong audible signal is found | Verify that the stations frequency and Got Signal message is displayed |
+           | Select [Scan Up] | Verify that the radio has moved off the previous station and in progressing through the frequencies |
+           | Once on a radio station, Select [Freq Up] | Verify that the radio frequency has moved off the station by 100KHz and is stationary |
+           | Select [Freq Up] again | Verify that the radio frequency has moved up another 100KHz and is stationary |
+           | Select [Freq Down] twice | Verify that you are now at the frequency of the previous radio station and that the signal is audible |
+           | Select [Scan Down] | Verify that the radio has moved off the previous station, progressing through the frequencies, and finds the original station from this test |
+           | Exit the radio application | Verify that the radio station is no longer heard |
+         "));
+    },
+
+    radio_interrupted_by_system_notification: function()
+    {
+        // Test meta data
+        testApplication = "Multimedia - Play Radio With Interruptions";
+        testBinary = "radio";
+        testGoal = "Verify that radio playback can be successfuly interrupted by system notifications and resume playback without issues.";
+        testPreconditions = "1. Audible system notifications should be enabled for this test.<br>2. Radio reception should be available in the test area.<br>3. Wired headphones act as an antena to the device and must be connected.";
+        testGroups = "BAT";
+
+        // Test steps
+        prompt(twiki("---+++ " + testApplication + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Locate a strong radio station signal by scanning up/down | |
+           | While on a strong and audible radio signal, evoke a system notification on device (eg: incoming SMS, alarm notification) | Verify that after the system notification has been delivered, the radio reverts to outputting the audio signal back through the headphones |
+         "));
+    },
+
+    radio_volume_control: function()
+    {
+     // Test meta data
+     testApplication = "Multimedia - Radio Volume Control";
+     testBinary = "radio";
+     testGoal = "Verify that the radio volume can be controlled.";
+     testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
+     testGroups = "BAT";
+
+     // Test steps
+     prompt(twiki("---+++ " + testApplication + "<br><br>
+         *Goal:* " + testGoal + "<br>
+         *Pre-Requisites:* " + testPreconditions + "<br>
+         *Tested Binary:* " + testBinary + "<br>
+
+        | *Step* | *Verification* |
+        | Launch " + testBinary + " | App launches normally |
+        | Locate a strong radio station signal by scanning upwards | |
+        | While on a strong and audible radio signal, move volume slider to the right | Verify that the audio volume of the radio station is amplified |
+        | Move volume slider to the left | Verify that the audio volume is lowered |
+        | Move the volume slider all the way to the left | Verify that the sound is now completely muted |
+       "));
+    },
+}
