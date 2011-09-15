@@ -1,0 +1,181 @@
+/****************************************************************************
+**
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the Qt Mobility Components.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+//TESTED_COMPONENT=src/multimedia
+
+testcase = {
+
+/* Notes
+*/
+    initTestCase: function()
+    {
+    },
+
+    take_a_photo: function()
+    {
+         // Test meta data
+         testApplication = "Multimedia - Still Camera";
+         testBinary = "declarative camera";
+         testGoal = "Verify that a photo can be taken with the camera.";
+         testPreconditions = "";
+         testGroups = "BAT";
+
+         // Test steps
+         prompt(twiki("---+++ " + testApplication + "<br><br>
+             *Goal:* " + testGoal + "<br>
+             *Pre-Requisites:* " + testPreconditions + "<br>
+             *Tested Binary:* " + testBinary + "<br>
+
+            | *Step* | *Verification* |
+            | Launch " + testBinary + " | App launches normally |
+            | If device has lens cover, make sure it is open | |
+            | Select Image tab to put camera in still mode |  Verify the intended scene is reproduced in the preview pane/viewfinder |
+            | Select Capture Photo | Verify that image is shown on screen for preview |
+            | | Verify that a new file is in the Images folder and accessabble with the image viewer |
+            | Select given image | Verify that it is a true representation of the intended sceen |
+            | | Verify the image has no unintended artifacts and noise and is properly formatted |
+          "));
+    },
+
+change_camera_settings: function()
+{
+     // Test meta data
+     testApplication = "Multimedia - Still Camera";
+     testBinary = "declarative camera";
+     testGoal = "Verify that the camera can change its Still Camera settings successfully.";
+     testPreconditions = "";
+     testGroups = "BAT";
+
+     // Test steps
+     prompt(twiki("---+++ " + testApplication + "<br><br>
+         *Goal:* " + testGoal + "<br>
+         *Pre-Requisites:* " + testPreconditions + "<br>
+         *Tested Binary:* " + testBinary + "<br>
+
+        | *Step* | *Verification* |
+        | Launch " + testBinary + " | App launches normally |
+        | If device has lens cover, make sure it is open | |
+        | Select the primary camera device from Menu/Devices | Verify the viewfinder is displaying the scene from the main camera device |
+        | Select Capture Photo | Verify that a photo was taken and that a preview image is shown on screen |
+        | Select the secandary camera device from Menu/Devices | Verify the viewfinder is displaying the scene from the secondary camera device |
+        | Select Capture Photo | Verify that a photo was taken from the secondary camera device and that a preview image is shown on screen |
+        | Change Exposure Compensatioin on the slider in the main UI | Verify that the change in value affects the picture qwality in expected fashion |
+        | Select Settings/File/Setrtings | Verify that you have an option to change Image Resolution, Image Format and Quality |
+        | Change Image Resolution to another supported resolution | Verify that you can take stills with various resolutions |
+        | Selct Flash always on from the setitngs menu | Verify that when photo is taken, the flash is always triggered |
+        | Select No Flash on from the menu | Verify that despite the lack of natural light, the flash will not trigger when taking photos |
+        | Change Image Format to another supported format | Verify that you can take stills with various Image Formats |
+        | Sellect Settings/Device/Secondary Device | Verify that you can see the view from the Front Facing Camera on the viewfinder |
+        |  | Varify that you can take still images from the Front Facing Camera |
+        | Select Settings/File/Exit | Verify that the application has now closed |
+
+      "));
+},
+
+    take_a_video: function()
+    {
+        // Test meta data
+         testApplication = "Multimedia - Video Camera";
+         testBinary = "camera";
+        testGoal = "Verify that the camera can capture and save an audio/video file.";
+        testPreconditions = "";
+        testGroups = "BAT";
+
+        // Test steps
+        prompt(twiki("---+++ " + testApplication + "<br><br>
+             *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+            | *Step* | *Verification* |
+            | Launch " + testBinary + " | App launches normally |
+            | If device has lens cover, make sure it is open | |
+            | Select Video tab to put camera in video mode |  Verify the intended scene is reproduced in the preview/viewfinder |
+            | Select Record Video | Verify that video is shown on screen for preview |
+            | Select Pause | Verify that the Recorded counter has stopped |
+            | Select Record again | Verify that the Recorded counter has continued counting |
+            | Select Stop | Verify that the recording has now stopped |
+            | | Verify that a new file is in the Images folder and accessabble with the player |
+            | Select given video | Verify that it is a true representation of the intended sceen |
+            |  | Verify that the Pause in the recording has happened and that recording continued without an issue after that |
+            | | Verify the image has no unintended artifacts and noise and is properly formatted |
+        "));
+    },
+
+    change_video_settings: function()
+    {
+        // Test meta data
+        testApplication = "Multimedia - Video Camera";
+        testBinary = "camera";
+        testGoal = "Verify that the camera can change its Video settings successfully.";
+        testPreconditions = "";
+        testGroups = "BAT";
+
+        // Test steps
+        prompt(twiki("---+++ " + testApplication + "<br><br>
+             *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+            | *Step* | *Verification* |
+            | Launch " + testBinary + " | App launches normally |
+            | If device has lens cover, make sure it is open | |
+            | Select Video tab to put camera in video mode |  Verify the intended scene is reproduced in the preview/viewfinder |
+            | In the Menu Bar, select Settings/Devices | Verify that you can select Primay and Secondary Camera on Device |
+            | Select Secondary Camera | Verify that devise is now showing video stram from Front Facing camera |
+            | Select Settings/File/Settings | Verify that you now have otion to select Audio Codecs, Resolution Sample Rate, Framerate, Quality, Video Codecs and Container Format |
+            | Change Audio Codecs to another supported Codecs | Verify that camera can record |
+            | Change Resolutiuon to another supported Resolution | Verify that camera can record |
+            | Change Sample Rate to another supported Sample Rate | Verify that camera can record |
+            | Change Framerate to another supported Framerate | Verify that camera can record |
+            | Change Quality | Verify that camera can record |
+            | Change Video Codecs to another supported Video Codecs | Verify that camera can record |
+            | Change Container Format | Verify that camera can record |
+            | Change Quality | Verify that camera can record |
+        "));
+    },
+
+
+
+
+
+
+}
