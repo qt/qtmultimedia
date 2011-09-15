@@ -1,0 +1,295 @@
+/****************************************************************************
+**
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the Qt Mobility Components.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+//TESTED_COMPONENT=src/multimedia
+
+testcase = {
+
+/* Notes
+Ensure 2 test .mp3 file available on device
+Ensure 2 test .wav file available on device
+Ensure a valid m3u file referring to locations where indicated media is available on the device
+Ensure the device can ping destinations on the network (if applicable)
+Have an audio stream url available (e.g. http://202.6.74.107:8060/triplej.mp3 for example)
+Ensure access to Internet available to device either via 3G and WiFi
+SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
+*/
+    initTestCase: function()
+    {
+    },
+
+    play_an_audio_file_data: {
+        mp3:[".mp3", "filename", "mpeg audio layer 3"],
+        wav:[".wav", "filename", "waveform audio"]
+    },
+
+    play_an_audio_file: function(extension, filename, format)
+    {
+        // Test meta data
+        testApplication = "Multimedia - Play Audio File";
+        testBinary = "player";
+        testGoal = "Verify that Audio files can be played.";
+        testPreconditions = "Audio files in " + extension + " format are available on device.";
+        testGroups = "BAT";
+
+        // Test steps
+        prompt(twiki("---+++ " + testApplication + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Select [Open] | |
+           | Click Open, then select desired "+filename+extension+" file to return to player UI | Verify selected file has populated playlist window |
+           | Highlight file in playlist window by clicking on it | |
+           | Select [Play] | Verify that the " + format + " file is audible on device |
+         "));
+    },
+
+    basic_player_controls_for_audio_data: {
+        mp3:[".mp3", "filename", "mpeg audio layer 3"],
+    },
+
+    basic_player_controls_for_audio: function(extension, filename, format)
+    {
+         // Test meta data
+         testApplication = "Multimedia - Audio Player Controls";
+         testBinary = "player";
+         testGoal = "Verify basic API for controling audio playback ";
+         testPreconditions = "a test "+extension+" file is available on device";
+         testGroups = "BAT";
+
+         // Test steps
+         prompt(twiki("---+++ " + testApplication + "<br><br>
+             *Goal:* " + testGoal + "<br>
+             *Pre-Requisites:* " + testPreconditions + "<br>
+             *Tested Binary:* " + testBinary + "<br>
+
+            | *Step* | *Verification* |
+            | Launch " + testBinary + " | App launches normally |
+            | Select Open | |
+            | In [Open Files] either double click the desired "+filename+extension+" or highlight and click Open to be returned to the player UI | |
+            | Highlight and click Play or doubleclick to play the file | Verify that file plays properly from the start |
+            | | Verify that the correct track details are displayed on the application title bar |
+            | Select [Pause] | Verify that file has paused |
+            | | Verify that [Pause] icon has now changed to a [Play] icon |
+            | Select [Play] | Verify that file continues to play properly from where previously paused. |
+            | | Verify that [Play] icon is now a [Pause] icon again |
+            | Select [Next File] control | Verify that next file in playlist is playing from start |
+            | | Verify that the title bar has changed to reflect the seclected audio track |
+            | After some time (10-20 sec) Select [Beginning of File] icon | Verify that current file is being played from start |
+            | Let some arbitrary time pass, then Select [Beginning of File] control twice in quick succession. | Verify that previous file in playlist is playing from start |
+            | Select [Stop] control | Verify that file has stopped playing |
+            | Select [Play] | Verify that file continues to play from start of file. |
+            | Let file play till end | Verify player continues playing the next file in the playlist window |
+            | After some arbitrary time, Select [Stop] | |
+            | Select [Next File] control | Verify that next file in playlist is highlighted |
+            | | Verify that file is not automatically playing |
+            | Select [Beginning of File] control | Verify that previous file in playlist is highlighted |
+            | Select file in playlist | Verify that file plays in player. |
+            | Select number of files greater than can be displayed without scrolling in to playlist | Verify that list can be scrolled through |
+            | With file playing, verify that hardware keys can change volume up and down | |
+            | With file playing, verify that UI volume control slider can change volume up and down | |
+            | Select volume at 50% (or thereabout) | |
+            | Select [Mute] | Verify that sound is muted while file is playing |
+            | | Verify that [Mute] control is displaying the Muted icon |
+            | Select [Mute] control again | Verify that sound has reverted back to level selected prior to muting |
+            | Click on Full Screen | Verify that nothing happens when playing an audio file |
+            | Click Color Option | Verify that this has no effect when playing an audio file |
+         "));
+
+    },
+
+    seek_controls_for_audio_data: {
+        mp3:[".mp3", "filename", "mpeg audio layer 3"],
+    },
+
+    seek_controls_for_audio: function(extension, filename, format)
+    {
+         // Test meta data
+         testApplication = "Multimedia - Audio Seek Controls";
+         testBinary = "player";
+         testGoal = "Verify FastForward and Rewind functionality of the API";
+         testPreconditions = "a test "+extension+" file is available on device";
+         testGroups = "BAT";
+
+         // Test steps
+         prompt(twiki("---+++ " + testApplication + "<br><br>
+             *Goal:* " + testGoal + "<br>
+             *Pre-Requisites:* " + testPreconditions + "<br>
+             *Tested Binary:* " + testBinary + "<br>
+
+            | *Step* | *Verification* |
+            | Launch " + testBinary + " | App launches normally |
+            | Select [Open] | |
+            | In [Open File] select the "+filename+extension+" file to return to player UI | |
+            | Select [Play] to play the file | |
+            | Click on the [1.0x] (Multiplier) dropbox and select 2.0x | Verify that file is playing at double speed |
+            | With multiplier control set on [2.0], select a new file from the playlist window | Verify that the  Multiplier control has reverted back to [1.0x] |
+            | | Verify that the audio is playing at normal speed |
+            | Click on the [Multiplier] control and select 0.5x | Verify that file is playing at half speed |
+            | With multiplier control set on [0.5], select a new file from the playlist window | Verify that the  Multiplier control has reverted back to [1.0x] |
+            | | Verify that the audio is playing at normal speed |
+            | Drag positional slider to right, then release | Verify that player continues to play file at later part of file |
+            | Drag positional slider to left, then release | Verify that player continues to play file at earlier part of file |
+            | Click on the [1.0x] (Multiplier) dropbox and select 2.0x | Verify that file is playing at double speed |
+            | Drag positional slider to right, then release | Verify that player continues to play file at later part of file at double speed |
+            | Drag positional slider to left, then release | Verify that player continues to play file at earlier part of file at double speed |
+            | Click on the Multiplier dropbox and select 0.5x | Verify that file is playing at half the speed |
+            | Drag positional slider to right, then release | Verify that player continues to play file at later part of file at half speed |
+            | Drag positional slider to left, then release | Verify that player continues to play file at earlier part of file at half speed |
+      "));
+    },
+
+
+
+    basic_controls_for_streamed_audio_content: function()
+    {
+
+//*Note* For this test you need a playlist of streaming media urls. Suggest: http://202.6.74.107:8060/triplej.mp3 ; http://www.abc.net.au/streaming/triplej.asx ; rtsp://media1.abc.net.au/broadcast/triplej.rm ; mms://media3.abc.net.au/triplej ; depending on your platform and backend support.
+
+       // Test meta data
+       testApplication = "Multimedia - Content Streaming";
+       testBinary = "player";
+       testGoal = "Verify playback of streaming audio media";
+       testPreconditions = "";
+       testGroups = "BAT";
+
+       // Test steps
+       prompt(twiki("---+++ " + testApplication + "<br><br>
+           *Goal:* " + testGoal + "<br>
+           *Pre-Requisites:* " + testPreconditions + "<br>
+           *Tested Binary:* " + testBinary + "<br>
+
+          | *Step* | *Verification* |
+          | Launch " + testBinary + " | App launches normally |
+          | In player application, Select or Tap [Open] | |
+          | In [Open File] navigate and highlight test (streaming) playlist file | |
+          | Select or Tap on selected file to return to player UI | Verify selected file has populated playlist |
+          | Highlight file in playlist by selecting or clicking it | |
+          | Select [Play] | Verify that stream is playing on device |
+          | Select [Pause] | Verify that stream is paused on device |
+          | | Verify that the [Pause] button has changed to a [Play] button |
+          | Select [Play] again | Verify that stream is playing on device |
+          | Select [Stop] | |
+          | Open local mp3 file in to play list and select it to play | Verify that the mp3 plays while the stream name is still present in the playlist |
+          | Re-select the stream in the playlist | Verify that the stream starts playing again |
+          | Select [Next File] | Verify that the player started playing the next file in the playlist |
+          | Select [Previous File] | Verify that the original stream is playing again |
+          | During stream playback, have headphones connected to device | Verify that the sound is now playing through the headphones |
+          | Invoke a system notification on the device (such as an incoming SMS) | Verify that the device correctly transmits the audible system notification through the devices speakers and then returns to playing the stream through the headphones |
+        "));
+    },
+
+    record_an_audio_file: function()
+    {
+
+      // Test meta data
+      testApplication = "Multimedia - Recording Audio";
+      testBinary = "audiorecorder";
+      testGoal = "Verify that audio can be recorded.";
+      testPreconditions = "";
+      testGroups = "BAT";
+
+      // Test steps
+      prompt(twiki("---+++ " + testApplication + "<br><br>
+          *Goal:* " + testGoal + "<br>
+          *Pre-Requisites:* " + testPreconditions + "<br>
+          *Tested Binary:* " + testBinary + "<br>
+
+         | *Step* | *Verification* |
+         | Launch " + testBinary + " | App launches normally |
+         | Select Input Device | |
+         | Select Audio Codec | |
+         | Select File Container | |
+         | Select Sample Rate | |
+         | Select Quality and Bitrate | |
+         | Select Output... and select location and name of output file | |
+         | Select Record | Verify that [Record] button has changed in to [Stop] |
+         | | Verify that Duration is counting seconds |
+         | | Verify that Recording is displayed |
+         | Select Stop | Verify that Duration is now 0 |
+         | Select Output File in file browser | Verify that an audio file has been generated |
+         | Play output file in media player | Verify that audible audio is recorded in file |
+        "));
+    },
+
+pause_recording_an_audio_file: function()
+    {
+
+      // Test meta data
+      testApplication = "Multimedia - Pause Recording Audio";
+      testBinary = "audiorecorder";
+      testGoal = "Verify API to be able to pause audio recording without unwanted artifacts.";
+      testPreconditions = "";
+      testGroups = "BAT";
+
+      // Test steps
+      prompt(twiki("---+++ " + testApplication + "<br><br>
+          *Goal:* " + testGoal + "<br>
+          *Pre-Requisites:* " + testPreconditions + "<br>
+          *Tested Binary:* " + testBinary + "<br>
+
+         | *Step* | *Verification* |
+         | Launch " + testBinary + " | App launches normally |
+         | Select Input Device | |
+         | Select Audio Codec | |
+         | Select File Container | |
+         | Select Sample Rate | |
+         | Select Quality and Bitrate | |
+         | Select Output... and select location and name of output file | |
+         | Select Record | Verify that [Record] button has changed in to [Stop] |
+         | | Verify that Duration is counting seconds |
+         | | Verify that Recording is displayed |
+         | Speak in to the microphone. Suggest counting from 1 to 5 | |
+         | Select Pause | Verify that instead of Duration, Paused is displayed |
+         | Keep speaking in to microfon, continue counting from 6 to 10 | |
+         | Select Resume | Verify that the counter has resumed the seconds count from where it was previously paused. |
+         | Continue counting from 11 to 15 in to the microphone | |
+         | After a arbitrary time, Stop the recording. | |
+         | Select Output File in file browser | Verify that an audio file has been generated |
+         | Play output file in media player | Verify that audible audio is recorded in file and that audio is only recorded for period that Pause was not selected |
+         | | Verify that the recording reproduces the counting from 1 to 5 then continues from 11 to 15 and that the counting from 6 - 10 is not recorded |
+         | | Verify there is no audible artifact that separates the two or more recording periods, that is that the joint is seamless |
+        "));
+    },
+}
