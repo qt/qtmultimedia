@@ -7,3 +7,4 @@ SOURCES += tst_qvideowidget.cpp
 
 # QPA seems to break some assumptions
 qpa:CONFIG += insignificant_test
+QT+=widgets

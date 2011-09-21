@@ -7,3 +7,4 @@ SOURCES += tst_qgraphicsvideoitem.cpp
 
 # QPA minimal crashes with this test in QBackingStore
 qpa:CONFIG += insignificant_test
+QT+=widgets

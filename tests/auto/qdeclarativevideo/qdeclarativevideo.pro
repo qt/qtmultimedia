@@ -14,3 +14,4 @@ SOURCES += \
         $$QT.multimediakit.sources/../imports/multimedia/qdeclarativemediabase.cpp
 
 INCLUDEPATH += $$QT.multimediakit.sources/../imports/multimedia
+QT+=widgets

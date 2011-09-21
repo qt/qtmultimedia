@@ -13,3 +13,4 @@ RESOURCES += \
 wince* {
     !contains(QT_CONFIG, no-jpeg): DEPLOYMENT_PLUGIN += qjpeg
 }
+QT+=widgets

@@ -14,3 +14,4 @@ SOURCES += tst_qpaintervideosurface.cpp
 
 # QPA-minimal and OpenGL don't get along
 qpa:CONFIG += insignificant_test
+QT+=widgets

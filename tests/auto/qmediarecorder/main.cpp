@@ -45,7 +45,7 @@
 
 int main(int argc, char**argv)
 {
-    QApplication app(argc,argv);
+    QCoreApplication app(argc,argv);
     int ret;
     tst_QMediaRecorder test_api;
     ret = QTest::qExec(&test_api, argc, argv);

@@ -38,7 +38,7 @@
  **
  ****************************************************************************/
 
-#include <QApplication>
+#include <QGuiApplication>
 
 #include <qdeclarative.h>
 #include <qsgview.h>
@@ -46,7 +46,7 @@
 
 int main(int argc, char ** argv)
 {
-    QApplication app(argc, argv);
+    QGuiApplication app(argc, argv);
 
     QSGView view;
 
