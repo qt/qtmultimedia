@@ -61,7 +61,12 @@
 #include <qabstractvideosurface.h>
 #include <qvideoframe.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QGLContext;
 QT_END_NAMESPACE
 
@@ -179,5 +184,8 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QPainterVideoSurface::ShaderTypes)
 #endif
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif

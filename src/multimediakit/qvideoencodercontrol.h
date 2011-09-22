@@ -48,7 +48,12 @@
 #include <QtCore/qpair.h>
 #include <QtCore/qsize.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QByteArray;
 class QStringList;
 QT_END_NAMESPACE
@@ -86,5 +91,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QVideoEncoderControl, QVideoEncoderControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif

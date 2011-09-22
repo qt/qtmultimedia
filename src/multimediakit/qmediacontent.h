@@ -50,7 +50,12 @@
 #include <qtmultimediakitdefs.h>
 
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QMediaContentPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaContent
@@ -85,6 +90,6 @@ QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QMediaContent)
 
-
+QT_END_HEADER
 
 #endif  // QMEDIACONTENT_H

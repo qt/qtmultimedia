@@ -58,6 +58,9 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
+QT_MODULE(Multimedia)
+
+
 struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface : public QFactoryInterface
 {
     virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;

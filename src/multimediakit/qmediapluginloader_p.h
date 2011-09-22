@@ -60,7 +60,12 @@
 #include <QtCore/qmap.h>
 
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QMediaServiceProviderPlugin;
 
@@ -87,5 +92,8 @@ private:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QMEDIAPLUGINLOADER_H

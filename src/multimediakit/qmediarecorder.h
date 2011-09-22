@@ -50,7 +50,12 @@
 
 #include <QtCore/qpair.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QUrl;
 class QSize;
 class QAudioFormat;
@@ -186,5 +191,7 @@ Q_DECLARE_METATYPE(QMediaRecorder::Error)
 
 Q_MEDIA_ENUM_DEBUG(QMediaRecorder, State)
 Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Error)
+
+QT_END_HEADER
 
 #endif  // QMEDIARECORDER_H

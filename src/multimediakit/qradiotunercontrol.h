@@ -45,7 +45,12 @@
 #include "qmediacontrol.h"
 #include "qradiotuner.h"
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class Q_MULTIMEDIA_EXPORT QRadioTunerControl : public QMediaControl
 {
@@ -111,5 +116,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QRadioTunerControl, QRadioTunerControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QRADIOTUNERCONTROL_H

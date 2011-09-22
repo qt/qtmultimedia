@@ -72,6 +72,9 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
+QT_MODULE(Multimedia)
+
+
 class QTimer;
 class QIODevice;
 class QAbstractAudioDeviceInfo;

@@ -45,7 +45,12 @@
 
 #include "qmediacontrol.h"
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class Q_MULTIMEDIA_EXPORT QMediaContainerControl : public QMediaControl
 {
@@ -68,5 +73,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaContainerControl, QMediaContainerControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QMEDIACONTAINERCONTROL_H

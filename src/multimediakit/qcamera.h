@@ -59,7 +59,12 @@
 #include <qmediaserviceprovider.h>
 #include <qmediaenumdebug.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QAbstractVideoSurface;
 class QVideoWidget;
@@ -227,5 +232,7 @@ Q_MEDIA_ENUM_DEBUG(QCamera, CaptureMode)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockType)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockStatus)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockChangeReason)
+
+QT_END_HEADER
 
 #endif  // QCAMERA_H

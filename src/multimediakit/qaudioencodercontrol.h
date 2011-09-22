@@ -47,7 +47,12 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qpair.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QStringList;
 class QAudioFormat;
 QT_END_NAMESPACE
@@ -83,5 +88,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QAudioEncoderControl, QAudioEncoderControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QAUDIOCAPTUREPROPERTIESCONTROL_H

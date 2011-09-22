@@ -48,7 +48,12 @@
 #include <QtCore/qlist.h>
 #include <QtNetwork/qnetworkconfiguration.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class Q_MULTIMEDIA_EXPORT QMediaNetworkAccessControl : public QMediaControl
 {
@@ -71,5 +76,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaNetworkAccessControl, QMediaNetworkAccessControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif

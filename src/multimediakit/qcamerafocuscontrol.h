@@ -47,7 +47,12 @@
 
 #include <qcamerafocus.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class Q_MULTIMEDIA_EXPORT QCameraFocusControl : public QMediaControl
 {
@@ -90,6 +95,9 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QCameraFocusControl, QCameraFocusControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QCAMERAFOCUSCONTROL_H
 

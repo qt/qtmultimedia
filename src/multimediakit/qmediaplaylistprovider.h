@@ -47,7 +47,12 @@
 #include "qmediacontent.h"
 #include "qmediaplaylist.h"
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QString;
 QT_END_NAMESPACE
 
@@ -103,5 +108,8 @@ private:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QMEDIAPLAYLISTPROVIDER_H

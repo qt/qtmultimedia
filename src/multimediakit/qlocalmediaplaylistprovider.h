@@ -44,7 +44,12 @@
 
 #include "qmediaplaylistprovider.h"
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QLocalMediaPlaylistProviderPrivate;
 class Q_MULTIMEDIA_EXPORT QLocalMediaPlaylistProvider : public QMediaPlaylistProvider
@@ -75,5 +80,8 @@ private:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QLOCALMEDIAPAYLISTSOURCE_H

@@ -48,7 +48,12 @@
 
 #include <qtmultimediakitdefs.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class Q_MULTIMEDIA_EXPORT QMediaResource
 {
@@ -124,5 +129,6 @@ QT_END_NAMESPACE
 Q_DECLARE_METATYPE(QMediaResource)
 Q_DECLARE_METATYPE(QMediaResourceList)
 
+QT_END_HEADER
 
 #endif

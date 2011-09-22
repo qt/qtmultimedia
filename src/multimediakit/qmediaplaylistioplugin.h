@@ -50,7 +50,12 @@
 
 #include "qmediacontent.h"
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QString;
 class QUrl;
 class QByteArray;
@@ -114,5 +119,8 @@ public:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QMEDIAPLAYLISTIOPLUGIN_H

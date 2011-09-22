@@ -50,7 +50,12 @@
 #include <qtmultimediakitdefs.h>
 #include "qtmedianamespace.h"
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 
 class Q_MULTIMEDIA_EXPORT QMetaDataWriterControl : public QMediaControl
@@ -85,5 +90,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMetaDataWriterControl, QMetaDataWriterControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif

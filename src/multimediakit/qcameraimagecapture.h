@@ -49,7 +49,12 @@
 
 #include <qmediaenumdebug.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QSize;
 QT_END_NAMESPACE
 
@@ -158,6 +163,8 @@ Q_DECLARE_METATYPE(QCameraImageCapture::CaptureDestinations)
 
 Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, Error)
 Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, CaptureDestination)
+
+QT_END_HEADER
 
 #endif
 

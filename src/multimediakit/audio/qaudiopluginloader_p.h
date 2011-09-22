@@ -61,7 +61,12 @@
 #include <QtCore/qpluginloader.h>
 
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QAudioPluginLoader
 {
@@ -88,5 +93,8 @@ private:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QAUDIOPLUGINLOADER_H

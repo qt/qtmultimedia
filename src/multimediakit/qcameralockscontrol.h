@@ -47,7 +47,12 @@
 
 #include <qcamera.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class Q_MULTIMEDIA_EXPORT QCameraLocksControl : public QMediaControl
 {
@@ -73,6 +78,9 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QCameraLocksControl, QCameraLocksControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QCAMERALOCKSCONTROL_H
 

@@ -46,7 +46,12 @@
 #include "qtmedianamespace.h"
 #include <QtCore/qshareddata.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QMediaTimeRangePrivate;
 
@@ -128,5 +133,8 @@ Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QMediaTimeRange &);
 #endif
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QMEDIATIMERANGE_H

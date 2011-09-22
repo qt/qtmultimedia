@@ -60,7 +60,12 @@
 #include <qtmedianamespace.h>
 
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QAbstractVideoBufferPrivate
 {
@@ -76,5 +81,8 @@ public:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif

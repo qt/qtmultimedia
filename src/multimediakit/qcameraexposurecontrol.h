@@ -49,7 +49,12 @@
 #include <qcamera.h>
 #include <qmediaenumdebug.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class Q_MULTIMEDIA_EXPORT QCameraExposureControl : public QMediaControl
 {
@@ -111,6 +116,9 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraExposureControl::ParameterFlags)
 Q_MEDIA_ENUM_DEBUG(QCameraExposureControl, ExposureParameter)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QCAMERAEXPOSURECONTROL_H
 

@@ -45,7 +45,12 @@
 #include <qmediacontrol.h>
 #include <qcameraimagecapture.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QImage;
 QT_END_NAMESPACE
 
@@ -86,6 +91,9 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QCameraImageCaptureControl, QCameraImageCaptureControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QCAMERAIMAGECAPTURECONTROL_H
 

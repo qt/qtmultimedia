@@ -50,7 +50,12 @@
 
 #include <QPair>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QRadioTunerPrivate;
 class Q_MULTIMEDIA_EXPORT QRadioTuner : public QMediaObject
@@ -147,5 +152,7 @@ Q_MEDIA_ENUM_DEBUG(QRadioTuner, State)
 Q_MEDIA_ENUM_DEBUG(QRadioTuner, Band)
 Q_MEDIA_ENUM_DEBUG(QRadioTuner, Error)
 Q_MEDIA_ENUM_DEBUG(QRadioTuner, StereoMode)
+
+QT_END_HEADER
 
 #endif  // QRADIOPLAYER_H

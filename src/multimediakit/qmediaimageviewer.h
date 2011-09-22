@@ -46,7 +46,12 @@
 #include "qmediacontent.h"
 #include <qmediaenumdebug.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QAbstractVideoSurface;
 class QGraphicsVideoItem;
@@ -131,5 +136,7 @@ Q_DECLARE_METATYPE(QMediaImageViewer::MediaStatus)
 
 Q_MEDIA_ENUM_DEBUG(QMediaImageViewer, State)
 Q_MEDIA_ENUM_DEBUG(QMediaImageViewer, MediaStatus)
+
+QT_END_HEADER
 
 #endif

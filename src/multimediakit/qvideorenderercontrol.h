@@ -44,7 +44,12 @@
 
 #include "qmediacontrol.h"
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 class QAbstractVideoSurface;
 QT_END_NAMESPACE
 
@@ -69,5 +74,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QVideoRendererControl, QVideoRendererControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QVIDEORENDERERCONTROL_H

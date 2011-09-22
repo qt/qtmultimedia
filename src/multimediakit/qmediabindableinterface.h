@@ -44,7 +44,12 @@
 
 #include <qmediaobject.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QMediaObject;
 
@@ -65,5 +70,8 @@ protected:
 Q_DECLARE_INTERFACE(QMediaBindableInterface, QMediaBindableInterface_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif  // QMEDIABINDABLEINTERFACE_H

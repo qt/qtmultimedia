@@ -51,6 +51,9 @@
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 //QTM_SYNC_HEADER_EXPORT QAudio
 
 namespace QAudio

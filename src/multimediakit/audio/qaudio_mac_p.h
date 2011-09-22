@@ -65,6 +65,9 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
+QT_MODULE(Multimedia)
+
+
 
 extern QDebug operator<<(QDebug dbg, const QAudioFormat& audioFormat);
 

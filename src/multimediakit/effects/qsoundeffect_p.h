@@ -63,6 +63,9 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
+QT_MODULE(Multimedia)
+
+
 class QSoundEffectPrivate;
 
 class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject

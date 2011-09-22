@@ -46,7 +46,12 @@
 #include "qmediaplaylist.h"
 #include <QtCore/qobject.h>
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QMediaPlaylistNavigatorPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlaylistNavigator : public QObject
@@ -103,5 +108,8 @@ private:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QMEDIAPLAYLISTNAVIGATOR_H

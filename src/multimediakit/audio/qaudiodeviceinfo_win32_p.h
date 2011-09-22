@@ -63,7 +63,12 @@
 #include <qaudiosystem.h>
 
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 const unsigned int MAX_SAMPLE_RATES = 5;
 const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
@@ -108,5 +113,8 @@ private:
 };
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif

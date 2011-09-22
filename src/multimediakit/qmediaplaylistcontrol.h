@@ -47,7 +47,12 @@
 #include "qmediaplaylistnavigator.h"
 
 
+QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
 
 class QMediaPlaylistProvider;
 
@@ -86,5 +91,8 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaPlaylistControl, QMediaPlaylistControl_iid)
 
 QT_END_NAMESPACE
+
+QT_END_HEADER
+
 
 #endif // QMEDIAPLAYLISTCONTROL_H
