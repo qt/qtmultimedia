@@ -42,6 +42,9 @@
 
 #include <QtDeclarative/qsgtexture.h>
 
+#include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLFunctions>
+
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_RGB32::supportedPixelFormats(
                                     QAbstractVideoBuffer::HandleType handleType) const
 {
@@ -101,7 +104,7 @@ void QSGVideoTexture_RGB32::bind()
         }
 
         if (m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
-            QGLFunctions *functions = QGLContext::currentContext()->functions();
+            QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
             const uchar *bits = m_frame.bits();
             functions->glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, m_textureId);

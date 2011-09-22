@@ -255,7 +255,7 @@ void QSGVideoNode_I420::setCurrentFrame(const QVideoFrame &frame)
 
 void QSGVideoNode_I420::bindTexture(int id, int unit, int w, int h, const uchar *bits)
 {
-    QGLFunctions *functions = QGLContext::currentContext()->functions();
+    QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
     functions->glActiveTexture(unit);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, bits);
