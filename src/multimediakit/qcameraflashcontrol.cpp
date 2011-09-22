@@ -60,8 +60,6 @@ QT_BEGIN_NAMESPACE
 
     You can retrieve this control from the camera object in the usual way:
 
-    XXX snippet for retrieving control
-
     Some camera devices may not have flash hardware, or may not be configurable.  In that
     case, there will be no QCameraFlashControl available.
 

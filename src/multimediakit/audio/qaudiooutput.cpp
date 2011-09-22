@@ -58,8 +58,6 @@ QT_BEGIN_NAMESPACE
     \ingroup  multimedia
     \since 1.0
 
-    XXX
-
     You can construct an audio output with the system's
     \l{QAudioDeviceInfo::defaultOutputDevice()}{default audio output
     device}. It is also possible to create QAudioOutput with a
@@ -148,7 +146,7 @@ QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioForm
 /*!
     Destroys this audio output.
 
-    XXX This will release any system resources used and free any buffers.
+    This will release any system resources used and free any buffers.
 */
 QAudioOutput::~QAudioOutput()
 {
@@ -207,7 +205,6 @@ QIODevice* QAudioOutput::start()
 /*!
     Stops the audio output, detaching from the system resource.
 
-    XXX
     Sets error() to QAudio::NoError, state() to QAudio::StoppedState and
     emit stateChanged() signal.
     \since 1.0
@@ -220,7 +217,6 @@ void QAudioOutput::stop()
 /*!
     Drops all audio data in the buffers, resets buffers to zero.
 
-    XXX what about state
     \since 1.0
 */
 void QAudioOutput::reset()
@@ -230,8 +226,6 @@ void QAudioOutput::reset()
 
 /*!
     Stops processing audio data, preserving buffered audio data.
-
-    XXX
 
     Sets error() to QAudio::NoError, state() to QAudio::SuspendedState and
     emits stateChanged() signal.
@@ -244,8 +238,6 @@ void QAudioOutput::suspend()
 
 /*!
     Resumes processing audio data after a suspend().
-
-XXX
 
     Sets error() to QAudio::NoError.
     Sets state() to QAudio::ActiveState if you previously called start(QIODevice*).

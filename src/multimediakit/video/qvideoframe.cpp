@@ -120,8 +120,6 @@ private:
 
     A QVideoFrame encapsulates the data of a video frame, and information about the frame.
 
-    XXX why do I care
-
     The contents of a video frame can be mapped to memory using the map() function.  While
     mapped, the video data can accessed using the bits() function, which returns a pointer to a
     buffer.  The total size of this buffer is given by the mappedBytes() function, and the size of each line is given
@@ -133,8 +131,6 @@ private:
 
     \note QVideoFrame is explicitly shared, any change made to video frame will also apply to any
     copies.
-
-    XXX example
 */
 
 /*!
@@ -343,8 +339,6 @@ QVideoFrame::QVideoFrame(const QImage &image)
 /*!
     Constructs a copy of \a other.
 
-    XXX reference count
-
     \since 1.0
 */
 QVideoFrame::QVideoFrame(const QVideoFrame &other)
@@ -365,8 +359,6 @@ QVideoFrame &QVideoFrame::operator =(const QVideoFrame &other)
 
 /*!
     Destroys a video frame.
-
-    XXX reference count
 */
 QVideoFrame::~QVideoFrame()
 {
@@ -396,8 +388,6 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormat() const
 
 /*!
     Returns the type of a video frame's handle.
-
-    XXX What about it?
 
     \since 1.0
 */
@@ -536,8 +526,6 @@ QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
 
     Returns true if the buffer was mapped to memory in the given \a mode and false otherwise.
 
-    XXX examples and why do I care
-
     \since 1.0
     \sa unmap(), mapMode(), bits()
 */
@@ -580,8 +568,6 @@ void QVideoFrame::unmap()
 
     \note This is the bytes per line of the first plane only.  The bytes per line of subsequent
     planes should be calculated as per the frame type.
-
-    XXX examples of these calculations
 
     This value is only valid while the frame data is \l {map()}{mapped}.
 
@@ -643,8 +629,6 @@ int QVideoFrame::mappedBytes() const
 
     For an OpenGL texture this would be the texture ID.
 
-    XXX Perhaps a table with corresondence
-
     \since 1.0
     \sa QAbstractVideoBuffer::handle()
 */
@@ -674,7 +658,6 @@ void QVideoFrame::setStartTime(qint64 time)
 /*!
     Returns the presentation time when a frame should stop being displayed.
 
-    XXX example? if start=end what happens?
     \since 1.0
 */
 qint64 QVideoFrame::endTime() const

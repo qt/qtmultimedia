@@ -55,8 +55,6 @@ QT_BEGIN_NAMESPACE
     endpoints available on a system and allows one to be selected as the audio
     of a media service.
 
-    XXX why do I care
-
     The interface name of QAudioEndpointSelector is \c com.nokia.Qt.QAudioEndpointSelector/1.0 as
     defined in QAudioEndpointSelector_iid.
 

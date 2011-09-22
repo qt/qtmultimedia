@@ -57,12 +57,6 @@ QT_BEGIN_NAMESPACE
     \ingroup  multimedia
     \since 1.0
 
-    XXX Needs more blurb about use cases etc
-    Link to terminology etc
-    Push/Pull mode
-    State diagram
-
-
     You can construct an audio input with the system's
     \l{QAudioDeviceInfo::defaultInputDevice()}{default audio input
     device}. It is also possible to create QAudioInput with a

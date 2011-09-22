@@ -32,15 +32,6 @@
     APIs to play and record media, and manage a collection of media content.
 */
 
-// XXX title sucks
-// XXX move backend stuff away
-// XXX move QML stuff up
-// XXX more introductory material
-// XXX terminology
-// XXX separate pages for audio, video, camera, radio, metadata
-// control, mediaobject etc stuff
-// symbian/harmattan specific pages
-
 /*!
 
 \page multimedia.html

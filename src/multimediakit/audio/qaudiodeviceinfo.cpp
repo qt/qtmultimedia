@@ -188,8 +188,6 @@ bool QAudioDeviceInfo::isNull() const
 
     Device names vary depending on the platform/audio plugin being used.
 
-    XXX
-
     They are a unique string identifier for the audio device.
 
     eg. default, Intel, U0x46d0x9a4

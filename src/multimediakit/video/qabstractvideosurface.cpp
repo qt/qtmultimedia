@@ -61,8 +61,6 @@ Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
     A video surface presents a continuous stream of identically formatted frames, where the format
     of each frame is compatible with a stream format supplied when starting a presentation.
 
-    XXX Why do I carE?
-
     The QAbstractVideoSurface class defines the standard interface that video producers use to
     inter-operate with video presentation surfaces.  It is not supposed to be instantiated directly.
     Instead, you should subclass it to create new video surfaces.
@@ -78,8 +76,6 @@ Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
     hold a reference to the buffer of a presented video frame until a new frame is presented or
     streaming is stopped. The stop() function will disable a surface and a release any video
     buffers it holds references to.
-
-    XXX Example?
 */
 
 /*!

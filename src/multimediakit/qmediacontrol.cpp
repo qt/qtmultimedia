@@ -63,8 +63,6 @@ QT_BEGIN_NAMESPACE
     the core functionality of the service and a number of optional controls which
     expose any additional functionality.
 
-    XXX concrete example of this relationship
-
     A pointer to a control implemented by a media service can be obtained using
     the \l {QMediaService::requestControl()} member of QMediaService.  If the
     service doesn't implement a control it will instead return a null pointer.

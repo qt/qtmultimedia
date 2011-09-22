@@ -74,8 +74,6 @@ void QMediaObjectPrivate::_q_notify()
     \ingroup multimedia
     \since 1.0
 
-    XXX why do I care
-
     QMediaObject derived classes provide access to the functionality of a
     QMediaService.  Each media object hosts a QMediaService and uses the
     QMediaControl interfaces implemented by the service to implement its
@@ -155,8 +153,6 @@ void QMediaObject::setNotifyInterval(int milliSeconds)
     Most subclasses of QMediaObject provide more convenient functions
     that wrap this functionality, so this function rarely needs to be
     called directly.
-
-    XXX for example
 
     The object passed must implement the QMediaBindableInterface interface.
 

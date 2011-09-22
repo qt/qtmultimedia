@@ -142,9 +142,6 @@ public:
     A video surface presents a stream of video frames.  The surface's format describes the type of
     the frames and determines how they should be presented.
 
-    XXX Why do I care
-    XXX why isn't it videostreamformat then?
-
     The core properties of a video stream required to setup a video surface are the pixel format
     given by pixelFormat(), and the frame dimensions given by frameSize().
 

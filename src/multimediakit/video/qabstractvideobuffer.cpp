@@ -55,16 +55,12 @@ QT_BEGIN_NAMESPACE
     video data.  Creating a subclass of QAbstractVideoBuffer will allow you to construct video
     frames from preallocated or static buffers.
 
-    XXX where do these come from?
-
     The contents of a buffer can be accessed by mapping the buffer to memory using the map()
     function which returns a pointer to memory containing the contents of the the video buffer.
     The memory returned by map() is released by calling the unmap() function.
 
     The handle() of a buffer may also be used to manipulate its contents using type specific APIs.
     The type of a buffer's handle is given by the handleType() function.
-
-    XXX example of handle stuff (opengl etc)
 
     \sa QVideoFrame
 */
@@ -193,8 +189,6 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
     Returns a type specific handle to the data buffer.
 
     The type of the handle is given by handleType() function.
-
-    XXX put a table here too
 
     \since 1.0
     \sa handleType()
