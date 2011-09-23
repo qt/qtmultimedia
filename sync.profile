@@ -48,4 +48,5 @@
     "gstreamer_photography" => {},
     "gstreamer_appsrc" => {},
     "pulseaudio" => {},
+    "resourcepolicy" => {},
 );

@@ -27,11 +27,16 @@ PKGCONFIG += \
 maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
 contains(config_test_gstreamer_appsrc, yes): PKGCONFIG += gstreamer-app-0.10
 
+contains(config_test_resourcepolicy, yes) {
+    DEFINES += HAVE_RESOURCE_POLICY
+    PKGCONFIG += libresourceqt1
+}
+
 maemo6 {
     HEADERS += camerabuttonlistener_meego.h
     SOURCES += camerabuttonlistener_meego.cpp
 
-    PKGCONFIG += qmsystem2 libresourceqt1
+    PKGCONFIG += qmsystem2
 
     isEqual(QT_ARCH,armv6) {
         HEADERS += qgstreamergltexturerenderer.h

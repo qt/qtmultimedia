@@ -41,10 +41,6 @@
 
 #include "playerresourcepolicy.h"
 
-#ifdef Q_WS_MAEMO_6
-#define HAVE_RESOURCE_POLICY
-#endif
-
 //#define DEBUG_RESOURCE_POLICY
 #include <QtCore/qdebug.h>
 
