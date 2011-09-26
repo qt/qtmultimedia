@@ -55,6 +55,8 @@
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qdebug.h>
 
+QT_BEGIN_HEADER
+
 #ifndef QT_NO_DEBUG_STREAM
 
 #define Q_MEDIA_ENUM_DEBUG(Class,Enum) \
@@ -71,6 +73,7 @@ inline QDebug operator<<(QDebug dbg, Class::Enum value) \
 
 #endif //QT_NO_DEBUG_STREAM
 
+QT_END_HEADER
 
 #endif
 

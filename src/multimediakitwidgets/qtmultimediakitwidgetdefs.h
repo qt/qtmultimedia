@@ -55,6 +55,8 @@
 
 #include <QtCore/qglobal.h>
 
+QT_BEGIN_HEADER
+
 #if defined(Q_OS_WIN)
 #  if defined(QT_NODLL)
 #    undef QT_MAKEDLL
@@ -80,6 +82,8 @@
 #    define Q_MULTIMEDIAWIDGETS_EXPORT
 #  endif
 #endif
+
+QT_END_HEADER
 
 #endif // QMULTIMEDIAKITWIDGETS_P_H
 
