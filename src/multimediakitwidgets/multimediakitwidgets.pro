@@ -3,7 +3,7 @@ load(qt_module)
 # distinct from QtMultimediaKit
 TARGET = QtMultimediaKitWidgets
 QPRO_PWD = $$PWD
-QT = core gui multimediakit-private
+QT = core gui multimediakit-private widgets
 
 CONFIG += module no_private_qt_headers_warning
 MODULE_PRI += ../../modules/qt_multimediakitwidgets.pri
