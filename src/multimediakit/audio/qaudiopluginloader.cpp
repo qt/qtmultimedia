@@ -43,7 +43,6 @@
 #include "qaudiopluginloader_p.h"
 
 #include <QtCore/qcoreapplication.h>
-#include <QtWidgets/qapplication.h>
 #include <QtCore/qpluginloader.h>
 #include <QtCore/qfactoryinterface.h>
 #include <QtCore/qdir.h>
@@ -71,7 +70,7 @@ QStringList QAudioPluginLoader::pluginList() const
     const bool showDebug = qgetenv("QT_DEBUG_PLUGINS").toInt() > 0;
 #endif
 
-    QStringList paths = QApplication::libraryPaths();
+    QStringList paths = QCoreApplication::libraryPaths();
 #ifdef QTM_PLUGIN_PATH
     paths << QLatin1String(QTM_PLUGIN_PATH);
 #endif
