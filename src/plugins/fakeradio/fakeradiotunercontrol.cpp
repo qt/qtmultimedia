@@ -321,7 +321,10 @@ void FakeRadioTunerControl::searchEnded()
         maxFreq = m_currentFreq;
     }
 
-    if ((qreal)(maxFreq - minFreq) / (qreal)(fRange.second - fRange.first) < 0.02) { // don't want to do anything if we have less than 2% of the range to move
+    if ((qreal)(maxFreq - minFreq) / (qreal)(fRange.second - fRange.first) < 0.02) {
+        // don't change frequency if we have less than 2% of the range to scan
+        m_searching = false;
+        emit searchingChanged(m_searching);
         return;
     }
 
