@@ -97,6 +97,9 @@ public:
     QAudio::Error error() const;
     QAudio::State state() const;
 
+    void setVolume(qreal);
+    qreal volume() const;
+
 Q_SIGNALS:
     void stateChanged(QAudio::State);
     void notify();

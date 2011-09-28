@@ -95,6 +95,9 @@ public:
     void setFormat(const QAudioFormat &format);
     QAudioFormat format() const;
 
+    void setVolume(qreal volume);
+    qreal volume() const;
+
 public:
     void streamUnderflowCallback();
 
@@ -129,6 +132,10 @@ private:
     QTime m_timeStamp;
     qint64 m_elapsedTimeOffset;
     bool m_resuming;
+
+    qreal m_volume;
+    pa_cvolume m_chVolume;
+    pa_sample_spec m_spec;
 };
 
 class OutputPrivate : public QIODevice

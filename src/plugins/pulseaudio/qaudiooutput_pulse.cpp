@@ -41,6 +41,7 @@
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qmath.h>
 
 #include "qaudiooutput_pulse.h"
 #include "qaudiodeviceinfo_pulse.h"
@@ -150,6 +151,7 @@ QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
     , m_tickTimer(new QTimer(this))
     , m_audioBuffer(0)
     , m_resuming(false)
+    , m_volume(1.0)
 {
     connect(m_tickTimer, SIGNAL(timeout()), SLOT(userFeed()));
 }
@@ -247,6 +249,7 @@ bool QPulseAudioOutput::open()
         return false;
     }
 
+    m_spec = spec;
     m_totalTimeValue = 0;
     m_elapsedTimeOffset = 0;
     m_timeStamp.restart();
@@ -272,7 +275,16 @@ bool QPulseAudioOutput::open()
     pa_stream_set_overflow_callback(m_stream, outputStreamOverflowCallback, this);
     pa_stream_set_latency_update_callback(m_stream, outputStreamLatencyCallback, this);
 
-    if (pa_stream_connect_playback(m_stream, m_device.data(), NULL, (pa_stream_flags_t)0, NULL, NULL) < 0) {
+    pa_volume_t paVolume;
+    if (qFuzzyCompare(m_volume, 0.0)) {
+        paVolume = PA_VOLUME_MUTED;
+        m_volume = 0.0;
+    } else {
+        paVolume = qFloor(m_volume * PA_VOLUME_NORM + 0.5);
+    }
+    pa_cvolume_set(&m_chVolume, m_spec.channels, paVolume);
+
+    if (pa_stream_connect_playback(m_stream, m_device.data(), NULL, (pa_stream_flags_t)0, &m_chVolume, NULL) < 0) {
         qWarning() << "pa_stream_connect_playback() failed!";
         return false;
     }
@@ -566,6 +578,42 @@ qint64 OutputPrivate::writeData(const char *data, qint64 len)
     }
 
     return written;
+}
+
+void QPulseAudioOutput::setVolume(qreal vol)
+{
+    if (vol >= 0.0 && vol <= 1.0) {
+        if (!qFuzzyCompare(m_volume, vol)) {
+            m_volume = vol;
+            if (m_opened) {
+                QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+                pa_threaded_mainloop_lock(pulseEngine->mainloop());
+                pa_volume_t paVolume;
+                if (qFuzzyCompare(vol, 0.0)) {
+                    pa_cvolume_mute(&m_chVolume, m_spec.channels);
+                    m_volume = 0.0;
+                } else {
+                    paVolume = qFloor(m_volume * PA_VOLUME_NORM + 0.5);
+                    pa_cvolume_set(&m_chVolume, m_spec.channels, paVolume);
+                }
+                pa_operation *op = pa_context_set_sink_input_volume(pulseEngine->context(),
+                        pa_stream_get_index(m_stream),
+                        &m_chVolume,
+                        NULL,
+                        NULL);
+                if (op == NULL)
+                    qWarning()<<"QAudioOutput: Failed to set volume";
+                else
+                    pa_operation_unref(op);
+                pa_threaded_mainloop_unlock(pulseEngine->mainloop());
+            }
+        }
+    }
+}
+
+qreal QPulseAudioOutput::volume() const
+{
+    return m_volume;
 }
 
 QT_END_NAMESPACE

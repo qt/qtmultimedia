@@ -366,6 +366,25 @@ QAudio::State QAudioOutput::state() const
 }
 
 /*!
+    Sets the volume.
+    Where \a volume is between 0.0 and 1.0 inclusive.
+    \since 5.0
+*/
+void QAudioOutput::setVolume(qreal volume)
+{
+    d->setVolume(volume);
+}
+
+/*!
+    Returns the volume between 0.0 and 1.0 inclusive.
+    \since 5.0
+*/
+qreal QAudioOutput::volume() const
+{
+    return d->volume();
+}
+
+/*!
     \fn QAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
     This is the current state of the audio output.

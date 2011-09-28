@@ -248,6 +248,19 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \fn virtual void QAbstractAudioOutput::setVolume(qreal volume)
+    Sets the volume.
+    Where \a volume is between 0.0 and 1.0.
+    \since 5.0
+*/
+
+/*!
+    \fn virtual qreal QAbstractAudioOutput::volume() const
+    Returns the volume in the range 0.0 and 1.0.
+    \since 5.0
+*/
+
+/*!
     \fn QAbstractAudioOutput::errorChanged(QAudio::Error error)
     This signal is emitted when the \a error state has changed.
     \since 1.0
