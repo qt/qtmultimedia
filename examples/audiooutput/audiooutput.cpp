@@ -51,6 +51,7 @@ const QString AudioTest::PushModeLabel(tr("Enable push mode"));
 const QString AudioTest::PullModeLabel(tr("Enable pull mode"));
 const QString AudioTest::SuspendLabel(tr("Suspend playback"));
 const QString AudioTest::ResumeLabel(tr("Resume playback"));
+const QString AudioTest::VolumeLabel(tr("Volume:"));
 
 const int DurationSeconds = 1;
 const int ToneFrequencyHz = 600;
@@ -190,6 +191,18 @@ void AudioTest::initializeWindow()
     connect(m_suspendResumeButton, SIGNAL(clicked()), SLOT(toggleSuspendResume()));
     layout->addWidget(m_suspendResumeButton);
 
+    QHBoxLayout *volumeBox = new QHBoxLayout;
+    m_volumeLabel = new QLabel;
+    m_volumeLabel->setText(VolumeLabel);
+    m_volumeSlider = new QSlider(Qt::Horizontal);
+    m_volumeSlider->setMinimum(0);
+    m_volumeSlider->setMaximum(100);
+    m_volumeSlider->setSingleStep(10);
+    connect(m_volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeChanged(int)));
+    volumeBox->addWidget(m_volumeLabel);
+    volumeBox->addWidget(m_volumeSlider);
+    layout->addLayout(volumeBox);
+
     window->setLayout(layout.data());
     layout.take(); // ownership transferred
 
@@ -231,6 +244,7 @@ void AudioTest::createAudioOutput()
     connect(m_audioOutput, SIGNAL(stateChanged(QAudio::State)), SLOT(stateChanged(QAudio::State)));
     m_generator->start();
     m_audioOutput->start(m_generator);
+    m_volumeSlider->setValue(int(m_audioOutput->volume()*100.0f));
 }
 
 AudioTest::~AudioTest()
@@ -246,6 +260,12 @@ void AudioTest::deviceChanged(int index)
     m_audioOutput->disconnect(this);
     m_device = m_deviceBox->itemData(index).value<QAudioDeviceInfo>();
     createAudioOutput();
+}
+
+void AudioTest::volumeChanged(int value)
+{
+    if (m_audioOutput)
+        m_audioOutput->setVolume(qreal(value/100.0f));
 }
 
 void AudioTest::notified()

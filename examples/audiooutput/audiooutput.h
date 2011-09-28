@@ -45,6 +45,8 @@
 
 #include <QObject>
 #include <QMainWindow>
+#include <QLabel>
+#include <QSlider>
 #include <QIODevice>
 #include <QTimer>
 #include <QPushButton>
@@ -94,6 +96,8 @@ private:
     QPushButton*     m_modeButton;
     QPushButton*     m_suspendResumeButton;
     QComboBox*       m_deviceBox;
+    QLabel*          m_volumeLabel;
+    QSlider*         m_volumeSlider;
 
     QAudioDeviceInfo m_device;
     Generator*       m_generator;
@@ -108,6 +112,7 @@ private:
     static const QString PullModeLabel;
     static const QString SuspendLabel;
     static const QString ResumeLabel;
+    static const QString VolumeLabel;
 
 private slots:
     void notified();
@@ -116,6 +121,7 @@ private slots:
     void toggleSuspendResume();
     void stateChanged(QAudio::State state);
     void deviceChanged(int index);
+    void volumeChanged(int);
 };
 
 #endif
