@@ -129,8 +129,9 @@ public:
 
     inline pa_cvolume * calcVolume(pa_cvolume *dest, int soundEffectVolume)
     {
-        dest->channels = 2;
-        dest->values[0] = dest->values[1] = m_vol * soundEffectVolume / 100;
+        pa_volume_t v = m_vol * soundEffectVolume / 100;
+        for (int i = 0; i < dest->channels; ++i)
+            dest->values[i] = v;
         return dest;
     }
 
@@ -394,6 +395,7 @@ void QSoundEffectPrivate::updateVolume()
         return;
     PulseDaemonLocker locker;
     pa_cvolume volume;
+    volume.channels = m_pulseSpec.channels;
     pa_operation_unref(pa_context_set_sink_input_volume(daemon()->context(), m_sinkInputId, daemon()->calcVolume(&volume, m_volume), setvolume_callback, this));
     Q_ASSERT(pa_cvolume_valid(&volume));
 #ifdef QT_PA_DEBUG
