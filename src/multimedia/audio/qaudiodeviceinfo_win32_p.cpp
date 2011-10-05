@@ -309,60 +309,60 @@ void QAudioDeviceInfoInternal::updateLists()
     codecz.clear();
 
     if(match) {
-        if((fmt && WAVE_FORMAT_1M08)
-           || (fmt && WAVE_FORMAT_1S08)
-	   || (fmt && WAVE_FORMAT_2M08)
-	   || (fmt && WAVE_FORMAT_2S08)
-	   || (fmt && WAVE_FORMAT_4M08)
-	   || (fmt && WAVE_FORMAT_4S08)
-	   || (fmt && WAVE_FORMAT_48M08)
-	   || (fmt && WAVE_FORMAT_48S08)
-	   || (fmt && WAVE_FORMAT_96M08)
-	   || (fmt && WAVE_FORMAT_96S08)
+        if ((fmt & WAVE_FORMAT_1M08)
+            || (fmt & WAVE_FORMAT_1S08)
+            || (fmt & WAVE_FORMAT_2M08)
+            || (fmt & WAVE_FORMAT_2S08)
+            || (fmt & WAVE_FORMAT_4M08)
+            || (fmt & WAVE_FORMAT_4S08)
+            || (fmt & WAVE_FORMAT_48M08)
+            || (fmt & WAVE_FORMAT_48S08)
+            || (fmt & WAVE_FORMAT_96M08)
+            || (fmt & WAVE_FORMAT_96S08)
        ) {
             sizez.append(8);
 	}
-        if((fmt && WAVE_FORMAT_1M16)
-           || (fmt && WAVE_FORMAT_1S16)
-	   || (fmt && WAVE_FORMAT_2M16)
-	   || (fmt && WAVE_FORMAT_2S16)
-	   || (fmt && WAVE_FORMAT_4M16)
-	   || (fmt && WAVE_FORMAT_4S16)
-	   || (fmt && WAVE_FORMAT_48M16)
-	   || (fmt && WAVE_FORMAT_48S16)
-	   || (fmt && WAVE_FORMAT_96M16)
-	   || (fmt && WAVE_FORMAT_96S16)
+        if ((fmt & WAVE_FORMAT_1M16)
+            || (fmt & WAVE_FORMAT_1S16)
+            || (fmt & WAVE_FORMAT_2M16)
+            || (fmt & WAVE_FORMAT_2S16)
+            || (fmt & WAVE_FORMAT_4M16)
+            || (fmt & WAVE_FORMAT_4S16)
+            || (fmt & WAVE_FORMAT_48M16)
+            || (fmt & WAVE_FORMAT_48S16)
+            || (fmt & WAVE_FORMAT_96M16)
+            || (fmt & WAVE_FORMAT_96S16)
        ) {
             sizez.append(16);
 	}
-        if((fmt && WAVE_FORMAT_1M08)
-           || (fmt && WAVE_FORMAT_1S08)
-	   || (fmt && WAVE_FORMAT_1M16)
-	   || (fmt && WAVE_FORMAT_1S16)) {
+        if ((fmt & WAVE_FORMAT_1M08)
+           || (fmt & WAVE_FORMAT_1S08)
+           || (fmt & WAVE_FORMAT_1M16)
+           || (fmt & WAVE_FORMAT_1S16)) {
             freqz.append(11025);
 	}
-        if((fmt && WAVE_FORMAT_2M08)
-           || (fmt && WAVE_FORMAT_2S08)
-	   || (fmt && WAVE_FORMAT_2M16)
-	   || (fmt && WAVE_FORMAT_2S16)) {
+        if ((fmt & WAVE_FORMAT_2M08)
+           || (fmt & WAVE_FORMAT_2S08)
+           || (fmt & WAVE_FORMAT_2M16)
+           || (fmt & WAVE_FORMAT_2S16)) {
             freqz.append(22050);
 	}
-        if((fmt && WAVE_FORMAT_4M08)
-           || (fmt && WAVE_FORMAT_4S08)
-	   || (fmt && WAVE_FORMAT_4M16)
-	   || (fmt && WAVE_FORMAT_4S16)) {
+        if ((fmt & WAVE_FORMAT_4M08)
+           || (fmt & WAVE_FORMAT_4S08)
+           || (fmt & WAVE_FORMAT_4M16)
+           || (fmt & WAVE_FORMAT_4S16)) {
             freqz.append(44100);
 	}
-        if((fmt && WAVE_FORMAT_48M08)
-           || (fmt && WAVE_FORMAT_48S08)
-	   || (fmt && WAVE_FORMAT_48M16)
-	   || (fmt && WAVE_FORMAT_48S16)) {
+        if ((fmt & WAVE_FORMAT_48M08)
+            || (fmt & WAVE_FORMAT_48S08)
+            || (fmt & WAVE_FORMAT_48M16)
+            || (fmt & WAVE_FORMAT_48S16)) {
             freqz.append(48000);
 	}
-        if((fmt && WAVE_FORMAT_96M08)
-           || (fmt && WAVE_FORMAT_96S08)
-	   || (fmt && WAVE_FORMAT_96M16)
-	   || (fmt && WAVE_FORMAT_96S16)) {
+        if ((fmt & WAVE_FORMAT_96M08)
+           || (fmt & WAVE_FORMAT_96S08)
+           || (fmt & WAVE_FORMAT_96M16)
+           || (fmt & WAVE_FORMAT_96S16)) {
             freqz.append(96000);
         }
 	channelz.append(1);
