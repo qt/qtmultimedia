@@ -1,11 +1,11 @@
 load(qt_module)
 
 TARGET = qtmedia_audioengine
-QT += multimediakit-private
+QT += multimedia-private
 PLUGIN_TYPE=mediaservice
 
 load(qt_plugin)
-DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 # Input
 HEADERS += audioencodercontrol.h \

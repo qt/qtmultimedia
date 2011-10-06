@@ -46,10 +46,10 @@
 
 #include <QtDeclarative/qsgitem.h>
 
-#include <QtMultimediaKit/QAbstractVideoSurface>
-#include <QtMultimediaKit/qmediaservice.h>
-#include <QtMultimediaKit/qvideorenderercontrol.h>
-#include <QtMultimediaKit/qvideosurfaceformat.h>
+#include <QtMultimedia/QAbstractVideoSurface>
+#include <QtMultimedia/qmediaservice.h>
+#include <QtMultimedia/qvideorenderercontrol.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
 
 #include <QtCore/qmetaobject.h>
@@ -112,11 +112,11 @@ private:
 
     \ingroup qml-multimedia
 
-    This element is part of the \bold{QtMultimediaKit 4.0} module.
+    This element is part of the \bold{QtMultimedia 4.0} module.
 
     \qml
     import QtQuick 2.0
-    import Qt.multimediakit 4.0
+    import QtMultimedia 4.0
 
     Rectangle {
         width: 800

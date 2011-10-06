@@ -1,11 +1,11 @@
 load(qt_module)
 
 TARGET = qtmedia_v4lengine
-QT += multimediakit-private
+QT += multimedia-private
 PLUGIN_TYPE = mediaservice
 
 load(qt_plugin)
-DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 HEADERS += v4lserviceplugin.h
 SOURCES += v4lserviceplugin.cpp

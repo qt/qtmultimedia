@@ -44,4 +44,4 @@
 
 
 Q_EXPORT_STATIC_PLUGIN(QM3uPlaylistPlugin)
-Q_EXPORT_PLUGIN2(qtmultimediakit_m3u, QM3uPlaylistPlugin)
+Q_EXPORT_PLUGIN2(qtmultimedia_m3u, QM3uPlaylistPlugin)

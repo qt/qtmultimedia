@@ -1,11 +1,11 @@
 TARGET = declarative_multimedia
-TARGETPATH = Qt/multimediakit
+TARGETPATH = QtMultimedia
 
 include(../qimportbase.pri)
 
-QT += declarative network multimediakit-private
+QT += declarative network multimedia-private
 
-DESTDIR = $$QT.multimediakit.imports/$$TARGETPATH
+DESTDIR = $$QT.multimedia.imports/$$TARGETPATH
 target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
 
 HEADERS += \
@@ -58,5 +58,17 @@ disabled {
 
 qmldir.files += $$PWD/qmldir
 qmldir.path +=  $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
+
+# another copy of the qmldir file so the old import works
+OLDQMLDIRFILE = $${_PRO_FILE_PWD_}/qmldir.qtmultimediakit
+oldcopy2build.input = OLDQMLDIRFILE
+oldcopy2build.output = $$QT.multimedia.imports/Qt/multimediakit/qmldir
+!contains(TEMPLATE_PREFIX, vc):oldcopy2build.variable_out = PRE_TARGETDEPS
+oldcopy2build.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+oldcopy2build.name = COPY ${QMAKE_FILE_IN}
+oldcopy2build.CONFIG += no_link
+# `clean' should leave the build in a runnable state, which means it shouldn't delete qmldir
+oldcopy2build.CONFIG += no_clean
+QMAKE_EXTRA_COMPILERS += oldcopy2build
 
 INSTALLS += target qmldir

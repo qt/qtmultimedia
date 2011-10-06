@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += network multimediakit-private
+QT += network multimedia-private
 CONFIG += no_private_qt_headers_warning
 
 HEADERS += tst_qmediaplayer.h

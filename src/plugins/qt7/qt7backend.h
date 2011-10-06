@@ -42,7 +42,7 @@
 #ifndef QT7BACKEND_H
 #define QT7BACKEND_H
 
-#include "qtmultimediakitdefs.h"
+#include "qtmultimediadefs.h"
 
 #include <QtCore/QString>
 

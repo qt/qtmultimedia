@@ -43,7 +43,7 @@
 
 #include <QWidget>
 #include <QIcon>
-#include <QtMultimediaKit/qaudio.h>
+#include <QtMultimedia/qaudio.h>
 
 class Engine;
 class FrequencySpectrum;

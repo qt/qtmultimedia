@@ -1,11 +1,11 @@
 load(qt_module)
 
 TARGET = qtmedia_fakeradio
-QT += multimediakit-private
+QT += multimedia-private
 PLUGIN_TYPE = mediaservice
 
 load(qt_plugin)
-DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 HEADERS += \
   fakeradioserviceplugin.h \

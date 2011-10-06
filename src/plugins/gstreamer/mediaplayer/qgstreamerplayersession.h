@@ -103,7 +103,7 @@ public:
     QMediaTimeRange availablePlaybackRanges() const;
 
     QMap<QByteArray ,QVariant> tags() const { return m_tags; }
-    QMap<QtMultimediaKit::MetaData,QVariant> streamProperties(int streamNumber) const { return m_streamProperties[streamNumber]; }
+    QMap<QtMultimedia::MetaData,QVariant> streamProperties(int streamNumber) const { return m_streamProperties[streamNumber]; }
     int streamCount() const { return m_streamProperties.count(); }
     QMediaStreamsControl::StreamType streamType(int streamNumber) { return m_streamTypes.value(streamNumber, QMediaStreamsControl::UnknownStream); }
 
@@ -195,7 +195,7 @@ private:
 #endif
 
     QMap<QByteArray, QVariant> m_tags;
-    QList< QMap<QtMultimediaKit::MetaData,QVariant> > m_streamProperties;
+    QList< QMap<QtMultimedia::MetaData,QVariant> > m_streamProperties;
     QList<QMediaStreamsControl::StreamType> m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> m_playbin2StreamOffset;
 

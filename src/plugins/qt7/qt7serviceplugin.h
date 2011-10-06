@@ -61,7 +61,7 @@ public:
     void release(QMediaService *service);
 
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
-    QtMultimediaKit::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
+    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
     QStringList supportedMimeTypes() const;
 
 private:

@@ -45,7 +45,7 @@
 #include <qmediarecorder.h>
 #include <qmediaservice.h>
 
-#include <QtMultimediaKit/qaudioformat.h>
+#include <QtMultimedia/qaudioformat.h>
 
 #include "audiorecorder.h"
 

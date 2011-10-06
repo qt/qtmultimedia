@@ -167,14 +167,14 @@ void tst_QAudioCaptureSource::testAvailability()
     QAudioCaptureSource source(0, &provider);
 
     QVERIFY(source.isAvailable() == false);
-    QVERIFY(source.availabilityError() == QtMultimediaKit::ServiceMissingError);
+    QVERIFY(source.availabilityError() == QtMultimedia::ServiceMissingError);
 
     service.hasControls = true;
     MockMediaServiceProvider provider2(&service);
     QAudioCaptureSource source2(0, &provider2);
 
     QVERIFY(source2.isAvailable() == true);
-    QVERIFY(source2.availabilityError() == QtMultimediaKit::NoError);
+    QVERIFY(source2.availabilityError() == QtMultimedia::NoError);
 }
 
 void tst_QAudioCaptureSource::testAvailableAudioInputChangedSignal()

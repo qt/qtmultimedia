@@ -53,7 +53,7 @@
 // We mean it.
 //
 
-#include "qtmultimediakitdefs.h"
+#include "qtmultimediadefs.h"
 #include <QtCore/QMetaType>
 #include <QtCore/QDateTime>
 #include <qcamera.h>

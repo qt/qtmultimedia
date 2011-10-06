@@ -41,7 +41,7 @@
 #include "spectrum.h"
 #include "utils.h"
 #include <QByteArray>
-#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimedia/QAudioFormat>
 #include <QtCore/qmath.h>
 #include <QtCore/qendian.h>
 

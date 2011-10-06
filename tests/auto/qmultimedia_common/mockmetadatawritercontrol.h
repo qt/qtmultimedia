@@ -64,13 +64,13 @@ public:
         if (m_available != available)
             emit metaDataAvailableChanged(m_available = available);
     }
-    QList<QtMultimediaKit::MetaData> availableMetaData() const { return m_data.keys(); }
+    QList<QtMultimedia::MetaData> availableMetaData() const { return m_data.keys(); }
 
     bool isWritable() const { return m_writable; }
     void setWritable(bool writable) { emit writableChanged(m_writable = writable); }
 
-    QVariant metaData(QtMultimediaKit::MetaData key) const { return m_data.value(key); }//Getting the metadata from Multimediakit
-    void setMetaData(QtMultimediaKit::MetaData key, const QVariant &value)
+    QVariant metaData(QtMultimedia::MetaData key) const { return m_data.value(key); }//Getting the metadata from Multimediakit
+    void setMetaData(QtMultimedia::MetaData key, const QVariant &value)
     {
         m_data.insert(key, value);
     }
@@ -100,7 +100,7 @@ public:
 
     bool m_available;
     bool m_writable;
-    QMap<QtMultimediaKit::MetaData, QVariant> m_data;
+    QMap<QtMultimedia::MetaData, QVariant> m_data;
     QMap<QString, QVariant> m_extendedData;
 };
 

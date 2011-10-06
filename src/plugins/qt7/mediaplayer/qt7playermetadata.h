@@ -58,8 +58,8 @@ public:
     bool isMetaDataAvailable() const;
     bool isWritable() const;
 
-    QVariant metaData(QtMultimediaKit::MetaData key) const;
-    QList<QtMultimediaKit::MetaData> availableMetaData() const;
+    QVariant metaData(QtMultimedia::MetaData key) const;
+    QList<QtMultimedia::MetaData> availableMetaData() const;
 
     QVariant extendedMetaData(const QString &key) const ;
     QStringList availableExtendedMetaData() const;
@@ -69,7 +69,7 @@ private slots:
 
 private:
     QT7PlayerSession *m_session;
-    QMap<QtMultimediaKit::MetaData, QVariant> m_tags;
+    QMap<QtMultimedia::MetaData, QVariant> m_tags;
 };
 
 QT_END_NAMESPACE

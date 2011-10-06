@@ -75,11 +75,11 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     \ingroup qml-multimedia
     \inherits Item
 
-    This element is part of the \bold{QtMultimediaKit 1.1} module.
+    This element is part of the \bold{QtMultimedia 4.0} module.
 
     \qml
     import Qt 4.7
-    import QtMultimediaKit 1.1
+    import QtMultimedia 4.0
 
     Camera {
         id: camera

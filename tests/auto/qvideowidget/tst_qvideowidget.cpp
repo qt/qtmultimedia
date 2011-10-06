@@ -41,7 +41,7 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include <qtmultimediakitdefs.h>
+#include <qtmultimediadefs.h>
 #include <QtTest/QtTest>
 
 #include "qvideowidget.h"

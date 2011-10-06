@@ -68,7 +68,8 @@ class QMultimediaDeclarativeModule : public QDeclarativeExtensionPlugin
 public:
     virtual void registerTypes(const char *uri)
     {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
+        Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia")
+                || QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
 
         qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
         qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");

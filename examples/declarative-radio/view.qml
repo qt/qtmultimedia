@@ -39,7 +39,7 @@
  ****************************************************************************/
 
 import QtQuick 2.0
-import Qt.multimediakit 4.0
+import Qt.multimedia 4.0
 
 Rectangle {
     width: 400; height: 300;

@@ -79,9 +79,9 @@ bool FakeRadioTunerControl::isAvailable() const
     return true;
 }
 
-QtMultimediaKit::AvailabilityError FakeRadioTunerControl::availabilityError() const
+QtMultimedia::AvailabilityError FakeRadioTunerControl::availabilityError() const
 {
-    return QtMultimediaKit::NoError;
+    return QtMultimedia::NoError;
 }
 
 QRadioTuner::State FakeRadioTunerControl::state() const

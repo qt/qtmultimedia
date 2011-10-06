@@ -3,9 +3,9 @@ INCLUDEPATH += $$PWD \
     ../../../src/multimedia \
     ../../../src/multimedia/video
 
-contains(QT,multimediakitwidgets)|contains(QT,multimediakitwidgets-private) {
+contains(QT,multimediawidgets)|contains(QT,multimediawidgets-private) {
     HEADERS *= ../qmultimedia_common/mockvideowindowcontrol.h
-    DEFINES *= QT_MULTIMEDIAKIT_MOCK_WIDGETS
+    DEFINES *= QT_MULTIMEDIA_MOCK_WIDGETS
 }
 
 HEADERS *= \

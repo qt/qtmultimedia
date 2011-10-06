@@ -75,10 +75,10 @@ void tst_QMetaDataWriterControl::constructor()
     mock->availableMetaData();
     mock->isMetaDataAvailable();
     mock->isWritable();
-    mock->metaData((QtMultimediaKit::MetaData) 1 );
+    mock->metaData((QtMultimedia::MetaData) 1 );
     mock->extendedMetaData(QString("XYZ"));
     mock->setExtendedMetaData(QString("XYZ"),QVariant());
-    mock->setMetaData((QtMultimediaKit::MetaData) 1,QVariant());
+    mock->setMetaData((QtMultimedia::MetaData) 1,QVariant());
     ((MockMetaDataWriterControl*)mock)->setWritable();
     ((MockMetaDataWriterControl*)mock)->setMetaDataAvailable();
     delete mock;

@@ -244,9 +244,9 @@ void tst_QMediaObject::nullMetaDataControl()
 
     QCOMPARE(object.isMetaDataAvailable(), false);
 
-    QCOMPARE(object.metaData(QtMultimediaKit::Title).toString(), QString());
+    QCOMPARE(object.metaData(QtMultimedia::Title).toString(), QString());
     QCOMPARE(object.extendedMetaData(titleKey).toString(), QString());
-    QCOMPARE(object.availableMetaData(), QList<QtMultimediaKit::MetaData>());
+    QCOMPARE(object.availableMetaData(), QList<QtMultimedia::MetaData>());
     QCOMPARE(object.availableExtendedMetaData(), QStringList());
     QCOMPARE(spy.count(), 0);
 }
@@ -311,18 +311,18 @@ void tst_QMediaObject::metaData()
     QtTestMediaObject object(&service);
     QVERIFY(object.availableMetaData().isEmpty());
 
-    service.metaData.m_data.insert(QtMultimediaKit::AlbumArtist, artist);
-    service.metaData.m_data.insert(QtMultimediaKit::Title, title);
-    service.metaData.m_data.insert(QtMultimediaKit::Genre, genre);
+    service.metaData.m_data.insert(QtMultimedia::AlbumArtist, artist);
+    service.metaData.m_data.insert(QtMultimedia::Title, title);
+    service.metaData.m_data.insert(QtMultimedia::Genre, genre);
 
-    QCOMPARE(object.metaData(QtMultimediaKit::AlbumArtist).toString(), artist);
-    QCOMPARE(object.metaData(QtMultimediaKit::Title).toString(), title);
+    QCOMPARE(object.metaData(QtMultimedia::AlbumArtist).toString(), artist);
+    QCOMPARE(object.metaData(QtMultimedia::Title).toString(), title);
 
-    QList<QtMultimediaKit::MetaData> metaDataKeys = object.availableMetaData();
+    QList<QtMultimedia::MetaData> metaDataKeys = object.availableMetaData();
     QCOMPARE(metaDataKeys.size(), 3);
-    QVERIFY(metaDataKeys.contains(QtMultimediaKit::AlbumArtist));
-    QVERIFY(metaDataKeys.contains(QtMultimediaKit::Title));
-    QVERIFY(metaDataKeys.contains(QtMultimediaKit::Genre));
+    QVERIFY(metaDataKeys.contains(QtMultimedia::AlbumArtist));
+    QVERIFY(metaDataKeys.contains(QtMultimedia::Title));
+    QVERIFY(metaDataKeys.contains(QtMultimedia::Genre));
 }
 
 void tst_QMediaObject::extendedMetaData()
@@ -353,12 +353,12 @@ void tst_QMediaObject::availability()
 {
     QtTestMediaObject nullObject(0);
     QCOMPARE(nullObject.isAvailable(), false);
-    QCOMPARE(nullObject.availabilityError(), QtMultimediaKit::ServiceMissingError);
+    QCOMPARE(nullObject.availabilityError(), QtMultimedia::ServiceMissingError);
 
     QtTestMetaDataService service;
     QtTestMediaObject object(&service);
     QCOMPARE(object.isAvailable(), true);
-    QCOMPARE(object.availabilityError(), QtMultimediaKit::NoError);
+    QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
 }
 
  void tst_QMediaObject::service()

@@ -41,7 +41,7 @@
 #ifndef PLAYLISTMODEL_H
 #define PLAYLISTMODEL_H
 
-#include <qtmultimediakitdefs.h>
+#include <qtmultimediadefs.h>
 #include <QtCore/qabstractitemmodel.h>
 
 QT_BEGIN_NAMESPACE

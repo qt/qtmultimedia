@@ -2,7 +2,7 @@ TEMPLATE = app
 TARGET = declarative-radio
 DEPENDPATH += .
 INCLUDEPATH += .
-QT += declarative multimediakit
+QT += declarative multimedia
 
 # Input
 SOURCES += main.cpp

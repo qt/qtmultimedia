@@ -14,7 +14,7 @@ SUBDIRS += app
 TARGET = spectrum
 
 sources.files = README.txt spectrum.pri spectrum.pro TODO.txt
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/spectrum
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum
 INSTALLS += sources
 
 QT+=widgets

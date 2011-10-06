@@ -43,7 +43,7 @@
 
 #include "spectrum.h"
 #include <QDialog>
-#include <QtMultimediaKit/QAudioDeviceInfo>
+#include <QtMultimedia/QAudioDeviceInfo>
 
 QT_FORWARD_DECLARE_CLASS(QComboBox)
 QT_FORWARD_DECLARE_CLASS(QCheckBox)

@@ -117,57 +117,57 @@ public:
     {
     }
 
-    QVariant title() const { return m_control->metaData(QtMultimediaKit::Title); }
-    QVariant subTitle() const { return m_control->metaData(QtMultimediaKit::SubTitle); }
-    QVariant author() const { return m_control->metaData(QtMultimediaKit::Author); }
-    QVariant comment() const { return m_control->metaData(QtMultimediaKit::Comment); }
-    QVariant description() const { return m_control->metaData(QtMultimediaKit::Description); }
-    QVariant category() const { return m_control->metaData(QtMultimediaKit::Category); }
-    QVariant genre() const { return m_control->metaData(QtMultimediaKit::Genre); }
-    QVariant year() const { return m_control->metaData(QtMultimediaKit::Year); }
-    QVariant date() const { return m_control->metaData(QtMultimediaKit::Date); }
-    QVariant userRating() const { return m_control->metaData(QtMultimediaKit::UserRating); }
-    QVariant keywords() const { return m_control->metaData(QtMultimediaKit::Keywords); }
-    QVariant language() const { return m_control->metaData(QtMultimediaKit::Language); }
-    QVariant publisher() const { return m_control->metaData(QtMultimediaKit::Publisher); }
-    QVariant copyright() const { return m_control->metaData(QtMultimediaKit::Copyright); }
-    QVariant parentalRating() const { return m_control->metaData(QtMultimediaKit::ParentalRating); }
+    QVariant title() const { return m_control->metaData(QtMultimedia::Title); }
+    QVariant subTitle() const { return m_control->metaData(QtMultimedia::SubTitle); }
+    QVariant author() const { return m_control->metaData(QtMultimedia::Author); }
+    QVariant comment() const { return m_control->metaData(QtMultimedia::Comment); }
+    QVariant description() const { return m_control->metaData(QtMultimedia::Description); }
+    QVariant category() const { return m_control->metaData(QtMultimedia::Category); }
+    QVariant genre() const { return m_control->metaData(QtMultimedia::Genre); }
+    QVariant year() const { return m_control->metaData(QtMultimedia::Year); }
+    QVariant date() const { return m_control->metaData(QtMultimedia::Date); }
+    QVariant userRating() const { return m_control->metaData(QtMultimedia::UserRating); }
+    QVariant keywords() const { return m_control->metaData(QtMultimedia::Keywords); }
+    QVariant language() const { return m_control->metaData(QtMultimedia::Language); }
+    QVariant publisher() const { return m_control->metaData(QtMultimedia::Publisher); }
+    QVariant copyright() const { return m_control->metaData(QtMultimedia::Copyright); }
+    QVariant parentalRating() const { return m_control->metaData(QtMultimedia::ParentalRating); }
     QVariant ratingOrganisation() const {
-        return m_control->metaData(QtMultimediaKit::RatingOrganisation); }
-    QVariant size() const { return m_control->metaData(QtMultimediaKit::Size); }
-    QVariant mediaType() const { return m_control->metaData(QtMultimediaKit::MediaType); }
-    QVariant duration() const { return m_control->metaData(QtMultimediaKit::Duration); }
-    QVariant audioBitRate() const { return m_control->metaData(QtMultimediaKit::AudioBitRate); }
-    QVariant audioCodec() const { return m_control->metaData(QtMultimediaKit::AudioCodec); }
-    QVariant averageLevel() const { return m_control->metaData(QtMultimediaKit::AverageLevel); }
-    QVariant channelCount() const { return m_control->metaData(QtMultimediaKit::ChannelCount); }
-    QVariant peakValue() const { return m_control->metaData(QtMultimediaKit::PeakValue); }
-    QVariant sampleRate() const { return m_control->metaData(QtMultimediaKit::SampleRate); }
-    QVariant albumTitle() const { return m_control->metaData(QtMultimediaKit::AlbumTitle); }
-    QVariant albumArtist() const { return m_control->metaData(QtMultimediaKit::AlbumArtist); }
+        return m_control->metaData(QtMultimedia::RatingOrganisation); }
+    QVariant size() const { return m_control->metaData(QtMultimedia::Size); }
+    QVariant mediaType() const { return m_control->metaData(QtMultimedia::MediaType); }
+    QVariant duration() const { return m_control->metaData(QtMultimedia::Duration); }
+    QVariant audioBitRate() const { return m_control->metaData(QtMultimedia::AudioBitRate); }
+    QVariant audioCodec() const { return m_control->metaData(QtMultimedia::AudioCodec); }
+    QVariant averageLevel() const { return m_control->metaData(QtMultimedia::AverageLevel); }
+    QVariant channelCount() const { return m_control->metaData(QtMultimedia::ChannelCount); }
+    QVariant peakValue() const { return m_control->metaData(QtMultimedia::PeakValue); }
+    QVariant sampleRate() const { return m_control->metaData(QtMultimedia::SampleRate); }
+    QVariant albumTitle() const { return m_control->metaData(QtMultimedia::AlbumTitle); }
+    QVariant albumArtist() const { return m_control->metaData(QtMultimedia::AlbumArtist); }
     QVariant contributingArtist() const {
-        return m_control->metaData(QtMultimediaKit::ContributingArtist); }
-    QVariant composer() const { return m_control->metaData(QtMultimediaKit::Composer); }
-    QVariant conductor() const { return m_control->metaData(QtMultimediaKit::Conductor); }
-    QVariant lyrics() const { return m_control->metaData(QtMultimediaKit::Lyrics); }
-    QVariant mood() const { return m_control->metaData(QtMultimediaKit::Mood); }
-    QVariant trackNumber() const { return m_control->metaData(QtMultimediaKit::TrackNumber); }
-    QVariant trackCount() const { return m_control->metaData(QtMultimediaKit::TrackCount); }
+        return m_control->metaData(QtMultimedia::ContributingArtist); }
+    QVariant composer() const { return m_control->metaData(QtMultimedia::Composer); }
+    QVariant conductor() const { return m_control->metaData(QtMultimedia::Conductor); }
+    QVariant lyrics() const { return m_control->metaData(QtMultimedia::Lyrics); }
+    QVariant mood() const { return m_control->metaData(QtMultimedia::Mood); }
+    QVariant trackNumber() const { return m_control->metaData(QtMultimedia::TrackNumber); }
+    QVariant trackCount() const { return m_control->metaData(QtMultimedia::TrackCount); }
     QVariant coverArtUrlSmall() const {
-        return m_control->metaData(QtMultimediaKit::CoverArtUrlSmall); }
+        return m_control->metaData(QtMultimedia::CoverArtUrlSmall); }
     QVariant coverArtUrlLarge() const {
-        return m_control->metaData(QtMultimediaKit::CoverArtUrlLarge); }
-    QVariant resolution() const { return m_control->metaData(QtMultimediaKit::Resolution); }
+        return m_control->metaData(QtMultimedia::CoverArtUrlLarge); }
+    QVariant resolution() const { return m_control->metaData(QtMultimedia::Resolution); }
     QVariant pixelAspectRatio() const {
-        return m_control->metaData(QtMultimediaKit::PixelAspectRatio); }
-    QVariant videoFrameRate() const { return m_control->metaData(QtMultimediaKit::VideoFrameRate); }
-    QVariant videoBitRate() const { return m_control->metaData(QtMultimediaKit::VideoBitRate); }
-    QVariant videoCodec() const { return m_control->metaData(QtMultimediaKit::VideoCodec); }
-    QVariant posterUrl() const { return m_control->metaData(QtMultimediaKit::PosterUrl); }
-    QVariant chapterNumber() const { return m_control->metaData(QtMultimediaKit::ChapterNumber); }
-    QVariant director() const { return m_control->metaData(QtMultimediaKit::Director); }
-    QVariant leadPerformer() const { return m_control->metaData(QtMultimediaKit::LeadPerformer); }
-    QVariant writer() const { return m_control->metaData(QtMultimediaKit::Writer); }
+        return m_control->metaData(QtMultimedia::PixelAspectRatio); }
+    QVariant videoFrameRate() const { return m_control->metaData(QtMultimedia::VideoFrameRate); }
+    QVariant videoBitRate() const { return m_control->metaData(QtMultimedia::VideoBitRate); }
+    QVariant videoCodec() const { return m_control->metaData(QtMultimedia::VideoCodec); }
+    QVariant posterUrl() const { return m_control->metaData(QtMultimedia::PosterUrl); }
+    QVariant chapterNumber() const { return m_control->metaData(QtMultimedia::ChapterNumber); }
+    QVariant director() const { return m_control->metaData(QtMultimedia::Director); }
+    QVariant leadPerformer() const { return m_control->metaData(QtMultimedia::LeadPerformer); }
+    QVariant writer() const { return m_control->metaData(QtMultimedia::Writer); }
 
 Q_SIGNALS:
     void metaDataChanged();

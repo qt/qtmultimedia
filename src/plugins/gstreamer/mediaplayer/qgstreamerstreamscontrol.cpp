@@ -62,7 +62,7 @@ QMediaStreamsControl::StreamType QGstreamerStreamsControl::streamType(int stream
     return m_session->streamType(streamNumber);
 }
 
-QVariant QGstreamerStreamsControl::metaData(int streamNumber, QtMultimediaKit::MetaData key)
+QVariant QGstreamerStreamsControl::metaData(int streamNumber, QtMultimedia::MetaData key)
 {
     return m_session->streamProperties(streamNumber).value(key);
 }

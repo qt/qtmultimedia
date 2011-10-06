@@ -109,9 +109,9 @@ public:
 
     bool isMetaDataAvailable() const { return false; }
 
-    QVariant metaData(QtMultimediaKit::MetaData) const { return QVariant(); }
-    QList<QtMultimediaKit::MetaData> availableMetaData() const {
-        return QList<QtMultimediaKit::MetaData>(); }
+    QVariant metaData(QtMultimedia::MetaData) const { return QVariant(); }
+    QList<QtMultimedia::MetaData> availableMetaData() const {
+        return QList<QtMultimedia::MetaData>(); }
 
     QVariant extendedMetaData(const QString &) const { return QVariant(); }
     QStringList availableExtendedMetaData() const { return QStringList(); }

@@ -5,8 +5,8 @@ CONFIG += qt warn_on
 
 QT += network \
       xml \
-      multimediakit \
-      multimediakitwidgets
+      multimedia \
+      multimediawidgets
 
 HEADERS = \
     player.h \
@@ -24,9 +24,9 @@ maemo* {
 }
 
 #install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/player
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/player
 sources.files = $$SOURCES $HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/player
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/player
 INSTALLS += target sources
 
 QT+=widgets

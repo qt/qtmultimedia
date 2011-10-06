@@ -63,12 +63,12 @@ public:
         if (m_available != available)
             emit metaDataAvailableChanged(m_available = available);
     }
-    QList<QtMultimediaKit::MetaData> availableMetaData() const
+    QList<QtMultimedia::MetaData> availableMetaData() const
     {
         return m_data.keys();
     }
 
-    QVariant metaData(QtMultimediaKit::MetaData key) const
+    QVariant metaData(QtMultimedia::MetaData key) const
     {
         return m_data.value(key);
     }
@@ -91,7 +91,7 @@ public:
     }
 
     bool m_available;
-    QMap<QtMultimediaKit::MetaData, QVariant> m_data;
+    QMap<QtMultimedia::MetaData, QVariant> m_data;
     QMap<QString, QVariant> m_extendedData;
 };
 

@@ -44,8 +44,8 @@
 
 #include <qsgitem.h>
 
-#include <QtMultimediaKit/qvideoframe.h>
-#include <QtMultimediaKit/qmediaobject.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qmediaobject.h>
 
 #include <QtCore/qsharedpointer.h>
 

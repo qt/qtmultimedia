@@ -60,7 +60,7 @@ public:
     ~FakeRadioTunerControl();
 
     bool isAvailable() const;
-    QtMultimediaKit::AvailabilityError availabilityError() const;
+    QtMultimedia::AvailabilityError availabilityError() const;
 
     QRadioTuner::State state() const;
 

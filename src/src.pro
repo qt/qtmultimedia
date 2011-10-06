@@ -2,11 +2,11 @@
 TEMPLATE = subdirs
 CONFIG += ordered
 
-library_qtmmkwidgets.subdir = $$IN_PWD/multimediakitwidgets
-library_qtmmkwidgets.depends = multimediakit
+library_qtmmwidgets.subdir = $$IN_PWD/multimediawidgets
+library_qtmmwidgets.depends = multimedia
 
-SUBDIRS += multimediakit
-SUBDIRS += library_qtmmkwidgets
+SUBDIRS += multimedia
+SUBDIRS += library_qtmmwidgets
 SUBDIRS += imports
 SUBDIRS += plugins
 

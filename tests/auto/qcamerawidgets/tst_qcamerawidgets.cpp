@@ -72,7 +72,7 @@
 
 QT_USE_NAMESPACE
 
-Q_DECLARE_METATYPE(QtMultimediaKit::MetaData)
+Q_DECLARE_METATYPE(QtMultimedia::MetaData)
 
 class tst_QCameraWidgets: public QObject
 {
@@ -98,7 +98,7 @@ void tst_QCameraWidgets::initTestCase()
     provider = new MockMediaServiceProvider;
     mockSimpleCameraService = new MockSimpleCameraService;
     provider->service = mockSimpleCameraService;
-    qRegisterMetaType<QtMultimediaKit::MetaData>("QtMultimediaKit::MetaData");
+    qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
 }
 
 void tst_QCameraWidgets::cleanupTestCase()

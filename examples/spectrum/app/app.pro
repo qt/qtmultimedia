@@ -6,7 +6,7 @@ TEMPLATE = app
 
 TARGET = spectrum
 
-QT       += multimediakit
+QT       += multimedia
 
 SOURCES  += main.cpp \
             engine.cpp \
@@ -59,9 +59,9 @@ RESOURCES = spectrum.qrc
 # Install
 
 sources.files = $$SOURCES $$HEADERS $$RESOURCES app.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/spectrum/app
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum/app
 images.files += images/record.png images/settings.png
-images.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/spectrum/app/images
+images.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum/app/images
 INSTALLS += sources images
 
 # Deployment

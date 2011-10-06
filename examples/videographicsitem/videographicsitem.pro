@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = videographicsitem
 
-QT += multimediakit multimediakitwidgets
+QT += multimedia multimediawidgets
 
 contains(QT_CONFIG, opengl): QT += opengl
 
@@ -12,9 +12,9 @@ SOURCES   += main.cpp \
              videoplayer.cpp \
              videoitem.cpp
 
-target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videographicsitem
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/videographicsitem
 sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videographicsitem
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/videographicsitem
 
 INSTALLS += target sources
 

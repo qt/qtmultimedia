@@ -44,7 +44,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qfile.h>
-#include <QtMultimediaKit/qaudioformat.h>
+#include <QtMultimedia/qaudioformat.h>
 
 class WavFile : public QFile
 {

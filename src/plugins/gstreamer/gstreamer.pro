@@ -2,11 +2,11 @@
 load(qt_module)
 
 TARGET = qgstengine
-QT += multimediakit-private network multimediakitwidgets-private
+QT += multimedia-private network multimediawidgets-private
 PLUGIN_TYPE=mediaservice
 
 load(qt_plugin)
-DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 unix:!maemo*:contains(QT_CONFIG, alsa) {
 DEFINES += HAVE_ALSA

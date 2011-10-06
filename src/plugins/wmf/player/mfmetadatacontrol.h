@@ -56,8 +56,8 @@ public:
 
     bool isMetaDataAvailable() const;
 
-    QVariant metaData(QtMultimediaKit::MetaData key) const;
-    QList<QtMultimediaKit::MetaData> availableMetaData() const;
+    QVariant metaData(QtMultimedia::MetaData key) const;
+    QList<QtMultimedia::MetaData> availableMetaData() const;
 
     QVariant extendedMetaData(const QString &key) const;
     QStringList availableExtendedMetaData() const;
@@ -69,7 +69,7 @@ private:
     IPropertyStore  *m_content;  //for Windows7
     IMFMetadata        *m_metaData; //for Vista
 
-    QList<QtMultimediaKit::MetaData> m_availableMetaDatas;
+    QList<QtMultimedia::MetaData> m_availableMetaDatas;
     QList<PROPERTYKEY> m_commonKeys; //for Windows7
     QStringList        m_commonNames; //for Vista
 

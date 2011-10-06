@@ -96,14 +96,14 @@ QMediaServiceProviderHint::Features QT7ServicePlugin::supportedFeatures(
         return QMediaServiceProviderHint::Features();
 }
 
-QtMultimediaKit::SupportEstimate QT7ServicePlugin::hasSupport(const QString &mimeType, const QStringList& codecs) const
+QtMultimedia::SupportEstimate QT7ServicePlugin::hasSupport(const QString &mimeType, const QStringList& codecs) const
 {
     Q_UNUSED(codecs);
 
     if (m_supportedMimeTypes.contains(mimeType))
-        return QtMultimediaKit::ProbablySupported;
+        return QtMultimedia::ProbablySupported;
 
-    return QtMultimediaKit::MaybeSupported;
+    return QtMultimedia::MaybeSupported;
 }
 
 QStringList QT7ServicePlugin::supportedMimeTypes() const

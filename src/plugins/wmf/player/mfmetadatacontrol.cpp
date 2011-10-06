@@ -65,7 +65,7 @@ bool MFMetaDataControl::isMetaDataAvailable() const
     return m_content || m_metaData;
 }
 
-QVariant MFMetaDataControl::metaData(QtMultimediaKit::MetaData key) const
+QVariant MFMetaDataControl::metaData(QtMultimedia::MetaData key) const
 {
     QVariant value;
     if (!isMetaDataAvailable())
@@ -113,7 +113,7 @@ QVariant MFMetaDataControl::convertValue(const PROPVARIANT& var) const
     return value;
 }
 
-QList<QtMultimediaKit::MetaData> MFMetaDataControl::availableMetaData() const
+QList<QtMultimedia::MetaData> MFMetaDataControl::availableMetaData() const
 {
     return m_availableMetaDatas;
 }
@@ -173,15 +173,15 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
                     continue;
                 bool common = true;
                 if (key == PKEY_Author) {
-                    m_availableMetaDatas.push_back(QtMultimediaKit::Author);
+                    m_availableMetaDatas.push_back(QtMultimedia::Author);
                 } else if (key == PKEY_Title) {
-                    m_availableMetaDatas.push_back(QtMultimediaKit::Title);
+                    m_availableMetaDatas.push_back(QtMultimedia::Title);
                 } else if (key == PKEY_ParentalRating) {
-                    m_availableMetaDatas.push_back(QtMultimediaKit::ParentalRating);
+                    m_availableMetaDatas.push_back(QtMultimedia::ParentalRating);
                 } else if (key == PKEY_Comment) {
-                    m_availableMetaDatas.push_back(QtMultimediaKit::Description);
+                    m_availableMetaDatas.push_back(QtMultimedia::Description);
                 } else if (key == PKEY_Copyright) {
-                    m_availableMetaDatas.push_back(QtMultimediaKit::Copyright);
+                    m_availableMetaDatas.push_back(QtMultimedia::Copyright);
                 //TODO: add more common keys
                 } else {
                     common = false;
@@ -213,15 +213,15 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
 #endif
                         bool common = true;
                         if (wcscmp(sName, L"Author") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimediaKit::Author);
+                            m_availableMetaDatas.push_back(QtMultimedia::Author);
                         } else if (wcscmp(sName, L"Title") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimediaKit::Title);
+                            m_availableMetaDatas.push_back(QtMultimedia::Title);
                         } else if (wcscmp(sName, L"Rating") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimediaKit::ParentalRating);
+                            m_availableMetaDatas.push_back(QtMultimedia::ParentalRating);
                         } else if (wcscmp(sName, L"Description") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimediaKit::Description);
+                            m_availableMetaDatas.push_back(QtMultimedia::Description);
                         } else if (wcscmp(sName, L"Copyright") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimediaKit::Copyright);
+                            m_availableMetaDatas.push_back(QtMultimedia::Copyright);
                             //TODO: add more common keys
                         } else {
                             common = false;

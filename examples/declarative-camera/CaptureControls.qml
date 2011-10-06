@@ -39,7 +39,7 @@
 ****************************************************************************/
 
 import Qt 4.7
-import QtMultimediaKit 1.1
+import QtMultimedia 4.0
 
 FocusScope {
     property Camera camera

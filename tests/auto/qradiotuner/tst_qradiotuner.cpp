@@ -56,13 +56,13 @@ void tst_QRadioTuner::initTestCase()
     radio = new QRadioTuner(0,provider);
     QVERIFY(radio->service() != 0);
     QVERIFY(radio->isAvailable());
-    QVERIFY(radio->availabilityError() == QtMultimediaKit::NoError);
+    QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
 
     QSignalSpy stateSpy(radio, SIGNAL(stateChanged(QRadioTuner::State)));
 
     QCOMPARE(radio->state(), QRadioTuner::StoppedState);    
     radio->start();
-    QVERIFY(radio->availabilityError() == QtMultimediaKit::NoError);
+    QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
     QCOMPARE(radio->state(), QRadioTuner::ActiveState);
 
     QCOMPARE(stateSpy.count(), 1);
@@ -77,7 +77,7 @@ void tst_QRadioTuner::cleanupTestCase()
     QSignalSpy stateSpy(radio, SIGNAL(stateChanged(QRadioTuner::State)));
 
     radio->stop();
-    QVERIFY(radio->availabilityError() == QtMultimediaKit::NoError);
+    QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
     QCOMPARE(radio->state(), QRadioTuner::StoppedState);
     QCOMPARE(stateSpy.count(), 1);
 

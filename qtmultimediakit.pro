@@ -1,21 +1,4 @@
-TEMPLATE = subdirs
-
-module_qtmultimediakit_src.subdir = src
-module_qtmultimediakit_src.target = module-qtmultimediakit-src
-
-module_qtmultimediakit_examples.subdir = examples
-module_qtmultimediakit_examples.target = module-qtmultimediakit-examples
-module_qtmultimediakit_examples.depends = module_qtmultimediakit_src
-!contains(QT_BUILD_PARTS,examples) {
-    module_qtmultimediakit_examples.CONFIG = no_default_target no_default_install
-}
-
-module_qtmultimediakit_tests.subdir = tests
-module_qtmultimediakit_tests.target = module-qtmultimediakit-tests
-module_qtmultimediakit_tests.depends = module_qtmultimediakit_src
-module_qtmultimediakit_tests.CONFIG = no_default_target no_default_install
-
-SUBDIRS += module_qtmultimediakit_src \
-           module_qtmultimediakit_examples \
-           module_qtmultimediakit_tests \
+# This is only so that Qt5.git still builds, since it's expecting
+# the .pro file to match the directory name
+include(qtmultimedia.pro)
 

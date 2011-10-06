@@ -42,7 +42,7 @@ collection of media content.
 
 Multimedia provides a set of APIs that allow the developer to play, record
 and manage a collection of media content. It is dependent on the
-QtMultimediaKit module. QtMultimediaKit is the recommended API to build multimedia
+QtMultimedia module. QtMultimedia is the recommended API to build multimedia
 applications using Qt. The Phonon API is no longer recommended.
 
 \tableofcontents
@@ -67,7 +67,7 @@ from a remote location and identified by a URL. Finally, many different
 codecs are supported 'out
 of the box'.
 
-The supplied \l {qtmultimediakit examples}{examples} give a good idea at the ease of use of the API. When
+The supplied \l {qtmultimedia examples}{examples} give a good idea at the ease of use of the API. When
 the supporting user interface code is ignored we can see that functionality
 is immediately available with minimal effort.
 
@@ -304,7 +304,7 @@ the operation can be cancelled by calling
 cancellation can be done by calling \l {QCamera::unlock()}{unlock}(QCamera::LockFocus).
 
 
-\target qtmultimediakit examples
+\target qtmultimedia examples
 \section1 Examples
 
 \section2 Record a Sound Source
@@ -326,7 +326,7 @@ QVideoWidget classes.
 
 \section2 Camera Example
 
-The \l{Camera Example} shows how use the QtMultimediaKit API to quickly
+The \l{Camera Example} shows how use the QtMultimedia API to quickly
 write a camera application in C++.
 
 \section2 QML Camera Example

@@ -167,7 +167,7 @@ void tst_QMediaPlayer::testNullService()
     QCOMPARE(player.playbackRate(), qreal(0));
     QCOMPARE(player.error(), QMediaPlayer::ServiceMissingError);
     QCOMPARE(player.isAvailable(), false);
-    QCOMPARE(player.availabilityError(), QtMultimediaKit::ServiceMissingError);
+    QCOMPARE(player.availabilityError(), QtMultimedia::ServiceMissingError);
 
     {
         QFETCH_GLOBAL(QMediaContent, mediaContent);
@@ -448,7 +448,7 @@ void tst_QMediaPlayer::testErrorString()
 void tst_QMediaPlayer::testIsAvailable()
 {
     QCOMPARE(player->isAvailable(), true);
-    QCOMPARE(player->availabilityError(), QtMultimediaKit::NoError);
+    QCOMPARE(player->availabilityError(), QtMultimedia::NoError);
 }
 
 void tst_QMediaPlayer::testService()

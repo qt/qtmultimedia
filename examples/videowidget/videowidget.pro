@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = videowidget
 
-QT += multimediakit multimediakitwidgets
+QT += multimedia multimediawidgets
 
 HEADERS = \
     videoplayer.h \
@@ -14,9 +14,9 @@ SOURCES = \
     videowidget.cpp \
     videowidgetsurface.cpp
 
-target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videowidget
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/videowidget
 sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/videowidget
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/videowidget
 
 INSTALLS += target sources
 

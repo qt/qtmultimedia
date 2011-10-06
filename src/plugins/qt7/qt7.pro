@@ -1,11 +1,11 @@
 load(qt_module)
 
 TARGET = qqt7engine
-QT += multimediakit-private multimediakitwidgets-private network
+QT += multimedia-private multimediawidgets-private network
 PLUGIN_TYPE = mediaservice
 
 load(qt_plugin)
-DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 !simulator {
 QT += opengl

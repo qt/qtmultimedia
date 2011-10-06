@@ -65,12 +65,12 @@ public:
                 settings.resolution() == QSize(320,240))
                 resolutions << settings.resolution();
 
-            if (settings.quality() == QtMultimediaKit::HighQuality && settings.resolution() == QSize(640,480))
+            if (settings.quality() == QtMultimedia::HighQuality && settings.resolution() == QSize(640,480))
                 resolutions << settings.resolution();
         } else {
             resolutions << QSize(160, 120);
             resolutions << QSize(320, 240);
-            if (settings.quality() == QtMultimediaKit::HighQuality)
+            if (settings.quality() == QtMultimedia::HighQuality)
                 resolutions << QSize(640, 480);
         }
 

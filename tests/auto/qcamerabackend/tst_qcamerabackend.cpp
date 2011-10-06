@@ -121,7 +121,7 @@ QT_USE_NAMESPACE
 */
 
 
-Q_DECLARE_METATYPE(QtMultimediaKit::MetaData)
+Q_DECLARE_METATYPE(QtMultimedia::MetaData)
 Q_DECLARE_METATYPE(QVideoFrame)
 
 class tst_QCameraBackend: public QObject
@@ -149,7 +149,7 @@ private:
 
 void tst_QCameraBackend::initTestCase()
 {
-    qRegisterMetaType<QtMultimediaKit::MetaData>("QtMultimediaKit::MetaData");
+    qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
 
     QCamera camera;
     if (!camera.isAvailable())
@@ -523,7 +523,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
     QCameraImageCapture imageCapture(&camera);
     camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QtMultimediaKit::MetaData,QVariant)));
+    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
 
     camera.start();

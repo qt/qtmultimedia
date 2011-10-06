@@ -57,9 +57,9 @@ public:
     bool isMetaDataAvailable() const { return true; }
     bool isWritable() const { return true; }
 
-    QVariant metaData(QtMultimediaKit::MetaData key) const;
-    void setMetaData(QtMultimediaKit::MetaData key, const QVariant &value);
-    QList<QtMultimediaKit::MetaData> availableMetaData() const;
+    QVariant metaData(QtMultimedia::MetaData key) const;
+    void setMetaData(QtMultimedia::MetaData key, const QVariant &value);
+    QList<QtMultimedia::MetaData> availableMetaData() const;
 
     QVariant extendedMetaData(QString const &name) const;
     void setExtendedMetaData(QString const &name, QVariant const &value);

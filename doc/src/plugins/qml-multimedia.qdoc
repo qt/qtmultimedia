@@ -55,7 +55,7 @@
     \qml
 
     import Qt 4.7
-    import QtMultimediaKit 1.1
+    import QtMultimedia 4.0
     // ...
 
     Audio {
@@ -238,7 +238,7 @@
     \qml
 
     import Qt 4.7
-    import QtMultimediaKit 1.1
+    import QtMultimedia 4.0
 
 
         SoundEffect {
@@ -265,7 +265,7 @@
 
     \qml
     import Qt 4.7
-    import QtMultimediaKit 1.1
+    import QtMultimedia 4.0
 
     Camera {
         focus : visible // to receive focus and capture key events when visible

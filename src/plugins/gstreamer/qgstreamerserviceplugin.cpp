@@ -260,7 +260,7 @@ namespace {
     }
 }
 
-QtMultimediaKit::SupportEstimate QGstreamerServicePlugin::hasSupport(const QString &mimeType,
+QtMultimedia::SupportEstimate QGstreamerServicePlugin::hasSupport(const QString &mimeType,
                                                                      const QStringList& codecs) const
 {
     if (m_supportedMimeTypeSet.isEmpty())
@@ -294,12 +294,12 @@ QtMultimediaKit::SupportEstimate QGstreamerServicePlugin::hasSupport(const QStri
         }
     }
     if (supportedCodecCount > 0 && supportedCodecCount == codecs.size())
-        return QtMultimediaKit::ProbablySupported;
+        return QtMultimedia::ProbablySupported;
 
     if (supportedCodecCount == 0 && !containsMimeType)
-        return QtMultimediaKit::NotSupported;
+        return QtMultimedia::NotSupported;
 
-    return QtMultimediaKit::MaybeSupported;
+    return QtMultimedia::MaybeSupported;
 }
 
 void QGstreamerServicePlugin::updateSupportedMimeTypes() const

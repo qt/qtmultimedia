@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = audiorecorder
 
-QT += multimediakit
+QT += multimedia
 
 HEADERS = \
     audiorecorder.h
@@ -16,9 +16,9 @@ maemo*: {
     FORMS += audiorecorder.ui
 }
 
-target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audiorecorder
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/audiorecorder
 sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/audiorecorder
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/audiorecorder
 
 INSTALLS += target sources
 

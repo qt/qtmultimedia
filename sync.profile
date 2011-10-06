@@ -1,14 +1,14 @@
 %modules = ( # path to module name map
-    "QtMultimediaKit" => "$basedir/src/multimediakit",
-    "QtMultimediaKitWidgets" => "$basedir/src/multimediakitwidgets",
+    "QtMultimedia" => "$basedir/src/multimedia",
+    "QtMultimediaWidgets" => "$basedir/src/multimediawidgets",
 );
 
 %moduleheaders = ( # restrict the module headers to those found in relative path
 );
 
 %classnames = (
-    "qtmultimediakitversion.h" => "QtMultimediaKitVersion",
-    "qtmultimediakitwidgetsversion.h" => "QtMultimediaKitWidgetsVersion",
+    "qtmultimediaversion.h" => "QtMultimediaVersion",
+    "qtmultimediawidgetsversion.h" => "QtMultimediaWidgetsVersion",
 );
 
 %mastercontent = (
@@ -18,8 +18,8 @@
 );
 
 %modulepris = (
-    "QtMultimediaKit" => "$basedir/modules/qt_multimediakit.pri",
-    "QtMultimediaKitWidgets" => "$basedir/modules/qt_multimediakitwidgets.pri",
+    "QtMultimedia" => "$basedir/modules/qt_multimedia.pri",
+    "QtMultimediaWidgets" => "$basedir/modules/qt_multimediawidgets.pri",
 );
 
 # Module dependencies.
@@ -31,7 +31,6 @@
 %dependencies = (
     "qtbase" => "refs/heads/master",
     "qtsvg" => "refs/heads/master",
-    "qtscript" => "refs/heads/master",
     "qtxmlpatterns" => "refs/heads/master",
     "qtdeclarative" => "refs/heads/master",
 );

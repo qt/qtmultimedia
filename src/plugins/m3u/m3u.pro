@@ -1,11 +1,11 @@
 load(qt_module)
 
-TARGET = qtmultimediakit_m3u
-QT += multimediakit-private
+TARGET = qtmultimedia_m3u
+QT += multimedia-private
 PLUGIN_TYPE=playlistformats
 
 load(qt_plugin)
-DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 
 HEADERS += qm3uhandler.h

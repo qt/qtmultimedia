@@ -45,7 +45,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
 
-#include <qtmultimediakitdefs.h>
+#include <qtmultimediadefs.h>
 
 #include <QuartzCore/CVDisplayLink.h>
 

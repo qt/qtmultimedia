@@ -126,13 +126,13 @@ public:
         streams[index].type = type;
     }
 
-    QVariant metaData(int index, QtMultimediaKit::MetaData key)
+    QVariant metaData(int index, QtMultimedia::MetaData key)
     {
-        QtMultimediaKit::MetaData keys = key;
+        QtMultimedia::MetaData keys = key;
         return keys;
     }
 
-    void setMetaData(int index, QtMultimediaKit::MetaData key, const QVariant &value)
+    void setMetaData(int index, QtMultimedia::MetaData key, const QVariant &value)
     {
         streams[index].metaData.insert(key, value);
     }
@@ -191,7 +191,7 @@ public:
     {
         Stream() : type(UnknownStream), active(false) {}
         StreamType type;
-        QMap<QtMultimediaKit::MetaData, QVariant> metaData;
+        QMap<QtMultimedia::MetaData, QVariant> metaData;
         bool active;
     };
 
@@ -400,8 +400,8 @@ void tst_qmediastreamscontrol::streamsChanged()
 void tst_qmediastreamscontrol::metadata()
 {
     QtTestMediaStreamsControl m_metadata;
-    m_metadata.metaData(1,QtMultimediaKit::AlbumArtist);
-    qDebug() << m_metadata.metaData(1,QtMultimediaKit::AlbumArtist);
+    m_metadata.metaData(1,QtMultimedia::AlbumArtist);
+    qDebug() << m_metadata.metaData(1,QtMultimedia::AlbumArtist);
 }
 QTEST_MAIN(tst_qmediastreamscontrol);
 

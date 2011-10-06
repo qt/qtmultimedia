@@ -210,7 +210,7 @@ void MediaExample::MediaRecorder()
 
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec("audio/vorbis");
-    audioSettings.setQuality(QtMultimediaKit::HighQuality);
+    audioSettings.setQuality(QtMultimedia::HighQuality);
 
     recorder->setEncodingSettings(audioSettings);
 

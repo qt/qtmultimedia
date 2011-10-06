@@ -82,7 +82,7 @@ private slots:
     void loops();
 };
 
-Q_DECLARE_METATYPE(QtMultimediaKit::MetaData);
+Q_DECLARE_METATYPE(QtMultimedia::MetaData);
 Q_DECLARE_METATYPE(QDeclarativeAudio::Error);
 
 class QtTestMediaPlayerControl : public QMediaPlayerControl
@@ -203,17 +203,17 @@ public:
 
     bool isMetaDataAvailable() const { return true; }
 
-    QVariant metaData(QtMultimediaKit::MetaData key) const { return m_metaData.value(key); }
-    void setMetaData(QtMultimediaKit::MetaData key, const QVariant &value) {
+    QVariant metaData(QtMultimedia::MetaData key) const { return m_metaData.value(key); }
+    void setMetaData(QtMultimedia::MetaData key, const QVariant &value) {
         m_metaData.insert(key, value); emit metaDataChanged(); }
 
-    QList<QtMultimediaKit::MetaData> availableMetaData() const { return m_metaData.keys(); }
+    QList<QtMultimedia::MetaData> availableMetaData() const { return m_metaData.keys(); }
 
     QVariant extendedMetaData(const QString &) const { return QVariant(); }
     QStringList availableExtendedMetaData() const { return QStringList(); }
 
 private:
-    QMap<QtMultimediaKit::MetaData, QVariant> m_metaData;
+    QMap<QtMultimedia::MetaData, QVariant> m_metaData;
 };
 
 class QtTestMediaService : public QMediaService
@@ -1123,29 +1123,29 @@ void tst_QDeclarativeAudio::status()
 void tst_QDeclarativeAudio::metaData_data()
 {
     QTest::addColumn<QByteArray>("propertyName");
-    QTest::addColumn<QtMultimediaKit::MetaData>("propertyKey");
+    QTest::addColumn<QtMultimedia::MetaData>("propertyKey");
     QTest::addColumn<QVariant>("value");
 
     QTest::newRow("title")
             << QByteArray("title")
-            << QtMultimediaKit::Title
+            << QtMultimedia::Title
             << QVariant(QString::fromLatin1("This is a title"));
 
     QTest::newRow("genre")
             << QByteArray("genre")
-            << QtMultimediaKit::Genre
+            << QtMultimedia::Genre
             << QVariant(QString::fromLatin1("rock"));
 
     QTest::newRow("trackNumber")
             << QByteArray("trackNumber")
-            << QtMultimediaKit::TrackNumber
+            << QtMultimedia::TrackNumber
             << QVariant(8);
 }
 
 void tst_QDeclarativeAudio::metaData()
 {
     QFETCH(QByteArray, propertyName);
-    QFETCH(QtMultimediaKit::MetaData, propertyKey);
+    QFETCH(QtMultimedia::MetaData, propertyKey);
     QFETCH(QVariant, value);
 
     QtTestMediaServiceProvider provider;

@@ -55,7 +55,7 @@
 #define IMAGE_DONE_SIGNAL "image-done"
 
 Q_DECLARE_METATYPE(QVideoFrame)
-Q_DECLARE_METATYPE(QtMultimediaKit::MetaData)
+Q_DECLARE_METATYPE(QtMultimedia::MetaData)
 
 namespace
 {
@@ -65,7 +65,7 @@ public:
     CameraRegisterMetaTypes()
     {
         qRegisterMetaType<QVideoFrame>("QVideoFrame");
-        qRegisterMetaType<QtMultimediaKit::MetaData>("QtMultimediaKit::MetaData");
+        qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
     }
 } _registerCameraMetaTypes;
 }
@@ -140,26 +140,26 @@ gboolean CameraBinImageCapture::metadataEventProbe(GstPad *pad, GstEvent *event,
         qDebug() << "Capture event probe" << extendedTags;
 #endif
 
-        QMap<QtMultimediaKit::MetaData, QVariant> tags;
-        tags[QtMultimediaKit::ISOSpeedRatings] = extendedTags.value("capturing-iso-speed");
-        tags[QtMultimediaKit::DigitalZoomRatio] = extendedTags.value("capturing-digital-zoom-ratio");
-        tags[QtMultimediaKit::ExposureTime] = extendedTags.value("capturing-shutter-speed");
-        tags[QtMultimediaKit::WhiteBalance] = extendedTags.value("capturing-white-balance");
-        tags[QtMultimediaKit::Flash] = extendedTags.value("capturing-flash-fired");
-        tags[QtMultimediaKit::FocalLengthIn35mmFilm] = extendedTags.value("capturing-focal-length");
-        tags[QtMultimediaKit::MeteringMode] = extendedTags.value("capturing-metering-mode");
-        tags[QtMultimediaKit::ExposureMode] = extendedTags.value("capturing-exposure-mode");
-        tags[QtMultimediaKit::FNumber] = extendedTags.value("capturing-focal-ratio");
-        tags[QtMultimediaKit::ExposureMode] = extendedTags.value("capturing-exposure-mode");
+        QMap<QtMultimedia::MetaData, QVariant> tags;
+        tags[QtMultimedia::ISOSpeedRatings] = extendedTags.value("capturing-iso-speed");
+        tags[QtMultimedia::DigitalZoomRatio] = extendedTags.value("capturing-digital-zoom-ratio");
+        tags[QtMultimedia::ExposureTime] = extendedTags.value("capturing-shutter-speed");
+        tags[QtMultimedia::WhiteBalance] = extendedTags.value("capturing-white-balance");
+        tags[QtMultimedia::Flash] = extendedTags.value("capturing-flash-fired");
+        tags[QtMultimedia::FocalLengthIn35mmFilm] = extendedTags.value("capturing-focal-length");
+        tags[QtMultimedia::MeteringMode] = extendedTags.value("capturing-metering-mode");
+        tags[QtMultimedia::ExposureMode] = extendedTags.value("capturing-exposure-mode");
+        tags[QtMultimedia::FNumber] = extendedTags.value("capturing-focal-ratio");
+        tags[QtMultimedia::ExposureMode] = extendedTags.value("capturing-exposure-mode");
 
-        QMapIterator<QtMultimediaKit::MetaData, QVariant> i(tags);
+        QMapIterator<QtMultimedia::MetaData, QVariant> i(tags);
         while (i.hasNext()) {
             i.next();
             if (i.value().isValid()) {
                 QMetaObject::invokeMethod(self, "imageMetadataAvailable",
                                           Qt::QueuedConnection,
                                           Q_ARG(int, self->m_requestId),
-                                          Q_ARG(QtMultimediaKit::MetaData, i.key()),
+                                          Q_ARG(QtMultimedia::MetaData, i.key()),
                                           Q_ARG(QVariant, i.value()));
             }
         }

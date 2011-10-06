@@ -1,6 +1,6 @@
 load(qttest_p4)
 
-QT += multimediakit-private
+QT += multimedia-private
 CONFIG += no_private_qt_headers_warning
 
 SOURCES += tst_qmediapluginloader.cpp

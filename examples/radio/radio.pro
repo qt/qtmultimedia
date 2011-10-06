@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = radio
 
-QT += multimediakit
+QT += multimedia
 
 HEADERS = \
     radio.h
@@ -10,9 +10,9 @@ SOURCES = \
     main.cpp \
     radio.cpp
 
-target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/radio
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/radio
 sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/radio
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/radio
 
 INSTALLS += target sources
 

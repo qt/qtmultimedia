@@ -78,7 +78,7 @@ private slots:
     void geometry();
 };
 
-Q_DECLARE_METATYPE(QtMultimediaKit::MetaData);
+Q_DECLARE_METATYPE(QtMultimedia::MetaData);
 Q_DECLARE_METATYPE(QDeclarativeVideo::Error);
 
 class QtTestMediaPlayerControl : public QMediaPlayerControl

@@ -43,7 +43,7 @@
 #define QSGVIDEONODE_I420_H
 
 #include "qsgvideonode_p.h"
-#include <QtMultimediaKit/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
 class QSGVideoMaterial_YUV420;
 class QSGVideoNode_I420 : public QSGVideoNode

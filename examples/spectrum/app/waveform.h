@@ -42,7 +42,7 @@
 #define WAVEFORM_H
 
 #include <QWidget>
-#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimedia/QAudioFormat>
 #include <QPixmap>
 #include <QScopedPointer>
 

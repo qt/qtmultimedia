@@ -36,7 +36,7 @@ or video.
 
 
 
-The Camera Example demonstrates how you can use the QtMultimediaKit to implement
+The Camera Example demonstrates how you can use QtMultimedia to implement
 some basic Camera functionality to take still images and record video clips
 with audio.
 

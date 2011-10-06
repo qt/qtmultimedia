@@ -49,8 +49,8 @@
 #include <QByteArray>
 #include <QBuffer>
 #include <QVector>
-#include <QtMultimediaKit/QAudioDeviceInfo>
-#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimedia/QAudioDeviceInfo>
+#include <QtMultimedia/QAudioFormat>
 
 #ifdef DUMP_CAPTURED_AUDIO
 #define DUMP_DATA
@@ -70,7 +70,7 @@ QT_FORWARD_DECLARE_CLASS(QAudioOutput)
 QT_FORWARD_DECLARE_CLASS(QFile)
 
 /**
- * This class interfaces with the QtMultimediaKit audio classes, and also with
+ * This class interfaces with the QtMultimedia audio classes, and also with
  * the SpectrumAnalyser class.  Its role is to manage the capture and playback
  * of audio data, meanwhile performing real-time analysis of the audio level
  * and frequency spectrum.

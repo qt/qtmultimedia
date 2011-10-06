@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = camera
 
-QT += multimediakit multimediakitwidgets
+QT += multimedia multimediawidgets
 
 HEADERS = \
     camera.h \
@@ -19,9 +19,9 @@ FORMS += \
     videosettings.ui \
     imagesettings.ui
 
-target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/camera
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/camera
 sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimediakit/camera
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/camera
 
 INSTALLS += target sources
 

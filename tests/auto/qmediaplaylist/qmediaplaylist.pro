@@ -5,18 +5,18 @@ CONFIG += insignificant_test
 
 include (../qmultimedia_common/mockplaylist.pri)
 
-QT += multimediakit-private
+QT += multimedia-private
 CONFIG += no_private_qt_headers_warning
 
 DEFINES += TESTDATA_DIR=\\\"$$PWD/\\\"
 
 HEADERS += \
-    $$QT.multimediakit.sources/../plugins/m3u/qm3uhandler.h
+    $$QT.multimedia.sources/../plugins/m3u/qm3uhandler.h
 
 SOURCES += \
     tst_qmediaplaylist.cpp \
-    $$QT.multimediakit.sources/../plugins/m3u/qm3uhandler.cpp
+    $$QT.multimedia.sources/../plugins/m3u/qm3uhandler.cpp
 
-INCLUDEPATH += $$QT.multimediakit.sources/../plugins/m3u
+INCLUDEPATH += $$QT.multimedia.sources/../plugins/m3u
 
 maemo*:CONFIG += insignificant_test

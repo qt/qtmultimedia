@@ -4,14 +4,14 @@ TEMPLATE = lib
 TARGET = qtmmksnippets
 
 INCLUDEPATH += ../../../../src/global \
-               ../../../../src/multimediakit \
-               ../../../../src/multimediakit/audio \
-               ../../../../src/multimediakit/video \
-               ../../../../src/multimediakit/effects
+               ../../../../src/multimedia \
+               ../../../../src/multimedia/audio \
+               ../../../../src/multimedia/video \
+               ../../../../src/multimedia/effects
 
 CONFIG += console
 
-qtAddLibrary(QtMultimediaKit)
+QT += multimedia
 
 SOURCES += \
     audio.cpp \

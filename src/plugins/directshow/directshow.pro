@@ -6,11 +6,8 @@ TARGET = $$qtLibraryTarget(dsengine)
 PLUGIN_TYPE=mediaservice
 
 include (../../../common.pri)
-INCLUDEPATH+=../../multimediakit \
-             ../../multimediakit/audio \
-             ../../multimediakit/video
 
-qtAddLibrary(QtMultimediaKit)
+QT += multimedia
 
 DEPENDPATH += .
 

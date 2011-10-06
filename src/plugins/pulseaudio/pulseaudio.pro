@@ -1,11 +1,11 @@
 load(qt_module)
 
 TARGET = qtmedia_pulse
-QT += multimediakit-private
+QT += multimedia-private
 PLUGIN_TYPE = audio
 
 load(qt_plugin)
-DESTDIR = $$QT.multimediakit.plugins/$${PLUGIN_TYPE}
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 CONFIG += link_pkgconfig
 PKGCONFIG += libpulse

@@ -69,7 +69,7 @@
 
 QT_USE_NAMESPACE
 
-Q_DECLARE_METATYPE(QtMultimediaKit::MetaData)
+Q_DECLARE_METATYPE(QtMultimedia::MetaData)
 
 class tst_QCamera: public QObject
 {
@@ -175,7 +175,7 @@ void tst_QCamera::initTestCase()
     provider = new MockMediaServiceProvider;
     mockSimpleCameraService = new MockSimpleCameraService;
     provider->service = mockSimpleCameraService;
-    qRegisterMetaType<QtMultimediaKit::MetaData>("QtMultimediaKit::MetaData");
+    qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
 }
 
 void tst_QCamera::cleanupTestCase()
@@ -515,7 +515,7 @@ void tst_QCamera::testCameraCaptureMetadata()
     QCamera camera(0, provider);
     QCameraImageCapture imageCapture(&camera);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QtMultimediaKit::MetaData,QVariant)));
+    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)));
     QSignalSpy extendedMetadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
 
@@ -531,12 +531,12 @@ void tst_QCamera::testCameraCaptureMetadata()
 
     QVariantList metadata = metadataSignal[0];
     QCOMPARE(metadata[0].toInt(), id);
-    QCOMPARE(metadata[1].value<QtMultimediaKit::MetaData>(), QtMultimediaKit::FocalLengthIn35mmFilm);
+    QCOMPARE(metadata[1].value<QtMultimedia::MetaData>(), QtMultimedia::FocalLengthIn35mmFilm);
     QCOMPARE(metadata[2].value<QVariant>().toInt(), 50);
 
     metadata = metadataSignal[1];
     QCOMPARE(metadata[0].toInt(), id);
-    QCOMPARE(metadata[1].value<QtMultimediaKit::MetaData>(), QtMultimediaKit::DateTimeOriginal);
+    QCOMPARE(metadata[1].value<QtMultimedia::MetaData>(), QtMultimedia::DateTimeOriginal);
     QDateTime captureTime = metadata[2].value<QVariant>().value<QDateTime>();
     QVERIFY(qAbs(captureTime.secsTo(QDateTime::currentDateTime()) < 5)); //it should not takes more than 5 seconds for signal to arrive here
 
@@ -785,9 +785,9 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings != QImageEncoderSettings());
 
     settings = QImageEncoderSettings();
-    QCOMPARE(settings.quality(), QtMultimediaKit::NormalQuality);
-    settings.setQuality(QtMultimediaKit::HighQuality);
-    QCOMPARE(settings.quality(), QtMultimediaKit::HighQuality);
+    QCOMPARE(settings.quality(), QtMultimedia::NormalQuality);
+    settings.setQuality(QtMultimedia::HighQuality);
+    QCOMPARE(settings.quality(), QtMultimedia::HighQuality);
     QVERIFY(!settings.isNull());
 
     settings = QImageEncoderSettings();
@@ -801,7 +801,7 @@ void tst_QCamera::testImageSettings()
     settings = QImageEncoderSettings();
     QVERIFY(settings.isNull());
     QCOMPARE(settings.codec(), QString());
-    QCOMPARE(settings.quality(), QtMultimediaKit::NormalQuality);
+    QCOMPARE(settings.quality(), QtMultimedia::NormalQuality);
     QCOMPARE(settings.resolution(), QSize());
 
     {
@@ -813,7 +813,7 @@ void tst_QCamera::testImageSettings()
         QCOMPARE(settings2, settings1);
         QVERIFY(settings2.isNull());
 
-        settings1.setQuality(QtMultimediaKit::HighQuality);
+        settings1.setQuality(QtMultimedia::HighQuality);
 
         QVERIFY(settings2.isNull());
         QVERIFY(!settings1.isNull());
@@ -829,7 +829,7 @@ void tst_QCamera::testImageSettings()
         QCOMPARE(settings2, settings1);
         QVERIFY(settings2.isNull());
 
-        settings1.setQuality(QtMultimediaKit::HighQuality);
+        settings1.setQuality(QtMultimedia::HighQuality);
 
         QVERIFY(settings2.isNull());
         QVERIFY(!settings1.isNull());
@@ -856,11 +856,11 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings1 != settings2);
 
     settings1 = QImageEncoderSettings();
-    settings1.setQuality(QtMultimediaKit::NormalQuality);
+    settings1.setQuality(QtMultimedia::NormalQuality);
     settings2 = QImageEncoderSettings();
-    settings2.setQuality(QtMultimediaKit::NormalQuality);
+    settings2.setQuality(QtMultimedia::NormalQuality);
     QVERIFY(settings1 == settings2);
-    settings2.setQuality(QtMultimediaKit::LowQuality);
+    settings2.setQuality(QtMultimedia::LowQuality);
     QVERIFY(settings1 != settings2);
 }
 
@@ -1246,10 +1246,10 @@ void tst_QCamera::testAvailabilityError()
     MockCameraService service;
     provider->service = &service;
     QCamera camera(0, provider);
-    QVERIFY(camera.availabilityError() == QtMultimediaKit::NoError);
+    QVERIFY(camera.availabilityError() == QtMultimedia::NoError);
 
     QCamera *camera1 = new QCamera("random");
-    QVERIFY(camera1->availabilityError() == QtMultimediaKit::ServiceMissingError);
+    QVERIFY(camera1->availabilityError() == QtMultimedia::ServiceMissingError);
     delete camera1;
 }
 

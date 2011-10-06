@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimedia/QAudioFormat>
 #include "utils.h"
 
 qint64 audioDuration(const QAudioFormat &format, qint64 bytes)

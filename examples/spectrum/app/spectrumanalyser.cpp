@@ -43,7 +43,7 @@
 
 #include <QtCore/qmath.h>
 #include <QtCore/qmetatype.h>
-#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimedia/QAudioFormat>
 #include <QThread>
 
 #include "fftreal_wrapper.h"
