@@ -504,8 +504,6 @@ QVariant QVideoSurfaceFormat::property(const char *name) const
         return qVariantFromValue(d->handleType);
     } else if (qstrcmp(name, "pixelFormat") == 0) {
         return qVariantFromValue(d->pixelFormat);
-    } else if (qstrcmp(name, "handleType") == 0) {
-        return qVariantFromValue(d->handleType);
     } else if (qstrcmp(name, "frameSize") == 0) {
         return d->frameSize;
     } else if (qstrcmp(name, "frameWidth") == 0) {
@@ -593,108 +591,35 @@ void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
 
 
 #ifndef QT_NO_DEBUG_STREAM
+
+QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
+{
+    switch (cs) {
+        case QVideoSurfaceFormat::YCbCr_BT601:
+            return dbg.nospace() << "YCbCr_BT601";
+        case QVideoSurfaceFormat::YCbCr_BT709:
+            return dbg.nospace() << "YCbCr_BT709";
+        case QVideoSurfaceFormat::YCbCr_JPEG:
+            return dbg.nospace() << "YCbCr_JPEG";
+        case QVideoSurfaceFormat::YCbCr_xvYCC601:
+            return dbg.nospace() << "YCbCr_xvYCC601";
+        case QVideoSurfaceFormat::YCbCr_xvYCC709:
+            return dbg.nospace() << "YCbCr_xvYCC709";
+        case QVideoSurfaceFormat::YCbCr_CustomMatrix:
+            return dbg.nospace() << "YCbCr_CustomMatrix";
+        default:
+            return dbg.nospace() << "YCbCr_Undefined";
+    }
+}
+
 QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)
 {
-    QString typeName;
-    switch (f.pixelFormat()) {
-    case QVideoFrame::Format_Invalid:
-        typeName = QLatin1String("Format_Invalid");
-        break;
-    case QVideoFrame::Format_ARGB32:
-        typeName = QLatin1String("Format_ARGB32");
-        break;
-    case QVideoFrame::Format_ARGB32_Premultiplied:
-        typeName = QLatin1String("Format_ARGB32_Premultiplied");
-        break;
-    case QVideoFrame::Format_RGB32:
-        typeName = QLatin1String("Format_RGB32");
-        break;
-    case QVideoFrame::Format_RGB24:
-        typeName = QLatin1String("Format_RGB24");
-        break;
-    case QVideoFrame::Format_RGB565:
-        typeName = QLatin1String("Format_RGB565");
-        break;
-    case QVideoFrame::Format_RGB555:
-        typeName = QLatin1String("Format_RGB555");
-        break;
-    case QVideoFrame::Format_ARGB8565_Premultiplied:
-        typeName = QLatin1String("Format_ARGB8565_Premultiplied");
-        break;
-    case QVideoFrame::Format_BGRA32:
-        typeName = QLatin1String("Format_BGRA32");
-        break;
-    case QVideoFrame::Format_BGRA32_Premultiplied:
-        typeName = QLatin1String("Format_BGRA32_Premultiplied");
-        break;
-    case QVideoFrame::Format_BGR32:
-        typeName = QLatin1String("Format_BGR32");
-        break;
-    case QVideoFrame::Format_BGR24:
-        typeName = QLatin1String("Format_BGR24");
-        break;
-    case QVideoFrame::Format_BGR565:
-        typeName = QLatin1String("Format_BGR565");
-        break;
-    case QVideoFrame::Format_BGR555:
-        typeName = QLatin1String("Format_BGR555");
-        break;
-    case QVideoFrame::Format_BGRA5658_Premultiplied:
-        typeName = QLatin1String("Format_BGRA5658_Premultiplied");
-        break;
-    case QVideoFrame::Format_AYUV444:
-        typeName = QLatin1String("Format_AYUV444");
-        break;
-    case QVideoFrame::Format_AYUV444_Premultiplied:
-        typeName = QLatin1String("Format_AYUV444_Premultiplied");
-        break;
-    case QVideoFrame::Format_YUV444:
-        typeName = QLatin1String("Format_YUV444");
-        break;
-    case QVideoFrame::Format_YUV420P:
-        typeName = QLatin1String("Format_YUV420P");
-        break;
-    case QVideoFrame::Format_YV12:
-        typeName = QLatin1String("Format_YV12");
-        break;
-    case QVideoFrame::Format_UYVY:
-        typeName = QLatin1String("Format_UYVY");
-        break;
-    case QVideoFrame::Format_YUYV:
-        typeName = QLatin1String("Format_YUYV");
-        break;
-    case QVideoFrame::Format_NV12:
-        typeName = QLatin1String("Format_NV12");
-        break;
-    case QVideoFrame::Format_NV21:
-        typeName = QLatin1String("Format_NV21");
-        break;
-    case QVideoFrame::Format_IMC1:
-        typeName = QLatin1String("Format_IMC1");
-        break;
-    case QVideoFrame::Format_IMC2:
-        typeName = QLatin1String("Format_IMC2");
-        break;
-    case QVideoFrame::Format_IMC3:
-        typeName = QLatin1String("Format_IMC3");
-        break;
-    case QVideoFrame::Format_IMC4:
-        typeName = QLatin1String("Format_IMC4");
-        break;
-    case QVideoFrame::Format_Y8:
-        typeName = QLatin1String("Format_Y8");
-        break;
-    case QVideoFrame::Format_Y16:
-        typeName = QLatin1String("Format_Y16");
-        break;
-    default:
-        typeName = QString(QLatin1String("UserType(%1)" )).arg(int(f.pixelFormat()));
-    }
-
-    dbg.nospace() << "QVideoSurfaceFormat(" << typeName;
+    dbg.nospace() << "QVideoSurfaceFormat(" << f.pixelFormat();
     dbg.nospace() << ", " << f.frameSize();
     dbg.nospace() << ", viewport=" << f.viewport();
     dbg.nospace() << ", pixelAspectRatio=" << f.pixelAspectRatio();
+    dbg.nospace() << ", handleType=" << f.handleType();
+    dbg.nospace() << ", yCbCrColorSpace=" << f.yCbCrColorSpace();
     dbg.nospace() << ")";
 
     foreach(const QByteArray& propertyName, f.propertyNames())

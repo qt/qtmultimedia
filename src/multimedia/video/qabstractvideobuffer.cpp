@@ -43,6 +43,9 @@
 
 #include <qvariant.h>
 
+#include <QDebug>
+
+
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -198,5 +201,24 @@ QVariant QAbstractVideoBuffer::handle() const
     return QVariant();
 }
 
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::HandleType type)
+{
+    switch (type) {
+    case QAbstractVideoBuffer::NoHandle:
+        return dbg.nospace() << "NoHandle";
+    case QAbstractVideoBuffer::GLTextureHandle:
+        return dbg.nospace() << "GLTextureHandle";
+    case QAbstractVideoBuffer::XvShmImageHandle:
+        return dbg.nospace() << "XvShmImageHandle";
+    case QAbstractVideoBuffer::CoreImageHandle:
+        return dbg.nospace() << "CoreImageHandle";
+    case QAbstractVideoBuffer::QPixmapHandle:
+        return dbg.nospace() << "QPixmapHandle";
+    default:
+        return dbg.nospace() << QString(QLatin1String("UserHandle(%1)")).arg(int(type)).toAscii().constData();
+    }
+}
+#endif
 
 QT_END_NAMESPACE

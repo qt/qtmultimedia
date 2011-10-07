@@ -50,6 +50,8 @@
 #include <qvariant.h>
 #include <qvector.h>
 
+#include <QDebug>
+
 QT_BEGIN_NAMESPACE
 
 namespace
@@ -682,11 +684,6 @@ void QVideoFrame::setEndTime(qint64 time)
 QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format format)
 {
     switch (format) {
-    case QImage::Format_Invalid:
-    case QImage::Format_Mono:
-    case QImage::Format_MonoLSB:
-    case QImage::Format_Indexed8:
-        return Format_Invalid;
     case QImage::Format_RGB32:
         return Format_RGB32;
     case QImage::Format_ARGB32:
@@ -697,22 +694,13 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format 
         return Format_RGB565;
     case QImage::Format_ARGB8565_Premultiplied:
         return Format_ARGB8565_Premultiplied;
-    case QImage::Format_RGB666:
-    case QImage::Format_ARGB6666_Premultiplied:
-        return Format_Invalid;
     case QImage::Format_RGB555:
         return Format_RGB555;
-    case QImage::Format_ARGB8555_Premultiplied:
-        return Format_Invalid;
     case QImage::Format_RGB888:
         return Format_RGB24;
-    case QImage::Format_RGB444:
-    case QImage::Format_ARGB4444_Premultiplied:
-        return Format_Invalid;
-    case QImage::NImageFormats:
+    default:
         return Format_Invalid;
     }
-    return Format_Invalid;
 }
 
 /*!
@@ -771,6 +759,85 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
     }
     return QImage::Format_Invalid;
 }
+
+#ifndef QT_NO_DEBUG_STREAM
+
+QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
+{
+    switch (pf) {
+        case QVideoFrame::Format_Invalid:
+            return dbg.nospace() << "Format_Invalid";
+        case QVideoFrame::Format_ARGB32:
+            return dbg.nospace() << "Format_ARGB32";
+        case QVideoFrame::Format_ARGB32_Premultiplied:
+            return dbg.nospace() << "Format_ARGB32_Premultiplied";
+        case QVideoFrame::Format_RGB32:
+            return dbg.nospace() << "Format_RGB32";
+        case QVideoFrame::Format_RGB24:
+            return dbg.nospace() << "Format_RGB24";
+        case QVideoFrame::Format_RGB565:
+            return dbg.nospace() << "Format_RGB565";
+        case QVideoFrame::Format_RGB555:
+            return dbg.nospace() << "Format_RGB555";
+        case QVideoFrame::Format_ARGB8565_Premultiplied:
+            return dbg.nospace() << "Format_ARGB8565_Premultiplied";
+        case QVideoFrame::Format_BGRA32:
+            return dbg.nospace() << "Format_BGRA32";
+        case QVideoFrame::Format_BGRA32_Premultiplied:
+            return dbg.nospace() << "Format_BGRA32_Premultiplied";
+        case QVideoFrame::Format_BGR32:
+            return dbg.nospace() << "Format_BGR32";
+        case QVideoFrame::Format_BGR24:
+            return dbg.nospace() << "Format_BGR24";
+        case QVideoFrame::Format_BGR565:
+            return dbg.nospace() << "Format_BGR565";
+        case QVideoFrame::Format_BGR555:
+            return dbg.nospace() << "Format_BGR555";
+        case QVideoFrame::Format_BGRA5658_Premultiplied:
+            return dbg.nospace() << "Format_BGRA5658_Premultiplied";
+        case QVideoFrame::Format_AYUV444:
+            return dbg.nospace() << "Format_AYUV444";
+        case QVideoFrame::Format_AYUV444_Premultiplied:
+            return dbg.nospace() << "Format_AYUV444_Premultiplied";
+        case QVideoFrame::Format_YUV444:
+            return dbg.nospace() << "Format_YUV444";
+        case QVideoFrame::Format_YUV420P:
+            return dbg.nospace() << "Format_YUV420P";
+        case QVideoFrame::Format_YV12:
+            return dbg.nospace() << "Format_YV12";
+        case QVideoFrame::Format_UYVY:
+            return dbg.nospace() << "Format_UYVY";
+        case QVideoFrame::Format_YUYV:
+            return dbg.nospace() << "Format_YUYV";
+        case QVideoFrame::Format_NV12:
+            return dbg.nospace() << "Format_NV12";
+        case QVideoFrame::Format_NV21:
+            return dbg.nospace() << "Format_NV21";
+        case QVideoFrame::Format_IMC1:
+            return dbg.nospace() << "Format_IMC1";
+        case QVideoFrame::Format_IMC2:
+            return dbg.nospace() << "Format_IMC2";
+        case QVideoFrame::Format_IMC3:
+            return dbg.nospace() << "Format_IMC3";
+        case QVideoFrame::Format_IMC4:
+            return dbg.nospace() << "Format_IMC4";
+        case QVideoFrame::Format_Y8:
+            return dbg.nospace() << "Format_Y8";
+        case QVideoFrame::Format_Y16:
+            return dbg.nospace() << "Format_Y16";
+        case QVideoFrame::Format_Jpeg:
+            return dbg.nospace() << "Format_Jpeg";
+        case QVideoFrame::Format_AdobeDng:
+            return dbg.nospace() << "Format_AdobeDng";
+        case QVideoFrame::Format_CameraRaw:
+            return dbg.nospace() << "Format_CameraRaw";
+
+        default:
+            return dbg.nospace() << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toAscii().constData();
+    }
+}
+
+#endif
 
 QT_END_NAMESPACE
 

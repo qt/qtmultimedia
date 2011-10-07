@@ -100,33 +100,41 @@ void tst_QAbstractVideoBuffer::cleanup()
 {
 }
 
+#define ADD_HANDLE_TEST(x) \
+    QTest::newRow(#x) \
+        << QAbstractVideoBuffer::x \
+    << QString(QLatin1String(#x));
+
 void tst_QAbstractVideoBuffer::handleType_data()
 {
     QTest::addColumn<QAbstractVideoBuffer::HandleType>("type");
+    QTest::addColumn<QString>("stringized");
 
-    QTest::newRow("none")
-            << QAbstractVideoBuffer::NoHandle;
-    QTest::newRow("opengl")
-            << QAbstractVideoBuffer::GLTextureHandle;
-    QTest::newRow("XvShmImageHandle")
-            << QAbstractVideoBuffer::XvShmImageHandle;
-    QTest::newRow("CoreImageHandle")
-            << QAbstractVideoBuffer::CoreImageHandle;
-    QTest::newRow("QPixmapHandle")
-            << QAbstractVideoBuffer::QPixmapHandle;
+    ADD_HANDLE_TEST(NoHandle);
+    ADD_HANDLE_TEST(GLTextureHandle);
+    ADD_HANDLE_TEST(XvShmImageHandle);
+    ADD_HANDLE_TEST(QPixmapHandle);
+    ADD_HANDLE_TEST(CoreImageHandle);
+
+    // User handles are different
+
     QTest::newRow("user1")
-            << QAbstractVideoBuffer::UserHandle;
+            << QAbstractVideoBuffer::UserHandle << QString::fromAscii("UserHandle(1000)");
     QTest::newRow("user2")
-            << QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle + 1);
+            << QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle + 1) << QString::fromAscii("UserHandle(1001)");
 }
 
 void tst_QAbstractVideoBuffer::handleType()
 {
     QFETCH(QAbstractVideoBuffer::HandleType, type);
+    QFETCH(QString, stringized);
 
     QtTestVideoBuffer buffer(type);
 
     QCOMPARE(buffer.handleType(), type);
+
+    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
+    qDebug() << type;
 }
 
 void tst_QAbstractVideoBuffer::handle()

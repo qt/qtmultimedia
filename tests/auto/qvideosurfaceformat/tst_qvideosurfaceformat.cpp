@@ -87,6 +87,10 @@ private slots:
     void yCbCrColorSpaceEnum ();
     void copyAllParameters ();
     void assignAllParameters ();
+
+    void propertyEdgeCases();
+    void debugOperator();
+    void debugOperator_data();
 };
 
 tst_QVideoSurfaceFormat::tst_QVideoSurfaceFormat()
@@ -180,10 +184,14 @@ void tst_QVideoSurfaceFormat::construct()
     QVideoSurfaceFormat format(frameSize, pixelFormat, handleType);
 
     QCOMPARE(format.handleType(), handleType);
+    QCOMPARE(format.property("handleType").value<QAbstractVideoBuffer::HandleType>(), handleType);
     QCOMPARE(format.pixelFormat(), pixelFormat);
+    QCOMPARE(format.property("pixelFormat").value<QVideoFrame::PixelFormat>(), pixelFormat);
     QCOMPARE(format.frameSize(), frameSize);
     QCOMPARE(format.frameWidth(), frameSize.width());
+    QCOMPARE(format.property("frameWidth").toInt(), frameSize.width());
     QCOMPARE(format.frameHeight(), frameSize.height());
+    QCOMPARE(format.property("frameHeight").toInt(), frameSize.height());
     QCOMPARE(format.isValid(), valid);
     QCOMPARE(format.viewport(), viewport);
     QCOMPARE(format.scanLineDirection(), QVideoSurfaceFormat::TopToBottom);
@@ -213,16 +221,32 @@ void tst_QVideoSurfaceFormat::frameSize()
     QFETCH(QSize, initialSize);
     QFETCH(QSize, newSize);
 
-    QVideoSurfaceFormat format(initialSize, QVideoFrame::Format_RGB32);
+    {
+        QVideoSurfaceFormat format(initialSize, QVideoFrame::Format_RGB32);
 
-    format.setFrameSize(newSize);
+        format.setFrameSize(newSize);
 
-    QCOMPARE(format.frameSize(), newSize);
-    QCOMPARE(format.property("frameSize").toSize(), newSize);
-    QCOMPARE(format.frameWidth(), newSize.width());
-    QCOMPARE(format.property("frameWidth").toInt(), newSize.width());
-    QCOMPARE(format.frameHeight(), newSize.height());
-    QCOMPARE(format.property("frameHeight").toInt(), newSize.height());
+        QCOMPARE(format.frameSize(), newSize);
+        QCOMPARE(format.property("frameSize").toSize(), newSize);
+        QCOMPARE(format.frameWidth(), newSize.width());
+        QCOMPARE(format.property("frameWidth").toInt(), newSize.width());
+        QCOMPARE(format.frameHeight(), newSize.height());
+        QCOMPARE(format.property("frameHeight").toInt(), newSize.height());
+    }
+
+    {
+        QVideoSurfaceFormat format(initialSize, QVideoFrame::Format_RGB32);
+
+        format.setProperty("frameSize", newSize);
+
+        QCOMPARE(format.frameSize(), newSize);
+        QCOMPARE(format.property("frameSize").toSize(), newSize);
+        QCOMPARE(format.frameWidth(), newSize.width());
+        QCOMPARE(format.property("frameWidth").toInt(), newSize.width());
+        QCOMPARE(format.frameHeight(), newSize.height());
+        QCOMPARE(format.property("frameHeight").toInt(), newSize.height());
+    }
+
 }
 
 void tst_QVideoSurfaceFormat::viewport_data()
@@ -457,6 +481,11 @@ void tst_QVideoSurfaceFormat::sizeHint_data()
         << QRect(168, 84, 800, 600)
         << QSize(4, 3)
         << QSize(1066, 600);
+    QTest::newRow("(168, 84, 800x600), 4:0")
+        << QSize(1024, 768)
+        << QRect(168, 84, 800, 600)
+        << QSize(4, 0)
+        << QSize(800, 600);
 }
 
 void tst_QVideoSurfaceFormat::sizeHint()
@@ -740,20 +769,31 @@ void tst_QVideoSurfaceFormat::assign()
 }
 
 /* Test case for Enum YCbCr_BT601, YCbCr_xvYCC709 */
+
+#define ADD_YCBCR_TEST(x) \
+    QTest::newRow(#x) \
+        << QVideoSurfaceFormat::x \
+    << QString(QLatin1String(#x));
+
 void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum_data()
 {
     QTest::addColumn<QVideoSurfaceFormat::YCbCrColorSpace>("colorspace");
+    QTest::addColumn<QString>("stringized");
 
-    QTest::newRow("YCbCr_BT601")
-            << QVideoSurfaceFormat::YCbCr_BT601;
-    QTest::newRow("YCbCr_xvYCC709")
-            << QVideoSurfaceFormat::YCbCr_xvYCC709;
+    ADD_YCBCR_TEST(YCbCr_BT601);
+    ADD_YCBCR_TEST(YCbCr_BT709);
+    ADD_YCBCR_TEST(YCbCr_xvYCC601);
+    ADD_YCBCR_TEST(YCbCr_xvYCC709);
+    ADD_YCBCR_TEST(YCbCr_JPEG);
+    ADD_YCBCR_TEST(YCbCr_CustomMatrix);
+    ADD_YCBCR_TEST(YCbCr_Undefined);
 }
 
 /* Test case for Enum YCbCr_BT601, YCbCr_xvYCC709 */
 void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum()
 {
     QFETCH(QVideoSurfaceFormat::YCbCrColorSpace, colorspace);
+    QFETCH(QString, stringized);
 
     {
         QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
@@ -771,6 +811,9 @@ void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum()
         QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),
                 colorspace);
     }
+
+    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
+    qDebug() << colorspace;
 }
 
 /* Test case for api isValid */
@@ -866,6 +909,155 @@ void tst_QVideoSurfaceFormat::assignAllParameters()
     QCOMPARE(original != copy, false);
 }
 
+void tst_QVideoSurfaceFormat::propertyEdgeCases()
+{
+    // Test setting read only properties doesn't change anything
+    QVideoSurfaceFormat original(
+            QSize(1024, 768), QVideoFrame::Format_ARGB32, QAbstractVideoBuffer::GLTextureHandle);
+
+    original.setProperty("handleType", QAbstractVideoBuffer::UserHandle);
+    QCOMPARE(original.handleType(), QAbstractVideoBuffer::GLTextureHandle);
+
+    original.setProperty("pixelFormat", QVideoFrame::Format_AYUV444);
+    QCOMPARE(original.pixelFormat(), QVideoFrame::Format_ARGB32);
+
+    original.setProperty("frameWidth", 512);
+    QCOMPARE(original.frameWidth(), 1024);
+
+    original.setProperty("frameHeight", 77);
+    QCOMPARE(original.frameHeight(), 768);
+
+    original.setProperty("sizeHint", QSize(512, 384));
+    QCOMPARE(original.sizeHint(), QSize(1024,768));
+
+    // Now test setting some r/w properties with the wrong data type
+    original.setProperty("frameSize", Qt::red);
+    QCOMPARE(original.frameSize(), QSize(1024, 768));
+
+    original.setProperty("viewport", Qt::red);
+    QCOMPARE(original.viewport(), QRect(0, 0, 1024, 768));
+
+    original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    original.setProperty("scanLineDirection", Qt::red);
+    QCOMPARE(original.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
+
+    original.setFrameRate(32);
+    original.setProperty("frameRate", QSize(32, 43));
+    QCOMPARE(original.frameRate(), qreal(32));
+
+    original.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_BT709);
+    original.setProperty("yCbCrColorSpace", QSize(43,43));
+    QCOMPARE(original.yCbCrColorSpace(), QVideoSurfaceFormat::YCbCr_BT709);
+
+    original.setPixelAspectRatio(53, 45);
+    original.setProperty("pixelAspectRatio", Qt::red);
+    QCOMPARE(original.pixelAspectRatio(), QSize(53, 45));
+}
+
+#define ADDDEBUGTEST(format, w, h, r) \
+    QTest::newRow(#format "-" #w "x" #h "@" #r) \
+        << QVideoFrame::Format_ ##format \
+        << "Format_" #format \
+        << QSize(w, h) \
+        << r;
+
+void tst_QVideoSurfaceFormat::debugOperator_data()
+{
+    // This is not too exhaustive
+    QTest::addColumn<QVideoFrame::PixelFormat>("format");
+    QTest::addColumn<QString>("formatString");
+    QTest::addColumn<QSize>("frameSize");
+    QTest::addColumn<int>("frameRate"); // could be double, but formatting is unstable
+
+    ADDDEBUGTEST(Invalid, 100, 200, 3);
+    ADDDEBUGTEST(ARGB32,101, 201, 4);
+    ADDDEBUGTEST(ARGB32_Premultiplied, 100, 202, 5);
+    ADDDEBUGTEST(RGB32, 8, 16, 30);
+    ADDDEBUGTEST(RGB24, 8, 16, 30);
+    ADDDEBUGTEST(RGB565, 8, 16, 30);
+    ADDDEBUGTEST(RGB555, 8, 16, 30);
+    ADDDEBUGTEST(ARGB8565_Premultiplied, 8, 16, 30);
+    ADDDEBUGTEST(BGRA32, 8, 16, 30);
+    ADDDEBUGTEST(BGRA32_Premultiplied, 8, 16, 30);
+    ADDDEBUGTEST(BGR32, 8, 16, 30);
+    ADDDEBUGTEST(BGR24, 8, 16, 30);
+    ADDDEBUGTEST(BGR565, 8, 16, 30);
+    ADDDEBUGTEST(BGR555, 8, 16, 30);
+    ADDDEBUGTEST(BGRA5658_Premultiplied, 8, 16, 30);
+
+    ADDDEBUGTEST(AYUV444, 8, 16, 30);
+    ADDDEBUGTEST(AYUV444, 8, 16, 31);
+    ADDDEBUGTEST(AYUV444_Premultiplied, 8, 16, 30);
+    ADDDEBUGTEST(YUV444, 8, 16, 30);
+    ADDDEBUGTEST(YUV420P, 8, 16, 30);
+    ADDDEBUGTEST(YV12, 8, 16, 30);
+    ADDDEBUGTEST(UYVY, 8, 16, 30);
+    ADDDEBUGTEST(YUYV, 8, 16, 30);
+    ADDDEBUGTEST(NV12, 8, 16, 30);
+    ADDDEBUGTEST(NV12, 80, 16, 30);
+    ADDDEBUGTEST(NV21, 8, 16, 30);
+    ADDDEBUGTEST(IMC1, 8, 16, 30);
+    ADDDEBUGTEST(IMC2, 8, 16, 30);
+    ADDDEBUGTEST(IMC3, 8, 16, 30);
+    ADDDEBUGTEST(IMC3, 8, 160, 30);
+    ADDDEBUGTEST(IMC4, 8, 16, 30);
+    ADDDEBUGTEST(Y8, 8, 16, 30);
+    ADDDEBUGTEST(Y16, 8, 16, 30);
+
+    ADDDEBUGTEST(Jpeg, 8, 16, 30);
+
+    ADDDEBUGTEST(CameraRaw, 8, 16, 30);
+    ADDDEBUGTEST(AdobeDng, 8, 16, 30);
+
+    // User is special
+    QTest::newRow("User-0x0@0)")
+                  << QVideoFrame::Format_User
+                  << "UserType(1000)"
+                  << QSize()
+                  << 0;
+}
+
+void tst_QVideoSurfaceFormat::debugOperator()
+{
+    QFETCH(QVideoFrame::PixelFormat, format);
+    QFETCH(QString, formatString);
+    QFETCH(QSize, frameSize);
+    QFETCH(int, frameRate);
+
+    QString templateOutput = QString("QVideoSurfaceFormat(%1, QSize(%2, %3) , viewport=QRect(0,1 800x600) , pixelAspectRatio=QSize(320, 200) "
+        ", handleType=GLTextureHandle, yCbCrColorSpace=YCbCr_BT709)\n"
+        "    handleType = QVariant(QAbstractVideoBuffer::HandleType, ) \n"
+        "     pixelFormat  =  QVariant(QVideoFrame::PixelFormat, ) \n"
+        "     frameSize  =  QVariant(QSize, QSize(%4, %5) ) \n"
+        "     frameWidth  =  QVariant(int, %6) \n"
+        "     viewport  =  QVariant(QRect, QRect(0,1 800x600) ) \n"
+        "     scanLineDirection  =  QVariant(QVideoSurfaceFormat::Direction, ) \n"
+        "     frameRate  =  QVariant(double, %7) \n"
+        "     pixelAspectRatio  =  QVariant(QSize, QSize(320, 200) ) \n"
+        "     sizeHint  =  QVariant(QSize, QSize(1280, 600) ) \n"
+        "     yCbCrColorSpace  =  QVariant(QVideoSurfaceFormat::YCbCrColorSpace, )  ")
+            .arg(formatString)
+            .arg(frameSize.width())
+            .arg(frameSize.height())
+            .arg(frameSize.width())
+            .arg(frameSize.height())
+            .arg(frameSize.width())
+            .arg(frameRate);
+
+    QVideoSurfaceFormat vsf(frameSize, format, QAbstractVideoBuffer::GLTextureHandle);
+    vsf.setViewport(QRect(0,1, 800, 600));
+    vsf.setPixelAspectRatio(QSize(320, 200));
+    vsf.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_BT709);
+    vsf.setFrameRate(frameRate);
+
+    QTest::ignoreMessage(QtDebugMsg, templateOutput.toLatin1().constData());
+    qDebug() << vsf;
+}
+
+
+
 QTEST_MAIN(tst_QVideoSurfaceFormat)
+
+
 
 #include "tst_qvideosurfaceformat.moc"

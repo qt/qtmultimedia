@@ -314,6 +314,12 @@ void tst_QAbstractVideoSurface::start()
     QCOMPARE(activeSpy.count(), 1);
     QCOMPARE(activeSpy.last().at(0).toBool(), true);
 
+    // Starting twice won't change active
+    // XXX should this also not emit surfaceFormatChanged?
+    QVERIFY(surface.start(format));
+    QCOMPARE(activeSpy.count(), 1);
+    QVERIFY(surface.isActive());
+
     // error() is reset on a successful start.
     QCOMPARE(surface.error(), QAbstractVideoSurface::NoError);
 
@@ -322,7 +328,19 @@ void tst_QAbstractVideoSurface::start()
     QVERIFY(!surface.isActive());
     QCOMPARE(surface.surfaceFormat(), QVideoSurfaceFormat());
 
-    QCOMPARE(formatSpy.count(), 2);
+    QCOMPARE(formatSpy.count(), 3);
+    QCOMPARE(qvariant_cast<QVideoSurfaceFormat>(formatSpy.last().at(0)), QVideoSurfaceFormat());
+
+    QCOMPARE(activeSpy.count(), 2);
+    QCOMPARE(activeSpy.last().at(0).toBool(), false);
+
+    // Stopping a stopped surface shouldn't hurt
+    surface.stop();
+
+    QVERIFY(!surface.isActive());
+    QCOMPARE(surface.surfaceFormat(), QVideoSurfaceFormat());
+
+    QCOMPARE(formatSpy.count(), 3);
     QCOMPARE(qvariant_cast<QVideoSurfaceFormat>(formatSpy.last().at(0)), QVideoSurfaceFormat());
 
     QCOMPARE(activeSpy.count(), 2);
@@ -346,6 +364,15 @@ void tst_QAbstractVideoSurface::nativeResolution()
     QSize size2 = qvariant_cast<QSize>(spy.at(0).at(0));
     QVERIFY(size2.width() == 100);
     QVERIFY(size2.height() == 150);
+
+    // Setting again should not emit
+    surface.setNativeResolution(res);
+    QVERIFY(spy.count() == 1);
+
+    size2 = qvariant_cast<QSize>(spy.at(0).at(0));
+    QVERIFY(size2.width() == 100);
+    QVERIFY(size2.height() == 150);
+
     spy.clear();
 }
 
