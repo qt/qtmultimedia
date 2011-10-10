@@ -1,6 +1,7 @@
-load(qttest_p4)
+CONFIG += testcase
+TARGET = tst_qradiotuner
 
-QT += multimedia-private
+QT += multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
 HEADERS += tst_qradiotuner.h

@@ -1,6 +1,7 @@
-load(qttest_p4)
+CONFIG += testcase
+TARGET = tst_qmediastreamscontrol
 
-QT += multimedia-private
+QT += multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
 SOURCES += \

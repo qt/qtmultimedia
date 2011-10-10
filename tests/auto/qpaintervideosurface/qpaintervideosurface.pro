@@ -1,6 +1,7 @@
-load(qttest_p4)
+CONFIG += testcase
+TARGET = tst_qpaintervideosurface
 
-QT += multimedia-private multimediawidgets-private
+QT += multimedia-private multimediawidgets-private testlib
 CONFIG += no_private_qt_headers_warning
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
    QT += opengl

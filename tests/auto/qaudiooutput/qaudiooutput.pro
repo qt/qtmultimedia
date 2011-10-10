@@ -1,14 +1,12 @@
-load(qttest_p4)
+TARGET = tst_qaudiooutput
 
-QT += core multimedia-private
+QT += core multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
 # This is more of a system test
-CONFIG -= testcase
+# CONFIG += testcase
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += wavheader.h
 SOURCES += wavheader.cpp tst_qaudiooutput.cpp
-
-maemo*:CONFIG += insignificant_test

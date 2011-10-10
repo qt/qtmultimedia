@@ -1,10 +1,10 @@
-load(qttest_p4)
+TARGET = tst_qsoundeffect
 
-QT += core declarative multimedia-private
+QT += core declarative multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
 # This is more of a system test
-CONFIG -= testcase
+# CONFIG += testcase
 
 SOURCES += tst_qsoundeffect.cpp
 
@@ -15,5 +15,3 @@ unix:!mac {
         DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER
     }
 }
-
-maemo*:CONFIG += insignificant_test

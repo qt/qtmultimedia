@@ -1,6 +1,7 @@
-load(qttest_p4)
+CONFIG += testcase
+TARGET = tst_qmediaplayerwidgets
 
-QT += network multimedia-private multimediawidgets-private
+QT += network multimedia-private multimediawidgets-private testlib
 CONFIG += no_private_qt_headers_warning
 
 HEADERS += tst_qmediaplayerwidgets.h

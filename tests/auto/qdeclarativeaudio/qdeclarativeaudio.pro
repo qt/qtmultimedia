@@ -1,6 +1,7 @@
-load(qttest_p4)
+CONFIG += testcase
+TARGET = tst_qdeclarativeaudio
 
-QT += multimedia-private declarative
+QT += multimedia-private declarative testlib
 CONFIG += no_private_qt_headers_warning
 
 HEADERS += \
