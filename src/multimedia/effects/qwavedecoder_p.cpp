@@ -106,6 +106,7 @@ qint64 QWaveDecoder::writeData(const char *data, qint64 len)
 
 void QWaveDecoder::handleData()
 {
+    bool valid = true;
     if (state == QWaveDecoder::InitialState) {
         if (source->bytesAvailable() < qint64(sizeof(RIFFHeader)))
             return;
@@ -125,7 +126,7 @@ void QWaveDecoder::handleData()
     }
 
     if (state == QWaveDecoder::WaitingForFormatState) {
-        if (findChunk("fmt ")) {
+        if (valid = findChunk("fmt ")) {
             chunk descriptor;
             source->peek(reinterpret_cast<char *>(&descriptor), sizeof(chunk));
 
@@ -158,7 +159,7 @@ void QWaveDecoder::handleData()
     }
 
     if (state == QWaveDecoder::WaitingForDataState) {
-        if (findChunk("data")) {
+        if (valid = findChunk("data")) {
             source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
 
             chunk descriptor;
@@ -173,7 +174,7 @@ void QWaveDecoder::handleData()
         }
     }
 
-    if (source->atEnd()) {
+    if (source->atEnd() || !valid) {
         source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
         emit invalidFormat();
 
