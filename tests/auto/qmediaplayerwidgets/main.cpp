@@ -38,7 +38,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include <QtCore/qcoreapplication.h>
+#include <QtWidgets/QApplication>
 #include <QtTest/QtTest>
 
 #include "tst_qmediaplayerwidgets.h"

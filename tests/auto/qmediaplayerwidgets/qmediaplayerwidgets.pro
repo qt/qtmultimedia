@@ -1,7 +1,7 @@
 CONFIG += testcase
 TARGET = tst_qmediaplayerwidgets
 
-QT += network multimedia-private multimediawidgets-private testlib
+QT += network multimedia-private multimediawidgets-private testlib widgets
 CONFIG += no_private_qt_headers_warning
 
 HEADERS += tst_qmediaplayerwidgets.h

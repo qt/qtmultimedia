@@ -96,7 +96,7 @@ public:
         , m_duration(0)
         , m_position(0)
         , m_playbackRate(1.0)
-        , m_volume(50)
+        , m_volume(100)
         , m_bufferStatus(0)
         , m_muted(false)
         , m_audioAvailable(false)
