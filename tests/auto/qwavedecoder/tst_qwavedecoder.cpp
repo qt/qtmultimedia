@@ -44,6 +44,10 @@
 #include <QtTest/QtTest>
 #include <private/qwavedecoder_p.h>
 
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+
 #ifndef QTRY_COMPARE
 #define QTRY_COMPARE(__expr, __expected) \
     do { \
@@ -84,6 +88,9 @@ private slots:
 
     void file_data();
     void file();
+
+    void http_data() {file_data();}
+    void http();
 
     void readAllAtOnce();
     void readPerByte();
@@ -196,6 +203,69 @@ void tst_QWaveDecoder::file()
     }
 
     stream.close();
+}
+
+void tst_QWaveDecoder::http()
+{
+    QFETCH(QString, file);
+    QFETCH(tst_QWaveDecoder::Corruption, corruption);
+    QFETCH(int, channels);
+    QFETCH(int, samplesize);
+    QFETCH(int, samplerate);
+    QFETCH(QAudioFormat::Endian, byteorder);
+
+    QFile stream;
+    stream.setFileName(QString("data/") + file);
+    stream.open(QIODevice::ReadOnly);
+
+    QVERIFY(stream.isOpen());
+
+    QNetworkAccessManager nam;
+
+    QNetworkReply *reply = nam.get(QNetworkRequest(QUrl::fromLocalFile(QString::fromLatin1("data/") + file)));
+
+    QWaveDecoder waveDecoder(reply);
+    QSignalSpy validFormatSpy(&waveDecoder, SIGNAL(formatKnown()));
+    QSignalSpy parsingErrorSpy(&waveDecoder, SIGNAL(parsingError()));
+
+    if (corruption == NotAWav) {
+        QSKIP("Not all failures detected correctly yet", SkipSingle);
+        QTRY_COMPARE(parsingErrorSpy.count(), 1);
+        QCOMPARE(validFormatSpy.count(), 0);
+    } else if (corruption == NoSampleData) {
+        QTRY_COMPARE(validFormatSpy.count(), 1);
+        QCOMPARE(parsingErrorSpy.count(), 0);
+        QVERIFY(waveDecoder.audioFormat().isValid());
+        QVERIFY(waveDecoder.size() == 0);
+        QVERIFY(waveDecoder.duration() == 0);
+    } else if (corruption == FormatDescriptor) {
+        QTRY_COMPARE(parsingErrorSpy.count(), 1);
+        QCOMPARE(validFormatSpy.count(), 0);
+    } else if (corruption == FormatString) {
+        QTRY_COMPARE(parsingErrorSpy.count(), 1);
+        QCOMPARE(validFormatSpy.count(), 0);
+        QVERIFY(!waveDecoder.audioFormat().isValid());
+    } else if (corruption == DataDescriptor) {
+        QTRY_COMPARE(parsingErrorSpy.count(), 1);
+        QCOMPARE(validFormatSpy.count(), 0);
+        QVERIFY(waveDecoder.size() == 0);
+    } else if (corruption == None) {
+        QTRY_COMPARE(validFormatSpy.count(), 1);
+        QCOMPARE(parsingErrorSpy.count(), 0);
+        QVERIFY(waveDecoder.audioFormat().isValid());
+        QVERIFY(waveDecoder.size() > 0);
+        QVERIFY(waveDecoder.duration() == 250);
+        QAudioFormat format = waveDecoder.audioFormat();
+        QVERIFY(format.isValid());
+        QVERIFY(format.channels() == channels);
+        QVERIFY(format.sampleSize() == samplesize);
+        QVERIFY(format.sampleRate() == samplerate);
+        if (format.sampleSize() != 8) {
+            QVERIFY(format.byteOrder() == byteorder);
+        }
+    }
+
+    delete reply;
 }
 
 void tst_QWaveDecoder::readAllAtOnce()
