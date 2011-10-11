@@ -75,6 +75,7 @@ private slots:
     void testVolume();
     void testSignal();
     void testStereo();
+    void testSearchAllStations();
     void errorSignal();
 
 private:

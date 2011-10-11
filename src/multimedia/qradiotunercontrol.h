@@ -89,6 +89,7 @@ public:
 
     virtual void searchForward() = 0;
     virtual void searchBackward() = 0;
+    virtual void searchAllStations(QRadioTuner::SearchMode searchMode = QRadioTuner::SearchFast) = 0;
     virtual void cancelSearch() = 0;
 
     virtual void start() = 0;
@@ -107,6 +108,7 @@ Q_SIGNALS:
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
     void error(QRadioTuner::Error err);
+    void stationFound(int frequency, QString stationId);
 
 protected:
     QRadioTunerControl(QObject *parent = 0);

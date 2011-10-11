@@ -49,6 +49,7 @@
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativevideooutput_p.h"
 #include "qdeclarativeradio_p.h"
+#include "qdeclarativeradiodata_p.h"
 #include "qdeclarativebackgroundaudio_p.h"
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
@@ -76,6 +77,7 @@ public:
         qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
         qmlRegisterType<QDeclarativeRadio>(uri, 4, 0, "Radio");
+        qmlRegisterType<QDeclarativeRadioData>(uri, 4, 0, "RadioData");
         qmlRegisterType<QDeclarativeBackgroundAudio>(uri, 4, 0, "BackgroundAudio");
         qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 4, 0, "CameraCapture",

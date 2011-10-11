@@ -74,12 +74,14 @@ class Q_MULTIMEDIA_EXPORT QRadioTuner : public QMediaObject
     Q_ENUMS(Band)
     Q_ENUMS(Error)
     Q_ENUMS(StereoMode)
+    Q_ENUMS(SearchMode)
 
 public:
     enum State { ActiveState, StoppedState };
     enum Band { AM, FM, SW, LW, FM2 };
     enum Error { NoError, ResourceError, OpenError, OutOfRangeError };
     enum StereoMode { ForceStereo, ForceMono, Auto };
+    enum SearchMode { SearchFast, SearchGetStationId };
 
     QRadioTuner(QObject *parent = 0, QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider());
     ~QRadioTuner();
@@ -114,6 +116,7 @@ public:
 public Q_SLOTS:
     void searchForward();
     void searchBackward();
+    void searchAllStations(QRadioTuner::SearchMode searchMode = QRadioTuner::SearchFast);
     void cancelSearch();
 
     void setBand(Band band);
@@ -134,6 +137,8 @@ Q_SIGNALS:
     void signalStrengthChanged(int signalStrength);
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
+    void stationFound(int frequency, QString stationId);
+
     void error(QRadioTuner::Error error);
 
 private:
@@ -147,11 +152,13 @@ Q_DECLARE_METATYPE(QRadioTuner::State)
 Q_DECLARE_METATYPE(QRadioTuner::Band)
 Q_DECLARE_METATYPE(QRadioTuner::Error)
 Q_DECLARE_METATYPE(QRadioTuner::StereoMode)
+Q_DECLARE_METATYPE(QRadioTuner::SearchMode)
 
 Q_MEDIA_ENUM_DEBUG(QRadioTuner, State)
 Q_MEDIA_ENUM_DEBUG(QRadioTuner, Band)
 Q_MEDIA_ENUM_DEBUG(QRadioTuner, Error)
 Q_MEDIA_ENUM_DEBUG(QRadioTuner, StereoMode)
+Q_MEDIA_ENUM_DEBUG(QRadioTuner, SearchMode)
 
 QT_END_HEADER
 

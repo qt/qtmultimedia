@@ -18,6 +18,7 @@ SUBDIRS += \
     qmediaservice \
     qmediatimerange \
     qradiotuner \
+    qradiodata \
     qvideoframe \
     qvideosurfaceformat \
     qmetadatareadercontrol \

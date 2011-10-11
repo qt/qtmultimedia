@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -38,41 +38,43 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef TST_QRADIODATA_H
+#define TST_QRADIODATA_H
 
-#ifndef FAKERADIOSERVICE_H
-#define FAKERADIOSERVICE_H
+#include <QtTest/QtTest>
+#include <QDebug>
+#include <QTimer>
 
-#include <QtCore/qobject.h>
-#include <QMutex>
-
+#include <qmediaobject.h>
+#include <qmediacontrol.h>
 #include <qmediaservice.h>
+#include <qradiodatacontrol.h>
+#include <qradiodata.h>
+
+#include "mockmediaserviceprovider.h"
+#include "mockmediaservice.h"
+#include "mockradiodatacontrol.h"
+
 QT_USE_NAMESPACE
 
-class FakeRadioTunerControl;
-class FakeRadioDataControl;
-
-class FakeRadioService : public QMediaService
+class tst_QRadioData: public QObject
 {
     Q_OBJECT
 
+public slots:
+    void initTestCase();
+    void cleanupTestCase();
+
+private slots:
+    void testNullService();
+    void testNullControl();
+    void testAlternativeFrequencies();
+    void testRadioDataUpdates();
+
 private:
-    FakeRadioService(QObject *parent = 0);
-    ~FakeRadioService();
-
-public:
-    static FakeRadioService* instance();
-    void release();
-
-    QMediaControl *requestControl(const char* name);
-    void releaseControl(QMediaControl *);
-
-private:
-    static FakeRadioService* m_instance;
-    static int m_referenceCount;
-
-    FakeRadioTunerControl *m_tunerControl;
-    FakeRadioDataControl *m_dataControl;
-
+    MockRadioDataControl     *mock;
+    MockMediaService     *service;
+    MockMediaServiceProvider    *provider;
+    QRadioData    *radio;
 };
-
-#endif // FAKERADIOSERVICE_H
+#endif

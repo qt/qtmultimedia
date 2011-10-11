@@ -186,6 +186,10 @@ void tst_QRadioTuner::testNullControl()
         QCOMPARE(radio.isSearching(), false);
         QCOMPARE(spy.count(), 0);
 
+        radio.searchAllStations();
+        QCOMPARE(radio.isSearching(), false);
+        QCOMPARE(spy.count(), 0);
+
         radio.cancelSearch();
         QCOMPARE(radio.isSearching(), false);
         QCOMPARE(spy.count(), 0);
@@ -279,6 +283,19 @@ void tst_QRadioTuner::testStereo()
     QVERIFY(radio->isStereo());
     radio->setStereoMode(QRadioTuner::ForceMono);
     QVERIFY(radio->stereoMode() == QRadioTuner::ForceMono);
+}
+
+void tst_QRadioTuner::testSearchAllStations()
+{
+    QSignalSpy foundSpy(radio, SIGNAL(stationFound(int,QString)));
+    QSignalSpy completeSpy(radio, SIGNAL(searchingChanged(bool)));
+    radio->searchAllStations(QRadioTuner::SearchGetStationId);
+    QTestEventLoop::instance().enterLoop(1);
+    QCOMPARE(radio->frequency(), 103100000 );
+    QCOMPARE(foundSpy.count(), 3);
+    QVERIFY(qvariant_cast<int>(foundSpy.at(2).at(0)) == 103100000 );
+    QVERIFY(qvariant_cast<QString>(foundSpy.at(2).at(1)) == QString("MockProgramPI3") );
+    QCOMPARE(completeSpy.count(), 2);
 }
 
 // QRadioTuner's errorsignal

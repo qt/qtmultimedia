@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -39,40 +39,59 @@
 **
 ****************************************************************************/
 
-#ifndef FAKERADIOSERVICE_H
-#define FAKERADIOSERVICE_H
+#ifndef QRADIODATACONTROL_H
+#define QRADIODATACONTROL_H
 
-#include <QtCore/qobject.h>
-#include <QMutex>
+#include "qmediacontrol.h"
+#include "qradiodata.h"
 
-#include <qmediaservice.h>
-QT_USE_NAMESPACE
+QT_BEGIN_HEADER
 
-class FakeRadioTunerControl;
-class FakeRadioDataControl;
+QT_BEGIN_NAMESPACE
 
-class FakeRadioService : public QMediaService
+QT_MODULE(Multimedia)
+
+
+class Q_MULTIMEDIA_EXPORT QRadioDataControl : public QMediaControl
 {
     Q_OBJECT
 
-private:
-    FakeRadioService(QObject *parent = 0);
-    ~FakeRadioService();
-
 public:
-    static FakeRadioService* instance();
-    void release();
+    ~QRadioDataControl();
 
-    QMediaControl *requestControl(const char* name);
-    void releaseControl(QMediaControl *);
+    virtual bool isAvailable() const = 0;
+    virtual QtMultimedia::AvailabilityError availabilityError() const = 0;
 
-private:
-    static FakeRadioService* m_instance;
-    static int m_referenceCount;
+    virtual QString stationId() const = 0;
+    virtual QRadioData::ProgramType programType() const = 0;
+    virtual QString programTypeName() const = 0;
+    virtual QString stationName() const = 0;
+    virtual QString radioText() const = 0;
+    virtual void setAlternativeFrequenciesEnabled(bool enabled) = 0;
+    virtual bool isAlternativeFrequenciesEnabled() const = 0;
 
-    FakeRadioTunerControl *m_tunerControl;
-    FakeRadioDataControl *m_dataControl;
+    virtual QRadioData::Error error() const = 0;
+    virtual QString errorString() const = 0;
 
+Q_SIGNALS:
+    void stationIdChanged(QString stationId);
+    void programTypeChanged(QRadioData::ProgramType programType);
+    void programTypeNameChanged(QString programTypeName);
+    void stationNameChanged(QString stationName);
+    void radioTextChanged(QString radioText);
+    void alternativeFrequenciesEnabledChanged(bool enabled);
+    void error(QRadioData::Error err);
+
+protected:
+    QRadioDataControl(QObject *parent = 0);
 };
 
-#endif // FAKERADIOSERVICE_H
+#define QRadioDataControl_iid "com.nokia.Qt.QRadioDataControl/5.0"
+Q_MEDIA_DECLARE_CONTROL(QRadioDataControl, QRadioDataControl_iid)
+
+QT_END_NAMESPACE
+
+QT_END_HEADER
+
+
+#endif  // QRADIODATACONTROL_H

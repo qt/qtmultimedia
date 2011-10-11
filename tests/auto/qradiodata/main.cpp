@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -38,41 +38,16 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include <QtCore/qcoreapplication.h>
+#include <QtTest/QtTest>
 
-#ifndef FAKERADIOSERVICE_H
-#define FAKERADIOSERVICE_H
+#include "tst_qradiodata.h"
 
-#include <QtCore/qobject.h>
-#include <QMutex>
-
-#include <qmediaservice.h>
-QT_USE_NAMESPACE
-
-class FakeRadioTunerControl;
-class FakeRadioDataControl;
-
-class FakeRadioService : public QMediaService
+int main(int argc, char**argv)
 {
-    Q_OBJECT
-
-private:
-    FakeRadioService(QObject *parent = 0);
-    ~FakeRadioService();
-
-public:
-    static FakeRadioService* instance();
-    void release();
-
-    QMediaControl *requestControl(const char* name);
-    void releaseControl(QMediaControl *);
-
-private:
-    static FakeRadioService* m_instance;
-    static int m_referenceCount;
-
-    FakeRadioTunerControl *m_tunerControl;
-    FakeRadioDataControl *m_dataControl;
-
-};
-
-#endif // FAKERADIOSERVICE_H
+    QCoreApplication app(argc,argv);
+    int ret;
+    tst_QRadioData test_api;
+    ret = QTest::qExec(&test_api, argc, argv);
+    return ret;
+}

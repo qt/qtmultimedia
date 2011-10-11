@@ -216,6 +216,32 @@ public:
         emit searchingChanged(m_searching);
     }
 
+    void findNewStation( int frequency, QString stationId )
+    {
+        setFrequency(frequency);
+        emit stationFound( frequency, stationId );
+    }
+
+    void searchAllStations(QRadioTuner::SearchMode searchMode = QRadioTuner::SearchFast)
+    {
+        QString programmeIdentifiers[3] = { "", "", "" };
+
+        if ( searchMode == QRadioTuner::SearchGetStationId ) {
+            programmeIdentifiers[0] = QString("MockProgramPI1");
+            programmeIdentifiers[1] = QString("MockProgramPI2");
+            programmeIdentifiers[2] = QString("MockProgramPI3");
+        }
+        m_searching = true;
+        emit searchingChanged(m_searching);
+
+        findNewStation(88300000, programmeIdentifiers[0]);
+        findNewStation(95100000, programmeIdentifiers[1]);
+        findNewStation(103100000, programmeIdentifiers[2]);
+
+        m_searching = false;
+        emit searchingChanged(m_searching);
+    }
+
     void start()
     {
         if (!m_active) {

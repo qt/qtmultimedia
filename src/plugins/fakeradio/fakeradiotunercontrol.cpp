@@ -60,9 +60,15 @@ FakeRadioTunerControl::FakeRadioTunerControl(QObject *parent)
 
     m_searching = false;
     m_forward = true;
+    m_searchMode = QRadioTuner::SearchFast;
+    m_piCounter = 0;
     m_searchTimer = new QTimer(this);
     m_searchTimer->setSingleShot(true);
     connect(m_searchTimer, SIGNAL(timeout()), this, SLOT(searchEnded()));
+
+    m_allStationSeekTimer = new QTimer(this);
+    m_allStationSeekTimer->setSingleShot(true);
+    connect(m_allStationSeekTimer,SIGNAL(timeout()),this,SLOT(newStationFound()));
 
     QTimer::singleShot(300, this, SLOT(delayedInit()));
 
@@ -267,6 +273,42 @@ void FakeRadioTunerControl::searchBackward()
 {
     m_forward = false;
     performSearch();
+}
+
+void FakeRadioTunerControl::searchAllStations(QRadioTuner::SearchMode searchMode)
+{
+    m_searchMode = searchMode;
+    m_seekingStartFreq = m_currentFreq;
+    m_searching = true;
+    m_allStationSeekTimer->start(10);
+    emit searchingChanged(m_searching);
+}
+
+void FakeRadioTunerControl::newStationFound()
+{
+    QPair<int, int> fRange = frequencyRange(m_currentBand);
+    if (m_currentFreq == fRange.second)
+        m_currentFreq = fRange.first;
+    else
+        m_currentFreq += 100000;
+    emit frequencyChanged(m_currentFreq);
+
+    // There are 200 ticks, we want to find average of 5 stations per scan
+    if (qrand() < (RAND_MAX/40)) {
+        QString programmeId;
+
+        if (m_searchMode == QRadioTuner::SearchGetStationId)
+            programmeId = QString("FakeProgrammeID") + QString::number(m_piCounter++);
+
+        emit stationFound(m_currentFreq, programmeId);
+    }
+
+    if (m_currentFreq == m_seekingStartFreq) {
+        m_searching = false;
+        emit searchingChanged(m_searching);
+    }else {
+        m_allStationSeekTimer->start(10);
+    }
 }
 
 void FakeRadioTunerControl::start()

@@ -59,14 +59,16 @@ QStringList FakeRadioServicePlugin::keys() const
 QMediaService* FakeRadioServicePlugin::create(QString const& key)
 {
     if (key == QLatin1String(Q_MEDIASERVICE_RADIO))
-        return new FakeRadioService;
+        return FakeRadioService::instance();
 
     return 0;
 }
 
 void FakeRadioServicePlugin::release(QMediaService *service)
 {
-    delete service;
+    FakeRadioService* fakeRadio = qobject_cast<FakeRadioService*>(service);
+    if (fakeRadio)
+        fakeRadio->release();
 }
 
 QList<QByteArray> FakeRadioServicePlugin::devices(const QByteArray &service) const

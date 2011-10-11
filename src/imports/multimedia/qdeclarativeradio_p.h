@@ -79,6 +79,7 @@ class QDeclarativeRadio : public QObject
     Q_ENUMS(Band)
     Q_ENUMS(Error)
     Q_ENUMS(StereoMode)
+    Q_ENUMS(SearchMode)
 
 public:
     enum State {
@@ -105,6 +106,11 @@ public:
         ForceStereo = QRadioTuner::ForceStereo,
         ForceMono = QRadioTuner::ForceMono,
         Auto = QRadioTuner::Auto
+    };
+
+    enum SearchMode {
+        SearchFast = QRadioTuner::SearchFast,
+        SearchGetStationId = QRadioTuner::SearchGetStationId
     };
 
     QDeclarativeRadio(QObject *parent = 0);
@@ -139,6 +145,8 @@ public Q_SLOTS:
     void scanUp();
     void tuneUp();
     void tuneDown();
+    void searchAllStations(QDeclarativeRadio::SearchMode searchMode = QDeclarativeRadio::SearchFast );
+
     void start();
     void stop();
 
@@ -151,6 +159,7 @@ Q_SIGNALS:
     void signalStrengthChanged(int signalStrength);
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
+    void stationFound(int frequency, QString stationId);
 
     void errorChanged();
     void error(QDeclarativeRadio::Error errorCode);

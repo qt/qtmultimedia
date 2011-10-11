@@ -46,21 +46,46 @@
 
 #include "fakeradioservice.h"
 #include "fakeradiotunercontrol.h"
+#include "fakeradiodatacontrol.h"
+
+Q_GLOBAL_STATIC( QMutex, fakeRadioServiceMutex );
+FakeRadioService* FakeRadioService::m_instance = 0;
+int FakeRadioService::m_referenceCount = 0;
 
 FakeRadioService::FakeRadioService(QObject *parent):
     QMediaService(parent)
 {
-    m_control = new FakeRadioTunerControl(this);
+    m_tunerControl = new FakeRadioTunerControl(this);
+    m_dataControl = new FakeRadioDataControl(this);
 }
 
 FakeRadioService::~FakeRadioService()
 {
 }
 
+FakeRadioService* FakeRadioService::instance()
+{
+    QMutexLocker lock(fakeRadioServiceMutex());
+    if (!m_instance)
+        m_instance = new FakeRadioService;
+    m_referenceCount++;
+    return m_instance;
+}
+
+void FakeRadioService::release()
+{
+    QMutexLocker lock(fakeRadioServiceMutex());
+    m_referenceCount--;
+    if (m_referenceCount == 0)
+        delete m_instance;
+}
+
 QMediaControl *FakeRadioService::requestControl(const char* name)
 {
     if (qstrcmp(name,QRadioTunerControl_iid) == 0)
-        return m_control;
+        return m_tunerControl;
+    if (qstrcmp(name,QRadioDataControl_iid) == 0)
+        return m_dataControl;
 
     return 0;
 }

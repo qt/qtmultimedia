@@ -4,4 +4,5 @@
 INCLUDEPATH += .
 
 HEADERS += \
-    ../qmultimedia_common/mockradiotunercontrol.h
+    ../qmultimedia_common/mockradiotunercontrol.h \
+    ../qmultimedia_common/mockradiodatacontrol.h

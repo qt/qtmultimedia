@@ -106,6 +106,7 @@ QRadioTuner::QRadioTuner(QObject *parent, QMediaServiceProvider* provider):
             connect(d->control, SIGNAL(signalStrengthChanged(int)), SIGNAL(signalStrengthChanged(int)));
             connect(d->control, SIGNAL(volumeChanged(int)), SIGNAL(volumeChanged(int)));
             connect(d->control, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
+            connect(d->control, SIGNAL(stationFound(int,QString)), SIGNAL(stationFound(int,QString)));
             connect(d->control, SIGNAL(error(QRadioTuner::Error)), SIGNAL(error(QRadioTuner::Error)));
         }
     }
@@ -457,6 +458,26 @@ void QRadioTuner::searchBackward()
 }
 
 /*!
+    Search all stations in current band
+
+    Emits QRadioTuner::stationFound(int, QString) for every found station.
+    After searching is completed, QRadioTuner::searchingChanged(bool) is
+    emitted (false). If \a searchMode is set to SearchGetStationId, searching
+    waits for station id (PI) on each frequency.
+
+    \since 5.0
+    \sa searchForward(), searchBackward(), searching
+*/
+
+void QRadioTuner::searchAllStations(QRadioTuner::SearchMode searchMode)
+{
+    Q_D(const QRadioTuner);
+
+    if (d->control != 0)
+        d->control->searchAllStations(searchMode);
+}
+
+/*!
     Stops scanning for a signal.
 
     \since 1.0
@@ -552,6 +573,14 @@ QString QRadioTuner::errorString() const
 
     Signals that the \a strength of the signal received by a radio tuner has changed.
     \since 1.0
+*/
+
+/*!
+    \fn void QRadioTuner::stationFound(int frequency, QString stationId)
+
+    Signals that a station was found in \a frequency with \a stationId Program
+    Identification code.
+    \since 5.0
 */
 
 /*!

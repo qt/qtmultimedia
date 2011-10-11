@@ -58,6 +58,7 @@ QDeclarativeRadio::QDeclarativeRadio(QObject *parent) :
     connect(m_radioTuner, SIGNAL(signalStrengthChanged(int)), this, SIGNAL(signalStrengthChanged(int)));
     connect(m_radioTuner, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
     connect(m_radioTuner, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
+    connect(m_radioTuner, SIGNAL(stationFound(int, QString)), this, SIGNAL(stationFound(int, QString)));
 
     connect(m_radioTuner, SIGNAL(error(QRadioTuner::Error)), this, SLOT(_q_error(QRadioTuner::Error)));
 }
@@ -169,6 +170,11 @@ void QDeclarativeRadio::scanDown()
 void QDeclarativeRadio::scanUp()
 {
     m_radioTuner->searchForward();
+}
+
+void QDeclarativeRadio::searchAllStations(QDeclarativeRadio::SearchMode searchMode)
+{
+    m_radioTuner->searchAllStations(static_cast<QRadioTuner::SearchMode>(searchMode));
 }
 
 void QDeclarativeRadio::tuneDown()

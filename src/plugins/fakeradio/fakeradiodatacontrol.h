@@ -39,40 +39,58 @@
 **
 ****************************************************************************/
 
-#ifndef FAKERADIOSERVICE_H
-#define FAKERADIOSERVICE_H
+#ifndef FAKERADIODATACONTROL_H
+#define FAKERADIODATACONTROL_H
 
 #include <QtCore/qobject.h>
-#include <QMutex>
+#include <QtCore/qtimer.h>
+#include <QtCore/qdatetime.h>
 
-#include <qmediaservice.h>
+#include <qradiodatacontrol.h>
+
 QT_USE_NAMESPACE
 
-class FakeRadioTunerControl;
-class FakeRadioDataControl;
+class FakeRadioService;
 
-class FakeRadioService : public QMediaService
+class FakeRadioDataControl : public QRadioDataControl
 {
     Q_OBJECT
 
-private:
-    FakeRadioService(QObject *parent = 0);
-    ~FakeRadioService();
-
 public:
-    static FakeRadioService* instance();
-    void release();
+    FakeRadioDataControl(QObject *parent = 0);
+    ~FakeRadioDataControl();
 
-    QMediaControl *requestControl(const char* name);
-    void releaseControl(QMediaControl *);
+    bool isAvailable() const;
+    QtMultimedia::AvailabilityError availabilityError() const;
+
+    QString stationId() const;
+    QRadioData::ProgramType programType() const;
+    QString programTypeName() const;
+    QString stationName() const;
+    QString radioText() const;
+    void setAlternativeFrequenciesEnabled(bool enabled);
+    bool isAlternativeFrequenciesEnabled() const;
+
+    QRadioData::Error error() const;
+    QString errorString() const;
+
+private slots:
+    void rdsUpdate();
 
 private:
-    static FakeRadioService* m_instance;
-    static int m_referenceCount;
+    void setradioText(QString);
+    void initializeProgramTypeMapping();
+    bool usingRBDS();
+    QRadioData::ProgramType fromRawProgramType(int rawProgramType);
 
-    FakeRadioTunerControl *m_tunerControl;
-    FakeRadioDataControl *m_dataControl;
+private: //data
+    bool m_alternativeFrequenciesEnabled;
+    QString m_radioText;
+    QTimer *m_rdsTimer;
+
+    QMap<int, QRadioData::ProgramType> m_programTypeMapRDS;
+    QMap<int, QRadioData::ProgramType> m_programTypeMapRBDS;
 
 };
 
-#endif // FAKERADIOSERVICE_H
+#endif // FAKERADIODATACONTROL_H

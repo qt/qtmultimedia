@@ -90,6 +90,7 @@ public:
 
     void searchForward();
     void searchBackward();
+    void searchAllStations(QRadioTuner::SearchMode searchMode = QRadioTuner::SearchFast);
 
     void start();
     void stop();
@@ -101,6 +102,7 @@ private slots:
     void delayedInit();
     void performSearch();
     void searchEnded();
+    void newStationFound();
 
 private: //data
     QRadioTuner::State  m_state;
@@ -108,6 +110,7 @@ private: //data
     qint64 m_freqMin;
     qint64 m_freqMax;
     qint64 m_currentFreq;
+    qint64 m_seekingStartFreq;
     bool m_stereo;
     QRadioTuner::StereoMode m_stereoMode;
     int m_signalStrength;
@@ -117,7 +120,11 @@ private: //data
     // searching
     bool m_searching;
     bool m_forward;
+    QRadioTuner::SearchMode m_searchMode;
+    int m_piCounter;
     QTimer *m_searchTimer;
+    QTimer *m_allStationSeekTimer;
+
 };
 
 #endif // FAKERADIOTUNERCONTROL_H

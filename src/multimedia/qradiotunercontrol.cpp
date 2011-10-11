@@ -268,6 +268,13 @@ QRadioTunerControl::~QRadioTunerControl()
 */
 
 /*!
+    \fn  void QRadioTunerControl::searchAllStations()
+
+    Starts a scan through the whole frequency band searching all stations
+    \since 5.0
+*/
+
+/*!
     \fn void QRadioTunerControl::cancelSearch()
 
     Stops scanning for a signal.
@@ -357,6 +364,13 @@ QRadioTunerControl::~QRadioTunerControl()
 
     Signals that an \a error has occurred.
     \since 1.0
+*/
+
+/*!
+    \fn void QRadioTunerControl::stationFound(int frequency)
+
+    Signals that new station with \a frequency was found when scanning
+    \since 5.0
 */
 
 #include "moc_qradiotunercontrol.cpp"
