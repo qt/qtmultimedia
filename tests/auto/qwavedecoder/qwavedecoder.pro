@@ -6,8 +6,8 @@ SOURCES += tst_qwavedecoder.cpp \
 QT += multimedia-private testlib
 CONFIG += no_private_qt_headers_warning testcase
 
-data.path = .
-data.sources = data
+data.files = data
+data.path = $${OUT_PWD}
 
 INSTALLS += data
 

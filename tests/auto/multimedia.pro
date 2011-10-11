@@ -27,6 +27,7 @@ SUBDIRS += \
     qmediaobject \
     qcamera \
     qcamerabackend \
+    qwavedecoder
 
 # These is disabled until intent is clearer
 #    qvideodevicecontrol \

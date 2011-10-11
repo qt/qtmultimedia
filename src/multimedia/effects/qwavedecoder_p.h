@@ -106,6 +106,8 @@ private:
         char        id[4];
         quint32     size;
     };
+    bool peekChunk(chunk* pChunk);
+
     struct RIFFHeader
     {
         chunk       descriptor;
@@ -124,10 +126,11 @@ private:
 
     bool haveFormat;
     qint64 dataSize;
-    qint64 remaining;
     QAudioFormat format;
     QIODevice *source;
     State state;
+    quint32 junkToSkip;
+    bool bigEndian;
 };
 
 QT_END_NAMESPACE

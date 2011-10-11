@@ -58,9 +58,9 @@ for channel in 1 2; do
     for samplebits in 8 16 32; do
         for samplerate in 44100 8000; do
             if [ $samplebits -ne 8 ]; then
-                sox --endian "${endian}" -c ${channel} -b ${samplebits} -r ${samplerate} -n isawav_${channel}_${samplebits}_${samplerate}_${endian_extn}.wav synth 0.25 sine 300-3300
+                sox -n --endian "${endian}" -c ${channel} -b ${samplebits} -r ${samplerate} isawav_${channel}_${samplebits}_${samplerate}_${endian_extn}.wav synth 0.25 sine 300-3300
             else
-                sox -c ${channel} -b ${samplebits} -r ${samplerate} -n isawav_${channel}_${samplebits}_${samplerate}.wav synth 0.25 sine 300-3300
+                sox -n -c ${channel} -b ${samplebits} -r ${samplerate} isawav_${channel}_${samplebits}_${samplerate}.wav synth 0.25 sine 300-3300
             fi
         done
      done
