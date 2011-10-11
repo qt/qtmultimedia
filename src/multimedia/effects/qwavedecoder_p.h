@@ -82,7 +82,7 @@ public:
 
 Q_SIGNALS:
     void formatKnown();
-    void invalidFormat();
+    void parsingError();
 
 private Q_SLOTS:
     void handleData();
@@ -94,6 +94,7 @@ private:
     bool enoughDataAvailable();
     bool findChunk(const char *chunkId);
     void discardBytes(qint64 numBytes);
+    void parsingFailed();
 
     enum State {
         InitialState,

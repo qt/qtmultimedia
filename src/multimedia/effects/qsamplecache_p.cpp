@@ -351,7 +351,7 @@ void QSample::load()
     connect(m_stream, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(decoderError()));
     m_waveDecoder = new QWaveDecoder(m_stream);
     connect(m_waveDecoder, SIGNAL(formatKnown()), SLOT(decoderReady()));
-    connect(m_waveDecoder, SIGNAL(invalidFormat()), SLOT(decoderError()));
+    connect(m_waveDecoder, SIGNAL(parsingError()), SLOT(decoderError()));
     connect(m_waveDecoder, SIGNAL(readyRead()), SLOT(readSample()));
 }
 

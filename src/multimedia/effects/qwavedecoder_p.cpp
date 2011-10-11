@@ -105,6 +105,13 @@ qint64 QWaveDecoder::writeData(const char *data, qint64 len)
     return -1;
 }
 
+void QWaveDecoder::parsingFailed()
+{
+    Q_ASSERT(source);
+    source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
+    emit parsingError();
+}
+
 void QWaveDecoder::handleData()
 {
     // As a special "state", if we have junk to skip, we do
@@ -112,8 +119,12 @@ void QWaveDecoder::handleData()
         discardBytes(junkToSkip); // this also updates junkToSkip
 
         // If we couldn't skip all the junk, return
-        if (junkToSkip > 0)
+        if (junkToSkip > 0) {
+            // We might have run out
+            if (source->atEnd())
+                parsingFailed();
             return;
+        }
     }
 
     if (state == QWaveDecoder::InitialState) {
@@ -124,11 +135,9 @@ void QWaveDecoder::handleData()
         source->read(reinterpret_cast<char *>(&riff), sizeof(RIFFHeader));
 
         // RIFF = little endian RIFF, RIFX = big endian RIFF
-        if (((qstrncmp(riff.descriptor.id, "RIFF", 4) != 0) && (qstrncmp(riff.descriptor.id, "RIFX", 4) != 0)) ||
-            qstrncmp(riff.type, "WAVE", 4) != 0) {
-            source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
-            emit invalidFormat();
-
+        if (((qstrncmp(riff.descriptor.id, "RIFF", 4) != 0) && (qstrncmp(riff.descriptor.id, "RIFX", 4) != 0))
+                || qstrncmp(riff.type, "WAVE", 4) != 0) {
+            parsingFailed();
             return;
         } else {
             state = QWaveDecoder::WaitingForFormatState;
@@ -160,9 +169,7 @@ void QWaveDecoder::handleData()
             if (wave.audioFormat != 0 && wave.audioFormat != 1) {
                 // 32bit wave files have format == 0xFFFE (WAVE_FORMAT_EXTENSIBLE).
                 // but don't support them at the moment.
-                source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
-                emit invalidFormat();
-
+                parsingFailed();
                 return;
             } else {
                 format.setCodec(QLatin1String("audio/pcm"));
@@ -209,11 +216,9 @@ void QWaveDecoder::handleData()
         }
     }
 
+    // If we hit the end without finding data, it's a parsing error
     if (source->atEnd()) {
-        source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
-        emit invalidFormat();
-
-        return;
+        parsingFailed();
     }
 }
 
