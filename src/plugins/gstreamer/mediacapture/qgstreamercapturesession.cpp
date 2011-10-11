@@ -46,8 +46,8 @@
 #include "qgstreameraudioencode.h"
 #include "qgstreamervideoencode.h"
 #include "qgstreamerimageencode.h"
-#include "qgstreamerbushelper.h"
 #include <qmediarecorder.h>
+#include <private/qgstreamerbushelper_p.h>
 
 #include <gst/gsttagsetter.h>
 #include <gst/gstversion.h>

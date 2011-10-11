@@ -44,6 +44,7 @@
     "evr" => {},
 
     # Linux tests
+    "gstreamer" => {},
     "gstreamer_photography" => {},
     "gstreamer_appsrc" => {},
     "pulseaudio" => {},

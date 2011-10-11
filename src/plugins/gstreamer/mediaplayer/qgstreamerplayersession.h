@@ -45,7 +45,7 @@
 #include <QObject>
 #include <QtNetwork/qnetworkrequest.h>
 #include "qgstreamerplayercontrol.h"
-#include "qgstreamerbushelper.h"
+#include <private/qgstreamerbushelper_p.h>
 #include <qmediaplayer.h>
 #include <qmediastreamscontrol.h>
 

@@ -40,11 +40,11 @@
 ****************************************************************************/
 
 #include "qgstreamervideooverlay.h"
-#include "qvideosurfacegstsink.h"
+#include <private/qvideosurfacegstsink_p.h>
 
 #include <qvideosurfaceformat.h>
 
-#include "qx11videosurface.h"
+#include <private/qx11videosurface_p.h>
 
 #ifndef QT_NO_XVIDEO
 

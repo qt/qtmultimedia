@@ -45,7 +45,7 @@
 #include <qvideowindowcontrol.h>
 
 #include "qgstreamervideorendererinterface.h"
-#include "qgstreamerbushelper.h"
+#include <private/qgstreamerbushelper_p.h>
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;

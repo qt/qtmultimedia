@@ -45,7 +45,7 @@
 #include <qvideowidgetcontrol.h>
 
 #include "qgstreamervideorendererinterface.h"
-#include "qgstreamerbushelper.h"
+#include <private/qgstreamerbushelper_p.h>
 
 QT_USE_NAMESPACE
 

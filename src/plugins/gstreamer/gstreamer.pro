@@ -8,6 +8,8 @@ PLUGIN_TYPE=mediaservice
 load(qt_plugin)
 DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
+LIBS += -lqgsttools_p
+
 unix:!maemo*:contains(QT_CONFIG, alsa) {
 DEFINES += HAVE_ALSA
 LIBS += \
@@ -48,33 +50,22 @@ maemo6 {
 
 # Input
 HEADERS += \
-    qgstreamermessage.h \
-    qgstreamerbushelper.h \
     qgstreamervideorendererinterface.h \
     qgstreamerserviceplugin.h \
     qgstreameraudioinputendpointselector.h \
     qgstreamervideorenderer.h \
-    qgstvideobuffer.h \
-    qvideosurfacegstsink.h \
     qgstreamervideoinputdevicecontrol.h \
     gstvideoconnector.h \
-    qabstractgstbufferpool.h \
     qgstcodecsinfo.h \
-    qgstutils.h
 
 SOURCES += \
-    qgstreamermessage.cpp \
-    qgstreamerbushelper.cpp \
     qgstreamervideorendererinterface.cpp \
     qgstreamerserviceplugin.cpp \
     qgstreameraudioinputendpointselector.cpp \
     qgstreamervideorenderer.cpp \
-    qgstvideobuffer.cpp \
-    qvideosurfacegstsink.cpp \
     qgstreamervideoinputdevicecontrol.cpp \
     qgstcodecsinfo.cpp \
     gstvideoconnector.c \
-    qgstutils.cpp
 
 
 !win32:!contains(QT_CONFIG,embedded):!mac:!simulator:!contains(QT_CONFIG, qpa) {
@@ -85,14 +76,12 @@ SOURCES += \
         qgstreamervideowindow.h \
         qgstreamervideowidget.h \
         qx11videosurface.h \
-        qgstxvimagebuffer.h
 
     SOURCES += \
         qgstreamervideooverlay.cpp \
         qgstreamervideowindow.cpp \
         qgstreamervideowidget.cpp \
         qx11videosurface.cpp \
-        qgstxvimagebuffer.cpp
 }
 include(mediaplayer/mediaplayer.pri)
 include(mediacapture/mediacapture.pri)

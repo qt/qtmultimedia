@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -39,41 +39,32 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEORENDERER_H
-#define QGSTREAMERVIDEORENDERER_H
+#ifndef QGSTUTILS_P_H
+#define QGSTUTILS_P_H
 
-#include <qvideorenderercontrol.h>
-#include <private/qvideosurfacegstsink_p.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include "qgstreamervideorendererinterface.h"
+#include <QtCore/qmap.h>
+#include <gst/gst.h>
 
-QT_USE_NAMESPACE
+class QSize;
+class QVariant;
+class QByteArray;
 
-class QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
-{
-    Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface)
-public:
-    QGstreamerVideoRenderer(QObject *parent = 0);
-    virtual ~QGstreamerVideoRenderer();
-    
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+namespace QGstUtils {
+    QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
 
-    GstElement *videoSink();
+    QSize capsResolution(const GstCaps *caps);
+    QSize capsCorrectedResolution(const GstCaps *caps);
+}
 
-    bool isReady() const { return m_surface != 0; }
-
-signals:
-    void sinkChanged();
-    void readyChanged(bool);
-
-private slots:
-    void handleFormatChange();
-
-private:    
-    QVideoSurfaceGstSink *m_videoSink;
-    QAbstractVideoSurface *m_surface;
-};
-
-#endif // QGSTREAMERVIDEORENDRER_H
+#endif

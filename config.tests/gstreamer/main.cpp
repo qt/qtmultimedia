@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the Qt Toolkit
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -39,21 +39,11 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTUTILS_H
-#define QGSTUTILS_H
+#define GST_USE_UNSTABLE_API
 
-#include <QtCore/qmap.h>
 #include <gst/gst.h>
 
-class QSize;
-class QVariant;
-class QByteArray;
-
-namespace QGstUtils {
-    QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
-
-    QSize capsResolution(const GstCaps *caps);
-    QSize capsCorrectedResolution(const GstCaps *caps);
+int main(int argc, char** argv)
+{
+    return 0;
 }
-
-#endif

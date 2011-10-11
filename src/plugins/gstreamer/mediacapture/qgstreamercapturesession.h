@@ -49,7 +49,7 @@
 
 #include <gst/gst.h>
 
-#include "qgstreamerbushelper.h"
+#include <private/qgstreamerbushelper_p.h>
 
 QT_USE_NAMESPACE
 

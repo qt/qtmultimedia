@@ -39,9 +39,9 @@
 **
 ****************************************************************************/
 
-#include "qvideosurfacegstsink.h"
-#include "qabstractvideosurface.h"
-#include "qgstutils.h"
+#include <private/qvideosurfacegstsink_p.h>
+#include <qabstractvideosurface.h>
+#include <private/qgstutils_p.h>
 
 #include <QtGui/qevent.h>
 #include <QtWidgets/qapplication.h>

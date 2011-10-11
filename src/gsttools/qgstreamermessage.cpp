@@ -41,7 +41,7 @@
 
 #include <gst/gst.h>
 
-#include "qgstreamermessage.h"
+#include "qgstreamermessage_p.h"
 
 
 static int wuchi = qRegisterMetaType<QGstreamerMessage>();

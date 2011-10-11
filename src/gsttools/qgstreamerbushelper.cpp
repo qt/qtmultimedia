@@ -44,7 +44,7 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qlist.h>
 
-#include "qgstreamerbushelper.h"
+#include "qgstreamerbushelper_p.h"
 
 
 #ifndef QT_NO_GLIB

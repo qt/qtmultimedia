@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "qgstreamervideowidget.h"
-#include "qgstutils.h"
+#include <private/qgstutils_p.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qdebug.h>

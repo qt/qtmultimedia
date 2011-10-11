@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstutils.h"
+#include "qgstutils_p.h"
 
 #include <QtCore/qdatetime.h>
 #include <QtCore/qbytearray.h>

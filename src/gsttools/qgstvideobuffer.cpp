@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstvideobuffer.h"
+#include "qgstvideobuffer_p.h"
 
 
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine)

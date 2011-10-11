@@ -39,37 +39,45 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTBUFFERPOOL_H
-#define QGSTBUFFERPOOL_H
+#ifndef QGSTVIDEOBUFFER_P_H
+#define QGSTVIDEOBUFFER_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
 #include <qabstractvideobuffer.h>
-#include <qvideosurfaceformat.h>
+#include <QtCore/qvariant.h>
 
 #include <gst/gst.h>
 
-/*!
-    Abstract interface for video buffers allocation.
-*/
-class QAbstractGstBufferPool
+class QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    virtual ~QAbstractGstBufferPool() {}
+    QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine);
+    QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine,
+                    HandleType handleType, const QVariant &handle);
+    ~QGstVideoBuffer();
 
-    virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
+    MapMode mapMode() const;
 
-    virtual GType bufferType() const = 0;
-    virtual GstBuffer *takeBuffer(const QVideoSurfaceFormat &format, GstCaps *caps) = 0;
-    virtual void clear() = 0;
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine);
+    void unmap();
 
-    virtual QAbstractVideoBuffer::HandleType handleType() const = 0;
-
-    /*!
-      Build an QAbstractVideoBuffer instance from compatible (mathcing gst buffer type)
-      GstBuffer.
-
-      This method is called from gstreamer video sink thread.
-     */
-    virtual QAbstractVideoBuffer *prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine) = 0;
+    QVariant handle() const { return m_handle; }
+private:
+    GstBuffer *m_buffer;
+    int m_bytesPerLine;
+    MapMode m_mode;
+    QVariant m_handle;
 };
+
 
 #endif

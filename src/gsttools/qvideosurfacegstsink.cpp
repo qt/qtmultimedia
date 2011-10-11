@@ -46,14 +46,14 @@
 #include <QDebug>
 #include <QThread>
 
-#include "qgstvideobuffer.h"
+#include "qgstvideobuffer_p.h"
 
 #if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
 #include <QtWidgets/qx11info_x11.h>
-#include "qgstxvimagebuffer.h"
+#include "qgstxvimagebuffer_p.h"
 #endif
 
-#include "qvideosurfacegstsink.h"
+#include "qvideosurfacegstsink_p.h"
 
 //#define DEBUG_VIDEO_SURFACE_SINK
 

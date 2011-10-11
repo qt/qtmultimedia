@@ -40,11 +40,11 @@
 ****************************************************************************/
 
 #include "qgstreamerplayersession.h"
-#include "qgstreamerbushelper.h"
+#include <private/qgstreamerbushelper_p.h>
 
 #include "qgstreamervideorendererinterface.h"
 #include "gstvideoconnector.h"
-#include "qgstutils.h"
+#include <private/qgstutils_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>

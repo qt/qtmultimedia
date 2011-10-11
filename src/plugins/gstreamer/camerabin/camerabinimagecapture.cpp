@@ -43,9 +43,9 @@
 #include "camerabincapturedestination.h"
 #include "camerabincapturebufferformat.h"
 #include "camerabinsession.h"
-#include "qgstvideobuffer.h"
-#include "qvideosurfacegstsink.h"
-#include "qgstutils.h"
+#include <private/qgstvideobuffer_p.h>
+#include <private/qvideosurfacegstsink_p.h>
+#include <private/qgstutils_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qbuffer.h>
 #include <QtGui/qimagereader.h>

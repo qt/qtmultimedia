@@ -46,7 +46,6 @@
 #include "camerabinaudioencoder.h"
 #include "camerabinvideoencoder.h"
 #include "camerabinimageencoder.h"
-#include "qgstreamerbushelper.h"
 #include "camerabincontrol.h"
 #include "camerabinlocks.h"
 #include "camerabinmetadata.h"
@@ -57,6 +56,7 @@
 #include "camerabinimageprocessing.h"
 #include "camerabincapturebufferformat.h"
 #include "camerabincapturedestination.h"
+#include <private/qgstreamerbushelper_p.h>
 
 #include "qgstreameraudioinputendpointselector.h"
 #include "qgstreamervideoinputdevicecontrol.h"

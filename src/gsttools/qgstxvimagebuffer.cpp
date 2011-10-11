@@ -44,9 +44,9 @@
 #include <QtCore/qvariant.h>
 #include <QtWidgets/qx11info_x11.h>
 
-#include "qgstxvimagebuffer.h"
-#include "qvideosurfacegstsink.h"
-#include "qgstvideobuffer.h"
+#include "qgstxvimagebuffer_p.h"
+#include "qvideosurfacegstsink_p.h"
+#include "qgstvideobuffer_p.h"
 
 #ifndef QT_NO_XVIDEO
 

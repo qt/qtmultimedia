@@ -46,8 +46,8 @@
 #include "qgstreameraudioencode.h"
 #include "qgstreamervideoencode.h"
 #include "qgstreamerimageencode.h"
-#include "qgstreamerbushelper.h"
 #include "qgstreamercameracontrol.h"
+#include <private/qgstreamerbushelper_p.h>
 #include "qgstreamerv4l2input.h"
 #include "qgstreamercapturemetadatacontrol.h"
 

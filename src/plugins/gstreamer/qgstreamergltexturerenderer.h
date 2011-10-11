@@ -43,8 +43,8 @@
 #define QGSTREAMERGLTEXTURERENDERER_H
 
 #include <qvideorenderercontrol.h>
-#include "qvideosurfacegstsink.h"
-#include "qgstreamerbushelper.h"
+#include <private/qvideosurfacegstsink_p.h>
+#include <private/qgstreamerbushelper_p.h>
 
 #include "qgstreamervideorendererinterface.h"
 #include <QtGui/qcolor.h>

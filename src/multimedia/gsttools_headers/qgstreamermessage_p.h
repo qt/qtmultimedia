@@ -39,51 +39,41 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERBUSHELPER_H
-#define QGSTREAMERBUSHELPER_H
+#ifndef QGSTREAMERMESSAGE_P_H
+#define QGSTREAMERMESSAGE_P_H
 
-#include <QObject>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <qgstreamermessage.h>
+#include <QMetaType>
+
 #include <gst/gst.h>
 
-class QGstreamerSyncMessageFilter {
-public:
-    //returns true if message was processed and should be dropped, false otherwise
-    virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
-};
-#define QGstreamerSyncMessageFilter_iid "com.nokia.Qt.QGstreamerSyncMessageFilter/1.0"
-Q_DECLARE_INTERFACE(QGstreamerSyncMessageFilter, QGstreamerSyncMessageFilter_iid)
 
-
-class QGstreamerBusMessageFilter {
-public:
-    //returns true if message was processed and should be dropped, false otherwise
-    virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
-};
-#define QGstreamerBusMessageFilter_iid "com.nokia.Qt.QGstreamerBusMessageFilter/1.0"
-Q_DECLARE_INTERFACE(QGstreamerBusMessageFilter, QGstreamerBusMessageFilter_iid)
-
-
-class QGstreamerBusHelperPrivate;
-
-class QGstreamerBusHelper : public QObject
+class QGstreamerMessage
 {
-    Q_OBJECT
-    friend class QGstreamerBusHelperPrivate;
-
 public:
-    QGstreamerBusHelper(GstBus* bus, QObject* parent = 0);
-    ~QGstreamerBusHelper();
+    QGstreamerMessage();
+    QGstreamerMessage(GstMessage* message);
+    QGstreamerMessage(QGstreamerMessage const& m);
+    ~QGstreamerMessage();
 
-    void installMessageFilter(QObject *filter);
-    void removeMessageFilter(QObject *filter);
+    GstMessage* rawMessage() const;
 
-signals:
-    void message(QGstreamerMessage const& message);
+    QGstreamerMessage& operator=(QGstreamerMessage const& rhs);
 
 private:
-    QGstreamerBusHelperPrivate*   d;
+    GstMessage* m_message;
 };
+
+Q_DECLARE_METATYPE(QGstreamerMessage);
 
 #endif

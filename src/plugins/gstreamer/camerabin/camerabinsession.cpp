@@ -51,7 +51,7 @@
 #include "camerabinlocks.h"
 #include "camerabincapturedestination.h"
 #include "camerabincapturebufferformat.h"
-#include "qgstreamerbushelper.h"
+#include <private/qgstreamerbushelper_p.h>
 #include "qgstreamervideorendererinterface.h"
 #include <qmediarecorder.h>
 #include <gst/interfaces/photography.h>
