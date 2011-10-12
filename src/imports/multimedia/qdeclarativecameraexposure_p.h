@@ -53,9 +53,9 @@
 // We mean it.
 //
 
+#include "qdeclarativecamera_p.h"
 #include <qcamera.h>
 #include <qcameraexposure.h>
-#include <qdeclarativecamera_p.h>
 
 QT_BEGIN_HEADER
 

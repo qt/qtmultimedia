@@ -57,6 +57,8 @@
 #include <qcameraimagecapture.h>
 #include <qmediaencodersettings.h>
 
+#include <QtDeclarative/qdeclarative.h>
+
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE

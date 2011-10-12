@@ -39,14 +39,14 @@
 **
 ****************************************************************************/
 
-#include <QDebug>
-
-#include <private/qmediaobject_p.h>
+#include "qcameraviewfinder.h"
+#include "qvideowidget_p.h"
 
 #include <qcamera.h>
-#include <qcameraviewfinder.h>
-#include <qvideowidget_p.h>
 #include <qvideodevicecontrol.h>
+#include <private/qmediaobject_p.h>
+
+#include <QtCore/QDebug>
 
 QT_USE_NAMESPACE
 

@@ -40,13 +40,13 @@
 ****************************************************************************/
 
 #include "qvideowidget_p.h"
+#include "qpaintervideosurface_p.h"
 
 #include <qmediaobject.h>
 #include <qmediaservice.h>
 #include <qvideowindowcontrol.h>
 #include <qvideowidgetcontrol.h>
 
-#include <qpaintervideosurface_p.h>
 #include <qvideorenderercontrol.h>
 #include <qvideosurfaceformat.h>
 #include <qpainter.h>

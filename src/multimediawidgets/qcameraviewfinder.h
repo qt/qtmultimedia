@@ -65,7 +65,7 @@ QT_MODULE(Multimedia)
 class QCamera;
 
 class QCameraViewfinderPrivate;
-class Q_MULTIMEDIA_EXPORT QCameraViewfinder : public QVideoWidget
+class Q_MULTIMEDIAWIDGETS_EXPORT QCameraViewfinder : public QVideoWidget
 {
     Q_OBJECT
 public:

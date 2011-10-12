@@ -65,7 +65,7 @@ QT_BEGIN_HEADER
 #    if defined(QT_DLL)
 #      undef QT_DLL
 #    endif
-#    if defined(QT_BUILD_MULTIMEDIA_LIB)
+#    if defined(QT_BUILD_MULTIMEDIAWIDGETS_LIB)
 #        define Q_MULTIMEDIAWIDGETS_EXPORT Q_DECL_EXPORT
 #    else
 #        define Q_MULTIMEDIAWIDGETS_EXPORT Q_DECL_IMPORT

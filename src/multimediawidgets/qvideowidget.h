@@ -57,7 +57,7 @@ QT_MODULE(Multimedia)
 class QMediaObject;
 
 class QVideoWidgetPrivate;
-class Q_MULTIMEDIA_EXPORT QVideoWidget : public QWidget, public QMediaBindableInterface
+class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaBindableInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaBindableInterface)

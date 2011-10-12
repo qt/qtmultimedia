@@ -48,7 +48,7 @@
 #include <qmediaplaylistsourcecontrol.h>
 #include <qmediacontent.h>
 #include <qmediaresource.h>
-#include <qvideosurfaceoutput_p.h>
+#include "qvideosurfaceoutput_p.h"
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qdatetime.h>

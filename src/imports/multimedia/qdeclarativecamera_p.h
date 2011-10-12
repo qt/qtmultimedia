@@ -53,16 +53,17 @@
 // We mean it.
 //
 
-#include <QtCore/qbasictimer.h>
-#include <QtCore/qdatetime.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeparserstatus.h>
+#include "qdeclarativecameracapture_p.h"
+#include "qdeclarativecamerarecorder_p.h"
 
 #include <qcamera.h>
 #include <qcameraimageprocessing.h>
 #include <qcameraimagecapture.h>
-#include <qdeclarativecameracapture_p.h>
-#include <qdeclarativecamerarecorder_p.h>
+
+#include <QtCore/qbasictimer.h>
+#include <QtCore/qdatetime.h>
+#include <QtDeclarative/qdeclarative.h>
+#include <QtDeclarative/qdeclarativeparserstatus.h>
 
 QT_BEGIN_HEADER
 

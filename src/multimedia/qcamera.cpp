@@ -39,11 +39,10 @@
 **
 ****************************************************************************/
 
-#include <QDebug>
+#include "qvideosurfaceoutput_p.h"
+#include "qmediaobject_p.h"
 
 #include <qcamera.h>
-
-#include <qmediaobject_p.h>
 #include <qcameracontrol.h>
 #include <qcameralockscontrol.h>
 #include <qcameraexposurecontrol.h>
@@ -52,7 +51,8 @@
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodevicecontrol.h>
-#include <qvideosurfaceoutput_p.h>
+
+#include <QDebug>
 
 QT_USE_NAMESPACE
 

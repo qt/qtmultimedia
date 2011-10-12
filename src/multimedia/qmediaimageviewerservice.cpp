@@ -46,7 +46,7 @@
 
 #include <qmediacontent.h>
 #include <qmediaresource.h>
-#include <qmediaobject_p.h>
+#include "qmediaobject_p.h"
 #include <qvideorenderercontrol.h>
 
 #include <QtCore/qdebug.h>

@@ -39,18 +39,18 @@
 **
 ****************************************************************************/
 
-#include <QDebug>
+#include "qcamerafocus.h"
+#include "qmediaobject_p.h"
 
 #include <qcamera.h>
-#include <qcamerafocus.h>
-
-#include <qmediaobject_p.h>
 #include <qcameracontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
 #include <qmediarecordercontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodevicecontrol.h>
+
+#include <QtCore/QDebug>
 
 QT_BEGIN_NAMESPACE
 

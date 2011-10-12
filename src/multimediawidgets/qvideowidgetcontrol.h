@@ -56,7 +56,7 @@ QT_MODULE(Multimedia)
 
 class QVideoWidgetControlPrivate;
 
-class Q_MULTIMEDIA_EXPORT QVideoWidgetControl : public QMediaControl
+class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidgetControl : public QMediaControl
 {
     Q_OBJECT
 

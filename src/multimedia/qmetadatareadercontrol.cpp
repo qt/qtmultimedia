@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include <qmediacontrol_p.h>
+#include "qmediacontrol_p.h"
 #include <qmetadatareadercontrol.h>
 
 QT_BEGIN_NAMESPACE

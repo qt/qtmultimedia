@@ -59,7 +59,7 @@ QT_END_NAMESPACE
 QT_BEGIN_NAMESPACE
 
 class QGraphicsVideoItemPrivate;
-class Q_MULTIMEDIA_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaBindableInterface
+class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaBindableInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaBindableInterface)

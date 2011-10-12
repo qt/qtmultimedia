@@ -39,24 +39,24 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qcoreevent.h>
-#include <QtCore/qmetaobject.h>
-#include <QtCore/qtimer.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qpointer.h>
-
-
 #include "qmediaplayer.h"
+#include "qvideosurfaceoutput_p.h"
 
-#include <qmediaobject_p.h>
+#include "qmediaobject_p.h"
 #include <qmediaservice.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaserviceprovider.h>
 #include <qmediaplaylist.h>
 #include <qmediaplaylistcontrol.h>
 #include <qmediaplaylistsourcecontrol.h>
-#include <qvideosurfaceoutput_p.h>
+
 #include <qmedianetworkaccesscontrol.h>
+
+#include <QtCore/qcoreevent.h>
+#include <QtCore/qmetaobject.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qpointer.h>
 
 QT_BEGIN_NAMESPACE
 
