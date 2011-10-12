@@ -20,3 +20,4 @@ SUBDIRS += module_qtmultimedia_src \
            module_qtmultimedia_examples \
            module_qtmultimedia_tests \
 
+include(doc/config/qtmultimedia_doc.pri)
