@@ -44,10 +44,6 @@
 
 void QDeclarativeBackgroundAudio::classBegin()
 {
-}
-
-void QDeclarativeBackgroundAudio::componentComplete()
-{
     setObject(this, Q_MEDIASERVICE_BACKGROUNDMEDIAPLAYER);
     if (m_mediaService) {
         m_backgroundPlaybackControl =
@@ -56,15 +52,21 @@ void QDeclarativeBackgroundAudio::componentComplete()
         if (m_backgroundPlaybackControl) {
             connect(m_backgroundPlaybackControl, SIGNAL(acquired()), this, SIGNAL(acquiredChanged()));
             connect(m_backgroundPlaybackControl, SIGNAL(lost()), this, SIGNAL(acquiredChanged()));
-            if (!m_contextId.isEmpty())
-                m_backgroundPlaybackControl->setContextId(m_contextId);
         } else {
             qWarning("can not get QMediaBackgroundPlaybackControl!");
         }
     } else {
         qWarning("Unable to get any background mediaplayer!");
     }
-    QDeclarativeMediaBase::componentComplete();
+    emit mediaObjectChanged();
+
+    //Note: we are not calling QDeclarativeAudio::classBegin here,
+    //otherwise there will be conflict for setObject().
+}
+
+void QDeclarativeBackgroundAudio::componentComplete()
+{
+    QDeclarativeAudio::componentComplete();
 }
 
 QDeclarativeBackgroundAudio::QDeclarativeBackgroundAudio(QObject *parent)
