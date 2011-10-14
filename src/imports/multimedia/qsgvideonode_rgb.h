@@ -39,33 +39,36 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_RGB32_H
-#define QSGVIDEONODE_RGB32_H
+#ifndef QSGVIDEONODE_RGB_H
+#define QSGVIDEONODE_RGB_H
 
 #include "qsgvideonode_p.h"
-#include <QtDeclarative/qsgtexturematerial.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
-class QSGVideoTexture_RGB32;
+class QSGVideoMaterial_RGB;
 
-class QSGVideoNode_RGB32 : public QSGVideoNode
+class QSGVideoNode_RGB : public QSGVideoNode
 {
 public:
-    QSGVideoNode_RGB32();
+    QSGVideoNode_RGB(const QVideoSurfaceFormat &format);
+    ~QSGVideoNode_RGB();
 
+    virtual QVideoFrame::PixelFormat pixelFormat() const {
+        return m_format.pixelFormat();
+    }
     void setCurrentFrame(const QVideoFrame &frame);
 
-    QVideoFrame::PixelFormat pixelFormat() const { return QVideoFrame::Format_RGB32; }
-
 private:
-    QSGTextureMaterial m_material;
-    QSGVideoTexture_RGB32 *m_texture;
+    QVideoSurfaceFormat m_format;
+    QSGVideoMaterial_RGB *m_material;
+    QVideoFrame m_frame;
 };
 
-class QSGVideoNodeFactory_RGB32 : public QSGVideoNodeFactory {
+class QSGVideoNodeFactory_RGB : public QSGVideoNodeFactory {
 public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
 };
 
 
-#endif // QSGVIDEONODE_RGB32_H
+#endif // QSGVIDEONODE_RGB_H

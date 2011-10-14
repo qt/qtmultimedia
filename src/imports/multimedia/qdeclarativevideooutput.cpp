@@ -42,7 +42,7 @@
 
 #include "qsgvideonode_p.h"
 #include "qsgvideonode_i420.h"
-#include "qsgvideonode_rgb32.h"
+#include "qsgvideonode_rgb.h"
 
 #include <QtDeclarative/qsgitem.h>
 
@@ -161,9 +161,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QSGItem *parent) :
             this, SLOT(_q_updateNativeSize(QVideoSurfaceFormat)), Qt::QueuedConnection);
 
     m_videoNodeFactories.append(new QSGVideoNodeFactory_I420);
-#ifndef QT_OPENGL_ES
-    m_videoNodeFactories.append(new QSGVideoNodeFactory_RGB32);
-#endif
+    m_videoNodeFactories.append(new QSGVideoNodeFactory_RGB);
 }
 
 QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
