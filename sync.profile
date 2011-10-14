@@ -44,6 +44,7 @@
     "evr" => {},
 
     # Linux tests
+    "alsa" => {},
     "gstreamer" => {},
     "gstreamer_photography" => {},
     "gstreamer_appsrc" => {},

@@ -47,7 +47,7 @@ unix:!mac {
     contains(config_test_pulseaudio, yes) {
         DEFINES += QT_NO_AUDIO_BACKEND
     }
-    else:contains(QT_CONFIG, alsa) {
+    else:contains(config_test_alsa, yes) {
         linux-*|freebsd-*|openbsd-* {
             DEFINES += HAS_ALSA
             PRIVATE_HEADERS += audio/qaudiooutput_alsa_p.h audio/qaudioinput_alsa_p.h audio/qaudiodeviceinfo_alsa_p.h
