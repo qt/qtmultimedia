@@ -64,4 +64,6 @@ SOURCES += \
 HEADERS += $$PRIVATE_HEADERS
 
 DESTDIR = $$QT.multimedia.libs
+target.path = $$[QT_INSTALL_LIBS]
 
+INSTALLS += target
