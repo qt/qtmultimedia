@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qsoundeffect_p.h"
+#include "qsoundeffect.h"
 
 #if defined(QT_MULTIMEDIA_PULSEAUDIO)
 #include "qsoundeffect_pulse_p.h"
@@ -159,7 +159,6 @@ QT_BEGIN_NAMESPACE
 
 
 /*!
-    \internal
     \since 1.0
 */
 
@@ -298,4 +297,4 @@ void QSoundEffect::stop()
 
 QT_END_NAMESPACE
 
-#include "moc_qsoundeffect_p.cpp"
+#include "moc_qsoundeffect.cpp"

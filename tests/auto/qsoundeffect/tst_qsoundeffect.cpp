@@ -46,7 +46,7 @@
 #include <qaudiooutput.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudio.h>
-#include "private/qsoundeffect_p.h"
+#include "qsoundeffect.h"
 
 
 class tst_QSoundEffect : public QObject

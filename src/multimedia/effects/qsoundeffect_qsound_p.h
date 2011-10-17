@@ -56,7 +56,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
-#include "qsoundeffect_p.h"
+#include "qsoundeffect.h"
 
 QT_BEGIN_HEADER
 

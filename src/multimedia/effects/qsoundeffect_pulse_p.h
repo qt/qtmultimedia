@@ -54,7 +54,7 @@
 //
 
 
-#include "qsoundeffect_p.h"
+#include "qsoundeffect.h"
 
 #include <QtCore/qobject.h>
 #include <QtCore/qdatetime.h>

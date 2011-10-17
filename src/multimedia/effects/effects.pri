@@ -23,8 +23,10 @@ unix:!mac {
     SOURCES += effects/qsoundeffect_qmedia_p.cpp
 }
 
+PUBLIC_HEADERS += \
+        effects/qsoundeffect.h
+
 PRIVATE_HEADERS += \
-        effects/qsoundeffect_p.h \
         effects/qwavedecoder_p.h \
         effects/qsamplecache_p.h
 
