@@ -1,7 +1,7 @@
 load(qt_module)
 
 TARGET = qqt7engine
-QT += multimedia-private multimediawidgets-private network
+QT += multimedia-private multimediawidgets-private network widgets
 PLUGIN_TYPE = mediaservice
 
 load(qt_plugin)

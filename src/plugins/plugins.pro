@@ -36,7 +36,7 @@ unix:!mac {
 
 mac:!simulator {
     SUBDIRS += audiocapture
-    !qpa: SUBDIRS += qt7
+    SUBDIRS += qt7
 }
 
 # fake radio to test the radio APIs

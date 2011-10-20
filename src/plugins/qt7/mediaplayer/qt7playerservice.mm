@@ -41,7 +41,7 @@
 
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
-#include <QtGui/qwidget.h>
+#include <QtWidgets/qwidget.h>
 
 #include "qt7backend.h"
 #include "qt7playerservice.h"

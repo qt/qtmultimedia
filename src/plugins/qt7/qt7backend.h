@@ -46,8 +46,8 @@
 
 #include <QtCore/QString>
 
-#ifndef Q_WS_SIMULATOR
-#ifndef Q_WS_MAC64
+#ifndef Q_OS_SIMULATOR
+#ifndef Q_OS_MAC64
 #define QUICKTIME_C_API_AVAILABLE
 #endif
 #endif // !defined(Q_WS_SIMULATOR)
