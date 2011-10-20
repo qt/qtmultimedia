@@ -1,3 +1,4 @@
+CONFIG += testcase
 TARGET = tst_qcamerabackend
 
 QT += multimedia-private multimediawidgets-private testlib
