@@ -44,7 +44,7 @@
 #include "qsgvideonode_i420.h"
 #include "qsgvideonode_rgb.h"
 
-#include <QtDeclarative/qsgitem.h>
+#include <QtDeclarative/qquickitem.h>
 
 #include <QtMultimedia/QAbstractVideoSurface>
 #include <QtMultimedia/qmediaservice.h>
@@ -151,8 +151,8 @@ private:
     \brief The QDeclarativeVideoOutput class provides a video output item.
 */
 
-QDeclarativeVideoOutput::QDeclarativeVideoOutput(QSGItem *parent) :
-    QSGItem(parent),
+QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
+    QQuickItem(parent),
     m_fillMode(PreserveAspectFit)
 {
     setFlag(ItemHasContents, true);

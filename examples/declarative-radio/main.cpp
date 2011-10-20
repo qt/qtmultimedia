@@ -41,14 +41,14 @@
 #include <QGuiApplication>
 
 #include <qdeclarative.h>
-#include <qsgview.h>
+#include <qquickview.h>
 
 
 int main(int argc, char ** argv)
 {
     QGuiApplication app(argc, argv);
 
-    QSGView view;
+    QQuickView view;
 
     view.setSource(QUrl("qrc:view.qml"));
     view.show();

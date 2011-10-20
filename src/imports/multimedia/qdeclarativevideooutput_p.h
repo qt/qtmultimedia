@@ -42,7 +42,7 @@
 #ifndef QDECLARATIVEVIDEOOUTPUT_P_H
 #define QDECLARATIVEVIDEOOUTPUT_P_H
 
-#include <qsgitem.h>
+#include <qquickitem.h>
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qmediaobject.h>
@@ -56,7 +56,7 @@ class QVideoRendererControl;
 class QMediaService;
 class QVideoSurfaceFormat;
 
-class QDeclarativeVideoOutput : public QSGItem
+class QDeclarativeVideoOutput : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY(QDeclarativeVideoOutput)
@@ -72,7 +72,7 @@ public:
         PreserveAspectCrop = Qt::KeepAspectRatioByExpanding
     };
 
-    QDeclarativeVideoOutput(QSGItem *parent = 0);
+    QDeclarativeVideoOutput(QQuickItem *parent = 0);
     ~QDeclarativeVideoOutput();
 
     QObject *source() const { return m_source.data(); }
