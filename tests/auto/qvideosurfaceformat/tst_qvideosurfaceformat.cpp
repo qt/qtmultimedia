@@ -1032,7 +1032,11 @@ void tst_QVideoSurfaceFormat::debugOperator()
         "     frameWidth  =  QVariant(int, %6) \n"
         "     viewport  =  QVariant(QRect, QRect(0,1 800x600) ) \n"
         "     scanLineDirection  =  QVariant(QVideoSurfaceFormat::Direction, ) \n"
+#if defined(QT_ARCH_ARM) // from qglobal.h
+        "     frameRate  =  QVariant(float, %7) \n"
+#else
         "     frameRate  =  QVariant(double, %7) \n"
+#endif
         "     pixelAspectRatio  =  QVariant(QSize, QSize(320, 200) ) \n"
         "     sizeHint  =  QVariant(QSize, QSize(1280, 600) ) \n"
         "     yCbCrColorSpace  =  QVariant(QVideoSurfaceFormat::YCbCrColorSpace, )  ")
