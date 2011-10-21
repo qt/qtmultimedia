@@ -290,7 +290,7 @@ void QWaveDecoder::discardBytes(qint64 numBytes)
     // If the iodevice doesn't have this many bytes in it,
     // remember how much more junk we have to skip.
     if (source->isSequential()) {
-        QByteArray r = source->read(numBytes); // uggh, wasted memory
+        QByteArray r = source->read(qMin(numBytes, qint64(16384))); // uggh, wasted memory, limit to a max of 16k
         if (r.size() < numBytes)
             junkToSkip = numBytes - r.size();
         else
