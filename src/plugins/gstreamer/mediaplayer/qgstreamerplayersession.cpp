@@ -55,7 +55,7 @@
 #include <QtCore/qtimer.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
-#include <QtGui/qdesktopservices.h>
+#include <QtCore/qstandardpaths.h>
 
 #if defined(Q_WS_MAEMO_6) || (GST_VERSION_MICRO > 20)
 #define USE_PLAYBIN2
@@ -1572,7 +1572,7 @@ void QGstreamerPlayerSession::handleElementAdded(GstBin *bin, GstElement *elemen
         session->m_haveQueueElement = true;
 
         if (session->property("mediaDownloadEnabled").toBool()) {
-            QDir cacheDir(QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
+            QDir cacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
             QString cacheLocation = cacheDir.absoluteFilePath("gstmedia__XXXXXX");
 #ifdef DEBUG_PLAYBIN
             qDebug() << "set queue2 temp-location" << cacheLocation;
