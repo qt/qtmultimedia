@@ -121,15 +121,36 @@ QStringList QMediaPluginLoader::availablePlugins() const
 
     foreach (const QString &path, paths) {
         QDir typeDir(path + m_location);
-        foreach (const QString &file, typeDir.entryList(QDir::Files)) {
+        foreach (const QString &file, typeDir.entryList(QDir::Files, QDir::Name)) {
 #if defined(Q_OS_MAC)
             if (!imageSuffix.isEmpty()) {   // Only add appropriate images
                 if (file.lastIndexOf(imageSuffix, -6) == -1)
                     continue;
-            } else {  // Ignore any images with common suffixes
-                if (file.endsWith(QLatin1String("_debug.dylib")) ||
-                    file.endsWith(QLatin1String("_profile.dylib")))
-                    continue;
+            } else {
+                int foundSuffix = file.lastIndexOf(QLatin1String("_debug.dylib"));
+                if (foundSuffix == -1) {
+                    foundSuffix = file.lastIndexOf(QLatin1String("_profile.dylib"));
+                }
+                if (foundSuffix != -1) {
+                    /*
+                        If this is a "special" version of the plugin, prefer the release
+                        version, where available.
+                        Avoids warnings like:
+
+                            objc[23101]: Class TransparentQTMovieView is implemented in both
+                            libqqt7engine_debug.dylib and libqqt7engine.dylib. One of the two
+                            will be used. Which one is undefined.
+
+                        Note, this code relies on QDir::Name sorting!
+                    */
+
+                    QString preferred =
+                        typeDir.absoluteFilePath(file.left(foundSuffix) + QLatin1String(".dylib"));
+
+                    if (plugins.contains(preferred)) {
+                        continue;
+                    }
+                }
             }
 #elif defined(Q_OS_UNIX)
             // Ignore separate debug files
