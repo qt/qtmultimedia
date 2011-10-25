@@ -45,6 +45,6 @@
 
 int main(int argc, char** argv)
 {
-    ResourcePolicy::ResourceSet *set = new ResourcePolicy::ResourceSet("player", this);
+    ResourcePolicy::ResourceSet *set = new ResourcePolicy::ResourceSet("player", 0);
     return 0;
 }
