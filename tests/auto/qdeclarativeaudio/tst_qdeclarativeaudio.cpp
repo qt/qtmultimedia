@@ -82,7 +82,6 @@ private slots:
     void loops();
 };
 
-Q_DECLARE_METATYPE(QtMultimedia::MetaData);
 Q_DECLARE_METATYPE(QDeclarativeAudio::Error);
 
 class QtTestMediaPlayerControl : public QMediaPlayerControl

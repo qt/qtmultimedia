@@ -69,7 +69,6 @@
 
 QT_USE_NAMESPACE
 
-Q_DECLARE_METATYPE(QtMultimedia::MetaData)
 
 class tst_QCamera: public QObject
 {

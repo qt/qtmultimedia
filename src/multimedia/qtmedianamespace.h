@@ -333,6 +333,12 @@ namespace QtMultimediaKit
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QtMultimedia::AvailabilityError)
+Q_DECLARE_METATYPE(QtMultimedia::SupportEstimate)
+Q_DECLARE_METATYPE(QtMultimedia::MetaData)
+Q_DECLARE_METATYPE(QtMultimedia::EncodingMode)
+Q_DECLARE_METATYPE(QtMultimedia::EncodingQuality)
+
 QT_END_HEADER
 
 

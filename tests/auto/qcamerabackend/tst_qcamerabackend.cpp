@@ -121,7 +121,6 @@ QT_USE_NAMESPACE
 */
 
 
-Q_DECLARE_METATYPE(QtMultimedia::MetaData)
 Q_DECLARE_METATYPE(QVideoFrame)
 
 class tst_QCameraBackend: public QObject
