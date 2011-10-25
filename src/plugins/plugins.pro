@@ -39,6 +39,3 @@ mac:!simulator {
     SUBDIRS += qt7
 }
 
-# fake radio to test the radio APIs
-SUBDIRS += fakeradio
-
