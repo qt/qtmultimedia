@@ -153,7 +153,7 @@ include(audio/audio.pri)
 include(video/video.pri)
 include(effects/effects.pri)
 
-mac:!qpa {
+mac {
    LIBS += -framework AppKit -framework QuartzCore -framework QTKit
 }
 

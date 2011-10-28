@@ -3,7 +3,7 @@ load(qt_module)
 # distinct from QtMultimedia
 TARGET = QtMultimediaWidgets
 QPRO_PWD = $$PWD
-QT = core gui multimedia-private widgets
+QT = core gui multimedia-private widgets-private
 
 CONFIG += module no_private_qt_headers_warning
 MODULE_PRI += ../../modules/qt_multimediawidgets.pri
@@ -39,12 +39,13 @@ SOURCES += \
     qvideowidget.cpp \
     qvideowindowcontrol.cpp \
 
-mac:!qpa {
-!simulator {
-   PRIVATE_HEADERS += qpaintervideosurface_mac_p.h
-   OBJECTIVE_SOURCES += qpaintervideosurface_mac.mm
-}
-   LIBS += -framework AppKit -framework QuartzCore -framework QTKit
+mac {
+    # QtWidgets is not yet supported on Mac (!).
+    false:!simulator {
+        PRIVATE_HEADERS += qpaintervideosurface_mac_p.h
+        OBJECTIVE_SOURCES += qpaintervideosurface_mac.mm
+    }
+    LIBS += -framework AppKit -framework QuartzCore -framework QTKit
 }
 
 maemo6 {

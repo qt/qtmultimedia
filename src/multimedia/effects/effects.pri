@@ -14,9 +14,6 @@ unix:!mac {
         PRIVATE_HEADERS += effects/qsoundeffect_qmedia_p.h
         SOURCES += effects/qsoundeffect_qmedia_p.cpp
     }
-} else:!qpa {
-    PRIVATE_HEADERS += effects/qsoundeffect_qsound_p.h
-    SOURCES += effects/qsoundeffect_qsound_p.cpp
 } else {
     DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER
     PRIVATE_HEADERS += effects/qsoundeffect_qmedia_p.h

@@ -45,8 +45,6 @@
 #include "qsoundeffect_pulse_p.h"
 #elif(QT_MULTIMEDIA_QMEDIAPLAYER)
 #include "qsoundeffect_qmedia_p.h"
-#else
-#include "qsoundeffect_qsound_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
