@@ -55,11 +55,12 @@ A device specific headset is required to be connected to device for radio testin
  play_a_radio_transmission: function()
     {
         // Test meta data
-        testApplication = "Multimedia - Play Radio Transmission";
+        testTitle = "Multimedia - Play Radio Transmission";
         testBinary = "radio";
+        testSource ="$QTDIR/qtmultimediakit/examples/Radio"
         testGoal = "Verify that radio stations can be played.";
         testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
-        testGroups = "BAT";
+        testGroups = "BAT, 1.2";
 
         // Test steps
         prompt(twiki("---+++ " + testApplication + "<br><br>
@@ -85,11 +86,12 @@ A device specific headset is required to be connected to device for radio testin
     radio_interrupted_by_system_notification: function()
     {
         // Test meta data
-        testApplication = "Multimedia - Play Radio With Interruptions";
+        testTitle = "Multimedia - Radio interrupted by System Notification";
         testBinary = "radio";
-        testGoal = "Verify that radio playback can be successfuly interrupted by system notifications and resume playback without issues.";
-        testPreconditions = "1. Audible system notifications should be enabled for this test.<br>2. Radio reception should be available in the test area.<br>3. Wired headphones act as an antena to the device and must be connected.";
-        testGroups = "BAT";
+        testSource ="$QTDIR/qtmultimediakit/examples/Radio"
+        testGoal = "Verify that radio can recover audio playback from various system notifications.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
+        testGroups = "BAT, 1.2";
 
         // Test steps
         prompt(twiki("---+++ " + testApplication + "<br><br>
@@ -100,18 +102,19 @@ A device specific headset is required to be connected to device for radio testin
            | *Step* | *Verification* |
            | Launch " + testBinary + " | App launches normally |
            | Locate a strong radio station signal by scanning up/down | |
-           | While on a strong and audible radio signal, evoke a system notification on device (eg: incoming SMS, alarm notification) | Verify that after the system notification has been delivered, the radio reverts to outputting the audio signal back through the headphones |
-         "));
+           | While on a strong and audible radio signal, evoke a system notification on device (eg: incoming SMS, alarm notification) | Verify that the radio has muted, and after the system notification has been delivered, the radio reverts to outputting the audio signal back through the headphones |
+           | While on a strong and audible radio signal, call the device | Verify that the radio has been muted, and stays muted during the duration of the call, and resumes once the call has ended  |
+           "));
     },
 
     radio_volume_control: function()
     {
      // Test meta data
-     testApplication = "Multimedia - Radio Volume Control";
+     testTitle = "Multimedia - Radio Volume Control";
      testBinary = "radio";
-     testGoal = "Verify that the radio volume can be controlled.";
+     testGoal = "Verify that the radio volume can be controlled via volume controls.";
      testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
-     testGroups = "BAT";
+     testGroups = "BAT, 1.2";
 
      // Test steps
      prompt(twiki("---+++ " + testApplication + "<br><br>
@@ -121,10 +124,38 @@ A device specific headset is required to be connected to device for radio testin
 
         | *Step* | *Verification* |
         | Launch " + testBinary + " | App launches normally |
-        | Locate a strong radio station signal by scanning upwards | |
+        | Locate a strong radio station signal by scanning up or down the frequency | |
         | While on a strong and audible radio signal, move volume slider to the right | Verify that the audio volume of the radio station is amplified |
         | Move volume slider to the left | Verify that the audio volume is lowered |
         | Move the volume slider all the way to the left | Verify that the sound is now completely muted |
+        | Return the volume to a value above 50% and click the Mute/unmute comend | Verify that the audio changes from being muted to unmuted and back |
+       "));
+    },
+
+    display_radio_metadata: function()
+    {
+     // Test meta data
+     testTitle = "Multimedia - Display Radio Metadata";
+     testBinary = "radio";
+     testGoal = "Verify that the radio API can display properly formated meta data.";
+     testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
+     testGroups = "BAT, 1.2";
+
+     // Test steps
+     prompt(twiki("---+++ " + testApplication + "<br><br>
+         *Goal:* " + testGoal + "<br>
+         *Pre-Requisites:* " + testPreconditions + "<br>
+         *Tested Binary:* " + testBinary + "<br>
+
+        | *Step* | *Verification* |
+        | Launch " + testBinary + " | App launches normally |
+        | Locate a strong radio station signal by scanning up or down the frequency | Verify that the Frequency field is populated with the correct frequency for the given radio station |
+        |  | Verify that the Volume field is displaying the proper volume % |
+        | Click on the Mute/Unmute comand | Verify that Muted field changes from 'false' to 'true' and back  |
+        |  | If applicable, confirm that the Station Name field is properly displayed |
+        |  | If applicable, confirm that the Station Id field is properly displayed |
+        |  | If applicable, confirm that the Program Type field is properly displayed |
+        |  | If applicable, confirm that the PRadio Text field is properly displayed |
        "));
     },
 }
