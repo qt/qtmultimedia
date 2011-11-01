@@ -256,7 +256,7 @@ private:
 
 }
 
-Q_GLOBAL_STATIC(PulseDaemon, daemon)
+Q_GLOBAL_STATIC(PulseDaemon, pulseDaemon)
 Q_GLOBAL_STATIC(QSampleCache, sampleCache)
 
 namespace
@@ -266,12 +266,12 @@ class PulseDaemonLocker
 public:
     PulseDaemonLocker()
     {
-        daemon()->lock();
+        pulseDaemon()->lock();
     }
 
     ~PulseDaemonLocker()
     {
-        daemon()->unlock();
+        pulseDaemon()->unlock();
     }
 };
 }
@@ -475,7 +475,7 @@ void QSoundEffectPrivate::updateVolume()
     PulseDaemonLocker locker;
     pa_cvolume volume;
     volume.channels = m_pulseSpec.channels;
-    pa_operation_unref(pa_context_set_sink_input_volume(daemon()->context(), m_sinkInputId, daemon()->calcVolume(&volume, m_volume), setvolume_callback, m_ref->getRef()));
+    pa_operation_unref(pa_context_set_sink_input_volume(pulseDaemon()->context(), m_sinkInputId, pulseDaemon()->calcVolume(&volume, m_volume), setvolume_callback, m_ref->getRef()));
     Q_ASSERT(pa_cvolume_valid(&volume));
 #ifdef QT_PA_DEBUG
     qDebug() << this << "updateVolume =" << pa_cvolume_max(&volume);
@@ -499,7 +499,7 @@ void QSoundEffectPrivate::updateMuted()
     if (m_sinkInputId < 0)
         return;
     PulseDaemonLocker locker;
-    pa_operation_unref(pa_context_set_sink_input_mute(daemon()->context(), m_sinkInputId, m_muted, setmuted_callback, m_ref->getRef()));
+    pa_operation_unref(pa_context_set_sink_input_mute(pulseDaemon()->context(), m_sinkInputId, m_muted, setmuted_callback, m_ref->getRef()));
 #ifdef QT_PA_DEBUG
     qDebug() << this << "updateMuted = " << m_muted;
 #endif
@@ -663,8 +663,8 @@ void QSoundEffectPrivate::sampleReady()
         }
 #endif
     } else {
-        if (pa_context_get_state(daemon()->context()) != PA_CONTEXT_READY) {
-            connect(daemon(), SIGNAL(contextReady()), SLOT(contextReady()));
+        if (pa_context_get_state(pulseDaemon()->context()) != PA_CONTEXT_READY) {
+            connect(pulseDaemon(), SIGNAL(contextReady()), SLOT(contextReady()));
             return;
         }
         createPulseStream();
@@ -698,7 +698,7 @@ void QSoundEffectPrivate::unloadPulseStream()
         pa_stream_set_underflow_callback(m_pulseStream, 0, 0);
         pa_stream_disconnect(m_pulseStream);
         pa_stream_unref(m_pulseStream);
-        disconnect(daemon(), SIGNAL(volumeChanged()), this, SLOT(updateVolume()));
+        disconnect(pulseDaemon(), SIGNAL(volumeChanged()), this, SLOT(updateVolume()));
         m_pulseStream = 0;
     }
 }
@@ -720,7 +720,7 @@ void QSoundEffectPrivate::prepare()
     m_position = int(writeBytes);
     if (pa_stream_write(m_pulseStream, reinterpret_cast<void *>(const_cast<char*>(m_sample->data().data())), writeBytes,
                         stream_write_done_callback, 0, PA_SEEK_RELATIVE) != 0) {
-        qWarning("QSoundEffect(pulseaudio): pa_stream_write, error = %s", pa_strerror(pa_context_errno(daemon()->context())));
+        qWarning("QSoundEffect(pulseaudio): pa_stream_write, error = %s", pa_strerror(pa_context_errno(pulseDaemon()->context())));
     }
     if (m_playQueued) {
         m_playQueued = false;
@@ -754,7 +754,7 @@ void QSoundEffectPrivate::uploadSample()
     int firstPartLength = qMin(m_sample->data().size() - m_position, writableSize);
     if (pa_stream_write(m_pulseStream, reinterpret_cast<void *>(const_cast<char*>(m_sample->data().data()) + m_position),
                         firstPartLength, stream_write_done_callback, 0, PA_SEEK_RELATIVE) != 0) {
-        qWarning("QSoundEffect(pulseaudio): pa_stream_write, error = %s", pa_strerror(pa_context_errno(daemon()->context())));
+        qWarning("QSoundEffect(pulseaudio): pa_stream_write, error = %s", pa_strerror(pa_context_errno(pulseDaemon()->context())));
     }
     writtenBytes = firstPartLength;
     m_position += firstPartLength;
@@ -768,7 +768,7 @@ void QSoundEffectPrivate::uploadSample()
                 int writeSize = qMin(writableSize - writtenBytes, m_sample->data().size());
                 if (pa_stream_write(m_pulseStream, reinterpret_cast<void *>(const_cast<char*>(m_sample->data().data())),
                                     writeSize, stream_write_done_callback, 0, PA_SEEK_RELATIVE) != 0) {
-                    qWarning("QSoundEffect(pulseaudio): pa_stream_write, error = %s", pa_strerror(pa_context_errno(daemon()->context())));
+                    qWarning("QSoundEffect(pulseaudio): pa_stream_write, error = %s", pa_strerror(pa_context_errno(pulseDaemon()->context())));
                 }
                 writtenBytes += writeSize;
                 if (writeSize < m_sample->data().size()) {
@@ -847,10 +847,10 @@ void QSoundEffectPrivate::createPulseStream()
 
     pa_proplist *propList = pa_proplist_new();
     pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, "soundeffect");
-    pa_stream *stream = pa_stream_new_with_proplist(daemon()->context(), m_name.constData(), &m_pulseSpec, 0, propList);
+    pa_stream *stream = pa_stream_new_with_proplist(pulseDaemon()->context(), m_name.constData(), &m_pulseSpec, 0, propList);
     pa_proplist_free(propList);
 
-    connect(daemon(), SIGNAL(volumeChanged()), this, SLOT(updateVolume()));
+    connect(pulseDaemon(), SIGNAL(volumeChanged()), this, SLOT(updateVolume()));
 
     if (stream == 0) {
         qWarning("QSoundEffect(pulseaudio): Failed to create stream");
@@ -881,13 +881,13 @@ void QSoundEffectPrivate::createPulseStream()
                                            : pa_stream_flags_t(PA_STREAM_START_UNMUTED | PA_STREAM_START_CORKED),
                                    0, 0) < 0) {
         qWarning("QSoundEffect(pulseaudio): Failed to connect stream, error = %s",
-                 pa_strerror(pa_context_errno(daemon()->context())));
+                 pa_strerror(pa_context_errno(pulseDaemon()->context())));
     }
 }
 
 void QSoundEffectPrivate::contextReady()
 {
-    disconnect(daemon(), SIGNAL(contextReady()), this, SLOT(contextReady()));
+    disconnect(pulseDaemon(), SIGNAL(contextReady()), this, SLOT(contextReady()));
     PulseDaemonLocker locker;
     createPulseStream();
 }
