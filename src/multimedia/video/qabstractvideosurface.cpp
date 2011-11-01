@@ -46,11 +46,9 @@
 #include "qvideosurfaceformat.h"
 
 #include <QtCore/qvariant.h>
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
-
-Q_DECLARE_METATYPE(QVideoSurfaceFormat)
-Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
 
 
 
@@ -339,6 +337,25 @@ void QAbstractVideoSurface::setNativeResolution(const QSize &resolution)
     Signals the native \a resolution of video surface has changed.
     \since 1.1
 */
+
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug dbg, const QAbstractVideoSurface::Error& error)
+{
+    switch (error) {
+    case QAbstractVideoSurface::UnsupportedFormatError:
+        return dbg.nospace() << "UnsupportedFormatError";
+    case QAbstractVideoSurface::IncorrectFormatError:
+        return dbg.nospace() << "IncorrectFormatError";
+    case QAbstractVideoSurface::StoppedError:
+        return dbg.nospace() << "StoppedError";
+    case QAbstractVideoSurface::ResourceError:
+        return dbg.nospace() << "ResourceError";
+    default:
+        return dbg.nospace() << "NoError";
+    }
+}
+#endif
+
 
 QT_END_NAMESPACE
 

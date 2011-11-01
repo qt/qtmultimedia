@@ -51,7 +51,6 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
 class QRectF;
 class QVideoSurfaceFormat;
 
@@ -107,7 +106,13 @@ private:
     QScopedPointer<QAbstractVideoSurfacePrivate> d_ptr;
 };
 
+#ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QAbstractVideoSurface::Error &);
+#endif
+
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
 
 QT_END_HEADER
 

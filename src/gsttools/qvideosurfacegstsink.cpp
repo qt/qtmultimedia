@@ -57,9 +57,6 @@
 
 //#define DEBUG_VIDEO_SURFACE_SINK
 
-
-Q_DECLARE_METATYPE(QVideoSurfaceFormat)
-
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     QAbstractVideoSurface *surface)
     : m_surface(surface)

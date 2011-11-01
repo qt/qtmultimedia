@@ -319,7 +319,6 @@ void tst_QWaveDecoder::readPerByte()
 }
 
 Q_DECLARE_METATYPE(tst_QWaveDecoder::Corruption)
-Q_DECLARE_METATYPE(QAudioFormat::Endian)
 
 QTEST_MAIN(tst_QWaveDecoder)
 

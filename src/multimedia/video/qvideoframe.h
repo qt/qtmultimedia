@@ -164,11 +164,14 @@ private:
 };
 
 #ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::PixelFormat );
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrame&);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::FieldType);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::PixelFormat);
 #endif
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QVideoFrame)
 Q_DECLARE_METATYPE(QVideoFrame::FieldType)
 Q_DECLARE_METATYPE(QVideoFrame::PixelFormat)
 

@@ -403,5 +403,46 @@ QAudioFormat::SampleType QAudioFormat::sampleType() const
     \value LittleEndian  Samples are little endian byte order
 */
 
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug dbg, QAudioFormat::Endian endian)
+{
+    switch (endian) {
+        case QAudioFormat::BigEndian:
+            return dbg.nospace() << "BigEndian";
+        case QAudioFormat::LittleEndian:
+            return dbg.nospace() << "LittleEndian";
+    }
+}
+
+QDebug operator<<(QDebug dbg, QAudioFormat::SampleType type)
+{
+    switch (type) {
+        case QAudioFormat::SignedInt:
+            return dbg.nospace() << "SignedInt";
+        case QAudioFormat::UnSignedInt:
+            return dbg.nospace() << "UnSignedInt";
+        case QAudioFormat::Float:
+            return dbg.nospace() << "Float";
+        default:
+            return dbg.nospace() << "Unknown";
+    }
+}
+
+QDebug operator<<(QDebug dbg, const QAudioFormat &f)
+{
+    dbg.nospace() << "QAudioFormat(" << f.sampleRate();
+    dbg.nospace() << "Hz, " << f.sampleSize();
+    dbg.nospace() << "bit, channelCount=" << f.channelCount();
+    dbg.nospace() << ", sampleType=" << f.sampleType();
+    dbg.nospace() << ", byteOrder=" << f.byteOrder();
+    dbg.nospace() << ", codec=" << f.codec();
+    dbg.nospace() << ")";
+
+    return dbg.space();
+}
+#endif
+
+
+
 QT_END_NAMESPACE
 

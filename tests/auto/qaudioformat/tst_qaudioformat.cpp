@@ -67,6 +67,9 @@ private slots:
     void checkAssignment();
     void checkSampleRate();
     void checkChannelCount();
+
+    void debugOperator();
+    void debugOperator_data();
 };
 
 void tst_QAudioFormat::checkNull()
@@ -114,8 +117,14 @@ void tst_QAudioFormat::checkByteOrder()
     audioFormat.setByteOrder(QAudioFormat::LittleEndian);
     QVERIFY(audioFormat.byteOrder() == QAudioFormat::LittleEndian);
 
+    QTest::ignoreMessage(QtDebugMsg, "LittleEndian");
+    qDebug() << QAudioFormat::LittleEndian;
+
     audioFormat.setByteOrder(QAudioFormat::BigEndian);
     QVERIFY(audioFormat.byteOrder() == QAudioFormat::BigEndian);
+
+    QTest::ignoreMessage(QtDebugMsg, "BigEndian");
+    qDebug() << QAudioFormat::BigEndian;
 }
 
 void tst_QAudioFormat::checkSampleType()
@@ -123,12 +132,23 @@ void tst_QAudioFormat::checkSampleType()
     QAudioFormat audioFormat;
     audioFormat.setSampleType(QAudioFormat::SignedInt);
     QVERIFY(audioFormat.sampleType() == QAudioFormat::SignedInt);
+    QTest::ignoreMessage(QtDebugMsg, "SignedInt");
+    qDebug() << QAudioFormat::SignedInt;
 
     audioFormat.setSampleType(QAudioFormat::Unknown);
     QVERIFY(audioFormat.sampleType() == QAudioFormat::Unknown);
+    QTest::ignoreMessage(QtDebugMsg, "Unknown");
+    qDebug() << QAudioFormat::Unknown;
+
+    audioFormat.setSampleType(QAudioFormat::UnSignedInt);
+    QVERIFY(audioFormat.sampleType() == QAudioFormat::UnSignedInt);
+    QTest::ignoreMessage(QtDebugMsg, "UnSignedInt");
+    qDebug() << QAudioFormat::UnSignedInt;
 
     audioFormat.setSampleType(QAudioFormat::Float);
     QVERIFY(audioFormat.sampleType() == QAudioFormat::Float);
+    QTest::ignoreMessage(QtDebugMsg, "Float");
+    qDebug() << QAudioFormat::Float;
 }
 
 void tst_QAudioFormat::checkEquality()
@@ -208,6 +228,42 @@ void tst_QAudioFormat::checkChannelCount()
     audioFormat.setChannels(5);
     QVERIFY(audioFormat.channelCount() == 5);
     QVERIFY(audioFormat.channels() == 5);
+}
+
+void tst_QAudioFormat::debugOperator_data()
+{
+    QTest::addColumn<QAudioFormat>("format");
+    QTest::addColumn<QString>("stringized");
+
+    // A small sampling
+    QAudioFormat f;
+    QTest::newRow("plain") << f << QString::fromLatin1("QAudioFormat(-1Hz, -1bit, channelCount=-1, sampleType=Unknown, byteOrder=LittleEndian, codec=\"\") ");
+
+    f.setSampleRate(22050);
+    f.setByteOrder(QAudioFormat::LittleEndian);
+    f.setChannelCount(4);
+    f.setCodec("audio/pcm");
+    f.setSampleType(QAudioFormat::Float);
+
+    QTest::newRow("float") << f << QString::fromLatin1("QAudioFormat(22050Hz, -1bit, channelCount=4, sampleType=Float, byteOrder=LittleEndian, codec=\"audio/pcm\") ");
+
+    f.setSampleType(QAudioFormat::UnSignedInt);
+    QTest::newRow("unsigned") << f << QString::fromLatin1("QAudioFormat(22050Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=LittleEndian, codec=\"audio/pcm\") ");
+
+    f.setSampleRate(44100);
+    QTest::newRow("44.1 unsigned") << f << QString::fromLatin1("QAudioFormat(44100Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=LittleEndian, codec=\"audio/pcm\") ");
+
+    f.setByteOrder(QAudioFormat::BigEndian);
+    QTest::newRow("44.1 big unsigned") << f << QString::fromLatin1("QAudioFormat(44100Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=BigEndian, codec=\"audio/pcm\") ");
+}
+
+void tst_QAudioFormat::debugOperator()
+{
+    QFETCH(QAudioFormat, format);
+    QFETCH(QString, stringized);
+
+    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
+    qDebug() << format;
 }
 
 QTEST_MAIN(tst_QAudioFormat)

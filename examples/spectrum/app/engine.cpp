@@ -63,18 +63,6 @@ const int    NotifyIntervalMs       = 100;
 // Size of the level calculation window in microseconds
 const int    LevelWindowUs          = 0.1 * 1000000;
 
-
-//-----------------------------------------------------------------------------
-// Helper functions
-//-----------------------------------------------------------------------------
-
-QDebug& operator<<(QDebug &debug, const QAudioFormat &format)
-{
-    debug << format.frequency() << "Hz"
-          << format.channels() << "channels";
-    return debug;
-}
-
 //-----------------------------------------------------------------------------
 // Constructor and destructor
 //-----------------------------------------------------------------------------

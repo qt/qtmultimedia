@@ -219,6 +219,20 @@ QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::HandleType type)
         return dbg.nospace() << QString(QLatin1String("UserHandle(%1)")).arg(int(type)).toAscii().constData();
     }
 }
+
+QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::MapMode mode)
+{
+    switch (mode) {
+    case QAbstractVideoBuffer::ReadOnly:
+        return dbg.nospace() << "ReadOnly";
+    case QAbstractVideoBuffer::ReadWrite:
+        return dbg.nospace() << "ReadWrite";
+    case QAbstractVideoBuffer::WriteOnly:
+        return dbg.nospace() << "WriteOnly";
+    default:
+        return dbg.nospace() << "NotMapped";
+    }
+}
 #endif
 
 QT_END_NAMESPACE

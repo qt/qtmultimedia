@@ -55,8 +55,6 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
-
 class QAudioFormatPrivate;
 
 class Q_MULTIMEDIA_EXPORT QAudioFormat
@@ -101,8 +99,17 @@ private:
     QSharedDataPointer<QAudioFormatPrivate> d;
 };
 
+#ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QAudioFormat &);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAudioFormat::SampleType);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAudioFormat::Endian);
+#endif
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QAudioFormat)
+Q_DECLARE_METATYPE(QAudioFormat::SampleType)
+Q_DECLARE_METATYPE(QAudioFormat::Endian)
 
 QT_END_HEADER
 

@@ -44,21 +44,6 @@
 
 QT_BEGIN_NAMESPACE
 
-// Debugging
-QDebug operator<<(QDebug dbg, const QAudioFormat& audioFormat)
-{
-    dbg.nospace() << "QAudioFormat(" <<
-            audioFormat.frequency() << "," <<
-            audioFormat.channels() << "," <<
-            audioFormat.sampleSize()<< "," <<
-            audioFormat.codec() << "," <<
-            audioFormat.byteOrder() << "," <<
-            audioFormat.sampleType() << ")";
-
-    return dbg.space();
-}
-
-
 // Conversion
 QAudioFormat toQAudioFormat(AudioStreamBasicDescription const& sf)
 {

@@ -67,10 +67,6 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
-
-extern QDebug operator<<(QDebug dbg, const QAudioFormat& audioFormat);
-
 extern QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
 extern AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
 

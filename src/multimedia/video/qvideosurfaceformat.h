@@ -135,11 +135,13 @@ private:
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoSurfaceFormat &);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoSurfaceFormat::Direction);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoSurfaceFormat::YCbCrColorSpace);
 #endif
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QVideoSurfaceFormat)
 Q_DECLARE_METATYPE(QVideoSurfaceFormat::Direction)
 Q_DECLARE_METATYPE(QVideoSurfaceFormat::YCbCrColorSpace)
 

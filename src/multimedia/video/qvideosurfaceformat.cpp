@@ -591,7 +591,6 @@ void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
 
 
 #ifndef QT_NO_DEBUG_STREAM
-
 QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
 {
     switch (cs) {
@@ -609,6 +608,16 @@ QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
             return dbg.nospace() << "YCbCr_CustomMatrix";
         default:
             return dbg.nospace() << "YCbCr_Undefined";
+    }
+}
+
+QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::Direction dir)
+{
+    switch (dir) {
+        case QVideoSurfaceFormat::BottomToTop:
+            return dbg.nospace() << "BottomToTop";
+        case QVideoSurfaceFormat::TopToBottom:
+            return dbg.nospace() << "TopToBottom";
     }
 }
 

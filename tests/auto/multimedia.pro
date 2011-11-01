@@ -7,6 +7,7 @@ SUBDIRS += \
     qaudiodeviceinfo \
     qaudioformat \
     qaudioinput \
+    qaudionamespace \
     qaudiooutput \
     qmediabindableinterface \
     qmediacontainercontrol \

@@ -120,9 +120,6 @@ QT_USE_NAMESPACE
  it may be less stable.
 */
 
-
-Q_DECLARE_METATYPE(QVideoFrame)
-
 class tst_QCameraBackend: public QObject
 {
     Q_OBJECT

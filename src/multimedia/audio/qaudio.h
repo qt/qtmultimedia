@@ -63,12 +63,18 @@ namespace QAudio
     enum Mode { AudioInput, AudioOutput };
 }
 
-QT_END_NAMESPACE
+#ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Error error);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::State state);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Mode mode);
+#endif
 
-QT_END_HEADER
+QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QAudio::Error)
 Q_DECLARE_METATYPE(QAudio::State)
 Q_DECLARE_METATYPE(QAudio::Mode)
+
+QT_END_HEADER
 
 #endif // QAUDIO_H

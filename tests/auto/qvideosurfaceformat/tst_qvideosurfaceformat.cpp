@@ -45,6 +45,12 @@
 
 #include <qvideosurfaceformat.h>
 
+// Adds an enum, and the stringized version
+#define ADD_ENUM_TEST(x) \
+    QTest::newRow(#x) \
+        << QVideoSurfaceFormat::x \
+    << QString(QLatin1String(#x));
+
 class tst_QVideoSurfaceFormat : public QObject
 {
     Q_OBJECT
@@ -70,12 +76,12 @@ private slots:
     void scanLineDirection();
     void frameRate_data();
     void frameRate();
-    void yCbCrColorSpace_data();
-    void yCbCrColorSpace();
     void pixelAspectRatio_data();
     void pixelAspectRatio();
     void sizeHint_data();
     void sizeHint();
+    void yCbCrColorSpaceEnum_data();
+    void yCbCrColorSpaceEnum ();
     void staticPropertyNames();
     void dynamicProperty();
     void compare();
@@ -83,8 +89,6 @@ private slots:
     void assign();
 
     void isValid();
-    void yCbCrColorSpaceEnum_data();
-    void yCbCrColorSpaceEnum ();
     void copyAllParameters ();
     void assignAllParameters ();
 
@@ -308,17 +312,16 @@ void tst_QVideoSurfaceFormat::viewport()
 void tst_QVideoSurfaceFormat::scanLineDirection_data()
 {
     QTest::addColumn<QVideoSurfaceFormat::Direction>("direction");
+    QTest::addColumn<QString>("stringized");
 
-    QTest::newRow("top to bottom")
-            << QVideoSurfaceFormat::TopToBottom;
-
-    QTest::newRow("bottom to top")
-            << QVideoSurfaceFormat::BottomToTop;
+    ADD_ENUM_TEST(TopToBottom);
+    ADD_ENUM_TEST(BottomToTop);
 }
 
 void tst_QVideoSurfaceFormat::scanLineDirection()
 {
     QFETCH(QVideoSurfaceFormat::Direction, direction);
+    QFETCH(QString, stringized);
 
     {
         QVideoSurfaceFormat format(QSize(16, 16), QVideoFrame::Format_RGB32);
@@ -340,7 +343,52 @@ void tst_QVideoSurfaceFormat::scanLineDirection()
                 qvariant_cast<QVideoSurfaceFormat::Direction>(format.property("scanLineDirection")),
                 direction);
     }
+
+    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
+    qDebug() << direction;
 }
+
+void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum_data()
+{
+    QTest::addColumn<QVideoSurfaceFormat::YCbCrColorSpace>("colorspace");
+    QTest::addColumn<QString>("stringized");
+
+    ADD_ENUM_TEST(YCbCr_BT601);
+    ADD_ENUM_TEST(YCbCr_BT709);
+    ADD_ENUM_TEST(YCbCr_xvYCC601);
+    ADD_ENUM_TEST(YCbCr_xvYCC709);
+    ADD_ENUM_TEST(YCbCr_JPEG);
+    ADD_ENUM_TEST(YCbCr_CustomMatrix);
+    ADD_ENUM_TEST(YCbCr_Undefined);
+}
+
+/* Test case for Enum YCbCr_BT601, YCbCr_xvYCC709 */
+void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum()
+{
+    QFETCH(QVideoSurfaceFormat::YCbCrColorSpace, colorspace);
+    QFETCH(QString, stringized);
+
+    {
+        QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
+        format.setYCbCrColorSpace(colorspace);
+
+        QCOMPARE(format.yCbCrColorSpace(), colorspace);
+        QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),
+                colorspace);
+    }
+    {
+        QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
+        format.setProperty("yCbCrColorSpace", qVariantFromValue(colorspace));
+
+        QCOMPARE(format.yCbCrColorSpace(), colorspace);
+        QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),
+                colorspace);
+    }
+
+    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
+    qDebug() << colorspace;
+}
+
 
 void tst_QVideoSurfaceFormat::frameRate_data()
 {
@@ -376,42 +424,6 @@ void tst_QVideoSurfaceFormat::frameRate()
 
         QCOMPARE(format.frameRate(), frameRate);
         QCOMPARE(qvariant_cast<qreal>(format.property("frameRate")), frameRate);
-    }
-}
-
-void tst_QVideoSurfaceFormat::yCbCrColorSpace_data()
-{
-    QTest::addColumn<QVideoSurfaceFormat::YCbCrColorSpace>("colorspace");
-
-    QTest::newRow("undefined")
-            << QVideoSurfaceFormat::YCbCr_Undefined;
-    QTest::newRow("bt709")
-            << QVideoSurfaceFormat::YCbCr_BT709;
-    QTest::newRow("xvYCC601")
-            << QVideoSurfaceFormat::YCbCr_xvYCC601;
-    QTest::newRow("JPEG")
-            << QVideoSurfaceFormat::YCbCr_JPEG;
-}
-
-void tst_QVideoSurfaceFormat::yCbCrColorSpace()
-{
-    QFETCH(QVideoSurfaceFormat::YCbCrColorSpace, colorspace);
-
-    {
-        QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
-        format.setYCbCrColorSpace(colorspace);
-
-        QCOMPARE(format.yCbCrColorSpace(), colorspace);
-        QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),
-                colorspace);
-    }
-    {
-        QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
-        format.setProperty("yCbCrColorSpace", qVariantFromValue(colorspace));
-
-        QCOMPARE(format.yCbCrColorSpace(), colorspace);
-        QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),
-                colorspace);
     }
 }
 
@@ -766,54 +778,6 @@ void tst_QVideoSurfaceFormat::assign()
 
     QCOMPARE(original == copy, false);
     QCOMPARE(original != copy, true);
-}
-
-/* Test case for Enum YCbCr_BT601, YCbCr_xvYCC709 */
-
-#define ADD_YCBCR_TEST(x) \
-    QTest::newRow(#x) \
-        << QVideoSurfaceFormat::x \
-    << QString(QLatin1String(#x));
-
-void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum_data()
-{
-    QTest::addColumn<QVideoSurfaceFormat::YCbCrColorSpace>("colorspace");
-    QTest::addColumn<QString>("stringized");
-
-    ADD_YCBCR_TEST(YCbCr_BT601);
-    ADD_YCBCR_TEST(YCbCr_BT709);
-    ADD_YCBCR_TEST(YCbCr_xvYCC601);
-    ADD_YCBCR_TEST(YCbCr_xvYCC709);
-    ADD_YCBCR_TEST(YCbCr_JPEG);
-    ADD_YCBCR_TEST(YCbCr_CustomMatrix);
-    ADD_YCBCR_TEST(YCbCr_Undefined);
-}
-
-/* Test case for Enum YCbCr_BT601, YCbCr_xvYCC709 */
-void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum()
-{
-    QFETCH(QVideoSurfaceFormat::YCbCrColorSpace, colorspace);
-    QFETCH(QString, stringized);
-
-    {
-        QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
-        format.setYCbCrColorSpace(colorspace);
-
-        QCOMPARE(format.yCbCrColorSpace(), colorspace);
-        QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),
-                colorspace);
-    }
-    {
-        QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
-        format.setProperty("yCbCrColorSpace", qVariantFromValue(colorspace));
-
-        QCOMPARE(format.yCbCrColorSpace(), colorspace);
-        QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),
-                colorspace);
-    }
-
-    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
-    qDebug() << colorspace;
 }
 
 /* Test case for api isValid */

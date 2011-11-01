@@ -640,7 +640,10 @@ QVariant QVideoFrame::handle() const
 }
 
 /*!
-    Returns the presentation time when the frame should be displayed.
+    Returns the presentation time (in microseconds) when the frame should be displayed.
+
+    An invalid time is represented as -1.
+
     \since 1.0
 */
 qint64 QVideoFrame::startTime() const
@@ -649,7 +652,10 @@ qint64 QVideoFrame::startTime() const
 }
 
 /*!
-    Sets the presentation \a time when the frame should be displayed.
+    Sets the presentation \a time (in microseconds) when the frame should initially be displayed.
+
+    An invalid time is represented as -1.
+
     \since 1.0
 */
 void QVideoFrame::setStartTime(qint64 time)
@@ -658,7 +664,9 @@ void QVideoFrame::setStartTime(qint64 time)
 }
 
 /*!
-    Returns the presentation time when a frame should stop being displayed.
+    Returns the presentation time (in microseconds) when a frame should stop being displayed.
+
+    An invalid time is represented as -1.
 
     \since 1.0
 */
@@ -668,7 +676,10 @@ qint64 QVideoFrame::endTime() const
 }
 
 /*!
-    Sets the presentation \a time when a frame should stop being displayed.
+    Sets the presentation \a time (in microseconds) when a frame should stop being displayed.
+
+    An invalid time is represented as -1.
+
     \since 1.0
 */
 void QVideoFrame::setEndTime(qint64 time)
@@ -761,7 +772,6 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
 }
 
 #ifndef QT_NO_DEBUG_STREAM
-
 QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
 {
     switch (pf) {
@@ -837,6 +847,99 @@ QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
     }
 }
 
+QDebug operator<<(QDebug dbg, QVideoFrame::FieldType f)
+{
+    switch (f) {
+        case QVideoFrame::TopField:
+            return dbg.nospace() << "TopField";
+        case QVideoFrame::BottomField:
+            return dbg.nospace() << "BottomField";
+        case QVideoFrame::InterlacedFrame:
+            return dbg.nospace() << "InterlacedFrame";
+        default:
+            return dbg.nospace() << "ProgressiveFrame";
+    }
+}
+
+static QString qFormatTimeStamps(qint64 start, qint64 end)
+{
+    // Early out for invalid.
+    if (start < 0)
+        return QLatin1String("[no timestamp]");
+
+    bool onlyOne = (start == end);
+
+    // [hh:]mm:ss.ms
+    const int s_millis = start % 1000000;
+    start /= 1000000;
+    const int s_seconds = start % 60;
+    start /= 60;
+    const int s_minutes = start % 60;
+    start /= 60;
+
+    if (onlyOne) {
+        if (start > 0)
+            return QString::fromLatin1("@%1:%2:%3.%4")
+                    .arg(start, 1, 10, QLatin1Char('0'))
+                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(s_millis, 2, 10, QLatin1Char('0'));
+        else
+            return QString::fromLatin1("@%1:%2.%3")
+                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(s_millis, 2, 10, QLatin1Char('0'));
+    } else if (end == -1) {
+        // Similar to start-start, except it means keep displaying it?
+        if (start > 0)
+            return QString::fromLatin1("%1:%2:%3.%4 - forever")
+                    .arg(start, 1, 10, QLatin1Char('0'))
+                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(s_millis, 2, 10, QLatin1Char('0'));
+        else
+            return QString::fromLatin1("%1:%2.%3 - forever")
+                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(s_millis, 2, 10, QLatin1Char('0'));
+    } else {
+        const int e_millis = end % 1000000;
+        end /= 1000000;
+        const int e_seconds = end % 60;
+        end /= 60;
+        const int e_minutes = end % 60;
+        end /= 60;
+
+        if (start > 0 || end > 0)
+            return QString::fromLatin1("%1:%2:%3.%4 - %5:%6:%7.%8")
+                    .arg(start, 1, 10, QLatin1Char('0'))
+                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(s_millis, 2, 10, QLatin1Char('0'))
+                    .arg(end, 1, 10, QLatin1Char('0'))
+                    .arg(e_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(e_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(e_millis, 2, 10, QLatin1Char('0'));
+        else
+            return QString::fromLatin1("%1:%2.%3 - %4:%5.%6")
+                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(s_millis, 2, 10, QLatin1Char('0'))
+                    .arg(e_minutes, 2, 10, QLatin1Char('0'))
+                    .arg(e_seconds, 2, 10, QLatin1Char('0'))
+                    .arg(e_millis, 2, 10, QLatin1Char('0'));
+    }
+}
+
+QDebug operator<<(QDebug dbg, const QVideoFrame& f)
+{
+    return dbg << "QVideoFrame(" << f.size() << ","
+               << f.pixelFormat() << ", "
+               << f.handleType() << ", "
+               << f.mapMode() << ", "
+               << qFormatTimeStamps(f.startTime(), f.endTime()).toLatin1().constData()
+               << ")";
+}
 #endif
 
 QT_END_NAMESPACE

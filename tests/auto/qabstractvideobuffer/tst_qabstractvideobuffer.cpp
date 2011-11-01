@@ -45,6 +45,12 @@
 
 #include <qabstractvideobuffer.h>
 
+// Adds an enum, and the stringized version
+#define ADD_ENUM_TEST(x) \
+    QTest::newRow(#x) \
+        << QAbstractVideoBuffer::x \
+    << QString(QLatin1String(#x));
+
 class tst_QAbstractVideoBuffer : public QObject
 {
     Q_OBJECT
@@ -63,6 +69,8 @@ private slots:
     void handleType();
     void handle();
     void mapMode();
+    void mapModeDebug_data();
+    void mapModeDebug();
 };
 
 class QtTestVideoBuffer : public QAbstractVideoBuffer
@@ -100,21 +108,16 @@ void tst_QAbstractVideoBuffer::cleanup()
 {
 }
 
-#define ADD_HANDLE_TEST(x) \
-    QTest::newRow(#x) \
-        << QAbstractVideoBuffer::x \
-    << QString(QLatin1String(#x));
-
 void tst_QAbstractVideoBuffer::handleType_data()
 {
     QTest::addColumn<QAbstractVideoBuffer::HandleType>("type");
     QTest::addColumn<QString>("stringized");
 
-    ADD_HANDLE_TEST(NoHandle);
-    ADD_HANDLE_TEST(GLTextureHandle);
-    ADD_HANDLE_TEST(XvShmImageHandle);
-    ADD_HANDLE_TEST(QPixmapHandle);
-    ADD_HANDLE_TEST(CoreImageHandle);
+    ADD_ENUM_TEST(NoHandle);
+    ADD_ENUM_TEST(GLTextureHandle);
+    ADD_ENUM_TEST(XvShmImageHandle);
+    ADD_ENUM_TEST(QPixmapHandle);
+    ADD_ENUM_TEST(CoreImageHandle);
 
     // User handles are different
 
@@ -148,6 +151,26 @@ void tst_QAbstractVideoBuffer::mapMode()
 {
     QtTestVideoBuffer maptest(QAbstractVideoBuffer::NoHandle);
     QVERIFY2(maptest.mapMode() == QAbstractVideoBuffer::ReadWrite, "ReadWrite Failed");
+}
+
+void tst_QAbstractVideoBuffer::mapModeDebug_data()
+{
+    QTest::addColumn<QAbstractVideoBuffer::MapMode>("mapMode");
+    QTest::addColumn<QString>("stringized");
+
+    ADD_ENUM_TEST(NotMapped);
+    ADD_ENUM_TEST(ReadOnly);
+    ADD_ENUM_TEST(WriteOnly);
+    ADD_ENUM_TEST(ReadWrite);
+}
+
+void tst_QAbstractVideoBuffer::mapModeDebug()
+{
+    QFETCH(QAbstractVideoBuffer::MapMode, mapMode);
+    QFETCH(QString, stringized);
+
+    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
+    qDebug() << mapMode;
 }
 
 QTEST_MAIN(tst_QAbstractVideoBuffer)

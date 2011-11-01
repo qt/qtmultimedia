@@ -68,8 +68,6 @@
     } while(0)
 #endif
 
-Q_DECLARE_METATYPE(QAudioFormat)
-
 class tst_QAudioOutput : public QObject
 {
     Q_OBJECT

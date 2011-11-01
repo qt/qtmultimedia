@@ -41,7 +41,7 @@
 
 
 #include <qaudio.h>
-
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
@@ -97,6 +97,48 @@ public:
     \value AudioOutput   audio output device
     \value AudioInput    audio input device
 */
+
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug dbg, QAudio::Error error)
+{
+    switch (error) {
+        case QAudio::NoError:
+            return dbg.nospace() << "NoError";
+        case QAudio::OpenError:
+            return dbg.nospace() << "OpenError";
+        case QAudio::IOError:
+            return dbg.nospace() << "IOError";
+        case QAudio::UnderrunError:
+            return dbg.nospace() << "UnderrunError";
+        case QAudio::FatalError:
+            return dbg.nospace() << "FatalError";
+    }
+}
+
+QDebug operator<<(QDebug dbg, QAudio::State state)
+{
+    switch (state) {
+        case QAudio::ActiveState:
+            return dbg.nospace() << "ActiveState";
+        case QAudio::SuspendedState:
+            return dbg.nospace() << "SuspendedState";
+        case QAudio::StoppedState:
+            return dbg.nospace() << "StoppedState";
+        case QAudio::IdleState:
+            return dbg.nospace() << "IdleState";
+    }
+}
+
+QDebug operator<<(QDebug dbg, QAudio::Mode mode)
+{
+    switch (mode) {
+        case QAudio::AudioInput:
+            return dbg.nospace() << "AudioInput";
+        case QAudio::AudioOutput:
+            return dbg.nospace() << "AudioOutput";
+    }
+}
+#endif
 
 
 QT_END_NAMESPACE

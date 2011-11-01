@@ -74,8 +74,6 @@ private slots:
 typedef QMap<QAbstractVideoBuffer::HandleType, QVideoFrame::PixelFormat> SupportedFormatMap;
 
 Q_DECLARE_METATYPE(SupportedFormatMap)
-Q_DECLARE_METATYPE(QVideoSurfaceFormat)
-Q_DECLARE_METATYPE(QAbstractVideoSurface::Error);
 
 class QtTestVideoSurface : public QAbstractVideoSurface
 {
@@ -144,21 +142,33 @@ void tst_QAbstractVideoSurface::setError()
     QtTestVideoSurface surface;
 
     QCOMPARE(surface.error(), QAbstractVideoSurface::NoError);
+    QTest::ignoreMessage(QtDebugMsg, "NoError");
+    qDebug() << QAbstractVideoSurface::NoError;
 
     surface.setError(QAbstractVideoSurface::StoppedError);
     QCOMPARE(surface.error(), QAbstractVideoSurface::StoppedError);
+    QTest::ignoreMessage(QtDebugMsg, "StoppedError");
+    qDebug() << QAbstractVideoSurface::StoppedError;
 
     surface.setError(QAbstractVideoSurface::ResourceError);
     QCOMPARE(surface.error(), QAbstractVideoSurface::ResourceError);
+    QTest::ignoreMessage(QtDebugMsg, "ResourceError");
+    qDebug() << QAbstractVideoSurface::ResourceError;
 
     surface.setError(QAbstractVideoSurface::NoError);
     QCOMPARE(surface.error(), QAbstractVideoSurface::NoError);
+    QTest::ignoreMessage(QtDebugMsg, "NoError");
+    qDebug() << QAbstractVideoSurface::NoError;
 
     surface.setError(QAbstractVideoSurface::UnsupportedFormatError);
     QCOMPARE(surface.error(), QAbstractVideoSurface::UnsupportedFormatError);
+    QTest::ignoreMessage(QtDebugMsg, "UnsupportedFormatError");
+    qDebug() << QAbstractVideoSurface::UnsupportedFormatError;
 
     surface.setError(QAbstractVideoSurface::IncorrectFormatError);
     QCOMPARE(surface.error(), QAbstractVideoSurface::IncorrectFormatError);
+    QTest::ignoreMessage(QtDebugMsg, "IncorrectFormatError");
+    qDebug() << QAbstractVideoSurface::IncorrectFormatError;
 }
 
 void tst_QAbstractVideoSurface::isFormatSupported_data()
