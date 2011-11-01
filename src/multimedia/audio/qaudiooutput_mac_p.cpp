@@ -295,7 +295,7 @@ QAudioOutputPrivate::QAudioOutputPrivate(const QByteArray& device)
         clockFrequency = AudioGetHostClockFrequency() / 1000;
         errorCode = QAudio::NoError;
         stateCode = QAudio::StoppedState;
-        audioThreadState = Stopped;
+        audioThreadState.store(Stopped);
 
         intervalTimer = new QTimer(this);
         intervalTimer->setInterval(1000);
@@ -599,7 +599,7 @@ QAudio::State QAudioOutputPrivate::state() const
 void QAudioOutputPrivate::audioThreadStart()
 {
     startTimers();
-    audioThreadState = Running;
+    audioThreadState.store(Running);
     AudioOutputUnitStart(audioUnit);
 }
 
@@ -620,7 +620,7 @@ void QAudioOutputPrivate::audioThreadDrain()
 void QAudioOutputPrivate::audioDeviceStop()
 {
     AudioOutputUnitStop(audioUnit);
-    audioThreadState = Stopped;
+    audioThreadState.store(Stopped);
     threadFinished.wakeOne();
 }
 

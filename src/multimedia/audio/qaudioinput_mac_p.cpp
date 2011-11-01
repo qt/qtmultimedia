@@ -894,14 +894,14 @@ void QAudioInputPrivate::audioThreadStop()
 void QAudioInputPrivate::audioThreadStart()
 {
     startTimers();
-    audioThreadState = Running;
+    audioThreadState.store(Running);
     AudioOutputUnitStart(audioUnit);
 }
 
 void QAudioInputPrivate::audioDeviceStop()
 {
     AudioOutputUnitStop(audioUnit);
-    audioThreadState = Stopped;
+    audioThreadState.store(Stopped);
     threadFinished.wakeOne();
 }
 
@@ -960,7 +960,7 @@ OSStatus QAudioInputPrivate::inputCallback(void* inRefCon,
 
     QAudioInputPrivate* d = static_cast<QAudioInputPrivate*>(inRefCon);
 
-    const int threadState = d->audioThreadState.fetchAndAddAcquire(0);
+    const int threadState = d->audioThreadState.loadAcquire();
     if (threadState == Stopped)
         d->audioDeviceStop();
     else {
