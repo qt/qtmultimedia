@@ -52,6 +52,23 @@ QT_BEGIN_NAMESPACE
 Q_DECLARE_METATYPE(QVideoSurfaceFormat)
 Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
 
+
+
+class QAbstractVideoSurfacePrivate {
+public:
+    QAbstractVideoSurfacePrivate()
+        : error(QAbstractVideoSurface::NoError),
+          active(false)
+    {
+    }
+
+public:
+    QVideoSurfaceFormat surfaceFormat;
+    QAbstractVideoSurface::Error error;
+    QSize nativeResolution;
+    bool active;
+};
+
 /*!
     \class QAbstractVideoSurface
     \brief The QAbstractVideoSurface class is a base class for video presentation surfaces.
@@ -93,26 +110,8 @@ Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
     Constructs a video surface with the given \a parent.
 */
 QAbstractVideoSurface::QAbstractVideoSurface(QObject *parent)
-    : QObject(parent)
-{
-    setProperty("_q_surfaceFormat", QVariant::fromValue(QVideoSurfaceFormat()));
-    setProperty("_q_active", false);
-    setProperty("_q_error", QVariant::fromValue(QAbstractVideoSurface::NoError));
-    setProperty("_q_nativeResolution", QSize());
-}
-
-// XXX Qt5
-/*!
-    \internal
-
-    This is deprecated.
-
-    Since we need to build without access to Qt's private headers we can't reliably inherit
-    from QObjectPrivate.  Binary compatibility means we can't remove this constructor or
-    add a d pointer to QAbstractVideoSurface.
-*/
-QAbstractVideoSurface::QAbstractVideoSurface(QAbstractVideoSurfacePrivate &, QObject *parent)
-    : QObject(parent)
+    : QObject(parent),
+      d_ptr(new QAbstractVideoSurfacePrivate)
 {
 }
 
@@ -181,7 +180,8 @@ QVideoSurfaceFormat QAbstractVideoSurface::nearestFormat(const QVideoSurfaceForm
 */
 QVideoSurfaceFormat QAbstractVideoSurface::surfaceFormat() const
 {
-    return property("_q_format").value<QVideoSurfaceFormat>();
+    Q_D(const QAbstractVideoSurface);
+    return d->surfaceFormat;
 }
 
 /*!
@@ -203,11 +203,12 @@ QVideoSurfaceFormat QAbstractVideoSurface::surfaceFormat() const
 */
 bool QAbstractVideoSurface::start(const QVideoSurfaceFormat &format)
 {
-    bool wasActive  = property("_q_active").toBool();
+    Q_D(QAbstractVideoSurface);
+    bool wasActive  = d->active;
 
-    setProperty("_q_active", true);
-    setProperty("_q_format", QVariant::fromValue(format));
-    setProperty("_q_error", QVariant::fromValue(NoError));
+    d->active = true;
+    d->surfaceFormat = format;
+    d->error = NoError;
 
     emit surfaceFormatChanged(format);
 
@@ -225,9 +226,10 @@ bool QAbstractVideoSurface::start(const QVideoSurfaceFormat &format)
 */
 void QAbstractVideoSurface::stop()
 {
-    if (property("_q_active").toBool()) {
-        setProperty("_q_format", QVariant::fromValue(QVideoSurfaceFormat()));
-        setProperty("_q_active", false);
+    Q_D(QAbstractVideoSurface);
+    if (d->active) {
+        d->surfaceFormat = QVideoSurfaceFormat();
+        d->active = false;
 
         emit activeChanged(false);
         emit surfaceFormatChanged(surfaceFormat());
@@ -242,7 +244,8 @@ void QAbstractVideoSurface::stop()
 */
 bool QAbstractVideoSurface::isActive() const
 {
-    return property("_q_active").toBool();
+    Q_D(const QAbstractVideoSurface);
+    return d->active;
 }
 
 /*!
@@ -286,7 +289,8 @@ bool QAbstractVideoSurface::isActive() const
 
 QAbstractVideoSurface::Error QAbstractVideoSurface::error() const
 {
-    return property("_q_error").value<QAbstractVideoSurface::Error>();
+    Q_D(const QAbstractVideoSurface);
+    return d->error;
 }
 
 /*!
@@ -295,7 +299,8 @@ QAbstractVideoSurface::Error QAbstractVideoSurface::error() const
 */
 void QAbstractVideoSurface::setError(Error error)
 {
-    setProperty("_q_error", QVariant::fromValue(error));
+    Q_D(QAbstractVideoSurface);
+    d->error = error;
 }
 
 /*!
@@ -310,7 +315,8 @@ void QAbstractVideoSurface::setError(Error error)
  */
 QSize QAbstractVideoSurface::nativeResolution() const
 {
-    return property("_q_nativeResolution").toSize();
+    Q_D(const QAbstractVideoSurface);
+    return d->nativeResolution;
 }
 
 /*!
@@ -319,10 +325,10 @@ QSize QAbstractVideoSurface::nativeResolution() const
  */
 void QAbstractVideoSurface::setNativeResolution(const QSize &resolution)
 {
-    const QSize nativeResolution = property("_q_nativeResolution").toSize();
+    Q_D(QAbstractVideoSurface);
 
-    if (nativeResolution != resolution) {
-        setProperty("_q_nativeResolution", resolution);
+    if (d->nativeResolution != resolution) {
+        d->nativeResolution = resolution;
 
         emit nativeResolutionChanged(resolution);
     }

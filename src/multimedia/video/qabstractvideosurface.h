@@ -99,13 +99,12 @@ Q_SIGNALS:
     void nativeResolutionChanged(const QSize &);
 
 protected:
-    QAbstractVideoSurface(QAbstractVideoSurfacePrivate &dd, QObject *parent);
-
     void setError(Error error);
     void setNativeResolution(const QSize &resolution);
 
 private:
     Q_DECLARE_PRIVATE(QAbstractVideoSurface)
+    QScopedPointer<QAbstractVideoSurfacePrivate> d_ptr;
 };
 
 QT_END_NAMESPACE
