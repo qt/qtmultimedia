@@ -368,13 +368,13 @@ void tst_QMediaPlaylist::saveAndLoad()
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
     QVERIFY(!playlist.errorString().isEmpty());
 
-    res = playlist.save(QUrl(QLatin1String("tmp.unsupported_format")), "unsupported_format");
+    res = playlist.save(QUrl::fromLocalFile(QLatin1String("tmp.unsupported_format")), "unsupported_format");
     QVERIFY(!res);
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
     QVERIFY(!playlist.errorString().isEmpty());
 
     errorSignal.clear();
-    playlist.load(QUrl(QLatin1String("tmp.unsupported_format")), "unsupported_format");
+    playlist.load(QUrl::fromLocalFile(QLatin1String("tmp.unsupported_format")), "unsupported_format");
     QCOMPARE(errorSignal.size(), 1);
     QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
     QVERIFY(!playlist.errorString().isEmpty());
@@ -393,12 +393,12 @@ void tst_QMediaPlaylist::saveAndLoad()
     QCOMPARE(playlist.media(0), playlist2.media(0));
     QCOMPARE(playlist.media(1), playlist2.media(1));
     QCOMPARE(playlist.media(3), playlist2.media(3));
-    res = playlist.save(QUrl(QLatin1String("tmp.m3u")), "m3u");
+    res = playlist.save(QUrl::fromLocalFile(QLatin1String("tmp.m3u")), "m3u");
     QVERIFY(res);
 
     playlist2.clear();
     QVERIFY(playlist2.isEmpty());
-    playlist2.load(QUrl(QLatin1String("tmp.m3u")), "m3u");
+    playlist2.load(QUrl::fromLocalFile(QLatin1String("tmp.m3u")), "m3u");
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
 
     QCOMPARE(playlist.mediaCount(), playlist2.mediaCount());
@@ -488,7 +488,7 @@ void tst_QMediaPlaylist::shuffle()
     QList<QMediaContent> contentList;
 
     for (int i=0; i<100; i++) {
-        QMediaContent content(QUrl(QString::number(i)));
+        QMediaContent content(QUrl::fromLocalFile(QString::number(i)));
         contentList.append(content);
         playlist.addMedia(content);
     }
@@ -561,7 +561,7 @@ void tst_QMediaPlaylist::readOnlyPlaylist()
     QCOMPARE(playlist.mediaCount(), 3);
 
     errorSignal.clear();
-    playlist.load(QUrl(QLatin1String("tmp.m3u")), "m3u");
+    playlist.load(QUrl::fromLocalFile(QLatin1String("tmp.m3u")), "m3u");
 
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(playlist.error(), QMediaPlaylist::AccessDeniedError);

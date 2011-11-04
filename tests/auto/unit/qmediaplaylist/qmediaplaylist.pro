@@ -1,9 +1,6 @@
 CONFIG += testcase
 TARGET = tst_qmediaplaylist
 
-# temporarily blacklist test because is fails miserably
-CONFIG += insignificant_test
-
 include (../qmultimedia_common/mockplaylist.pri)
 
 QT += multimedia-private testlib
