@@ -142,7 +142,6 @@ QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
     , m_pullMode(true)
     , m_opened(false)
     , m_audioSource(0)
-    , m_bytesAvailable(0)
     , m_stream(0)
     , m_notifyInterval(1000)
     , m_periodSize(0)
@@ -292,11 +291,11 @@ bool QPulseAudioOutput::open()
     while (pa_stream_get_state(m_stream) != PA_STREAM_READY) {
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
     }
-    pa_threaded_mainloop_unlock(pulseEngine->mainloop());
-
-#ifdef DEBUG_PULSE
     const pa_buffer_attr *buffer = pa_stream_get_buffer_attr(m_stream);
-
+    m_periodSize = pa_usec_to_bytes(PeriodTimeMs*1000, &spec);
+    m_bufferSize = buffer->maxlength;
+    m_audioBuffer = new char[buffer->maxlength];
+#ifdef DEBUG_PULSE
     qDebug() << "Buffering info:";
     qDebug() << "\tMax length: " << buffer->maxlength;
     qDebug() << "\tTarget length: " << buffer->tlength;
@@ -305,7 +304,8 @@ bool QPulseAudioOutput::open()
     qDebug() << "\tFragment size: " << buffer->fragsize;
 #endif
 
-    m_periodSize = pa_usec_to_bytes(PeriodTimeMs*1000, &spec);
+    pa_threaded_mainloop_unlock(pulseEngine->mainloop());
+
     m_opened = true;
     m_tickTimer->start(PeriodTimeMs);
 
@@ -316,17 +316,6 @@ bool QPulseAudioOutput::open()
     return true;
 }
 
-void QPulseAudioOutput::userFeed()
-{
-    if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
-        return;
-
-    if (m_deviceState ==  QAudio::IdleState)
-        m_bytesAvailable = bytesFree();
-
-    deviceReady();
-}
-
 void QPulseAudioOutput::close()
 {
     m_tickTimer->stop();
@@ -334,15 +323,15 @@ void QPulseAudioOutput::close()
     if (m_stream) {
         QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
         pa_threaded_mainloop_lock(pulseEngine->mainloop());
-        pa_operation *o;
 
         pa_stream_set_write_callback(m_stream, NULL, NULL);
 
-        if (!(o = pa_stream_drain(m_stream, outputStreamDrainComplete, NULL))) {
+        pa_operation *o = pa_stream_drain(m_stream, outputStreamDrainComplete, NULL);
+        if (!o) {
             qWarning() << QString("pa_stream_drain(): %1").arg(pa_strerror(pa_context_errno(pa_stream_get_context(m_stream))));
-            return;
+        } else {
+            pa_operation_unref(o);
         }
-        pa_operation_unref(o);
 
         pa_stream_disconnect(m_stream);
         pa_stream_unref(m_stream);
@@ -356,42 +345,45 @@ void QPulseAudioOutput::close()
         m_audioSource = 0;
     }
     m_opened = false;
+    if (m_audioBuffer) {
+        delete[] m_audioBuffer;
+        m_audioBuffer = 0;
+    }
 }
 
-bool QPulseAudioOutput::deviceReady()
+void QPulseAudioOutput::userFeed()
 {
+    if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
+        return;
+
     m_resuming = false;
 
     if (m_pullMode) {
-        int l = 0;
-        int chunks = m_bytesAvailable/m_periodSize;
-        if (chunks==0) {
-            m_bytesAvailable = bytesFree();
-            return false;
-        }
+        int writableSize = bytesFree();
+        int chunks = writableSize / m_periodSize;
+        if (chunks == 0)
+            return;
 
-        char buffer[m_periodSize];
+        int input = m_periodSize * chunks;
+        if (input > m_bufferSize)
+            input = m_bufferSize;
 
-        l = m_audioSource->read(buffer, m_periodSize);
-        if (l > 0) {
-            if (m_deviceState != QAudio::ActiveState)
-                return true;
-
-            qint64 bytesWritten = write(buffer, l);
-            Q_UNUSED(bytesWritten);
+        int audioBytesPulled = m_audioSource->read(m_audioBuffer, input);
+        Q_ASSERT(audioBytesPulled <= input);
+        if (audioBytesPulled > 0) {
+            qint64 bytesWritten = write(m_audioBuffer, audioBytesPulled);
+            Q_ASSERT(bytesWritten == audioBytesPulled); //unfinished write should not happen since the data provided is less than writableSize
         }
     }
 
     if (m_deviceState != QAudio::ActiveState)
-        return true;
+        return;
 
     if (m_notifyInterval && (m_timeStamp.elapsed() + m_elapsedTimeOffset) > m_notifyInterval) {
         emit notify();
         m_elapsedTimeOffset = m_timeStamp.elapsed() + m_elapsedTimeOffset - m_notifyInterval;
         m_timeStamp.restart();
     }
-
-    return true;
 }
 
 qint64 QPulseAudioOutput::write(const char *data, qint64 len)
@@ -429,7 +421,11 @@ int QPulseAudioOutput::bytesFree() const
     if (m_deviceState != QAudio::ActiveState && m_deviceState != QAudio::IdleState)
         return 0;
 
-    return pa_stream_writable_size(m_stream);
+    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    pa_threaded_mainloop_lock(pulseEngine->mainloop());
+    int writableSize = pa_stream_writable_size(m_stream);
+    pa_threaded_mainloop_unlock(pulseEngine->mainloop());
+    return writableSize;
 }
 
 int QPulseAudioOutput::periodSize() const
