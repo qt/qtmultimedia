@@ -57,6 +57,8 @@ namespace
         QVideoSurfaceFormatPrivateRegisterMetaTypes()
         {
             qRegisterMetaType<QVideoSurfaceFormat>();
+            qRegisterMetaType<QVideoSurfaceFormat::Direction>();
+            qRegisterMetaType<QVideoSurfaceFormat::YCbCrColorSpace>();
         }
     } _registerMetaTypes;
 }

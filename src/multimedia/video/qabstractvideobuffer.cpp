@@ -48,6 +48,19 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+    class QAbstractVideoBufferPrivateRegisterMetaTypes
+    {
+    public:
+        QAbstractVideoBufferPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QAbstractVideoBuffer::HandleType>();
+            qRegisterMetaType<QAbstractVideoBuffer::MapMode>();
+        }
+    } _registerMetaTypes;
+}
+
 /*!
     \class QAbstractVideoBuffer
     \brief The QAbstractVideoBuffer class is an abstraction for video data.

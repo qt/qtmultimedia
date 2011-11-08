@@ -114,7 +114,8 @@ SOURCES += qmediacontrol.cpp \
     qmediatimerange.cpp \
     qmedianetworkaccesscontrol.cpp \
     qvideosurfaceoutput.cpp \
-    qmediabackgroundplaybackcontrol.cpp
+    qmediabackgroundplaybackcontrol.cpp \
+    qtmedianamespace.cpp
 
 #Camera
 PUBLIC_HEADERS += \

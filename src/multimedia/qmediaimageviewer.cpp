@@ -57,6 +57,19 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+    class QMediaImageViewerPrivateRegisterMetaTypes
+    {
+    public:
+        QMediaImageViewerPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QMediaImageViewer::MediaStatus>();
+            qRegisterMetaType<QMediaImageViewer::State>();
+        }
+    } _registerMetaTypes;
+}
+
 class QMediaImageViewerPrivate : public QMediaObjectPrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QMediaImageViewer)

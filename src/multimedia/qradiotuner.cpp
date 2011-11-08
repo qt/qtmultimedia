@@ -49,6 +49,24 @@
 
 QT_BEGIN_NAMESPACE
 
+
+namespace
+{
+    class QRadioTunerPrivateRegisterMetaTypes
+    {
+    public:
+        QRadioTunerPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QRadioTuner::Band>();
+            qRegisterMetaType<QRadioTuner::Error>();
+            qRegisterMetaType<QRadioTuner::SearchMode>();
+            qRegisterMetaType<QRadioTuner::State>();
+            qRegisterMetaType<QRadioTuner::StereoMode>();
+        }
+    } _registerMetaTypes;
+}
+
+
 /*!
     \class QRadioTuner
     \brief The QRadioTuner class provides an interface to the systems analog radio device.

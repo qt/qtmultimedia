@@ -49,6 +49,20 @@
 
 QT_BEGIN_NAMESPACE
 
+
+namespace
+{
+    class QRadioDataPrivateRegisterMetaTypes
+    {
+    public:
+        QRadioDataPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QRadioData::Error>();
+            qRegisterMetaType<QRadioData::ProgramType>();
+        }
+    } _registerMetaTypes;
+}
+
 /*!
     \class QRadioData
     \brief The QRadioData class provides interfaces to the RDS functionality of the system radio.

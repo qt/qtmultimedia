@@ -61,7 +61,9 @@ class QVideoFramePrivateRegisterMetaTypes
 public:
     QVideoFramePrivateRegisterMetaTypes()
     {
-        qRegisterMetaType<QVideoFrame::PixelFormat>("QVideoFrame::PixelFormat");
+        qRegisterMetaType<QVideoFrame>();
+        qRegisterMetaType<QVideoFrame::FieldType>();
+        qRegisterMetaType<QVideoFrame::PixelFormat>();
     }
 } _registerMetaTypes;
 }

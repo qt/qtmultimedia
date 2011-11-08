@@ -44,6 +44,20 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+    class QAudioFormatPrivateRegisterMetaTypes
+    {
+    public:
+        QAudioFormatPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QAudioFormat>();
+            qRegisterMetaType<QAudioFormat::SampleType>();
+            qRegisterMetaType<QAudioFormat::Endian>();
+        }
+    } _registerMetaTypes;
+}
+
 
 class QAudioFormatPrivate : public QSharedData
 {

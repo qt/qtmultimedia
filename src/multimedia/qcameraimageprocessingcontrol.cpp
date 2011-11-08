@@ -44,6 +44,18 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+    class QCameraImageProcessingControlPrivateRegisterMetaTypes
+    {
+    public:
+        QCameraImageProcessingControlPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QCameraImageProcessingControl::ProcessingParameter>();
+        }
+    } _registerMetaTypes;
+}
+
 /*!
     \class QCameraImageProcessingControl
     \inmodule QtMultimedia

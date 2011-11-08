@@ -25,6 +25,10 @@
 **
 ****************************************************************************/
 
+#include "qtmedianamespace.h"
+
+QT_BEGIN_NAMESPACE
+
 /*!
     \namespace QtMultimedia
     \ingroup multimedia
@@ -37,6 +41,22 @@
     high level QtMultimedia APIs which were introduced in QtMobility 1.0.
 
 */
+
+namespace
+{
+    class QMultimediaNamespacePrivateRegisterMetaTypes
+    {
+    public:
+        QMultimediaNamespacePrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QtMultimedia::AvailabilityError>();
+            qRegisterMetaType<QtMultimedia::SupportEstimate>();
+            qRegisterMetaType<QtMultimedia::MetaData>();
+            qRegisterMetaType<QtMultimedia::EncodingMode>();
+            qRegisterMetaType<QtMultimedia::EncodingQuality>();
+        }
+    } _registerMetaTypes;
+}
 
 /*!
     \enum QtMultimedia::MetaData
@@ -206,3 +226,5 @@
     \value ResourceError The service could not allocate resources required to function correctly.
     \value BusyError The service must wait for access to necessary resources.
 */
+
+QT_END_NAMESPACE

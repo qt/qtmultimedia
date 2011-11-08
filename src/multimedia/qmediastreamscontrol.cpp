@@ -44,6 +44,18 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+    class QMediaStreamsControlPrivateRegisterMetaTypes
+    {
+    public:
+        QMediaStreamsControlPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QMediaStreamsControl::StreamType>();
+        }
+    } _registerMetaTypes;
+}
+
 /*!
     \class QMediaStreamsControl
     \preliminary

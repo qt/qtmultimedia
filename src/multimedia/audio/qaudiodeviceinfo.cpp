@@ -47,6 +47,18 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+    class QAudioInfoPrivateRegisterMetaTypes
+    {
+    public:
+        QAudioInfoPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QAudioDeviceInfo>();
+        }
+    } _registerMetaTypes;
+}
+
 class QAudioDeviceInfoPrivate : public QSharedData
 {
 public:
