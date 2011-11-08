@@ -278,12 +278,12 @@ void QSGVideoMaterialShader_YUV420::updateState(const RenderState &state,
     program()->setUniformValue(m_id_uTexture, 1);
     program()->setUniformValue(m_id_vTexture, 2);
 
-    functions->glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mat->idY);
     functions->glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mat->idU);
     functions->glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, mat->idV);
+    functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
+    glBindTexture(GL_TEXTURE_2D, mat->idY);
 
     program()->setUniformValue(m_id_colorMatrix, mat->colorMatrix);
     if (state.isOpacityDirty()) {
