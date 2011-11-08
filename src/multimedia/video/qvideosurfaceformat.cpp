@@ -49,6 +49,19 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace
+{
+    class QVideoSurfaceFormatPrivateRegisterMetaTypes
+    {
+    public:
+        QVideoSurfaceFormatPrivateRegisterMetaTypes()
+        {
+            qRegisterMetaType<QVideoSurfaceFormat>();
+        }
+    } _registerMetaTypes;
+}
+
+
 class QVideoSurfaceFormatPrivate : public QSharedData
 {
 public:
