@@ -46,6 +46,7 @@
 #include <QDebug>
 #include <QThread>
 
+#include <private/qmediapluginloader_p.h>
 #include "qgstvideobuffer_p.h"
 
 #if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
@@ -57,6 +58,10 @@
 
 //#define DEBUG_VIDEO_SURFACE_SINK
 
+Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, bufferPoolLoader,
+        (QGstBufferPoolInterface_iid, QLatin1String("video"), Qt::CaseInsensitive))
+
+
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     QAbstractVideoSurface *surface)
     : m_surface(surface)
@@ -66,6 +71,12 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     , m_startCanceled(false)
 {
     if (m_surface) {
+        foreach (QObject *instance, bufferPoolLoader()->instances(QGstBufferPoolPluginKey)) {
+            QGstBufferPoolInterface* plugin = qobject_cast<QGstBufferPoolInterface*>(instance);
+            if (plugin) {
+                m_pools.append(plugin);
+            }
+        }
 #if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
         m_pools.append(new QGstXvImageBufferPool());
 #endif
@@ -258,8 +269,8 @@ void QVideoSurfaceGstDelegate::queuedRender()
 
 void QVideoSurfaceGstDelegate::updateSupportedFormats()
 {
-    QAbstractGstBufferPool *newPool = 0;
-    foreach (QAbstractGstBufferPool *pool, m_pools) {
+    QGstBufferPoolInterface *newPool = 0;
+    foreach (QGstBufferPoolInterface *pool, m_pools) {
         if (!m_surface->supportedPixelFormats(pool->handleType()).isEmpty()) {
             newPool = pool;
             break;
@@ -669,7 +680,7 @@ GstFlowReturn QVideoSurfaceGstSink::buffer_alloc(
         return GST_FLOW_OK;
 
     QMutexLocker poolLock(sink->delegate->poolMutex());
-    QAbstractGstBufferPool *pool = sink->delegate->pool();
+    QGstBufferPoolInterface *pool = sink->delegate->pool();
 
     if (!pool)
         return GST_FLOW_OK;

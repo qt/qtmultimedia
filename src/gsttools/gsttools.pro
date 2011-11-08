@@ -2,7 +2,7 @@ TEMPLATE = lib
 
 TARGET = qgsttools_p
 QPRO_PWD = $$PWD
-QT = core multimedia
+QT = core multimedia-private
 
 !static:DEFINES += QT_MAKEDLL
 
@@ -36,14 +36,16 @@ INCLUDEPATH += ../multimedia/gsttools_headers/
 DEPENDPATH += ../multimedia/gsttools_headers/
 
 PRIVATE_HEADERS += \
-    qabstractgstbufferpool_p.h \
+    qgstbufferpoolinterface_p.h \
     qgstreamerbushelper_p.h \
     qgstreamermessage_p.h \
     qgstutils_p.h \
     qgstvideobuffer_p.h \
     qvideosurfacegstsink_p.h \
 
+
 SOURCES += \
+    qgstbufferpoolinterface.cpp \
     qgstreamerbushelper.cpp \
     qgstreamermessage.cpp \
     qgstutils.cpp \

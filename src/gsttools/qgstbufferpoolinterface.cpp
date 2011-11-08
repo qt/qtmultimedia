@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -39,48 +39,16 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTBUFFERPOOL_P_H
-#define QGSTBUFFERPOOL_P_H
+#include "qgstbufferpoolinterface_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+QT_BEGIN_NAMESPACE
 
-#include <qabstractvideobuffer.h>
-#include <qvideosurfaceformat.h>
-
-#include <gst/gst.h>
-
-/*!
-    Abstract interface for video buffers allocation.
-*/
-class QAbstractGstBufferPool
+QGstBufferPoolPlugin::QGstBufferPoolPlugin(QObject *parent) :
+    QObject(parent)
 {
-public:
-    virtual ~QAbstractGstBufferPool() {}
+}
 
-    virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
+#include "moc_qgstbufferpoolinterface_p.cpp"
 
-    virtual GType bufferType() const = 0;
-    virtual GstBuffer *takeBuffer(const QVideoSurfaceFormat &format, GstCaps *caps) = 0;
-    virtual void clear() = 0;
+QT_END_NAMESPACE
 
-    virtual QAbstractVideoBuffer::HandleType handleType() const = 0;
-
-    /*!
-      Build an QAbstractVideoBuffer instance from compatible (mathcing gst buffer type)
-      GstBuffer.
-
-      This method is called from gstreamer video sink thread.
-     */
-    virtual QAbstractVideoBuffer *prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine) = 0;
-};
-
-#endif

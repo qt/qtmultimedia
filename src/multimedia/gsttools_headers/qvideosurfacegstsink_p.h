@@ -64,7 +64,7 @@
 #include <qvideoframe.h>
 #include <qabstractvideobuffer.h>
 
-#include "qabstractgstbufferpool_p.h"
+#include "qgstbufferpoolinterface_p.h"
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
@@ -92,7 +92,7 @@ public:
 
     bool isActive();
 
-    QAbstractGstBufferPool *pool() { return m_pool; }
+    QGstBufferPoolInterface *pool() { return m_pool; }
     QMutex *poolMutex() { return &m_poolMutex; }
 
     GstFlowReturn render(GstBuffer *buffer);
@@ -109,8 +109,8 @@ private:
     QList<QVideoFrame::PixelFormat> m_supportedPixelFormats;
     //pixel formats of buffers pool native type
     QList<QVideoFrame::PixelFormat> m_supportedPoolPixelFormats;
-    QAbstractGstBufferPool *m_pool;
-    QList<QAbstractGstBufferPool *> m_pools;
+    QGstBufferPoolInterface *m_pool;
+    QList<QGstBufferPoolInterface *> m_pools;
     QMutex m_poolMutex;
     QMutex m_mutex;
     QWaitCondition m_setupCondition;

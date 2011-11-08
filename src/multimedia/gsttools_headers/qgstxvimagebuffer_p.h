@@ -71,7 +71,7 @@
 
 
 #include <gst/gst.h>
-#include "qabstractgstbufferpool_p.h"
+#include "qgstbufferpoolinterface_p.h"
 
 class QGstXvImageBufferPool;
 
@@ -91,7 +91,7 @@ struct QGstXvImageBuffer {
 
 Q_DECLARE_METATYPE(XvImage*)
 
-class QGstXvImageBufferPool : public QObject, public QAbstractGstBufferPool {
+class QGstXvImageBufferPool : public QObject, public QGstBufferPoolInterface {
 Q_OBJECT
 friend class QGstXvImageBuffer;
 public:
