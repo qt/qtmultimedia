@@ -166,7 +166,7 @@ void tst_QWaveDecoder::file()
     QSignalSpy parsingErrorSpy(&waveDecoder, SIGNAL(parsingError()));
 
     if (corruption == NotAWav) {
-        QSKIP("Not all failures detected correctly yet", SkipSingle);
+        QSKIP("Not all failures detected correctly yet");
         QTRY_COMPARE(parsingErrorSpy.count(), 1);
         QCOMPARE(validFormatSpy.count(), 0);
     } else if (corruption == NoSampleData) {
@@ -229,7 +229,7 @@ void tst_QWaveDecoder::http()
     QSignalSpy parsingErrorSpy(&waveDecoder, SIGNAL(parsingError()));
 
     if (corruption == NotAWav) {
-        QSKIP("Not all failures detected correctly yet", SkipSingle);
+        QSKIP("Not all failures detected correctly yet");
         QTRY_COMPARE(parsingErrorSpy.count(), 1);
         QCOMPARE(validFormatSpy.count(), 0);
     } else if (corruption == NoSampleData) {

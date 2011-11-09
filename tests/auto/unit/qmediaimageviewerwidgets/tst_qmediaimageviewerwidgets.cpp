@@ -97,7 +97,7 @@ void tst_QMediaImageViewerWidgets::setVideoOutput()
     QTestEventLoop::instance().enterLoop(2);
 
     if (imageViewer.mediaStatus() != QMediaImageViewer::LoadedMedia)
-        QSKIP("failed to load test image", SkipSingle);
+        QSKIP("failed to load test image");
 
     QVideoWidget widget;
     QGraphicsVideoItem item;

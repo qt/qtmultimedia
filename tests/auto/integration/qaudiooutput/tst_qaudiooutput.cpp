@@ -193,7 +193,7 @@ void tst_QAudioOutput::initTestCase()
         QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
 
     if (devices.size() <= 0)
-        QSKIP("No audio backend", SkipAll);
+        QSKIP("No audio backend");
 
     audioDevice = QAudioDeviceInfo::defaultOutputDevice();
 

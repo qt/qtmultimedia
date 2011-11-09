@@ -899,7 +899,7 @@ void tst_QMediaImageViewer::rendererControl()
 
     QMediaService *service = viewer.service();
     if (service == 0)
-        QSKIP("Image viewer object has no service.", SkipSingle);
+        QSKIP("Image viewer object has no service.");
 
     QMediaControl *mediaControl = service->requestControl(QVideoRendererControl_iid);
     QVERIFY(mediaControl != 0);
@@ -918,7 +918,7 @@ void tst_QMediaImageViewer::rendererControl()
     QTestEventLoop::instance().enterLoop(2);
 
     if (viewer.mediaStatus() != QMediaImageViewer::LoadedMedia)
-        QSKIP("failed to load test image", SkipSingle);
+        QSKIP("failed to load test image");
 
     QCOMPARE(surfaceA.isActive(), true);
 
@@ -993,7 +993,7 @@ void tst_QMediaImageViewer::setVideoOutput()
     QTestEventLoop::instance().enterLoop(2);
 
     if (imageViewer.mediaStatus() != QMediaImageViewer::LoadedMedia)
-        QSKIP("failed to load test image", SkipSingle);
+        QSKIP("failed to load test image");
 
     QtTestVideoSurface surface;
 

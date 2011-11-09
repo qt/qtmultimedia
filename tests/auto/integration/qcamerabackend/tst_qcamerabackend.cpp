@@ -149,7 +149,7 @@ void tst_QCameraBackend::initTestCase()
 
     QCamera camera;
     if (!camera.isAvailable())
-        QSKIP("Camera is not available", SkipAll);
+        QSKIP("Camera is not available");
 }
 
 void tst_QCameraBackend::cleanupTestCase()
@@ -258,7 +258,7 @@ void tst_QCameraBackend::testCaptureMode()
     if (!camera.isCaptureModeSupported(QCamera::CaptureVideo)) {
         camera.setCaptureMode(QCamera::CaptureVideo);
         QCOMPARE(camera.captureMode(), QCamera::CaptureStillImage);
-        QSKIP("Video capture not supported", SkipAll);
+        QSKIP("Video capture not supported");
     }
 
     camera.setCaptureMode(QCamera::CaptureVideo);
@@ -380,7 +380,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
 #endif
 
     if (!imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer))
-        QSKIP("Buffer capture not supported", SkipAll);
+        QSKIP("Buffer capture not supported");
 
     QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
 
@@ -512,7 +512,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
 void tst_QCameraBackend::testCameraCaptureMetadata()
 {
 #ifndef Q_WS_MAEMO_6
-    QSKIP("Capture metadata is supported only on harmattan", SkipAll);
+    QSKIP("Capture metadata is supported only on harmattan");
 #endif
 
     QCamera camera;
@@ -535,7 +535,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 void tst_QCameraBackend::testExposureCompensation()
 {
 #if !defined(Q_WS_MAEMO_6)
-    QSKIP("Capture exposure parameters are supported only on mobile platforms", SkipAll);
+    QSKIP("Capture exposure parameters are supported only on mobile platforms");
 #endif
 
     QCamera camera;
@@ -582,7 +582,7 @@ void tst_QCameraBackend::testExposureCompensation()
 void tst_QCameraBackend::testExposureMode()
 {
 #if !defined(Q_WS_MAEMO_6)
-    QSKIP("Capture exposure parameters are supported only on mobile platforms", SkipAll);
+    QSKIP("Capture exposure parameters are supported only on mobile platforms");
 #endif
 
     QCamera camera;

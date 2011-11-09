@@ -640,7 +640,7 @@ void tst_QGraphicsVideoItem::paint()
     QPainterVideoSurface *surface = qobject_cast<QPainterVideoSurface *>(
             object.testService->rendererControl->surface());
     if (!surface)
-        QSKIP("QGraphicsVideoItem is not QPainterVideoSurface based", SkipAll);
+        QSKIP("QGraphicsVideoItem is not QPainterVideoSurface based");
 
     QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
 

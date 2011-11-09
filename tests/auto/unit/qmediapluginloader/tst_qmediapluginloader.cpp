@@ -83,7 +83,7 @@ void tst_QMediaPluginLoader::testInstance()
     const QStringList keys = loader->keys();
 
     if (keys.isEmpty()) // Test is invalidated, skip.
-        QSKIP("No plug-ins available", SkipAll);
+        QSKIP("No plug-ins available");
 
     foreach (const QString &key, keys)
         QVERIFY(loader->instance(key) != 0);
@@ -94,7 +94,7 @@ void tst_QMediaPluginLoader::testInstances()
     const QStringList keys = loader->keys();
 
     if (keys.isEmpty()) // Test is invalidated, skip.
-        QSKIP("No plug-ins available", SkipAll);
+        QSKIP("No plug-ins available");
 
     foreach (const QString &key, keys)
         QVERIFY(loader->instances(key).size() > 0);
@@ -107,7 +107,7 @@ void tst_QMediaPluginLoader::testInvalidKey()
 
     // This test assumes there is no 'invalid-key' in the key list, verify that.
     if (loader->keys().contains(key))
-        QSKIP("a plug-in includes the invalid key", SkipAll);
+        QSKIP("a plug-in includes the invalid key");
 
     QVERIFY(loader->instance(key) == 0);
 

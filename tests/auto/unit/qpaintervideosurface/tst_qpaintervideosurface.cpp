@@ -666,7 +666,7 @@ void tst_QPainterVideoSurface::shaderTypeStarted()
     surface.setGLContext(const_cast<QGLContext *>(widget.context()));
 
     if (!(surface.supportedShaderTypes() & shaderType))
-        QSKIP("Shader type unsupported on this platform", SkipSingle);
+        QSKIP("Shader type unsupported on this platform");
 
     surface.setShaderType(shaderType);
     QCOMPARE(surface.shaderType(), shaderType);
@@ -909,11 +909,11 @@ void tst_QPainterVideoSurface::shaderSupportedFormat()
 
 
     if (!(surface.supportedShaderTypes() & shaderType))
-        QSKIP("Shader type not supported on this platform", SkipSingle);
+        QSKIP("Shader type not supported on this platform");
 
     surface.setShaderType(shaderType);
     if (surface.shaderType() != shaderType)
-        QSKIP("Shader type couldn't be set", SkipSingle);
+        QSKIP("Shader type couldn't be set");
 
     const QList<QVideoFrame::PixelFormat> pixelFormats = surface.supportedPixelFormats(handleType);
 
@@ -1023,11 +1023,11 @@ void tst_QPainterVideoSurface::shaderPresent()
     surface.setGLContext(const_cast<QGLContext *>(widget.context()));
 
     if (!(surface.supportedShaderTypes() & shaderType))
-        QSKIP("Shader type unsupported on this platform", SkipSingle);
+        QSKIP("Shader type unsupported on this platform");
 
     surface.setShaderType(shaderType);
     if (surface.shaderType() != shaderType)
-        QSKIP("Shader type couldn't be set", SkipSingle);
+        QSKIP("Shader type couldn't be set");
 
     QSignalSpy frameSpy(&surface, SIGNAL(frameChanged()));
 
@@ -1152,11 +1152,11 @@ void tst_QPainterVideoSurface::shaderPresentOpaqueFrame()
     surface.setGLContext(const_cast<QGLContext *>(widget.context()));
 
     if (!(surface.supportedShaderTypes() & shaderType))
-        QSKIP("Shader type unsupported on this platform", SkipSingle);
+        QSKIP("Shader type unsupported on this platform");
 
     surface.setShaderType(shaderType);
     if (surface.shaderType() != shaderType)
-        QSKIP("Shader type couldn't be set", SkipSingle);
+        QSKIP("Shader type couldn't be set");
 
     QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
 
@@ -1199,11 +1199,11 @@ void tst_QPainterVideoSurface::shaderPresentGLFrame()
     surface.setGLContext(const_cast<QGLContext *>(widget.context()));
 
     if (!(surface.supportedShaderTypes() & shaderType))
-        QSKIP("Shader type unsupported on this platform", SkipSingle);
+        QSKIP("Shader type unsupported on this platform");
 
     surface.setShaderType(shaderType);
     if (surface.shaderType() != shaderType)
-        QSKIP("Shader type couldn't be set", SkipSingle);
+        QSKIP("Shader type couldn't be set");
 
     QVideoSurfaceFormat format(
             QSize(2, 2), QVideoFrame::Format_RGB32, QAbstractVideoBuffer::GLTextureHandle);

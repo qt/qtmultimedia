@@ -328,7 +328,7 @@ void tst_QMediaServiceProvider::testObtainService()
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
     if (provider == 0)
-        QSKIP("No default provider", SkipSingle);
+        QSKIP("No default provider");
 
     QMediaService *service = 0;
 
@@ -347,7 +347,7 @@ void tst_QMediaServiceProvider::testHasSupport()
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
     if (provider == 0)
-        QSKIP("No default provider", SkipSingle);
+        QSKIP("No default provider");
 
     QCOMPARE(provider->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER), "video/ogv", QStringList()),
              QtMultimedia::MaybeSupported);
@@ -405,7 +405,7 @@ void tst_QMediaServiceProvider::testSupportedMimeTypes()
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
     if (provider == 0)
-        QSKIP("No default provider", SkipSingle);
+        QSKIP("No default provider");
 
     QVERIFY(provider->supportedMimeTypes(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER)).contains("audio/ogg"));
     QVERIFY(!provider->supportedMimeTypes(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER)).contains("audio/mp3"));
