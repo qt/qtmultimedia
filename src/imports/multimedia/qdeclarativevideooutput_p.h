@@ -94,9 +94,17 @@ private Q_SLOTS:
     void _q_updateGeometry();
 
 private:
+    enum SourceType {
+        NoSource,
+        MediaObjectSource,
+        VideoSurfaceSource
+    };
+
     void present(const QVideoFrame &frame);
 
     friend class QSGVideoItemSurface;
+
+    SourceType m_sourceType;
 
     QWeakPointer<QObject> m_source;
     QWeakPointer<QMediaObject> m_mediaObject;

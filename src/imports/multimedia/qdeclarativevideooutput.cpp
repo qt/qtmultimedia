@@ -55,6 +55,7 @@
 #include <QtCore/qmetaobject.h>
 
 //#define DEBUG_VIDEOITEM
+Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 
 class QSGVideoItemSurface : public QAbstractVideoSurface
 {
@@ -153,6 +154,7 @@ private:
 
 QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     QQuickItem(parent),
+    m_sourceType(NoSource),
     m_fillMode(PreserveAspectFit)
 {
     setFlag(ItemHasContents, true);
@@ -187,23 +189,39 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     if (source == m_source.data())
         return;
 
-    if (m_source)
+    if (m_source && m_sourceType == MediaObjectSource)
         disconnect(0, m_source.data(), SLOT(_q_updateMediaObject()));
+
+    if (m_source && m_sourceType == VideoSurfaceSource)
+        m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(0));
+
+    m_surface->stop();
 
     m_source = source;
 
     if (m_source) {
         const QMetaObject *metaObject = m_source.data()->metaObject();
-        const QMetaProperty mediaObjectProperty = metaObject->property(
-                    metaObject->indexOfProperty("mediaObject"));
 
-        if (mediaObjectProperty.hasNotifySignal()) {
-            QMetaMethod method = mediaObjectProperty.notifySignal();
-            QMetaObject::connect(m_source.data(), method.methodIndex(),
-                                 this, this->metaObject()->indexOfSlot("updateMediaObject()"),
-                                 Qt::DirectConnection, 0);
+        int mediaObjectPropertyIndex = metaObject->indexOfProperty("mediaObject");
+        if (mediaObjectPropertyIndex != -1) {
+            const QMetaProperty mediaObjectProperty = metaObject->property(mediaObjectPropertyIndex);
 
+            if (mediaObjectProperty.hasNotifySignal()) {
+                QMetaMethod method = mediaObjectProperty.notifySignal();
+                QMetaObject::connect(m_source.data(), method.methodIndex(),
+                                     this, this->metaObject()->indexOfSlot("updateMediaObject()"),
+                                     Qt::DirectConnection, 0);
+
+            }
+            m_sourceType = MediaObjectSource;
+        } else if (metaObject->indexOfProperty("videoSurface") != -1) {
+            m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(m_surface));
+            m_sourceType = VideoSurfaceSource;
+        } else {
+            m_sourceType = NoSource;
         }
+    } else {
+        m_sourceType = NoSource;
     }
 
     _q_updateMediaObject();
