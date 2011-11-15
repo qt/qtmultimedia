@@ -293,7 +293,7 @@ bool QPulseAudioOutput::open()
     }
     const pa_buffer_attr *buffer = pa_stream_get_buffer_attr(m_stream);
     m_periodSize = pa_usec_to_bytes(PeriodTimeMs*1000, &spec);
-    m_bufferSize = buffer->maxlength;
+    m_bufferSize = qMin(m_periodSize * 5, int(buffer->maxlength));
     m_audioBuffer = new char[buffer->maxlength];
 #ifdef DEBUG_PULSE
     qDebug() << "Buffering info:";
