@@ -41,6 +41,7 @@
 #include "qsgvideonode_rgb.h"
 #include <QtDeclarative/qsgtexturematerial.h>
 #include <QtDeclarative/qsgmaterial.h>
+#include <QtCore/qmutex.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
 #include <QtOpenGL/qglshaderprogram.h>
@@ -187,6 +188,7 @@ public:
     }
 
     void setVideoFrame(const QVideoFrame &frame) {
+        QMutexLocker lock(&m_frameMutex);
         m_frame = frame;
     }
 
@@ -194,6 +196,7 @@ public:
     {
         QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
 
+        QMutexLocker lock(&m_frameMutex);
         if (m_frame.isValid() && m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
             if (m_textureSize != m_frame.size()) {
                 if (!m_textureSize.isEmpty())
@@ -230,6 +233,7 @@ public:
     }
 
     QVideoFrame m_frame;
+    QMutex m_frameMutex;
     QSize m_textureSize;
     QVideoSurfaceFormat m_format;
     GLuint m_textureId;

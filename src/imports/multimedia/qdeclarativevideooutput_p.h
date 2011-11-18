@@ -48,6 +48,7 @@
 #include <QtMultimedia/qmediaobject.h>
 
 #include <QtCore/qsharedpointer.h>
+#include <QtCore/qmutex.h>
 
 #include "qsgvideonode_p.h"
 
@@ -103,6 +104,7 @@ private:
     };
 
     void present(const QVideoFrame &frame);
+    void stop();
 
     friend class QSGVideoItemSurface;
 
@@ -120,6 +122,8 @@ private:
     QSize m_nativeSize;
     QRectF m_boundingRect;
     QRectF m_sourceRect;
+
+    QMutex m_frameMutex;
 };
 
 QT_END_NAMESPACE

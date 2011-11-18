@@ -95,6 +95,12 @@ public:
         return QAbstractVideoSurface::start(format);
     }
 
+    void stop()
+    {
+        m_item->stop();
+        QAbstractVideoSurface::stop();
+    }
+
     virtual bool present(const QVideoFrame &frame)
     {
         if (!frame.isValid()) {
@@ -272,8 +278,16 @@ void QDeclarativeVideoOutput::_q_updateMediaObject()
 
 void QDeclarativeVideoOutput::present(const QVideoFrame &frame)
 {
+    m_frameMutex.lock();
     m_frame = frame;
+    m_frameMutex.unlock();
+
     update();
+}
+
+void QDeclarativeVideoOutput::stop()
+{
+    present(QVideoFrame());
 }
 
 /*!
@@ -352,6 +366,8 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
 QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
 {
     QSGVideoNode *videoNode = static_cast<QSGVideoNode *>(oldNode);
+
+    QMutexLocker lock(&m_frameMutex);
 
     if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
 #ifdef DEBUG_VIDEOITEM
