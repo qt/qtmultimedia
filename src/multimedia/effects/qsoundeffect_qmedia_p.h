@@ -88,6 +88,8 @@ public:
     bool isPlaying() const;
     QSoundEffect::Status status() const;
 
+    void release();
+
 public Q_SLOTS:
     void play();
     void stop();

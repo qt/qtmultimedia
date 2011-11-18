@@ -68,6 +68,7 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+class QSoundEffectRef;
 
 class QSoundEffectPrivate : public QObject
 {
@@ -89,6 +90,8 @@ public:
     bool isLoaded() const;
     bool isPlaying() const;
     QSoundEffect::Status status() const;
+
+    void release();
 
 public Q_SLOTS:
     void play();
@@ -154,6 +157,7 @@ private:
 
     QSample *m_sample;
     int m_position;
+    QSoundEffectRef *m_ref;
 };
 
 QT_END_NAMESPACE

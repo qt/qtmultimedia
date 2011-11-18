@@ -76,6 +76,11 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     connect(m_player, SIGNAL(volumeChanged(int)), SIGNAL(volumeChanged()));
 }
 
+void QSoundEffectPrivate::release()
+{
+    this->deleteLater();
+}
+
 QSoundEffectPrivate::~QSoundEffectPrivate()
 {
 }

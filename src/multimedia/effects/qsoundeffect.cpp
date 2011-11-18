@@ -173,7 +173,7 @@ QSoundEffect::QSoundEffect(QObject *parent) :
 
 QSoundEffect::~QSoundEffect()
 {
-    d->deleteLater();
+    d->release();
 }
 
 QStringList QSoundEffect::supportedMimeTypes()
