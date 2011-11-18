@@ -69,7 +69,7 @@ QT_MODULE(Multimedia)
 
 class QMediaServiceProviderPlugin;
 
-class Q_AUTOTEST_EXPORT QMediaPluginLoader
+class Q_MULTIMEDIA_EXPORT QMediaPluginLoader
 {
 public:
     QMediaPluginLoader(const char *iid,

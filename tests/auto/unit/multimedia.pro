@@ -14,10 +14,13 @@ SUBDIRS += \
     qmediacontent \
     qmediaobject \
     qmediaplayer \
+    qmediaplaylist \
     qmediaplaylistnavigator \
+    qmediapluginloader \
     qmediarecorder \
     qmediaresource \
     qmediaservice \
+    qmediaserviceprovider \
     qmediatimerange \
     qmetadatareadercontrol \
     qmetadatawritercontrol \
@@ -31,11 +34,7 @@ SUBDIRS += \
 # Tests depending on private interfaces should only be built if
 # these interfaces are exported.
 contains (QT_CONFIG, private_tests) {
-    # These depend on controlling the set of plugins loaded (in qmediapluginloader)
     SUBDIRS += \
         qdeclarativeaudio \
-        qmediaplaylist \
-        qmediapluginloader \
         qmediaimageviewer \
-        qmediaserviceprovider
 }
