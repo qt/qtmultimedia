@@ -282,8 +282,11 @@ void QSample::release()
 // must be called locked.
 void QSample::cleanup()
 {
-    m_waveDecoder->deleteLater();
-    m_stream->deleteLater();
+    if (m_waveDecoder)
+        m_waveDecoder->deleteLater();
+    if (m_stream)
+        m_stream->deleteLater();
+
     m_waveDecoder = 0;
     m_stream = 0;
 }
