@@ -57,6 +57,8 @@
 //#define DEBUG_VIDEOITEM
 Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 
+QT_BEGIN_NAMESPACE
+
 class QSGVideoItemSurface : public QAbstractVideoSurface
 {
 public:
@@ -382,3 +384,5 @@ QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintN
     videoNode->setCurrentFrame(m_frame);
     return videoNode;
 }
+
+QT_END_NAMESPACE

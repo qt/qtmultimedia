@@ -116,3 +116,5 @@ void QDeclarativeRadioData::_q_error(QRadioData::Error errorCode)
     emit error(static_cast<QDeclarativeRadioData::Error>(errorCode));
     emit errorChanged();
 }
+
+QT_END_NAMESPACE

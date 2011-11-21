@@ -51,6 +51,8 @@
 
 #include "qsgvideonode_p.h"
 
+QT_BEGIN_NAMESPACE
+
 class QSGVideoItemSurface;
 class QVideoRendererControl;
 class QMediaService;
@@ -119,5 +121,7 @@ private:
     QRectF m_boundingRect;
     QRectF m_sourceRect;
 };
+
+QT_END_NAMESPACE
 
 #endif // QDECLARATIVEVIDEOOUTPUT_H
