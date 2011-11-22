@@ -65,6 +65,9 @@ private slots:
     void testPlaying();
     void testStatus();
 
+    void testDestroyWhilePlaying();
+    void testDestroyWhileRestartPlaying();
+
 private:
     QSoundEffect* sound;
     QUrl url;
@@ -189,6 +192,29 @@ void tst_QSoundEffect::testStatus()
     QCOMPARE(sound->status(), QSoundEffect::Error);
 }
 
+void tst_QSoundEffect::testDestroyWhilePlaying()
+{
+    QSoundEffect *instance = new QSoundEffect();
+    instance->setSource(url);
+    QTestEventLoop::instance().enterLoop(1);
+    instance->play();
+    QTest::qWait(500);
+    delete instance;
+    QTestEventLoop::instance().enterLoop(1);
+}
+
+void tst_QSoundEffect::testDestroyWhileRestartPlaying()
+{
+    QSoundEffect *instance = new QSoundEffect();
+    instance->setSource(url);
+    QTestEventLoop::instance().enterLoop(1);
+    instance->play();
+    QTest::qWait(1000);
+    //restart playing
+    instance->play();
+    delete instance;
+    QTestEventLoop::instance().enterLoop(1);
+}
 
 QTEST_MAIN(tst_QSoundEffect)
 
