@@ -4,7 +4,6 @@ SUBDIRS += \
     qabstractvideobuffer \
     qabstractvideosurface \
     qaudiocapturesource \
-    qaudiodeviceinfo \
     qaudioformat \
     qaudionamespace \
     qcamera \
