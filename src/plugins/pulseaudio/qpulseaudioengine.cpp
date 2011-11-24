@@ -264,9 +264,11 @@ QPulseAudioEngine::QPulseAudioEngine(QObject *parent)
 
     pa_threaded_mainloop_unlock(m_mainLoop);
 
-    serverInfo();
-    sinks();
-    sources();
+    if (ok) {
+        serverInfo();
+        sinks();
+        sources();
+    }
 }
 
 QPulseAudioEngine::~QPulseAudioEngine()
