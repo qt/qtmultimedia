@@ -60,13 +60,8 @@ public:
 private:
     void bindTexture(int id, int unit, int w, int h, const uchar *bits);
 
-    int m_width;
-    int m_height;
-    GLuint m_id[3];
-
     QVideoSurfaceFormat m_format;
     QSGVideoMaterial_YUV420 *m_material;
-    QVideoFrame m_frame;
 };
 
 class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactory {
