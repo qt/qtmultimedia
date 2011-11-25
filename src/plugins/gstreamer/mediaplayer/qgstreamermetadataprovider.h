@@ -44,7 +44,7 @@
 
 #include <qmetadatareadercontrol.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerPlayerSession;
 
@@ -70,5 +70,7 @@ private slots:
 private:
     QGstreamerPlayerSession *m_session;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERMETADATAPROVIDER_H

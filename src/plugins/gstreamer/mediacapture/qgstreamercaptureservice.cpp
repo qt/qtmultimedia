@@ -62,6 +62,7 @@
 
 #include <qmediaserviceprovider.h>
 
+QT_BEGIN_NAMESPACE
 
 QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObject *parent):
     QMediaService(parent)
@@ -182,3 +183,5 @@ void QGstreamerCaptureService::releaseControl(QMediaControl *control)
         m_captureSession->setVideoPreview(0);
     }
 }
+
+QT_END_NAMESPACE

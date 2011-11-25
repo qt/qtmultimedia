@@ -54,7 +54,7 @@ class QX11VideoSurface;
 
 #if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoWindow : public QVideoWindowControl,
         public QGstreamerVideoRendererInterface,
@@ -128,6 +128,8 @@ private:
     mutable QColor m_colorKey;
     int m_bufferProbeId;
 };
+
+QT_END_NAMESPACE
 
 #endif //QT_NO_XVIDEO
 

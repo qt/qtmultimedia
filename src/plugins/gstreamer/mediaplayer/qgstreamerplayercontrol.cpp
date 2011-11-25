@@ -58,6 +58,8 @@
 
 //#define DEBUG_PLAYBIN
 
+QT_BEGIN_NAMESPACE
+
 QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *session, QObject *parent)
     : QMediaPlayerControl(parent)
     , m_ownStream(false)
@@ -773,3 +775,5 @@ void QGstreamerPlayerControl::updatePosition(qint64 pos)
 
     emit positionChanged(pos);
 }
+
+QT_END_NAMESPACE

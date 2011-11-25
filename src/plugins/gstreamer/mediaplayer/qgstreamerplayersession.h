@@ -55,12 +55,12 @@
 
 #include <gst/gst.h>
 
+QT_BEGIN_NAMESPACE
+
 class QGstreamerBusHelper;
 class QGstreamerMessage;
 
 class QGstreamerVideoRendererInterface;
-
-QT_USE_NAMESPACE
 
 class QGstreamerPlayerSession : public QObject,
                                 public QGstreamerBusMessageFilter
@@ -225,5 +225,7 @@ private:
     bool m_everPlayed;
     bool m_isLiveSource;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERPLAYERSESSION_H

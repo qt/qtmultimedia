@@ -57,6 +57,7 @@
 
 #include <gst/gst.h>
 
+QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage
 {
@@ -73,6 +74,8 @@ public:
 private:
     GstMessage* m_message;
 };
+
+QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QGstreamerMessage);
 

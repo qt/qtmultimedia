@@ -49,7 +49,7 @@
 
 #include <gst/gst.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerMediaContainerControl : public QMediaContainerControl
 {
@@ -80,5 +80,7 @@ private:
     QMap<QString, QString> m_containerExtensions;
     QMap<QString, QSet<QString> > m_streamTypes;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERMEDIACONTAINERCONTROL_H

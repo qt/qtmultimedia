@@ -48,7 +48,7 @@
 #include <qmediarecordercontrol.h>
 #include "qgstreamercapturesession.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerRecorderControl : public QMediaRecorderControl
 {
@@ -87,5 +87,7 @@ private:
     QMediaRecorder::State m_state;
     bool m_hasPreviewState;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERCAPTURECORNTROL_H

@@ -45,7 +45,7 @@
 #include <qaudioendpointselector.h>
 #include <QtCore/qstringlist.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerAudioInputEndpointSelector : public QAudioEndpointSelector
 {
@@ -72,5 +72,7 @@ private:
     QList<QString> m_names;
     QList<QString> m_descriptions;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERAUDIOINPUTENDPOINTSELECTOR_H

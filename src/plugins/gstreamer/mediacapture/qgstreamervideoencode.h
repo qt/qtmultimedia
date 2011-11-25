@@ -43,7 +43,6 @@
 #define QGSTREAMERVIDEOENCODE_H
 
 #include <qvideoencodercontrol.h>
-class QGstreamerCaptureSession;
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
@@ -51,7 +50,9 @@ class QGstreamerCaptureSession;
 
 #include <gst/gst.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
+
+class QGstreamerCaptureSession;
 
 class QGstreamerVideoEncode : public QVideoEncoderControl
 {
@@ -94,5 +95,7 @@ private:
     QMap<QString, QMap<QString, QVariant> > m_options;
     QMap<QString, QSet<QString> > m_streamTypes;
 };
+
+QT_END_NAMESPACE
 
 #endif

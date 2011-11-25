@@ -56,6 +56,8 @@
 #include <QtCore/qmap.h>
 #include <gst/gst.h>
 
+QT_BEGIN_NAMESPACE
+
 class QSize;
 class QVariant;
 class QByteArray;
@@ -66,5 +68,7 @@ namespace QGstUtils {
     QSize capsResolution(const GstCaps *caps);
     QSize capsCorrectedResolution(const GstCaps *caps);
 }
+
+QT_END_NAMESPACE
 
 #endif

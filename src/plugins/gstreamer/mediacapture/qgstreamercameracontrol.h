@@ -47,8 +47,7 @@
 #include <qcameracontrol.h>
 #include "qgstreamercapturesession.h"
 
-QT_USE_NAMESPACE
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerCameraControl : public QCameraControl
 {
@@ -94,5 +93,7 @@ private:
     QCamera::Status m_status;
     bool m_reloadPending;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERCAMERACONTROL_H

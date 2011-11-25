@@ -46,6 +46,7 @@
 
 #include "qgstreamerbushelper_p.h"
 
+QT_BEGIN_NAMESPACE
 
 #ifndef QT_NO_GLIB
 class QGstreamerBusHelperPrivate : public QObject
@@ -233,5 +234,7 @@ void QGstreamerBusHelper::removeMessageFilter(QObject *filter)
     if (busFilter)
         d->busFilters.removeAll(busFilter);
 }
+
+QT_END_NAMESPACE
 
 #include "qgstreamerbushelper.moc"

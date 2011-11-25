@@ -46,7 +46,7 @@
 #include <qmediaserviceproviderplugin.h>
 #include <QtCore/qset.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 
 class QGstreamerServicePlugin
@@ -82,5 +82,7 @@ private:
 
     void updateSupportedMimeTypes() const;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERSERVICEPLUGIN_H

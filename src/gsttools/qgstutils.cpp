@@ -46,6 +46,8 @@
 #include <QtCore/qvariant.h>
 #include <QtCore/qsize.h>
 
+QT_BEGIN_NAMESPACE
+
 //internal
 static void addTagToMap(const GstTagList *list,
                         const gchar *tag,
@@ -163,3 +165,5 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
 
     return size;
 }
+
+QT_END_NAMESPACE

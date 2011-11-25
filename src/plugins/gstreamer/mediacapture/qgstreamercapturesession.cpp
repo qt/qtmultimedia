@@ -61,6 +61,8 @@
 
 #include <QtGui/qimage.h>
 
+QT_BEGIN_NAMESPACE
+
 #define gstRef(element) { gst_object_ref(GST_OBJECT(element)); gst_object_sink(GST_OBJECT(element)); }
 #define gstUnref(element) { if (element) { gst_object_unref(GST_OBJECT(element)); element = 0; } }
 
@@ -1022,3 +1024,5 @@ void QGstreamerCaptureSession::setMuted(bool muted)
         emit mutedChanged(muted);
     }
 }
+
+QT_END_NAMESPACE

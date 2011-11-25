@@ -58,6 +58,8 @@
 #include "qgstreamermessage_p.h"
 #include <gst/gst.h>
 
+QT_BEGIN_NAMESPACE
+
 class QGstreamerSyncMessageFilter {
 public:
     //returns true if message was processed and should be dropped, false otherwise
@@ -96,5 +98,7 @@ signals:
 private:
     QGstreamerBusHelperPrivate*   d;
 };
+
+QT_END_NAMESPACE
 
 #endif

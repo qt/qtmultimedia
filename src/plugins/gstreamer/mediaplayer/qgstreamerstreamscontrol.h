@@ -44,7 +44,7 @@
 
 #include <qmediastreamscontrol.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerPlayerSession;
 
@@ -66,6 +66,8 @@ public:
 private:
     QGstreamerPlayerSession *m_session;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERSTREAMSCONTROL_H
 

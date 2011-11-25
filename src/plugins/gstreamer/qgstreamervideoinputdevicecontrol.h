@@ -45,7 +45,7 @@
 #include <qvideodevicecontrol.h>
 #include <QtCore/qstringlist.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoInputDeviceControl : public QVideoDeviceControl
 {
@@ -73,5 +73,7 @@ private:
     QStringList m_names;
     QStringList m_descriptions;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERAUDIOINPUTDEVICECONTROL_H

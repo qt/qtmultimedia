@@ -66,6 +66,6 @@ private:
     QPulseAudioEngine *m_pulseEngine;
 };
 
-QT_BEGIN_NAMESPACE
+QT_END_NAMESPACE
 
 #endif

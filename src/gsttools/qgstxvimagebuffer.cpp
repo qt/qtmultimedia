@@ -50,6 +50,8 @@
 
 #ifndef QT_NO_XVIDEO
 
+QT_BEGIN_NAMESPACE
+
 GstBufferClass *QGstXvImageBuffer::parent_class = NULL;
 
 GType QGstXvImageBuffer::get_type(void)
@@ -306,6 +308,8 @@ void QGstXvImageBufferPool::destroyBuffer(QGstXvImageBuffer *xvBuffer)
     if (m_imagesToDestroy.size() == 1)
         QMetaObject::invokeMethod(this, "queuedDestroy", Qt::QueuedConnection);
 }
+
+QT_END_NAMESPACE
 
 #endif //QT_NO_XVIDEO
 

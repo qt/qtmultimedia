@@ -52,7 +52,6 @@ class QMediaMetaData;
 class QMediaPlayerControl;
 class QMediaPlaylist;
 class QMediaPlaylistNavigator;
-QT_END_NAMESPACE
 
 class QGstreamerMetaData;
 class QGstreamerPlayerControl;
@@ -62,8 +61,6 @@ class QGstreamerStreamsControl;
 class QGstreamerVideoRenderer;
 class QGstreamerVideoOverlay;
 class QGstreamerVideoWidgetControl;
-
-QT_USE_NAMESPACE
 
 class QGstreamerPlayerService : public QMediaService
 {
@@ -86,5 +83,7 @@ private:
     QMediaControl *m_videoWindow;
     QMediaControl *m_videoWidget;
 };
+
+QT_END_NAMESPACE
 
 #endif

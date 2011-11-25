@@ -50,17 +50,15 @@
 
 #include <limits.h>
 
+class PlayerResourcePolicy;
+
 QT_BEGIN_NAMESPACE
 class QMediaPlaylist;
 class QMediaPlaylistNavigator;
 class QSocketNotifier;
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
 
 class QGstreamerPlayerSession;
 class QGstreamerPlayerService;
-class PlayerResourcePolicy;
 
 class QGstreamerPlayerControl : public QMediaPlayerControl
 {
@@ -154,5 +152,7 @@ private:
 
     PlayerResourcePolicy *m_resources;
 };
+
+QT_END_NAMESPACE
 
 #endif

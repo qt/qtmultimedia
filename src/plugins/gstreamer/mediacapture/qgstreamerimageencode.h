@@ -42,15 +42,16 @@
 #ifndef QGSTREAMERIMAGEENCODE_H
 #define QGSTREAMERIMAGEENCODE_H
 
-class QGstreamerCaptureSession;
-
 #include <qimageencodercontrol.h>
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
 
 #include <gst/gst.h>
-QT_USE_NAMESPACE
+
+QT_BEGIN_NAMESPACE
+
+class QGstreamerCaptureSession;
 
 class QGstreamerImageEncode : public QImageEncoderControl
 {
@@ -76,5 +77,7 @@ private:
 
     QGstreamerCaptureSession *m_session;
 };
+
+QT_END_NAMESPACE
 
 #endif

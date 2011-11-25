@@ -51,7 +51,7 @@
 #include <X11/extensions/Xv.h>
 #include <X11/extensions/Xvlib.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QX11VideoSurface : public QAbstractVideoSurface
 {
@@ -111,6 +111,8 @@ private:
 
     static int redistribute(int value, int fromLower, int fromUpper, int toLower, int toUpper);
 };
+
+QT_END_NAMESPACE
 
 #endif //QT_NO_XVIDEO
 

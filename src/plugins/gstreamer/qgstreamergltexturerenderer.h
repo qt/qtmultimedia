@@ -51,7 +51,7 @@
 
 #include <X11/extensions/Xv.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGLContext;
 
@@ -126,5 +126,7 @@ private:
     QMutex m_mutex;
     QWaitCondition m_renderCondition;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERVIDEORENDRER_H

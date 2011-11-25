@@ -48,7 +48,6 @@ QGstBufferPoolPlugin::QGstBufferPoolPlugin(QObject *parent) :
 {
 }
 
-#include "moc_qgstbufferpoolinterface_p.cpp"
-
 QT_END_NAMESPACE
 
+#include "moc_qgstbufferpoolinterface_p.cpp"

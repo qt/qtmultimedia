@@ -43,6 +43,7 @@
 
 #include "qgstreamermessage_p.h"
 
+QT_BEGIN_NAMESPACE
 
 static int wuchi = qRegisterMetaType<QGstreamerMessage>();
 
@@ -91,3 +92,5 @@ QGstreamerMessage& QGstreamerMessage::operator=(QGstreamerMessage const& rhs)
 
     return *this;
 }
+
+QT_END_NAMESPACE

@@ -48,7 +48,7 @@
 
 #include <QtCore/QDebug>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraViewfinder
@@ -109,5 +109,7 @@ bool QCameraViewfinder::setMediaObject(QMediaObject *object)
 {
     return QVideoWidget::setMediaObject(object);
 }
+
+QT_END_NAMESPACE
 
 #include "moc_qcameraviewfinder.cpp"

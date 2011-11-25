@@ -41,6 +41,7 @@
 
 #include "qgstvideobuffer_p.h"
 
+QT_BEGIN_NAMESPACE
 
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine)
     : QAbstractVideoBuffer(NoHandle)
@@ -95,3 +96,4 @@ void QGstVideoBuffer::unmap()
     m_mode = NotMapped;
 }
 
+QT_END_NAMESPACE

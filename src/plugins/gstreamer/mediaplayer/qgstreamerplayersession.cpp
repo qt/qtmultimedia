@@ -64,6 +64,8 @@
 //#define DEBUG_PLAYBIN
 //#define DEBUG_VO_BIN_DUMP
 
+QT_BEGIN_NAMESPACE
+
 typedef enum {
     GST_PLAY_FLAG_VIDEO         = 0x00000001,
     GST_PLAY_FLAG_AUDIO         = 0x00000002,
@@ -1616,3 +1618,5 @@ void QGstreamerPlayerSession::showPrerollFrames(bool enabled)
         m_displayPrerolledFrame = enabled;
     }
 }
+
+QT_END_NAMESPACE

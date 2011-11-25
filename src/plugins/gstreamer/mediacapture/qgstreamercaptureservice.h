@@ -49,7 +49,6 @@
 QT_BEGIN_NAMESPACE
 class QAudioEndpointSelector;
 class QVideoDeviceControl;
-QT_END_NAMESPACE
 
 class QGstreamerCaptureSession;
 class QGstreamerCameraControl;
@@ -92,5 +91,7 @@ private:
     QMediaControl *m_videoWidgetControl;
     QGstreamerImageCaptureControl *m_imageCaptureControl;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERCAPTURESERVICE_H

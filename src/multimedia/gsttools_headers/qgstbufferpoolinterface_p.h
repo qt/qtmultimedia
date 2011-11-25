@@ -61,6 +61,8 @@
 
 #include <gst/gst.h>
 
+QT_BEGIN_NAMESPACE
+
 const QLatin1String QGstBufferPoolPluginKey("bufferpool");
 
 /*!
@@ -117,5 +119,7 @@ public:
 
     virtual QStringList keys() const = 0;
 };
+
+QT_END_NAMESPACE
 
 #endif

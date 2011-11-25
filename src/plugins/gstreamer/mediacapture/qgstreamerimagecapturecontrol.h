@@ -45,7 +45,8 @@
 
 #include <qcameraimagecapturecontrol.h>
 #include "qgstreamercapturesession.h"
-QT_USE_NAMESPACE
+
+QT_BEGIN_NAMESPACE
 
 class QGstreamerImageCaptureControl : public QCameraImageCaptureControl
 {
@@ -69,5 +70,7 @@ private:
     bool m_ready;
     int m_lastId;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERCAPTURECORNTROL_H

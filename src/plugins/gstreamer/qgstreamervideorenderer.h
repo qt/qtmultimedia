@@ -47,7 +47,7 @@
 
 #include "qgstreamervideorendererinterface.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
 {
@@ -75,5 +75,7 @@ private:
     QVideoSurfaceGstSink *m_videoSink;
     QAbstractVideoSurface *m_surface;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERVIDEORENDRER_H

@@ -49,7 +49,7 @@
 #include <QtCore/qsize.h>
 #include "qgstreamercapturesession.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerV4L2Input : public QObject, public QGstreamerVideoInput
 {
@@ -79,5 +79,7 @@ private:
 
     QByteArray m_device;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERV4L2INPUT_H

@@ -54,8 +54,6 @@
 
 #include <QDebug>
 
-QT_USE_NAMESPACE
-
 namespace
 {
 class CameraRegisterMetaTypes
@@ -74,6 +72,7 @@ public:
 } _registerCameraMetaTypes;
 }
 
+QT_BEGIN_NAMESPACE
 
 /*!
     \class QCamera
@@ -1031,5 +1030,6 @@ void QCamera::unlock()
   \since 1.1
 */
 
+QT_END_NAMESPACE
 
 #include "moc_qcamera.cpp"

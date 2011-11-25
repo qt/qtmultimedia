@@ -47,7 +47,7 @@
 #include "qgstreamervideorendererinterface.h"
 #include <private/qgstreamerbushelper_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoWidget;
 
@@ -108,5 +108,7 @@ private:
     Qt::AspectRatioMode m_aspectRatioMode;
     bool m_fullScreen;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERVIDEOWIDGET_H

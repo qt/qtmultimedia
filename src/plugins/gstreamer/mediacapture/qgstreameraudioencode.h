@@ -43,7 +43,6 @@
 #define QGSTREAMERAUDIOENCODE_H
 
 #include <qaudioencodercontrol.h>
-class QGstreamerCaptureSession;
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
@@ -53,7 +52,9 @@ class QGstreamerCaptureSession;
 
 #include <qaudioformat.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
+
+class QGstreamerCaptureSession;
 
 class QGstreamerAudioEncode : public QAudioEncoderControl
 {
@@ -93,5 +94,7 @@ private:
 
     QAudioEncoderSettings m_audioSettings;
 };
+
+QT_END_NAMESPACE
 
 #endif

@@ -51,7 +51,7 @@
 
 #include <private/qgstreamerbushelper_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
@@ -207,5 +207,7 @@ public:
     QString m_imageFileName;
     int m_imageRequestId;
 };
+
+QT_END_NAMESPACE
 
 #endif // QGSTREAMERCAPTURESESSION_H

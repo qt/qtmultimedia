@@ -58,6 +58,8 @@
 
 #include <gst/gst.h>
 
+QT_BEGIN_NAMESPACE
+
 class QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
@@ -79,5 +81,6 @@ private:
     QVariant m_handle;
 };
 
+QT_END_NAMESPACE
 
 #endif

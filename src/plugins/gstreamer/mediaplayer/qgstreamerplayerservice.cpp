@@ -62,6 +62,8 @@
 #include <qmediaplaylistnavigator.h>
 #include <qmediaplaylist.h>
 
+QT_BEGIN_NAMESPACE
+
 QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
      QMediaService(parent),
      m_videoOutput(0),
@@ -132,3 +134,4 @@ void QGstreamerPlayerService::releaseControl(QMediaControl *control)
     }
 }
 
+QT_END_NAMESPACE

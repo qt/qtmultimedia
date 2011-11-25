@@ -53,7 +53,7 @@ class QX11VideoSurface;
 
 #if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoOverlay : public QVideoWindowControl, public QGstreamerVideoRendererInterface
 {
@@ -113,6 +113,8 @@ private:
     QRect m_displayRect;
     bool m_fullScreen;
 };
+
+QT_END_NAMESPACE
 
 #endif //QT_NO_XVIDEO
 
