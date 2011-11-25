@@ -163,7 +163,8 @@ private:
 QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     QQuickItem(parent),
     m_sourceType(NoSource),
-    m_fillMode(PreserveAspectFit)
+    m_fillMode(PreserveAspectFit),
+    m_orientation(0)
 {
     setFlag(ItemHasContents, true);
     m_surface = new QSGVideoItemSurface(this);
@@ -290,6 +291,14 @@ void QDeclarativeVideoOutput::stop()
     present(QVideoFrame());
 }
 
+/*
+ * Helper - returns true if the given orientation has the same aspect as the default (e.g. 180*n)
+ */
+static inline bool qIsDefaultAspect(int o)
+{
+    return (o % 180) == 0;
+}
+
 /*!
     \qmlproperty enumeration VideoOutput::fillMode
 
@@ -322,7 +331,11 @@ void QDeclarativeVideoOutput::setFillMode(FillMode mode)
 
 void QDeclarativeVideoOutput::_q_updateNativeSize(const QVideoSurfaceFormat &format)
 {
-    const QSize &size = format.sizeHint();
+    QSize size = format.sizeHint();
+    if (!qIsDefaultAspect(m_orientation)) {
+        size.transpose();
+    }
+
     if (m_nativeSize != size) {
         m_nativeSize = size;
 
@@ -363,6 +376,43 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
     }
 }
 
+int QDeclarativeVideoOutput::orientation() const
+{
+    return m_orientation;
+}
+
+void QDeclarativeVideoOutput::setOrientation(int orientation)
+{
+    // Make sure it's a multiple of 90.
+    if (orientation % 90)
+        return;
+
+    // If the new orientation is the same effect
+    // as the old one, don't update the video node stuff
+    if ((m_orientation % 360) == (orientation % 360)) {
+        m_orientation = orientation;
+        emit orientationChanged();
+        return;
+    }
+
+    // Otherwise, a new orientation
+    // See if we need to change aspect ratio orientation too
+    bool oldAspect = qIsDefaultAspect(m_orientation);
+    bool newAspect = qIsDefaultAspect(orientation);
+
+    m_orientation = orientation;
+
+    if (oldAspect != newAspect) {
+        m_nativeSize.transpose();
+
+        setImplicitWidth(m_nativeSize.width());
+        setImplicitHeight(m_nativeSize.height());
+    }
+
+    update();
+    emit orientationChanged();
+}
+
 QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
 {
     QSGVideoNode *videoNode = static_cast<QSGVideoNode *>(oldNode);
@@ -396,7 +446,8 @@ QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintN
         return 0;
 
     _q_updateGeometry();
-    videoNode->setTexturedRectGeometry(m_boundingRect, m_sourceRect);
+    // Negative rotations need lots of %360
+    videoNode->setTexturedRectGeometry(m_boundingRect, m_sourceRect, (360 + (m_orientation % 360)) % 360);
     videoNode->setCurrentFrame(m_frame);
     return videoNode;
 }

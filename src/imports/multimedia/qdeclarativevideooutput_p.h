@@ -65,6 +65,7 @@ class QDeclarativeVideoOutput : public QQuickItem
     Q_DISABLE_COPY(QDeclarativeVideoOutput)
     Q_PROPERTY(QObject* source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
+    Q_PROPERTY(int orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
     Q_ENUMS(FillMode)
 
 public:
@@ -84,9 +85,13 @@ public:
     FillMode fillMode() const;
     void setFillMode(FillMode mode);
 
+    int orientation() const;
+    void setOrientation(int);
+
 Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QDeclarativeVideoOutput::FillMode);
+    void orientationChanged();
 
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *);
@@ -122,6 +127,7 @@ private:
     QSize m_nativeSize;
     QRectF m_boundingRect;
     QRectF m_sourceRect;
+    int m_orientation;
 
     QMutex m_frameMutex;
 };

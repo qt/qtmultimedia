@@ -56,11 +56,12 @@ public:
     virtual void setCurrentFrame(const QVideoFrame &frame) = 0;
     virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
 
-    void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect);
+    void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
 private:
     QRectF m_rect;
     QRectF m_textureRect;
+    int m_orientation;
 };
 
 class QSGVideoNodeFactory {
