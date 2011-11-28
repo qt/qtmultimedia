@@ -647,8 +647,27 @@ void tst_QVideoFrame::map()
 
     QVERIFY(frame.map(mode));
 
-    // Mapping twice should fail, but leave it mapped (and the mode is ignored)
-    QVERIFY(!frame.map(mode));
+    // Mapping multiple times is allowed in ReadOnly mode
+    if (mode == QAbstractVideoBuffer::ReadOnly) {
+        const uchar *bits = frame.bits();
+
+        QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+        QVERIFY(frame.isMapped());
+        QCOMPARE(frame.bits(), bits);
+
+        frame.unmap();
+        //frame should still be mapped after the first nested unmap
+        QVERIFY(frame.isMapped());
+        QCOMPARE(frame.bits(), bits);
+
+        //re-mapping in Write or ReadWrite modes should fail
+        QVERIFY(!frame.map(QAbstractVideoBuffer::WriteOnly));
+        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadWrite));
+    } else {
+        // Mapping twice in ReadWrite or WriteOnly modes should fail, but leave it mapped (and the mode is ignored)
+        QVERIFY(!frame.map(mode));
+        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadOnly));
+    }
 
     QVERIFY(frame.bits());
     QCOMPARE(frame.mappedBytes(), mappedBytes);

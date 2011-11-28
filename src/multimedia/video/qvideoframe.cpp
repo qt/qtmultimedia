@@ -49,6 +49,7 @@
 #include <qsize.h>
 #include <qvariant.h>
 #include <qvector.h>
+#include <qmutex.h>
 
 #include <QDebug>
 
@@ -94,6 +95,7 @@ public:
         , pixelFormat(format)
         , fieldType(QVideoFrame::ProgressiveFrame)
         , buffer(0)
+        , mappedCount(0)
     {
     }
 
@@ -111,6 +113,8 @@ public:
     QVideoFrame::PixelFormat pixelFormat;
     QVideoFrame::FieldType fieldType;
     QAbstractVideoBuffer *buffer;
+    int mappedCount;
+    QMutex mapMutex;
 
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)
@@ -528,6 +532,9 @@ QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
     When access to the data is no longer needed be sure to call the unmap() function to release the
     mapped memory and possibly update the video frame contents.
 
+    If the video frame is mapped in read only mode, it's allowed to map it for reading again,
+    in all the other cases it's necessary to unmap the frame first.
+
     Returns true if the buffer was mapped to memory in the given \a mode and false otherwise.
 
     \since 1.0
@@ -535,13 +542,34 @@ QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
 */
 bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
 {
-    if (d->buffer != 0 && d->data == 0) {
-        Q_ASSERT(d->bytesPerLine == 0);
-        Q_ASSERT(d->mappedBytes == 0);
+    QMutexLocker lock(&d->mapMutex);
 
-        d->data = d->buffer->map(mode, &d->mappedBytes, &d->bytesPerLine);
+    if (!d->buffer)
+        return false;
 
-        return d->data != 0;
+    if (mode == QAbstractVideoBuffer::NotMapped)
+        return false;
+
+    if (d->mappedCount > 0) {
+        //it's allowed to map the video frame multiple times in read only mode
+        if (d->buffer->mapMode() == QAbstractVideoBuffer::ReadOnly
+                && mode == QAbstractVideoBuffer::ReadOnly) {
+            d->mappedCount++;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    Q_ASSERT(d->data == 0);
+    Q_ASSERT(d->bytesPerLine == 0);
+    Q_ASSERT(d->mappedBytes == 0);
+
+    d->data = d->buffer->map(mode, &d->mappedBytes, &d->bytesPerLine);
+
+    if (d->data) {
+        d->mappedCount++;
+        return true;
     }
 
     return false;
@@ -553,12 +581,26 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
     If the \l {QAbstractVideoBuffer::MapMode}{MapMode} included the QAbstractVideoBuffer::WriteOnly
     flag this will persist the current content of the mapped memory to the video frame.
 
+    unmap() should not be called if map() function failed.
+
     \since 1.0
     \sa map()
 */
 void QVideoFrame::unmap()
 {
-    if (d->data != 0) {
+    QMutexLocker lock(&d->mapMutex);
+
+    if (!d->buffer)
+        return;
+
+    if (d->mappedCount == 0) {
+        qWarning() << "QVideoFrame::unmap() was called more times then QVideoFrame::map()";
+        return;
+    }
+
+    d->mappedCount--;
+
+    if (d->mappedCount == 0) {
         d->mappedBytes = 0;
         d->bytesPerLine = 0;
         d->data = 0;
