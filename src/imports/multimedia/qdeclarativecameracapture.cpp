@@ -43,6 +43,8 @@
 #include "qdeclarativecameracapture_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
 
+#include <qmetadatawritercontrol.h>
+
 #include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
@@ -61,6 +63,9 @@ QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera, QObject *p
     connect(m_capture, SIGNAL(imageSaved(int,QString)), this, SLOT(_q_imageSaved(int, QString)));
     connect(m_capture, SIGNAL(error(int,QCameraImageCapture::Error,QString)),
             this, SLOT(_q_captureFailed(int,QCameraImageCapture::Error,QString)));
+
+    QMediaService *service = camera->service();
+    m_metadataWriterControl = service ? service->requestControl<QMetaDataWriterControl*>() : 0;
 }
 
 QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
@@ -196,9 +201,8 @@ QString QDeclarativeCameraCapture::errorString() const
 
 void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &value)
 {
-    Q_UNUSED(key);
-    Q_UNUSED(value);
-    //m_capture->setExtendedMetaData(key, value);
+    if (m_metadataWriterControl)
+        m_metadataWriterControl->setExtendedMetaData(key, value);
 }
 
 /*!

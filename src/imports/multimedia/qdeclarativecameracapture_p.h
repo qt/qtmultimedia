@@ -64,6 +64,7 @@ QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;
+class QMetaDataWriterControl;
 
 class QDeclarativeCameraCapture : public QObject
 {
@@ -117,6 +118,7 @@ private:
     QCameraImageCapture *m_capture;
     QImageEncoderSettings m_imageSettings;
     QString m_capturedImagePath;
+    QMetaDataWriterControl *m_metadataWriterControl;
 };
 
 QT_END_NAMESPACE
