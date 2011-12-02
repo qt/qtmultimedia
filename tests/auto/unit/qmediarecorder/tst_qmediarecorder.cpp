@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -41,9 +41,90 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "tst_qmediarecorder.h"
+#include <QtTest/QtTest>
+#include <QDebug>
+#include <qmediaobject.h>
+#include <qmediacontrol.h>
+#include <qmediaservice.h>
+#include <qmediarecordercontrol.h>
+#include <qmediarecorder.h>
+#include <qmetadatawritercontrol.h>
+#include <qaudioendpointselector.h>
+#include <qaudioencodercontrol.h>
+#include <qmediacontainercontrol.h>
+#include <qvideoencodercontrol.h>
+#include <qaudioformat.h>
+
+#include "mockmediarecorderservice.h"
+#include "mockmediaobject.h"
 
 QT_USE_NAMESPACE
+
+class tst_QMediaRecorder: public QObject
+{
+    Q_OBJECT
+
+public slots:
+    void initTestCase();
+    void cleanupTestCase();
+
+private slots:
+    void testNullService();
+    void testNullControls();
+    void testDeleteMediaObject();
+    void testError();
+    void testSink();
+    void testRecord();
+    void testMute();
+    void testAudioDeviceControl();
+    void testAudioEncodeControl();
+    void testMediaFormatsControl();
+    void testVideoEncodeControl();
+    void testEncodingSettings();
+    void testAudioSettings();
+    void testVideoSettings();
+
+    void nullMetaDataControl();
+    void isMetaDataAvailable();
+    void isWritable();
+    void metaDataChanged();
+    void metaData_data();
+    void metaData();
+    void setMetaData_data();
+    void setMetaData();
+    void extendedMetaData_data() { metaData_data(); }
+    void extendedMetaData();
+    void setExtendedMetaData_data() { extendedMetaData_data(); }
+    void setExtendedMetaData();
+
+    void testAudioSettingsCopyConstructor();
+    void testAudioSettingsOperatorNotEqual();
+    void testAudioSettingsOperatorEqual();
+    void testAudioSettingsOperatorAssign();
+    void testAudioSettingsDestructor();
+
+    void testAvailabilityError();
+    void testIsAvailable();
+    void testMediaObject();
+    void testEnum();
+
+    void testVideoSettingsQuality();
+    void testVideoSettingsEncodingMode();
+    void testVideoSettingsCopyConstructor();
+    void testVideoSettingsOperatorAssignment();
+    void testVideoSettingsOperatorNotEqual();
+    void testVideoSettingsOperatorComparison();
+    void testVideoSettingsDestructor();
+
+private:
+    QAudioEncoderControl* encode;
+    QAudioEndpointSelector* audio;
+    MockMediaObject *object;
+    MockMediaRecorderService*service;
+    MockMediaRecorderControl *mock;
+    QMediaRecorder *capture;
+    QVideoEncoderControl* videoEncode;
+};
 
 void tst_QMediaRecorder::initTestCase()
 {
@@ -1284,3 +1365,6 @@ void tst_QMediaRecorder::testVideoSettingsDestructor()
     QVERIFY(!settings2->isNull());
     delete settings2;
 }
+
+QTEST_GUILESS_MAIN(tst_QMediaRecorder)
+#include "tst_qmediarecorder.moc"

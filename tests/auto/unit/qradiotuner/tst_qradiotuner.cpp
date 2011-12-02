@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -41,9 +41,49 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "tst_qradiotuner.h"
+#include <QtTest/QtTest>
+#include <QDebug>
+#include <QTimer>
+
+#include <qmediaobject.h>
+#include <qmediacontrol.h>
+#include <qmediaservice.h>
+#include <qradiotunercontrol.h>
+#include <qradiotuner.h>
+
+#include "mockmediaserviceprovider.h"
+#include "mockmediaservice.h"
+#include "mockradiotunercontrol.h"
 
 QT_USE_NAMESPACE
+
+class tst_QRadioTuner: public QObject
+{
+    Q_OBJECT
+
+public slots:
+    void initTestCase();
+    void cleanupTestCase();
+
+private slots:
+    void testNullService();
+    void testNullControl();
+    void testBand();
+    void testFrequency();
+    void testMute();
+    void testSearch();
+    void testVolume();
+    void testSignal();
+    void testStereo();
+    void testSearchAllStations();
+    void errorSignal();
+
+private:
+    MockRadioTunerControl     *mock;
+    MockMediaService     *service;
+    MockMediaServiceProvider    *provider;
+    QRadioTuner    *radio;
+};
 
 void tst_QRadioTuner::initTestCase()
 {
@@ -334,3 +374,6 @@ void tst_QRadioTuner::errorSignal()
     spy.clear();
     radio.stop();
 }
+
+QTEST_GUILESS_MAIN(tst_QRadioTuner)
+#include "tst_qradiotuner.moc"

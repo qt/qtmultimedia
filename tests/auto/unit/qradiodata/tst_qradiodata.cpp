@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -41,9 +41,42 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "tst_qradiodata.h"
+#include <QtTest/QtTest>
+#include <QDebug>
+#include <QTimer>
+
+#include <qmediaobject.h>
+#include <qmediacontrol.h>
+#include <qmediaservice.h>
+#include <qradiodatacontrol.h>
+#include <qradiodata.h>
+
+#include "mockmediaserviceprovider.h"
+#include "mockmediaservice.h"
+#include "mockradiodatacontrol.h"
 
 QT_USE_NAMESPACE
+
+class tst_QRadioData: public QObject
+{
+    Q_OBJECT
+
+public slots:
+    void initTestCase();
+    void cleanupTestCase();
+
+private slots:
+    void testNullService();
+    void testNullControl();
+    void testAlternativeFrequencies();
+    void testRadioDataUpdates();
+
+private:
+    MockRadioDataControl     *mock;
+    MockMediaService     *service;
+    MockMediaServiceProvider    *provider;
+    QRadioData    *radio;
+};
 
 void tst_QRadioData::initTestCase()
 {
@@ -146,3 +179,6 @@ void tst_QRadioData::testRadioDataUpdates()
     QCOMPARE(radio->stationId(), QString("Mock Programme Identification"));
     QCOMPARE(radio->stationName(), QString("Mock Programme Service"));
 }
+
+QTEST_GUILESS_MAIN(tst_QRadioData)
+#include "tst_qradiodata.moc"

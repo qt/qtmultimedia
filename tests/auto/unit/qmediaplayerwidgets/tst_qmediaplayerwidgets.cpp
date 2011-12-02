@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -41,11 +41,42 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "tst_qmediaplayerwidgets.h"
-#include "mockvideosurface.h"
+#include <QtTest/QtTest>
+#include <QtCore/qdebug.h>
+#include <QtCore/qbuffer.h>
+#include <QtNetwork/qnetworkconfiguration.h>
+
 #include <qgraphicsvideoitem.h>
+#include <qabstractvideosurface.h>
+#include <qmediaplayer.h>
+#include <qmediaplayercontrol.h>
+
+#include "mockmediaserviceprovider.h"
+#include "mockmediaplayerservice.h"
+#include "mockvideosurface.h"
 
 QT_USE_NAMESPACE
+
+class tst_QMediaPlayerWidgets: public QObject
+{
+    Q_OBJECT
+
+public slots:
+    void initTestCase();
+    void cleanupTestCase();
+    void init();
+    void cleanup();
+
+private slots:
+    void testSetVideoOutput();
+    void testSetVideoOutputNoService();
+    void testSetVideoOutputNoControl();
+
+private:
+    MockMediaServiceProvider *mockProvider;
+    MockMediaPlayerService  *mockService;
+    QMediaPlayer *player;
+};
 
 void tst_QMediaPlayerWidgets::initTestCase()
 {
@@ -160,3 +191,5 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoControl()
     QVERIFY(service.rendererControl->surface() == 0);
 }
 
+QTEST_MAIN(tst_QMediaPlayerWidgets)
+#include "tst_qmediaplayerwidgets.moc"

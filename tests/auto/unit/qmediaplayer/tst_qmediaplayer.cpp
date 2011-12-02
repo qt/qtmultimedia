@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -41,9 +41,25 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "tst_qmediaplayer.h"
+#include <QtTest/QtTest>
 
+#include <QtCore/qdebug.h>
+#include <QtCore/qbuffer.h>
+#include <QtNetwork/qnetworkconfiguration.h>
 #include <QtNetwork/qnetworkconfigmanager.h>
+
+#include <qabstractvideosurface.h>
+#include <qmediaplayer.h>
+#include <qmediaplayercontrol.h>
+#include <qmediaplaylist.h>
+#include <qmediaservice.h>
+#include <qmediastreamscontrol.h>
+#include <qmedianetworkaccesscontrol.h>
+#include <qvideorenderercontrol.h>
+
+#include "mockmediaserviceprovider.h"
+#include "mockmediaplayerservice.h"
+#include "mockvideosurface.h"
 
 // Encouraging successful diversity through copy and paste.
 #ifndef QTRY_COMPARE
@@ -78,7 +94,75 @@
 
 QT_USE_NAMESPACE
 
-#include "mockvideosurface.h"
+class AutoConnection
+{
+public:
+    AutoConnection(QObject *sender, const char *signal, QObject *receiver, const char *method)
+            : sender(sender), signal(signal), receiver(receiver), method(method)
+    {
+        QObject::connect(sender, signal, receiver, method);
+    }
+
+    ~AutoConnection()
+    {
+        QObject::disconnect(sender, signal, receiver, method);
+    }
+
+private:
+    QObject *sender;
+    const char *signal;
+    QObject *receiver;
+    const char *method;
+};
+
+class tst_QMediaPlayer: public QObject
+{
+    Q_OBJECT
+
+public slots:
+    void initTestCase_data();
+    void initTestCase();
+    void cleanupTestCase();
+    void init();
+    void cleanup();
+
+private slots:
+    void testNullService();
+    void testValid();
+    void testMedia();
+    void testDuration();
+    void testPosition();
+    void testVolume();
+    void testMuted();
+    void testIsAvailable();
+    void testVideoAvailable();
+    void testBufferStatus();
+    void testSeekable();
+    void testPlaybackRate();
+    void testError();
+    void testErrorString();
+    void testService();
+    void testPlay();
+    void testPause();
+    void testStop();
+    void testMediaStatus();
+    void testPlaylist();
+    void testNetworkAccess();
+    void testSetVideoOutput();
+    void testSetVideoOutputNoService();
+    void testSetVideoOutputNoControl();
+    void testSetVideoOutputDestruction();
+    void testPositionPropertyWatch();
+    void debugEnums();
+    void testPlayerFlags();
+    void testDestructor();
+    void testSupportedMimeTypes();
+
+private:
+    MockMediaServiceProvider *mockProvider;
+    MockMediaPlayerService  *mockService;
+    QMediaPlayer *player;
+};
 
 void tst_QMediaPlayer::initTestCase_data()
 {
@@ -1048,3 +1132,6 @@ void tst_QMediaPlayer::testSupportedMimeTypes()
 
     // This is empty on some platforms, and not on others, so can't test something here at the moment.
 }
+
+QTEST_GUILESS_MAIN(tst_QMediaPlayer)
+#include "tst_qmediaplayer.moc"

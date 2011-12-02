@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -41,12 +41,110 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "tst_qmediaobject.h"
+#include <QtTest/QtTest>
+
+#include <QtCore/qtimer.h>
+
+#include <qmediaobject.h>
+#include <qmediaservice.h>
+#include <qmetadatareadercontrol.h>
+#include <qaudiocapturesource.h>
+#include <qaudioendpointselector.h>
 
 #include "mockmediarecorderservice.h"
 #include "mockmediaserviceprovider.h"
+#include "mockmetadatareadercontrol.h"
+
+class QtTestMetaDataService : public QMediaService
+{
+    Q_OBJECT
+public:
+    QtTestMetaDataService(QObject *parent = 0):QMediaService(parent), metaDataRef(0), hasMetaData(true)
+    {
+    }
+
+    QMediaControl *requestControl(const char *iid)
+    {
+        if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
+            return &metaData;
+        else
+            return 0;
+    }
+
+    void releaseControl(QMediaControl *)
+    {
+    }
+
+    MockMetaDataReaderControl metaData;
+    int metaDataRef;
+    bool hasMetaData;
+};
 
 QT_USE_NAMESPACE
+
+class tst_QMediaObject : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void propertyWatch();
+    void notifySignals_data();
+    void notifySignals();
+    void notifyInterval_data();
+    void notifyInterval();
+
+    void nullMetaDataControl();
+    void isMetaDataAvailable();
+    void metaDataChanged();
+    void metaData_data();
+    void metaData();
+    void availability();
+    void extendedMetaData_data() { metaData_data(); }
+    void extendedMetaData();
+
+    void service();
+    void availabilityChangedSignal();
+
+private:
+    void setupNotifyTests();
+};
+
+class QtTestMediaObject : public QMediaObject
+{
+    Q_OBJECT
+    Q_PROPERTY(int a READ a WRITE setA NOTIFY aChanged)
+    Q_PROPERTY(int b READ b WRITE setB NOTIFY bChanged)
+    Q_PROPERTY(int c READ c WRITE setC NOTIFY cChanged)
+    Q_PROPERTY(int d READ d WRITE setD)
+public:
+    QtTestMediaObject(QMediaService *service = 0): QMediaObject(0, service), m_a(0), m_b(0), m_c(0), m_d(0) {}
+
+    using QMediaObject::addPropertyWatch;
+    using QMediaObject::removePropertyWatch;
+
+    int a() const { return m_a; }
+    void setA(int a) { m_a = a; }
+
+    int b() const { return m_b; }
+    void setB(int b) { m_b = b; }
+
+    int c() const { return m_c; }
+    void setC(int c) { m_c = c; }
+
+    int d() const { return m_d; }
+    void setD(int d) { m_d = d; }
+
+Q_SIGNALS:
+    void aChanged(int a);
+    void bChanged(int b);
+    void cChanged(int c);
+
+private:
+    int m_a;
+    int m_b;
+    int m_c;
+    int m_d;
+};
 
 void tst_QMediaObject::propertyWatch()
 {
@@ -400,4 +498,7 @@ void tst_QMediaObject::availability()
      QVERIFY(spy.count() == 1);
      available = qvariant_cast<bool>(spy.at(0).at(0));
      QVERIFY(available == false);
- }
+}
+
+QTEST_GUILESS_MAIN(tst_QMediaObject)
+#include "tst_qmediaobject.moc"

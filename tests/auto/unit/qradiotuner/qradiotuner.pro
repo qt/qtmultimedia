@@ -1,11 +1,7 @@
-CONFIG += testcase
+CONFIG += testcase no_private_qt_headers_warning
 TARGET = tst_qradiotuner
-
 QT += multimedia-private testlib
-CONFIG += no_private_qt_headers_warning
-
-HEADERS += tst_qradiotuner.h
-SOURCES += main.cpp tst_qradiotuner.cpp
+SOURCES += tst_qradiotuner.cpp
 
 include (../qmultimedia_common/mock.pri)
 include (../qmultimedia_common/mockradio.pri)

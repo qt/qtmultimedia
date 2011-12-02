@@ -1,12 +1,7 @@
-CONFIG += testcase
+CONFIG += testcase no_private_qt_headers_warning
 TARGET = tst_qmediarecorder
-
 QT += multimedia-private testlib
-CONFIG += no_private_qt_headers_warning
+SOURCES += tst_qmediarecorder.cpp
 
 include (../qmultimedia_common/mock.pri)
 include (../qmultimedia_common/mockrecorder.pri)
-
-HEADERS += tst_qmediarecorder.h
-SOURCES += main.cpp tst_qmediarecorder.cpp
-
