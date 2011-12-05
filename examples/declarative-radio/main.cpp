@@ -41,7 +41,7 @@
 #include <QGuiApplication>
 
 #include <qdeclarative.h>
-#include <qquickview.h>
+#include <QtQuick/qquickview.h>
 
 
 int main(int argc, char ** argv)

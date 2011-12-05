@@ -3,7 +3,7 @@ TARGETPATH = QtMultimedia
 
 include(../qimportbase.pri)
 
-QT += declarative network multimedia-private
+QT += declarative quick network multimedia-private
 
 DESTDIR = $$QT.multimedia.imports/$$TARGETPATH
 target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
