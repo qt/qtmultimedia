@@ -420,26 +420,36 @@ QAudioFormat::SampleType QAudioFormat::sampleType() const
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAudioFormat::Endian endian)
 {
+    QDebug nospace = dbg.nospace();
     switch (endian) {
         case QAudioFormat::BigEndian:
-            return dbg.nospace() << "BigEndian";
+            nospace << "BigEndian";
+            break;
         case QAudioFormat::LittleEndian:
-            return dbg.nospace() << "LittleEndian";
+            nospace << "LittleEndian";
+            break;
     }
+    return nospace;
 }
 
 QDebug operator<<(QDebug dbg, QAudioFormat::SampleType type)
 {
+    QDebug nospace = dbg.nospace();
     switch (type) {
         case QAudioFormat::SignedInt:
-            return dbg.nospace() << "SignedInt";
+            nospace << "SignedInt";
+            break;
         case QAudioFormat::UnSignedInt:
-            return dbg.nospace() << "UnSignedInt";
+            nospace << "UnSignedInt";
+            break;
         case QAudioFormat::Float:
-            return dbg.nospace() << "Float";
-        default:
-            return dbg.nospace() << "Unknown";
+            nospace << "Float";
+            break;
+       default:
+            nospace << "Unknown";
+            break;
     }
+    return nospace;
 }
 
 QDebug operator<<(QDebug dbg, const QAudioFormat &f)

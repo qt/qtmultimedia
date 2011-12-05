@@ -608,32 +608,45 @@ void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
 {
+    QDebug nospace = dbg.nospace();
     switch (cs) {
         case QVideoSurfaceFormat::YCbCr_BT601:
-            return dbg.nospace() << "YCbCr_BT601";
+            nospace << "YCbCr_BT601";
+            break;
         case QVideoSurfaceFormat::YCbCr_BT709:
-            return dbg.nospace() << "YCbCr_BT709";
+            nospace << "YCbCr_BT709";
+            break;
         case QVideoSurfaceFormat::YCbCr_JPEG:
-            return dbg.nospace() << "YCbCr_JPEG";
+            nospace << "YCbCr_JPEG";
+            break;
         case QVideoSurfaceFormat::YCbCr_xvYCC601:
-            return dbg.nospace() << "YCbCr_xvYCC601";
+            nospace << "YCbCr_xvYCC601";
+            break;
         case QVideoSurfaceFormat::YCbCr_xvYCC709:
-            return dbg.nospace() << "YCbCr_xvYCC709";
+            nospace << "YCbCr_xvYCC709";
+            break;
         case QVideoSurfaceFormat::YCbCr_CustomMatrix:
-            return dbg.nospace() << "YCbCr_CustomMatrix";
+            nospace << "YCbCr_CustomMatrix";
+            break;
         default:
-            return dbg.nospace() << "YCbCr_Undefined";
+            nospace << "YCbCr_Undefined";
+            break;
     }
+    return nospace;
 }
 
 QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::Direction dir)
 {
+    QDebug nospace = dbg.nospace();
     switch (dir) {
         case QVideoSurfaceFormat::BottomToTop:
-            return dbg.nospace() << "BottomToTop";
+            nospace << "BottomToTop";
+            break;
         case QVideoSurfaceFormat::TopToBottom:
-            return dbg.nospace() << "TopToBottom";
+            nospace << "TopToBottom";
+            break;
     }
+    return nospace;
 }
 
 QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)

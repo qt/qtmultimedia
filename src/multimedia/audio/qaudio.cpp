@@ -101,42 +101,59 @@ public:
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAudio::Error error)
 {
+    QDebug nospace = dbg.nospace();
     switch (error) {
         case QAudio::NoError:
-            return dbg.nospace() << "NoError";
+            nospace << "NoError";
+            break;
         case QAudio::OpenError:
-            return dbg.nospace() << "OpenError";
+            nospace << "OpenError";
+            break;
         case QAudio::IOError:
-            return dbg.nospace() << "IOError";
+            nospace << "IOError";
+            break;
         case QAudio::UnderrunError:
-            return dbg.nospace() << "UnderrunError";
+            nospace << "UnderrunError";
+            break;
         case QAudio::FatalError:
-            return dbg.nospace() << "FatalError";
+            nospace << "FatalError";
+            break;
     }
+    return nospace;
 }
 
 QDebug operator<<(QDebug dbg, QAudio::State state)
 {
+    QDebug nospace = dbg.nospace();
     switch (state) {
         case QAudio::ActiveState:
-            return dbg.nospace() << "ActiveState";
+            nospace << "ActiveState";
+            break;
         case QAudio::SuspendedState:
-            return dbg.nospace() << "SuspendedState";
+            nospace << "SuspendedState";
+            break;
         case QAudio::StoppedState:
-            return dbg.nospace() << "StoppedState";
+            nospace << "StoppedState";
+            break;
         case QAudio::IdleState:
-            return dbg.nospace() << "IdleState";
+            nospace << "IdleState";
+            break;
     }
+    return nospace;
 }
 
 QDebug operator<<(QDebug dbg, QAudio::Mode mode)
 {
+    QDebug nospace = dbg.nospace();
     switch (mode) {
         case QAudio::AudioInput:
-            return dbg.nospace() << "AudioInput";
+            nospace << "AudioInput";
+            break;
         case QAudio::AudioOutput:
-            return dbg.nospace() << "AudioOutput";
+            nospace << "AudioOutput";
+            break;
     }
+    return nospace;
 }
 #endif
 
