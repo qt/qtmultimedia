@@ -98,21 +98,6 @@ QT_USE_NAMESPACE
     } while(0)
 #endif
 
-
-#define QTRY_WAIT(code, __expr) \
-        do { \
-        const int __step = 50; \
-        const int __timeout = 10000; \
-        if (!(__expr)) { \
-            QTest::qWait(0); \
-        } \
-        for (int __i = 0; __i < __timeout && !(__expr); __i+=__step) { \
-            do { code } while(0); \
-            QTest::qWait(__step); \
-        } \
-    } while(0)
-
-
 /*
  This is the backend conformance test.
 
