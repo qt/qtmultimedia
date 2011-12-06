@@ -113,8 +113,8 @@ change_camera_settings: function()
     take_a_video: function()
     {
         // Test meta data
-         testApplication = "Multimedia - Video Camera";
-         testBinary = "camera";
+        testApplication = "Multimedia - Video Camera";
+        testBinary = "camera";
         testGoal = "Verify that the camera can capture and save an audio/video file.";
         testPreconditions = "";
         testGroups = "BAT";
@@ -172,10 +172,4 @@ change_camera_settings: function()
             | Change Quality | Verify that camera can record |
         "));
     },
-
-
-
-
-
-
 }
