@@ -156,7 +156,7 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
 
             | *Step* | *Verification* |
             | Launch " + testBinary + " | App launches normally |
-            | Select "Sequential" as the Play Mode |  |
+            | Select 'Sequential' as the Play Mode |  |
             | Select the desired "+filename+extension+" in playlist and press [Play] | Verify that file plays properly from the start |
             | | Verify that the correct track details are displayed in the Playlist |
             | Select [Next] | Verify that the next file in the playlist is highlighted |
@@ -171,7 +171,7 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
             | Select file in playlist | Verify that file plays in player. |
             | Select number of files greater than can be displayed without scrolling in to playlist | Verify that list can be scrolled through |
             | Navigate to the last file in the playlist and select [Next] | Verify that no other track is played |
-            | Select "Loop" as the Play Mode | |
+            | Select 'Loop' as the Play Mode | |
             | Select [Next] | Verify that the next song played is the first song in the playlist |
             | While first song is playing select [Prev] | Verify that the last song in the playlist is now playing |
             | Select [current Loop] from Play Mode | Verify that the same song now plays in a loop |
@@ -185,12 +185,12 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
     },
 
     seek_controls_for_audio_data: {
-        mp3:[".mp3", "filename", "mpeg audio layer 3"],
-        wav:[".wav", "filename", "waveform audio"],
+        //mp3:[".mp3", "filename", "mpeg audio layer 3"],
+        //wav:[".wav", "filename", "waveform audio"],
         ogg:[".ogg", "filename", "container format"],
-        virbis:[".oga", "filename", "audio compression format"],
-        speex:[".spx", "filename", "speech audio format"],
-        flac:[".flac", "filename", "audio file format"]
+        //virbis:[".oga", "filename", "audio compression format"],
+        //speex:[".spx", "filename", "speech audio format"],
+        //flac:[".flac", "filename", "audio file format"]
     },
 
     seek_controls_for_audio: function(extension, filename, format)
@@ -295,7 +295,7 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
         "));
     },
 
-pause_recording_an_audio_file: function()
+    pause_recording_an_audio_file: function()
     {
 
       // Test meta data
@@ -334,4 +334,61 @@ pause_recording_an_audio_file: function()
          | | Verify there is no audible artifact that separates the two or more recording periods, that is that the joint is seamless |
         "));
     },
+
+    play_sound_efects: function()
+    {
+
+      // Test meta data
+      testApplication = "Multimedia - SoundEffects Playback";
+      testBinary = "BeatBox";
+      testGoal = "Verify playback of sound effects.";
+      testPreconditions = "";
+      testGroups = "BAT, 1.2";
+
+      // Test steps
+      prompt(twiki("---+++ " + testApplication + "<br><br>
+          *Goal:* " + testGoal + "<br>
+          *Pre-Requisites:* " + testPreconditions + "<br>
+          *Tested Binary:* " + testBinary + "<br>
+
+         | *Step* | *Verification* |
+         | Launch " + testBinary + " | Verify app launches normally |
+         | Touch red rectangle | Verify that a soundeffect is audible |
+         | Touch blue rectangle | Verify that a soundeffect is audible |
+         | Touch green rectangle | Verify that a soundeffect is audible |
+         | Tuch yellow rectangle | Verify that a soundeffect is audible |
+         | Touch a combination of rectangles in quick succession | Verify that sound effects trigger on each touch |
+         | Close application | Verify that the application closes without issues |
+        "));
+    },
+
+    play_sound_efects_over_compressed_audio: function()
+    {
+
+      // Test meta data
+      testApplication = "Multimedia - SoundEffects Playback";
+      testBinary = "BeatBox";
+      testGoal = "Verify playback of sound effects over audio track.";
+      testPreconditions = "BGMPTest01 application to provide backround playback";
+      testGroups = "BAT, 1.2";
+
+      // Test steps
+      prompt(twiki("---+++ " + testApplication + "<br><br>
+          *Goal:* " + testGoal + "<br>
+          *Pre-Requisites:* " + testPreconditions + "<br>
+          *Tested Binary:* " + testBinary + "<br>
+
+         | *Step* | *Verification* |
+         | Launch BGMPTest01, start playback of playlist | Audio sould be heard from the device |
+         | Swipe to backround BGMPTest01 | Audio should still be heard from BGMPTest01 |
+         | Launch " + testBinary + " | Verify app launches normally |
+         | Touch red rectangle | Verify that a soundeffect is audible toghether with the background track |
+         | Touch blue rectangle | Verify that a soundeffect is audible toghether with the background track |
+         | Touch green rectangle | Verify that a soundeffect is audible toghether with the background track |
+         | Tuch yellow rectangle | Verify that a soundeffect is audible toghether with the background track |
+         | Touch a combination of rectangles in quick succession | Verify that sound effects trigger on each touch and that the background track can still be heard |
+         | Close application | Verify that the application closes without issues |
+         |  | Verify that BGMPTest01 is still playing audio tracks |
+        "));
+    }
 }
