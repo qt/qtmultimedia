@@ -88,6 +88,8 @@ public:
                                 trUtf8("CameraExposure is only provided by Camera element"));
         qmlRegisterUncreatableType<QDeclarativeCameraFocus>(uri, 4, 0, "CameraFocus",
                                 trUtf8("CameraFocus is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 4, 0, "CameraFlash",
+                                trUtf8("CameraFlash is only provided by Camera element"));
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 4, 0, "CameraImageProcessing",
                                 trUtf8("CameraImageProcessing is only provided by Camera element"));
         qmlRegisterType<QDeclarativeMediaMetaData>();
