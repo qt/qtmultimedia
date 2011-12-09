@@ -42,7 +42,7 @@
 #ifndef QSGVIDEONODE_P_H
 #define QSGVIDEONODE_P_H
 
-#include <QtQuick/qsgnode.h>
+#include <qsgnode.h>
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
