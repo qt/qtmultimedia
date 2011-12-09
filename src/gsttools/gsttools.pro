@@ -43,7 +43,6 @@ PRIVATE_HEADERS += \
     qgstvideobuffer_p.h \
     qvideosurfacegstsink_p.h \
 
-
 SOURCES += \
     qgstbufferpoolinterface.cpp \
     qgstreamerbushelper.cpp \
@@ -52,12 +51,13 @@ SOURCES += \
     qgstvideobuffer.cpp \
     qvideosurfacegstsink.cpp \
 
-!win32:!contains(QT_CONFIG,embedded):!mac:!simulator:!contains(QT_CONFIG, qpa) {
+contains(config_test_xvideo, yes) {
+    DEFINES += HAVE_XVIDEO
+
     LIBS += -lXv -lX11 -lXext
 
     PRIVATE_HEADERS += \
         qgstxvimagebuffer_p.h \
-
 
     SOURCES += \
         qgstxvimagebuffer.cpp \

@@ -44,9 +44,7 @@
 
 #include <qvideosurfaceformat.h>
 
-#include <private/qx11videosurface_p.h>
-
-#ifndef QT_NO_XVIDEO
+#include <qx11videosurface.h>
 
 QGstreamerVideoOverlay::QGstreamerVideoOverlay(QObject *parent)
     : QVideoWindowControl(parent)
@@ -228,5 +226,3 @@ void QGstreamerVideoOverlay::setScaledDisplayRect()
         break;
     };
 }
-
-#endif //QT_NO_XVIDEO

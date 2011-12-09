@@ -41,10 +41,9 @@
 
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
-#include <QtWidgets/qx11info_x11.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qplatformnativeinterface_qpa.h>
 #include <qvideosurfaceformat.h>
-
-#ifndef QT_NO_XVIDEO
 
 #include "qx11videosurface.h"
 
@@ -149,10 +148,10 @@ QX11VideoSurface::QX11VideoSurface(QObject *parent)
 QX11VideoSurface::~QX11VideoSurface()
 {
     if (m_gc)
-        XFreeGC(QX11Info::display(), m_gc);
+        XFreeGC(display(), m_gc);
 
     if (m_portId != 0)
-        XvUngrabPort(QX11Info::display(), m_portId, 0);
+        XvUngrabPort(display(), m_portId, 0);
 }
 
 WId QX11VideoSurface::winId() const
@@ -171,12 +170,12 @@ void QX11VideoSurface::setWinId(WId id)
         XFree(m_image);
 
     if (m_gc) {
-        XFreeGC(QX11Info::display(), m_gc);
+        XFreeGC(display(), m_gc);
         m_gc = 0;
     }
 
     if (m_portId != 0)
-        XvUngrabPort(QX11Info::display(), m_portId, 0);
+        XvUngrabPort(display(), m_portId, 0);
 
     m_supportedPixelFormats.clear();
     m_formatIds.clear();
@@ -186,7 +185,7 @@ void QX11VideoSurface::setWinId(WId id)
     if (m_winId && findPort()) {
         querySupportedFormats();
 
-        m_gc = XCreateGC(QX11Info::display(), m_winId, 0, 0);
+        m_gc = XCreateGC(display(), m_winId, 0, 0);
 
         if (m_image) {
             m_image = 0;
@@ -271,13 +270,13 @@ void QX11VideoSurface::setSaturation(int saturation)
 int QX11VideoSurface::getAttribute(const char *attribute, int minimum, int maximum) const
 {
     if (m_portId != 0) {
-        Display *display = QX11Info::display();
+        Display *disp = display();
 
-        Atom atom = XInternAtom(display, attribute, True);
+        Atom atom = XInternAtom(disp, attribute, True);
 
         int value = 0;
 
-        XvGetPortAttribute(display, m_portId, atom, &value);
+        XvGetPortAttribute(disp, m_portId, atom, &value);
 
         return redistribute(value, minimum, maximum, -100, 100);
     } else {
@@ -288,12 +287,12 @@ int QX11VideoSurface::getAttribute(const char *attribute, int minimum, int maxim
 void QX11VideoSurface::setAttribute(const char *attribute, int value, int minimum, int maximum)
 {
     if (m_portId != 0) {
-        Display *display = QX11Info::display();
+        Display *disp = display();
 
-        Atom atom = XInternAtom(display, attribute, True);
+        Atom atom = XInternAtom(disp, attribute, True);
 
         XvSetPortAttribute(
-                display, m_portId, atom, redistribute(value, -100, 100, minimum, maximum));
+                disp, m_portId, atom, redistribute(value, -100, 100, minimum, maximum));
     }
 }
 
@@ -330,7 +329,7 @@ bool QX11VideoSurface::start(const QVideoSurfaceFormat &format)
         setError(UnsupportedFormatError);
     } else {
         XvImage *image = XvCreateImage(
-                QX11Info::display(),
+                display(),
                 m_portId,
                 xvFormatId,
                 0,
@@ -403,7 +402,7 @@ bool QX11VideoSurface::present(const QVideoFrame &frame)
 
                     //qDebug() << "copy frame";
                     XvPutImage(
-                            QX11Info::display(),
+                            display(),
                             m_portId,
                             m_winId,
                             m_gc,
@@ -424,7 +423,7 @@ bool QX11VideoSurface::present(const QVideoFrame &frame)
                     //qDebug() << "render directly";
                     if (img)
                         XvShmPutImage(
-                           QX11Info::display(),
+                           display(),
                            m_portId,
                            m_winId,
                            m_gc,
@@ -450,19 +449,27 @@ bool QX11VideoSurface::present(const QVideoFrame &frame)
     }
 }
 
+Display *QX11VideoSurface::display() const
+{
+    QWindow *window = QGuiApplication::focusWindow();
+    Display *display = (Display *)QGuiApplication::platformNativeInterface()->nativeResourceForWindow("Display", window);
+
+    return display;
+}
+
 bool QX11VideoSurface::findPort()
 {
     unsigned int count = 0;
     XvAdaptorInfo *adaptors = 0;
     bool portFound = false;
 
-    if (XvQueryAdaptors(QX11Info::display(), m_winId, &count, &adaptors) == Success) {
+    if (XvQueryAdaptors(display(), m_winId, &count, &adaptors) == Success) {
         for (unsigned int i = 0; i < count && !portFound; ++i) {
             if (adaptors[i].type & XvImageMask) {
                 m_portId = adaptors[i].base_id;
 
                 for (unsigned int j = 0; j < adaptors[i].num_ports && !portFound; ++j, ++m_portId)
-                    portFound = XvGrabPort(QX11Info::display(), m_portId, 0) == Success;
+                    portFound = XvGrabPort(display(), m_portId, 0) == Success;
             }
         }
         XvFreeAdaptorInfo(adaptors);
@@ -475,7 +482,7 @@ void QX11VideoSurface::querySupportedFormats()
 {
     int count = 0;
     if (XvImageFormatValues *imageFormats = XvListImageFormats(
-            QX11Info::display(), m_portId, &count)) {
+            display(), m_portId, &count)) {
         const int rgbCount = sizeof(qt_xvRgbLookup) / sizeof(XvFormatRgb);
         const int yuvCount = sizeof(qt_xvYuvLookup) / sizeof(XvFormatYuv);
 
@@ -509,7 +516,7 @@ void QX11VideoSurface::querySupportedFormats()
     m_hueRange = qMakePair(0, 0);
     m_saturationRange = qMakePair(0, 0);
 
-    if (XvAttribute *attributes = XvQueryPortAttributes(QX11Info::display(), m_portId, &count)) {
+    if (XvAttribute *attributes = XvQueryPortAttributes(display(), m_portId, &count)) {
         for (int i = 0; i < count; ++i) {
             if (qstrcmp(attributes[i].name, "XV_BRIGHTNESS") == 0)
                 m_brightnessRange = qMakePair(attributes[i].min_value, attributes[i].max_value);
@@ -524,6 +531,4 @@ void QX11VideoSurface::querySupportedFormats()
         XFree(attributes);
     }
 }
-
-#endif //QT_NO_XVIDEO
 

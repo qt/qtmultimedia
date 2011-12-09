@@ -68,7 +68,9 @@ SOURCES += \
     gstvideoconnector.c \
 
 
-!win32:!contains(QT_CONFIG,embedded):!mac:!simulator:!contains(QT_CONFIG, qpa) {
+contains(config_test_xvideo, yes) {
+    DEFINES += HAVE_XVIDEO
+
     LIBS += -lXv -lX11 -lXext
 
     HEADERS += \

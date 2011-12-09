@@ -50,4 +50,5 @@
     "gstreamer_appsrc" => {},
     "pulseaudio" => {},
     "resourcepolicy" => {},
+    "xvideo" => {},
 );

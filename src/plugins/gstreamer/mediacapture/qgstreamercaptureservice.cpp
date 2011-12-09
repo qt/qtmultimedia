@@ -100,7 +100,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
 
         m_videoRenderer = new QGstreamerVideoRenderer(this);
 
-#if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
+#ifdef HAVE_XVIDEO
         m_videoWindow = new QGstreamerVideoOverlay(this);
         m_videoWidgetControl = new QGstreamerVideoWidgetControl(this);
 #endif    

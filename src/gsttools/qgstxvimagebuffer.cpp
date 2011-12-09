@@ -42,13 +42,13 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qvariant.h>
-#include <QtWidgets/qx11info_x11.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qwindow.h>
+#include <QtGui/qplatformnativeinterface_qpa.h>
 
 #include "qgstxvimagebuffer_p.h"
 #include "qvideosurfacegstsink_p.h"
 #include "qgstvideobuffer_p.h"
-
-#ifndef QT_NO_XVIDEO
 
 QT_BEGIN_NAMESPACE
 
@@ -182,6 +182,11 @@ QAbstractVideoBuffer *QGstXvImageBufferPool::prepareVideoBuffer(GstBuffer *buffe
     return new QGstVideoBuffer(buffer, bytesPerLine, QAbstractVideoBuffer::XvShmImageHandle, handle);
 }
 
+QStringList QGstXvImageBufferPool::keys() const
+{
+    return QStringList() << QGstBufferPoolPluginKey;
+}
+
 void QGstXvImageBufferPool::queuedAlloc()
 {
     QMutexLocker lock(&m_poolMutex);
@@ -194,7 +199,7 @@ void QGstXvImageBufferPool::doAlloc()
     //should be always called from the main thread with m_poolMutex locked
     //Q_ASSERT(QThread::currentThread() == thread());
 
-    XSync(QX11Info::display(), false);
+    XSync(display(), false);
 
     QGstXvImageBuffer *xvBuffer = (QGstXvImageBuffer *)gst_mini_object_new(QGstXvImageBuffer::get_type());
 
@@ -202,7 +207,7 @@ void QGstXvImageBufferPool::doAlloc()
     int xvFormatId = m_format.property("xvFormatId").toInt();
 
     xvBuffer->xvImage = XvShmCreateImage(
-            QX11Info::display(),
+            display(),
             portId,
             xvFormatId,
             0,
@@ -216,18 +221,18 @@ void QGstXvImageBufferPool::doAlloc()
         return;
     }
 
-    XSync(QX11Info::display(), false);
+    XSync(display(), false);
 
     xvBuffer->shmInfo.shmid = shmget(IPC_PRIVATE, xvBuffer->xvImage->data_size, IPC_CREAT | 0777);
     xvBuffer->shmInfo.shmaddr = xvBuffer->xvImage->data = (char*)shmat(xvBuffer->shmInfo.shmid, 0, 0);
     xvBuffer->shmInfo.readOnly = False;
 
-    if (!XShmAttach(QX11Info::display(), &xvBuffer->shmInfo)) {
+    if (!XShmAttach(display(), &xvBuffer->shmInfo)) {
         qWarning() << "QGstXvImageBufferPool: XShmAttach failed";
         return;
     }
 
-    XSync(QX11Info::display(), false);
+    XSync(display(), false);
 
     shmctl (xvBuffer->shmInfo.shmid, IPC_RMID, NULL);
 
@@ -240,7 +245,7 @@ void QGstXvImageBufferPool::doAlloc()
     m_allBuffers.append(xvBuffer);
     m_pool.append(xvBuffer);
 
-    XSync(QX11Info::display(), false);
+    XSync(display(), false);
 }
 
 
@@ -269,12 +274,12 @@ void QGstXvImageBufferPool::queuedDestroy()
 {
     QMutexLocker lock(&m_destroyMutex);
 
-    XSync(QX11Info::display(), false);
+    XSync(display(), false);
 
     foreach(XvShmImage xvImage, m_imagesToDestroy) {
         if (xvImage.shmInfo.shmaddr != ((void *) -1)) {
-            XShmDetach(QX11Info::display(), &xvImage.shmInfo);
-            XSync(QX11Info::display(), false);
+            XShmDetach(display(), &xvImage.shmInfo);
+            XSync(display(), false);
 
             shmdt(xvImage.shmInfo.shmaddr);
         }
@@ -285,7 +290,7 @@ void QGstXvImageBufferPool::queuedDestroy()
 
     m_imagesToDestroy.clear();
 
-    XSync(QX11Info::display(), false);
+    XSync(display(), false);
 }
 
 void QGstXvImageBufferPool::recycleBuffer(QGstXvImageBuffer *xvBuffer)
@@ -309,7 +314,13 @@ void QGstXvImageBufferPool::destroyBuffer(QGstXvImageBuffer *xvBuffer)
         QMetaObject::invokeMethod(this, "queuedDestroy", Qt::QueuedConnection);
 }
 
-QT_END_NAMESPACE
+Display *QGstXvImageBufferPool::display() const
+{
+    QWindow *window = QGuiApplication::topLevelWindows().first();
+    Display *display = static_cast<Display *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("Display", window));
 
-#endif //QT_NO_XVIDEO
+    return display;
+}
+
+QT_END_NAMESPACE
 

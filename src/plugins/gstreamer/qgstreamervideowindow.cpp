@@ -48,9 +48,6 @@
 #include <gst/interfaces/xoverlay.h>
 #include <gst/interfaces/propertyprobe.h>
 
-
-#ifndef QT_NO_XVIDEO
-
 /*
    QGstreamerVideoWindow is similar to QGstreamerVideoOverlay,
    but uses xvimagesink like gstreamer element instead of QX11VideoSurface.
@@ -347,5 +344,3 @@ GstElement *QGstreamerVideoWindow::videoSink()
 {
     return m_videoSink;
 }
-
-#endif //QT_NO_XVIDEO

@@ -49,8 +49,7 @@
 #include <private/qmediapluginloader_p.h>
 #include "qgstvideobuffer_p.h"
 
-#if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
-#include <QtWidgets/qx11info_x11.h>
+#if defined(HAVE_XVIDEO)
 #include "qgstxvimagebuffer_p.h"
 #endif
 
@@ -77,7 +76,7 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
                 m_pools.append(plugin);
             }
         }
-#if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
+#ifdef HAVE_XVIDEO
         m_pools.append(new QGstXvImageBufferPool());
 #endif
         updateSupportedFormats();

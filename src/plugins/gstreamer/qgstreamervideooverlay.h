@@ -51,8 +51,6 @@ class QAbstractVideoSurface;
 QT_END_NAMESPACE
 class QX11VideoSurface;
 
-#if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
-
 QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoOverlay : public QVideoWindowControl, public QGstreamerVideoRendererInterface
@@ -115,7 +113,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-#endif //QT_NO_XVIDEO
 
 #endif

@@ -59,8 +59,6 @@
 #include <QtCore/qwaitcondition.h>
 #include <QtCore/qqueue.h>
 
-#ifndef QT_NO_XVIDEO
-
 #include <X11/Xlib.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -69,9 +67,10 @@
 #include <X11/extensions/Xv.h>
 #include <X11/extensions/Xvlib.h>
 
-
 #include <gst/gst.h>
 #include "qgstbufferpoolinterface_p.h"
+
+QT_BEGIN_NAMESPACE
 
 class QGstXvImageBufferPool;
 
@@ -92,8 +91,9 @@ struct QGstXvImageBuffer {
 Q_DECLARE_METATYPE(XvImage*)
 
 class QGstXvImageBufferPool : public QObject, public QGstBufferPoolInterface {
-Q_OBJECT
-friend class QGstXvImageBuffer;
+    Q_OBJECT
+    Q_INTERFACES(QGstBufferPoolInterface)
+    friend class QGstXvImageBuffer;
 public:
     QGstXvImageBufferPool(QObject *parent = 0);
     virtual ~QGstXvImageBufferPool();
@@ -107,6 +107,8 @@ public:
     QAbstractVideoBuffer::HandleType handleType() const;
     QAbstractVideoBuffer *prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine);
 
+    virtual QStringList keys() const;
+
 private slots:
     void queuedAlloc();
     void queuedDestroy();
@@ -118,6 +120,8 @@ private slots:
 
 private:
     void doAlloc();
+
+    Display *display() const;
 
     struct XvShmImage {
         XvImage *xvImage;
@@ -136,6 +140,6 @@ private:
     Qt::HANDLE m_threadId;
 };
 
-#endif //QT_NO_XVIDEO
+QT_END_NAMESPACE
 
 #endif

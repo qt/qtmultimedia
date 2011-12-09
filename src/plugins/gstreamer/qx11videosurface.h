@@ -45,8 +45,6 @@
 #include <QtWidgets/qwidget.h>
 #include <qabstractvideosurface.h>
 
-#ifndef QT_NO_XVIDEO
-
 #include <X11/Xlib.h>
 #include <X11/extensions/Xv.h>
 #include <X11/extensions/Xvlib.h>
@@ -89,7 +87,9 @@ public:
 
     bool present(const QVideoFrame &frame);
 
-private:   
+private:
+    Display *display() const;
+
     WId m_winId;
     XvPortID m_portId;
     GC m_gc;
@@ -113,7 +113,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-#endif //QT_NO_XVIDEO
 
 #endif

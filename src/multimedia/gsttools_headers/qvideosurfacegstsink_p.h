@@ -70,7 +70,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 QT_END_NAMESPACE
 
-#if defined(Q_WS_X11) && !defined(QT_NO_XVIDEO)
+#ifdef HAVE_XVIDEO
 class QGstXvImageBuffer;
 class QGstXvImageBufferPool;
 #endif
