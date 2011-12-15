@@ -334,6 +334,30 @@ write a camera application in C++.
 The \l {QML Camera Example} demonstrates still image capture and controls
 using the QML plugin. Video recording is not currently available.
 
+\section2 QML Video Example
+
+The \l {video/qmlvideo}{QML Video Example} demonstrates the various manipulations
+(move; resize; rotate; change aspect ratio) which can be applied to QML
+\l {VideoOutput} items.
+
+It also shows how native code can be combined with QML to implement more
+advanced functionality - in this case, C++ code is used to calculate the QML
+frame rate.  This value is rendered in QML as a semi-transparent item overlaid
+on the video content.
+
+\section2 QML Video Shader Effects Example
+The \l {video/qmlvideofx}{QML Video Shader Effects Example} shows how the
+\l {ShaderEffect} element can be used to apply postprocessing effects,
+expressed in GLSL, to QML \l {VideoOutput} items.
+
+It re-uses the frame rate display code used by the \l {QML Video Example}.
+
+Finally, this application demonstrates the use of different top-level QML
+files to handle different physical screen sizes.  On small-screen devices,
+menus are by default hidden, and only appear when summoned by a gesture.
+Large-screen devices show a more traditional layout in which menus are
+displayed around the video content pane.
+
 
 \section1 Reference documentation
 

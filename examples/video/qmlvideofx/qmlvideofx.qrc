@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="close.png">images/close.png</file>
+        <file alias="folder.png">images/folder.png</file>
+        <file alias="titlebar.png">images/titlebar.png</file>
+        <file alias="titlebar.sci">images/titlebar.sci</file>
+        <file alias="up.png">images/up.png</file>
+        <file alias="qt-logo.png">images/qt-logo.png</file>
+    </qresource>
+</RCC>

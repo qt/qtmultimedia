@@ -1,0 +1,147 @@
+/****************************************************************************
+**
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the documentation of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** GNU Free Documentation License
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms
+** and conditions contained in a signed written agreement between you
+** and Nokia.
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+\example video/qmlvideo
+\title QML Video Example
+
+\brief The QML Video Example demonstrates the various manipulations (move;
+resize; rotate; change aspect ratio) which can be applied to QML \l{VideoOutput}
+items.
+
+\section1 Overview
+
+This example demonstrates the various manipulations (move; resize; rotate;
+change aspect ratio) which can be applied to QML \l{VideoOutput} items.
+
+It also shows how native code can be combined with QML to implement more
+advanced functionality - in this case, C++ code is used to calculate the QML
+frame rate.  This value is rendered in QML in a semi-transparent item
+overlaid on the video content.
+
+The following image shows the application executing the video-overlay scene,
+which creates a dummy overlay item (just a semi-transparent \l{Rectangle}),
+which moves across the \l{VideoOutput} item.
+
+\image qmlvideo-overlay.png
+
+\section1 Application structure
+
+The \l{video/qmlvideo/qml/qmlvideo/main.qml} file creates a UI which includes
+the following elements:
+
+\list
+    \o Two \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button} elements, each
+       of which displays a filename, and can be used to launch a
+       \l{video/qmlvideo/qml/qmlvideo/FileBrowser.qml}{FileBrowser}
+    \o An exit \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button}
+    \o A \l{video/qmlvideo/qml/qmlvideo/SceneSelectionPanel.qml}{SceneSelectionPanel},
+       which is a flickable list displaying the available scenes
+    \o At the lower left, an item which displays the QML repainting rate - the
+       upper number is the instantaneous frame rate and the lower number is the
+       average over the past second.
+\endlist
+
+\image qmlvideo-menu.png
+
+Each scene in the flickable list is implemented in its own QML file - for
+example the video-basic scene (which just displays a static \l{VideoOutput} element
+in the center of the screen) is implemented in the
+\l{video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic.qml} file.  As you
+can see from the code, this makes use of a type of inheritance: a
+\l{video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic} element ...
+
+\quotefromfile video/qmlvideo/qml/qmlvideo/VideoBasic.qml
+\skipto import
+\printuntil /^\}/
+
+... is-a
+\l{video/qmlvideo/qml/qmlvideo/SceneBasic.qml}{SceneBasic} ...
+
+\quotefromfile examples/video/qmlvideo/qml/qmlvideo/SceneBasic.qml
+\skipto import
+\printuntil contentType
+\dots
+\skipto Content
+\printuntil content
+\dots
+\skipto }
+\printuntil /^\}/
+
+... which is-a
+\l{video/qmlvideo/qml/qmlvideo/Scene.qml}{Scene}:
+
+\quotefromfile video/qmlvideo/qml/qmlvideo/Scene.qml
+\skipto import
+\printuntil root
+\dots
+\skipto property QtObject content
+\printuntil content
+\dots
+\skipto Button
+\printuntil /^\}/
+
+\l{video/qmlvideo/qml/qmlvideo/SceneBasic.qml}{SceneBasic} describes the
+structure and behaviour of the scene, but is agnostic of the type of content
+which will be displayed - this is abstracted by the
+\l{video/qmlvideo/qml/qmlvideo/Content.qml}{Content} element.
+
+This pattern allows us to define a particular use case (in this case, simply
+display a static piece of content), and then instantiate that use case for
+both video content
+(\l{video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic}) and cameracontent
+(\l{video/qmlvideo/qml/qmlvideo/CameraBasic.qml}{CameraBasic}).  This approach
+is used to implement many of the other scenes - for example, "repeatedly slide
+the content from left to right and back again" is implemented by
+\l{video/qmlvideo/qml/qmlvideo/SceneMove.qml}{SceneMove}, on which
+\l{video/qmlvideo/qml/qmlvideo/VideoMove.qml}{VideoMove} and
+\l{video/qmlvideo/qml/qmlvideo/CameraMove.qml}{CameraMove} are based.
+
+Depending on the value of the contentType property in the top-level scene
+element, the embedded
+\l{video/qmlvideo/qml/qmlvideo/Content.qml}{Content} item creates either a
+\l{MediaPlayer} or a \l{Camera} item.
+
+\section1 Calculating and displaying QML painting rate
+
+\include examples/video-qml-paint-rate.qdocinc
+
+All that remains is to connect the afterRendering() signal of the QQuickView
+object to a JavaScript function, which will eventually call frequencyItem.notify():
+
+\quotefromfile video/qmlvideo/main.cpp
+\skipto QmlApplicationViewer
+\printuntil ;
+\dots
+\skipto QQuickItem
+\printuntil ;
+\dots
+\skipto QObject::connect
+\printuntil SLOT(qmlFramePainted()));
+
+*/
+

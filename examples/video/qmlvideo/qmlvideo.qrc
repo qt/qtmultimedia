@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="leaves.jpg">images/leaves.jpg</file>
+        <file alias="close.png">images/close.png</file>
+        <file alias="folder.png">images/folder.png</file>
+        <file alias="titlebar.png">images/titlebar.png</file>
+        <file alias="titlebar.sci">images/titlebar.sci</file>
+        <file alias="up.png">images/up.png</file>
+        <file alias="progress_handle.svg">images/progress_handle.svg</file>
+        <file alias="progress_handle_pressed.svg">images/progress_handle_pressed.svg</file>
+    </qresource>
+</RCC>

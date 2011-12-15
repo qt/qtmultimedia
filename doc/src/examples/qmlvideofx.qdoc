@@ -1,0 +1,221 @@
+/****************************************************************************
+**
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the documentation of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** GNU Free Documentation License
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms
+** and conditions contained in a signed written agreement between you
+** and Nokia.
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+\example video/qmlvideofx
+\title QML Video Shader Effects Example
+
+\brief The QML Video Shader Effects Example shows how the \l {ShaderEffect}
+element can be used to apply postprocessing effects, expressed in GLSL, to QML
+\l {VideoOutput} items.
+
+\section1 Overview
+
+This example shows how the \l {ShaderEffectItem} element can be used to apply
+postprocessing effects, expressed in GLSL, to QML \l {VideoOutput} items.
+
+It also shows how native code can be combined with QML to implement more
+advanced functionality - in this case, C++ code is used to calculate the QML
+frame rate.  This value is rendered in QML in a semi-transparent item
+overlaid on the video content.
+
+Finally, this application demonstrates the use of different top-level QML
+files to handle different physical screen sizes.  On small-screen devices,
+menus are by default hidden, and only appear when summoned by a gesture.
+Large-screen devices show a more traditional layout in which menus are
+displayed around the video content pane.
+
+The following screenshots show shader effects being applied.  In each case,
+the effect is implemented using a fragment shader.
+
+Here we see an edge detection algorithm being applied to a video clip
+(\l{http://orange.blender.org/}{Elephant's Dream from blender.org}).
+\image qmlvideofx-video-edgedetection.png
+
+This image shows a page curl effect, applied to the same video clip.
+\image qmlvideofx-video-pagecurl.png
+
+Here we see a 'glow' effect (edge detection plus colour quantization) being
+applied to the camera viewfinder.
+\image qmlvideofx-camera-glow.png
+
+This image shows a 'lens magnification' effect applied to the viewfinder.
+\image qmlvideofx-camera-magnify.png
+
+The application includes many more effects than the ones shown here - look
+for Effect*.qml files in the list above to see the full range.
+
+\section1 Application structure
+
+Shader effects can be applied to video or viewfinder content using the
+\l{ShaderEffectItem} element, as shown in the following example, which applies
+a wiggly effect to the content:
+
+\code
+import QtQuick 2.0
+import QtMultimedia 4.0
+
+Rectangle {
+    width: 300
+    height: 300
+    color: "black"
+
+    MediaPlayer {
+        id: mediaPlayer
+        source: "test.mp4"
+        playing: true
+    }
+
+    VideoOutput {
+        id: video
+        anchors.fill: parent
+        source: mediaPlayer
+    }
+
+    ShaderEffect {
+        property variant source: ShaderEffectSource { sourceItem: video; hideSource: true }
+        property real wiggleAmount: 0.005
+        anchors.fill: video
+
+        fragmentShader: "
+            varying highp vec2 qt_TexCoord0;
+            uniform sampler2D source;
+            uniform highp float wiggleAmount;
+            void main(void)
+            {
+                highp vec2 wiggledTexCoord = qt_TexCoord0;
+                wiggledTexCoord.s += sin(4.0 * 3.141592653589 * wiggledTexCoord.t) * wiggleAmount;
+                gl_FragColor = texture2D(source, wiggledTexCoord.st);
+            }
+        "
+    }
+}
+\endcode
+
+In this application, the usage of the \l{ShaderEffect} and \l{VideoOutput}
+elements is a bit more complicated, for the following reasons:
+
+\list
+    \o Each effect can be applied to either a \l{VideoOutput} or an
+       \l{Image} item, so the type of the source item must be abstracted away
+       from the effect implementation
+    \o For some effects (such as the edge detection and glow examples shown in
+       the screenshots above), the transformation is applied only to pixels to
+       the left of a dividing line - this allows the effect to be easily
+       compared with the untransformed image on the right
+    \o Most effects have one or more parameters which can be modified by the
+       user - these are controlled by sliders in the UI which are connected
+       to uniform values passed into the GLSL code
+\endlist
+
+The abstraction of source item type is achieved by the
+\l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content} element, which uses a
+\l{Loader} to create either a \l{MediaPlayer}, \l{Camera} or \l{Image} element:
+
+\quotefromfile video/qmlvideofx/qml/qmlvideofx/Content.qml
+\skipto import
+\printuntil {
+\dots
+\skipto Loader {
+\printuntil }
+\dots
+\skipto function openImage
+\printuntil "ContentImage.qml"
+\skipto contentLoader.item.source
+\printuntil path
+\skipto }
+\printuntil }
+\skipto function openVideo
+\printuntil "ContentVideo.qml"
+\skipto contentLoader.item.source
+\printuntil path
+\skipto }
+\printuntil }
+\skipto function openCamera
+\printuntil "ContentCamera.qml"
+\skipto }
+\printuntil }
+\skipto /^\}/
+\printuntil }
+
+Each effect is implemented as a QML item which is based on the
+\l{video/qmlvideofx/qml/qmlvideofx/Effect.qml}{Effect} element, which in turn
+is based on the \l{ShaderEffect} element:
+
+\quotefromfile video/qmlvideofx/qml/qmlvideofx/Effect.qml
+\skipto import
+\printuntil /^\}/
+
+The interface of the Effect element allows for derived effects to specify the
+number of parameters which they support (and therefore the number of sliders
+which should be displayed), and whether a vertical dividing line should be drawn
+between transformed and untransformed image regions.  As an example, here is the
+implementation of the pixelation effect.  As you can see, the pixelation effect
+supports one parameter (which controls the pixelation granularity), and states
+that the divider should be displayed.
+
+\quotefromfile video/qmlvideofx/qml/qmlvideofx/EffectPixelate.qml
+\skipto import
+\printuntil /^\}/
+
+The main.qml file shows a
+\l{video/qmlvideofx/qml/qmlvideofx/FileOpen.qml}{FileOpen} element which allows
+the user to select the input source and an
+\l{video/qmlvideofx/qml/qmlvideofx/EffectSelectionPanel.qml}{EffectSelectionPanel}
+item, which lists each of the available shader effects.  As described above, a
+\l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content} item is used to load the
+appropriate input and effect element.  A
+\l{video/qmlvideofx/qml/qmlvideofx/Divider.qml}{Divider} item draws the
+vertical dividing line, which can be dragged left / right by the user.  Finally,
+a \l{video/qmlvideofx/qml/qmlvideofx/ParameterPanel.qml}{ParameterPanel} item
+renders the sliders corresponding to each effect parameter.
+
+Here is the source selection menu:
+\image qmlvideofx-source-menu.png
+
+And here is the effect selection menu:
+\image qmlvideofx-effects-menu.png
+
+\section1 Calculating and displaying QML painting rate
+
+\include examples/video-qml-paint-rate.qdocinc
+
+All that remains is to connect the afterRendering() signal of the QQuickView
+object to a JavaScript function, which will eventually call frequencyItem.notify():
+
+\quotefromfile video/qmlvideofx/main.cpp
+\skipto QmlApplicationViewer
+\printuntil ;
+\dots
+\skipto QQuickItem
+\printuntil ;
+\dots
+\skipto QObject::connect
+\printuntil SLOT(qmlFramePainted()));
+
+*/
+
