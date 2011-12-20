@@ -42,13 +42,15 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 1
-    property bool supportsDivider: true
+    parameters: ListModel {
+        ListElement {
+            name: "grid spacing"
+            value: 0.5
+        }
+    }
 
-    property real param1Value: 0.5
-    property real dividerValue: 0.5
-    property real grid: 10.0 * param1Value
+    // Transform slider values, and bind result to shader uniforms
+    property real grid: parameters.get(0).value * 10
 
     property real step_x: 0.0015625
     property real step_y: targetHeight ? (step_x * targetWidth / targetHeight) : 0.0

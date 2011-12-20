@@ -44,44 +44,64 @@ import QtQuick 2.0
 Rectangle {
     id: root
     color: "transparent"
-    height: numParameters * sliderHeight + (numParameters + 1) * spacing
-    visible: numParameters > 0
+    height: view.model.count * sliderHeight
     property color lineColor: "black"
-    property int numParameters: 1
-    property alias param1Value: slider1.value
-    property alias param2Value: slider2.value
-    property bool enabled: true
     property real gripSize: 25
     property real spacing: 10
     property real sliderHeight: 40
 
-    Slider {
-        id: slider1
-        color: "white"
-        enabled: parent.enabled
-        gripSize: root.gripSize
-        height: sliderHeight
-        visible: enabled
-        anchors {
-            left: parent.left
-            right: parent.right
-            bottom: (root.numParameters == 1) ? root.bottom : slider2.top
-            margins: root.spacing
+    property ListModel model: ListModel { }
+
+    Rectangle {
+        anchors.fill: parent
+        color: "black"
+        opacity: 0.5
+        radius: 10
+    }
+
+    Component {
+        id: editDelegate
+
+        Rectangle {
+            id: delegate
+            width: parent.width
+            height: root.sliderHeight
+            color: "transparent"
+
+            Text {
+                id: text
+                text: name
+                color: "white"
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                    left: parent.left
+                }
+                font.pixelSize: 0.5 * parent.height
+                horizontalAlignment: Text.AlignRight
+                verticalAlignment: Text.AlignVCenter
+                width: 150
+            }
+
+            Slider {
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                    left: text.right
+                    leftMargin: 20
+                    right: parent.right
+                    rightMargin: 20
+                }
+                value: model.value
+                onValueChanged: view.model.setProperty(index, "value", value)
+            }
         }
     }
 
-    Slider {
-        id: slider2
-        color: "white"
-        enabled: parent.enabled && root.numParameters >= 2
-        gripSize: root.gripSize
-        height: sliderHeight
-        visible: enabled
-        anchors {
-            left: parent.left
-            right: parent.right
-            bottom: root.bottom
-            margins: root.spacing
-        }
+    ListView {
+        id: view
+        anchors.fill: parent
+        model: root.model
+        delegate: editDelegate
     }
 }

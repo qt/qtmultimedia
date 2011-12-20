@@ -42,14 +42,16 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 1
-    property bool supportsDivider: true
+    parameters: ListModel {
+        ListElement {
+            name: "amplitude"
+            value: 0.5
+        }
+    }
 
-    property real param1Value: 0.5
-    property real dividerValue: 0.5
+    // Transform slider values, and bind result to shader uniforms
+    property real amplitude: parameters.get(0).value * 0.05
 
-    property real amplitude: param1Value * 0.05
     property real frequency: 20
     property real time: 0
 

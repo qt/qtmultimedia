@@ -71,7 +71,11 @@ Rectangle {
         }
         onLoaded: {
             item.parent = root
-            item.anchors.fill = root
+            item.anchors.top = root.top
+            item.anchors.topMargin = 100
+            item.anchors.left = root.left
+            item.anchors.right = root.right
+            item.anchors.bottom = root.verticalCenter
             item.logging = root.perfMonitorsLogging
             item.displayed = root.perfMonitorsVisible
             item.init()
@@ -92,15 +96,12 @@ Rectangle {
 
         ParameterPanel {
             id: parameterPanel
-
             anchors {
                 left: parent.left;
                 right: parent.right;
                 margins: 10
             }
-            numParameters: content.effect.numParameters
             y: parent.height
-            opacity: 0.75
             gripSize: 40
 
             states: [
@@ -125,10 +126,8 @@ Rectangle {
                 }
             ]
 
-            enabled: content.effect.numParameters >= 1 && effectSelectionPanel.state != "shown"
+            enabled: false
             state: enabled ? "shown" : "baseState"
-            onParam1ValueChanged: updateParameters()
-            onParam2ValueChanged: updateParameters()
         }
 
         EffectSelectionPanel {
@@ -168,8 +167,12 @@ Rectangle {
 
             onEffectSourceChanged: {
                 content.effectSource = effectSource
-                parameterPanel.numParameters = content.effect.numParameters
-                updateParameters()
+                if (content.effect.parameters.count) {
+                    parameterPanel.model = content.effect.parameters
+                    parameterPanel.enabled = true
+                } else {
+                    parameterPanel.enabled = false
+                }
             }
 
             onClicked: state = "baseState"
@@ -362,13 +365,6 @@ Rectangle {
     function qmlFramePainted() {
         if (performanceLoader.item)
             performanceLoader.item.qmlFramePainted()
-    }
-
-    function updateParameters() {
-        if (content.effect.numParameters >= 1)
-            content.effect.param1Value = parameterPanel.param1Value
-        if (content.effect.numParameters >= 2)
-            content.effect.param2Value = parameterPanel.param2Value
     }
 
     function openImage() {

@@ -41,7 +41,7 @@
 
 // Based on http://kodemongki.blogspot.com/2011/06/kameraku-custom-shader-effects-example.html
 
-uniform float param1Value;
+uniform float threshold;
 uniform float dividerValue;
 
 uniform sampler2D source;
@@ -54,7 +54,7 @@ void main()
     vec4 orig = texture2D(source, uv);
     vec3 col = orig.rgb;
     float y = 0.3 *col.r + 0.59 * col.g + 0.11 * col.b;
-    y = y < param1Value ? 0.0 : 1.0;
+    y = y < threshold ? 0.0 : 1.0;
     if (uv.x < dividerValue)
         gl_FragColor = qt_Opacity * vec4(y, y, y, 1.0);
     else

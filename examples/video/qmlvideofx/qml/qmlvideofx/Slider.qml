@@ -43,9 +43,10 @@ import QtQuick 2.0
 
 Rectangle {
     id: root
-    color: "white"
+    color: "transparent"
     radius: 5
     property alias value: grip.value
+    property color fillColor: "white"
     property color lineColor: "black"
     property alias gripSize: grip.width
     property alias enabled: mouseArea.enabled
@@ -57,7 +58,7 @@ Rectangle {
 
         Rectangle {
             anchors { fill: parent; margins: 1 }
-            color: root.color
+            color: root.fillColor
         }
     }
 
@@ -95,12 +96,12 @@ Rectangle {
         Rectangle {
             anchors { fill: parent; margins: 1 }
             radius: width/2
-            color: root.color
+            color: root.fillColor
         }
     }
 
     function displayedColor() {
-        var tint = Qt.rgba(color.r, color.g, color.b, 0.25)
-        return enabled ? lineColor : Qt.tint(color, tint)
+        var tint = Qt.rgba(fillColor.r, fillColor.g, fillColor.b, 0.25)
+        return enabled ? lineColor : Qt.tint(fillColor, tint)
     }
 }

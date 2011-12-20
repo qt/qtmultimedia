@@ -42,20 +42,23 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 2
-    property bool supportsDivider: true
+    parameters: ListModel {
+        ListElement {
+            name: "amplitude"
+            value: 0.5
+        }
+        ListElement {
+            name: "frequency"
+            value: 0.5
+        }
+    }
 
-    property real param1Value: 0.5
-    property real param2Value: 0.5
-    property real dividerValue: 0.5
+    // Transform slider values, and bind result to shader uniforms
+    property real amplitude: parameters.get(0).value * 0.03
+    property real n: parameters.get(1).value * 7
 
     property real time: 0
-
     NumberAnimation on time { loops: Animation.Infinite; from: 0; to: Math.PI * 2; duration: 600 }
-
-    property real amplitude: param1Value * 0.03
-    property real n: param2Value * 7
 
     fragmentShaderFilename: "shaders/ripple.fsh"
 }

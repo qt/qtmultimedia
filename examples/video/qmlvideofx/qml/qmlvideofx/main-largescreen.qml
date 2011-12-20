@@ -94,15 +94,12 @@ Rectangle {
 
         ParameterPanel {
             id: parameterPanel
-            enabled: numParameters >= 1
-            numParameters: content.effect ? content.effect.numParameters : 0
             anchors {
-                top: content.bottom
                 left: parent.left
                 bottom: parent.bottom
+                right: effectSelectionPanel.left
+                margins: 20
             }
-            width: content.width
-            onParam1ValueChanged: updateParameters()
         }
 
         EffectSelectionPanel {
@@ -117,7 +114,7 @@ Rectangle {
             itemHeight: 40
              onEffectSourceChanged: {
                 content.effectSource = effectSource
-                updateParameters()
+                parameterPanel.model = content.effect.parameters
             }
         }
 
@@ -158,11 +155,6 @@ Rectangle {
     function qmlFramePainted() {
         if (performanceLoader.item)
             performanceLoader.item.qmlFramePainted()
-    }
-
-    function updateParameters() {
-        if (content.effect.numParameters >= 1)
-            content.effect.param1Value = parameterPanel.param1Value
     }
 
     function openImage() {

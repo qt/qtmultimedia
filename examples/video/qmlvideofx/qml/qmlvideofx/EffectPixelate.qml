@@ -42,14 +42,15 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 1
-    property bool supportsDivider: true
+    parameters: ListModel {
+        ListElement {
+            name: "granularity"
+            value: 0.5
+        }
+    }
 
-    property real param1Value: 0.5
-    property real dividerValue: 0.5
-
-    property real granularity: param1Value * 20
+    // Transform slider values, and bind result to shader uniforms
+    property real granularity: parameters.get(0).value * 20
 
     fragmentShaderFilename: "shaders/pixelate.fsh"
 }

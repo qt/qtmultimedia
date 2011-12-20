@@ -42,16 +42,20 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 2
-    property bool supportsDivider: true
+    parameters: ListModel {
+        ListElement {
+            name: "hue"
+            value: 0.5
+        }
+        ListElement {
+            name: "width"
+            value: 0.5
+        }
+    }
 
-    property real param1Value: 0.5
-    property real param2Value: 0.5
-    property real dividerValue: 0.5
-
-    property real targetHue: 360.0 * param1Value
-    property real windowWidth: 60.0 * param2Value
+    // Transform slider values, and bind result to shader uniforms
+    property real targetHue: parameters.get(0).value * 360
+    property real windowWidth: parameters.get(1).value * 60
 
     fragmentShaderFilename: "shaders/isolate.fsh"
 }

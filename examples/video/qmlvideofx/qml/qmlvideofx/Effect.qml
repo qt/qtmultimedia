@@ -43,8 +43,9 @@ import QtQuick 2.0
 
 ShaderEffect {
     property variant source
-    property int numParameters: 0
-    property bool supportsDivider: false
+    property ListModel parameters: ListModel { }
+    property bool divider: true
+    property real dividerValue: 0.5
     property real targetWidth: 0
     property real targetHeight: 0
     property string fragmentShaderFilename

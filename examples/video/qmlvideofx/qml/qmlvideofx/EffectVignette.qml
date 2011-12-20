@@ -42,11 +42,5 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 0
-    property bool supportsDivider: true
-
-    property real dividerValue: 0.5
-
     fragmentShaderFilename: "shaders/vignette.fsh"
 }

@@ -43,19 +43,24 @@ import QtQuick 2.0
 
 Effect {
     id: root
-
-    // Constant properties which must be supported by every effect
-    property int numParameters: 2
-    property bool supportsDivider: false
-
-    property real param1Value: 0.5
-    property real radius: 200 * param1Value
-
-    property real param2Value: 0.5
-    property real diffractionIndex: param2Value
+    divider: false
+    parameters: ListModel {
+        ListElement {
+            name: "radius"
+            value: 0.5
+        }
+        ListElement {
+            name: "diffraction"
+            value: 0.5
+        }
+    }
 
     property real posX: -1
     property real posY: -1
+
+    // Transform slider values, and bind result to shader uniforms
+    property real radius: parameters.get(0).value * 100
+    property real diffractionIndex: parameters.get(1).value
 
     onTargetWidthChanged: if (posX == -1) posX = targetWidth / 2
     onTargetHeightChanged: if (posY == -1) posY = targetHeight / 2

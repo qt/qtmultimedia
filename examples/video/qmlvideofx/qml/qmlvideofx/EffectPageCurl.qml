@@ -42,14 +42,16 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 1
-    property bool supportsDivider: false
+    divider: false
+    parameters: ListModel {
+        ListElement {
+            name: "extent"
+            value: 0.5
+        }
+    }
 
-    property real param1Value: 0.5
-    property real dividerValue: 0.5
-
-    property real curlExtent: 1.0 - param1Value
+    // Transform slider values, and bind result to shader uniforms
+    property real curlExtent: 1.0 - parameters.get(0).value
 
     fragmentShaderFilename: "shaders/pagecurl.fsh"
 }

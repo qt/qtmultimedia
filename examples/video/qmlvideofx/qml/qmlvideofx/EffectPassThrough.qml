@@ -42,5 +42,5 @@
 import QtQuick 2.0
 
 Effect {
-
+    divider: false
 }

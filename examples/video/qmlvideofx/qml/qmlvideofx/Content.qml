@@ -90,7 +90,7 @@ Rectangle {
         effectLoader.item.targetHeight = root.height
         updateSource()
         effectLoader.item.source = theSource
-        divider.visible = effectLoader.item.supportsDivider
+        divider.visible = effectLoader.item.divider
         updateDivider()
     }
 
@@ -101,7 +101,7 @@ Rectangle {
     }
 
     function updateDivider() {
-        if (effectLoader.item && effectLoader.item.supportsDivider)
+        if (effectLoader.item && effectLoader.item.divider)
             effectLoader.item.dividerValue = divider.value
     }
 

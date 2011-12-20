@@ -42,15 +42,16 @@
 import QtQuick 2.0
 
 Effect {
-    // Constant properties which must be supported by every effect
-    property int numParameters: 1
-    property bool supportsDivider: true
+    parameters: ListModel {
+        ListElement {
+            name: "threshold"
+            value: 0.5
+        }
+    }
 
-    property real param1Value: 0.5
-    property real dividerValue: 0.5
-
-    property real threshold: param1Value
-    property real targetSize: 250 - (200 * param1Value) // TODO: fix ...
+    // Transform slider values, and bind result to shader uniforms
+    property real threshold: parameters.get(0).value
+    property real targetSize: 250 - (200 * threshold) // TODO: fix ...
     property real resS: targetSize
     property real resT: targetSize
 

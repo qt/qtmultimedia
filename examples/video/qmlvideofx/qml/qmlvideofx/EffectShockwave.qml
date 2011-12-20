@@ -43,15 +43,16 @@ import QtQuick 2.0
 
 Effect {
     id: root
+    parameters: ListModel {
+        ListElement {
+            name: "amplitude"
+            value: 0.5
+        }
+    }
 
-    // Constant properties which must be supported by every effect
-    property int numParameters: 1
-    property bool supportsDivider: true
-
-    property real param1Value: 0.5
-    property real dividerValue: 0.5
-
-    property real granularity: param1Value * 20
+    // Transform slider values, and bind result to shader uniforms
+    property real granularity: parameters.get(0).value * 20
+    property real weight: parameters.get(0).value
 
     property real centerX
     property real centerY
@@ -74,8 +75,6 @@ Effect {
             duration: 1000
         }
     }
-
-    property real weight: param1Value
 
     fragmentShaderFilename: "shaders/shockwave.fsh"
 }
