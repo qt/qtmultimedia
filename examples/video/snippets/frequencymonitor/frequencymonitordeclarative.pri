@@ -13,5 +13,3 @@ defineTest(frequencyItemAddDeployment) {
     export(DEPLOYMENTFOLDERS)
 }
 
-message("frequencymonitordeclarative.pri loaded")
-

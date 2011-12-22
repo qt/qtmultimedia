@@ -18,5 +18,3 @@ defineTest(performanceItemAddDeployment) {
     export(performanceitem_folder.target)
     export(DEPLOYMENTFOLDERS)
 }
-
-message("performancemonitordeclarative.pri loaded")
