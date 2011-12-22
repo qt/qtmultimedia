@@ -11,6 +11,7 @@ SUBDIRS += \
     audiooutput \
     videographicsitem \
     videowidget \
+    video \
     player \
 
 contains(QT_CONFIG, declarative) {
