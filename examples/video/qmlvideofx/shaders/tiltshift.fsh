@@ -67,7 +67,7 @@ void main()
 {
     vec2 uv = qt_TexCoord0.xy;
     vec3 col;
-    if (uv.x < dividerValue && uv.y >= 0.4 && uv.y <= 0.6)
+    if (uv.x > dividerValue || (uv.y >= 0.4 && uv.y <= 0.6))
         col = texture2D(source, uv).rgb;
     else
         col = blur();

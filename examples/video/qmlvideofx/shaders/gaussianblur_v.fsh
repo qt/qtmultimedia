@@ -55,7 +55,7 @@ void main()
         c += texture2D(source, uv - vec2(0.0, 3.0*blurSize)) * 0.09;
         c += texture2D(source, uv - vec2(0.0, 2.0*blurSize)) * 0.12;
         c += texture2D(source, uv - vec2(0.0, 1.0*blurSize)) * 0.15;
-        c += texture2D(source, uv) * 0.16;
+        c += texture2D(source, uv) * 0.18;
         c += texture2D(source, uv + vec2(0.0, 1.0*blurSize)) * 0.15;
         c += texture2D(source, uv + vec2(0.0, 2.0*blurSize)) * 0.12;
         c += texture2D(source, uv + vec2(0.0, 3.0*blurSize)) * 0.09;
@@ -63,5 +63,6 @@ void main()
     } else {
         c = texture2D(source, qt_TexCoord0);
     }
-    gl_FragColor = qt_Opacity * c;
+    // First pass we don't apply opacity
+    gl_FragColor = c;
 }

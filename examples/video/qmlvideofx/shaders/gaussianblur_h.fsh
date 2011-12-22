@@ -55,7 +55,7 @@ void main()
         c += texture2D(source, uv - vec2(3.0*blurSize, 0.0)) * 0.09;
         c += texture2D(source, uv - vec2(2.0*blurSize, 0.0)) * 0.12;
         c += texture2D(source, uv - vec2(1.0*blurSize, 0.0)) * 0.15;
-        c += texture2D(source, uv) * 0.16;
+        c += texture2D(source, uv) * 0.18;
         c += texture2D(source, uv + vec2(1.0*blurSize, 0.0)) * 0.15;
         c += texture2D(source, uv + vec2(2.0*blurSize, 0.0)) * 0.12;
         c += texture2D(source, uv + vec2(3.0*blurSize, 0.0)) * 0.09;
