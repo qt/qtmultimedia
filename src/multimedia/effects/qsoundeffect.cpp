@@ -121,10 +121,17 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlsignal SoundEffect::loopsChanged()
+    \qmlsignal SoundEffect::loopCountChanged()
     \since 1.0
 
-    This handler is called when the number of loops has changed.
+    This handler is called when the initial number of loops has changed.
+*/
+
+/*!
+    \qmlsignal SoundEffect::loopsRemainingChanged()
+    \since 1.0
+
+    This handler is called when the remaining number of loops has changed.
 */
 
 /*!
@@ -164,6 +171,7 @@ QSoundEffect::QSoundEffect(QObject *parent) :
     QObject(parent)
 {
     d = new QSoundEffectPrivate(this);
+    connect(d, SIGNAL(loopsRemainingChanged()), SIGNAL(loopsRemainingChanged()));
     connect(d, SIGNAL(volumeChanged()), SIGNAL(volumeChanged()));
     connect(d, SIGNAL(mutedChanged()), SIGNAL(mutedChanged()));
     connect(d, SIGNAL(loadedChanged()), SIGNAL(loadedChanged()));
@@ -199,6 +207,11 @@ void QSoundEffect::setSource(const QUrl &url)
 int QSoundEffect::loopCount() const
 {
     return d->loopCount();
+}
+
+int QSoundEffect::loopsRemaining() const
+{
+    return d->loopsRemaining();
 }
 
 void QSoundEffect::setLoopCount(int loopCount)

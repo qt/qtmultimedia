@@ -6,5 +6,6 @@ SUBDIRS += \
     qaudiooutput \
     qmediaplayerbackend \
     qcamerabackend \
-    qsoundeffect
+    qsoundeffect \
+    qsound
 

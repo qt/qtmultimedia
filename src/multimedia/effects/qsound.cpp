@@ -1,0 +1,236 @@
+/****************************************************************************
+**
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the QtGui module of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include "qsound.h"
+#include "qsoundeffect.h"
+#include "qcoreapplication.h"
+
+
+/*!
+    \class QSound
+    \brief The QSound class provides a way to play .wav sound files.
+
+    \ingroup multimedia
+
+
+    Qt provides the most commonly required audio operation in GUI
+    applications: asynchronously playing a sound file. This is most
+    easily accomplished using the static play() function:
+
+    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 0
+
+    Alternatively, create a QSound object from the sound file first
+    and then call the play() slot:
+
+    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 1
+
+    Once created a QSound object can be queried for its fileName() and
+    total number of loops() (i.e. the number of times the sound will
+    play). The number of repetitions can be altered using the
+    setLoops() function. While playing the sound, the loopsRemaining()
+    function returns the remaining number of repetitions. Use the
+    isFinished() function to determine whether the sound has finished
+    playing.
+
+    Sounds played using a QSound object may use more memory than the
+    static play() function, but it may also play more immediately
+    (depending on the underlying platform audio facilities).
+
+*/
+
+
+/*!
+    Plays the sound stored in the file specified by the given \a filename.
+
+    \since 5.0
+    \sa stop(), loopsRemaining(), isFinished()
+*/
+void QSound::play(const QString& filename)
+{
+    // Object destruction is generaly handled via deleteOnComplete
+    // Unexpected cases will be handled via parenting of QSound objects to qApp
+    QSound *sound = new QSound(filename, qApp);
+    sound->connect(sound->m_soundEffect, SIGNAL(playingChanged()), SLOT(deleteOnComplete()));
+    sound->play();
+}
+
+/*!
+    Constructs a QSound object from the file specified by the given \a
+    filename and with the given \a parent.
+
+    \since 5.0
+    \sa play()
+*/
+QSound::QSound(const QString& filename, QObject* parent)
+    : QObject(parent)
+{
+    m_soundEffect = new QSoundEffect(this);
+    m_soundEffect->setSource(QUrl::fromLocalFile(filename));
+}
+
+/*!
+    Destroys this sound object. If the sound is not finished playing,
+    the stop() function is called before the sound object is
+    destroyed.
+
+    \since 5.0
+    \sa stop(), isFinished()
+*/
+QSound::~QSound()
+{
+    if (!isFinished())
+        stop();
+}
+
+/*!
+    Returns true if the sound has finished playing; otherwise returns false.
+*/
+bool QSound::isFinished() const
+{
+    return !m_soundEffect->isPlaying();
+}
+
+/*!
+    \overload
+
+    Starts playing the sound specified by this QSound object.
+
+    The function returns immediately.  Depending on the platform audio
+    facilities, other sounds may stop or be mixed with the new
+    sound. The sound can be played again at any time, possibly mixing
+    or replacing previous plays of the sound.
+
+    \since 5.0
+    \sa fileName()
+*/
+void QSound::play()
+{
+    m_soundEffect->play();
+}
+
+/*!
+    Returns the number of times the sound will play.
+    Return value of \c QSound::Infinite indicates infinite number of loops
+
+    \since 5.0
+    \sa loopsRemaining(), setLoops()
+*/
+int QSound::loops() const
+{
+    // retain old API value for infite loops
+    int loopCount = m_soundEffect->loopCount();
+    if (loopCount == QSoundEffect::Infinite)
+        loopCount = Infinite;
+
+    return loopCount;
+}
+
+/*!
+    Returns the remaining number of times the sound will loop (for all
+    positive values this value decreases each time the sound is played).
+    Return value of \c QSound::Infinite indicates infinite number of loops
+
+    \since 5.0
+    \sa loops(), isFinished()
+*/
+int QSound::loopsRemaining() const
+{
+    // retain old API value for infite loops
+    int loopsRemaining = m_soundEffect->loopsRemaining();
+    if (loopsRemaining == QSoundEffect::Infinite)
+        loopsRemaining = Infinite;
+
+    return loopsRemaining;
+}
+
+/*!
+    \fn void QSound::setLoops(int number)
+
+    Sets the sound to repeat the given \a number of times when it is
+    played.
+
+    Note that passing the value \c QSound::Infinite will cause the sound to loop
+    indefinitely.
+
+    \since 5.0
+    \sa loops()
+*/
+void QSound::setLoops(int n)
+{
+    if (n == Infinite)
+        n = QSoundEffect::Infinite;
+
+    m_soundEffect->setLoopCount(n);
+}
+
+/*!
+    Returns the filename associated with this QSound object.
+
+    \since 5.0
+    \sa QSound()
+*/
+QString QSound::fileName() const
+{
+    return m_soundEffect->source().toLocalFile();
+}
+
+/*!
+    Stops the sound playing.
+
+    \since 5.0
+    \sa play()
+*/
+void QSound::stop()
+{
+    m_soundEffect->stop();
+}
+
+/*!
+    \internal
+    \since 5.0
+*/
+void QSound::deleteOnComplete()
+{
+    if (!m_soundEffect->isPlaying())
+        deleteLater();
+}
+
+#include "moc_qsound.cpp"

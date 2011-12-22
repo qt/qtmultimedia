@@ -410,7 +410,7 @@ void QSoundEffectPrivate::setSource(const QUrl &url)
     m_sampleReady = false;
 
     PulseDaemonLocker locker;
-    m_runningCount = 0;
+    setLoopsRemaining(0);
     if (m_pulseStream && !pa_stream_is_corked(m_pulseStream)) {
         pa_stream_set_write_callback(m_pulseStream, 0, 0);
         pa_stream_set_underflow_callback(m_pulseStream, 0, 0);
@@ -442,6 +442,11 @@ void QSoundEffectPrivate::setSource(const QUrl &url)
 int QSoundEffectPrivate::loopCount() const
 {
     return m_loopCount;
+}
+
+int QSoundEffectPrivate::loopsRemaining() const
+{
+    return m_runningCount;
 }
 
 void QSoundEffectPrivate::setLoopCount(int loopCount)
@@ -542,6 +547,17 @@ void QSoundEffectPrivate::setStatus(QSoundEffect::Status status)
         emit loadedChanged();
 }
 
+void QSoundEffectPrivate::setLoopsRemaining(int loopsRemaining)
+{
+#ifdef QT_PA_DEBUG
+    qDebug() << this << "setLoopsRemaining " << loopsRemaining;
+#endif
+    if (m_runningCount == loopsRemaining)
+        return;
+    m_runningCount = loopsRemaining;
+    emit loopsRemainingChanged();
+}
+
 void QSoundEffectPrivate::play()
 {
 #ifdef QT_PA_DEBUG
@@ -561,7 +577,7 @@ void QSoundEffectPrivate::play()
 #ifdef QT_PA_DEBUG
            qDebug() << this << "restart playing";
 #endif
-            m_runningCount = 0;
+            setLoopsRemaining(0);
             m_playQueued = true;
             Q_ASSERT(m_pulseStream);
             emptyStream();
@@ -708,7 +724,7 @@ void QSoundEffectPrivate::prepare()
     }
     if (m_playQueued) {
         m_playQueued = false;
-        m_runningCount = m_loopCount;
+        setLoopsRemaining(m_loopCount);
         playSample();
     }
 }
@@ -727,7 +743,7 @@ void QSoundEffectPrivate::uploadSample()
     if (m_position == m_sample->data().size()) {
         m_position = 0;
         if (m_runningCount > 0)
-            m_runningCount--;
+            setLoopsRemaining(m_runningCount - 1);
         if (m_runningCount == 0) {
             return;
         }
@@ -745,7 +761,7 @@ void QSoundEffectPrivate::uploadSample()
     if (m_position == m_sample->data().size()) {
         m_position = 0;
         if (m_runningCount > 0)
-            m_runningCount--;
+            setLoopsRemaining(m_runningCount - 1);
         if (m_runningCount != 0 && firstPartLength < writableSize)
         {
             while (writtenBytes < writableSize) {
@@ -760,7 +776,7 @@ void QSoundEffectPrivate::uploadSample()
                     break;
                 }
                 if (m_runningCount > 0)
-                    m_runningCount--;
+                    setLoopsRemaining(m_runningCount - 1);
                 if (m_runningCount == 0)
                     break;
             }
@@ -793,7 +809,7 @@ void QSoundEffectPrivate::stop()
     m_stopping = true;
     if (m_pulseStream)
         emptyStream();
-    m_runningCount = 0;
+    setLoopsRemaining(0);
     m_position = 0;
     m_playQueued = false;
 }

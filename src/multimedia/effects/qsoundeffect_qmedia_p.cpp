@@ -105,6 +105,11 @@ int QSoundEffectPrivate::loopCount() const
     return m_loopCount;
 }
 
+int QSoundEffectPrivate::loopsRemaining() const
+{
+    return m_runningCount;
+}
+
 void QSoundEffectPrivate::setLoopCount(int loopCount)
 {
     m_loopCount = loopCount;
@@ -150,19 +155,19 @@ void QSoundEffectPrivate::play()
     if (m_status == QSoundEffect::Null || m_status == QSoundEffect::Error)
         return;
     if (m_loopCount < 0) {
-        m_runningCount = -1;
+        setLoopsRemaining(-1);
     }
     else {
         if (m_runningCount < 0)
-            m_runningCount = 0;
-        m_runningCount += m_loopCount;
+            setLoopsRemaining(0);
+        setLoopsRemaining(m_runningCount + m_loopCount);
     }
     m_player->play();
 }
 
 void QSoundEffectPrivate::stop()
 {
-    m_runningCount = 0;
+    setLoopsRemaining(0);
     m_player->stop();
 }
 
@@ -174,10 +179,13 @@ void QSoundEffectPrivate::stateChanged(QMediaPlayer::State state)
         } else if (m_runningCount == 0) {
             setPlaying(false);
             return;
-        } else if (--m_runningCount > 0) {
-            m_player->play();
         } else {
-            setPlaying(false);
+            setLoopsRemaining(m_runningCount - 1);
+            if (m_runningCount > 0) {
+                m_player->play();
+            } else {
+             setPlaying(false);
+            }
         }
     } else {
         setPlaying(true);
@@ -231,6 +239,14 @@ void QSoundEffectPrivate::setPlaying(bool playing)
         return;
     m_playing = playing;
     emit playingChanged();
+}
+
+void QSoundEffectPrivate::setLoopsRemaining(int loopsRemaining)
+{
+    if (m_runningCount == loopsRemaining)
+        return;
+    m_runningCount = loopsRemaining;
+    emit loopsRemainingChanged();
 }
 
 QT_END_NAMESPACE

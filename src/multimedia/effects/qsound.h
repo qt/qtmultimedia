@@ -39,24 +39,11 @@
 **
 ****************************************************************************/
 
-#ifndef QSOUNDEFFECT_QMEDIA_H
-#define QSOUNDEFFECT_QMEDIA_H
+#ifndef QSOUND_H
+#define QSOUND_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
+#include <qtmultimediadefs.h>
 #include <QtCore/qobject.h>
-#include <QtCore/qurl.h>
-#include "qmediaplayer.h"
-#include "qsoundeffect.h"
 
 QT_BEGIN_HEADER
 
@@ -64,64 +51,43 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+class QSoundEffect;
 
-
-class QSoundEffectPrivate : public QObject
+class Q_MULTIMEDIA_EXPORT QSound : public QObject
 {
     Q_OBJECT
 public:
+    enum Loop
+    {
+        Infinite = -1,
+    };
 
-    explicit QSoundEffectPrivate(QObject* parent);
-    ~QSoundEffectPrivate();
+    static void play(const QString& filename);
 
-    static QStringList supportedMimeTypes();
+    explicit QSound(const QString& filename, QObject* parent = 0);
+    ~QSound();
 
-    QUrl source() const;
-    void setSource(const QUrl &url);
-    int loopCount() const;
+    int loops() const;
     int loopsRemaining() const;
-    void setLoopCount(int loopCount);
-    int volume() const;
-    void setVolume(int volume);
-    bool isMuted() const;
-    void setMuted(bool muted);
-    bool isLoaded() const;
-    bool isPlaying() const;
-    QSoundEffect::Status status() const;
+    void setLoops(int);
+    QString fileName() const;
 
-    void release();
+    bool isFinished() const;
 
 public Q_SLOTS:
     void play();
     void stop();
 
-Q_SIGNALS:
-    void loopsRemainingChanged();
-    void volumeChanged();
-    void mutedChanged();
-    void loadedChanged();
-    void playingChanged();
-    void statusChanged();
-
 private Q_SLOTS:
-    void stateChanged(QMediaPlayer::State);
-    void mediaStatusChanged(QMediaPlayer::MediaStatus);
-    void error(QMediaPlayer::Error);
+    void deleteOnComplete();
 
 private:
-    void setStatus(QSoundEffect::Status status);
-    void setPlaying(bool playing);
-    void setLoopsRemaining(int loopsRemaining);
-
-    int            m_loopCount;
-    int            m_runningCount;
-    bool           m_playing;
-    QSoundEffect::Status  m_status;
-    QMediaPlayer  *m_player;
+    QSoundEffect *m_soundEffect;
 };
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
-#endif // QSOUNDEFFECT_QMEDIA_H
+
+#endif // QSOUND_H

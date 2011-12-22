@@ -63,6 +63,7 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
     Q_CLASSINFO("DefaultMethod", "play()")
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(int loops READ loopCount WRITE setLoopCount NOTIFY loopCountChanged)
+    Q_PROPERTY(int loopsRemaining READ loopsRemaining NOTIFY loopsRemainingChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
@@ -93,6 +94,7 @@ public:
     void setSource(const QUrl &url);
 
     int loopCount() const;
+    int loopsRemaining() const;
     void setLoopCount(int loopCount);
 
     qreal volume() const;
@@ -109,6 +111,7 @@ public:
 Q_SIGNALS:
     void sourceChanged();
     void loopCountChanged();
+    void loopsRemainingChanged();
     void volumeChanged();
     void mutedChanged();
     void loadedChanged();

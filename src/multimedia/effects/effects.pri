@@ -21,7 +21,8 @@ unix:!mac {
 }
 
 PUBLIC_HEADERS += \
-        effects/qsoundeffect.h
+        effects/qsoundeffect.h \
+        effects/qsound.h
 
 PRIVATE_HEADERS += \
         effects/qwavedecoder_p.h \
@@ -30,6 +31,7 @@ PRIVATE_HEADERS += \
 SOURCES += \
     effects/qsoundeffect.cpp \
     effects/qwavedecoder_p.cpp \
-    effects/qsamplecache_p.cpp
+    effects/qsamplecache_p.cpp \
+    effects/qsound.cpp
 
 HEADERS +=

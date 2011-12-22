@@ -106,16 +106,20 @@ void tst_QSoundEffect::testSource()
 
 void tst_QSoundEffect::testLooping()
 {
-    QSignalSpy readSignal(sound, SIGNAL(loopCountChanged()));
+    QSignalSpy readSignal_Count(sound, SIGNAL(loopCountChanged()));
+    QSignalSpy readSignal_Remaining(sound, SIGNAL(loopsRemainingChanged()));
 
     sound->setLoopCount(5);
     QCOMPARE(sound->loopCount(),5);
+    QCOMPARE(readSignal_Count.count(),1);
 
     sound->play();
 
     // test.wav is about 200ms, wait until it has finished playing 5 times
     QTest::qWait(3000);
 
+    QCOMPARE(sound->loopsRemaining(), 0);
+    QCOMPARE(readSignal_Remaining.count(),5);
 }
 
 void tst_QSoundEffect::testVolume()

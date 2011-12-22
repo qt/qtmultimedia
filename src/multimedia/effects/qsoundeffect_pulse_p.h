@@ -82,6 +82,7 @@ public:
     QUrl source() const;
     void setSource(const QUrl &url);
     int loopCount() const;
+    int loopsRemaining() const;
     void setLoopCount(int loopCount);
     int volume() const;
     void setVolume(int volume);
@@ -98,6 +99,7 @@ public Q_SLOTS:
     void stop();
 
 Q_SIGNALS:
+    void loopsRemainingChanged();
     void volumeChanged();
     void mutedChanged();
     void loadedChanged();
@@ -125,6 +127,7 @@ private:
 
     void setPlaying(bool playing);
     void setStatus(QSoundEffect::Status status);
+    void setLoopsRemaining(int loopsRemaining);
 
     static void stream_write_callback(pa_stream *s, size_t length, void *userdata);
     static void stream_state_callback(pa_stream *s, void *userdata);
