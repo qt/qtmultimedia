@@ -43,8 +43,7 @@
 #define QMLAPPLICATIONVIEWER_H
 
 #include <QtQuick/QQuickView>
-
-class QGuiApplication;
+#include <QtGui/QGuiApplication>
 
 class QmlApplicationViewer : public QQuickView
 {

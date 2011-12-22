@@ -42,7 +42,7 @@
 #ifndef PERFORMANCEMONITOR_H
 #define PERFORMANCEMONITOR_H
 
-class QString;
+#include <QtCore/QString>
 
 namespace PerformanceMonitor {
     struct State {

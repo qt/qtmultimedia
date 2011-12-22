@@ -40,7 +40,6 @@
 ****************************************************************************/
 
 #include "performancemonitor.h"
-#include <QtCore/QString>
 
 namespace PerformanceMonitor {
 

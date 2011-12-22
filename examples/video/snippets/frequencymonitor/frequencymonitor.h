@@ -43,8 +43,7 @@
 #define FREQUENCYMONITOR_H
 
 #include <QtCore/QObject>
-
-class QTimer;
+#include <QtCore/QTimer>
 
 class FrequencyMonitorPrivate;
 
