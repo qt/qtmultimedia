@@ -261,6 +261,28 @@ QDeclarativeAudio::Status QDeclarativeAudio::status() const
 */
 
 /*!
+    \qmlproperty bool Audio::hasAudio
+
+    This property holds whether the media contains audio.
+*/
+
+bool QDeclarativeAudio::hasAudio() const
+{
+    return !m_complete ? false : m_playerControl->isAudioAvailable();
+}
+
+/*!
+    \qmlproperty bool Audio::hasVideo
+
+    This property holds whether the media contains video.
+*/
+
+bool QDeclarativeAudio::hasVideo() const
+{
+    return !m_complete ? false : m_playerControl->isVideoAvailable();
+}
+
+/*!
     \qmlproperty real Audio::bufferProgress
 
     This property holds how much of the data buffer is currently filled, from 0.0 (empty) to 1.0
@@ -305,6 +327,14 @@ QDeclarativeAudio::Error QDeclarativeAudio::error() const
 void QDeclarativeAudio::classBegin()
 {
     setObject(this);
+
+    if (m_mediaService) {
+        connect(m_playerControl, SIGNAL(audioAvailableChanged(bool)),
+                this, SIGNAL(hasAudioChanged()));
+        connect(m_playerControl, SIGNAL(videoAvailableChanged(bool)),
+                this, SIGNAL(hasVideoChanged()));
+    }
+
     emit mediaObjectChanged();
 }
 

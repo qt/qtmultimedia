@@ -78,6 +78,8 @@ class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public Q
     Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
+    Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged)
+    Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged)
     Q_PROPERTY(int bufferProgress READ bufferProgress NOTIFY bufferProgressChanged)
     Q_PROPERTY(bool seekable READ isSeekable NOTIFY seekableChanged)
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
@@ -121,6 +123,9 @@ public:
     QDeclarativeAudio(QObject *parent = 0);
     ~QDeclarativeAudio();
 
+    bool hasAudio() const;
+    bool hasVideo() const;
+
     Status status() const;
     Error error() const;
 
@@ -153,6 +158,8 @@ Q_SIGNALS:
 
     void volumeChanged();
     void mutedChanged();
+    void hasAudioChanged();
+    void hasVideoChanged();
 
     void bufferProgressChanged();
 
