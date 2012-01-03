@@ -949,13 +949,15 @@ void tst_QMediaPlayer::testPlayerFlags()
 void tst_QMediaPlayer::testDestructor()
 {
     /* create an object for player */
-    QMediaPlayer *player = new QMediaPlayer;
+    MockMediaPlayerService service;
+    MockMediaServiceProvider provider(&service);
+    QMediaPlayer *victim = new QMediaPlayer(0, 0, &provider);
 
     /* check whether the object is created */
-    QVERIFY(player);
+    QVERIFY(victim);
 
-    /* delete the instance */
-    delete player;
+    /* delete the instance (a crash is a failure :) */
+    delete victim;
 }
 
 void tst_QMediaPlayer::testNetworkAccess()
