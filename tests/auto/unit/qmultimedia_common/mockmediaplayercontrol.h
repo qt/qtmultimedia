@@ -49,7 +49,23 @@ class MockMediaPlayerControl : public QMediaPlayerControl
     friend class MockMediaPlayerService;
 
 public:
-    MockMediaPlayerControl():QMediaPlayerControl(0) {}
+    MockMediaPlayerControl()
+        : QMediaPlayerControl(0)
+        , _state(QMediaPlayer::StoppedState)
+        , _mediaStatus(QMediaPlayer::NoMedia)
+        , _error(QMediaPlayer::NoError)
+        , _duration(0)
+        , _position(0)
+        , _volume(100)
+        , _muted(false)
+        , _bufferStatus(0)
+        , _audioAvailable(false)
+        , _videoAvailable(false)
+        , _isSeekable(true)
+        , _playbackRate(qreal(1.0))
+        , _stream(0)
+        , _isValid(false)
+    {}
 
     QMediaPlayer::State state() const { return _state; }
     QMediaPlayer::MediaStatus mediaStatus() const { return _mediaStatus; }
