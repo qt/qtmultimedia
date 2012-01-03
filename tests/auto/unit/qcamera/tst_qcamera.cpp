@@ -79,9 +79,6 @@ public slots:
     void cleanupTestCase();
 
 private slots:
-    void testAvailableDevices();
-    void testDeviceDescription();
-    void testCtorWithDevice();
     void testSimpleCamera();
     void testSimpleCameraWhiteBalance();
     void testSimpleCameraExposure();
@@ -181,42 +178,6 @@ void tst_QCamera::cleanupTestCase()
 {
     delete mockSimpleCameraService;
     delete provider;
-}
-
-void tst_QCamera::testAvailableDevices()
-{
-    int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
-
-    QVERIFY(QCamera::availableDevices().count() == deviceCount);
-}
-
-void tst_QCamera::testDeviceDescription()
-{
-    int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
-
-    if (deviceCount == 0)
-        QVERIFY(QCamera::deviceDescription(QByteArray("random")).isNull());
-    else {
-        foreach (const QByteArray &device, QCamera::availableDevices())
-            QVERIFY(QCamera::deviceDescription(device).length() > 0);
-    }
-}
-
-void tst_QCamera::testCtorWithDevice()
-{
-    int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
-    QCamera *camera = 0;
-
-    if (deviceCount == 0) {
-        camera = new QCamera("random");
-        QVERIFY(camera->error() == QCamera::ServiceMissingError);
-    }
-    else {
-        camera = new QCamera(QCamera::availableDevices().first());
-        QVERIFY(camera->error() == QCamera::NoError);
-    }
-
-    delete camera;
 }
 
 void tst_QCamera::testSimpleCamera()
