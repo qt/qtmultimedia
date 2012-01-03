@@ -19,7 +19,6 @@ load(qt_module_config)
 
 HEADERS += qtmultimediaversion.h
 
-
 PRIVATE_HEADERS += \
     qmediacontrol_p.h \
     qmediaobject_p.h \
@@ -72,7 +71,8 @@ PUBLIC_HEADERS += \
     qmediatimerange.h \
     qmedianetworkaccesscontrol.h \
     qmediaenumdebug.h \
-    qtmultimediadefs.h
+    qtmultimediadefs.h \
+    qmediagaplessplaybackcontrol.h
 
 SOURCES += qmediacontrol.cpp \
     qmediaobject.cpp \
@@ -115,7 +115,8 @@ SOURCES += qmediacontrol.cpp \
     qmedianetworkaccesscontrol.cpp \
     qvideosurfaceoutput.cpp \
     qmediabackgroundplaybackcontrol.cpp \
-    qtmedianamespace.cpp
+    qtmedianamespace.cpp \
+    qmediagaplessplaybackcontrol.cpp
 
 #Camera
 PUBLIC_HEADERS += \
