@@ -8,8 +8,6 @@ CONFIG += no_private_qt_headers_warning
 
 SOURCES += tst_qsoundeffect.cpp
 
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
-
 unix:!mac {
     !contains(QT_CONFIG, pulseaudio) {
         DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER

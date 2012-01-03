@@ -7,6 +7,3 @@ CONFIG += no_private_qt_headers_warning
 # CONFIG += testcase
 
 SOURCES += tst_qsound.cpp
-
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
-

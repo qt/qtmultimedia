@@ -75,11 +75,11 @@ private:
 
 void tst_QSoundEffect::initTestCase()
 {
-#ifdef QT_QSOUNDEFFECT_USEAPPLICATIONPATH
-    url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + QString("/test.wav"));
-#else
-    url = QUrl::fromLocalFile(QString(SRCDIR "test.wav"));
-#endif
+    const QString testFileName = QStringLiteral("test.wav");
+    const QString fullPath = QFINDTESTDATA(testFileName);
+    QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
+
+    url = QUrl::fromLocalFile(fullPath);
 
     sound = new QSoundEffect(this);
 

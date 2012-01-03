@@ -67,7 +67,10 @@ private:
 
 void tst_QSound::initTestCase()
 {
-    sound = new QSound(QString(SRCDIR "test.wav"), this);
+    const QString testFileName = QStringLiteral("test.wav");
+    const QString fullPath = QFINDTESTDATA(testFileName);
+    QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
+    sound = new QSound(fullPath, this);
 
     QVERIFY(!sound->fileName().isEmpty());
     QCOMPARE(sound->loops(),1);
@@ -120,7 +123,11 @@ void tst_QSound::testStop()
 void tst_QSound::testStaticPlay()
 {
     // Check that you hear sound with static play also.
-    QSound::play(QString(SRCDIR "test2.wav"));
+    const QString testFileName = QStringLiteral("test2.wav");
+    const QString fullPath = QFINDTESTDATA(testFileName);
+    QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
+
+    QSound::play(fullPath);
 
     QTest::qWait(1000);
 }
