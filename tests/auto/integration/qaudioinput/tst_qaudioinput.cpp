@@ -41,6 +41,9 @@
 
 #include <QtTest/QtTest>
 #include <QtCore/qlocale.h>
+#include <QtCore/QTemporaryDir>
+#include <QtCore/QSharedPointer>
+#include <QtCore/QScopedPointer>
 
 #include <qaudioinput.h>
 #include <qaudiodeviceinfo.h>
@@ -98,15 +101,15 @@ private slots:
 
     void reset();
 
-    void cleanupTestCase();
-
 private:
+    typedef QSharedPointer<QFile> FilePtr;
+
     QString formatToFileName(const QAudioFormat &format);
-    QString workingDir();
 
     QAudioDeviceInfo audioDevice;
     QList<QAudioFormat> testFormats;
-    QList<QFile*> audioFiles;
+    QList<FilePtr> audioFiles;
+    QScopedPointer<QTemporaryDir> m_temporaryDir;
 
     QScopedPointer<QByteArray> m_byteArray;
     QScopedPointer<QBuffer> m_buffer;
@@ -126,17 +129,6 @@ QString tst_QAudioInput::formatToFileName(const QAudioFormat &format)
         .arg(formatSigned)
         .arg(formatEndian)
         .arg(format.channels());
-}
-
-
-QString tst_QAudioInput::workingDir()
-{
-    QDir working(QString(SRCDIR));
-
-    if (working.exists())
-        return QString(SRCDIR);
-
-    return QDir::currentPath();
 }
 
 void tst_QAudioInput::initTestCase()
@@ -197,9 +189,19 @@ void tst_QAudioInput::initTestCase()
 
     QVERIFY(testFormats.size());
 
+    const QChar slash = QLatin1Char('/');
+    QString temporaryPattern = QDir::tempPath();
+    if (!temporaryPattern.endsWith(slash))
+        temporaryPattern += slash;
+    temporaryPattern += "tst_qaudioinputXXXXXX";
+    m_temporaryDir.reset(new QTemporaryDir(temporaryPattern));
+    m_temporaryDir->setAutoRemove(true);
+    QVERIFY(m_temporaryDir->isValid());
+
+    const QString temporaryAudioPath = m_temporaryDir->path() + slash;
     foreach (const QAudioFormat &format, testFormats) {
-        QFile* file = new QFile(workingDir() + formatToFileName(format) + QString(".wav"));
-        audioFiles.append(file);
+        const QString fileName = temporaryAudioPath + formatToFileName(format) + QStringLiteral(".wav");
+        audioFiles.append(FilePtr(new QFile(fileName)));
     }
 }
 
@@ -343,13 +345,14 @@ void tst_QAudioInput::disableNotifyInterval()
         QAudioInput audioInputCheck(testFormats.at(0), this);
         audioInputCheck.setNotifyInterval(0);
         QSignalSpy notifySignal(&audioInputCheck, SIGNAL(notify()));
-        audioFiles.at(0)->open(QIODevice::WriteOnly);
-        audioInputCheck.start(audioFiles.at(0));
+        QFile *audioFile = audioFiles.at(0).data();
+        audioFile->open(QIODevice::WriteOnly);
+        audioInputCheck.start(audioFile);
         QTest::qWait(3000); // 3 seconds should be plenty
         audioInputCheck.stop();
         QVERIFY2((notifySignal.count() == 0),
                 QString("didn't disable notify interval: shouldn't have got any but got %1").arg(notifySignal.count()).toLocal8Bit().constData());
-        audioFiles.at(0)->close();
+        audioFile->close();
     }
 }
 
@@ -417,6 +420,7 @@ void tst_QAudioInput::pull()
 {
     for(int i=0; i<audioFiles.count(); i++) {
         QAudioInput audioInput(testFormats.at(i), this);
+        QFile *audioFile = audioFiles.at(i).data();
 
         audioInput.setNotifyInterval(100);
 
@@ -428,12 +432,12 @@ void tst_QAudioInput::pull()
         QVERIFY2((audioInput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
         QVERIFY2((audioInput.elapsedUSecs() == qint64(0)),"elapsedUSecs() not zero on creation");
 
-        audioFiles.at(i)->close();
-        audioFiles.at(i)->open(QIODevice::WriteOnly);
+        audioFile->close();
+        audioFile->open(QIODevice::WriteOnly);
         WavHeader wavHeader(testFormats.at(i));
-        QVERIFY(wavHeader.write(*audioFiles.at(i)));
+        QVERIFY(wavHeader.write(*audioFile));
 
-        audioInput.start(audioFiles.at(i));
+        audioInput.start(audioFile);
 
         // Check that QAudioInput immediately transitions to ActiveState or IdleState
         QTRY_VERIFY2((stateSignal.count() > 0),"didn't emit signals on start()");
@@ -467,8 +471,8 @@ void tst_QAudioInput::pull()
         QVERIFY2((notifySignal.count() > 20 && notifySignal.count() < 40),
                 QString("notify() signals emitted (%1) should be 30").arg(notifySignal.count()).toLocal8Bit().constData());
 
-        WavHeader::writeDataLength(*audioFiles.at(i),audioFiles.at(i)->pos()-WavHeader::headerLength());
-        audioFiles.at(i)->close();
+        WavHeader::writeDataLength(*audioFile, audioFile->pos() - WavHeader::headerLength());
+        audioFile->close();
     }
 }
 
@@ -476,6 +480,7 @@ void tst_QAudioInput::pullSuspendResume()
 {
     for(int i=0; i<audioFiles.count(); i++) {
         QAudioInput audioInput(testFormats.at(i), this);
+        QFile *audioFile = audioFiles.at(i).data();
 
         audioInput.setNotifyInterval(100);
 
@@ -492,7 +497,7 @@ void tst_QAudioInput::pullSuspendResume()
         WavHeader wavHeader(testFormats.at(i));
         QVERIFY(wavHeader.write(*audioFiles.at(i)));
 
-        audioInput.start(audioFiles.at(i));
+        audioInput.start(audioFile);
 
         // Check that QAudioInput immediately transitions to ActiveState or IdleState
         QTRY_VERIFY2((stateSignal.count() > 0),"didn't emit signals on start()");
@@ -561,7 +566,7 @@ void tst_QAudioInput::pullSuspendResume()
                 QString("notify() signals emitted (%1) should be 30").arg(notifySignal.count()).toLocal8Bit().constData());
 
         WavHeader::writeDataLength(*audioFiles.at(i),audioFiles.at(i)->pos()-WavHeader::headerLength());
-        audioFiles.at(i)->close();
+        audioFile->close();
     }
 }
 
@@ -832,16 +837,6 @@ void tst_QAudioInput::reset()
             QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after reset()");
             QVERIFY2((audioInput.bytesReady() == 0), "buffer not cleared after reset()");
         }
-    }
-}
-
-void tst_QAudioInput::cleanupTestCase()
-{
-    QFile* file;
-
-    foreach (file, audioFiles) {
-        file->remove();
-        delete file;
     }
 }
 

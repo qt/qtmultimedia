@@ -43,6 +43,9 @@
 
 #include <QtTest/QtTest>
 #include <QtCore/qlocale.h>
+#include <QtCore/QTemporaryDir>
+#include <QtCore/QSharedPointer>
+#include <QtCore/QScopedPointer>
 
 #include <qaudiooutput.h>
 #include <qaudiodeviceinfo.h>
@@ -97,16 +100,16 @@ private slots:
     void pushSuspendResume();
     void pushUnderrun();
 
-    void cleanupTestCase();
-
 private:
+    typedef QSharedPointer<QFile> FilePtr;
+
     QString formatToFileName(const QAudioFormat &format);
-    QString workingDir();
     void createSineWaveData(const QAudioFormat &format, qint64 length, int frequency = 440);
 
     QAudioDeviceInfo audioDevice;
     QList<QAudioFormat> testFormats;
-    QList<QFile*> audioFiles;
+    QList<FilePtr> audioFiles;
+    QScopedPointer<QTemporaryDir> m_temporaryDir;
 
     QScopedPointer<QByteArray> m_byteArray;
     QScopedPointer<QBuffer> m_buffer;
@@ -126,17 +129,6 @@ QString tst_QAudioOutput::formatToFileName(const QAudioFormat &format)
         .arg(formatSigned)
         .arg(formatEndian)
         .arg(format.channels());
-}
-
-
-QString tst_QAudioOutput::workingDir()
-{
-    QDir working(QString(SRCDIR));
-
-    if (working.exists())
-        return QString(SRCDIR);
-
-    return QDir::currentPath();
 }
 
 void tst_QAudioOutput::createSineWaveData(const QAudioFormat &format, qint64 length, int frequency)
@@ -242,18 +234,29 @@ void tst_QAudioOutput::initTestCase()
 
     QVERIFY(testFormats.size());
 
+    const QChar slash = QLatin1Char('/');
+    QString temporaryPattern = QDir::tempPath();
+    if (!temporaryPattern.endsWith(slash))
+         temporaryPattern += slash;
+    temporaryPattern += "tst_qaudiooutputXXXXXX";
+    m_temporaryDir.reset(new QTemporaryDir(temporaryPattern));
+    m_temporaryDir->setAutoRemove(true);
+    QVERIFY(m_temporaryDir->isValid());
+
+    const QString temporaryAudioPath = m_temporaryDir->path() + slash;
     foreach (const QAudioFormat &format, testFormats) {
         qint64 len = (format.frequency()*format.channels()*(format.sampleSize()/8)*2); // 2 seconds
         createSineWaveData(format, len);
         // Write generate sine wave data to file
-        QFile* file = new QFile(workingDir() + QString("generated") + formatToFileName(format) + QString(".wav"));
-        if (file->open(QIODevice::WriteOnly)) {
-            WavHeader wavHeader(format, len);
-            wavHeader.write(*file);
-            file->write(m_byteArray->data(), len);
-            file->close();
-            audioFiles.append(file);
-        }
+        const QString fileName = temporaryAudioPath + QStringLiteral("generated")
+                                 + formatToFileName(format) + QStringLiteral(".wav");
+        FilePtr file(new QFile(fileName));
+        QVERIFY2(file->open(QIODevice::WriteOnly), qPrintable(file->errorString()));
+        WavHeader wavHeader(format, len);
+        wavHeader.write(*file.data());
+        file->write(m_byteArray->data(), len);
+        file->close();
+        audioFiles.append(file);
     }
 }
 
@@ -396,13 +399,14 @@ void tst_QAudioOutput::disableNotifyInterval()
         QAudioOutput audioOutputCheck(testFormats.at(0), this);
         audioOutputCheck.setNotifyInterval(0);
         QSignalSpy notifySignal(&audioOutputCheck, SIGNAL(notify()));
-        audioFiles.at(0)->open(QIODevice::ReadOnly);
-        audioOutputCheck.start(audioFiles.at(0));
+        QFile *audioFile = audioFiles.at(0).data();
+        audioFile->open(QIODevice::ReadOnly);
+        audioOutputCheck.start(audioFile);
         QTest::qWait(3000); // 3 seconds should be plenty
         audioOutputCheck.stop();
         QVERIFY2((notifySignal.count() == 0),
                 QString("didn't disable notify interval: shouldn't have got any but got %1").arg(notifySignal.count()).toLocal8Bit().constData());
-        audioFiles.at(0)->close();
+        audioFile->close();
     }
 }
 
@@ -481,11 +485,12 @@ void tst_QAudioOutput::pull()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
         QVERIFY2((audioOutput.elapsedUSecs() == qint64(0)),"elapsedUSecs() not zero on creation");
 
-        audioFiles.at(i)->close();
-        audioFiles.at(i)->open(QIODevice::ReadOnly);
-        audioFiles.at(i)->seek(WavHeader::headerLength());
+        QFile *audioFile = audioFiles.at(i).data();
+        audioFile->close();
+        audioFile->open(QIODevice::ReadOnly);
+        audioFile->seek(WavHeader::headerLength());
 
-        audioOutput.start(audioFiles.at(i));
+        audioOutput.start(audioFile);
 
         // Check that QAudioOutput immediately transitions to ActiveState
         QTRY_VERIFY2((stateSignal.count() == 1),
@@ -502,7 +507,7 @@ void tst_QAudioOutput::pull()
         // Wait until playback finishes
         QTest::qWait(3000); // 3 seconds should be plenty
 
-        QVERIFY2(audioFiles.at(i)->atEnd(), "didn't play to EOF");
+        QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
         QVERIFY2((stateSignal.count() == 1),
             QString("didn't emit IdleState signal when at EOF, got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
@@ -523,7 +528,7 @@ void tst_QAudioOutput::pull()
         QVERIFY2((notifySignal.count() > 15 && notifySignal.count() < 25),
                 QString("too many notify() signals emitted (%1)").arg(notifySignal.count()).toLocal8Bit().constData());
 
-        audioFiles.at(i)->close();
+        audioFile->close();
     }
 }
 
@@ -542,11 +547,12 @@ void tst_QAudioOutput::pullSuspendResume()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
         QVERIFY2((audioOutput.elapsedUSecs() == qint64(0)),"elapsedUSecs() not zero on creation");
 
-        audioFiles.at(i)->close();
-        audioFiles.at(i)->open(QIODevice::ReadOnly);
-        audioFiles.at(i)->seek(WavHeader::headerLength());
+        QFile *audioFile = audioFiles.at(i).data();
+        audioFile->close();
+        audioFile->open(QIODevice::ReadOnly);
+        audioFile->seek(WavHeader::headerLength());
 
-        audioOutput.start(audioFiles.at(i));
+        audioOutput.start(audioFile);
         // Check that QAudioOutput immediately transitions to ActiveState
         QTRY_VERIFY2((stateSignal.count() == 1),
                 QString("didn't emit signal on start(), got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
@@ -592,7 +598,7 @@ void tst_QAudioOutput::pullSuspendResume()
         // Wait until playback finishes
         QTest::qWait(3000); // 3 seconds should be plenty
 
-        QVERIFY2(audioFiles.at(i)->atEnd(), "didn't play to EOF");
+        QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
         QVERIFY2((stateSignal.count() == 1),
             QString("didn't emit IdleState signal when at EOF, got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
@@ -611,7 +617,7 @@ void tst_QAudioOutput::pullSuspendResume()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
-        audioFiles.at(i)->close();
+        audioFile->close();
     }
 }
 
@@ -630,9 +636,10 @@ void tst_QAudioOutput::push()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
         QVERIFY2((audioOutput.elapsedUSecs() == qint64(0)),"elapsedUSecs() not zero on creation");
 
-        audioFiles.at(i)->close();
-        audioFiles.at(i)->open(QIODevice::ReadOnly);
-        audioFiles.at(i)->seek(WavHeader::headerLength());
+        QFile *audioFile = audioFiles.at(i).data();
+        audioFile->close();
+        audioFile->open(QIODevice::ReadOnly);
+        audioFile->seek(WavHeader::headerLength());
 
         QIODevice* feed = audioOutput.start();
 
@@ -653,10 +660,10 @@ void tst_QAudioOutput::push()
         bool firstBuffer = true;
         QByteArray buffer(AUDIO_BUFFER, 0);
 
-        while (written < audioFiles.at(i)->size()-WavHeader::headerLength()) {
+        while (written < audioFile->size()-WavHeader::headerLength()) {
 
             if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-                qint64 len = audioFiles.at(i)->read(buffer.data(),audioOutput.periodSize());
+                qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
                 written += feed->write(buffer.constData(), len);
 
                 if (firstBuffer) {
@@ -676,7 +683,7 @@ void tst_QAudioOutput::push()
         // Wait until playback finishes
         QTest::qWait(3000); // 3 seconds should be plenty
 
-        QVERIFY2(audioFiles.at(i)->atEnd(), "didn't play to EOF");
+        QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
         QVERIFY2((stateSignal.count() == 1),
             QString("didn't emit IdleState signal when at EOF, got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
@@ -697,7 +704,7 @@ void tst_QAudioOutput::push()
         QVERIFY2((notifySignal.count() > 15 && notifySignal.count() < 25),
                 QString("too many notify() signals emitted (%1)").arg(notifySignal.count()).toLocal8Bit().constData());
 
-        audioFiles.at(i)->close();
+        audioFile->close();
     }
 }
 
@@ -716,9 +723,10 @@ void tst_QAudioOutput::pushSuspendResume()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
         QVERIFY2((audioOutput.elapsedUSecs() == qint64(0)),"elapsedUSecs() not zero on creation");
 
-        audioFiles.at(i)->close();
-        audioFiles.at(i)->open(QIODevice::ReadOnly);
-        audioFiles.at(i)->seek(WavHeader::headerLength());
+        QFile *audioFile = audioFiles.at(i).data();
+        audioFile->close();
+        audioFile->open(QIODevice::ReadOnly);
+        audioFile->seek(WavHeader::headerLength());
 
         QIODevice* feed = audioOutput.start();
 
@@ -740,10 +748,10 @@ void tst_QAudioOutput::pushSuspendResume()
         QByteArray buffer(AUDIO_BUFFER, 0);
 
         // Play half of the clip
-        while (written < (audioFiles.at(i)->size()-WavHeader::headerLength())/2) {
+        while (written < (audioFile->size()-WavHeader::headerLength())/2) {
 
             if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-                qint64 len = audioFiles.at(i)->read(buffer.data(),audioOutput.periodSize());
+                qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
                 written += feed->write(buffer.constData(), len);
 
                 if (firstBuffer) {
@@ -792,9 +800,9 @@ void tst_QAudioOutput::pushSuspendResume()
         stateSignal.clear();
 
         // Play rest of the clip
-        while (!audioFiles.at(i)->atEnd()) {
+        while (!audioFile->atEnd()) {
             if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-                qint64 len = audioFiles.at(i)->read(buffer.data(),audioOutput.periodSize());
+                qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
                 written += feed->write(buffer.constData(), len);
             } else
                 QTest::qWait(20);
@@ -804,7 +812,7 @@ void tst_QAudioOutput::pushSuspendResume()
         // Wait until playback finishes
         QTest::qWait(1000); // 1 seconds should be plenty
 
-        QVERIFY2(audioFiles.at(i)->atEnd(), "didn't play to EOF");
+        QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
         QVERIFY2((stateSignal.count() == 1),
             QString("didn't emit IdleState signal when at EOF, got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
@@ -823,7 +831,7 @@ void tst_QAudioOutput::pushSuspendResume()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
-        audioFiles.at(i)->close();
+        audioFile->close();
     }
 }
 
@@ -842,9 +850,10 @@ void tst_QAudioOutput::pushUnderrun()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
         QVERIFY2((audioOutput.elapsedUSecs() == qint64(0)),"elapsedUSecs() not zero on creation");
 
-        audioFiles.at(i)->close();
-        audioFiles.at(i)->open(QIODevice::ReadOnly);
-        audioFiles.at(i)->seek(WavHeader::headerLength());
+        QFile *audioFile = audioFiles.at(i).data();
+        audioFile->close();
+        audioFile->open(QIODevice::ReadOnly);
+        audioFile->seek(WavHeader::headerLength());
 
         QIODevice* feed = audioOutput.start();
 
@@ -866,10 +875,10 @@ void tst_QAudioOutput::pushUnderrun()
         QByteArray buffer(AUDIO_BUFFER, 0);
 
         // Play half of the clip
-        while (written < (audioFiles.at(i)->size()-WavHeader::headerLength())/2) {
+        while (written < (audioFile->size()-WavHeader::headerLength())/2) {
 
             if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-                qint64 len = audioFiles.at(i)->read(buffer.data(),audioOutput.periodSize());
+                qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
                 written += feed->write(buffer.constData(), len);
 
                 if (firstBuffer) {
@@ -898,9 +907,9 @@ void tst_QAudioOutput::pushUnderrun()
 
         firstBuffer = true;
         // Play rest of the clip
-        while (!audioFiles.at(i)->atEnd()) {
+        while (!audioFile->atEnd()) {
             if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-                qint64 len = audioFiles.at(i)->read(buffer.data(),audioOutput.periodSize());
+                qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
                 written += feed->write(buffer.constData(), len);
                 if (firstBuffer) {
                     // Check for transition to ActiveState when data is provided
@@ -919,7 +928,7 @@ void tst_QAudioOutput::pushUnderrun()
         // Wait until playback finishes
         QTest::qWait(1000); // 1 seconds should be plenty
 
-        QVERIFY2(audioFiles.at(i)->atEnd(), "didn't play to EOF");
+        QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
         QVERIFY2((stateSignal.count() == 1),
             QString("didn't emit IdleState signal when at EOF, got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
@@ -938,17 +947,7 @@ void tst_QAudioOutput::pushUnderrun()
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
-        audioFiles.at(i)->close();
-    }
-}
-
-void tst_QAudioOutput::cleanupTestCase()
-{
-    QFile* file;
-
-    foreach (file, audioFiles) {
-        file->remove();
-        delete file;
+        audioFile->close();
     }
 }
 
