@@ -46,14 +46,92 @@
 #include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
 #include "qcameraimageprocessing.h"
+#include "qabstractvideosurface.h"
 
-void camera()
+/* Globals so that everything is consistent. */
+QCamera *camera = 0;
+QCameraViewfinder *viewfinder = 0;
+QMediaRecorder *recorder = 0;
+QCameraImageCapture *imageCapture = 0;
+
+void overview_viewfinder()
 {
-    QCamera *camera = 0;
-    QCameraViewfinder *viewfinder = 0;
-    QMediaRecorder *recorder = 0;
-    QCameraImageCapture *imageCapture = 0;
+    //! [Camera overview viewfinder]
+    camera = new QCamera;
+    viewfinder = new QCameraViewfinder;
+    camera->setViewfinder(viewfinder);
+    viewfinder->show();
 
+    camera->start(); // to start the viewfinder
+    //! [Camera overview viewfinder]
+}
+
+// -.-
+class MyVideoSurface : public QAbstractVideoSurface
+{
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
+    {
+        Q_UNUSED(handleType);
+        return QList<QVideoFrame::PixelFormat>();
+    }
+    bool present(const QVideoFrame &frame)
+    {
+        Q_UNUSED(frame);
+        return true;
+    }
+};
+
+void overview_surface()
+{
+    MyVideoSurface *mySurface;
+    //! [Camera overview surface]
+    camera = new QCamera;
+    mySurface = new MyVideoSurface;
+    camera->setViewfinder(mySurface);
+
+    camera->start();
+    // MyVideoSurface::present(..) will be called with viewfinder frames
+    //! [Camera overview surface]
+}
+
+void overview_still()
+{
+    //! [Camera overview capture]
+    imageCapture = new QCameraImageCapture(camera);
+
+    camera->setCaptureMode(QCamera::CaptureStillImage);
+    camera->start(); // Viewfinder frames start flowing
+
+    //on half pressed shutter button
+    camera->searchAndLock();
+
+    //on shutter button pressed
+    imageCapture->capture();
+
+    //on shutter button released
+    camera->unlock();
+    //! [Camera overview surface]
+}
+
+void overview_movie()
+{
+    //! [Camera overview movie]
+    camera = new QCamera;
+    recorder = new QMediaRecorder(camera);
+
+    camera->setCaptureMode(QCamera::CaptureVideo);
+    camera->start();
+
+    //on shutter button pressed
+    recorder->record();
+
+    // sometime later, or on another press
+    recorder->stop();
+    //! [Camera overview movie]
+}
+
+void camera_blah()
+{
     //! [Camera]
     camera = new QCamera;
 
@@ -62,7 +140,6 @@ void camera()
 
     camera->setViewfinder(viewfinder);
 
-    recorder = new QMediaRecorder(camera);
     imageCapture = new QCameraImageCapture(camera);
 
     camera->setCaptureMode(QCamera::CaptureStillImage);
@@ -83,8 +160,6 @@ void camera()
 
 void cameraimageprocessing()
 {
-    QCamera *camera = 0;
-
     //! [Camera image whitebalance]
     camera = new QCamera;
     QCameraImageProcessing *imageProcessing = camera->imageProcessing();
@@ -103,8 +178,6 @@ void cameraimageprocessing()
 
 void camerafocus()
 {
-    QCamera *camera = 0;
-
     //! [Camera custom zoom]
     QCameraFocus *focus = camera->focus();
     focus->setFocusPointMode(QCameraFocus::FocusPointCustom);

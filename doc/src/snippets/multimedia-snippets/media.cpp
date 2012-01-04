@@ -169,6 +169,25 @@ void MediaExample::MediaPlayer()
     player->play();
     //! [Player]
 
+    //! [Local playback]
+    player = new QMediaPlayer;
+    // ...
+    player->setMedia(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
+    player->setVolume(50);
+    player->play();
+    //! [Local playback]
+
+    //! [Audio playlist]
+    player = new QMediaPlayer;
+
+    playlist = new QMediaPlaylist(player);
+    playlist->addMedia(QUrl("http://example.com/myfile1.mp3"));
+    playlist->addMedia(QUrl("http://example.com/myfile2.mp3"));
+    // ...
+    playlist->setCurrentIndex(1);
+    player->play();
+    //! [Audio playlist]
+
     //! [Movie playlist]
     playlist = new QMediaPlaylist;
     playlist->addMedia(QUrl("http://example.com/movie1.mp4"));
@@ -194,7 +213,7 @@ void MediaExample::MediaRecorder()
     recorder = new QMediaRecorder(camera);
 
     QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/vorbis");
+    audioSettings.setCodec("audio/amr");
     audioSettings.setQuality(QtMultimedia::HighQuality);
 
     recorder->setEncodingSettings(audioSettings);
@@ -202,6 +221,21 @@ void MediaExample::MediaRecorder()
     recorder->setOutputLocation(QUrl::fromLocalFile(fileName));
     recorder->record();
     //! [Media recorder]
+
+#if 0
+    //! [Audio recorder]
+    audioRecorder = new QAudioRecorder;
+
+    QAudioEncoderSettings audioSettings;
+    audioSettings.setCodec("audio/amr");
+    audioSettings.setQuality(QtMultimedia::HighQuality);
+
+    audioRecorder->setEncodingSettings(audioSettings);
+
+    audioRecorder->setOutputLocation(QUrl::fromLocalFile("test.amr"));
+    audioRecorder->record();
+    //! [Audio recorder]
+#endif
 }
 
 void MediaExample::RadioTuna()

@@ -1,0 +1,124 @@
+/****************************************************************************
+**
+** Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** This file is part of the documentation of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** GNU Free Documentation License
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms
+** and conditions contained in a signed written agreement between you
+** and Nokia.
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+
+\page videooverview.html
+\title Video Overview
+\brief Video playback
+
+\section1 Video Features
+
+Qt Multimedia offers both high and low level C++ classes for playing and
+manipulating video data, and QML elements for playback and control.  Some
+of these classes also overlap with both \l {Camera Overview}{camera} and
+\l {Audio Overview}{audio} classes, which can be useful.
+
+\section1 Video Implementation Details
+
+\target multimedia-playing-video
+\section2 Playing video in C++
+
+You can use the \l QMediaPlayer class to decode a video file, and display
+it using \l QVideoWidget, \l QGraphicsVideoItem, or a custom class.
+
+Here's an example of using QVideoWidget:
+    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video widget
+
+And an example with QGraphicsVideoItem:
+    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video graphics item
+
+\section2 Playing video in QML
+
+You can use the \l VideoOutput QML element to render content that is
+provided by either a \l MediaPlayer element or a \l Camera element.
+The VideoOutput element is a visual element that can be transformed
+or acted upon by shaders (as the \l {qmlvideofx} example shows), while
+all media decoding and playback control is handled by the MediaPlayer
+element.
+
+Alternatively there is also a higher level \l Video element that
+acts as a single, visual element to play video and control playback.
+
+\section2 Working with low level video frames
+
+Qt Multimedia offers a number of low level classes to make handling
+video frames a bit easier.  These classes are primarily used when
+writing code that processes video or camera frames (for example,
+detecting barcodes, or applying a fancy vignette effect), or needs
+to display video in a special way that is otherwise unsupported.
+
+The \l QVideoFrame class encapsulates a video frame and allows the
+contents to be mapped into system memory for manipulation or
+processing, while deriving a class from \l QAbstractVideoSurface
+allows you to receive these frames from \l QMediaPlayer and
+\l QCamera.  Several of the built in Qt classes offer this functionality
+as well, so if you decode video in your application, you can present
+it to classes that offer a \l QVideoRendererControl class, and in QML
+you can set a custom object for the source of the \l VideoOutput element
+with either a writable \c videoSurface property (that the element will
+set it's internal video surface to) or a readable \c mediaObject property
+with a QMediaObject derived class that implements the \l QVideoRendererControl
+interface.
+
+\section2 Recording video
+You can use the \l QMediaRecorder class in conjunction with other
+classes to record video to disk.  Primarily this is used with
+the camera, so consult the \l {Camera Overview} for more information.
+
+\section1 Examples
+
+There are both C++ and QML examples available.
+
+C++ Examples:
+\list
+    \o \l video
+    \o \l videographicsitem
+    \o \l videowidget
+\endlist
+
+QML Examples:
+\list
+    \o \l qmlvideo
+    \o \l qmlvideofx
+\endlist
+
+\section1 Reference Documentation
+
+\section2 Video Classes
+
+\annotatedlist multimedia_video
+
+\section2 QML Elements
+
+\list
+    \o \l MediaPlayer
+    \o \l VideoOutput
+    \o \l Video
+\endlist
+
+*/

@@ -31,9 +31,9 @@
 \title Radio Overview
 \brief An API to control system radio tuner
 
-The Radio API provides control over the radio tuner of the system, and
-gives access to Radio Data System (RDS) information for radio stations that
-broadcasts it.
+The Qt Multimedia API provides a number of radio related classes for control
+over the radio tuner of the system, and gives access to Radio Data System
+(RDS) information for radio stations that broadcasts it.
 
 \section1 Radio Features
 
@@ -78,12 +78,9 @@ current frequency inside the band.
 
 \section1 Reference documentation
 
-\section2 Radio Classes
+\section2 Radio C++ Classes
 
-\list
-    \o \l QRadioTuner
-    \o \l QRadioData
-\endlist
+\annotatedlist multimedia_radio
 
 \section2 QML Elements
 

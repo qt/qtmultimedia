@@ -87,6 +87,8 @@ QT_BEGIN_NAMESPACE
     QCamera can be used with QVideoWidget for viewfinder display,
     QMediaRecorder for video recording and QCameraImageCapture for image taking.
 
+    See the \l{Camera Overview}{camera overview} for more information.
+
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Request control
 
 */

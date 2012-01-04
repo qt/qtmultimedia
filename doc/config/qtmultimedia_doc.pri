@@ -36,8 +36,10 @@ QMAKE_CLEAN += \
 
 
 OTHER_FILES += \
-    doc/src/multimedia.qdoc \
-    doc/src/camera.qdoc \
+    doc/src/cameraoverview.qdoc \
     doc/src/multimediabackend.qdoc \
+    doc/src/multimediaoverview.qdoc \
+    doc/src/audiooverview.qdoc \
     doc/src/radiooverview.qdoc \
+    doc/src/videooverview.qdoc \
     doc/src/plugins/qml-multimedia.qdoc

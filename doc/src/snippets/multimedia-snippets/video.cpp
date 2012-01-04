@@ -47,6 +47,7 @@
 #include "qvideowidgetcontrol.h"
 #include "qvideowindowcontrol.h"
 #include "qgraphicsvideoitem.h"
+#include "qmediaplaylist.h"
 
 #include <QFormLayout>
 #include <QGraphicsView>
@@ -63,6 +64,7 @@ public:
 private:
     // Common naming
     QMediaService *mediaService;
+    QMediaPlaylist *playlist;
     QVideoWidget *videoWidget;
     QWidget *widget;
     QFormLayout *layout;
@@ -85,12 +87,15 @@ void VideoExample::VideoWidget()
     //! [Video widget]
     player = new QMediaPlayer;
 
-    videoWidget = new QVideoWidget;
+    playlist = new QMediaPlaylist(player);
+    playlist->addMedia(QUrl("http://example.com/myclip1.mp4"));
+    playlist->addMedia(QUrl("http://example.com/myclip2.mp4"));
 
+    videoWidget = new QVideoWidget;
     player->setVideoOutput(videoWidget);
-    player->setMedia(QUrl("http://example.com/movie.mp4"));
 
     videoWidget->show();
+    playlist->setCurrentIndex(1);
     player->play();
     //! [Video widget]
 }
@@ -123,7 +128,7 @@ void VideoExample::VideoGraphicsItem()
     graphicsView->scene()->addItem(item);
     graphicsView->show();
 
-    player->setMedia(video);
+    player->setMedia(QUrl("http://example.com/myclip4.ogv"));
     player->play();
     //! [Video graphics item]
 }
