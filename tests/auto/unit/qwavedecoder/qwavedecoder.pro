@@ -1,7 +1,7 @@
 TARGET = tst_qwavedecoder
-HEADERS += $$QT.multimedia.sources/effects/qwavedecoder_p.h
+HEADERS += $$QT.multimedia.sources/audio/qwavedecoder_p.h
 SOURCES += tst_qwavedecoder.cpp \
-           $$QT.multimedia.sources/effects/qwavedecoder_p.cpp
+           $$QT.multimedia.sources/audio/qwavedecoder_p.cpp
 
 QT += multimedia-private testlib network
 CONFIG += no_private_qt_headers_warning testcase

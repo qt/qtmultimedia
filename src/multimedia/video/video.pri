@@ -10,7 +10,8 @@ PUBLIC_HEADERS += \
 PRIVATE_HEADERS += \
     video/qabstractvideobuffer_p.h \
     video/qimagevideobuffer_p.h \
-    video/qmemoryvideobuffer_p.h
+    video/qmemoryvideobuffer_p.h \
+    video/qvideosurfaceoutput_p.h
 
 SOURCES += \
     video/qabstractvideobuffer.cpp \
@@ -18,5 +19,6 @@ SOURCES += \
     video/qimagevideobuffer.cpp \
     video/qmemoryvideobuffer.cpp \
     video/qvideoframe.cpp \
-    video/qvideosurfaceformat.cpp
+    video/qvideosurfaceformat.cpp \
+    video/qvideosurfaceoutput.cpp
 
