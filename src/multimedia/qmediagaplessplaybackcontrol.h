@@ -52,6 +52,7 @@ QT_MODULE(Multimedia)
 
 class Q_MULTIMEDIA_EXPORT QMediaGaplessPlaybackControl : public QMediaControl
 {
+    Q_OBJECT
 public:
     virtual ~QMediaGaplessPlaybackControl();
 
