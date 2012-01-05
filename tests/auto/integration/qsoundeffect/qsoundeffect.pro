@@ -1,6 +1,6 @@
 TARGET = tst_qsoundeffect
 
-QT += core declarative multimedia-private testlib
+QT += core multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
 # This is more of a system test

@@ -74,7 +74,7 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
 public:
     enum Loop
     {
-        Infinite = -2,
+        Infinite = -2
     };
 
     enum Status

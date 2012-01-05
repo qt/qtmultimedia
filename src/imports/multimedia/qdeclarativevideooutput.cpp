@@ -44,7 +44,7 @@
 #include "qsgvideonode_i420.h"
 #include "qsgvideonode_rgb.h"
 
-#include <qquickitem.h>
+#include <QtQuick/QQuickItem>
 
 #include <QtMultimedia/QAbstractVideoSurface>
 #include <QtMultimedia/qmediaservice.h>

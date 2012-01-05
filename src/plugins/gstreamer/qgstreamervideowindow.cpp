@@ -313,7 +313,7 @@ QSize QGstreamerVideoWindow::nativeSize() const
     return m_nativeSize;
 }
 
-void QGstreamerVideoWindow::padBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data)
+void QGstreamerVideoWindow::padBufferProbe(GstPad *pad, GstBuffer * /* buffer */, gpointer user_data)
 {
     QGstreamerVideoWindow *control = reinterpret_cast<QGstreamerVideoWindow*>(user_data);
     QMetaObject::invokeMethod(control, "updateNativeVideoSize", Qt::QueuedConnection);

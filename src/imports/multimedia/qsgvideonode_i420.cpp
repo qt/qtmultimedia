@@ -40,8 +40,8 @@
 ****************************************************************************/
 #include "qsgvideonode_i420.h"
 #include <QtCore/qmutex.h>
-#include <qsgtexturematerial.h>
-#include <qsgmaterial.h>
+#include <QtQuick/qsgtexturematerial.h>
+#include <QtQuick/qsgmaterial.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
 #include <QtOpenGL/qglshaderprogram.h>

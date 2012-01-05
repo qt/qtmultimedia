@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 #include "qsgvideonode_rgb.h"
-#include <qsgtexturematerial.h>
-#include <qsgmaterial.h>
+#include <QtQuick/qsgtexturematerial.h>
+#include <QtQuick/qsgmaterial.h>
 #include <QtCore/qmutex.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>

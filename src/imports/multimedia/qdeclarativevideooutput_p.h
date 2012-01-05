@@ -42,7 +42,7 @@
 #ifndef QDECLARATIVEVIDEOOUTPUT_P_H
 #define QDECLARATIVEVIDEOOUTPUT_P_H
 
-#include <qquickitem.h>
+#include <QtQuick/QQuickItem>
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qmediaobject.h>
