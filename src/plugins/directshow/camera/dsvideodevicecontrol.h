@@ -60,7 +60,6 @@ public:
     int deviceCount() const;
     QString deviceName(int index) const;
     QString deviceDescription(int index) const;
-    QIcon deviceIcon(int index) const;
     int defaultDevice() const;
     int selectedDevice() const;
 

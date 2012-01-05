@@ -36,6 +36,9 @@ unix:!mac {
 
 mac:!simulator {
     SUBDIRS += audiocapture
-    SUBDIRS += qt7
+
+    # Currently we need qmacdefines_mac.h from QtWidgets, so this depends on that :/
+    # despite the code not really using them.
+    contains(config_test_widgets, yes):SUBDIRS += qt7
 }
 

@@ -41,7 +41,6 @@
 
 #include <QDebug>
 #include <QFile>
-#include <QtWidgets/QIcon>
 
 #include "dsvideodevicecontrol.h"
 #include "dscamerasession.h"
@@ -133,13 +132,6 @@ QString DSVideoDeviceControl::deviceDescription(int index) const
         return descriptions.at(index);
 
     return QString();
-}
-
-QIcon DSVideoDeviceControl::deviceIcon(int index) const
-{
-    Q_UNUSED(index)
-
-    return QIcon();
 }
 
 int DSVideoDeviceControl::defaultDevice() const

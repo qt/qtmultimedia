@@ -43,8 +43,6 @@
 #include <private/qvideosurfacegstsink_p.h>
 #include <qabstractvideosurface.h>
 
-#include <QEvent>
-#include <QtWidgets/QApplication>
 #include <QDebug>
 
 #include <gst/gst.h>

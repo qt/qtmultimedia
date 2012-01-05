@@ -13,10 +13,8 @@ HEADERS += \
     $$PWD/dsvideodevicecontrol.h \
     $$PWD/dsimagecapturecontrol.h \
     $$PWD/dscamerasession.h \
-    $$PWD/dsvideowidgetcontrol.h \
     $$PWD/dscameraservice.h \
     $$PWD/directshowglobal.h
-
 
 SOURCES += \
     $$PWD/dscameraservice.cpp \
@@ -24,8 +22,12 @@ SOURCES += \
     $$PWD/dsvideorenderer.cpp \
     $$PWD/dsvideodevicecontrol.cpp \
     $$PWD/dsimagecapturecontrol.cpp \
-    $$PWD/dscamerasession.cpp \
-    $$PWD/dsvideowidgetcontrol.cpp
+    $$PWD/dscamerasession.cpp
+
+contains(config_test_widgets, yes) {
+    HEADERS += $$PWD/dsvideowidgetcontrol.h
+    SOURCES += $$PWD/dsvideowidgetcontrol.cpp
+}
 
 INCLUDEPATH += $(DXSDK_DIR)/include
 LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32

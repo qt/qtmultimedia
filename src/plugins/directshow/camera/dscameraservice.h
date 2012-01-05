@@ -74,7 +74,9 @@ private:
     DSCameraControl        *m_control;
     DSCameraSession        *m_session;
     DSVideoOutputControl   *m_videoOutput;
+#if defined(HAVE_WIDGETS)
     DSVideoWidgetControl   *m_viewFinderWidget;
+#endif
     DSVideoDeviceControl   *m_videoDevice;
     DSVideoRendererControl *m_videoRenderer;
     DSImageCaptureControl  *m_imageCapture;

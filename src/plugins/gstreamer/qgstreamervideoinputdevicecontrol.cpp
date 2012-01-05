@@ -41,7 +41,6 @@
 
 #include "qgstreamervideoinputdevicecontrol.h"
 
-#include <QtWidgets/QIcon>
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 
@@ -80,12 +79,6 @@ QString QGstreamerVideoInputDeviceControl::deviceName(int index) const
 QString QGstreamerVideoInputDeviceControl::deviceDescription(int index) const
 {
     return m_descriptions[index];
-}
-
-QIcon QGstreamerVideoInputDeviceControl::deviceIcon(int index) const
-{
-    Q_UNUSED(index);
-    return QIcon();
 }
 
 int QGstreamerVideoInputDeviceControl::defaultDevice() const

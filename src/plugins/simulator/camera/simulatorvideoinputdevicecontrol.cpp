@@ -41,7 +41,6 @@
 
 #include "simulatorvideoinputdevicecontrol.h"
 
-#include <QtWidgets/QIcon>
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 #include <QtCore/QStringList>
@@ -75,12 +74,6 @@ QString QSimulatorVideoInputDeviceControl::deviceDescription(int index) const
         return QString();
 
     return mDescriptions[index];
-}
-
-QIcon QSimulatorVideoInputDeviceControl::deviceIcon(int index) const
-{
-    Q_UNUSED(index);
-    return QIcon();
 }
 
 int QSimulatorVideoInputDeviceControl::defaultDevice() const

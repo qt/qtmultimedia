@@ -46,7 +46,7 @@
 #include "directshowmetadatacontrol.h"
 #include "directshowplayercontrol.h"
 #include "directshowvideorenderercontrol.h"
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
 #include "vmr9videowindowcontrol.h"
 #endif
 
@@ -83,7 +83,7 @@ DirectShowPlayerService::DirectShowPlayerService(QObject *parent)
     , m_playerControl(0)
     , m_metaDataControl(0)
     , m_videoRendererControl(0)
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     , m_videoWindowControl(0)
 #endif
     , m_audioEndpointControl(0)
@@ -144,7 +144,7 @@ DirectShowPlayerService::~DirectShowPlayerService()
     delete m_audioEndpointControl;
     delete m_metaDataControl;
     delete m_videoRendererControl;
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     delete m_videoWindowControl;
 #endif
 
@@ -161,7 +161,7 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
     } else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
         return m_metaDataControl;
     } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
         if (!m_videoRendererControl && !m_videoWindowControl) {
 #else
         if (!m_videoRendererControl) {
@@ -173,7 +173,7 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
 
             return m_videoRendererControl;
         }
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoRendererControl && !m_videoWindowControl) {
             m_videoWindowControl = new Vmr9VideoWindowControl;
@@ -198,7 +198,7 @@ void DirectShowPlayerService::releaseControl(QMediaControl *control)
         delete m_videoRendererControl;
 
         m_videoRendererControl = 0;
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (control == m_videoWindowControl) {
         setVideoOutput(0);
 

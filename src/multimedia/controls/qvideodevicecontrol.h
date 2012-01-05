@@ -61,7 +61,6 @@ public:
 
     virtual QString deviceName(int index) const = 0;
     virtual QString deviceDescription(int index) const = 0;
-    virtual QIcon deviceIcon(int index) const = 0;
 
     virtual int defaultDevice() const = 0;
     virtual int selectedDevice() const = 0;

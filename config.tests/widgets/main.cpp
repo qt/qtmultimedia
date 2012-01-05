@@ -4,7 +4,7 @@
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the Qt Mobility Components.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -39,44 +39,10 @@
 **
 ****************************************************************************/
 
-#ifndef QSIMULATORVIDEOINPUTDEVICECONTROL_H
-#define QSIMULATORVIDEOINPUTDEVICECONTROL_H
+#include <QMainWindow>
 
-#include <qvideodevicecontrol.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qhash.h>
-
-#include "../qsimulatormultimediaconnection_p.h"
-
-QT_USE_NAMESPACE
-
-class QSimulatorVideoInputDeviceControl : public QVideoDeviceControl
+int main(int, char**)
 {
-Q_OBJECT
-public:
-    QSimulatorVideoInputDeviceControl(QObject *parent);
-    ~QSimulatorVideoInputDeviceControl();
-
-    int deviceCount() const;
-
-    QString deviceName(int index) const;
-    QString deviceDescription(int index) const;
-
-    int defaultDevice() const;
-    int selectedDevice() const;
-
-    void updateDeviceList(const QtMobility::QCameraData &data);
-
-public Q_SLOTS:
-    void setSelectedDevice(int index);
-    void addDevice(const QString &name, const QtMobility::QCameraData::QCameraDetails &details);
-    void removeDevice(const QString &name);
-    void changeDevice(const QString &name, const QtMobility::QCameraData::QCameraDetails &details);
-
-private:
-    int mSelectedDevice;
-    QList<QString> mDevices;
-    QList<QString> mDescriptions;
-};
-
-#endif // QSIMULATORVIDEOINPUTDEVICECONTROL_H
+    QMainWindow m;
+    return 0;
+}

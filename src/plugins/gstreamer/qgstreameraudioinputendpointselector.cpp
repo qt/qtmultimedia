@@ -41,7 +41,6 @@
 
 #include "qgstreameraudioinputendpointselector.h"
 
-#include <QtWidgets/QIcon>
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 

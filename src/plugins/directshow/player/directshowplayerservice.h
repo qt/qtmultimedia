@@ -59,7 +59,7 @@ class DirectShowAudioEndpointControl;
 class DirectShowMetaDataControl;
 class DirectShowPlayerControl;
 class DirectShowVideoRendererControl;
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
 class Vmr9VideoWindowControl;
 #endif
 
@@ -180,7 +180,7 @@ private:
     DirectShowPlayerControl *m_playerControl;
     DirectShowMetaDataControl *m_metaDataControl;
     DirectShowVideoRendererControl *m_videoRendererControl;
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     Vmr9VideoWindowControl *m_videoWindowControl;
 #endif
     DirectShowAudioEndpointControl *m_audioEndpointControl;

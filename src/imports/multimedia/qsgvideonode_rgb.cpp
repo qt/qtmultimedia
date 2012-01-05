@@ -44,7 +44,7 @@
 #include <QtCore/qmutex.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
-#include <QtOpenGL/qglshaderprogram.h>
+#include <QtGui/QOpenGLShaderProgram>
 
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_RGB::supportedPixelFormats(
                                         QAbstractVideoBuffer::HandleType handleType) const

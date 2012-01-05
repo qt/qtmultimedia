@@ -2,7 +2,14 @@
 load(qt_module)
 
 TARGET = qgstengine
-QT += multimedia-private network multimediawidgets-private
+QT += multimedia-private network
+CONFIG += no_private_qt_headers_warning
+
+contains(config_test_widgets, yes) {
+    QT += widgets multimediawidgets-private
+    DEFINES += HAVE_WIDGETS
+}
+
 PLUGIN_TYPE=mediaservice
 
 load(qt_plugin)
@@ -11,9 +18,8 @@ DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 LIBS += -lqgsttools_p
 
 unix:!maemo*:contains(QT_CONFIG, alsa) {
-DEFINES += HAVE_ALSA
-LIBS += \
-    -lasound
+    DEFINES += HAVE_ALSA
+    LIBS += -lasound
 }
 
 CONFIG += link_pkgconfig
@@ -40,7 +46,7 @@ maemo6 {
 
     PKGCONFIG += qmsystem2
 
-    isEqual(QT_ARCH,armv6) {
+    isEqual(QT_ARCH,armv6):contains(config_test_widgets, yes) {
         HEADERS += qgstreamergltexturerenderer.h
         SOURCES += qgstreamergltexturerenderer.cpp
         QT += opengl
@@ -68,7 +74,7 @@ SOURCES += \
     gstvideoconnector.c \
 
 
-contains(config_test_xvideo, yes) {
+contains(config_test_xvideo, yes):contains(config_test_widgets, yes): {
     DEFINES += HAVE_XVIDEO
 
     LIBS += -lXv -lX11 -lXext

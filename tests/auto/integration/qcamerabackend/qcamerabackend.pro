@@ -1,7 +1,7 @@
 CONFIG += testcase
 TARGET = tst_qcamerabackend
 
-QT += multimedia-private multimediawidgets-private testlib
+QT += multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
 # This is more of a system test

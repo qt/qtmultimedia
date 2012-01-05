@@ -79,7 +79,7 @@ private:
     void setAudioPreview(GstElement*);
 
     CameraBinSession *m_captureSession;
-    CameraBinControl *m_cameraControl;    
+    CameraBinControl *m_cameraControl;
     CameraBinMetaData *m_metaDataControl;
 
     QAudioEndpointSelector *m_audioInputEndpointSelector;
@@ -88,8 +88,10 @@ private:
     QMediaControl *m_videoOutput;
 
     QMediaControl *m_videoRenderer;
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
     QMediaControl *m_videoWindow;
     QGstreamerVideoWidgetControl *m_videoWidgetControl;
+#endif
     CameraBinImageCapture *m_imageCaptureControl;
 };
 

@@ -87,8 +87,10 @@ private:
     QMediaControl *m_videoOutput;
 
     QGstreamerVideoRenderer *m_videoRenderer;
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
     QMediaControl *m_videoWindow;
     QMediaControl *m_videoWidgetControl;
+#endif
     QGstreamerImageCaptureControl *m_imageCaptureControl;
 };
 

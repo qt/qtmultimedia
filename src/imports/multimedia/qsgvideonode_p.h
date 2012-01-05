@@ -46,7 +46,7 @@
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
-#include <QtOpenGL/qglfunctions.h>
+#include <QtGui/qopenglfunctions.h>
 
 class QSGVideoNode : public QSGGeometryNode
 {

@@ -1,7 +1,11 @@
 load(qt_module)
 
 TARGET = qqt7engine
-QT += multimedia-private multimediawidgets-private network widgets
+QT += multimedia-private network
+contains(config_test_widgets, yes) {
+    QT += multimediawidgets-private widgets
+}
+
 PLUGIN_TYPE = mediaservice
 
 load(qt_plugin)
@@ -39,7 +43,6 @@ OBJECTIVE_SOURCES += \
 !simulator {
     HEADERS += \
         qt7movieviewoutput.h \
-        qt7movievideowidget.h \
         qt7movieviewrenderer.h \
         qt7movierenderer.h \
         qt7ciimagevideobuffer.h \
@@ -47,12 +50,19 @@ OBJECTIVE_SOURCES += \
 
     OBJECTIVE_SOURCES += \
         qt7movieviewoutput.mm \
-        qt7movievideowidget.mm \
         qt7movieviewrenderer.mm \
         qt7movierenderer.mm \
         qt7videooutput.mm \
         qt7ciimagevideobuffer.mm \
         qcvdisplaylink.mm
+
+    contains(config_test_widgets, yes) {
+        HEADERS += \
+            qt7movieviewwidget.h
+
+        OBJECTIVE_SOURCES += \
+            qt7movievideowidget.mm
+    }
 }
 
 include(mediaplayer/mediaplayer.pri)

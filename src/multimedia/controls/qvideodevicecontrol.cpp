@@ -106,13 +106,6 @@ QVideoDeviceControl::~QVideoDeviceControl()
 */
 
 /*!
-    \fn QVideoDeviceControl::deviceIcon(int index) const
-
-    Returns an icon for the video device at \a index.
-    \since 1.0
-*/
-
-/*!
     \fn QVideoDeviceControl::defaultDevice() const
 
     Returns the index of the default video device.

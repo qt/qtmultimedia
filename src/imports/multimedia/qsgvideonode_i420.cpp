@@ -44,7 +44,7 @@
 #include <QtQuick/qsgmaterial.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
-#include <QtOpenGL/qglshaderprogram.h>
+#include <QtGui/QOpenGLShaderProgram>
 
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_I420::supportedPixelFormats(
                                         QAbstractVideoBuffer::HandleType handleType) const

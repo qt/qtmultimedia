@@ -80,8 +80,10 @@ private:
 
     QMediaControl *m_videoOutput;
     QMediaControl *m_videoRenderer;
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
     QMediaControl *m_videoWindow;
     QMediaControl *m_videoWidget;
+#endif
 };
 
 QT_END_NAMESPACE

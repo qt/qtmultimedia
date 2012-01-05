@@ -41,22 +41,28 @@
 
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
+
+#if defined(HAVE_WIDGETS)
 #include <QtWidgets/qwidget.h>
+#endif
 
 #include "qgstreamerplayerservice.h"
 #include "qgstreamerplayercontrol.h"
 #include "qgstreamerplayersession.h"
 #include "qgstreamermetadataprovider.h"
 
+#if defined(HAVE_WIDGETS)
 #include "qgstreamervideooverlay.h"
 #include "qgstreamervideowindow.h"
+#include "qgstreamervideowidget.h"
+#endif
+
 #include "qgstreamervideorenderer.h"
 
 #if defined(Q_WS_MAEMO_6) && defined(__arm__)
 #include "qgstreamergltexturerenderer.h"
 #endif
 
-#include "qgstreamervideowidget.h"
 #include "qgstreamerstreamscontrol.h"
 
 #include <qmediaplaylistnavigator.h>
@@ -65,11 +71,13 @@
 QT_BEGIN_NAMESPACE
 
 QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
-     QMediaService(parent),
-     m_videoOutput(0),
-     m_videoRenderer(0),
-     m_videoWindow(0),
-     m_videoWidget(0)
+     QMediaService(parent)
+     , m_videoOutput(0)
+     , m_videoRenderer(0)
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
+     , m_videoWindow(0)
+     , m_videoWidget(0)
+#endif
 {
     m_session = new QGstreamerPlayerSession(this);
     m_control = new QGstreamerPlayerControl(m_session, this);
@@ -82,14 +90,12 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
     m_videoRenderer = new QGstreamerVideoRenderer(this);
 #endif
 
-#ifdef HAVE_XVIDEO
-
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
 #ifdef Q_WS_MAEMO_6
     m_videoWindow = new QGstreamerVideoWindow(this, "omapxvsink");
 #else
     m_videoWindow = new QGstreamerVideoOverlay(this);
 #endif
-
     m_videoWidget = new QGstreamerVideoWidgetControl(this);
 #endif
 }
@@ -110,12 +116,14 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
         return m_streamsControl;
 
     if (!m_videoOutput) {
-        if (qstrcmp(name, QVideoWidgetControl_iid) == 0)
-            m_videoOutput = m_videoWidget;
-        else if (qstrcmp(name, QVideoRendererControl_iid) == 0)
+        if (qstrcmp(name, QVideoRendererControl_iid) == 0)
             m_videoOutput = m_videoRenderer;
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
+        else if (qstrcmp(name, QVideoWidgetControl_iid) == 0)
+            m_videoOutput = m_videoWidget;
         else  if (qstrcmp(name, QVideoWindowControl_iid) == 0)
             m_videoOutput = m_videoWindow;
+#endif
 
         if (m_videoOutput) {
             m_control->setVideoOutput(m_videoOutput);

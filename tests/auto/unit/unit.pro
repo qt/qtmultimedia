@@ -1,4 +1,4 @@
 TEMPLATE = subdirs
 
 SUBDIRS += multimedia.pro
-contains(QT_CONFIG,multimediawidgets): SUBDIRS += multimediawidgets.pro
+contains(config_test_widgets, yes): SUBDIRS += multimediawidgets.pro

@@ -35,11 +35,11 @@ SOURCES += \
         $$PWD/mediasamplevideobuffer.cpp \
         $$PWD/videosurfacefilter.cpp
 
-!simulator {
-HEADERS += \
+contains(config_test_widgets, yes):!simulator {
+    HEADERS += \
         $$PWD/vmr9videowindowcontrol.h
 
-SOURCES += \
+    SOURCES += \
         $$PWD/vmr9videowindowcontrol.cpp
 }
 

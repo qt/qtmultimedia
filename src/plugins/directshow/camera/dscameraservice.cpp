@@ -41,9 +41,11 @@
 
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
+
+#if defined(HAVE_WIDGETS)
 #include <QtWidgets/qwidget.h>
 #include <QVideoWidgetControl.h>
-
+#endif
 
 #include "dscameraservice.h"
 #include "dscameracontrol.h"
@@ -51,7 +53,10 @@
 #include "dsvideorenderer.h"
 #include "dsvideodevicecontrol.h"
 #include "dsimagecapturecontrol.h"
+
+#if defined(HAVE_WIDGETS)
 #include "dsvideowidgetcontrol.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -68,7 +73,9 @@ DSCameraService::DSCameraService(QObject *parent):
 
     m_imageCapture = new DSImageCaptureControl(m_session);
 
+#if defined(HAVE_WIDGETS)
     m_viewFinderWidget = new DSVideoWidgetControl(m_session);
+#endif
 
     m_device = QByteArray("default");
 }
@@ -79,7 +86,9 @@ DSCameraService::~DSCameraService()
     delete m_videoDevice;
     delete m_videoRenderer;
     delete m_imageCapture;
+#if defined(HAVE_WIDGETS)
     delete m_viewFinderWidget;
+#endif
     delete m_session;
 }
 
@@ -91,11 +100,13 @@ QMediaControl* DSCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCapture;
 
+#if defined(HAVE_WIDGETS)
     if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
         if (m_viewFinderWidget) {
             return m_viewFinderWidget;
         }
     }
+#endif
 
     if(qstrcmp(name,QVideoRendererControl_iid) == 0)
         return m_videoRenderer;

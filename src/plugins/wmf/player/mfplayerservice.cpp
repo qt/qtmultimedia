@@ -95,7 +95,7 @@ QMediaControl* MFPlayerService::requestControl(const char *name)
     } else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
         return m_metaDataControl;
     } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
         if (!m_videoRendererControl && !m_videoWindowControl) {
 #else
         if (!m_videoRendererControl) {
@@ -103,7 +103,7 @@ QMediaControl* MFPlayerService::requestControl(const char *name)
             m_videoRendererControl = new MFVideoRendererControl;
             return m_videoRendererControl;
         }
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoRendererControl && !m_videoWindowControl) {
             m_videoWindowControl = new Evr9VideoWindowControl;
@@ -124,7 +124,7 @@ void MFPlayerService::releaseControl(QMediaControl *control)
         m_videoRendererControl->setSurface(0);
         delete m_videoRendererControl;
         m_videoRendererControl = 0;
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (control == m_videoWindowControl) {
         delete m_videoWindowControl;
         m_videoWindowControl = 0;
@@ -142,7 +142,7 @@ MFVideoRendererControl* MFPlayerService::videoRendererControl() const
     return m_videoRendererControl;
 }
 
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
 Evr9VideoWindowControl* MFPlayerService::videoWindowControl() const
 {
     return m_videoWindowControl;

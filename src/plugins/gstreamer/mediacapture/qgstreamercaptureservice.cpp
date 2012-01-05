@@ -55,10 +55,12 @@
 #include "qgstreamervideoinputdevicecontrol.h"
 #include "qgstreamerimagecapturecontrol.h"
 
-#include "qgstreamervideooverlay.h"
 #include "qgstreamervideorenderer.h"
 
+#if defined(HAVE_WIDGETS)
+#include "qgstreamervideooverlay.h"
 #include "qgstreamervideowidget.h"
+#endif
 
 #include <qmediaserviceprovider.h>
 
@@ -77,8 +79,10 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
 
     m_videoOutput = 0;
     m_videoRenderer = 0;
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
     m_videoWindow = 0;
     m_videoWidgetControl = 0;
+#endif
     m_imageCaptureControl = 0;
 
     if (service == Q_MEDIASERVICE_AUDIOSOURCE) {
@@ -100,10 +104,10 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
 
         m_videoRenderer = new QGstreamerVideoRenderer(this);
 
-#ifdef HAVE_XVIDEO
+#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
         m_videoWindow = new QGstreamerVideoOverlay(this);
         m_videoWidgetControl = new QGstreamerVideoWidgetControl(this);
-#endif    
+#endif
         m_imageCaptureControl = new QGstreamerImageCaptureControl(m_captureSession);
     }
 
@@ -125,8 +129,8 @@ QGstreamerCaptureService::~QGstreamerCaptureService()
 QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
 {
     if (!m_captureSession)
-        return 0;   
-    
+        return 0;
+
     if (qstrcmp(name,QAudioEndpointSelector_iid) == 0)
         return m_audioInputEndpointSelector;
 
@@ -157,15 +161,18 @@ QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
-    
+
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             m_videoOutput = m_videoRenderer;
-        } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
+        }
+#if defined(HAVE_WIDGETS) && defined(HAVE_XVIDEO)
+        else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
             m_videoOutput = m_videoWindow;
         } else if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
             m_videoOutput = m_videoWidgetControl;
         }
+#endif
 
         if (m_videoOutput) {
             m_captureSession->setVideoPreview(m_videoOutput);
