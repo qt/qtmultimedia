@@ -78,4 +78,4 @@ HTML.stylesheets = style/qtmultimedia.css
 HTML.headerstyles = "  <link rel=\"stylesheet\" type=\"text/css\" href=\"style/qtmultimedia.css\" />\n"
 HTML.endheader = "</head>\n<body>\n"
 
-HTML.footer = "<div class=\"footer\">Copyright (c) 2011 Nokia Corporation and/or its subsidiaries. All rights reserved.</div>\n"
+HTML.footer = "<div class=\"footer\">Copyright (c) 2012 Nokia Corporation and/or its subsidiaries. All rights reserved.</div>\n"
