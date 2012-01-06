@@ -11,7 +11,6 @@ contains (QT_CONFIG, private_tests) {
   SUBDIRS += \
     qgraphicsvideoitem \
     qpaintervideosurface \
-    qmediaimageviewerwidgets \
-    qvideowidget \
+    qvideowidget
 }
 

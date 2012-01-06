@@ -5,7 +5,6 @@ TEMPLATE = subdirs
     SUBDIRS += \
         radio \
         camera \
-        slideshow \
         spectrum \
         audiorecorder \
         audiodevices \

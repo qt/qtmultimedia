@@ -85,7 +85,7 @@ namespace
     \brief The QMediaPlaylist class provides a list of media content to play.
 
     QMediaPlaylist is intended to be used with other media objects,
-    like QMediaPlayer or QMediaImageViewer.
+    like QMediaPlayer.
 
     QMediaPlaylist allows to access the service intrinsic playlist functionality
     if available, otherwise it provides the the local memory playlist implementation.

@@ -34,6 +34,5 @@ SUBDIRS += \
 # these interfaces are exported.
 contains (QT_CONFIG, private_tests) {
     SUBDIRS += \
-        qdeclarativeaudio \
-        qmediaimageviewer
+        qdeclarativeaudio
 }

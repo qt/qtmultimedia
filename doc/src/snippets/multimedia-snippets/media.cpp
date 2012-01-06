@@ -46,8 +46,6 @@
 #include "qmediaplaylist.h"
 #include "qmediarecorder.h"
 #include "qmediaservice.h"
-#include "qmediaimageviewer.h"
-#include "qmediaimageviewer.h"
 #include "qmediaplayercontrol.h"
 #include "qmediaplayer.h"
 #include "qradiotuner.h"
@@ -59,7 +57,6 @@ class MediaExample : public QObject {
     Q_OBJECT
 
     void MediaControl();
-    void MediaImageViewer();
     void MediaPlayer();
     void RadioTuna();
     void MediaRecorder();
@@ -75,7 +72,6 @@ private:
     QMediaPlaylist *playlist;
     QMediaContent video;
     QMediaRecorder *recorder;
-    QMediaImageViewer *viewer;
     QCamera *camera;
     QCameraImageCapture *imageCapture;
     QString fileName;
@@ -134,29 +130,6 @@ void MediaExample::ImageEncoderSettings()
 
     imageCapture->setEncodingSettings(imageSettings);
     //! [Image encoder settings]
-}
-
-void MediaExample::MediaImageViewer()
-{
-    //! [Binding]
-    viewer = new QMediaImageViewer(this);
-
-    videoWidget = new QVideoWidget;
-    viewer->bind(videoWidget);
-    videoWidget->show();
-    //! [Binding]
-
-    //! [Playlist]
-    playlist = new QMediaPlaylist(this);
-    playlist->setPlaybackMode(QMediaPlaylist::Loop);
-    playlist->addMedia(image1);
-    playlist->addMedia(image2);
-    playlist->addMedia(image3);
-
-    viewer->setPlaylist(playlist);
-    viewer->setTimeout(5000);
-    viewer->play();
-    //! [Playlist]
 }
 
 void MediaExample::MediaPlayer()
