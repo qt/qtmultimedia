@@ -253,7 +253,41 @@ void QDeclarativeCameraExposure::setExposureMode(QDeclarativeCamera::ExposureMod
     \fn void QDeclarativeCameraExposure::exposureModeChanged(QDeclarativeCamera::ExposureMode)
 */
 
+/*!
+    \qmlproperty QPointF CameraExposure::spotMeteringPoint
+    \property QDeclarativeCameraExposure::spotMeteringPoint
 
+    The relative frame coordinates of the point to use for exposure metering (in relative
+    frame coordinates).  This point is only used in spot metering mode, and typically defaults
+    to the center \c (0.5, 0.5).
+ */
+
+QPointF QDeclarativeCameraExposure::spotMeteringPoint() const
+{
+    return m_exposure->spotMeteringPoint();
+}
+
+void QDeclarativeCameraExposure::setSpotMeteringPoint(const QPointF &point)
+{
+    QPointF oldPoint(spotMeteringPoint());
+    m_exposure->setSpotMeteringPoint(point);
+
+    if (oldPoint != spotMeteringPoint())
+        emit spotMeteringPointChanged(spotMeteringPoint());
+}
+
+QDeclarativeCamera::MeteringMode QDeclarativeCameraExposure::meteringMode() const
+{
+    return QDeclarativeCamera::MeteringMode(m_exposure->meteringMode());
+}
+
+void QDeclarativeCameraExposure::setMeteringMode(QDeclarativeCamera::MeteringMode mode)
+{
+    QDeclarativeCamera::MeteringMode oldMode = meteringMode();
+    m_exposure->setMeteringMode(QCameraExposure::MeteringMode(mode));
+    if (oldMode != meteringMode())
+        emit meteringModeChanged(meteringMode());
+}
 
 QT_END_NAMESPACE
 

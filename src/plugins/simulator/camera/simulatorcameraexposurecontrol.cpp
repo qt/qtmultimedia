@@ -48,6 +48,7 @@ SimulatorCameraExposureControl::SimulatorCameraExposureControl(SimulatorCameraSe
     QCameraExposureControl(parent),
     mExposureMode(QCameraExposure::ExposureAuto),
     mMeteringMode(QCameraExposure::MeteringAverage),
+    mSpot(0.5, 0.5),
     mSession(session),
     mSettings(0)
 {
@@ -138,6 +139,7 @@ bool SimulatorCameraExposureControl::isParameterSupported(ExposureParameter para
     case QCameraExposureControl::Aperture:
     case QCameraExposureControl::ShutterSpeed:
     case QCameraExposureControl::ExposureCompensation:
+    case QCameraExposureControl::SpotMeteringPoint:
         return true;
     case QCameraExposureControl::FlashPower:
     case QCameraExposureControl::FlashCompensation:
@@ -161,6 +163,10 @@ QVariant SimulatorCameraExposureControl::exposureParameter(ExposureParameter par
             return QVariant(shutterSpeed());
         case QCameraExposureControl::ExposureCompensation:
             return QVariant(exposureCompensation());
+
+        case QCameraExposureControl::SpotMeteringPoint:
+            return mSpot;
+
         case QCameraExposureControl::FlashPower:
         case QCameraExposureControl::FlashCompensation:
             // Not supported
@@ -303,6 +309,16 @@ bool SimulatorCameraExposureControl::setExposureParameter(ExposureParameter para
         case QCameraExposureControl::FlashCompensation:
             return false;
 
+        case QCameraExposureControl::SpotMeteringPoint:
+            {
+                static QRectF valid(0, 0, 1, 1);
+                if (valid.contains(value.toPointF())) {
+                    mSpot = value.toPointF();
+                    return true;
+                }
+                return false;
+            }
+
         default:
             // Not supported
             return false;
@@ -324,7 +340,8 @@ QString SimulatorCameraExposureControl::extendedParameterName(ExposureParameter 
             return QString("Flash Power");
         case QCameraExposureControl::FlashCompensation:
             return QString("Flash Compensation");
-
+        case QCameraExposureControl::SpotMeteringPoint:
+            return QString("Spot Metering Point");
         default:
             return QString();
     }

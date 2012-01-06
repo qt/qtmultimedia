@@ -56,7 +56,8 @@ public:
         m_meteringMode(QCameraExposure::MeteringMatrix),
         m_exposureCompensation(0),
         m_exposureMode(QCameraExposure::ExposureAuto),
-        m_flashMode(QCameraExposure::FlashAuto)
+        m_flashMode(QCameraExposure::FlashAuto),
+        m_spot(0.5, 0.5)
     {
         m_isoRanges << 100 << 200 << 400 << 800;
         m_apertureRanges << 2.8 << 4.0 << 5.6 << 8.0 << 11.0 << 16.0;
@@ -106,6 +107,7 @@ public:
         case QCameraExposureControl::ISO:
         case QCameraExposureControl::Aperture:
         case QCameraExposureControl::ShutterSpeed:
+        case QCameraExposureControl::SpotMeteringPoint:
             return true;
         default:
             return false;
@@ -123,6 +125,8 @@ public:
             return QVariant(m_aperture);
         case QCameraExposureControl::ShutterSpeed:
             return QVariant(m_shutterSpeed);
+        case QCameraExposureControl::SpotMeteringPoint:
+            return QVariant(m_spot);
         default:
             return QVariant();
         }
@@ -234,6 +238,17 @@ public:
             }
         }
             break;
+
+        case QCameraExposureControl::SpotMeteringPoint:
+        {
+            static QRectF valid(0, 0, 1, 1);
+            if (valid.contains(value.toPointF())) {
+                m_spot = value.toPointF();
+                return true;
+            }
+            return false;
+        }
+
         default:
             return false;
         }
@@ -264,8 +279,7 @@ public:
     {
         return mode == QCameraExposure::MeteringAverage
                 || mode == QCameraExposure::MeteringMatrix
-                || mode == QCameraExposure::MeteringAverage
-                || mode ==QCameraExposure::MeteringSpot;
+                || mode == QCameraExposure::MeteringSpot;
     }
 
 private:
@@ -277,6 +291,7 @@ private:
     QCameraExposure::ExposureMode m_exposureMode;
     QCameraExposure::FlashModes m_flashMode;
     QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res;
+    QPointF m_spot;
 };
 
 #endif // MOCKCAMERAEXPOSURECONTROL_H

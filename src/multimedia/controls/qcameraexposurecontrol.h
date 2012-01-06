@@ -72,6 +72,7 @@ public:
         ExposureCompensation = 4,
         FlashPower = 5,
         FlashCompensation = 6,
+        SpotMeteringPoint = 7,
         ExtendedExposureParameter = 1000
     };
 

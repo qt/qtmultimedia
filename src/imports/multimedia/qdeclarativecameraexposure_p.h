@@ -78,6 +78,9 @@ class QDeclarativeCameraExposure : public QObject
 
     Q_PROPERTY(QDeclarativeCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode NOTIFY exposureModeChanged)
 
+    Q_PROPERTY(QPointF spotMeteringPoint READ spotMeteringPoint WRITE setSpotMeteringPoint NOTIFY spotMeteringPointChanged)
+    Q_PROPERTY(QDeclarativeCamera::MeteringMode meteringMode READ meteringMode WRITE setMeteringMode NOTIFY meteringModeChanged)
+
 public:
     ~QDeclarativeCameraExposure();
 
@@ -91,6 +94,12 @@ public:
     int manualIsoSensitivity() const;
     qreal manualShutterSpeed() const;
     qreal manualAperture() const;
+
+    QPointF spotMeteringPoint() const;
+    void setSpotMeteringPoint(const QPointF &point);
+
+    QDeclarativeCamera::MeteringMode meteringMode() const;
+    void setMeteringMode(QDeclarativeCamera::MeteringMode mode);
 
 public Q_SLOTS:
     void setExposureMode(QDeclarativeCamera::ExposureMode);
@@ -115,6 +124,9 @@ Q_SIGNALS:
 
     void exposureCompensationChanged(qreal);
     void exposureModeChanged(QDeclarativeCamera::ExposureMode);
+
+    void meteringModeChanged(QDeclarativeCamera::MeteringMode);
+    void spotMeteringPointChanged(QPointF);
 
 private:
     friend class QDeclarativeCamera;

@@ -120,6 +120,9 @@ public:
 
     bool isMeteringModeSupported(MeteringMode mode) const;
 
+    QPointF spotMeteringPoint() const;
+    void setSpotMeteringPoint(const QPointF &point);
+
     int isoSensitivity() const;
     QList<int> supportedIsoSensitivities(bool *continuous = 0) const;
 

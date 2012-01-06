@@ -104,6 +104,7 @@ class QDeclarativeCamera : public QObject, public QDeclarativeParserStatus
 
     Q_ENUMS(FlashMode)
     Q_ENUMS(ExposureMode)
+    Q_ENUMS(MeteringMode)
 
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
@@ -162,6 +163,12 @@ public:
         ExposureLargeAperture = QCameraExposure::ExposureLargeAperture,
         ExposureSmallAperture = QCameraExposure::ExposureSmallAperture,
         ExposureModeVendor = QCameraExposure::ExposureModeVendor
+    };
+
+    enum MeteringMode {
+        MeteringMatrix = QCameraExposure::MeteringMatrix,
+        MeteringAverage = QCameraExposure::MeteringAverage,
+        MeteringSpot = QCameraExposure::MeteringSpot
     };
 
     enum FocusMode {

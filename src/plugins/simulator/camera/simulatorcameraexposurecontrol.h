@@ -116,6 +116,7 @@ private: // Internal - Implementing ExposureParameter
 private: // Data
     QCameraExposure::ExposureMode   mExposureMode;
     QCameraExposure::MeteringMode   mMeteringMode;
+    QPointF mSpot;
     SimulatorCameraSession *mSession;
     SimulatorCameraSettings *mSettings;
 };

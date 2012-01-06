@@ -235,6 +235,10 @@ void tst_QCamera::testSimpleCameraExposure()
     cameraExposure->setMeteringMode(QCameraExposure::MeteringSpot);
     QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringMatrix);
 
+    QCOMPARE(cameraExposure->spotMeteringPoint(), QPointF());
+    cameraExposure->setSpotMeteringPoint(QPointF(0.5f, 0.5f));
+    QCOMPARE(cameraExposure->spotMeteringPoint(), QPointF());
+
     QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
     cameraExposure->setExposureCompensation(2.0);
     QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
@@ -625,6 +629,15 @@ void tst_QCamera::testCameraExposure()
     QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringAverage);
     cameraExposure->setMeteringMode(QCameraExposure::MeteringSpot);
     QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringSpot);
+
+    cameraExposure->setSpotMeteringPoint(QPointF(0.5f, 0.25f));
+    QCOMPARE(cameraExposure->spotMeteringPoint(), QPointF(0.5f, 0.25f));
+    cameraExposure->setSpotMeteringPoint(QPointF(0.25f, 56.3f));
+    QCOMPARE(cameraExposure->spotMeteringPoint(), QPointF(0.5f, 0.25f));
+    cameraExposure->setSpotMeteringPoint(QPointF(0, 0));
+    QCOMPARE(cameraExposure->spotMeteringPoint(), QPointF(0, 0));
+    cameraExposure->setSpotMeteringPoint(QPointF(1, 1));
+    QCOMPARE(cameraExposure->spotMeteringPoint(), QPointF(1, 1));
 
     QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
     cameraExposure->setExposureCompensation(2.0);

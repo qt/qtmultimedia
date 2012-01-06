@@ -312,6 +312,33 @@ void QCameraExposure::setMeteringMode(QCameraExposure::MeteringMode mode)
 }
 
 /*!
+  \property QCameraExposure::spotMeteringPoint
+
+  When supported, this property is the (normalized) position of the point of the image
+  where exposure metering will be performed.  This is typically used to indicate an
+  "interesting" area of the image that should be exposed properly.
+
+  The coordinates are relative frame coordinates:
+  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center,
+  which is typically the default spot metering point.
+
+  The spot metering point is only used with spot metering mode.
+  \since 1.1
+ */
+
+QPointF QCameraExposure::spotMeteringPoint() const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->exposureParameter(QCameraExposureControl::SpotMeteringPoint).toPointF() : QPointF();
+}
+
+void QCameraExposure::setSpotMeteringPoint(const QPointF &point)
+{
+    if (d_func()->exposureControl)
+        d_func()->exposureControl->setExposureParameter(QCameraExposureControl::SpotMeteringPoint, point);
+}
+
+
+/*!
     Returns true if the metering \a mode is supported.
     \since 1.1
 */
