@@ -123,7 +123,7 @@ void tst_QSound::testStop()
 void tst_QSound::testStaticPlay()
 {
     // Check that you hear sound with static play also.
-    const QString testFileName = QStringLiteral("test2.wav");
+    const QString testFileName = QStringLiteral("test.wav");
     const QString fullPath = QFINDTESTDATA(testFileName);
     QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
 

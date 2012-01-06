@@ -567,7 +567,7 @@ void QSoundEffectPrivate::play()
         return;
 
     PulseDaemonLocker locker;
-    if (!m_sampleReady || !m_pulseStream || m_stopping || m_emptying) {
+    if (!m_pulseStream || m_status != QSoundEffect::Ready || m_stopping || m_emptying) {
 #ifdef QT_PA_DEBUG
         qDebug() << this << "play deferred";
 #endif
@@ -794,6 +794,7 @@ void QSoundEffectPrivate::playSample()
     qDebug() << this << "playSample";
 #endif
     Q_ASSERT(m_pulseStream);
+    Q_ASSERT(pa_stream_get_state(m_pulseStream) == PA_STREAM_READY);
     pa_operation_unref(pa_stream_cork(m_pulseStream, 0, 0, 0));
 }
 
