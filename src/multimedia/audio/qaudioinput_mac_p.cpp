@@ -80,7 +80,7 @@ public:
 
         dataSize = 0;
 
-        bfs = reinterpret_cast<AudioBufferList*>(qMalloc(sizeof(AudioBufferList) +
+        bfs = reinterpret_cast<AudioBufferList*>(malloc(sizeof(AudioBufferList) +
                                                                 (sizeof(AudioBuffer) * numberOfBuffers)));
 
         bfs->mNumberBuffers = numberOfBuffers;
@@ -98,7 +98,7 @@ public:
     {
         dataSize = bufferSize;
 
-        bfs = reinterpret_cast<AudioBufferList*>(qMalloc(sizeof(AudioBufferList) + sizeof(AudioBuffer)));
+        bfs = reinterpret_cast<AudioBufferList*>(malloc(sizeof(AudioBufferList) + sizeof(AudioBuffer)));
 
         bfs->mNumberBuffers = 1;
         bfs->mBuffers[0].mNumberChannels = 1;
@@ -116,13 +116,13 @@ public:
 
         dataSize = framesToBuffer * sf.mBytesPerFrame;
 
-        bfs = reinterpret_cast<AudioBufferList*>(qMalloc(sizeof(AudioBufferList) +
+        bfs = reinterpret_cast<AudioBufferList*>(malloc(sizeof(AudioBufferList) +
                                                                 (sizeof(AudioBuffer) * numberOfBuffers)));
         bfs->mNumberBuffers = numberOfBuffers;
         for (int i = 0; i < numberOfBuffers; ++i) {
             bfs->mBuffers[i].mNumberChannels = isInterleaved ? numberOfBuffers : 1;
             bfs->mBuffers[i].mDataByteSize = dataSize;
-            bfs->mBuffers[i].mData = qMalloc(dataSize);
+            bfs->mBuffers[i].mData = malloc(dataSize);
         }
     }
 
@@ -130,10 +130,10 @@ public:
     {
         if (owner) {
             for (UInt32 i = 0; i < bfs->mNumberBuffers; ++i)
-                qFree(bfs->mBuffers[i].mData);
+                free(bfs->mBuffers[i].mData);
         }
 
-        qFree(bfs);
+        free(bfs);
     }
 
     AudioBufferList* audioBufferList() const
