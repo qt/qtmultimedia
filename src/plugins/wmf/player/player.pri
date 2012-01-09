@@ -24,7 +24,7 @@ SOURCES += \
     $$PWD/mfaudioendpointcontrol.cpp \
     $$PWD/mfmetadatacontrol.cpp
 
-contains(config_test_widgets, yes):!simulator {
+!isEmpty(QT.widgets.name):!simulator {
     HEADERS += $$PWD/evr9videowindowcontrol.h
     SOURCES += $$PWD/evr9videowindowcontrol.cpp
 }

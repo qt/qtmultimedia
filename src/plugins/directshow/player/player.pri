@@ -35,7 +35,7 @@ SOURCES += \
         $$PWD/mediasamplevideobuffer.cpp \
         $$PWD/videosurfacefilter.cpp
 
-contains(config_test_widgets, yes):!simulator {
+!isEmpty(QT.widgets.name):!simulator {
     HEADERS += \
         $$PWD/vmr9videowindowcontrol.h
 

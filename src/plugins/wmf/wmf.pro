@@ -2,7 +2,7 @@ load(qt_module)
 
 TARGET = wmfengine
 QT += multimedia-private network
-contains(config_test_widgets, yes) {
+!isEmpty(QT.widgets.name) {
     QT += multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }

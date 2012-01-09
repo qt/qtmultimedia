@@ -5,7 +5,7 @@ TARGET = qgstengine
 QT += multimedia-private network
 CONFIG += no_private_qt_headers_warning
 
-contains(config_test_widgets, yes) {
+!isEmpty(QT.widgets.name) {
     QT += widgets multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }
@@ -46,7 +46,7 @@ maemo6 {
 
     PKGCONFIG += qmsystem2
 
-    isEqual(QT_ARCH,armv6):contains(config_test_widgets, yes) {
+    isEqual(QT_ARCH,armv6):!isEmpty(QT.widgets.name) {
         HEADERS += qgstreamergltexturerenderer.h
         SOURCES += qgstreamergltexturerenderer.cpp
         QT += opengl
@@ -74,7 +74,7 @@ SOURCES += \
     gstvideoconnector.c \
 
 
-contains(config_test_xvideo, yes):contains(config_test_widgets, yes): {
+contains(config_test_xvideo, yes):!isEmpty(QT.widgets.name): {
     DEFINES += HAVE_XVIDEO
 
     LIBS += -lXv -lX11 -lXext

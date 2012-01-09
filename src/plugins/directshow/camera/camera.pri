@@ -24,7 +24,7 @@ SOURCES += \
     $$PWD/dsimagecapturecontrol.cpp \
     $$PWD/dscamerasession.cpp
 
-contains(config_test_widgets, yes) {
+!isEmpty(QT.widgets.name) {
     HEADERS += $$PWD/dsvideowidgetcontrol.h
     SOURCES += $$PWD/dsvideowidgetcontrol.cpp
 }

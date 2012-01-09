@@ -14,7 +14,7 @@ SOURCES += dsserviceplugin.cpp
 
 !contains(config_test_wmsdk, yes): DEFINES += QT_NO_WMSDK
 
-contains(config_test_widgets, yes) {
+!isEmpty(QT.widgets.name) {
     QT += multimediawidgets
     DEFINES += HAVE_WIDGETS
 }

@@ -2,7 +2,7 @@ load(qt_module)
 
 TARGET = qqt7engine
 QT += multimedia-private network
-contains(config_test_widgets, yes) {
+!isEmpty(QT.widgets.name) {
     QT += multimediawidgets-private widgets
 }
 
@@ -56,9 +56,9 @@ OBJECTIVE_SOURCES += \
         qt7ciimagevideobuffer.mm \
         qcvdisplaylink.mm
 
-    contains(config_test_widgets, yes) {
+    !isEmpty(QT.widgets.name) {
         HEADERS += \
-            qt7movieviewwidget.h
+            qt7movievideowidget.h
 
         OBJECTIVE_SOURCES += \
             qt7movievideowidget.mm

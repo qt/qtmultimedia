@@ -37,9 +37,6 @@
 );
 # Compile tests
 %configtests = (
-    # Widgets (to make things easier)
-    "widgets" => {message => "Disabling widget related code.  To enable, make sure that QtWidgets exists."},
-
     # Windows tests
     "directshow" => {},
     "wmsdk" => {},

@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 
 # These examples all need widgets for now (using creator templates that use widgets)
-contains(config_test_widgets, yes) {
+!isEmpty(QT.widgets.name) {
     SUBDIRS += \
         radio \
         camera \
