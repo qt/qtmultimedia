@@ -90,53 +90,14 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent):
 }
 
 /*!
-    Destroys the camera control object.
+    Destroys the camera exposure control object.
 */
 QCameraExposureControl::~QCameraExposureControl()
 {
 }
 
 /*!
-  \fn QCamera::ExposureMode QCameraExposureControl::exposureMode() const
-
-  Returns the exposure mode.
-*/
-
-
-/*!
-  \fn void QCameraExposureControl::setExposureMode(QCameraExposure::ExposureMode mode)
-
-  Set the exposure mode to \a mode.
-*/
-
-
-/*!
-  \fn bool QCameraExposureControl::isExposureModeSupported(QCameraExposure::ExposureMode mode) const
-
-  Returns true if the exposure \a mode is supported.
-*/
-
-
-/*!
-  \fn QCameraExposure::MeteringMode QCameraExposureControl::meteringMode() const
-  Returns the current metering mode.
-*/
-
-/*!
-  \fn void QCameraExposureControl::setMeteringMode(QCameraExposure::MeteringMode mode)
-
-  Set the metering mode to \a mode.
-*/
-
-/*!
-  \fn bool QCameraExposureControl::isMeteringModeSupported(QCameraExposure::MeteringMode mode) const
-    Returns true if the metering \a mode is supported.
-*/
-
-/*!
   \enum QCameraExposureControl::ExposureParameter
-  \value InvalidParameter
-         Parameter is invalid.
   \value ISO
          Camera ISO sensitivity, specified as integer value.
   \value Aperture
@@ -153,84 +114,97 @@ QCameraExposureControl::~QCameraExposureControl()
          with 0 value means no flash and 1.0 corresponds to full flash power.
 
          This value is only used in the \l{QCameraExposure::FlashManual}{manual flash mode}.
+  \value TorchPower
+         Manual torch power, specified as qreal value.
+         Accepted power range is [0..1.0],
+         with 0 value means no light and 1.0 corresponds to full torch power.
+
+         This value is only used in the \l{QCameraExposure::FlashTorch}{torch flash mode}.
   \value FlashCompensation
          Flash compensation, specified as qreal EV value.
   \value SpotMeteringPoint
          The relative frame coordinate of the point to use for exposure metering
          in spot metering mode, specified as a QPointF.
+  \value ExposureMode
+         Camera exposure mode.
+  \value MeteringMode
+         Camera metering mode.
   \value ExtendedExposureParameter
          The base value for platform specific extended parameters.
          For such parameters the sequential values starting from ExtendedExposureParameter shuld be used.
 */
 
 /*!
-  \enum QCameraExposureControl::ParameterFlag
-  \value AutomaticValue
-         Use the automatic values for parameters.
-  \value ReadOnly
-         Parameters are read only.
-  \value ContinuousRange
-         Parameters are continuous in their range.
-*/
-
-/*!
   \fn QCameraExposureControl::isParameterSupported(ExposureParameter parameter) const
 
   Returns true is exposure \a parameter is supported by backend.
+  \since 5.0
 */
 
 /*!
-  \fn QCameraExposureControl::exposureParameter(ExposureParameter parameter) const
+  \fn QCameraExposureControl::requestedValue(ExposureParameter parameter) const
 
-  Returns the exposure \a parameter value, or invalid QVariant() if the value is unknown or not supported.
+  Returns the requested exposure \a parameter value.
+
+  \since 5.0
 */
 
 /*!
-  \fn QCameraExposureControl::exposureParameterFlags(ExposureParameter parameter) const
+  \fn QCameraExposureControl::actualValue(ExposureParameter parameter) const
 
-  Returns the properties of exposure \a parameter.
+  Returns the actual exposure \a parameter value, or invalid QVariant() if the value is unknown or not supported.
+
+  The actual parameter value may differ for the requested one if automatic mode is selected or
+  camera supports only limited set of values within the supported range.
+  \since 5.0
 */
 
 
 /*!
-  \fn QCameraExposureControl::supportedParameterRange(ExposureParameter parameter) const
+  \fn QCameraExposureControl::supportedParameterRange(ExposureParameter parameter, bool *continuous = 0) const
 
   Returns the list of supported \a parameter values;
+
+  If the camera supports arbitrary exposure parameter value within the supported range,
+  *\a continuous is set to true, otherwise *\a continuous is set to false.
+
+  \since 5.0
 */
 
 /*!
-  \fn bool QCameraExposureControl::setExposureParameter(ExposureParameter parameter, const QVariant& value)
+  \fn bool QCameraExposureControl::setValue(ExposureParameter parameter, const QVariant& value)
 
   Set the exposure \a parameter to \a value.
   If a null or invalid QVariant is passed, backend should choose the value automatically,
-  and if possible report the actual value to user with QCameraExposureControl::exposureParameter().
+  and if possible report the actual value to user with QCameraExposureControl::actualValue().
 
   Returns true if parameter is supported and value is correct.
+  \since 5.0
 */
 
 /*!
-  \fn QCameraExposureControl::extendedParameterName(ExposureParameter parameter)
+    \fn void QCameraExposureControl::requestedValueChanged(int parameter)
 
-  Returns the extended exposure \a parameter name.
+    Signal emitted when the requested exposure \a parameter value has changed,
+    usually in result of setValue() call.
+    \since 5.0
 */
 
 /*!
-    \fn void QCameraExposureControl::flashReady(bool ready)
+    \fn void QCameraExposureControl::actualValueChanged(int parameter)
 
-    Signal emitted when flash state changes, flash is charged \a ready.
+    Signal emitted when the actual exposure \a parameter value has changed,
+    usually in result of auto exposure algorithms or manual exposure parameter applied.
+
+    \since 5.0
 */
 
 /*!
-    \fn void QCameraExposureControl::exposureParameterChanged(int parameter)
+    \fn void QCameraExposureControl::parameterRangeChanged(int parameter)
 
-    Signal emitted when the exposure \a parameter has changed.
-*/
+    Signal emitted when the supported range of exposure \a parameter values has changed.
 
-/*!
-
-    \fn void QCameraExposureControl::exposureParameterRangeChanged(int parameter)
-
-    Signal emitted when the exposure \a parameter range has changed.
+    \since 5.0
 */
 
 

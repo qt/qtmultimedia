@@ -80,7 +80,7 @@ QDeclarativeTorch::QDeclarativeTorch(QObject *parent)
     m_flash = service ? service->requestControl<QCameraFlashControl*>() : 0;
 
     if (m_exposure)
-        connect(m_exposure, SIGNAL(exposureParameterChanged(int)), SLOT(parameterChanged(int)));
+        connect(m_exposure, SIGNAL(valueChanged(int)), SLOT(parameterChanged(int)));
 
     // XXX There's no signal for flash mode changed
 }
@@ -153,7 +153,7 @@ int QDeclarativeTorch::power() const
     if (!m_exposure)
         return 0;
 
-    return m_exposure->exposureParameter(QCameraExposureControl::FlashPower).toInt();
+    return m_exposure->requestedValue(QCameraExposureControl::TorchPower).toInt();
 }
 
 /*!
@@ -166,10 +166,8 @@ void QDeclarativeTorch::setPower(int power)
         return;
 
     power = qBound(0, power, 100);
-    if (this->power() != power) {
-        m_exposure->setExposureParameter(QCameraExposureControl::FlashPower, power);
-        emit powerChanged();
-    }
+    if (this->power() != power)
+        m_exposure->setValue(QCameraExposureControl::TorchPower, power);
 }
 
 /* Check for changes in flash power */

@@ -626,11 +626,17 @@ void tst_QCamera::testCameraExposure()
     cameraExposure->setFlashMode(QCameraExposure::FlashSlowSyncFrontCurtain);
     QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashSlowSyncFrontCurtain);
 
+    QVERIFY(!cameraExposure->isMeteringModeSupported(QCameraExposure::MeteringAverage));
+    QVERIFY(cameraExposure->isMeteringModeSupported(QCameraExposure::MeteringSpot));
+    QVERIFY(cameraExposure->isMeteringModeSupported(QCameraExposure::MeteringMatrix));
 
     cameraExposure->setMeteringMode(QCameraExposure::MeteringMatrix);
     QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringMatrix);
+
+    //MeteringAverage is not supported, metering mode should not be changed
     cameraExposure->setMeteringMode(QCameraExposure::MeteringAverage);
-    QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringAverage);
+    QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringMatrix);
+
     cameraExposure->setMeteringMode(QCameraExposure::MeteringSpot);
     QCOMPARE(cameraExposure->meteringMode(), QCameraExposure::MeteringSpot);
 
@@ -650,17 +656,23 @@ void tst_QCamera::testCameraExposure()
     int minIso = cameraExposure->supportedIsoSensitivities().first();
     int maxIso = cameraExposure->supportedIsoSensitivities().last();
     QVERIFY(cameraExposure->isoSensitivity() > 0);
+    QCOMPARE(cameraExposure->requestedIsoSensitivity(), -1);
     QVERIFY(minIso > 0);
     QVERIFY(maxIso > 0);
     cameraExposure->setManualIsoSensitivity(minIso);
     QCOMPARE(cameraExposure->isoSensitivity(), minIso);
     cameraExposure->setManualIsoSensitivity(maxIso*10);
     QCOMPARE(cameraExposure->isoSensitivity(), maxIso);
+    QCOMPARE(cameraExposure->requestedIsoSensitivity(), maxIso*10);
+
     cameraExposure->setManualIsoSensitivity(-10);
     QCOMPARE(cameraExposure->isoSensitivity(), minIso);
+    QCOMPARE(cameraExposure->requestedIsoSensitivity(), -10);
     cameraExposure->setAutoIsoSensitivity();
     QCOMPARE(cameraExposure->isoSensitivity(), 100);
+    QCOMPARE(cameraExposure->requestedIsoSensitivity(), -1);
 
+    QCOMPARE(cameraExposure->requestedAperture(), -1.0);
     qreal minAperture = cameraExposure->supportedApertures().first();
     qreal maxAperture = cameraExposure->supportedApertures().last();
     QVERIFY(minAperture > 0);
@@ -671,14 +683,20 @@ void tst_QCamera::testCameraExposure()
     cameraExposure->setAutoAperture();
     QVERIFY(cameraExposure->aperture() >= minAperture);
     QVERIFY(cameraExposure->aperture() <= maxAperture);
+    QCOMPARE(cameraExposure->requestedAperture(), -1.0);
 
     cameraExposure->setManualAperture(0);
     QCOMPARE(cameraExposure->aperture(), minAperture);
+    QCOMPARE(cameraExposure->requestedAperture()+1.0, 1.0);
 
     cameraExposure->setManualAperture(10000);
     QCOMPARE(cameraExposure->aperture(), maxAperture);
+    QCOMPARE(cameraExposure->requestedAperture(), 10000.0);
 
+    cameraExposure->setAutoAperture();
+    QCOMPARE(cameraExposure->requestedAperture(), -1.0);
 
+    QCOMPARE(cameraExposure->requestedShutterSpeed(), -1.0);
     qreal minShutterSpeed = cameraExposure->supportedShutterSpeeds().first();
     qreal maxShutterSpeed = cameraExposure->supportedShutterSpeeds().last();
     QVERIFY(minShutterSpeed > 0);
@@ -689,12 +707,18 @@ void tst_QCamera::testCameraExposure()
     cameraExposure->setAutoShutterSpeed();
     QVERIFY(cameraExposure->shutterSpeed() >= minShutterSpeed);
     QVERIFY(cameraExposure->shutterSpeed() <= maxShutterSpeed);
+    QCOMPARE(cameraExposure->requestedShutterSpeed(), -1.0);
 
     cameraExposure->setManualShutterSpeed(0);
     QCOMPARE(cameraExposure->shutterSpeed(), minShutterSpeed);
+    QCOMPARE(cameraExposure->requestedShutterSpeed()+1.0, 1.0);
 
     cameraExposure->setManualShutterSpeed(10000);
     QCOMPARE(cameraExposure->shutterSpeed(), maxShutterSpeed);
+    QCOMPARE(cameraExposure->requestedShutterSpeed(), 10000.0);
+
+    cameraExposure->setAutoShutterSpeed();
+    QCOMPARE(cameraExposure->requestedShutterSpeed(), -1.0);
 }
 
 void tst_QCamera::testCameraFocus()

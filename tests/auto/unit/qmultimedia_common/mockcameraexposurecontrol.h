@@ -63,46 +63,27 @@ public:
         m_apertureRanges << 2.8 << 4.0 << 5.6 << 8.0 << 11.0 << 16.0;
         m_shutterRanges << 0.001 << 0.01 << 0.1 << 1.0;
         m_exposureRanges << -2.0 << 2.0;
+
+        QList<QCameraExposure::ExposureMode> exposureModes;
+        exposureModes << QCameraExposure::ExposureAuto << QCameraExposure::ExposureManual << QCameraExposure::ExposureBacklight
+                      << QCameraExposure::ExposureNight << QCameraExposure::ExposureSpotlight << QCameraExposure::ExposureSports
+                      << QCameraExposure::ExposureSnow << QCameraExposure:: ExposureLargeAperture << QCameraExposure::ExposureSmallAperture
+                      << QCameraExposure::ExposurePortrait << QCameraExposure::ExposureModeVendor << QCameraExposure::ExposureBeach;
+
+        foreach (QCameraExposure::ExposureMode mode, exposureModes)
+            m_exposureModes << QVariant::fromValue<QCameraExposure::ExposureMode>(mode);
+
+        m_meteringModes << QVariant::fromValue<QCameraExposure::MeteringMode>(QCameraExposure::MeteringMatrix)
+                        << QVariant::fromValue<QCameraExposure::MeteringMode>(QCameraExposure::MeteringSpot);
     }
 
     ~MockCameraExposureControl() {}
 
-    QCameraExposure::FlashModes flashMode() const {return m_flashMode;}
-
-    void setFlashMode(QCameraExposure::FlashModes mode)
-    {
-        if (isFlashModeSupported(mode)) {
-            m_flashMode = mode;
-        }
-    }
-
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const
-    {
-        return mode & (QCameraExposure::FlashAuto | QCameraExposure::FlashOff | QCameraExposure::FlashOn);
-    }
-
-    bool isFlashReady() const { return true;}
-
-    QCameraExposure::ExposureMode exposureMode() const  { return m_exposureMode; }
-
-    void setExposureMode(QCameraExposure::ExposureMode mode)
-    {
-        if (isExposureModeSupported(mode))
-            m_exposureMode = mode;
-    }
-
-    //Setting the Exposure Mode Supported Enum values
-    bool isExposureModeSupported(QCameraExposure::ExposureMode mode) const
-    {
-        return ( mode == QCameraExposure::ExposureAuto || mode == QCameraExposure::ExposureManual || mode == QCameraExposure::ExposureBacklight ||
-                mode == QCameraExposure::ExposureNight || mode == QCameraExposure::ExposureSpotlight ||mode == QCameraExposure::ExposureSports ||
-                mode == QCameraExposure::ExposureSnow || mode == QCameraExposure:: ExposureLargeAperture ||mode == QCameraExposure::ExposureSmallAperture ||
-                mode == QCameraExposure::ExposurePortrait || mode == QCameraExposure::ExposureModeVendor ||mode == QCameraExposure::ExposureBeach );
-    }
-
     bool isParameterSupported(ExposureParameter parameter) const
     {
         switch (parameter) {
+        case QCameraExposureControl::ExposureMode:
+        case QCameraExposureControl::MeteringMode:
         case QCameraExposureControl::ExposureCompensation:
         case QCameraExposureControl::ISO:
         case QCameraExposureControl::Aperture:
@@ -114,9 +95,18 @@ public:
         }
     }
 
-    QVariant exposureParameter(ExposureParameter parameter) const
+    QVariant requestedValue(ExposureParameter param) const
     {
-        switch (parameter) {
+        return m_requestedParameters.value(param);
+    }
+
+    QVariant actualValue(ExposureParameter param) const
+    {
+        switch (param) {
+        case QCameraExposureControl::ExposureMode:
+            return QVariant::fromValue<QCameraExposure::ExposureMode>(m_exposureMode);
+        case QCameraExposureControl::MeteringMode:
+            return QVariant::fromValue<QCameraExposure::MeteringMode>(m_meteringMode);
         case QCameraExposureControl::ExposureCompensation:
             return QVariant(m_exposureCompensation);
         case QCameraExposureControl::ISO:
@@ -132,18 +122,27 @@ public:
         }
     }
 
-    QVariantList supportedParameterRange(ExposureParameter parameter) const
+    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const
     {
+        *continuous = false;
+
         QVariantList res;
         switch (parameter) {
         case QCameraExposureControl::ExposureCompensation:
+            *continuous = true;
             return m_exposureRanges;
         case QCameraExposureControl::ISO:
             return m_isoRanges;
         case QCameraExposureControl::Aperture:
+            *continuous = true;
             return m_apertureRanges;
         case QCameraExposureControl::ShutterSpeed:
+            *continuous = true;
             return m_shutterRanges;
+        case QCameraExposureControl::ExposureMode:
+            return m_exposureModes;
+        case QCameraExposureControl::MeteringMode:
+            return m_meteringModes;
         default:
             break;
         }
@@ -151,39 +150,50 @@ public:
         return res;
     }
 
-    ParameterFlags exposureParameterFlags(ExposureParameter parameter) const
+    // Added valueChanged  and parameterRangeChanged signal
+    bool setValue(ExposureParameter param, const QVariant& value)
     {
-        ParameterFlags res = 0;
-        switch (parameter) {
-        case QCameraExposureControl::ExposureCompensation:
-        case QCameraExposureControl::Aperture:
-        case QCameraExposureControl::ShutterSpeed:
-            res |= ContinuousRange;
-        default:
-            break;
+        if (!isParameterSupported(param))
+            return false;
+
+        if (m_requestedParameters.value(param) != value) {
+            m_requestedParameters.insert(param, value);
+            emit requestedValueChanged(param);
         }
 
-        return res;
-    }
-
-    // Added exposureParameterChanged  and exposureParameterRangeChanged signal
-    bool setExposureParameter(ExposureParameter parameter, const QVariant& value)
-    {
-        switch (parameter) {
+        switch (param) {
+        case QCameraExposureControl::ExposureMode:
+        {
+            QCameraExposure::ExposureMode mode = value.value<QCameraExposure::ExposureMode>();
+            if (mode != m_exposureMode && m_exposureModes.contains(value)) {
+                m_exposureMode = mode;
+                emit actualValueChanged(param);
+            }
+        }
+            break;
+        case QCameraExposureControl::MeteringMode:
+        {
+            QCameraExposure::MeteringMode mode = value.value<QCameraExposure::MeteringMode>();
+            if (mode != m_meteringMode && m_meteringModes.contains(value)) {
+                m_meteringMode = mode;
+                emit actualValueChanged(param);
+            }
+        }
+            break;
         case QCameraExposureControl::ExposureCompensation:
         {
             m_res.clear();
             m_res << -4.0 << 4.0;
             qreal exposureCompensationlocal = qBound<qreal>(-2.0, value.toReal(), 2.0);
-            if (exposureParameter(parameter).toReal() !=  exposureCompensationlocal) {
+            if (actualValue(param).toReal() !=  exposureCompensationlocal) {
                 m_exposureCompensation = exposureCompensationlocal;
-                emit exposureParameterChanged(parameter);
+                emit actualValueChanged(param);
             }
 
             if (m_exposureRanges.last().toReal() != m_res.last().toReal()) {
                 m_exposureRanges.clear();
                 m_exposureRanges = m_res;
-                emit exposureParameterRangeChanged(parameter);
+                emit parameterRangeChanged(param);
             }
         }
             break;
@@ -192,15 +202,15 @@ public:
             m_res.clear();
             m_res << 20 << 50;
             qreal exposureCompensationlocal = 100*qRound(qBound(100, value.toInt(), 800)/100.0);
-            if (exposureParameter(parameter).toReal() !=  exposureCompensationlocal) {
+            if (actualValue(param).toReal() !=  exposureCompensationlocal) {
                 m_isoSensitivity = exposureCompensationlocal;
-                emit exposureParameterChanged(parameter);
+                emit actualValueChanged(param);
             }
 
             if (m_isoRanges.last().toInt() != m_res.last().toInt()) {
                 m_isoRanges.clear();
                 m_isoRanges = m_res;
-                emit exposureParameterRangeChanged(parameter);
+                emit parameterRangeChanged(param);
             }
         }
             break;
@@ -209,15 +219,15 @@ public:
             m_res.clear();
             m_res << 12.0 << 18.0 << 20.0;
             qreal exposureCompensationlocal = qBound<qreal>(2.8, value.toReal(), 16.0);
-            if (exposureParameter(parameter).toReal() !=  exposureCompensationlocal) {
+            if (actualValue(param).toReal() !=  exposureCompensationlocal) {
                 m_aperture = exposureCompensationlocal;
-                emit exposureParameterChanged(parameter);
+                emit actualValueChanged(param);
             }
 
             if (m_apertureRanges.last().toReal() != m_res.last().toReal()) {
                 m_apertureRanges.clear();
                 m_apertureRanges = m_res;
-                emit exposureParameterRangeChanged(parameter);
+                emit parameterRangeChanged(param);
             }
         }
             break;
@@ -226,15 +236,15 @@ public:
             m_res.clear();
             m_res << 0.12 << 1.0 << 2.0;
             qreal exposureCompensationlocal = qBound<qreal>(0.001, value.toReal(), 1.0);
-            if (exposureParameter(parameter).toReal() !=  exposureCompensationlocal) {
+            if (actualValue(param).toReal() !=  exposureCompensationlocal) {
                 m_shutterSpeed = exposureCompensationlocal;
-                emit exposureParameterChanged(parameter);
+                emit actualValueChanged(param);
             }
 
             if (m_shutterRanges.last().toReal() != m_res.last().toReal()) {
                 m_shutterRanges.clear();
                 m_shutterRanges = m_res;
-                emit exposureParameterRangeChanged(parameter);
+                emit parameterRangeChanged(param);
             }
         }
             break;
@@ -244,6 +254,7 @@ public:
             static QRectF valid(0, 0, 1, 1);
             if (valid.contains(value.toPointF())) {
                 m_spot = value.toPointF();
+                emit actualValueChanged(param);
                 return true;
             }
             return false;
@@ -253,33 +264,7 @@ public:
             return false;
         }
 
-        emit flashReady(true); // depends on Flashcontrol
-
         return true;
-    }
-
-    QString extendedParameterName(ExposureParameter)
-    {
-        return QString();
-    }
-
-    QCameraExposure::MeteringMode meteringMode() const
-    {
-        return m_meteringMode;
-    }
-
-    void setMeteringMode(QCameraExposure::MeteringMode mode)
-    {
-        if (isMeteringModeSupported(mode))
-            m_meteringMode = mode;
-    }
-
-    //Setting the values for metering mode
-    bool isMeteringModeSupported(QCameraExposure::MeteringMode mode) const
-    {
-        return mode == QCameraExposure::MeteringAverage
-                || mode == QCameraExposure::MeteringMatrix
-                || mode == QCameraExposure::MeteringSpot;
     }
 
 private:
@@ -290,8 +275,10 @@ private:
     qreal m_exposureCompensation;
     QCameraExposure::ExposureMode m_exposureMode;
     QCameraExposure::FlashModes m_flashMode;
-    QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res;
+    QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes, m_meteringModes;
     QPointF m_spot;
+
+    QMap<QCameraExposureControl::ExposureParameter, QVariant> m_requestedParameters;
 };
 
 #endif // MOCKCAMERAEXPOSURECONTROL_H

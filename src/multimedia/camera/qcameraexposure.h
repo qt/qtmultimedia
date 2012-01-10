@@ -117,28 +117,29 @@ public:
     qreal exposureCompensation() const;
 
     MeteringMode meteringMode() const;
-
     bool isMeteringModeSupported(MeteringMode mode) const;
 
     QPointF spotMeteringPoint() const;
     void setSpotMeteringPoint(const QPointF &point);
 
     int isoSensitivity() const;
-    QList<int> supportedIsoSensitivities(bool *continuous = 0) const;
-
     qreal aperture() const;
-    QList<qreal> supportedApertures(bool *continuous = 0) const;
-
     qreal shutterSpeed() const;
+
+    int requestedIsoSensitivity() const;
+    qreal requestedAperture() const;
+    qreal requestedShutterSpeed() const;
+
+    QList<int> supportedIsoSensitivities(bool *continuous = 0) const;
+    QList<qreal> supportedApertures(bool * continuous = 0) const;
     QList<qreal> supportedShutterSpeeds(bool *continuous = 0) const;
 
 public Q_SLOTS:
     void setFlashMode(FlashModes mode);
     void setExposureMode(ExposureMode mode);
+    void setMeteringMode(MeteringMode mode);
 
     void setExposureCompensation(qreal ev);
-
-    void setMeteringMode(MeteringMode mode);
 
     void setManualIsoSensitivity(int iso);
     void setAutoIsoSensitivity();
