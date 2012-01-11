@@ -43,7 +43,6 @@
 #include <QFile>
 #include <QTimer>
 
-#include "qaudiocapturesource.h"
 #include "qmediaplaylist.h"
 #include "qmediarecorder.h"
 #include "qmediaservice.h"
@@ -54,11 +53,11 @@
 #include "qradiotuner.h"
 #include "qvideowidget.h"
 #include "qcameraimagecapture.h"
+#include "qcamera.h"
 
 class MediaExample : public QObject {
     Q_OBJECT
 
-    void AudioCaptureSource();
     void MediaControl();
     void MediaImageViewer();
     void MediaPlayer();
@@ -77,8 +76,8 @@ private:
     QMediaContent video;
     QMediaRecorder *recorder;
     QMediaImageViewer *viewer;
+    QCamera *camera;
     QCameraImageCapture *imageCapture;
-    QAudioCaptureSource *audioSource;
     QString fileName;
     QRadioTuner *radio;
     QMediaContent image1;
@@ -87,19 +86,6 @@ private:
 
     static const int yourRadioStationFrequency = 11;
 };
-
-void MediaExample::AudioCaptureSource()
-{
-    //! [Audio capture source]
-    QAudioCaptureSource* audioSource = new QAudioCaptureSource;
-    QMediaRecorder* recorder = new QMediaRecorder(audioSource);
-
-    recorder->setOutputLocation(QUrl("test.raw"));
-    //! [Audio capture source]
-
-    Q_UNUSED(audioSource);
-}
-
 
 void MediaExample::MediaControl()
 {
@@ -205,8 +191,7 @@ void MediaExample::MediaRecorder()
 {
     //! [Media recorder]
     // Audio only recording
-    audioSource = new QAudioCaptureSource;
-    recorder = new QMediaRecorder(audioSource);
+    recorder = new QMediaRecorder(camera);
 
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec("audio/vorbis");

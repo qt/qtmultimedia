@@ -38,12 +38,17 @@
 **
 ****************************************************************************/
 
-//! [0]
-QSound::play("mysounds/bells.wav");
-//! [0]
+
+#include "qsound.h"
+
+void qsoundsnippet() {
+    //! [0]
+    QSound::play("mysounds/bells.wav");
+    //! [0]
 
 
-//! [1]
-QSound bells("mysounds/bells.wav");
-bells.play();
-//! [1]
+    //! [1]
+    QSound bells("mysounds/bells.wav");
+    bells.play();
+    //! [1]
+}

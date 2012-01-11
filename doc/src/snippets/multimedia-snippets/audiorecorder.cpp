@@ -41,8 +41,7 @@
 
 #include <QtWidgets>
 
-#include <qaudiocapturesource.h>
-#include <qmediarecorder.h>
+#include <qaudiorecorder.h>
 #include <qmediaservice.h>
 
 #include <QtMultimedia/qaudioformat.h>
@@ -52,8 +51,7 @@
 AudioRecorder::AudioRecorder()
 {
 //! [create-objs-1]
-    audiosource = new QAudioCaptureSource;
-    capture = new QMediaRecorder(audiosource);
+    capture = new QAudioRecorder();
 //! [create-objs-1]
 
     // set a default file
