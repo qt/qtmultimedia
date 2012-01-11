@@ -46,17 +46,17 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraFocus QDeclarativeCameraFocus
-    \since 4.0
+    \since 5.0
     \brief The CameraFocus element provides interface for focus related camera settings.
     \ingroup qml-multimedia
 
-    This element is part of the \bold{QtMultimedia 4.0} module.
+    This element is part of the \bold{QtMultimedia 5.0} module.
 
     It should not be constructed separately but provided by Camera.focus.
 
     \qml
     import QtQuick 2.0
-    import QtMultimedia 4.0
+    import QtMultimedia 5.0
 
     Camera {
         id: camera

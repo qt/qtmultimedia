@@ -77,7 +77,7 @@ a wiggly effect to the content:
 
 \code
 import QtQuick 2.0
-import QtMultimedia 4.0
+import QtMultimedia 5.0
 
 Rectangle {
     width: 300

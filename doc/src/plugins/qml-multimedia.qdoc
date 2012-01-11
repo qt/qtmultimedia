@@ -54,8 +54,8 @@
 
     \qml
 
-    import Qt 4.7
-    import QtMultimedia 4.0
+    import QtQuick 2.0
+    import QtMultimedia 5.0
     // ...
 
     Audio {
@@ -237,8 +237,8 @@
 
     \qml
 
-    import Qt 4.7
-    import QtMultimedia 4.0
+    import QtQuick 2.0
+    import QtMultimedia 5.0
 
 
         SoundEffect {
@@ -264,8 +264,8 @@
     including white balance, exposure compensation and flash mode, and control zoom.
 
     \qml
-    import Qt 4.7
-    import QtMultimedia 4.0
+    import QtQuick 2.0
+    import QtMultimedia 5.0
 
     Camera {
         focus : visible // to receive focus and capture key events when visible

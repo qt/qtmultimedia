@@ -40,8 +40,8 @@
 ****************************************************************************/
 
 //! [complete snippet]
-import Qt 4.7
-import QtMultimedia 4.0
+import QtQuick 2.0
+import QtMultimedia 5.0
 
 Text {
     text: "Click Me!";

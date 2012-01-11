@@ -92,6 +92,30 @@ public:
                                 trUtf8("CameraFlash is only provided by Camera element"));
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 4, 0, "CameraImageProcessing",
                                 trUtf8("CameraImageProcessing is only provided by Camera element"));
+
+        // Introduced to help transition from QtMultimedia 4.0 to 5.0 (official for Qt 5)
+        // the 4.0 versioned types will be removed once all clients have made the transition.
+        qmlRegisterType<QSoundEffect>(uri, 5, 0, "SoundEffect");
+        qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "Audio");
+        qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "MediaPlayer");
+        qmlRegisterType<QDeclarativeVideoOutput>(uri, 5, 0, "VideoOutput");
+        qmlRegisterType<QDeclarativeRadio>(uri, 5, 0, "Radio");
+        qmlRegisterType<QDeclarativeRadioData>(uri, 5, 0, "RadioData");
+        qmlRegisterType<QDeclarativeBackgroundAudio>(uri, 5, 0, "BackgroundAudio");
+        qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
+        qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
+                                trUtf8("CameraCapture is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 5, 0, "CameraRecorder",
+                                trUtf8("CameraRecorder is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 5, 0, "CameraExposure",
+                                trUtf8("CameraExposure is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraFocus>(uri, 5, 0, "CameraFocus",
+                                trUtf8("CameraFocus is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 5, 0, "CameraFlash",
+                                trUtf8("CameraFlash is only provided by Camera element"));
+        qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 5, 0, "CameraImageProcessing",
+                                trUtf8("CameraImageProcessing is only provided by Camera element"));
+
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }
 

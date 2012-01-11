@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
 
-    This element is part of the \bold{QtMultimedia 4.0} module.
+    This element is part of the \bold{QtMultimedia 5.0} module.
 
     The following example plays a WAV file on mouse click.
 
