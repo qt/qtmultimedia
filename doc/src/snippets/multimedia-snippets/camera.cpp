@@ -45,6 +45,7 @@
 #include "qcameraviewfinder.h"
 #include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
+#include "qcameraimageprocessing.h"
 
 void camera()
 {
@@ -78,5 +79,52 @@ void camera()
     //on shutter button released
     camera->unlock();
     //! [Camera keys]
+}
 
+void cameraimageprocessing()
+{
+    QCamera *camera = 0;
+
+    //! [Camera image whitebalance]
+    camera = new QCamera;
+    QCameraImageProcessing *imageProcessing = camera->imageProcessing();
+
+    if (imageProcessing->isAvailable()) {
+        imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFluorescent);
+    }
+    //! [Camera image whitebalance]
+
+    //! [Camera image denoising]
+    if (imageProcessing->isDenoisingSupported()) {
+        imageProcessing->setDenoisingLevel(3);
+    }
+    //! [Camera image denoising]
+}
+
+void camerafocus()
+{
+    QCamera *camera = 0;
+
+    //! [Camera custom zoom]
+    QCameraFocus *focus = camera->focus();
+    focus->setFocusPointMode(QCameraFocus::FocusPointCustom);
+    focus->setCustomFocusPoint(QPointF(0.25f, 0.75f)); // A point near the bottom left, 25% away from the corner, near that shiny vase
+    //! [Camera custom zoom]
+
+    //! [Camera combined zoom]
+    focus->zoomTo(3.0, 4.0); // Super zoom!
+    //! [Camera combined zoom]
+
+    //! [Camera focus zones]
+    focus->setFocusPointMode(QCameraFocus::FocusPointAuto);
+    QList<QCameraFocusZone> zones = focus->focusZones();
+    foreach (QCameraFocusZone zone, zones) {
+        if (zone.status() == QCameraFocusZone::Focused) {
+            // Draw a green box at zone.area()
+        } else if (zone.status() == QCameraFocusZone::Selected) {
+            // This area is selected for autofocusing, but is not in focus
+            // Draw a yellow box at zone.area()
+        }
+    }
+    //! [Camera focus zones]
 }

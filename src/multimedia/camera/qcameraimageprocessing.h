@@ -95,10 +95,12 @@ public:
     int saturation() const;
     void setSaturation(int value);
 
+    static const int DefaultSharpening = -1;
     bool isSharpeningSupported() const;
     int sharpeningLevel() const;
     void setSharpeningLevel(int value);
 
+    static const int DefaultDenoising = -1;
     bool isDenoisingSupported() const;
     int denoisingLevel() const;
     void setDenoisingLevel(int value);

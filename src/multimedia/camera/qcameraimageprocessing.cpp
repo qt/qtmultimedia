@@ -70,14 +70,35 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QCameraImageProcessing
 
-
-    \brief The QCameraImageProcessing class provides interface for
-    focus and zoom related camera settings.
+    \brief The QCameraImageProcessing class provides an interface for
+    image processing related camera settings.
 
     \inmodule QtMultimedia
     \ingroup camera
     \since 1.1
 
+    After capturing the data for a camera frame, the camera hardware and
+    software performs various image processing tasks to produce a final
+    image.  This includes compensating for ambient light color, reducing
+    noise, as well as making some other adjustments to the image.
+
+    You can retrieve this class from an instance of a \l QCamera object.
+
+    For example, you can set the white balance (or color temperature) used
+    for processing images:
+
+    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera image whitebalance
+
+    Or adjust the amount of denoising performed:
+
+    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera image denoising
+
+    In some cases changing these settings may result in a longer delay
+    before an image is ready.
+
+    For more information on image processing of camera frames, see \l {Camera Image Processing}.
+
+    \sa QCameraImageProcessingControl
 */
 
 
@@ -169,7 +190,7 @@ bool QCameraImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing:
 
 /*!
     Returns the current color temperature if the
-    manual white balance is active, otherwise the
+    current white balance mode is \c WhiteBalanceManual.  For other modes the
     return value is undefined.
     \since 1.1
 */
@@ -185,7 +206,8 @@ int QCameraImageProcessing::manualWhiteBalance() const
 }
 
 /*!
-    Sets manual white balance to \a colorTemperature
+    Sets manual white balance to \a colorTemperature.  This is used
+    when whiteBalanceMode() is set to \c WhiteBalanceManual.  The units are Kelvin.
     \since 1.1
 */
 
@@ -199,7 +221,7 @@ void QCameraImageProcessing::setManualWhiteBalance(int colorTemperature)
 }
 
 /*!
-    Return the contrast.
+    Returns the contrast adjustment setting.
     \since 1.1
 */
 int QCameraImageProcessing::contrast() const
@@ -213,9 +235,9 @@ int QCameraImageProcessing::contrast() const
 }
 
 /*!
-    Set the contrast to \a value.
+    Set the contrast adjustment to \a value.
 
-    Valid contrast values range between -100 and 100, the default is 0.
+    Valid contrast adjustment values range between -100 and 100, with a default of 0.
     \since 1.1
 */
 void QCameraImageProcessing::setContrast(int value)
@@ -226,7 +248,7 @@ void QCameraImageProcessing::setContrast(int value)
 }
 
 /*!
-    Returns the saturation value.
+    Returns the saturation adjustment value.
     \since 1.1
 */
 int QCameraImageProcessing::saturation() const
@@ -240,9 +262,9 @@ int QCameraImageProcessing::saturation() const
 }
 
 /*!
-    Sets the saturation value to \a value.
+    Sets the saturation adjustment value to \a value.
 
-    Valid saturation values range between -100 and 100, the default is 0.
+    Valid saturation values range between -100 and 100, with a default of 0.
     \since 1.1
 */
 
@@ -269,6 +291,9 @@ bool QCameraImageProcessing::isSharpeningSupported() const
 
 /*!
     Returns the sharpening level.
+
+    This may be \c DefaultSharpening if no particular sharpening level has been applied.
+
     \since 1.1
 */
 int QCameraImageProcessing::sharpeningLevel() const
@@ -279,7 +304,7 @@ int QCameraImageProcessing::sharpeningLevel() const
         value = d_func()->imageControl->processingParameter(QCameraImageProcessingControl::Sharpening);
 
     if (value.isNull())
-        return -1;
+        return DefaultSharpening;
     else
         return value.toInt();
 }
@@ -287,8 +312,10 @@ int QCameraImageProcessing::sharpeningLevel() const
 /*!
     Sets the sharpening \a level.
 
-    Valid sharpening level values range between -1 for default sharpening level,
-    0 for sharpening disabled and 100 for maximum sharpening applied.
+    If \c DefaultSharpening is supplied, the camera will decide what sharpening
+    to perform.  Otherwise a level of 0 will disable sharpening, and a level of 100
+    corresponds to maximum sharpening applied.
+
     \since 1.1
 */
 
@@ -297,7 +324,7 @@ void QCameraImageProcessing::setSharpeningLevel(int level)
     Q_D(QCameraImageProcessing);
     if (d->imageControl)
         d->imageControl->setProcessingParameter(QCameraImageProcessingControl::Sharpening,
-                                                level == -1 ? QVariant() : QVariant(level));
+                                                level == DefaultSharpening ? QVariant() : QVariant(level));
 }
 
 /*!
@@ -313,7 +340,9 @@ bool QCameraImageProcessing::isDenoisingSupported() const
 }
 
 /*!
-    Returns the denoising level.
+    Returns the denoising level.  This may be \c DefaultDenoising if no
+    particular value has been set.
+
     \since 1.1
 */
 int QCameraImageProcessing::denoisingLevel() const
@@ -324,7 +353,7 @@ int QCameraImageProcessing::denoisingLevel() const
         value = d_func()->imageControl->processingParameter(QCameraImageProcessingControl::Denoising);
 
     if (value.isNull())
-        return -1;
+        return DefaultDenoising;
     else
         return value.toInt();
 }
@@ -332,8 +361,10 @@ int QCameraImageProcessing::denoisingLevel() const
 /*!
     Sets the denoising \a level.
 
-    Valid denoising level values range between -1 for default denoising level,
-    0 for denoising disabled and 100 for maximum denoising applied.
+    If \c DefaultDenoising is supplied, the camera will decide what denoising
+    to perform.  Otherwise a level of 0 will disable denoising, and a level of 100
+    corresponds to maximum denoising applied.
+
     \since 1.1
 */
 void QCameraImageProcessing::setDenoisingLevel(int level)
@@ -341,7 +372,7 @@ void QCameraImageProcessing::setDenoisingLevel(int level)
     Q_D(QCameraImageProcessing);
     if (d->imageControl)
         d->imageControl->setProcessingParameter(QCameraImageProcessingControl::Denoising,
-                                                level == -1 ? QVariant() : QVariant(level));
+                                                level == DefaultDenoising ? QVariant() : QVariant(level));
 }
 
 
@@ -354,7 +385,7 @@ void QCameraImageProcessing::setDenoisingLevel(int level)
     \value WhiteBalanceSunlight     Sunlight white balance mode.
     \value WhiteBalanceCloudy       Cloudy white balance mode.
     \value WhiteBalanceShade        Shade white balance mode.
-    \value WhiteBalanceTungsten     Tungsten white balance mode.
+    \value WhiteBalanceTungsten     Tungsten (incandescent) white balance mode.
     \value WhiteBalanceFluorescent  Fluorescent white balance mode.
     \value WhiteBalanceFlash        Flash white balance mode.
     \value WhiteBalanceSunset       Sunset white balance mode.

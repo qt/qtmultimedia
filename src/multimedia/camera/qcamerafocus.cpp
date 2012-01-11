@@ -103,60 +103,134 @@ public:
     QCameraFocusZone::FocusZoneStatus status;
 };
 
+
+/*!
+    \class QCameraFocusZone
+
+    \brief The QCameraFocusZone class provides information on zones used for autofocusing a camera.
+
+    \inmodule QtMultimedia
+    \ingroup camera
+    \since 1.1
+
+    For cameras that support autofocusing, in order for a camera to autofocus on
+    part of a sensor frame, it considers different zones within the frame.  Which
+    zones to use, and where the zones are located vary between different cameras.
+
+    This class exposes what zones are used by a particular camera, and a list of the
+    zones can be retrieved by a \l QCameraFocus instance.
+
+    You can use this information to present visual feedback - for example, drawing
+    rectangles around areas of the camera frame that are in focus, or changing the
+    color of a zone as it comes into focus.
+
+    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera focus zones
+
+    \sa QCameraFocus
+*/
+
+/*!
+    \enum QCameraFocusZone::Status
+
+    \value Invalid      This zone is not valid
+    \value Unused       This zone may be used for autofocusing, but is not currently.
+    \value Selected     This zone is currently being used for autofocusing, but is not in focus.
+    \value Focused      This zone is being used for autofocusing and is currently in focus.
+*/
+
+/*!
+ * \internal
+ * Creates a new, empty QCameraFocusZone.
+ */
 QCameraFocusZone::QCameraFocusZone()
     :d(new QCameraFocusZoneData)
 {
 
 }
 
+/*!
+ * \internal
+ * Creates a new QCameraFocusZone with the supplied \a area and \a status.
+ */
 QCameraFocusZone::QCameraFocusZone(const QRectF &area, QCameraFocusZone::FocusZoneStatus status)
     :d(new QCameraFocusZoneData(area, status))
 {
 }
 
+/*!
+ * Creates a new QCameraFocusZone as a copy of \a other.
+ */
 QCameraFocusZone::QCameraFocusZone(const QCameraFocusZone &other)
     :d(other.d)
 {
 
 }
 
+/*!
+ * Destroys this QCameraFocusZone.
+ */
 QCameraFocusZone::~QCameraFocusZone()
 {
 
 }
 
+/*!
+ * Assigns \a other to this QCameraFocusZone.
+ */
 QCameraFocusZone& QCameraFocusZone::operator=(const QCameraFocusZone &other)
 {
     d = other.d;
     return *this;
 }
 
+/*!
+ * Returns true if this focus zone is the same as \a other.
+ */
 bool QCameraFocusZone::operator==(const QCameraFocusZone &other) const
 {
     return d == other.d ||
            (d->area == other.d->area && d->status == other.d->status);
 }
 
+/*!
+ * Returns true if this focus zone is not the same as \a other.
+ */
 bool QCameraFocusZone::operator!=(const QCameraFocusZone &other) const
 {
     return !(*this == other);
 }
 
+/*!
+ * Returns true if this focus zone has a valid area and status.
+ */
 bool QCameraFocusZone::isValid() const
 {
     return d->status != Invalid && !d->area.isValid();
 }
 
+/*!
+ * Returns the area of the camera frame that this focus zone encompasses.
+ *
+ * Coordinates are in frame relative coordinates - \c QPointF(0,0) is the top
+ * left of the frame, and \c QPointF(1,1) is the bottom right.
+ */
 QRectF QCameraFocusZone::area() const
 {
     return d->area;
 }
 
+/*!
+ * Returns the current status of this focus zone.
+ */
 QCameraFocusZone::FocusZoneStatus QCameraFocusZone::status() const
 {
     return d->status;
 }
 
+/*!
+ * \internal
+ * Sets the current status of this focus zone to \a status.
+ */
 void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
 {
     d->status = status;
@@ -166,14 +240,50 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
 /*!
     \class QCameraFocus
 
-
-    \brief The QCameraFocus class provides interface for
-    focus and zoom related camera settings.
+    \brief The QCameraFocus class provides an interface for focus and zoom related camera settings.
 
     \inmodule QtMultimedia
     \ingroup camera
     \since 1.1
 
+    On hardware that supports it, this class lets you adjust the focus
+    or zoom (both optical and digital).  This also includes things
+    like "Macro" mode for close up work (e.g. reading barcodes, or
+    recognising letters), or "touch to focus" - indicating an
+    interesting area of the viewfinder for the hardware to attempt
+    to focus on.
+
+    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera custom zoom
+
+    Zooming can be accomplished in a number of ways - usually the more
+    expensive but higher quality approach is an optical zoom, which allows
+    using the full extent of the camera sensor to gather image pixels. In
+    addition it is possible to digitally zoom, which will generally just
+    enlarge part of the sensor frame and throw away other parts.  If the
+    camera hardware supports optical zoom this should generally always
+    be used first.  The \l maximumOpticalZoom() method allows this to be
+    checked.  The \l zoomTo() method allows changing both optical and
+    digital zoom at once.
+
+    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera combined zoom
+
+    \section2 Some notes on autofocus
+    Some hardware supports a movable focus lens assembly, and typically
+    this hardware also supports automatically focusing via some heuristic.
+    You can influence this via the \l FocusPointMode setting - typically
+    the center of the frame is brought into focus, but some hardware
+    also supports focusing on any faces detected in the frame, or on
+    a specific point (usually provided by a user in a "touch to focus"
+    scenario).
+
+    This class (in combination with \l QCameraFocusZone)
+    can expose information on what parts of the camera sensor image
+    are in focus or are being used for autofocusing via the \l focusZones()
+    property:
+
+    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera focus zones
+
+    \sa QCameraFocusZone
 */
 
 
@@ -212,6 +322,7 @@ void QCameraFocusPrivate::initControls()
 }
 
 /*!
+    \internal
     Construct a QCameraFocus for \a camera.
 */
 
@@ -235,6 +346,8 @@ QCameraFocus::~QCameraFocus()
 
 /*!
     Returns true if focus related settings are supported by this camera.
+
+    You may need to also check if any specific features are supported.
     \since 1.1
 */
 bool QCameraFocus::isAvailable() const
@@ -247,6 +360,9 @@ bool QCameraFocus::isAvailable() const
   \brief The current camera focus mode.
 
   \since 1.1
+
+  This controls the way the camera lens assembly is configured.
+
   \sa QCameraFocus::isFocusModeSupported()
 */
 
@@ -274,9 +390,13 @@ bool QCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 /*!
   \property QCameraFocus::focusPointMode
   \brief The current camera focus point selection mode.
+  \since 1.1
+
+  If the camera focus mode is set to use an autofocusing mode,
+  this property controls the way the camera will select areas
+  of the frame to use for autofocusing.
 
   \sa QCameraFocus::isFocusPointModeSupported()
-  \since 1.1
 */
 
 QCameraFocus::FocusPointMode QCameraFocus::focusPointMode() const
@@ -309,10 +429,10 @@ bool QCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) 
 /*!
   \property QCameraFocus::customFocusPoint
 
-  Position of custom focus point, in relative frame coordinates:
+  This property represents the position of the custom focus point, in relative frame coordinates:
   QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
 
-  Custom focus point is used only in FocusPointCustom focus mode.
+  The custom focus point property is used only in \c FocusPointCustom focus mode.
   \since 1.1
  */
 
@@ -352,7 +472,9 @@ QCameraFocusZoneList QCameraFocus::focusZones() const
 }
 
 /*!
-    Returns the maximum optical zoom
+    Returns the maximum optical zoom.
+
+    This will be \c 1.0 on cameras that do not support optical zoom.
     \since 1.1
 */
 
@@ -363,6 +485,8 @@ qreal QCameraFocus::maximumOpticalZoom() const
 
 /*!
     Returns the maximum digital zoom
+
+    This will be \c 1.0 on cameras that do not support digital zoom.
     \since 1.1
 */
 
@@ -399,6 +523,10 @@ qreal QCameraFocus::digitalZoom() const
 
 /*!
     Set the camera \a optical and \a digital zoom values.
+
+    Since there may be a physical component to move, the change in
+    zoom value may not be instantaneous.
+
     \since 1.1
 */
 void QCameraFocus::zoomTo(qreal optical, qreal digital)
@@ -416,7 +544,7 @@ void QCameraFocus::zoomTo(qreal optical, qreal digital)
     \value AutoFocus            One-shot auto focus mode.
     \value ContinuousFocus      Continuous auto focus mode.
     \value InfinityFocus        Focus strictly to infinity.
-    \value HyperfocalFocus      Focus to hyperfocal distance, with with the maximum depth of field achieved.
+    \value HyperfocalFocus      Focus to hyperfocal distance, with the maximum depth of field achieved.
                                 All objects at distances from half of this
                                 distance out to infinity will be acceptably sharp.
     \value MacroFocus           One shot auto focus to objects close to camera.
@@ -467,9 +595,10 @@ void QCameraFocus::zoomTo(qreal optical, qreal digital)
 /*!
   \fn QCameraFocus::focusZonesChanged()
 
-  Signal is emitted when the set of zones, camera focused on is changed.
+  This signal is emitted when the set of zones used in autofocusing is changed.
 
-  Usually the zones list is changed when the camera is focused.
+  This can change when a zone is focused or loses focus, or new focus zones
+  have been detected.
   \since 1.1
 */
 
