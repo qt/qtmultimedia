@@ -74,6 +74,8 @@ namespace
     The radio data object will emit signals for any changes in radio data. You can enable or disable
     alternative frequency with setAlternativeFrequenciesEnabled().
 
+    \sa {Radio Overview}
+
 */
 
 

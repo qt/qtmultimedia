@@ -93,6 +93,8 @@ QT_BEGIN_NAMESPACE
 
     You use \c RadioData together with the \l Radio element. The properties of the RadioData element will reflect the
     information broadcast by the radio station the Radio element is currently tuned to.
+
+    \sa {Radio Overview}
 */
 QDeclarativeRadioData::QDeclarativeRadioData(QObject *parent) :
     QObject(parent),
