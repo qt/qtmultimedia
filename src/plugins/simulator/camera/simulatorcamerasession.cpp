@@ -86,12 +86,12 @@ int SimulatorCameraSession::captureImage(const QString &fileName)
     return mRequestId;
 }
 
-void SimulatorCameraSession::setCaptureMode(QCamera::CaptureMode mode)
+void SimulatorCameraSession::setCaptureMode(QCamera::CaptureModes mode)
 {
     mCaptureMode = mode;
 }
 
-QDir SimulatorCameraSession::defaultDir(QCamera::CaptureMode) const
+QDir SimulatorCameraSession::defaultDir(QCamera::CaptureModes) const
 {
     const QString temp = QDir::tempPath();
     if (QFileInfo(temp).isWritable())
@@ -126,7 +126,7 @@ void SimulatorCameraSession::setViewfinder(QObject *viewfinder)
     }
 }
 
-QCamera::CaptureMode SimulatorCameraSession::captureMode()
+QCamera::CaptureModes SimulatorCameraSession::captureMode()
 {
     return mCaptureMode;
 }

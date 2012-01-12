@@ -145,13 +145,13 @@ QCameraControl::~QCameraControl()
 */
 
 /*!
-    \fn Camera::CaptureMode QCameraControl::captureMode() const = 0
+    \fn Camera::CaptureModes QCameraControl::captureMode() const = 0
 
     Returns the current capture mode.
 */
 
 /*!
-    \fn void QCameraControl::setCaptureMode(QCamera::CaptureMode mode) = 0;
+    \fn void QCameraControl::setCaptureMode(QCamera::CaptureModes mode) = 0;
 
     Sets the current capture \a mode.
 
@@ -166,13 +166,13 @@ QCameraControl::~QCameraControl()
 */
 
 /*!
-    \fn bool QCameraControl::isCaptureModeSupported(QCamera::CaptureMode mode) const = 0;
+    \fn bool QCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const = 0;
 
     Returns true if the capture \a mode is suported.
 */
 
 /*!
-    \fn QCameraControl::captureModeChanged(QCamera::CaptureMode mode)
+    \fn QCameraControl::captureModeChanged(QCamera::CaptureModes mode)
 
     Signal emitted when the camera capture \a mode changes.
  */

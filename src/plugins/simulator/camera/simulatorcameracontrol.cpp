@@ -55,12 +55,12 @@ SimulatorCameraControl::~SimulatorCameraControl()
 {
 }
 
-QCamera::CaptureMode SimulatorCameraControl::captureMode() const
+QCamera::CaptureModes SimulatorCameraControl::captureMode() const
 {
     return m_session->captureMode();
 }
 
-void SimulatorCameraControl::setCaptureMode(QCamera::CaptureMode mode)
+void SimulatorCameraControl::setCaptureMode(QCamera::CaptureModes mode)
 {
     if (m_session->captureMode() != mode) {
         m_session->setCaptureMode(mode);
@@ -168,7 +168,7 @@ bool SimulatorCameraControl::canChangeProperty(PropertyChangeType changeType, QC
     }
 }
 
-bool SimulatorCameraControl::isCaptureModeSupported(QCamera::CaptureMode mode) const
+bool SimulatorCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
 {
     return mode == QCamera::CaptureStillImage;
 }

@@ -99,15 +99,15 @@ public:
     CameraRole cameraRole() const;
 
     QList< QPair<int,int> > supportedFrameRates(const QSize &frameSize, bool *continuous) const;
-    QList<QSize> supportedResolutions( QPair<int,int> rate, bool *continuous, QCamera::CaptureMode mode) const;
+    QList<QSize> supportedResolutions(QPair<int,int> rate, bool *continuous, QCamera::CaptureModes mode) const;
 
-    QCamera::CaptureMode captureMode() { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureMode mode);
+    QCamera::CaptureModes captureMode() { return m_captureMode; }
+    void setCaptureMode(QCamera::CaptureModes mode);
 
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl& sink);    
 
-    QDir defaultDir(QCamera::CaptureMode mode) const;
+    QDir defaultDir(QCamera::CaptureModes mode) const;
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
     CameraBinAudioEncoder *audioEncodeControl() const { return m_audioEncodeControl; }
@@ -188,7 +188,7 @@ private:
     bool m_muted;
     bool m_busy;
 
-    QCamera::CaptureMode m_captureMode;
+    QCamera::CaptureModes m_captureMode;
     QMap<QByteArray, QVariant> m_metaData;
 
     QGstreamerElementFactory *m_audioInputFactory;

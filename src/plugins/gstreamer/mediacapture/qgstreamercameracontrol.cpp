@@ -70,7 +70,7 @@ QGstreamerCameraControl::~QGstreamerCameraControl()
 {
 }
 
-void QGstreamerCameraControl::setCaptureMode(QCamera::CaptureMode mode)
+void QGstreamerCameraControl::setCaptureMode(QCamera::CaptureModes mode)
 {
     if (m_captureMode == mode)
         return;

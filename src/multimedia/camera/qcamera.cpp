@@ -64,7 +64,7 @@ public:
         qRegisterMetaType<QCamera::Error>("QCamera::Error");
         qRegisterMetaType<QCamera::State>("QCamera::State");
         qRegisterMetaType<QCamera::Status>("QCamera::Status");
-        qRegisterMetaType<QCamera::CaptureMode>("QCamera::CaptureMode");
+        qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
         qRegisterMetaType<QCamera::LockType>("QCamera::LockType");
         qRegisterMetaType<QCamera::LockStatus>("QCamera::LockStatus");
         qRegisterMetaType<QCamera::LockChangeReason>("QCamera::LockChangeReason");
@@ -246,8 +246,8 @@ void QCameraPrivate::initControls()
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
             q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
-            q->connect(control, SIGNAL(captureModeChanged(QCamera::CaptureMode)),
-                       q, SIGNAL(captureModeChanged(QCamera::CaptureMode)));
+            q->connect(control, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
+                       q, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
             q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
 
         }
@@ -538,7 +538,7 @@ QString QCamera::errorString() const
 /*!
     Returns true if the capture \a mode is suported.
 */
-bool QCamera::isCaptureModeSupported(QCamera::CaptureMode mode) const
+bool QCamera::isCaptureModeSupported(QCamera::CaptureModes mode) const
 {
     return d_func()->control ? d_func()->control->isCaptureModeSupported(mode) : false;
 }
@@ -556,12 +556,12 @@ bool QCamera::isCaptureModeSupported(QCamera::CaptureMode mode) const
   and when the camera is ready to QCamera::ActiveStatus.
 */
 
-QCamera::CaptureMode QCamera::captureMode() const
+QCamera::CaptureModes QCamera::captureMode() const
 {
     return d_func()->control ? d_func()->control->captureMode() : QCamera::CaptureStillImage;
 }
 
-void QCamera::setCaptureMode(QCamera::CaptureMode mode)
+void QCamera::setCaptureMode(QCamera::CaptureModes mode)
 {
     Q_D(QCamera);
 
@@ -866,6 +866,7 @@ void QCamera::unlock()
 
 /*!
     \enum QCamera::CaptureMode
+    \value CaptureViewfinder Camera is only configured to display viewfinder.
     \value CaptureStillImage Camera is configured for still frames capture.
     \value CaptureVideo  Camera is configured for video capture.
 */
@@ -969,7 +970,7 @@ void QCamera::unlock()
 */
 
 /*!
-    \fn void QCamera::captureModeChanged(QCamera::CaptureMode mode)
+    \fn void QCamera::captureModeChanged(QCamera::CaptureModes mode)
 
     Signals the capture \a mode has changed.
 */

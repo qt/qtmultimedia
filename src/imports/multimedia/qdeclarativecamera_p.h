@@ -79,7 +79,7 @@ class QDeclarativeCamera : public QObject, public QDeclarativeParserStatus
     Q_OBJECT
     Q_INTERFACES(QDeclarativeParserStatus)
 
-    Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
+    Q_PROPERTY(CaptureModes captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
     Q_PROPERTY(LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
@@ -114,6 +114,7 @@ public:
         CaptureStillImage = QCamera::CaptureStillImage,
         CaptureVideo = QCamera::CaptureVideo
     };
+    Q_DECLARE_FLAGS(CaptureModes, CaptureMode)
 
     enum State
     {
@@ -207,7 +208,7 @@ public:
     QDeclarativeCameraFocus *focus() { return m_focus; }
     QDeclarativeCameraImageProcessing *imageProcessing() { return m_imageProcessing; }
 
-    CaptureMode captureMode() const;
+    CaptureModes captureMode() const;
     State cameraState() const;
 
     Error error() const;
@@ -222,7 +223,7 @@ public:
     qreal digitalZoom() const;
 
 public Q_SLOTS:
-    void setCaptureMode(CaptureMode mode);
+    void setCaptureMode(QDeclarativeCamera::CaptureModes mode);
 
     void start();
     void stop();

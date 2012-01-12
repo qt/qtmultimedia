@@ -64,10 +64,10 @@ public:
 
     QCamera::Status status() const;
 
-    QCamera::CaptureMode captureMode() const;
-    void setCaptureMode(QCamera::CaptureMode mode);
+    QCamera::CaptureModes captureMode() const;
+    void setCaptureMode(QCamera::CaptureModes mode);
 
-    bool isCaptureModeSupported(QCamera::CaptureMode mode) const;
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
 
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const;
 

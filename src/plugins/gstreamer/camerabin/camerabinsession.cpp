@@ -401,7 +401,7 @@ void CameraBinSession::captureImage(int requestId, const QString &fileName)
     m_imageFileName = actualFileName;
 }
 
-void CameraBinSession::setCaptureMode(QCamera::CaptureMode mode)
+void CameraBinSession::setCaptureMode(QCamera::CaptureModes mode)
 {
     m_captureMode = mode;
 
@@ -427,7 +427,7 @@ bool CameraBinSession::setOutputLocation(const QUrl& sink)
     return true;
 }
 
-QDir CameraBinSession::defaultDir(QCamera::CaptureMode mode) const
+QDir CameraBinSession::defaultDir(QCamera::CaptureModes mode) const
 {
     QStringList dirCandidates;
 
@@ -1073,7 +1073,7 @@ static bool resolutionLessThan(const QSize &r1, const QSize &r2)
 
 QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
                                                     bool *continuous,
-                                                    QCamera::CaptureMode mode) const
+                                                    QCamera::CaptureModes mode) const
 {
     QList<QSize> res;
 

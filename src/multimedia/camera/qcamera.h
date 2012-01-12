@@ -76,7 +76,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QMediaObject
     Q_OBJECT
     Q_PROPERTY(QCamera::State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QCamera::CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
+    Q_PROPERTY(QCamera::CaptureModes captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(QCamera::LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
 
     Q_ENUMS(Status)
@@ -105,9 +105,11 @@ public:
 
     enum CaptureMode
     {
-        CaptureStillImage,
-        CaptureVideo
+        CaptureViewfinder = 0,
+        CaptureStillImage = 0x01,
+        CaptureVideo = 0x02
     };
+    Q_DECLARE_FLAGS(CaptureModes, CaptureMode)
 
     enum Error
     {
@@ -155,8 +157,8 @@ public:
     State state() const;
     Status status() const;
 
-    CaptureMode captureMode() const;
-    bool isCaptureModeSupported(CaptureMode mode) const;
+    CaptureModes captureMode() const;
+    bool isCaptureModeSupported(CaptureModes mode) const;
 
     QCameraExposure *exposure() const;
     QCameraFocus *focus() const;
@@ -176,7 +178,7 @@ public:
     QCamera::LockStatus lockStatus(QCamera::LockType lock) const;
 
 public Q_SLOTS:
-    void setCaptureMode(QCamera::CaptureMode mode);
+    void setCaptureMode(QCamera::CaptureModes mode);
 
     void load();
     void unload();
@@ -192,7 +194,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void stateChanged(QCamera::State);
-    void captureModeChanged(QCamera::CaptureMode);
+    void captureModeChanged(QCamera::CaptureModes);
     void statusChanged(QCamera::Status);
 
     void locked();
@@ -221,6 +223,7 @@ Q_DECLARE_METATYPE(QCamera::State)
 Q_DECLARE_METATYPE(QCamera::Status)
 Q_DECLARE_METATYPE(QCamera::Error)
 Q_DECLARE_METATYPE(QCamera::CaptureMode)
+Q_DECLARE_METATYPE(QCamera::CaptureModes)
 Q_DECLARE_METATYPE(QCamera::LockType)
 Q_DECLARE_METATYPE(QCamera::LockStatus)
 Q_DECLARE_METATYPE(QCamera::LockChangeReason)

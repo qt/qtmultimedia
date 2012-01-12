@@ -1123,7 +1123,7 @@ void tst_QCamera::testConstructorWithDefaultProvider()
 void tst_QCamera::testCaptureModeChanged_signal()
 {
     MockCameraControl *m_cameraControl= new MockCameraControl(this);
-    QSignalSpy spy(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureMode)));
+    QSignalSpy spy(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
     QVERIFY(spy.size() == 0);
 
     m_cameraControl->setCaptureMode(QCamera::CaptureVideo);
@@ -1331,7 +1331,7 @@ void tst_QCamera::testUnlockWithType()
     QVERIFY(lockStatus == QCamera::Unlocked);
 }
 
-/* Test case for signal captureModeChanged(QCamera::CaptureMode) */
+/* Test case for signal captureModeChanged(QCamera::CaptureModes) */
 void tst_QCamera::testCaptureModeChangedSignal()
 {
     MockCameraService service;
@@ -1339,16 +1339,16 @@ void tst_QCamera::testCaptureModeChangedSignal()
     QCamera camera(0, provider);
     QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
 
-    qRegisterMetaType<QCamera::CaptureMode>("QCamera::CaptureMode");
+    qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
 
     /* Spy the signal */
-    QSignalSpy lockCaptureModeChangedSignal(&camera, SIGNAL(captureModeChanged(QCamera::CaptureMode)));
+    QSignalSpy lockCaptureModeChangedSignal(&camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
 
     /* set the capture mode and Verify if the signal is emitted */
     camera.setCaptureMode(QCamera::CaptureVideo);
     QVERIFY(camera.captureMode() == QCamera::CaptureVideo);
     QCOMPARE(lockCaptureModeChangedSignal.count(), 1);
-    QCamera::CaptureMode lockCaptureMode = qvariant_cast<QCamera::CaptureMode >(lockCaptureModeChangedSignal.at(0).at(0));
+    QCamera::CaptureModes lockCaptureMode = qvariant_cast<QCamera::CaptureModes >(lockCaptureModeChangedSignal.at(0).at(0));
     QVERIFY(lockCaptureMode == QCamera::CaptureVideo);
 }
 

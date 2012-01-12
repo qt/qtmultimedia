@@ -89,8 +89,8 @@ public:
 
     QCamera::Status status() const { return m_status; }
 
-    QCamera::CaptureMode captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureMode mode)
+    QCamera::CaptureModes captureMode() const { return m_captureMode; }
+    void setCaptureMode(QCamera::CaptureModes mode)
     {
         if (m_captureMode != mode) {
             if (m_state == QCamera::ActiveState && !m_propertyChangesSupported)
@@ -100,7 +100,7 @@ public:
         }
     }
 
-    bool isCaptureModeSupported(QCamera::CaptureMode mode) const
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const
     {
         return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
     }
@@ -135,7 +135,7 @@ public:
     }
 
     QCamera::State m_state;
-    QCamera::CaptureMode m_captureMode;
+    QCamera::CaptureModes m_captureMode;
     QCamera::Status m_status;
     bool m_propertyChangesSupported;
 };

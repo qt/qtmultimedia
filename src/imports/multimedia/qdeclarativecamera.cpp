@@ -134,7 +134,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_focus = new QDeclarativeCameraFocus(m_camera, this);
     m_imageProcessing = new QDeclarativeCameraImageProcessing(m_camera, this);
 
-    connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureMode)), this, SIGNAL(captureModeChanged()));
+    connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)), this, SIGNAL(captureModeChanged()));
     connect(m_camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)), this, SIGNAL(lockStatusChanged()));
     connect(m_camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(_q_updateState(QCamera::State)));
 
@@ -179,14 +179,14 @@ QString QDeclarativeCamera::errorString() const
     return m_camera->errorString();
 }
 
-QDeclarativeCamera::CaptureMode QDeclarativeCamera::captureMode() const
+QDeclarativeCamera::CaptureModes QDeclarativeCamera::captureMode() const
 {
-    return QDeclarativeCamera::CaptureMode(m_camera->captureMode());
+    return QDeclarativeCamera::CaptureModes(int(m_camera->captureMode()));
 }
 
-void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
+void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureModes mode)
 {
-    m_camera->setCaptureMode(QCamera::CaptureMode(mode));
+    m_camera->setCaptureMode(QCamera::CaptureModes(int(mode)));
 }
 
 

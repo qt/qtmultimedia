@@ -58,10 +58,10 @@ public:
     SimulatorCameraSession(QObject *parent);
     ~SimulatorCameraSession();
 
-    QCamera::CaptureMode captureMode();
-    void setCaptureMode(QCamera::CaptureMode mode);
+    QCamera::CaptureModes captureMode();
+    void setCaptureMode(QCamera::CaptureModes mode);
 
-    QDir defaultDir(QCamera::CaptureMode mode) const;
+    QDir defaultDir(QCamera::CaptureModes mode) const;
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
     void setImage(const QImage *image);
@@ -82,7 +82,7 @@ signals:
     void viewfinderChanged();
 
 private:
-    QCamera::CaptureMode mCaptureMode;
+    QCamera::CaptureModes mCaptureMode;
 
     QObject *mViewfinder;
     const QImage *mImage;

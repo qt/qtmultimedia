@@ -71,7 +71,7 @@ void DSCameraControl::setState(QCamera::State state)
     }
 }
 
-bool DSCameraControl::isCaptureModeSupported(QCamera::CaptureMode mode) const
+bool DSCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
 {
     bool bCaptureSupported = false;
     switch (mode) {

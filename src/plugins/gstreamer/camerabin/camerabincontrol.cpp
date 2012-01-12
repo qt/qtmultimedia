@@ -98,12 +98,12 @@ CameraBinControl::~CameraBinControl()
 {
 }
 
-QCamera::CaptureMode CameraBinControl::captureMode() const
+QCamera::CaptureModes CameraBinControl::captureMode() const
 {
     return m_session->captureMode();
 }
 
-void CameraBinControl::setCaptureMode(QCamera::CaptureMode mode)
+void CameraBinControl::setCaptureMode(QCamera::CaptureModes mode)
 {
     if (m_session->captureMode() != mode) {
         m_session->setCaptureMode(mode);
@@ -118,7 +118,7 @@ void CameraBinControl::setCaptureMode(QCamera::CaptureMode mode)
     }
 }
 
-bool CameraBinControl::isCaptureModeSupported(QCamera::CaptureMode mode) const
+bool CameraBinControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
 {
     return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
 }

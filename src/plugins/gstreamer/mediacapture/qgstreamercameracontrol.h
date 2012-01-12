@@ -63,10 +63,10 @@ public:
 
     QCamera::Status status() const { return m_status; }
 
-    QCamera::CaptureMode captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureMode mode);
+    QCamera::CaptureModes captureMode() const { return m_captureMode; }
+    void setCaptureMode(QCamera::CaptureModes mode);
 
-    bool isCaptureModeSupported(QCamera::CaptureMode mode) const
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const
     {
         return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
     }
@@ -87,7 +87,7 @@ private slots:
 
 
 private:
-    QCamera::CaptureMode m_captureMode;
+    QCamera::CaptureModes m_captureMode;
     QGstreamerCaptureSession *m_session;
     QCamera::State m_state;
     QCamera::Status m_status;

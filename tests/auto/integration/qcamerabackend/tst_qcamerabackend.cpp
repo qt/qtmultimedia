@@ -233,7 +233,7 @@ void tst_QCameraBackend::testCaptureMode()
 
     QSignalSpy errorSignal(&camera, SIGNAL(error(QCamera::Error)));
     QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
-    QSignalSpy captureModeSignal(&camera, SIGNAL(captureModeChanged(QCamera::CaptureMode)));
+    QSignalSpy captureModeSignal(&camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
 
     QCOMPARE(camera.captureMode(), QCamera::CaptureStillImage);
 
@@ -246,7 +246,7 @@ void tst_QCameraBackend::testCaptureMode()
     camera.setCaptureMode(QCamera::CaptureVideo);
     QCOMPARE(camera.captureMode(), QCamera::CaptureVideo);
     QTRY_COMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureMode>(), QCamera::CaptureVideo);
+    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureVideo);
     captureModeSignal.clear();
 
     camera.load();
@@ -257,12 +257,12 @@ void tst_QCameraBackend::testCaptureMode()
     //it should be possible to switch capture mode in Loaded state
     camera.setCaptureMode(QCamera::CaptureStillImage);
     QTRY_COMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureMode>(), QCamera::CaptureStillImage);
+    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureStillImage);
     captureModeSignal.clear();
 
     camera.setCaptureMode(QCamera::CaptureVideo);
     QTRY_COMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureMode>(), QCamera::CaptureVideo);
+    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureVideo);
     captureModeSignal.clear();
 
     camera.start();
@@ -280,7 +280,7 @@ void tst_QCameraBackend::testCaptureMode()
     QVERIFY2(stateChangedSignal.isEmpty(), "camera should not change the state during capture mode changes");
 
     QCOMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureMode>(), QCamera::CaptureStillImage);
+    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureStillImage);
     captureModeSignal.clear();
 
     camera.setCaptureMode(QCamera::CaptureVideo);
@@ -292,7 +292,7 @@ void tst_QCameraBackend::testCaptureMode()
     QVERIFY2(stateChangedSignal.isEmpty(), "camera should not change the state during capture mode changes");
 
     QCOMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureMode>(), QCamera::CaptureVideo);
+    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureVideo);
     captureModeSignal.clear();
 
     camera.stop();

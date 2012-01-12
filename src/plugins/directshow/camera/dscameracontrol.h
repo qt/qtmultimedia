@@ -64,8 +64,8 @@ public:
     void stop();
     QCamera::State state() const;
 
-    QCamera::CaptureMode captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureMode mode)
+    QCamera::CaptureModes captureMode() const { return m_captureMode; }
+    void setCaptureMode(QCamera::CaptureModes mode)
     {
         if (m_captureMode != mode) {
             m_captureMode = mode;
@@ -76,13 +76,13 @@ public:
     void setState(QCamera::State state);
 
     QCamera::Status status() const { return QCamera::UnavailableStatus; }
-    bool isCaptureModeSupported(QCamera::CaptureMode mode) const;
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
     bool canChangeProperty(PropertyChangeType /* changeType */, QCamera::Status /* status */) const {return false; }
 
 private:
     DSCameraSession *m_session;
     DSCameraService *m_service;
-    QCamera::CaptureMode m_captureMode;
+    QCamera::CaptureModes m_captureMode;
 };
 
 QT_END_NAMESPACE
