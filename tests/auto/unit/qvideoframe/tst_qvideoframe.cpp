@@ -91,6 +91,8 @@ private slots:
     void formatConversion_data();
     void formatConversion();
 
+    void metadata();
+
     void debugType_data();
     void debugType();
 
@@ -903,6 +905,35 @@ void tst_QVideoFrame::formatConversion()
              pixelFormat != QVideoFrame::Format_Invalid);
 }
 
+void tst_QVideoFrame::metadata()
+{
+    // Simple metadata test
+    QVideoFrame f;
+
+    QCOMPARE(f.availableMetaData(), QVariantMap());
+    f.setMetaData("frob", QVariant("string"));
+    f.setMetaData("bar", QVariant(42));
+    QCOMPARE(f.metaData("frob"), QVariant("string"));
+    QCOMPARE(f.metaData("bar"), QVariant(42));
+
+    QVariantMap map;
+    map.insert("frob", QVariant("string"));
+    map.insert("bar", QVariant(42));
+
+    QCOMPARE(f.availableMetaData(), map);
+
+    f.setMetaData("frob", QVariant(56));
+    QCOMPARE(f.metaData("frob"), QVariant(56));
+
+    f.setMetaData("frob", QVariant());
+    QCOMPARE(f.metaData("frob"), QVariant());
+
+    QCOMPARE(f.availableMetaData().count(), 1);
+
+    f.setMetaData("frob", QVariant("")); // empty but not null
+    QCOMPARE(f.availableMetaData().count(), 2);
+}
+
 #define TEST_MAPPED(frame, mode) \
 do { \
     QVERIFY(frame.bits()); \
@@ -1023,56 +1054,61 @@ void tst_QVideoFrame::debug_data()
     QTest::addColumn<QString>("stringized");
 
     QVideoFrame f;
-    QTest::newRow("default") << f << QString::fromLatin1("QVideoFrame( QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
+    QTest::newRow("default") << f << QString::fromLatin1("QVideoFrame(QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
 
     QVideoFrame f2;
     f2.setStartTime(12345);
     f2.setEndTime(8000000000LL);
-    QTest::newRow("times") << f2 << QString::fromLatin1("QVideoFrame( QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, 0:00:00.12345 - 2:13:20.00)");
+    QTest::newRow("times") << f2 << QString::fromLatin1("QVideoFrame(QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, 0:00:00.12345 - 2:13:20.00)");
 
     QVideoFrame f3;
     f3.setFieldType(QVideoFrame::ProgressiveFrame);
-    QTest::newRow("times prog") << f3 << QString::fromLatin1("QVideoFrame( QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
+    QTest::newRow("times prog") << f3 << QString::fromLatin1("QVideoFrame(QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
 
     QVideoFrame f4;
     f4.setFieldType(QVideoFrame::TopField);
-    QTest::newRow("times top") << f4 << QString::fromLatin1("QVideoFrame( QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
+    QTest::newRow("times top") << f4 << QString::fromLatin1("QVideoFrame(QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
 
     QVideoFrame f5;
     f5.setFieldType(QVideoFrame::TopField);
     f5.setEndTime(90000000000LL);
-    QTest::newRow("end but no start") << f5 << QString::fromLatin1("QVideoFrame( QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
+    QTest::newRow("end but no start") << f5 << QString::fromLatin1("QVideoFrame(QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, [no timestamp])");
 
     QVideoFrame f6;
     f6.setStartTime(12345000000LL);
     f6.setEndTime(80000000000LL);
-    QTest::newRow("times big") << f6 << QString::fromLatin1("QVideoFrame( QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, 3:25:45.00 - 22:13:20.00)");
+    QTest::newRow("times big") << f6 << QString::fromLatin1("QVideoFrame(QSize(-1, -1) , Format_Invalid, NoHandle, NotMapped, 3:25:45.00 - 22:13:20.00)");
 
     QVideoFrame g(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
-    QTest::newRow("more valid") << g << QString::fromLatin1("QVideoFrame( QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, [no timestamp])");
+    QTest::newRow("more valid") << g << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, [no timestamp])");
 
     QVideoFrame g2(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
     g2.setStartTime(9000000000LL);
     g2.setEndTime(9000000000LL);
-    QTest::newRow("more valid") << g2 << QString::fromLatin1("QVideoFrame( QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, @2:30:00.00)");
+    QTest::newRow("more valid") << g2 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, @2:30:00.00)");
 
     QVideoFrame g3(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
     g3.setStartTime(900000LL);
     g3.setEndTime(900000LL);
-    QTest::newRow("more valid single timestamp") << g3 << QString::fromLatin1("QVideoFrame( QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, @00:00.900000)");
+    QTest::newRow("more valid single timestamp") << g3 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, @00:00.900000)");
 
     QVideoFrame g4(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
     g4.setStartTime(200000000LL);
     g4.setEndTime(300000000LL);
-    QTest::newRow("more valid") << g4 << QString::fromLatin1("QVideoFrame( QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 03:20.00 - 05:00.00)");
+    QTest::newRow("more valid") << g4 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 03:20.00 - 05:00.00)");
 
     QVideoFrame g5(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
     g5.setStartTime(200000000LL);
-    QTest::newRow("more valid until forever") << g5 << QString::fromLatin1("QVideoFrame( QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 03:20.00 - forever)");
+    QTest::newRow("more valid until forever") << g5 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 03:20.00 - forever)");
 
     QVideoFrame g6(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
     g6.setStartTime(9000000000LL);
-    QTest::newRow("more valid for long forever") << g6 << QString::fromLatin1("QVideoFrame( QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 2:30:00.00 - forever)");
+    QTest::newRow("more valid for long forever") << g6 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 2:30:00.00 - forever)");
+
+    QVideoFrame g7(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
+    g7.setStartTime(9000000000LL);
+    g7.setMetaData("bar", 42);
+    QTest::newRow("more valid for long forever + metadata") << g7 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 2:30:00.00 - forever, metaData: QMap((\"bar\", QVariant(int, 42) ) )  )");
 }
 
 void tst_QVideoFrame::debug()

@@ -46,6 +46,7 @@
 #include <QtCore/qshareddata.h>
 #include <QtGui/qimage.h>
 #include <qabstractvideobuffer.h>
+#include <QtCore/qvariant.h>
 
 QT_BEGIN_HEADER
 
@@ -54,7 +55,6 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Multimedia)
 
 class QSize;
-class QVariant;
 
 class QVideoFramePrivate;
 
@@ -155,6 +155,10 @@ public:
 
     qint64 endTime() const;
     void setEndTime(qint64 time);
+
+    QVariantMap availableMetaData() const;
+    QVariant metaData(const QString &key) const;
+    void setMetaData(const QString &key, const QVariant &value);
 
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);
