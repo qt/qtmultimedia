@@ -84,12 +84,15 @@ public:
     \since 1.0
     \inmodule QtMultimedia
 
-    A video surface presents a continuous stream of identically formatted frames, where the format
-    of each frame is compatible with a stream format supplied when starting a presentation.
-
     The QAbstractVideoSurface class defines the standard interface that video producers use to
-    inter-operate with video presentation surfaces.  It is not supposed to be instantiated directly.
-    Instead, you should subclass it to create new video surfaces.
+    inter-operate with video presentation surfaces.  You can subclass this interface to receive
+    video frames from sources like \l {QMediaPlayer}{decoded media} or \l {QCamera}{cameras} to
+    perform your own processing.
+
+    A video surface presents a continuous stream of identically formatted QVideoFrame instances, where the format
+    of each frame is compatible with a stream format supplied when starting a presentation.  Each frame
+    may have timestamp information that can be used by the surface to decide when to display that
+    frame.
 
     A list of pixel formats a surface can present is given by the supportedPixelFormats() function,
     and the isFormatSupported() function will test if a video surface format is supported.  If a
@@ -100,8 +103,25 @@ public:
     The start() function takes a supported format and enables a video surface.  Once started a
     surface will begin displaying the frames it receives in the present() function.  Surfaces may
     hold a reference to the buffer of a presented video frame until a new frame is presented or
-    streaming is stopped. The stop() function will disable a surface and a release any video
-    buffers it holds references to.
+    streaming is stopped.  In addition, a video surface may hold a reference to a video frame
+    until the \l {QVideoFrame::endTime()}{end timestamp} has passed.  The stop() function will
+    disable a surface and release any video buffers it holds references to.
+
+    \section2 Implementing a subclass of QAbstractVideoSurface
+
+    When implementing a subclass of this interface, there are only a handful of functions to
+    implement, broken down into two classes:
+
+    \list
+    \o Format related
+    \o Presentation related
+    \endlist
+
+    For format related functionality, you just have to describe the pixel formats that you
+    support (and the nearestFormat() function).  For presentation related functionality, you
+    have to implement the present() function, and the start() and stop() functions.
+
+    \note You must call the base class implementation of start() and stop() in your implementation.
 */
 
 /*!
@@ -207,6 +227,7 @@ QVideoSurfaceFormat QAbstractVideoSurface::surfaceFormat() const
 
     Returns true if the surface was started, and false if an error occurred.
 
+    \note You must call the base class implementation of start() at the end of your implementation.
     \since 1.0
     \sa isActive(), stop()
 */
@@ -230,6 +251,7 @@ bool QAbstractVideoSurface::start(const QVideoSurfaceFormat &format)
 /*!
     Stops a video surface presenting frames and releases any resources acquired in start().
 
+    \note You must call the base class implementation of stop() at the start of your implementation.
     \since 1.0
     \sa isActive(), start()
 */
@@ -278,7 +300,7 @@ bool QAbstractVideoSurface::isActive() const
     completed.  In such cases the surface may not return to a ready state until it has had an
     opportunity to process events.
 
-    If present() fails for any other reason the surface will immediately enter the stopped state
+    If present() fails for any other reason the surface should immediately enter the stopped state
     and an error() value will be set.
 
     A video surface must be in the started state for present() to succeed, and the format of the
@@ -304,6 +326,9 @@ QAbstractVideoSurface::Error QAbstractVideoSurface::error() const
 
 /*!
     Sets the value of error() to \a error.
+
+    This can be called by implementors of this interface to communicate
+    what the most recent error was.
     \since 1.0
 */
 void QAbstractVideoSurface::setError(Error error)
@@ -330,6 +355,9 @@ QSize QAbstractVideoSurface::nativeResolution() const
 
 /*!
     Set the video surface native \a resolution.
+
+    This function can be called by implementors of this interface to specify
+    to frame producers what the native resolution of this surface is.
     \since 1.1
  */
 void QAbstractVideoSurface::setNativeResolution(const QSize &resolution)

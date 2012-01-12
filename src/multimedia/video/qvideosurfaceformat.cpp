@@ -279,7 +279,7 @@ bool QVideoSurfaceFormat::operator ==(const QVideoSurfaceFormat &other) const
 }
 
 /*!
-    Returns true if \a other is different to a video format, and false if they are the same.
+    Returns true if \a other is different to this video format, and false if they are the same.
     \since 1.0
 */
 bool QVideoSurfaceFormat::operator !=(const QVideoSurfaceFormat &other) const
@@ -299,7 +299,7 @@ QVideoFrame::PixelFormat QVideoSurfaceFormat::pixelFormat() const
 /*!
     Returns the type of handle the surface uses to present the frame data.
 
-    If the handle type is QAbstractVideoBuffer::NoHandle buffers with any handle type are valid
+    If the handle type is \c QAbstractVideoBuffer::NoHandle, buffers with any handle type are valid
     provided they can be \l {QAbstractVideoBuffer::map()}{mapped} with the
     QAbstractVideoBuffer::ReadOnly flag.  If the handleType() is not QAbstractVideoBuffer::NoHandle
     then the handle type of the buffer must be the same as that of the surface format.

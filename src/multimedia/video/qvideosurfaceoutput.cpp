@@ -45,7 +45,10 @@
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
 
-
+/*!
+ * \class QVideoSurfaceOutput
+ * \internal
+ */
 QVideoSurfaceOutput::QVideoSurfaceOutput(QObject*parent)
     :  QObject(parent)
 {

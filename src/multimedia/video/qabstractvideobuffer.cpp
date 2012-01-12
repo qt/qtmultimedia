@@ -68,11 +68,16 @@ namespace
     \inmodule QtMultimedia
 
     The QVideoFrame class makes use of a QAbstractVideoBuffer internally to reference a buffer of
-    video data.  Creating a subclass of QAbstractVideoBuffer will allow you to construct video
-    frames from preallocated or static buffers.
+    video data.  Quite often video data buffers may reside in video memory rather than system
+    memory, and this class provides an abstraction of the location.
+
+    In addition, creating a subclass of QAbstractVideoBuffer will allow you to construct video
+    frames from preallocated or static buffers, in cases where the QVideoFrame constructors
+    taking a QByteArray or a QImage do not suffice.  This may be necessary when implementing
+    a new hardware accelerated video system, for example.
 
     The contents of a buffer can be accessed by mapping the buffer to memory using the map()
-    function which returns a pointer to memory containing the contents of the the video buffer.
+    function, which returns a pointer to memory containing the contents of the the video buffer.
     The memory returned by map() is released by calling the unmap() function.
 
     The handle() of a buffer may also be used to manipulate its contents using type specific APIs.
@@ -99,15 +104,15 @@ namespace
 /*!
     \enum QAbstractVideoBuffer::MapMode
 
-    Enumerates how a video buffer's data is mapped to memory.
+    Enumerates how a video buffer's data is mapped to system memory.
 
-    \value NotMapped The video buffer has is not mapped to memory.
+    \value NotMapped The video buffer is not mapped to memory.
     \value ReadOnly The mapped memory is populated with data from the video buffer when mapped, but
     the content of the mapped memory may be discarded when unmapped.
-    \value WriteOnly The mapped memory is uninitialized when mapped, and the content will be used to
-    populate the video buffer when unmapped.
+    \value WriteOnly The mapped memory is uninitialized when mapped, but the possibly modified content
+    will be used to populate the video buffer when unmapped.
     \value ReadWrite The mapped memory is populated with data from the video buffer, and the
-    video buffer is repopulated with the content of the mapped memory.
+    video buffer is repopulated with the content of the mapped memory when it is unmapped.
 
     \sa mapMode(), map()
 */
@@ -167,23 +172,25 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
 
     Maps the contents of a video buffer to memory.
 
+    In some cases the video buffer might be stored in video memory or otherwise inaccessible
+    memory, so it is necessary to map the buffer before accessing the pixel data.  This may involve
+    copying the contents around, so avoid mapping and unmapping unless required.
+
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the buffer.  If the map mode includes the QAbstractVideoBuffer::ReadOnly flag the
-    mapped memory will be populated with the content of the video buffer when mapped.  If the map
-    mode includes the QAbstractVideoBuffer::WriteOnly flag the content of the mapped memory will be
-    persisted in the buffer when unmapped.
+    written to the buffer.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
+    mapped memory will be populated with the content of the buffer when initially mapped.  If the map
+    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
+    mapped memory will be written back to the buffer when unmapped.
 
     When access to the data is no longer needed be sure to call the unmap() function to release the
-    mapped memory.
+    mapped memory and possibly update the buffer contents.
 
     Returns a pointer to the mapped memory region, or a null pointer if the mapping failed.  The
     size in bytes of the mapped memory region is returned in \a numBytes, and the line stride in \a
     bytesPerLine.
 
-    When access to the data is no longer needed be sure to unmap() the buffer.
-
     \note Writing to memory that is mapped as read-only is undefined, and may result in changes
-    to shared data.
+    to shared data or crashes.
 
     \since 1.0
     \sa unmap(), mapMode()
@@ -192,10 +199,10 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
 /*!
     \fn QAbstractVideoBuffer::unmap()
 
-    Releases the memory mapped by the map() function
+    Releases the memory mapped by the map() function.
 
-    If the \l {QAbstractVideoBuffer::MapMode}{MapMode} included the QAbstractVideoBuffer::WriteOnly
-    flag this will persist the current content of the mapped memory to the video frame.
+    If the \l {QAbstractVideoBuffer::MapMode}{MapMode} included the \c QAbstractVideoBuffer::WriteOnly
+    flag this will write the current content of the mapped memory back to the video frame.
 
     \since 1.0
     \sa map()

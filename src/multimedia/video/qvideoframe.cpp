@@ -122,23 +122,33 @@ private:
 
 /*!
     \class QVideoFrame
-    \brief The QVideoFrame class provides a representation of a frame of video data.
+    \brief The QVideoFrame class represents a frame of video data.
     \since 1.0
     \inmodule QtMultimedia
 
-    A QVideoFrame encapsulates the data of a video frame, and information about the frame.
+    A QVideoFrame encapsulates the pixel data of a video frame, and information about the frame.
 
-    The contents of a video frame can be mapped to memory using the map() function.  While
+    Video frames can come from several places - decoded \l {QMediaPlayer}{media}, a
+    \l {QCamera}{camera}, or generated programmatically.  The way pixels are described in these
+    frames can vary greatly, and some pixel formats offer greater compression opportunities at
+    the expense of ease of use.
+
+    The pixel contents of a video frame can be mapped to memory using the map() function.  While
     mapped, the video data can accessed using the bits() function, which returns a pointer to a
-    buffer.  The total size of this buffer is given by the mappedBytes() function, and the size of each line is given
-    by bytesPerLine().  The return value of the handle() function may be used to access frame data
-    using the internal buffer's native APIs.
+    buffer.  The total size of this buffer is given by the mappedBytes() function, and the size of
+    each line is given by bytesPerLine().  The return value of the handle() function may also be
+    used to access frame data using the internal buffer's native APIs (for example - an OpenGL
+    texture handle).
 
-    The video data in a QVideoFrame is encapsulated in a QAbstractVideoBuffer.  A QVideoFrame
+    A video frame can also have timestamp information associated with it.  These timestamps can be
+    used by an implementation of \l QAbstractVideoSurface to determine when to start and stop
+    displaying the frame, but not all surfaces might respect this setting.
+
+    The video pixel data in a QVideoFrame is encapsulated in a QAbstractVideoBuffer.  A QVideoFrame
     may be constructed from any buffer type by subclassing the QAbstractVideoBuffer class.
 
-    \note QVideoFrame is explicitly shared, any change made to video frame will also apply to any
-    copies.
+    \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
+    change made to a video frame will also apply to any copies.
 */
 
 /*!
@@ -174,10 +184,10 @@ private:
     QImage::Format_RGB555.
 
     \value Format_ARGB8565_Premultiplied
-    The frame is stored using a 24-bit premultiplied ARGB format (8-6-6-5).
+    The frame is stored using a 24-bit premultiplied ARGB format (8-5-6-5).
 
     \value Format_BGRA32
-    The frame is stored using a 32-bit ARGB format (0xBBGGRRAA).
+    The frame is stored using a 32-bit BGRA format (0xBBGGRRAA).
 
     \value Format_BGRA32_Premultiplied
     The frame is stored using a premultiplied 32bit BGRA format.
@@ -345,7 +355,8 @@ QVideoFrame::QVideoFrame(const QImage &image)
 }
 
 /*!
-    Constructs a copy of \a other.
+    Constructs a shallow copy of \a other.  Since QVideoFrame is
+    explicitly shared, these two instances will reflect the same frame.
 
     \since 1.0
 */
@@ -355,7 +366,9 @@ QVideoFrame::QVideoFrame(const QVideoFrame &other)
 }
 
 /*!
-    Assigns the contents of \a other to a video frame.
+    Assigns the contents of \a other to this video frame.  Since QVideoFrame is
+    explicitly shared, these two instances will reflect the same frame.
+
     \since 1.0
 */
 QVideoFrame &QVideoFrame::operator =(const QVideoFrame &other)
@@ -518,24 +531,32 @@ QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
 }
 
 /*!
-    Maps the contents of a video frame to memory.
+    Maps the contents of a video frame to system (CPU addressable) memory.
+
+    In some cases the video frame data might be stored in video memory or otherwise inaccessible
+    memory, so it is necessary to map a frame before accessing the pixel data.  This may involve
+    copying the contents around, so avoid mapping and unmapping unless required.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the frame.  If the map mode includes the QAbstractVideoBuffer::ReadOnly flag the
-    mapped memory will be populated with the content of the video frame when mapped.  If the map
-    mode inclues the QAbstractVideoBuffer::WriteOnly flag the content of the mapped memory will be
-    persisted in the frame when unmapped.
+    written to the frame.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
+    mapped memory will be populated with the content of the video frame when initially mapped.  If the map
+    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
+    mapped memory will be written back to the frame when unmapped.
 
     While mapped the contents of a video frame can be accessed directly through the pointer returned
     by the bits() function.
 
-    When access to the data is no longer needed be sure to call the unmap() function to release the
+    When access to the data is no longer needed, be sure to call the unmap() function to release the
     mapped memory and possibly update the video frame contents.
 
-    If the video frame is mapped in read only mode, it's allowed to map it for reading again,
-    in all the other cases it's necessary to unmap the frame first.
+    If the video frame has been mapped in read only mode, it is permissible to map it
+    multiple times in read only mode (and unmap it a corresponding number of times). In all
+    other cases it is necessary to unmap the frame first before mapping a second time.
 
-    Returns true if the buffer was mapped to memory in the given \a mode and false otherwise.
+    \note Writing to memory that is mapped as read-only is undefined, and may result in changes
+    to shared data or crashes.
+
+    Returns true if the frame was mapped to memory in the given \a mode and false otherwise.
 
     \since 1.0
     \sa unmap(), mapMode(), bits()
@@ -612,8 +633,8 @@ void QVideoFrame::unmap()
 /*!
     Returns the number of bytes in a scan line.
 
-    \note This is the bytes per line of the first plane only.  The bytes per line of subsequent
-    planes should be calculated as per the frame type.
+    \note For planar formats this is the bytes per line of the first plane only.  The bytes per line of subsequent
+    planes should be calculated as per the frame \l{QVideoFrame::PixelFormat}{pixel format}.
 
     This value is only valid while the frame data is \l {map()}{mapped}.
 
@@ -631,7 +652,8 @@ int QVideoFrame::bytesPerLine() const
     This value is only valid while the frame data is \l {map()}{mapped}.
 
     Changes made to data accessed via this pointer (when mapped with write access)
-    are only guaranteed to have been persisted when unmap() is called.
+    are only guaranteed to have been persisted when unmap() is called and when the
+    buffer has been mapped for writing.
 
     \since 1.0
     \sa map(), mappedBytes(), bytesPerLine()
@@ -734,6 +756,9 @@ void QVideoFrame::setEndTime(qint64 time)
 /*!
     Returns a video pixel format equivalent to an image \a format.  If there is no equivalent
     format QVideoFrame::InvalidType is returned instead.
+
+    \note In general \l QImage does not handle YUV formats.
+
     \since 1.0
 */
 QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format format)
@@ -761,6 +786,9 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format 
 /*!
     Returns an image format equivalent to a video frame pixel \a format.  If there is no equivalent
     format QImage::Format_Invalid is returned instead.
+
+    \note In general \l QImage does not handle YUV formats.
+
     \since 1.0
 */
 QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)

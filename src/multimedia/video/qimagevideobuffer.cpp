@@ -48,6 +48,12 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+ * \class QImageVideoBuffer
+ * \internal
+ *
+ * A video buffer class for a QImage.
+ */
 class QImageVideoBufferPrivate : public QAbstractVideoBufferPrivate
 {
 public:
