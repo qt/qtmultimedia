@@ -28,44 +28,27 @@
 
 /*!
     \group multimedia
-    \title QtMobility Multimedia
-    APIs to play and record media, and manage a collection of media content.
+    \title QtMultimedia
+    APIs to play and record sound, play videos, access camera and radio hardware, and manage media playlists.
 */
 
 /*!
 
 \page multimedia.html
 \title Multimedia
-\brief Provides a set of APIs to play and record media, and manage a
-collection of media content.
-\ingroup mobility
+\brief Provides a set of APIs to play and record sound, play videos, access camera and radio hardware, and manage media playlists.
 
 Multimedia provides a set of APIs that allow the developer to play, record
-and manage a collection of media content. It is dependent on the
-QtMultimedia module. QtMultimedia is the recommended API to build multimedia
-applications using Qt. The Phonon API is no longer recommended.
+and manage a collection of media content. It also allows access and control to camera
+or analog radio hardware.
 
 \tableofcontents
-
-\section1 No Special Namespace
-
-Unlike the other APIs in QtMobility, the Multimedia API is \i not in the
-\i QtMobility namespace.
 
 \section1 Overview
 
 This API delivers an easy to use interface to multimedia functions. The
 developer can use the API to display an image, or a video, record sound or play a
 multimedia stream.
-
-There are several benefits this API brings to Qt. Firstly, the
-developer can now implement fundamental multimedia functions with minimal
-code, mostly because they are already implemented. Also there is a great
-deal of flexibility with the media source or the generated multimedia. The
-source file does not need to be local to the device, it could be streamed
-from a remote location and identified by a URL. Finally, many different
-codecs are supported 'out
-of the box'.
 
 The supplied \l {qtmultimedia examples}{examples} give a good idea at the ease of use of the API. When
 the supporting user interface code is ignored we can see that functionality
