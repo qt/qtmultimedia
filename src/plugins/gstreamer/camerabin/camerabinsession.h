@@ -50,7 +50,7 @@
 #include <gst/gst.h>
 #include <gst/interfaces/photography.h>
 
-#include "qgstreamerbushelper.h"
+#include <private/qgstreamerbushelper_p.h>
 #include "qcamera.h"
 
 

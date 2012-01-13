@@ -54,22 +54,6 @@
 
 #define IMAGE_DONE_SIGNAL "image-done"
 
-Q_DECLARE_METATYPE(QVideoFrame)
-Q_DECLARE_METATYPE(QtMultimedia::MetaData)
-
-namespace
-{
-class CameraRegisterMetaTypes
-{
-public:
-    CameraRegisterMetaTypes()
-    {
-        qRegisterMetaType<QVideoFrame>("QVideoFrame");
-        qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
-    }
-} _registerCameraMetaTypes;
-}
-
 
 CameraBinImageCapture::CameraBinImageCapture(CameraBinSession *session)
     :QCameraImageCaptureControl(session)
