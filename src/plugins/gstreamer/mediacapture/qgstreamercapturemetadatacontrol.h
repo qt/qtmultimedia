@@ -57,13 +57,9 @@ public:
     bool isMetaDataAvailable() const { return true; }
     bool isWritable() const { return true; }
 
-    QVariant metaData(QtMultimedia::MetaData key) const;
-    void setMetaData(QtMultimedia::MetaData key, const QVariant &value);
-    QList<QtMultimedia::MetaData> availableMetaData() const;
-
-    QVariant extendedMetaData(QString const &name) const;
-    void setExtendedMetaData(QString const &name, QVariant const &value);
-    QStringList availableExtendedMetaData() const;
+    QVariant metaData(const QString &key) const;
+    void setMetaData(const QString &key, const QVariant &value);
+    QStringList availableMetaData() const;
 
 Q_SIGNALS:
     void metaDataChanged(const QMap<QByteArray, QVariant>&);

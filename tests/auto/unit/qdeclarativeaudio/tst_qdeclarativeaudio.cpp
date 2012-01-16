@@ -202,17 +202,14 @@ public:
 
     bool isMetaDataAvailable() const { return true; }
 
-    QVariant metaData(QtMultimedia::MetaData key) const { return m_metaData.value(key); }
-    void setMetaData(QtMultimedia::MetaData key, const QVariant &value) {
+    QVariant metaData(const QString &key) const { return m_metaData.value(key); }
+    void setMetaData(const QString &key, const QVariant &value) {
         m_metaData.insert(key, value); emit metaDataChanged(); }
 
-    QList<QtMultimedia::MetaData> availableMetaData() const { return m_metaData.keys(); }
-
-    QVariant extendedMetaData(const QString &) const { return QVariant(); }
-    QStringList availableExtendedMetaData() const { return QStringList(); }
+    QStringList availableMetaData() const { return m_metaData.keys(); }
 
 private:
-    QMap<QtMultimedia::MetaData, QVariant> m_metaData;
+    QMap<QString, QVariant> m_metaData;
 };
 
 class QtTestMediaService : public QMediaService
@@ -1122,29 +1119,29 @@ void tst_QDeclarativeAudio::status()
 void tst_QDeclarativeAudio::metaData_data()
 {
     QTest::addColumn<QByteArray>("propertyName");
-    QTest::addColumn<QtMultimedia::MetaData>("propertyKey");
+    QTest::addColumn<QString>("propertyKey");
     QTest::addColumn<QVariant>("value");
 
     QTest::newRow("title")
             << QByteArray("title")
-            << QtMultimedia::Title
+            << QtMultimedia::MetaData::Title
             << QVariant(QString::fromLatin1("This is a title"));
 
     QTest::newRow("genre")
             << QByteArray("genre")
-            << QtMultimedia::Genre
+            << QtMultimedia::MetaData::Genre
             << QVariant(QString::fromLatin1("rock"));
 
     QTest::newRow("trackNumber")
             << QByteArray("trackNumber")
-            << QtMultimedia::TrackNumber
+            << QtMultimedia::MetaData::TrackNumber
             << QVariant(8);
 }
 
 void tst_QDeclarativeAudio::metaData()
 {
     QFETCH(QByteArray, propertyName);
-    QFETCH(QtMultimedia::MetaData, propertyKey);
+    QFETCH(QString, propertyKey);
     QFETCH(QVariant, value);
 
     QtTestMediaServiceProvider provider;

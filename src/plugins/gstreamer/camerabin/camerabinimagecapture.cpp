@@ -124,26 +124,26 @@ gboolean CameraBinImageCapture::metadataEventProbe(GstPad *pad, GstEvent *event,
         qDebug() << "Capture event probe" << extendedTags;
 #endif
 
-        QMap<QtMultimedia::MetaData, QVariant> tags;
-        tags[QtMultimedia::ISOSpeedRatings] = extendedTags.value("capturing-iso-speed");
-        tags[QtMultimedia::DigitalZoomRatio] = extendedTags.value("capturing-digital-zoom-ratio");
-        tags[QtMultimedia::ExposureTime] = extendedTags.value("capturing-shutter-speed");
-        tags[QtMultimedia::WhiteBalance] = extendedTags.value("capturing-white-balance");
-        tags[QtMultimedia::Flash] = extendedTags.value("capturing-flash-fired");
-        tags[QtMultimedia::FocalLengthIn35mmFilm] = extendedTags.value("capturing-focal-length");
-        tags[QtMultimedia::MeteringMode] = extendedTags.value("capturing-metering-mode");
-        tags[QtMultimedia::ExposureMode] = extendedTags.value("capturing-exposure-mode");
-        tags[QtMultimedia::FNumber] = extendedTags.value("capturing-focal-ratio");
-        tags[QtMultimedia::ExposureMode] = extendedTags.value("capturing-exposure-mode");
+        QVariantMap tags;
+        tags[QtMultimedia::MetaData::ISOSpeedRatings] = extendedTags.value("capturing-iso-speed");
+        tags[QtMultimedia::MetaData::DigitalZoomRatio] = extendedTags.value("capturing-digital-zoom-ratio");
+        tags[QtMultimedia::MetaData::ExposureTime] = extendedTags.value("capturing-shutter-speed");
+        tags[QtMultimedia::MetaData::WhiteBalance] = extendedTags.value("capturing-white-balance");
+        tags[QtMultimedia::MetaData::Flash] = extendedTags.value("capturing-flash-fired");
+        tags[QtMultimedia::MetaData::FocalLengthIn35mmFilm] = extendedTags.value("capturing-focal-length");
+        tags[QtMultimedia::MetaData::MeteringMode] = extendedTags.value("capturing-metering-mode");
+        tags[QtMultimedia::MetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");
+        tags[QtMultimedia::MetaData::FNumber] = extendedTags.value("capturing-focal-ratio");
+        tags[QtMultimedia::MetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");
 
-        QMapIterator<QtMultimedia::MetaData, QVariant> i(tags);
+        QMapIterator<QString, QVariant> i(tags);
         while (i.hasNext()) {
             i.next();
             if (i.value().isValid()) {
                 QMetaObject::invokeMethod(self, "imageMetadataAvailable",
                                           Qt::QueuedConnection,
                                           Q_ARG(int, self->m_requestId),
-                                          Q_ARG(QtMultimedia::MetaData, i.key()),
+                                          Q_ARG(QString, i.key()),
                                           Q_ARG(QVariant, i.value()));
             }
         }

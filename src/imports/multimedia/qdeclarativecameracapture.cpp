@@ -210,7 +210,7 @@ QString QDeclarativeCameraCapture::errorString() const
 void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &value)
 {
     if (m_metadataWriterControl)
-        m_metadataWriterControl->setExtendedMetaData(key, value);
+        m_metadataWriterControl->setMetaData(key, value);
 }
 
 /*!

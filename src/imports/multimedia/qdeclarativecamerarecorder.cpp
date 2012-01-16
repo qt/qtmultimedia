@@ -206,7 +206,7 @@ void QDeclarativeCameraRecorder::setMuted(bool muted)
 
 void QDeclarativeCameraRecorder::setMetadata(const QString &key, const QVariant &value)
 {
-    m_recorder->setExtendedMetaData(key, value);
+    m_recorder->setMetaData(key, value);
 }
 
 void QDeclarativeCameraRecorder::updateRecorderState(QMediaRecorder::State state)

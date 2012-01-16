@@ -322,7 +322,7 @@ bool QMediaObject::isMetaDataAvailable() const
 /*!
     Returns the value associated with a meta-data \a key.
 */
-QVariant QMediaObject::metaData(QtMultimedia::MetaData key) const
+QVariant QMediaObject::metaData(const QString &key) const
 {
     Q_D(const QMediaObject);
 
@@ -334,13 +334,13 @@ QVariant QMediaObject::metaData(QtMultimedia::MetaData key) const
 /*!
     Returns a list of keys there is meta-data available for.
 */
-QList<QtMultimedia::MetaData> QMediaObject::availableMetaData() const
+QStringList QMediaObject::availableMetaData() const
 {
     Q_D(const QMediaObject);
 
     return d->metaDataControl
             ? d->metaDataControl->availableMetaData()
-            : QList<QtMultimedia::MetaData>();
+            : QStringList();
 }
 
 /*!
@@ -348,34 +348,6 @@ QList<QtMultimedia::MetaData> QMediaObject::availableMetaData() const
 
     Signals that this media object's meta-data has changed.
 */
-
-/*!
-    Returns the value associated with a meta-data \a key.
-
-    The naming and type of extended meta-data is not standardized, so the values and meaning
-    of keys may vary between backends.
-*/
-QVariant QMediaObject::extendedMetaData(const QString &key) const
-{
-    Q_D(const QMediaObject);
-
-    return d->metaDataControl
-            ? d->metaDataControl->extendedMetaData(key)
-            : QVariant();
-}
-
-/*!
-    Returns a list of keys there is extended meta-data available for.
-*/
-QStringList QMediaObject::availableExtendedMetaData() const
-{
-    Q_D(const QMediaObject);
-
-    return d->metaDataControl
-            ? d->metaDataControl->availableExtendedMetaData()
-            : QStringList();
-}
-
 
 void QMediaObject::setupMetaData()
 {

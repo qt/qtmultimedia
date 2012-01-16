@@ -71,14 +71,11 @@ void tst_QMetaDataWriterControl::cleanupTestCase()
 void tst_QMetaDataWriterControl::constructor()
 {
     QMetaDataWriterControl *mock = new MockMetaDataWriterControl();
-    mock->availableExtendedMetaData();
     mock->availableMetaData();
     mock->isMetaDataAvailable();
     mock->isWritable();
-    mock->metaData((QtMultimedia::MetaData) 1 );
-    mock->extendedMetaData(QString("XYZ"));
-    mock->setExtendedMetaData(QString("XYZ"),QVariant());
-    mock->setMetaData((QtMultimedia::MetaData) 1,QVariant());
+    mock->metaData(QtMultimedia::MetaData::Title);
+    mock->setMetaData(QtMultimedia::MetaData::Title, QVariant());
     ((MockMetaDataWriterControl*)mock)->setWritable();
     ((MockMetaDataWriterControl*)mock)->setMetaDataAvailable();
     delete mock;

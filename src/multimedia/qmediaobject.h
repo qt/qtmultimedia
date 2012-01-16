@@ -79,11 +79,8 @@ public:
 
     bool isMetaDataAvailable() const;
 
-    QVariant metaData(QtMultimedia::MetaData key) const;
-    QList<QtMultimedia::MetaData> availableMetaData() const;
-
-    QVariant extendedMetaData(const QString &key) const;
-    QStringList availableExtendedMetaData() const;
+    QVariant metaData(const QString &key) const;
+    QStringList availableMetaData() const;
 
 Q_SIGNALS:
     void notifyIntervalChanged(int milliSeconds);

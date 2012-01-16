@@ -764,7 +764,7 @@ bool QMediaRecorder::isMetaDataWritable() const
 /*!
     Returns the value associated with a meta-data \a key.
 */
-QVariant QMediaRecorder::metaData(QtMultimedia::MetaData key) const
+QVariant QMediaRecorder::metaData(const QString &key) const
 {
     Q_D(const QMediaRecorder);
 
@@ -779,7 +779,7 @@ QVariant QMediaRecorder::metaData(QtMultimedia::MetaData key) const
     \note To ensure that meta data is set corretly, it should be set before starting the recording.
     Once the recording is stopped, any meta data set will be attached to the next recording.
 */
-void QMediaRecorder::setMetaData(QtMultimedia::MetaData key, const QVariant &value)
+void QMediaRecorder::setMetaData(const QString &key, const QVariant &value)
 {
     Q_D(QMediaRecorder);
 
@@ -790,13 +790,13 @@ void QMediaRecorder::setMetaData(QtMultimedia::MetaData key, const QVariant &val
 /*!
     Returns a list of keys there is meta-data available for.
 */
-QList<QtMultimedia::MetaData> QMediaRecorder::availableMetaData() const
+QStringList QMediaRecorder::availableMetaData() const
 {
     Q_D(const QMediaRecorder);
 
     return d->metaDataControl
             ? d->metaDataControl->availableMetaData()
-            : QList<QtMultimedia::MetaData>();
+            : QStringList();
 }
 
 /*!
@@ -804,47 +804,6 @@ QList<QtMultimedia::MetaData> QMediaRecorder::availableMetaData() const
 
     Signals that a media object's meta-data has changed.
 */
-
-/*!
-    Returns the value associated with a meta-data \a key.
-
-    The naming and type of extended meta-data is not standardized, so the values and meaning
-    of keys may vary between backends.
-*/
-QVariant QMediaRecorder::extendedMetaData(const QString &key) const
-{
-    Q_D(const QMediaRecorder);
-
-    return d->metaDataControl
-            ? d->metaDataControl->extendedMetaData(key)
-            : QVariant();
-}
-
-/*!
-    Sets a \a value for a meta-data \a key.
-
-    The naming and type of extended meta-data is not standardized, so the values and meaning
-    of keys may vary between backends.
-*/
-void QMediaRecorder::setExtendedMetaData(const QString &key, const QVariant &value)
-{
-    Q_D(QMediaRecorder);
-
-    if (d->metaDataControl)
-        d->metaDataControl->setExtendedMetaData(key, value);
-}
-
-/*!
-    Returns a list of keys there is extended meta-data available for.
-*/
-QStringList QMediaRecorder::availableExtendedMetaData() const
-{
-    Q_D(const QMediaRecorder);
-
-    return d->metaDataControl
-            ? d->metaDataControl->availableExtendedMetaData()
-            : QStringList();
-}
 
 #include "moc_qmediarecorder.cpp"
 QT_END_NAMESPACE

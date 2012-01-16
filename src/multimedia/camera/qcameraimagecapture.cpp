@@ -203,8 +203,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
                        this, SIGNAL(imageCaptured(int,QImage)));
             disconnect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
                        this, SIGNAL(imageAvailable(int,QVideoFrame)));
-            disconnect(d->control, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)),
-                       this, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)));
             disconnect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
                        this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
             disconnect(d->control, SIGNAL(imageSaved(int,QString)),
@@ -255,8 +253,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
                         this, SIGNAL(imageExposed(int)));
                 connect(d->control, SIGNAL(imageCaptured(int,QImage)),
                         this, SIGNAL(imageCaptured(int,QImage)));
-                connect(d->control, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)),
-                        this, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)));
                 connect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
                         this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
                 connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
@@ -615,23 +611,12 @@ void QCameraImageCapture::cancelCapture()
 */
 
 /*!
-    \fn QCameraImageCapture::imageMetadataAvailable(int id, QtMultimedia::MetaData key, const QVariant &value)
-
-    Signals that a metadata for an image with request \a id is available.
-    This signal is emitted for metadata \a value with a \a key listed in QtMultimedia::MetaData enum.
-
-    This signal is emitted between imageExposed and imageSaved signals.
-*/
-
-/*!
     \fn QCameraImageCapture::imageMetadataAvailable(int id, const QString &key, const QVariant &value)
 
     Signals that a metadata for an image with request \a id is available.
-    This signal is emitted for extended metadata \a value with a \a key not listed in QtMultimedia::MetaData enum.
 
     This signal is emitted between imageExposed and imageSaved signals.
 */
-
 
 /*!
     \fn QCameraImageCapture::imageAvailable(int id, const QVideoFrame &buffer)

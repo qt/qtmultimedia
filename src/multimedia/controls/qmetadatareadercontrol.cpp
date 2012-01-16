@@ -59,9 +59,8 @@ QT_BEGIN_NAMESPACE
     If a QMediaService can provide read or write access to the meta-data of
     its current media it will implement QMetaDataReaderControl.  This control
     provides functions for both retrieving and setting meta-data values.
-    Meta-data may be addressed by the well defined keys in the
-    QtMultimedia::MetaData enumeration using the metaData() functions, or by
-    string keys using the extendedMetaData() functions.
+    Meta-data may be addressed by the keys defined in the
+    QtMultimedia::MetaData namespace.
 
     The functionality provided by this control is exposed to application
     code by the meta-data members of QMediaObject, and so meta-data access
@@ -112,7 +111,7 @@ QMetaDataReaderControl::~QMetaDataReaderControl()
 */
 
 /*!
-    \fn QVariant QMetaDataReaderControl::metaData(QtMultimedia::MetaData key) const
+    \fn QVariant QMetaDataReaderControl::metaData(const QString &key) const
 
     Returns the meta-data for the given \a key.
 */
@@ -122,22 +121,6 @@ QMetaDataReaderControl::~QMetaDataReaderControl()
 
     Returns a list of keys there is meta-data available for.
 */
-
-/*!
-    \fn QMetaDataReaderControl::extendedMetaData(const QString &key) const
-
-    Returns the metaData for an abitrary string \a key.
-
-    The valid selection of keys for extended meta-data is determined by the provider and the meaning
-    and type may differ between providers.
-*/
-
-/*!
-    \fn QMetaDataReaderControl::availableExtendedMetaData() const
-
-    Returns a list of keys there is extended meta-data available for.
-*/
-
 
 /*!
     \fn void QMetaDataReaderControl::metaDataChanged()

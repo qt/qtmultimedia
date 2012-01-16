@@ -46,77 +46,77 @@
 
 struct QGstreamerMetaDataKeyLookup
 {
-    QtMultimedia::MetaData key;
+    QString key;
     const char *token;
 };
 
 static const QGstreamerMetaDataKeyLookup qt_gstreamerMetaDataKeys[] =
 {
-    { QtMultimedia::Title, GST_TAG_TITLE },
-    //{ QtMultimedia::SubTitle, 0 },
-    //{ QtMultimedia::Author, 0 },
-    { QtMultimedia::Comment, GST_TAG_COMMENT },
-    { QtMultimedia::Description, GST_TAG_DESCRIPTION },
-    //{ QtMultimedia::Category, 0 },
-    { QtMultimedia::Genre, GST_TAG_GENRE },
-    //{ QtMultimedia::Year, 0 },
-    //{ QtMultimedia::UserRating, 0 },
+    { QtMultimedia::MetaData::Title, GST_TAG_TITLE },
+    //{ QtMultimedia::MetaData::SubTitle, 0 },
+    //{ QtMultimedia::MetaData::Author, 0 },
+    { QtMultimedia::MetaData::Comment, GST_TAG_COMMENT },
+    { QtMultimedia::MetaData::Description, GST_TAG_DESCRIPTION },
+    //{ QtMultimedia::MetaData::Category, 0 },
+    { QtMultimedia::MetaData::Genre, GST_TAG_GENRE },
+    //{ QtMultimedia::MetaData::Year, 0 },
+    //{ QtMultimedia::MetaData::UserRating, 0 },
 
-    { QtMultimedia::Language, GST_TAG_LANGUAGE_CODE },
+    { QtMultimedia::MetaData::Language, GST_TAG_LANGUAGE_CODE },
 
-    { QtMultimedia::Publisher, GST_TAG_ORGANIZATION },
-    { QtMultimedia::Copyright, GST_TAG_COPYRIGHT },
-    //{ QtMultimedia::ParentalRating, 0 },
-    //{ QtMultimedia::RatingOrganization, 0 },
+    { QtMultimedia::MetaData::Publisher, GST_TAG_ORGANIZATION },
+    { QtMultimedia::MetaData::Copyright, GST_TAG_COPYRIGHT },
+    //{ QtMultimedia::MetaData::ParentalRating, 0 },
+    //{ QtMultimedia::MetaData::RatingOrganisation, 0 },
 
     // Media
-    //{ QtMultimedia::Size, 0 },
-    //{ QtMultimedia::MediaType, 0 },
-    { QtMultimedia::Duration, GST_TAG_DURATION },
+    //{ QtMultimedia::MetaData::Size, 0 },
+    //{ QtMultimedia::MetaData::MediaType, 0 },
+    { QtMultimedia::MetaData::Duration, GST_TAG_DURATION },
 
     // Audio
-    { QtMultimedia::AudioBitRate, GST_TAG_BITRATE },
-    { QtMultimedia::AudioCodec, GST_TAG_AUDIO_CODEC },
-    //{ QtMultimedia::ChannelCount, 0 },
-    //{ QtMultimedia::SampleRate, 0 },
+    { QtMultimedia::MetaData::AudioBitRate, GST_TAG_BITRATE },
+    { QtMultimedia::MetaData::AudioCodec, GST_TAG_AUDIO_CODEC },
+    //{ QtMultimedia::MetaData::ChannelCount, 0 },
+    //{ QtMultimedia::MetaData::SampleRate, 0 },
 
     // Music
-    { QtMultimedia::AlbumTitle, GST_TAG_ALBUM },
-    { QtMultimedia::AlbumArtist,  GST_TAG_ARTIST},
-    { QtMultimedia::ContributingArtist, GST_TAG_PERFORMER },
+    { QtMultimedia::MetaData::AlbumTitle, GST_TAG_ALBUM },
+    { QtMultimedia::MetaData::AlbumArtist,  GST_TAG_ARTIST},
+    { QtMultimedia::MetaData::ContributingArtist, GST_TAG_PERFORMER },
 #if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 19)
-    { QtMultimedia::Composer, GST_TAG_COMPOSER },
+    { QtMultimedia::MetaData::Composer, GST_TAG_COMPOSER },
 #endif
-    //{ QtMultimedia::Conductor, 0 },
-    //{ QtMultimedia::Lyrics, 0 },
-    //{ QtMultimedia::Mood, 0 },
-    { QtMultimedia::TrackNumber, GST_TAG_TRACK_NUMBER },
+    //{ QtMultimedia::MetaData::Conductor, 0 },
+    //{ QtMultimedia::MetaData::Lyrics, 0 },
+    //{ QtMultimedia::MetaData::Mood, 0 },
+    { QtMultimedia::MetaData::TrackNumber, GST_TAG_TRACK_NUMBER },
 
-    //{ QtMultimedia::CoverArtUrlSmall, 0 },
-    //{ QtMultimedia::CoverArtUrlLarge, 0 },
+    //{ QtMultimedia::MetaData::CoverArtUrlSmall, 0 },
+    //{ QtMultimedia::MetaData::CoverArtUrlLarge, 0 },
 
     // Image/Video
-    //{ QtMultimedia::Resolution, 0 },
-    //{ QtMultimedia::PixelAspectRatio, 0 },
+    //{ QtMultimedia::MetaData::Resolution, 0 },
+    //{ QtMultimedia::MetaData::PixelAspectRatio, 0 },
 
     // Video
-    //{ QtMultimedia::VideoFrameRate, 0 },
-    //{ QtMultimedia::VideoBitRate, 0 },
-    { QtMultimedia::VideoCodec, GST_TAG_VIDEO_CODEC },
+    //{ QtMultimedia::MetaData::VideoFrameRate, 0 },
+    //{ QtMultimedia::MetaData::VideoBitRate, 0 },
+    { QtMultimedia::MetaData::VideoCodec, GST_TAG_VIDEO_CODEC },
 
-    //{ QtMultimedia::PosterUrl, 0 },
+    //{ QtMultimedia::MetaData::PosterUrl, 0 },
 
     // Movie
-    //{ QtMultimedia::ChapterNumber, 0 },
-    //{ QtMultimedia::Director, 0 },
-    { QtMultimedia::LeadPerformer, GST_TAG_PERFORMER },
-    //{ QtMultimedia::Writer, 0 },
+    //{ QtMultimedia::MetaData::ChapterNumber, 0 },
+    //{ QtMultimedia::MetaData::Director, 0 },
+    { QtMultimedia::MetaData::LeadPerformer, GST_TAG_PERFORMER },
+    //{ QtMultimedia::MetaData::Writer, 0 },
 
     // Photos
-    //{ QtMultimedia::CameraManufacturer, 0 },
-    //{ QtMultimedia::CameraModel, 0 },
-    //{ QtMultimedia::Event, 0 },
-    //{ QtMultimedia::Subject, 0 }
+    //{ QtMultimedia::MetaData::CameraManufacturer, 0 },
+    //{ QtMultimedia::MetaData::CameraModel, 0 },
+    //{ QtMultimedia::MetaData::Event, 0 },
+    //{ QtMultimedia::MetaData::Subject, 0 }
 };
 
 CameraBinMetaData::CameraBinMetaData(QObject *parent)
@@ -124,7 +124,7 @@ CameraBinMetaData::CameraBinMetaData(QObject *parent)
 {
 }
 
-QVariant CameraBinMetaData::metaData(QtMultimedia::MetaData key) const
+QVariant CameraBinMetaData::metaData(const QString &key) const
 {
     static const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
 
@@ -138,7 +138,7 @@ QVariant CameraBinMetaData::metaData(QtMultimedia::MetaData key) const
     return QVariant();
 }
 
-void CameraBinMetaData::setMetaData(QtMultimedia::MetaData key, const QVariant &value)
+void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
 {
     static const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
 
@@ -156,9 +156,9 @@ void CameraBinMetaData::setMetaData(QtMultimedia::MetaData key, const QVariant &
     }
 }
 
-QList<QtMultimedia::MetaData> CameraBinMetaData::availableMetaData() const
+QStringList CameraBinMetaData::availableMetaData() const
 {
-    static QMap<QByteArray, QtMultimedia::MetaData> keysMap;
+    static QMap<QByteArray, QString> keysMap;
     if (keysMap.isEmpty()) {
         const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
         for (int i = 0; i < count; ++i) {
@@ -166,33 +166,12 @@ QList<QtMultimedia::MetaData> CameraBinMetaData::availableMetaData() const
         }
     }
 
-    QList<QtMultimedia::MetaData> res;
+    QStringList res;
     foreach (const QByteArray &key, m_values.keys()) {
-        QtMultimedia::MetaData tag = keysMap.value(key, QtMultimedia::MetaData(-1));
-        if (tag != -1)
+        QString tag = keysMap.value(key);
+        if (!tag.isEmpty())
             res.append(tag);
     }
-
-    return res;
-}
-
-QVariant CameraBinMetaData::extendedMetaData(QString const &name) const
-{
-    return m_values.value(name.toLatin1());
-}
-
-void CameraBinMetaData::setExtendedMetaData(QString const &name, QVariant const &value)
-{
-    m_values.insert(name.toLatin1(), value);
-    emit QMetaDataWriterControl::metaDataChanged();
-    emit metaDataChanged(m_values);
-}
-
-QStringList CameraBinMetaData::availableExtendedMetaData() const
-{
-    QStringList res;
-    foreach (const QByteArray &key, m_values.keys())
-        res.append(QString(key));
 
     return res;
 }

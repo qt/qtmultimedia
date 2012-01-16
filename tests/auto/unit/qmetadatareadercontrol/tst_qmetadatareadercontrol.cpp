@@ -52,10 +52,8 @@ private slots:
     // Test case for QMetaDataReaderControl
     void metaDataReaderControlConstructor();
     void metaDataReaderControlAvailableMetaData();
-    void metaDataReaderControlExtendedMetaData();
     void metaDataReaderControlIsMetaDataAvailable();
     void metaDataReaderControlMetaData();
-    void metaDataReaderControlAvailableExtendedMetaData();
     void metaDataReaderControlMetaDataAvailableChangedSignal();
     void metaDataReaderControlMetaDataChangedSignal();
 };
@@ -79,16 +77,6 @@ void tst_QMetaDataReaderControl::metaDataReaderControlAvailableMetaData()
     delete metaData;
 }
 
-/* Test case for extendedMetaData */
-void tst_QMetaDataReaderControl::metaDataReaderControlExtendedMetaData ()
-{
-    const QString titleKey(QLatin1String("Title"));
-    MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
-    metaData->extendedMetaData(titleKey);
-    delete metaData;
-}
-
 /* Test case for availableMetaData */
 void tst_QMetaDataReaderControl::metaDataReaderControlIsMetaDataAvailable ()
 {
@@ -103,16 +91,7 @@ void tst_QMetaDataReaderControl::metaDataReaderControlMetaData ()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
     QVERIFY(metaData !=NULL);
-    metaData->metaData(QtMultimedia::Title);
-    delete metaData;
-}
-
-/* Test case for availableExtendedMetaData */
-void tst_QMetaDataReaderControl::metaDataReaderControlAvailableExtendedMetaData ()
-{
-    MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
-    metaData->availableExtendedMetaData();
+    metaData->metaData(QtMultimedia::MetaData::Title);
     delete metaData;
 }
 

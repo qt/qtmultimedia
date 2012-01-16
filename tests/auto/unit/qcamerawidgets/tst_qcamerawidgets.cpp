@@ -97,7 +97,6 @@ void tst_QCameraWidgets::initTestCase()
     provider = new MockMediaServiceProvider;
     mockSimpleCameraService = new MockSimpleCameraService;
     provider->service = mockSimpleCameraService;
-    qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
 }
 
 void tst_QCameraWidgets::cleanupTestCase()

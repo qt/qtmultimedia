@@ -98,8 +98,6 @@ private slots:
     void metaData_data();
     void metaData();
     void availability();
-    void extendedMetaData_data() { metaData_data(); }
-    void extendedMetaData();
 
     void service();
 
@@ -340,10 +338,8 @@ void tst_QMediaObject::nullMetaDataControl()
 
     QCOMPARE(object.isMetaDataAvailable(), false);
 
-    QCOMPARE(object.metaData(QtMultimedia::Title).toString(), QString());
-    QCOMPARE(object.extendedMetaData(titleKey).toString(), QString());
-    QCOMPARE(object.availableMetaData(), QList<QtMultimedia::MetaData>());
-    QCOMPARE(object.availableExtendedMetaData(), QStringList());
+    QCOMPARE(object.metaData(QtMultimedia::MetaData::Title).toString(), QString());
+    QCOMPARE(object.availableMetaData(), QStringList());
     QCOMPARE(spy.count(), 0);
 }
 
@@ -407,42 +403,18 @@ void tst_QMediaObject::metaData()
     QtTestMediaObject object(&service);
     QVERIFY(object.availableMetaData().isEmpty());
 
-    service.metaData.m_data.insert(QtMultimedia::AlbumArtist, artist);
-    service.metaData.m_data.insert(QtMultimedia::Title, title);
-    service.metaData.m_data.insert(QtMultimedia::Genre, genre);
+    service.metaData.m_data.insert(QtMultimedia::MetaData::AlbumArtist, artist);
+    service.metaData.m_data.insert(QtMultimedia::MetaData::Title, title);
+    service.metaData.m_data.insert(QtMultimedia::MetaData::Genre, genre);
 
-    QCOMPARE(object.metaData(QtMultimedia::AlbumArtist).toString(), artist);
-    QCOMPARE(object.metaData(QtMultimedia::Title).toString(), title);
+    QCOMPARE(object.metaData(QtMultimedia::MetaData::AlbumArtist).toString(), artist);
+    QCOMPARE(object.metaData(QtMultimedia::MetaData::Title).toString(), title);
 
-    QList<QtMultimedia::MetaData> metaDataKeys = object.availableMetaData();
+    QStringList metaDataKeys = object.availableMetaData();
     QCOMPARE(metaDataKeys.size(), 3);
-    QVERIFY(metaDataKeys.contains(QtMultimedia::AlbumArtist));
-    QVERIFY(metaDataKeys.contains(QtMultimedia::Title));
-    QVERIFY(metaDataKeys.contains(QtMultimedia::Genre));
-}
-
-void tst_QMediaObject::extendedMetaData()
-{
-    QFETCH(QString, artist);
-    QFETCH(QString, title);
-    QFETCH(QString, genre);
-
-    QtTestMetaDataService service;
-    QtTestMediaObject object(&service);
-    QVERIFY(object.availableExtendedMetaData().isEmpty());
-
-    service.metaData.m_extendedData.insert(QLatin1String("Artist"), artist);
-    service.metaData.m_extendedData.insert(QLatin1String("Title"), title);
-    service.metaData.m_extendedData.insert(QLatin1String("Genre"), genre);
-
-    QCOMPARE(object.extendedMetaData(QLatin1String("Artist")).toString(), artist);
-    QCOMPARE(object.extendedMetaData(QLatin1String("Title")).toString(), title);
-
-    QStringList extendedKeys = object.availableExtendedMetaData();
-    QCOMPARE(extendedKeys.size(), 3);
-    QVERIFY(extendedKeys.contains(QLatin1String("Artist")));
-    QVERIFY(extendedKeys.contains(QLatin1String("Title")));
-    QVERIFY(extendedKeys.contains(QLatin1String("Genre")));
+    QVERIFY(metaDataKeys.contains(QtMultimedia::MetaData::AlbumArtist));
+    QVERIFY(metaDataKeys.contains(QtMultimedia::MetaData::Title));
+    QVERIFY(metaDataKeys.contains(QtMultimedia::MetaData::Genre));
 }
 
 void tst_QMediaObject::availability()

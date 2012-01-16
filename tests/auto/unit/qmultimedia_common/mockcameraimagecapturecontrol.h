@@ -95,11 +95,11 @@ private Q_SLOTS:
             emit imageCaptured(m_captureRequest, QImage());
 
             emit imageMetadataAvailable(m_captureRequest,
-                                        QtMultimedia::FocalLengthIn35mmFilm,
+                                        QtMultimedia::MetaData::FocalLengthIn35mmFilm,
                                         QVariant(50));
 
             emit imageMetadataAvailable(m_captureRequest,
-                                        QtMultimedia::DateTimeOriginal,
+                                        QtMultimedia::MetaData::DateTimeOriginal,
                                         QVariant(QDateTime::currentDateTime()));
 
             emit imageMetadataAvailable(m_captureRequest,

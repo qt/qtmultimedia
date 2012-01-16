@@ -171,7 +171,6 @@ void tst_QCamera::initTestCase()
     provider = new MockMediaServiceProvider;
     mockSimpleCameraService = new MockSimpleCameraService;
     provider->service = mockSimpleCameraService;
-    qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
 }
 
 void tst_QCamera::cleanupTestCase()
@@ -479,8 +478,7 @@ void tst_QCamera::testCameraCaptureMetadata()
     QCamera camera(0, provider);
     QCameraImageCapture imageCapture(&camera);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)));
-    QSignalSpy extendedMetadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
 
     camera.start();
@@ -491,21 +489,20 @@ void tst_QCamera::testCameraCaptureMetadata()
 
     QCOMPARE(savedSignal.size(), 1);
 
-    QCOMPARE(metadataSignal.size(), 2);
+    QCOMPARE(metadataSignal.size(), 3);
 
     QVariantList metadata = metadataSignal[0];
     QCOMPARE(metadata[0].toInt(), id);
-    QCOMPARE(metadata[1].value<QtMultimedia::MetaData>(), QtMultimedia::FocalLengthIn35mmFilm);
+    QCOMPARE(metadata[1].toString(), QtMultimedia::MetaData::FocalLengthIn35mmFilm);
     QCOMPARE(metadata[2].value<QVariant>().toInt(), 50);
 
     metadata = metadataSignal[1];
     QCOMPARE(metadata[0].toInt(), id);
-    QCOMPARE(metadata[1].value<QtMultimedia::MetaData>(), QtMultimedia::DateTimeOriginal);
+    QCOMPARE(metadata[1].toString(), QtMultimedia::MetaData::DateTimeOriginal);
     QDateTime captureTime = metadata[2].value<QVariant>().value<QDateTime>();
     QVERIFY(qAbs(captureTime.secsTo(QDateTime::currentDateTime()) < 5)); //it should not takes more than 5 seconds for signal to arrive here
 
-    QCOMPARE(extendedMetadataSignal.size(), 1);
-    metadata = extendedMetadataSignal.first();
+    metadata = metadataSignal[2];
     QCOMPARE(metadata[0].toInt(), id);
     QCOMPARE(metadata[1].toString(), QLatin1String("Answer to the Ultimate Question of Life, the Universe, and Everything"));
     QCOMPARE(metadata[2].value<QVariant>().toInt(), 42);

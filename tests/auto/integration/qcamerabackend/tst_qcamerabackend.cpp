@@ -127,8 +127,6 @@ private:
 
 void tst_QCameraBackend::initTestCase()
 {
-    qRegisterMetaType<QtMultimedia::MetaData>("QtMultimedia::MetaData");
-
     QCamera camera;
     if (!camera.isAvailable())
         QSKIP("Camera is not available");
@@ -501,7 +499,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
     QCameraImageCapture imageCapture(&camera);
     camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QtMultimedia::MetaData,QVariant)));
+    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
 
     camera.start();

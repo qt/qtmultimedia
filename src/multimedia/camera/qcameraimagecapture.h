@@ -136,7 +136,6 @@ Q_SIGNALS:
 
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);
-    void imageMetadataAvailable(int id, QtMultimedia::MetaData key, const QVariant &value);
     void imageMetadataAvailable(int id, const QString &key, const QVariant &value);
     void imageAvailable(int id, const QVideoFrame &image);
     void imageSaved(int id, const QString &fileName);

@@ -109,12 +109,8 @@ public:
 
     bool isMetaDataAvailable() const { return false; }
 
-    QVariant metaData(QtMultimedia::MetaData) const { return QVariant(); }
-    QList<QtMultimedia::MetaData> availableMetaData() const {
-        return QList<QtMultimedia::MetaData>(); }
-
-    QVariant extendedMetaData(const QString &) const { return QVariant(); }
-    QStringList availableExtendedMetaData() const { return QStringList(); }
+    QVariant metaData(const QString &) const { return QVariant(); }
+    QStringList availableMetaData() const { return QStringList(); }
 };
 
 class QDeclarativeMediaBaseAnimation : public QObject

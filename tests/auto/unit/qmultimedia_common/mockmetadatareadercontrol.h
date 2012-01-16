@@ -63,24 +63,14 @@ public:
         if (m_available != available)
             emit metaDataAvailableChanged(m_available = available);
     }
-    QList<QtMultimedia::MetaData> availableMetaData() const
+    QStringList availableMetaData() const
     {
         return m_data.keys();
     }
 
-    QVariant metaData(QtMultimedia::MetaData key) const
+    QVariant metaData(const QString &key) const
     {
         return m_data.value(key);
-    }
-
-    QVariant extendedMetaData(const QString &key) const
-    {
-        return m_extendedData.value(key);
-    }
-
-    QStringList availableExtendedMetaData() const
-    {
-        return m_extendedData.keys();
     }
 
     using QMetaDataReaderControl::metaDataChanged;
@@ -91,8 +81,7 @@ public:
     }
 
     bool m_available;
-    QMap<QtMultimedia::MetaData, QVariant> m_data;
-    QMap<QString, QVariant> m_extendedData;
+    QMap<QString, QVariant> m_data;
 };
 
 #endif // MOCKMETADATAREADERCONTROL_H

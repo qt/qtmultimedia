@@ -67,7 +67,7 @@ public:
     virtual int streamCount() = 0;
     virtual StreamType streamType(int streamNumber) = 0;
 
-    virtual QVariant metaData(int streamNumber, QtMultimedia::MetaData key) = 0;
+    virtual QVariant metaData(int streamNumber, const QString &key) = 0;
 
     virtual bool isActive(int streamNumber) = 0;
     virtual void setActive(int streamNumber, bool state) = 0;

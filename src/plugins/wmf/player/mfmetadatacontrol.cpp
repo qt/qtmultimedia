@@ -65,7 +65,7 @@ bool MFMetaDataControl::isMetaDataAvailable() const
     return m_content || m_metaData;
 }
 
-QVariant MFMetaDataControl::metaData(QtMultimedia::MetaData key) const
+QVariant MFMetaDataControl::metaData(const QString &key) const
 {
     QVariant value;
     if (!isMetaDataAvailable())
@@ -113,36 +113,9 @@ QVariant MFMetaDataControl::convertValue(const PROPVARIANT& var) const
     return value;
 }
 
-QList<QtMultimedia::MetaData> MFMetaDataControl::availableMetaData() const
+QStringList MFMetaDataControl::availableMetaData() const
 {
     return m_availableMetaDatas;
-}
-
-QVariant MFMetaDataControl::extendedMetaData(const QString &key) const
-{
-    QVariant value;
-    HRESULT hr = S_FALSE;
-    PROPVARIANT var;
-    PropVariantInit(&var);
-    if (m_content) {
-        int index = m_extendedMetaDatas.indexOf(key);
-        if (index >= 0) {
-            hr = m_content->GetValue(m_extendedKeys[index], &var);
-        }
-    } else if (m_metaData) {
-        hr = m_metaData->GetProperty(key.utf16(), &var);
-    }
-
-    if (SUCCEEDED(hr))
-        value = convertValue(var);
-
-    PropVariantClear(&var);
-    return value;
-}
-
-QStringList MFMetaDataControl::availableExtendedMetaData() const
-{
-    return m_extendedMetaDatas;
 }
 
 void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMediaSource* mediaSource)
@@ -173,15 +146,15 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
                     continue;
                 bool common = true;
                 if (key == PKEY_Author) {
-                    m_availableMetaDatas.push_back(QtMultimedia::Author);
+                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Author);
                 } else if (key == PKEY_Title) {
-                    m_availableMetaDatas.push_back(QtMultimedia::Title);
+                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Title);
                 } else if (key == PKEY_ParentalRating) {
-                    m_availableMetaDatas.push_back(QtMultimedia::ParentalRating);
+                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::ParentalRating);
                 } else if (key == PKEY_Comment) {
-                    m_availableMetaDatas.push_back(QtMultimedia::Description);
+                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Description);
                 } else if (key == PKEY_Copyright) {
-                    m_availableMetaDatas.push_back(QtMultimedia::Copyright);
+                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Copyright);
                 //TODO: add more common keys
                 } else {
                     common = false;
@@ -211,24 +184,21 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
 #ifdef DEBUG_MEDIAFOUNDATION
                         qDebug() << "metadata: " << QString::fromUtf16(sName);
 #endif
-                        bool common = true;
                         if (wcscmp(sName, L"Author") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::Author);
+                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Author);
                         } else if (wcscmp(sName, L"Title") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::Title);
+                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Title);
                         } else if (wcscmp(sName, L"Rating") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::ParentalRating);
+                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::ParentalRating);
                         } else if (wcscmp(sName, L"Description") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::Description);
+                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Description);
                         } else if (wcscmp(sName, L"Copyright") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::Copyright);
+                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Copyright);
                             //TODO: add more common keys
                         } else {
-                            common = false;
-                            m_extendedMetaDatas.push_back(QString::fromUtf16(sName));
+                            m_availableMetaDatas.push_back(QString::fromUtf16(sName));
                         }
-                        if (common)
-                            m_commonNames.push_back(QString::fromUtf16(sName));
+                        m_commonNames.push_back(QString::fromUtf16(sName));
                     }
                 }
                 PropVariantClear(&varNames);

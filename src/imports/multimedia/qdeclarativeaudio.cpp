@@ -363,7 +363,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the tile of the media.
 
-    \sa {QtMultimedia::Title}
+    \sa {QtMultimedia::MetaData::Title}
 */
 
 /*!
@@ -371,7 +371,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the sub-title of the media.
 
-    \sa {QtMultimedia::SubTitle}
+    \sa {QtMultimedia::MetaData::SubTitle}
 */
 
 /*!
@@ -379,7 +379,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the author of the media.
 
-    \sa {QtMultimedia::Author}
+    \sa {QtMultimedia::MetaData::Author}
 */
 
 /*!
@@ -387,7 +387,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds a user comment about the media.
 
-    \sa {QtMultimedia::Comment}
+    \sa {QtMultimedia::MetaData::Comment}
 */
 
 /*!
@@ -395,7 +395,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds a description of the media.
 
-    \sa {QtMultimedia::Description}
+    \sa {QtMultimedia::MetaData::Description}
 */
 
 /*!
@@ -403,7 +403,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the category of the media
 
-    \sa {QtMultimedia::Category}
+    \sa {QtMultimedia::MetaData::Category}
 */
 
 /*!
@@ -411,7 +411,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the genre of the media.
 
-    \sa {QtMultimedia::Genre}
+    \sa {QtMultimedia::MetaData::Genre}
 */
 
 /*!
@@ -419,7 +419,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the year of release of the media.
 
-    \sa {QtMultimedia::Year}
+    \sa {QtMultimedia::MetaData::Year}
 */
 
 /*!
@@ -427,7 +427,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the date of the media.
 
-    \sa {QtMultimedia::Date}
+    \sa {QtMultimedia::MetaData::Date}
 */
 
 /*!
@@ -435,7 +435,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds a user rating of the media in the range of 0 to 100.
 
-    \sa {QtMultimedia::UserRating}
+    \sa {QtMultimedia::MetaData::UserRating}
 */
 
 /*!
@@ -443,7 +443,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds a list of keywords describing the media.
 
-    \sa {QtMultimedia::Keywords}
+    \sa {QtMultimedia::MetaData::Keywords}
 */
 
 /*!
@@ -451,7 +451,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the language of the media, as an ISO 639-2 code.
 
-    \sa {QtMultimedia::Language}
+    \sa {QtMultimedia::MetaData::Language}
 */
 
 /*!
@@ -459,7 +459,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the publisher of the media.
 
-    \sa {QtMultimedia::Publisher}
+    \sa {QtMultimedia::MetaData::Publisher}
 */
 
 /*!
@@ -467,7 +467,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the media's copyright notice.
 
-    \sa {QtMultimedia::Copyright}
+    \sa {QtMultimedia::MetaData::Copyright}
 */
 
 /*!
@@ -475,7 +475,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the parental rating of the media.
 
-    \sa {QtMultimedia::ParentalRating}
+    \sa {QtMultimedia::MetaData::ParentalRating}
 */
 
 /*!
@@ -484,7 +484,7 @@ void QDeclarativeAudio::componentComplete()
     This property holds the name of the rating organization responsible for the
     parental rating of the media.
 
-    \sa {QtMultimedia::RatingOrganization}
+    \sa {QtMultimedia::MetaData::RatingOrganization}
 */
 
 /*!
@@ -492,7 +492,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property property holds the size of the media in bytes.
 
-    \sa {QtMultimedia::Size}
+    \sa {QtMultimedia::MetaData::Size}
 */
 
 /*!
@@ -500,7 +500,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the type of the media.
 
-    \sa {QtMultimedia::MediaType}
+    \sa {QtMultimedia::MetaData::MediaType}
 */
 
 /*!
@@ -509,7 +509,7 @@ void QDeclarativeAudio::componentComplete()
     This property holds the bit rate of the media's audio stream ni bits per
     second.
 
-    \sa {QtMultimedia::AudioBitRate}
+    \sa {QtMultimedia::MetaData::AudioBitRate}
 */
 
 /*!
@@ -517,7 +517,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the encoding of the media audio stream.
 
-    \sa {QtMultimedia::AudioCodec}
+    \sa {QtMultimedia::MetaData::AudioCodec}
 */
 
 /*!
@@ -525,7 +525,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the average volume level of the media.
 
-    \sa {QtMultimedia::AverageLevel}
+    \sa {QtMultimedia::MetaData::AverageLevel}
 */
 
 /*!
@@ -533,7 +533,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the number of channels in the media's audio stream.
 
-    \sa {QtMultimedia::ChannelCount}
+    \sa {QtMultimedia::MetaData::ChannelCount}
 */
 
 /*!
@@ -541,7 +541,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the peak volume of media's audio stream.
 
-    \sa {QtMultimedia::PeakValue}
+    \sa {QtMultimedia::MetaData::PeakValue}
 */
 
 /*!
@@ -549,7 +549,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the sample rate of the media's audio stream in hertz.
 
-    \sa {QtMultimedia::SampleRate}
+    \sa {QtMultimedia::MetaData::SampleRate}
 */
 
 /*!
@@ -557,7 +557,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the title of the album the media belongs to.
 
-    \sa {QtMultimedia::AlbumTitle}
+    \sa {QtMultimedia::MetaData::AlbumTitle}
 */
 
 /*!
@@ -566,7 +566,7 @@ void QDeclarativeAudio::componentComplete()
     This property holds the name of the principal artist of the album the media
     belongs to.
 
-    \sa {QtMultimedia::AlbumArtist}
+    \sa {QtMultimedia::MetaData::AlbumArtist}
 */
 
 /*!
@@ -574,7 +574,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the names of artists contributing to the media.
 
-    \sa {QtMultimedia::ContributingArtist}
+    \sa {QtMultimedia::MetaData::ContributingArtist}
 */
 
 /*!
@@ -582,7 +582,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the composer of the media.
 
-    \sa {QtMultimedia::Composer}
+    \sa {QtMultimedia::MetaData::Composer}
 */
 
 /*!
@@ -590,7 +590,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the conductor of the media.
 
-    \sa {QtMultimedia::Conductor}
+    \sa {QtMultimedia::MetaData::Conductor}
 */
 
 /*!
@@ -598,7 +598,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the lyrics to the media.
 
-    \sa {QtMultimedia::Lyrics}
+    \sa {QtMultimedia::MetaData::Lyrics}
 */
 
 /*!
@@ -606,7 +606,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the mood of the media.
 
-    \sa {QtMultimedia::Mood}
+    \sa {QtMultimedia::MetaData::Mood}
 */
 
 /*!
@@ -614,7 +614,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the track number of the media.
 
-    \sa {QtMultimedia::TrackNumber}
+    \sa {QtMultimedia::MetaData::TrackNumber}
 */
 
 /*!
@@ -622,7 +622,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the number of track on the album containing the media.
 
-    \sa {QtMultimedia::TrackNumber}
+    \sa {QtMultimedia::MetaData::TrackNumber}
 */
 
 /*!
@@ -630,7 +630,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the URL of a small cover art image.
 
-    \sa {QtMultimedia::CoverArtUrlSmall}
+    \sa {QtMultimedia::MetaData::CoverArtUrlSmall}
 */
 
 /*!
@@ -638,7 +638,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the URL of a large cover art image.
 
-    \sa {QtMultimedia::CoverArtUrlLarge}
+    \sa {QtMultimedia::MetaData::CoverArtUrlLarge}
 */
 
 /*!
@@ -646,7 +646,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the dimension of an image or video.
 
-    \sa {QtMultimedia::Resolution}
+    \sa {QtMultimedia::MetaData::Resolution}
 */
 
 /*!
@@ -654,7 +654,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the pixel aspect ratio of an image or video.
 
-    \sa {QtMultimedia::PixelAspectRatio}
+    \sa {QtMultimedia::MetaData::PixelAspectRatio}
 */
 
 /*!
@@ -662,7 +662,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the frame rate of the media's video stream.
 
-    \sa {QtMultimedia::VideoFrameRate}
+    \sa {QtMultimedia::MetaData::VideoFrameRate}
 */
 
 /*!
@@ -671,7 +671,7 @@ void QDeclarativeAudio::componentComplete()
     This property holds the bit rate of the media's video stream in bits per
     second.
 
-    \sa {QtMultimedia::VideoBitRate}
+    \sa {QtMultimedia::MetaData::VideoBitRate}
 */
 
 /*!
@@ -679,7 +679,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the encoding of the media's video stream.
 
-    \sa {QtMultimedia::VideoCodec}
+    \sa {QtMultimedia::MetaData::VideoCodec}
 */
 
 /*!
@@ -687,7 +687,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the URL of a poster image.
 
-    \sa {QtMultimedia::PosterUrl}
+    \sa {QtMultimedia::MetaData::PosterUrl}
 */
 
 /*!
@@ -695,7 +695,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the chapter number of the media.
 
-    \sa {QtMultimedia::ChapterNumber}
+    \sa {QtMultimedia::MetaData::ChapterNumber}
 */
 
 /*!
@@ -703,7 +703,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the director of the media.
 
-    \sa {QtMultimedia::Director}
+    \sa {QtMultimedia::MetaData::Director}
 */
 
 /*!
@@ -711,7 +711,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the lead performer in the media.
 
-    \sa {QtMultimedia::LeadPerformer}
+    \sa {QtMultimedia::MetaData::LeadPerformer}
 */
 
 /*!
@@ -719,7 +719,7 @@ void QDeclarativeAudio::componentComplete()
 
     This property holds the writer of the media.
 
-    \sa {QtMultimedia::Writer}
+    \sa {QtMultimedia::MetaData::Writer}
 */
 
 QT_END_NAMESPACE

@@ -44,6 +44,7 @@
 
 #include <QtCore/qpair.h>
 #include <QtCore/qmetatype.h>
+#include <QtCore/qstring.h>
 
 #include <qtmultimediadefs.h>
 
@@ -53,106 +54,106 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+#define Q_DECLARE_METADATA(key) Q_MULTIMEDIA_EXPORT extern const QString key
+
 namespace QtMultimedia
 {
-    enum MetaData
-    {
+    namespace MetaData {
         // Common
-        Title,
-        SubTitle,
-        Author,
-        Comment,
-        Description,
-        Category,
-        Genre,
-        Year,
-        Date,
-        UserRating,
-        Keywords,
-        Language,
-        Publisher,
-        Copyright,
-        ParentalRating,
-        RatingOrganization,
+        Q_DECLARE_METADATA(Title);
+        Q_DECLARE_METADATA(SubTitle);
+        Q_DECLARE_METADATA(Author);
+        Q_DECLARE_METADATA(Comment);
+        Q_DECLARE_METADATA(Description);
+        Q_DECLARE_METADATA(Category);
+        Q_DECLARE_METADATA(Genre);
+        Q_DECLARE_METADATA(Year);
+        Q_DECLARE_METADATA(Date);
+        Q_DECLARE_METADATA(UserRating);
+        Q_DECLARE_METADATA(Keywords);
+        Q_DECLARE_METADATA(Language);
+        Q_DECLARE_METADATA(Publisher);
+        Q_DECLARE_METADATA(Copyright);
+        Q_DECLARE_METADATA(ParentalRating);
+        Q_DECLARE_METADATA(RatingOrganization);
 
         // Media
-        Size,
-        MediaType,
-        Duration,
+        Q_DECLARE_METADATA(Size);
+        Q_DECLARE_METADATA(MediaType);
+        Q_DECLARE_METADATA(Duration);
 
         // Audio
-        AudioBitRate,
-        AudioCodec,
-        AverageLevel,
-        ChannelCount,
-        PeakValue,
-        SampleRate,
+        Q_DECLARE_METADATA(AudioBitRate);
+        Q_DECLARE_METADATA(AudioCodec);
+        Q_DECLARE_METADATA(AverageLevel);
+        Q_DECLARE_METADATA(ChannelCount);
+        Q_DECLARE_METADATA(PeakValue);
+        Q_DECLARE_METADATA(SampleRate);
 
         // Music
-        AlbumTitle,
-        AlbumArtist,
-        ContributingArtist,
-        Composer,
-        Conductor,
-        Lyrics,
-        Mood,
-        TrackNumber,
-        TrackCount,
+        Q_DECLARE_METADATA(AlbumTitle);
+        Q_DECLARE_METADATA(AlbumArtist);
+        Q_DECLARE_METADATA(ContributingArtist);
+        Q_DECLARE_METADATA(Composer);
+        Q_DECLARE_METADATA(Conductor);
+        Q_DECLARE_METADATA(Lyrics);
+        Q_DECLARE_METADATA(Mood);
+        Q_DECLARE_METADATA(TrackNumber);
+        Q_DECLARE_METADATA(TrackCount);
 
-        CoverArtUrlSmall,
-        CoverArtUrlLarge,
+        Q_DECLARE_METADATA(CoverArtUrlSmall);
+        Q_DECLARE_METADATA(CoverArtUrlLarge);
 
         // Image/Video
-        Resolution,
-        PixelAspectRatio,
+        Q_DECLARE_METADATA(Resolution);
+        Q_DECLARE_METADATA(PixelAspectRatio);
 
         // Video
-        VideoFrameRate,
-        VideoBitRate,
-        VideoCodec,
+        Q_DECLARE_METADATA(VideoFrameRate);
+        Q_DECLARE_METADATA(VideoBitRate);
+        Q_DECLARE_METADATA(VideoCodec);
 
-        PosterUrl,
+        Q_DECLARE_METADATA(PosterUrl);
 
         // Movie
-        ChapterNumber,
-        Director,
-        LeadPerformer,
-        Writer,
+        Q_DECLARE_METADATA(ChapterNumber);
+        Q_DECLARE_METADATA(Director);
+        Q_DECLARE_METADATA(LeadPerformer);
+        Q_DECLARE_METADATA(Writer);
 
         // Photos
-        CameraManufacturer,
-        CameraModel,
-        Event,
-        Subject,
-        Orientation,
-        ExposureTime,
-        FNumber,
-        ExposureProgram,
-        ISOSpeedRatings,
-        ExposureBiasValue,
-        DateTimeOriginal,
-        DateTimeDigitized,
-        SubjectDistance,
-        MeteringMode,
-        LightSource,
-        Flash,
-        FocalLength,
-        ExposureMode,
-        WhiteBalance,
-        DigitalZoomRatio,
-        FocalLengthIn35mmFilm,
-        SceneCaptureType,
-        GainControl,
-        Contrast,
-        Saturation,
-        Sharpness,
-        DeviceSettingDescription,
+        Q_DECLARE_METADATA(CameraManufacturer);
+        Q_DECLARE_METADATA(CameraModel);
+        Q_DECLARE_METADATA(Event);
+        Q_DECLARE_METADATA(Subject);
+        Q_DECLARE_METADATA(Orientation);
+        Q_DECLARE_METADATA(ExposureTime);
+        Q_DECLARE_METADATA(FNumber);
+        Q_DECLARE_METADATA(ExposureProgram);
+        Q_DECLARE_METADATA(ISOSpeedRatings);
+        Q_DECLARE_METADATA(ExposureBiasValue);
+        Q_DECLARE_METADATA(DateTimeOriginal);
+        Q_DECLARE_METADATA(DateTimeDigitized);
+        Q_DECLARE_METADATA(SubjectDistance);
+        Q_DECLARE_METADATA(MeteringMode);
+        Q_DECLARE_METADATA(LightSource);
+        Q_DECLARE_METADATA(Flash);
+        Q_DECLARE_METADATA(FocalLength);
+        Q_DECLARE_METADATA(ExposureMode);
+        Q_DECLARE_METADATA(WhiteBalance);
+        Q_DECLARE_METADATA(DigitalZoomRatio);
+        Q_DECLARE_METADATA(FocalLengthIn35mmFilm);
+        Q_DECLARE_METADATA(SceneCaptureType);
+        Q_DECLARE_METADATA(GainControl);
+        Q_DECLARE_METADATA(Contrast);
+        Q_DECLARE_METADATA(Saturation);
+        Q_DECLARE_METADATA(Sharpness);
+        Q_DECLARE_METADATA(DeviceSettingDescription);
 
-        PosterImage,
-        CoverArtImage,
-        ThumbnailImage
-
-    };
+        Q_DECLARE_METADATA(PosterImage);
+        Q_DECLARE_METADATA(CoverArtImage);
+        Q_DECLARE_METADATA(ThumbnailImage);
+    }
 
     enum SupportEstimate
     {
@@ -189,11 +190,12 @@ namespace QtMultimedia
 
 }
 
+#undef Q_DECLARE_METADATA
+
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QtMultimedia::AvailabilityError)
 Q_DECLARE_METATYPE(QtMultimedia::SupportEstimate)
-Q_DECLARE_METATYPE(QtMultimedia::MetaData)
 Q_DECLARE_METATYPE(QtMultimedia::EncodingMode)
 Q_DECLARE_METATYPE(QtMultimedia::EncodingQuality)
 
