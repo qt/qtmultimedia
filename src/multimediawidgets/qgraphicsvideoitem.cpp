@@ -175,7 +175,6 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
 
     \inmodule QtMultimedia
     \ingroup multimedia
-    \since 1.0
 
     Attaching a QGraphicsVideoItem to a QMediaObject allows it to display
     the video or image output of that media object.  A QGraphicsVideoItem
@@ -227,7 +226,6 @@ QGraphicsVideoItem::~QGraphicsVideoItem()
     \property QGraphicsVideoItem::mediaObject
     \brief the media object which provides the video displayed by a graphics
     item.
-    \since 1.0
 */
 
 QMediaObject *QGraphicsVideoItem::mediaObject() const
@@ -237,7 +235,6 @@ QMediaObject *QGraphicsVideoItem::mediaObject() const
 
 /*!
   \internal
-  \since 1.0
 */
 bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
 {
@@ -283,7 +280,6 @@ bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
 /*!
     \property QGraphicsVideoItem::aspectRatioMode
     \brief how a video is scaled to fit the graphics item's size.
-    \since 1.0
 */
 
 Qt::AspectRatioMode QGraphicsVideoItem::aspectRatioMode() const
@@ -305,7 +301,6 @@ void QGraphicsVideoItem::setAspectRatioMode(Qt::AspectRatioMode mode)
 
     QGraphicsVideoItem will draw video using the offset for its top left
     corner.
-    \since 1.0
 */
 
 QPointF QGraphicsVideoItem::offset() const
@@ -327,7 +322,6 @@ void QGraphicsVideoItem::setOffset(const QPointF &offset)
 
     QGraphicsVideoItem will draw video scaled to fit size according to its
     fillMode.
-    \since 1.0
 */
 
 QSizeF QGraphicsVideoItem::size() const
@@ -346,7 +340,6 @@ void QGraphicsVideoItem::setSize(const QSizeF &size)
 /*!
     \property QGraphicsVideoItem::nativeSize
     \brief the native size of the video.
-    \since 1.0
 */
 
 QSizeF QGraphicsVideoItem::nativeSize() const
@@ -358,12 +351,10 @@ QSizeF QGraphicsVideoItem::nativeSize() const
     \fn QGraphicsVideoItem::nativeSizeChanged(const QSizeF &size)
 
     Signals that the native \a size of the video has changed.
-    \since 1.0
 */
 
 /*!
     \reimp
-    \since 1.0
 */
 QRectF QGraphicsVideoItem::boundingRect() const
 {
@@ -372,7 +363,6 @@ QRectF QGraphicsVideoItem::boundingRect() const
 
 /*!
     \reimp
-    \since 1.0
 */
 void QGraphicsVideoItem::paint(
         QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -409,7 +399,6 @@ void QGraphicsVideoItem::paint(
     \reimp
 
     \internal
-    \since 1.0
 */
 QVariant QGraphicsVideoItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
@@ -418,7 +407,6 @@ QVariant QGraphicsVideoItem::itemChange(GraphicsItemChange change, const QVarian
 
 /*!
   \internal
-    \since 1.0
 */
 void QGraphicsVideoItem::timerEvent(QTimerEvent *event)
 {

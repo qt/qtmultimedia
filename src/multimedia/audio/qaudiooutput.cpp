@@ -56,7 +56,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup  multimedia
-    \since 1.0
 
     You can construct an audio output with the system's
     \l{QAudioDeviceInfo::defaultOutputDevice()}{default audio output
@@ -119,7 +118,6 @@ QT_BEGIN_NAMESPACE
     Construct a new audio output and attach it to \a parent.
     The default audio output device is used with the output
     \a format parameters.
-    \since 1.0
 */
 QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent):
     QObject(parent)
@@ -133,7 +131,6 @@ QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent):
     Construct a new audio output and attach it to \a parent.
     The device referenced by \a audioDevice is used with the output
     \a format parameters.
-    \since 1.0
 */
 QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
@@ -156,7 +153,6 @@ QAudioOutput::~QAudioOutput()
 /*!
     Returns the QAudioFormat being used.
 
-    \since 1.0
 */
 QAudioFormat QAudioOutput::format() const
 {
@@ -175,7 +171,6 @@ QAudioFormat QAudioOutput::format() const
     If a problem occurs during this process the error() is set to QAudio::OpenError,
     state() is set to QAudio::StoppedState and stateChanged() signal is emitted.
 
-    \since 1.0
     \sa QIODevice
 */
 void QAudioOutput::start(QIODevice* device)
@@ -194,7 +189,6 @@ void QAudioOutput::start(QIODevice* device)
     If a problem occurs during this process the error() is set to QAudio::OpenError,
     state() is set to QAudio::StoppedState and stateChanged() signal is emitted.
 
-    \since 1.0
     \sa QIODevice
 */
 QIODevice* QAudioOutput::start()
@@ -207,7 +201,6 @@ QIODevice* QAudioOutput::start()
 
     Sets error() to QAudio::NoError, state() to QAudio::StoppedState and
     emit stateChanged() signal.
-    \since 1.0
 */
 void QAudioOutput::stop()
 {
@@ -217,7 +210,6 @@ void QAudioOutput::stop()
 /*!
     Drops all audio data in the buffers, resets buffers to zero.
 
-    \since 1.0
 */
 void QAudioOutput::reset()
 {
@@ -229,7 +221,6 @@ void QAudioOutput::reset()
 
     Sets error() to QAudio::NoError, state() to QAudio::SuspendedState and
     emits stateChanged() signal.
-    \since 1.0
 */
 void QAudioOutput::suspend()
 {
@@ -243,7 +234,6 @@ void QAudioOutput::suspend()
     Sets state() to QAudio::ActiveState if you previously called start(QIODevice*).
     Sets state() to QAudio::IdleState if you previously called start().
     emits stateChanged() signal.
-    \since 1.0
 */
 void QAudioOutput::resume()
 {
@@ -255,7 +245,6 @@ void QAudioOutput::resume()
 
     \note The returned value is only valid while in QAudio::ActiveState or QAudio::IdleState
     state, otherwise returns zero.
-    \since 1.0
 */
 int QAudioOutput::bytesFree() const
 {
@@ -268,7 +257,6 @@ int QAudioOutput::bytesFree() const
 
     \note It is recommended to provide at least enough data for a full period with each
     write operation.
-    \since 1.0
 */
 int QAudioOutput::periodSize() const
 {
@@ -282,7 +270,6 @@ int QAudioOutput::periodSize() const
     are ignored after start(). It should not be assumed that the buffer size
     set is the actual buffer size used - call bufferSize() anytime after start()
     to return the actual buffer size being used.
-    \since 1.0
 */
 void QAudioOutput::setBufferSize(int value)
 {
@@ -297,7 +284,6 @@ void QAudioOutput::setBufferSize(int value)
     If called after start(), returns the actual buffer size being used. This may not be what was set previously
     by setBufferSize().
 
-    \since 1.0
 */
 int QAudioOutput::bufferSize() const
 {
@@ -311,7 +297,6 @@ int QAudioOutput::bufferSize() const
     The minimum resolution of the timer is platform specific and values
     should be checked with notifyInterval() to confirm the actual value
     being used.
-    \since 1.0
 */
 void QAudioOutput::setNotifyInterval(int ms)
 {
@@ -320,7 +305,6 @@ void QAudioOutput::setNotifyInterval(int ms)
 
 /*!
     Returns the notify interval in milliseconds.
-    \since 1.0
 */
 int QAudioOutput::notifyInterval() const
 {
@@ -330,7 +314,6 @@ int QAudioOutput::notifyInterval() const
 /*!
     Returns the amount of audio data processed since start()
     was called (in microseconds).
-    \since 1.0
 */
 qint64 QAudioOutput::processedUSecs() const
 {
@@ -340,7 +323,6 @@ qint64 QAudioOutput::processedUSecs() const
 /*!
     Returns the microseconds since start() was called, including time in Idle and
     Suspend states.
-    \since 1.0
 */
 qint64 QAudioOutput::elapsedUSecs() const
 {
@@ -349,7 +331,6 @@ qint64 QAudioOutput::elapsedUSecs() const
 
 /*!
     Returns the error state.
-    \since 1.0
 */
 QAudio::Error QAudioOutput::error() const
 {
@@ -358,7 +339,6 @@ QAudio::Error QAudioOutput::error() const
 
 /*!
     Returns the state of audio processing.
-    \since 1.0
 */
 QAudio::State QAudioOutput::state() const
 {
@@ -368,7 +348,6 @@ QAudio::State QAudioOutput::state() const
 /*!
     Sets the volume.
     Where \a volume is between 0.0 and 1.0 inclusive.
-    \since 5.0
 */
 void QAudioOutput::setVolume(qreal volume)
 {
@@ -377,7 +356,6 @@ void QAudioOutput::setVolume(qreal volume)
 
 /*!
     Returns the volume between 0.0 and 1.0 inclusive.
-    \since 5.0
 */
 qreal QAudioOutput::volume() const
 {
@@ -388,7 +366,6 @@ qreal QAudioOutput::volume() const
     \fn QAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
     This is the current state of the audio output.
-    \since 1.0
 */
 
 /*!
@@ -396,7 +373,6 @@ qreal QAudioOutput::volume() const
     This signal is emitted when a certain interval of milliseconds
     of audio data has been processed.  The interval is set by
     setNotifyInterval().
-    \since 1.0
 */
 
 QT_END_NAMESPACE

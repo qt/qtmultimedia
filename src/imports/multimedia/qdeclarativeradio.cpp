@@ -45,7 +45,6 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass Radio QDeclarativeRadio
-    \since 5.0.0
     \brief The Radio element allows you to access radio functionality from a QML application.
     \ingroup qml-multimedia
     \inherits Item

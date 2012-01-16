@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
     \brief The QMediaNetworkAccessControl class allows the setting of the Network Access Point for media related activities.
     \ingroup multimedia-serv
     \inmodule QtMultimedia
-    \since 1.2
 
     The functionality provided by this control allows the
     setting of a Network Access Point.
@@ -79,7 +78,6 @@ QMediaNetworkAccessControl::~QMediaNetworkAccessControl()
     It is assumed the list is given in highest to lowest preference order.
     By calling this function all previous configurations will be invalidated
     and replaced with the new list.
-    \since 1.2
 */
 
 /*
@@ -94,7 +92,6 @@ QMediaNetworkAccessControl::~QMediaNetworkAccessControl()
     \fn QMediaNetworkAccessControl::configurationChanged(const QNetworkConfiguration &configuration)
     This signal is emitted when the current active network configuration changes
     to \a configuration.
-    \since 1.2
 */
 
 

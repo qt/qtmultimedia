@@ -51,7 +51,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
     If a QMediaService supports writing encoded data it will implement
     QMediaContainerControl.  This control provides information about the output
@@ -97,28 +96,24 @@ QMediaContainerControl::~QMediaContainerControl()
     \fn QMediaContainerControl::supportedContainers() const
 
     Returns a list of MIME types of supported container formats.
-    \since 1.0
 */
 
 /*!
     \fn QMediaContainerControl::containerMimeType() const
 
     Returns the MIME type of the selected container format.
-    \since 1.0
 */
 
 /*!
     \fn QMediaContainerControl::setContainerMimeType(const QString &mimeType)
 
     Sets the current container format to the format identified by the given \a mimeType.
-    \since 1.0
 */
 
 /*!
     \fn QMediaContainerControl::containerDescription(const QString &mimeType) const
 
     Returns a description of the container format identified by the given \a mimeType.
-    \since 1.0
 */
 
 #include "moc_qmediacontainercontrol.cpp"

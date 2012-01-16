@@ -59,7 +59,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup camera
-    \since 1.1
 
 */
 
@@ -189,7 +188,6 @@ QCameraExposure::~QCameraExposure()
 
 /*!
     Returns true if exposure settings are supported by this camera.
-    \since 1.1
 */
 bool QCameraExposure::isAvailable() const
 {
@@ -205,7 +203,6 @@ bool QCameraExposure::isAvailable() const
   but some non conflicting flags combination are also allowed,
   like QCameraExposure::FlashManual | QCameraExposure::FlashSlowSyncRearCurtain.
 
-  \since 1.1
   \sa QCameraExposure::isFlashModeSupported(), QCameraExposure::isFlashReady()
 */
 
@@ -222,7 +219,6 @@ void QCameraExposure::setFlashMode(QCameraExposure::FlashModes mode)
 
 /*!
     Returns true if the flash \a mode is supported.
-    \since 1.1
 */
 
 bool QCameraExposure::isFlashModeSupported(QCameraExposure::FlashModes mode) const
@@ -244,7 +240,6 @@ bool QCameraExposure::isFlashReady() const
   \property QCameraExposure::exposureMode
   \brief The exposure mode being used.
 
-  \since 1.1
   \sa QCameraExposure::isExposureModeSupported()
 */
 
@@ -261,7 +256,6 @@ void QCameraExposure::setExposureMode(QCameraExposure::ExposureMode mode)
 
 /*!
     Returns true if the exposure \a mode is supported.
-    \since 1.1
 */
 
 bool QCameraExposure::isExposureModeSupported(QCameraExposure::ExposureMode mode) const
@@ -275,7 +269,6 @@ bool QCameraExposure::isExposureModeSupported(QCameraExposure::ExposureMode mode
   \brief Exposure compensation in EV units.
 
   Exposure compensation property allows to adjust the automatically calculated exposure.
-  \since 1.1
 */
 
 qreal QCameraExposure::exposureCompensation() const
@@ -296,7 +289,6 @@ void QCameraExposure::setExposureCompensation(qreal ev)
   \property QCameraExposure::meteringMode
   \brief The metering mode being used.
 
-  \since 1.1
   \sa QCameraExposure::isMeteringModeSupported()
 */
 
@@ -323,7 +315,6 @@ void QCameraExposure::setMeteringMode(QCameraExposure::MeteringMode mode)
   which is typically the default spot metering point.
 
   The spot metering point is only used with spot metering mode.
-  \since 1.1
  */
 
 QPointF QCameraExposure::spotMeteringPoint() const
@@ -340,7 +331,6 @@ void QCameraExposure::setSpotMeteringPoint(const QPointF &point)
 
 /*!
     Returns true if the metering \a mode is supported.
-    \since 1.1
 */
 bool QCameraExposure::isMeteringModeSupported(QCameraExposure::MeteringMode mode) const
 {
@@ -360,7 +350,6 @@ int QCameraExposure::isoSensitivity() const
 
     If the camera supports arbitrary ISO sensitivities within the supported range,
     *\a continuous is set to true, otherwise *\a continuous is set to false.
-    \since 1.1
 */
 QList<int> QCameraExposure::supportedIsoSensitivities(bool *continuous) const
 {
@@ -390,7 +379,6 @@ QList<int> QCameraExposure::supportedIsoSensitivities(bool *continuous) const
 /*!
     \fn QCameraExposure::setManualIsoSensitivity(int iso)
     Sets the manual sensitivity to \a iso
-    \since 1.1
 */
 
 void QCameraExposure::setManualIsoSensitivity(int iso)
@@ -402,7 +390,6 @@ void QCameraExposure::setManualIsoSensitivity(int iso)
 /*!
      \fn QCameraExposure::setAutoIsoSensitivity()
      Turn on auto sensitivity
-    \since 1.1
 */
 
 void QCameraExposure::setAutoIsoSensitivity()
@@ -415,7 +402,6 @@ void QCameraExposure::setAutoIsoSensitivity()
     \property QCameraExposure::shutterSpeed
     \brief Camera's shutter speed in seconds.
 
-    \since 1.1
     \sa supportedShutterSpeeds(), setAutoShutterSpeed(), setManualShutterSpeed()
 */
 
@@ -423,7 +409,6 @@ void QCameraExposure::setAutoIsoSensitivity()
     \fn QCameraExposure::shutterSpeedChanged(qreal speed)
 
     Signals that a camera's shutter \a speed has changed.
-    \since 1.1
 */
 
 /*!
@@ -431,14 +416,12 @@ void QCameraExposure::setAutoIsoSensitivity()
     \brief The sensor ISO sensitivity.
 
     \sa supportedIsoSensitivities(), setAutoIsoSensitivity(), setManualIsoSensitivity()
-    \since 1.1
 */
 
 /*!
     \property QCameraExposure::aperture
     \brief Lens aperture is specified as an F number, the ratio of the focal length to effective aperture diameter.
 
-    \since 1.1
     \sa supportedApertures(), setAutoAperture(), setManualAperture()
 */
 
@@ -458,7 +441,6 @@ qreal QCameraExposure::aperture() const
 
     If the camera supports arbitrary aperture values within the supported range,
     *\a continuous is set to true, otherwise *\a continuous is set to false.
-    \since 1.1
 */
 QList<qreal> QCameraExposure::supportedApertures(bool * continuous) const
 {
@@ -488,7 +470,6 @@ QList<qreal> QCameraExposure::supportedApertures(bool * continuous) const
 /*!
     \fn QCameraExposure::setManualAperture(qreal aperture)
     Sets the manual camera \a aperture value.
-    \since 1.1
 */
 
 void QCameraExposure::setManualAperture(qreal aperture)
@@ -500,7 +481,6 @@ void QCameraExposure::setManualAperture(qreal aperture)
 /*!
     \fn QCameraExposure::setAutoAperture()
     Turn on auto aperture
-    \since 1.1
 */
 
 void QCameraExposure::setAutoAperture()
@@ -511,7 +491,6 @@ void QCameraExposure::setAutoAperture()
 
 /*!
     Returns the current shutter speed in seconds.
-    \since 1.1
 */
 
 qreal QCameraExposure::shutterSpeed() const
@@ -527,7 +506,6 @@ qreal QCameraExposure::shutterSpeed() const
 
     If the camera supports arbitrary shutter speed values within the supported range,
     *\a continuous is set to true, otherwise *\a continuous is set to false.
-    \since 1.1
 */
 QList<qreal> QCameraExposure::supportedShutterSpeeds(bool *continuous) const
 {
@@ -556,7 +534,6 @@ QList<qreal> QCameraExposure::supportedShutterSpeeds(bool *continuous) const
 
 /*!
     Set the manual shutter speed to \a seconds
-    \since 1.1
 */
 
 void QCameraExposure::setManualShutterSpeed(qreal seconds)
@@ -567,7 +544,6 @@ void QCameraExposure::setManualShutterSpeed(qreal seconds)
 
 /*!
     Turn on auto shutter speed
-    \since 1.1
 */
 
 void QCameraExposure::setAutoShutterSpeed()
@@ -622,28 +598,24 @@ void QCameraExposure::setAutoShutterSpeed()
 /*!
     \property QCameraExposure::flashReady
     \brief Indicates if the flash is charged and ready to use.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraExposure::flashReady(bool ready)
 
     Signal the flash \a ready status has changed.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraExposure::apertureChanged(qreal value)
 
     Signal emitted when aperature changes to \a value.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraExposure::apertureRangeChanged()
 
     Signal emitted when aperature range has changed.
-    \since 1.1
 */
 
 
@@ -651,7 +623,6 @@ void QCameraExposure::setAutoShutterSpeed()
     \fn void QCameraExposure::shutterSpeedRangeChanged()
 
     Signal emitted when the shutter speed range has changed.
-    \since 1.1
 */
 
 
@@ -659,14 +630,12 @@ void QCameraExposure::setAutoShutterSpeed()
     \fn void QCameraExposure::isoSensitivityChanged(int value)
 
     Signal emitted when sensitivity changes to \a value.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraExposure::exposureCompensationChanged(qreal value)
 
     Signal emitted when the exposure compensation changes to \a value.
-    \since 1.1
 */
 
 #include "moc_qcameraexposure.cpp"

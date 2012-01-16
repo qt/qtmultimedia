@@ -53,7 +53,6 @@ QT_BEGIN_NAMESPACE
     \class QMediaControl
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
 
     \brief The QMediaControl class provides a base interface for media service controls.
@@ -110,7 +109,6 @@ QMediaControl::~QMediaControl()
 
 /*!
     Constructs a media control with the given \a parent.
-    \since 1.0
 */
 
 QMediaControl::QMediaControl(QObject *parent)
@@ -122,7 +120,6 @@ QMediaControl::QMediaControl(QObject *parent)
 
 /*!
     \internal
-    \since 1.0
 */
 
 QMediaControl::QMediaControl(QMediaControlPrivate &dd, QObject *parent)

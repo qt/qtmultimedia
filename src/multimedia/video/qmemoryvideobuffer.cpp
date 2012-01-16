@@ -90,7 +90,6 @@ QMemoryVideoBuffer::~QMemoryVideoBuffer()
 
 /*!
     \reimp
-    \since 1.1
 */
 QAbstractVideoBuffer::MapMode QMemoryVideoBuffer::mapMode() const
 {
@@ -99,7 +98,6 @@ QAbstractVideoBuffer::MapMode QMemoryVideoBuffer::mapMode() const
 
 /*!
     \reimp
-    \since 1.1
 */
 uchar *QMemoryVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 {
@@ -122,7 +120,6 @@ uchar *QMemoryVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 
 /*!
     \reimp
-    \since 1.1
 */
 void QMemoryVideoBuffer::unmap()
 {

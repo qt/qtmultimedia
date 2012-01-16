@@ -46,7 +46,6 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraFlash QDeclarativeCameraFlash
-    \since 5.0
     \brief The CameraFlash element provides interface for flash related camera settings.
     \ingroup qml-multimedia
 

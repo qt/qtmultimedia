@@ -88,28 +88,24 @@ QCameraCaptureBufferFormatControl::~QCameraCaptureBufferFormatControl()
     \fn QCameraCaptureBufferFormatControl::supportedBufferFormats() const
 
     Returns the list of the supported buffer capture formats.
-    \since 1.2
 */
 
 /*!
     \fn QCameraCaptureBufferFormatControl::bufferFormat() const
 
     Returns the current buffer capture format.
-    \since 1.2
 */
 
 /*!
     \fn QCameraCaptureBufferFormatControl::setBufferFormat(QVideoFrame::PixelFormat format)
 
     Sets the buffer capture \a format.
-    \since 1.2
 */
 
 /*!
     \fn QCameraCaptureBufferFormatControl::bufferFormatChanged(QVideoFrame::PixelFormat format)
 
     Signals the buffer image capture format changed to \a format.
-    \since 1.2
 */
 
 #include "moc_qcameracapturebufferformatcontrol.cpp"

@@ -53,7 +53,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
     The videoWidget() property of QVideoWidgetControl provides a pointer to a
     video widget implemented by the control's media service.  This widget is
@@ -98,28 +97,24 @@ QVideoWidgetControl::~QVideoWidgetControl()
     \fn QVideoWidgetControl::isFullScreen() const
 
     Returns true if the video is shown using the complete screen.
-    \since 1.0
 */
 
 /*!
     \fn QVideoWidgetControl::setFullScreen(bool fullScreen)
 
     Sets whether a video widget is in \a fullScreen mode.
-    \since 1.0
 */
 
 /*!
     \fn QVideoWidgetControl::fullScreenChanged(bool fullScreen)
 
     Signals that the \a fullScreen state of a video widget has changed.
-    \since 1.0
 */
 
 /*!
     \fn QVideoWidgetControl::aspectRatioMode() const
 
     Returns how video is scaled to fit the widget with respect to its aspect ratio.
-    \since 1.0
 */
 
 /*!
@@ -127,7 +122,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
 
     Sets the aspect ratio \a mode which determines how video is scaled to the fit the widget with
     respect to its aspect ratio.
-    \since 1.0
 */
 
 /*!
@@ -136,7 +130,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Returns the brightness adjustment applied to a video.
 
     Valid brightness values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 /*!
@@ -145,14 +138,12 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Sets a \a brightness adjustment for a video.
 
     Valid brightness values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 /*!
     \fn QVideoWidgetControl::brightnessChanged(int brightness)
 
     Signals that a video widget's \a brightness adjustment has changed.
-    \since 1.0
 */
 
 /*!
@@ -161,7 +152,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Returns the contrast adjustment applied to a video.
 
     Valid contrast values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 /*!
@@ -170,7 +160,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Sets the contrast adjustment for a video widget to \a contrast.
 
     Valid contrast values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 
@@ -178,7 +167,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     \fn QVideoWidgetControl::contrastChanged(int contrast)
 
     Signals that a video widget's \a contrast adjustment has changed.
-    \since 1.0
 */
 
 /*!
@@ -187,7 +175,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Returns the hue adjustment applied to a video widget.
 
     Value hue values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 /*!
@@ -196,7 +183,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Sets a \a hue adjustment for a video widget.
 
     Valid hue values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 
@@ -204,7 +190,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     \fn QVideoWidgetControl::hueChanged(int hue)
 
     Signals that a video widget's \a hue adjustment has changed.
-    \since 1.0
 */
 
 /*!
@@ -213,7 +198,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Returns the saturation adjustment applied to a video widget.
 
     Value saturation values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 
@@ -223,21 +207,18 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Sets a \a saturation adjustment for a video widget.
 
     Valid saturation values range between -100 and 100, the default is 0.
-    \since 1.0
 */
 
 /*!
     \fn QVideoWidgetControl::saturationChanged(int saturation)
 
     Signals that a video widget's \a saturation adjustment has changed.
-    \since 1.0
 */
 
 /*!
     \fn QVideoWidgetControl::videoWidget()
 
     Returns the QWidget.
-    \since 1.0
 */
 
 #include "moc_qvideowidgetcontrol.cpp"

@@ -65,7 +65,6 @@ QT_BEGIN_NAMESPACE
     \brief The QMediaPlayer class allows the playing of a media source.
     \inmodule QtMultimedia
     \ingroup multimedia
-    \since 1.0
 
 
 
@@ -265,7 +264,6 @@ static QMediaService *playerService(QMediaPlayer::Flags flags, QMediaServiceProv
     parented to \a parent and with \a flags.
 
     If a playback service is not specified the system default will be used.
-    \since 1.0
 */
 
 QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags, QMediaServiceProvider *provider):
@@ -345,7 +343,6 @@ QMediaContent QMediaPlayer::media() const
 
     This is only valid if a stream was passed to setMedia().
 
-    \since 1.0
     \sa setMedia()
 */
 
@@ -407,7 +404,6 @@ void QMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
     configuration  that can be used for network access.
 
     This will invalidate the choice of previous configurations.
-    \since 1.2
 */
 void QMediaPlayer::setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations)
 {
@@ -524,7 +520,6 @@ qreal QMediaPlayer::playbackRate() const
 
 /*!
     Returns the current error state.
-    \since 1.0
 */
 
 QMediaPlayer::Error QMediaPlayer::error() const
@@ -542,7 +537,6 @@ QString QMediaPlayer::errorString() const
     If a default contructed QNetworkConfiguration is returned
     this feature is not available or that none of the
     current supplied configurations are in use.
-    \since 1.2
 */
 QNetworkConfiguration QMediaPlayer::currentNetworkConfiguration() const
 {
@@ -557,7 +551,6 @@ QNetworkConfiguration QMediaPlayer::currentNetworkConfiguration() const
 //public Q_SLOTS:
 /*!
     Start or resume playing the current source.
-    \since 1.0
 */
 
 void QMediaPlayer::play()
@@ -584,7 +577,6 @@ void QMediaPlayer::play()
 
 /*!
     Pause playing the current source.
-    \since 1.0
 */
 
 void QMediaPlayer::pause()
@@ -597,7 +589,6 @@ void QMediaPlayer::pause()
 
 /*!
     Stop playing, and reset the play position to the beginning.
-    \since 1.0
 */
 
 void QMediaPlayer::stop()
@@ -660,7 +651,6 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     Setting the media to a null QMediaContent will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
     to that media.
-    \since 1.0
 */
 
 void QMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
@@ -676,7 +666,6 @@ void QMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
 
 /*!
     \internal
-    \since 1.0
 */
 
 bool QMediaPlayer::bind(QObject *obj)
@@ -686,7 +675,6 @@ bool QMediaPlayer::bind(QObject *obj)
 
 /*!
     \internal
-    \since 1.0
 */
 
 void QMediaPlayer::unbind(QObject *obj)
@@ -699,7 +687,6 @@ void QMediaPlayer::unbind(QObject *obj)
 
     The \a flags argument allows additional requirements such as performance indicators to be
     specified.
-    \since 1.0
 */
 QtMultimedia::SupportEstimate QMediaPlayer::hasSupport(const QString &mimeType,
                                                const QStringList& codecs,
@@ -722,7 +709,6 @@ QtMultimedia::SupportEstimate QMediaPlayer::hasSupport(const QString &mimeType,
     given mime type is not guaranteed even if the mime type is in general supported.  In addition, in some
     cases this function will need to load all available media plugins and query them for their support, which
     may take some time.
-    \since 1.0
 */
 QStringList QMediaPlayer::supportedMimeTypes(Flags flags)
 {
@@ -737,7 +723,6 @@ QStringList QMediaPlayer::supportedMimeTypes(Flags flags)
 
     If the media player has already video output attached,
     it will be replaced with a new one.
-    \since 1.0
 */
 void QMediaPlayer::setVideoOutput(QVideoWidget *output)
 {
@@ -759,7 +744,6 @@ void QMediaPlayer::setVideoOutput(QVideoWidget *output)
 
     If the media player has already video output attached,
     it will be replaced with a new one.
-    \since 1.0
 */
 void QMediaPlayer::setVideoOutput(QGraphicsVideoItem *output)
 {
@@ -780,7 +764,6 @@ void QMediaPlayer::setVideoOutput(QGraphicsVideoItem *output)
 
     If a video output has already been set on the media player the new surface
     will replace it.
-    \since 1.2
 */
 
 void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
@@ -850,14 +833,12 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     Signals that an \a error condition has occurred.
 
-    \since 1.0
     \sa errorString()
 */
 
 /*!
     \fn void QMediaPlayer::stateChanged(State state)
 
-    \since 1.0
     Signal the \a state of the Player object has changed.
 */
 
@@ -866,7 +847,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     Signals that the \a status of the current media has changed.
 
-    \since 1.0
     \sa mediaStatus()
 */
 
@@ -875,7 +855,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     Signals that the current playing content will be obtained from \a media.
 
-    \since 1.0
     \sa media()
 */
 
@@ -883,14 +862,12 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     \fn void QMediaPlayer::playbackRateChanged(qreal rate);
 
     Signals the playbackRate has changed to \a rate.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaPlayer::seekableChanged(bool seekable);
 
     Signals the \a seekable status of the player object has changed.
-    \since 1.0
 */
 
 // Properties
@@ -900,7 +877,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     By default this property is QMediaPlayer::Stopped
 
-    \since 1.0
     \sa mediaStatus(), play(), pause(), stop()
 */
 
@@ -908,7 +884,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     \property QMediaPlayer::error
     \brief a string describing the last error condition.
 
-    \since 1.0
     \sa error()
 */
 
@@ -925,7 +900,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     information relating to the current media source and to cease all I/O operations related
     to that media.
 
-    \since 1.0
     \sa QMediaContent
 */
 
@@ -943,7 +917,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     QMediaPlaylist::setCurrentIndex(int) instead of QMediaPlayer::setMedia(),
     otherwise the current playlist will be discarded.
 
-    \since 1.0
     \sa QMediaContent
 */
 
@@ -957,7 +930,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     By default this property is QMediaPlayer::NoMedia
 
-    \since 1.0
     \sa state
 */
 
@@ -969,7 +941,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     The value may change across the life time of the QMediaPlayer object and
     may not be available when initial playback begins, connect to the
     durationChanged() signal to receive status notifications.
-    \since 1.0
 */
 
 /*!
@@ -980,7 +951,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     the beginning of the media. Periodically changes in the position will be
     indicated with the signal positionChanged(), the interval between updates
     can be set with QMediaObject's method setNotifyInterval().
-    \since 1.0
 */
 
 /*!
@@ -989,7 +959,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     The playback volume is a linear in effect and the value can range from 0 -
     100, values outside this range will be clamped.
-    \since 1.0
 */
 
 /*!
@@ -997,7 +966,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     \brief the muted state of the current media.
 
     The value will be true if the playback volume is muted; otherwise false.
-    \since 1.0
 */
 
 /*!
@@ -1009,7 +977,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     filled before playback can resume, at which time the MediaStatus will be
     BufferedMedia.
 
-    \since 1.0
     \sa mediaStatus()
 */
 
@@ -1020,7 +987,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     As the life time of QMediaPlayer can be longer than the playback of one
     QMediaContent, this property may change over time, the
     audioAvailableChanged signal can be used to monitor it's status.
-    \since 1.0
 */
 
 /*!
@@ -1032,7 +998,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     QMediaContent, this property may change over time, the
     videoAvailableChanged signal can be used to monitor it's status.
 
-    \since 1.0
     \sa QVideoWidget, QMediaContent
 */
 
@@ -1043,7 +1008,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     If seeking is supported this property will be true; false otherwise. The
     status of this property may change across the life time of the QMediaPlayer
     object, use the seekableChanged signal to monitor changes.
-    \since 1.0
 */
 
 /*!
@@ -1059,14 +1023,12 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     Not all playback services support change of the playback rate. It is
     framework defined as to the status and quality of audio and video
     while fast forwarding or rewinding.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaPlayer::durationChanged(qint64 duration)
 
     Signal the duration of the content has changed to \a duration, expressed in milliseconds.
-    \since 1.0
 */
 
 /*!
@@ -1074,49 +1036,42 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     Signal the position of the content has changed to \a position, expressed in
     milliseconds.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaPlayer::volumeChanged(int volume)
 
     Signal the playback volume has changed to \a volume.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaPlayer::mutedChanged(bool muted)
 
     Signal the mute state has changed to \a muted.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaPlayer::videoAvailableChanged(bool videoAvailable)
 
     Signal the availability of visual content has changed to \a videoAvailable.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaPlayer::audioAvailableChanged(bool available)
 
     Signals the availability of audio content has changed to \a available.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaPlayer::bufferStatusChanged(int percentFilled)
 
     Signal the amount of the local buffer filled as a percentage by \a percentFilled.
-    \since 1.0
 */
 
 /*!
    \fn void QMediaPlayer::networkConfigurationChanged(const QNetworkConfiguration &configuration)
 
     Signal that the active in use network access point  has been changed to \a configuration and all subsequent network access will use this \a configuration.
-    \since 1.2
 */
 
 /*!

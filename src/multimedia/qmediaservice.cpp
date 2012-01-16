@@ -55,7 +55,6 @@ QT_BEGIN_NAMESPACE
     service implementations.
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
 
     Media services provide implementations of the functionality promised
@@ -122,7 +121,6 @@ QMediaService::~QMediaService()
 
     Controls must be returned to the service when no longer needed using the
     releaseControl() function.
-    \since 1.0
 */
 
 /*!
@@ -135,14 +133,12 @@ QMediaService::~QMediaService()
 
     Controls must be returned to the service when no longer needed using the
     releaseControl() function.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaService::releaseControl(QMediaControl *control);
 
     Releases a \a control back to the service.
-    \since 1.0
 */
 
 #include "moc_qmediaservice.cpp"

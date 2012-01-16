@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
     \class QMediaPlaylistSourceControl
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
 
     \brief The QMediaPlaylistSourceControl class provides access to the playlist playback
@@ -102,7 +101,6 @@ QMediaPlaylistSourceControl::~QMediaPlaylistSourceControl()
 
   Returns the current playlist.
   Should return a null pointer if no playlist is assigned.
-  \since 1.0
 */
 
 /*!
@@ -112,7 +110,6 @@ QMediaPlaylistSourceControl::~QMediaPlaylistSourceControl()
   If a null pointer is passed, the playlist source should be disabled.
 
   The current media should be replaced with the current item of the media playlist.
-  \since 1.0
 */
 
 
@@ -120,7 +117,6 @@ QMediaPlaylistSourceControl::~QMediaPlaylistSourceControl()
   \fn QMediaPlaylistSourceControl::playlistChanged(QMediaPlaylist* playlist)
 
   Signal emitted when the playlist has changed to \a playlist.
-  \since 1.0
 */
 
 #include "moc_qmediaplaylistsourcecontrol.cpp"

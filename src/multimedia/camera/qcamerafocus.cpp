@@ -111,7 +111,6 @@ public:
 
     \inmodule QtMultimedia
     \ingroup camera
-    \since 1.1
 
     For cameras that support autofocusing, in order for a camera to autofocus on
     part of a sensor frame, it considers different zones within the frame.  Which
@@ -244,7 +243,6 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
 
     \inmodule QtMultimedia
     \ingroup camera
-    \since 1.1
 
     On hardware that supports it, this class lets you adjust the focus
     or zoom (both optical and digital).  This also includes things
@@ -348,7 +346,6 @@ QCameraFocus::~QCameraFocus()
     Returns true if focus related settings are supported by this camera.
 
     You may need to also check if any specific features are supported.
-    \since 1.1
 */
 bool QCameraFocus::isAvailable() const
 {
@@ -359,7 +356,6 @@ bool QCameraFocus::isAvailable() const
   \property QCameraFocus::focusMode
   \brief The current camera focus mode.
 
-  \since 1.1
 
   This controls the way the camera lens assembly is configured.
 
@@ -379,7 +375,6 @@ void QCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
 
 /*!
     Returns true if the focus \a mode is supported by camera.
-    \since 1.1
 */
 
 bool QCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
@@ -390,7 +385,6 @@ bool QCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 /*!
   \property QCameraFocus::focusPointMode
   \brief The current camera focus point selection mode.
-  \since 1.1
 
   If the camera focus mode is set to use an autofocusing mode,
   this property controls the way the camera will select areas
@@ -416,7 +410,6 @@ void QCameraFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 
 /*!
   Returns true if focus point \a mode is supported.
-  \since 1.1
  */
 bool QCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
 {
@@ -433,7 +426,6 @@ bool QCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) 
   QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
 
   The custom focus point property is used only in \c FocusPointCustom focus mode.
-  \since 1.1
  */
 
 QPointF QCameraFocus::customFocusPoint() const
@@ -462,7 +454,6 @@ void QCameraFocus::setCustomFocusPoint(const QPointF &point)
 
   The coordinates system is the same as for custom focus points:
   QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
-  \since 1.1
  */
 QCameraFocusZoneList QCameraFocus::focusZones() const
 {
@@ -475,7 +466,6 @@ QCameraFocusZoneList QCameraFocus::focusZones() const
     Returns the maximum optical zoom.
 
     This will be \c 1.0 on cameras that do not support optical zoom.
-    \since 1.1
 */
 
 qreal QCameraFocus::maximumOpticalZoom() const
@@ -487,7 +477,6 @@ qreal QCameraFocus::maximumOpticalZoom() const
     Returns the maximum digital zoom
 
     This will be \c 1.0 on cameras that do not support digital zoom.
-    \since 1.1
 */
 
 qreal QCameraFocus::maximumDigitalZoom() const
@@ -499,7 +488,6 @@ qreal QCameraFocus::maximumDigitalZoom() const
   \property QCameraFocus::opticalZoom
   \brief The current optical zoom value.
 
-  \since 1.1
   \sa QCameraFocus::digitalZoom
 */
 
@@ -512,7 +500,6 @@ qreal QCameraFocus::opticalZoom() const
   \property QCameraFocus::digitalZoom
   \brief The current digital zoom value.
 
-  \since 1.1
   \sa QCameraFocus::opticalZoom
 */
 qreal QCameraFocus::digitalZoom() const
@@ -527,7 +514,6 @@ qreal QCameraFocus::digitalZoom() const
     Since there may be a physical component to move, the change in
     zoom value may not be instantaneous.
 
-    \since 1.1
 */
 void QCameraFocus::zoomTo(qreal optical, qreal digital)
 {
@@ -563,21 +549,18 @@ void QCameraFocus::zoomTo(qreal optical, qreal digital)
     \fn void QCameraFocus::opticalZoomChanged(qreal value)
 
     Signal emitted when optical zoom value changes to new \a value.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraFocus::digitalZoomChanged(qreal value)
 
     Signal emitted when digital zoom value changes to new \a value.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraFocus::maximumOpticalZoomChanged(qreal zoom)
 
     Signal emitted when the maximum supported optical \a zoom value changed.
-    \since 1.1
 */
 
 /*!
@@ -587,7 +570,6 @@ void QCameraFocus::zoomTo(qreal optical, qreal digital)
 
     The maximum supported zoom value can depend on other camera settings,
     like capture mode or resolution.
-    \since 1.1
 */
 
 
@@ -599,7 +581,6 @@ void QCameraFocus::zoomTo(qreal optical, qreal digital)
 
   This can change when a zone is focused or loses focus, or new focus zones
   have been detected.
-  \since 1.1
 */
 
 

@@ -124,7 +124,6 @@ private:
 /*!
     \class QVideoFrame
     \brief The QVideoFrame class represents a frame of video data.
-    \since 1.0
     \inmodule QtMultimedia
 
     A QVideoFrame encapsulates the pixel data of a video frame, and information about the frame.
@@ -309,7 +308,6 @@ QVideoFrame::QVideoFrame()
     Constructs a video frame from a \a buffer with the given pixel \a format and \a size in pixels.
 
     \note This doesn't increment the reference count of the video buffer.
-    \since 1.0
 */
 QVideoFrame::QVideoFrame(
         QAbstractVideoBuffer *buffer, const QSize &size, PixelFormat format)
@@ -323,7 +321,6 @@ QVideoFrame::QVideoFrame(
 
     The \a bytesPerLine (stride) is the length of each scan line in bytes, and \a bytes is the total
     number of bytes that must be allocated for the frame.
-    \since 1.0
 */
 QVideoFrame::QVideoFrame(int bytes, const QSize &size, int bytesPerLine, PixelFormat format)
     : d(new QVideoFramePrivate(size, format))
@@ -344,7 +341,6 @@ QVideoFrame::QVideoFrame(int bytes, const QSize &size, int bytesPerLine, PixelFo
     \note This will construct an invalid video frame if there is no frame type equivalent to the
     image format.
 
-    \since 1.0
     \sa pixelFormatFromImageFormat()
 */
 QVideoFrame::QVideoFrame(const QImage &image)
@@ -359,7 +355,6 @@ QVideoFrame::QVideoFrame(const QImage &image)
     Constructs a shallow copy of \a other.  Since QVideoFrame is
     explicitly shared, these two instances will reflect the same frame.
 
-    \since 1.0
 */
 QVideoFrame::QVideoFrame(const QVideoFrame &other)
     : d(other.d)
@@ -370,7 +365,6 @@ QVideoFrame::QVideoFrame(const QVideoFrame &other)
     Assigns the contents of \a other to this video frame.  Since QVideoFrame is
     explicitly shared, these two instances will reflect the same frame.
 
-    \since 1.0
 */
 QVideoFrame &QVideoFrame::operator =(const QVideoFrame &other)
 {
@@ -392,7 +386,6 @@ QVideoFrame::~QVideoFrame()
     An invalid frame has no video buffer associated with it.
 
     Returns true if the frame is valid, and false if it is not.
-    \since 1.0
 */
 bool QVideoFrame::isValid() const
 {
@@ -401,7 +394,6 @@ bool QVideoFrame::isValid() const
 
 /*!
     Returns the color format of a video frame.
-    \since 1.0
 */
 QVideoFrame::PixelFormat QVideoFrame::pixelFormat() const
 {
@@ -411,7 +403,6 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormat() const
 /*!
     Returns the type of a video frame's handle.
 
-    \since 1.0
 */
 QAbstractVideoBuffer::HandleType QVideoFrame::handleType() const
 {
@@ -420,7 +411,6 @@ QAbstractVideoBuffer::HandleType QVideoFrame::handleType() const
 
 /*!
     Returns the dimensions of a video frame.
-    \since 1.0
 */
 QSize QVideoFrame::size() const
 {
@@ -429,7 +419,6 @@ QSize QVideoFrame::size() const
 
 /*!
     Returns the width of a video frame.
-    \since 1.0
 */
 int QVideoFrame::width() const
 {
@@ -438,7 +427,6 @@ int QVideoFrame::width() const
 
 /*!
     Returns the height of a video frame.
-    \since 1.0
 */
 int QVideoFrame::height() const
 {
@@ -449,7 +437,6 @@ int QVideoFrame::height() const
     Returns the field an interlaced video frame belongs to.
 
     If the video is not interlaced this will return WholeFrame.
-    \since 1.0
 */
 QVideoFrame::FieldType QVideoFrame::fieldType() const
 {
@@ -458,7 +445,6 @@ QVideoFrame::FieldType QVideoFrame::fieldType() const
 
 /*!
     Sets the \a field an interlaced video frame belongs to.
-    \since 1.0
 */
 void QVideoFrame::setFieldType(QVideoFrame::FieldType field)
 {
@@ -474,7 +460,6 @@ void QVideoFrame::setFieldType(QVideoFrame::FieldType field)
     Returns true if the contents of the video frame are mapped to system memory, and false
     otherwise.
 
-    \since 1.0
     \sa mapMode(), QAbstractVideoBuffer::MapMode
 */
 
@@ -495,7 +480,6 @@ bool QVideoFrame::isMapped() const
     Depending on the buffer implementation the changes may be persisted, or worse alter a shared
     buffer.
 
-    \since 1.0
     \sa mapMode(), QAbstractVideoBuffer::MapMode
 */
 bool QVideoFrame::isWritable() const
@@ -512,7 +496,6 @@ bool QVideoFrame::isWritable() const
     Returns true if the contents of the mapped memory were read from the video frame, and false
     otherwise.
 
-    \since 1.0
     \sa mapMode(), QAbstractVideoBuffer::MapMode
 */
 bool QVideoFrame::isReadable() const
@@ -523,7 +506,6 @@ bool QVideoFrame::isReadable() const
 /*!
     Returns the mode a video frame was mapped to system memory in.
 
-    \since 1.0
     \sa map(), QAbstractVideoBuffer::MapMode
 */
 QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
@@ -559,7 +541,6 @@ QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
 
     Returns true if the frame was mapped to memory in the given \a mode and false otherwise.
 
-    \since 1.0
     \sa unmap(), mapMode(), bits()
 */
 bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
@@ -605,7 +586,6 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
 
     unmap() should not be called if map() function failed.
 
-    \since 1.0
     \sa map()
 */
 void QVideoFrame::unmap()
@@ -639,7 +619,6 @@ void QVideoFrame::unmap()
 
     This value is only valid while the frame data is \l {map()}{mapped}.
 
-    \since 1.0
     \sa bits(), map(), mappedBytes()
 */
 int QVideoFrame::bytesPerLine() const
@@ -656,7 +635,6 @@ int QVideoFrame::bytesPerLine() const
     are only guaranteed to have been persisted when unmap() is called and when the
     buffer has been mapped for writing.
 
-    \since 1.0
     \sa map(), mappedBytes(), bytesPerLine()
 */
 uchar *QVideoFrame::bits()
@@ -672,7 +650,6 @@ uchar *QVideoFrame::bits()
     If the buffer was not mapped with read access, the contents of this
     buffer will initially be uninitialized.
 
-    \since 1.0
     \sa map(), mappedBytes(), bytesPerLine()
 */
 const uchar *QVideoFrame::bits() const
@@ -685,7 +662,6 @@ const uchar *QVideoFrame::bits() const
 
     This value is only valid while the frame data is \l {map()}{mapped}.
 
-    \since 1.0
     \sa map()
 */
 int QVideoFrame::mappedBytes() const
@@ -698,7 +674,6 @@ int QVideoFrame::mappedBytes() const
 
     For an OpenGL texture this would be the texture ID.
 
-    \since 1.0
     \sa QAbstractVideoBuffer::handle()
 */
 QVariant QVideoFrame::handle() const
@@ -711,7 +686,6 @@ QVariant QVideoFrame::handle() const
 
     An invalid time is represented as -1.
 
-    \since 1.0
 */
 qint64 QVideoFrame::startTime() const
 {
@@ -723,7 +697,6 @@ qint64 QVideoFrame::startTime() const
 
     An invalid time is represented as -1.
 
-    \since 1.0
 */
 void QVideoFrame::setStartTime(qint64 time)
 {
@@ -735,7 +708,6 @@ void QVideoFrame::setStartTime(qint64 time)
 
     An invalid time is represented as -1.
 
-    \since 1.0
 */
 qint64 QVideoFrame::endTime() const
 {
@@ -747,7 +719,6 @@ qint64 QVideoFrame::endTime() const
 
     An invalid time is represented as -1.
 
-    \since 1.0
 */
 void QVideoFrame::setEndTime(qint64 time)
 {
@@ -799,7 +770,6 @@ void QVideoFrame::setMetaData(const QString &key, const QVariant &value)
 
     \note In general \l QImage does not handle YUV formats.
 
-    \since 1.0
 */
 QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format format)
 {
@@ -829,7 +799,6 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format 
 
     \note In general \l QImage does not handle YUV formats.
 
-    \since 1.0
 */
 QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
 {

@@ -65,7 +65,6 @@ QT_BEGIN_NAMESPACE
     \class QMediaRecorder
     \inmodule QtMultimedia
     \ingroup multimedia
-    \since 1.0
 
 
     \brief The QMediaRecorder class is used for the recording of media content.
@@ -191,7 +190,6 @@ void QMediaRecorderPrivate::_q_updateNotifyInterval(int ms)
     Constructs a media recorder which records the media produced by \a mediaObject.
 
     The \a parent is passed to QMediaObject.
-    \since 1.0
 */
 
 QMediaRecorder::QMediaRecorder(QMediaObject *mediaObject, QObject *parent):
@@ -219,7 +217,6 @@ QMediaRecorder::~QMediaRecorder()
 /*!
     Returns the QMediaObject instance that this QMediaRecorder is bound too,
     or 0 otherwise.
-    \since 1.0
 */
 QMediaObject *QMediaRecorder::mediaObject() const
 {
@@ -228,7 +225,6 @@ QMediaObject *QMediaRecorder::mediaObject() const
 
 /*!
     \internal
-    \since 1.0
 */
 bool QMediaRecorder::setMediaObject(QMediaObject *object)
 {
@@ -353,12 +349,10 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
     The \a location can be relative or empty;
     in this case the recorder uses the system specific place and file naming scheme.
     After recording has stated, QMediaRecorder::outputLocation() returns the actual output location.
-    \since 1.0
 */
 
 /*!
     Returns true if media recorder service ready to use.
-    \since 1.0
 */
 bool QMediaRecorder::isAvailable() const
 {
@@ -370,7 +364,6 @@ bool QMediaRecorder::isAvailable() const
 
 /*!
     Returns the availability error code.
-    \since 1.0
 */
 QtMultimedia::AvailabilityError QMediaRecorder::availabilityError() const
 {
@@ -394,7 +387,6 @@ bool QMediaRecorder::setOutputLocation(const QUrl &location)
 /*!
     Returns the current media recorder state.
 
-    \since 1.0
     \sa QMediaRecorder::State
 */
 
@@ -406,7 +398,6 @@ QMediaRecorder::State QMediaRecorder::state() const
 /*!
     Returns the current error state.
 
-    \since 1.0
     \sa errorString()
 */
 
@@ -418,7 +409,6 @@ QMediaRecorder::Error QMediaRecorder::error() const
 /*!
     Returns a string describing the current error state.
 
-    \since 1.0
     \sa error()
 */
 
@@ -431,7 +421,6 @@ QString QMediaRecorder::errorString() const
     \property QMediaRecorder::duration
 
     \brief the recorded media duration in milliseconds.
-    \since 1.0
 */
 
 qint64 QMediaRecorder::duration() const
@@ -443,7 +432,6 @@ qint64 QMediaRecorder::duration() const
     \property QMediaRecorder::muted
 
     \brief whether a recording audio stream is muted.
-    \since 1.0
 */
 
 bool QMediaRecorder::isMuted() const
@@ -461,7 +449,6 @@ void QMediaRecorder::setMuted(bool muted)
 
 /*!
     Returns a list of MIME types of supported container formats.
-    \since 1.0
 */
 QStringList QMediaRecorder::supportedContainers() const
 {
@@ -471,7 +458,6 @@ QStringList QMediaRecorder::supportedContainers() const
 
 /*!
     Returns a description of a container format \a mimeType.
-    \since 1.0
 */
 QString QMediaRecorder::containerDescription(const QString &mimeType) const
 {
@@ -481,7 +467,6 @@ QString QMediaRecorder::containerDescription(const QString &mimeType) const
 
 /*!
     Returns the MIME type of the selected container format.
-    \since 1.0
 */
 
 QString QMediaRecorder::containerMimeType() const
@@ -492,7 +477,6 @@ QString QMediaRecorder::containerMimeType() const
 
 /*!
     Returns a list of supported audio codecs.
-    \since 1.0
 */
 QStringList QMediaRecorder::supportedAudioCodecs() const
 {
@@ -502,7 +486,6 @@ QStringList QMediaRecorder::supportedAudioCodecs() const
 
 /*!
     Returns a description of an audio \a codec.
-    \since 1.0
 */
 QString QMediaRecorder::audioCodecDescription(const QString &codec) const
 {
@@ -522,7 +505,6 @@ QString QMediaRecorder::audioCodecDescription(const QString &codec) const
     If the encoder supports arbitrary sample rates within the supported rates
     range, *\a continuous is set to true, otherwise *\a continuous is set to
     false.
-    \since 1.0
 */
 
 QList<int> QMediaRecorder::supportedAudioSampleRates(const QAudioEncoderSettings &settings, bool *continuous) const
@@ -544,7 +526,6 @@ QList<int> QMediaRecorder::supportedAudioSampleRates(const QAudioEncoderSettings
     If the encoder supports arbitrary resolutions within the supported range,
     *\a continuous is set to true, otherwise *\a continuous is set to false.
 
-    \since 1.0
     \sa QVideoEncoderSettings::resolution()
 */
 QList<QSize> QMediaRecorder::supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous) const
@@ -566,7 +547,6 @@ QList<QSize> QMediaRecorder::supportedResolutions(const QVideoEncoderSettings &s
     If the encoder supports arbitrary frame rates within the supported range,
     *\a continuous is set to true, otherwise *\a continuous is set to false.
 
-    \since 1.0
     \sa QVideoEncoderSettings::frameRate()
 */
 QList<qreal> QMediaRecorder::supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous) const
@@ -580,7 +560,6 @@ QList<qreal> QMediaRecorder::supportedFrameRates(const QVideoEncoderSettings &se
 
 /*!
     Returns a list of supported video codecs.
-    \since 1.0
 */
 QStringList QMediaRecorder::supportedVideoCodecs() const
 {
@@ -591,7 +570,6 @@ QStringList QMediaRecorder::supportedVideoCodecs() const
 /*!
     Returns a description of a video \a codec.
 
-    \since 1.0
     \sa setEncodingSettings()
 */
 QString QMediaRecorder::videoCodecDescription(const QString &codec) const
@@ -603,7 +581,6 @@ QString QMediaRecorder::videoCodecDescription(const QString &codec) const
 /*!
     Returns the audio encoder settings being used.
 
-    \since 1.0
     \sa setEncodingSettings()
 */
 
@@ -616,7 +593,6 @@ QAudioEncoderSettings QMediaRecorder::audioSettings() const
 /*!
     Returns the video encoder settings being used.
 
-    \since 1.0
     \sa setEncodingSettings()
 */
 
@@ -638,7 +614,6 @@ QVideoEncoderSettings QMediaRecorder::videoSettings() const
     It's only possible to change settings when the encoder is in the
     QMediaEncoder::StoppedState state.
 
-    \since 1.0
     \sa audioSettings(), videoSettings(), containerMimeType()
 */
 
@@ -676,7 +651,6 @@ void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
     This is an asynchronous call, with signal
     stateCahnged(QMediaRecorder::RecordingState) being emitted when recording
     started, otherwise the error() signal is emitted.
-    \since 1.0
 */
 
 void QMediaRecorder::record()
@@ -693,7 +667,6 @@ void QMediaRecorder::record()
 
 /*!
     Pause recording.
-    \since 1.0
 */
 
 void QMediaRecorder::pause()
@@ -705,7 +678,6 @@ void QMediaRecorder::pause()
 
 /*!
     Stop recording.
-    \since 1.0
 */
 
 void QMediaRecorder::stop()
@@ -735,28 +707,24 @@ void QMediaRecorder::stop()
     \fn QMediaRecorder::stateChanged(State state)
 
     Signals that a media recorder's \a state has changed.
-    \since 1.0
 */
 
 /*!
     \fn QMediaRecorder::durationChanged(qint64 duration)
 
     Signals that the \a duration of the recorded media has changed.
-    \since 1.0
 */
 
 /*!
     \fn QMediaRecorder::error(QMediaRecorder::Error error)
 
     Signals that an \a error has occurred.
-    \since 1.0
 */
 
 /*!
     \fn QMediaRecorder::mutedChanged(bool muted)
 
     Signals that the \a muted state has changed. If true the recording is being muted.
-    \since 1.0
 */
 
 /*!
@@ -764,7 +732,6 @@ void QMediaRecorder::stop()
     \brief whether access to a media object's meta-data is available.
 
     If this is true there is meta-data available, otherwise there is no meta-data available.
-    \since 1.0
 */
 
 bool QMediaRecorder::isMetaDataAvailable() const
@@ -780,7 +747,6 @@ bool QMediaRecorder::isMetaDataAvailable() const
     \fn QMediaRecorder::metaDataAvailableChanged(bool available)
 
     Signals that the \a available state of a media object's meta-data has changed.
-    \since 1.0
 */
 
 /*!
@@ -788,7 +754,6 @@ bool QMediaRecorder::isMetaDataAvailable() const
     \brief whether a media object's meta-data is writable.
 
     If this is true the meta-data is writable, otherwise the meta-data is read-only.
-    \since 1.0
 */
 
 bool QMediaRecorder::isMetaDataWritable() const
@@ -804,12 +769,10 @@ bool QMediaRecorder::isMetaDataWritable() const
     \fn QMediaRecorder::metaDataWritableChanged(bool writable)
 
     Signals that the \a writable state of a media object's meta-data has changed.
-    \since 1.0
 */
 
 /*!
     Returns the value associated with a meta-data \a key.
-    \since 1.0
 */
 QVariant QMediaRecorder::metaData(QtMultimedia::MetaData key) const
 {
@@ -825,7 +788,6 @@ QVariant QMediaRecorder::metaData(QtMultimedia::MetaData key) const
 
     \note To ensure that meta data is set corretly, it should be set before starting the recording.
     Once the recording is stopped, any meta data set will be attached to the next recording.
-    \since 1.0
 */
 void QMediaRecorder::setMetaData(QtMultimedia::MetaData key, const QVariant &value)
 {
@@ -837,7 +799,6 @@ void QMediaRecorder::setMetaData(QtMultimedia::MetaData key, const QVariant &val
 
 /*!
     Returns a list of keys there is meta-data available for.
-    \since 1.0
 */
 QList<QtMultimedia::MetaData> QMediaRecorder::availableMetaData() const
 {
@@ -852,7 +813,6 @@ QList<QtMultimedia::MetaData> QMediaRecorder::availableMetaData() const
     \fn QMediaRecorder::metaDataChanged()
 
     Signals that a media object's meta-data has changed.
-    \since 1.0
 */
 
 /*!
@@ -860,7 +820,6 @@ QList<QtMultimedia::MetaData> QMediaRecorder::availableMetaData() const
 
     The naming and type of extended meta-data is not standardized, so the values and meaning
     of keys may vary between backends.
-    \since 1.0
 */
 QVariant QMediaRecorder::extendedMetaData(const QString &key) const
 {
@@ -876,7 +835,6 @@ QVariant QMediaRecorder::extendedMetaData(const QString &key) const
 
     The naming and type of extended meta-data is not standardized, so the values and meaning
     of keys may vary between backends.
-    \since 1.0
 */
 void QMediaRecorder::setExtendedMetaData(const QString &key, const QVariant &value)
 {
@@ -888,7 +846,6 @@ void QMediaRecorder::setExtendedMetaData(const QString &key, const QVariant &val
 
 /*!
     Returns a list of keys there is extended meta-data available for.
-    \since 1.0
 */
 QStringList QMediaRecorder::availableExtendedMetaData() const
 {

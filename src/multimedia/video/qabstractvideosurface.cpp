@@ -81,7 +81,6 @@ public:
 /*!
     \class QAbstractVideoSurface
     \brief The QAbstractVideoSurface class is a base class for video presentation surfaces.
-    \since 1.0
     \inmodule QtMultimedia
 
     The QAbstractVideoSurface class defines the standard interface that video producers use to
@@ -160,14 +159,12 @@ QAbstractVideoSurface::~QAbstractVideoSurface()
     that can be mapped in read-only mode.
 
     Types that are first in the list can be assumed to be faster to render.
-    \since 1.0
 */
 
 /*!
     Tests a video surface \a format to determine if a surface can accept it.
 
     Returns true if the format is supported by the surface, and false otherwise.
-    \since 1.0
 */
 bool QAbstractVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) const
 {
@@ -185,7 +182,6 @@ bool QAbstractVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format)
 
     If the format is already supported it will be returned unchanged, or if there is no similar
     supported format an invalid format will be returned.
-    \since 1.0
 */
 QVideoSurfaceFormat QAbstractVideoSurface::nearestFormat(const QVideoSurfaceFormat &format) const
 {
@@ -199,13 +195,11 @@ QVideoSurfaceFormat QAbstractVideoSurface::nearestFormat(const QVideoSurfaceForm
 
     Signals that the set of formats supported by a video surface has changed.
 
-    \since 1.0
     \sa supportedPixelFormats(), isFormatSupported()
 */
 
 /*!
     Returns the format of a video surface.
-    \since 1.0
 */
 QVideoSurfaceFormat QAbstractVideoSurface::surfaceFormat() const
 {
@@ -218,7 +212,6 @@ QVideoSurfaceFormat QAbstractVideoSurface::surfaceFormat() const
 
     Signals that the configured \a format of a video surface has changed.
 
-    \since 1.0
     \sa surfaceFormat(), start()
 */
 
@@ -228,7 +221,6 @@ QVideoSurfaceFormat QAbstractVideoSurface::surfaceFormat() const
     Returns true if the surface was started, and false if an error occurred.
 
     \note You must call the base class implementation of start() at the end of your implementation.
-    \since 1.0
     \sa isActive(), stop()
 */
 bool QAbstractVideoSurface::start(const QVideoSurfaceFormat &format)
@@ -252,7 +244,6 @@ bool QAbstractVideoSurface::start(const QVideoSurfaceFormat &format)
     Stops a video surface presenting frames and releases any resources acquired in start().
 
     \note You must call the base class implementation of stop() at the start of your implementation.
-    \since 1.0
     \sa isActive(), start()
 */
 void QAbstractVideoSurface::stop()
@@ -271,7 +262,6 @@ void QAbstractVideoSurface::stop()
     Indicates whether a video surface has been started.
 
     Returns true if the surface has been started, and false otherwise.
-    \since 1.0
 */
 bool QAbstractVideoSurface::isActive() const
 {
@@ -284,7 +274,6 @@ bool QAbstractVideoSurface::isActive() const
 
     Signals that the \a active state of a video surface has changed.
 
-    \since 1.0
     \sa isActive(), start(), stop()
 */
 
@@ -306,7 +295,6 @@ bool QAbstractVideoSurface::isActive() const
     A video surface must be in the started state for present() to succeed, and the format of the
     video frame must be compatible with the current video surface format.
 
-    \since 1.0
     \sa error()
 */
 
@@ -315,7 +303,6 @@ bool QAbstractVideoSurface::isActive() const
 
     If a surface fails to start(), or stops unexpectedly this function can be called to discover
     what error occurred.
-    \since 1.0
 */
 
 QAbstractVideoSurface::Error QAbstractVideoSurface::error() const
@@ -329,7 +316,6 @@ QAbstractVideoSurface::Error QAbstractVideoSurface::error() const
 
     This can be called by implementors of this interface to communicate
     what the most recent error was.
-    \since 1.0
 */
 void QAbstractVideoSurface::setError(Error error)
 {
@@ -345,7 +331,6 @@ void QAbstractVideoSurface::setError(Error error)
    can render with optimal quality and/or performance.
 
    The native resolution is not always known and can be changed during playback.
-    \since 1.1
  */
 QSize QAbstractVideoSurface::nativeResolution() const
 {
@@ -358,7 +343,6 @@ QSize QAbstractVideoSurface::nativeResolution() const
 
     This function can be called by implementors of this interface to specify
     to frame producers what the native resolution of this surface is.
-    \since 1.1
  */
 void QAbstractVideoSurface::setNativeResolution(const QSize &resolution)
 {
@@ -374,7 +358,6 @@ void QAbstractVideoSurface::setNativeResolution(const QSize &resolution)
     \fn QAbstractVideoSurface::nativeResolutionChanged(const QSize &resolution);
 
     Signals the native \a resolution of video surface has changed.
-    \since 1.1
 */
 
 #ifndef QT_NO_DEBUG_STREAM

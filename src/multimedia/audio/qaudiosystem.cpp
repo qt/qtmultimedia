@@ -50,7 +50,6 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \inmodule QtMultimedia
     \internal
-    \since 1.0
 
     This class implements the audio functionality for
     QAudioDeviceInfo, i.e., QAudioDeviceInfo keeps a
@@ -66,61 +65,51 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn virtual QAudioFormat QAbstractAudioDeviceInfo::preferredFormat() const
     Returns the recommended settings to use.
-    \since 1.0
 */
 
 /*!
     \fn virtual bool QAbstractAudioDeviceInfo::isFormatSupported(const QAudioFormat& format) const
     Returns true if \a format is available from audio device.
-    \since 1.0
 */
 
 /*!
     \fn virtual QString QAbstractAudioDeviceInfo::deviceName() const
     Returns the audio device name.
-    \since 1.0
 */
 
 /*!
     \fn virtual QStringList QAbstractAudioDeviceInfo::supportedCodecs()
     Returns the list of currently available codecs.
-    \since 1.0
 */
 
 /*!
     \fn virtual QList<int> QAbstractAudioDeviceInfo::supportedSampleRates()
     Returns the list of currently available sample rates.
-    \since 1.0
 */
 
 /*!
     \fn virtual QList<int> QAbstractAudioDeviceInfo::supportedChannelCounts()
     Returns the list of currently available channels.
-    \since 1.0
 */
 
 /*!
     \fn virtual QList<int> QAbstractAudioDeviceInfo::supportedSampleSizes()
     Returns the list of currently available sample sizes.
-    \since 1.0
 */
 
 /*!
     \fn virtual QList<QAudioFormat::Endian> QAbstractAudioDeviceInfo::supportedByteOrders()
     Returns the list of currently available byte orders.
-    \since 1.0
 */
 
 /*!
     \fn virtual QList<QAudioFormat::SampleType> QAbstractAudioDeviceInfo::supportedSampleTypes()
     Returns the list of currently available sample types.
-    \since 1.0
 */
 
 /*!
     \class QAbstractAudioOutput
     \brief The QAbstractAudioOutput class is a base class for audio backends.
-    \since 1.0
 
     \ingroup multimedia
     \inmodule QtMultimedia
@@ -138,62 +127,52 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn virtual void QAbstractAudioOutput::start(QIODevice* device)
     Uses the \a device as the QIODevice to transfer data.
-    \since 1.0
 */
 
 /*!
     \fn virtual QIODevice* QAbstractAudioOutput::start()
     Returns a pointer to the QIODevice being used to handle
     the data transfer. This QIODevice can be used to write() audio data directly.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioOutput::stop()
     Stops the audio output.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioOutput::reset()
     Drops all audio data in the buffers, resets buffers to zero.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioOutput::suspend()
     Stops processing audio data, preserving buffered audio data.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioOutput::resume()
     Resumes processing audio data after a suspend()
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioOutput::bytesFree() const
     Returns the free space available in bytes in the audio buffer.
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioOutput::periodSize() const
     Returns the period size in bytes.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioOutput::setBufferSize(int value)
     Sets the audio buffer size to \a value in bytes.
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioOutput::bufferSize() const
     Returns the audio buffer size in bytes.
-    \since 1.0
 */
 
 /*!
@@ -201,82 +180,69 @@ QT_BEGIN_NAMESPACE
     Sets the interval for notify() signal to be emitted. This is based on the \a ms
     of audio data processed not on actual real-time. The resolution of the timer
     is platform specific.
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioOutput::notifyInterval() const
     Returns the notify interval in milliseconds.
-    \since 1.0
 */
 
 /*!
     \fn virtual qint64 QAbstractAudioOutput::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
-    \since 1.0
 */
 
 /*!
     \fn virtual qint64 QAbstractAudioOutput::elapsedUSecs() const
     Returns the milliseconds since start() was called, including time in Idle and suspend states.
-    \since 1.0
 */
 
 /*!
     \fn virtual QAudio::Error QAbstractAudioOutput::error() const
     Returns the error state.
-    \since 1.0
 */
 
 /*!
     \fn virtual QAudio::State QAbstractAudioOutput::state() const
     Returns the state of audio processing.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioOutput::setFormat(const QAudioFormat& fmt)
     Set the QAudioFormat to use to \a fmt.
     Setting the format is only allowable while in QAudio::StoppedState.
-    \since 1.0
 */
 
 /*!
     \fn virtual QAudioFormat QAbstractAudioOutput::format() const
     Returns the QAudioFormat being used.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioOutput::setVolume(qreal volume)
     Sets the volume.
     Where \a volume is between 0.0 and 1.0.
-    \since 5.0
 */
 
 /*!
     \fn virtual qreal QAbstractAudioOutput::volume() const
     Returns the volume in the range 0.0 and 1.0.
-    \since 5.0
 */
 
 /*!
     \fn QAbstractAudioOutput::errorChanged(QAudio::Error error)
     This signal is emitted when the \a error state has changed.
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioOutput::notify()
     This signal is emitted when x ms of audio data has been processed
     the interval set by setNotifyInterval(x).
-    \since 1.0
 */
 
 
@@ -284,7 +250,6 @@ QT_BEGIN_NAMESPACE
     \class QAbstractAudioInput
     \brief The QAbstractAudioInput class provides access for QAudioInput to access the audio
     device provided by the plugin.
-    \since 1.0
 
     \ingroup multimedia
     \inmodule QtMultimedia
@@ -302,62 +267,52 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn virtual void QAbstractAudioInput::start(QIODevice* device)
     Uses the \a device as the QIODevice to transfer data.
-    \since 1.0
 */
 
 /*!
     \fn virtual QIODevice* QAbstractAudioInput::start()
     Returns a pointer to the QIODevice being used to handle
     the data transfer. This QIODevice can be used to read() audio data directly.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioInput::stop()
     Stops the audio input.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioInput::reset()
     Drops all audio data in the buffers, resets buffers to zero.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioInput::suspend()
     Stops processing audio data, preserving buffered audio data.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioInput::resume()
     Resumes processing audio data after a suspend().
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioInput::bytesReady() const
     Returns the amount of audio data available to read in bytes.
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioInput::periodSize() const
     Returns the period size in bytes.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioInput::setBufferSize(int value)
     Sets the audio buffer size to \a value in milliseconds.
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioInput::bufferSize() const
     Returns the audio buffer size in milliseconds.
-    \since 1.0
 */
 
 /*!
@@ -365,69 +320,58 @@ QT_BEGIN_NAMESPACE
     Sets the interval for notify() signal to be emitted. This is based
     on the \a ms of audio data processed not on actual real-time.
     The resolution of the timer is platform specific.
-    \since 1.0
 */
 
 /*!
     \fn virtual int QAbstractAudioInput::notifyInterval() const
     Returns the notify interval in milliseconds.
-    \since 1.0
 */
 
 /*!
     \fn virtual qint64 QAbstractAudioInput::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
-    \since 1.0
 */
 
 /*!
     \fn virtual qint64 QAbstractAudioInput::elapsedUSecs() const
     Returns the milliseconds since start() was called, including time in Idle and suspend states.
-    \since 1.0
 */
 
 /*!
     \fn virtual QAudio::Error QAbstractAudioInput::error() const
     Returns the error state.
-    \since 1.0
 */
 
 /*!
     \fn virtual QAudio::State QAbstractAudioInput::state() const
     Returns the state of audio processing.
-    \since 1.0
 */
 
 /*!
     \fn virtual void QAbstractAudioInput::setFormat(const QAudioFormat& fmt)
     Set the QAudioFormat to use to \a fmt.
     Setting the format is only allowable while in QAudio::StoppedState.
-    \since 1.0
 */
 
 /*!
     \fn virtual QAudioFormat QAbstractAudioInput::format() const
     Returns the QAudioFormat being used
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioInput::errorChanged(QAudio::Error error)
     This signal is emitted when the \a error state has changed.
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioInput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioInput::notify()
     This signal is emitted when x ms of audio data has been processed
     the interval set by setNotifyInterval(x).
-    \since 1.0
 */
 
 

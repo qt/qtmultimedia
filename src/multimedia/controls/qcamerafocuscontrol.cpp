@@ -53,7 +53,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.1
 
     The interface name of QCameraFocusControl is \c com.nokia.Qt.QCameraFocusControl/1.0 as
     defined in QCameraFocusControl_iid.
@@ -94,7 +93,6 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn QCameraFocus::FocusMode QCameraFocusControl::focusMode() const
 
   Returns the focus mode being used.
-  \since 1.1
 */
 
 
@@ -102,7 +100,6 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn void QCameraFocusControl::setFocusMode(QCameraFocus::FocusMode mode)
 
   Set the focus mode to \a mode.
-  \since 1.1
 */
 
 
@@ -110,7 +107,6 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn bool QCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 
   Returns true if focus \a mode is supported.
-  \since 1.1
 */
 
 
@@ -118,7 +114,6 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn qreal QCameraFocusControl::maximumOpticalZoom() const
 
   Returns the maximum optical zoom value, or 1.0 if optical zoom is not supported.
-  \since 1.1
 */
 
 
@@ -126,7 +121,6 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn qreal QCameraFocusControl::maximumDigitalZoom() const
 
   Returns the maximum digital zoom value, or 1.0 if digital zoom is not supported.
-  \since 1.1
 */
 
 
@@ -134,14 +128,12 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn qreal QCameraFocusControl::opticalZoom() const
 
   Return the current optical zoom value.
-  \since 1.1
 */
 
 /*!
   \fn qreal QCameraFocusControl::digitalZoom() const
 
   Return the current digital zoom value.
-  \since 1.1
 */
 
 
@@ -149,28 +141,24 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn void QCameraFocusControl::zoomTo(qreal optical, qreal digital)
 
   Sets \a optical and \a digital zoom values.
-  \since 1.1
 */
 
 /*!
   \fn QCameraFocusControl::focusPointMode() const
 
   Returns the camera focus point selection mode.
-  \since 1.1
 */
 
 /*!
   \fn QCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 
   Sets the camera focus point selection \a mode.
-  \since 1.1
 */
 
 /*!
   \fn QCameraFocusControl::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
 
   Returns true if the camera focus point \a mode is supported.
-  \since 1.1
 */
 
 /*!
@@ -180,7 +168,6 @@ QCameraFocusControl::~QCameraFocusControl()
   QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
 
   Custom focus point is used only in FocusPointCustom focus mode.
-  \since 1.1
 */
 
 /*!
@@ -192,7 +179,6 @@ QCameraFocusControl::~QCameraFocusControl()
   it should use the nearest supported focus point,
   and return the actual focus point with QCameraFocusControl::focusZones().
 
-  \since 1.1
   \sa QCameraFocusControl::customFocusPoint(), QCameraFocusControl::focusZones()
 */
 
@@ -200,28 +186,24 @@ QCameraFocusControl::~QCameraFocusControl()
   \fn QCameraFocusControl::focusZones() const
 
   Returns the list of zones, the camera is using for focusing or focused on.
-  \since 1.1
 */
 
 /*!
     \fn void QCameraFocusControl::opticalZoomChanged(qreal zoom)
 
     Signal emitted when the optical \a zoom value changed.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraFocusControl::digitalZoomChanged(qreal zoom)
 
     Signal emitted when the digital \a zoom value changed.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraFocusControl::maximumOpticalZoomChanged(qreal zoom)
 
     Signal emitted when the maximum supported optical \a zoom value changed.
-    \since 1.1
 */
 
 /*!
@@ -231,7 +213,6 @@ QCameraFocusControl::~QCameraFocusControl()
 
     The maximum supported zoom value can depend on other camera settings,
     like capture mode or resolution.
-    \since 1.1
 */
 
 
@@ -242,7 +223,6 @@ QCameraFocusControl::~QCameraFocusControl()
 
   Usually the zones list is changed when the camera is focused.
 
-  \since 1.1
   \sa QCameraFocusControl::focusZones()
 */
 

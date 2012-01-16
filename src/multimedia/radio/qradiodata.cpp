@@ -69,7 +69,6 @@ namespace
 
     \inmodule QtMultimedia
     \ingroup multimedia
-    \since 5.0
 
     The radio data object will emit signals for any changes in radio data. You can enable or disable
     alternative frequency with setAlternativeFrequenciesEnabled().
@@ -91,7 +90,6 @@ public:
     Constructs a radio data based on a media service allocated by a media service \a provider.
 
     The \a parent is passed to QMediaObject.
-    \since 5.0
 */
 
 QRadioData::QRadioData(QObject *parent, QMediaServiceProvider* provider):
@@ -132,7 +130,6 @@ QRadioData::~QRadioData()
 
 /*!
     Returns true if the radio data service is ready to use.
-    \since 5.0
 */
 bool QRadioData::isAvailable() const
 {
@@ -146,7 +143,6 @@ bool QRadioData::isAvailable() const
 
 /*!
     Returns the availability error state.
-    \since 5.0
 */
 QtMultimedia::AvailabilityError QRadioData::availabilityError() const
 {
@@ -162,7 +158,6 @@ QtMultimedia::AvailabilityError QRadioData::availabilityError() const
     \property QRadioData::stationId
     \brief Current Program Identification
 
-    \since 5.0
 */
 
 QString QRadioData::stationId() const
@@ -178,7 +173,6 @@ QString QRadioData::stationId() const
     \property QRadioData::programType
     \brief Current Program Type
 
-    \since 5.0
 */
 
 QRadioData::ProgramType QRadioData::programType() const
@@ -195,7 +189,6 @@ QRadioData::ProgramType QRadioData::programType() const
     \property QRadioData::programTypeName
     \brief Current Program Type Name
 
-    \since 5.0
 */
 
 QString QRadioData::programTypeName() const
@@ -211,7 +204,6 @@ QString QRadioData::programTypeName() const
     \property QRadioData::stationName
     \brief Current Program Service
 
-    \since 5.0
 */
 
 QString QRadioData::stationName() const
@@ -227,7 +219,6 @@ QString QRadioData::stationName() const
     \property QRadioData::radioText
     \brief Current Radio Text
 
-    \since 5.0
 */
 
 QString QRadioData::radioText() const
@@ -243,7 +234,6 @@ QString QRadioData::radioText() const
     \property QRadioData::alternativeFrequenciesEnabled
     \brief Is Alternative Frequency currently enabled
 
-    \since 5.0
 */
 
 bool QRadioData::isAlternativeFrequenciesEnabled() const
@@ -266,7 +256,6 @@ void QRadioData::setAlternativeFrequenciesEnabled( bool enabled )
 /*!
     Returns the error state of a radio data.
 
-    \since 5.0
     \sa errorString()
 */
 
@@ -282,7 +271,6 @@ QRadioData::Error QRadioData::error() const
 /*!
     Returns a description of a radio data's error state.
 
-    \since 5.0
     \sa error()
 */
 QString QRadioData::errorString() const
@@ -298,42 +286,36 @@ QString QRadioData::errorString() const
     \fn void QRadioData::stationIdChanged(QString stationId)
 
     Signals that the Program Identification code has changed to \a stationId
-    \since 5.0
 */
 
 /*!
     \fn void QRadioData::programTypeChanged(QRadioData::ProgramType programType)
 
     Signals that the Program Type code has changed to \a programType
-    \since 5.0
 */
 
 /*!
     \fn void QRadioData::programTypeNameChanged(QString programTypeName)
 
     Signals that the Program Type Name has changed to \a programTypeName
-    \since 5.0
 */
 
 /*!
     \fn void QRadioData::stationNameChanged(int stationName)
 
     Signals that the Program Service has changed to \a stationName
-    \since 5.0
 */
 
 /*!
     \fn void QRadioData::alternativeFrequenciesEnabledChanged(bool enabled)
 
     Signals that the AF has been enabled or disabled
-    \since 5.0
 */
 
 /*!
     \fn void QRadioData::error(QRadioData::Error error)
 
     Signals that an \a error occurred.
-    \since 5.0
 */
 
 /*!
@@ -349,7 +331,6 @@ QString QRadioData::errorString() const
 
 /*! \fn void QRadioData::stateChanged(QRadioData::State state)
   This signal is emitted when the state changes to \a state.
-  \since 5.0
  */
 
 #include "moc_qradiodata.cpp"

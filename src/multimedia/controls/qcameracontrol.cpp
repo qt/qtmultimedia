@@ -54,7 +54,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.1
 
     This service is provided by a QMediaService object via
     QMediaService::control().  It is used by QCamera.
@@ -99,7 +98,6 @@ QCameraControl::~QCameraControl()
 
     Returns the state of the camera service.
 
-    \since 1.1
     \sa QCamera::state
 */
 
@@ -112,7 +110,6 @@ QCameraControl::~QCameraControl()
     while camera status is used as a feedback mechanism to inform application about backend status.
     Status changes are reported asynchronously with QCameraControl::statusChanged() signal.
 
-    \since 1.1
     \sa QCamera::State
 */
 
@@ -123,7 +120,6 @@ QCameraControl::~QCameraControl()
 
     In most cases the state chage is caused by QCameraControl::setState(),
     but if critical error has occurred the state changes to QCamera::UnloadedState.
-    \since 1.1
 */
 
 /*!
@@ -131,7 +127,6 @@ QCameraControl::~QCameraControl()
 
     Returns the status of the camera service.
 
-    \since 1.1
     \sa QCamera::state
 */
 
@@ -139,7 +134,6 @@ QCameraControl::~QCameraControl()
     \fn void QCameraControl::statusChanged(QCamera::Status status)
 
     Signal emitted when the camera \a status changes.
-    \since 1.1
 */
 
 
@@ -148,14 +142,12 @@ QCameraControl::~QCameraControl()
 
     Signal emitted when an error occurs with error code \a error and
     a description of the error \a errorString.
-    \since 1.1
 */
 
 /*!
     \fn Camera::CaptureMode QCameraControl::captureMode() const = 0
 
     Returns the current capture mode.
-    \since 1.1
 */
 
 /*!
@@ -171,21 +163,18 @@ QCameraControl::~QCameraControl()
     with the status changed to QCamera::StartingStatus.
     This allows the capture settings to be applied before camera is started.
     Than change the status to QCamera::StartedStatus when the capture mode change is done.
-    \since 1.1
 */
 
 /*!
     \fn bool QCameraControl::isCaptureModeSupported(QCamera::CaptureMode mode) const = 0;
 
     Returns true if the capture \a mode is suported.
-    \since 1.1
 */
 
 /*!
     \fn QCameraControl::captureModeChanged(QCamera::CaptureMode mode)
 
     Signal emitted when the camera capture \a mode changes.
-    \since 1.1
  */
 
 /*!
@@ -198,7 +187,6 @@ QCameraControl::~QCameraControl()
     before the settings are changed and restarted after.
     Otherwise the backend should apply the change in the current state,
     with the camera status indicating the progress, if necessary.
-    \since 1.1
 */
 
 /*!

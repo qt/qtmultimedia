@@ -47,7 +47,6 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QAudioSystemPlugin
     \brief The QAudioSystemPlugin class provides an abstract base for audio plugins.
-    \since 1.0
 
     \ingroup multimedia
     \inmodule QtMultimedia
@@ -108,33 +107,28 @@ QAudioSystemPlugin::~QAudioSystemPlugin()
 /*!
     \fn QStringList QAudioSystemPlugin::keys() const
     Returns the list of device identifiers this plugin supports.
-    \since 1.0
 */
 
 /*!
     \fn QList<QByteArray> QAudioSystemPlugin::availableDevices(QAudio::Mode mode) const
     Returns a list of available audio devices for \a mode
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioInput* QAudioSystemPlugin::createInput(const QByteArray& device)
     Returns a pointer to a QAbstractAudioInput created using \a device identifier
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioOutput* QAudioSystemPlugin::createOutput(const QByteArray& device)
     Returns a pointer to a QAbstractAudioOutput created using \a device identifier
 
-    \since 1.0
 */
 
 /*!
     \fn QAbstractAudioDeviceInfo* QAudioSystemPlugin::createDeviceInfo(const QByteArray& device, QAudio::Mode mode)
     Returns a pointer to a QAbstractAudioDeviceInfo created using \a device and \a mode
 
-    \since 1.0
 */
 
 

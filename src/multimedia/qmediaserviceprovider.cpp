@@ -86,7 +86,6 @@ public:
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
     The QMediaServiceProvider class uses hints to select an appropriate media service.
 */
@@ -140,7 +139,6 @@ QMediaServiceProviderHint::QMediaServiceProviderHint()
 
     This type of hint describes a service that is able to play content of a specific MIME \a type
     encoded with one or more of the listed \a codecs.
-    \since 1.0
 */
 QMediaServiceProviderHint::QMediaServiceProviderHint(const QString &type, const QStringList& codecs)
     :d(new QMediaServiceProviderHintPrivate(ContentType))
@@ -153,7 +151,6 @@ QMediaServiceProviderHint::QMediaServiceProviderHint(const QString &type, const 
   Constructs a Device media service provider hint.
 
   This type of hint describes a media service that utilizes a specific \a device.
-  \since 1.0
 */
 QMediaServiceProviderHint::QMediaServiceProviderHint(const QByteArray &device)
     :d(new QMediaServiceProviderHintPrivate(Device))
@@ -165,7 +162,6 @@ QMediaServiceProviderHint::QMediaServiceProviderHint(const QByteArray &device)
     Constructs a SupportedFeatures media service provider hint.
 
     This type of hint describes a service which supports a specific set of \a features.
-    \since 1.0
 */
 QMediaServiceProviderHint::QMediaServiceProviderHint(QMediaServiceProviderHint::Features features)
     :d(new QMediaServiceProviderHintPrivate(SupportedFeatures))
@@ -175,7 +171,6 @@ QMediaServiceProviderHint::QMediaServiceProviderHint(QMediaServiceProviderHint::
 
 /*!
     Constructs a copy of the media service provider hint \a other.
-    \since 1.0
 */
 QMediaServiceProviderHint::QMediaServiceProviderHint(const QMediaServiceProviderHint &other)
     :d(other.d)
@@ -191,7 +186,6 @@ QMediaServiceProviderHint::~QMediaServiceProviderHint()
 
 /*!
     Assigns the value \a other to a media service provider hint.
-    \since 1.0
 */
 QMediaServiceProviderHint& QMediaServiceProviderHint::operator=(const QMediaServiceProviderHint &other)
 {
@@ -203,7 +197,6 @@ QMediaServiceProviderHint& QMediaServiceProviderHint::operator=(const QMediaServ
     Identifies if \a other is of equal value to a media service provider hint.
 
     Returns true if the hints are equal, and false if they are not.
-    \since 1.0
 */
 bool QMediaServiceProviderHint::operator == (const QMediaServiceProviderHint &other) const
 {
@@ -219,7 +212,6 @@ bool QMediaServiceProviderHint::operator == (const QMediaServiceProviderHint &ot
     Identifies if \a other is not of equal value to a media service provider hint.
 
     Returns true if the hints are not equal, and false if they are.
-    \since 1.0
 */
 bool QMediaServiceProviderHint::operator != (const QMediaServiceProviderHint &other) const
 {
@@ -228,7 +220,6 @@ bool QMediaServiceProviderHint::operator != (const QMediaServiceProviderHint &ot
 
 /*!
     Returns true if a media service provider is null.
-    \since 1.0
 */
 bool QMediaServiceProviderHint::isNull() const
 {
@@ -237,7 +228,6 @@ bool QMediaServiceProviderHint::isNull() const
 
 /*!
     Returns the type of a media service provider hint.
-    \since 1.0
 */
 QMediaServiceProviderHint::Type QMediaServiceProviderHint::type() const
 {
@@ -246,7 +236,6 @@ QMediaServiceProviderHint::Type QMediaServiceProviderHint::type() const
 
 /*!
     Returns the mime type of the media a service is expected to be able play.
-    \since 1.0
 */
 QString QMediaServiceProviderHint::mimeType() const
 {
@@ -255,7 +244,6 @@ QString QMediaServiceProviderHint::mimeType() const
 
 /*!
     Returns a list of codes a media service is expected to be able to decode.
-    \since 1.0
 */
 QStringList QMediaServiceProviderHint::codecs() const
 {
@@ -264,7 +252,6 @@ QStringList QMediaServiceProviderHint::codecs() const
 
 /*!
     Returns the name of a device a media service is expected to utilize.
-    \since 1.0
 */
 QByteArray QMediaServiceProviderHint::device() const
 {
@@ -273,7 +260,6 @@ QByteArray QMediaServiceProviderHint::device() const
 
 /*!
     Returns a set of features a media service is expected to provide.
-    \since 1.0
 */
 QMediaServiceProviderHint::Features QMediaServiceProviderHint::features() const
 {
@@ -542,7 +528,6 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
     \class QMediaServiceProvider
 
     \brief The QMediaServiceProvider class provides an abstract allocator for media services.
-    \since 1.0
 */
 
 /*!
@@ -556,14 +541,12 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 
     The returned service must be released with releaseService when it is
     finished with.
-    \since 1.0
 */
 
 /*!
     \fn QMediaServiceProvider::releaseService(QMediaService *service)
 
     Releases a media \a service requested with requestService().
-    \since 1.0
 */
 
 /*!
@@ -573,7 +556,6 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
     serviceType service that is able to play media of a specific \a mimeType
     that is encoded using the listed \a codecs while adhering to constraints
     identified in \a flags.
-    \since 1.0
 */
 QtMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray &serviceType,
                                                         const QString &mimeType,
@@ -596,7 +578,6 @@ QtMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray
 
     The resultant list is restricted to MIME types which can be supported given
     the constraints in \a flags.
-    \since 1.0
 */
 QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceType, int flags) const
 {
@@ -608,7 +589,6 @@ QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceT
 
 /*!
   Returns the list of devices related to \a service type.
-  \since 1.0
 */
 QList<QByteArray> QMediaServiceProvider::devices(const QByteArray &service) const
 {
@@ -619,7 +599,6 @@ QList<QByteArray> QMediaServiceProvider::devices(const QByteArray &service) cons
 /*!
     Returns the description of \a device related to \a serviceType, suitable for use by
     an application for display.
-    \since 1.0
 */
 QString QMediaServiceProvider::deviceDescription(const QByteArray &serviceType, const QByteArray &device)
 {
@@ -637,7 +616,6 @@ static QMediaServiceProvider *qt_defaultMediaServiceProvider = 0;
     Sets a media service \a provider as the default.
 
     \internal
-    \since 1.0
 */
 void QMediaServiceProvider::setDefaultServiceProvider(QMediaServiceProvider *provider)
 {
@@ -665,7 +643,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
     \brief The QMediaServiceProviderPlugin class interface provides an interface for QMediaService
     plug-ins.
-    \since 1.0
 
     A media service provider plug-in may implement one or more of
     QMediaServiceSupportedFormatsInterface,
@@ -677,7 +654,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     \fn QMediaServiceProviderPlugin::keys() const
 
     Returns a list of keys for media services a plug-in can create.
-    \since 1.0
 */
 
 /*!
@@ -686,14 +662,12 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     Constructs a new instance of the QMediaService identified by \a key.
 
     The QMediaService returned must be destroyed with release().
-    \since 1.0
 */
 
 /*!
     \fn QMediaServiceProviderPlugin::release(QMediaService *service)
 
     Destroys a media \a service constructed with create().
-    \since 1.0
 */
 
 
@@ -701,7 +675,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     \class QMediaServiceSupportedFormatsInterface
     \brief The QMediaServiceSupportedFormatsInterface class interface
     identifies if a media service plug-in supports a media format.
-    \since 1.0
 
     A QMediaServiceProviderPlugin may implement this interface.
 */
@@ -717,21 +690,18 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
     Returns the level of support a media service plug-in has for a \a mimeType
     and set of \a codecs.
-    \since 1.0
 */
 
 /*!
     \fn QMediaServiceSupportedFormatsInterface::supportedMimeTypes() const
 
     Returns a list of MIME types supported by the media service plug-in.
-    \since 1.0
 */
 
 /*!
     \class QMediaServiceSupportedDevicesInterface
     \brief The QMediaServiceSupportedDevicesInterface class interface
     identifies the devices supported by a media service plug-in.
-    \since 1.0
 
     A QMediaServiceProviderPlugin may implement this interface.
 */
@@ -746,21 +716,18 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     \fn QMediaServiceSupportedDevicesInterface::devices(const QByteArray &service) const
 
     Returns a list of devices supported by a plug-in \a service.
-    \since 1.0
 */
 
 /*!
     \fn QMediaServiceSupportedDevicesInterface::deviceDescription(const QByteArray &service, const QByteArray &device)
 
     Returns a description of a \a device supported by a plug-in \a service.
-    \since 1.0
 */
 
 /*!
     \class QMediaServiceFeaturesInterface
     \brief The QMediaServiceFeaturesInterface class interface identifies
     features supported by a media service plug-in.
-    \since 1.0
 
     A QMediaServiceProviderPlugin may implement this interface.
 */
@@ -774,7 +741,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     \fn QMediaServiceFeaturesInterface::supportedFeatures(const QByteArray &service) const
 
     Returns a set of features supported by a plug-in \a service.
-    \since 1.0
 */
 
 #include "moc_qmediaserviceprovider.cpp"

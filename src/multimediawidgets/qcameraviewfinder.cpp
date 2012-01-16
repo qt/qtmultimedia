@@ -58,7 +58,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup camera
-    \since 1.1
 
     \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera
 
@@ -94,7 +93,6 @@ QCameraViewfinder::~QCameraViewfinder()
 
 /*!
   \reimp
-  \since 1.1
 */
 QMediaObject *QCameraViewfinder::mediaObject() const
 {
@@ -103,7 +101,6 @@ QMediaObject *QCameraViewfinder::mediaObject() const
 
 /*!
   \reimp
-  \since 1.1
 */
 bool QCameraViewfinder::setMediaObject(QMediaObject *object)
 {

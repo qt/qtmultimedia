@@ -51,7 +51,6 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia-serv
     \inmodule QtMultimedia
-    \since 1.1
 
     \inmodule QtMultimedia
 
@@ -98,7 +97,6 @@ QCameraFlashControl::~QCameraFlashControl()
   \fn QCamera::FlashModes QCameraFlashControl::flashMode() const
 
   Returns the current flash mode.
-  \since 1.1
 */
 
 /*!
@@ -109,7 +107,6 @@ QCameraFlashControl::~QCameraFlashControl()
   Usually a single QCameraExposure::FlashMode flag is used,
   but some non conflicting flags combination are also allowed,
   like QCameraExposure::FlashManual | QCameraExposure::FlashSlowSyncRearCurtain.
-  \since 1.1
 */
 
 
@@ -119,21 +116,18 @@ QCameraFlashControl::~QCameraFlashControl()
   Return true if the reqested flash \a mode is supported.
   Some QCameraExposure::FlashMode values can be combined,
   for example QCameraExposure::FlashManual | QCameraExposure::FlashSlowSyncRearCurtain
-  \since 1.1
 */
 
 /*!
   \fn bool QCameraFlashControl::isFlashReady() const
 
   Returns true if flash is charged.
-  \since 1.1
 */
 
 /*!
     \fn void QCameraFlashControl::flashReady(bool ready)
 
     Signal emitted when flash state changes to \a ready.
-    \since 1.1
 */
 
 #include "moc_qcameraflashcontrol.cpp"

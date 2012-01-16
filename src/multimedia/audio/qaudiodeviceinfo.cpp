@@ -162,7 +162,6 @@ QAudioDeviceInfo::QAudioDeviceInfo():
 
 /*!
     Constructs a copy of \a other.
-    \since 1.0
 */
 QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other):
     d(other.d)
@@ -178,7 +177,6 @@ QAudioDeviceInfo::~QAudioDeviceInfo()
 
 /*!
     Sets the QAudioDeviceInfo object to be equal to \a other.
-    \since 1.0
 */
 QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other)
 {
@@ -188,7 +186,6 @@ QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other)
 
 /*!
     Returns whether this QAudioDeviceInfo object holds a device definition.
-    \since 1.0
 */
 bool QAudioDeviceInfo::isNull() const
 {
@@ -203,7 +200,6 @@ bool QAudioDeviceInfo::isNull() const
     They are a unique string identifier for the audio device.
 
     eg. default, Intel, U0x46d0x9a4
-    \since 1.0
 */
 QString QAudioDeviceInfo::deviceName() const
 {
@@ -213,7 +209,6 @@ QString QAudioDeviceInfo::deviceName() const
 /*!
     Returns true if the supplied \a settings are supported by the audio
     device described by this QAudioDeviceInfo.
-    \since 1.0
 */
 bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 {
@@ -232,7 +227,6 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
     \o Input settings: 8000Hz mono 8 bit.
     \o Output settings: 44100Hz stereo 16 bit little endian.
     \endlist
-    \since 1.0
 */
 QAudioFormat QAudioDeviceInfo::preferredFormat() const
 {
@@ -245,7 +239,6 @@ QAudioFormat QAudioDeviceInfo::preferredFormat() const
     These settings are provided by the platform/audio plugin being used.
 
     They are also dependent on the \l {QAudio}::Mode being used.
-    \since 1.0
 */
 QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
 {
@@ -343,7 +336,6 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
     For writing plugins to support additional codecs refer to:
 
     http://www.iana.org/assignments/media-types/audio/
-    \since 1.0
 */
 QStringList QAudioDeviceInfo::supportedCodecs() const
 {
@@ -353,7 +345,6 @@ QStringList QAudioDeviceInfo::supportedCodecs() const
 /*!
     Returns a list of supported sample rates (in Hertz).
 
-    \since 1.0
 */
 QList<int> QAudioDeviceInfo::supportedSampleRates() const
 {
@@ -364,7 +355,6 @@ QList<int> QAudioDeviceInfo::supportedSampleRates() const
     \obsolete
 
     Use supportedSampleRates() instead.
-    \since 1.0
 */
 QList<int> QAudioDeviceInfo::supportedFrequencies() const
 {
@@ -376,7 +366,6 @@ QList<int> QAudioDeviceInfo::supportedFrequencies() const
 
     This is typically 1 for mono sound, or 2 for stereo sound.
 
-    \since 1.0
 */
 QList<int> QAudioDeviceInfo::supportedChannelCounts() const
 {
@@ -387,7 +376,6 @@ QList<int> QAudioDeviceInfo::supportedChannelCounts() const
     \obsolete
 
     Use supportedChannelCount() instead.
-    \since 1.0
 */
 QList<int> QAudioDeviceInfo::supportedChannels() const
 {
@@ -399,7 +387,6 @@ QList<int> QAudioDeviceInfo::supportedChannels() const
 
     Typically this will include 8 and 16 bit sample sizes.
 
-    \since 1.0
 */
 QList<int> QAudioDeviceInfo::supportedSampleSizes() const
 {
@@ -408,7 +395,6 @@ QList<int> QAudioDeviceInfo::supportedSampleSizes() const
 
 /*!
     Returns a list of supported byte orders.
-    \since 1.0
 */
 QList<QAudioFormat::Endian> QAudioDeviceInfo::supportedByteOrders() const
 {
@@ -417,7 +403,6 @@ QList<QAudioFormat::Endian> QAudioDeviceInfo::supportedByteOrders() const
 
 /*!
     Returns a list of supported sample types.
-    \since 1.0
 */
 QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
 {
@@ -427,7 +412,6 @@ QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
 /*!
     Returns the information for the default input audio device.
     All platform and audio plugin implementations provide a default audio device to use.
-    \since 1.0
 */
 QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
 {
@@ -437,7 +421,6 @@ QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
 /*!
     Returns the information for the default output audio device.
     All platform and audio plugin implementations provide a default audio device to use.
-    \since 1.0
 */
 QAudioDeviceInfo QAudioDeviceInfo::defaultOutputDevice()
 {
@@ -446,7 +429,6 @@ QAudioDeviceInfo QAudioDeviceInfo::defaultOutputDevice()
 
 /*!
     Returns a list of audio devices that support \a mode.
-    \since 1.0
 */
 QList<QAudioDeviceInfo> QAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 {
@@ -456,7 +438,6 @@ QList<QAudioDeviceInfo> QAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 
 /*!
     \internal
-    \since 1.0
 */
 QAudioDeviceInfo::QAudioDeviceInfo(const QString &realm, const QByteArray &handle, QAudio::Mode mode):
     d(new QAudioDeviceInfoPrivate(realm, handle, mode))
@@ -465,7 +446,6 @@ QAudioDeviceInfo::QAudioDeviceInfo(const QString &realm, const QByteArray &handl
 
 /*!
     \internal
-    \since 1.0
 */
 QString QAudioDeviceInfo::realm() const
 {
@@ -474,7 +454,6 @@ QString QAudioDeviceInfo::realm() const
 
 /*!
     \internal
-    \since 1.0
 */
 QByteArray QAudioDeviceInfo::handle() const
 {
@@ -484,7 +463,6 @@ QByteArray QAudioDeviceInfo::handle() const
 
 /*!
     \internal
-    \since 1.0
 */
 QAudio::Mode QAudioDeviceInfo::mode() const
 {

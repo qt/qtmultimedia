@@ -48,7 +48,6 @@ QT_BEGIN_NAMESPACE
 
     \brief The QMediaPlaylistReader class provides an interface for reading a playlist file.
     \inmodule QtMultimedia
-    \since 1.0
 
     \sa QMediaPlaylistIOPlugin
 */
@@ -66,7 +65,6 @@ QMediaPlaylistReader::~QMediaPlaylistReader()
     Identifies if a playlist reader has reached the end of its input.
 
     Returns true if the reader has reached the end; and false otherwise.
-    \since 1.0
 */
 
 /*!
@@ -75,14 +73,12 @@ QMediaPlaylistReader::~QMediaPlaylistReader()
     Reads an item of media from a playlist file.
 
     Returns the read media, or a null QMediaContent if no more media is available.
-    \since 1.0
 */
 
 /*!
     \fn QMediaPlaylistReader::close()
 
     Closes a playlist reader's input device.
-    \since 1.0
 */
 
 /*!
@@ -90,7 +86,6 @@ QMediaPlaylistReader::~QMediaPlaylistReader()
 
     \brief The QMediaPlaylistWriter class provides an interface for writing a playlist file.
 
-    \since 1.0
     \sa QMediaPlaylistIOPlugin
 */
 
@@ -107,20 +102,17 @@ QMediaPlaylistWriter::~QMediaPlaylistWriter()
     Writes an item of \a media to a playlist file.
 
     Returns true if the media was written successfully; and false otherwise.
-    \since 1.0
 */
 
 /*!
     \fn QMediaPlaylistWriter::close()
 
     Finalizes the writing of a playlist and closes the output device.
-    \since 1.0
 */
 
 /*!
     \class QMediaPlaylistIOPlugin
     \brief The QMediaPlaylistIOPlugin class provides an interface for media playlist I/O plug-ins.
-    \since 1.0
 */
 
 /*!
@@ -144,7 +136,6 @@ QMediaPlaylistIOPlugin::~QMediaPlaylistIOPlugin()
     Identifies if plug-in can read \a format data from an I/O \a device.
 
     Returns true if the data can be read; and false otherwise.
-    \since 1.0
 */
 
 /*!
@@ -153,7 +144,6 @@ QMediaPlaylistIOPlugin::~QMediaPlaylistIOPlugin()
     Identifies if a plug-in can read \a format data from a URL \a location.
 
     Returns true if the data can be read; and false otherwise.
-    \since 1.0
 */
 
 /*!
@@ -162,14 +152,12 @@ QMediaPlaylistIOPlugin::~QMediaPlaylistIOPlugin()
     Identifies if a plug-in can write \a format data to an I/O \a device.
 
     Returns true if the data can be written; and false otherwise.
-    \since 1.0
 */
 
 /*!
     \fn QMediaPlaylistIOPlugin::keys() const
 
     Returns a list of format keys supported by a plug-in.
-    \since 1.0
 */
 
 /*!
@@ -178,7 +166,6 @@ QMediaPlaylistIOPlugin::~QMediaPlaylistIOPlugin()
     Returns a new QMediaPlaylistReader which reads \a format data from an I/O \a device.
 
     If the device is invalid or the format is unsupported this will return a null pointer.
-    \since 1.0
 */
 
 /*!
@@ -187,7 +174,6 @@ QMediaPlaylistIOPlugin::~QMediaPlaylistIOPlugin()
     Returns a new QMediaPlaylistReader which reads \a format data from a URL \a location.
 
     If the location or the format is unsupported this will return a null pointer.
-    \since 1.0
 */
 
 /*!
@@ -196,7 +182,6 @@ QMediaPlaylistIOPlugin::~QMediaPlaylistIOPlugin()
     Returns a new QMediaPlaylistWriter which writes \a format data to an I/O \a device.
 
     If the device is invalid or the format is unsupported this will return a null pointer.
-    \since 1.0
 */
 
 #include "moc_qmediaplaylistioplugin.cpp"

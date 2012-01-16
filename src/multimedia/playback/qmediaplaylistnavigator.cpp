@@ -196,7 +196,6 @@ int QMediaPlaylistNavigatorPrivate::previousItemPos(int steps) const
     \brief The QMediaPlaylistNavigator class provides navigation for a media playlist.
     \inmodule QtMultimedia
     \ingroup multimedia
-    \since 1.0
 
     \sa QMediaPlaylist, QMediaPlaylistProvider
 */
@@ -206,7 +205,6 @@ int QMediaPlaylistNavigatorPrivate::previousItemPos(int steps) const
     Constructs a media playlist navigator for a \a playlist.
 
     The \a parent is passed to QObject.
-    \since 1.0
  */
 QMediaPlaylistNavigator::QMediaPlaylistNavigator(QMediaPlaylistProvider *playlist, QObject *parent)
     : QObject(parent)
@@ -229,7 +227,6 @@ QMediaPlaylistNavigator::~QMediaPlaylistNavigator()
 
 /*! \property QMediaPlaylistNavigator::playbackMode
     Contains the playback mode.
-    \since 1.0
  */
 QMediaPlaylist::PlaybackMode QMediaPlaylistNavigator::playbackMode() const
 {
@@ -238,7 +235,6 @@ QMediaPlaylist::PlaybackMode QMediaPlaylistNavigator::playbackMode() const
 
 /*!
     Sets the playback \a mode.
-    \since 1.0
  */
 void QMediaPlaylistNavigator::setPlaybackMode(QMediaPlaylist::PlaybackMode mode)
 {
@@ -262,7 +258,6 @@ void QMediaPlaylistNavigator::setPlaybackMode(QMediaPlaylist::PlaybackMode mode)
 
 /*!
     Returns the playlist being navigated.
-    \since 1.0
 */
 
 QMediaPlaylistProvider *QMediaPlaylistNavigator::playlist() const
@@ -272,7 +267,6 @@ QMediaPlaylistProvider *QMediaPlaylistNavigator::playlist() const
 
 /*!
     Sets the \a playlist to navigate.
-    \since 1.0
 */
 void QMediaPlaylistNavigator::setPlaylist(QMediaPlaylistProvider *playlist)
 {
@@ -314,7 +308,6 @@ void QMediaPlaylistNavigator::setPlaylist(QMediaPlaylistProvider *playlist)
 
   Contains the media at the current position in the playlist.
 
-  \since 1.0
   \sa currentIndex()
 */
 
@@ -328,7 +321,6 @@ QMediaContent QMediaPlaylistNavigator::currentItem() const
   Returns the media that is \a steps positions ahead of the current
   position in the playlist.
 
-  \since 1.0
   \sa nextIndex()
 */
 QMediaContent QMediaPlaylistNavigator::nextItem(int steps) const
@@ -340,7 +332,6 @@ QMediaContent QMediaPlaylistNavigator::nextItem(int steps) const
   Returns the media that is \a steps positions behind the current
   position in the playlist.
 
-  \since 1.0
   \sa previousIndex()
  */
 QMediaContent QMediaPlaylistNavigator::previousItem(int steps) const
@@ -350,7 +341,6 @@ QMediaContent QMediaPlaylistNavigator::previousItem(int steps) const
 
 /*!
     Returns the media at a \a position in the playlist.
-    \since 1.0
  */
 QMediaContent QMediaPlaylistNavigator::itemAt(int position) const
 {
@@ -363,7 +353,6 @@ QMediaContent QMediaPlaylistNavigator::itemAt(int position) const
 
   If no media is current, the property contains -1.
 
-  \since 1.0
   \sa nextIndex(), previousIndex()
 */
 
@@ -379,7 +368,6 @@ int QMediaPlaylistNavigator::currentIndex() const
   If the position is beyond the end of the playlist, this value
   returned is -1.
 
-  \since 1.0
   \sa currentIndex(), previousIndex(), playbackMode()
 */
 
@@ -396,7 +384,6 @@ int QMediaPlaylistNavigator::nextIndex(int steps) const
   If the position is prior to the beginning of the playlist this will
   return -1.
 
-  \since 1.0
   \sa currentIndex(), nextIndex(), playbackMode()
 */
 int QMediaPlaylistNavigator::previousIndex(int steps) const
@@ -407,7 +394,6 @@ int QMediaPlaylistNavigator::previousIndex(int steps) const
 /*!
   Advances to the next item in the playlist.
 
-  \since 1.0
   \sa previous(), jump(), playbackMode()
  */
 void QMediaPlaylistNavigator::next()
@@ -425,7 +411,6 @@ void QMediaPlaylistNavigator::next()
 /*!
   Returns to the previous item in the playlist,
 
-  \since 1.0
   \sa next(), jump(), playbackMode()
  */
 void QMediaPlaylistNavigator::previous()
@@ -441,7 +426,6 @@ void QMediaPlaylistNavigator::previous()
 
 /*!
   Jumps to a new \a position in the playlist.
-  \since 1.0
  */
 void QMediaPlaylistNavigator::jump(int position)
 {
@@ -479,7 +463,6 @@ void QMediaPlaylistNavigator::jump(int position)
 
 /*!
     \internal
-  \since 1.0
 */
 void QMediaPlaylistNavigatorPrivate::_q_mediaInserted(int start, int end)
 {
@@ -496,7 +479,6 @@ void QMediaPlaylistNavigatorPrivate::_q_mediaInserted(int start, int end)
 
 /*!
     \internal
-    \since 1.0
 */
 void QMediaPlaylistNavigatorPrivate::_q_mediaRemoved(int start, int end)
 {
@@ -517,7 +499,6 @@ void QMediaPlaylistNavigatorPrivate::_q_mediaRemoved(int start, int end)
 
 /*!
     \internal
-    \since 1.0
 */
 void QMediaPlaylistNavigatorPrivate::_q_mediaChanged(int start, int end)
 {
@@ -539,28 +520,24 @@ void QMediaPlaylistNavigatorPrivate::_q_mediaChanged(int start, int end)
     \fn QMediaPlaylistNavigator::activated(const QMediaContent &media)
 
     Signals that the current \a media has changed.
-    \since 1.0
 */
 
 /*!
     \fn QMediaPlaylistNavigator::currentIndexChanged(int position)
 
     Signals the \a position of the current media has changed.
-    \since 1.0
 */
 
 /*!
     \fn QMediaPlaylistNavigator::playbackModeChanged(QMediaPlaylist::PlaybackMode mode)
 
     Signals that the playback \a mode has changed.
-    \since 1.0
 */
 
 /*!
     \fn QMediaPlaylistNavigator::surroundingItemsChanged()
 
     Signals that media immediately surrounding the current position has changed.
-    \since 1.0
 */
 
 #include "moc_qmediaplaylistnavigator.cpp"

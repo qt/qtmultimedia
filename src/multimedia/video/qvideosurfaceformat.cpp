@@ -151,7 +151,6 @@ public:
     \class QVideoSurfaceFormat
     \brief The QVideoSurfaceFormat class specifies the stream format of a video presentation
     surface.
-    \since 1.0
     \inmodule QtMultimedia
 
     A video surface presents a stream of video frames.  The surface's format describes the type of
@@ -223,7 +222,6 @@ QVideoSurfaceFormat::QVideoSurfaceFormat()
 /*!
     Contructs a description of stream which receives stream of \a type buffers with given frame
     \a size and pixel \a format.
-    \since 1.0
 */
 QVideoSurfaceFormat::QVideoSurfaceFormat(
         const QSize& size, QVideoFrame::PixelFormat format, QAbstractVideoBuffer::HandleType type)
@@ -233,7 +231,6 @@ QVideoSurfaceFormat::QVideoSurfaceFormat(
 
 /*!
     Constructs a copy of \a other.
-    \since 1.0
 */
 QVideoSurfaceFormat::QVideoSurfaceFormat(const QVideoSurfaceFormat &other)
     : d(other.d)
@@ -242,7 +239,6 @@ QVideoSurfaceFormat::QVideoSurfaceFormat(const QVideoSurfaceFormat &other)
 
 /*!
     Assigns the values of \a other to this object.
-    \since 1.0
 */
 QVideoSurfaceFormat &QVideoSurfaceFormat::operator =(const QVideoSurfaceFormat &other)
 {
@@ -262,7 +258,6 @@ QVideoSurfaceFormat::~QVideoSurfaceFormat()
     Identifies if a video surface format has a valid pixel format and frame size.
 
     Returns true if the format is valid, and false otherwise.
-    \since 1.0
 */
 bool QVideoSurfaceFormat::isValid() const
 {
@@ -271,7 +266,6 @@ bool QVideoSurfaceFormat::isValid() const
 
 /*!
     Returns true if \a other is the same as this video format, and false if they are different.
-    \since 1.0
 */
 bool QVideoSurfaceFormat::operator ==(const QVideoSurfaceFormat &other) const
 {
@@ -280,7 +274,6 @@ bool QVideoSurfaceFormat::operator ==(const QVideoSurfaceFormat &other) const
 
 /*!
     Returns true if \a other is different to this video format, and false if they are the same.
-    \since 1.0
 */
 bool QVideoSurfaceFormat::operator !=(const QVideoSurfaceFormat &other) const
 {
@@ -289,7 +282,6 @@ bool QVideoSurfaceFormat::operator !=(const QVideoSurfaceFormat &other) const
 
 /*!
     Returns the pixel format of frames in a video stream.
-    \since 1.0
 */
 QVideoFrame::PixelFormat QVideoSurfaceFormat::pixelFormat() const
 {
@@ -303,7 +295,6 @@ QVideoFrame::PixelFormat QVideoSurfaceFormat::pixelFormat() const
     provided they can be \l {QAbstractVideoBuffer::map()}{mapped} with the
     QAbstractVideoBuffer::ReadOnly flag.  If the handleType() is not QAbstractVideoBuffer::NoHandle
     then the handle type of the buffer must be the same as that of the surface format.
-    \since 1.0
 */
 QAbstractVideoBuffer::HandleType QVideoSurfaceFormat::handleType() const
 {
@@ -314,7 +305,6 @@ QAbstractVideoBuffer::HandleType QVideoSurfaceFormat::handleType() const
     Returns the dimensions of frames in a video stream.
 
     \sa frameWidth(), frameHeight()
-    \since 1.0
 */
 QSize QVideoSurfaceFormat::frameSize() const
 {
@@ -325,7 +315,6 @@ QSize QVideoSurfaceFormat::frameSize() const
     Returns the width of frames in a video stream.
 
     \sa frameSize(), frameHeight()
-    \since 1.0
 */
 int QVideoSurfaceFormat::frameWidth() const
 {
@@ -334,7 +323,6 @@ int QVideoSurfaceFormat::frameWidth() const
 
 /*!
     Returns the height of frame in a video stream.
-    \since 1.0
 */
 int QVideoSurfaceFormat::frameHeight() const
 {
@@ -345,7 +333,6 @@ int QVideoSurfaceFormat::frameHeight() const
     Sets the size of frames in a video stream to \a size.
 
     This will reset the viewport() to fill the entire frame.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setFrameSize(const QSize &size)
 {
@@ -359,7 +346,6 @@ void QVideoSurfaceFormat::setFrameSize(const QSize &size)
     Sets the \a width and \a height of frames in a video stream.
 
     This will reset the viewport() to fill the entire frame.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setFrameSize(int width, int height)
 {
@@ -373,7 +359,6 @@ void QVideoSurfaceFormat::setFrameSize(int width, int height)
     The viewport is the region of a video frame that is actually displayed.
 
     By default the viewport covers an entire frame.
-    \since 1.0
 */
 QRect QVideoSurfaceFormat::viewport() const
 {
@@ -382,7 +367,6 @@ QRect QVideoSurfaceFormat::viewport() const
 
 /*!
     Sets the viewport of a video stream to \a viewport.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setViewport(const QRect &viewport)
 {
@@ -391,7 +375,6 @@ void QVideoSurfaceFormat::setViewport(const QRect &viewport)
 
 /*!
     Returns the direction of scan lines.
-    \since 1.0
 */
 QVideoSurfaceFormat::Direction QVideoSurfaceFormat::scanLineDirection() const
 {
@@ -400,7 +383,6 @@ QVideoSurfaceFormat::Direction QVideoSurfaceFormat::scanLineDirection() const
 
 /*!
     Sets the \a direction of scan lines.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setScanLineDirection(Direction direction)
 {
@@ -409,7 +391,6 @@ void QVideoSurfaceFormat::setScanLineDirection(Direction direction)
 
 /*!
     Returns the frame rate of a video stream in frames per second.
-    \since 1.0
 */
 qreal QVideoSurfaceFormat::frameRate() const
 {
@@ -418,7 +399,6 @@ qreal QVideoSurfaceFormat::frameRate() const
 
 /*!
     Sets the frame \a rate of a video stream in frames per second.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setFrameRate(qreal rate)
 {
@@ -427,7 +407,6 @@ void QVideoSurfaceFormat::setFrameRate(qreal rate)
 
 /*!
     Returns a video stream's pixel aspect ratio.
-    \since 1.0
 */
 QSize QVideoSurfaceFormat::pixelAspectRatio() const
 {
@@ -436,7 +415,6 @@ QSize QVideoSurfaceFormat::pixelAspectRatio() const
 
 /*!
     Sets a video stream's pixel aspect \a ratio.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setPixelAspectRatio(const QSize &ratio)
 {
@@ -447,7 +425,6 @@ void QVideoSurfaceFormat::setPixelAspectRatio(const QSize &ratio)
     \overload
 
     Sets the \a horizontal and \a vertical elements of a video stream's pixel aspect ratio.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setPixelAspectRatio(int horizontal, int vertical)
 {
@@ -456,7 +433,6 @@ void QVideoSurfaceFormat::setPixelAspectRatio(int horizontal, int vertical)
 
 /*!
     Returns the Y'CbCr color space of a video stream.
-    \since 1.0
 */
 QVideoSurfaceFormat::YCbCrColorSpace QVideoSurfaceFormat::yCbCrColorSpace() const
 {
@@ -466,7 +442,6 @@ QVideoSurfaceFormat::YCbCrColorSpace QVideoSurfaceFormat::yCbCrColorSpace() cons
 /*!
     Sets the Y'CbCr color \a space of a video stream.
     It is only used with raw YUV frame types.
-    \since 1.0
 */
 void QVideoSurfaceFormat::setYCbCrColorSpace(QVideoSurfaceFormat::YCbCrColorSpace space)
 {
@@ -477,7 +452,6 @@ void QVideoSurfaceFormat::setYCbCrColorSpace(QVideoSurfaceFormat::YCbCrColorSpac
     Returns a suggested size in pixels for the video stream.
 
     This is the size of the viewport scaled according to the pixel aspect ratio.
-    \since 1.0
 */
 QSize QVideoSurfaceFormat::sizeHint() const
 {
@@ -491,7 +465,6 @@ QSize QVideoSurfaceFormat::sizeHint() const
 
 /*!
     Returns a list of video format dynamic property names.
-    \since 1.0
 */
 QList<QByteArray> QVideoSurfaceFormat::propertyNames() const
 {
@@ -511,7 +484,6 @@ QList<QByteArray> QVideoSurfaceFormat::propertyNames() const
 
 /*!
     Returns the value of the video format's \a name property.
-    \since 1.0
 */
 QVariant QVideoSurfaceFormat::property(const char *name) const
 {
@@ -552,7 +524,6 @@ QVariant QVideoSurfaceFormat::property(const char *name) const
 
     Trying to set a read only property will be ignored.
 
-    \since 1.0
 */
 void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
 {

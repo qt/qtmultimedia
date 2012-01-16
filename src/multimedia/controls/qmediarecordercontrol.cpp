@@ -48,7 +48,6 @@ QT_BEGIN_NAMESPACE
     \class QMediaRecorderControl
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
 
     \brief The QMediaRecorderControl class provides access to the recording
@@ -101,7 +100,6 @@ QMediaRecorderControl::~QMediaRecorderControl()
     \fn QUrl QMediaRecorderControl::outputLocation() const
 
     Returns the current output location being used.
-    \since 1.0
 */
 
 /*!
@@ -113,42 +111,36 @@ QMediaRecorderControl::~QMediaRecorderControl()
     The \a location can be relative or empty;
     in this case the service should use the system specific place and file naming scheme.
     After recording has stated, QMediaRecorderControl::outputLocation() should return the actual output location.
-    \since 1.0
 */
 
 /*!
     \fn int QMediaRecorderControl::state() const
 
     Return the current recording state.
-    \since 1.0
 */
 
 /*!
     \fn qint64 QMediaRecorderControl::duration() const
 
     Return the current duration in milliseconds.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaRecorderControl::record()
 
     Start recording.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaRecorderControl::pause()
 
     Pause recording.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaRecorderControl::stop()
 
     Stop recording.
-    \since 1.0
 */
 
 /*!
@@ -156,21 +148,18 @@ QMediaRecorderControl::~QMediaRecorderControl()
 
     Commits the encoder settings and performs pre-initialization to reduce delays when recording
     is started.
-    \since 1.0
 */
 
 /*!
     \fn bool QMediaRecorderControl::isMuted() const
 
     Returns true if the recorder is muted, and false if it is not.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaRecorderControl::setMuted(bool muted)
 
     Sets the \a muted state of a media recorder.
-    \since 1.0
 */
 
 
@@ -178,7 +167,6 @@ QMediaRecorderControl::~QMediaRecorderControl()
     \fn void QMediaRecorderControl::stateChanged(QMediaRecorder::State state)
 
     Signals that the \a state of a media recorder has changed.
-    \since 1.0
 */
 
 /*!
@@ -187,21 +175,18 @@ QMediaRecorderControl::~QMediaRecorderControl()
     Signals that the \a duration of the recorded media has changed.
 
     This only emitted when there is a discontinuous change in the duration such as being reset to 0.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaRecorderControl::mutedChanged(bool muted)
 
     Signals that the \a muted state of a media recorder has changed.
-    \since 1.0
 */
 
 /*!
     \fn void QMediaRecorderControl::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString describes the error.
-    \since 1.0
 */
 
 #include "moc_qmediarecordercontrol.cpp"

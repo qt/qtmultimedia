@@ -54,7 +54,6 @@ QT_BEGIN_NAMESPACE
 
     When you want to get a sound sample data, you need to request the QSample reference from QSampleCache.
 
-    \since 1.1
 
     \code
         QSample *m_sample;     // class member.

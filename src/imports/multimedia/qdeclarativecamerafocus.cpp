@@ -46,7 +46,6 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraFocus QDeclarativeCameraFocus
-    \since 5.0
     \brief The CameraFocus element provides interface for focus related camera settings.
     \ingroup qml-multimedia
 

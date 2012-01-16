@@ -50,7 +50,6 @@ QT_BEGIN_NAMESPACE
     \class QRadioDataControl
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 5.0
 
 
     \brief The QRadioDataControl class provides access to the RDS functionality of the
@@ -96,119 +95,102 @@ QRadioDataControl::~QRadioDataControl()
     \fn bool QRadioDataControl::isAvailable() const
 
     Returns true if the radio service is ready to use.
-    \since 5.0
 */
 
 /*!
     \fn QtMultimedia::AvailabilityError QRadioDataControl::availabilityError() const
 
     Returns the error state of the radio service.
-    \since 5.0
 */
 
 /*!
     \fn QRadioData::Error QRadioDataControl::error() const
 
     Returns the error state of a radio data.
-    \since 5.0
 */
 
 /*!
     \fn QString QRadioDataControl::errorString() const
 
     Returns a string describing a radio data's error state.
-    \since 5.0
 */
 
 /*!
     \fn void QRadioDataControl::error(QRadioData::Error error)
 
     Signals that an \a error has occurred.
-    \since 5.0
 */
 
 /*!
     \fn int QRadioDataControl::stationId()
 
     Returns the current Program Identification
-    \since 5.0
 */
 
 /*!
     \fn QRadioData::ProgramType QRadioDataControl::programType()
 
     Returns the current Program Type
-    \since 5.0
 */
 
 /*!
     \fn QString QRadioDataControl::programTypeName()
 
     Returns the current Program Type Name
-    \since 5.0
 */
 
 /*!
     \fn QString QRadioDataControl::stationName()
 
     Returns the current Program Service
-    \since 5.0
 */
 
 /*!
     \fn QString QRadioDataControl::radioText()
 
     Returns the current Radio Text
-    \since 5.0
 */
 
 /*!
     \fn void QRadioDataControl::setAlternativeFrequenciesEnabled(bool enabled)
 
     Sets the Alternative Frequency to \a enabled
-    \since 5.0
 */
 
 /*!
     \fn bool QRadioDataControl::isAlternativeFrequenciesEnabled()
 
     Returns true if Alternative Frequency is currently enabled
-    \since 5.0
 */
 
 /*!
     \fn void QRadioDataControl::stationIdChanged(QString stationId)
 
     Signals that the Program Identification \a stationId has changed
-    \since 5.0
 */
 
 /*!
     \fn void QRadioDataControl::programTypeChanged(QRadioData::ProgramType programType)
 
     Signals that the Program Type \a programType has changed
-    \since 5.0
 */
 
 /*!
     \fn void QRadioDataControl::programTypeNameChanged(QString programTypeName)
 
     Signals that the Program Type Name \a programTypeName has changed
-    \since 5.0
 */
 
 /*!
     \fn void QRadioDataControl::stationNameChanged(QString stationName)
 
     Signals that the Program Service \a stationName has changed
-    \since 5.0
 */
 
 /*!
     \fn void QRadioDataControl::radioTextChanged(QString radioText)
 
     Signals that the Radio Text \a radioText has changed
-    \since 5.0
 */
 
 #include "moc_qradiodatacontrol.cpp"

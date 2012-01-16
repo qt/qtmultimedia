@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
     \brief The QVideoDeviceControl class provides an video device selector media control.
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
     The QVideoDeviceControl class provides descriptions of the video devices
     available on a system and allows one to be selected as the  endpoint of a
@@ -88,63 +87,54 @@ QVideoDeviceControl::~QVideoDeviceControl()
     \fn QVideoDeviceControl::deviceCount() const
 
     Returns the number of available video devices;
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::deviceName(int index) const
 
     Returns the name of the video device at \a index.
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::deviceDescription(int index) const
 
     Returns a description of the video device at \a index.
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::defaultDevice() const
 
     Returns the index of the default video device.
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::selectedDevice() const
 
     Returns the index of the selected video device.
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::setSelectedDevice(int index)
 
     Sets the selected video device \a index.
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::devicesChanged()
 
     Signals that the list of available video devices has changed.
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::selectedDeviceChanged(int index)
 
     Signals that the selected video device \a index has changed.
-    \since 1.0
 */
 
 /*!
     \fn QVideoDeviceControl::selectedDeviceChanged(const QString &name)
 
     Signals that the selected video device \a name has changed.
-    \since 1.0
 */
 
 #include "moc_qvideodevicecontrol.cpp"

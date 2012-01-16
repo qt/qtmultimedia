@@ -60,7 +60,6 @@ QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle+3434);
 /*!
     \class QOmapFbVideoSurface
     \internal
-    \since 1.2
 */
 
 /*!
@@ -87,7 +86,6 @@ QEglImageTextureSurface::~QEglImageTextureSurface()
 }
 
 /*!
-    \since 1.2
 */
 QList<QVideoFrame::PixelFormat> QEglImageTextureSurface::supportedPixelFormats(
     QAbstractVideoBuffer::HandleType handleType) const
@@ -129,7 +127,6 @@ static const char* qt_glsl_eglTextureShaderProgram =
 
 
 /*!
-    \since 1.2
 */
 bool QEglImageTextureSurface::start(const QVideoSurfaceFormat &format)
 {
@@ -228,7 +225,6 @@ bool QEglImageTextureSurface::start(const QVideoSurfaceFormat &format)
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::stop()
 {
@@ -270,7 +266,6 @@ void QEglImageTextureSurface::stop()
 }
 
 /*!
-    \since 1.2
 */
 bool QEglImageTextureSurface::present(const QVideoFrame &frame)
 {
@@ -307,7 +302,6 @@ bool QEglImageTextureSurface::present(const QVideoFrame &frame)
 }
 
 /*!
-    \since 1.2
 */
 int QEglImageTextureSurface::brightness() const
 {
@@ -315,7 +309,6 @@ int QEglImageTextureSurface::brightness() const
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::setBrightness(int brightness)
 {
@@ -323,7 +316,6 @@ void QEglImageTextureSurface::setBrightness(int brightness)
 }
 
 /*!
-    \since 1.2
 */
 int QEglImageTextureSurface::contrast() const
 {
@@ -331,7 +323,6 @@ int QEglImageTextureSurface::contrast() const
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::setContrast(int contrast)
 {
@@ -339,7 +330,6 @@ void QEglImageTextureSurface::setContrast(int contrast)
 }
 
 /*!
-    \since 1.2
 */
 int QEglImageTextureSurface::hue() const
 {
@@ -347,7 +337,6 @@ int QEglImageTextureSurface::hue() const
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::setHue(int hue)
 {
@@ -355,7 +344,6 @@ void QEglImageTextureSurface::setHue(int hue)
 }
 
 /*!
-    \since 1.2
 */
 int QEglImageTextureSurface::saturation() const
 {
@@ -363,7 +351,6 @@ int QEglImageTextureSurface::saturation() const
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::setSaturation(int saturation)
 {
@@ -371,7 +358,6 @@ void QEglImageTextureSurface::setSaturation(int saturation)
 }
 
 /*!
-    \since 1.2
 */
 bool QEglImageTextureSurface::isReady() const
 {
@@ -379,7 +365,6 @@ bool QEglImageTextureSurface::isReady() const
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::setReady(bool ready)
 {
@@ -389,7 +374,6 @@ void QEglImageTextureSurface::setReady(bool ready)
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::paint(QPainter *painter, const QRectF &target, const QRectF &sourceRect)
 {
@@ -508,11 +492,9 @@ void QEglImageTextureSurface::paint(QPainter *painter, const QRectF &target, con
 
 /*!
     \fn QOmapFbVideoSurface::frameChanged()
-    \since 1.2
 */
 
 /*!
-    \since 1.2
 */
 const QGLContext *QEglImageTextureSurface::glContext() const
 {
@@ -520,7 +502,6 @@ const QGLContext *QEglImageTextureSurface::glContext() const
 }
 
 /*!
-    \since 1.2
 */
 void QEglImageTextureSurface::setGLContext(QGLContext *context)
 {

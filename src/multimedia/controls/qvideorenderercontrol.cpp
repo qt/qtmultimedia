@@ -54,7 +54,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
     Using the surface() property of QVideoRendererControl a
     QAbstractVideoSurface may be set as the video render target of a
@@ -99,14 +98,12 @@ QVideoRendererControl::~QVideoRendererControl()
     \fn QVideoRendererControl::surface() const
 
     Returns the surface a video producer renders to.
-    \since 1.0
 */
 
 /*!
     \fn QVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
     Sets the \a surface a video producer renders to.
-    \since 1.0
 */
 
 #include "moc_qvideorenderercontrol.cpp"

@@ -60,7 +60,6 @@ QT_BEGIN_NAMESPACE
     \class QCameraImageCapture
     \inmodule QtMultimedia
     \ingroup camera
-    \since 1.1
 
 
     \brief The QCameraImageCapture class is used for the recording of media content.
@@ -182,7 +181,6 @@ QCameraImageCapture::~QCameraImageCapture()
 
 /*!
   \reimp
-  \since 1.1
 */
 QMediaObject *QCameraImageCapture::mediaObject() const
 {
@@ -191,7 +189,6 @@ QMediaObject *QCameraImageCapture::mediaObject() const
 
 /*!
   \reimp
-  \since 1.1
 */
 bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
 {
@@ -299,7 +296,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
 
 /*!
     Returns true if the images capture service ready to use.
-    \since 1.1
 */
 bool QCameraImageCapture::isAvailable() const
 {
@@ -311,7 +307,6 @@ bool QCameraImageCapture::isAvailable() const
 
 /*!
     Returns the availability error code.
-    \since 1.1
 */
 QtMultimedia::AvailabilityError QCameraImageCapture::availabilityError() const
 {
@@ -324,7 +319,6 @@ QtMultimedia::AvailabilityError QCameraImageCapture::availabilityError() const
 /*!
     Returns the current error state.
 
-    \since 1.1
     \sa errorString()
 */
 
@@ -336,7 +330,6 @@ QCameraImageCapture::Error QCameraImageCapture::error() const
 /*!
     Returns a string describing the current error state.
 
-    \since 1.1
     \sa error()
 */
 
@@ -348,7 +341,6 @@ QString QCameraImageCapture::errorString() const
 
 /*!
     Returns a list of supported image codecs.
-    \since 1.1
 */
 QStringList QCameraImageCapture::supportedImageCodecs() const
 {
@@ -358,7 +350,6 @@ QStringList QCameraImageCapture::supportedImageCodecs() const
 
 /*!
     Returns a description of an image \a codec.
-    \since 1.1
 */
 QString QCameraImageCapture::imageCodecDescription(const QString &codec) const
 {
@@ -375,7 +366,6 @@ QString QCameraImageCapture::imageCodecDescription(const QString &codec) const
     If the encoder supports arbitrary resolutions within the supported range,
     *\a continuous is set to true, otherwise *\a continuous is set to false.
 
-    \since 1.1
     \sa QImageEncoderSettings::resolution()
 */
 QList<QSize> QCameraImageCapture::supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const
@@ -390,7 +380,6 @@ QList<QSize> QCameraImageCapture::supportedResolutions(const QImageEncoderSettin
 /*!
     Returns the image encoder settings being used.
 
-    \since 1.1
     \sa setEncodingSettings()
 */
 
@@ -406,7 +395,6 @@ QImageEncoderSettings QCameraImageCapture::encodingSettings() const
     If some parameters are not specified, or null settings are passed,
     the encoder choose the default encoding parameters.
 
-    \since 1.1
     \sa encodingSettings()
 */
 
@@ -430,7 +418,6 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
 /*!
     Returns the list of supported buffer image capture formats.
 
-    \since 1.1
     \sa bufferFormat() setBufferFormat()
 */
 QList<QVideoFrame::PixelFormat> QCameraImageCapture::supportedBufferFormats() const
@@ -444,7 +431,6 @@ QList<QVideoFrame::PixelFormat> QCameraImageCapture::supportedBufferFormats() co
 /*!
     Returns the buffer image capture format being used.
 
-    \since 1.2
     \sa supportedBufferCaptureFormats() setBufferCaptureFormat()
 */
 QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
@@ -458,7 +444,6 @@ QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
 /*!
     Sets the buffer image capture format to be used.
 
-    \since 1.2
     \sa bufferCaptureFormat() supportedBufferCaptureFormats() captureDestination()
 */
 void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
@@ -470,7 +455,6 @@ void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
 /*!
     Returns true if the image capture \a destination is supported; otherwise returns false.
 
-    \since 1.2
     \sa captureDestination() setCaptureDestination()
 */
 bool QCameraImageCapture::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
@@ -484,7 +468,6 @@ bool QCameraImageCapture::isCaptureDestinationSupported(QCameraImageCapture::Cap
 /*!
     Returns the image capture destination being used.
 
-    \since 1.2
     \sa isCaptureDestinationSupported() setCaptureDestination()
 */
 QCameraImageCapture::CaptureDestinations QCameraImageCapture::captureDestination() const
@@ -498,7 +481,6 @@ QCameraImageCapture::CaptureDestinations QCameraImageCapture::captureDestination
 /*!
     Sets the capture \a destination to be used.
 
-    \since 1.2
     \sa isCaptureDestinationSupported() captureDestination()
 */
 void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
@@ -512,7 +494,6 @@ void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDest
 /*!
   \property QCameraImageCapture::readyForCapture
    Indicates the service is ready to capture a an image immediately.
-  \since 1.1
 */
 
 bool QCameraImageCapture::isReadyForCapture() const
@@ -527,7 +508,6 @@ bool QCameraImageCapture::isReadyForCapture() const
     \fn QCameraImageCapture::readyForCaptureChanged(bool ready)
 
     Signals that a camera's \a ready for capture state has changed.
-    \since 1.1
 */
 
 
@@ -544,7 +524,6 @@ bool QCameraImageCapture::isReadyForCapture() const
 
     QCameraImageCapture::capture returns the capture Id parameter, used with
     imageExposed(), imageCaptured() and imageSaved() signals.
-    \since 1.1
 */
 int QCameraImageCapture::capture(const QString &file)
 {
@@ -567,7 +546,6 @@ int QCameraImageCapture::capture(const QString &file)
 /*!
     Cancel incomplete capture requests.
     Already captured and queused for proicessing images may be discarded.
-    \since 1.1
 */
 void QCameraImageCapture::cancelCapture()
 {
@@ -608,28 +586,24 @@ void QCameraImageCapture::cancelCapture()
 
     Signals that the capture request \a id has failed with an \a error
     and \a errorString description.
-    \since 1.1
 */
 
 /*!
     \fn QCameraImageCapture::bufferFormatChanged(QVideoFrame::PixelFormat format)
 
     Signal emitted when the buffer \a format for the buffer image capture has changed.
-    \since 1.2
 */
 
 /*!
     \fn QCameraImageCapture::captureDestinationChanged(CaptureDestinations destination)
 
     Signal emitted when the capture \a destination has changed.
-    \since 1.2
 */
 
 /*!
     \fn QCameraImageCapture::imageExposed(int id)
 
     Signal emitted when the frame with request \a id was exposed.
-    \since 1.1
 */
 
 /*!
@@ -637,7 +611,6 @@ void QCameraImageCapture::cancelCapture()
 
     Signal emitted when the frame with request \a id was captured, but not processed and saved yet.
     Frame \a preview can be displayed to user.
-    \since 1.1
 */
 
 /*!
@@ -647,7 +620,6 @@ void QCameraImageCapture::cancelCapture()
     This signal is emitted for metadata \a value with a \a key listed in QtMultimedia::MetaData enum.
 
     This signal is emitted between imageExposed and imageSaved signals.
-    \since 1.2
 */
 
 /*!
@@ -657,7 +629,6 @@ void QCameraImageCapture::cancelCapture()
     This signal is emitted for extended metadata \a value with a \a key not listed in QtMultimedia::MetaData enum.
 
     This signal is emitted between imageExposed and imageSaved signals.
-    \since 1.2
 */
 
 
@@ -665,14 +636,12 @@ void QCameraImageCapture::cancelCapture()
     \fn QCameraImageCapture::imageAvailable(int id, const QVideoFrame &buffer)
 
     Signal emitted when the frame with request \a id is available as \a buffer.
-    \since 1.2
 */
 
 /*!
     \fn QCameraImageCapture::imageSaved(int id, const QString &fileName)
 
     Signal emitted when the frame with request \a id was saved to \a fileName.
-    \since 1.1
 */
 
 

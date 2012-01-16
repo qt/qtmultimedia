@@ -80,7 +80,6 @@
 /*!
     Plays the sound stored in the file specified by the given \a filename.
 
-    \since 5.0
     \sa stop(), loopsRemaining(), isFinished()
 */
 void QSound::play(const QString& filename)
@@ -96,7 +95,6 @@ void QSound::play(const QString& filename)
     Constructs a QSound object from the file specified by the given \a
     filename and with the given \a parent.
 
-    \since 5.0
     \sa play()
 */
 QSound::QSound(const QString& filename, QObject* parent)
@@ -111,7 +109,6 @@ QSound::QSound(const QString& filename, QObject* parent)
     the stop() function is called before the sound object is
     destroyed.
 
-    \since 5.0
     \sa stop(), isFinished()
 */
 QSound::~QSound()
@@ -138,7 +135,6 @@ bool QSound::isFinished() const
     sound. The sound can be played again at any time, possibly mixing
     or replacing previous plays of the sound.
 
-    \since 5.0
     \sa fileName()
 */
 void QSound::play()
@@ -150,7 +146,6 @@ void QSound::play()
     Returns the number of times the sound will play.
     Return value of \c QSound::Infinite indicates infinite number of loops
 
-    \since 5.0
     \sa loopsRemaining(), setLoops()
 */
 int QSound::loops() const
@@ -168,7 +163,6 @@ int QSound::loops() const
     positive values this value decreases each time the sound is played).
     Return value of \c QSound::Infinite indicates infinite number of loops
 
-    \since 5.0
     \sa loops(), isFinished()
 */
 int QSound::loopsRemaining() const
@@ -190,7 +184,6 @@ int QSound::loopsRemaining() const
     Note that passing the value \c QSound::Infinite will cause the sound to loop
     indefinitely.
 
-    \since 5.0
     \sa loops()
 */
 void QSound::setLoops(int n)
@@ -204,7 +197,6 @@ void QSound::setLoops(int n)
 /*!
     Returns the filename associated with this QSound object.
 
-    \since 5.0
     \sa QSound()
 */
 QString QSound::fileName() const
@@ -215,7 +207,6 @@ QString QSound::fileName() const
 /*!
     Stops the sound playing.
 
-    \since 5.0
     \sa play()
 */
 void QSound::stop()
@@ -225,7 +216,6 @@ void QSound::stop()
 
 /*!
     \internal
-    \since 5.0
 */
 void QSound::deleteOnComplete()
 {

@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
     \class QMetaDataWriterControl
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
 
     \brief The QMetaDataWriterControl class provides write access to the
@@ -107,7 +106,6 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
     Identifies if meta-data is available from a media service.
 
     Returns true if the meta-data is available and false otherwise.
-    \since 1.0
 */
 
 /*!
@@ -116,21 +114,18 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
     Identifies if a media service's meta-data can be edited.
 
     Returns true if the meta-data is writable and false otherwise.
-    \since 1.0
 */
 
 /*!
     \fn QVariant QMetaDataWriterControl::metaData(QtMultimedia::MetaData key) const
 
     Returns the meta-data for the given \a key.
-    \since 1.0
 */
 
 /*!
     \fn void QMetaDataWriterControl::setMetaData(QtMultimedia::MetaData key, const QVariant &value)
 
     Sets the \a value of the meta-data element with the given \a key.
-    \since 1.0
 */
 
 /*!
@@ -146,7 +141,6 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
 
     The valid selection of keys for extended meta-data is determined by the provider and the meaning
     and type may differ between providers.
-    \since 1.0
 */
 
 /*!
@@ -156,14 +150,12 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
 
     The valid selection of keys for extended meta-data is determined by the provider and the meaning
     and type may differ between providers.
-    \since 1.0
 */
 
 /*!
     \fn QMetaDataWriterControl::availableExtendedMetaData() const
 
     Returns a list of keys there is extended meta-data available for.
-    \since 1.0
 */
 
 
@@ -171,7 +163,6 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
     \fn void QMetaDataWriterControl::metaDataChanged()
 
     Signal the changes of meta-data.
-    \since 1.0
 */
 
 /*!
@@ -179,7 +170,6 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
 
     Signal the availability of meta-data has changed, \a available will
     be true if the multimedia object has meta-data.
-    \since 1.0
 */
 
 /*!
@@ -187,7 +177,6 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
 
     Signal a change in the writable status of meta-data, \a writable will be
     true if meta-data elements can be added or adjusted.
-    \since 1.0
 */
 
 #include "moc_qmetadatawritercontrol.cpp"

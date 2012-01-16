@@ -82,7 +82,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup camera
-    \since 1.1
 
     QCamera can be used with QVideoWidget for viewfinder display,
     QMediaRecorder for video recording and QCameraImageCapture for image taking.
@@ -407,7 +406,6 @@ QCamera::~QCamera()
 
 /*!
     Return true if the camera service is ready to use.
-    \since 1.1
 */
 bool QCamera::isAvailable() const
 {
@@ -416,7 +414,6 @@ bool QCamera::isAvailable() const
 
 /*!
     Returns the error state of the camera service.
-    \since 1.1
 */
 
 QtMultimedia::AvailabilityError QCamera::availabilityError() const
@@ -437,7 +434,6 @@ QtMultimedia::AvailabilityError QCamera::availabilityError() const
 
 /*!
     Returns the camera exposure control object.
-    \since 1.1
 */
 QCameraExposure *QCamera::exposure() const
 {
@@ -446,7 +442,6 @@ QCameraExposure *QCamera::exposure() const
 
 /*!
     Returns the camera focus control object.
-    \since 1.1
 */
 QCameraFocus *QCamera::focus() const
 {
@@ -455,7 +450,6 @@ QCameraFocus *QCamera::focus() const
 
 /*!
     Returns the camera image processing control object.
-    \since 1.1
 */
 QCameraImageProcessing *QCamera::imageProcessing() const
 {
@@ -465,7 +459,6 @@ QCameraImageProcessing *QCamera::imageProcessing() const
 /*!
   Sets the QVideoWidget based camera \a viewfinder.
   The previously set viewfinder is detached.
-  \since 1.1
 */
 
 // QVideoWidget is forward declared
@@ -486,7 +479,6 @@ void QCamera::setViewfinder(QVideoWidget *viewfinder)
 /*!
   Sets the QGraphicsVideoItem based camera \a viewfinder.
   The previously set viewfinder is detached.
-  \since 1.1
 */
 // QGraphicsVideoItem is forward declared
 void QCamera::setViewfinder(QGraphicsVideoItem *viewfinder)
@@ -509,7 +501,6 @@ void QCamera::setViewfinder(QGraphicsVideoItem *viewfinder)
 
     If a viewfinder has already been set on the camera the new surface
     will replace it.
-    \since 1.2
 */
 
 void QCamera::setViewfinder(QAbstractVideoSurface *surface)
@@ -528,7 +519,6 @@ void QCamera::setViewfinder(QAbstractVideoSurface *surface)
 
 /*!
     Returns the error state of the object.
-    \since 1.1
 */
 
 QCamera::Error QCamera::error() const
@@ -538,7 +528,6 @@ QCamera::Error QCamera::error() const
 
 /*!
     Returns a string describing a camera's error state.
-    \since 1.1
 */
 QString QCamera::errorString() const
 {
@@ -548,7 +537,6 @@ QString QCamera::errorString() const
 
 /*!
     Returns true if the capture \a mode is suported.
-    \since 1.1
 */
 bool QCamera::isCaptureModeSupported(QCamera::CaptureMode mode) const
 {
@@ -566,7 +554,6 @@ bool QCamera::isCaptureModeSupported(QCamera::CaptureMode mode) const
   chaging capture mode is likely to lead to camera status
   chaged to QCamera::LoadedStatus, QCamera::LoadingStatus,
   and when the camera is ready to QCamera::ActiveStatus.
-  \since 1.1
 */
 
 QCamera::CaptureMode QCamera::captureMode() const
@@ -596,7 +583,6 @@ void QCamera::setCaptureMode(QCamera::CaptureMode mode)
     While the camera state is changed to QCamera::ActiveState,
     starting the camera service can be asynchronous with the actual
     status reported with QCamera::status property.
-    \since 1.1
 */
 void QCamera::start()
 {
@@ -607,7 +593,6 @@ void QCamera::start()
 /*!
     Stops the camera.
     The camera state is changed from QCamera::ActiveState to QCamera::LoadedState.
-    \since 1.1
 */
 void QCamera::stop()
 {
@@ -625,7 +610,6 @@ void QCamera::stop()
 
     In all the other cases it's possible to start the camera directly
     from unloaded state.
-    \since 1.1
 */
 void QCamera::load()
 {
@@ -636,7 +620,6 @@ void QCamera::load()
 /*!
     Close the camera device and deallocate the related resources.
     The camera state is changed to QCamera::UnloadedStatus.
-    \since 1.1
 */
 void QCamera::unload()
 {
@@ -647,7 +630,6 @@ void QCamera::unload()
 
 /*!
     Returns a list of camera device's available from the default service provider.
-    \since 1.1
 */
 
 QList<QByteArray> QCamera::availableDevices()
@@ -657,7 +639,6 @@ QList<QByteArray> QCamera::availableDevices()
 
 /*!
     Returns the description of the \a device.
-    \since 1.1
 */
 
 QString QCamera::deviceDescription(const QByteArray &device)
@@ -681,7 +662,6 @@ QCamera::Status QCamera::status() const
 
 /*!
     Returns the lock types, camera supports.
-    \since 1.1
 */
 QCamera::LockTypes QCamera::supportedLocks() const
 {
@@ -690,7 +670,6 @@ QCamera::LockTypes QCamera::supportedLocks() const
 
 /*!
     Returns the requested lock types.
-    \since 1.1
 */
 QCamera::LockTypes QCamera::requestedLocks() const
 {
@@ -699,7 +678,6 @@ QCamera::LockTypes QCamera::requestedLocks() const
 
 /*!
     Returns the status of requested camera settings locks.
-    \since 1.1
 */
 QCamera::LockStatus QCamera::lockStatus() const
 {
@@ -708,7 +686,6 @@ QCamera::LockStatus QCamera::lockStatus() const
 
 /*!
     Returns the status of camera settings \a lock.
-    \since 1.1
 */
 QCamera::LockStatus QCamera::lockStatus(QCamera::LockType lockType) const
 {
@@ -750,7 +727,6 @@ QCamera::LockStatus QCamera::lockStatus(QCamera::LockType lockType) const
 
     It's also acceptable to relock already locked settings,
     depending on the lock parameter this initiates new focusing, exposure or white balance calculation.
-    \since 1.1
  */
 void QCamera::searchAndLock(QCamera::LockTypes locks)
 {
@@ -774,7 +750,6 @@ void QCamera::searchAndLock(QCamera::LockTypes locks)
 
 /*!
     Lock all the supported camera settings.
-    \since 1.1
  */
 void QCamera::searchAndLock()
 {
@@ -783,7 +758,6 @@ void QCamera::searchAndLock()
 
 /*!
     Unlocks the camera settings specified with \a locks or cancel the current locking if one is active.
-    \since 1.1
  */
 void QCamera::unlock(QCamera::LockTypes locks)
 {
@@ -807,7 +781,6 @@ void QCamera::unlock(QCamera::LockTypes locks)
 
 /*!
     Unlock all the requested camera locks.
-    \since 1.1
  */
 void QCamera::unlock()
 {
@@ -844,7 +817,6 @@ void QCamera::unlock()
 /*!
     \property QCamera::state
     \brief The current state of the camera object.
-    \since 1.1
 */
 
 /*!
@@ -889,7 +861,6 @@ void QCamera::unlock()
 /*!
     \property QCamera::status
     \brief The current status of the camera object.
-    \since 1.1
 */
 
 
@@ -897,7 +868,6 @@ void QCamera::unlock()
     \enum QCamera::CaptureMode
     \value CaptureStillImage Camera is configured for still frames capture.
     \value CaptureVideo  Camera is configured for video capture.
-    \since 1.1
 */
 
 /*!
@@ -916,34 +886,29 @@ void QCamera::unlock()
 /*!
     \property QCamera::lockStatus
     \brief The overall status for all the requested camera locks.
-    \since 1.1
 */
 
 /*!
     \fn void QCamera::locked()
 
     Signals all the requested camera settings are locked.
-    \since 1.1
 */
 
 /*!
     \fn void QCamera::lockFailed()
 
     Signals locking of at least one requested camera settings failed.
-    \since 1.1
 */
 
 /*!
     \fn QCamera::lockStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason)
 
     Signals the overall \a status for all the requested camera locks was changed with specified \a reason.
-    \since 1.1
 */
 
 /*!
     \fn QCamera::lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason)
     Signals the \a lock \a status was changed with specified \a reason.
-    \since 1.1
 */
 
 /*!
@@ -1001,14 +966,12 @@ void QCamera::unlock()
     \fn void QCamera::error(QCamera::Error value)
 
     Signal emitted when error state changes to \a value.
-    \since 1.1
 */
 
 /*!
     \fn void QCamera::captureModeChanged(QCamera::CaptureMode mode)
 
     Signals the capture \a mode has changed.
-    \since 1.1
 */
 
 /*!
@@ -1019,7 +982,6 @@ void QCamera::unlock()
   Usually the state changes is caused by calling
   load(), unload(), start() and stop(),
   but the state can also be changed change as a result of camera error.
-    \since 1.1
 */
 
 /*!
@@ -1027,7 +989,6 @@ void QCamera::unlock()
 
   Signals the camera \a status has changed.
 
-  \since 1.1
 */
 
 QT_END_NAMESPACE

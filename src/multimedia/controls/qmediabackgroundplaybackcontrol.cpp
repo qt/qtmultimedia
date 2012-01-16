@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
     \class QMediaBackgroundPlaybackControl
     \inmodule QtMultimedia
     \ingroup multimedia
-    \since 5.0
 
 
     \brief The QMediaBackgroundPlaybackControl class provides access to the background playback
@@ -99,21 +98,18 @@ QMediaBackgroundPlaybackControl::QMediaBackgroundPlaybackControl(QObject *parent
     contextId is an unique string set by the application and is used by the background daemon to
     distinguish and manage different context for different application.
 
-    \since 1.0
 */
 
 /*!
     \fn QMediaBackgroundPlaybackControl::acquire()
 
     Try to acquire the playback resource for current application
-    \since 1.0
 */
 
 /*!
     \fn QMediaBackgroundPlaybackControl::release()
 
     Give up the playback resource if current applicaiton holds it.
-    \since 1.0
 */
 
 /*!
@@ -124,7 +120,6 @@ QMediaBackgroundPlaybackControl::QMediaBackgroundPlaybackControl(QObject *parent
 
     By default this property is false
 
-    \since 1.0
 */
 
 /*!
@@ -132,7 +127,6 @@ QMediaBackgroundPlaybackControl::QMediaBackgroundPlaybackControl(QObject *parent
 
     Signals that the playback resource is acquired
 
-    \since 1.0
 */
 
 /*!
@@ -140,7 +134,6 @@ QMediaBackgroundPlaybackControl::QMediaBackgroundPlaybackControl(QObject *parent
 
     Signals that the playback resource is lost
 
-    \since 1.0
 */
 
 #include "moc_qmediabackgroundplaybackcontrol.cpp"

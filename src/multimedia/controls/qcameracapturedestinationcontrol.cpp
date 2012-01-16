@@ -92,28 +92,24 @@ QCameraCaptureDestinationControl::~QCameraCaptureDestinationControl()
     \fn QCameraCaptureDestinationControl::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
 
     Returns true if the capture \a destination is supported; and false if it is not.
-    \since 1.2
 */
 
 /*!
     \fn QCameraCaptureDestinationControl::captureDestination() const
 
     Returns the current capture \a destination. The default destination is QCameraImageCapture::CaptureToFile.
-    \since 1.2
 */
 
 /*!
     \fn QCameraCaptureDestinationControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
 
     Sets the capture \a destination.
-    \since 1.2
 */
 
 /*!
     \fn QCameraCaptureDestinationControl::captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination)
 
     Signals the image capture \a destination changed.
-    \since 1.2
 */
 
 #include "moc_qcameracapturedestinationcontrol.cpp"

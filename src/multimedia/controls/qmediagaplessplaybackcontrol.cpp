@@ -46,7 +46,6 @@
     \class QMediaGaplessPlaybackControl
     \inmodule QtMultimedia
     \ingroup multimedia
-    \since 5.0
 
     \brief The QMediaGaplessPlaybackControl class provides access to the gapless playback
     related control of a QMediaService.
@@ -93,14 +92,12 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
     \fn QMediaGaplessPlaybackControl::nextMedia() const
 
     Returns the content of the next media
-    \since 1.0
 */
 
 /*!
     \fn QMediaGaplessPlaybackControl::setNextMedia(const QMediaContent& media)
 
     Sets the next media for smooth transition.
-    \since 1.0
 */
 
 /*!
@@ -109,7 +106,6 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
     Signals that the next media has changed (either explicitly via \l setNextMedia() or when the
     player clears the next media while advancing to it).
 
-    \since 1.0
     \sa nextMedia()
 */
 
@@ -118,7 +114,6 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
 
     Signals when the player advances to the next media (the content of next media will be cleared).
 
-    \since 1.0
     \sa nextMedia()
 */
 
@@ -129,7 +124,6 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
     If crossfading is not supported, \l setCrossfadTime() will be ignored and \l crossfadeTime() will
     always return 0.
 
-    \since 1.0
 */
 
 /*!
@@ -144,14 +138,12 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
     A crossfade time of zero or negative will result in gapless playback (suitable for some
     continuous media).
 
-    \since 1.0
 */
 
 /*!
     \fn QMediaGaplessPlaybackControl::crossfadeTime() const
 
     Returns current crossfade time in seconds.
-    \since 1.0
 */
 
 /*!
@@ -159,7 +151,6 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
 
     Signals that the crossfade time has changed.
 
-    \since 1.0
     \sa crossfadeTime()
 */
 

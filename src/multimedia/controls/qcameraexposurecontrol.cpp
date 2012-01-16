@@ -51,7 +51,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.1
 
     You can adjust a number of parameters that will affect images and video taken with
     the corresponding QCamera object.
@@ -100,7 +99,6 @@ QCameraExposureControl::~QCameraExposureControl()
   \fn QCamera::ExposureMode QCameraExposureControl::exposureMode() const
 
   Returns the exposure mode.
-  \since 1.1
 */
 
 
@@ -108,7 +106,6 @@ QCameraExposureControl::~QCameraExposureControl()
   \fn void QCameraExposureControl::setExposureMode(QCameraExposure::ExposureMode mode)
 
   Set the exposure mode to \a mode.
-  \since 1.1
 */
 
 
@@ -116,27 +113,23 @@ QCameraExposureControl::~QCameraExposureControl()
   \fn bool QCameraExposureControl::isExposureModeSupported(QCameraExposure::ExposureMode mode) const
 
   Returns true if the exposure \a mode is supported.
-  \since 1.1
 */
 
 
 /*!
   \fn QCameraExposure::MeteringMode QCameraExposureControl::meteringMode() const
   Returns the current metering mode.
-  \since 1.1
 */
 
 /*!
   \fn void QCameraExposureControl::setMeteringMode(QCameraExposure::MeteringMode mode)
 
   Set the metering mode to \a mode.
-  \since 1.1
 */
 
 /*!
   \fn bool QCameraExposureControl::isMeteringModeSupported(QCameraExposure::MeteringMode mode) const
     Returns true if the metering \a mode is supported.
-  \since 1.1
 */
 
 /*!
@@ -183,21 +176,18 @@ QCameraExposureControl::~QCameraExposureControl()
   \fn QCameraExposureControl::isParameterSupported(ExposureParameter parameter) const
 
   Returns true is exposure \a parameter is supported by backend.
-  \since 1.1
 */
 
 /*!
   \fn QCameraExposureControl::exposureParameter(ExposureParameter parameter) const
 
   Returns the exposure \a parameter value, or invalid QVariant() if the value is unknown or not supported.
-  \since 1.1
 */
 
 /*!
   \fn QCameraExposureControl::exposureParameterFlags(ExposureParameter parameter) const
 
   Returns the properties of exposure \a parameter.
-  \since 1.1
 */
 
 
@@ -205,7 +195,6 @@ QCameraExposureControl::~QCameraExposureControl()
   \fn QCameraExposureControl::supportedParameterRange(ExposureParameter parameter) const
 
   Returns the list of supported \a parameter values;
-  \since 1.1
 */
 
 /*!
@@ -216,28 +205,24 @@ QCameraExposureControl::~QCameraExposureControl()
   and if possible report the actual value to user with QCameraExposureControl::exposureParameter().
 
   Returns true if parameter is supported and value is correct.
-  \since 1.1
 */
 
 /*!
   \fn QCameraExposureControl::extendedParameterName(ExposureParameter parameter)
 
   Returns the extended exposure \a parameter name.
-  \since 1.1
 */
 
 /*!
     \fn void QCameraExposureControl::flashReady(bool ready)
 
     Signal emitted when flash state changes, flash is charged \a ready.
-    \since 1.1
 */
 
 /*!
     \fn void QCameraExposureControl::exposureParameterChanged(int parameter)
 
     Signal emitted when the exposure \a parameter has changed.
-    \since 1.1
 */
 
 /*!
@@ -245,7 +230,6 @@ QCameraExposureControl::~QCameraExposureControl()
     \fn void QCameraExposureControl::exposureParameterRangeChanged(int parameter)
 
     Signal emitted when the exposure \a parameter range has changed.
-    \since 1.1
 */
 
 

@@ -174,7 +174,6 @@ void QMediaImageViewerServicePrivate::clear()
 
 /*!
     \class QMediaImageViewerService
-    \since 1.0
     \internal
 */
 
@@ -402,7 +401,6 @@ void QMediaImageViewerControlPrivate::_q_headFinished()
 /*!
     \class QMediaImageViewerControl
     \internal
-    \since 1.1
 */
 QMediaImageViewerControl::QMediaImageViewerControl(QMediaImageViewerService *parent)
     : QMediaControl(*new QMediaImageViewerControlPrivate, parent)
@@ -422,7 +420,6 @@ QMediaImageViewerControl::~QMediaImageViewerControl()
 }
 
 /*!
-    \since 1.1
 */
 QMediaImageViewer::MediaStatus QMediaImageViewerControl::mediaStatus() const
 {
@@ -431,11 +428,9 @@ QMediaImageViewer::MediaStatus QMediaImageViewerControl::mediaStatus() const
 
 /*!
     \fn QMediaImageViewerControl::mediaStatusChanged(QMediaImageViewer::MediaStatus status);
-    \since 1.1
 */
 
 /*!
-    \since 1.1
 */
 void QMediaImageViewerControl::showMedia(const QMediaContent &media)
 {

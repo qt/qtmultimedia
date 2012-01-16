@@ -108,7 +108,6 @@ public:
 
     \inmodule QtMultimedia
     \ingroup  multimedia
-    \since 1.0
 
     An audio format specifies how data in an audio stream is arranged,
     i.e, how the stream is to be interpreted. The encoding itself is
@@ -176,7 +175,6 @@ QAudioFormat::QAudioFormat():
 
 /*!
     Construct a new audio format using \a other.
-    \since 1.0
 */
 QAudioFormat::QAudioFormat(const QAudioFormat &other):
     d(other.d)
@@ -192,7 +190,6 @@ QAudioFormat::~QAudioFormat()
 
 /*!
     Assigns \a other to this QAudioFormat implementation.
-    \since 1.0
 */
 QAudioFormat& QAudioFormat::operator=(const QAudioFormat &other)
 {
@@ -205,7 +202,6 @@ QAudioFormat& QAudioFormat::operator=(const QAudioFormat &other)
   QAudioFormat; otherwise returns false.
 
   All elements of QAudioFormat are used for the comparison.
-  \since 1.0
 */
 bool QAudioFormat::operator==(const QAudioFormat &other) const
 {
@@ -222,7 +218,6 @@ bool QAudioFormat::operator==(const QAudioFormat &other) const
   QAudioFormat; otherwise returns false.
 
   All elements of QAudioFormat are used for the comparison.
-  \since 1.0
 */
 bool QAudioFormat::operator!=(const QAudioFormat& other) const
 {
@@ -231,7 +226,6 @@ bool QAudioFormat::operator!=(const QAudioFormat& other) const
 
 /*!
     Returns true if all of the parameters are valid.
-    \since 1.0
 */
 bool QAudioFormat::isValid() const
 {
@@ -242,7 +236,6 @@ bool QAudioFormat::isValid() const
 /*!
    Sets the sample rate to \a samplerate Hertz.
 
-   \since 1.0
 */
 void QAudioFormat::setSampleRate(int samplerate)
 {
@@ -262,7 +255,6 @@ void QAudioFormat::setFrequency(int frequency)
 /*!
     Returns the current sample rate in Hertz.
 
-    \since 1.0
 */
 int QAudioFormat::sampleRate() const
 {
@@ -282,7 +274,6 @@ int QAudioFormat::frequency() const
 /*!
    Sets the channel count to \a channels.
 
-   \since 1.0
 */
 void QAudioFormat::setChannelCount(int channels)
 {
@@ -302,7 +293,6 @@ void QAudioFormat::setChannels(int channels)
 /*!
     Returns the current channel count value.
 
-    \since 1.0
 */
 int QAudioFormat::channelCount() const
 {
@@ -323,7 +313,6 @@ int QAudioFormat::channels() const
    Sets the sample size to the \a sampleSize specified, in bits.
 
    This is typically 8 or 16, but some systems may support higher sample sizes.
-   \since 1.0
 */
 void QAudioFormat::setSampleSize(int sampleSize)
 {
@@ -332,7 +321,6 @@ void QAudioFormat::setSampleSize(int sampleSize)
 
 /*!
     Returns the current sample size value, in bits.
-    \since 1.0
 */
 int QAudioFormat::sampleSize() const
 {
@@ -346,7 +334,6 @@ int QAudioFormat::sampleSize() const
    reported by the QAudioDeviceInfo::supportedCodecs() function
    for the audio device you are working with.
 
-   \since 1.0
    \sa QAudioDeviceInfo::supportedCodecs()
 */
 void QAudioFormat::setCodec(const QString &codec)
@@ -357,7 +344,6 @@ void QAudioFormat::setCodec(const QString &codec)
 /*!
     Returns the current codec identifier.
 
-   \since 1.0
    \sa QAudioDeviceInfo::supportedCodecs()
 */
 QString QAudioFormat::codec() const
@@ -367,7 +353,6 @@ QString QAudioFormat::codec() const
 
 /*!
    Sets the byteOrder to \a byteOrder.
-   \since 1.0
 */
 void QAudioFormat::setByteOrder(QAudioFormat::Endian byteOrder)
 {
@@ -376,7 +361,6 @@ void QAudioFormat::setByteOrder(QAudioFormat::Endian byteOrder)
 
 /*!
     Returns the current byteOrder value.
-    \since 1.0
 */
 QAudioFormat::Endian QAudioFormat::byteOrder() const
 {
@@ -385,7 +369,6 @@ QAudioFormat::Endian QAudioFormat::byteOrder() const
 
 /*!
    Sets the sampleType to \a sampleType.
-   \since 1.0
 */
 void QAudioFormat::setSampleType(QAudioFormat::SampleType sampleType)
 {
@@ -394,7 +377,6 @@ void QAudioFormat::setSampleType(QAudioFormat::SampleType sampleType)
 
 /*!
     Returns the current SampleType value.
-    \since 1.0
 */
 QAudioFormat::SampleType QAudioFormat::sampleType() const
 {

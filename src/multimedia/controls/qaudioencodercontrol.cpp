@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
     \class QAudioEncoderControl
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
     \brief The QAudioEncoderControl class provides access to the settings of a
     media service that performs audio encoding.
@@ -97,14 +96,12 @@ QAudioEncoderControl::~QAudioEncoderControl()
   \fn QAudioEncoderControl::supportedAudioCodecs() const
 
   Returns the list of supported audio codec names.
-  \since 1.0
 */
 
 /*!
   \fn QAudioEncoderControl::codecDescription(const QString &codec) const
 
   Returns description of audio \a codec.
-  \since 1.0
 */
 
 /*!
@@ -120,28 +117,24 @@ QAudioEncoderControl::~QAudioEncoderControl()
 
   If the encoder supports arbitrary sample rates within the supported rates range,
   *\a continuous is set to true, otherwise *\a continuous is set to false.
-  \since 1.0
 */
 
 /*!
     \fn QAudioEncoderControl::supportedEncodingOptions(const QString &codec) const
 
     Returns the list of \a codec specific audio encoding options.
-    \since 1.0
 */
 
 /*!
     \fn QAudioEncoderControl::encodingOption(const QString &codec, const QString &option) const
 
     Returns the value of audio encoding \a option for \a codec.
-    \since 1.0
 */
 
 /*!
     \fn QAudioEncoderControl::setEncodingOption(const QString &codec, const QString &option, const QVariant &value)
 
     Set the \a codec specific \a option to \a value.
-    \since 1.0
 */
 
 /*!
@@ -152,14 +145,12 @@ QAudioEncoderControl::~QAudioEncoderControl()
     The returned value may be different tha passed to QAudioEncoderControl::setAudioSettings()
     if the settings contains the default or undefined parameters.
     In this case if the undefined parameters are already resolved, they should be returned.
-    \since 1.0
 */
 
 /*!
     \fn QAudioEncoderControl::setAudioSettings(const QAudioEncoderSettings &settings)
 
     Sets the selected audio \a settings.
-    \since 1.0
 */
 
 #include "moc_qaudioencodercontrol.cpp"

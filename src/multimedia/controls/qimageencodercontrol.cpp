@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia-serv
-    \since 1.0
 
     \brief The QImageEncoderControl class provides access to the settings of a media service that
     performs image encoding.
@@ -102,21 +101,18 @@ QImageEncoderControl::~QImageEncoderControl()
 
     If the encoder supports arbitrary resolutions within the supported resolutions range,
     *\a continuous is set to true, otherwise *\a continuous is set to false.
-    \since 1.0
 */
 
 /*!
     \fn QImageEncoderControl::supportedImageCodecs() const
 
     Returns a list of supported image codecs.
-    \since 1.0
 */
 
 /*!
     \fn QImageEncoderControl::imageCodecDescription(const QString &codec) const
 
     Returns a description of an image \a codec.
-    \since 1.0
 */
 
 /*!
@@ -127,14 +123,12 @@ QImageEncoderControl::~QImageEncoderControl()
     The returned value may be different tha passed to QImageEncoderControl::setImageSettings()
     if the settings contains the default or undefined parameters.
     In this case if the undefined parameters are already resolved, they should be returned.
-    \since 1.0
 */
 
 /*!
     \fn QImageEncoderControl::setImageSettings(const QImageEncoderSettings &settings)
 
     Sets the selected image encoder \a settings.
-    \since 1.0
 */
 
 #include "moc_qimageencodercontrol.cpp"
