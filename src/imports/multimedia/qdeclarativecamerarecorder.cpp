@@ -46,6 +46,14 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \qmlclass CameraRecorder QDeclarativeCameraRecorder
+    \brief The CameraRecorder element provides an interface for camera movie recording related settings
+    \ingroup multimedia_qml
+
+    Documentation to be written.
+*/
+
 QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QCamera *camera, QObject *parent) :
     QObject(parent)
 {

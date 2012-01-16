@@ -52,9 +52,8 @@ QT_BEGIN_NAMESPACE
     Depending on backend capabilities capture to file, buffer or both can be supported.
 
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
-
-
+    \ingroup multimedia
+    \ingroup multimedia_control
 
     The interface name of QCameraCaptureDestinationControl is \c com.nokia.Qt.QCameraCaptureDestinationControl/1.0 as
     defined in QCameraCaptureDestinationControl_iid.

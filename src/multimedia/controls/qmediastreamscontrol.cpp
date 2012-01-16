@@ -58,10 +58,11 @@ namespace
 
 /*!
     \class QMediaStreamsControl
-    \preliminary
-
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
+
     \brief The QMediaStreamsControl class provides a media stream selection control.
 
 

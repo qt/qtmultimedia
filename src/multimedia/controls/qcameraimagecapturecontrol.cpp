@@ -51,9 +51,9 @@ QT_BEGIN_NAMESPACE
     for image capture services.
 
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
 
-
+    \ingroup multimedia
+    \ingroup multimedia_control
 
     The interface name of QCameraImageCaptureControl is \c com.nokia.Qt.QCameraImageCaptureControl/1.0 as
     defined in QCameraImageCaptureControl_iid.

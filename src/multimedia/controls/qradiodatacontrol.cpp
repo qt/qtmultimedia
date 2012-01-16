@@ -49,7 +49,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QRadioDataControl
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
 
 
     \brief The QRadioDataControl class provides access to the RDS functionality of the

@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
     \brief The QAbstractAudioDeviceInfo class is a base class for audio backends.
 
     \ingroup multimedia
+    \ingroup multimedia_audio
     \inmodule QtMultimedia
     \internal
 

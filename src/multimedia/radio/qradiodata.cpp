@@ -69,6 +69,7 @@ namespace
 
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_radio
 
     The radio data object will emit signals for any changes in radio data. You can enable or disable
     alternative frequency with setAlternativeFrequenciesEnabled().

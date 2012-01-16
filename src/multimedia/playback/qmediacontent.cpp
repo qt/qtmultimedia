@@ -89,6 +89,7 @@ private:
 
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_playback
 
     QMediaContent is used within the multimedia framework as the logical handle
     to media content.  A QMediaContent object is composed of one or more

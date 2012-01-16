@@ -59,7 +59,9 @@ namespace
 /*!
     \class QCameraImageProcessingControl
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
 
 
     \brief The QCameraImageProcessingControl class provides an abstract class

@@ -54,6 +54,7 @@ QT_BEGIN_NAMESPACE
     \brief The SoundEffect element provides a way to play sound effects in QML.
 
     \inmodule QtMultimedia
+    \ingroup multimedia_qml
 
     This element is part of the \bold{QtMultimedia 5.0} module.
 
@@ -61,6 +62,17 @@ QT_BEGIN_NAMESPACE
 
     \snippet doc/src/snippets/multimedia-snippets/soundeffect.qml complete snippet
 */
+
+/*!
+    \class QSoundEffect
+    \brief The QSoundEffect provides a way to play low latency sound effects.
+
+    \ingroup multimedia
+    \ingroup multimedia_audio
+
+*/
+
+
 
 /*!
     \qmlproperty url SoundEffect::source

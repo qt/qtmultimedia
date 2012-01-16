@@ -107,6 +107,7 @@ public:
     \brief The QAudioDeviceInfo class provides an interface to query audio devices and their functionality.
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_audio
 
     QAudioDeviceInfo lets you query for audio devices--such as sound
     cards and USB headsets--that are currently available on the system.

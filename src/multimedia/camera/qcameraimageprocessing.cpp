@@ -74,7 +74,8 @@ QT_BEGIN_NAMESPACE
     image processing related camera settings.
 
     \inmodule QtMultimedia
-    \ingroup camera
+    \ingroup multimedia
+    \ingroup multimedia_camera
 
     After capturing the data for a camera frame, the camera hardware and
     software performs various image processing tasks to produce a final

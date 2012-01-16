@@ -49,6 +49,14 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \qmlclass CameraCapture QDeclarativeCameraCapture
+    \brief The CameraCapture element provides an interface for camera capture related settings
+    \ingroup multimedia_qml
+
+    Documentation to be written.
+*/
+
 QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera, QObject *parent) :
     QObject(parent),
     m_camera(camera)

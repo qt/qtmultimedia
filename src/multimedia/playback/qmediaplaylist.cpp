@@ -79,6 +79,7 @@ namespace
     \class QMediaPlaylist
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_playback
 
 
     \brief The QMediaPlaylist class provides a list of media content to play.

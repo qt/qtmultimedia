@@ -49,7 +49,9 @@ QT_BEGIN_NAMESPACE
     \class QVideoEncoderControl
 
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
 
     \brief The QVideoEncoderControl class provides access to the settings
     of a media service that performs video encoding.

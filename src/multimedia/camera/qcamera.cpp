@@ -81,7 +81,8 @@ QT_BEGIN_NAMESPACE
     \brief The QCamera class provides interface for system camera devices.
 
     \inmodule QtMultimedia
-    \ingroup camera
+    \ingroup multimedia
+    \ingroup multimedia_camera
 
     QCamera can be used with QVideoWidget for viewfinder display,
     QMediaRecorder for video recording and QCameraImageCapture for image taking.

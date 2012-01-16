@@ -126,6 +126,9 @@ private:
     \brief The QVideoFrame class represents a frame of video data.
     \inmodule QtMultimedia
 
+    \ingroup multimedia
+    \ingroup multimedia_video
+
     A QVideoFrame encapsulates the pixel data of a video frame, and information about the frame.
 
     Video frames can come from several places - decoded \l {QMediaPlayer}{media}, a

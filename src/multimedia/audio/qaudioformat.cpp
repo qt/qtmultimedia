@@ -107,7 +107,8 @@ public:
     \brief The QAudioFormat class stores audio stream parameter information.
 
     \inmodule QtMultimedia
-    \ingroup  multimedia
+    \ingroup multimedia
+    \ingroup multimedia_audio
 
     An audio format specifies how data in an audio stream is arranged,
     i.e, how the stream is to be interpreted. The encoding itself is

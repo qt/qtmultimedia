@@ -34,6 +34,9 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \inmodule QtMultimedia
 
+    \ingroup multimedia
+    \ingroup multimedia_core
+
     \brief The QtMultimedia namespace contains miscellaneous identifiers used throughout the Qt Media services library.
 
     QtMultimedia is a module containing the low level, low latency,

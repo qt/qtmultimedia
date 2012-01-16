@@ -73,6 +73,7 @@ namespace
 
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_radio
 
     You can control the systems analog radio device using this interface, for example:
 

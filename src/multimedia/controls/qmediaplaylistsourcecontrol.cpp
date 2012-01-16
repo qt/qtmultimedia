@@ -48,7 +48,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QMediaPlaylistSourceControl
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
 
 
     \brief The QMediaPlaylistSourceControl class provides access to the playlist playback

@@ -51,7 +51,8 @@ QT_BEGIN_NAMESPACE
     The format is of type QVideoFrame::PixelFormat.
 
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+    \ingroup multimedia
+    \ingroup multimedia_control
 
     The interface name of QCameraCaptureBufferFormatControl is \c com.nokia.Qt.QCameraCaptureBufferFormatControl/1.0 as
     defined in QCameraCaptureBufferFormatControl_iid.

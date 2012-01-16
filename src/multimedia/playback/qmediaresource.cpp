@@ -66,6 +66,7 @@ namespace
     \brief The QMediaResource class provides a description of a media resource.
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_playback
 
     A media resource is composed of a \l {url()}{URL} containing the
     location of the resource and a set of properties that describe the

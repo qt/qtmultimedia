@@ -49,6 +49,7 @@ QT_BEGIN_NAMESPACE
     \brief The QAudioSystemPlugin class provides an abstract base for audio plugins.
 
     \ingroup multimedia
+    \ingroup multimedia_audio
     \inmodule QtMultimedia
     \internal
 

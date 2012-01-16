@@ -47,7 +47,8 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraExposure QDeclarativeCameraExposure
     \brief The CameraExposure element provides interface for exposure related camera settings.
-    \ingroup qml-multimedia
+    \ingroup multimedia_qml
+
 
     This element is part of the \bold{QtMultimedia 5.0} module.
 
@@ -68,8 +69,10 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \internal
     \class QDeclarativeCameraExposure
     \brief The CameraExposure element provides interface for exposure related camera settings.
+
 */
 
 /*!

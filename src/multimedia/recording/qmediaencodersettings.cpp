@@ -87,6 +87,7 @@ private:
 
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_recording
 
     A audio encoder settings object is used to specify the audio encoder
     settings used by QMediaRecorder.  Audio encoder settings are selected by

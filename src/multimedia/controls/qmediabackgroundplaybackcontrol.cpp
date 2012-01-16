@@ -48,8 +48,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QMediaBackgroundPlaybackControl
     \inmodule QtMultimedia
-    \ingroup multimedia
 
+    \ingroup multimedia
+    \ingroup multimedia_control
 
     \brief The QMediaBackgroundPlaybackControl class provides access to the background playback
     related control of a QMediaService.

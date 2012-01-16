@@ -28,7 +28,7 @@
 /*!
     \group qml-multimedia
     \title QML Multimedia Plugin
-    QML Support for the QtMobility Project Multimedia API.
+    QML Support for the Qt Multimedia API.
 */
 
 /*!
@@ -36,19 +36,19 @@
 
     \title Multimedia QML Plugin
 
-    \brief A QML plugin for the QtMobility Project Multimedia API.
+    \brief A QML plugin for the Qt Multimedia API.
 
 
     \section1 Overview
 
-    The Multimedia API in the QtMobility Project gives developers a simplified way to use audio and video playback, and access camera functionality. The Multimedia QML Plugin provides a QML friendly interface to these features.
+    The Qt Multimedia API gives developers a simplified way to use audio and video playback, and access camera functionality. The Multimedia QML Plugin provides a QML friendly interface to these features.
 
     \section1 Elements
 
     \section2 Audio
 
     The \l Audio element is an easy way to add audio playback to a Qt Quick
-    scene. QtMobility provides properties for control, methods (functions) and signals.
+    scene. QtMultimedia provides properties for control, methods (functions) and signals.
 
     The code extract below shows the creation and use of an audio element.
 
@@ -285,7 +285,7 @@
 
     \section1 Multimedia QML Elements
 
-    \annotatedlist qml-multimedia
+    \annotatedlist multimedia_qml
 */
 
 

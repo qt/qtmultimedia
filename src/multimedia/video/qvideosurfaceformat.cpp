@@ -153,6 +153,9 @@ public:
     surface.
     \inmodule QtMultimedia
 
+    \ingroup multimedia
+    \ingroup multimedia_video
+
     A video surface presents a stream of video frames.  The surface's format describes the type of
     the frames and determines how they should be presented.
 

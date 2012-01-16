@@ -119,7 +119,7 @@ private:
     \qmlclass VideoOutput QDeclarativeVideoOutput
     \brief The VideoOutput element allows you to render video or camera viewfinder.
 
-    \ingroup qml-multimedia
+    \ingroup multimedia_qml
 
     This element is part of the \bold{QtMultimedia 5.0} module.
 

@@ -71,7 +71,8 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
 /*!
     \qmlclass Camera QDeclarativeCamera
     \brief The Camera element allows you to add camera viewfinder to a scene.
-    \ingroup qml-multimedia
+    \ingroup multimedia_qml
+
     \inherits Item
 
     This element is part of the \bold{QtMultimedia 5.0} module.

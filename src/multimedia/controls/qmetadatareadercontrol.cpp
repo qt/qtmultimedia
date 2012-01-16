@@ -48,7 +48,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QMetaDataReaderControl
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
 
 
     \brief The QMetaDataReaderControl class provides read access to the

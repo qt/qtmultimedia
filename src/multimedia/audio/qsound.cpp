@@ -49,7 +49,7 @@
     \brief The QSound class provides a way to play .wav sound files.
 
     \ingroup multimedia
-
+    \ingroup multimedia_audio
 
     Qt provides the most commonly required audio operation in GUI
     applications: asynchronously playing a sound file. This is most

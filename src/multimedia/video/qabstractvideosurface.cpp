@@ -83,6 +83,9 @@ public:
     \brief The QAbstractVideoSurface class is a base class for video presentation surfaces.
     \inmodule QtMultimedia
 
+    \ingroup multimedia
+    \ingroup multimedia_video
+
     The QAbstractVideoSurface class defines the standard interface that video producers use to
     inter-operate with video presentation surfaces.  You can subclass this interface to receive
     video frames from sources like \l {QMediaPlayer}{decoded media} or \l {QCamera}{cameras} to

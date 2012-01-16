@@ -344,26 +344,46 @@ displayed around the video content pane.
 
 \section1 Reference documentation
 
-\section2 Main audio and video classes
+\section2 Core classes
 
-\annotatedlist multimedia
+\annotatedlist multimedia_core
+
+\section2 Media playback classes
+
+\annotatedlist multimedia_playback
 
 \section2 Camera classes
 
-\annotatedlist camera
+\annotatedlist multimedia_camera
+
+\section2 Radio classes
+
+\annotatedlist multimedia_radio
+
+\section2 Media recording classes
+
+\annotatedlist multimedia_recording
+
+\section2 Low level Audio related classes
+
+\annotatedlist multimedia_audio
+
+\section2 Low level Video related classes
+
+\annotatedlist multimedia_video
+
+\section2 QML Elements
+\annotatedlist multimedia_qml
+
+See also \l{Multimedia QML Plugin}
 
 \section2 Advanced usage.
 
 For developers wishing to access some platform specific settings, or to
 port the Qt Multimedia APIs to a new platform or technology, see \l{Multimedia Backend Development}.
 
-\section2 QML Elements
-\list
-\o \l {SoundEffect}{SoundEffect: Low Latency Sound Effects}
-\o \l {Audio}{Audio: Music playback}
-\o \l {Video}{Video: Video playback}
-\endlist
-*/
+*
+***/
 
 
 

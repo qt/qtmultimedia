@@ -37,23 +37,12 @@ for still or video image capture with sound support.
 
 \tableofcontents
 
-
-\section1 Namespace
-
-The QtMobility APIs are placed into the \i{QtMobility} namespace. This is done
-to facilitate the future migration of QtMobility APIs into Qt. See the
-\l {Quickstart guide} for an example on how the
-namespace impacts on application development.
-
-
 \section1 Overview
 
 The Camera API allows high level control of various aspects of still images
 and video. Camera is a part of the Multimedia API and this relationship is
 apparent when you notice that certain core classes are subclassed from some
 Multimedia base classes including \l QMediaObject and \l QMediaControl.
-
-
 
 \section1 Still Images
 
@@ -173,7 +162,7 @@ autoexposure or white balance cancellation can be done by calling
 
 
 \section1 Classes
-\annotatedlist camera
+\annotatedlist multimedia_camera
 
 
 */

@@ -48,7 +48,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QMetaDataWriterControl
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
 
 
     \brief The QMetaDataWriterControl class provides write access to the

@@ -49,10 +49,10 @@ QT_BEGIN_NAMESPACE
 
     \brief The QCameraFlashControl class allows controlling a camera's flash.
 
-    \ingroup multimedia-serv
     \inmodule QtMultimedia
 
-    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_control
 
     You can set the type of flash effect used when an image is captured, and test to see
     if the flash hardware is ready to fire.

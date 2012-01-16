@@ -65,6 +65,8 @@ namespace
     \class QAbstractVideoBuffer
     \brief The QAbstractVideoBuffer class is an abstraction for video data.
     \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_video
 
     The QVideoFrame class makes use of a QAbstractVideoBuffer internally to reference a buffer of
     video data.  Quite often video data buffers may reside in video memory rather than system

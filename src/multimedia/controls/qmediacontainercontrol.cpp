@@ -50,7 +50,9 @@ QT_BEGIN_NAMESPACE
     \brief The QMediaContainerControl class provides access to the output container format of a QMediaService
 
     \inmodule QtMultimedia
-    \ingroup multimedia-serv
+
+    \ingroup multimedia
+    \ingroup multimedia_control
 
     If a QMediaService supports writing encoded data it will implement
     QMediaContainerControl.  This control provides information about the output

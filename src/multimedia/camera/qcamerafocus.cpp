@@ -110,7 +110,8 @@ public:
     \brief The QCameraFocusZone class provides information on zones used for autofocusing a camera.
 
     \inmodule QtMultimedia
-    \ingroup camera
+    \ingroup multimedia
+    \ingroup multimedia_camera
 
     For cameras that support autofocusing, in order for a camera to autofocus on
     part of a sensor frame, it considers different zones within the frame.  Which

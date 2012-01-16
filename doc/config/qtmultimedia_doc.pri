@@ -33,3 +33,11 @@ QMAKE_EXTRA_TARGETS += docs dita_docs online_docs qch_docs
 QMAKE_CLEAN += \
                "-r $$PWD/../html" \
                "-r $$PWD/../ditaxml"
+
+
+OTHER_FILES += \
+    doc/src/multimedia.qdoc \
+    doc/src/camera.qdoc \
+    doc/src/multimediabackend.qdoc \
+    doc/src/radiooverview.qdoc \
+    doc/src/plugins/qml-multimedia.qdoc
