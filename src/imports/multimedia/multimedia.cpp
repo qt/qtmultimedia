@@ -57,6 +57,7 @@
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
+#include "qdeclarativetorch_p.h"
 
 
 QML_DECLARE_TYPE(QSoundEffect)
@@ -103,6 +104,7 @@ public:
         qmlRegisterType<QDeclarativeRadioData>(uri, 5, 0, "RadioData");
         qmlRegisterType<QDeclarativeBackgroundAudio>(uri, 5, 0, "BackgroundAudio");
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
+        qmlRegisterType<QDeclarativeTorch>(uri, 5, 0, "Torch");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
                                 trUtf8("CameraCapture is only provided by Camera element"));
         qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 5, 0, "CameraRecorder",

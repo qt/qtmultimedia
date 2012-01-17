@@ -26,7 +26,8 @@ HEADERS += \
         qdeclarativecameraflash_p.h \
         qdeclarativecamerafocus_p.h \
         qdeclarativecameraimageprocessing_p.h \
-        qdeclarativecamerapreviewprovider_p.h
+        qdeclarativecamerapreviewprovider_p.h \
+        qdeclarativetorch_p.h
 
 SOURCES += \
         multimedia.cpp \
@@ -46,7 +47,8 @@ SOURCES += \
         qdeclarativecameraflash.cpp \
         qdeclarativecamerafocus.cpp \
         qdeclarativecameraimageprocessing.cpp \
-        qdeclarativecamerapreviewprovider.cpp
+        qdeclarativecamerapreviewprovider.cpp \
+        qdeclarativetorch.cpp
 
 OTHER_FILES += \
         Video.qml
