@@ -65,17 +65,17 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QSoundEffect
-    \brief The QSoundEffect provides a way to play low latency sound effects.
+    \brief The QSoundEffect class provides a way to play low latency sound effects.
 
     \ingroup multimedia
     \ingroup multimedia_audio
 
+
 */
-
-
 
 /*!
     \qmlproperty url SoundEffect::source
+    \property QSoundEffect::source
 
     This property provides a way to control the sound to play.
 */
@@ -85,11 +85,19 @@ QT_BEGIN_NAMESPACE
 
     This property provides a way to control the number of times to repeat the sound on each play().
 
-    Set to -1 (infinite) to enable infinite loop.
+    Set to SoundEffect.Infinite to enable infinite looping.
+*/
+
+/*!
+    \property QSoundEffect::loops
+    This property provides a way to control the number of times to repeat the sound on each play().
+
+    Set to QSoundEffect::Infinite to enable infinite looping.
 */
 
 /*!
     \qmlproperty qreal SoundEffect::volume
+    \property QSoundEffect::volume
 
     This property holds the volume of the playback, from 0.0 (silent) to 1.0 (maximum volume).
     Note: Currently this has no effect on Mac OS X.
@@ -97,12 +105,14 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlproperty bool SoundEffect::muted
+    \property QSoundEffect::muted
 
-    This property provides a way to control muting.
+    This property provides a way to control muting. A value of \c true will mute this effect.
 */
 
 /*!
     \qmlproperty bool SoundEffect::playing
+    \property QSoundEffect::source
 
     This property indicates if the soundeffect is playing or not.
 */
@@ -120,50 +130,63 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlsignal SoundEffect::sourceChanged()
+    \fn void QSoundEffect::sourceChanged()
 
     This handler is called when the source has changed.
+*/
+/*!
+    \qmlsignal SoundEffect::loadedChanged()
+    \fn void QSoundEffect::loadedChanged()
+
+    This handler is called when the loading state has changed.
 */
 
 /*!
     \qmlsignal SoundEffect::loopCountChanged()
+    \fn void QSoundEffect::loopCountChanged()
 
     This handler is called when the initial number of loops has changed.
 */
 
 /*!
     \qmlsignal SoundEffect::loopsRemainingChanged()
+    \fn void QSoundEffect::loopsRemainingChanged()
 
     This handler is called when the remaining number of loops has changed.
 */
 
 /*!
     \qmlsignal SoundEffect::volumeChanged()
+    \fn void QSoundEffect::volumeChanged()
 
     This handler is called when the volume has changed.
 */
 
 /*!
     \qmlsignal SoundEffect::mutedChanged()
+    \fn void QSoundEffect::mutedChanged()
 
     This handler is called when the mute state has changed.
 */
 
 /*!
     \qmlsignal SoundEffect::playingChanged()
+    \fn void QSoundEffect::playingChanged()
 
     This handler is called when the playing property has changed.
 */
 
 /*!
     \qmlsignal SoundEffect::statusChanged()
+    \fn void QSoundEffect::statusChanged()
 
     This handler is called when the status property has changed.
 */
 
 
 /*!
+    Creates a QSoundEffect with the given \a parent.
 */
-
 QSoundEffect::QSoundEffect(QObject *parent) :
     QObject(parent)
 {
@@ -176,6 +199,9 @@ QSoundEffect::QSoundEffect(QObject *parent) :
     connect(d, SIGNAL(statusChanged()), SIGNAL(statusChanged()));
 }
 
+/*!
+    Destroys this sound effect.
+ */
 QSoundEffect::~QSoundEffect()
 {
     d->release();
@@ -266,7 +292,7 @@ bool QSoundEffect::isLoaded() const
   \qmlmethod SoundEffect::play()
 
   Start playback of the sound effect, looping the effect for the number of
-  times as specificed in the loops property.
+  times as specified in the loops property.
 
   This is the default method for SoundEffect.
 
@@ -282,6 +308,17 @@ bool QSoundEffect::isPlaying() const
     return d->isPlaying();
 }
 
+/*!
+    \enum QSoundEffect::Status
+    \value Null         This sound effect does not have a source set.
+    \value Loading      The source is being loaded
+    \value Ready        The source has been loaded, and can be played.
+    \value Error        An error occurred while loading the source or during playback.
+*/
+
+/*!
+    Returns the current status of this sound effect.
+ */
 QSoundEffect::Status QSoundEffect::status() const
 {
     return d->status();

@@ -130,7 +130,7 @@ public:
 */
 
 /*!
-    \enum QCameraFocusZone::Status
+    \enum QCameraFocusZone::FocusZoneStatus
 
     \value Invalid      This zone is not valid
     \value Unused       This zone may be used for autofocusing, but is not currently.

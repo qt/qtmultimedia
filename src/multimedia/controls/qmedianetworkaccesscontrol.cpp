@@ -55,8 +55,8 @@ QT_BEGIN_NAMESPACE
     setting of a Network Access Point.
 
     This control can be used to set a network access for various
-    network related activities. the exact nature in dependant on the underlying
-    usage by the supported QMediaObject
+    network related activities.  The exact nature is dependent on the underlying
+    usage by the supported QMediaObject.
 */
 
 QMediaNetworkAccessControl::QMediaNetworkAccessControl(QObject *parent) :
@@ -72,9 +72,9 @@ QMediaNetworkAccessControl::~QMediaNetworkAccessControl()
 }
 
 /*!
-    \fn void QMediaNetworkAccessControl::setConfigurations(const QList<QNetworkConfiguration> &configurations);
+    \fn void QMediaNetworkAccessControl::setConfigurations(const QList<QNetworkConfiguration> &configurations)
 
-    \a configurations contains a list of network configurations to be used for network access.
+    The \a configurations parameter contains a list of network configurations to be used for network access.
 
     It is assumed the list is given in highest to lowest preference order.
     By calling this function all previous configurations will be invalidated

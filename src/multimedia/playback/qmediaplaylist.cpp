@@ -244,7 +244,7 @@ bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
 /*!
   \property QMediaPlaylist::playbackMode
 
-  This property defines the order, items in playlist are played.
+  This property defines the order that items in the playlist are played.
 
   \sa QMediaPlaylist::PlaybackMode
 */

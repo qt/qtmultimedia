@@ -302,7 +302,7 @@ QString QRadioData::errorString() const
 */
 
 /*!
-    \fn void QRadioData::stationNameChanged(int stationName)
+    \fn void QRadioData::stationNameChanged(QString stationName)
 
     Signals that the Program Service has changed to \a stationName
 */
@@ -310,7 +310,14 @@ QString QRadioData::errorString() const
 /*!
     \fn void QRadioData::alternativeFrequenciesEnabledChanged(bool enabled)
 
-    Signals that the AF has been enabled or disabled
+    Signals that automatically tuning to alternative frequencies has been
+    enabled or disabled according to \a enabled.
+*/
+
+/*!
+    \fn void QRadioData::radioTextChanged(QString radioText)
+
+    Signals that the Radio Text property has changed to \a radioText
 */
 
 /*!
@@ -330,9 +337,62 @@ QString QRadioData::errorString() const
     \value OutOfRangeError An attempt to set a frequency or band that is not supported by radio device.
 */
 
-/*! \fn void QRadioData::stateChanged(QRadioData::State state)
-  This signal is emitted when the state changes to \a state.
- */
+/*!
+    \enum QRadioData::ProgramType
+
+    This property holds the type of the currently playing program as transmitted
+    by the radio station. The value can be any one of the values defined in the
+    table below.
+
+    \value Undefined
+    \value News
+    \value CurrentAffairs
+    \value Information
+    \value Sport
+    \value Education
+    \value Drama
+    \value Culture
+    \value Science
+    \value Varied
+    \value PopMusic
+    \value RockMusic
+    \value EasyListening
+    \value LightClassical
+    \value SeriousClassical
+    \value OtherMusic
+    \value Weather
+    \value Finance
+    \value ChildrensProgrammes
+    \value SocialAffairs
+    \value Religion
+    \value PhoneIn
+    \value Travel
+    \value Leisure
+    \value JazzMusic
+    \value CountryMusic
+    \value NationalMusic
+    \value OldiesMusic
+    \value FolkMusic
+    \value Documentary
+    \value AlarmTest
+    \value Alarm
+    \value Talk
+    \value ClassicRock
+    \value AdultHits
+    \value SoftRock
+    \value Top40
+    \value Soft
+    \value Nostalgia
+    \value Classical
+    \value RhythmAndBlues
+    \value SoftRhythmAndBlues
+    \value Language
+    \value ReligiousMusic
+    \value ReligiousTalk
+    \value Personality
+    \value Public
+    \value College
+*/
 
 #include "moc_qradiodata.cpp"
 QT_END_NAMESPACE

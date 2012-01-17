@@ -242,7 +242,7 @@ QMediaObject::QMediaObject(QMediaObjectPrivate &dd, QObject *parent,
 
 /*!
     Watch the property \a name. The property's notify signal will be emitted
-    once every \code notifyInterval milliseconds.
+    once every \c notifyInterval milliseconds.
 
     \sa notifyInterval
 */

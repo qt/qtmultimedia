@@ -93,7 +93,7 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
 
         flash.mode: Camera.FlashRedEyeReduction
 
-        onImageCaptured : {
+        onImageCaptured: {
             photoPreview.source = preview  // Show the preview in an Image element
         }
     }
@@ -114,6 +114,7 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
 
 /*!
     \class QDeclarativeCamera
+    \internal
     \brief The QDeclarativeCamera class provides a camera item that you can add to a QDeclarativeView.
 */
 

@@ -72,6 +72,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QDeclarativeCameraFocus
+    \internal
     \brief The CameraFocus element provides interface for focus related camera settings.
 */
 

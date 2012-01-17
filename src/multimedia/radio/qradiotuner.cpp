@@ -456,6 +456,15 @@ void QRadioTuner::searchBackward()
 }
 
 /*!
+    \enum QRadioTuner::SearchMode
+
+    Enumerates how the radio tuner should search for stations.
+
+    \value SearchFast           Use only signal strength when searching.
+    \value SearchGetStationId   After finding a strong signal, wait for the RDS station id (PI) before continuing.
+*/
+
+/*!
     Search all stations in current band
 
     Emits QRadioTuner::stationFound(int, QString) for every found station.

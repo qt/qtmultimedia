@@ -60,8 +60,8 @@ QT_BEGIN_NAMESPACE
     integer.
 
     The isNormal() method determines if a time interval is normal (a normal
-    time interval has start() <= end()). An abnormal interval can be converted
-    in to a normal interval by calling the normalized() method.
+    time interval has start() <= end()). A normal interval can be received
+    from an abnormal interval by calling the normalized() method.
 
     The contains() method determines if a specified time lies within the time
     interval.
@@ -362,7 +362,7 @@ QMediaTimeRange::QMediaTimeRange(qint64 start, qint64 end)
 /*!
     \fn QMediaTimeRange::QMediaTimeRange(const QMediaTimeInterval &interval)
 
-    Constructs a time range that contains an intitial interval, \a interval.
+    Constructs a time range that contains an initial interval, \a interval.
 
     If \a interval is not \l{QMediaTimeInterval::isNormal()}{normal},
     the resulting time range will be empty.
