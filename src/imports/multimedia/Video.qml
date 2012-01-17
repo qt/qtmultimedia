@@ -129,7 +129,7 @@ Item {
 
     /*** Properties of MediaPlayer ***/
     /*!
-        \qmlproperty url Video::autoLoad
+        \qmlproperty bool Video::autoLoad
 
         This property indicates if loading of media should begin immediately.
 
