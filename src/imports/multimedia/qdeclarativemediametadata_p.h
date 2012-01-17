@@ -79,7 +79,7 @@ class QDeclarativeMediaMetaData : public QObject
     Q_PROPERTY(QVariant publisher READ publisher NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant copyright READ copyright NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant parentalRating READ parentalRating NOTIFY metaDataChanged)
-    Q_PROPERTY(QVariant ratingOrganisation READ ratingOrganisation NOTIFY metaDataChanged)
+    Q_PROPERTY(QVariant ratingOrganization READ ratingOrganization NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant size READ size NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant mediaType READ mediaType NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant duration READ duration NOTIFY metaDataChanged)
@@ -132,8 +132,8 @@ public:
     QVariant publisher() const { return m_control->metaData(QtMultimedia::Publisher); }
     QVariant copyright() const { return m_control->metaData(QtMultimedia::Copyright); }
     QVariant parentalRating() const { return m_control->metaData(QtMultimedia::ParentalRating); }
-    QVariant ratingOrganisation() const {
-        return m_control->metaData(QtMultimedia::RatingOrganisation); }
+    QVariant ratingOrganization() const {
+        return m_control->metaData(QtMultimedia::RatingOrganization); }
     QVariant size() const { return m_control->metaData(QtMultimedia::Size); }
     QVariant mediaType() const { return m_control->metaData(QtMultimedia::MediaType); }
     QVariant duration() const { return m_control->metaData(QtMultimedia::Duration); }

@@ -86,7 +86,7 @@ namespace
     \value Publisher The publisher of the media.  QString.
     \value Copyright The media's copyright notice.  QString.
     \value ParentalRating  The parental rating of the media.  QString.
-    \value RatingOrganisation The organisation responsible for the parental rating of the media.
+    \value RatingOrganization The organization responsible for the parental rating of the media.
     QString.
 
     Media attributes

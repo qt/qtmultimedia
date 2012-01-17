@@ -67,7 +67,7 @@ static const QGstreamerMetaDataKeyLookup qt_gstreamerMetaDataKeys[] =
     { QtMultimedia::Publisher, GST_TAG_ORGANIZATION },
     { QtMultimedia::Copyright, GST_TAG_COPYRIGHT },
     //{ QtMultimedia::ParentalRating, 0 },
-    //{ QtMultimedia::RatingOrganisation, 0 },
+    //{ QtMultimedia::RatingOrganization, 0 },
 
     // Media
     //{ QtMultimedia::Size, 0 },

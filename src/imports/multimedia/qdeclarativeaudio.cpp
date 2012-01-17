@@ -479,12 +479,12 @@ void QDeclarativeAudio::componentComplete()
 */
 
 /*!
-    \qmlproperty variant Audio::metaData.ratingOrganisation
+    \qmlproperty variant Audio::metaData.ratingOrganization
 
-    This property holds the name of the rating organisation responsible for the
+    This property holds the name of the rating organization responsible for the
     parental rating of the media.
 
-    \sa {QtMultimedia::RatingOrganisation}
+    \sa {QtMultimedia::RatingOrganization}
 */
 
 /*!

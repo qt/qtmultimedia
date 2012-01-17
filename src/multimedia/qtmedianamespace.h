@@ -73,7 +73,7 @@ namespace QtMultimedia
         Publisher,
         Copyright,
         ParentalRating,
-        RatingOrganisation,
+        RatingOrganization,
 
         // Media
         Size,

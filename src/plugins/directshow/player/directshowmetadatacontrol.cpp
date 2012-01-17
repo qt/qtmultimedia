@@ -76,7 +76,7 @@ static const QWMMetaDataKeyLookup qt_wmMetaDataKeys[] =
     { QtMultimedia::Publisher, L"WM/Publisher" },
     { QtMultimedia::Copyright, L"Copyright" },
     { QtMultimedia::ParentalRating, L"ParentalRating" },
-    { QtMultimedia::RatingOrganisation, L"RatingOrganisation" },
+    { QtMultimedia::RatingOrganization, L"RatingOrganisation" },
 
     // Media
     { QtMultimedia::Size, L"FileSize" },
