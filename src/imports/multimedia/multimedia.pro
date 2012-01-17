@@ -48,16 +48,6 @@ SOURCES += \
         qdeclarativecameraimageprocessing.cpp \
         qdeclarativecamerapreviewprovider.cpp
 
-disabled {
-    HEADERS += \
-        qdeclarativevideo_p.h \
-
-
-    SOURCES += \
-        qdeclarativevideo.cpp \
-
-}
-
 OTHER_FILES += \
         Video.qml
 
