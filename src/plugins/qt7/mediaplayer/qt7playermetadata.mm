@@ -254,7 +254,7 @@ void QT7PlayerMetaDataControl::updateTags()
     }
 
     if (!wasEmpty || !m_tags.isEmpty())
-        emit metaDataChanged();
+        Q_EMIT metaDataChanged();
 }
 
 #include "moc_qt7playermetadata.cpp"

@@ -368,7 +368,7 @@ void QT7PlayerSession::play()
     [(QTMovie*)m_QTMovie setRate:preferredRate * m_rate];
 
     processLoadStateChange();
-    emit stateChanged(m_state);
+    Q_EMIT stateChanged(m_state);
 }
 
 void QT7PlayerSession::pause()
@@ -388,7 +388,7 @@ void QT7PlayerSession::pause()
     [(QTMovie*)m_QTMovie setRate:0];
 
     processLoadStateChange();
-    emit stateChanged(m_state);
+    Q_EMIT stateChanged(m_state);
 }
 
 void QT7PlayerSession::stop()
@@ -405,8 +405,8 @@ void QT7PlayerSession::stop()
         m_videoOutput->setMovie(0);
 
     processLoadStateChange();
-    emit stateChanged(m_state);
-    emit positionChanged(position());
+    Q_EMIT stateChanged(m_state);
+    Q_EMIT positionChanged(position());
 }
 
 void QT7PlayerSession::setVolume(int volume)
@@ -419,7 +419,7 @@ void QT7PlayerSession::setVolume(int volume)
     if (m_QTMovie != 0)
         [(QTMovie*)m_QTMovie setVolume:m_volume / 100.0f];
 
-    emit volumeChanged(m_volume);
+    Q_EMIT volumeChanged(m_volume);
 }
 
 void QT7PlayerSession::setMuted(bool muted)
@@ -432,7 +432,7 @@ void QT7PlayerSession::setMuted(bool muted)
     if (m_QTMovie != 0)
         [(QTMovie*)m_QTMovie setMuted:m_muted];
 
-    emit mutedChanged(muted);
+    Q_EMIT mutedChanged(muted);
 }
 
 QMediaContent QT7PlayerSession::media() const
@@ -471,17 +471,17 @@ void QT7PlayerSession::setMedia(const QMediaContent &content, QIODevice *stream)
     if (content.isNull()) {
         m_mediaStatus = QMediaPlayer::NoMedia;
         if (m_state != QMediaPlayer::StoppedState)
-            emit stateChanged(m_state = QMediaPlayer::StoppedState);
+            Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
 
         if (m_mediaStatus != oldMediaStatus)
-            emit mediaStatusChanged(m_mediaStatus);
-        emit positionChanged(position());
+            Q_EMIT mediaStatusChanged(m_mediaStatus);
+        Q_EMIT positionChanged(position());
         return;
     }
 
     m_mediaStatus = QMediaPlayer::LoadingMedia;
     if (m_mediaStatus != oldMediaStatus)
-        emit mediaStatusChanged(m_mediaStatus);
+        Q_EMIT mediaStatusChanged(m_mediaStatus);
 
     QNetworkRequest request = content.canonicalResource().request();
 
@@ -490,7 +490,7 @@ void QT7PlayerSession::setMedia(const QMediaContent &content, QIODevice *stream)
         NSHTTPCookieStorage *store = [NSHTTPCookieStorage sharedHTTPCookieStorage];
         QList<QNetworkCookie> cookieList = cookies.value<QList<QNetworkCookie> >();
 
-        foreach (const QNetworkCookie &requestCookie, cookieList) {
+        Q_FOREACH (const QNetworkCookie &requestCookie, cookieList) {
             NSMutableDictionary *p = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                                qString2CFStringRef(requestCookie.name()), NSHTTPCookieName,
                                qString2CFStringRef(requestCookie.value()), NSHTTPCookieValue,
@@ -511,7 +511,7 @@ void QT7PlayerSession::setMedia(const QMediaContent &content, QIODevice *stream)
     // First try - attempt open in async mode
     openMovie(true);
 
-    emit positionChanged(position());
+    Q_EMIT positionChanged(position());
 }
 
 void QT7PlayerSession::openMovie(bool tryAsync)
@@ -539,7 +539,7 @@ void QT7PlayerSession::openMovie(bool tryAsync)
         // Load from Qt resource
         m_resourceHandler.setResourceFile(QLatin1Char(':') + requestUrl.path());
         if (!m_resourceHandler.isValid()) {
-            emit error(QMediaPlayer::FormatError, tr("Attempting to play invalid Qt resource"));
+            Q_EMIT error(QMediaPlayer::FormatError, tr("Attempting to play invalid Qt resource"));
             return;
         }
 
@@ -582,7 +582,7 @@ void QT7PlayerSession::openMovie(bool tryAsync)
     if (err != nil) {
         m_QTMovie = 0;
         QString description = QString::fromUtf8([[err localizedDescription] UTF8String]);
-        emit error(QMediaPlayer::FormatError, description);
+        Q_EMIT error(QMediaPlayer::FormatError, description);
 
 #ifdef QT_DEBUG_QT7
         qDebug() << Q_FUNC_INFO << description;
@@ -626,12 +626,12 @@ void QT7PlayerSession::processEOS()
 #ifdef QT_DEBUG_QT7
     qDebug() << Q_FUNC_INFO;
 #endif
-    emit positionChanged(position());
+    Q_EMIT positionChanged(position());
     m_mediaStatus = QMediaPlayer::EndOfMedia;
     if (m_videoOutput)
         m_videoOutput->setMovie(0);
-    emit stateChanged(m_state = QMediaPlayer::StoppedState);
-    emit mediaStatusChanged(m_mediaStatus);
+    Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
+    Q_EMIT mediaStatusChanged(m_mediaStatus);
 }
 
 void QT7PlayerSession::processLoadStateChange()
@@ -670,9 +670,9 @@ void QT7PlayerSession::processLoadStateChange()
             if (m_videoOutput)
                 m_videoOutput->setMovie(0);
 
-            emit error(QMediaPlayer::FormatError, tr("Failed to load media"));
-            emit mediaStatusChanged(m_mediaStatus = QMediaPlayer::InvalidMedia);
-            emit stateChanged(m_state = QMediaPlayer::StoppedState);
+            Q_EMIT error(QMediaPlayer::FormatError, tr("Failed to load media"));
+            Q_EMIT mediaStatusChanged(m_mediaStatus = QMediaPlayer::InvalidMedia);
+            Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
         }
 
         return;
@@ -706,17 +706,17 @@ void QT7PlayerSession::processLoadStateChange()
     if (state >= kMovieLoadStateLoaded) {
         qint64 currentDuration = duration();
         if (m_duration != currentDuration)
-            emit durationChanged(m_duration = currentDuration);
+            Q_EMIT durationChanged(m_duration = currentDuration);
 
         if (m_audioAvailable != isAudioAvailable())
-            emit audioAvailableChanged(m_audioAvailable = !m_audioAvailable);
+            Q_EMIT audioAvailableChanged(m_audioAvailable = !m_audioAvailable);
 
         if (m_videoAvailable != isVideoAvailable())
-            emit videoAvailableChanged(m_videoAvailable = !m_videoAvailable);
+            Q_EMIT videoAvailableChanged(m_videoAvailable = !m_videoAvailable);
     }
 
     if (newStatus != m_mediaStatus)
-        emit mediaStatusChanged(m_mediaStatus = newStatus);
+        Q_EMIT mediaStatusChanged(m_mediaStatus = newStatus);
 }
 
 void QT7PlayerSession::processVolumeChange()
@@ -727,7 +727,7 @@ void QT7PlayerSession::processVolumeChange()
     int newVolume = qRound(100.0f * [((QTMovie*)m_QTMovie) volume]);
 
     if (newVolume != m_volume) {
-        emit volumeChanged(m_volume = newVolume);
+        Q_EMIT volumeChanged(m_volume = newVolume);
     }
 }
 
@@ -745,7 +745,7 @@ void QT7PlayerSession::processNaturalSizeChange()
 
 void QT7PlayerSession::processPositionChange()
 {
-    emit positionChanged(position());
+    Q_EMIT positionChanged(position());
 }
 
 #include "moc_qt7playersession.cpp"

@@ -50,9 +50,6 @@
 #include <qmediaplayercontrol.h>
 #include <qmediaplayer.h>
 
-#include <QtWidgets/qmacdefines_mac.h>
-
-
 QT_BEGIN_NAMESPACE
 
 class QT7PlayerControl;
@@ -99,7 +96,7 @@ public:
 
     qreal playbackRate() const;
 
-public slots:
+public Q_SLOTS:
     void setPlaybackRate(qreal rate);
 
     void setPosition(qint64 pos);
@@ -117,7 +114,7 @@ public slots:
     void processNaturalSizeChange();
     void processPositionChange();
 
-signals:
+Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
     void stateChanged(QMediaPlayer::State newState);

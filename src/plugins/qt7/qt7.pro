@@ -1,5 +1,8 @@
 load(qt_module)
 
+# Avoid clash with a variable named `slots' in a Quartz header
+CONFIG += no_keywords
+
 TARGET = qqt7engine
 QT += multimedia-private network
 !isEmpty(QT.widgets.name) {

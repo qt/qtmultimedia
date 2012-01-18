@@ -223,7 +223,7 @@ void QT7MovieViewOutput::updateNaturalSize(const QSize &newSize)
 {
     if (m_nativeSize != newSize) {
         m_nativeSize = newSize;
-        emit nativeSizeChanged();
+        Q_EMIT nativeSizeChanged();
     }
 }
 

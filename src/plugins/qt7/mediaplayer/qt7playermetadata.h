@@ -64,7 +64,7 @@ public:
     QVariant extendedMetaData(const QString &key) const ;
     QStringList availableExtendedMetaData() const;
 
-private slots:
+private Q_SLOTS:
     void updateTags();
 
 private:

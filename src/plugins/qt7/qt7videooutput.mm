@@ -82,7 +82,7 @@ void QT7VideoOutputControl::setOutput(Output output)
 {
     if (m_output != output) {
         m_output = output;
-        emit videoOutputChanged(m_output);
+        Q_EMIT videoOutputChanged(m_output);
     }
 }
 

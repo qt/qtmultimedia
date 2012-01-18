@@ -174,7 +174,7 @@ void QT7PlayerControl::setMedia(const QMediaContent &content, QIODevice *stream)
 {
     m_session->setMedia(content, stream);
 
-    emit mediaChanged(content);
+    Q_EMIT mediaChanged(content);
 }
 
 bool QT7PlayerControl::isAudioAvailable() const

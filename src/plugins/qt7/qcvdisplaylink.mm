@@ -141,7 +141,7 @@ bool QCvDisplayLink::event(QEvent *event)
                 CVTimeStamp ts = m_frameTimeStamp;
                 m_displayLinkMutex.unlock();
 
-                emit tick(ts);
+                Q_EMIT tick(ts);
 
                 return false;
             }

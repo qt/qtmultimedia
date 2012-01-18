@@ -48,7 +48,6 @@
 #include <qvideowindowcontrol.h>
 #include <qmediaplayer.h>
 
-#include <QtWidgets/qmacdefines_mac.h>
 #include "qt7videooutput.h"
 
 #include <QuartzCore/CVOpenGLTexture.h>
@@ -94,7 +93,7 @@ public:
     int saturation() const;
     void setSaturation(int saturation);
 
-private slots:
+private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
     
 private:

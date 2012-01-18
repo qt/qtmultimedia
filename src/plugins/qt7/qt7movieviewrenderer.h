@@ -48,7 +48,6 @@
 #include <qvideowindowcontrol.h>
 #include <qmediaplayer.h>
 
-#include <QtWidgets/qmacdefines_mac.h>
 #include "qt7videooutput.h"
 #include <qvideoframe.h>
 

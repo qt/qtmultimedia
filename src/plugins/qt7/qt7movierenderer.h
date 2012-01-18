@@ -50,7 +50,6 @@
 #include <qvideorenderercontrol.h>
 #include <qmediaplayer.h>
 
-#include <QtWidgets/qmacdefines_mac.h>
 #include "qt7videooutput.h"
 
 #include <QuartzCore/CVOpenGLTexture.h>
@@ -79,7 +78,7 @@ public:
 
     QSize nativeSize() const;
 
-private slots:
+private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
     
 private:

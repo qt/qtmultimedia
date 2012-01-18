@@ -61,11 +61,11 @@ public:
     bool isValid();
     bool isActive() const;
 
-public slots:
+public Q_SLOTS:
     void start();
     void stop();
 
-signals:
+Q_SIGNALS:
     void tick(const CVTimeStamp &ts);
 
 public:

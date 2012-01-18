@@ -47,9 +47,6 @@
 #include <qmediaplayercontrol.h>
 #include <qmediaplayer.h>
 
-#include <QtWidgets/qmacdefines_mac.h>
-
-
 QT_BEGIN_NAMESPACE
 
 class QT7PlayerSession;
