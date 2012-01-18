@@ -52,4 +52,6 @@
     "pulseaudio" => {},
     "resourcepolicy" => {},
     "xvideo" => {},
+
+    "openal" => {},
 );

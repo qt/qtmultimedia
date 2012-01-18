@@ -74,7 +74,7 @@ class QSampleCache;
 class QWaveDecoder;
 
 // Lives in application thread
-class QSample : public QObject
+class Q_MULTIMEDIA_EXPORT QSample : public QObject
 {
     Q_OBJECT
 public:
@@ -127,16 +127,22 @@ private:
     int          m_ref;
 };
 
-class QSampleCache
+class Q_MULTIMEDIA_EXPORT QSampleCache : public QObject
 {
+    Q_OBJECT
 public:
     friend class QSample;
 
-    QSampleCache();
+    QSampleCache(QObject *parent = 0);
     ~QSampleCache();
 
     QSample* requestSample(const QUrl& url);
     void setCapacity(qint64 capacity);
+
+    bool isLoading() const;
+
+Q_SIGNALS:
+    void isLoadingChanged();
 
 private:
     QMap<QUrl, QSample*> m_samples;
@@ -152,6 +158,10 @@ private:
     bool notifyUnreferencedSample(QSample* sample);
     void removeUnreferencedSample(QSample* sample);
     void unloadSample(QSample* sample);
+
+    void loadingRelease();
+    int m_loadingRefCount;
+    QMutex m_loadingMutex;
 };
 
 QT_END_NAMESPACE

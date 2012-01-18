@@ -93,13 +93,17 @@ QT_BEGIN_NAMESPACE
     \endcode
 */
 
-QSampleCache::QSampleCache()
-    : m_networkAccessManager(0)
+QSampleCache::QSampleCache(QObject *parent)
+    : QObject(parent)
+    , m_networkAccessManager(0)
     , m_mutex(QMutex::Recursive)
     , m_capacity(0)
     , m_usage(0)
+    , m_loadingRefCount(0)
 {
     m_loadingThread.setObjectName(QLatin1String("QSampleCache::LoadingThread"));
+    connect(&m_loadingThread, SIGNAL(finished()), this, SIGNAL(isLoadingChanged()));
+    connect(&m_loadingThread, SIGNAL(started()), this, SIGNAL(isLoadingChanged()));
 }
 
 QNetworkAccessManager& QSampleCache::networkAccessManager()
@@ -128,10 +132,31 @@ QSampleCache::~QSampleCache()
     delete m_networkAccessManager;
 }
 
+void QSampleCache::loadingRelease()
+{
+    QMutexLocker locker(&m_loadingMutex);
+    m_loadingRefCount--;
+    if (m_loadingRefCount == 0) {
+        if (m_loadingThread.isRunning())
+            m_loadingThread.exit();
+    }
+}
+
+bool QSampleCache::isLoading() const
+{
+    return m_loadingThread.isRunning();
+}
+
 QSample* QSampleCache::requestSample(const QUrl& url)
 {
+    //lock and add first to make sure live loadingThread will not be killed during this function call
+    m_loadingMutex.lock();
+    m_loadingRefCount++;
+    m_loadingMutex.unlock();
+
     if (!m_loadingThread.isRunning())
         m_loadingThread.start();
+
 #ifdef QT_SAMPLECACHE_DEBUG
     qDebug() << "QSampleCache: request sample [" << url << "]";
 #endif
@@ -250,6 +275,8 @@ void QSample::loadIfNecessary()
     if (m_state == QSample::Error || m_state == QSample::Creating) {
         m_state = QSample::Loading;
         QMetaObject::invokeMethod(this, "load", Qt::QueuedConnection);
+    } else {
+        qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
     }
 }
 
@@ -367,6 +394,7 @@ void QSample::decoderError()
 #endif
     cleanup();
     m_state = QSample::Error;
+    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
     emit error();
 }
 
@@ -380,6 +408,7 @@ void QSample::onReady()
     m_audioFormat = m_waveDecoder->audioFormat();
     cleanup();
     m_state = QSample::Ready;
+    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
     emit ready();
 }
 
