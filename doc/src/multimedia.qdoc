@@ -61,49 +61,47 @@ API to quickly build functionality.
 
 The first step is to demonstrate recording audio to a file. When recording from an audio source there are a number of things we may want to control beyond the essential user interface. We may want a particular encoding of the file, MP3 or Ogg Vorbis for instance, or select a different input source. The user may modify the bitrate, number of channels, quality and sample rate. Here the example will only modify the codec and the source device, since they are essential.
 
-To begin, the developer sets up a source and a recorder object. A
-\l{QAudioCaptureSource} object is created and used to initialize a \l{QMediaRecorder} object. The output file name is then set for the \l{QMediaRecorder} object.
+To begin, the developer sets up an audio recorder object. A
+\l{QAudioRecorder} object is created. The output file name is then set for the \l{QMediaRecorder} object.
 
 \code
-    audiosource = new QAudioCaptureSource;
-    capture = new QMediaRecorder(audiosource);
-
-    capture->setOutputLocation(QUrl("test.raw"));
+    audioRecorder = new QAudioRecorder;
+    audioRecorder->setOutputLocation(QUrl("test.raw"));
 \endcode
 
 A list of devices is needed so that an input can be selected in the user interface
 
 \code
-    for(int i = 0; i < audiosource->deviceCount(); i++)
+    for (int i = 0; i < audioRecorder->deviceCount(); i++)
         deviceBox->addItem(audiosource->name(i));
 \endcode
 
 and a list of the supported codecs for the user to select a codec,
 
 \code
-    QStringList codecs = capture->supportedAudioCodecs();
-    for(int i = 0; i < codecs.count(); i++)
+    QStringList codecs = audioRecorder->supportedAudioCodecs();
+    for (int i = 0; i < codecs.count(); i++)
         codecsBox->addItem(codecs.at(i));
 \endcode
 
 To set the selected device or codec just use the index of the device or codec by calling the setter in \i {audiosource} or \i {capture} as appropriate, for example,
 
 \code
-    audiosource->setSelectedDevice(i);
+    audioRecorder->setSelectedDevice(i);
     ...
-    capture->setAudioCodec(codecIdx);
+    audioRecorder->setAudioCodec(codecIdx);
 \endcode
 
 Now start recording by using the \l {QMediaRecorder}{record()} function from the new \l{QMediaRecorder} object
 
 \code
-    capture->record();
+    audioRecorder->record();
 \endcode
 
 And stop recording by calling the matching function \l {QMediaRecorder::stop()}{stop()} in \l{QMediaRecorder}.
 
 \code
-    capture->stop();
+    audioRecorder->stop();
 \endcode
 
 How then would this audio file be played? The \l {QMediaPlayer} class will be
@@ -228,8 +226,7 @@ the next photo.
 \section2 Video Clips
 
 Previously we saw code that allowed the capture of a still image. Recording
-video requires the use of a \l QMediaRecorder object and a \l
-QAudioCaptureSource for sound.
+video requires the use of a \l QMediaRecorder object.
 
 To record video we need a camera object, as before, a media recorder and a
 viewfinder object. The media recorder object will need to be initialized.

@@ -171,10 +171,11 @@ Q_SIGNALS:
     void metaDataChanged();
 
 protected:
+    QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = 0);
     bool setMediaObject(QMediaObject *object);
 
-private:
     QMediaRecorderPrivate *d_ptr;
+private:
     Q_DISABLE_COPY(QMediaRecorder)
     Q_DECLARE_PRIVATE(QMediaRecorder)
     Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaRecorder::State))

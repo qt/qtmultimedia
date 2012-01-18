@@ -39,65 +39,53 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIOCAPTURESOURCE_H
-#define QAUDIOCAPTURESOURCE_H
-
-#include <QtCore/qstringlist.h>
-#include <QtCore/qpair.h>
-#include <QtCore/qsize.h>
-
-#include <qaudioformat.h>
+#ifndef QMEDIARECORDER_P_H
+#define QMEDIARECORDER_P_H
 
 #include "qmediarecorder.h"
-#include "qmediacontrol.h"
-#include "qmediaobject.h"
-#include "qmediaservice.h"
-
-#include "qmediaserviceprovider.h"
-
-QT_BEGIN_HEADER
+#include "qmediaobject_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
+class QMediaRecorderControl;
+class QMediaContainerControl;
+class QAudioEncoderControl;
+class QVideoEncoderControl;
+class QMetaDataWriterControl;
+class QTimer;
 
-
-class QAudioCaptureSourcePrivate;
-
-class Q_MULTIMEDIA_EXPORT QAudioCaptureSource : public QMediaObject
+class QMediaRecorderPrivate
 {
-    Q_OBJECT
+    Q_DECLARE_NON_CONST_PUBLIC(QMediaRecorder)
 
 public:
-    QAudioCaptureSource(QObject *parent = 0, QMediaServiceProvider *service = QMediaServiceProvider::defaultServiceProvider());
-    ~QAudioCaptureSource();
+    QMediaRecorderPrivate();
+    virtual ~QMediaRecorderPrivate() {}
 
-    bool isAvailable() const;
-    QtMultimedia::AvailabilityError availabilityError() const;
+    QMediaObject *mediaObject;
 
-    QList<QString> audioInputs() const;
+    QMediaRecorderControl *control;
+    QMediaContainerControl *formatControl;
+    QAudioEncoderControl *audioControl;
+    QVideoEncoderControl *videoControl;
+    QMetaDataWriterControl *metaDataControl;
 
-    QString audioDescription(const QString& name) const;
-    QString defaultAudioInput() const;
-    QString activeAudioInput() const;
+    QTimer* notifyTimer;
 
-public Q_SLOTS:
-    void setAudioInput(const QString& name);
+    QMediaRecorder::State state;
+    QMediaRecorder::Error error;
+    QString errorString;
 
-Q_SIGNALS:
-    void activeAudioInputChanged(const QString& name);
-    void availableAudioInputsChanged();
+    void _q_stateChanged(QMediaRecorder::State state);
+    void _q_error(int error, const QString &errorString);
+    void _q_serviceDestroyed();
+    void _q_notify();
+    void _q_updateNotifyInterval(int ms);
 
-private Q_SLOTS:
-    void statusChanged();
-
-private:
-    Q_DECLARE_PRIVATE(QAudioCaptureSource)
+    QMediaRecorder *q_ptr;
 };
 
 QT_END_NAMESPACE
 
-QT_END_HEADER
+#endif
 
-
-#endif  // QAUDIOCAPTURESOURCE_H

@@ -44,7 +44,7 @@
 
 #include <qaudioformat.h>
 
-#include <qaudiocapturesource.h>
+#include <qaudiorecorder.h>
 #include <qaudioencodercontrol.h>
 #include <qmediarecordercontrol.h>
 #include <qaudioendpointselector.h>
@@ -59,13 +59,13 @@
 
 QT_USE_NAMESPACE
 
-class tst_QAudioCaptureSource: public QObject
+class tst_QAudioRecorder: public QObject
 {
     Q_OBJECT
 
 public slots:
-    void initTestCase();
-    void cleanupTestCase();
+    void init();
+    void cleanup();
 
 private slots:
     //void testNullService();
@@ -77,28 +77,29 @@ private slots:
     void testAvailableAudioInputChangedSignal();
 
 private:
-    QAudioCaptureSource *audiosource;
+    QAudioRecorder *audiosource;
     MockMediaRecorderService  *mockMediaRecorderService;
     MockMediaServiceProvider *mockProvider;
 };
 
-void tst_QAudioCaptureSource::initTestCase()
+void tst_QAudioRecorder::init()
 {
-    mockMediaRecorderService = new MockMediaRecorderService;
+    mockMediaRecorderService = new MockMediaRecorderService(this, new MockMediaRecorderControl(this));
     mockProvider = new MockMediaServiceProvider(mockMediaRecorderService);
 }
 
-void tst_QAudioCaptureSource::cleanupTestCase()
+void tst_QAudioRecorder::cleanup()
 {
     delete audiosource;
     delete mockProvider;
     audiosource = 0;
+    mockProvider = 0;
 }
 /*
-void tst_QAudioCaptureSource::testNullService()
+void tst_QAudioRecorder::testNullService()
 {
     MockProvider provider(0);
-    QAudioCaptureSource source(0, &provider);
+    QAudioRecorder source(0, &provider);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
@@ -106,12 +107,12 @@ void tst_QAudioCaptureSource::testNullService()
 }
 */
 /*
-void tst_QAudioCaptureSource::testNullControl()
+void tst_QAudioRecorder::testNullControl()
 {
     MockRecorderService service;
     service.hasAudioDeviceControl = false;
     MockProvider provider(&service);
-    QAudioCaptureSource source(0, &provider);
+    QAudioRecorder source(0, &provider);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
@@ -125,14 +126,14 @@ void tst_QAudioCaptureSource::testNullControl()
     QCOMPARE(deviceNameSpy.count(), 0);
 }
 */
-void tst_QAudioCaptureSource::testAudioSource()
+void tst_QAudioRecorder::testAudioSource()
 {
-    audiosource = new QAudioCaptureSource(0, mockProvider);
+    audiosource = new QAudioRecorder(0, mockProvider);
 
-    QCOMPARE(audiosource->service(),(QMediaService *) mockMediaRecorderService);
+    QCOMPARE(audiosource->mediaObject()->service(),(QMediaService *) mockMediaRecorderService);
 }
 
-void tst_QAudioCaptureSource::testOptions()
+void tst_QAudioRecorder::testOptions()
 {
     const QString codec(QLatin1String("audio/mpeg"));
 
@@ -142,45 +143,45 @@ void tst_QAudioCaptureSource::testOptions()
     QVERIFY(mockMediaRecorderService->mockAudioEncoderControl->encodingOption(codec, options.first()).toInt() == 8000);
 }
 
-void tst_QAudioCaptureSource::testDevices()
+void tst_QAudioRecorder::testDevices()
 {
-    audiosource = new QAudioCaptureSource(0,mockProvider);
+    audiosource = new QAudioRecorder(0,mockProvider);
     QList<QString> devices = audiosource->audioInputs();
     QVERIFY(devices.size() > 0);
     QVERIFY(devices.at(0).compare("device1") == 0);
-    QVERIFY(audiosource->audioDescription("device1").compare("dev1 comment") == 0);
+    QVERIFY(audiosource->audioInputDescription("device1").compare("dev1 comment") == 0);
     QVERIFY(audiosource->defaultAudioInput() == "device1");
     QVERIFY(audiosource->isAvailable() == true);
 
-    QSignalSpy checkSignal(audiosource, SIGNAL(activeAudioInputChanged(QString)));
+    QSignalSpy checkSignal(audiosource, SIGNAL(audioInputChanged(QString)));
     audiosource->setAudioInput("device2");
-    QVERIFY(audiosource->activeAudioInput().compare("device2") == 0);
+    QVERIFY(audiosource->audioInput().compare("device2") == 0);
     QVERIFY(checkSignal.count() == 1);
     QVERIFY(audiosource->isAvailable() == true);
 }
 
-void tst_QAudioCaptureSource::testAvailability()
+void tst_QAudioRecorder::testAvailability()
 {
-    MockMediaRecorderService service;
+    MockMediaRecorderService service(this, new MockMediaRecorderControl(this));
     service.hasControls = false;
     MockMediaServiceProvider provider(&service);
-    QAudioCaptureSource source(0, &provider);
+    QAudioRecorder source(0, &provider);
 
     QVERIFY(source.isAvailable() == false);
     QVERIFY(source.availabilityError() == QtMultimedia::ServiceMissingError);
 
     service.hasControls = true;
     MockMediaServiceProvider provider2(&service);
-    QAudioCaptureSource source2(0, &provider2);
+    QAudioRecorder source2(0, &provider2);
 
     QVERIFY(source2.isAvailable() == true);
     QVERIFY(source2.availabilityError() == QtMultimedia::NoError);
 }
 
-void tst_QAudioCaptureSource::testAvailableAudioInputChangedSignal()
+void tst_QAudioRecorder::testAvailableAudioInputChangedSignal()
 {
-    // The availabilityChangedSignal is implemented in QAudioCaptureSource. SO using it to test the signal.
-    audiosource = new QAudioCaptureSource(0, mockProvider);
+    // The availabilityChangedSignal is implemented in QAudioRecorder. SO using it to test the signal.
+    audiosource = new QAudioRecorder(0, mockProvider);
 
     /* Spy the signal availableEndpointChanged and audioInputchanged */
     QSignalSpy changed(mockMediaRecorderService->mockAudioEndpointSelector, SIGNAL(availableEndpointsChanged()));
@@ -199,6 +200,6 @@ void tst_QAudioCaptureSource::testAvailableAudioInputChangedSignal()
     QVERIFY(audioInputchange.count() == 1);
 }
 
-QTEST_MAIN(tst_QAudioCaptureSource)
+QTEST_GUILESS_MAIN(tst_QAudioRecorder)
 
-#include "tst_qaudiocapturesource.moc"
+#include "tst_qaudiorecorder.moc"

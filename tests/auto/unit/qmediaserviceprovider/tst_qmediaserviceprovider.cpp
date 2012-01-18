@@ -51,7 +51,7 @@
 #include <qmediaobject.h>
 #include <qmediaservice.h>
 #include <qmediaplayer.h>
-#include <qaudiocapturesource.h>
+#include <qaudiorecorder.h>
 
 QT_USE_NAMESPACE
 class MockMediaService : public QMediaService

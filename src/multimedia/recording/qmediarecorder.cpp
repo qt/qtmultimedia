@@ -40,6 +40,7 @@
 ****************************************************************************/
 
 #include "qmediarecorder.h"
+#include "qmediarecorder_p.h"
 
 #include <qmediarecordercontrol.h>
 #include "qmediaobject_p.h"
@@ -71,11 +72,11 @@ QT_BEGIN_NAMESPACE
 
     The QMediaRecorder class is a high level media recording class.  It's not
     intended to be used alone but for accessing the media recording functions
-    of other media objects, like QRadioTuner, or QAudioCaptureSource.
+    of other media objects, like QRadioTuner, or QCamera.
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Media recorder
 
-    \sa QAudioCaptureSource
+    \sa QAudioRecorder
 */
 
 namespace
@@ -90,37 +91,6 @@ public:
     }
 } _registerRecorderMetaTypes;
 }
-
-
-class QMediaRecorderPrivate
-{
-    Q_DECLARE_NON_CONST_PUBLIC(QMediaRecorder)
-
-public:
-    QMediaRecorderPrivate();
-
-    QMediaObject *mediaObject;
-
-    QMediaRecorderControl *control;
-    QMediaContainerControl *formatControl;
-    QAudioEncoderControl *audioControl;
-    QVideoEncoderControl *videoControl;
-    QMetaDataWriterControl *metaDataControl;
-
-    QTimer* notifyTimer;
-
-    QMediaRecorder::State state;
-    QMediaRecorder::Error error;
-    QString errorString;
-
-    void _q_stateChanged(QMediaRecorder::State state);
-    void _q_error(int error, const QString &errorString);
-    void _q_serviceDestroyed();
-    void _q_notify();
-    void _q_updateNotifyInterval(int ms);
-
-    QMediaRecorder *q_ptr;
-};
 
 QMediaRecorderPrivate::QMediaRecorderPrivate():
      mediaObject(0),
@@ -198,12 +168,27 @@ QMediaRecorder::QMediaRecorder(QMediaObject *mediaObject, QObject *parent):
 {
     Q_D(QMediaRecorder);
     d->q_ptr = this;
-    setMediaObject(mediaObject);
 
     d->notifyTimer = new QTimer(this);
-    d->notifyTimer->setInterval(mediaObject->notifyInterval());
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-    connect(mediaObject, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
+
+    setMediaObject(mediaObject);
+}
+
+/*!
+    \internal
+*/
+QMediaRecorder::QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent):
+    QObject(parent),
+    d_ptr(&dd)
+{
+    Q_D(QMediaRecorder);
+    d->q_ptr = this;
+
+    d->notifyTimer = new QTimer(this);
+    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
+
+    setMediaObject(mediaObject);
 }
 
 /*!
@@ -248,6 +233,8 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
                        this, SLOT(_q_error(int,QString)));
         }
 
+        disconnect(d->mediaObject, SIGNAL(notifyIntervalChanged(int)), this, SLOT(_q_updateNotifyInterval(int)));
+
         QMediaService *service = d->mediaObject->service();
 
         if (service) {
@@ -284,6 +271,9 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 
     if (d->mediaObject) {
         QMediaService *service = d->mediaObject->service();
+
+        d->notifyTimer->setInterval(d->mediaObject->notifyInterval());
+        connect(d->mediaObject, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
 
         if (service) {
             d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));

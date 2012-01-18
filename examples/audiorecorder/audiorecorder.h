@@ -53,7 +53,7 @@ namespace Ui {
     class AudioRecorder;
 }
 
-class QAudioCaptureSource;
+class QAudioRecorder;
 QT_END_NAMESPACE
 
 QT_USE_NAMESPACE
@@ -78,8 +78,7 @@ private slots:
 private:
     Ui::AudioRecorder *ui;
 
-    QAudioCaptureSource* audiosource;
-    QMediaRecorder* capture;
+    QAudioRecorder* audioRecorder;
     QAudioEncoderSettings  audioSettings;
     bool outputLocationSet;
 

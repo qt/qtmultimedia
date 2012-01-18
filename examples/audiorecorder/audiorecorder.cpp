@@ -41,7 +41,7 @@
 #include <QtCore/qdir.h>
 #include <QtWidgets/qfiledialog.h>
 
-#include <qaudiocapturesource.h>
+#include <qaudiorecorder.h>
 #include <qmediarecorder.h>
 
 #include "audiorecorder.h"
@@ -60,30 +60,29 @@ AudioRecorder::AudioRecorder(QWidget *parent)
 {
     ui->setupUi(this);
 
-    audiosource = new QAudioCaptureSource(this);
-    capture = new QMediaRecorder(audiosource, this);
+    audioRecorder = new QAudioRecorder(this);
 
     //audio devices
     ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
-    foreach(const QString &device, audiosource->audioInputs()) {
+    foreach (const QString &device, audioRecorder->audioInputs()) {
         ui->audioDeviceBox->addItem(device, QVariant(device));
     }
 
     //audio codecs
     ui->audioCodecBox->addItem(tr("Default"), QVariant(QString()));
-    foreach(const QString &codecName, capture->supportedAudioCodecs()) {
+    foreach (const QString &codecName, audioRecorder->supportedAudioCodecs()) {
         ui->audioCodecBox->addItem(codecName, QVariant(codecName));
     }
 
     //containers
     ui->containerBox->addItem(tr("Default"), QVariant(QString()));
-    foreach(const QString &containerName, capture->supportedContainers()) {
+    foreach (const QString &containerName, audioRecorder->supportedContainers()) {
         ui->containerBox->addItem(containerName, QVariant(containerName));
     }
 
     //sample rate:
     ui->sampleRateBox->addItem(tr("Default"), QVariant(0));
-    foreach(int sampleRate, capture->supportedAudioSampleRates()) {
+    foreach (int sampleRate, audioRecorder->supportedAudioSampleRates()) {
         ui->sampleRateBox->addItem(QString::number(sampleRate), QVariant(
                 sampleRate));
     }
@@ -98,23 +97,22 @@ AudioRecorder::AudioRecorder(QWidget *parent)
     ui->bitrateBox->addItem(QString("96000"), QVariant(96000));
     ui->bitrateBox->addItem(QString("128000"), QVariant(128000));
 
-    connect(capture, SIGNAL(durationChanged(qint64)), this,
+    connect(audioRecorder, SIGNAL(durationChanged(qint64)), this,
             SLOT(updateProgress(qint64)));
-    connect(capture, SIGNAL(stateChanged(QMediaRecorder::State)), this,
+    connect(audioRecorder, SIGNAL(stateChanged(QMediaRecorder::State)), this,
             SLOT(updateState(QMediaRecorder::State)));
-    connect(capture, SIGNAL(error(QMediaRecorder::Error)), this,
+    connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this,
             SLOT(displayErrorMessage()));
     }
 
 AudioRecorder::~AudioRecorder()
 {
-    delete capture;
-    delete audiosource;
+    delete audioRecorder;
 }
 
 void AudioRecorder::updateProgress(qint64 duration)
 {
-    if (capture->error() != QMediaRecorder::NoError || duration < 2000)
+    if (audioRecorder->error() != QMediaRecorder::NoError || duration < 2000)
         return;
 
     ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
@@ -128,11 +126,11 @@ void AudioRecorder::updateState(QMediaRecorder::State state)
         case QMediaRecorder::RecordingState:
             ui->recordButton->setText(tr("Stop"));
             ui->pauseButton->setText(tr("Pause"));
-            if (capture->outputLocation().isEmpty())
+            if (audioRecorder->outputLocation().isEmpty())
                 statusMessage = tr("Recording");
             else
                 statusMessage = tr("Recording to %1").arg(
-                        capture->outputLocation().toString());
+                        audioRecorder->outputLocation().toString());
             break;
         case QMediaRecorder::PausedState:
             ui->recordButton->setText(tr("Stop"));
@@ -147,7 +145,7 @@ void AudioRecorder::updateState(QMediaRecorder::State state)
 
     ui->pauseButton->setEnabled(state != QMediaRecorder::StoppedState);
 
-    if (capture->error() == QMediaRecorder::NoError)
+    if (audioRecorder->error() == QMediaRecorder::NoError)
         ui->statusbar->showMessage(statusMessage);
 }
 
@@ -162,11 +160,11 @@ static QVariant boxValue(const QComboBox *box)
 
 void AudioRecorder::toggleRecord()
 {
-    if (capture->state() == QMediaRecorder::StoppedState) {
-        audiosource->setAudioInput(boxValue(ui->audioDeviceBox).toString());
+    if (audioRecorder->state() == QMediaRecorder::StoppedState) {
+        audioRecorder->setAudioInput(boxValue(ui->audioDeviceBox).toString());
 
         if (!outputLocationSet)
-            capture->setOutputLocation(generateAudioFilePath());
+            audioRecorder->setOutputLocation(generateAudioFilePath());
 
         QAudioEncoderSettings settings;
         settings.setCodec(boxValue(ui->audioCodecBox).toString());
@@ -179,32 +177,32 @@ void AudioRecorder::toggleRecord()
 
         QString container = boxValue(ui->containerBox).toString();
 
-        capture->setEncodingSettings(settings, QVideoEncoderSettings(), container);
-        capture->record();
+        audioRecorder->setEncodingSettings(settings, QVideoEncoderSettings(), container);
+        audioRecorder->record();
     }
     else {
-        capture->stop();
+        audioRecorder->stop();
     }
 }
 
 void AudioRecorder::togglePause()
 {
-    if (capture->state() != QMediaRecorder::PausedState)
-        capture->pause();
+    if (audioRecorder->state() != QMediaRecorder::PausedState)
+        audioRecorder->pause();
     else
-        capture->record();
+        audioRecorder->record();
 }
 
 void AudioRecorder::setOutputLocation()
 {
     QString fileName = QFileDialog::getSaveFileName();
-    capture->setOutputLocation(QUrl(fileName));
+    audioRecorder->setOutputLocation(QUrl(fileName));
     outputLocationSet = true;
 }
 
 void AudioRecorder::displayErrorMessage()
 {
-    ui->statusbar->showMessage(capture->errorString());
+    ui->statusbar->showMessage(audioRecorder->errorString());
 }
 
 QUrl AudioRecorder::generateAudioFilePath()

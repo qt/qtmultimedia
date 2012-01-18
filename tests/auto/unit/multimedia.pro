@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
     qabstractvideobuffer \
     qabstractvideosurface \
-    qaudiocapturesource \
+    qaudiorecorder \
     qaudioformat \
     qaudionamespace \
     qcamera \
