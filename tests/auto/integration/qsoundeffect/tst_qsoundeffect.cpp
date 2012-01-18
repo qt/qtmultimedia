@@ -94,6 +94,7 @@ void tst_QSoundEffect::testSource()
     QSignalSpy readSignal(sound, SIGNAL(sourceChanged()));
 
     sound->setSource(url);
+    sound->setVolume(0.1f);
 
     QCOMPARE(sound->source(),url);
     QCOMPARE(readSignal.count(),1);
@@ -110,6 +111,7 @@ void tst_QSoundEffect::testLooping()
     QSignalSpy readSignal_Remaining(sound, SIGNAL(loopsRemainingChanged()));
 
     sound->setLoopCount(5);
+    sound->setVolume(0.1f);
     QCOMPARE(sound->loopCount(),5);
     QCOMPARE(readSignal_Count.count(),1);
 
@@ -147,6 +149,7 @@ void tst_QSoundEffect::testMuting()
 void tst_QSoundEffect::testPlaying()
 {
     sound->setLoopCount(QSoundEffect::Infinite);
+    sound->setVolume(0.1f);
     //valid source
     sound->setSource(url);
     QTestEventLoop::instance().enterLoop(1);
@@ -200,6 +203,7 @@ void tst_QSoundEffect::testDestroyWhilePlaying()
 {
     QSoundEffect *instance = new QSoundEffect();
     instance->setSource(url);
+    instance->setVolume(0.1f);
     QTestEventLoop::instance().enterLoop(1);
     instance->play();
     QTest::qWait(500);
@@ -211,6 +215,7 @@ void tst_QSoundEffect::testDestroyWhileRestartPlaying()
 {
     QSoundEffect *instance = new QSoundEffect();
     instance->setSource(url);
+    instance->setVolume(0.1f);
     QTestEventLoop::instance().enterLoop(1);
     instance->play();
     QTest::qWait(1000);

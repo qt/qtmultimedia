@@ -398,6 +398,8 @@ void tst_QAudioOutput::disableNotifyInterval()
     if (audioFiles.size() > 0) {
         QAudioOutput audioOutputCheck(testFormats.at(0), this);
         audioOutputCheck.setNotifyInterval(0);
+        audioOutputCheck.setVolume(0.1f);
+
         QSignalSpy notifySignal(&audioOutputCheck, SIGNAL(notify()));
         QFile *audioFile = audioFiles.at(0).data();
         audioFile->open(QIODevice::ReadOnly);
@@ -476,6 +478,7 @@ void tst_QAudioOutput::pull()
         QAudioOutput audioOutput(testFormats.at(i), this);
 
         audioOutput.setNotifyInterval(100);
+        audioOutput.setVolume(0.1f);
 
         QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
@@ -538,6 +541,7 @@ void tst_QAudioOutput::pullSuspendResume()
         QAudioOutput audioOutput(testFormats.at(i), this);
 
         audioOutput.setNotifyInterval(100);
+        audioOutput.setVolume(0.1f);
 
         QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
@@ -627,6 +631,7 @@ void tst_QAudioOutput::push()
         QAudioOutput audioOutput(testFormats.at(i), this);
 
         audioOutput.setNotifyInterval(100);
+        audioOutput.setVolume(0.1f);
 
         QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
@@ -714,6 +719,7 @@ void tst_QAudioOutput::pushSuspendResume()
         QAudioOutput audioOutput(testFormats.at(i), this);
 
         audioOutput.setNotifyInterval(100);
+        audioOutput.setVolume(0.1f);
 
         QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
@@ -841,6 +847,7 @@ void tst_QAudioOutput::pushUnderrun()
         QAudioOutput audioOutput(testFormats.at(i), this);
 
         audioOutput.setNotifyInterval(100);
+        audioOutput.setVolume(0.1f);
 
         QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
