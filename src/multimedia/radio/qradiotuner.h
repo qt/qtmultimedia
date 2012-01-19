@@ -45,7 +45,6 @@
 #include <QtCore/qobject.h>
 
 #include "qmediaobject.h"
-#include "qmediaserviceprovider.h"
 #include <qmediaenumdebug.h>
 
 #include <QPair>
@@ -83,7 +82,7 @@ public:
     enum StereoMode { ForceStereo, ForceMono, Auto };
     enum SearchMode { SearchFast, SearchGetStationId };
 
-    QRadioTuner(QObject *parent = 0, QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider());
+    QRadioTuner(QObject *parent = 0);
     ~QRadioTuner();
 
     bool isAvailable() const;

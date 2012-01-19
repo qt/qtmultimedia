@@ -53,8 +53,6 @@
 #include <qmediaservice.h>
 #include <qvideowidget.h>
 
-#include <qmediaserviceprovider.h>
-
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE

@@ -43,6 +43,7 @@
 #include "qmediaservice.h"
 #include "qmediaobject_p.h"
 #include "qradiotunercontrol.h"
+#include "qmediaserviceprovider.h"
 
 #include <QPair>
 
@@ -106,12 +107,14 @@ public:
     The \a parent is passed to QMediaObject.
 */
 
-QRadioTuner::QRadioTuner(QObject *parent, QMediaServiceProvider* provider):
-    QMediaObject(*new QRadioTunerPrivate, parent, provider->requestService(Q_MEDIASERVICE_RADIO))
+QRadioTuner::QRadioTuner(QObject *parent):
+    QMediaObject(*new QRadioTunerPrivate,
+                 parent,
+                 QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_RADIO))
 {
     Q_D(QRadioTuner);
 
-    d->provider = provider;
+    d->provider = QMediaServiceProvider::defaultServiceProvider();
 
     if (d->service != 0) {
         d->control = qobject_cast<QRadioTunerControl*>(d->service->requestControl(QRadioTunerControl_iid));

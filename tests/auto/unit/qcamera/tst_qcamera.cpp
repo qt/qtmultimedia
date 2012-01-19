@@ -76,7 +76,8 @@ class tst_QCamera: public QObject
 
 public slots:
     void initTestCase();
-    void cleanupTestCase();
+    void init();
+    void cleanup();
 
 private slots:
     void testSimpleCamera();
@@ -106,7 +107,7 @@ private slots:
     void testRequestedLocks();
     void testSupportedLocks();
     void testQCameraIsAvailable();
-    void testAvailabilityError();
+    void testQCameraIsNotAvailable();
     void testSearchAndLockWithLockTypes();
     void testSetCaptureMode();
     void testUnlockWithType();
@@ -163,25 +164,35 @@ private slots:
 
 private:
     MockSimpleCameraService  *mockSimpleCameraService;
+    MockCameraService *mockCameraService;
     MockMediaServiceProvider *provider;
 };
 
 void tst_QCamera::initTestCase()
 {
-    provider = new MockMediaServiceProvider;
-    mockSimpleCameraService = new MockSimpleCameraService;
-    provider->service = mockSimpleCameraService;
 }
 
-void tst_QCamera::cleanupTestCase()
+void tst_QCamera::init()
 {
-    delete mockSimpleCameraService;
+    provider = new MockMediaServiceProvider;
+    mockSimpleCameraService = new MockSimpleCameraService;
+    mockCameraService = new MockCameraService;
+
+    provider->service = mockCameraService;
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
+}
+
+void tst_QCamera::cleanup()
+{
     delete provider;
+    delete mockCameraService;
+    delete mockSimpleCameraService;
 }
 
 void tst_QCamera::testSimpleCamera()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
     QCOMPARE(camera.service(), (QMediaService*)mockSimpleCameraService);
 
     QCOMPARE(camera.state(), QCamera::UnloadedState);
@@ -197,7 +208,8 @@ void tst_QCamera::testSimpleCamera()
 
 void tst_QCamera::testSimpleCameraWhiteBalance()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
 
     //only WhiteBalanceAuto is supported
     QVERIFY(!camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceAuto));
@@ -212,7 +224,8 @@ void tst_QCamera::testSimpleCameraWhiteBalance()
 
 void tst_QCamera::testSimpleCameraExposure()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
     QCameraExposure *cameraExposure = camera.exposure();
     QVERIFY(cameraExposure != 0);
 
@@ -266,7 +279,8 @@ void tst_QCamera::testSimpleCameraExposure()
 
 void tst_QCamera::testSimpleCameraFocus()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
@@ -306,7 +320,8 @@ void tst_QCamera::testSimpleCameraFocus()
 
 void tst_QCamera::testSimpleCameraCapture()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QVERIFY(!imageCapture.isReadyForCapture());
@@ -324,7 +339,8 @@ void tst_QCamera::testSimpleCameraCapture()
 
 void tst_QCamera::testSimpleCameraLock()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
     QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
     QCOMPARE(camera.lockStatus(QCamera::LockExposure), QCamera::Unlocked);
     QCOMPARE(camera.lockStatus(QCamera::LockFocus), QCamera::Unlocked);
@@ -360,7 +376,8 @@ void tst_QCamera::testSimpleCameraLock()
 
 void tst_QCamera::testSimpleCaptureDestination()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToFile));
@@ -375,7 +392,8 @@ void tst_QCamera::testSimpleCaptureDestination()
 
 void tst_QCamera::testSimpleCaptureFormat()
 {
-    QCamera camera(0, provider);
+    provider->service = mockSimpleCameraService;
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_Invalid);
@@ -387,9 +405,7 @@ void tst_QCamera::testSimpleCaptureFormat()
 
 void tst_QCamera::testCaptureDestination()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToFile));
@@ -414,9 +430,7 @@ void tst_QCamera::testCaptureDestination()
 
 void tst_QCamera::testCaptureFormat()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QSignalSpy formatChangedSignal(&imageCapture, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
@@ -440,9 +454,7 @@ void tst_QCamera::testCaptureFormat()
 
 void tst_QCamera::testCameraCapture()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QVERIFY(!imageCapture.isReadyForCapture());
@@ -473,9 +485,7 @@ void tst_QCamera::testCameraCapture()
 
 void tst_QCamera::testCameraCaptureMetadata()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
@@ -523,10 +533,9 @@ void tst_QCamera::testCameraWhiteBalance()
                 QCameraImageProcessingControl::ColorTemperature,
                 QVariant(34));
 
-    MockMediaServiceProvider provider;
-    provider.service = &service;
+    provider->service = &service;
 
-    QCamera camera(0, &provider);
+    QCamera camera;
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
 
     QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceFlash);
@@ -548,9 +557,7 @@ void tst_QCamera::testCameraWhiteBalance()
 
 void tst_QCamera::testCameraExposure()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure();
     QVERIFY(cameraExposure != 0);
@@ -692,9 +699,7 @@ void tst_QCamera::testCameraExposure()
 
 void tst_QCamera::testCameraFocus()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
@@ -836,9 +841,7 @@ void tst_QCamera::testImageSettings()
 
 void tst_QCamera::testCameraLock()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     camera.focus()->setFocusMode(QCameraFocus::AutoFocus);
 
@@ -919,9 +922,7 @@ void tst_QCamera::testCameraLockCancel()
 
 void tst_QCamera::testCameraEncodingProperyChange()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
@@ -1009,30 +1010,26 @@ void tst_QCamera::testCameraEncodingProperyChange()
 void tst_QCamera::testSetVideoOutput()
 {
     MockVideoSurface surface;
-
-    MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-    QCamera camera(0, &provider);
+    QCamera camera;
 
     camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
 
     camera.setViewfinder(reinterpret_cast<QGraphicsVideoItem *>(0));
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 
     camera.setViewfinder(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == 0);
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 
     camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == 0);
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 }
 
 
@@ -1040,9 +1037,8 @@ void tst_QCamera::testSetVideoOutputNoService()
 {
     MockVideoSurface surface;
 
-    MockMediaServiceProvider provider;
-    provider.service = 0;
-    QCamera camera(0, &provider);
+    provider->service = 0;
+    QCamera camera;
 
     camera.setViewfinder(&surface);
     // Nothing we can verify here other than it doesn't assert.
@@ -1054,10 +1050,9 @@ void tst_QCamera::testSetVideoOutputNoControl()
 
     MockCameraService service;
     service.rendererRef = 1;
+    provider->service = &service;
 
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-    QCamera camera(0, &provider);
+    QCamera camera;
 
     camera.setViewfinder(&surface);
     QVERIFY(service.rendererControl->surface() == 0);
@@ -1066,13 +1061,11 @@ void tst_QCamera::testSetVideoOutputNoControl()
 void tst_QCamera::testSetVideoOutputDestruction()
 {
     MockVideoSurface surface;
-
     MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
+    provider->service = &service;
 
     {
-        QCamera camera(0, &provider);
+        QCamera camera;
         camera.setViewfinder(&surface);
         QVERIFY(service.rendererControl->surface() == &surface);
         QCOMPARE(service.rendererRef, 1);
@@ -1133,9 +1126,7 @@ void tst_QCamera::testCaptureModeChanged_signal()
 /* Test case for captureMode */
 void tst_QCamera::testCaptureMode()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
 
     camera.setCaptureMode(QCamera::CaptureVideo);
@@ -1145,9 +1136,7 @@ void tst_QCamera::testCaptureMode()
 /* Test case for isCaptureModeSupported */
 void tst_QCamera::testIsCaptureModeSupported()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QVERIFY(camera.isCaptureModeSupported(QCamera::CaptureStillImage) == true);
     QVERIFY(camera.isCaptureModeSupported(QCamera::CaptureVideo) == true);
 }
@@ -1156,9 +1145,7 @@ void tst_QCamera::testIsCaptureModeSupported()
    types of combinations are verified here.*/
 void tst_QCamera::testRequestedLocks()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
 
@@ -1188,9 +1175,7 @@ void tst_QCamera::testRequestedLocks()
 /* Test case for supportedLocks() */
 void tst_QCamera::testSupportedLocks()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCOMPARE(camera.supportedLocks(),QCamera::LockExposure | QCamera::LockFocus);
 }
@@ -1198,37 +1183,25 @@ void tst_QCamera::testSupportedLocks()
 /* Test case for isAvailable */
 void tst_QCamera::testQCameraIsAvailable()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QVERIFY(camera.isAvailable());
-
-    QCamera *camera1 = new QCamera("random");
-
-    QVERIFY(camera1->error() == QCamera::ServiceMissingError);
-    QVERIFY(!camera1->isAvailable());
-    delete camera1;
+    QVERIFY(camera.availabilityError() == QtMultimedia::NoError);
 }
 
-/* Test case for availabilityError */
-void tst_QCamera::testAvailabilityError()
+void tst_QCamera::testQCameraIsNotAvailable()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
-    QVERIFY(camera.availabilityError() == QtMultimedia::NoError);
+    provider->service = 0;
+    QCamera camera("random");
 
-    QCamera *camera1 = new QCamera("random");
-    QVERIFY(camera1->availabilityError() == QtMultimedia::ServiceMissingError);
-    delete camera1;
+    QCOMPARE(camera.error(), QCamera::ServiceMissingError);
+    QVERIFY(!camera.isAvailable());
+    QCOMPARE(camera.availabilityError(), QtMultimedia::ServiceMissingError);
 }
 
 /* Test case for searchAndLock ( QCamera::LockTypes locks ) */
 void tst_QCamera::testSearchAndLockWithLockTypes()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
 
@@ -1250,9 +1223,7 @@ void tst_QCamera::testSearchAndLockWithLockTypes()
 /* Test case for setCaptureMode() */
 void tst_QCamera::testSetCaptureMode()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     /* Set the capture mode and verify if it set correctly */
     camera.setCaptureMode(QCamera::CaptureVideo);
@@ -1265,9 +1236,7 @@ void tst_QCamera::testSetCaptureMode()
 /* Test case for unlock (QCamera::LockTypes) */
 void tst_QCamera::testUnlockWithType()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
 
@@ -1331,9 +1300,7 @@ void tst_QCamera::testUnlockWithType()
 /* Test case for signal captureModeChanged(QCamera::CaptureModes) */
 void tst_QCamera::testCaptureModeChangedSignal()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
 
     qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
@@ -1352,9 +1319,7 @@ void tst_QCamera::testCaptureModeChangedSignal()
 /* Test case for signal lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason) */
 void tst_QCamera::testLockStatusChangedWithTypesSignal()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
 
@@ -1391,7 +1356,8 @@ void tst_QCamera::testErrorSignal()
 {
     MockCameraService service;
     provider->service = &service;
-    QCamera camera(0, provider);
+
+    QCamera camera;
 
     QSignalSpy spyError(&camera, SIGNAL(error(QCamera::Error)));
 
@@ -1425,7 +1391,8 @@ void tst_QCamera::testError()
 {
     MockCameraService service;
     provider->service = &service;
-    QCamera camera(0, provider);
+
+    QCamera camera;
 
     /* Set the QCameraControl error and verify if it is set correctly in QCamera */
     service.mockControl->setError(QCamera::CameraError,QString("Camera Error"));
@@ -1446,7 +1413,8 @@ void tst_QCamera::testErrorString()
 {
     MockCameraService service;
     provider->service = &service;
-    QCamera camera(0, provider);
+
+    QCamera camera;
 
     /* Set the QCameraControl error and verify if it is set correctly in QCamera */
     service.mockControl->setError(QCamera::CameraError,QString("Camera Error"));
@@ -1466,7 +1434,8 @@ void tst_QCamera::testStatus()
 {
     MockCameraService service;
     provider->service = &service;
-    QCamera camera(0, provider);
+
+    QCamera camera;
 
     /* Set the QCameraControl status and verify if it is set correctly in QCamera */
     service.mockControl->setStatus(QCamera::StartingStatus);
@@ -1488,9 +1457,7 @@ void tst_QCamera::testStatus()
 /* Test case for verifying default locktype QCamera::NoLock */
 void tst_QCamera::testLockType()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
 }
@@ -1500,7 +1467,8 @@ void tst_QCamera::testLockChangeReason()
 {
     MockCameraService service;
     provider->service = &service;
-    QCamera camera(0, provider);
+
+    QCamera camera;
 
     QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
 
@@ -1554,11 +1522,7 @@ void tst_QCamera::testEnumsOfQCameraControl()
 // Test case for QCameraImageProcessing class
 void tst_QCamera::testContrast()
 {
-    MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-
-    QCamera camera(0, &provider);
+    QCamera camera;
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QVERIFY(cameraImageProcessing->contrast() ==0);
 
@@ -1571,11 +1535,7 @@ void tst_QCamera::testContrast()
 
 void tst_QCamera::testDenoisingLevel()
 {
-    MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-
-    QCamera camera(0, &provider);
+    QCamera camera;
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
 
     if (cameraImageProcessing->isDenoisingSupported())
@@ -1594,22 +1554,14 @@ void tst_QCamera::testDenoisingLevel()
 
 void tst_QCamera::testIsAvailable()
 {
-    MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-
-    QCamera camera(0, &provider);
+    QCamera camera;
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QVERIFY(cameraImageProcessing->isAvailable() == true);
 }
 
 void tst_QCamera::testSaturation()
 {
-    MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-
-    QCamera camera(0, &provider);
+    QCamera camera;
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QVERIFY(cameraImageProcessing->saturation() == 0);
 
@@ -1628,11 +1580,8 @@ void tst_QCamera::testSaturation()
 
 void tst_QCamera::testSharpeningLevel()
 {
-    MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
+    QCamera camera;
 
-    QCamera camera(0, &provider);
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QVERIFY(cameraImageProcessing->isSharpeningSupported());
     QVERIFY(cameraImageProcessing->sharpeningLevel() == -1);
@@ -1705,9 +1654,8 @@ void tst_QCamera::testEnumOfQCameraImageProcessing()
 //Added test cases for QCameraFocus
 void tst_QCamera::testCameraFocusIsAvailable()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
+
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
     QVERIFY(cameraFocus->isAvailable());
@@ -1717,9 +1665,8 @@ void tst_QCamera::testCameraFocusIsAvailable()
 //As the HyperfocalFocus and MacroFocus are not supported we can not set the focus mode to these Focus Modes
 void tst_QCamera::testFocusModes()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
+
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::HyperfocalFocus));
@@ -1735,9 +1682,8 @@ void tst_QCamera::testFocusModes()
 
 void tst_QCamera::testOpticalAndDigitalZoomChanged()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
+
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
     QSignalSpy spy1(cameraFocus,SIGNAL(digitalZoomChanged(qreal)));
@@ -1751,9 +1697,8 @@ void tst_QCamera::testOpticalAndDigitalZoomChanged()
 
 void tst_QCamera::testMaxDigitalZoomChangedSignal()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
+
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
     QSignalSpy spy(cameraFocus,SIGNAL(maximumDigitalZoomChanged(qreal)));
@@ -1764,9 +1709,8 @@ void tst_QCamera::testMaxDigitalZoomChangedSignal()
 
 void tst_QCamera::testMaxOpticalZoomChangedSignal()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
+
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
     QSignalSpy spy(cameraFocus,SIGNAL(maximumOpticalZoomChanged(qreal)));
@@ -1777,9 +1721,8 @@ void tst_QCamera::testMaxOpticalZoomChangedSignal()
 
 void tst_QCamera::testfocusZonesChangedSignal()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
+
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != 0);
 
@@ -1797,10 +1740,7 @@ void tst_QCamera :: testImageProcessingControl()
 
 void tst_QCamera::testSignalApertureChanged()
 {
-    MockMediaServiceProvider provider1;
-    MockCameraService service;
-    provider1.service = &service;
-    QCamera camera(0, &provider1);
+    QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != 0);
@@ -1819,10 +1759,7 @@ void tst_QCamera::testSignalApertureChanged()
 
 void tst_QCamera::testSignalExposureCompensationChanged()
 {
-    MockMediaServiceProvider provider1;
-    MockCameraService service;
-    provider1.service = &service;
-    QCamera camera(0, &provider1);
+    QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != 0);
@@ -1850,11 +1787,7 @@ void tst_QCamera::testSignalExposureCompensationChanged()
 
 void tst_QCamera::testSignalIsoSensitivityChanged()
 {
-
-    MockMediaServiceProvider provider1;
-    MockCameraService service;
-    provider1.service = &service;
-    QCamera camera(0, &provider1);
+    QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != 0);
@@ -1870,11 +1803,7 @@ void tst_QCamera::testSignalIsoSensitivityChanged()
 }
 void tst_QCamera::testSignalShutterSpeedChanged()
 {
-
-    MockMediaServiceProvider provider1;
-    MockCameraService service;
-    provider1.service = &service;
-    QCamera camera(0, &provider1);
+    QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != 0);
@@ -1893,10 +1822,7 @@ void tst_QCamera::testSignalShutterSpeedChanged()
 
 void tst_QCamera::testSignalFlashReady()
 {
-    MockMediaServiceProvider provider1;
-    MockCameraService service;
-    provider1.service = &service;
-    QCamera camera(0, &provider1);
+    QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != 0);

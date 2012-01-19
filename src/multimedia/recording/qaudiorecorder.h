@@ -68,7 +68,7 @@ class Q_MULTIMEDIA_EXPORT QAudioRecorder : public QMediaRecorder
     Q_OBJECT
     Q_PROPERTY(QString audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
 public:
-    QAudioRecorder(QObject *parent = 0, QMediaServiceProvider *serviceProvider = QMediaServiceProvider::defaultServiceProvider());
+    QAudioRecorder(QObject *parent = 0);
     ~QAudioRecorder();
 
     QStringList audioInputs() const;

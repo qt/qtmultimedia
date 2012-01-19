@@ -238,8 +238,9 @@ void QMediaPlayerPrivate::_q_playlistDestroyed()
     control->setMedia(QMediaContent(), 0);
 }
 
-static QMediaService *playerService(QMediaPlayer::Flags flags, QMediaServiceProvider *provider)
+static QMediaService *playerService(QMediaPlayer::Flags flags)
 {
+    QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
     if (flags) {
         QMediaServiceProviderHint::Features features = 0;
         if (flags & QMediaPlayer::LowLatency)
@@ -259,21 +260,18 @@ static QMediaService *playerService(QMediaPlayer::Flags flags, QMediaServiceProv
 
 
 /*!
-    Construct a QMediaPlayer that uses the playback service from \a provider,
+    Construct a QMediaPlayer instance
     parented to \a parent and with \a flags.
-
-    If a playback service is not specified the system default will be used.
 */
 
-QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags, QMediaServiceProvider *provider):
+QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
     QMediaObject(*new QMediaPlayerPrivate,
                  parent,
-                 playerService(flags,provider))
+                 playerService(flags))
 {
     Q_D(QMediaPlayer);
 
-    d->provider = provider;
-
+    d->provider = QMediaServiceProvider::defaultServiceProvider();
     if (d->service == 0) {
         d->error = ServiceMissingError;
     } else {
@@ -322,9 +320,9 @@ QMediaPlayer::~QMediaPlayer()
     if (d->service) {
         if (d->control)
             d->service->releaseControl(d->control);
-    }
 
-    d->provider->releaseService(d->service);
+        d->provider->releaseService(d->service);
+    }
 }
 
 QMediaContent QMediaPlayer::media() const

@@ -45,7 +45,6 @@
 #include <QtCore/qobject.h>
 
 #include "qmediaobject.h"
-#include "qmediaserviceprovider.h"
 #include <qmediaenumdebug.h>
 
 #include <QPair>
@@ -88,7 +87,7 @@ public:
         College
     };
 
-    QRadioData(QObject *parent = 0, QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider());
+    QRadioData(QObject *parent = 0);
     ~QRadioData();
 
     bool isAvailable() const;

@@ -87,6 +87,8 @@ void tst_QAudioRecorder::init()
     mockMediaRecorderService = new MockMediaRecorderService(this, new MockMediaRecorderControl(this));
     mockProvider = new MockMediaServiceProvider(mockMediaRecorderService);
     audiosource = 0;
+
+    QMediaServiceProvider::setDefaultServiceProvider(mockProvider);
 }
 
 void tst_QAudioRecorder::cleanup()
@@ -102,7 +104,10 @@ void tst_QAudioRecorder::cleanup()
 void tst_QAudioRecorder::testNullService()
 {
     mockProvider->service = 0;
-    QAudioRecorder source(0, mockProvider);
+    QAudioRecorder source;
+
+    QVERIFY(!source.isAvailable());
+    QCOMPARE(source.availabilityError(), QtMultimedia::ServiceMissingError);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
@@ -113,7 +118,10 @@ void tst_QAudioRecorder::testNullService()
 void tst_QAudioRecorder::testNullControl()
 {
     mockMediaRecorderService->hasControls = false;
-    QAudioRecorder source(0, mockProvider);
+    QAudioRecorder source;
+
+    QVERIFY(!source.isAvailable());
+    QCOMPARE(source.availabilityError(), QtMultimedia::ServiceMissingError);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
@@ -129,7 +137,7 @@ void tst_QAudioRecorder::testNullControl()
 
 void tst_QAudioRecorder::testAudioSource()
 {
-    audiosource = new QAudioRecorder(0, mockProvider);
+    audiosource = new QAudioRecorder;
 
     QCOMPARE(audiosource->mediaObject()->service(),(QMediaService *) mockMediaRecorderService);
 }
@@ -146,7 +154,7 @@ void tst_QAudioRecorder::testOptions()
 
 void tst_QAudioRecorder::testDevices()
 {
-    audiosource = new QAudioRecorder(0,mockProvider);
+    audiosource = new QAudioRecorder;
     QList<QString> devices = audiosource->audioInputs();
     QVERIFY(devices.size() > 0);
     QVERIFY(devices.at(0).compare("device1") == 0);
@@ -163,26 +171,16 @@ void tst_QAudioRecorder::testDevices()
 
 void tst_QAudioRecorder::testAvailability()
 {
-    MockMediaRecorderService service(this, new MockMediaRecorderControl(this));
-    service.hasControls = false;
-    MockMediaServiceProvider provider(&service);
-    QAudioRecorder source(0, &provider);
+    QAudioRecorder source;
 
-    QVERIFY(source.isAvailable() == false);
-    QVERIFY(source.availabilityError() == QtMultimedia::ServiceMissingError);
-
-    service.hasControls = true;
-    MockMediaServiceProvider provider2(&service);
-    QAudioRecorder source2(0, &provider2);
-
-    QVERIFY(source2.isAvailable() == true);
-    QVERIFY(source2.availabilityError() == QtMultimedia::NoError);
+    QVERIFY(source.isAvailable());
+    QCOMPARE(source.availabilityError(), QtMultimedia::NoError);
 }
 
 void tst_QAudioRecorder::testAvailableAudioInputChangedSignal()
 {
     // The availabilityChangedSignal is implemented in QAudioRecorder. SO using it to test the signal.
-    audiosource = new QAudioRecorder(0, mockProvider);
+    audiosource = new QAudioRecorder;
 
     /* Spy the signal availableEndpointChanged and audioInputchanged */
     QSignalSpy changed(mockMediaRecorderService->mockAudioEndpointSelector, SIGNAL(availableEndpointsChanged()));

@@ -74,8 +74,9 @@ void tst_QCameraViewFinder::initTestCase()
     provider = new MockMediaServiceProvider;
     mockcameraservice = new MockCameraService;
     provider->service = mockcameraservice;
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
 
-    camera = new QCamera(0, provider);
+    camera = new QCamera;
     viewFinder = new QCameraViewfinder();
 }
 

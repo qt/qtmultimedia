@@ -118,11 +118,11 @@ public:
     The \a parent is passed to QMediaObject.
 */
 
-QAudioRecorder::QAudioRecorder(QObject *parent, QMediaServiceProvider *serviceProvider):
+QAudioRecorder::QAudioRecorder(QObject *parent):
     QMediaRecorder(*new QAudioRecorderPrivate, 0, parent)
 {
     Q_D(QAudioRecorder);
-    d->provider = serviceProvider;
+    d->provider = QMediaServiceProvider::defaultServiceProvider();
 
     QMediaService *service = d->provider->requestService(Q_MEDIASERVICE_AUDIOSOURCE);
     setMediaObject(new QAudioRecorderObject(this, service));

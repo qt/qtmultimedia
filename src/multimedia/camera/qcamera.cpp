@@ -41,6 +41,7 @@
 
 #include "qvideosurfaceoutput_p.h"
 #include "qmediaobject_p.h"
+#include "qmediaserviceprovider.h"
 
 #include <qcamera.h>
 #include <qcameracontrol.h>
@@ -338,11 +339,13 @@ void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockSt
     Construct a QCamera from service \a provider and \a parent.
 */
 
-QCamera::QCamera(QObject *parent, QMediaServiceProvider *provider):
-    QMediaObject(*new QCameraPrivate, parent, provider->requestService(Q_MEDIASERVICE_CAMERA))
+QCamera::QCamera(QObject *parent):
+    QMediaObject(*new QCameraPrivate,
+                 parent,
+                 QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
 {
     Q_D(QCamera);
-    d->provider = provider;
+    d->provider = QMediaServiceProvider::defaultServiceProvider();
     d->initControls();
     d->cameraExposure = new QCameraExposure(this);
     d->cameraFocus = new QCameraFocus(this);

@@ -100,6 +100,8 @@ class tst_QCameraImageCapture: public QObject
 
 public slots:
     void initTestCase();
+    void init();
+    void cleanup();
     void cleanupTestCase();
 
 private slots:
@@ -129,20 +131,30 @@ private:
 void tst_QCameraImageCapture::initTestCase()
 {
     provider = new MockMediaServiceProvider;
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
+}
+
+void tst_QCameraImageCapture::init()
+{
     mockcameraservice = new MockCameraService;
     provider->service = mockcameraservice;
 }
 
-void tst_QCameraImageCapture::cleanupTestCase()
+void tst_QCameraImageCapture::cleanup()
 {
     delete mockcameraservice;
+    mockcameraservice = 0;
+}
+
+void tst_QCameraImageCapture::cleanupTestCase()
+{
     delete provider;
 }
 
 //MaemoAPI-1823:test QCameraImageCapture Constructor
 void tst_QCameraImageCapture::constructor()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
 }
@@ -150,15 +162,14 @@ void tst_QCameraImageCapture::constructor()
 //MaemoAPI-1824:test mediaObject
 void tst_QCameraImageCapture::mediaObject()
 {
-    MockMediaServiceProvider provider1;
     NullService  mymockcameraservice ;
-    provider1.service = &mymockcameraservice;
-    QCamera camera(0, &provider1);
+    provider->service = &mymockcameraservice;
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
-    QMediaObject *medobj = imageCapture.mediaObject();
-    QVERIFY(medobj == NULL);
+    QVERIFY(imageCapture.mediaObject() == NULL);
 
-    QCamera camera1(0, provider);
+    provider->service = mockcameraservice;
+    QCamera camera1;
     QCameraImageCapture imageCapture1(&camera1);
     QMediaObject *medobj1 = imageCapture1.mediaObject();
     QCOMPARE(medobj1, &camera1);
@@ -166,10 +177,9 @@ void tst_QCameraImageCapture::mediaObject()
 
 void tst_QCameraImageCapture::deleteMediaObject()
 {
-    MockMediaServiceProvider *provider = new MockMediaServiceProvider;
     provider->service = new MockCameraService;
 
-    QCamera *camera = new QCamera(0, provider);
+    QCamera *camera = new QCamera;
     QCameraImageCapture *capture = new QCameraImageCapture(camera);
 
     QVERIFY(capture->mediaObject() == camera);
@@ -177,7 +187,6 @@ void tst_QCameraImageCapture::deleteMediaObject()
 
     delete camera;
     delete provider->service;
-    delete provider;
 
     //capture should detach from camera
     QVERIFY(capture->mediaObject() == 0);
@@ -190,7 +199,7 @@ void tst_QCameraImageCapture::deleteMediaObject()
 //MaemoAPI-1825:test isReadyForCapture
 void tst_QCameraImageCapture::isReadyForCapture()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
@@ -204,7 +213,7 @@ void tst_QCameraImageCapture::isReadyForCapture()
 //MaemoAPI-1826:test capture
 void tst_QCameraImageCapture::capture()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
@@ -219,7 +228,7 @@ void tst_QCameraImageCapture::capture()
 //MaemoAPI-1827:test cancelCapture
 void tst_QCameraImageCapture::cancelCapture()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QSignalSpy spy(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy spy1(&imageCapture, SIGNAL(imageSaved(int,QString)));
@@ -248,7 +257,7 @@ void tst_QCameraImageCapture::cancelCapture()
 //MaemoAPI-1829:test set encodingSettings
 void tst_QCameraImageCapture::encodingSettings()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.encodingSettings() == QImageEncoderSettings());
@@ -264,7 +273,7 @@ void tst_QCameraImageCapture::encodingSettings()
 //MaemoAPI-1838:test supportedImageCodecs
 void tst_QCameraImageCapture::supportedImageCodecs()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(!imageCapture.supportedImageCodecs().isEmpty());
@@ -273,7 +282,7 @@ void tst_QCameraImageCapture::supportedImageCodecs()
 //MaemoAPI-1836:test supportedResolutions
 void tst_QCameraImageCapture::supportedResolutions()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.supportedResolutions().count() == 2);
@@ -287,7 +296,7 @@ void tst_QCameraImageCapture::supportedResolutions()
 //MaemoAPI-1837:test imageCodecDescription
 void tst_QCameraImageCapture::imageCodecDescription()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.imageCodecDescription(" ").isNull());
@@ -297,11 +306,10 @@ void tst_QCameraImageCapture::imageCodecDescription()
 //MaemoAPI-1830:test errors
 void tst_QCameraImageCapture::errors()
 {
-    MockMediaServiceProvider provider1 ;
     MockSimpleCameraService mockSimpleCameraService ;
-    provider1.service = &mockSimpleCameraService;
+    provider->service = &mockSimpleCameraService;
 
-    QCamera camera1(0, &provider1);
+    QCamera camera1;
     QCameraImageCapture imageCapture1(&camera1);
     QVERIFY(imageCapture1.isAvailable() == false);
     imageCapture1.capture(QString::fromLatin1("/dev/null"));
@@ -309,8 +317,9 @@ void tst_QCameraImageCapture::errors()
     QVERIFY2(!imageCapture1.errorString().isEmpty(), "Device does not support images capture");
     QVERIFY(imageCapture1.availabilityError() == QtMultimedia::ServiceMissingError);
 
+    provider->service = mockcameraservice;
 
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
@@ -326,7 +335,7 @@ void tst_QCameraImageCapture::errors()
 //MaemoAPI-1831:test error
 void tst_QCameraImageCapture::error()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QSignalSpy spy(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
     imageCapture.capture();
@@ -341,7 +350,7 @@ void tst_QCameraImageCapture::error()
 //MaemoAPI-1832:test imageCaptured
 void tst_QCameraImageCapture::imageCaptured()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QSignalSpy spy(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QVERIFY(imageCapture.isAvailable() == true);
@@ -362,7 +371,7 @@ void tst_QCameraImageCapture::imageCaptured()
 //MaemoAPI-1833:test imageExposed
 void tst_QCameraImageCapture::imageExposed()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QSignalSpy spy(&imageCapture, SIGNAL(imageExposed(int)));
     QVERIFY(imageCapture.isAvailable() == true);
@@ -381,7 +390,7 @@ void tst_QCameraImageCapture::imageExposed()
 //MaemoAPI-1834:test imageSaved
 void tst_QCameraImageCapture::imageSaved()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QSignalSpy spy(&imageCapture, SIGNAL(imageSaved(int,QString)));
     QVERIFY(imageCapture.isAvailable() == true);
@@ -401,7 +410,7 @@ void tst_QCameraImageCapture::imageSaved()
 //MaemoAPI-1835:test readyForCaptureChanged
 void tst_QCameraImageCapture::readyForCaptureChanged()
 {
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
     QSignalSpy spy(&imageCapture, SIGNAL(readyForCaptureChanged(bool)));
     QVERIFY(imageCapture.isReadyForCapture() == false);

@@ -56,7 +56,6 @@
 #include <qcamerafocus.h>
 #include <qcameraimageprocessing.h>
 
-#include <qmediaserviceprovider.h>
 #include <qmediaenumdebug.h>
 
 QT_BEGIN_HEADER
@@ -144,7 +143,7 @@ public:
     };
     Q_DECLARE_FLAGS(LockTypes, LockType)
 
-    QCamera(QObject *parent = 0, QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider());
+    QCamera(QObject *parent = 0);
     QCamera(const QByteArray& device, QObject *parent = 0);
     ~QCamera();
 

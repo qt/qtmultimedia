@@ -73,31 +73,25 @@ private slots:
     void testSetVideoOutputNoControl();
 
 private:
-    MockMediaServiceProvider *mockProvider;
+    MockMediaServiceProvider *provider;
     MockMediaPlayerService  *mockService;
-    QMediaPlayer *player;
 };
 
 void tst_QMediaPlayerWidgets::initTestCase()
 {
-    qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
-    qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
-    qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
-    qRegisterMetaType<QMediaContent>("QMediaContent");
-
-    mockService = new MockMediaPlayerService;
-    mockProvider = new MockMediaServiceProvider(mockService, true);
-    player = new QMediaPlayer(0, 0, mockProvider);
+    provider = new MockMediaServiceProvider;
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
 }
 
 void tst_QMediaPlayerWidgets::cleanupTestCase()
 {
-    delete player;
+    delete provider;
 }
 
 void tst_QMediaPlayerWidgets::init()
 {
-    mockService->reset();
+    mockService = new MockMediaPlayerService;
+    provider->service = mockService;
 }
 
 void tst_QMediaPlayerWidgets::cleanup()
@@ -110,9 +104,7 @@ void tst_QMediaPlayerWidgets::testSetVideoOutput()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    MockMediaPlayerService service;
-    MockMediaServiceProvider provider(&service);
-    QMediaPlayer player(0, 0, &provider);
+    QMediaPlayer player;
 
     player.setVideoOutput(&widget);
     QVERIFY(widget.mediaObject() == &player);
@@ -131,20 +123,20 @@ void tst_QMediaPlayerWidgets::testSetVideoOutput()
     QVERIFY(widget.mediaObject() == 0);
 
     player.setVideoOutput(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockService->rendererControl->surface() == &surface);
 
     player.setVideoOutput(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(mockService->rendererControl->surface() == 0);
 
     player.setVideoOutput(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockService->rendererControl->surface() == &surface);
 
     player.setVideoOutput(&widget);
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(mockService->rendererControl->surface() == 0);
     QVERIFY(widget.mediaObject() == &player);
 
     player.setVideoOutput(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockService->rendererControl->surface() == &surface);
     QVERIFY(widget.mediaObject() == 0);
 }
 
@@ -155,8 +147,8 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    MockMediaServiceProvider provider(0, true);
-    QMediaPlayer player(0, 0, &provider);
+    provider->service = 0;
+    QMediaPlayer player;
 
     player.setVideoOutput(&widget);
     QVERIFY(widget.mediaObject() == 0);
@@ -178,8 +170,9 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoControl()
     service.rendererRef = 1;
     service.windowRef = 1;
 
-    MockMediaServiceProvider provider(&service);
-    QMediaPlayer player(0, 0, &provider);
+    provider->service = &service;
+
+    QMediaPlayer player;
 
     player.setVideoOutput(&widget);
     QVERIFY(widget.mediaObject() == 0);

@@ -43,7 +43,6 @@
 #define QMEDIARECORDER_H
 
 #include <qmediaobject.h>
-#include <qmediaserviceprovider.h>
 #include <qmediaencodersettings.h>
 #include <qmediabindableinterface.h>
 #include <qmediaenumdebug.h>

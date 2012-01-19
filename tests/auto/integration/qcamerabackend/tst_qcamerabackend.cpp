@@ -60,6 +60,7 @@
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 #include <qvideorenderercontrol.h>
+#include <qmediaserviceprovider.h>
 
 QT_USE_NAMESPACE
 

@@ -79,6 +79,8 @@ class tst_QCameraWidgets: public QObject
 
 public slots:
     void initTestCase();
+    void init();
+    void cleanup();
     void cleanupTestCase();
 
 private slots:
@@ -88,28 +90,37 @@ private slots:
     void testSetVideoOutputNoControl();
 
 private:
-    MockSimpleCameraService  *mockSimpleCameraService;
+    MockCameraService  *mockCameraService;
     MockMediaServiceProvider *provider;
 };
 
 void tst_QCameraWidgets::initTestCase()
 {
     provider = new MockMediaServiceProvider;
-    mockSimpleCameraService = new MockSimpleCameraService;
-    provider->service = mockSimpleCameraService;
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
 }
+
+void tst_QCameraWidgets::init()
+{
+    mockCameraService = new MockCameraService;
+    provider->service = mockCameraService;
+}
+
+void tst_QCameraWidgets::cleanup()
+{
+    delete mockCameraService;
+    provider->service = 0;
+}
+
 
 void tst_QCameraWidgets::cleanupTestCase()
 {
-    delete mockSimpleCameraService;
     delete provider;
 }
 
 void tst_QCameraWidgets::testCameraEncodingProperyChange()
 {
-    MockCameraService service;
-    provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
     QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
@@ -205,7 +216,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
 
     QTest::qWait(10);
 
-    service.mockControl->m_propertyChangesSupported = true;
+    mockCameraService->mockControl->m_propertyChangesSupported = true;
     //the changes to encoding settings,
     //capture mode and encoding parameters should not trigger service restart
     stateChangedSignal.clear();
@@ -226,11 +237,7 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QVideoWidget widget;
     QGraphicsVideoItem item;
     MockVideoSurface surface;
-
-    MockCameraService service;
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-    QCamera camera(0, &provider);
+    QCamera camera;
 
     camera.setViewfinder(&widget);
     qDebug() << widget.mediaObject();
@@ -250,20 +257,20 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QVERIFY(widget.mediaObject() == 0);
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 
     camera.setViewfinder(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == 0);
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 
     camera.setViewfinder(&widget);
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == 0);
     QVERIFY(widget.mediaObject() == &camera);
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == &surface);
+    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
     QVERIFY(widget.mediaObject() == 0);
 }
 
@@ -274,9 +281,8 @@ void tst_QCameraWidgets::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    MockMediaServiceProvider provider;
-    provider.service = 0;
-    QCamera camera(0, &provider);
+    provider->service = 0;
+    QCamera camera;
 
     camera.setViewfinder(&widget);
     QVERIFY(widget.mediaObject() == 0);
@@ -294,13 +300,10 @@ void tst_QCameraWidgets::testSetVideoOutputNoControl()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    MockCameraService service;
-    service.rendererRef = 1;
-    service.windowRef = 1;
+    mockCameraService->rendererRef = 1;
+    mockCameraService->windowRef = 1;
 
-    MockMediaServiceProvider provider;
-    provider.service = &service;
-    QCamera camera(0, &provider);
+    QCamera camera;
 
     camera.setViewfinder(&widget);
     QVERIFY(widget.mediaObject() == 0);
@@ -309,7 +312,7 @@ void tst_QCameraWidgets::testSetVideoOutputNoControl()
     QVERIFY(item.mediaObject() == 0);
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == 0);
 }
 
 QTEST_MAIN(tst_QCameraWidgets)

@@ -64,6 +64,7 @@ class tst_QRadioTuner: public QObject
 public slots:
     void initTestCase();
     void cleanupTestCase();
+    void init();
 
 private slots:
     void testNullService();
@@ -93,7 +94,9 @@ void tst_QRadioTuner::initTestCase()
     mock = new MockRadioTunerControl(this);
     service = new MockMediaService(this, mock);
     provider = new MockMediaServiceProvider(service);
-    radio = new QRadioTuner(0,provider);
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
+
+    radio = new QRadioTuner;
     QVERIFY(radio->service() != 0);
     QVERIFY(radio->isAvailable());
     QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
@@ -128,12 +131,19 @@ void tst_QRadioTuner::cleanupTestCase()
     delete provider;
 }
 
+void tst_QRadioTuner::init()
+{
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
+}
+
 void tst_QRadioTuner::testNullService()
 {
     const QPair<int, int> nullRange(0, 0);
 
     MockMediaServiceProvider provider(0);
-    QRadioTuner radio(0, &provider);
+    QMediaServiceProvider::setDefaultServiceProvider(&provider);
+
+    QRadioTuner radio;
     QVERIFY(!radio.isAvailable());
     radio.start();
     QCOMPARE(radio.error(), QRadioTuner::ResourceError);
@@ -161,7 +171,8 @@ void tst_QRadioTuner::testNullControl()
 
     MockMediaService service(0, 0);
     MockMediaServiceProvider provider(&service);
-    QRadioTuner radio(0, &provider);
+    QMediaServiceProvider::setDefaultServiceProvider(&provider);
+    QRadioTuner radio;
     QVERIFY(!radio.isAvailable());
     radio.start();
 
@@ -346,7 +357,8 @@ void tst_QRadioTuner::errorSignal()
     MockRadioTunerControl dctrl(&obj);
     MockMediaService service(&obj, &dctrl);
     MockMediaServiceProvider provider(&service);
-    QRadioTuner radio(0,&provider);
+    QMediaServiceProvider::setDefaultServiceProvider(&provider);
+    QRadioTuner radio;
     QSignalSpy spy(&radio, SIGNAL(error(QRadioTuner::Error)));
     QVERIFY(radio.service() != 0);
     QVERIFY(radio.isAvailable());

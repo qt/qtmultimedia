@@ -85,7 +85,8 @@ void tst_QRadioData::initTestCase()
     mock = new MockRadioDataControl(this);
     service = new MockMediaService(this, mock);
     provider = new MockMediaServiceProvider(service);
-    radio = new QRadioData(0,provider);
+    QMediaServiceProvider::setDefaultServiceProvider(provider);
+    radio = new QRadioData;
     QVERIFY(radio->service() != 0);
     QVERIFY(radio->isAvailable());
     QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
@@ -105,8 +106,10 @@ void tst_QRadioData::testNullService()
 {
     const QPair<int, int> nullRange(0, 0);
 
-    MockMediaServiceProvider provider(0);
-    QRadioData radio(0, &provider);
+    MockMediaServiceProvider nullProvider(0);
+    QMediaServiceProvider::setDefaultServiceProvider(&nullProvider);
+    QRadioData radio;
+
     QVERIFY(!radio.isAvailable());
     QCOMPARE(radio.error(), QRadioData::ResourceError);
     QCOMPARE(radio.errorString(), QString());
@@ -125,7 +128,8 @@ void tst_QRadioData::testNullControl()
 
     MockMediaService service(0, 0);
     MockMediaServiceProvider provider(&service);
-    QRadioData radio(0, &provider);
+    QMediaServiceProvider::setDefaultServiceProvider(&provider);
+    QRadioData radio;
     QVERIFY(!radio.isAvailable());
     QCOMPARE(radio.error(), QRadioData::ResourceError);
     QCOMPARE(radio.errorString(), QString());

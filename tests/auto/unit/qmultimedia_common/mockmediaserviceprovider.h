@@ -63,7 +63,7 @@ public:
     {
         if (deleteServiceOnRelease) {
             delete service;
-            service = 0;
+            this->service = 0;
         }
     }
 

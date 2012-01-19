@@ -42,8 +42,6 @@
 #ifndef QMEDIAPLAYER_H
 #define QMEDIAPLAYER_H
 
-
-#include "qmediaserviceprovider.h"
 #include "qmediaobject.h"
 #include "qmediacontent.h"
 #include "qmediaenumdebug.h"
@@ -123,7 +121,7 @@ public:
         ServiceMissingError
     };
 
-    QMediaPlayer(QObject *parent = 0, Flags flags = 0, QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider());
+    QMediaPlayer(QObject *parent = 0, Flags flags = 0);
     ~QMediaPlayer();
 
     static QtMultimedia::SupportEstimate hasSupport(const QString &mimeType,

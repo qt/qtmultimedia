@@ -55,6 +55,7 @@
 
 #include <QtCore/qbasictimer.h>
 #include <qmediaplayer.h>
+#include <qmediaserviceprovider.h>
 
 QT_BEGIN_HEADER
 
