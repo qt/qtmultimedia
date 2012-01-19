@@ -68,8 +68,8 @@ public slots:
     void cleanup();
 
 private slots:
-    //void testNullService();
-    //void testNullControl();
+    void testNullService();
+    void testNullControl();
     void testAudioSource();
     void testOptions();
     void testDevices();
@@ -86,46 +86,47 @@ void tst_QAudioRecorder::init()
 {
     mockMediaRecorderService = new MockMediaRecorderService(this, new MockMediaRecorderControl(this));
     mockProvider = new MockMediaServiceProvider(mockMediaRecorderService);
+    audiosource = 0;
 }
 
 void tst_QAudioRecorder::cleanup()
 {
-    delete audiosource;
+    delete mockMediaRecorderService;
     delete mockProvider;
-    audiosource = 0;
+    delete audiosource;
+    mockMediaRecorderService = 0;
     mockProvider = 0;
+    audiosource = 0;
 }
-/*
+
 void tst_QAudioRecorder::testNullService()
 {
-    MockProvider provider(0);
-    QAudioRecorder source(0, &provider);
+    mockProvider->service = 0;
+    QAudioRecorder source(0, mockProvider);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
-    QCOMPARE(source.activeAudioInput(), QString());
+    QCOMPARE(source.audioInput(), QString());
 }
-*/
-/*
+
+
 void tst_QAudioRecorder::testNullControl()
 {
-    MockRecorderService service;
-    service.hasAudioDeviceControl = false;
-    MockProvider provider(&service);
-    QAudioRecorder source(0, &provider);
+    mockMediaRecorderService->hasControls = false;
+    QAudioRecorder source(0, mockProvider);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
-    QCOMPARE(source.activeAudioInput(), QString());
+    QCOMPARE(source.audioInput(), QString());
 
-    QCOMPARE(source.audioDescription("blah"), QString());
+    QCOMPARE(source.audioInputDescription("blah"), QString());
 
-    QSignalSpy deviceNameSpy(&source, SIGNAL(activeAudioInputChanged(QString)));
+    QSignalSpy deviceNameSpy(&source, SIGNAL(audioInputChanged(QString)));
 
     source.setAudioInput("blah");
     QCOMPARE(deviceNameSpy.count(), 0);
 }
-*/
+
 void tst_QAudioRecorder::testAudioSource()
 {
     audiosource = new QAudioRecorder(0, mockProvider);

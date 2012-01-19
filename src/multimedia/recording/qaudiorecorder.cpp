@@ -155,7 +155,11 @@ QAudioRecorder::~QAudioRecorder()
 
 QStringList QAudioRecorder::audioInputs() const
 {
-    return d_func()->audioEndpointSelector->availableEndpoints();
+    Q_D(const QAudioRecorder);
+    if (d->audioEndpointSelector)
+        return d->audioEndpointSelector->availableEndpoints();
+    else
+        return QStringList();
 }
 
 /*!
