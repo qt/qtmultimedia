@@ -11,7 +11,7 @@ INCLUDEPATH += ../../../../src/global \
 
 CONFIG += console
 
-QT += multimedia multimediawidgets
+QT += multimedia multimediawidgets widgets
 
 SOURCES += \
     audio.cpp \
