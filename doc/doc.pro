@@ -5,4 +5,6 @@
 ######################################################################
 
 TEMPLATE = subdirs
-SUBDIRS += src/snippets
+
+# Doc snippets use widgets
+!isEmpty(QT.widgets.name): SUBDIRS += src/snippets

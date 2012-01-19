@@ -23,10 +23,8 @@ module_qtmultimedia_docsnippets.CONFIG = no_default_install
 
 SUBDIRS += module_qtmultimedia_src \
            module_qtmultimedia_examples \
-           module_qtmultimedia_tests
-
-# Doc snippets use widgets
-!isEmpty(QT.widgets.name): SUBDIRS += module_qtmultimedia_docsnippets
+           module_qtmultimedia_tests \
+           module_qtmultimedia_docsnippets
 
 # for make docs:
 include(doc/config/qtmultimedia_doc.pri)
