@@ -197,34 +197,36 @@ public:
         QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
 
         QMutexLocker lock(&m_frameMutex);
-        if (m_frame.isValid() && m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
-            if (m_textureSize != m_frame.size()) {
-                if (!m_textureSize.isEmpty())
-                    glDeleteTextures(1, &m_textureId);
-                glGenTextures(1, &m_textureId);
-                m_textureSize = m_frame.size();
+        if (m_frame.isValid()) {
+            if (m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
+                if (m_textureSize != m_frame.size()) {
+                    if (!m_textureSize.isEmpty())
+                        glDeleteTextures(1, &m_textureId);
+                    glGenTextures(1, &m_textureId);
+                    m_textureSize = m_frame.size();
+                }
+
+                GLint dataType = GL_UNSIGNED_BYTE;
+                GLint dataFormat = GL_RGBA;
+
+                if (m_frame.pixelFormat() == QVideoFrame::Format_RGB565) {
+                    dataType = GL_UNSIGNED_SHORT_5_6_5;
+                    dataFormat = GL_RGB;
+                }
+
+                functions->glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, m_textureId);
+                glTexImage2D(GL_TEXTURE_2D, 0, dataFormat,
+                             m_textureSize.width(), m_textureSize.height(),
+                             0, dataFormat, dataType, m_frame.bits());
+
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+                m_frame.unmap();
             }
-
-            GLint dataType = GL_UNSIGNED_BYTE;
-            GLint dataFormat = GL_RGBA;
-
-            if (m_frame.pixelFormat() == QVideoFrame::Format_RGB565) {
-                dataType = GL_UNSIGNED_SHORT_5_6_5;
-                dataFormat = GL_RGB;
-            }
-
-            functions->glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, m_textureId);
-            glTexImage2D(GL_TEXTURE_2D, 0, dataFormat,
-                         m_textureSize.width(), m_textureSize.height(),
-                         0, dataFormat, dataType, m_frame.bits());
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            m_frame.unmap();
             m_frame = QVideoFrame();
         } else {
             functions->glActiveTexture(GL_TEXTURE0);

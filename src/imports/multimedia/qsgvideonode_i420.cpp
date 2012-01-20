@@ -225,13 +225,8 @@ void QSGVideoMaterial_YUV420::bind()
     QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
 
     QMutexLocker lock(&m_frameMutex);
-    if (m_frame.isValid() && m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
-        bool wasMapped = m_frame.isMapped();
-
-        if (!wasMapped)
-            m_frame.map(QAbstractVideoBuffer::ReadOnly);
-
-        if (m_frame.isMapped()) {
+    if (m_frame.isValid()) {
+        if (m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
             int fw = m_frame.width();
             int fh = m_frame.height();
 
@@ -260,8 +255,7 @@ void QSGVideoMaterial_YUV420::bind()
             functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
             bindTexture(m_textureIds[0], fw, fh, bits);
 
-            if (!wasMapped)
-                m_frame.unmap();
+            m_frame.unmap();
         }
 
         m_frame = QVideoFrame();
