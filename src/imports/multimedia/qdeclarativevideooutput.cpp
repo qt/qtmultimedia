@@ -187,6 +187,13 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
     \qmlproperty variant VideoOutput::source
 
     This property holds the source item providing the video frames like MediaPlayer or Camera.
+
+    If you are extending your own C++ classes to interoperate with VideoOutput, you can
+    either provide a QObject based class with a \c mediaObject property that exposes a
+    QMediaObject derived class that has a QVideoRendererControl available, or you can
+    provide a QObject based class with a writable \c videoSurface property that can
+    accept a QAbstractVideoSurface based class and can follow the correct protocol to
+    deliver QVideoFrames to it.
 */
 
 void QDeclarativeVideoOutput::setSource(QObject *source)
@@ -375,7 +382,17 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
         m_sourceRect.moveCenter(QPointF(0.5, 0.5));
     }
 }
+/*!
+    \qmlproperty int VideoOutput::orientation
 
+    Some sources of video frames have a strict orientation associated with them (for example,
+    the camera viewfinder), so that rotating the video output (for example via a portrait or
+    landscape user interface change) should leave the rendered video the same.
+
+    If you transform this element you may need to apply an adjustment to the
+    orientation via this property.  This value uses degrees as the units, and must be
+    a multiple of 90 degrees.
+*/
 int QDeclarativeVideoOutput::orientation() const
 {
     return m_orientation;
