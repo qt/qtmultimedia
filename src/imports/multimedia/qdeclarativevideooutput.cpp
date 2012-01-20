@@ -164,6 +164,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     QQuickItem(parent),
     m_sourceType(NoSource),
     m_fillMode(PreserveAspectFit),
+    m_geometryDirty(true),
     m_orientation(0)
 {
     setFlag(ItemHasContents, true);
@@ -306,6 +307,18 @@ static inline bool qIsDefaultAspect(int o)
     return (o % 180) == 0;
 }
 
+/*
+ * Return the orientation normailized to 0-359
+ */
+static inline int qNormalizedOrientation(int o)
+{
+    // Negative orientations give negative results
+    int o2 = o % 360;
+    if (o2 < 0)
+        o2 += 360;
+    return o2;
+}
+
 /*!
     \qmlproperty enumeration VideoOutput::fillMode
 
@@ -331,6 +344,7 @@ void QDeclarativeVideoOutput::setFillMode(FillMode mode)
         return;
 
     m_fillMode = mode;
+    m_geometryDirty = true;
     update();
 
     emit fillModeChanged(mode);
@@ -346,52 +360,87 @@ void QDeclarativeVideoOutput::_q_updateNativeSize(const QVideoSurfaceFormat &for
     if (m_nativeSize != size) {
         m_nativeSize = size;
 
+        m_geometryDirty = true;
+
         setImplicitWidth(size.width());
         setImplicitHeight(size.height());
+
+        emit sourceRectChanged();
     }
 }
 
+/* Based on fill mode and our size, figure out the source/dest rects */
 void QDeclarativeVideoOutput::_q_updateGeometry()
 {
     QRectF rect(0, 0, width(), height());
 
+    if (!m_geometryDirty && m_lastSize == rect)
+        return;
+
+    QRectF oldContentRect(m_contentRect);
+
+    m_geometryDirty = false;
+    m_lastSize = rect;
+
     if (m_nativeSize.isEmpty()) {
         //this is necessary for item to receive the
         //first paint event and configure video surface.
-        m_boundingRect = rect;
-        m_sourceRect = QRectF(0, 0, 1, 1);
+        m_renderedRect = rect;
+        m_contentRect = rect;
+        m_sourceTextureRect = QRectF(0, 0, 1, 1);
     } else if (m_fillMode == Stretch) {
-        m_boundingRect = rect;
-        m_sourceRect = QRectF(0, 0, 1, 1);
+        m_renderedRect = rect;
+        m_contentRect = rect;
+        m_sourceTextureRect = QRectF(0, 0, 1, 1);
     } else if (m_fillMode == PreserveAspectFit) {
         QSizeF size = m_nativeSize;
         size.scale(rect.size(), Qt::KeepAspectRatio);
 
-        m_boundingRect = QRectF(0, 0, size.width(), size.height());
-        m_boundingRect.moveCenter(rect.center());
+        m_renderedRect = QRectF(0, 0, size.width(), size.height());
+        m_renderedRect.moveCenter(rect.center());
+        m_contentRect = m_renderedRect;
 
-        m_sourceRect = QRectF(0, 0, 1, 1);
+        m_sourceTextureRect = QRectF(0, 0, 1, 1);
     } else if (m_fillMode == PreserveAspectCrop) {
-        m_boundingRect = rect;
+        m_renderedRect = rect;
 
-        QSizeF size = rect.size();
-        size.scale(m_nativeSize, Qt::KeepAspectRatio);
+        QSizeF scaled = m_nativeSize;
+        scaled.scale(rect.size(), Qt::KeepAspectRatioByExpanding);
 
-        m_sourceRect = QRectF(
-                0, 0, size.width() / m_nativeSize.width(), size.height() / m_nativeSize.height());
-        m_sourceRect.moveCenter(QPointF(0.5, 0.5));
+        m_contentRect = QRectF(QPointF(), scaled);
+        m_contentRect.moveCenter(rect.center());
+
+        if (qIsDefaultAspect(m_orientation)) {
+            m_sourceTextureRect = QRectF((-m_contentRect.left()) / m_contentRect.width(),
+                                  (-m_contentRect.top()) / m_contentRect.height(),
+                                  rect.width() / m_contentRect.width(),
+                                  rect.height() / m_contentRect.height());
+        } else {
+            m_sourceTextureRect = QRectF((-m_contentRect.top()) / m_contentRect.height(),
+                                  (-m_contentRect.left()) / m_contentRect.width(),
+                                  rect.height() / m_contentRect.height(),
+                                  rect.width() / m_contentRect.width());
+        }
     }
+
+    if (m_contentRect != oldContentRect)
+        emit contentRectChanged();
 }
 /*!
     \qmlproperty int VideoOutput::orientation
 
-    Some sources of video frames have a strict orientation associated with them (for example,
-    the camera viewfinder), so that rotating the video output (for example via a portrait or
-    landscape user interface change) should leave the rendered video the same.
+    In some cases the source video stream requires a certain
+    orientation to be correct.  This includes
+    sources like a camera viewfinder, where the displayed
+    viewfinder should match reality, no matter what rotation
+    the rest of the user interface has.
 
-    If you transform this element you may need to apply an adjustment to the
-    orientation via this property.  This value uses degrees as the units, and must be
-    a multiple of 90 degrees.
+    This property allows you to apply a rotation (in steps
+    of 90 degrees) to compensate for any user interface
+    rotation, with positive values in the anti-clockwise direction.
+
+    The orientation change will also affect the mapping
+    of coordinates from source to viewport.
 */
 int QDeclarativeVideoOutput::orientation() const
 {
@@ -404,6 +453,10 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
     if (orientation % 90)
         return;
 
+    // If there's no actual change, return
+    if (m_orientation == orientation)
+        return;
+
     // If the new orientation is the same effect
     // as the old one, don't update the video node stuff
     if ((m_orientation % 360) == (orientation % 360)) {
@@ -411,6 +464,8 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
         emit orientationChanged();
         return;
     }
+
+    m_geometryDirty = true;
 
     // Otherwise, a new orientation
     // See if we need to change aspect ratio orientation too
@@ -424,11 +479,243 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
 
         setImplicitWidth(m_nativeSize.width());
         setImplicitHeight(m_nativeSize.height());
+
+        // Source rectangle does not change for orientation
     }
 
     update();
     emit orientationChanged();
 }
+
+/*!
+    \qmlproperty rectangle VideoOutput::contentRect
+
+    This property holds the item coordinates of the area that
+    would contain video to render.  With certain fill modes,
+    this rectangle will be larger than the visible area of this
+    element.
+
+    This property is useful when other coordinates are specified
+    in terms of the source dimensions - this applied for relative
+    (normalized) frame coordinates in the range of 0 to 1.0.
+
+    \sa mapRectToItem(), mapPointToItem()
+
+    Areas outside this will be transparent.
+*/
+QRectF QDeclarativeVideoOutput::contentRect() const
+{
+    return m_contentRect;
+}
+
+/*!
+    \qmlproperty rectangle VideoOutput::sourceRect
+
+    This property holds the area of the source video
+    content that is considered for rendering.  The
+    values are in source pixel coordinates.
+
+    Note that typically the top left corner of this rectangle
+    will be \c {0,0} while the width and height will be the
+    width and height of the input content.
+
+    The orientation setting does not affect this rectangle.
+*/
+QRectF QDeclarativeVideoOutput::sourceRect() const
+{
+    // We might have to transpose back
+    QSizeF size = m_nativeSize;
+    if (!qIsDefaultAspect(m_orientation)) {
+        size.transpose();
+    }
+    return QRectF(QPointF(), size); // XXX ignores viewport
+}
+
+/*!
+    \qmlmethod mapNormalizedPointToItem
+
+    Given normalized coordinates \a point (that is, each
+    component in the range of 0 to 1.0), return the mapped point
+    that it corresponds to (in item coordinates).
+    This mapping is affected by the orientation.
+
+    Depending on the fill mode, this point may lie outside the rendered
+    rectangle.
+ */
+QPointF QDeclarativeVideoOutput::mapNormalizedPointToItem(const QPointF &point) const
+{
+    qreal dx = point.x();
+    qreal dy = point.y();
+
+    if (qIsDefaultAspect(m_orientation)) {
+        dx *= m_contentRect.width();
+        dy *= m_contentRect.height();
+    } else {
+        dx *= m_contentRect.height();
+        dy *= m_contentRect.width();
+    }
+
+    switch (qNormalizedOrientation(m_orientation)) {
+        case 0:
+        default:
+            return m_contentRect.topLeft() + QPointF(dx, dy);
+        case 90:
+            return m_contentRect.bottomLeft() + QPointF(dy, -dx);
+        case 180:
+            return m_contentRect.bottomRight() + QPointF(-dx, -dy);
+        case 270:
+            return m_contentRect.topRight() + QPointF(-dy, dx);
+    }
+}
+
+/*!
+    \qmlmethod mapNormalizedRectToItem
+
+    Given a rectangle \a rectangle in normalized
+    coordinates (that is, each component in the range of 0 to 1.0),
+    return the mapped rectangle that it corresponds to (in item coordinates).
+    This mapping is affected by the orientation.
+
+    Depending on the fill mode, this rectangle may extend outside the rendered
+    rectangle.
+ */
+QRectF QDeclarativeVideoOutput::mapNormalizedRectToItem(const QRectF &rectangle) const
+{
+    return QRectF(mapNormalizedPointToItem(rectangle.topLeft()),
+                  mapNormalizedPointToItem(rectangle.bottomRight())).normalized();
+}
+
+/*!
+    \qmlmethod mapPointToItem
+
+    Given a point \a point in item coordinates, return the
+    corresponding point in source coordinates.  This mapping is
+    affected by the orientation.
+
+    If the supplied point lies outside the rendered area, the returned
+    point will be outside the source rectangle.
+ */
+QPointF QDeclarativeVideoOutput::mapPointToSource(const QPointF &point) const
+{
+    QPointF norm = mapPointToSourceNormalized(point);
+
+    if (qIsDefaultAspect(m_orientation))
+        return QPointF(norm.x() * m_nativeSize.width(), norm.y() * m_nativeSize.height());
+    else
+        return QPointF(norm.x() * m_nativeSize.height(), norm.y() * m_nativeSize.width());
+}
+
+/*!
+    \qmlmethod mapRectToSource
+
+    Given a rectangle \a rectangle in item coordinates, return the
+    corresponding rectangle in source coordinates.  This mapping is
+    affected by the orientation.
+
+    This mapping is affected by the orientation.
+
+    If the supplied point lies outside the rendered area, the returned
+    point will be outside the source rectangle.
+ */
+QRectF QDeclarativeVideoOutput::mapRectToSource(const QRectF &rectangle) const
+{
+    return QRectF(mapPointToSource(rectangle.topLeft()),
+                  mapPointToSource(rectangle.bottomRight())).normalized();
+}
+
+/*!
+    \qmlmethod mapPointToItemNormalized
+
+    Given a point \a point in item coordinates, return the
+    corresponding point in normalized source coordinates.  This mapping is
+    affected by the orientation.
+
+    If the supplied point lies outside the rendered area, the returned
+    point will be outside the source rectangle.  No clamping is performed.
+ */
+QPointF QDeclarativeVideoOutput::mapPointToSourceNormalized(const QPointF &point) const
+{
+    if (m_contentRect.isEmpty())
+        return QPointF();
+
+    // Normalize the item source point
+    qreal nx = (point.x() - m_contentRect.left()) / m_contentRect.width();
+    qreal ny = (point.y() - m_contentRect.top()) / m_contentRect.height();
+
+    const qreal one(1.0f);
+
+    // For now, the origin of the source rectangle is 0,0
+    switch (qNormalizedOrientation(m_orientation)) {
+        case 0:
+        default:
+            return QPointF(nx, ny);
+        case 90:
+            return QPointF(one - ny, nx);
+        case 180:
+            return QPointF(one - nx, one - ny);
+        case 270:
+            return QPointF(ny, one - nx);
+    }
+}
+
+/*!
+    \qmlmethod mapRectToSourceNormalized
+
+    Given a rectangle \a rectangle in item coordinates, return the
+    corresponding rectangle in normalized source coordinates.  This mapping is
+    affected by the orientation.
+
+    This mapping is affected by the orientation.
+
+    If the supplied point lies outside the rendered area, the returned
+    point will be outside the source rectangle.  No clamping is performed.
+ */
+QRectF QDeclarativeVideoOutput::mapRectToSourceNormalized(const QRectF &rectangle) const
+{
+    return QRectF(mapPointToSourceNormalized(rectangle.topLeft()),
+                  mapPointToSourceNormalized(rectangle.bottomRight())).normalized();
+}
+
+/*!
+    \qmlmethod mapPointToItem
+
+    Given a point \a point in source coordinates, return the
+    corresponding point in item coordinates.  This mapping is
+    affected by the orientation.
+
+    Depending on the fill mode, this point may lie outside the rendered
+    rectangle.
+ */
+QPointF QDeclarativeVideoOutput::mapPointToItem(const QPointF &point) const
+{
+    if (m_nativeSize.isEmpty())
+        return QPointF();
+
+    // Just normalize and use that function
+    // m_nativeSize is transposed in some orientations
+    if (qIsDefaultAspect(m_orientation))
+        return mapNormalizedPointToItem(QPointF(point.x() / m_nativeSize.width(), point.y() / m_nativeSize.height()));
+    else
+        return mapNormalizedPointToItem(QPointF(point.x() / m_nativeSize.height(), point.y() / m_nativeSize.width()));
+}
+
+/*!
+    \qmlmethod mapRectToItem
+
+    Given a rectangle \a rectangle in source coordinates, return the
+    corresponding rectangle in item coordinates.  This mapping is
+    affected by the orientation.
+
+    Depending on the fill mode, this rectangle may extend outside the rendered
+    rectangle.
+
+ */
+QRectF QDeclarativeVideoOutput::mapRectToItem(const QRectF &rectangle) const
+{
+    return QRectF(mapPointToItem(rectangle.topLeft()),
+                  mapPointToItem(rectangle.bottomRight())).normalized();
+}
+
 
 QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
 {
@@ -464,7 +751,7 @@ QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintN
 
     _q_updateGeometry();
     // Negative rotations need lots of %360
-    videoNode->setTexturedRectGeometry(m_boundingRect, m_sourceRect, (360 + (m_orientation % 360)) % 360);
+    videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect, qNormalizedOrientation(m_orientation));
     videoNode->setCurrentFrame(m_frame);
     return videoNode;
 }

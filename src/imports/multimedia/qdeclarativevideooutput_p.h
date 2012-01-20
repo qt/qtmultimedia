@@ -42,6 +42,8 @@
 #ifndef QDECLARATIVEVIDEOOUTPUT_P_H
 #define QDECLARATIVEVIDEOOUTPUT_P_H
 
+#include <QtCore/QRectF>
+
 #include <QtQuick/QQuickItem>
 
 #include <QtMultimedia/qvideoframe.h>
@@ -66,6 +68,8 @@ class QDeclarativeVideoOutput : public QQuickItem
     Q_PROPERTY(QObject* source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(int orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
+    Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
+    Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
     Q_ENUMS(FillMode)
 
 public:
@@ -88,10 +92,24 @@ public:
     int orientation() const;
     void setOrientation(int);
 
+    QRectF sourceRect() const;
+    QRectF contentRect() const;
+
+    Q_INVOKABLE QPointF mapPointToItem(const QPointF &point) const;
+    Q_INVOKABLE QRectF mapRectToItem(const QRectF &rectangle) const;
+    Q_INVOKABLE QPointF mapNormalizedPointToItem(const QPointF &point) const;
+    Q_INVOKABLE QRectF mapNormalizedRectToItem(const QRectF &rectangle) const;
+    Q_INVOKABLE QPointF mapPointToSource(const QPointF &point) const;
+    Q_INVOKABLE QRectF mapRectToSource(const QRectF &rectangle) const;
+    Q_INVOKABLE QPointF mapPointToSourceNormalized(const QPointF &point) const;
+    Q_INVOKABLE QRectF mapRectToSourceNormalized(const QRectF &rectangle) const;
+
 Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QDeclarativeVideoOutput::FillMode);
     void orientationChanged();
+    void sourceRectChanged();
+    void contentRectChanged();
 
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *);
@@ -125,8 +143,12 @@ private:
     QVideoFrame m_frame;
     FillMode m_fillMode;
     QSize m_nativeSize;
-    QRectF m_boundingRect;
-    QRectF m_sourceRect;
+
+    bool m_geometryDirty;
+    QRectF m_lastSize;      // Cache of last size to avoid recalculating geometry
+    QRectF m_renderedRect;  // Destination pixel coordinates, clipped
+    QRectF m_contentRect;   // Destination pixel coordinates, unclipped
+    QRectF m_sourceTextureRect;    // Source texture coordinates
     int m_orientation;
 
     QMutex m_frameMutex;
