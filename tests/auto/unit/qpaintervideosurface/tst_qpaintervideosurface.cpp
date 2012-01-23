@@ -353,7 +353,7 @@ void tst_QPainterVideoSurface::supportedFormat()
 
     const QList<QVideoFrame::PixelFormat> pixelFormats = surface.supportedPixelFormats(handleType);
 
-    QCOMPARE(pixelFormats.contains(pixelFormat), QBool(supportedPixelFormat));
+    QCOMPARE(pixelFormats.contains(pixelFormat), supportedPixelFormat);
 
     QVideoSurfaceFormat format(frameSize, pixelFormat, handleType);
 
@@ -917,7 +917,7 @@ void tst_QPainterVideoSurface::shaderSupportedFormat()
 
     const QList<QVideoFrame::PixelFormat> pixelFormats = surface.supportedPixelFormats(handleType);
 
-    QCOMPARE(pixelFormats.contains(pixelFormat), QBool(supportedPixelFormat));
+    QCOMPARE(pixelFormats.contains(pixelFormat), supportedPixelFormat);
 
     QVideoSurfaceFormat format(frameSize, pixelFormat, handleType);
 
