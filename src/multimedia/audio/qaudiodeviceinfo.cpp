@@ -186,7 +186,31 @@ QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other)
 }
 
 /*!
-    Returns whether this QAudioDeviceInfo object holds a device definition.
+    Returns true if this QAudioDeviceInfo class represents the
+    same audio device as \a other.
+*/
+bool QAudioDeviceInfo::operator ==(const QAudioDeviceInfo &other) const
+{
+    if (d == other.d)
+        return true;
+    if (d->realm == other.d->realm
+            && d->mode == other.d->mode
+            && d->handle == other.d->handle
+            && deviceName() == other.deviceName())
+        return true;
+}
+
+/*!
+    Returns true if this QAudioDeviceInfo class represents a
+    different audio device than \a other
+*/
+bool QAudioDeviceInfo::operator !=(const QAudioDeviceInfo &other) const
+{
+    return !operator==(other);
+}
+
+/*!
+    Returns whether this QAudioDeviceInfo object holds a valid device definition.
 */
 bool QAudioDeviceInfo::isNull() const
 {

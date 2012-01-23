@@ -76,6 +76,9 @@ public:
 
     QAudioDeviceInfo& operator=(const QAudioDeviceInfo& other);
 
+    bool operator==(const QAudioDeviceInfo &other) const;
+    bool operator!=(const QAudioDeviceInfo &other) const;
+
     bool isNull() const;
 
     QString deviceName() const;
