@@ -17,8 +17,6 @@ win32 {
     contains(config_test_wmf, yes) : SUBDIRS += wmf
 }
 
-simulator: SUBDIRS += simulator
-
 unix:!mac {
     contains(config_test_gstreamer, yes) {
        SUBDIRS += gstreamer
