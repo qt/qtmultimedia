@@ -94,9 +94,10 @@ contains(config_test_xvideo, yes):!isEmpty(QT.widgets.name): {
 include(mediaplayer/mediaplayer.pri)
 include(mediacapture/mediacapture.pri)
 
-contains(config_test_gstreamer_photography, yes) {
-    include(camerabin/camerabin.pri)
-}
+#Camerabin2 based camera backend is untested and currently disabled
+#contains(config_test_gstreamer_photography, yes) {
+#    include(camerabin/camerabin.pri)
+#}
 
 target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
 INSTALLS += target
