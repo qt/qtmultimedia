@@ -42,7 +42,7 @@
 #ifndef MFVIDEORENDERERCONTROL_H
 #define MFVIDEORENDERERCONTROL_H
 
-#include "../../src/multimedia/qvideorenderercontrol.h"
+#include "qvideorenderercontrol.h"
 #include <mfapi.h>
 #include <mfidl.h>
 

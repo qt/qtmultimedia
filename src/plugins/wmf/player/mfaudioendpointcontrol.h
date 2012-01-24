@@ -46,7 +46,7 @@
 #include <mfidl.h>
 #include <mmdeviceapi.h>
 
-#include "../../src/multimedia/qaudioendpointselector.h"
+#include "qaudioendpointselector.h"
 
 class MFPlayerService;
 

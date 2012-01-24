@@ -42,7 +42,7 @@
 #ifndef EVR9VIDEOWINDOWCONTROL_H
 #define EVR9VIDEOWINDOWCONTROL_H
 
-#include "../../src/multimedia/qvideowindowcontrol.h"
+#include "qvideowindowcontrol.h"
 
 #include <Mfidl.h>
 #include <d3d9.h>
