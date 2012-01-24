@@ -9,6 +9,7 @@ HEADERS *= \
     ../qmultimedia_common/mockcameraflashcontrol.h \
     ../qmultimedia_common/mockcameralockscontrol.h \
     ../qmultimedia_common/mockcamerafocuscontrol.h \
+    ../qmultimedia_common/mockcamerazoomcontrol.h \
     ../qmultimedia_common/mockcameraimageprocessingcontrol.h \
     ../qmultimedia_common/mockcameraimagecapturecontrol.h \
     ../qmultimedia_common/mockcameraexposurecontrol.h \

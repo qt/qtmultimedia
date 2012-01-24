@@ -51,14 +51,9 @@ class MockCameraFocusControl : public QCameraFocusControl
 public:
     MockCameraFocusControl(QObject *parent = 0):
         QCameraFocusControl(parent),
-        m_opticalZoom(1.0),
-        m_digitalZoom(1.0),
         m_focusMode(QCameraFocus::AutoFocus),
         m_focusPointMode(QCameraFocus::FocusPointAuto),
-        m_focusPoint(0.5, 0.5),
-        m_maxOpticalZoom(3.0),
-        m_maxDigitalZoom(4.0)
-
+        m_focusPoint(0.5, 0.5)
     {
         m_zones << QCameraFocusZone(QRectF(0.45, 0.45, 0.1, 0.1));
     }
@@ -79,45 +74,6 @@ public:
     bool isFocusModeSupported(QCameraFocus::FocusMode mode) const
     {
         return mode == QCameraFocus::AutoFocus || mode == QCameraFocus::ContinuousFocus;
-    }
-
-    qreal maximumOpticalZoom() const
-    {
-        return m_maxOpticalZoom;
-    }
-
-    qreal maximumDigitalZoom() const
-    {
-        return m_maxDigitalZoom;
-    }
-
-    qreal opticalZoom() const
-    {
-        return m_opticalZoom;
-    }
-
-    qreal digitalZoom() const
-    {
-        return m_digitalZoom;
-    }
-
-    void zoomTo(qreal optical, qreal digital)
-    {
-        optical = qBound<qreal>(1.0, optical, maximumOpticalZoom());
-        digital = qBound<qreal>(1.0, digital, maximumDigitalZoom());
-
-        if (!qFuzzyCompare(digital, m_digitalZoom)) {
-            m_digitalZoom = digital;
-            emit digitalZoomChanged(m_digitalZoom);
-        }
-
-        if (!qFuzzyCompare(optical, m_opticalZoom)) {
-            m_opticalZoom = optical;
-            emit opticalZoomChanged(m_opticalZoom);
-        }
-
-        maxOpticalDigitalZoomChange(4.0, 5.0);
-        focusZonesChange(0.50, 0.50, 0.3, 0.3);
     }
 
     QCameraFocus::FocusPointMode focusPointMode() const
@@ -151,25 +107,12 @@ public:
     void setCustomFocusPoint(const QPointF &point)
     {
         m_focusPoint = point;
+        focusZonesChange(0.50, 0.50, 0.3, 0.3);
     }
 
     QCameraFocusZoneList focusZones() const
     {
         return m_zones;
-    }
-
-    // helper function to emit maximum Optical and Digital Zoom Changed signals
-    void maxOpticalDigitalZoomChange(qreal maxOptical, qreal maxDigital)
-    {
-        if (maxOptical != m_maxOpticalZoom) {
-            m_maxOpticalZoom = maxOptical;
-            emit maximumOpticalZoomChanged(m_maxOpticalZoom);
-        }
-
-        if (maxDigital != m_maxDigitalZoom) {
-            m_maxDigitalZoom = maxDigital;
-            emit maximumDigitalZoomChanged(m_maxDigitalZoom);
-        }
     }
 
     // helper function to emit Focus Zones Changed signals
@@ -184,14 +127,9 @@ public:
     }
 
 private:
-    qreal m_opticalZoom;
-    qreal m_digitalZoom;
     QCameraFocus::FocusMode m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_focusPoint;
-    // to emit maximum Optical and Digital Zoom Changed signals
-    qreal m_maxOpticalZoom;
-    qreal m_maxDigitalZoom;
     // to emit focus zone changed signal
     QCameraFocusZoneList m_zones;
 };

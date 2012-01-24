@@ -290,7 +290,7 @@ void tst_QCamera::testSimpleCameraFocus()
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::InfinityFocus));
 
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    QTest::ignoreMessage(QtWarningMsg, "Focus points mode selection is not supported");
+    QTest::ignoreMessage(QtWarningMsg, "Focus mode selection is not supported");
     cameraFocus->setFocusMode(QCameraFocus::ContinuousFocus);
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);    
 
@@ -308,7 +308,7 @@ void tst_QCamera::testSimpleCameraFocus()
     QVERIFY(!cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointAuto));
     QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointAuto);
 
-
+    QTest::ignoreMessage(QtWarningMsg, "Focus points mode selection is not supported");
     cameraFocus->setFocusPointMode( QCameraFocus::FocusPointCenter );
     QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointAuto);
 
@@ -1751,7 +1751,7 @@ void tst_QCamera::testfocusZonesChangedSignal()
     QVERIFY(cameraFocus != 0);
 
     QSignalSpy spy(cameraFocus,SIGNAL(focusZonesChanged()));
-    cameraFocus->zoomTo(5.0,6.0);
+    cameraFocus->setCustomFocusPoint(QPointF(0.1, 0.1));
     QVERIFY(spy.count() == 1);
 }
 

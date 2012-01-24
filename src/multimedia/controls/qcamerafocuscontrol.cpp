@@ -111,40 +111,6 @@ QCameraFocusControl::~QCameraFocusControl()
   Returns true if focus \a mode is supported.
 */
 
-
-/*!
-  \fn qreal QCameraFocusControl::maximumOpticalZoom() const
-
-  Returns the maximum optical zoom value, or 1.0 if optical zoom is not supported.
-*/
-
-
-/*!
-  \fn qreal QCameraFocusControl::maximumDigitalZoom() const
-
-  Returns the maximum digital zoom value, or 1.0 if digital zoom is not supported.
-*/
-
-
-/*!
-  \fn qreal QCameraFocusControl::opticalZoom() const
-
-  Return the current optical zoom value.
-*/
-
-/*!
-  \fn qreal QCameraFocusControl::digitalZoom() const
-
-  Return the current digital zoom value.
-*/
-
-
-/*!
-  \fn void QCameraFocusControl::zoomTo(qreal optical, qreal digital)
-
-  Sets \a optical and \a digital zoom values.
-*/
-
 /*!
   \fn QCameraFocusControl::focusPointMode() const
 
@@ -191,34 +157,6 @@ QCameraFocusControl::~QCameraFocusControl()
 */
 
 /*!
-    \fn void QCameraFocusControl::opticalZoomChanged(qreal zoom)
-
-    Signal emitted when the optical \a zoom value changed.
-*/
-
-/*!
-    \fn void QCameraFocusControl::digitalZoomChanged(qreal zoom)
-
-    Signal emitted when the digital \a zoom value changed.
-*/
-
-/*!
-    \fn void QCameraFocusControl::maximumOpticalZoomChanged(qreal zoom)
-
-    Signal emitted when the maximum supported optical \a zoom value changed.
-*/
-
-/*!
-    \fn void QCameraFocusControl::maximumDigitalZoomChanged(qreal zoom)
-
-    Signal emitted when the maximum supported digital \a zoom value changed.
-
-    The maximum supported zoom value can depend on other camera settings,
-    like capture mode or resolution.
-*/
-
-
-/*!
   \fn QCameraFocusControl::focusZonesChanged()
 
   Signal is emitted when the set of zones, camera focused on is changed.
@@ -226,6 +164,32 @@ QCameraFocusControl::~QCameraFocusControl()
   Usually the zones list is changed when the camera is focused.
 
   \sa QCameraFocusControl::focusZones()
+*/
+
+/*!
+  \fn QCameraFocusControl::focusModeChanged
+
+  Signal is emitted when the focus mode is chaged,
+  usually in result of QCameraFocusControl::setFocusMode call or capture mode changes.
+
+  \sa QCameraFocusControl::focusMode QCameraFocusControl::setFocusMode
+*/
+
+/*!
+  \fn QCameraFocusControl::focusPointModeChanged
+
+  Signal is emitted when the focus point mode is chaged,
+  usually in result of QCameraFocusControl::setFocusPointMode call or capture mode changes.
+
+  \sa QCameraFocusControl::focusPointMode QCameraFocusControl::setFocusPointMode
+*/
+
+/*!
+  \fn QCameraFocusControl::customFocusPointChanged
+
+  Signal is emitted when the custom focus point is changed.
+
+  \sa QCameraFocusControl::customFocusPoint QCameraFocusControl::setCustomFocusPoint
 */
 
 

@@ -46,6 +46,7 @@
 #include "../qmultimedia_common/mockcameraflashcontrol.h"
 #include "../qmultimedia_common/mockcameralockscontrol.h"
 #include "../qmultimedia_common/mockcamerafocuscontrol.h"
+#include "../qmultimedia_common/mockcamerazoomcontrol.h"
 #include "../qmultimedia_common/mockcameraimageprocessingcontrol.h"
 #include "../qmultimedia_common/mockcameraimagecapturecontrol.h"
 #include "../qmultimedia_common/mockcameraexposurecontrol.h"
@@ -99,6 +100,7 @@ public:
         mockExposureControl = new MockCameraExposureControl(this);
         mockFlashControl = new MockCameraFlashControl(this);
         mockFocusControl = new MockCameraFocusControl(this);
+        mockZoomControl = new MockCameraZoomControl(this);
         mockCaptureControl = new MockCaptureControl(mockControl, this);
         mockCaptureBufferControl = new MockCaptureBufferFormatControl(this);
         mockCaptureDestinationControl = new MockCaptureDestinationControl(this);
@@ -132,6 +134,9 @@ public:
 
         if (qstrcmp(iid, QCameraFocusControl_iid) == 0)
             return mockFocusControl;
+
+        if (qstrcmp(iid, QCameraZoomControl_iid) == 0)
+            return mockZoomControl;
 
         if (qstrcmp(iid, QCameraImageCaptureControl_iid) == 0)
             return mockCaptureControl;
@@ -183,6 +188,7 @@ public:
     MockCameraExposureControl *mockExposureControl;
     MockCameraFlashControl *mockFlashControl;
     MockCameraFocusControl *mockFocusControl;
+    MockCameraZoomControl *mockZoomControl;
     MockImageProcessingControl *mockImageProcessingControl;
     MockImageEncoderControl *mockImageEncoderControl;
     MockVideoRendererControl *rendererControl;

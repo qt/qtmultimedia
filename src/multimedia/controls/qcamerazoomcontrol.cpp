@@ -1,0 +1,189 @@
+/****************************************************************************
+**
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** All rights reserved.
+** Contact: http://www.qt-project.org/
+**
+** This file is part of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include <qcamerazoomcontrol.h>
+#include  "qmediacontrol_p.h"
+
+QT_BEGIN_NAMESPACE
+
+/*!
+    \class QCameraZoomControl
+
+
+    \brief The QCameraZoomControl class supplies control for
+    optical and digital camera zoom.
+
+    \inmodule QtMultimedia
+
+    \ingroup multimedia
+    \ingroup multimedia_control
+
+    The interface name of QCameraZoomControl is \c com.nokia.Qt.QCameraZoomControl/1.0 as
+    defined in QCameraZoomControl_iid.
+
+
+    \sa QMediaService::requestControl(), QCamera
+*/
+
+/*!
+    \macro QCameraZoomControl_iid
+
+    \c com.nokia.Qt.QCameraZoomControl/1.0
+
+    Defines the interface name of the QCameraZoomControl class.
+
+    \relates QCameraZoomControl
+*/
+
+/*!
+    Constructs a camera zoom control object with \a parent.
+*/
+
+QCameraZoomControl::QCameraZoomControl(QObject *parent):
+    QMediaControl(*new QMediaControlPrivate, parent)
+{
+}
+
+/*!
+    Destruct the camera zoom control object.
+*/
+
+QCameraZoomControl::~QCameraZoomControl()
+{
+}
+
+/*!
+  \fn qreal QCameraZoomControl::maximumOpticalZoom() const
+
+  Returns the maximum optical zoom value, or 1.0 if optical zoom is not supported.
+*/
+
+
+/*!
+  \fn qreal QCameraZoomControl::maximumDigitalZoom() const
+
+  Returns the maximum digital zoom value, or 1.0 if digital zoom is not supported.
+*/
+
+
+/*!
+  \fn qreal QCameraZoomControl::requestedOpticalZoom() const
+
+  Return the requested optical zoom value.
+*/
+
+/*!
+  \fn qreal QCameraZoomControl::requestedDigitalZoom() const
+
+  Return the requested digital zoom value.
+*/
+
+/*!
+  \fn qreal QCameraZoomControl::currentOpticalZoom() const
+
+  Return the current optical zoom value.
+*/
+
+/*!
+  \fn qreal QCameraZoomControl::currentDigitalZoom() const
+
+  Return the current digital zoom value.
+*/
+
+/*!
+  \fn void QCameraZoomControl::zoomTo(qreal optical, qreal digital)
+
+  Sets \a optical and \a digital zoom values.
+
+  Zooming can be asynchronous with value changes reported with
+  currentDigitalZoomChanged() and currentOpticalZoomChanged() signals.
+
+  The backend should expect and correctly handle frequent zoomTo() calls
+  during zoom animations or slider movements.
+*/
+
+
+/*!
+    \fn void QCameraZoomControl::currentOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the current optical \a zoom value changed.
+*/
+
+/*!
+    \fn void QCameraZoomControl::currentDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the current digital \a zoom value changed.
+*/
+
+/*!
+    \fn void QCameraZoomControl::requestedOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the requested optical \a zoom value changed.
+*/
+
+/*!
+    \fn void QCameraZoomControl::requestedDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the requested digital \a zoom value changed.
+*/
+
+
+/*!
+    \fn void QCameraZoomControl::maximumOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported optical \a zoom value changed.
+
+    The maximum supported zoom value can depend on other camera settings,
+    like focusing mode.
+*/
+
+/*!
+    \fn void QCameraZoomControl::maximumDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported digital \a zoom value changed.
+
+    The maximum supported zoom value can depend on other camera settings,
+    like capture mode or resolution.
+*/
+
+#include "moc_qcamerazoomcontrol.cpp"
+QT_END_NAMESPACE
+
