@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
     QmlApplicationViewer viewer;
 
-    viewer.setOrientation(Qt::LandscapeOrientation);
+    viewer.requestWindowOrientation(Qt::LandscapeOrientation);
     viewer.setMainQmlFile(QLatin1String("qml/qmlvideofx/") + MainQmlFile);
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("fileName", fileName);
@@ -117,7 +117,6 @@ int main(int argc, char *argv[])
     viewer.rootContext()->setContextProperty("fileReader", &fileReader);
 
 #ifdef SMALL_SCREEN_PHYSICAL
-    viewer.setOrientation(QmlApplicationViewer::ScreenOrientationLockLandscape);
     viewer.showFullScreen();
 #else
     viewer.showExpanded();
