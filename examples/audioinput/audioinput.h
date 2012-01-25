@@ -48,6 +48,7 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QByteArray>
+#include <QSlider>
 
 #include <qaudioinput.h>
 
@@ -113,6 +114,7 @@ private slots:
     void toggleSuspend();
     void stateChanged(QAudio::State state);
     void deviceChanged(int index);
+    void sliderChanged(int value);
 
 private:
     // Owned by layout
@@ -120,6 +122,7 @@ private:
     QPushButton *m_modeButton;
     QPushButton *m_suspendResumeButton;
     QComboBox *m_deviceBox;
+    QSlider *m_volumeSlider;
 
     QAudioDeviceInfo m_device;
     AudioInfo *m_audioInfo;

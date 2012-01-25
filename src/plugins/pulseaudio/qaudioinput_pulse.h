@@ -98,11 +98,16 @@ public:
     void setFormat(const QAudioFormat &format);
     QAudioFormat format() const;
 
+    void setVolume(qreal volume);
+    qreal volume() const;
+
     qint64 m_totalTimeValue;
     QIODevice *m_audioSource;
     QAudioFormat m_format;
     QAudio::Error m_errorState;
     QAudio::State m_deviceState;
+    qreal m_volume;
+    pa_cvolume m_chVolume;
 
 private slots:
     void userFeed();
@@ -112,6 +117,12 @@ private:
     int checkBytesReady();
     bool open();
     void close();
+    void setPulseVolume();
+
+    static QMap<void *, QPulseAudioInput*> s_inputsMap;
+
+    static void sourceInfoCallback(pa_context *c, const pa_source_info *i, int eol, void *userdata);
+    static void inputVolumeCallback(pa_context *context, int success, void *userdata);
 
     bool m_pullMode;
     bool m_opened;
@@ -130,6 +141,7 @@ private:
     QByteArray m_streamName;
     QByteArray m_device;
     QByteArray m_tempBuffer;
+    pa_sample_spec m_spec;
 };
 
 class InputPrivate : public QIODevice

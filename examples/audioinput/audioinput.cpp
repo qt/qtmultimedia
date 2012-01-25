@@ -235,6 +235,12 @@ void InputTest::initializeWindow()
     connect(m_deviceBox, SIGNAL(activated(int)), SLOT(deviceChanged(int)));
     layout->addWidget(m_deviceBox);
 
+    m_volumeSlider = new QSlider(Qt::Horizontal, this);
+    m_volumeSlider->setRange(0, 100);
+    m_volumeSlider->setValue(100);
+    connect(m_volumeSlider, SIGNAL(valueChanged(int)), SLOT(sliderChanged(int)));
+    layout->addWidget(m_volumeSlider);
+
     m_modeButton = new QPushButton(this);
     m_modeButton->setText(PushModeLabel);
     connect(m_modeButton, SIGNAL(clicked()), SLOT(toggleMode()));
@@ -281,6 +287,7 @@ void InputTest::createAudioInput()
     m_audioInput = new QAudioInput(m_device, m_format, this);
     connect(m_audioInput, SIGNAL(notify()), SLOT(notified()));
     connect(m_audioInput, SIGNAL(stateChanged(QAudio::State)), SLOT(stateChanged(QAudio::State)));
+    m_volumeSlider->setValue(m_audioInput->volume() * 100);
     m_audioInfo->start();
     m_audioInput->start(m_audioInfo);
 }
@@ -363,4 +370,10 @@ void InputTest::deviceChanged(int index)
 
     m_device = m_deviceBox->itemData(index).value<QAudioDeviceInfo>();
     createAudioInput();
+}
+
+void InputTest::sliderChanged(int value)
+{
+    if (m_audioInput)
+        m_audioInput->setVolume(qreal(value) / 100);
 }

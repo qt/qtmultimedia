@@ -101,6 +101,8 @@ private slots:
 
     void reset();
 
+    void volume();
+
 private:
     typedef QSharedPointer<QFile> FilePtr;
 
@@ -837,6 +839,31 @@ void tst_QAudioInput::reset()
             QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after reset()");
             QVERIFY2((audioInput.bytesReady() == 0), "buffer not cleared after reset()");
         }
+    }
+}
+
+void tst_QAudioInput::volume()
+{
+    const qreal half(0.5f);
+    const qreal one(1.0f);
+    // Hard to automatically test, but we can test the get/set a little
+    for (int i=0; i < testFormats.count(); i++) {
+        QAudioInput audioInput(testFormats.at(i), this);
+
+        qreal volume = audioInput.volume();
+        audioInput.setVolume(half);
+        QVERIFY(qFuzzyCompare(audioInput.volume(), half) || qFuzzyCompare(audioInput.volume(), one));
+
+        // Wait a while to see if this changes
+        QTest::qWait(500);
+        QVERIFY(qFuzzyCompare(audioInput.volume(), half) || qFuzzyCompare(audioInput.volume(), one));
+
+        audioInput.setVolume(volume);
+        QVERIFY(qFuzzyCompare(audioInput.volume(), volume));
+
+        // Wait a while to see if this changes
+        QTest::qWait(500);
+        QVERIFY(qFuzzyCompare(audioInput.volume(), volume));
     }
 }
 

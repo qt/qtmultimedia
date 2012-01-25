@@ -41,6 +41,7 @@
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qmath.h>
 
 #include "qaudioinput_pulse.h"
 #include "qaudiodeviceinfo_pulse.h"
@@ -50,6 +51,10 @@
 QT_BEGIN_NAMESPACE
 
 const int PeriodTimeMs = 50;
+
+// Map from void* (for userdata) to QPulseAudioInput instance
+// protected by pulse mainloop lock
+QMap<void *, QPulseAudioInput*> QPulseAudioInput::s_inputsMap;
 
 static void inputStreamReadCallback(pa_stream *stream, size_t length, void *userdata)
 {
@@ -123,11 +128,39 @@ static void inputStreamSuccessCallback(pa_stream *stream, int success, void *use
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
+void QPulseAudioInput::sourceInfoCallback(pa_context *context, const pa_source_info *i, int eol, void *userdata)
+{
+    Q_UNUSED(context);
+    Q_UNUSED(eol);
+
+    Q_ASSERT(userdata);
+    QPulseAudioInput *that = QPulseAudioInput::s_inputsMap.value(userdata);
+    if (that && i) {
+        that->m_volume = pa_sw_volume_to_linear(pa_cvolume_avg(&i->volume));
+    }
+}
+
+void QPulseAudioInput::inputVolumeCallback(pa_context *context, int success, void *userdata)
+{
+    Q_UNUSED(success);
+
+    if (!success)
+        qWarning() << "QAudioInput: failed to set input volume";
+
+    QPulseAudioInput *that = QPulseAudioInput::s_inputsMap.value(userdata);
+
+    // Regardless of success or failure, we update the volume property
+    if (that && that->m_stream) {
+        pa_context_get_source_info_by_index(context, pa_stream_get_device_index(that->m_stream), sourceInfoCallback, userdata);
+    }
+}
+
 QPulseAudioInput::QPulseAudioInput(const QByteArray &device)
     : m_totalTimeValue(0)
     , m_audioSource(0)
     , m_errorState(QAudio::NoError)
     , m_deviceState(QAudio::StoppedState)
+    , m_volume(qreal(1.0f))
     , m_pullMode(true)
     , m_opened(false)
     , m_bytesAvailable(0)
@@ -139,10 +172,20 @@ QPulseAudioInput::QPulseAudioInput(const QByteArray &device)
 {
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), SLOT(userFeed()));
+
+    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    pa_threaded_mainloop_lock(pulseEngine->mainloop());
+    s_inputsMap.insert(this, this);
+    pa_threaded_mainloop_unlock(pulseEngine->mainloop());
 }
 
 QPulseAudioInput::~QPulseAudioInput()
 {
+    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    pa_threaded_mainloop_lock(pulseEngine->mainloop());
+    s_inputsMap.remove(this);
+    pa_threaded_mainloop_unlock(pulseEngine->mainloop());
+
     close();
     disconnect(m_timer, SIGNAL(timeout()));
     QCoreApplication::processEvents();
@@ -248,6 +291,8 @@ bool QPulseAudioInput::open()
         return false;
     }
 
+    m_spec = spec;
+
 #ifdef DEBUG_PULSE
         qDebug() << "Format: " << QPulseAudioInternal::sampleFormatToQString(spec.format);
         qDebug() << "Rate: " << spec.rate;
@@ -297,6 +342,9 @@ bool QPulseAudioInput::open()
     while (pa_stream_get_state(m_stream) != PA_STREAM_READY) {
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
     }
+
+    setPulseVolume();
+
     pa_threaded_mainloop_unlock(pulseEngine->mainloop());
 
     m_opened = true;
@@ -331,6 +379,31 @@ void QPulseAudioInput::close()
         m_audioSource = 0;
     }
     m_opened = false;
+}
+
+/* Call this with the stream opened and the mainloop locked */
+void QPulseAudioInput::setPulseVolume()
+{
+    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+
+    pa_cvolume cvolume;
+
+    if (qFuzzyCompare(m_volume, 0.0)) {
+        pa_cvolume_mute(&cvolume, m_spec.channels);
+    } else {
+        pa_cvolume_set(&cvolume, m_spec.channels, pa_sw_volume_from_linear(m_volume));
+    }
+
+    pa_operation *op = pa_context_set_source_volume_by_index(pulseEngine->context(),
+            pa_stream_get_device_index(m_stream),
+            &cvolume,
+            inputVolumeCallback,
+            this);
+
+    if (op == NULL)
+        qWarning() << "QAudioInput: Failed to set volume";
+    else
+        pa_operation_unref(op);
 }
 
 int QPulseAudioInput::checkBytesReady()
@@ -465,6 +538,31 @@ void QPulseAudioInput::resume()
         emit stateChanged(m_deviceState);
     }
 }
+
+void QPulseAudioInput::setVolume(qreal vol)
+{
+    if (vol >= 0.0 && vol <= 1.0) {
+        QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+        pa_threaded_mainloop_lock(pulseEngine->mainloop());
+        if (!qFuzzyCompare(m_volume, vol)) {
+            m_volume = vol;
+            if (m_opened) {
+                setPulseVolume();
+            }
+        }
+        pa_threaded_mainloop_unlock(pulseEngine->mainloop());
+    }
+}
+
+qreal QPulseAudioInput::volume() const
+{
+    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    pa_threaded_mainloop_lock(pulseEngine->mainloop());
+    qreal vol = m_volume;
+    pa_threaded_mainloop_unlock(pulseEngine->mainloop());
+    return vol;
+}
+
 
 void QPulseAudioInput::setBufferSize(int value)
 {

@@ -91,6 +91,9 @@ public:
     void setNotifyInterval(int milliSeconds);
     int notifyInterval() const;
 
+    void setVolume(qreal volume);
+    qreal volume() const;
+
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
 

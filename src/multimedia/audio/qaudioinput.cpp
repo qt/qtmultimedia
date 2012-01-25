@@ -327,6 +327,29 @@ int QAudioInput::notifyInterval() const
 }
 
 /*!
+    Sets the input volume to \a volume.
+
+    If the device does not support adjusting the input
+    volume then \a volume will be ignored and the input
+    volume will remain at 1.0.
+*/
+void QAudioInput::setVolume(qreal volume)
+{
+    d->setVolume(volume);
+}
+
+/*!
+    Returns the input volume (gain).
+
+    If the device does not support adjusting the input volume
+    the returned value will be 1.0.
+*/
+qreal QAudioInput::volume() const
+{
+    return d->volume();
+}
+
+/*!
     Returns the amount of audio data processed since start()
     was called in microseconds.
 */
