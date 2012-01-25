@@ -183,6 +183,9 @@ Q_GLOBAL_STATIC(QPulseAudioEngine, pulseEngine);
 
 QPulseAudioEngine::QPulseAudioEngine(QObject *parent)
     : QObject(parent)
+    , m_mainLoopApi(0)
+    , m_context(0)
+
 {
     bool keepGoing = true;
     bool ok = true;

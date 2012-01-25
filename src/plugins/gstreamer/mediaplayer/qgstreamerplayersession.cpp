@@ -349,13 +349,13 @@ int QGstreamerPlayerSession::activeStream(QMediaStreamsControl::StreamType strea
     if (m_playbin) {
         switch (streamType) {
         case QMediaStreamsControl::AudioStream:
-            g_object_get(G_OBJECT(m_playbin), "current-audio", streamNumber, NULL);
+            g_object_get(G_OBJECT(m_playbin), "current-audio", &streamNumber, NULL);
             break;
         case QMediaStreamsControl::VideoStream:
-            g_object_get(G_OBJECT(m_playbin), "current-video", streamNumber, NULL);
+            g_object_get(G_OBJECT(m_playbin), "current-video", &streamNumber, NULL);
             break;
         case QMediaStreamsControl::SubPictureStream:
-            g_object_get(G_OBJECT(m_playbin), "current-text", streamNumber, NULL);
+            g_object_get(G_OBJECT(m_playbin), "current-text", &streamNumber, NULL);
             break;
         default:
             break;
@@ -380,13 +380,13 @@ void QGstreamerPlayerSession::setActiveStream(QMediaStreamsControl::StreamType s
     if (m_playbin) {
         switch (streamType) {
         case QMediaStreamsControl::AudioStream:
-            g_object_set(G_OBJECT(m_playbin), "current-audio", &streamNumber, NULL);
+            g_object_set(G_OBJECT(m_playbin), "current-audio", streamNumber, NULL);
             break;
         case QMediaStreamsControl::VideoStream:
-            g_object_set(G_OBJECT(m_playbin), "current-video", &streamNumber, NULL);
+            g_object_set(G_OBJECT(m_playbin), "current-video", streamNumber, NULL);
             break;
         case QMediaStreamsControl::SubPictureStream:
-            g_object_set(G_OBJECT(m_playbin), "current-text", &streamNumber, NULL);
+            g_object_set(G_OBJECT(m_playbin), "current-text", streamNumber, NULL);
             break;
         default:
             break;
@@ -1297,6 +1297,8 @@ void QGstreamerPlayerSession::getStreamsInfo()
                 qDebug() << "Encountered unknown stream type";
 #endif
                 gst_caps_unref(caps);
+                streamType = QMediaStreamsControl::UnknownStream;
+                break;
             }
             default:
                 streamType = QMediaStreamsControl::UnknownStream;

@@ -204,7 +204,6 @@ GstElement *QGstreamerCaptureSession::buildAudioSrc()
     if (m_audioInputFactory)
         audioSrc = m_audioInputFactory->buildElement();
     else {
-        audioSrc = gst_element_factory_make("pulsesrc", "audio_src");
         QString elementName = "alsasrc";
         QString device;
 

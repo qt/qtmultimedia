@@ -110,6 +110,7 @@ public:
         , error(QMediaPlayer::NoError)
         , filterStates(false)
         , playlist(0)
+        , networkAccessControl(0)
     {}
 
     QMediaServiceProvider *provider;

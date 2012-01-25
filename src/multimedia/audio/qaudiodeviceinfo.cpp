@@ -62,7 +62,12 @@ namespace
 class QAudioDeviceInfoPrivate : public QSharedData
 {
 public:
-    QAudioDeviceInfoPrivate():info(0) {}
+    QAudioDeviceInfoPrivate()
+        : info(0),
+          mode(QAudio::AudioOutput)
+    {
+    }
+
     QAudioDeviceInfoPrivate(const QString &r, const QByteArray &h, QAudio::Mode m):
         realm(r), handle(h), mode(m)
     {

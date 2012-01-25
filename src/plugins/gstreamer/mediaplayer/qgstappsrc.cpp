@@ -56,6 +56,9 @@ QGstAppSrc::QGstAppSrc(QObject *parent)
     ,m_enoughData(false)
     ,m_forceData(false)
 {
+    m_callbacks.need_data   = &QGstAppSrc::on_need_data;
+    m_callbacks.enough_data = &QGstAppSrc::on_enough_data;
+    m_callbacks.seek_data   = &QGstAppSrc::on_seek_data;
 }
 
 QGstAppSrc::~QGstAppSrc()
@@ -70,9 +73,6 @@ bool QGstAppSrc::setup(GstElement* appsrc)
         return false;
 
     m_appSrc = GST_APP_SRC(appsrc);
-    m_callbacks.need_data   = &QGstAppSrc::on_need_data;
-    m_callbacks.enough_data = &QGstAppSrc::on_enough_data;
-    m_callbacks.seek_data   = &QGstAppSrc::on_seek_data;
     gst_app_src_set_callbacks(m_appSrc, (GstAppSrcCallbacks*)&m_callbacks, this, (GDestroyNotify)&QGstAppSrc::destroy_notify);
 
     g_object_get(G_OBJECT(m_appSrc), "max-bytes", &m_maxBytes, NULL);
