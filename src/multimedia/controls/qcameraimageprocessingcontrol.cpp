@@ -71,7 +71,19 @@ namespace
     The interface name of QCameraImageProcessingControl is \c com.nokia.Qt.QCameraImageProcessingControl/1.0 as
     defined in QCameraImageProcessingControl_iid.
 
+    Camera service may choose the parameters of image processing pipeline depending
+    on sensor properties camera settings and capture parameters.
 
+    This control allows to modify some parameters of image processing pipeline
+    to achieve desired results.
+
+    Parameters with the "Adjustment" suffix, like ContrastAdjustment, SaturationAdjustment etc
+    allows to adjust the parameter values, selected by camera engine,
+    while parameters like Contrast and Saturation overwrites them.
+
+    For example setting the SharpeningAdjustment parameter to -0.1
+    slightly reduces the amount of sharpening applied,
+    while settings the Sharpening parameter to 0 disables sharpening at all.
 
     \sa QMediaService::requestControl(), QCamera
 */
@@ -103,25 +115,8 @@ QCameraImageProcessingControl::~QCameraImageProcessingControl()
 {
 }
 
-
 /*!
-    \fn QCameraImageProcessingControl::whiteBalanceMode() const
-    Return the white balance mode being used.
-*/
-
-/*!
-    \fn QCameraImageProcessingControl::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
-    Set the white balance mode to \a mode
-*/
-
-/*!
-    \fn QCameraImageProcessingControl::isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const
-    Returns true if the white balance \a mode is supported.
-    The backend should support at least QCameraImageProcessing::WhiteBalanceAuto mode.
-*/
-
-/*!
-    \fn bool QCameraImageProcessingControl::isProcessingParameterSupported(ProcessingParameter parameter) const
+    \fn bool QCameraImageProcessingControl::isParameterSupported(ProcessingParameter parameter) const
 
     Returns true if the camera supports adjusting image processing \a parameter.
 
@@ -132,29 +127,43 @@ QCameraImageProcessingControl::~QCameraImageProcessingControl()
 */
 
 /*!
-    \fn QCameraImageProcessingControl::processingParameter(ProcessingParameter parameter) const
+    \fn bool QCameraImageProcessingControl::isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const
+
+    Returns true if the camera supports settings the the image processing \a parameter \a value.
+
+    It's used only for parameters with a limited set of values, like WhiteBalancePreset.
+*/
+
+
+/*!
+    \fn QCameraImageProcessingControl::parameter(ProcessingParameter parameter) const
+
     Returns the image processing \a parameter value.
 */
 
 /*!
-    \fn QCameraImageProcessingControl::setProcessingParameter(ProcessingParameter parameter, QVariant value)
+    \fn QCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
 
     Sets the image processing \a parameter \a value.
     Passing the null or invalid QVariant value allows
     backend to choose the suitable parameter value.
 
-    The valid values range depends on the parameter type,
-    for contrast, saturation and brightness value should be
-    between -100 and 100, the default is 0,
-
-    For sharpening and denoising the range is 0..100,
-    0 for sharpening or denoising disabled
-    and 100 for maximum sharpening/denoising applied.
+    The valid values range depends on the parameter type.
+    For WhiteBalancePreset the value should be one of QCameraImageProcessing::WhiteBalanceMode values;
+    for Contrast, Saturation, Brightness, Sharpening and Denoising the value should be
+    in [0..1.0] range with invalid QVariant value indicating the default parameter value;
+    for ContrastAdjustment, SaturationAdjustment, BrightnessAdjustment,
+    SharpeningAdjustment and DenoisingAdjustment the value should be
+    in [-1.0..1.0] range with default 0.
 */
 
 /*!
   \enum QCameraImageProcessingControl::ProcessingParameter
 
+  \value WhiteBalancePreset
+    The white balance preset.
+  \value ColorTemperature
+    Color temperature in K. This value is used when the manual white balance mode is selected.
   \value Contrast
     Image contrast.
   \value Saturation
@@ -165,8 +174,16 @@ QCameraImageProcessingControl::~QCameraImageProcessingControl()
     Amount of sharpening applied.
   \value Denoising
     Amount of denoising applied.
-  \value ColorTemperature
-    Color temperature in K. This value is used when the manual white balance mode is selected.
+  \value ContrastAdjustment
+    Image contrast adjustment.
+  \value SaturationAdjustment
+    Image saturation adjustment.
+  \value BrightnessAdjustment
+    Image brightness adjustment.
+  \value SharpeningAdjustment
+    Adjustment of sharpening applied.
+  \value DenoisingAdjustment
+    Adjustment of denoising applied.
   \value ExtendedParameter
     The base value for platform specific extended parameters.
  */

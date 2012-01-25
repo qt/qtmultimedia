@@ -73,67 +73,75 @@ public:
         m_supportedWhiteBalance = modes;
     }
 
-    bool isProcessingParameterSupported(ProcessingParameter parameter) const
+    bool isParameterSupported(ProcessingParameter parameter) const
     {
-        //return parameter == Contrast ||  parameter == Sharpening || parameter == ColorTemperature;
         switch (parameter)
         {
-        case Contrast:
-        case Brightness:
-        case Sharpening:
-        case Saturation:
-        case Denoising:
+        case ContrastAdjustment:
+        case BrightnessAdjustment:
+        case SharpeningAdjustment:
+        case SaturationAdjustment:
+        case DenoisingAdjustment:
         case ColorTemperature:
-        case ExtendedParameter:
+        case WhiteBalancePreset:
             return true;
         default :
             return false;
         }
     }
-    QVariant processingParameter(ProcessingParameter parameter) const
+
+    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const
+    {
+        if (parameter != WhiteBalancePreset)
+            return false;
+
+        return m_supportedWhiteBalance.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+    }
+
+    QVariant parameter(ProcessingParameter parameter) const
     {
         switch (parameter) {
-        case Contrast:
+        case ContrastAdjustment:
             return m_contrast;
-        case Saturation:
+        case SaturationAdjustment:
             return m_saturation;
-        case Brightness:
+        case BrightnessAdjustment:
             return m_brightness;
-        case Sharpening:
+        case SharpeningAdjustment:
             return m_sharpeningLevel;
-        case Denoising:
+        case DenoisingAdjustment:
             return m_denoising;
         case ColorTemperature:
             return m_manualWhiteBalance;
-        case ExtendedParameter:
-            return m_extendedParameter;
+        case WhiteBalancePreset:
+            return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(m_whiteBalanceMode);
         default:
             return QVariant();
         }
     }
-    void setProcessingParameter(ProcessingParameter parameter, QVariant value)
+    void setParameter(ProcessingParameter parameter, const QVariant &value)
     {
         switch (parameter) {
-        case Contrast:
+        case ContrastAdjustment:
             m_contrast = value;
             break;
-        case Saturation:
+        case SaturationAdjustment:
             m_saturation = value;
             break;
-        case Brightness:
+        case BrightnessAdjustment:
             m_brightness = value;
             break;
-        case Sharpening:
+        case SharpeningAdjustment:
             m_sharpeningLevel = value;
             break;
-        case Denoising:
+        case DenoisingAdjustment:
             m_denoising = value;
             break;
         case ColorTemperature:
             m_manualWhiteBalance = value;
             break;
-        case ExtendedParameter:
-            m_extendedParameter = value;
+        case WhiteBalancePreset:
+            m_whiteBalanceMode = value.value<QCameraImageProcessing::WhiteBalanceMode>();
             break;
         default:
             break;
@@ -150,7 +158,6 @@ private:
     QVariant m_saturation;
     QVariant m_brightness;
     QVariant m_denoising;
-    QVariant m_extendedParameter;
 };
 
 #endif // MOCKCAMERAIMAGEPROCESSINGCONTROL_H

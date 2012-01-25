@@ -86,24 +86,21 @@ public:
     WhiteBalanceMode whiteBalanceMode() const;
     void setWhiteBalanceMode(WhiteBalanceMode mode);
     bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
-    int manualWhiteBalance() const;
-    void setManualWhiteBalance(int colorTemperature);
 
-    int contrast() const;
-    void setContrast(int value);
+    qreal manualWhiteBalance() const;
+    void setManualWhiteBalance(qreal colorTemperature);
 
-    int saturation() const;
-    void setSaturation(int value);
+    qreal contrast() const;
+    void setContrast(qreal value);
 
-    static const int DefaultSharpening = -1;
-    bool isSharpeningSupported() const;
-    int sharpeningLevel() const;
-    void setSharpeningLevel(int value);
+    qreal saturation() const;
+    void setSaturation(qreal value);
 
-    static const int DefaultDenoising = -1;
-    bool isDenoisingSupported() const;
-    int denoisingLevel() const;
-    void setDenoisingLevel(int value);
+    qreal sharpeningLevel() const;
+    void setSharpeningLevel(qreal value);
+
+    qreal denoisingLevel() const;
+    void setDenoisingLevel(qreal value);
 
 private:
     friend class QCamera;

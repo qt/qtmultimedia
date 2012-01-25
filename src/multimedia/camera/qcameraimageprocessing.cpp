@@ -101,6 +101,18 @@ QT_BEGIN_NAMESPACE
     \sa QCameraImageProcessingControl
 */
 
+class QCameraImageProcessingFakeControl : public QCameraImageProcessingControl {
+public:
+    QCameraImageProcessingFakeControl(QObject *parent) :
+        QCameraImageProcessingControl(parent)
+    {}
+
+    bool isParameterSupported(ProcessingParameter) const { return false; }
+    bool isParameterValueSupported(ProcessingParameter, const QVariant &) const { return false; }
+    QVariant parameter(ProcessingParameter) const { return QVariant(); }
+    void setParameter(ProcessingParameter, const QVariant &) {}
+};
+
 
 class QCameraImageProcessingPrivate : public QMediaObjectPrivate
 {
@@ -112,6 +124,7 @@ public:
 
     QCamera *camera;
     QCameraImageProcessingControl *imageControl;
+    bool available;
 };
 
 
@@ -122,6 +135,11 @@ void QCameraImageProcessingPrivate::initControls()
     QMediaService *service = camera->service();
     if (service)
         imageControl = qobject_cast<QCameraImageProcessingControl *>(service->requestControl(QCameraImageProcessingControl_iid));
+
+    available = (imageControl != 0);
+
+    if (!imageControl)
+        imageControl = new QCameraImageProcessingFakeControl(q_ptr);
 }
 
 /*!
@@ -152,7 +170,7 @@ QCameraImageProcessing::~QCameraImageProcessing()
 */
 bool QCameraImageProcessing::isAvailable() const
 {
-    return d_func()->imageControl != 0;
+    return d_func()->available;
 }
 
 
@@ -162,7 +180,8 @@ bool QCameraImageProcessing::isAvailable() const
 
 QCameraImageProcessing::WhiteBalanceMode QCameraImageProcessing::whiteBalanceMode() const
 {
-    return d_func()->imageControl ? d_func()->imageControl->whiteBalanceMode() : QCameraImageProcessing::WhiteBalanceAuto;
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::WhiteBalancePreset)
+            .value<QCameraImageProcessing::WhiteBalanceMode>();
 }
 
 /*!
@@ -171,8 +190,9 @@ QCameraImageProcessing::WhiteBalanceMode QCameraImageProcessing::whiteBalanceMod
 
 void QCameraImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
 {
-    if (d_func()->imageControl)
-        d_func()->imageControl->setWhiteBalanceMode(mode);
+    d_func()->imageControl->setParameter(
+                QCameraImageProcessingControl::WhiteBalancePreset,
+                QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode));
 }
 
 /*!
@@ -181,7 +201,10 @@ void QCameraImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBa
 
 bool QCameraImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const
 {
-    return d_func()->imageControl ? d_func()->imageControl->isWhiteBalanceModeSupported(mode) : false;
+    return d_func()->imageControl->isParameterValueSupported(
+                QCameraImageProcessingControl::WhiteBalancePreset,
+                QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode));
+
 }
 
 /*!
@@ -190,14 +213,9 @@ bool QCameraImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing:
     return value is undefined.
 */
 
-int QCameraImageProcessing::manualWhiteBalance() const
+qreal QCameraImageProcessing::manualWhiteBalance() const
 {
-    QVariant value;
-
-    if (d_func()->imageControl)
-        value = d_func()->imageControl->processingParameter(QCameraImageProcessingControl::ColorTemperature);
-
-    return value.toInt();
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::ColorTemperature).toReal();
 }
 
 /*!
@@ -205,160 +223,95 @@ int QCameraImageProcessing::manualWhiteBalance() const
     when whiteBalanceMode() is set to \c WhiteBalanceManual.  The units are Kelvin.
 */
 
-void QCameraImageProcessing::setManualWhiteBalance(int colorTemperature)
+void QCameraImageProcessing::setManualWhiteBalance(qreal colorTemperature)
 {
-    if (d_func()->imageControl) {
-        d_func()->imageControl->setProcessingParameter(
-                    QCameraImageProcessingControl::ColorTemperature,
-                    QVariant(colorTemperature));
-    }
+    d_func()->imageControl->setParameter(
+                QCameraImageProcessingControl::ColorTemperature,
+                QVariant(colorTemperature));
 }
 
 /*!
     Returns the contrast adjustment setting.
 */
-int QCameraImageProcessing::contrast() const
+qreal QCameraImageProcessing::contrast() const
 {
-    QVariant value;
-
-    if (d_func()->imageControl)
-        value = d_func()->imageControl->processingParameter(QCameraImageProcessingControl::Contrast);
-
-    return value.toInt();
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::ContrastAdjustment).toReal();
 }
 
 /*!
     Set the contrast adjustment to \a value.
 
-    Valid contrast adjustment values range between -100 and 100, with a default of 0.
+    Valid contrast adjustment values range between -1.0 and 1.0, with a default of 0.
 */
-void QCameraImageProcessing::setContrast(int value)
+void QCameraImageProcessing::setContrast(qreal value)
 {
-    if (d_func()->imageControl)
-        d_func()->imageControl->setProcessingParameter(QCameraImageProcessingControl::Contrast,
-                                                       QVariant(value));
+    d_func()->imageControl->setParameter(QCameraImageProcessingControl::ContrastAdjustment,
+                                         QVariant(value));
 }
 
 /*!
     Returns the saturation adjustment value.
 */
-int QCameraImageProcessing::saturation() const
+qreal QCameraImageProcessing::saturation() const
 {
-    QVariant value;
-
-    if (d_func()->imageControl)
-        value = d_func()->imageControl->processingParameter(QCameraImageProcessingControl::Saturation);
-
-    return value.toInt();
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::SaturationAdjustment).toReal();
 }
 
 /*!
     Sets the saturation adjustment value to \a value.
 
-    Valid saturation values range between -100 and 100, with a default of 0.
+    Valid saturation values range between -1.0 and 1.0, with a default of 0.
 */
 
-void QCameraImageProcessing::setSaturation(int value)
+void QCameraImageProcessing::setSaturation(qreal value)
 {
-    if (d_func()->imageControl)
-        d_func()->imageControl->setProcessingParameter(QCameraImageProcessingControl::Saturation,
-                                                       QVariant(value));
+    d_func()->imageControl->setParameter(QCameraImageProcessingControl::SaturationAdjustment,
+                                         QVariant(value));
 }
 
 /*!
-    Identifies if sharpening is supported.
-
-    Returns true if sharpening is supported; and false if it is not.
+    Returns the sharpening adjustment level.
 */
-bool QCameraImageProcessing::isSharpeningSupported() const
+qreal QCameraImageProcessing::sharpeningLevel() const
 {
-    if (d_func()->imageControl)
-        return d_func()->imageControl->isProcessingParameterSupported(QCameraImageProcessingControl::Sharpening);
-    else
-        return false;
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::SharpeningAdjustment).toReal();
 }
 
 /*!
-    Returns the sharpening level.
+    Sets the sharpening adjustment \a level.
 
-    This may be \c DefaultSharpening if no particular sharpening level has been applied.
-
+    Valid sharpening values range between -1.0 and 1.0, with a default of 0.
 */
-int QCameraImageProcessing::sharpeningLevel() const
+
+void QCameraImageProcessing::setSharpeningLevel(qreal level)
 {
-    QVariant value;
-
-    if (d_func()->imageControl)
-        value = d_func()->imageControl->processingParameter(QCameraImageProcessingControl::Sharpening);
-
-    if (value.isNull())
-        return DefaultSharpening;
-    else
-        return value.toInt();
+    d_func()->imageControl->setParameter(QCameraImageProcessingControl::SharpeningAdjustment,
+                                         QVariant(level));
 }
 
 /*!
-    Sets the sharpening \a level.
-
-    If \c DefaultSharpening is supplied, the camera will decide what sharpening
-    to perform.  Otherwise a level of 0 will disable sharpening, and a level of 100
-    corresponds to maximum sharpening applied.
-
+    Returns the denoising adjustment level.
 */
-
-void QCameraImageProcessing::setSharpeningLevel(int level)
+qreal QCameraImageProcessing::denoisingLevel() const
 {
-    Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setProcessingParameter(QCameraImageProcessingControl::Sharpening,
-                                                level == DefaultSharpening ? QVariant() : QVariant(level));
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::DenoisingAdjustment).toReal();
 }
 
 /*!
-    Returns true if denoising is supported.
+    Sets the denoising adjustment \a level.
+
+    Valid sharpening values range between -1.0 and 1.0, with a default of 0.
+
+    If the parameter value is set to 0, the amount of denoising applied
+    is selected by camera and depends on camera capabilities and settings.
+    Changing value in -1.0..1.0 range adjusts the amount of denoising applied
+    within the supported range.
 */
-bool QCameraImageProcessing::isDenoisingSupported() const
+void QCameraImageProcessing::setDenoisingLevel(qreal level)
 {
-    if (d_func()->imageControl)
-        return d_func()->imageControl->isProcessingParameterSupported(QCameraImageProcessingControl::Denoising);
-    else
-        return false;
+    d_func()->imageControl->setParameter(QCameraImageProcessingControl::DenoisingAdjustment,
+                                         QVariant(level));
 }
-
-/*!
-    Returns the denoising level.  This may be \c DefaultDenoising if no
-    particular value has been set.
-
-*/
-int QCameraImageProcessing::denoisingLevel() const
-{
-    QVariant value;
-
-    if (d_func()->imageControl)
-        value = d_func()->imageControl->processingParameter(QCameraImageProcessingControl::Denoising);
-
-    if (value.isNull())
-        return DefaultDenoising;
-    else
-        return value.toInt();
-}
-
-/*!
-    Sets the denoising \a level.
-
-    If \c DefaultDenoising is supplied, the camera will decide what denoising
-    to perform.  Otherwise a level of 0 will disable denoising, and a level of 100
-    corresponds to maximum denoising applied.
-
-*/
-void QCameraImageProcessing::setDenoisingLevel(int level)
-{
-    Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setProcessingParameter(QCameraImageProcessingControl::Denoising,
-                                                level == DefaultDenoising ? QVariant() : QVariant(level));
-}
-
 
 /*!
     \enum QCameraImageProcessing::WhiteBalanceMode
@@ -373,7 +326,7 @@ void QCameraImageProcessing::setDenoisingLevel(int level)
     \value WhiteBalanceFluorescent  Fluorescent white balance mode.
     \value WhiteBalanceFlash        Flash white balance mode.
     \value WhiteBalanceSunset       Sunset white balance mode.
-    \value WhiteBalanceVendor       Vendor defined white balance mode.
+    \value WhiteBalanceVendor       Base value for vendor defined white balance modes.
 */
 
 #include "moc_qcameraimageprocessing.cpp"

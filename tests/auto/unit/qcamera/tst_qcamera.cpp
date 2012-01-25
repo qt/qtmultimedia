@@ -217,9 +217,9 @@ void tst_QCamera::testSimpleCameraWhiteBalance()
     QCOMPARE(camera.imageProcessing()->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceAuto);
     camera.imageProcessing()->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceCloudy);
     QCOMPARE(camera.imageProcessing()->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceAuto);
-    QCOMPARE(camera.imageProcessing()->manualWhiteBalance(), 0);
+    QCOMPARE(camera.imageProcessing()->manualWhiteBalance()+1.0, 1.0);
     camera.imageProcessing()->setManualWhiteBalance(5000);
-    QCOMPARE(camera.imageProcessing()->manualWhiteBalance(), 0);
+    QCOMPARE(camera.imageProcessing()->manualWhiteBalance()+1.0, 1.0);
 }
 
 void tst_QCamera::testSimpleCameraExposure()
@@ -529,7 +529,7 @@ void tst_QCamera::testCameraWhiteBalance()
     MockCameraService service;
     service.mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
     service.mockImageProcessingControl->setSupportedWhiteBalanceModes(whiteBalanceModes);
-    service.mockImageProcessingControl->setProcessingParameter(
+    service.mockImageProcessingControl->setParameter(
                 QCameraImageProcessingControl::ColorTemperature,
                 QVariant(34));
 
@@ -549,10 +549,10 @@ void tst_QCamera::testCameraWhiteBalance()
 
     cameraImageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceManual);
     QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceManual);
-    QCOMPARE(cameraImageProcessing->manualWhiteBalance(), 34);
+    QCOMPARE(cameraImageProcessing->manualWhiteBalance(), 34.0);
 
-    cameraImageProcessing->setManualWhiteBalance(432);
-    QCOMPARE(cameraImageProcessing->manualWhiteBalance(), 432);
+    cameraImageProcessing->setManualWhiteBalance(432.0);
+    QCOMPARE(cameraImageProcessing->manualWhiteBalance(), 432.0);
 }
 
 void tst_QCamera::testCameraExposure()
@@ -1550,11 +1550,11 @@ void tst_QCamera::testContrast()
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QVERIFY(cameraImageProcessing->contrast() ==0);
 
-    cameraImageProcessing->setContrast(123);
-    QVERIFY(cameraImageProcessing->contrast() ==123);
+    cameraImageProcessing->setContrast(0.123);
+    QCOMPARE(cameraImageProcessing->contrast(), 0.123);
 
     cameraImageProcessing->setContrast(4.56);
-    QVERIFY(cameraImageProcessing->contrast() ==4);
+    QCOMPARE(cameraImageProcessing->contrast(), 4.56);
 }
 
 void tst_QCamera::testDenoisingLevel()
@@ -1562,18 +1562,13 @@ void tst_QCamera::testDenoisingLevel()
     QCamera camera;
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
 
-    if (cameraImageProcessing->isDenoisingSupported())
-    {
-        QVERIFY(cameraImageProcessing->denoisingLevel() == -1);
+    QCOMPARE(cameraImageProcessing->denoisingLevel()+1 , 1.0);
 
-        cameraImageProcessing->setDenoisingLevel(0);
-        QVERIFY(cameraImageProcessing->denoisingLevel() == 0);
+    cameraImageProcessing->setDenoisingLevel(-0.3);
+    QCOMPARE(cameraImageProcessing->denoisingLevel() , -0.3);
 
-        cameraImageProcessing->setDenoisingLevel(12);
-        QVERIFY(cameraImageProcessing->denoisingLevel() == 12);
-    }
-    else
-        QVERIFY(cameraImageProcessing->denoisingLevel() == -1);
+    cameraImageProcessing->setDenoisingLevel(0.3);
+    QCOMPARE(cameraImageProcessing->denoisingLevel() , 0.3);
 }
 
 void tst_QCamera::testIsAvailable()
@@ -1587,19 +1582,13 @@ void tst_QCamera::testSaturation()
 {
     QCamera camera;
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
-    QVERIFY(cameraImageProcessing->saturation() == 0);
+    QCOMPARE(cameraImageProcessing->saturation()+1.0, 1.0);
 
-    cameraImageProcessing->setSaturation(50);
-    QVERIFY(cameraImageProcessing->saturation() == 50);
+    cameraImageProcessing->setSaturation(0.5);
+    QCOMPARE(cameraImageProcessing->saturation(), 0.5);
 
-    cameraImageProcessing->setSaturation(-50);
-    QVERIFY(cameraImageProcessing->saturation() == -50);
-
-    cameraImageProcessing->setSaturation(100);
-    QVERIFY(cameraImageProcessing->saturation() == 100);
-
-    cameraImageProcessing->setSaturation(-100);
-    QVERIFY(cameraImageProcessing->saturation() == -100);
+    cameraImageProcessing->setSaturation(-0.5);
+    QCOMPARE(cameraImageProcessing->saturation(), -0.5);
 }
 
 void tst_QCamera::testSharpeningLevel()
@@ -1607,14 +1596,14 @@ void tst_QCamera::testSharpeningLevel()
     QCamera camera;
 
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
-    QVERIFY(cameraImageProcessing->isSharpeningSupported());
-    QVERIFY(cameraImageProcessing->sharpeningLevel() == -1);
 
-    cameraImageProcessing->setSharpeningLevel(123);
-    QVERIFY(cameraImageProcessing->sharpeningLevel() == 123);
+    QCOMPARE(cameraImageProcessing->sharpeningLevel()+1 , 1.0);
 
-    cameraImageProcessing->setSharpeningLevel(4.67);
-    QVERIFY(cameraImageProcessing->sharpeningLevel() == 4);
+    cameraImageProcessing->setSharpeningLevel(-0.3);
+    QCOMPARE(cameraImageProcessing->sharpeningLevel() , -0.3);
+
+    cameraImageProcessing->setSharpeningLevel(0.3);
+    QCOMPARE(cameraImageProcessing->sharpeningLevel() , 0.3);
 }
 
 void tst_QCamera::testEnumOfQCameraImageProcessing()
