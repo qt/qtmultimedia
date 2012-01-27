@@ -178,6 +178,11 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
 
 QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
 {
+    if (m_source && m_sourceType == VideoSurfaceSource) {
+        if (m_source.data()->property("videoSurface").value<QAbstractVideoSurface*>() == m_surface)
+            m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(0));
+    }
+
     m_source.clear();
     _q_updateMediaObject();
     delete m_surface;
@@ -209,8 +214,10 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     if (m_source && m_sourceType == MediaObjectSource)
         disconnect(0, m_source.data(), SLOT(_q_updateMediaObject()));
 
-    if (m_source && m_sourceType == VideoSurfaceSource)
-        m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(0));
+    if (m_source && m_sourceType == VideoSurfaceSource) {
+        if (m_source.data()->property("videoSurface").value<QAbstractVideoSurface*>() == m_surface)
+            m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(0));
+    }
 
     m_surface->stop();
 

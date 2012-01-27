@@ -70,6 +70,9 @@ public:
     }
     void setVideoSurface(QAbstractVideoSurface *surface)
     {
+        if (m_surface != surface && m_surface && m_surface->isActive()) {
+            m_surface->stop();
+        }
         m_surface = surface;
     }
 
@@ -132,6 +135,9 @@ private slots:
     void mappingPoint_data();
     void mappingRect();
     void mappingRect_data();
+
+    // XXX May be worth adding tests that the surface activeChanged signals are sent appropriately
+    // to holder?
 
 private:
     QDeclarativeEngine m_engine;
@@ -293,7 +299,6 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     delete videoOutput;
 
     // This should clear the surface
-    QEXPECT_FAIL("", "Surface not cleared on destruction", Continue);
     QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(0));
 
     // Also, creating two sources, setting them in order, and destroying the first
@@ -324,9 +329,22 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(0));
     QVERIFY(holder2.videoSurface() != 0);
 
-    // XXX May be worth adding tests that the surface activeChanged signals are sent appropriately
-    // to holder?
+    // Finally a combination - set the same source to two things, then assign a new source
+    // to the first output - should not reset the first source
+    videoOutput = component.create();
+    videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder2)));
 
+    // Both vo and vo2 were pointed to holder2 - setting vo2 should not clear holder2
+    QVERIFY(holder2.videoSurface() != 0);
+    QVERIFY(holder.videoSurface() == 0);
+    videoOutput2->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
+    QVERIFY(holder2.videoSurface() != 0);
+    QVERIFY(holder.videoSurface() != 0);
+
+    // They should also be independent
+    QVERIFY(holder.videoSurface() != holder2.videoSurface());
+
+    delete videoOutput;
     delete videoOutput2;
 }
 
