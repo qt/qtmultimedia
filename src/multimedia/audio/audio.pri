@@ -10,7 +10,8 @@ PUBLIC_HEADERS += \
            audio/qaudiosystemplugin.h \
            audio/qaudiosystem.h  \
            audio/qsoundeffect.h \
-           audio/qsound.h
+           audio/qsound.h \
+           audio/qaudioprobe.h
 
 PRIVATE_HEADERS += \
            audio/qaudiobuffer_p.h \
@@ -33,7 +34,8 @@ SOURCES += \
            audio/qwavedecoder_p.cpp \
            audio/qsamplecache_p.cpp \
            audio/qsound.cpp \
-           audio/qaudiobuffer.cpp
+           audio/qaudiobuffer.cpp \
+           audio/qaudioprobe.cpp
 
 mac {
     PRIVATE_HEADERS +=  audio/qaudioinput_mac_p.h \

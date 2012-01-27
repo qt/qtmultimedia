@@ -31,7 +31,9 @@ PUBLIC_HEADERS += \
     controls/qradiotunercontrol.h \
     controls/qvideodevicecontrol.h \
     controls/qvideoencodercontrol.h \
-    controls/qvideorenderercontrol.h
+    controls/qvideorenderercontrol.h \
+    controls/qmediaaudioprobecontrol.h \
+    controls/qmediavideoprobecontrol.h
 
 SOURCES += \
     controls/qaudioencodercontrol.cpp \
@@ -63,4 +65,6 @@ SOURCES += \
     controls/qradiotunercontrol.cpp \
     controls/qvideodevicecontrol.cpp \
     controls/qvideoencodercontrol.cpp \
-    controls/qvideorenderercontrol.cpp
+    controls/qvideorenderercontrol.cpp \
+    controls/qmediaaudioprobecontrol.cpp \
+    controls/qmediavideoprobecontrol.cpp
