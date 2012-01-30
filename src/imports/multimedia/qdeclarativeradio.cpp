@@ -109,6 +109,7 @@ QDeclarativeRadio::QDeclarativeRadio(QObject *parent) :
     connect(m_radioTuner, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
     connect(m_radioTuner, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
     connect(m_radioTuner, SIGNAL(stationFound(int, QString)), this, SIGNAL(stationFound(int, QString)));
+    connect(m_radioTuner, SIGNAL(antennaConnectedChanged(bool)), this, SIGNAL(antennaConnectedChanged(bool)));
 
     connect(m_radioTuner, SIGNAL(error(QRadioTuner::Error)), this, SLOT(_q_error(QRadioTuner::Error)));
 }
@@ -291,6 +292,16 @@ int QDeclarativeRadio::minimumFrequency() const
 int QDeclarativeRadio::maximumFrequency() const
 {
     return m_radioTuner->frequencyRange(m_radioTuner->band()).second;
+}
+
+/*!
+    \qmlproperty int Radio::antennaConnected
+
+    This property is true if there is an antenna connected. Otherwise it will be false.
+ */
+bool QDeclarativeRadio::isAntennaConnected() const
+{
+    return m_radioTuner->isAntennaConnected();
 }
 
 /*!

@@ -69,6 +69,7 @@ class Q_MULTIMEDIA_EXPORT QRadioTuner : public QMediaObject
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool searching READ isSearching NOTIFY searchingChanged)
+    Q_PROPERTY(bool antennaConnected READ isAntennaConnected NOTIFY antennaConnectedChanged)
     Q_ENUMS(State)
     Q_ENUMS(Band)
     Q_ENUMS(Error)
@@ -109,6 +110,8 @@ public:
 
     bool isSearching() const;
 
+    bool isAntennaConnected() const;
+
     Error error() const;
     QString errorString() const;
 
@@ -137,6 +140,7 @@ Q_SIGNALS:
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
     void stationFound(int frequency, QString stationId);
+    void antennaConnectedChanged(bool connectionStatus);
 
     void error(QRadioTuner::Error error);
 

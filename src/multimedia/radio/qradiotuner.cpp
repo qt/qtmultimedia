@@ -128,6 +128,7 @@ QRadioTuner::QRadioTuner(QObject *parent):
             connect(d->control, SIGNAL(volumeChanged(int)), SIGNAL(volumeChanged(int)));
             connect(d->control, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
             connect(d->control, SIGNAL(stationFound(int,QString)), SIGNAL(stationFound(int,QString)));
+            connect(d->control, SIGNAL(antennaConnectedChanged(bool)), SIGNAL(antennaConnectedChanged(bool)));
             connect(d->control, SIGNAL(error(QRadioTuner::Error)), SIGNAL(error(QRadioTuner::Error)));
         }
     }
@@ -426,6 +427,20 @@ bool QRadioTuner::isSearching() const
 
     if (d->control != 0)
         return d->control->isSearching();
+
+    return false;
+}
+
+/*!
+    \property QRadioTuner::antennaConnected
+    \brief whether there is an antenna connected
+*/
+bool QRadioTuner::isAntennaConnected() const
+{
+    Q_D(const QRadioTuner);
+
+    if (d->control != 0)
+        return d->control->isAntennaConnected();
 
     return false;
 }

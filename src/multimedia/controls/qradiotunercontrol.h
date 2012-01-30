@@ -87,6 +87,8 @@ public:
 
     virtual bool isSearching() const = 0;
 
+    virtual bool isAntennaConnected() const { return true; }
+
     virtual void searchForward() = 0;
     virtual void searchBackward() = 0;
     virtual void searchAllStations(QRadioTuner::SearchMode searchMode = QRadioTuner::SearchFast) = 0;
@@ -109,6 +111,7 @@ Q_SIGNALS:
     void mutedChanged(bool muted);
     void error(QRadioTuner::Error err);
     void stationFound(int frequency, QString stationId);
+    void antennaConnectedChanged(bool connectionStatus);
 
 protected:
     QRadioTunerControl(QObject *parent = 0);

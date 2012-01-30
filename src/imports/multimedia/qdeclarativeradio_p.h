@@ -75,6 +75,7 @@ class QDeclarativeRadio : public QObject
     Q_PROPERTY(int frequencyStep READ frequencyStep NOTIFY bandChanged)
     Q_PROPERTY(int minimumFrequency READ minimumFrequency NOTIFY bandChanged)
     Q_PROPERTY(int maximumFrequency READ maximumFrequency NOTIFY bandChanged)
+    Q_PROPERTY(bool antennaConnected READ isAntennaConnected NOTIFY antennaConnectedChanged)
     Q_ENUMS(State)
     Q_ENUMS(Band)
     Q_ENUMS(Error)
@@ -131,6 +132,8 @@ public:
     int minimumFrequency() const;
     int maximumFrequency() const;
 
+    bool isAntennaConnected() const;
+
     Q_INVOKABLE bool isAvailable() const;
 
 public Q_SLOTS:
@@ -160,6 +163,7 @@ Q_SIGNALS:
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
     void stationFound(int frequency, QString stationId);
+    void antennaConnectedChanged(bool connectionStatus);
 
     void errorChanged();
     void error(QDeclarativeRadio::Error errorCode);

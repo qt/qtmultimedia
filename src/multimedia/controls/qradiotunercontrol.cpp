@@ -235,6 +235,14 @@ QRadioTunerControl::~QRadioTunerControl()
 */
 
 /*!
+    \fn bool QRadioTunerControl::antennaConnected() const
+
+    Identifies if there is an antenna connected to the device.
+
+    Returns true if there is a connected antenna, and false otherwise.
+*/
+
+/*!
     \fn  void QRadioTunerControl::searchForward()
 
     Starts a forward scan for a signal, starting from the current \l frequency().
@@ -335,6 +343,13 @@ QRadioTunerControl::~QRadioTunerControl()
     \fn void QRadioTunerControl::stationFound(int frequency)
 
     Signals that new station with \a frequency was found when scanning
+*/
+
+/*!
+    \fn void QRadioTunerControl::antennaConnectedChanged(bool connectionStatus)
+
+    Signals that the antenna has either been connected or disconnected as
+    reflected with the \a connectionStatus.
 */
 
 #include "moc_qradiotunercontrol.cpp"
