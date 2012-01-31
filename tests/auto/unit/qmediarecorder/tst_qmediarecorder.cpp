@@ -210,6 +210,7 @@ void tst_QMediaRecorder::testNullControls()
 
     recorder.setOutputLocation(QUrl("file://test/save/file.mp4"));
     QCOMPARE(recorder.outputLocation(), QUrl());
+    QCOMPARE(recorder.actualLocation(), QUrl());
 
     QAudioEncoderSettings audio;
     audio.setCodec(id);
@@ -285,6 +286,22 @@ void tst_QMediaRecorder::testSink()
     capture->setOutputLocation(QUrl("test.tmp"));
     QUrl s = capture->outputLocation();
     QCOMPARE(s.toString(), QString("test.tmp"));
+    QCOMPARE(capture->actualLocation(), QUrl());
+
+    //the actual location is available after record
+    capture->record();
+    QCOMPARE(capture->actualLocation().toString(), QString("test.tmp"));
+    capture->stop();
+    QCOMPARE(capture->actualLocation().toString(), QString("test.tmp"));
+
+    //setOutputLocation resets the actual location
+    capture->setOutputLocation(QUrl());
+    QCOMPARE(capture->actualLocation(), QUrl());
+
+    capture->record();
+    QCOMPARE(capture->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
+    capture->stop();
+    QCOMPARE(capture->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
 }
 
 void tst_QMediaRecorder::testRecord()

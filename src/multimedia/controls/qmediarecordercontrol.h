@@ -78,6 +78,7 @@ Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
     void durationChanged(qint64 position);
     void mutedChanged(bool muted);
+    void actualLocationChanged(const QUrl &location);
     void error(int error, const QString &errorString);
 
 public Q_SLOTS:

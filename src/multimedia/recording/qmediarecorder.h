@@ -75,6 +75,7 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaBindable
     Q_ENUMS(Error)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
+    Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool metaDataAvailable READ isMetaDataAvailable NOTIFY metaDataAvailableChanged)
     Q_PROPERTY(bool metaDataWritable READ isMetaDataWritable NOTIFY metaDataWritableChanged)
@@ -104,6 +105,8 @@ public:
 
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
+
+    QUrl actualLocation() const;
 
     State state() const;
 
@@ -161,6 +164,7 @@ Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
     void durationChanged(qint64 duration);
     void mutedChanged(bool muted);
+    void actualLocationChanged(const QUrl &location);
 
     void error(QMediaRecorder::Error error);
 
@@ -180,6 +184,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
     Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
     Q_PRIVATE_SLOT(d_func(), void _q_notify())
+    Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateNotifyInterval(int))
     Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };

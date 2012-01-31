@@ -111,7 +111,9 @@ QMediaRecorderControl::~QMediaRecorderControl()
 
     The \a location can be relative or empty;
     in this case the service should use the system specific place and file naming scheme.
-    After recording has stated, QMediaRecorderControl::outputLocation() should return the actual output location.
+
+    After recording has started, the backend should report the actual file location
+    with actualLocationChanged() signal.
 */
 
 /*!
@@ -182,6 +184,13 @@ QMediaRecorderControl::~QMediaRecorderControl()
     \fn void QMediaRecorderControl::mutedChanged(bool muted)
 
     Signals that the \a muted state of a media recorder has changed.
+*/
+
+/*!
+    \fn void QMediaRecorderControl::actualLocationChanged(const QUrl &location)
+
+    Signals that the actual media \a location has changed.
+    This signal should be emitted at start of recording.
 */
 
 /*!

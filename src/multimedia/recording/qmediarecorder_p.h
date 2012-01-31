@@ -44,6 +44,7 @@
 
 #include "qmediarecorder.h"
 #include "qmediaobject_p.h"
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -80,10 +81,12 @@ public:
     QMediaRecorder::State state;
     QMediaRecorder::Error error;
     QString errorString;
+    QUrl actualLocation;
 
     void _q_stateChanged(QMediaRecorder::State state);
     void _q_error(int error, const QString &errorString);
     void _q_serviceDestroyed();
+    void _q_updateActualLocation(const QUrl &);
     void _q_notify();
     void _q_updateNotifyInterval(int ms);
     void _q_applySettings();

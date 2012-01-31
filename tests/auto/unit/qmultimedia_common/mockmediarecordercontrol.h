@@ -100,6 +100,9 @@ public slots:
         m_position=1;
         emit stateChanged(m_state);
         emit durationChanged(m_position);
+
+        QUrl actualLocation = m_sink.isEmpty() ? QUrl::fromLocalFile("default_name.mp4") : m_sink;
+        emit actualLocationChanged(actualLocation);
     }
 
     void pause()

@@ -145,6 +145,14 @@ void QMediaRecorderPrivate::_q_serviceDestroyed()
     metaDataControl = 0;
 }
 
+void QMediaRecorderPrivate::_q_updateActualLocation(const QUrl &location)
+{
+    if (actualLocation != location) {
+        actualLocation = location;
+        emit q_func()->actualLocationChanged(actualLocation);
+    }
+}
+
 void QMediaRecorderPrivate::_q_notify()
 {
     emit q_func()->durationChanged(q_func()->duration());
@@ -257,6 +265,9 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
             disconnect(d->control, SIGNAL(durationChanged(qint64)),
                        this, SIGNAL(durationChanged(qint64)));
 
+            disconnect(d->control, SIGNAL(actualLocationChanged(QUrl)),
+                       this, SLOT(_q_updateActualLocation(QUrl)));
+
             disconnect(d->control, SIGNAL(error(int,QString)),
                        this, SLOT(_q_error(int,QString)));
         }
@@ -338,6 +349,9 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
                 connect(d->control, SIGNAL(durationChanged(qint64)),
                         this, SIGNAL(durationChanged(qint64)));
 
+                connect(d->control, SIGNAL(actualLocationChanged(QUrl)),
+                        this, SLOT(_q_updateActualLocation(QUrl)));
+
                 connect(d->control, SIGNAL(error(int,QString)),
                         this, SLOT(_q_error(int,QString)));
 
@@ -372,6 +386,14 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 */
 
 /*!
+    \property QMediaRecorder::actualLocation
+    \brief the actual location of the last media content.
+
+    The actual location is usually available after recording starts,
+    and reset when new location is set or new recording starts.
+*/
+
+/*!
     Returns true if media recorder service ready to use.
 */
 bool QMediaRecorder::isAvailable() const
@@ -401,7 +423,13 @@ QUrl QMediaRecorder::outputLocation() const
 bool QMediaRecorder::setOutputLocation(const QUrl &location)
 {
     Q_D(QMediaRecorder);
+    d->actualLocation.clear();
     return d->control ? d->control->setOutputLocation(location) : false;
+}
+
+QUrl QMediaRecorder::actualLocation() const
+{
+    return d_func()->actualLocation;
 }
 
 /*!
@@ -743,6 +771,8 @@ void QMediaRecorder::record()
 {
     Q_D(QMediaRecorder);
 
+    d->actualLocation.clear();
+
     if (d->settingsChanged)
         d->_q_applySettings();
 
@@ -802,6 +832,13 @@ void QMediaRecorder::stop()
     \fn QMediaRecorder::durationChanged(qint64 duration)
 
     Signals that the \a duration of the recorded media has changed.
+*/
+
+/*!
+    \fn QMediaRecorder::actualLocationChanged(const QUrl &location)
+
+    Signals that the actual \a location of the recorded media has changed.
+    This signal is usually emitted when recording starts.
 */
 
 /*!
