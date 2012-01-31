@@ -60,8 +60,8 @@ public:
     virtual ~QMediaContainerControl();
 
     virtual QStringList supportedContainers() const = 0;
-    virtual QString containerMimeType() const = 0;
-    virtual void setContainerMimeType(const QString &formatMimeType) = 0;
+    virtual QString containerFormat() const = 0;
+    virtual void setContainerFormat(const QString &format) = 0;
 
     virtual QString containerDescription(const QString &formatMimeType) const = 0;
 

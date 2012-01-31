@@ -152,10 +152,10 @@ void QGstreamerRecorderControl::applySettings()
     bool needVideo = m_session->captureMode() & QGstreamerCaptureSession::Video;
 
     QStringList containerCandidates;
-    if (mediaContainerControl->containerMimeType().isEmpty())
+    if (mediaContainerControl->containerFormat().isEmpty())
         containerCandidates = mediaContainerControl->supportedContainers();
     else
-        containerCandidates << mediaContainerControl->containerMimeType();
+        containerCandidates << mediaContainerControl->containerFormat();
 
 
     QStringList audioCandidates;
@@ -221,7 +221,7 @@ void QGstreamerRecorderControl::applySettings()
     if (container.isEmpty()) {
         emit error(QMediaRecorder::FormatError, tr("Not compatible codecs and container format."));
     } else {
-        mediaContainerControl->setContainerMimeType(container);
+        mediaContainerControl->setContainerFormat(container);
 
         if (needAudio) {
             QAudioEncoderSettings audioSettings = audioEncodeControl->audioSettings();

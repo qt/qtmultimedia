@@ -69,8 +69,8 @@ public:
     bool isFormatSupported(const QAudioFormat &format) const;
     bool setFormat(const QAudioFormat &format);
     QStringList supportedContainers() const;
-    QString containerMimeType() const;
-    void setContainerMimeType(const QString &formatMimeType);
+    QString containerFormat() const;
+    void setContainerFormat(const QString &formatMimeType);
     QString containerDescription(const QString &formatMimeType) const;
 
     QUrl outputLocation() const;

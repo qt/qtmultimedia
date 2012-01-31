@@ -113,7 +113,7 @@ void MediaExample::EncoderSettings()
     audioSettings.setCodec("audio/mpeg");
     audioSettings.setChannelCount(2);
 
-    recorder->setEncodingSettings(audioSettings);
+    recorder->setAudioSettings(audioSettings);
     //! [Audio encoder settings]
 
     //! [Video encoder settings]
@@ -121,7 +121,7 @@ void MediaExample::EncoderSettings()
     videoSettings.setCodec("video/mpeg2");
     videoSettings.setResolution(640, 480);
 
-    recorder->setEncodingSettings(audioSettings, videoSettings);
+    recorder->setVideoSettings(videoSettings);
     //! [Video encoder settings]
 }
 
@@ -216,7 +216,7 @@ void MediaExample::MediaRecorder()
     audioSettings.setCodec("audio/amr");
     audioSettings.setQuality(QtMultimedia::HighQuality);
 
-    recorder->setEncodingSettings(audioSettings);
+    recorder->setAudioSettings(audioSettings);
 
     recorder->setOutputLocation(QUrl::fromLocalFile(fileName));
     recorder->record();

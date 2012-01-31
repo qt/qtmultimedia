@@ -94,7 +94,7 @@ void QDeclarativeCameraRecorder::setCaptureResolution(const QSize &resolution)
 {
     if (resolution != captureResolution()) {
         m_videoSettings.setResolution(resolution);
-        applySettings();
+        m_recorder->setVideoSettings(m_videoSettings);
         emit captureResolutionChanged(resolution);
     }
 }
@@ -103,7 +103,7 @@ void QDeclarativeCameraRecorder::setAudioCodec(const QString &codec)
 {
     if (codec != audioCodec()) {
         m_audioSettings.setCodec(codec);
-        applySettings();
+        m_recorder->setAudioSettings(m_audioSettings);
         emit audioCodecChanged(codec);
     }
 }
@@ -112,7 +112,7 @@ void QDeclarativeCameraRecorder::setVideoCodec(const QString &codec)
 {
     if (codec != videoCodec()) {
         m_videoSettings.setCodec(codec);
-        applySettings();
+        m_recorder->setVideoSettings(m_videoSettings);
         emit videoCodecChanged(codec);
     }
 }
@@ -121,16 +121,9 @@ void QDeclarativeCameraRecorder::setMediaContainer(const QString &container)
 {
     if (container != m_mediaContainer) {
         m_mediaContainer = container;
-        applySettings();
+        m_recorder->setContainerFormat(container);
         emit mediaContainerChanged(container);
     }
-}
-
-void QDeclarativeCameraRecorder::applySettings()
-{
-    m_recorder->setEncodingSettings(m_audioSettings,
-                                    m_videoSettings,
-                                    m_mediaContainer);
 }
 
 QMediaRecorder::Error QDeclarativeCameraRecorder::error() const

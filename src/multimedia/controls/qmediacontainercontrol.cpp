@@ -101,21 +101,21 @@ QMediaContainerControl::~QMediaContainerControl()
 */
 
 /*!
-    \fn QMediaContainerControl::containerMimeType() const
+    \fn QMediaContainerControl::containerFormat() const
 
-    Returns the MIME type of the selected container format.
+    Returns the selected container format.
 */
 
 /*!
-    \fn QMediaContainerControl::setContainerMimeType(const QString &mimeType)
+    \fn QMediaContainerControl::setContainerFormat(const QString &format)
 
-    Sets the current container format to the format identified by the given \a mimeType.
+    Sets the current container \a format.
 */
 
 /*!
-    \fn QMediaContainerControl::containerDescription(const QString &mimeType) const
+    \fn QMediaContainerControl::containerDescription(const QString &format) const
 
-    Returns a description of the container format identified by the given \a mimeType.
+    Returns a description of the container \a format.
 */
 
 #include "moc_qmediacontainercontrol.cpp"

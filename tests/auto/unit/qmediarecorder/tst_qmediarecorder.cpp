@@ -83,6 +83,7 @@ private slots:
     void testEncodingSettings();
     void testAudioSettings();
     void testVideoSettings();
+    void testSettingsApplied();
 
     void nullMetaDataControl();
     void isMetaDataAvailable();
@@ -171,7 +172,7 @@ void tst_QMediaRecorder::testNullService()
     QCOMPARE(continuous, false);
     QCOMPARE(recorder.audioSettings(), QAudioEncoderSettings());
     QCOMPARE(recorder.videoSettings(), QVideoEncoderSettings());
-    QCOMPARE(recorder.containerMimeType(), QString());
+    QCOMPARE(recorder.containerFormat(), QString());
     QVERIFY(!recorder.isMuted());
     recorder.setMuted(true);
     QVERIFY(!recorder.isMuted());
@@ -205,7 +206,7 @@ void tst_QMediaRecorder::testNullControls()
     QCOMPARE(continuous, false);
     QCOMPARE(recorder.audioSettings(), QAudioEncoderSettings());
     QCOMPARE(recorder.videoSettings(), QVideoEncoderSettings());
-    QCOMPARE(recorder.containerMimeType(), QString());
+    QCOMPARE(recorder.containerFormat(), QString());
 
     recorder.setOutputLocation(QUrl("file://test/save/file.mp4"));
     QCOMPARE(recorder.outputLocation(), QUrl());
@@ -222,7 +223,7 @@ void tst_QMediaRecorder::testNullControls()
 
     QCOMPARE(recorder.audioSettings(), QAudioEncoderSettings());
     QCOMPARE(recorder.videoSettings(), QVideoEncoderSettings());
-    QCOMPARE(recorder.containerMimeType(), QString());
+    QCOMPARE(recorder.containerFormat(), QString());
 
     QSignalSpy spy(&recorder, SIGNAL(stateChanged(QMediaRecorder::State)));
 
@@ -410,7 +411,7 @@ void tst_QMediaRecorder::testEncodingSettings()
     QCOMPARE(videoSettings.quality(), QtMultimedia::NormalQuality);
     QCOMPARE(videoSettings.encodingMode(), QtMultimedia::ConstantQualityEncoding);
 
-    QString format = capture->containerMimeType();
+    QString format = capture->containerFormat();
     QCOMPARE(format, QString());
 
     audioSettings.setCodec("audio/mpeg");
@@ -428,11 +429,13 @@ void tst_QMediaRecorder::testEncodingSettings()
 
     format = QString("mov");
 
-    capture->setEncodingSettings(audioSettings,videoSettings,format);
+    capture->setAudioSettings(audioSettings);
+    capture->setVideoSettings(videoSettings);
+    capture->setContainerFormat(format);
 
     QCOMPARE(capture->audioSettings(), audioSettings);
     QCOMPARE(capture->videoSettings(), videoSettings);
-    QCOMPARE(capture->containerMimeType(), format);
+    QCOMPARE(capture->containerFormat(), format);
 }
 
 void tst_QMediaRecorder::testAudioSettings()
@@ -688,6 +691,47 @@ void tst_QMediaRecorder::testVideoSettings()
     QVERIFY(settings1 != settings2);
 }
 
+void tst_QMediaRecorder::testSettingsApplied()
+{
+    MockMediaRecorderControl recorderControl(0);
+    MockMediaRecorderService service(0, &recorderControl);
+    MockMediaObject object(0, &service);
+
+    //if the media recorder is not configured after construction
+    //the settings are applied in the next event loop
+    QMediaRecorder recorder(&object);
+    QCOMPARE(recorderControl.m_settingAppliedCount, 0);
+    QTest::qWait(10);
+    QCOMPARE(recorderControl.m_settingAppliedCount, 1);
+
+    QVideoEncoderSettings videoSettings;
+    videoSettings.setResolution(640,480);
+    recorder.setVideoSettings(videoSettings);
+
+    QAudioEncoderSettings audioSettings;
+    audioSettings.setQuality(QtMultimedia::HighQuality);
+    recorder.setAudioSettings(audioSettings);
+
+    recorder.setContainerFormat("mkv");
+
+    QCOMPARE(recorderControl.m_settingAppliedCount, 1);
+    QTest::qWait(10);
+    QCOMPARE(recorderControl.m_settingAppliedCount, 2);
+
+    //encoder settings are applied before recording if changed
+    audioSettings.setQuality(QtMultimedia::VeryHighQuality);
+    recorder.setAudioSettings(audioSettings);
+
+    QCOMPARE(recorderControl.m_settingAppliedCount, 2);
+    recorder.record();
+    QCOMPARE(recorderControl.m_settingAppliedCount, 3);
+
+    recorder.stop();
+
+    //applySettings is not called if setting has not changes
+    recorder.record();
+    QCOMPARE(recorderControl.m_settingAppliedCount, 3);
+}
 
 void tst_QMediaRecorder::nullMetaDataControl()
 {

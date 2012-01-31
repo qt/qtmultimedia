@@ -146,7 +146,7 @@ QString AudioCaptureSession::containerDescription(const QString &formatMimeType)
     return QString();
 }
 
-void AudioCaptureSession::setContainerMimeType(const QString &formatMimeType)
+void AudioCaptureSession::setContainerFormat(const QString &formatMimeType)
 {
     if (!formatMimeType.contains(QLatin1String("audio/x-wav")) &&
         !formatMimeType.contains(QLatin1String("audio/pcm")) &&
@@ -167,7 +167,7 @@ void AudioCaptureSession::setContainerMimeType(const QString &formatMimeType)
     }
 }
 
-QString AudioCaptureSession::containerMimeType() const
+QString AudioCaptureSession::containerFormat() const
 {
     if(wavFile)
         return QString("audio/x-wav");

@@ -66,9 +66,9 @@ private slots:
         QVERIFY(strlist[1]==strlist1[1]); //checking with "mp3" mime type
         QVERIFY(strlist[2]==strlist1[2]); //checking with "mov" mime type
 
-        control.setContainerMimeType("wav");
+        control.setContainerFormat("wav");
         const QString str("wav");
-        QVERIFY2(control.containerMimeType() == str,"Failed");
+        QVERIFY2(control.containerFormat() == str,"Failed");
 
         const QString str1("WAV format");
         QVERIFY2(control.containerDescription("wav") == str1,"FAILED");

@@ -144,8 +144,6 @@ private:
     friend class QDeclarativeCamera;
     QDeclarativeCameraRecorder(QCamera *camera, QObject *parent = 0);
 
-    void applySettings();
-
     QMediaRecorder *m_recorder;
 
     QAudioEncoderSettings m_audioSettings;

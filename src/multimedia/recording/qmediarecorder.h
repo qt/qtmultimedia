@@ -115,7 +115,7 @@ public:
     bool isMuted() const;
 
     QStringList supportedContainers() const;
-    QString containerDescription(const QString &containerMimeType) const;
+    QString containerDescription(const QString &format) const;
 
     QStringList supportedAudioCodecs() const;
     QString audioCodecDescription(const QString &codecName) const;
@@ -134,12 +134,15 @@ public:
 
     QAudioEncoderSettings audioSettings() const;
     QVideoEncoderSettings videoSettings() const;
-    QString containerMimeType() const;
+    QString containerFormat() const;
+
+    void setAudioSettings(const QAudioEncoderSettings &audioSettings);
+    void setVideoSettings(const QVideoEncoderSettings &videoSettings);
+    void setContainerFormat(const QString &container);
 
     void setEncodingSettings(const QAudioEncoderSettings &audioSettings,
                              const QVideoEncoderSettings &videoSettings = QVideoEncoderSettings(),
                              const QString &containerMimeType = QString());
-
 
     bool isMetaDataAvailable() const;
     bool isMetaDataWritable() const;
@@ -178,6 +181,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
     Q_PRIVATE_SLOT(d_func(), void _q_notify())
     Q_PRIVATE_SLOT(d_func(), void _q_updateNotifyInterval(int))
+    Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };
 
 QT_END_NAMESPACE

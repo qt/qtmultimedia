@@ -72,12 +72,12 @@ public:
         return m_supportedContainers;
     }
 
-    QString containerMimeType() const
+    QString containerFormat() const
     {
         return m_format;
     }
 
-    void setContainerMimeType(const QString &formatMimeType)
+    void setContainerFormat(const QString &formatMimeType)
     {
         if (m_supportedContainers.contains(formatMimeType))
             m_format = formatMimeType;

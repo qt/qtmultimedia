@@ -57,14 +57,14 @@ QStringList AudioContainerControl::supportedContainers() const
     return m_session->supportedContainers();
 }
 
-QString AudioContainerControl::containerMimeType() const
+QString AudioContainerControl::containerFormat() const
 {
-    return m_session->containerMimeType();
+    return m_session->containerFormat();
 }
 
-void AudioContainerControl::setContainerMimeType(const QString &formatMimeType)
+void AudioContainerControl::setContainerFormat(const QString &formatMimeType)
 {
-    m_session->setContainerMimeType(formatMimeType);
+    m_session->setContainerFormat(formatMimeType);
 }
 
 QString AudioContainerControl::containerDescription(const QString &formatMimeType) const

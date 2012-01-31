@@ -62,6 +62,9 @@ public:
     QMediaRecorderPrivate();
     virtual ~QMediaRecorderPrivate() {}
 
+    void applySettingsLater();
+    void restartCamera();
+
     QMediaObject *mediaObject;
 
     QMediaRecorderControl *control;
@@ -69,6 +72,8 @@ public:
     QAudioEncoderControl *audioControl;
     QVideoEncoderControl *videoControl;
     QMetaDataWriterControl *metaDataControl;
+
+    bool settingsChanged;
 
     QTimer* notifyTimer;
 
@@ -81,6 +86,7 @@ public:
     void _q_serviceDestroyed();
     void _q_notify();
     void _q_updateNotifyInterval(int ms);
+    void _q_applySettings();
 
     QMediaRecorder *q_ptr;
 };

@@ -155,6 +155,34 @@ void QMediaRecorderPrivate::_q_updateNotifyInterval(int ms)
     notifyTimer->setInterval(ms);
 }
 
+void QMediaRecorderPrivate::applySettingsLater()
+{
+    if (control && !settingsChanged) {
+        settingsChanged = true;
+        QMetaObject::invokeMethod(q_func(), "_q_applySettings", Qt::QueuedConnection);
+    }
+}
+
+void QMediaRecorderPrivate::_q_applySettings()
+{
+    if (control && settingsChanged) {
+        settingsChanged = false;
+        control->applySettings();
+    }
+}
+
+void QMediaRecorderPrivate::restartCamera()
+{
+    //restart camera if it can't apply new settings in the Active state
+    QCamera *camera = qobject_cast<QCamera*>(mediaObject);
+    if (camera && camera->captureMode() == QCamera::CaptureVideo) {
+        QMetaObject::invokeMethod(camera,
+                                  "_q_preparePropertyChange",
+                                  Qt::DirectConnection,
+                                  Q_ARG(int, QCameraControl::VideoEncodingSettings));
+    }
+}
+
 
 /*!
     Constructs a media recorder which records the media produced by \a mediaObject.
@@ -316,6 +344,8 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
                 connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
 
 
+                d->applySettingsLater();
+
                 return true;
             }
         }
@@ -438,7 +468,7 @@ void QMediaRecorder::setMuted(bool muted)
 }
 
 /*!
-    Returns a list of MIME types of supported container formats.
+    Returns a list of supported container formats.
 */
 QStringList QMediaRecorder::supportedContainers() const
 {
@@ -447,22 +477,22 @@ QStringList QMediaRecorder::supportedContainers() const
 }
 
 /*!
-    Returns a description of a container format \a mimeType.
+    Returns a description of a container \a format.
 */
-QString QMediaRecorder::containerDescription(const QString &mimeType) const
+QString QMediaRecorder::containerDescription(const QString &format) const
 {
     return d_func()->formatControl ?
-           d_func()->formatControl->containerDescription(mimeType) : QString();
+           d_func()->formatControl->containerDescription(format) : QString();
 }
 
 /*!
-    Returns the MIME type of the selected container format.
+    Returns the selected container format.
 */
 
-QString QMediaRecorder::containerMimeType() const
+QString QMediaRecorder::containerFormat() const
 {
     return d_func()->formatControl ?
-           d_func()->formatControl->containerMimeType() : QString();
+           d_func()->formatControl->containerFormat() : QString();
 }
 
 /*!
@@ -593,18 +623,92 @@ QVideoEncoderSettings QMediaRecorder::videoSettings() const
 }
 
 /*!
-    Sets the \a audio and \a video encoder settings and \a container format MIME type.
+    Sets the audio encoder \a settings.
 
     If some parameters are not specified, or null settings are passed, the
     encoder will choose default encoding parameters, depending on media
     source properties.
-    While setEncodingSettings is optional, the backend can preload
-    encoding pipeline to improve recording startup time.
 
     It's only possible to change settings when the encoder is in the
     QMediaEncoder::StoppedState state.
 
-    \sa audioSettings(), videoSettings(), containerMimeType()
+    \sa audioSettings(), videoSettings(), containerFormat()
+*/
+
+void QMediaRecorder::setAudioSettings(const QAudioEncoderSettings &settings)
+{
+    Q_D(QMediaRecorder);
+
+    //restart camera if it can't apply new settings in the Active state
+    d->restartCamera();
+
+    if (d->audioControl) {
+        d->audioControl->setAudioSettings(settings);
+        d->applySettingsLater();
+    }
+}
+
+/*!
+    Sets the video encoder \a settings.
+
+    If some parameters are not specified, or null settings are passed, the
+    encoder will choose default encoding parameters, depending on media
+    source properties.
+
+    It's only possible to change settings when the encoder is in the
+    QMediaEncoder::StoppedState state.
+
+    \sa audioSettings(), videoSettings(), containerFormat()
+*/
+
+void QMediaRecorder::setVideoSettings(const QVideoEncoderSettings &settings)
+{
+    Q_D(QMediaRecorder);
+
+    d->restartCamera();
+
+    if (d->videoControl) {
+        d->videoControl->setVideoSettings(settings);
+        d->applySettingsLater();
+    }
+}
+
+/*!
+    Sets the media \a container format.
+
+    If the container format is not specified, the
+    encoder will choose format, depending on media source properties
+    and encoding settings selected.
+
+    It's only possible to change settings when the encoder is in the
+    QMediaEncoder::StoppedState state.
+
+    \sa audioSettings(), videoSettings(), containerFormat()
+*/
+
+void QMediaRecorder::setContainerFormat(const QString &container)
+{
+    Q_D(QMediaRecorder);
+
+    d->restartCamera();
+
+    if (d->formatControl) {
+        d->formatControl->setContainerFormat(container);
+        d->applySettingsLater();
+    }
+}
+
+/*!
+    Sets the \a audio and \a video encoder settings and \a container format.
+
+    If some parameters are not specified, or null settings are passed, the
+    encoder will choose default encoding parameters, depending on media
+    source properties.
+
+    It's only possible to change settings when the encoder is in the
+    QMediaEncoder::StoppedState state.
+
+    \sa audioSettings(), videoSettings(), containerFormat()
 */
 
 void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
@@ -613,13 +717,7 @@ void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
 {
     Q_D(QMediaRecorder);
 
-    QCamera *camera = qobject_cast<QCamera*>(d->mediaObject);
-    if (camera && camera->captureMode() == QCamera::CaptureVideo) {
-        QMetaObject::invokeMethod(camera,
-                                  "_q_preparePropertyChange",
-                                  Qt::DirectConnection,
-                                  Q_ARG(int, QCameraControl::VideoEncodingSettings));
-    }
+    d->restartCamera();
 
     if (d->audioControl)
         d->audioControl->setAudioSettings(audio);
@@ -628,12 +726,10 @@ void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
         d->videoControl->setVideoSettings(video);
 
     if (d->formatControl)
-        d->formatControl->setContainerMimeType(container);
+        d->formatControl->setContainerFormat(container);
 
-    if (d->control)
-        d->control->applySettings();
+    d->applySettingsLater();
 }
-
 
 /*!
     Start recording.
@@ -646,6 +742,9 @@ void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
 void QMediaRecorder::record()
 {
     Q_D(QMediaRecorder);
+
+    if (d->settingsChanged)
+        d->_q_applySettings();
 
     // reset error
     d->error = NoError;

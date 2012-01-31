@@ -53,9 +53,12 @@ class MockMediaRecorderControl : public QMediaRecorderControl
 public:
     MockMediaRecorderControl(QObject *parent = 0):
         QMediaRecorderControl(parent),
-    m_state(QMediaRecorder::StoppedState),
-    m_position(0),
-    m_muted(false) {}
+        m_state(QMediaRecorder::StoppedState),
+        m_position(0),
+        m_muted(false),
+        m_settingAppliedCount(0)
+    {
+    }
 
     QUrl outputLocation() const
     {
@@ -83,7 +86,10 @@ public:
         return m_muted;
     }
 
-    void applySettings() {}
+    void applySettings()
+    {
+        m_settingAppliedCount++;
+    }
 
     using QMediaRecorderControl::error;
 
@@ -120,6 +126,7 @@ public:
     QMediaRecorder::State m_state;
     qint64     m_position;
     bool m_muted;
+    int m_settingAppliedCount;
 };
 
 #endif // MOCKRECORDERCONTROL_H

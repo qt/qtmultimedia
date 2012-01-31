@@ -101,7 +101,7 @@ QGstreamerMediaContainerControl::QGstreamerMediaContainerControl(QObject *parent
     }
 
     //if (!m_supportedContainers.isEmpty())
-    //    setContainerMimeType(m_supportedContainers[0]);
+    //    setContainerFormat(m_supportedContainers[0]);
 }
 
 QSet<QString> QGstreamerMediaContainerControl::supportedStreamTypes(GstElementFactory *factory, GstPadDirection direction)

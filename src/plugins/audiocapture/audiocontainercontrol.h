@@ -59,8 +59,8 @@ public:
     virtual ~AudioContainerControl();
 
     QStringList supportedContainers() const;
-    QString containerMimeType() const;
-    void setContainerMimeType(const QString &formatMimeType);
+    QString containerFormat() const;
+    void setContainerFormat(const QString &formatMimeType);
     QString containerDescription(const QString &formatMimeType) const;
 
 private:
