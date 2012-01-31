@@ -69,10 +69,17 @@ class QDeclarativeCameraRecorder : public QObject
     Q_ENUMS(RecorderState)
 
     Q_PROPERTY(RecorderState recorderState READ recorderState WRITE setRecorderState NOTIFY recorderStateChanged)
-    Q_PROPERTY(QSize resolution READ captureResolution WRITE setCaptureResolution NOTIFY captureResolutionChanged)
 
     Q_PROPERTY(QString videoCodec READ videoCodec WRITE setVideoCodec NOTIFY videoCodecChanged)
+    Q_PROPERTY(QSize resolution READ captureResolution WRITE setCaptureResolution NOTIFY captureResolutionChanged)
+    Q_PROPERTY(qreal frameRate READ frameRate WRITE setFrameRate NOTIFY frameRateChanged)
+    Q_PROPERTY(int videoBitRate READ videoBitRate WRITE setVideoBitRate NOTIFY videoBitRateChanged)
+
     Q_PROPERTY(QString audioCodec READ audioCodec WRITE setAudioCodec NOTIFY audioCodecChanged)
+    Q_PROPERTY(int audioBitRate READ audioBitRate WRITE setAudioBitRate NOTIFY audioBitRateChanged)
+    Q_PROPERTY(int audioChannels READ audioChannels WRITE setAudioChannels NOTIFY audioChannelsChanged)
+    Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
+
     Q_PROPERTY(QString mediaContainer READ mediaContainer WRITE setMediaContainer NOTIFY mediaContainerChanged)
 
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -104,6 +111,12 @@ public:
     QMediaRecorder::Error error() const;
     QString errorString() const;
 
+    qreal frameRate() const;
+    int videoBitRate() const;
+    int audioBitRate() const;
+    int audioChannels() const;
+    int audioSampleRate() const;
+
 public Q_SLOTS:
     void setOutputLocation(const QUrl &location);
 
@@ -118,6 +131,12 @@ public Q_SLOTS:
     void setAudioCodec(const QString &codec);
     void setVideoCodec(const QString &codec);
     void setMediaContainer(const QString &container);
+
+    void setFrameRate(qreal frameRate);
+    void setVideoBitRate(int rate);
+    void setAudioBitRate(int rate);
+    void setAudioChannels(int channels);
+    void setAudioSampleRate(int rate);
 
 Q_SIGNALS:
     void recorderStateChanged(QDeclarativeCameraRecorder::RecorderState state);
@@ -135,6 +154,12 @@ Q_SIGNALS:
     void audioCodecChanged(const QString &codec);
     void videoCodecChanged(const QString &codec);
     void mediaContainerChanged(const QString &container);
+
+    void frameRateChanged(qreal arg);
+    void videoBitRateChanged(int arg);
+    void audioBitRateChanged(int arg);
+    void audioChannelsChanged(int arg);
+    void audioSampleRateChanged(int arg);
 
 private slots:
     void updateRecorderState(QMediaRecorder::State);

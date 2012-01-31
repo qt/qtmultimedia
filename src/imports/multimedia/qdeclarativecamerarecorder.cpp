@@ -126,6 +126,76 @@ void QDeclarativeCameraRecorder::setMediaContainer(const QString &container)
     }
 }
 
+qreal QDeclarativeCameraRecorder::frameRate() const
+{
+    return m_videoSettings.frameRate();
+}
+
+int QDeclarativeCameraRecorder::videoBitRate() const
+{
+    return m_videoSettings.bitRate();
+}
+
+int QDeclarativeCameraRecorder::audioBitRate() const
+{
+    return m_audioSettings.bitRate();
+}
+
+int QDeclarativeCameraRecorder::audioChannels() const
+{
+    return m_audioSettings.channelCount();
+}
+
+int QDeclarativeCameraRecorder::audioSampleRate() const
+{
+    return m_audioSettings.sampleRate();
+}
+
+void QDeclarativeCameraRecorder::setFrameRate(qreal frameRate)
+{
+    if (!qFuzzyCompare(m_videoSettings.frameRate(),frameRate)) {
+        m_videoSettings.setFrameRate(frameRate);
+        m_recorder->setVideoSettings(m_videoSettings);
+        emit frameRateChanged(frameRate);
+    }
+}
+
+void QDeclarativeCameraRecorder::setVideoBitRate(int rate)
+{
+    if (m_videoSettings.bitRate() != rate) {
+        m_videoSettings.setBitRate(rate);
+        m_recorder->setVideoSettings(m_videoSettings);
+        emit videoBitRateChanged(rate);
+    }
+}
+
+void QDeclarativeCameraRecorder::setAudioBitRate(int rate)
+{
+    if (m_audioSettings.bitRate() != rate) {
+        m_audioSettings.setBitRate(rate);
+        m_recorder->setAudioSettings(m_audioSettings);
+        emit audioBitRateChanged(rate);
+    }
+}
+
+void QDeclarativeCameraRecorder::setAudioChannels(int channels)
+{
+    if (m_audioSettings.channelCount() != channels) {
+        m_audioSettings.setChannelCount(channels);
+        m_recorder->setAudioSettings(m_audioSettings);
+        emit audioChannelsChanged(channels);
+    }
+}
+
+void QDeclarativeCameraRecorder::setAudioSampleRate(int rate)
+{
+    if (m_audioSettings.sampleRate() != rate) {
+        m_audioSettings.setSampleRate(rate);
+        m_recorder->setAudioSettings(m_audioSettings);
+        emit audioSampleRateChanged(rate);
+    }
+}
+
 QMediaRecorder::Error QDeclarativeCameraRecorder::error() const
 {
     return m_recorder->error();
