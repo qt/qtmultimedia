@@ -101,7 +101,7 @@ class Q_MULTIMEDIA_EXPORT QCameraFocus : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode)
+    Q_PROPERTY(FocusModes focusMode READ focusMode WRITE setFocusMode)
     Q_PROPERTY(FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode)
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint)
     Q_PROPERTY(QCameraFocusZoneList focusZones READ focusZones NOTIFY focusZonesChanged)
@@ -130,9 +130,9 @@ public:
 
     bool isAvailable() const;
 
-    FocusMode focusMode() const;
-    void setFocusMode(FocusMode mode);
-    bool isFocusModeSupported(FocusMode mode) const;
+    FocusModes focusMode() const;
+    void setFocusMode(FocusModes mode);
+    bool isFocusModeSupported(FocusModes mode) const;
 
     FocusPointMode focusPointMode() const;
     void setFocusPointMode(FocusPointMode mode);

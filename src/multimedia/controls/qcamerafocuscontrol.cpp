@@ -92,21 +92,21 @@ QCameraFocusControl::~QCameraFocusControl()
 
 
 /*!
-  \fn QCameraFocus::FocusMode QCameraFocusControl::focusMode() const
+  \fn QCameraFocus::FocusModes QCameraFocusControl::focusMode() const
 
   Returns the focus mode being used.
 */
 
 
 /*!
-  \fn void QCameraFocusControl::setFocusMode(QCameraFocus::FocusMode mode)
+  \fn void QCameraFocusControl::setFocusMode(QCameraFocus::FocusModes mode)
 
   Set the focus mode to \a mode.
 */
 
 
 /*!
-  \fn bool QCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mode) const
+  \fn bool QCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusModes mode) const
 
   Returns true if focus \a mode is supported.
 */

@@ -60,18 +60,18 @@ public:
 
     ~MockCameraFocusControl() {}
 
-    QCameraFocus::FocusMode focusMode() const
+    QCameraFocus::FocusModes focusMode() const
     {
         return m_focusMode;
     }
 
-    void setFocusMode(QCameraFocus::FocusMode mode)
+    void setFocusMode(QCameraFocus::FocusModes mode)
     {
         if (isFocusModeSupported(mode))
             m_focusMode = mode;
     }
 
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const
+    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const
     {
         return mode == QCameraFocus::AutoFocus || mode == QCameraFocus::ContinuousFocus;
     }
@@ -127,7 +127,7 @@ public:
     }
 
 private:
-    QCameraFocus::FocusMode m_focusMode;
+    QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_focusPoint;
     // to emit focus zone changed signal

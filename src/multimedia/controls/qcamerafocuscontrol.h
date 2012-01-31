@@ -61,9 +61,9 @@ class Q_MULTIMEDIA_EXPORT QCameraFocusControl : public QMediaControl
 public:
     ~QCameraFocusControl();
 
-    virtual QCameraFocus::FocusMode focusMode() const = 0;
-    virtual void setFocusMode(QCameraFocus::FocusMode mode) = 0;
-    virtual bool isFocusModeSupported(QCameraFocus::FocusMode mode) const = 0;
+    virtual QCameraFocus::FocusModes focusMode() const = 0;
+    virtual void setFocusMode(QCameraFocus::FocusModes mode) = 0;
+    virtual bool isFocusModeSupported(QCameraFocus::FocusModes mode) const = 0;
 
     virtual QCameraFocus::FocusPointMode focusPointMode() const = 0;
     virtual void setFocusPointMode(QCameraFocus::FocusPointMode mode) = 0;
@@ -74,7 +74,7 @@ public:
     virtual QCameraFocusZoneList focusZones() const = 0;
 
 Q_SIGNALS:
-    void focusModeChanged(QCameraFocus::FocusMode mode);
+    void focusModeChanged(QCameraFocus::FocusModes mode);
     void focusPointModeChanged(QCameraFocus::FocusPointMode mode);
     void customFocusPointChanged(const QPointF &point);
 

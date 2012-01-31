@@ -107,17 +107,17 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus()
 */
 QDeclarativeCamera::FocusModes QDeclarativeCameraFocus::focusMode() const
 {
-    return QDeclarativeCamera::FocusModes(m_focus->focusMode());
+    return QDeclarativeCamera::FocusModes(int(m_focus->focusMode()));
 }
 
 bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusModes mode) const
 {
-    return m_focus->isFocusModeSupported(QCameraFocus::FocusMode(int(mode)));
+    return m_focus->isFocusModeSupported(QCameraFocus::FocusModes(int(mode)));
 }
 
 void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCamera::FocusModes mode)
 {
-    m_focus->setFocusMode(QCameraFocus::FocusMode(int(mode)));
+    m_focus->setFocusMode(QCameraFocus::FocusModes(int(mode)));
 }
 
 /*!

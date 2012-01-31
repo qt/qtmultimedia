@@ -91,9 +91,9 @@ public:
     QCameraFocusFakeFocusControl(QObject *parent) :
         QCameraFocusControl(parent) {}
 
-    QCameraFocus::FocusMode focusMode() const { return QCameraFocus::AutoFocus; }
-    void setFocusMode(QCameraFocus::FocusMode) { qWarning("Focus mode selection is not supported"); }
-    bool isFocusModeSupported(QCameraFocus::FocusMode) const { return false; }
+    QCameraFocus::FocusModes focusMode() const { return QCameraFocus::AutoFocus; }
+    void setFocusMode(QCameraFocus::FocusModes) { qWarning("Focus mode selection is not supported"); }
+    bool isFocusModeSupported(QCameraFocus::FocusModes) const { return false; }
 
     QCameraFocus::FocusPointMode focusPointMode() const { return QCameraFocus::FocusPointAuto; }
     void setFocusPointMode(QCameraFocus::FocusPointMode) { qWarning("Focus points mode selection is not supported"); }
@@ -416,12 +416,12 @@ bool QCameraFocus::isAvailable() const
   \sa QCameraFocus::isFocusModeSupported()
 */
 
-QCameraFocus::FocusMode QCameraFocus::focusMode() const
+QCameraFocus::FocusModes QCameraFocus::focusMode() const
 {
     return d_func()->focusControl->focusMode();
 }
 
-void QCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
+void QCameraFocus::setFocusMode(QCameraFocus::FocusModes mode)
 {
     d_func()->focusControl->setFocusMode(mode);
 }
@@ -430,7 +430,7 @@ void QCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
     Returns true if the focus \a mode is supported by camera.
 */
 
-bool QCameraFocus::isFocusModeSupported(FocusMode mode) const
+bool QCameraFocus::isFocusModeSupported(FocusModes mode) const
 {
     return d_func()->focusControl->isFocusModeSupported(mode);
 }
