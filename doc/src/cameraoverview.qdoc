@@ -152,7 +152,7 @@ well as creating a viewfinder, we will also initialize a media recorder object.
 
     \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera overview movie
 
-Signals from the \i mediaRecorder can be connected to slots to react to
+Signals from the \e mediaRecorder can be connected to slots to react to
 changes in the state of the recorder or error events. Recording itself
 starts with the \l {QMediaRecorder::record()}{record()} function of
 mediaRecorder being called, this causes the signal \l
@@ -224,17 +224,17 @@ for all of these, so you shouldn't need to adjust them unless the user wants a s
 
 If you're taking a series of images (for example, to stitch them together for
 a panoramic image), you should lock the image processing settings so that all the
-images taken appear similar with \i {QCamera::lock(QCamera::LockWhiteBalance)}/
+images taken appear similar with \e {QCamera::lock(QCamera::LockWhiteBalance)}/
 
-\section3 Cancelling Asynchronous Operations
+\section3 Canceling Asynchronous Operations
 
 Various operations such as image capture and auto focusing occur
-asynchrously. These operations can often be cancelled by the start of a new
+asynchrously. These operations can often be canceled by the start of a new
 operation as long as this is supported by the camera. For image capture,
-the operation can be cancelled by calling
+the operation can be canceled by calling
 \l {QCameraImageCapture::cancelCapture()}{cancelCapture()}. For AutoFocus,
 autoexposure or white balance cancellation can be done by calling
-\i {QCamera::unlock(QCamera::LockFocus)}.
+\e {QCamera::unlock(QCamera::LockFocus)}.
 
 \section1 Examples
 

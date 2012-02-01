@@ -71,7 +71,7 @@
 
     \endqml
 
-    The snippet above shows how the inclusion of \i playMusic enables audio features on the element that contains it. So that when the parent's MouseArea is clicked the \l {Audio::play()}{play()} method of the audio element is run. Other typical audio control methods are available such as \l {Audio::pause}{pause()} and \l {Audio::stop()}{stop()}.
+    The snippet above shows how the inclusion of \e playMusic enables audio features on the element that contains it. So that when the parent's MouseArea is clicked the \l {Audio::play()}{play()} method of the audio element is run. Other typical audio control methods are available such as \l {Audio::pause}{pause()} and \l {Audio::stop()}{stop()}.
 
     Much of the getting / setting of \l Audio parameters is done through properties. These include
     \table 70%
@@ -179,7 +179,7 @@
     \endqml
 
     Notice that the slot for the \l {Camera::imageCaptured()}{imageCaptured()}
-    signal is implemented in \i onImageCaptured. However, this code only
+    signal is implemented in \e onImageCaptured. However, this code only
     changes some state information to allow previewing.
 
     The capture call itself is part of the implementation of the button

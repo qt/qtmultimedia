@@ -53,9 +53,9 @@ interface object.
 The Camera constructor does some basic initialization. The camera object is
 set to '0', the user interface is initialized and UI signal are connected to
 slots that react to the triggering event. However, most of the work is done when
-the \i {setCamera()} function is called, passing in a \l {QByteArray}.
+the \e {setCamera()} function is called, passing in a \l {QByteArray}.
 
-\i {setCamera()} sets up various connections between the user interface and the functionality
+\e {setCamera()} sets up various connections between the user interface and the functionality
 of the Camera class using signals and slots. It also instantiates and initializes the \l {QCamera},
 \l {QCameraImageCapture} and \l {QMediaRecorder} objects mentioned above. The still
 and video recording visual tabs are enabled and finally the
@@ -65,10 +65,10 @@ Now that the camera is ready for user commands it waits for a suitable event.
 Such an event will be the key press of either the \l {Qt::Key_CameraFocus} or
 \l {Qt::Key_Camera} buttons on the application window. Camera focus will
 simply display the viewfinder and lock the camera settings. Key_Camera will
-either call \i {takeImage()} if the \l {QCamera::captureMode()}{captureMode()}
+either call \e {takeImage()} if the \l {QCamera::captureMode()}{captureMode()}
 is QCamera::CaptureStillImage, or if the capture mode is for video then one
 of two actions will occur. If the recording state shows that we are currently
-recording then the \i {stop()} function is called resulting in a call to
+recording then the \e {stop()} function is called resulting in a call to
 \l {QCamera::stop()}, whereas if we are not recording then a video recording
 is started with a call to \l {QMediaRecorder::record()}.
 

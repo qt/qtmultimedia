@@ -77,7 +77,7 @@ provider, the service it provides and the control used to manipulate the
 service. Since our MyPlayer object has instances of the service and its
 control then it would be possible for these to be used by associated classes
 that could do additional actions, perhaps with their own control since the
-parameter to requestControl() is a c-type string, \i {const char *}, for the
+parameter to requestControl() is a c-type string, \e {const char *}, for the
 interface.
 
 

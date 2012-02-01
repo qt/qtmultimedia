@@ -63,7 +63,7 @@
 
     \section1 DES (\c des.cpp)
 
-    \i{Implementation of DES encryption for NTLM\br
+    \e {Implementation of DES encryption for NTLM\br
     Copyright 1997-2005 Simon Tatham.\br
     This software is released under the MIT license.}
 
@@ -72,7 +72,7 @@
 
     \section1 FreeType 2 (\c freetype) version 2.3.6
 
-    \i{The FreeType project is a team of volunteers who develop free, portable
+    \e {The FreeType project is a team of volunteers who develop free, portable
     and high-quality software solutions for digital typography. We specifically
     target embedded systems and focus on bringing small, efficient and
     ubiquitous products.} -- quoted from \c 3rdparty/freetype/docs/freetype2.html.
@@ -106,9 +106,9 @@
 
     \section1 HarfBuzz (\c harfbuzz)
 
-    \i{This is HarfBuzz, an OpenType Layout engine.}
+    \e {This is HarfBuzz, an OpenType Layout engine.}
 
-    \i{It was derived originally from the OpenType code in FreeType-1.x, ported to
+    \e {It was derived originally from the OpenType code in FreeType-1.x, ported to
     FreeType2.  (This code has been abandoned for FreeType2, but until something
     better comes along, should serve our purposes.) In addition to porting to
     FreeType-2, it has been modified in various other ways.} -- quoted from
@@ -119,7 +119,7 @@
 
     \section1 The Independent JPEG Group's JPEG Software (\c libjpeg) version 6b
 
-    \i{This package contains C software to implement JPEG image compression and
+    \e {This package contains C software to implement JPEG image compression and
     decompression.  JPEG (pronounced "jay-peg") is a standardized compression
     method for full-color and gray-scale images.  JPEG is intended for compressing
     "real-world" scenes; line drawings, cartoons and other non-realistic images
@@ -131,7 +131,7 @@
 
     \section1 MD4 (\c md4.cpp and \c md4.h)
 
-    \i{MD4 (RFC-1320) message digest.\br
+    \e {MD4 (RFC-1320) message digest.\br
     Modified from MD5 code by Andrey Panin <pazke@donpac.ru>\br\br
     Written by Solar Designer <solar@openwall.com> in 2001, and placed in\br
     the public domain.  There's absolutely no warranty.}
@@ -142,7 +142,7 @@
 
     \section1 MD5 (\c md5.cpp and \c md5.h)
 
-    \i{This code implements the MD5 message-digest algorithm.
+    \e {This code implements the MD5 message-digest algorithm.
     The algorithm is due to Ron Rivest.  This code was
     written by Colin Plumb in 1993, no copyright is claimed.
     This code is in the public domain; do with it what you wish.} -- quoted from
@@ -154,7 +154,7 @@
 
     \section1 MNG Library (\c libmng) version 1.0.10
 
-    \i{The libmng library supports decoding, displaying, encoding, and various
+    \e {The libmng library supports decoding, displaying, encoding, and various
     other manipulations of the Multiple-image Network Graphics (MNG) format
     image files. It uses the zlib compression library, and optionally the
     JPEG library by the Independant JPEG Group (IJG) and/or
@@ -165,7 +165,7 @@
 
     \section1 PNG Reference Library (\c libpng) version 1.2.29
 
-    \i{Libpng was written as a companion to the PNG specification, as a way
+    \e {Libpng was written as a companion to the PNG specification, as a way
     of reducing the amount of time and effort it takes to support the PNG
     file format in application programs.} -- quoted from \c
     src/3rdparty/libpng/libpng.txt.
@@ -174,7 +174,7 @@
 
     \section1 The ptmalloc memory allocator (\c ptmalloc3) version 1.8
 
-    \i ptmcalloc3 is a scalable concurrent memory allocator suitable
+    \e ptmcalloc3 is a scalable concurrent memory allocator suitable
     for use in multi-threaded programs.
 
     \hr
@@ -205,7 +205,7 @@
 
     \section1 SHA-1 (\c sha1.cpp)
 
-    \i{Based on the public domain implementation of the SHA-1 algorithm\br
+    \e {Based on the public domain implementation of the SHA-1 algorithm\br
     Copyright (C) Dominik Reichl <dominik.reichl@t-online.de>}
 
     See \c src/3rdparty/sha1/sha1.cpp for more information about the terms and
@@ -213,7 +213,7 @@
 
     \section1 SQLite (\c sqlite) version 3.5.9
 
-    \i{SQLite is a small C library that implements a
+    \e {SQLite is a small C library that implements a
     self-contained, embeddable, zero-configuration SQL database engine.}
     -- quoted from \l{http://www.sqlite.org/}{www.sqlite.org}.
 
@@ -224,7 +224,7 @@
 
     \section1 TIFF Software Distribution (\c libtiff) version 3.8.2
 
-    \i {libtiff is a set of C functions (a library) that support the
+    \e {libtiff is a set of C functions (a library) that support the
     manipulation of TIFF image files.} -- quoted from \c
     src/libtiff/html/libtiff.html
 
@@ -235,7 +235,7 @@
     Copyright (C) 2004, Andrey Kiselev <dron@ak4719.spb.edu>\br
     Copyright (c) 1997 Greg Ward Larson
 
-    Permission to use, copy, modify, distribute, and sell this software and 
+    Permission to use, copy, modify, distribute, and sell this software and
     its documentation for any purpose is hereby granted without fee, provided
     that (i) the above copyright notices and this permission notice appear in
     all copies of the software and related documentation, and (ii) the names of
@@ -243,15 +243,15 @@
     publicity relating to the software without the specific, prior written
     permission of Sam Leffler and Silicon Graphics.
 
-    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
     IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
     ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
     OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
-    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
+    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
     OF THIS SOFTWARE.
 
     \hr
@@ -259,7 +259,7 @@
     Copyright (c) 1996-1997 Sam Leffler\br
     Copyright (c) 1996 Pixar
 
-    Permission to use, copy, modify, distribute, and sell this software and 
+    Permission to use, copy, modify, distribute, and sell this software and
     its documentation for any purpose is hereby granted without fee, provided
     that (i) the above copyright notices and this permission notice appear in
     all copies of the software and related documentation, and (ii) the names of
@@ -267,15 +267,15 @@
     publicity relating to the software without the specific, prior written
     permission of Pixar, Sam Leffler and Silicon Graphics.
 
-    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
-    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
-    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+    THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+    WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
     IN NO EVENT SHALL PIXAR, SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
     ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
     OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
-    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF 
-    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 
+    WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+    LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
     OF THIS SOFTWARE.
 
     \hr
@@ -291,7 +291,7 @@
 
     \section1 Data Compression Library (\c zlib) version 1.2.3
 
-    \i{zlib is a general purpose data compression library.  All the code
+    \e {zlib is a general purpose data compression library.  All the code
     is thread safe.  The data format used by the zlib library is described
     by RFCs (Request for Comments) 1950 to 1952} -- quoted from \c
     src/3rdparty/zlib/README.

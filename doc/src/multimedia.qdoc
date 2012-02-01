@@ -28,10 +28,15 @@
 /*!
 
 \page multimediaoverview.html
-\title Multimedia Overview
+\title Qt Multimedia
 \brief A set of APIs for working with audio, video, radio and camera devices.
 
-\section1 Multimedia Features
+\ingroup technology-apis
+
+
+\section1 Multimedia Overview
+
+\section2 Features
 
 Qt Multimedia offers APIs for doing many multimedia related tasks:
 
@@ -44,7 +49,7 @@ Qt Multimedia offers APIs for doing many multimedia related tasks:
 \o Use a camera, including viewfinder, image capture, and movie recording
 \endlist
 
-\section1 Multimedia Components
+\section2 Multimedia Components
 
 All of these tasks can be broadly broken down into four main areas.  More information
 (including background information and class references) are available here:
@@ -56,7 +61,7 @@ All of these tasks can be broadly broken down into four main areas.  More inform
 \o \l {Radio Overview}
 \endlist
 
-\section1 Multimedia recipes
+\section2 Multimedia recipes
 For some quick recipes for specific tasks, look at the overviews above and consult this table:
 
 \table 70%
@@ -68,67 +73,67 @@ For some quick recipes for specific tasks, look at the overviews above and consu
     \row
         \o Playing a sound effect
         \o TBD
-        \o SoundEffect
+        \o \l SoundEffect
         \o QSoundEffect
     \row
         \o Playing low latency audio
-        \o audiooutput, spectrum
+        \o \l{audiooutput}, \l{spectrum}
         \o
         \o QAudioOutput
     \row
         \o Playing encoded audio (MP3, AAC etc)
-        \o player
-        \o Audio, MediaPlayer
+        \o \l{player}
+        \o \l Audio, \l {MediaPlayer}
         \o QMediaPlayer
     \row
         \o Accessing raw audio input data
-        \o spectrum, audioinput
+        \o \l{spectrum}, \l audioinput
         \o
         \o QAudioInput
     \row
         \o Recording encoded audio data
-        \o audiorecorder
+        \o \l audiorecorder
         \o
         \o QAudioRecorder
     \row
         \o Discovering raw audio devices
-        \o audiodevices
+        \o \l audiodevices
         \o
         \o QAudioDeviceInfo
     \row
         \o Video Playback
-        \o player, qmlvideo, qmlvideofx
-        \o MediaPlayer, VideoOutput, Video
+        \o \l {player}, \l {video/qmlvideo}{qmlvideo}, \l{video/qmlvideofx}{qmlvideofx}
+        \o \l MediaPlayer, \l VideoOutput, \l Video
         \o QMediaPlayer, QVideoWidget, QGraphicsVideoItem
     \row
         \o Video Processing
-        \o qmlvideofx
-        \o MediaPlayer, VideoOutput
+        \o \l {video/qmlvideofx}{qmlvideofx}
+        \o \l {MediaPlayer}, \l VideoOutput
         \o QMediaPlayer, QAbstractVideoSurface, QVideoFrame
     \row
         \o Listening to the radio
-        \o radio, declarative-radio
-        \o Radio, RadioData
+        \o \l radio, \l declarative-radio
+        \o \l Radio, \l RadioData
         \o QRadioTuner, QRadioData
     \row
         \o Accessing camera viewfinder
-        \o camera, declarative-camera
-        \o Camera, VideoOutput
+        \o \l camera, \l declarative-camera
+        \o \l Camera, \l VideoOutput
         \o QCamera, QVideoWidget, QGraphicsVideoItem
     \row
         \o Viewfinder processing
         \o
-        \o Camera, VideoOutput
+        \o \l Camera, \l VideoOutput
         \o QCamera, QAbstractVideoSurface, QVideoFrame
     \row
         \o Capturing photos
-        \o camera, declarative-camera
-        \o Camera
+        \o \l camera, \l declarative-camera
+        \o \l Camera
         \o QCamera, QCameraImageCapture
     \row
         \o Capturing movies
-        \o camera, declarative-camera
-        \o Camera
+        \o \l camera, \l declarative-camera
+        \o \l Camera
         \o QCamera, QMediaRecorder
 \endtable
 
