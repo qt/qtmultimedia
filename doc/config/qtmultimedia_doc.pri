@@ -37,6 +37,7 @@ QMAKE_CLEAN += \
 
 OTHER_FILES += \
     doc/src/cameraoverview.qdoc \
+    doc/src/changes.qdoc \
     doc/src/multimediabackend.qdoc \
     doc/src/multimedia.qdoc \
     doc/src/audiooverview.qdoc \

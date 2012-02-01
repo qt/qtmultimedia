@@ -145,6 +145,12 @@ For developers wishing to access some platform specific settings,
 or to port the Qt Multimedia APIs to a new platform or technology,
 see \l{Multimedia Backend Development}.
 
+\section1 Changes from previous versions
+
+If you've previously used QtMultimedia in Qt 4.x, or used QtMultimediaKit in QtMobility, please see
+\l {Changes in QtMultimedia} for more information on what has changed, and what you might need to
+change when porting code.
+
 \section1 Reference Documentation
 
 \section2 QML Elements

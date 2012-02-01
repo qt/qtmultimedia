@@ -1,0 +1,157 @@
+/****************************************************************************
+**
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/
+**
+** This file is part of the documentation of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** GNU Free Documentation License
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms
+** and conditions contained in a signed written agreement between you
+** and Nokia.
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+
+\page changes.html
+\title Changes in QtMultimedia
+\brief A description of changes in this version of QtMultimedia
+
+
+The QtMultimedia module in Qt 5 is a combination of the QtMultimedia module
+in Qt 4.x and the QtMultimediaKit module of QtMobility.  It replaces both
+of these modules by combining the code.  If you've previously used QtMultimedia
+there are not too many changes required for existing code, but there are some
+larger changes required for porting code that used QtMultimediaKit (most notably
+the namespace and header file prefix has changed, and the QMake pro file changes
+needed to enable QtMultimedia).
+
+One other change of note is that widget related classes (like \l QVideoWidget)
+are now in a new library (QtMultimediaWidgets).
+
+\section1 New features in 5.0
+
+There are a number of new features in QtMultimedia 5.0:
+\list
+\o Expanded QML API
+\o New \l QAudioRecorder class
+\o Volume support for QAudioOutput and QAudioInput
+\o More examples and documentation
+\o QML \l Torch class
+\o QSound moved from QtGui to QtMultimedia
+\o QSoundEffect available to C++ now, as well as QML
+\o FM Radio Data System classes and elements now available (\l QRadioData, \l RadioData)
+\o Various other API improvements and bugfixes
+\endlist
+
+\section1 Removed features
+
+A number of classes or features previously offered in QtMultimedia or QtMultimediaKit have
+been removed.
+
+\table 70%
+    \header
+        \o Removed feature
+        \o Notes
+    \row
+        \o QMediaImageViewer
+        \o This class (and related controls and services) were removed since
+           their functionality was not suitable for many applications
+\endtable
+
+\section1 Changed features
+
+A number of classes previously offered in QtMultimedia or QtMultimediaKit have
+changed in ways that may affect previously written code.  There may be other
+changes (like new features) that will not affect previously written code, and
+they are documented elsewhere.
+
+\table 70%
+    \header
+        \o Changed feature
+        \o Notes
+    \row
+        \o QMake .pro file changes
+        \o If you've used QtMultimediaKit in the past, you needed to put
+           \code
+           CONFIG += mobility
+           MOBILITY += multimedia
+           \endcode
+           in your .pro file.  Now you need to use:
+           \code
+           QT += multimedia
+           \endcode
+           or
+           \code
+           QT += multimedia multimediawidgets
+           \endcode
+           if you need to use the widget classes.
+    \row
+        \o Namespace changes
+        \o For QtMultimediaKit the majority of the classes were in the
+           normal Qt namespace (usually nothing, unless built specially).  There
+           was a QtMultimediaKit namespace for several enumerations.  This namespace
+           has now changed to QtMultimedia, so if you've used one of the
+           \c SupportEstimate, \c EncodingQuality, \c EncodingMode or \c AvailabilityError
+           enumerations you'll need to change your code.  In fact, running a global
+           search and replace on QtMultimediaKit (to replace it with QtMultimedia) will
+           go a long way with porting your code.
+    \row
+        \o Meta-data enumeration changes
+        \o In QtMultimediaKit the available meta-data keys were in an enumeration
+           in the QtMultimediaKit namespace.  These meta-data keys have been changed
+           to string literals in the QtMultimedia::MetaData namespace - generally your
+           source code will mostly be compatible unless you have created variables or
+           parameters with the QtMultimedia::MetaData type - you should replace these
+           with QStrings.
+    \row
+        \o Meta-data method changes
+        \o In QtMultimediaKit the available meta-data was split between methods to
+           access standard, pre-defined keys, and methods to access extensible free
+           form key meta-data.  These have been combined into a single method to
+           access meta-data given a string key, and a list of pre-defined keys.  If
+           you've used the \c extendedMetaData method of any class, you will need
+           to change your code to combine the standard and extended metadata methods.
+    \row
+        \o Qt Metatype registration
+        \o In QtMultimedia 5.0 we've tried to make sure that we register any classes
+           or types that would be useful to use in cross process signals or in
+           QVariants.  If you've previously added Q_DECLARE_METATYPE macros for any
+           QtMultimedia class you will probably need to remove them.
+    \row
+        \o Video QML element
+        \o If you've previously used the Video QML element you may be excited
+           to learn that it should still work as expected, but you also have
+           the choice of using the new MediaPlayer and VideoOutput elements
+           together for more flexible and advanced use cases.
+    \row
+        \o QSoundEffect
+        \o The SoundEffect QML element was public and accessible in QtMultimedaKit,
+           and now the C++ version is also available.  If you managed to use the
+           private class previously, you'll need to update your code.
+    \row
+        \o Camera controls
+        \o A large number of the camera controls (QCameraImageProcessingControl,
+           QCameraFocusControl etc) have been updated to address a number of
+           design flaws.  If you have previously been using these classes, you
+           should check the new design.  In particular, a number of discrete
+           accessor methods have been collapsed into parametrized methods, and
+           the range or data type of some parameters has been adjusted.
+
+\endtable
+
+*/
