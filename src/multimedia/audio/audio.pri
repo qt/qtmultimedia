@@ -2,6 +2,7 @@ INCLUDEPATH += audio
 
 PUBLIC_HEADERS += \
            audio/qaudio.h \
+           audio/qaudiobuffer.h \
            audio/qaudioformat.h \
            audio/qaudioinput.h \
            audio/qaudiooutput.h \
@@ -12,6 +13,7 @@ PUBLIC_HEADERS += \
            audio/qsound.h
 
 PRIVATE_HEADERS += \
+           audio/qaudiobuffer_p.h \
            audio/qaudiodevicefactory_p.h \
            audio/qaudiopluginloader_p.h \
            audio/qwavedecoder_p.h \
@@ -30,7 +32,8 @@ SOURCES += \
            audio/qsoundeffect.cpp \
            audio/qwavedecoder_p.cpp \
            audio/qsamplecache_p.cpp \
-           audio/qsound.cpp
+           audio/qsound.cpp \
+           audio/qaudiobuffer.cpp
 
 mac {
     PRIVATE_HEADERS +=  audio/qaudioinput_mac_p.h \
