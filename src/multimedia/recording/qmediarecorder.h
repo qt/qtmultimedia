@@ -171,6 +171,7 @@ Q_SIGNALS:
     void metaDataAvailableChanged(bool available);
     void metaDataWritableChanged(bool writable);
     void metaDataChanged();
+    void metaDataChanged(const QString &key, const QVariant &value);
 
 protected:
     QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = 0);

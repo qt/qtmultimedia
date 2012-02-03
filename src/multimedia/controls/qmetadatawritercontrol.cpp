@@ -139,6 +139,16 @@ QMetaDataWriterControl::~QMetaDataWriterControl()
     \fn void QMetaDataWriterControl::metaDataChanged()
 
     Signal the changes of meta-data.
+
+    If multiple meta-data elements are changed,
+    metaDataChanged(const QString &key, const QVariant &value) signal is emitted
+    for each of them with metaDataChanged() changed emitted once.
+*/
+
+/*!
+    \fn void QMetaDataWriterControl::metaDataChanged(const QString &key, const QVariant &value)
+
+    Signal the changes of one meta-data element \a value with the given \a key.
 */
 
 /*!

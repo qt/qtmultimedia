@@ -290,6 +290,8 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
             if (d->metaDataControl) {
                 disconnect(d->metaDataControl, SIGNAL(metaDataChanged()),
                         this, SIGNAL(metaDataChanged()));
+                disconnect(d->metaDataControl, SIGNAL(metaDataChanged(QString,QVariant)),
+                        this, SIGNAL(metaDataChanged(QString,QVariant)));
                 disconnect(d->metaDataControl, SIGNAL(metaDataAvailableChanged(bool)),
                         this, SIGNAL(metaDataAvailableChanged(bool)));
                 disconnect(d->metaDataControl, SIGNAL(writableChanged(bool)),
@@ -331,6 +333,8 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
                         connect(d->metaDataControl,
                                 SIGNAL(metaDataChanged()),
                                 SIGNAL(metaDataChanged()));
+                        connect(d->metaDataControl, SIGNAL(metaDataChanged(QString,QVariant)),
+                                this, SIGNAL(metaDataChanged(QString,QVariant)));
                         connect(d->metaDataControl,
                                 SIGNAL(metaDataAvailableChanged(bool)),
                                 SIGNAL(metaDataAvailableChanged(bool)));
@@ -939,6 +943,16 @@ QStringList QMediaRecorder::availableMetaData() const
     \fn QMediaRecorder::metaDataChanged()
 
     Signals that a media object's meta-data has changed.
+
+    If multiple meta-data elements are changed,
+    metaDataChanged(const QString &key, const QVariant &value) signal is emitted
+    for each of them with metaDataChanged() changed emitted once.
+*/
+
+/*!
+    \fn QMediaRecorder::metaDataChanged(const QString &key, const QVariant &value)
+
+    Signal the changes of one meta-data element \a value with the given \a key.
 */
 
 #include "moc_qmediarecorder.cpp"

@@ -126,6 +126,11 @@ QGstreamerMetaDataProvider::QGstreamerMetaDataProvider(QGstreamerPlayerSession *
     :QMetaDataReaderControl(parent), m_session(session)
 {
     connect(m_session, SIGNAL(tagsChanged()), SLOT(updateTags()));
+
+    const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
+    for (int i = 0; i < count; ++i) {
+        m_keysMap[QByteArray(qt_gstreamerMetaDataKeys[i].token)] = qt_gstreamerMetaDataKeys[i].key;
+    }
 }
 
 QGstreamerMetaDataProvider::~QGstreamerMetaDataProvider()
@@ -144,39 +149,41 @@ bool QGstreamerMetaDataProvider::isWritable() const
 
 QVariant QGstreamerMetaDataProvider::metaData(const QString &key) const
 {
-    static const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
-
-    for (int i = 0; i < count; ++i) {
-        if (qt_gstreamerMetaDataKeys[i].key == key) {
-            return m_session->tags().value(QByteArray(qt_gstreamerMetaDataKeys[i].token));
-        }
-    }
-    return QVariant();
+    return m_tags.value(key);
 }
 
 QStringList QGstreamerMetaDataProvider::availableMetaData() const
 {
-    static QMap<QByteArray, QString> keysMap;
-    if (keysMap.isEmpty()) {
-        const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
-        for (int i = 0; i < count; ++i) {
-            keysMap[QByteArray(qt_gstreamerMetaDataKeys[i].token)] = qt_gstreamerMetaDataKeys[i].key;
-        }
-    }
-
-    QStringList res;
-    foreach (const QByteArray &key, m_session->tags().keys()) {
-        QString tag = keysMap.value(key);
-        if (!tag.isEmpty())
-            res.append(tag);
-    }
-
-    return res;
+    return m_tags.keys();
 }
 
 void QGstreamerMetaDataProvider::updateTags()
 {
-    emit metaDataChanged();
+    QVariantMap oldTags = m_tags;
+    m_tags.clear();
+
+    QSet<QString> allTags = QSet<QString>::fromList(m_tags.keys());
+
+    QMapIterator<QByteArray ,QVariant> i(m_session->tags());
+    while (i.hasNext()) {
+         i.next();
+         //use gstreamer native keys for elements not in m_keysMap
+         QString key = m_keysMap.value(i.key(), i.key());
+         m_tags[key] = i.value();
+         allTags.insert(i.key());
+    }
+
+    bool changed = false;
+    foreach (const QString &key, allTags) {
+        const QVariant value = m_tags.value(key);
+        if (value != oldTags.value(key)) {
+            changed = true;
+            emit metaDataChanged(key, value);
+        }
+    }
+
+    if (changed)
+        emit metaDataChanged();
 }
 
 QT_END_NAMESPACE

@@ -370,13 +370,24 @@ void tst_QMediaObject::metaDataChanged()
     QtTestMetaDataService service;
     QtTestMediaObject object(&service);
 
-    QSignalSpy spy(&object, SIGNAL(metaDataChanged()));
+    QSignalSpy changedSpy(&object, SIGNAL(metaDataChanged()));
+    QSignalSpy changedWithValueSpy(&object, SIGNAL(metaDataChanged(QString, QVariant)));
 
-    service.metaData.metaDataChanged();
-    QCOMPARE(spy.count(), 1);
+    service.metaData.setMetaData("key", "Value");
+    QCOMPARE(changedSpy.count(), 1);
+    QCOMPARE(changedWithValueSpy.count(), 1);
+    QCOMPARE(changedWithValueSpy.last()[0], QVariant("key"));
+    QCOMPARE(changedWithValueSpy.last()[1].value<QVariant>(), QVariant("Value"));
 
-    service.metaData.metaDataChanged();
-    QCOMPARE(spy.count(), 2);
+    service.metaData.setMetaData("key", "Value");
+    QCOMPARE(changedSpy.count(), 1);
+    QCOMPARE(changedWithValueSpy.count(), 1);
+
+    service.metaData.setMetaData("key2", "Value");
+    QCOMPARE(changedSpy.count(), 2);
+    QCOMPARE(changedWithValueSpy.count(), 2);
+    QCOMPARE(changedWithValueSpy.last()[0], QVariant("key2"));
+    QCOMPARE(changedWithValueSpy.last()[1].value<QVariant>(), QVariant("Value"));
 }
 
 void tst_QMediaObject::metaData_data()

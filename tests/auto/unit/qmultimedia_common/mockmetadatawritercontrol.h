@@ -72,7 +72,15 @@ public:
     QVariant metaData(const QString &key) const { return m_data.value(key); }//Getting the metadata from Multimediakit
     void setMetaData(const QString &key, const QVariant &value)
     {
-        m_data.insert(key, value);
+        if (m_data[key] != value) {
+            if (value.isNull())
+                m_data.remove(key);
+            else
+                m_data[key] = value;
+
+            emit metaDataChanged(key, value);
+            emit metaDataChanged();
+        }
     }
 
     using QMetaDataWriterControl::metaDataChanged;

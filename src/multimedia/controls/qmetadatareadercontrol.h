@@ -71,6 +71,7 @@ public:
 
 Q_SIGNALS:
     void metaDataChanged();
+    void metaDataChanged(const QString &key, const QVariant &value);
 
     void metaDataAvailableChanged(bool available);
 

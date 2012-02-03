@@ -833,13 +833,24 @@ void tst_QMediaRecorder::metaDataChanged()
 
     QMediaRecorder recorder(&object);
 
-    QSignalSpy spy(&recorder, SIGNAL(metaDataChanged()));
+    QSignalSpy changedSpy(&recorder, SIGNAL(metaDataChanged()));
+    QSignalSpy changedWithValueSpy(&recorder, SIGNAL(metaDataChanged(QString,QVariant)));
 
-    service.mockMetaDataControl->metaDataChanged();
-    QCOMPARE(spy.count(), 1);
+    service.mockMetaDataControl->setMetaData("key", "Value");
+    QCOMPARE(changedSpy.count(), 1);
+    QCOMPARE(changedWithValueSpy.count(), 1);
+    QCOMPARE(changedWithValueSpy.last()[0], QVariant("key"));
+    QCOMPARE(changedWithValueSpy.last()[1].value<QVariant>(), QVariant("Value"));
 
-    service.mockMetaDataControl->metaDataChanged();
-    QCOMPARE(spy.count(), 2);
+    service.mockMetaDataControl->setMetaData("key", "Value");
+    QCOMPARE(changedSpy.count(), 1);
+    QCOMPARE(changedWithValueSpy.count(), 1);
+
+    service.mockMetaDataControl->setMetaData("key2", "Value");
+    QCOMPARE(changedSpy.count(), 2);
+    QCOMPARE(changedWithValueSpy.count(), 2);
+    QCOMPARE(changedWithValueSpy.last()[0], QVariant("key2"));
+    QCOMPARE(changedWithValueSpy.last()[1].value<QVariant>(), QVariant("Value"));
 }
 
 void tst_QMediaRecorder::metaData_data()

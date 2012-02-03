@@ -347,7 +347,18 @@ QStringList QMediaObject::availableMetaData() const
     \fn QMediaObject::metaDataChanged()
 
     Signals that this media object's meta-data has changed.
+
+    If multiple meta-data elements are changed,
+    metaDataChanged(const QString &key, const QVariant &value) signal is emitted
+    for each of them with metaDataChanged() changed emitted once.
 */
+
+/*!
+    \fn QMediaObject::metaDataChanged(const QString &key, const QVariant &value)
+
+    Signal the changes of one meta-data element \a value with the given \a key.
+*/
+
 
 void QMediaObject::setupMetaData()
 {
@@ -359,6 +370,9 @@ void QMediaObject::setupMetaData()
 
         if (d->metaDataControl) {
             connect(d->metaDataControl, SIGNAL(metaDataChanged()), SIGNAL(metaDataChanged()));
+            connect(d->metaDataControl,
+                    SIGNAL(metaDataChanged(QString,QVariant)),
+                    SIGNAL(metaDataChanged(QString,QVariant)));
             connect(d->metaDataControl,
                     SIGNAL(metaDataAvailableChanged(bool)),
                     SIGNAL(metaDataAvailableChanged(bool)));

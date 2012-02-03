@@ -149,6 +149,7 @@ void QGstreamerCaptureMetaDataControl::setMetaData(const QString &key, const QVa
             m_values.insert(QByteArray::fromRawData(name, qstrlen(name)), value);
 
             emit QMetaDataWriterControl::metaDataChanged();
+            emit QMetaDataWriterControl::metaDataChanged(key, value);
             emit metaDataChanged(m_values);
 
             return;

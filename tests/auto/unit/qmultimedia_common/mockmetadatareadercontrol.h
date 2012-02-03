@@ -73,6 +73,19 @@ public:
         return m_data.value(key);
     }
 
+    void setMetaData(const QString &key, const QVariant &value)
+    {
+        if (m_data[key] != value) {
+            if (value.isNull())
+                m_data.remove(key);
+            else
+                m_data[key] = value;
+
+            emit metaDataChanged(key, value);
+            emit metaDataChanged();
+        }
+    }
+
     using QMetaDataReaderControl::metaDataChanged;
 
     void populateMetaData()
