@@ -181,12 +181,12 @@ QString QDeclarativeCamera::errorString() const
     return m_camera->errorString();
 }
 
-QDeclarativeCamera::CaptureModes QDeclarativeCamera::captureMode() const
+QDeclarativeCamera::CaptureMode QDeclarativeCamera::captureMode() const
 {
-    return QDeclarativeCamera::CaptureModes(int(m_camera->captureMode()));
+    return QDeclarativeCamera::CaptureMode(int(m_camera->captureMode()));
 }
 
-void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureModes mode)
+void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
 {
     m_camera->setCaptureMode(QCamera::CaptureModes(int(mode)));
 }

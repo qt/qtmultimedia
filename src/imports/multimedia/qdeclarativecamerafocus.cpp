@@ -97,7 +97,7 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus()
 
 
 /*!
-    \qmlproperty Camera::FocusModes CameraFocus::focusMode
+    \qmlproperty Camera::FocusMode CameraFocus::focusMode
     \property QDeclarativeCameraFocus::focusMode
 
     The current camera focus mode.
@@ -105,17 +105,17 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus()
     It's possible to combine multiple Camera::FocusMode values,
     for example Camera.FocusMacro + Camera.FocusContinuous.
 */
-QDeclarativeCamera::FocusModes QDeclarativeCameraFocus::focusMode() const
+QDeclarativeCamera::FocusMode QDeclarativeCameraFocus::focusMode() const
 {
-    return QDeclarativeCamera::FocusModes(int(m_focus->focusMode()));
+    return QDeclarativeCamera::FocusMode(int(m_focus->focusMode()));
 }
 
-bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusModes mode) const
+bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusMode mode) const
 {
     return m_focus->isFocusModeSupported(QCameraFocus::FocusModes(int(mode)));
 }
 
-void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCamera::FocusModes mode)
+void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCamera::FocusMode mode)
 {
     m_focus->setFocusMode(QCameraFocus::FocusModes(int(mode)));
 }
