@@ -70,7 +70,7 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
         testApplication = "Multimedia - Play Audio File";
         testBinary = "BGMPTest01";
         testGoal = "Verify that various Audio files can be played.";
-        testPreconditions = "Audio files in " + extension + " format are available on device.";
+        testPreconditions = "Audio files in " + extension + " format are available on device. Launch the native Music player to populate the playlist before opening BGMPTest.";
         testGroups = "BAT";
 
         // Test steps
