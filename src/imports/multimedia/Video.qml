@@ -95,17 +95,16 @@ Item {
         area.
 
         \list
-        \o stretch - the video is scaled to fit.
-        \o preserveAspectFit - the video is scaled uniformly to fit without
+        \o VideoOutput.Stretch - the video is scaled to fit
+        \o VideoOutput.PreserveAspectFit - the video is scaled uniformly to fit without
             cropping
-        \o preserveAspectCrop - the video is scaled uniformly to fill, cropping
+        \o VideoOuput.PreserveAspectCrop - the video is scaled uniformly to fill, cropping
             if necessary
         \endlist
 
         Because this element is a convenience element in QML, it does not
-        support enumerations directly. In contrast to \l VideoOutput and other
-        elements, the values to set for fillMode all start with lowercase
-        letters to work around this.
+        support enumerations directly, so enumerations from VideoOuput are
+        used to access the available fill modes.
 
         The default fill mode is preserveAspectFit.
     */
@@ -119,15 +118,24 @@ Item {
     */
     property alias orientation:         videoOut.orientation
 
-    /* Properties to emulate enumeration for fillMode, documented above */
-    /*! \internal */
-    readonly property int stretch:             VideoOutput.Stretch
-    /*! \internal */
-    readonly property int preserveAspectFit:   VideoOutput.PreserveAspectFit
-    /*! \internal */
-    readonly property int preserveAspectCrop:  VideoOutput.PreserveAspectCrop
 
     /*** Properties of MediaPlayer ***/
+
+    /*!
+        \qmlproperty enumeration Video::playbackState
+
+        This read only property indicates the playback state of the media.
+
+        \list
+        \o MediaPlayer.PlayingState - the media is playing
+        \o MediaPlayer.PausedState - the media is paused
+        \o MediaPlayer.StoppedState - the media is stopped
+        \endlist
+
+        The default state is MediaPlayer.StoppedState.
+    */
+    property alias playbackState:        player.playbackState
+
     /*!
         \qmlproperty bool Video::autoLoad
 
@@ -195,30 +203,12 @@ Item {
     property alias muted:           player.muted
 
     /*!
-        \qmlproperty bool Video::paused
-
-        This property holds whether the media is paused.
-
-        Defaults to false, and can be set to true to pause playback.
-    */
-    property alias paused:          player.paused
-
-    /*!
         \qmlproperty real Video::playbackRate
 
         This property holds the rate at which video is played at as a multiple
         of the normal rate.
     */
     property alias playbackRate:    player.playbackRate
-
-    /*!
-        \qmlproperty bool Video::playing
-
-        This property holds whether the media is playing.
-
-        Defaults to false, and can be set to true to start playback.
-    */
-    property alias playing:         player.playing
 
     /*!
         \qmlproperty int Video::position
@@ -269,17 +259,19 @@ Item {
     property alias volume:          player.volume
 
     /*!
-        \qmlsignal Video::resumed()
+        \qmlproperty bool Video::autoPlay
 
-        This signal is emitted when playback is resumed from the paused state.
+        This property determines whether the media should begin playback automatically.
     */
-    signal resumed
+    property alias autoPlay:        player.autoPlay
+
     /*!
-        \qmlsignal Video::started()
+        \qmlsignal Video::paused()
 
-        This signal is emitted when playback is started.
+        This signal is emitted when playback is paused.
     */
-    signal started
+    signal paused
+
     /*!
         \qmlsignal Video::stopped()
 
@@ -287,6 +279,19 @@ Item {
     */
     signal stopped
 
+    /*!
+        \qmlsignal Video::playing()
+
+        This signal is emitted when playback is started or continued.
+    */
+    signal playing
+
+    /*!
+        \qmlsignal Video::playbackStateChanged()
+
+        This signal is emitted whenever the state of playback changes.
+    */
+    signal playbackStateChanged
 
     VideoOutput {
         id: videoOut
@@ -296,18 +301,17 @@ Item {
 
     MediaPlayer {
         id: player
-        onResumed: video.resumed()
-        onStarted: video.started()
+        onPaused:  video.paused()
         onStopped: video.stopped()
+        onPlaying: video.playing()
+
+        onPlaybackStateChanged: video.playbackStateChanged()
     }
 
     /*!
         \qmlmethod Video::play()
 
         Starts playback of the media.
-
-        Sets the \l playing property to true, and the \l paused property to
-        false.
     */
     function play() {
         player.play();
@@ -317,8 +321,6 @@ Item {
         \qmlmethod Video::pause()
 
         Pauses playback of the media.
-
-        Sets the \l playing and \l paused properties to true.
     */
     function pause() {
         player.pause();
@@ -328,8 +330,6 @@ Item {
         \qmlmethod Video::stop()
 
         Stops playback of the media.
-
-        Sets the \l playing and \l paused properties to false.
     */
     function stop() {
         player.stop();

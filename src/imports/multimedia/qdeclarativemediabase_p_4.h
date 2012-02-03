@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVEMEDIABASE_P_H
-#define QDECLARATIVEMEDIABASE_P_H
+#ifndef QDECLARATIVEMEDIABASE_4_P_H
+#define QDECLARATIVEMEDIABASE_4_P_H
 
 //
 //  W A R N I N G
@@ -68,24 +68,30 @@ class QMetaDataReaderControl;
 class QDeclarativeMediaBaseAnimation;
 class QDeclarativeMediaMetaData;
 
-class QDeclarativeMediaBase
+class QDeclarativeMediaBase_4
 {
 public:
     enum Loop {
         INFINITE = -1
     };
 
-    QDeclarativeMediaBase();
-    virtual ~QDeclarativeMediaBase();
+    QDeclarativeMediaBase_4();
+    virtual ~QDeclarativeMediaBase_4();
 
     QUrl source() const;
     void setSource(const QUrl &url);
 
+    bool isAutoLoad() const;
+    void setAutoLoad(bool autoLoad);
+
     int loopCount() const;
     void setLoopCount(int loopCount);
 
-    QMediaPlayer::State playbackState() const;
-    void setPlaybackState(QMediaPlayer::State playbackState);
+    bool isPlaying() const;
+    void setPlaying(bool playing);
+
+    bool isPaused() const;
+    void setPaused(bool paused);
 
     int duration() const;
 
@@ -115,27 +121,21 @@ public:
 
     void componentComplete();
 
-    bool isAutoLoad() const;
-    void setAutoLoad(bool autoLoad);
-
-    bool autoPlay() const;
-    void setAutoPlay(bool autoplay);
-
 protected:
     void shutdown();
 
     void setObject(QObject *object, const QByteArray &type = Q_MEDIASERVICE_MEDIAPLAYER);
 
     virtual void sourceChanged() = 0;
+    virtual void autoLoadChanged() = 0;
+    virtual void playingChanged() = 0;
+    virtual void pausedChanged() = 0;
     virtual void loopCountChanged() = 0;
 
+    virtual void started() = 0;
+    virtual void resumed() = 0;
     virtual void paused() = 0;
     virtual void stopped() = 0;
-    virtual void playing() = 0;
-
-    virtual void autoLoadChanged() = 0;
-
-    virtual void playbackStateChanged() = 0;
 
     virtual void statusChanged() = 0;
 
@@ -152,9 +152,8 @@ protected:
 
     virtual void errorChanged() = 0;
 
-    virtual void autoPlayChanged() = 0;
-
-    bool m_autoPlay;
+    bool m_paused;
+    bool m_playing;
     bool m_autoLoad;
     bool m_loaded;
     bool m_muted;
@@ -174,7 +173,6 @@ protected:
     QDeclarativeMediaBaseAnimation *m_animation;
     QScopedPointer<QDeclarativeMediaMetaData> m_metaData;
 
-    QMediaPlayer::State m_playbackState;
     QMediaPlayer::MediaStatus m_status;
     QMediaPlayer::Error m_error;
     QString m_errorString;

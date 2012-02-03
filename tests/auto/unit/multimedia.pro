@@ -29,12 +29,6 @@ SUBDIRS += \
     qvideoframe \
     qvideosurfaceformat \
     qwavedecoder \
-    qaudiobuffer
-
-# Tests depending on private interfaces should only be built if
-# these interfaces are exported.
-contains (QT_CONFIG, private_tests) {
-    SUBDIRS += \
-        qdeclarativeaudio
-}
-
+    qaudiobuffer \
+    qdeclarativeaudio \
+    qdeclarativeaudio_4

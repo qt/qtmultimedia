@@ -27,7 +27,9 @@ HEADERS += \
         qdeclarativecamerafocus_p.h \
         qdeclarativecameraimageprocessing_p.h \
         qdeclarativecamerapreviewprovider_p.h \
-        qdeclarativetorch_p.h
+        qdeclarativetorch_p.h \
+        qdeclarativeaudio_p_4.h \
+        qdeclarativemediabase_p_4.h
 
 SOURCES += \
         multimedia.cpp \
@@ -48,10 +50,13 @@ SOURCES += \
         qdeclarativecamerafocus.cpp \
         qdeclarativecameraimageprocessing.cpp \
         qdeclarativecamerapreviewprovider.cpp \
-        qdeclarativetorch.cpp
+        qdeclarativetorch.cpp \
+        qdeclarativemediabase_4.cpp \
+        qdeclarativeaudio_4.cpp
 
 OTHER_FILES += \
-        Video.qml
+    Video_4.qml \
+    Video.qml
 
 qmldir.files += $$PWD/qmldir $$PWD/Video.qml
 qmldir.path +=  $$[QT_INSTALL_IMPORTS]/$$TARGETPATH

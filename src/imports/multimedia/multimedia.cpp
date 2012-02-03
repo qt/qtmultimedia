@@ -47,6 +47,7 @@
 
 #include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
+#include "qdeclarativeaudio_p_4.h"
 #include "qdeclarativevideooutput_p.h"
 #include "qdeclarativeradio_p.h"
 #include "qdeclarativeradiodata_p.h"
@@ -74,8 +75,8 @@ public:
                 || QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
 
         qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "Audio");
-        qmlRegisterType<QDeclarativeAudio>(uri, 4, 0, "MediaPlayer");
+        qmlRegisterType<QDeclarativeAudio_4>(uri, 4, 0, "Audio");
+        qmlRegisterType<QDeclarativeAudio_4>(uri, 4, 0, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
         qmlRegisterType<QDeclarativeRadio>(uri, 4, 0, "Radio");
         qmlRegisterType<QDeclarativeRadioData>(uri, 4, 0, "RadioData");

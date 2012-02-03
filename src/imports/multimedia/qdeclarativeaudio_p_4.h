@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVEAUDIO_P_H
-#define QDECLARATIVEAUDIO_P_H
+#ifndef QDECLARATIVEAUDIO_4_P_H
+#define QDECLARATIVEAUDIO_4_P_H
 
 //
 //  W A R N I N G
@@ -57,7 +57,7 @@
 #include <QtDeclarative/qdeclarativeparserstatus.h>
 #include <QtDeclarative/qdeclarative.h>
 
-#include "qdeclarativemediabase_p.h"
+#include "qdeclarativemediabase_p_4.h"
 
 QT_BEGIN_HEADER
 
@@ -65,14 +65,14 @@ QT_BEGIN_NAMESPACE
 
 class QTimerEvent;
 
-class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public QDeclarativeParserStatus
+class QDeclarativeAudio_4 : public QObject, public QDeclarativeMediaBase_4, public QDeclarativeParserStatus
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(int loops READ loopCount WRITE setLoopCount NOTIFY loopCountChanged)
-    Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
-    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
     Q_PROPERTY(bool autoLoad READ isAutoLoad WRITE setAutoLoad NOTIFY autoLoadChanged)
+    Q_PROPERTY(bool playing READ isPlaying WRITE setPlaying NOTIFY playingChanged)
+    Q_PROPERTY(int loops READ loopCount WRITE setLoopCount NOTIFY loopCountChanged)
+    Q_PROPERTY(bool paused READ isPaused WRITE setPaused NOTIFY pausedChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
@@ -90,7 +90,6 @@ class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public Q
     Q_ENUMS(Status)
     Q_ENUMS(Error)
     Q_ENUMS(Loop)
-    Q_ENUMS(PlaybackState)
     Q_INTERFACES(QDeclarativeParserStatus)
 public:
     enum Status
@@ -118,25 +117,17 @@ public:
 
     enum Loop
     {
-        Infinite = QDeclarativeMediaBase::INFINITE
+        Infinite = QDeclarativeMediaBase_4::INFINITE
     };
 
-    enum PlaybackState
-    {
-        PlayingState = QMediaPlayer::PlayingState,
-        PausedState = QMediaPlayer::PausedState,
-        StoppedState = QMediaPlayer::StoppedState
-    };
-
-    QDeclarativeAudio(QObject *parent = 0);
-    ~QDeclarativeAudio();
+    QDeclarativeAudio_4(QObject *parent = 0);
+    ~QDeclarativeAudio_4();
 
     bool hasAudio() const;
     bool hasVideo() const;
 
     Status status() const;
     Error error() const;
-    PlaybackState playbackState() const;
 
     void classBegin();
     void componentComplete();
@@ -151,14 +142,14 @@ public Q_SLOTS:
 Q_SIGNALS:
     void sourceChanged();
     void autoLoadChanged();
+    void playingChanged();
+    void pausedChanged();
     void loopCountChanged();
 
-    void playbackStateChanged();
-    void autoPlayChanged();
-
+    void started();
+    void resumed();
     void paused();
     void stopped();
-    void playing();
 
     void statusChanged();
 
@@ -176,7 +167,7 @@ Q_SIGNALS:
     void playbackRateChanged();
 
     void errorChanged();
-    void error(QDeclarativeAudio::Error error, const QString &errorString);
+    void error(QDeclarativeAudio_4::Error error, const QString &errorString);
 
     void mediaObjectChanged();
 
@@ -184,15 +175,15 @@ private Q_SLOTS:
     void _q_error(int, const QString &);
 
 private:
-    Q_DISABLE_COPY(QDeclarativeAudio)
+    Q_DISABLE_COPY(QDeclarativeAudio_4)
     Q_PRIVATE_SLOT(mediaBase(), void _q_statusChanged())
 
-    inline QDeclarativeMediaBase *mediaBase() { return this; }
+    inline QDeclarativeMediaBase_4 *mediaBase() { return this; }
 };
 
 QT_END_NAMESPACE
 
-QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeAudio))
+QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeAudio_4))
 
 QT_END_HEADER
 

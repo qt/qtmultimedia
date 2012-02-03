@@ -39,69 +39,12 @@
 **
 ****************************************************************************/
 
-#include "qdeclarativeaudio_p.h"
+#include "qdeclarativeaudio_p_4.h"
 
 #include <qmediaplayercontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-/*!
-    \qmlclass MediaPlayer
-    \brief The MediaPlayer element allows you to add media playback to a scene.
-
-    \ingroup multimedia_qml
-
-    This element is part of the \bold{QtMultimedia 5.0} module.
-
-    \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
-    Text {
-        text: "Click Me!";
-        font.pointSize: 24;
-        width: 150; height: 50;
-
-        MediaPlayer {
-            id: playMusic
-            source: "music.wav"
-        }
-        MouseArea {
-            id: playArea
-            anchors.fill: parent
-            onPressed:  { playMusic.play() }
-        }
-    }
-    \endqml
-
-    You can use MediaPlayer by itself to play audio content (like the \l Audio element),
-    or you can use it in conjunction with a \l VideoOutput element for rendering video.
-
-    \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
-    Item {
-        MediaPlayer {
-            id: mediaplayer
-            source: "groovy_video.mp4"
-        }
-
-        VideoOutput {
-            anchors: parent.fill
-            source: mediaplayer
-        }
-
-        MouseArea {
-            id: playArea
-            anchors.fill: parent
-            onPressed: mediaplayer.play();
-        }
-    }
-    \endqml
-
-    \sa VideoOutput
-*/
 
 /*!
     \qmlclass Audio QDeclarativeAudio
@@ -141,7 +84,7 @@ QT_BEGIN_NAMESPACE
     \brief The QDeclarativeAudio class provides an audio item that you can add to a QDeclarativeView.
 */
 
-void QDeclarativeAudio::_q_error(int errorCode, const QString &errorString)
+void QDeclarativeAudio_4::_q_error(int errorCode, const QString &errorString)
 {
     m_error = QMediaPlayer::Error(errorCode);
     m_errorString = errorString;
@@ -151,12 +94,12 @@ void QDeclarativeAudio::_q_error(int errorCode, const QString &errorString)
 }
 
 
-QDeclarativeAudio::QDeclarativeAudio(QObject *parent)
+QDeclarativeAudio_4::QDeclarativeAudio_4(QObject *parent)
     : QObject(parent)
 {
 }
 
-QDeclarativeAudio::~QDeclarativeAudio()
+QDeclarativeAudio_4::~QDeclarativeAudio_4()
 {
     shutdown();
 }
@@ -166,15 +109,16 @@ QDeclarativeAudio::~QDeclarativeAudio()
 
     Starts playback of the media.
 
-    Sets the \l playbackState property to PlayingState.
+    Sets the \l playing property to true, and the \l paused property to false.
 */
 
-void QDeclarativeAudio::play()
+void QDeclarativeAudio_4::play()
 {
     if (!m_complete)
         return;
 
-    setPlaybackState(QMediaPlayer::PlayingState);
+    setPaused(false);
+    setPlaying(true);
 }
 
 /*!
@@ -182,15 +126,16 @@ void QDeclarativeAudio::play()
 
     Pauses playback of the media.
 
-    Sets the \l playbackState property to PausedState.
+    Sets the \l playing and \l paused properties to true.
 */
 
-void QDeclarativeAudio::pause()
+void QDeclarativeAudio_4::pause()
 {
     if (!m_complete)
         return;
 
-    setPlaybackState(QMediaPlayer::PausedState);
+    setPaused(true);
+    setPlaying(true);
 }
 
 /*!
@@ -198,15 +143,16 @@ void QDeclarativeAudio::pause()
 
     Stops playback of the media.
 
-    Sets the \l playbackState property to StoppedState.
+    Sets the \l playing and \l paused properties to false.
 */
 
-void QDeclarativeAudio::stop()
+void QDeclarativeAudio_4::stop()
 {
     if (!m_complete)
         return;
 
-    setPlaybackState(QMediaPlayer::StoppedState);
+    setPlaying(false);
+    setPaused(false);
 }
 
 /*!
@@ -224,28 +170,43 @@ void QDeclarativeAudio::stop()
 */
 
 /*!
-    \qmlsignal Audio::playbackStateChanged()
+    \qmlproperty bool Audio::playing
 
-    This handler is called when the \l playbackState property is altered.
+    This property holds whether the media is playing.
+
+    Defaults to false, and can be set to true to start playback.
 */
 
+/*!
+    \qmlproperty bool Audio::paused
+
+    This property holds whether the media is paused.
+
+    Defaults to false, and can be set to true to pause playback.
+*/
 
 /*!
-    \qmlsignal Audio::paused()
+    \qmlsignal Audio::onStarted()
+
+    This handler is called when playback is started.
+*/
+
+/*!
+    \qmlsignal Audio::onResumed()
+
+    This handler is called when playback is resumed from the paused state.
+*/
+
+/*!
+    \qmlsignal Audio::onPaused()
 
     This handler is called when playback is paused.
 */
 
 /*!
-    \qmlsignal Audio::stopped()
+    \qmlsignal Audio::onStopped()
 
     This handler is called when playback is stopped.
-*/
-
-/*!
-    \qmlsignal Audio::playing()
-
-    This handler is called when playback is started or resumed.
 */
 
 /*!
@@ -266,36 +227,10 @@ void QDeclarativeAudio::stop()
     \endlist
 */
 
-QDeclarativeAudio::Status QDeclarativeAudio::status() const
+QDeclarativeAudio_4::Status QDeclarativeAudio_4::status() const
 {
     return Status(m_status);
 }
-
-
-/*!
-    \qmlproperty enumeration Audio::playbackState
-
-    This property holds the state of media playback. It can be one of:
-
-    \list
-    \o PlayingState - the media is currently playing.
-    \o PausedState - playback of the media has been suspended.
-    \o StoppedState - playback of the media is yet to begin.
-    \endlist
-*/
-
-QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
-{
-    return PlaybackState(m_playbackState);
-}
-
-/*!
-    \qmlproperty int Audio::autoPlay
-
-    This property controls whether the media will begin to play on start up.
-
-    Defaults to false, if set true the value of autoLoad will be overwritten to true.
-*/
 
 /*!
     \qmlproperty int Audio::duration
@@ -331,7 +266,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
     This property holds whether the media contains audio.
 */
 
-bool QDeclarativeAudio::hasAudio() const
+bool QDeclarativeAudio_4::hasAudio() const
 {
     return !m_complete ? false : m_playerControl->isAudioAvailable();
 }
@@ -342,7 +277,7 @@ bool QDeclarativeAudio::hasAudio() const
     This property holds whether the media contains video.
 */
 
-bool QDeclarativeAudio::hasVideo() const
+bool QDeclarativeAudio_4::hasVideo() const
 {
     return !m_complete ? false : m_playerControl->isVideoAvailable();
 }
@@ -384,12 +319,12 @@ bool QDeclarativeAudio::hasVideo() const
     \endlist
 */
 
-QDeclarativeAudio::Error QDeclarativeAudio::error() const
+QDeclarativeAudio_4::Error QDeclarativeAudio_4::error() const
 {
     return Error(m_error);
 }
 
-void QDeclarativeAudio::classBegin()
+void QDeclarativeAudio_4::classBegin()
 {
     setObject(this);
 
@@ -403,9 +338,9 @@ void QDeclarativeAudio::classBegin()
     emit mediaObjectChanged();
 }
 
-void QDeclarativeAudio::componentComplete()
+void QDeclarativeAudio_4::componentComplete()
 {
-    QDeclarativeMediaBase::componentComplete();
+    QDeclarativeMediaBase_4::componentComplete();
 }
 
 
@@ -789,6 +724,6 @@ void QDeclarativeAudio::componentComplete()
 
 QT_END_NAMESPACE
 
-#include "moc_qdeclarativeaudio_p.cpp"
+#include "moc_qdeclarativeaudio_p_4.cpp"
 
 
