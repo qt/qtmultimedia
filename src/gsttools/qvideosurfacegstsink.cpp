@@ -208,15 +208,18 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
             m_frame.setEndTime((startTime + duration)/G_GINT64_CONSTANT (1000000));
     }
 
-    QMetaObject::invokeMethod(this, "queuedRender", Qt::QueuedConnection);
+    m_renderReturn = GST_FLOW_OK;
 
-    if (!m_renderCondition.wait(&m_mutex, 300)) {
-        m_frame = QVideoFrame();
-
-        return GST_FLOW_OK;
+    if (QThread::currentThread() == thread()) {
+        if (!m_surface.isNull())
+            m_surface->present(m_frame);
     } else {
-        return m_renderReturn;
+        QMetaObject::invokeMethod(this, "queuedRender", Qt::QueuedConnection);
+        m_renderCondition.wait(&m_mutex, 300);
     }
+
+    m_frame = QVideoFrame();
+    return m_renderReturn;
 }
 
 void QVideoSurfaceGstDelegate::queuedStart()
