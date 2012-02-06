@@ -46,7 +46,7 @@
 
 /*!
     \class QSound
-    \brief The QSound class provides a way to play .wav sound files.
+    \brief The QSound class provides a method to play .wav sound files.
 
     \ingroup multimedia
     \ingroup multimedia_audio
@@ -74,6 +74,10 @@
     static play() function, but it may also play more immediately
     (depending on the underlying platform audio facilities).
 
+    If you require finer control over playing sounds, consider the
+    \l QSoundEffect or \l QAudioOutput classes.
+
+    \sa QSoundEffect
 */
 
 

@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
     \brief The QVideoWidgetControl class provides a media control which
     implements a video widget.
 
-    \inmodule QtMultimedia
+    \inmodule QtMultimediaWidgets
     \ingroup multimedia-serv
 
     The videoWidget() property of QVideoWidgetControl provides a pointer to a

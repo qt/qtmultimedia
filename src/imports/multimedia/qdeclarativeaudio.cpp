@@ -45,6 +45,63 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \qmlclass MediaPlayer
+    \brief The MediaPlayer element allows you to add media playback to a scene.
+
+    \ingroup multimedia_qml
+
+    This element is part of the \bold{QtMultimedia 5.0} module.
+
+    \qml
+    import QtQuick 2.0
+    import QtMultimedia 5.0
+
+    Text {
+        text: "Click Me!";
+        font.pointSize: 24;
+        width: 150; height: 50;
+
+        MediaPlayer {
+            id: playMusic
+            source: "music.wav"
+        }
+        MouseArea {
+            id: playArea
+            anchors.fill: parent
+            onPressed:  { playMusic.play() }
+        }
+    }
+    \endqml
+
+    You can use MediaPlayer by itself to play audio content (like the \l Audio element),
+    or you can use it in conjunction with a \l VideoOutput element for rendering video.
+
+    \qml
+    import QtQuick 2.0
+    import QtMultimedia 5.0
+
+    Item {
+        MediaPlayer {
+            id: mediaplayer
+            source: "groovy_video.mp4"
+        }
+
+        VideoOutput {
+            anchors: parent.fill
+            source: mediaplayer
+        }
+
+        MouseArea {
+            id: playArea
+            anchors.fill: parent
+            onPressed: mediaplayer.play();
+        }
+    }
+    \endqml
+
+    \sa VideoOutput
+*/
 
 /*!
     \qmlclass Audio QDeclarativeAudio

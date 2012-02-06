@@ -584,9 +584,7 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     \brief The QVideoWidget class provides a widget which presents video
     produced by a media object.
     \ingroup multimedia
-    \inmodule QtMultimedia
-
-    \inmodule QtMultimedia
+    \inmodule QtMultimediaWidgets
 
     Attaching a QVideoWidget to a QMediaObject allows it to display the
     video or image output of that media object.  A QVideoWidget is attached

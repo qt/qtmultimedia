@@ -87,7 +87,7 @@ namespace
     You can change between the frequency bands using setBand() however it is recommended
     that you check to make sure the band is available first using isBandSupported().
 
-    \sa {Radio Overview}
+    \sa QRadioData, {Radio Overview}
 */
 
 

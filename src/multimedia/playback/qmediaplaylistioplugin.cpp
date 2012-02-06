@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaPlaylistReader
+    \internal
 
     \brief The QMediaPlaylistReader class provides an interface for reading a playlist file.
     \inmodule QtMultimedia
@@ -86,6 +87,7 @@ QMediaPlaylistReader::~QMediaPlaylistReader()
 
 /*!
     \class QMediaPlaylistWriter
+    \internal
 
     \brief The QMediaPlaylistWriter class provides an interface for writing a playlist file.
 
