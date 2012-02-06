@@ -225,7 +225,7 @@ void QMediaPluginLoader::load()
 #endif
             }
 
-            delete o;
+            loader.unload();
         }
     }
 }
