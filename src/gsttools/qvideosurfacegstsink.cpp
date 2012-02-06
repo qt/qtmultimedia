@@ -66,6 +66,7 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     : m_surface(surface)
     , m_pool(0)
     , m_renderReturn(GST_FLOW_ERROR)
+    , m_lastPrerolledBuffer(0)
     , m_bytesPerLine(0)
     , m_startCanceled(false)
 {
@@ -87,6 +88,7 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
 QVideoSurfaceGstDelegate::~QVideoSurfaceGstDelegate()
 {
     qDeleteAll(m_pools);
+    setLastPrerolledBuffer(0);
 }
 
 QList<QVideoFrame::PixelFormat> QVideoSurfaceGstDelegate::supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
@@ -220,6 +222,23 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 
     m_frame = QVideoFrame();
     return m_renderReturn;
+}
+
+void QVideoSurfaceGstDelegate::setLastPrerolledBuffer(GstBuffer *prerolledBuffer)
+{
+    // discard previously stored buffer
+    if (m_lastPrerolledBuffer) {
+        gst_buffer_unref(m_lastPrerolledBuffer);
+        m_lastPrerolledBuffer = 0;
+    }
+
+    if (!prerolledBuffer)
+        return;
+
+    // store a reference to the buffer
+    Q_ASSERT(!m_lastPrerolledBuffer);
+    m_lastPrerolledBuffer = prerolledBuffer;
+    gst_buffer_ref(m_lastPrerolledBuffer);
 }
 
 void QVideoSurfaceGstDelegate::queuedStart()
@@ -393,6 +412,8 @@ QVideoSurfaceGstSink *QVideoSurfaceGstSink::createSink(QAbstractVideoSurface *su
 
     sink->delegate = new QVideoSurfaceGstDelegate(surface);
 
+    g_signal_connect(G_OBJECT(sink), "notify::show-preroll-frame", G_CALLBACK(handleShowPrerollChange), sink);
+
     return sink;
 }
 
@@ -435,7 +456,7 @@ void QVideoSurfaceGstSink::class_init(gpointer g_class, gpointer class_data)
     base_sink_class->start = QVideoSurfaceGstSink::start;
     base_sink_class->stop = QVideoSurfaceGstSink::stop;
     // base_sink_class->unlock = QVideoSurfaceGstSink::unlock; // Not implemented.
-    // base_sink_class->event = QVideoSurfaceGstSink::event; // Not implemented.
+    base_sink_class->event = QVideoSurfaceGstSink::event;
     base_sink_class->preroll = QVideoSurfaceGstSink::preroll;
     base_sink_class->render = QVideoSurfaceGstSink::render;
 
@@ -664,6 +685,26 @@ QVideoSurfaceFormat QVideoSurfaceGstSink::formatForCaps(GstCaps *caps, int *byte
     return QVideoSurfaceFormat();
 }
 
+void QVideoSurfaceGstSink::handleShowPrerollChange(GObject *o, GParamSpec *p, gpointer d)
+{
+    Q_UNUSED(o);
+    Q_UNUSED(p);
+    QVideoSurfaceGstSink *sink = reinterpret_cast<QVideoSurfaceGstSink *>(d);
+
+    gboolean value = true; // "show-preroll-frame" property is true by default
+    g_object_get(G_OBJECT(sink), "show-preroll-frame", &value, NULL);
+
+    GstBuffer *buffer = sink->delegate->lastPrerolledBuffer();
+    // Render the stored prerolled buffer if requested.
+    // e.g. player is in stopped mode, then seek operation is requested,
+    // surface now stores a prerolled frame, but doesn't display it until
+    // "show-preroll-frame" property is set to "true"
+    // when switching to pause or playing state.
+    if (value && buffer) {
+        sink->delegate->render(buffer);
+        sink->delegate->setLastPrerolledBuffer(0);
+    }
+}
 
 GstFlowReturn QVideoSurfaceGstSink::buffer_alloc(
         GstBaseSink *base, guint64 offset, guint size, GstCaps *caps, GstBuffer **buffer)
@@ -781,8 +822,11 @@ gboolean QVideoSurfaceGstSink::unlock(GstBaseSink *base)
 
 gboolean QVideoSurfaceGstSink::event(GstBaseSink *base, GstEvent *event)
 {
-    Q_UNUSED(base);
-    Q_UNUSED(event);
+    // discard prerolled frame
+    if (event->type == GST_EVENT_FLUSH_START) {
+        VO_SINK(base);
+        sink->delegate->setLastPrerolledBuffer(0);
+    }
 
     return TRUE;
 }
@@ -790,12 +834,23 @@ gboolean QVideoSurfaceGstSink::event(GstBaseSink *base, GstEvent *event)
 GstFlowReturn QVideoSurfaceGstSink::preroll(GstBaseSink *base, GstBuffer *buffer)
 {
     VO_SINK(base);
-    return sink->delegate->render(buffer);
+
+    gboolean value = true; // "show-preroll-frame" property is true by default
+    g_object_get(G_OBJECT(base), "show-preroll-frame", &value, NULL);
+    if (value) {
+        sink->delegate->setLastPrerolledBuffer(0); // discard prerolled buffer
+        return sink->delegate->render(buffer); // display frame
+    }
+
+    // otherwise keep a reference to the buffer to display it later
+    sink->delegate->setLastPrerolledBuffer(buffer);
+    return GST_FLOW_OK;
 }
 
 GstFlowReturn QVideoSurfaceGstSink::render(GstBaseSink *base, GstBuffer *buffer)
 {
     VO_SINK(base);
+    sink->delegate->setLastPrerolledBuffer(0); // discard prerolled buffer
     return sink->delegate->render(buffer);
 }
 

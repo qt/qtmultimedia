@@ -41,6 +41,7 @@
 
 #include <QtTest/QtTest>
 #include <QDebug>
+#include <qabstractvideosurface.h>
 #include "qmediaservice.h"
 #include "qmediaplayer.h"
 
@@ -76,11 +77,37 @@ private slots:
     void volumeAndMuted();
     void volumeAcrossFiles_data();
     void volumeAcrossFiles();
+    void seekPauseSeek();
 
 private:
     //one second local wav file
     QMediaContent localWavFile;
 };
+
+/*
+    This is a simple video surface which records all presented frames.
+*/
+
+class TestVideoSurface : public QAbstractVideoSurface
+{
+    Q_OBJECT
+public:
+    explicit TestVideoSurface() { }
+
+    //video surface
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
+
+    bool start(const QVideoSurfaceFormat &format);
+    void stop();
+    bool present(const QVideoFrame &frame);
+
+    QList<QVideoFrame>& frameList() { return m_frameList; }
+
+private:
+    QList<QVideoFrame> m_frameList;
+};
+
 
 void tst_QMediaPlayerBackend::init()
 {
@@ -407,6 +434,104 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
 
     QCOMPARE(player.volume(), volume);
     QCOMPARE(player.isMuted(), muted);
+}
+
+void tst_QMediaPlayerBackend::seekPauseSeek()
+{
+    QMediaPlayer player;
+
+    QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
+
+    TestVideoSurface *surface = new TestVideoSurface;
+    player.setVideoOutput(surface);
+
+    QFileInfo videoFile(QLatin1String(TESTDATA_DIR "testdata/colors.mp4"));
+    QVERIFY(videoFile.exists());
+
+    player.setMedia(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
+    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    QVERIFY(surface->frameList().isEmpty()); // frame must not appear until we call pause() or play()
+
+    positionSpy.clear();
+    player.setPosition((qint64)7000);
+    QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - (qint64)7000) < (qint64)500);
+    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    QTest::qWait(250); // wait a bit to ensure the frame is not rendered
+    QVERIFY(surface->frameList().isEmpty()); // still no frame, we must call pause() or play() to see a frame
+
+    player.pause();
+    QTRY_COMPARE(player.state(), QMediaPlayer::PausedState); // it might take some time for the operation to be completed
+    QTRY_COMPARE(surface->frameList().size(), 1); // we must see a frame at position 7000 here
+
+    {
+        QVideoFrame frame = surface->frameList().back();
+        QVERIFY(qAbs(frame.startTime() - (qint64)7000) < (qint64)500);
+        QCOMPARE(frame.width(), 160);
+        QCOMPARE(frame.height(), 120);
+
+        // create QImage for QVideoFrame to verify RGB pixel colors
+        QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+        QImage image(frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
+        QVERIFY(!image.isNull());
+        QVERIFY(qRed(image.pixel(0, 0)) >= 240); // conversion from YUV => RGB, that's why it's not 255
+        QCOMPARE(qGreen(image.pixel(0, 0)), 0);
+        QCOMPARE(qBlue(image.pixel(0, 0)), 0);
+        frame.unmap();
+    }
+
+    positionSpy.clear();
+    player.setPosition((qint64)12000);
+    QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - (qint64)12000) < (qint64)500);
+    QCOMPARE(player.state(), QMediaPlayer::PausedState);
+    QCOMPARE(surface->frameList().size(), 2);
+
+    {
+        QVideoFrame frame = surface->frameList().back();
+        QVERIFY(qAbs(frame.startTime() - (qint64)12000) < (qint64)500);
+        QCOMPARE(frame.width(), 160);
+        QCOMPARE(frame.height(), 120);
+
+        QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+        QImage image(frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
+        QVERIFY(!image.isNull());
+        QCOMPARE(qRed(image.pixel(0, 0)), 0);
+        QVERIFY(qGreen(image.pixel(0, 0)) >= 240);
+        QCOMPARE(qBlue(image.pixel(0, 0)), 0);
+        frame.unmap();
+    }
+}
+
+QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
+        QAbstractVideoBuffer::HandleType handleType) const
+{
+    if (handleType == QAbstractVideoBuffer::NoHandle) {
+        return QList<QVideoFrame::PixelFormat>()
+                << QVideoFrame::Format_RGB32
+                << QVideoFrame::Format_ARGB32
+                << QVideoFrame::Format_ARGB32_Premultiplied
+                << QVideoFrame::Format_RGB565
+                << QVideoFrame::Format_RGB555;
+    } else {
+        return QList<QVideoFrame::PixelFormat>();
+    }
+}
+
+bool TestVideoSurface::start(const QVideoSurfaceFormat &format)
+{
+    if (!isFormatSupported(format)) return false;
+
+    return QAbstractVideoSurface::start(format);
+}
+
+void TestVideoSurface::stop()
+{
+    QAbstractVideoSurface::stop();
+}
+
+bool TestVideoSurface::present(const QVideoFrame &frame)
+{
+    m_frameList.push_back(frame);
+    return true;
 }
 
 
