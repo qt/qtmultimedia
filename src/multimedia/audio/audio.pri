@@ -18,7 +18,8 @@ PRIVATE_HEADERS += \
            audio/qaudiodevicefactory_p.h \
            audio/qaudiopluginloader_p.h \
            audio/qwavedecoder_p.h \
-           audio/qsamplecache_p.h
+           audio/qsamplecache_p.h \
+           audio/qaudiodecoder_p.h
 
 SOURCES += \
            audio/qaudio.cpp \
@@ -35,7 +36,8 @@ SOURCES += \
            audio/qsamplecache_p.cpp \
            audio/qsound.cpp \
            audio/qaudiobuffer.cpp \
-           audio/qaudioprobe.cpp
+           audio/qaudioprobe.cpp \
+           audio/qaudiodecoder_p.cpp
 
 mac {
     PRIVATE_HEADERS +=  audio/qaudioinput_mac_p.h \

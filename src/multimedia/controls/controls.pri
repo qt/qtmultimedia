@@ -35,6 +35,9 @@ PUBLIC_HEADERS += \
     controls/qmediaaudioprobecontrol.h \
     controls/qmediavideoprobecontrol.h
 
+PRIVATE_HEADERS += \
+    controls/qaudiodecodercontrol_p.h
+
 SOURCES += \
     controls/qaudioencodercontrol.cpp \
     controls/qcameracapturebufferformatcontrol.cpp \
@@ -67,4 +70,5 @@ SOURCES += \
     controls/qvideoencodercontrol.cpp \
     controls/qvideorenderercontrol.cpp \
     controls/qmediaaudioprobecontrol.cpp \
-    controls/qmediavideoprobecontrol.cpp
+    controls/qmediavideoprobecontrol.cpp \
+    controls/qaudiodecodercontrol_p.cpp

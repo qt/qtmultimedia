@@ -218,6 +218,14 @@ public:
 */
 #define Q_MEDIASERVICE_RADIO "com.nokia.qt.radio"
 
+/*!
+    Service with support for decoding audio.
+    Required Controls: QAudioDecoderControl
+    Optional: that streams control
+*/
+#define Q_MEDIASERVICE_AUDIODECODER "com.nokia.qt.audiodecode"
+
+
 
 QT_END_NAMESPACE
 
