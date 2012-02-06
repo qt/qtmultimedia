@@ -45,6 +45,7 @@ Rectangle {
     id: root
     color: "white"
     property int buttonHeight: 35
+    property int topMargin: 0
 
     signal openImage
     signal openVideo
@@ -53,9 +54,8 @@ Rectangle {
 
     Rectangle {
         anchors {
-            topMargin: 10
-            bottomMargin: 10
             top: parent.top;
+            topMargin: root.topMargin
             bottom: parent.bottom;
             horizontalCenter: parent.horizontalCenter
         }

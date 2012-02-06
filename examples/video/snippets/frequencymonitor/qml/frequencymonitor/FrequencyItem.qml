@@ -55,7 +55,7 @@ Rectangle {
 
     border.width: 1
     border.color: "yellow"
-    width: 3.5 * root.textSize
+    width: 5.5 * root.textSize
     height: 3.0 * root.textSize
     color: "black"
     opacity: 0.5
@@ -74,20 +74,22 @@ Rectangle {
         samplingInterval: root.enabled ? root.samplingInterval : 0
         onAverageFrequencyChanged: {
             if (root.logging) trace()
-            instantaneousFrequencyText.text = monitor.instantaneousFrequency.toFixed(2)
             averageFrequencyText.text = monitor.averageFrequency.toFixed(2)
         }
     }
 
     Text {
-        id: instantaneousFrequencyText
+        id: labelText
         anchors {
-            right: parent.right
+            left: parent.left
             top: parent.top
             margins: 10
         }
         color: root.textColor
-        font.pixelSize: root.textSize
+        font.pixelSize: 0.6 * root.textSize
+        text: root.label
+        width: root.width - 2*anchors.margins
+        elide: Text.ElideRight
     }
 
     Text {

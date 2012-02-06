@@ -79,8 +79,6 @@ Rectangle {
                 item.anchors.top = content.top
                 item.anchors.left = content.left
                 item.anchors.right = content.right
-                item.height = 100
-                item.anchors.margins = 5
                 item.logging = root.perfMonitorsLogging
                 item.displayed = root.perfMonitorsVisible
                 item.init()
@@ -123,6 +121,7 @@ Rectangle {
                 margins: 5
             }
             buttonHeight: 32
+            topMargin: 10
         }
     }
 

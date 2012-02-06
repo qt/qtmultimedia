@@ -51,6 +51,14 @@ Rectangle {
     property bool perfMonitorsLogging: false
     property bool perfMonitorsVisible: false
 
+    QtObject {
+        id: d
+        property bool dialogShown: (fileOpenContainer.state == "shown" ||
+                                    effectSelectionPanel.state == "shown" ||
+                                    videoFileBrowser.shown ||
+                                    imageFileBrowser.shown)
+    }
+
     // Create ScreenSaver element via Loader, so this app will still run if the
     // SystemInfo module is not available
     Loader {
@@ -59,18 +67,25 @@ Rectangle {
 
     Loader {
         id: performanceLoader
+
+        Connections {
+            target: d
+            onDialogShownChanged:
+                if (performanceLoader.item)
+                    performanceLoader.item.enabled = !d.dialogShown
+            ignoreUnknownSignals: true
+        }
+
         function init() {
             console.log("[qmlvideofx] performanceLoader.init logging " + root.perfMonitorsLogging + " visible " + root.perfMonitorsVisible)
             var enabled = root.perfMonitorsLogging || root.perfMonitorsVisible
             source = enabled ? "../performancemonitor/PerformanceItem.qml" : ""
         }
+
         onLoaded: {
             item.parent = root
             item.anchors.top = root.top
-            item.anchors.topMargin = 100
             item.anchors.left = root.left
-            item.anchors.right = root.right
-            item.anchors.bottom = root.verticalCenter
             item.logging = root.perfMonitorsLogging
             item.displayed = root.perfMonitorsVisible
             item.init()
@@ -121,8 +136,7 @@ Rectangle {
                 }
             ]
 
-            enabled: false
-            state: enabled ? "shown" : "baseState"
+            state: (enabled && !d.dialogShown) ? "shown" : "baseState"
         }
 
         EffectSelectionPanel {
@@ -295,7 +309,7 @@ Rectangle {
                 splashScreen.state = "hidden"
                 fileOpenContainer.state = "shown"
             }
-            enabled: (fileOpenContainer.state != "shown" && effectSelectionPanel.state != "shown")
+            enabled: !d.dialogShown
         }
 
         HintedMouseArea {
@@ -313,7 +327,7 @@ Rectangle {
                 splashScreen.state = "hidden"
                 effectSelectionPanel.state = "shown"
             }
-            enabled: (fileOpenContainer.state != "shown" && effectSelectionPanel.state != "shown")
+            enabled: !d.dialogShown
         }
 
         Image {

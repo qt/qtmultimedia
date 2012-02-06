@@ -47,6 +47,7 @@ Rectangle {
     color: "transparent"
 
     property string folder
+    property bool shown: loader.sourceComponent
 
     signal fileSelected(string file)
 

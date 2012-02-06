@@ -69,16 +69,27 @@ Rectangle {
 
     Loader {
         id: performanceLoader
+
+        Connections {
+            target: inner
+            onVisibleChanged:
+                if (performanceLoader.item)
+                    performanceLoader.item.enabled = !inner.visible
+            ignoreUnknownSignals: true
+        }
+
         function init() {
             console.log("[qmlvideo] performanceLoader.init logging " + root.perfMonitorsLogging + " visible " + root.perfMonitorsVisible)
             var enabled = root.perfMonitorsLogging || root.perfMonitorsVisible
             source = enabled ? "../performancemonitor/PerformanceItem.qml" : ""
         }
+
         onLoaded: {
             item.parent = root
             item.anchors.fill = root
             item.logging = root.perfMonitorsLogging
             item.displayed = root.perfMonitorsVisible
+            item.enabled = false
             item.init()
         }
     }

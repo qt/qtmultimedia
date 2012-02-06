@@ -46,65 +46,96 @@ Rectangle {
     property bool logging: true
     property bool displayed: true
     property bool videoActive
-    property int samplingInterval: 500
-    property color textColor: "yellow"
-    property int textSize: 28
     property int margins: 5
+    property bool enabled: true
 
     color: "transparent"
 
     // This should ensure that the monitor is on top of all other content
     z: 999
 
-    Loader {
-        id: videoFrameRateItemLoader
-        function init() {
-            source = "../frequencymonitor/FrequencyItem.qml"
-            item.label = "videoFrameRate"
-            item.parent = root
-            item.anchors.left = root.left
-            item.anchors.top = root.top
-            item.anchors.margins = root.margins
-            item.logging = root.logging
-            item.displayed = root.displayed
-            videoFrameRateActiveConnections.target = item
+    Column {
+        id: column
+        anchors {
+            fill: root
+            margins: 10
         }
-
-        Connections {
-            id: videoFrameRateActiveConnections
-            ignoreUnknownSignals: true
-            onActiveChanged: root.videoActive = videoFrameRateActiveConnections.target.active
-        }
+        spacing: 10
     }
 
-    Loader {
-        id: qmlFrameRateItemLoader
-        function init() {
-            source = "../frequencymonitor/FrequencyItem.qml"
-            item.label = "qmlFrameRate"
-            item.parent = root
-            item.anchors.left = root.left
-            item.anchors.bottom = root.bottom
-            item.anchors.margins = root.margins
-            item.logging = root.logging
-            item.displayed = root.displayed
-        }
+    QtObject {
+        id: d
+        property Item qmlFrameRateItem: null
+        property Item videoFrameRateItem: null
     }
+
+    Connections {
+        id: videoFrameRateActiveConnections
+        ignoreUnknownSignals: true
+        onActiveChanged: root.videoActive = videoFrameRateActiveConnections.target.active
+    }
+
+    states: [
+        State {
+            name: "hidden"
+            PropertyChanges {
+                target: root
+                opacity: 0
+            }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            from: "*"
+            to: "*"
+            NumberAnimation {
+                properties: "opacity"
+                easing.type: Easing.OutQuart
+                duration: 500
+            }
+        }
+    ]
+
+    state: enabled ? "baseState" : "hidden"
+
+    function createQmlFrameRateItem() {
+        var component = Qt.createComponent("../frequencymonitor/FrequencyItem.qml")
+        if (component.status == Component.Ready)
+            d.qmlFrameRateItem = component.createObject(column, { label: "QML frame rate",
+                                                                   displayed: root.displayed,
+                                                                  logging: root.logging
+                                                                })
+    }
+
+    function createVideoFrameRateItem() {
+        var component = Qt.createComponent("../frequencymonitor/FrequencyItem.qml")
+        if (component.status == Component.Ready)
+            d.videoFrameRateItem = component.createObject(column, { label: "Video frame rate",
+                                                                     displayed: root.displayed,
+                                                                    logging: root.logging
+                                                                  })
+        videoFrameRateActiveConnections.target = d.videoFrameRateItem
+    }
+
 
     function init() {
-        videoFrameRateItemLoader.init()
-        qmlFrameRateItemLoader.init()
+        createQmlFrameRateItem()
+        createVideoFrameRateItem()
     }
 
     function videoFramePainted() {
-        videoFrameRateItemLoader.item.notify()
+        if (d.videoFrameRateItem)
+            d.videoFrameRateItem.notify()
     }
 
     function qmlFramePainted() {
-        qmlFrameRateItemLoader.item.notify()
+        if (d.qmlFrameRateItem)
+            d.qmlFrameRateItem.notify()
     }
 
     onVideoActiveChanged: {
-        videoFrameRateItemLoader.item.active = root.videoActive
+        if (d.videoFrameRateItem)
+            d.videoFrameRateItem.active = root.videoActive
     }
 }
