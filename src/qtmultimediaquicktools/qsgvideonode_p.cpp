@@ -41,6 +41,8 @@
 
 #include "qsgvideonode_p.h"
 
+QT_BEGIN_NAMESPACE
+
 QSGVideoNode::QSGVideoNode()
     : m_orientation(-1)
 {
@@ -122,3 +124,5 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
 
     markDirty(DirtyGeometry);
 }
+
+QT_END_NAMESPACE

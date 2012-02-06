@@ -39,35 +39,52 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_P_H
-#define QSGVIDEONODE_P_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtQuick/qsgnode.h>
+#ifndef QMULTIMEDIAQUICKDEFS_P_H
+#define QMULTIMEDIAQUICKDEFS_P_H
 
-#include <QtMultimedia/qvideoframe.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
-#include <QtGui/qopenglfunctions.h>
+#include <QtCore/qglobal.h>
 
-class QSGVideoNode : public QSGGeometryNode
-{
-public:
-    QSGVideoNode();
+QT_BEGIN_HEADER
 
-    virtual void setCurrentFrame(const QVideoFrame &frame) = 0;
-    virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
+#if defined(Q_OS_WIN)
+#  if defined(QT_NODLL)
+#    undef QT_MAKEDLL
+#    undef QT_DLL
+#  elif defined(QT_MAKEDLL)
+#    if defined(QT_DLL)
+#      undef QT_DLL
+#    endif
+#    if defined(QT_BUILD_QTMM_QUICK_LIB)
+#        define Q_MULTIMEDIAQUICK_EXPORT Q_DECL_EXPORT
+#    else
+#        define Q_MULTIMEDIAQUICK_EXPORT Q_DECL_IMPORT
+#    endif
+#  elif defined(QT_DLL) /* use a Qt DLL library */
+#    define Q_MULTIMEDIAQUICK_EXPORT Q_DECL_IMPORT
+#  endif
+#endif
 
-    void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
+#if !defined(Q_MULTIMEDIAQUICK_EXPORT)
+#  if defined(QT_SHARED)
+#    define Q_MULTIMEDIAQUICK_EXPORT Q_DECL_EXPORT
+#  else
+#    define Q_MULTIMEDIAQUICK_EXPORT
+#  endif
+#endif
 
-private:
-    QRectF m_rect;
-    QRectF m_textureRect;
-    int m_orientation;
-};
+QT_END_HEADER
 
-class QSGVideoNodeFactory {
-public:
-    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
-    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
-};
 
-#endif // QSGVIDEONODE_H
+#endif // QMULTIMEDIAQUICKDEFS_P_H
+

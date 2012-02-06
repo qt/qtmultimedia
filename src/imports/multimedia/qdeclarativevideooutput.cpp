@@ -40,7 +40,7 @@
 ****************************************************************************/
 #include "qdeclarativevideooutput_p.h"
 
-#include "qsgvideonode_p.h"
+#include <private/qsgvideonode_p.h>
 #include "qsgvideonode_i420.h"
 #include "qsgvideonode_rgb.h"
 
@@ -50,7 +50,7 @@
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qvideorenderercontrol.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
-
+#include <private/qmediapluginloader_p.h>
 
 #include <QtCore/qmetaobject.h>
 
@@ -58,6 +58,9 @@
 Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 
 QT_BEGIN_NAMESPACE
+
+Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
+        (QSGVideoNodeFactory_iid, QLatin1String("video"), Qt::CaseInsensitive))
 
 class QSGVideoItemSurface : public QAbstractVideoSurface
 {
@@ -172,6 +175,14 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     connect(m_surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
             this, SLOT(_q_updateNativeSize(QVideoSurfaceFormat)), Qt::QueuedConnection);
 
+    foreach (QObject *instance, videoNodeFactoryLoader()->instances(QSGVideoNodeFactoryPluginKey)) {
+        QSGVideoNodeFactory* plugin = qobject_cast<QSGVideoNodeFactory*>(instance);
+        if (plugin) {
+            m_videoNodeFactories.append(plugin);
+        }
+    }
+
+    // Append existing node factories as fallback if we have no plugins
     m_videoNodeFactories.append(new QSGVideoNodeFactory_I420);
     m_videoNodeFactories.append(new QSGVideoNodeFactory_RGB);
 }

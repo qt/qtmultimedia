@@ -39,37 +39,52 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_I420_H
-#define QSGVIDEONODE_I420_H
+#ifndef QSGVIDEONODE_P_H
+#define QSGVIDEONODE_P_H
 
-#include <private/qsgvideonode_p.h>
+#include <QtQuick/qsgnode.h>
+#include <private/qtmultimediaquickdefs_p.h>
+
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtGui/qopenglfunctions.h>
+#include <QtCore/qfactoryinterface.h>
 
-class QSGVideoMaterial_YUV420;
-class QSGVideoNode_I420 : public QSGVideoNode
+QT_BEGIN_HEADER
+
+QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
+const QLatin1String QSGVideoNodeFactoryPluginKey("sgvideonodes");
+
+class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNode : public QSGGeometryNode
 {
 public:
-    QSGVideoNode_I420(const QVideoSurfaceFormat &format);
-    ~QSGVideoNode_I420();
+    QSGVideoNode();
 
-    virtual QVideoFrame::PixelFormat pixelFormat() const {
-        return m_format.pixelFormat();
-    }
-    void setCurrentFrame(const QVideoFrame &frame);
+    virtual void setCurrentFrame(const QVideoFrame &frame) = 0;
+    virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
+
+    void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
 private:
-    void bindTexture(int id, int unit, int w, int h, const uchar *bits);
-
-    QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_YUV420 *m_material;
+    QRectF m_rect;
+    QRectF m_textureRect;
+    int m_orientation;
 };
 
-class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactory {
+class QSGVideoNodeFactory : public QFactoryInterface {
 public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
-    QStringList keys() const;
+    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
+    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
 };
 
+#define QSGVideoNodeFactory_iid "com.nokia.Qt.QSGVideoNodeFactory"
+Q_DECLARE_INTERFACE(QSGVideoNodeFactory, QSGVideoNodeFactory_iid)
 
-#endif // QSGVIDEONODE_I420_H
+QT_END_NAMESPACE
+
+QT_END_HEADER
+
+#endif // QSGVIDEONODE_H

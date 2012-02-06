@@ -8,12 +8,13 @@ QT += declarative quick network multimedia-private
 DESTDIR = $$QT.multimedia.imports/$$TARGETPATH
 target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
 
+LIBS += -lQtMultimediaQuick_p
+
 HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediabase_p.h \
         qdeclarativemediametadata_p.h \
         qdeclarativevideooutput_p.h \
-        qsgvideonode_p.h \
         qsgvideonode_i420.h \
         qsgvideonode_rgb.h \
         qdeclarativeradio_p.h \
@@ -36,7 +37,6 @@ SOURCES += \
         qdeclarativeaudio.cpp \
         qdeclarativemediabase.cpp \
         qdeclarativevideooutput.cpp \
-        qsgvideonode.cpp \
         qsgvideonode_i420.cpp \
         qsgvideonode_rgb.cpp \
         qdeclarativeradio.cpp \

@@ -52,7 +52,7 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qmutex.h>
 
-#include "qsgvideonode_p.h"
+#include <private/qsgvideonode_p.h>
 
 QT_BEGIN_NAMESPACE
 
