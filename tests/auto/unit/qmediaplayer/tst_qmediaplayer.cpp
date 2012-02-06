@@ -379,11 +379,6 @@ void tst_QMediaPlayer::testPosition()
         QCOMPARE(player->position(), qint64(0));
         QCOMPARE(spy.count(), position == 0 ? 0 : 1); }
 
-        mockService->setPosition(position);
-        { QSignalSpy spy(player, SIGNAL(positionChanged(qint64)));
-        player->setPosition(duration + 1);
-        QCOMPARE(player->position(), duration);
-        QCOMPARE(spy.count(), position == duration ? 0 : 1); }
     }
     else {
         QSignalSpy spy(player, SIGNAL(positionChanged(qint64)));

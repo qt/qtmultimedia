@@ -601,10 +601,10 @@ void QMediaPlayer::setPosition(qint64 position)
 {
     Q_D(QMediaPlayer);
 
-    if (d->control == 0 || !isSeekable())
+    if (d->control == 0)
         return;
 
-    d->control->setPosition(qBound(qint64(0), position, duration()));
+    d->control->setPosition(qMax(position, 0ll));
 }
 
 void QMediaPlayer::setVolume(int v)
