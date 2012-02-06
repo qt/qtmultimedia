@@ -55,7 +55,7 @@
 #include "directshowplayerservice.h"
 #endif
 
-#include <qmediaserviceprovider.h>
+#include <qmediaserviceproviderplugin.h>
 
 
 #ifdef QMEDIA_DIRECTSHOW_CAMERA

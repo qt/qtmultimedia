@@ -26,6 +26,7 @@ PRIVATE_HEADERS += \
     qmediaobject_p.h \
     qmediapluginloader_p.h \
     qmediaservice_p.h \
+    qmediaserviceprovider_p.h \
 
 PUBLIC_HEADERS += \
     qmediabindableinterface.h \
@@ -33,7 +34,6 @@ PUBLIC_HEADERS += \
     qmediaenumdebug.h \
     qmediaobject.h \
     qmediaservice.h \
-    qmediaserviceprovider.h \
     qmediaserviceproviderplugin.h \
     qmediatimerange.h \
     qtmedianamespace.h \

@@ -41,7 +41,7 @@
 
 #include "qvideosurfaceoutput_p.h"
 #include "qmediaobject_p.h"
-#include "qmediaserviceprovider.h"
+#include "qmediaserviceprovider_p.h"
 
 #include <qcamera.h>
 #include <qcameracontrol.h>

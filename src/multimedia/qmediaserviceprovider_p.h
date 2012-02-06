@@ -39,31 +39,48 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qstring.h>
+#ifndef QMEDIASERVICEPROVIDER_H
+#define QMEDIASERVICEPROVIDER_H
 
-#include "audiocaptureserviceplugin.h"
-#include "audiocaptureservice.h"
-
+#include <QtCore/qobject.h>
+#include <QtCore/qshareddata.h>
+#include <qtmultimediadefs.h>
+#include "qtmedianamespace.h"
 #include "qmediaserviceproviderplugin.h"
 
+QT_BEGIN_HEADER
 
-QStringList AudioCaptureServicePlugin::keys() const
+QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
+
+class QMediaService;
+
+class Q_MULTIMEDIA_EXPORT QMediaServiceProvider : public QObject
 {
-    return QStringList() << QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE);
-}
+    Q_OBJECT
 
-QMediaService* AudioCaptureServicePlugin::create(QString const& key)
-{
-    if (key == QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE))
-        return new AudioCaptureService;
+public:
+    virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
+    virtual void releaseService(QMediaService *service) = 0;
 
-    return 0;
-}
+    virtual QtMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
+                                             const QString &mimeType,
+                                             const QStringList& codecs,
+                                             int flags = 0) const;
+    virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
 
-void AudioCaptureServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
+    virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
+    virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
 
-Q_EXPORT_PLUGIN2(qtmedia_audioengine, AudioCaptureServicePlugin);
+    static QMediaServiceProvider* defaultServiceProvider();
+    static void setDefaultServiceProvider(QMediaServiceProvider *provider);
+};
 
+QT_END_NAMESPACE
+
+QT_END_HEADER
+
+
+#endif  // QMEDIASERVICEPROVIDER_H

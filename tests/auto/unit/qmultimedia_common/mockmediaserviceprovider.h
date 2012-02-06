@@ -42,7 +42,7 @@
 #ifndef MOCKMEDIASERVICEPROVIDER_H
 #define MOCKMEDIASERVICEPROVIDER_H
 
-#include "qmediaserviceprovider.h"
+#include "private/qmediaserviceprovider_p.h"
 #include "qmediaservice.h"
 
 // Simple provider that lets you set the service

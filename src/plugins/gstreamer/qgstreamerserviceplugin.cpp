@@ -60,7 +60,7 @@
 #include "camerabinservice.h"
 #endif
 
-#include <qmediaserviceprovider.h>
+#include <qmediaserviceproviderplugin.h>
 
 #include <linux/types.h>
 #include <sys/time.h>

@@ -45,7 +45,7 @@
 #include "qmediaobject_p.h"
 #include <qmediaservice.h>
 #include <qmediaplayercontrol.h>
-#include <qmediaserviceprovider.h>
+#include <qmediaserviceprovider_p.h>
 #include <qmediaplaylist.h>
 #include <qmediaplaylistcontrol.h>
 #include <qmediaplaylistsourcecontrol.h>

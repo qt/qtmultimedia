@@ -48,7 +48,7 @@
 
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
-#include <qmediaserviceprovider.h>
+#include <private/qmediaserviceprovider_p.h>
 #include <qmetadatareadercontrol.h>
 
 #include <QtWidgets/qapplication.h>

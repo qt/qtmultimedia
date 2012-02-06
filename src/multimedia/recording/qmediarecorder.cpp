@@ -45,7 +45,7 @@
 #include <qmediarecordercontrol.h>
 #include "qmediaobject_p.h"
 #include <qmediaservice.h>
-#include <qmediaserviceprovider.h>
+#include <qmediaserviceprovider_p.h>
 #include <qmetadatawritercontrol.h>
 #include <qaudioencodercontrol.h>
 #include <qvideoencodercontrol.h>

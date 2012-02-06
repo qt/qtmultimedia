@@ -45,8 +45,8 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qplugin.h>
 #include <QtCore/qfactoryinterface.h>
+#include <qtmedianamespace.h>
 #include <qtmultimediadefs.h>
-#include "qmediaserviceprovider.h"
 
 #ifdef Q_MOC_RUN
 # pragma Q_MOC_EXPAND_MACROS
@@ -58,8 +58,54 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
 class QMediaService;
+
+class QMediaServiceProviderHintPrivate;
+class Q_MULTIMEDIA_EXPORT QMediaServiceProviderHint
+{
+public:
+    enum Type { Null, ContentType, Device, SupportedFeatures };
+
+    enum Feature {
+        LowLatencyPlayback = 0x01,
+        RecordingSupport = 0x02,
+        StreamPlayback = 0x04,
+        VideoSurface = 0x08,
+        BackgroundPlayback = 0x10,
+    };
+    Q_DECLARE_FLAGS(Features, Feature)
+
+    QMediaServiceProviderHint();
+    QMediaServiceProviderHint(const QString &mimeType, const QStringList& codecs);
+    QMediaServiceProviderHint(const QByteArray &device);
+    QMediaServiceProviderHint(Features features);
+    QMediaServiceProviderHint(const QMediaServiceProviderHint &other);
+    ~QMediaServiceProviderHint();
+
+    QMediaServiceProviderHint& operator=(const QMediaServiceProviderHint &other);
+
+    bool operator == (const QMediaServiceProviderHint &other) const;
+    bool operator != (const QMediaServiceProviderHint &other) const;
+
+    bool isNull() const;
+
+    Type type() const;
+
+    QString mimeType() const;
+    QStringList codecs() const;
+
+    QByteArray device() const;
+
+    Features features() const;
+
+    //to be extended, if necessary
+
+private:
+    QSharedDataPointer<QMediaServiceProviderHintPrivate> d;
+};
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QMediaServiceProviderHint::Features)
+
 
 struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface : public QFactoryInterface
 {
@@ -104,6 +150,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceFeaturesInterface
     virtual QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const = 0;
 };
 
+
 #define QMediaServiceFeaturesInterface_iid \
     "com.nokia.Qt.QMediaServiceFeaturesInterface/1.0"
 Q_DECLARE_INTERFACE(QMediaServiceFeaturesInterface, QMediaServiceFeaturesInterface_iid)
@@ -119,6 +166,58 @@ public:
     virtual QMediaService* create(const QString& key) = 0;
     virtual void release(QMediaService *service) = 0;
 };
+
+/*!
+    Service with support for media playback
+    Required Controls: QMediaPlayerControl
+    Optional Controls: QMediaPlaylistControl, QAudioDeviceControl
+    Video Output Controls (used by QWideoWidget and QGraphicsVideoItem):
+                        Required: QVideoOutputControl
+                        Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
+*/
+#define Q_MEDIASERVICE_MEDIAPLAYER "com.nokia.qt.mediaplayer"
+
+/*!
+    Service with support for background media playback
+    Required Controls: QMediaPlayerControl, QMediaBackgroundPlaybackControl
+    Optional Controls: QMediaPlaylistControl, QAudioDeviceControl
+*/
+#define Q_MEDIASERVICE_BACKGROUNDMEDIAPLAYER "com.nokia.qt.backgroundmediaplayer"
+
+/*!
+   Service with support for recording from audio sources
+   Required Controls: QAudioDeviceControl
+   Recording Controls (QMediaRecorder):
+                        Required: QMediaRecorderControl
+                        Recommended: QAudioEncoderControl
+                        Optional: QMediaContainerControl
+*/
+#define Q_MEDIASERVICE_AUDIOSOURCE "com.nokia.qt.audiosource"
+
+/*!
+    Service with support for camera use.
+    Required Controls: QCameraControl
+    Optional Controls: QCameraExposureControl, QCameraFocusControl, QCameraImageProcessingControl
+    Still Capture Controls: QCameraImageCaptureControl
+    Video Capture Controls (QMediaRecorder):
+                        Required: QMediaRecorderControl
+                        Recommended: QAudioEncoderControl, QVideoEncoderControl, QMediaContainerControl
+    Viewfinder Video Output Controls (used by QCameraViewfinder and QGraphicsVideoItem):
+                        Required: QVideoOutputControl
+                        Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
+*/
+#define Q_MEDIASERVICE_CAMERA "com.nokia.qt.camera"
+
+/*!
+    Service with support for radio tuning.
+    Required Controls: QRadioTunerControl
+    Recording Controls (Optional, used by QMediaRecorder):
+                        Required: QMediaRecorderControl
+                        Recommended: QAudioEncoderControl
+                        Optional: QMediaContainerControl
+*/
+#define Q_MEDIASERVICE_RADIO "com.nokia.qt.radio"
+
 
 QT_END_NAMESPACE
 

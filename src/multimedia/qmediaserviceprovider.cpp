@@ -43,7 +43,7 @@
 #include <QtCore/qmap.h>
 
 #include "qmediaservice.h"
-#include "qmediaserviceprovider.h"
+#include "qmediaserviceprovider_p.h"
 #include "qmediaserviceproviderplugin.h"
 #include "qmediapluginloader_p.h"
 #include "qmediaplayer.h"
@@ -89,6 +89,8 @@ public:
     \ingroup multimedia
     \ingroup multimedia_control
     \ingroup multimedia_core
+
+    \internal
 
     The QMediaServiceProvider class uses hints to select an appropriate media service.
 */
@@ -533,6 +535,8 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
     \ingroup multimedia_control
     \ingroup multimedia_core
 
+    \internal
+
     \brief The QMediaServiceProvider class provides an abstract allocator for media services.
 */
 
@@ -742,7 +746,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     Returns a set of features supported by a plug-in \a service.
 */
 
-#include "moc_qmediaserviceprovider.cpp"
+#include "moc_qmediaserviceprovider_p.cpp"
 #include "moc_qmediaserviceproviderplugin.cpp"
 QT_END_NAMESPACE
 

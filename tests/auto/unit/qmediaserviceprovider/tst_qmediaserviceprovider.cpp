@@ -45,7 +45,7 @@
 #include <QDebug>
 #include <QStringList>
 
-#include <qmediaserviceprovider.h>
+#include <private/qmediaserviceprovider_p.h>
 #include <qmediaserviceproviderplugin.h>
 #include <private/qmediapluginloader_p.h>
 #include <qmediaobject.h>

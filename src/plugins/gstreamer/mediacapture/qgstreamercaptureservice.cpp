@@ -62,7 +62,7 @@
 #include "qgstreamervideowidget.h"
 #endif
 
-#include <qmediaserviceprovider.h>
+#include <qmediaserviceproviderplugin.h>
 
 QT_BEGIN_NAMESPACE
 

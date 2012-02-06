@@ -44,7 +44,7 @@
 #include "qmediaobject_p.h"
 #include "qmediarecorder_p.h"
 #include <qmediaservice.h>
-#include <qmediaserviceprovider.h>
+#include <qmediaserviceprovider_p.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>

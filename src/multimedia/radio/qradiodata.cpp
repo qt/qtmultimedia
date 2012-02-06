@@ -43,7 +43,7 @@
 #include "qmediaservice.h"
 #include "qmediaobject_p.h"
 #include "qradiodatacontrol.h"
-#include "qmediaserviceprovider.h"
+#include "qmediaserviceprovider_p.h"
 
 #include <QPair>
 
