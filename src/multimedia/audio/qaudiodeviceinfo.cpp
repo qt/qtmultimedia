@@ -63,8 +63,8 @@ class QAudioDeviceInfoPrivate : public QSharedData
 {
 public:
     QAudioDeviceInfoPrivate()
-        : info(0),
-          mode(QAudio::AudioOutput)
+        : mode(QAudio::AudioOutput)
+        , info(0)
     {
     }
 
@@ -203,6 +203,7 @@ bool QAudioDeviceInfo::operator ==(const QAudioDeviceInfo &other) const
             && d->handle == other.d->handle
             && deviceName() == other.deviceName())
         return true;
+    return false;
 }
 
 /*!
