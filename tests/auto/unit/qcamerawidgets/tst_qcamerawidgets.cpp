@@ -145,10 +145,9 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     stateChangedSignal.clear();
     statusChangedSignal.clear();
 
-    QTest::qWait(10);
-
     QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(camera.status(), QCamera::ActiveStatus);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+
     QCOMPARE(stateChangedSignal.count(), 0);
     QCOMPARE(statusChangedSignal.count(), 1);
     stateChangedSignal.clear();
@@ -160,7 +159,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     QCOMPARE(statusChangedSignal.count(), 0);
 
     camera.setCaptureMode(QCamera::CaptureStillImage);
-    QTest::qWait(10);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
     stateChangedSignal.clear();
     statusChangedSignal.clear();
 
@@ -174,10 +173,9 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     stateChangedSignal.clear();
     statusChangedSignal.clear();
 
-    QTest::qWait(10);
-
     QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(camera.status(), QCamera::ActiveStatus);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+
     QCOMPARE(stateChangedSignal.count(), 0);
     QCOMPARE(statusChangedSignal.count(), 1);
     stateChangedSignal.clear();
@@ -197,10 +195,9 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     stateChangedSignal.clear();
     statusChangedSignal.clear();
 
-    QTest::qWait(10);
-
     QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(camera.status(), QCamera::ActiveStatus);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+
     QCOMPARE(stateChangedSignal.count(), 0);
     QCOMPARE(statusChangedSignal.count(), 1);
     stateChangedSignal.clear();
@@ -214,7 +211,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     QCOMPARE(stateChangedSignal.count(), 0);
     QCOMPARE(statusChangedSignal.count(), 1);
 
-    QTest::qWait(10);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
 
     mockCameraService->mockControl->m_propertyChangesSupported = true;
     //the changes to encoding settings,
