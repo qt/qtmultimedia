@@ -56,7 +56,6 @@ Rectangle {
 
     QtObject {
         id: d
-        property int fileIndex
         property int itemHeight: 40
         property int buttonHeight: 0.8 * itemHeight
         property int margins: 10
@@ -99,7 +98,7 @@ Rectangle {
             }
             height: d.buttonHeight
             text: (root.source1 == "") ? "Select file 1" : root.source1
-            onClicked: showFileBrowser(1)
+            onClicked: fileBrowser1.show()
         }
 
         Button {
@@ -112,7 +111,7 @@ Rectangle {
             }
             height: d.buttonHeight
             text: (root.source2 == "") ? "Select file 2" : root.source2
-            onClicked: showFileBrowser(2)
+            onClicked: fileBrowser2.show()
         }
 
         Button {
@@ -187,8 +186,26 @@ Rectangle {
         ignoreUnknownSignals: true
     }
 
-    Loader {
-        id: fileBrowserLoader
+    FileBrowser {
+        id: fileBrowser1
+        anchors.fill: root
+        onFolderChanged: fileBrowser2.folder = folder
+        Component.onCompleted: fileSelected.connect(root.openFile1)
+    }
+
+    FileBrowser {
+        id: fileBrowser2
+        anchors.fill: root
+        onFolderChanged: fileBrowser1.folder = folder
+        Component.onCompleted: fileSelected.connect(root.openFile2)
+    }
+
+    function openFile1(path) {
+        root.source1 = path
+    }
+
+    function openFile2(path) {
+        root.source2 = path
     }
 
     ErrorDialog {
@@ -200,31 +217,13 @@ Rectangle {
     // Called from main() once root properties have been set
     function init() {
         performanceLoader.init()
+        fileBrowser1.folder = videoPath
+        fileBrowser2.folder = videoPath
     }
 
     function qmlFramePainted() {
         if (performanceLoader.item)
             performanceLoader.item.qmlFramePainted()
-    }
-
-    function showFileBrowser(index) {
-        console.log("[qmlvideo] main.showFileBrowser")
-        d.fileIndex = index
-        fileBrowserLoader.source = "FileBrowser.qml"
-        fileBrowserLoader.item.parent = root
-        fileBrowserLoader.item.anchors.fill = root
-        fileBrowserLoader.item.openFile.connect(root.openFile)
-        inner.visible = false
-    }
-
-    function openFile(path) {
-        console.log("[qmlvideo] main.openFile " + d.fileIndex + " \"" + path + "\"")
-        fileBrowserLoader.source = ""
-        if (1 == d.fileIndex)
-            root.source1 = path
-        else if (2 == d.fileIndex)
-            root.source2 = path
-        inner.visible = true
     }
 
     function closeScene() {

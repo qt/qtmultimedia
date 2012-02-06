@@ -39,6 +39,7 @@
 **
 ****************************************************************************/
 
+#include <QtCore/QStandardPaths>
 #include <QtCore/QStringList>
 #include <QtDeclarative/QDeclarativeContext>
 #include <QtGui/QGuiApplication>
@@ -115,6 +116,18 @@ int main(int argc, char *argv[])
 
     FileReader fileReader;
     viewer.rootContext()->setContextProperty("fileReader", &fileReader);
+
+    QString imagePath = "../../images";
+    const QStringList picturesLocation = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
+    if (!picturesLocation.isEmpty())
+        imagePath = picturesLocation.first();
+    viewer.rootContext()->setContextProperty("imagePath", imagePath);
+
+    QString videoPath;
+    const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
+    if (!moviesLocation.isEmpty())
+        videoPath = moviesLocation.first();
+    viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
 #ifdef SMALL_SCREEN_PHYSICAL
     viewer.showFullScreen();

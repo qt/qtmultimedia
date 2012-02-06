@@ -51,11 +51,6 @@ Rectangle {
     property bool perfMonitorsLogging: false
     property bool perfMonitorsVisible: false
 
-    QtObject {
-        id: d
-        property string openFileType
-    }
-
     // Create ScreenSaver element via Loader, so this app will still run if the
     // SystemInfo module is not available
     Loader {
@@ -344,21 +339,30 @@ Rectangle {
         fileOpen.close.connect(close)
     }
 
-    Loader {
-        id: fileBrowserLoader
+    FileBrowser {
+        id: imageFileBrowser
+        anchors.fill: root
+        Component.onCompleted: fileSelected.connect(content.openImage)
+    }
+
+    FileBrowser {
+        id: videoFileBrowser
+        anchors.fill: root
+        Component.onCompleted: fileSelected.connect(content.openVideo)
     }
 
     // Called from main() once root properties have been set
     function init() {
         console.log("[qmlvideofx] main.init")
+        imageFileBrowser.folder = imagePath
+        videoFileBrowser.folder = videoPath
         content.init()
         performanceLoader.init()
         if (fileName != "") {
             fileOpenMouseArea.hintEnabled = false
             effectSelectionPanelMouseArea.hintEnabled = false
             splashScreen.state = "hidden"
-            d.openFileType = "video"
-            openFile(fileName)
+            content.openVideo(fileName)
         }
     }
 
@@ -369,14 +373,12 @@ Rectangle {
 
     function openImage() {
         fileOpenContainer.state = "baseState"
-        d.openFileType = "image"
-        showFileBrowser("../../images")
+        imageFileBrowser.show()
     }
 
     function openVideo() {
         fileOpenContainer.state = "baseState"
-        d.openFileType = "video"
-        showFileBrowser("../../videos")
+        videoFileBrowser.show()
     }
 
     function openCamera() {
@@ -387,26 +389,5 @@ Rectangle {
     function close() {
         fileOpenContainer.state = "baseState"
         content.openImage("qrc:/images/qt-logo.png")
-    }
-
-    function showFileBrowser(path) {
-        content.stop()
-        fileBrowserLoader.source = "FileBrowser.qml"
-        fileBrowserLoader.item.parent = root
-        fileBrowserLoader.item.anchors.fill = root
-        fileBrowserLoader.item.openFile.connect(root.openFile)
-        fileBrowserLoader.item.folder = path
-        inner.visible = false
-    }
-
-    function openFile(path) {
-        fileBrowserLoader.source = ""
-        if (path != "") {
-            if (d.openFileType == "image")
-                content.openImage(path)
-            else if (d.openFileType == "video")
-                content.openVideo(path)
-        }
-        inner.visible = true
     }
 }

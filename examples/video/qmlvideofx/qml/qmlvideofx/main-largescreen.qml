@@ -51,11 +51,6 @@ Rectangle {
     property bool perfMonitorsLogging: false
     property bool perfMonitorsVisible: false
 
-    QtObject {
-        id: d
-        property string openFileType
-    }
-
     Rectangle {
         id: inner
         anchors.fill: parent
@@ -131,8 +126,16 @@ Rectangle {
         }
     }
 
-    Loader {
-        id: fileBrowserLoader
+    FileBrowser {
+        id: imageFileBrowser
+        anchors.fill: root
+        Component.onCompleted: fileSelected.connect(content.openImage)
+    }
+
+    FileBrowser {
+        id: videoFileBrowser
+        anchors.fill: root
+        Component.onCompleted: fileSelected.connect(content.openVideo)
     }
 
     Component.onCompleted: {
@@ -144,12 +147,12 @@ Rectangle {
 
     function init() {
         console.log("[qmlvideofx] main.init")
+        imageFileBrowser.folder = imagePath
+        videoFileBrowser.folder = videoPath
         content.init()
         performanceLoader.init()
-        if (fileName != "") {
-            d.openFileType = "video"
-            openFile(fileName)
-        }
+        if (fileName != "")
+            content.openVideo(fileName)
     }
 
     function qmlFramePainted() {
@@ -158,13 +161,11 @@ Rectangle {
     }
 
     function openImage() {
-        d.openFileType = "image"
-        showFileBrowser("../../images")
+        imageFileBrowser.show()
     }
 
     function openVideo() {
-        d.openFileType = "video"
-        showFileBrowser("../../videos")
+        videoFileBrowser.show()
     }
 
     function openCamera() {
@@ -173,25 +174,5 @@ Rectangle {
 
     function close() {
         content.openImage("qrc:/images/qt-logo.png")
-    }
-
-    function showFileBrowser(path) {
-        fileBrowserLoader.source = "FileBrowser.qml"
-        fileBrowserLoader.item.parent = root
-        fileBrowserLoader.item.anchors.fill = root
-        fileBrowserLoader.item.openFile.connect(root.openFile)
-        fileBrowserLoader.item.folder = path
-        inner.visible = false
-    }
-
-    function openFile(path) {
-        fileBrowserLoader.source = ""
-        if (path != "") {
-            if (d.openFileType == "image")
-                content.openImage(path)
-            else if (d.openFileType == "video")
-                content.openVideo(path)
-        }
-        inner.visible = true
     }
 }

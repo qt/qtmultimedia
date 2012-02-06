@@ -39,8 +39,10 @@
 **
 ****************************************************************************/
 
+#include <QtCore/QStandardPaths>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <QtDeclarative/QDeclarativeContext>
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickItem>
 #include "qmlapplicationviewer.h"
@@ -123,6 +125,12 @@ int main(int argc, char *argv[])
     QObject::connect(&viewer, SIGNAL(afterRendering()),
                      rootObject, SLOT(qmlFramePainted()));
 #endif
+
+    QString videoPath;
+    const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
+    if (!moviesLocation.isEmpty())
+        videoPath = moviesLocation.first();
+    viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
     QMetaObject::invokeMethod(rootObject, "init");
 
