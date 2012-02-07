@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Multimedia)
 
 class QVideoFrame;
-class QMediaVideoProbeControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QMediaVideoProbeControl : public QMediaControl
 {
     Q_OBJECT
 public:

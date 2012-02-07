@@ -55,7 +55,7 @@ class QMediaObject;
 class QMediaRecorder;
 
 class QAudioProbePrivate;
-class QAudioProbe : public QObject
+class Q_MULTIMEDIA_EXPORT QAudioProbe : public QObject
 {
     Q_OBJECT
 public:

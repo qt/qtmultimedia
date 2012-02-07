@@ -55,7 +55,7 @@ class QMediaObject;
 class QMediaRecorder;
 
 class QVideoProbePrivate;
-class QVideoProbe : public QObject
+class Q_MULTIMEDIA_EXPORT QVideoProbe : public QObject
 {
     Q_OBJECT
 public:
