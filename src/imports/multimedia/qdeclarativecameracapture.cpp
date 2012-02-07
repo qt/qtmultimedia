@@ -97,10 +97,13 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
 
     Start image capture.  The \l onImageCaptured() and \l onImageSaved() signals will
     be emitted when the capture is complete.
+
+    CameraCapture::capture returns the capture requestId parameter, used with
+    imageExposed(), imageCaptured(), imageMetadataAvailable() and imageSaved() signals.
 */
-void QDeclarativeCameraCapture::capture()
+int QDeclarativeCameraCapture::capture()
 {
-    m_capture->capture();
+    return m_capture->capture();
 }
 
 /*!
@@ -109,10 +112,13 @@ void QDeclarativeCameraCapture::capture()
 
     Start image capture to specified \a location.  The \l onImageCaptured() and \l onImageSaved() signals will
     be emitted when the capture is complete.
+
+    CameraCapture::captureToLocation returns the capture requestId parameter, used with
+    imageExposed(), imageCaptured(), imageMetadataAvailable() and imageSaved() signals.
 */
-void QDeclarativeCameraCapture::captureToLocation(const QString &location)
+int QDeclarativeCameraCapture::captureToLocation(const QString &location)
 {
-    m_capture->capture(location);
+    return m_capture->capture(location);
 }
 
 /*!
@@ -131,7 +137,7 @@ void QDeclarativeCameraCapture::cancelCapture()
     \qmlproperty string CameraCapture::capturedImagePath
     \property QDeclarativeCameraCapture::capturedImagePath
 
-    The path to the captured image.
+    The path to the last captured image.
 */
 QString QDeclarativeCameraCapture::capturedImagePath() const
 {
@@ -143,29 +149,26 @@ void QDeclarativeCameraCapture::_q_imageCaptured(int id, const QImage &preview)
     QString previewId = QString("preview_%1").arg(id);
     QDeclarativeCameraPreviewProvider::registerPreview(previewId, preview);
 
-    emit imageCaptured(QLatin1String("image://camera/")+previewId);
+    emit imageCaptured(id, QLatin1String("image://camera/")+previewId);
 }
 
 void QDeclarativeCameraCapture::_q_imageSaved(int id, const QString &fileName)
 {
-    Q_UNUSED(id);
     m_capturedImagePath = fileName;
-    emit imageSaved(fileName);
+    emit imageSaved(id, fileName);
 }
 
 void QDeclarativeCameraCapture::_q_imageMetadataAvailable(int id, const QString &key, const QVariant &value)
 {
-    Q_UNUSED(id);
-    emit imageMetadataAvailable(key, value);
+    emit imageMetadataAvailable(id, key, value);
 }
 
 
 void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Error error, const QString &message)
 {
-    Q_UNUSED(id);
     Q_UNUSED(error);
     qWarning() << "QCameraImageCapture error:" << message;
-    emit captureFailed(message);
+    emit captureFailed(id, message);
 }
 
 /*!
@@ -214,27 +217,30 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 }
 
 /*!
-    \qmlsignal CameraCapture::onCaptureFailed(message)
-    \fn QDeclarativeCameraCapture::captureFailed(const QString &message)
+    \qmlsignal CameraCapture::onCaptureFailed(requestId, message)
+    \fn QDeclarativeCameraCapture::captureFailed(int requestId, const QString &message)
 
-    This handler is called when an error occurs during capture.  A descriptive message is available in \a message.
+    This handler is called when an error occurs during capture with \a requestId.
+    A descriptive message is available in \a message.
 */
 
 /*!
-    \qmlsignal CameraCapture::onImageCaptured(preview)
-    \fn QDeclarativeCameraCapture::imageCaptured(const QString &preview)
+    \qmlsignal CameraCapture::onImageCaptured(requestId, preview)
+    \fn QDeclarativeCameraCapture::imageCaptured(int requestId, const QString &preview)
 
-    This handler is called when an image has been captured but not yet saved to the filesystem.  The \a preview
+    This handler is called when an image with \a requestId has been captured
+    but not yet saved to the filesystem.  The \a preview
     parameter can be used as the URL supplied to an Image element.
 
     \sa onImageSaved
 */
 
 /*!
-    \qmlsignal CameraCapture::onImageSaved(path)
-    \fn QDeclarativeCameraCapture::imageSaved(const QString &path)
+    \qmlsignal CameraCapture::onImageSaved(requestId, path)
+    \fn QDeclarativeCameraCapture::imageSaved(int requestId, const QString &path)
 
-    This handler is called after the image has been written to the filesystem.  The \a path is a local file path, not a URL.
+    This handler is called after the image with \a requestId has been written to the filesystem.
+    The \a path is a local file path, not a URL.
 
     \sa onImageCaptured
 */

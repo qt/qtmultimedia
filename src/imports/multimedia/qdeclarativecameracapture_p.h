@@ -86,8 +86,8 @@ public:
     QString errorString() const;
 
 public Q_SLOTS:
-    void capture();
-    void captureToLocation(const QString &location);
+    int capture();
+    int captureToLocation(const QString &location);
     void cancelCapture();
 
     void setResolution(const QSize &resolution);
@@ -96,11 +96,11 @@ public Q_SLOTS:
 Q_SIGNALS:
     void readyForCaptureChanged(bool);
 
-    void imageExposed();
-    void imageCaptured(const QString &preview);
-    void imageMetadataAvailable(const QString &key, const QVariant &value);
-    void imageSaved(const QString &path);
-    void captureFailed(const QString &message);
+    void imageExposed(int requestId);
+    void imageCaptured(int requestId, const QString &preview);
+    void imageMetadataAvailable(int requestId, const QString &key, const QVariant &value);
+    void imageSaved(int requestId, const QString &path);
+    void captureFailed(int requestId, const QString &message);
 
     void resolutionChanged(const QSize &);
 
