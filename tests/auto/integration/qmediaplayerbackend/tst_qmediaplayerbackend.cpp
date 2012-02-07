@@ -116,6 +116,9 @@ void tst_QMediaPlayerBackend::init()
 void tst_QMediaPlayerBackend::initTestCase()
 {
     QFileInfo wavFile(QLatin1String(TESTDATA_DIR "testdata/test.wav"));
+    if (!wavFile.exists())
+        wavFile = QFileInfo(QLatin1String("testdata/test.wav"));
+
     QVERIFY(wavFile.exists());
 
     localWavFile = QMediaContent(QUrl::fromLocalFile(wavFile.absoluteFilePath()));
