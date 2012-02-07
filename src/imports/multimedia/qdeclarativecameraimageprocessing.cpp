@@ -103,15 +103,16 @@ void QDeclarativeCameraImageProcessing::setWhiteBalanceMode(QDeclarativeCameraIm
     \qmlproperty int CameraImageProcessing::manualWhiteBalance
 
     The color temperature used when in manual white balance mode (WhiteBalanceManual).
+    The units are Kelvin.
 
     \sa whiteBalanceMode
 */
-int QDeclarativeCameraImageProcessing::manualWhiteBalance() const
+qreal QDeclarativeCameraImageProcessing::manualWhiteBalance() const
 {
     return m_imageProcessing->manualWhiteBalance();
 }
 
-void QDeclarativeCameraImageProcessing::setManualWhiteBalance(int colorTemp) const
+void QDeclarativeCameraImageProcessing::setManualWhiteBalance(qreal colorTemp) const
 {
     if (manualWhiteBalance() != colorTemp) {
         m_imageProcessing->setManualWhiteBalance(colorTemp);
@@ -122,15 +123,15 @@ void QDeclarativeCameraImageProcessing::setManualWhiteBalance(int colorTemp) con
 /*!
     \qmlproperty int CameraImageProcessing::contrast
 
-    Image contrast.
-    Valid contrast values range between -100 and 100, the default is 0.
+    Image contrast adjustment.
+    Valid contrast adjustment values range between -1.0 and 1.0, with a default of 0.
 */
-int QDeclarativeCameraImageProcessing::contrast() const
+qreal QDeclarativeCameraImageProcessing::contrast() const
 {
     return m_imageProcessing->contrast();
 }
 
-void QDeclarativeCameraImageProcessing::setContrast(int value)
+void QDeclarativeCameraImageProcessing::setContrast(qreal value)
 {
     if (value != contrast()) {
         m_imageProcessing->setContrast(value);
@@ -141,15 +142,15 @@ void QDeclarativeCameraImageProcessing::setContrast(int value)
 /*!
     \qmlproperty int CameraImageProcessing::saturation
 
-    Image saturation.
-    Valid saturation values range between -100 and 100, the default is 0.
+    Image saturation adjustment.
+    Valid saturation adjustment values range between -1.0 and 1.0, the default is 0.
 */
-int QDeclarativeCameraImageProcessing::saturation() const
+qreal QDeclarativeCameraImageProcessing::saturation() const
 {
     return m_imageProcessing->saturation();
 }
 
-void QDeclarativeCameraImageProcessing::setSaturation(int value)
+void QDeclarativeCameraImageProcessing::setSaturation(qreal value)
 {
     if (value != saturation()) {
         m_imageProcessing->setSaturation(value);
@@ -160,17 +161,17 @@ void QDeclarativeCameraImageProcessing::setSaturation(int value)
 /*!
     \qmlproperty int CameraImageProcessing::sharpeningLevel
 
-    Level of sharpening applied to image.
+    Adjustment of sharpening level applied to image.
 
-    Valid sharpening level values range between -1 for default sharpening level,
-    0 for sharpening disabled and 100 for maximum sharpening applied.
+    Valid sharpening level values range between -1.0 for for sharpening disabled,
+    0 for default sharpening level and 1.0 for maximum sharpening applied.
 */
-int QDeclarativeCameraImageProcessing::sharpeningLevel() const
+qreal QDeclarativeCameraImageProcessing::sharpeningLevel() const
 {
     return m_imageProcessing->sharpeningLevel();
 }
 
-void QDeclarativeCameraImageProcessing::setSharpeningLevel(int value)
+void QDeclarativeCameraImageProcessing::setSharpeningLevel(qreal value)
 {
     if (value != sharpeningLevel()) {
         m_imageProcessing->setSharpeningLevel(value);
@@ -181,17 +182,17 @@ void QDeclarativeCameraImageProcessing::setSharpeningLevel(int value)
 /*!
     \qmlproperty int CameraImageProcessing::denoisingLevel
 
-    Level of denoising applied to image.
+    Adjustment of denoising applied to image.
 
-    Valid denoising level values range between -1 for default denoising level,
-    0 for denoising disabled and 100 for maximum denoising applied.
+    Valid denoising level values range between -1.0 for for denoising disabled,
+    0 for default denoising level and 1.0 for maximum denoising applied.
 */
-int QDeclarativeCameraImageProcessing::denoisingLevel() const
+qreal QDeclarativeCameraImageProcessing::denoisingLevel() const
 {
     return m_imageProcessing->denoisingLevel();
 }
 
-void QDeclarativeCameraImageProcessing::setDenoisingLevel(int value)
+void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 {
     if (value != denoisingLevel()) {
         m_imageProcessing->setDenoisingLevel(value);
@@ -204,7 +205,7 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(int value)
 */
 
 /*!
-    \qmlsignal Camera::manualWhiteBalanceChanged(int)
+    \qmlsignal Camera::manualWhiteBalanceChanged(qreal)
 */
 
 QT_END_NAMESPACE

@@ -68,11 +68,11 @@ class QDeclarativeCameraImageProcessing : public QObject
     Q_ENUMS(WhiteBalanceMode)
 
     Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
-    Q_PROPERTY(int manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
-    Q_PROPERTY(int contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
-    Q_PROPERTY(int saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
-    Q_PROPERTY(int sharpeningLevel READ sharpeningLevel WRITE setSharpeningLevel NOTIFY sharpeningLevelChanged)
-    Q_PROPERTY(int denoisingLevel READ denoisingLevel WRITE setDenoisingLevel NOTIFY denoisingLevelChanged)
+    Q_PROPERTY(qreal manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
+    Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
+    Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
+    Q_PROPERTY(qreal sharpeningLevel READ sharpeningLevel WRITE setSharpeningLevel NOTIFY sharpeningLevelChanged)
+    Q_PROPERTY(qreal denoisingLevel READ denoisingLevel WRITE setDenoisingLevel NOTIFY denoisingLevelChanged)
 
 public:
     enum WhiteBalanceMode {
@@ -91,30 +91,30 @@ public:
     ~QDeclarativeCameraImageProcessing();
 
     WhiteBalanceMode whiteBalanceMode() const;
-    int manualWhiteBalance() const;
+    qreal manualWhiteBalance() const;
 
-    int contrast() const;
-    int saturation() const;
-    int sharpeningLevel() const;
-    int denoisingLevel() const;
+    qreal contrast() const;
+    qreal saturation() const;
+    qreal sharpeningLevel() const;
+    qreal denoisingLevel() const;
 
 public Q_SLOTS:
     void setWhiteBalanceMode(QDeclarativeCameraImageProcessing::WhiteBalanceMode mode) const;
-    void setManualWhiteBalance(int colorTemp) const;
+    void setManualWhiteBalance(qreal colorTemp) const;
 
-    void setContrast(int value);
-    void setSaturation(int value);
-    void setSharpeningLevel(int value);
-    void setDenoisingLevel(int value);
+    void setContrast(qreal value);
+    void setSaturation(qreal value);
+    void setSharpeningLevel(qreal value);
+    void setDenoisingLevel(qreal value);
 
 Q_SIGNALS:
     void whiteBalanceModeChanged(QDeclarativeCameraImageProcessing::WhiteBalanceMode) const;
-    void manualWhiteBalanceChanged(int) const;
+    void manualWhiteBalanceChanged(qreal) const;
 
-    void contrastChanged(int);
-    void saturationChanged(int);
-    void sharpeningLevelChanged(int);
-    void denoisingLevelChanged(int);
+    void contrastChanged(qreal);
+    void saturationChanged(qreal);
+    void sharpeningLevelChanged(qreal);
+    void denoisingLevelChanged(qreal);
 
 private:
     friend class QDeclarativeCamera;
