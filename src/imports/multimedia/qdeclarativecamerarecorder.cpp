@@ -64,6 +64,10 @@ QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QCamera *camera, QObject 
             SLOT(updateRecorderError(QMediaRecorder::Error)));
     connect(m_recorder, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
     connect(m_recorder, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
+    connect(m_recorder, SIGNAL(actualLocationChanged(QUrl)),
+            SLOT(updateActualLocation(QUrl)));
+    connect(m_recorder, SIGNAL(metaDataChanged(QString,QVariant)),
+            SIGNAL(metaDataChanged(QString,QVariant)));
 }
 
 QDeclarativeCameraRecorder::~QDeclarativeCameraRecorder()
@@ -242,14 +246,42 @@ void QDeclarativeCameraRecorder::setRecorderState(QDeclarativeCameraRecorder::Re
     }
 }
 
+/*!
+    \qmlproperty string CameraRecorder::outputLocation
+    \property QDeclarativeCameraRecorder::outputLocation
+
+    \brief the destination location of media content.
+
+    The location can be relative or empty;
+    in this case the recorder uses the system specific place and file naming scheme.
+*/
+
 QString QDeclarativeCameraRecorder::outputLocation() const
 {
     return m_recorder->outputLocation().toString();
 }
 
-void QDeclarativeCameraRecorder::setOutputLocation(const QUrl &location)
+/*!
+    \qmlproperty string CameraRecorder::actualLocation
+    \property QDeclarativeCameraRecorder::actualLocation
+
+    \brief the actual location of the last media content.
+
+    The actual location is usually available after recording starts,
+    and reset when new location is set or new recording starts.
+*/
+
+QString QDeclarativeCameraRecorder::actualLocation() const
 {
-    m_recorder->setOutputLocation(location);
+    return m_recorder->actualLocation().toString();
+}
+
+void QDeclarativeCameraRecorder::setOutputLocation(const QString &location)
+{
+    if (outputLocation() != location) {
+        m_recorder->setOutputLocation(location);
+        emit outputLocationChanged(outputLocation());
+    }
 }
 
 qint64 QDeclarativeCameraRecorder::duration() const
@@ -277,12 +309,6 @@ void QDeclarativeCameraRecorder::updateRecorderState(QMediaRecorder::State state
     if (state == QMediaRecorder::PausedState)
         state = QMediaRecorder::StoppedState;
 
-    if (state == QMediaRecorder::StoppedState) {
-        QString location = outputLocation();
-        if (!location.isEmpty())
-            emit outputLocationChanged(location);
-    }
-
     emit recorderStateChanged(RecorderState(state));
 }
 
@@ -290,6 +316,11 @@ void QDeclarativeCameraRecorder::updateRecorderError(QMediaRecorder::Error error
 {
     qWarning() << "QMediaRecorder error:" << errorString();
     emit error(errorCode);
+}
+
+void QDeclarativeCameraRecorder::updateActualLocation(const QUrl &url)
+{
+    emit actualLocationChanged(url.toString());
 }
 
 QT_END_NAMESPACE

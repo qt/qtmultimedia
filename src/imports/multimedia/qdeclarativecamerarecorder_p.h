@@ -84,6 +84,7 @@ class QDeclarativeCameraRecorder : public QObject
 
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QString outputLocation READ outputLocation WRITE setOutputLocation NOTIFY outputLocationChanged)
+    Q_PROPERTY(QString actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY error)
 
@@ -101,6 +102,8 @@ public:
     QSize captureResolution();
 
     QString outputLocation() const;
+    QString actualLocation() const;
+
     qint64 duration() const;
     bool isMuted() const;
 
@@ -118,7 +121,7 @@ public:
     int audioSampleRate() const;
 
 public Q_SLOTS:
-    void setOutputLocation(const QUrl &location);
+    void setOutputLocation(const QString &location);
 
     void record();
     void stop();
@@ -143,12 +146,11 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
     void mutedChanged(bool muted);
     void outputLocationChanged(const QString &location);
+    void actualLocationChanged(const QString &location);
 
     void error(QMediaRecorder::Error errorCode);
 
-    void metaDataAvailableChanged(bool available);
-    void metaDataWritableChanged(bool writable);
-    void metaDataChanged();
+    void metaDataChanged(const QString &key, const QVariant &value);
 
     void captureResolutionChanged(const QSize &);
     void audioCodecChanged(const QString &codec);
@@ -164,6 +166,7 @@ Q_SIGNALS:
 private slots:
     void updateRecorderState(QMediaRecorder::State);
     void updateRecorderError(QMediaRecorder::Error);
+    void updateActualLocation(const QUrl&);
 
 private:
     friend class QDeclarativeCamera;
