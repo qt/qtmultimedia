@@ -208,6 +208,19 @@ void MediaExample::MediaRecorder()
     audioRecorder->setOutputLocation(QUrl::fromLocalFile("test.amr"));
     audioRecorder->record();
     //! [Audio recorder]
+
+    //! [Audio recorder endpoints]
+    QStringList inputs = audioRecorder->audioInputs();
+    QString selectedInput = audioRecorder->defaultAudioInput();
+
+    foreach (QString input, inputs) {
+        QString description = audioRecorder->audioInputDescription(input);
+        // show descriptions to user and allow selection
+        selectedInput = input;
+    }
+
+    audioRecorder->setAudioInput(selectedInput);
+    //! [Audio recorder endpoints]
 #endif
 }
 

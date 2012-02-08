@@ -61,9 +61,22 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_recording
 
-    \brief The QAudioRecorder class is used for the recording of media content.
+    \brief The QAudioRecorder class is used for the recording of audio.
 
-    The QAudioRecorder class is a high level media recording class.
+    The QAudioRecorder class is a high level media recording class and contains
+    the same functionality as \l QMediaRecorder.
+
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder
+
+    In addition QAudioRecorder provides functionality for selecting the audio
+    input from available audio endpoints.
+
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder endpoints
+
+    The \l {audiorecorder}{Audio Recorder} example shows how to use this class
+    in more detail.
+
+    \sa QMediaRecorder, QAudioEndpointSelector
 */
 
 class QAudioRecorderObject : public QMediaObject
@@ -217,7 +230,7 @@ void QAudioRecorder::setAudioInput(const QString& name)
 }
 
 /*!
-    \fn QAudioRecorder::activeAudioInputChanged(const QString& name)
+    \fn QAudioRecorder::audioInputChanged(const QString& name)
 
     Signal emitted when active audio input changes to \a name.
 */
