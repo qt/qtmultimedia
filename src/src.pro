@@ -23,7 +23,13 @@ SUBDIRS += \
     src_imports
 
 # Optional bits
-contains(config_test_gstreamer, yes):SUBDIRS += src_qgsttools
+contains(config_test_gstreamer, yes) {
+    SUBDIRS += src_qgsttools
+
+    # If gstreamer is present, then plugins should depend on it
+    src_plugins.depends += src_qgsttools
+}
+
 !isEmpty(QT.widgets.name) {
     SUBDIRS += src_qtmmwidgets
 
