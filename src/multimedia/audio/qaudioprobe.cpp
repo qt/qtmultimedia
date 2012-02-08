@@ -151,14 +151,16 @@ bool QAudioProbe::setSource(QMediaObject *source)
 /*!
     Starts monitoring the given \a mediaRecorder.
 
+    Returns true on success.
+
     If \a source is zero, this probe will be deactivated
-    and this function wil return true.
+    and this function will return true.
 
     If the media recorder instance does not support monitoring
     audio, this function will return false.
 
     Any previously monitored objects will no longer be monitored.
-    Passing in the same object will be ignored, but
+    Passing in the same (valid) object will be ignored, but
     monitoring will continue.
  */
 bool QAudioProbe::setSource(QMediaRecorder *mediaRecorder)

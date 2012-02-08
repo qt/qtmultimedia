@@ -55,8 +55,10 @@ QT_USE_NAMESPACE
     So each time the playback of the same sound can be a slightly different even with the same
     AudioSample.
 
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 

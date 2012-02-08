@@ -53,8 +53,10 @@ QT_USE_NAMESPACE
     \qmlclass AudioSample QDeclarativeAudioSample
     \since 5.0
     \brief The AudioSample element allows you to load audio samples, mostly wav file.
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 

@@ -54,8 +54,10 @@ QT_USE_NAMESPACE
     \qmlclass SoundInstance QDeclarativeSoundInstance
     \since 5.0
     \brief The SoundInstance element allows you to play 3d audio content.
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 

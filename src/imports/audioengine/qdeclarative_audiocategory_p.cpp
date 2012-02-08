@@ -50,8 +50,10 @@ QT_USE_NAMESPACE
     \qmlclass AudioCategory QDeclarativeAudioCategory
     \since 5.0
     \brief The AudioCategory element allows you to control all active sound instances by group
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 

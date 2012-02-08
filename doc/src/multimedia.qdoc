@@ -47,6 +47,9 @@ Qt Multimedia offers APIs for doing many multimedia related tasks:
 \o Record audio and compress it
 \o Tune and listen to radio stations, and receive radio program information
 \o Use a camera, including viewfinder, image capture, and movie recording
+\o Play 3D positional audio
+\o Decode audio media files into memory for processing
+\o Accessing video frames or audio buffers as they are played or recorded
 \endlist
 
 \section2 Multimedia Components

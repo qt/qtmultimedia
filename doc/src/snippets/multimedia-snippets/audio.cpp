@@ -47,6 +47,11 @@
 #include "qaudiodeviceinfo.h"
 #include "qaudioinput.h"
 #include "qaudiooutput.h"
+#include "qaudioprobe.h"
+
+//! [Audio decoder header]
+#include "qaudiodecoder_p.h"
+//! [Audio decoder header]
 
 class AudioInputExample : public QObject {
     Q_OBJECT
@@ -207,4 +212,35 @@ void AudioDeviceInfo()
     foreach (const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
         qDebug() << "Device name: " << deviceInfo.deviceName();
     //! [Dumping audio formats]
+}
+
+class AudioDecodingExample : public QObject {
+    Q_OBJECT
+public:
+    void decode();
+
+public Q_SLOTS:
+    void stateChanged(QAudio::State newState);
+    void readBuffer();
+};
+
+void AudioDecodingExample::decode()
+{
+    //! [Local audio decoding]
+    QAudioFormat desiredFormat;
+    desiredFormat.setChannelCount(2);
+    desiredFormat.setCodec("audio/x-raw");
+    desiredFormat.setSampleType(QAudioFormat::UnSignedInt);
+    desiredFormat.setSampleRate(48000);
+    desiredFormat.setSampleSize(16);
+
+    QAudioDecoder *decoder = new QAudioDecoder(this);
+    decoder->setAudioFormat(desiredFormat);
+    decoder->setSourceFilename("level1.mp3");
+
+    connect(decoder, SIGNAL(bufferReady()), this, SLOT(readBuffer()));
+    decoder->start();
+
+    // Now wait for bufferReady() signal and call decoder->read()
+    //! [Local audio decoding]
 }

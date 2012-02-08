@@ -59,8 +59,10 @@ QT_USE_NAMESPACE
     \qmlclass AudioEngine QDeclarativeAudioEngine
     \since 5.0
     \brief The AudioEngine element allows you to organize all your 3d audio content in one place.
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 

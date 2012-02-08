@@ -28,12 +28,15 @@
 /*!
 \page audiooverview.html
 \title Audio Overview
-\brief Audio playback and recording
+\brief Audio playback, recording and processing
 
 \section1 Audio Features
 
 Qt Multimedia offers a range of audio classes, covering both low and
-high level approaches to audio input and output.
+high level approaches to audio input, output and processing.  In
+addition to traditional audio usage, the \l {QtAudioEngine}{Qt AudioEngine}
+QML classes offers high level 3D positional audio for QML applications.
+See that documentation for more information.
 
 \section1 Audio Implementation Details
 
@@ -51,7 +54,16 @@ or VOIP) and high latency (like music playback).  The available hardware
 determines what audio outputs and inputs are available.
 
 \section3 Push and Pull
-[TBD] - description of push vs. pull mode.
+The low level audio classes can operate in two modes - \c push and \c pull.
+In \c pull mode, the audio device is started by giving it a QIODevice.  For
+an output device, the QAudioOutput class will pull data from the QIODevice
+(using \l QIODevice::read()) when more audio data is required.  Conversely,
+for \c pull mode with QAudioInput, when audio data is available then the
+data will be written directly to the QIODevice.
+
+In \c push mode, the audio device provides a QIODevice instance that
+can be written or read to as needed.  Typically this results in simpler
+code but more buffering, which may affect latency.
 
 \section2 Low latency sound effects
 
@@ -82,11 +94,42 @@ Here is how you play a local file using C++:
 You can also put files (even remote URLs) into a playlist:
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio playlist
 
+\section2 Decoding compressed audio to memory
+In some cases you may want to decode a compressed audio file and do further
+processing yourself (like mix multiple samples, or some custom digital signal
+processing algorithms).  Qt Multimedia 5.0 offers a preliminary API for this
+case - the \l QAudioDecoder class.  QAudioDecoder supports decoding local files
+or from a QIODevice instances.
+
+Here's an example of decoding a local file:
+
+    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Local audio decoding
+
+Note:  This API is preliminary at this time - the API may change or be
+removed before the final 5.0 release.  In addition, it is necessary to
+add "multimedia-private" to the QT variable in your .pro file to use this class.
+
+    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio decoder header
+
 \section2 Recording audio to a file
 For recording audio to a file, the \l {QAudioRecorder} class allows you
 to compress audio data from an input device and record it.
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder
+
+\section2 Monitoring audio data during playback or recording
+
+The \l QAudioProbe class allows you to monitor audio data being played or
+recorded in the higher level classes like \l QMediaPlayer, \l QCamera and
+\l QAudioRecorder.  After creating your high level class, you can simply
+set the source of the probe to your class, and receive audio buffers as they
+are processed.  This is useful for several audio processing tasks, particularly
+for visualization or adjusting gain.  You cannot modify the buffers, and
+they may arrive at a slightly different time than the media pipeline
+processes them.
+
+Here's an example of installing a probe during recording:
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio probe
 
 \section1 Examples
 

@@ -142,8 +142,10 @@ void QDeclarativeSoundCone::componentComplete()
     \since 5.0
     \brief The Sound element allows you to define a variety of samples and parameters to be used for
     SoundInstance.
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 

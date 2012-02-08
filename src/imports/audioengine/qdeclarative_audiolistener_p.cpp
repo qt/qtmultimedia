@@ -51,8 +51,10 @@ QT_USE_NAMESPACE
     \qmlclass AudioListener QDeclarativeAudioListener
     \since 5.0
     \brief The AudioListener element allows you to control global listener parameters.
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 

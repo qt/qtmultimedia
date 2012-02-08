@@ -52,6 +52,10 @@
 #include "qvideowidget.h"
 #include "qcameraimagecapture.h"
 #include "qcamera.h"
+#include "qcameraviewfinder.h"
+#include "qaudioprobe.h"
+#include "qaudiorecorder.h"
+#include "qvideoprobe.h"
 
 class MediaExample : public QObject {
     Q_OBJECT
@@ -60,8 +64,11 @@ class MediaExample : public QObject {
     void MediaPlayer();
     void RadioTuna();
     void MediaRecorder();
+    void AudioRecorder();
     void EncoderSettings();
     void ImageEncoderSettings();
+    void AudioProbe();
+    void VideoProbe();
 
 private:
     // Common naming
@@ -73,9 +80,14 @@ private:
     QMediaContent video;
     QMediaRecorder *recorder;
     QCamera *camera;
+    QCameraViewfinder *viewfinder;
     QCameraImageCapture *imageCapture;
     QString fileName;
     QRadioTuner *radio;
+    QAudioRecorder *audioRecorder;
+    QAudioProbe *audioProbe;
+    QVideoProbe *videoProbe;
+
     QMediaContent image1;
     QMediaContent image2;
     QMediaContent image3;
@@ -182,7 +194,6 @@ void MediaExample::MediaPlayer()
 void MediaExample::MediaRecorder()
 {
     //! [Media recorder]
-    // Audio only recording
     recorder = new QMediaRecorder(camera);
 
     QAudioEncoderSettings audioSettings;
@@ -194,8 +205,10 @@ void MediaExample::MediaRecorder()
     recorder->setOutputLocation(QUrl::fromLocalFile(fileName));
     recorder->record();
     //! [Media recorder]
+}
 
-#if 0
+void MediaExample::AudioRecorder()
+{
     //! [Audio recorder]
     audioRecorder = new QAudioRecorder;
 
@@ -221,7 +234,6 @@ void MediaExample::MediaRecorder()
 
     audioRecorder->setAudioInput(selectedInput);
     //! [Audio recorder endpoints]
-#endif
 }
 
 void MediaExample::RadioTuna()
@@ -236,6 +248,61 @@ void MediaExample::RadioTuna()
         radio->start();
     }
     //! [Radio tuner]
+}
+
+void MediaExample::AudioProbe()
+{
+    //! [Audio probe]
+    audioRecorder = new QAudioRecorder;
+
+    QAudioEncoderSettings audioSettings;
+    audioSettings.setCodec("audio/amr");
+    audioSettings.setQuality(QtMultimedia::HighQuality);
+
+    audioRecorder->setEncodingSettings(audioSettings);
+
+    audioRecorder->setOutputLocation(QUrl::fromLocalFile("test.amr"));
+
+    audioProbe = new QAudioProbe(this);
+    if (audioProbe->setSource(audioRecorder)) {
+        // Probing succeeded, audioProbe->isValid() should be true.
+        connect(audioProbe, SIGNAL(audioBufferProbed(QAudioBuffer)),
+                this, SLOT(calculateLevel(QAudioBuffer)));
+    }
+
+    audioRecorder->record();
+    // Now audio buffers being recorded should be signaled
+    // by the probe, so we can do things like calculating the
+    // audio power level, or performing a frequency transform
+    //! [Audio probe]
+}
+
+void MediaExample::VideoProbe()
+{
+    //! [Video probe]
+    camera = new QCamera;
+    viewfinder = new QCameraViewfinder();
+    camera->setViewfinder(viewfinder);
+
+    camera->setCaptureMode(QCamera::CaptureVideo);
+
+    videoProbe = new QVideoProbe(this);
+
+    if (videoProbe->setSource(camera)) {
+        // Probing succeeded, videoProbe->isValid() should be true.
+        connect(videoProbe, SIGNAL(videoFrameProbed(QVideoFrame)),
+                this, SLOT(detectBarcodes(QVideoFrame)));
+    }
+
+    camera->start();
+    // Viewfinder frames should now also be emitted by
+    // the video probe, even in still image capture mode.
+    // Another alternative is to install the probe on a
+    // QMediaRecorder connected to the camera to get the
+    // recorded frames, if they are different from the
+    // viewfinder frames.
+
+    //! [Video probe]
 }
 
 

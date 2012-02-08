@@ -94,8 +94,10 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
     \since 5.0
     \brief The AttenuationModelLinear element allows you to define a linear attenuation curve for
     Sound element.
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 
@@ -224,8 +226,10 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
     \since 5.0
     \brief The AttenuationModelInverse element allows you to define a non-linear attenuation curve
     for Sound element.
-    \ingroup qml-multimedia
+    \inmodule QtMultimedia
+    \ingroup multimedia_audioengine
     \inherits Item
+    \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 
