@@ -718,8 +718,7 @@ void tst_QMediaRecorder::testSettingsApplied()
     //the settings are applied in the next event loop
     QMediaRecorder recorder(&object);
     QCOMPARE(recorderControl.m_settingAppliedCount, 0);
-    QTest::qWait(10);
-    QCOMPARE(recorderControl.m_settingAppliedCount, 1);
+    QTRY_COMPARE(recorderControl.m_settingAppliedCount, 1);
 
     QVideoEncoderSettings videoSettings;
     videoSettings.setResolution(640,480);
@@ -732,8 +731,7 @@ void tst_QMediaRecorder::testSettingsApplied()
     recorder.setContainerFormat("mkv");
 
     QCOMPARE(recorderControl.m_settingAppliedCount, 1);
-    QTest::qWait(10);
-    QCOMPARE(recorderControl.m_settingAppliedCount, 2);
+    QTRY_COMPARE(recorderControl.m_settingAppliedCount, 2);
 
     //encoder settings are applied before recording if changed
     audioSettings.setQuality(QtMultimedia::VeryHighQuality);

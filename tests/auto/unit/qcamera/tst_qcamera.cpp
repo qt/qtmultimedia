@@ -475,10 +475,7 @@ void tst_QCamera::testCameraCapture()
 
     imageCapture.capture(QString::fromLatin1("/dev/null"));
 
-    for (int i=0; i<100 && capturedSignal.isEmpty(); i++)
-        QTest::qWait(10);
-
-    QCOMPARE(capturedSignal.size(), 1);
+    QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(errorSignal.size(), 0);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
 }
@@ -494,10 +491,7 @@ void tst_QCamera::testCameraCaptureMetadata()
     camera.start();
     int id = imageCapture.capture(QString::fromLatin1("/dev/null"));
 
-    for (int i=0; i<100 && savedSignal.isEmpty(); i++)
-        QTest::qWait(10);
-
-    QCOMPARE(savedSignal.size(), 1);
+    QTRY_COMPARE(savedSignal.size(), 1);
 
     QCOMPARE(metadataSignal.size(), 3);
 
@@ -885,10 +879,7 @@ void tst_QCamera::testCameraLock()
     lockFailedSignal.clear();
     lockStatusChangedSignal.clear();
 
-    for (int i=0; i<200 && camera.lockStatus() == QCamera::Searching; i++)
-        QTest::qWait(10);
-
-    QCOMPARE(camera.lockStatus(), QCamera::Locked);
+    QTRY_COMPARE(camera.lockStatus(), QCamera::Locked);
     QCOMPARE(lockedSignal.count(), 1);
     QCOMPARE(lockFailedSignal.count(), 0);
     QCOMPARE(lockStatusChangedSignal.count(), 1);
