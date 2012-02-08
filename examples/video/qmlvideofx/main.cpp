@@ -129,6 +129,11 @@ int main(int argc, char *argv[])
         videoPath = moviesLocation.first();
     viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
+    viewer.setWindowTitle("qmlvideofx");
+    viewer.setWindowFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint |
+                          Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    viewer.setMinimumSize(QSize(600, 400));
+
 #ifdef SMALL_SCREEN_PHYSICAL
     viewer.showFullScreen();
 #else

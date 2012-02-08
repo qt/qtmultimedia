@@ -60,7 +60,9 @@ Rectangle {
             id: content
             anchors {
                 top: parent.top
+                bottom: parent.bottom
                 left: parent.left
+                right: effectSelectionPanel.left
                 margins: 5
             }
             width: 600
@@ -99,11 +101,11 @@ Rectangle {
             id: effectSelectionPanel
             anchors {
                 top: parent.top
-                left: content.right
+                bottom: fileOpen.top
                 right: parent.right
                 margins: 5
             }
-            height: 420
+            width: 300
             itemHeight: 40
              onEffectSourceChanged: {
                 content.effectSource = effectSource
@@ -114,12 +116,12 @@ Rectangle {
         FileOpen {
             id: fileOpen
             anchors {
-                top: effectSelectionPanel.bottom
-                left: content.right
                 right: parent.right
                 bottom: parent.bottom
                 margins: 5
             }
+            width: effectSelectionPanel.width
+            height: 165
             buttonHeight: 32
             topMargin: 10
         }

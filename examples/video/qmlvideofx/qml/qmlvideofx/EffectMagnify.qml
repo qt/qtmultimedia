@@ -58,12 +58,31 @@ Effect {
     property real posX: -1
     property real posY: -1
 
+    QtObject {
+        id: d
+        property real oldTargetWidth: root.targetWidth
+        property real oldTargetHeight: root.targetHeight
+    }
+
     // Transform slider values, and bind result to shader uniforms
     property real radius: parameters.get(0).value * 100
     property real diffractionIndex: parameters.get(1).value
 
-    onTargetWidthChanged: if (posX == -1) posX = targetWidth / 2
-    onTargetHeightChanged: if (posY == -1) posY = targetHeight / 2
+    onTargetWidthChanged: {
+        if (posX == -1)
+            posX = targetWidth / 2
+        else if (d.oldTargetWidth != 0)
+            posX *= (targetWidth / d.oldTargetWidth)
+        d.oldTargetWidth = targetWidth
+    }
+
+    onTargetHeightChanged: {
+        if (posY == -1)
+            posY = targetHeight / 2
+        else if (d.oldTargetHeight != 0)
+            posY *= (targetHeight / d.oldTargetHeight)
+        d.oldTargetHeight = targetHeight
+    }
 
     fragmentShaderFilename: "shaders/magnify.fsh"
 

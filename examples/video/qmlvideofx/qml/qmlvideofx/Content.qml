@@ -82,6 +82,16 @@ Rectangle {
         ignoreUnknownSignals: true
     }
 
+    onWidthChanged: {
+        if (effectLoader.item)
+            effectLoader.item.targetWidth = root.width
+    }
+
+    onHeightChanged: {
+        if (effectLoader.item)
+            effectLoader.item.targetHeight = root.height
+    }
+
     onEffectSourceChanged: {
         console.log("[qmlvideofx] Content.onEffectSourceChanged " + effectSource)
         effectLoader.source = effectSource
