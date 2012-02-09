@@ -45,6 +45,7 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qsize.h>
+#include <qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -143,7 +144,7 @@ QSize QGstUtils::capsResolution(const GstCaps *caps)
 
 /*!
   Returns aspect ratio corrected resolution of \a caps.
-  If caps doesn't have a valid size, and ampty QSize is returned.
+  If caps doesn't have a valid size, an empty QSize is returned.
 */
 QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
 {
@@ -164,6 +165,90 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
     }
 
     return size;
+}
+
+/*!
+ *Returns audio format for caps.
+  If caps doesn't have a valid audio format, an empty QAudioFormat is returned.
+*/
+
+QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
+{
+    const GstStructure *structure = gst_caps_get_structure(caps, 0);
+
+    QAudioFormat format;
+
+    if (qstrcmp(gst_structure_get_name(structure), "audio/x-raw-int") == 0) {
+
+        format.setCodec("audio/pcm");
+
+        int endianness = 0;
+        gst_structure_get_int(structure, "endianness", &endianness);
+        if (endianness == 1234)
+            format.setByteOrder(QAudioFormat::LittleEndian);
+        else if (endianness == 4321)
+            format.setByteOrder(QAudioFormat::BigEndian);
+
+        gboolean isSigned = FALSE;
+        gst_structure_get_boolean(structure, "signed", &isSigned);
+        if (isSigned)
+            format.setSampleType(QAudioFormat::SignedInt);
+        else
+            format.setSampleType(QAudioFormat::UnSignedInt);
+
+        // Number of bits allocated per sample.
+        int width = 0;
+        gst_structure_get_int(structure, "width", &width);
+
+        // The number of bits used per sample. This must be less than or equal to the width.
+        int depth = 0;
+        gst_structure_get_int(structure, "depth", &depth);
+
+        if (width != depth) {
+            // Unsupported sample layout.
+            return QAudioFormat();
+        }
+        format.setSampleSize(width);
+
+        int rate = 0;
+        gst_structure_get_int(structure, "rate", &rate);
+        format.setSampleRate(rate);
+
+        int channels = 0;
+        gst_structure_get_int(structure, "channels", &channels);
+        format.setChannelCount(channels);
+
+    } else if (qstrcmp(gst_structure_get_name(structure), "audio/x-raw-float") == 0) {
+
+        format.setCodec("audio/pcm");
+
+        int endianness = 0;
+        gst_structure_get_int(structure, "endianness", &endianness);
+        if (endianness == 1234)
+            format.setByteOrder(QAudioFormat::LittleEndian);
+        else if (endianness == 4321)
+            format.setByteOrder(QAudioFormat::BigEndian);
+
+        format.setSampleType(QAudioFormat::Float);
+
+        int width = 0;
+        gst_structure_get_int(structure, "width", &width);
+
+        format.setSampleSize(width);
+
+        int rate = 0;
+        gst_structure_get_int(structure, "rate", &rate);
+        format.setSampleRate(rate);
+
+        int channels = 0;
+        gst_structure_get_int(structure, "channels", &channels);
+        format.setChannelCount(channels);
+
+    } else {
+        return QAudioFormat();
+    }
+
+    return format;
 }
 
 QT_END_NAMESPACE

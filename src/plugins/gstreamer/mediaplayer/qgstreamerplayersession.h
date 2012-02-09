@@ -43,11 +43,13 @@
 #define QGSTREAMERPLAYERSESSION_H
 
 #include <QObject>
+#include <QtCore/qmutex.h>
 #include <QtNetwork/qnetworkrequest.h>
 #include "qgstreamerplayercontrol.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <qmediaplayer.h>
 #include <qmediastreamscontrol.h>
+#include <qaudioformat.h>
 
 #if defined(HAVE_GST_APPSRC)
 #include "qgstappsrc.h"
@@ -61,6 +63,8 @@ class QGstreamerBusHelper;
 class QGstreamerMessage;
 
 class QGstreamerVideoRendererInterface;
+class QGstreamerVideoProbeControl;
+class QGstreamerAudioProbeControl;
 
 class QGstreamerPlayerSession : public QObject,
                                 public QGstreamerBusMessageFilter
@@ -119,6 +123,14 @@ public:
 
     bool isLiveSource() const;
 
+    void addProbe(QGstreamerVideoProbeControl* probe);
+    void removeProbe(QGstreamerVideoProbeControl* probe);
+    static gboolean padVideoBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data);
+
+    void addProbe(QGstreamerAudioProbeControl* probe);
+    void removeProbe(QGstreamerAudioProbeControl* probe);
+    static gboolean padAudioBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data);
+
 public slots:
     void loadFromUri(const QNetworkRequest &url);
     void loadFromStream(const QNetworkRequest &url, QIODevice *stream);
@@ -169,6 +181,13 @@ private:
     static void handleElementAdded(GstBin *bin, GstElement *element, QGstreamerPlayerSession *session);
     void processInvalidMedia(QMediaPlayer::Error errorCode, const QString& errorString);
 
+    void removeVideoBufferProbe();
+    void addVideoBufferProbe();
+    void removeAudioBufferProbe();
+    void addAudioBufferProbe();
+    void flushVideoProbes();
+    void resumeVideoProbes();
+
     QNetworkRequest m_request;
     QMediaPlayer::State m_state;
     QMediaPlayer::State m_pendingState;
@@ -183,6 +202,8 @@ private:
     GstElement* m_videoSink;
     GstElement* m_pendingVideoSink;
     GstElement* m_nullVideoSink;
+
+    GstElement* m_audioSink;
 
     GstBus* m_bus;
     QObject *m_videoOutput;
@@ -199,6 +220,13 @@ private:
     QList<QMediaStreamsControl::StreamType> m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> m_playbin2StreamOffset;
 
+    QList<QGstreamerVideoProbeControl*> m_videoProbes;
+    QMutex m_videoProbeMutex;
+    int m_videoBufferProbeId;
+
+    QList<QGstreamerAudioProbeControl*> m_audioProbes;
+    QMutex m_audioProbeMutex;
+    int m_audioBufferProbeId;
 
     int m_volume;
     qreal m_playbackRate;

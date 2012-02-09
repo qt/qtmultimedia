@@ -199,16 +199,7 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
             m_format.frameSize(),
             m_format.pixelFormat());
 
-    qint64 startTime = GST_BUFFER_TIMESTAMP(buffer);
-
-    if (startTime >= 0) {
-        m_frame.setStartTime(startTime/G_GINT64_CONSTANT (1000000));
-
-        qint64 duration = GST_BUFFER_DURATION(buffer);
-
-        if (duration >= 0)
-            m_frame.setEndTime((startTime + duration)/G_GINT64_CONSTANT (1000000));
-    }
+    QVideoSurfaceGstSink::setFrameTimeStamps(&m_frame, buffer);
 
     m_renderReturn = GST_FLOW_OK;
 
@@ -683,6 +674,18 @@ QVideoSurfaceFormat QVideoSurfaceGstSink::formatForCaps(GstCaps *caps, int *byte
     }
 
     return QVideoSurfaceFormat();
+}
+
+void QVideoSurfaceGstSink::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
+{
+    qint64 startTime = GST_BUFFER_TIMESTAMP(buffer);
+    if (startTime >= 0) {
+        frame->setStartTime(startTime/G_GINT64_CONSTANT (1000000));
+
+        qint64 duration = GST_BUFFER_DURATION(buffer);
+        if (duration >= 0)
+            frame->setEndTime((startTime + duration)/G_GINT64_CONSTANT (1000000));
+    }
 }
 
 void QVideoSurfaceGstSink::handleShowPrerollChange(GObject *o, GParamSpec *p, gpointer d)

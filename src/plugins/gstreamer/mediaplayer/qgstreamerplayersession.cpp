@@ -42,6 +42,8 @@
 #include "qgstreamerplayersession.h"
 #include <private/qgstreamerbushelper_p.h>
 
+#include "qgstreameraudioprobecontrol.h"
+#include "qgstreamervideoprobecontrol.h"
 #include "qgstreamervideorendererinterface.h"
 #include "gstvideoconnector.h"
 #include <private/qgstutils_p.h>
@@ -89,6 +91,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_videoSink(0),
      m_pendingVideoSink(0),
      m_nullVideoSink(0),
+     m_audioSink(0),
      m_bus(0),
      m_videoOutput(0),
      m_renderer(0),
@@ -96,6 +99,8 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
 #if defined(HAVE_GST_APPSRC)
      m_appSrc(0),
 #endif
+     m_videoBufferProbeId(-1),
+     m_audioBufferProbeId(-1),
      m_volume(100),
      m_playbackRate(1.0),
      m_muted(false),
@@ -128,6 +133,12 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         flags |= GST_PLAY_FLAG_NATIVE_VIDEO;
 #endif
         g_object_set(G_OBJECT(m_playbin), "flags", flags, NULL);
+
+        m_audioSink = gst_element_factory_make("autoaudiosink", "audiosink");
+        if (m_audioSink) {
+            g_object_set(G_OBJECT(m_playbin), "audio-sink", m_audioSink, NULL);
+            addAudioBufferProbe();
+        }
     } else {
         m_usePlaybin2 = false;
         m_playbin = gst_element_factory_make("playbin", NULL);
@@ -180,6 +191,9 @@ QGstreamerPlayerSession::~QGstreamerPlayerSession()
 {
     if (m_playbin) {
         stop();
+
+        removeVideoBufferProbe();
+        removeAudioBufferProbe();
 
         delete m_busHelper;
         gst_object_unref(GST_OBJECT(m_bus));
@@ -511,7 +525,8 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
         qDebug() << "The pipeline has not started yet, pending state:" << m_pendingState;
 #endif
         //the pipeline has not started yet
-        m_pendingVideoSink = 0;        
+        flushVideoProbes();
+        m_pendingVideoSink = 0;
         gst_element_set_state(m_videoSink, GST_STATE_NULL);
         gst_element_set_state(m_playbin, GST_STATE_NULL);
 
@@ -521,6 +536,8 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
         } else {
             gst_element_unlink(m_videoIdentity, m_videoSink);
         }
+
+        removeVideoBufferProbe();
 
         gst_bin_remove(GST_BIN(m_videoOutputBin), m_videoSink);
 
@@ -544,6 +561,8 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
             g_object_set(G_OBJECT(m_videoSink), "show-preroll-frame", value, NULL);
         }
 
+        addVideoBufferProbe();
+
         switch (m_pendingState) {
         case QMediaPlayer::PausedState:
             gst_element_set_state(m_playbin, GST_STATE_PAUSED);
@@ -554,6 +573,9 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
         default:
             break;
         }
+
+        resumeVideoProbes();
+
     } else {
         if (m_pendingVideoSink) {
 #ifdef DEBUG_PLAYBIN
@@ -630,12 +652,16 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
         gst_element_unlink(m_videoIdentity, m_videoSink);
     }
 
+    removeVideoBufferProbe();
+
     gst_bin_remove(GST_BIN(m_videoOutputBin), m_videoSink);
 
     m_videoSink = m_pendingVideoSink;
     m_pendingVideoSink = 0;
 
     gst_bin_add(GST_BIN(m_videoOutputBin), m_videoSink);
+
+    addVideoBufferProbe();
 
     m_usingColorspaceElement = false;
     bool linked = gst_element_link(m_videoIdentity, m_videoSink);
@@ -680,11 +706,17 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
     if (m_usingColorspaceElement)
         gst_element_set_state(m_colorSpace, state);
 
-    gst_element_set_state(m_videoSink, state);    
+    gst_element_set_state(m_videoSink, state);
+
+    if (state == GST_STATE_NULL)
+        flushVideoProbes();
 
     // Set state change that was deferred due the video output
     // change being pending
     gst_element_set_state(m_playbin, state);
+
+    if (state != GST_STATE_NULL)
+        resumeVideoProbes();
 
     //don't have to wait here, it will unblock eventually
     if (gst_pad_is_blocked(srcPad))
@@ -766,8 +798,10 @@ bool QGstreamerPlayerSession::play()
             m_pendingState = m_state = QMediaPlayer::StoppedState;
 
             emit stateChanged(m_state);
-        } else
+        } else {
+            resumeVideoProbes();
             return true;
+        }
     }
 
     return false;
@@ -789,6 +823,7 @@ bool QGstreamerPlayerSession::pause()
 
             emit stateChanged(m_state);
         } else {
+            resumeVideoProbes();
             return true;
         }
     }
@@ -803,9 +838,11 @@ void QGstreamerPlayerSession::stop()
 #endif
     m_everPlayed = false;
     if (m_playbin) {
+
         if (m_renderer)
             m_renderer->stopRenderer();
 
+        flushVideoProbes();
         gst_element_set_state(m_playbin, GST_STATE_NULL);
 
         m_lastPosition = 0;
@@ -1619,6 +1656,142 @@ void QGstreamerPlayerSession::showPrerollFrames(bool enabled)
         g_object_set(G_OBJECT(m_videoSink), "show-preroll-frame", value, NULL);
         m_displayPrerolledFrame = enabled;
     }
+}
+
+void QGstreamerPlayerSession::addProbe(QGstreamerVideoProbeControl* probe)
+{
+    QMutexLocker locker(&m_videoProbeMutex);
+
+    if (m_videoProbes.contains(probe))
+        return;
+
+    m_videoProbes.append(probe);
+}
+
+void QGstreamerPlayerSession::removeProbe(QGstreamerVideoProbeControl* probe)
+{
+    QMutexLocker locker(&m_videoProbeMutex);
+    m_videoProbes.removeOne(probe);
+    // Do not emit flush signal in this case.
+    // Assume user releases any outstanding references to video frames.
+}
+
+gboolean QGstreamerPlayerSession::padVideoBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data)
+{
+    Q_UNUSED(pad);
+
+    QGstreamerPlayerSession *session = reinterpret_cast<QGstreamerPlayerSession*>(user_data);
+    QMutexLocker locker(&session->m_videoProbeMutex);
+
+    if (session->m_videoProbes.isEmpty())
+        return TRUE;
+
+    foreach (QGstreamerVideoProbeControl* probe, session->m_videoProbes)
+        probe->bufferProbed(buffer);
+
+    return TRUE;
+}
+
+void QGstreamerPlayerSession::addProbe(QGstreamerAudioProbeControl* probe)
+{
+    QMutexLocker locker(&m_audioProbeMutex);
+
+    if (m_audioProbes.contains(probe))
+        return;
+
+    m_audioProbes.append(probe);
+}
+
+void QGstreamerPlayerSession::removeProbe(QGstreamerAudioProbeControl* probe)
+{
+    QMutexLocker locker(&m_audioProbeMutex);
+    m_audioProbes.removeOne(probe);
+}
+
+gboolean QGstreamerPlayerSession::padAudioBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data)
+{
+    Q_UNUSED(pad);
+
+    QGstreamerPlayerSession *session = reinterpret_cast<QGstreamerPlayerSession*>(user_data);
+    QMutexLocker locker(&session->m_audioProbeMutex);
+
+    if (session->m_audioProbes.isEmpty())
+        return TRUE;
+
+    foreach (QGstreamerAudioProbeControl* probe, session->m_audioProbes)
+        probe->bufferProbed(buffer);
+
+    return TRUE;
+}
+
+void QGstreamerPlayerSession::removeVideoBufferProbe()
+{
+    if (m_videoBufferProbeId == -1)
+        return;
+
+    if (!m_videoSink) {
+        m_videoBufferProbeId = -1;
+        return;
+    }
+
+    GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
+    if (pad)
+        gst_pad_remove_buffer_probe(pad, m_videoBufferProbeId);
+
+    m_videoBufferProbeId = -1;
+}
+
+void QGstreamerPlayerSession::addVideoBufferProbe()
+{
+    Q_ASSERT(m_videoBufferProbeId == -1);
+    if (!m_videoSink)
+        return;
+
+    GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
+    if (pad)
+        m_videoBufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padVideoBufferProbe), this);
+}
+
+void QGstreamerPlayerSession::removeAudioBufferProbe()
+{
+    if (m_audioBufferProbeId == -1)
+        return;
+
+    if (!m_audioSink) {
+        m_audioBufferProbeId = -1;
+        return;
+    }
+
+    GstPad *pad = gst_element_get_static_pad(m_audioSink, "sink");
+    if (pad)
+        gst_pad_remove_buffer_probe(pad, m_audioBufferProbeId);
+
+    m_audioBufferProbeId = -1;
+}
+
+void QGstreamerPlayerSession::addAudioBufferProbe()
+{
+    Q_ASSERT(m_audioBufferProbeId == -1);
+    if (!m_audioSink)
+        return;
+
+    GstPad *pad = gst_element_get_static_pad(m_audioSink, "sink");
+    if (pad)
+        m_audioBufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padAudioBufferProbe), this);
+}
+
+void QGstreamerPlayerSession::flushVideoProbes()
+{
+    QMutexLocker locker(&m_videoProbeMutex);
+    foreach (QGstreamerVideoProbeControl* probe, m_videoProbes)
+        probe->startFlushing();
+}
+
+void QGstreamerPlayerSession::resumeVideoProbes()
+{
+    QMutexLocker locker(&m_videoProbeMutex);
+    foreach (QGstreamerVideoProbeControl* probe, m_videoProbes)
+        probe->stopFlushing();
 }
 
 QT_END_NAMESPACE

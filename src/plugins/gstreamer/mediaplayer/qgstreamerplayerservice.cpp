@@ -64,6 +64,8 @@
 #endif
 
 #include "qgstreamerstreamscontrol.h"
+#include "qgstreameraudioprobecontrol.h"
+#include "qgstreamervideoprobecontrol.h"
 
 #include <qmediaplaylistnavigator.h>
 #include <qmediaplaylist.h>
@@ -115,6 +117,24 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
     if (qstrcmp(name,QMediaStreamsControl_iid) == 0)
         return m_streamsControl;
 
+    if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
+        if (m_session) {
+            QGstreamerVideoProbeControl *probe = new QGstreamerVideoProbeControl(this);
+            m_session->addProbe(probe);
+            return probe;
+        }
+        return 0;
+    }
+
+    if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
+        if (m_session) {
+            QGstreamerAudioProbeControl *probe = new QGstreamerAudioProbeControl(this);
+            m_session->addProbe(probe);
+            return probe;
+        }
+        return 0;
+    }
+
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0)
             m_videoOutput = m_videoRenderer;
@@ -139,6 +159,22 @@ void QGstreamerPlayerService::releaseControl(QMediaControl *control)
     if (control == m_videoOutput) {
         m_videoOutput = 0;
         m_control->setVideoOutput(0);
+    }
+
+    QGstreamerVideoProbeControl* videoProbe = qobject_cast<QGstreamerVideoProbeControl*>(control);
+    if (videoProbe) {
+        if (m_session)
+            m_session->removeProbe(videoProbe);
+        delete videoProbe;
+        return;
+    }
+
+    QGstreamerAudioProbeControl* audioProbe = qobject_cast<QGstreamerAudioProbeControl*>(control);
+    if (audioProbe) {
+        if (m_session)
+            m_session->removeProbe(audioProbe);
+        delete audioProbe;
+        return;
     }
 }
 

@@ -63,6 +63,8 @@ HEADERS += \
     qgstreamervideoinputdevicecontrol.h \
     gstvideoconnector.h \
     qgstcodecsinfo.h \
+    qgstreamervideoprobecontrol.h \
+    qgstreameraudioprobecontrol.h \
 
 SOURCES += \
     qgstreamervideorendererinterface.cpp \
@@ -72,6 +74,8 @@ SOURCES += \
     qgstreamervideoinputdevicecontrol.cpp \
     qgstcodecsinfo.cpp \
     gstvideoconnector.c \
+    qgstreamervideoprobecontrol.cpp \
+    qgstreameraudioprobecontrol.cpp \
 
 
 contains(config_test_xvideo, yes):!isEmpty(QT.widgets.name): {

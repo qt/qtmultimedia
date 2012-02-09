@@ -135,6 +135,7 @@ public:
 
     static QVideoSurfaceGstSink *createSink(QAbstractVideoSurface *surface);
     static QVideoSurfaceFormat formatForCaps(GstCaps *caps, int *bytesPerLine = 0);
+    static void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
 
     static void handleShowPrerollChange(GObject *o, GParamSpec *p, gpointer d);
 

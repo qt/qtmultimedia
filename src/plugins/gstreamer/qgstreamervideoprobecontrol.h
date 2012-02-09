@@ -39,38 +39,37 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTUTILS_P_H
-#define QGSTUTILS_P_H
+#ifndef QGSTREAMERVIDEOPROBECONTROL_H
+#define QGSTREAMERVIDEOPROBECONTROL_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <QtCore/qmap.h>
 #include <gst/gst.h>
-#include <qaudioformat.h>
+#include <qmediavideoprobecontrol.h>
+#include <QtCore/qmutex.h>
+#include "qvideoframe.h"
 
 QT_BEGIN_NAMESPACE
 
-class QSize;
-class QVariant;
-class QByteArray;
+class QGstreamerVideoProbeControl : public QMediaVideoProbeControl
+{
+    Q_OBJECT
+public:
+    explicit QGstreamerVideoProbeControl(QObject *parent);
+    virtual ~QGstreamerVideoProbeControl();
 
-namespace QGstUtils {
-    QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
+    void bufferProbed(GstBuffer* buffer);
+    void startFlushing();
+    void stopFlushing();
 
-    QSize capsResolution(const GstCaps *caps);
-    QSize capsCorrectedResolution(const GstCaps *caps);
-    QAudioFormat audioFormatForCaps(const GstCaps *caps);
-}
+private slots:
+    void frameProbed();
+
+private:
+    bool m_flushing;
+    bool m_frameProbed; // true if at least one frame was probed
+    QVideoFrame m_pendingFrame;
+    QMutex m_frameMutex;
+};
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QGSTREAMERVIDEOPROBECONTROL_H

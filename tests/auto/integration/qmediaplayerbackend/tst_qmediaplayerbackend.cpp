@@ -44,6 +44,8 @@
 #include <qabstractvideosurface.h>
 #include "qmediaservice.h"
 #include "qmediaplayer.h"
+#include "qaudioprobe.h"
+#include "qvideoprobe.h"
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -78,6 +80,7 @@ private slots:
     void volumeAcrossFiles_data();
     void volumeAcrossFiles();
     void seekPauseSeek();
+    void probes();
 
 private:
     //one second local wav file
@@ -92,7 +95,7 @@ class TestVideoSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
 public:
-    explicit TestVideoSurface() { }
+    TestVideoSurface() { }
 
     //video surface
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
@@ -102,12 +105,26 @@ public:
     void stop();
     bool present(const QVideoFrame &frame);
 
-    QList<QVideoFrame>& frameList() { return m_frameList; }
-
-private:
     QList<QVideoFrame> m_frameList;
 };
 
+class ProbeDataHandler : public QObject
+{
+    Q_OBJECT
+
+public:
+    ProbeDataHandler() : isVideoFlushCalled(false) { }
+
+    QList<QVideoFrame> m_frameList;
+    QList<QAudioBuffer> m_bufferList;
+    bool isVideoFlushCalled;
+
+public slots:
+    void processFrame(const QVideoFrame&);
+    void processBuffer(const QAudioBuffer&);
+    void flushVideo();
+    void flushAudio();
+};
 
 void tst_QMediaPlayerBackend::init()
 {
@@ -453,21 +470,21 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     player.setMedia(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
     QCOMPARE(player.state(), QMediaPlayer::StoppedState);
-    QVERIFY(surface->frameList().isEmpty()); // frame must not appear until we call pause() or play()
+    QVERIFY(surface->m_frameList.isEmpty()); // frame must not appear until we call pause() or play()
 
     positionSpy.clear();
     player.setPosition((qint64)7000);
     QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - (qint64)7000) < (qint64)500);
     QCOMPARE(player.state(), QMediaPlayer::StoppedState);
     QTest::qWait(250); // wait a bit to ensure the frame is not rendered
-    QVERIFY(surface->frameList().isEmpty()); // still no frame, we must call pause() or play() to see a frame
+    QVERIFY(surface->m_frameList.isEmpty()); // still no frame, we must call pause() or play() to see a frame
 
     player.pause();
     QTRY_COMPARE(player.state(), QMediaPlayer::PausedState); // it might take some time for the operation to be completed
-    QTRY_COMPARE(surface->frameList().size(), 1); // we must see a frame at position 7000 here
+    QTRY_COMPARE(surface->m_frameList.size(), 1); // we must see a frame at position 7000 here
 
     {
-        QVideoFrame frame = surface->frameList().back();
+        QVideoFrame frame = surface->m_frameList.back();
         QVERIFY(qAbs(frame.startTime() - (qint64)7000) < (qint64)500);
         QCOMPARE(frame.width(), 160);
         QCOMPARE(frame.height(), 120);
@@ -486,10 +503,10 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     player.setPosition((qint64)12000);
     QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - (qint64)12000) < (qint64)500);
     QCOMPARE(player.state(), QMediaPlayer::PausedState);
-    QCOMPARE(surface->frameList().size(), 2);
+    QCOMPARE(surface->m_frameList.size(), 2);
 
     {
-        QVideoFrame frame = surface->frameList().back();
+        QVideoFrame frame = surface->m_frameList.back();
         QVERIFY(qAbs(frame.startTime() - (qint64)12000) < (qint64)500);
         QCOMPARE(frame.width(), 160);
         QCOMPARE(frame.height(), 120);
@@ -502,6 +519,41 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QCOMPARE(qBlue(image.pixel(0, 0)), 0);
         frame.unmap();
     }
+}
+
+void tst_QMediaPlayerBackend::probes()
+{
+    QMediaPlayer *player = new QMediaPlayer;
+
+    TestVideoSurface *surface = new TestVideoSurface;
+    player->setVideoOutput(surface);
+
+    QVideoProbe *videoProbe = new QVideoProbe;
+    QAudioProbe *audioProbe = new QAudioProbe;
+
+    ProbeDataHandler probeHandler;
+    connect(videoProbe, SIGNAL(videoFrameProbed(const QVideoFrame&)), &probeHandler, SLOT(processFrame(QVideoFrame)));
+    connect(videoProbe, SIGNAL(flush()), &probeHandler, SLOT(flushVideo()));
+    connect(audioProbe, SIGNAL(audioBufferProbed(const QAudioBuffer&)), &probeHandler, SLOT(processBuffer(QAudioBuffer)));
+    connect(audioProbe, SIGNAL(flush()), &probeHandler, SLOT(flushAudio()));
+
+    QVERIFY(videoProbe->setSource(player));
+    QVERIFY(audioProbe->setSource(player));
+
+    QFileInfo videoFile(QLatin1String(TESTDATA_DIR "testdata/colors.mp4"));
+    QVERIFY(videoFile.exists());
+    player->setMedia(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
+    QTRY_COMPARE(player->mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    player->pause();
+    QTRY_COMPARE(surface->m_frameList.size(), 1);
+    QVERIFY(!probeHandler.m_frameList.isEmpty());
+    QTRY_VERIFY(!probeHandler.m_bufferList.isEmpty());
+
+    delete player;
+    QTRY_VERIFY(probeHandler.isVideoFlushCalled);
+    delete videoProbe;
+    delete audioProbe;
 }
 
 QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
@@ -537,6 +589,26 @@ bool TestVideoSurface::present(const QVideoFrame &frame)
     return true;
 }
 
+
+void ProbeDataHandler::processFrame(const QVideoFrame &frame)
+{
+    m_frameList.append(frame);
+}
+
+void ProbeDataHandler::processBuffer(const QAudioBuffer &buffer)
+{
+    m_bufferList.append(buffer);
+}
+
+void ProbeDataHandler::flushVideo()
+{
+    isVideoFlushCalled = true;
+}
+
+void ProbeDataHandler::flushAudio()
+{
+
+}
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
 #include "tst_qmediaplayerbackend.moc"
