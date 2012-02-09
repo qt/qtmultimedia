@@ -150,6 +150,23 @@ namespace QtMultimedia
         Q_DECLARE_METADATA(Sharpness);
         Q_DECLARE_METADATA(DeviceSettingDescription);
 
+        // Location
+        Q_DECLARE_METADATA(GPSLatitude);
+        Q_DECLARE_METADATA(GPSLongitude);
+        Q_DECLARE_METADATA(GPSAltitude);
+        Q_DECLARE_METADATA(GPSTimeStamp);
+        Q_DECLARE_METADATA(GPSSatellites);
+        Q_DECLARE_METADATA(GPSStatus);
+        Q_DECLARE_METADATA(GPSDOP);
+        Q_DECLARE_METADATA(GPSSpeed);
+        Q_DECLARE_METADATA(GPSTrack);
+        Q_DECLARE_METADATA(GPSTrackRef);
+        Q_DECLARE_METADATA(GPSImgDirection);
+        Q_DECLARE_METADATA(GPSImgDirectionRef);
+        Q_DECLARE_METADATA(GPSMapDatum);
+        Q_DECLARE_METADATA(GPSProcessingMethod);
+        Q_DECLARE_METADATA(GPSAreaInformation);
+
         Q_DECLARE_METADATA(PosterImage);
         Q_DECLARE_METADATA(CoverArtImage);
         Q_DECLARE_METADATA(ThumbnailImage);

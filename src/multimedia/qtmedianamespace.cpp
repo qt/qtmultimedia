@@ -166,6 +166,23 @@ Q_DEFINE_METADATA(Saturation);
 Q_DEFINE_METADATA(Sharpness);
 Q_DEFINE_METADATA(DeviceSettingDescription);
 
+// Location
+Q_DEFINE_METADATA(GPSLatitude);
+Q_DEFINE_METADATA(GPSLongitude);
+Q_DEFINE_METADATA(GPSAltitude);
+Q_DEFINE_METADATA(GPSTimeStamp);
+Q_DEFINE_METADATA(GPSSatellites);
+Q_DEFINE_METADATA(GPSStatus);
+Q_DEFINE_METADATA(GPSDOP);
+Q_DEFINE_METADATA(GPSSpeed);
+Q_DEFINE_METADATA(GPSTrack);
+Q_DEFINE_METADATA(GPSTrackRef);
+Q_DEFINE_METADATA(GPSImgDirection);
+Q_DEFINE_METADATA(GPSImgDirectionRef);
+Q_DEFINE_METADATA(GPSMapDatum);
+Q_DEFINE_METADATA(GPSProcessingMethod);
+Q_DEFINE_METADATA(GPSAreaInformation);
+
 Q_DEFINE_METADATA(PosterImage);
 Q_DEFINE_METADATA(CoverArtImage);
 Q_DEFINE_METADATA(ThumbnailImage);
@@ -291,6 +308,48 @@ Q_DEFINE_METADATA(ThumbnailImage);
         Indicates the direction of sharpness processing applied by the camera when the image was shot.
     \value DeviceSettingDescription
         Exif tag, indicates information on the picture-taking conditions of a particular camera model. QString
+
+    \value GPSLatitude
+        Latitude value of the geographical position (decimal degrees).
+        A positive latitude indicates the Northern Hemisphere,
+        and a negative latitude indicates the Southern Hemisphere. double.
+    \value GPSLongitude
+        Longitude value of the geographical position (decimal degrees).
+        A positive longitude indicates the Eastern Hemisphere,
+        and a negative longitude indicates the Western Hemisphere. double.
+    \value GPSAltitude
+        The value of altitude in meters above sea level. double.
+    \value GPSTimeStamp
+        Time stamp of GPS data. QDateTime.
+    \value GPSSatellites
+        GPS satellites used for measurements. QString.
+    \value GPSStatus
+        Status of GPS receiver at image creation time. QString.
+    \value GPSDOP
+        Degree of precision for GPS data. qreal.
+    \value GPSSpeed
+        Speed of GPS receiver movement in kilometers per hour. qreal.
+    \value GPSTrack
+        Direction of GPS receiver movement. qreal.
+        The range of values is [0.0, 360),
+        with 0 direction pointing on either true or magnetic north,
+        depending on GPSTrackRef.
+    \value GPSTrackRef
+        Reference for movement direction. QChar.
+        'T' means true direction and 'M' is magnetic direction.
+    \value GPSImgDirection
+        Direction of image when captured. qreal.
+        The range of values is [0.0, 360).
+    \value GPSImgDirectionRef
+        Reference for image direction. QChar.
+        'T' means true direction and 'M' is magnetic direction.
+    \value GPSMapDatum
+        Geodetic survey data used by the GPS receiver. QString.
+    \value GPSProcessingMethod
+        The name of the method used for location finding. QString.
+    \value GPSAreaInformation
+        The name of the GPS area. QString
+
 
     \value ThumbnailImage An embedded thumbnail image.  QImage.
 */
