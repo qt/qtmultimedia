@@ -69,6 +69,7 @@ public:
 
 Q_SIGNALS:
     void audioBufferProbed(const QAudioBuffer &audioBuffer);
+    void flush();
 
 private:
     QAudioProbePrivate *d;

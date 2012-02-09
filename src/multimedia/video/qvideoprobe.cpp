@@ -103,8 +103,10 @@ QVideoProbe::~QVideoProbe()
 {
     if (d->source) {
         // Disconnect
-        if (d->probee)
+        if (d->probee) {
             disconnect(d->probee.data(), SIGNAL(videoFrameProbed(QVideoFrame)), this, SIGNAL(videoFrameProbed(QVideoFrame)));
+            disconnect(d->probee.data(), SIGNAL(flush()), this, SIGNAL(flush()));
+        }
         d->source.data()->service()->releaseControl(d->probee.data());
     }
 }
@@ -132,6 +134,7 @@ bool QVideoProbe::setSource(QMediaObject *source)
         if (d->source) {
             Q_ASSERT(d->probee);
             disconnect(d->probee.data(), SIGNAL(videoFrameProbed(QVideoFrame)), this, SIGNAL(videoFrameProbed(QVideoFrame)));
+            disconnect(d->probee.data(), SIGNAL(flush()), this, SIGNAL(flush()));
             d->source.data()->service()->releaseControl(d->probee.data());
             d->source.clear();
             d->probee.clear();
@@ -145,6 +148,7 @@ bool QVideoProbe::setSource(QMediaObject *source)
 
             if (d->probee) {
                 connect(d->probee.data(), SIGNAL(videoFrameProbed(QVideoFrame)), this, SIGNAL(videoFrameProbed(QVideoFrame)));
+                connect(d->probee.data(), SIGNAL(flush()), this, SIGNAL(flush()));
                 d->source = source;
             }
         }
@@ -189,5 +193,19 @@ bool QVideoProbe::isActive() const
 {
     return d->probee != 0;
 }
+
+/*!
+    \fn QVideoProbe::videoFrameProbed(const QVideoFrame &frame)
+
+    This signal should be emitted when a video frame is processed in the
+    media service.
+*/
+
+/*!
+    \fn QVideoProbe::flush()
+
+    This signal should be emitted when it is required to release all frames.
+    Application must release all outstanding references to video frames.
+*/
 
 QT_END_NAMESPACE

@@ -98,8 +98,10 @@ QAudioProbe::~QAudioProbe()
 {
     if (d->source) {
         // Disconnect
-        if (d->probee)
+        if (d->probee) {
             disconnect(d->probee.data(), SIGNAL(audioBufferProbed(QAudioBuffer)), this, SIGNAL(audioBufferProbed(QAudioBuffer)));
+            disconnect(d->probee.data(), SIGNAL(flush()), this, SIGNAL(flush()));
+        }
         d->source.data()->service()->releaseControl(d->probee.data());
     }
 }
@@ -127,6 +129,7 @@ bool QAudioProbe::setSource(QMediaObject *source)
         if (d->source) {
             Q_ASSERT(d->probee);
             disconnect(d->probee.data(), SIGNAL(audioBufferProbed(QAudioBuffer)), this, SIGNAL(audioBufferProbed(QAudioBuffer)));
+            disconnect(d->probee.data(), SIGNAL(flush()), this, SIGNAL(flush()));
             d->source.data()->service()->releaseControl(d->probee.data());
             d->source.clear();
             d->probee.clear();
@@ -140,6 +143,7 @@ bool QAudioProbe::setSource(QMediaObject *source)
 
             if (d->probee) {
                 connect(d->probee.data(), SIGNAL(audioBufferProbed(QAudioBuffer)), this, SIGNAL(audioBufferProbed(QAudioBuffer)));
+                connect(d->probee.data(), SIGNAL(flush()), this, SIGNAL(flush()));
                 d->source = source;
             }
         }
@@ -186,5 +190,20 @@ bool QAudioProbe::isActive() const
 {
     return d->probee != 0;
 }
+
+/*!
+    \fn QAudioProbe::audioBufferProbed(const QAudioBuffer &buffer)
+
+    This signal should be emitted when an audio buffer is processed in the
+    media service.
+*/
+
+
+/*!
+    \fn QAudioProbe::flush()
+
+    This signal should be emitted when it is required to release all buffers.
+    Application must release all outstanding references to audio buffers.
+*/
 
 QT_END_NAMESPACE

@@ -61,6 +61,7 @@ public:
 
 signals:
     void videoFrameProbed(const QVideoFrame &frame);
+    void flush();
 
 protected:
     explicit QMediaVideoProbeControl(QObject *parent = 0);

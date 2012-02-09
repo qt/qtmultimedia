@@ -92,6 +92,13 @@ QMediaAudioProbeControl::~QMediaAudioProbeControl()
     media service.
 */
 
+
+/*!
+    \fn QMediaAudioProbeControl::flush()
+
+    This signal should be emitted when it is required to release all frames.
+*/
+
 #include "moc_qmediaaudioprobecontrol.cpp"
 
 QT_END_NAMESPACE

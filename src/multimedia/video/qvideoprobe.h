@@ -69,6 +69,7 @@ public:
 
 Q_SIGNALS:
     void videoFrameProbed(const QVideoFrame &videoFrame);
+    void flush();
 
 private:
     QVideoProbePrivate *d;

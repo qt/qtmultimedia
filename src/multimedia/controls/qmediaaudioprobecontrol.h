@@ -59,6 +59,7 @@ public:
 
 signals:
     void audioBufferProbed(const QAudioBuffer &buffer);
+    void flush();
 
 protected:
     explicit QMediaAudioProbeControl(QObject *parent = 0);
