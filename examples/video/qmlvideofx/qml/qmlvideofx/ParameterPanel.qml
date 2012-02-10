@@ -92,6 +92,7 @@ Rectangle {
                     right: parent.right
                     rightMargin: 20
                 }
+                gripSize: root.gripSize
                 value: model.value
                 onValueChanged: view.model.setProperty(index, "value", value)
             }

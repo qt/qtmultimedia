@@ -51,6 +51,11 @@ Rectangle {
     property bool perfMonitorsLogging: false
     property bool perfMonitorsVisible: false
 
+    QtObject {
+        id: d
+        property real gripSize: 20
+    }
+
     Rectangle {
         id: inner
         anchors.fill: parent
@@ -65,6 +70,7 @@ Rectangle {
                 right: effectSelectionPanel.left
                 margins: 5
             }
+            gripSize: d.gripSize
             width: 600
             height: 600
         }
@@ -95,6 +101,7 @@ Rectangle {
                 right: effectSelectionPanel.left
                 margins: 20
             }
+            gripSize: d.gripSize
         }
 
         EffectSelectionPanel {

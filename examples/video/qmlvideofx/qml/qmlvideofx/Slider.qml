@@ -48,17 +48,36 @@ Rectangle {
     property alias value: grip.value
     property color fillColor: "white"
     property color lineColor: "black"
-    property alias gripSize: grip.width
-    property alias enabled: mouseArea.enabled
+    property color gripColor: "white"
+    property real gripSize: 20
+    property real gripTolerance: 3.0
+    property real increment: 0.1
+    property bool enabled: true
 
     Rectangle {
         anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
         height: 3
-        color: displayedColor()
+        color: displayedColor(root.lineColor)
 
         Rectangle {
             anchors { fill: parent; margins: 1 }
             color: root.fillColor
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        enabled: root.enabled
+        onClicked: {
+            if (parent.width) {
+                var newValue = mouse.x / parent.width
+                if (Math.abs(newValue - parent.value) > parent.increment) {
+                    if (newValue > parent.value)
+                        parent.value = Math.min(1.0, parent.value + parent.increment)
+                    else
+                        parent.value = Math.max(0.0, parent.value - parent.increment)
+                }
+            }
         }
     }
 
@@ -67,13 +86,14 @@ Rectangle {
         property real value: 0.5
         x: (value * parent.width) - width/2
         anchors.verticalCenter: parent.verticalCenter
-        width: 20
+        width: root.gripTolerance * root.gripSize
         height: width
         radius: width/2
-        color: displayedColor()
+        color: "transparent"
 
         MouseArea {
             id: mouseArea
+            enabled: root.enabled
             anchors.fill:  parent
             drag {
                 target: grip
@@ -94,14 +114,16 @@ Rectangle {
         }
 
         Rectangle {
-            anchors { fill: parent; margins: 1 }
+            anchors.centerIn: parent
+            width: root.gripSize
+            height: width
             radius: width/2
-            color: root.fillColor
+            color: root.gripColor
         }
     }
 
-    function displayedColor() {
-        var tint = Qt.rgba(fillColor.r, fillColor.g, fillColor.b, 0.25)
-        return enabled ? lineColor : Qt.tint(fillColor, tint)
+    function displayedColor(c) {
+        var tint = Qt.rgba(c.r, c.g, c.b, 0.25)
+        return enabled ? c : Qt.tint(c, tint)
     }
 }

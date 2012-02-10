@@ -45,50 +45,29 @@ Rectangle {
     id: root
     anchors.fill: parent
     color: "transparent"
-    property alias value: grip.value
+    property alias value: slider.value
     property alias lineWidth: line.width
-    property alias gripSize: grip.width
-
-    Rectangle {
-        id: grip
-        property real value: 0.5
-        x: (value * parent.width) - width/2
-        anchors.top: parent.top
-        width: 20
-        height: width
-        radius: width/2
-        color: "red"
-
-        MouseArea {
-            anchors.fill:  parent
-
-            drag {
-                target: grip
-                axis: Drag.XAxis
-                minimumX: -parent.width/2
-                maximumX: root.width - parent.width/2
-            }
-
-            onPositionChanged:  {
-                if (drag.active)
-                    updatePosition()
-            }
-
-            onReleased: {
-                updatePosition()
-            }
-
-            function updatePosition() {
-                value = (grip.x + grip.width/2) / grip.parent.width
-            }
-        }
-    }
+    property alias gripSize: slider.gripSize
 
     Rectangle {
         id: line
         anchors { top: parent.top; bottom: parent.bottom }
-        x: value * parent.width - (width / 2)
+        x: parent.value * parent.width - (width / 2)
         width: 2
         color: "red"
+    }
+
+    Slider {
+        id: slider
+        increment: 0.0
+        lineColor: "transparent"
+        fillColor: "transparent"
+        gripColor: "red"
+        anchors {
+            top: parent.top
+            topMargin: gripSize / 2
+            left: parent.left
+            right: parent.right
+        }
     }
 }

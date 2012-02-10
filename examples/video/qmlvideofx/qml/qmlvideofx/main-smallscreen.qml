@@ -57,6 +57,7 @@ Rectangle {
                                     effectSelectionPanel.state == "shown" ||
                                     videoFileBrowser.shown ||
                                     imageFileBrowser.shown)
+       property real gripSize: 40
     }
 
     // Create ScreenSaver element via Loader, so this app will still run if the
@@ -100,7 +101,7 @@ Rectangle {
         Content {
             id: content
             anchors.fill: parent
-            gripSize: 40
+            gripSize: d.gripSize
             onVideoFramePainted: performanceLoader.item.videoFramePainted()
         }
 
@@ -112,7 +113,7 @@ Rectangle {
                 margins: 10
             }
             y: parent.height
-            gripSize: 40
+            gripSize: d.gripSize
 
             states: [
                 State {
