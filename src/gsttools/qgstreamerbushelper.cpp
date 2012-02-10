@@ -48,34 +48,55 @@
 
 QT_BEGIN_NAMESPACE
 
-#ifndef QT_NO_GLIB
+
 class QGstreamerBusHelperPrivate : public QObject
 {
     Q_OBJECT
-
 public:
-    void addWatch(GstBus* bus, QGstreamerBusHelper* helper)
+    QGstreamerBusHelperPrivate(QGstreamerBusHelper *parent, GstBus* bus) :
+        QObject(parent),
+        m_bus(bus),
+        m_helper(parent)
     {
-        setParent(helper);
+#ifdef QT_NO_GLIB
+        Q_UNUSED(bus);
+
+        m_intervalTimer = new QTimer(this);
+        m_intervalTimer->setInterval(250);
+
+        connect(m_intervalTimer, SIGNAL(timeout()), SLOT(interval()));
+        m_intervalTimer->start();
+#else
         m_tag = gst_bus_add_watch_full(bus, 0, busCallback, this, NULL);
-        m_helper = helper;
+#endif
+
     }
 
-    void removeWatch(QGstreamerBusHelper* helper)
+    ~QGstreamerBusHelperPrivate()
     {
-        Q_UNUSED(helper);
+        m_helper = 0;
+#ifdef QT_NO_GLIB
+        m_intervalTimer->stop();
+#else
         g_source_remove(m_tag);
+#endif
     }
 
-    static QGstreamerBusHelperPrivate* instance()
+    GstBus* bus() const { return m_bus; }
+
+private slots:
+    void interval()
     {
-        return new QGstreamerBusHelperPrivate;
+        GstMessage* message;
+        while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != 0) {
+            processMessage(message);
+            gst_message_unref(message);
+        }
     }
 
 private:
-    void processMessage(GstBus* bus, GstMessage* message)
+    void processMessage(GstMessage* message)
     {
-        Q_UNUSED(bus);
         QGstreamerMessage msg(message);
         foreach (QGstreamerBusMessageFilter *filter, busFilters) {
             if (filter->processBusMessage(msg))
@@ -86,91 +107,21 @@ private:
 
     static gboolean busCallback(GstBus *bus, GstMessage *message, gpointer data)
     {
-        reinterpret_cast<QGstreamerBusHelperPrivate*>(data)->processMessage(bus, message);
+        Q_UNUSED(bus);
+        reinterpret_cast<QGstreamerBusHelperPrivate*>(data)->processMessage(message);
         return TRUE;
     }
 
-    guint       m_tag;
+    guint m_tag;
+    GstBus* m_bus;
     QGstreamerBusHelper*  m_helper;
-
-public:
-    GstBus* bus;
-    QMutex filterMutex;
-    QList<QGstreamerSyncMessageFilter*> syncFilters;
-    QList<QGstreamerBusMessageFilter*> busFilters;
-};
-
-#else
-
-class QGstreamerBusHelperPrivate : public QObject
-{
-    Q_OBJECT
-    typedef QMap<QGstreamerBusHelper*, GstBus*>   HelperMap;
-
-public:
-    void addWatch(GstBus* bus, QGstreamerBusHelper* helper)
-    {
-        m_helperMap.insert(helper, bus);
-
-        if (m_helperMap.size() == 1)
-            m_intervalTimer->start();
-    }
-
-    void removeWatch(QGstreamerBusHelper* helper)
-    {
-        m_helperMap.remove(helper);
-
-        if (m_helperMap.size() == 0)
-            m_intervalTimer->stop();
-    }
-
-    static QGstreamerBusHelperPrivate* instance()
-    {
-        static QGstreamerBusHelperPrivate self;
-
-        return &self;
-    }
-
-private slots:
-    void interval()
-    {
-        for (HelperMap::iterator it = m_helperMap.begin(); it != m_helperMap.end(); ++it) {
-            GstMessage* message;
-
-            while ((message = gst_bus_poll(it.value(), GST_MESSAGE_ANY, 0)) != 0) {
-                QGstreamerMessage msg(message);
-                foreach (QGstreamerBusMessageFilter *filter, busFilters) {
-                    if (filter->processBusMessage(msg))
-                        break;
-                }
-                emit it.key()->message(msg);
-
-                gst_message_unref(message);
-            }
-
-            emit it.key()->message(QGstreamerMessage());
-        }
-    }
-
-private:
-    QGstreamerBusHelperPrivate()
-    {
-        m_intervalTimer = new QTimer(this);
-        m_intervalTimer->setInterval(250);
-
-        connect(m_intervalTimer, SIGNAL(timeout()), SLOT(interval()));
-    }
-
-    HelperMap   m_helperMap;
     QTimer*     m_intervalTimer;
 
 public:
-    GstBus* bus;
     QMutex filterMutex;
     QList<QGstreamerSyncMessageFilter*> syncFilters;
     QList<QGstreamerBusMessageFilter*> busFilters;
 };
-#endif
 
 
 static GstBusSyncReply syncGstBusFilter(GstBus* bus, GstMessage* message, QGstreamerBusHelperPrivate *d)
@@ -193,19 +144,15 @@ static GstBusSyncReply syncGstBusFilter(GstBus* bus, GstMessage* message, QGstre
 */
 
 QGstreamerBusHelper::QGstreamerBusHelper(GstBus* bus, QObject* parent):
-    QObject(parent),
-    d(QGstreamerBusHelperPrivate::instance())
+    QObject(parent)
 {
-    d->bus = bus;
-    d->addWatch(bus, this);
-
+    d = new QGstreamerBusHelperPrivate(this, bus);
     gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, d);
 }
 
 QGstreamerBusHelper::~QGstreamerBusHelper()
 {
-    d->removeWatch(this);
-    gst_bus_set_sync_handler(d->bus,0,0);
+    gst_bus_set_sync_handler(d->bus(),0,0);
 }
 
 void QGstreamerBusHelper::installMessageFilter(QObject *filter)
