@@ -49,8 +49,37 @@ QT_BEGIN_NAMESPACE
     \brief The CameraCapture element provides an interface for camera capture related settings
     \ingroup multimedia_qml
 
-    Documentation to be written.
+    The CameraImageProcessing element provides control over post-processing
+    done by the camera middleware, including white balance adjustments,
+    contrast, saturation, sharpening, and denoising
+
+    It is not constructed separately but is provided by the Camera element's
+    \l {Camera::imageProcessing}{imageProcessing} property.
+
+    \qml
+    import QtQuick 2.0
+    import QtMultimedia 5.0
+
+    Camera {
+        id: camera
+
+        imageProcessing {
+            whiteBalanceMode: Camera.WhiteBalanceTungsten
+            contrast: 0.66
+            saturation: -0.5
+        }
+    }
+
+    \endqml
+
+
 */
+/*!
+    \class QDeclarativeCameraImageProcessing
+    \internal
+    \brief The CameraCapture element provides an interface for camera capture related settings
+*/
+
 
 QDeclarativeCameraImageProcessing::QDeclarativeCameraImageProcessing(QCamera *camera, QObject *parent) :
     QObject(parent)
@@ -100,7 +129,7 @@ void QDeclarativeCameraImageProcessing::setWhiteBalanceMode(QDeclarativeCameraIm
 }
 
 /*!
-    \qmlproperty int CameraImageProcessing::manualWhiteBalance
+    \qmlproperty qreal CameraImageProcessing::manualWhiteBalance
 
     The color temperature used when in manual white balance mode (WhiteBalanceManual).
     The units are Kelvin.

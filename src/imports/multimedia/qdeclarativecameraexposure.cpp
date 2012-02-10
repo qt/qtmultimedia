@@ -49,10 +49,13 @@ QT_BEGIN_NAMESPACE
     \brief The CameraExposure element provides interface for exposure related camera settings.
     \ingroup multimedia_qml
 
-
     This element is part of the \bold{QtMultimedia 5.0} module.
 
-    It should not be constructed separately but provided by Camera.exposure.
+    This element allows you to adjust exposure related settings
+    like aperture and shutter speed, metering and ISO speed.
+
+    It should not be constructed separately but provided by the
+    Camera element's \l {Camera::exposure} {exposure} property.
 
     \qml
     import QtQuick 2.0
@@ -112,7 +115,7 @@ void QDeclarativeCameraExposure::setExposureCompensation(qreal ev)
 }
 
 /*!
-    \qmlproperty real CameraExposure::isoSensitivity
+    \qmlproperty integer CameraExposure::iso
     \property QDeclarativeCameraExposure::iso
 
     The sensor's ISO sensitivity.
@@ -126,7 +129,10 @@ int QDeclarativeCameraExposure::isoSensitivity() const
     \qmlproperty real CameraExposure::shutterSpeed
     \property QDeclarativeCameraExposure::shutterSpeed
 
-    The camera's shutter speed, in seconds.
+    The camera's current shutter speed setting, in seconds.  To affect
+    the shutter speed you can use the \l manualShutterSpeed
+    property and \l setAutoShutterSpeed().
+
 */
 qreal QDeclarativeCameraExposure::shutterSpeed() const
 {
@@ -137,12 +143,28 @@ qreal QDeclarativeCameraExposure::shutterSpeed() const
     \qmlproperty real CameraExposure::aperture
     \property QDeclarativeCameraExposure::aperture
 
-    The lens aperture as an F number (the ratio of the focal length to effective aperture diameter).
+    The current lens aperture as an F number (the ratio of
+    the focal length to effective aperture diameter).
+
+    \sa manualAperture, setAutoAperture()
 */
 qreal QDeclarativeCameraExposure::aperture() const
 {
     return m_exposure->aperture();
 }
+
+/*!
+    \qmlproperty integer CameraExposure::manualIsoSensitivity
+    \property QDeclarativeCameraExposure::manualIsoSensitivity
+
+    This property allows you to set a specific ISO setting
+    for image capturing.
+
+    If a negative value is specified, the camera will
+    automatically determine an appropriate value.
+
+    \sa iso, setAutoIsoSensitivity()
+*/
 
 int QDeclarativeCameraExposure::manualIsoSensitivity() const
 {
@@ -160,6 +182,17 @@ void QDeclarativeCameraExposure::setManualIsoSensitivity(int iso)
     emit manualIsoSensitivityChanged(iso);
 }
 
+/*!
+    \qmlproperty real CameraExposure::manualShutterSpeed
+    \property QDeclarativeCameraExposure::manualShutterSpeed
+
+    This property allows you to set the shutter speed to
+    use during capture.  If the value is less than zero,
+    then an automatic value is used and the camera will
+    determine an appropriate shutter speed.
+
+    \l shutterSpeed, setAutoShutterSpeed()
+*/
 qreal QDeclarativeCameraExposure::manualShutterSpeed() const
 {
     return m_manualShutterSpeed;
@@ -176,6 +209,17 @@ void QDeclarativeCameraExposure::setManualShutterSpeed(qreal speed)
     emit manualShutterSpeedChanged(speed);
 }
 
+/*!
+    \qmlproperty real CameraExposure::manualAperture
+    \property QDeclarativeCameraExposure::manualAperture
+
+    This property allows you to set the aperture (F number)
+    setting to use during capture.  If the value is less than zero,
+    then an automatic value is used and the camera will
+    determine an appropriate aperture value.
+
+    \l aperture, setAutoAperture()
+*/
 qreal QDeclarativeCameraExposure::manualAperture() const
 {
     return m_manualAperture;
@@ -193,7 +237,8 @@ void QDeclarativeCameraExposure::setManualAperture(qreal aperture)
 }
 
 /*!
-  Turn on auto aperture. The manual aperture value is reset to -1.0
+    \qmlmethod CameraExposure::setAutoAperture()
+  Turn on auto aperture selection. The manual aperture value is reset to -1.0
  */
 void QDeclarativeCameraExposure::setAutoAperture()
 {
@@ -201,7 +246,8 @@ void QDeclarativeCameraExposure::setAutoAperture()
 }
 
 /*!
-  Turn on auto shutter speed. The manual shutter speed value is reset to -1.0
+    \qmlmethod CameraExposure::setAutoShutterSpeed()
+  Turn on auto shutter speed selection. The manual shutter speed value is reset to -1.0
  */
 void QDeclarativeCameraExposure::setAutoShutterSpeed()
 {
@@ -209,7 +255,8 @@ void QDeclarativeCameraExposure::setAutoShutterSpeed()
 }
 
 /*!
-  Turn on auto ISO sensitivity. The manual ISO value is reset to -1.
+    \qmlmethod CameraExposure::setAutoIsoSensitivity()
+  Turn on auto ISO sensitivity selection. The manual ISO value is reset to -1.
  */
 void QDeclarativeCameraExposure::setAutoIsoSensitivity()
 {
@@ -219,6 +266,8 @@ void QDeclarativeCameraExposure::setAutoIsoSensitivity()
 /*!
     \qmlproperty enumeration CameraExposure::exposureMode
     \property QDeclarativeCameraExposure::exposureMode
+
+    Set the camera exposure mode to one of the following:
 
     \table
     \header \o Value \o Description
@@ -251,16 +300,11 @@ void QDeclarativeCameraExposure::setExposureMode(QDeclarativeCamera::ExposureMod
 }
 
 /*!
-    \qmlsignal CameraExposure::exposureModeChanged(CameraExposure::ExposureMode)
-    \fn void QDeclarativeCameraExposure::exposureModeChanged(QDeclarativeCamera::ExposureMode)
-*/
-
-/*!
     \qmlproperty QPointF CameraExposure::spotMeteringPoint
     \property QDeclarativeCameraExposure::spotMeteringPoint
 
-    The relative frame coordinates of the point to use for exposure metering (in relative
-    frame coordinates).  This point is only used in spot metering mode, and typically defaults
+    The relative frame coordinates of the point to use for exposure metering.
+    This point is only used in spot metering mode, and typically defaults
     to the center \c (0.5, 0.5).
  */
 
@@ -278,6 +322,20 @@ void QDeclarativeCameraExposure::setSpotMeteringPoint(const QPointF &point)
         emit spotMeteringPointChanged(spotMeteringPoint());
 }
 
+/*!
+    \qmlproperty enumeration CameraExposure::meteringMode
+    \property QDeclarativeCameraExposure::meteringMode
+
+    Set the camera metering mode (how exposure is balanced)
+    to one of the following:
+
+    \table
+    \header \o Value \o Description
+    \row \o Camera.MeteringMatrix       \o A matrix of sample points is used to measure exposure.
+    \row \o Camera.MeteringAverage      \o An average is used to measure exposure.
+    \row \o Camera.MeteringSpot         \o A specific location (\l spotMeteringPoint) is used to measure exposure.
+    \endtable
+*/
 QDeclarativeCamera::MeteringMode QDeclarativeCameraExposure::meteringMode() const
 {
     return QDeclarativeCamera::MeteringMode(m_exposure->meteringMode());

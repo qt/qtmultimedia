@@ -48,10 +48,21 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraRecorder QDeclarativeCameraRecorder
-    \brief The CameraRecorder element provides an interface for camera movie recording related settings
+    \brief The CameraRecorder element controls video recording with the Camera.
     \ingroup multimedia_qml
 
-    Documentation to be written.
+    This element allows recording camera streams to files, and adjusting recording
+    settings and metadata for videos.
+
+    This element is a child of a Camera element (as the
+    \l {Camera::videoRecorder}{videoRecorder} property) and cannot be created
+    directly.
+
+    There are many different settings for each part of the recording process (audio,
+    video, and output formats), as well as control over muting and where to store
+    the output file.
+
+    \sa QAudioEncoderSettings, QVideoEncoderSettings
 */
 
 QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QCamera *camera, QObject *parent) :
@@ -74,21 +85,47 @@ QDeclarativeCameraRecorder::~QDeclarativeCameraRecorder()
 {
 }
 
+/*!
+    \qmlproperty size CameraRecorder::captureResolution
+
+    The video frame dimensions to use when capturing
+    video.
+*/
 QSize QDeclarativeCameraRecorder::captureResolution()
 {
     return m_videoSettings.resolution();
 }
 
+/*!
+    \qmlproperty string CameraRecorder::audioCodec
+
+    The audio codec to use for recording video.
+    Typically this is something like \c aac or \c amr-wb.
+
+    \sa whiteBalanceMode
+*/
 QString QDeclarativeCameraRecorder::audioCodec() const
 {
     return m_audioSettings.codec();
 }
 
+/*!
+    \qmlproperty string CameraRecorder::videoCodec
+
+    The video codec to use for recording video.
+    Typically this is something like \c h264.
+*/
 QString QDeclarativeCameraRecorder::videoCodec() const
 {
     return m_videoSettings.codec();
 }
 
+/*!
+    \qmlproperty string CameraRecorder::mediaContainer
+
+    The media container to use for recording video.
+    Typically this is something like \c mp4.
+*/
 QString QDeclarativeCameraRecorder::mediaContainer() const
 {
     return m_mediaContainer;
@@ -130,26 +167,56 @@ void QDeclarativeCameraRecorder::setMediaContainer(const QString &container)
     }
 }
 
+/*!
+    \qmlproperty qreal CameraRecorder::frameRate
+
+    The video framerate to use when recording video,
+    in frames per second.
+*/
 qreal QDeclarativeCameraRecorder::frameRate() const
 {
     return m_videoSettings.frameRate();
 }
 
+/*!
+    \qmlproperty int CameraRecorder::videoBitRate
+
+    The video bit rate to use when recording video,
+    in bits per second.
+*/
 int QDeclarativeCameraRecorder::videoBitRate() const
 {
     return m_videoSettings.bitRate();
 }
 
+/*!
+    \qmlproperty int CameraRecorder::audioBitRate
+
+    The audio bit rate to use when recording video,
+    in bits per second.
+*/
 int QDeclarativeCameraRecorder::audioBitRate() const
 {
     return m_audioSettings.bitRate();
 }
 
+/*!
+    \qmlproperty int CameraRecorder::audioChannels
+
+    The number of audio channels to encode when
+    recording video (1 is mono, 2 is stereo).
+*/
 int QDeclarativeCameraRecorder::audioChannels() const
 {
     return m_audioSettings.channelCount();
 }
 
+/*!
+    \qmlproperty int CameraRecorder::audioSampleRate
+
+    The audio sample rate to encode audio at, when
+    recording video.
+*/
 int QDeclarativeCameraRecorder::audioSampleRate() const
 {
     return m_audioSettings.sampleRate();
@@ -200,16 +267,36 @@ void QDeclarativeCameraRecorder::setAudioSampleRate(int rate)
     }
 }
 
+// XXX todo
 QMediaRecorder::Error QDeclarativeCameraRecorder::error() const
 {
     return m_recorder->error();
 }
 
+/*!
+    \qmlproperty string Camera::errorString
+
+    A description of the current error, if any.
+*/
 QString QDeclarativeCameraRecorder::errorString() const
 {
     return m_recorder->errorString();
 }
 
+/*!
+    \qmlproperty enumeration CameraRecorder::recorderState
+
+    The current state of the camera recorder object.
+
+    \table
+    \header \o Value \o Description
+    \row \o StoppedState
+         \o The camera is not recording video.
+
+    \row \o RecordingState
+         \o The camera is recording video.
+    \endtable
+*/
 QDeclarativeCameraRecorder::RecorderState QDeclarativeCameraRecorder::recorderState() const
 {
     //paused state is not supported for camera
@@ -221,11 +308,21 @@ QDeclarativeCameraRecorder::RecorderState QDeclarativeCameraRecorder::recorderSt
     return RecorderState(state);
 }
 
+/*!
+    \qmlmethod CameraRecorder::record()
+
+    Starts recording.
+*/
 void QDeclarativeCameraRecorder::record()
 {
     setRecorderState(RecordingState);
 }
 
+/*!
+    \qmlmethod CameraRecorder::stop()
+
+    Stops recording.
+*/
 void QDeclarativeCameraRecorder::stop()
 {
     setRecorderState(StoppedState);
@@ -284,11 +381,25 @@ void QDeclarativeCameraRecorder::setOutputLocation(const QString &location)
     }
 }
 
+/*!
+    \qmlproperty int CameraRecorder::duration
+    \property QDeclarativeCameraRecorder::duration
+
+    Returns the current duration of the recording, in
+    milliseconds.
+*/
 qint64 QDeclarativeCameraRecorder::duration() const
 {
     return m_recorder->duration();
 }
 
+/*!
+    \qmlproperty bool CameraRecorder::muted
+    \property QDeclarativeCameraRecorder::muted
+
+    Whether or not the audio input is muted during
+    recording.
+*/
 bool QDeclarativeCameraRecorder::isMuted() const
 {
     return m_recorder->isMuted();
@@ -299,6 +410,12 @@ void QDeclarativeCameraRecorder::setMuted(bool muted)
     m_recorder->setMuted(muted);
 }
 
+/*!
+    \qmlmethod CameraRecorder::setMetadata(key, value)
+
+    Sets metadata for the next video to be recorder, with
+    the given \a key being associated with \a value.
+*/
 void QDeclarativeCameraRecorder::setMetadata(const QString &key, const QVariant &value)
 {
     m_recorder->setMetaData(key, value);

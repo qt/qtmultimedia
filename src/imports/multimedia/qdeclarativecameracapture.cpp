@@ -51,10 +51,47 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraCapture QDeclarativeCameraCapture
-    \brief The CameraCapture element provides an interface for camera capture related settings
+    \brief The CameraCapture element provides an interface for capturing camera images
     \ingroup multimedia_qml
 
-    Documentation to be written.
+    This element allows you to capture still images and be notified when they
+    are available or saved to disk.  You can adjust the resolution of the captured
+    image and where the saved image should go.
+
+    This element is a child of a Camera element (as the
+    \l {Camera::imageCapture}{imageCapture} property) and cannot be created
+    directly.
+
+    \qml
+    import QtQuick 2.0
+    import QtMultimedia 5.0
+
+    Camera {
+        id: camera
+
+        imageCapture {
+            onImageCaptured: {
+                // Show the preview in an Image element
+                photoPreview.source = preview
+            }
+        }
+    }
+
+    VideoOutput {
+        source: camera
+        focus : visible // to receive focus and capture key events when visible
+
+        MouseArea {
+            anchors.fill: parent;
+            onClicked: camera.imageCapture.capture();
+        }
+    }
+
+    Image {
+        id: photoPreview
+    }
+    \endqml
+
 */
 
 QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera, QObject *parent) :
@@ -81,7 +118,7 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
 }
 
 /*!
-    \qmlproperty string CameraCapture::ready
+    \qmlproperty bool CameraCapture::ready
     \property QDeclarativeCameraCapture::ready
 
     Indicates camera is ready to capture photo.
@@ -98,6 +135,8 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
     Start image capture.  The \l onImageCaptured() and \l onImageSaved() signals will
     be emitted when the capture is complete.
 
+    The image will be captured to the default system location.
+
     CameraCapture::capture returns the capture requestId parameter, used with
     imageExposed(), imageCaptured(), imageMetadataAvailable() and imageSaved() signals.
 */
@@ -107,8 +146,8 @@ int QDeclarativeCameraCapture::capture()
 }
 
 /*!
-    \qmlmethod CameraCapture::captureToLocation()
-    \fn QDeclarativeCameraCapture::captureToLocation()
+    \qmlmethod CameraCapture::captureToLocation(location)
+    \fn QDeclarativeCameraCapture::captureToLocation(const QString &location)
 
     Start image capture to specified \a location.  The \l onImageCaptured() and \l onImageSaved() signals will
     be emitted when the capture is complete.
@@ -125,7 +164,7 @@ int QDeclarativeCameraCapture::captureToLocation(const QString &location)
     \qmlmethod CameraCapture::cancelCapture()
     \fn QDeclarativeCameraCapture::cancelCapture()
 
-    Cancel pendig image capture requests.
+    Cancel pending image capture requests.
 */
 
 void QDeclarativeCameraCapture::cancelCapture()
@@ -200,7 +239,7 @@ QCameraImageCapture::Error QDeclarativeCameraCapture::error() const
 
 
 /*!
-    \qmlproperty size CameraCapture::errorString
+    \qmlproperty string CameraCapture::errorString
     \property QDeclarativeCameraCapture::errorString
 
     The last capture related error message.
@@ -210,6 +249,12 @@ QString QDeclarativeCameraCapture::errorString() const
     return m_capture->errorString();
 }
 
+/*!
+    \qmlmethod CameraCapture::setMetadata(key, value)
+    \fn QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &value)
+
+    Sets a particular metadata \a key to \a value for the subsequent image captures.
+*/
 void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &value)
 {
     if (m_metadataWriterControl)
@@ -241,6 +286,17 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 
     This handler is called after the image with \a requestId has been written to the filesystem.
     The \a path is a local file path, not a URL.
+
+    \sa onImageCaptured
+*/
+
+
+/*!
+    \qmlsignal CameraCapture::onImageMetadataAvailable(requestId, key, value)
+    \fn QDeclarativeCameraCapture::imageMetadataAvailable(int requestId, const QString &key, const QVariant &value);
+
+    This handler is called when the image with \a requestId has new metadata
+    available with the key \a key and value \a value.
 
     \sa onImageCaptured
 */

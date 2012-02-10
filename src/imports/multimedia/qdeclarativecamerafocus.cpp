@@ -51,7 +51,12 @@ QT_BEGIN_NAMESPACE
 
     This element is part of the \bold{QtMultimedia 5.0} module.
 
-    It should not be constructed separately but provided by Camera.focus.
+    The CameraFocus element allows control over manual and automatic
+    focus settings, including information about any parts of the
+    camera frame that are selected for autofocusing.
+
+    It is not constructed separately but is provided by the
+    Camera element's \l {Camera::focus}{focus} property.
 
     \qml
     import QtQuick 2.0
@@ -104,12 +109,23 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus()
 
     It's possible to combine multiple Camera::FocusMode values,
     for example Camera.FocusMacro + Camera.FocusContinuous.
+
+    In automatic focusing modes, the \l focusPointMode property
+    and \l focusZones property provide information and control
+    over how automatic focusing is performed.
 */
 QDeclarativeCamera::FocusMode QDeclarativeCameraFocus::focusMode() const
 {
     return QDeclarativeCamera::FocusMode(int(m_focus->focusMode()));
 }
 
+/*!
+    \qmlmethod bool CameraFocus::isFocusModeSupported(mode)
+    \fn QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusMode mode)
+
+    Returns true if the supplied \a mode is a supported focus mode, and
+    false otherwise.
+*/
 bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusMode mode) const
 {
     return m_focus->isFocusModeSupported(QCameraFocus::FocusModes(int(mode)));
@@ -124,7 +140,12 @@ void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCamera::FocusMode mode)
     \qmlproperty CameraFocus::FocusPointMode CameraFocus::focusPointMode
     \property QDeclarativeCameraFocus::focusPointMode
 
-    The current camera focus point mode.
+    The current camera focus point mode.  This is used in automatic
+    focusing modes to determine what to focus on.
+
+    If the current focus point mode is \c Camera.FocusPointCustom, the
+    \l customFocusPoint property allows you to specify which part of
+    the frame to focus on.
 */
 QDeclarativeCamera::FocusPointMode QDeclarativeCameraFocus::focusPointMode() const
 {
@@ -139,6 +160,13 @@ void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCamera::FocusPointMo
     }
 }
 
+/*!
+    \qmlmethod bool CameraFocus::isFocusPointModeSupported(mode)
+    \fn QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode)
+
+    Returns true if the supplied \a mode is a supported focus point mode, and
+    false otherwise.
+*/
 bool QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode) const
 {
     return m_focus->isFocusPointModeSupported(QCameraFocus::FocusPointMode(mode));
@@ -149,7 +177,8 @@ bool QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::Focu
   \property QDeclarativeCameraFocus::customFocusPoint
 
   Position of custom focus point, in relative frame coordinates:
-  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
+  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5)
+  points to the frame center.
 
   Custom focus point is used only in FocusPointCustom focus mode.
 */
@@ -172,8 +201,16 @@ void QDeclarativeCameraFocus::setCustomFocusPoint(const QPointF &point)
   \property QDeclarativeCameraFocus::focusZones
 
   List of current camera focus zones,
-  each including area specified in the same coordinates as \l customFocusPoint
-  and zone status.
+  each including \c area specified in the same coordinates as \l customFocusPoint
+  and zone \c status as one of the following values:
+
+    \table
+    \header \o Value \o Description
+    \row \o Camera.FocusAreaUnused  \o This focus point area is currently unused in autofocusing.
+    \row \o Camera.FocusAreaSelected    \o This focus point area is used in autofocusing, but is not in focus.
+    \row \o Camera.FocusAreaFocused  \o This focus point is used in autofocusing, and is in focus.
+    \endtable
+
 
   \qml
 
@@ -188,14 +225,17 @@ void QDeclarativeCameraFocus::setCustomFocusPoint(const QPointF &point)
             Rectangle {
                 border {
                     width: 2
-                    color: status == CameraFocus.Focused ? "green" : "white"
+                    color: status == Camera.FocusAreaFocused ? "green" : "white"
                 }
                 color: "transparent"
 
-                x: area.x * viewfinder.width
-                y: area.y * viewfinder.height
-                width: area.width * viewfinder.width
-                height: area.height * viewfinder.height
+                // Map from the relative, normalized frame coordinates
+                property mappedRect: viewfinder.mapNormalizedRectToItem(area);
+
+                x: mappedRect.x
+                y: mappedRect.y
+                width: mappedRect.width
+                height: mappedRect.height
             }
       }
   }

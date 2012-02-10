@@ -164,7 +164,7 @@ void QDeclarativeCamera::componentComplete()
 
 /*!
     Returns any camera error.
-    \sa QDeclarativeError::Error
+    \sa QDeclarativeCameraError::Error
 */
 QDeclarativeCamera::Error QDeclarativeCamera::error() const
 {
@@ -181,6 +181,20 @@ QString QDeclarativeCamera::errorString() const
     return m_camera->errorString();
 }
 
+/*!
+    \qmlproperty enumeration Camera::captureMode
+
+    \table
+    \header \o Value \o Description
+    \row \o CaptureStillImage
+         \o Prepares the camera element for capturing still images.
+
+    \row \o CaptureVideo
+         \o Prepares the camera element for capturing video.
+
+    \endtable
+
+*/
 QDeclarativeCamera::CaptureMode QDeclarativeCamera::captureMode() const
 {
     return QDeclarativeCamera::CaptureMode(int(m_camera->captureMode()));

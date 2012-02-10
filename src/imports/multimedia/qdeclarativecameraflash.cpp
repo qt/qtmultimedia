@@ -51,7 +51,13 @@ QT_BEGIN_NAMESPACE
 
     This element is part of the \bold{QtMultimedia 5.0} module.
 
-    It should not be constructed separately but provided by Camera.flash.
+    The CameraFlash element allows you to operate the camera flash
+    hardware and control the flash mode used.  Not all cameras have
+    flash hardware (and in some cases it is shared with the
+    \l {Torch}{torch} hardware).
+
+    It should not be constructed separately but provided by the
+    Camera element's \l {Camera::flash}{flash} property.
 
     \qml
     import QtQuick 2.0
