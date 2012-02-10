@@ -104,5 +104,6 @@ Rectangle {
         anchors.fill: parent
         model: root.model
         delegate: editDelegate
+        interactive: false
     }
 }
