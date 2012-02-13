@@ -31,36 +31,72 @@
 
 
 
-    This example shows how to create a simple audio recorder using the QtMobility
+    This example shows how to create a simple audio recorder using the Qt
     Multimedia API.
 
-    We can easily setup the capture when we create the objects using a
-    QMediaRecorder initialized with a QAudioCaptureSource object.
+    We display a window for the user to select the appropriate audio input,
+    codec, container, and sample rate. Allow a setting of either quality or
+    bitrate. Finally, the output file can be selected and recording can be
+    started.
 
-    \snippet    snippets/multimedia-snippets/audiorecorder.cpp create-objs-1
+    The lists are setup using the \l{QAudioRecorder::audioInputs()}{audioInputs()},
+    \l{QAudioRecorder::supportedAudioCodecs()}{supportedAudioCodecs()},
+    \l{QAudioRecorder::supportedContainers()}{supportedContainers()},
+    \l{QAudioRecorder::supportedContainers()}{supportedContainers()}, and
+    \l{QAudioRecorder::supportedAudioSampleRates()}{supportedAudioSampleRates()}
+    methods. The quality slider is setup from 0 (zero) to
+    \l{QtMultimedia::VeryHighQuality} with a default value of
+    \l{QtMultimedia::NormalQuality}, while the bitrates are hardcoded
+    into the list.
 
-    Then we set up the display of a list of available sources to use
+    \image audiorecorder.png
 
-    \snippet    snippets/multimedia-snippets/audiorecorder.cpp device-list
+    To record audio we simply create a QAudioRecorder object.
 
-    And available codecs
+    \code
+    audioRecorder = new QAudioRecorder(this);
+    \endcode
 
-    \snippet    snippets/multimedia-snippets/audiorecorder.cpp codec-list
+    And setup the lists as described above. The text on the record and pause
+    buttons are toggled depending on the \l{QMediaRecorder::State}{state} of
+    the \c audioRecorder object. This means that if the state is
+    \l{QMediaRecorder::StoppedState} then the button text will be "Record" and
+    "Pause". In \l{QMediaRecorder::RecordingState} the record button will have
+    the text "Stop", and in \l{QMediaRecorder::PausedState} the pause button
+    will have the text "Resume".
 
-    We display a dialog for the user to select the appropriate codec and the
-    input device to capture. Once selected we can use user interface objects
-    like buttons to start and stop the recording and display elapsed time.
+    Pressing the buttons will also result in a toggle based on the state. If
+    recording is stopped, then pressing the record button will setup the
+    \l{QAudioEncoderSettings} based on the values of the selection lists,
+    will set the encoding settings and container on the \c audioRecorder
+    object, and start recording using the
+    \l{QMediaRecorder::record()}{record()} method.
 
-    \snippet    snippets/multimedia-snippets/audiorecorder.cpp get-device
+    \code
+        QAudioEncoderSettings settings;
+        settings.setCodec(boxValue(ui->audioCodecBox).toString());
+        settings.setSampleRate(boxValue(ui->sampleRateBox).toInt());
+        settings.setBitRate(boxValue(ui->bitrateBox).toInt());
+        settings.setQuality(QtMultimedia::EncodingQuality(ui->qualitySlider->value()));
+        settings.setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
+                                 QtMultimedia::ConstantQualityEncoding :
+                                 QtMultimedia::ConstantBitRateEncoding);
 
-    Then use signals to indicate a change to the output filename, the codec
-    and the audio source.
+        QString container = boxValue(ui->containerBox).toString();
 
-    When the button to record is pushed the toggleRecord() slot will start
-    or stop the recording process using the \l{QMediaRecorder::record()}
-    and \l{QMediaRecorder::stop()} functions of the QMediaRecorder object.
+        audioRecorder->setEncodingSettings(settings, QVideoEncoderSettings(), container);
+        audioRecorder->record();
+    \endcode
 
-    \snippet    snippets/multimedia-snippets/audiorecorder.cpp toggle-record
+    While recording, the status bar of the application is updated with duration information
+    from the \l{QMediaRecorder::durationChanged()}{durationChanged} signal from the
+    \c audioRecorder object.
+
+    \code
+    ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
+    \endcode
+
+
 
 
 */
