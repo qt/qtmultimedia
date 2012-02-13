@@ -48,22 +48,6 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
-#ifndef QTRY_COMPARE
-#define QTRY_COMPARE(__expr, __expected) \
-    do { \
-        const int __step = 50; \
-        const int __timeout = 1000; \
-        if (!(__expr)) { \
-            QTest::qWait(0); \
-        } \
-        for (int __i = 0; __i < __timeout && !((__expr) == (__expected)); __i+=__step) { \
-            QTest::qWait(__step); \
-        } \
-        QCOMPARE(__expr, __expected); \
-    } while (0)
-#endif
-
-
 class tst_QWaveDecoder : public QObject
 {
     Q_OBJECT
