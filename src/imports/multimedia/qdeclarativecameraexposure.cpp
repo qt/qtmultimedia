@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
     \qmlclass CameraExposure QDeclarativeCameraExposure
     \brief The CameraExposure element provides interface for exposure related camera settings.
     \ingroup multimedia_qml
+    \ingroup camera_qml
 
     This element is part of the \bold{QtMultimedia 5.0} module.
 
@@ -69,6 +70,25 @@ QT_BEGIN_NAMESPACE
     }
 
     \endqml
+
+    Several settings have both an automatic and a manual mode.  In
+    the automatic modes the camera software itself will decide what
+    a reasonable setting is, but in most cases these settings can
+    be overridden with a specific manual setting.
+
+    For example, to select automatic shutter speed selection:
+
+    \qml
+        camera.exposure.setAutoShutterSpeed();
+    \endqml
+
+    Or for a specific shutter speed:
+
+    \qml
+        camera.exposure.manualShutterSpeed = 0.01; // 10ms
+    \endqml
+
+    You can only choose one or the other mode.
 */
 
 /*!
@@ -187,7 +207,7 @@ void QDeclarativeCameraExposure::setManualIsoSensitivity(int iso)
     \property QDeclarativeCameraExposure::manualShutterSpeed
 
     This property allows you to set the shutter speed to
-    use during capture.  If the value is less than zero,
+    use during capture (in seconds).  If the value is less than zero,
     then an automatic value is used and the camera will
     determine an appropriate shutter speed.
 

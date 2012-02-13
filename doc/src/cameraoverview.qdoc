@@ -259,11 +259,6 @@ QML Examples:
 
 \section2 QML Elements
 
-\section2 QML Elements
-
-\list
-    \o \l Radio
-    \o \l RadioData
-\endlist
+\annotatedlist camera_qml
 
 */

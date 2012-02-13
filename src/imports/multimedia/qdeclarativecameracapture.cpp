@@ -53,6 +53,7 @@ QT_BEGIN_NAMESPACE
     \qmlclass CameraCapture QDeclarativeCameraCapture
     \brief The CameraCapture element provides an interface for capturing camera images
     \ingroup multimedia_qml
+    \ingroup camera_qml
 
     This element allows you to capture still images and be notified when they
     are available or saved to disk.  You can adjust the resolution of the captured

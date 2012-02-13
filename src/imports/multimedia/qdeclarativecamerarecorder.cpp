@@ -50,6 +50,7 @@ QT_BEGIN_NAMESPACE
     \qmlclass CameraRecorder QDeclarativeCameraRecorder
     \brief The CameraRecorder element controls video recording with the Camera.
     \ingroup multimedia_qml
+    \ingroup camera_qml
 
     This element allows recording camera streams to files, and adjusting recording
     settings and metadata for videos.

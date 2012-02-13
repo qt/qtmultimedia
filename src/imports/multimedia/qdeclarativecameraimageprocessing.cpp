@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
     \qmlclass CameraImageProcessing QDeclarativeCameraImageProcessing
     \brief The CameraCapture element provides an interface for camera capture related settings
     \ingroup multimedia_qml
+    \ingroup camera_qml
 
     The CameraImageProcessing element provides control over post-processing
     done by the camera middleware, including white balance adjustments,

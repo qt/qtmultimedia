@@ -70,12 +70,17 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
 
 /*!
     \qmlclass Camera QDeclarativeCamera
-    \brief The Camera element allows you to add camera viewfinder to a scene.
+    \brief The Camera element allows you to access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
+    \ingroup camera_qml
 
     \inherits Item
 
     This element is part of the \bold{QtMultimedia 5.0} module.
+
+    You can use the \c Camera element to capture images and movies from a camera, and manipulate
+    the capture and processing settings that get applied to the images.  To display the
+    viewfinder you can use a \l VideoOutput element with the Camera element set as the source.
 
     \qml
     import QtQuick 2.0
@@ -93,8 +98,10 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
 
         flash.mode: Camera.FlashRedEyeReduction
 
-        onImageCaptured: {
-            photoPreview.source = preview  // Show the preview in an Image element
+        imageCapture {
+            onImageCaptured: {
+                photoPreview.source = preview  // Show the preview in an Image element
+            }
         }
     }
 
@@ -108,8 +115,35 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     }
     \endqml
 
-    You can use the \c Camera element to capture images from a camera, and manipulate the capture and
-    processing settings that get applied to the image.
+    The various settings and functionality of the Camera stack is spread
+    across a few different child properties of Camera.
+
+    \table
+    \header \o Property \o Description
+    \row \o \l {CameraCapture} {imageCapture}
+         \o Methods and properties for capturing still images.
+    \row \o \l {CameraRecorder} {videoRecording}
+         \o Methods and properties for capturing movies.
+    \row \o \l {CameraExposure} {exposure}
+         \o Methods and properties for adjusting exposure (aperture, shutter speed etc).
+    \row \o \l {CameraFocus} {focus}
+         \o Methods and properties for adjusting focus and providing feedback on autofocus progress.
+    \row \o \l {CameraFlash} {flash}
+         \o Methods and properties for controlling the camera flash.
+    \row \o \l {CameraImageProcessing} {imageProcessing}
+         \o Methods and properties for adjusting camera image processing parameters.
+    \endtable
+
+    Basic camera state management, error reporting, and simple zoom properties are
+    available in the Camera element itself.  For integration with C++ code, the
+    \l mediaObject property allows you to access the standard QtMultimedia camera
+    controls.
+
+    Many of the camera settings may take some time to apply, and might be limited
+    to certain supported values depending on the hardware.  Several camera settings
+    support both automatic and manual modes, with the current actual setting being
+    used being exposed.
+
 */
 
 /*!
@@ -214,51 +248,30 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
     \table
     \header \o Value \o Description
     \row \o UnloadedState
-         \o The initial camera state, with camera not loaded,
-           the camera capabilities except of supported capture modes
-           are unknown.
+         \o The initial camera state, with the camera not loaded.
+           The camera capabilities (with the exception of supported capture modes)
+           are unknown. This state saves the most power, but takes the longest
+           time to be ready for capture.
+
            While the supported settings are unknown in this state,
-           it's allowed to set the camera capture settings like codec,
+           you can still set the camera capture settings like codec,
            resolution, or frame rate.
 
     \row \o LoadedState
          \o The camera is loaded and ready to be configured.
 
-           In the Idle state it's allowed to query camera capabilities,
-           set capture resolution, codecs, etc.
+           In the Idle state you can query camera capabilities,
+           set capture resolution, codecs, and so on.
 
            The viewfinder is not active in the loaded state.
 
     \row \o ActiveState
-          \o In the active state as soon as camera is started
-           the viewfinder displays video frames and the
-           camera is ready for capture.
+          \o In the active state the viewfinder frames are available
+             and the camera is ready for capture.
     \endtable
 
     The default camera state is ActiveState.
 */
-/*!
-    \enum QDeclarativeCamera::State
-    \value UnloadedState
-            The initial camera state, with camera not loaded,
-            the camera capabilities except of supported capture modes
-            are unknown.
-            While the supported settings are unknown in this state,
-            it's allowed to set the camera capture settings like codec,
-            resolution, or frame rate.
-
-    \value LoadedState
-            The camera is loaded and ready to be configured.
-            In the Idle state it's allowed to query camera capabilities,
-            set capture resolution, codecs, etc.
-            The viewfinder is not active in the loaded state.
-
-    \value ActiveState
-            In the active state as soon as camera is started
-            the viewfinder displays video frames and the
-            camera is ready for capture.
-*/
-
 QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
 {
     return m_componentComplete ? QDeclarativeCamera::State(m_camera->state()) : m_pendingState;
@@ -288,7 +301,9 @@ void QDeclarativeCamera::setCameraState(QDeclarativeCamera::State state)
     \qmlmethod Camera::start()
     \fn QDeclarativeCamera::start()
 
-    Starts the camera.
+    Starts the camera.  Viewfinder frames will
+    be available and image or movie capture will
+    be possible.
 */
 void QDeclarativeCamera::start()
 {
@@ -299,7 +314,8 @@ void QDeclarativeCamera::start()
     \qmlmethod Camera::stop()
     \fn QDeclarativeCamera::stop()
 
-    Stops the camera.
+    Stops the camera, but leaves the camera
+    stack loaded.
 */
 void QDeclarativeCamera::stop()
 {
@@ -359,26 +375,6 @@ void QDeclarativeCamera::stop()
         and the object is in focus, even while the actual focusing distance may be constantly changing.
     \endtable
 */
-/*!
-    \enum QDeclarativeCamera::LockStatus
-    \value Unlocked
-        The application is not interested in camera settings value.
-        The camera may keep this parameter without changes, this is common with camera focus,
-        or adjust exposure and white balance constantly to keep the viewfinder image nice.
-
-    \value Searching
-        The application has requested the camera focus, exposure or white balance lock with
-        searchAndLock(). This state indicates the camera is focusing or calculating exposure and white balance.
-
-    \value Locked
-        The camera focus, exposure or white balance is locked.
-        The camera is ready to capture, application may check the exposure parameters.
-
-        The locked state usually means the requested parameter stays the same,
-        except in the cases when the parameter is requested to be constantly updated.
-        For example in continuous focusing mode, the focus is considered locked as long
-        and the object is in focus, even while the actual focusing distance may be constantly changing.
-*/
 QDeclarativeCamera::LockStatus QDeclarativeCamera::lockStatus() const
 {
     return QDeclarativeCamera::LockStatus(m_camera->lockStatus());
@@ -389,8 +385,11 @@ QDeclarativeCamera::LockStatus QDeclarativeCamera::lockStatus() const
     \fn QDeclarativeCamera::searchAndLock()
 
     Start focusing, exposure and white balance calculation.
-    If the camera has keyboard focus, searchAndLock() is called
-    automatically when the camera focus button is pressed.
+
+    This is appropriate to call when the camera focus button is pressed
+    (or on a camera capture button half-press).  If the camera supports
+    autofocusing, information on the focus zones is available through
+    the \l {CameraFocus}{focus} property.
 */
 void QDeclarativeCamera::searchAndLock()
 {
@@ -401,10 +400,7 @@ void QDeclarativeCamera::searchAndLock()
     \qmlmethod Camera::unlock()
     \fn QDeclarativeCamera::unlock()
 
-    Unlock focus.
-
-    If the camera has keyboard focus, unlock() is called automatically
-    when the camera focus button is released.
+    Unlock focus, exposure and white balance locks.
  */
 void QDeclarativeCamera::unlock()
 {
@@ -469,7 +465,6 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 /*!
     \qmlsignal Camera::onError(error, errorString)
 
-
     This handler is called when an error occurs.  The enumeration value \a error is one of the
     values defined below, and a descriptive string value is available in \a errorString.
 
@@ -487,108 +482,51 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
     \fn void QDeclarativeCamera::lockStatusChanged()
 
     \qmlsignal Camera::lockStatusChanged()
+
+    This signal is emitted when the lock status (focus, exposure etc) changes.
+    This can happen when locking (e.g. autofocusing) is complete or has failed.
 */
 
 /*!
-    \fn void QDeclarativeCamera::stateChanged(QDeclarativeCamera::State)
+    \fn void QDeclarativeCamera::stateChanged(QDeclarativeCamera::State state)
+    \qmlsignal Camera::stateChanged(state)
 
-    \qmlsignal Camera::stateChanged(Camera::State)
-*/
-
-/*!
-    \fn void QDeclarativeCamera::imageCaptured(const QString &)
-
-    \qmlsignal Camera::imageCaptured(string)
-*/
-
-/*!
-    \fn void QDeclarativeCamera::imageSaved(const QString &)
-
-    \qmlsignal Camera::imageSaved(string)
-*/
-
-/*!
-    \fn void QDeclarativeCamera::error(QDeclarativeCamera::Error , const QString &)
-
-    \qmlsignal Camera::error(Camera::Error, string)
-*/
-
-/*!
-    \fn void QDeclarativeCamera::errorChanged()
-
-*/
-/*!
-    \qmlsignal Camera::errorChanged()
-*/
-
-/*!
-    \fn void QDeclarativeCamera::isoSensitivityChanged(int)
-*/
-/*!
-    \qmlsignal Camera::isoSensitivityChanged(int)
-*/
-
-/*!
-    \fn void QDeclarativeCamera::apertureChanged(qreal)
-
-    \qmlsignal Camera::apertureChanged(real)
-*/
-
-/*!
-    \fn void QDeclarativeCamera::shutterSpeedChanged(qreal)
-
-*/
-/*!
-    \qmlsignal Camera::shutterSpeedChanged(real)
-*/
-
-/*!
-    \fn void QDeclarativeCamera::exposureCompensationChanged(qreal)
-
-*/
-/*!
-    \qmlsignal Camera::exposureCompensationChanged(real)
+    This signal is emitted when the camera state has changed to \a state.  Since the
+    state changes may take some time to occur this signal may arrive sometime
+    after the state change has been requested.
 */
 
 /*!
     \fn void QDeclarativeCamera:opticalZoomChanged(qreal zoom)
+    \qmlsignal Camera::opticalZoomChanged(zoom)
 
-    Optical zoom changed to \a zoom.
-*/
-/*!
-    \qmlsignal Camera::opticalZoomChanged(real)
+    The optical zoom setting has changed to \a zoom.
 */
 
 /*!
     \fn void QDeclarativeCamera::digitalZoomChanged(qreal)
+    \qmlsignal Camera::digitalZoomChanged(zoom)
 
-    \qmlsignal Camera::digitalZoomChanged(real)
+    The digital zoom setting has changed to \a zoom.
 */
 
 /*!
-    \fn void QDeclarativeCamera::maximumOpticalZoomChanged(qreal)
+    \fn void QDeclarativeCamera::maximumOpticalZoomChanged(zoom)
+    \qmlsignal Camera::maximumOpticalZoomChanged(zoom)
 
-    \qmlsignal Camera::maximumOpticalZoomChanged(real)
+    The maximum optical zoom setting has changed to \a zoom.  This
+    can occur when you change between video and still image capture
+    modes, or the capture settings are changed.
 */
 
 /*!
     \fn void QDeclarativeCamera::maximumDigitalZoomChanged(qreal)
+    \qmlsignal Camera::maximumDigitalZoomChanged(zoom)
 
-    \qmlsignal Camera::maximumDigitalZoomChanged(real)
+    The maximum digital zoom setting has changed to \a zoom.  This
+    can occur when you change between video and still image capture
+    modes, or the capture settings are changed.
 */
-
-
-/*!
-    \fn void QDeclarativeCamera::captureResolutionChanged(const QSize &)
-
-    \qmlsignal Camera::captureResolutionChanged(Item)
-*/
-
-/*!
-    \fn QDeclarativeCamera::cameraStateChanged(QDeclarativeCamera::State)
-
-*/
-
 
 QT_END_NAMESPACE
 
