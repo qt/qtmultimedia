@@ -54,7 +54,7 @@ QT_USE_NAMESPACE
     \qmlclass SoundInstance QDeclarativeSoundInstance
     \since 5.0
     \brief The SoundInstance element allows you to play 3d audio content.
-    \inmodule QtMultimedia
+    \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
@@ -184,7 +184,7 @@ QDeclarativeSoundInstance::QDeclarativeSoundInstance(QObject *parent)
 }
 
 /*!
-    \qmlproperty AudioEngine SoundInstance::engine
+    \qmlproperty QtAudioEngine1::AudioEngine QtAudioEngine1::SoundInstance::engine
 
     This property holds the reference to AudioEngine, must be set only once.
 */
@@ -233,7 +233,7 @@ QDeclarativeSoundInstance::~QDeclarativeSoundInstance()
 }
 
 /*!
-    \qmlproperty string SoundInstance::sound
+    \qmlproperty string QtAudioEngine1::SoundInstance::sound
 
     This property specifies which Sound this SoundInstance will use. Unlike some properties in
     other elements, this property can be changed dynamically.
@@ -293,7 +293,7 @@ void QDeclarativeSoundInstance::dropInstance()
 }
 
 /*!
-    \qmlproperty enumeration SoundInstance::state
+    \qmlproperty enumeration QtAudioEngine1::SoundInstance::state
 
     This property holds the current playback state. It can be one of:
 
@@ -311,7 +311,7 @@ QDeclarativeSoundInstance::State QDeclarativeSoundInstance::state() const
 }
 
 /*!
-    \qmlmethod SoundInstance::play()
+    \qmlmethod QtAudioEngine1::SoundInstance::play()
 
     Starts playback.
 */
@@ -328,7 +328,7 @@ void QDeclarativeSoundInstance::play()
 }
 
 /*!
-    \qmlmethod SoundInstance::play()
+    \qmlmethod QtAudioEngine1::SoundInstance::play()
 
     Stops current playback.
 */
@@ -344,7 +344,7 @@ void QDeclarativeSoundInstance::stop()
 }
 
 /*!
-    \qmlmethod SoundInstance::play()
+    \qmlmethod QtAudioEngine1::SoundInstance::play()
 
     Pauses current playback.
 */
@@ -368,7 +368,7 @@ void QDeclarativeSoundInstance::updatePosition(qreal deltaTime)
 }
 
 /*!
-    \qmlproperty vector3d SoundInstance::position
+    \qmlproperty vector3d QtAudioEngine1::SoundInstance::position
 
     This property holds the current 3d position.
 */
@@ -390,7 +390,7 @@ void QDeclarativeSoundInstance::setPosition(const QVector3D& position)
 }
 
 /*!
-    \qmlproperty vector3d SoundInstance::direction
+    \qmlproperty vector3d QtAudioEngine1::SoundInstance::direction
 
     This property holds the current 3d direction.
 */
@@ -412,7 +412,7 @@ void QDeclarativeSoundInstance::setDirection(const QVector3D& direction)
 }
 
 /*!
-    \qmlproperty vector3d SoundInstance::velocity
+    \qmlproperty vector3d QtAudioEngine1::SoundInstance::velocity
 
     This property holds the current 3d velocity.
 */
@@ -433,7 +433,7 @@ void QDeclarativeSoundInstance::setVelocity(const QVector3D& velocity)
 }
 
 /*!
-    \qmlproperty vector3d SoundInstance::gain
+    \qmlproperty vector3d QtAudioEngine1::SoundInstance::gain
 
     This property holds the gain adjustment which will be used to modulate the audio ouput level
     from this SoundInstance.
@@ -459,7 +459,7 @@ void QDeclarativeSoundInstance::setGain(qreal gain)
 }
 
 /*!
-    \qmlproperty vector3d SoundInstance::gain
+    \qmlproperty vector3d QtAudioEngine1::SoundInstance::gain
 
     This property holds the pitch adjustment which will be used to modulate the audio pitch
     from this SoundInstance.
@@ -520,43 +520,43 @@ void QDeclarativeSoundInstance::handleStateChanged()
 }
 
 /*!
-    \qmlsignal SoundInstance::onStateChanged(state)
+    \qmlsignal QtAudioEngine1::SoundInstance::onStateChanged(state)
 
     This handler is called when \l state is changed
 */
 
 /*!
-    \qmlsignal SoundInstance::onPositionChanged()
+    \qmlsignal QtAudioEngine1::SoundInstance::onPositionChanged()
 
     This handler is called when \l position is changed
 */
 
 /*!
-    \qmlsignal SoundInstance::onDirectionChanged()
+    \qmlsignal QtAudioEngine1::SoundInstance::onDirectionChanged()
 
     This handler is called when \l direction is changed
 */
 
 /*!
-    \qmlsignal SoundInstance::onVelocityChanged()
+    \qmlsignal QtAudioEngine1::SoundInstance::onVelocityChanged()
 
     This handler is called when \l velocity is changed
 */
 
 /*!
-    \qmlsignal SoundInstance::onGainChanged()
+    \qmlsignal QtAudioEngine1::SoundInstance::onGainChanged()
 
     This handler is called when \l gain is changed
 */
 
 /*!
-    \qmlsignal SoundInstance::onPitchChanged()
+    \qmlsignal QtAudioEngine1::SoundInstance::onPitchChanged()
 
     This handler is called when \l pitch is changed
 */
 
 /*!
-    \qmlsignal SoundInstance::onSoundChanged()
+    \qmlsignal QtAudioEngine1::SoundInstance::onSoundChanged()
 
     This handler is called when \l sound is changed
 */

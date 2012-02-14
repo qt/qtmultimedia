@@ -94,7 +94,7 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
     \since 5.0
     \brief The AttenuationModelLinear element allows you to define a linear attenuation curve for
     Sound element.
-    \inmodule QtMultimedia
+    \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
@@ -140,7 +140,7 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
 */
 
 /*!
-    \qmlproperty string AttenuationModelLinear::name
+    \qmlproperty string QtAudioEngine1::AttenuationModelLinear::name
 
     This property holds the name of AttenuationModelLinear, must be unique among all attenuation
     models and only defined once.
@@ -162,7 +162,7 @@ void QDeclarativeAttenuationModelLinear::componentComplete()
 }
 
 /*!
-    \qmlproperty real AttenuationModelLinear::start
+    \qmlproperty real QtAudioEngine1::AttenuationModelLinear::start
 
     This property holds the start distance. There will be no attenuation if the distance from sound
     to listener is within this range.
@@ -187,7 +187,7 @@ void QDeclarativeAttenuationModelLinear::setStartDistance(qreal startDist)
 }
 
 /*!
-    \qmlproperty real AttenuationModelLinear::end
+    \qmlproperty real QtAudioEngine1::AttenuationModelLinear::end
 
     This property holds the end distance. There will be no sound hearable if the distance from sound
     to listener is larger than this.
@@ -279,14 +279,14 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
 */
 
 /*!
-    \qmlproperty string AttenuationModelInverse::name
+    \qmlproperty string QtAudioEngine1::AttenuationModelInverse::name
 
     This property holds the name of AttenuationModelInverse, must be unique among all attenuation
     models and only defined once.
 */
 
 /*!
-    \qmlproperty real AttenuationModelInverse::start
+    \qmlproperty real QtAudioEngine1::AttenuationModelInverse::start
 
     This property holds the start distance. There will be no attenuation if the distance from sound
     to listener is within this range.
@@ -294,7 +294,7 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
 */
 
 /*!
-    \qmlproperty real AttenuationModelInverse::end
+    \qmlproperty real QtAudioEngine1::AttenuationModelInverse::end
 
     This property holds the end distance. There will be no further attenuation if the distance from
     sound to listener is larger than this.
@@ -302,7 +302,7 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
 */
 
 /*!
-    \qmlproperty real AttenuationModelInverse::rolloff
+    \qmlproperty real QtAudioEngine1::AttenuationModelInverse::rolloff
 
     This property holds the rolloff factor. The bigger the value is, the faster the sound attenuates.
     The default value is 1.

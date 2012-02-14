@@ -59,7 +59,7 @@ QT_USE_NAMESPACE
     \qmlclass AudioEngine QDeclarativeAudioEngine
     \since 5.0
     \brief The AudioEngine element allows you to organize all your 3d audio content in one place.
-    \inmodule QtMultimedia
+    \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
@@ -194,7 +194,7 @@ void QDeclarativeAudioEngine::releaseManagedDeclarativeSoundInstance(QDeclarativ
 }
 
 /*!
-    \qmlproperty int AudioEngine::liveInstances
+    \qmlproperty int QtAudioEngine1::AudioEngine::liveInstances
 
     This property indicates how many live sound instances there are at the moment.
 */
@@ -407,7 +407,7 @@ QDeclarativeListProperty<QObject> QDeclarativeAudioEngine::bank()
 }
 
 /*!
-    \qmlproperty map AudioEngine::categories
+    \qmlproperty map QtAudioEngine1::AudioEngine::categories
 
     Container of all AudioCategory elements.
 */
@@ -417,7 +417,7 @@ QObject* QDeclarativeAudioEngine::categories()
 }
 
 /*!
-    \qmlproperty map AudioEngine::samples
+    \qmlproperty map QtAudioEngine1::AudioEngine::samples
 
     Container of all AudioSample elements.
 */
@@ -427,7 +427,7 @@ QObject* QDeclarativeAudioEngine::samples()
 }
 
 /*!
-    \qmlproperty map AudioEngine::sounds
+    \qmlproperty map QtAudioEngine1::AudioEngine::sounds
 
     Container of all Sound elements.
 */
@@ -437,7 +437,7 @@ QObject* QDeclarativeAudioEngine::sounds()
 }
 
 /*!
-    \qmlproperty AudioListener AudioEngine::listener
+    \qmlproperty QtAudioEngine1::AudioListener QtAudioEngine1::AudioEngine::listener
 
     This property holds the listener object.  You can change various
     properties to affect the 3D positioning of sounds.
@@ -450,7 +450,7 @@ QDeclarativeAudioListener* QDeclarativeAudioEngine::listener() const
 }
 
 /*!
-    \qmlproperty real AudioEngine::dopplerFactor
+    \qmlproperty real QtAudioEngine1::AudioEngine::dopplerFactor
 
     This property holds a simple scaling for the effect of doppler shift.
 */
@@ -465,7 +465,7 @@ void QDeclarativeAudioEngine::setDopplerFactor(qreal dopplerFactor)
 }
 
 /*!
-    \qmlproperty real AudioEngine::speedOfSound
+    \qmlproperty real QtAudioEngine1::AudioEngine::speedOfSound
 
     This property holds the reference value of the sound speed which will be used in doppler shift
     calculation.
@@ -481,7 +481,7 @@ void QDeclarativeAudioEngine::setSpeedOfSound(qreal speedOfSound)
 }
 
 /*!
-    \qmlproperty real AudioEngine::loading
+    \qmlproperty real QtAudioEngine1::AudioEngine::loading
 
     This property indicates if the audio engine is loading any audio sample at the moment. This may
     be useful if you specified the preloaded property in AudioSample and would like to show a loading screen
@@ -501,19 +501,19 @@ void QDeclarativeAudioEngine::handleLoadingChanged()
 }
 
 /*!
-    \qmlsignal AudioEngine::onLiveInstancesChanged()
+    \qmlsignal QtAudioEngine1::AudioEngine::onLiveInstancesChanged()
 
     This handler is called when \l liveInstances is changed
 */
 
 /*!
-    \qmlsignal AudioEngine::onLoadingChanged()
+    \qmlsignal QtAudioEngine1::AudioEngine::onLoadingChanged()
 
     This handler is called when \l loading is changed
 */
 
 /*!
-    \qmlsignal AudioEngine::finishedLoading()
+    \qmlsignal QtAudioEngine1::AudioEngine::finishedLoading()
 
     This handler is called when \l loading is finished
 */

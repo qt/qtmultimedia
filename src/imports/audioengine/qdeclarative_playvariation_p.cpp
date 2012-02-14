@@ -55,7 +55,7 @@ QT_USE_NAMESPACE
     So each time the playback of the same sound can be a slightly different even with the same
     AudioSample.
 
-    \inmodule QtMultimedia
+    \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
@@ -142,7 +142,7 @@ void QDeclarativePlayVariation::componentComplete()
 }
 
 /*!
-    \qmlproperty string PlayVariation::sample
+    \qmlproperty string QtAudioEngine1::PlayVariation::sample
 
     This property specifies which \l AudioSample this variation will use.
 */
@@ -161,7 +161,7 @@ void QDeclarativePlayVariation::setSample(const QString& sample)
 }
 
 /*!
-    \qmlproperty bool PlayVariation::looping
+    \qmlproperty bool QtAudioEngine1::PlayVariation::looping
 
     This property indicates whether the playback will be looped or not.
 */
@@ -180,7 +180,7 @@ void QDeclarativePlayVariation::setLooping(bool looping)
 }
 
 /*!
-    \qmlproperty real PlayVariation::maxGain
+    \qmlproperty real QtAudioEngine1::PlayVariation::maxGain
 
     This property specifies the maximum gain adjustment that can be applied in any playback.
 */
@@ -203,7 +203,7 @@ void QDeclarativePlayVariation::setMaxGain(qreal maxGain)
 }
 
 /*!
-    \qmlproperty real PlayVariation::minGain
+    \qmlproperty real QtAudioEngine1::PlayVariation::minGain
 
     This property specifies the minimum gain adjustment that can be applied in any playback.
 */
@@ -226,7 +226,7 @@ void QDeclarativePlayVariation::setMinGain(qreal minGain)
 }
 
 /*!
-    \qmlproperty real PlayVariation::maxPitch
+    \qmlproperty real QtAudioEngine1::PlayVariation::maxPitch
 
     This property specifies the maximum pitch adjustment that can be applied in any playback.
 */
@@ -249,7 +249,7 @@ void QDeclarativePlayVariation::setMaxPitch(qreal maxPitch)
 }
 
 /*!
-    \qmlproperty real PlayVariation::minPitch
+    \qmlproperty real QtAudioEngine1::PlayVariation::minPitch
 
     This property specifies the minimum pitch adjustment that can be applied in any playback.
 */

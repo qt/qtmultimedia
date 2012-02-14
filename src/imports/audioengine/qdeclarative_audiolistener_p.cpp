@@ -51,7 +51,7 @@ QT_USE_NAMESPACE
     \qmlclass AudioListener QDeclarativeAudioListener
     \since 5.0
     \brief The AudioListener element allows you to control global listener parameters.
-    \inmodule QtMultimedia
+    \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
@@ -154,7 +154,7 @@ QDeclarativeAudioListener::~QDeclarativeAudioListener()
 }
 
 /*!
-    \qmlproperty AudioEngine AudioListener::engine
+    \qmlproperty QtAudioEngine1::AudioEngine QtAudioEngine1::AudioListener::engine
 
     This property holds the reference to AudioEngine, must be set only once.
 */
@@ -170,7 +170,7 @@ void QDeclarativeAudioListener::setEngine(QDeclarativeAudioEngine *engine)
 }
 
 /*!
-    \qmlproperty vector3d AudioListener::position
+    \qmlproperty vector3d QtAudioEngine1::AudioListener::position
 
     This property holds the 3d position of the listener.
 */
@@ -189,7 +189,7 @@ void QDeclarativeAudioListener::setPosition(const QVector3D &position)
 }
 
 /*!
-    \qmlproperty vector3d AudioListener::direction
+    \qmlproperty vector3d QtAudioEngine1::AudioListener::direction
 
     This property holds the normalized 3d direction vector of the listener.
 */
@@ -208,7 +208,7 @@ void QDeclarativeAudioListener::setDirection(const QVector3D &direction)
 }
 
 /*!
-    \qmlproperty vector3d AudioListener::velocity
+    \qmlproperty vector3d QtAudioEngine1::AudioListener::velocity
 
     This property holds the 3d velocity vector of the listener.
 */
@@ -227,7 +227,7 @@ void QDeclarativeAudioListener::setVelocity(const QVector3D &velocity)
 }
 
 /*!
-    \qmlproperty vector3d AudioListener::up
+    \qmlproperty vector3d QtAudioEngine1::AudioListener::up
 
     This property holds the normalized 3d up vector of the listener.
 */
@@ -246,7 +246,7 @@ void QDeclarativeAudioListener::setUp(const QVector3D &up)
 }
 
 /*!
-    \qmlproperty real AudioListener::gain
+    \qmlproperty real QtAudioEngine1::AudioListener::gain
 
     This property will modulate all audio output from audio engine elements.
 */

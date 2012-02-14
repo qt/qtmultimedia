@@ -28,14 +28,21 @@
 /*!
 \page audioengineoverview.html
 \title QtAudioEngine Overview
-\brief 3D Positional Audio
+\brief 3D positional audio playback and content management
 
 \section1 QtAudioEngine features
 
 Qt Multimedia includes the \c QtAudioEngine QML module for
-providing 3D positional audio.
+providing 3D positional audio playback and content management.
 
-These element can be accessed through importing the
+QtAudioEngine enables developers to organize wave files into discrete \l Sound with different
+\l {PlayVariation}{play variations}, group sound controls by \l {AudioCategory} categories and
+define \l {AttenuationModelLinear}{attenuation models} and various 3d audio settings all in one
+place. Playback of \l {SoundInstance}{sound instances} can be conveniently activated by in-app
+events and managed by QtAudioEngine or controlled by explicitly defining a \l SoundInstance elment
+for easier qml bindings.
+
+QtAudioEngine elements can be accessed through importing the
 \bold{QtAudioEngine 1.0} module.
 
 \qml
@@ -43,7 +50,7 @@ import QtQuick 2.0
 import QtAudioEngine 1.0
 
 AudioEngine {
-// ...
+//...
 \endqml
 
 \section1 Examples
@@ -59,12 +66,12 @@ AudioEngine {
     \o \l AudioEngine
     \o \l AudioSample
     \o \l AudioCategory
-    \o \l Sound
-    \o \l SoundInstance
-    \o \l PlayVariation
-    \o \l AudioListener
     \o \l AttenuationModelLinear
     \o \l AttenuationModelInverse
+    \o \l Sound
+    \o \l PlayVariation
+    \o \l AudioListener
+    \o \l SoundInstance
 
 \endlist
 

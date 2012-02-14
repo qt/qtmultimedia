@@ -50,15 +50,15 @@ QT_USE_NAMESPACE
     \qmlclass AudioCategory QDeclarativeAudioCategory
     \since 5.0
     \brief The AudioCategory element allows you to control all active sound instances by group
-    \inmodule QtMultimedia
+    \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
 
     This element is part of the \bold{QtAudioEngine 1.0} module.
 
-    AudioCategory element can be accessed through AudioEngine::categories with its unique name and
-    must be defined inside AudioEngine.
+    AudioCategory element can be accessed through QtAudioEngine1::AudioEngine::categories with its
+    unique name and must be defined inside AudioEngine.
 
     \qml
     import QtQuick 2.0
@@ -137,7 +137,7 @@ void QDeclarativeAudioCategory::componentComplete()
 }
 
 /*!
-    \qmlproperty real AudioCategory::volume
+    \qmlproperty real QtAudioEngine1::AudioCategory::volume
 
     This property holds the volume of the category and will modulate all audio output from the
     element which belongs to this category.
@@ -159,7 +159,7 @@ void QDeclarativeAudioCategory::setVolume(qreal volume)
 }
 
 /*!
-    \qmlproperty string AudioCategory::name
+    \qmlproperty string QtAudioEngine1::AudioCategory::name
 
     This property holds the name of AudioCategory. The name must be unique among all categories and only
     defined once.
@@ -179,7 +179,7 @@ QString QDeclarativeAudioCategory::name() const
 }
 
 /*!
-    \qmlmethod AudioCategory::stop()
+    \qmlmethod QtAudioEngine1::AudioCategory::stop()
 
     Stops all active sound instances which belong to this category.
 */
@@ -189,7 +189,7 @@ void QDeclarativeAudioCategory::stop()
 }
 
 /*!
-    \qmlmethod AudioCategory::pause()
+    \qmlmethod QtAudioEngine1::AudioCategory::pause()
 
     Pauses all active sound instances which belong to this category.
 */
@@ -199,7 +199,7 @@ void QDeclarativeAudioCategory::pause()
 }
 
 /*!
-    \qmlmethod AudioCategory::pause()
+    \qmlmethod QtAudioEngine1::AudioCategory::pause()
 
     Resumes all active sound instances from paused state which belong to this category.
 */
