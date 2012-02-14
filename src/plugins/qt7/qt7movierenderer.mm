@@ -401,6 +401,8 @@ void QT7MovieRenderer::setMovie(void *movie)
 
         setupVideoOutput();
     }
+#else
+    Q_UNUSED(movie);
 #endif
 }
 

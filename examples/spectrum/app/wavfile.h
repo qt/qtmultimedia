@@ -51,6 +51,7 @@ class WavFile : public QFile
 public:
     WavFile(QObject *parent = 0);
 
+    using QFile::open;
     bool open(const QString &fileName);
     const QAudioFormat &fileFormat() const;
     qint64 headerLength() const;

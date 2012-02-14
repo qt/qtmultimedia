@@ -112,6 +112,7 @@ public:
 
     QList<QByteArray> devices(const QByteArray &service) const
     {
+        Q_UNUSED(service);
         QList<QByteArray> res;
         return res;
     }

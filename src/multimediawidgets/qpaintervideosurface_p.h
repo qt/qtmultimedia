@@ -82,8 +82,7 @@ public:
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QAbstractVideoBuffer::HandleType handleType) const = 0;
 
-    virtual bool isFormatSupported(
-            const QVideoSurfaceFormat &format, QVideoSurfaceFormat *similar) const = 0;
+    virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
 
     virtual QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format) = 0;
     virtual void stop() = 0;
@@ -108,8 +107,7 @@ public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
 
-    bool isFormatSupported(
-            const QVideoSurfaceFormat &format, QVideoSurfaceFormat *similar = 0) const;
+    bool isFormatSupported(const QVideoSurfaceFormat &format) const;
 
     bool start(const QVideoSurfaceFormat &format);
     void stop();

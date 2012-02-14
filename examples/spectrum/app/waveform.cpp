@@ -393,6 +393,7 @@ void Waveform::paintTile(int index)
         const int offset = reinterpret_cast<const char*>(ptr) - m_buffer.constData();
         Q_ASSERT(offset >= 0);
         Q_ASSERT(offset < m_bufferLength);
+        Q_UNUSED(offset);
 
         const qint16 pcmValue = *ptr;
         const qreal realValue = pcmToReal(pcmValue);

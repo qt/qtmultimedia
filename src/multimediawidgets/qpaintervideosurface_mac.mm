@@ -97,8 +97,7 @@ QList<QVideoFrame::PixelFormat> QVideoSurfaceCoreGraphicsPainter::supportedPixel
         : QList<QVideoFrame::PixelFormat>();
 }
 
-bool QVideoSurfaceCoreGraphicsPainter::isFormatSupported(
-        const QVideoSurfaceFormat &format, QVideoSurfaceFormat *) const
+bool QVideoSurfaceCoreGraphicsPainter::isFormatSupported(const QVideoSurfaceFormat &format) const
 {
     return m_supportedHandles.contains(format.handleType())
             && m_imagePixelFormats.contains(format.pixelFormat())

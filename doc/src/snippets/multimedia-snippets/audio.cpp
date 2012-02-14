@@ -114,15 +114,21 @@ void AudioInputExample::stopRecording()
 void AudioInputExample::stateChanged(QAudio::State newState)
 {
     switch (newState) {
-    case QAudio::StoppedState:
-        if (audio->error() != QAudio::NoError) {
-            // Error handling
-        } else {
-            // Finished recording
-        }
-        break;
+        case QAudio::StoppedState:
+            if (audio->error() != QAudio::NoError) {
+                // Error handling
+            } else {
+                // Finished recording
+            }
+            break;
 
-        // ...
+        case QAudio::ActiveState:
+            // Started recording - read from IO device
+            break;
+
+        default:
+            // ... other cases as appropriate
+            break;
     }
 }
 //! [Audio input state changed]
@@ -189,7 +195,9 @@ void AudioOutputExample::stateChanged(QAudio::State newState)
             }
             break;
 
-            // ...
+        default:
+            // ... other cases as appropriate
+            break;
     }
 }
 //! [Audio output state changed]

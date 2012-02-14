@@ -70,8 +70,7 @@ public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QAbstractVideoBuffer::HandleType handleType) const;
 
-    bool isFormatSupported(
-            const QVideoSurfaceFormat &format, QVideoSurfaceFormat *similar) const;
+    bool isFormatSupported(const QVideoSurfaceFormat &format) const;
 
     QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format);
     void stop();
@@ -117,8 +116,7 @@ QList<QVideoFrame::PixelFormat> QVideoSurfaceGenericPainter::supportedPixelForma
     return QList<QVideoFrame::PixelFormat>();
 }
 
-bool QVideoSurfaceGenericPainter::isFormatSupported(
-        const QVideoSurfaceFormat &format, QVideoSurfaceFormat *) const
+bool QVideoSurfaceGenericPainter::isFormatSupported(const QVideoSurfaceFormat &format) const
 {
     switch (format.handleType()) {
     case QAbstractVideoBuffer::QPixmapHandle:
@@ -246,8 +244,7 @@ public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QAbstractVideoBuffer::HandleType handleType) const;
 
-    bool isFormatSupported(
-            const QVideoSurfaceFormat &format, QVideoSurfaceFormat *similar) const;
+    bool isFormatSupported(const QVideoSurfaceFormat &format) const;
 
     QAbstractVideoSurface::Error setCurrentFrame(const QVideoFrame &frame);
 
@@ -327,8 +324,7 @@ QList<QVideoFrame::PixelFormat> QVideoSurfaceGLPainter::supportedPixelFormats(
     return QList<QVideoFrame::PixelFormat>();
 }
 
-bool QVideoSurfaceGLPainter::isFormatSupported(
-        const QVideoSurfaceFormat &format, QVideoSurfaceFormat *) const
+bool QVideoSurfaceGLPainter::isFormatSupported(const QVideoSurfaceFormat &format) const
 {
     if (format.frameSize().isEmpty()) {
         return false;
@@ -1349,13 +1345,12 @@ QList<QVideoFrame::PixelFormat> QPainterVideoSurface::supportedPixelFormats(
 
 /*!
 */
-bool QPainterVideoSurface::isFormatSupported(
-        const QVideoSurfaceFormat &format, QVideoSurfaceFormat *similar) const
+bool QPainterVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) const
 {
     if (!m_painter)
         const_cast<QPainterVideoSurface *>(this)->createPainter();
 
-    return m_painter->isFormatSupported(format, similar);
+    return m_painter->isFormatSupported(format);
 }
 
 /*!

@@ -471,7 +471,7 @@ qint64 QPulseAudioInput::read(char *data, qint64 len)
         if (m_pullMode) {
             actualLength = m_audioSource->write(static_cast<const char *>(audioBuffer), readLength);
 
-            if (actualLength < readLength) {
+            if (actualLength < qint64(readLength)) {
                 pa_threaded_mainloop_unlock(pulseEngine->mainloop());
 
                 m_errorState = QAudio::UnderrunError;
@@ -489,7 +489,7 @@ qint64 QPulseAudioInput::read(char *data, qint64 len)
         qDebug() << "QPulseAudioInput::read -- wrote " << actualLength << " to client";
 #endif
 
-        if (actualLength < readLength) {
+        if (actualLength < qint64(readLength)) {
 #ifdef DEBUG_PULSE
             qDebug() << "QPulseAudioInput::read -- appending " << readLength - actualLength << " bytes of data to temp buffer";
 #endif
