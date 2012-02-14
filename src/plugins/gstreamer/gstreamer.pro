@@ -45,7 +45,7 @@ maemo6 {
 
     PKGCONFIG += qmsystem2
 
-    isEqual(QT_ARCH,armv6):!isEmpty(QT.widgets.name) {
+    contains(QT_CONFIG, opengles2):!isEmpty(QT.widgets.name) {
         HEADERS += qgstreamergltexturerenderer.h
         SOURCES += qgstreamergltexturerenderer.cpp
         QT += opengl

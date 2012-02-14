@@ -996,7 +996,7 @@ void tst_QVideoSurfaceFormat::debugOperator()
         "     frameWidth  =  QVariant(int, %6) \n"
         "     viewport  =  QVariant(QRect, QRect(0,1 800x600) ) \n"
         "     scanLineDirection  =  QVariant(QVideoSurfaceFormat::Direction, ) \n"
-#if defined(QT_ARCH_ARM) // from qglobal.h
+#if defined(Q_PROCESSOR_ARM) // from qglobal.h
         "     frameRate  =  QVariant(float, %7) \n"
 #else
         "     frameRate  =  QVariant(double, %7) \n"

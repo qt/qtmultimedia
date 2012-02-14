@@ -49,7 +49,7 @@ mac {
 }
 
 maemo6 {
-    isEqual(QT_ARCH,armv6) {
+    contains(QT_CONFIG, opengles2) {
         PRIVATE_HEADERS += qeglimagetexturesurface_p.h
         SOURCES += qeglimagetexturesurface.cpp
 
