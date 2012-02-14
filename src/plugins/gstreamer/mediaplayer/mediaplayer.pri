@@ -2,15 +2,6 @@ INCLUDEPATH += $$PWD
 
 DEFINES += QMEDIA_GSTREAMER_PLAYER
 
-contains(config_test_gstreamer_appsrc, yes) {
-    HEADERS += $$PWD/qgstappsrc.h
-    SOURCES += $$PWD/qgstappsrc.cpp
-
-    DEFINES += HAVE_GST_APPSRC
-
-    LIBS += -lgstapp-0.10
-}
-
 HEADERS += \
     $$PWD/qgstreamerplayercontrol.h \
     $$PWD/qgstreamerplayerservice.h \

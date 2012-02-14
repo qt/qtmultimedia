@@ -60,6 +60,10 @@
 #include "camerabinservice.h"
 #endif
 
+#ifdef QMEDIA_GSTREAMER_AUDIO_DECODER
+#include "qgstreameraudiodecoderservice.h"
+#endif
+
 #include <qmediaserviceproviderplugin.h>
 
 #include <linux/types.h>
@@ -81,7 +85,9 @@ QStringList QGstreamerServicePlugin::keys() const
 #ifdef QMEDIA_GSTREAMER_PLAYER
             << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)
 #endif
-
+#ifdef QMEDIA_GSTREAMER_AUDIO_DECODER
+            << QLatin1String(Q_MEDIASERVICE_AUDIODECODER)
+#endif
 #ifdef QMEDIA_GSTREAMER_CAPTURE
             << QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE)
             << QLatin1String(Q_MEDIASERVICE_CAMERA)
@@ -108,6 +114,11 @@ QMediaService* QGstreamerServicePlugin::create(const QString &key)
 #ifdef QMEDIA_GSTREAMER_CAMERABIN
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA) && CameraBinService::isCameraBinAvailable())
         return new CameraBinService(key);
+#endif
+
+#ifdef QMEDIA_GSTREAMER_AUDIO_DECODER
+    if (key == QLatin1String(Q_MEDIASERVICE_AUDIODECODER))
+        return new QGstreamerAudioDecoderService;
 #endif
 
 #ifdef QMEDIA_GSTREAMER_CAPTURE

@@ -1,0 +1,129 @@
+/****************************************************************************
+**
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/
+**
+** This file is part of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include "qgstreameraudiodecodercontrol.h"
+#include "qgstreameraudiodecodersession.h"
+
+#include <QtCore/qdir.h>
+#include <QtCore/qsocketnotifier.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qdebug.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+QT_BEGIN_NAMESPACE
+
+QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QGstreamerAudioDecoderSession *session, QObject *parent)
+    : QAudioDecoderControl(parent)
+    , m_session(session)
+{
+    connect(m_session, SIGNAL(bufferAvailableChanged(bool)), this, SIGNAL(bufferAvailableChanged(bool)));
+    connect(m_session, SIGNAL(bufferReady()), this, SIGNAL(bufferReady()));
+    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+    connect(m_session, SIGNAL(formatChanged(QAudioFormat)), this, SIGNAL(formatChanged(QAudioFormat)));
+    connect(m_session, SIGNAL(stateChanged(QAudioDecoder::State)), this, SIGNAL(stateChanged(QAudioDecoder::State)));
+}
+
+QGstreamerAudioDecoderControl::~QGstreamerAudioDecoderControl()
+{
+
+}
+
+QAudioDecoder::State QGstreamerAudioDecoderControl::state() const
+{
+    return m_session->state();
+}
+
+QString QGstreamerAudioDecoderControl::sourceFilename() const
+{
+    return m_session->sourceFilename();
+}
+
+void QGstreamerAudioDecoderControl::setSourceFilename(const QString &fileName)
+{
+    m_session->setSourceFilename(fileName);
+}
+
+QIODevice* QGstreamerAudioDecoderControl::sourceDevice() const
+{
+    return m_session->sourceDevice();
+}
+
+void QGstreamerAudioDecoderControl::setSourceDevice(QIODevice *device)
+{
+    m_session->setSourceDevice(device);
+}
+
+void QGstreamerAudioDecoderControl::start()
+{
+    m_session->start();
+}
+
+void QGstreamerAudioDecoderControl::stop()
+{
+    m_session->stop();
+}
+
+QAudioFormat QGstreamerAudioDecoderControl::audioFormat() const
+{
+    return m_session->audioFormat();
+}
+
+void QGstreamerAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
+{
+    m_session->setAudioFormat(format);
+}
+
+QAudioBuffer QGstreamerAudioDecoderControl::read(bool *ok)
+{
+    return m_session->read(ok);
+}
+
+bool QGstreamerAudioDecoderControl::bufferAvailable() const
+{
+    return m_session->bufferAvailable();
+}
+
+
+QT_END_NAMESPACE

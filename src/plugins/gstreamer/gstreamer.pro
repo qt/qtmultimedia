@@ -33,7 +33,6 @@ PKGCONFIG += \
     gstreamer-pbutils-0.10
 
 maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
-contains(config_test_gstreamer_appsrc, yes): PKGCONFIG += gstreamer-app-0.10
 
 contains(config_test_resourcepolicy, yes) {
     DEFINES += HAVE_RESOURCE_POLICY
@@ -97,6 +96,18 @@ contains(config_test_xvideo, yes):!isEmpty(QT.widgets.name): {
 }
 include(mediaplayer/mediaplayer.pri)
 include(mediacapture/mediacapture.pri)
+include(audiodecoder/audiodecoder.pri)
+
+contains(config_test_gstreamer_appsrc, yes) {
+    PKGCONFIG += gstreamer-app-0.10
+    HEADERS += $$PWD/qgstappsrc.h
+    SOURCES += $$PWD/qgstappsrc.cpp
+
+    DEFINES += HAVE_GST_APPSRC
+
+    LIBS += -lgstapp-0.10
+}
+
 
 #Camerabin2 based camera backend is untested and currently disabled
 #contains(config_test_gstreamer_photography, yes) {
