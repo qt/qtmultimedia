@@ -45,6 +45,7 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 
+#include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 
 #include <gst/gst.h>
@@ -61,6 +62,7 @@ class QGstreamerImageEncode;
 class QGstreamerRecorderControl;
 class QGstreamerMediaContainerControl;
 class QGstreamerVideoRendererInterface;
+class QGstreamerAudioProbeControl;
 
 class QGstreamerElementFactory
 {
@@ -127,6 +129,10 @@ public:
 
     bool processBusMessage(const QGstreamerMessage &message);
 
+    void addProbe(QGstreamerAudioProbeControl* probe);
+    void removeProbe(QGstreamerAudioProbeControl* probe);
+    static gboolean padAudioBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data);
+
 signals:
     void stateChanged(QGstreamerCaptureSession::State state);
     void durationChanged(qint64 duration);
@@ -160,6 +166,10 @@ private:
     void waitForStopped();
     bool rebuildGraph(QGstreamerCaptureSession::PipelineMode newMode);
 
+    GstPad *getAudioProbePad();
+    void removeAudioBufferProbe();
+    void addAudioBufferProbe();
+
     QUrl m_sink;
     QString m_captureDevice;
     State m_state;
@@ -168,6 +178,10 @@ private:
     PipelineMode m_pipelineMode;
     QGstreamerCaptureSession::CaptureMode m_captureMode;
     QMap<QByteArray, QVariant> m_metaData;
+
+    QList<QGstreamerAudioProbeControl*> m_audioProbes;
+    QMutex m_audioProbeMutex;
+    int m_audioBufferProbeId;
 
     QGstreamerElementFactory *m_audioInputFactory;
     QGstreamerElementFactory *m_audioPreviewFactory;
