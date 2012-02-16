@@ -69,6 +69,8 @@ namespace QGstUtils {
     QSize capsResolution(const GstCaps *caps);
     QSize capsCorrectedResolution(const GstCaps *caps);
     QAudioFormat audioFormatForCaps(const GstCaps *caps);
+    QAudioFormat audioFormatForBuffer(GstBuffer *buffer);
+    GstCaps *capsForAudioFormat(QAudioFormat format);
 }
 
 QT_END_NAMESPACE

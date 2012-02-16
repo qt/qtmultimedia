@@ -168,7 +168,7 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
 }
 
 /*!
- *Returns audio format for caps.
+  Returns audio format for caps.
   If caps doesn't have a valid audio format, an empty QAudioFormat is returned.
 */
 
@@ -249,6 +249,68 @@ QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
     }
 
     return format;
+}
+
+
+/*!
+  Returns audio format for a buffer.
+  If the buffer doesn't have a valid audio format, an empty QAudioFormat is returned.
+*/
+
+QAudioFormat QGstUtils::audioFormatForBuffer(GstBuffer *buffer)
+{
+    GstCaps* caps = gst_buffer_get_caps(buffer);
+    if (!caps)
+        return QAudioFormat();
+
+    QAudioFormat format = QGstUtils::audioFormatForCaps(caps);
+    gst_caps_unref(caps);
+    return format;
+}
+
+
+/*!
+  Builds GstCaps for an audio format.
+  Returns 0 if the audio format is not valid.
+  Caller must unref GstCaps.
+*/
+
+GstCaps *QGstUtils::capsForAudioFormat(QAudioFormat format)
+{
+    GstStructure *structure = 0;
+
+    if (format.isValid()) {
+        if (format.sampleType() == QAudioFormat::SignedInt || format.sampleType() == QAudioFormat::UnSignedInt) {
+            structure = gst_structure_new("audio/x-raw-int", NULL);
+        } else if (format.sampleType() == QAudioFormat::Float) {
+            structure = gst_structure_new("audio/x-raw-float", NULL);
+        }
+    }
+
+    GstCaps *caps = 0;
+
+    if (structure) {
+        gst_structure_set(structure, "rate", G_TYPE_INT, format.sampleRate(), NULL);
+        gst_structure_set(structure, "channels", G_TYPE_INT, format.channelCount(), NULL);
+        gst_structure_set(structure, "width", G_TYPE_INT, format.sampleSize(), NULL);
+        gst_structure_set(structure, "depth", G_TYPE_INT, format.sampleSize(), NULL);
+
+        if (format.byteOrder() == QAudioFormat::LittleEndian)
+            gst_structure_set(structure, "endianness", G_TYPE_INT, 1234, NULL);
+        else if (format.byteOrder() == QAudioFormat::BigEndian)
+            gst_structure_set(structure, "endianness", G_TYPE_INT, 4321, NULL);
+
+        if (format.sampleType() == QAudioFormat::SignedInt)
+            gst_structure_set(structure, "signed", G_TYPE_BOOLEAN, TRUE, NULL);
+        else if (format.sampleType() == QAudioFormat::UnSignedInt)
+            gst_structure_set(structure, "signed", G_TYPE_BOOLEAN, FALSE, NULL);
+
+        caps = gst_caps_new_empty();
+        Q_ASSERT(caps);
+        gst_caps_append_structure(caps, structure);
+    }
+
+    return caps;
 }
 
 QT_END_NAMESPACE

@@ -62,6 +62,7 @@ QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QGstreamerAudioDeco
     connect(m_session, SIGNAL(bufferReady()), this, SIGNAL(bufferReady()));
     connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
     connect(m_session, SIGNAL(formatChanged(QAudioFormat)), this, SIGNAL(formatChanged(QAudioFormat)));
+    connect(m_session, SIGNAL(sourceChanged()), this, SIGNAL(sourceChanged()));
     connect(m_session, SIGNAL(stateChanged(QAudioDecoder::State)), this, SIGNAL(stateChanged(QAudioDecoder::State)));
 }
 

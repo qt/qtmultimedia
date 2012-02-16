@@ -43,6 +43,7 @@
 #define QGSTREAMERPLAYERSESSION_H
 
 #include <QObject>
+#include <QtCore/qmutex.h>
 #include "qgstreameraudiodecodercontrol.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qaudiodecoder_p.h>
@@ -52,6 +53,7 @@
 #endif
 
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -95,9 +97,12 @@ public:
     QAudioBuffer read(bool *ok);
     bool bufferAvailable() const;
 
+    static GstFlowReturn new_buffer(GstAppSink *sink, gpointer user_data);
+
 signals:
     void stateChanged(QAudioDecoder::State newState);
     void formatChanged(const QAudioFormat &format);
+    void sourceChanged();
 
     void error(int error, const QString &errorString);
 
@@ -110,9 +115,10 @@ private:
 
     QAudioDecoder::State m_state;
     QAudioDecoder::State m_pendingState;
-    QGstreamerBusHelper* m_busHelper;
-    GstBus* m_bus;
-    GstElement* m_playbin;
+    QGstreamerBusHelper *m_busHelper;
+    GstBus *m_bus;
+    GstElement *m_playbin;
+    GstAppSink *m_appSink;
 
 #if defined(HAVE_GST_APPSRC)
     QGstAppSrc *m_appSrc;
@@ -121,6 +127,9 @@ private:
     QString mSource;
     QIODevice *mDevice; // QWeakPointer perhaps
     QAudioFormat mFormat;
+
+    mutable QMutex m_buffersMutex;
+    int m_buffersAvailable;
 };
 
 QT_END_NAMESPACE
