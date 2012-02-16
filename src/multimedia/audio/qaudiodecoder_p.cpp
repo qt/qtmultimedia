@@ -149,6 +149,7 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
             connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
 
             connect(d->control, SIGNAL(formatChanged(QAudioFormat)), SIGNAL(formatChanged(QAudioFormat)));
+            connect(d->control, SIGNAL(sourceChanged()), SIGNAL(sourceChanged()));
             connect(d->control, SIGNAL(bufferReady()), this, SIGNAL(bufferReady()));
             connect(d->control ,SIGNAL(bufferAvailableChanged(bool)), this, SIGNAL(bufferAvailableChanged(bool)));
         }

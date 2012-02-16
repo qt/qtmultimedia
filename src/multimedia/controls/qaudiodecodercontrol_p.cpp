@@ -174,6 +174,14 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 */
 
 /*!
+    \fn QAudioDecoderControl::sourceChanged()
+
+    Signals that the current source of the decoder has changed.
+
+    \sa sourceFilename(), sourceDevice()
+*/
+
+/*!
     \fn QAudioDecoderControl::formatChanged(const QAudioFormat &format)
 
     Signals that the current audio format of the decoder has changed to \a format.

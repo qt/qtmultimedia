@@ -83,6 +83,7 @@ public:
 Q_SIGNALS:
     void stateChanged(QAudioDecoder::State newState);
     void formatChanged(const QAudioFormat &format);
+    void sourceChanged();
 
     void error(int error, const QString &errorString);
 
