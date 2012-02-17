@@ -50,7 +50,7 @@ QT_USE_NAMESPACE
 /*
  This is the backend conformance test.
 
- Since it relies on platform media framework and sound hardware
+ Since it relies on platform media framework
  it may be less stable.
 */
 
@@ -63,7 +63,8 @@ public slots:
     void initTestCase();
 
 private slots:
-    void decoderTest();
+    void fileTest();
+    void deviceTest();
 };
 
 void tst_QAudioDecoderBackend::init()
@@ -78,12 +79,19 @@ void tst_QAudioDecoderBackend::cleanup()
 {
 }
 
-void tst_QAudioDecoderBackend::decoderTest()
+void tst_QAudioDecoderBackend::fileTest()
 {
     QAudioDecoder d;
+    bool ok;
+    QAudioBuffer buffer;
+    quint64 duration = 0;
+    int byteCount = 0;
+    int sampleCount = 0;
+
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
     QCOMPARE(d.sourceFilename(), QString(""));
+    QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
     QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
@@ -98,41 +106,7 @@ void tst_QAudioDecoderBackend::decoderTest()
     QSignalSpy stateSpy(&d, SIGNAL(stateChanged(QAudioDecoder::State)));
 
     d.start();
-    QTRY_VERIFY(!stateSpy.isEmpty());
-    QTRY_VERIFY(!readySpy.isEmpty());
-    QTRY_VERIFY(!bufferChangedSpy.isEmpty());
-    QVERIFY(d.bufferAvailable());
-
-    bool ok;
-    QAudioBuffer buffer = d.read(&ok);
-    QVERIFY(ok);
-    QVERIFY(buffer.isValid());
-    QCOMPARE(buffer.format(), d.audioFormat());
-
-    QVERIFY(errorSpy.isEmpty());
-
-    d.stop();
-    QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
-    QVERIFY(!d.bufferAvailable());
-    readySpy.clear();
-    bufferChangedSpy.clear();
-    stateSpy.clear();
-
-    // Test source device
-    QFile file(fileInfo.absoluteFilePath());
-    QVERIFY(file.open(QIODevice::ReadOnly));
-    d.setSourceDevice(&file);
-
-    // change output audio format
-    QAudioFormat format;
-    format.setChannels(1);
-    format.setSampleSize(8);
-    format.setFrequency(8000);
-    format.setCodec("audio/pcm");
-    format.setSampleType(QAudioFormat::SignedInt);
-    d.setAudioFormat(format);
-
-    d.start();
+    QTRY_VERIFY(d.state() == QAudioDecoder::DecodingState);
     QTRY_VERIFY(!stateSpy.isEmpty());
     QTRY_VERIFY(!readySpy.isEmpty());
     QTRY_VERIFY(!bufferChangedSpy.isEmpty());
@@ -141,9 +115,239 @@ void tst_QAudioDecoderBackend::decoderTest()
     buffer = d.read(&ok);
     QVERIFY(ok);
     QVERIFY(buffer.isValid());
-    QCOMPARE(buffer.format(), d.audioFormat());
+
+    // Test file is 44.1K 16bit mono, 44094 samples
+    QCOMPARE(buffer.format().channelCount(), 1);
+    QCOMPARE(buffer.format().sampleRate(), 44100);
+    QCOMPARE(buffer.format().sampleSize(), 16);
+    QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
+    QCOMPARE(buffer.format().codec(), QString("audio/pcm"));
+    QCOMPARE(buffer.byteCount(), buffer.sampleCount() * 2); // 16bit mono
+
+    // The decoder should still have no format set
+    QVERIFY(d.audioFormat() == QAudioFormat());
 
     QVERIFY(errorSpy.isEmpty());
+
+    duration += buffer.duration();
+    sampleCount += buffer.sampleCount();
+    byteCount += buffer.byteCount();
+
+    // Now drain the decoder
+    if (sampleCount < 44094) {
+        QTRY_COMPARE(d.bufferAvailable(), true);
+    }
+
+    while (d.bufferAvailable()) {
+        buffer = d.read(&ok);
+        QVERIFY(ok);
+        QVERIFY(buffer.isValid());
+        duration += buffer.duration();
+        sampleCount += buffer.sampleCount();
+        byteCount += buffer.byteCount();
+
+        if (sampleCount < 44094) {
+            QTRY_COMPARE(d.bufferAvailable(), true);
+        }
+    }
+
+    // Make sure the duration is roughly correct (+/- 20ms)
+    QCOMPARE(sampleCount, 44094);
+    QCOMPARE(byteCount, 44094 * 2);
+    QVERIFY(qAbs(qint64(duration) - 1000000) < 20000);
+
+    d.stop();
+    QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
+    QVERIFY(!d.bufferAvailable());
+    readySpy.clear();
+    bufferChangedSpy.clear();
+    stateSpy.clear();
+
+    // change output audio format
+    QAudioFormat format;
+    format.setChannels(2);
+    format.setSampleSize(8);
+    format.setFrequency(11050);
+    format.setCodec("audio/pcm");
+    format.setSampleType(QAudioFormat::SignedInt);
+
+    d.setAudioFormat(format);
+
+    // We expect 1 second still, at 11050 * 2 samples == 22k samples.
+    // (at 1 byte/sample -> 22kb)
+
+    // Make sure it stuck
+    QVERIFY(d.audioFormat() == format);
+
+    duration = 0;
+    sampleCount = 0;
+    byteCount = 0;
+
+    d.start();
+    QTRY_VERIFY(d.state() == QAudioDecoder::DecodingState);
+    QTRY_VERIFY(!stateSpy.isEmpty());
+    QTRY_VERIFY(!readySpy.isEmpty());
+    QTRY_VERIFY(!bufferChangedSpy.isEmpty());
+    QVERIFY(d.bufferAvailable());
+
+    buffer = d.read(&ok);
+    QVERIFY(ok);
+    QVERIFY(buffer.isValid());
+    // See if we got the right format
+    QVERIFY(buffer.format() == format);
+
+    // The decoder should still have the same format
+    QVERIFY(d.audioFormat() == format);
+
+    QVERIFY(errorSpy.isEmpty());
+
+    duration += buffer.duration();
+    sampleCount += buffer.sampleCount();
+    byteCount += buffer.byteCount();
+
+    // Now drain the decoder
+    if (duration < 998000) {
+        QTRY_COMPARE(d.bufferAvailable(), true);
+    }
+
+    while (d.bufferAvailable()) {
+        buffer = d.read(&ok);
+        QVERIFY(ok);
+        QVERIFY(buffer.isValid());
+        duration += buffer.duration();
+        sampleCount += buffer.sampleCount();
+        byteCount += buffer.byteCount();
+
+        if (duration < 998000) {
+            QTRY_COMPARE(d.bufferAvailable(), true);
+        }
+    }
+
+    // Resampling might end up with fewer or more samples
+    // so be a bit sloppy
+    QVERIFY(qAbs(sampleCount - 22047) < 100);
+    QVERIFY(qAbs(byteCount - 22047) < 100);
+    QVERIFY(qAbs(qint64(duration) - 1000000) < 20000);
+
+    d.stop();
+    QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
+    QVERIFY(!d.bufferAvailable());
+}
+
+void tst_QAudioDecoderBackend::deviceTest()
+{
+    QAudioDecoder d;
+    bool ok;
+    QAudioBuffer buffer;
+    quint64 duration = 0;
+    int sampleCount = 0;
+
+    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
+    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
+    QSignalSpy stateSpy(&d, SIGNAL(stateChanged(QAudioDecoder::State)));
+
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(d.bufferAvailable() == false);
+    QCOMPARE(d.sourceFilename(), QString(""));
+    QVERIFY(d.audioFormat() == QAudioFormat());
+
+    QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
+    QFile file(fileInfo.absoluteFilePath());
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    d.setSourceDevice(&file);
+
+    QVERIFY(d.sourceDevice() == &file);
+    QVERIFY(d.sourceFilename().isEmpty());
+
+    // We haven't set the format yet
+    QVERIFY(d.audioFormat() == QAudioFormat());
+
+    d.start();
+    QTRY_VERIFY(d.state() == QAudioDecoder::DecodingState);
+    QTRY_VERIFY(!stateSpy.isEmpty());
+    QTRY_VERIFY(!readySpy.isEmpty());
+    QTRY_VERIFY(!bufferChangedSpy.isEmpty());
+    QVERIFY(d.bufferAvailable());
+
+    buffer = d.read(&ok);
+    QVERIFY(ok);
+    QVERIFY(buffer.isValid());
+
+    // Test file is 44.1K 16bit mono
+    QCOMPARE(buffer.format().channelCount(), 1);
+    QCOMPARE(buffer.format().sampleRate(), 44100);
+    QCOMPARE(buffer.format().sampleSize(), 16);
+    QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
+    QCOMPARE(buffer.format().codec(), QString("audio/pcm"));
+
+    QVERIFY(errorSpy.isEmpty());
+
+    duration += buffer.duration();
+    sampleCount += buffer.sampleCount();
+
+    // Now drain the decoder
+    if (sampleCount < 44094) {
+        QTRY_COMPARE(d.bufferAvailable(), true);
+    }
+
+    while (d.bufferAvailable()) {
+        buffer = d.read(&ok);
+        QVERIFY(ok);
+        QVERIFY(buffer.isValid());
+        duration += buffer.duration();
+        sampleCount += buffer.sampleCount();
+        if (sampleCount < 44094) {
+            QTRY_COMPARE(d.bufferAvailable(), true);
+        }
+    }
+
+    // Make sure the duration is roughly correct (+/- 20ms)
+    QCOMPARE(sampleCount, 44094);
+    QVERIFY(qAbs(qint64(duration) - 1000000) < 20000);
+
+    d.stop();
+    QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
+    QVERIFY(!d.bufferAvailable());
+    readySpy.clear();
+    bufferChangedSpy.clear();
+    stateSpy.clear();
+
+    // Now try changing formats
+    QAudioFormat format;
+    format.setChannels(2);
+    format.setSampleSize(8);
+    format.setFrequency(8000);
+    format.setCodec("audio/pcm");
+    format.setSampleType(QAudioFormat::SignedInt);
+
+    d.setAudioFormat(format);
+
+    // Make sure it stuck
+    QVERIFY(d.audioFormat() == format);
+
+    d.start();
+    QTRY_VERIFY(d.state() == QAudioDecoder::DecodingState);
+    QTRY_VERIFY(!stateSpy.isEmpty());
+    QTRY_VERIFY(!readySpy.isEmpty());
+    QTRY_VERIFY(!bufferChangedSpy.isEmpty());
+    QVERIFY(d.bufferAvailable());
+
+    buffer = d.read(&ok);
+    QVERIFY(ok);
+    QVERIFY(buffer.isValid());
+    // See if we got the right format
+    QVERIFY(buffer.format() == format);
+
+    // The decoder should still have the same format
+    QVERIFY(d.audioFormat() == format);
+
+    QVERIFY(errorSpy.isEmpty());
+
+    d.stop();
+    QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
+    QVERIFY(!d.bufferAvailable());
+
 }
 
 QTEST_MAIN(tst_QAudioDecoderBackend)

@@ -84,11 +84,15 @@ GstMessage* QGstreamerMessage::rawMessage() const
 
 QGstreamerMessage& QGstreamerMessage::operator=(QGstreamerMessage const& rhs)
 {
-    if (m_message != 0)
-        gst_message_unref(m_message);
+    if (rhs.m_message != m_message) {
+        if (rhs.m_message != 0)
+            gst_message_ref(rhs.m_message);
 
-    if ((m_message = rhs.m_message) != 0)
-        gst_message_ref(m_message);
+        if (m_message != 0)
+            gst_message_unref(m_message);
+
+        m_message = rhs.m_message;
+    }
 
     return *this;
 }

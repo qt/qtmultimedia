@@ -111,6 +111,10 @@ signals:
 
 private:
 
+    void setAudioFlags(bool wantNativeAudio);
+    void addAppSink();
+    void removeAppSink();
+
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
 
     QAudioDecoder::State m_state;
@@ -118,6 +122,8 @@ private:
     QGstreamerBusHelper *m_busHelper;
     GstBus *m_bus;
     GstElement *m_playbin;
+    GstElement *m_outputBin;
+    GstElement *m_audioConvert;
     GstAppSink *m_appSink;
 
 #if defined(HAVE_GST_APPSRC)

@@ -167,6 +167,10 @@ void QGstAppSrc::pushDataToAppSrc()
                 qWarning()<<"appsrc: push buffer resend";
             }
         }
+
+        // After reading we might be all done
+        if (m_stream->atEnd())
+            sendEOS();
     } else if (m_stream->atEnd()) {
         sendEOS();
     }
