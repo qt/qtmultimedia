@@ -57,6 +57,8 @@ Item {
     property alias duration:        player.duration
     property alias error:           player.error
     property alias errorString:     player.errorString
+    property alias hasAudio:        player.hasAudio
+    property alias hasVideo:        player.hasVideo
     property alias metaData:        player.metaData
     property alias muted:           player.muted
     property alias paused:          player.paused

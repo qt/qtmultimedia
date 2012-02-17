@@ -192,6 +192,20 @@ Item {
     */
     property alias errorString:     player.errorString
 
+    /*!
+        \qmlproperty bool Video::hasAudio
+
+        This property holds whether the current media has audio content.
+    */
+    property alias hasAudio:        player.hasAudio
+
+    /*!
+        \qmlproperty bool Video::hasVideo
+
+        This property holds whether the current media has video content.
+    */
+    property alias hasVideo:        player.hasVideo
+
     /* documented below due to length of metaData documentation */
     property alias metaData:        player.metaData
 
