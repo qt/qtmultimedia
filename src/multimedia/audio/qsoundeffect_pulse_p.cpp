@@ -617,7 +617,7 @@ void QSoundEffectPrivate::sampleReady()
     disconnect(m_sample, SIGNAL(ready()), this, SLOT(sampleReady()));
     pa_sample_spec newFormatSpec = audioFormatToSampleSpec(m_sample->format());
 
-    if (m_pulseStream && (memcmp(&m_pulseSpec, &newFormatSpec, sizeof(m_pulseSpec)) != 0)) {
+    if (m_pulseStream && !pa_sample_spec_equal(&m_pulseSpec, &newFormatSpec)) {
         unloadPulseStream();
     }
     m_pulseSpec = newFormatSpec;
