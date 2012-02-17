@@ -58,7 +58,7 @@ OTHER_FILES += \
     Video_4.qml \
     Video.qml
 
-qmldir.files += $$PWD/qmldir $$PWD/Video.qml
+qmldir.files += $$PWD/qmldir $$PWD/Video.qml $$PWD/Video_4.qml
 qmldir.path +=  $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
 
 # another copy of the qmldir file so the old import works
