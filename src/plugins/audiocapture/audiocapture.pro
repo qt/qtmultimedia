@@ -7,7 +7,6 @@ PLUGIN_TYPE=mediaservice
 load(qt_plugin)
 DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
-# Input
 HEADERS += audioencodercontrol.h \
     audiocontainercontrol.h \
     audiomediarecordercontrol.h \

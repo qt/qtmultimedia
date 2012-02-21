@@ -53,7 +53,6 @@ maemo6 {
     }
 }
 
-# Input
 HEADERS += \
     qgstreamervideorendererinterface.h \
     qgstreamerserviceplugin.h \

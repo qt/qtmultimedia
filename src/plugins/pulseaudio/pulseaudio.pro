@@ -10,7 +10,6 @@ DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 CONFIG += link_pkgconfig
 PKGCONFIG += libpulse
 
-# Input
 HEADERS += qpulseaudioplugin.h \
            qaudiodeviceinfo_pulse.h \
            qaudiooutput_pulse.h \
