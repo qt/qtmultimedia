@@ -43,6 +43,7 @@
 
 #include <qaudiorecorder.h>
 #include <qmediarecorder.h>
+#include <qaudioprobe.h>
 
 #include "audiorecorder.h"
 
@@ -61,6 +62,9 @@ AudioRecorder::AudioRecorder(QWidget *parent)
     ui->setupUi(this);
 
     audioRecorder = new QAudioRecorder(this);
+    probe = new QAudioProbe;
+    connect(probe, SIGNAL(audioBufferProbed(const QAudioBuffer&)), this, SLOT(processBuffer(QAudioBuffer)));
+    probe->setSource(audioRecorder);
 
     //audio devices
     ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
@@ -103,11 +107,12 @@ AudioRecorder::AudioRecorder(QWidget *parent)
             SLOT(updateState(QMediaRecorder::State)));
     connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this,
             SLOT(displayErrorMessage()));
-    }
+}
 
 AudioRecorder::~AudioRecorder()
 {
     delete audioRecorder;
+    delete probe;
 }
 
 void AudioRecorder::updateProgress(qint64 duration)
@@ -220,4 +225,90 @@ QUrl AudioRecorder::generateAudioFilePath()
     lastImage += fileCount;
     QUrl location(QDir::toNativeSeparators(outputDir.canonicalPath() + QString("/testclip_%1").arg(lastImage + 1, 4, 10, QLatin1Char('0'))));
     return location;
+}
+
+// This function returns the maximum possible sample value for a given audio format
+qreal AudioRecorder::GetPeakValue(const QAudioFormat& format)
+{
+    // Note: Only the most common sample formats are supported
+    if (!format.isValid())
+        return 0.0;
+
+    if (format.codec() != "audio/pcm")
+        return 0.0;
+
+    switch (format.sampleType()) {
+    case QAudioFormat::Unknown:
+        break;
+    case QAudioFormat::Float:
+        if (format.sampleSize() != 32) // other sample formats are not supported
+            return 0.0;
+        return 1.00003;
+    case QAudioFormat::SignedInt:
+        if (format.sampleSize() == 32)
+            return 2147483648.0;
+        else if (format.sampleSize() == 16)
+            return 32768.0;
+        else if (format.sampleSize() == 8)
+            return 128.0;
+        break;
+    case QAudioFormat::UnSignedInt:
+        // Unsigned formats are not supported in this example
+        break;
+    }
+
+    return 0.0;
+}
+
+qreal AudioRecorder::GetBufferLevel(const QAudioBuffer& buffer)
+{
+    if (!buffer.format().isValid() || buffer.format().byteOrder() != QAudioFormat::LittleEndian)
+        return 0.0;
+
+    if (buffer.format().codec() != "audio/pcm")
+        return 0.0;
+
+    qreal peak_value = GetPeakValue(buffer.format());
+    if (qFuzzyCompare(peak_value, 0.0))
+        return 0.0;
+
+    switch (buffer.format().sampleType()) {
+    case QAudioFormat::Unknown:
+    case QAudioFormat::UnSignedInt:
+        break;
+    case QAudioFormat::Float:
+        if (buffer.format().sampleSize() == 32)
+            return GetBufferLevel(buffer.constData<float>(), buffer.sampleCount()) / peak_value;
+        break;
+    case QAudioFormat::SignedInt:
+        if (buffer.format().sampleSize() == 32)
+            return GetBufferLevel(buffer.constData<long int>(), buffer.sampleCount()) / peak_value;
+        else if (buffer.format().sampleSize() == 16)
+            return GetBufferLevel(buffer.constData<short int>(), buffer.sampleCount()) / peak_value;
+        else if (buffer.format().sampleSize() == 8)
+            return GetBufferLevel(buffer.constData<signed char>(), buffer.sampleCount()) / peak_value;
+        break;
+    }
+
+    return 0.0;
+}
+
+template <class T>
+qreal AudioRecorder::GetBufferLevel(const T* buffer, int samples)
+{
+    qreal max_value = 0.0;
+
+    for (int i = 0; i < samples; i++) {
+        qreal value = qAbs((qreal)buffer[i]);
+        if (value > max_value)
+            max_value = value;
+    }
+
+    return max_value;
+}
+
+void AudioRecorder::processBuffer(const QAudioBuffer& buffer)
+{
+    qreal level = GetBufferLevel(buffer);
+    ui->audioLevel->setLevel(level);
 }

@@ -38,61 +38,31 @@
 **
 ****************************************************************************/
 
-#ifndef AUDIORECORDER_H
-#define AUDIORECORDER_H
+#include "qaudiolevel.h"
+#include <QPainter>
 
-#include <QtCore/qurl.h>
-#include <QtWidgets/qmainwindow.h>
-
-#include <qmediarecorder.h>
-
-
-QT_BEGIN_NAMESPACE
-
-namespace Ui {
-    class AudioRecorder;
+QAudioLevel::QAudioLevel(QWidget *parent)
+  : QWidget(parent)
+  , m_level(0.0)
+{
 }
 
-class QAudioRecorder;
-class QAudioProbe;
-class QAudioBuffer;
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
-
-class AudioRecorder : public QMainWindow
+void QAudioLevel::setLevel(qreal level)
 {
-    Q_OBJECT
-public:
-    AudioRecorder(QWidget *parent = 0);
-    ~AudioRecorder();
+    if (m_level != level) {
+        m_level = level;
+        update();
+    }
+}
 
-public slots:
-    void processBuffer(const QAudioBuffer&);
+void QAudioLevel::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event);
 
-private slots:
-    void setOutputLocation();
-    void togglePause();
-    void toggleRecord();
-
-    void updateState(QMediaRecorder::State);
-    void updateProgress(qint64 pos);
-    void displayErrorMessage();
-    QUrl generateAudioFilePath();
-
-private:
-    static qreal GetPeakValue(const QAudioFormat& format);
-    static qreal GetBufferLevel(const QAudioBuffer& buffer);
-
-    template <class T>
-    static qreal GetBufferLevel(const T* buffer, int samples);
-
-    Ui::AudioRecorder *ui;
-
-    QAudioRecorder* audioRecorder;
-    QAudioProbe* probe;
-    bool outputLocationSet;
-
-};
-
-#endif
+    QPainter painter(this);
+    // draw level
+    qreal widthLevel = m_level * width();
+    painter.fillRect(0, 0, widthLevel, height(), Qt::red);
+    // clear the rest of the control
+    painter.fillRect(widthLevel, 0, width(), height(), Qt::black);
+}

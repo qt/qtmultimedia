@@ -4,11 +4,13 @@ TARGET = audiorecorder
 QT += multimedia
 
 HEADERS = \
-    audiorecorder.h
+    audiorecorder.h \
+    qaudiolevel.h
   
 SOURCES = \
     main.cpp \
-    audiorecorder.cpp
+    audiorecorder.cpp \
+    qaudiolevel.cpp
 
 maemo*: {
     FORMS += audiorecorder_small.ui
