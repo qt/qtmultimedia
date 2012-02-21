@@ -80,7 +80,7 @@ tst_QAudioBuffer::tst_QAudioBuffer()
 
     QByteArray b(4000, 0x80);
     mNull = new QAudioBuffer;
-    mEmpty = new QAudioBuffer(1000, mFormat);
+    mEmpty = new QAudioBuffer(1000, mFormat); // 1000 samples of 16 bits -> 2KB
     mFromArray = new QAudioBuffer(b, mFormat);
 }
 
@@ -109,9 +109,9 @@ void tst_QAudioBuffer::ctors()
     QVERIFY(mEmpty->constData() != 0);
     QVERIFY(mEmpty->data() != 0);
     QVERIFY(((const QAudioBuffer*)mEmpty)->data() != 0);
-    QCOMPARE(mEmpty->duration(), 50000LL);
-    QCOMPARE(mEmpty->byteCount(), 4000);
     QCOMPARE(mEmpty->sampleCount(), 1000);
+    QCOMPARE(mEmpty->duration(), 50000LL);
+    QCOMPARE(mEmpty->byteCount(), 2000);
     QCOMPARE(mEmpty->startTime(), -1LL);
 
     // bytearray buffer
@@ -119,10 +119,43 @@ void tst_QAudioBuffer::ctors()
     QVERIFY(mFromArray->constData() != 0);
     QVERIFY(mFromArray->data() != 0);
     QVERIFY(((const QAudioBuffer*)mFromArray)->data() != 0);
-    QCOMPARE(mFromArray->duration(), 50000LL); // 4000 bytes
+    /// 4000 bytes at 10KHz, 2ch, 16bit = 40kBps -> 0.1s
+    QCOMPARE(mFromArray->duration(), 100000LL);
     QCOMPARE(mFromArray->byteCount(), 4000);
-    QCOMPARE(mFromArray->sampleCount(), 1000);
+    QCOMPARE(mFromArray->sampleCount(), 2000);
     QCOMPARE(mFromArray->startTime(), -1LL);
+
+
+    // Now some invalid buffers
+    QAudioBuffer badFormat(1000, QAudioFormat());
+    QVERIFY(!badFormat.isValid());
+    QVERIFY(badFormat.constData() == 0);
+    QVERIFY(badFormat.data() == 0);
+    QVERIFY(((const QAudioBuffer*)&badFormat)->data() == 0);
+    QCOMPARE(badFormat.duration(), 0LL);
+    QCOMPARE(badFormat.byteCount(), 0);
+    QCOMPARE(badFormat.sampleCount(), 0);
+    QCOMPARE(badFormat.startTime(), -1LL);
+
+    QAudioBuffer badArray(QByteArray(), mFormat);
+    QVERIFY(!badArray.isValid());
+    QVERIFY(badArray.constData() == 0);
+    QVERIFY(badArray.data() == 0);
+    QVERIFY(((const QAudioBuffer*)&badArray)->data() == 0);
+    QCOMPARE(badArray.duration(), 0LL);
+    QCOMPARE(badArray.byteCount(), 0);
+    QCOMPARE(badArray.sampleCount(), 0);
+    QCOMPARE(badArray.startTime(), -1LL);
+
+    QAudioBuffer badBoth = QAudioBuffer(QByteArray(), QAudioFormat());
+    QVERIFY(!badBoth.isValid());
+    QVERIFY(badBoth.constData() == 0);
+    QVERIFY(badBoth.data() == 0);
+    QVERIFY(((const QAudioBuffer*)&badBoth)->data() == 0);
+    QCOMPARE(badBoth.duration(), 0LL);
+    QCOMPARE(badBoth.byteCount(), 0);
+    QCOMPARE(badBoth.sampleCount(), 0);
+    QCOMPARE(badBoth.startTime(), -1LL);
 }
 
 void tst_QAudioBuffer::assign()
@@ -245,11 +278,11 @@ void tst_QAudioBuffer::durations_data()
     QTest::newRow("M8_2000_8K") << 1 << 8 << 2000 << QAudioFormat::UnSignedInt << 8000 << 250000LL << 2000;
     QTest::newRow("M8_1000_4K") << 1 << 8 << 1000 << QAudioFormat::UnSignedInt << 4000 << 250000LL << 1000;
 
-    QTest::newRow("S8_1000_8K") << 2 << 8 << 1000 << QAudioFormat::UnSignedInt << 8000 << 62500LL << 2000;
+    QTest::newRow("S8_1000_8K") << 2 << 8 << 1000 << QAudioFormat::UnSignedInt << 8000 << 62500LL << 1000;
 
-    QTest::newRow("SF_1000_8K") << 2 << 32 << 1000 << QAudioFormat::Float << 8000 << 62500LL << 8000;
+    QTest::newRow("SF_1000_8K") << 2 << 32 << 1000 << QAudioFormat::Float << 8000 << 62500LL << 4000;
 
-    QTest::newRow("4x128_1000_16K") << 4 << 128 << 1000 << QAudioFormat::SignedInt << 16000 << 15625LL << 64000;
+    QTest::newRow("4x128_1000_16K") << 4 << 128 << 1000 << QAudioFormat::SignedInt << 16000 << 15625LL << 16000;
 }
 
 void tst_QAudioBuffer::stereoSample()

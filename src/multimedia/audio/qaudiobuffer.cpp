@@ -111,7 +111,7 @@ public:
         , mSampleCount(sampleCount)
         , mFormat(format)
     {
-        int numBytes = (sampleCount * format.channelCount() * format.sampleSize()) / 8;
+        int numBytes = (sampleCount * format.sampleSize()) / 8;
         if (numBytes > 0) {
             mBuffer = malloc(numBytes);
             if (!mBuffer) {
@@ -245,9 +245,11 @@ QAudioBuffer::QAudioBuffer(const QAudioBuffer &other)
  */
 QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format)
 {
-    int sampleSize = (format.sampleSize() * format.channelCount()) / 8;
-    int sampleCount = data.size() / sampleSize; // truncate
-    d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(data.constData(), sampleCount, format, -1));
+    if (format.isValid()) {
+        int sampleCount = (data.size() * 8) / format.sampleSize(); // truncate
+        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(data.constData(), sampleCount, format, -1));
+    } else
+        d = 0;
 }
 
 /*!
@@ -327,7 +329,7 @@ int QAudioBuffer::sampleCount() const
 int QAudioBuffer::byteCount() const
 {
     const QAudioFormat f(format());
-    return (f.channelCount() * f.sampleSize() * sampleCount()) / 8; // sampleSize is in bits
+    return (f.sampleSize() * sampleCount()) / 8; // sampleSize is in bits
 }
 
 /*!
