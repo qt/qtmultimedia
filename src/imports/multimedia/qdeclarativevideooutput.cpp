@@ -123,6 +123,7 @@ private:
     \brief The VideoOutput element allows you to render video or camera viewfinder.
 
     \ingroup multimedia_qml
+    \inqmlmodule QtMultimedia 5
 
     This element is part of the \bold{QtMultimedia 5.0} module.
 
@@ -201,7 +202,7 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
 }
 
 /*!
-    \qmlproperty variant VideoOutput::source
+    \qmlproperty variant QtMultimedia5::VideoOutput::source
 
     This property holds the source item providing the video frames like MediaPlayer or Camera.
 
@@ -338,7 +339,7 @@ static inline int qNormalizedOrientation(int o)
 }
 
 /*!
-    \qmlproperty enumeration VideoOutput::fillMode
+    \qmlproperty enumeration QtMultimedia5::VideoOutput::fillMode
 
     Set this property to define how the video is scaled to fit the target area.
 
@@ -445,7 +446,7 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
         emit contentRectChanged();
 }
 /*!
-    \qmlproperty int VideoOutput::orientation
+    \qmlproperty int QtMultimedia5::VideoOutput::orientation
 
     In some cases the source video stream requires a certain
     orientation to be correct.  This includes
@@ -506,7 +507,7 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
 }
 
 /*!
-    \qmlproperty rectangle VideoOutput::contentRect
+    \qmlproperty rectangle QtMultimedia5::VideoOutput::contentRect
 
     This property holds the item coordinates of the area that
     would contain video to render.  With certain fill modes,
@@ -527,7 +528,7 @@ QRectF QDeclarativeVideoOutput::contentRect() const
 }
 
 /*!
-    \qmlproperty rectangle VideoOutput::sourceRect
+    \qmlproperty rectangle QtMultimedia5::VideoOutput::sourceRect
 
     This property holds the area of the source video
     content that is considered for rendering.  The
@@ -550,7 +551,7 @@ QRectF QDeclarativeVideoOutput::sourceRect() const
 }
 
 /*!
-    \qmlmethod mapNormalizedPointToItem
+    \qmlmethod QtMultimedia5::VideoOutput::mapNormalizedPointToItem
 
     Given normalized coordinates \a point (that is, each
     component in the range of 0 to 1.0), return the mapped point
@@ -587,7 +588,7 @@ QPointF QDeclarativeVideoOutput::mapNormalizedPointToItem(const QPointF &point) 
 }
 
 /*!
-    \qmlmethod mapNormalizedRectToItem
+    \qmlmethod QtMultimedia5::VideoOutput::mapNormalizedRectToItem
 
     Given a rectangle \a rectangle in normalized
     coordinates (that is, each component in the range of 0 to 1.0),
@@ -604,7 +605,7 @@ QRectF QDeclarativeVideoOutput::mapNormalizedRectToItem(const QRectF &rectangle)
 }
 
 /*!
-    \qmlmethod mapPointToItem
+    \qmlmethod QtMultimedia5::VideoOutput::mapPointToItem
 
     Given a point \a point in item coordinates, return the
     corresponding point in source coordinates.  This mapping is
@@ -624,7 +625,7 @@ QPointF QDeclarativeVideoOutput::mapPointToSource(const QPointF &point) const
 }
 
 /*!
-    \qmlmethod mapRectToSource
+    \qmlmethod QtMultimedia5::VideoOutput::mapRectToSource
 
     Given a rectangle \a rectangle in item coordinates, return the
     corresponding rectangle in source coordinates.  This mapping is
@@ -642,7 +643,7 @@ QRectF QDeclarativeVideoOutput::mapRectToSource(const QRectF &rectangle) const
 }
 
 /*!
-    \qmlmethod mapPointToItemNormalized
+    \qmlmethod QtMultimedia5::VideoOutput::mapPointToItemNormalized
 
     Given a point \a point in item coordinates, return the
     corresponding point in normalized source coordinates.  This mapping is
@@ -677,7 +678,7 @@ QPointF QDeclarativeVideoOutput::mapPointToSourceNormalized(const QPointF &point
 }
 
 /*!
-    \qmlmethod mapRectToSourceNormalized
+    \qmlmethod QtMultimedia5::VideoOutput::mapRectToSourceNormalized
 
     Given a rectangle \a rectangle in item coordinates, return the
     corresponding rectangle in normalized source coordinates.  This mapping is
@@ -695,7 +696,7 @@ QRectF QDeclarativeVideoOutput::mapRectToSourceNormalized(const QRectF &rectangl
 }
 
 /*!
-    \qmlmethod mapPointToItem
+    \qmlmethod QtMultimedia5::VideoOutput::mapPointToItem
 
     Given a point \a point in source coordinates, return the
     corresponding point in item coordinates.  This mapping is
@@ -718,7 +719,7 @@ QPointF QDeclarativeVideoOutput::mapPointToItem(const QPointF &point) const
 }
 
 /*!
-    \qmlmethod mapRectToItem
+    \qmlmethod QtMultimedia5::VideoOutput::mapRectToItem
 
     Given a rectangle \a rectangle in source coordinates, return the
     corresponding rectangle in item coordinates.  This mapping is

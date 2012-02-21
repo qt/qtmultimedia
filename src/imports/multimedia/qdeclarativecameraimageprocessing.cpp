@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraImageProcessing QDeclarativeCameraImageProcessing
+    \inqmlmodule QtMultimedia 5
     \brief The CameraCapture element provides an interface for camera capture related settings
     \ingroup multimedia_qml
     \ingroup camera_qml
@@ -93,7 +94,7 @@ QDeclarativeCameraImageProcessing::~QDeclarativeCameraImageProcessing()
 }
 
 /*!
-    \qmlproperty enumeration CameraImageProcessing::whiteBalanceMode
+    \qmlproperty enumeration QtMultimedia5::CameraImageProcessing::whiteBalanceMode
 
     \table
     \header \o Value \o Description
@@ -130,7 +131,7 @@ void QDeclarativeCameraImageProcessing::setWhiteBalanceMode(QDeclarativeCameraIm
 }
 
 /*!
-    \qmlproperty qreal CameraImageProcessing::manualWhiteBalance
+    \qmlproperty qreal QtMultimedia5::CameraImageProcessing::manualWhiteBalance
 
     The color temperature used when in manual white balance mode (WhiteBalanceManual).
     The units are Kelvin.
@@ -151,7 +152,7 @@ void QDeclarativeCameraImageProcessing::setManualWhiteBalance(qreal colorTemp) c
 }
 
 /*!
-    \qmlproperty int CameraImageProcessing::contrast
+    \qmlproperty int QtMultimedia5::CameraImageProcessing::contrast
 
     Image contrast adjustment.
     Valid contrast adjustment values range between -1.0 and 1.0, with a default of 0.
@@ -170,7 +171,7 @@ void QDeclarativeCameraImageProcessing::setContrast(qreal value)
 }
 
 /*!
-    \qmlproperty int CameraImageProcessing::saturation
+    \qmlproperty int QtMultimedia5::CameraImageProcessing::saturation
 
     Image saturation adjustment.
     Valid saturation adjustment values range between -1.0 and 1.0, the default is 0.
@@ -189,7 +190,7 @@ void QDeclarativeCameraImageProcessing::setSaturation(qreal value)
 }
 
 /*!
-    \qmlproperty int CameraImageProcessing::sharpeningLevel
+    \qmlproperty int QtMultimedia5::CameraImageProcessing::sharpeningLevel
 
     Adjustment of sharpening level applied to image.
 
@@ -210,7 +211,7 @@ void QDeclarativeCameraImageProcessing::setSharpeningLevel(qreal value)
 }
 
 /*!
-    \qmlproperty int CameraImageProcessing::denoisingLevel
+    \qmlproperty int QtMultimedia5::CameraImageProcessing::denoisingLevel
 
     Adjustment of denoising applied to image.
 
@@ -231,11 +232,11 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 }
 
 /*!
-    \qmlsignal Camera::whiteBalanceModeChanged(Camera::WhiteBalanceMode)
+    \qmlsignal QtMultimedia5::Camera::whiteBalanceModeChanged(Camera::WhiteBalanceMode)
 */
 
 /*!
-    \qmlsignal Camera::manualWhiteBalanceChanged(qreal)
+    \qmlsignal QtMultimedia5::Camera::manualWhiteBalanceChanged(qreal)
 */
 
 QT_END_NAMESPACE

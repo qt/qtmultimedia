@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraFlash QDeclarativeCameraFlash
+    \inqmlmodule QtMultimedia 5
     \brief The CameraFlash element provides interface for flash related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
@@ -95,7 +96,7 @@ QDeclarativeCameraFlash::~QDeclarativeCameraFlash()
 }
 
 /*!
-    \qmlproperty bool QDeclarativeCameraFlash::ready
+    \qmlproperty bool QtMultimedia5::QDeclarativeCameraFlash::ready
     \property bool QDeclarativeCameraFlash::ready
 
     Indicates flash is charged.
@@ -106,7 +107,7 @@ bool QDeclarativeCameraFlash::isFlashReady() const
 }
 
 /*!
-    \qmlproperty enumeration CameraExposure::flashMode
+    \qmlproperty enumeration QtMultimedia5::CameraExposure::flashMode
     \property QDeclarativeCameraFlash::flashMode
 
     \table
@@ -140,12 +141,12 @@ void QDeclarativeCameraFlash::setFlashMode(int mode)
 }
 
 /*!
-    \qmlsignal CameraExposure::flashModeChanged(int)
+    \qmlsignal QtMultimedia5::CameraExposure::flashModeChanged(int)
     \fn void QDeclarativeCameraFlash::flashModeChanged(int)
 */
 
 /*!
-    \qmlsignal CameraExposure::flashReady(bool)
+    \qmlsignal QtMultimedia5::CameraExposure::flashReady(bool)
     \fn void QDeclarativeCameraFlash::flashReady(bool)
 */
 

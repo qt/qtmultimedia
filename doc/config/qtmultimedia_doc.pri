@@ -43,5 +43,4 @@ OTHER_FILES += \
     doc/src/audiooverview.qdoc \
     doc/src/radiooverview.qdoc \
     doc/src/videooverview.qdoc \
-    doc/src/audioengineoverview.qdoc \
     doc/src/plugins/qml-multimedia.qdoc

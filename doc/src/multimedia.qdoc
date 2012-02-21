@@ -26,7 +26,6 @@
 ****************************************************************************/
 
 /*!
-
 \page multimediaoverview.html
 \title Qt Multimedia
 \brief A set of APIs for working with audio, video, radio and camera devices.

@@ -134,7 +134,7 @@
     .creator .wrap
     {
         margin: 0px;
-		background:#FFFFFF;
+        background:#FFFFFF;
     }
     .narrow .wrap .toolbar
     {
@@ -169,7 +169,7 @@
     .narrow .wrap .breadcrumb ul li.last a {
       color: #363534;
     }
-    
+
     #narrowsearch {
       display: none;
     }
@@ -203,9 +203,9 @@
       *border: 1px solid #fff;
       *height: 17px;
       _height: 18px;
-	  /* to be fixed */
-	  display: none;
-	  /* to be fixed */
+      /* to be fixed */
+      display: none;
+      /* to be fixed */
     }
 
     .narrow .indexbox .indexIcon {
@@ -216,7 +216,7 @@
       width: 64%;
       padding-left: 0;
     }
-    
+
     .narrow .indexboxcont .sectionlist {
       width: 32.5%;
     }
@@ -255,7 +255,7 @@
     #narrowmenu li,
     #narrowmenu li ul {
       background-color: #fff;
-	  margin-top:-1px;
+      margin-top:-1px;
     }
 
     #narrowmenu li ul {

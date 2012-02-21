@@ -197,7 +197,7 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
 }
 
 
-/*!
+/*
     \class QGraphicsVideoItem
 
     \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaObject.
@@ -228,7 +228,7 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
     \sa QMediaObject, QMediaPlayer, QVideoWidget
 */
 
-/*!
+/*
     Constructs a graphics item that displays video.
 
     The \a parent is passed to QGraphicsItem.
@@ -261,7 +261,7 @@ QGraphicsVideoItem::~QGraphicsVideoItem()
     delete d_ptr;
 }
 
-/*!
+/*
     \property QGraphicsVideoItem::mediaObject
     \brief the media object which provides the video displayed by a graphics
     item.
@@ -272,7 +272,7 @@ QMediaObject *QGraphicsVideoItem::mediaObject() const
     return d_func()->mediaObject;
 }
 
-/*!
+/*
   \internal
 */
 bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
@@ -319,7 +319,7 @@ bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
     return false;
 }
 
-/*!
+/*
     \property QGraphicsVideoItem::aspectRatioMode
     \brief how a video is scaled to fit the graphics item's size.
 */
@@ -337,7 +337,7 @@ void QGraphicsVideoItem::setAspectRatioMode(Qt::AspectRatioMode mode)
     d->updateRects();
 }
 
-/*!
+/*
     \property QGraphicsVideoItem::offset
     \brief the video item's offset.
 
@@ -358,7 +358,7 @@ void QGraphicsVideoItem::setOffset(const QPointF &offset)
     d->updateRects();
 }
 
-/*!
+/*
     \property QGraphicsVideoItem::size
     \brief the video item's size.
 
@@ -379,7 +379,7 @@ void QGraphicsVideoItem::setSize(const QSizeF &size)
     d->updateRects();
 }
 
-/*!
+/*
     \property QGraphicsVideoItem::nativeSize
     \brief the native size of the video.
 */
@@ -389,13 +389,13 @@ QSizeF QGraphicsVideoItem::nativeSize() const
     return d_func()->nativeSize;
 }
 
-/*!
+/*
     \fn QGraphicsVideoItem::nativeSizeChanged(const QSizeF &size)
 
     Signals that the native \a size of the video has changed.
 */
 
-/*!
+/*
     \reimp
 */
 QRectF QGraphicsVideoItem::boundingRect() const
@@ -403,7 +403,7 @@ QRectF QGraphicsVideoItem::boundingRect() const
     return d_func()->boundingRect;
 }
 
-/*!
+/*
     \reimp
 */
 void QGraphicsVideoItem::paint(
@@ -476,7 +476,7 @@ void QGraphicsVideoItem::paint(
     }
 }
 
-/*!
+/*
     \reimp
 
     \internal
@@ -486,7 +486,7 @@ QVariant QGraphicsVideoItem::itemChange(GraphicsItemChange change, const QVarian
     return QGraphicsItem::itemChange(change, value);
 }
 
-/*!
+/*
   \internal
 */
 void QGraphicsVideoItem::timerEvent(QTimerEvent *event)

@@ -1,11 +1,11 @@
-#alias.i                         = e
+alias.i                         = e
 alias.include                   = input
 
 macro.0                         = "\\\\0"
 macro.b                         = "\\\\b"
 macro.n                         = "\\\\n"
 macro.r                         = "\\\\r"
-#macro.i                         = "\\o"
+macro.i                         = "\\o"
 macro.i11                       = "\\o{1,1}"
 macro.i12                       = "\\o{1,2}"
 macro.i13                       = "\\o{1,3}"

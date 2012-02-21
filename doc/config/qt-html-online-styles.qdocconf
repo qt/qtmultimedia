@@ -40,7 +40,7 @@ extraimages.HTML        = qt-logo.png \
                           page_bg.png \
                           sprites-combined.png \
                           spinner.gif
-    
+
 # Include the style sheets and scripts used.
 
 HTML.headerstyles = \

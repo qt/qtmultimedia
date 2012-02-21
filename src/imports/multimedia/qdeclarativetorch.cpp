@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass Torch QDeclarativeTorch
+    \inqmlmodule QtMultimedia 5
     \brief The Torch element provides simple control over torch functionality
 
     \ingroup multimedia_qml
@@ -90,7 +91,7 @@ QDeclarativeTorch::~QDeclarativeTorch()
 }
 
 /*!
-    \qmlproperty bool Torch::enabled
+    \qmlproperty bool QtMultimedia5::Torch::enabled
     \property QDeclarativeTorch::enabled
 
     Whether the torch is on.  If the torch functionality is shared
@@ -137,7 +138,7 @@ void QDeclarativeTorch::setEnabled(bool on)
 }
 
 /*!
-    \qmlproperty int Torch::power
+    \qmlproperty int QtMultimedia5::Torch::power
     \property QDeclarativeTorch::power
 
     The current torch power setting, as a percentage of full power.

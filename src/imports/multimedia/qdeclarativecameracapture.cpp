@@ -53,6 +53,7 @@ QT_BEGIN_NAMESPACE
     \qmlclass CameraCapture QDeclarativeCameraCapture
     \brief The CameraCapture element provides an interface for capturing camera images
     \ingroup multimedia_qml
+    \inqmlmodule QtMultimedia 5
     \ingroup camera_qml
 
     This element allows you to capture still images and be notified when they
@@ -119,7 +120,7 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
 }
 
 /*!
-    \qmlproperty bool CameraCapture::ready
+    \qmlproperty bool QtMultimedia5::CameraCapture::ready
     \property QDeclarativeCameraCapture::ready
 
     Indicates camera is ready to capture photo.
@@ -130,7 +131,7 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
 }
 
 /*!
-    \qmlmethod CameraCapture::capture()
+    \qmlmethod QtMultimedia5::CameraCapture::capture()
     \fn QDeclarativeCameraCapture::capture()
 
     Start image capture.  The \l onImageCaptured() and \l onImageSaved() signals will
@@ -147,7 +148,7 @@ int QDeclarativeCameraCapture::capture()
 }
 
 /*!
-    \qmlmethod CameraCapture::captureToLocation(location)
+    \qmlmethod QtMultimedia5::CameraCapture::captureToLocation(location)
     \fn QDeclarativeCameraCapture::captureToLocation(const QString &location)
 
     Start image capture to specified \a location.  The \l onImageCaptured() and \l onImageSaved() signals will
@@ -162,7 +163,7 @@ int QDeclarativeCameraCapture::captureToLocation(const QString &location)
 }
 
 /*!
-    \qmlmethod CameraCapture::cancelCapture()
+    \qmlmethod QtMultimedia5::CameraCapture::cancelCapture()
     \fn QDeclarativeCameraCapture::cancelCapture()
 
     Cancel pending image capture requests.
@@ -174,7 +175,7 @@ void QDeclarativeCameraCapture::cancelCapture()
 }
 
 /*!
-    \qmlproperty string CameraCapture::capturedImagePath
+    \qmlproperty string QtMultimedia5::CameraCapture::capturedImagePath
     \property QDeclarativeCameraCapture::capturedImagePath
 
     The path to the last captured image.
@@ -212,7 +213,7 @@ void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Er
 }
 
 /*!
-    \qmlproperty size CameraCapture::resolution
+    \qmlproperty size QtMultimedia5::CameraCapture::resolution
     \property QDeclarativeCameraCapture::resolution
 
     The resolution to capture the image at.  If empty, the system will pick
@@ -240,7 +241,7 @@ QCameraImageCapture::Error QDeclarativeCameraCapture::error() const
 
 
 /*!
-    \qmlproperty string CameraCapture::errorString
+    \qmlproperty string QtMultimedia5::CameraCapture::errorString
     \property QDeclarativeCameraCapture::errorString
 
     The last capture related error message.
@@ -251,7 +252,7 @@ QString QDeclarativeCameraCapture::errorString() const
 }
 
 /*!
-    \qmlmethod CameraCapture::setMetadata(key, value)
+    \qmlmethod QtMultimedia5::CameraCapture::setMetadata(key, value)
     \fn QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &value)
 
     Sets a particular metadata \a key to \a value for the subsequent image captures.
@@ -263,7 +264,7 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 }
 
 /*!
-    \qmlsignal CameraCapture::onCaptureFailed(requestId, message)
+    \qmlsignal QtMultimedia5::CameraCapture::onCaptureFailed(requestId, message)
     \fn QDeclarativeCameraCapture::captureFailed(int requestId, const QString &message)
 
     This handler is called when an error occurs during capture with \a requestId.
@@ -271,7 +272,7 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 */
 
 /*!
-    \qmlsignal CameraCapture::onImageCaptured(requestId, preview)
+    \qmlsignal QtMultimedia5::CameraCapture::onImageCaptured(requestId, preview)
     \fn QDeclarativeCameraCapture::imageCaptured(int requestId, const QString &preview)
 
     This handler is called when an image with \a requestId has been captured
@@ -282,7 +283,7 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 */
 
 /*!
-    \qmlsignal CameraCapture::onImageSaved(requestId, path)
+    \qmlsignal QtMultimedia5::CameraCapture::onImageSaved(requestId, path)
     \fn QDeclarativeCameraCapture::imageSaved(int requestId, const QString &path)
 
     This handler is called after the image with \a requestId has been written to the filesystem.
@@ -293,7 +294,7 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 
 
 /*!
-    \qmlsignal CameraCapture::onImageMetadataAvailable(requestId, key, value)
+    \qmlsignal QtMultimedia5::CameraCapture::onImageMetadataAvailable(requestId, key, value)
     \fn QDeclarativeCameraCapture::imageMetadataAvailable(int requestId, const QString &key, const QVariant &value);
 
     This handler is called when the image with \a requestId has new metadata

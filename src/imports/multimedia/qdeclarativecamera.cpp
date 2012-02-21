@@ -73,6 +73,7 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     \brief The Camera element allows you to access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
     \ingroup camera_qml
+    \inqmlmodule QtMultimedia 5
 
     \inherits Item
 
@@ -83,6 +84,7 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     viewfinder you can use a \l VideoOutput element with the Camera element set as the source.
 
     \qml
+
     import QtQuick 2.0
     import QtMultimedia 5.0
 
@@ -206,7 +208,7 @@ QDeclarativeCamera::Error QDeclarativeCamera::error() const
 }
 
 /*!
-    \qmlproperty string Camera::errorString
+    \qmlproperty string QtMultimedia5::Camera::errorString
 
     A description of the current error, if any.
 */
@@ -216,7 +218,7 @@ QString QDeclarativeCamera::errorString() const
 }
 
 /*!
-    \qmlproperty enumeration Camera::captureMode
+    \qmlproperty enumeration QtMultimedia5::Camera::captureMode
 
     \table
     \header \o Value \o Description
@@ -241,7 +243,7 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
 
 
 /*!
-    \qmlproperty enumeration Camera::cameraState
+    \qmlproperty enumeration QtMultimedia5::Camera::cameraState
 
     The current state of the camera object.
 
@@ -298,7 +300,7 @@ void QDeclarativeCamera::setCameraState(QDeclarativeCamera::State state)
 }
 
 /*!
-    \qmlmethod Camera::start()
+    \qmlmethod QtMultimedia5::Camera::start()
     \fn QDeclarativeCamera::start()
 
     Starts the camera.  Viewfinder frames will
@@ -311,7 +313,7 @@ void QDeclarativeCamera::start()
 }
 
 /*!
-    \qmlmethod Camera::stop()
+    \qmlmethod QtMultimedia5::Camera::stop()
     \fn QDeclarativeCamera::stop()
 
     Stops the camera, but leaves the camera
@@ -324,7 +326,7 @@ void QDeclarativeCamera::stop()
 
 
 /*!
-    \qmlproperty enumeration Camera::lockStatus
+    \qmlproperty enumeration QtMultimedia5::Camera::lockStatus
 
     The overall status for all the requested camera locks.
 
@@ -381,7 +383,7 @@ QDeclarativeCamera::LockStatus QDeclarativeCamera::lockStatus() const
 }
 
 /*!
-    \qmlmethod Camera::searchAndLock()
+    \qmlmethod QtMultimedia5::Camera::searchAndLock()
     \fn QDeclarativeCamera::searchAndLock()
 
     Start focusing, exposure and white balance calculation.
@@ -397,7 +399,7 @@ void QDeclarativeCamera::searchAndLock()
 }
 
 /*!
-    \qmlmethod Camera::unlock()
+    \qmlmethod QtMultimedia5::Camera::unlock()
     \fn QDeclarativeCamera::unlock()
 
     Unlock focus, exposure and white balance locks.
@@ -408,7 +410,7 @@ void QDeclarativeCamera::unlock()
 }
 
 /*!
-    \qmlproperty real Camera::maximumOpticalZoom
+    \qmlproperty real QtMultimedia5::Camera::maximumOpticalZoom
     \property QDeclarativeCamera::maximumOpticalZoom
 
     The maximum optical zoom factor, or 1.0 if optical zoom is not supported.
@@ -419,7 +421,7 @@ qreal QDeclarativeCamera::maximumOpticalZoom() const
 }
 
 /*!
-    \qmlproperty real Camera::maximumDigitalZoom
+    \qmlproperty real QtMultimedia5::Camera::maximumDigitalZoom
     \property  QDeclarativeCamera::maximumDigitalZoom
 
     The maximum digital zoom factor, or 1.0 if digital zoom is not supported.
@@ -430,7 +432,7 @@ qreal QDeclarativeCamera::maximumDigitalZoom() const
 }
 
 /*!
-    \qmlproperty real Camera::opticalZoom
+    \qmlproperty real QtMultimedia5::Camera::opticalZoom
     \property QDeclarativeCamera::opticalZoom
 
     The current optical zoom factor.
@@ -446,7 +448,7 @@ void QDeclarativeCamera::setOpticalZoom(qreal value)
 }
 
 /*!
-    \qmlproperty real Camera::digitalZoom
+    \qmlproperty real QtMultimedia5::Camera::digitalZoom
     \property   QDeclarativeCamera::digitalZoom
 
     The current digital zoom factor.
@@ -463,7 +465,7 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 
 
 /*!
-    \qmlsignal Camera::onError(error, errorString)
+    \qmlsignal QtMultimedia5::Camera::onError(error, errorString)
 
     This handler is called when an error occurs.  The enumeration value \a error is one of the
     values defined below, and a descriptive string value is available in \a errorString.
