@@ -38,93 +38,30 @@
 **
 ****************************************************************************/
 
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef HISTOGRAMWIDGET_H
+#define HISTOGRAMWIDGET_H
 
-#include <QtWidgets/QWidget>
-
-#include <qmediaplayer.h>
-#include <qmediaplaylist.h>
-#include "videowidget.h"
-
-
-QT_BEGIN_NAMESPACE
-class QAbstractItemView;
-class QLabel;
-class QModelIndex;
-class QSlider;
-class QPushButton;
-class QVideoProbe;
-
-class QMediaPlayer;
-class QVideoWidget;
-QT_END_NAMESPACE
+#include <QWidget>
+#include <qvideoframe.h>
 
 QT_USE_NAMESPACE
 
-class PlaylistModel;
-class HistogramWidget;
-
-class Player : public QWidget
+class HistogramWidget : public QWidget
 {
     Q_OBJECT
 public:
-    Player(QWidget *parent = 0);
-    ~Player();
+    explicit HistogramWidget(QWidget *parent = 0);
+    void setLevels(int levels) { m_levels = levels; }
 
-Q_SIGNALS:
-    void fullScreenChanged(bool fullScreen);
+public slots:
+    void processFrame(QVideoFrame frame);
 
-private slots:
-    void open();
-    void durationChanged(qint64 duration);
-    void positionChanged(qint64 progress);
-    void metaDataChanged();
-
-    void previousClicked();
-
-    void seek(int seconds);
-    void jump(const QModelIndex &index);
-    void playlistPositionChanged(int);
-
-    void statusChanged(QMediaPlayer::MediaStatus status);
-    void bufferingProgress(int progress);
-    void videoAvailableChanged(bool available);
-
-    void displayErrorMessage();
-
-#ifndef PLAYER_NO_COLOROPTIONS
-    void showColorDialog();
-#endif
-    void addToPlaylist(const QStringList& fileNames);
+protected:
+    void paintEvent(QPaintEvent *event);
 
 private:
-    void setTrackInfo(const QString &info);
-    void setStatusInfo(const QString &info);
-    void handleCursor(QMediaPlayer::MediaStatus status);
-    void updateDurationInfo(qint64 currentInfo);
-
-    QMediaPlayer *player;
-    QMediaPlaylist *playlist;
-    VideoWidget *videoWidget;
-    QLabel *coverLabel;
-    QSlider *slider;
-    QLabel *labelDuration;
-    QPushButton *fullScreenButton;
-#ifndef PLAYER_NO_COLOROPTIONS
-    QPushButton *colorButton;
-    QDialog *colorDialog;
-#endif
-
-    QLabel *labelHistogram;
-    HistogramWidget *histogram;
-    QVideoProbe *probe;
-
-    PlaylistModel *playlistModel;
-    QAbstractItemView *playlistView;
-    QString trackInfo;
-    QString statusInfo;
-    qint64 duration;
+    QVector<qreal> m_histogram;
+    int m_levels;
 };
 
-#endif
+#endif // HISTOGRAMWIDGET_H
