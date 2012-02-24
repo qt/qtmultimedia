@@ -242,12 +242,16 @@ QAudioBuffer::QAudioBuffer(const QAudioBuffer &other)
     calculated sample size, the excess data will not be used.
 
     This audio buffer will copy the contents of \a data.
+
+    \a startTime (in microseconds) indicates when this buffer
+    starts in the stream.
+    If this buffer is not part of a stream, set it to -1.
  */
-QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format)
+QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format, qint64 startTime)
 {
     if (format.isValid()) {
         int sampleCount = (data.size() * 8) / format.sampleSize(); // truncate
-        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(data.constData(), sampleCount, format, -1));
+        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(data.constData(), sampleCount, format, startTime));
     } else
         d = 0;
 }
@@ -256,10 +260,17 @@ QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format)
     Creates a new audio buffer with space for \a numSamples samples of
     the given \a format.  The samples will be initialized to the default
     for the format.
+
+    \a startTime (in microseconds) indicates when this buffer
+    starts in the stream.
+    If this buffer is not part of a stream, set it to -1.
  */
-QAudioBuffer::QAudioBuffer(int numSamples, const QAudioFormat &format)
-    : d(new QAudioBufferPrivate(new QMemoryAudioBufferProvider(0, numSamples, format, -1)))
+QAudioBuffer::QAudioBuffer(int numSamples, const QAudioFormat &format, qint64 startTime)
 {
+    if (format.isValid())
+        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(0, numSamples, format, startTime));
+    else
+        d = 0;
 }
 
 /*!

@@ -152,6 +152,9 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
             connect(d->control, SIGNAL(sourceChanged()), SIGNAL(sourceChanged()));
             connect(d->control, SIGNAL(bufferReady()), this, SIGNAL(bufferReady()));
             connect(d->control ,SIGNAL(bufferAvailableChanged(bool)), this, SIGNAL(bufferAvailableChanged(bool)));
+            connect(d->control ,SIGNAL(finished()), this, SIGNAL(finished()));
+            connect(d->control ,SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
+            connect(d->control ,SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
         }
     }
 }
@@ -377,17 +380,42 @@ bool QAudioDecoder::bufferAvailable() const
 }
 
 /*!
-    Read a buffer from the decoder, with the success or failure stored in \a ok.
+    Returns position (in milliseconds) of the last buffer read from
+    the decoder or -1 if no buffers have been read.
 */
-QAudioBuffer QAudioDecoder::read(bool *ok) const
+
+qint64 QAudioDecoder::position() const
+{
+    Q_D(const QAudioDecoder);
+    if (d->control)
+        return d->control->position();
+    return -1;
+}
+
+/*!
+    Returns total duration (in milliseconds) of the audio stream or -1
+    if not available.
+*/
+
+qint64 QAudioDecoder::duration() const
+{
+    Q_D(const QAudioDecoder);
+    if (d->control)
+        return d->control->duration();
+    return -1;
+}
+
+/*!
+    Read a buffer from the decoder. Returns invalid buffer on failure.
+*/
+
+QAudioBuffer QAudioDecoder::read() const
 {
     Q_D(const QAudioDecoder);
 
     if (d->control) {
-        return d->control->read(ok);
+        return d->control->read();
     } else {
-        if (ok)
-            *ok = false;
         return QAudioBuffer();
     }
 }
@@ -401,8 +429,6 @@ QAudioBuffer QAudioDecoder::read(bool *ok) const
     \value DecodingState The audio player is currently decoding media.
     \value StoppedState The decoder is not decoding.  Decoding will
            start at the start of the media.
-    \value WaitingState The decoder is either waiting for more data
-           to decode, or has filled the required number of buffers.
 */
 
 /*!
@@ -466,6 +492,30 @@ QAudioBuffer QAudioDecoder::read(bool *ok) const
     \sa bufferAvailable(), bufferReady()
 */
 
+/*!
+    \fn void QAudioDecoder::finished()
+
+    Signals that the decoding has finished successfully.
+    If decoding fails, error signal is emitted instead.
+
+    \sa start(), stop(), error
+*/
+
+/*!
+    \fn void QAudioDecoder::positionChanged(qint64 position)
+
+    Signals that the current \a position of the decoder has changed.
+
+    \sa durationChanged
+*/
+
+/*!
+    \fn void QAudioDecoder::durationChanged(qint64 duration)
+
+    Signals that the estimated \a duration of the decoded data has changed.
+
+    \sa positionChanged
+*/
 
 
 // Properties

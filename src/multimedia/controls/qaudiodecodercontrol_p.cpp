@@ -189,7 +189,30 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
     \sa audioFormat(), setAudioFormat
 */
 
+/*!
+    \fn void QAudioDecoderControl::finished()
 
+    Signals that the decoding has finished successfully.
+    If decoding fails, error signal is emitted instead.
+
+    \sa start(), stop(), error
+*/
+
+/*!
+    \fn void QAudioDecoderControl::positionChanged(qint64 position)
+
+    Signals that the current \a position of the decoder has changed.
+
+    \sa durationChanged
+*/
+
+/*!
+    \fn void QAudioDecoderControl::durationChanged(qint64 duration)
+
+    Signals that the estimated \a duration of the decoded data has changed.
+
+    \sa positionChanged
+*/
 
 /*!
     \fn QAudioDecoderControl::audioFormat()
@@ -213,6 +236,23 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 
     If you wish to reset the decoded format to that of the original
     audio file, you can specify an invalid \a format.
+*/
+
+/*!
+    \fn QAudioDecoderControl::read()
+    Read a buffer from the decoder. Returns invalid buffer on failure.
+*/
+
+/*!
+    \fn QAudioDecoderControl::position()
+    Returns position (in milliseconds) of the last buffer read from
+    the decoder or -1 if no buffers have been read.
+*/
+
+/*!
+    \fn QAudioDecoderControl::duration()
+    Returns total duration (in milliseconds) of the audio stream
+    or -1 if not available.
 */
 
 #include "moc_qaudiodecodercontrol_p.cpp"

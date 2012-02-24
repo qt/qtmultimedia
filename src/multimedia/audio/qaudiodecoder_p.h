@@ -69,8 +69,7 @@ public:
     enum State
     {
         StoppedState,
-        DecodingState,
-        WaitingState
+        DecodingState
     };
 
     enum Error
@@ -101,10 +100,11 @@ public:
     Error error() const;
     QString errorString() const;
 
-    // Do we need position or duration?
-
-    QAudioBuffer read(bool *ok = 0) const;
+    QAudioBuffer read() const;
     bool bufferAvailable() const;
+
+    qint64 position() const;
+    qint64 duration() const;
 
 public Q_SLOTS:
     void start();
@@ -113,6 +113,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void bufferAvailableChanged(bool);
     void bufferReady();
+    void finished();
 
     void stateChanged(QAudioDecoder::State newState);
     void formatChanged(const QAudioFormat &format);
@@ -120,6 +121,9 @@ Q_SIGNALS:
     void error(QAudioDecoder::Error error);
 
     void sourceChanged();
+
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
 
 public:
     virtual bool bind(QObject *);

@@ -64,8 +64,8 @@ public:
     QAudioBuffer();
     QAudioBuffer(QAbstractAudioBuffer *provider);
     QAudioBuffer(const QAudioBuffer &other);
-    QAudioBuffer(const QByteArray &data, const QAudioFormat &format);
-    QAudioBuffer(int numSamples, const QAudioFormat &format); // Initialized to empty
+    QAudioBuffer(const QByteArray &data, const QAudioFormat &format, qint64 startTime = -1);
+    QAudioBuffer(int numSamples, const QAudioFormat &format, qint64 startTime = -1); // Initialized to empty
 
     QAudioBuffer& operator=(const QAudioBuffer &other);
 

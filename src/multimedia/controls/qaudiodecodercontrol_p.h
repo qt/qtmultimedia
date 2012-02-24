@@ -77,8 +77,11 @@ public:
     virtual QAudioFormat audioFormat() const = 0;
     virtual void setAudioFormat(const QAudioFormat &format) = 0;
 
-    virtual QAudioBuffer read(bool *ok) = 0;
+    virtual QAudioBuffer read() = 0;
     virtual bool bufferAvailable() const = 0;
+
+    virtual qint64 position() const = 0;
+    virtual qint64 duration() const = 0;
 
 Q_SIGNALS:
     void stateChanged(QAudioDecoder::State newState);
@@ -89,6 +92,10 @@ Q_SIGNALS:
 
     void bufferReady();
     void bufferAvailableChanged(bool available);
+    void finished();
+
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
 
 protected:
     QAudioDecoderControl(QObject* parent = 0);
