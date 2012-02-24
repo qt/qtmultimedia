@@ -51,6 +51,8 @@
 #include <QTimer>
 #include <QIODevice>
 
+#define MOCK_DECODER_MAX_BUFFERS 10
+
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
@@ -66,6 +68,7 @@ public:
         : QAudioDecoderControl(parent)
         , mState(QAudioDecoder::StoppedState)
         , mDevice(0)
+        , mPosition(-1)
         , mSerial(0)
     {
         mFormat.setChannels(1);
@@ -126,6 +129,7 @@ public:
             if (!mSource.isEmpty()) {
                 mState = QAudioDecoder::DecodingState;
                 emit stateChanged(mState);
+                emit durationChanged(duration());
 
                 QTimer::singleShot(50, this, SLOT(pretendDecode()));
             } else {
@@ -139,28 +143,33 @@ public:
         if (mState != QAudioDecoder::StoppedState) {
             mState = QAudioDecoder::StoppedState;
             mSerial = 0;
+            mPosition = 0;
             mBuffers.clear();
             emit stateChanged(mState);
             emit bufferAvailableChanged(false);
         }
     }
 
-    QAudioBuffer read(bool *ok)
+    QAudioBuffer read()
     {
+        QAudioBuffer a;
         if (mBuffers.length() > 0) {
-            if (ok)
-                *ok = true;
-            QAudioBuffer a = mBuffers.takeFirst();
-            if (mBuffers.length() == 0)
+            a = mBuffers.takeFirst();
+            mPosition = a.startTime() / 1000;
+            emit positionChanged(mPosition);
+
+            if (mBuffers.isEmpty())
                 emit bufferAvailableChanged(false);
-            QTimer::singleShot(50, this, SLOT(pretendDecode()));
-            return a;
-        } else {
-            // Can't do anything here :(
-            if (ok)
-                *ok = false;
-            return QAudioBuffer();
+
+            if (mBuffers.isEmpty() && mSerial >= MOCK_DECODER_MAX_BUFFERS) {
+                mState = QAudioDecoder::StoppedState;
+                emit finished();
+                emit stateChanged(mState);
+            } else
+                QTimer::singleShot(50, this, SLOT(pretendDecode()));
         }
+
+        return a;
     }
 
     bool bufferAvailable() const
@@ -168,22 +177,33 @@ public:
         return mBuffers.length() > 0;
     }
 
+    qint64 position() const
+    {
+        return mPosition;
+    }
+
+    qint64 duration() const
+    {
+        return (sizeof(mSerial) * MOCK_DECODER_MAX_BUFFERS * qint64(1000)) / (mFormat.sampleRate() * mFormat.channels());
+    }
+
 private slots:
     void pretendDecode()
     {
+        // Check if we've reached end of stream
+        if (mSerial >= MOCK_DECODER_MAX_BUFFERS)
+            return;
+
         // We just keep the length of mBuffers to 3 or less.
         if (mBuffers.length() < 3) {
             QByteArray b(sizeof(mSerial), 0);
             memcpy(b.data(), &mSerial, sizeof(mSerial));
+            qint64 position = (sizeof(mSerial) * mSerial * qint64(1000000)) / (mFormat.sampleRate() * mFormat.channels());
             mSerial++;
-            mBuffers.push_back(QAudioBuffer(b, mFormat));
+            mBuffers.push_back(QAudioBuffer(b, mFormat, position));
             emit bufferReady();
             if (mBuffers.count() == 1)
                 emit bufferAvailableChanged(true);
-        } else {
-            // Can't do anything here, wait for a read to restart the timer
-            mState = QAudioDecoder::WaitingState;
-            emit stateChanged(mState);
         }
     }
 
@@ -192,6 +212,7 @@ public:
     QString mSource;
     QIODevice *mDevice;
     QAudioFormat mFormat;
+    qint64 mPosition;
 
     int mSerial;
     QList<QAudioBuffer> mBuffers;

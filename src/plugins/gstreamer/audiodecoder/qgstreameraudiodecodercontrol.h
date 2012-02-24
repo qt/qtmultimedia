@@ -80,8 +80,11 @@ public:
     QAudioFormat audioFormat() const;
     void setAudioFormat(const QAudioFormat &format);
 
-    QAudioBuffer read(bool *ok);
+    QAudioBuffer read();
     bool bufferAvailable() const;
+
+    qint64 position() const;
+    qint64 duration() const;
 
 private:
     // Stuff goes here

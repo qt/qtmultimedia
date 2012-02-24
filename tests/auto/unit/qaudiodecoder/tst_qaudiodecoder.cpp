@@ -61,6 +61,7 @@ private Q_SLOTS:
     void stop();
     void format();
     void source();
+    void readAll();
 
 private:
     MockAudioDecoderService  *mockAudioDecoderService;
@@ -125,10 +126,7 @@ void tst_QAudioDecoder::read()
     QCOMPARE(d.bufferAvailable(), false); // not yet
 
     // Try to read
-    bool ok = false;
-    QAudioBuffer b = d.read(&ok);
-
-    QVERIFY(ok == false);
+    QAudioBuffer b = d.read();
     QVERIFY(!b.isValid());
 
     // Read again with no parameter
@@ -140,7 +138,7 @@ void tst_QAudioDecoder::read()
 
     QVERIFY(d.bufferAvailable());
 
-    b = d.read(&ok);
+    b = d.read();
     QVERIFY(b.format().isValid());
     QVERIFY(b.isValid());
     QVERIFY(b.format().channelCount() == 1);
@@ -189,10 +187,7 @@ void tst_QAudioDecoder::stop()
     QCOMPARE(d.bufferAvailable(), false); // not yet
 
     // Try to read
-    bool ok = false;
-    QAudioBuffer b = d.read(&ok);
-
-    QVERIFY(ok == false);
+    QAudioBuffer b = d.read();
     QVERIFY(!b.isValid());
 
     // Read again with no parameter
@@ -234,10 +229,7 @@ void tst_QAudioDecoder::format()
     QCOMPARE(d.bufferAvailable(), false); // not yet
 
     // Try to read
-    bool ok = false;
-    QAudioBuffer b = d.read(&ok);
-
-    QVERIFY(ok == false);
+    QAudioBuffer b = d.read();
     QVERIFY(!b.isValid());
 
     // Read again with no parameter
@@ -247,7 +239,7 @@ void tst_QAudioDecoder::format()
     // Wait a while
     QTRY_COMPARE(d.bufferAvailable(), 1);
 
-    b = d.read(&ok);
+    b = d.read();
     QVERIFY(d.audioFormat() == b.format());
 
     // Setting format while decoding is forbidden
@@ -267,7 +259,7 @@ void tst_QAudioDecoder::format()
     d.start();
     QTRY_COMPARE(d.bufferAvailable(), 1);
 
-    b = d.read(&ok);
+    b = d.read();
     QVERIFY(d.audioFormat() == f);
     QVERIFY(b.format() == f);
 }
@@ -299,6 +291,51 @@ void tst_QAudioDecoder::source()
     d.setSourceFilename(QString());
     QVERIFY(d.sourceFilename() == QString());
     QVERIFY(d.sourceDevice() == 0);
+}
+
+void tst_QAudioDecoder::readAll()
+{
+    QAudioDecoder d;
+    d.setSourceFilename("Foo");
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+
+    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
+    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
+    QSignalSpy stateSpy(&d, SIGNAL(stateChanged(QAudioDecoder::State)));
+    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
+    QSignalSpy bufferAvailableSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    d.start();
+    int i = 0;
+    forever {
+        QVERIFY(d.state() == QAudioDecoder::DecodingState);
+        QCOMPARE(stateSpy.count(), 1);
+        QCOMPARE(durationSpy.count(), 1);
+        QVERIFY(finishedSpy.isEmpty());
+        QTRY_VERIFY(bufferAvailableSpy.count() >= 1);
+        if (d.bufferAvailable()) {
+            QAudioBuffer b = d.read();
+            QVERIFY(b.isValid());
+            QCOMPARE(b.startTime() / 1000, d.position());
+            QVERIFY(!positionSpy.isEmpty());
+            QList<QVariant> arguments = positionSpy.takeLast();
+            QCOMPARE(arguments.at(0).toLongLong(), b.startTime() / 1000);
+
+            i++;
+            if (i == MOCK_DECODER_MAX_BUFFERS) {
+                QCOMPARE(finishedSpy.count(), 1);
+                QCOMPARE(stateSpy.count(), 2);
+                QVERIFY(d.state() == QAudioDecoder::StoppedState);
+                QList<QVariant> arguments = stateSpy.takeLast();
+                QVERIFY(arguments.at(0).toInt() == (int)QAudioDecoder::StoppedState);
+                QVERIFY(!d.bufferAvailable());
+                QVERIFY(!bufferAvailableSpy.isEmpty());
+                arguments = bufferAvailableSpy.takeLast();
+                QVERIFY(arguments.at(0).toBool() == false);
+                break;
+            }
+        } else
+            QTest::qWait(30);
+    }
 }
 
 QTEST_MAIN(tst_QAudioDecoder)

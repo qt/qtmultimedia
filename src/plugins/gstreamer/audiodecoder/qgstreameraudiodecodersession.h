@@ -94,8 +94,11 @@ public:
     QAudioFormat audioFormat() const;
     void setAudioFormat(const QAudioFormat &format);
 
-    QAudioBuffer read(bool *ok);
+    QAudioBuffer read();
     bool bufferAvailable() const;
+
+    qint64 position() const;
+    qint64 duration() const;
 
     static GstFlowReturn new_buffer(GstAppSink *sink, gpointer user_data);
 
@@ -108,14 +111,21 @@ signals:
 
     void bufferReady();
     void bufferAvailableChanged(bool available);
+    void finished();
+
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
+
+private slots:
+    void updateDuration();
 
 private:
-
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();
     void removeAppSink();
 
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
+    static qint64 getPositionFromBuffer(GstBuffer* buffer);
 
     QAudioDecoder::State m_state;
     QAudioDecoder::State m_pendingState;
@@ -136,6 +146,11 @@ private:
 
     mutable QMutex m_buffersMutex;
     int m_buffersAvailable;
+
+    qint64 m_position;
+    qint64 m_duration;
+
+    int m_durationQueries;
 };
 
 QT_END_NAMESPACE

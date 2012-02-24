@@ -87,7 +87,10 @@ QGstreamerAudioDecoderSession::QGstreamerAudioDecoderSession(QObject *parent)
      m_appSrc(0),
 #endif
      mDevice(0),
-     m_buffersAvailable(0)
+     m_buffersAvailable(0),
+     m_position(-1),
+     m_duration(-1),
+     m_durationQueries(0)
 {
     // Create pipeline here
     m_playbin = gst_element_factory_make("playbin2", NULL);
@@ -160,7 +163,9 @@ bool QGstreamerAudioDecoderSession::processBusMessage(const QGstreamerMessage &m
 {
     GstMessage* gm = message.rawMessage();
     if (gm) {
-        if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_playbin)) {
+        if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_DURATION) {
+            updateDuration();
+        } else if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_playbin)) {
             switch (GST_MESSAGE_TYPE(gm))  {
             case GST_MESSAGE_STATE_CHANGED:
                 {
@@ -180,30 +185,39 @@ bool QGstreamerAudioDecoderSession::processBusMessage(const QGstreamerMessage &m
                                 .arg(states[pending]) << "internal" << m_state;
 #endif
 
+                    QAudioDecoder::State prevState = m_state;
+
                     switch (newState) {
                     case GST_STATE_VOID_PENDING:
                     case GST_STATE_NULL:
-                        if (m_state != QAudioDecoder::StoppedState)
-                            emit stateChanged(m_state = QAudioDecoder::StoppedState);
+                        m_state = QAudioDecoder::StoppedState;
                         break;
                     case GST_STATE_READY:
-                        if (m_state != QAudioDecoder::StoppedState)
-                            emit stateChanged(m_state = QAudioDecoder::StoppedState);
+                        m_state = QAudioDecoder::StoppedState;
                         break;
                     case GST_STATE_PLAYING:
-                        if (m_state != QAudioDecoder::DecodingState)
-                            emit stateChanged(m_state = QAudioDecoder::DecodingState);
+                        m_state = QAudioDecoder::DecodingState;
                         break;
                     case GST_STATE_PAUSED:
-                        if (m_state != QAudioDecoder::WaitingState)
-                            emit stateChanged(m_state = QAudioDecoder::WaitingState);
+                        m_state = QAudioDecoder::DecodingState;
+
+                        //gstreamer doesn't give a reliable indication the duration
+                        //information is ready, GST_MESSAGE_DURATION is not sent by most elements
+                        //the duration is queried up to 5 times with increasing delay
+                        m_durationQueries = 5;
+                        updateDuration();
                         break;
                     }
+
+                    if (prevState != m_state)
+                        emit stateChanged(m_state);
                 }
                 break;
 
             case GST_MESSAGE_EOS:
-                emit stateChanged(m_state = QAudioDecoder::StoppedState);
+                m_pendingState = m_state = QAudioDecoder::StoppedState;
+                emit finished();
+                emit stateChanged(m_state);
                 break;
 
             case GST_MESSAGE_ERROR: {
@@ -364,6 +378,16 @@ void QGstreamerAudioDecoderSession::stop()
             emit bufferAvailableChanged(false);
         }
 
+        if (m_position != -1) {
+            m_position = -1;
+            emit positionChanged(m_position);
+        }
+
+        if (m_duration != -1) {
+            m_duration = -1;
+            emit durationChanged(m_duration);
+        }
+
         if (oldState != m_state)
             emit stateChanged(m_state);
     }
@@ -382,7 +406,7 @@ void QGstreamerAudioDecoderSession::setAudioFormat(const QAudioFormat &format)
     }
 }
 
-QAudioBuffer QGstreamerAudioDecoderSession::read(bool *ok)
+QAudioBuffer QGstreamerAudioDecoderSession::read()
 {
     QAudioBuffer audioBuffer;
 
@@ -407,13 +431,17 @@ QAudioBuffer QGstreamerAudioDecoderSession::read(bool *ok)
         if (format.isValid()) {
             // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
             // We could improve performance by implementing QAbstractAudioBuffer for GstBuffer.
-            audioBuffer = QAudioBuffer(QByteArray((const char*)buffer->data, buffer->size), format);
+            qint64 position = getPositionFromBuffer(buffer);
+            audioBuffer = QAudioBuffer(QByteArray((const char*)buffer->data, buffer->size), format, position);
+            position /= 1000; // convert to milliseconds
+            if (position != m_position) {
+                m_position = position;
+                emit positionChanged(m_position);
+            }
         }
         gst_buffer_unref(buffer);
     }
 
-    if (ok)
-        *ok = audioBuffer.isValid();
     return audioBuffer;
 }
 
@@ -421,6 +449,16 @@ bool QGstreamerAudioDecoderSession::bufferAvailable() const
 {
     QMutexLocker locker(&m_buffersMutex);
     return m_buffersAvailable;
+}
+
+qint64 QGstreamerAudioDecoderSession::position() const
+{
+    return m_position;
+}
+
+qint64 QGstreamerAudioDecoderSession::duration() const
+{
+     return m_duration;
 }
 
 void QGstreamerAudioDecoderSession::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
@@ -490,6 +528,41 @@ void QGstreamerAudioDecoderSession::removeAppSink()
     gst_bin_remove(GST_BIN(m_outputBin), GST_ELEMENT(m_appSink));
 
     m_appSink = 0;
+}
+
+void QGstreamerAudioDecoderSession::updateDuration()
+{
+    GstFormat format = GST_FORMAT_TIME;
+    gint64 gstDuration = 0;
+    int duration = -1;
+
+    if (m_playbin && gst_element_query_duration(m_playbin, &format, &gstDuration))
+        duration = gstDuration / 1000000;
+
+    if (m_duration != duration) {
+        m_duration = duration;
+        emit durationChanged(m_duration);
+    }
+
+    if (m_duration > 0)
+        m_durationQueries = 0;
+
+    if (m_durationQueries > 0) {
+        //increase delay between duration requests
+        int delay = 25 << (5 - m_durationQueries);
+        QTimer::singleShot(delay, this, SLOT(updateDuration()));
+        m_durationQueries--;
+    }
+}
+
+qint64 QGstreamerAudioDecoderSession::getPositionFromBuffer(GstBuffer* buffer)
+{
+    qint64 position = GST_BUFFER_TIMESTAMP(buffer);
+    if (position >= 0)
+        position = position / G_GINT64_CONSTANT(1000); // microseconds
+    else
+        position = -1;
+    return position;
 }
 
 QT_END_NAMESPACE

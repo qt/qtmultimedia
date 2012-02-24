@@ -64,6 +64,9 @@ QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QGstreamerAudioDeco
     connect(m_session, SIGNAL(formatChanged(QAudioFormat)), this, SIGNAL(formatChanged(QAudioFormat)));
     connect(m_session, SIGNAL(sourceChanged()), this, SIGNAL(sourceChanged()));
     connect(m_session, SIGNAL(stateChanged(QAudioDecoder::State)), this, SIGNAL(stateChanged(QAudioDecoder::State)));
+    connect(m_session, SIGNAL(finished()), this, SIGNAL(finished()));
+    connect(m_session, SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
+    connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
 }
 
 QGstreamerAudioDecoderControl::~QGstreamerAudioDecoderControl()
@@ -73,7 +76,7 @@ QGstreamerAudioDecoderControl::~QGstreamerAudioDecoderControl()
 
 QAudioDecoder::State QGstreamerAudioDecoderControl::state() const
 {
-    return m_session->state();
+    return m_session->pendingState();
 }
 
 QString QGstreamerAudioDecoderControl::sourceFilename() const
@@ -116,9 +119,9 @@ void QGstreamerAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
     m_session->setAudioFormat(format);
 }
 
-QAudioBuffer QGstreamerAudioDecoderControl::read(bool *ok)
+QAudioBuffer QGstreamerAudioDecoderControl::read()
 {
-    return m_session->read(ok);
+    return m_session->read();
 }
 
 bool QGstreamerAudioDecoderControl::bufferAvailable() const
@@ -126,5 +129,14 @@ bool QGstreamerAudioDecoderControl::bufferAvailable() const
     return m_session->bufferAvailable();
 }
 
+qint64 QGstreamerAudioDecoderControl::position() const
+{
+    return m_session->position();
+}
+
+qint64 QGstreamerAudioDecoderControl::duration() const
+{
+    return m_session->duration();
+}
 
 QT_END_NAMESPACE
