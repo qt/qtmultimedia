@@ -60,6 +60,15 @@ QT_BEGIN_NAMESPACE
     \l {Camera::videoRecorder}{videoRecorder} property) and cannot be created
     directly.
 
+    \qml
+    Camera {
+        videoRecorder.audioEncodingMode: CameraRecorder.ConstantBitrateEncoding;
+        videoRecorder.audioBitRate: 128000
+        videoRecorder.mediaContainer: "mp4"
+        // ...
+    }
+    \endqml
+
     There are many different settings for each part of the recording process (audio,
     video, and output formats), as well as control over muting and where to store
     the output file.
@@ -224,6 +233,53 @@ int QDeclarativeCameraRecorder::audioSampleRate() const
     return m_audioSettings.sampleRate();
 }
 
+/*!
+    \qmlproperty enumeration QtMultimedia5::CameraRecorder::videoEncodingMode
+
+    The type of encoding method to use when recording audio.
+
+    \table
+    \header \o Value \o Description
+    \row \o ConstantQualityEncoding
+         \o Encoding will aim to have a constant quality, adjusting bitrate to fit.
+            This is the default.  The bitrate setting will be ignored.
+    \row \o ConstantBitRateEncoding
+         \o Encoding will use a constant bit rate, adjust quality to fit.  This is
+            appropriate if you are trying to optimize for space.
+    \row \o AverageBitRateEncoding
+         \o Encoding will try to keep an average bitrate setting, but will use
+            more or less as needed.
+    \endtable
+
+*/
+QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::videoEncodingMode() const
+{
+    return EncodingMode(m_videoSettings.encodingMode());
+}
+
+/*!
+    \qmlproperty enumeration QtMultimedia5::CameraRecorder::audioEncodingMode
+
+    The type of encoding method to use when recording audio.
+
+    \table
+    \header \o Value \o Description
+    \row \o ConstantQualityEncoding
+         \o Encoding will aim to have a constant quality, adjusting bitrate to fit.
+            This is the default.  The bitrate setting will be ignored.
+    \row \o ConstantBitRateEncoding
+         \o Encoding will use a constant bit rate, adjust quality to fit.  This is
+            appropriate if you are trying to optimize for space.
+    \row \o AverageBitRateEncoding
+         \o Encoding will try to keep an average bitrate setting, but will use
+            more or less as needed.
+    \endtable
+*/
+QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::audioEncodingMode() const
+{
+    return EncodingMode(m_audioSettings.encodingMode());
+}
+
 void QDeclarativeCameraRecorder::setFrameRate(qreal frameRate)
 {
     if (!qFuzzyCompare(m_videoSettings.frameRate(),frameRate)) {
@@ -266,6 +322,24 @@ void QDeclarativeCameraRecorder::setAudioSampleRate(int rate)
         m_audioSettings.setSampleRate(rate);
         m_recorder->setAudioSettings(m_audioSettings);
         emit audioSampleRateChanged(rate);
+    }
+}
+
+void QDeclarativeCameraRecorder::setAudioEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
+{
+    if (m_audioSettings.encodingMode() != QtMultimedia::EncodingMode(encodingMode)) {
+        m_audioSettings.setEncodingMode(QtMultimedia::EncodingMode(encodingMode));
+        m_recorder->setAudioSettings(m_audioSettings);
+        emit audioEncodingModeChanged(encodingMode);
+    }
+}
+
+void QDeclarativeCameraRecorder::setVideoEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
+{
+    if (m_videoSettings.encodingMode() != QtMultimedia::EncodingMode(encodingMode)) {
+        m_videoSettings.setEncodingMode(QtMultimedia::EncodingMode(encodingMode));
+        m_recorder->setVideoSettings(m_videoSettings);
+        emit videoEncodingModeChanged(encodingMode);
     }
 }
 

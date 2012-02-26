@@ -382,10 +382,13 @@ Q_DEFINE_METADATA(ThumbnailImage);
 
     Enumerates encoding modes.
 
-    \value ConstantQualityEncoding
-    \value ConstantBitRateEncoding
-    \value AverageBitRateEncoding
-    \value TwoPassEncoding
+    \value ConstantQualityEncoding Encoding will aim to have a constant quality, adjusting bitrate to fit.
+    \value ConstantBitRateEncoding Encoding will use a constant bit rate, adjust quality to fit.
+    \value AverageBitRateEncoding Encoding will try to keep an average bitrate setting, but will use
+            more or less as needed.
+    \value TwoPassEncoding The media will first be processed to determine the characteristics,
+            and then processed a second time allocating more bits to the areas
+            that need it.
 */
 
 /*!

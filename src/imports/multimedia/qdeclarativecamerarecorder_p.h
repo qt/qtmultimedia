@@ -67,6 +67,7 @@ class QDeclarativeCameraRecorder : public QObject
 {
     Q_OBJECT
     Q_ENUMS(RecorderState)
+    Q_ENUMS(EncodingMode)
 
     Q_PROPERTY(RecorderState recorderState READ recorderState WRITE setRecorderState NOTIFY recorderStateChanged)
 
@@ -74,11 +75,13 @@ class QDeclarativeCameraRecorder : public QObject
     Q_PROPERTY(QSize resolution READ captureResolution WRITE setCaptureResolution NOTIFY captureResolutionChanged)
     Q_PROPERTY(qreal frameRate READ frameRate WRITE setFrameRate NOTIFY frameRateChanged)
     Q_PROPERTY(int videoBitRate READ videoBitRate WRITE setVideoBitRate NOTIFY videoBitRateChanged)
+    Q_PROPERTY(EncodingMode videoEncodingMode READ videoEncodingMode WRITE setVideoEncodingMode NOTIFY videoEncodingModeChanged)
 
     Q_PROPERTY(QString audioCodec READ audioCodec WRITE setAudioCodec NOTIFY audioCodecChanged)
     Q_PROPERTY(int audioBitRate READ audioBitRate WRITE setAudioBitRate NOTIFY audioBitRateChanged)
     Q_PROPERTY(int audioChannels READ audioChannels WRITE setAudioChannels NOTIFY audioChannelsChanged)
     Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
+    Q_PROPERTY(EncodingMode audioEncodingMode READ audioEncodingMode WRITE setAudioEncodingMode NOTIFY audioEncodingModeChanged)
 
     Q_PROPERTY(QString mediaContainer READ mediaContainer WRITE setMediaContainer NOTIFY mediaContainerChanged)
 
@@ -93,6 +96,13 @@ public:
     {
         StoppedState = QMediaRecorder::StoppedState,
         RecordingState = QMediaRecorder::RecordingState
+    };
+
+    enum EncodingMode
+    {
+        ConstantQualityEncoding = QtMultimedia::ConstantQualityEncoding,
+        ConstantBitRateEncoding = QtMultimedia::ConstantBitRateEncoding,
+        AverageBitRateEncoding = QtMultimedia::AverageBitRateEncoding
     };
 
     ~QDeclarativeCameraRecorder();
@@ -120,6 +130,9 @@ public:
     int audioChannels() const;
     int audioSampleRate() const;
 
+    EncodingMode videoEncodingMode() const;
+    EncodingMode audioEncodingMode() const;
+
 public Q_SLOTS:
     void setOutputLocation(const QString &location);
 
@@ -140,6 +153,9 @@ public Q_SLOTS:
     void setAudioBitRate(int rate);
     void setAudioChannels(int channels);
     void setAudioSampleRate(int rate);
+
+    void setVideoEncodingMode(EncodingMode encodingMode);
+    void setAudioEncodingMode(EncodingMode encodingMode);
 
 Q_SIGNALS:
     void recorderStateChanged(QDeclarativeCameraRecorder::RecorderState state);
@@ -162,6 +178,9 @@ Q_SIGNALS:
     void audioBitRateChanged(int arg);
     void audioChannelsChanged(int arg);
     void audioSampleRateChanged(int arg);
+
+    void audioEncodingModeChanged(EncodingMode encodingMode);
+    void videoEncodingModeChanged(EncodingMode encodingMode);
 
 private slots:
     void updateRecorderState(QMediaRecorder::State);
