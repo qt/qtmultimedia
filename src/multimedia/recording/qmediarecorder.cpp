@@ -50,6 +50,7 @@
 #include <qaudioencodercontrol.h>
 #include <qvideoencodercontrol.h>
 #include <qmediacontainercontrol.h>
+#include <qmediaavailabilitycontrol.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>
 
@@ -99,6 +100,7 @@ QMediaRecorderPrivate::QMediaRecorderPrivate():
      audioControl(0),
      videoControl(0),
      metaDataControl(0),
+     availabilityControl(0),
      notifyTimer(0),
      state(QMediaRecorder::StoppedState),
      error(QMediaRecorder::NoError)
@@ -143,6 +145,7 @@ void QMediaRecorderPrivate::_q_serviceDestroyed()
     audioControl = 0;
     videoControl = 0;
     metaDataControl = 0;
+    availabilityControl = 0;
 }
 
 void QMediaRecorderPrivate::_q_updateActualLocation(const QUrl &location)
@@ -177,6 +180,19 @@ void QMediaRecorderPrivate::_q_applySettings()
         settingsChanged = false;
         control->applySettings();
     }
+}
+
+void QMediaRecorderPrivate::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
+{
+    Q_Q(QMediaRecorder);
+    Q_UNUSED(error);
+
+    // Really this should not always emit, but
+    // we can't really tell from here (isAvailable
+    // may not have changed, or the mediaobject's overridden
+    // availabilityError() may not have changed).
+    q->availabilityErrorChanged(q->availabilityError());
+    q->availabilityChanged(q->isAvailable());
 }
 
 void QMediaRecorderPrivate::restartCamera()
@@ -299,6 +315,11 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 
                 service->releaseControl(d->metaDataControl);
             }
+            if (d->availabilityControl) {
+                disconnect(d->availabilityControl, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityError)),
+                           this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+                service->releaseControl(d->availabilityControl);
+            }
         }
     }
 
@@ -307,6 +328,7 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
     d->audioControl = 0;
     d->videoControl = 0;
     d->metaDataControl = 0;
+    d->availabilityControl = 0;
 
     d->mediaObject = object;
 
@@ -342,6 +364,12 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
                                 SIGNAL(writableChanged(bool)),
                                 SIGNAL(metaDataWritableChanged(bool)));
                     }
+                }
+
+                d->availabilityControl = service->requestControl<QMediaAvailabilityControl*>();
+                if (d->availabilityControl) {
+                    connect(d->availabilityControl, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityError)),
+                            this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
                 }
 
                 connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
@@ -399,24 +427,28 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 
 /*!
     Returns true if media recorder service ready to use.
+
+    \sa availabilityChanged()
 */
 bool QMediaRecorder::isAvailable() const
 {
-    if (d_func()->control != NULL)
-        return true;
-    else
-        return false;
+    return availabilityError() == QtMultimedia::NoError;
 }
 
 /*!
     Returns the availability error code.
+
+    \sa availabilityErrorChanged()
 */
 QtMultimedia::AvailabilityError QMediaRecorder::availabilityError() const
 {
-    if (d_func()->control != NULL)
-        return QtMultimedia::NoError;
-    else
+    if (d_func()->control == NULL)
         return QtMultimedia::ServiceMissingError;
+
+    if (d_func()->availabilityControl)
+        return d_func()->availabilityControl->availability();
+
+    return QtMultimedia::NoError;
 }
 
 QUrl QMediaRecorder::outputLocation() const
@@ -767,7 +799,7 @@ void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
     Start recording.
 
     This is an asynchronous call, with signal
-    stateCahnged(QMediaRecorder::RecordingState) being emitted when recording
+    stateChanged(QMediaRecorder::RecordingState) being emitted when recording
     started, otherwise the error() signal is emitted.
 */
 
@@ -849,6 +881,18 @@ void QMediaRecorder::stop()
     \fn QMediaRecorder::error(QMediaRecorder::Error error)
 
     Signals that an \a error has occurred.
+*/
+
+/*!
+    \fn QMediaRecorder::availableChanged(bool available)
+
+    Signals that the media recorder is now available (if \a available is true), or not.
+*/
+
+/*!
+    \fn QMediaRecorder::availabilityErrorChanged(QtMultimedia::AvailabilityError availability)
+
+    Signals that the service availability has changed to \a availability.
 */
 
 /*!

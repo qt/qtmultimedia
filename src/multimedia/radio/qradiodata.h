@@ -90,7 +90,6 @@ public:
     QRadioData(QObject *parent = 0);
     ~QRadioData();
 
-    bool isAvailable() const;
     QtMultimedia::AvailabilityError availabilityError() const;
 
     QString stationId() const;

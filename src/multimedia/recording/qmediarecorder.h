@@ -42,6 +42,7 @@
 #ifndef QMEDIARECORDER_H
 #define QMEDIARECORDER_H
 
+#include <qtmedianamespace.h>
 #include <qmediaobject.h>
 #include <qmediaencodersettings.h>
 #include <qmediabindableinterface.h>
@@ -173,6 +174,9 @@ Q_SIGNALS:
     void metaDataChanged();
     void metaDataChanged(const QString &key, const QVariant &value);
 
+    void availabilityChanged(bool available);
+    void availabilityErrorChanged(QtMultimedia::AvailabilityError error);
+
 protected:
     QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = 0);
     bool setMediaObject(QMediaObject *object);
@@ -188,6 +192,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateNotifyInterval(int))
     Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
+    Q_PRIVATE_SLOT(d_func(), void _q_availabilityChanged(QtMultimedia::AvailabilityError))
 };
 
 QT_END_NAMESPACE

@@ -66,15 +66,6 @@ public:
         return m_active ? QRadioTuner::ActiveState : QRadioTuner::StoppedState;
     }
 
-    bool isAvailable() const
-    {
-        return true;
-    }
-    QtMultimedia::AvailabilityError availabilityError() const
-    {
-        return QtMultimedia::NoError;
-    }
-
     QRadioTuner::Band band() const
     {
         return m_band;

@@ -87,10 +87,12 @@ class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public Q
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
     Q_PROPERTY(QObject *mediaObject READ mediaObject NOTIFY mediaObjectChanged SCRIPTABLE false DESIGNABLE false)
+    Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
     Q_ENUMS(Loop)
     Q_ENUMS(PlaybackState)
+    Q_ENUMS(Availability)
     Q_INTERFACES(QDeclarativeParserStatus)
 public:
     enum Status
@@ -128,6 +130,13 @@ public:
         StoppedState = QMediaPlayer::StoppedState
     };
 
+    enum Availability {
+        Available = QtMultimedia::NoError,
+        Busy = QtMultimedia::BusyError,
+        Unavailable = QtMultimedia::ServiceMissingError,
+        ResourceMissing = QtMultimedia::ResourceError
+    };
+
     QDeclarativeAudio(QObject *parent = 0);
     ~QDeclarativeAudio();
 
@@ -142,6 +151,8 @@ public:
     void componentComplete();
 
     QObject *mediaObject() { return m_mediaObject; }
+
+    Availability availability() const;
 
 public Q_SLOTS:
     void play();
@@ -175,6 +186,8 @@ Q_SIGNALS:
     void seekableChanged();
     void playbackRateChanged();
 
+    void availabilityChanged(Availability availability);
+
     void errorChanged();
     void error(QDeclarativeAudio::Error error, const QString &errorString);
 
@@ -182,6 +195,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void _q_error(int, const QString &);
+    void _q_availabilityChanged(QtMultimedia::AvailabilityError);
 
 private:
     Q_DISABLE_COPY(QDeclarativeAudio)

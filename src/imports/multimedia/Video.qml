@@ -193,6 +193,28 @@ Item {
     property alias errorString:     player.errorString
 
     /*!
+        \qmlproperty enumeration Video::availability
+
+        Returns the availability state of the video element.
+
+        This is one of:
+        \table
+        \header \li Value \li Description
+        \row \li MediaPlayer.Available
+            \li The video player is available to use.
+        \row \li MediaPlayer.Busy
+            \li The video player is usually available, but some other
+               process is utilizing the hardware necessary to play media.
+        \row \li MediaPlayer.Unavailable
+            \li There are no supported video playback facilities.
+        \row \li MediaPlayer.ResourceMissing
+            \li There is one or more resources missing, so the video player cannot
+               be used.  It may be possible to try again at a later time.
+        \endtable
+     */
+    property alias availability:    player.availability
+
+    /*!
         \qmlproperty bool Video::hasAudio
 
         This property holds whether the current media has audio content.

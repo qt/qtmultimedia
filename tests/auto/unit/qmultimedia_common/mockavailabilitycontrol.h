@@ -3,7 +3,7 @@
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -39,65 +39,37 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIARECORDER_P_H
-#define QMEDIARECORDER_P_H
 
-#include "qmediarecorder.h"
-#include "qmediaobject_p.h"
-#include <QtCore/qurl.h>
+#ifndef MOCKAVAILABILITYCONTROL_H
+#define MOCKAVAILABILITYCONTROL_H
 
-QT_BEGIN_NAMESPACE
+#include <qmediaavailabilitycontrol.h>
 
-class QMediaRecorderControl;
-class QMediaContainerControl;
-class QAudioEncoderControl;
-class QVideoEncoderControl;
-class QMetaDataWriterControl;
-class QMediaAvailabilityControl;
-class QTimer;
-
-class QMediaRecorderPrivate
+class MockAvailabilityControl : public QMediaAvailabilityControl
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QMediaRecorder)
+    Q_OBJECT
 
 public:
-    QMediaRecorderPrivate();
-    virtual ~QMediaRecorderPrivate() {}
+    MockAvailabilityControl(QtMultimedia::AvailabilityError available)
+        : m_availability(available)
+    {
 
-    void applySettingsLater();
-    void restartCamera();
+    }
 
-    QMediaObject *mediaObject;
+    QtMultimedia::AvailabilityError availability() const
+    {
+        return m_availability;
+    }
 
-    QMediaRecorderControl *control;
-    QMediaContainerControl *formatControl;
-    QAudioEncoderControl *audioControl;
-    QVideoEncoderControl *videoControl;
-    QMetaDataWriterControl *metaDataControl;
-    QMediaAvailabilityControl *availabilityControl;
+    void setAvailability(QtMultimedia::AvailabilityError availability)
+    {
+        if (m_availability != availability) {
+            m_availability = availability;
+            emit availabilityChanged(availability);
+        }
+    }
 
-    bool settingsChanged;
-
-    QTimer* notifyTimer;
-
-    QMediaRecorder::State state;
-    QMediaRecorder::Error error;
-    QString errorString;
-    QUrl actualLocation;
-
-    void _q_stateChanged(QMediaRecorder::State state);
-    void _q_error(int error, const QString &errorString);
-    void _q_serviceDestroyed();
-    void _q_updateActualLocation(const QUrl &);
-    void _q_notify();
-    void _q_updateNotifyInterval(int ms);
-    void _q_applySettings();
-    void _q_availabilityChanged(QtMultimedia::AvailabilityError error);
-
-    QMediaRecorder *q_ptr;
+    QtMultimedia::AvailabilityError m_availability;
 };
 
-QT_END_NAMESPACE
-
-#endif
-
+#endif // MOCKAVAILABILITYCONTROL_H

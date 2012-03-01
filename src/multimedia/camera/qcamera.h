@@ -150,7 +150,6 @@ public:
     static QList<QByteArray> availableDevices();
     static QString deviceDescription(const QByteArray &device);
 
-    bool isAvailable() const;
     QtMultimedia::AvailabilityError availabilityError() const;
 
     State state() const;

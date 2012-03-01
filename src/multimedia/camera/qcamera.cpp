@@ -409,19 +409,9 @@ QCamera::~QCamera()
     }
 }
 
-
 /*!
-    Return true if the camera service is ready to use.
+    Returns the availability state of the camera service.
 */
-bool QCamera::isAvailable() const
-{
-    return availabilityError() == QtMultimedia::NoError;
-}
-
-/*!
-    Returns the error state of the camera service.
-*/
-
 QtMultimedia::AvailabilityError QCamera::availabilityError() const
 {
     Q_D(const QCamera);
@@ -434,7 +424,7 @@ QtMultimedia::AvailabilityError QCamera::availabilityError() const
     if (d->error != QCamera::NoError)
         return QtMultimedia::ResourceError;
 
-    return QtMultimedia::NoError;
+    return QMediaObject::availabilityError();
 }
 
 

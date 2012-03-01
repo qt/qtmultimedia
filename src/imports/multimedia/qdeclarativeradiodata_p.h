@@ -70,8 +70,10 @@ class QDeclarativeRadioData : public QObject
     Q_PROPERTY(QString radioText READ radioText NOTIFY radioTextChanged)
     Q_PROPERTY(bool alternativeFrequenciesEnabled READ alternativeFrequenciesEnabled
                WRITE setAlternativeFrequenciesEnabled NOTIFY alternativeFrequenciesEnabledChanged)
+    Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
     Q_ENUMS(Error)
     Q_ENUMS(ProgramType)
+    Q_ENUMS(Availability)
 
 public:
 
@@ -130,13 +132,18 @@ public:
         ReligiousTalk = QRadioData::ReligiousTalk,
         Personality = QRadioData::Personality,
         Public = QRadioData::Public,
-        College = QRadioData::College,
+        College = QRadioData::College
+    };
+
+    enum Availability {
+        Available = QtMultimedia::NoError,
+        Busy = QtMultimedia::BusyError,
+        Unavailable = QtMultimedia::ServiceMissingError,
+        ResourceMissing = QtMultimedia::ResourceError
     };
 
     QDeclarativeRadioData(QObject *parent = 0);
     ~QDeclarativeRadioData();
-
-    Q_INVOKABLE bool isAvailable() const;
 
     QString stationId() const;
     QDeclarativeRadioData::ProgramType programType() const;
@@ -144,6 +151,9 @@ public:
     QString stationName() const;
     QString radioText() const;
     bool alternativeFrequenciesEnabled() const;
+
+    Q_INVOKABLE bool isAvailable() const {return availability() == Available;}
+    Availability availability() const;
 
 public Q_SLOTS:
     void setAlternativeFrequenciesEnabled(bool enabled);
@@ -156,12 +166,15 @@ Q_SIGNALS:
     void radioTextChanged(QString radioText);
     void alternativeFrequenciesEnabledChanged(bool enabled);
 
+    void availabilityChanged(Availability availability);
+
     void errorChanged();
     void error(QDeclarativeRadioData::Error errorCode);
 
 private Q_SLOTS:
     void _q_programTypeChanged(QRadioData::ProgramType programType);
     void _q_error(QRadioData::Error errorCode);
+    void _q_availabilityChanged(QtMultimedia::AvailabilityError);
 
 private:
     Q_DISABLE_COPY(QDeclarativeRadioData)

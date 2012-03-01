@@ -72,7 +72,7 @@ Rectangle {
                 height: 200
 
                 verticalAlignment: Text.AlignVCenter
-                text: (radio.isAvailable() ? "No Signal " : "No Radio Found")
+                text: (radio.availability == Radio.Available ? "No Signal " : "No Radio Found")
             }
         }
 

@@ -42,6 +42,7 @@
 #include "qdeclarativeaudio_p.h"
 
 #include <qmediaplayercontrol.h>
+#include <qmediaavailabilitycontrol.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -152,6 +153,11 @@ void QDeclarativeAudio::_q_error(int errorCode, const QString &errorString)
     emit errorChanged();
 }
 
+void QDeclarativeAudio::_q_availabilityChanged(QtMultimedia::AvailabilityError)
+{
+    emit availabilityChanged(availability());
+}
+
 
 QDeclarativeAudio::QDeclarativeAudio(QObject *parent)
     : QObject(parent)
@@ -161,6 +167,35 @@ QDeclarativeAudio::QDeclarativeAudio(QObject *parent)
 QDeclarativeAudio::~QDeclarativeAudio()
 {
     shutdown();
+}
+
+/*!
+    \qmlproperty enumeration QtMultimedia5::Audio::availability
+
+    Returns the availability state of the media player.
+
+    This is one of:
+    \table
+    \header \li Value \li Description
+    \row \li Available
+        \li The media player is available to use.
+    \row \li Busy
+        \li The media player is usually available, but some other
+           process is utilizing the hardware necessary to play media.
+    \row \li Unavailable
+        \li There are no supported media playback facilities.
+    \row \li ResourceMissing
+        \li There is one or more resources missing, so the media player cannot
+           be used.  It may be possible to try again at a later time.
+    \endtable
+ */
+QDeclarativeAudio::Availability QDeclarativeAudio::availability() const
+{
+    if (!m_playerControl)
+        return Unavailable;
+    if (m_availabilityControl)
+        return Availability(m_availabilityControl->availability());
+    return Available;
 }
 
 /*!

@@ -57,15 +57,6 @@ public:
 
     using QRadioDataControl::error;
 
-    bool isAvailable() const
-    {
-        return true;
-    }
-    QtMultimedia::AvailabilityError availabilityError() const
-    {
-        return QtMultimedia::NoError;
-    }
-
     QRadioData::Error error() const
     {
         return m_err;

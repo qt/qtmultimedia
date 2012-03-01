@@ -59,9 +59,6 @@ class Q_MULTIMEDIA_EXPORT QRadioDataControl : public QMediaControl
 public:
     ~QRadioDataControl();
 
-    virtual bool isAvailable() const = 0;
-    virtual QtMultimedia::AvailabilityError availabilityError() const = 0;
-
     virtual QString stationId() const = 0;
     virtual QRadioData::ProgramType programType() const = 0;
     virtual QString programTypeName() const = 0;

@@ -112,6 +112,9 @@ QDeclarativeRadioData::QDeclarativeRadioData(QObject *parent) :
     connect(m_radioData, SIGNAL(alternativeFrequenciesEnabledChanged(bool)), this,
                          SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
 
+    // Note we map availabilityError->availability
+    connect(m_radioData, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+
     connect(m_radioData, SIGNAL(error(QRadioData::Error)), this, SLOT(_q_error(QRadioData::Error)));
 }
 
@@ -120,14 +123,31 @@ QDeclarativeRadioData::~QDeclarativeRadioData()
 }
 
 /*!
-    \qmlmethod bool QtMultimedia5::RadioData::isAvailable()
+    \qmlproperty enumeration QtMultimedia5::RadioData::availability
 
-    Returns whether the radio data element is ready to use.
-  */
-bool QDeclarativeRadioData::isAvailable() const
+    Returns the availability state of the radio data interface.
+
+    This is one of:
+
+    \table
+    \header \li Value \li Description
+    \row \li Available
+        \li The radio data interface is available to use
+    \row \li Busy
+        \li The radio data interface is usually available to use, but is currently busy.
+    \row \li Unavailable
+        \li The radio data interface is not available to use (there may be no radio
+           hardware)
+    \row \li ResourceMissing
+        \li There is one or more resources missing, so the radio cannot
+           be used.  It may be possible to try again at a later time.
+    \endtable
+ */
+QDeclarativeRadioData::Availability QDeclarativeRadioData::availability() const
 {
-    return m_radioData->isAvailable();
+    return Availability(m_radioData->availabilityError());
 }
+
 
 /*!
     \qmlproperty string QtMultimedia5::RadioData::stationId
@@ -263,6 +283,11 @@ void QDeclarativeRadioData::_q_error(QRadioData::Error errorCode)
 {
     emit error(static_cast<QDeclarativeRadioData::Error>(errorCode));
     emit errorChanged();
+}
+
+void QDeclarativeRadioData::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
+{
+    emit availabilityChanged(Availability(error));
 }
 
 QT_END_NAMESPACE

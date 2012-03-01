@@ -112,6 +112,9 @@ QDeclarativeRadio::QDeclarativeRadio(QObject *parent) :
     connect(m_radioTuner, SIGNAL(stationFound(int, QString)), this, SIGNAL(stationFound(int, QString)));
     connect(m_radioTuner, SIGNAL(antennaConnectedChanged(bool)), this, SIGNAL(antennaConnectedChanged(bool)));
 
+    // Note we map availabilityError->availability
+    connect(m_radioTuner, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+
     connect(m_radioTuner, SIGNAL(error(QRadioTuner::Error)), this, SLOT(_q_error(QRadioTuner::Error)));
 }
 
@@ -306,13 +309,33 @@ bool QDeclarativeRadio::isAntennaConnected() const
 }
 
 /*!
-    \qmlmethod bool QtMultimedia5::Radio::isAvailable()
+    \qmlproperty enumeration QtMultimedia5::Radio::availability
 
-    Returns whether the radio is ready to use.
+    Returns the availability state of the radio.
+
+    This is one of:
+
+    \table
+    \header \li Value \li Description
+    \row \li Available
+        \li The radio is available to use
+    \row \li Busy
+        \li The radio is usually available to use, but is currently busy.
+           This can happen when some other process needs to use the audio
+           hardware.
+    \row \li Unavailable
+        \li The radio is not available to use (there may be no radio
+           hardware)
+    \row \li ResourceMissing
+        \li There is one or more resources missing, so the radio cannot
+           be used.  It may be possible to try again at a later time.  This
+           can occur if there is no antenna connected - see the \l antennaConnected
+           property as well.
+    \endtable
  */
-bool QDeclarativeRadio::isAvailable() const
+QDeclarativeRadio::Availability QDeclarativeRadio::availability() const
 {
-    return m_radioTuner->isAvailable();
+    return Availability(m_radioTuner->availabilityError());
 }
 
 void QDeclarativeRadio::setBand(QDeclarativeRadio::Band band)
@@ -462,7 +485,7 @@ void QDeclarativeRadio::tuneUp()
 /*!
     \qmlmethod QtMultimedia5::Radio::start()
 
-    Starts the radio. If the radio is available, as determined by the \l isAvailable method,
+    Starts the radio. If the radio is available, as determined by the \l availability property,
     this will result in the \l state becoming \c ActiveState.
  */
 void QDeclarativeRadio::start()
@@ -494,6 +517,11 @@ void QDeclarativeRadio::_q_error(QRadioTuner::Error errorCode)
 {
     emit error(static_cast<QDeclarativeRadio::Error>(errorCode));
     emit errorChanged();
+}
+
+void QDeclarativeRadio::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
+{
+    emit availabilityChanged(Availability(error));
 }
 
 /*!

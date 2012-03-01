@@ -49,6 +49,7 @@
 #include <qmediaservice.h>
 #include <private/qmediaserviceprovider_p.h>
 #include <qmetadatareadercontrol.h>
+#include <qmediaavailabilitycontrol.h>
 
 #include "qdeclarativemediametadata_p.h"
 
@@ -98,6 +99,22 @@ public:
     void stop() {}
 };
 
+class QDeclarativeMediaBaseAvailabilityControl : public QMediaAvailabilityControl
+{
+public:
+    QDeclarativeMediaBaseAvailabilityControl(bool available)
+        : m_available(available)
+    {
+    }
+
+    QtMultimedia::AvailabilityError availability() const
+    {
+        return m_available ? QtMultimedia::NoError : QtMultimedia::ServiceMissingError;
+    }
+
+private:
+    bool m_available;
+};
 
 class QDeclarativeMediaBaseMetaDataControl : public QMetaDataReaderControl
 {
@@ -211,6 +228,7 @@ QDeclarativeMediaBase::QDeclarativeMediaBase()
     , m_mediaProvider(0)
     , m_metaDataControl(0)
     , m_animation(0)
+    , m_availabilityControl(0)
     , m_playbackState(QMediaPlayer::StoppedState)
     , m_status(QMediaPlayer::NoMedia)
     , m_error(QMediaPlayer::ServiceMissingError)
@@ -245,8 +263,11 @@ void QDeclarativeMediaBase::setObject(QObject *object, const QByteArray &type)
             m_metaDataControl = qobject_cast<QMetaDataReaderControl *>(
                     m_mediaService->requestControl(QMetaDataReaderControl_iid));
             m_mediaObject = new QDeclarativeMediaBaseObject(m_mediaService);
+            m_availabilityControl = m_mediaService->requestControl<QMediaAvailabilityControl*>();
         }
     }
+
+    bool realPlayer = m_playerControl;
 
     if (m_playerControl) {
         QObject::connect(m_playerControl, SIGNAL(stateChanged(QMediaPlayer::State)),
@@ -280,6 +301,12 @@ void QDeclarativeMediaBase::setObject(QObject *object, const QByteArray &type)
 
     if (!m_metaDataControl)
         m_metaDataControl = new QDeclarativeMediaBaseMetaDataControl(object);
+
+    if (!m_availabilityControl)
+        m_availabilityControl = new QDeclarativeMediaBaseAvailabilityControl(realPlayer);
+
+    QObject::connect(m_availabilityControl, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityError)),
+                     object, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
 
     m_metaData.reset(new QDeclarativeMediaMetaData(m_metaDataControl));
 

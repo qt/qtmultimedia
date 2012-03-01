@@ -67,6 +67,7 @@ QT_MODULE(Multimedia)
 
 
 class QMetaDataReaderControl;
+class QMediaAvailabilityControl;
 
 #define Q_DECLARE_NON_CONST_PUBLIC(Class) \
     inline Class* q_func() { return static_cast<Class *>(q_ptr); } \
@@ -82,9 +83,12 @@ public:
     virtual ~QMediaObjectPrivate() {}
 
     void _q_notify();
+    void _q_availabilityChanged();
 
     QMediaService *service;
     QMetaDataReaderControl *metaDataControl;
+    QMediaAvailabilityControl *availabilityControl;
+
     QTimer* notifyTimer;
     QSet<int> notifyProperties;
 

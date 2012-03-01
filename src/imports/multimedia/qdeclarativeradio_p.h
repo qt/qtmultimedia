@@ -76,11 +76,13 @@ class QDeclarativeRadio : public QObject
     Q_PROPERTY(int minimumFrequency READ minimumFrequency NOTIFY bandChanged)
     Q_PROPERTY(int maximumFrequency READ maximumFrequency NOTIFY bandChanged)
     Q_PROPERTY(bool antennaConnected READ isAntennaConnected NOTIFY antennaConnectedChanged)
+    Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
     Q_ENUMS(State)
     Q_ENUMS(Band)
     Q_ENUMS(Error)
     Q_ENUMS(StereoMode)
     Q_ENUMS(SearchMode)
+    Q_ENUMS(Availability)
 
 public:
     enum State {
@@ -114,6 +116,13 @@ public:
         SearchGetStationId = QRadioTuner::SearchGetStationId
     };
 
+    enum Availability {
+        Available = QtMultimedia::NoError,
+        Busy = QtMultimedia::BusyError,
+        Unavailable = QtMultimedia::ServiceMissingError,
+        ResourceMissing = QtMultimedia::ResourceError
+    };
+
     QDeclarativeRadio(QObject *parent = 0);
     ~QDeclarativeRadio();
 
@@ -134,7 +143,8 @@ public:
 
     bool isAntennaConnected() const;
 
-    Q_INVOKABLE bool isAvailable() const;
+    Q_INVOKABLE bool isAvailable() const {return availability() == Available;}
+    Availability availability() const;
 
 public Q_SLOTS:
     void setBand(QDeclarativeRadio::Band band);
@@ -165,6 +175,8 @@ Q_SIGNALS:
     void stationFound(int frequency, QString stationId);
     void antennaConnectedChanged(bool connectionStatus);
 
+    void availabilityChanged(Availability availability);
+
     void errorChanged();
     void error(QDeclarativeRadio::Error errorCode);
 
@@ -172,6 +184,7 @@ private Q_SLOTS:
     void _q_stateChanged(QRadioTuner::State state);
     void _q_bandChanged(QRadioTuner::Band band);
     void _q_error(QRadioTuner::Error errorCode);
+    void _q_availabilityChanged(QtMultimedia::AvailabilityError);
 
 private:
     Q_DISABLE_COPY(QDeclarativeRadio)

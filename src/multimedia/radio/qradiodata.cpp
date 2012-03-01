@@ -133,29 +133,16 @@ QRadioData::~QRadioData()
 }
 
 /*!
-    Returns true if the radio data service is ready to use.
-*/
-bool QRadioData::isAvailable() const
-{
-    Q_D(const QRadioData);
-
-    if (d->control != 0)
-        return d_func()->control->isAvailable();
-    else
-        return false;
-}
-
-/*!
-    Returns the availability error state.
+    Returns the availability of the radio data service.
 */
 QtMultimedia::AvailabilityError QRadioData::availabilityError() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
-        return d_func()->control->availabilityError();
-    else
+    if (d->control == 0)
         return QtMultimedia::ServiceMissingError;
+
+    return QMediaObject::availabilityError();
 }
 
 /*!

@@ -53,12 +53,17 @@
 #include "mockmediarecorderservice.h"
 #include "mockmediaserviceprovider.h"
 #include "mockmetadatareadercontrol.h"
+#include "mockavailabilitycontrol.h"
 
-class QtTestMetaDataService : public QMediaService
+class QtTestMediaObjectService : public QMediaService
 {
     Q_OBJECT
 public:
-    QtTestMetaDataService(QObject *parent = 0):QMediaService(parent), metaDataRef(0), hasMetaData(true)
+    QtTestMediaObjectService(QObject *parent = 0, MockAvailabilityControl *availability = 0)
+        : QMediaService(parent)
+        , availabilityControl(availability)
+        , metaDataRef(0)
+        , hasMetaData(true)
     {
     }
 
@@ -66,6 +71,8 @@ public:
     {
         if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
             return &metaData;
+        else if (qstrcmp(iid, QMediaAvailabilityControl_iid) == 0)
+            return availabilityControl;
         else
             return 0;
     }
@@ -75,6 +82,7 @@ public:
     }
 
     MockMetaDataReaderControl metaData;
+    MockAvailabilityControl *availabilityControl;
     int metaDataRef;
     bool hasMetaData;
 };
@@ -329,7 +337,7 @@ void tst_QMediaObject::nullMetaDataControl()
     const QString titleKey(QLatin1String("Title"));
     const QString title(QLatin1String("Host of Seraphim"));
 
-    QtTestMetaDataService service;
+    QtTestMediaObjectService service;
     service.hasMetaData = false;
 
     QtTestMediaObject object(&service);
@@ -345,7 +353,7 @@ void tst_QMediaObject::nullMetaDataControl()
 
 void tst_QMediaObject::isMetaDataAvailable()
 {
-    QtTestMetaDataService service;
+    QtTestMediaObjectService service;
     service.metaData.setMetaDataAvailable(false);
 
     QtTestMediaObject object(&service);
@@ -367,7 +375,7 @@ void tst_QMediaObject::isMetaDataAvailable()
 
 void tst_QMediaObject::metaDataChanged()
 {
-    QtTestMetaDataService service;
+    QtTestMediaObjectService service;
     QtTestMediaObject object(&service);
 
     QSignalSpy changedSpy(&object, SIGNAL(metaDataChanged()));
@@ -408,7 +416,7 @@ void tst_QMediaObject::metaData()
     QFETCH(QString, title);
     QFETCH(QString, genre);
 
-    QtTestMetaDataService service;
+    QtTestMediaObjectService service;
     service.metaData.populateMetaData();
 
     QtTestMediaObject object(&service);
@@ -430,20 +438,64 @@ void tst_QMediaObject::metaData()
 
 void tst_QMediaObject::availability()
 {
-    QtTestMediaObject nullObject(0);
-    QCOMPARE(nullObject.isAvailable(), false);
-    QCOMPARE(nullObject.availabilityError(), QtMultimedia::ServiceMissingError);
+    {
+        QtTestMediaObject nullObject(0);
+        QCOMPARE(nullObject.isAvailable(), false);
+        QCOMPARE(nullObject.availabilityError(), QtMultimedia::ServiceMissingError);
+    }
 
-    QtTestMetaDataService service;
-    QtTestMediaObject object(&service);
-    QCOMPARE(object.isAvailable(), true);
-    QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+    {
+        QtTestMediaObjectService service;
+        QtTestMediaObject object(&service);
+        QCOMPARE(object.isAvailable(), true);
+        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+    }
+
+    {
+        MockAvailabilityControl available(QtMultimedia::NoError);
+        QtTestMediaObjectService service(0, &available);
+        QtTestMediaObject object(&service);
+        QSignalSpy availabilitySpy(&object, SIGNAL(availabilityChanged(bool)));
+        QSignalSpy availabilityErrorSpy(&object, SIGNAL(availabilityChanged(bool)));
+
+        QCOMPARE(object.isAvailable(), true);
+        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+
+        available.setAvailability(QtMultimedia::BusyError);
+        QCOMPARE(object.isAvailable(), false);
+        QCOMPARE(object.availabilityError(), QtMultimedia::BusyError);
+        QCOMPARE(availabilitySpy.count(), 1);
+        QCOMPARE(availabilityErrorSpy.count(), 1);
+
+        available.setAvailability(QtMultimedia::NoError);
+        QCOMPARE(object.isAvailable(), true);
+        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+        QCOMPARE(availabilitySpy.count(), 2);
+        QCOMPARE(availabilityErrorSpy.count(), 2);
+    }
+
+    {
+        MockAvailabilityControl available(QtMultimedia::BusyError);
+        QtTestMediaObjectService service(0, &available);
+        QtTestMediaObject object(&service);
+        QSignalSpy availabilitySpy(&object, SIGNAL(availabilityChanged(bool)));
+        QSignalSpy availabilityErrorSpy(&object, SIGNAL(availabilityChanged(bool)));
+
+        QCOMPARE(object.isAvailable(), false);
+        QCOMPARE(object.availabilityError(), QtMultimedia::BusyError);
+
+        available.setAvailability(QtMultimedia::NoError);
+        QCOMPARE(object.isAvailable(), true);
+        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+        QCOMPARE(availabilitySpy.count(), 1);
+        QCOMPARE(availabilityErrorSpy.count(), 1);
+    }
 }
 
  void tst_QMediaObject::service()
  {
      // Create the mediaobject with service.
-     QtTestMetaDataService service;
+     QtTestMediaObjectService service;
      QtTestMediaObject mediaObject1(&service);
 
      // Get service and Compare if it equal to the service passed as an argument in mediaObject1.

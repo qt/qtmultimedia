@@ -68,6 +68,11 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     emit cameraStateChanged(QDeclarativeCamera::State(state));
 }
 
+void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
+{
+    emit availabilityChanged(Availability(error));
+}
+
 /*!
     \qmlclass Camera QDeclarativeCamera
     \brief The Camera element allows you to access viewfinder frames, and take photos and movies.
@@ -176,6 +181,9 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     connect(m_camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)), this, SIGNAL(lockStatusChanged()));
     connect(m_camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(_q_updateState(QCamera::State)));
 
+    // Note we map availabilityError->availability
+    connect(m_camera, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+
     connect(m_camera->focus(), SIGNAL(opticalZoomChanged(qreal)), this, SIGNAL(opticalZoomChanged(qreal)));
     connect(m_camera->focus(), SIGNAL(digitalZoomChanged(qreal)), this, SIGNAL(digitalZoomChanged(qreal)));
     connect(m_camera->focus(), SIGNAL(maximumOpticalZoomChanged(qreal)), this, SIGNAL(maximumOpticalZoomChanged(qreal)));
@@ -216,6 +224,35 @@ QString QDeclarativeCamera::errorString() const
 {
     return m_camera->errorString();
 }
+
+/*!
+    \qmlproperty enumeration QtMultimedia5::Camera::availability
+
+    Returns the availability state of the camera.
+
+    This is one of:
+
+    \table
+    \header \li Value \li Description
+    \row \li Available
+        \li The camera is available to use
+    \row \li Busy
+        \li The camera is usually available to use, but is currently busy.
+           This can happen when some other process needs to use the camera
+           hardware.
+    \row \li Unavailable
+        \li The camera is not available to use (there may be no camera
+           hardware)
+    \row \li ResourceMissing
+        \li There is one or more resources missing, so the camera cannot
+           be used.  It may be possible to try again at a later time.
+    \endtable
+ */
+QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
+{
+    return Availability(m_camera->availabilityError());
+}
+
 
 /*!
     \qmlproperty enumeration QtMultimedia5::Camera::captureMode

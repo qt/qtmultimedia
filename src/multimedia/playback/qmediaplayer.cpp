@@ -778,6 +778,17 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     }
 }
 
+/*! \reimp */
+QtMultimedia::AvailabilityError QMediaPlayer::availabilityError() const
+{
+    Q_D(const QMediaPlayer);
+
+    if (!d->control)
+        return QtMultimedia::ServiceMissingError;
+
+    return QMediaObject::availabilityError();
+}
+
 // Enums
 /*!
     \enum QMediaPlayer::State

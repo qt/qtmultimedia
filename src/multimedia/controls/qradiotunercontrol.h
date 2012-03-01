@@ -59,9 +59,6 @@ class Q_MULTIMEDIA_EXPORT QRadioTunerControl : public QMediaControl
 public:
     ~QRadioTunerControl();
 
-    virtual bool isAvailable() const = 0;
-    virtual QtMultimedia::AvailabilityError availabilityError() const = 0;
-
     virtual QRadioTuner::State state() const = 0;
 
     virtual QRadioTuner::Band band() const = 0;

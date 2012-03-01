@@ -84,6 +84,8 @@ class QDeclarativeCamera : public QObject, public QDeclarativeParserStatus
     Q_PROPERTY(LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
+    Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
+
     Q_PROPERTY(qreal opticalZoom READ opticalZoom WRITE setOpticalZoom NOTIFY opticalZoomChanged)
     Q_PROPERTY(qreal maximumOpticalZoom READ maximumOpticalZoom NOTIFY maximumOpticalZoomChanged)
     Q_PROPERTY(qreal digitalZoom READ digitalZoom WRITE setDigitalZoom NOTIFY digitalZoomChanged)
@@ -109,6 +111,8 @@ class QDeclarativeCamera : public QObject, public QDeclarativeParserStatus
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
     Q_ENUMS(FocusAreaStatus)
+    Q_ENUMS(Availability)
+
 public:
     enum CaptureMode {
         CaptureStillImage = QCamera::CaptureStillImage,
@@ -193,6 +197,12 @@ public:
         FocusAreaFocused = QCameraFocusZone::Focused
     };
 
+    enum Availability {
+        Available = QtMultimedia::NoError,
+        Busy = QtMultimedia::BusyError,
+        Unavailable = QtMultimedia::ServiceMissingError,
+        ResourceMissing = QtMultimedia::ResourceError
+    };
 
     QDeclarativeCamera(QObject *parent = 0);
     ~QDeclarativeCamera();
@@ -219,6 +229,8 @@ public:
 
     qreal opticalZoom() const;
     qreal digitalZoom() const;
+
+    Availability availability() const;
 
 public Q_SLOTS:
     void setCaptureMode(CaptureMode mode);
@@ -250,9 +262,12 @@ Q_SIGNALS:
 
     void mediaObjectChanged();
 
+    void availabilityChanged(Availability availability);
+
 private Q_SLOTS:
     void _q_updateState(QCamera::State);
     void _q_error(int, const QString &);
+    void _q_availabilityChanged(QtMultimedia::AvailabilityError);
 
 protected:
     void classBegin();

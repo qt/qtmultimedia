@@ -94,18 +94,6 @@ QRadioDataControl::~QRadioDataControl()
 }
 
 /*!
-    \fn bool QRadioDataControl::isAvailable() const
-
-    Returns true if the radio service is ready to use.
-*/
-
-/*!
-    \fn QtMultimedia::AvailabilityError QRadioDataControl::availabilityError() const
-
-    Returns the error state of the radio service.
-*/
-
-/*!
     \fn QRadioData::Error QRadioDataControl::error() const
 
     Returns the error state of a radio data.

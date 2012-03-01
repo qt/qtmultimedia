@@ -39,65 +39,40 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIARECORDER_P_H
-#define QMEDIARECORDER_P_H
+#ifndef QMEDIAAVAILABILITYCONTROL_H
+#define QMEDIAAVAILABILITYCONTROL_H
 
-#include "qmediarecorder.h"
-#include "qmediaobject_p.h"
-#include <QtCore/qurl.h>
+#include <qmediacontrol.h>
+#include <qmediaobject.h>
+#include <qtmedianamespace.h>
+
+QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-class QMediaRecorderControl;
-class QMediaContainerControl;
-class QAudioEncoderControl;
-class QVideoEncoderControl;
-class QMetaDataWriterControl;
-class QMediaAvailabilityControl;
-class QTimer;
+QT_MODULE(Multimedia)
 
-class QMediaRecorderPrivate
+class Q_MULTIMEDIA_EXPORT QMediaAvailabilityControl : public QMediaControl
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QMediaRecorder)
+    Q_OBJECT
 
 public:
-    QMediaRecorderPrivate();
-    virtual ~QMediaRecorderPrivate() {}
+    ~QMediaAvailabilityControl();
 
-    void applySettingsLater();
-    void restartCamera();
+    virtual QtMultimedia::AvailabilityError availability() const = 0;
 
-    QMediaObject *mediaObject;
+signals:
+    void availabilityChanged(QtMultimedia::AvailabilityError availability);
 
-    QMediaRecorderControl *control;
-    QMediaContainerControl *formatControl;
-    QAudioEncoderControl *audioControl;
-    QVideoEncoderControl *videoControl;
-    QMetaDataWriterControl *metaDataControl;
-    QMediaAvailabilityControl *availabilityControl;
-
-    bool settingsChanged;
-
-    QTimer* notifyTimer;
-
-    QMediaRecorder::State state;
-    QMediaRecorder::Error error;
-    QString errorString;
-    QUrl actualLocation;
-
-    void _q_stateChanged(QMediaRecorder::State state);
-    void _q_error(int error, const QString &errorString);
-    void _q_serviceDestroyed();
-    void _q_updateActualLocation(const QUrl &);
-    void _q_notify();
-    void _q_updateNotifyInterval(int ms);
-    void _q_applySettings();
-    void _q_availabilityChanged(QtMultimedia::AvailabilityError error);
-
-    QMediaRecorder *q_ptr;
+protected:
+    QMediaAvailabilityControl(QObject* parent = 0);
 };
+
+#define QMediaAvailabilityControl_iid "com.nokia.Qt.QMediaAvailabilityControl/1.0"
+Q_MEDIA_DECLARE_CONTROL(QMediaAvailabilityControl, QMediaAvailabilityControl_iid)
 
 QT_END_NAMESPACE
 
-#endif
+QT_END_HEADER
 
+#endif // QMEDIAAVAILABILITYCONTROL_H

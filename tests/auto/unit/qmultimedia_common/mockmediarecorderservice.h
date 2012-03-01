@@ -50,14 +50,16 @@
 #include "mockaudioendpointselector.h"
 #include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
+#include "mockavailabilitycontrol.h"
 
 class MockMediaRecorderService : public QMediaService
 {
     Q_OBJECT
 public:
-    MockMediaRecorderService(QObject *parent = 0, QMediaControl *control = 0):
+    MockMediaRecorderService(QObject *parent = 0, QMediaControl *control = 0, MockAvailabilityControl *availability = 0):
         QMediaService(parent),
         mockControl(control),
+        mockAvailabilityControl(availability),
         hasControls(true)
     {
         mockAudioEndpointSelector = new MockAudioEndpointSelector(parent);
@@ -81,6 +83,8 @@ public:
             return mockVideoEncoderControl;
         if (hasControls && qstrcmp(name, QMetaDataWriterControl_iid) == 0)
             return mockMetaDataControl;
+        if (hasControls && qstrcmp(name, QMediaAvailabilityControl_iid) == 0)
+            return mockAvailabilityControl;
 
         return 0;
     }
@@ -95,6 +99,8 @@ public:
     QMediaContainerControl     *mockFormatControl;
     QVideoEncoderControl    *mockVideoEncoderControl;
     MockMetaDataWriterControl *mockMetaDataControl;
+    MockAvailabilityControl *mockAvailabilityControl;
+
     bool hasControls;
 };
 

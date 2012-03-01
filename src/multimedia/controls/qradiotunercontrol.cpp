@@ -100,18 +100,6 @@ QRadioTunerControl::~QRadioTunerControl()
 }
 
 /*!
-    \fn bool QRadioTunerControl::isAvailable() const
-
-    Returns true if the radio service is ready to use.
-*/
-
-/*!
-    \fn QtMultimedia::AvailabilityError QRadioTunerControl::availabilityError() const
-
-    Returns the error state of the radio service.
-*/
-
-/*!
     \fn QRadioTuner::State QRadioTunerControl::state() const
 
     Returns the current radio tuner state.
@@ -235,7 +223,7 @@ QRadioTunerControl::~QRadioTunerControl()
 */
 
 /*!
-    \fn bool QRadioTunerControl::antennaConnected() const
+    \fn bool QRadioTunerControl::isAntennaConnected() const
 
     Identifies if there is an antenna connected to the device.
 

@@ -47,7 +47,7 @@
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>
 #include <qmediabindableinterface.h>
-
+#include <qmediaavailabilitycontrol.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -64,6 +64,17 @@ void QMediaObjectPrivate::_q_notify()
     }
 }
 
+void QMediaObjectPrivate::_q_availabilityChanged()
+{
+    Q_Q(QMediaObject);
+
+    // Really this should not always emit, but
+    // we can't really tell from here (isAvailable
+    // may not have changed, or the mediaobject's overridden
+    // availabilityError() may not have changed).
+    q->availabilityErrorChanged(q->availabilityError());
+    q->availabilityChanged(q->isAvailable());
+}
 
 /*!
     \class QMediaObject
@@ -104,7 +115,13 @@ QMediaObject::~QMediaObject()
 
 QtMultimedia::AvailabilityError QMediaObject::availabilityError() const
 {
-    return d_func()->service == 0 ? QtMultimedia::ServiceMissingError : QtMultimedia::NoError;
+    if (d_func()->service == 0)
+        return QtMultimedia::ServiceMissingError;
+
+    if (d_func()->availabilityControl)
+        return d_func()->availabilityControl->availability();
+
+    return QtMultimedia::NoError;
 }
 
 /*!
@@ -113,7 +130,7 @@ QtMultimedia::AvailabilityError QMediaObject::availabilityError() const
 
 bool QMediaObject::isAvailable() const
 {
-    return d_func()->service != 0;
+    return availabilityError() == QtMultimedia::NoError;
 }
 
 /*!
@@ -216,7 +233,7 @@ QMediaObject::QMediaObject(QObject *parent, QMediaService *service):
 
     d->service = service;
 
-    setupMetaData();
+    setupControls();
 }
 
 /*!
@@ -237,7 +254,7 @@ QMediaObject::QMediaObject(QMediaObjectPrivate &dd, QObject *parent,
 
     d->service = service;
 
-    setupMetaData();
+    setupControls();
 }
 
 /*!
@@ -360,7 +377,7 @@ QStringList QMediaObject::availableMetaData() const
 */
 
 
-void QMediaObject::setupMetaData()
+void QMediaObject::setupControls()
 {
     Q_D(QMediaObject);
 
@@ -376,6 +393,13 @@ void QMediaObject::setupMetaData()
             connect(d->metaDataControl,
                     SIGNAL(metaDataAvailableChanged(bool)),
                     SIGNAL(metaDataAvailableChanged(bool)));
+        }
+
+        d->availabilityControl = d->service->requestControl<QMediaAvailabilityControl*>();
+        if (d->availabilityControl) {
+            connect(d->availabilityControl,
+                    SIGNAL(availabilityChanged(QtMultimedia::AvailabilityError)),
+                    SLOT(_q_availabilityChanged()));
         }
     }
 }

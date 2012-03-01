@@ -67,6 +67,7 @@ class QMediaServiceProvider;
 class QMetaDataReaderControl;
 class QDeclarativeMediaBaseAnimation;
 class QDeclarativeMediaMetaData;
+class QMediaAvailabilityControl;
 
 class QDeclarativeMediaBase
 {
@@ -173,6 +174,8 @@ protected:
     QMetaDataReaderControl *m_metaDataControl;
     QDeclarativeMediaBaseAnimation *m_animation;
     QScopedPointer<QDeclarativeMediaMetaData> m_metaData;
+
+    QMediaAvailabilityControl *m_availabilityControl;
 
     QMediaPlayer::State m_playbackState;
     QMediaPlayer::MediaStatus m_status;

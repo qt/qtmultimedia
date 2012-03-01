@@ -158,6 +158,8 @@ public:
 
     QNetworkConfiguration currentNetworkConfiguration() const;
 
+    QtMultimedia::AvailabilityError availabilityError() const;
+
 public Q_SLOTS:
     void play();
     void pause();
