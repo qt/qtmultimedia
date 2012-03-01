@@ -242,13 +242,13 @@ There are both C++ and QML examples available.
 
 C++ Examples:
 \list
-    \o \l Camera
+    \li \l Camera
 \endlist
 
 QML Examples:
 \list
-    \o \l declarative-camera
-    \o \l qmlvideofx
+    \li \l declarative-camera
+    \li \l qmlvideofx
 \endlist
 
 \section1 Reference Documentation

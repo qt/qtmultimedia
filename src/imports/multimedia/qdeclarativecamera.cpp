@@ -77,7 +77,7 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
 
     \inherits Item
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     You can use the \c Camera element to capture images and movies from a camera, and manipulate
     the capture and processing settings that get applied to the images.  To display the
@@ -121,19 +121,19 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     across a few different child properties of Camera.
 
     \table
-    \header \o Property \o Description
-    \row \o \l {CameraCapture} {imageCapture}
-         \o Methods and properties for capturing still images.
-    \row \o \l {CameraRecorder} {videoRecording}
-         \o Methods and properties for capturing movies.
-    \row \o \l {CameraExposure} {exposure}
-         \o Methods and properties for adjusting exposure (aperture, shutter speed etc).
-    \row \o \l {CameraFocus} {focus}
-         \o Methods and properties for adjusting focus and providing feedback on autofocus progress.
-    \row \o \l {CameraFlash} {flash}
-         \o Methods and properties for controlling the camera flash.
-    \row \o \l {CameraImageProcessing} {imageProcessing}
-         \o Methods and properties for adjusting camera image processing parameters.
+    \header \li Property \li Description
+    \row \li \l {CameraCapture} {imageCapture}
+         \li Methods and properties for capturing still images.
+    \row \li \l {CameraRecorder} {videoRecording}
+         \li Methods and properties for capturing movies.
+    \row \li \l {CameraExposure} {exposure}
+         \li Methods and properties for adjusting exposure (aperture, shutter speed etc).
+    \row \li \l {CameraFocus} {focus}
+         \li Methods and properties for adjusting focus and providing feedback on autofocus progress.
+    \row \li \l {CameraFlash} {flash}
+         \li Methods and properties for controlling the camera flash.
+    \row \li \l {CameraImageProcessing} {imageProcessing}
+         \li Methods and properties for adjusting camera image processing parameters.
     \endtable
 
     Basic camera state management, error reporting, and simple zoom properties are
@@ -221,12 +221,12 @@ QString QDeclarativeCamera::errorString() const
     \qmlproperty enumeration QtMultimedia5::Camera::captureMode
 
     \table
-    \header \o Value \o Description
-    \row \o CaptureStillImage
-         \o Prepares the camera element for capturing still images.
+    \header \li Value \li Description
+    \row \li CaptureStillImage
+         \li Prepares the camera element for capturing still images.
 
-    \row \o CaptureVideo
-         \o Prepares the camera element for capturing video.
+    \row \li CaptureVideo
+         \li Prepares the camera element for capturing video.
 
     \endtable
 
@@ -248,9 +248,9 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
     The current state of the camera object.
 
     \table
-    \header \o Value \o Description
-    \row \o UnloadedState
-         \o The initial camera state, with the camera not loaded.
+    \header \li Value \li Description
+    \row \li UnloadedState
+         \li The initial camera state, with the camera not loaded.
            The camera capabilities (with the exception of supported capture modes)
            are unknown. This state saves the most power, but takes the longest
            time to be ready for capture.
@@ -259,16 +259,16 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
            you can still set the camera capture settings like codec,
            resolution, or frame rate.
 
-    \row \o LoadedState
-         \o The camera is loaded and ready to be configured.
+    \row \li LoadedState
+         \li The camera is loaded and ready to be configured.
 
            In the Idle state you can query camera capabilities,
            set capture resolution, codecs, and so on.
 
            The viewfinder is not active in the loaded state.
 
-    \row \o ActiveState
-          \o In the active state the viewfinder frames are available
+    \row \li ActiveState
+          \li In the active state the viewfinder frames are available
              and the camera is ready for capture.
     \endtable
 
@@ -331,18 +331,18 @@ void QDeclarativeCamera::stop()
     The overall status for all the requested camera locks.
 
     \table
-    \header \o Value \o Description
-    \row \o Unlocked
-        \o The application is not interested in camera settings value.
+    \header \li Value \li Description
+    \row \li Unlocked
+        \li The application is not interested in camera settings value.
         The camera may keep this parameter without changes, this is common with camera focus,
         or adjust exposure and white balance constantly to keep the viewfinder image nice.
 
-    \row \o Searching
-        \o The application has requested the camera focus, exposure or white balance lock with
+    \row \li Searching
+        \li The application has requested the camera focus, exposure or white balance lock with
         searchAndLock(). This state indicates the camera is focusing or calculating exposure and white balance.
 
-    \row \o Locked
-        \o The camera focus, exposure or white balance is locked.
+    \row \li Locked
+        \li The camera focus, exposure or white balance is locked.
         The camera is ready to capture, application may check the exposure parameters.
 
         The locked state usually means the requested parameter stays the same,
@@ -357,18 +357,18 @@ void QDeclarativeCamera::stop()
     The overall status for all the requested camera locks.
 
     \table
-    \header \o Value \o Description
-    \row \o Unlocked
-        \o The application is not interested in camera settings value.
+    \header \li Value \li Description
+    \row \li Unlocked
+        \li The application is not interested in camera settings value.
         The camera may keep this parameter without changes, this is common with camera focus,
         or adjust exposure and white balance constantly to keep the viewfinder image nice.
 
-    \row \o Searching
-        \o The application has requested the camera focus, exposure or white balance lock with
+    \row \li Searching
+        \li The application has requested the camera focus, exposure or white balance lock with
         searchAndLock(). This state indicates the camera is focusing or calculating exposure and white balance.
 
-    \row \o Locked
-        \o The camera focus, exposure or white balance is locked.
+    \row \li Locked
+        \li The camera focus, exposure or white balance is locked.
         The camera is ready to capture, application may check the exposure parameters.
 
         The locked state usually means the requested parameter stays the same,
@@ -471,12 +471,12 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
     values defined below, and a descriptive string value is available in \a errorString.
 
     \table
-    \header \o Value \o Description
-    \row \o NoError \o No errors have occurred.
-    \row \o CameraError \o An error has occurred.
-    \row \o InvalidRequestError \o System resource doesn't support requested functionality.
-    \row \o ServiceMissingError \o No camera service available.
-    \row \o NotSupportedFeatureError \o The feature is not supported.
+    \header \li Value \li Description
+    \row \li NoError \li No errors have occurred.
+    \row \li CameraError \li An error has occurred.
+    \row \li InvalidRequestError \li System resource doesn't support requested functionality.
+    \row \li ServiceMissingError \li No camera service available.
+    \row \li NotSupportedFeatureError \li The feature is not supported.
     \endtable
 */
 

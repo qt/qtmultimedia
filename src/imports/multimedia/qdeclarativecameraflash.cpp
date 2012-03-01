@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     The CameraFlash element allows you to operate the camera flash
     hardware and control the flash mode used.  Not all cameras have
@@ -111,19 +111,19 @@ bool QDeclarativeCameraFlash::isFlashReady() const
     \property QDeclarativeCameraFlash::flashMode
 
     \table
-    \header \o Value \o Description
-    \row \o Camera.FlashOff             \o Flash is Off.
-    \row \o Camera.FlashOn              \o Flash is On.
-    \row \o Camera.FlashAuto            \o Automatic flash.
-    \row \o Camera.FlashRedEyeReduction \o Red eye reduction flash.
-    \row \o Camera.FlashFill            \o Use flash to fillin shadows.
-    \row \o Camera.FlashTorch           \o Constant light source, useful for focusing and video capture.
-    \row \o Camera.FlashSlowSyncFrontCurtain
-                                \o Use the flash in conjunction with a slow shutter speed.
+    \header \li Value \li Description
+    \row \li Camera.FlashOff             \li Flash is Off.
+    \row \li Camera.FlashOn              \li Flash is On.
+    \row \li Camera.FlashAuto            \li Automatic flash.
+    \row \li Camera.FlashRedEyeReduction \li Red eye reduction flash.
+    \row \li Camera.FlashFill            \li Use flash to fillin shadows.
+    \row \li Camera.FlashTorch           \li Constant light source, useful for focusing and video capture.
+    \row \li Camera.FlashSlowSyncFrontCurtain
+                                \li Use the flash in conjunction with a slow shutter speed.
                                 This mode allows better exposure of distant objects and/or motion blur effect.
-    \row \o Camera.FlashSlowSyncRearCurtain
-                                \o The similar mode to FlashSlowSyncFrontCurtain but flash is fired at the end of exposure.
-    \row \o Camera.FlashManual          \o Flash power is manually set.
+    \row \li Camera.FlashSlowSyncRearCurtain
+                                \li The similar mode to FlashSlowSyncFrontCurtain but flash is fired at the end of exposure.
+    \row \li Camera.FlashManual          \li Flash power is manually set.
     \endtable
 
 */

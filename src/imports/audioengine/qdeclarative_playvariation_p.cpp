@@ -60,7 +60,7 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This element is part of the \bold{QtAudioEngine 1.0} module.
+    This element is part of the \b{QtAudioEngine 1.0} module.
 
     PlayVariation must be defined inside \l Sound element.
 

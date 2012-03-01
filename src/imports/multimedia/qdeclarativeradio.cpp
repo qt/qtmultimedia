@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \inherits Item
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -125,12 +125,12 @@ QDeclarativeRadio::~QDeclarativeRadio()
     This property holds the current state of the Radio element.
 
     \table
-    \header \o Value \o Description
-    \row \o ActiveState
-        \o The radio is started and active
+    \header \li Value \li Description
+    \row \li ActiveState
+        \li The radio is started and active
 
-    \row \o StoppedState
-        \o The radio is stopped
+    \row \li StoppedState
+        \li The radio is stopped
 
     \endtable
 
@@ -148,21 +148,21 @@ QDeclarativeRadio::State QDeclarativeRadio::state() const
     any one of the values in the table below.
 
     \table
-    \header \o Value \o Description
-    \row \o AM
-        \o 520 to 1610 kHz, 9 or 10kHz channel spacing, extended 1610 to 1710 kHz
+    \header \li Value \li Description
+    \row \li AM
+        \li 520 to 1610 kHz, 9 or 10kHz channel spacing, extended 1610 to 1710 kHz
 
-    \row \o FM
-        \o 87.5 to 108.0 MHz, except Japan 76-90 MHz
+    \row \li FM
+        \li 87.5 to 108.0 MHz, except Japan 76-90 MHz
 
-    \row \o SW
-        \o 1.711 to 30.0 MHz, divided into 15 bands. 5kHz channel spacing
+    \row \li SW
+        \li 1.711 to 30.0 MHz, divided into 15 bands. 5kHz channel spacing
 
-    \row \o LW
-        \o 148.5 to 283.5 kHz, 9kHz channel spacing (Europe, Africa, Asia)
+    \row \li LW
+        \li 148.5 to 283.5 kHz, 9kHz channel spacing (Europe, Africa, Asia)
 
-    \row \o FM2
-        \o range not defined, used when area supports more than one FM range
+    \row \li FM2
+        \li range not defined, used when area supports more than one FM range
 
     \endtable
 */
@@ -191,15 +191,15 @@ int QDeclarativeRadio::frequency() const
     values in the table below.
 
     \table
-    \header \o Value \o Description
-    \row \o Auto
-        \o Uses stereo mode matching the station
+    \header \li Value \li Description
+    \row \li Auto
+        \li Uses stereo mode matching the station
 
-    \row \o ForceStereo
-        \o Forces the radio to play the station in stereo, converting the sound signal if necessary
+    \row \li ForceStereo
+        \li Forces the radio to play the station in stereo, converting the sound signal if necessary
 
-    \row \o ForceMono
-        \o Forces the radio to play the station in mono, converting the sound signal if necessary
+    \row \li ForceMono
+        \li Forces the radio to play the station in mono, converting the sound signal if necessary
 
     \endtable
 */
@@ -378,12 +378,12 @@ void QDeclarativeRadio::scanUp()
     table below.
 
     \table
-    \header \o Value \o Description
-    \row \o SearchFast
-        \o Stores each radio station for later retrival and tuning
+    \header \li Value \li Description
+    \row \li SearchFast
+        \li Stores each radio station for later retrival and tuning
 
-    \row \o SearchGetStationId
-        \o Does the same as SearchFast, but also emits the station Id with the \l stationFound signal.
+    \row \li SearchGetStationId
+        \li Does the same as SearchFast, but also emits the station Id with the \l stationFound signal.
 
     \endtable
 

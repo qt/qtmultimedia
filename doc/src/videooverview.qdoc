@@ -110,15 +110,15 @@ There are both C++ and QML examples available.
 
 C++ Examples:
 \list
-    \o \l video
-    \o \l videographicsitem
-    \o \l videowidget
+    \li \l video
+    \li \l videographicsitem
+    \li \l videowidget
 \endlist
 
 QML Examples:
 \list
-    \o \l qmlvideo
-    \o \l qmlvideofx
+    \li \l qmlvideo
+    \li \l qmlvideofx
 \endlist
 
 \section1 Reference Documentation
@@ -130,9 +130,9 @@ QML Examples:
 \section2 QML Elements
 
 \list
-    \o \l MediaPlayer
-    \o \l VideoOutput
-    \o \l Video
+    \li \l MediaPlayer
+    \li \l VideoOutput
+    \li \l Video
 \endlist
 
 */

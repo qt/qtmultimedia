@@ -76,73 +76,73 @@
     Much of the getting / setting of \l Audio parameters is done through properties. These include
     \table 70%
         \header
-            \o Property
-            \o Description
+            \li Property
+            \li Description
         \row
-            \o \l {Audio::source}{source}
-            \o The source URL of the media.
+            \li \l {Audio::source}{source}
+            \li The source URL of the media.
         \row
-            \o \l {Audio::autoLoad}{autoLoad}
-            \o Indicates if loading of media should begin immediately.
+            \li \l {Audio::autoLoad}{autoLoad}
+            \li Indicates if loading of media should begin immediately.
         \row
-            \o \l{Audio::playing}{playing}
-            \o Indicates that the media is playing.
+            \li \l{Audio::playing}{playing}
+            \li Indicates that the media is playing.
         \row
-            \o \l {Audio::paused}{paused}
-            \o The media is paused.
+            \li \l {Audio::paused}{paused}
+            \li The media is paused.
         \row
-            \o \l{Audio::status}{status}
-            \o The status of media loading.
+            \li \l{Audio::status}{status}
+            \li The status of media loading.
         \row
-            \o \l{Audio::duration}{duration}
-            \o Amount of time in milliseconds the media will play.
+            \li \l{Audio::duration}{duration}
+            \li Amount of time in milliseconds the media will play.
         \row
-            \o \l{Audio::position}{position}
-            \o Current position in the media in milliseconds of play.
+            \li \l{Audio::position}{position}
+            \li Current position in the media in milliseconds of play.
         \row
-            \o \l{Audio::volume}{volume}
-            \o Audio output volume: from 0.0 (silent) to 1.0 (maximum)
+            \li \l{Audio::volume}{volume}
+            \li Audio output volume: from 0.0 (silent) to 1.0 (maximum)
         \row
-            \o \l{Audio::muted}{muted}
-            \o Indicates audio is muted.
+            \li \l{Audio::muted}{muted}
+            \li Indicates audio is muted.
         \row
-            \o \l{Audio::bufferProgress}{bufferProgress}
-            \o Indicates how full the data buffer is: 0.0 (empty) to 1.0 (full).
+            \li \l{Audio::bufferProgress}{bufferProgress}
+            \li Indicates how full the data buffer is: 0.0 (empty) to 1.0 (full).
         \row
-            \o \l{Audio::seekable}{seekable}
-            \o Indicates whether the audio position can be changed.
+            \li \l{Audio::seekable}{seekable}
+            \li Indicates whether the audio position can be changed.
         \row
-            \o \l{Audio::playbackRate}{playbackRate}
-            \o The rate at which audio is played at as a multiple of the normal rate.
+            \li \l{Audio::playbackRate}{playbackRate}
+            \li The rate at which audio is played at as a multiple of the normal rate.
         \row
-            \o \l{Audio::error}{error}
-            \o An error code for the error state including NoError
+            \li \l{Audio::error}{error}
+            \li An error code for the error state including NoError
         \row
-            \o \l{Audio::errorString}{errorString}
-            \o A description of the current error condition.
+            \li \l{Audio::errorString}{errorString}
+            \li A description of the current error condition.
     \endtable
 
     The set of signals available allow the developer to create custom behavior when the following events occur,
 
     \table 70%
         \header
-            \o Signal
-            \o Description
+            \li Signal
+            \li Description
         \row
-            \o \l{Audio::onStarted}{onStarted}
-            \o Called when playback has been started.
+            \li \l{Audio::onStarted}{onStarted}
+            \li Called when playback has been started.
         \row
-            \o \l{Audio::onResumed}{onResumed}
-            \o Called when playback is resumed from the paused state.
+            \li \l{Audio::onResumed}{onResumed}
+            \li Called when playback is resumed from the paused state.
         \row
-            \o \l{Audio::onPaused}{onPaused}
-            \o Called when playback is paused.
+            \li \l{Audio::onPaused}{onPaused}
+            \li Called when playback is paused.
         \row
-            \o \l{Audio::onStopped}{onStopped}
-            \o Called when playback is stopped.
+            \li \l{Audio::onStopped}{onStopped}
+            \li Called when playback is stopped.
         \row
-            \o \l{Audio::onError}{onError}
-            \o Called when the specified error occurs.
+            \li \l{Audio::onError}{onError}
+            \li Called when the specified error occurs.
     \endtable
 
     \section2 Camera

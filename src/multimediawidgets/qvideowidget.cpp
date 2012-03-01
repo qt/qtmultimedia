@@ -593,7 +593,7 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
 
     \snippet doc/src/snippets/multimedia-snippets/video.cpp Video widget
 
-    \bold {Note}: Only a single display output can be attached to a media
+    \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
     \sa QMediaObject, QMediaPlayer, QGraphicsVideoItem

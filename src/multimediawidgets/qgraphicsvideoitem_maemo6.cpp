@@ -222,7 +222,7 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
     player->play();
     \endcode
 
-    \bold {Note}: Only a single display output can be attached to a media
+    \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
     \sa QMediaObject, QMediaPlayer, QVideoWidget

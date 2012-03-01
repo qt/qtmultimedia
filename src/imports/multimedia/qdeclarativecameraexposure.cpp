@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
     \ingroup camera_qml
     \inqmlmodule QtMultimedia 5
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     This element allows you to adjust exposure related settings
     like aperture and shutter speed, metering and ISO speed.
@@ -291,19 +291,19 @@ void QDeclarativeCameraExposure::setAutoIsoSensitivity()
     Set the camera exposure mode to one of the following:
 
     \table
-    \header \o Value \o Description
-    \row \o Camera.ExposureManual        \o Manual mode.
-    \row \o Camera.ExposureAuto          \o Automatic mode.
-    \row \o Camera.ExposureNight         \o Night mode.
-    \row \o Camera.ExposureBacklight     \o Backlight exposure mode.
-    \row \o Camera.ExposureSpotlight     \o Spotlight exposure mode.
-    \row \o Camera.ExposureSports        \o Spots exposure mode.
-    \row \o Camera.ExposureSnow          \o Snow exposure mode.
-    \row \o Camera.ExposureBeach         \o Beach exposure mode.
-    \row \o Camera.ExposureLargeAperture \o Use larger aperture with small depth of field.
-    \row \o Camera.ExposureSmallAperture \o Use smaller aperture.
-    \row \o Camera.ExposurePortrait      \o Portrait exposure mode.
-    \row \o Camera.ExposureModeVendor    \o The base value for device specific exposure modes.
+    \header \li Value \li Description
+    \row \li Camera.ExposureManual        \li Manual mode.
+    \row \li Camera.ExposureAuto          \li Automatic mode.
+    \row \li Camera.ExposureNight         \li Night mode.
+    \row \li Camera.ExposureBacklight     \li Backlight exposure mode.
+    \row \li Camera.ExposureSpotlight     \li Spotlight exposure mode.
+    \row \li Camera.ExposureSports        \li Spots exposure mode.
+    \row \li Camera.ExposureSnow          \li Snow exposure mode.
+    \row \li Camera.ExposureBeach         \li Beach exposure mode.
+    \row \li Camera.ExposureLargeAperture \li Use larger aperture with small depth of field.
+    \row \li Camera.ExposureSmallAperture \li Use smaller aperture.
+    \row \li Camera.ExposurePortrait      \li Portrait exposure mode.
+    \row \li Camera.ExposureModeVendor    \li The base value for device specific exposure modes.
     \endtable
 */
 
@@ -351,10 +351,10 @@ void QDeclarativeCameraExposure::setSpotMeteringPoint(const QPointF &point)
     to one of the following:
 
     \table
-    \header \o Value \o Description
-    \row \o Camera.MeteringMatrix       \o A matrix of sample points is used to measure exposure.
-    \row \o Camera.MeteringAverage      \o An average is used to measure exposure.
-    \row \o Camera.MeteringSpot         \o A specific location (\l spotMeteringPoint) is used to measure exposure.
+    \header \li Value \li Description
+    \row \li Camera.MeteringMatrix       \li A matrix of sample points is used to measure exposure.
+    \row \li Camera.MeteringAverage      \li An average is used to measure exposure.
+    \row \li Camera.MeteringSpot         \li A specific location (\l spotMeteringPoint) is used to measure exposure.
     \endtable
 */
 QDeclarativeCamera::MeteringMode QDeclarativeCameraExposure::meteringMode() const

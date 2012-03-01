@@ -125,7 +125,7 @@ private:
     \ingroup multimedia_qml
     \inqmlmodule QtMultimedia 5
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -344,9 +344,9 @@ static inline int qNormalizedOrientation(int o)
     Set this property to define how the video is scaled to fit the target area.
 
     \list
-    \o Stretch - the video is scaled to fit.
-    \o PreserveAspectFit - the video is scaled uniformly to fit without cropping
-    \o PreserveAspectCrop - the video is scaled uniformly to fill, cropping if necessary
+    \li Stretch - the video is scaled to fit.
+    \li PreserveAspectFit - the video is scaled uniformly to fit without cropping
+    \li PreserveAspectCrop - the video is scaled uniformly to fill, cropping if necessary
     \endlist
 
     The default fill mode is PreserveAspectFit.

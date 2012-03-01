@@ -255,8 +255,8 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 
     A typical audio system would provide something like:
     \list
-    \o Input settings: 8000Hz mono 8 bit.
-    \o Output settings: 44100Hz stereo 16 bit little endian.
+    \li Input settings: 8000Hz mono 8 bit.
+    \li Output settings: 44100Hz stereo 16 bit little endian.
     \endlist
 */
 QAudioFormat QAudioDeviceInfo::preferredFormat() const

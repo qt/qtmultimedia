@@ -55,13 +55,13 @@ The \l{video/qmlvideo/qml/qmlvideo/main.qml} file creates a UI which includes
 the following elements:
 
 \list
-    \o Two \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button} elements, each
+    \li Two \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button} elements, each
        of which displays a filename, and can be used to launch a
        \l{video/qmlvideo/qml/qmlvideo/FileBrowser.qml}{FileBrowser}
-    \o An exit \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button}
-    \o A \l{video/qmlvideo/qml/qmlvideo/SceneSelectionPanel.qml}{SceneSelectionPanel},
+    \li An exit \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button}
+    \li A \l{video/qmlvideo/qml/qmlvideo/SceneSelectionPanel.qml}{SceneSelectionPanel},
        which is a flickable list displaying the available scenes
-    \o At the lower left, an item which displays the QML repainting rate - the
+    \li At the lower left, an item which displays the QML repainting rate - the
        upper number is the instantaneous frame rate and the lower number is the
        average over the past second.
 \endlist

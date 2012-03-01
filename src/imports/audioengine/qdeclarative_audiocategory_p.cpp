@@ -55,7 +55,7 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This element is part of the \bold{QtAudioEngine 1.0} module.
+    This element is part of the \b{QtAudioEngine 1.0} module.
 
     AudioCategory element can be accessed through QtAudioEngine1::AudioEngine::categories with its
     unique name and must be defined inside AudioEngine.

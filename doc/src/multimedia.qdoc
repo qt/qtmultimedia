@@ -40,15 +40,15 @@
 Qt Multimedia offers APIs for doing many multimedia related tasks:
 
 \list
-\o Accessing raw audio devices for input and output
-\o Play low latency sound effects
-\o Play media files in playlists (like compressed audio, or video files)
-\o Record audio and compress it
-\o Tune and listen to radio stations, and receive radio program information
-\o Use a camera, including viewfinder, image capture, and movie recording
-\o Play 3D positional audio
-\o Decode audio media files into memory for processing
-\o Accessing video frames or audio buffers as they are played or recorded
+\li Accessing raw audio devices for input and output
+\li Play low latency sound effects
+\li Play media files in playlists (like compressed audio, or video files)
+\li Record audio and compress it
+\li Tune and listen to radio stations, and receive radio program information
+\li Use a camera, including viewfinder, image capture, and movie recording
+\li Play 3D positional audio
+\li Decode audio media files into memory for processing
+\li Accessing video frames or audio buffers as they are played or recorded
 \endlist
 
 \section2 Multimedia Components
@@ -57,10 +57,10 @@ All of these tasks can be broadly broken down into four main areas.  More inform
 (including background information and class references) are available here:
 
 \list
-\o \l {Audio Overview}
-\o \l {Video Overview}
-\o \l {Camera Overview}
-\o \l {Radio Overview}
+\li \l {Audio Overview}
+\li \l {Video Overview}
+\li \l {Camera Overview}
+\li \l {Radio Overview}
 \endlist
 
 \section2 Multimedia recipes
@@ -68,75 +68,75 @@ For some quick recipes for specific tasks, look at the overviews above and consu
 
 \table 70%
     \header
-        \o Use case
-        \o Examples
-        \o QML Classes
-        \o C++ Classes
+        \li Use case
+        \li Examples
+        \li QML Classes
+        \li C++ Classes
     \row
-        \o Playing a sound effect
-        \o TBD
-        \o \l SoundEffect
-        \o QSoundEffect
+        \li Playing a sound effect
+        \li TBD
+        \li \l SoundEffect
+        \li QSoundEffect
     \row
-        \o Playing low latency audio
-        \o \l{audiooutput}, \l{spectrum}
-        \o
-        \o QAudioOutput
+        \li Playing low latency audio
+        \li \l{audiooutput}, \l{spectrum}
+        \li
+        \li QAudioOutput
     \row
-        \o Playing encoded audio (MP3, AAC etc)
-        \o \l{player}
-        \o \l Audio, \l {MediaPlayer}
-        \o QMediaPlayer
+        \li Playing encoded audio (MP3, AAC etc)
+        \li \l{player}
+        \li \l Audio, \l {MediaPlayer}
+        \li QMediaPlayer
     \row
-        \o Accessing raw audio input data
-        \o \l{spectrum}, \l audioinput
-        \o
-        \o QAudioInput
+        \li Accessing raw audio input data
+        \li \l{spectrum}, \l audioinput
+        \li
+        \li QAudioInput
     \row
-        \o Recording encoded audio data
-        \o \l audiorecorder
-        \o
-        \o QAudioRecorder
+        \li Recording encoded audio data
+        \li \l audiorecorder
+        \li
+        \li QAudioRecorder
     \row
-        \o Discovering raw audio devices
-        \o \l audiodevices
-        \o
-        \o QAudioDeviceInfo
+        \li Discovering raw audio devices
+        \li \l audiodevices
+        \li
+        \li QAudioDeviceInfo
     \row
-        \o Video Playback
-        \o \l {player}, \l {video/qmlvideo}{qmlvideo}, \l{video/qmlvideofx}{qmlvideofx}
-        \o \l MediaPlayer, \l VideoOutput, \l Video
-        \o QMediaPlayer, QVideoWidget, QGraphicsVideoItem
+        \li Video Playback
+        \li \l {player}, \l {video/qmlvideo}{qmlvideo}, \l{video/qmlvideofx}{qmlvideofx}
+        \li \l MediaPlayer, \l VideoOutput, \l Video
+        \li QMediaPlayer, QVideoWidget, QGraphicsVideoItem
     \row
-        \o Video Processing
-        \o \l {video/qmlvideofx}{qmlvideofx}
-        \o \l {MediaPlayer}, \l VideoOutput
-        \o QMediaPlayer, QAbstractVideoSurface, QVideoFrame
+        \li Video Processing
+        \li \l {video/qmlvideofx}{qmlvideofx}
+        \li \l {MediaPlayer}, \l VideoOutput
+        \li QMediaPlayer, QAbstractVideoSurface, QVideoFrame
     \row
-        \o Listening to the radio
-        \o \l radio, \l declarative-radio
-        \o \l Radio, \l RadioData
-        \o QRadioTuner, QRadioData
+        \li Listening to the radio
+        \li \l radio, \l declarative-radio
+        \li \l Radio, \l RadioData
+        \li QRadioTuner, QRadioData
     \row
-        \o Accessing camera viewfinder
-        \o \l camera, \l declarative-camera
-        \o \l Camera, \l VideoOutput
-        \o QCamera, QVideoWidget, QGraphicsVideoItem
+        \li Accessing camera viewfinder
+        \li \l camera, \l declarative-camera
+        \li \l Camera, \l VideoOutput
+        \li QCamera, QVideoWidget, QGraphicsVideoItem
     \row
-        \o Viewfinder processing
-        \o
-        \o \l Camera, \l VideoOutput
-        \o QCamera, QAbstractVideoSurface, QVideoFrame
+        \li Viewfinder processing
+        \li
+        \li \l Camera, \l VideoOutput
+        \li QCamera, QAbstractVideoSurface, QVideoFrame
     \row
-        \o Capturing photos
-        \o \l camera, \l declarative-camera
-        \o \l Camera
-        \o QCamera, QCameraImageCapture
+        \li Capturing photos
+        \li \l camera, \l declarative-camera
+        \li \l Camera
+        \li QCamera, QCameraImageCapture
     \row
-        \o Capturing movies
-        \o \l camera, \l declarative-camera
-        \o \l Camera
-        \o QCamera, QMediaRecorder
+        \li Capturing movies
+        \li \l camera, \l declarative-camera
+        \li \l Camera
+        \li QCamera, QMediaRecorder
 \endtable
 
 \section1 Multimedia Limitations

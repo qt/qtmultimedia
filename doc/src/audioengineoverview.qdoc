@@ -43,7 +43,7 @@ events and managed by QtAudioEngine or controlled by explicitly defining a \l So
 for easier qml bindings.
 
 QtAudioEngine elements can be accessed through importing the
-\bold{QtAudioEngine 1.0} module.
+\b{QtAudioEngine 1.0} module.
 
 \qml
 import QtQuick 2.0
@@ -55,7 +55,7 @@ AudioEngine {
 
 \section1 Examples
 \list
-    \o \l {AudioEngine Example}{Audio Engine}
+    \li \l {AudioEngine Example}{Audio Engine}
 \endlist
 
 \section1 Reference Documentation
@@ -63,15 +63,15 @@ AudioEngine {
 \section2 QML Elements
 
 \list
-    \o \l AudioEngine
-    \o \l AudioSample
-    \o \l AudioCategory
-    \o \l AttenuationModelLinear
-    \o \l AttenuationModelInverse
-    \o \l Sound
-    \o \l PlayVariation
-    \o \l AudioListener
-    \o \l SoundInstance
+    \li \l AudioEngine
+    \li \l AudioSample
+    \li \l AudioCategory
+    \li \l AttenuationModelLinear
+    \li \l AttenuationModelInverse
+    \li \l Sound
+    \li \l PlayVariation
+    \li \l AudioListener
+    \li \l SoundInstance
 
 \endlist
 

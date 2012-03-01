@@ -99,7 +99,7 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
     \inherits Item
     \preliminary
 
-    This element is part of the \bold{QtAudioEngine 1.0} module.
+    This element is part of the \b{QtAudioEngine 1.0} module.
 
     AttenuationModelLinear must be defined inside AudioEngine.
 
@@ -231,7 +231,7 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
     \inherits Item
     \preliminary
 
-    This element is part of the \bold{QtAudioEngine 1.0} module.
+    This element is part of the \b{QtAudioEngine 1.0} module.
 
     AttenuationModelInverse must be defined inside AudioEngine.
 

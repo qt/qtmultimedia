@@ -239,15 +239,15 @@ int QDeclarativeCameraRecorder::audioSampleRate() const
     The type of encoding method to use when recording audio.
 
     \table
-    \header \o Value \o Description
-    \row \o ConstantQualityEncoding
-         \o Encoding will aim to have a constant quality, adjusting bitrate to fit.
+    \header \li Value \li Description
+    \row \li ConstantQualityEncoding
+         \li Encoding will aim to have a constant quality, adjusting bitrate to fit.
             This is the default.  The bitrate setting will be ignored.
-    \row \o ConstantBitRateEncoding
-         \o Encoding will use a constant bit rate, adjust quality to fit.  This is
+    \row \li ConstantBitRateEncoding
+         \li Encoding will use a constant bit rate, adjust quality to fit.  This is
             appropriate if you are trying to optimize for space.
-    \row \o AverageBitRateEncoding
-         \o Encoding will try to keep an average bitrate setting, but will use
+    \row \li AverageBitRateEncoding
+         \li Encoding will try to keep an average bitrate setting, but will use
             more or less as needed.
     \endtable
 
@@ -263,15 +263,15 @@ QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::videoEncodi
     The type of encoding method to use when recording audio.
 
     \table
-    \header \o Value \o Description
-    \row \o ConstantQualityEncoding
-         \o Encoding will aim to have a constant quality, adjusting bitrate to fit.
+    \header \li Value \li Description
+    \row \li ConstantQualityEncoding
+         \li Encoding will aim to have a constant quality, adjusting bitrate to fit.
             This is the default.  The bitrate setting will be ignored.
-    \row \o ConstantBitRateEncoding
-         \o Encoding will use a constant bit rate, adjust quality to fit.  This is
+    \row \li ConstantBitRateEncoding
+         \li Encoding will use a constant bit rate, adjust quality to fit.  This is
             appropriate if you are trying to optimize for space.
-    \row \o AverageBitRateEncoding
-         \o Encoding will try to keep an average bitrate setting, but will use
+    \row \li AverageBitRateEncoding
+         \li Encoding will try to keep an average bitrate setting, but will use
             more or less as needed.
     \endtable
 */
@@ -365,12 +365,12 @@ QString QDeclarativeCameraRecorder::errorString() const
     The current state of the camera recorder object.
 
     \table
-    \header \o Value \o Description
-    \row \o StoppedState
-         \o The camera is not recording video.
+    \header \li Value \li Description
+    \row \li StoppedState
+         \li The camera is not recording video.
 
-    \row \o RecordingState
-         \o The camera is recording video.
+    \row \li RecordingState
+         \li The camera is recording video.
     \endtable
 */
 QDeclarativeCameraRecorder::RecorderState QDeclarativeCameraRecorder::recorderState() const

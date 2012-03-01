@@ -56,7 +56,7 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This element is part of the \bold{QtAudioEngine 1.0} module.
+    This element is part of the \b{QtAudioEngine 1.0} module.
 
     AudioListener will have only one global instance and you can either access it through the
     listener property of AudioEngine:

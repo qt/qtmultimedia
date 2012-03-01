@@ -144,11 +144,11 @@ the supported devices and codecs and the use of recording functions in the
 QAudioRecorder class.
 
 \list
-    \o \l audiodevices
-    \o \l audioinput
-    \o \l audiooutput
-    \o \l audiorecorder
-    \o \l spectrum
+    \li \l audiodevices
+    \li \l audioinput
+    \li \l audiooutput
+    \li \l audiorecorder
+    \li \l spectrum
 \endlist
 
 QML Examples:
@@ -163,8 +163,8 @@ QML Examples:
 \section2 QML Elements
 
 \list
-    \o \l Audio
-    \o \l MediaPlayer
+    \li \l Audio
+    \li \l MediaPlayer
 \endlist
 
 */

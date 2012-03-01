@@ -97,17 +97,17 @@ QDeclarativeCameraImageProcessing::~QDeclarativeCameraImageProcessing()
     \qmlproperty enumeration QtMultimedia5::CameraImageProcessing::whiteBalanceMode
 
     \table
-    \header \o Value \o Description
-    \row \o WhiteBalanceManual       \o Manual white balance. In this mode the manual white balance property value is used.
-    \row \o WhiteBalanceAuto         \o Auto white balance mode.
-    \row \o WhiteBalanceSunlight     \o Sunlight white balance mode.
-    \row \o WhiteBalanceCloudy       \o Cloudy white balance mode.
-    \row \o WhiteBalanceShade        \o Shade white balance mode.
-    \row \o WhiteBalanceTungsten     \o Tungsten white balance mode.
-    \row \o WhiteBalanceFluorescent  \o Fluorescent white balance mode.
-    \row \o WhiteBalanceFlash        \o Flash white balance mode.
-    \row \o WhiteBalanceSunset       \o Sunset white balance mode.
-    \row \o WhiteBalanceVendor       \o Vendor defined white balance mode.
+    \header \li Value \li Description
+    \row \li WhiteBalanceManual       \li Manual white balance. In this mode the manual white balance property value is used.
+    \row \li WhiteBalanceAuto         \li Auto white balance mode.
+    \row \li WhiteBalanceSunlight     \li Sunlight white balance mode.
+    \row \li WhiteBalanceCloudy       \li Cloudy white balance mode.
+    \row \li WhiteBalanceShade        \li Shade white balance mode.
+    \row \li WhiteBalanceTungsten     \li Tungsten white balance mode.
+    \row \li WhiteBalanceFluorescent  \li Fluorescent white balance mode.
+    \row \li WhiteBalanceFlash        \li Flash white balance mode.
+    \row \li WhiteBalanceSunset       \li Sunset white balance mode.
+    \row \li WhiteBalanceVendor       \li Vendor defined white balance mode.
     \endtable
 
     \sa manualWhiteBalance

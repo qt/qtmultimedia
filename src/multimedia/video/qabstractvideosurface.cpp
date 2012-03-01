@@ -115,8 +115,8 @@ public:
     implement, broken down into two classes:
 
     \list
-    \o Format related
-    \o Presentation related
+    \li Format related
+    \li Presentation related
     \endlist
 
     For format related functionality, you just have to describe the pixel formats that you

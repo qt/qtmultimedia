@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -111,7 +111,7 @@ QT_BEGIN_NAMESPACE
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -256,15 +256,15 @@ void QDeclarativeAudio::stop()
     This property holds the status of media loading. It can be one of:
 
     \list
-    \o NoMedia - no media has been set.
-    \o Loading - the media is currently being loaded.
-    \o Loaded - the media has been loaded.
-    \o Buffering - the media is buffering data.
-    \o Stalled - playback has been interrupted while the media is buffering data.
-    \o Buffered - the media has buffered data.
-    \o EndOfMedia - the media has played to the end.
-    \o InvalidMedia - the media cannot be played.
-    \o UnknownStatus - the status of the media is unknown.
+    \li NoMedia - no media has been set.
+    \li Loading - the media is currently being loaded.
+    \li Loaded - the media has been loaded.
+    \li Buffering - the media is buffering data.
+    \li Stalled - playback has been interrupted while the media is buffering data.
+    \li Buffered - the media has buffered data.
+    \li EndOfMedia - the media has played to the end.
+    \li InvalidMedia - the media cannot be played.
+    \li UnknownStatus - the status of the media is unknown.
     \endlist
 */
 
@@ -280,9 +280,9 @@ QDeclarativeAudio::Status QDeclarativeAudio::status() const
     This property holds the state of media playback. It can be one of:
 
     \list
-    \o PlayingState - the media is currently playing.
-    \o PausedState - playback of the media has been suspended.
-    \o StoppedState - playback of the media is yet to begin.
+    \li PlayingState - the media is currently playing.
+    \li PausedState - playback of the media has been suspended.
+    \li StoppedState - playback of the media is yet to begin.
     \endlist
 */
 
@@ -376,12 +376,12 @@ bool QDeclarativeAudio::hasVideo() const
     This property holds the error state of the audio.  It can be one of:
 
     \list
-    \o NoError - there is no current error.
-    \o ResourceError - the audio cannot be played due to a problem allocating resources.
-    \o FormatError - the audio format is not supported.
-    \o NetworkError - the audio cannot be played due to network issues.
-    \o AccessDenied - the audio cannot be played due to insufficient permissions.
-    \o ServiceMissing -  the audio cannot be played because the media service could not be
+    \li NoError - there is no current error.
+    \li ResourceError - the audio cannot be played due to a problem allocating resources.
+    \li FormatError - the audio format is not supported.
+    \li NetworkError - the audio cannot be played due to network issues.
+    \li AccessDenied - the audio cannot be played due to insufficient permissions.
+    \li ServiceMissing -  the audio cannot be played because the media service could not be
     instantiated.
     \endlist
 */

@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia_qml
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     In many cases the torch hardware is shared with camera flash functionality,
     and might be automatically controlled by the device.  You have control over

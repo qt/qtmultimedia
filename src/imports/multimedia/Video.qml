@@ -95,10 +95,10 @@ Item {
         area.
 
         \list
-        \o VideoOutput.Stretch - the video is scaled to fit
-        \o VideoOutput.PreserveAspectFit - the video is scaled uniformly to fit without
+        \li VideoOutput.Stretch - the video is scaled to fit
+        \li VideoOutput.PreserveAspectFit - the video is scaled uniformly to fit without
             cropping
-        \o VideoOuput.PreserveAspectCrop - the video is scaled uniformly to fill, cropping
+        \li VideoOuput.PreserveAspectCrop - the video is scaled uniformly to fill, cropping
             if necessary
         \endlist
 
@@ -127,9 +127,9 @@ Item {
         This read only property indicates the playback state of the media.
 
         \list
-        \o MediaPlayer.PlayingState - the media is playing
-        \o MediaPlayer.PausedState - the media is paused
-        \o MediaPlayer.StoppedState - the media is stopped
+        \li MediaPlayer.PlayingState - the media is playing
+        \li MediaPlayer.PausedState - the media is paused
+        \li MediaPlayer.StoppedState - the media is stopped
         \endlist
 
         The default state is MediaPlayer.StoppedState.
@@ -171,14 +171,14 @@ Item {
         This property holds the error state of the video.  It can be one of:
 
         \list
-        \o NoError - there is no current error.
-        \o ResourceError - the video cannot be played due to a problem
+        \li NoError - there is no current error.
+        \li ResourceError - the video cannot be played due to a problem
             allocating resources.
-        \o FormatError - the video format is not supported.
-        \o NetworkError - the video cannot be played due to network issues.
-        \o AccessDenied - the video cannot be played due to insufficient
+        \li FormatError - the video format is not supported.
+        \li NetworkError - the video cannot be played due to network issues.
+        \li AccessDenied - the video cannot be played due to insufficient
             permissions.
-        \o ServiceMissing -  the video cannot be played because the media
+        \li ServiceMissing -  the video cannot be played because the media
             service could not be
         instantiated.
         \endlist
@@ -252,15 +252,15 @@ Item {
         This property holds the status of media loading. It can be one of:
 
         \list
-        \o NoMedia - no media has been set.
-        \o Loading - the media is currently being loaded.
-        \o Loaded - the media has been loaded.
-        \o Buffering - the media is buffering data.
-        \o Stalled - playback has been interrupted while the media is buffering data.
-        \o Buffered - the media has buffered data.
-        \o EndOfMedia - the media has played to the end.
-        \o InvalidMedia - the media cannot be played.
-        \o UnknownStatus - the status of the media cannot be determined.
+        \li NoMedia - no media has been set.
+        \li Loading - the media is currently being loaded.
+        \li Loaded - the media has been loaded.
+        \li Buffering - the media is buffering data.
+        \li Stalled - playback has been interrupted while the media is buffering data.
+        \li Buffered - the media has buffered data.
+        \li EndOfMedia - the media has played to the end.
+        \li InvalidMedia - the media cannot be played.
+        \li UnknownStatus - the status of the media cannot be determined.
         \endlist
     */
     property alias status:          player.status

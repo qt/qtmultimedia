@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \inherits Item
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     The \c RadioData element is your gateway to all the data available through RDS. RDS is the Radio Data System
     which allows radio stations to broadcast information like the \l stationId, \l programType, \l programTypeName,
@@ -148,55 +148,55 @@ QString QDeclarativeRadioData::stationId() const
     table below.
 
     \table
-    \header \o Value
-        \row \o Undefined
-        \row \o News
-        \row \o CurrentAffairs
-        \row \o Information
-        \row \o Sport
-        \row \o Education
-        \row \o Drama
-        \row \o Culture
-        \row \o Science
-        \row \o Varied
-        \row \o PopMusic
-        \row \o RockMusic
-        \row \o EasyListening
-        \row \o LightClassical
-        \row \o SeriousClassical
-        \row \o OtherMusic
-        \row \o Weather
-        \row \o Finance
-        \row \o ChildrensProgrammes
-        \row \o SocialAffairs
-        \row \o Religion
-        \row \o PhoneIn
-        \row \o Travel
-        \row \o Leisure
-        \row \o JazzMusic
-        \row \o CountryMusic
-        \row \o NationalMusic
-        \row \o OldiesMusic
-        \row \o FolkMusic
-        \row \o Documentary
-        \row \o AlarmTest
-        \row \o Alarm
-        \row \o Talk
-        \row \o ClassicRock
-        \row \o AdultHits
-        \row \o SoftRock
-        \row \o Top40
-        \row \o Soft
-        \row \o Nostalgia
-        \row \o Classical
-        \row \o RhythmAndBlues
-        \row \o SoftRhythmAndBlues
-        \row \o Language
-        \row \o ReligiousMusic
-        \row \o ReligiousTalk
-        \row \o Personality
-        \row \o Public
-        \row \o College
+    \header \li Value
+        \row \li Undefined
+        \row \li News
+        \row \li CurrentAffairs
+        \row \li Information
+        \row \li Sport
+        \row \li Education
+        \row \li Drama
+        \row \li Culture
+        \row \li Science
+        \row \li Varied
+        \row \li PopMusic
+        \row \li RockMusic
+        \row \li EasyListening
+        \row \li LightClassical
+        \row \li SeriousClassical
+        \row \li OtherMusic
+        \row \li Weather
+        \row \li Finance
+        \row \li ChildrensProgrammes
+        \row \li SocialAffairs
+        \row \li Religion
+        \row \li PhoneIn
+        \row \li Travel
+        \row \li Leisure
+        \row \li JazzMusic
+        \row \li CountryMusic
+        \row \li NationalMusic
+        \row \li OldiesMusic
+        \row \li FolkMusic
+        \row \li Documentary
+        \row \li AlarmTest
+        \row \li Alarm
+        \row \li Talk
+        \row \li ClassicRock
+        \row \li AdultHits
+        \row \li SoftRock
+        \row \li Top40
+        \row \li Soft
+        \row \li Nostalgia
+        \row \li Classical
+        \row \li RhythmAndBlues
+        \row \li SoftRhythmAndBlues
+        \row \li Language
+        \row \li ReligiousMusic
+        \row \li ReligiousTalk
+        \row \li Personality
+        \row \li Public
+        \row \li College
 
     \endtable
   */

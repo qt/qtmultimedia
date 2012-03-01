@@ -59,7 +59,7 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This element is part of the \bold{QtAudioEngine 1.0} module.
+    This element is part of the \b{QtAudioEngine 1.0} module.
 
     There are two ways to create SoundInstance objects. You can obtain it by calling newInstance
     method of Sound element:
@@ -298,9 +298,9 @@ void QDeclarativeSoundInstance::dropInstance()
     This property holds the current playback state. It can be one of:
 
     \list
-    \o StopppedState
-    \o PlayingState
-    \o PausedState
+    \li StopppedState
+    \li PlayingState
+    \li PausedState
     \endlist
 */
 QDeclarativeSoundInstance::State QDeclarativeSoundInstance::state() const

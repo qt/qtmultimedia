@@ -120,14 +120,14 @@ In this application, the usage of the \l{ShaderEffect} and \l{VideoOutput}
 elements is a bit more complicated, for the following reasons:
 
 \list
-    \o Each effect can be applied to either a \l{VideoOutput} or an
+    \li Each effect can be applied to either a \l{VideoOutput} or an
        \l{Image} item, so the type of the source item must be abstracted away
        from the effect implementation
-    \o For some effects (such as the edge detection and glow examples shown in
+    \li For some effects (such as the edge detection and glow examples shown in
        the screenshots above), the transformation is applied only to pixels to
        the left of a dividing line - this allows the effect to be easily
        compared with the untransformed image on the right
-    \o Most effects have one or more parameters which can be modified by the
+    \li Most effects have one or more parameters which can be modified by the
        user - these are controlled by sliders in the UI which are connected
        to uniform values passed into the GLSL code
 \endlist

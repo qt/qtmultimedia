@@ -147,7 +147,7 @@ void QDeclarativeSoundCone::componentComplete()
     \inherits Item
     \preliminary
 
-    This element is part of the \bold{QtAudioEngine 1.0} module.
+    This element is part of the \b{QtAudioEngine 1.0} module.
 
     Sound element can be accessed through QtAudioEngine1::AudioEngine::sounds with its unique name
     and must be defined inside AudioEngine.
@@ -232,8 +232,8 @@ void QDeclarativeSound::componentComplete()
     This property holds the playType.  It can be one of:
 
     \list
-    \o Random - randomly picks up a play variation when playback is triggered
-    \o Sequential - plays each variation in sequence when playback is triggered
+    \li Random - randomly picks up a play variation when playback is triggered
+    \li Sequential - plays each variation in sequence when playback is triggered
     \endlist
 
     The default value is Random.

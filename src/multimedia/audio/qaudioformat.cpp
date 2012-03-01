@@ -122,26 +122,26 @@ public:
 
     \table
         \header
-            \o Parameter
-            \o Description
+            \li Parameter
+            \li Description
         \row
-            \o Sample Rate
-            \o Samples per second of audio data in Hertz.
+            \li Sample Rate
+            \li Samples per second of audio data in Hertz.
         \row
-            \o Number of channels
-            \o The number of audio channels (typically one for mono
+            \li Number of channels
+            \li The number of audio channels (typically one for mono
                or two for stereo)
         \row
-            \o Sample size
-            \o How much data is stored in each sample (typically 8
+            \li Sample size
+            \li How much data is stored in each sample (typically 8
                or 16 bits)
         \row
-            \o Sample type
-            \o Numerical representation of sample (typically signed integer,
+            \li Sample type
+            \li Numerical representation of sample (typically signed integer,
                unsigned integer or float)
         \row
-            \o Byte order
-            \o Byte ordering of sample (typically little endian, big endian)
+            \li Byte order
+            \li Byte ordering of sample (typically little endian, big endian)
     \endtable
 
     This class is typically used in conjunction with QAudioInput or
@@ -161,11 +161,11 @@ public:
 
     Values are initialized as follows:
     \list
-    \o sampleRate()  = -1
-    \o channelCount() = -1
-    \o sampleSize() = -1
-    \o byteOrder()  = QAudioFormat::Endian(QSysInfo::ByteOrder)
-    \o sampleType() = QAudioFormat::Unknown
+    \li sampleRate()  = -1
+    \li channelCount() = -1
+    \li sampleSize() = -1
+    \li byteOrder()  = QAudioFormat::Endian(QSysInfo::ByteOrder)
+    \li sampleType() = QAudioFormat::Unknown
     \c codec()      = ""
     \endlist
 */

@@ -55,11 +55,11 @@ Basically, the idea is that to use the Multimedia API you would use these
 three classes or classes derived from them as follows
 
     \list
-    \o \l QMediaServiceProvider is used by the top level client class to request a service. The top level class knowing what kind of service it needs.
+    \li \l QMediaServiceProvider is used by the top level client class to request a service. The top level class knowing what kind of service it needs.
 
-    \o \l QMediaService provides a service and when asked by the top level object, say a component, will return a QMediaControl object.
+    \li \l QMediaService provides a service and when asked by the top level object, say a component, will return a QMediaControl object.
 
-    \o \l QMediaControl allows the control of the service using a known interface.
+    \li \l QMediaControl allows the control of the service using a known interface.
     \endlist
 
 Consider a developer creating, for example, a media player class called MyPlayer.

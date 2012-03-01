@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    This element is part of the \bold{QtMultimedia 5.0} module.
+    This element is part of the \b{QtMultimedia 5.0} module.
 
     The CameraFocus element allows control over manual and automatic
     focus settings, including information about any parts of the
@@ -207,10 +207,10 @@ void QDeclarativeCameraFocus::setCustomFocusPoint(const QPointF &point)
   and zone \c status as one of the following values:
 
     \table
-    \header \o Value \o Description
-    \row \o Camera.FocusAreaUnused  \o This focus point area is currently unused in autofocusing.
-    \row \o Camera.FocusAreaSelected    \o This focus point area is used in autofocusing, but is not in focus.
-    \row \o Camera.FocusAreaFocused  \o This focus point is used in autofocusing, and is in focus.
+    \header \li Value \li Description
+    \row \li Camera.FocusAreaUnused  \li This focus point area is currently unused in autofocusing.
+    \row \li Camera.FocusAreaSelected    \li This focus point area is used in autofocusing, but is not in focus.
+    \row \li Camera.FocusAreaFocused  \li This focus point is used in autofocusing, and is in focus.
     \endtable
 
 
