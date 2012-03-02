@@ -70,8 +70,7 @@ public:
         LowLatencyPlayback = 0x01,
         RecordingSupport = 0x02,
         StreamPlayback = 0x04,
-        VideoSurface = 0x08,
-        BackgroundPlayback = 0x10,
+        VideoSurface = 0x08
     };
     Q_DECLARE_FLAGS(Features, Feature)
 
@@ -176,13 +175,6 @@ public:
                         Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
 */
 #define Q_MEDIASERVICE_MEDIAPLAYER "com.nokia.qt.mediaplayer"
-
-/*!
-    Service with support for background media playback
-    Required Controls: QMediaPlayerControl, QMediaBackgroundPlaybackControl
-    Optional Controls: QMediaPlaylistControl, QAudioDeviceControl
-*/
-#define Q_MEDIASERVICE_BACKGROUNDMEDIAPLAYER "com.nokia.qt.backgroundmediaplayer"
 
 /*!
    Service with support for recording from audio sources

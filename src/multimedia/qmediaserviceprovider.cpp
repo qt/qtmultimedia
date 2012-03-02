@@ -114,9 +114,6 @@ public:
     \value VideoSurface
             The service is capable of renderering to a QAbstractVideoSurface
             output.
-
-    \value BackgroundPlayback
-            The service is capable of doing playback in the background
 */
 
 /*!

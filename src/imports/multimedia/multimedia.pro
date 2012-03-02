@@ -19,7 +19,6 @@ HEADERS += \
         qsgvideonode_rgb.h \
         qdeclarativeradio_p.h \
         qdeclarativeradiodata_p.h \
-        qdeclarativebackgroundaudio_p.h \
         qdeclarativecamera_p.h \
         qdeclarativecameracapture_p.h \
         qdeclarativecamerarecorder_p.h \
@@ -41,7 +40,6 @@ SOURCES += \
         qsgvideonode_rgb.cpp \
         qdeclarativeradio.cpp \
         qdeclarativeradiodata.cpp \
-        qdeclarativebackgroundaudio.cpp \
         qdeclarativecamera.cpp \
         qdeclarativecameracapture.cpp \
         qdeclarativecamerarecorder.cpp \

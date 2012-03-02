@@ -51,7 +51,6 @@
 #include "qdeclarativevideooutput_p.h"
 #include "qdeclarativeradio_p.h"
 #include "qdeclarativeradiodata_p.h"
-#include "qdeclarativebackgroundaudio_p.h"
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
 #include "qdeclarativecameraexposure_p.h"
@@ -59,7 +58,6 @@
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
 #include "qdeclarativetorch_p.h"
-
 
 QML_DECLARE_TYPE(QSoundEffect)
 
@@ -80,7 +78,6 @@ public:
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
         qmlRegisterType<QDeclarativeRadio>(uri, 4, 0, "Radio");
         qmlRegisterType<QDeclarativeRadioData>(uri, 4, 0, "RadioData");
-        qmlRegisterType<QDeclarativeBackgroundAudio>(uri, 4, 0, "BackgroundAudio");
         qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 4, 0, "CameraCapture",
                                 trUtf8("CameraCapture is only provided by Camera element"));
@@ -103,7 +100,6 @@ public:
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 5, 0, "VideoOutput");
         qmlRegisterType<QDeclarativeRadio>(uri, 5, 0, "Radio");
         qmlRegisterType<QDeclarativeRadioData>(uri, 5, 0, "RadioData");
-        qmlRegisterType<QDeclarativeBackgroundAudio>(uri, 5, 0, "BackgroundAudio");
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
         qmlRegisterType<QDeclarativeTorch>(uri, 5, 0, "Torch");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
