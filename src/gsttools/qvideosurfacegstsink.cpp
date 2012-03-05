@@ -78,7 +78,7 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
             }
         }
 #ifdef HAVE_XVIDEO
-        m_pools.append(new QGstXvImageBufferPool());
+        m_pools.append(new QGstXvImageBufferPool(this));
 #endif
         updateSupportedFormats();
         connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(updateSupportedFormats()));
@@ -87,7 +87,6 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
 
 QVideoSurfaceGstDelegate::~QVideoSurfaceGstDelegate()
 {
-    qDeleteAll(m_pools);
     setLastPrerolledBuffer(0);
 }
 
@@ -502,6 +501,11 @@ void QVideoSurfaceGstSink::finalize(GObject *object)
     if (sink->lastRequestedCaps)
         gst_caps_unref(sink->lastRequestedCaps);
     sink->lastRequestedCaps = 0;
+
+    delete sink->delegate;
+
+    // Chain up
+    G_OBJECT_CLASS(sink_parent_class)->finalize(object);
 }
 
 GstStateChangeReturn QVideoSurfaceGstSink::change_state(
