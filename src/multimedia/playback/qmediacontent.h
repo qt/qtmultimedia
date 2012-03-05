@@ -49,13 +49,13 @@
 
 #include <qtmultimediadefs.h>
 
-
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+class QMediaPlaylist;
 
 class QMediaContentPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaContent
@@ -67,6 +67,7 @@ public:
     QMediaContent(const QMediaResource &contentResource);
     QMediaContent(const QMediaResourceList &resources);
     QMediaContent(const QMediaContent &other);
+    QMediaContent(QMediaPlaylist *playlist, const QUrl &contentUrl = QUrl(), bool takeOwnership = false);
     ~QMediaContent();
 
     QMediaContent& operator=(const QMediaContent &other);
@@ -82,6 +83,7 @@ public:
 
     QMediaResourceList resources() const;
 
+    QMediaPlaylist *playlist() const;
 private:
     QSharedDataPointer<QMediaContentPrivate> d;
 };

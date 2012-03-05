@@ -41,7 +41,9 @@
 
 #include <QtCore/qurl.h>
 #include <QtCore/qvariant.h>
+#include <QtCore/QWeakPointer>
 
+#include <qmediaplaylist.h>
 #include "qmediacontent.h"
 
 QT_BEGIN_NAMESPACE
@@ -62,21 +64,44 @@ namespace
 class QMediaContentPrivate : public QSharedData
 {
 public:
-    QMediaContentPrivate() {}
+    QMediaContentPrivate():
+        isPlaylistOwned(false)
+    {}
+
     QMediaContentPrivate(const QMediaResourceList &r):
-        resources(r) {}
+        resources(r),
+        isPlaylistOwned(false)
+    {}
 
     QMediaContentPrivate(const QMediaContentPrivate &other):
         QSharedData(other),
-        resources(other.resources)
+        resources(other.resources),
+        playlist(other.playlist),
+        isPlaylistOwned(false)
     {}
+
+    QMediaContentPrivate(QMediaPlaylist *pls, const QUrl &url, bool isOwn):
+        playlist(pls),
+        isPlaylistOwned(isOwn)
+    {
+        resources << QMediaResource(url);
+    }
+
+    ~QMediaContentPrivate()
+    {
+        if (isPlaylistOwned && !playlist.isNull())
+            playlist.data()->deleteLater();
+    }
 
     bool operator ==(const QMediaContentPrivate &other) const
     {
-        return resources == other.resources;
+        return resources == other.resources && playlist == other.playlist;
     }
 
-    QMediaResourceList  resources;
+    QMediaResourceList resources;
+
+    QWeakPointer<QMediaPlaylist> playlist;
+    bool isPlaylistOwned;
 private:
     QMediaContentPrivate& operator=(const QMediaContentPrivate &other);
 };
@@ -99,6 +124,10 @@ private:
     A non-null QMediaContent will always have a primary or canonical reference to
     the content available through the canonicalUrl() or canonicalResource()
     methods, any additional resources are optional.
+
+    Alternatively QMediaContent can represent a playlist and contain a pointer to a
+    valid QMediaPlaylist object. In this case URL is optional and can either be empty
+    or point to the playlist URL.
 */
 
 
@@ -158,6 +187,20 @@ QMediaContent::QMediaContent(const QMediaResourceList &resources):
 
 QMediaContent::QMediaContent(const QMediaContent &other):
     d(other.d)
+{
+}
+
+/*!
+    Constructs a media content with \a playlist.
+
+    \a contentUrl of a playlist is an optional parameter and can be empty.
+
+    Set \a takeOwnership to true if you want QMediaContent to take ownership of the playlist.
+    \a takeOwnership is set to false by default.
+*/
+
+QMediaContent::QMediaContent(QMediaPlaylist *playlist, const QUrl &contentUrl, bool takeOwnership):
+    d(new QMediaContentPrivate(playlist, contentUrl, takeOwnership))
 {
 }
 
@@ -247,6 +290,17 @@ QMediaResourceList QMediaContent::resources() const
     return d.constData() != 0
             ? d->resources
             : QMediaResourceList();
+}
+
+/*!
+    Returns a playlist for this media content or 0 if this QMediaContent is not a playlist.
+*/
+
+QMediaPlaylist *QMediaContent::playlist() const
+{
+    return d.constData() != 0
+            ? d->playlist.data()
+            : 0;
 }
 
 QT_END_NAMESPACE

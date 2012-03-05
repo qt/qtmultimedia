@@ -43,6 +43,7 @@
 #include <QtNetwork/qnetworkrequest.h>
 
 #include <qmediacontent.h>
+#include <qmediaplaylist.h>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -61,6 +62,7 @@ private slots:
     void testAssignment();
     void testEquality();
     void testResources();
+    void testPlaylist();
 };
 
 void tst_QMediaContent::testNull()
@@ -170,6 +172,42 @@ void tst_QMediaContent::testResources()
     QCOMPARE(res.size(), 2);
     QCOMPARE(res[0], QMediaResource(QUrl("http://example.com/movie-main.mov")));
     QCOMPARE(res[1], QMediaResource(QUrl("http://example.com/movie-big.mov")));
+}
+
+void tst_QMediaContent::testPlaylist()
+{
+    QMediaContent media(QUrl("http://example.com/movie.mov"));
+    QVERIFY(media.canonicalUrl().isValid());
+    QVERIFY(!media.playlist());
+
+    {
+        QWeakPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
+        media = QMediaContent(playlist.data(), QUrl("http://example.com/sample.m3u"), true);
+        QVERIFY(media.canonicalUrl().isValid());
+        QCOMPARE(media.playlist(), playlist.data());
+        media = QMediaContent();
+        // Make sure playlist is destroyed by QMediaContent
+        QTRY_VERIFY(!playlist);
+    }
+
+    {
+        QMediaPlaylist *playlist = new QMediaPlaylist;
+        media = QMediaContent(playlist, QUrl("http://example.com/sample.m3u"), true);
+        // Delete playlist outside QMediaContent
+        delete playlist;
+        QVERIFY(!media.playlist());
+        media = QMediaContent();
+    }
+
+    {
+        QWeakPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
+        media = QMediaContent(playlist.data(), QUrl(), false);
+        QVERIFY(!media.canonicalUrl().isValid());
+        QCOMPARE(media.playlist(), playlist.data());
+        media = QMediaContent();
+        QVERIFY(playlist);
+        delete playlist.data();
+    }
 }
 
 QTEST_MAIN(tst_QMediaContent)
