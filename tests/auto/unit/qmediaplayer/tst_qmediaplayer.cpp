@@ -891,6 +891,8 @@ void tst_QMediaPlayer::testPlaylist()
         QCOMPARE(player->media(), content2);
     }
 
+    delete playlist;
+    delete playlist2;
 }
 
 void tst_QMediaPlayer::testPlayerFlags()
@@ -1081,6 +1083,8 @@ void tst_QMediaPlayer::testPositionPropertyWatch()
 
     positionSpy.clear();
     QTRY_COMPARE(positionSpy.count(), 0);
+
+    delete playlist;
 }
 
 void tst_QMediaPlayer::debugEnums()

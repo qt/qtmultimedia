@@ -216,6 +216,8 @@ QCameraExposure::~QCameraExposure()
     Q_D(QCameraExposure);
     if (d->exposureControl)
         d->camera->service()->releaseControl(d->exposureControl);
+
+    delete d;
 }
 
 /*!

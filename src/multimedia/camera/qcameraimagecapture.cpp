@@ -178,6 +178,8 @@ QCameraImageCapture::~QCameraImageCapture()
 
     if (d->mediaObject)
         d->mediaObject->unbind(this);
+
+    delete d_ptr;
 }
 
 /*!

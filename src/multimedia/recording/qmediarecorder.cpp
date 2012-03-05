@@ -101,6 +101,7 @@ QMediaRecorderPrivate::QMediaRecorderPrivate():
      videoControl(0),
      metaDataControl(0),
      availabilityControl(0),
+     settingsChanged(false),
      notifyTimer(0),
      state(QMediaRecorder::StoppedState),
      error(QMediaRecorder::NoError)
@@ -146,6 +147,7 @@ void QMediaRecorderPrivate::_q_serviceDestroyed()
     videoControl = 0;
     metaDataControl = 0;
     availabilityControl = 0;
+    settingsChanged = true;
 }
 
 void QMediaRecorderPrivate::_q_updateActualLocation(const QUrl &location)
@@ -249,6 +251,7 @@ QMediaRecorder::QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObj
 
 QMediaRecorder::~QMediaRecorder()
 {
+    delete d_ptr;
 }
 
 /*!

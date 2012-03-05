@@ -394,6 +394,7 @@ QCameraFocus::QCameraFocus(QCamera *camera):
 
 QCameraFocus::~QCameraFocus()
 {
+    delete d_ptr;
 }
 
 /*!

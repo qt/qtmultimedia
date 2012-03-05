@@ -162,6 +162,7 @@ QCameraImageProcessing::QCameraImageProcessing(QCamera *camera):
 
 QCameraImageProcessing::~QCameraImageProcessing()
 {
+    delete d_ptr;
 }
 
 

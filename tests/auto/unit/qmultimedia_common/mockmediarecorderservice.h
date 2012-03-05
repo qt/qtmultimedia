@@ -62,11 +62,11 @@ public:
         mockAvailabilityControl(availability),
         hasControls(true)
     {
-        mockAudioEndpointSelector = new MockAudioEndpointSelector(parent);
-        mockAudioEncoderControl = new MockAudioEncoderControl(parent);
-        mockFormatControl = new MockMediaContainerControl(parent);
-        mockVideoEncoderControl = new MockVideoEncoderControl(parent);
-        mockMetaDataControl = new MockMetaDataWriterControl(parent);
+        mockAudioEndpointSelector = new MockAudioEndpointSelector(this);
+        mockAudioEncoderControl = new MockAudioEncoderControl(this);
+        mockFormatControl = new MockMediaContainerControl(this);
+        mockVideoEncoderControl = new MockVideoEncoderControl(this);
+        mockMetaDataControl = new MockMetaDataWriterControl(this);
     }
 
     QMediaControl* requestControl(const char *name)
