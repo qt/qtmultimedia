@@ -47,6 +47,7 @@
 #include "qgstreamervideorendererinterface.h"
 #include "gstvideoconnector.h"
 #include <private/qgstutils_p.h>
+#include <private/playlistfileparser_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>
@@ -113,8 +114,12 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_displayPrerolledFrame(true),
      m_sourceType(UnknownSrc),
      m_everPlayed(false),
-     m_isLiveSource(false)
+     m_isLiveSource(false),
+     m_isPlaylist(false)
 {
+    gboolean result = gst_type_find_register(0, "playlist", GST_RANK_MARGINAL, playlistTypeFindFunction, 0, 0, this, 0);
+    Q_ASSERT(result == TRUE);
+
 #ifdef USE_PLAYBIN2
     m_playbin = gst_element_factory_make("playbin2", NULL);
 #endif
@@ -236,6 +241,7 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
     m_duration = -1;
     m_lastPosition = 0;
     m_haveQueueElement = false;
+    m_isPlaylist = false;
 
     if (m_appSrc)
         m_appSrc->deleteLater();
@@ -268,6 +274,7 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     m_duration = -1;
     m_lastPosition = 0;
     m_haveQueueElement = false;
+    m_isPlaylist = false;
 
     if (m_playbin) {
         m_tags.clear();
@@ -794,10 +801,13 @@ bool QGstreamerPlayerSession::play()
     if (m_playbin) {
         m_pendingState = QMediaPlayer::PlayingState;
         if (gst_element_set_state(m_playbin, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
-            qWarning() << "GStreamer; Unable to play -" << m_request.url().toString();
-            m_pendingState = m_state = QMediaPlayer::StoppedState;
-
-            emit stateChanged(m_state);
+            if (!m_isPlaylist) {
+                qWarning() << "GStreamer; Unable to play -" << m_request.url().toString();
+                m_pendingState = m_state = QMediaPlayer::StoppedState;
+                emit stateChanged(m_state);
+            } else {
+                return true;
+            }
         } else {
             resumeVideoProbes();
             return true;
@@ -818,10 +828,13 @@ bool QGstreamerPlayerSession::pause()
             return true;
 
         if (gst_element_set_state(m_playbin, GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE) {
-            qWarning() << "GStreamer; Unable to pause -" << m_request.url().toString();
-            m_pendingState = m_state = QMediaPlayer::StoppedState;
-
-            emit stateChanged(m_state);
+            if (!m_isPlaylist) {
+                qWarning() << "GStreamer; Unable to pause -" << m_request.url().toString();
+                m_pendingState = m_state = QMediaPlayer::StoppedState;
+                emit stateChanged(m_state);
+            } else {
+                return true;
+            }
         } else {
             resumeVideoProbes();
             return true;
@@ -1199,13 +1212,20 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
                 gst_message_parse_warning(gm, &err, &debug);
                 if (err->domain == GST_STREAM_ERROR && err->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
                     emit error(int(QMediaPlayer::FormatError), tr("Cannot play stream of type: <unknown>"));
-                qWarning() << "Warning:" << QString::fromUtf8(err->message);
+                // GStreamer shows warning for HTTP playlists
+                if (!m_isPlaylist)
+                    qWarning() << "Warning:" << QString::fromUtf8(err->message);
                 g_error_free(err);
                 g_free(debug);
             } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ERROR) {
                 GError *err;
                 gchar *debug;
                 gst_message_parse_error(gm, &err, &debug);
+
+                // remember playlist value,
+                // it could be set to false after call to processInvalidMedia
+                bool isPlaylist = m_isPlaylist;
+
                 // Nearly all errors map to ResourceError
                 QMediaPlayer::Error qerror = QMediaPlayer::ResourceError;
                 if (err->domain == GST_STREAM_ERROR
@@ -1214,7 +1234,9 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
                     qerror = QMediaPlayer::AccessDeniedError;
                 }
                 processInvalidMedia(qerror, QString::fromUtf8(err->message));
-                qWarning() << "Error:" << QString::fromUtf8(err->message);
+                if (!isPlaylist)
+                    qWarning() << "Error:" << QString::fromUtf8(err->message);
+
                 g_error_free(err);
                 g_free(debug);
             }
@@ -1640,9 +1662,14 @@ void QGstreamerPlayerSession::processInvalidMedia(QMediaPlayer::Error errorCode,
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
 #endif
-    emit invalidMedia();
-    stop();
-    emit error(int(errorCode), errorString);
+    if (m_isPlaylist) {
+        stop();
+        emit error(int(QMediaPlayer::MediaIsPlaylist), tr("Media is loaded as a playlist"));
+    } else {
+        emit invalidMedia();
+        stop();
+        emit error(int(errorCode), errorString);
+    }
 }
 
 void QGstreamerPlayerSession::showPrerollFrames(bool enabled)
@@ -1793,6 +1820,30 @@ void QGstreamerPlayerSession::resumeVideoProbes()
     QMutexLocker locker(&m_videoProbeMutex);
     foreach (QGstreamerVideoProbeControl* probe, m_videoProbes)
         probe->stopFlushing();
+}
+
+void QGstreamerPlayerSession::playlistTypeFindFunction(GstTypeFind *find, gpointer userData)
+{
+    QGstreamerPlayerSession* session = (QGstreamerPlayerSession*)userData;
+
+    const gchar *uri = 0;
+    g_object_get(G_OBJECT(session->m_playbin), "uri", &uri, NULL);
+
+    guint64 length = gst_type_find_get_length(find);
+    if (!length)
+        length = 1024;
+    else
+        length = qMin(length, guint64(1024));
+
+    while (length > 0) {
+        guint8 *data = gst_type_find_peek(find, 0, length);
+        if (data) {
+            session->m_isPlaylist = (QPlaylistFileParser::findPlaylistType(QString::fromUtf8(uri), 0, data, length) != QPlaylistFileParser::UNKNOWN);
+            return;
+        }
+        length >>= 1; // for HTTP files length is not available,
+                      // so we have to try different buffer sizes
+    }
 }
 
 QT_END_NAMESPACE

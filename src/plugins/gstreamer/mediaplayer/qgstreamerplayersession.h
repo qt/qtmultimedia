@@ -188,6 +188,8 @@ private:
     void flushVideoProbes();
     void resumeVideoProbes();
 
+    static void playlistTypeFindFunction(GstTypeFind *find, gpointer userData);
+
     QNetworkRequest m_request;
     QMediaPlayer::State m_state;
     QMediaPlayer::State m_pendingState;
@@ -252,6 +254,8 @@ private:
     SourceType m_sourceType;
     bool m_everPlayed;
     bool m_isLiveSource;
+
+    bool m_isPlaylist;
 };
 
 QT_END_NAMESPACE
