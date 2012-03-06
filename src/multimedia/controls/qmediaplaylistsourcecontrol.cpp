@@ -40,13 +40,15 @@
 ****************************************************************************/
 
 
-#include "qmediaplaylistsourcecontrol.h"
+#include "qmediaplaylistsourcecontrol_p.h"
 #include "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaPlaylistSourceControl
+    \internal
+
     \inmodule QtMultimedia
 
     \ingroup multimedia
@@ -121,6 +123,6 @@ QMediaPlaylistSourceControl::~QMediaPlaylistSourceControl()
   Signal emitted when the playlist has changed to \a playlist.
 */
 
-#include "moc_qmediaplaylistsourcecontrol.cpp"
+#include "moc_qmediaplaylistsourcecontrol_p.cpp"
 QT_END_NAMESPACE
 

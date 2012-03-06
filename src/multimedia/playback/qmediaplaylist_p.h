@@ -54,10 +54,10 @@
 //
 
 #include "qmediaplaylist.h"
-#include "qmediaplaylistcontrol.h"
+#include "qmediaplaylistcontrol_p.h"
 #include "qmediaplayer.h"
 #include "qmediaplayercontrol.h"
-#include "qlocalmediaplaylistprovider.h"
+#include "qlocalmediaplaylistprovider_p.h"
 #include "qmediaobject_p.h"
 
 #include <QtCore/qdebug.h>

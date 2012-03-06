@@ -39,13 +39,25 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAPLAYLISTPROVIDER_H
-#define QMEDIAPLAYLISTPROVIDER_H
 
-#include <QObject>
+#ifndef QMEDIAPLAYLISTCONTROL_P_H
+#define QMEDIAPLAYLISTCONTROL_P_H
 
-#include "qmediacontent.h"
-#include "qmediaplaylist.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtCore/qobject.h>
+#include "qmediacontrol.h"
+#include <private/qmediaplaylistnavigator_p.h>
+
 
 QT_BEGIN_HEADER
 
@@ -53,63 +65,46 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-class QString;
-QT_END_NAMESPACE
 
-QT_BEGIN_NAMESPACE
+class QMediaPlaylistProvider;
 
-class QMediaPlaylistProviderPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaPlaylistProvider : public QObject
+class Q_MULTIMEDIA_EXPORT QMediaPlaylistControl : public QMediaControl
 {
-Q_OBJECT
+    Q_OBJECT
+
 public:
-    QMediaPlaylistProvider(QObject *parent=0);
-    virtual ~QMediaPlaylistProvider();
+    virtual ~QMediaPlaylistControl();
 
-    virtual bool load(const QUrl &location, const char *format = 0);
-    virtual bool load(QIODevice * device, const char *format = 0);
-    virtual bool save(const QUrl &location, const char *format = 0);
-    virtual bool save(QIODevice * device, const char *format);
+    virtual QMediaPlaylistProvider* playlistProvider() const = 0;
+    virtual bool setPlaylistProvider(QMediaPlaylistProvider *playlist) = 0;
 
-    virtual int mediaCount() const = 0;
-    virtual QMediaContent media(int index) const = 0;
+    virtual int currentIndex() const = 0;
+    virtual void setCurrentIndex(int position) = 0;
+    virtual int nextIndex(int steps) const = 0;
+    virtual int previousIndex(int steps) const = 0;
 
-    virtual bool isReadOnly() const;
+    virtual void next() = 0;
+    virtual void previous() = 0;
 
-    virtual bool addMedia(const QMediaContent &content);
-    virtual bool addMedia(const QList<QMediaContent> &contentList);
-    virtual bool insertMedia(int index, const QMediaContent &content);
-    virtual bool insertMedia(int index, const QList<QMediaContent> &content);
-    virtual bool removeMedia(int pos);
-    virtual bool removeMedia(int start, int end);
-    virtual bool clear();
-
-public Q_SLOTS:
-    virtual void shuffle();
+    virtual QMediaPlaylist::PlaybackMode playbackMode() const = 0;
+    virtual void setPlaybackMode(QMediaPlaylist::PlaybackMode mode) = 0;
 
 Q_SIGNALS:
-    void mediaAboutToBeInserted(int start, int end);
-    void mediaInserted(int start, int end);
-
-    void mediaAboutToBeRemoved(int start, int end);
-    void mediaRemoved(int start, int end);
-
-    void mediaChanged(int start, int end);
-
-    void loaded();
-    void loadFailed(QMediaPlaylist::Error, const QString& errorMessage);
+    void playlistProviderChanged();
+    void currentIndexChanged(int position);
+    void currentMediaChanged(const QMediaContent&);
+    void playbackModeChanged(QMediaPlaylist::PlaybackMode mode);
 
 protected:
-    QMediaPlaylistProviderPrivate *d_ptr;
-    QMediaPlaylistProvider(QMediaPlaylistProviderPrivate &dd, QObject *parent);
-
-private:
-    Q_DECLARE_PRIVATE(QMediaPlaylistProvider)
+    QMediaPlaylistControl(QObject* parent = 0);
 };
+
+#define QMediaPlaylistControl_iid "com.nokia.Qt.QMediaPlaylistControl/1.0"
+Q_MEDIA_DECLARE_CONTROL(QMediaPlaylistControl, QMediaPlaylistControl_iid)
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
 
-#endif // QMEDIAPLAYLISTPROVIDER_H
+#endif // QMEDIAPLAYLISTCONTROL_P_H

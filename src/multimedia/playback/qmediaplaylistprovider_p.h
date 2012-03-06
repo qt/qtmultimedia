@@ -53,6 +53,7 @@
 // We mean it.
 //
 
+#include "qmediacontent.h"
 #include "qmediaplaylist.h"
 
 QT_BEGIN_HEADER
@@ -69,6 +70,54 @@ public:
     {}
     virtual ~QMediaPlaylistProviderPrivate()
     {}
+};
+
+class Q_MULTIMEDIA_EXPORT QMediaPlaylistProvider : public QObject
+{
+Q_OBJECT
+public:
+    QMediaPlaylistProvider(QObject *parent=0);
+    virtual ~QMediaPlaylistProvider();
+
+    virtual bool load(const QUrl &location, const char *format = 0);
+    virtual bool load(QIODevice * device, const char *format = 0);
+    virtual bool save(const QUrl &location, const char *format = 0);
+    virtual bool save(QIODevice * device, const char *format);
+
+    virtual int mediaCount() const = 0;
+    virtual QMediaContent media(int index) const = 0;
+
+    virtual bool isReadOnly() const;
+
+    virtual bool addMedia(const QMediaContent &content);
+    virtual bool addMedia(const QList<QMediaContent> &contentList);
+    virtual bool insertMedia(int index, const QMediaContent &content);
+    virtual bool insertMedia(int index, const QList<QMediaContent> &content);
+    virtual bool removeMedia(int pos);
+    virtual bool removeMedia(int start, int end);
+    virtual bool clear();
+
+public Q_SLOTS:
+    virtual void shuffle();
+
+Q_SIGNALS:
+    void mediaAboutToBeInserted(int start, int end);
+    void mediaInserted(int start, int end);
+
+    void mediaAboutToBeRemoved(int start, int end);
+    void mediaRemoved(int start, int end);
+
+    void mediaChanged(int start, int end);
+
+    void loaded();
+    void loadFailed(QMediaPlaylist::Error, const QString& errorMessage);
+
+protected:
+    QMediaPlaylistProviderPrivate *d_ptr;
+    QMediaPlaylistProvider(QMediaPlaylistProviderPrivate &dd, QObject *parent);
+
+private:
+    Q_DECLARE_PRIVATE(QMediaPlaylistProvider)
 };
 
 QT_END_NAMESPACE

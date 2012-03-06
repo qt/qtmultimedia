@@ -67,7 +67,7 @@
 #include "qgstreameraudioprobecontrol.h"
 #include "qgstreamervideoprobecontrol.h"
 
-#include <qmediaplaylistnavigator.h>
+#include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
 
 QT_BEGIN_NAMESPACE

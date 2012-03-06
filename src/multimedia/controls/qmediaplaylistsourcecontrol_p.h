@@ -39,10 +39,22 @@
 **
 ****************************************************************************/
 
-#ifndef QLOCALMEDIAPAYLISTPROVIDER_H
-#define QLOCALMEDIAPAYLISTPROVIDER_H
 
-#include "qmediaplaylistprovider.h"
+#ifndef QMEDIAPLAYLISTSOURCECONTROL_P_H
+#define QMEDIAPLAYLISTSOURCECONTROL_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <qmediacontrol.h>
 
 QT_BEGIN_HEADER
 
@@ -51,37 +63,31 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Multimedia)
 
 
-class QLocalMediaPlaylistProviderPrivate;
-class Q_MULTIMEDIA_EXPORT QLocalMediaPlaylistProvider : public QMediaPlaylistProvider
+class QMediaPlaylist;
+
+class Q_MULTIMEDIA_EXPORT QMediaPlaylistSourceControl : public QMediaControl
 {
     Q_OBJECT
+
 public:
-    QLocalMediaPlaylistProvider(QObject *parent=0);
-    virtual ~QLocalMediaPlaylistProvider();
+    virtual ~QMediaPlaylistSourceControl();
 
-    virtual int mediaCount() const;
-    virtual QMediaContent media(int pos) const;
+    virtual QMediaPlaylist *playlist() const = 0;
+    virtual void setPlaylist(QMediaPlaylist *) = 0;
 
-    virtual bool isReadOnly() const;
+Q_SIGNALS:
+    void playlistChanged(QMediaPlaylist* playlist);
 
-    virtual bool addMedia(const QMediaContent &content);
-    virtual bool addMedia(const QList<QMediaContent> &items);
-    virtual bool insertMedia(int pos, const QMediaContent &content);
-    virtual bool insertMedia(int pos, const QList<QMediaContent> &items);
-    virtual bool removeMedia(int pos);
-    virtual bool removeMedia(int start, int end);
-    virtual bool clear();
-
-public Q_SLOTS:
-    virtual void shuffle();
-
-private:
-    Q_DECLARE_PRIVATE(QLocalMediaPlaylistProvider)
+protected:
+    QMediaPlaylistSourceControl(QObject* parent = 0);
 };
+
+#define QMediaPlaylistSourceControl_iid "com.nokia.Qt.QMediaPlaylistSourceControl/1.0"
+Q_MEDIA_DECLARE_CONTROL(QMediaPlaylistSourceControl, QMediaPlaylistSourceControl_iid)
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
 
-#endif // QLOCALMEDIAPAYLISTSOURCE_H
+#endif // QMEDIAPLAYLISTCONTROL_P_H

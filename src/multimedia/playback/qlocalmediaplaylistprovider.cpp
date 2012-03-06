@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qlocalmediaplaylistprovider.h"
+#include "qlocalmediaplaylistprovider_p.h"
 #include "qmediaplaylistprovider_p.h"
 #include "qmediacontent.h"
 
@@ -189,6 +189,6 @@ void QLocalMediaPlaylistProvider::shuffle()
 
 }
 
-#include "moc_qlocalmediaplaylistprovider.cpp"
+#include "moc_qlocalmediaplaylistprovider_p.cpp"
 QT_END_NAMESPACE
 

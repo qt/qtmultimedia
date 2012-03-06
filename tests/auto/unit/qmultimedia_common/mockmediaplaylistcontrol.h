@@ -42,8 +42,8 @@
 #ifndef MOCKMEDIAPLAYLISTCONTROL_H
 #define MOCKMEDIAPLAYLISTCONTROL_H
 
-#include "qmediaplaylistcontrol.h"
-#include "qmediaplaylistnavigator.h"
+#include <private/qmediaplaylistcontrol_p.h>
+#include <private/qmediaplaylistnavigator_p.h>
 
 #include "mockreadonlyplaylistprovider.h"
 

@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#include "qmediaplaylistnavigator.h"
-#include "qmediaplaylistprovider.h"
+#include "qmediaplaylistnavigator_p.h"
+#include "qmediaplaylistprovider_p.h"
 #include "qmediaplaylist.h"
 #include "qmediaobject_p.h"
 
@@ -542,6 +542,6 @@ void QMediaPlaylistNavigatorPrivate::_q_mediaChanged(int start, int end)
     Signals that media immediately surrounding the current position has changed.
 */
 
-#include "moc_qmediaplaylistnavigator.cpp"
+#include "moc_qmediaplaylistnavigator_p.cpp"
 QT_END_NAMESPACE
 

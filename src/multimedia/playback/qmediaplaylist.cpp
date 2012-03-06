@@ -41,11 +41,11 @@
 
 #include "qmediaplaylist.h"
 #include "qmediaplaylist_p.h"
-#include "qmediaplaylistprovider.h"
-#include "qlocalmediaplaylistprovider.h"
-#include "qmediaplaylistioplugin.h"
+#include "qmediaplaylistprovider_p.h"
+#include "qlocalmediaplaylistprovider_p.h"
+#include "qmediaplaylistioplugin_p.h"
 #include "qmediaservice.h"
-#include "qmediaplaylistcontrol.h"
+#include "qmediaplaylistcontrol_p.h"
 #include "qmediaplayercontrol.h"
 
 #include <QtCore/qlist.h>

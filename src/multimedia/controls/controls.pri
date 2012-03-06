@@ -20,8 +20,6 @@ PUBLIC_HEADERS += \
     controls/qmediagaplessplaybackcontrol.h \
     controls/qmedianetworkaccesscontrol.h \
     controls/qmediaplayercontrol.h \
-    controls/qmediaplaylistcontrol.h \
-    controls/qmediaplaylistsourcecontrol.h \
     controls/qmediarecordercontrol.h \
     controls/qmediastreamscontrol.h \
     controls/qmetadatareadercontrol.h \
@@ -36,7 +34,9 @@ PUBLIC_HEADERS += \
     controls/qmediaavailabilitycontrol.h
 
 PRIVATE_HEADERS += \
-    controls/qaudiodecodercontrol_p.h
+    controls/qaudiodecodercontrol_p.h \
+    controls/qmediaplaylistcontrol_p.h \
+    controls/qmediaplaylistsourcecontrol_p.h
 
 SOURCES += \
     controls/qaudioencodercontrol.cpp \

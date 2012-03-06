@@ -43,8 +43,8 @@
 
 #include <QtTest/QtTest>
 #include <QDebug>
-#include "qlocalmediaplaylistprovider.h"
-#include "qmediaplaylistnavigator.h"
+#include <private/qlocalmediaplaylistprovider_p.h>
+#include <private/qmediaplaylistnavigator_p.h>
 
 QT_USE_NAMESPACE
 class tst_QMediaPlaylistNavigator : public QObject

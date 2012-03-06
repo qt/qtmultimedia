@@ -49,7 +49,7 @@
 #include "qt7videooutput.h"
 
 #include <QtNetwork/qnetworkcookie.h>
-#include <qmediaplaylistnavigator.h>
+#include <private/qmediaplaylistnavigator_p.h>
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>

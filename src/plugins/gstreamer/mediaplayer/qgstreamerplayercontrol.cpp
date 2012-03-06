@@ -43,7 +43,7 @@
 #include "qgstreamerplayersession.h"
 #include "playerresourcepolicy.h"
 
-#include <qmediaplaylistnavigator.h>
+#include <private/qmediaplaylistnavigator_p.h>
 
 
 #include <QtCore/qdir.h>

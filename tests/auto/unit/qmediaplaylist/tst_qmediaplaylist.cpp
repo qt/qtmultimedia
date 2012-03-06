@@ -43,9 +43,9 @@
 #include <QDebug>
 #include "qmediaservice.h"
 #include "qmediaplaylist.h"
-#include "qmediaplaylistcontrol.h"
-#include "qmediaplaylistsourcecontrol.h"
-#include "qmediaplaylistnavigator.h"
+#include <private/qmediaplaylistcontrol_p.h>
+#include <private/qmediaplaylistsourcecontrol_p.h>
+#include <private/qmediaplaylistnavigator_p.h>
 #include <private/qmediapluginloader_p.h>
 
 #include "qm3uhandler.h"

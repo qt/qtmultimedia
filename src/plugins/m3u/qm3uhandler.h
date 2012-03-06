@@ -42,7 +42,7 @@
 #ifndef QM3UHANDLER_H
 #define QM3UHANDLER_H
 
-#include "qmediaplaylistioplugin.h"
+#include <private/qmediaplaylistioplugin_p.h>
 #include <QObject>
 
 QT_USE_NAMESPACE

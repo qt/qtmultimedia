@@ -42,7 +42,7 @@
 #ifndef MOCKMEDIAPLAYLISTSOURCECONTROL_H
 #define MOCKMEDIAPLAYLISTSOURCECONTROL_H
 
-#include "qmediaplaylistsourcecontrol.h"
+#include <private/qmediaplaylistsourcecontrol_p.h>
 
 class MockPlaylistSourceControl : public QMediaPlaylistSourceControl
 {

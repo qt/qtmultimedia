@@ -54,7 +54,7 @@
 #include "qt7movievideowidget.h"
 #include "qt7playermetadata.h"
 
-#include <qmediaplaylistnavigator.h>
+#include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
 
 QT_USE_NAMESPACE

@@ -40,13 +40,15 @@
 ****************************************************************************/
 
 
-#include "qmediaplaylistcontrol.h"
+#include "qmediaplaylistcontrol_p.h"
 #include "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaPlaylistControl
+    \internal
+
     \inmodule QtMultimedia
 
     \ingroup multimedia
@@ -201,6 +203,6 @@ QMediaPlaylistControl::~QMediaPlaylistControl()
   Signal emitted when current media changes to \a content.
 */
 
-#include "moc_qmediaplaylistcontrol.cpp"
+#include "moc_qmediaplaylistcontrol_p.cpp"
 QT_END_NAMESPACE
 

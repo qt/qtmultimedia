@@ -39,10 +39,21 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAPLAYLISTNAVIGATOR_H
-#define QMEDIAPLAYLISTNAVIGATOR_H
+#ifndef QMEDIAPLAYLISTNAVIGATOR_P_H
+#define QMEDIAPLAYLISTNAVIGATOR_P_H
 
-#include "qmediaplaylistprovider.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qmediaplaylistprovider_p.h"
 #include "qmediaplaylist.h"
 #include <QtCore/qobject.h>
 
@@ -112,4 +123,4 @@ QT_END_NAMESPACE
 QT_END_HEADER
 
 
-#endif // QMEDIAPLAYLISTNAVIGATOR_H
+#endif // QMEDIAPLAYLISTNAVIGATOR_P_H

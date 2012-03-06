@@ -42,7 +42,7 @@
 #ifndef MOCKREADONLYPLAYLISTPROVIDER_H
 #define MOCKREADONLYPLAYLISTPROVIDER_H
 
-#include "qmediaplaylistprovider.h"
+#include <private/qmediaplaylistprovider_p.h>
 
 class MockReadOnlyPlaylistProvider : public QMediaPlaylistProvider
 {

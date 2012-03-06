@@ -39,8 +39,19 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAPLAYLISTIOPLUGIN_H
-#define QMEDIAPLAYLISTIOPLUGIN_H
+#ifndef QMEDIAPLAYLISTIOPLUGIN_P_H
+#define QMEDIAPLAYLISTIOPLUGIN_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
 #include <QtCore/qobject.h>
 #include <QtCore/qplugin.h>
@@ -123,4 +134,4 @@ QT_END_NAMESPACE
 QT_END_HEADER
 
 
-#endif // QMEDIAPLAYLISTIOPLUGIN_H
+#endif // QMEDIAPLAYLISTIOPLUGIN_P_H
