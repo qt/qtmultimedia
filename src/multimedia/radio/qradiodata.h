@@ -44,10 +44,9 @@
 
 #include <QtCore/qobject.h>
 
-#include "qmediaobject.h"
+#include <qmediaobject.h>
+#include <qmediabindableinterface.h>
 #include <qmediaenumdebug.h>
-
-#include <QPair>
 
 QT_BEGIN_HEADER
 
@@ -57,7 +56,7 @@ QT_MODULE(Multimedia)
 
 
 class QRadioDataPrivate;
-class Q_MULTIMEDIA_EXPORT QRadioData : public QMediaObject
+class Q_MULTIMEDIA_EXPORT QRadioData : public QObject, public QMediaBindableInterface
 {
     Q_OBJECT
     Q_PROPERTY(QString stationId READ stationId NOTIFY stationIdChanged)
@@ -69,6 +68,8 @@ class Q_MULTIMEDIA_EXPORT QRadioData : public QMediaObject
                WRITE setAlternativeFrequenciesEnabled NOTIFY alternativeFrequenciesEnabledChanged)
     Q_ENUMS(Error)
     Q_ENUMS(ProgramType)
+
+    Q_INTERFACES(QMediaBindableInterface)
 
 public:
     enum Error { NoError, ResourceError, OpenError, OutOfRangeError };
@@ -87,10 +88,12 @@ public:
         College
     };
 
-    QRadioData(QObject *parent = 0);
+    QRadioData(QMediaObject *mediaObject, QObject *parent = 0);
     ~QRadioData();
 
     QtMultimedia::AvailabilityError availabilityError() const;
+
+    QMediaObject *mediaObject() const;
 
     QString stationId() const;
     ProgramType programType() const;
@@ -115,10 +118,15 @@ Q_SIGNALS:
 
     void error(QRadioData::Error error);
 
+protected:
+    bool setMediaObject(QMediaObject *);
+
+    QRadioDataPrivate *d_ptr;
 private:
 
     Q_DISABLE_COPY(QRadioData)
     Q_DECLARE_PRIVATE(QRadioData)
+    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
 };
 
 QT_END_NAMESPACE

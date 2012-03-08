@@ -55,6 +55,7 @@
 
 #include <QtDeclarative/qdeclarative.h>
 #include <qradiodata.h>
+#include <qradiotuner.h>
 
 QT_BEGIN_HEADER
 
@@ -143,6 +144,7 @@ public:
     };
 
     QDeclarativeRadioData(QObject *parent = 0);
+    QDeclarativeRadioData(QRadioTuner *tuner, QObject *parent = 0);
     ~QDeclarativeRadioData();
 
     QString stationId() const;
@@ -177,9 +179,12 @@ private Q_SLOTS:
     void _q_availabilityChanged(QtMultimedia::AvailabilityError);
 
 private:
+    void connectSignals();
+
     Q_DISABLE_COPY(QDeclarativeRadioData)
 
     QRadioData *m_radioData;
+    QRadioTuner *m_radioTuner;
 };
 
 QT_END_NAMESPACE

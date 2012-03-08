@@ -43,6 +43,7 @@
 #include "qmediaservice.h"
 #include "qmediaobject_p.h"
 #include "qradiotunercontrol.h"
+#include "qradiodata.h"
 #include "qmediaserviceprovider_p.h"
 
 #include <QPair>
@@ -94,9 +95,10 @@ namespace
 class QRadioTunerPrivate : public QMediaObjectPrivate
 {
 public:
-    QRadioTunerPrivate():provider(0), control(0) {}
+    QRadioTunerPrivate():provider(0), control(0), radioData(0) {}
     QMediaServiceProvider *provider;
     QRadioTunerControl* control;
+    QRadioData *radioData;
 };
 
 
@@ -131,6 +133,8 @@ QRadioTuner::QRadioTuner(QObject *parent):
             connect(d->control, SIGNAL(antennaConnectedChanged(bool)), SIGNAL(antennaConnectedChanged(bool)));
             connect(d->control, SIGNAL(error(QRadioTuner::Error)), SIGNAL(error(QRadioTuner::Error)));
         }
+
+        d->radioData = new QRadioData(this, this);
     }
 }
 
@@ -141,6 +145,9 @@ QRadioTuner::QRadioTuner(QObject *parent):
 QRadioTuner::~QRadioTuner()
 {
     Q_D(QRadioTuner);
+
+    if (d->radioData)
+        delete d->radioData;
 
     if (d->service && d->control)
         d->service->releaseControl(d->control);
@@ -538,6 +545,18 @@ QString QRadioTuner::errorString() const
 
     return QString();
 }
+
+/*!
+    \property QRadioTuner::radioData
+    \brief holds an instance of \l QRadioData
+
+    The instance of QRadioData is already bound to this instance of QRadioTuner.
+*/
+QRadioData *QRadioTuner::radioData() const
+{
+    return d_func()->radioData;
+}
+
 
 /*!
     \fn void QRadioTuner::bandChanged(QRadioTuner::Band band)

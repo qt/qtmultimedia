@@ -75,47 +75,64 @@ namespace
     The radio data object will emit signals for any changes in radio data. You can enable or disable
     alternative frequency with setAlternativeFrequenciesEnabled().
 
+    You can get a QRadioData instance fromt the \l{QRadioTuner::radioData()}{radioData}
+    property from a QRadioTuner instance.
+
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Radio data setup
+
+    Alternatively, you can pass an instance of QRadioTuner to the constructor to QRadioData.
+
     \sa {Radio Overview}
 
 */
 
 
-class QRadioDataPrivate : public QMediaObjectPrivate
+class QRadioDataPrivate
 {
+    Q_DECLARE_NON_CONST_PUBLIC(QRadioData)
 public:
-    QRadioDataPrivate():provider(0), control(0) {}
-    QMediaServiceProvider *provider;
+    QRadioDataPrivate();
+
+    QMediaObject *mediaObject;
     QRadioDataControl* control;
+
+    void _q_serviceDestroyed();
+
+    QRadioData *q_ptr;
 };
 
-/*!
-    Constructs a radio data based on a media service allocated by a media service \a provider.
+QRadioDataPrivate::QRadioDataPrivate()
+    : mediaObject(0)
+    , control(0)
+{}
 
-    The \a parent is passed to QMediaObject.
+void QRadioDataPrivate::_q_serviceDestroyed()
+{
+    mediaObject = 0;
+    control = 0;
+}
+
+/*!
+    Constructs a radio data based on a media object.
+
+    The \a mediaObject should be an instance of \l QRadioTuner. It is preferable to use the
+    \l{QRadioTuner::radioData()}{radioData} property on a QRadioTuner instance to get an instance
+    of QRadioData.
+
+    During construction, this class is bound to the \a mediaObject using the
+    \l{QMediaObject::bind()}{bind()} method.
 */
 
-QRadioData::QRadioData(QObject *parent):
-    QMediaObject(*new QRadioDataPrivate,
-                 parent,
-                 QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_RADIO))
+QRadioData::QRadioData(QMediaObject *mediaObject, QObject *parent)
+    : QObject(parent)
+    , d_ptr(new QRadioDataPrivate)
 {
     Q_D(QRadioData);
 
-    d->provider = QMediaServiceProvider::defaultServiceProvider();
+    d->q_ptr = this;
 
-    if (d->service != 0) {
-        d->control = qobject_cast<QRadioDataControl*>(d->service->requestControl(QRadioDataControl_iid));
-        if (d->control != 0) {
-            connect(d->control, SIGNAL(stationIdChanged(QString)), SIGNAL(stationIdChanged(QString)));
-            connect(d->control, SIGNAL(programTypeChanged(QRadioData::ProgramType)),
-                                SIGNAL(programTypeChanged(QRadioData::ProgramType)));
-            connect(d->control, SIGNAL(programTypeNameChanged(QString)), SIGNAL(programTypeNameChanged(QString)));
-            connect(d->control, SIGNAL(stationNameChanged(QString)), SIGNAL(stationNameChanged(QString)));
-            connect(d->control, SIGNAL(radioTextChanged(QString)), SIGNAL(radioTextChanged(QString)));
-            connect(d->control, SIGNAL(alternativeFrequenciesEnabledChanged(bool)), SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
-            connect(d->control, SIGNAL(error(QRadioData::Error)), SIGNAL(error(QRadioData::Error)));
-        }
-    }
+    if (mediaObject)
+        mediaObject->bind(this);
 }
 
 /*!
@@ -126,14 +143,93 @@ QRadioData::~QRadioData()
 {
     Q_D(QRadioData);
 
-    if (d->service && d->control)
-        d->service->releaseControl(d->control);
+    if (d->mediaObject)
+        d->mediaObject->unbind(this);
 
-    d->provider->releaseService(d->service);
+    delete d_ptr;
+}
+
+/*!
+  \reimp
+*/
+QMediaObject *QRadioData::mediaObject() const
+{
+    return d_func()->mediaObject;
+}
+
+/*!
+  \reimp
+*/
+bool QRadioData::setMediaObject(QMediaObject *mediaObject)
+{
+    Q_D(QRadioData);
+
+    if (d->mediaObject) {
+        if (d->control) {
+            disconnect(d->control, SIGNAL(stationIdChanged(QString)),
+                       this, SIGNAL(stationIdChanged(QString)));
+            disconnect(d->control, SIGNAL(programTypeChanged(QRadioData::ProgramType)),
+                       this, SIGNAL(programTypeChanged(QRadioData::ProgramType)));
+            disconnect(d->control, SIGNAL(programTypeNameChanged(QString)),
+                       this, SIGNAL(programTypeNameChanged(QString)));
+            disconnect(d->control, SIGNAL(stationNameChanged(QString)),
+                       this, SIGNAL(stationNameChanged(QString)));
+            disconnect(d->control, SIGNAL(radioTextChanged(QString)),
+                       this, SIGNAL(radioTextChanged(QString)));
+            disconnect(d->control, SIGNAL(alternativeFrequenciesEnabledChanged(bool)),
+                       this, SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
+            disconnect(d->control, SIGNAL(error(QRadioData::Error)),
+                       this, SIGNAL(error(QRadioData::Error)));
+
+            QMediaService *service = d->mediaObject->service();
+            service->releaseControl(d->control);
+            disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
+        }
+    }
+
+    d->mediaObject = mediaObject;
+
+    if (d->mediaObject) {
+        QMediaService *service = mediaObject->service();
+        if (service) {
+            d->control = qobject_cast<QRadioDataControl*>(service->requestControl(QRadioDataControl_iid));
+
+            if (d->control) {
+                connect(d->control, SIGNAL(stationIdChanged(QString)),
+                        this, SIGNAL(stationIdChanged(QString)));
+                connect(d->control, SIGNAL(programTypeChanged(QRadioData::ProgramType)),
+                        this, SIGNAL(programTypeChanged(QRadioData::ProgramType)));
+                connect(d->control, SIGNAL(programTypeNameChanged(QString)),
+                        this, SIGNAL(programTypeNameChanged(QString)));
+                connect(d->control, SIGNAL(stationNameChanged(QString)),
+                        this, SIGNAL(stationNameChanged(QString)));
+                connect(d->control, SIGNAL(radioTextChanged(QString)),
+                        this, SIGNAL(radioTextChanged(QString)));
+                connect(d->control, SIGNAL(alternativeFrequenciesEnabledChanged(bool)),
+                        this, SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
+                connect(d->control, SIGNAL(error(QRadioData::Error)),
+                        this, SIGNAL(error(QRadioData::Error)));
+
+                connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
+
+                return true;
+            }
+        }
+    }
+
+    // without QRadioDataControl discard the media object
+    d->mediaObject = 0;
+    d->control = 0;
+
+    return false;
 }
 
 /*!
     Returns the availability of the radio data service.
+
+    A long as there is a media service which provides control, then the
+    \l{QtMultimedia::AvailabilityError}{availability error} will be that
+    of the \l{QRadioTuner::availabilityError()}{radio tuner}.
 */
 QtMultimedia::AvailabilityError QRadioData::availabilityError() const
 {
@@ -142,7 +238,7 @@ QtMultimedia::AvailabilityError QRadioData::availabilityError() const
     if (d->control == 0)
         return QtMultimedia::ServiceMissingError;
 
-    return QMediaObject::availabilityError();
+    return d->mediaObject->availabilityError();
 }
 
 /*!

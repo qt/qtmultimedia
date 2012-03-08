@@ -55,6 +55,7 @@
 
 #include <QtDeclarative/qdeclarative.h>
 #include <qradiotuner.h>
+#include "qdeclarativeradiodata_p.h"
 
 QT_BEGIN_HEADER
 
@@ -77,6 +78,7 @@ class QDeclarativeRadio : public QObject
     Q_PROPERTY(int maximumFrequency READ maximumFrequency NOTIFY bandChanged)
     Q_PROPERTY(bool antennaConnected READ isAntennaConnected NOTIFY antennaConnectedChanged)
     Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
+    Q_PROPERTY(QDeclarativeRadioData* radioData READ radioData CONSTANT)
     Q_ENUMS(State)
     Q_ENUMS(Band)
     Q_ENUMS(Error)
@@ -146,6 +148,8 @@ public:
     Q_INVOKABLE bool isAvailable() const {return availability() == Available;}
     Availability availability() const;
 
+    QDeclarativeRadioData *radioData() { return m_radioData; }
+
 public Q_SLOTS:
     void setBand(QDeclarativeRadio::Band band);
     void setFrequency(int frequency);
@@ -190,6 +194,7 @@ private:
     Q_DISABLE_COPY(QDeclarativeRadio)
 
     QRadioTuner *m_radioTuner;
+    QDeclarativeRadioData *m_radioData;
 };
 
 QT_END_NAMESPACE

@@ -43,6 +43,9 @@
 #define MOCKMEDIASERVICE_H
 
 #include "qmediaservice.h"
+#include <QtCore/QMap>
+
+Q_DECLARE_METATYPE(QMediaControl *)
 
 class MockMediaService : public QMediaService
 {
@@ -52,14 +55,23 @@ public:
         QMediaService(parent),
         mockControl(control) {}
 
-    QMediaControl* requestControl(const char *)
+    MockMediaService(QObject *parent, QMap<QString, QMediaControl *> controls):
+        QMediaService(parent),
+        mockControl(0),
+        mockControls(controls) {}
+
+    QMediaControl* requestControl(const char *key)
     {
-        return mockControl;
+        if (mockControl)
+            return mockControl;
+        else
+            return mockControls.value(key);
     }
 
     void releaseControl(QMediaControl*) {}
 
-    QMediaControl   *mockControl;
+    QMediaControl *mockControl;
+    QMap<QString, QMediaControl *>   mockControls;
 };
 
 

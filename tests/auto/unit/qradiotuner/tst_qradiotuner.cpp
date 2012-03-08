@@ -44,6 +44,7 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QTimer>
+#include <QtCore/QMap>
 
 #include <qmediaobject.h>
 #include <qmediacontrol.h>
@@ -54,6 +55,7 @@
 #include "mockmediaserviceprovider.h"
 #include "mockmediaservice.h"
 #include "mockradiotunercontrol.h"
+#include "mockavailabilitycontrol.h"
 
 QT_USE_NAMESPACE
 
@@ -81,6 +83,7 @@ private slots:
 
 private:
     MockRadioTunerControl     *mock;
+    MockAvailabilityControl   *mockAvailability;
     MockMediaService     *service;
     MockMediaServiceProvider    *provider;
     QRadioTuner    *radio;
@@ -92,7 +95,13 @@ void tst_QRadioTuner::initTestCase()
     qRegisterMetaType<QRadioTuner::Band>("QRadioTuner::Band");
 
     mock = new MockRadioTunerControl(this);
-    service = new MockMediaService(this, mock);
+    mockAvailability = new MockAvailabilityControl(QtMultimedia::NoError);
+
+    QMap<QString, QMediaControl *> map;
+    map.insert(QRadioTunerControl_iid, mock);
+    map.insert(QMediaAvailabilityControl_iid, mockAvailability);
+
+    service = new MockMediaService(this, map);
     provider = new MockMediaServiceProvider(service);
     QMediaServiceProvider::setDefaultServiceProvider(provider);
 
@@ -129,6 +138,7 @@ void tst_QRadioTuner::cleanupTestCase()
     delete radio;
     delete service;
     delete provider;
+    delete mockAvailability;
 }
 
 void tst_QRadioTuner::init()

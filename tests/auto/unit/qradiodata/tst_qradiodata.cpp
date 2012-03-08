@@ -44,15 +44,19 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QTimer>
+#include <QtCore/QMap>
 
 #include <qmediaobject.h>
 #include <qmediacontrol.h>
 #include <qmediaservice.h>
 #include <qradiodatacontrol.h>
 #include <qradiodata.h>
+#include <qradiotuner.h>
 
 #include "mockmediaserviceprovider.h"
 #include "mockmediaservice.h"
+#include "mockavailabilitycontrol.h"
+#include "mockradiotunercontrol.h"
 #include "mockradiodatacontrol.h"
 
 QT_USE_NAMESPACE
@@ -72,34 +76,47 @@ private slots:
     void testRadioDataUpdates();
 
 private:
-    MockRadioDataControl     *mock;
+    MockAvailabilityControl  *mockAvailability;
+    MockRadioTunerControl    *mockTuner;
+    MockRadioDataControl     *mockData;
     MockMediaService     *service;
     MockMediaServiceProvider    *provider;
-    QRadioData    *radio;
+    QRadioTuner   * radio;
+    QRadioData    *radioData;
 };
 
 void tst_QRadioData::initTestCase()
 {
     qRegisterMetaType<QRadioData::ProgramType>("QRadioData::ProgramType");
 
-    mock = new MockRadioDataControl(this);
-    service = new MockMediaService(this, mock);
+    mockAvailability = new MockAvailabilityControl(QtMultimedia::NoError);
+    mockTuner = new MockRadioTunerControl(this);
+    mockData = new MockRadioDataControl(this);
+
+    QMap<QString, QMediaControl *> map;
+    map.insert(QRadioTunerControl_iid, mockTuner);
+    map.insert(QRadioDataControl_iid, mockData);
+    map.insert(QMediaAvailabilityControl_iid, mockAvailability);
+
+    service = new MockMediaService(this, map);
     provider = new MockMediaServiceProvider(service);
     QMediaServiceProvider::setDefaultServiceProvider(provider);
-    radio = new QRadioData;
-    QVERIFY(radio->service() != 0);
-    QVERIFY(radio->isAvailable());
-    QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
+
+    radio = new QRadioTuner;
+    radioData = radio->radioData();
+
+    QVERIFY(radioData->availabilityError() == QtMultimedia::NoError);
 }
 
 void tst_QRadioData::cleanupTestCase()
 {
-    QVERIFY(radio->error() == QRadioData::NoError);
-    QVERIFY(radio->errorString().isEmpty());
+    QVERIFY(radioData->error() == QRadioData::NoError);
+    QVERIFY(radioData->errorString().isEmpty());
 
     delete radio;
     delete service;
     delete provider;
+    delete mockAvailability;
 }
 
 void tst_QRadioData::testNullService()
@@ -108,17 +125,21 @@ void tst_QRadioData::testNullService()
 
     MockMediaServiceProvider nullProvider(0);
     QMediaServiceProvider::setDefaultServiceProvider(&nullProvider);
-    QRadioData radio;
+    QRadioTuner radio;
+    QRadioData *nullRadioData = radio.radioData();
 
-    QVERIFY(!radio.isAvailable());
-    QCOMPARE(radio.error(), QRadioData::ResourceError);
-    QCOMPARE(radio.errorString(), QString());
-    QCOMPARE(radio.stationId(), QString());
-    QCOMPARE(radio.programType(), QRadioData::Undefined);
-    QCOMPARE(radio.programTypeName(), QString());
-    QCOMPARE(radio.stationName(), QString());
-    QCOMPARE(radio.radioText(), QString());
-    QCOMPARE(radio.isAlternativeFrequenciesEnabled(), false);
+    QVERIFY(nullRadioData == 0);
+
+    QRadioData radioData(&radio);
+
+    QCOMPARE(radioData.error(), QRadioData::ResourceError);
+    QCOMPARE(radioData.errorString(), QString());
+    QCOMPARE(radioData.stationId(), QString());
+    QCOMPARE(radioData.programType(), QRadioData::Undefined);
+    QCOMPARE(radioData.programTypeName(), QString());
+    QCOMPARE(radioData.stationName(), QString());
+    QCOMPARE(radioData.radioText(), QString());
+    QCOMPARE(radioData.isAlternativeFrequenciesEnabled(), false);
 
 }
 
@@ -129,59 +150,58 @@ void tst_QRadioData::testNullControl()
     MockMediaService service(0, 0);
     MockMediaServiceProvider provider(&service);
     QMediaServiceProvider::setDefaultServiceProvider(&provider);
-    QRadioData radio;
-    QVERIFY(!radio.isAvailable());
-    QCOMPARE(radio.error(), QRadioData::ResourceError);
-    QCOMPARE(radio.errorString(), QString());
+    QRadioTuner radio;
+    QRadioData *radioData = radio.radioData();
+    QCOMPARE(radioData->error(), QRadioData::ResourceError);
+    QCOMPARE(radioData->errorString(), QString());
 
-    QCOMPARE(radio.stationId(), QString());
-    QCOMPARE(radio.programType(), QRadioData::Undefined);
-    QCOMPARE(radio.programTypeName(), QString());
-    QCOMPARE(radio.stationName(), QString());
-    QCOMPARE(radio.radioText(), QString());
-    QCOMPARE(radio.isAlternativeFrequenciesEnabled(), false);
+    QCOMPARE(radioData->stationId(), QString());
+    QCOMPARE(radioData->programType(), QRadioData::Undefined);
+    QCOMPARE(radioData->programTypeName(), QString());
+    QCOMPARE(radioData->stationName(), QString());
+    QCOMPARE(radioData->radioText(), QString());
+    QCOMPARE(radioData->isAlternativeFrequenciesEnabled(), false);
     {
-        QSignalSpy spy(&radio, SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
+        QSignalSpy spy(radioData, SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
 
-        radio.setAlternativeFrequenciesEnabled(true);
-        QCOMPARE(radio.isAlternativeFrequenciesEnabled(), false);
+        radioData->setAlternativeFrequenciesEnabled(true);
+        QCOMPARE(radioData->isAlternativeFrequenciesEnabled(), false);
         QCOMPARE(spy.count(), 0);
     }
 }
 
 void tst_QRadioData::testAlternativeFrequencies()
 {
-    QSignalSpy readSignal(radio, SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
-    radio->setAlternativeFrequenciesEnabled(true);
+    QSignalSpy readSignal(radioData, SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
+    radioData->setAlternativeFrequenciesEnabled(true);
     QTestEventLoop::instance().enterLoop(1);
-    QVERIFY(radio->isAlternativeFrequenciesEnabled() == true);
+    QVERIFY(radioData->isAlternativeFrequenciesEnabled() == true);
     QVERIFY(readSignal.count() == 1);
 }
 
 void tst_QRadioData::testRadioDataUpdates()
 {
-    QSignalSpy rtSpy(radio, SIGNAL(radioTextChanged(QString)));
-    QSignalSpy ptyPTYSpy(radio, SIGNAL(programTypeChanged(QRadioData::ProgramType)));
-    QSignalSpy ptynSpy(radio, SIGNAL(programTypeNameChanged(QString)));
-    QSignalSpy piSpy(radio, SIGNAL(stationIdChanged(QString)));
-    QSignalSpy psSpy(radio, SIGNAL(stationNameChanged(QString)));
-    mock->forceRT("Mock Radio Text");
-    mock->forceProgramType(static_cast<int>(QRadioData::Sport));
-    mock->forcePTYN("Mock Programme Type Name");
-    mock->forcePI("Mock Programme Identification");
-    mock->forcePS("Mock Programme Service");
+    QSignalSpy rtSpy(radioData, SIGNAL(radioTextChanged(QString)));
+    QSignalSpy ptyPTYSpy(radioData, SIGNAL(programTypeChanged(QRadioData::ProgramType)));
+    QSignalSpy ptynSpy(radioData, SIGNAL(programTypeNameChanged(QString)));
+    QSignalSpy piSpy(radioData, SIGNAL(stationIdChanged(QString)));
+    QSignalSpy psSpy(radioData, SIGNAL(stationNameChanged(QString)));
+    mockData->forceRT("Mock Radio Text");
+    mockData->forceProgramType(static_cast<int>(QRadioData::Sport));
+    mockData->forcePTYN("Mock Programme Type Name");
+    mockData->forcePI("Mock Programme Identification");
+    mockData->forcePS("Mock Programme Service");
     QTestEventLoop::instance().enterLoop(1);
     QVERIFY(rtSpy.count() == 1);
     QVERIFY(ptyPTYSpy.count() == 1);
     QVERIFY(ptynSpy.count() == 1);
     QVERIFY(piSpy.count() == 1);
     QVERIFY(psSpy.count() == 1);
-    qDebug()<<radio->radioText();
-    QCOMPARE(radio->radioText(), QString("Mock Radio Text"));
-    QCOMPARE(radio->programType(), QRadioData::Sport);
-    QCOMPARE(radio->programTypeName(), QString("Mock Programme Type Name"));
-    QCOMPARE(radio->stationId(), QString("Mock Programme Identification"));
-    QCOMPARE(radio->stationName(), QString("Mock Programme Service"));
+    QCOMPARE(radioData->radioText(), QString("Mock Radio Text"));
+    QCOMPARE(radioData->programType(), QRadioData::Sport);
+    QCOMPARE(radioData->programTypeName(), QString("Mock Programme Type Name"));
+    QCOMPARE(radioData->stationId(), QString("Mock Programme Identification"));
+    QCOMPARE(radioData->stationName(), QString("Mock Programme Service"));
 }
 
 QTEST_GUILESS_MAIN(tst_QRadioData)

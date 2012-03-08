@@ -70,52 +70,47 @@ QT_BEGIN_NAMESPACE
             band: Radio.FM
         }
 
-        RadioData {
-            id: radioData
-        }
-
         Column {
             Text {
-                text: radioData.stationName
+                text: radio.radioData.stationName
             }
 
             Text {
-                text: radioData.programTypeName
+                text: radio.radioData.programTypeName
             }
 
             Text {
-                text: radioData.radioText
+                text: radio.radioData.radioText
             }
         }
     }
 
     \endqml
 
-    You use \c RadioData together with the \l Radio element. The properties of the RadioData element will reflect the
-    information broadcast by the radio station the Radio element is currently tuned to.
+    You use \c RadioData together with the \l Radio element, either by
+    accessing the \c radioData property of the Radio element, or
+    creating a separate RadioData element. The properties of the
+    RadioData element will reflect the information broadcast by the
+    radio station the Radio element is currently tuned to.
 
     \sa {Radio Overview}
 */
 QDeclarativeRadioData::QDeclarativeRadioData(QObject *parent) :
-    QObject(parent),
-    m_radioData(0)
+    QObject(parent)
 {
-    m_radioData = new QRadioData(this);
+    m_radioTuner = new QRadioTuner(this);
+    m_radioData = m_radioTuner->radioData();
 
-    connect(m_radioData, SIGNAL(programTypeChanged(QRadioData::ProgramType)), this,
-                                 SLOT(_q_programTypeChanged(QRadioData::ProgramType)));
+    connectSignals();
+}
 
-    connect(m_radioData, SIGNAL(stationIdChanged(QString)), this, SIGNAL(stationIdChanged(QString)));
-    connect(m_radioData, SIGNAL(programTypeNameChanged(QString)), this, SIGNAL(programTypeNameChanged(QString)));
-    connect(m_radioData, SIGNAL(stationNameChanged(QString)), this, SIGNAL(stationNameChanged(QString)));
-    connect(m_radioData, SIGNAL(radioTextChanged(QString)), this, SIGNAL(radioTextChanged(QString)));
-    connect(m_radioData, SIGNAL(alternativeFrequenciesEnabledChanged(bool)), this,
-                         SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
+QDeclarativeRadioData::QDeclarativeRadioData(QRadioTuner *tuner, QObject *parent) :
+    QObject(parent)
+{
+    m_radioTuner = tuner;
+    m_radioData = m_radioTuner->radioData();
 
-    // Note we map availabilityError->availability
-    connect(m_radioData, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
-
-    connect(m_radioData, SIGNAL(error(QRadioData::Error)), this, SLOT(_q_error(QRadioData::Error)));
+    connectSignals();
 }
 
 QDeclarativeRadioData::~QDeclarativeRadioData()
@@ -288,6 +283,25 @@ void QDeclarativeRadioData::_q_error(QRadioData::Error errorCode)
 void QDeclarativeRadioData::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
 {
     emit availabilityChanged(Availability(error));
+}
+
+void QDeclarativeRadioData::connectSignals()
+{
+    connect(m_radioData, SIGNAL(programTypeChanged(QRadioData::ProgramType)), this,
+                                 SLOT(_q_programTypeChanged(QRadioData::ProgramType)));
+
+    connect(m_radioData, SIGNAL(stationIdChanged(QString)), this, SIGNAL(stationIdChanged(QString)));
+    connect(m_radioData, SIGNAL(programTypeNameChanged(QString)), this, SIGNAL(programTypeNameChanged(QString)));
+    connect(m_radioData, SIGNAL(stationNameChanged(QString)), this, SIGNAL(stationNameChanged(QString)));
+    connect(m_radioData, SIGNAL(radioTextChanged(QString)), this, SIGNAL(radioTextChanged(QString)));
+    connect(m_radioData, SIGNAL(alternativeFrequenciesEnabledChanged(bool)), this,
+                         SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
+
+    // Note we map availabilityError->availability
+    // Since the radio data element depends on the service for the tuner, the availability is also dictated from the tuner
+    connect(m_radioTuner, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+
+    connect(m_radioData, SIGNAL(error(QRadioData::Error)), this, SLOT(_q_error(QRadioData::Error)));
 }
 
 QT_END_NAMESPACE

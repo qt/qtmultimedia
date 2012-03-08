@@ -87,7 +87,9 @@ QT_BEGIN_NAMESPACE
     You can also use the Radio element to get information about tuning, for instance the
     frequency steps supported for tuning.
 
-    The corresponding \l RadioData element gives RDS information about the current radio station.
+    The corresponding \l RadioData element gives RDS information about the
+    current radio station. The best way to access the RadioData element for
+    the current Radio is to use the \c radioData property.
 
     \sa {Radio Overview}
 
@@ -95,10 +97,10 @@ QT_BEGIN_NAMESPACE
 
 
 QDeclarativeRadio::QDeclarativeRadio(QObject *parent) :
-    QObject(parent),
-    m_radioTuner(0)
+    QObject(parent)
 {
     m_radioTuner = new QRadioTuner(this);
+    m_radioData = new QDeclarativeRadioData(m_radioTuner, this);
 
     connect(m_radioTuner, SIGNAL(stateChanged(QRadioTuner::State)), this, SLOT(_q_stateChanged(QRadioTuner::State)));
     connect(m_radioTuner, SIGNAL(bandChanged(QRadioTuner::Band)), this, SLOT(_q_bandChanged(QRadioTuner::Band)));

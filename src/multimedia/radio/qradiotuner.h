@@ -55,7 +55,7 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
+class QRadioData;
 class QRadioTunerPrivate;
 class Q_MULTIMEDIA_EXPORT QRadioTuner : public QMediaObject
 {
@@ -70,6 +70,7 @@ class Q_MULTIMEDIA_EXPORT QRadioTuner : public QMediaObject
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool searching READ isSearching NOTIFY searchingChanged)
     Q_PROPERTY(bool antennaConnected READ isAntennaConnected NOTIFY antennaConnectedChanged)
+    Q_PROPERTY(QRadioData *radioData READ radioData CONSTANT)
     Q_ENUMS(State)
     Q_ENUMS(Band)
     Q_ENUMS(Error)
@@ -113,6 +114,8 @@ public:
 
     Error error() const;
     QString errorString() const;
+
+    QRadioData *radioData() const;
 
 public Q_SLOTS:
     void searchForward();

@@ -49,6 +49,7 @@
 #include "qmediaplayercontrol.h"
 #include "qmediaplayer.h"
 #include "qradiotuner.h"
+#include "qradiodata.h"
 #include "qvideowidget.h"
 #include "qcameraimagecapture.h"
 #include "qcamera.h"
@@ -84,6 +85,7 @@ private:
     QCameraImageCapture *imageCapture;
     QString fileName;
     QRadioTuner *radio;
+    QRadioData *radioData;
     QAudioRecorder *audioRecorder;
     QAudioProbe *audioProbe;
     QVideoProbe *videoProbe;
@@ -248,6 +250,11 @@ void MediaExample::RadioTuna()
         radio->start();
     }
     //! [Radio tuner]
+
+    //! [Radio data setup]
+    radio = new QRadioTuner;
+    radioData = radio->radioData();
+    //! [Radio data setup]
 }
 
 void MediaExample::AudioProbe()
