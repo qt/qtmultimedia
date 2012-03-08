@@ -42,8 +42,8 @@
 #include "qmediaplaylist.h"
 #include "qmediaplaylist_p.h"
 #include "qmediaplaylistprovider_p.h"
-#include "qlocalmediaplaylistprovider_p.h"
 #include "qmediaplaylistioplugin_p.h"
+#include "qmedianetworkplaylistprovider_p.h"
 #include "qmediaservice.h"
 #include "qmediaplaylistcontrol_p.h"
 #include "qmediaplayercontrol.h"
@@ -129,7 +129,7 @@ QMediaPlaylist::QMediaPlaylist(QObject *parent)
     Q_D(QMediaPlaylist);
 
     d->q_ptr = this;
-    d->localPlaylistControl = new QLocalMediaPlaylistControl(this);
+    d->networkPlaylistControl = new QMediaNetworkPlaylistControl(this);
 
     setMediaObject(0);
 }
@@ -178,7 +178,7 @@ bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
         newControl = qobject_cast<QMediaPlaylistControl*>(service->requestControl(QMediaPlaylistControl_iid));
 
     if (!newControl)
-        newControl = d->localPlaylistControl;
+        newControl = d->networkPlaylistControl;
 
     if (d->control != newControl) {
         int oldSize = 0;

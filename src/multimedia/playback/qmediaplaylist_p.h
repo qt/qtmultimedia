@@ -57,7 +57,7 @@
 #include "qmediaplaylistcontrol_p.h"
 #include "qmediaplayer.h"
 #include "qmediaplayercontrol.h"
-#include "qlocalmediaplaylistprovider_p.h"
+#include "qmedianetworkplaylistprovider_p.h"
 #include "qmediaobject_p.h"
 
 #include <QtCore/qdebug.h>
@@ -86,7 +86,7 @@ public:
     QMediaPlaylistPrivate()
         :mediaObject(0),
         control(0),
-        localPlaylistControl(0),
+        networkPlaylistControl(0),
         error(QMediaPlaylist::NoError)
     {
     }
@@ -105,7 +105,7 @@ public:
     {
         Q_Q(QMediaPlaylist);
         mediaObject = 0;
-        if (control != localPlaylistControl)
+        if (control != networkPlaylistControl)
             control = 0;
         q->setMediaObject(0);
     }
@@ -115,7 +115,7 @@ public:
     QMediaPlaylistControl *control;
     QMediaPlaylistProvider *playlist() const { return control->playlistProvider(); }
 
-    QMediaPlaylistControl *localPlaylistControl;
+    QMediaPlaylistControl *networkPlaylistControl;
 
     bool readItems(QMediaPlaylistReader *reader);
     bool writeItems(QMediaPlaylistWriter *writer);
@@ -127,14 +127,14 @@ public:
 };
 
 
-class QLocalMediaPlaylistControl : public QMediaPlaylistControl
+class QMediaNetworkPlaylistControl : public QMediaPlaylistControl
 {
     Q_OBJECT
 public:
-    QLocalMediaPlaylistControl(QObject *parent)
+    QMediaNetworkPlaylistControl(QObject *parent)
         :QMediaPlaylistControl(parent)
     {
-        QMediaPlaylistProvider *playlist = new QLocalMediaPlaylistProvider(this);
+        QMediaPlaylistProvider *playlist = new QMediaNetworkPlaylistProvider(this);
         m_navigator = new QMediaPlaylistNavigator(playlist,this);
         m_navigator->setPlaybackMode(QMediaPlaylist::Sequential);
 
@@ -143,7 +143,7 @@ public:
         connect(m_navigator, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)), SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)));
     }
 
-    virtual ~QLocalMediaPlaylistControl() {};
+    virtual ~QMediaNetworkPlaylistControl() {};
 
     QMediaPlaylistProvider* playlistProvider() const { return m_navigator->playlist(); }
     bool setPlaylistProvider(QMediaPlaylistProvider *mediaPlaylist)

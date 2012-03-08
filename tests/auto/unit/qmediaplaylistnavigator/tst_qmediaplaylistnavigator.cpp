@@ -43,7 +43,7 @@
 
 #include <QtTest/QtTest>
 #include <QDebug>
-#include <private/qlocalmediaplaylistprovider_p.h>
+#include <private/qmedianetworkplaylistprovider_p.h>
 #include <private/qmediaplaylistnavigator_p.h>
 
 QT_USE_NAMESPACE
@@ -84,7 +84,7 @@ void tst_QMediaPlaylistNavigator::cleanup()
 
 void tst_QMediaPlaylistNavigator::construction()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QCOMPARE(playlist.mediaCount(), 0);
 
     QMediaPlaylistNavigator navigator(&playlist);
@@ -100,7 +100,7 @@ void tst_QMediaPlaylistNavigator::setPlaylist()
     QCOMPARE(navigator.playlist()->media(0), QMediaContent());
     QVERIFY(navigator.playlist()->isReadOnly() );
 
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QCOMPARE(playlist.mediaCount(), 0);
 
     navigator.setPlaylist(&playlist);
@@ -111,7 +111,7 @@ void tst_QMediaPlaylistNavigator::setPlaylist()
 
 void tst_QMediaPlaylistNavigator::linearPlayback()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
 
     navigator.setPlaybackMode(QMediaPlaylist::Sequential);
@@ -165,7 +165,7 @@ void tst_QMediaPlaylistNavigator::linearPlayback()
 
 void tst_QMediaPlaylistNavigator::loopPlayback()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
 
     navigator.setPlaybackMode(QMediaPlaylist::Loop);
@@ -216,7 +216,7 @@ void tst_QMediaPlaylistNavigator::loopPlayback()
 
 void tst_QMediaPlaylistNavigator::currentItemOnce()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
 
     navigator.setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
@@ -247,7 +247,7 @@ void tst_QMediaPlaylistNavigator::currentItemOnce()
 
 void tst_QMediaPlaylistNavigator::currentItemInLoop()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
 
     navigator.setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
@@ -275,7 +275,7 @@ void tst_QMediaPlaylistNavigator::currentItemInLoop()
 
 void tst_QMediaPlaylistNavigator::randomPlayback()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
 
     navigator.setPlaybackMode(QMediaPlaylist::Random);
@@ -326,7 +326,7 @@ void tst_QMediaPlaylistNavigator::randomPlayback()
 
 void tst_QMediaPlaylistNavigator::testItemAt()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
     navigator.setPlaybackMode(QMediaPlaylist::Random);
     QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);
@@ -348,7 +348,7 @@ void tst_QMediaPlaylistNavigator::testItemAt()
 
 void tst_QMediaPlaylistNavigator::testNextIndex()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
     navigator.setPlaybackMode(QMediaPlaylist::Random);
     QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);
@@ -383,7 +383,7 @@ void tst_QMediaPlaylistNavigator::testNextIndex()
 
 void tst_QMediaPlaylistNavigator::testPreviousIndex()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
     navigator.setPlaybackMode(QMediaPlaylist::Random);
     QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);
@@ -413,7 +413,7 @@ void tst_QMediaPlaylistNavigator::testPreviousIndex()
 
 void tst_QMediaPlaylistNavigator::testCurrentIndexChangedSignal()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
     navigator.setPlaybackMode(QMediaPlaylist::Random);
     QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);
@@ -441,7 +441,7 @@ void tst_QMediaPlaylistNavigator::testCurrentIndexChangedSignal()
 
 void tst_QMediaPlaylistNavigator::testPlaybackModeChangedSignal()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
     navigator.setPlaybackMode(QMediaPlaylist::Random);
     QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);
@@ -467,7 +467,7 @@ void tst_QMediaPlaylistNavigator::testPlaybackModeChangedSignal()
 
 void tst_QMediaPlaylistNavigator::testSurroundingItemsChangedSignal()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
     navigator.setPlaybackMode(QMediaPlaylist::Random);
     QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);
@@ -493,7 +493,7 @@ void tst_QMediaPlaylistNavigator::testSurroundingItemsChangedSignal()
 
 void tst_QMediaPlaylistNavigator::testActivatedSignal()
 {
-    QLocalMediaPlaylistProvider playlist;
+    QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
     navigator.setPlaybackMode(QMediaPlaylist::Random);
     QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);

@@ -65,6 +65,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaObject
 {
     Q_OBJECT
     Q_PROPERTY(QMediaContent media READ media WRITE setMedia NOTIFY mediaChanged)
+    Q_PROPERTY(QMediaContent currentMedia READ currentMedia NOTIFY currentMediaChanged)
     Q_PROPERTY(QMediaPlaylist * playlist READ playlist WRITE setPlaylist)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
@@ -118,7 +119,8 @@ public:
         FormatError,
         NetworkError,
         AccessDeniedError,
-        ServiceMissingError
+        ServiceMissingError,
+        MediaIsPlaylist
     };
 
     QMediaPlayer(QObject *parent = 0, Flags flags = 0);
@@ -136,6 +138,7 @@ public:
     QMediaContent media() const;
     const QIODevice *mediaStream() const;
     QMediaPlaylist *playlist() const;
+    QMediaContent currentMedia() const;
 
     State state() const;
     MediaStatus mediaStatus() const;
@@ -178,6 +181,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void mediaChanged(const QMediaContent &media);
+    void currentMediaChanged(const QMediaContent &media);
 
     void stateChanged(QMediaPlayer::State newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
@@ -210,6 +214,8 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateMedia(const QMediaContent&))
     Q_PRIVATE_SLOT(d_func(), void _q_playlistDestroyed())
+    Q_PRIVATE_SLOT(d_func(), void _q_handlePlaylistLoaded())
+    Q_PRIVATE_SLOT(d_func(), void _q_handlePlaylistLoadFailed())
 };
 
 QT_END_NAMESPACE
