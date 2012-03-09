@@ -999,20 +999,30 @@ void tst_QMediaPlayer::testSetVideoOutput()
     player->setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
     player->setVideoOutput(reinterpret_cast<QGraphicsVideoItem *>(0));
 
+    QCOMPARE(mockService->rendererRef, 0);
+
     player->setVideoOutput(&surface);
     QVERIFY(mockService->rendererControl->surface() == &surface);
+    QCOMPARE(mockService->rendererRef, 1);
 
     player->setVideoOutput(reinterpret_cast<QAbstractVideoSurface *>(0));
     QVERIFY(mockService->rendererControl->surface() == 0);
 
+    //rendererControl is released
+    QCOMPARE(mockService->rendererRef, 0);
+
     player->setVideoOutput(&surface);
     QVERIFY(mockService->rendererControl->surface() == &surface);
+    QCOMPARE(mockService->rendererRef, 1);
 
     player->setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
     QVERIFY(mockService->rendererControl->surface() == 0);
+    //rendererControl is released
+    QCOMPARE(mockService->rendererRef, 0);
 
     player->setVideoOutput(&surface);
     QVERIFY(mockService->rendererControl->surface() == &surface);
+    QCOMPARE(mockService->rendererRef, 1);
 }
 
 

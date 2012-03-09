@@ -774,7 +774,14 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
         if (d->videoOutput)
             unbind(d->videoOutput);
 
-        d->videoOutput = bind(&d->surfaceOutput) ? &d->surfaceOutput : 0;
+        d->videoOutput = 0;
+
+        if (surface && bind(&d->surfaceOutput))
+            d->videoOutput =  &d->surfaceOutput;
+    }  else if (!surface) {
+        //unbind the surfaceOutput if null surface is set
+        unbind(&d->surfaceOutput);
+        d->videoOutput = 0;
     }
 }
 

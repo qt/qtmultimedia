@@ -509,7 +509,14 @@ void QCamera::setViewfinder(QAbstractVideoSurface *surface)
         if (d->viewfinder)
             unbind(d->viewfinder);
 
-        d->viewfinder = bind(&d->surfaceViewfinder) ? &d->surfaceViewfinder : 0;
+        d->viewfinder = 0;
+
+        if (surface && bind(&d->surfaceViewfinder))
+            d->viewfinder = &d->surfaceViewfinder;
+    } else if (!surface) {
+        //unbind the surfaceViewfinder if null surface is set
+        unbind(&d->surfaceViewfinder);
+        d->viewfinder = 0;
     }
 }
 

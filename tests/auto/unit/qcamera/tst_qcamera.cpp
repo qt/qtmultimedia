@@ -1031,20 +1031,30 @@ void tst_QCamera::testSetVideoOutput()
 
     camera.setViewfinder(reinterpret_cast<QGraphicsVideoItem *>(0));
 
+    QCOMPARE(mockCameraService->rendererRef, 0);
+
     camera.setViewfinder(&surface);
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+    QCOMPARE(mockCameraService->rendererRef, 1);
 
     camera.setViewfinder(reinterpret_cast<QAbstractVideoSurface *>(0));
     QVERIFY(mockCameraService->rendererControl->surface() == 0);
 
+    //rendererControl is released
+    QCOMPARE(mockCameraService->rendererRef, 0);
+
     camera.setViewfinder(&surface);
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+    QCOMPARE(mockCameraService->rendererRef, 1);
 
     camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
     QVERIFY(mockCameraService->rendererControl->surface() == 0);
+    //rendererControl is released
+    QCOMPARE(mockCameraService->rendererRef, 0);
 
     camera.setViewfinder(&surface);
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+    QCOMPARE(mockCameraService->rendererRef, 1);
 }
 
 
