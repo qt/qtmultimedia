@@ -16,3 +16,5 @@ SOURCES += \
     $$QT.multimedia.sources/../plugins/m3u/qm3uhandler.cpp
 
 INCLUDEPATH += $$QT.multimedia.sources/../plugins/m3u
+
+TESTDATA += testdata/*

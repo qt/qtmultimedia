@@ -411,23 +411,29 @@ void tst_QMediaPlaylist::loadM3uFile()
 {
     QMediaPlaylist playlist;
 
-    playlist.load(QUrl::fromLocalFile(QLatin1String(TESTDATA_DIR "testdata/missing_file.m3u")));
+    // Try to load playlist that does not exist in the testdata folder
+    QString testFileName = QFINDTESTDATA("testdata");
+    playlist.load(QUrl::fromLocalFile(testFileName + "/missing_file.m3u"));
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
 
-    playlist.load(QUrl::fromLocalFile(QLatin1String(TESTDATA_DIR "testdata/test.m3u")));
+    testFileName = QFINDTESTDATA("testdata/test.m3u");
+    playlist.load(QUrl::fromLocalFile(testFileName));
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 7);
 
     QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
     QCOMPARE(playlist.media(1).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+    testFileName = QFINDTESTDATA("testdata/testfile");
     QCOMPARE(playlist.media(2).canonicalUrl(),
-             QUrl(QLatin1String("file://" TESTDATA_DIR "testdata/testfile")));
+             QUrl(QString("file://") + testFileName));
+    testFileName = QFINDTESTDATA("testdata");
     QCOMPARE(playlist.media(3).canonicalUrl(),
-             QUrl(QLatin1String("file://" TESTDATA_DIR "testdata/testdir/testfile")));
+             QUrl(QString("file://") + testFileName + "/testdir/testfile"));
     QCOMPARE(playlist.media(4).canonicalUrl(), QUrl(QLatin1String("file:///testdir/testfile")));
     QCOMPARE(playlist.media(5).canonicalUrl(), QUrl(QLatin1String("file://path/name#suffix")));
     //ensure #2 suffix is not stripped from path
-    QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(TESTDATA_DIR "testdata/testfile2#suffix"));
+    testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
+    QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
 }
 
 void tst_QMediaPlaylist::playbackMode_data()
