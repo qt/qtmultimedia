@@ -46,6 +46,7 @@
 #include "qmediaplayer.h"
 #include "qaudioprobe.h"
 #include "qvideoprobe.h"
+#include <qmediaplaylist.h>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -77,6 +78,7 @@ private slots:
     void volumeAcrossFiles();
     void seekPauseSeek();
     void probes();
+    void playlist();
 
 private:
     //one second local wav file
@@ -551,6 +553,151 @@ void tst_QMediaPlayerBackend::probes()
     QTRY_VERIFY(probeHandler.isVideoFlushCalled);
     delete videoProbe;
     delete audioProbe;
+}
+
+void tst_QMediaPlayerBackend::playlist()
+{
+    QMediaPlayer player;
+
+    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(const QMediaContent&)));
+    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(const QMediaContent&)));
+    QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
+    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+
+    QFileInfo fileInfo(QFINDTESTDATA("testdata/sample.m3u"));
+    player.setMedia(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+    QCOMPARE(mediaSpy.count(), 2);
+    // sample.m3u -> sample.m3u resolved -> test.wav ->
+    // nested1.m3u -> nested1.m3u resolved -> test.wav ->
+    // nested2.m3u -> nested2.m3u resolved ->
+    // test.wav -> _test.wav
+    // currentMediaChanged signals not emmitted for
+    // nested1.m3u\_test.wav and nested2.m3u\_test.wav
+    // because current media stays the same
+    QCOMPARE(currentMediaSpy.count(), 11);
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 0);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    errorSpy.clear();
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+    QCOMPARE(mediaSpy.count(), 0);
+    QCOMPARE(currentMediaSpy.count(), 8);
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 0);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    errorSpy.clear();
+
+    // <<< Invalid - 1st pass >>>
+    fileInfo.setFile(QFINDTESTDATA("testdata/invalid_media.m3u"));
+    player.setMedia(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
+
+    player.play();
+    QTRY_COMPARE(player.state(), QMediaPlayer::StoppedState);
+    // playlist -> resolved playlist
+    QCOMPARE(mediaSpy.count(), 2);
+    // playlist -> resolved playlist -> invalid -> ""
+    QCOMPARE(currentMediaSpy.count(), 4);
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 1);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    errorSpy.clear();
+
+    // <<< Invalid - 2nd pass >>>
+    player.play();
+    QTRY_COMPARE(player.state(), QMediaPlayer::StoppedState);
+    // media is not changed
+    QCOMPARE(mediaSpy.count(), 0);
+    // resolved playlist -> invalid -> ""
+    QCOMPARE(currentMediaSpy.count(), 3);
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 1);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    errorSpy.clear();
+
+    // <<< Invalid2 - 1st pass >>>
+    fileInfo.setFile((QFINDTESTDATA("testdata/invalid_media2.m3u")));
+    player.setMedia(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 20000);
+    // playlist -> resolved playlist
+    QCOMPARE(mediaSpy.count(), 2);
+    // playlist -> resolved playlist -> test.wav -> invalid -> test.wav -> ""
+    QCOMPARE(currentMediaSpy.count(), 6);
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 1);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    errorSpy.clear();
+
+    // <<< Invalid2 - 2nd pass >>>
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 20000);
+    // playlist -> resolved playlist
+    QCOMPARE(mediaSpy.count(), 0);
+    // playlist -> test.wav -> invalid -> test.wav -> ""
+    QCOMPARE(currentMediaSpy.count(), 5);
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 1);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    errorSpy.clear();
+
+    // <<< Recursive - 1st pass >>>
+    fileInfo.setFile((QFINDTESTDATA("testdata/recursive_master.m3u")));
+    player.setMedia(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 20000);
+    // master playlist -> resolved master playlist
+    QCOMPARE(mediaSpy.count(), 2);
+    // master playlist -> resolved master playlist ->
+    // recursive playlist -> resolved recursive playlist ->
+    // recursive playlist (this URL is already in the chain of playlists, so the playlist is not resolved) ->
+    // invalid -> test.wav -> ""
+    QCOMPARE(currentMediaSpy.count(), 8);
+    QCOMPARE(stateSpy.count(), 2);
+    // there is one invalid media in the master playlist
+    QCOMPARE(errorSpy.count(), 1);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    errorSpy.clear();
+
+    // <<< Recursive - 2nd pass >>>
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 20000);
+    QCOMPARE(mediaSpy.count(), 0);
+    // resolved master playlist ->
+    // resolved recursive playlist ->
+    // recursive playlist (this URL is already in the chain of playlists, so the playlist is not resolved) ->
+    // invalid -> test.wav -> ""
+    QCOMPARE(currentMediaSpy.count(), 6);
+    QCOMPARE(stateSpy.count(), 2);
+    // there is one invalid media in the master playlist
+    QCOMPARE(errorSpy.count(), 1);
 }
 
 QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
