@@ -49,7 +49,7 @@ VideoOutput {
 
     MediaPlayer {
         id: mediaPlayer
-        playing: true
+        autoPlay: true
         volume: 0.5
     }
 
