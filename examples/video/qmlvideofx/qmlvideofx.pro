@@ -24,5 +24,10 @@ SNIPPETS_PATH = ../snippets
 include($$SNIPPETS_PATH/performancemonitor/performancemonitordeclarative.pri)
 performanceItemAddDeployment()
 
+maemo6: {
+    DEFINES += SMALL_SCREEN_LAYOUT
+    DEFINES += SMALL_SCREEN_PHYSICAL
+}
+
 include(qmlapplicationviewer/qmlapplicationviewer.pri)
 qtcAddDeployment()
