@@ -57,15 +57,22 @@
 #include <QtQml/qqmlparserstatus.h>
 #include <QtQml/qqml.h>
 
-#include "qdeclarativemediabase_p.h"
+#include <qmediaplayer.h>
 
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
 class QTimerEvent;
+class QMediaPlayerControl;
+class QMediaService;
+class QMediaServiceProvider;
+class QMetaDataReaderControl;
+class QDeclarativeMediaBaseAnimation;
+class QDeclarativeMediaMetaData;
+class QMediaAvailabilityControl;
 
-class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public QQmlParserStatus
+class QDeclarativeAudio : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
@@ -120,7 +127,7 @@ public:
 
     enum Loop
     {
-        Infinite = QDeclarativeMediaBase::INFINITE
+        Infinite = -1
     };
 
     enum PlaybackState
@@ -146,6 +153,7 @@ public:
     Status status() const;
     Error error() const;
     PlaybackState playbackState() const;
+    void setPlaybackState(QMediaPlayer::State playbackState);
 
     void classBegin();
     void componentComplete();
@@ -153,6 +161,40 @@ public:
     QObject *mediaObject() { return m_mediaObject; }
 
     Availability availability() const;
+
+    QUrl source() const;
+    void setSource(const QUrl &url);
+
+    int loopCount() const;
+    void setLoopCount(int loopCount);
+
+    int duration() const;
+
+    int position() const;
+    void setPosition(int position);
+
+    qreal volume() const;
+    void setVolume(qreal volume);
+
+    bool isMuted() const;
+    void setMuted(bool muted);
+
+    qreal bufferProgress() const;
+
+    bool isSeekable() const;
+
+    qreal playbackRate() const;
+    void setPlaybackRate(qreal rate);
+
+    QString errorString() const;
+
+    QDeclarativeMediaMetaData *metaData() const;
+
+    bool isAutoLoad() const;
+    void setAutoLoad(bool autoLoad);
+
+    bool autoPlay() const;
+    void setAutoPlay(bool autoplay);
 
 public Q_SLOTS:
     void play();
@@ -196,12 +238,39 @@ Q_SIGNALS:
 private Q_SLOTS:
     void _q_error(int, const QString &);
     void _q_availabilityChanged(QtMultimedia::AvailabilityError);
+    void _q_statusChanged();
 
 private:
     Q_DISABLE_COPY(QDeclarativeAudio)
-    Q_PRIVATE_SLOT(mediaBase(), void _q_statusChanged())
 
-    inline QDeclarativeMediaBase *mediaBase() { return this; }
+    bool m_autoPlay;
+    bool m_autoLoad;
+    bool m_loaded;
+    bool m_muted;
+    bool m_complete;
+    int m_loopCount;
+    int m_runningCount;
+    int m_position;
+    qreal m_vol;
+    qreal m_playbackRate;
+    QMediaService *m_mediaService;
+    QMediaPlayerControl *m_playerControl;
+
+    QMediaObject *m_mediaObject;
+    QMediaServiceProvider *m_mediaProvider;
+    QMetaDataReaderControl *m_metaDataControl;
+    QDeclarativeMediaBaseAnimation *m_animation;
+    QScopedPointer<QDeclarativeMediaMetaData> m_metaData;
+
+    QMediaAvailabilityControl *m_availabilityControl;
+
+    QMediaPlayer::State m_playbackState;
+    QMediaPlayer::MediaStatus m_status;
+    QMediaPlayer::Error m_error;
+    QString m_errorString;
+    QUrl m_source;
+
+    friend class QDeclarativeMediaBaseAnimation;
 };
 
 QT_END_NAMESPACE

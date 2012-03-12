@@ -12,7 +12,6 @@ LIBS += -lQtMultimediaQuick_p
 
 HEADERS += \
         qdeclarativeaudio_p.h \
-        qdeclarativemediabase_p.h \
         qdeclarativemediametadata_p.h \
         qdeclarativevideooutput_p.h \
         qsgvideonode_i420.h \
@@ -34,7 +33,6 @@ HEADERS += \
 SOURCES += \
         multimedia.cpp \
         qdeclarativeaudio.cpp \
-        qdeclarativemediabase.cpp \
         qdeclarativevideooutput.cpp \
         qsgvideonode_i420.cpp \
         qsgvideonode_rgb.cpp \
