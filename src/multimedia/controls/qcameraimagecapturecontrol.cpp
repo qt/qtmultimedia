@@ -95,6 +95,12 @@ QCameraImageCaptureControl::~QCameraImageCaptureControl()
     hardware initialized, flash is charged, etc).
 
     Returns true if the camera is ready for capture; and false if it is not.
+
+    It's permissible to call capture() while the camera status is QCamera::ActiveStatus
+    regardless of isReadyForCapture property value.
+    If camera is not ready to capture image immediately,
+    the capture request is queued with all the related camera settings
+    to be executed as soon as possible.
 */
 
 /*!
@@ -110,6 +116,11 @@ QCameraImageCaptureControl::~QCameraImageCaptureControl()
     The \a fileName can be relative or empty,
     in this case the service should use the system specific place
     and file naming scheme.
+
+    The Camera service should save all the capture parameters
+    like exposure settings or image processing parameters,
+    so changes to camera paramaters after capture() is called
+    do not affect previous capture requests.
 
     Returns the capture request id number, which is used later
     with imageExposed(), imageCaptured() and imageSaved() signals.

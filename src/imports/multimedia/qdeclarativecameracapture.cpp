@@ -124,6 +124,12 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
     \property QDeclarativeCameraCapture::ready
 
     Indicates camera is ready to capture photo.
+
+   It's permissible to call capture() while the camera is active
+   regardless of isReadyForCapture property value.
+   If camera is not ready to capture image immediately,
+   the capture request is queued with all the related camera settings
+   to be executed as soon as possible.
 */
 bool QDeclarativeCameraCapture::isReadyForCapture() const
 {
@@ -138,6 +144,10 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
     be emitted when the capture is complete.
 
     The image will be captured to the default system location.
+
+    Camera saves all the capture parameters like exposure settings or
+    image processing parameters, so changes to camera paramaters after
+    capture() is called do not affect previous capture requests.
 
     CameraCapture::capture returns the capture requestId parameter, used with
     imageExposed(), imageCaptured(), imageMetadataAvailable() and imageSaved() signals.
