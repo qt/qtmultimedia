@@ -7,7 +7,7 @@ CONFIG += no_private_qt_headers_warning
 HEADERS += \
         $$QT.multimedia.sources/../imports/multimedia/qdeclarativeaudio_p_4.h \
         $$QT.multimedia.sources/../imports/multimedia/qdeclarativemediabase_p_4.h \
-        $$QT.multimedia.sources/../imports/multimedia/qdeclarativemediametadata_p.h
+        $$QT.multimedia.sources/../imports/multimedia/qdeclarativemediametadata_p_4.h
 
 SOURCES += \
         tst_qdeclarativeaudio_4.cpp \

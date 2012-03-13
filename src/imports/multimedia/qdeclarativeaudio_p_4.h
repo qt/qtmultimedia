@@ -85,7 +85,7 @@ class QDeclarativeAudio_4 : public QObject, public QDeclarativeMediaBase_4, publ
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
+    Q_PROPERTY(QDeclarativeMediaMetaData_4 *metaData READ metaData CONSTANT)
     Q_PROPERTY(QObject *mediaObject READ mediaObject NOTIFY mediaObjectChanged SCRIPTABLE false DESIGNABLE false)
     Q_ENUMS(Status)
     Q_ENUMS(Error)

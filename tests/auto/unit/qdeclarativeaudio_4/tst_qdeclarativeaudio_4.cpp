@@ -44,7 +44,7 @@
 #include <QtTest/QtTest>
 
 #include "qdeclarativeaudio_p_4.h"
-#include "qdeclarativemediametadata_p.h"
+#include "qdeclarativemediametadata_p_4.h"
 
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>

@@ -158,7 +158,7 @@ public:
     void classBegin();
     void componentComplete();
 
-    QObject *mediaObject() { return m_mediaObject; }
+    QObject *mediaObject() { return m_player; }
 
     Availability availability() const;
 
@@ -236,7 +236,7 @@ Q_SIGNALS:
     void mediaObjectChanged();
 
 private Q_SLOTS:
-    void _q_error(int, const QString &);
+    void _q_error(QMediaPlayer::Error);
     void _q_availabilityChanged(QtMultimedia::AvailabilityError);
     void _q_statusChanged();
 
@@ -253,22 +253,16 @@ private:
     int m_position;
     qreal m_vol;
     qreal m_playbackRate;
-    QMediaService *m_mediaService;
-    QMediaPlayerControl *m_playerControl;
-
-    QMediaObject *m_mediaObject;
-    QMediaServiceProvider *m_mediaProvider;
-    QMetaDataReaderControl *m_metaDataControl;
-    QDeclarativeMediaBaseAnimation *m_animation;
-    QScopedPointer<QDeclarativeMediaMetaData> m_metaData;
-
-    QMediaAvailabilityControl *m_availabilityControl;
 
     QMediaPlayer::State m_playbackState;
     QMediaPlayer::MediaStatus m_status;
     QMediaPlayer::Error m_error;
     QString m_errorString;
     QUrl m_source;
+
+    QScopedPointer<QDeclarativeMediaMetaData> m_metaData;
+
+    QMediaPlayer *m_player;
 
     friend class QDeclarativeMediaBaseAnimation;
 };

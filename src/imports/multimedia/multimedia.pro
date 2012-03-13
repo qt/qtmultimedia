@@ -28,7 +28,8 @@ HEADERS += \
         qdeclarativecamerapreviewprovider_p.h \
         qdeclarativetorch_p.h \
         qdeclarativeaudio_p_4.h \
-        qdeclarativemediabase_p_4.h
+        qdeclarativemediabase_p_4.h \
+        qdeclarativemediametadata_p_4.h
 
 SOURCES += \
         multimedia.cpp \

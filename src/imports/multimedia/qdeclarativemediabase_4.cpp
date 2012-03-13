@@ -50,7 +50,7 @@
 #include <private/qmediaserviceprovider_p.h>
 #include <qmetadatareadercontrol.h>
 
-#include "qdeclarativemediametadata_p.h"
+#include "qdeclarativemediametadata_p_4.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -304,7 +304,7 @@ void QDeclarativeMediaBase_4::setObject(QObject *object, const QByteArray &type)
     if (!m_metaDataControl)
         m_metaDataControl = new QDeclarativeMediaBaseMetaDataControl(object);
 
-    m_metaData.reset(new QDeclarativeMediaMetaData(m_metaDataControl));
+    m_metaData.reset(new QDeclarativeMediaMetaData_4(m_metaDataControl));
 
     QObject::connect(m_metaDataControl, SIGNAL(metaDataChanged()),
             m_metaData.data(), SIGNAL(metaDataChanged()));
@@ -558,7 +558,7 @@ QString QDeclarativeMediaBase_4::errorString() const
     return m_errorString;
 }
 
-QDeclarativeMediaMetaData *QDeclarativeMediaBase_4::metaData() const
+QDeclarativeMediaMetaData_4 *QDeclarativeMediaBase_4::metaData() const
 {
     return m_metaData.data();
 }

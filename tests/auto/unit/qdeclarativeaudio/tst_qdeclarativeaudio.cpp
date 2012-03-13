@@ -617,18 +617,18 @@ void tst_QDeclarativeAudio::position()
     QCOMPARE(spy.count(), 1);
 
     audio.setPosition(-5403);
-    QCOMPARE(audio.position(), -5403);
-    QCOMPARE(provider.playerControl()->position(), qint64(-5403));
+    QCOMPARE(audio.position(), 0);
+    QCOMPARE(provider.playerControl()->position(), qint64(0));
     QCOMPARE(spy.count(), 2);
 
     audio.setPosition(-5403);
-    QCOMPARE(audio.position(), -5403);
-    QCOMPARE(provider.playerControl()->position(), qint64(-5403));
+    QCOMPARE(audio.position(), 0);
+    QCOMPARE(provider.playerControl()->position(), qint64(0));
     QCOMPARE(spy.count(), 2);
 
     // Check the signal change signal is emitted if the change originates from the media service.
-    provider.playerControl()->setPosition(0);
-    QCOMPARE(audio.position(), 0);
+    provider.playerControl()->setPosition(450);
+    QCOMPARE(audio.position(), 450);
     QCOMPARE(spy.count(), 3);
 
     connect(&audio, SIGNAL(positionChanged()), &QTestEventLoop::instance(), SLOT(exitLoop()));
@@ -691,7 +691,7 @@ void tst_QDeclarativeAudio::muted()
     audio.setMuted(false);
     QCOMPARE(audio.isMuted(), false);
     QCOMPARE(provider.playerControl()->isMuted(), false);
-    QCOMPARE(spy.count(), 3);
+    QCOMPARE(spy.count(), 2);
 }
 
 void tst_QDeclarativeAudio::bufferProgress()
