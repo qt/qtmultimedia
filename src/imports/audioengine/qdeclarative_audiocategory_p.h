@@ -42,17 +42,17 @@
 #ifndef QDECLARATIVEAUDIOCATEGORY_P_H
 #define QDECLARATIVEAUDIOCATEGORY_P_H
 
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlcomponent.h>
 
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeAudioCategory : public QObject, public QDeclarativeParserStatus
+class QDeclarativeAudioCategory : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QString name READ name WRITE setName)
 

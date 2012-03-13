@@ -43,8 +43,8 @@
 
 #include <QtTest/QtTest>
 
-#include <QDeclarativeEngine>
-#include <QDeclarativeComponent>
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlcomponent.h>
 
 #include "qdeclarativevideooutput_p.h"
 

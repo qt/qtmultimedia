@@ -42,18 +42,18 @@
 #ifndef QDECLARATIVEATTENUATIONMODEL_P_H
 #define QDECLARATIVEATTENUATIONMODEL_P_H
 
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlcomponent.h>
 #include <QVector3D>
 
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeAttenuationModel : public QObject, public QDeclarativeParserStatus
+class QDeclarativeAttenuationModel : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString name READ name WRITE setName)
 
 public:

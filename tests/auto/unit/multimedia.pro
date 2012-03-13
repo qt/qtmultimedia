@@ -33,3 +33,8 @@ SUBDIRS += \
     qdeclarativeaudio \
     qdeclarativeaudio_4 \
     qaudiodecoder
+
+disabled {
+    SUBDIRS += \
+        qdeclarativevideo
+}

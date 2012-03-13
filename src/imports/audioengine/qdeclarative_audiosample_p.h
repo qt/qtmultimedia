@@ -42,8 +42,8 @@
 #ifndef QDECLARATIVEAUDIOSAMPLE_P_H
 #define QDECLARATIVEAUDIOSAMPLE_P_H
 
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlcomponent.h>
 
 QT_BEGIN_HEADER
 
@@ -51,10 +51,10 @@ QT_BEGIN_NAMESPACE
 
 class QSoundBuffer;
 
-class QDeclarativeAudioSample : public QObject, public QDeclarativeParserStatus
+class QDeclarativeAudioSample : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString name READ name WRITE setName)
     Q_PROPERTY(QUrl source READ source WRITE setSource)
     Q_PROPERTY(bool preloaded READ isPreloaded WRITE setPreloaded)

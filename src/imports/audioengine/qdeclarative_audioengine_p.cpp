@@ -48,7 +48,7 @@
 #include "qdeclarative_attenuationmodel_p.h"
 #include "qdeclarative_soundinstance_p.h"
 #include "qsoundinstance_p.h"
-#include <QtDeclarative/qdeclarativeengine.h>
+#include <QtQml/qqmlengine.h>
 #include "qdebug.h"
 
 #define DEBUG_AUDIOENGINE

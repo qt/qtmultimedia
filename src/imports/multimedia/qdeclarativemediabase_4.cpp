@@ -43,7 +43,7 @@
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qurl.h>
-#include <QtDeclarative/qdeclarativeinfo.h>
+#include <QtQml/qqmlinfo.h>
 
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>

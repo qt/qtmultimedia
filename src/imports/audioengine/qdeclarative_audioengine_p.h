@@ -42,9 +42,9 @@
 #ifndef QDECLARATIVEAUDIOENGINE_P_H
 #define QDECLARATIVEAUDIOENGINE_P_H
 
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
-#include <QtDeclarative/qdeclarativepropertymap.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlcomponent.h>
+#include <QtQml/qqmlpropertymap.h>
 #include <QtCore/QMap>
 #include <QtCore/QList>
 #include <QTimer>
@@ -64,11 +64,11 @@ class QAudioCategory;
 class QDeclarativeAttenuationModel;
 class QSoundInstance;
 
-class QDeclarativeAudioEngine : public QObject, public QDeclarativeParserStatus
+class QDeclarativeAudioEngine : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
-    Q_PROPERTY(QDeclarativeListProperty<QObject> bank READ bank CONSTANT)
+    Q_INTERFACES(QQmlParserStatus)
+    Q_PROPERTY(QQmlListProperty<QObject> bank READ bank CONSTANT)
     Q_PROPERTY(QObject* categories READ categories CONSTANT)
     Q_PROPERTY(QObject* samples READ samples CONSTANT)
     Q_PROPERTY(QObject* sounds READ sounds CONSTANT)

@@ -39,10 +39,10 @@
 **
 ****************************************************************************/
 
-#include <QtDeclarative/qdeclarativeextensionplugin.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
+#include <QtQml/qqmlextensionplugin.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlcomponent.h>
 
 #include "qdeclarative_audioengine_p.h"
 #include "qdeclarative_soundinstance_p.h"
@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAudioEngineDeclarativeModule : public QDeclarativeExtensionPlugin
+class QAudioEngineDeclarativeModule : public QQmlExtensionPlugin
 {
     Q_OBJECT
 public:

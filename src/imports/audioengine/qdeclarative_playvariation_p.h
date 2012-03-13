@@ -42,8 +42,8 @@
 #ifndef QDECLARATIVEPLAYVARIATION_P_H
 #define QDECLARATIVEPLAYVARIATION_P_H
 
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlcomponent.h>
 
 QT_BEGIN_HEADER
 
@@ -52,10 +52,10 @@ QT_BEGIN_NAMESPACE
 class QDeclarativeAudioSample;
 class QSoundInstance;
 
-class QDeclarativePlayVariation : public QObject, public QDeclarativeParserStatus
+class QDeclarativePlayVariation : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString sample READ sample WRITE setSample)
     Q_PROPERTY(bool looping READ isLooping WRITE setLooping)
     Q_PROPERTY(qreal maxGain READ maxGain WRITE setMaxGain)

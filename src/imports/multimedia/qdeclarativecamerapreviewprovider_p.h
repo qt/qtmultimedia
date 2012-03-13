@@ -53,13 +53,13 @@
 // We mean it.
 //
 
-#include <QtDeclarative/qdeclarativeimageprovider.h>
+#include <QtQml/qqmlimageprovider.h>
 
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeCameraPreviewProvider : public QDeclarativeImageProvider
+class QDeclarativeCameraPreviewProvider : public QQmlImageProvider
 {
 public:
     QDeclarativeCameraPreviewProvider();

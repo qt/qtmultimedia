@@ -57,7 +57,7 @@
 #include <qcameraimagecapture.h>
 #include <qmediaencodersettings.h>
 
-#include <QtDeclarative/qdeclarative.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_HEADER
 

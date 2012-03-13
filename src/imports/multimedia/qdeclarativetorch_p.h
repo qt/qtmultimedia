@@ -43,8 +43,8 @@
 #ifndef QDECLARATIVETORCH_P_H
 #define QDECLARATIVETORCH_P_H
 
-#include <QObject>
-#include <QtDeclarative/qdeclarative.h>
+#include <QtCore/QObject>
+#include <QtQml/qqml.h>
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>
 #include <qcameraflashcontrol.h>

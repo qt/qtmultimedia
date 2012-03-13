@@ -53,9 +53,9 @@
 // We mean it.
 //
 
-#include <QtDeclarative/qdeclarative.h>
 #include <qradiodata.h>
 #include <qradiotuner.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_HEADER
 

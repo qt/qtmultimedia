@@ -50,7 +50,7 @@
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
-#include <QtDeclarative/qdeclarativeinfo.h>
+#include <QtQml/qqmlinfo.h>
 
 #include <QtCore/QTimer>
 #include <QtGui/qevent.h>

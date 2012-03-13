@@ -40,6 +40,7 @@
 ****************************************************************************/
 
 #include "qdeclarativeradio_p.h"
+#include "qdeclarativeradiodata_p.h"
 
 QT_BEGIN_NAMESPACE
 

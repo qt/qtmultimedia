@@ -54,8 +54,8 @@
 //
 
 #include <QtCore/qbasictimer.h>
-#include <QtDeclarative/qdeclarativeparserstatus.h>
-#include <QtDeclarative/qdeclarative.h>
+#include <QtQml/qqmlparserstatus.h>
+#include <QtQml/qqml.h>
 
 #include "qdeclarativemediabase_p.h"
 
@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 
 class QTimerEvent;
 
-class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public QDeclarativeParserStatus
+class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public QQmlParserStatus
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
@@ -93,7 +93,7 @@ class QDeclarativeAudio : public QObject, public QDeclarativeMediaBase, public Q
     Q_ENUMS(Loop)
     Q_ENUMS(PlaybackState)
     Q_ENUMS(Availability)
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
 public:
     enum Status
     {

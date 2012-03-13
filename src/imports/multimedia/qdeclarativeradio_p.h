@@ -53,13 +53,14 @@
 // We mean it.
 //
 
-#include <QtDeclarative/qdeclarative.h>
 #include <qradiotuner.h>
-#include "qdeclarativeradiodata_p.h"
+#include <QtQml/qqml.h>
 
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
+
+class QDeclarativeRadioData;
 
 class QDeclarativeRadio : public QObject
 {

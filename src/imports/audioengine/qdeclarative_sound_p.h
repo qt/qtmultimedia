@@ -42,8 +42,8 @@
 #ifndef QDECLARATIVESOUND_P_H
 #define QDECLARATIVESOUND_P_H
 
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlcomponent.h>
 #include <QtCore/qlist.h>
 #include "qdeclarative_playvariation_p.h"
 

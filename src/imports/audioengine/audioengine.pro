@@ -2,7 +2,7 @@ TARGET  = declarative_audioengine
 TARGETPATH = QtAudioEngine
 
 include(../qimportbase.pri)
-QT += declarative quick multimedia-private
+QT += quick qml multimedia-private
 
 win32 {
     LIBS += -lOpenAL32

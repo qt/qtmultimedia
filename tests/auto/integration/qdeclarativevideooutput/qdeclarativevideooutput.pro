@@ -1,7 +1,7 @@
 CONFIG += testcase
 TARGET = tst_qdeclarativevideooutput
 
-QT += multimedia-private declarative testlib quick
+QT += multimedia-private qml testlib quick
 CONFIG += no_private_qt_headers_warning
 
 OTHER_FILES += \

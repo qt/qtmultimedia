@@ -62,8 +62,8 @@
 
 #include <QtCore/qbasictimer.h>
 #include <QtCore/qdatetime.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeparserstatus.h>
+#include <QtQml/qqmlparserstatus.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_HEADER
 
@@ -74,10 +74,10 @@ class QDeclarativeCameraFocus;
 class QDeclarativeCameraFlash;
 class QDeclarativeCameraImageProcessing;
 
-class QDeclarativeCamera : public QObject, public QDeclarativeParserStatus
+class QDeclarativeCamera : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
 
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)

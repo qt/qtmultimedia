@@ -39,10 +39,10 @@
 **
 ****************************************************************************/
 
-#include <QtDeclarative/qdeclarativeextensionplugin.h>
-#include <QtDeclarative/qdeclarative.h>
-#include <QtDeclarative/qdeclarativeengine.h>
-#include <QtDeclarative/qdeclarativecomponent.h>
+#include <QtQml/qqmlextensionplugin.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlcomponent.h>
 #include "qsoundeffect.h"
 
 #include "qdeclarativemediametadata_p.h"
@@ -63,7 +63,7 @@ QML_DECLARE_TYPE(QSoundEffect)
 
 QT_BEGIN_NAMESPACE
 
-class QMultimediaDeclarativeModule : public QDeclarativeExtensionPlugin
+class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 {
     Q_OBJECT
 public:
