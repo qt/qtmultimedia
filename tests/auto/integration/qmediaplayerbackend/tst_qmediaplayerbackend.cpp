@@ -49,10 +49,6 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#ifndef TESTDATA_DIR
-#define TESTDATA_DIR "./"
-#endif
-
 QT_USE_NAMESPACE
 
 /*
@@ -132,9 +128,8 @@ void tst_QMediaPlayerBackend::init()
 
 void tst_QMediaPlayerBackend::initTestCase()
 {
-    QFileInfo wavFile(QLatin1String(TESTDATA_DIR "testdata/test.wav"));
-    if (!wavFile.exists())
-        wavFile = QFileInfo(QLatin1String("testdata/test.wav"));
+    const QString testFileName = QFINDTESTDATA("testdata/test.wav");
+    QFileInfo wavFile(testFileName);
 
     QVERIFY(wavFile.exists());
 
@@ -465,7 +460,8 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     TestVideoSurface *surface = new TestVideoSurface;
     player.setVideoOutput(surface);
 
-    QFileInfo videoFile(QLatin1String(TESTDATA_DIR "testdata/colors.mp4"));
+    const QString testFileName = QFINDTESTDATA("testdata/colors.mp4");
+    QFileInfo videoFile(testFileName);
     QVERIFY(videoFile.exists());
 
     player.setMedia(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
@@ -540,7 +536,8 @@ void tst_QMediaPlayerBackend::probes()
     QVERIFY(videoProbe->setSource(player));
     QVERIFY(audioProbe->setSource(player));
 
-    QFileInfo videoFile(QLatin1String(TESTDATA_DIR "testdata/colors.mp4"));
+    const QString testFileName = QFINDTESTDATA("testdata/colors.mp4");
+    QFileInfo videoFile(testFileName);
     QVERIFY(videoFile.exists());
     player->setMedia(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
     QTRY_COMPARE(player->mediaStatus(), QMediaPlayer::LoadedMedia);

@@ -19,4 +19,3 @@ include (../qmultimedia_common/mock.pri)
 include (../qmultimedia_common/mockdecoder.pri)
 
 SOURCES += tst_qaudiodecoder.cpp
-DEFINES += SRCDIR=\\\"$$PWD/\\\"

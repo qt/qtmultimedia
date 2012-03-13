@@ -7,3 +7,5 @@ CONFIG += no_private_qt_headers_warning
 # CONFIG += testcase
 
 SOURCES += tst_qsound.cpp
+
+TESTDATA += test.wav

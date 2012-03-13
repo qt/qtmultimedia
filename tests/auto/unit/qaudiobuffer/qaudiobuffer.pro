@@ -14,4 +14,3 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 SOURCES += tst_qaudiobuffer.cpp
-DEFINES += SRCDIR=\\\"$$PWD/\\\"

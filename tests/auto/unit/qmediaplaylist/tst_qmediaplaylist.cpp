@@ -57,10 +57,6 @@
 #include "mockmediaplaylistsourcecontrol.h"
 #include "mockreadonlyplaylistprovider.h"
 
-#ifndef TESTDATA_DIR
-#define TESTDATA_DIR "./"
-#endif
-
 QT_USE_NAMESPACE
 
 class MockReadOnlyPlaylistObject : public QMediaObject

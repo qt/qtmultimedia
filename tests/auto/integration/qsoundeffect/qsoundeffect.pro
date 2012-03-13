@@ -13,3 +13,5 @@ unix:!mac {
         DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER
     }
 }
+
+TESTDATA += test.wav

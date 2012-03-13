@@ -6,8 +6,6 @@ include (../qmultimedia_common/mockplaylist.pri)
 QT += multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
-DEFINES += TESTDATA_DIR=\\\"$$PWD/\\\"
-
 HEADERS += \
     $$QT.multimedia.sources/../plugins/m3u/qm3uhandler.h
 
