@@ -581,7 +581,11 @@ gboolean QVideoSurfaceGstSink::set_caps(GstBaseSink *base, GstCaps *caps)
         return TRUE;
     } else {
         int bytesPerLine = 0;
-        QVideoSurfaceFormat format = formatForCaps(caps, &bytesPerLine);
+        QGstBufferPoolInterface *pool = sink->delegate->pool();
+        QAbstractVideoBuffer::HandleType handleType =
+                pool ? pool->handleType() : QAbstractVideoBuffer::NoHandle;
+
+        QVideoSurfaceFormat format = formatForCaps(caps, &bytesPerLine, handleType);
 
         if (sink->delegate->isActive()) {
             QVideoSurfaceFormat surfaceFormst = sink->delegate->surfaceFormat();
@@ -612,7 +616,7 @@ gboolean QVideoSurfaceGstSink::set_caps(GstBaseSink *base, GstCaps *caps)
     return FALSE;
 }
 
-QVideoSurfaceFormat QVideoSurfaceGstSink::formatForCaps(GstCaps *caps, int *bytesPerLine)
+QVideoSurfaceFormat QVideoSurfaceGstSink::formatForCaps(GstCaps *caps, int *bytesPerLine, QAbstractVideoBuffer::HandleType handleType)
 {
     const GstStructure *structure = gst_caps_get_structure(caps, 0);
 
@@ -655,7 +659,7 @@ QVideoSurfaceFormat QVideoSurfaceGstSink::formatForCaps(GstCaps *caps, int *byte
     }
 
     if (pixelFormat != QVideoFrame::Format_Invalid) {
-        QVideoSurfaceFormat format(size, pixelFormat);
+        QVideoSurfaceFormat format(size, pixelFormat, handleType);
 
         QPair<int, int> rate;
         gst_structure_get_fraction(structure, "framerate", &rate.first, &rate.second);
@@ -771,7 +775,11 @@ GstFlowReturn QVideoSurfaceGstSink::buffer_alloc(
 
     if (!sink->delegate->isActive()) {
         int bytesPerLine = 0;
-        QVideoSurfaceFormat format = formatForCaps(intersection, &bytesPerLine);
+        QGstBufferPoolInterface *pool = sink->delegate->pool();
+        QAbstractVideoBuffer::HandleType handleType =
+                pool ? pool->handleType() : QAbstractVideoBuffer::NoHandle;
+
+        QVideoSurfaceFormat format = formatForCaps(intersection, &bytesPerLine, handleType);
 
         if (!sink->delegate->start(format, bytesPerLine)) {
             qWarning() << "failed to start video surface";
