@@ -85,7 +85,7 @@ public:
 
     static FileType findPlaylistType(const QString& uri, const QString& mime, const void *data, quint32 size);
 
-    void start(const QUrl& url, bool utf8 = false);
+    void start(const QNetworkRequest &request, bool utf8 = false);
     void stop();
 
 Q_SIGNALS:

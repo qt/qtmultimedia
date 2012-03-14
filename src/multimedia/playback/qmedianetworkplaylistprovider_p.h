@@ -70,7 +70,7 @@ public:
     QMediaNetworkPlaylistProvider(QObject *parent=0);
     virtual ~QMediaNetworkPlaylistProvider();
 
-    virtual bool load(const QUrl &location, const char *format = 0);
+    virtual bool load(const QNetworkRequest &request, const char *format = 0);
 
     virtual int mediaCount() const;
     virtual QMediaContent media(int pos) const;

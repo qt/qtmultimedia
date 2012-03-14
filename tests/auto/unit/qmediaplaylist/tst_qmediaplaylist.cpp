@@ -429,6 +429,12 @@ void tst_QMediaPlaylist::loadM3uFile()
     //ensure #2 suffix is not stripped from path
     testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
     QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
+    // check ability to load from QNetworkRequest
+    QSignalSpy loadSpy(&playlist, SIGNAL(loaded()));
+    QSignalSpy loadFailedSpy(&playlist, SIGNAL(loadFailed()));
+    playlist.load(QNetworkRequest(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.m3u"))));
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QVERIFY(loadFailedSpy.isEmpty());
 }
 
 void tst_QMediaPlaylist::playbackMode_data()

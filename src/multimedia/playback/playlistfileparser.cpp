@@ -543,21 +543,21 @@ QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QStrin
     return UNKNOWN;
 }
 
-void QPlaylistFileParser::start(const QUrl& url, bool utf8)
+void QPlaylistFileParser::start(const QNetworkRequest& request, bool utf8)
 {
     Q_D(QPlaylistFileParser);
     stop();
 
     d->m_type = UNKNOWN;
     d->m_utf8 = utf8;
-    d->m_root = url;
+    d->m_root = request.url();
 
-    if (url.isLocalFile() && !QFile::exists(url.toLocalFile())) {
-        emit error(NetworkError, QString(tr("%1 does not exist")).arg(url.toString()));
+    if (d->m_root.isLocalFile() && !QFile::exists(d->m_root.toLocalFile())) {
+        emit error(NetworkError, QString(tr("%1 does not exist")).arg(d->m_root.toString()));
         return;
     }
 
-    d->m_source = d->m_mgr.get(QNetworkRequest(url));
+    d->m_source = d->m_mgr.get(request);
 
     connect(d->m_source, SIGNAL(readyRead()), this, SLOT(_q_handleData()));
     connect(d->m_source, SIGNAL(finished()), this, SLOT(_q_handleData()));

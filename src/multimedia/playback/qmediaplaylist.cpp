@@ -437,22 +437,22 @@ bool QMediaPlaylistPrivate::writeItems(QMediaPlaylistWriter *writer)
 }
 
 /*!
-  Load playlist from \a location. If \a format is specified, it is used,
-  otherwise format is guessed from location name and data.
+  Load playlist using network \a request. If \a format is specified, it is used,
+  otherwise format is guessed from playlist name and data.
 
   New items are appended to playlist.
 
   QMediaPlaylist::loaded() signal is emitted if playlist was loaded successfully,
   otherwise the playlist emits loadFailed().
 */
-void QMediaPlaylist::load(const QUrl &location, const char *format)
+void QMediaPlaylist::load(const QNetworkRequest &request, const char *format)
 {
     Q_D(QMediaPlaylist);
 
     d->error = NoError;
     d->errorString.clear();
 
-    if (d->playlist()->load(location,format))
+    if (d->playlist()->load(request,format))
         return;
 
     if (isReadOnly()) {
@@ -464,8 +464,8 @@ void QMediaPlaylist::load(const QUrl &location, const char *format)
 
     foreach (QString const& key, playlistIOLoader()->keys()) {
         QMediaPlaylistIOInterface* plugin = qobject_cast<QMediaPlaylistIOInterface*>(playlistIOLoader()->instance(key));
-        if (plugin && plugin->canRead(location,format)) {
-            QMediaPlaylistReader *reader = plugin->createReader(location,QByteArray(format));
+        if (plugin && plugin->canRead(request.url(), format)) {
+            QMediaPlaylistReader *reader = plugin->createReader(request.url(), QByteArray(format));
             if (reader && d->readItems(reader)) {
                 delete reader;
                 emit loaded();
@@ -480,6 +480,21 @@ void QMediaPlaylist::load(const QUrl &location, const char *format)
     emit loadFailed();
 
     return;
+}
+
+/*!
+  Load playlist from \a location. If \a format is specified, it is used,
+  otherwise format is guessed from location name and data.
+
+  New items are appended to playlist.
+
+  QMediaPlaylist::loaded() signal is emitted if playlist was loaded successfully,
+  otherwise the playlist emits loadFailed().
+*/
+
+void QMediaPlaylist::load(const QUrl &location, const char *format)
+{
+    load(QNetworkRequest(location), format);
 }
 
 /*!

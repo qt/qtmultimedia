@@ -79,7 +79,7 @@ public:
     QMediaPlaylistProvider(QObject *parent=0);
     virtual ~QMediaPlaylistProvider();
 
-    virtual bool load(const QUrl &location, const char *format = 0);
+    virtual bool load(const QNetworkRequest &request, const char *format = 0);
     virtual bool load(QIODevice * device, const char *format = 0);
     virtual bool save(const QUrl &location, const char *format = 0);
     virtual bool save(QIODevice * device, const char *format);

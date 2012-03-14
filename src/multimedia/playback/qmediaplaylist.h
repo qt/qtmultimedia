@@ -101,6 +101,7 @@ public:
     bool removeMedia(int start, int end);
     bool clear();
 
+    void load(const QNetworkRequest &request, const char *format = 0);
     void load(const QUrl &location, const char *format = 0);
     void load(QIODevice * device, const char *format = 0);
 

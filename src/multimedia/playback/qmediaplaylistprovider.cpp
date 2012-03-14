@@ -98,7 +98,7 @@ QMediaPlaylistProvider::~QMediaPlaylistProvider()
 
 
 /*!
-    Loads a playlist from from a URL \a location. If no playlist \a format is specified the loader
+    Loads a playlist using network \a request. If no playlist \a format is specified the loader
     will inspect the URL or probe the headers to guess the format.
 
     New items are appended to playlist.
@@ -106,9 +106,9 @@ QMediaPlaylistProvider::~QMediaPlaylistProvider()
     Returns true if the provider supports the format and loading from the locations URL protocol,
     otherwise this will return false.
 */
-bool QMediaPlaylistProvider::load(const QUrl &location, const char *format)
+bool QMediaPlaylistProvider::load(const QNetworkRequest &request, const char *format)
 {
-    Q_UNUSED(location);
+    Q_UNUSED(request);
     Q_UNUSED(format);
     return false;
 }

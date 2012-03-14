@@ -51,7 +51,7 @@ class QMediaNetworkPlaylistProviderPrivate: public QMediaPlaylistProviderPrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QMediaNetworkPlaylistProvider)
 public:
-    bool load(const QUrl &location);
+    bool load(const QNetworkRequest &request);
 
     QPlaylistFileParser parser;
     QList<QMediaContent> resources;
@@ -62,10 +62,10 @@ public:
     QMediaNetworkPlaylistProvider *q_ptr;
 };
 
-bool QMediaNetworkPlaylistProviderPrivate::load(const QUrl &location)
+bool QMediaNetworkPlaylistProviderPrivate::load(const QNetworkRequest &request)
 {
     parser.stop();
-    parser.start(location, false);
+    parser.start(request, false);
 
     return true;
 }
@@ -129,10 +129,10 @@ bool QMediaNetworkPlaylistProvider::isReadOnly() const
     return false;
 }
 
-bool QMediaNetworkPlaylistProvider::load(const QUrl &location, const char *format)
+bool QMediaNetworkPlaylistProvider::load(const QNetworkRequest &request, const char *format)
 {
     Q_UNUSED(format);
-    return d_func()->load(location);
+    return d_func()->load(request);
 }
 
 int QMediaNetworkPlaylistProvider::mediaCount() const

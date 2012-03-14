@@ -370,7 +370,7 @@ void QMediaPlayerPrivate::loadPlaylist()
         pendingPlaylist = QMediaContent(new QMediaPlaylist, q->currentMedia().canonicalUrl(), true);
         QObject::connect(pendingPlaylist.playlist(), SIGNAL(loaded()), q, SLOT(_q_handlePlaylistLoaded()));
         QObject::connect(pendingPlaylist.playlist(), SIGNAL(loadFailed()), q, SLOT(_q_handlePlaylistLoadFailed()));
-        pendingPlaylist.playlist()->load(pendingPlaylist.canonicalUrl());
+        pendingPlaylist.playlist()->load(pendingPlaylist.canonicalRequest());
     } else if (playlist) {
         playlist->next();
     }
