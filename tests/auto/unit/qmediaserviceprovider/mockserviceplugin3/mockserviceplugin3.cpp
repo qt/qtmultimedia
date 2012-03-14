@@ -39,9 +39,54 @@
 **
 ****************************************************************************/
 
-#include "qm3uhandler.h"
-#include <qstringlist.h>
+#include <qmediaserviceproviderplugin.h>
+#include <qmediaservice.h>
+#include "../mockservice.h"
 
+class MockServicePlugin3 : public QMediaServiceProviderPlugin,
+                            public QMediaServiceSupportedDevicesInterface
+{
+    Q_OBJECT
+    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "mockserviceplugin3.json")
+public:
+    QStringList keys() const
+    {
+        return QStringList() <<
+               QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER) <<
+               QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE);
+    }
 
-Q_EXPORT_STATIC_PLUGIN(QM3uPlaylistPlugin)
-Q_EXPORT_PLUGIN2(qtmultimedia_m3u, QM3uPlaylistPlugin)
+    QMediaService* create(QString const& key)
+    {
+        if (keys().contains(key))
+            return new MockMediaService("MockServicePlugin3");
+        else
+            return 0;
+    }
+
+    void release(QMediaService *service)
+    {
+        delete service;
+    }
+
+    QList<QByteArray> devices(const QByteArray &service) const
+    {
+        QList<QByteArray> res;
+        if (service == QByteArray(Q_MEDIASERVICE_AUDIOSOURCE))
+            res << "audiosource1" << "audiosource2";
+
+        return res;
+    }
+
+    QString deviceDescription(const QByteArray &service, const QByteArray &device)
+    {
+        if (devices(service).contains(device))
+            return QString(device)+" description";
+        else
+            return QString();
+    }
+};
+
+#include "mockserviceplugin3.moc"
+

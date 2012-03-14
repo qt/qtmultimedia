@@ -1,8 +1,13 @@
-CONFIG += testcase
-TARGET = tst_qmediaserviceprovider
+TEMPLATE = subdirs
+CONFIG += ORDERED
 
-QT += multimedia-private testlib
-CONFIG += no_private_qt_headers_warning
+SUBDIRS += \
+    test \
+    mockserviceplugin1 \
+    mockserviceplugin2 \
+    mockserviceplugin3 \
+    mockserviceplugin4
 
-SOURCES += tst_qmediaserviceprovider.cpp
+# no special install rule for subdir
+INSTALLS =
 

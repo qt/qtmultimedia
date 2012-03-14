@@ -55,7 +55,6 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qplugin.h>
-#include <QtCore/qfactoryinterface.h>
 
 #include <qtmultimediadefs.h>
 
@@ -92,7 +91,7 @@ public:
     virtual void close() = 0;
 };
 
-struct Q_MULTIMEDIA_EXPORT QMediaPlaylistIOInterface : public QFactoryInterface
+struct Q_MULTIMEDIA_EXPORT QMediaPlaylistIOInterface
 {
     virtual bool canRead(QIODevice *device, const QByteArray &format = QByteArray() ) const = 0;
     virtual bool canRead(const QUrl& location, const QByteArray &format = QByteArray()) const = 0;
@@ -111,7 +110,7 @@ Q_DECLARE_INTERFACE(QMediaPlaylistIOInterface, QMediaPlaylistIOInterface_iid);
 class Q_MULTIMEDIA_EXPORT QMediaPlaylistIOPlugin : public QObject, public QMediaPlaylistIOInterface
 {
 Q_OBJECT
-Q_INTERFACES(QMediaPlaylistIOInterface:QFactoryInterface)
+Q_INTERFACES(QMediaPlaylistIOInterface)
 public:
     explicit QMediaPlaylistIOPlugin(QObject *parent = 0);
     virtual ~QMediaPlaylistIOPlugin();
@@ -120,8 +119,6 @@ public:
     virtual bool canRead(const QUrl& location, const QByteArray &format = QByteArray()) const = 0;
 
     virtual bool canWrite(QIODevice *device, const QByteArray &format) const = 0;
-
-    virtual QStringList keys() const = 0;
 
     virtual QMediaPlaylistReader *createReader(QIODevice *device, const QByteArray &format = QByteArray()) = 0;
     virtual QMediaPlaylistReader *createReader(const QUrl& location, const QByteArray &format = QByteArray()) = 0;

@@ -57,7 +57,6 @@
 #include <qvideosurfaceformat.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qplugin.h>
-#include <QtCore/qfactoryinterface.h>
 
 #include <gst/gst.h>
 
@@ -68,7 +67,7 @@ const QLatin1String QGstBufferPoolPluginKey("bufferpool");
 /*!
     Abstract interface for video buffers allocation.
 */
-class QGstBufferPoolInterface : public QFactoryInterface
+class QGstBufferPoolInterface
 {
 public:
     virtual ~QGstBufferPoolInterface() {}
@@ -96,7 +95,7 @@ Q_DECLARE_INTERFACE(QGstBufferPoolInterface, QGstBufferPoolInterface_iid)
 class QGstBufferPoolPlugin : public QObject, public QGstBufferPoolInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QGstBufferPoolInterface:QFactoryInterface)
+    Q_INTERFACES(QGstBufferPoolInterface)
 public:
     explicit QGstBufferPoolPlugin(QObject *parent = 0);
     virtual ~QGstBufferPoolPlugin() {}
@@ -116,8 +115,6 @@ public:
       This method is called from gstreamer video sink thread.
      */
     virtual QAbstractVideoBuffer *prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine) = 0;
-
-    virtual QStringList keys() const = 0;
 };
 
 QT_END_NAMESPACE

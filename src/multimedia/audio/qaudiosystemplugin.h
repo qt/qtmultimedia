@@ -45,7 +45,6 @@
 
 #include <QtCore/qstring.h>
 #include <QtCore/qplugin.h>
-#include <QtCore/qfactoryinterface.h>
 
 #include <qtmultimediadefs.h>
 #include <qtmedianamespace.h>
@@ -61,7 +60,7 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Multimedia)
 
 
-struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface : public QFactoryInterface
+struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
 {
     virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;
     virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
@@ -76,13 +75,12 @@ Q_DECLARE_INTERFACE(QAudioSystemFactoryInterface, QAudioSystemFactoryInterface_i
 class Q_MULTIMEDIA_EXPORT QAudioSystemPlugin : public QObject, public QAudioSystemFactoryInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QAudioSystemFactoryInterface:QFactoryInterface)
+    Q_INTERFACES(QAudioSystemFactoryInterface)
 
 public:
     QAudioSystemPlugin(QObject *parent = 0);
     ~QAudioSystemPlugin();
 
-    virtual QStringList keys() const = 0;
     virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;
     virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
     virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;

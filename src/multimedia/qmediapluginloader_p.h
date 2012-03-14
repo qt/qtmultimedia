@@ -58,6 +58,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
+#include <QtCore/qjsonobject.h>
 
 
 QT_BEGIN_HEADER
@@ -66,7 +67,7 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
+class QFactoryLoader;
 class QMediaServiceProviderPlugin;
 
 class Q_MULTIMEDIA_EXPORT QMediaPluginLoader
@@ -75,20 +76,20 @@ public:
     QMediaPluginLoader(const char *iid,
                    const QString &suffix = QString(),
                    Qt::CaseSensitivity = Qt::CaseSensitive);
+    ~QMediaPluginLoader();
 
     QStringList keys() const;
     QObject* instance(QString const &key);
     QList<QObject*> instances(QString const &key);
 
-    static void setStaticPlugins(const QString &location, const QObjectList& objects);
-
 private:
-    void load();
-    QStringList availablePlugins() const;
+    void loadMetadata();
 
     QByteArray  m_iid;
     QString     m_location;
-    QMap<QString, QList<QObject *> > m_instances;
+    QMap<QString, QList<QJsonObject> > m_metadata;
+
+    QFactoryLoader *m_factoryLoader;
 };
 
 QT_END_NAMESPACE

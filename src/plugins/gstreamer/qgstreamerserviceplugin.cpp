@@ -79,25 +79,6 @@
 #include <linux/videodev2.h>
 
 
-QStringList QGstreamerServicePlugin::keys() const
-{
-    return QStringList()
-#ifdef QMEDIA_GSTREAMER_PLAYER
-            << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)
-#endif
-#ifdef QMEDIA_GSTREAMER_AUDIO_DECODER
-            << QLatin1String(Q_MEDIASERVICE_AUDIODECODER)
-#endif
-#ifdef QMEDIA_GSTREAMER_CAPTURE
-            << QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE)
-            << QLatin1String(Q_MEDIASERVICE_CAMERA)
-#elif defined(QMEDIA_GSTREAMER_CAMERABIN)
-            << QLatin1String(Q_MEDIASERVICE_CAMERA)
-#endif
-    ;
-
-}
-
 QMediaService* QGstreamerServicePlugin::create(const QString &key)
 {
     static bool initialized = false;
@@ -402,4 +383,3 @@ QStringList QGstreamerServicePlugin::supportedMimeTypes() const
     return QStringList();
 }
 
-Q_EXPORT_PLUGIN2(qtmedia_gstengine, QGstreamerServicePlugin);

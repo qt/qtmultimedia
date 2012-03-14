@@ -39,39 +39,61 @@
 **
 ****************************************************************************/
 
-#ifndef DSSERVICEPLUGIN_H
-#define DSSERVICEPLUGIN_H
+#include <qmediaserviceproviderplugin.h>
+#include <qmediaservice.h>
+#include "../mockservice.h"
 
-#include "qmediaserviceproviderplugin.h"
-
-QT_USE_NAMESPACE
-
-class DSServicePlugin
-    : public QMediaServiceProviderPlugin
-    , public QMediaServiceSupportedDevicesInterface
-    , public QMediaServiceFeaturesInterface
+class MockServicePlugin4 : public QMediaServiceProviderPlugin,
+                            public QMediaServiceSupportedFormatsInterface,
+                            public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0", FILE "directshow.json")
-
+    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "mockserviceplugin4.json")
 public:
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QStringList keys() const
+    {
+        return QStringList() << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER);
+    }
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+    QMediaService* create(QString const& key)
+    {
+        if (keys().contains(key))
+            return new MockMediaService("MockServicePlugin4");
+        else
+            return 0;
+    }
 
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
+    void release(QMediaService *service)
+    {
+        delete service;
+    }
 
-private:
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
-    void updateDevices() const;
+    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    {
+        if (codecs.contains(QLatin1String("jpeg2000")))
+            return QtMultimedia::NotSupported;
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-#endif
+        if (supportedMimeTypes().contains(mimeType))
+            return QtMultimedia::ProbablySupported;
+
+        return QtMultimedia::MaybeSupported;
+    }
+
+    QStringList supportedMimeTypes() const
+    {
+        return QStringList() << "video/mp4" << "video/quicktime";
+    }
+
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const
+    {
+        if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))
+            return QMediaServiceProviderHint::StreamPlayback;
+        else
+            return 0;
+    }
 };
 
-#endif // DSSERVICEPLUGIN_H
+#include "mockserviceplugin4.moc"
+

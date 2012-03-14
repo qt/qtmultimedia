@@ -39,62 +39,61 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIOPLUGINLOADER_H
-#define QAUDIOPLUGINLOADER_H
+#include <qmediaserviceproviderplugin.h>
+#include <qmediaservice.h>
+#include "../mockservice.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <qtmultimediadefs.h>
-#include <QObject>
-#include <QtCore/qstring.h>
-#include <QtCore/qmap.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qpluginloader.h>
-
-
-QT_BEGIN_HEADER
-
-QT_BEGIN_NAMESPACE
-
-QT_MODULE(Multimedia)
-
-
-class QAudioPluginLoader
+class MockServicePlugin2 : public QMediaServiceProviderPlugin,
+                            public QMediaServiceSupportedFormatsInterface,
+                            public QMediaServiceFeaturesInterface
 {
+    Q_OBJECT
+    Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
+    Q_INTERFACES(QMediaServiceFeaturesInterface)
+    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "mockserviceplugin2.json")
 public:
-    QAudioPluginLoader(const char *iid,
-                   const QString &suffix = QString(),
-                   Qt::CaseSensitivity = Qt::CaseSensitive);
+    QStringList keys() const
+    {
+        return QStringList() << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)
+                             << QLatin1String(Q_MEDIASERVICE_RADIO);
+    }
 
-    ~QAudioPluginLoader();
+    QMediaService* create(QString const& key)
+    {
+        if (keys().contains(key))
+            return new MockMediaService("MockServicePlugin2");
+        else
+            return 0;
+    }
 
-    QStringList keys() const;
-    QObject* instance(QString const &key);
-    QList<QObject*> instances(QString const &key);
+    void release(QMediaService *service)
+    {
+        delete service;
+    }
 
-private:
-    QStringList pluginList() const;
-    void load();
+    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    {
+        Q_UNUSED(codecs);
 
-    QMutex m_mutex;
+        if (mimeType == "audio/wav")
+            return QtMultimedia::PreferredService;
 
-    QByteArray  m_iid;
-    QString     m_location;
-    QList<QPluginLoader*> m_plugins;
+        return QtMultimedia::NotSupported;
+    }
+
+    QStringList supportedMimeTypes() const
+    {
+        return QStringList("audio/wav");
+    }
+
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const
+    {
+        if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))
+            return QMediaServiceProviderHint::LowLatencyPlayback;
+        else
+            return 0;
+    }
 };
 
-QT_END_NAMESPACE
+#include "mockserviceplugin2.moc"
 
-QT_END_HEADER
-
-
-#endif  // QAUDIOPLUGINLOADER_H

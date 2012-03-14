@@ -43,13 +43,15 @@
 #define QM3UHANDLER_H
 
 #include <private/qmediaplaylistioplugin_p.h>
-#include <QObject>
+#include <QtCore/QObject>
 
 QT_USE_NAMESPACE
 
 class QM3uPlaylistPlugin : public QMediaPlaylistIOPlugin
 {
-Q_OBJECT
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaPlaylistIOInterface" FILE "m3u.json")
+
 public:
     explicit QM3uPlaylistPlugin(QObject *parent = 0);
     virtual ~QM3uPlaylistPlugin();
@@ -58,8 +60,6 @@ public:
     virtual bool canRead(const QUrl& location, const QByteArray &format = QByteArray()) const;
 
     virtual bool canWrite(QIODevice *device, const QByteArray &format) const;
-
-    virtual QStringList keys() const;
 
     virtual QMediaPlaylistReader *createReader(QIODevice *device, const QByteArray &format = QByteArray());
     virtual QMediaPlaylistReader *createReader(const QUrl& location, const QByteArray &format = QByteArray());

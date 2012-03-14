@@ -39,51 +39,70 @@
 **
 ****************************************************************************/
 
-
-#ifndef QGSTREAMERSERVICEPLUGIN_H
-#define QGSTREAMERSERVICEPLUGIN_H
-
 #include <qmediaserviceproviderplugin.h>
-#include <QtCore/qset.h>
-#include <QtCore/QObject>
+#include <qmediaservice.h>
+#include "../mockservice.h"
 
-QT_BEGIN_NAMESPACE
-
-
-class QGstreamerServicePlugin
-    : public QMediaServiceProviderPlugin
-    , public QMediaServiceSupportedDevicesInterface
-    , public QMediaServiceFeaturesInterface
-    , public QMediaServiceSupportedFormatsInterface
+class MockServicePlugin1 : public QMediaServiceProviderPlugin,
+                           public QMediaServiceSupportedFormatsInterface,
+                           public QMediaServiceSupportedDevicesInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
-    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "gstreamer.json")
+    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "mockserviceplugin1.json")
 public:
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QStringList keys() const
+    {
+        return QStringList() <<
+                QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER);
+    }
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+    QMediaService* create(QString const& key)
+    {
+        if (keys().contains(key))
+            return new MockMediaService("MockServicePlugin1");
+        else
+            return 0;
+    }
 
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
+    void release(QMediaService *service)
+    {
+        delete service;
+    }
 
-    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
-    QStringList supportedMimeTypes() const;
+    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    {
+        if (codecs.contains(QLatin1String("mpeg4")))
+            return QtMultimedia::NotSupported;
 
-private:
-    void updateDevices() const;
+        if (mimeType == "audio/ogg") {
+            return QtMultimedia::ProbablySupported;
+        }
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-    mutable QSet<QString> m_supportedMimeTypeSet; //for fast access
+        return QtMultimedia::MaybeSupported;
+    }
 
-    void updateSupportedMimeTypes() const;
+    QStringList supportedMimeTypes() const
+    {
+        return QStringList("audio/ogg");
+    }
+
+    QList<QByteArray> devices(const QByteArray &service) const
+    {
+        Q_UNUSED(service);
+        QList<QByteArray> res;
+        return res;
+    }
+
+    QString deviceDescription(const QByteArray &service, const QByteArray &device)
+    {
+        if (devices(service).contains(device))
+            return QString(device)+" description";
+        else
+            return QString();
+    }
 };
 
-QT_END_NAMESPACE
+#include "mockserviceplugin1.moc"
 
-#endif // QGSTREAMERSERVICEPLUGIN_H

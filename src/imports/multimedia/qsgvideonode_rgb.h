@@ -64,11 +64,10 @@ private:
     QVideoFrame m_frame;
 };
 
-class QSGVideoNodeFactory_RGB : public QSGVideoNodeFactory {
+class QSGVideoNodeFactory_RGB : public QSGVideoNodeFactoryInterface {
 public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
-    QStringList keys() const;
 };
 
 

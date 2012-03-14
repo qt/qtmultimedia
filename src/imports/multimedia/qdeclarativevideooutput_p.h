@@ -138,7 +138,7 @@ private:
     QWeakPointer<QMediaService> m_service;
     QWeakPointer<QVideoRendererControl> m_rendererControl;
 
-    QList<QSGVideoNodeFactory*> m_videoNodeFactories;
+    QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
     QVideoFrame m_frame;
     FillMode m_fillMode;

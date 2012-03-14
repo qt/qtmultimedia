@@ -48,7 +48,6 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 #include <QtGui/qopenglfunctions.h>
-#include <QtCore/qfactoryinterface.h>
 
 QT_BEGIN_HEADER
 
@@ -74,14 +73,24 @@ private:
     int m_orientation;
 };
 
-class QSGVideoNodeFactory : public QFactoryInterface {
+class QSGVideoNodeFactoryInterface
+{
 public:
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
     virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
 };
 
-#define QSGVideoNodeFactory_iid "com.nokia.Qt.QSGVideoNodeFactory"
-Q_DECLARE_INTERFACE(QSGVideoNodeFactory, QSGVideoNodeFactory_iid)
+#define QSGVideoNodeFactoryInterface_iid "com.nokia.Qt.QSGVideoNodeFactoryInterface"
+Q_DECLARE_INTERFACE(QSGVideoNodeFactoryInterface, QSGVideoNodeFactoryInterface_iid)
+
+class QSGVideoNodeFactoryPlugin : public QObject, public QSGVideoNodeFactoryInterface
+{
+    Q_OBJECT
+    Q_INTERFACES(QSGVideoNodeFactoryInterface)
+public:
+    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
+    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
+};
 
 QT_END_NAMESPACE
 

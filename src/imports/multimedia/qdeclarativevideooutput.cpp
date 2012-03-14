@@ -40,7 +40,6 @@
 ****************************************************************************/
 #include "qdeclarativevideooutput_p.h"
 
-#include <private/qsgvideonode_p.h>
 #include "qsgvideonode_i420.h"
 #include "qsgvideonode_rgb.h"
 
@@ -60,7 +59,7 @@ Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 QT_BEGIN_NAMESPACE
 
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
-        (QSGVideoNodeFactory_iid, QLatin1String("video"), Qt::CaseInsensitive))
+        (QSGVideoNodeFactoryInterface_iid, QLatin1String("video"), Qt::CaseInsensitive))
 
 class QSGVideoItemSurface : public QAbstractVideoSurface
 {
@@ -79,7 +78,7 @@ public:
     {
         QList<QVideoFrame::PixelFormat> formats;
 
-        foreach (QSGVideoNodeFactory* factory, m_item->m_videoNodeFactories) {
+        foreach (QSGVideoNodeFactoryInterface* factory, m_item->m_videoNodeFactories) {
             formats.append(factory->supportedPixelFormats(handleType));
         }
 
@@ -177,7 +176,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
             this, SLOT(_q_updateNativeSize(QVideoSurfaceFormat)), Qt::QueuedConnection);
 
     foreach (QObject *instance, videoNodeFactoryLoader()->instances(QSGVideoNodeFactoryPluginKey)) {
-        QSGVideoNodeFactory* plugin = qobject_cast<QSGVideoNodeFactory*>(instance);
+        QSGVideoNodeFactoryInterface* plugin = qobject_cast<QSGVideoNodeFactoryInterface*>(instance);
         if (plugin) {
             m_videoNodeFactories.append(plugin);
         }
@@ -758,7 +757,7 @@ QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintN
     }
 
     if (videoNode == 0) {
-        foreach (QSGVideoNodeFactory* factory, m_videoNodeFactories) {
+        foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
             videoNode = factory->createNode(m_surface->surfaceFormat());
             if (videoNode)
                 break;

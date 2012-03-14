@@ -65,11 +65,6 @@ QSGVideoNode *QSGVideoNodeFactory_I420::createNode(const QVideoSurfaceFormat &fo
     return 0;
 }
 
-QStringList QSGVideoNodeFactory_I420::keys() const
-{
-    return QStringList() << QSGVideoNodeFactoryPluginKey;
-}
-
 
 class QSGVideoMaterialShader_YUV420 : public QSGMaterialShader
 {

@@ -69,7 +69,7 @@ private:
 void tst_QMediaPluginLoader::initTestCase()
 {
     loader = new QMediaPluginLoader(QMediaServiceProviderFactoryInterface_iid,
-                                QLatin1String("/mediaservice"),
+                                QLatin1String("mediaservice"),
                                 Qt::CaseInsensitive);
 }
 

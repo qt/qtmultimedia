@@ -59,15 +59,6 @@ QT7ServicePlugin::QT7ServicePlugin()
     buildSupportedTypes();
 }
 
-QStringList QT7ServicePlugin::keys() const
-{
-    return QStringList()
-#ifdef QMEDIA_QT7_PLAYER
-        << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)
-#endif
-        ;
-}
-
 QMediaService* QT7ServicePlugin::create(QString const& key)
 {
 #ifdef QT_DEBUG_QT7
@@ -123,7 +114,5 @@ void QT7ServicePlugin::buildSupportedTypes()
         }
     }
 }
-
-Q_EXPORT_PLUGIN2(qtmedia_qt7engine, QT7ServicePlugin);
 
 QT_END_NAMESPACE

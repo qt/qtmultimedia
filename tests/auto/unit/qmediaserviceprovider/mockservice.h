@@ -39,34 +39,21 @@
 **
 ****************************************************************************/
 
-#ifndef QPULSEAUDIOPLUGIN_H
-#define QPULSEAUDIOPLUGIN_H
+#ifndef MOCKSERVICE_H
+#define MOCKSERVICE_H
 
-#include <qaudiosystemplugin.h>
+#include <qmediaservice.h>
 
-QT_BEGIN_NAMESPACE
-
-class QPulseAudioEngine;
-
-class QPulseAudioPlugin : public QAudioSystemPlugin
+class MockMediaService : public QMediaService
 {
     Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "com.nokia.qt.QAudioSystemFactoryInterface" FILE "pulseaudio.json")
-
 public:
-    QPulseAudioPlugin(QObject *parent = 0);
-    ~QPulseAudioPlugin() {}
+    MockMediaService(const QString& name, QObject *parent = 0) : QMediaService(parent)
+    { setObjectName(name); }
+    ~MockMediaService() {}
 
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const;
-    QAbstractAudioInput *createInput(const QByteArray &device);
-    QAbstractAudioOutput *createOutput(const QByteArray &device);
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode);
-
-private:
-    QPulseAudioEngine *m_pulseEngine;
+    QMediaControl* requestControl(const char *) {return 0;}
+    void releaseControl(QMediaControl *) {}
 };
 
-QT_END_NAMESPACE
-
-#endif
+#endif // MOCKSERVICE_H

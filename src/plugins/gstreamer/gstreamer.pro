@@ -107,6 +107,8 @@ contains(config_test_gstreamer_appsrc, yes) {
     LIBS += -lgstapp-0.10
 }
 
+OTHER_FILES += gstreamer.json
+
 
 #Camerabin2 based camera backend is untested and currently disabled
 #contains(config_test_gstreamer_photography, yes) {

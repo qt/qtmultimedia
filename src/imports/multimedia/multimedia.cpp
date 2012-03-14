@@ -66,6 +66,8 @@ QT_BEGIN_NAMESPACE
 class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface/1.0")
+
 public:
     virtual void registerTypes(const char *uri)
     {
@@ -128,6 +130,4 @@ public:
 QT_END_NAMESPACE
 
 #include "multimedia.moc"
-
-Q_EXPORT_PLUGIN2(qmultimediadeclarativemodule, QT_PREPEND_NAMESPACE(QMultimediaDeclarativeModule));
 

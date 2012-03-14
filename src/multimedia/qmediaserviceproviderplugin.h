@@ -44,7 +44,6 @@
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qplugin.h>
-#include <QtCore/qfactoryinterface.h>
 #include <qtmedianamespace.h>
 #include <qtmultimediadefs.h>
 
@@ -106,9 +105,8 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMediaServiceProviderHint::Features)
 
 
-struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface : public QFactoryInterface
+struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface
 {
-    virtual QStringList keys() const = 0;
     virtual QMediaService* create(QString const& key) = 0;
     virtual void release(QMediaService *service) = 0;
 };
@@ -158,10 +156,9 @@ Q_DECLARE_INTERFACE(QMediaServiceFeaturesInterface, QMediaServiceFeaturesInterfa
 class Q_MULTIMEDIA_EXPORT QMediaServiceProviderPlugin : public QObject, public QMediaServiceProviderFactoryInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceProviderFactoryInterface:QFactoryInterface)
+    Q_INTERFACES(QMediaServiceProviderFactoryInterface)
 
 public:
-    virtual QStringList keys() const = 0;
     virtual QMediaService* create(const QString& key) = 0;
     virtual void release(QMediaService *service) = 0;
 };

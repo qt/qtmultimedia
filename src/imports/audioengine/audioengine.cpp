@@ -58,6 +58,8 @@ QT_BEGIN_NAMESPACE
 class QAudioEngineDeclarativeModule : public QQmlExtensionPlugin
 {
     Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface/1.0")
+
 public:
     virtual void registerTypes(const char *uri)
     {
@@ -80,6 +82,4 @@ public:
 QT_END_NAMESPACE
 
 #include "audioengine.moc"
-
-Q_EXPORT_PLUGIN2("QtAudioEngine", QT_PREPEND_NAMESPACE(QAudioEngineDeclarativeModule));
 

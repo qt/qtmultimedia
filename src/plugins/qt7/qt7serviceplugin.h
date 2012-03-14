@@ -52,11 +52,13 @@ class QT7ServicePlugin
     , public QMediaServiceSupportedFormatsInterface
     , public QMediaServiceFeaturesInterface
 {
+    Q_OBJECT
     Q_INTERFACES(QMediaServiceFeaturesInterface)
+    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "qt7.json")
+
 public:
     QT7ServicePlugin();
 
-    QStringList keys() const;
     QMediaService* create(QString const& key);
     void release(QMediaService *service);
 

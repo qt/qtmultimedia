@@ -70,11 +70,6 @@ QSGVideoNode *QSGVideoNodeFactory_RGB::createNode(const QVideoSurfaceFormat &for
     return 0;
 }
 
-QStringList QSGVideoNodeFactory_RGB::keys() const
-{
-    return QStringList() << QSGVideoNodeFactoryPluginKey;
-}
-
 
 class QSGVideoMaterialShader_RGB : public QSGMaterialShader
 {

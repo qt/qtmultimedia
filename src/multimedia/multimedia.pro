@@ -2,7 +2,7 @@ load(qt_module)
 
 TARGET = QtMultimedia
 QPRO_PWD = $$PWD
-QT = core network gui
+QT = core-private network gui
 
 CONFIG += module
 MODULE_PRI += ../../modules/qt_multimedia.pri

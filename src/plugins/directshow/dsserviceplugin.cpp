@@ -77,18 +77,6 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 
 QT_USE_NAMESPACE
 
-QStringList DSServicePlugin::keys() const
-{
-    return QStringList()
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
-            << QLatin1String(Q_MEDIASERVICE_CAMERA)
-#endif
-#ifdef QMEDIA_DIRECTSHOW_PLAYER
-            << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)
-#endif
-            ;
-}
-
 QMediaService* DSServicePlugin::create(QString const& key)
 {
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
@@ -100,7 +88,6 @@ QMediaService* DSServicePlugin::create(QString const& key)
         return new DirectShowPlayerService;
 #endif
 
-    qDebug() << "unsupported key:" << key;
     return 0;
 }
 
@@ -207,6 +194,4 @@ void DSServicePlugin::updateDevices() const
     }
 }
 #endif
-
-Q_EXPORT_PLUGIN2(qtmedia_dsengine, DSServicePlugin);
 

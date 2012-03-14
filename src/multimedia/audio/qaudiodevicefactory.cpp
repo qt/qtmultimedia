@@ -44,7 +44,7 @@
 #include "qaudiosystem.h"
 #include "qaudiosystemplugin.h"
 
-#include "qaudiopluginloader_p.h"
+#include "qmediapluginloader_p.h"
 #include "qaudiodevicefactory_p.h"
 
 #ifndef QT_NO_AUDIO_BACKEND
@@ -66,8 +66,8 @@
 QT_BEGIN_NAMESPACE
 
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
-Q_GLOBAL_STATIC_WITH_ARGS(QAudioPluginLoader, audioLoader,
-        (QAudioSystemFactoryInterface_iid, QLatin1String("/audio"), Qt::CaseInsensitive))
+Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, audioLoader,
+        (QAudioSystemFactoryInterface_iid, QLatin1String("audio"), Qt::CaseInsensitive))
 #endif
 
 class QNullDeviceInfo : public QAbstractAudioDeviceInfo
@@ -142,15 +142,13 @@ QList<QAudioDeviceInfo> QAudioDeviceFactory::availableDevices(QAudio::Mode mode)
 #endif
 
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
-    QAudioPluginLoader* l = audioLoader();
+    QMediaPluginLoader* l = audioLoader();
     foreach (const QString& key, l->keys()) {
         QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(l->instance(key));
         if (plugin) {
             foreach (QByteArray const& handle, plugin->availableDevices(mode))
                 devices << QAudioDeviceInfo(key, handle, mode);
         }
-
-        delete plugin;
     }
 #endif
 

@@ -25,3 +25,6 @@ SOURCES += audioencodercontrol.cpp \
 
 target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
 INSTALLS += target
+
+OTHER_FILES += \
+    audiocapture.json

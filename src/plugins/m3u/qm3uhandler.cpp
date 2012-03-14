@@ -212,11 +212,6 @@ bool QM3uPlaylistPlugin::canWrite(QIODevice *device, const QByteArray &format) c
     return device->isOpen() && device->isWritable() && format == "m3u";
 }
 
-QStringList QM3uPlaylistPlugin::keys() const
-{
-    return QStringList() << QLatin1String("m3u");
-}
-
 QMediaPlaylistReader *QM3uPlaylistPlugin::createReader(QIODevice *device, const QByteArray &format)
 {
     Q_UNUSED(format);

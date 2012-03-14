@@ -55,11 +55,6 @@ QPulseAudioPlugin::QPulseAudioPlugin(QObject *parent)
 {
 }
 
-QStringList QPulseAudioPlugin::keys() const
-{
-    return QStringList() << "default";
-}
-
 QList<QByteArray> QPulseAudioPlugin::availableDevices(QAudio::Mode mode) const
 {
     return m_pulseEngine->availableDevices(mode);
@@ -83,7 +78,5 @@ QAbstractAudioDeviceInfo *QPulseAudioPlugin::createDeviceInfo(const QByteArray &
     QPulseAudioDeviceInfo *deviceInfo = new QPulseAudioDeviceInfo(device, mode);
     return deviceInfo;
 }
-
-Q_EXPORT_PLUGIN2(qtmedia_pulse, QPulseAudioPlugin);
 
 QT_END_NAMESPACE

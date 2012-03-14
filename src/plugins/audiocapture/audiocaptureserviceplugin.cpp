@@ -47,11 +47,6 @@
 #include "qmediaserviceproviderplugin.h"
 
 
-QStringList AudioCaptureServicePlugin::keys() const
-{
-    return QStringList() << QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE);
-}
-
 QMediaService* AudioCaptureServicePlugin::create(QString const& key)
 {
     if (key == QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE))
@@ -64,6 +59,4 @@ void AudioCaptureServicePlugin::release(QMediaService *service)
 {
     delete service;
 }
-
-Q_EXPORT_PLUGIN2(qtmedia_audioengine, AudioCaptureServicePlugin);
 

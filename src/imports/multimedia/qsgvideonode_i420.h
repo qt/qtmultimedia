@@ -64,11 +64,10 @@ private:
     QSGVideoMaterial_YUV420 *m_material;
 };
 
-class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactory {
+class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactoryInterface {
 public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
-    QStringList keys() const;
 };
 
 
