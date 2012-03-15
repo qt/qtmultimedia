@@ -1206,13 +1206,14 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
                 GError *err;
                 gchar *debug;
                 gst_message_parse_error(gm, &err, &debug);
-                if (qstrncmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(gm)), "decodebin2", 10) == 0
-                    || qstrncmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(gm)), "uridecodebin", 12) == 0) {
-                    processInvalidMedia(QMediaPlayer::ResourceError, QString::fromUtf8(err->message));
-                } else if (err->domain == GST_STREAM_ERROR
-                           && (err->code == GST_STREAM_ERROR_DECRYPT || err->code == GST_STREAM_ERROR_DECRYPT_NOKEY)) {
-                    processInvalidMedia(QMediaPlayer::AccessDeniedError, QString::fromUtf8(err->message));
+                // Nearly all errors map to ResourceError
+                QMediaPlayer::Error qerror = QMediaPlayer::ResourceError;
+                if (err->domain == GST_STREAM_ERROR
+                           && (err->code == GST_STREAM_ERROR_DECRYPT
+                               || err->code == GST_STREAM_ERROR_DECRYPT_NOKEY)) {
+                    qerror = QMediaPlayer::AccessDeniedError;
                 }
+                processInvalidMedia(qerror, QString::fromUtf8(err->message));
                 qWarning() << "Error:" << QString::fromUtf8(err->message);
                 g_error_free(err);
                 g_free(debug);

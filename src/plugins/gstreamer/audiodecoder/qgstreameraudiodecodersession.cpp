@@ -262,13 +262,12 @@ bool QGstreamerAudioDecoderSession::processBusMessage(const QGstreamerMessage &m
             GError *err;
             gchar *debug;
             gst_message_parse_error(gm, &err, &debug);
-            // If the source has given up, so do we.
-            if (qstrcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(gm)), "source") == 0) {
-                processInvalidMedia(QAudioDecoder::ResourceError, QString::fromUtf8(err->message));
-            } else if (err->domain == GST_STREAM_ERROR
+            QAudioDecoder::Error qerror = QAudioDecoder::ResourceError;
+            if (err->domain == GST_STREAM_ERROR
                        && (err->code == GST_STREAM_ERROR_DECRYPT || err->code == GST_STREAM_ERROR_DECRYPT_NOKEY)) {
-                processInvalidMedia(QAudioDecoder::AccessDeniedError, QString::fromUtf8(err->message));
+                qerror = QAudioDecoder::AccessDeniedError;
             }
+            processInvalidMedia(qerror, QString::fromUtf8(err->message));
             g_error_free(err);
             g_free(debug);
         }
