@@ -87,7 +87,7 @@ void Vmr9VideoWindowControl::setWinId(WId id)
 
     if (IVMRWindowlessControl9 *control = com_cast<IVMRWindowlessControl9>(
             m_filter, IID_IVMRWindowlessControl9)) {
-        control->SetVideoClippingWindow(m_windowId);
+        control->SetVideoClippingWindow(reinterpret_cast<HWND>(m_windowId));
         control->SetBorderColor(m_windowColor);
         control->Release();
     }
@@ -138,12 +138,12 @@ void Vmr9VideoWindowControl::repaint()
 {
     PAINTSTRUCT paint;
 
-    if (HDC dc = ::BeginPaint(m_windowId, &paint)) {
+    if (HDC dc = ::BeginPaint(reinterpret_cast<HWND>(m_windowId), &paint)) {
         HRESULT hr = E_FAIL;
 
         if (IVMRWindowlessControl9 *control = com_cast<IVMRWindowlessControl9>(
                 m_filter, IID_IVMRWindowlessControl9)) {
-            hr = control->RepaintVideo(m_windowId, dc);
+            hr = control->RepaintVideo(reinterpret_cast<HWND>(m_windowId), dc);
             control->Release();
         }
 
@@ -163,7 +163,7 @@ void Vmr9VideoWindowControl::repaint()
             ::DeleteObject(pen);
             ::DeleteObject(brush);
         }
-        ::EndPaint(m_windowId, &paint);
+        ::EndPaint(reinterpret_cast<HWND>(m_windowId), &paint);
     }
 }
 
