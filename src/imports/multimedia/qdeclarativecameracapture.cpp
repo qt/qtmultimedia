@@ -103,7 +103,7 @@ QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera, QObject *p
     m_capture = new QCameraImageCapture(camera, this);
 
     connect(m_capture, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
-    connect(m_capture, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed()));
+    connect(m_capture, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
     connect(m_capture, SIGNAL(imageCaptured(int,QImage)), this, SLOT(_q_imageCaptured(int, QImage)));
     connect(m_capture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this,
             SLOT(_q_imageMetadataAvailable(int,QString,QVariant)));
