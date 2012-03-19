@@ -86,7 +86,7 @@ protected:
     QCameraImageCaptureControl(QObject* parent = 0);
 };
 
-#define QCameraImageCaptureControl_iid "com.nokia.Qt.QCameraImageCaptureControl/1.0"
+#define QCameraImageCaptureControl_iid "org.qt-project.qt.cameraimagecapturecontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraImageCaptureControl, QCameraImageCaptureControl_iid)
 
 QT_END_NAMESPACE

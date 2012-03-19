@@ -54,7 +54,7 @@ class DSServicePlugin
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0", FILE "directshow.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0", FILE "directshow.json")
 
 public:
     QMediaService* create(QString const& key);

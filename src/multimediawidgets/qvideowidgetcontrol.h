@@ -94,7 +94,7 @@ protected:
     QVideoWidgetControl(QObject *parent = 0);
 };
 
-#define QVideoWidgetControl_iid "com.nokia.Qt.QVideoWidgetControl/1.0"
+#define QVideoWidgetControl_iid "org.qt-project.qt.videowidgetcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QVideoWidgetControl, QVideoWidgetControl_iid)
 
 QT_END_NAMESPACE

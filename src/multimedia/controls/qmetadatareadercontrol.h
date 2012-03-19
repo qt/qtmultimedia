@@ -79,7 +79,7 @@ protected:
     QMetaDataReaderControl(QObject *parent = 0);
 };
 
-#define QMetaDataReaderControl_iid "com.nokia.Qt.QMetaDataReaderControl/1.0"
+#define QMetaDataReaderControl_iid "org.qt-project.qt.metadatareadercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMetaDataReaderControl, QMetaDataReaderControl_iid)
 
 QT_END_NAMESPACE

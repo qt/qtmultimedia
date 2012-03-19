@@ -82,7 +82,7 @@ protected:
     QCameraZoomControl(QObject* parent = 0);
 };
 
-#define QCameraZoomControl_iid "com.nokia.Qt.QCameraZoomControl/1.0"
+#define QCameraZoomControl_iid "org.qt-project.qt.camerazoomcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraZoomControl, QCameraZoomControl_iid)
 
 QT_END_NAMESPACE

@@ -101,7 +101,7 @@ protected:
     QAudioDecoderControl(QObject* parent = 0);
 };
 
-#define QAudioDecoderControl_iid "com.nokia.Qt.QAudioDecoderControl/1.0"
+#define QAudioDecoderControl_iid "org.qt-project.qt.audiodecodercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QAudioDecoderControl, QAudioDecoderControl_iid)
 
 QT_END_NAMESPACE

@@ -55,7 +55,7 @@ QT_BEGIN_NAMESPACE
     \brief The QCameraViewfinderResolutionControl class provides an abstract class
     for controlling camera viewfinder parameters.
 
-    The interface name of QCameraViewfinderResolutionControl is \c com.nokia.Qt.QCameraViewfinderResolutionControl/1.0 as
+    The interface name of QCameraViewfinderResolutionControl is \c org.qt-project.qt.cameraviewfinderresolutioncontrol/5.0 as
     defined in QCameraViewfinderResolutionControl_iid.
 
     \sa QMediaService::requestControl(), QCamera
@@ -64,7 +64,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QCameraViewfinderResolutionControl_iid
 
-    \c com.nokia.Qt.QCameraViewfinderResolutionControl/1.0
+    \c org.qt-project.qt.cameraviewfinderresolutioncontrol/5.0
 
     Defines the interface name of the QCameraViewfinderResolutionControl class.
 

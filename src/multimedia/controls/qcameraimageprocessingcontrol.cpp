@@ -68,7 +68,7 @@ namespace
     for controlling image processing parameters, like white balance,
     contrast, saturation, sharpening and denoising.
 
-    The interface name of QCameraImageProcessingControl is \c com.nokia.Qt.QCameraImageProcessingControl/1.0 as
+    The interface name of QCameraImageProcessingControl is \c org.qt-project.qt.cameraimageprocessingcontrol/5.0 as
     defined in QCameraImageProcessingControl_iid.
 
     Camera service may choose the parameters of image processing pipeline depending
@@ -91,7 +91,7 @@ namespace
 /*!
     \macro QCameraImageProcessingControl_iid
 
-    \c com.nokia.Qt.QCameraImageProcessingControl/1.0
+    \c org.qt-project.qt.cameraimageprocessingcontrol/5.0
 
     Defines the interface name of the QCameraImageProcessingControl class.
 

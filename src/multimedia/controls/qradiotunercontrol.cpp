@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
     The functionality provided by this control is exposed to application code
     through the QRadioTuner class.
 
-    The interface name of QRadioTunerControl is \c com.nokia.Qt.QRadioTunerControl/1.0 as
+    The interface name of QRadioTunerControl is \c org.qt-project.qt.radiotunercontrol/5.0 as
     defined in QRadioTunerControl_iid.
 
     \sa QMediaService::requestControl(), QRadioTuner
@@ -75,7 +75,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QRadioTunerControl_iid
 
-    \c com.nokia.Qt.QRadioTunerControl/1.0
+    \c org.qt-project.qt.radiotunercontrol/5.0
 
     Defines the interface name of the QRadioTunerControl class.
 

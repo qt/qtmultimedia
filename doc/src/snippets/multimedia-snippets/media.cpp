@@ -102,7 +102,7 @@ void MediaExample::MediaControl()
     {
     //! [Request control]
     QMediaPlayerControl *control = qobject_cast<QMediaPlayerControl *>(
-            mediaService->requestControl("com.nokia.Qt.QMediaPlayerControl/1.0"));
+            mediaService->requestControl("org.qt-project.qt.mediaplayercontrol/5.0"));
     //! [Request control]
     Q_UNUSED(control);
     }

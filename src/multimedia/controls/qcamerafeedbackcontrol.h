@@ -91,7 +91,7 @@ protected:
     QCameraFeedbackControl(QObject* parent = 0);
 };
 
-#define QCameraFeedbackControl_iid "com.nokia.Qt.QCameraFeedbackControl/1.0"
+#define QCameraFeedbackControl_iid "org.qt-project.qt.camerafeedbackcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraFeedbackControl, QCameraFeedbackControl_iid)
 
 QT_END_NAMESPACE

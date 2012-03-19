@@ -48,7 +48,7 @@ class MockServicePlugin3 : public QMediaServiceProviderPlugin,
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "mockserviceplugin3.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin3.json")
 public:
     QStringList keys() const
     {

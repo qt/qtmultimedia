@@ -84,7 +84,7 @@ protected:
     QCameraFocusControl(QObject* parent = 0);
 };
 
-#define QCameraFocusControl_iid "com.nokia.Qt.QCameraFocusControl/1.0"
+#define QCameraFocusControl_iid "org.qt-project.qt.camerafocuscontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraFocusControl, QCameraFocusControl_iid)
 
 QT_END_NAMESPACE

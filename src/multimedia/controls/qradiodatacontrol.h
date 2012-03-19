@@ -83,7 +83,7 @@ protected:
     QRadioDataControl(QObject *parent = 0);
 };
 
-#define QRadioDataControl_iid "com.nokia.Qt.QRadioDataControl/5.0"
+#define QRadioDataControl_iid "org.qt-project.qt.radiodatacontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QRadioDataControl, QRadioDataControl_iid)
 
 QT_END_NAMESPACE

@@ -67,7 +67,7 @@ protected:
     explicit QMediaVideoProbeControl(QObject *parent = 0);
 };
 
-#define QMediaVideoProbeControl_iid "com.nokia.Qt.QMediaVideoProbeControl/1.0"
+#define QMediaVideoProbeControl_iid "org.qt-project.qt.mediavideoprobecontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaVideoProbeControl, QMediaVideoProbeControl_iid)
 
 QT_END_NAMESPACE

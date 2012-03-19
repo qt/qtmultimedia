@@ -50,7 +50,7 @@ QT_USE_NAMESPACE
 class QM3uPlaylistPlugin : public QMediaPlaylistIOPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaPlaylistIOInterface" FILE "m3u.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaplaylistio/5.0" FILE "m3u.json")
 
 public:
     explicit QM3uPlaylistPlugin(QObject *parent = 0);

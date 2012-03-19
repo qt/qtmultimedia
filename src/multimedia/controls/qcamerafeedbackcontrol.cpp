@@ -67,7 +67,7 @@
     if that type of feedback can be modified.  Any attempts to change a locked feedback type will be
     ignored.
 
-    The interface name of QCameraFeedbackControl is \c com.nokia.Qt.QCameraFeedbackControl/1.0 as
+    The interface name of QCameraFeedbackControl is \c org.qt-project.qt.camerafeedbackcontrol/5.0 as
     defined in QCameraFeedbackControl_iid.
 
     \sa QCamera
@@ -98,7 +98,7 @@
 /*!
     \macro QCameraFeedbackControl_iid
 
-    \c com.nokia.Qt.QCameraFeedbackControl/1.0
+    \c org.qt-project.qt.camerafeedbackcontrol/5.0
 
     Defines the interface name of the QCameraFeedbackControl class.
 

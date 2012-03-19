@@ -82,7 +82,7 @@ protected:
     QMetaDataWriterControl(QObject *parent = 0);
 };
 
-#define QMetaDataWriterControl_iid "com.nokia.Qt.QMetaDataWriterControl/1.0"
+#define QMetaDataWriterControl_iid "org.qt-project.qt.metadatawritercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMetaDataWriterControl, QMetaDataWriterControl_iid)
 
 QT_END_NAMESPACE

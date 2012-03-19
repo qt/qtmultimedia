@@ -84,7 +84,7 @@ protected:
     QAudioEncoderControl(QObject *parent = 0);
 };
 
-#define QAudioEncoderControl_iid "com.nokia.Qt.QAudioEncoderControl/1.0"
+#define QAudioEncoderControl_iid "org.qt-project.qt.audioencodercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QAudioEncoderControl, QAudioEncoderControl_iid)
 
 QT_END_NAMESPACE

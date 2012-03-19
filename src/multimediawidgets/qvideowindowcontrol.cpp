@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 
     QVideoWindowControl is one of a number of possible video output controls.
 
-    The interface name of QVideoWindowControl is \c com.nokia.Qt.QVideoWindowControl/1.0 as
+    The interface name of QVideoWindowControl is \c org.qt-project.qt.videowindowcontrol/5.0 as
     defined in QVideoWindowControl_iid.
 
     \sa QMediaService::requestControl(), QVideoWidget
@@ -70,7 +70,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QVideoWindowControl_iid
 
-    \c com.nokia.Qt.QVideoWindowControl/1.0
+    \c org.qt-project.qt.videowindowcontrol/5.0
 
     Defines the interface name of the QVideoWindowControl class.
 

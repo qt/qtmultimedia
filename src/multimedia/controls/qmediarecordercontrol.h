@@ -91,7 +91,7 @@ protected:
     QMediaRecorderControl(QObject* parent = 0);
 };
 
-#define QMediaRecorderControl_iid "com.nokia.Qt.QMediaRecorderControl/1.0"
+#define QMediaRecorderControl_iid "org.qt-project.qt.mediarecordercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaRecorderControl, QMediaRecorderControl_iid)
 
 QT_END_NAMESPACE

@@ -69,7 +69,7 @@ protected:
     QMediaContainerControl(QObject *parent = 0);
 };
 
-#define QMediaContainerControl_iid "com.nokia.Qt.QMediaContainerControl/1.0"
+#define QMediaContainerControl_iid "org.qt-project.qt.mediacontainercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaContainerControl, QMediaContainerControl_iid)
 
 QT_END_NAMESPACE

@@ -69,7 +69,7 @@ struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
 };
 
 #define QAudioSystemFactoryInterface_iid \
-    "com.nokia.qt.QAudioSystemFactoryInterface"
+    "org.qt-project.qt.audiosystemfactory/5.0"
 Q_DECLARE_INTERFACE(QAudioSystemFactoryInterface, QAudioSystemFactoryInterface_iid)
 
 class Q_MULTIMEDIA_EXPORT QAudioSystemPlugin : public QObject, public QAudioSystemFactoryInterface

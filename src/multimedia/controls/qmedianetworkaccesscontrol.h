@@ -72,7 +72,7 @@ protected:
     QMediaNetworkAccessControl(QObject *parent = 0);
 };
 
-#define QMediaNetworkAccessControl_iid "com.nokia.Qt.QMediaNetworkAccessControl/1.0"
+#define QMediaNetworkAccessControl_iid "org.qt-project.qt.medianetworkaccesscontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaNetworkAccessControl, QMediaNetworkAccessControl_iid)
 
 QT_END_NAMESPACE

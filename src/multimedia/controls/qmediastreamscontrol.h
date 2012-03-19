@@ -80,7 +80,7 @@ protected:
     QMediaStreamsControl(QObject *parent = 0);
 };
 
-#define QMediaStreamsControl_iid "com.nokia.Qt.QMediaStreamsControl/1.0"
+#define QMediaStreamsControl_iid "org.qt-project.qt.mediastreamscontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaStreamsControl, QMediaStreamsControl_iid)
 
 QT_END_NAMESPACE

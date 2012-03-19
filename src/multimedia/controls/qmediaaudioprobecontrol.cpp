@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
     \l QAudioProbe is the client facing class for probing audio - this class is implemented by
     media backends to provide this functionality.
 
-    The interface name of QMediaAudioProbeControl is \c com.nokia.Qt.QMediaAudioProbeControl/1.0 as
+    The interface name of QMediaAudioProbeControl is \c org.qt-project.qt.mediaaudioprobecontrol/5.0 as
     defined in QMediaAudioProbeControl_iid.
 
     \sa QAudioProbe, QMediaService::requestControl(), QMediaPlayer, QCamera
@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QMediaAudioProbeControl_iid
 
-    \c com.nokia.Qt.QMediaAudioProbeControl/1.0
+    \c org.qt-project.qt.mediaaudioprobecontrol/5.0
 
     Defines the interface name of the QMediaAudioProbeControl class.
 

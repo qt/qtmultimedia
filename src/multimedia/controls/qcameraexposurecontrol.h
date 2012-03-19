@@ -94,7 +94,7 @@ protected:
     QCameraExposureControl(QObject* parent = 0);
 };
 
-#define QCameraExposureControl_iid "com.nokia.Qt.QCameraExposureControl/1.0"
+#define QCameraExposureControl_iid "org.qt-project.qt.cameraexposurecontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraExposureControl, QCameraExposureControl_iid)
 
 QT_END_NAMESPACE

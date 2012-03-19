@@ -65,7 +65,7 @@ public:
     //returns true if message was processed and should be dropped, false otherwise
     virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
 };
-#define QGstreamerSyncMessageFilter_iid "com.nokia.Qt.QGstreamerSyncMessageFilter/1.0"
+#define QGstreamerSyncMessageFilter_iid "org.qt-project.qt.gstreamersyncmessagefilter/5.0"
 Q_DECLARE_INTERFACE(QGstreamerSyncMessageFilter, QGstreamerSyncMessageFilter_iid)
 
 
@@ -74,7 +74,7 @@ public:
     //returns true if message was processed and should be dropped, false otherwise
     virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
 };
-#define QGstreamerBusMessageFilter_iid "com.nokia.Qt.QGstreamerBusMessageFilter/1.0"
+#define QGstreamerBusMessageFilter_iid "org.qt-project.qt.gstreamerbusmessagefilter/5.0"
 Q_DECLARE_INTERFACE(QGstreamerBusMessageFilter, QGstreamerBusMessageFilter_iid)
 
 

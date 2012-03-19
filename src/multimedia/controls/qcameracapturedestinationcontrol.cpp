@@ -55,7 +55,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_control
 
-    The interface name of QCameraCaptureDestinationControl is \c com.nokia.Qt.QCameraCaptureDestinationControl/1.0 as
+    The interface name of QCameraCaptureDestinationControl is \c org.qt-project.qt.cameracapturedestinationcontrol/5.0 as
     defined in QCameraCaptureDestinationControl_iid.
 
 
@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QCameraCaptureDestinationControl_iid
 
-    \c com.nokia.Qt.QCameraCaptureDestinationControl/1.0
+    \c org.qt-project.qt.cameracapturedestinationcontrol/5.0
 
     Defines the interface name of the QCameraCaptureDestinationControl class.
 

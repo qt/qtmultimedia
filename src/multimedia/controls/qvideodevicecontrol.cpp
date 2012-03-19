@@ -56,14 +56,14 @@ QT_BEGIN_NAMESPACE
     available on a system and allows one to be selected as the  endpoint of a
     media service.
 
-    The interface name of QVideoDeviceControl is \c com.nokia.Qt.VideoDeviceControl as
+    The interface name of QVideoDeviceControl is \c org.qt-project.qt.videodevicecontrol/5.0 as
     defined in QVideoDeviceControl_iid.
 */
 
 /*!
     \macro QVideoDeviceControl_iid
 
-    \c com.nokia.Qt.VideoDeviceControl
+    \c org.qt-project.qt.videodevicecontrol/5.0
 
     Defines the interface name of the QVideoDeviceControl class.
 

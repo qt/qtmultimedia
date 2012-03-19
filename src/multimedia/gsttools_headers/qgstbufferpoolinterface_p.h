@@ -89,7 +89,7 @@ public:
     virtual QAbstractVideoBuffer *prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine) = 0;
 };
 
-#define QGstBufferPoolInterface_iid "com.nokia.Qt.QGstBufferPoolInterface"
+#define QGstBufferPoolInterface_iid "org.qt-project.qt.gstbufferpool/5.0"
 Q_DECLARE_INTERFACE(QGstBufferPoolInterface, QGstBufferPoolInterface_iid)
 
 class QGstBufferPoolPlugin : public QObject, public QGstBufferPoolInterface

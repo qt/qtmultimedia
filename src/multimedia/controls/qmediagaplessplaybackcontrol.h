@@ -72,7 +72,7 @@ protected:
     QMediaGaplessPlaybackControl(QObject* parent = 0);
 };
 
-#define QMediaGaplessPlaybackControl_iid "com.nokia.Qt.QMediaGaplessPlaybackControl/1.0"
+#define QMediaGaplessPlaybackControl_iid "org.qt-project.qt.mediagaplessplaybackcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaGaplessPlaybackControl, QMediaGaplessPlaybackControl_iid)
 
 QT_END_NAMESPACE

@@ -77,7 +77,7 @@ protected:
     QVideoDeviceControl(QObject *parent = 0);
 };
 
-#define QVideoDeviceControl_iid "com.nokia.Qt.QVideoDeviceControl/1.0"
+#define QVideoDeviceControl_iid "org.qt-project.qt.videodevicecontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QVideoDeviceControl, QVideoDeviceControl_iid)
 
 QT_END_NAMESPACE

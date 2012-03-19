@@ -87,7 +87,7 @@ protected:
     QVideoEncoderControl(QObject *parent = 0);
 };
 
-#define QVideoEncoderControl_iid "com.nokia.Qt.QVideoEncoderControl/1.0"
+#define QVideoEncoderControl_iid "org.qt-project.qt.videoencodercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QVideoEncoderControl, QVideoEncoderControl_iid)
 
 QT_END_NAMESPACE

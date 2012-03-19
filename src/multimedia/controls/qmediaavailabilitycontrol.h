@@ -68,7 +68,7 @@ protected:
     QMediaAvailabilityControl(QObject* parent = 0);
 };
 
-#define QMediaAvailabilityControl_iid "com.nokia.Qt.QMediaAvailabilityControl/1.0"
+#define QMediaAvailabilityControl_iid "org.qt-project.qt.mediaavailabilitycontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaAvailabilityControl, QMediaAvailabilityControl_iid)
 
 QT_END_NAMESPACE

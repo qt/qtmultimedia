@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
     service may implement QMetaDataReaderControl.
 
     The interface name of QMetaDataReaderControl is
-    \c com.nokia.Qt.QMetaDataReaderControl/1.0 as defined in
+    \c org.qt-project.qt.metadatareadercontrol/5.0 as defined in
     QMetaDataReaderControl_iid.
 
     \sa QMediaService::requestControl(), QMediaObject
@@ -77,7 +77,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QMetaDataReaderControl_iid
 
-    \c com.nokia.Qt.QMetaDataReaderControl/1.0
+    \c org.qt-project.qt.metadatareadercontrol/5.0
 
     Defines the interface name of the QMetaDataReaderControl class.
 

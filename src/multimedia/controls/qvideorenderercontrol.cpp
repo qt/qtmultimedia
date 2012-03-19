@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 
     QVideoRendererControl is one of a number of possible video output controls.
 
-    The interface name of QVideoRendererControl is \c com.nokia.Qt.QVideoRendererControl/1.0 as
+    The interface name of QVideoRendererControl is \c org.qt-project.qt.videorenderercontrol/5.0 as
     defined in QVideoRendererControl_iid.
 
     \sa QMediaService::requestControl(), QVideoWidget
@@ -70,7 +70,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QVideoRendererControl_iid
 
-    \c com.nokia.Qt.QVideoRendererControl/1.0
+    \c org.qt-project.qt.videorenderercontrol/5.0
 
     Defines the interface name of the QVideoRendererControl class.
 

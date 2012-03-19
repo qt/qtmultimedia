@@ -69,7 +69,7 @@ protected:
     QCameraCaptureBufferFormatControl(QObject* parent = 0);
 };
 
-#define QCameraCaptureBufferFormatControl_iid "com.nokia.Qt.QCameraCaptureBufferFormatControl/1.0"
+#define QCameraCaptureBufferFormatControl_iid "org.qt-project.qt.cameracapturebufferformatcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraCaptureBufferFormatControl, QCameraCaptureBufferFormatControl_iid)
 
 QT_END_NAMESPACE

@@ -51,7 +51,7 @@ class AudioCaptureServicePlugin : public QMediaServiceProviderPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "audiocapture.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "audiocapture.json")
 
 public:
     QMediaService* create(QString const& key);

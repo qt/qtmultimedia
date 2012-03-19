@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
     \l QVideoProbe is the client facing class for probing video - this class is implemented by
     media backends to provide this functionality.
 
-    The interface name of QMediaVideoProbeControl is \c com.nokia.Qt.QMediaVideoProbeControl/1.0 as
+    The interface name of QMediaVideoProbeControl is \c org.qt-project.qt.mediavideoprobecontrol/5.0 as
     defined in QMediaVideoProbeControl_iid.
 
     \sa QVideoProbe, QMediaService::requestControl(), QMediaPlayer, QCamera
@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QMediaVideoProbeControl_iid
 
-    \c com.nokia.Qt.QMediaVideoProbeControl/1.0
+    \c org.qt-project.qt.mediavideoprobecontrol/5.0
 
     Defines the interface name of the QMediaVideoProbeControl class.
 

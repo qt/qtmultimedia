@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
     The functionality provided by this control is exposed to application
     code through the QMediaPlayer class.
 
-    The interface name of QMediaPlayerControl is \c com.nokia.Qt.QMediaPlayerControl/1.0 as
+    The interface name of QMediaPlayerControl is \c org.qt-project.qt.mediaplayercontrol/5.0 as
     defined in QMediaPlayerControl_iid.
 
     \sa QMediaService::requestControl(), QMediaPlayer
@@ -77,7 +77,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QMediaPlayerControl_iid
 
-    \c com.nokia.Qt.QMediaPlayerControl/1.0
+    \c org.qt-project.qt.mediaplayercontrol/5.0
 
     Defines the interface name of the QMediaPlayerControl class.
 

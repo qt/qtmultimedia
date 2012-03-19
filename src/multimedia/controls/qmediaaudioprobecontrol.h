@@ -65,7 +65,7 @@ protected:
     explicit QMediaAudioProbeControl(QObject *parent = 0);
 };
 
-#define QMediaAudioProbeControl_iid "com.nokia.Qt.QMediaAudioProbeControl/1.0"
+#define QMediaAudioProbeControl_iid "org.qt-project.qt.mediaaudioprobecontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaAudioProbeControl, QMediaAudioProbeControl_iid)
 
 QT_END_NAMESPACE

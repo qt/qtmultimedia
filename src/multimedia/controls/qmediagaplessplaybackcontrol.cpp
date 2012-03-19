@@ -60,7 +60,7 @@
     code through the QMediaPlayer class.
 
     The interface name of QMediaGaplessPlaybackControl is
-    \c com.nokia.Qt.QMediaGaplessPlaybackControl/1.0 as defined in QMediaGaplessPlaybackControl_iid.
+    \c org.qt-project.qt.mediagaplessplaybackcontrol/5.0 as defined in QMediaGaplessPlaybackControl_iid.
 
     \sa QMediaService::requestControl(), QMediaPlayer
 */
@@ -68,7 +68,7 @@
 /*!
     \macro QMediaGaplessPlaybackControl_iid
 
-    \c com.nokia.Qt.QMediaGaplessPlaybackControl/1.0
+    \c org.qt-project.qt.mediagaplessplaybackcontrol/5.0
 
     Defines the interface name of the QMediaGaplessPlaybackControl class.
 

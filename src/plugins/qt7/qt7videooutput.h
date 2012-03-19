@@ -66,7 +66,7 @@ public:
 };
 
 #define QT7VideoOutput_iid \
-    "com.nokia.Qt.QT7VideoOutput/1.0"
+    "org.qt-project.qt.QT7VideoOutput/5.0"
 Q_DECLARE_INTERFACE(QT7VideoOutput, QT7VideoOutput_iid)
 
 class QT7VideoWindowControl : public QVideoWindowControl, public QT7VideoOutput

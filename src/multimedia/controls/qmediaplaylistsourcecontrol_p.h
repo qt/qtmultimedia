@@ -82,7 +82,7 @@ protected:
     QMediaPlaylistSourceControl(QObject* parent = 0);
 };
 
-#define QMediaPlaylistSourceControl_iid "com.nokia.Qt.QMediaPlaylistSourceControl/1.0"
+#define QMediaPlaylistSourceControl_iid "org.qt-project.qt.mediaplaylistsourcecontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QMediaPlaylistSourceControl, QMediaPlaylistSourceControl_iid)
 
 QT_END_NAMESPACE

@@ -66,7 +66,7 @@ protected:
 };
 
 #define QMediaBindableInterface_iid \
-    "com.nokia.Qt.QMediaBindableInterface/1.0"
+    "org.qt-project.qt.mediabindable/5.0"
 Q_DECLARE_INTERFACE(QMediaBindableInterface, QMediaBindableInterface_iid)
 
 QT_END_NAMESPACE

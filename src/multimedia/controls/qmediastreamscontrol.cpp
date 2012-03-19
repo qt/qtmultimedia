@@ -69,7 +69,7 @@ namespace
     The QMediaStreamsControl class provides descriptions of the available media streams
     and allows individual streams to be activated and deactivated.
 
-    The interface name of QMediaStreamsControl is \c com.nokia.Qt.MediaStreamsControl as
+    The interface name of QMediaStreamsControl is \c org.qt-project.qt.mediastreamscontrol/5.0 as
     defined in QMediaStreamsControl_iid.
 
     \sa QMediaService::requestControl()
@@ -78,7 +78,7 @@ namespace
 /*!
     \macro QMediaStreamsControl_iid
 
-    \c com.nokia.Qt.MediaStreamsControl
+    \c org.qt-project.qt.mediastreamscontrol/5.0
 
     Defines the interface name of the QMediaStreamsControl class.
 

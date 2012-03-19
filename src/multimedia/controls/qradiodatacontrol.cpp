@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
     The functionality provided by this control is exposed to application code
     through the QRadioData class.
 
-    The interface name of QRadioDataControl is \c com.nokia.Qt.QRadioDataControl/5.0 as
+    The interface name of QRadioDataControl is \c org.qt-project.qt.radiodatacontrol/5.0 as
     defined in QRadioDataControl_iid.
 
     \sa QMediaService::requestControl(), QRadioData
@@ -69,7 +69,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QRadioDataControl_iid
 
-    \c com.nokia.Qt.QRadioDataControl/5.0
+    \c org.qt-project.qt.radiodatacontrol/5.0
 
     Defines the interface name of the QRadioDataControl class.
 

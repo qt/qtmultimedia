@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
     Some camera devices may not have flash hardware, or may not be configurable.  In that
     case, there will be no QCameraFlashControl available.
 
-    The interface name of QCameraFlashControl is \c com.nokia.Qt.QCameraFlashControl/1.0 as
+    The interface name of QCameraFlashControl is \c org.qt-project.qt.cameraflashcontrol/5.0 as
     defined in QCameraFlashControl_iid.
 
     \sa QCamera
@@ -71,7 +71,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QCameraFlashControl_iid
 
-    \c com.nokia.Qt.QCameraFlashControl/1.0
+    \c org.qt-project.qt.cameraflashcontrol/5.0
 
     Defines the interface name of the QCameraFlashControl class.
 

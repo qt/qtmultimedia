@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
     This service is provided by a QMediaService object via
     QMediaService::control().  It is used by QCamera.
 
-    The interface name of QCameraControl is \c com.nokia.Qt.QCameraControl/1.0 as
+    The interface name of QCameraControl is \c org.qt-project.qt.cameracontrol/5.0 as
     defined in QCameraControl_iid.
 
 
@@ -70,7 +70,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QCameraControl_iid
 
-    \c com.nokia.Qt.QCameraControl/1.0
+    \c org.qt-project.qt.cameracontrol/5.0
 
     Defines the interface name of the QCameraControl class.
 

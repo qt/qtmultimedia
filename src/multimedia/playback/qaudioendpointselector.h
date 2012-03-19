@@ -75,7 +75,7 @@ protected:
     QAudioEndpointSelector(QObject *parent = 0);
 };
 
-#define QAudioEndpointSelector_iid "com.nokia.Qt.QAudioEndpointSelector/1.0"
+#define QAudioEndpointSelector_iid "org.qt-project.qt.audioendpointselector/5.0"
 Q_MEDIA_DECLARE_CONTROL(QAudioEndpointSelector, QAudioEndpointSelector_iid)
 
 QT_END_NAMESPACE

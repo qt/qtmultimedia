@@ -80,7 +80,7 @@ public:
     virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
 };
 
-#define QSGVideoNodeFactoryInterface_iid "com.nokia.Qt.QSGVideoNodeFactoryInterface"
+#define QSGVideoNodeFactoryInterface_iid "org.qt-project.qt.sgvideonodefactory/5.0"
 Q_DECLARE_INTERFACE(QSGVideoNodeFactoryInterface, QSGVideoNodeFactoryInterface_iid)
 
 class QSGVideoNodeFactoryPlugin : public QObject, public QSGVideoNodeFactoryInterface

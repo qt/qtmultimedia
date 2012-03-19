@@ -80,7 +80,7 @@ protected:
     QImageEncoderControl(QObject *parent = 0);
 };
 
-#define QImageEncoderControl_iid "com.nokia.Qt.QImageEncoderControl/1.0"
+#define QImageEncoderControl_iid "org.qt-project.qt.imageencodercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QImageEncoderControl, QImageEncoderControl_iid)
 
 QT_END_NAMESPACE

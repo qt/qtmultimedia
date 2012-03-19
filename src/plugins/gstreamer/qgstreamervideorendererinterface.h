@@ -68,7 +68,7 @@ public:
     //void readyChanged(bool);
 };
 
-#define QGstreamerVideoRendererInterface_iid "com.nokia.Qt.QGstreamerVideoRendererInterface/1.0"
+#define QGstreamerVideoRendererInterface_iid "org.qt-project.qt.gstreamervideorenderer/5.0"
 Q_DECLARE_INTERFACE(QGstreamerVideoRendererInterface, QGstreamerVideoRendererInterface_iid)
 QT_END_NAMESPACE
 

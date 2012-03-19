@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
     The functionality provided by this control is exposed to application code through the
     QMediaRecorder class.
 
-    The interface name of QAudioEncoderControl is \c com.nokia.Qt.QAudioEncoderControl/1.0 as
+    The interface name of QAudioEncoderControl is \c org.qt-project.qt.audioencodercontrol/5.0 as
     defined in QAudioEncoderControl_iid.
 
     \sa QMediaService::requestControl(), QMediaRecorder
@@ -71,7 +71,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QAudioEncoderControl_iid
 
-    \c com.nokia.Qt.AudioEncoderControl/1.0
+    \c org.qt-project.qt.audioencodercontrol/5.0
 
     Defines the interface name of the QAudioEncoderControl class.
 

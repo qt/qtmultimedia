@@ -67,7 +67,7 @@ QT_BEGIN_NAMESPACE
     potentially available in any of the media object classes.  Any media
     service may implement QMetaDataControl.
 
-    The interface name of QMetaDataWriterControl is \c com.nokia.Qt.QMetaDataWriterControl/1.0 as
+    The interface name of QMetaDataWriterControl is \c org.qt-project.qt.metadatawritercontrol/5.0 as
     defined in QMetaDataWriterControl_iid.
 
     \sa QMediaService::requestControl(), QMediaObject
@@ -76,7 +76,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QMetaDataWriterControl_iid
 
-    \c com.nokia.Qt.QMetaDataWriterControl/1.0
+    \c org.qt-project.qt.metadatawritercontrol/5.0
 
     Defines the interface name of the QMetaDataWriterControl class.
 

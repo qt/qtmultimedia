@@ -75,7 +75,7 @@ protected:
     QCameraFlashControl(QObject* parent = 0);
 };
 
-#define QCameraFlashControl_iid "com.nokia.Qt.QCameraFlashControl/1.0"
+#define QCameraFlashControl_iid "org.qt-project.qt.cameraflashcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraFlashControl, QCameraFlashControl_iid)
 
 QT_END_NAMESPACE

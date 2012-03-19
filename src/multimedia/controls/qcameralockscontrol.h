@@ -74,7 +74,7 @@ protected:
     QCameraLocksControl(QObject* parent = 0);
 };
 
-#define QCameraLocksControl_iid "com.nokia.Qt.QCameraLocksControl/1.0"
+#define QCameraLocksControl_iid "org.qt-project.qt.cameralockscontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraLocksControl, QCameraLocksControl_iid)
 
 QT_END_NAMESPACE

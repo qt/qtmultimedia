@@ -52,7 +52,7 @@ class QPulseAudioPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "com.nokia.qt.QAudioSystemFactoryInterface" FILE "pulseaudio.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "pulseaudio.json")
 
 public:
     QPulseAudioPlugin(QObject *parent = 0);

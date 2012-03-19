@@ -60,7 +60,7 @@ class QGstreamerServicePlugin
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
-    Q_PLUGIN_METADATA(IID "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0" FILE "gstreamer.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "gstreamer.json")
 public:
     QMediaService* create(QString const& key);
     void release(QMediaService *service);

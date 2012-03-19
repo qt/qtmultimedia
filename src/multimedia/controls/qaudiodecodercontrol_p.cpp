@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
     The functionality provided by this control is exposed to application
     code through the QAudioDecoder class.
 
-    The interface name of QAudioDecoderControl is \c com.nokia.Qt.QAudioDecoderControl/1.0 as
+    The interface name of QAudioDecoderControl is \c org.qt-project.qt.audiodecodercontrol/5.0 as
     defined in QAudioDecoderControl_iid.
 
     \sa QMediaService::requestControl(), QAudioDecoder
@@ -69,7 +69,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QAudioDecoderControl_iid
 
-    \c com.nokia.Qt.QAudioDecoderControl/1.0
+    \c org.qt-project.qt.audiodecodercontrol/5.0
 
     Defines the interface name of the QAudioDecoderControl class.
 

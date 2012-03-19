@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
     provides functions for quering supported image \l {supportedImageCodecs()}{codecs} and
     \l {supportedResolutions()}{resolutions}.
 
-    The interface name of QImageEncoderControl is \c com.nokia.Qt.QImageEncoderControl/1.0 as
+    The interface name of QImageEncoderControl is \c org.qt-project.qt.imageencodercontrol/5.0 as
     defined in QImageEncoderControl_iid.
 
     \sa QImageEncoderSettings, QMediaService::requestControl()
@@ -69,7 +69,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QImageEncoderControl_iid
 
-    \c com.nokia.Qt.QImageEncoderControl/1.0
+    \c org.qt-project.qt.imageencodercontrol/5.0
 
     Defines the interface name of the QImageEncoderControl class.
 

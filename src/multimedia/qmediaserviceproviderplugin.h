@@ -112,7 +112,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface
 };
 
 #define QMediaServiceProviderFactoryInterface_iid \
-    "com.nokia.Qt.QMediaServiceProviderFactoryInterface/1.0"
+    "org.qt-project.qt.mediaserviceproviderfactory/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceProviderFactoryInterface, QMediaServiceProviderFactoryInterface_iid)
 
 
@@ -124,7 +124,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedFormatsInterface
 };
 
 #define QMediaServiceSupportedFormatsInterface_iid \
-    "com.nokia.Qt.QMediaServiceSupportedFormatsInterface/1.0"
+    "org.qt-project.qt.mediaservicesupportedformats/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceSupportedFormatsInterface, QMediaServiceSupportedFormatsInterface_iid)
 
 
@@ -136,7 +136,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedDevicesInterface
 };
 
 #define QMediaServiceSupportedDevicesInterface_iid \
-    "com.nokia.Qt.QMediaServiceSupportedDevicesInterface/1.0"
+    "org.qt-project.qt.mediaservicesupporteddevices/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceSupportedDevicesInterface, QMediaServiceSupportedDevicesInterface_iid)
 
 
@@ -149,7 +149,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceFeaturesInterface
 
 
 #define QMediaServiceFeaturesInterface_iid \
-    "com.nokia.Qt.QMediaServiceFeaturesInterface/1.0"
+    "org.qt-project.qt.mediaservicefeatures/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceFeaturesInterface, QMediaServiceFeaturesInterface_iid)
 
 
@@ -171,7 +171,7 @@ public:
                         Required: QVideoOutputControl
                         Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
 */
-#define Q_MEDIASERVICE_MEDIAPLAYER "com.nokia.qt.mediaplayer"
+#define Q_MEDIASERVICE_MEDIAPLAYER "org.qt-project.qt.mediaplayer"
 
 /*!
    Service with support for recording from audio sources
@@ -181,7 +181,7 @@ public:
                         Recommended: QAudioEncoderControl
                         Optional: QMediaContainerControl
 */
-#define Q_MEDIASERVICE_AUDIOSOURCE "com.nokia.qt.audiosource"
+#define Q_MEDIASERVICE_AUDIOSOURCE "org.qt-project.qt.audiosource"
 
 /*!
     Service with support for camera use.
@@ -195,7 +195,7 @@ public:
                         Required: QVideoOutputControl
                         Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
 */
-#define Q_MEDIASERVICE_CAMERA "com.nokia.qt.camera"
+#define Q_MEDIASERVICE_CAMERA "org.qt-project.qt.camera"
 
 /*!
     Service with support for radio tuning.
@@ -205,14 +205,14 @@ public:
                         Recommended: QAudioEncoderControl
                         Optional: QMediaContainerControl
 */
-#define Q_MEDIASERVICE_RADIO "com.nokia.qt.radio"
+#define Q_MEDIASERVICE_RADIO "org.qt-project.qt.radio"
 
 /*!
     Service with support for decoding audio.
     Required Controls: QAudioDecoderControl
     Optional: that streams control
 */
-#define Q_MEDIASERVICE_AUDIODECODER "com.nokia.qt.audiodecode"
+#define Q_MEDIASERVICE_AUDIODECODER "org.qt-project.qt.audiodecode"
 
 
 

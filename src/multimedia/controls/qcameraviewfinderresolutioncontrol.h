@@ -66,7 +66,7 @@ protected:
 
 };
 
-#define QCameraViewfinderResolutionControl_iid "com.nokia.Qt.QCameraViewfinderControl/1.0"
+#define QCameraViewfinderResolutionControl_iid "org.qt-project.qt.cameraviewfindercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderResolutionControl, QCameraViewfinderResolutionControl_iid)
 
 QT_END_NAMESPACE

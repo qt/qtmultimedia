@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_control
 
-    The interface name of QCameraZoomControl is \c com.nokia.Qt.QCameraZoomControl/1.0 as
+    The interface name of QCameraZoomControl is \c org.qt-project.qt.camerazoomcontrol/5.0 as
     defined in QCameraZoomControl_iid.
 
 
@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QCameraZoomControl_iid
 
-    \c com.nokia.Qt.QCameraZoomControl/1.0
+    \c org.qt-project.qt.camerazoomcontrol/5.0
 
     Defines the interface name of the QCameraZoomControl class.
 

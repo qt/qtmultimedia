@@ -70,7 +70,7 @@ protected:
     QVideoRendererControl(QObject *parent = 0);
 };
 
-#define QVideoRendererControl_iid "com.nokia.Qt.QVideoRendererControl/1.0"
+#define QVideoRendererControl_iid "org.qt-project.qt.videorenderercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QVideoRendererControl, QVideoRendererControl_iid)
 
 QT_END_NAMESPACE

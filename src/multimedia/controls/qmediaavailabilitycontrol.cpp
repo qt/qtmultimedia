@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
     An instance of QMediaObject (or its derived classes) can report any changes
     in availability via this control.
 
-    The interface name of QMediaAvailabilityControl is \c com.nokia.Qt.QMediaAvailabilityControl/1.0 as
+    The interface name of QMediaAvailabilityControl is \c org.qt-project.qt.mediaavailabilitycontrol/5.0 as
     defined in QMediaAvailabilityControl_iid.
 
     \sa QMediaService::requestControl(), QMediaObject
@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QMediaAvailabilityControl_iid
 
-    \c com.nokia.Qt.QMediaAvailabilityControl/1.0
+    \c org.qt-project.qt.mediaavailabilitycontrol/5.0
 
     Defines the interface name of the QMediaAvailabilityControl class.
 

@@ -69,7 +69,7 @@ protected:
     QCameraCaptureDestinationControl(QObject* parent = 0);
 };
 
-#define QCameraCaptureDestinationControl_iid "com.nokia.Qt.QCameraCaptureDestinationControl/1.0"
+#define QCameraCaptureDestinationControl_iid "org.qt-project.qt.cameracapturedestinationcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraCaptureDestinationControl, QCameraCaptureDestinationControl_iid)
 
 QT_END_NAMESPACE

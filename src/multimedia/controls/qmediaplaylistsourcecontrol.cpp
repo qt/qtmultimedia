@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
     advance the playlist  with QMediaPlaylist::next() when playback of the
     current media is finished.
 
-    The interface name of QMediaPlaylistSourceControl is \c com.nokia.Qt.QMediaPlaylistSourceControl/1.0 as
+    The interface name of QMediaPlaylistSourceControl is \c org.qt-project.qt.mediaplaylistsourcecontrol/5.0 as
     defined in QMediaPlaylistSourceControl_iid.
 
     \sa QMediaService::requestControl(), QMediaPlayer
@@ -77,7 +77,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QMediaPlaylistSourceControl_iid
 
-    \c com.nokia.Qt.QMediaPlaylistSourceControl/1.0
+    \c org.qt-project.qt.mediaplaylistsourcecontrol/5.0
 
     Defines the interface name of the QMediaPlaylistSourceControl class.
 

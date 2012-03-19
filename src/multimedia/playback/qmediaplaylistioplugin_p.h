@@ -104,7 +104,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaPlaylistIOInterface
     virtual QMediaPlaylistWriter *createWriter(QIODevice *device, const QByteArray &format) = 0;
 };
 
-#define QMediaPlaylistIOInterface_iid "com.nokia.Qt.QMediaPlaylistIOInterface"
+#define QMediaPlaylistIOInterface_iid "org.qt-project.qt.mediaplaylistio/5.0"
 Q_DECLARE_INTERFACE(QMediaPlaylistIOInterface, QMediaPlaylistIOInterface_iid);
 
 class Q_MULTIMEDIA_EXPORT QMediaPlaylistIOPlugin : public QObject, public QMediaPlaylistIOInterface

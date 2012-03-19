@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 
     \endtable
 
-    The interface name of QCameraExposureControl is \c com.nokia.Qt.QCameraExposureControl/1.0 as
+    The interface name of QCameraExposureControl is \c org.qt-project.qt.cameraexposurecontrol/5.0 as
     defined in QCameraExposureControl_iid.
 
     \sa QCamera
@@ -74,7 +74,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QCameraExposureControl_iid
 
-    \c com.nokia.Qt.QCameraExposureControl/1.0
+    \c org.qt-project.qt.cameraexposurecontrol/5.0
 
     Defines the interface name of the QCameraExposureControl class.
 

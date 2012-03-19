@@ -114,7 +114,7 @@ protected:
     QRadioTunerControl(QObject *parent = 0);
 };
 
-#define QRadioTunerControl_iid "com.nokia.Qt.QRadioTunerControl/1.0"
+#define QRadioTunerControl_iid "org.qt-project.qt.radiotunercontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QRadioTunerControl, QRadioTunerControl_iid)
 
 QT_END_NAMESPACE

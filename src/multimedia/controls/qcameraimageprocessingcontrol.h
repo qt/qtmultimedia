@@ -88,7 +88,7 @@ protected:
     QCameraImageProcessingControl(QObject* parent = 0);
 };
 
-#define QCameraImageProcessingControl_iid "com.nokia.Qt.QCameraImageProcessingControl/1.0"
+#define QCameraImageProcessingControl_iid "org.qt-project.qt.cameraimageprocessingcontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraImageProcessingControl, QCameraImageProcessingControl_iid)
 
 QT_END_NAMESPACE
