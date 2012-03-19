@@ -52,38 +52,225 @@ A device specific headset is required to be connected to device for radio testin
     {
     },
 
- play_a_radio_transmission: function()
+    play_a_radio_transmission: function()
     {
         // Test meta data
         testTitle = "Multimedia - Play Radio Transmission";
         testBinary = "radio";
-        testSource ="$QTDIR/qtmultimediakit/examples/Radio"
+        testSource ="qt5/qtmultimedia/examples/radio"
         testGoal = "Verify that radio stations can be played.";
         testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
         testGroups = "BAT, 1.2";
 
         // Test steps
-        prompt(twiki("---+++ " + testApplication + "<br><br>
+        prompt(twiki("---+++ " + testTitle + "<br><br>
             *Goal:* " + testGoal + "<br>
             *Pre-Requisites:* " + testPreconditions + "<br>
             *Tested Binary:* " + testBinary + "<br>
 
            | *Step* | *Verification* |
            | Launch " + testBinary + " | App launches normally |
-           | | Verify that 0 KHz and No Signal is displayed |
-           | Select [Scan Up] | Audible white noise should be heard as the radio searches for a frequency lock. Frequency should be increasing in 100 KHz steps until a strong signal is found |
-           | | Verify that a radio signal can be heard. It is possible for the radio to lock on a silent station signal, in that case progress further up the frequencies |
-           | Once a strong audible signal is found | Verify that the stations frequency and Got Signal message is displayed |
-           | Select [Scan Up] | Verify that the radio has moved off the previous station and in progressing through the frequencies |
-           | Once on a radio station, Select [Freq Up] | Verify that the radio frequency has moved off the station by 100KHz and is stationary |
-           | Select [Freq Up] again | Verify that the radio frequency has moved up another 100KHz and is stationary |
-           | Select [Freq Down] twice | Verify that you are now at the frequency of the previous radio station and that the signal is audible |
-           | Select [Scan Down] | Verify that the radio has moved off the previous station, progressing through the frequencies, and finds the original station from this test |
-           | Exit the radio application | Verify that the radio station is no longer heard |
+           | | If not first time running application on image, verify that you are presented with a list of previously scanned radio stations |
+           | Select a radio station from the list | Verify that the station is properly selected |
+           | Select the power icon next to the station name | Verify that audio from the radio station is now heard through the headphones |
+           | Deselect the power icon next to the station name | Verify that audio from the radio station is no longer heard through the headphones |
+           | Exit the radio application | Verify that the radio application closes cleanly |
          "));
     },
 
-    radio_interrupted_by_system_notification: function()
+    change_a_radio_station: function()
+    {
+        // Test meta data
+        testTitle = "Multimedia - Radio: Change radio station";
+        testBinary = "radio";
+        testSource ="qt5/qtmultimedia/examples/radio"
+        testGoal = "Verify that radio station can be changed from station playlist.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testGroups = "BAT, 1.2";
+
+    // Test steps
+        prompt(twiki("---+++ " + testTitle + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Select a radio station from the list | Verify that the station is heard through the headphones |
+           | If in the visualization view, select the down icon to return to the station selection view | Verify that you are presented with the list of stations |
+           | Select a different station | Verify that you are now listening to a different radio station |
+           | Deselect the power icon next to the station name | Verify that audio from the radio station is no longer heard through the headphones |
+           | Exit the radio application | Verify that the radio application closes cleanly |
+         "));
+    },
+
+    manually_tune_radio_station: function()
+    {
+        // Test meta data
+        testTitle = "Multimedia - Manually tune radio station";
+        testBinary = "radio";
+        testSource ="qt5/qtmultimedia/examples/radio"
+        testGoal = "Verify that user can manualy change radio station.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testGroups = "BAT, 1.2";
+
+    // Test steps
+        prompt(twiki("---+++ " + testTitle + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Select a radio station from the list | Verify that the station is heard through the headphones |
+           | Select the up icon to be presented to the visualization view | |
+           | Select the Plus icon on the menu bar | Verify that you are presented with the frequency dial |
+           | Note the current selected frequency | |
+           | Select the dot indicator on the frequency dial, and move finger to right | Verify that the frequency on the indicater is now rising and that the audio has gone off the previous station |
+           | Keep moving selector until a radio station is heard | Verify that the frequency of the selected station is higher than the originaly selected station |
+           | | Verify that the station is playing properly |
+           | Select to save the selected radio station frequency | Verify that the station is saved in the radiostation playlist |
+           | Exit the radio application | Verify that the radio application closes cleanly |
+         "));
+    },
+
+    scan_up_and_down: function()
+    {
+        // Test meta data
+        testTitle = "Multimedia - Scan up and down the frequency";
+        testBinary = "radio";
+        testSource ="qt5/qtmultimedia/examples/radio"
+        testGoal = "Verify that radio can scan up and down the FM frequency.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testGroups = "BAT, 1.2";
+
+    // Test steps
+        prompt(twiki("---+++ " + testTitle + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Select a radio station from the list | Verify that the station is heard through the headphones |
+           | Select the up icon to be presented to the visualization view | |
+           | Select the Plus icon on the menu bar | Verify that you are presented with the frequency dial |
+           | Note the current selected frequency | |
+           | Select the Scan Up Frequency controll | Verify that application has located a new station and that the frequency displayed is of the new station |
+           | | Verify that the station is playing properly |
+           | Select to save the selected radio station frequency | Verify that the station is saved in the radiostation playlist |
+           | Select the Scan Down Frequency control | Verify that application has located the original station and that the frequency displayed is of the original station |
+           | | Verify that the station is playing properly |
+           | Select to save the selected radio station frequency | Verify that the station is saved in the radiostation playlist |
+           | Exit the radio application | Verify that the radio application closes cleanly |
+         "));
+    },
+
+    scan_for_multiple_radio_stations: function()
+       {
+        // Test meta data
+        testTitle = "Multimedia - Radio: Scan for multiple radio station";
+        testBinary = "radio";
+        testSource ="qt5/qtmultimedia/examples/radio"
+        testGoal = "Verify that radio can scan for multiple stations at once.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testGroups = "BAT, 1.2";
+
+    // Test steps
+        prompt(twiki("---+++ " + testTitle + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | On the menu, select Find new station | In the Radio Dialog Scanning view, observe the number of stations found |
+           | Exit the radio application | Verify that the radio application closes cleanly |
+         "));
+    },
+
+    save_radio_station_list: function()
+    {
+        // Test meta data
+        testTitle = "Multimedia - Radio: Save station playlist";
+        testBinary = "radio";
+        testSource ="qt5/qtmultimedia/examples/radio""
+        testGoal = "Verify that radio can save station playist.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testGroups = "BAT, 1.2";
+
+    // Test steps
+        prompt(twiki("---+++ " + testTitle + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Select to scan for multiple stations | Verify that multiple stations have been found |
+           | Select to save station playlist | |
+           | Close application | Verify that the application closes |
+           | Reopen " + testBinary + " | Verify that the app launches normally |
+           | Go to station playlist | Verify that the stations from the previous search are listed |
+           | Select various stations from playlist | Verify that radio station play properly |
+           | Close application | Verify that radio application closes properly |
+           "));
+    },
+
+    switch_audio_to_speakers: function()
+    {
+        // Test meta data
+        testTitle = "Multimedia - Radio: Switch audio to speakers";
+        testBinary = "radio";
+        testSource ="qt5/qtmultimedia/examples/radio"
+        testGoal = "Verify that radio can be output to external speakers.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testGroups = "BAT, 1.2";
+
+
+    // Test steps
+        prompt(twiki("---+++ " + testTitle + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Select an audible radio station | Verify that the station can be heard through the speakers |
+           | Select from station menu: Turn On loudspaeker | Verify that the audio can be heard through the device speakers |
+           | Select from the station menu: Turn Off Loudspeakers | Verify that the audio has now reverted back to the headphones |
+           | Close application | Verify that radio application closes properly |
+           "));
+    },
+
+ handle_headset_removal: function()
+    {
+        // Test meta data
+        testTitle = "Multimedia - Radio: Handle headset removal";
+        testBinary = "radio";
+        testSource ="qt5/qtmultimedia/examples/radio"
+        testGoal = "Verify that radio can handle removal and insertion of headset.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testGroups = "BAT, 1.2";
+
+
+    // Test steps
+        prompt(twiki("---+++ " + testTitle + "<br><br>
+            *Goal:* " + testGoal + "<br>
+            *Pre-Requisites:* " + testPreconditions + "<br>
+            *Tested Binary:* " + testBinary + "<br>
+
+           | *Step* | *Verification* |
+           | Launch " + testBinary + " | App launches normally |
+           | Select an audible radio station | Verify that the station can be heard through the headset |
+           | Remove headset from device | Verify that warning sign is informing user of the need to re-insert the headset |
+           | Re-insert headset | Verify that the warning has now disappeard, and that the radio station can be heard once again |
+           | Close application | Verify that radio application closes properly |
+           "));
+    },
+
+ radio_interrupted_by_system_notification: function()
     {
         // Test meta data
         testTitle = "Multimedia - Radio interrupted by System Notification";
@@ -94,7 +281,7 @@ A device specific headset is required to be connected to device for radio testin
         testGroups = "BAT, 1.2";
 
         // Test steps
-        prompt(twiki("---+++ " + testApplication + "<br><br>
+        prompt(twiki("---+++ " + testTitle + "<br><br>
             *Goal:* " + testGoal + "<br>
             *Pre-Requisites:* " + testPreconditions + "<br>
             *Tested Binary:* " + testBinary + "<br>
@@ -104,7 +291,8 @@ A device specific headset is required to be connected to device for radio testin
            | Locate a strong radio station signal by scanning up/down | |
            | While on a strong and audible radio signal, evoke a system notification on device (eg: incoming SMS, alarm notification) | Verify that the radio has muted, and after the system notification has been delivered, the radio reverts to outputting the audio signal back through the headphones |
            | While on a strong and audible radio signal, call the device | Verify that the radio has been muted, and stays muted during the duration of the call, and resumes once the call has ended  |
-           "));
+           | Close application | Verify that radio application closes properly |
+        "));
     },
 
     radio_volume_control: function()
@@ -117,7 +305,7 @@ A device specific headset is required to be connected to device for radio testin
      testGroups = "BAT, 1.2";
 
      // Test steps
-     prompt(twiki("---+++ " + testApplication + "<br><br>
+     prompt(twiki("---+++ " + testTitle + "<br><br>
          *Goal:* " + testGoal + "<br>
          *Pre-Requisites:* " + testPreconditions + "<br>
          *Tested Binary:* " + testBinary + "<br>
@@ -132,7 +320,7 @@ A device specific headset is required to be connected to device for radio testin
        "));
     },
 
-    display_radio_metadata: function()
+ display_radio_metadata: function()
     {
      // Test meta data
      testTitle = "Multimedia - Display Radio Metadata";
@@ -142,7 +330,7 @@ A device specific headset is required to be connected to device for radio testin
      testGroups = "BAT, 1.2";
 
      // Test steps
-     prompt(twiki("---+++ " + testApplication + "<br><br>
+     prompt(twiki("---+++ " + testTitle + "<br><br>
          *Goal:* " + testGoal + "<br>
          *Pre-Requisites:* " + testPreconditions + "<br>
          *Tested Binary:* " + testBinary + "<br>
