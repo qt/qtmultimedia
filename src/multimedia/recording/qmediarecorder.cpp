@@ -887,7 +887,7 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \fn QMediaRecorder::availableChanged(bool available)
+    \fn QMediaRecorder::availabilityChanged(bool available)
 
     Signals that the media recorder is now available (if \a available is true), or not.
 */

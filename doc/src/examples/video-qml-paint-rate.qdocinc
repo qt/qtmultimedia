@@ -33,7 +33,7 @@ and its data is displayed by defining a QML item called FrequencyItem, like this
 \printuntil id: monitor
 \skipto onAverageFrequencyChanged
 \printuntil {
-\skipto instantaneousFrequencyText
+\skipto averageFrequencyText
 \printuntil /^\}/
 
 The result looks like this:

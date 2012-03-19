@@ -80,13 +80,13 @@ QT_BEGIN_NAMESPACE
     For example, to select automatic shutter speed selection:
 
     \qml
-        camera.exposure.setAutoShutterSpeed();
+        camera.exposure.setAutoShutterSpeed()
     \endqml
 
     Or for a specific shutter speed:
 
     \qml
-        camera.exposure.manualShutterSpeed = 0.01; // 10ms
+        camera.exposure.manualShutterSpeed = 0.01 // 10ms
     \endqml
 
     You can only choose one or the other mode.

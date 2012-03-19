@@ -1001,7 +1001,6 @@ void QVideoWidget::paintEvent(QPaintEvent *event)
 
 #if defined(Q_WS_WIN)
 /*!
-    \reimp
     \internal
 */
 bool QVideoWidget::winEvent(MSG *message, long *result)

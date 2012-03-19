@@ -167,7 +167,7 @@ QCameraFocusControl::~QCameraFocusControl()
 */
 
 /*!
-  \fn QCameraFocusControl::focusModeChanged
+  \fn void QCameraFocusControl::focusModeChanged(QCameraFocus::FocusModes mode)
 
   Signal is emitted when the focus mode is chaged,
   usually in result of QCameraFocusControl::setFocusMode call or capture mode changes.
@@ -176,7 +176,7 @@ QCameraFocusControl::~QCameraFocusControl()
 */
 
 /*!
-  \fn QCameraFocusControl::focusPointModeChanged
+  \fn void QCameraFocusControl::focusPointModeChanged(QCameraFocus::FocusPointMode mode)
 
   Signal is emitted when the focus point mode is chaged,
   usually in result of QCameraFocusControl::setFocusPointMode call or capture mode changes.
@@ -185,7 +185,7 @@ QCameraFocusControl::~QCameraFocusControl()
 */
 
 /*!
-  \fn QCameraFocusControl::customFocusPointChanged
+  \fn void QCameraFocusControl::customFocusPointChanged(const QPointF &point)
 
   Signal is emitted when the custom focus point is changed.
 

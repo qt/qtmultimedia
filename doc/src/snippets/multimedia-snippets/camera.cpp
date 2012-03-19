@@ -110,7 +110,7 @@ void overview_still()
 
     //on shutter button released
     camera->unlock();
-    //! [Camera overview surface]
+    //! [Camera overview capture]
 }
 
 void overview_movie()

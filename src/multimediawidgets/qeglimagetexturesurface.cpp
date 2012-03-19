@@ -58,7 +58,7 @@ const QAbstractVideoBuffer::HandleType EGLImageTextureHandle =
 QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle+3434);
 
 /*!
-    \class QOmapFbVideoSurface
+    \class QEglImageTextureSurface
     \internal
 */
 
@@ -491,7 +491,7 @@ void QEglImageTextureSurface::paint(QPainter *painter, const QRectF &target, con
 }
 
 /*!
-    \fn QOmapFbVideoSurface::frameChanged()
+    \fn QEglImageTextureSurface::frameChanged()
 */
 
 /*!

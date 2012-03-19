@@ -151,7 +151,7 @@ The abstraction of source item type is achieved by the
 \printuntil }
 \skipto function openVideo
 \printuntil "ContentVideo.qml"
-\skipto contentLoader.item.source
+\skipto contentLoader.item.mediaSource
 \printuntil path
 \skipto }
 \printuntil }
@@ -202,7 +202,7 @@ And here is the effect selection menu:
 
 \section1 Calculating and displaying QML painting rate
 
-\include examples/video-qml-paint-rate.qdocinc
+\input examples/video-qml-paint-rate.qdocinc
 
 All that remains is to connect the afterRendering() signal of the QQuickView
 object to a JavaScript function, which will eventually call frequencyItem.notify():

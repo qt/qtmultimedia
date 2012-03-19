@@ -112,31 +112,31 @@ QRadioDataControl::~QRadioDataControl()
 */
 
 /*!
-    \fn int QRadioDataControl::stationId()
+    \fn QString QRadioDataControl::stationId() const
 
     Returns the current Program Identification
 */
 
 /*!
-    \fn QRadioData::ProgramType QRadioDataControl::programType()
+    \fn QRadioData::ProgramType QRadioDataControl::programType() const
 
     Returns the current Program Type
 */
 
 /*!
-    \fn QString QRadioDataControl::programTypeName()
+    \fn QString QRadioDataControl::programTypeName() const
 
     Returns the current Program Type Name
 */
 
 /*!
-    \fn QString QRadioDataControl::stationName()
+    \fn QString QRadioDataControl::stationName() const
 
     Returns the current Program Service
 */
 
 /*!
-    \fn QString QRadioDataControl::radioText()
+    \fn QString QRadioDataControl::radioText() const
 
     Returns the current Radio Text
 */
@@ -148,7 +148,7 @@ QRadioDataControl::~QRadioDataControl()
 */
 
 /*!
-    \fn bool QRadioDataControl::isAlternativeFrequenciesEnabled()
+    \fn bool QRadioDataControl::isAlternativeFrequenciesEnabled() const
 
     Returns true if Alternative Frequency is currently enabled
 */

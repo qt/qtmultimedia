@@ -158,7 +158,7 @@ bool QDeclarativeAudioSample::isLoaded() const
 }
 
 /*!
-    \qmlproperty QtAudioEngine1::AudioSample::load()
+    \qmlmethod void QtAudioEngine1::AudioSample::load()
 
     Starts loading the sample into memory if not loaded.
 */
