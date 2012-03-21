@@ -127,6 +127,11 @@ QGstreamerPlayerControl::~QGstreamerPlayerControl()
     }
 }
 
+QMediaPlayerResourceSetInterface* QGstreamerPlayerControl::resources() const
+{
+    return m_resources;
+}
+
 qint64 QGstreamerPlayerControl::position() const
 {
     return m_seekToStartPending ? 0 : m_session->position();

@@ -39,55 +39,28 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERPLAYERSERVICE_H
-#define QGSTREAMERPLAYERSERVICE_H
-
-#include <QtCore/qobject.h>
-#include <QtCore/qiodevice.h>
-
-#include <qmediaservice.h>
+#include "qgstreameravailabilitycontrol.h"
+#include <private/qmediaresourceset_p.h>
 
 QT_BEGIN_NAMESPACE
-class QMediaMetaData;
-class QMediaPlayerControl;
-class QMediaPlaylist;
-class QMediaPlaylistNavigator;
 
-class QGstreamerMetaData;
-class QGstreamerPlayerControl;
-class QGstreamerPlayerSession;
-class QGstreamerMetaDataProvider;
-class QGstreamerStreamsControl;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoOverlay;
-class QGstreamerVideoWidgetControl;
-class QGStreamerAvailabilityControl;
-
-class QGstreamerPlayerService : public QMediaService
+QGStreamerAvailabilityControl::QGStreamerAvailabilityControl(
+        QMediaPlayerResourceSetInterface *resources, QObject *parent)
+    : QMediaAvailabilityControl(parent)
+    , m_resources(resources)
 {
-    Q_OBJECT
-public:
-    QGstreamerPlayerService(QObject *parent = 0);
-    ~QGstreamerPlayerService();
+    Q_ASSERT(m_resources);
+    connect(m_resources, SIGNAL(availabilityChanged(bool)), this, SLOT(handleAvailabilityChanged()));
+}
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+void QGStreamerAvailabilityControl::handleAvailabilityChanged()
+{
+    emit availabilityChanged(this->availability());
+}
 
-private:
-    QGstreamerPlayerControl *m_control;
-    QGstreamerPlayerSession *m_session;
-    QGstreamerMetaDataProvider *m_metaData;
-    QGstreamerStreamsControl *m_streamsControl;
-    QGStreamerAvailabilityControl *m_availabilityControl;
-
-    QMediaControl *m_videoOutput;
-    QMediaControl *m_videoRenderer;
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
-    QMediaControl *m_videoWindow;
-    QMediaControl *m_videoWidget;
-#endif
-};
+QtMultimedia::AvailabilityError QGStreamerAvailabilityControl::availability() const
+{
+    return m_resources->isAvailable() ? QtMultimedia::NoError : QtMultimedia::BusyError;
+}
 
 QT_END_NAMESPACE
-
-#endif

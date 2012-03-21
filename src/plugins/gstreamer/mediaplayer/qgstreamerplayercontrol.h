@@ -97,6 +97,8 @@ public:
     bool isMediaDownloadEnabled() const;
     void setMediaDownloadEnabled(bool enabled);
 
+    QMediaPlayerResourceSetInterface* resources() const;
+
 public Q_SLOTS:
     void setPosition(qint64 pos);
 

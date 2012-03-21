@@ -39,55 +39,29 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERPLAYERSERVICE_H
-#define QGSTREAMERPLAYERSERVICE_H
+#ifndef QGSTREAMERAVAILABILITYCONTROL_H
+#define QGSTREAMERAVAILABILITYCONTROL_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qiodevice.h>
-
-#include <qmediaservice.h>
+#include <QObject>
+#include <qmediaavailabilitycontrol.h>
 
 QT_BEGIN_NAMESPACE
-class QMediaMetaData;
-class QMediaPlayerControl;
-class QMediaPlaylist;
-class QMediaPlaylistNavigator;
 
-class QGstreamerMetaData;
-class QGstreamerPlayerControl;
-class QGstreamerPlayerSession;
-class QGstreamerMetaDataProvider;
-class QGstreamerStreamsControl;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoOverlay;
-class QGstreamerVideoWidgetControl;
-class QGStreamerAvailabilityControl;
-
-class QGstreamerPlayerService : public QMediaService
+class QMediaPlayerResourceSetInterface;
+class QGStreamerAvailabilityControl : public QMediaAvailabilityControl
 {
     Q_OBJECT
 public:
-    QGstreamerPlayerService(QObject *parent = 0);
-    ~QGstreamerPlayerService();
+    QGStreamerAvailabilityControl(QMediaPlayerResourceSetInterface *resources, QObject *parent = 0);
+    QtMultimedia::AvailabilityError availability() const;
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+private Q_SLOTS:
+    void handleAvailabilityChanged();
 
 private:
-    QGstreamerPlayerControl *m_control;
-    QGstreamerPlayerSession *m_session;
-    QGstreamerMetaDataProvider *m_metaData;
-    QGstreamerStreamsControl *m_streamsControl;
-    QGStreamerAvailabilityControl *m_availabilityControl;
-
-    QMediaControl *m_videoOutput;
-    QMediaControl *m_videoRenderer;
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
-    QMediaControl *m_videoWindow;
-    QMediaControl *m_videoWidget;
-#endif
+    QMediaPlayerResourceSetInterface *m_resources;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QGSTREAMERAVAILABILITYCONTROL_H

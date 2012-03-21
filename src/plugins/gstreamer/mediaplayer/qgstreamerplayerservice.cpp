@@ -50,6 +50,7 @@
 #include "qgstreamerplayercontrol.h"
 #include "qgstreamerplayersession.h"
 #include "qgstreamermetadataprovider.h"
+#include "qgstreameravailabilitycontrol.h"
 
 #if defined(HAVE_WIDGETS)
 #include "qgstreamervideooverlay.h"
@@ -85,6 +86,7 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
     m_control = new QGstreamerPlayerControl(m_session, this);
     m_metaData = new QGstreamerMetaDataProvider(m_session, this);
     m_streamsControl = new QGstreamerStreamsControl(m_session,this);
+    m_availabilityControl = new QGStreamerAvailabilityControl(m_control->resources(), this);
 
 #if defined(Q_WS_MAEMO_6) && defined(__arm__)
     m_videoRenderer = new QGstreamerGLTextureRenderer(this);
@@ -116,6 +118,9 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
 
     if (qstrcmp(name,QMediaStreamsControl_iid) == 0)
         return m_streamsControl;
+
+    if (qstrcmp(name, QMediaAvailabilityControl_iid) == 0)
+        return m_availabilityControl;
 
     if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
         if (m_session) {
