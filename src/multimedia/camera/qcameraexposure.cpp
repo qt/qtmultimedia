@@ -610,7 +610,10 @@ void QCameraExposure::setAutoShutterSpeed()
     \value FlashAuto            Automatic flash.
     \value FlashRedEyeReduction Red eye reduction flash.
     \value FlashFill            Use flash to fillin shadows.
-    \value FlashTorch           Constant light source, useful for focusing and video capture.
+    \value FlashTorch           Constant light source. If supported,
+                                torch can be enabled without loading the camera.
+    \value FlashVideoLight      Constant light source, useful for video capture.
+                                The light is turned on only while camera is active.
     \value FlashSlowSyncFrontCurtain
                                 Use the flash in conjunction with a slow shutter speed.
                                 This mode allows better exposure of distant objects and/or motion blur effect.

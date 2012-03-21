@@ -149,6 +149,7 @@ public:
         FlashRedEyeReduction = QCameraExposure::FlashRedEyeReduction,
         FlashFill = QCameraExposure::FlashFill,
         FlashTorch = QCameraExposure::FlashTorch,
+        FlashVideoLight = QCameraExposure::FlashVideoLight,
         FlashSlowSyncFrontCurtain = QCameraExposure::FlashSlowSyncFrontCurtain,
         FlashSlowSyncRearCurtain = QCameraExposure::FlashSlowSyncRearCurtain,
         FlashManual = QCameraExposure::FlashManual
