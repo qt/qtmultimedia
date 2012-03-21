@@ -14,5 +14,5 @@ win32 {
     }
 }
 
-mac: CONFIG += insignificant_test
+mac: CONFIG -= app_bundle
 
