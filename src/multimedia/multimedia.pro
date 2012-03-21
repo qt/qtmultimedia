@@ -19,6 +19,7 @@ load(qt_module_config)
 
 HEADERS += qtmultimediaversion.h
 
+
 INCLUDEPATH *= .
 
 PRIVATE_HEADERS += \
@@ -27,6 +28,9 @@ PRIVATE_HEADERS += \
     qmediapluginloader_p.h \
     qmediaservice_p.h \
     qmediaserviceprovider_p.h \
+    qmediaresourcepolicyplugin_p.h \
+    qmediaresourcepolicy_p.h \
+    qmediaresourceset_p.h
 
 PUBLIC_HEADERS += \
     qmediabindableinterface.h \
@@ -47,7 +51,10 @@ SOURCES += \
     qmediaservice.cpp \
     qmediaserviceprovider.cpp \
     qmediatimerange.cpp \
-    qtmedianamespace.cpp
+    qtmedianamespace.cpp \
+    qmediaresourcepolicyplugin_p.cpp \
+    qmediaresourcepolicy_p.cpp \
+    qmediaresourceset_p.cpp
 
 include(audio/audio.pri)
 include(camera/camera.pri)

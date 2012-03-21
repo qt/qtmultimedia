@@ -39,52 +39,40 @@
 **
 ****************************************************************************/
 
-#ifndef PLAYERRESOURCEPOLICY_H
-#define PLAYERRESOURCEPOLICY_H
+#ifndef QRESOURCEPOLICYPLUGIN_P_H
+#define QRESOURCEPOLICYPLUGIN_P_H
 
-#include <QtCore/qobject.h>
+#include <QObject>
+#include <qtmultimediadefs.h>
 
-namespace ResourcePolicy {
-class ResourceSet;
+QT_BEGIN_HEADER
+
+QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
+struct Q_MULTIMEDIA_EXPORT QMediaResourceSetFactoryInterface
+{
+    virtual QObject* create(const QString& interfaceId) = 0;
+    virtual void destroy(QObject *resourceSet) = 0;
 };
 
-class PlayerResourcePolicy : public QObject
+#define QMediaResourceSetFactoryInterface_iid \
+    "org.qt-project.qt.mediaresourcesetfactory/5.0"
+Q_DECLARE_INTERFACE(QMediaResourceSetFactoryInterface, QMediaResourceSetFactoryInterface_iid)
+
+class Q_MULTIMEDIA_EXPORT QMediaResourcePolicyPlugin : public QObject, public QMediaResourceSetFactoryInterface
 {
     Q_OBJECT
+    Q_INTERFACES(QMediaResourceSetFactoryInterface)
+
 public:
-    PlayerResourcePolicy(QObject *parent = 0);
-    ~PlayerResourcePolicy();
-
-    bool isVideoEnabled() const;
-    bool isGranted() const;
-    bool isRequested() const;
-
-Q_SIGNALS:
-    void resourcesDenied();
-    void resourcesGranted();
-    void resourcesLost();
-
-public Q_SLOTS:
-    void acquire();
-    void release();
-
-    void setVideoEnabled(bool enabled);
-
-private Q_SLOTS:
-    void handleResourcesGranted();
-    void handleResourcesDenied();
-    void handleResourcesLost();
-
-private:
-    enum ResourceStatus {
-        Initial = 0,
-        RequestedResource,
-        GrantedResource
-    };
-
-    bool m_videoEnabled;
-    ResourcePolicy::ResourceSet *m_resourceSet;
-    ResourceStatus m_status;
+    QMediaResourcePolicyPlugin(QObject *parent = 0);
+    ~QMediaResourcePolicyPlugin();
 };
 
-#endif
+QT_END_NAMESPACE
+
+QT_END_HEADER
+
+#endif // QRESOURCEPOLICYPLUGIN_P_H

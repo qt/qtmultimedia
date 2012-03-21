@@ -41,10 +41,10 @@
 
 #include "qgstreamerplayercontrol.h"
 #include "qgstreamerplayersession.h"
-#include "playerresourcepolicy.h"
 
 #include <private/qmediaplaylistnavigator_p.h>
-
+#include <private/qmediaresourcepolicy_p.h>
+#include <private/qmediaresourceset_p.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qsocketnotifier.h>
@@ -78,7 +78,8 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     m_fifoFd[0] = -1;
     m_fifoFd[1] = -1;
 
-    m_resources = new PlayerResourcePolicy(this);
+    m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>(QMediaPlayerResourceSetInterface_iid);
+    Q_ASSERT(m_resources);
 
     connect(m_session, SIGNAL(positionChanged(qint64)),
             this, SLOT(updatePosition(qint64)));
@@ -116,6 +117,8 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
 
 QGstreamerPlayerControl::~QGstreamerPlayerControl()
 {
+    QMediaResourcePolicy::destroyResourceSet(m_resources);
+
     if (m_fifoFd[0] >= 0) {
         ::close(m_fifoFd[0]);
         ::close(m_fifoFd[1]);
@@ -243,7 +246,7 @@ void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
         m_seekToStartPending = true;
     }
 
-    if (!m_resources->isGranted() && !m_resources->isRequested())
+    if (!m_resources->isGranted())
         m_resources->acquire();
 
     if (m_resources->isGranted()) {
@@ -350,7 +353,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     m_session->showPrerollFrames(false); // do not show prerolled frames until pause() or play() explicitly called
 
     if (!content.isNull() || stream) {
-        if (!m_resources->isRequested() && !m_resources->isGranted())
+        if (!m_resources->isGranted())
             m_resources->acquire();
 
         if (!m_resources->isGranted()) {

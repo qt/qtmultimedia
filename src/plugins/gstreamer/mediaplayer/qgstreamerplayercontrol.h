@@ -50,7 +50,7 @@
 
 #include <limits.h>
 
-class PlayerResourcePolicy;
+class QMediaPlayerResourceSetInterface;
 
 QT_BEGIN_NAMESPACE
 class QMediaPlaylist;
@@ -151,7 +151,7 @@ private:
     int m_bufferOffset;
     char m_buffer[PIPE_BUF];
 
-    PlayerResourcePolicy *m_resources;
+    QMediaPlayerResourceSetInterface *m_resources;
 };
 
 QT_END_NAMESPACE
