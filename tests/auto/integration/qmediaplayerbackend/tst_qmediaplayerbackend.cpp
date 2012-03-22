@@ -83,6 +83,7 @@ private slots:
 private:
     //one second local wav file
     QMediaContent localWavFile;
+    QMediaContent localVideoFile;
 };
 
 /*
@@ -138,6 +139,35 @@ void tst_QMediaPlayerBackend::initTestCase()
     localWavFile = QMediaContent(QUrl::fromLocalFile(wavFile.absoluteFilePath()));
 
     qRegisterMetaType<QMediaContent>();
+
+    // select supported video format
+    QMediaPlayer player;
+    TestVideoSurface *surface = new TestVideoSurface;
+    player.setVideoOutput(surface);
+
+    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+
+    QStringList mediaCandidates;
+    mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
+    mediaCandidates << QFINDTESTDATA("testdata/colors.mp4");
+
+    foreach (QString s, mediaCandidates) {
+        QFileInfo videoFile(s);
+        QVERIFY(videoFile.exists());
+        QMediaContent media = QMediaContent(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
+        player.setMedia(media);
+        player.pause();
+
+        for (int i = 0; i < 2000 && surface->m_frameList.isEmpty() && errorSpy.isEmpty(); i+=50) {
+            QTest::qWait(50);
+        }
+
+        if (!surface->m_frameList.isEmpty() && errorSpy.isEmpty()) {
+            localVideoFile = media;
+            break;
+        }
+        errorSpy.clear();
+    }
 }
 
 void tst_QMediaPlayerBackend::cleanup()
@@ -455,6 +485,9 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
 
 void tst_QMediaPlayerBackend::seekPauseSeek()
 {
+    if (localVideoFile.isNull())
+        QSKIP("Video format is not supported");
+
     QMediaPlayer player;
 
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
@@ -462,11 +495,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     TestVideoSurface *surface = new TestVideoSurface;
     player.setVideoOutput(surface);
 
-    const QString testFileName = QFINDTESTDATA("testdata/colors.mp4");
-    QFileInfo videoFile(testFileName);
-    QVERIFY(videoFile.exists());
-
-    player.setMedia(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
+    player.setMedia(localVideoFile);
     QCOMPARE(player.state(), QMediaPlayer::StoppedState);
     QVERIFY(surface->m_frameList.isEmpty()); // frame must not appear until we call pause() or play()
 
@@ -521,6 +550,9 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
 void tst_QMediaPlayerBackend::probes()
 {
+    if (localVideoFile.isNull())
+        QSKIP("Video format is not supported");
+
     QMediaPlayer *player = new QMediaPlayer;
 
     TestVideoSurface *surface = new TestVideoSurface;
@@ -538,10 +570,7 @@ void tst_QMediaPlayerBackend::probes()
     QVERIFY(videoProbe->setSource(player));
     QVERIFY(audioProbe->setSource(player));
 
-    const QString testFileName = QFINDTESTDATA("testdata/colors.mp4");
-    QFileInfo videoFile(testFileName);
-    QVERIFY(videoFile.exists());
-    player->setMedia(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
+    player->setMedia(localVideoFile);
     QTRY_COMPARE(player->mediaStatus(), QMediaPlayer::LoadedMedia);
 
     player->pause();
