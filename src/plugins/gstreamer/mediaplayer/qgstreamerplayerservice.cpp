@@ -70,6 +70,7 @@
 
 #include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
+#include <private/qmediaresourceset_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -81,6 +82,7 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
      , m_videoWindow(0)
      , m_videoWidget(0)
 #endif
+     , m_videoReferenceCount(0)
 {
     m_session = new QGstreamerPlayerSession(this);
     m_control = new QGstreamerPlayerControl(m_session, this);
@@ -125,6 +127,7 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
     if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
         if (m_session) {
             QGstreamerVideoProbeControl *probe = new QGstreamerVideoProbeControl(this);
+            increaseVideoRef();
             m_session->addProbe(probe);
             return probe;
         }
@@ -151,6 +154,7 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
 #endif
 
         if (m_videoOutput) {
+            increaseVideoRef();
             m_control->setVideoOutput(m_videoOutput);
             return m_videoOutput;
         }
@@ -164,12 +168,15 @@ void QGstreamerPlayerService::releaseControl(QMediaControl *control)
     if (control == m_videoOutput) {
         m_videoOutput = 0;
         m_control->setVideoOutput(0);
+        decreaseVideoRef();
     }
 
     QGstreamerVideoProbeControl* videoProbe = qobject_cast<QGstreamerVideoProbeControl*>(control);
     if (videoProbe) {
-        if (m_session)
+        if (m_session) {
             m_session->removeProbe(videoProbe);
+            decreaseVideoRef();
+        }
         delete videoProbe;
         return;
     }
@@ -180,6 +187,22 @@ void QGstreamerPlayerService::releaseControl(QMediaControl *control)
             m_session->removeProbe(audioProbe);
         delete audioProbe;
         return;
+    }
+}
+
+void QGstreamerPlayerService::increaseVideoRef()
+{
+    m_videoReferenceCount++;
+    if (m_videoReferenceCount == 1) {
+        m_control->resources()->setVideoEnabled(true);
+    }
+}
+
+void QGstreamerPlayerService::decreaseVideoRef()
+{
+    m_videoReferenceCount--;
+    if (m_videoReferenceCount == 0) {
+        m_control->resources()->setVideoEnabled(false);
     }
 }
 

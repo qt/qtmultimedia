@@ -86,6 +86,10 @@ private:
     QMediaControl *m_videoWindow;
     QMediaControl *m_videoWidget;
 #endif
+
+    void increaseVideoRef();
+    void decreaseVideoRef();
+    int m_videoReferenceCount;
 };
 
 QT_END_NAMESPACE
