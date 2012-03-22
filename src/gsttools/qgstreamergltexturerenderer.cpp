@@ -61,7 +61,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#include "qgstreamergltexturerenderer.h"
+#include "qgstreamergltexturerenderer_p.h"
 
 //#define GL_TEXTURE_SINK_DEBUG 1
 

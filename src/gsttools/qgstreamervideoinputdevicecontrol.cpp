@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamervideoinputdevicecontrol.h"
+#include "qgstreamervideoinputdevicecontrol_p.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QDebug>

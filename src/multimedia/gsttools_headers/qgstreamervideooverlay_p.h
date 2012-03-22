@@ -39,43 +39,79 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEORENDERER_H
-#define QGSTREAMERVIDEORENDERER_H
+#ifndef QGSTREAMERVIDEOOVERLAY_H
+#define QGSTREAMERVIDEOOVERLAY_H
 
-#include <qvideorenderercontrol.h>
-#include <private/qvideosurfacegstsink_p.h>
+#include <qvideowindowcontrol.h>
 
-#include "qgstreamervideorendererinterface.h"
+#include "qgstreamervideorendererinterface_p.h"
+
+QT_BEGIN_NAMESPACE
+class QAbstractVideoSurface;
+QT_END_NAMESPACE
+class QX11VideoSurface;
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
+class QGstreamerVideoOverlay : public QVideoWindowControl, public QGstreamerVideoRendererInterface
 {
     Q_OBJECT
     Q_INTERFACES(QGstreamerVideoRendererInterface)
 public:
-    QGstreamerVideoRenderer(QObject *parent = 0);
-    virtual ~QGstreamerVideoRenderer();
-    
+    QGstreamerVideoOverlay(QObject *parent = 0);
+    ~QGstreamerVideoOverlay();
+
+    WId winId() const;
+    void setWinId(WId id);
+
+    QRect displayRect() const;
+    void setDisplayRect(const QRect &rect);
+
+    bool isFullScreen() const;
+    void setFullScreen(bool fullScreen);
+
+    QSize nativeSize() const;
+
+    Qt::AspectRatioMode aspectRatioMode() const;
+    void setAspectRatioMode(Qt::AspectRatioMode mode);
+
+    void repaint();
+
+    int brightness() const;
+    void setBrightness(int brightness);
+
+    int contrast() const;
+    void setContrast(int contrast);
+
+    int hue() const;
+    void setHue(int hue);
+
+    int saturation() const;
+    void setSaturation(int saturation);
+
     QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
 
     GstElement *videoSink();
 
-    bool isReady() const { return m_surface != 0; }
+    bool isReady() const { return winId() != 0; }
 
 signals:
     void sinkChanged();
     void readyChanged(bool);
 
 private slots:
-    void handleFormatChange();
+    void surfaceFormatChanged();
 
-private:    
-    QVideoSurfaceGstSink *m_videoSink;
-    QAbstractVideoSurface *m_surface;
+private:
+    void setScaledDisplayRect();
+
+    QX11VideoSurface *m_surface;
+    GstElement *m_videoSink;
+    Qt::AspectRatioMode m_aspectRatioMode;
+    QRect m_displayRect;
+    bool m_fullScreen;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERVIDEORENDRER_H
+#endif

@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "gstvideoconnector.h"
+#include "gstvideoconnector_p.h"
 #include <unistd.h>
 
 /* signals */

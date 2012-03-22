@@ -46,6 +46,7 @@
 #include <qmediacontrol.h>
 
 #include <gst/gst.h>
+
 QT_BEGIN_NAMESPACE
 class QAudioEndpointSelector;
 class QVideoDeviceControl;
@@ -74,7 +75,7 @@ public:
     void releaseControl(QMediaControl *);
 
 private:
-    void setAudioPreview(GstElement*);
+    void setAudioPreview(GstElement *);
 
     QGstreamerCaptureSession *m_captureSession;
     QGstreamerCameraControl *m_cameraControl;

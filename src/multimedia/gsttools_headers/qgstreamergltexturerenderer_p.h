@@ -46,7 +46,7 @@
 #include <private/qvideosurfacegstsink_p.h>
 #include <private/qgstreamerbushelper_p.h>
 
-#include "qgstreamervideorendererinterface.h"
+#include "qgstreamervideorendererinterface_p.h"
 #include <QtGui/qcolor.h>
 
 #include <X11/extensions/Xv.h>

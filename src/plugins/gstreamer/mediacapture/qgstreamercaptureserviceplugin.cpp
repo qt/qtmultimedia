@@ -44,27 +44,12 @@
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 
-#include "qgstreamerserviceplugin.h"
+#include "qgstreamercaptureserviceplugin.h"
 
 //#define QT_SUPPORTEDMIMETYPES_DEBUG
 
-#ifdef QMEDIA_GSTREAMER_PLAYER
-#include "qgstreamerplayerservice.h"
-#endif
-
-#if defined(QMEDIA_GSTREAMER_CAPTURE)
 #include "qgstreamercaptureservice.h"
-#endif
-
-#ifdef QMEDIA_GSTREAMER_CAMERABIN
-#include "camerabinservice.h"
-#endif
-
-#ifdef QMEDIA_GSTREAMER_AUDIO_DECODER
-#include "qgstreameraudiodecoderservice.h"
-#endif
-
-#include <qmediaserviceproviderplugin.h>
+#include <private/qgstutils_p.h>
 
 #include <linux/types.h>
 #include <sys/time.h>
@@ -77,60 +62,40 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <linux/videodev2.h>
+#include <gst/gst.h>
 
-
-QMediaService* QGstreamerServicePlugin::create(const QString &key)
+QMediaService* QGstreamerCaptureServicePlugin::create(const QString &key)
 {
-    static bool initialized = false;
-    if (!initialized) {
-        initialized = true;
-        gst_init(NULL, NULL);
-    }
+    QGstUtils::initializeGst();
 
-#ifdef QMEDIA_GSTREAMER_PLAYER
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QGstreamerPlayerService;
-#endif
-
-#ifdef QMEDIA_GSTREAMER_CAMERABIN
-    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA) && CameraBinService::isCameraBinAvailable())
-        return new CameraBinService(key);
-#endif
-
-#ifdef QMEDIA_GSTREAMER_AUDIO_DECODER
-    if (key == QLatin1String(Q_MEDIASERVICE_AUDIODECODER))
-        return new QGstreamerAudioDecoderService;
-#endif
-
-#ifdef QMEDIA_GSTREAMER_CAPTURE
     if (key == QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE))
         return new QGstreamerCaptureService(key);
 
+#if defined(USE_GSTREAMER_CAMERA)
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
         return new QGstreamerCaptureService(key);
 #endif
 
-    qWarning() << "Gstreamer service plugin: unsupported key:" << key;
+    qWarning() << "Gstreamer capture service plugin: unsupported key:" << key;
     return 0;
 }
 
-void QGstreamerServicePlugin::release(QMediaService *service)
+void QGstreamerCaptureServicePlugin::release(QMediaService *service)
 {
     delete service;
 }
 
-QMediaServiceProviderHint::Features QGstreamerServicePlugin::supportedFeatures(
+#if defined(USE_GSTREAMER_CAMERA)
+QMediaServiceProviderHint::Features QGstreamerCaptureServicePlugin::supportedFeatures(
         const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
-    else if (service == Q_MEDIASERVICE_CAMERA)
+    if (service == Q_MEDIASERVICE_CAMERA)
         return QMediaServiceProviderHint::VideoSurface;
-    else
-        return QMediaServiceProviderHint::Features();
+
+    return QMediaServiceProviderHint::Features();
 }
 
-QList<QByteArray> QGstreamerServicePlugin::devices(const QByteArray &service) const
+QList<QByteArray> QGstreamerCaptureServicePlugin::devices(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
         if (m_cameraDevices.isEmpty())
@@ -142,7 +107,7 @@ QList<QByteArray> QGstreamerServicePlugin::devices(const QByteArray &service) co
     return QList<QByteArray>();
 }
 
-QString QGstreamerServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
+QString QGstreamerCaptureServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
         if (m_cameraDevices.isEmpty())
@@ -156,7 +121,7 @@ QString QGstreamerServicePlugin::deviceDescription(const QByteArray &service, co
     return QString();
 }
 
-QVariant QGstreamerServicePlugin::deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property)
+QVariant QGstreamerCaptureServicePlugin::deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property)
 {
     Q_UNUSED(service);
     Q_UNUSED(device);
@@ -164,16 +129,10 @@ QVariant QGstreamerServicePlugin::deviceProperty(const QByteArray &service, cons
     return QVariant();
 }
 
-void QGstreamerServicePlugin::updateDevices() const
+void QGstreamerCaptureServicePlugin::updateDevices() const
 {
     m_cameraDevices.clear();
     m_cameraDescriptions.clear();
-
-#ifdef Q_WS_MAEMO_6
-    m_cameraDevices << "primary" << "secondary";
-    m_cameraDescriptions << tr("Main camera") << tr("Front camera");
-    return;
-#endif
 
     QDir devDir("/dev");
     devDir.setFilter(QDir::System);
@@ -216,84 +175,18 @@ void QGstreamerServicePlugin::updateDevices() const
         ::close(fd);
     }
 }
+#endif
 
-namespace {
-    const char* getCodecAlias(const QString &codec)
-    {
-        if (codec.startsWith("avc1."))
-            return "video/x-h264";
-
-        if (codec.startsWith("mp4a."))
-            return "audio/mpeg4";
-
-        if (codec.startsWith("mp4v.20."))
-            return "video/mpeg4";
-
-        if (codec == "samr")
-            return "audio/amr";
-
-        return 0;
-    }
-
-    const char* getMimeTypeAlias(const QString &mimeType)
-    {
-        if (mimeType == "video/mp4")
-            return "video/mpeg4";
-
-        if (mimeType == "audio/mp4")
-            return "audio/mpeg4";
-
-        if (mimeType == "video/ogg"
-            || mimeType == "audio/ogg")
-            return "application/ogg";
-
-        return 0;
-    }
-}
-
-QtMultimedia::SupportEstimate QGstreamerServicePlugin::hasSupport(const QString &mimeType,
+QtMultimedia::SupportEstimate QGstreamerCaptureServicePlugin::hasSupport(const QString &mimeType,
                                                                      const QStringList& codecs) const
 {
     if (m_supportedMimeTypeSet.isEmpty())
         updateSupportedMimeTypes();
 
-    QString mimeTypeLowcase = mimeType.toLower();
-    bool containsMimeType = m_supportedMimeTypeSet.contains(mimeTypeLowcase);
-    if (!containsMimeType) {
-        const char* mimeTypeAlias = getMimeTypeAlias(mimeTypeLowcase);
-        containsMimeType = m_supportedMimeTypeSet.contains(mimeTypeAlias);
-        if (!containsMimeType) {
-            containsMimeType = m_supportedMimeTypeSet.contains("video/" + mimeTypeLowcase)
-                               || m_supportedMimeTypeSet.contains("video/x-" + mimeTypeLowcase)
-                               || m_supportedMimeTypeSet.contains("audio/" + mimeTypeLowcase)
-                               || m_supportedMimeTypeSet.contains("audio/x-" + mimeTypeLowcase);
-        }
-    }
-
-    int supportedCodecCount = 0;
-    foreach(const QString &codec, codecs) {
-        QString codecLowcase = codec.toLower();
-        const char* codecAlias = getCodecAlias(codecLowcase);
-        if (codecAlias) {
-            if (m_supportedMimeTypeSet.contains(codecAlias))
-                supportedCodecCount++;
-        } else if (m_supportedMimeTypeSet.contains("video/" + codecLowcase)
-                   || m_supportedMimeTypeSet.contains("video/x-" + codecLowcase)
-                   || m_supportedMimeTypeSet.contains("audio/" + codecLowcase)
-                   || m_supportedMimeTypeSet.contains("audio/x-" + codecLowcase)) {
-            supportedCodecCount++;
-        }
-    }
-    if (supportedCodecCount > 0 && supportedCodecCount == codecs.size())
-        return QtMultimedia::ProbablySupported;
-
-    if (supportedCodecCount == 0 && !containsMimeType)
-        return QtMultimedia::NotSupported;
-
-    return QtMultimedia::MaybeSupported;
+    return QGstUtils::hasSupport(mimeType, codecs, m_supportedMimeTypeSet);
 }
 
-void QGstreamerServicePlugin::updateSupportedMimeTypes() const
+void QGstreamerCaptureServicePlugin::updateSupportedMimeTypes() const
 {
     //enumerate supported mime types
     gst_init(NULL, NULL);
@@ -345,7 +238,7 @@ void QGstreamerServicePlugin::updateSupportedMimeTypes() const
                                                 gchar *str = gst_value_serialize (value);
                                                 QString versions(str);
                                                 QStringList elements = versions.split(QRegExp("\\D+"), QString::SkipEmptyParts);
-                                                foreach(const QString &e, elements)
+                                                foreach (const QString &e, elements)
                                                     m_supportedMimeTypeSet.insert(nameLowcase + e);
                                                 g_free (str);
                                             }
@@ -372,13 +265,13 @@ void QGstreamerServicePlugin::updateSupportedMimeTypes() const
     QStringList list = m_supportedMimeTypeSet.toList();
     list.sort();
     if (qgetenv("QT_DEBUG_PLUGINS").toInt() > 0) {
-        foreach(const QString &type, list)
+        foreach (const QString &type, list)
             qDebug() << type;
     }
 #endif
 }
 
-QStringList QGstreamerServicePlugin::supportedMimeTypes() const
+QStringList QGstreamerCaptureServicePlugin::supportedMimeTypes() const
 {
     return QStringList();
 }

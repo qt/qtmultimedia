@@ -45,6 +45,8 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qsize.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstringlist.h>
 #include <qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
@@ -311,6 +313,92 @@ GstCaps *QGstUtils::capsForAudioFormat(QAudioFormat format)
     }
 
     return caps;
+}
+
+void QGstUtils::initializeGst()
+{
+    static bool initialized = false;
+    if (!initialized) {
+        initialized = true;
+        gst_init(NULL, NULL);
+    }
+}
+
+namespace {
+    const char* getCodecAlias(const QString &codec)
+    {
+        if (codec.startsWith("avc1."))
+            return "video/x-h264";
+
+        if (codec.startsWith("mp4a."))
+            return "audio/mpeg4";
+
+        if (codec.startsWith("mp4v.20."))
+            return "video/mpeg4";
+
+        if (codec == "samr")
+            return "audio/amr";
+
+        return 0;
+    }
+
+    const char* getMimeTypeAlias(const QString &mimeType)
+    {
+        if (mimeType == "video/mp4")
+            return "video/mpeg4";
+
+        if (mimeType == "audio/mp4")
+            return "audio/mpeg4";
+
+        if (mimeType == "video/ogg"
+            || mimeType == "audio/ogg")
+            return "application/ogg";
+
+        return 0;
+    }
+}
+
+QtMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
+                                                    const QStringList &codecs,
+                                                    const QSet<QString> &supportedMimeTypeSet)
+{
+    if (supportedMimeTypeSet.isEmpty())
+        return QtMultimedia::NotSupported;
+
+    QString mimeTypeLowcase = mimeType.toLower();
+    bool containsMimeType = supportedMimeTypeSet.contains(mimeTypeLowcase);
+    if (!containsMimeType) {
+        const char* mimeTypeAlias = getMimeTypeAlias(mimeTypeLowcase);
+        containsMimeType = supportedMimeTypeSet.contains(mimeTypeAlias);
+        if (!containsMimeType) {
+            containsMimeType = supportedMimeTypeSet.contains("video/" + mimeTypeLowcase)
+                               || supportedMimeTypeSet.contains("video/x-" + mimeTypeLowcase)
+                               || supportedMimeTypeSet.contains("audio/" + mimeTypeLowcase)
+                               || supportedMimeTypeSet.contains("audio/x-" + mimeTypeLowcase);
+        }
+    }
+
+    int supportedCodecCount = 0;
+    foreach (const QString &codec, codecs) {
+        QString codecLowcase = codec.toLower();
+        const char* codecAlias = getCodecAlias(codecLowcase);
+        if (codecAlias) {
+            if (supportedMimeTypeSet.contains(codecAlias))
+                supportedCodecCount++;
+        } else if (supportedMimeTypeSet.contains("video/" + codecLowcase)
+                   || supportedMimeTypeSet.contains("video/x-" + codecLowcase)
+                   || supportedMimeTypeSet.contains("audio/" + codecLowcase)
+                   || supportedMimeTypeSet.contains("audio/x-" + codecLowcase)) {
+            supportedCodecCount++;
+        }
+    }
+    if (supportedCodecCount > 0 && supportedCodecCount == codecs.size())
+        return QtMultimedia::ProbablySupported;
+
+    if (supportedCodecCount == 0 && !containsMimeType)
+        return QtMultimedia::NotSupported;
+
+    return QtMultimedia::MaybeSupported;
 }
 
 QT_END_NAMESPACE

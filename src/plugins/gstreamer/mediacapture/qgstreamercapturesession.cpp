@@ -42,12 +42,12 @@
 #include "qgstreamercapturesession.h"
 #include "qgstreamerrecordercontrol.h"
 #include "qgstreamermediacontainercontrol.h"
-#include "qgstreamervideorendererinterface.h"
 #include "qgstreameraudioencode.h"
 #include "qgstreamervideoencode.h"
 #include "qgstreamerimageencode.h"
-#include "qgstreameraudioprobecontrol.h"
 #include <qmediarecorder.h>
+#include <private/qgstreamervideorendererinterface_p.h>
+#include <private/qgstreameraudioprobecontrol_p.h>
 #include <private/qgstreamerbushelper_p.h>
 
 #include <gst/gsttagsetter.h>

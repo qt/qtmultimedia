@@ -1,9 +1,17 @@
+load(qt_module)
+
+TARGET = gstcamerabin
+PLUGIN_TYPE = mediaservice
+
+load(qt_plugin)
+DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
+
+include(../common.pri)
+
 INCLUDEPATH += $$PWD \
     $${SOURCE_DIR}/src/multimedia
 
 INCLUDEPATH += camerabin
-
-DEFINES += QMEDIA_GSTREAMER_CAMERABIN
 
 LIBS += -lgstphotography-0.10
 
@@ -48,3 +56,15 @@ SOURCES += \
     $$PWD/camerabinresourcepolicy.cpp \
     $$PWD/camerabincapturedestination.cpp \
     $$PWD/camerabincapturebufferformat.cpp
+
+maemo6 {
+    HEADERS += \
+        $$PWD/camerabuttonlistener_meego.h
+
+    SOURCES += \
+        $$PWD/camerabuttonlistener_meego.cpp
+}
+
+target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
+INSTALLS += target
+

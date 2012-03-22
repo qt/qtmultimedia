@@ -35,6 +35,9 @@ contains(config_test_gstreamer, yes) {
 
     # If widgets is around, plugins depends on widgets too (imports does not)
     src_plugins.depends += src_qtmmwidgets
+
+    # same with qgsttools
+    src_qgsttools.depends += src_qtmmwidgets
 }
 
 SUBDIRS += src_plugins

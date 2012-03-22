@@ -51,16 +51,16 @@
 #include "qgstreamerv4l2input.h"
 #include "qgstreamercapturemetadatacontrol.h"
 
-#include "qgstreameraudioinputendpointselector.h"
-#include "qgstreamervideoinputdevicecontrol.h"
 #include "qgstreamerimagecapturecontrol.h"
-#include "qgstreameraudioprobecontrol.h"
+#include <private/qgstreameraudioinputendpointselector_p.h>
+#include <private/qgstreamervideoinputdevicecontrol_p.h>
+#include <private/qgstreameraudioprobecontrol_p.h>
 
-#include "qgstreamervideorenderer.h"
+#include <private/qgstreamervideorenderer_p.h>
 
 #if defined(HAVE_WIDGETS)
-#include "qgstreamervideooverlay.h"
-#include "qgstreamervideowidget.h"
+#include <private/qgstreamervideooverlay_p.h>
+#include <private/qgstreamervideowidget_p.h>
 #endif
 
 #include <qmediaserviceproviderplugin.h>

@@ -40,8 +40,8 @@
 ****************************************************************************/
 
 
-#ifndef QGSTREAMERSERVICEPLUGIN_H
-#define QGSTREAMERSERVICEPLUGIN_H
+#ifndef QGSTREAMERCAPTURESERVICEPLUGIN_H
+#define QGSTREAMERCAPTURESERVICEPLUGIN_H
 
 #include <qmediaserviceproviderplugin.h>
 #include <QtCore/qset.h>
@@ -49,41 +49,52 @@
 
 QT_BEGIN_NAMESPACE
 
-
-class QGstreamerServicePlugin
+class QGstreamerCaptureServicePlugin
     : public QMediaServiceProviderPlugin
+#if defined(USE_GSTREAMER_CAMERA)
     , public QMediaServiceSupportedDevicesInterface
     , public QMediaServiceFeaturesInterface
+#endif
     , public QMediaServiceSupportedFormatsInterface
 {
     Q_OBJECT
+#if defined(USE_GSTREAMER_CAMERA)
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
+#endif
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "gstreamer.json")
+#if defined(USE_GSTREAMER_CAMERA)
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mediacapturecamera.json")
+#else
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mediacapture.json")
+#endif
 public:
     QMediaService* create(QString const& key);
     void release(QMediaService *service);
 
+#if defined(USE_GSTREAMER_CAMERA)
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
 
     QList<QByteArray> devices(const QByteArray &service) const;
     QString deviceDescription(const QByteArray &service, const QByteArray &device);
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
+#endif
 
     QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
     QStringList supportedMimeTypes() const;
 
 private:
+#if defined(USE_GSTREAMER_CAMERA)
     void updateDevices() const;
 
     mutable QList<QByteArray> m_cameraDevices;
     mutable QStringList m_cameraDescriptions;
-    mutable QSet<QString> m_supportedMimeTypeSet; //for fast access
-
+#endif
     void updateSupportedMimeTypes() const;
+
+    mutable QSet<QString> m_supportedMimeTypeSet; //for fast access
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERSERVICEPLUGIN_H
+#endif // QGSTREAMERCAPTURESERVICEPLUGIN_H

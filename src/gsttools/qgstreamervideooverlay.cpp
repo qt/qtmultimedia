@@ -39,12 +39,12 @@
 **
 ****************************************************************************/
 
-#include "qgstreamervideooverlay.h"
+#include "qgstreamervideooverlay_p.h"
 #include <private/qvideosurfacegstsink_p.h>
 
 #include <qvideosurfaceformat.h>
 
-#include <qx11videosurface.h>
+#include <qx11videosurface_p.h>
 
 QGstreamerVideoOverlay::QGstreamerVideoOverlay(QObject *parent)
     : QVideoWindowControl(parent)

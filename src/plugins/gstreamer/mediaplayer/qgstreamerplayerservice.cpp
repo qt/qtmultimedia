@@ -53,20 +53,20 @@
 #include "qgstreameravailabilitycontrol.h"
 
 #if defined(HAVE_WIDGETS)
-#include "qgstreamervideooverlay.h"
-#include "qgstreamervideowindow.h"
-#include "qgstreamervideowidget.h"
+#include <private/qgstreamervideooverlay_p.h>
+#include <private/qgstreamervideowindow_p.h>
+#include <private/qgstreamervideowidget_p.h>
 #endif
 
-#include "qgstreamervideorenderer.h"
+#include <private/qgstreamervideorenderer_p.h>
 
 #if defined(Q_WS_MAEMO_6) && defined(__arm__)
 #include "qgstreamergltexturerenderer.h"
 #endif
 
 #include "qgstreamerstreamscontrol.h"
-#include "qgstreameraudioprobecontrol.h"
-#include "qgstreamervideoprobecontrol.h"
+#include <private/qgstreameraudioprobecontrol_p.h>
+#include <private/qgstreamervideoprobecontrol_p.h>
 
 #include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>

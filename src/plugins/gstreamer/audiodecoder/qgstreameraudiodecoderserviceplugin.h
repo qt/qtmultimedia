@@ -39,48 +39,36 @@
 **
 ****************************************************************************/
 
-#include "qgstreameraudioprobecontrol.h"
-#include <private/qgstutils_p.h>
+#ifndef QGSTREAMERAUDIODECODERSERVICEPLUGIN_H
+#define QGSTREAMERAUDIODECODERSERVICEPLUGIN_H
 
-QGstreamerAudioProbeControl::QGstreamerAudioProbeControl(QObject *parent)
-    : QMediaAudioProbeControl(parent)
+#include <qmediaserviceproviderplugin.h>
+#include <QtCore/qset.h>
+#include <QtCore/QObject>
+
+QT_BEGIN_NAMESPACE
+
+class QGstreamerAudioDecoderServicePlugin
+        : public QMediaServiceProviderPlugin
+        , public QMediaServiceSupportedFormatsInterface
 {
+    Q_OBJECT
+    Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "audiodecoder.json")
 
-}
+public:
+    QMediaService* create(QString const& key);
+    void release(QMediaService *service);
 
-QGstreamerAudioProbeControl::~QGstreamerAudioProbeControl()
-{
+    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
+    QStringList supportedMimeTypes() const;
 
-}
+private:
+    void updateSupportedMimeTypes() const;
 
-void QGstreamerAudioProbeControl::bufferProbed(GstBuffer* buffer)
-{
-    GstCaps* caps = gst_buffer_get_caps(buffer);
-    if (!caps)
-        return;
+    mutable QSet<QString> m_supportedMimeTypeSet;
+};
 
-    QAudioFormat format = QGstUtils::audioFormatForCaps(caps);
-    gst_caps_unref(caps);
-    if (!format.isValid())
-        return;
+QT_END_NAMESPACE
 
-    QAudioBuffer audioBuffer = QAudioBuffer(QByteArray((const char*)buffer->data, buffer->size), format);
-
-    {
-        QMutexLocker locker(&m_bufferMutex);
-        m_pendingBuffer = audioBuffer;
-        QMetaObject::invokeMethod(this, "bufferProbed", Qt::QueuedConnection);
-    }
-}
-
-void QGstreamerAudioProbeControl::bufferProbed()
-{
-    QAudioBuffer audioBuffer;
-    {
-        QMutexLocker locker(&m_bufferMutex);
-        if (!m_pendingBuffer.isValid())
-            return;
-        audioBuffer = m_pendingBuffer;
-    }
-    emit audioBufferProbed(audioBuffer);
-}
+#endif // QGSTREAMERAUDIODECODERSERVICEPLUGIN_H

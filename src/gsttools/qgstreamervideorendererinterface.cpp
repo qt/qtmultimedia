@@ -39,33 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERAUDIOPROBECONTROL_H
-#define QGSTREAMERAUDIOPROBECONTROL_H
+#include "qgstreamervideorendererinterface_p.h"
 
-#include <gst/gst.h>
-#include <qmediaaudioprobecontrol.h>
-#include <QtCore/qmutex.h>
-#include "qaudiobuffer.h"
-
-QT_BEGIN_NAMESPACE
-
-class QGstreamerAudioProbeControl : public QMediaAudioProbeControl
+QGstreamerVideoRendererInterface::~QGstreamerVideoRendererInterface()
 {
-    Q_OBJECT
-public:
-    explicit QGstreamerAudioProbeControl(QObject *parent);
-    virtual ~QGstreamerAudioProbeControl();
-
-    void bufferProbed(GstBuffer* buffer);
-
-private slots:
-    void bufferProbed();
-
-private:
-    QAudioBuffer m_pendingBuffer;
-    QMutex m_bufferMutex;
-};
-
-QT_END_NAMESPACE
-
-#endif // QGSTREAMERAUDIOPROBECONTROL_H
+}

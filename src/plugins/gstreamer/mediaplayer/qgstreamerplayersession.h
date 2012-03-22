@@ -52,7 +52,7 @@
 #include <qaudioformat.h>
 
 #if defined(HAVE_GST_APPSRC)
-#include "qgstappsrc.h"
+#include <private/qgstappsrc_p.h>
 #endif
 
 #include <gst/gst.h>

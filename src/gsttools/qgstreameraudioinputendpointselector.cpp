@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreameraudioinputendpointselector.h"
+#include "qgstreameraudioinputendpointselector_p.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QDebug>

@@ -45,7 +45,7 @@
 #include <gst/gst.h>
 #include <qmediavideoprobecontrol.h>
 #include <QtCore/qmutex.h>
-#include "qvideoframe.h"
+#include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 

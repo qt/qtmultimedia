@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamervideorenderer.h"
+#include "qgstreamervideorenderer_p.h"
 #include <private/qvideosurfacegstsink_p.h>
 #include <qabstractvideosurface.h>
 

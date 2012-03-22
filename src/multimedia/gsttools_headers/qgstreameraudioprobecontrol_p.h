@@ -39,79 +39,33 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEOOVERLAY_H
-#define QGSTREAMERVIDEOOVERLAY_H
+#ifndef QGSTREAMERAUDIOPROBECONTROL_H
+#define QGSTREAMERAUDIOPROBECONTROL_H
 
-#include <qvideowindowcontrol.h>
-
-#include "qgstreamervideorendererinterface.h"
-
-QT_BEGIN_NAMESPACE
-class QAbstractVideoSurface;
-QT_END_NAMESPACE
-class QX11VideoSurface;
+#include <gst/gst.h>
+#include <qmediaaudioprobecontrol.h>
+#include <QtCore/qmutex.h>
+#include <qaudiobuffer.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoOverlay : public QVideoWindowControl, public QGstreamerVideoRendererInterface
+class QGstreamerAudioProbeControl : public QMediaAudioProbeControl
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface)
 public:
-    QGstreamerVideoOverlay(QObject *parent = 0);
-    ~QGstreamerVideoOverlay();
+    explicit QGstreamerAudioProbeControl(QObject *parent);
+    virtual ~QGstreamerAudioProbeControl();
 
-    WId winId() const;
-    void setWinId(WId id);
-
-    QRect displayRect() const;
-    void setDisplayRect(const QRect &rect);
-
-    bool isFullScreen() const;
-    void setFullScreen(bool fullScreen);
-
-    QSize nativeSize() const;
-
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    void repaint();
-
-    int brightness() const;
-    void setBrightness(int brightness);
-
-    int contrast() const;
-    void setContrast(int contrast);
-
-    int hue() const;
-    void setHue(int hue);
-
-    int saturation() const;
-    void setSaturation(int saturation);
-
-    QAbstractVideoSurface *surface() const;
-
-    GstElement *videoSink();
-
-    bool isReady() const { return winId() != 0; }
-
-signals:
-    void sinkChanged();
-    void readyChanged(bool);
+    void bufferProbed(GstBuffer* buffer);
 
 private slots:
-    void surfaceFormatChanged();
+    void bufferProbed();
 
 private:
-    void setScaledDisplayRect();
-
-    QX11VideoSurface *m_surface;
-    GstElement *m_videoSink;
-    Qt::AspectRatioMode m_aspectRatioMode;
-    QRect m_displayRect;
-    bool m_fullScreen;
+    QAudioBuffer m_pendingBuffer;
+    QMutex m_bufferMutex;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QGSTREAMERAUDIOPROBECONTROL_H

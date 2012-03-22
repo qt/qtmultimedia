@@ -45,7 +45,7 @@
 #include <QtGui/qplatformnativeinterface_qpa.h>
 #include <qvideosurfaceformat.h>
 
-#include "qx11videosurface.h"
+#include "qx11videosurface_p.h"
 
 Q_DECLARE_METATYPE(XvImage*);
 

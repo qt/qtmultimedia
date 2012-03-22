@@ -39,45 +39,48 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTUTILS_P_H
-#define QGSTUTILS_P_H
+#include "qgstreameraudioprobecontrol_p.h"
+#include <private/qgstutils_p.h>
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+QGstreamerAudioProbeControl::QGstreamerAudioProbeControl(QObject *parent)
+    : QMediaAudioProbeControl(parent)
+{
 
-#include <QtCore/qmap.h>
-#include <QtCore/qset.h>
-#include <gst/gst.h>
-#include <qaudioformat.h>
-
-QT_BEGIN_NAMESPACE
-
-class QSize;
-class QVariant;
-class QByteArray;
-
-namespace QGstUtils {
-    QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
-
-    QSize capsResolution(const GstCaps *caps);
-    QSize capsCorrectedResolution(const GstCaps *caps);
-    QAudioFormat audioFormatForCaps(const GstCaps *caps);
-    QAudioFormat audioFormatForBuffer(GstBuffer *buffer);
-    GstCaps *capsForAudioFormat(QAudioFormat format);
-    void initializeGst();
-    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType,
-                                             const QStringList &codecs,
-                                             const QSet<QString> &supportedMimeTypeSet);
 }
 
-QT_END_NAMESPACE
+QGstreamerAudioProbeControl::~QGstreamerAudioProbeControl()
+{
 
-#endif
+}
+
+void QGstreamerAudioProbeControl::bufferProbed(GstBuffer* buffer)
+{
+    GstCaps* caps = gst_buffer_get_caps(buffer);
+    if (!caps)
+        return;
+
+    QAudioFormat format = QGstUtils::audioFormatForCaps(caps);
+    gst_caps_unref(caps);
+    if (!format.isValid())
+        return;
+
+    QAudioBuffer audioBuffer = QAudioBuffer(QByteArray((const char*)buffer->data, buffer->size), format);
+
+    {
+        QMutexLocker locker(&m_bufferMutex);
+        m_pendingBuffer = audioBuffer;
+        QMetaObject::invokeMethod(this, "bufferProbed", Qt::QueuedConnection);
+    }
+}
+
+void QGstreamerAudioProbeControl::bufferProbed()
+{
+    QAudioBuffer audioBuffer;
+    {
+        QMutexLocker locker(&m_bufferMutex);
+        if (!m_pendingBuffer.isValid())
+            return;
+        audioBuffer = m_pendingBuffer;
+    }
+    emit audioBufferProbed(audioBuffer);
+}

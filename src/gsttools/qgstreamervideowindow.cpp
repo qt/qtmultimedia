@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamervideowindow.h"
+#include "qgstreamervideowindow_p.h"
 #include <private/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>

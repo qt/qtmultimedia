@@ -42,10 +42,10 @@
 #include "qgstreamerplayersession.h"
 #include <private/qgstreamerbushelper_p.h>
 
-#include "qgstreameraudioprobecontrol.h"
-#include "qgstreamervideoprobecontrol.h"
-#include "qgstreamervideorendererinterface.h"
-#include "gstvideoconnector.h"
+#include <private/qgstreameraudioprobecontrol_p.h>
+#include <private/qgstreamervideoprobecontrol_p.h>
+#include <private/qgstreamervideorendererinterface_p.h>
+#include <private/gstvideoconnector_p.h>
 #include <private/qgstutils_p.h>
 #include <private/playlistfileparser_p.h>
 

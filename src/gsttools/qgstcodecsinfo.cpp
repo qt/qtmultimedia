@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstcodecsinfo.h"
+#include "qgstcodecsinfo_p.h"
 
 #include <QtCore/qset.h>
 

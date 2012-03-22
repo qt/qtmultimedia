@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamervideoprobecontrol.h"
+#include "qgstreamervideoprobecontrol_p.h"
 #include <private/qvideosurfacegstsink_p.h>
 #include <private/qgstvideobuffer_p.h>
 
