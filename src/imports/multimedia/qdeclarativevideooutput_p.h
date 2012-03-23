@@ -54,6 +54,11 @@
 
 #include <private/qsgvideonode_p.h>
 
+
+#include "qsgvideonode_i420.h"
+#include "qsgvideonode_rgb.h"
+
+
 QT_BEGIN_NAMESPACE
 
 class QSGVideoItemSurface;
@@ -143,6 +148,9 @@ private:
     QVideoFrame m_frame;
     FillMode m_fillMode;
     QSize m_nativeSize;
+
+    QSGVideoNodeFactory_I420 m_i420Factory;
+    QSGVideoNodeFactory_RGB m_rgbFactory;
 
     bool m_geometryDirty;
     QRectF m_lastSize;      // Cache of last size to avoid recalculating geometry

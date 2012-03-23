@@ -183,8 +183,8 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     }
 
     // Append existing node factories as fallback if we have no plugins
-    m_videoNodeFactories.append(new QSGVideoNodeFactory_I420);
-    m_videoNodeFactories.append(new QSGVideoNodeFactory_RGB);
+    m_videoNodeFactories.append(&m_i420Factory);
+    m_videoNodeFactories.append(&m_rgbFactory);
 }
 
 QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
@@ -197,7 +197,6 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
     m_source.clear();
     _q_updateMediaObject();
     delete m_surface;
-    qDeleteAll(m_videoNodeFactories);
 }
 
 /*!
