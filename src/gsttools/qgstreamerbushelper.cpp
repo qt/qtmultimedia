@@ -98,17 +98,20 @@ private:
     void processMessage(GstMessage* message)
     {
         QGstreamerMessage msg(message);
-        foreach (QGstreamerBusMessageFilter *filter, busFilters) {
-            if (filter->processBusMessage(msg))
-                break;
-        }
-        emit m_helper->message(msg);
+        doProcessMessage(msg);
+    }
+
+    void queueMessage(GstMessage* message)
+    {
+        QGstreamerMessage msg(message);
+        QMetaObject::invokeMethod(this, "doProcessMessage", Qt::QueuedConnection,
+                                  Q_ARG(QGstreamerMessage, msg));
     }
 
     static gboolean busCallback(GstBus *bus, GstMessage *message, gpointer data)
     {
         Q_UNUSED(bus);
-        reinterpret_cast<QGstreamerBusHelperPrivate*>(data)->processMessage(message);
+        reinterpret_cast<QGstreamerBusHelperPrivate*>(data)->queueMessage(message);
         return TRUE;
     }
 
@@ -116,6 +119,16 @@ private:
     GstBus* m_bus;
     QGstreamerBusHelper*  m_helper;
     QTimer*     m_intervalTimer;
+
+private slots:
+    void doProcessMessage(const QGstreamerMessage& msg)
+    {
+        foreach (QGstreamerBusMessageFilter *filter, busFilters) {
+            if (filter->processBusMessage(msg))
+                break;
+        }
+        emit m_helper->message(msg);
+    }
 
 public:
     QMutex filterMutex;
