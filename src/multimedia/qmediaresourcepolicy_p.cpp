@@ -86,9 +86,10 @@ QObject* QMediaResourcePolicy::createResourceSet(const QString& interfaceId)
     QMediaResourceSetFactoryInterface *factory =
             qobject_cast<QMediaResourceSetFactoryInterface*>(resourcePolicyLoader()
                                                              ->instance(QLatin1String("default")));
-    if (!factory)
-        return 0;
-    QObject* obj = factory->create(interfaceId);
+    QObject* obj = 0;
+    if (factory)
+        obj = factory->create(interfaceId);
+
     if (!obj) {
         if (interfaceId == QLatin1String(QMediaPlayerResourceSetInterface_iid)) {
             obj = new QDummyMediaPlayerResourceSet(dummyRoot());
@@ -107,6 +108,7 @@ void QMediaResourcePolicy::destroyResourceSet(QObject* resourceSet)
     QMediaResourceSetFactoryInterface *factory =
             qobject_cast<QMediaResourceSetFactoryInterface*>(resourcePolicyLoader()
                                                              ->instance(QLatin1String("default")));
+    Q_ASSERT(factory);
     if (!factory)
         return;
     return factory->destroy(resourceSet);

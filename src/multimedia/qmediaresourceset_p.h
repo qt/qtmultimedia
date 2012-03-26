@@ -65,6 +65,8 @@ public:
     virtual void release() = 0;
     virtual void setVideoEnabled(bool enabled) = 0;
 
+    static QString iid();
+
 Q_SIGNALS:
     void resourcesGranted();
     void resourcesLost();

@@ -78,7 +78,7 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     m_fifoFd[0] = -1;
     m_fifoFd[1] = -1;
 
-    m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>(QMediaPlayerResourceSetInterface_iid);
+    m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>();
     Q_ASSERT(m_resources);
 
     connect(m_session, SIGNAL(positionChanged(qint64)),
