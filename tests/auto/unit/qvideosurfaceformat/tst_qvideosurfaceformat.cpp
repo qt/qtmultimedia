@@ -996,11 +996,7 @@ void tst_QVideoSurfaceFormat::debugOperator()
         "     frameWidth  =  QVariant(int, %6) \n"
         "     viewport  =  QVariant(QRect, QRect(0,1 800x600) ) \n"
         "     scanLineDirection  =  QVariant(QVideoSurfaceFormat::Direction, ) \n"
-#if defined(Q_PROCESSOR_ARM) // from qglobal.h
-        "     frameRate  =  QVariant(float, %7) \n"
-#else
-        "     frameRate  =  QVariant(double, %7) \n"
-#endif
+        "     frameRate  =  QVariant(%7, %8) \n"
         "     pixelAspectRatio  =  QVariant(QSize, QSize(320, 200) ) \n"
         "     sizeHint  =  QVariant(QSize, QSize(1280, 600) ) \n"
         "     yCbCrColorSpace  =  QVariant(QVideoSurfaceFormat::YCbCrColorSpace, )  ")
@@ -1010,6 +1006,7 @@ void tst_QVideoSurfaceFormat::debugOperator()
             .arg(frameSize.width())
             .arg(frameSize.height())
             .arg(frameSize.width())
+            .arg(sizeof(qreal) == sizeof(double) ? "double" : "float")
             .arg(frameRate);
 
     QVideoSurfaceFormat vsf(frameSize, format, QAbstractVideoBuffer::GLTextureHandle);
