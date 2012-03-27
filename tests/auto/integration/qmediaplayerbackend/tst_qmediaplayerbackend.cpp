@@ -73,6 +73,7 @@ private slots:
     void unloadMedia();
     void playPauseStop();
     void processEOS();
+    void deleteLaterAtEOS();
     void volumeAndMuted();
     void volumeAcrossFiles_data();
     void volumeAcrossFiles();
@@ -377,6 +378,57 @@ void tst_QMediaPlayerBackend::processEOS()
     QCOMPARE(stateSpy.count(), 0);
     QTRY_VERIFY(statusSpy.count() > 0 &&
         statusSpy.last()[0].value<QMediaPlayer::MediaStatus>() == QMediaPlayer::LoadedMedia);
+}
+
+// Helper class for tst_QMediaPlayerBackend::deleteLaterAtEOS()
+class DeleteLaterAtEos : public QObject
+{
+    Q_OBJECT
+public:
+    DeleteLaterAtEos(QMediaPlayer* p) : player(p)
+    {
+    }
+
+public slots:
+    void play()
+    {
+        QVERIFY(connect(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
+                        this,   SLOT(onMediaStatusChanged(QMediaPlayer::MediaStatus))));
+        player->play();
+    }
+
+private slots:
+    void onMediaStatusChanged(QMediaPlayer::MediaStatus status)
+    {
+        if (status == QMediaPlayer::EndOfMedia) {
+            player-> deleteLater();
+            player = 0;
+        }
+    }
+
+private:
+    QMediaPlayer* player;
+};
+
+// Regression test for
+// QTBUG-24927 - deleteLater() called to QMediaPlayer from its signal handler does not work as expected
+void tst_QMediaPlayerBackend::deleteLaterAtEOS()
+{
+    QPointer<QMediaPlayer> player(new QMediaPlayer);
+    DeleteLaterAtEos deleter(player);
+    player->setMedia(localWavFile);
+
+    // Create an event loop for verifying deleteLater behavior instead of using
+    // QTRY_VERIFY or QTest::qWait. QTest::qWait makes extra effort to process
+    // DeferredDelete events during the wait, which interferes with this test.
+    QEventLoop loop;
+    QTimer::singleShot(0, &deleter, SLOT(play()));
+    QTimer::singleShot(5000, &loop, SLOT(quit()));
+    connect(player.data(), SIGNAL(destroyed()), &loop, SLOT(quit()));
+    loop.exec();
+    // Verify that the player was destroyed within the event loop.
+    // This check will fail without the fix for QTBUG-24927.
+    QVERIFY(player.isNull());
 }
 
 void tst_QMediaPlayerBackend::volumeAndMuted()
