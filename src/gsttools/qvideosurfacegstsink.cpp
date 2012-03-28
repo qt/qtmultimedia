@@ -58,7 +58,7 @@
 //#define DEBUG_VIDEO_SURFACE_SINK
 
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, bufferPoolLoader,
-        (QGstBufferPoolInterface_iid, QLatin1String("video"), Qt::CaseInsensitive))
+        (QGstBufferPoolInterface_iid, QLatin1String("video/bufferpool"), Qt::CaseInsensitive))
 
 
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(

@@ -59,7 +59,7 @@ Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 QT_BEGIN_NAMESPACE
 
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
-        (QSGVideoNodeFactoryInterface_iid, QLatin1String("video"), Qt::CaseInsensitive))
+        (QSGVideoNodeFactoryInterface_iid, QLatin1String("video/videonode"), Qt::CaseInsensitive))
 
 class QSGVideoItemSurface : public QAbstractVideoSurface
 {
