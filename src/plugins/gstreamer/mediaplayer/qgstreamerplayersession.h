@@ -179,6 +179,8 @@ private:
     static void handleMutedChange(GObject *o, GParamSpec *p, gpointer d);
     static void insertColorSpaceElement(GstElement *element, gpointer data);
     static void handleElementAdded(GstBin *bin, GstElement *element, QGstreamerPlayerSession *session);
+    static void handleStreamsChange(GstBin *bin, gpointer user_data);
+
     void processInvalidMedia(QMediaPlayer::Error errorCode, const QString& errorString);
 
     void removeVideoBufferProbe();

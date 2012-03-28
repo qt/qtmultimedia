@@ -189,6 +189,10 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         g_signal_connect(G_OBJECT(m_playbin), "notify::volume", G_CALLBACK(handleVolumeChange), this);
         if (m_usePlaybin2)
             g_signal_connect(G_OBJECT(m_playbin), "notify::mute", G_CALLBACK(handleMutedChange), this);
+
+        g_signal_connect(G_OBJECT(m_playbin), "video-changed", G_CALLBACK(handleStreamsChange), this);
+        g_signal_connect(G_OBJECT(m_playbin), "audio-changed", G_CALLBACK(handleStreamsChange), this);
+        g_signal_connect(G_OBJECT(m_playbin), "text-changed", G_CALLBACK(handleStreamsChange), this);
     }
 }
 
@@ -1248,11 +1252,16 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
 
 void QGstreamerPlayerSession::getStreamsInfo()
 {
+    QList< QMap<QString,QVariant> > oldProperties = m_streamProperties;
+    QList<QMediaStreamsControl::StreamType> oldTypes = m_streamTypes;
+    QMap<QMediaStreamsControl::StreamType, int> oldOffset = m_playbin2StreamOffset;
+
     //check if video is available:
     bool haveAudio = false;
     bool haveVideo = false;
     m_streamProperties.clear();
     m_streamTypes.clear();
+    m_playbin2StreamOffset.clear();
 
     if (m_usePlaybin2) {
         gint audioStreamsCount = 0;
@@ -1383,7 +1392,8 @@ void QGstreamerPlayerSession::getStreamsInfo()
         emit videoAvailableChanged(m_videoAvailable);
     }
 
-    emit streamsChanged();
+    if (oldProperties != m_streamProperties || oldTypes != m_streamTypes || oldOffset != m_playbin2StreamOffset)
+        emit streamsChanged();
 }
 
 void QGstreamerPlayerSession::updateVideoResolutionTag()
@@ -1654,6 +1664,14 @@ void QGstreamerPlayerSession::handleElementAdded(GstBin *bin, GstElement *elemen
     }
 
     g_free(elementName);
+}
+
+void QGstreamerPlayerSession::handleStreamsChange(GstBin *bin, gpointer user_data)
+{
+    Q_UNUSED(bin);
+
+    QGstreamerPlayerSession* session = reinterpret_cast<QGstreamerPlayerSession*>(user_data);
+    QMetaObject::invokeMethod(session, "getStreamsInfo", Qt::QueuedConnection);
 }
 
 //doing proper operations when detecting an invalidMedia: change media status before signal the erorr
