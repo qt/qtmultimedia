@@ -69,6 +69,7 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     , m_bufferProgress(-1)
     , m_seekToStartPending(false)
     , m_pendingSeekPosition(-1)
+    , m_setMediaPending(false)
     , m_stream(0)
     , m_fifoNotifier(0)
     , m_fifoCanWrite(false)
@@ -238,6 +239,12 @@ void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
         return;
 
     pushState();
+
+    if (m_setMediaPending) {
+        m_mediaStatus = QMediaPlayer::LoadingMedia;
+        setMedia(m_currentResource, m_stream);
+    }
+
 #ifdef Q_WS_MAEMO_6
     //this is a work around for the gstreamer bug,
     //should be remove once it get fixed
@@ -245,11 +252,6 @@ void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
         setMedia(m_currentResource, m_stream);
     }
 #endif
-
-    if (m_mediaStatus == QMediaPlayer::EndOfMedia) {
-        m_mediaStatus = QMediaPlayer::BufferedMedia;
-        m_seekToStartPending = true;
-    }
 
     if (!m_resources->isGranted())
         m_resources->acquire();
@@ -356,6 +358,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     QMediaContent oldMedia = m_currentResource;
     m_pendingSeekPosition = -1;
     m_session->showPrerollFrames(false); // do not show prerolled frames until pause() or play() explicitly called
+    m_setMediaPending = false;
 
     if (!content.isNull() || stream) {
         if (!m_resources->isGranted())
@@ -552,7 +555,14 @@ void QGstreamerPlayerControl::processEOS()
     pushState();
     m_mediaStatus = QMediaPlayer::EndOfMedia;
     emit positionChanged(position());
-    stop();
+    m_session->endOfMediaReset();
+    m_setMediaPending = true;
+
+    if (m_state != QMediaPlayer::StoppedState) {
+        m_state = QMediaPlayer::StoppedState;
+        m_session->showPrerollFrames(false); // stop showing prerolled frames in stop state
+    }
+
     popAndNotifyState();
 }
 

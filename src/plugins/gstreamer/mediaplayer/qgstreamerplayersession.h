@@ -131,6 +131,8 @@ public:
     void removeProbe(QGstreamerAudioProbeControl* probe);
     static gboolean padAudioBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data);
 
+    void endOfMediaReset();
+
 public slots:
     void loadFromUri(const QNetworkRequest &url);
     void loadFromStream(const QNetworkRequest &url, QIODevice *stream);

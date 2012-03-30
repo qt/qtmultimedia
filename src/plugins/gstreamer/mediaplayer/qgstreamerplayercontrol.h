@@ -144,6 +144,7 @@ private:
     int m_bufferProgress;
     bool m_seekToStartPending;
     qint64 m_pendingSeekPosition;
+    bool m_setMediaPending;
     QMediaContent m_currentResource;
     QIODevice *m_stream;
     QSocketNotifier *m_fifoNotifier;

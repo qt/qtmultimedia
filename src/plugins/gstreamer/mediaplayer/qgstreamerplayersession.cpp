@@ -1772,6 +1772,26 @@ gboolean QGstreamerPlayerSession::padAudioBufferProbe(GstPad *pad, GstBuffer *bu
     return TRUE;
 }
 
+// This function is similar to stop(),
+// but does not set m_everPlayed, m_lastPosition,
+// and setSeekable() values.
+void QGstreamerPlayerSession::endOfMediaReset()
+{
+    if (m_renderer)
+        m_renderer->stopRenderer();
+
+    flushVideoProbes();
+    gst_element_set_state(m_playbin, GST_STATE_NULL);
+
+    QMediaPlayer::State oldState = m_state;
+    m_pendingState = m_state = QMediaPlayer::StoppedState;
+
+    finishVideoOutputChange();
+
+    if (oldState != m_state)
+        emit stateChanged(m_state);
+}
+
 void QGstreamerPlayerSession::removeVideoBufferProbe()
 {
     if (m_videoBufferProbeId == -1)
