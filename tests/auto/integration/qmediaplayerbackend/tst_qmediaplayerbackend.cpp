@@ -178,7 +178,7 @@ void tst_QMediaPlayerBackend::cleanup()
 void tst_QMediaPlayerBackend::construction()
 {
     QMediaPlayer player;
-    QVERIFY(player.isAvailable());
+    QTRY_VERIFY(player.isAvailable());
 }
 
 void tst_QMediaPlayerBackend::loadMedia()
