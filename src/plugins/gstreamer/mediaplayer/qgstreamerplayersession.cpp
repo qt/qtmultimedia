@@ -961,6 +961,7 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
             gst_message_parse_tag(gm, &tag_list);
             m_tags.unite(QGstUtils::gstTagListToMap(tag_list));
 
+            gst_tag_list_free(tag_list);
             //qDebug() << m_tags;
 
             emit tagsChanged();
@@ -1316,6 +1317,7 @@ void QGstreamerPlayerSession::getStreamsInfo()
 
                 //qDebug() << "language for setream" << i << QString::fromUtf8(languageCode);
                 g_free (languageCode);
+                gst_tag_list_free(tags);
             }
 
             m_streamProperties.append(streamProperties);
