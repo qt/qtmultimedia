@@ -79,13 +79,18 @@ private slots:
     void volumeAcrossFiles();
     void initialVolume();
     void seekPauseSeek();
+    void subsequentPlayback();
     void probes();
     void playlist();
 
 private:
+    QMediaContent selectVideoFile(const QStringList& mediaCandidates);
+    QMediaContent selectSoundFile(const QStringList& mediaCandidates);
+
     //one second local wav file
     QMediaContent localWavFile;
     QMediaContent localVideoFile;
+    QMediaContent localCompressedSoundFile;
 };
 
 /*
@@ -131,6 +136,63 @@ void tst_QMediaPlayerBackend::init()
 {
 }
 
+QMediaContent tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaCandidates)
+{
+    // select supported video format
+    QMediaPlayer player;
+    TestVideoSurface *surface = new TestVideoSurface;
+    player.setVideoOutput(surface);
+
+    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+
+    foreach (QString s, mediaCandidates) {
+        QFileInfo videoFile(s);
+        if (!videoFile.exists())
+            continue;
+        QMediaContent media = QMediaContent(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
+        player.setMedia(media);
+        player.pause();
+
+        for (int i = 0; i < 2000 && surface->m_frameList.isEmpty() && errorSpy.isEmpty(); i+=50) {
+            QTest::qWait(50);
+        }
+
+        if (!surface->m_frameList.isEmpty() && errorSpy.isEmpty()) {
+            return media;
+        }
+        errorSpy.clear();
+    }
+
+    return QMediaContent();
+}
+
+QMediaContent tst_QMediaPlayerBackend::selectSoundFile(const QStringList& mediaCandidates)
+{
+    QMediaPlayer player;
+
+    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+
+    foreach (QString s, mediaCandidates) {
+        QFileInfo soundFile(s);
+        if (!soundFile.exists())
+            continue;
+        QMediaContent media = QMediaContent(QUrl::fromLocalFile(soundFile.absoluteFilePath()));
+        player.setMedia(media);
+        player.play();
+
+        for (int i = 0; i < 2000 && player.mediaStatus() != QMediaPlayer::BufferedMedia && errorSpy.isEmpty(); i+=50) {
+            QTest::qWait(50);
+        }
+
+        if (player.mediaStatus() == QMediaPlayer::BufferedMedia && errorSpy.isEmpty()) {
+            return media;
+        }
+        errorSpy.clear();
+    }
+
+    return QMediaContent();
+}
+
 void tst_QMediaPlayerBackend::initTestCase()
 {
     const QString testFileName = QFINDTESTDATA("testdata/test.wav");
@@ -142,34 +204,15 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     qRegisterMetaType<QMediaContent>();
 
-    // select supported video format
-    QMediaPlayer player;
-    TestVideoSurface *surface = new TestVideoSurface;
-    player.setVideoOutput(surface);
-
-    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
-
     QStringList mediaCandidates;
     mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
     mediaCandidates << QFINDTESTDATA("testdata/colors.mp4");
+    localVideoFile = selectVideoFile(mediaCandidates);
 
-    foreach (QString s, mediaCandidates) {
-        QFileInfo videoFile(s);
-        QVERIFY(videoFile.exists());
-        QMediaContent media = QMediaContent(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
-        player.setMedia(media);
-        player.pause();
-
-        for (int i = 0; i < 2000 && surface->m_frameList.isEmpty() && errorSpy.isEmpty(); i+=50) {
-            QTest::qWait(50);
-        }
-
-        if (!surface->m_frameList.isEmpty() && errorSpy.isEmpty()) {
-            localVideoFile = media;
-            break;
-        }
-        errorSpy.clear();
-    }
+    mediaCandidates.clear();
+    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mkv");
+    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mp3");
+    localCompressedSoundFile = selectSoundFile(mediaCandidates);
 }
 
 void tst_QMediaPlayerBackend::cleanup()
@@ -350,7 +393,7 @@ void tst_QMediaPlayerBackend::processEOS()
     QTRY_VERIFY(player.position() < 100);
 
     QCOMPARE(player.state(), QMediaPlayer::PlayingState);
-    QCOMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
     QCOMPARE(stateSpy.count(), 1);
     QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::State>(), QMediaPlayer::PlayingState);
@@ -621,6 +664,41 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QCOMPARE(qBlue(image.pixel(0, 0)), 0);
         frame.unmap();
     }
+}
+
+void tst_QMediaPlayerBackend::subsequentPlayback()
+{
+    if (localCompressedSoundFile.isNull())
+        QSKIP("Sound format is not supported");
+
+    QMediaPlayer player;
+    player.setMedia(localCompressedSoundFile);
+    player.play();
+
+    QCOMPARE(player.error(), QMediaPlayer::NoError);
+    QTRY_COMPARE(player.state(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 15000);
+    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    // Could differ by up to 1 compressed frame length
+    QVERIFY(qAbs(player.position() - player.duration()) < 100);
+    QVERIFY(player.position() > 0);
+
+    player.play();
+    QTRY_COMPARE(player.state(), QMediaPlayer::PlayingState);
+    QTRY_VERIFY_WITH_TIMEOUT(player.position() > 2000 && player.position() < 5000, 10000);
+    player.pause();
+    QCOMPARE(player.state(), QMediaPlayer::PausedState);
+    // make sure position does not "jump" closer to the end of the file
+    QVERIFY(player.position() > 2000 && player.position() < 5000);
+    // try to seek back to zero
+    player.setPosition(0);
+    QTRY_COMPARE(player.position(), qint64(0));
+    player.play();
+    QCOMPARE(player.state(), QMediaPlayer::PlayingState);
+    QTRY_VERIFY_WITH_TIMEOUT(player.position() > 2000 && player.position() < 5000, 10000);
+    player.pause();
+    QCOMPARE(player.state(), QMediaPlayer::PausedState);
+    QVERIFY(player.position() > 2000 && player.position() < 5000);
 }
 
 void tst_QMediaPlayerBackend::probes()
