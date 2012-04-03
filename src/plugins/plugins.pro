@@ -8,6 +8,10 @@ TEMPLATE = subdirs
 
 SUBDIRS += m3u
 
+blackberry {
+    SUBDIRS += blackberry
+}
+
 win32 {
     SUBDIRS += audiocapture
 }
