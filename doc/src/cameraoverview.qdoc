@@ -195,7 +195,7 @@ There are a number of settings that affect the amount of light that hits the
 camera sensor, and hence the quality of the resulting image.  The \l QCameraExposure
 class allows you to adjust these settings.  You can use this class to implement
 some techniques like High Dynamic Range (HDR) photos by locking the exposure
-parameters (with \l {QCamera::lock()}), or motion blur by setting slow shutter speeds
+parameters (with \l {QCamera::searchAndLock()}), or motion blur by setting slow shutter speeds
 with small apertures.
 
 The main settings for automatic image taking are the \l {QCameraExposure::ExposureMode}{exposure mode}
@@ -213,13 +213,14 @@ the hardware may also double as a torch (typically when the flash is LED based, 
 a xenon or other bulb).  See also the \l {Torch} QML element for an easy to use API for
 torch functionality.
 
+\target camera_image_processing
 \section3 Image processing
 
 The QCameraImageProcessing class lets you adjust the image processing
-part of the pipeline.  This includes the \l {QCameraImageCapture::WhiteBalanceMode}{white balance}
-(or color temperature), \l {QCameraImageCapture::contrast()}{contrast},
-\l {QCameraImageCapture::saturation()}{saturation}, \l {QCameraImageCapture::setSharpening()}{sharpening}
-and \l {QCameraImageCapture::setDenoisingLevel()}{denoising}.  Most cameras support automatic settings
+part of the pipeline.  This includes the \l {QCameraImageProcessing::WhiteBalanceMode}{white balance}
+(or color temperature), \l {QCameraImageProcessing::contrast()}{contrast},
+\l {QCameraImageProcessing::saturation()}{saturation}, \l {QCameraImageProcessing::setSharpeningLevel()}{sharpening}
+and \l {QCameraImageProcessing::setDenoisingLevel()}{denoising}.  Most cameras support automatic settings
 for all of these, so you shouldn't need to adjust them unless the user wants a specific setting.
 
 If you're taking a series of images (for example, to stitch them together for
@@ -240,20 +241,17 @@ autoexposure or white balance cancellation can be done by calling
 
 There are both C++ and QML examples available.
 
-C++ Examples:
-\list
-    \li \l Camera
-\endlist
+\section2 C++ Examples
 
-QML Examples:
-\list
-    \li \l declarative-camera
-    \li \l qmlvideofx
-\endlist
+\annotatedlist camera_examples
+
+\section2 QML Examples
+
+\annotatedlist camera_examples_qml
 
 \section1 Reference Documentation
 
-\section2 Camera Classes
+\section2 C++ Classes
 
 \annotatedlist multimedia_camera
 

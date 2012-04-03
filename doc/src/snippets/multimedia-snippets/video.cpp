@@ -48,9 +48,62 @@
 #include "qvideowindowcontrol.h"
 #include "qgraphicsvideoitem.h"
 #include "qmediaplaylist.h"
+#include "qvideosurfaceformat.h"
 
 #include <QFormLayout>
 #include <QGraphicsView>
+
+//! [Derived Surface]
+class MyVideoSurface : public QAbstractVideoSurface
+{
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const
+    {
+        Q_UNUSED(handleType);
+
+        // Return the formats you will support
+        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB565;
+    }
+
+    bool present(const QVideoFrame &frame)
+    {
+        Q_UNUSED(frame);
+        // Handle the frame and do your processing
+
+        return true;
+    }
+};
+//! [Derived Surface]
+
+//! [Video producer]
+class MyVideoProducer : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QAbstractVideoSurface *videoSurface WRITE setVideoSurface)
+
+public:
+    void setVideoSurface(QAbstractVideoSurface *surface)
+    {
+        m_surface = surface;
+        m_surface->start(m_format);
+    }
+
+    // ...
+
+public slots:
+    void onNewVideoContentReceived(const QVideoFrame &frame)
+    {
+        if (m_surface)
+            m_surface->present(frame);
+    }
+
+private:
+    QAbstractVideoSurface *m_surface;
+    QVideoSurfaceFormat m_format;
+};
+
+//! [Video producer]
+
 
 class VideoExample : public QObject {
     Q_OBJECT
@@ -98,6 +151,12 @@ void VideoExample::VideoWidget()
     playlist->setCurrentIndex(1);
     player->play();
     //! [Video widget]
+
+    player->stop();
+
+    //! [Setting surface in player]
+    player->setVideoOutput(myVideoSurface);
+    //! [Setting surface in player]
 }
 
 void VideoExample::VideoWidgetControl()

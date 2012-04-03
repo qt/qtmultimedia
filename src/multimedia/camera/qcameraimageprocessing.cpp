@@ -96,7 +96,7 @@ QT_BEGIN_NAMESPACE
     In some cases changing these settings may result in a longer delay
     before an image is ready.
 
-    For more information on image processing of camera frames, see \l {Camera Image Processing}.
+    For more information on image processing of camera frames, see \l {camera_image_processing}{Camera Image Processing}.
 
     \sa QCameraImageProcessingControl
 */

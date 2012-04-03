@@ -139,7 +139,7 @@ QCameraFeedbackControl::~QCameraFeedbackControl()
 */
 
 /*!
-  \fn bool QCameraFeedbackControl::setEventFeedbackEnabled(EventType event, bool enabled) const
+  \fn bool QCameraFeedbackControl::setEventFeedbackEnabled(EventType event, bool enabled)
 
   Turns on feedback for the specific \a event if \a enabled is true, otherwise disables the
   feedback.  Returns true if the feedback could be modified, or false otherwise (e.g. this feedback
@@ -150,7 +150,7 @@ QCameraFeedbackControl::~QCameraFeedbackControl()
 
 
 /*!
-  \fn void QCameraFeedbackControl::resetEventFeedback(EventType event) const
+  \fn void QCameraFeedbackControl::resetEventFeedback(EventType event)
 
   Restores the feedback setting for this \a event to its default setting.
 
@@ -158,7 +158,7 @@ QCameraFeedbackControl::~QCameraFeedbackControl()
 */
 
 /*!
-  \fn bool setEventFeedbackSound(EventType event, const QString &filePath)
+  \fn bool QCameraFeedbackControl::setEventFeedbackSound(EventType event, const QString &filePath)
 
   When the given \a event occurs, the sound effect referenced by \a filePath
   will be played instead of the default sound.

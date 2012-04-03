@@ -28,10 +28,12 @@
 /*!
 \example video/qmlvideofx
 \title QML Video Shader Effects Example
+\ingroup video_examples_qml
+\ingroup camera_examples_qml
 
 \brief The QML Video Shader Effects Example shows how the \l {ShaderEffect}
-element can be used to apply postprocessing effects, expressed in GLSL, to QML
-\l {VideoOutput} items.
+element can be used to apply postprocessing effects, expressed in \c GLSL, to video
+and camera viewfinder content.
 
 \section1 Overview
 

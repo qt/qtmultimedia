@@ -88,7 +88,7 @@ QMediaVideoProbeControl::~QMediaVideoProbeControl()
 /*!
     \fn QMediaVideoProbeControl::videoFrameProbed(const QVideoFrame &frame)
 
-    This signal should be emitted when a video frame is processed in the
+    This signal should be emitted when a video \a frame is processed in the
     media service.
 */
 

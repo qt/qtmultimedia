@@ -99,13 +99,13 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
 /*!
     \fn QMediaGaplessPlaybackControl::setNextMedia(const QMediaContent& media)
 
-    Sets the next media for smooth transition.
+    Sets the next \a media for smooth transition.
 */
 
 /*!
     \fn QMediaGaplessPlaybackControl::nextMediaChanged(const QMediaContent& media)
 
-    Signals that the next media has changed (either explicitly via \l setNextMedia() or when the
+    Signals that the next \a media has changed (either explicitly via \l setNextMedia() or when the
     player clears the next media while advancing to it).
 
     \sa nextMedia()
@@ -123,7 +123,7 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
     \fn QMediaGaplessPlaybackControl::isCrossfadeSupported() const
 
     Indicates whether crossfading is supported or not.
-    If crossfading is not supported, \l setCrossfadTime() will be ignored and \l crossfadeTime() will
+    If crossfading is not supported, \l setCrossfadeTime() will be ignored and \l crossfadeTime() will
     always return 0.
 
 */
@@ -131,7 +131,7 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
 /*!
     \fn QMediaGaplessPlaybackControl::setCrossfadeTime(qreal crossfadeTime)
 
-    Sets the crossfade time in seconds for smooth transition.
+    Sets the \a crossfadeTime in seconds for smooth transition.
 
     Positive value means how much time it will take for the next media to transit from silent to
     full volume and vice versa for current one. So both current and the next one will be playing
@@ -151,7 +151,7 @@ QMediaGaplessPlaybackControl::QMediaGaplessPlaybackControl(QObject *parent):
 /*!
     \fn QMediaGaplessPlaybackControl::crossfadeTimeChanged(qreal crossfadeTime)
 
-    Signals that the crossfade time has changed.
+    Signals that the \a crossfadeTime has changed.
 
     \sa crossfadeTime()
 */

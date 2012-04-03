@@ -477,7 +477,7 @@ void QMediaTimeRange::addInterval(qint64 start, qint64 end)
     If the specified interval is adjacent to, or overlaps existing
     intervals within the time range, these intervals will be merged.
 
-    This operation takes \l{linear time}
+    This operation takes linear time.
 
     \sa removeInterval()
 */
@@ -526,7 +526,7 @@ void QMediaTimeRange::removeInterval(qint64 start, qint64 end)
     such that no intervals within the time range include any part of the
     target interval.
 
-    This operation takes \l{linear time}
+    This operation takes linear time.
 
     \sa addInterval()
 */
@@ -689,6 +689,7 @@ bool operator!=(const QMediaTimeRange &a, const QMediaTimeRange &b)
 
 /*!
     \fn operator+(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
+    \relates QMediaTimeRange
 
     Returns a time range containing the union between \a r1 and \a r2.
  */
@@ -699,6 +700,7 @@ QMediaTimeRange operator+(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
 
 /*!
     \fn operator-(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
+    \relates QMediaTimeRange
 
     Returns a time range containing \a r2 subtracted from \a r1.
  */

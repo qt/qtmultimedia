@@ -215,7 +215,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 */
 
 /*!
-    \fn QAudioDecoderControl::audioFormat()
+    \fn QAudioDecoderControl::audioFormat() const
     Returns the current audio format of the decoded stream.
 
     Any buffers returned should have this format.
@@ -244,13 +244,13 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 */
 
 /*!
-    \fn QAudioDecoderControl::position()
+    \fn QAudioDecoderControl::position() const
     Returns position (in milliseconds) of the last buffer read from
     the decoder or -1 if no buffers have been read.
 */
 
 /*!
-    \fn QAudioDecoderControl::duration()
+    \fn QAudioDecoderControl::duration() const
     Returns total duration (in milliseconds) of the audio stream
     or -1 if not available.
 */

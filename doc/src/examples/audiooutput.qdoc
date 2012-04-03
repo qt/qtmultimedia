@@ -28,7 +28,8 @@
 /*!
     \example audiooutput
     \title Audio Output Example
-
+    \ingroup audio_examples
+    \brief The Audio Output Example show the use of the QAudioOutput API.
 
 
 

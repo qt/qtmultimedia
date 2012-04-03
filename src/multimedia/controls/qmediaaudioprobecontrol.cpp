@@ -88,7 +88,7 @@ QMediaAudioProbeControl::~QMediaAudioProbeControl()
 /*!
     \fn QMediaAudioProbeControl::audioBufferProbed(const QAudioBuffer &buffer)
 
-    This signal should be emitted when an audio buffer is processed in the
+    This signal should be emitted when an audio \a buffer is processed in the
     media service.
 */
 

@@ -28,11 +28,11 @@
 /*!
     \example audiorecorder
     \title Audio Recorder Example
+    \ingroup audio_examples
+    \brief The Audio Recorder Example shows how to create a simple audio recorder.
 
-
-
-    This example shows how to create a simple audio recorder using the Qt
-    Multimedia API.
+    It demonstrates the discovery of the supported devices and codecs and the use
+    of recording functions in the QAudioRecorder class.
 
     We display a window for the user to select the appropriate audio input,
     codec, container, and sample rate. Allow a setting of either quality or

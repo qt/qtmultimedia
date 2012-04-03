@@ -28,24 +28,24 @@
 /*!
 
 \page changes.html
-\title Changes in QtMultimedia
-\brief A description of changes in this version of QtMultimedia
+\title Changes in Qt Multimedia
+\brief A description of changes in this version of Qt Multimedia
 
 
-The QtMultimedia module in Qt 5 is a combination of the QtMultimedia module
-in Qt 4.x and the QtMultimediaKit module of QtMobility.  It replaces both
-of these modules by combining the code.  If you've previously used QtMultimedia
+The Qt Multimedia module in Qt 5 is a combination of the Qt Multimedia module
+in Qt 4.x and the Qt Multimedia Kit module of Qt Mobility.  It replaces both
+of these modules by combining the code.  If you've previously used Qt Multimedia
 there are not too many changes required for existing code, but there are some
-larger changes required for porting code that used QtMultimediaKit (most notably
-the namespace and header file prefix has changed, and the QMake pro file changes
-needed to enable QtMultimedia).
+larger changes required for porting code that used Qt Multimedia Kit (most notably
+the namespace and header file prefix has changed, and the qmake pro file changes
+needed to enable Qt Multimedia).
 
 One other change of note is that widget related classes (like \l QVideoWidget)
-are now in a new library (QtMultimediaWidgets).
+are now in a new library (Qt Multimedia Widgets).
 
 \section1 New features in 5.0
 
-There are a number of new features in QtMultimedia 5.0:
+There are a number of new features in Qt Multimedia 5.0:
 \list
 \li Expanded QML API
 \li New \l QAudioRecorder class
@@ -60,7 +60,7 @@ There are a number of new features in QtMultimedia 5.0:
 
 \section1 Removed features
 
-A number of classes or features previously offered in QtMultimedia or QtMultimediaKit have
+A number of classes or features previously offered in Qt Multimedia or Qt Multimedia Kit have
 been removed.
 
 \table 70%
@@ -75,7 +75,7 @@ been removed.
 
 \section1 Changed features
 
-A number of classes previously offered in QtMultimedia or QtMultimediaKit have
+A number of classes previously offered in Qt Multimedia or Qt Multimedia Kit have
 changed in ways that may affect previously written code.  There may be other
 changes (like new features) that will not affect previously written code, and
 they are documented elsewhere.
@@ -85,7 +85,7 @@ they are documented elsewhere.
         \li Changed feature
         \li Notes
     \row
-        \li QMake .pro file changes
+        \li qmake .pro file changes
         \li If you've used QtMultimediaKit in the past, you needed to put
            \code
            CONFIG += mobility
@@ -102,25 +102,25 @@ they are documented elsewhere.
            if you need to use the widget classes.
     \row
         \li Namespace changes
-        \li For QtMultimediaKit the majority of the classes were in the
+        \li For Qt Multimedia Kit the majority of the classes were in the
            normal Qt namespace (usually nothing, unless built specially).  There
-           was a QtMultimediaKit namespace for several enumerations.  This namespace
-           has now changed to QtMultimedia, so if you've used one of the
+           was a Qt Multimedia Kit namespace for several enumerations.  This namespace
+           has now changed to Qt Multimedia, so if you've used one of the
            \c SupportEstimate, \c EncodingQuality, \c EncodingMode or \c AvailabilityError
            enumerations you'll need to change your code.  In fact, running a global
-           search and replace on QtMultimediaKit (to replace it with QtMultimedia) will
+           search and replace on \c QtMultimediaKit (to replace it with \c QtMultimedia) will
            go a long way with porting your code.
     \row
         \li Meta-data enumeration changes
-        \li In QtMultimediaKit the available meta-data keys were in an enumeration
-           in the QtMultimediaKit namespace.  These meta-data keys have been changed
-           to string literals in the QtMultimedia::MetaData namespace - generally your
+        \li In Qt Multimedia Kit the available meta-data keys were in an enumeration
+           in the \c QtMultimediaKit namespace.  These meta-data keys have been changed
+           to string literals in the \c {QtMultimedia::MetaData} namespace - generally your
            source code will mostly be compatible unless you have created variables or
-           parameters with the QtMultimedia::MetaData type - you should replace these
-           with QStrings.
+           parameters with the \c {QtMultimedia::MetaData} type - you should replace these
+           with \c QString.
     \row
         \li Meta-data method changes
-        \li In QtMultimediaKit the available meta-data was split between methods to
+        \li In Qt Multimedia Kit the available meta-data was split between methods to
            access standard, pre-defined keys, and methods to access extensible free
            form key meta-data.  These have been combined into a single method to
            access meta-data given a string key, and a list of pre-defined keys.  If
@@ -128,10 +128,10 @@ they are documented elsewhere.
            to change your code to combine the standard and extended metadata methods.
     \row
         \li Qt Metatype registration
-        \li In QtMultimedia 5.0 we've tried to make sure that we register any classes
+        \li In Qt Multimedia 5.0 we've tried to make sure that we register any classes
            or types that would be useful to use in cross process signals or in
            QVariants.  If you've previously added Q_DECLARE_METATYPE macros for any
-           QtMultimedia class you will probably need to remove them.
+           Qt Multimedia class you will probably need to remove them.
     \row
         \li Video QML element
         \li If you've previously used the Video QML element you may be excited
@@ -140,7 +140,7 @@ they are documented elsewhere.
            together for more flexible and advanced use cases.
     \row
         \li QSoundEffect
-        \li The SoundEffect QML element was public and accessible in QtMultimedaKit,
+        \li The SoundEffect QML element was public and accessible in Qt Multimeda Kit,
            and now the C++ version is also available.  If you managed to use the
            private class previously, you'll need to update your code.
     \row

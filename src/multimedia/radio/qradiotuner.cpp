@@ -104,7 +104,8 @@ public:
 
 
 /*!
-    Constructs a radio tuner based on a media service allocated by a media service \a provider.
+    Constructs a radio tuner based on a media service allocated by the default
+    media service provider.
 
     The \a parent is passed to QMediaObject.
 */

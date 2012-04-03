@@ -93,6 +93,8 @@ namespace
     \typedef QMediaResourceList
 
     Synonym for \c QList<QMediaResource>
+
+    \relates QMediaResource
 */
 
 /*!

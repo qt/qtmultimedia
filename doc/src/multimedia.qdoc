@@ -27,13 +27,13 @@
 
 /*!
 \page multimediaoverview.html
-\title Qt Multimedia
+\title Multimedia Overview
 \brief A set of APIs for working with audio, video, radio and camera devices.
 
 \ingroup technology-apis
 
 
-\section1 Multimedia Overview
+\section1 Overview
 
 \section2 Features
 
@@ -114,12 +114,12 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li QMediaPlayer, QAbstractVideoSurface, QVideoFrame
     \row
         \li Listening to the radio
-        \li \l radio, \l declarative-radio
+        \li \l declarative-radio
         \li \l Radio, \l RadioData
         \li QRadioTuner, QRadioData
     \row
         \li Accessing camera viewfinder
-        \li \l camera, \l declarative-camera
+        \li \l {Camera Example}{camera}, \l declarative-camera
         \li \l Camera, \l VideoOutput
         \li QCamera, QVideoWidget, QGraphicsVideoItem
     \row
@@ -129,22 +129,21 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li QCamera, QAbstractVideoSurface, QVideoFrame
     \row
         \li Capturing photos
-        \li \l camera, \l declarative-camera
+        \li \l {Camera Example}{camera}, \l declarative-camera
         \li \l Camera
         \li QCamera, QCameraImageCapture
     \row
         \li Capturing movies
-        \li \l camera, \l declarative-camera
+        \li \l {Camera Example}{camera}, \l declarative-camera
         \li \l Camera
         \li QCamera, QMediaRecorder
 \endtable
 
-\section1 Multimedia Limitations
+\section1 Limitations
 
 In many cases the Qt Multimedia APIs build upon the multimedia framework of the underlying system.
 This can mean that support for various codec or containers can vary between machines,
-depending on what the end user has installed.  See \l {Multimedia Platform Support} for more
-information on what frameworks are used and what this can mean.
+depending on what the end user has installed.
 
 \section1 Advanced Usage
 
@@ -154,8 +153,8 @@ see \l{Multimedia Backend Development}.
 
 \section1 Changes from previous versions
 
-If you've previously used QtMultimedia in Qt 4.x, or used QtMultimediaKit in QtMobility, please see
-\l {Changes in QtMultimedia} for more information on what has changed, and what you might need to
+If you've previously used Qt Multimedia in Qt 4.x, or used Qt Multimedia Kit in Qt Mobility, please see
+\l {Changes in Qt Multimedia} for more information on what has changed, and what you might need to
 change when porting code.
 
 \section1 Reference Documentation

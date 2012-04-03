@@ -34,7 +34,7 @@
 
 Qt Multimedia offers a range of audio classes, covering both low and
 high level approaches to audio input, output and processing.  In
-addition to traditional audio usage, the \l {QtAudioEngine}{Qt AudioEngine}
+addition to traditional audio usage, the \l {QtAudioEngine Overview}{Qt AudioEngine}
 QML classes offers high level 3D positional audio for QML applications.
 See that documentation for more information.
 
@@ -73,7 +73,7 @@ sounds.  These classes allow you to specify a WAV format file which can
 then be played with low latency when necessary.  Both QSoundEffect and the
 SoundEffect element have essentially the same API.
 
-You can adjust the number of \l {QSoundEffect::setLoops()}{loops} a sound effect is played, as well as
+You can adjust the number of \l {QSoundEffect::loops}{loops} a sound effect is played, as well as
 the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
 
 For older, Qt 4.x based applications \l QSound is also available.  Applications
@@ -135,36 +135,22 @@ Here's an example of installing a probe during recording:
 
 There are both C++ and QML examples available.
 
-C++ Examples:
+\section2 C++ Examples
 
-\section2 Record a Sound Source
+\annotatedlist audio_examples
 
-\l{audiorecorder}{AudioRecorder} is a demonstration of the discovery of
-the supported devices and codecs and the use of recording functions in the
-QAudioRecorder class.
+\section2 QML Examples
 
-\list
-    \li \l audiodevices
-    \li \l audioinput
-    \li \l audiooutput
-    \li \l audiorecorder
-    \li \l spectrum
-\endlist
-
-QML Examples:
 [TBD]
 
 \section1 Reference Documentation
 
-\section2 Audio Classes
+\section2 C++ Classes
 
 \annotatedlist multimedia_audio
 
 \section2 QML Elements
 
-\list
-    \li \l Audio
-    \li \l MediaPlayer
-\endlist
+\annotatedlist multimedia_audio_qml
 
 */

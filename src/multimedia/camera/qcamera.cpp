@@ -336,7 +336,7 @@ void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockSt
 
 
 /*!
-    Construct a QCamera from service \a provider and \a parent.
+    Construct a QCamera with a \a parent.
 */
 
 QCamera::QCamera(QObject *parent):

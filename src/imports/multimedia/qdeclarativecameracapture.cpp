@@ -60,9 +60,8 @@ QT_BEGIN_NAMESPACE
     are available or saved to disk.  You can adjust the resolution of the captured
     image and where the saved image should go.
 
-    This element is a child of a Camera element (as the
-    \l {Camera::imageCapture}{imageCapture} property) and cannot be created
-    directly.
+    This element is a child of a \l Camera element (as the \c imageCapture property)
+    and cannot be created directly.
 
     \qml
     import QtQuick 2.0

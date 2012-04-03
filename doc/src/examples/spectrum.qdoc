@@ -28,7 +28,8 @@
 /*!
     \example spectrum
     \title Spectrum Example
-
+    \ingroup audio_examples
+    \brief The Spectrum Example uses a combination multimedia APIs to process microphone input.
 
 */
 

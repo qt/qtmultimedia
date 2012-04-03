@@ -46,6 +46,7 @@ import QtMultimedia 5.0
     \qmlclass Video
     \inherits Item
     \ingroup multimedia_qml
+    \ingroup multimedia_video_qml
     \brief A convenience element for showing a specified video
 
     The \c Video element is a convenience element combining the functionality

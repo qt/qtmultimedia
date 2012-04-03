@@ -236,6 +236,13 @@ QSoundBuffer* QDeclarativeAudioSample::soundBuffer() const
 }
 
 /*!
+    \qmlproperty bool QtAudioEngine1::AudioSample::loaded
+
+    This property holds the load status of the audio sample.
+*/
+
+
+/*!
     \qmlsignal QtAudioEngine1::AudioSample::onLoadedChanged()
 
     This handler is called when \l loaded is changed

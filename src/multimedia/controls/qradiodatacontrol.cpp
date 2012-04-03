@@ -154,6 +154,12 @@ QRadioDataControl::~QRadioDataControl()
 */
 
 /*!
+    \fn QRadioDataControl::alternativeFrequenciesEnabledChanged(bool enabled)
+
+    Signals that the alternative frequencies setting has changed to the value of \a enabled.
+*/
+
+/*!
     \fn void QRadioDataControl::stationIdChanged(QString stationId)
 
     Signals that the Program Identification \a stationId has changed

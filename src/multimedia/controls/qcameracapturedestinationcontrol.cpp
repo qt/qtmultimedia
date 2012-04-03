@@ -96,7 +96,7 @@ QCameraCaptureDestinationControl::~QCameraCaptureDestinationControl()
 /*!
     \fn QCameraCaptureDestinationControl::captureDestination() const
 
-    Returns the current capture \a destination. The default destination is QCameraImageCapture::CaptureToFile.
+    Returns the current capture destination. The default destination is QCameraImageCapture::CaptureToFile.
 */
 
 /*!

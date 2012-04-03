@@ -83,7 +83,7 @@ public:
 };
 
 /*!
-    Creates a new QVideoProbe class.  After setting the
+    Creates a new QVideoProbe class with \a parent. After setting the
     source to monitor with \l setSource(), the \l videoFrameProbed()
     signal will be emitted when video frames are flowing in the
     source media object.
@@ -160,8 +160,8 @@ bool QVideoProbe::setSource(QMediaObject *source)
 /*!
     Starts monitoring the given \a mediaRecorder.
 
-    If \a source is zero, this probe will be deactivated
-    and this function wil return true.
+    If there is no mediaObject associated with \a mediaRecorder, or if it is
+    zero, this probe will be deactivated and this function wil return true.
 
     If the media recorder instance does not support monitoring
     video, this function will return false.
@@ -197,7 +197,7 @@ bool QVideoProbe::isActive() const
 /*!
     \fn QVideoProbe::videoFrameProbed(const QVideoFrame &frame)
 
-    This signal should be emitted when a video frame is processed in the
+    This signal should be emitted when a video \a frame is processed in the
     media service.
 */
 

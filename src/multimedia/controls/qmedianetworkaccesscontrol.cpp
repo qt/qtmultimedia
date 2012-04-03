@@ -59,6 +59,9 @@ QT_BEGIN_NAMESPACE
     usage by the supported QMediaObject.
 */
 
+/*!
+  \internal
+*/
 QMediaNetworkAccessControl::QMediaNetworkAccessControl(QObject *parent) :
     QMediaControl(parent)
 {
@@ -81,7 +84,7 @@ QMediaNetworkAccessControl::~QMediaNetworkAccessControl()
     and replaced with the new list.
 */
 
-/*
+/*!
     \fn QNetworkConfiguration QMediaNetworkAccessControl::currentConfiguration() const
 
     Returns the current active configuration in use.

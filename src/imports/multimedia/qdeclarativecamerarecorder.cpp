@@ -56,9 +56,8 @@ QT_BEGIN_NAMESPACE
     This element allows recording camera streams to files, and adjusting recording
     settings and metadata for videos.
 
-    This element is a child of a Camera element (as the
-    \l {Camera::videoRecorder}{videoRecorder} property) and cannot be created
-    directly.
+    This element is a child of a \l Camera element (as the \c videoRecorder property)
+    and cannot be created directly.
 
     \qml
     Camera {
@@ -113,7 +112,7 @@ QSize QDeclarativeCameraRecorder::captureResolution()
     The audio codec to use for recording video.
     Typically this is something like \c aac or \c amr-wb.
 
-    \sa whiteBalanceMode
+    \sa {QtMultimedia5::CameraImageProcessing::whiteBalanceMode}{whileBalanceMode}
 */
 QString QDeclarativeCameraRecorder::audioCodec() const
 {

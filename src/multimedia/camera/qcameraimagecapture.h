@@ -117,7 +117,7 @@ public:
 
     QList<QVideoFrame::PixelFormat> supportedBufferFormats() const;
     QVideoFrame::PixelFormat bufferFormat() const;
-    void setBufferFormat(QVideoFrame::PixelFormat format);
+    void setBufferFormat(const QVideoFrame::PixelFormat format);
 
     bool isCaptureDestinationSupported(CaptureDestinations destination) const;
     CaptureDestinations captureDestination() const;

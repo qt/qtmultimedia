@@ -243,9 +243,10 @@ QRadioTunerControl::~QRadioTunerControl()
 */
 
 /*!
-    \fn  void QRadioTunerControl::searchAllStations()
+    \fn  void QRadioTunerControl::searchAllStations(QRadioTuner::SearchMode searchMode)
 
-    Starts a scan through the whole frequency band searching all stations
+    Starts a scan through the whole frequency band searching all stations with a
+    specific \a searchMode.
 */
 
 /*!
@@ -328,9 +329,9 @@ QRadioTunerControl::~QRadioTunerControl()
 */
 
 /*!
-    \fn void QRadioTunerControl::stationFound(int frequency)
+    \fn void QRadioTunerControl::stationFound(int frequency, QString stationId)
 
-    Signals that new station with \a frequency was found when scanning
+    Signals that new station with \a frequency and \a stationId was found when scanning
 */
 
 /*!

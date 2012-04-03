@@ -129,72 +129,26 @@
             \li Signal
             \li Description
         \row
-            \li \l{Audio::onStarted}{onStarted}
-            \li Called when playback has been started.
+            \li \l{Audio::playing}{playing}
+            \li Called when playback is started, or when resumed from paused state.
         \row
-            \li \l{Audio::onResumed}{onResumed}
-            \li Called when playback is resumed from the paused state.
-        \row
-            \li \l{Audio::onPaused}{onPaused}
+            \li \l{Audio::paused}{paused}
             \li Called when playback is paused.
         \row
-            \li \l{Audio::onStopped}{onStopped}
+            \li \l{Audio::stopped}{stopped}
             \li Called when playback is stopped.
         \row
-            \li \l{Audio::onError}{onError}
+            \li \l{Audio::error}{error}
             \li Called when the specified error occurs.
     \endtable
 
     \section2 Camera
 
-    The \l Camera element in the plugin enables still image capture using
-    QML. The element has methods for starting and stopping the camera, capturing
-    the image, camera settings and many signals indicating critical events.
+    The \l Camera element enables still image and video capture using
+    QML. The element has a number of properties that help setting it up.
 
-    The follow code is taken from the \l {QML Camera Example}. This snippet
-    shows the setting up of the \l Camera element
-
-    \qml
-
-    Camera {
-        id: camera
-        x : 0
-        y : 0
-        width : 640
-        height : 480
-        focus : visible //to receive focus and capture key events
-        //captureResolution : "640x480"
-
-        flashMode: stillControls.flashMode
-        whiteBalanceMode: stillControls.whiteBalance
-        exposureCompensation: stillControls.exposureCompensation
-
-        onImageCaptured : {
-            photoPreview.source = preview
-            stillControls.previewAvailable = true
-            cameraUI.state = "PhotoPreview"
-        }
-    }
-
-    \endqml
-
-    Notice that the slot for the \l {Camera::imageCaptured()}{imageCaptured()}
-    signal is implemented in \e onImageCaptured. However, this code only
-    changes some state information to allow previewing.
-
-    The capture call itself is part of the implementation of the button
-    that the user presses to take the image. It uses a call to
-    \l {Camera::captureImage()}{captureImage()}:
-
-    \qml
-
-    CameraButton {
-        text: "Capture"
-        onClicked: camera.captureImage()
-    }
-
-    \endqml
-
+    The details of using the Camera element are described in further details
+    in the \l {Camera Overview} and in the corresponding reference documentation.
 
     \section2 Video
 
@@ -257,31 +211,6 @@
     In the above sample the sound effect will be played when the MouseArea is clicked.
 
     For a complete description of this element, see \l SoundEffect
-
-    \section2 Camera
-
-    Adding access to the camera viewfinder, and capturing images is possible by using the  \l Camera element.  You can adjust capture settings
-    including white balance, exposure compensation and flash mode, and control zoom.
-
-    \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
-    Camera {
-        focus : visible // to receive focus and capture key events when visible
-
-        flashMode: Camera.FlashRedEyeReduction
-        whiteBalanceMode: Camera.WhiteBalanceFlash
-        exposureCompensation: -1.0
-
-        onImageCaptured : {
-            photoPreview.source = preview  // Show the preview in an Image element
-        }
-
-    }
-    \endqml
-
-    For a complete description of this element, see \l Camera, and look at the \l {declarative-camera}{QML Camera Example}.
 
     \section1 Multimedia QML Elements
 

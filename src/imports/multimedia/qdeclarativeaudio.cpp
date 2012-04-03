@@ -62,6 +62,8 @@ QT_BEGIN_NAMESPACE
 
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
+    \ingroup multimedia_video_qml
 
     This element is part of the \b{QtMultimedia 5.0} module.
 
@@ -121,6 +123,7 @@ QT_BEGIN_NAMESPACE
 
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
 
     This element is part of the \b{QtMultimedia 5.0} module.
 
@@ -782,7 +785,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlsignal QtMultimedia5::Audio::onError(error, errorString)
+    \qmlsignal QtMultimedia5::Audio::error(error, errorString)
 
     This handler is called when an \l {QMediaPlayer::Error}{error} has
     occurred.  The errorString parameter may contain more detailed

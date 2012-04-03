@@ -651,12 +651,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 */
 
 /*!
-    \fn QMediaServiceProviderPlugin::keys() const
-
-    Returns a list of keys for media services a plug-in can create.
-*/
-
-/*!
     \fn QMediaServiceProviderPlugin::create(const QString &key)
 
     Constructs a new instance of the QMediaService identified by \a key.

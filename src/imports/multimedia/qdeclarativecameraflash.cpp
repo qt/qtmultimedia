@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
     \l {Torch}{torch} hardware).
 
     It should not be constructed separately but provided by the
-    Camera element's \l {Camera::flash}{flash} property.
+    \l Camera element's \c flash property.
 
     \qml
     import QtQuick 2.0

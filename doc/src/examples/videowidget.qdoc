@@ -26,18 +26,11 @@
 ****************************************************************************/
 
 /*!
-    \example audiodevices
-    \title Audio Devices Example
-    \ingroup audio_examples
-    \brief The Audio Devices example shows the application of the audio devices APIs
+\example videowidget
+\title Video Widget Example
+\ingroup video_examples
 
-
-    This example shows how to create a simple application to list and test
-    the configuration for the various audio devices available on the device
-    or machine. This is done using the QtMobility Multimedia API.
-
-    \image audiodevices.png
+\brief This example demonstrates how to make a simple video player using the QMediaPlayer
+and QVideoWidget classes
 
 */
-
-

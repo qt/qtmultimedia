@@ -200,6 +200,7 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
 /*
     \class QGraphicsVideoItem
 
+
     \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaObject.
 
     \inmodule QtMultimedia
@@ -247,7 +248,7 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
             this, SLOT(_q_updateNativeSize()), Qt::QueuedConnection);
 }
 
-/*!
+/*
     Destroys a video graphics item.
 */
 QGraphicsVideoItem::~QGraphicsVideoItem()

@@ -55,8 +55,8 @@ QT_BEGIN_NAMESPACE
     done by the camera middleware, including white balance adjustments,
     contrast, saturation, sharpening, and denoising
 
-    It is not constructed separately but is provided by the Camera element's
-    \l {Camera::imageProcessing}{imageProcessing} property.
+    It is not constructed separately but is provided by the \a Camera element's
+    \c imageProcessing property.
 
     \qml
     import QtQuick 2.0

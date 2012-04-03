@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
     camera frame that are selected for autofocusing.
 
     It is not constructed separately but is provided by the
-    Camera element's \l {Camera::focus}{focus} property.
+    \l Camera element's \c focus property.
 
     \qml
     import QtQuick 2.0
@@ -122,8 +122,8 @@ QDeclarativeCamera::FocusMode QDeclarativeCameraFocus::focusMode() const
 }
 
 /*!
-    \qmlmethod bool QtMultimedia5::CameraFocus::isFocusModeSupported(mode)
-    \fn QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusMode mode)
+    \qmlmethod bool QtMultimedia5::CameraFocus::isFocusModeSupported(mode) const
+    \fn QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusMode mode) const
 
     Returns true if the supplied \a mode is a supported focus mode, and
     false otherwise.
@@ -163,8 +163,8 @@ void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCamera::FocusPointMo
 }
 
 /*!
-    \qmlmethod bool QtMultimedia5::CameraFocus::isFocusPointModeSupported(mode)
-    \fn QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode)
+    \qmlmethod bool QtMultimedia5::CameraFocus::isFocusPointModeSupported(mode) const
+    \fn QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode) const
 
     Returns true if the supplied \a mode is a supported focus point mode, and
     false otherwise.

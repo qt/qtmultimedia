@@ -55,6 +55,7 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
     \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
     \inqmlmodule QtMultimedia 5
 
     This element is part of the \b{QtMultimedia 5.0} module.
@@ -71,6 +72,22 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_audio
 
+
+*/
+
+/*!
+    \enum QSoundEffect::Loop
+
+    \value Infinite  Used as a parameter to \l loops for infinite looping
+*/
+
+/*!
+    \enum QSoundEffect::Status
+
+    \value Null  No source has been set or the source is null.
+    \value Loading  The soundeffect is trying to load the source.
+    \value Ready  The source is loaded and ready for play.
+    \value Error  An error occurred during operation, such as failure of loading the source.
 
 */
 
@@ -113,20 +130,23 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlproperty bool QtMultimedia5::SoundEffect::playing
-    \property QSoundEffect::source
+    \property QSoundEffect::playing
 
     This property indicates if the soundeffect is playing or not.
 */
 
 /*!
-    \qmlproperty int QtMultimedia5::SoundEffect::status
+    \qmlproperty enumeration QtMultimedia5::SoundEffect::status
 
     This property indicates the following status of the soundeffect.
 
-    Null: no source has been set or is null.
-    Loading: the soundeffect is trying to load the source.
-    Ready: the source is loaded and ready for play.
-    Error: some error happened during operation, such as failure of loading the source.
+    \table
+    \header \li Value \li Description
+    \row \li SoundEffect.Null    \li No source has been set or the source is null.
+    \row \li SoundEffect.Loading \li The soundeffect is trying to load the source.
+    \row \li SoundEffect.Ready   \li The source is loaded and ready for play.
+    \row \li SoundEffect.Error   \li An error occurred during operation, such as failure of loading the source.
+    \endtable
 */
 
 /*!
@@ -208,6 +228,11 @@ QSoundEffect::~QSoundEffect()
     d->release();
 }
 
+/*!
+    \fn QSoundEffect::supportedMimeTypes()
+
+    Returns a list of the supported mime types for this sound effect.
+*/
 QStringList QSoundEffect::supportedMimeTypes()
 {
     return QSoundEffectPrivate::supportedMimeTypes();
@@ -233,6 +258,18 @@ int QSoundEffect::loopCount() const
     return d->loopCount();
 }
 
+/*!
+    \qmlproperty int QtMultimedia5::SoundEffect::loopsRemaining
+
+    This property contains the number of loops remaining before the sound effect
+    stops by itself, or SoundEffect.Infinite if that's what has been set in \l loops.
+*/
+/*!
+    \property QSoundEffect::loopsRemaining
+
+    This property contains the number of loops remaining before the sound effect
+    stops by itself, or QSoundEffect::Infinite if that's what has been set in \l loops.
+*/
 int QSoundEffect::loopsRemaining() const
 {
     return d->loopsRemaining();
@@ -284,20 +321,32 @@ void QSoundEffect::setMuted(bool muted)
     d->setMuted(muted);
 }
 
+/*!
+    \qmlmethod bool QtMultimedia5::SoundEffect::isLoaded()
+    \fn QSoundEffect::isLoaded() const
+
+    Returns whether the sound effect has finished loading the \l source.
+*/
 bool QSoundEffect::isLoaded() const
 {
     return d->isLoaded();
 }
 
 /*!
-  \qmlmethod QtMultimedia5::SoundEffect::play()
+    \qmlmethod QtMultimedia5::SoundEffect::play()
 
-  Start playback of the sound effect, looping the effect for the number of
-  times as specified in the loops property.
+    Start playback of the sound effect, looping the effect for the number of
+    times as specified in the loops property.
 
-  This is the default method for SoundEffect.
+    This is the default method for SoundEffect.
 
-  \snippet doc/src/snippets/multimedia-snippets/soundeffect.qml play sound on click
+    \snippet doc/src/snippets/multimedia-snippets/soundeffect.qml play sound on click
+*/
+/*!
+    \fn QSoundEffect::play()
+
+    Start playback of the sound effect, looping the effect for the number of
+    times as specified in the loops property.
 */
 void QSoundEffect::play()
 {
@@ -310,14 +359,6 @@ bool QSoundEffect::isPlaying() const
 }
 
 /*!
-    \enum QSoundEffect::Status
-    \value Null         This sound effect does not have a source set.
-    \value Loading      The source is being loaded
-    \value Ready        The source has been loaded, and can be played.
-    \value Error        An error occurred while loading the source or during playback.
-*/
-
-/*!
     Returns the current status of this sound effect.
  */
 QSoundEffect::Status QSoundEffect::status() const
@@ -328,8 +369,10 @@ QSoundEffect::Status QSoundEffect::status() const
 
 /*!
   \qmlmethod QtMultimedia5::SoundEffect::stop()
+  \fn QSoundEffect::stop()
 
   Stop current playback.
+
   Note that if the backend is PulseAudio, due to the limitation of the underlying API,
   tis stop will only prevent next looping but will not be able to stop current playback immediately.
 

@@ -27,8 +27,8 @@
 
 /*!
 \qmlmodule QtMultimedia 5
-\title QtMultimedia 5.0
-\brief The QML import for QtMultimedia
+\title QML import for multimedia
+\brief The import for the QML elements in the Qt Multimedia module
 
 \section1 Overview
 

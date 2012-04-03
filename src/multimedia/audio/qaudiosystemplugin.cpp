@@ -106,11 +106,6 @@ QAudioSystemPlugin::~QAudioSystemPlugin()
 {}
 
 /*!
-    \fn QStringList QAudioSystemPlugin::keys() const
-    Returns the list of device identifiers this plugin supports.
-*/
-
-/*!
     \fn QList<QByteArray> QAudioSystemPlugin::availableDevices(QAudio::Mode mode) const
     Returns a list of available audio devices for \a mode
 */

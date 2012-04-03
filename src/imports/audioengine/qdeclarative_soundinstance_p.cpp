@@ -459,7 +459,7 @@ void QDeclarativeSoundInstance::setGain(qreal gain)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::SoundInstance::gain
+    \qmlproperty vector3d QtAudioEngine1::SoundInstance::pitch
 
     This property holds the pitch adjustment which will be used to modulate the audio pitch
     from this SoundInstance.

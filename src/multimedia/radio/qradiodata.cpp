@@ -113,7 +113,7 @@ void QRadioDataPrivate::_q_serviceDestroyed()
 }
 
 /*!
-    Constructs a radio data based on a media object.
+    Constructs a radio data based on a \a mediaObject and \a parent.
 
     The \a mediaObject should be an instance of \l QRadioTuner. It is preferable to use the
     \l{QRadioTuner::radioData()}{radioData} property on a QRadioTuner instance to get an instance

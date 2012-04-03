@@ -122,6 +122,7 @@ private:
     \brief The VideoOutput element allows you to render video or camera viewfinder.
 
     \ingroup multimedia_qml
+    \ingroup multimedia_video_qml
     \inqmlmodule QtMultimedia 5
 
     This element is part of the \b{QtMultimedia 5.0} module.

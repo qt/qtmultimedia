@@ -162,12 +162,6 @@ QMediaPlaylistIOPlugin::~QMediaPlaylistIOPlugin()
 */
 
 /*!
-    \fn QMediaPlaylistIOPlugin::keys() const
-
-    Returns a list of format keys supported by a plug-in.
-*/
-
-/*!
     \fn QMediaPlaylistIOPlugin::createReader(QIODevice *device, const QByteArray &format)
 
     Returns a new QMediaPlaylistReader which reads \a format data from an I/O \a device.

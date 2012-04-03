@@ -194,13 +194,10 @@ QAudioBufferPrivate *QAudioBufferPrivate::clone()
 
 /*!
     \class QAudioBuffer
-    \brief A class that represents a collection of audio samples.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
-
-    The QAudioBuffer class represents a collection of audio samples,
-    with a specific format and sample rate.
+    \brief The QAudioBuffer class represents a collection of audio samples with a specific format and sample rate.
 */
 // ^ Mostly useful with probe or decoder
 

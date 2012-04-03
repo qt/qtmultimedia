@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
     like aperture and shutter speed, metering and ISO speed.
 
     It should not be constructed separately but provided by the
-    Camera element's \l {Camera::exposure} {exposure} property.
+    \l Camera element's \c exposure property.
 
     \qml
     import QtQuick 2.0

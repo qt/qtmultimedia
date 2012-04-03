@@ -82,7 +82,7 @@ public:
     QAbstractListModel *focusZones() const;
 
     Q_INVOKABLE bool isFocusModeSupported(QDeclarativeCamera::FocusMode mode) const;
-    Q_INVOKABLE bool isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode) const;
+    Q_INVOKABLE bool isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode) const;
 
 public Q_SLOTS:
     void setFocusMode(QDeclarativeCamera::FocusMode);

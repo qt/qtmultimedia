@@ -28,6 +28,7 @@
 /*!
     \example player
     \title Media Player Example
+    \ingroup video_examples
 
 
     This example creates a simple multimedia player. We can play audio and

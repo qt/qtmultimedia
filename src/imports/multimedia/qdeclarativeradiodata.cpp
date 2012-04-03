@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
     \inqmlmodule QtMultimedia 5
     \brief The RadioData element allows you to access RDS data from a QML application.
     \ingroup multimedia_qml
+    \ingroup multimedia_radio_qml
     \inherits Item
 
     This element is part of the \b{QtMultimedia 5.0} module.

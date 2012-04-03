@@ -28,6 +28,7 @@
 /*!
 \example declarative-camera
 \title QML Camera Example
+\ingroup camera_examples_qml
 
 \brief  The Camera Example shows how to use the API to capture a still image
 or video.
@@ -43,7 +44,7 @@ Camera elements being mostly found in \e {declarative-camera.qml} and
 \e {CaptureControls.qml}.
 
 In \e {declarative-camera.qml} the Camera element is initialized with an id
-of \e {camera }, a photo preview is setup, states are implemented for image
+of \e {camera}, a photo preview is setup, states are implemented for image
 preview or capture and a CaptureControls element is initialized. The initial
 \e state is \e PhotoCapture. The camera element includes a handler, \e onImageCaptured,
 for the \l {imageCaptured} signal. The handler sets up the application to process

@@ -410,6 +410,12 @@ void QMediaObject::setupControls()
     Signal emitted when the availability state has changed to \a available
 */
 
+/*!
+    \fn QMediaObject::availabilityErrorChanged(QtMultimedia::AvailabilityError error)
+
+    Signal emitted when the availability error has changed to \a error
+*/
+
 
 #include "moc_qmediaobject.cpp"
 QT_END_NAMESPACE

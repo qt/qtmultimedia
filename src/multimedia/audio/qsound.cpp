@@ -80,6 +80,12 @@
     \sa QSoundEffect
 */
 
+/*!
+    \enum QSound::Loop
+
+    \value Infinite  Can be used as a parameter to \l setLoops() to loop infinitely.
+*/
+
 
 /*!
     Plays the sound stored in the file specified by the given \a filename.

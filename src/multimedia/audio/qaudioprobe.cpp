@@ -79,7 +79,7 @@ public:
 };
 
 /*!
-    Creates a new QAudioProbe class.  After setting the
+    Creates a new QAudioProbe class with a \a parent.  After setting the
     source to monitor with \l setSource(), the \l audioBufferProbed()
     signal will be emitted when audio buffers are flowing in the
     source media object.
@@ -157,8 +157,8 @@ bool QAudioProbe::setSource(QMediaObject *source)
 
     Returns true on success.
 
-    If \a source is zero, this probe will be deactivated
-    and this function will return true.
+    If there is no mediaObject associated with \a mediaRecorder, or if it is
+    zero, this probe will be deactivated and this function wil return true.
 
     If the media recorder instance does not support monitoring
     audio, this function will return false.
@@ -194,7 +194,7 @@ bool QAudioProbe::isActive() const
 /*!
     \fn QAudioProbe::audioBufferProbed(const QAudioBuffer &buffer)
 
-    This signal should be emitted when an audio buffer is processed in the
+    This signal should be emitted when an audio \a buffer is processed in the
     media service.
 */
 

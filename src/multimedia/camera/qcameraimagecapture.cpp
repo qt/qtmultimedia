@@ -76,6 +76,13 @@ QT_BEGIN_NAMESPACE
     \sa QCamera
 */
 
+/*!
+    \enum QCameraImageCapture::CaptureDestination
+
+    \value CaptureToFile  Capture the image to a file.
+    \value CaptureToBuffer  Capture the image to a buffer for further processing.
+*/
+
 namespace
 {
 class MediaRecorderRegisterMetaTypes
@@ -441,9 +448,9 @@ QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
 }
 
 /*!
-    Sets the buffer image capture format to be used.
+    Sets the buffer image capture \a format to be used.
 
-    \sa BufferFormat() supportedBufferFormats() captureDestination()
+    \sa bufferFormat() supportedBufferFormats() captureDestination()
 */
 void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
 {
@@ -626,7 +633,8 @@ void QCameraImageCapture::cancelCapture()
 /*!
     \fn QCameraImageCapture::imageMetadataAvailable(int id, const QString &key, const QVariant &value)
 
-    Signals that a metadata for an image with request \a id is available.
+    Signals that a metadata for an image with request \a id is available. Also
+    includes the \a key and \a value of the metadata.
 
     This signal is emitted between imageExposed and imageSaved signals.
 */

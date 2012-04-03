@@ -28,6 +28,7 @@
 /*!
 \example video/qmlvideo
 \title QML Video Example
+\ingroup video_examples_qml
 
 \brief The QML Video Example demonstrates the various manipulations (move;
 resize; rotate; change aspect ratio) which can be applied to QML \l{VideoOutput}

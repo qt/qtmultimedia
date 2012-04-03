@@ -78,15 +78,12 @@ current frequency inside the band.
 
 \section1 Reference documentation
 
-\section2 Radio C++ Classes
+\section2 C++ Classes
 
 \annotatedlist multimedia_radio
 
 \section2 QML Elements
 
-\list
-    \li \l Radio
-    \li \l RadioData
-\endlist
+\annotatedlist multimedia_radio_qml
 
 */

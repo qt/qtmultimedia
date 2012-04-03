@@ -7,7 +7,15 @@ win32:!win32-g++ {
     unixstyle = true
 }
 
-QDOC = $$QT.core.bins/qdoc3
+system(which qdoc) {
+    QDOC = qdoc
+} else {
+    exists($$QT.core.bins/qdoc3) {
+        QDOC = $$QT.core.bins/qdoc3
+    } else {
+        warning("No qdoc executable found.")
+    }
+}
 
 ONLINE_CONF = $$PWD/qtmultimedia.qdocconf
 DITA_CONF = $$PWD/qtmultimedia-dita.qdocconf
