@@ -44,7 +44,7 @@
 testcase = {
 
 /* Notes
-Ensure various mp3, wav, ogg, oga, spx and flac audio files availabe for playback
+Ensure various mp3, wav, ogg, oga, spx and flac audio files available for playback
 Ensure a valid m3u file referring to locations where indicated media is available on the device
 Ensure the device can ping destinations on the network (if applicable)
 Have an audio stream url available (e.g. http://202.6.74.107:8060/triplej.mp3 for example)
@@ -101,7 +101,7 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
          // Test meta data
          testApplication = "Multimedia - Audio Player Controls";
          testBinary = "BGMPTest01";
-         testGoal = "Verify basic API for controling audio playback ";
+         testGoal = "Verify basic API for controlling audio playback ";
          testPreconditions = "a test "+extension+" file is available on device";
          testGroups = "BAT";
 
@@ -114,12 +114,12 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
             | *Step* | *Verification* |
             | Launch " + testBinary + " | App launches normally |
             | Select the desired "+filename+extension+" in playlist and press [Play] | Verify that file plays properly from the start |
-            | | Verify that the correct track details are displayed in the Playlist |
+            | | Verify that the correct track details are displayed in the playlist |
             | Select [Pause] | Verify that file has paused |
             | Select [Play] | Verify that file continues to play properly from where previously paused. |
-            | | Verify that the timebar tracks the progression of the file playback |
+            | | Verify that the progress bar tracks the progression of the file playback |
             | Select [Next] control | Verify that next file in playlist is playing from start |
-            | | Verify that the correct playlist title is highlighted and that the details are correct to reflect the seclected audio track |
+            | | Verify that the correct playlist title is highlighted and that the details are correct to reflect the selected audio track |
             | Select [Stop] control | Verify that file has stopped playing |
             | Select [Play] | Verify that file continues to play from start of file. |
             | With file playing, verify that UI volume control slider can change volume up and down | |
@@ -129,6 +129,41 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
             | Select [Mute] control again | Verify that sound has reverted back to level selected prior to muting |
             "));
     },
+
+   hardware_volume_controls_for_audio_data: {
+       // mp3:[".mp3", "filename", "mpeg audio layer 3"],
+       // wav:[".wav", "filename", "waveform audio"],
+        ogg:[".ogg", "filename", "container format"],
+       // virbis:[".oga", "filename", "audio compression format"],
+       // speex:[".spx", "filename", "speech audio format"],
+       //flac:[".flac", "filename", "audio file format"]
+    },
+
+    hardware_volume_controls_for_audio: function(extension, filename, format)
+    {
+         // Test meta data
+         testApplication = "Multimedia - Audio Player Controls";
+         testBinary = "BGMPTest01";
+         testGoal = "Verify hardware volume control of audio playback ";
+         testPreconditions = "a test "+extension+" file is available on device";
+         testGroups = "BAT";
+
+         // Test steps
+         prompt(twiki("---+++ " + testApplication + "<br><br>
+             *Goal:* " + testGoal + "<br>
+             *Pre-Requisites:* " + testPreconditions + "<br>
+             *Tested Binary:* " + testBinary + "<br>
+
+            | *Step* | *Verification* |
+            | Launch " + testBinary + " | App launches normally |
+            | Select the desired "+filename+extension+" in playlist and press [Play] | Verify that file plays properly from the start |
+            | Press the hardware volume keys to increase the volume to the maximum | Verify that the device now plays at maximum volume |
+            | Using hardware volume keys, select volume at about 50% | Verify that the device is now playing at about 50% volume |
+            | Using hardware keys, take volume down to 0% | Verify that sound is muted while file is playing |
+            | Using hardware keys, increase volume | Verify that sound is once again playing from device |
+            "));
+    },
+
 
     basic_playlist_controls_for_audio_data: {
        // mp3:[".mp3", "filename", "mpeg audio layer 3"],
@@ -144,7 +179,7 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
          // Test meta data
          testApplication = "Multimedia - Audio Player Controls";
          testBinary = "BGMPTest01";
-         testGoal = "Verify basic API for controling playlist playback ";
+         testGoal = "Verify basic API for controlling playlist playback ";
          testPreconditions = "a test "+extension+" file is available on device";
          testGroups = "BAT";
 
@@ -158,10 +193,10 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
             | Launch " + testBinary + " | App launches normally |
             | Select 'Sequential' as the Play Mode |  |
             | Select the desired "+filename+extension+" in playlist and press [Play] | Verify that file plays properly from the start |
-            | | Verify that the correct track details are displayed in the Playlist |
+            | | Verify that the correct track details are displayed in the playlist |
             | Select [Next] | Verify that the next file in the playlist is highlighted |
-            |  | Verify that the correct audio file is being played from the begining of the track |
-            |  | Verify that there are no audable artifacts or undue lag during this change of track |
+            |  | Verify that the correct audio file is being played from the beginning of the track |
+            |  | Verify that there are no audible artifacts or undue lag during this change of track |
             | After some time (10-20 sec), select [Prev] icon | Verify that the previous file in the playlist is being played from start |
             | Let file play till end | Verify player continues playing the next file in the playlist window |
             | After some arbitrary time, Select [Stop] | |
@@ -177,8 +212,8 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
             | Select [current Loop] from Play Mode | Verify that the same song now plays in a loop |
             | | Verify that selecting [Prev] or [Next] has no effect on the tune played |
             | Select [Current Only] in the Play Mode | Verify that only the selected song plays and stops at the end |
-            | Select [Shuffle] | Verify that the playlist is now shuffled in a random fashon |
-            | Select [Shuffle] again | Verify that the playlist is again shuffled in a random fashon |
+            | Select [Shuffle] | Verify that the playlist is now shuffled in a random fashion |
+            | Select [Shuffle] again | Verify that the playlist is again shuffled in a random fashion |
             | Select [Reset] | Verify that the playlist is now back to its original order |
          "));
 
@@ -211,13 +246,13 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
             | *Step* | *Verification* |
             | Launch " + testBinary + " | App launches normally |
             | Select [Play] to play the file | |
-            | Click on the [Move Forward] controll | Verify that file playback has moved forward 5 seconds |
+            | Click on the [Move Forward] control | Verify that file playback has moved forward 5 seconds |
             | Select [Pause] | Verify that the  file has paused the playback |
-            | Click on the [Move Forward] controll | Verify that the file has moved 5 seconds forward, but is still paused |
+            | Click on the [Move Forward] control | Verify that the file has moved 5 seconds forward, but is still paused |
             | Select [Play] | Verify that file is now playing from new position |
-            | Click on the [Move Backwards] controll | Verify that file playback has moved back 5 seconds |
+            | Click on the [Move Backwards] control | Verify that file playback has moved back 5 seconds |
             | Select [Pause] | Verify that the  file has paused the playback |
-            | Click on the [Move Backwards] controll | Verify that the file has moved 5 seconds backwards, but is still paused |
+            | Click on the [Move Backwards] control | Verify that the file has moved 5 seconds backwards, but is still paused |
             | Select [Play] | Verify that file is now playing from new position |
       "));
     },
@@ -262,15 +297,15 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
         "));
     },
 
-    record_an_audio_file: function()
+    lock_screen_controls_for_audio: function()
     {
 
       // Test meta data
-      testApplication = "Multimedia - Recording Audio";
-      testBinary = "audiorecorder";
-      testGoal = "Verify that audio can be recorded.";
+      testApplication = "Multimedia - Background Audio";
+      testBinary = "BGPlayback";
+      testGoal = "Verify LockScreen controls for Background Audio Playback.";
       testPreconditions = "";
-      testGroups = "BAT";
+      testGroups = "BAT, 1.2";
 
       // Test steps
       prompt(twiki("---+++ " + testApplication + "<br><br>
@@ -279,31 +314,36 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
           *Tested Binary:* " + testBinary + "<br>
 
          | *Step* | *Verification* |
-         | Launch " + testBinary + " | App launches normally |
-         | Select Input Device | |
-         | Select Audio Codec | |
-         | Select File Container | |
-         | Select Sample Rate | |
-         | Select Quality and Bitrate | |
-         | Select Output... and select location and name of output file | |
-         | Select Record | Verify that [Record] button has changed in to [Stop] |
-         | | Verify that Duration is counting seconds |
-         | | Verify that Recording is displayed |
-         | Select Stop | Verify that Duration is now 0 |
-         | Select Output File in file browser | Verify that an audio file has been generated |
-         | Play output file in media player | Verify that audible audio is recorded in file |
+         | Launch " + testBinary + " | Verify app launches normally |
+         | Swipe application off screen | Verify that audio is still playing |
+         | Hit hardware Home key | Verify that the screen has locked |
+         | Double tap or hit the hardware Home key | Verify that you are now presented with the lock screen |
+         | | Verify that player controls are present on the lock screen: Back, Play and Next |
+         | | Verify that the currently playing track is displayed as well as artist |
+         | Tap the Pause button | Verify that the track has paused |
+         | | Verify that the Pause control has changed in to a Play control |
+         | Tap the Play control | Verify that the track has continued playing from the previous position |
+         | Tap the Next control | Verify that the next track is now playing from the start |
+         | Tap the Previous control | Verify that the original track is playing once again |
+         | Tap Pause and then Next | Verify that the next tracks details are displayed, but that the track is still paused and remains so |
+         | Reopen the BGPlayback app | Verify that the same track is selected as in the previous step |
+         | Return to lock screen and continue background playback | Verify that audio is playing |
+         | Interrupt playback with a phone call to the device | Verify that the audio pauses and that the ringtone is played |
+         | Stop the phone call | Verify that the background audio is now paused |
+         | Tap Play | Verify that the audio continues playing from the previously paused position |
+
         "));
     },
 
-    pause_recording_an_audio_file: function()
+    headset_removal: function()
     {
 
       // Test meta data
-      testApplication = "Multimedia - Pause Recording Audio";
-      testBinary = "audiorecorder";
-      testGoal = "Verify API to be able to pause audio recording without unwanted artifacts.";
+      testApplication = "Multimedia - Removal of headset";
+      testBinary = "Audio Player";
+      testGoal = "Verify correct handling of headset removal.";
       testPreconditions = "";
-      testGroups = "BAT";
+      testGroups = "BAT, 1.2";
 
       // Test steps
       prompt(twiki("---+++ " + testApplication + "<br><br>
@@ -312,30 +352,18 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
           *Tested Binary:* " + testBinary + "<br>
 
          | *Step* | *Verification* |
-         | Launch " + testBinary + " | App launches normally |
-         | Select Input Device | |
-         | Select Audio Codec | |
-         | Select File Container | |
-         | Select Sample Rate | |
-         | Select Quality and Bitrate | |
-         | Select Output... and select location and name of output file | |
-         | Select Record | Verify that [Record] button has changed in to [Stop] |
-         | | Verify that Duration is counting seconds |
-         | | Verify that Recording is displayed |
-         | Speak in to the microphone. Suggest counting from 1 to 5 | |
-         | Select Pause | Verify that instead of Duration, Paused is displayed |
-         | Keep speaking in to microfon, continue counting from 6 to 10 | |
-         | Select Resume | Verify that the counter has resumed the seconds count from where it was previously paused. |
-         | Continue counting from 11 to 15 in to the microphone | |
-         | After a arbitrary time, Stop the recording. | |
-         | Select Output File in file browser | Verify that an audio file has been generated |
-         | Play output file in media player | Verify that audible audio is recorded in file and that audio is only recorded for period that Pause was not selected |
-         | | Verify that the recording reproduces the counting from 1 to 5 then continues from 11 to 15 and that the counting from 6 - 10 is not recorded |
-         | | Verify there is no audible artifact that separates the two or more recording periods, that is that the joint is seamless |
+         | Launch " + testBinary + " | Verify app launches normally |
+         | Select Play on the application UI | Verify that audio is audible |
+         | Insert headset in to device | Verify that audio is no longer heard through the speakers, but is routed to the headset |
+         | Remove headset | Verify that playback has paused |
+         | Select Play on the application UI | Verify that audio is hears once again through the speakers |
+         | Turn volume down and then insert headset | Verify that sound is once again routed through headset, and that new volume setting is preserved |
+         | Close application | Verify that the application closes without issues |
         "));
     },
 
-    play_sound_efects: function()
+
+    play_sound_effects: function()
     {
 
       // Test meta data
@@ -353,23 +381,23 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
 
          | *Step* | *Verification* |
          | Launch " + testBinary + " | Verify app launches normally |
-         | Touch red rectangle | Verify that a soundeffect is audible |
-         | Touch blue rectangle | Verify that a soundeffect is audible |
-         | Touch green rectangle | Verify that a soundeffect is audible |
-         | Tuch yellow rectangle | Verify that a soundeffect is audible |
+         | Touch red rectangle | Verify that a sound effect is audible |
+         | Touch blue rectangle | Verify that a sound effect is audible |
+         | Touch green rectangle | Verify that a sound effect is audible |
+         | Touch yellow rectangle | Verify that a sound effect is audible |
          | Touch a combination of rectangles in quick succession | Verify that sound effects trigger on each touch |
          | Close application | Verify that the application closes without issues |
         "));
     },
 
-    play_sound_efects_over_compressed_audio: function()
+    change_volume_of_sound_effects: function()
     {
 
       // Test meta data
       testApplication = "Multimedia - SoundEffects Playback";
       testBinary = "BeatBox";
-      testGoal = "Verify playback of sound effects over audio track.";
-      testPreconditions = "BGMPTest01 application to provide backround playback";
+      testGoal = "Change volume of sound effects.";
+      testPreconditions = "";
       testGroups = "BAT, 1.2";
 
       // Test steps
@@ -379,13 +407,39 @@ SIM cards from Vodafone and Testra (Australia) needed for 3G streaming testing
           *Tested Binary:* " + testBinary + "<br>
 
          | *Step* | *Verification* |
-         | Launch BGMPTest01, start playback of playlist | Audio sould be heard from the device |
-         | Swipe to backround BGMPTest01 | Audio should still be heard from BGMPTest01 |
          | Launch " + testBinary + " | Verify app launches normally |
-         | Touch red rectangle | Verify that a soundeffect is audible toghether with the background track |
-         | Touch blue rectangle | Verify that a soundeffect is audible toghether with the background track |
-         | Touch green rectangle | Verify that a soundeffect is audible toghether with the background track |
-         | Tuch yellow rectangle | Verify that a soundeffect is audible toghether with the background track |
+         | Set volume of device to maximum | Verify that sound effect now plays at maximum volume |
+         | Set volume of device to about 50% volume | Verify that the sound effect now plays at half volume |
+         | Set volume of device to minimum | Verify that there is now no audio from device when sound effect is played |
+         | Close application | Verify that the application closes without issues |
+        "));
+    },
+
+
+    play_sound_effects_over_compressed_audio: function()
+    {
+
+      // Test meta data
+      testApplication = "Multimedia - SoundEffects Playback";
+      testBinary = "BeatBox";
+      testGoal = "Verify playback of sound effects over audio track.";
+      testPreconditions = "BGMPTest01 application to provide background playback";
+      testGroups = "BAT, 1.2";
+
+      // Test steps
+      prompt(twiki("---+++ " + testApplication + "<br><br>
+          *Goal:* " + testGoal + "<br>
+          *Pre-Requisites:* " + testPreconditions + "<br>
+          *Tested Binary:* " + testBinary + "<br>
+
+         | *Step* | *Verification* |
+         | Launch BGMPTest01, start playback of playlist | Audio should be heard from the device |
+         | Swipe to background BGMPTest01 | Audio should still be heard from BGMPTest01 |
+         | Launch " + testBinary + " | Verify app launches normally |
+         | Touch red rectangle | Verify that a sound effect is audible together with the background track |
+         | Touch blue rectangle | Verify that a sound effect is audible together with the background track |
+         | Touch green rectangle | Verify that a sound effect is audible together with the background track |
+         | Touch yellow rectangle | Verify that a sound effect is audible together with the background track |
          | Touch a combination of rectangles in quick succession | Verify that sound effects trigger on each touch and that the background track can still be heard |
          | Close application | Verify that the application closes without issues |
          |  | Verify that BGMPTest01 is still playing audio tracks |
