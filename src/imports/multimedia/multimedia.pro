@@ -55,7 +55,29 @@ OTHER_FILES += \
     Video_4.qml \
     Video.qml
 
-qmldir.files += $$PWD/qmldir $$PWD/Video.qml $$PWD/Video_4.qml
+# plugin.qmltypes is used by Qt Creator for syntax highlighting and the QML code model.  It needs
+# to be regenerated whenever the QML elements exported by the plugin change.  This cannot be done
+# automatically at compile time because qmlplugindump does not support some QML features and it may
+# not be possible when cross-compiling.
+#
+# To regenerate run 'make qmltypes' which will update the plugins.qmltypes file in the source
+# directory.  Then review and commit the changes made to plugins.qmltypes.
+#
+# This will run the following command:
+#     qmlplugindump <import name> <import version> <path to import plugin> > plugins.qmltypes
+# e.g.:
+#     qmlplugindump QtMultimedia 5.0 imports/QtMultimedia/libdeclarative_multimedia.so > plugins.qmltypes
+
+load(resolve_target)
+qmltypes.target = qmltypes
+qmltypes.commands = $$[QT_INSTALL_BINS]/qmlplugindump QtMultimedia 5.0 $$QMAKE_RESOLVED_TARGET > $$PWD/plugins.qmltypes
+qmltypes.depends = $$QMAKE_RESOLVED_TARGET
+QMAKE_EXTRA_TARGETS += qmltypes
+
+# Tell qmake to create such makefile that qmldir, plugins.qmltypes and target
+# (i.e. declarative_multimedia) are all copied to $$[QT_INSTALL_IMPORTS]/QtMultimedia directory,
+
+qmldir.files += $$PWD/qmldir $$PWD/plugins.qmltypes $$PWD/Video.qml $$PWD/Video_4.qml
 qmldir.path +=  $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
 
 # another copy of the qmldir file so the old import works
