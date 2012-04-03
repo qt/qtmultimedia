@@ -48,7 +48,7 @@ Ensure 2 test .mp4 files are available on device
 Ensure the device can ping destinations on the network (if applicable)
 Have a video stream url available (e.g. http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4)
 Ensure access to Internet available to device
-Ensure an active SIM card is available on the device. As some video streaming tests are carrier specific, it is recommended in Australia to have access to Testra, Optus and Vodafone SIM's
+Ensure an active SIM card is available on the device. As some video streaming tests are carrier specific, it is recommended in Australia to have access to Testra, Optus and Vodafone SIM's.
 */
     initTestCase: function()
     {

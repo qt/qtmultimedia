@@ -70,7 +70,7 @@ testcase = {
             | If device has lens cover, make sure it is open | |
             | Select Image tab to put camera in still mode | Verify the intended scene is reproduced in the preview pane/viewfinder |
             | Select Capture Photo | Verify that image is shown on screen for preview |
-            | | Verify that a new file is in the Images folder and accessibble with the image viewer |
+            | | Verify that a new file is in the Images folder and accessible with the image viewer |
             | Select given image | Verify that it is a true representation of the intended screen |
             | | Verify the image has no unintended artifacts and noise and is properly formatted |
         "));
