@@ -59,7 +59,7 @@ A device specific headset is required to be connected to device for radio testin
         testBinary = "radio";
         testSource ="qt5/qtmultimedia/examples/radio"
         testGoal = "Verify that radio stations can be played.";
-        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
         testGroups = "BAT, 1.2";
 
         // Test steps
@@ -301,7 +301,7 @@ A device specific headset is required to be connected to device for radio testin
      testTitle = "Multimedia - Radio Volume Control";
      testBinary = "radio";
      testGoal = "Verify that the radio volume can be controlled via volume controls.";
-     testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
+     testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
      testGroups = "BAT, 1.2";
 
      // Test steps
@@ -325,8 +325,8 @@ A device specific headset is required to be connected to device for radio testin
      // Test meta data
      testTitle = "Multimedia - Display Radio Meta data";
      testBinary = "radio";
-     testGoal = "Verify that the radio API can display properly formmated meta data.";
-     testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antena to the device and must be connected.";
+     testGoal = "Verify that the radio API can display properly formatted meta data.";
+     testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
      testGroups = "BAT, 1.2";
 
      // Test steps
