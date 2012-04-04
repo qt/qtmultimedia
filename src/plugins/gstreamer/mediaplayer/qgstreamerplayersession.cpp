@@ -181,10 +181,9 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         g_signal_connect(G_OBJECT(m_playbin), "notify::source", G_CALLBACK(playbinNotifySource), this);
         g_signal_connect(G_OBJECT(m_playbin), "element-added",  G_CALLBACK(handleElementAdded), this);
 
-        // Initial volume
-        double volume = 1.0;
-        g_object_get(G_OBJECT(m_playbin), "volume", &volume, NULL);
-        m_volume = int(volume*100);
+        // Init volume and mute state
+        g_object_set(G_OBJECT(m_playbin), "volume", 1.0, NULL);
+        g_object_set(G_OBJECT(m_playbin), "mute", FALSE, NULL);
 
         g_signal_connect(G_OBJECT(m_playbin), "notify::volume", G_CALLBACK(handleVolumeChange), this);
         if (m_usePlaybin2)
@@ -930,7 +929,7 @@ void QGstreamerPlayerSession::setMuted(bool muted)
         m_muted = muted;
 
         if (m_usePlaybin2)
-            g_object_set(G_OBJECT(m_playbin), "mute", m_muted, NULL);
+            g_object_set(G_OBJECT(m_playbin), "mute", m_muted ? TRUE : FALSE, NULL);
         else
             g_object_set(G_OBJECT(m_playbin), "volume", (m_muted ? 0 : m_volume/100.0), NULL);
 
@@ -1604,10 +1603,10 @@ void QGstreamerPlayerSession::updateVolume()
         }
     }
 
-    if (m_volume != int(volume*100)) {
-        m_volume = int(volume*100);
+    if (m_volume != int(volume*100 + 0.5)) {
+        m_volume = int(volume*100 + 0.5);
 #ifdef DEBUG_PLAYBIN
-        qDebug() << Q_FUNC_INFO << m_muted;
+        qDebug() << Q_FUNC_INFO << m_volume;
 #endif
         emit volumeChanged(m_volume);
     }
@@ -1623,7 +1622,7 @@ void QGstreamerPlayerSession::handleMutedChange(GObject *o, GParamSpec *p, gpoin
 
 void QGstreamerPlayerSession::updateMuted()
 {
-    gboolean muted = false;
+    gboolean muted = FALSE;
     g_object_get(G_OBJECT(m_playbin), "mute", &muted, NULL);
     if (m_muted != muted) {
         m_muted = muted;
