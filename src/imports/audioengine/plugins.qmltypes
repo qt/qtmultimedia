@@ -1,0 +1,236 @@
+import QtQuick.tooling 1.1
+
+// This file describes the plugin-supplied types contained in the library.
+// It is used for QML tooling purposes only.
+
+Module {
+    Component {
+        name: "QDeclarativeAttenuationModel"
+        prototype: "QObject"
+        Property { name: "name"; type: "string" }
+    }
+    Component {
+        name: "QDeclarativeAttenuationModelInverse"
+        prototype: "QDeclarativeAttenuationModel"
+        exports: ["AttenuationModelInverse 1.0"]
+        Property { name: "start"; type: "qreal" }
+        Property { name: "end"; type: "qreal" }
+        Property { name: "rolloff"; type: "qreal" }
+    }
+    Component {
+        name: "QDeclarativeAttenuationModelLinear"
+        prototype: "QDeclarativeAttenuationModel"
+        exports: ["AttenuationModelLinear 1.0"]
+        Property { name: "start"; type: "qreal" }
+        Property { name: "end"; type: "qreal" }
+    }
+    Component {
+        name: "QDeclarativeAudioCategory"
+        prototype: "QObject"
+        exports: ["AudioCategory 1.0"]
+        Property { name: "volume"; type: "qreal" }
+        Property { name: "name"; type: "string" }
+        Signal {
+            name: "volumeChanged"
+            Parameter { name: "newVolume"; type: "qreal" }
+        }
+        Signal { name: "stopped" }
+        Signal { name: "paused" }
+        Signal { name: "resumed" }
+        Method { name: "stop" }
+        Method { name: "pause" }
+        Method { name: "resume" }
+    }
+    Component {
+        name: "QDeclarativeAudioEngine"
+        defaultProperty: "bank"
+        prototype: "QObject"
+        exports: ["AudioEngine 1.0"]
+        Property { name: "bank"; type: "QObject"; isList: true; isReadonly: true }
+        Property { name: "categories"; type: "QObject"; isReadonly: true; isPointer: true }
+        Property { name: "samples"; type: "QObject"; isReadonly: true; isPointer: true }
+        Property { name: "sounds"; type: "QObject"; isReadonly: true; isPointer: true }
+        Property { name: "loading"; type: "bool"; isReadonly: true }
+        Property { name: "liveInstances"; type: "int"; isReadonly: true }
+        Property {
+            name: "listener"
+            type: "QDeclarativeAudioListener"
+            isReadonly: true
+            isPointer: true
+        }
+        Property { name: "dopplerFactor"; type: "qreal" }
+        Property { name: "speedOfSound"; type: "qreal" }
+        Signal { name: "ready" }
+        Signal { name: "liveInstanceCountChanged" }
+        Signal { name: "isLoadingChanged" }
+        Signal { name: "finishedLoading" }
+    }
+    Component {
+        name: "QDeclarativeAudioListener"
+        prototype: "QObject"
+        exports: ["AudioListener 1.0"]
+        Property { name: "engine"; type: "QDeclarativeAudioEngine"; isPointer: true }
+        Property { name: "position"; type: "QVector3D" }
+        Property { name: "direction"; type: "QVector3D" }
+        Property { name: "velocity"; type: "QVector3D" }
+        Property { name: "up"; type: "QVector3D" }
+        Property { name: "gain"; type: "qreal" }
+    }
+    Component {
+        name: "QDeclarativeAudioSample"
+        prototype: "QObject"
+        exports: ["AudioSample 1.0"]
+        Property { name: "name"; type: "string" }
+        Property { name: "source"; type: "QUrl" }
+        Property { name: "preloaded"; type: "bool" }
+        Property { name: "streaming"; type: "bool" }
+        Property { name: "loaded"; type: "bool"; isReadonly: true }
+        Method { name: "load" }
+    }
+    Component {
+        name: "QDeclarativePlayVariation"
+        prototype: "QObject"
+        exports: ["PlayVariation 1.0"]
+        Property { name: "sample"; type: "string" }
+        Property { name: "looping"; type: "bool" }
+        Property { name: "maxGain"; type: "qreal" }
+        Property { name: "minGain"; type: "qreal" }
+        Property { name: "maxPitch"; type: "qreal" }
+        Property { name: "minPitch"; type: "qreal" }
+    }
+    Component {
+        name: "QDeclarativeSound"
+        defaultProperty: "playVariationlist"
+        prototype: "QObject"
+        exports: ["Sound 1.0"]
+        Enum {
+            name: "PlayType"
+            values: {
+                "Random": 0,
+                "Sequential": 1
+            }
+        }
+        Property { name: "name"; type: "string" }
+        Property { name: "playType"; type: "PlayType" }
+        Property { name: "category"; type: "string" }
+        Property { name: "cone"; type: "QDeclarativeSoundCone"; isReadonly: true; isPointer: true }
+        Property { name: "attenuationModel"; type: "string" }
+        Property {
+            name: "playVariationlist"
+            type: "QDeclarativePlayVariation"
+            isList: true
+            isReadonly: true
+        }
+        Method { name: "play" }
+        Method {
+            name: "play"
+            Parameter { name: "gain"; type: "qreal" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "gain"; type: "qreal" }
+            Parameter { name: "pitch"; type: "qreal" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "velocity"; type: "QVector3D" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "velocity"; type: "QVector3D" }
+            Parameter { name: "direction"; type: "QVector3D" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "gain"; type: "qreal" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "velocity"; type: "QVector3D" }
+            Parameter { name: "gain"; type: "qreal" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "velocity"; type: "QVector3D" }
+            Parameter { name: "direction"; type: "QVector3D" }
+            Parameter { name: "gain"; type: "qreal" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "gain"; type: "qreal" }
+            Parameter { name: "pitch"; type: "qreal" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "velocity"; type: "QVector3D" }
+            Parameter { name: "gain"; type: "qreal" }
+            Parameter { name: "pitch"; type: "qreal" }
+        }
+        Method {
+            name: "play"
+            Parameter { name: "position"; type: "QVector3D" }
+            Parameter { name: "velocity"; type: "QVector3D" }
+            Parameter { name: "direction"; type: "QVector3D" }
+            Parameter { name: "gain"; type: "qreal" }
+            Parameter { name: "pitch"; type: "qreal" }
+        }
+        Method { name: "newInstance"; type: "QDeclarativeSoundInstance*" }
+    }
+    Component {
+        name: "QDeclarativeSoundCone"
+        prototype: "QObject"
+        exports: [" 1.0"]
+        Property { name: "innerAngle"; type: "qreal" }
+        Property { name: "outerAngle"; type: "qreal" }
+        Property { name: "outerGain"; type: "qreal" }
+    }
+    Component {
+        name: "QDeclarativeSoundInstance"
+        prototype: "QObject"
+        exports: ["SoundInstance 1.0"]
+        Enum {
+            name: "State"
+            values: {
+                "StopppedState": 0,
+                "PlayingState": 1,
+                "PausedState": 2
+            }
+        }
+        Property { name: "engine"; type: "QDeclarativeAudioEngine"; isPointer: true }
+        Property { name: "sound"; type: "string" }
+        Property { name: "state"; type: "State"; isReadonly: true }
+        Property { name: "position"; type: "QVector3D" }
+        Property { name: "direction"; type: "QVector3D" }
+        Property { name: "velocity"; type: "QVector3D" }
+        Property { name: "gain"; type: "qreal" }
+        Property { name: "pitch"; type: "qreal" }
+        Method { name: "play" }
+        Method { name: "stop" }
+        Method { name: "pause" }
+        Method {
+            name: "updatePosition"
+            Parameter { name: "deltaTime"; type: "qreal" }
+        }
+    }
+    Component {
+        name: "QQmlPropertyMap"
+        prototype: "QObject"
+        Signal {
+            name: "valueChanged"
+            Parameter { name: "key"; type: "string" }
+            Parameter { name: "value"; type: "QVariant" }
+        }
+        Method { name: "keys"; type: "QStringList" }
+    }
+}
