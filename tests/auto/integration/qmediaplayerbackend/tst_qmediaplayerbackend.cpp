@@ -77,6 +77,7 @@ private slots:
     void volumeAndMuted();
     void volumeAcrossFiles_data();
     void volumeAcrossFiles();
+    void initialVolume();
     void seekPauseSeek();
     void probes();
     void playlist();
@@ -533,6 +534,28 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
 
     QCOMPARE(player.volume(), volume);
     QCOMPARE(player.isMuted(), muted);
+}
+
+void tst_QMediaPlayerBackend::initialVolume()
+{
+    {
+        QMediaPlayer player;
+        player.setVolume(1);
+        player.setMedia(localWavFile);
+        QCOMPARE(player.volume(), 1);
+        player.play();
+        QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+        QCOMPARE(player.volume(), 1);
+    }
+
+    {
+        QMediaPlayer player;
+        player.setMedia(localWavFile);
+        QCOMPARE(player.volume(), 100);
+        player.play();
+        QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+        QCOMPARE(player.volume(), 100);
+    }
 }
 
 void tst_QMediaPlayerBackend::seekPauseSeek()
