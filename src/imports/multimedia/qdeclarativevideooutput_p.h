@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/
 **
 ** This file is part of the Qt Toolkit.
@@ -42,29 +43,15 @@
 #ifndef QDECLARATIVEVIDEOOUTPUT_P_H
 #define QDECLARATIVEVIDEOOUTPUT_P_H
 
-#include <QtCore/QRectF>
-
-#include <QtQuick/QQuickItem>
-
-#include <QtMultimedia/qvideoframe.h>
-#include <QtMultimedia/qmediaobject.h>
-
+#include <QtCore/qrect.h>
 #include <QtCore/qsharedpointer.h>
-#include <QtCore/qmutex.h>
-
-#include <private/qsgvideonode_p.h>
-
-
-#include "qsgvideonode_i420.h"
-#include "qsgvideonode_rgb.h"
-
+#include <QtQuick/qquickitem.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSGVideoItemSurface;
-class QVideoRendererControl;
+class QMediaObject;
 class QMediaService;
-class QVideoSurfaceFormat;
+class QDeclarativeVideoBackend;
 
 class QDeclarativeVideoOutput : public QQuickItem
 {
@@ -109,6 +96,13 @@ public:
     Q_INVOKABLE QPointF mapPointToSourceNormalized(const QPointF &point) const;
     Q_INVOKABLE QRectF mapRectToSourceNormalized(const QRectF &rectangle) const;
 
+    enum SourceType {
+        NoSource,
+        MediaObjectSource,
+        VideoSurfaceSource
+    };
+    SourceType sourceType() const;
+
 Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QDeclarativeVideoOutput::FillMode);
@@ -118,48 +112,32 @@ Q_SIGNALS:
 
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *);
+    void itemChange(ItemChange change, const ItemChangeData &changeData);
+    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
 
 private Q_SLOTS:
     void _q_updateMediaObject();
-    void _q_updateNativeSize(const QVideoSurfaceFormat&);
+    void _q_updateNativeSize();
     void _q_updateGeometry();
 
 private:
-    enum SourceType {
-        NoSource,
-        MediaObjectSource,
-        VideoSurfaceSource
-    };
-
-    void present(const QVideoFrame &frame);
-    void stop();
-
-    friend class QSGVideoItemSurface;
+    bool createBackend(QMediaService *service);
 
     SourceType m_sourceType;
 
     QWeakPointer<QObject> m_source;
     QWeakPointer<QMediaObject> m_mediaObject;
     QWeakPointer<QMediaService> m_service;
-    QWeakPointer<QVideoRendererControl> m_rendererControl;
 
-    QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
-    QSGVideoItemSurface *m_surface;
-    QVideoFrame m_frame;
     FillMode m_fillMode;
     QSize m_nativeSize;
 
-    QSGVideoNodeFactory_I420 m_i420Factory;
-    QSGVideoNodeFactory_RGB m_rgbFactory;
-
     bool m_geometryDirty;
-    QRectF m_lastSize;      // Cache of last size to avoid recalculating geometry
-    QRectF m_renderedRect;  // Destination pixel coordinates, clipped
+    QRectF m_lastRect;      // Cache of last rect to avoid recalculating geometry
     QRectF m_contentRect;   // Destination pixel coordinates, unclipped
-    QRectF m_sourceTextureRect;    // Source texture coordinates
     int m_orientation;
 
-    QMutex m_frameMutex;
+    QScopedPointer<QDeclarativeVideoBackend> m_backend;
 };
 
 QT_END_NAMESPACE

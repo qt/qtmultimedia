@@ -112,6 +112,7 @@ Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QAbstractVideoSurface::Error
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
 
 QT_END_HEADER

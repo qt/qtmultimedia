@@ -50,6 +50,7 @@
 
 #include <qabstractvideosurface.h>
 #include <qvideorenderercontrol.h>
+#include <qvideosurfaceformat.h>
 
 #include <qmediaobject.h>
 

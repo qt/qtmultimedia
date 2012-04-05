@@ -14,6 +14,9 @@ HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediametadata_p.h \
         qdeclarativevideooutput_p.h \
+        qdeclarativevideooutput_backend_p.h \
+        qdeclarativevideooutput_render_p.h \
+        qdeclarativevideooutput_window_p.h \
         qsgvideonode_i420.h \
         qsgvideonode_rgb.h \
         qdeclarativeradio_p.h \
@@ -35,6 +38,8 @@ SOURCES += \
         multimedia.cpp \
         qdeclarativeaudio.cpp \
         qdeclarativevideooutput.cpp \
+        qdeclarativevideooutput_render.cpp \
+        qdeclarativevideooutput_window.cpp \
         qsgvideonode_i420.cpp \
         qsgvideonode_rgb.cpp \
         qdeclarativeradio.cpp \

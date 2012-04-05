@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/
 **
 ** This file is part of the Qt Toolkit.
@@ -40,82 +41,14 @@
 ****************************************************************************/
 #include "qdeclarativevideooutput_p.h"
 
-#include "qsgvideonode_i420.h"
-#include "qsgvideonode_rgb.h"
-
-#include <QtQuick/QQuickItem>
-
-#include <QtMultimedia/QAbstractVideoSurface>
+#include "qdeclarativevideooutput_render_p.h"
+#include "qdeclarativevideooutput_window_p.h"
+#include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaservice.h>
-#include <QtMultimedia/qvideorenderercontrol.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
-#include <private/qmediapluginloader_p.h>
-
-#include <QtCore/qmetaobject.h>
 
 //#define DEBUG_VIDEOITEM
-Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 
 QT_BEGIN_NAMESPACE
-
-Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
-        (QSGVideoNodeFactoryInterface_iid, QLatin1String("video/videonode"), Qt::CaseInsensitive))
-
-class QSGVideoItemSurface : public QAbstractVideoSurface
-{
-public:
-    QSGVideoItemSurface(QDeclarativeVideoOutput *item, QObject *parent = 0) :
-        QAbstractVideoSurface(parent),
-        m_item(item)
-    {
-    }
-
-    ~QSGVideoItemSurface()
-    {
-    }
-
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
-    {
-        QList<QVideoFrame::PixelFormat> formats;
-
-        foreach (QSGVideoNodeFactoryInterface* factory, m_item->m_videoNodeFactories) {
-            formats.append(factory->supportedPixelFormats(handleType));
-        }
-
-        return formats;
-    }
-
-    bool start(const QVideoSurfaceFormat &format)
-    {
-#ifdef DEBUG_VIDEOITEM
-        qDebug() << Q_FUNC_INFO << format;
-#endif
-
-        if (!supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
-            return false;
-
-        return QAbstractVideoSurface::start(format);
-    }
-
-    void stop()
-    {
-        m_item->stop();
-        QAbstractVideoSurface::stop();
-    }
-
-    virtual bool present(const QVideoFrame &frame)
-    {
-        if (!frame.isValid()) {
-            qWarning() << Q_FUNC_INFO << "I'm getting bad frames here...";
-            return false;
-        }
-        m_item->present(frame);
-        return true;
-    }
-
-private:
-    QDeclarativeVideoOutput *m_item;
-};
 
 /*!
     \qmlclass VideoOutput QDeclarativeVideoOutput
@@ -155,6 +88,17 @@ private:
     For a description of stretched uniformly scaled presentation, see the \l fillMode property
     description.
 
+    The VideoOutput item works with backends that support either QVideoRendererControl or
+    QVideoWindowControl. If the backend only supports QVideoWindowControl, the video is rendered
+    onto an overlay window that is layered on top of the QtQuick window. Due to the nature of the
+    video overlays, certain features are not available for these kind of backends:
+    \list
+    \li Some transformations like rotations
+    \li Having other QtQuick items on top of the VideoOutput item
+    \endlist
+    Most backends however do support QVideoRendererControl and therefore don't have the limitations
+    listed above.
+
     \sa MediaPlayer, Camera
 
     \section1 Screen Saver
@@ -185,32 +129,13 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     m_orientation(0)
 {
     setFlag(ItemHasContents, true);
-    m_surface = new QSGVideoItemSurface(this);
-    connect(m_surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
-            this, SLOT(_q_updateNativeSize(QVideoSurfaceFormat)), Qt::QueuedConnection);
-
-    foreach (QObject *instance, videoNodeFactoryLoader()->instances(QSGVideoNodeFactoryPluginKey)) {
-        QSGVideoNodeFactoryInterface* plugin = qobject_cast<QSGVideoNodeFactoryInterface*>(instance);
-        if (plugin) {
-            m_videoNodeFactories.append(plugin);
-        }
-    }
-
-    // Append existing node factories as fallback if we have no plugins
-    m_videoNodeFactories.append(&m_i420Factory);
-    m_videoNodeFactories.append(&m_rgbFactory);
 }
 
 QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
 {
-    if (m_source && m_sourceType == VideoSurfaceSource) {
-        if (m_source.data()->property("videoSurface").value<QAbstractVideoSurface*>() == m_surface)
-            m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(0));
-    }
-
+    m_backend.reset();
     m_source.clear();
     _q_updateMediaObject();
-    delete m_surface;
 }
 
 /*!
@@ -238,12 +163,8 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     if (m_source && m_sourceType == MediaObjectSource)
         disconnect(m_source.data(), 0, this, SLOT(_q_updateMediaObject()));
 
-    if (m_source && m_sourceType == VideoSurfaceSource) {
-        if (m_source.data()->property("videoSurface").value<QAbstractVideoSurface*>() == m_surface)
-            m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(0));
-    }
-
-    m_surface->stop();
+    if (m_backend)
+        m_backend->releaseSource();
 
     m_source = source;
 
@@ -263,7 +184,14 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
             }
             m_sourceType = MediaObjectSource;
         } else if (metaObject->indexOfProperty("videoSurface") != -1) {
-            m_source.data()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(m_surface));
+            // Make sure our backend is a QDeclarativeVideoRendererBackend
+            m_backend.reset();
+            createBackend(0);
+            Q_ASSERT(m_backend && dynamic_cast<QDeclarativeVideoRendererBackend *>(m_backend.data()));
+            QAbstractVideoSurface * const surface = m_backend->videoSurface();
+            Q_ASSERT(surface);
+            m_source.data()->setProperty("videoSurface",
+                                         QVariant::fromValue<QAbstractVideoSurface*>(surface));
             m_sourceType = VideoSurfaceSource;
         } else {
             m_sourceType = NoSource;
@@ -274,6 +202,29 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
 
     _q_updateMediaObject();
     emit sourceChanged();
+}
+
+bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
+{
+    bool backendAvailable = false;
+    m_backend.reset(new QDeclarativeVideoRendererBackend(this));
+    if (m_backend->init(service))
+        backendAvailable = true;
+
+    // QDeclarativeVideoWindowBackend only works when there is a service with a QVideoWindowControl.
+    // Without service, the QDeclarativeVideoRendererBackend should always work.
+    if (!backendAvailable) {
+        Q_ASSERT(service);
+        m_backend.reset(new QDeclarativeVideoWindowBackend(this));
+        if (m_backend->init(service))
+            backendAvailable = true;
+    }
+
+    if (!backendAvailable) {
+        qWarning() << Q_FUNC_INFO << "Media service has neither renderer nor window control available.";
+        m_backend.reset();
+    }
+    return backendAvailable;
 }
 
 void QDeclarativeVideoOutput::_q_updateMediaObject()
@@ -290,64 +241,20 @@ void QDeclarativeVideoOutput::_q_updateMediaObject()
     if (m_mediaObject.data() == mediaObject)
         return;
 
-    if (m_rendererControl) {
-        m_rendererControl.data()->setSurface(0);
-        m_service.data()->releaseControl(m_rendererControl.data());
-    }
+    if (m_sourceType != VideoSurfaceSource)
+        m_backend.reset();
 
-    m_mediaObject = mediaObject;
     m_mediaObject.clear();
     m_service.clear();
-    m_rendererControl.clear();
 
     if (mediaObject) {
         if (QMediaService *service = mediaObject->service()) {
-            if (QMediaControl *control = service->requestControl(QVideoRendererControl_iid)) {
-                if ((m_rendererControl = qobject_cast<QVideoRendererControl *>(control))) {
-                    m_service = service;
-                    m_mediaObject = mediaObject;
-                    m_rendererControl.data()->setSurface(m_surface);
-                } else {
-                    qWarning() << Q_FUNC_INFO << "Media service has no renderer control available";
-                    service->releaseControl(control);
-                }
+            if (createBackend(service)) {
+                m_service = service;
+                m_mediaObject = mediaObject;
             }
         }
     }
-}
-
-void QDeclarativeVideoOutput::present(const QVideoFrame &frame)
-{
-    m_frameMutex.lock();
-    m_frame = frame;
-    m_frameMutex.unlock();
-
-    update();
-}
-
-void QDeclarativeVideoOutput::stop()
-{
-    present(QVideoFrame());
-}
-
-/*
- * Helper - returns true if the given orientation has the same aspect as the default (e.g. 180*n)
- */
-static inline bool qIsDefaultAspect(int o)
-{
-    return (o % 180) == 0;
-}
-
-/*
- * Return the orientation normailized to 0-359
- */
-static inline int qNormalizedOrientation(int o)
-{
-    // Negative orientations give negative results
-    int o2 = o % 360;
-    if (o2 < 0)
-        o2 += 360;
-    return o2;
 }
 
 /*!
@@ -381,9 +288,12 @@ void QDeclarativeVideoOutput::setFillMode(FillMode mode)
     emit fillModeChanged(mode);
 }
 
-void QDeclarativeVideoOutput::_q_updateNativeSize(const QVideoSurfaceFormat &format)
+void QDeclarativeVideoOutput::_q_updateNativeSize()
 {
-    QSize size = format.sizeHint();
+    if (!m_backend)
+        return;
+
+    QSize size = m_backend->nativeSize();
     if (!qIsDefaultAspect(m_orientation)) {
         size.transpose();
     }
@@ -403,56 +313,34 @@ void QDeclarativeVideoOutput::_q_updateNativeSize(const QVideoSurfaceFormat &for
 /* Based on fill mode and our size, figure out the source/dest rects */
 void QDeclarativeVideoOutput::_q_updateGeometry()
 {
-    QRectF rect(0, 0, width(), height());
+    const QRectF rect(0, 0, width(), height());
+    const QRectF absoluteRect(x(), y(), width(), height());
 
-    if (!m_geometryDirty && m_lastSize == rect)
+    if (!m_geometryDirty && m_lastRect == absoluteRect)
         return;
 
     QRectF oldContentRect(m_contentRect);
 
     m_geometryDirty = false;
-    m_lastSize = rect;
+    m_lastRect = absoluteRect;
 
     if (m_nativeSize.isEmpty()) {
         //this is necessary for item to receive the
         //first paint event and configure video surface.
-        m_renderedRect = rect;
         m_contentRect = rect;
-        m_sourceTextureRect = QRectF(0, 0, 1, 1);
     } else if (m_fillMode == Stretch) {
-        m_renderedRect = rect;
         m_contentRect = rect;
-        m_sourceTextureRect = QRectF(0, 0, 1, 1);
-    } else if (m_fillMode == PreserveAspectFit) {
-        QSizeF size = m_nativeSize;
-        size.scale(rect.size(), Qt::KeepAspectRatio);
-
-        m_renderedRect = QRectF(0, 0, size.width(), size.height());
-        m_renderedRect.moveCenter(rect.center());
-        m_contentRect = m_renderedRect;
-
-        m_sourceTextureRect = QRectF(0, 0, 1, 1);
-    } else if (m_fillMode == PreserveAspectCrop) {
-        m_renderedRect = rect;
-
+    } else if (m_fillMode == PreserveAspectFit || m_fillMode == PreserveAspectCrop) {
         QSizeF scaled = m_nativeSize;
-        scaled.scale(rect.size(), Qt::KeepAspectRatioByExpanding);
+        scaled.scale(rect.size(), m_fillMode == PreserveAspectFit ?
+                         Qt::KeepAspectRatio : Qt::KeepAspectRatioByExpanding);
 
         m_contentRect = QRectF(QPointF(), scaled);
         m_contentRect.moveCenter(rect.center());
-
-        if (qIsDefaultAspect(m_orientation)) {
-            m_sourceTextureRect = QRectF((-m_contentRect.left()) / m_contentRect.width(),
-                                  (-m_contentRect.top()) / m_contentRect.height(),
-                                  rect.width() / m_contentRect.width(),
-                                  rect.height() / m_contentRect.height());
-        } else {
-            m_sourceTextureRect = QRectF((-m_contentRect.top()) / m_contentRect.height(),
-                                  (-m_contentRect.left()) / m_contentRect.width(),
-                                  rect.height() / m_contentRect.height(),
-                                  rect.width() / m_contentRect.width());
-        }
     }
+
+    if (m_backend)
+        m_backend->updateGeometry();
 
     if (m_contentRect != oldContentRect)
         emit contentRectChanged();
@@ -707,6 +595,11 @@ QRectF QDeclarativeVideoOutput::mapRectToSourceNormalized(const QRectF &rectangl
                   mapPointToSourceNormalized(rectangle.bottomRight())).normalized();
 }
 
+QDeclarativeVideoOutput::SourceType QDeclarativeVideoOutput::sourceType() const
+{
+    return m_sourceType;
+}
+
 /*!
     \qmlmethod QPointF QtMultimedia5::VideoOutput::mapPointToItem(const QPointF &point) const
 
@@ -747,44 +640,33 @@ QRectF QDeclarativeVideoOutput::mapRectToItem(const QRectF &rectangle) const
                   mapPointToItem(rectangle.bottomRight())).normalized();
 }
 
-
-QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
+QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 {
-    QSGVideoNode *videoNode = static_cast<QSGVideoNode *>(oldNode);
-
-    QMutexLocker lock(&m_frameMutex);
-
-    if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
-#ifdef DEBUG_VIDEOITEM
-        qDebug() << "updatePaintNode: deleting old video node because frame format changed...";
-#endif
-        delete videoNode;
-        videoNode = 0;
-    }
-
-    if (!m_frame.isValid()) {
-#ifdef DEBUG_VIDEOITEM
-        qDebug() << "updatePaintNode: no frames yet... aborting...";
-#endif
-        return 0;
-    }
-
-    if (videoNode == 0) {
-        foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
-            videoNode = factory->createNode(m_surface->surfaceFormat());
-            if (videoNode)
-                break;
-        }
-    }
-
-    if (videoNode == 0)
-        return 0;
-
     _q_updateGeometry();
-    // Negative rotations need lots of %360
-    videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect, qNormalizedOrientation(m_orientation));
-    videoNode->setCurrentFrame(m_frame);
-    return videoNode;
+
+    if (!m_backend)
+        return 0;
+
+    return m_backend->updatePaintNode(oldNode, data);
+}
+
+void QDeclarativeVideoOutput::itemChange(QQuickItem::ItemChange change,
+                                         const QQuickItem::ItemChangeData &changeData)
+{
+    if (m_backend)
+        m_backend->itemChange(change, changeData);
+}
+
+void QDeclarativeVideoOutput::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    Q_UNUSED(newGeometry);
+    Q_UNUSED(oldGeometry);
+
+    // Explicitly listen to geometry changes here. This is needed since changing the position does
+    // not trigger a call to updatePaintNode().
+    // We need to react to position changes though, as the window backened's display rect gets
+    // changed in that situation.
+    _q_updateGeometry();
 }
 
 QT_END_NAMESPACE
