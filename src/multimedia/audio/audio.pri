@@ -74,7 +74,7 @@ unix:!mac {
         PRIVATE_HEADERS += audio/qsoundeffect_qmedia_p.h
         SOURCES += audio/qsoundeffect_qmedia_p.cpp
 
-        config_alsa:linux-*|freebsd-*|openbsd-* {
+        config_alsa {
             DEFINES += HAS_ALSA
             PRIVATE_HEADERS += audio/qaudiooutput_alsa_p.h audio/qaudioinput_alsa_p.h audio/qaudiodeviceinfo_alsa_p.h
             SOURCES += audio/qaudiodeviceinfo_alsa_p.cpp \
