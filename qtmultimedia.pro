@@ -1,3 +1,22 @@
+load(configure)
+qtCompileTest(openal)
+win32 {
+    qtCompileTest(directshow)
+    qtCompileTest(wmsdk)
+    qtCompileTest(wmp)
+    qtCompileTest(wmf)
+    qtCompileTest(evr)
+} else {
+    qtCompileTest(alsa)
+    qtCompileTest(pulsaudio)
+    qtCompileTest(gstreamer) {
+        qtCompileTest(gstreamer_photography)
+        qtCompileTest(gstreamer_appsrc)
+    }
+    qtCompileTest(resourcepolicy)
+    qtCompileTest(xvideo)
+}
+
 TEMPLATE = subdirs
 
 module_qtmultimedia_src.subdir = src

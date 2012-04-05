@@ -29,23 +29,3 @@
     "qtdeclarative" => "refs/heads/master",
     "qtjsbackend" => "refs/heads/master",
 );
-# Compile tests
-%configtests = (
-    # Windows tests
-    "directshow" => {},
-    "wmsdk" => {},
-    "wmp" => {},
-    "wmf" => {},
-    "evr" => {},
-
-    # Linux tests
-    "alsa" => {},
-    "gstreamer" => {},
-    "gstreamer_photography" => {},
-    "gstreamer_appsrc" => {},
-    "pulseaudio" => {},
-    "resourcepolicy" => {},
-    "xvideo" => {},
-
-    "openal" => {},
-);

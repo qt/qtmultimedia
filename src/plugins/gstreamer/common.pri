@@ -21,17 +21,17 @@ PKGCONFIG += \
 
 maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
 
-contains(config_test_resourcepolicy, yes) {
+config_resourcepolicy {
     DEFINES += HAVE_RESOURCE_POLICY
     PKGCONFIG += libresourceqt1
 }
 
-contains(config_test_xvideo, yes):!isEmpty(QT.widgets.name): {
+config_xvideo:!isEmpty(QT.widgets.name): {
     DEFINES += HAVE_XVIDEO
     LIBS += -lXv -lX11 -lXext
 }
 
-contains(config_test_gstreamer_appsrc, yes) {
+config_gstreamer_appsrc {
     PKGCONFIG += gstreamer-app-0.10
     DEFINES += HAVE_GST_APPSRC
     LIBS += -lgstapp-0.10

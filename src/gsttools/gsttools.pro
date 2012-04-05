@@ -24,7 +24,7 @@ PKGCONFIG += \
 
 maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
 
-contains(config_test_resourcepolicy, yes) {
+config_resourcepolicy {
     DEFINES += HAVE_RESOURCE_POLICY
     PKGCONFIG += libresourceqt1
 }
@@ -66,7 +66,7 @@ SOURCES += \
     qgstreamervideoprobecontrol.cpp \
     qgstreameraudioprobecontrol.cpp \
 
-contains(config_test_xvideo, yes) {
+config_xvideo {
     DEFINES += HAVE_XVIDEO
 
     LIBS += -lXv -lX11 -lXext
@@ -105,7 +105,7 @@ maemo6 {
     }
 }
 
-contains(config_test_gstreamer_appsrc, yes) {
+config_gstreamer_appsrc {
     PKGCONFIG += gstreamer-app-0.10
     PRIVATE_HEADERS += qgstappsrc_p.h
     SOURCES += qgstappsrc.cpp

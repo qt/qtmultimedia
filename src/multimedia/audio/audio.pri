@@ -60,7 +60,7 @@ win32 {
 }
 
 unix:!mac {
-    contains(config_test_pulseaudio, yes) {
+    config_pulseaudio {
         DEFINES += QT_NO_AUDIO_BACKEND
         CONFIG += link_pkgconfig
         PKGCONFIG += libpulse
@@ -74,7 +74,7 @@ unix:!mac {
         PRIVATE_HEADERS += audio/qsoundeffect_qmedia_p.h
         SOURCES += audio/qsoundeffect_qmedia_p.cpp
 
-        contains(config_test_alsa, yes):linux-*|freebsd-*|openbsd-* {
+        config_alsa:linux-*|freebsd-*|openbsd-* {
             DEFINES += HAS_ALSA
             PRIVATE_HEADERS += audio/qaudiooutput_alsa_p.h audio/qaudioinput_alsa_p.h audio/qaudiodeviceinfo_alsa_p.h
             SOURCES += audio/qaudiodeviceinfo_alsa_p.cpp \

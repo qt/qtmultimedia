@@ -33,7 +33,7 @@ SUBDIRS += \
     src_qgsttools.depends += src_qtmmwidgets
 }
 
-contains(config_test_gstreamer, yes) {
+config_gstreamer {
     SUBDIRS += src_qgsttools
 
     # If gstreamer is present, then plugins should depend on it

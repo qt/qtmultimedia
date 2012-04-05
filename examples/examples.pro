@@ -25,4 +25,4 @@ TEMPLATE = subdirs
     QT += widgets
 }
 
-contains(config_test_openal, yes): SUBDIRS += audioengine
+config_openal: SUBDIRS += audioengine

@@ -7,7 +7,7 @@ SUBDIRS += \
 
 # Camerabin2 based camera backend is untested and currently disabled
 disabled {
-    contains(config_test_gstreamer_photography, yes) {
+    config_gstreamer_photography {
         SUBDIRS += camerabin
     }
 }

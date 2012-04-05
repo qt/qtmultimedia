@@ -1,5 +1,3 @@
-requires(unix)
-
 SOURCES += main.cpp
 
 CONFIG += link_pkgconfig

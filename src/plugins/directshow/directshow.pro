@@ -12,14 +12,14 @@ DEPENDPATH += .
 HEADERS += dsserviceplugin.h
 SOURCES += dsserviceplugin.cpp
 
-!contains(config_test_wmsdk, yes): DEFINES += QT_NO_WMSDK
+!config_wmsdk: DEFINES += QT_NO_WMSDK
 
 !isEmpty(QT.widgets.name) {
     QT += multimediawidgets
     DEFINES += HAVE_WIDGETS
 }
 
-contains(config_test_wmf, no): include(player/player.pri)
+!config_wmf: include(player/player.pri)
 include(camera/camera.pri)
 
 target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}

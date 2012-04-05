@@ -13,12 +13,12 @@ win32 {
 }
 
 win32 {
-    contains(config_test_directshow, yes): SUBDIRS += directshow
-    contains(config_test_wmf, yes) : SUBDIRS += wmf
+    config_directshow: SUBDIRS += directshow
+    config_wmf: SUBDIRS += wmf
 }
 
 unix:!mac {
-    contains(config_test_gstreamer, yes) {
+    config_gstreamer {
        SUBDIRS += gstreamer
     } else {
         SUBDIRS += audiocapture
@@ -27,7 +27,7 @@ unix:!mac {
     # v4l is turned off because it is not supported in Qt 5
     # !maemo*:SUBDIRS += v4l
 
-    contains(config_test_pulseaudio, yes) {
+    config_pulseaudio {
         SUBDIRS += pulseaudio
     }
 }
