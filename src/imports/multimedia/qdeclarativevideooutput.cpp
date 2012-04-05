@@ -139,7 +139,7 @@ private:
         MediaPlayer {
             id: player
             source: "file://video.webm"
-            playing: true
+            autoPlay: true
         }
 
         VideoOutput {
