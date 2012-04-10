@@ -93,32 +93,38 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError 
     import QtQuick 2.0
     import QtMultimedia 5.0
 
-    Camera {
-        id: camera
+    Item {
+        width: 640
+        height: 360
 
-        imageProcessing.whiteBalanceMode: CameraImageProcessing.WhiteBalanceFlash
+        Camera {
+            id: camera
 
-        exposure {
-            exposureCompensation: -1.0
-            exposureMode: Camera.ExposurePortrait
-        }
+            imageProcessing.whiteBalanceMode: CameraImageProcessing.WhiteBalanceFlash
 
-        flash.mode: Camera.FlashRedEyeReduction
+            exposure {
+                exposureCompensation: -1.0
+                exposureMode: Camera.ExposurePortrait
+            }
 
-        imageCapture {
-            onImageCaptured: {
-                photoPreview.source = preview  // Show the preview in an Image element
+            flash.mode: Camera.FlashRedEyeReduction
+
+            imageCapture {
+                onImageCaptured: {
+                    photoPreview.source = preview  // Show the preview in an Image element
+                }
             }
         }
-    }
 
-    VideoOutput {
-        source: camera
-        focus : visible // to receive focus and capture key events when visible
-    }
+        VideoOutput {
+            source: camera
+            anchors.fill: parent
+            focus : visible // to receive focus and capture key events when visible
+        }
 
-    Image {
-        id: photoPreview
+        Image {
+            id: photoPreview
+        }
     }
     \endqml
 

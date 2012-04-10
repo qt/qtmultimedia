@@ -59,6 +59,119 @@ QT_MODULE(Multimedia)
 namespace QtMultimedia
 {
     namespace MetaData {
+#ifdef Q_QDOC
+        // QDoc does not like macros, so try to keep this in sync :)
+        QString Title;
+        QString SubTitle;
+        QString Author;
+        QString Comment;
+        QString Description;
+        QString Category;
+        QString Genre;
+        QString Year;
+        QString Date;
+        QString UserRating;
+        QString Keywords;
+        QString Language;
+        QString Publisher;
+        QString Copyright;
+        QString ParentalRating;
+        QString RatingOrganization;
+
+        // Media
+        QString Size;
+        QString MediaType;
+        QString Duration;
+
+        // Audio
+        QString AudioBitRate;
+        QString AudioCodec;
+        QString AverageLevel;
+        QString ChannelCount;
+        QString PeakValue;
+        QString SampleRate;
+
+        // Music
+        QString AlbumTitle;
+        QString AlbumArtist;
+        QString ContributingArtist;
+        QString Composer;
+        QString Conductor;
+        QString Lyrics;
+        QString Mood;
+        QString TrackNumber;
+        QString TrackCount;
+
+        QString CoverArtUrlSmall;
+        QString CoverArtUrlLarge;
+
+        // Image/Video
+        QString Resolution;
+        QString PixelAspectRatio;
+
+        // Video
+        QString VideoFrameRate;
+        QString VideoBitRate;
+        QString VideoCodec;
+
+        QString PosterUrl;
+
+        // Movie
+        QString ChapterNumber;
+        QString Director;
+        QString LeadPerformer;
+        QString Writer;
+
+        // Photos
+        QString CameraManufacturer;
+        QString CameraModel;
+        QString Event;
+        QString Subject;
+        QString Orientation;
+        QString ExposureTime;
+        QString FNumber;
+        QString ExposureProgram;
+        QString ISOSpeedRatings;
+        QString ExposureBiasValue;
+        QString DateTimeOriginal;
+        QString DateTimeDigitized;
+        QString SubjectDistance;
+        QString MeteringMode;
+        QString LightSource;
+        QString Flash;
+        QString FocalLength;
+        QString ExposureMode;
+        QString WhiteBalance;
+        QString DigitalZoomRatio;
+        QString FocalLengthIn35mmFilm;
+        QString SceneCaptureType;
+        QString GainControl;
+        QString Contrast;
+        QString Saturation;
+        QString Sharpness;
+        QString DeviceSettingDescription;
+
+        // Location
+        QString GPSLatitude;
+        QString GPSLongitude;
+        QString GPSAltitude;
+        QString GPSTimeStamp;
+        QString GPSSatellites;
+        QString GPSStatus;
+        QString GPSDOP;
+        QString GPSSpeed;
+        QString GPSTrack;
+        QString GPSTrackRef;
+        QString GPSImgDirection;
+        QString GPSImgDirectionRef;
+        QString GPSMapDatum;
+        QString GPSProcessingMethod;
+        QString GPSAreaInformation;
+
+        QString PosterImage;
+        QString CoverArtImage;
+        QString ThumbnailImage;
+#else
         // Common
         Q_DECLARE_METADATA(Title);
         Q_DECLARE_METADATA(SubTitle);
@@ -170,6 +283,7 @@ namespace QtMultimedia
         Q_DECLARE_METADATA(PosterImage);
         Q_DECLARE_METADATA(CoverArtImage);
         Q_DECLARE_METADATA(ThumbnailImage);
+#endif
     }
 
     enum SupportEstimate

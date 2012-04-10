@@ -69,7 +69,7 @@ QT_BEGIN_NAMESPACE
     directly to audio hardware, and playlists and network and streaming
     based media is not supported.
 
-    \sa QAudioBuffer, QAudioDecoder
+    \sa QAudioBuffer
 */
 
 namespace
@@ -130,7 +130,7 @@ void QAudioDecoderPrivate::_q_error(int error, const QString &errorString)
 
 /*!
     Construct an QAudioDecoder instance
-    parented to \a parent and with \a flags.
+    parented to \a parent.
 */
 QAudioDecoder::QAudioDecoder(QObject *parent)
     : QMediaObject(*new QAudioDecoderPrivate,
@@ -204,7 +204,7 @@ QString QAudioDecoder::errorString() const
     Alternatively, if you wish to block until enough data has been decoded,
     you can call read() at any time to block until a buffer is ready.
 
-    \sa read(), bufferSize()
+    \sa read()
 */
 void QAudioDecoder::start()
 {
@@ -267,7 +267,7 @@ void QAudioDecoder::setSourceFilename(const QString &fileName)
 
 /*!
     Returns the current source QIODevice, if one was set.
-    If \l setSourceFilename was called, this will be 0.
+    If \l setSourceFilename() was called, this will be 0.
 */
 QIODevice *QAudioDecoder::sourceDevice() const
 {
@@ -299,7 +299,7 @@ void QAudioDecoder::setSourceDevice(QIODevice *device)
 
     Any buffers returned should have this format.
 
-    \sa setAudioFormat, audioFormatChanged
+    \sa setAudioFormat(), formatChanged()
 */
 QAudioFormat QAudioDecoder::audioFormat() const
 {
@@ -366,6 +366,8 @@ QtMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
 }
 
 /*!
+    \fn QAudioDecoder::bufferAvailable() const
+
     Returns true if a buffer is available to be read,
     and false otherwise.  If there is no buffer available, calling
     the \l read() function may block until a buffer is available or
@@ -471,7 +473,7 @@ QAudioBuffer QAudioDecoder::read() const
 
     Signals that the current audio format of the decoder has changed to \a format.
 
-    \sa audioFormat(), setAudioFormat
+    \sa audioFormat(), setAudioFormat()
 */
 
 /*!
@@ -498,7 +500,7 @@ QAudioBuffer QAudioDecoder::read() const
     Signals that the decoding has finished successfully.
     If decoding fails, error signal is emitted instead.
 
-    \sa start(), stop(), error
+    \sa start(), stop(), error()
 */
 
 /*!
@@ -506,7 +508,7 @@ QAudioBuffer QAudioDecoder::read() const
 
     Signals that the current \a position of the decoder has changed.
 
-    \sa durationChanged
+    \sa durationChanged()
 */
 
 /*!
@@ -514,7 +516,7 @@ QAudioBuffer QAudioDecoder::read() const
 
     Signals that the estimated \a duration of the decoded data has changed.
 
-    \sa positionChanged
+    \sa positionChanged()
 */
 
 

@@ -67,29 +67,35 @@ QT_BEGIN_NAMESPACE
     import QtQuick 2.0
     import QtMultimedia 5.0
 
-    Camera {
-        id: camera
+    Item {
+        width: 640
+        height: 360
 
-        imageCapture {
-            onImageCaptured: {
-                // Show the preview in an Image element
-                photoPreview.source = preview
+        Camera {
+            id: camera
+
+            imageCapture {
+                onImageCaptured: {
+                    // Show the preview in an Image element
+                    photoPreview.source = preview
+                }
             }
         }
-    }
 
-    VideoOutput {
-        source: camera
-        focus : visible // to receive focus and capture key events when visible
+        VideoOutput {
+            source: camera
+            focus : visible // to receive focus and capture key events when visible
+            anchors.fill: parent
 
-        MouseArea {
-            anchors.fill: parent;
-            onClicked: camera.imageCapture.capture();
+            MouseArea {
+                anchors.fill: parent;
+                onClicked: camera.imageCapture.capture();
+            }
         }
-    }
 
-    Image {
-        id: photoPreview
+        Image {
+            id: photoPreview
+        }
     }
     \endqml
 

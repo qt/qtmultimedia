@@ -174,6 +174,15 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 */
 
 /*!
+    \fn QAudioDecoderControl::bufferAvailable() const
+
+    Returns true if a buffer is available to be read,
+    and false otherwise.  If there is no buffer available, calling
+    the \l read() function may block until a buffer is available or
+    the end of the media is reached
+*/
+
+/*!
     \fn QAudioDecoderControl::sourceChanged()
 
     Signals that the current source of the decoder has changed.
@@ -186,7 +195,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 
     Signals that the current audio format of the decoder has changed to \a format.
 
-    \sa audioFormat(), setAudioFormat
+    \sa audioFormat(), setAudioFormat()
 */
 
 /*!
@@ -195,7 +204,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
     Signals that the decoding has finished successfully.
     If decoding fails, error signal is emitted instead.
 
-    \sa start(), stop(), error
+    \sa start(), stop(), error()
 */
 
 /*!
@@ -203,7 +212,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 
     Signals that the current \a position of the decoder has changed.
 
-    \sa durationChanged
+    \sa durationChanged()
 */
 
 /*!
@@ -211,7 +220,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 
     Signals that the estimated \a duration of the decoded data has changed.
 
-    \sa positionChanged
+    \sa positionChanged()
 */
 
 /*!
@@ -220,7 +229,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 
     Any buffers returned should have this format.
 
-    \sa setAudioFormat, audioFormatChanged
+    \sa setAudioFormat(), formatChanged()
 */
 
 /*!

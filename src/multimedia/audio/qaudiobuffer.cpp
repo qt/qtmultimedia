@@ -371,7 +371,18 @@ qint64 QAudioBuffer::startTime() const
 
     This method is preferred over the const version of \l data() to
     prevent unnecessary copying.
- */
+
+    There is also a templatized version of this constData() function that
+    allows you to retrieve a specific type of read-only pointer to
+    the data.  Note that there is no checking done on the format of
+    the audio buffer - this is simply a convenience function.
+
+    \code
+    // With a 16bit sample buffer:
+    const quint16 *data = buffer->constData<quint16>();
+    \endcode
+
+*/
 const void* QAudioBuffer::constData() const
 {
     if (!isValid())
@@ -384,13 +395,29 @@ const void* QAudioBuffer::constData() const
 
     You should use the \l constData() function rather than this
     to prevent accidental deep copying.
- */
+
+    There is also a templatized version of this data() function that
+    allows you to retrieve a specific type of read-only pointer to
+    the data.  Note that there is no checking done on the format of
+    the audio buffer - this is simply a convenience function.
+
+    \code
+    // With a 16bit sample const buffer:
+    const quint16 *data = buffer->data<quint16>();
+    \endcode
+*/
 const void* QAudioBuffer::data() const
 {
     if (!isValid())
         return 0;
     return d->mProvider->constData();
 }
+
+
+/*
+    Template data/constData functions caused override problems with qdoc,
+    so moved their docs into the non template versions.
+*/
 
 /*!
     Returns a pointer to this buffer's data.  You can modify the
@@ -407,7 +434,17 @@ const void* QAudioBuffer::data() const
     change both buffer instances.  Calling \l data() on either instance
     will again cause a deep copy to be made, which may invalidate
     the pointers returned from this function previously.
- */
+
+    There is also a templatized version of data() allows you to retrieve
+    a specific type of pointer to the data.  Note that there is no
+    checking done on the format of the audio buffer - this is
+    simply a convenience function.
+
+    \code
+    // With a 16bit sample buffer:
+    quint16 *data = buffer->data<quint16>(); // May cause deep copy
+    \endcode
+*/
 void *QAudioBuffer::data()
 {
     if (!isValid())
@@ -446,5 +483,120 @@ void *QAudioBuffer::data()
 
     return 0;
 }
+
+// Template helper classes worth documenting
+
+/*!
+    \class QAudioBuffer::StereoSampleDefault
+    \internal
+
+    Just a trait class for the default value.
+*/
+
+/*!
+    \class QAudioBuffer::StereoSample
+    \brief The StereoSample class provides a simple wrapper for a stereo audio sample.
+    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_audio
+
+    This templatized structure lets you treat a block of individual samples as an
+    interleaved stereo stream.  This is most useful when used with the templatized
+    \l {QAudioBuffer::data()}{data()} functions of QAudioBuffer.  Generally the data
+    is accessed as a pointer, so no copying should occur.
+
+    There are some predefined instantiations of this template for working with common
+    stereo sample depths in a convenient way.
+
+    This structure has \e left and \e right members for accessing individual channel data.
+
+    For example:
+    \code
+    // Assuming 'buffer' is an unsigned 16 bit stereo buffer..
+    QAudioBuffer::S16U *sample = buffer->data<QAudioBuffer::S16U>();
+    for (int i=0; i < buffer->sampleCount() / 2; i++) {
+        qSwap(sample[i].left, sample[i].right);
+    }
+    \endcode
+
+    \sa QAudioBuffer::S8U, QAudioBuffer::S8S, QAudioBuffer::S16S, QAudioBuffer::S16U, QAudioBuffer::S32F
+*/
+
+/*!
+    \fn QAudioBuffer::StereoSample::StereoSample()
+
+    Constructs a new sample with the "silent" value for this
+    sample format (0 for signed formats and floats, 0x8* for unsigned formats).
+*/
+
+/*!
+    \fn QAudioBuffer::StereoSample::StereoSample(T leftSample, T rightSample)
+
+    Constructs a new sample with the supplied \a leftSample and \a rightSample values.
+*/
+
+/*!
+    \fn QAudioBuffer::StereoSample::operator=(const StereoSample &other)
+
+    Assigns \a other to this sample.
+ */
+
+
+/*!
+    \fn QAudioBuffer::StereoSample::average() const
+
+    Returns the arithmetic average of the left and right samples.
+ */
+
+/*! \fn QAudioBuffer::StereoSample::clear()
+
+    Sets the values of this sample to the "silent" value.
+*/
+
+/*!
+    \variable QAudioBuffer::StereoSample::left
+    \brief the left sample
+*/
+
+/*!
+    \variable QAudioBuffer::StereoSample::right
+    \brief the right sample
+*/
+
+/*!
+    \typedef QAudioBuffer::S8U
+    \relates QAudioBuffer::StereoSample
+
+    This is a predefined specialization for an unsigned stereo 8 bit sample.  Each
+    channel is an \e {unsigned char}.
+*/
+/*!
+    \typedef QAudioBuffer::S8S
+    \relates QAudioBuffer::StereoSample
+
+    This is a predefined specialization for a signed stereo 8 bit sample.  Each
+    channel is a \e {signed char}.
+*/
+/*!
+    \typedef QAudioBuffer::S16U
+    \relates QAudioBuffer::StereoSample
+
+    This is a predefined specialization for an unsigned stereo 16 bit sample.  Each
+    channel is an \e {unsigned short}.
+*/
+/*!
+    \typedef QAudioBuffer::S16S
+    \relates QAudioBuffer::StereoSample
+
+    This is a predefined specialization for a signed stereo 16 bit sample.  Each
+    channel is a \e {signed short}.
+*/
+/*!
+    \typedef QAudioBuffer::S32F
+    \relates QAudioBuffer::StereoSample
+
+    This is a predefined specialization for an 32 bit float sample.  Each
+    channel is a \e float.
+*/
 
 QT_END_NAMESPACE

@@ -69,7 +69,3 @@ mac {
 }
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
-
-OTHER_FILES += \
-    qaudionamespace.qdoc \
-

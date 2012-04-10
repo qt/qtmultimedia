@@ -419,34 +419,39 @@ void QDeclarativeRadio::scanUp()
     and if the user presses a station, the radio is tuned to this station.
 
     \qml
-    Radio {
-        id: radio
-        onStationFound: radioStations.append({"frequency": frequency, "stationId": stationId})
-    }
+    Item {
+        width: 640
+        height: 360
 
-    ListModel {
-        id: radioStations
-    }
+        Radio {
+            id: radio
+            onStationFound: radioStations.append({"frequency": frequency, "stationId": stationId})
+        }
 
-    ListView {
-        model: radioStations
-        delegate: Rectangle {
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: radio.frequency = frequency
+        ListModel {
+            id: radioStations
+        }
+
+        ListView {
+            model: radioStations
+            delegate: Rectangle {
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: radio.frequency = frequency
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        text: stationId
+                    }
                 }
+        }
 
-                Text {
-                    anchors.fill: parent
-                    text: stationId
-                }
+        Rectangle {
+            MouseArea {
+                anchors.fill: parent
+                onClicked: radio.searchAllStations(Radio.SearchGetStationId)
             }
-    }
-
-    Rectangle {
-        MouseArea {
-            anchors.fill: parent
-            onClicked: radio.searchAllStations(Radio.SearchGetStationId)
         }
     }
     \endqml

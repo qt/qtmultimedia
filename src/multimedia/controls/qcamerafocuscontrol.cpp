@@ -172,7 +172,7 @@ QCameraFocusControl::~QCameraFocusControl()
   Signal is emitted when the focus \a mode is changed,
   usually in result of QCameraFocusControl::setFocusMode call or capture mode changes.
 
-  \sa QCameraFocusControl::focusMode() QCameraFocusControl::setFocusMode()
+  \sa QCameraFocusControl::focusMode(), QCameraFocusControl::setFocusMode()
 */
 
 /*!
@@ -181,7 +181,7 @@ QCameraFocusControl::~QCameraFocusControl()
   Signal is emitted when the focus point \a mode is changed,
   usually in result of QCameraFocusControl::setFocusPointMode call or capture mode changes.
 
-  \sa QCameraFocusControl::focusPointMode() QCameraFocusControl::setFocusPointMode()
+  \sa QCameraFocusControl::focusPointMode(), QCameraFocusControl::setFocusPointMode()
 */
 
 /*!
@@ -189,7 +189,7 @@ QCameraFocusControl::~QCameraFocusControl()
 
   Signal is emitted when the custom focus \a point is changed.
 
-  \sa QCameraFocusControl::customFocusPoint() QCameraFocusControl::setCustomFocusPoint()
+  \sa QCameraFocusControl::customFocusPoint(), QCameraFocusControl::setCustomFocusPoint()
 */
 
 

@@ -51,6 +51,7 @@ import QtAudioEngine 1.0
 
 AudioEngine {
 //...
+}
 \endqml
 
 \section1 Examples

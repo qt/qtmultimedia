@@ -51,11 +51,6 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Multimedia)
 
 class QAbstractVideoSurface;
-QT_END_NAMESPACE
-
-QT_BEGIN_NAMESPACE
-
-
 class Q_MULTIMEDIA_EXPORT QVideoRendererControl : public QMediaControl
 {
     Q_OBJECT

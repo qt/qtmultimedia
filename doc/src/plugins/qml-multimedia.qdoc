@@ -58,15 +58,20 @@
     import QtMultimedia 5.0
     // ...
 
-    Audio {
-        id: playMusic
-        source: "music.wav"
-    }
+    Item {
+        width: 640
+        height: 360
 
-    MouseArea {
-        id: playArea
-        anchors.fill: parent
-        onPressed:  { playMusic.play() }
+        Audio {
+            id: playMusic
+            source: "music.wav"
+        }
+
+        MouseArea {
+            id: playArea
+            anchors.fill: parent
+            onPressed:  { playMusic.play() }
+        }
     }
 
     \endqml
@@ -194,6 +199,9 @@
     import QtQuick 2.0
     import QtMultimedia 5.0
 
+    Item {
+        width: 640
+        height: 360
 
         SoundEffect {
             id: effect
@@ -204,6 +212,7 @@
             anchors.fill: parent
             onPressed:  { effect.play() }
         }
+    }
 
     \endqml
 

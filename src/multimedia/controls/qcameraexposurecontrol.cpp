@@ -53,22 +53,18 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_control
 
+    The QCameraExposure class is the usual method of adjusting exposure related parameters
+    when using camera functionality.  This class provides a more complete but less easy
+    to use interface, and also forms the interface to implement when writing a new
+    implementation of QCamera functionality.
+
     You can adjust a number of parameters that will affect images and video taken with
-    the corresponding QCamera object.
-
-    There are a number of different parameters that can be adjusted, including:
-
-    \table
-    \row
-    \header
-    \
-
-    \endtable
+    the corresponding QCamera object - see the \l {QCameraExposureControl::ExposureParameter}{ExposureParameter} enumeration.
 
     The interface name of QCameraExposureControl is \c org.qt-project.qt.cameraexposurecontrol/5.0 as
     defined in QCameraExposureControl_iid.
 
-    \sa QCamera
+    \sa QCameraExposure, QCamera
 */
 
 /*!

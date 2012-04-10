@@ -424,7 +424,7 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
 /*!
     Returns the list of supported buffer image capture formats.
 
-    \sa bufferFormat() setBufferFormat()
+    \sa bufferFormat(), setBufferFormat()
 */
 QList<QVideoFrame::PixelFormat> QCameraImageCapture::supportedBufferFormats() const
 {
@@ -437,7 +437,7 @@ QList<QVideoFrame::PixelFormat> QCameraImageCapture::supportedBufferFormats() co
 /*!
     Returns the buffer image capture format being used.
 
-    \sa supportedBufferFormats() setBufferFormat()
+    \sa supportedBufferFormats(), setBufferFormat()
 */
 QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
 {
@@ -450,7 +450,7 @@ QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
 /*!
     Sets the buffer image capture \a format to be used.
 
-    \sa bufferFormat() supportedBufferFormats() captureDestination()
+    \sa bufferFormat(), supportedBufferFormats(), captureDestination()
 */
 void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
 {
@@ -461,7 +461,7 @@ void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
 /*!
     Returns true if the image capture \a destination is supported; otherwise returns false.
 
-    \sa captureDestination() setCaptureDestination()
+    \sa captureDestination(), setCaptureDestination()
 */
 bool QCameraImageCapture::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
 {
@@ -474,7 +474,7 @@ bool QCameraImageCapture::isCaptureDestinationSupported(QCameraImageCapture::Cap
 /*!
     Returns the image capture destination being used.
 
-    \sa isCaptureDestinationSupported() setCaptureDestination()
+    \sa isCaptureDestinationSupported(), setCaptureDestination()
 */
 QCameraImageCapture::CaptureDestinations QCameraImageCapture::captureDestination() const
 {
@@ -487,7 +487,7 @@ QCameraImageCapture::CaptureDestinations QCameraImageCapture::captureDestination
 /*!
     Sets the capture \a destination to be used.
 
-    \sa isCaptureDestinationSupported() captureDestination()
+    \sa isCaptureDestinationSupported(), captureDestination()
 */
 void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
 {

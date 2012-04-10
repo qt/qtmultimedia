@@ -64,13 +64,23 @@ QT_BEGIN_NAMESPACE
     import QtQuick 2.0
     import QtMultimedia 5.0
 
-    Camera {
-        id: camera
+    Item {
+        width: 640
+        height: 360
 
-        focus {
-            focusMode: Camera.FocusMacro
-            focusPointMode: Camera.FocusPointCustom
-            customFocusPoint: Qt.point(0.2, 0.2) //focus to top-left corner
+        Camera {
+            id: camera
+
+            focus {
+                focusMode: Camera.FocusMacro
+                focusPointMode: Camera.FocusPointCustom
+                customFocusPoint: Qt.point(0.2, 0.2) //focus to top-left corner
+            }
+        }
+
+        VideoOutput {
+            source: camera
+            anchors.fill: parent
         }
     }
 
@@ -232,7 +242,7 @@ void QDeclarativeCameraFocus::setCustomFocusPoint(const QPointF &point)
                 color: "transparent"
 
                 // Map from the relative, normalized frame coordinates
-                property mappedRect: viewfinder.mapNormalizedRectToItem(area);
+                property variant mappedRect: viewfinder.mapNormalizedRectToItem(area);
 
                 x: mappedRect.x
                 y: mappedRect.y

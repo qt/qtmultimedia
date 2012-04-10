@@ -204,6 +204,12 @@ QString QAudioRecorder::defaultAudioInput() const
 }
 
 /*!
+    \property QAudioRecorder::audioInput
+    \brief the active audio input name.
+
+*/
+
+/*!
     Returns the active audio input name.
 */
 
