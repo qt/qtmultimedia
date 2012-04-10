@@ -41,7 +41,7 @@
 
 #include <QtTest/QtTest>
 #include <QDebug>
-#include "qaudiodecoder_p.h"
+#include "qaudiodecoder.h"
 
 #define TEST_FILE_NAME "testdata/test.wav"
 

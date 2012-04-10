@@ -6,6 +6,7 @@ TEMPLATE = subdirs
         radio \
         camera \
         spectrum \
+        audiodecoder \
         audiorecorder \
         audiodevices \
         audioinput \

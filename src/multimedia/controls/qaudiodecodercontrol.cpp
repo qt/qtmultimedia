@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "qmediacontrol_p.h"
-#include "qaudiodecodercontrol_p.h"
+#include "qaudiodecodercontrol.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -264,6 +264,6 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
     or -1 if not available.
 */
 
-#include "moc_qaudiodecodercontrol_p.cpp"
+#include "moc_qaudiodecodercontrol.cpp"
 QT_END_NAMESPACE
 

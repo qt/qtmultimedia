@@ -39,11 +39,11 @@
 **
 ****************************************************************************/
 
-#include "qaudiodecoder_p.h"
+#include "qaudiodecoder.h"
 
 #include "qmediaobject_p.h"
 #include <qmediaservice.h>
-#include "qaudiodecodercontrol_p.h"
+#include "qaudiodecodercontrol.h"
 #include <private/qmediaserviceprovider_p.h>
 
 #include <QtCore/qcoreevent.h>
@@ -542,6 +542,6 @@ QAudioBuffer QAudioDecoder::read() const
     \brief the active filename being decoded by the decoder object.
 */
 
-#include "moc_qaudiodecoder_p.cpp"
+#include "moc_qaudiodecoder.cpp"
 QT_END_NAMESPACE
 

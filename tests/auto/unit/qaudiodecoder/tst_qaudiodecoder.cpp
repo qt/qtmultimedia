@@ -43,7 +43,7 @@
 #include <QtCore/QString>
 #include <QtTest/QtTest>
 
-#include "qaudiodecoder_p.h"
+#include "qaudiodecoder.h"
 #include "mockaudiodecoderservice.h"
 #include "mockmediaserviceprovider.h"
 

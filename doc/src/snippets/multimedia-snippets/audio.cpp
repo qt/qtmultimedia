@@ -48,10 +48,7 @@
 #include "qaudioinput.h"
 #include "qaudiooutput.h"
 #include "qaudioprobe.h"
-
-//! [Audio decoder header]
-#include "qaudiodecoder_p.h"
-//! [Audio decoder header]
+#include "qaudiodecoder.h"
 
 class AudioInputExample : public QObject {
     Q_OBJECT

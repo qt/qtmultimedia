@@ -47,8 +47,8 @@
 
 #include <qaudioformat.h>
 #include <qaudiobuffer.h>
-#include <private/qaudiodecoder_p.h>
-#include <private/qaudiodecodercontrol_p.h>
+#include <qaudiodecoder.h>
+#include <qaudiodecodercontrol.h>
 
 #include <limits.h>
 

@@ -106,10 +106,7 @@ Here's an example of decoding a local file:
     \snippet doc/src/snippets/multimedia-snippets/audio.cpp Local audio decoding
 
 Note:  This API is preliminary at this time - the API may change or be
-removed before the final 5.0 release.  In addition, it is necessary to
-add "multimedia-private" to the QT variable in your .pro file to use this class.
-
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio decoder header
+removed before the final 5.0 release.
 
 \section2 Recording audio to a file
 For recording audio to a file, the \l {QAudioRecorder} class allows you

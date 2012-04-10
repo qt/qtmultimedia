@@ -43,7 +43,7 @@
 #define MOCKAUDIODECODERCONTROL_H
 
 #include "qmediacontrol.h"
-#include <private/qaudiodecodercontrol_p.h>
+#include "qaudiodecodercontrol.h"
 
 #include <QtCore/qpair.h>
 

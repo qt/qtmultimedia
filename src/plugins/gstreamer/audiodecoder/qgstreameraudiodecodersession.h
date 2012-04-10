@@ -46,7 +46,7 @@
 #include <QtCore/qmutex.h>
 #include "qgstreameraudiodecodercontrol.h"
 #include <private/qgstreamerbushelper_p.h>
-#include <private/qaudiodecoder_p.h>
+#include "qaudiodecoder.h"
 
 #if defined(HAVE_GST_APPSRC)
 #include "qgstappsrc.h"

@@ -41,7 +41,7 @@
 #ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
-#include <private/qaudiodecoder_p.h>
+#include <qaudiodecoder.h>
 #include "wavefilewriter.h"
 #include <QSoundEffect>
 #include <QTextStream>
