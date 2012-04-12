@@ -263,10 +263,33 @@ bool QGstreamerAudioDecoderSession::processBusMessage(const QGstreamerMessage &m
             gchar *debug;
             gst_message_parse_error(gm, &err, &debug);
             QAudioDecoder::Error qerror = QAudioDecoder::ResourceError;
-            if (err->domain == GST_STREAM_ERROR
-                       && (err->code == GST_STREAM_ERROR_DECRYPT || err->code == GST_STREAM_ERROR_DECRYPT_NOKEY)) {
-                qerror = QAudioDecoder::AccessDeniedError;
+            if (err->domain == GST_STREAM_ERROR) {
+                switch (err->code) {
+                    case GST_STREAM_ERROR_DECRYPT:
+                    case GST_STREAM_ERROR_DECRYPT_NOKEY:
+                        qerror = QAudioDecoder::AccessDeniedError;
+                        break;
+                    case GST_STREAM_ERROR_FORMAT:
+                    case GST_STREAM_ERROR_DEMUX:
+                    case GST_STREAM_ERROR_DECODE:
+                    case GST_STREAM_ERROR_WRONG_TYPE:
+                    case GST_STREAM_ERROR_TYPE_NOT_FOUND:
+                    case GST_STREAM_ERROR_CODEC_NOT_FOUND:
+                        qerror = QAudioDecoder::FormatError;
+                        break;
+                    default:
+                        break;
+                }
+            } else if (err->domain == GST_CORE_ERROR) {
+                switch (err->code) {
+                    case GST_CORE_ERROR_MISSING_PLUGIN:
+                        qerror = QAudioDecoder::FormatError;
+                        break;
+                    default:
+                        break;
+                }
             }
+
             processInvalidMedia(qerror, QString::fromUtf8(err->message));
             g_error_free(err);
             g_free(debug);
