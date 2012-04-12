@@ -46,6 +46,8 @@
 #include "qaudiodeviceinfo_pulse.h"
 #include "qaudiooutput_pulse.h"
 #include "qpulsehelpers.h"
+#include <sys/types.h>
+#include <unistd.h>
 
 QT_BEGIN_NAMESPACE
 
