@@ -5,7 +5,6 @@ QPRO_PWD = $$PWD
 QT = core-private network gui
 
 CONFIG += module
-MODULE_PRI += ../../modules/qt_multimedia.pri
 
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
 } else {

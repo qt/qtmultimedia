@@ -6,8 +6,10 @@ QPRO_PWD = $$PWD
 QT = core gui multimedia-private widgets-private
 
 CONFIG += module no_private_qt_headers_warning
-MODULE_PRI += ../../modules/qt_multimediawidgets.pri
 
+load(qt_module_config)
+
+# private dependencies
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
    QT += opengl
 } else {
@@ -16,8 +18,6 @@ contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
 
 !static:DEFINES += QT_MAKEDLL
 DEFINES += QT_BUILD_MULTIMEDIAWIDGETS_LIB
-
-load(qt_module_config)
 
 PRIVATE_HEADERS += \
     qvideowidget_p.h \
