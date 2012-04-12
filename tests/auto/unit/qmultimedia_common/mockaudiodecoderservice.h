@@ -55,6 +55,7 @@ public:
         : QMediaService(parent)
     {
         mockControl = new MockAudioDecoderControl(this);
+        validControl = mockControl;
     }
 
     ~MockAudioDecoderService()
@@ -74,7 +75,18 @@ public:
         Q_UNUSED(control);
     }
 
+    void setControlNull()
+    {
+        mockControl = 0;
+    }
+
+    void setControlValid()
+    {
+        mockControl = validControl;
+    }
+
     MockAudioDecoderControl *mockControl;
+    MockAudioDecoderControl *validControl;
 };
 
 

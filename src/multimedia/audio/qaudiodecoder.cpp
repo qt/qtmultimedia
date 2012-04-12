@@ -140,9 +140,7 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
     Q_D(QAudioDecoder);
 
     d->provider = QMediaServiceProvider::defaultServiceProvider();
-    if (d->service == 0) {
-        d->error = ServiceMissingError;
-    } else {
+    if (d->service) {
         d->control = qobject_cast<QAudioDecoderControl*>(d->service->requestControl(QAudioDecoderControl_iid));
         if (d->control != 0) {
             connect(d->control, SIGNAL(stateChanged(QAudioDecoder::State)), SLOT(_q_stateChanged(QAudioDecoder::State)));
@@ -156,6 +154,10 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
             connect(d->control ,SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
             connect(d->control ,SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
         }
+    }
+    if (!d->control) {
+       d->error = ServiceMissingError;
+       d->errorString = tr("The QAudioDecoder object does not have a valid service");
     }
 }
 

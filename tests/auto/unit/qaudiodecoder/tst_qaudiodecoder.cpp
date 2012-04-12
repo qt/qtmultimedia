@@ -62,6 +62,8 @@ private Q_SLOTS:
     void format();
     void source();
     void readAll();
+    void nullControl();
+    void nullService();
 
 private:
     MockAudioDecoderService  *mockAudioDecoderService;
@@ -336,6 +338,87 @@ void tst_QAudioDecoder::readAll()
         } else
             QTest::qWait(30);
     }
+}
+
+void tst_QAudioDecoder::nullControl()
+{
+    mockAudioDecoderService->setControlNull();
+    QAudioDecoder d;
+
+    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
+    QVERIFY(!d.errorString().isEmpty());
+
+    QVERIFY(d.hasSupport("MIME") == QtMultimedia::MaybeSupported);
+
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+
+    QVERIFY(d.sourceFilename().isEmpty());
+    d.setSourceFilename("test");
+    QVERIFY(d.sourceFilename().isEmpty());
+
+    QFile f;
+    QVERIFY(d.sourceDevice() == 0);
+    d.setSourceDevice(&f);
+    QVERIFY(d.sourceDevice() == 0);
+
+    QAudioFormat format;
+    format.setChannels(2);
+    QVERIFY(!d.audioFormat().isValid());
+    d.setAudioFormat(format);
+    QVERIFY(!d.audioFormat().isValid());
+
+    QVERIFY(!d.read().isValid());
+    QVERIFY(!d.bufferAvailable());
+
+    QVERIFY(d.position() == -1);
+    QVERIFY(d.duration() == -1);
+
+    d.start();
+    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
+    QVERIFY(!d.errorString().isEmpty());
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    d.stop();
+}
+
+
+void tst_QAudioDecoder::nullService()
+{
+    mockProvider->service = 0;
+    QAudioDecoder d;
+
+    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
+    QVERIFY(!d.errorString().isEmpty());
+
+    QVERIFY(d.hasSupport("MIME") == QtMultimedia::MaybeSupported);
+
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+
+    QVERIFY(d.sourceFilename().isEmpty());
+    d.setSourceFilename("test");
+    QVERIFY(d.sourceFilename().isEmpty());
+
+    QFile f;
+    QVERIFY(d.sourceDevice() == 0);
+    d.setSourceDevice(&f);
+    QVERIFY(d.sourceDevice() == 0);
+
+    QAudioFormat format;
+    format.setChannels(2);
+    QVERIFY(!d.audioFormat().isValid());
+    d.setAudioFormat(format);
+    QVERIFY(!d.audioFormat().isValid());
+
+    QVERIFY(!d.read().isValid());
+    QVERIFY(!d.bufferAvailable());
+
+    QVERIFY(d.position() == -1);
+    QVERIFY(d.duration() == -1);
+
+    d.start();
+    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
+    QVERIFY(!d.errorString().isEmpty());
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    d.stop();
 }
 
 QTEST_MAIN(tst_QAudioDecoder)
