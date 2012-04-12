@@ -15,6 +15,7 @@ qrc_*.cpp
 *.moc
 .qmake.cache
 config.log
+*.pro.user
 tmp
 include
 src/multimedia/qtmultimediaversion.h
