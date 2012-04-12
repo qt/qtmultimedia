@@ -30,6 +30,7 @@ PUBLIC_HEADERS += \
     controls/qvideodevicecontrol.h \
     controls/qvideoencodercontrol.h \
     controls/qvideorenderercontrol.h \
+    controls/qvideowindowcontrol.h \
     controls/qmediaaudioprobecontrol.h \
     controls/qmediavideoprobecontrol.h \
     controls/qmediaavailabilitycontrol.h
@@ -68,6 +69,7 @@ SOURCES += \
     controls/qvideodevicecontrol.cpp \
     controls/qvideoencodercontrol.cpp \
     controls/qvideorenderercontrol.cpp \
+    controls/qvideowindowcontrol.cpp \
     controls/qmediaaudioprobecontrol.cpp \
     controls/qmediavideoprobecontrol.cpp \
     controls/qmediaavailabilitycontrol.cpp \

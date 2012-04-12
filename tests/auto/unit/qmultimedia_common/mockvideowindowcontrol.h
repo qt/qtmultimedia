@@ -42,8 +42,6 @@
 #ifndef MOCKVIDEOWINDOWCONTROL_H
 #define MOCKVIDEOWINDOWCONTROL_H
 
-#if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
-
 #include "qvideowindowcontrol.h"
 
 class MockVideoWindowControl : public QVideoWindowControl
@@ -70,5 +68,4 @@ public:
     void setSaturation(int) {}
 };
 
-#endif // QT_MULTIMEDIA_MOCK_WIDGETS
 #endif // MOCKVIDEOWINDOWCONTROL_H

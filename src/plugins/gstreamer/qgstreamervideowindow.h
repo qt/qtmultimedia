@@ -46,6 +46,7 @@
 
 #include "qgstreamervideorendererinterface.h"
 #include <private/qgstreamerbushelper_p.h>
+#include <QtGui/qcolor.h>
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;

@@ -43,9 +43,9 @@
 #define QVIDEOWINDOWCONTROL_H
 
 #include "qmediacontrol.h"
-#include "qvideowidget.h"
-
-#include <QtWidgets/qwidget.h>
+#include <QtCore/qrect.h>
+#include <QtCore/qsize.h>
+#include <QtGui/qwindowdefs.h>
 
 QT_BEGIN_HEADER
 
@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Multimedia)
 
 
-class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWindowControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QVideoWindowControl : public QMediaControl
 {
     Q_OBJECT
 

@@ -29,15 +29,13 @@ PUBLIC_HEADERS += \
     qcameraviewfinder.h \
     qgraphicsvideoitem.h \
     qvideowidgetcontrol.h \
-    qvideowidget.h \
-    qvideowindowcontrol.h
+    qvideowidget.h
 
 SOURCES += \
     qcameraviewfinder.cpp \
     qpaintervideosurface.cpp \
     qvideowidgetcontrol.cpp \
-    qvideowidget.cpp \
-    qvideowindowcontrol.cpp \
+    qvideowidget.cpp
 
 mac {
     # QtWidgets is not yet supported on Mac (!).

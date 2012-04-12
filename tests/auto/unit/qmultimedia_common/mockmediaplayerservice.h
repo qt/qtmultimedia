@@ -49,9 +49,7 @@
 #include "mockmedianetworkaccesscontrol.h"
 #include "mockvideorenderercontrol.h"
 #include "mockvideoprobecontrol.h"
-#if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
 #include "mockvideowindowcontrol.h"
-#endif
 
 class MockMediaPlayerService : public QMediaService
 {
@@ -66,10 +64,8 @@ public:
         rendererControl = new MockVideoRendererControl;
         rendererRef = 0;
         mockVideoProbeControl = new MockVideoProbeControl;
-#if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
         windowControl = new MockVideoWindowControl;
         windowRef = 0;
-#endif
     }
 
     ~MockMediaPlayerService()
@@ -79,9 +75,7 @@ public:
         delete mockNetworkControl;
         delete rendererControl;
         delete mockVideoProbeControl;
-#if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
         delete windowControl;
-#endif
     }
 
     QMediaControl* requestControl(const char *iid)
@@ -96,14 +90,12 @@ public:
         } else if (qstrcmp(iid, QMediaVideoProbeControl_iid) == 0) {
             return mockVideoProbeControl;
         }
-#if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
         if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
             if (windowRef == 0) {
                 windowRef += 1;
                 return windowControl;
             }
         }
-#endif
 
         if (qstrcmp(iid, QMediaNetworkAccessControl_iid) == 0)
             return mockNetworkControl;
@@ -114,10 +106,8 @@ public:
     {
         if (control == rendererControl)
             rendererRef -= 1;
-#if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
         if (control == windowControl)
             windowRef -= 1;
-#endif
     }
 
     void setState(QMediaPlayer::State state) { emit mockControl->stateChanged(mockControl->_state = state); }
@@ -170,10 +160,8 @@ public:
     MockNetworkAccessControl *mockNetworkControl;
     MockVideoRendererControl *rendererControl;
     MockVideoProbeControl *mockVideoProbeControl;
-#if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
     MockVideoWindowControl *windowControl;
     int windowRef;
-#endif
     int rendererRef;
 };
 
