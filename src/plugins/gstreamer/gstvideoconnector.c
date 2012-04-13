@@ -40,6 +40,7 @@
 ****************************************************************************/
 
 #include "gstvideoconnector.h"
+#include <unistd.h>
 
 /* signals */
 enum
@@ -185,6 +186,8 @@ gst_video_connector_dispose (GObject * object)
     G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
+// "When this function returns anything else than GST_FLOW_OK,
+// the buffer allocation failed and buf does not contain valid data."
 static GstFlowReturn
 gst_video_connector_buffer_alloc (GstPad * pad, guint64 offset, guint size,
                                   GstCaps * caps, GstBuffer ** buf)
@@ -201,10 +204,44 @@ gst_video_connector_buffer_alloc (GstPad * pad, guint64 offset, guint size,
     gst_object_ref(element->srcpad);
     GST_OBJECT_UNLOCK (element);
 
+    // Check if downstream element is in NULL state
+    // and wait for up to 1 second for it to switch.
+    GstPad *peerPad = gst_pad_get_peer(element->srcpad);
+    if (peerPad) {
+        GstElement *parent = gst_pad_get_parent_element(peerPad);
+        gst_object_unref (peerPad);
+        if (parent) {
+            GstState state;
+            GstState pending;
+            int totalTimeout = 0;
+            // This seems to sleep for about 10ms usually.
+            while (totalTimeout < 1000000) {
+                gst_element_get_state(parent, &state, &pending, 0);
+                if (state != GST_STATE_NULL)
+                    break;
+                usleep(5000);
+                totalTimeout += 5000;
+            }
+
+            gst_object_unref (parent);
+            if (state == GST_STATE_NULL) {
+                GST_DEBUG_OBJECT (element, "Downstream element is in NULL state");
+                // Downstream filter seems to be in the wrong state
+                return GST_FLOW_UNEXPECTED;
+            }
+        }
+    }
+
     res = gst_pad_alloc_buffer(element->srcpad, offset, size, caps, buf);
     gst_object_unref (element->srcpad);
 
     GST_DEBUG_OBJECT (element, "buffer alloc finished: %s", gst_flow_get_name (res));
+
+    if (res == GST_FLOW_WRONG_STATE) {
+        // Just in case downstream filter is still somehow in the wrong state.
+        // Pipeline stalls if we report GST_FLOW_WRONG_STATE.
+        return GST_FLOW_UNEXPECTED;
+    }
 
     return res;
 }
