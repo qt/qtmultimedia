@@ -100,6 +100,9 @@ public:
     void setVolume(qreal);
     qreal volume() const;
 
+    QString category() const;
+    void setCategory(const QString &category);
+
 Q_SIGNALS:
     void stateChanged(QAudio::State);
     void notify();

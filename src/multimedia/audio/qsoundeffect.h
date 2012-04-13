@@ -68,6 +68,7 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QString category READ category WRITE setCategory NOTIFY categoryChanged)
     Q_ENUMS(Loop)
     Q_ENUMS(Status)
 
@@ -108,6 +109,9 @@ public:
     bool isPlaying() const;
     Status status() const;
 
+    QString category() const;
+    void setCategory(const QString &category);
+
 Q_SIGNALS:
     void sourceChanged();
     void loopCountChanged();
@@ -117,6 +121,7 @@ Q_SIGNALS:
     void loadedChanged();
     void playingChanged();
     void statusChanged();
+    void categoryChanged();
 
 public Q_SLOTS:
     void play();

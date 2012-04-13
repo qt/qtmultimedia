@@ -53,6 +53,7 @@
 QT_BEGIN_NAMESPACE
 
 const int PeriodTimeMs = 20;
+const int LowLatencyBufferSizeMs = 40;
 
 static void  outputStreamWriteCallback(pa_stream *stream, size_t length, void *userdata)
 {
@@ -267,7 +268,23 @@ bool QPulseAudioOutput::open()
 
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
     pa_threaded_mainloop_lock(pulseEngine->mainloop());
-    m_stream = pa_stream_new(pulseEngine->context(), m_streamName.constData(), &spec, 0);
+
+    pa_proplist *propList = pa_proplist_new();
+    if (m_category.isNull()) {
+        // Meant to be one of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y", "test"
+        // We choose music unless the buffer size is small, where we choose game..
+        qint64 bytesPerSecond = m_format.sampleRate() * m_format.channels() * m_format.sampleSize() / 8;
+        if (m_bufferSize > 0 && bytesPerSecond > 0 && (m_bufferSize * 1000LL / bytesPerSecond < LowLatencyBufferSizeMs)) {
+            pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, "game");
+        } else {
+            pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, "music");
+        }
+    } else {
+        pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, m_category.toLatin1().constData());
+    }
+
+    m_stream = pa_stream_new_with_proplist(pulseEngine->context(), m_streamName.constData(), &spec, 0, propList);
+    pa_proplist_free(propList);
 
     pa_stream_set_state_callback(m_stream, outputStreamStateCallback, this);
     pa_stream_set_write_callback(m_stream, outputStreamWriteCallback, this);
@@ -617,6 +634,18 @@ void QPulseAudioOutput::setVolume(qreal vol)
 qreal QPulseAudioOutput::volume() const
 {
     return m_volume;
+}
+
+void QPulseAudioOutput::setCategory(const QString &category)
+{
+    if (m_category != category) {
+        m_category = category;
+    }
+}
+
+QString QPulseAudioOutput::category() const
+{
+    return m_category;
 }
 
 QT_END_NAMESPACE

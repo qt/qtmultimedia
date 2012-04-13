@@ -351,7 +351,8 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     m_volume(100),
     m_loopCount(1),
     m_runningCount(0),
-    m_sample(0) ,
+    m_sample(0),
+    m_reloadCategory(false),
     m_position(0)
 {
     m_ref = new QSoundEffectRef(this);
@@ -371,6 +372,32 @@ void QSoundEffectPrivate::release()
     }
 
     this->deleteLater();
+}
+
+QString QSoundEffectPrivate::category() const
+{
+    return m_category;
+}
+
+void QSoundEffectPrivate::setCategory(const QString &category)
+{
+    if (m_category != category) {
+        m_category = category;
+        if (m_playing || m_playQueued) {
+            // Currently playing, we need to disconnect when
+            // playback stops
+            m_reloadCategory = true;
+        } else if (m_pulseStream) {
+            // We have to disconnect and reconnect
+            unloadPulseStream();
+            createPulseStream();
+        } else {
+            // Well, next time we create the pulse stream
+            // it should be set
+        }
+
+        emit categoryChanged();
+    }
 }
 
 QSoundEffectPrivate::~QSoundEffectPrivate()
@@ -700,6 +727,7 @@ void QSoundEffectPrivate::unloadPulseStream()
         pa_stream_unref(m_pulseStream);
         disconnect(pulseDaemon(), SIGNAL(volumeChanged()), this, SLOT(updateVolume()));
         m_pulseStream = 0;
+        m_reloadCategory = false; // category will be reloaded when we connect anyway
     }
 }
 
@@ -808,11 +836,16 @@ void QSoundEffectPrivate::stop()
     setPlaying(false);
     PulseDaemonLocker locker;
     m_stopping = true;
-    if (m_pulseStream)
+    if (m_pulseStream) {
         emptyStream();
+        if (m_reloadCategory) {
+            unloadPulseStream(); // upon play we reconnect anyway
+        }
+    }
     setLoopsRemaining(0);
     m_position = 0;
     m_playQueued = false;
+    m_reloadCategory = false;
 }
 
 void QSoundEffectPrivate::underRun()
@@ -846,7 +879,12 @@ void QSoundEffectPrivate::createPulseStream()
 #endif
 
     pa_proplist *propList = pa_proplist_new();
-    pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, "soundeffect");
+    if (m_category.isNull()) {
+        // Meant to be one of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y", "test"
+        pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, "game");
+    } else {
+        pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, m_category.toLatin1().constData());
+    }
     pa_stream *stream = pa_stream_new_with_proplist(pulseDaemon()->context(), m_name.constData(), &m_pulseSpec, 0, propList);
     pa_proplist_free(propList);
 

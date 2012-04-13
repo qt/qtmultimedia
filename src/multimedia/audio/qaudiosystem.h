@@ -97,6 +97,8 @@ public:
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(qreal) {}
     virtual qreal volume() const { return 1.0; }
+    virtual QString category() const { return QString(); }
+    virtual void setCategory(const QString &) { }
 
 Q_SIGNALS:
     void errorChanged(QAudio::Error);

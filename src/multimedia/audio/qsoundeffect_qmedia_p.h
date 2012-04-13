@@ -91,6 +91,10 @@ public:
 
     void release();
 
+    // Categories are not really supported with QMediaPlayer
+    QString category() const;
+    void setCategory(const QString &);
+
 public Q_SLOTS:
     void play();
     void stop();
@@ -102,6 +106,7 @@ Q_SIGNALS:
     void loadedChanged();
     void playingChanged();
     void statusChanged();
+    void categoryChanged();
 
 private Q_SLOTS:
     void stateChanged(QMediaPlayer::State);
@@ -118,6 +123,7 @@ private:
     bool           m_playing;
     QSoundEffect::Status  m_status;
     QMediaPlayer  *m_player;
+    QString         m_category;
 };
 
 QT_END_NAMESPACE

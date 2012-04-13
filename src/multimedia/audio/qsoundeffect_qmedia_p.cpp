@@ -250,6 +250,20 @@ void QSoundEffectPrivate::setLoopsRemaining(int loopsRemaining)
     emit loopsRemainingChanged();
 }
 
+/* Categories are ignored */
+QString QSoundEffectPrivate::category() const
+{
+    return m_category;
+}
+
+void QSoundEffectPrivate::setCategory(const QString &category)
+{
+    if (m_category != category && !m_playing) {
+        m_category = category;
+        emit categoryChanged();
+    }
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qsoundeffect_qmedia_p.cpp"

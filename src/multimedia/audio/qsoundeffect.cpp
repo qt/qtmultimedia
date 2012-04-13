@@ -218,6 +218,7 @@ QSoundEffect::QSoundEffect(QObject *parent) :
     connect(d, SIGNAL(loadedChanged()), SIGNAL(loadedChanged()));
     connect(d, SIGNAL(playingChanged()), SIGNAL(playingChanged()));
     connect(d, SIGNAL(statusChanged()), SIGNAL(statusChanged()));
+    connect(d, SIGNAL(categoryChanged()), SIGNAL(categoryChanged()));
 }
 
 /*!
@@ -364,6 +365,57 @@ bool QSoundEffect::isPlaying() const
 QSoundEffect::Status QSoundEffect::status() const
 {
     return d->status();
+}
+
+/*!
+    \qmlproperty string QtMultimedia5::SoundEffect::category
+    \property QSoundEffect::category
+
+    This property contains the \e category of this sound effect.
+
+    Some platforms can perform different audio routing
+    for different categories, or may allow the user to
+    set different volume levels for different categories.
+
+    This setting will be ignored on platforms that do not
+    support audio categories.
+*/
+/*!
+    Returns the current \e category for this sound effect.
+
+    Some platforms can perform different audio routing
+    for different categories, or may allow the user to
+    set different volume levels for different categories.
+
+    This setting will be ignored on platforms that do not
+    support audio categories.
+
+    \sa setCategory()
+*/
+QString QSoundEffect::category() const
+{
+    return d->category();
+}
+
+/*!
+    Sets the \e category of this sound effect to \a category.
+
+    Some platforms can perform different audio routing
+    for different categories, or may allow the user to
+    set different volume levels for different categories.
+
+    This setting will be ignored on platforms that do not
+    support audio categories.
+
+    If this setting is changed while a sound effect is playing
+    it will only take effect when the sound effect has stopped
+    playing.
+
+    \sa category()
+ */
+void QSoundEffect::setCategory(const QString &category)
+{
+    d->setCategory(category);
 }
 
 

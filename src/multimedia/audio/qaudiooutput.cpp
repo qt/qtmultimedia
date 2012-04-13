@@ -364,6 +364,41 @@ qreal QAudioOutput::volume() const
 }
 
 /*!
+    Returns the audio category of this audio stream.
+
+    Some platforms can group audio streams into categories
+    and manage their volumes independently, or display them
+    in a system mixer control.  You can set this property to
+    allow the platform to distinguish the purpose of your streams.
+
+    \sa setCategory()
+*/
+QString QAudioOutput::category() const
+{
+    return d->category();
+}
+
+/*!
+    Sets the audio category of this audio stream.
+
+    Some platforms can group audio streams into categories
+    and manage their volumes independently, or display them
+    in a system mixer control.  You can set this property to
+    allow the platform to distinguish the purpose of your streams.
+
+    Not all platforms support audio stream categorization.  In this
+    case, the function call will be ignored.
+
+    Changing an audio output stream's category while it is opened
+    will not take effect until it is reopened.
+    \sa category()
+*/
+void QAudioOutput::setCategory(const QString &category)
+{
+    d->setCategory(category);
+}
+
+/*!
     \fn QAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
     This is the current state of the audio output.

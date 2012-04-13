@@ -94,6 +94,9 @@ public:
 
     void release();
 
+    QString category() const;
+    void setCategory(const QString &category);
+
 public Q_SLOTS:
     void play();
     void stop();
@@ -105,6 +108,7 @@ Q_SIGNALS:
     void loadedChanged();
     void playingChanged();
     void statusChanged();
+    void categoryChanged();
 
 private Q_SLOTS:
     void decoderError();
@@ -157,6 +161,8 @@ private:
     int     m_runningCount;
     QUrl    m_source;
     QByteArray m_name;
+    QString m_category;
+    bool m_reloadCategory;
 
     QSample *m_sample;
     int m_position;

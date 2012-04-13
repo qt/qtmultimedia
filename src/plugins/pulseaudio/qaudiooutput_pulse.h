@@ -98,6 +98,9 @@ public:
     void setVolume(qreal volume);
     qreal volume() const;
 
+    void setCategory(const QString &category);
+    QString category() const;
+
 public:
     void streamUnderflowCallback();
 
@@ -130,6 +133,7 @@ private:
     QTime m_timeStamp;
     qint64 m_elapsedTimeOffset;
     bool m_resuming;
+    QString m_category;
 
     qreal m_volume;
     pa_cvolume m_chVolume;
