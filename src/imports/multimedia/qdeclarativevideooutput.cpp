@@ -156,6 +156,19 @@ private:
     description.
 
     \sa MediaPlayer, Camera
+
+    \section1 Screen Saver
+
+    If it is likely that an application will be playing video for an extended
+    period of time without user interaction it may be necessary to disable
+    the platform's screen saver. The \l ScreenSaver element (from \l QtSystemInfo)
+    may be used to disable the screensaver in this fashion:
+
+    \qml
+    import QtSystemInfo 5.0
+
+    ScreenSaver { screenSaverEnabled: false }
+    \endqml
 */
 
 /*!
