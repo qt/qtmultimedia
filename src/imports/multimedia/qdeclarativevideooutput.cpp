@@ -223,7 +223,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
         return;
 
     if (m_source && m_sourceType == MediaObjectSource)
-        disconnect(0, m_source.data(), SLOT(_q_updateMediaObject()));
+        disconnect(m_source.data(), 0, this, SLOT(_q_updateMediaObject()));
 
     if (m_source && m_sourceType == VideoSurfaceSource) {
         if (m_source.data()->property("videoSurface").value<QAbstractVideoSurface*>() == m_surface)
