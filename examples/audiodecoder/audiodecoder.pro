@@ -10,4 +10,5 @@ SOURCES = main.cpp \
     audiodecoder.cpp \
     wavefilewriter.cpp
 
-QT+= multimedia multimedia-private console
+QT += multimedia
+CONFIG += console
