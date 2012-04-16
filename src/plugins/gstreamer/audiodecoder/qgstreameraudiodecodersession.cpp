@@ -470,7 +470,7 @@ QAudioBuffer QGstreamerAudioDecoderSession::read()
 bool QGstreamerAudioDecoderSession::bufferAvailable() const
 {
     QMutexLocker locker(&m_buffersMutex);
-    return m_buffersAvailable;
+    return m_buffersAvailable > 0;
 }
 
 qint64 QGstreamerAudioDecoderSession::position() const
