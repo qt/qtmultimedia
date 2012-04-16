@@ -82,6 +82,8 @@ private slots:
     void subsequentPlayback();
     void probes();
     void playlist();
+    void surfaceTest_data();
+    void surfaceTest();
 
 private:
     QMediaContent selectVideoFile(const QStringList& mediaCandidates);
@@ -101,7 +103,9 @@ class TestVideoSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
 public:
-    TestVideoSurface() { }
+    explicit TestVideoSurface(bool storeFrames = true);
+
+    void setSupportedFormats(const QList<QVideoFrame::PixelFormat>& formats) { m_supported = formats; }
 
     //video surface
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
@@ -112,6 +116,11 @@ public:
     bool present(const QVideoFrame &frame);
 
     QList<QVideoFrame> m_frameList;
+    int m_totalFrames; // used instead of the list when frames are not stored
+
+private:
+    bool m_storeFrames;
+    QList<QVideoFrame::PixelFormat> m_supported;
 };
 
 class ProbeDataHandler : public QObject
@@ -882,16 +891,67 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(errorSpy.count(), 1);
 }
 
-QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
-        QAbstractVideoBuffer::HandleType handleType) const
+void tst_QMediaPlayerBackend::surfaceTest_data()
 {
-    if (handleType == QAbstractVideoBuffer::NoHandle) {
-        return QList<QVideoFrame::PixelFormat>()
-                << QVideoFrame::Format_RGB32
+    QTest::addColumn< QList<QVideoFrame::PixelFormat> >("formatsList");
+
+    QList<QVideoFrame::PixelFormat> formatsRGB;
+    formatsRGB << QVideoFrame::Format_RGB32
+               << QVideoFrame::Format_ARGB32
+               << QVideoFrame::Format_RGB565
+               << QVideoFrame::Format_BGRA32;
+
+    QList<QVideoFrame::PixelFormat> formatsYUV;
+    formatsYUV << QVideoFrame::Format_YUV420P
+               << QVideoFrame::Format_YV12
+               << QVideoFrame::Format_UYVY
+               << QVideoFrame::Format_YUYV;
+
+    QTest::newRow("RGB formats")
+            << formatsRGB;
+
+    QTest::newRow("YVU formats")
+            << formatsYUV;
+
+    QTest::newRow("RGB & YUV formats")
+            << formatsRGB + formatsYUV;
+}
+
+void tst_QMediaPlayerBackend::surfaceTest()
+{
+    // 25 fps video file
+    if (localVideoFile.isNull())
+        QSKIP("Video format is not supported");
+
+    QFETCH(QList<QVideoFrame::PixelFormat>, formatsList);
+
+    TestVideoSurface surface(false);
+    surface.setSupportedFormats(formatsList);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    player.setMedia(localVideoFile);
+    player.play();
+    QTRY_VERIFY(player.position() >= 1000);
+    QVERIFY(surface.m_totalFrames >= 25);
+}
+
+TestVideoSurface::TestVideoSurface(bool storeFrames):
+    m_totalFrames(0),
+    m_storeFrames(storeFrames)
+{
+    // set default formats
+    m_supported << QVideoFrame::Format_RGB32
                 << QVideoFrame::Format_ARGB32
                 << QVideoFrame::Format_ARGB32_Premultiplied
                 << QVideoFrame::Format_RGB565
                 << QVideoFrame::Format_RGB555;
+}
+
+QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
+        QAbstractVideoBuffer::HandleType handleType) const
+{
+    if (handleType == QAbstractVideoBuffer::NoHandle) {
+        return m_supported;
     } else {
         return QList<QVideoFrame::PixelFormat>();
     }
@@ -911,7 +971,9 @@ void TestVideoSurface::stop()
 
 bool TestVideoSurface::present(const QVideoFrame &frame)
 {
-    m_frameList.push_back(frame);
+    if (m_storeFrames)
+        m_frameList.push_back(frame);
+    m_totalFrames++;
     return true;
 }
 
