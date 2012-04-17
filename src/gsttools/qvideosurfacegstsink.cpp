@@ -523,7 +523,24 @@ GstCaps *QVideoSurfaceGstSink::get_caps(GstBaseSink *base)
 
     GstCaps *caps = gst_caps_new_empty();
 
+    // Find the supported pixel formats
+    // with buffer pool specific formats listed first
+    QList<QVideoFrame::PixelFormat> supportedFormats;
+
+    QList<QVideoFrame::PixelFormat> poolHandleFormats;
+    sink->delegate->poolMutex()->lock();
+    QGstBufferPoolInterface *pool = sink->delegate->pool();
+    if (pool)
+        poolHandleFormats = sink->delegate->supportedPixelFormats(pool->handleType());
+    sink->delegate->poolMutex()->unlock();
+
+    supportedFormats = poolHandleFormats;
     foreach (QVideoFrame::PixelFormat format, sink->delegate->supportedPixelFormats()) {
+        if (!poolHandleFormats.contains(format))
+            supportedFormats.append(format);
+    }
+
+    foreach (QVideoFrame::PixelFormat format, supportedFormats) {
         int index = indexOfYuvColor(format);
 
         if (index != -1) {
@@ -750,14 +767,14 @@ GstFlowReturn QVideoSurfaceGstSink::buffer_alloc(
         return GST_FLOW_OK;
     }
 
+    poolLock.unlock();
+
     GstCaps *intersection = gst_caps_intersect(get_caps(GST_BASE_SINK(sink)), caps);
 
     if (gst_caps_is_empty (intersection)) {
         gst_caps_unref(intersection);
         return GST_FLOW_NOT_NEGOTIATED;
     }
-
-    poolLock.unlock();
 
     if (sink->delegate->isActive()) {
         //if format was changed, restart the surface
