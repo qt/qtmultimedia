@@ -200,47 +200,59 @@ gst_video_connector_buffer_alloc (GstPad * pad, guint64 offset, guint size,
         return GST_FLOW_ERROR;
     *buf = NULL;
 
-    GST_OBJECT_LOCK (element);
-    gst_object_ref(element->srcpad);
-    GST_OBJECT_UNLOCK (element);
+    gboolean isFailed = FALSE;
+    while (1) {
+        GST_OBJECT_LOCK (element);
+        gst_object_ref(element->srcpad);
+        GST_OBJECT_UNLOCK (element);
 
-    // Check if downstream element is in NULL state
-    // and wait for up to 1 second for it to switch.
-    GstPad *peerPad = gst_pad_get_peer(element->srcpad);
-    if (peerPad) {
-        GstElement *parent = gst_pad_get_parent_element(peerPad);
-        gst_object_unref (peerPad);
-        if (parent) {
-            GstState state;
-            GstState pending;
-            int totalTimeout = 0;
-            // This seems to sleep for about 10ms usually.
-            while (totalTimeout < 1000000) {
-                gst_element_get_state(parent, &state, &pending, 0);
-                if (state != GST_STATE_NULL)
-                    break;
-                usleep(5000);
-                totalTimeout += 5000;
-            }
+        // Check if downstream element is in NULL state
+        // and wait for up to 1 second for it to switch.
+        GstPad *peerPad = gst_pad_get_peer(element->srcpad);
+        if (peerPad) {
+            GstElement *parent = gst_pad_get_parent_element(peerPad);
+            gst_object_unref (peerPad);
+            if (parent) {
+                GstState state;
+                GstState pending;
+                int totalTimeout = 0;
+                // This seems to sleep for about 10ms usually.
+                while (totalTimeout < 1000000) {
+                    gst_element_get_state(parent, &state, &pending, 0);
+                    if (state != GST_STATE_NULL)
+                        break;
+                    usleep(5000);
+                    totalTimeout += 5000;
+                }
 
-            gst_object_unref (parent);
-            if (state == GST_STATE_NULL) {
-                GST_DEBUG_OBJECT (element, "Downstream element is in NULL state");
-                // Downstream filter seems to be in the wrong state
-                return GST_FLOW_UNEXPECTED;
+                gst_object_unref (parent);
+                if (state == GST_STATE_NULL) {
+                    GST_DEBUG_OBJECT (element, "Downstream element is in NULL state");
+                    // Downstream filter seems to be in the wrong state
+                    return GST_FLOW_UNEXPECTED;
+                }
             }
         }
-    }
 
-    res = gst_pad_alloc_buffer(element->srcpad, offset, size, caps, buf);
-    gst_object_unref (element->srcpad);
+        res = gst_pad_alloc_buffer(element->srcpad, offset, size, caps, buf);
+        gst_object_unref (element->srcpad);
 
-    GST_DEBUG_OBJECT (element, "buffer alloc finished: %s", gst_flow_get_name (res));
+        GST_DEBUG_OBJECT (element, "buffer alloc finished: %s", gst_flow_get_name (res));
 
-    if (res == GST_FLOW_WRONG_STATE) {
-        // Just in case downstream filter is still somehow in the wrong state.
-        // Pipeline stalls if we report GST_FLOW_WRONG_STATE.
-        return GST_FLOW_UNEXPECTED;
+        if (res == GST_FLOW_WRONG_STATE) {
+            // Just in case downstream filter is still somehow in the wrong state.
+            // Pipeline stalls if we report GST_FLOW_WRONG_STATE.
+            return GST_FLOW_UNEXPECTED;
+        }
+
+        if (res >= GST_FLOW_OK || isFailed == TRUE)
+            break;
+
+        //if gst_pad_alloc_buffer failed, emit "connection-failed" signal
+        //so colorspace transformation element can be inserted
+        GST_INFO_OBJECT(element, "gst_video_connector_buffer_alloc failed, emit connection-failed signal");
+        g_signal_emit(G_OBJECT(element), gst_video_connector_signals[SIGNAL_CONNECTION_FAILED], 0);
+        isFailed = TRUE;
     }
 
     return res;
@@ -259,7 +271,7 @@ gst_video_connector_setcaps (GstPad  *pad, GstCaps *caps)
 
     if (!res) {
         //if set_caps failed, emit "connection-failed" signal
-        //so colorspace transformation elemnt can be inserted
+        //so colorspace transformation element can be inserted
         GST_INFO_OBJECT(element, "gst_video_connector_setcaps failed, emit connection-failed signal");
         g_signal_emit(G_OBJECT(element), gst_video_connector_signals[SIGNAL_CONNECTION_FAILED], 0);
 
