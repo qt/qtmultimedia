@@ -125,6 +125,14 @@ bool QAudioProbe::setSource(QMediaObject *source)
     // 1) disconnect from current source if necessary
     // 2) see if new one has the probe control
     // 3) connect if so
+
+    // in case source was destroyed but probe control is still valid
+    if (!d->source && d->probee) {
+        disconnect(d->probee.data(), SIGNAL(audioBufferProbed(QAudioBuffer)), this, SIGNAL(audioBufferProbed(QAudioBuffer)));
+        disconnect(d->probee.data(), SIGNAL(flush()), this, SIGNAL(flush()));
+        d->probee.clear();
+    }
+
     if (source != d->source.data()) {
         if (d->source) {
             Q_ASSERT(d->probee);
