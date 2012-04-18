@@ -160,8 +160,16 @@ change when porting code.
 \section1 Reference Documentation
 
 \section2 QML Elements
-
+The following elements are accessed by using:
+\qml
+import QtMultimedia 5.0
+\endqml
 \annotatedlist multimedia_qml
+The following elements are accessed by using:
+\qml
+import QtAudioEngine 1.0
+\endqml
+\annotatedlist multimedia_audioengine
 
 \section2 Multimedia Classes
 
