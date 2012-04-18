@@ -48,6 +48,7 @@
 #include "mockmediastreamscontrol.h"
 #include "mockmedianetworkaccesscontrol.h"
 #include "mockvideorenderercontrol.h"
+#include "mockvideoprobecontrol.h"
 #if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
 #include "mockvideowindowcontrol.h"
 #endif
@@ -64,6 +65,7 @@ public:
         mockNetworkControl = new MockNetworkAccessControl;
         rendererControl = new MockVideoRendererControl;
         rendererRef = 0;
+        mockVideoProbeControl = new MockVideoProbeControl;
 #if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
         windowControl = new MockVideoWindowControl;
         windowRef = 0;
@@ -76,6 +78,7 @@ public:
         delete mockStreamsControl;
         delete mockNetworkControl;
         delete rendererControl;
+        delete mockVideoProbeControl;
 #if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
         delete windowControl;
 #endif
@@ -90,6 +93,8 @@ public:
                 rendererRef += 1;
                 return rendererControl;
             }
+        } else if (qstrcmp(iid, QMediaVideoProbeControl_iid) == 0) {
+            return mockVideoProbeControl;
         }
 #if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
         if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
@@ -164,6 +169,7 @@ public:
     MockStreamsControl *mockStreamsControl;
     MockNetworkAccessControl *mockNetworkControl;
     MockVideoRendererControl *rendererControl;
+    MockVideoProbeControl *mockVideoProbeControl;
 #if defined(QT_MULTIMEDIA_MOCK_WIDGETS)
     MockVideoWindowControl *windowControl;
     int windowRef;

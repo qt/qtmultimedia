@@ -32,8 +32,9 @@ SUBDIRS += \
     qaudiobuffer \
     qdeclarativeaudio \
     qdeclarativeaudio_4 \
+    qaudiodecoder \
     qaudioprobe \
-    qaudiodecoder
+    qvideoprobe
 
 disabled {
     SUBDIRS += \
