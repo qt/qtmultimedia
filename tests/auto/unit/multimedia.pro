@@ -32,6 +32,7 @@ SUBDIRS += \
     qaudiobuffer \
     qdeclarativeaudio \
     qdeclarativeaudio_4 \
+    qaudioprobe \
     qaudiodecoder
 
 disabled {

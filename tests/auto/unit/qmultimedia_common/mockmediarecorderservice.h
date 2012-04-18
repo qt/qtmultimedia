@@ -51,6 +51,7 @@
 #include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
 #include "mockavailabilitycontrol.h"
+#include "mockaudioprobecontrol.h"
 
 class MockMediaRecorderService : public QMediaService
 {
@@ -67,6 +68,7 @@ public:
         mockFormatControl = new MockMediaContainerControl(this);
         mockVideoEncoderControl = new MockVideoEncoderControl(this);
         mockMetaDataControl = new MockMetaDataWriterControl(this);
+        mockAudioProbeControl = new MockAudioProbeControl(this);
     }
 
     QMediaControl* requestControl(const char *name)
@@ -85,6 +87,8 @@ public:
             return mockMetaDataControl;
         if (hasControls && qstrcmp(name, QMediaAvailabilityControl_iid) == 0)
             return mockAvailabilityControl;
+        if (hasControls && qstrcmp(name, QMediaAudioProbeControl_iid) == 0)
+            return mockAudioProbeControl;
 
         return 0;
     }
@@ -100,6 +104,7 @@ public:
     QVideoEncoderControl    *mockVideoEncoderControl;
     MockMetaDataWriterControl *mockMetaDataControl;
     MockAvailabilityControl *mockAvailabilityControl;
+    MockAudioProbeControl *mockAudioProbeControl;
 
     bool hasControls;
 };
