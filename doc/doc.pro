@@ -20,6 +20,7 @@ OTHER_FILES += \
     src/radiooverview.qdoc \
     src/videooverview.qdoc \
     src/examples/audiodevices.qdoc \
+    src/examples/audioengine.qdoc \
     src/examples/audioinput.qdoc \
     src/examples/audiooutput.qdoc \
     src/examples/audiorecorder.qdoc \

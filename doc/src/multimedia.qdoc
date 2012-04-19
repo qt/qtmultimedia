@@ -46,7 +46,7 @@ Qt Multimedia offers APIs for doing many multimedia related tasks:
 \li Record audio and compress it
 \li Tune and listen to radio stations, and receive radio program information
 \li Use a camera, including viewfinder, image capture, and movie recording
-\li Play 3D positional audio
+\li Play 3D positional audio with \l {QtAudioEngine Overview} {QtAudioEngine}
 \li Decode audio media files into memory for processing
 \li Accessing video frames or audio buffers as they are played or recorded
 \endlist
@@ -137,6 +137,11 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li \l {Camera Example}{camera}, \l declarative-camera
         \li \l Camera
         \li QCamera, QMediaRecorder
+    \row
+        \li 3D sound sources
+        \li \l {AudioEngine Example}{Audio Engine}
+        \li \l {AudioEngine}, \l Sound
+        \li
 \endtable
 
 \section1 Limitations
@@ -165,7 +170,7 @@ The following elements are accessed by using:
 import QtMultimedia 5.0
 \endqml
 \annotatedlist multimedia_qml
-The following elements are accessed by using:
+The following elements are accessed by using \l {QtAudioEngine Overview} {QtAudioEngine}:
 \qml
 import QtAudioEngine 1.0
 \endqml
