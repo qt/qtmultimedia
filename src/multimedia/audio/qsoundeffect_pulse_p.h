@@ -118,7 +118,7 @@ private Q_SLOTS:
     void underRun();
     void prepare();
     void streamReady();
-    void emptyComplete();
+    void emptyComplete(void *stream);
     void updateVolume();
     void updateMuted();
 

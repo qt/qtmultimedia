@@ -628,11 +628,17 @@ void QSoundEffectPrivate::emptyStream()
     pa_operation_unref(pa_stream_flush(m_pulseStream, stream_flush_callback, m_ref->getRef()));
 }
 
-void QSoundEffectPrivate::emptyComplete()
+void QSoundEffectPrivate::emptyComplete(void *stream)
 {
     PulseDaemonLocker locker;
+#ifdef QT_PA_DEBUG
+    qDebug() << this << "emptyComplete";
+#endif
+
     m_emptying = false;
-    pa_operation_unref(pa_stream_cork(m_pulseStream, 1, stream_cork_callback, m_ref->getRef()));
+
+    if ((pa_stream *)stream == m_pulseStream)
+        pa_operation_unref(pa_stream_cork(m_pulseStream, 1, stream_cork_callback, m_ref->getRef()));
 }
 
 void QSoundEffectPrivate::sampleReady()
@@ -1122,7 +1128,7 @@ void QSoundEffectPrivate::stream_flush_callback(pa_stream *s, int success, void 
 #ifdef QT_PA_DEBUG
     qDebug() << self << "stream_flush_callback";
 #endif
-    QMetaObject::invokeMethod(self, "emptyComplete", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(self, "emptyComplete", Qt::QueuedConnection, Q_ARG(void*, s));
 }
 
 void QSoundEffectPrivate::stream_write_done_callback(void *p)
