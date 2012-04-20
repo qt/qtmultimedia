@@ -1384,12 +1384,16 @@ void QGstreamerPlayerSession::getStreamsInfo()
     }
 
 
-    if (haveAudio != m_audioAvailable) {
-        m_audioAvailable = haveAudio;
+    bool emitAudioChanged = (haveAudio != m_audioAvailable);
+    bool emitVideoChanged = (haveVideo != m_videoAvailable);
+
+    m_audioAvailable = haveAudio;
+    m_videoAvailable = haveVideo;
+
+    if (emitAudioChanged) {
         emit audioAvailableChanged(m_audioAvailable);
     }
-    if (haveVideo != m_videoAvailable) {
-        m_videoAvailable = haveVideo;
+    if (emitVideoChanged) {
         emit videoAvailableChanged(m_videoAvailable);
     }
 
