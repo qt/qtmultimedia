@@ -48,12 +48,15 @@
 #include <qaudio.h>
 #include "qsoundeffect.h"
 
-
 class tst_QSoundEffect : public QObject
 {
     Q_OBJECT
 public:
     tst_QSoundEffect(QObject* parent=0) : QObject(parent) {}
+
+public slots:
+    void init();
+    void cleanup();
 
 private slots:
     void initTestCase();
@@ -68,18 +71,47 @@ private slots:
     void testDestroyWhilePlaying();
     void testDestroyWhileRestartPlaying();
 
+    void testSetSourceWhileLoading();
+    void testSetSourceWhilePlaying();
+    void testSupportedMimeTypes();
+    void testCorruptFile();
+
 private:
     QSoundEffect* sound;
-    QUrl url;
+    QUrl url; // test.wav: pcm_s16le, 48000 Hz, stereo, s16
+    QUrl url2; // test_tone.wav: pcm_s16le, 44100 Hz, mono
+    QUrl urlCorrupted; // test_corrupted.wav: corrupted
 };
+
+void tst_QSoundEffect::init()
+{
+    sound->stop();
+    sound->setSource(QUrl());
+    sound->setLoopCount(1);
+    sound->setVolume(1.0);
+    sound->setMuted(false);
+}
+
+void tst_QSoundEffect::cleanup()
+{
+}
 
 void tst_QSoundEffect::initTestCase()
 {
-    const QString testFileName = QStringLiteral("test.wav");
-    const QString fullPath = QFINDTESTDATA(testFileName);
+    QString testFileName = QStringLiteral("test.wav");
+    QString fullPath = QFINDTESTDATA(testFileName);
     QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
-
     url = QUrl::fromLocalFile(fullPath);
+
+    testFileName = QStringLiteral("test_tone.wav");
+    fullPath = QFINDTESTDATA(testFileName);
+    QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
+    url2 = QUrl::fromLocalFile(fullPath);
+
+    testFileName = QStringLiteral("test_corrupted.wav");
+    fullPath = QFINDTESTDATA(testFileName);
+    QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
+    urlCorrupted = QUrl::fromLocalFile(fullPath);
 
     sound = new QSoundEffect(this);
 
@@ -107,6 +139,9 @@ void tst_QSoundEffect::testSource()
 
 void tst_QSoundEffect::testLooping()
 {
+    sound->setSource(url);
+    QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+
     QSignalSpy readSignal_Count(sound, SIGNAL(loopCountChanged()));
     QSignalSpy readSignal_Remaining(sound, SIGNAL(loopsRemainingChanged()));
 
@@ -118,7 +153,7 @@ void tst_QSoundEffect::testLooping()
     sound->play();
 
     // test.wav is about 200ms, wait until it has finished playing 5 times
-    QTest::qWait(3000);
+    QTestEventLoop::instance().enterLoop(3);
 
     QCOMPARE(sound->loopsRemaining(), 0);
     QCOMPARE(readSignal_Remaining.count(),5);
@@ -170,9 +205,9 @@ void tst_QSoundEffect::testPlaying()
     QTestEventLoop::instance().enterLoop(1);
     sound->play();
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(sound->isPlaying(), false);
+    QTRY_VERIFY(!sound->isPlaying());
 
-    sound->setLoopCount(1);
+    sound->setLoopCount(1); // TODO: What if one of the tests fail?
 }
 
 void tst_QSoundEffect::testStatus()
@@ -223,6 +258,95 @@ void tst_QSoundEffect::testDestroyWhileRestartPlaying()
     instance->play();
     delete instance;
     QTestEventLoop::instance().enterLoop(1);
+}
+
+void tst_QSoundEffect::testSetSourceWhileLoading()
+{
+    for (int i = 0; i < 10; i++) {
+        sound->setSource(url);
+        QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Ready);
+        sound->setSource(url); // set same source again
+        QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Ready);
+        QTRY_COMPARE(sound->status(), QSoundEffect::Ready); // make sure it switches to ready state
+        sound->play();
+        QVERIFY(sound->isPlaying());
+
+        sound->setSource(QUrl());
+        QCOMPARE(sound->status(), QSoundEffect::Null);
+
+        sound->setSource(url2);
+        QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Ready);
+        sound->setSource(url); // set different source
+        QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Ready);
+        QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+        sound->play();
+        QVERIFY(sound->isPlaying());
+        sound->stop();
+
+        sound->setSource(QUrl());
+        QCOMPARE(sound->status(), QSoundEffect::Null);
+    }
+}
+
+void tst_QSoundEffect::testSetSourceWhilePlaying()
+{
+    for (int i = 0; i < 10; i++) {
+        sound->setSource(url);
+        QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+        sound->play();
+        QVERIFY(sound->isPlaying());
+        sound->setSource(url); // set same source again
+        QCOMPARE(sound->status(), QSoundEffect::Ready);
+        QVERIFY(sound->isPlaying()); // playback doesn't stop, URL is the same
+        sound->play();
+        QVERIFY(sound->isPlaying());
+
+        sound->setSource(QUrl());
+        QCOMPARE(sound->status(), QSoundEffect::Null);
+
+        sound->setSource(url2);
+        QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+        sound->play();
+        QVERIFY(sound->isPlaying());
+        sound->setSource(url); // set different source
+        QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+        QVERIFY(!sound->isPlaying()); // playback stops, URL is different
+        sound->play();
+        QVERIFY(sound->isPlaying());
+        sound->stop();
+
+        sound->setSource(QUrl());
+        QCOMPARE(sound->status(), QSoundEffect::Null);
+    }
+}
+
+void tst_QSoundEffect::testSupportedMimeTypes()
+{
+    QStringList mimeTypes = sound->supportedMimeTypes();
+    QVERIFY(!mimeTypes.empty());
+    QVERIFY(mimeTypes.indexOf(QLatin1String("audio/wav")) != -1 ||
+            mimeTypes.indexOf(QLatin1String("audio/x-wav")) != -1 ||
+            mimeTypes.indexOf(QLatin1String("audio/wave")) != -1 ||
+            mimeTypes.indexOf(QLatin1String("audio/x-pn-wav")) != -1);
+}
+
+void tst_QSoundEffect::testCorruptFile()
+{
+    for (int i = 0; i < 10; i++) {
+        QSignalSpy statusSpy(sound, SIGNAL(statusChanged()));
+        sound->setSource(urlCorrupted);
+        QVERIFY(!sound->isPlaying());
+        QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Error);
+        QTRY_COMPARE(sound->status(), QSoundEffect::Error);
+        QCOMPARE(statusSpy.count(), 2);
+        sound->play();
+        QVERIFY(!sound->isPlaying());
+
+        sound->setSource(url);
+        QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+        sound->play();
+        QVERIFY(sound->isPlaying());
+    }
 }
 
 QTEST_MAIN(tst_QSoundEffect)
