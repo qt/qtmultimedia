@@ -94,6 +94,7 @@ public:
 
     QGstBufferPoolInterface *pool() { return m_pool; }
     QMutex *poolMutex() { return &m_poolMutex; }
+    void clearPoolBuffers();
 
     GstFlowReturn render(GstBuffer *buffer);
 

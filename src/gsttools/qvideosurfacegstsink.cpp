@@ -176,6 +176,13 @@ bool QVideoSurfaceGstDelegate::isActive()
     return !m_surface.isNull() && m_surface->isActive();
 }
 
+void QVideoSurfaceGstDelegate::clearPoolBuffers()
+{
+    QMutexLocker locker(&m_poolMutex);
+    if (m_pool)
+        m_pool->clear();
+}
+
 GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 {
     if (!m_surface) {
@@ -840,7 +847,8 @@ gboolean QVideoSurfaceGstSink::start(GstBaseSink *base)
 
 gboolean QVideoSurfaceGstSink::stop(GstBaseSink *base)
 {
-    Q_UNUSED(base);
+    VO_SINK(base);
+    sink->delegate->clearPoolBuffers();
 
     return TRUE;
 }
