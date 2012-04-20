@@ -148,12 +148,22 @@ public:
 
     QUrl expandToFullPath(const QUrl& root, const QString& line)
     {
+        // On Linux, backslashes are not converted to forward slashes :/
+        if (line.startsWith(QLatin1String("//")) || line.startsWith(QLatin1String("\\\\"))) {
+            // Network share paths are not resolved
+            return QUrl::fromLocalFile(line);
+        }
+
         QUrl url(line);
-        if (url.isRelative()) {
+        if (url.scheme().isEmpty()) {
+            // Resolve it relative to root
             if (root.isLocalFile())
                 return root.resolved(QUrl::fromLocalFile(line));
             else
                 return root.resolved(url);
+        } else if (url.scheme().length() == 1) {
+            // Assume it's a drive letter for a Windows path
+            url = QUrl::fromLocalFile(line);
         }
 
         return url;
