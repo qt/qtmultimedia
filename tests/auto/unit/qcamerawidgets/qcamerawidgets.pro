@@ -9,5 +9,4 @@ include (../qmultimedia_common/mockcamera.pri)
 
 SOURCES += tst_qcamerawidgets.cpp
 
-maemo*:CONFIG += insignificant_test
 QT+=widgets
