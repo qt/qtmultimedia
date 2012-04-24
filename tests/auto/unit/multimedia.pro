@@ -34,7 +34,8 @@ SUBDIRS += \
     qdeclarativeaudio_4 \
     qaudiodecoder \
     qaudioprobe \
-    qvideoprobe
+    qvideoprobe \
+    qsamplecache
 
 disabled {
     SUBDIRS += \

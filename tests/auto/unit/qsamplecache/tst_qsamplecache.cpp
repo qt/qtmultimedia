@@ -1,0 +1,183 @@
+/****************************************************************************
+**
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/
+**
+** This file is part of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+//TESTED_COMPONENT=src/multimedia
+
+#include <QtTest/QtTest>
+#include <private/qsamplecache_p.h>
+
+class tst_QSampleCache : public QObject
+{
+    Q_OBJECT
+public:
+
+public slots:
+
+private slots:
+    void testCachedSample();
+    void testNotCachedSample();
+    void testEnoughCapacity();
+    void testNotEnoughCapacity();
+
+private:
+
+};
+
+void tst_QSampleCache::testCachedSample()
+{
+    QSampleCache cache;
+    QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
+
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample);
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+
+    loadingSpy.clear();
+    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QCOMPARE(sample, sampleCached); // sample is cached
+    // loading thread still starts, but does nothing in this case
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+
+    sample->release();
+    sampleCached->release();
+}
+
+void tst_QSampleCache::testNotCachedSample()
+{
+    QSampleCache cache;
+    QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
+
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample);
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+    sample->release();
+
+    QTestEventLoop::instance().enterLoop(1); // make sure the sample is destroyed
+
+    loadingSpy.clear();
+    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample != sampleCached); // sample is not cached
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+
+    sampleCached->release();
+}
+
+void tst_QSampleCache::testEnoughCapacity()
+{
+    QSampleCache cache;
+    QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
+
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample);
+    QTRY_COMPARE(loadingSpy.count(), 2); // make sure sample is loaded
+    QTRY_VERIFY(!cache.isLoading());
+    int sampleSize = sample->data().size();
+    sample->release();
+    cache.setCapacity(sampleSize * 2);
+
+    loadingSpy.clear();
+    sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample);
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+    sample->release();
+
+    // load another sample and make sure first sample is not destroyed
+    loadingSpy.clear();
+    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test2.wav")));
+    QVERIFY(sampleOther);
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+    sampleOther->release();
+
+    loadingSpy.clear();
+    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QCOMPARE(sample, sampleCached); // sample is cached
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+
+    sampleCached->release();
+}
+
+void tst_QSampleCache::testNotEnoughCapacity()
+{
+    QSampleCache cache;
+    QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
+
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample);
+    QTRY_COMPARE(loadingSpy.count(), 2); // make sure sample is loaded
+    QTRY_VERIFY(!cache.isLoading());
+    int sampleSize = sample->data().size();
+    sample->release();
+    cache.setCapacity(sampleSize / 2);
+
+    loadingSpy.clear();
+    sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample);
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+    sample->release();
+
+    // load another sample to force sample cache to destroy first sample
+    loadingSpy.clear();
+    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test2.wav")));
+    QVERIFY(sampleOther);
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+    sampleOther->release();
+
+    loadingSpy.clear();
+    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QVERIFY(sample != sampleCached); // sample is not cached
+    QTRY_COMPARE(loadingSpy.count(), 2);
+    QTRY_VERIFY(!cache.isLoading());
+
+    sampleCached->release();
+}
+
+QTEST_MAIN(tst_QSampleCache)
+
+#include "tst_qsamplecache.moc"
