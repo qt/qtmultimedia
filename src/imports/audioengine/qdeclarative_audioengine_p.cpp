@@ -175,14 +175,14 @@ QDeclarativeSoundInstance* QDeclarativeAudioEngine::newDeclarativeSoundInstance(
             m_managedDeclSndInstancePool.pop_back();
         } else {
             instance = new QDeclarativeSoundInstance(this);
-            qmlEngine(instance)->setObjectOwnership(instance, QDeclarativeEngine::CppOwnership);
+            qmlEngine(instance)->setObjectOwnership(instance, QQmlEngine::CppOwnership);
             instance->setEngine(this);
         }
         m_managedDeclSoundInstances.push_back(instance);
     } else {
         instance = new QDeclarativeSoundInstance();
         instance->setEngine(this);
-        qmlEngine(instance)->setObjectOwnership(instance, QDeclarativeEngine::JavaScriptOwnership);
+        qmlEngine(instance)->setObjectOwnership(instance, QQmlEngine::JavaScriptOwnership);
     }
     return instance;
 }
@@ -333,7 +333,7 @@ void QDeclarativeAudioEngine::updateSoundInstances()
         m_updateTimer.stop();
 }
 
-void QDeclarativeAudioEngine::appendFunction(QDeclarativeListProperty<QObject> *property, QObject *value)
+void QDeclarativeAudioEngine::appendFunction(QQmlListProperty<QObject> *property, QObject *value)
 {
     QDeclarativeAudioEngine* engine = static_cast<QDeclarativeAudioEngine*>(property->object);
     if (engine->m_complete) {
@@ -401,9 +401,9 @@ void QDeclarativeAudioEngine::appendFunction(QDeclarativeListProperty<QObject> *
     qWarning("Unknown child type for AudioEngine!");
 }
 
-QDeclarativeListProperty<QObject> QDeclarativeAudioEngine::bank()
+QQmlListProperty<QObject> QDeclarativeAudioEngine::bank()
 {
-    return QDeclarativeListProperty<QObject>(this, 0, appendFunction);
+    return QQmlListProperty<QObject>(this, 0, appendFunction);
 }
 
 /*!

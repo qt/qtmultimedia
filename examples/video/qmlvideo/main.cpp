@@ -42,7 +42,7 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
-#include <QtDeclarative/QDeclarativeContext>
+#include <QtQml/QQmlContext>
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickItem>
 #include "qmlapplicationviewer.h"

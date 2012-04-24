@@ -1,5 +1,5 @@
 include($$PWD/frequencymonitor.pri)
-QT += declarative
+QT += qml
 SOURCES += $$PWD/frequencymonitordeclarative.cpp
 
 defineTest(frequencyItemAddDeployment) {

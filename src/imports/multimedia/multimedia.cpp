@@ -120,7 +120,7 @@ public:
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }
 
-    void initializeEngine(QDeclarativeEngine *engine, const char *uri)
+    void initializeEngine(QQmlEngine *engine, const char *uri)
     {
         Q_UNUSED(uri);
         engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);

@@ -2,7 +2,7 @@ sources.files = $$SOURCES $$HEADERS $$RESOURCES $OTHER_FILES *.pro *.pri
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/$${TARGET}
 INSTALLS += sources
 
-QT += quick
+QT += qml quick
 
 SOURCES += $$PWD/qmlapplicationviewer.cpp
 HEADERS += $$PWD/qmlapplicationviewer.h

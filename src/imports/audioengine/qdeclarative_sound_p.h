@@ -84,18 +84,18 @@ private:
     qreal m_outerGain;
 };
 
-class QDeclarativeSound : public QObject, public QDeclarativeParserStatus
+class QDeclarativeSound : public QObject, public QQmlParserStatus
 {
     friend class QDeclarativeSoundCone;
 
     Q_OBJECT
-    Q_INTERFACES(QDeclarativeParserStatus)
+    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString name READ name WRITE setName)
     Q_PROPERTY(PlayType playType READ playType WRITE setPlayType)
     Q_PROPERTY(QString category READ category WRITE setCategory)
     Q_PROPERTY(QDeclarativeSoundCone* cone READ cone CONSTANT)
     Q_PROPERTY(QString attenuationModel READ attenuationModel WRITE setAttenuationModel)
-    Q_PROPERTY(QDeclarativeListProperty<QDeclarativePlayVariation> playVariationlist READ playVariationlist CONSTANT)
+    Q_PROPERTY(QQmlListProperty<QDeclarativePlayVariation> playVariationlist READ playVariationlist CONSTANT)
     Q_CLASSINFO("DefaultProperty", "playVariationlist")
 
     Q_ENUMS(PlayType)
@@ -135,7 +135,7 @@ public:
     QDeclarativePlayVariation* getVariation(int index);
 
     //This is used for tracking new PlayVariation declared inside Sound
-    QDeclarativeListProperty<QDeclarativePlayVariation> playVariationlist();
+    QQmlListProperty<QDeclarativePlayVariation> playVariationlist();
     QList<QDeclarativePlayVariation*>& playlist();
 
 public Q_SLOTS:
@@ -156,7 +156,7 @@ public Q_SLOTS:
 private:
     Q_DISABLE_COPY(QDeclarativeSound)
     QDeclarativeSoundInstance* newInstance(bool managed);
-    static void appendFunction(QDeclarativeListProperty<QDeclarativePlayVariation> *property, QDeclarativePlayVariation *value);
+    static void appendFunction(QQmlListProperty<QDeclarativePlayVariation> *property, QDeclarativePlayVariation *value);
     bool m_complete;
     PlayType m_playType;
     QString m_name;

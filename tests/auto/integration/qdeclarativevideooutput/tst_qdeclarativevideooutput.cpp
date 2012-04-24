@@ -140,11 +140,11 @@ private slots:
     // to holder?
 
 private:
-    QDeclarativeEngine m_engine;
+    QQmlEngine m_engine;
     QByteArray m_plainQML;
 
     // Variables used for the mapping test
-    QDeclarativeComponent *m_mappingComponent;
+    QQmlComponent *m_mappingComponent;
     QObject *m_mappingOutput;
     SurfaceHolder *m_mappingSurface;
 
@@ -165,7 +165,7 @@ void tst_QDeclarativeVideoOutput::initTestCase()
             "}";
 
     // We initialize the mapping vars here
-    m_mappingComponent = new QDeclarativeComponent(&m_engine);
+    m_mappingComponent = new QQmlComponent(&m_engine);
     m_mappingComponent->setData(m_plainQML, QUrl());
     m_mappingSurface = new SurfaceHolder(this);
 
@@ -182,7 +182,7 @@ Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FillMode)
 
 void tst_QDeclarativeVideoOutput::fillMode()
 {
-    QDeclarativeComponent component(&m_engine);
+    QQmlComponent component(&m_engine);
     component.setData(m_plainQML, QUrl());
 
     QObject *videoOutput = component.create();
@@ -211,7 +211,7 @@ void tst_QDeclarativeVideoOutput::fillMode()
 
 void tst_QDeclarativeVideoOutput::orientation()
 {
-    QDeclarativeComponent component(&m_engine);
+    QQmlComponent component(&m_engine);
     component.setData(m_plainQML, QUrl());
 
     QObject *videoOutput = component.create();
@@ -264,7 +264,7 @@ void tst_QDeclarativeVideoOutput::orientation()
 
 void tst_QDeclarativeVideoOutput::surfaceSource()
 {
-    QDeclarativeComponent component(&m_engine);
+    QQmlComponent component(&m_engine);
     component.setData(m_plainQML, QUrl());
 
     QObject *videoOutput = component.create();
@@ -350,7 +350,7 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
 
 void tst_QDeclarativeVideoOutput::sourceRect()
 {
-    QDeclarativeComponent component(&m_engine);
+    QQmlComponent component(&m_engine);
     component.setData(m_plainQML, QUrl());
 
     QObject *videoOutput = component.create();

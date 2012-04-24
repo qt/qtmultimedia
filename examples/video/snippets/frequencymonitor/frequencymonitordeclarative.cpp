@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "frequencymonitor.h"
-#include <QtDeclarative/qdeclarative.h>
+#include <QtQml/qqml.h>
 
 void FrequencyMonitor::qmlRegisterType()
 {

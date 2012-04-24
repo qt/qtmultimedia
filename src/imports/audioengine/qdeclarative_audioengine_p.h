@@ -88,7 +88,7 @@ public:
 
     //This is used for tracking all objects declared inside AudioEngine
     //see appendFunction
-    QDeclarativeListProperty<QObject> bank();
+    QQmlListProperty<QObject> bank();
 
     QObject* categories();
     QObject* samples();
@@ -136,13 +136,13 @@ private:
     bool m_complete;
 
     //see bank()
-    static void appendFunction(QDeclarativeListProperty<QObject> *property, QObject *value);
+    static void appendFunction(QQmlListProperty<QObject> *property, QObject *value);
 
     QDeclarativeAudioListener *m_listener;
     QDeclarativeAudioCategory* m_defaultCategory;
-    QDeclarativePropertyMap m_categories;
-    QDeclarativePropertyMap m_samples;
-    QDeclarativePropertyMap m_sounds;
+    QQmlPropertyMap m_categories;
+    QQmlPropertyMap m_samples;
+    QQmlPropertyMap m_sounds;
 
     //Use strong type here since no need to for AttenuationModel to be accessible directly by user
     //after config stage

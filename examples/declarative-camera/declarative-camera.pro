@@ -1,7 +1,7 @@
 
 TEMPLATE=app
 
-QT += declarative qtquick1 network multimedia
+QT += qtquick1 network multimedia
 
 contains(QT_CONFIG, opengl) {
     QT += opengl

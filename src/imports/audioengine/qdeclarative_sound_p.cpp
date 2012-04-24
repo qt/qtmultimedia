@@ -360,9 +360,9 @@ void QDeclarativeSound::setCategoryObject(QDeclarativeAudioCategory *categoryObj
     m_categoryObject = categoryObject;
 }
 
-QDeclarativeListProperty<QDeclarativePlayVariation> QDeclarativeSound::playVariationlist()
+QQmlListProperty<QDeclarativePlayVariation> QDeclarativeSound::playVariationlist()
 {
-    return QDeclarativeListProperty<QDeclarativePlayVariation>(this, 0, appendFunction);
+    return QQmlListProperty<QDeclarativePlayVariation>(this, 0, appendFunction);
 }
 
 QList<QDeclarativePlayVariation*>& QDeclarativeSound::playlist()
@@ -370,7 +370,7 @@ QList<QDeclarativePlayVariation*>& QDeclarativeSound::playlist()
     return m_playlist;
 }
 
-void QDeclarativeSound::appendFunction(QDeclarativeListProperty<QDeclarativePlayVariation> *property, QDeclarativePlayVariation *value)
+void QDeclarativeSound::appendFunction(QQmlListProperty<QDeclarativePlayVariation> *property, QDeclarativePlayVariation *value)
 {
     QDeclarativeSound *sound = static_cast<QDeclarativeSound*>(property->object);
     if (sound->m_complete) {

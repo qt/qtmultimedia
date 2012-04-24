@@ -43,9 +43,9 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
-#include <QtDeclarative/QDeclarativeComponent>
-#include <QtDeclarative/QDeclarativeEngine>
-#include <QtDeclarative/QDeclarativeContext>
+#include <QtQml/QQmlComponent>
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlContext>
 #include <QtGui/QGuiApplication>
 
 class QmlApplicationViewerPrivate

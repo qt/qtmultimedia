@@ -40,7 +40,7 @@
 
 #include <QGuiApplication>
 
-#include <qdeclarative.h>
+#include <qqml.h>
 #include <QtQuick/qquickview.h>
 
 

@@ -55,7 +55,7 @@ struct QDeclarativeCameraPreviewProviderPrivate
 Q_GLOBAL_STATIC(QDeclarativeCameraPreviewProviderPrivate, qDeclarativeCameraPreviewProviderPrivate)
 
 QDeclarativeCameraPreviewProvider::QDeclarativeCameraPreviewProvider()
-: QDeclarativeImageProvider(QDeclarativeImageProvider::Image)
+: QQuickImageProvider(QQuickImageProvider::Image)
 {
 }
 
