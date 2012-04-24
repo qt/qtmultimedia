@@ -50,7 +50,7 @@ QMediaPlayerResourceSetInterface::QMediaPlayerResourceSetInterface(QObject *pare
 
 QString QMediaPlayerResourceSetInterface::iid()
 {
-    return QString(QMediaPlayerResourceSetInterface_iid);
+    return QLatin1String(QMediaPlayerResourceSetInterface_iid);
 }
 
 QT_END_NAMESPACE

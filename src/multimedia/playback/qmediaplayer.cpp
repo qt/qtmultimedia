@@ -400,13 +400,11 @@ void QMediaPlayerPrivate::_q_handlePlaylistLoaded()
 {
     Q_Q(QMediaPlayer);
 
-    QMediaPlaylist *oldPlaylist = 0;
     if (pendingPlaylist.playlist()) {
         Q_ASSERT(!q->currentMedia().playlist());
         // if there is an active playlist
         if (playlist) {
             Q_ASSERT(playlist->currentIndex() >= 0);
-            oldPlaylist = playlist;
             disconnectPlaylist();
             playlist->insertMedia(playlist->currentIndex() + 1, pendingPlaylist);
             playlist->removeMedia(playlist->currentIndex());
