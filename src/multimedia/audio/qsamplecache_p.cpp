@@ -287,8 +287,7 @@ bool QSampleCache::notifyUnreferencedSample(QSample* sample)
     if (m_capacity > 0)
         return false;
     m_samples.remove(sample->m_url);
-    m_staleSamples.insert(sample);
-    sample->deleteLater();
+    unloadSample(sample);
     return true;
 }
 
