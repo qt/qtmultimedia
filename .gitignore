@@ -17,6 +17,22 @@ qrc_*.cpp
 config.log
 *.pro.user
 tmp
+
+#
+# Includes
+#
 include
 src/multimedia/qtmultimediaversion.h
 src/multimediawidgets/qtmultimediawidgetsversion.h
+
+#
+# Snippets
+#
+*.so
+*.so.*
+
+#
+# Tests
+#
+tst_*
+!tst_*.cpp
