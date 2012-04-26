@@ -56,6 +56,7 @@ private slots:
     void testNotCachedSample();
     void testEnoughCapacity();
     void testNotEnoughCapacity();
+    void testInvalidFile();
 
 private:
 
@@ -66,14 +67,15 @@ void tst_QSampleCache::testCachedSample()
     QSampleCache cache;
     QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
 
-    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
 
     loadingSpy.clear();
-    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QCOMPARE(sample, sampleCached); // sample is cached
+    QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
     // loading thread still starts, but does nothing in this case
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
@@ -87,21 +89,13 @@ void tst_QSampleCache::testNotCachedSample()
     QSampleCache cache;
     QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
 
-    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
     sample->release();
 
-    QTestEventLoop::instance().enterLoop(1); // make sure the sample is destroyed
-
-    loadingSpy.clear();
-    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
-    QVERIFY(sample != sampleCached); // sample is not cached
-    QTRY_COMPARE(loadingSpy.count(), 2);
-    QTRY_VERIFY(!cache.isLoading());
-
-    sampleCached->release();
+    QVERIFY(!cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
 }
 
 void tst_QSampleCache::testEnoughCapacity()
@@ -109,7 +103,7 @@ void tst_QSampleCache::testEnoughCapacity()
     QSampleCache cache;
     QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
 
-    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QTRY_COMPARE(loadingSpy.count(), 2); // make sure sample is loaded
     QTRY_VERIFY(!cache.isLoading());
@@ -117,24 +111,33 @@ void tst_QSampleCache::testEnoughCapacity()
     sample->release();
     cache.setCapacity(sampleSize * 2);
 
+    QVERIFY(!cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
+
     loadingSpy.clear();
-    sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
     sample->release();
 
+    QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
+
     // load another sample and make sure first sample is not destroyed
     loadingSpy.clear();
-    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test2.wav")));
+    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav")));
     QVERIFY(sampleOther);
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
     sampleOther->release();
 
+    QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
+    QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav"))));
+
     loadingSpy.clear();
-    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QCOMPARE(sample, sampleCached); // sample is cached
+    QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
+    QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav"))));
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
 
@@ -146,36 +149,49 @@ void tst_QSampleCache::testNotEnoughCapacity()
     QSampleCache cache;
     QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
 
-    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QTRY_COMPARE(loadingSpy.count(), 2); // make sure sample is loaded
     QTRY_VERIFY(!cache.isLoading());
     int sampleSize = sample->data().size();
     sample->release();
-    cache.setCapacity(sampleSize / 2);
+    cache.setCapacity(sampleSize / 2); // unloads all samples
+
+    QVERIFY(!cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
 
     loadingSpy.clear();
-    sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
+    sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
     sample->release();
 
+    QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
+
     // load another sample to force sample cache to destroy first sample
     loadingSpy.clear();
-    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test2.wav")));
+    QSample* sampleOther = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav")));
     QVERIFY(sampleOther);
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
     sampleOther->release();
 
-    loadingSpy.clear();
-    QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("data/test.wav")));
-    QVERIFY(sample != sampleCached); // sample is not cached
+    QVERIFY(!cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
+}
+
+void tst_QSampleCache::testInvalidFile()
+{
+    QSampleCache cache;
+    QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
+
+    QSample* sample = cache.requestSample(QUrl::fromLocalFile("invalid"));
+    QVERIFY(sample);
+    QTRY_COMPARE(sample->state(), QSample::Error);
     QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
+    sample->release();
 
-    sampleCached->release();
+    QVERIFY(!cache.isCached(QUrl::fromLocalFile("invalid")));
 }
 
 QTEST_MAIN(tst_QSampleCache)
