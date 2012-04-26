@@ -140,6 +140,7 @@ public:
     void setCapacity(qint64 capacity);
 
     bool isLoading() const;
+    bool isCached(const QUrl& url) const;
 
 Q_SIGNALS:
     void isLoadingChanged();
@@ -148,7 +149,7 @@ private:
     QMap<QUrl, QSample*> m_samples;
     QSet<QSample*> m_staleSamples;
     QNetworkAccessManager *m_networkAccessManager;
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
     qint64 m_capacity;
     qint64 m_usage;
     QThread m_loadingThread;

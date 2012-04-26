@@ -147,6 +147,12 @@ bool QSampleCache::isLoading() const
     return m_loadingThread.isRunning();
 }
 
+bool QSampleCache::isCached(const QUrl &url) const
+{
+    QMutexLocker locker(&m_mutex);
+    return m_samples.contains(url);
+}
+
 QSample* QSampleCache::requestSample(const QUrl& url)
 {
     //lock and add first to make sure live loadingThread will not be killed during this function call
