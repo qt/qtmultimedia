@@ -43,6 +43,9 @@
 
 #include "directshowglobal.h"
 
+#include <QtGui/QPalette>
+#include <QtWidgets/QWidget>
+
 Vmr9VideoWindowControl::Vmr9VideoWindowControl(QObject *parent)
     : QVideoWindowControl(parent)
     , m_filter(com_new<IBaseFilter>(CLSID_VideoMixingRenderer9, IID_IBaseFilter))

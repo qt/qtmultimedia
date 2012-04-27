@@ -67,5 +67,6 @@ include(video/video.pri)
 mac {
    LIBS += -framework AppKit -framework QuartzCore -framework QTKit
 }
+win32:LIBS += -luuid
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS

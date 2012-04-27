@@ -29,5 +29,5 @@ SOURCES += \
     SOURCES += $$PWD/dsvideowidgetcontrol.cpp
 }
 
-INCLUDEPATH += $(DXSDK_DIR)/include
+*-msvc*:INCLUDEPATH += $(DXSDK_DIR)/include
 LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32

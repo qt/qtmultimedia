@@ -56,7 +56,7 @@
 #include "qaudiodeviceinfo_win32_p.h"
 #include <dshow.h>
 
-#if defined(Q_CC_MINGW)
+#if defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
 
 extern GUID CLSID_AudioInputDeviceCategory;
 
@@ -83,7 +83,7 @@ DECLARE_INTERFACE_(IPropertyBag, IUnknown)
 
 #endif /* __IPropertyBag_INTERFACE_DEFINED__ */
 
-#endif//Q_CC_MINGW
+#endif // defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
 
 QT_BEGIN_NAMESPACE
 
