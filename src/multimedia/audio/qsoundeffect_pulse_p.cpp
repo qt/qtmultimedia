@@ -114,12 +114,14 @@ public:
 
     inline void lock()
     {
-        pa_threaded_mainloop_lock(m_mainLoop);
+        if (m_mainLoop)
+            pa_threaded_mainloop_lock(m_mainLoop);
     }
 
     inline void unlock()
     {
-        pa_threaded_mainloop_unlock(m_mainLoop);
+        if (m_mainLoop)
+            pa_threaded_mainloop_unlock(m_mainLoop);
     }
 
     inline pa_context *context() const
@@ -152,6 +154,7 @@ private:
     {
         m_vol = PA_VOLUME_NORM;
 
+        m_context = 0;
         m_mainLoop = pa_threaded_mainloop_new();
         if (m_mainLoop == 0) {
             qWarning("PulseAudioService: unable to create pulseaudio mainloop");
@@ -173,14 +176,19 @@ private:
 
         if (m_context == 0) {
             qWarning("PulseAudioService: Unable to create new pulseaudio context");
+            pa_threaded_mainloop_unlock(m_mainLoop);
             pa_threaded_mainloop_free(m_mainLoop);
+            m_mainLoop = 0;
             return;
         }
 
         if (pa_context_connect(m_context, 0, (pa_context_flags_t)0, 0) < 0) {
             qWarning("PulseAudioService: pa_context_connect() failed");
             pa_context_unref(m_context);
+            pa_threaded_mainloop_unlock(m_mainLoop);
             pa_threaded_mainloop_free(m_mainLoop);
+            m_mainLoop = 0;
+            m_context = 0;
             return;
         }
         unlock();
@@ -191,6 +199,7 @@ private:
     void release()
     {
         if (!m_prepared) return;
+        pa_context_unref(m_context);
         pa_threaded_mainloop_stop(m_mainLoop);
         pa_threaded_mainloop_free(m_mainLoop);
         m_prepared = false;
