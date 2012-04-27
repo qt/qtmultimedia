@@ -360,8 +360,8 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     m_volume(100),
     m_loopCount(1),
     m_runningCount(0),
-    m_sample(0),
     m_reloadCategory(false),
+    m_sample(0),
     m_position(0)
 {
     m_ref = new QSoundEffectRef(this);
