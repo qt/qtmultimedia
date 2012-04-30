@@ -58,14 +58,14 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass MediaPlayer
-    \brief The MediaPlayer element allows you to add media playback to a scene.
+    \brief The MediaPlayer type allows you to add media playback to a scene.
 
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    MediaPlayer is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -88,8 +88,8 @@ QT_BEGIN_NAMESPACE
     }
     \endqml
 
-    You can use MediaPlayer by itself to play audio content (like the \l Audio element),
-    or you can use it in conjunction with a \l VideoOutput element for rendering video.
+    You can use MediaPlayer by itself to play audio content (like \l Audio),
+    or you can use it in conjunction with a \l VideoOutput for rendering video.
 
     \qml
     import QtQuick 2.0
@@ -119,13 +119,13 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass Audio QDeclarativeAudio
-    \brief The Audio element allows you to add audio playback to a scene.
+    \brief The Audio type allows you to add audio playback to a scene.
 
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    This type is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -495,7 +495,7 @@ void QDeclarativeAudio::stop()
 */
 
 /*!
-    \qmlproperty url QtMultimedia5::Audio::autoLoad
+    \qmlproperty bool QtMultimedia5::Audio::autoLoad
 
     This property indicates if loading of media should begin immediately.
 
@@ -569,7 +569,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::Audio::autoPlay
+    \qmlproperty bool QtMultimedia5::Audio::autoPlay
 
     This property controls whether the media will begin to play on start up.
 
@@ -596,12 +596,16 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
     \qmlproperty real QtMultimedia5::Audio::volume
 
     This property holds the volume of the audio output, from 0.0 (silent) to 1.0 (maximum volume).
+
+    Defaults to 1.0.
 */
 
 /*!
     \qmlproperty bool QtMultimedia5::Audio::muted
 
     This property holds whether the audio output is muted.
+
+    Defaults to false.
 */
 
 /*!
@@ -645,6 +649,8 @@ bool QDeclarativeAudio::hasVideo() const
     \qmlproperty real QtMultimedia5::Audio::playbackRate
 
     This property holds the rate at which audio is played at as a multiple of the normal rate.
+
+    Defaults to 1.0.
 */
 
 /*!
@@ -652,15 +658,22 @@ bool QDeclarativeAudio::hasVideo() const
 
     This property holds the error state of the audio.  It can be one of:
 
-    \list
-    \li NoError - there is no current error.
-    \li ResourceError - the audio cannot be played due to a problem allocating resources.
-    \li FormatError - the audio format is not supported.
-    \li NetworkError - the audio cannot be played due to network issues.
-    \li AccessDenied - the audio cannot be played due to insufficient permissions.
-    \li ServiceMissing -  the audio cannot be played because the media service could not be
+    \table
+    \header \li Value \li Description
+    \row \li NoError
+        \li There is no current error.
+    \row \li ResourceError
+        \li The audio cannot be played due to a problem allocating resources.
+    \row \li FormatError
+        \li The audio format is not supported.
+    \row \li NetworkError
+        \li The audio cannot be played due to network issues.
+    \row \li AccessDenied
+        \li The audio cannot be played due to insufficient permissions.
+    \row \li ServiceMissing
+        \li The audio cannot be played because the media service could not be
     instantiated.
-    \endlist
+    \endtable
 */
 
 QDeclarativeAudio::Error QDeclarativeAudio::error() const
@@ -940,7 +953,7 @@ void QDeclarativeAudio::_q_statusChanged()
 /*!
     \qmlproperty variant QtMultimedia5::Audio::metaData.audioBitRate
 
-    This property holds the bit rate of the media's audio stream ni bits per
+    This property holds the bit rate of the media's audio stream in bits per
     second.
 
     \sa {QtMultimedia::MetaData::AudioBitRate}
@@ -1054,7 +1067,7 @@ void QDeclarativeAudio::_q_statusChanged()
 /*!
     \qmlproperty variant QtMultimedia5::Audio::metaData.trackCount
 
-    This property holds the number of track on the album containing the media.
+    This property holds the number of tracks on the album containing the media.
 
     \sa {QtMultimedia::MetaData::TrackNumber}
 */

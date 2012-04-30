@@ -140,16 +140,16 @@ void QDeclarativeSoundCone::componentComplete()
 /*!
     \qmlclass Sound QDeclarativeSound
     \since 5.0
-    \brief The Sound element allows you to define a variety of samples and parameters to be used for
+    \brief The Sound type allows you to define a variety of samples and parameters to be used for
     SoundInstance.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
 
-    This element is part of the \b{QtAudioEngine 1.0} module.
+    This type is part of the \b{QtAudioEngine 1.0} module.
 
-    Sound element can be accessed through QtAudioEngine1::AudioEngine::sounds with its unique name
+    Sound can be accessed through QtAudioEngine1::AudioEngine::sounds with its unique name
     and must be defined inside AudioEngine.
 
     \qml
@@ -227,7 +227,7 @@ void QDeclarativeSound::componentComplete()
 }
 
 /*!
-    \qmlproperty enueration QtAudioEngine1::Sound::playType
+    \qmlproperty enumeration QtAudioEngine1::Sound::playType
 
     This property holds the playType.  It can be one of:
 

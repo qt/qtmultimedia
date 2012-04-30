@@ -50,13 +50,13 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass AudioListener QDeclarativeAudioListener
     \since 5.0
-    \brief The AudioListener element allows you to control global listener parameters.
+    \brief The AudioListener type allows you to control global listener parameters.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
 
-    This element is part of the \b{QtAudioEngine 1.0} module.
+    This type is part of the \b{QtAudioEngine 1.0} module.
 
     AudioListener will have only one global instance and you can either access it through the
     listener property of AudioEngine:
@@ -97,7 +97,7 @@ QT_USE_NAMESPACE
     }
     \endqml
 
-    or alternatively, by defining an AudioListener element outside AudioEngine:
+    or alternatively, by defining an AudioListener outside AudioEngine:
 
     \qml
     import QtQuick 2.0
@@ -248,7 +248,7 @@ void QDeclarativeAudioListener::setUp(const QVector3D &up)
 /*!
     \qmlproperty real QtAudioEngine1::AudioListener::gain
 
-    This property will modulate all audio output from audio engine elements.
+    This property will modulate all audio output from audio engine instances.
 */
 qreal QDeclarativeAudioListener::gain() const
 {

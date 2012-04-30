@@ -49,11 +49,11 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass Torch QDeclarativeTorch
     \inqmlmodule QtMultimedia 5
-    \brief The Torch element provides simple control over torch functionality
+    \brief The Torch type provides simple control over torch functionality
 
     \ingroup multimedia_qml
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    \c Torch is part of the \b{QtMultimedia 5.0} module.
 
     In many cases the torch hardware is shared with camera flash functionality,
     and might be automatically controlled by the device.  You have control over

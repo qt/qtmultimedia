@@ -39,10 +39,10 @@ QtAudioEngine enables developers to organize wave files into discrete \l Sound w
 \l {PlayVariation}{play variations}, group sound controls by \l {AudioCategory} categories and
 define \l {AttenuationModelLinear}{attenuation models} and various 3d audio settings all in one
 place. Playback of \l {SoundInstance}{sound instances} can be conveniently activated by in-app
-events and managed by QtAudioEngine or controlled by explicitly defining a \l SoundInstance elment
-for easier qml bindings.
+events and managed by QtAudioEngine or controlled by explicitly defining \l SoundInstance
+for easier QML bindings.
 
-QtAudioEngine elements can be accessed through importing the
+To access these QML types import the
 \b{QtAudioEngine 1.0} module.
 
 \qml
@@ -61,7 +61,7 @@ AudioEngine {
 
 \section1 Reference Documentation
 
-\section2 QML Elements
+\section2 QML Types
 
 \list
     \li \l AudioEngine

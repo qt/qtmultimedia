@@ -68,10 +68,10 @@ code but more buffering, which may affect latency.
 \section2 Low latency sound effects
 
 In addition to the raw access to sound devices described above, the QSoundEffect class (and
-\l {SoundEffect} QML element) offers a slightly higher level way to play
+\l {SoundEffect} QML type) offers a slightly higher level way to play
 sounds.  These classes allow you to specify a WAV format file which can
-then be played with low latency when necessary.  Both QSoundEffect and the
-SoundEffect element have essentially the same API.
+then be played with low latency when necessary.  Both QSoundEffect and
+SoundEffect have essentially the same API.
 
 You can adjust the number of \l {QSoundEffect::loops}{loops} a sound effect is played, as well as
 the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
@@ -81,8 +81,8 @@ are recommended to use QSoundEffect where possible.
 
 \section2 Playing compressed audio
 For playing media or audio files that are not simple, raw audio, you can
-use the \l QMediaPlayer C++ class, or the \l {Audio} and \l {MediaPlayer} QML elements.
-The QMediaPlayer class (and MediaPlayer element) is also capable of playing
+use the \l QMediaPlayer C++ class, or the \l {Audio} and \l {MediaPlayer} QML types.
+The QMediaPlayer class and associated QML types are also capable of playing
 \l{multimedia-playing-video}{video}, if required.  The compressed audio formats supported does depend
 on the operating system environment, and also what media plugins the user
 may have installed.
@@ -146,7 +146,7 @@ There are both C++ and QML examples available.
 
 \annotatedlist multimedia_audio
 
-\section2 QML Elements
+\section2 QML Types
 
 \annotatedlist multimedia_audio_qml
 

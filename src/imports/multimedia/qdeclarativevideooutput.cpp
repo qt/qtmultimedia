@@ -52,13 +52,13 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass VideoOutput QDeclarativeVideoOutput
-    \brief The VideoOutput element allows you to render video or camera viewfinder.
+    \brief The VideoOutput type allows you to render video or camera viewfinder.
 
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
     \inqmlmodule QtMultimedia 5
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    \c VideoOutput is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -105,7 +105,7 @@ QT_BEGIN_NAMESPACE
 
     If it is likely that an application will be playing video for an extended
     period of time without user interaction it may be necessary to disable
-    the platform's screen saver. The \l ScreenSaver element (from \l QtSystemInfo)
+    the platform's screen saver. The \l ScreenSaver (from \l QtSystemInfo)
     may be used to disable the screensaver in this fashion:
 
     \qml
@@ -411,8 +411,8 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
 
     This property holds the item coordinates of the area that
     would contain video to render.  With certain fill modes,
-    this rectangle will be larger than the visible area of this
-    element.
+    this rectangle will be larger than the visible area of the
+    \c VideoOutput.
 
     This property is useful when other coordinates are specified
     in terms of the source dimensions - this applied for relative

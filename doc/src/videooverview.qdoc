@@ -34,7 +34,7 @@
 \section1 Video Features
 
 Qt Multimedia offers both high and low level C++ classes for playing and
-manipulating video data, and QML elements for playback and control.  Some
+manipulating video data, and QML types for playback and control.  Some
 of these classes also overlap with both \l {Camera Overview}{camera} and
 \l {Audio Overview}{audio} classes, which can be useful.
 
@@ -54,14 +54,13 @@ And an example with QGraphicsVideoItem:
 
 \section2 Playing video in QML
 
-You can use the \l VideoOutput QML element to render content that is
-provided by either a \l MediaPlayer element or a \l Camera element.
-The VideoOutput element is a visual element that can be transformed
+You can use \l VideoOutput to render content that is
+provided by either a \l MediaPlayer or a \l Camera.
+The VideoOutput is a visual component that can be transformed
 or acted upon by shaders (as the \l {QML Video Shader Effects Example} shows), while
-all media decoding and playback control is handled by the MediaPlayer
-element.
+all media decoding and playback control is handled by the \l MediaPlayer.
 
-Alternatively there is also a higher level \l Video element that
+Alternatively there is also a higher level \l Video type that
 acts as a single, visual element to play video and control playback.
 
 \section2 Working with low level video frames
@@ -88,8 +87,8 @@ the surface as the \l {QMediaPlayer::setVideoOutput()}{video output} for QMediaP
 Several of the built in Qt classes offer this functionality
 as well, so if you decode video in your application, you can present
 it to classes that offer a \l QVideoRendererControl class, and in QML
-you can set a custom object for the source of the \l VideoOutput element
-with either a writable \c videoSurface property (that the element will
+you can set a custom object for the source of a \l VideoOutput
+with either a writable \c videoSurface property (that the instance will
 set it's internal video surface to) or a readable \c mediaObject property
 with a QMediaObject derived class that implements the \l QVideoRendererControl
 interface.
@@ -137,7 +136,7 @@ There are both C++ and QML examples available.
 
 \annotatedlist multimedia_video
 
-\section2 QML Elements
+\section2 QML Types
 
 \annotatedlist multimedia_video_qml
 

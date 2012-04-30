@@ -164,13 +164,13 @@ change when porting code.
 
 \section1 Reference Documentation
 
-\section2 QML Elements
-The following elements are accessed by using:
+\section2 QML Types
+The following types are accessed by using:
 \qml
 import QtMultimedia 5.0
 \endqml
 \annotatedlist multimedia_qml
-The following elements are accessed by using \l {Positional Audio} {QtAudioEngine}:
+The following types are accessed by using \l {Positional Audio} {QtAudioEngine}:
 \qml
 import QtAudioEngine 1.0
 \endqml

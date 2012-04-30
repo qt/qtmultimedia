@@ -49,15 +49,15 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass AudioCategory QDeclarativeAudioCategory
     \since 5.0
-    \brief The AudioCategory element allows you to control all active sound instances by group
+    \brief Control all active sound instances by group.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
 
-    This element is part of the \b{QtAudioEngine 1.0} module.
+    This type is part of the \b{QtAudioEngine 1.0} module.
 
-    AudioCategory element can be accessed through QtAudioEngine1::AudioEngine::categories with its
+    An instance of AudioCategory can be accessed through QtAudioEngine1::AudioEngine::categories with its
     unique name and must be defined inside AudioEngine.
 
     \qml
@@ -100,11 +100,11 @@ QT_USE_NAMESPACE
     }
     \endqml
 
-    Sound elements can be grouped togather by specifying the category property. When you change the
-    volume of a category, all audio output from related elements will be affected as well.
+    \l Sound instances can be grouped together by specifying the category property. When you change the
+    volume of a category, all audio output from related instances will be affected as well.
 
     Note: there will always be an AudioCategory named \c default whether you explicitly define it or
-    not. If you do not specify any category for a Sound element, it will be grouped into the \c default
+    not. If you do not specify any category for a \l Sound, it will be grouped into the \c default
     category.
 
 */
@@ -140,7 +140,7 @@ void QDeclarativeAudioCategory::componentComplete()
     \qmlproperty real QtAudioEngine1::AudioCategory::volume
 
     This property holds the volume of the category and will modulate all audio output from the
-    element which belongs to this category.
+    instances which belong to this category.
 */
 qreal QDeclarativeAudioCategory::volume() const
 {
@@ -162,7 +162,7 @@ void QDeclarativeAudioCategory::setVolume(qreal volume)
     \qmlproperty string QtAudioEngine1::AudioCategory::name
 
     This property holds the name of AudioCategory. The name must be unique among all categories and only
-    defined once.
+    defined once. The name cannot be changed after the instance has been initialized.
 */
 void QDeclarativeAudioCategory::setName(const QString& name)
 {

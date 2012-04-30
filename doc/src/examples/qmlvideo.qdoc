@@ -53,10 +53,10 @@ which moves across the \l{VideoOutput} item.
 \section1 Application structure
 
 The \l{video/qmlvideo/qml/qmlvideo/main.qml} file creates a UI which includes
-the following elements:
+the following items:
 
 \list
-    \li Two \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button} elements, each
+    \li Two \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button} instances, each
        of which displays a filename, and can be used to launch a
        \l{video/qmlvideo/qml/qmlvideo/FileBrowser.qml}{FileBrowser}
     \li An exit \l{video/qmlvideo/qml/qmlvideo/Button.qml}{Button}
@@ -70,11 +70,11 @@ the following elements:
 \image qmlvideo-menu.png
 
 Each scene in the flickable list is implemented in its own QML file - for
-example the video-basic scene (which just displays a static \l{VideoOutput} element
+example the video-basic scene (which just displays a static \l{VideoOutput}
 in the center of the screen) is implemented in the
 \l{video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic.qml} file.  As you
 can see from the code, this makes use of a type of inheritance: a
-\l{video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic} element ...
+\l{video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic} item ...
 
 \quotefromfile video/qmlvideo/qml/qmlvideo/VideoBasic.qml
 \skipto import
@@ -108,8 +108,8 @@ can see from the code, this makes use of a type of inheritance: a
 
 \l{video/qmlvideo/qml/qmlvideo/SceneBasic.qml}{SceneBasic} describes the
 structure and behaviour of the scene, but is agnostic of the type of content
-which will be displayed - this is abstracted by the
-\l{video/qmlvideo/qml/qmlvideo/Content.qml}{Content} element.
+which will be displayed - this is abstracted by
+\l{video/qmlvideo/qml/qmlvideo/Content.qml}{Content}.
 
 This pattern allows us to define a particular use case (in this case, simply
 display a static piece of content), and then instantiate that use case for
@@ -123,7 +123,7 @@ the content from left to right and back again" is implemented by
 \l{video/qmlvideo/qml/qmlvideo/CameraMove.qml}{CameraMove} are based.
 
 Depending on the value of the contentType property in the top-level scene
-element, the embedded
+instance, the embedded
 \l{video/qmlvideo/qml/qmlvideo/Content.qml}{Content} item creates either a
 \l{MediaPlayer} or a \l{Camera} item.
 

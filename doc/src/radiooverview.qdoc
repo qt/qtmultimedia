@@ -38,9 +38,9 @@ over the radio tuner of the system, and gives access to Radio Data System
 \section1 Radio Features
 
 The Radio API consists of two separate components. The radio tuner,
-\l QRadioTuner or the \l Radio QML element, which handles control of
+\l QRadioTuner or the \l Radio QML type, which handles control of
 the radio hardware as well as tuning. The other is the radio data
-component, either \l QRadioData or the \l RadioData QML element, which
+component, either \l QRadioData or the \l RadioData QML type, which
 gives access to RDS information.
 
 \section1 Radio Implementation Details
@@ -53,7 +53,7 @@ data component will only be populated if the system radio tuner supports RDS.
 
 There are two examples showing the usage of the Radio API. One shows how to use
 the QRadioTuner class from C++. The other shows how to implement a similar
-application using QML and the Radio element.
+application using QML and \l Radio.
 
 \section2 Radio Example
 
@@ -82,7 +82,7 @@ current frequency inside the band.
 
 \annotatedlist multimedia_radio
 
-\section2 QML Elements
+\section2 QML Types
 
 \annotatedlist multimedia_radio_qml
 

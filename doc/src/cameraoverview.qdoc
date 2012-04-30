@@ -104,7 +104,7 @@ a photo or video, and then switch to a slower but higher resolution
 mode for capturing the image.
 
 Depending on whether you're using QML or C++, you can do this in multiple ways.
-In QML, you can use the Camera and VideoOutput elements together to show a
+In QML, you can use \l Camera and \l VideoOutput together to show a
 simple viewfinder:
 
 \qml
@@ -210,7 +210,7 @@ and then use this point so that the image exposure is best at that point.
 
 Finally, you can control the flash hardware (if present) using this class.  In some cases
 the hardware may also double as a torch (typically when the flash is LED based, rather than
-a xenon or other bulb).  See also the \l {Torch} QML element for an easy to use API for
+a xenon or other bulb).  See also \l {Torch} for an easy to use API for
 torch functionality.
 
 \target camera_image_processing
@@ -255,7 +255,7 @@ There are both C++ and QML examples available.
 
 \annotatedlist multimedia_camera
 
-\section2 QML Elements
+\section2 QML Types
 
 \annotatedlist camera_qml
 

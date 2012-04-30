@@ -28,13 +28,13 @@
 /*!
 \qmlmodule QtMultimedia 5
 \title QML import for multimedia
-\brief The import for the QML elements in the Qt Multimedia module
+\brief The import for the QML types in the Qt Multimedia module
 
 \section1 Overview
 
 The identifying string for this component is \e QtMultimedia. Use this in the QML \e import statement.
 
-\section1 QML Elements
+\section1 QML types
 
 \annotatedlist multimedia_qml
 

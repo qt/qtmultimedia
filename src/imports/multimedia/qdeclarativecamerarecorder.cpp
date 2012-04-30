@@ -49,15 +49,15 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraRecorder QDeclarativeCameraRecorder
     \inqmlmodule QtMultimedia 5
-    \brief The CameraRecorder element controls video recording with the Camera.
+    \brief The CameraRecorder type controls video recording with the Camera.
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    This element allows recording camera streams to files, and adjusting recording
+    CameraRecorder allows recording camera streams to files, and adjusting recording
     settings and metadata for videos.
 
-    This element is a child of a \l Camera element (as the \c videoRecorder property)
-    and cannot be created directly.
+    It should not be constructed separately, instead the
+    \c videRecorder property of a \l Camera should be used.
 
     \qml
     Camera {
@@ -237,7 +237,7 @@ int QDeclarativeCameraRecorder::audioSampleRate() const
 /*!
     \qmlproperty enumeration QtMultimedia5::CameraRecorder::videoEncodingMode
 
-    The type of encoding method to use when recording audio.
+    The type of encoding method to use when recording video.
 
     \table
     \header \li Value \li Description

@@ -82,17 +82,17 @@ public:
         qmlRegisterType<QDeclarativeRadioData>(uri, 4, 0, "RadioData");
         qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 4, 0, "CameraCapture",
-                                trUtf8("CameraCapture is only provided by Camera element"));
+                                trUtf8("CameraCapture is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 4, 0, "CameraRecorder",
-                                trUtf8("CameraRecorder is only provided by Camera element"));
+                                trUtf8("CameraRecorder is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 4, 0, "CameraExposure",
-                                trUtf8("CameraExposure is only provided by Camera element"));
+                                trUtf8("CameraExposure is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFocus>(uri, 4, 0, "CameraFocus",
-                                trUtf8("CameraFocus is only provided by Camera element"));
+                                trUtf8("CameraFocus is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 4, 0, "CameraFlash",
-                                trUtf8("CameraFlash is only provided by Camera element"));
+                                trUtf8("CameraFlash is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 4, 0, "CameraImageProcessing",
-                                trUtf8("CameraImageProcessing is only provided by Camera element"));
+                                trUtf8("CameraImageProcessing is only provided by Camera type"));
 
         // Introduced to help transition from QtMultimedia 4.0 to 5.0 (official for Qt 5)
         // the 4.0 versioned types will be removed once all clients have made the transition.
@@ -105,17 +105,17 @@ public:
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
         qmlRegisterType<QDeclarativeTorch>(uri, 5, 0, "Torch");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
-                                trUtf8("CameraCapture is only provided by Camera element"));
+                                trUtf8("CameraCapture is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 5, 0, "CameraRecorder",
-                                trUtf8("CameraRecorder is only provided by Camera element"));
+                                trUtf8("CameraRecorder is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 5, 0, "CameraExposure",
-                                trUtf8("CameraExposure is only provided by Camera element"));
+                                trUtf8("CameraExposure is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFocus>(uri, 5, 0, "CameraFocus",
-                                trUtf8("CameraFocus is only provided by Camera element"));
+                                trUtf8("CameraFocus is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 5, 0, "CameraFlash",
-                                trUtf8("CameraFlash is only provided by Camera element"));
+                                trUtf8("CameraFlash is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 5, 0, "CameraImageProcessing",
-                                trUtf8("CameraImageProcessing is only provided by Camera element"));
+                                trUtf8("CameraImageProcessing is provided by Camera"));
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }

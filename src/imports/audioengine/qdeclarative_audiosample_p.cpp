@@ -52,15 +52,15 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass AudioSample QDeclarativeAudioSample
     \since 5.0
-    \brief The AudioSample element allows you to load audio samples, mostly wav file.
+    \brief The AudioSample type allows you to load audio samples, mostly wav file.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
 
-    This element is part of the \b{QtAudioEngine 1.0} module.
+    \c AudioSample is part of the \b{QtAudioEngine 1.0} module.
 
-    AudioSample element can be accessed through QtAudioEngine1::AudioEngine::samples with its unique
+    It can be accessed through QtAudioEngine1::AudioEngine::samples with its unique
     name and must be defined inside AudioEngine.
 
     \qml
@@ -135,9 +135,9 @@ bool QDeclarativeAudioSample::isStreaming() const
 /*!
     \qmlproperty bool QtAudioEngine1::AudioSample::preloaded
 
-    This property holds indicates whether this sample needs to be preloaded or not.
+    This property indicates whether this sample needs to be preloaded or not.
     If true, the audio engine will start loading the sample file immediately when the app started,
-    otherwise the sample will not be loaded untill be used by other element.
+    otherwise the sample will not be loaded until explicitly requested.
 */
 
 bool QDeclarativeAudioSample::isPreloaded() const

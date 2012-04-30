@@ -54,7 +54,7 @@ There are a number of new features in Qt Multimedia 5.0:
 \li QML \l Torch class
 \li QSound moved from QtGui to QtMultimedia
 \li QSoundEffect available to C++ now, as well as QML
-\li FM Radio Data System classes and elements now available (\l QRadioData, \l RadioData)
+\li FM Radio Data System classes and types now available (\l QRadioData, \l RadioData)
 \li Various other API improvements and bugfixes
 \endlist
 
@@ -133,14 +133,14 @@ they are documented elsewhere.
            QVariants.  If you've previously added Q_DECLARE_METATYPE macros for any
            Qt Multimedia class you will probably need to remove them.
     \row
-        \li Video QML element
-        \li If you've previously used the Video QML element you may be excited
+        \li Video QML type
+        \li If you've previously used \l Video you may be excited
            to learn that it should still work as expected, but you also have
-           the choice of using the new MediaPlayer and VideoOutput elements
+           the choice of using \l MediaPlayer and \l VideoOutput
            together for more flexible and advanced use cases.
     \row
         \li QSoundEffect
-        \li The SoundEffect QML element was public and accessible in Qt Multimeda Kit,
+        \li The SoundEffect QML type was public and accessible in Qt Multimeda Kit,
            and now the C++ version is also available.  If you managed to use the
            private class previously, you'll need to update your code.
     \row

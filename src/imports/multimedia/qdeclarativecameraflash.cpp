@@ -47,19 +47,19 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraFlash QDeclarativeCameraFlash
     \inqmlmodule QtMultimedia 5
-    \brief The CameraFlash element provides interface for flash related camera settings.
+    \brief The CameraFlash type provides interface for flash related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    CameraFlash is part of the \b{QtMultimedia 5.0} module.
 
-    The CameraFlash element allows you to operate the camera flash
+    This type allows you to operate the camera flash
     hardware and control the flash mode used.  Not all cameras have
     flash hardware (and in some cases it is shared with the
     \l {Torch}{torch} hardware).
 
-    It should not be constructed separately but provided by the
-    \l Camera element's \c flash property.
+    It should not be constructed separately, instead the
+    \c flash property of a \l Camera should be used.
 
     \qml
     import QtQuick 2.0
@@ -78,7 +78,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QDeclarativeCameraFlash
     \internal
-    \brief The CameraFlash element provides interface for flash related camera settings.
+    \brief The CameraFlash provides interface for flash related camera settings.
 */
 
 /*!
@@ -142,12 +142,15 @@ void QDeclarativeCameraFlash::setFlashMode(int mode)
 
 /*!
     \qmlsignal QtMultimedia5::CameraExposure::flashModeChanged(int)
-    \fn void QDeclarativeCameraFlash::flashModeChanged(int)
+    This signal is emitted when the \c flashMode property is changed.
+    The corresponding handler is \c onFlashModeChanged.
 */
 
 /*!
     \qmlsignal QtMultimedia5::CameraExposure::flashReady(bool)
-    \fn void QDeclarativeCameraFlash::flashReady(bool)
+    This signal is emitted when QCameraExposure indicates that
+    the flash is ready to use.
+    The corresponsing handler is \c onFlashReadyChanged.
 */
 
 QT_END_NAMESPACE

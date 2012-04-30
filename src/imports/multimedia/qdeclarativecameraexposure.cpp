@@ -46,18 +46,18 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraExposure QDeclarativeCameraExposure
-    \brief The CameraExposure element provides interface for exposure related camera settings.
+    \brief The CameraExposure type provides interface for exposure related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
     \inqmlmodule QtMultimedia 5
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    This type is part of the \b{QtMultimedia 5.0} module.
 
-    This element allows you to adjust exposure related settings
+    CameraExposure allows you to adjust exposure related settings
     like aperture and shutter speed, metering and ISO speed.
 
-    It should not be constructed separately but provided by the
-    \l Camera element's \c exposure property.
+    It should not be constructed separately, instead the
+    \c exposure property of the a \l Camera should be used.
 
     \qml
     import QtQuick 2.0
@@ -95,7 +95,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \internal
     \class QDeclarativeCameraExposure
-    \brief The CameraExposure element provides interface for exposure related camera settings.
+    \brief The CameraExposure provides interface for exposure related camera settings.
 
 */
 

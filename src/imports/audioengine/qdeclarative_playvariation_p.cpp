@@ -51,7 +51,7 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass PlayVariation QDeclarativePlayVariation
     \since 5.0
-    \brief The PlayVariation element allows you to define a playback variation for \l Sound element.
+    \brief The PlayVariation type allows you to define a playback variation for \l {Sound} {sounds}.
     So each time the playback of the same sound can be a slightly different even with the same
     AudioSample.
 
@@ -60,9 +60,9 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This element is part of the \b{QtAudioEngine 1.0} module.
+    This type is part of the \b{QtAudioEngine 1.0} module.
 
-    PlayVariation must be defined inside \l Sound element.
+    PlayVariation must be defined inside a \l Sound.
 
     \qml
     import QtQuick 2.0

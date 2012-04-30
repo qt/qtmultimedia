@@ -75,18 +75,18 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError 
 
 /*!
     \qmlclass Camera QDeclarativeCamera
-    \brief The Camera element allows you to access viewfinder frames, and take photos and movies.
+    \brief The Camera type allows you to access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
     \ingroup camera_qml
     \inqmlmodule QtMultimedia 5
 
     \inherits Item
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    Camera is part of the \b{QtMultimedia 5.0} module.
 
-    You can use the \c Camera element to capture images and movies from a camera, and manipulate
+    You can use \c Camera to capture images and movies from a camera, and manipulate
     the capture and processing settings that get applied to the images.  To display the
-    viewfinder you can use a \l VideoOutput element with the Camera element set as the source.
+    viewfinder you can use \l VideoOutput with the Camera set as the source.
 
     \qml
 
@@ -111,7 +111,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError 
 
             imageCapture {
                 onImageCaptured: {
-                    photoPreview.source = preview  // Show the preview in an Image element
+                    photoPreview.source = preview  // Show the preview in an Image
                 }
             }
         }
@@ -148,15 +148,15 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError 
     \endtable
 
     Basic camera state management, error reporting, and simple zoom properties are
-    available in the Camera element itself.  For integration with C++ code, the
+    available in the Camera itself.  For integration with C++ code, the
     \l mediaObject property allows you to
     access the standard QtMultimedia camera controls.
 
     Many of the camera settings may take some time to apply, and might be limited
-    to certain supported values depending on the hardware.  Several camera settings
-    support both automatic and manual modes, with the current actual setting being
-    used being exposed.
-
+    to certain supported values depending on the hardware.  Some camera settings may be
+    set manually or automatically. These settings properties contain the current set value.
+    For example, when autofocus is enabled the focus zones are exposed in the
+    \l {CameraFocus}{focus} property.
 */
 
 /*!
@@ -267,10 +267,10 @@ QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
     \table
     \header \li Value \li Description
     \row \li CaptureStillImage
-         \li Prepares the camera element for capturing still images.
+         \li Prepares the Camera for capturing still images.
 
     \row \li CaptureVideo
-         \li Prepares the camera element for capturing video.
+         \li Prepares the Camera for capturing video.
 
     \endtable
 
@@ -345,7 +345,6 @@ void QDeclarativeCamera::setCameraState(QDeclarativeCamera::State state)
 
 /*!
     \qmlmethod QtMultimedia5::Camera::start()
-    \fn QDeclarativeCamera::start()
 
     Starts the camera.  Viewfinder frames will
     be available and image or movie capture will
@@ -358,7 +357,6 @@ void QDeclarativeCamera::start()
 
 /*!
     \qmlmethod QtMultimedia5::Camera::stop()
-    \fn QDeclarativeCamera::stop()
 
     Stops the camera, but leaves the camera
     stack loaded.
@@ -392,7 +390,7 @@ void QDeclarativeCamera::stop()
         The locked state usually means the requested parameter stays the same,
         except in the cases when the parameter is requested to be constantly updated.
         For example in continuous focusing mode, the focus is considered locked as long
-        and the object is in focus, even while the actual focusing distance may be constantly changing.
+        as the object is in focus, even while the actual focusing distance may be constantly changing.
     \endtable
 */
 /*!
@@ -428,7 +426,6 @@ QDeclarativeCamera::LockStatus QDeclarativeCamera::lockStatus() const
 
 /*!
     \qmlmethod QtMultimedia5::Camera::searchAndLock()
-    \fn QDeclarativeCamera::searchAndLock()
 
     Start focusing, exposure and white balance calculation.
 
@@ -444,7 +441,6 @@ void QDeclarativeCamera::searchAndLock()
 
 /*!
     \qmlmethod QtMultimedia5::Camera::unlock()
-    \fn QDeclarativeCamera::unlock()
 
     Unlock focus, exposure and white balance locks.
  */
@@ -510,7 +506,7 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 /*!
     \qmlproperty variant QtMultimedia5::Camera::mediaObject
 
-    The media object for the Camera element.
+    The media object for the Camera.
 */
 
 /*!
@@ -547,8 +543,6 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \fn void QDeclarativeCamera::lockStatusChanged()
-
     \qmlsignal Camera::lockStatusChanged()
 
     This signal is emitted when the lock status (focus, exposure etc) changes.
@@ -556,7 +550,6 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \fn void QDeclarativeCamera::stateChanged(QDeclarativeCamera::State state)
     \qmlsignal Camera::stateChanged(state)
 
     This signal is emitted when the camera state has changed to \a state.  Since the

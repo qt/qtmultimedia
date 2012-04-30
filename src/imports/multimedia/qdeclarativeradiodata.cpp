@@ -46,16 +46,16 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass RadioData QDeclarativeRadioData
     \inqmlmodule QtMultimedia 5
-    \brief The RadioData element allows you to access RDS data from a QML application.
+    \brief The RadioData type allows you to access RDS data from a QML application.
     \ingroup multimedia_qml
     \ingroup multimedia_radio_qml
     \inherits Item
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    This type is part of the \b{QtMultimedia 5.0} module.
 
-    The \c RadioData element is your gateway to all the data available through RDS. RDS is the Radio Data System
+    \c RadioData is your gateway to all the data available through RDS. RDS is the Radio Data System
     which allows radio stations to broadcast information like the \l stationId, \l programType, \l programTypeName,
-    \l stationName, and \l radioText. This information can be read from the \c RadioData element. It also allows
+    \l stationName, and \l radioText. This information can be read from the \c RadioData. It also allows
     you to set whether the radio should tune to alternative frequencies if the current signal strength falls too much.
 
     \qml
@@ -88,11 +88,11 @@ QT_BEGIN_NAMESPACE
 
     \endqml
 
-    You use \c RadioData together with the \l Radio element, either by
-    accessing the \c radioData property of the Radio element, or
-    creating a separate RadioData element. The properties of the
-    RadioData element will reflect the information broadcast by the
-    radio station the Radio element is currently tuned to.
+    You use \c RadioData together with a \l Radio, either by
+    accessing the \c radioData property of the Radio, or
+    creating a separate RadioData. The properties of the
+    RadioData type will reflect the information broadcast by the
+    radio station the Radio is currently tuned to.
 
     \sa {Radio Overview}
 */
@@ -299,7 +299,7 @@ void QDeclarativeRadioData::connectSignals()
                          SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
 
     // Note we map availabilityError->availability
-    // Since the radio data element depends on the service for the tuner, the availability is also dictated from the tuner
+    // Since the radio data type depends on the service for the tuner, the availability is also dictated from the tuner
     connect(m_radioTuner, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
 
     connect(m_radioData, SIGNAL(error(QRadioData::Error)), this, SLOT(_q_error(QRadioData::Error)));

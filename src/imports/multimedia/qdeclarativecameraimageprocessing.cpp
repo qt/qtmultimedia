@@ -47,16 +47,16 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraImageProcessing QDeclarativeCameraImageProcessing
     \inqmlmodule QtMultimedia 5
-    \brief The CameraCapture element provides an interface for camera capture related settings
+    \brief The CameraImageProcessing type provides an interface for camera capture related settings
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    The CameraImageProcessing element provides control over post-processing
+    CameraImageProcessing provides control over post-processing
     done by the camera middleware, including white balance adjustments,
     contrast, saturation, sharpening, and denoising
 
-    It is not constructed separately but is provided by the \a Camera element's
-    \c imageProcessing property.
+    It should not be constructed separately, instead the
+    \c imageProcessing property of a \l Camera should be used.
 
     \qml
     import QtQuick 2.0
@@ -79,7 +79,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QDeclarativeCameraImageProcessing
     \internal
-    \brief The CameraCapture element provides an interface for camera capture related settings
+    \brief The CameraCapture provides an interface for camera capture related settings
 */
 
 
@@ -233,10 +233,12 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 
 /*!
     \qmlsignal QtMultimedia5::Camera::whiteBalanceModeChanged(Camera::WhiteBalanceMode)
+    This signal is emitted when the \c whiteBalanceMode property is changed.
 */
 
 /*!
     \qmlsignal QtMultimedia5::Camera::manualWhiteBalanceChanged(qreal)
+    This signal is emitted when the \c manualWhiteBalance property is changed.
 */
 
 QT_END_NAMESPACE

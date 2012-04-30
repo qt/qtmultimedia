@@ -35,24 +35,24 @@ or video.
 
 \image qml-camera.png
 
-This example demonstrates the basic use of the Camera QML Plugin elements. The
+This example demonstrates the basic use of the Camera QML Plugin types. The
 plugin provides access to the API functionality for camera settings and
 capturing an image.
 
 Most of the QML code supports the user interface for this application with the
-Camera elements being mostly found in \e {declarative-camera.qml} and
+camera types being mostly found in \e {declarative-camera.qml} and
 \e {CaptureControls.qml}.
 
-In \e {declarative-camera.qml} the Camera element is initialized with an id
+In \e {declarative-camera.qml} the \l Camera is initialized with an id
 of \e {camera}, a photo preview is setup, states are implemented for image
-preview or capture and a CaptureControls element is initialized. The initial
-\e state is \e PhotoCapture. The camera element includes a handler, \e onImageCaptured,
+preview or capture and \l CaptureControls is initialized. The initial
+\e state is \e PhotoCapture. \l CameraCapture includes a handler, \e onImageCaptured,
 for the \l {imageCaptured} signal. The handler sets up the application to process
-the preview including a change in the user interface state. The PhotoPreview
-element now becomes visible with any key press being picked up by the handler
+the preview including a change in the user interface state. The \l PhotoPreview
+becomes visible with any key press being picked up by the handler
 in PhotoPreview and returning the state to \e PhotoCapture.
 
-The \e CaptureControls element, which is implemented in \e {CaptureControls.qml},
+\e CaptureControls, which is implemented in \e {CaptureControls.qml},
 generates a column on the right hand side of the screen which includes control
 buttons for \e focus (not initially visible), \e {capture}, \e {flash modes},
 \e {white balance}, \e {exposure compensation}, and if a preview is

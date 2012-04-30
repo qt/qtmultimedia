@@ -47,18 +47,18 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraFocus QDeclarativeCameraFocus
     \inqmlmodule QtMultimedia 5
-    \brief The CameraFocus element provides interface for focus related camera settings.
+    \brief The CameraFocus type provides interface for focus related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    CameraFocus is part of the \b{QtMultimedia 5.0} module.
 
-    The CameraFocus element allows control over manual and automatic
+    This type allows control over manual and automatic
     focus settings, including information about any parts of the
     camera frame that are selected for autofocusing.
 
-    It is not constructed separately but is provided by the
-    \l Camera element's \c focus property.
+    It should not be constructed separately, instead the
+    \c focus property of a \l Camera should be used.
 
     \qml
     import QtQuick 2.0
@@ -74,7 +74,7 @@ QT_BEGIN_NAMESPACE
             focus {
                 focusMode: Camera.FocusMacro
                 focusPointMode: Camera.FocusPointCustom
-                customFocusPoint: Qt.point(0.2, 0.2) //focus to top-left corner
+                customFocusPoint: Qt.point(0.2, 0.2) // Focus relative to top-left corner
             }
         }
 
@@ -90,7 +90,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QDeclarativeCameraFocus
     \internal
-    \brief The CameraFocus element provides interface for focus related camera settings.
+    \brief The CameraFocus provides interface for focus related camera settings.
 */
 
 /*!
@@ -133,7 +133,6 @@ QDeclarativeCamera::FocusMode QDeclarativeCameraFocus::focusMode() const
 
 /*!
     \qmlmethod bool QtMultimedia5::CameraFocus::isFocusModeSupported(mode) const
-    \fn QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusMode mode) const
 
     Returns true if the supplied \a mode is a supported focus mode, and
     false otherwise.
@@ -174,7 +173,6 @@ void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCamera::FocusPointMo
 
 /*!
     \qmlmethod bool QtMultimedia5::CameraFocus::isFocusPointModeSupported(mode) const
-    \fn QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode) const
 
     Returns true if the supplied \a mode is a supported focus point mode, and
     false otherwise.

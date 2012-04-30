@@ -47,12 +47,12 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass Radio QDeclarativeRadio
     \inqmlmodule QtMultimedia 5
-    \brief The Radio element allows you to access radio functionality from a QML application.
+    \brief The Radio type allows you to access radio functionality from a QML application.
     \ingroup multimedia_qml
     \ingroup multimedia_radio_qml
     \inherits Item
 
-    This element is part of the \b{QtMultimedia 5.0} module.
+    Radio is part of the \b{QtMultimedia 5.0} module.
 
     \qml
     import QtQuick 2.0
@@ -85,12 +85,12 @@ QT_BEGIN_NAMESPACE
     }
     \endqml
 
-    You can use the \c Radio element to tune the radio and get information about the signal.
-    You can also use the Radio element to get information about tuning, for instance the
+    You can use \c Radio to tune the radio and get information about the signal.
+    You can also use the Radio to get information about tuning, for instance the
     frequency steps supported for tuning.
 
-    The corresponding \l RadioData element gives RDS information about the
-    current radio station. The best way to access the RadioData element for
+    The corresponding \l RadioData gives RDS information about the
+    current radio station. The best way to access the RadioData for
     the current Radio is to use the \c radioData property.
 
     \sa {Radio Overview}
@@ -129,7 +129,7 @@ QDeclarativeRadio::~QDeclarativeRadio()
 /*!
     \qmlproperty enumeration QtMultimedia5::Radio::state
 
-    This property holds the current state of the Radio element.
+    This property holds the current state of the Radio.
 
     \table
     \header \li Value \li Description
@@ -540,7 +540,7 @@ void QDeclarativeRadio::_q_availabilityChanged(QtMultimedia::AvailabilityError e
     if \l searchAllStations is called with \c SearchGetStationId.
 
     The \a frequency is returned in Hertz, and the \a stationId corresponds to the station Id
-    in the \l RadioData element for this radio station.
+    in the \l RadioData for this radio station.
   */
 
 QT_END_NAMESPACE

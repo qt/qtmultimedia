@@ -31,13 +31,13 @@
 \ingroup video_examples_qml
 \ingroup camera_examples_qml
 
-\brief The QML Video Shader Effects Example shows how the \l {ShaderEffect}
-element can be used to apply postprocessing effects, expressed in \c GLSL, to video
+\brief The QML Video Shader Effects Example shows how \l {ShaderEffect}
+can be used to apply postprocessing effects, expressed in \c GLSL, to video
 and camera viewfinder content.
 
 \section1 Overview
 
-This example shows how the \l {ShaderEffectItem} element can be used to apply
+This example shows how a \l {ShaderEffectItem} can be used to apply
 postprocessing effects, expressed in GLSL, to QML \l {VideoOutput} items.
 
 It also shows how native code can be combined with QML to implement more
@@ -73,8 +73,8 @@ for Effect*.qml files in the list above to see the full range.
 
 \section1 Application structure
 
-Shader effects can be applied to video or viewfinder content using the
-\l{ShaderEffectItem} element, as shown in the following example, which applies
+Shader effects can be applied to video or viewfinder content using
+\l{ShaderEffectItem}, as shown in the following example, which applies
 a wiggly effect to the content:
 
 \code
@@ -119,7 +119,7 @@ Rectangle {
 \endcode
 
 In this application, the usage of the \l{ShaderEffect} and \l{VideoOutput}
-elements is a bit more complicated, for the following reasons:
+types is a bit more complicated, for the following reasons:
 
 \list
     \li Each effect can be applied to either a \l{VideoOutput} or an
@@ -135,8 +135,8 @@ elements is a bit more complicated, for the following reasons:
 \endlist
 
 The abstraction of source item type is achieved by the
-\l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content} element, which uses a
-\l{Loader} to create either a \l{MediaPlayer}, \l{Camera} or \l{Image} element:
+\l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content}, which uses a
+\l{Loader} to create either a \l{MediaPlayer}, \l{Camera} or \l{Image}:
 
 \quotefromfile video/qmlvideofx/qml/qmlvideofx/Content.qml
 \skipto import
@@ -165,14 +165,14 @@ The abstraction of source item type is achieved by the
 \printuntil }
 
 Each effect is implemented as a QML item which is based on the
-\l{video/qmlvideofx/qml/qmlvideofx/Effect.qml}{Effect} element, which in turn
-is based on the \l{ShaderEffect} element:
+\l{video/qmlvideofx/qml/qmlvideofx/Effect.qml}{Effect}, which in turn
+is based on the \l{ShaderEffect}:
 
 \quotefromfile video/qmlvideofx/qml/qmlvideofx/Effect.qml
 \skipto import
 \printuntil /^\}/
 
-The interface of the Effect element allows for derived effects to specify the
+The interface of the \l Effect allows for derived effects to specify the
 number of parameters which they support (and therefore the number of sliders
 which should be displayed), and whether a vertical dividing line should be drawn
 between transformed and untransformed image regions.  As an example, here is the
@@ -185,12 +185,12 @@ that the divider should be displayed.
 \printuntil /^\}/
 
 The main.qml file shows a
-\l{video/qmlvideofx/qml/qmlvideofx/FileOpen.qml}{FileOpen} element which allows
+\l{video/qmlvideofx/qml/qmlvideofx/FileOpen.qml}{FileOpen}, which allows
 the user to select the input source and an
 \l{video/qmlvideofx/qml/qmlvideofx/EffectSelectionPanel.qml}{EffectSelectionPanel}
 item, which lists each of the available shader effects.  As described above, a
 \l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content} item is used to load the
-appropriate input and effect element.  A
+appropriate input and effect type.  A
 \l{video/qmlvideofx/qml/qmlvideofx/Divider.qml}{Divider} item draws the
 vertical dividing line, which can be dragged left / right by the user.  Finally,
 a \l{video/qmlvideofx/qml/qmlvideofx/ParameterPanel.qml}{ParameterPanel} item

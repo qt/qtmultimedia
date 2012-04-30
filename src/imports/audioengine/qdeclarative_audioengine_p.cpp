@@ -58,13 +58,13 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass AudioEngine QDeclarativeAudioEngine
     \since 5.0
-    \brief The AudioEngine element allows you to organize all your 3d audio content in one place.
+    \brief The AudioEngine type allows you to organize all your 3d audio content in one place.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
 
-    This element is part of the \b{QtAudioEngine 1.0} module.
+    \c AudioEngine is part of the \b{QtAudioEngine 1.0} module.
 
     \qml
     import QtQuick 2.0
@@ -91,7 +91,7 @@ QT_USE_NAMESPACE
             }
 
             dopplerFactor: 1
-            speedOfSound: 343.33
+            speedOfSound: 343.33 // Approximate speed of sound in air at 20 degrees Celsius
 
             listener.up:"0,0,1"
             listener.position:"0,0,0"
@@ -108,10 +108,10 @@ QT_USE_NAMESPACE
     }
     \endqml
 
-    The \c AudioEngine element acts as a central library for configuring all 3d audio content in an
-    app, so you should define only one such element in your app.
+    \c AudioEngine acts as a central library for configuring all 3d audio content in an
+    app, so you should define only one in your app.
 
-    It is mostly used as a container to access other elements such as AudioCategory, AudioSample and
+    It is mostly used as a container to access other types such as AudioCategory, AudioSample and
     Sound.
 
     \sa AudioCategory, AudioSample, Sound, SoundInstance, AttenuationModelLinear, AttenuationModelInverse
@@ -409,7 +409,7 @@ QQmlListProperty<QObject> QDeclarativeAudioEngine::bank()
 /*!
     \qmlproperty map QtAudioEngine1::AudioEngine::categories
 
-    Container of all AudioCategory elements.
+    Container of all AudioCategory instances.
 */
 QObject* QDeclarativeAudioEngine::categories()
 {
@@ -419,7 +419,7 @@ QObject* QDeclarativeAudioEngine::categories()
 /*!
     \qmlproperty map QtAudioEngine1::AudioEngine::samples
 
-    Container of all AudioSample elements.
+    Container of all AudioSample instances.
 */
 QObject* QDeclarativeAudioEngine::samples()
 {
@@ -429,7 +429,7 @@ QObject* QDeclarativeAudioEngine::samples()
 /*!
     \qmlproperty map QtAudioEngine1::AudioEngine::sounds
 
-    Container of all Sound elements.
+    Container of all Sound instances.
 */
 QObject* QDeclarativeAudioEngine::sounds()
 {
@@ -467,8 +467,11 @@ void QDeclarativeAudioEngine::setDopplerFactor(qreal dopplerFactor)
 /*!
     \qmlproperty real QtAudioEngine1::AudioEngine::speedOfSound
 
-    This property holds the reference value of the sound speed which will be used in doppler shift
-    calculation.
+    This property holds the reference value of the sound speed (in meters per second)
+    which will be used in doppler shift calculation. The doppler shift calculation is
+    used to emulate the change in frequency in sound that is perceived by an observer when
+    the sound source is travelling towards or away from the observer. The speed of sound
+    depends on the medium the sound is propagating through.
 */
 qreal QDeclarativeAudioEngine::speedOfSound() const
 {
@@ -481,7 +484,7 @@ void QDeclarativeAudioEngine::setSpeedOfSound(qreal speedOfSound)
 }
 
 /*!
-    \qmlproperty real QtAudioEngine1::AudioEngine::loading
+    \qmlproperty bool QtAudioEngine1::AudioEngine::loading
 
     This property indicates if the audio engine is loading any audio sample at the moment. This may
     be useful if you specified the preloaded property in AudioSample and would like to show a loading screen
@@ -501,21 +504,38 @@ void QDeclarativeAudioEngine::handleLoadingChanged()
 }
 
 /*!
-    \qmlsignal QtAudioEngine1::AudioEngine::onLiveInstancesChanged()
-
-    This handler is called when \l liveInstances is changed
-*/
-
-/*!
-    \qmlsignal QtAudioEngine1::AudioEngine::onLoadingChanged()
-
-    This handler is called when \l loading is changed
-*/
-
-/*!
     \qmlsignal QtAudioEngine1::AudioEngine::finishedLoading()
 
-    This handler is called when \l loading is finished
+    This signal is emitted when \l loading has completed.
+
+    The corresponding handler is \c onFinishedLoading.
 */
+
+/*!
+    \qmlsignal QtAudioEngine1::AudioEngine::ready()
+
+    This signal is emitted when the AudioEngine is ready to use.
+
+    The corresponding handler is \c onReady.
+*/
+
+/*!
+    \qmlsignal QtAudioEngine1::AudioEngine::liveInstanceCountChanged()
+
+    This signal is emitted when the number of live instances managed by the
+    AudioEngine is changed.
+
+    The corresponding handler is \c onLiveInstanceCountChanged.
+*/
+
+/*!
+    \qmlsignal QtAudioEngine1::AudioEngine::isLoadingChanged()
+
+    This signal is emitted when the \l loading property changes.
+
+    The corresponding handler is \c onIsLoadingChanged.
+*/
+
+
 QT_END_NAMESPACE
 

@@ -53,16 +53,16 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass SoundInstance QDeclarativeSoundInstance
     \since 5.0
-    \brief The SoundInstance element allows you to play 3d audio content.
+    \brief The SoundInstance type allows you to play 3d audio content.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
 
-    This element is part of the \b{QtAudioEngine 1.0} module.
+    This type is part of the \b{QtAudioEngine 1.0} module.
 
     There are two ways to create SoundInstance objects. You can obtain it by calling newInstance
-    method of Sound element:
+    method of a \l Sound:
 
     \qml
     import QtQuick 2.0
@@ -101,7 +101,7 @@ QT_USE_NAMESPACE
     }
     \endqml
 
-    Or alternatively, you can explicitly define SoundInstance element outside of AudioEngine for
+    Or alternatively, you can explicitly define SoundInstance outside of AudioEngine for
     easier qml bindings:
 
     \qml
@@ -236,7 +236,7 @@ QDeclarativeSoundInstance::~QDeclarativeSoundInstance()
     \qmlproperty string QtAudioEngine1::SoundInstance::sound
 
     This property specifies which Sound this SoundInstance will use. Unlike some properties in
-    other elements, this property can be changed dynamically.
+    other types, this property can be changed dynamically.
 */
 QString QDeclarativeSoundInstance::sound() const
 {
@@ -258,7 +258,7 @@ void QDeclarativeSoundInstance::setSound(const QString& sound)
     }
 
 #ifdef DEBUG_AUDIOENGINE
-    qDebug() << "SoundInstance Element switch sound from [" << m_sound << "] to [" << sound << "]";
+    qDebug() << "SoundInstance switch sound from [" << m_sound << "] to [" << sound << "]";
 #endif
 
     stop();
@@ -297,11 +297,17 @@ void QDeclarativeSoundInstance::dropInstance()
 
     This property holds the current playback state. It can be one of:
 
-    \list
-    \li StopppedState
-    \li PlayingState
-    \li PausedState
-    \endlist
+    \table
+    \header \li Value \li Description
+    \row \li StopppedState
+        \li The SoundInstance is not playing, and when playback begins next it
+        will play from position zero.
+    \row \li PlayingState
+        \li The SoundInstance is playing the media.
+    \row \li PausedState
+        \li The SoundInstance is not playing, and when playback begins next it
+        will play from the position that it was paused at.
+    \endtable
 */
 QDeclarativeSoundInstance::State QDeclarativeSoundInstance::state() const
 {

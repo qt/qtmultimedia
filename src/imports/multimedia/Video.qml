@@ -47,12 +47,12 @@ import QtMultimedia 5.0
     \inherits Item
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
-    \brief A convenience element for showing a specified video
+    \brief A convenience type for showing a specified video
 
-    The \c Video element is a convenience element combining the functionality
-    of the \l MediaPlayer and \l VideoOutput elements into one. It provides
-    simple video playback functionality without having to specify multiple
-    elements.
+    \c Video is a convenience type combining the functionality
+    of a \l MediaPlayer and a \l VideoOutput into one. It provides
+    simple video playback functionality without having to declare multiple
+    types.
 
     \qml
     import QtQuick 2.0
@@ -78,7 +78,7 @@ import QtMultimedia 5.0
     }
     \endqml
 
-    The Video element supports untransformed, stretched, and uniformly scaled
+    \c Video supports untransformed, stretched, and uniformly scaled
     video presentation. For a description of stretched uniformly scaled
     presentation, see the \l fillMode property description.
 
@@ -87,8 +87,8 @@ import QtMultimedia 5.0
     \section1 Screen Saver
 
     If it is likely that an application will be playing video for an extended
-    period of time without user interaction it may be necessary to disable
-    the platform's screen saver. The \l ScreenSaver element (from \l QtSystemInfo)
+    period of time without user interaction, it may be necessary to disable
+    the platform's screen saver. The \l ScreenSaver (from \l QtSystemInfo)
     may be used to disable the screensaver in this fashion:
 
     \qml
@@ -116,8 +116,8 @@ Item {
             if necessary
         \endlist
 
-        Because this element is a convenience element in QML, it does not
-        support enumerations directly, so enumerations from VideoOuput are
+        Because this type is for convenience in QML, it does not
+        support enumerations directly, so enumerations from \c VideoOuput are
         used to access the available fill modes.
 
         The default fill mode is preserveAspectFit.
@@ -127,7 +127,7 @@ Item {
     /*!
         \qmlproperty int Video::orientation
 
-        The orientation of the Video element in degrees. Only multiples of 90
+        The orientation of the \c Video in degrees. Only multiples of 90
         degrees is supported, that is 0, 90, 180, 270, 360, etc.
     */
     property alias orientation:         videoOut.orientation
@@ -209,7 +209,7 @@ Item {
     /*!
         \qmlproperty enumeration Video::availability
 
-        Returns the availability state of the video element.
+        Returns the availability state of the video instance.
 
         This is one of:
         \table

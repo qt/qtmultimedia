@@ -43,14 +43,14 @@
 
     The Qt Multimedia API gives developers a simplified way to use audio and video playback, and access camera functionality. The Multimedia QML Plugin provides a QML friendly interface to these features.
 
-    \section1 Elements
+    \section1 Types
 
     \section2 Audio
 
-    The \l Audio element is an easy way to add audio playback to a Qt Quick
+    \l Audio is an easy way to add audio playback to a Qt Quick
     scene. QtMultimedia provides properties for control, methods (functions) and signals.
 
-    The code extract below shows the creation and use of an audio element.
+    The code extract below shows the creation and use of an Audio instance.
 
     \qml
 
@@ -76,7 +76,7 @@
 
     \endqml
 
-    The snippet above shows how the inclusion of \e playMusic enables audio features on the element that contains it. So that when the parent's MouseArea is clicked the \l {Audio::play()}{play()} method of the audio element is run. Other typical audio control methods are available such as \l {Audio::pause}{pause()} and \l {Audio::stop()}{stop()}.
+    The snippet above shows how the inclusion of \e playMusic enables audio features on the type that contains it. So that when the parent's MouseArea is clicked the \l {Audio::play()}{play()} method of Audio is run. Other typical audio control methods are available such as \l {Audio::pause}{pause()} and \l {Audio::stop()}{stop()}.
 
     Much of the getting / setting of \l Audio parameters is done through properties. These include
     \table 70%
@@ -149,15 +149,15 @@
 
     \section2 Camera
 
-    The \l Camera element enables still image and video capture using
-    QML. The element has a number of properties that help setting it up.
+    \l Camera enables still image and video capture using
+    QML. It has a number of properties that help setting it up.
 
-    The details of using the Camera element are described in further details
+    The details of using a \l Camera are described in further depth
     in the \l {Camera Overview} and in the corresponding reference documentation.
 
     \section2 Video
 
-    Adding video playback, with sound, to a Qt Quick scene is also easy. The process is very similar to that of Audio above, in fact \l {Video} shares many of the property names, methods and signals. Here is the equivalent sample code to implement a video playback element in a scene
+    Adding video playback, with sound, to a Qt Quick scene is also easy. The process is very similar to that of Audio above, in fact \l {Video} shares many of the property names, methods and signals. Here is the equivalent sample code to implement video playback in a scene
 
     \qml
 
@@ -185,14 +185,14 @@
     There are similar features like \l {Video::play()}{play()} with new
     features specific to video.
 
-    In the above sample when the parent of MouseArea is clicked, an area of 800x600 pixels with an id of 'video', the source "video.avi" will play in that area. Notice also that signals for the Keys element have been defined so that a spacebar will toggle the pause button; the left arrow will move the current position in the video to 5 seconds previously; and the right arrow will advance the current position in the video by 5 seconds.
+    In the above sample when the parent of MouseArea is clicked, an area of 800x600 pixels with an id of 'video', the source "video.avi" will play in that area. Notice also that signals for the \l Keys have been defined so that a spacebar will toggle the pause button; the left arrow will move the current position in the video to 5 seconds previously; and the right arrow will advance the current position in the video by 5 seconds.
 
-    Most of the differences will obviously be about video control and information. There are many properties associated with the \l {Video} element, most of them deal with meta-data, control of the video media and aspects of presentation.
+    Most of the differences will obviously be about video control and information. There are many properties associated with \l {Video}, most of them deal with meta-data, control of the video media and aspects of presentation.
 
     \section2 SoundEffect
 
-    The \l SoundEffect element provides a way to play short sound effects, like in video games. Multiple sound effect instances can be played simultaneously.
-    You should use the \l Audio element for music playback.
+    \l SoundEffect provides a way to play short sound effects, like in video games. Multiple sound effect instances can be played simultaneously.
+    You should use \l Audio for music playback.
 
     \qml
 
@@ -219,9 +219,9 @@
 
     In the above sample the sound effect will be played when the MouseArea is clicked.
 
-    For a complete description of this element, see \l SoundEffect
+    For a complete description of this type, see \l SoundEffect
 
-    \section1 Multimedia QML Elements
+    \section1 Multimedia QML Types
 
     \annotatedlist multimedia_qml
 */
