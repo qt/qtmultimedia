@@ -535,7 +535,7 @@ void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
     } else if (qstrcmp(name, "pixelFormat") == 0) {
         // read only.
     } else if (qstrcmp(name, "frameSize") == 0) {
-        if (qVariantCanConvert<QSize>(value)) {
+        if (value.canConvert<QSize>()) {
             d->frameSize = qvariant_cast<QSize>(value);
             d->viewport = QRect(QPoint(0, 0), d->frameSize);
         }
@@ -544,21 +544,21 @@ void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
     } else if (qstrcmp(name, "frameHeight") == 0) {
         // read only.
     } else if (qstrcmp(name, "viewport") == 0) {
-        if (qVariantCanConvert<QRect>(value))
+        if (value.canConvert<QRect>())
             d->viewport = qvariant_cast<QRect>(value);
     } else if (qstrcmp(name, "scanLineDirection") == 0) {
-        if (qVariantCanConvert<Direction>(value))
+        if (value.canConvert<Direction>())
             d->scanLineDirection = qvariant_cast<Direction>(value);
     } else if (qstrcmp(name, "frameRate") == 0) {
-        if (qVariantCanConvert<qreal>(value))
+        if (value.canConvert<qreal>())
             d->frameRate = qvariant_cast<qreal>(value);
     } else if (qstrcmp(name, "pixelAspectRatio") == 0) {
-        if (qVariantCanConvert<QSize>(value))
+        if (value.canConvert<QSize>())
             d->pixelAspectRatio = qvariant_cast<QSize>(value);
     } else if (qstrcmp(name, "sizeHint") == 0) {
         // read only.
     } else if (qstrcmp(name, "yCbCrColorSpace") == 0) {
-          if (qVariantCanConvert<YCbCrColorSpace>(value))
+          if (value.canConvert<YCbCrColorSpace>())
               d->ycbcrColorSpace = qvariant_cast<YCbCrColorSpace>(value);
     } else {
         int id = 0;
