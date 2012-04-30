@@ -90,9 +90,11 @@ public:
         UnavailableStatus,
         UnloadedStatus,
         LoadingStatus,
+        UnloadingStatus,
         LoadedStatus,
         StandbyStatus,
         StartingStatus,
+        StoppingStatus,
         ActiveStatus
     };
 

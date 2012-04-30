@@ -837,6 +837,10 @@ void QCamera::unlock()
            The camera is starting in result of state transition to QCamera::ActiveState.
            The camera service is not ready to capture yet.
 
+    \value StoppingStatus
+           The camera is stopping in result of state transition from QCamera::ActiveState
+           to QCamera::LoadedState or QCamera::UnloadedState.
+
     \value StandbyStatus
            The camera is in the power saving standby mode.
            The camera may come to the standby mode after some time of inactivity
@@ -851,6 +855,10 @@ void QCamera::unlock()
     \value LoadingStatus
            The camera device loading in result of state transition from
            QCamera::UnloadedState to QCamera::LoadedState or QCamera::ActiveState.
+
+    \value LoadingStatus
+           The camera device is unloading in result of state transition from
+           QCamera::LoadedState or QCamera::ActiveState to QCamera::UnloadedState.
 
     \value UnloadedStatus
            The initial camera status, with camera not loaded.
