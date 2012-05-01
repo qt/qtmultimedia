@@ -54,6 +54,7 @@ public:
     MockMediaRecorderControl(QObject *parent = 0):
         QMediaRecorderControl(parent),
         m_state(QMediaRecorder::StoppedState),
+        m_status(QMediaRecorder::LoadedStatus),
         m_position(0),
         m_muted(false),
         m_settingAppliedCount(0)
@@ -74,6 +75,11 @@ public:
     QMediaRecorder::State state() const
     {
         return m_state;
+    }
+
+    QMediaRecorder::Status status() const
+    {
+        return m_status;
     }
 
     qint64 duration() const
@@ -97,8 +103,10 @@ public slots:
     void record()
     {
         m_state = QMediaRecorder::RecordingState;
+        m_status = QMediaRecorder::RecordingStatus;
         m_position=1;
         emit stateChanged(m_state);
+        emit statusChanged(m_status);
         emit durationChanged(m_position);
 
         QUrl actualLocation = m_sink.isEmpty() ? QUrl::fromLocalFile("default_name.mp4") : m_sink;
@@ -108,14 +116,18 @@ public slots:
     void pause()
     {
         m_state = QMediaRecorder::PausedState;
+        m_status = QMediaRecorder::PausedStatus;
         emit stateChanged(m_state);
+        emit statusChanged(m_status);
     }
 
     void stop()
     {
         m_position=0;
         m_state = QMediaRecorder::StoppedState;
+        m_status = QMediaRecorder::LoadedStatus;
         emit stateChanged(m_state);
+        emit statusChanged(m_status);
     }
 
     void setMuted(bool muted)
@@ -127,6 +139,7 @@ public slots:
 public:
     QUrl       m_sink;
     QMediaRecorder::State m_state;
+    QMediaRecorder::Status m_status;
     qint64     m_position;
     bool m_muted;
     int m_settingAppliedCount;

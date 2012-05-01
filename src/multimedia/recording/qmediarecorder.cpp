@@ -88,6 +88,7 @@ public:
     MediaRecorderRegisterMetaTypes()
     {
         qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::State");
+        qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::Status");
         qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
     }
 } _registerRecorderMetaTypes;
@@ -278,6 +279,9 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
             disconnect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
                        this, SLOT(_q_stateChanged(QMediaRecorder::State)));
 
+            disconnect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
+                       this, SIGNAL(statusChanged(QMediaRecorder::Status)));
+
             disconnect(d->control, SIGNAL(mutedChanged(bool)),
                        this, SIGNAL(mutedChanged(bool)));
 
@@ -377,6 +381,9 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 
                 connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
                         this, SLOT(_q_stateChanged(QMediaRecorder::State)));
+
+                connect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
+                        this, SIGNAL(statusChanged(QMediaRecorder::Status)));
 
                 connect(d->control, SIGNAL(mutedChanged(bool)),
                         this, SIGNAL(mutedChanged(bool)));
@@ -480,6 +487,17 @@ QUrl QMediaRecorder::actualLocation() const
 QMediaRecorder::State QMediaRecorder::state() const
 {
     return d_func()->control ? QMediaRecorder::State(d_func()->control->state()) : StoppedState;
+}
+
+/*!
+    Returns the current media recorder status.
+
+    \sa QMediaRecorder::Status
+*/
+
+QMediaRecorder::Status QMediaRecorder::status() const
+{
+    return d_func()->control ? QMediaRecorder::Status(d_func()->control->status()) : UnavailableStatus;
 }
 
 /*!
@@ -801,9 +819,12 @@ void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
 /*!
     Start recording.
 
-    This is an asynchronous call, with signal
-    stateChanged(QMediaRecorder::RecordingState) being emitted when recording
-    started, otherwise the error() signal is emitted.
+    While the recorder state is changed immediately to QMediaRecorder::RecordingState,
+    recording may start asynchronously, with statusChanged(QMediaRecorder::RecordingStatus)
+    signal emitted when recording starts.
+
+    If recording fails error() signal is emitted
+    with recorder state being reset back to QMediaRecorder::StoppedState.
 */
 
 void QMediaRecorder::record()
@@ -825,6 +846,11 @@ void QMediaRecorder::record()
 
 /*!
     Pause recording.
+
+    The recorder state is changed to QMediaRecorder::PausedState.
+
+    Depending on platform recording pause may be not supported,
+    in this case the recorder state stays unchanged.
 */
 
 void QMediaRecorder::pause()
@@ -836,6 +862,8 @@ void QMediaRecorder::pause()
 
 /*!
     Stop recording.
+
+    The recorder state is changed to QMediaRecorder::StoppedState.
 */
 
 void QMediaRecorder::stop()
@@ -849,8 +877,29 @@ void QMediaRecorder::stop()
     \enum QMediaRecorder::State
 
     \value StoppedState    The recorder is not active.
-    \value RecordingState  The recorder is currently active and producing data.
+    \value RecordingState  The recording is requested.
     \value PausedState     The recorder is paused.
+*/
+
+/*!
+    \enum QMediaRecorder::Status
+
+    \value UnavailableStatus
+        The recorder is not available or not supported by connected media object.
+    \value UnloadedStatus
+        The recorder is avilable but not loaded.
+    \value LoadingStatus
+        The recorder is initializing.
+    \value LoadedStatus
+        The recorder is initialized and ready to record media.
+    \value StartingStatus
+        Recording is requested but not active yet.
+    \value RecordingStatus
+        Recording is active.
+    \value PausedStatus
+        Recording is paused.
+    \value FinalizingStatus
+        Recording is stopped with media being finalized.
 */
 
 /*!
@@ -859,6 +908,23 @@ void QMediaRecorder::stop()
     \value NoError         No Errors.
     \value ResourceError   Device is not ready or not available.
     \value FormatError     Current format is not supported.
+*/
+
+/*!
+    \property QMediaRecorder::state
+    \brief The current state of the media recorder.
+
+    The state property represents the user request and is changed synchronously
+    during record(), pause() or stop() calls.
+    Recorder state may also change asynchronously when recording fails.
+*/
+
+/*!
+    \property QMediaRecorder::status
+    \brief The current status of the media recorder.
+
+    The status is changed asynchronously and represents the actual status
+    of media recorder.
 */
 
 /*!

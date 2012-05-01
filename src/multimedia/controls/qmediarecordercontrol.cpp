@@ -117,9 +117,15 @@ QMediaRecorderControl::~QMediaRecorderControl()
 */
 
 /*!
-    \fn int QMediaRecorderControl::state() const
+    \fn QMediaRecorder::State QMediaRecorderControl::state() const
 
     Return the current recording state.
+*/
+
+/*!
+    \fn QMediaRecorder::Status QMediaRecorderControl::status() const
+
+    Return the current recording status.
 */
 
 /*!
@@ -171,6 +177,13 @@ QMediaRecorderControl::~QMediaRecorderControl()
 
     Signals that the \a state of a media recorder has changed.
 */
+
+/*!
+    \fn void QMediaRecorderControl::statusChanged(QMediaRecorder::Status status)
+
+    Signals that the \a status of a media recorder has changed.
+*/
+
 
 /*!
     \fn void QMediaRecorderControl::durationChanged(qint64 duration)

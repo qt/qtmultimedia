@@ -307,26 +307,50 @@ void tst_QMediaRecorder::testSink()
 void tst_QMediaRecorder::testRecord()
 {
     QSignalSpy stateSignal(capture,SIGNAL(stateChanged(QMediaRecorder::State)));
+    QSignalSpy statusSignal(capture,SIGNAL(statusChanged(QMediaRecorder::Status)));
     QSignalSpy progressSignal(capture, SIGNAL(durationChanged(qint64)));
     capture->record();
     QCOMPARE(capture->state(), QMediaRecorder::RecordingState);
     QCOMPARE(capture->error(), QMediaRecorder::NoError);
     QCOMPARE(capture->errorString(), QString());
-    QTestEventLoop::instance().enterLoop(1);
+
     QCOMPARE(stateSignal.count(), 1);
     QCOMPARE(stateSignal.last()[0].value<QMediaRecorder::State>(), QMediaRecorder::RecordingState);
+
+    QTestEventLoop::instance().enterLoop(1);
+
+    QCOMPARE(capture->status(), QMediaRecorder::RecordingStatus);
+    QVERIFY(!statusSignal.isEmpty());
+    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::RecordingStatus);
+    statusSignal.clear();
+
     QVERIFY(progressSignal.count() > 0);
+
     capture->pause();
+
     QCOMPARE(capture->state(), QMediaRecorder::PausedState);
-    QTestEventLoop::instance().enterLoop(1);
+
     QCOMPARE(stateSignal.count(), 2);
-    capture->stop();
-    QCOMPARE(capture->state(), QMediaRecorder::StoppedState);
+
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(stateSignal.count(), 3);
-    mock->stop();
+    QCOMPARE(capture->status(), QMediaRecorder::PausedStatus);
+    QVERIFY(!statusSignal.isEmpty());
+    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::PausedStatus);
+    statusSignal.clear();
+
+    capture->stop();
+
+    QCOMPARE(capture->state(), QMediaRecorder::StoppedState);
     QCOMPARE(stateSignal.count(), 3);
 
+    QTestEventLoop::instance().enterLoop(1);
+    QCOMPARE(capture->status(), QMediaRecorder::LoadedStatus);
+    QVERIFY(!statusSignal.isEmpty());
+    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::LoadedStatus);
+    statusSignal.clear();
+
+    mock->stop();
+    QCOMPARE(stateSignal.count(), 3);
 }
 
 void tst_QMediaRecorder::testMute()

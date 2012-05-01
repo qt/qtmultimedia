@@ -67,9 +67,11 @@ class QDeclarativeCameraRecorder : public QObject
 {
     Q_OBJECT
     Q_ENUMS(RecorderState)
+    Q_ENUMS(RecorderStatus)
     Q_ENUMS(EncodingMode)
 
     Q_PROPERTY(RecorderState recorderState READ recorderState WRITE setRecorderState NOTIFY recorderStateChanged)
+    Q_PROPERTY(RecorderStatus recorderStatus READ recorderStatus NOTIFY recorderStatusChanged)
 
     Q_PROPERTY(QString videoCodec READ videoCodec WRITE setVideoCodec NOTIFY videoCodecChanged)
     Q_PROPERTY(QSize resolution READ captureResolution WRITE setCaptureResolution NOTIFY captureResolutionChanged)
@@ -98,6 +100,18 @@ public:
         RecordingState = QMediaRecorder::RecordingState
     };
 
+    enum RecorderStatus
+    {
+        UnavailableStatus = QMediaRecorder::UnavailableStatus,
+        UnloadedStatus = QMediaRecorder::UnloadedStatus,
+        LoadingStatus = QMediaRecorder::LoadingStatus,
+        LoadedStatus = QMediaRecorder::LoadedStatus,
+        StartingStatus = QMediaRecorder::StartingStatus,
+        RecordingStatus = QMediaRecorder::RecordingStatus,
+        PausedStatus = QMediaRecorder::PausedStatus,
+        FinalizingStatus = QMediaRecorder::FinalizingStatus
+    };
+
     enum EncodingMode
     {
         ConstantQualityEncoding = QtMultimedia::ConstantQualityEncoding,
@@ -108,6 +122,7 @@ public:
     ~QDeclarativeCameraRecorder();
 
     RecorderState recorderState() const;
+    RecorderStatus recorderStatus() const;
 
     QSize captureResolution();
 
@@ -159,6 +174,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void recorderStateChanged(QDeclarativeCameraRecorder::RecorderState state);
+    void recorderStatusChanged();
     void durationChanged(qint64 duration);
     void mutedChanged(bool muted);
     void outputLocationChanged(const QString &location);

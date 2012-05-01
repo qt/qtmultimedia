@@ -67,6 +67,7 @@ public:
     virtual bool setOutputLocation(const QUrl &location) = 0;
 
     virtual QMediaRecorder::State state() const = 0;
+    virtual QMediaRecorder::Status status() const = 0;
 
     virtual qint64 duration() const = 0;
 
@@ -76,6 +77,7 @@ public:
 
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
+    void statusChanged(QMediaRecorder::Status status);
     void durationChanged(qint64 position);
     void mutedChanged(bool muted);
     void actualLocationChanged(const QUrl &location);

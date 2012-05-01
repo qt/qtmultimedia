@@ -73,7 +73,10 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaBindable
     Q_OBJECT
     Q_INTERFACES(QMediaBindableInterface)
     Q_ENUMS(State)
+    Q_ENUMS(Status)
     Q_ENUMS(Error)
+    Q_PROPERTY(QMediaRecorder::State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(QMediaRecorder::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
     Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
@@ -87,6 +90,17 @@ public:
         StoppedState,
         RecordingState,
         PausedState
+    };
+
+    enum Status {
+        UnavailableStatus,
+        UnloadedStatus,
+        LoadingStatus,
+        LoadedStatus,
+        StartingStatus,
+        RecordingStatus,
+        PausedStatus,
+        FinalizingStatus
     };
 
     enum Error
@@ -110,6 +124,7 @@ public:
     QUrl actualLocation() const;
 
     State state() const;
+    Status status() const;
 
     Error error() const;
     QString errorString() const;
@@ -163,6 +178,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
+    void statusChanged(QMediaRecorder::Status status);
     void durationChanged(qint64 duration);
     void mutedChanged(bool muted);
     void actualLocationChanged(const QUrl &location);
@@ -198,9 +214,11 @@ private:
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QMediaRecorder::State)
+Q_DECLARE_METATYPE(QMediaRecorder::Status)
 Q_DECLARE_METATYPE(QMediaRecorder::Error)
 
 Q_MEDIA_ENUM_DEBUG(QMediaRecorder, State)
+Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Status)
 Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Error)
 
 QT_END_HEADER

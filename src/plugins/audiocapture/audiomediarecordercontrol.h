@@ -62,6 +62,7 @@ public:
     bool setOutputLocation(const QUrl &sink);
 
     QMediaRecorder::State state() const;
+    QMediaRecorder::Status status() const;
 
     qint64 duration() const;
 
@@ -75,8 +76,14 @@ public slots:
     void stop();
     void setMuted(bool);
 
+private slots:
+    void updateStatus();
+    void handleSessionError(int code, const QString &description);
+
 private:
     AudioCaptureSession* m_session;
+    QMediaRecorder::State m_state;
+    QMediaRecorder::Status m_prevStatus;
 };
 
 #endif

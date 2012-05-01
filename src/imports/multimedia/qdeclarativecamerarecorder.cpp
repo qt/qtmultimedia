@@ -81,6 +81,8 @@ QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QCamera *camera, QObject 
     m_recorder = new QMediaRecorder(camera, this);
     connect(m_recorder, SIGNAL(stateChanged(QMediaRecorder::State)),
             SLOT(updateRecorderState(QMediaRecorder::State)));
+    connect(m_recorder, SIGNAL(statusChanged(QMediaRecorder::Status)),
+            SIGNAL(recorderStatusChanged()));
     connect(m_recorder, SIGNAL(error(QMediaRecorder::Error)),
             SLOT(updateRecorderError(QMediaRecorder::Error)));
     connect(m_recorder, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
@@ -381,6 +383,38 @@ QDeclarativeCameraRecorder::RecorderState QDeclarativeCameraRecorder::recorderSt
         state = QMediaRecorder::StoppedState;
 
     return RecorderState(state);
+}
+
+
+/*!
+    \qmlproperty enumeration QtMultimedia5::CameraRecorder::recorderStatus
+
+    The actual current status of media recording.
+
+    \table
+    \header \li Value \li Description
+    \row \li UnavailableStatus
+         \li Recording is not supported by the camera.
+    \row \li UnloadedStatus
+         \li The recorder is available but not loaded.
+    \row \li LoadingStatus
+         \li The recorder is initializing.
+    \row \li LoadedStatus
+         \li The recorder is initialized and ready to record media.
+    \row \li StartingStatus
+         \li Recording is requested but not active yet.
+    \row \li RecordingStatus
+         \li Recording is active.
+    \row \li PausedStatus
+         \li Recording is paused.
+    \row \li FinalizingStatus
+         \li Recording is stopped with media being finalized.
+    \endtable
+*/
+
+QDeclarativeCameraRecorder::RecorderStatus QDeclarativeCameraRecorder::recorderStatus() const
+{
+    return RecorderStatus(m_recorder->status());
 }
 
 /*!

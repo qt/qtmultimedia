@@ -46,10 +46,13 @@
 #include <QtCore/QDebug>
 
 QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
-    :QMediaRecorderControl(session), m_session(session), m_state(QMediaRecorder::StoppedState)
+    :QMediaRecorderControl(session),
+      m_session(session),
+      m_state(QMediaRecorder::StoppedState),
+      m_status(QMediaRecorder::UnloadedStatus)
 {
-    connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)), SLOT(updateState()));
-    connect(m_session, SIGNAL(error(int,QString)), SIGNAL(error(int,QString)));
+    connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)), SLOT(updateStatus()));
+    connect(m_session, SIGNAL(error(int,QString)), SLOT(handleSessionError(int,QString)));
     connect(m_session, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
     m_hasPreviewState = m_session->captureMode() != QGstreamerCaptureSession::Audio;
@@ -74,27 +77,48 @@ bool QGstreamerRecorderControl::setOutputLocation(const QUrl &sink)
 
 QMediaRecorder::State QGstreamerRecorderControl::state() const
 {
-    switch ( m_session->state() ) {
-        case QGstreamerCaptureSession::RecordingState:
-            return QMediaRecorder::RecordingState;
-        case QGstreamerCaptureSession::PausedState:
-            return QMediaRecorder::PausedState;
-        case QGstreamerCaptureSession::PreviewState:
-        case QGstreamerCaptureSession::StoppedState:
-            return QMediaRecorder::StoppedState;
-    }
-
-    return QMediaRecorder::StoppedState;
-
+    return m_state;
 }
 
-void QGstreamerRecorderControl::updateState()
+QMediaRecorder::Status QGstreamerRecorderControl::status() const
 {
-    QMediaRecorder::State newState = state();
-    if (m_state != newState) {
-        m_state = newState;
-        emit stateChanged(m_state);
+    static QMediaRecorder::Status statusTable[3][3] = {
+        //Stopped recorder state:
+        { QMediaRecorder::LoadedStatus, QMediaRecorder::FinalizingStatus, QMediaRecorder::FinalizingStatus },
+        //Recording recorder state:
+        { QMediaRecorder::StartingStatus, QMediaRecorder::RecordingStatus, QMediaRecorder::PausedStatus },
+        //Paused recorder state:
+        { QMediaRecorder::StartingStatus, QMediaRecorder::RecordingStatus, QMediaRecorder::PausedStatus }
+    };
+
+    QMediaRecorder::State sessionState = QMediaRecorder::StoppedState;
+
+    switch ( m_session->state() ) {
+        case QGstreamerCaptureSession::RecordingState:
+            sessionState = QMediaRecorder::RecordingState;
+        case QGstreamerCaptureSession::PausedState:
+            sessionState = QMediaRecorder::PausedState;
+        case QGstreamerCaptureSession::PreviewState:
+        case QGstreamerCaptureSession::StoppedState:
+            sessionState = QMediaRecorder::StoppedState;
     }
+
+    return statusTable[m_state][sessionState];
+}
+
+void QGstreamerRecorderControl::updateStatus()
+{
+    QMediaRecorder::Status newStatus = status();
+    if (m_status != newStatus) {
+        m_status = newStatus;
+        emit statusChanged(m_status);
+    }
+}
+
+void QGstreamerRecorderControl::handleSessionError(int code, const QString &description)
+{
+    emit error(code, description);
+    stop();
 }
 
 qint64 QGstreamerRecorderControl::duration() const
@@ -104,6 +128,11 @@ qint64 QGstreamerRecorderControl::duration() const
 
 void QGstreamerRecorderControl::record()
 {
+    if (m_state == QMediaRecorder::RecordingState)
+        return;
+
+    m_state = QMediaRecorder::RecordingState;
+
     if (m_outputLocation.isEmpty()) {
         QString container = m_session->mediaContainerControl()->containerExtension();
         if (container.isEmpty())
@@ -119,25 +148,44 @@ void QGstreamerRecorderControl::record()
         emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
 
     m_session->dumpGraph("after-record");
+
+    emit stateChanged(m_state);
+    updateStatus();
 }
 
 void QGstreamerRecorderControl::pause()
 {
+    if (m_state == QMediaRecorder::PausedState)
+        return;
+
+    m_state = QMediaRecorder::PausedState;
+
     m_session->dumpGraph("before-pause");
     if (!m_hasPreviewState || m_session->state() != QGstreamerCaptureSession::StoppedState) {
         m_session->setState(QGstreamerCaptureSession::PausedState);
     } else
         emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
+
+    emit stateChanged(m_state);
+    updateStatus();
 }
 
 void QGstreamerRecorderControl::stop()
 {
+    if (m_state == QMediaRecorder::StoppedState)
+        return;
+
+    m_state = QMediaRecorder::StoppedState;
+
     if (!m_hasPreviewState) {
         m_session->setState(QGstreamerCaptureSession::StoppedState);
     } else {
         if (m_session->state() != QGstreamerCaptureSession::StoppedState)
             m_session->setState(QGstreamerCaptureSession::PreviewState);
     }
+
+    emit stateChanged(m_state);
+    updateStatus();
 }
 
 void QGstreamerRecorderControl::applySettings()

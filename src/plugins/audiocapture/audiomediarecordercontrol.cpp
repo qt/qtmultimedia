@@ -46,11 +46,13 @@
 
 AudioMediaRecorderControl::AudioMediaRecorderControl(QObject *parent)
     :QMediaRecorderControl(parent)
+    , m_state(QMediaRecorder::StoppedState)
+    , m_prevStatus(QMediaRecorder::UnloadedStatus)
 {
     m_session = qobject_cast<AudioCaptureSession*>(parent);
     connect(m_session,SIGNAL(positionChanged(qint64)),this,SIGNAL(durationChanged(qint64)));
-    connect(m_session,SIGNAL(stateChanged(QMediaRecorder::State)),this,SIGNAL(stateChanged(QMediaRecorder::State)));
-    connect(m_session,SIGNAL(error(int,QString)),this,SIGNAL(error(int,QString)));
+    connect(m_session,SIGNAL(stateChanged(QMediaRecorder::State)), this,SLOT(updateStatus()));
+    connect(m_session,SIGNAL(error(int,QString)),this,SLOT(handleSessionError(int,QString)));
 }
 
 AudioMediaRecorderControl::~AudioMediaRecorderControl()
@@ -72,6 +74,20 @@ QMediaRecorder::State AudioMediaRecorderControl::state() const
     return (QMediaRecorder::State)m_session->state();
 }
 
+QMediaRecorder::Status AudioMediaRecorderControl::status() const
+{
+    static QMediaRecorder::Status statusTable[3][3] = {
+        //Stopped recorder state:
+        { QMediaRecorder::LoadedStatus, QMediaRecorder::FinalizingStatus, QMediaRecorder::FinalizingStatus },
+        //Recording recorder state:
+        { QMediaRecorder::StartingStatus, QMediaRecorder::RecordingStatus, QMediaRecorder::PausedStatus },
+        //Paused recorder state:
+        { QMediaRecorder::StartingStatus, QMediaRecorder::RecordingStatus, QMediaRecorder::PausedStatus }
+    };
+
+    return statusTable[m_state][m_session->state()];
+}
+
 qint64 AudioMediaRecorderControl::duration() const
 {
     return m_session->position();
@@ -79,17 +95,29 @@ qint64 AudioMediaRecorderControl::duration() const
 
 void AudioMediaRecorderControl::record()
 {
-    m_session->record();
+    if (m_state != QMediaRecorder::RecordingState) {
+        m_state = QMediaRecorder::RecordingState;
+        m_session->record();
+        updateStatus();
+    }
 }
 
 void AudioMediaRecorderControl::pause()
 {
-    m_session->stop();
+    if (m_state != QMediaRecorder::PausedState) {
+        m_state = QMediaRecorder::PausedState;
+        m_session->pause();
+        updateStatus();
+    }
 }
 
 void AudioMediaRecorderControl::stop()
 {
-    m_session->stop();
+    if (m_state != QMediaRecorder::StoppedState) {
+        m_state = QMediaRecorder::StoppedState;
+        m_session->pause();
+        updateStatus();
+    }
 }
 
 bool AudioMediaRecorderControl::isMuted() const
@@ -99,4 +127,19 @@ bool AudioMediaRecorderControl::isMuted() const
 
 void AudioMediaRecorderControl::setMuted(bool)
 {
+}
+
+void AudioMediaRecorderControl::updateStatus()
+{
+    QMediaRecorder::Status newStatus = status();
+    if (m_prevStatus != newStatus) {
+        m_prevStatus = newStatus;
+        emit statusChanged(m_prevStatus);
+    }
+}
+
+void AudioMediaRecorderControl::handleSessionError(int code, const QString &description)
+{
+    emit error(code, description);
+    stop();
 }

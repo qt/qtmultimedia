@@ -62,6 +62,7 @@ public:
     bool setOutputLocation(const QUrl &sink);
 
     QMediaRecorder::State state() const;
+    QMediaRecorder::Status status() const;
 
     qint64 duration() const;
 
@@ -76,7 +77,8 @@ public slots:
     void setMuted(bool);
 
 private slots:
-    void updateState();
+    void updateStatus();
+    void handleSessionError(int code, const QString &description);
 
 private:
     QDir defaultDir() const;
@@ -85,6 +87,7 @@ private:
     QUrl m_outputLocation;
     QGstreamerCaptureSession *m_session;
     QMediaRecorder::State m_state;
+    QMediaRecorder::Status m_status;
     bool m_hasPreviewState;
 };
 
