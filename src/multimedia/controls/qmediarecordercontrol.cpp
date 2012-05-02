@@ -135,21 +135,9 @@ QMediaRecorderControl::~QMediaRecorderControl()
 */
 
 /*!
-    \fn void QMediaRecorderControl::record()
+    \fn void QMediaRecorderControl::setState(QMediaRecorder::State state)
 
-    Start recording.
-*/
-
-/*!
-    \fn void QMediaRecorderControl::pause()
-
-    Pause recording.
-*/
-
-/*!
-    \fn void QMediaRecorderControl::stop()
-
-    Stop recording.
+    Set the media recorder \a state.
 */
 
 /*!

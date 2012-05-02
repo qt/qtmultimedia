@@ -841,7 +841,7 @@ void QMediaRecorder::record()
     d->errorString = QString();
 
     if (d->control)
-        d->control->record();
+        d->control->setState(RecordingState);
 }
 
 /*!
@@ -857,7 +857,7 @@ void QMediaRecorder::pause()
 {
     Q_D(QMediaRecorder);
     if (d->control)
-        d->control->pause();
+        d->control->setState(PausedState);
 }
 
 /*!
@@ -870,7 +870,7 @@ void QMediaRecorder::stop()
 {
     Q_D(QMediaRecorder);
     if (d->control)
-        d->control->stop();
+        d->control->setState(StoppedState);
 }
 
 /*!

@@ -130,6 +130,22 @@ public slots:
         emit statusChanged(m_status);
     }
 
+    void setState(QMediaRecorder::State state)
+    {
+        switch (state) {
+        case QMediaRecorder::StoppedState:
+            stop();
+            break;
+        case QMediaRecorder::PausedState:
+            pause();
+            break;
+        case QMediaRecorder::RecordingState:
+            record();
+            break;
+        }
+    }
+
+
     void setMuted(bool muted)
     {
         if (m_muted != muted)

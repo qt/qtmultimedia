@@ -84,9 +84,7 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 public Q_SLOTS:
-    virtual void record() = 0;
-    virtual void pause() = 0;
-    virtual void stop() = 0;
+    virtual void setState(QMediaRecorder::State state) = 0;
     virtual void setMuted(bool muted) = 0;
 
 protected:

@@ -126,6 +126,21 @@ qint64 QGstreamerRecorderControl::duration() const
     return m_session->duration();
 }
 
+void QGstreamerRecorderControl::setState(QMediaRecorder::State state)
+{
+    switch (state) {
+    case QMediaRecorder::StoppedState:
+        stop();
+        break;
+    case QMediaRecorder::PausedState:
+        pause();
+        break;
+    case QMediaRecorder::RecordingState:
+        record();
+        break;
+    }
+}
+
 void QGstreamerRecorderControl::record()
 {
     if (m_state == QMediaRecorder::RecordingState)

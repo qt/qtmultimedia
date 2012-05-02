@@ -71,6 +71,7 @@ public:
     void applySettings();
 
 public slots:
+    void setState(QMediaRecorder::State state);
     void record();
     void pause();
     void stop();
