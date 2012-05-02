@@ -88,7 +88,7 @@ public:
     MediaRecorderRegisterMetaTypes()
     {
         qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::State");
-        qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::Status");
+        qRegisterMetaType<QMediaRecorder::Status>("QMediaRecorder::Status");
         qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
     }
 } _registerRecorderMetaTypes;
