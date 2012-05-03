@@ -62,6 +62,7 @@ public:
 
     GstElement *videoSink();
 
+    void stopRenderer();
     bool isReady() const { return m_surface != 0; }
 
 signals:

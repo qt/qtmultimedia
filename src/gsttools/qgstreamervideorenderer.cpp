@@ -69,6 +69,11 @@ GstElement *QGstreamerVideoRenderer::videoSink()
     return reinterpret_cast<GstElement*>(m_videoSink);
 }
 
+void QGstreamerVideoRenderer::stopRenderer()
+{
+    if (m_surface)
+        m_surface->stop();
+}
 
 QAbstractVideoSurface *QGstreamerVideoRenderer::surface() const
 {
