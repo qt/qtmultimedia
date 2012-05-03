@@ -162,6 +162,10 @@ private:
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QAudioEncoderSettings)
+Q_DECLARE_METATYPE(QVideoEncoderSettings)
+Q_DECLARE_METATYPE(QImageEncoderSettings)
+
 QT_END_HEADER
 
 
