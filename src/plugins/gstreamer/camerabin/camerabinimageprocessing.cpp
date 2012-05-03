@@ -105,7 +105,7 @@ bool CameraBinImageProcessing::setColorBalanceValue(const QString& channel, int 
     for (item = controls; item; item = g_list_next (item)) {
         colorBalanceChannel = (GstColorBalanceChannel *)item->data;
 
-        if (!g_ascii_strcasecmp (colorBalanceChannel->label, channel.toAscii())) {
+        if (!g_ascii_strcasecmp (colorBalanceChannel->label, channel.toLatin1())) {
             gst_color_balance_set_value (balance, colorBalanceChannel, value);
             return true;
         }

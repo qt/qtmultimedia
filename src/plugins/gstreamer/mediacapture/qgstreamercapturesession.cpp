@@ -220,7 +220,7 @@ GstElement *QGstreamerCaptureSession::buildAudioSrc()
             elementName = "autoaudiosrc";
         }
 
-        audioSrc = gst_element_factory_make(elementName.toAscii().constData(), "audio_src");
+        audioSrc = gst_element_factory_make(elementName.toLatin1().constData(), "audio_src");
         if (audioSrc && !device.isEmpty())
             g_object_set(G_OBJECT(audioSrc), "device", device.toLocal8Bit().constData(), NULL);
     }
@@ -309,7 +309,7 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
             structureTypes << "video/x-raw-yuv" << "video/x-raw-rgb";
 
             foreach(const QString &structureType, structureTypes) {
-                GstStructure *structure = gst_structure_new(structureType.toAscii().constData(), NULL);
+                GstStructure *structure = gst_structure_new(structureType.toLatin1().constData(), NULL);
 
                 if (!resolution.isEmpty()) {
                     gst_structure_set(structure, "width", G_TYPE_INT, resolution.width(), NULL);
@@ -667,7 +667,7 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
     if (m_encodeBin) {
         QString fileName = QString("rebuild_graph_encode_%1_%2").arg(m_pipelineMode).arg(newMode);
 #if !(GST_DISABLE_GST_DEBUG) && (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 19)
-        _gst_debug_bin_to_dot_file(GST_BIN(m_encodeBin), GST_DEBUG_GRAPH_SHOW_ALL, fileName.toAscii());
+        _gst_debug_bin_to_dot_file(GST_BIN(m_encodeBin), GST_DEBUG_GRAPH_SHOW_ALL, fileName.toLatin1());
 #endif
     }
 
@@ -696,7 +696,7 @@ void QGstreamerCaptureSession::dumpGraph(const QString &fileName)
 #if !(GST_DISABLE_GST_DEBUG) && (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 19)
     _gst_debug_bin_to_dot_file(GST_BIN(m_pipeline),
                                GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
-                               fileName.toAscii());
+                               fileName.toLatin1());
 #endif
 }
 

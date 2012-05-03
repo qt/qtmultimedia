@@ -68,7 +68,7 @@ QString QmlApplicationViewerPrivate::adjustPath(const QString &path)
 #else
     QString pathInInstallDir;
     const QString applicationDirPath = QCoreApplication::applicationDirPath();
-    pathInInstallDir = QString::fromAscii("%1/../%2").arg(applicationDirPath, path);
+    pathInInstallDir = QString::fromLatin1("%1/../%2").arg(applicationDirPath, path);
 
     if (QFileInfo(pathInInstallDir).exists())
         return pathInInstallDir;

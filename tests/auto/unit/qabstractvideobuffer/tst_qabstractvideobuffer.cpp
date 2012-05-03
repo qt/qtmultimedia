@@ -122,9 +122,9 @@ void tst_QAbstractVideoBuffer::handleType_data()
     // User handles are different
 
     QTest::newRow("user1")
-            << QAbstractVideoBuffer::UserHandle << QString::fromAscii("UserHandle(1000)");
+            << QAbstractVideoBuffer::UserHandle << QString::fromLatin1("UserHandle(1000)");
     QTest::newRow("user2")
-            << QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle + 1) << QString::fromAscii("UserHandle(1001)");
+            << QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle + 1) << QString::fromLatin1("UserHandle(1001)");
 }
 
 void tst_QAbstractVideoBuffer::handleType()

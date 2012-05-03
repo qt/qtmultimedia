@@ -261,16 +261,16 @@ GstElement *QGstreamerAudioEncode::createEncoder()
 
             switch (value.type()) {
             case QVariant::Int:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toInt(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toInt(), NULL);
                 break;
             case QVariant::Bool:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toBool(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toBool(), NULL);
                 break;
             case QVariant::Double:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toDouble(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toDouble(), NULL);
                 break;
             case QVariant::String:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toString().toUtf8().constData(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toString().toUtf8().constData(), NULL);
                 break;
             default:
                 qWarning() << "unsupported option type:" << option << value;

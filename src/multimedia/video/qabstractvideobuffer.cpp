@@ -232,7 +232,7 @@ QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::HandleType type)
     case QAbstractVideoBuffer::QPixmapHandle:
         return dbg.nospace() << "QPixmapHandle";
     default:
-        return dbg.nospace() << QString(QLatin1String("UserHandle(%1)")).arg(int(type)).toAscii().constData();
+        return dbg.nospace() << QString(QLatin1String("UserHandle(%1)")).arg(int(type)).toLatin1().constData();
     }
 }
 

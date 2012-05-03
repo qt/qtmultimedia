@@ -208,7 +208,7 @@ QPulseAudioEngine::QPulseAudioEngine(QObject *parent)
 
     pa_threaded_mainloop_lock(m_mainLoop);
 
-    m_context = pa_context_new(m_mainLoopApi, QString(QLatin1String("QtmPulseContext:%1")).arg(::getpid()).toAscii().constData());
+    m_context = pa_context_new(m_mainLoopApi, QString(QLatin1String("QtmPulseContext:%1")).arg(::getpid()).toLatin1().constData());
     pa_context_set_state_callback(m_context, contextStateCallbackInit, this);
 
     if (!m_context) {

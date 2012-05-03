@@ -930,7 +930,7 @@ QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
             return dbg.nospace() << "Format_CameraRaw";
 
         default:
-            return dbg.nospace() << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toAscii().constData();
+            return dbg.nospace() << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toLatin1().constData();
     }
 }
 

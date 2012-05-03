@@ -240,16 +240,16 @@ GstElement *QGstreamerVideoEncode::createEncoder()
 
             switch (value.type()) {
             case QVariant::Int:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toInt(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toInt(), NULL);
                 break;
             case QVariant::Bool:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toBool(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toBool(), NULL);
                 break;
             case QVariant::Double:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toDouble(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toDouble(), NULL);
                 break;
             case QVariant::String:
-                g_object_set(G_OBJECT(encoderElement), option.toAscii(), value.toString().toUtf8().constData(), NULL);
+                g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toString().toUtf8().constData(), NULL);
                 break;
             default:
                 qWarning() << "unsupported option type:" << option << value;
@@ -265,7 +265,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
         structureTypes << "video/x-raw-yuv" << "video/x-raw-rgb";
 
         foreach(const QString &structureType, structureTypes) {
-            GstStructure *structure = gst_structure_new(structureType.toAscii().constData(), NULL);
+            GstStructure *structure = gst_structure_new(structureType.toLatin1().constData(), NULL);
 
             if (!m_videoSettings.resolution().isEmpty()) {
                 gst_structure_set(structure, "width", G_TYPE_INT, m_videoSettings.resolution().width(), NULL);

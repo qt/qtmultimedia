@@ -170,7 +170,7 @@ private:
         m_mainLoopApi = pa_threaded_mainloop_get_api(m_mainLoop);
 
         lock();
-        m_context = pa_context_new(m_mainLoopApi, QString(QLatin1String("QtPulseAudio:%1")).arg(::getpid()).toAscii().constData());
+        m_context = pa_context_new(m_mainLoopApi, QString(QLatin1String("QtPulseAudio:%1")).arg(::getpid()).toLatin1().constData());
 
         pa_context_set_state_callback(m_context, context_state_callback, this);
 
