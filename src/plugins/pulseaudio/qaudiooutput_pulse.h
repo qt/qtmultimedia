@@ -122,10 +122,12 @@ private:
     bool m_opened;
     QIODevice *m_audioSource;
     QTimer m_periodTimer;
+    int m_periodTime;
     pa_stream *m_stream;
     int m_notifyInterval;
     int m_periodSize;
     int m_bufferSize;
+    int m_maxBufferSize;
     QTime m_clockStamp;
     qint64 m_totalTimeValue;
     QTimer *m_tickTimer;
