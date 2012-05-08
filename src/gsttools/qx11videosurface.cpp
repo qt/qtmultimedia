@@ -42,7 +42,7 @@
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
 #include <QtGui/qguiapplication.h>
-#include <QtGui/qplatformnativeinterface_qpa.h>
+#include <qpa/qplatformnativeinterface.h>
 #include <qvideosurfaceformat.h>
 
 #include "qx11videosurface_p.h"

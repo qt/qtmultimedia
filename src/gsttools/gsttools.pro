@@ -2,7 +2,7 @@ TEMPLATE = lib
 
 TARGET = qgsttools_p
 QPRO_PWD = $$PWD
-QT = core multimedia-private
+QT = core multimedia-private gui-private
 
 !static:DEFINES += QT_MAKEDLL
 

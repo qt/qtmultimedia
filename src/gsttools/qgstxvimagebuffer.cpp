@@ -44,7 +44,7 @@
 #include <QtCore/qvariant.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qwindow.h>
-#include <QtGui/qplatformnativeinterface_qpa.h>
+#include <qpa/qplatformnativeinterface.h>
 
 #include "qgstxvimagebuffer_p.h"
 #include "qvideosurfacegstsink_p.h"
