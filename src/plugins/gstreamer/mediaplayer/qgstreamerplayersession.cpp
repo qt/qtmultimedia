@@ -1068,8 +1068,16 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
                     }
                     case GST_STATE_PLAYING:
                         m_everPlayed = true;
-                        if (m_state != QMediaPlayer::PlayingState)
+                        if (m_state != QMediaPlayer::PlayingState) {
                             emit stateChanged(m_state = QMediaPlayer::PlayingState);
+
+                            // For rtsp streams duration information might not be available
+                            // until playback starts.
+                            if (m_duration <= 0) {
+                                m_durationQueries = 5;
+                                updateDuration();
+                            }
+                        }
 
                         break;
                     }
