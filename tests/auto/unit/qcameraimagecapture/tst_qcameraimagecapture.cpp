@@ -205,8 +205,7 @@ void tst_QCameraImageCapture::isReadyForCapture()
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
     imageCapture.capture();
-    QTest::qWait(300);
-    QVERIFY(imageCapture.isReadyForCapture() == true);
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
     camera.stop();
 }
 
@@ -236,8 +235,7 @@ void tst_QCameraImageCapture::cancelCapture()
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
     imageCapture.capture();
-    QTest::qWait(300);
-    QVERIFY(imageCapture.isReadyForCapture() == true);
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
     QVERIFY(spy.count() == 1 && spy1.count() == 1);
     spy.clear();
     spy1.clear();
@@ -247,8 +245,7 @@ void tst_QCameraImageCapture::cancelCapture()
     camera.start();
     imageCapture.capture();
     imageCapture.cancelCapture();
-    QTest::qWait(300);
-    QVERIFY(imageCapture.isReadyForCapture() == true);
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
     QVERIFY(spy.count() == 0 && spy1.count() == 0);
     camera.stop();
 }
@@ -357,8 +354,7 @@ void tst_QCameraImageCapture::imageCaptured()
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
     imageCapture.capture();
-    QTest::qWait(300);
-    QVERIFY(imageCapture.isReadyForCapture() == true);
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     QVERIFY(spy.count() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) > 0);
@@ -378,8 +374,7 @@ void tst_QCameraImageCapture::imageExposed()
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
     imageCapture.capture();
-    QTest::qWait(300);
-    QVERIFY(imageCapture.isReadyForCapture() == true);
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     QVERIFY(spy.count() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) > 0);
@@ -397,8 +392,7 @@ void tst_QCameraImageCapture::imageSaved()
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
     imageCapture.capture(QString::fromLatin1("/usr/share"));
-    QTest::qWait(300);
-    QVERIFY(imageCapture.isReadyForCapture() == true);
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     QVERIFY(spy.count() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) > 0);
