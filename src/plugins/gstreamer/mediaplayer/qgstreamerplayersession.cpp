@@ -324,7 +324,7 @@ void QGstreamerPlayerSession::setPlaybackRate(qreal rate)
         m_playbackRate = rate;
         if (m_playbin) {
             gst_element_seek(m_playbin, rate, GST_FORMAT_TIME,
-                             GstSeekFlags(GST_SEEK_FLAG_ACCURATE | GST_SEEK_FLAG_FLUSH),
+                             GstSeekFlags(GST_SEEK_FLAG_FLUSH),
                              GST_SEEK_TYPE_NONE,0,
                              GST_SEEK_TYPE_NONE,0 );
         }
@@ -886,7 +886,7 @@ bool QGstreamerPlayerSession::seek(qint64 ms)
         bool isSeeking = gst_element_seek(m_playbin,
                                           m_playbackRate,
                                           GST_FORMAT_TIME,
-                                          GstSeekFlags(GST_SEEK_FLAG_ACCURATE | GST_SEEK_FLAG_FLUSH),
+                                          GstSeekFlags(GST_SEEK_FLAG_FLUSH),
                                           GST_SEEK_TYPE_SET,
                                           position,
                                           GST_SEEK_TYPE_NONE,
