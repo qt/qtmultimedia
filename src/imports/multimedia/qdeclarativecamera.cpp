@@ -162,7 +162,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError 
 /*!
     \class QDeclarativeCamera
     \internal
-    \brief The QDeclarativeCamera class provides a camera item that you can add to a QDeclarativeView.
+    \brief The QDeclarativeCamera class provides a camera item that you can add to a QQuickView.
 */
 
 /*!

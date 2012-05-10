@@ -15,7 +15,7 @@ TEMPLATE = subdirs
         videowidget \
         player
 
-    contains(QT_CONFIG, declarative) {
+    contains(QT_CONFIG, qml) {
         disabled:SUBDIRS += declarative-camera
         SUBDIRS += \
             declarative-radio \

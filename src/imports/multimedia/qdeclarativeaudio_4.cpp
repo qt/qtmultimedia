@@ -81,7 +81,7 @@ QT_BEGIN_NAMESPACE
 /*
     \internal
     \class QDeclarativeAudio
-    \brief The QDeclarativeAudio class provides an audio item that you can add to a QDeclarativeView.
+    \brief The QDeclarativeAudio class provides an audio item that you can add to a QQuickView.
 */
 
 void QDeclarativeAudio_4::_q_error(int errorCode, const QString &errorString)

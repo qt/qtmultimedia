@@ -41,7 +41,7 @@
 
 #include <QtCore/QStandardPaths>
 #include <QtCore/QStringList>
-#include <QtDeclarative/QDeclarativeContext>
+#include <QtQml/QQmlContext>
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickItem>
 #include "filereader.h"
