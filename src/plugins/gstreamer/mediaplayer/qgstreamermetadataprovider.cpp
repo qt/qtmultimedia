@@ -170,7 +170,7 @@ void QGstreamerMetaDataProvider::updateTags()
          //use gstreamer native keys for elements not in m_keysMap
          QString key = m_keysMap.value(i.key(), i.key());
          m_tags[key] = i.value();
-         allTags.insert(i.key());
+         allTags.insert(key);
     }
 
     bool changed = false;
