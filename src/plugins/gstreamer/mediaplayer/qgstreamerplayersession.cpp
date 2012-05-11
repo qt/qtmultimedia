@@ -1806,8 +1806,10 @@ void QGstreamerPlayerSession::removeVideoBufferProbe()
     }
 
     GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-    if (pad)
+    if (pad) {
         gst_pad_remove_buffer_probe(pad, m_videoBufferProbeId);
+        gst_object_unref(GST_OBJECT(pad));
+    }
 
     m_videoBufferProbeId = -1;
 }
@@ -1819,8 +1821,10 @@ void QGstreamerPlayerSession::addVideoBufferProbe()
         return;
 
     GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-    if (pad)
+    if (pad) {
         m_videoBufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padVideoBufferProbe), this);
+        gst_object_unref(GST_OBJECT(pad));
+    }
 }
 
 void QGstreamerPlayerSession::removeAudioBufferProbe()
@@ -1834,8 +1838,10 @@ void QGstreamerPlayerSession::removeAudioBufferProbe()
     }
 
     GstPad *pad = gst_element_get_static_pad(m_audioSink, "sink");
-    if (pad)
+    if (pad) {
         gst_pad_remove_buffer_probe(pad, m_audioBufferProbeId);
+        gst_object_unref(GST_OBJECT(pad));
+    }
 
     m_audioBufferProbeId = -1;
 }
@@ -1847,8 +1853,10 @@ void QGstreamerPlayerSession::addAudioBufferProbe()
         return;
 
     GstPad *pad = gst_element_get_static_pad(m_audioSink, "sink");
-    if (pad)
+    if (pad) {
         m_audioBufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padAudioBufferProbe), this);
+        gst_object_unref(GST_OBJECT(pad));
+    }
 }
 
 void QGstreamerPlayerSession::flushVideoProbes()
