@@ -69,6 +69,7 @@ class QDeclarativeCameraRecorder : public QObject
     Q_ENUMS(RecorderState)
     Q_ENUMS(RecorderStatus)
     Q_ENUMS(EncodingMode)
+    Q_ENUMS(Error)
 
     Q_PROPERTY(RecorderState recorderState READ recorderState WRITE setRecorderState NOTIFY recorderStateChanged)
     Q_PROPERTY(RecorderStatus recorderStatus READ recorderStatus NOTIFY recorderStatusChanged)
@@ -92,6 +93,7 @@ class QDeclarativeCameraRecorder : public QObject
     Q_PROPERTY(QString actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY error)
+    Q_PROPERTY(QString errorCode READ errorCode NOTIFY error)
 
 public:
     enum RecorderState
@@ -119,6 +121,13 @@ public:
         AverageBitRateEncoding = QtMultimedia::AverageBitRateEncoding
     };
 
+    enum Error {
+        NoError = QMediaRecorder::NoError,
+        ResourceError = QMediaRecorder::ResourceError,
+        FormatError = QMediaRecorder::FormatError,
+        OutOfSpaceError = QMediaRecorder::OutOfSpaceError
+    };
+
     ~QDeclarativeCameraRecorder();
 
     RecorderState recorderState() const;
@@ -136,7 +145,7 @@ public:
     QString videoCodec() const;
     QString mediaContainer() const;
 
-    QMediaRecorder::Error error() const;
+    Error errorCode() const;
     QString errorString() const;
 
     qreal frameRate() const;
@@ -180,7 +189,7 @@ Q_SIGNALS:
     void outputLocationChanged(const QString &location);
     void actualLocationChanged(const QString &location);
 
-    void error(QMediaRecorder::Error errorCode);
+    void error(QDeclarativeCameraRecorder::Error errorCode, const QString &errorString);
 
     void metaDataChanged(const QString &key, const QVariant &value);
 

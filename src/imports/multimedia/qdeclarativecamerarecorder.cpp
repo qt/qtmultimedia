@@ -344,10 +344,30 @@ void QDeclarativeCameraRecorder::setVideoEncodingMode(QDeclarativeCameraRecorder
     }
 }
 
-// XXX todo
-QMediaRecorder::Error QDeclarativeCameraRecorder::error() const
+/*!
+    \qmlproperty enumeration QtMultimedia5::CameraRecorder::errorCode
+
+    The current error code, if any.
+
+    \table
+    \header \li Value \li Description
+    \row \li NoError
+         \li No Errors
+
+    \row \li ResourceError
+         \li Device is not ready or not available.
+
+    \row \li FormatError
+         \li Current format is not supported.
+
+    \row \li OutOfSpaceError
+         \li No space left on device.
+
+    \endtable
+*/
+QDeclarativeCameraRecorder::Error QDeclarativeCameraRecorder::errorCode() const
 {
-    return m_recorder->error();
+    return QDeclarativeCameraRecorder::Error(m_recorder->error());
 }
 
 /*!
@@ -541,7 +561,7 @@ void QDeclarativeCameraRecorder::updateRecorderState(QMediaRecorder::State state
 void QDeclarativeCameraRecorder::updateRecorderError(QMediaRecorder::Error errorCode)
 {
     qWarning() << "QMediaRecorder error:" << errorString();
-    emit error(errorCode);
+    emit error(Error(errorCode), errorString());
 }
 
 void QDeclarativeCameraRecorder::updateActualLocation(const QUrl &url)
