@@ -116,7 +116,9 @@ QGstreamerAudioDecoderSession::QGstreamerAudioDecoderSession(QObject *parent)
         gst_object_unref(GST_OBJECT(pad));
 
         g_object_set(G_OBJECT(m_playbin), "audio-sink", m_outputBin, NULL);
+#if defined(HAVE_GST_APPSRC)
         g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", (GCallback) &QGstreamerAudioDecoderSession::configureAppSrcElement, (gpointer)this);
+#endif
 
         // Set volume to 100%
         gdouble volume = 1.0;
@@ -308,9 +310,11 @@ void QGstreamerAudioDecoderSession::setSourceFilename(const QString &fileName)
 {
     stop();
     mDevice = 0;
+#if defined(HAVE_GST_APPSRC)
     if (m_appSrc)
         m_appSrc->deleteLater();
     m_appSrc = 0;
+#endif
 
     bool isSignalRequired = (mSource != fileName);
     mSource = fileName;
