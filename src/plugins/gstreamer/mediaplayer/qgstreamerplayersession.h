@@ -199,7 +199,6 @@ private:
     QMediaPlayer::State m_pendingState;
     QGstreamerBusHelper* m_busHelper;
     GstElement* m_playbin;
-    bool m_usePlaybin2;
 
     GstElement* m_videoOutputBin;
     GstElement* m_videoIdentity;
