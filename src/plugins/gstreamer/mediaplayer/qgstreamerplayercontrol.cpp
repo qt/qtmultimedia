@@ -363,18 +363,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     if (!content.isNull() || stream) {
         if (!m_resources->isGranted())
             m_resources->acquire();
-
-        if (!m_resources->isGranted()) {
-            m_currentResource = content;
-            m_stream = stream;
-
-            m_state = QMediaPlayer::StoppedState;
-            m_mediaStatus = QMediaPlayer::LoadingMedia;
-            if (m_currentResource != oldMedia)
-                emit mediaChanged(m_currentResource);
-            popAndNotifyState();
-            return;
-        }
     } else {
         m_resources->release();
     }
@@ -703,17 +691,8 @@ void QGstreamerPlayerControl::handleResourcesGranted()
 {
     pushState();
 
-    QMediaPlayer::State state = m_state;
-
-    //preserve m_pendingSeekPosition, it's reset on setMedia
-    qint64 pos = m_pendingSeekPosition;
-    setMedia(m_currentResource, m_stream);
-
-    if (pos != -1)
-        setPosition(pos);
-
-    if (state != QMediaPlayer::StoppedState)
-        playOrPause(state);
+    if (m_state != QMediaPlayer::StoppedState)
+        playOrPause(m_state);
     else
         updateMediaStatus();
 
@@ -722,17 +701,13 @@ void QGstreamerPlayerControl::handleResourcesGranted()
 
 void QGstreamerPlayerControl::handleResourcesLost()
 {
-    //on resource lost the pipeline should be stopped
+    //on resource lost the pipeline should be paused
     //player status is changed to paused
 
     pushState();
     QMediaPlayer::State oldState = m_state;
 
-    qint64 pos = m_session->position();
-    m_session->stop();
-    m_pendingSeekPosition = pos;
-    //don't blink the first video frame after playback is restored
-    m_session->showPrerollFrames(false);
+    m_session->pause();
 
     if (oldState != QMediaPlayer::StoppedState )
         m_state = QMediaPlayer::PausedState;
@@ -742,9 +717,8 @@ void QGstreamerPlayerControl::handleResourcesLost()
 
 void QGstreamerPlayerControl::handleResourcesDenied()
 {
-    //on resource lost the pipeline should stay stopped
-    //player status is changed to paused with
-    //pending seek position preserved.
+    //on resource denied the pipeline should stay paused
+    //player status is changed to paused
     pushState();
 
     if (m_state != QMediaPlayer::StoppedState )
