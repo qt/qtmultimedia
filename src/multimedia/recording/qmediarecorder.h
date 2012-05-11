@@ -107,7 +107,8 @@ public:
     {
         NoError,
         ResourceError,
-        FormatError
+        FormatError,
+        OutOfSpaceError
     };
 
     QMediaRecorder(QMediaObject *mediaObject, QObject *parent = 0);

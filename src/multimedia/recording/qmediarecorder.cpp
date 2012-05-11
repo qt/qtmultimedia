@@ -908,6 +908,7 @@ void QMediaRecorder::stop()
     \value NoError         No Errors.
     \value ResourceError   Device is not ready or not available.
     \value FormatError     Current format is not supported.
+    \value OutOfSpaceError No space left on device.
 */
 
 /*!
