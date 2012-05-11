@@ -1022,11 +1022,11 @@ QtMultimedia::AvailabilityError QMediaPlayer::availabilityError() const
 
     Defines the current state of a media player.
 
+    \value StoppedState The media player is not playing content, playback will begin from the start
+    of the current track.
     \value PlayingState The media player is currently playing content.
     \value PausedState The media player has paused playback, playback of the current track will
     resume from the position the player was paused at.
-    \value StoppedState The media player is not playing content, playback will begin from the start
-    of the current track.
 */
 
 /*!

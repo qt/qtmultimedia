@@ -499,7 +499,7 @@ void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDest
 
 /*!
   \property QCameraImageCapture::readyForCapture
-   Indicates the service is ready to capture a an image immediately.
+  \brief whether the service is ready to capture a an image immediately.
 
    It's permissible to call capture() while the camera status is QCamera::ActiveStatus
    regardless of isReadyForCapture property value.
@@ -587,9 +587,9 @@ void QCameraImageCapture::cancelCapture()
     \value NoError         No Errors.
     \value NotReadyError   The service is not ready for capture yet.
     \value ResourceError   Device is not ready or not available.
+    \value OutOfSpaceError No space left on device.
     \value NotSupportedFeatureError Device does not support stillimages capture.
     \value FormatError     Current format is not supported.
-    \value OutOfSpaceError No space left on device.
 */
 
 /*!

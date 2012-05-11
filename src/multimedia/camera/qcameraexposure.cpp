@@ -615,9 +615,9 @@ void QCameraExposure::setAutoShutterSpeed()
 /*!
     \enum QCameraExposure::FlashMode
 
+    \value FlashAuto            Automatic flash.
     \value FlashOff             Flash is Off.
     \value FlashOn              Flash is On.
-    \value FlashAuto            Automatic flash.
     \value FlashRedEyeReduction Red eye reduction flash.
     \value FlashFill            Use flash to fillin shadows.
     \value FlashTorch           Constant light source. If supported,
@@ -635,8 +635,9 @@ void QCameraExposure::setAutoShutterSpeed()
 /*!
     \enum QCameraExposure::ExposureMode
 
-    \value ExposureManual        Manual mode.
     \value ExposureAuto          Automatic mode.
+    \value ExposureManual        Manual mode.
+    \value ExposurePortrait      Portrait exposure mode.
     \value ExposureNight         Night mode.
     \value ExposureBacklight     Backlight exposure mode.
     \value ExposureSpotlight     Spotlight exposure mode.
@@ -645,16 +646,15 @@ void QCameraExposure::setAutoShutterSpeed()
     \value ExposureBeach         Beach exposure mode.
     \value ExposureLargeAperture Use larger aperture with small depth of field.
     \value ExposureSmallAperture Use smaller aperture.
-    \value ExposurePortrait      Portrait exposure mode.
     \value ExposureModeVendor    The base value for device specific exposure modes.
 */
 
 /*!
     \enum QCameraExposure::MeteringMode
 
+    \value MeteringMatrix        Matrix metering mode.
     \value MeteringAverage       Center weighted average metering mode.
     \value MeteringSpot          Spot metering mode.
-    \value MeteringMatrix        Matrix metering mode.
 */
 
 /*!

@@ -317,9 +317,9 @@ void QCameraImageProcessing::setDenoisingLevel(qreal level)
 /*!
     \enum QCameraImageProcessing::WhiteBalanceMode
 
+    \value WhiteBalanceAuto         Auto white balance mode.
     \value WhiteBalanceManual       Manual white balance. In this mode the white balance should be set with
                                     setManualWhiteBalance()
-    \value WhiteBalanceAuto         Auto white balance mode.
     \value WhiteBalanceSunlight     Sunlight white balance mode.
     \value WhiteBalanceCloudy       Cloudy white balance mode.
     \value WhiteBalanceShade        Shade white balance mode.

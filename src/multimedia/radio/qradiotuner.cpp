@@ -652,9 +652,9 @@ QRadioData *QRadioTuner::radioData() const
 
     Enumerates radio tuner policy for receiving stereo signals.
 
-    \value Auto        Uses the stereo mode matching the station.
     \value ForceStereo Provide stereo mode, converting if required.
     \value ForceMono   Provide mono mode, converting if required.
+    \value Auto        Uses the stereo mode matching the station.
 */
 
 /*! \fn void QRadioTuner::stateChanged(QRadioTuner::State state)

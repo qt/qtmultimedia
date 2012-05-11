@@ -430,9 +430,9 @@ QAudioBuffer QAudioDecoder::read() const
 
     Defines the current state of a media player.
 
-    \value DecodingState The audio player is currently decoding media.
     \value StoppedState The decoder is not decoding.  Decoding will
            start at the start of the media.
+    \value DecodingState The audio player is currently decoding media.
 */
 
 /*!

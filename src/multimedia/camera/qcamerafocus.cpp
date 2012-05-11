@@ -409,7 +409,7 @@ bool QCameraFocus::isAvailable() const
 
 /*!
   \property QCameraFocus::focusMode
-  \brief The current camera focus mode.
+  \brief the current camera focus mode.
 
 
   This controls the way the camera lens assembly is configured.
@@ -438,7 +438,7 @@ bool QCameraFocus::isFocusModeSupported(FocusModes mode) const
 
 /*!
   \property QCameraFocus::focusPointMode
-  \brief The current camera focus point selection mode.
+  \brief the current camera focus point selection mode.
 
   If the camera focus mode is set to use an autofocusing mode,
   this property controls the way the camera will select areas
@@ -524,7 +524,7 @@ qreal QCameraFocus::maximumDigitalZoom() const
 
 /*!
   \property QCameraFocus::opticalZoom
-  \brief The current optical zoom value.
+  \brief the current optical zoom value.
 
   \sa QCameraFocus::digitalZoom
 */
@@ -536,7 +536,7 @@ qreal QCameraFocus::opticalZoom() const
 
 /*!
   \property QCameraFocus::digitalZoom
-  \brief The current digital zoom value.
+  \brief the current digital zoom value.
 
   \sa QCameraFocus::opticalZoom
 */
@@ -562,12 +562,12 @@ void QCameraFocus::zoomTo(qreal optical, qreal digital)
     \enum QCameraFocus::FocusMode
 
     \value ManualFocus          Manual or fixed focus mode.
-    \value AutoFocus            One-shot auto focus mode.
-    \value ContinuousFocus      Continuous auto focus mode.
-    \value InfinityFocus        Focus strictly to infinity.
     \value HyperfocalFocus      Focus to hyperfocal distance, with the maximum depth of field achieved.
                                 All objects at distances from half of this
                                 distance out to infinity will be acceptably sharp.
+    \value InfinityFocus        Focus strictly to infinity.
+    \value AutoFocus            One-shot auto focus mode.
+    \value ContinuousFocus      Continuous auto focus mode.
     \value MacroFocus           One shot auto focus to objects close to camera.
 */
 
