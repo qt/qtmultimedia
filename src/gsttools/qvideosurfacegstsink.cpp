@@ -195,9 +195,10 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 
     QAbstractVideoBuffer *videoBuffer = 0;
 
-    if (m_pool && G_TYPE_CHECK_INSTANCE_TYPE(buffer, m_pool->bufferType()))
+    if (m_pool)
         videoBuffer = m_pool->prepareVideoBuffer(buffer, m_bytesPerLine);
-    else
+
+    if (!videoBuffer)
         videoBuffer = new QGstVideoBuffer(buffer, m_bytesPerLine);
 
     m_frame = QVideoFrame(

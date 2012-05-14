@@ -73,16 +73,14 @@ public:
     virtual ~QGstBufferPoolInterface() {}
 
     virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
-
-    virtual GType bufferType() const = 0;
     virtual GstBuffer *takeBuffer(const QVideoSurfaceFormat &format, GstCaps *caps) = 0;
     virtual void clear() = 0;
 
     virtual QAbstractVideoBuffer::HandleType handleType() const = 0;
 
     /*!
-      Build an QAbstractVideoBuffer instance from compatible (mathcing gst buffer type)
-      GstBuffer.
+      Build an QAbstractVideoBuffer instance from GstBuffer.
+      Returns NULL if GstBuffer is not compatible with this buffer pool.
 
       This method is called from gstreamer video sink thread.
      */
@@ -101,16 +99,14 @@ public:
     virtual ~QGstBufferPoolPlugin() {}
 
     virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
-
-    virtual GType bufferType() const = 0;
     virtual GstBuffer *takeBuffer(const QVideoSurfaceFormat &format, GstCaps *caps) = 0;
     virtual void clear() = 0;
 
     virtual QAbstractVideoBuffer::HandleType handleType() const = 0;
 
     /*!
-      Build an QAbstractVideoBuffer instance from compatible (mathcing gst buffer type)
-      GstBuffer.
+      Build an QAbstractVideoBuffer instance from compatible GstBuffer.
+      Returns NULL if GstBuffer is not compatible with this buffer pool.
 
       This method is called from gstreamer video sink thread.
      */

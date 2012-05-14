@@ -177,6 +177,9 @@ QAbstractVideoBuffer::HandleType QGstXvImageBufferPool::handleType() const
 
 QAbstractVideoBuffer *QGstXvImageBufferPool::prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine)
 {
+    if (!G_TYPE_CHECK_INSTANCE_TYPE(buffer, bufferType()))
+        return 0;
+
     QGstXvImageBuffer *xvBuffer = reinterpret_cast<QGstXvImageBuffer *>(buffer);
     QVariant handle = QVariant::fromValue(xvBuffer->xvImage);
     return new QGstVideoBuffer(buffer, bytesPerLine, QAbstractVideoBuffer::XvShmImageHandle, handle);
