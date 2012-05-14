@@ -57,9 +57,9 @@
 
 QT_BEGIN_NAMESPACE
 
-void QDeclarativeCamera::_q_error(int errorCode, const QString &errorString)
+void QDeclarativeCamera::_q_error(QCamera::Error errorCode)
 {
-    emit error(Error(errorCode), errorString);
+    emit error(Error(errorCode), errorString());
     emit errorChanged();
 }
 
@@ -186,6 +186,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)), this, SIGNAL(captureModeChanged()));
     connect(m_camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)), this, SIGNAL(lockStatusChanged()));
     connect(m_camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(_q_updateState(QCamera::State)));
+    connect(m_camera, SIGNAL(error(QCamera::Error)), this, SLOT(_q_error(QCamera::Error)));
 
     // Note we map availabilityError->availability
     connect(m_camera, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
@@ -216,7 +217,7 @@ void QDeclarativeCamera::componentComplete()
     Returns any camera error.
     \sa QDeclarativeCameraError::Error
 */
-QDeclarativeCamera::Error QDeclarativeCamera::error() const
+QDeclarativeCamera::Error QDeclarativeCamera::errorCode() const
 {
     return QDeclarativeCamera::Error(m_camera->error());
 }
@@ -513,9 +514,26 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \qmlsignal QtMultimedia5::Camera::onError(error, errorString)
+    \qmlproperty enumeration QtMultimedia5::Camera::errorCode
 
-    This handler is called when an error occurs.  The enumeration value \a error is one of the
+    Error state of the camera.
+
+    \sa QtMultimedia5::Camera::onError
+*/
+
+/*!
+    \qmlproperty string QtMultimedia5::Camera::errorString
+
+    A string describing a camera's error state.
+
+    \sa QtMultimedia5::Camera::onError
+*/
+
+
+/*!
+    \qmlsignal QtMultimedia5::Camera::onError(errorCode, errorString)
+
+    This handler is called when an error occurs.  The enumeration value \a errorCode is one of the
     values defined below, and a descriptive string value is available in \a errorString.
 
     \table

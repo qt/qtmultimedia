@@ -82,6 +82,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
     Q_PROPERTY(LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
+    Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
     Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
@@ -220,7 +221,7 @@ public:
     CaptureMode captureMode() const;
     State cameraState() const;
 
-    Error error() const;
+    Error errorCode() const;
     QString errorString() const;
 
     LockStatus lockStatus() const;
@@ -249,7 +250,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void errorChanged();
-    void error(QDeclarativeCamera::Error error, const QString &errorString);
+    void error(QDeclarativeCamera::Error errorCode, const QString &errorString);
 
     void captureModeChanged();
     void cameraStateChanged(QDeclarativeCamera::State);
@@ -267,7 +268,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void _q_updateState(QCamera::State);
-    void _q_error(int, const QString &);
+    void _q_error(QCamera::Error);
     void _q_availabilityChanged(QtMultimedia::AvailabilityError);
 
 protected:
