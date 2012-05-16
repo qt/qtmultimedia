@@ -53,7 +53,8 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
         (QSGVideoNodeFactoryInterface_iid, QLatin1String("video/videonode"), Qt::CaseInsensitive))
 
 QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeVideoOutput *parent)
-    : QDeclarativeVideoBackend(parent)
+    : QDeclarativeVideoBackend(parent),
+      m_frameChanged(false)
 {
     m_surface = new QSGVideoItemSurface(this);
     QObject::connect(m_surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
@@ -164,36 +165,47 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 
     QMutexLocker lock(&m_frameMutex);
 
-    if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
+    if (m_frameChanged) {
+        if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
 #ifdef DEBUG_VIDEOITEM
-        qDebug() << "updatePaintNode: deleting old video node because frame format changed...";
+            qDebug() << "updatePaintNode: deleting old video node because frame format changed...";
 #endif
-        delete videoNode;
-        videoNode = 0;
-    }
+            delete videoNode;
+            videoNode = 0;
+        }
 
-    if (!m_frame.isValid()) {
+        if (!m_frame.isValid()) {
 #ifdef DEBUG_VIDEOITEM
-        qDebug() << "updatePaintNode: no frames yet... aborting...";
+            qDebug() << "updatePaintNode: no frames yet... aborting...";
 #endif
-        return 0;
-    }
+            m_frameChanged = false;
+            return 0;
+        }
 
-    if (!videoNode) {
-        foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
-            videoNode = factory->createNode(m_surface->surfaceFormat());
-            if (videoNode)
-                break;
+        if (!videoNode) {
+            foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
+                videoNode = factory->createNode(m_surface->surfaceFormat());
+                if (videoNode)
+                    break;
+            }
         }
     }
 
-    if (!videoNode)
+    if (!videoNode) {
+        m_frameChanged = false;
+        m_frame = QVideoFrame();
         return 0;
+    }
 
     // Negative rotations need lots of %360
     videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
                                        qNormalizedOrientation(q->orientation()));
-    videoNode->setCurrentFrame(m_frame);
+    if (m_frameChanged) {
+        videoNode->setCurrentFrame(m_frame);
+        //don't keep the frame for more than really necessary
+        m_frameChanged = false;
+        m_frame = QVideoFrame();
+    }
     return videoNode;
 }
 
@@ -206,6 +218,7 @@ void QDeclarativeVideoRendererBackend::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
     m_frame = frame;
+    m_frameChanged = true;
     m_frameMutex.unlock();
 
     q->update();

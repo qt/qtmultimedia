@@ -78,6 +78,7 @@ private:
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
     QVideoFrame m_frame;
+    bool m_frameChanged;
     QSGVideoNodeFactory_I420 m_i420Factory;
     QSGVideoNodeFactory_RGB m_rgbFactory;
     QMutex m_frameMutex;
