@@ -81,6 +81,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
 
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
+    Q_PROPERTY(Status cameraStatus READ cameraStatus NOTIFY cameraStatusChanged)
     Q_PROPERTY(LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
@@ -102,6 +103,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
 
     Q_ENUMS(CaptureMode)
     Q_ENUMS(State)
+    Q_ENUMS(Status)
     Q_ENUMS(LockStatus)
     Q_ENUMS(Error)
 
@@ -125,6 +127,19 @@ public:
         ActiveState = QCamera::ActiveState,
         LoadedState = QCamera::LoadedState,
         UnloadedState = QCamera::UnloadedState
+    };
+
+    enum Status
+    {
+        UnavailableStatus = QCamera::UnavailableStatus,
+        UnloadedStatus = QCamera::UnloadedStatus,
+        LoadingStatus = QCamera::LoadingStatus,
+        UnloadingStatus = QCamera::UnloadingStatus,
+        LoadedStatus = QCamera::LoadedStatus,
+        StandbyStatus = QCamera::StandbyStatus,
+        StartingStatus = QCamera::StartingStatus,
+        StoppingStatus = QCamera::StoppingStatus,
+        ActiveStatus = QCamera::ActiveStatus
     };
 
     enum LockStatus
@@ -220,6 +235,7 @@ public:
 
     CaptureMode captureMode() const;
     State cameraState() const;
+    Status cameraStatus() const;
 
     Error errorCode() const;
     QString errorString() const;
@@ -254,6 +270,7 @@ Q_SIGNALS:
 
     void captureModeChanged();
     void cameraStateChanged(QDeclarativeCamera::State);
+    void cameraStatusChanged();
 
     void lockStatusChanged();
 

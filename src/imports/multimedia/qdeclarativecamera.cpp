@@ -186,6 +186,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)), this, SIGNAL(captureModeChanged()));
     connect(m_camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)), this, SIGNAL(lockStatusChanged()));
     connect(m_camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(_q_updateState(QCamera::State)));
+    connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(error(QCamera::Error)), this, SLOT(_q_error(QCamera::Error)));
 
     // Note we map availabilityError->availability
@@ -321,6 +322,63 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
 QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
 {
     return m_componentComplete ? QDeclarativeCamera::State(m_camera->state()) : m_pendingState;
+}
+
+/*!
+    \qmlproperty enumeration QtMultimedia5::Camera::cameraStatus
+
+    The current status of the camera instance.
+
+    \table
+    \header \li Value \li Description
+    \row \li ActiveStatus
+         \li The camera has been started and can produce data,
+             viewfinder displays video frames.
+
+             Depending on backend, changing some camera settings like
+             capture mode, codecs or resolution in ActiveState may lead
+             to changing the camera status to LoadedStatus and StartingStatus while
+             the settings are applied and back to ActiveStatus when the camera is ready.
+
+    \row \li StartingStatus
+         \li The camera is starting in result of state transition to Camera.ActiveState.
+             The camera service is not ready to capture yet.
+
+    \row \li StoppingStatus
+         \li The camera is stopping in result of state transition from Camera.ActiveState
+             to Camera.LoadedState or Camera.UnloadedState.
+
+    \row \li StandbyStatus
+         \li The camera is in the power saving standby mode.
+             The camera may enter standby mode after some time of inactivity
+             in the Camera.LoadedState state.
+
+    \row \li LoadedStatus
+         \li The camera is loaded and ready to be configured.
+             This status indicates the camera device is opened and
+             it's possible to query for supported image and video capture settings,
+             like resolution, framerate and codecs.
+
+    \row \li LoadingStatus
+         \li The camera device loading in result of state transition from
+             Camera.UnloadedState to Camera.LoadedState or Camera.ActiveState.
+
+    \row \li UnloadingStatus
+         \li The camera device is unloading in result of state transition from
+             Camera.LoadedState or Camera.ActiveState to Camera.UnloadedState.
+
+    \row \li UnloadedStatus
+         \li The initial camera status, with camera not loaded.
+             The camera capabilities including supported capture settings may be unknown.
+
+    \row \li UnavailableStatus
+         \li The camera or camera backend is not available.
+
+    \endtable
+*/
+QDeclarativeCamera::Status QDeclarativeCamera::cameraStatus() const
+{
+    return QDeclarativeCamera::Status(m_camera->status());
 }
 
 void QDeclarativeCamera::setCameraState(QDeclarativeCamera::State state)
