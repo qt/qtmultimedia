@@ -856,7 +856,7 @@ void QCamera::unlock()
            The camera device loading in result of state transition from
            QCamera::UnloadedState to QCamera::LoadedState or QCamera::ActiveState.
 
-    \value LoadingStatus
+    \value UnloadingStatus
            The camera device is unloading in result of state transition from
            QCamera::LoadedState or QCamera::ActiveState to QCamera::UnloadedState.
 
