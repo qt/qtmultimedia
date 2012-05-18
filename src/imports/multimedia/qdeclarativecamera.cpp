@@ -267,6 +267,9 @@ QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
 
     \table
     \header \li Value \li Description
+    \row \li CaptureViewfinder
+         \li Camera is only configured to display viewfinder.
+
     \row \li CaptureStillImage
          \li Prepares the Camera for capturing still images.
 

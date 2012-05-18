@@ -118,6 +118,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
 
 public:
     enum CaptureMode {
+        CaptureViewfinder = QCamera::CaptureViewfinder,
         CaptureStillImage = QCamera::CaptureStillImage,
         CaptureVideo = QCamera::CaptureVideo
     };
