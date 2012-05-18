@@ -40,6 +40,55 @@ See that documentation for more information.
 
 \section1 Audio Implementation Details
 
+\section2 Playing compressed audio
+For playing media or audio files that are not simple, raw audio, you can
+use the \l QMediaPlayer C++ class, or the \l {Audio} and \l {MediaPlayer} QML types.
+The QMediaPlayer class and associated QML types are also capable of playing
+\l{multimedia-playing-video}{video}, if required.  The compressed audio formats supported does depend
+on the operating system environment, and also what media plugins the user
+may have installed.
+
+Here is how you play a local file using C++:
+
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Local playback
+
+You can also put files (even remote URLs) into a playlist:
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio playlist
+
+\section2 Recording audio to a file
+For recording audio to a file, the \l {QAudioRecorder} class allows you
+to compress audio data from an input device and record it.
+
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder
+
+\section2 Low latency sound effects
+
+In addition to the raw access to sound devices described above, the QSoundEffect class (and
+\l {SoundEffect} QML type) offers a slightly higher level way to play
+sounds.  These classes allow you to specify a WAV format file which can
+then be played with low latency when necessary.  Both QSoundEffect and
+SoundEffect have essentially the same API.
+
+You can adjust the number of \l {QSoundEffect::loops}{loops} a sound effect is played, as well as
+the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
+
+For older, Qt 4.x based applications \l QSound is also available.  Applications
+are recommended to use QSoundEffect where possible.
+
+\section2 Monitoring audio data during playback or recording
+
+The \l QAudioProbe class allows you to monitor audio data being played or
+recorded in the higher level classes like \l QMediaPlayer, \l QCamera and
+\l QAudioRecorder.  After creating your high level class, you can simply
+set the source of the probe to your class, and receive audio buffers as they
+are processed.  This is useful for several audio processing tasks, particularly
+for visualization or adjusting gain.  You cannot modify the buffers, and
+they may arrive at a slightly different time than the media pipeline
+processes them.
+
+Here's an example of installing a probe during recording:
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio probe
+
 \section2 Low level audio playback and recording
 Qt Multimedia offers classes for raw access to audio input and output
 facilities, allowing applications to receive raw data from devices like
@@ -65,35 +114,6 @@ In \c push mode, the audio device provides a QIODevice instance that
 can be written or read to as needed.  Typically this results in simpler
 code but more buffering, which may affect latency.
 
-\section2 Low latency sound effects
-
-In addition to the raw access to sound devices described above, the QSoundEffect class (and
-\l {SoundEffect} QML type) offers a slightly higher level way to play
-sounds.  These classes allow you to specify a WAV format file which can
-then be played with low latency when necessary.  Both QSoundEffect and
-SoundEffect have essentially the same API.
-
-You can adjust the number of \l {QSoundEffect::loops}{loops} a sound effect is played, as well as
-the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
-
-For older, Qt 4.x based applications \l QSound is also available.  Applications
-are recommended to use QSoundEffect where possible.
-
-\section2 Playing compressed audio
-For playing media or audio files that are not simple, raw audio, you can
-use the \l QMediaPlayer C++ class, or the \l {Audio} and \l {MediaPlayer} QML types.
-The QMediaPlayer class and associated QML types are also capable of playing
-\l{multimedia-playing-video}{video}, if required.  The compressed audio formats supported does depend
-on the operating system environment, and also what media plugins the user
-may have installed.
-
-Here is how you play a local file using C++:
-
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Local playback
-
-You can also put files (even remote URLs) into a playlist:
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio playlist
-
 \section2 Decoding compressed audio to memory
 In some cases you may want to decode a compressed audio file and do further
 processing yourself (like mix multiple samples, or some custom digital signal
@@ -107,26 +127,6 @@ Here's an example of decoding a local file:
 
 Note:  This API is preliminary at this time - the API may change or be
 removed before the final 5.0 release.
-
-\section2 Recording audio to a file
-For recording audio to a file, the \l {QAudioRecorder} class allows you
-to compress audio data from an input device and record it.
-
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder
-
-\section2 Monitoring audio data during playback or recording
-
-The \l QAudioProbe class allows you to monitor audio data being played or
-recorded in the higher level classes like \l QMediaPlayer, \l QCamera and
-\l QAudioRecorder.  After creating your high level class, you can simply
-set the source of the probe to your class, and receive audio buffers as they
-are processed.  This is useful for several audio processing tasks, particularly
-for visualization or adjusting gain.  You cannot modify the buffers, and
-they may arrive at a slightly different time than the media pipeline
-processes them.
-
-Here's an example of installing a probe during recording:
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio probe
 
 \section1 Examples
 
