@@ -516,11 +516,26 @@ void tst_QMediaRecorder::testAudioSettings()
     QVERIFY(!settings.isNull());
 
     settings = QAudioEncoderSettings();
+    settings.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant(1));
+    QVariantMap options;
+    options.insert(QLatin1Literal("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOptions(), options);
+    options.insert(QLatin1Literal("encoderOption2"), QVariant(2));
+    options.remove(QLatin1Literal("encoderOption"));
+    settings.setEncodingOptions(options);
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant());
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption2")), QVariant(2));
+    QVERIFY(!settings.isNull());
+    QVERIFY(settings != QAudioEncoderSettings());
+
+    settings = QAudioEncoderSettings();
     QVERIFY(settings.isNull());
     QCOMPARE(settings.codec(), QString());
     QCOMPARE(settings.bitRate(), -1);
     QCOMPARE(settings.quality(), QtMultimedia::NormalQuality);
     QCOMPARE(settings.sampleRate(), -1);
+    QVERIFY(settings.encodingOptions().isEmpty());
 
     {
         QAudioEncoderSettings settings1;
@@ -601,6 +616,14 @@ void tst_QMediaRecorder::testAudioSettings()
     QVERIFY(settings1 == settings2);
     settings2.setSampleRate(2);
     QVERIFY(settings1 != settings2);
+
+    settings1 = QAudioEncoderSettings();
+    settings1.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    settings2 = QAudioEncoderSettings();
+    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    QVERIFY(settings1 == settings2);
+    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(2));
+    QVERIFY(settings1 != settings2);
 }
 
 void tst_QMediaRecorder::testVideoSettings()
@@ -644,12 +667,27 @@ void tst_QMediaRecorder::testVideoSettings()
     QVERIFY(!settings.isNull());
 
     settings = QVideoEncoderSettings();
+    settings.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant(1));
+    QVariantMap options;
+    options.insert(QLatin1Literal("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOptions(), options);
+    options.insert(QLatin1Literal("encoderOption2"), QVariant(2));
+    options.remove(QLatin1Literal("encoderOption"));
+    settings.setEncodingOptions(options);
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant());
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption2")), QVariant(2));
+    QVERIFY(!settings.isNull());
+    QVERIFY(settings != QVideoEncoderSettings());
+
+    settings = QVideoEncoderSettings();
     QVERIFY(settings.isNull());
     QCOMPARE(settings.codec(), QString());
     QCOMPARE(settings.bitRate(), -1);
     QCOMPARE(settings.quality(), QtMultimedia::NormalQuality);
     QCOMPARE(settings.frameRate(), qreal());
     QCOMPARE(settings.resolution(), QSize());
+    QVERIFY(settings.encodingOptions().isEmpty());
 
     {
         QVideoEncoderSettings settings1;
@@ -729,6 +767,14 @@ void tst_QMediaRecorder::testVideoSettings()
     settings2.setFrameRate(1);
     QVERIFY(settings1 == settings2);
     settings2.setFrameRate(2);
+    QVERIFY(settings1 != settings2);
+
+    settings1 = QVideoEncoderSettings();
+    settings1.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    settings2 = QVideoEncoderSettings();
+    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    QVERIFY(settings1 == settings2);
+    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(2));
     QVERIFY(settings1 != settings2);
 }
 

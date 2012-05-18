@@ -45,6 +45,7 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qsize.h>
+#include <QtCore/qvariant.h>
 #include <qtmultimediadefs.h>
 #include "qtmedianamespace.h"
 
@@ -89,6 +90,11 @@ public:
     QtMultimedia::EncodingQuality quality() const;
     void setQuality(QtMultimedia::EncodingQuality quality);
 
+    QVariant encodingOption(const QString &option) const;
+    QVariantMap encodingOptions() const;
+    void setEncodingOption(const QString &option, const QVariant &value);
+    void setEncodingOptions(const QVariantMap &options);
+
 private:
     QSharedDataPointer<QAudioEncoderSettingsPrivate> d;
 };
@@ -127,6 +133,11 @@ public:
     QtMultimedia::EncodingQuality quality() const;
     void setQuality(QtMultimedia::EncodingQuality quality);
 
+    QVariant encodingOption(const QString &option) const;
+    QVariantMap encodingOptions() const;
+    void setEncodingOption(const QString &option, const QVariant &value);
+    void setEncodingOptions(const QVariantMap &options);
+
 private:
     QSharedDataPointer<QVideoEncoderSettingsPrivate> d;
 };
@@ -155,6 +166,11 @@ public:
 
     QtMultimedia::EncodingQuality quality() const;
     void setQuality(QtMultimedia::EncodingQuality quality);
+
+    QVariant encodingOption(const QString &option) const;
+    QVariantMap encodingOptions() const;
+    void setEncodingOption(const QString &option, const QVariant &value);
+    void setEncodingOptions(const QVariantMap &options);
 
 private:
     QSharedDataPointer<QImageEncoderSettingsPrivate> d;

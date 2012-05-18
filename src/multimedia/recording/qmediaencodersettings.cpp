@@ -78,7 +78,8 @@ public:
         bitrate(other.bitrate),
         sampleRate(other.sampleRate),
         channels(other.channels),
-        quality(other.quality)
+        quality(other.quality),
+        encodingOptions(other.encodingOptions)
     {
     }
 
@@ -89,6 +90,7 @@ public:
     int sampleRate;
     int channels;
     QtMultimedia::EncodingQuality quality;
+    QVariantMap encodingOptions;
 
 private:
     QAudioEncoderSettingsPrivate& operator=(const QAudioEncoderSettingsPrivate &other);
@@ -166,7 +168,8 @@ bool QAudioEncoderSettings::operator==(const QAudioEncoderSettings &other) const
             d->sampleRate == other.d->sampleRate &&
             d->channels == other.d->channels &&
             d->quality == other.d->quality &&
-            d->codec == other.d->codec);
+            d->codec == other.d->codec &&
+            d->encodingOptions == other.d->encodingOptions);
 }
 
 /*!
@@ -318,6 +321,57 @@ void QAudioEncoderSettings::setQuality(QtMultimedia::EncodingQuality quality)
     d->quality = quality;
 }
 
+/*!
+    Returns the value of encoding \a option.
+
+    \sa setEncodingOption(), encodingOptions()
+*/
+QVariant QAudioEncoderSettings::encodingOption(const QString &option) const
+{
+    return d->encodingOptions.value(option);
+}
+
+/*!
+    Returns the all the encoding options as QVariantMap.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+QVariantMap QAudioEncoderSettings::encodingOptions() const
+{
+    return d->encodingOptions;
+}
+
+/*!
+    Set the encoding \a option \a value.
+
+    The supported set and meaning of encoding options are
+    system and selected codec specific.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+void QAudioEncoderSettings::setEncodingOption(const QString &option, const QVariant &value)
+{
+    d->isNull = false;
+    if (value.isNull())
+        d->encodingOptions.remove(option);
+    else
+        d->encodingOptions.insert(option, value);
+}
+
+/*!
+    Replace all the \a encoding options.
+
+    The supported set and meaning of encoding options are
+    system and selected codec specific.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+void QAudioEncoderSettings::setEncodingOptions(const QVariantMap &options)
+{
+    d->isNull = false;
+    d->encodingOptions = options;
+}
+
 class QVideoEncoderSettingsPrivate  : public QSharedData
 {
 public:
@@ -338,7 +392,8 @@ public:
         bitrate(other.bitrate),
         resolution(other.resolution),
         frameRate(other.frameRate),
-        quality(other.quality)
+        quality(other.quality),
+        encodingOptions(other.encodingOptions)
     {
     }
 
@@ -349,6 +404,7 @@ public:
     QSize resolution;
     qreal frameRate;
     QtMultimedia::EncodingQuality quality;
+    QVariantMap encodingOptions;
 
 private:
     QVideoEncoderSettingsPrivate& operator=(const QVideoEncoderSettingsPrivate &other);
@@ -420,7 +476,8 @@ bool QVideoEncoderSettings::operator==(const QVideoEncoderSettings &other) const
             d->quality == other.d->quality &&
             d->codec == other.d->codec &&
             d->resolution == other.d->resolution &&
-            qFuzzyCompare(d->frameRate, other.d->frameRate));
+            qFuzzyCompare(d->frameRate, other.d->frameRate) &&
+            d->encodingOptions == other.d->encodingOptions);
 }
 
 /*!
@@ -592,6 +649,56 @@ void QVideoEncoderSettings::setQuality(QtMultimedia::EncodingQuality quality)
     d->quality = quality;
 }
 
+/*!
+    Returns the value of encoding \a option.
+
+    \sa setEncodingOption(), encodingOptions()
+*/
+QVariant QVideoEncoderSettings::encodingOption(const QString &option) const
+{
+    return d->encodingOptions.value(option);
+}
+
+/*!
+    Returns the all the encoding options as QVariantMap.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+QVariantMap QVideoEncoderSettings::encodingOptions() const
+{
+    return d->encodingOptions;
+}
+
+/*!
+    Set the encoding \a option \a value.
+
+    The supported set and meaning of encoding options are
+    system and selected codec specific.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+void QVideoEncoderSettings::setEncodingOption(const QString &option, const QVariant &value)
+{
+    d->isNull = false;
+    if (value.isNull())
+        d->encodingOptions.remove(option);
+    else
+        d->encodingOptions.insert(option, value);
+}
+
+/*!
+    Replace all the \a encoding options.
+
+    The supported set and meaning of encoding options are
+    system and selected codec specific.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+void QVideoEncoderSettings::setEncodingOptions(const QVariantMap &options)
+{
+    d->isNull = false;
+    d->encodingOptions = options;
+}
 
 
 class QImageEncoderSettingsPrivate  : public QSharedData
@@ -608,7 +715,8 @@ public:
         isNull(other.isNull),
         codec(other.codec),
         resolution(other.resolution),
-        quality(other.quality)
+        quality(other.quality),
+        encodingOptions(other.encodingOptions)
     {
     }
 
@@ -616,6 +724,7 @@ public:
     QString codec;
     QSize resolution;
     QtMultimedia::EncodingQuality quality;
+    QVariantMap encodingOptions;
 
 private:
     QImageEncoderSettingsPrivate& operator=(const QImageEncoderSettingsPrivate &other);
@@ -687,7 +796,8 @@ bool QImageEncoderSettings::operator==(const QImageEncoderSettings &other) const
            (d->isNull == other.d->isNull &&
             d->quality == other.d->quality &&
             d->codec == other.d->codec &&
-            d->resolution == other.d->resolution);
+            d->resolution == other.d->resolution &&
+            d->encodingOptions == other.d->encodingOptions);
 
 }
 
@@ -783,5 +893,58 @@ void QImageEncoderSettings::setQuality(QtMultimedia::EncodingQuality quality)
     d->isNull = false;
     d->quality = quality;
 }
+
+/*!
+    Returns the value of encoding \a option.
+
+    \sa setEncodingOption(), encodingOptions()
+*/
+QVariant QImageEncoderSettings::encodingOption(const QString &option) const
+{
+    return d->encodingOptions.value(option);
+}
+
+/*!
+    Returns the all the encoding options as QVariantMap.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+QVariantMap QImageEncoderSettings::encodingOptions() const
+{
+    return d->encodingOptions;
+}
+
+/*!
+    Set the encoding \a option \a value.
+
+    The supported set and meaning of encoding options are
+    system and selected codec specific.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+void QImageEncoderSettings::setEncodingOption(const QString &option, const QVariant &value)
+{
+    d->isNull = false;
+    if (value.isNull())
+        d->encodingOptions.remove(option);
+    else
+        d->encodingOptions.insert(option, value);
+}
+
+/*!
+    Replace all the \a encoding options.
+
+    The supported set and meaning of encoding options are
+    system and selected codec specific.
+
+    \sa encodingOption(), setEncodingOptions()
+*/
+void QImageEncoderSettings::setEncodingOptions(const QVariantMap &options)
+{
+    d->isNull = false;
+    d->encodingOptions = options;
+}
+
+
 QT_END_NAMESPACE
 

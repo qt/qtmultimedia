@@ -792,10 +792,25 @@ void tst_QCamera::testImageSettings()
     QVERIFY(!settings.isNull());
 
     settings = QImageEncoderSettings();
+    settings.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant(1));
+    QVariantMap options;
+    options.insert(QLatin1Literal("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOptions(), options);
+    options.insert(QLatin1Literal("encoderOption2"), QVariant(2));
+    options.remove(QLatin1Literal("encoderOption"));
+    settings.setEncodingOptions(options);
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant());
+    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption2")), QVariant(2));
+    QVERIFY(!settings.isNull());
+    QVERIFY(settings != QImageEncoderSettings());
+
+    settings = QImageEncoderSettings();
     QVERIFY(settings.isNull());
     QCOMPARE(settings.codec(), QString());
     QCOMPARE(settings.quality(), QtMultimedia::NormalQuality);
     QCOMPARE(settings.resolution(), QSize());
+    QVERIFY(settings.encodingOptions().isEmpty());
 
     {
         QImageEncoderSettings settings1;
@@ -854,6 +869,14 @@ void tst_QCamera::testImageSettings()
     settings2.setQuality(QtMultimedia::NormalQuality);
     QVERIFY(settings1 == settings2);
     settings2.setQuality(QtMultimedia::LowQuality);
+    QVERIFY(settings1 != settings2);
+
+    settings1 = QImageEncoderSettings();
+    settings1.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    settings2 = QImageEncoderSettings();
+    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    QVERIFY(settings1 == settings2);
+    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(2));
     QVERIFY(settings1 != settings2);
 }
 
