@@ -15,7 +15,7 @@ PUBLIC_HEADERS += \
     controls/qcameraimagecapturecontrol.h \
     controls/qcameraimageprocessingcontrol.h \
     controls/qcameralockscontrol.h \
-    controls/qcameraviewfinderresolutioncontrol.h \
+    controls/qcameraviewfindersettingscontrol.h \
     controls/qimageencodercontrol.h \
     controls/qmediacontainercontrol.h \
     controls/qmediagaplessplaybackcontrol.h \
@@ -52,7 +52,7 @@ SOURCES += \
     controls/qcameraimagecapturecontrol.cpp \
     controls/qcameraimageprocessingcontrol.cpp \
     controls/qcameralockscontrol.cpp \
-    controls/qcameraviewfinderresolutioncontrol.cpp \
+    controls/qcameraviewfindersettingscontrol.cpp \
     controls/qimageencodercontrol.cpp \
     controls/qmediacontainercontrol.cpp \
     controls/qmediagaplessplaybackcontrol.cpp \

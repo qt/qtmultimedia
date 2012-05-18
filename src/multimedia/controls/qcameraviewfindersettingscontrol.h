@@ -41,8 +41,8 @@
 
 
 
-#ifndef QCAMERAVIEWFINDERRESOLUTIONCONTROL_H
-#define QCAMERAVIEWFINDERRESOLUTIONCONTROL_H
+#ifndef QCAMERAVIEWFINDERSETTINGSCONTROL_H
+#define QCAMERAVIEWFINDERSETTINGSCONTROL_H
 
 #include <qmediacontrol.h>
 
@@ -52,25 +52,34 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-class Q_MULTIMEDIA_EXPORT QCameraViewfinderResolutionControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl : public QMediaControl
 {
     Q_OBJECT
 public:
-    ~QCameraViewfinderResolutionControl();
+    enum ViewfinderParameter {
+        Resolution,
+        PixelAspectRatio,
+        MinimumFrameRate,
+        MaximumFrameRate,
+        PixelFormat,
+        UserParameter = 1000
+    };
 
-    virtual QSize viewfinderResolution() const = 0;
-    virtual bool setViewfinderResolution(const QSize &resolution) = 0;
+    ~QCameraViewfinderSettingsControl();
+
+    virtual bool isViewfinderParameterSupported(ViewfinderParameter parameter) const = 0;
+    virtual QVariant viewfinderParameter(ViewfinderParameter parameter) const = 0;
+    virtual void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) = 0;
 
 protected:
-    QCameraViewfinderResolutionControl(QObject *parent = 0);
-
+    QCameraViewfinderSettingsControl(QObject *parent = 0);
 };
 
-#define QCameraViewfinderResolutionControl_iid "org.qt-project.qt.cameraviewfindercontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderResolutionControl, QCameraViewfinderResolutionControl_iid)
+#define QCameraViewfinderSettingsControl_iid "org.qt-project.qt.cameraviewfindersettingscontrol/5.0"
+Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderSettingsControl, QCameraViewfinderSettingsControl_iid)
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
-#endif // QCAMERAVIEWFINDERRESOLUTIONCONTROL_H
+#endif // QCAMERAVIEWFINDERSETTINGSCONTROL_H
