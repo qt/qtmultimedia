@@ -86,6 +86,7 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_audioPreview(0),
      m_audioVolume(0),
      m_muted(false),
+     m_volume(1.0),
      m_videoSrc(0),
      m_videoTee(0),
      m_videoPreviewQueue(0),
@@ -163,7 +164,8 @@ GstElement *QGstreamerCaptureSession::buildEncodeBin()
             return 0;
         }
 
-        g_object_set(G_OBJECT(m_audioVolume), "volume", (m_muted ? 0.0 : 1.0), NULL);
+        g_object_set(G_OBJECT(m_audioVolume), "mute", m_muted, NULL);
+        g_object_set(G_OBJECT(m_audioVolume), "volume", m_volume, NULL);
 
         // add ghostpads
         GstPad *pad = gst_element_get_static_pad(audioConvert, "sink");
@@ -1012,11 +1014,23 @@ bool QGstreamerCaptureSession::processBusMessage(const QGstreamerMessage &messag
 
 void QGstreamerCaptureSession::setMuted(bool muted)
 {
-    if (m_muted != muted) {
+    if (bool(m_muted) != muted) {
         m_muted = muted;
         if (m_audioVolume)
-            g_object_set(G_OBJECT(m_audioVolume), "volume", (m_muted ? 0.0 : 1.0), NULL);
+            g_object_set(G_OBJECT(m_audioVolume), "mute", m_muted, NULL);
+
         emit mutedChanged(muted);
+    }
+}
+
+void QGstreamerCaptureSession::setVolume(qreal volume)
+{
+    if (!qFuzzyCompare(volume, m_volume)) {
+        m_volume = volume;
+        if (m_audioVolume)
+            g_object_set(G_OBJECT(m_audioVolume), "volume", m_volume, NULL);
+
+        emit volumeChanged(volume);
     }
 }
 

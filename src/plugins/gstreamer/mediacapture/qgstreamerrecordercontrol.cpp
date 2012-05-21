@@ -56,6 +56,7 @@ QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *s
     connect(m_session, SIGNAL(error(int,QString)), SLOT(handleSessionError(int,QString)));
     connect(m_session, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
+    connect(m_session, SIGNAL(volumeChanged(qreal)), SIGNAL(volumeChanged(qreal)));
     m_hasPreviewState = m_session->captureMode() != QGstreamerCaptureSession::Audio;
 }
 
@@ -309,9 +310,19 @@ bool QGstreamerRecorderControl::isMuted() const
     return m_session->isMuted();
 }
 
+qreal QGstreamerRecorderControl::volume() const
+{
+    return m_session->volume();
+}
+
 void QGstreamerRecorderControl::setMuted(bool muted)
 {
     m_session->setMuted(muted);
+}
+
+void QGstreamerRecorderControl::setVolume(qreal volume)
+{
+    m_session->setVolume(volume);
 }
 
 QDir QGstreamerRecorderControl::defaultDir() const

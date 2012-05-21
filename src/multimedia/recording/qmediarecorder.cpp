@@ -285,6 +285,9 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
             disconnect(d->control, SIGNAL(mutedChanged(bool)),
                        this, SIGNAL(mutedChanged(bool)));
 
+            disconnect(d->control, SIGNAL(volumeChanged(qreal)),
+                       this, SIGNAL(volumeChanged(qreal)));
+
             disconnect(d->control, SIGNAL(durationChanged(qint64)),
                        this, SIGNAL(durationChanged(qint64)));
 
@@ -387,6 +390,9 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 
                 connect(d->control, SIGNAL(mutedChanged(bool)),
                         this, SIGNAL(mutedChanged(bool)));
+
+                connect(d->control, SIGNAL(volumeChanged(qreal)),
+                        this, SIGNAL(volumeChanged(qreal)));
 
                 connect(d->control, SIGNAL(durationChanged(qint64)),
                         this, SIGNAL(durationChanged(qint64)));
@@ -550,6 +556,26 @@ void QMediaRecorder::setMuted(bool muted)
 
     if (d->control)
         d->control->setMuted(muted);
+}
+
+/*!
+    \property QMediaRecorder::volume
+
+    \brief the linear audio gain of media recorder.
+*/
+
+qreal QMediaRecorder::volume() const
+{
+    return d_func()->control ? d_func()->control->volume() : 1.0;
+}
+
+
+void QMediaRecorder::setVolume(qreal volume)
+{
+    Q_D(QMediaRecorder);
+
+    if (d->control)
+        d->control->setVolume(volume);
 }
 
 /*!

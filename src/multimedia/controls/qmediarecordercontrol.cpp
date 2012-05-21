@@ -159,6 +159,17 @@ QMediaRecorderControl::~QMediaRecorderControl()
     Sets the \a muted state of a media recorder.
 */
 
+/*!
+    \fn qreal QMediaRecorderControl::volume() const
+
+    Returns the linear audio gain of media recorder.
+*/
+
+/*!
+    \fn void QMediaRecorderControl::setVolume(qreal gain)
+
+    Sets the linear audio \a gain of a media recorder.
+*/
 
 /*!
     \fn void QMediaRecorderControl::stateChanged(QMediaRecorder::State state)
@@ -185,6 +196,12 @@ QMediaRecorderControl::~QMediaRecorderControl()
     \fn void QMediaRecorderControl::mutedChanged(bool muted)
 
     Signals that the \a muted state of a media recorder has changed.
+*/
+
+/*!
+    \fn void QMediaRecorderControl::volume(qreal gain)
+
+    Signals that the audio \a gain value has changed.
 */
 
 /*!

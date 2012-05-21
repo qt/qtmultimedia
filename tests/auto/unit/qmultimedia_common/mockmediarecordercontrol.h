@@ -57,6 +57,7 @@ public:
         m_status(QMediaRecorder::LoadedStatus),
         m_position(0),
         m_muted(false),
+        m_volume(1.0),
         m_settingAppliedCount(0)
     {
     }
@@ -90,6 +91,11 @@ public:
     bool isMuted() const
     {
         return m_muted;
+    }
+
+    qreal volume() const
+    {
+        return m_volume;
     }
 
     void applySettings()
@@ -152,12 +158,19 @@ public slots:
             emit mutedChanged(m_muted = muted);
     }
 
+    void setVolume(qreal volume)
+    {
+        if (!qFuzzyCompare(m_volume, volume))
+            emit volumeChanged(m_volume = volume);
+    }
+
 public:
     QUrl       m_sink;
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;
     qint64     m_position;
     bool m_muted;
+    qreal m_volume;
     int m_settingAppliedCount;
 };
 

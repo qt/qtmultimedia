@@ -67,12 +67,14 @@ public:
     qint64 duration() const;
 
     bool isMuted() const;
+    qreal volume() const;
 
     void applySettings() {}
 
 public slots:
     void setState(QMediaRecorder::State state);
     void setMuted(bool);
+    void setVolume(qreal volume);
 
 private slots:
     void updateStatus();

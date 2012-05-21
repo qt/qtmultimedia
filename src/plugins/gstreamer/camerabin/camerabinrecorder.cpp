@@ -230,9 +230,21 @@ bool CameraBinRecorder::isMuted() const
     return m_session->isMuted();
 }
 
+qreal CameraBinRecorder::volume() const
+{
+    return 1.0;
+}
+
 void CameraBinRecorder::setMuted(bool muted)
 {
     m_session->setMuted(muted);
 }
 
+void CameraBinRecorder::setVolume(qreal volume)
+{
+    if (!qFuzzyCompare(volume, qreal(1.0)))
+        qWarning() << "Media service doesn't support recorder audio gain.";
+}
+
 QT_END_NAMESPACE
+

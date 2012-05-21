@@ -76,6 +76,7 @@ private slots:
     void testSink();
     void testRecord();
     void testMute();
+    void testVolume();
     void testAudioDeviceControl();
     void testAudioEncodeControl();
     void testMediaFormatsControl();
@@ -371,6 +372,26 @@ void tst_QMediaRecorder::testMute()
 
     capture->setMuted(false);
     QCOMPARE(mutedChanged.size(), 2);
+}
+
+void tst_QMediaRecorder::testVolume()
+{
+    QSignalSpy volumeChanged(capture, SIGNAL(volumeChanged(qreal)));
+    QCOMPARE(capture->volume(), 1.0);
+    capture->setVolume(2.0);
+
+    QCOMPARE(volumeChanged.size(), 1);
+    QCOMPARE(volumeChanged[0][0].toReal(), 2.0);
+    QCOMPARE(capture->volume(), 2.0);
+
+    capture->setVolume(1.0);
+
+    QCOMPARE(volumeChanged.size(), 2);
+    QCOMPARE(volumeChanged[1][0].toReal(), 1.0);
+    QCOMPARE(capture->volume(), 1.0);
+
+    capture->setVolume(1.0);
+    QCOMPARE(volumeChanged.size(), 2);
 }
 
 void tst_QMediaRecorder::testAudioDeviceControl()

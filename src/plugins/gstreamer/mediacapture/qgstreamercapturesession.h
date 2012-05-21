@@ -131,6 +131,7 @@ public:
 
     qint64 duration() const;
     bool isMuted() const { return m_muted; }
+    qreal volume() const { return m_volume; }
 
     bool isReady() const;
 
@@ -148,6 +149,7 @@ signals:
     void imageCaptured(int requestId, const QImage &img);
     void imageSaved(int requestId, const QString &path);
     void mutedChanged(bool);
+    void volumeChanged(qreal);
     void readyChanged(bool);
     void viewfinderChanged();
 
@@ -159,6 +161,7 @@ public slots:
 
     void setMetaData(const QMap<QByteArray, QVariant>&);
     void setMuted(bool);
+    void setVolume(qreal volume);
 
 private:
     enum PipelineMode { EmptyPipeline, PreviewPipeline, RecordingPipeline, PreviewAndRecordingPipeline };
@@ -210,7 +213,8 @@ private:
     GstElement *m_audioPreviewQueue;
     GstElement *m_audioPreview;
     GstElement *m_audioVolume;
-    bool m_muted;
+    gboolean m_muted;
+    double m_volume;
 
     GstElement *m_videoSrc;
     GstElement *m_videoTee;

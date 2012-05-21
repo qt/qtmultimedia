@@ -98,6 +98,12 @@ bool AudioMediaRecorderControl::isMuted() const
     return false;
 }
 
+qreal AudioMediaRecorderControl::volume() const
+{
+    //TODO: implement muting and audio gain
+    return 1.0;
+}
+
 void AudioMediaRecorderControl::setState(QMediaRecorder::State state)
 {
     if (m_state == state)
@@ -122,6 +128,12 @@ void AudioMediaRecorderControl::setState(QMediaRecorder::State state)
 
 void AudioMediaRecorderControl::setMuted(bool)
 {
+}
+
+void AudioMediaRecorderControl::setVolume(qreal volume)
+{
+    if (!qFuzzyCompare(volume, qreal(1.0)))
+        qWarning() << "Media service doesn't support recorder audio gain.";
 }
 
 void AudioMediaRecorderControl::updateStatus()

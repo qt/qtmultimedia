@@ -75,6 +75,7 @@ public:
     virtual qint64 duration() const = 0;
 
     virtual bool isMuted() const = 0;
+    virtual qreal volume() const = 0;
 
     virtual void applySettings() = 0;
 
@@ -83,12 +84,14 @@ Q_SIGNALS:
     void statusChanged(QMediaRecorder::Status status);
     void durationChanged(qint64 position);
     void mutedChanged(bool muted);
+    void volumeChanged(qreal volume);
     void actualLocationChanged(const QUrl &location);
     void error(int error, const QString &errorString);
 
 public Q_SLOTS:
     virtual void setState(QMediaRecorder::State state) = 0;
     virtual void setMuted(bool muted) = 0;
+    virtual void setVolume(qreal volume) = 0;
 
 protected:
     QMediaRecorderControl(QObject* parent = 0);

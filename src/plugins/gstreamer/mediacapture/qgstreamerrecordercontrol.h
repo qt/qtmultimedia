@@ -67,6 +67,7 @@ public:
     qint64 duration() const;
 
     bool isMuted() const;
+    qreal volume() const;
 
     void applySettings();
 
@@ -76,6 +77,7 @@ public slots:
     void pause();
     void stop();
     void setMuted(bool);
+    void setVolume(qreal volume);
 
 private slots:
     void updateStatus();
