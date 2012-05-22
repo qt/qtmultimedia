@@ -1,11 +1,10 @@
-load(qt_module)
+load(qt_build_config)
 
 # distinct from QtMultimedia
 TARGET = QtMultimediaWidgets
-QPRO_PWD = $$PWD
 QT = core gui multimedia-private widgets-private
 
-CONFIG += module no_private_qt_headers_warning
+CONFIG += no_private_qt_headers_warning
 
 load(qt_module_config)
 
@@ -16,16 +15,12 @@ contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
    DEFINES += QT_NO_OPENGL
 }
 
-!static:DEFINES += QT_MAKEDLL
-DEFINES += QT_BUILD_MULTIMEDIAWIDGETS_LIB
-
 PRIVATE_HEADERS += \
     qvideowidget_p.h \
     qpaintervideosurface_p.h \
 
 PUBLIC_HEADERS += \
     qtmultimediawidgetdefs.h \
-    qtmultimediawidgetsversion.h \
     qcameraviewfinder.h \
     qgraphicsvideoitem.h \
     qvideowidgetcontrol.h \

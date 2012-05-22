@@ -1,4 +1,4 @@
-load(qt_module)
+load(qt_build_config)
 
 TARGET = gstmediaplayer
 PLUGIN_TYPE = mediaservice

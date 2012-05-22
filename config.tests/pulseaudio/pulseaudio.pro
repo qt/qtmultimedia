@@ -1,5 +1,4 @@
 CONFIG -= qt
-LIBS +=
 CONFIG += link_pkgconfig
 
 PKGCONFIG += \

@@ -1,9 +1,8 @@
-load(qt_module)
+load(qt_build_config)
 
 TEMPLATE = lib
 
 TARGET = QtMultimediaQuick_p
-QPRO_PWD = $$PWD
 QT = core quick multimedia-private
 
 !static:DEFINES += QT_MAKEDLL

@@ -1,5 +1,5 @@
 
-load(qt_module)
+load(qt_build_config)
 
 TARGET = mockserviceplugin3
 QT += multimedia-private

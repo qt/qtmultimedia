@@ -1,4 +1,4 @@
-load(qt_module)
+load(qt_build_config)
 
 TARGET = qtmultimedia_m3u
 QT += multimedia-private

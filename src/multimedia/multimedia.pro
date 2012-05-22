@@ -1,23 +1,14 @@
-load(qt_module)
+load(qt_build_config)
 
 TARGET = QtMultimedia
-QPRO_PWD = $$PWD
 QT = core-private network gui
-
-CONFIG += module
 
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
 } else {
    DEFINES += QT_NO_OPENGL
 }
 
-!static:DEFINES += QT_MAKEDLL
-DEFINES += QT_BUILD_MULTIMEDIA_LIB
-
 load(qt_module_config)
-
-HEADERS += qtmultimediaversion.h
-
 
 INCLUDEPATH *= .
 

@@ -1,4 +1,4 @@
-load(qt_module)
+load(qt_build_config)
 
 TARGET = wmfengine
 QT += multimedia-private network
@@ -11,8 +11,6 @@ PLUGIN_TYPE=mediaservice
 load(qt_plugin)
 
 DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
-
-DEPENDPATH += .
 
 HEADERS += wmfserviceplugin.h
 SOURCES += wmfserviceplugin.cpp

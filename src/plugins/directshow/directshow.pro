@@ -7,8 +7,6 @@ PLUGIN_TYPE=mediaservice
 
 QT += multimedia
 
-DEPENDPATH += .
-
 HEADERS += dsserviceplugin.h
 SOURCES += dsserviceplugin.cpp
 
