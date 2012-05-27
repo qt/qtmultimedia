@@ -54,9 +54,17 @@ QT_BEGIN_NAMESPACE
     \internal
 
     Writing a audio plugin is achieved by subclassing this base class,
-    reimplementing the pure virtual functions keys(), availableDevices(),
+    reimplementing the pure virtual functions availableDevices(),
     createInput(), createOutput() and createDeviceInfo() then exporting
-    the class with the Q_EXPORT_PLUGIN2() macro.
+    the class with the Q_PLUGIN_METADATA() macro.
+
+    The json file containing the meta data should contain a list of keys
+    matching the plugin. Add "default" to your list of keys available
+    to override the default audio device to be provided by your plugin.
+
+    \code
+    { "Keys": [ "default" ] }
+    \endcode
 
     Unit tests are available to help in debugging new plugins.
 
@@ -69,8 +77,6 @@ QT_BEGIN_NAMESPACE
     creating a plugin subclassing QAudioSystemPlugin, QAbstractAudioDeviceInfo,
     QAbstractAudioOutput and QAbstractAudioInput.
 
-    Add "default" to your list of keys() available to override the default
-    audio device to be provided by your plugin.
 
     -audio-backend configure option will force compiling in of the builtin backend
     into the QtMultimedia library at compile time. This is automatic by default

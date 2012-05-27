@@ -51,8 +51,8 @@ class V4LServicePlugin : public QMediaServiceProviderPlugin, public QMediaServic
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "v4l.json")
 public:
-    QStringList keys() const;
     QMediaService* create(QString const& key);
     void release(QMediaService *service);
 

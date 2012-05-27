@@ -49,15 +49,6 @@
 #endif
 #include <qmediaserviceprovider.h>
 
-QStringList WMFServicePlugin::keys() const
-{
-    return QStringList()
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-            << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)
-#endif
-            ;
-}
-
 QMediaService* WMFServicePlugin::create(QString const& key)
 {
 #ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
@@ -92,6 +83,4 @@ QString WMFServicePlugin::deviceDescription(const QByteArray &service, const QBy
 {
     return QString();
 }
-
-Q_EXPORT_PLUGIN2(qtmedia_wmfengine, WMFServicePlugin);
 

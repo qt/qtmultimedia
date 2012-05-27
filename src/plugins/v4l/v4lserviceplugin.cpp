@@ -50,12 +50,6 @@
 #include <qmediaserviceprovider.h>
 
 
-QStringList V4LServicePlugin::keys() const
-{
-    return QStringList() <<
-            QLatin1String(Q_MEDIASERVICE_RADIO);
-}
-
 QMediaService* V4LServicePlugin::create(QString const& key)
 {
     if (key == QLatin1String(Q_MEDIASERVICE_RADIO))
@@ -78,7 +72,3 @@ QString V4LServicePlugin::deviceDescription(const QByteArray &service, const QBy
 {
     return QString();
 }
-
-
-Q_EXPORT_PLUGIN2(qtmedia_v4lengine, V4LServicePlugin);
-
