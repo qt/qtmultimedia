@@ -267,7 +267,10 @@ gst_video_connector_setcaps (GstPad  *pad, GstCaps *caps)
     /* forward-negotiate */
     gboolean res = gst_pad_set_caps(element->srcpad, caps);
 
-    GST_DEBUG_OBJECT(element, "gst_video_connector_setcaps %s %i", gst_caps_to_string(caps), res);
+    gchar * debugmsg = NULL;
+    GST_DEBUG_OBJECT(element, "gst_video_connector_setcaps %s %i", debugmsg = gst_caps_to_string(caps), res);
+    if (debugmsg)
+        g_free(debugmsg);
 
     if (!res) {
         //if set_caps failed, emit "connection-failed" signal
