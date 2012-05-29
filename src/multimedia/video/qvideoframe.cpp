@@ -82,6 +82,7 @@ public:
         , pixelFormat(QVideoFrame::Format_Invalid)
         , fieldType(QVideoFrame::ProgressiveFrame)
         , buffer(0)
+        , mappedCount(0)
     {
     }
 
