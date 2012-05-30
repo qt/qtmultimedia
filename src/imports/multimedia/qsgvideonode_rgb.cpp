@@ -76,6 +76,9 @@ class QSGVideoMaterialShader_RGB : public QSGMaterialShader
 public:
     QSGVideoMaterialShader_RGB(QVideoFrame::PixelFormat pixelFormat)
         : QSGMaterialShader(),
+          m_id_matrix(-1),
+          m_id_rgbTexture(-1),
+          m_id_opacity(-1),
           m_pixelFormat(pixelFormat)
     {
     }

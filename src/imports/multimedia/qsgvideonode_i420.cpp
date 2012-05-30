@@ -174,7 +174,9 @@ public:
 
     QVideoSurfaceFormat m_format;
     QSize m_textureSize;
-    GLuint m_textureIds[3];
+
+    static const uint Num_Texture_IDs = 3;
+    GLuint m_textureIds[Num_Texture_IDs];
 
     qreal m_opacity;
     QMatrix4x4 m_colorMatrix;
@@ -187,6 +189,8 @@ QSGVideoMaterial_YUV420::QSGVideoMaterial_YUV420(const QVideoSurfaceFormat &form
     m_format(format),
     m_opacity(1.0)
 {
+    memset(m_textureIds, 0, sizeof(m_textureIds));
+
     switch (format.yCbCrColorSpace()) {
     case QVideoSurfaceFormat::YCbCr_JPEG:
         m_colorMatrix = QMatrix4x4(
@@ -217,7 +221,7 @@ QSGVideoMaterial_YUV420::QSGVideoMaterial_YUV420(const QVideoSurfaceFormat &form
 QSGVideoMaterial_YUV420::~QSGVideoMaterial_YUV420()
 {
     if (!m_textureSize.isEmpty())
-        glDeleteTextures(3, m_textureIds);
+        glDeleteTextures(Num_Texture_IDs, m_textureIds);
 }
 
 void QSGVideoMaterial_YUV420::bind()
@@ -233,8 +237,8 @@ void QSGVideoMaterial_YUV420::bind()
             // Frame has changed size, recreate textures...
             if (m_textureSize != m_frame.size()) {
                 if (!m_textureSize.isEmpty())
-                    glDeleteTextures(3, m_textureIds);
-                glGenTextures(3, m_textureIds);
+                    glDeleteTextures(Num_Texture_IDs, m_textureIds);
+                glGenTextures(Num_Texture_IDs, m_textureIds);
                 m_textureSize = m_frame.size();
             }
 

@@ -277,10 +277,12 @@ protected:
     GLuint m_textureInternalFormat;
     GLenum m_textureType;
     int m_textureCount;
-    GLuint m_textureIds[3];
-    int m_textureWidths[3];
-    int m_textureHeights[3];
-    int m_textureOffsets[3];
+
+    static const uint Max_Textures = 3;
+    GLuint m_textureIds[Max_Textures];
+    int m_textureWidths[Max_Textures];
+    int m_textureHeights[Max_Textures];
+    int m_textureOffsets[Max_Textures];
     bool m_yuv;
 };
 
@@ -298,6 +300,12 @@ QVideoSurfaceGLPainter::QVideoSurfaceGLPainter(QGLContext *context)
 #ifndef QT_OPENGL_ES
     glActiveTexture = (_glActiveTexture)m_context->getProcAddress(QLatin1String("glActiveTexture"));
 #endif
+
+    memset(m_textureIds, 0, sizeof(m_textureIds));
+    memset(m_textureWidths, 0, sizeof(m_textureWidths));
+    memset(m_textureHeights, 0, sizeof(m_textureHeights));
+    memset(m_textureOffsets, 0, sizeof(m_textureOffsets));
+
 }
 
 QVideoSurfaceGLPainter::~QVideoSurfaceGLPainter()
@@ -484,7 +492,7 @@ void QVideoSurfaceGLPainter::initRgbTextureInfo(
     m_textureInternalFormat = internalFormat;
     m_textureFormat = format;
     m_textureType = type;
-    m_textureCount = 1;
+    m_textureCount = 1; // Note: ensure this is always <= Max_Textures
     m_textureWidths[0] = size.width();
     m_textureHeights[0] = size.height();
     m_textureOffsets[0] = 0;
@@ -499,7 +507,7 @@ void QVideoSurfaceGLPainter::initYuv420PTextureInfo(const QSize &size)
     m_textureInternalFormat = GL_LUMINANCE;
     m_textureFormat = GL_LUMINANCE;
     m_textureType = GL_UNSIGNED_BYTE;
-    m_textureCount = 3;
+    m_textureCount = 3; // Note: ensure this is always <= Max_Textures
     m_textureWidths[0] = bytesPerLine;
     m_textureHeights[0] = size.height();
     m_textureOffsets[0] = 0;
@@ -520,7 +528,7 @@ void QVideoSurfaceGLPainter::initYv12TextureInfo(const QSize &size)
     m_textureInternalFormat = GL_LUMINANCE;
     m_textureFormat = GL_LUMINANCE;
     m_textureType = GL_UNSIGNED_BYTE;
-    m_textureCount = 3;
+    m_textureCount = 3; // Note: ensure this is always <= Max_Textures
     m_textureWidths[0] = bytesPerLine;
     m_textureHeights[0] = size.height();
     m_textureOffsets[0] = 0;
