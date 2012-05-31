@@ -34,14 +34,14 @@
 /*!
     \page qml-multimedia.html
 
-    \title Multimedia QML Plugin
+    \title Qt Multimedia QML API
 
-    \brief A QML plugin for the Qt Multimedia API.
+    \brief A QML API for the Qt Multimedia module.
 
 
     \section1 Overview
 
-    The Qt Multimedia API gives developers a simplified way to use audio and video playback, and access camera functionality. The Multimedia QML Plugin provides a QML friendly interface to these features.
+    The Qt Multimedia module gives developers a simplified way to use audio and video playback, and access camera functionality. The Multimedia QML API provides a QML friendly interface to these features.
 
     \section1 Types
 

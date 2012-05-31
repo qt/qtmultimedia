@@ -35,9 +35,8 @@ or video.
 
 \image qml-camera.png
 
-This example demonstrates the basic use of the Camera QML Plugin types. The
-plugin provides access to the API functionality for camera settings and
-capturing an image.
+This example demonstrates how to use the Qt Multimedia QML API to access
+camera functions. It shows how to change settings and to capture images.
 
 Most of the QML code supports the user interface for this application with the
 camera types being mostly found in \e {declarative-camera.qml} and
