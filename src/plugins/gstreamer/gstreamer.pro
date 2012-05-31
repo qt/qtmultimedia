@@ -12,3 +12,5 @@ disabled {
     }
 }
 
+OTHER_FILES += \
+    gstreamer.json
