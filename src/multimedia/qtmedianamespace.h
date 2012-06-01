@@ -54,6 +54,9 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+// Class forward declaration required for QDoc bug
+class QString;
+
 #define Q_DECLARE_METADATA(key) Q_MULTIMEDIA_EXPORT extern const QString key
 
 namespace QtMultimedia

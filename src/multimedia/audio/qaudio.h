@@ -56,6 +56,8 @@ QT_MODULE(Multimedia)
 
 //QTM_SYNC_HEADER_EXPORT QAudio
 
+// Class forward declaration required for QDoc bug
+class QString;
 namespace QAudio
 {
     enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };

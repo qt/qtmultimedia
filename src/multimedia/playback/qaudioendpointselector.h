@@ -52,6 +52,8 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Multimedia)
 
 
+// Class forward declaration required for QDoc bug
+class QString;
 class Q_MULTIMEDIA_EXPORT QAudioEndpointSelector : public QMediaControl
 {
     Q_OBJECT
