@@ -443,16 +443,16 @@ static gboolean passImageFilter(GstElement *element,
             gst_caps_unref(caps);
         }
 
-        static int exposedSignalIndex = session->metaObject()->indexOfSignal("imageExposed(int)");
-        session->metaObject()->method(exposedSignalIndex).invoke(session,
-                                                          Qt::QueuedConnection,
-                                                          Q_ARG(int,session->m_imageRequestId));
+        static QMetaMethod exposedSignal = QMetaMethod::fromSignal(&QGstreamerCaptureSession::imageExposed);
+        exposedSignal.invoke(session,
+                             Qt::QueuedConnection,
+                             Q_ARG(int,session->m_imageRequestId));
 
-        static int capturedSignalIndex = session->metaObject()->indexOfSignal("imageCaptured(int,QImage)");
-        session->metaObject()->method(capturedSignalIndex).invoke(session,
-                                                          Qt::QueuedConnection,
-                                                          Q_ARG(int,session->m_imageRequestId),
-                                                          Q_ARG(QImage,img));
+        static QMetaMethod capturedSignal = QMetaMethod::fromSignal(&QGstreamerCaptureSession::imageCaptured);
+        capturedSignal.invoke(session,
+                              Qt::QueuedConnection,
+                              Q_ARG(int,session->m_imageRequestId),
+                              Q_ARG(QImage,img));
 
         return TRUE;
     } else {
@@ -477,11 +477,11 @@ static gboolean saveImageFilter(GstElement *element,
             f.write((const char *)buffer->data, buffer->size);
             f.close();
 
-            static int signalIndex = session->metaObject()->indexOfSignal("imageSaved(int,QString)");
-            session->metaObject()->method(signalIndex).invoke(session,
-                                                              Qt::QueuedConnection,
-                                                              Q_ARG(int,session->m_imageRequestId),
-                                                              Q_ARG(QString,fileName));
+            static QMetaMethod savedSignal = QMetaMethod::fromSignal(&QGstreamerCaptureSession::imageSaved);
+            savedSignal.invoke(session,
+                               Qt::QueuedConnection,
+                               Q_ARG(int,session->m_imageRequestId),
+                               Q_ARG(QString,fileName));
         }
     }
 

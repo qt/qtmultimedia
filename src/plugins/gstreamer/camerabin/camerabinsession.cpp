@@ -774,16 +774,16 @@ bool CameraBinSession::processSyncMessage(const QGstreamerMessage &message)
                         }
                         gst_caps_unref(caps);
 
-                        static int exposedSignalIndex = metaObject()->indexOfSignal("imageExposed(int)");
-                        metaObject()->method(exposedSignalIndex).invoke(this,
-                                                                 Qt::QueuedConnection,
-                                                                 Q_ARG(int,m_requestId));
+                        static QMetaMethod exposedSignal = QMetaMethod::fromSignal(&CameraBinSession::imageExposed);
+                        exposedSignal.invoke(this,
+                                             Qt::QueuedConnection,
+                                             Q_ARG(int,m_requestId));
 
-                        static int signalIndex = metaObject()->indexOfSignal("imageCaptured(int,QImage)");
-                        metaObject()->method(signalIndex).invoke(this,
-                                                                 Qt::QueuedConnection,
-                                                                 Q_ARG(int,m_requestId),
-                                                                 Q_ARG(QImage,img));
+                        static QMetaMethod capturedSignal = QMetaMethod::fromSignal(&CameraBinSession::imageCaptured);
+                        capturedSignal.invoke(this,
+                                              Qt::QueuedConnection,
+                                              Q_ARG(int,m_requestId),
+                                              Q_ARG(QImage,img));
                     }
 
                 }
