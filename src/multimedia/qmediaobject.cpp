@@ -85,17 +85,20 @@ void QMediaObjectPrivate::_q_availabilityChanged()
     \ingroup multimedia
     \ingroup multimedia_core
 
+    It provides some basic functionality that is common to other high level classes
+    like \l QMediaPlayer, \l QAudioDecoder and \l QCamera, including availability
+    and meta-data functionality, as well as functionality to connect media objects
+    with support classes like QMediaPlaylist.
 
-    QMediaObject derived classes provide access to the functionality of a
-    QMediaService.  Each media object hosts a QMediaService and uses the
-    QMediaControl interfaces implemented by the service to implement its
-    API.  Most media objects when constructed will request a new
-    QMediaService instance from a QMediaServiceProvider, but some like
-    QMediaRecorder will share a service with another object.
+    The higher level QMediaObject derived classes provide the actual multimedia
+    functionality, by internally using a QMediaService.  Each media object
+    hosts a QMediaService and uses the QMediaControl interfaces implemented by the service to implement its
+    API.  These controls can be accessed from the media object if necessary, but in general
+    the useful functionality can be accessed from the higher level classes.
 
-    QMediaObject itself provides an API for accessing a media
-    service's \l {metaData()}{meta-data} and a means of connecting other media objects,
-    and peripheral classes like QVideoWidget and QMediaPlaylist.
+    Most media objects when constructed will request a new
+    QMediaService instance, but some like
+    QMediaRecorder and QAudioRecorder will share a service with another object.
 
     \sa QMediaService, QMediaControl
 */
@@ -338,6 +341,8 @@ bool QMediaObject::isMetaDataAvailable() const
 
 /*!
     Returns the value associated with a meta-data \a key.
+
+    See the list of predefined \l {QtMultimedia::MetaData}{meta-data keys}.
 */
 QVariant QMediaObject::metaData(const QString &key) const
 {

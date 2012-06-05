@@ -68,8 +68,8 @@ QT_BEGIN_NAMESPACE
 
     The QMediaPlayer class is a high level media playback class. It can be used
     to playback such content as songs, movies and internet radio. The content
-    to playback is specified as a QMediaContent, which can be thought of as a
-    main or canonical URL with addition information attached. When provided
+    to playback is specified as a QMediaContent object, which can be thought of as a
+    main or canonical URL with additional information attached. When provided
     with a QMediaContent playback may be able to commence.
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Player
@@ -78,6 +78,14 @@ QT_BEGIN_NAMESPACE
     for accessing playlist functionality.
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Movie playlist
+
+    Since QMediaPlayer is a QMediaObject, you can use several of the QMediaObject
+    functions for things like:
+
+    \list
+    \li Accessing the currently playing media's metadata (\l {QMediaObject::metaData()} and \l predefined \l {QtMultimedia::MetaData}{meta-data keys})
+    \li Checking to see if the media playback service is currently available (\l {QMediaObject::availabilityError()})
+    \endlist
 
     \sa QMediaObject, QMediaService, QVideoWidget, QMediaPlaylist
 */
