@@ -46,8 +46,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QVideoWindowControl
 
-    \inmodule QtMultimediaWidgets
-    \ingroup multimedia-serv
+    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_control
     \brief The QVideoWindowControl class provides a media control for rendering video to a window.
 
 
