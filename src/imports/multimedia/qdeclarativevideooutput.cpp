@@ -662,6 +662,8 @@ void QDeclarativeVideoOutput::geometryChanged(const QRectF &newGeometry, const Q
     Q_UNUSED(newGeometry);
     Q_UNUSED(oldGeometry);
 
+    QQuickItem::geometryChanged(newGeometry, oldGeometry);
+
     // Explicitly listen to geometry changes here. This is needed since changing the position does
     // not trigger a call to updatePaintNode().
     // We need to react to position changes though, as the window backened's display rect gets
