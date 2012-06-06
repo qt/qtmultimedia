@@ -46,7 +46,9 @@
 #include <QtCore/qsize.h>
 
 #include <qvideowindowcontrol.h>
+#ifndef QT_NO_WIDGETS
 #include <qvideowidgetcontrol.h>
+#endif
 #include <qvideorenderercontrol.h>
 #include <qmediaplayer.h>
 
@@ -95,6 +97,7 @@ protected:
     {}
 };
 
+#ifndef QT_NO_WIDGETS
 class QT7VideoWidgetControl : public QVideoWidgetControl, public QT7VideoOutput
 {
 Q_OBJECT
@@ -107,6 +110,7 @@ protected:
         :QVideoWidgetControl(parent)
     {}
 };
+#endif
 
 QT_END_NAMESPACE
 

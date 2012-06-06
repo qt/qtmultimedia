@@ -46,14 +46,12 @@ OBJECTIVE_SOURCES += \
 !simulator {
     HEADERS += \
         qt7movieviewoutput.h \
-        qt7movieviewrenderer.h \
         qt7movierenderer.h \
         qt7ciimagevideobuffer.h \
         qcvdisplaylink.h
 
     OBJECTIVE_SOURCES += \
         qt7movieviewoutput.mm \
-        qt7movieviewrenderer.mm \
         qt7movierenderer.mm \
         qt7videooutput.mm \
         qt7ciimagevideobuffer.mm \
@@ -61,9 +59,11 @@ OBJECTIVE_SOURCES += \
 
     !isEmpty(QT.widgets.name) {
         HEADERS += \
+            qt7movieviewrenderer.h \
             qt7movievideowidget.h
 
         OBJECTIVE_SOURCES += \
+            qt7movieviewrenderer.mm \
             qt7movievideowidget.mm
     }
 }

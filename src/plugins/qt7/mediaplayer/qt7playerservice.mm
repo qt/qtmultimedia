@@ -41,7 +41,6 @@
 
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
-#include <QtWidgets/qwidget.h>
 
 #include "qt7backend.h"
 #include "qt7playerservice.h"
@@ -51,7 +50,9 @@
 #include "qt7movieviewoutput.h"
 #include "qt7movieviewrenderer.h"
 #include "qt7movierenderer.h"
+#ifndef QT_NO_WIDGETS
 #include "qt7movievideowidget.h"
+#endif
 #include "qt7playermetadata.h"
 
 #include <private/qmediaplaylistnavigator_p.h>
@@ -95,16 +96,20 @@ QMediaControl *QT7PlayerService::requestControl(const char *name)
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
 #ifdef QUICKTIME_C_API_AVAILABLE
             m_videoOutput = new QT7MovieRenderer(this);
-#else
+#elif !defined(QT_NO_WIDGETS)
             m_videoOutput = new QT7MovieViewRenderer(this);
+#else
+            return 0;
 #endif
         }
 
+#ifndef QT_NO_WIDGETS
         if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
 #ifdef QUICKTIME_C_API_AVAILABLE
             m_videoOutput = new QT7MovieVideoWidget(this);
 #endif
         }
+#endif
 
         if (m_videoOutput) {
             QT7VideoOutput *videoOutput = qobject_cast<QT7VideoOutput*>(m_videoOutput);

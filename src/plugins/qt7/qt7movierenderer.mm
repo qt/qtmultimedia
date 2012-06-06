@@ -51,8 +51,6 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qcoreapplication.h>
 
-#include <QGLWidget>
-
 #include <qabstractvideobuffer.h>
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
