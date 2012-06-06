@@ -739,7 +739,7 @@ void QVideoWidget::setFullScreen(bool fullScreen)
 
     Signals that the \a fullScreen mode of a video widget has changed.
 
-    \sa fullScreen
+    \sa fullScreen()
 */
 
 /*!
@@ -771,7 +771,7 @@ void QVideoWidget::setBrightness(int brightness)
 
     Signals that a video widgets's \a brightness adjustment has changed.
 
-    \sa brightness
+    \sa brightness()
 */
 
 /*!
@@ -804,7 +804,7 @@ void QVideoWidget::setContrast(int contrast)
 
     Signals that a video widgets's \a contrast adjustment has changed.
 
-    \sa contrast
+    \sa contrast()
 */
 
 /*!
@@ -836,7 +836,7 @@ void QVideoWidget::setHue(int hue)
 
     Signals that a video widgets's \a hue has changed.
 
-    \sa hue
+    \sa hue()
 */
 
 /*!
@@ -869,7 +869,7 @@ void QVideoWidget::setSaturation(int saturation)
 
     Signals that a video widgets's \a saturation has changed.
 
-    \sa saturation
+    \sa saturation()
 */
 
 /*!
@@ -889,6 +889,7 @@ QSize QVideoWidget::sizeHint() const
 }
 
 /*!
+  \reimp
   Current event \a event.
   Returns the value of the baseclass QWidget::event(QEvent *event) function.
 */
@@ -922,6 +923,7 @@ bool QVideoWidget::event(QEvent *event)
 }
 
 /*!
+  \reimp
   Handles the show \a event.
  */
 void QVideoWidget::showEvent(QShowEvent *event)
@@ -945,7 +947,7 @@ void QVideoWidget::showEvent(QShowEvent *event)
 }
 
 /*!
-
+  \reimp
   Handles the hide \a event.
 */
 void QVideoWidget::hideEvent(QHideEvent *event)
@@ -959,6 +961,7 @@ void QVideoWidget::hideEvent(QHideEvent *event)
 }
 
 /*!
+  \reimp
   Handles the resize \a event.
  */
 void QVideoWidget::resizeEvent(QResizeEvent *event)
@@ -972,6 +975,7 @@ void QVideoWidget::resizeEvent(QResizeEvent *event)
 }
 
 /*!
+  \reimp
   Handles the move \a event.
  */
 void QVideoWidget::moveEvent(QMoveEvent *event)
@@ -983,6 +987,7 @@ void QVideoWidget::moveEvent(QMoveEvent *event)
 }
 
 /*!
+  \reimp
   Handles the paint \a event.
  */
 void QVideoWidget::paintEvent(QPaintEvent *event)

@@ -1105,7 +1105,7 @@ void QDeclarativeAudio::_q_statusChanged()
 ///////////// MediaPlayer Docs /////////////
 
 /*!
-    \qmlclass MediaPlayer
+    \qmlclass MediaPlayer QDeclarativeAudio
     \brief The MediaPlayer type allows you to add media playback to a scene.
 
     \inqmlmodule QtMultimedia 5

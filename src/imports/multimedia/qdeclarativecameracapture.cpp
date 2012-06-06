@@ -131,7 +131,7 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
     Indicates camera is ready to capture photo.
 
    It's permissible to call capture() while the camera is active
-   regardless of isReadyForCapture property value.
+   regardless of the \e ready property value.
    If camera is not ready to capture image immediately,
    the capture request is queued with all the related camera settings
    to be executed as soon as possible.

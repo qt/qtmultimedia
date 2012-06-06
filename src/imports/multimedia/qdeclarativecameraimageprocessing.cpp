@@ -152,7 +152,7 @@ void QDeclarativeCameraImageProcessing::setManualWhiteBalance(qreal colorTemp) c
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraImageProcessing::contrast
+    \qmlproperty qreal QtMultimedia5::CameraImageProcessing::contrast
 
     Image contrast adjustment.
     Valid contrast adjustment values range between -1.0 and 1.0, with a default of 0.
@@ -171,7 +171,7 @@ void QDeclarativeCameraImageProcessing::setContrast(qreal value)
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraImageProcessing::saturation
+    \qmlproperty qreal QtMultimedia5::CameraImageProcessing::saturation
 
     Image saturation adjustment.
     Valid saturation adjustment values range between -1.0 and 1.0, the default is 0.
@@ -190,7 +190,7 @@ void QDeclarativeCameraImageProcessing::setSaturation(qreal value)
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraImageProcessing::sharpeningLevel
+    \qmlproperty qreal QtMultimedia5::CameraImageProcessing::sharpeningLevel
 
     Adjustment of sharpening level applied to image.
 
@@ -211,7 +211,7 @@ void QDeclarativeCameraImageProcessing::setSharpeningLevel(qreal value)
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraImageProcessing::denoisingLevel
+    \qmlproperty qreal QtMultimedia5::CameraImageProcessing::denoisingLevel
 
     Adjustment of denoising applied to image.
 

@@ -76,9 +76,11 @@ QT_BEGIN_NAMESPACE
     Media objects can use services loaded dynamically from plug-ins or
     implemented statically within an applications.  Plug-in based services
     should also implement the QMediaServiceProviderPlugin interface.  Static
-    services should implement the QMediaServiceProvider interface.
+    services should implement the QMediaServiceProvider interface.  In general,
+    implementing a QMediaService is outside of the scope of this documentation
+    and support on the relevant mailing lists or IRC channels should be sought.
 
-    \sa QMediaObject, QMediaControl, QMediaServiceProvider, QMediaServiceProviderPlugin
+    \sa QMediaObject, QMediaControl
 */
 
 /*!

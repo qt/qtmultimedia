@@ -342,7 +342,7 @@ QVariantMap QAudioEncoderSettings::encodingOptions() const
 }
 
 /*!
-    Set the encoding \a option \a value.
+    Set the encoding \a option to \a value.
 
     The supported set and meaning of encoding options are
     system and selected codec specific.
@@ -359,12 +359,12 @@ void QAudioEncoderSettings::setEncodingOption(const QString &option, const QVari
 }
 
 /*!
-    Replace all the \a encoding options.
+    Replace all the encoding options with \a options.
 
     The supported set and meaning of encoding options are
     system and selected codec specific.
 
-    \sa encodingOption(), setEncodingOptions()
+    \sa encodingOption(), setEncodingOption()
 */
 void QAudioEncoderSettings::setEncodingOptions(const QVariantMap &options)
 {
@@ -687,12 +687,12 @@ void QVideoEncoderSettings::setEncodingOption(const QString &option, const QVari
 }
 
 /*!
-    Replace all the \a encoding options.
+    Replace all the encoding options with \a options.
 
     The supported set and meaning of encoding options are
     system and selected codec specific.
 
-    \sa encodingOption(), setEncodingOptions()
+    \sa encodingOption(), setEncodingOption()
 */
 void QVideoEncoderSettings::setEncodingOptions(const QVariantMap &options)
 {
@@ -932,12 +932,12 @@ void QImageEncoderSettings::setEncodingOption(const QString &option, const QVari
 }
 
 /*!
-    Replace all the \a encoding options.
+    Replace all the encoding options with \a options.
 
     The supported set and meaning of encoding options are
     system and selected codec specific.
 
-    \sa encodingOption(), setEncodingOptions()
+    \sa encodingOption(), setEncodingOption()
 */
 void QImageEncoderSettings::setEncodingOptions(const QVariantMap &options)
 {

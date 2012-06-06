@@ -379,7 +379,7 @@ QString QAudioOutput::category() const
 }
 
 /*!
-    Sets the audio category of this audio stream.
+    Sets the audio category of this audio stream to \a category.
 
     Some platforms can group audio streams into categories
     and manage their volumes independently, or display them

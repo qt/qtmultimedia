@@ -83,7 +83,7 @@ QT_BEGIN_NAMESPACE
     functions for things like:
 
     \list
-    \li Accessing the currently playing media's metadata (\l {QMediaObject::metaData()} and \l predefined \l {QtMultimedia::MetaData}{meta-data keys})
+    \li Accessing the currently playing media's metadata (\l {QMediaObject::metaData()} and \l {QtMultimedia::MetaData}{predefined meta-data keys})
     \li Checking to see if the media playback service is currently available (\l {QMediaObject::availabilityError()})
     \endlist
 

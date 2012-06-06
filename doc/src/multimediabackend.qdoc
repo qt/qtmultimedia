@@ -53,13 +53,14 @@ this by implementing certain control and service classes, as detailed below.
 For the developer who wishes to extend the functionality of the Qt Multimedia
 classes there are several classes of particular importance. The classes
 providing default functionality are QMediaService, QMediaServiceProvider and
-QMediaControl.
+QMediaControl.  Some of these classes are not in the public API since they
+are very seldom useful to application developers.
 
-to extend the Multimedia API you would use the following three classes or
+To extend the Multimedia API you would use the following three classes or
 classes derived from them.
 
     \list
-    \li \l QMediaServiceProvider is used by the top level client class to
+    \li QMediaServiceProvider is used by the top level client class to
     request a service. The top level class knowing what kind of service it needs.
 
     \li \l QMediaService provides a service and when asked by the top level
@@ -89,6 +90,11 @@ for the interface.
 
 \section2 Adding a Media Service Provider
 
+In general, adding a new media service provider is outside the scope of this documentation.
+For best results, consult the existing provider source code, and seek assistance on the relevant
+mailing lists and IRC channels.
+
+\omit
 The base class for creating new service providers is \l{QMediaServiceProvider}.
 The user must implement the \l{QMediaServiceProvider::requestService()}{requestService()}
 function
@@ -122,6 +128,8 @@ Other methods that may be overloaded
 \endcode
 
 The choice of what needs to be done depends on what the developer wishes to do with the service.
+
+\endomit
 
 \section2 Classes for service implementers.
 
