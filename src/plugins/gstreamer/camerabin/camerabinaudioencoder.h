@@ -90,8 +90,6 @@ Q_SIGNALS:
 
 private:
     QGstCodecsInfo m_codecs;
-    QMap<QString,QStringList> m_codecOptions;
-    QMap<QString, QMap<QString, QVariant> > m_options;
 
     QAudioEncoderSettings m_audioSettings;
     QAudioEncoderSettings m_userSettings;

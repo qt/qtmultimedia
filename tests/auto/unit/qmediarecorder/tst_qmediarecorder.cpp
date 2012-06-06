@@ -390,11 +390,6 @@ void tst_QMediaRecorder::testAudioEncodeControl()
     QStringList codecs = capture->supportedAudioCodecs();
     QVERIFY(codecs.count() == 2);
     QVERIFY(capture->audioCodecDescription("audio/pcm") == "Pulse Code Modulation");
-    QStringList options = encode->supportedEncodingOptions("audio/mpeg");
-    QCOMPARE(options.count(), 4);
-    QVERIFY(encode->encodingOption("audio/mpeg","bitrate").isNull());
-    encode->setEncodingOption("audio/mpeg", "bitrate", QString("vbr"));
-    QCOMPARE(encode->encodingOption("audio/mpeg","bitrate").toString(), QString("vbr"));
     QList<int> rates;
     rates << 8000 << 11025 << 22050 << 44100;
     QCOMPARE(capture->supportedAudioSampleRates(), rates);
@@ -423,14 +418,6 @@ void tst_QMediaRecorder::testVideoEncodeControl()
     QStringList vCodecs = capture->supportedVideoCodecs();
     QVERIFY(vCodecs.count() == 2);
     QCOMPARE(capture->videoCodecDescription("video/3gpp"), QString("video/3gpp"));
-
-    QStringList options = videoEncode->supportedEncodingOptions("video/3gpp");
-    QCOMPARE(options.count(), 2);
-
-    QVERIFY(encode->encodingOption("video/3gpp","me").isNull());
-    encode->setEncodingOption("video/3gpp", "me", QString("dia"));
-    QCOMPARE(encode->encodingOption("video/3gpp","me").toString(), QString("dia"));
-
 }
 
 void tst_QMediaRecorder::testEncodingSettings()

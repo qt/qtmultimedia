@@ -51,8 +51,6 @@ public:
     MockVideoEncoderControl(QObject *parent):
         QVideoEncoderControl(parent)
     {
-        m_supportedEncodeOptions.insert("video/3gpp", QStringList() << "quantizer" << "me");
-        m_supportedEncodeOptions.insert("video/H264", QStringList() << "quantizer" << "me" << "bframes");
         m_videoCodecs << "video/3gpp" << "video/H264";
         m_sizes << QSize(320,240) << QSize(640,480);
         m_framerates << 30 << 15 << 1;
@@ -83,26 +81,8 @@ public:
     QStringList supportedVideoCodecs() const { return m_videoCodecs; }
     QString videoCodecDescription(const QString &codecName) const { return codecName; }
 
-    QStringList supportedEncodingOptions(const QString &codec) const
-    {
-        return m_supportedEncodeOptions.value(codec);
-    }
-
-    QVariant encodingOption(const QString &codec, const QString &name) const
-    {
-        return m_encodeOptions[codec].value(name);
-    }
-
-    void setEncodingOption(const QString &codec, const QString &name, const QVariant &value)
-    {
-        m_encodeOptions[codec][name] = value;
-    }
-
 private:
     QVideoEncoderSettings m_videoSettings;
-
-    QMap<QString, QStringList> m_supportedEncodeOptions;
-    QMap< QString, QMap<QString, QVariant> > m_encodeOptions;
 
     QStringList m_videoCodecs;
     QList<QSize> m_sizes;

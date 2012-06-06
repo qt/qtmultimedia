@@ -77,10 +77,6 @@ public:
     QVideoEncoderSettings videoSettings() const;
     void setVideoSettings(const QVideoEncoderSettings &settings);
 
-    QStringList supportedEncodingOptions(const QString &codec) const;
-    QVariant encodingOption(const QString &codec, const QString &name) const;
-    void setEncodingOption(const QString &codec, const QString &name, const QVariant &value);
-
     void setActualVideoSettings(const QVideoEncoderSettings&);
     void resetActualSettings();
 
@@ -93,8 +89,6 @@ private:
     CameraBinSession *m_session;
 
     QGstCodecsInfo m_codecs;
-    QMap<QString,QStringList> m_codecOptions;
-    QMap<QString, QMap<QString, QVariant> > m_options;
 
     QVideoEncoderSettings m_videoSettings; // backend selected settings, using m_userSettings
     QVideoEncoderSettings m_userSettings;

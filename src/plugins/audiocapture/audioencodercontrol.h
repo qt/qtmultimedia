@@ -67,10 +67,6 @@ public:
     QAudioEncoderSettings audioSettings() const;
     void setAudioSettings(const QAudioEncoderSettings&);
 
-    QStringList supportedEncodingOptions(const QString &codec) const;
-    QVariant encodingOption(const QString &codec, const QString &name) const;
-    void setEncodingOption(const QString &codec, const QString &name, const QVariant &value);
-
 private:
     AudioCaptureSession* m_session;
     QAudioEncoderSettings m_settings;

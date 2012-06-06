@@ -75,11 +75,6 @@ public:
     virtual QAudioEncoderSettings audioSettings() const = 0;
     virtual void setAudioSettings(const QAudioEncoderSettings&) = 0;
 
-    virtual QStringList supportedEncodingOptions(const QString &codec) const = 0;
-    virtual QVariant encodingOption(const QString &codec, const QString &name) const = 0;
-    virtual void setEncodingOption(
-            const QString &codec, const QString &name, const QVariant &value) = 0;
-
 protected:
     QAudioEncoderControl(QObject *parent = 0);
 };

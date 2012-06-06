@@ -121,24 +121,6 @@ QAudioEncoderControl::~QAudioEncoderControl()
 */
 
 /*!
-    \fn QAudioEncoderControl::supportedEncodingOptions(const QString &codec) const
-
-    Returns the list of \a codec specific audio encoding options.
-*/
-
-/*!
-    \fn QAudioEncoderControl::encodingOption(const QString &codec, const QString &option) const
-
-    Returns the value of audio encoding \a option for \a codec.
-*/
-
-/*!
-    \fn QAudioEncoderControl::setEncodingOption(const QString &codec, const QString &option, const QVariant &value)
-
-    Set the \a codec specific \a option to \a value.
-*/
-
-/*!
     \fn QAudioEncoderControl::audioSettings() const
 
     Returns the audio encoder settings.

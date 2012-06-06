@@ -108,26 +108,6 @@ QVideoEncoderControl::~QVideoEncoderControl()
 */
 
 /*!
-    \fn QVideoEncoderControl::supportedEncodingOptions(const QString &codec) const
-
-    Returns a list of supported encoding options for a video \a codec.
-
-    The names and types of the options in the list is system dependent.
-*/
-
-/*!
-    \fn QVideoEncoderControl::encodingOption(const QString &codec, const QString &option) const
-
-    Returns the value of a video \a codec \a option.
-*/
-
-/*!
-    \fn QVideoEncoderControl::setEncodingOption(const QString &codec, const QString &option, const QVariant &value)
-
-    Sets the \a value of a \a codec specific \a option.
-*/
-
-/*!
     \fn QVideoEncoderControl::supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
                                                    bool *continuous = 0) const
 

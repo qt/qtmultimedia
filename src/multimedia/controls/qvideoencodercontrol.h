@@ -79,10 +79,6 @@ public:
     virtual QVideoEncoderSettings videoSettings() const = 0;
     virtual void setVideoSettings(const QVideoEncoderSettings &settings) = 0;
 
-    virtual QStringList supportedEncodingOptions(const QString &codec) const = 0;
-    virtual QVariant encodingOption(const QString &codec, const QString &name) const = 0;
-    virtual void setEncodingOption(const QString &codec, const QString &name, const QVariant &value) = 0;
-
 protected:
     QVideoEncoderControl(QObject *parent = 0);
 };

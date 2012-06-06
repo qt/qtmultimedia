@@ -71,7 +71,6 @@ private slots:
     void testNullService();
     void testNullControl();
     void testAudioSource();
-    void testOptions();
     void testDevices();
     void testAvailability();
     void testAvailableAudioInputChangedSignal();
@@ -140,16 +139,6 @@ void tst_QAudioRecorder::testAudioSource()
     audiosource = new QAudioRecorder;
 
     QCOMPARE(audiosource->mediaObject()->service(),(QMediaService *) mockMediaRecorderService);
-}
-
-void tst_QAudioRecorder::testOptions()
-{
-    const QString codec(QLatin1String("audio/mpeg"));
-
-    QStringList options = mockMediaRecorderService->mockAudioEncoderControl->supportedEncodingOptions(codec);
-    QCOMPARE(options.count(), 4);
-    mockMediaRecorderService->mockAudioEncoderControl->setEncodingOption(codec, options.first(),8000);
-    QVERIFY(mockMediaRecorderService->mockAudioEncoderControl->encodingOption(codec, options.first()).toInt() == 8000);
 }
 
 void tst_QAudioRecorder::testDevices()

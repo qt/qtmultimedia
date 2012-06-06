@@ -97,27 +97,6 @@ public:
     {
         Q_UNUSED(settings);
     }
-
-    QStringList supportedEncodingOptions(const QString &codec) const
-    {
-        Q_UNUSED(codec);
-        return QStringList();
-    }
-
-    QVariant encodingOption(const QString &codec, const QString &name) const
-    {
-        Q_UNUSED(codec);
-        Q_UNUSED(name);
-        return QVariant();
-    }
-
-    void setEncodingOption(const QString &codec, const QString &name, const QVariant &value)
-    {
-        Q_UNUSED(codec);
-        Q_UNUSED(name);
-        Q_UNUSED(value);
-    }
-
 };
 
 class tst_QVideoEncoderControl: public QObject

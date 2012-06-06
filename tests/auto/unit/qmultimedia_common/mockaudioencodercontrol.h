@@ -53,8 +53,6 @@ public:
     {
         m_codecs << "audio/pcm" << "audio/mpeg";
         m_descriptions << "Pulse Code Modulation" << "mp3 format";
-        m_supportedEncodeOptions.insert("audio/pcm", QStringList());
-        m_supportedEncodeOptions.insert("audio/mpeg", QStringList() << "quality" << "bitrate" << "mode" << "vbr");
         m_audioSettings.setCodec("audio/pcm");
         m_audioSettings.setBitRate(128*1024);
         m_audioSettings.setSampleRate(8000);
@@ -96,21 +94,6 @@ public:
         return m_descriptions.value(m_codecs.indexOf(codecName));
     }
 
-    QStringList supportedEncodingOptions(const QString &codec) const
-    {
-        return m_supportedEncodeOptions.value(codec);
-    }
-
-    QVariant encodingOption(const QString &codec, const QString &name) const
-    {
-        return m_encodeOptions[codec].value(name);
-    }
-
-    void setEncodingOption(const QString &codec, const QString &name, const QVariant &value)
-    {
-        m_encodeOptions[codec][name] = value;
-    }
-
 private:
     QAudioEncoderSettings m_audioSettings;
 
@@ -118,9 +101,6 @@ private:
     QStringList  m_descriptions;
 
     QList<int>   m_freqs;
-
-    QMap<QString, QStringList> m_supportedEncodeOptions;
-    QMap<QString, QMap<QString, QVariant> > m_encodeOptions;
 
 };
 

@@ -89,30 +89,6 @@ QString AudioEncoderControl::codecDescription(const QString &codecName) const
     return QString();
 }
 
-QStringList AudioEncoderControl::supportedEncodingOptions(const QString &codec) const
-{
-    Q_UNUSED(codec)
-
-    QStringList list;
-    return list;
-}
-
-QVariant AudioEncoderControl::encodingOption(const QString &codec, const QString &name) const
-{
-    Q_UNUSED(codec)
-    Q_UNUSED(name)
-
-    return QVariant();
-}
-
-void AudioEncoderControl::setEncodingOption(
-        const QString &codec, const QString &name, const QVariant &value)
-{
-    Q_UNUSED(value)
-    Q_UNUSED(codec)
-    Q_UNUSED(name)
-}
-
 QList<int> AudioEncoderControl::supportedSampleRates(const QAudioEncoderSettings &, bool *continuous) const
 {
     if (continuous)

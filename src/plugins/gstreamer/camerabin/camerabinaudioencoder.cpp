@@ -65,23 +65,6 @@ QString CameraBinAudioEncoder::codecDescription(const QString &codecName) const
     return m_codecs.codecDescription(codecName);
 }
 
-QStringList CameraBinAudioEncoder::supportedEncodingOptions(const QString &codec) const
-{
-    return m_codecOptions.value(codec);
-}
-
-QVariant CameraBinAudioEncoder::encodingOption(
-        const QString &codec, const QString &name) const
-{
-    return m_options[codec].value(name);
-}
-
-void CameraBinAudioEncoder::setEncodingOption(
-        const QString &codec, const QString &name, const QVariant &value)
-{
-    m_options[codec][name] = value;
-}
-
 QList<int> CameraBinAudioEncoder::supportedSampleRates(const QAudioEncoderSettings &, bool *) const
 {
     //TODO check element caps to find actual values

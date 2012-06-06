@@ -94,22 +94,6 @@ QString CameraBinVideoEncoder::videoCodecDescription(const QString &codecName) c
     return m_codecs.codecDescription(codecName);
 }
 
-QStringList CameraBinVideoEncoder::supportedEncodingOptions(const QString &codec) const
-{
-    return m_codecOptions.value(codec);
-}
-
-QVariant CameraBinVideoEncoder::encodingOption(const QString &codec, const QString &name) const
-{
-    return m_options[codec].value(name);
-}
-
-void CameraBinVideoEncoder::setEncodingOption(
-        const QString &codec, const QString &name, const QVariant &value)
-{
-    m_options[codec][name] = value;
-}
-
 QVideoEncoderSettings CameraBinVideoEncoder::videoSettings() const
 {
     return m_videoSettings;
