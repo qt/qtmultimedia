@@ -45,6 +45,7 @@
 #include <qmediabindableinterface.h>
 
 #include <QtCore/qsharedpointer.h>
+#include <QtCore/qpointer.h>
 
 QT_BEGIN_HEADER
 
@@ -72,10 +73,10 @@ protected:
     bool setMediaObject(QMediaObject *object);
 
 private:
-    QWeakPointer<QAbstractVideoSurface> m_surface;
-    QWeakPointer<QVideoRendererControl> m_control;
-    QWeakPointer<QMediaService> m_service;
-    QWeakPointer<QMediaObject> m_object;
+    QPointer<QAbstractVideoSurface> m_surface;
+    QPointer<QVideoRendererControl> m_control;
+    QPointer<QMediaService> m_service;
+    QPointer<QMediaObject> m_object;
 };
 
 QT_END_NAMESPACE

@@ -41,7 +41,7 @@
 
 #include <QtCore/qurl.h>
 #include <QtCore/qvariant.h>
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
 #include <qmediaplaylist.h>
 #include "qmediacontent.h"
@@ -100,7 +100,7 @@ public:
 
     QMediaResourceList resources;
 
-    QWeakPointer<QMediaPlaylist> playlist;
+    QPointer<QMediaPlaylist> playlist;
     bool isPlaylistOwned;
 private:
     QMediaContentPrivate& operator=(const QMediaContentPrivate &other);

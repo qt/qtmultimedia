@@ -181,7 +181,7 @@ void tst_QMediaContent::testPlaylist()
     QVERIFY(!media.playlist());
 
     {
-        QWeakPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
+        QPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
         media = QMediaContent(playlist.data(), QUrl("http://example.com/sample.m3u"), true);
         QVERIFY(media.canonicalUrl().isValid());
         QCOMPARE(media.playlist(), playlist.data());
@@ -200,7 +200,7 @@ void tst_QMediaContent::testPlaylist()
     }
 
     {
-        QWeakPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
+        QPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
         media = QMediaContent(playlist.data(), QUrl(), false);
         QVERIFY(!media.canonicalUrl().isValid());
         QCOMPARE(media.playlist(), playlist.data());

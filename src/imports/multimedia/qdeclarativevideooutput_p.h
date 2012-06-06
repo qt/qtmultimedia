@@ -46,6 +46,7 @@
 #include <QtCore/qrect.h>
 #include <QtCore/qsharedpointer.h>
 #include <QtQuick/qquickitem.h>
+#include <QtCore/qpointer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -125,9 +126,9 @@ private:
 
     SourceType m_sourceType;
 
-    QWeakPointer<QObject> m_source;
-    QWeakPointer<QMediaObject> m_mediaObject;
-    QWeakPointer<QMediaService> m_service;
+    QPointer<QObject> m_source;
+    QPointer<QMediaObject> m_mediaObject;
+    QPointer<QMediaService> m_service;
 
     FillMode m_fillMode;
     QSize m_nativeSize;

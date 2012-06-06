@@ -73,13 +73,14 @@
 #include "qmediaservice.h"
 #include "qmediarecorder.h"
 #include "qsharedpointer.h"
+#include "qpointer.h"
 
 QT_BEGIN_NAMESPACE
 
 class QVideoProbePrivate {
 public:
-    QWeakPointer<QMediaObject> source;
-    QWeakPointer<QMediaVideoProbeControl> probee;
+    QPointer<QMediaObject> source;
+    QPointer<QMediaVideoProbeControl> probee;
 };
 
 /*!
