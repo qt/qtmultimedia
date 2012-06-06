@@ -82,6 +82,7 @@ public:
 
     QAbstractVideoBuffer(HandleType type);
     virtual ~QAbstractVideoBuffer();
+    virtual void release();
 
     HandleType handleType() const;
 

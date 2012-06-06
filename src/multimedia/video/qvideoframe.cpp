@@ -102,7 +102,8 @@ public:
 
     ~QVideoFramePrivate()
     {
-        delete buffer;
+        if (buffer)
+            buffer->release();
     }
 
     QSize size;

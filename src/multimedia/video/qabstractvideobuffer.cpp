@@ -149,6 +149,19 @@ QAbstractVideoBuffer::~QAbstractVideoBuffer()
 }
 
 /*!
+    Releases the video buffer.
+
+    QVideoFrame calls QAbstractVideoBuffer::release when the buffer is not used
+    any more and can be destroyed or returned to the buffer pool.
+
+    The default implementation deletes the buffer instance.
+*/
+void QAbstractVideoBuffer::release()
+{
+    delete this;
+}
+
+/*!
     Returns the type of a video buffer's handle.
 
     \sa handle()
