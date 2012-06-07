@@ -309,7 +309,7 @@ void QDeclarativeAudioEngine::updateSoundInstances()
     for (QList<QDeclarativeSoundInstance*>::Iterator it = m_managedDeclSoundInstances.begin();
          it != m_managedDeclSoundInstances.end();) {
         QDeclarativeSoundInstance *declSndInstance = *it;
-        if (declSndInstance->state() == QDeclarativeSoundInstance::StopppedState) {
+        if (declSndInstance->state() == QDeclarativeSoundInstance::StoppedState) {
             it = m_managedDeclSoundInstances.erase(it);
             releaseManagedDeclarativeSoundInstance(declSndInstance);
 #ifdef DEBUG_AUDIOENGINE

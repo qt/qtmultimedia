@@ -68,7 +68,7 @@ QSoundInstance::QSoundInstance(QObject *parent)
     , m_varGain(1)
     , m_pitch(1)
     , m_varPitch(1)
-    , m_state(QSoundInstance::StopppedState)
+    , m_state(QSoundInstance::StoppedState)
     , m_coneOuterGain(0)
     , m_engine(0)
 {
@@ -190,7 +190,7 @@ void QSoundInstance::handleSourceStateChanged(QSoundSource::State newState)
     State ns = State(newState);
     if (ns == m_state)
         return;
-    if (ns == QSoundInstance::StopppedState) {
+    if (ns == QSoundInstance::StoppedState) {
         prepareNewVariation();
     }
     setState(ns);
@@ -217,7 +217,7 @@ void QSoundInstance::sourceStop()
 {
     Q_ASSERT(m_soundSource);
     m_soundSource->stop();
-    setState(QSoundInstance::StopppedState);
+    setState(QSoundInstance::StoppedState);
 }
 
 void QSoundInstance::detach()
@@ -285,8 +285,8 @@ void QSoundInstance::sourcePause()
 
 void QSoundInstance::stop()
 {
-    if (!m_isReady || !m_soundSource || m_state == QSoundInstance::StopppedState) {
-        setState(QSoundInstance::StopppedState);
+    if (!m_isReady || !m_soundSource || m_state == QSoundInstance::StoppedState) {
+        setState(QSoundInstance::StoppedState);
         return;
     }
     sourceStop();

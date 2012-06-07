@@ -71,7 +71,7 @@ class QDeclarativeSoundInstance : public QObject
 public:
     enum State
     {
-        StopppedState = QSoundInstance::StopppedState,
+        StoppedState = QSoundInstance::StoppedState,
         PlayingState = QSoundInstance::PlayingState,
         PausedState = QSoundInstance::PausedState
     };

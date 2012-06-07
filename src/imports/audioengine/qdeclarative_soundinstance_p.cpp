@@ -171,7 +171,7 @@ QDeclarativeSoundInstance::QDeclarativeSoundInstance(QObject *parent)
     , m_velocity(0, 0, 0)
     , m_gain(1)
     , m_pitch(1)
-    , m_requestState(QDeclarativeSoundInstance::StopppedState)
+    , m_requestState(QDeclarativeSoundInstance::StoppedState)
     , m_coneInnerAngle(360)
     , m_coneOuterAngle(360)
     , m_coneOuterGain(0)
@@ -343,7 +343,7 @@ void QDeclarativeSoundInstance::stop()
 #ifdef DEBUG_AUDIOENGINE
     qDebug() << "QDeclarativeSoundInstance::stop()";
 #endif
-    m_requestState = QDeclarativeSoundInstance::StopppedState;
+    m_requestState = QDeclarativeSoundInstance::StoppedState;
     if (!m_instance)
         return;
     m_instance->stop();

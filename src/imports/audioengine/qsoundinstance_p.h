@@ -64,7 +64,7 @@ public:
 
     enum State
     {
-        StopppedState = QSoundSource::StoppedState,
+        StoppedState = QSoundSource::StoppedState,
         PlayingState = QSoundSource::PlayingState,
         PausedState = QSoundSource::PausedState
     };
