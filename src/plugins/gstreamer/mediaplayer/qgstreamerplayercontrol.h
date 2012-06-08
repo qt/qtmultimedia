@@ -136,7 +136,8 @@ private:
 
     bool m_ownStream;
     QGstreamerPlayerSession *m_session;
-    QMediaPlayer::State m_state;
+    QMediaPlayer::State m_userRequestedState;
+    QMediaPlayer::State m_currentState;
     QMediaPlayer::MediaStatus m_mediaStatus;
     QStack<QMediaPlayer::State> m_stateStack;
     QStack<QMediaPlayer::MediaStatus> m_mediaStatusStack;
