@@ -31,7 +31,6 @@ SUBDIRS += \
     qwavedecoder \
     qaudiobuffer \
     qdeclarativeaudio \
-    qdeclarativeaudio_4 \
     qaudiodecoder \
     qaudioprobe \
     qvideoprobe \

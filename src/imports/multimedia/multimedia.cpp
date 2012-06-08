@@ -47,7 +47,6 @@
 
 #include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
-#include "qdeclarativeaudio_p_4.h"
 #include "qdeclarativevideooutput_p.h"
 #include "qdeclarativeradio_p.h"
 #include "qdeclarativeradiodata_p.h"
@@ -71,31 +70,8 @@ class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 public:
     virtual void registerTypes(const char *uri)
     {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia")
-                || QLatin1String(uri) == QLatin1String("Qt.multimediakit"));
+        Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia"));
 
-        qmlRegisterType<QSoundEffect>(uri, 4, 0, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio_4>(uri, 4, 0, "Audio");
-        qmlRegisterType<QDeclarativeAudio_4>(uri, 4, 0, "MediaPlayer");
-        qmlRegisterType<QDeclarativeVideoOutput>(uri, 4, 0, "VideoOutput");
-        qmlRegisterType<QDeclarativeRadio>(uri, 4, 0, "Radio");
-        qmlRegisterType<QDeclarativeRadioData>(uri, 4, 0, "RadioData");
-        qmlRegisterType<QDeclarativeCamera>(uri, 4, 0, "Camera");
-        qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 4, 0, "CameraCapture",
-                                trUtf8("CameraCapture is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 4, 0, "CameraRecorder",
-                                trUtf8("CameraRecorder is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 4, 0, "CameraExposure",
-                                trUtf8("CameraExposure is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraFocus>(uri, 4, 0, "CameraFocus",
-                                trUtf8("CameraFocus is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 4, 0, "CameraFlash",
-                                trUtf8("CameraFlash is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 4, 0, "CameraImageProcessing",
-                                trUtf8("CameraImageProcessing is only provided by Camera type"));
-
-        // Introduced to help transition from QtMultimedia 4.0 to 5.0 (official for Qt 5)
-        // the 4.0 versioned types will be removed once all clients have made the transition.
         qmlRegisterType<QSoundEffect>(uri, 5, 0, "SoundEffect");
         qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "Audio");
         qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "MediaPlayer");
