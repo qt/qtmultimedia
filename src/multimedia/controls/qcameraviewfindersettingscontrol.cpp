@@ -104,7 +104,7 @@ QCameraViewfinderSettingsControl::~QCameraViewfinderSettingsControl()
 */
 
 /*!
-    \fn QCameraViewfinderSettingsControl::isViewfinderParameterSupported(ViewfinderParameter parameter)
+    \fn bool QCameraViewfinderSettingsControl::isViewfinderParameterSupported(ViewfinderParameter parameter) const
 
     Returns true if configuration of viewfinder \a parameter is supported by camera backend.
 */

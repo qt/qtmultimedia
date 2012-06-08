@@ -56,6 +56,9 @@ QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
 
+// Required for QDoc workaround
+class QString;
+
 class Q_MULTIMEDIA_EXPORT QMediaRecorderControl : public QMediaControl
 {
     Q_OBJECT
