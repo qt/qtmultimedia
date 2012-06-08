@@ -415,6 +415,10 @@ private:
 
     \brief The QVideoEncoderSettings class provides a set of video encoder settings.
 
+    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_recording
+
     A video encoder settings object is used to specify the video encoder
     settings used by QMediaRecorder.  Video encoder settings are selected by
     constructing a QVideoEncoderSettings object, setting the desired properties
@@ -736,6 +740,10 @@ private:
 
     \brief The QImageEncoderSettings class provides a set of image encoder
     settings.
+
+    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_camera
 
     A image encoder settings object is used to specify the image encoder
     settings used by QCameraImageCapture.  Image encoder settings are selected

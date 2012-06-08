@@ -44,7 +44,7 @@
     \inmodule QtMultimedia
 
     \ingroup multimedia
-    \ingroup multimedia_video
+    \ingroup multimedia_audio
 
     \brief The QAudioProbe class allows you to monitor audio being played or recorded.
 

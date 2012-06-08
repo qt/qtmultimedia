@@ -281,7 +281,8 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
     \brief The QCameraFocus class provides an interface for focus and zoom related camera settings.
 
     \inmodule QtMultimedia
-    \ingroup camera
+    \ingroup multimedia
+    \ingroup multimedia_camera
 
     On hardware that supports it, this class lets you adjust the focus
     or zoom (both optical and digital).  This also includes things
