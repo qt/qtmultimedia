@@ -96,7 +96,8 @@ public:
 protected:
     QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, HandleType type);
 
-    QAbstractVideoBufferPrivate *d_ptr;
+    QAbstractVideoBufferPrivate *d_ptr;  // For expansion, not used currently
+    HandleType m_type;
 
 private:
     Q_DECLARE_PRIVATE(QAbstractVideoBuffer)

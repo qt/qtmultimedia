@@ -122,11 +122,9 @@ namespace
     Constructs an abstract video buffer of the given \a type.
 */
 QAbstractVideoBuffer::QAbstractVideoBuffer(HandleType type)
-    : d_ptr(new QAbstractVideoBufferPrivate)
+    : d_ptr(0)
+    , m_type(type)
 {
-    Q_D(QAbstractVideoBuffer);
-
-    d->handleType = type;
 }
 
 /*!
@@ -134,10 +132,8 @@ QAbstractVideoBuffer::QAbstractVideoBuffer(HandleType type)
 */
 QAbstractVideoBuffer::QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, HandleType type)
     : d_ptr(&dd)
+    , m_type(type)
 {
-    Q_D(QAbstractVideoBuffer);
-
-    d->handleType = type;
 }
 
 /*!
@@ -168,7 +164,7 @@ void QAbstractVideoBuffer::release()
 */
 QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
 {
-    return d_func()->handleType;
+    return m_type;
 }
 
 /*!

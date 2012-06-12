@@ -66,18 +66,14 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
 class QAbstractVideoBufferPrivate
 {
 public:
     QAbstractVideoBufferPrivate()
-        : handleType(QAbstractVideoBuffer::NoHandle)
     {}
 
     virtual ~QAbstractVideoBufferPrivate()
     {}
-
-    QAbstractVideoBuffer::HandleType handleType;
 };
 
 QT_END_NAMESPACE
