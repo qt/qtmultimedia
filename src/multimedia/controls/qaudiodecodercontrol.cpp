@@ -177,9 +177,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
     \fn QAudioDecoderControl::bufferAvailable() const
 
     Returns true if a buffer is available to be read,
-    and false otherwise.  If there is no buffer available, calling
-    the \l read() function may block until a buffer is available or
-    the end of the media is reached
+    and false otherwise.
 */
 
 /*!
@@ -249,7 +247,8 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 
 /*!
     \fn QAudioDecoderControl::read()
-    Read a buffer from the decoder. Returns invalid buffer on failure.
+    Attempts to read a buffer from the decoder, without blocking. Returns invalid buffer if there are
+    no decoded buffers available, or on error.
 */
 
 /*!

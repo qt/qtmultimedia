@@ -203,8 +203,8 @@ QString QAudioDecoder::errorString() const
     when enough data has been decoded.  Calling \l read() will then return
     an audio buffer without blocking.
 
-    Alternatively, if you wish to block until enough data has been decoded,
-    you can call read() at any time to block until a buffer is ready.
+    If you call read() before a buffer is ready, an invalid buffer will
+    be returned, again without blocking.
 
     \sa read()
 */
@@ -372,8 +372,7 @@ QtMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
 
     Returns true if a buffer is available to be read,
     and false otherwise.  If there is no buffer available, calling
-    the \l read() function may block until a buffer is available or
-    the end of the media is reached
+    the \l read() function will return an invalid buffer.
 */
 bool QAudioDecoder::bufferAvailable() const
 {
@@ -410,7 +409,13 @@ qint64 QAudioDecoder::duration() const
 }
 
 /*!
-    Read a buffer from the decoder. Returns invalid buffer on failure.
+    Read a buffer from the decoder, if one is available. Returns an invalid buffer
+    if there are no decoded buffers currently available, or on failure.  In both cases
+    this function will not block.
+
+    You should either respond to the \l bufferReady() signal or check the
+    \l bufferAvailable() function before calling read() to make sure
+    you get useful data.
 */
 
 QAudioBuffer QAudioDecoder::read() const
