@@ -65,7 +65,7 @@ Scene {
         }
         duration: content.contentItem() ? content.contentItem().duration : 0
         playPosition: content.contentItem() ? content.contentItem().position : 0
-        onSeekPositionChanged: { content.contentItem().position = seekPosition }
+        onSeekPositionChanged: { content.contentItem().seek(seekPosition); }
     }
 
     Component.onCompleted: root.content = content

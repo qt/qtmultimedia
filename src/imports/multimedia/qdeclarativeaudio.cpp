@@ -276,23 +276,6 @@ int QDeclarativeAudio::position() const
     return !m_complete ? m_position : m_player->position();
 }
 
-void QDeclarativeAudio::setPosition(int position)
-{
-    // QMediaPlayer clamps this to positive numbers
-    if (position < 0)
-        position = 0;
-
-    if (this->position() == position)
-        return;
-
-    m_position = position;
-
-    if (m_complete)
-        m_player->setPosition(m_position);
-    else
-        emit positionChanged();
-}
-
 qreal QDeclarativeAudio::volume() const
 {
     return !m_complete ? m_vol : qreal(m_player->volume()) / 100;
@@ -422,6 +405,34 @@ void QDeclarativeAudio::stop()
 }
 
 /*!
+    \qmlmethod QtMultimedia5::Audio::seek(offset)
+
+    If the \l seekable property is true, seeks the current
+    playback position to \a offset.
+
+    Seeking may be asynchronous, so the \l position property
+    may not be updated immediately.
+
+    \sa seekable, position
+*/
+void QDeclarativeAudio::seek(int position)
+{
+    // QMediaPlayer clamps this to positive numbers
+    if (position < 0)
+        position = 0;
+
+    if (this->position() == position)
+        return;
+
+    m_position = position;
+
+    if (m_complete)
+        m_player->setPosition(m_position);
+    else
+        emit positionChanged();
+}
+
+/*!
     \qmlproperty url QtMultimedia5::Audio::source
 
     This property holds the source URL of the media.
@@ -522,7 +533,9 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 
     This property holds the current playback position in milliseconds.
 
-    If the \l seekable property is true, this property can be set to seek to a new position.
+    To change this position, use the \l seek() method.
+
+    \sa seek()
 */
 
 /*!
@@ -575,7 +588,7 @@ bool QDeclarativeAudio::hasVideo() const
 
     This property holds whether position of the audio can be changed.
 
-    If true; setting a \l position value will cause playback to seek to the new position.
+    If true, calling the \l seek() method will cause playback to seek to the new position.
 */
 
 /*!
@@ -1321,7 +1334,9 @@ void QDeclarativeAudio::_q_statusChanged()
 
     This property holds the current playback position in milliseconds.
 
-    If the \l seekable property is true, this property can be set to seek to a new position.
+    To change this position, use the \l seek() method.
+
+    \sa seek()
 */
 
 /*!
@@ -1364,7 +1379,19 @@ void QDeclarativeAudio::_q_statusChanged()
 
     This property holds whether position of the audio can be changed.
 
-    If true; setting a \l position value will cause playback to seek to the new position.
+    If true, calling the \l seek() method will cause playback to seek to the new position.
+*/
+
+/*!
+    \qmlmethod QtMultimedia5::MediaPlayer::seek(offset)
+
+    If the \l seekable property is true, seeks the current
+    playback position to \a offset.
+
+    Seeking may be asynchronous, so the \l position property
+    may not be updated immediately.
+
+    \sa seekable, position
 */
 
 /*!

@@ -71,4 +71,5 @@ Rectangle {
 
     function start() { }
     function stop() { }
+    function seek() { }
 }

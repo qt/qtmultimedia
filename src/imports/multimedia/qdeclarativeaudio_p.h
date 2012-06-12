@@ -82,7 +82,7 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_PROPERTY(bool autoLoad READ isAutoLoad WRITE setAutoLoad NOTIFY autoLoadChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged)
-    Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
+    Q_PROPERTY(int position READ position NOTIFY positionChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged)
@@ -171,7 +171,6 @@ public:
     int duration() const;
 
     int position() const;
-    void setPosition(int position);
 
     qreal volume() const;
     void setVolume(qreal volume);
@@ -200,6 +199,7 @@ public Q_SLOTS:
     void play();
     void pause();
     void stop();
+    void seek(int position);
 
 Q_SIGNALS:
     void sourceChanged();

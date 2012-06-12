@@ -315,7 +315,7 @@ void tst_QDeclarativeAudio::nullPlayerControl()
     QCOMPARE(audio.duration(), 0);
 
     QCOMPARE(audio.position(), 0);
-    audio.setPosition(10000);
+    audio.seek(10000);
     QCOMPARE(audio.position(), 10000);
 
     QCOMPARE(audio.volume(), qreal(1.0));
@@ -369,7 +369,7 @@ void tst_QDeclarativeAudio::nullService()
     QCOMPARE(audio.duration(), 0);
 
     QCOMPARE(audio.position(), 0);
-    audio.setPosition(10000);
+    audio.seek(10000);
     QCOMPARE(audio.position(), 10000);
 
     QCOMPARE(audio.volume(), qreal(1.0));
@@ -611,17 +611,17 @@ void tst_QDeclarativeAudio::position()
     // QDeclarativeAudio won't bound set positions to the duration.  A media service may though.
     QCOMPARE(audio.duration(), 0);
 
-    audio.setPosition(450);
+    audio.seek(450);
     QCOMPARE(audio.position(), 450);
     QCOMPARE(provider.playerControl()->position(), qint64(450));
     QCOMPARE(spy.count(), 1);
 
-    audio.setPosition(-5403);
+    audio.seek(-5403);
     QCOMPARE(audio.position(), 0);
     QCOMPARE(provider.playerControl()->position(), qint64(0));
     QCOMPARE(spy.count(), 2);
 
-    audio.setPosition(-5403);
+    audio.seek(-5403);
     QCOMPARE(audio.position(), 0);
     QCOMPARE(provider.playerControl()->position(), qint64(0));
     QCOMPARE(spy.count(), 2);

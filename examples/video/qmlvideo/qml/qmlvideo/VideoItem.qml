@@ -73,4 +73,5 @@ VideoOutput {
 
     function start() { mediaPlayer.play() }
     function stop() { mediaPlayer.stop() }
+    function seek(position) { mediaPlayer.seek(position); }
 }
