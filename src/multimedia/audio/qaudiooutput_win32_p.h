@@ -53,6 +53,8 @@
 #ifndef QAUDIOOUTPUTWIN_H
 #define QAUDIOOUTPUTWIN_H
 
+#define NOMINMAX
+
 #include <windows.h>
 #include <mmsystem.h>
 

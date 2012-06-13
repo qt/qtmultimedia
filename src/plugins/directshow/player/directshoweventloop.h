@@ -46,7 +46,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qwaitcondition.h>
 
-#include <windows.h>
+#include <qt_windows.h>
 
 class DirectShowPostedEvent;
 
