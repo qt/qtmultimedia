@@ -139,10 +139,10 @@ void QDeclarativeSoundCone::componentComplete()
 ////////////////////////////////////////////////////////////
 /*!
     \qmlclass Sound QDeclarativeSound
-    \since 5.0
+    \since 1.0
     \brief Define a variety of samples and parameters to be used for
     SoundInstance.
-    \inqmlmodule QtAudioEngine 1
+    \inqmlmodule QtAudioEngine 1.0
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary

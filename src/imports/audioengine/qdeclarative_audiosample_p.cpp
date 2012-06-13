@@ -51,9 +51,9 @@ QT_USE_NAMESPACE
 
 /*!
     \qmlclass AudioSample QDeclarativeAudioSample
-    \since 5.0
+    \since 1.0
     \brief Load audio samples, mostly .wav.
-    \inqmlmodule QtAudioEngine 1
+    \inqmlmodule QtAudioEngine 1.0
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary

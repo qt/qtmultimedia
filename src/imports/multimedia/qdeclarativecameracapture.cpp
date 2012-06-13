@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
     \qmlclass CameraCapture QDeclarativeCameraCapture
     \brief An interface for capturing camera images
     \ingroup multimedia_qml
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
     \ingroup camera_qml
 
     This type allows you to capture still images and be notified when they

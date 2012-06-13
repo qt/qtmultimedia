@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass Radio QDeclarativeRadio
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
     \brief Access radio functionality from a QML application.
     \ingroup multimedia_qml
     \ingroup multimedia_radio_qml

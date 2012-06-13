@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
 
     \c VideoOutput is part of the \b{QtMultimedia 5.0} module.
 

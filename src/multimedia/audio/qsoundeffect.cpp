@@ -50,189 +50,68 @@
 QT_BEGIN_NAMESPACE
 
 /*!
+    \class QSoundEffect
+    \brief The QSoundEffect class provides a way to play low latency sound effects.
+
+    \ingroup multimedia
+    \ingroup multimedia_audio
+    \inmodule QtMultimedia
+
+    This class allows you to play uncompressed audio files (typically WAV files) in
+    a generally lower latency way, and is suitable for "feedback" type sounds in
+    response to user actions (e.g. virtual keyboard sounds, positive or negative
+    feedback for popup dialogs, or game sounds).  If low latency is not important,
+    consider using the QMediaPlayer class instead, since it supports a wider
+    variety of media formats and is less resource intensive.
+
+    This example shows how a looping, somewhat quiet sound effect
+    can be played:
+
+    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 2
+
+    Typically the sound effect should be reused, which allows all the
+    parsing and preparation to be done ahead of time, and only triggered
+    when necessary.  This assists with lower latency audio playback.
+
+    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 3
+
+    Since QSoundEffect requires slightly more resources to achieve lower
+    latency playback, the platform may limit the number of simultaneously playing
+    sound effects.
+*/
+
+
+/*!
     \qmlclass SoundEffect QSoundEffect
     \brief The SoundEffect type provides a way to play sound effects in QML.
 
     \inmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
 
     SoundEffect is part of the \b{QtMultimedia 5.0} module.
+
+    This type allows you to play uncompressed audio files (typically WAV files) in
+    a generally lower latency way, and is suitable for "feedback" type sounds in
+    response to user actions (e.g. virtual keyboard sounds, positive or negative
+    feedback for popup dialogs, or game sounds).  If low latency is not important,
+    consider using the MediaPlayer or Audio types instead, since they support a wider
+    variety of media formats and are less resource intensive.
+
+    Typically the sound effect should be reused, which allows all the
+    parsing and preparation to be done ahead of time, and only triggered
+    when necessary.  This is easy to achieve with QML, since you can declare your
+    SoundEffect instance and refer to it elsewhere.
 
     The following example plays a WAV file on mouse click.
 
     \snippet doc/src/snippets/multimedia-snippets/soundeffect.qml complete snippet
+
+    Since SoundEffect requires slightly more resources to achieve lower
+    latency playback, the platform may limit the number of simultaneously playing
+    sound effects.
 */
-
-/*!
-    \class QSoundEffect
-    \brief The QSoundEffect class provides a way to play low latency sound effects.
-
-    \ingroup multimedia
-    \ingroup multimedia_audio
-
-
-*/
-
-/*!
-    \enum QSoundEffect::Loop
-
-    \value Infinite  Used as a parameter to \l loops for infinite looping
-*/
-
-/*!
-    \enum QSoundEffect::Status
-
-    \value Null  No source has been set or the source is null.
-    \value Loading  The SoundEffect is trying to load the source.
-    \value Ready  The source is loaded and ready for play.
-    \value Error  An error occurred during operation, such as failure of loading the source.
-
-*/
-
-/*!
-    \qmlproperty url QtMultimedia5::SoundEffect::source
-    \property QSoundEffect::source
-
-    This property provides a way to control the sound to play. For the SoundEffect
-    to attempt to load the source, the URL must exist and the application must have read permission
-    in the specified directory. If the desired source is a local file the URL may be specified
-    using either absolute or relative (to the file that declared the SoundEffect) pathing.
-*/
-
-/*!
-    \qmlproperty int QtMultimedia5::SoundEffect::loops
-
-    This property provides a way to control the number of times to repeat the sound on each play().
-
-    Set to SoundEffect.Infinite to enable infinite looping.
-*/
-
-/*!
-    \property QSoundEffect::loops
-    This property provides a way to control the number of times to repeat the sound on each play().
-
-    Set to QSoundEffect::Infinite to enable infinite looping.
-*/
-
-/*!
-    \qmlproperty qreal QtMultimedia5::SoundEffect::volume
-    \property QSoundEffect::volume
-
-    This property holds the volume of the playback, from 0.0 (silent) to 1.0 (maximum volume).
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia5::SoundEffect::muted
-    \property QSoundEffect::muted
-
-    This property provides a way to control muting. A value of \c true will mute this effect.
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia5::SoundEffect::playing
-    \property QSoundEffect::playing
-
-    This property indicates whether the sound effect is playing or not.
-*/
-
-/*!
-    \qmlproperty enumeration QtMultimedia5::SoundEffect::status
-
-    This property indicates the current status of the SoundEffect
-    as enumerated within SoundEffect.
-    Possible statuses are listed below.
-
-    \table
-    \header \li Value \li Description
-    \row \li SoundEffect.Null    \li No source has been set or the source is null.
-    \row \li SoundEffect.Loading \li The SoundEffect is trying to load the source.
-    \row \li SoundEffect.Ready   \li The source is loaded and ready for play.
-    \row \li SoundEffect.Error   \li An error occurred during operation, such as failure of loading the source.
-    \endtable
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::sourceChanged()
-    \fn void QSoundEffect::sourceChanged()
-
-    The \c sourceChanged signal is emitted when the source has been changed.
-
-    The corresponding handler is \c onSourceChanged.
-*/
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::loadedChanged()
-    \fn void QSoundEffect::loadedChanged()
-
-    The \c loadedChanged signal is emitted when the loading state has changed.
-
-    The corresponding handler is \c onLoadedChanged.
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::loopCountChanged()
-    \fn void QSoundEffect::loopCountChanged()
-
-    The \c loopCountChanged signal is emitted when the initial number of loops has changed.
-
-    The corresponding handler is \c onLoopCountChanged.
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::loopsRemainingChanged()
-    \fn void QSoundEffect::loopsRemainingChanged()
-
-    The \c loopsRemainingChanged signal is emitted when the remaining number of loops has changed.
-
-    The corresponding handler is \c onLoopsRemainingChanged.
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::volumeChanged()
-    \fn void QSoundEffect::volumeChanged()
-
-    The \c volumeChanged signal is emitted when the volume has changed.
-
-    The corresponding handler is \c onVolumeChanged.
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::mutedChanged()
-    \fn void QSoundEffect::mutedChanged()
-
-    The \c mutedChanged signal is emitted when the mute state has changed.
-
-    The corresponding handler is \c onMutedChanged.
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::playingChanged()
-    \fn void QSoundEffect::playingChanged()
-
-    The \c playingChanged signal is emitted when the playing property has changed.
-
-    The corresponding handler is \c onPlayingChanged.
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::statusChanged()
-    \fn void QSoundEffect::statusChanged()
-
-    The \c statusChanged signal is emitted when the status property has changed.
-
-    The corresponding handler is \c onStatusChanged.
-*/
-
-/*!
-    \qmlsignal QtMultimedia5::SoundEffect::categoryChanged()
-    \fn void QSoundEffect::categoryChanged()
-
-    The \c categoryChanged signal is emitted when the category property has changed.
-
-    The corresponding handler is \c onCategoryChanged.
-*/
-
 
 /*!
     Creates a QSoundEffect with the given \a parent.
@@ -268,11 +147,29 @@ QStringList QSoundEffect::supportedMimeTypes()
     return QSoundEffectPrivate::supportedMimeTypes();
 }
 
+/*!
+    \qmlproperty url QtMultimedia5::SoundEffect::source
+
+    This property holds the url for the sound to play. For the SoundEffect
+    to attempt to load the source, the URL must exist and the application must have read permission
+    in the specified directory. If the desired source is a local file the URL may be specified
+    using either absolute or relative (to the file that declared the SoundEffect) pathing.
+*/
+/*!
+    \property QSoundEffect::source
+
+    This property holds the url for the sound to play. For the SoundEffect
+    to attempt to load the source, the URL must exist and the application must have read permission
+    in the specified directory.
+*/
+
+/*! Returns the URL of the current source to play */
 QUrl QSoundEffect::source() const
 {
     return d->source();
 }
 
+/*! Set the current URL to play to \a url. */
 void QSoundEffect::setSource(const QUrl &url)
 {
     if (d->source() == url)
@@ -283,9 +180,54 @@ void QSoundEffect::setSource(const QUrl &url)
     emit sourceChanged();
 }
 
+/*!
+    \qmlproperty int QtMultimedia5::SoundEffect::loops
+
+    This property provides a way to control the number of times to repeat the sound on each play().
+
+    Set to SoundEffect.Infinite to enable infinite looping.
+*/
+
+/*!
+    \property QSoundEffect::loops
+    This property provides a way to control the number of times to repeat the sound on each play().
+
+    Set to QSoundEffect::Infinite to enable infinite looping.
+*/
+
+/*!
+    Returns the total number of times that this sound effect will be played before stopping.
+
+    See the \l loopsRemaining() method for the number of loops currently remaining.
+ */
 int QSoundEffect::loopCount() const
 {
     return d->loopCount();
+}
+
+/*!
+    \enum QSoundEffect::Loop
+
+    \value Infinite  Used as a parameter to \l setLoopCount() for infinite looping
+*/
+
+/*!
+    Set the total number of times to repeat playing this sound effect on each play() call to \a loopCount.
+    Pass \c QSoundEffect::Infinite to repeat until stop() is called.
+*/
+void QSoundEffect::setLoopCount(int loopCount)
+{
+    if (loopCount < 0 && loopCount != Infinite) {
+        qWarning("SoundEffect: loops should be SoundEffect.Infinite, 0 or positive integer");
+        return;
+    }
+    if (loopCount == 0)
+        loopCount = 1;
+    if (d->loopCount() == loopCount)
+        return;
+
+    d->setLoopCount(loopCount);
+    emit loopCountChanged();
 }
 
 /*!
@@ -305,26 +247,29 @@ int QSoundEffect::loopsRemaining() const
     return d->loopsRemaining();
 }
 
-void QSoundEffect::setLoopCount(int loopCount)
-{
-    if (loopCount < 0 && loopCount != Infinite) {
-        qWarning("SoundEffect: loops should be SoundEffect.Infinite, 0 or positive integer");
-        return;
-    }
-    if (loopCount == 0)
-        loopCount = 1;
-    if (d->loopCount() == loopCount)
-        return;
 
-    d->setLoopCount(loopCount);
-    emit loopCountChanged();
-}
+/*!
+    \qmlproperty qreal QtMultimedia5::SoundEffect::volume
 
+    This property holds the volume of the sound effect playback, from 0.0 (silent) to 1.0 (maximum volume).
+*/
+/*!
+    \property QSoundEffect::volume
+
+    This property holds the volume of the sound effect playback, from 0.0 (silent) to 1.0 (maximum volume).
+*/
+
+/*!
+    Returns the current volume of this sound effect, from 0.0 (silent) to 1.0 (maximum volume).
+ */
 qreal QSoundEffect::volume() const
 {
     return qreal(d->volume()) / 100;
 }
 
+/*!
+    Sets the volume to play the sound effect at to \a volume, from 0.0 (silent) to 1.0 (maximum volume).
+ */
 void QSoundEffect::setVolume(qreal volume)
 {
     if (volume < 0 || volume > 1) {
@@ -338,11 +283,31 @@ void QSoundEffect::setVolume(qreal volume)
     d->setVolume(iVolume);
 }
 
+/*!
+    \qmlproperty bool QtMultimedia5::SoundEffect::muted
+
+    This property provides a way to control muting. A value of \c true will mute this effect.
+    Otherwise, playback will occur with the currently specified \l volume.
+*/
+/*!
+    \property QSoundEffect::muted
+
+    This property provides a way to control muting. A value of \c true will mute this effect.
+*/
+
+/*! Returns whether this sound effect is muted */
 bool QSoundEffect::isMuted() const
 {
     return d->isMuted();
 }
 
+/*!
+    Sets whether to mute this sound effect's playback.
+
+    If \a muted is true, playback will be muted (silenced),
+    and otherwise playback will occur with the currently
+    specified volume().
+*/
 void QSoundEffect::setMuted(bool muted)
 {
     if (d->isMuted() == muted)
@@ -352,8 +317,12 @@ void QSoundEffect::setMuted(bool muted)
 }
 
 /*!
-    \qmlmethod bool QtMultimedia5::SoundEffect::isLoaded()
     \fn QSoundEffect::isLoaded() const
+
+    Returns whether the sound effect has finished loading the \l source().
+*/
+/*!
+    \qmlmethod bool QtMultimedia5::SoundEffect::isLoaded()
 
     Returns whether the sound effect has finished loading the \l source.
 */
@@ -383,10 +352,54 @@ void QSoundEffect::play()
     d->play();
 }
 
+/*!
+    \qmlproperty bool QtMultimedia5::SoundEffect::playing
+
+    This property indicates whether the sound effect is playing or not.
+*/
+/*!
+    \property QSoundEffect::playing
+
+    This property indicates whether the sound effect is playing or not.
+*/
+
+/*! Returns true if the sound effect is currently playing, or false otherwise */
 bool QSoundEffect::isPlaying() const
 {
     return d->isPlaying();
 }
+
+/*!
+    \enum QSoundEffect::Status
+
+    \value Null  No source has been set or the source is null.
+    \value Loading  The SoundEffect is trying to load the source.
+    \value Ready  The source is loaded and ready for play.
+    \value Error  An error occurred during operation, such as failure of loading the source.
+
+*/
+
+/*!
+    \qmlproperty enumeration QtMultimedia5::SoundEffect::status
+
+    This property indicates the current status of the SoundEffect
+    as enumerated within SoundEffect.
+    Possible statuses are listed below.
+
+    \table
+    \header \li Value \li Description
+    \row \li SoundEffect.Null    \li No source has been set or the source is null.
+    \row \li SoundEffect.Loading \li The SoundEffect is trying to load the source.
+    \row \li SoundEffect.Ready   \li The source is loaded and ready for play.
+    \row \li SoundEffect.Error   \li An error occurred during operation, such as failure of loading the source.
+    \endtable
+*/
+/*!
+    \property QSoundEffect::status
+
+    This property indicates the current status of the sound effect
+    from the \l QSoundEffect::Status enumeration.
+*/
 
 /*!
     Returns the current status of this sound effect.
@@ -398,6 +411,17 @@ QSoundEffect::Status QSoundEffect::status() const
 
 /*!
     \qmlproperty string QtMultimedia5::SoundEffect::category
+
+    This property contains the \e category of this sound effect.
+
+    Some platforms can perform different audio routing
+    for different categories, or may allow the user to
+    set different volume levels for different categories.
+
+    This setting will be ignored on platforms that do not
+    support audio categories.
+*/
+/*!
     \property QSoundEffect::category
 
     This property contains the \e category of this sound effect.
@@ -453,22 +477,136 @@ void QSoundEffect::setCategory(const QString &category)
 
   Stop current playback.
 
-  Note that if the backend is PulseAudio, due to the limitation of the underlying API,
-  calling stop will only prevent next looping but will not be able to stop current playback immediately.
-
  */
 /*!
   \fn QSoundEffect::stop()
-  Stop current playback.
 
-  Note that if the backend is PulseAudio, due to the limitation of the underlying API,
-  calling stop will only prevent next looping but will not be able to stop current playback immediately.
+  Stop current playback.
 
  */
 void QSoundEffect::stop()
 {
     d->stop();
 }
+
+/* Signals */
+
+/*!
+    \fn void QSoundEffect::sourceChanged()
+
+    The \c sourceChanged signal is emitted when the source has been changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::sourceChanged()
+
+    The \c sourceChanged signal is emitted when the source has been changed.
+
+    The corresponding handler is \c onSourceChanged.
+*/
+/*!
+    \fn void QSoundEffect::loadedChanged()
+
+    The \c loadedChanged signal is emitted when the loading state has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::loadedChanged()
+
+    The \c loadedChanged signal is emitted when the loading state has changed.
+
+    The corresponding handler is \c onLoadedChanged.
+*/
+
+/*!
+    \fn void QSoundEffect::loopCountChanged()
+
+    The \c loopCountChanged signal is emitted when the initial number of loops has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::loopCountChanged()
+
+    The \c loopCountChanged signal is emitted when the initial number of loops has changed.
+
+    The corresponding handler is \c onLoopCountChanged.
+*/
+
+/*!
+    \fn void QSoundEffect::loopsRemainingChanged()
+
+    The \c loopsRemainingChanged signal is emitted when the remaining number of loops has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::loopsRemainingChanged()
+
+    The \c loopsRemainingChanged signal is emitted when the remaining number of loops has changed.
+
+    The corresponding handler is \c onLoopsRemainingChanged.
+*/
+
+/*!
+    \fn void QSoundEffect::volumeChanged()
+
+    The \c volumeChanged signal is emitted when the volume has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::volumeChanged()
+
+    The \c volumeChanged signal is emitted when the volume has changed.
+
+    The corresponding handler is \c onVolumeChanged.
+*/
+
+/*!
+    \fn void QSoundEffect::mutedChanged()
+
+    The \c mutedChanged signal is emitted when the mute state has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::mutedChanged()
+
+    The \c mutedChanged signal is emitted when the mute state has changed.
+
+    The corresponding handler is \c onMutedChanged.
+*/
+
+/*!
+    \fn void QSoundEffect::playingChanged()
+
+    The \c playingChanged signal is emitted when the playing property has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::playingChanged()
+
+    The \c playingChanged signal is emitted when the playing property has changed.
+
+    The corresponding handler is \c onPlayingChanged.
+*/
+
+/*!
+    \fn void QSoundEffect::statusChanged()
+
+    The \c statusChanged signal is emitted when the status property has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::statusChanged()
+
+    The \c statusChanged signal is emitted when the status property has changed.
+
+    The corresponding handler is \c onStatusChanged.
+*/
+
+/*!
+    \fn void QSoundEffect::categoryChanged()
+
+    The \c categoryChanged signal is emitted when the category property has changed.
+*/
+/*!
+    \qmlsignal QtMultimedia5::SoundEffect::categoryChanged()
+
+    The \c categoryChanged signal is emitted when the category property has changed.
+
+    The corresponding handler is \c onCategoryChanged.
+*/
+
 
 QT_END_NAMESPACE
 

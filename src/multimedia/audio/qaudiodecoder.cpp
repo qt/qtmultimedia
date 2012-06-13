@@ -368,8 +368,6 @@ QtMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
 }
 
 /*!
-    \fn QAudioDecoder::bufferAvailable() const
-
     Returns true if a buffer is available to be read,
     and false otherwise.  If there is no buffer available, calling
     the \l read() function will return an invalid buffer.
@@ -547,6 +545,11 @@ QAudioBuffer QAudioDecoder::read() const
 /*!
     \property QAudioDecoder::sourceFilename
     \brief the active filename being decoded by the decoder object.
+*/
+
+/*!
+    \property QAudioDecoder::bufferAvailable
+    \brief whether there is a decoded audio buffer available
 */
 
 #include "moc_qaudiodecoder.cpp"

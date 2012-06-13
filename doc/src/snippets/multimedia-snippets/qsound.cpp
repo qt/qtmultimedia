@@ -38,8 +38,9 @@
 **
 ****************************************************************************/
 
-
+#include "qobject.h"
 #include "qsound.h"
+#include "qsoundeffect.h"
 
 void qsoundsnippet() {
     //! [0]
@@ -52,3 +53,33 @@ void qsoundsnippet() {
     bells.play();
     //! [1]
 }
+
+void qsoundeffectsnippet() {
+    //! [2]
+    QSoundEffect effect;
+    effect.setSource(QUrl::fromLocalFile("engine.wav"));
+    effect.setLoopCount(QSoundEffect::Infinite);
+    effect.setVolume(0.25f);
+    effect.play();
+    //! [2]
+}
+
+QObject *clickSource;
+
+class MyGame : public QObject {
+    Q_OBJECT
+public:
+    //! [3]
+    MyGame()
+        : m_explosion(this)
+    {
+        m_explosion.setSource(QUrl::fromLocalFile("explosion.wav"));
+        m_explosion.setVolume(0.25f);
+
+        // Set up click handling etc.
+        connect(clickSource, SIGNAL(clicked()), &m_explosion, SLOT(play()));
+    }
+private:
+    QSoundEffect m_explosion;
+    //! [3]
+};

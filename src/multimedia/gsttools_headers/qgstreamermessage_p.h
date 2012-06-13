@@ -59,6 +59,9 @@
 
 QT_BEGIN_NAMESPACE
 
+// Required for QDoc workaround
+class QString;
+
 class QGstreamerMessage
 {
 public:

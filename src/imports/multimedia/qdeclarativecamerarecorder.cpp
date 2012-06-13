@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraRecorder QDeclarativeCameraRecorder
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
     \brief Controls video recording with the Camera.
     \ingroup multimedia_qml
     \ingroup camera_qml
@@ -371,7 +371,7 @@ QDeclarativeCameraRecorder::Error QDeclarativeCameraRecorder::errorCode() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia5::Camera::errorString
+    \qmlproperty string QtMultimedia5::CameraRecorder::errorString
 
     A description of the current error, if any.
 */

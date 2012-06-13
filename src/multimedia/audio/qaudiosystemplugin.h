@@ -59,6 +59,8 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+// Required for QDoc workaround
+class QString;
 
 struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
 {
@@ -71,6 +73,9 @@ struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
 #define QAudioSystemFactoryInterface_iid \
     "org.qt-project.qt.audiosystemfactory/5.0"
 Q_DECLARE_INTERFACE(QAudioSystemFactoryInterface, QAudioSystemFactoryInterface_iid)
+
+// Required for QDoc workaround
+class QString;
 
 class Q_MULTIMEDIA_EXPORT QAudioSystemPlugin : public QObject, public QAudioSystemFactoryInterface
 {

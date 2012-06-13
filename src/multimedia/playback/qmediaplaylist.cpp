@@ -284,7 +284,7 @@ QMediaContent QMediaPlaylist::currentMedia() const
   Returned value depends on the size of playlist, current position
   and playback mode.
 
-  \sa QMediaPlaylist::playbackMode
+  \sa QMediaPlaylist::playbackMode(), previousIndex()
 */
 int QMediaPlaylist::nextIndex(int steps) const
 {
@@ -295,7 +295,7 @@ int QMediaPlaylist::nextIndex(int steps) const
   Returns the index of the item, which would be current after calling previous()
   \a steps times.
 
-  \sa QMediaPlaylist::playbackMode
+  \sa QMediaPlaylist::playbackMode(), nextIndex()
 */
 
 int QMediaPlaylist::previousIndex(int steps) const

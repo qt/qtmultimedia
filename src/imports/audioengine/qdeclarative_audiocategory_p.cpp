@@ -48,9 +48,9 @@ QT_USE_NAMESPACE
 
 /*!
     \qmlclass AudioCategory QDeclarativeAudioCategory
-    \since 5.0
+    \since 1.0
     \brief Control all active sound instances by group.
-    \inqmlmodule QtAudioEngine 1
+    \inqmlmodule QtAudioEngine 1.0
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary

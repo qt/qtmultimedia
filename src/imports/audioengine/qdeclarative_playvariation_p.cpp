@@ -50,12 +50,12 @@ QT_USE_NAMESPACE
 
 /*!
     \qmlclass PlayVariation QDeclarativePlayVariation
-    \since 5.0
+    \since 1.0
     \brief Define a playback variation for \l {Sound} {sounds}.
     So each time the playback of the same sound can be a slightly different even with the same
     AudioSample.
 
-    \inqmlmodule QtAudioEngine 1
+    \inqmlmodule QtAudioEngine 1.0
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary

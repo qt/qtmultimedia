@@ -78,7 +78,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError 
     \brief Access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
     \ingroup camera_qml
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
 
     \inherits Item
 
@@ -227,6 +227,8 @@ QDeclarativeCamera::Error QDeclarativeCamera::errorCode() const
     \qmlproperty string QtMultimedia5::Camera::errorString
 
     A description of the current error, if any.
+
+    \sa QtMultimedia5::Camera::onError
 */
 QString QDeclarativeCamera::errorString() const
 {
@@ -579,15 +581,6 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \qmlproperty string QtMultimedia5::Camera::errorString
-
-    A string describing a camera's error state.
-
-    \sa QtMultimedia5::Camera::onError
-*/
-
-
-/*!
     \qmlsignal QtMultimedia5::Camera::onError(errorCode, errorString)
 
     This handler is called when an error occurs.  The enumeration value \a errorCode is one of the
@@ -619,21 +612,21 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \fn void QDeclarativeCamera:opticalZoomChanged(qreal zoom)
+    \fn void QDeclarativeCamera::opticalZoomChanged(qreal zoom)
     \qmlsignal Camera::opticalZoomChanged(zoom)
 
     The optical zoom setting has changed to \a zoom.
 */
 
 /*!
-    \fn void QDeclarativeCamera::digitalZoomChanged(qreal)
+    \fn void QDeclarativeCamera::digitalZoomChanged(qreal zoom)
     \qmlsignal Camera::digitalZoomChanged(zoom)
 
     The digital zoom setting has changed to \a zoom.
 */
 
 /*!
-    \fn void QDeclarativeCamera::maximumOpticalZoomChanged(zoom)
+    \fn void QDeclarativeCamera::maximumOpticalZoomChanged(qreal zoom)
     \qmlsignal Camera::maximumOpticalZoomChanged(zoom)
 
     The maximum optical zoom setting has changed to \a zoom.  This
@@ -642,7 +635,7 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \fn void QDeclarativeCamera::maximumDigitalZoomChanged(qreal)
+    \fn void QDeclarativeCamera::maximumDigitalZoomChanged(qreal zoom)
     \qmlsignal Camera::maximumDigitalZoomChanged(zoom)
 
     The maximum digital zoom setting has changed to \a zoom.  This

@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
     \brief An interface for exposure related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
 
     This type is part of the \b{QtMultimedia 5.0} module.
 

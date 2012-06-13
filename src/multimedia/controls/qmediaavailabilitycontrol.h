@@ -52,6 +52,9 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+// Required for QDoc workaround
+class QString;
+
 class Q_MULTIMEDIA_EXPORT QMediaAvailabilityControl : public QMediaControl
 {
     Q_OBJECT

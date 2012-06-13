@@ -69,7 +69,7 @@ sounds.  These classes allow you to specify a WAV format file which can
 then be played with low latency when necessary.  Both QSoundEffect and
 SoundEffect have essentially the same API.
 
-You can adjust the number of \l {QSoundEffect::loops}{loops} a sound effect is played, as well as
+You can adjust the number of \l {QSoundEffect::loopCount()}{loops} a sound effect is played, as well as
 the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
 
 For older, Qt 4.x based applications \l QSound is also available.  Applications

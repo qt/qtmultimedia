@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraImageProcessing QDeclarativeCameraImageProcessing
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
     \brief An interface for camera capture related settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
@@ -111,11 +111,6 @@ QDeclarativeCameraImageProcessing::~QDeclarativeCameraImageProcessing()
     \endtable
 
     \sa manualWhiteBalance
-*/
-/*!
-    \property QDeclarativeCameraImageProcessing::whiteBalanceMode
-
-    \sa WhiteBalanceMode
 */
 QDeclarativeCameraImageProcessing::WhiteBalanceMode QDeclarativeCameraImageProcessing::whiteBalanceMode() const
 {

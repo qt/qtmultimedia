@@ -57,6 +57,9 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+// Required for QDoc workaround
+class QString;
+
 class QMediaService;
 
 class QMediaServiceProviderHintPrivate;
@@ -104,6 +107,8 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMediaServiceProviderHint::Features)
 
+// Required for QDoc workaround
+class QString;
 
 struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface
 {
@@ -115,6 +120,8 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface
     "org.qt-project.qt.mediaserviceproviderfactory/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceProviderFactoryInterface, QMediaServiceProviderFactoryInterface_iid)
 
+// Required for QDoc workaround
+class QString;
 
 struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedFormatsInterface
 {
@@ -127,6 +134,8 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedFormatsInterface
     "org.qt-project.qt.mediaservicesupportedformats/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceSupportedFormatsInterface, QMediaServiceSupportedFormatsInterface_iid)
 
+// Required for QDoc workaround
+class QString;
 
 struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedDevicesInterface
 {
@@ -139,7 +148,8 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedDevicesInterface
     "org.qt-project.qt.mediaservicesupporteddevices/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceSupportedDevicesInterface, QMediaServiceSupportedDevicesInterface_iid)
 
-
+// Required for QDoc workaround
+class QString;
 
 struct Q_MULTIMEDIA_EXPORT QMediaServiceFeaturesInterface
 {
@@ -152,6 +162,8 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceFeaturesInterface
     "org.qt-project.qt.mediaservicefeatures/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceFeaturesInterface, QMediaServiceFeaturesInterface_iid)
 
+// Required for QDoc workaround
+class QString;
 
 class Q_MULTIMEDIA_EXPORT QMediaServiceProviderPlugin : public QObject, public QMediaServiceProviderFactoryInterface
 {
@@ -214,12 +226,8 @@ public:
 */
 #define Q_MEDIASERVICE_AUDIODECODER "org.qt-project.qt.audiodecode"
 
-
-
 QT_END_NAMESPACE
 
 QT_END_HEADER
-
-
 
 #endif  // QMEDIASERVICEPROVIDERPLUGIN_H

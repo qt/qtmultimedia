@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraFlash QDeclarativeCameraFlash
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
     \brief An interface for flash related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml

@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass Torch QDeclarativeTorch
-    \inqmlmodule QtMultimedia 5
+    \inqmlmodule QtMultimedia 5.0
     \brief Simple control over torch functionality
 
     \ingroup multimedia_qml
