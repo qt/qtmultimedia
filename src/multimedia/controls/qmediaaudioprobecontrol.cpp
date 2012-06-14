@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
     \class QMediaAudioProbeControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     \brief The QMediaAudioProbeControl class allows control over probing audio data in media objects.

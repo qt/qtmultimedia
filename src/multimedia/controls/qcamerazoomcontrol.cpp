@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     The interface name of QCameraZoomControl is \c org.qt-project.qt.camerazoomcontrol/5.0 as

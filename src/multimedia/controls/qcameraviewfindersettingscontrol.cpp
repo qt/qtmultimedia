@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
     \class QCameraViewfinderSettingsControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
 

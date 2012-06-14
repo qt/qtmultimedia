@@ -60,7 +60,7 @@ namespace
     \class QMediaStreamsControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     \brief The QMediaStreamsControl class provides a media stream selection control.

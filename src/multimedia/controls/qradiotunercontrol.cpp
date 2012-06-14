@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
     \class QRadioTunerControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
 

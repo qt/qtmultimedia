@@ -4,6 +4,7 @@ INCLUDEPATH += controls
 PUBLIC_HEADERS += \
     controls/qaudiodecodercontrol.h \
     controls/qaudioencodercontrol.h \
+    controls/qaudioendpointselector.h \
     controls/qcameracapturebufferformatcontrol.h \
     controls/qcameracapturedestinationcontrol.h \
     controls/qcameracontrol.h \
@@ -41,6 +42,7 @@ PRIVATE_HEADERS += \
 
 SOURCES += \
     controls/qaudioencodercontrol.cpp \
+    controls/qaudioendpointselector.cpp \
     controls/qcameracapturebufferformatcontrol.cpp \
     controls/qcameracapturedestinationcontrol.cpp \
     controls/qcameracontrol.cpp \

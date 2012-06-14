@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     If a QMediaService supports writing encoded data it will implement

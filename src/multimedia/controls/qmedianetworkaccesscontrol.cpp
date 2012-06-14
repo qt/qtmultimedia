@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
     \brief The QMediaNetworkAccessControl class allows the setting of the Network Access Point for media related activities.
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     The functionality provided by this control allows the

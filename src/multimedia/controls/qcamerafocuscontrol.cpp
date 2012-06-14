@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     The interface name of QCameraFocusControl is \c org.qt-project.qt.camerafocuscontrol/5.0 as

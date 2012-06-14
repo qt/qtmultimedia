@@ -60,7 +60,7 @@ namespace
     \class QCameraImageProcessingControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
 

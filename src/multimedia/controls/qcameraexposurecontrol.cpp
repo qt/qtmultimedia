@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
     \brief The QCameraExposureControl class allows controlling camera exposure parameters.
 
     \inmodule QtMultimedia
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     The QCameraExposure class is the usual method of adjusting exposure related parameters

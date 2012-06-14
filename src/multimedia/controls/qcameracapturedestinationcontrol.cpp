@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
     Depending on backend capabilities capture to file, buffer or both can be supported.
 
     \inmodule QtMultimedia
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     The interface name of QCameraCaptureDestinationControl is \c org.qt-project.qt.cameracapturedestinationcontrol/5.0 as

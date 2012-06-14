@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
     \class QMetaDataReaderControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
 

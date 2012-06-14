@@ -50,7 +50,7 @@
     \brief The QCameraFeedbackControl class allows controlling feedback (sounds etc) during camera operation
 
     \inmodule QtMultimedia
-    \ingroup multimedia
+
     \ingroup multimedia_control
     \since 5.0
 

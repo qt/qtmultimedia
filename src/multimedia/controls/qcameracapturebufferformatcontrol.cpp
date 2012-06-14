@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
     The format is of type QVideoFrame::PixelFormat.
 
     \inmodule QtMultimedia
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     The interface name of QCameraCaptureBufferFormatControl is \c org.qt-project.qt.cameracapturebufferformatcontrol/5.0 as

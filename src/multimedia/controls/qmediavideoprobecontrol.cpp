@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
     \class QMediaVideoProbeControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     \brief The QMediaVideoProbeControl class allows control over probing video frames in media objects.

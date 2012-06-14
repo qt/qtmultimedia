@@ -46,7 +46,7 @@
     \class QMediaGaplessPlaybackControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     \brief The QMediaGaplessPlaybackControl class provides access to the gapless playback

@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
     classes that control still cameras or video cameras.
 
     \inmodule QtMultimedia
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     This service is provided by a QMediaService object via

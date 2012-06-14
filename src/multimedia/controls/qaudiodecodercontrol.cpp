@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
     \class QAudioDecoderControl
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     \brief The QAudioDecoderControl class provides access to the audio decoding

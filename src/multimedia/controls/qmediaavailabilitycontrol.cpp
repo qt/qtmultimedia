@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     An instance of QMediaObject (or its derived classes) can report any changes

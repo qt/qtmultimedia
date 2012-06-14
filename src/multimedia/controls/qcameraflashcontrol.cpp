@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
     \inmodule QtMultimedia
 
-    \ingroup multimedia
+
     \ingroup multimedia_control
 
     You can set the type of flash effect used when an image is captured, and test to see
