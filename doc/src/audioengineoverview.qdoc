@@ -30,7 +30,7 @@
 \title Positional Audio
 \brief 3D positional audio playback and content management
 
-\section1 QtAudioEngine features
+\section1 QtAudioEngine Features
 
 Qt Multimedia includes the \c QtAudioEngine QML module for
 providing 3D positional audio playback and content management.

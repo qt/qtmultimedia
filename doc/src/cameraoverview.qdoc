@@ -32,7 +32,7 @@
 
 The Qt Multimedia API provides a number of camera related classes, so you
 can access images and videos from mobile device cameras or webcameras.
-There are both C++ and QML apis for common tasks.
+There are both C++ and QML APIs for common tasks.
 
 \section1 Camera Features
 
@@ -44,9 +44,9 @@ works is needed.  If you're already familiar with this, you can skip ahead to
 * Camera features
  * lens -> sensors -> image processing -> capture/recording
 
-\section2 The lens assembly
+\section2 The Lens Assembly
 At one end of the camera assembly is the lens assembly (one or
-more lenses, arranged to focus light onto the sensor).  The lens
+more lenses, arranged to focus light onto the sensor).  The lenses
 themselves can sometimes be moved to adjust things like focus and zoom,
 or they might be fixed in an arrangement to give a good balance between
 objects in focus, and cost.
@@ -59,7 +59,7 @@ sharp.  In some cases the camera will always use the center of the
 frame for this.  Other cameras may also allow the region to focus
 to be specified (for "touch to zoom", or "face zoom" features).
 
-\section2 The sensor
+\section2 The Sensor
 Once light arrives at the sensor, it gets converted into digital pixels.
 This process can depend on a number of things but ultimately comes down
 to two things - how long the conversion is allowed to take, and how
@@ -69,7 +69,7 @@ allowing it to convert pixels faster, giving better quality for the same
 amount of time.  Conversely, allowing a longer conversion time can let you
 take photos in darker environments, as long as the camera is steady.
 
-\section2 Image processing
+\section2 Image Processing
 After the image has been captured by the sensor, the camera firmware performs
 various image processing tasks on it to compensate for various sensor
 characteristics, current lighting, and desired image properties.  Faster sensor
@@ -85,12 +85,12 @@ light sources).
 Some forms of "special effects" can also be performed at this stage.  Black
 and white, sepia, or "negative" style images can be produced.
 
-\section2 Recording for posterity
+\section2 Recording for Posterity
 Finally, once a perfectly focused, exposed and processed image has been
 created, it can be put to good use.  Camera images can be further processed
-by application code (for example, to detect barcodes, or to stitch together),
-or saved to a common format like JPEG, or used to create a movie.  Many of
-these tasks have classes to assist them.
+by application code (for example, to detect barcodes, or to stitch together a
+panoramic image), or saved to a common format like JPEG, or used to create a movie.
+Many of these tasks have classes to assist them.
 
 \target camera-tldr
 \section1 Camera Implementation Details
@@ -161,14 +161,14 @@ recording process can be changed with the \l {QMediaRecorder::record()}{record()
 \l {QMediaRecorder::stop()}{stop()} and \l {QMediaRecorder::setMuted()}{setMuted()}
 slots in \l QMediaRecorder.
 
-\section2 Controlling the imaging pipeline
+\section2 Controlling the Imaging Pipeline
 
 Now that the basics of capturing images or movies are covered, there are a number
 of ways to control the imaging pipeline to implement some interesting techniques.
 As explained earlier, several physical and electronic elements combine to determine
 the final images, and you can control them with different classes.
 
-\section3 Focus and zoom
+\section3 Focus and Zoom
 
 Focusing (and zoom) is managed primarily by the \l QCameraFocus class.
 QCameraFocus allows the developer to set the general policy by means of the
@@ -189,7 +189,7 @@ In addition to focus, QCameraFocus allows you to control any available optical o
 digital zoom.  In general, optical zoom is higher quality, but more expensive to
 manufacture, so the available zoom range might be limited (or fixed to unity).
 
-\section3 Exposure, aperture, shutter speed and flash
+\section3 Exposure, Aperture, Shutter Speed and Flash
 
 There are a number of settings that affect the amount of light that hits the
 camera sensor, and hence the quality of the resulting image.  The \l QCameraExposure
@@ -214,7 +214,7 @@ a xenon or other bulb).  See also \l {Torch} for an easy to use API for
 torch functionality.
 
 \target camera_image_processing
-\section3 Image processing
+\section3 Image Processing
 
 The QCameraImageProcessing class lets you adjust the image processing
 part of the pipeline.  This includes the \l {QCameraImageProcessing::WhiteBalanceMode}{white balance}

@@ -63,14 +63,14 @@ All of these tasks can be broadly broken down into four main areas.  More inform
 \li \l {Radio Overview}
 \endlist
 
-\section2 Multimedia recipes
+\section2 Multimedia Recipes
 For some quick recipes for specific tasks, look at the overviews above and consult this table:
 
 \table 70%
     \header
         \li Use case
         \li Examples
-        \li QML Classes
+        \li QML Types
         \li C++ Classes
     \row
         \li Playing a sound effect
@@ -156,7 +156,7 @@ For developers wishing to access some platform specific settings,
 or to port the Qt Multimedia APIs to a new platform or technology,
 see \l{Multimedia Backend Development}.
 
-\section1 Changes from previous versions
+\section1 Changes from Previous Versions
 
 If you've previously used Qt Multimedia in Qt 4.x, or used Qt Multimedia Kit in Qt Mobility, please see
 \l {Changes in Qt Multimedia} for more information on what has changed, and what you might need to

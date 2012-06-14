@@ -35,13 +35,13 @@
 Qt Multimedia offers a range of audio classes, covering both low and
 high level approaches to audio input, output and processing.  In
 addition to traditional audio usage, the \l {Positional Audio}{Qt AudioEngine}
-QML classes offers high level 3D positional audio for QML applications.
+QML types offer high level 3D positional audio for QML applications.
 See that documentation for more information.
 
 \section1 Audio Implementation Details
 
-\section2 Playing compressed audio
-For playing media or audio files that are not simple, raw audio, you can
+\section2 Playing Compressed Audio
+For playing media or audio files that are not simple, uncompressed audio, you can
 use the \l QMediaPlayer C++ class, or the \l {Audio} and \l {MediaPlayer} QML types.
 The QMediaPlayer class and associated QML types are also capable of playing
 \l{multimedia-playing-video}{video}, if required.  The compressed audio formats supported does depend
@@ -55,13 +55,13 @@ Here is how you play a local file using C++:
 You can also put files (even remote URLs) into a playlist:
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio playlist
 
-\section2 Recording audio to a file
+\section2 Recording Audio to a File
 For recording audio to a file, the \l {QAudioRecorder} class allows you
 to compress audio data from an input device and record it.
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder
 
-\section2 Low latency sound effects
+\section2 Low Latency Sound Effects
 
 In addition to the raw access to sound devices described above, the QSoundEffect class (and
 \l {SoundEffect} QML type) offers a slightly higher level way to play
@@ -75,7 +75,7 @@ the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{mut
 For older, Qt 4.x based applications \l QSound is also available.  Applications
 are recommended to use QSoundEffect where possible.
 
-\section2 Monitoring audio data during playback or recording
+\section2 Monitoring Audio Data During Playback or Recording
 
 The \l QAudioProbe class allows you to monitor audio data being played or
 recorded in the higher level classes like \l QMediaPlayer, \l QCamera and
@@ -89,7 +89,7 @@ processes them.
 Here's an example of installing a probe during recording:
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio probe
 
-\section2 Low level audio playback and recording
+\section2 Low Level Audio Playback and Recording
 Qt Multimedia offers classes for raw access to audio input and output
 facilities, allowing applications to receive raw data from devices like
 microphones, and to write raw data to speakers or other devices.  Generally
@@ -98,7 +98,7 @@ can support different types of raw audio data.
 
 The QAudioOutput class offers raw audio data output, while QAudioInput
 offers raw audio data input.  Both classes have adjustable buffers and
-latency, so they are suitable for both low latency usecases (like games
+latency, so they are suitable for both low latency use cases (like games
 or VOIP) and high latency (like music playback).  The available hardware
 determines what audio outputs and inputs are available.
 
@@ -114,7 +114,7 @@ In \c push mode, the audio device provides a QIODevice instance that
 can be written or read to as needed.  Typically this results in simpler
 code but more buffering, which may affect latency.
 
-\section2 Decoding compressed audio to memory
+\section2 Decoding Compressed Audio to Memory
 In some cases you may want to decode a compressed audio file and do further
 processing yourself (like mix multiple samples, or some custom digital signal
 processing algorithms).  Qt Multimedia 5.0 offers a preliminary API for this

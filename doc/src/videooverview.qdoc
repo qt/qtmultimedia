@@ -41,7 +41,7 @@ of these classes also overlap with both \l {Camera Overview}{camera} and
 \section1 Video Implementation Details
 
 \target multimedia-playing-video
-\section2 Playing video in C++
+\section2 Playing Video in C++
 
 You can use the \l QMediaPlayer class to decode a video file, and display
 it using \l QVideoWidget, \l QGraphicsVideoItem, or a custom class.
@@ -52,7 +52,7 @@ Here's an example of using QVideoWidget:
 And an example with QGraphicsVideoItem:
     \snippet doc/src/snippets/multimedia-snippets/video.cpp Video graphics item
 
-\section2 Playing video in QML
+\section2 Playing Video in QML
 
 You can use \l VideoOutput to render content that is
 provided by either a \l MediaPlayer or a \l Camera.
@@ -63,7 +63,7 @@ all media decoding and playback control is handled by the \l MediaPlayer.
 Alternatively there is also a higher level \l Video type that
 acts as a single, visual element to play video and control playback.
 
-\section2 Working with low level video frames
+\section2 Working with Low Level Video Frames
 
 Qt Multimedia offers a number of low level classes to make handling
 video frames a bit easier.  These classes are primarily used when
@@ -82,9 +82,9 @@ allows you to receive these frames from \l QMediaPlayer and
 and with an instance of this surface, \c myVideoSurface, you can set
 the surface as the \l {QMediaPlayer::setVideoOutput()}{video output} for QMediaPlayer.
 
-\snippet doc/src/snippets/multimedia-snippets/video.cpp Setting surface in player
+\snippet doc/src/snippets/multimedia-snippets/video.cpp Setting Surface in Player
 
-Several of the built in Qt classes offer this functionality
+Several of the built-in Qt classes offer this functionality
 as well, so if you decode video in your application, you can present
 it to classes that offer a \l QVideoRendererControl class, and in QML
 you can set a custom object for the source of a \l VideoOutput
@@ -99,12 +99,12 @@ frames are then presented on the surface set in \c setVideoSurface().
 
 \snippet doc/src/snippets/multimedia-snippets/video.cpp Video producer
 
-\section2 Recording video
+\section2 Recording Video
 You can use the \l QMediaRecorder class in conjunction with other
 classes to record video to disk.  Primarily this is used with
 the camera, so consult the \l {Camera Overview} for more information.
 
-\section2 Monitoring video frames
+\section2 Monitoring Video Frames
 You can use the \l QVideoProbe class to access video frames as they
 flow through different parts of a media pipeline when using other
 classes like \l QMediaPlayer, \l QMediaRecorder or \l QCamera.  After
