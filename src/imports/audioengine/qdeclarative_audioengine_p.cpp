@@ -58,7 +58,7 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass AudioEngine QDeclarativeAudioEngine
     \since 5.0
-    \brief The AudioEngine type allows you to organize all your 3d audio content in one place.
+    \brief Organize all your 3d audio content in one place.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item

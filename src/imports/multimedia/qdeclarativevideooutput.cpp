@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass VideoOutput QDeclarativeVideoOutput
-    \brief The VideoOutput type allows you to render video or camera viewfinder.
+    \brief Render video or camera viewfinder.
 
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml

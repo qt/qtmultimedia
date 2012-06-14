@@ -53,7 +53,7 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass SoundInstance QDeclarativeSoundInstance
     \since 5.0
-    \brief The SoundInstance type allows you to play 3d audio content.
+    \brief Play 3d audio content.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item

@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraImageProcessing QDeclarativeCameraImageProcessing
     \inqmlmodule QtMultimedia 5
-    \brief The CameraImageProcessing type provides an interface for camera capture related settings
+    \brief An interface for camera capture related settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
 

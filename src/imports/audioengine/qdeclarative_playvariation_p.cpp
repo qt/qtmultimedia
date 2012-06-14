@@ -51,7 +51,7 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass PlayVariation QDeclarativePlayVariation
     \since 5.0
-    \brief The PlayVariation type allows you to define a playback variation for \l {Sound} {sounds}.
+    \brief Define a playback variation for \l {Sound} {sounds}.
     So each time the playback of the same sound can be a slightly different even with the same
     AudioSample.
 

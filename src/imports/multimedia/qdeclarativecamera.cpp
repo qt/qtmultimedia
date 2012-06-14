@@ -75,7 +75,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError 
 
 /*!
     \qmlclass Camera QDeclarativeCamera
-    \brief The Camera type allows you to access viewfinder frames, and take photos and movies.
+    \brief Access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
     \ingroup camera_qml
     \inqmlmodule QtMultimedia 5

@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraRecorder QDeclarativeCameraRecorder
     \inqmlmodule QtMultimedia 5
-    \brief The CameraRecorder type controls video recording with the Camera.
+    \brief Controls video recording with the Camera.
     \ingroup multimedia_qml
     \ingroup camera_qml
 

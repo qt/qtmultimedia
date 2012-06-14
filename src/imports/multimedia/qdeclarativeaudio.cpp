@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass Audio QDeclarativeAudio
-    \brief The Audio type allows you to add audio playback to a scene.
+    \brief Add audio playback to a scene.
 
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml
@@ -1106,7 +1106,7 @@ void QDeclarativeAudio::_q_statusChanged()
 
 /*!
     \qmlclass MediaPlayer QDeclarativeAudio
-    \brief The MediaPlayer type allows you to add media playback to a scene.
+    \brief Add media playback to a scene.
 
     \inqmlmodule QtMultimedia 5
     \ingroup multimedia_qml

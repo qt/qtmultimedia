@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass Torch QDeclarativeTorch
     \inqmlmodule QtMultimedia 5
-    \brief The Torch type provides simple control over torch functionality
+    \brief Simple control over torch functionality
 
     \ingroup multimedia_qml
 

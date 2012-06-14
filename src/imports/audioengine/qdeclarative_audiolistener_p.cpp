@@ -50,7 +50,7 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass AudioListener QDeclarativeAudioListener
     \since 5.0
-    \brief The AudioListener type allows you to control global listener parameters.
+    \brief Control global listener parameters.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item

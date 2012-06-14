@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass RadioData QDeclarativeRadioData
     \inqmlmodule QtMultimedia 5
-    \brief The RadioData type allows you to access RDS data from a QML application.
+    \brief Access RDS data from a QML application.
     \ingroup multimedia_qml
     \ingroup multimedia_radio_qml
     \inherits Item

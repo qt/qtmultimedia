@@ -52,7 +52,7 @@ QT_USE_NAMESPACE
 /*!
     \qmlclass AudioSample QDeclarativeAudioSample
     \since 5.0
-    \brief The AudioSample type allows you to load audio samples, mostly wav file.
+    \brief Load audio samples, mostly .wav.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine
     \inherits Item

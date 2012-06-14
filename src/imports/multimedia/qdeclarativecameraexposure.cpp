@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass CameraExposure QDeclarativeCameraExposure
-    \brief The CameraExposure type provides interface for exposure related camera settings.
+    \brief An interface for exposure related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
     \inqmlmodule QtMultimedia 5

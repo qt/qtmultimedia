@@ -140,7 +140,7 @@ void QDeclarativeSoundCone::componentComplete()
 /*!
     \qmlclass Sound QDeclarativeSound
     \since 5.0
-    \brief The Sound type allows you to define a variety of samples and parameters to be used for
+    \brief Define a variety of samples and parameters to be used for
     SoundInstance.
     \inqmlmodule QtAudioEngine 1
     \ingroup multimedia_audioengine

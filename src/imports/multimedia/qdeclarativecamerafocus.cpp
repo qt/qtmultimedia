@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraFocus QDeclarativeCameraFocus
     \inqmlmodule QtMultimedia 5
-    \brief The CameraFocus type provides interface for focus related camera settings.
+    \brief An interface for focus related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
 
@@ -90,7 +90,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QDeclarativeCameraFocus
     \internal
-    \brief The CameraFocus provides interface for focus related camera settings.
+    \brief An interface for focus related camera settings.
 */
 
 /*!

@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlclass CameraFlash QDeclarativeCameraFlash
     \inqmlmodule QtMultimedia 5
-    \brief The CameraFlash type provides interface for flash related camera settings.
+    \brief An interface for flash related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
 

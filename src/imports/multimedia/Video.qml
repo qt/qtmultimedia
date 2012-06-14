@@ -47,7 +47,7 @@ import QtMultimedia 5.0
     \inherits Item
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
-    \brief A convenience type for showing a specified video
+    \brief A convenience type for showing a specified video.
 
     \c Video is a convenience type combining the functionality
     of a \l MediaPlayer and a \l VideoOutput into one. It provides
