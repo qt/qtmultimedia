@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
+class QIODevice;
 class QNetworkAccessManager;
 class QSampleCache;
 class QWaveDecoder;
