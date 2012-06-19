@@ -117,6 +117,7 @@ QAudioOutputPrivate::QAudioOutputPrivate(const QByteArray &device)
     audioSource = 0;
     pullMode = true;
     finished = false;
+    volumeCache = (qreal)1.;
 }
 
 QAudioOutputPrivate::~QAudioOutputPrivate()
@@ -379,6 +380,8 @@ bool QAudioOutputPrivate::open()
     totalTimeValue = 0;
     timeStampOpened.restart();
     elapsedTimeOffset = 0;
+
+    setVolume(volumeCache);
 
     errorState = QAudio::NoError;
     if(pullMode) {
@@ -665,6 +668,25 @@ QAudio::Error QAudioOutputPrivate::error() const
 QAudio::State QAudioOutputPrivate::state() const
 {
     return deviceState;
+}
+
+void QAudioOutputPrivate::setVolume(qreal v)
+{
+    const qreal normalizedVolume = qBound(qreal(0.0), v, qreal(1.0));
+    if (deviceState != QAudio::ActiveState) {
+        volumeCache = normalizedVolume;
+        return;
+    }
+    const qint16 scaled = normalizedVolume * 0xFFFF;
+    DWORD vol = MAKELONG(scaled, scaled);
+    MMRESULT res = waveOutSetVolume(hWaveOut, vol);
+    if (res == MMSYSERR_NOERROR)
+        volumeCache = normalizedVolume;
+}
+
+qreal QAudioOutputPrivate::volume() const
+{
+    return volumeCache;
 }
 
 void QAudioOutputPrivate::reset()

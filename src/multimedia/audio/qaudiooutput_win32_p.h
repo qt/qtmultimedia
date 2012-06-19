@@ -112,6 +112,8 @@ public:
     qint64 elapsedUSecs() const;
     QAudio::Error error() const;
     QAudio::State state() const;
+    void setVolume(qreal);
+    qreal volume() const;
 
     QIODevice* audioSource;
     QAudioFormat settings;
@@ -134,6 +136,7 @@ private:
     qint64 totalTimeValue;
     bool pullMode;
     int intervalTime;
+    qreal volumeCache;
     static void QT_WIN_CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
             DWORD dwInstance, DWORD dwParam1, DWORD dwParam2 );
 
