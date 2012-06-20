@@ -19,6 +19,7 @@ HEADERS += \
         qdeclarativevideooutput_window_p.h \
         qsgvideonode_i420.h \
         qsgvideonode_rgb.h \
+        qsgvideonode_texture.h \
         qdeclarativeradio_p.h \
         qdeclarativeradiodata_p.h \
         qdeclarativecamera_p.h \
@@ -39,6 +40,7 @@ SOURCES += \
         qdeclarativevideooutput_window.cpp \
         qsgvideonode_i420.cpp \
         qsgvideonode_rgb.cpp \
+        qsgvideonode_texture.cpp \
         qdeclarativeradio.cpp \
         qdeclarativeradiodata.cpp \
         qdeclarativecamera.cpp \

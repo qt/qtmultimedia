@@ -46,6 +46,8 @@
 #include "qdeclarativevideooutput_backend_p.h"
 #include "qsgvideonode_i420.h"
 #include "qsgvideonode_rgb.h"
+#include "qsgvideonode_texture.h"
+
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/qabstractvideosurface.h>
 
@@ -53,6 +55,7 @@ QT_BEGIN_NAMESPACE
 
 class QSGVideoItemSurface;
 class QVideoRendererControl;
+class QOpenGLContext;
 
 class QDeclarativeVideoRendererBackend : public QDeclarativeVideoBackend
 {
@@ -77,10 +80,12 @@ private:
     QPointer<QVideoRendererControl> m_rendererControl;
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
+    QOpenGLContext *m_glContext;
     QVideoFrame m_frame;
     bool m_frameChanged;
     QSGVideoNodeFactory_I420 m_i420Factory;
     QSGVideoNodeFactory_RGB m_rgbFactory;
+    QSGVideoNodeFactory_Texture m_textureFactory;
     QMutex m_frameMutex;
     QRectF m_renderedRect;         // Destination pixel coordinates, clipped
     QRectF m_sourceTextureRect;    // Source texture coordinates

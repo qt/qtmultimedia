@@ -47,6 +47,8 @@
 #include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>
 
+#include <QtGui/QOpenGLContext>
+
 QT_BEGIN_NAMESPACE
 
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
@@ -54,6 +56,7 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
 
 QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeVideoOutput *parent)
     : QDeclarativeVideoBackend(parent),
+      m_glContext(0),
       m_frameChanged(false)
 {
     m_surface = new QSGVideoItemSurface(this);
@@ -69,6 +72,7 @@ QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeV
     // Append existing node factories as fallback if we have no plugins
     m_videoNodeFactories.append(&m_i420Factory);
     m_videoNodeFactories.append(&m_rgbFactory);
+    m_videoNodeFactories.append(&m_textureFactory);
 }
 
 QDeclarativeVideoRendererBackend::~QDeclarativeVideoRendererBackend()
@@ -164,6 +168,11 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     QSGVideoNode *videoNode = static_cast<QSGVideoNode *>(oldNode);
 
     QMutexLocker lock(&m_frameMutex);
+
+    if (!m_glContext) {
+        m_glContext = QOpenGLContext::currentContext();
+        m_surface->setProperty("GLContext", QVariant::fromValue<QObject*>(m_glContext));
+    }
 
     if (m_frameChanged) {
         if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {

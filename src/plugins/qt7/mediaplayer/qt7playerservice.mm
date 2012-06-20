@@ -92,12 +92,8 @@ QMediaControl *QT7PlayerService::requestControl(const char *name)
         }
 
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-#ifdef QUICKTIME_C_API_AVAILABLE
-            m_videoOutput = new QT7MovieRenderer(this);
-#elif !defined(QT_NO_WIDGETS)
+#ifndef QT_NO_WIDGETS
             m_videoOutput = new QT7MovieViewRenderer(this);
-#else
-            return 0;
 #endif
         }
 

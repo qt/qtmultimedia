@@ -50,6 +50,10 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtGui/qwindow.h>
+#include <QtGui/qopenglcontext.h>
+#include <QtOpenGL/qgl.h>
+#include <QtOpenGL/qglframebufferobject.h>
 
 #include <QtCore/qreadwritelock.h>
 
@@ -104,6 +108,29 @@ private:
     MapMode m_mode;
 };
 
+class TextureVideoBuffer : public QAbstractVideoBuffer
+{
+public:
+    TextureVideoBuffer(GLuint textureId)
+        : QAbstractVideoBuffer(GLTextureHandle)
+        , m_textureId(textureId)
+    {}
+
+    virtual ~TextureVideoBuffer() {}
+
+    MapMode mapMode() const { return NotMapped; }
+    uchar *map(MapMode, int*, int*) { return 0; }
+    void unmap() {}
+
+    QVariant handle() const
+    {
+        return QVariant::fromValue<unsigned int>(m_textureId);
+    }
+
+private:
+    GLuint m_textureId;
+};
+
 
 #define VIDEO_TRANSPARENT(m) -(void)m:(NSEvent *)e{[[self superview] m:e];}
 
@@ -146,6 +173,7 @@ private:
 
 - (void) dealloc
 {
+    delete self->m_window;
     [super dealloc];
 }
 
@@ -171,6 +199,7 @@ private:
     // before the image will be drawn.
     Q_UNUSED(view);
     QReadLocker lock(&m_rendererLock);
+    AutoReleasePool pool;
 
     if (m_renderer) {
         CGRect bounds = [img extent];
@@ -183,7 +212,8 @@ private:
         if (!surface || !surface->isActive())
             return img;
 
-        if (surface->surfaceFormat().handleType() == QAbstractVideoBuffer::CoreImageHandle) {
+        if (surface->surfaceFormat().handleType() == QAbstractVideoBuffer::CoreImageHandle ||
+            surface->surfaceFormat().handleType() == QAbstractVideoBuffer::GLTextureHandle) {
             //surface supports rendering of opengl based CIImage
             frame = QVideoFrame(new QT7CIImageVideoBuffer(img), QSize(w,h), QVideoFrame::Format_RGB32 );
         } else {
@@ -243,6 +273,9 @@ QT7MovieViewRenderer::QT7MovieViewRenderer(QObject *parent)
     m_movie(0),
     m_movieView(0),
     m_surface(0),
+    m_glWidget(0),
+    m_fbo(0),
+    m_ciContext(0),
     m_pendingRenderEvent(false)
 {    
 }
@@ -254,6 +287,9 @@ QT7MovieViewRenderer::~QT7MovieViewRenderer()
     QMutexLocker locker(&m_mutex);
     m_currentFrame = QVideoFrame();
     [(HiddenQTMovieView*)m_movieView release];
+    [m_ciContext release];
+    delete m_fbo;
+    delete m_glWidget;
 }
 
 void QT7MovieViewRenderer::setupVideoOutput()
@@ -288,11 +324,20 @@ void QT7MovieViewRenderer::setupVideoOutput()
     }
 
     if (m_surface && !m_nativeSize.isEmpty()) {
-        bool coreImageFrameSupported = !m_surface->supportedPixelFormats(QAbstractVideoBuffer::CoreImageHandle).isEmpty() &&
-                                       !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty();
+        bool coreImageFrameSupported = !m_surface->supportedPixelFormats(QAbstractVideoBuffer::CoreImageHandle).isEmpty();
+        bool glTextureSupported = !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty();
 
-        QVideoSurfaceFormat format(m_nativeSize, QVideoFrame::Format_RGB32,
-                                   coreImageFrameSupported ? QAbstractVideoBuffer::CoreImageHandle : QAbstractVideoBuffer::NoHandle);
+        QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle;
+        QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_RGB32;
+
+        if (glTextureSupported) {
+            handleType = QAbstractVideoBuffer::GLTextureHandle;
+            pixelFormat = QVideoFrame::Format_BGR32;
+        } else if (coreImageFrameSupported) {
+            handleType = QAbstractVideoBuffer::CoreImageHandle;
+        }
+
+        QVideoSurfaceFormat format(m_nativeSize, pixelFormat, handleType);
 
         if (m_surface->isActive() && m_surface->surfaceFormat() != format) {
 #ifdef QT_DEBUG_QT7
@@ -309,6 +354,73 @@ void QT7MovieViewRenderer::setupVideoOutput()
                 qWarning() << "failed to start video surface" << m_surface->error();
         }
     }
+}
+
+/*!
+    Render the CIImage based video frame to FBO and return the video frame with resulting texture
+*/
+QVideoFrame QT7MovieViewRenderer::convertCIImageToGLTexture(const QVideoFrame &frame)
+{
+    if (frame.handleType() != QAbstractVideoBuffer::CoreImageHandle)
+        return QVideoFrame();
+
+    if (!m_glWidget) {
+        QOpenGLContext *qGlContext = 0;
+
+        if (m_surface)
+            qGlContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
+
+        if (qGlContext) {
+            QGLContext *surfaceContext = QGLContext::fromOpenGLContext(qGlContext);
+            m_glWidget = new QGLWidget();
+
+            QGLContext *context = new QGLContext(surfaceContext->format());
+            m_glWidget->setContext(context, surfaceContext);
+        } else {
+            return QVideoFrame();
+        }
+    }
+
+    m_glWidget->makeCurrent();
+
+    if (!m_fbo || m_fbo->size() != frame.size()) {
+        delete m_fbo;
+        m_fbo = new QGLFramebufferObject(frame.size());
+    }
+
+    CIImage *ciImg = (CIImage*)(frame.handle().value<void*>());
+    if (ciImg) {
+        AutoReleasePool pool;
+
+        QPainter p(m_fbo);
+        p.beginNativePainting();
+        CGLContextObj cglContext = CGLGetCurrentContext();
+        if (cglContext) {
+            if (!m_ciContext) {
+                NSOpenGLPixelFormat *nsglPixelFormat = [NSOpenGLView defaultPixelFormat];
+                CGLPixelFormatObj cglPixelFormat = static_cast<CGLPixelFormatObj>([nsglPixelFormat CGLPixelFormatObj]);
+
+                m_ciContext = [CIContext contextWithCGLContext:cglContext
+                                 pixelFormat:cglPixelFormat
+                                 colorSpace:nil
+                                 options:nil];
+
+                [m_ciContext retain];
+            }
+
+            QRect viewport = QRect(0, 0, frame.width(), frame.height());
+            CGRect sRect = CGRectMake(viewport.x(), viewport.y(), viewport.width(), viewport.height());
+            CGRect dRect = CGRectMake(viewport.x(), viewport.y(), viewport.width(), viewport.height());
+
+            [m_ciContext drawImage:ciImg inRect:dRect fromRect:sRect];
+        }
+        p.endNativePainting();
+
+        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(m_fbo->texture());
+        return QVideoFrame(buffer, frame.size(), QVideoFrame::Format_BGR32);
+    }
+
+    return QVideoFrame();
 }
 
 void QT7MovieViewRenderer::setMovie(void *movie)
@@ -365,8 +477,20 @@ bool QT7MovieViewRenderer::event(QEvent *event)
     if (event->type() == QEvent::User) {
         QMutexLocker locker(&m_mutex);
         m_pendingRenderEvent = false;
-        if (m_surface->isActive())
-            m_surface->present(m_currentFrame);
+
+        if (m_surface->isActive()) {
+            //For GL texture frames, render in the main thread CIImage based buffers
+            //to FBO shared with video surface shared context
+            if (m_surface->surfaceFormat().handleType() == QAbstractVideoBuffer::GLTextureHandle) {
+                m_currentFrame = convertCIImageToGLTexture(m_currentFrame);
+                if (m_currentFrame.isValid())
+                    m_surface->present(m_currentFrame);
+            } else {
+                m_surface->present(m_currentFrame);
+            }
+        }
+
+        m_currentFrame = QVideoFrame();
     }
 
     return QT7VideoRendererControl::event(event);

@@ -39,63 +39,36 @@
 **
 ****************************************************************************/
 
-#ifndef QT7MOVIEVIEWRENDERER_H
-#define QT7MOVIEVIEWRENDERER_H
+#ifndef QSGVIDEONODE_TEXTURE_H
+#define QSGVIDEONODE_TEXTURE_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qmutex.h>
+#include <private/qsgvideonode_p.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
-#include <qvideowindowcontrol.h>
-#include <qmediaplayer.h>
+class QSGVideoMaterial_Texture;
 
-#include "qt7videooutput.h"
-#include <qvideoframe.h>
-
-#include <QuartzCore/CIContext.h>
-
-QT_BEGIN_NAMESPACE
-
-class QVideoFrame;
-
-class QT7PlayerSession;
-class QT7PlayerService;
-class QGLWidget;
-class QGLFramebufferObject;
-
-class QT7MovieViewRenderer : public QT7VideoRendererControl
+class QSGVideoNode_Texture : public QSGVideoNode
 {
 public:
-    QT7MovieViewRenderer(QObject *parent = 0);
-    ~QT7MovieViewRenderer();
+    QSGVideoNode_Texture(const QVideoSurfaceFormat &format);
+    ~QSGVideoNode_Texture();
 
-    void setMovie(void *movie);
-    void updateNaturalSize(const QSize &newSize);
-
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
-
-    void renderFrame(const QVideoFrame &);
-
-protected:
-    bool event(QEvent *event);
+    virtual QVideoFrame::PixelFormat pixelFormat() const {
+        return m_format.pixelFormat();
+    }
+    void setCurrentFrame(const QVideoFrame &frame);
 
 private:
-    void setupVideoOutput();
-    QVideoFrame convertCIImageToGLTexture(const QVideoFrame &frame);
-
-    void *m_movie;
-    void *m_movieView;
-    QSize m_nativeSize;
-    QAbstractVideoSurface *m_surface;
-    QVideoFrame m_currentFrame;
-    QGLWidget *m_glWidget;
-    QGLFramebufferObject *m_fbo;
-    CIContext *m_ciContext;
-
-    bool m_pendingRenderEvent;
-    QMutex m_mutex;
+    QVideoSurfaceFormat m_format;
+    QSGVideoMaterial_Texture *m_material;
+    QVideoFrame m_frame;
 };
 
-QT_END_NAMESPACE
+class QSGVideoNodeFactory_Texture : public QSGVideoNodeFactoryInterface {
+public:
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
+};
+
 
 #endif
