@@ -40,6 +40,7 @@
 ****************************************************************************/
 
 #include "evr9videowindowcontrol.h"
+#include <QtWidgets/qwidget.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qglobal.h>
 
@@ -106,7 +107,7 @@ void Evr9VideoWindowControl::setWinId(WId id)
     }
 
     if (m_displayControl) {
-        m_displayControl->SetVideoWindow(m_windowId);
+        m_displayControl->SetVideoWindow(HWND(m_windowId));
     }
 }
 
@@ -170,7 +171,7 @@ void Evr9VideoWindowControl::repaint()
     }
 
     PAINTSTRUCT paint;
-    if (HDC dc = ::BeginPaint(m_windowId, &paint)) {
+    if (HDC dc = ::BeginPaint(HWND(m_windowId), &paint)) {
         HPEN pen = ::CreatePen(PS_SOLID, 1, m_windowColor);
         HBRUSH brush = ::CreateSolidBrush(m_windowColor);
         ::SelectObject(dc, pen);
@@ -185,7 +186,7 @@ void Evr9VideoWindowControl::repaint()
 
         ::DeleteObject(pen);
         ::DeleteObject(brush);
-        ::EndPaint(m_windowId, &paint);
+        ::EndPaint(HWND(m_windowId), &paint);
     }
 }
 

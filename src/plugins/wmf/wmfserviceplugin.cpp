@@ -47,7 +47,6 @@
 #ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
 #include "mfplayerservice.h"
 #endif
-#include <qmediaserviceprovider.h>
 
 QMediaService* WMFServicePlugin::create(QString const& key)
 {

@@ -18,3 +18,6 @@ HEADERS += wmfserviceplugin.h
 SOURCES += wmfserviceplugin.cpp
 
 include (player/player.pri)
+
+OTHER_FILES += \
+    wmf.json

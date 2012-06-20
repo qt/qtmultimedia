@@ -44,7 +44,7 @@
 #include <QtCore/qdebug.h>
 
 #include "mfplayercontrol.h"
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
 #include "evr9videowindowcontrol.h"
 #endif
 #include "mfvideorenderercontrol.h"

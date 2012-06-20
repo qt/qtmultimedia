@@ -81,7 +81,7 @@ QVariant MFMetaDataControl::metaData(const QString &key) const
     if (m_content)
         hr = m_content->GetValue(m_commonKeys[index], &var);
     else if (m_metaData)
-        hr = m_metaData->GetProperty(m_commonNames[index].utf16(), &var);
+        hr = m_metaData->GetProperty(reinterpret_cast<LPCWSTR>(m_commonNames[index].utf16()), &var);
 
     if (SUCCEEDED(hr))
         value = convertValue(var);
@@ -98,7 +98,7 @@ QVariant MFMetaDataControl::convertValue(const PROPVARIANT& var) const
     //add more later if necessary
     switch (var.vt) {
     case VT_LPWSTR:
-        value = QString::fromUtf16(var.pwszVal);
+        value = QString::fromUtf16(reinterpret_cast<const ushort*>(var.pwszVal));
         break;
     case VT_UI4:
         value = uint(var.ulVal);
@@ -133,8 +133,6 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
     m_availableMetaDatas.clear();
     m_commonKeys.clear();
     m_commonNames.clear();
-    m_extendedMetaDatas.clear();
-    m_extendedKeys.clear();
 
     if (SUCCEEDED(MFGetService(mediaSource, MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(&m_content)))) {
         DWORD cProps;
@@ -196,9 +194,9 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
                             m_availableMetaDatas.push_back(QtMultimedia::MetaData::Copyright);
                             //TODO: add more common keys
                         } else {
-                            m_availableMetaDatas.push_back(QString::fromUtf16(sName));
+                            m_availableMetaDatas.push_back(QString::fromUtf16(reinterpret_cast<const ushort*>(sName)));
                         }
-                        m_commonNames.push_back(QString::fromUtf16(sName));
+                        m_commonNames.push_back(QString::fromUtf16(reinterpret_cast<const ushort*>(sName)));
                     }
                 }
                 PropVariantClear(&varNames);
