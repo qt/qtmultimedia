@@ -297,6 +297,8 @@ QAudioOutputPrivate::QAudioOutputPrivate(const QByteArray& device)
         stateCode = QAudio::StoppedState;
         audioThreadState.store(Stopped);
 
+        cachedVolume = (qreal)1.;
+
         intervalTimer = new QTimer(this);
         intervalTimer->setInterval(1000);
         connect(intervalTimer, SIGNAL(timeout()), SIGNAL(notify()));
@@ -407,6 +409,8 @@ bool QAudioOutputPrivate::open()
     }
 
     isOpen = true;
+
+    setVolume(cachedVolume);
 
     return true;
 }
@@ -661,6 +665,27 @@ void QAudioOutputPrivate::stopTimers()
     intervalTimer->stop();
 }
 
+void QAudioOutputPrivate::setVolume(qreal v)
+{
+    const qreal normalizedVolume = qBound(qreal(0.0), v, qreal(1.0));
+    if (!isOpen) {
+        cachedVolume = normalizedVolume;
+        return;
+    }
+
+    if (AudioUnitSetParameter(audioUnit,
+                              kHALOutputParam_Volume,
+                              kAudioUnitScope_Global,
+                              0 /* bus */,
+                              (float)normalizedVolume,
+                              0) == noErr)
+        cachedVolume = normalizedVolume;
+}
+
+qreal QAudioOutputPrivate::volume() const
+{
+    return cachedVolume;
+}
 
 void QAudioOutputPrivate::deviceStopped()
 {

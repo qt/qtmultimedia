@@ -106,6 +106,7 @@ public:
     QMutex          mutex;
     QTimer*         intervalTimer;
     QAbstractAudioDeviceInfo *audioDeviceInfo;
+    qreal           cachedVolume;
 
     QAudio::Error    errorCode;
     QAudio::State    stateCode;
@@ -151,6 +152,9 @@ public:
 
     void startTimers();
     void stopTimers();
+
+    void setVolume(qreal);
+    qreal volume() const;
 
 private slots:
     void deviceStopped();
