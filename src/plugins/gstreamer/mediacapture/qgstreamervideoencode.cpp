@@ -48,7 +48,7 @@
 #include <math.h>
 
 QGstreamerVideoEncode::QGstreamerVideoEncode(QGstreamerCaptureSession *session)
-    :QVideoEncoderControl(session), m_session(session)
+    :QVideoEncoderSettingsControl(session), m_session(session)
 {
     QList<QByteArray> codecCandidates;
     codecCandidates << "video/h264" << "video/xvid" << "video/mpeg4" << "video/mpeg1" << "video/mpeg2" << "video/theora";

@@ -43,7 +43,7 @@
 #include "mfaudioendpointcontrol.h"
 
 MFAudioEndpointControl::MFAudioEndpointControl(QObject *parent)
-    : QAudioEndpointSelector(parent)
+    : QAudioEndpointSelectorControl(parent)
     , m_currentActivate(0)
 {
     updateEndpoints();

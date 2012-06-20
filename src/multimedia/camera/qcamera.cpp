@@ -51,7 +51,7 @@
 #include <qmediarecordercontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
-#include <qvideodevicecontrol.h>
+#include <qvideodeviceselectorcontrol.h>
 
 #include <QDebug>
 
@@ -122,7 +122,7 @@ public:
     QMediaServiceProvider *provider;
 
     QCameraControl *control;
-    QVideoDeviceControl *deviceControl;
+    QVideoDeviceSelectorControl *deviceControl;
     QCameraLocksControl *locksControl;
 
     QCameraExposure *cameraExposure;
@@ -245,7 +245,7 @@ void QCameraPrivate::initControls()
     if (service) {
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
         locksControl = qobject_cast<QCameraLocksControl *>(service->requestControl(QCameraLocksControl_iid));
-        deviceControl = qobject_cast<QVideoDeviceControl*>(service->requestControl(QVideoDeviceControl_iid));
+        deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
 
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));

@@ -3,7 +3,7 @@
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -39,52 +39,80 @@
 **
 ****************************************************************************/
 
-#ifndef QVIDEODEVICECONTROL_H
-#define QVIDEODEVICECONTROL_H
+//TESTED_COMPONENT=src/multimedia
 
-#include "qmediacontrol.h"
-
-QT_BEGIN_HEADER
-
-QT_BEGIN_NAMESPACE
-
-QT_MODULE(Multimedia)
-
-// Required for QDoc workaround
-class QString;
-
-class Q_MULTIMEDIA_EXPORT QVideoDeviceControl : public QMediaControl
+#include <QtTest/QtTest>
+#include "qvideoencodersettingscontrol.h"
+class MyVideEncoderControl: public QVideoEncoderSettingsControl
 {
     Q_OBJECT
 
 public:
-    virtual ~QVideoDeviceControl();
+    MyVideEncoderControl(QObject *parent = 0 ):QVideoEncoderSettingsControl(parent)
+    {
 
-    virtual int deviceCount() const = 0;
+    }
 
-    virtual QString deviceName(int index) const = 0;
-    virtual QString deviceDescription(int index) const = 0;
+    ~MyVideEncoderControl()
+    {
 
-    virtual int defaultDevice() const = 0;
-    virtual int selectedDevice() const = 0;
+    }
 
-public Q_SLOTS:
-    virtual void setSelectedDevice(int index) = 0;
+    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,bool *continuous = 0) const
+    {
+        Q_UNUSED(settings);
+        Q_UNUSED(continuous);
 
-Q_SIGNALS:
-    void selectedDeviceChanged(int index);
-    void selectedDeviceChanged(const QString &deviceName);
-    void devicesChanged();
+        return (QList<QSize>());
+    }
 
-protected:
-    QVideoDeviceControl(QObject *parent = 0);
+    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const
+    {
+        Q_UNUSED(settings);
+        Q_UNUSED(continuous);
+
+        return (QList<qreal>());
+
+    }
+
+    QStringList supportedVideoCodecs() const
+    {
+        return QStringList();
+
+    }
+
+    QString videoCodecDescription(const QString &codecName) const
+    {
+        Q_UNUSED(codecName)
+        return QString();
+
+    }
+
+    QVideoEncoderSettings videoSettings() const
+    {
+        return QVideoEncoderSettings();
+    }
+
+    void setVideoSettings(const QVideoEncoderSettings &settings)
+    {
+        Q_UNUSED(settings);
+    }
 };
 
-#define QVideoDeviceControl_iid "org.qt-project.qt.videodevicecontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QVideoDeviceControl, QVideoDeviceControl_iid)
+class tst_QVideoEncoderSettingsControl: public QObject
+{
+    Q_OBJECT
+private slots:
+    void constructor();
+};
 
-QT_END_NAMESPACE
+void tst_QVideoEncoderSettingsControl::constructor()
+{
+    QObject parent;
+    MyVideEncoderControl control(&parent);
+}
 
-QT_END_HEADER
+QTEST_MAIN(tst_QVideoEncoderSettingsControl)
+#include "tst_qvideoencodersettingscontrol.moc"
 
-#endif // QVIDEODEVICECONTROL_H
+

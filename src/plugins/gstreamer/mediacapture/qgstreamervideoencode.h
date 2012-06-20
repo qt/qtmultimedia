@@ -42,7 +42,7 @@
 #ifndef QGSTREAMERVIDEOENCODE_H
 #define QGSTREAMERVIDEOENCODE_H
 
-#include <qvideoencodercontrol.h>
+#include <qvideoencodersettingscontrol.h>
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerCaptureSession;
 
-class QGstreamerVideoEncode : public QVideoEncoderControl
+class QGstreamerVideoEncode : public QVideoEncoderSettingsControl
 {
     Q_OBJECT
 public:

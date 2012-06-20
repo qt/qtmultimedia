@@ -39,106 +39,106 @@
 **
 ****************************************************************************/
 
-#include "qvideodevicecontrol.h"
+#include "qvideodeviceselectorcontrol.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QVideoDeviceControl
+    \class QVideoDeviceSelectorControl
 
-    \brief The QVideoDeviceControl class provides an video device selector media control.
+    \brief The QVideoDeviceSelectorControl class provides an video device selector media control.
     \inmodule QtMultimedia
 
 
     \ingroup multimedia_control
 
-    The QVideoDeviceControl class provides descriptions of the video devices
+    The QVideoDeviceSelectorControl class provides descriptions of the video devices
     available on a system and allows one to be selected as the  endpoint of a
     media service.
 
-    The interface name of QVideoDeviceControl is \c org.qt-project.qt.videodevicecontrol/5.0 as
-    defined in QVideoDeviceControl_iid.
+    The interface name of QVideoDeviceSelectorControl is \c org.qt-project.qt.videodeviceselectorcontrol/5.0 as
+    defined in QVideoDeviceSelectorControl_iid.
 */
 
 /*!
-    \macro QVideoDeviceControl_iid
+    \macro QVideoDeviceSelectorControl_iid
 
-    \c org.qt-project.qt.videodevicecontrol/5.0
+    \c org.qt-project.qt.videodeviceselectorcontrol/5.0
 
-    Defines the interface name of the QVideoDeviceControl class.
+    Defines the interface name of the QVideoDeviceSelectorControl class.
 
-    \relates QVideoDeviceControl
+    \relates QVideoDeviceSelectorControl
 */
 
 /*!
-    Constructs a video device control with the given \a parent.
+    Constructs a video device selector control with the given \a parent.
 */
-QVideoDeviceControl::QVideoDeviceControl(QObject *parent)
+QVideoDeviceSelectorControl::QVideoDeviceSelectorControl(QObject *parent)
     :QMediaControl(parent)
 {
 }
 
 /*!
-    Destroys a video device control.
+    Destroys a video device selector control.
 */
-QVideoDeviceControl::~QVideoDeviceControl()
+QVideoDeviceSelectorControl::~QVideoDeviceSelectorControl()
 {
 }
 
 /*!
-    \fn QVideoDeviceControl::deviceCount() const
+    \fn QVideoDeviceSelectorControl::deviceCount() const
 
     Returns the number of available video devices;
 */
 
 /*!
-    \fn QVideoDeviceControl::deviceName(int index) const
+    \fn QVideoDeviceSelectorControl::deviceName(int index) const
 
     Returns the name of the video device at \a index.
 */
 
 /*!
-    \fn QVideoDeviceControl::deviceDescription(int index) const
+    \fn QVideoDeviceSelectorControl::deviceDescription(int index) const
 
     Returns a description of the video device at \a index.
 */
 
 /*!
-    \fn QVideoDeviceControl::defaultDevice() const
+    \fn QVideoDeviceSelectorControl::defaultDevice() const
 
     Returns the index of the default video device.
 */
 
 /*!
-    \fn QVideoDeviceControl::selectedDevice() const
+    \fn QVideoDeviceSelectorControl::selectedDevice() const
 
     Returns the index of the selected video device.
 */
 
 /*!
-    \fn QVideoDeviceControl::setSelectedDevice(int index)
+    \fn QVideoDeviceSelectorControl::setSelectedDevice(int index)
 
     Sets the selected video device \a index.
 */
 
 /*!
-    \fn QVideoDeviceControl::devicesChanged()
+    \fn QVideoDeviceSelectorControl::devicesChanged()
 
     Signals that the list of available video devices has changed.
 */
 
 /*!
-    \fn QVideoDeviceControl::selectedDeviceChanged(int index)
+    \fn QVideoDeviceSelectorControl::selectedDeviceChanged(int index)
 
     Signals that the selected video device \a index has changed.
 */
 
 /*!
-    \fn QVideoDeviceControl::selectedDeviceChanged(const QString &name)
+    \fn QVideoDeviceSelectorControl::selectedDeviceChanged(const QString &name)
 
     Signals that the selected video device \a name has changed.
 */
 
-#include "moc_qvideodevicecontrol.cpp"
+#include "moc_qvideodeviceselectorcontrol.cpp"
 QT_END_NAMESPACE
 

@@ -57,7 +57,7 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 QT_BEGIN_NAMESPACE
 
 DSVideoDeviceControl::DSVideoDeviceControl(QObject *parent)
-    : QVideoDeviceControl(parent)
+    : QVideoDeviceSelectorControl(parent)
 {
     m_session = qobject_cast<DSCameraSession*>(parent);
 

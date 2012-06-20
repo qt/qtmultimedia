@@ -39,94 +39,94 @@
 **
 ****************************************************************************/
 
-#include "qaudioendpointselector.h"
+#include "qaudioendpointselectorcontrol.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QAudioEndpointSelector
+    \class QAudioEndpointSelectorControl
 
-    \brief The QAudioEndpointSelector class provides an audio endpoint selector media control.
+    \brief The QAudioEndpointSelectorControl class provides an audio endpoint selector media control.
     \inmodule QtMultimedia
     \ingroup multimedia_control
 
-    The QAudioEndpointSelector class provides descriptions of the audio
+    The QAudioEndpointSelectorControl class provides descriptions of the audio
     endpoints available on a system and allows one to be selected as the audio
     of a media service.
 
-    The interface name of QAudioEndpointSelector is \c org.qt-project.qt.audioendpointselector/5.0 as
-    defined in QAudioEndpointSelector_iid.
+    The interface name of QAudioEndpointSelectorControl is \c org.qt-project.qt.audioendpointselectorcontrol/5.0 as
+    defined in QAudioEndpointSelectorControl_iid.
 
     \sa QMediaService::requestControl()
 */
 
 /*!
-    \macro QAudioEndpointSelector_iid
+    \macro QAudioEndpointSelectorControl_iid
 
-    \c org.qt-project.qt.audioendpointselector/5.0
+    \c org.qt-project.qt.audioendpointselectorcontrol/5.0
 
-    Defines the interface name of the QAudioEndpointSelector class.
+    Defines the interface name of the QAudioEndpointSelectorControl class.
 
-    \relates QAudioEndpointSelector
+    \relates QAudioEndpointSelectorControl
 */
 
 /*!
-    Constructs a new audio endpoint selector with the given \a parent.
+    Constructs a new audio endpoint selector control with the given \a parent.
 */
-QAudioEndpointSelector::QAudioEndpointSelector(QObject *parent)
+QAudioEndpointSelectorControl::QAudioEndpointSelectorControl(QObject *parent)
     :QMediaControl(parent)
 {
 }
 
 /*!
-    Destroys an audio endpoint selector.
+    Destroys an audio endpoint selector control.
 */
-QAudioEndpointSelector::~QAudioEndpointSelector()
+QAudioEndpointSelectorControl::~QAudioEndpointSelectorControl()
 {
 }
 
 /*!
-    \fn QList<QString> QAudioEndpointSelector::availableEndpoints() const
+    \fn QList<QString> QAudioEndpointSelectorControl::availableEndpoints() const
 
     Returns a list of the names of the available audio endpoints.
 */
 
 /*!
-    \fn QString QAudioEndpointSelector::endpointDescription(const QString& name) const
+    \fn QString QAudioEndpointSelectorControl::endpointDescription(const QString& name) const
 
     Returns the description of the endpoint \a name.
 */
 
 /*!
-    \fn QString QAudioEndpointSelector::defaultEndpoint() const
+    \fn QString QAudioEndpointSelectorControl::defaultEndpoint() const
 
     Returns the name of the default audio endpoint.
 */
 
 /*!
-    \fn QString QAudioEndpointSelector::activeEndpoint() const
+    \fn QString QAudioEndpointSelectorControl::activeEndpoint() const
 
     Returns the name of the currently selected audio endpoint.
 */
 
 /*!
-    \fn QAudioEndpointSelector::setActiveEndpoint(const QString& name)
+    \fn QAudioEndpointSelectorControl::setActiveEndpoint(const QString& name)
 
     Set the active audio endpoint to \a name.
 */
 
 /*!
-    \fn QAudioEndpointSelector::activeEndpointChanged(const QString& name)
+    \fn QAudioEndpointSelectorControl::activeEndpointChanged(const QString& name)
 
     Signals that the audio endpoint has changed to \a name.
 */
 
 /*!
-    \fn QAudioEndpointSelector::availableEndpointsChanged()
+    \fn QAudioEndpointSelectorControl::availableEndpointsChanged()
 
     Signals that list of available endpoints has changed.
 */
 
-#include "moc_qaudioendpointselector.cpp"
+#include "moc_qaudioendpointselectorcontrol.cpp"
 QT_END_NAMESPACE
 

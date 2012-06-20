@@ -46,7 +46,7 @@
 
 DirectShowAudioEndpointControl::DirectShowAudioEndpointControl(
         DirectShowPlayerService *service, QObject *parent)
-    : QAudioEndpointSelector(parent)
+    : QAudioEndpointSelectorControl(parent)
     , m_service(service)
     , m_bindContext(0)
     , m_deviceEnumerator(0)

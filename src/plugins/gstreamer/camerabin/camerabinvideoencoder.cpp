@@ -46,7 +46,7 @@
 #include <QtCore/qdebug.h>
 
 CameraBinVideoEncoder::CameraBinVideoEncoder(CameraBinSession *session)
-    :QVideoEncoderControl(session),
+    :QVideoEncoderSettingsControl(session),
      m_session(session),
      m_codecs(QGstCodecsInfo::VideoEncoder)
 {

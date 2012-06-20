@@ -42,14 +42,14 @@
 #ifndef MOCKAUDIOENDPOINTSELECTOR_H
 #define MOCKAUDIOENDPOINTSELECTOR_H
 
-#include "qaudioendpointselector.h"
+#include "qaudioendpointselectorcontrol.h"
 
-class MockAudioEndpointSelector : public QAudioEndpointSelector
+class MockAudioEndpointSelector : public QAudioEndpointSelectorControl
 {
     Q_OBJECT
 public:
     MockAudioEndpointSelector(QObject *parent):
-        QAudioEndpointSelector(parent)
+        QAudioEndpointSelectorControl(parent)
     {
         m_names << "device1" << "device2" << "device3";
         m_descriptions << "dev1 comment" << "dev2 comment" << "dev3 comment";

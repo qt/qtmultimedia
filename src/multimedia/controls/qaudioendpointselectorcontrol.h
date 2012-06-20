@@ -3,7 +3,7 @@
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
-** This file is part of the test suite of the Qt Toolkit.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -39,80 +39,50 @@
 **
 ****************************************************************************/
 
-//TESTED_COMPONENT=src/multimedia
+#ifndef QAUDIOENDPOINTSELECTORCONTROL_H
+#define QAUDIOENDPOINTSELECTORCONTROL_H
 
-#include <QtTest/QtTest>
-#include "qvideoencodercontrol.h"
-class MyVideEncoderControl: public QVideoEncoderControl
+#include <qaudio.h>
+#include <qmediacontrol.h>
+
+QT_BEGIN_HEADER
+
+QT_BEGIN_NAMESPACE
+
+QT_MODULE(Multimedia)
+
+
+// Class forward declaration required for QDoc bug
+class QString;
+class Q_MULTIMEDIA_EXPORT QAudioEndpointSelectorControl : public QMediaControl
 {
     Q_OBJECT
 
 public:
-    MyVideEncoderControl(QObject *parent = 0 ):QVideoEncoderControl(parent)
-    {
+    virtual ~QAudioEndpointSelectorControl();
 
-    }
+    virtual QList<QString> availableEndpoints() const = 0;
+    virtual QString endpointDescription(const QString& name) const = 0;
+    virtual QString defaultEndpoint() const = 0;
+    virtual QString activeEndpoint() const = 0;
 
-    ~MyVideEncoderControl()
-    {
+public Q_SLOTS:
+    virtual void setActiveEndpoint(const QString& name) = 0;
 
-    }
+Q_SIGNALS:
+    void activeEndpointChanged(const QString& name);
+    void availableEndpointsChanged();
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,bool *continuous = 0) const
-    {
-        Q_UNUSED(settings);
-        Q_UNUSED(continuous);
-
-        return (QList<QSize>());
-    }
-
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const
-    {
-        Q_UNUSED(settings);
-        Q_UNUSED(continuous);
-
-        return (QList<qreal>());
-
-    }
-
-    QStringList supportedVideoCodecs() const
-    {
-        return QStringList();
-
-    }
-
-    QString videoCodecDescription(const QString &codecName) const
-    {
-        Q_UNUSED(codecName)
-        return QString();
-
-    }
-
-    QVideoEncoderSettings videoSettings() const
-    {
-        return QVideoEncoderSettings();
-    }
-
-    void setVideoSettings(const QVideoEncoderSettings &settings)
-    {
-        Q_UNUSED(settings);
-    }
+protected:
+    QAudioEndpointSelectorControl(QObject *parent = 0);
 };
 
-class tst_QVideoEncoderControl: public QObject
-{
-    Q_OBJECT
-private slots:
-    void constructor();
-};
+#define QAudioEndpointSelectorControl_iid "org.qt-project.qt.audioendpointselectorcontrol/5.0"
+Q_MEDIA_DECLARE_CONTROL(QAudioEndpointSelectorControl, QAudioEndpointSelectorControl_iid)
 
-void tst_QVideoEncoderControl::constructor()
-{
-    QObject parent;
-    MyVideEncoderControl control(&parent);
-}
+QT_END_NAMESPACE
 
-QTEST_MAIN(tst_QVideoEncoderControl)
-#include "tst_qvideoencodercontrol.moc"
+QT_END_HEADER
 
 
+#endif // QAUDIOENDPOINTSELECTORCONTROL_H

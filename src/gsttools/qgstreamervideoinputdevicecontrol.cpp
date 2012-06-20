@@ -57,7 +57,7 @@
 #include <linux/videodev2.h>
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(QObject *parent)
-    :QVideoDeviceControl(parent), m_selectedDevice(0)
+    :QVideoDeviceSelectorControl(parent), m_selectedDevice(0)
 {
     update();
 }

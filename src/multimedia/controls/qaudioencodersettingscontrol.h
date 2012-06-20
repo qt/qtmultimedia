@@ -39,14 +39,13 @@
 **
 ****************************************************************************/
 
-#ifndef QVIDEOENCODERCONTROL_H
-#define QVIDEOENCODERCONTROL_H
+#ifndef QAUDIOENCODERSETTINGSCONTROL_H
+#define QAUDIOENCODERSETTINGSCONTROL_H
 
 #include "qmediacontrol.h"
 #include "qmediarecorder.h"
-
+#include <QtCore/qlist.h>
 #include <QtCore/qpair.h>
-#include <QtCore/qsize.h>
 
 QT_BEGIN_HEADER
 
@@ -54,8 +53,8 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-class QByteArray;
 class QStringList;
+class QAudioFormat;
 QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
@@ -63,35 +62,32 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QVideoEncoderControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QAudioEncoderSettingsControl : public QMediaControl
 {
     Q_OBJECT
 
 public:
-    virtual ~QVideoEncoderControl();
+    virtual ~QAudioEncoderSettingsControl();
 
-    virtual QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,
-                                              bool *continuous = 0) const = 0;
+    virtual QStringList supportedAudioCodecs() const = 0;
+    virtual QString codecDescription(const QString &codecName) const = 0;
 
-    virtual QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings,
-                                             bool *continuous = 0) const = 0;
+    virtual QList<int> supportedSampleRates(const QAudioEncoderSettings &settings,
+                                            bool *continuous = 0) const = 0;
 
-    virtual QStringList supportedVideoCodecs() const = 0;
-    virtual QString videoCodecDescription(const QString &codecName) const = 0;
-
-    virtual QVideoEncoderSettings videoSettings() const = 0;
-    virtual void setVideoSettings(const QVideoEncoderSettings &settings) = 0;
+    virtual QAudioEncoderSettings audioSettings() const = 0;
+    virtual void setAudioSettings(const QAudioEncoderSettings&) = 0;
 
 protected:
-    QVideoEncoderControl(QObject *parent = 0);
+    QAudioEncoderSettingsControl(QObject *parent = 0);
 };
 
-#define QVideoEncoderControl_iid "org.qt-project.qt.videoencodercontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QVideoEncoderControl, QVideoEncoderControl_iid)
+#define QAudioEncoderSettingsControl_iid "org.qt-project.qt.audioencodersettingscontrol/5.0"
+Q_MEDIA_DECLARE_CONTROL(QAudioEncoderSettingsControl, QAudioEncoderSettingsControl_iid)
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
 
-#endif
+#endif // QAUDIOENCODERSETTINGSCONTROL_H

@@ -46,7 +46,7 @@
 #include <QtCore/qdebug.h>
 
 CameraBinAudioEncoder::CameraBinAudioEncoder(QObject *parent)
-    :QAudioEncoderControl(parent),
+    :QAudioEncoderSettingsControl(parent),
      m_codecs(QGstCodecsInfo::AudioEncoder)
 {
 }

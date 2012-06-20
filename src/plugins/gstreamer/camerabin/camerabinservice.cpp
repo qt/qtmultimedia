@@ -177,19 +177,19 @@ QMediaControl *CameraBinService::requestControl(const char *name)
         }
     }
 
-    if (qstrcmp(name,QAudioEndpointSelector_iid) == 0)
+    if (qstrcmp(name,QAudioEndpointSelectorControl_iid) == 0)
         return m_audioInputEndpointSelector;
 
-    if (qstrcmp(name,QVideoDeviceControl_iid) == 0)
+    if (qstrcmp(name,QVideoDeviceSelectorControl_iid) == 0)
         return m_videoInputDevice;
 
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_captureSession->recorderControl();
 
-    if (qstrcmp(name,QAudioEncoderControl_iid) == 0)
+    if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
         return m_captureSession->audioEncodeControl();
 
-    if (qstrcmp(name,QVideoEncoderControl_iid) == 0)
+    if (qstrcmp(name,QVideoEncoderSettingsControl_iid) == 0)
         return m_captureSession->videoEncodeControl();
 
     if (qstrcmp(name,QImageEncoderControl_iid) == 0)

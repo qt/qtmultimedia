@@ -42,7 +42,7 @@
 #ifndef CAMERABINAUDIOENCODE_H
 #define CAMERABINAUDIOENCODE_H
 
-#include <qaudioencodercontrol.h>
+#include <qaudioencodersettingscontrol.h>
 class CameraBinSession;
 
 #include <QtCore/qstringlist.h>
@@ -58,7 +58,7 @@ class CameraBinSession;
 
 QT_USE_NAMESPACE
 
-class CameraBinAudioEncoder : public QAudioEncoderControl
+class CameraBinAudioEncoder : public QAudioEncoderSettingsControl
 {
     Q_OBJECT
 public:

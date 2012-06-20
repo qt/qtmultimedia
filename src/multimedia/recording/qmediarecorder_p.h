@@ -50,8 +50,8 @@ QT_BEGIN_NAMESPACE
 
 class QMediaRecorderControl;
 class QMediaContainerControl;
-class QAudioEncoderControl;
-class QVideoEncoderControl;
+class QAudioEncoderSettingsControl;
+class QVideoEncoderSettingsControl;
 class QMetaDataWriterControl;
 class QMediaAvailabilityControl;
 class QTimer;
@@ -71,8 +71,8 @@ public:
 
     QMediaRecorderControl *control;
     QMediaContainerControl *formatControl;
-    QAudioEncoderControl *audioControl;
-    QVideoEncoderControl *videoControl;
+    QAudioEncoderSettingsControl *audioControl;
+    QVideoEncoderSettingsControl *videoControl;
     QMetaDataWriterControl *metaDataControl;
     QMediaAvailabilityControl *availabilityControl;
 

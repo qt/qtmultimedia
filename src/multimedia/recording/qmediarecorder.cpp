@@ -47,8 +47,8 @@
 #include <qmediaservice.h>
 #include <qmediaserviceprovider_p.h>
 #include <qmetadatawritercontrol.h>
-#include <qaudioencodercontrol.h>
-#include <qvideoencodercontrol.h>
+#include <qaudioencodersettingscontrol.h>
+#include <qvideoencodersettingscontrol.h>
 #include <qmediacontainercontrol.h>
 #include <qmediaavailabilitycontrol.h>
 #include <qcamera.h>
@@ -350,8 +350,8 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 
             if (d->control) {
                 d->formatControl = qobject_cast<QMediaContainerControl *>(service->requestControl(QMediaContainerControl_iid));
-                d->audioControl = qobject_cast<QAudioEncoderControl *>(service->requestControl(QAudioEncoderControl_iid));
-                d->videoControl = qobject_cast<QVideoEncoderControl *>(service->requestControl(QVideoEncoderControl_iid));
+                d->audioControl = qobject_cast<QAudioEncoderSettingsControl *>(service->requestControl(QAudioEncoderSettingsControl_iid));
+                d->videoControl = qobject_cast<QVideoEncoderSettingsControl *>(service->requestControl(QVideoEncoderSettingsControl_iid));
 
                 QMediaControl *control = service->requestControl(QMetaDataWriterControl_iid);
                 if (control) {

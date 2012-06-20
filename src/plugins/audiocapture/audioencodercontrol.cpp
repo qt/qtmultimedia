@@ -47,7 +47,7 @@
 #include <QtCore/qdebug.h>
 
 AudioEncoderControl::AudioEncoderControl(QObject *parent)
-    :QAudioEncoderControl(parent)
+    :QAudioEncoderSettingsControl(parent)
 {
     m_session = qobject_cast<AudioCaptureSession*>(parent);
 

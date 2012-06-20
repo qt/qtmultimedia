@@ -43,7 +43,7 @@
 #include "qvideowidget_p.h"
 
 #include <qcamera.h>
-#include <qvideodevicecontrol.h>
+#include <qvideodeviceselectorcontrol.h>
 #include <private/qmediaobject_p.h>
 
 #include <QtCore/QDebug>

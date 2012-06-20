@@ -73,15 +73,15 @@ public:
 
     QMediaControl* requestControl(const char *name)
     {
-        if (hasControls && qstrcmp(name,QAudioEncoderControl_iid) == 0)
+        if (hasControls && qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
             return mockAudioEncoderControl;
-        if (hasControls && qstrcmp(name,QAudioEndpointSelector_iid) == 0)
+        if (hasControls && qstrcmp(name,QAudioEndpointSelectorControl_iid) == 0)
             return mockAudioEndpointSelector;
         if (hasControls && qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
         if (hasControls && qstrcmp(name,QMediaContainerControl_iid) == 0)
             return mockFormatControl;
-        if (hasControls && qstrcmp(name,QVideoEncoderControl_iid) == 0)
+        if (hasControls && qstrcmp(name,QVideoEncoderSettingsControl_iid) == 0)
             return mockVideoEncoderControl;
         if (hasControls && qstrcmp(name, QMetaDataWriterControl_iid) == 0)
             return mockMetaDataControl;
@@ -98,10 +98,10 @@ public:
     }
 
     QMediaControl   *mockControl;
-    QAudioEndpointSelector  *mockAudioEndpointSelector;
-    QAudioEncoderControl    *mockAudioEncoderControl;
+    QAudioEndpointSelectorControl  *mockAudioEndpointSelector;
+    QAudioEncoderSettingsControl    *mockAudioEncoderControl;
     QMediaContainerControl     *mockFormatControl;
-    QVideoEncoderControl    *mockVideoEncoderControl;
+    QVideoEncoderSettingsControl    *mockVideoEncoderControl;
     MockMetaDataWriterControl *mockMetaDataControl;
     MockAvailabilityControl *mockAvailabilityControl;
     MockAudioProbeControl *mockAudioProbeControl;

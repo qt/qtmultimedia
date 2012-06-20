@@ -25,7 +25,7 @@ SUBDIRS += \
     qmetadatawritercontrol \
     qradiodata \
     qradiotuner \
-    qvideoencodercontrol \
+    qvideoencodersettingscontrol \
     qvideoframe \
     qvideosurfaceformat \
     qwavedecoder \

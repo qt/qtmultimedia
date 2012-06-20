@@ -113,7 +113,7 @@ private:
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio encoder settings
 
-    \sa QMediaRecorder, QAudioEncoderControl
+    \sa QMediaRecorder, QAudioEncoderSettingsControl
 */
 
 /*!
@@ -427,7 +427,7 @@ private:
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Video encoder settings
 
-    \sa QMediaRecorder, QVideoEncoderControl
+    \sa QMediaRecorder, QVideoEncoderSettingsControl
 */
 
 /*!

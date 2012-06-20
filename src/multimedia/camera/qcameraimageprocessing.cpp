@@ -48,7 +48,7 @@
 #include <qmediarecordercontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
-#include <qvideodevicecontrol.h>
+#include <qvideodeviceselectorcontrol.h>
 
 #include <QtCore/QDebug>
 

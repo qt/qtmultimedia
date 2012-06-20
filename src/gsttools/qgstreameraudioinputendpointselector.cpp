@@ -51,7 +51,7 @@
 #endif
 
 QGstreamerAudioInputEndpointSelector::QGstreamerAudioInputEndpointSelector(QObject *parent)
-    :QAudioEndpointSelector(parent)
+    :QAudioEndpointSelectorControl(parent)
 {
     update();
 }

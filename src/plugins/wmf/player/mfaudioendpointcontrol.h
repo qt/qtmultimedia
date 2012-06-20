@@ -46,13 +46,13 @@
 #include <mfidl.h>
 #include <mmdeviceapi.h>
 
-#include "qaudioendpointselector.h"
+#include "qaudioendpointselectorcontrol.h"
 
 class MFPlayerService;
 
 QT_USE_NAMESPACE
 
-class MFAudioEndpointControl : public QAudioEndpointSelector
+class MFAudioEndpointControl : public QAudioEndpointSelectorControl
 {
     Q_OBJECT
 public:

@@ -39,11 +39,10 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIOENDPOINTSELECTOR_H
-#define QAUDIOENDPOINTSELECTOR_H
+#ifndef QVIDEODEVICESELECTORCONTROL_H
+#define QVIDEODEVICESELECTORCONTROL_H
 
-#include <qaudio.h>
-#include <qmediacontrol.h>
+#include "qmediacontrol.h"
 
 QT_BEGIN_HEADER
 
@@ -51,38 +50,41 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
-
-// Class forward declaration required for QDoc bug
+// Required for QDoc workaround
 class QString;
-class Q_MULTIMEDIA_EXPORT QAudioEndpointSelector : public QMediaControl
+
+class Q_MULTIMEDIA_EXPORT QVideoDeviceSelectorControl : public QMediaControl
 {
     Q_OBJECT
 
 public:
-    virtual ~QAudioEndpointSelector();
+    virtual ~QVideoDeviceSelectorControl();
 
-    virtual QList<QString> availableEndpoints() const = 0;
-    virtual QString endpointDescription(const QString& name) const = 0;
-    virtual QString defaultEndpoint() const = 0;
-    virtual QString activeEndpoint() const = 0;
+    virtual int deviceCount() const = 0;
+
+    virtual QString deviceName(int index) const = 0;
+    virtual QString deviceDescription(int index) const = 0;
+
+    virtual int defaultDevice() const = 0;
+    virtual int selectedDevice() const = 0;
 
 public Q_SLOTS:
-    virtual void setActiveEndpoint(const QString& name) = 0;
+    virtual void setSelectedDevice(int index) = 0;
 
 Q_SIGNALS:
-    void activeEndpointChanged(const QString& name);
-    void availableEndpointsChanged();
+    void selectedDeviceChanged(int index);
+    void selectedDeviceChanged(const QString &deviceName);
+    void devicesChanged();
 
 protected:
-    QAudioEndpointSelector(QObject *parent = 0);
+    QVideoDeviceSelectorControl(QObject *parent = 0);
 };
 
-#define QAudioEndpointSelector_iid "org.qt-project.qt.audioendpointselector/5.0"
-Q_MEDIA_DECLARE_CONTROL(QAudioEndpointSelector, QAudioEndpointSelector_iid)
+#define QVideoDeviceSelectorControl_iid "org.qt-project.qt.videodeviceselectorcontrol/5.0"
+Q_MEDIA_DECLARE_CONTROL(QVideoDeviceSelectorControl, QVideoDeviceSelectorControl_iid)
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
-
-#endif // QAUDIOENDPOINTSELECTOR_H
+#endif // QVIDEODEVICESELECTORCONTROL_H

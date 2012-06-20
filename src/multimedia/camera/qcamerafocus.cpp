@@ -49,7 +49,7 @@
 #include <qcamerazoomcontrol.h>
 #include <qmediarecordercontrol.h>
 #include <qcameraimagecapturecontrol.h>
-#include <qvideodevicecontrol.h>
+#include <qvideodeviceselectorcontrol.h>
 
 #include <QtCore/QDebug>
 

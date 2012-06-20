@@ -45,9 +45,9 @@
 #include <qaudioformat.h>
 
 #include <qaudiorecorder.h>
-#include <qaudioencodercontrol.h>
+#include <qaudioencodersettingscontrol.h>
 #include <qmediarecordercontrol.h>
-#include <qaudioendpointselector.h>
+#include <qaudioendpointselectorcontrol.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudioinput.h>
 #include <qmediaobject.h>

@@ -46,8 +46,8 @@
 
 #include <gst/gst.h>
 QT_BEGIN_NAMESPACE
-class QAudioEndpointSelector;
-class QVideoDeviceControl;
+class QAudioEndpointSelectorControl;
+class QVideoDeviceSelectorControl;
 QT_END_NAMESPACE
 
 class CameraBinSession;
@@ -82,8 +82,8 @@ private:
     CameraBinControl *m_cameraControl;
     CameraBinMetaData *m_metaDataControl;
 
-    QAudioEndpointSelector *m_audioInputEndpointSelector;
-    QVideoDeviceControl *m_videoInputDevice;
+    QAudioEndpointSelectorControl *m_audioInputEndpointSelector;
+    QVideoDeviceSelectorControl *m_videoInputDevice;
 
     QMediaControl *m_videoOutput;
 

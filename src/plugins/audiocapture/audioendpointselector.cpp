@@ -46,7 +46,7 @@
 
 
 AudioEndpointSelector::AudioEndpointSelector(QObject *parent)
-    :QAudioEndpointSelector(parent)
+    :QAudioEndpointSelectorControl(parent)
 {
     m_session = qobject_cast<AudioCaptureSession*>(parent);
 

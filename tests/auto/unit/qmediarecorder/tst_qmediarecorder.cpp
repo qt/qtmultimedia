@@ -49,10 +49,10 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qmetadatawritercontrol.h>
-#include <qaudioendpointselector.h>
-#include <qaudioencodercontrol.h>
+#include <qaudioendpointselectorcontrol.h>
+#include <qaudioencodersettingscontrol.h>
 #include <qmediacontainercontrol.h>
-#include <qvideoencodercontrol.h>
+#include <qvideoencodersettingscontrol.h>
 #include <qaudioformat.h>
 
 #include "mockmediarecorderservice.h"
@@ -114,13 +114,13 @@ private slots:
     void testVideoSettingsDestructor();
 
 private:
-    QAudioEncoderControl* encode;
-    QAudioEndpointSelector* audio;
+    QAudioEncoderSettingsControl* encode;
+    QAudioEndpointSelectorControl* audio;
     MockMediaObject *object;
     MockMediaRecorderService*service;
     MockMediaRecorderControl *mock;
     QMediaRecorder *capture;
-    QVideoEncoderControl* videoEncode;
+    QVideoEncoderSettingsControl* videoEncode;
 };
 
 void tst_QMediaRecorder::initTestCase()
@@ -133,9 +133,9 @@ void tst_QMediaRecorder::initTestCase()
     object = new MockMediaObject(this, service);
     capture = new QMediaRecorder(object);
 
-    audio = qobject_cast<QAudioEndpointSelector*>(service->requestControl(QAudioEndpointSelector_iid));
-    encode = qobject_cast<QAudioEncoderControl*>(service->requestControl(QAudioEncoderControl_iid));
-    videoEncode = qobject_cast<QVideoEncoderControl*>(service->requestControl(QVideoEncoderControl_iid));
+    audio = qobject_cast<QAudioEndpointSelectorControl*>(service->requestControl(QAudioEndpointSelectorControl_iid));
+    encode = qobject_cast<QAudioEncoderSettingsControl*>(service->requestControl(QAudioEncoderSettingsControl_iid));
+    videoEncode = qobject_cast<QVideoEncoderSettingsControl*>(service->requestControl(QVideoEncoderSettingsControl_iid));
 }
 
 void tst_QMediaRecorder::cleanupTestCase()

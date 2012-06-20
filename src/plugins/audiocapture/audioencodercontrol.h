@@ -42,7 +42,7 @@
 #ifndef AUDIOENCODERCONTROL_H
 #define AUDIOENCODERCONTROL_H
 
-#include "qaudioencodercontrol.h"
+#include "qaudioencodersettingscontrol.h"
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
@@ -53,7 +53,7 @@ class AudioCaptureSession;
 
 QT_USE_NAMESPACE
 
-class AudioEncoderControl : public QAudioEncoderControl
+class AudioEncoderControl : public QAudioEncoderSettingsControl
 {
     Q_OBJECT
 public:

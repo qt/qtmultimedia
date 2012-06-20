@@ -190,7 +190,7 @@ public:
    Required Controls: QAudioDeviceControl
    Recording Controls (QMediaRecorder):
                         Required: QMediaRecorderControl
-                        Recommended: QAudioEncoderControl
+                        Recommended: QAudioEncoderSettingsControl
                         Optional: QMediaContainerControl
 */
 #define Q_MEDIASERVICE_AUDIOSOURCE "org.qt-project.qt.audiosource"
@@ -202,7 +202,7 @@ public:
     Still Capture Controls: QCameraImageCaptureControl
     Video Capture Controls (QMediaRecorder):
                         Required: QMediaRecorderControl
-                        Recommended: QAudioEncoderControl, QVideoEncoderControl, QMediaContainerControl
+                        Recommended: QAudioEncoderSettingsControl, QVideoEncoderSettingsControl, QMediaContainerControl
     Viewfinder Video Output Controls (used by QCameraViewfinder and QGraphicsVideoItem):
                         Required: QVideoOutputControl
                         Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
@@ -214,7 +214,7 @@ public:
     Required Controls: QRadioTunerControl
     Recording Controls (Optional, used by QMediaRecorder):
                         Required: QMediaRecorderControl
-                        Recommended: QAudioEncoderControl
+                        Recommended: QAudioEncoderSettingsControl
                         Optional: QMediaContainerControl
 */
 #define Q_MEDIASERVICE_RADIO "org.qt-project.qt.radio"

@@ -97,7 +97,7 @@ QMediaControl* MFPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         return m_player;
-    } else if (qstrcmp(name, QAudioEndpointSelector_iid) == 0) {
+    } else if (qstrcmp(name, QAudioEndpointSelectorControl_iid) == 0) {
         return m_audioEndpointControl;
     } else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
         return m_metaDataControl;

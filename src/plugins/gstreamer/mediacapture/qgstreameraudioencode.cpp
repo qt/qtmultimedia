@@ -48,7 +48,7 @@
 #include <math.h>
 
 QGstreamerAudioEncode::QGstreamerAudioEncode(QObject *parent)
-    :QAudioEncoderControl(parent)
+    :QAudioEncoderSettingsControl(parent)
 {
     QList<QByteArray> codecCandidates;
 

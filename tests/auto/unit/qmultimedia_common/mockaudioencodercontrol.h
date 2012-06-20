@@ -42,14 +42,14 @@
 #ifndef MOCKAUDIOENCODERCONTROL_H
 #define MOCKAUDIOENCODERCONTROL_H
 
-#include "qaudioencodercontrol.h"
+#include "qaudioencodersettingscontrol.h"
 
-class MockAudioEncoderControl : public QAudioEncoderControl
+class MockAudioEncoderControl : public QAudioEncoderSettingsControl
 {
     Q_OBJECT
 public:
     MockAudioEncoderControl(QObject *parent):
-        QAudioEncoderControl(parent)
+        QAudioEncoderSettingsControl(parent)
     {
         m_codecs << "audio/pcm" << "audio/mpeg";
         m_descriptions << "Pulse Code Modulation" << "mp3 format";

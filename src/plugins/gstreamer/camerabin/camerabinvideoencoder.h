@@ -42,7 +42,7 @@
 #ifndef CAMERABINVIDEOENCODE_H
 #define CAMERABINVIDEOENCODE_H
 
-#include <qvideoencodercontrol.h>
+#include <qvideoencodersettingscontrol.h>
 class CameraBinSession;
 
 #include <QtCore/qstringlist.h>
@@ -56,7 +56,7 @@ class CameraBinSession;
 
 QT_USE_NAMESPACE
 
-class CameraBinVideoEncoder : public QVideoEncoderControl
+class CameraBinVideoEncoder : public QVideoEncoderSettingsControl
 {
     Q_OBJECT
 public:

@@ -48,10 +48,10 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qmetadatawritercontrol.h>
-#include <qaudioendpointselector.h>
-#include <qaudioencodercontrol.h>
+#include <qaudioendpointselectorcontrol.h>
+#include <qaudioencodersettingscontrol.h>
 #include <qmediacontainercontrol.h>
-#include <qvideoencodercontrol.h>
+#include <qvideoencodersettingscontrol.h>
 #include <qaudioformat.h>
 
 #include "mockmediacontainercontrol.h"

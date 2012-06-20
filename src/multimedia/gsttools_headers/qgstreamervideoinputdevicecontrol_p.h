@@ -42,12 +42,12 @@
 #ifndef QGSTREAMERVIDEOINPUTDEVICECONTROL_H
 #define QGSTREAMERVIDEOINPUTDEVICECONTROL_H
 
-#include <qvideodevicecontrol.h>
+#include <qvideodeviceselectorcontrol.h>
 #include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoInputDeviceControl : public QVideoDeviceControl
+class QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
 {
 Q_OBJECT
 public:

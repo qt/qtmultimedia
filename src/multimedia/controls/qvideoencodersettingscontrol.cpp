@@ -39,76 +39,76 @@
 **
 ****************************************************************************/
 
-#include "qvideoencodercontrol.h"
+#include "qvideoencodersettingscontrol.h"
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QVideoEncoderControl
+    \class QVideoEncoderSettingsControl
 
     \inmodule QtMultimedia
 
 
     \ingroup multimedia_control
 
-    \brief The QVideoEncoderControl class provides access to the settings
+    \brief The QVideoEncoderSettingsControl class provides access to the settings
     of a media service that performs video encoding.
 
     If a QMediaService supports encoding video data it will implement
-    QVideoEncoderControl.  This control provides information about the limits
+    QVideoEncoderSettingsControl.  This control provides information about the limits
     of restricted video encoder options and allows the selection of a set of
     video encoder settings as specified in a QVideoEncoderSettings object.
 
     The functionality provided by this control is exposed to application code
     through the QMediaRecorder class.
 
-    The interface name of QVideoEncoderControl is \c org.qt-project.qt.videoencodercontrol/5.0 as
-    defined in QVideoEncoderControl_iid.
+    The interface name of QVideoEncoderSettingsControl is \c org.qt-project.qt.videoencodersettingscontrol/5.0 as
+    defined in QVideoEncoderSettingsControl_iid.
 
     \sa QMediaRecorder, QVideoEncoderSettings, QMediaService::requestControl()
 */
 
 /*!
-    \macro QVideoEncoderControl_iid
+    \macro QVideoEncoderSettingsControl_iid
 
-    \c org.qt-project.qt.videoencodercontrol/5.0
+    \c org.qt-project.qt.videoencodersettingscontrol/5.0
 
-    Defines the interface name of the QVideoEncoderControl class.
+    Defines the interface name of the QVideoEncoderSettingsControl class.
 
-    \relates QVideoEncoderControl
+    \relates QVideoEncoderSettingsControl
 */
 
 /*!
-    Create a new video encoder control object with the given \a parent.
+    Create a new video encoder settings control object with the given \a parent.
 */
-QVideoEncoderControl::QVideoEncoderControl(QObject *parent)
+QVideoEncoderSettingsControl::QVideoEncoderSettingsControl(QObject *parent)
     :QMediaControl(parent)
 {
 }
 
 /*!
-    Destroys a video encoder control.
+    Destroys a video encoder settings control.
 */
-QVideoEncoderControl::~QVideoEncoderControl()
+QVideoEncoderSettingsControl::~QVideoEncoderSettingsControl()
 {
 }
 
 /*!
-    \fn QVideoEncoderControl::supportedVideoCodecs() const
+    \fn QVideoEncoderSettingsControl::supportedVideoCodecs() const
 
     Returns the list of supported video codecs.
 */
 
 /*!
-    \fn QVideoEncoderControl::videoCodecDescription(const QString &codec) const
+    \fn QVideoEncoderSettingsControl::videoCodecDescription(const QString &codec) const
 
     Returns a description of a video \a codec.
 */
 
 /*!
-    \fn QVideoEncoderControl::supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
+    \fn QVideoEncoderSettingsControl::supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
                                                    bool *continuous = 0) const
 
     Returns a list of supported resolutions.
@@ -125,7 +125,7 @@ QVideoEncoderControl::~QVideoEncoderControl()
 */
 
 /*!
-    \fn QVideoEncoderControl::supportedFrameRates(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
+    \fn QVideoEncoderSettingsControl::supportedFrameRates(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
                                                   bool *continuous = 0) const
 
     Returns a list of supported frame rates.
@@ -142,21 +142,21 @@ QVideoEncoderControl::~QVideoEncoderControl()
 */
 
 /*!
-    \fn QVideoEncoderControl::videoSettings() const
+    \fn QVideoEncoderSettingsControl::videoSettings() const
 
     Returns the video encoder settings.
 
-    The returned value may be different tha passed to QVideoEncoderControl::setVideoSettings()
+    The returned value may be different tha passed to QVideoEncoderSettingsControl::setVideoSettings()
     if the settings contains the default or undefined parameters.
     In this case if the undefined parameters are already resolved, they should be returned.
 */
 
 /*!
-    \fn QVideoEncoderControl::setVideoSettings(const QVideoEncoderSettings &settings)
+    \fn QVideoEncoderSettingsControl::setVideoSettings(const QVideoEncoderSettings &settings)
 
     Sets the selected video encoder \a settings.
 */
 
-#include "moc_qvideoencodercontrol.cpp"
+#include "moc_qvideoencodersettingscontrol.cpp"
 QT_END_NAMESPACE
 

@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "qaudiorecorder.h"
-#include "qaudioendpointselector.h"
+#include "qaudioendpointselectorcontrol.h"
 #include "qmediaobject_p.h"
 #include "qmediarecorder_p.h"
 #include <qmediaservice.h>
@@ -76,7 +76,7 @@ QT_BEGIN_NAMESPACE
     The \l {audiorecorder}{Audio Recorder} example shows how to use this class
     in more detail.
 
-    \sa QMediaRecorder, QAudioEndpointSelector
+    \sa QMediaRecorder, QAudioEndpointSelectorControl
 */
 
 class QAudioRecorderObject : public QMediaObject
@@ -105,7 +105,7 @@ public:
         QMediaService *service = mediaObject ? mediaObject->service() : 0;
 
         if (service != 0)
-            audioEndpointSelector = qobject_cast<QAudioEndpointSelector*>(service->requestControl(QAudioEndpointSelector_iid));
+            audioEndpointSelector = qobject_cast<QAudioEndpointSelectorControl*>(service->requestControl(QAudioEndpointSelectorControl_iid));
 
         if (audioEndpointSelector) {
             q->connect(audioEndpointSelector, SIGNAL(activeEndpointChanged(QString)),
@@ -121,7 +121,7 @@ public:
         audioEndpointSelector(0) {}
 
     QMediaServiceProvider *provider;
-    QAudioEndpointSelector   *audioEndpointSelector;
+    QAudioEndpointSelectorControl   *audioEndpointSelector;
 };
 
 

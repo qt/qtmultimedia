@@ -43,7 +43,7 @@
 
 #include <QtTest/QtTest>
 
-#include <qvideodevicecontrol.h>
+#include <qvideodeviceselectorcontrol.h>
 #include <qmediacontrol.h>
 #include <qmediaservice.h>
 

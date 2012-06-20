@@ -111,7 +111,7 @@ QMediaControl* DSCameraService::requestControl(const char *name)
     if(qstrcmp(name,QVideoRendererControl_iid) == 0)
         return m_videoRenderer;
 
-    if(qstrcmp(name,QVideoDeviceControl_iid) == 0)
+    if (qstrcmp(name,QVideoDeviceSelectorControl_iid) == 0)
         return m_videoDevice;
 
     return 0;

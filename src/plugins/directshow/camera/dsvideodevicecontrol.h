@@ -42,7 +42,7 @@
 #ifndef DSVIDEODEVICECONTROL_H
 #define DSVIDEODEVICECONTROL_H
 
-#include <qvideodevicecontrol.h>
+#include <qvideodeviceselectorcontrol.h>
 
 QT_BEGIN_HEADER
 
@@ -51,7 +51,7 @@ class DSCameraSession;
 
 //QTM_USE_NAMESPACE
 
-class DSVideoDeviceControl : public QVideoDeviceControl
+class DSVideoDeviceControl : public QVideoDeviceSelectorControl
 {
     Q_OBJECT
 public:

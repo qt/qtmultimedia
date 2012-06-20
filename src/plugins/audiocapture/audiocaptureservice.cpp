@@ -70,10 +70,10 @@ QMediaControl *AudioCaptureService::requestControl(const char *name)
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_mediaControl;
 
-    if (qstrcmp(name,QAudioEncoderControl_iid) == 0)
+    if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
         return m_encoderControl;
 
-    if (qstrcmp(name,QAudioEndpointSelector_iid) == 0)
+    if (qstrcmp(name,QAudioEndpointSelectorControl_iid) == 0)
         return m_endpointSelector;
 
     if (qstrcmp(name,QMediaContainerControl_iid) == 0)

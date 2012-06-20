@@ -42,12 +42,12 @@
 #ifndef QGSTREAMERAUDIOINPUTENDPOINTSELECTOR_H
 #define QGSTREAMERAUDIOINPUTENDPOINTSELECTOR_H
 
-#include <qaudioendpointselector.h>
+#include <qaudioendpointselectorcontrol.h>
 #include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerAudioInputEndpointSelector : public QAudioEndpointSelector
+class QGstreamerAudioInputEndpointSelector : public QAudioEndpointSelectorControl
 {
 Q_OBJECT
 public:

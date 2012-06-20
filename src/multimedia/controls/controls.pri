@@ -3,8 +3,8 @@ INCLUDEPATH += controls
 
 PUBLIC_HEADERS += \
     controls/qaudiodecodercontrol.h \
-    controls/qaudioencodercontrol.h \
-    controls/qaudioendpointselector.h \
+    controls/qaudioencodersettingscontrol.h \
+    controls/qaudioendpointselectorcontrol.h \
     controls/qcameracapturebufferformatcontrol.h \
     controls/qcameracapturedestinationcontrol.h \
     controls/qcameracontrol.h \
@@ -28,8 +28,8 @@ PUBLIC_HEADERS += \
     controls/qmetadatawritercontrol.h \
     controls/qradiodatacontrol.h \
     controls/qradiotunercontrol.h \
-    controls/qvideodevicecontrol.h \
-    controls/qvideoencodercontrol.h \
+    controls/qvideodeviceselectorcontrol.h \
+    controls/qvideoencodersettingscontrol.h \
     controls/qvideorenderercontrol.h \
     controls/qvideowindowcontrol.h \
     controls/qmediaaudioprobecontrol.h \
@@ -41,8 +41,6 @@ PRIVATE_HEADERS += \
     controls/qmediaplaylistsourcecontrol_p.h
 
 SOURCES += \
-    controls/qaudioencodercontrol.cpp \
-    controls/qaudioendpointselector.cpp \
     controls/qcameracapturebufferformatcontrol.cpp \
     controls/qcameracapturedestinationcontrol.cpp \
     controls/qcameracontrol.cpp \
@@ -68,13 +66,15 @@ SOURCES += \
     controls/qmetadatawritercontrol.cpp \
     controls/qradiodatacontrol.cpp \
     controls/qradiotunercontrol.cpp \
-    controls/qvideodevicecontrol.cpp \
-    controls/qvideoencodercontrol.cpp \
     controls/qvideorenderercontrol.cpp \
     controls/qvideowindowcontrol.cpp \
     controls/qmediaaudioprobecontrol.cpp \
     controls/qmediavideoprobecontrol.cpp \
     controls/qmediaavailabilitycontrol.cpp \
-    controls/qaudiodecodercontrol.cpp
+    controls/qaudiodecodercontrol.cpp \
+    controls/qvideoencodersettingscontrol.cpp \
+    controls/qaudioencodersettingscontrol.cpp \
+    controls/qaudioendpointselectorcontrol.cpp \
+    controls/qvideodeviceselectorcontrol.cpp
 
 

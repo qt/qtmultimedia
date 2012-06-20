@@ -42,14 +42,14 @@
 #ifndef MOCKVIDEOENCODERCONTROL_H
 #define MOCKVIDEOENCODERCONTROL_H
 
-#include "qvideoencodercontrol.h"
+#include "qvideoencodersettingscontrol.h"
 
-class MockVideoEncoderControl : public QVideoEncoderControl
+class MockVideoEncoderControl : public QVideoEncoderSettingsControl
 {
     Q_OBJECT
 public:
     MockVideoEncoderControl(QObject *parent):
-        QVideoEncoderControl(parent)
+        QVideoEncoderSettingsControl(parent)
     {
         m_videoCodecs << "video/3gpp" << "video/H264";
         m_sizes << QSize(320,240) << QSize(640,480);
