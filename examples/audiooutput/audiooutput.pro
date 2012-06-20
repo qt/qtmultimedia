@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET += audiooutput
+TARGET = audiooutput
 
 QT += multimedia
 
