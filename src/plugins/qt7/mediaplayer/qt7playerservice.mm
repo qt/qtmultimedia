@@ -88,9 +88,7 @@ QMediaControl *QT7PlayerService::requestControl(const char *name)
 #ifndef QT_NO_OPENGL
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
-#if defined(QT_MAC_USE_COCOA)
             m_videoOutput = new QT7MovieViewOutput(this);
-#endif
         }
 
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
