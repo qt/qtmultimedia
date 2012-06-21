@@ -49,6 +49,8 @@
 #include <gst/app/gstappsrc.h>
 #include <gst/app/gstappbuffer.h>
 
+QT_BEGIN_NAMESPACE
+
 class QGstAppSrc  : public QObject
 {
     Q_OBJECT
@@ -102,5 +104,7 @@ private:
     bool m_enoughData;
     bool m_forceData;
 };
+
+QT_END_NAMESPACE
 
 #endif

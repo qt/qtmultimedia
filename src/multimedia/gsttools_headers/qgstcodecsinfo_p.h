@@ -47,6 +47,8 @@
 
 #include <gst/gst.h>
 
+QT_BEGIN_NAMESPACE
+
 class QGstCodecsInfo
 {
 public:
@@ -68,5 +70,7 @@ private:
     QMap<QString,QString> m_codecDescriptions;
 };
 
+
+QT_END_NAMESPACE
 
 #endif

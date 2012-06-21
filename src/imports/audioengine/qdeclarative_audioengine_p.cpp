@@ -53,7 +53,7 @@
 
 #define DEBUG_AUDIOENGINE
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 /*!
     \qmlclass AudioEngine QDeclarativeAudioEngine
@@ -536,6 +536,4 @@ void QDeclarativeAudioEngine::handleLoadingChanged()
     The corresponding handler is \c onIsLoadingChanged.
 */
 
-
 QT_END_NAMESPACE
-

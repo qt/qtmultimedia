@@ -54,7 +54,7 @@
 
 #define DEBUG_AUDIOENGINE
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 QSoundInstance::QSoundInstance(QObject *parent)
     : QObject(parent)

@@ -68,7 +68,6 @@
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
-QT_END_NAMESPACE
 
 #ifdef HAVE_XVIDEO
 class QGstXvImageBuffer;
@@ -181,5 +180,7 @@ class QVideoSurfaceGstSinkClass
 public:
     GstVideoSinkClass parent_class;
 };
+
+QT_END_NAMESPACE
 
 #endif

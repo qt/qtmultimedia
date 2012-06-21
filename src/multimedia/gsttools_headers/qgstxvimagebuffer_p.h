@@ -88,7 +88,11 @@ struct QGstXvImageBuffer {
     static GstBufferClass *parent_class;
 };
 
+QT_END_NAMESPACE
+
 Q_DECLARE_METATYPE(XvImage*)
+
+QT_BEGIN_NAMESPACE
 
 class QGstXvImageBufferPool : public QObject, public QGstBufferPoolInterface {
     Q_OBJECT

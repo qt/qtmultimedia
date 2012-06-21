@@ -50,9 +50,10 @@
 
 #include <limits.h>
 
+QT_BEGIN_NAMESPACE
+
 class QMediaPlayerResourceSetInterface;
 
-QT_BEGIN_NAMESPACE
 class QMediaPlaylist;
 class QMediaPlaylistNavigator;
 class QSocketNotifier;

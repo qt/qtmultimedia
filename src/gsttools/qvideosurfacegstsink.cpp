@@ -57,6 +57,8 @@
 
 //#define DEBUG_VIDEO_SURFACE_SINK
 
+QT_BEGIN_NAMESPACE
+
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, bufferPoolLoader,
         (QGstBufferPoolInterface_iid, QLatin1String("video/bufferpool"), Qt::CaseInsensitive))
 
@@ -895,3 +897,4 @@ GstFlowReturn QVideoSurfaceGstSink::render(GstBaseSink *base, GstBuffer *buffer)
     return sink->delegate->render(buffer);
 }
 
+QT_END_NAMESPACE
