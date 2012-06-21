@@ -399,8 +399,9 @@ namespace
 }
 
 
-MFPlayerSession::MFPlayerSession(QObject *parent)
-    : QObject(parent)
+MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
+    : m_playerService(playerService)
+    , m_cRef(1)
     , m_session(0)
     , m_presentationClock(0)
     , m_rateControl(0)
@@ -438,9 +439,8 @@ MFPlayerSession::MFPlayerSession(QObject *parent)
     m_varStart.uhVal.QuadPart = 0;
 }
 
-MFPlayerSession::~MFPlayerSession()
+void MFPlayerSession::close()
 {
-    m_sourceResolver->Release();
     clear();
     HRESULT hr = S_OK;
     if (m_session) {
@@ -454,15 +454,20 @@ MFPlayerSession::~MFPlayerSession()
     }
 
     if (SUCCEEDED(hr)) {
-        m_sourceResolver->shutdown();
         if (m_session)
             m_session->Shutdown();
+        m_sourceResolver->shutdown();
     }
+    m_sourceResolver->Release();
 
     if (m_session)
         m_session->Release();
-
+    m_session = 0;
     CloseHandle(m_hCloseEvent);
+}
+
+MFPlayerSession::~MFPlayerSession()
+{
 }
 
 
@@ -525,7 +530,7 @@ void MFPlayerSession::handleMediaSourceReady()
     hr = mediaSource->CreatePresentationDescriptor(&sourcePD);
     if (SUCCEEDED(hr)) {
         m_duration = 0;
-        static_cast<MFPlayerService*>(this->parent())->metaDataControl()->updateSource(sourcePD, mediaSource);
+        m_playerService->metaDataControl()->updateSource(sourcePD, mediaSource);
         sourcePD->GetUINT64(MF_PD_DURATION, &m_duration);
         //convert from 100 nanosecond to milisecond
         emit durationUpdate(qint64(m_duration / 10000));
@@ -645,17 +650,16 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
         hr = handler->GetMajorType(&guidMajorType);
         if (SUCCEEDED(hr)) {
             IMFActivate *activate = NULL;
-            MFPlayerService *service = static_cast<MFPlayerService*>(this->parent());
             if (MFMediaType_Audio == guidMajorType) {
                 mediaType = Audio;
-                activate = service->audioEndpointControl()->currentActivate();
+                activate = m_playerService->audioEndpointControl()->currentActivate();
             } else if (MFMediaType_Video == guidMajorType) {
                 mediaType = Video;
-                if (service->videoRendererControl()) {
-                    activate = service->videoRendererControl()->currentActivate();
+                if (m_playerService->videoRendererControl()) {
+                    activate = m_playerService->videoRendererControl()->currentActivate();
 #ifndef Q_WS_SIMULATOR
-                } else if (service->videoWindowControl()) {
-                    activate = service->videoWindowControl()->currentActivate();
+                } else if (m_playerService->videoWindowControl()) {
+                    activate = m_playerService->videoWindowControl()->currentActivate();
 #endif
                 } else {
                     qWarning() << "no videoWindowControl or videoRendererControl, unable to add output node for video data";
@@ -1085,12 +1089,15 @@ HRESULT MFPlayerSession::QueryInterface(REFIID riid, void** ppvObject)
 
 ULONG MFPlayerSession::AddRef(void)
 {
-    return 1;
+    return InterlockedIncrement(&m_cRef);
 }
 
 ULONG MFPlayerSession::Release(void)
 {
-    return 1;
+    LONG cRef = InterlockedDecrement(&m_cRef);
+    if (cRef == 0)
+        this->deleteLater();
+    return cRef;
 }
 
 HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
@@ -1114,6 +1121,7 @@ HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
 
     if (meType == MESessionClosed) {
         SetEvent(m_hCloseEvent);
+        pEvent->Release();
         return S_OK;
     } else {
         hr = m_session->BeginGetEvent(this, m_session);

@@ -69,13 +69,14 @@ class MFAudioEndpointControl;
 class MFVideoRendererControl;
 class MFPlayerControl;
 class MFMetaDataControl;
+class MFPlayerService;
 
 class MFPlayerSession : public QObject, public IMFAsyncCallback
 {
     Q_OBJECT
     friend class SourceResolver;
 public:
-    MFPlayerSession(QObject *parent = 0);
+    MFPlayerSession(MFPlayerService *playerService = 0);
     ~MFPlayerSession();
 
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
@@ -112,6 +113,8 @@ public:
 
     void changeStatus(QMediaPlayer::MediaStatus newStatus);
 
+    void close();
+
 Q_SIGNALS:
     void error(QMediaPlayer::Error error, QString errorString, bool isFatal);
     void sessionEvent(IMFMediaEvent  *sessionEvent);
@@ -132,6 +135,8 @@ private Q_SLOTS:
     void handleSourceError(long hr);
 
 private:
+    long m_cRef;
+    MFPlayerService *m_playerService;
     IMFMediaSession *m_session;
     IMFPresentationClock *m_presentationClock;
     IMFRateControl *m_rateControl;

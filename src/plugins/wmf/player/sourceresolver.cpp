@@ -66,6 +66,11 @@ SourceResolver::SourceResolver(QObject *parent)
 SourceResolver::~SourceResolver()
 {
     shutdown();
+    if (m_mediaSource) {
+        m_mediaSource->Release();
+        m_mediaSource = NULL;
+    }
+
     if (m_cancelCookie)
         m_cancelCookie->Release();
     if (m_sourceResolver)
@@ -249,8 +254,6 @@ void SourceResolver::shutdown()
 {
     if (m_mediaSource) {
         m_mediaSource->Shutdown();
-        m_mediaSource->Release();
-        m_mediaSource = NULL;
     }
 
     if (m_stream) {

@@ -836,6 +836,8 @@ namespace
             QMutexLocker locker(&m_mutex);
             m_pixelFormats.clear();
             clearMediaTypes();
+            if (!m_surface)
+                return;
             QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats();
             foreach (QVideoFrame::PixelFormat format, formats) {
                 IMFMediaType *mediaType;
