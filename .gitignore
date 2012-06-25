@@ -17,6 +17,10 @@ qrc_*.cpp
 config.log
 *.pro.user
 tmp
+*.o
+*.app
+*.dylib
+*.framework
 
 #
 # Includes
