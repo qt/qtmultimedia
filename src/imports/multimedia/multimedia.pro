@@ -8,7 +8,7 @@ QT += qml quick network multimedia-private
 DESTDIR = $$QT.multimedia.imports/$$TARGETPATH
 target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
 
-LIBS += -lQtMultimediaQuick_p
+LIBS += -lQtMultimediaQuick_p -L$$QT.multimedia.libs
 
 HEADERS += \
         qdeclarativeaudio_p.h \
