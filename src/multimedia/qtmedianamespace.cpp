@@ -49,7 +49,7 @@ namespace
     public:
         QMultimediaNamespacePrivateRegisterMetaTypes()
         {
-            qRegisterMetaType<QtMultimedia::AvailabilityError>();
+            qRegisterMetaType<QtMultimedia::AvailabilityStatus>();
             qRegisterMetaType<QtMultimedia::SupportEstimate>();
             qRegisterMetaType<QtMultimedia::EncodingMode>();
             qRegisterMetaType<QtMultimedia::EncodingQuality>();
@@ -400,7 +400,7 @@ Q_DEFINE_METADATA(ThumbnailImage);
 */
 
 /*!
-    \enum QtMultimedia::AvailabilityError
+    \enum QtMultimedia::AvailabilityStatus
 
     Enumerates Service status errors.
 

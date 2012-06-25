@@ -71,8 +71,8 @@ void QMediaObjectPrivate::_q_availabilityChanged()
     // Really this should not always emit, but
     // we can't really tell from here (isAvailable
     // may not have changed, or the mediaobject's overridden
-    // availabilityError() may not have changed).
-    q->availabilityErrorChanged(q->availabilityError());
+    // availability() may not have changed).
+    q->availabilityChanged(q->availability());
     q->availabilityChanged(q->isAvailable());
 }
 
@@ -113,18 +113,23 @@ QMediaObject::~QMediaObject()
 }
 
 /*!
-    Returns the service availability error state.
+    Returns the availability of the functionality offered by this object.
+
+    In some cases the functionality may not be available (for example, if
+    the current operating system or platform does not provide the required
+    functionality), or it may be temporarily unavailable (for example,
+    audio playback during a phone call or similar).
 */
 
-QtMultimedia::AvailabilityError QMediaObject::availabilityError() const
+QtMultimedia::AvailabilityStatus QMediaObject::availability() const
 {
     if (d_func()->service == 0)
-        return QtMultimedia::ServiceMissingError;
+        return QtMultimedia::ServiceMissing;
 
     if (d_func()->availabilityControl)
         return d_func()->availabilityControl->availability();
 
-    return QtMultimedia::NoError;
+    return QtMultimedia::Available;
 }
 
 /*!
@@ -133,7 +138,7 @@ QtMultimedia::AvailabilityError QMediaObject::availabilityError() const
 
 bool QMediaObject::isAvailable() const
 {
-    return availabilityError() == QtMultimedia::NoError;
+    return availability() == QtMultimedia::Available;
 }
 
 /*!
@@ -403,7 +408,7 @@ void QMediaObject::setupControls()
         d->availabilityControl = d->service->requestControl<QMediaAvailabilityControl*>();
         if (d->availabilityControl) {
             connect(d->availabilityControl,
-                    SIGNAL(availabilityChanged(QtMultimedia::AvailabilityError)),
+                    SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)),
                     SLOT(_q_availabilityChanged()));
         }
     }
@@ -412,13 +417,13 @@ void QMediaObject::setupControls()
 /*!
     \fn QMediaObject::availabilityChanged(bool available)
 
-    Signal emitted when the availability state has changed to \a available
+    Signal emitted when the availability state has changed to \a available.
 */
 
 /*!
-    \fn QMediaObject::availabilityErrorChanged(QtMultimedia::AvailabilityError error)
+    \fn QMediaObject::availabilityChanged(QtMultimedia::AvailabilityStatus availability)
 
-    Signal emitted when the availability error has changed to \a error
+    Signal emitted when the availability of the service has changed to \a availabilty
 */
 
 

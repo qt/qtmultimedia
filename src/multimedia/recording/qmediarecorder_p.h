@@ -92,7 +92,7 @@ public:
     void _q_notify();
     void _q_updateNotifyInterval(int ms);
     void _q_applySettings();
-    void _q_availabilityChanged(QtMultimedia::AvailabilityError error);
+    void _q_availabilityChanged(QtMultimedia::AvailabilityStatus availability);
 
     QMediaRecorder *q_ptr;
 };

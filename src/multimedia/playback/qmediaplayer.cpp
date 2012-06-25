@@ -84,7 +84,7 @@ QT_BEGIN_NAMESPACE
 
     \list
     \li Accessing the currently playing media's metadata (\l {QMediaObject::metaData()} and \l {QtMultimedia::MetaData}{predefined meta-data keys})
-    \li Checking to see if the media playback service is currently available (\l {QMediaObject::availabilityError()})
+    \li Checking to see if the media playback service is currently available (\l {QMediaObject::availability()})
     \endlist
 
     \sa QMediaObject, QMediaService, QVideoWidget, QMediaPlaylist
@@ -1013,14 +1013,14 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 }
 
 /*! \reimp */
-QtMultimedia::AvailabilityError QMediaPlayer::availabilityError() const
+QtMultimedia::AvailabilityStatus QMediaPlayer::availability() const
 {
     Q_D(const QMediaPlayer);
 
     if (!d->control)
-        return QtMultimedia::ServiceMissingError;
+        return QtMultimedia::ServiceMissing;
 
-    return QMediaObject::availabilityError();
+    return QMediaObject::availability();
 }
 
 

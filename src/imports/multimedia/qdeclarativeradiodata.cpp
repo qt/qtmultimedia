@@ -141,7 +141,7 @@ QDeclarativeRadioData::~QDeclarativeRadioData()
  */
 QDeclarativeRadioData::Availability QDeclarativeRadioData::availability() const
 {
-    return Availability(m_radioData->availabilityError());
+    return Availability(m_radioData->availability());
 }
 
 
@@ -281,9 +281,9 @@ void QDeclarativeRadioData::_q_error(QRadioData::Error errorCode)
     emit errorChanged();
 }
 
-void QDeclarativeRadioData::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
+void QDeclarativeRadioData::_q_availabilityChanged(QtMultimedia::AvailabilityStatus availability)
 {
-    emit availabilityChanged(Availability(error));
+    emit availabilityChanged(Availability(availability));
 }
 
 void QDeclarativeRadioData::connectSignals()
@@ -297,10 +297,8 @@ void QDeclarativeRadioData::connectSignals()
     connect(m_radioData, SIGNAL(radioTextChanged(QString)), this, SIGNAL(radioTextChanged(QString)));
     connect(m_radioData, SIGNAL(alternativeFrequenciesEnabledChanged(bool)), this,
                          SIGNAL(alternativeFrequenciesEnabledChanged(bool)));
-
-    // Note we map availabilityError->availability
     // Since the radio data type depends on the service for the tuner, the availability is also dictated from the tuner
-    connect(m_radioTuner, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+    connect(m_radioTuner, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityStatus)));
 
     connect(m_radioData, SIGNAL(error(QRadioData::Error)), this, SLOT(_q_error(QRadioData::Error)));
 }

@@ -120,9 +120,9 @@ public:
     };
 
     enum Availability {
-        Available = QtMultimedia::NoError,
-        Busy = QtMultimedia::BusyError,
-        Unavailable = QtMultimedia::ServiceMissingError,
+        Available = QtMultimedia::Available,
+        Busy = QtMultimedia::Busy,
+        Unavailable = QtMultimedia::ServiceMissing,
         ResourceMissing = QtMultimedia::ResourceError
     };
 
@@ -189,7 +189,7 @@ private Q_SLOTS:
     void _q_stateChanged(QRadioTuner::State state);
     void _q_bandChanged(QRadioTuner::Band band);
     void _q_error(QRadioTuner::Error errorCode);
-    void _q_availabilityChanged(QtMultimedia::AvailabilityError);
+    void _q_availabilityChanged(QtMultimedia::AvailabilityStatus);
 
 private:
     Q_DISABLE_COPY(QDeclarativeRadio)

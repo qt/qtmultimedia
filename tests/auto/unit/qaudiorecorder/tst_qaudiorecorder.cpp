@@ -106,7 +106,7 @@ void tst_QAudioRecorder::testNullService()
     QAudioRecorder source;
 
     QVERIFY(!source.isAvailable());
-    QCOMPARE(source.availabilityError(), QtMultimedia::ServiceMissingError);
+    QCOMPARE(source.availability(), QtMultimedia::ServiceMissing);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
@@ -120,7 +120,7 @@ void tst_QAudioRecorder::testNullControl()
     QAudioRecorder source;
 
     QVERIFY(!source.isAvailable());
-    QCOMPARE(source.availabilityError(), QtMultimedia::ServiceMissingError);
+    QCOMPARE(source.availability(), QtMultimedia::ServiceMissing);
 
     QCOMPARE(source.audioInputs().size(), 0);
     QCOMPARE(source.defaultAudioInput(), QString());
@@ -163,7 +163,7 @@ void tst_QAudioRecorder::testAvailability()
     QAudioRecorder source;
 
     QVERIFY(source.isAvailable());
-    QCOMPARE(source.availabilityError(), QtMultimedia::NoError);
+    QCOMPARE(source.availability(), QtMultimedia::Available);
 }
 
 void tst_QAudioRecorder::testAvailableAudioInputChangedSignal()

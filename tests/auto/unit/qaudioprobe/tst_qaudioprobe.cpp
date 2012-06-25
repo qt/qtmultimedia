@@ -104,7 +104,7 @@ void tst_QAudioProbe::testNullService()
     recorder = new QAudioRecorder;
 
     QVERIFY(!recorder->isAvailable());
-    QCOMPARE(recorder->availabilityError(), QtMultimedia::ServiceMissingError);
+    QCOMPARE(recorder->availability(), QtMultimedia::ServiceMissing);
 
     QAudioProbe probe;
     QVERIFY(!probe.isActive());
@@ -122,7 +122,7 @@ void tst_QAudioProbe::testNullControl()
     recorder = new QAudioRecorder;
 
     QVERIFY(!recorder->isAvailable());
-    QCOMPARE(recorder->availabilityError(), QtMultimedia::ServiceMissingError);
+    QCOMPARE(recorder->availability(), QtMultimedia::ServiceMissing);
 
     QAudioProbe probe;
     QVERIFY(!probe.isActive());

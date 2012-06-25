@@ -227,18 +227,18 @@ bool QRadioData::setMediaObject(QMediaObject *mediaObject)
 /*!
     Returns the availability of the radio data service.
 
-    A long as there is a media service which provides control, then the
-    \l{QtMultimedia::AvailabilityError}{availability error} will be that
-    of the \l{QRadioTuner::availabilityError()}{radio tuner}.
+    A long as there is a media service which provides radio functionality, then the
+    \l{QtMultimedia::AvailabilityStatus}{availability} will be that
+    of the \l{QRadioTuner::availability()}{radio tuner}.
 */
-QtMultimedia::AvailabilityError QRadioData::availabilityError() const
+QtMultimedia::AvailabilityStatus QRadioData::availability() const
 {
     Q_D(const QRadioData);
 
     if (d->control == 0)
-        return QtMultimedia::ServiceMissingError;
+        return QtMultimedia::ServiceMissing;
 
-    return d->mediaObject->availabilityError();
+    return d->mediaObject->availability();
 }
 
 /*!

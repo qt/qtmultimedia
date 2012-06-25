@@ -314,11 +314,11 @@ namespace QtMultimedia
         TwoPassEncoding
     };
 
-    enum AvailabilityError
+    enum AvailabilityStatus
     {
-        NoError,
-        ServiceMissingError,
-        BusyError,
+        Available,
+        ServiceMissing,
+        Busy,
         ResourceError
     };
 
@@ -328,7 +328,7 @@ namespace QtMultimedia
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QtMultimedia::AvailabilityError)
+Q_DECLARE_METATYPE(QtMultimedia::AvailabilityStatus)
 Q_DECLARE_METATYPE(QtMultimedia::SupportEstimate)
 Q_DECLARE_METATYPE(QtMultimedia::EncodingMode)
 Q_DECLARE_METATYPE(QtMultimedia::EncodingQuality)

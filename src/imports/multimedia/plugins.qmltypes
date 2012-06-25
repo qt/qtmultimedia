@@ -1434,9 +1434,9 @@ Module {
             Parameter { name: "available"; type: "bool" }
         }
         Signal {
-            name: "availabilityErrorChanged"
+            name: "availabilityChanged"
             type: "void"
-            Parameter { name: "error"; type: "QtMultimedia::AvailabilityError" }
+            Parameter { name: "error"; type: "QtMultimedia::AvailabilityStatus" }
         }
     }
     Component {

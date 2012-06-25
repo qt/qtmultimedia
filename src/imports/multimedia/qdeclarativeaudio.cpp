@@ -99,7 +99,7 @@ void QDeclarativeAudio::_q_error(QMediaPlayer::Error errorCode)
     emit errorChanged();
 }
 
-void QDeclarativeAudio::_q_availabilityChanged(QtMultimedia::AvailabilityError)
+void QDeclarativeAudio::_q_availabilityChanged(QtMultimedia::AvailabilityStatus)
 {
     emit availabilityChanged(availability());
 }
@@ -153,7 +153,7 @@ QDeclarativeAudio::Availability QDeclarativeAudio::availability() const
 {
     if (!m_player)
         return Unavailable;
-    return Availability(m_player->availabilityError());
+    return Availability(m_player->availability());
 }
 
 QUrl QDeclarativeAudio::source() const
@@ -658,10 +658,10 @@ void QDeclarativeAudio::classBegin()
     connect(m_player, SIGNAL(videoAvailableChanged(bool)),
             this, SIGNAL(hasVideoChanged()));
 
-    m_error = m_player->availabilityError() == QtMultimedia::ServiceMissingError ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
+    m_error = m_player->availability() == QtMultimedia::ServiceMissing ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
 
-    connect(m_player, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)),
-                     this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+    connect(m_player, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)),
+                     this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityStatus)));
 
     m_metaData.reset(new QDeclarativeMediaMetaData(m_player));
 

@@ -137,9 +137,9 @@ public:
     };
 
     enum Availability {
-        Available = QtMultimedia::NoError,
-        Busy = QtMultimedia::BusyError,
-        Unavailable = QtMultimedia::ServiceMissingError,
+        Available = QtMultimedia::Available,
+        Busy = QtMultimedia::Busy,
+        Unavailable = QtMultimedia::ServiceMissing,
         ResourceMissing = QtMultimedia::ResourceError
     };
 
@@ -176,7 +176,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void _q_programTypeChanged(QRadioData::ProgramType programType);
     void _q_error(QRadioData::Error errorCode);
-    void _q_availabilityChanged(QtMultimedia::AvailabilityError);
+    void _q_availabilityChanged(QtMultimedia::AvailabilityStatus);
 
 private:
     void connectSignals();

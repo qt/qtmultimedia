@@ -441,54 +441,54 @@ void tst_QMediaObject::availability()
     {
         QtTestMediaObject nullObject(0);
         QCOMPARE(nullObject.isAvailable(), false);
-        QCOMPARE(nullObject.availabilityError(), QtMultimedia::ServiceMissingError);
+        QCOMPARE(nullObject.availability(), QtMultimedia::ServiceMissing);
     }
 
     {
         QtTestMediaObjectService service;
         QtTestMediaObject object(&service);
         QCOMPARE(object.isAvailable(), true);
-        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+        QCOMPARE(object.availability(), QtMultimedia::Available);
     }
 
     {
-        MockAvailabilityControl available(QtMultimedia::NoError);
+        MockAvailabilityControl available(QtMultimedia::Available);
         QtTestMediaObjectService service(0, &available);
         QtTestMediaObject object(&service);
         QSignalSpy availabilitySpy(&object, SIGNAL(availabilityChanged(bool)));
-        QSignalSpy availabilityErrorSpy(&object, SIGNAL(availabilityChanged(bool)));
+        QSignalSpy availabilityStatusSpy(&object, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)));
 
         QCOMPARE(object.isAvailable(), true);
-        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+        QCOMPARE(object.availability(), QtMultimedia::Available);
 
-        available.setAvailability(QtMultimedia::BusyError);
+        available.setAvailability(QtMultimedia::Busy);
         QCOMPARE(object.isAvailable(), false);
-        QCOMPARE(object.availabilityError(), QtMultimedia::BusyError);
+        QCOMPARE(object.availability(), QtMultimedia::Busy);
         QCOMPARE(availabilitySpy.count(), 1);
-        QCOMPARE(availabilityErrorSpy.count(), 1);
+        QCOMPARE(availabilityStatusSpy.count(), 1);
 
-        available.setAvailability(QtMultimedia::NoError);
+        available.setAvailability(QtMultimedia::Available);
         QCOMPARE(object.isAvailable(), true);
-        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+        QCOMPARE(object.availability(), QtMultimedia::Available);
         QCOMPARE(availabilitySpy.count(), 2);
-        QCOMPARE(availabilityErrorSpy.count(), 2);
+        QCOMPARE(availabilityStatusSpy.count(), 2);
     }
 
     {
-        MockAvailabilityControl available(QtMultimedia::BusyError);
+        MockAvailabilityControl available(QtMultimedia::Busy);
         QtTestMediaObjectService service(0, &available);
         QtTestMediaObject object(&service);
         QSignalSpy availabilitySpy(&object, SIGNAL(availabilityChanged(bool)));
-        QSignalSpy availabilityErrorSpy(&object, SIGNAL(availabilityChanged(bool)));
+        QSignalSpy availabilityStatusSpy(&object, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)));
 
         QCOMPARE(object.isAvailable(), false);
-        QCOMPARE(object.availabilityError(), QtMultimedia::BusyError);
+        QCOMPARE(object.availability(), QtMultimedia::Busy);
 
-        available.setAvailability(QtMultimedia::NoError);
+        available.setAvailability(QtMultimedia::Available);
         QCOMPARE(object.isAvailable(), true);
-        QCOMPARE(object.availabilityError(), QtMultimedia::NoError);
+        QCOMPARE(object.availability(), QtMultimedia::Available);
         QCOMPARE(availabilitySpy.count(), 1);
-        QCOMPARE(availabilityErrorSpy.count(), 1);
+        QCOMPARE(availabilityStatusSpy.count(), 1);
     }
 }
 

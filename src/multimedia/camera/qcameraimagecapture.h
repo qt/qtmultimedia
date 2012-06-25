@@ -97,7 +97,7 @@ public:
     ~QCameraImageCapture();
 
     bool isAvailable() const;
-    QtMultimedia::AvailabilityError availabilityError() const;
+    QtMultimedia::AvailabilityStatus availability() const;
 
     QMediaObject *mediaObject() const;
 

@@ -159,15 +159,15 @@ QRadioTuner::~QRadioTuner()
 /*!
     Returns the availability of the radio tuner.
 */
-QtMultimedia::AvailabilityError QRadioTuner::availabilityError() const
+QtMultimedia::AvailabilityStatus QRadioTuner::availability() const
 {
     if (d_func()->control == 0)
-        return QtMultimedia::ServiceMissingError;
+        return QtMultimedia::ServiceMissing;
 
     if (!d_func()->control->isAntennaConnected())
         return QtMultimedia::ResourceError;
 
-    return QMediaObject::availabilityError();
+    return QMediaObject::availability();
 }
 
 /*!

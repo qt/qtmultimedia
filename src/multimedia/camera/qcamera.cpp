@@ -412,11 +412,11 @@ QCamera::~QCamera()
 /*!
     Returns the availability state of the camera service.
 */
-QtMultimedia::AvailabilityError QCamera::availabilityError() const
+QtMultimedia::AvailabilityStatus QCamera::availability() const
 {
     Q_D(const QCamera);
     if (d->control == NULL)
-        return QtMultimedia::ServiceMissingError;
+        return QtMultimedia::ServiceMissing;
 
     if (d->deviceControl && d->deviceControl->deviceCount() == 0)
         return QtMultimedia::ResourceError;
@@ -424,7 +424,7 @@ QtMultimedia::AvailabilityError QCamera::availabilityError() const
     if (d->error != QCamera::NoError)
         return QtMultimedia::ResourceError;
 
-    return QMediaObject::availabilityError();
+    return QMediaObject::availability();
 }
 
 

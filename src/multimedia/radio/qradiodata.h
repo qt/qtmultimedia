@@ -91,7 +91,7 @@ public:
     QRadioData(QMediaObject *mediaObject, QObject *parent = 0);
     ~QRadioData();
 
-    QtMultimedia::AvailabilityError availabilityError() const;
+    QtMultimedia::AvailabilityStatus availability() const;
 
     QMediaObject *mediaObject() const;
 

@@ -106,7 +106,7 @@ they are documented elsewhere.
            normal Qt namespace (usually nothing, unless built specially).  There
            was a Qt Multimedia Kit namespace for several enumerations.  This namespace
            has now changed to Qt Multimedia, so if you've used one of the
-           \c SupportEstimate, \c EncodingQuality, \c EncodingMode or \c AvailabilityError
+           \c SupportEstimate, \c EncodingQuality, \c EncodingMode or \c AvailabilityStatus
            enumerations you'll need to change your code.  In fact, running a global
            search and replace on \c QtMultimediaKit (to replace it with \c QtMultimedia) will
            go a long way with porting your code.

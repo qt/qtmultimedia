@@ -87,7 +87,7 @@ public:
     QRadioTuner(QObject *parent = 0);
     ~QRadioTuner();
 
-    QtMultimedia::AvailabilityError availabilityError() const;
+    QtMultimedia::AvailabilityStatus availability() const;
 
     State state() const;
 

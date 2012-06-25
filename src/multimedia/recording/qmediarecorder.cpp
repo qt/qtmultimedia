@@ -185,7 +185,7 @@ void QMediaRecorderPrivate::_q_applySettings()
     }
 }
 
-void QMediaRecorderPrivate::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
+void QMediaRecorderPrivate::_q_availabilityChanged(QtMultimedia::AvailabilityStatus availability)
 {
     Q_Q(QMediaRecorder);
     Q_UNUSED(error);
@@ -193,8 +193,8 @@ void QMediaRecorderPrivate::_q_availabilityChanged(QtMultimedia::AvailabilityErr
     // Really this should not always emit, but
     // we can't really tell from here (isAvailable
     // may not have changed, or the mediaobject's overridden
-    // availabilityError() may not have changed).
-    q->availabilityErrorChanged(q->availabilityError());
+    // availability() may not have changed).
+    q->availabilityChanged(q->availability());
     q->availabilityChanged(q->isAvailable());
 }
 
@@ -323,8 +323,8 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
                 service->releaseControl(d->metaDataControl);
             }
             if (d->availabilityControl) {
-                disconnect(d->availabilityControl, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityError)),
-                           this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+                disconnect(d->availabilityControl, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)),
+                           this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityStatus)));
                 service->releaseControl(d->availabilityControl);
             }
         }
@@ -375,8 +375,8 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 
                 d->availabilityControl = service->requestControl<QMediaAvailabilityControl*>();
                 if (d->availabilityControl) {
-                    connect(d->availabilityControl, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityError)),
-                            this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+                    connect(d->availabilityControl, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)),
+                            this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityStatus)));
                 }
 
                 connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
@@ -442,23 +442,23 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 */
 bool QMediaRecorder::isAvailable() const
 {
-    return availabilityError() == QtMultimedia::NoError;
+    return availability() == QtMultimedia::Available;
 }
 
 /*!
-    Returns the availability error code.
+    Returns the availability of this functionality.
 
-    \sa availabilityErrorChanged()
+    \sa availabilityChanged()
 */
-QtMultimedia::AvailabilityError QMediaRecorder::availabilityError() const
+QtMultimedia::AvailabilityStatus QMediaRecorder::availability() const
 {
     if (d_func()->control == NULL)
-        return QtMultimedia::ServiceMissingError;
+        return QtMultimedia::ServiceMissing;
 
     if (d_func()->availabilityControl)
         return d_func()->availabilityControl->availability();
 
-    return QtMultimedia::NoError;
+    return QtMultimedia::Available;
 }
 
 QUrl QMediaRecorder::outputLocation() const
@@ -960,7 +960,7 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \fn QMediaRecorder::availabilityErrorChanged(QtMultimedia::AvailabilityError availability)
+    \fn QMediaRecorder::availabilityChanged(QtMultimedia::AvailabilityStatus availability)
 
     Signals that the service availability has changed to \a availability.
 */

@@ -312,7 +312,7 @@ void tst_QCameraImageCapture::errors()
     imageCapture1.capture(QString::fromLatin1("/dev/null"));
     QVERIFY(imageCapture1.error() == QCameraImageCapture::NotSupportedFeatureError);
     QVERIFY2(!imageCapture1.errorString().isEmpty(), "Device does not support images capture");
-    QVERIFY(imageCapture1.availabilityError() == QtMultimedia::ServiceMissingError);
+    QVERIFY(imageCapture1.availability() == QtMultimedia::ServiceMissing);
 
     provider->service = mockcameraservice;
 
@@ -321,12 +321,12 @@ void tst_QCameraImageCapture::errors()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
-    QVERIFY(imageCapture.availabilityError() == QtMultimedia::NoError);
+    QVERIFY(imageCapture.availability() == QtMultimedia::Available);
 
     imageCapture.capture();
     QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
     QVERIFY2(!imageCapture.errorString().isEmpty(), "Could not capture in stopped state");
-    QVERIFY(imageCapture.availabilityError() == QtMultimedia::NoError);
+    QVERIFY(imageCapture.availability() == QtMultimedia::Available);
 }
 
 //MaemoAPI-1831:test error

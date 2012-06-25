@@ -95,7 +95,7 @@ void tst_QRadioTuner::initTestCase()
     qRegisterMetaType<QRadioTuner::Band>("QRadioTuner::Band");
 
     mock = new MockRadioTunerControl(this);
-    mockAvailability = new MockAvailabilityControl(QtMultimedia::NoError);
+    mockAvailability = new MockAvailabilityControl(QtMultimedia::Available);
 
     QMap<QString, QMediaControl *> map;
     map.insert(QRadioTunerControl_iid, mock);
@@ -108,13 +108,13 @@ void tst_QRadioTuner::initTestCase()
     radio = new QRadioTuner;
     QVERIFY(radio->service() != 0);
     QVERIFY(radio->isAvailable());
-    QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
+    QVERIFY(radio->availability() == QtMultimedia::Available);
 
     QSignalSpy stateSpy(radio, SIGNAL(stateChanged(QRadioTuner::State)));
 
     QCOMPARE(radio->state(), QRadioTuner::StoppedState);    
     radio->start();
-    QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
+    QVERIFY(radio->availability() == QtMultimedia::Available);
     QCOMPARE(radio->state(), QRadioTuner::ActiveState);
 
     QCOMPARE(stateSpy.count(), 1);
@@ -129,7 +129,7 @@ void tst_QRadioTuner::cleanupTestCase()
     QSignalSpy stateSpy(radio, SIGNAL(stateChanged(QRadioTuner::State)));
 
     radio->stop();
-    QVERIFY(radio->availabilityError() == QtMultimedia::NoError);
+    QVERIFY(radio->availability() == QtMultimedia::Available);
     QCOMPARE(radio->state(), QRadioTuner::StoppedState);
     QCOMPARE(stateSpy.count(), 1);
 

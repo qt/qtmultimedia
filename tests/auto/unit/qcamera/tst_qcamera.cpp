@@ -1233,7 +1233,7 @@ void tst_QCamera::testQCameraIsAvailable()
 {
     QCamera camera;
     QVERIFY(camera.isAvailable());
-    QVERIFY(camera.availabilityError() == QtMultimedia::NoError);
+    QVERIFY(camera.availability() == QtMultimedia::Available);
 }
 
 void tst_QCamera::testQCameraIsNotAvailable()
@@ -1243,7 +1243,7 @@ void tst_QCamera::testQCameraIsNotAvailable()
 
     QCOMPARE(camera.error(), QCamera::ServiceMissingError);
     QVERIFY(!camera.isAvailable());
-    QCOMPARE(camera.availabilityError(), QtMultimedia::ServiceMissingError);
+    QCOMPARE(camera.availability(), QtMultimedia::ServiceMissing);
 }
 
 /* Test case for searchAndLock ( QCamera::LockTypes locks ) */

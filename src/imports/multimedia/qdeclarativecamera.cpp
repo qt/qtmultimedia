@@ -68,9 +68,9 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     emit cameraStateChanged(QDeclarativeCamera::State(state));
 }
 
-void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityError error)
+void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityStatus availability)
 {
-    emit availabilityChanged(Availability(error));
+    emit availabilityChanged(Availability(availability));
 }
 
 /*!
@@ -188,9 +188,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     connect(m_camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(_q_updateState(QCamera::State)));
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(error(QCamera::Error)), this, SLOT(_q_error(QCamera::Error)));
-
-    // Note we map availabilityError->availability
-    connect(m_camera, SIGNAL(availabilityErrorChanged(QtMultimedia::AvailabilityError)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityError)));
+    connect(m_camera, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityStatus)));
 
     connect(m_camera->focus(), SIGNAL(opticalZoomChanged(qreal)), this, SIGNAL(opticalZoomChanged(qreal)));
     connect(m_camera->focus(), SIGNAL(digitalZoomChanged(qreal)), this, SIGNAL(digitalZoomChanged(qreal)));
@@ -260,7 +258,7 @@ QString QDeclarativeCamera::errorString() const
  */
 QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
 {
-    return Availability(m_camera->availabilityError());
+    return Availability(m_camera->availability());
 }
 
 
