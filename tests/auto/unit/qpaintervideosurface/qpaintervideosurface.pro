@@ -13,6 +13,4 @@ contains(QT_CONFIG, opengl): QT += opengl
 
 SOURCES += tst_qpaintervideosurface.cpp
 
-# QPA-minimal and OpenGL don't get along
-CONFIG += insignificant_test # QTBUG-25311
 QT+=widgets
