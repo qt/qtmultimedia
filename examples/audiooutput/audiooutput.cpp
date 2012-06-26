@@ -47,11 +47,11 @@
 #include <QtCore/qendian.h>
 #include "audiooutput.h"
 
-const QString AudioTest::PushModeLabel(tr("Enable push mode"));
-const QString AudioTest::PullModeLabel(tr("Enable pull mode"));
-const QString AudioTest::SuspendLabel(tr("Suspend playback"));
-const QString AudioTest::ResumeLabel(tr("Resume playback"));
-const QString AudioTest::VolumeLabel(tr("Volume:"));
+#define PUSH_MODE_LABEL "Enable push mode"
+#define PULL_MODE_LABEL "Enable pull mode"
+#define SUSPEND_LABEL   "Suspend playback"
+#define RESUME_LABEL    "Resume playback"
+#define VOLUME_LABEL    "Volume:"
 
 const int DurationSeconds = 1;
 const int ToneFrequencyHz = 600;
@@ -182,18 +182,18 @@ void AudioTest::initializeWindow()
     layout->addWidget(m_deviceBox);
 
     m_modeButton = new QPushButton(this);
-    m_modeButton->setText(PushModeLabel);
+    m_modeButton->setText(tr(PUSH_MODE_LABEL));
     connect(m_modeButton, SIGNAL(clicked()), SLOT(toggleMode()));
     layout->addWidget(m_modeButton);
 
     m_suspendResumeButton = new QPushButton(this);
-    m_suspendResumeButton->setText(SuspendLabel);
+    m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     connect(m_suspendResumeButton, SIGNAL(clicked()), SLOT(toggleSuspendResume()));
     layout->addWidget(m_suspendResumeButton);
 
     QHBoxLayout *volumeBox = new QHBoxLayout;
     m_volumeLabel = new QLabel;
-    m_volumeLabel->setText(VolumeLabel);
+    m_volumeLabel->setText(tr(VOLUME_LABEL));
     m_volumeSlider = new QSlider(Qt::Horizontal);
     m_volumeSlider->setMinimum(0);
     m_volumeSlider->setMaximum(100);
@@ -296,17 +296,17 @@ void AudioTest::toggleMode()
     m_audioOutput->stop();
 
     if (m_pullMode) {
-        m_modeButton->setText(PullModeLabel);
+        m_modeButton->setText(tr(PULL_MODE_LABEL));
         m_output = m_audioOutput->start();
         m_pullMode = false;
         m_pullTimer->start(20);
     } else {
-        m_modeButton->setText(PushModeLabel);
+        m_modeButton->setText(tr(PUSH_MODE_LABEL));
         m_pullMode = true;
         m_audioOutput->start(m_generator);
     }
 
-    m_suspendResumeButton->setText(SuspendLabel);
+    m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
 }
 
 void AudioTest::toggleSuspendResume()
@@ -314,15 +314,15 @@ void AudioTest::toggleSuspendResume()
     if (m_audioOutput->state() == QAudio::SuspendedState) {
         qWarning() << "status: Suspended, resume()";
         m_audioOutput->resume();
-        m_suspendResumeButton->setText(SuspendLabel);
+        m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     } else if (m_audioOutput->state() == QAudio::ActiveState) {
         qWarning() << "status: Active, suspend()";
         m_audioOutput->suspend();
-        m_suspendResumeButton->setText(ResumeLabel);
+        m_suspendResumeButton->setText(tr(RESUME_LABEL));
     } else if (m_audioOutput->state() == QAudio::StoppedState) {
         qWarning() << "status: Stopped, resume()";
         m_audioOutput->resume();
-        m_suspendResumeButton->setText(SuspendLabel);
+        m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     } else if (m_audioOutput->state() == QAudio::IdleState) {
         qWarning() << "status: IdleState";
     }

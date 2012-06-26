@@ -131,11 +131,6 @@ private:
     QIODevice *m_input;
     bool m_pullMode;
     QByteArray m_buffer;
-
-    static const QString PushModeLabel;
-    static const QString PullModeLabel;
-    static const QString SuspendLabel;
-    static const QString ResumeLabel;
 };
 
 #endif

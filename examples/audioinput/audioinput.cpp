@@ -52,10 +52,10 @@
 
 #include "audioinput.h"
 
-const QString InputTest::PushModeLabel(tr("Enable push mode"));
-const QString InputTest::PullModeLabel(tr("Enable pull mode"));
-const QString InputTest::SuspendLabel(tr("Suspend recording"));
-const QString InputTest::ResumeLabel(tr("Resume recording"));
+#define PUSH_MODE_LABEL "Enable push mode"
+#define PULL_MODE_LABEL "Enable pull mode"
+#define SUSPEND_LABEL   "Suspend recording"
+#define RESUME_LABEL    "Resume recording"
 
 const int BufferSize = 4096;
 
@@ -242,12 +242,12 @@ void InputTest::initializeWindow()
     layout->addWidget(m_volumeSlider);
 
     m_modeButton = new QPushButton(this);
-    m_modeButton->setText(PushModeLabel);
+    m_modeButton->setText(tr(PUSH_MODE_LABEL));
     connect(m_modeButton, SIGNAL(clicked()), SLOT(toggleMode()));
     layout->addWidget(m_modeButton);
 
     m_suspendResumeButton = new QPushButton(this);
-    m_suspendResumeButton->setText(SuspendLabel);
+    m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     connect(m_suspendResumeButton, SIGNAL(clicked()), SLOT(toggleSuspend()));
     layout->addWidget(m_suspendResumeButton);
 
@@ -318,17 +318,17 @@ void InputTest::toggleMode()
     m_audioInput->stop();
 
     if (m_pullMode) {
-        m_modeButton->setText(PullModeLabel);
+        m_modeButton->setText(tr(PULL_MODE_LABEL));
         m_input = m_audioInput->start();
         connect(m_input, SIGNAL(readyRead()), SLOT(readMore()));
         m_pullMode = false;
     } else {
-        m_modeButton->setText(PushModeLabel);
+        m_modeButton->setText(tr(PUSH_MODE_LABEL));
         m_pullMode = true;
         m_audioInput->start(m_audioInfo);
     }
 
-    m_suspendResumeButton->setText(SuspendLabel);
+    m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
 }
 
 void InputTest::toggleSuspend()
@@ -337,15 +337,15 @@ void InputTest::toggleSuspend()
     if(m_audioInput->state() == QAudio::SuspendedState) {
         qWarning() << "status: Suspended, resume()";
         m_audioInput->resume();
-        m_suspendResumeButton->setText(SuspendLabel);
+        m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     } else if (m_audioInput->state() == QAudio::ActiveState) {
         qWarning() << "status: Active, suspend()";
         m_audioInput->suspend();
-        m_suspendResumeButton->setText(ResumeLabel);
+        m_suspendResumeButton->setText(tr(RESUME_LABEL));
     } else if (m_audioInput->state() == QAudio::StoppedState) {
         qWarning() << "status: Stopped, resume()";
         m_audioInput->resume();
-        m_suspendResumeButton->setText(SuspendLabel);
+        m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     } else if (m_audioInput->state() == QAudio::IdleState) {
         qWarning() << "status: IdleState";
     }
