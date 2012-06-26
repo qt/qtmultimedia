@@ -634,7 +634,7 @@ void tst_QDeclarativeAudio::position()
     connect(&audio, SIGNAL(positionChanged()), &QTestEventLoop::instance(), SLOT(exitLoop()));
 
     provider.playerControl()->updateState(QMediaPlayer::PlayingState);
-    QTestEventLoop::instance().enterLoop(1);
+    QTestEventLoop::instance().enterLoop(2);
     QVERIFY(spy.count() > 3 && spy.count() < 6); // 4 or 5
 
     provider.playerControl()->updateState(QMediaPlayer::PausedState);
@@ -721,7 +721,7 @@ void tst_QDeclarativeAudio::bufferProgress()
 
     provider.playerControl()->updateMediaStatus(
             QMediaPlayer::BufferingMedia, QMediaPlayer::PlayingState);
-    QTestEventLoop::instance().enterLoop(1);
+    QTestEventLoop::instance().enterLoop(2);
     QVERIFY(spy.count() > 3 && spy.count() < 6); // 4 or 5
 
     provider.playerControl()->updateMediaStatus(QMediaPlayer::BufferedMedia);
