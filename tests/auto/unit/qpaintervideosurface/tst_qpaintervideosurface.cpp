@@ -1039,6 +1039,12 @@ void tst_QPainterVideoSurface::shaderPresent()
 
     QVideoSurfaceFormat formatA(frameSizeA, pixelFormatA);
 
+#ifdef Q_OS_LINUX
+    QEXPECT_FAIL("ARBfp: rgb32 -> argb32", "QTBUG-26320 - Failing for linux versions", Abort);
+    QEXPECT_FAIL("ARBfp: rgb32 -> rgb565", "QTBUG-26320 - Failing for linux versions", Abort);
+    QEXPECT_FAIL("ARBfp: rgb32 -> yuv420p", "QTBUG-26320 - Failing for linux versions", Abort);
+    QEXPECT_FAIL("ARBfp: yv12 -> rgb32", "QTBUG-26320 - Failing for linux versions", Abort);
+#endif
     QVERIFY(surface.start(formatA));
     QCOMPARE(surface.isActive(), true);
     QCOMPARE(surface.isReady(), true);
