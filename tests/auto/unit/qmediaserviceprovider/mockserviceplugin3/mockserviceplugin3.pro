@@ -7,6 +7,13 @@ CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE=mediaservice
 DESTDIR = ../$${PLUGIN_TYPE}
+win32 {
+    CONFIG(debug, debug|release) {
+        DESTDIR = ../debug/$${PLUGIN_TYPE}
+    } else {
+        DESTDIR = ../release/$${PLUGIN_TYPE}
+    }
+}
 
 load(qt_plugin)
 
