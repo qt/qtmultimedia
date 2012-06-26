@@ -159,9 +159,6 @@ bool QGstreamerVideoWidgetControl::eventFilter(QObject *object, QEvent *e)
             WId newWId = m_widget->winId();
             if (newWId != m_windowId) {
                 m_windowId = newWId;
-                // Even if we have created a winId at this point, other X applications
-                // need to be aware of it.
-                QApplication::syncX();
                 setOverlay();
             }
         }
