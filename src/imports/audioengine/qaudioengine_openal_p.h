@@ -47,8 +47,13 @@
 #include <QMap>
 #include <QTimer>
 
+#if defined(HEADER_OPENAL_PREFIX)
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
+#endif
 
 #include "qsoundsource_p.h"
 #include "qsoundbuffer_p.h"

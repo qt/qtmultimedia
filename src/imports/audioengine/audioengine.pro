@@ -4,11 +4,10 @@ TARGETPATH = QtAudioEngine
 include(../qimportbase.pri)
 QT += quick qml multimedia-private
 
-win32 {
-    LIBS += -lOpenAL32
-}else {
-    LIBS += -lopenal
-}
+win32: LIBS += -lOpenAL32
+unix:!mac: LIBS += -lopenal
+mac: LIBS += -framework OpenAL
+mac: DEFINES += HEADER_OPENAL_PREFIX
 
 DESTDIR = $$QT.multimedia.imports/$$TARGETPATH
 target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH

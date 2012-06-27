@@ -39,7 +39,11 @@
 **
 ****************************************************************************/
 
+#if defined(HEADER_OPENAL_PREFIX)
+#include <OpenAL/al.h>
+#else
 #include <AL/al.h>
+#endif
 
 int main(int argc, char** argv)
 {
