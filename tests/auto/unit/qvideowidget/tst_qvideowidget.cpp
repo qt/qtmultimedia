@@ -352,6 +352,9 @@ void tst_QVideoWidget::nullObject()
 
     QVERIFY(widget.sizeHint().isEmpty());
 
+    widget.show();
+    QTest::qWaitForWindowShown(&widget);
+
     widget.setFullScreen(true);
     QTest::qWaitForWindowShown(&widget);
     QCOMPARE(widget.isFullScreen(), true);
@@ -436,6 +439,9 @@ void tst_QVideoWidget::nullService()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
 
     QVERIFY(widget.sizeHint().isEmpty());
+
+    widget.show();
+    QTest::qWaitForWindowShown(&widget);
 
     widget.setFullScreen(true);
     QTest::qWaitForWindowShown(&widget);
