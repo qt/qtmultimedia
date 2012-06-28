@@ -169,6 +169,7 @@ QPulseAudioInput::QPulseAudioInput(const QByteArray &device)
     , m_bufferSize(0)
     , m_periodSize(0)
     , m_intervalTime(1000)
+    , m_periodTime(PeriodTimeMs)
     , m_stream(0)
     , m_device(device)
 {
@@ -345,13 +346,18 @@ bool QPulseAudioInput::open()
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
     }
 
+    const pa_buffer_attr *actualBufferAttr = pa_stream_get_buffer_attr(m_stream);
+    m_periodSize = actualBufferAttr->fragsize;
+    m_periodTime = pa_bytes_to_usec(m_periodSize, &spec) / 1000;
+    if (actualBufferAttr->tlength != (uint32_t)-1)
+        m_bufferSize = actualBufferAttr->tlength;
+
     setPulseVolume();
 
     pa_threaded_mainloop_unlock(pulseEngine->mainloop());
 
     m_opened = true;
-    m_periodSize = pa_usec_to_bytes(PeriodTimeMs*1000, &spec);
-    m_timer->start(PeriodTimeMs);
+    m_timer->start(m_periodTime);
     m_errorState = QAudio::NoError;
 
     m_totalTimeValue = 0;
@@ -533,7 +539,7 @@ void QPulseAudioInput::resume()
 
         pa_threaded_mainloop_unlock(pulseEngine->mainloop());
 
-        m_timer->start(PeriodTimeMs);
+        m_timer->start(m_periodTime);
 
         m_deviceState = QAudio::ActiveState;
 
