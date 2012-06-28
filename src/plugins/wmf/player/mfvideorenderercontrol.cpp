@@ -987,8 +987,8 @@ namespace
         enum StreamOperation
         {
             OpSetMediaType = 0,
-            OpPreroll,
             OpStart,
+            OpPreroll,
             OpRestart,
             OpPause,
             OpStop,
@@ -1461,7 +1461,7 @@ namespace
 
         /* Ready */                 TRUE,   TRUE,   TRUE,       FALSE,    TRUE,     TRUE,     TRUE,      FALSE,    TRUE,     TRUE,
 
-        /* Start */                 FALSE,  TRUE,   FALSE,      FALSE,    TRUE,     TRUE,     TRUE,       TRUE,     TRUE,     TRUE,
+        /* Start */                 FALSE,  TRUE,   TRUE,      FALSE,    TRUE,     TRUE,     TRUE,       TRUE,     TRUE,     TRUE,
 
         /* Pause */                 FALSE,  TRUE,   TRUE,      TRUE,     TRUE,     TRUE,     TRUE,       TRUE,     TRUE,     TRUE,
 
