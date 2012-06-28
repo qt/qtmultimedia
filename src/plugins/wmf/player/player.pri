@@ -7,8 +7,6 @@ DEFINES += QMEDIA_MEDIAFOUNDATION_PLAYER
 HEADERS += \
     $$PWD/mfplayerservice.h \
     $$PWD/mfplayersession.h \
-    $$PWD/mfstream.h \
-    $$PWD/sourceresolver.h \
     $$PWD/mfplayercontrol.h \
     $$PWD/mfvideorenderercontrol.h \
     $$PWD/mfaudioendpointcontrol.h \
@@ -17,8 +15,6 @@ HEADERS += \
 SOURCES += \
     $$PWD/mfplayerservice.cpp \
     $$PWD/mfplayersession.cpp \
-    $$PWD/mfstream.cpp \
-    $$PWD/sourceresolver.cpp \
     $$PWD/mfplayercontrol.cpp \
     $$PWD/mfvideorenderercontrol.cpp \
     $$PWD/mfaudioendpointcontrol.cpp \

@@ -52,7 +52,6 @@
 #include "mfplayerservice.h"
 #include "mfplayersession.h"
 #include "mfmetadatacontrol.h"
-int MFPlayerService::s_refCount = 0;
 
 MFPlayerService::MFPlayerService(QObject *parent)
     : QMediaService(parent)
@@ -62,11 +61,6 @@ MFPlayerService::MFPlayerService(QObject *parent)
 #endif
     , m_videoRendererControl(0)
 {
-    s_refCount++;
-    if (s_refCount == 1) {
-        CoInitialize(NULL);
-        MFStartup(MF_VERSION);
-    }
     m_audioEndpointControl = new MFAudioEndpointControl(this);
     m_session = new MFPlayerSession(this);
     m_player = new MFPlayerControl(m_session);
@@ -85,12 +79,6 @@ MFPlayerService::~MFPlayerService()
 
     m_session->close();
     m_session->Release();
-
-    s_refCount--;
-    if (s_refCount == 0) {
-        MFShutdown();
-        CoUninitialize();
-    }
 }
 
 QMediaControl* MFPlayerService::requestControl(const char *name)

@@ -91,7 +91,6 @@ private:
 #endif
     MFPlayerControl        *m_player;
     MFMetaDataControl      *m_metaDataControl;
-    static int                s_refCount;
 };
 
 #endif

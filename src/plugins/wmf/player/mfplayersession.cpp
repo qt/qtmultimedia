@@ -62,7 +62,7 @@
 #include "mfmetadatacontrol.h"
 #include <Mferror.h>
 #include <nserror.h>
-#include <sourceresolver.h>
+#include "sourceresolver.h"
 
 //#define DEBUG_MEDIAFOUNDATION
 //#define TEST_STREAMING

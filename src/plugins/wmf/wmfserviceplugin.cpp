@@ -48,19 +48,46 @@
 #include "mfplayerservice.h"
 #endif
 
+#include <mfapi.h>
+
+namespace
+{
+static int g_refCount = 0;
+void addRefCount()
+{
+    g_refCount++;
+    if (g_refCount == 1) {
+        CoInitialize(NULL);
+        MFStartup(MF_VERSION);
+    }
+}
+
+void releaseRefCount()
+{
+    g_refCount--;
+    if (g_refCount == 0) {
+        MFShutdown();
+        CoUninitialize();
+    }
+}
+
+}
+
 QMediaService* WMFServicePlugin::create(QString const& key)
 {
 #ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
+    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
+        addRefCount();
         return new MFPlayerService;
+    }
 #endif
-
     //qDebug() << "unsupported key:" << key;
     return 0;
 }
 
 void WMFServicePlugin::release(QMediaService *service)
 {
+    releaseRefCount();
     delete service;
 }
 

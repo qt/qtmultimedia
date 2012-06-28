@@ -12,8 +12,18 @@ load(qt_plugin)
 
 DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
-HEADERS += wmfserviceplugin.h
-SOURCES += wmfserviceplugin.cpp
+DEPENDPATH += .
+INCLUDEPATH += .
+
+HEADERS += \
+    wmfserviceplugin.h \
+    mfstream.h \
+    sourceresolver.h
+
+SOURCES += \
+    wmfserviceplugin.cpp \
+    mfstream.cpp \
+    sourceresolver.cpp
 
 include (player/player.pri)
 
