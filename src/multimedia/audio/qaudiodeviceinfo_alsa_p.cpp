@@ -406,7 +406,6 @@ void QAudioDeviceInfoInternal::updateLists()
 
 QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
 {
-    QList<QByteArray> allDevices;
     QList<QByteArray> devices;
     QByteArray filter;
 
@@ -436,8 +435,9 @@ QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
             if ((descr != NULL) && ((io == NULL) || (io == filter))) {
                 QString deviceName = QLatin1String(name);
                 QString deviceDescription = QLatin1String(descr);
-                allDevices.append(deviceName.toLocal8Bit().constData());
                 if (deviceDescription.contains(QLatin1String("Default Audio Device")))
+                    devices.prepend(deviceName.toLocal8Bit().constData());
+                else
                     devices.append(deviceName.toLocal8Bit().constData());
             }
 
@@ -450,10 +450,6 @@ QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
         ++n;
     }
     snd_device_name_free_hint(hints);
-
-    if(devices.size() > 0) {
-        devices.append("default");
-    }
 #else
     int idx = 0;
     char* name;
@@ -462,13 +458,10 @@ QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
         devices.append(name);
         idx++;
     }
-    if (idx > 0)
+#endif
+
+    if (devices.size() > 0)
         devices.append("default");
-#endif
-#if !defined(Q_WS_MAEMO_6)
-    if (devices.size() == 0 && allDevices.size() > 0)
-        return allDevices;
-#endif
 
     return devices;
 }
