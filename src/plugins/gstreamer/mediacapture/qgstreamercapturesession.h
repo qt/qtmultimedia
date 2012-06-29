@@ -163,7 +163,6 @@ private:
     GstElement *buildVideoPreview();
     GstElement *buildImageCapture();
 
-    void waitForStopped();
     bool rebuildGraph(QGstreamerCaptureSession::PipelineMode newMode);
 
     GstPad *getAudioProbePad();
