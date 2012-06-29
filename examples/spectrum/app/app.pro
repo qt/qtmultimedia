@@ -58,11 +58,12 @@ RESOURCES = spectrum.qrc
 
 # Install
 
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum
 sources.files = $$SOURCES $$HEADERS $$RESOURCES app.pro
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum/app
 images.files += images/record.png images/settings.png
 images.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum/app/images
-INSTALLS += sources images
+INSTALLS += target sources images
 
 # Deployment
 
