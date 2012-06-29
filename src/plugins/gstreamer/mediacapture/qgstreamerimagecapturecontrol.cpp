@@ -63,6 +63,21 @@ bool QGstreamerImageCaptureControl::isReadyForCapture() const
 
 int QGstreamerImageCaptureControl::capture(const QString &fileName)
 {
+    m_lastId++;
+
+    //it's allowed to request image capture while camera is starting
+    if (m_session->pendingState() == QGstreamerCaptureSession::StoppedState ||
+            !(m_session->captureMode() & QGstreamerCaptureSession::Image)) {
+        //emit error in the next event loop,
+        //so application can associate it with returned request id.
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                                  Q_ARG(int, m_lastId),
+                                  Q_ARG(int, QCameraImageCapture::NotReadyError),
+                                  Q_ARG(QString,tr("Not ready to capture")));
+
+        return m_lastId;
+    }
+
     QString path = fileName;
     if (path.isEmpty()) {
         int lastImage = 0;
@@ -77,7 +92,6 @@ int QGstreamerImageCaptureControl::capture(const QString &fileName)
                                          10,
                                          QLatin1Char('0'));
     }
-    m_lastId++;
 
     m_session->captureImage(m_lastId, path);
 
@@ -91,7 +105,9 @@ void QGstreamerImageCaptureControl::cancelCapture()
 
 void QGstreamerImageCaptureControl::updateState()
 {
-    bool ready = m_session->state() == QGstreamerCaptureSession::PreviewState;
+    bool ready = (m_session->state() == QGstreamerCaptureSession::PreviewState) &&
+            (m_session->captureMode() & QGstreamerCaptureSession::Image);
+
     if (m_ready != ready) {
         emit readyForCaptureChanged(m_ready = ready);
     }

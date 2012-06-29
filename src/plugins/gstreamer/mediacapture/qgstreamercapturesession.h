@@ -127,6 +127,8 @@ public:
     void captureImage(int requestId, const QString &fileName);
 
     State state() const;
+    State pendingState() const;
+
     qint64 duration() const;
     bool isMuted() const { return m_muted; }
 

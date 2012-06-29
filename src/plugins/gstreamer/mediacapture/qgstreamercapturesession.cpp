@@ -773,6 +773,11 @@ QGstreamerCaptureSession::State QGstreamerCaptureSession::state() const
     return m_state;
 }
 
+QGstreamerCaptureSession::State QGstreamerCaptureSession::pendingState() const
+{
+    return m_pendingState;
+}
+
 void QGstreamerCaptureSession::setState(QGstreamerCaptureSession::State newState)
 {
     if (newState == m_pendingState && !m_waitingForEos)
