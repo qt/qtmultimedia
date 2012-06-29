@@ -764,7 +764,8 @@ void QGstreamerCaptureSession::setVideoPreview(QObject *viewfinder)
 
 bool QGstreamerCaptureSession::isReady() const
 {
-    return m_viewfinderInterface != 0 && m_viewfinderInterface->isReady();
+    //it's possible to use QCamera without any viewfinder attached
+    return !m_viewfinderInterface || m_viewfinderInterface->isReady();
 }
 
 QGstreamerCaptureSession::State QGstreamerCaptureSession::state() const
