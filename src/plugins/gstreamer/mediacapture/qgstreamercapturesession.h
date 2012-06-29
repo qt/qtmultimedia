@@ -86,7 +86,12 @@ class QGstreamerCaptureSession : public QObject, public QGstreamerBusMessageFilt
     Q_ENUMS(CaptureMode)
     Q_INTERFACES(QGstreamerBusMessageFilter)
 public:
-    enum CaptureMode { Audio = 1, Video = 2, Image=4, AudioAndVideo = Audio | Video };
+    enum CaptureMode { Audio = 1,
+                       Video = 2,
+                       Image = 4,
+                       AudioAndVideo = Audio | Video,
+                       AudioAndVideoAndImage = Audio | Video | Image
+                     };
     enum State { StoppedState, PreviewState, PausedState, RecordingState };
 
     QGstreamerCaptureSession(CaptureMode captureMode, QObject *parent);

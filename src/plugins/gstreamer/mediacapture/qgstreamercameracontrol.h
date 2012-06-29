@@ -66,10 +66,7 @@ public:
     QCamera::CaptureModes captureMode() const { return m_captureMode; }
     void setCaptureMode(QCamera::CaptureModes mode);
 
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const
-    {
-        return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
-    }
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
 
     QCamera::LockTypes supportedLocks() const
     {

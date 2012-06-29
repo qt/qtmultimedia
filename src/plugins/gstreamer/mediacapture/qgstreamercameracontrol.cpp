@@ -64,6 +64,8 @@ QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *sessi
             SLOT(reloadLater()));
     connect(m_session, SIGNAL(readyChanged(bool)),
             SLOT(reloadLater()));
+
+    m_session->setCaptureMode(QGstreamerCaptureSession::Image);
 }
 
 QGstreamerCameraControl::~QGstreamerCameraControl()
@@ -72,21 +74,33 @@ QGstreamerCameraControl::~QGstreamerCameraControl()
 
 void QGstreamerCameraControl::setCaptureMode(QCamera::CaptureModes mode)
 {
-    if (m_captureMode == mode)
+    if (m_captureMode == mode || !isCaptureModeSupported(mode))
         return;
 
+    m_captureMode = mode;
+
     switch (mode) {
+    case QCamera::CaptureViewfinder:
     case QCamera::CaptureStillImage:
         m_session->setCaptureMode(QGstreamerCaptureSession::Image);
         break;
     case QCamera::CaptureVideo:
         m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideo);
         break;
+    case QCamera::CaptureVideo | QCamera::CaptureStillImage:
+        m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideoAndImage);
+        break;
     }
 
     emit captureModeChanged(mode);
     updateStatus();
     reloadLater();
+}
+
+bool QGstreamerCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
+{
+    //only CaptureStillImage and CaptureVideo bits are allowed
+    return (mode & (QCamera::CaptureStillImage | QCamera::CaptureVideo)) == mode;
 }
 
 void QGstreamerCameraControl::setState(QCamera::State state)
