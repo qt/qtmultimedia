@@ -166,6 +166,8 @@ void QGstreamerRecorderControl::record()
 
     emit stateChanged(m_state);
     updateStatus();
+
+    emit actualLocationChanged(m_session->outputLocation());
 }
 
 void QGstreamerRecorderControl::pause()
