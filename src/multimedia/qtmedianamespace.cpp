@@ -62,15 +62,16 @@ namespace
     gcc's statement-expression extension.  However, in this file it will
     not work, because "statement-expressions are not allowed outside functions
     nor in template-argument lists".
+    MSVC 2012 produces an internal compiler error on encountering
+    QStringLiteral in this context.
 
     Fall back to the less-performant QLatin1String in this case.
 */
-#if defined(QStringLiteral) && defined(QT_UNICODE_LITERAL_II) && defined(Q_CC_GNU) && !defined(Q_COMPILER_LAMBDA)
-# undef QStringLiteral
-# define QStringLiteral QLatin1String
+#if defined(Q_CC_GNU) && defined(Q_COMPILER_LAMBDA)
+#    define Q_DEFINE_METADATA(key) const QString QtMultimedia::MetaData::key(QStringLiteral(#key))
+#else
+#    define Q_DEFINE_METADATA(key) const QString QtMultimedia::MetaData::key(QLatin1String(#key))
 #endif
-
-#define Q_DEFINE_METADATA(key) const QString QtMultimedia::MetaData::key(QStringLiteral(#key))
 
 // Common
 Q_DEFINE_METADATA(Title);
