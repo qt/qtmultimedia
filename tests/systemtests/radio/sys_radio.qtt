@@ -45,6 +45,7 @@ testcase = {
 
 /* Notes
 Ensure radio reception is available in testing area
+Most tier 1 platforms require a radio module
 A device specific headset is required to be connected to device for radio testing
 */
 
@@ -59,7 +60,7 @@ A device specific headset is required to be connected to device for radio testin
         testBinary = "radio";
         testSource ="qt5/qtmultimedia/examples/radio"
         testGoal = "Verify that radio stations can be played.";
-        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
+        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Device must have a suppported radio module.";
         testGroups = "BAT, 1.2";
 
         // Test steps
@@ -218,57 +219,6 @@ A device specific headset is required to be connected to device for radio testin
            "));
     },
 
-    switch_audio_to_speakers: function()
-    {
-        // Test meta data
-        testTitle = "Multimedia - Radio: Switch audio to speakers";
-        testBinary = "radio";
-        testSource ="qt5/qtmultimedia/examples/radio"
-        testGoal = "Verify that radio can be output to external speakers.";
-        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
-        testGroups = "BAT, 1.2";
-
-
-    // Test steps
-        prompt(twiki("---+++ " + testTitle + "<br><br>
-            *Goal:* " + testGoal + "<br>
-            *Pre-Requisites:* " + testPreconditions + "<br>
-            *Tested Binary:* " + testBinary + "<br>
-
-           | *Step* | *Verification* |
-           | Launch " + testBinary + " | App launches normally |
-           | Select an audible radio station | Verify that the station can be heard through the speakers |
-           | Select from station menu: Turn On loudspeaker | Verify that the audio can be heard through the device speakers |
-           | Select from the station menu: Turn Off Loudspeakers | Verify that the audio has now reverted back to the headphones |
-           | Close application | Verify that radio application closes properly |
-           "));
-    },
-
- handle_headset_removal: function()
-    {
-        // Test meta data
-        testTitle = "Multimedia - Radio: Handle headset removal";
-        testBinary = "radio";
-        testSource ="qt5/qtmultimedia/examples/radio"
-        testGoal = "Verify that radio can handle removal and insertion of headset.";
-        testPreconditions = "1. Radio reception should be available in the test area.<br>2. Wired headphones act as an antenna to the device and must be connected.";
-        testGroups = "BAT, 1.2";
-
-
-    // Test steps
-        prompt(twiki("---+++ " + testTitle + "<br><br>
-            *Goal:* " + testGoal + "<br>
-            *Pre-Requisites:* " + testPreconditions + "<br>
-            *Tested Binary:* " + testBinary + "<br>
-
-           | *Step* | *Verification* |
-           | Launch " + testBinary + " | App launches normally |
-           | Select an audible radio station | Verify that the station can be heard through the headset |
-           | Remove headset from device | Verify that warning sign is informing user of the need to re-insert the headset |
-           | Re-insert headset | Verify that the warning has now disappeared, and that the radio station can be heard once again |
-           | Close application | Verify that radio application closes properly |
-           "));
-    },
 
  radio_interrupted_by_system_notification: function()
     {
@@ -289,7 +239,7 @@ A device specific headset is required to be connected to device for radio testin
            | *Step* | *Verification* |
            | Launch " + testBinary + " | App launches normally |
            | Locate a strong radio station signal by scanning up/down | |
-           | While on a strong and audible radio signal, evoke a system notification on device (eg: incoming SMS, alarm notification) | Verify that the radio has muted, and after the system notification has been delivered, the radio reverts to outputting the audio signal back through the headphones |
+           | While on a strong and audible radio signal, evoke a system notification on device (eg: alarm notification) | Verify that the radio has muted, and after the system notification has been delivered, the radio reverts to outputting the audio signal back through the headphones |
            | While on a strong and audible radio signal, call the device | Verify that the radio has been muted, and stays muted during the duration of the call, and resumes once the call has ended  |
            | Close application | Verify that radio application closes properly |
         "));
