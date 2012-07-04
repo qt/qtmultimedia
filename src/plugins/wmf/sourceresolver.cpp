@@ -140,6 +140,7 @@ HRESULT STDMETHODCALLTYPE SourceResolver::Invoke(IMFAsyncResult *pAsyncResult)
     }
 
     hr = pSource->QueryInterface(IID_PPV_ARGS(&m_mediaSource));
+    pSource->Release();
     if (FAILED(hr)) {
         emit error(hr);
         return S_OK;
