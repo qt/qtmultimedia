@@ -44,6 +44,7 @@
 #include "qgstreamervideoencode.h"
 #include "qgstreamermediacontainercontrol.h"
 #include <QtCore/QDebug>
+#include <QtGui/qdesktopservices.h>
 
 QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
     :QMediaRecorderControl(session),
@@ -320,6 +321,11 @@ QDir QGstreamerRecorderControl::defaultDir() const
 #if defined(Q_WS_MAEMO_6)
     dirCandidates << QLatin1String("/home/user/MyDocs");
 #endif
+
+    if (m_session->captureMode() & QGstreamerCaptureSession::Video)
+        dirCandidates << QDesktopServices::storageLocation(QDesktopServices::MoviesLocation);
+    else
+        dirCandidates << QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
 
     dirCandidates << QDir::home().filePath("Documents");
     dirCandidates << QDir::home().filePath("My Documents");
