@@ -3,7 +3,7 @@
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -49,7 +49,7 @@ class SourceResolver: public QObject, public IMFAsyncCallback
 {
     Q_OBJECT
 public:
-    SourceResolver(QObject *parent);
+    SourceResolver();
 
     ~SourceResolver();
 

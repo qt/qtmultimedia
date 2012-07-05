@@ -3,7 +3,7 @@
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the Qt Mobility Components.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -39,79 +39,53 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qstring.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/QFile>
-
-#include "wmfserviceplugin.h"
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-#include "mfplayerservice.h"
-#endif
-#include "mfdecoderservice.h"
-
+#ifndef MFDECODERSOURCEREADER_H
+#define MFDECODERSOURCEREADER_H
 #include <mfapi.h>
+#include <mfidl.h>
+#include <Mfreadwrite.h>
 
-namespace
+#include <QtCore/qobject.h>
+#include <QtCore/qmutex.h>
+#include "qaudioformat.h"
+
+QT_USE_NAMESPACE
+
+class MFDecoderSourceReader : public QObject, public IMFSourceReaderCallback
 {
-static int g_refCount = 0;
-void addRefCount()
-{
-    g_refCount++;
-    if (g_refCount == 1) {
-        CoInitialize(NULL);
-        MFStartup(MF_VERSION);
-    }
-}
+    Q_OBJECT
+public:
+    MFDecoderSourceReader(QObject *parent = 0);
+    void shutdown();
 
-void releaseRefCount()
-{
-    g_refCount--;
-    if (g_refCount == 0) {
-        MFShutdown();
-        CoUninitialize();
-    }
-}
+    IMFMediaSource* mediaSource();
+    IMFMediaType* setSource(IMFMediaSource *source, const QAudioFormat &audioFormat);
 
-}
+    void reset();
+    void readNextSample();
+    QList<IMFSample*> takeSamples(); //internal samples will be cleared after this
 
-QMediaService* WMFServicePlugin::create(QString const& key)
-{
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
-        addRefCount();
-        return new MFPlayerService;
-    }
-#endif
-    if (key == QLatin1String(Q_MEDIASERVICE_AUDIODECODER)) {
-        addRefCount();
-        return new MFAudioDecoderService;
-    }
-    //qDebug() << "unsupported key:" << key;
-    return 0;
-}
+    //from IUnknown
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
+    STDMETHODIMP_(ULONG) AddRef(void);
+    STDMETHODIMP_(ULONG) Release(void);
 
-void WMFServicePlugin::release(QMediaService *service)
-{
-    releaseRefCount();
-    delete service;
-}
+    //from IMFSourceReaderCallback
+    STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
+        DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample);
+    STDMETHODIMP OnFlush(DWORD dwStreamIndex);
+    STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent *pEvent);
 
-QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::StreamPlayback;
-    else
-        return QMediaServiceProviderHint::Features();
-}
+Q_SIGNALS:
+    void sampleAdded();
+    void finished();
 
-QList<QByteArray> WMFServicePlugin::devices(const QByteArray &service) const
-{
-    return QList<QByteArray>();
-}
+private:
+    long m_cRef;
+    QList<IMFSample*>   m_cachedSamples;
+    QMutex              m_samplesMutex;
 
-QString WMFServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    return QString();
-}
-
+    IMFSourceReader             *m_sourceReader;
+    IMFMediaSource              *m_source;
+};
+#endif//MFDECODERSOURCEREADER_H

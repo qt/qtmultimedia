@@ -26,6 +26,7 @@ SOURCES += \
     sourceresolver.cpp
 
 include (player/player.pri)
+include (decoder/decoder.pri)
 
 OTHER_FILES += \
     wmf.json

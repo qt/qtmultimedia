@@ -418,7 +418,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_mediaTypes(0)
 {
     m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    m_sourceResolver = new SourceResolver(this);
+    m_sourceResolver = new SourceResolver();
     QObject::connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
     QObject::connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleSourceError(long)));
     QObject::connect(this, SIGNAL(sessionEvent(IMFMediaEvent *)), this, SLOT(handleSessionEvent(IMFMediaEvent *)));
@@ -456,9 +456,13 @@ void MFPlayerSession::close()
     if (SUCCEEDED(hr)) {
         if (m_session)
             m_session->Shutdown();
-        m_sourceResolver->shutdown();
+        if (m_sourceResolver)
+            m_sourceResolver->shutdown();
     }
-    m_sourceResolver->Release();
+    if (m_sourceResolver) {
+        m_sourceResolver->Release();
+        m_sourceResolver = 0;
+    }
 
     if (m_session)
         m_session->Release();

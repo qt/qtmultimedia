@@ -39,79 +39,20 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qstring.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/QFile>
+#ifndef MFDECODERSERVICE_H
+#define MFDECODERSERVICE_H
 
-#include "wmfserviceplugin.h"
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-#include "mfplayerservice.h"
-#endif
-#include "mfdecoderservice.h"
+#include "qmediaservice.h"
 
-#include <mfapi.h>
-
-namespace
+class MFAudioDecoderService : public QMediaService
 {
-static int g_refCount = 0;
-void addRefCount()
-{
-    g_refCount++;
-    if (g_refCount == 1) {
-        CoInitialize(NULL);
-        MFStartup(MF_VERSION);
-    }
-}
+    Q_OBJECT
+public:
+    MFAudioDecoderService(QObject *parent = 0);
+    ~MFAudioDecoderService();
 
-void releaseRefCount()
-{
-    g_refCount--;
-    if (g_refCount == 0) {
-        MFShutdown();
-        CoUninitialize();
-    }
-}
+    QMediaControl* requestControl(const char *name);
+    void releaseControl(QMediaControl *control);
+};
 
-}
-
-QMediaService* WMFServicePlugin::create(QString const& key)
-{
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
-        addRefCount();
-        return new MFPlayerService;
-    }
-#endif
-    if (key == QLatin1String(Q_MEDIASERVICE_AUDIODECODER)) {
-        addRefCount();
-        return new MFAudioDecoderService;
-    }
-    //qDebug() << "unsupported key:" << key;
-    return 0;
-}
-
-void WMFServicePlugin::release(QMediaService *service)
-{
-    releaseRefCount();
-    delete service;
-}
-
-QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::StreamPlayback;
-    else
-        return QMediaServiceProviderHint::Features();
-}
-
-QList<QByteArray> WMFServicePlugin::devices(const QByteArray &service) const
-{
-    return QList<QByteArray>();
-}
-
-QString WMFServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    return QString();
-}
-
+#endif//MFDECODERSERVICE_H

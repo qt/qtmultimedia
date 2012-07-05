@@ -39,79 +39,29 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qstring.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/QFile>
-
-#include "wmfserviceplugin.h"
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-#include "mfplayerservice.h"
-#endif
 #include "mfdecoderservice.h"
+#include "mfaudiodecodercontrol.h"
 
-#include <mfapi.h>
-
-namespace
+MFAudioDecoderService::MFAudioDecoderService(QObject *parent)
+    : QMediaService(parent)
 {
-static int g_refCount = 0;
-void addRefCount()
-{
-    g_refCount++;
-    if (g_refCount == 1) {
-        CoInitialize(NULL);
-        MFStartup(MF_VERSION);
-    }
 }
 
-void releaseRefCount()
+MFAudioDecoderService::~MFAudioDecoderService()
 {
-    g_refCount--;
-    if (g_refCount == 0) {
-        MFShutdown();
-        CoUninitialize();
-    }
 }
 
-}
-
-QMediaService* WMFServicePlugin::create(QString const& key)
+QMediaControl* MFAudioDecoderService::requestControl(const char *name)
 {
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
-        addRefCount();
-        return new MFPlayerService;
+    if (qstrcmp(name, QAudioDecoderControl_iid) == 0) {
+        return new MFAudioDecoderControl(this);
     }
-#endif
-    if (key == QLatin1String(Q_MEDIASERVICE_AUDIODECODER)) {
-        addRefCount();
-        return new MFAudioDecoderService;
-    }
-    //qDebug() << "unsupported key:" << key;
     return 0;
 }
 
-void WMFServicePlugin::release(QMediaService *service)
+void MFAudioDecoderService::releaseControl(QMediaControl *control)
 {
-    releaseRefCount();
-    delete service;
+    if (control && control->inherits("MFAudioDecoderControl")) {
+        delete control;
+    }
 }
-
-QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::StreamPlayback;
-    else
-        return QMediaServiceProviderHint::Features();
-}
-
-QList<QByteArray> WMFServicePlugin::devices(const QByteArray &service) const
-{
-    return QList<QByteArray>();
-}
-
-QString WMFServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    return QString();
-}
-

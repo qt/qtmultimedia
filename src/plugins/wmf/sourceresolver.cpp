@@ -3,7 +3,7 @@
 ** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** GNU Lesser General Public License Usage
@@ -53,9 +53,8 @@
     stop the previous load operation if there is any.
 */
 
-SourceResolver::SourceResolver(QObject *parent)
-    : QObject(parent)
-    , m_cRef(1)
+SourceResolver::SourceResolver()
+    : m_cRef(1)
     , m_cancelCookie(0)
     , m_sourceResolver(0)
     , m_mediaSource(0)
@@ -255,6 +254,8 @@ void SourceResolver::shutdown()
 {
     if (m_mediaSource) {
         m_mediaSource->Shutdown();
+        m_mediaSource->Release();
+        m_mediaSource = NULL;
     }
 
     if (m_stream) {
