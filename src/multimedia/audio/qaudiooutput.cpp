@@ -349,6 +349,7 @@ QAudio::State QAudioOutput::state() const
 /*!
     Sets the volume.
     Where \a volume is between 0.0 and 1.0 inclusive.
+    Note: Adjustments to the volume will change the volume of this audio stream, not the global volume.
 */
 void QAudioOutput::setVolume(qreal volume)
 {

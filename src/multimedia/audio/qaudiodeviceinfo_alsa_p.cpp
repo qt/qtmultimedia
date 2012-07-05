@@ -286,6 +286,11 @@ bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
                     err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_U32_LE);
                 else if(format.byteOrder() == QAudioFormat::BigEndian)
                     err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_U32_BE);
+            } else if (format.sampleType() == QAudioFormat::Float) {
+                if (format.byteOrder() == QAudioFormat::LittleEndian)
+                    err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_FLOAT_LE);
+                else if (format.byteOrder() == QAudioFormat::BigEndian)
+                    err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_FLOAT_BE);
             }
     }
 
@@ -344,6 +349,11 @@ bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
                         err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_U32_LE);
                     else if(format.byteOrder() == QAudioFormat::BigEndian)
                         err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_U32_BE);
+                } else if (format.sampleType() == QAudioFormat::Float) {
+                    if (format.byteOrder() == QAudioFormat::LittleEndian)
+                        err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_FLOAT_LE);
+                    else if (format.byteOrder() == QAudioFormat::BigEndian)
+                        err = snd_pcm_hw_params_set_format(handle,params,SND_PCM_FORMAT_FLOAT_BE);
                 }
         }
         if(err>=0) {

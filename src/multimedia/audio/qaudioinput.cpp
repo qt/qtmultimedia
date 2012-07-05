@@ -279,7 +279,7 @@ int QAudioInput::bufferSize() const
 /*!
     Returns the amount of audio data available to read in bytes.
 
-    NOTE: returned value is only valid while in QAudio::ActiveState or QAudio::IdleState
+    Note: returned value is only valid while in QAudio::ActiveState or QAudio::IdleState
     state, otherwise returns zero.
 */
 
@@ -332,6 +332,8 @@ int QAudioInput::notifyInterval() const
     If the device does not support adjusting the input
     volume then \a volume will be ignored and the input
     volume will remain at 1.0.
+
+    Note: Adjustments to the volume will change the volume of this audio stream, not the global volume.
 */
 void QAudioInput::setVolume(qreal volume)
 {

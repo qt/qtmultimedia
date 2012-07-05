@@ -53,6 +53,7 @@
 #include <QtCore/qcoreapplication.h>
 #include "qaudioinput_alsa_p.h"
 #include "qaudiodeviceinfo_alsa_p.h"
+#include "qaudiohelpers_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -77,6 +78,8 @@ QAudioInputPrivate::QAudioInputPrivate(const QByteArray &device)
     pullMode = true;
     resuming = false;
 
+    m_volume = 1.0f;
+
     m_device = device;
 
     timer = new QTimer(this);
@@ -89,6 +92,16 @@ QAudioInputPrivate::~QAudioInputPrivate()
     disconnect(timer, SIGNAL(timeout()));
     QCoreApplication::processEvents();
     delete timer;
+}
+
+void QAudioInputPrivate::setVolume(qreal vol)
+{
+    m_volume = vol;
+}
+
+qreal QAudioInputPrivate::volume() const
+{
+    return m_volume;
 }
 
 QAudio::Error QAudioInputPrivate::error() const
@@ -537,9 +550,11 @@ qint64 QAudioInputPrivate::read(char* data, qint64 len)
                 frames = buffer_frames;
 
             int readFrames = snd_pcm_readi(handle, buffer, frames);
+            bytesRead = snd_pcm_frames_to_bytes(handle, readFrames);
+            if (m_volume < 1.0f)
+                QAudioHelperInternal::qMultiplySamples(m_volume, settings, buffer, buffer, bytesRead);
 
             if (readFrames >= 0) {
-                bytesRead = snd_pcm_frames_to_bytes(handle, readFrames);
                 ringBuffer.write(buffer, bytesRead);
 #ifdef DEBUG_AUDIO
                 qDebug() << QString::fromLatin1("read in bytes = %1 (frames=%2)").arg(bytesRead).arg(readFrames).toLatin1().constData();

@@ -53,6 +53,7 @@
 #include <QtCore/qcoreapplication.h>
 #include "qaudiooutput_alsa_p.h"
 #include "qaudiodeviceinfo_alsa_p.h"
+#include "qaudiohelpers_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -81,6 +82,8 @@ QAudioOutputPrivate::QAudioOutputPrivate(const QByteArray &device)
     resuming = false;
     opened = false;
 
+    m_volume = 1.0f;
+
     m_device = device;
 
     timer = new QTimer(this);
@@ -93,6 +96,16 @@ QAudioOutputPrivate::~QAudioOutputPrivate()
     disconnect(timer, SIGNAL(timeout()));
     QCoreApplication::processEvents();
     delete timer;
+}
+
+void QAudioOutputPrivate::setVolume(qreal vol)
+{
+    m_volume = vol;
+}
+
+qreal QAudioOutputPrivate::volume() const
+{
+    return m_volume;
 }
 
 QAudio::Error QAudioOutputPrivate::error() const
@@ -571,15 +584,23 @@ qint64 QAudioOutputPrivate::write( const char *data, qint64 len )
 #endif
     int frames, err;
     int space = bytesFree();
-    if(len < space) {
-        // Just write it
-        frames = snd_pcm_bytes_to_frames( handle, (int)len );
-        err = snd_pcm_writei( handle, data, frames );
+
+    if (!space)
+        return 0;
+
+    if (len < space)
+        space = len;
+
+    frames = snd_pcm_bytes_to_frames(handle, space);
+
+    if (m_volume < 1.0f) {
+        char out[space];
+        QAudioHelperInternal::qMultiplySamples(m_volume, settings, data, out, space);
+        err = snd_pcm_writei(handle, out, frames);
     } else {
-        // Only write space worth
-        frames = snd_pcm_bytes_to_frames( handle, (int)space );
-        err = snd_pcm_writei( handle, data, frames );
+        err = snd_pcm_writei(handle, data, frames);
     }
+
     if(err > 0) {
         totalTimeValue += err;
         resuming = false;

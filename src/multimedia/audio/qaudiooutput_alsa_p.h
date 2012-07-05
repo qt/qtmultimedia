@@ -103,6 +103,9 @@ public:
     QAudio::State state() const;
     void setFormat(const QAudioFormat& fmt);
     QAudioFormat format() const;
+    void setVolume(qreal);
+    qreal volume() const;
+
 
     QIODevice* audioSource;
     QAudioFormat settings;
@@ -150,6 +153,7 @@ private:
     snd_pcm_format_t pcmformat;
     snd_timestamp_t* timestamp;
     snd_pcm_hw_params_t *hwparams;
+    qreal m_volume;
 };
 
 class OutputPrivate : public QIODevice
