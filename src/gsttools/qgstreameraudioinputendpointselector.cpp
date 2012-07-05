@@ -103,6 +103,11 @@ void QGstreamerAudioInputEndpointSelector::update()
 {
     m_names.clear();
     m_descriptions.clear();
+
+    //use autoaudiosrc as the first default device
+    m_names.append("default:");
+    m_descriptions.append(tr("System default device"));
+
     updatePulseDevices();
     updateAlsaDevices();
     updateOssDevices();
