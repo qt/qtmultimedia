@@ -113,6 +113,8 @@ private:
 
     QScopedPointer<QByteArray> m_byteArray;
     QScopedPointer<QBuffer> m_buffer;
+
+    bool m_inCISystem;
 };
 
 QString tst_QAudioOutput::formatToFileName(const QAudioFormat &format)
@@ -258,6 +260,7 @@ void tst_QAudioOutput::initTestCase()
         file->close();
         audioFiles.append(file);
     }
+    qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
 
 void tst_QAudioOutput::format()
@@ -532,6 +535,10 @@ void tst_QAudioOutput::pull()
                 QString("too many notify() signals emitted (%1)").arg(notifySignal.count()).toLocal8Bit().constData());
 
         audioFile->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -622,6 +629,10 @@ void tst_QAudioOutput::pullSuspendResume()
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
         audioFile->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -710,6 +721,10 @@ void tst_QAudioOutput::push()
                 QString("too many notify() signals emitted (%1)").arg(notifySignal.count()).toLocal8Bit().constData());
 
         audioFile->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -838,6 +853,10 @@ void tst_QAudioOutput::pushSuspendResume()
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
         audioFile->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -955,6 +974,10 @@ void tst_QAudioOutput::pushUnderrun()
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
         audioFile->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 

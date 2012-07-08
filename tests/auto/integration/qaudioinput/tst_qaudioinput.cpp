@@ -115,6 +115,8 @@ private:
 
     QScopedPointer<QByteArray> m_byteArray;
     QScopedPointer<QBuffer> m_buffer;
+
+    bool m_inCISystem;
 };
 
 QString tst_QAudioInput::formatToFileName(const QAudioFormat &format)
@@ -205,6 +207,7 @@ void tst_QAudioInput::initTestCase()
         const QString fileName = temporaryAudioPath + formatToFileName(format) + QStringLiteral(".wav");
         audioFiles.append(FilePtr(new QFile(fileName)));
     }
+    qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
 
 void tst_QAudioInput::format()
@@ -475,6 +478,10 @@ void tst_QAudioInput::pull()
 
         WavHeader::writeDataLength(*audioFile, audioFile->pos() - WavHeader::headerLength());
         audioFile->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -569,6 +576,10 @@ void tst_QAudioInput::pullSuspendResume()
 
         WavHeader::writeDataLength(*audioFiles.at(i),audioFiles.at(i)->pos()-WavHeader::headerLength());
         audioFile->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -648,6 +659,10 @@ void tst_QAudioInput::push()
 
         WavHeader::writeDataLength(*audioFiles.at(i),audioFiles.at(i)->pos()-WavHeader::headerLength());
         audioFiles.at(i)->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -768,6 +783,10 @@ void tst_QAudioInput::pushSuspendResume()
 
         WavHeader::writeDataLength(*audioFiles.at(i),audioFiles.at(i)->pos()-WavHeader::headerLength());
         audioFiles.at(i)->close();
+
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
@@ -839,6 +858,9 @@ void tst_QAudioInput::reset()
             QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after reset()");
             QVERIFY2((audioInput.bytesReady() == 0), "buffer not cleared after reset()");
         }
+        // Only run first format in CI system to reduce test times
+        if (m_inCISystem)
+            break;
     }
 }
 
