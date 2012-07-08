@@ -465,7 +465,7 @@ void tst_QAudioInput::pull()
 
         audioInput.stop();
         QTest::qWait(40);
-        QVERIFY2((stateSignal.count() == 1),
+        QTRY_VERIFY2((stateSignal.count() == 1),
             QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
@@ -563,7 +563,7 @@ void tst_QAudioInput::pullSuspendResume()
 
         audioInput.stop();
         QTest::qWait(40);
-        QVERIFY2((stateSignal.count() == 1),
+        QTRY_VERIFY2((stateSignal.count() == 1),
             QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
@@ -646,7 +646,7 @@ void tst_QAudioInput::push()
 
         audioInput.stop();
         QTest::qWait(40);
-        QVERIFY2((stateSignal.count() == 1),
+        QTRY_VERIFY2((stateSignal.count() == 1),
             QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
         QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
@@ -698,7 +698,7 @@ void tst_QAudioInput::pushSuspendResume()
 
         // Check that 'elapsed' increases
         QTest::qWait(40);
-        QVERIFY2((audioInput.elapsedUSecs() > 0), "elapsedUSecs() is still zero after start()");
+        QTRY_VERIFY2((audioInput.elapsedUSecs() > 0), "elapsedUSecs() is still zero after start()");
 
         qint64 totalBytesRead = 0;
         bool firstBuffer = true;
@@ -814,12 +814,10 @@ void tst_QAudioInput::reset()
             QVERIFY2((audioInput.state() == QAudio::IdleState), "didn't transition to IdleState after start()");
             QVERIFY2((audioInput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
             QVERIFY(audioInput.periodSize() > 0);
-            QTRY_VERIFY2((audioInput.bytesReady() > 0), "no bytes available after starting");
+            QTRY_VERIFY2((audioInput.bytesReady() > audioInput.periodSize()), "no bytes available after starting");
 
             // Trigger a read
-            QByteArray data = device->read(1);
-
-            QTRY_VERIFY2((audioInput.state() == QAudio::ActiveState), "didn't transition to ActiveState after read()");
+            QByteArray data = device->read(audioInput.periodSize());
             QVERIFY2((audioInput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
             stateSignal.clear();
 
@@ -850,7 +848,6 @@ void tst_QAudioInput::reset()
             QTRY_VERIFY2((audioInput.state() == QAudio::ActiveState), "didn't transition to ActiveState after start()");
             QVERIFY2((audioInput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
             QVERIFY(audioInput.periodSize() > 0);
-            QTRY_VERIFY2((audioInput.bytesReady() > 0), "no bytes available after starting");
             stateSignal.clear();
 
             audioInput.reset();
@@ -874,18 +871,18 @@ void tst_QAudioInput::volume()
 
         qreal volume = audioInput.volume();
         audioInput.setVolume(half);
-        QVERIFY(qFuzzyCompare(audioInput.volume(), half) || qFuzzyCompare(audioInput.volume(), one));
-
+        QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 5);
         // Wait a while to see if this changes
         QTest::qWait(500);
-        QVERIFY(qFuzzyCompare(audioInput.volume(), half) || qFuzzyCompare(audioInput.volume(), one));
+        QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 5);
+
+        audioInput.setVolume(one);
+        QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 10);
+        // Wait a while to see if this changes
+        QTest::qWait(500);
+        QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 10);
 
         audioInput.setVolume(volume);
-        QVERIFY(qFuzzyCompare(audioInput.volume(), volume));
-
-        // Wait a while to see if this changes
-        QTest::qWait(500);
-        QVERIFY(qFuzzyCompare(audioInput.volume(), volume));
     }
 }
 

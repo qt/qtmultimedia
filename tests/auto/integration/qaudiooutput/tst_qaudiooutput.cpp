@@ -100,6 +100,8 @@ private slots:
     void pushSuspendResume();
     void pushUnderrun();
 
+    void volume();
+
 private:
     typedef QSharedPointer<QFile> FilePtr;
 
@@ -979,6 +981,29 @@ void tst_QAudioOutput::pushUnderrun()
         if (m_inCISystem)
             break;
     }
+}
+
+void tst_QAudioOutput::volume()
+{
+    QAudioOutput audioOutput(audioDevice.preferredFormat(), this);
+
+    audioOutput.setVolume(0.3f);
+    QTRY_VERIFY(qRound(audioOutput.volume()*10.0f) == 3);
+    // Wait a while to see if this changes
+    QTest::qWait(500);
+    QTRY_VERIFY(qRound(audioOutput.volume()*10.0f) == 3);
+
+    audioOutput.setVolume(0.6f);
+    QTRY_VERIFY(qRound(audioOutput.volume()*10.0f) == 6);
+    // Wait a while to see if this changes
+    QTest::qWait(500);
+    QTRY_VERIFY(qRound(audioOutput.volume()*10.0f) == 6);
+
+    audioOutput.setVolume(0.9f);
+    QTRY_VERIFY(qRound(audioOutput.volume()*10.0f) == 9);
+    // Wait a while to see if this changes
+    QTest::qWait(500);
+    QTRY_VERIFY(qRound(audioOutput.volume()*10.0f) == 9);
 }
 
 QTEST_MAIN(tst_QAudioOutput)
