@@ -106,6 +106,8 @@ public:
     QAudio::State state() const { return QAudio::StoppedState; }
     void setFormat(const QAudioFormat&) {}
     QAudioFormat format() const { return QAudioFormat(); }
+    void setVolume(qreal) {}
+    qreal volume() const {return 1.0f;}
 };
 
 class QNullOutputDevice : public QAbstractAudioOutput

@@ -131,8 +131,8 @@ public:
     virtual QAudio::State state() const = 0;
     virtual void setFormat(const QAudioFormat& fmt) = 0;
     virtual QAudioFormat format() const = 0;
-    virtual void setVolume(qreal) {}
-    virtual qreal volume() const { return 1.0; }
+    virtual void setVolume(qreal) = 0;
+    virtual qreal volume() const = 0;
 
 Q_SIGNALS:
     void errorChanged(QAudio::Error);

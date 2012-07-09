@@ -109,6 +109,7 @@ public:
     AudioStreamBasicDescription streamFormat;
     AudioStreamBasicDescription deviceFormat;
     QAbstractAudioDeviceInfo *audioDeviceInfo;
+    qreal           m_volume;
 
     QAudioInputPrivate(const QByteArray& device);
     ~QAudioInputPrivate();
@@ -142,10 +143,14 @@ public:
     QAudio::Error error() const;
     QAudio::State state() const;
 
+    qreal volume() const;
+    void setVolume(qreal volume);
+
     void audioThreadStart();
     void audioThreadStop();
 
     void audioDeviceStop();
+    void audioDeviceActive();
     void audioDeviceFull();
     void audioDeviceError();
 

@@ -59,6 +59,7 @@
 #include "qaudio_mac_p.h"
 #include "qaudioinput_mac_p.h"
 #include "qaudiodeviceinfo_mac_p.h"
+#include "qaudiohelpers_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -235,7 +236,8 @@ public:
         m_deviceError(false),
         m_audioConverter(0),
         m_inputFormat(inputFormat),
-        m_outputFormat(outputFormat)
+        m_outputFormat(outputFormat),
+        m_volume(qreal(1.0f))
     {
         m_maxPeriodSize = maxPeriodSize;
         m_periodTime = m_maxPeriodSize / m_outputFormat.mBytesPerFrame * 1000 / m_outputFormat.mSampleRate;
@@ -253,11 +255,23 @@ public:
                 m_audioConverter = 0;
             }
         }
+
+        m_qFormat = toQAudioFormat(inputFormat); // we adjust volume before conversion
     }
 
     ~QAudioInputBuffer()
     {
         delete m_buffer;
+    }
+
+    qreal volume() const
+    {
+        return m_volume;
+    }
+
+    void setVolume(qreal v)
+    {
+        m_volume = v;
     }
 
     qint64 renderFromDevice(AudioUnit audioUnit,
@@ -278,6 +292,15 @@ public:
                                 inBusNumber,
                                 inNumberFrames,
                                 m_inputBufferList->audioBufferList());
+
+        // adjust volume, if necessary
+        if (!qFuzzyCompare(m_volume, qreal(1.0f))) {
+            QAudioHelperInternal::qMultiplySamples(m_volume,
+                                                   m_qFormat,
+                                                   m_inputBufferList->data(), /* input */
+                                                   m_inputBufferList->data(), /* output */
+                                                   m_inputBufferList->bufferSize());
+        }
 
         if (m_audioConverter != 0) {
             QAudioPacketFeeder  feeder(m_inputBufferList);
@@ -452,6 +475,8 @@ private:
     AudioConverterRef   m_audioConverter;
     AudioStreamBasicDescription m_inputFormat;
     AudioStreamBasicDescription m_outputFormat;
+    QAudioFormat m_qFormat;
+    qreal     m_volume;
 
     const static OSStatus as_empty = 'qtem';
 
@@ -534,6 +559,8 @@ QAudioInputPrivate::QAudioInputPrivate(const QByteArray& device)
         clockFrequency = AudioGetHostClockFrequency() / 1000;
         errorCode = QAudio::NoError;
         stateCode = QAudio::StoppedState;
+
+        m_volume = qreal(1.0f);
 
         intervalTimer = new QTimer(this);
         intervalTimer->setInterval(1000);
@@ -709,6 +736,7 @@ bool QAudioInputPrivate::open()
                                         streamFormat,
                                         this);
 
+    audioBuffer->setVolume(m_volume);
     audioIO = new QtMultimediaInternal::MacInputDevice(audioBuffer, this);
 
     // Init
@@ -765,11 +793,11 @@ void QAudioInputPrivate::start(QIODevice* device)
     startTime = AudioGetCurrentHostTime();
     totalFrames = 0;
 
-    audioThreadStart();
-
-    stateCode = QAudio::ActiveState;
+    stateCode = QAudio::IdleState;
     errorCode = QAudio::NoError;
     emit stateChanged(stateCode);
+
+    audioThreadStart();
 }
 
 QIODevice* QAudioInputPrivate::start()
@@ -793,11 +821,11 @@ QIODevice* QAudioInputPrivate::start()
     startTime = AudioGetCurrentHostTime();
     totalFrames = 0;
 
-    audioThreadStart();
-
-    stateCode = QAudio::ActiveState;
+    stateCode = QAudio::IdleState;
     errorCode = QAudio::NoError;
     emit stateChanged(stateCode);
+
+    audioThreadStart();
 
     return op;
 }
@@ -823,6 +851,7 @@ void QAudioInputPrivate::reset()
 
         errorCode = QAudio::NoError;
         stateCode = QAudio::StoppedState;
+        audioBuffer->reset();
         QMetaObject::invokeMethod(this, "stateChanged", Qt::QueuedConnection, Q_ARG(QAudio::State, stateCode));
     }
 }
@@ -853,6 +882,8 @@ void QAudioInputPrivate::resume()
 
 int QAudioInputPrivate::bytesReady() const
 {
+    if (!audioBuffer)
+        return 0;
     return audioBuffer->used();
 }
 
@@ -910,6 +941,19 @@ QAudio::State QAudioInputPrivate::state() const
     return stateCode;
 }
 
+qreal QAudioInputPrivate::volume() const
+{
+    return m_volume;
+}
+
+void QAudioInputPrivate::setVolume(qreal volume)
+{
+    m_volume = volume;
+    if (audioBuffer)
+        audioBuffer->setVolume(m_volume);
+}
+
+
 void QAudioInputPrivate::audioThreadStop()
 {
     stopTimers();
@@ -931,15 +975,22 @@ void QAudioInputPrivate::audioDeviceStop()
     threadFinished.wakeOne();
 }
 
+void QAudioInputPrivate::audioDeviceActive()
+{
+    QMutexLocker    lock(&mutex);
+    if (stateCode == QAudio::IdleState) {
+        stateCode = QAudio::ActiveState;
+        QMetaObject::invokeMethod(this, "stateChanged",  Qt::QueuedConnection, Q_ARG(QAudio::State, stateCode));
+    }
+}
+
 void QAudioInputPrivate::audioDeviceFull()
 {
     QMutexLocker    lock(&mutex);
     if (stateCode == QAudio::ActiveState) {
-        audioDeviceStop();
-
         errorCode = QAudio::UnderrunError;
         stateCode = QAudio::IdleState;
-        QMetaObject::invokeMethod(this, "deviceStopped", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "stateChanged",  Qt::QueuedConnection, Q_ARG(QAudio::State, stateCode));
     }
 }
 
@@ -998,9 +1049,10 @@ OSStatus QAudioInputPrivate::inputCallback(void* inRefCon,
                                                          inBusNumber,
                                                          inNumberFrames);
 
-        if (framesWritten > 0)
+        if (framesWritten > 0) {
             d->totalFrames += framesWritten;
-        else if (framesWritten == 0)
+            d->audioDeviceActive();
+        } else if (framesWritten == 0)
             d->audioDeviceFull();
         else if (framesWritten < 0)
             d->audioDeviceError();
