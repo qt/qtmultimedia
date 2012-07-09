@@ -239,7 +239,9 @@ public:
     {
         m_maxPeriodSize = maxPeriodSize;
         m_periodTime = m_maxPeriodSize / m_outputFormat.mBytesPerFrame * 1000 / m_outputFormat.mSampleRate;
-        m_buffer = new QAudioRingBuffer(bufferSize + (bufferSize % maxPeriodSize == 0 ? 0 : maxPeriodSize - (bufferSize % maxPeriodSize)));
+
+        m_buffer = new QAudioRingBuffer(bufferSize);
+
         m_inputBufferList = new QAudioBufferList(m_inputFormat);
 
         m_flushTimer = new QTimer(this);
@@ -284,7 +286,7 @@ public:
             const int available = m_buffer->free();
 
             while (err == noErr && !feeder.empty()) {
-                QAudioRingBuffer::Region region = m_buffer->acquireWriteRegion(available);
+                QAudioRingBuffer::Region region = m_buffer->acquireWriteRegion(available - copied);
 
                 if (region.second == 0)
                     break;
@@ -368,7 +370,9 @@ public:
     void startFlushTimer()
     {
         if (m_device != 0) {
-            m_flushTimer->start((m_buffer->size() - (m_maxPeriodSize * 2)) / m_maxPeriodSize * m_periodTime);
+            // We use the period time for the timer, since that's
+            // around the buffer size (pre conversion >.>)
+            m_flushTimer->start(qMax(1, m_periodTime));
         }
     }
 
@@ -669,15 +673,37 @@ bool QAudioInputPrivate::open()
         return false;
     }
 
-    // Allocate buffer
-    periodSizeBytes = numberOfFrames * streamFormat.mBytesPerFrame;
+    AudioValueRange bufferRange;
+    size = sizeof(AudioValueRange);
 
-    if (internalBufferSize < periodSizeBytes * 2)
-        internalBufferSize = periodSizeBytes * 2;
-    else
-        internalBufferSize -= internalBufferSize % streamFormat.mBytesPerFrame;
+    if (AudioUnitGetProperty(audioUnit,
+                             kAudioDevicePropertyBufferFrameSizeRange,
+                             kAudioUnitScope_Global,
+                             0,
+                             &bufferRange,
+                             &size) != noErr) {
+        qWarning() << "QAudioInput: Failed to get audio period size range";
+        return false;
+    }
 
-    audioBuffer = new QtMultimediaInternal::QAudioInputBuffer(internalBufferSize,
+    // See if the requested buffer size is permissible
+    UInt32 frames = qBound((UInt32)bufferRange.mMinimum, internalBufferSize / streamFormat.mBytesPerFrame, (UInt32)bufferRange.mMaximum);
+
+    // Set it back
+    if (AudioUnitSetProperty(audioUnit,
+                             kAudioDevicePropertyBufferFrameSize,
+                             kAudioUnitScope_Global,
+                             0,
+                             &frames,
+                             sizeof(UInt32)) != noErr) {
+        qWarning() << "QAudioInput: Failed to set audio buffer size";
+        return false;
+    }
+
+    // Now allocate a few buffers to be safe.
+    periodSizeBytes = internalBufferSize = frames * streamFormat.mBytesPerFrame;
+
+    audioBuffer = new QtMultimediaInternal::QAudioInputBuffer(internalBufferSize * 4,
                                         periodSizeBytes,
                                         deviceFormat,
                                         streamFormat,
