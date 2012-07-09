@@ -221,7 +221,7 @@ void BbVideoWindowControl::attachDisplay(mmr_context_t *context)
     // Start with an invisible window. If it would be visible right away, it would be at the wrong
     // position, and we can only change the position once we get the window handle.
     const QString videoDeviceUrl =
-            QString("screen:?winid=%1&wingrp=%2&initflags=invisible").arg(m_windowName).arg(groupName);
+            QString("screen:?winid=%1&wingrp=%2&initflags=invisible&nodstviewport=1").arg(m_windowName).arg(groupName);
 
     m_videoId = mmr_output_attach(context, videoDeviceUrl.toLatin1(), "video");
     if (m_videoId == -1) {
