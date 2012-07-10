@@ -513,6 +513,12 @@ qint64 QPulseAudioInput::read(char *data, qint64 len)
 
         if (!m_pullMode && readBytes >= len)
             break;
+
+        if (m_intervalTime && (m_timeStamp.elapsed() + m_elapsedTimeOffset) > m_intervalTime) {
+            emit notify();
+            m_elapsedTimeOffset = m_timeStamp.elapsed() + m_elapsedTimeOffset - m_intervalTime;
+            m_timeStamp.restart();
+        }
     }
 
 #ifdef DEBUG_PULSE
