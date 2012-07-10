@@ -66,7 +66,7 @@ public:
     // Format related
     virtual QAudioFormat format() const = 0;
     virtual qint64 startTime() const = 0;
-    virtual int sampleCount() const = 0;
+    virtual int frameCount() const = 0;
 
     // R/O Data
     virtual void *constData() const = 0;

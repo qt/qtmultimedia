@@ -65,7 +65,7 @@ public:
     QAudioBuffer(QAbstractAudioBuffer *provider);
     QAudioBuffer(const QAudioBuffer &other);
     QAudioBuffer(const QByteArray &data, const QAudioFormat &format, qint64 startTime = -1);
-    QAudioBuffer(int numSamples, const QAudioFormat &format, qint64 startTime = -1); // Initialized to empty
+    QAudioBuffer(int numFrames, const QAudioFormat &format, qint64 startTime = -1); // Initialized to empty
 
     QAudioBuffer& operator=(const QAudioBuffer &other);
 
@@ -75,6 +75,7 @@ public:
 
     QAudioFormat format() const;
 
+    int frameCount() const;
     int sampleCount() const;
     int byteCount() const;
 
@@ -93,23 +94,23 @@ public:
     void *data(); // detaches
 
     // Structures for easier access to stereo data
-    template <typename T> struct StereoSampleDefault { enum { Default = 0 }; };
+    template <typename T> struct StereoFrameDefault { enum { Default = 0 }; };
 
-    template <typename T> struct StereoSample {
+    template <typename T> struct StereoFrame {
 
-        StereoSample()
-            : left(T(StereoSampleDefault<T>::Default))
-            , right(T(StereoSampleDefault<T>::Default))
+        StereoFrame()
+            : left(T(StereoFrameDefault<T>::Default))
+            , right(T(StereoFrameDefault<T>::Default))
         {
         }
 
-        StereoSample(T leftSample, T rightSample)
+        StereoFrame(T leftSample, T rightSample)
             : left(leftSample)
             , right(rightSample)
         {
         }
 
-        StereoSample& operator=(const StereoSample &other)
+        StereoFrame& operator=(const StereoFrame &other)
         {
             // Two straight assigns is probably
             // cheaper than a conditional check on
@@ -123,14 +124,14 @@ public:
         T right;
 
         T average() const {return (left + right) / 2;}
-        void clear() {left = right = T(StereoSampleDefault<T>::Default);}
+        void clear() {left = right = T(StereoFrameDefault<T>::Default);}
     };
 
-    typedef StereoSample<unsigned char> S8U;
-    typedef StereoSample<signed char> S8S;
-    typedef StereoSample<unsigned short> S16U;
-    typedef StereoSample<signed short> S16S;
-    typedef StereoSample<float> S32F;
+    typedef StereoFrame<unsigned char> S8U;
+    typedef StereoFrame<signed char> S8S;
+    typedef StereoFrame<unsigned short> S16U;
+    typedef StereoFrame<signed short> S16S;
+    typedef StereoFrame<float> S32F;
 
     template <typename T> const T* constData() const {
         return static_cast<const T*>(constData());
@@ -145,8 +146,8 @@ private:
     QAudioBufferPrivate *d;
 };
 
-template <> struct QAudioBuffer::StereoSampleDefault<unsigned char> { enum { Default = 128 }; };
-template <> struct QAudioBuffer::StereoSampleDefault<unsigned short> { enum { Default = 32768 }; };
+template <> struct QAudioBuffer::StereoFrameDefault<unsigned char> { enum { Default = 128 }; };
+template <> struct QAudioBuffer::StereoFrameDefault<unsigned short> { enum { Default = 32768 }; };
 
 
 QT_END_NAMESPACE

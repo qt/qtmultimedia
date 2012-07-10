@@ -106,18 +106,18 @@ public:
 // Private class to go in .cpp file
 class QMemoryAudioBufferProvider : public QAbstractAudioBuffer {
 public:
-    QMemoryAudioBufferProvider(const void *data, int sampleCount, const QAudioFormat &format, qint64 startTime)
+    QMemoryAudioBufferProvider(const void *data, int frameCount, const QAudioFormat &format, qint64 startTime)
         : mStartTime(startTime)
-        , mSampleCount(sampleCount)
+        , mFrameCount(frameCount)
         , mFormat(format)
     {
-        int numBytes = (sampleCount * format.sampleSize()) / 8;
+        int numBytes = format.bytesForFrames(frameCount);
         if (numBytes > 0) {
             mBuffer = malloc(numBytes);
             if (!mBuffer) {
                 // OOM, if that's likely
                 mStartTime = -1;
-                mSampleCount = 0;
+                mFrameCount = 0;
                 mFormat = QAudioFormat();
             } else {
                 // Allocated, see if we have data to copy
@@ -149,19 +149,19 @@ public:
     void release() {delete this;}
     QAudioFormat format() const {return mFormat;}
     qint64 startTime() const {return mStartTime;}
-    int sampleCount() const {return mSampleCount;}
+    int frameCount() const {return mFrameCount;}
 
     void *constData() const {return mBuffer;}
 
     void *writableData() {return mBuffer;}
     QAbstractAudioBuffer *clone() const
     {
-        return new QMemoryAudioBufferProvider(mBuffer, mSampleCount, mFormat, mStartTime);
+        return new QMemoryAudioBufferProvider(mBuffer, mFrameCount, mFormat, mStartTime);
     }
 
     void *mBuffer;
     qint64 mStartTime;
-    int mSampleCount;
+    int mFrameCount;
     QAudioFormat mFormat;
 };
 
@@ -176,7 +176,7 @@ QAudioBufferPrivate *QAudioBufferPrivate::clone()
         QAbstractAudioBuffer *abuf = mProvider->clone();
 
         if (!abuf) {
-            abuf = new QMemoryAudioBufferProvider(mProvider->constData(), mProvider->sampleCount(), mProvider->format(), mProvider->startTime());
+            abuf = new QMemoryAudioBufferProvider(mProvider->constData(), mProvider->frameCount(), mProvider->format(), mProvider->startTime());
         }
 
         if (abuf) {
@@ -236,7 +236,7 @@ QAudioBuffer::QAudioBuffer(const QAudioBuffer &other)
     and sizes of the samples are interpreted from the \a data.
 
     If the supplied \a data is not an integer multiple of the
-    calculated sample size, the excess data will not be used.
+    calculated frame size, the excess data will not be used.
 
     This audio buffer will copy the contents of \a data.
 
@@ -247,25 +247,25 @@ QAudioBuffer::QAudioBuffer(const QAudioBuffer &other)
 QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format, qint64 startTime)
 {
     if (format.isValid()) {
-        int sampleCount = (data.size() * 8) / format.sampleSize(); // truncate
-        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(data.constData(), sampleCount, format, startTime));
+        int frameCount = format.framesForBytes(data.size());
+        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(data.constData(), frameCount, format, startTime));
     } else
         d = 0;
 }
 
 /*!
-    Creates a new audio buffer with space for \a numSamples samples of
-    the given \a format.  The samples will be initialized to the default
-    for the format.
+    Creates a new audio buffer with space for \a numFrames frames of
+    the given \a format.  The individual samples will be initialized
+    to the default for the format.
 
     \a startTime (in microseconds) indicates when this buffer
     starts in the stream.
     If this buffer is not part of a stream, set it to -1.
  */
-QAudioBuffer::QAudioBuffer(int numSamples, const QAudioFormat &format, qint64 startTime)
+QAudioBuffer::QAudioBuffer(int numFrames, const QAudioFormat &format, qint64 startTime)
 {
     if (format.isValid())
-        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(0, numSamples, format, startTime));
+        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(0, numFrames, format, startTime));
     else
         d = 0;
 }
@@ -292,13 +292,13 @@ QAudioBuffer::~QAudioBuffer()
 
 /*!
     Returns true if this is a valid buffer.  A valid buffer
-    has more than zero samples in it and a valid format.
+    has more than zero frames in it and a valid format.
  */
 bool QAudioBuffer::isValid() const
 {
     if (!d || !d->mProvider)
         return false;
-    return d->mProvider->format().isValid() && (d->mProvider->sampleCount() > 0);
+    return d->mProvider->format().isValid() && (d->mProvider->frameCount() > 0);
 }
 
 /*!
@@ -306,13 +306,26 @@ bool QAudioBuffer::isValid() const
 
     Several properties of this format influence how
     the \l duration() or \l byteCount() are calculated
-    from the \l sampleCount().
+    from the \l frameCount().
  */
 QAudioFormat QAudioBuffer::format() const
 {
     if (!isValid())
         return QAudioFormat();
     return d->mProvider->format();
+}
+
+/*!
+    Returns the number of complete audio frames in this buffer.
+
+    An audio frame is an interleaved set of one sample per channel
+    for the same instant in time.
+*/
+int QAudioBuffer::frameCount() const
+{
+    if (!isValid())
+        return 0;
+    return d->mProvider->frameCount();
 }
 
 /*!
@@ -323,12 +336,15 @@ QAudioFormat QAudioBuffer::format() const
     that a stereo buffer with 1000 samples in total will
     have 500 left samples and 500 right samples (interleaved),
     and this function will return 1000.
- */
+
+    \sa frameCount()
+*/
 int QAudioBuffer::sampleCount() const
 {
     if (!isValid())
         return 0;
-    return d->mProvider->sampleCount();
+
+    return frameCount() * format().channelCount();
 }
 
 /*!
@@ -337,21 +353,17 @@ int QAudioBuffer::sampleCount() const
 int QAudioBuffer::byteCount() const
 {
     const QAudioFormat f(format());
-    return (f.sampleSize() * sampleCount()) / 8; // sampleSize is in bits
+    return format().bytesForFrames(frameCount());
 }
 
 /*!
     Returns the duration of audio in this buffer, in microseconds.
 
-    This depends on the /l format(), and the \l sampleCount().
+    This depends on the /l format(), and the \l frameCount().
 */
 qint64 QAudioBuffer::duration() const
 {
-    int divisor = format().sampleRate() * format().channelCount();
-    if (divisor > 0)
-        return (sampleCount() * 1000000LL) / divisor;
-    else
-        return 0;
+    return format().durationForFrames(frameCount());
 }
 
 /*!
@@ -471,7 +483,7 @@ void *QAudioBuffer::data()
     }
 
     // Wasn't writable, so turn it into a memory provider
-    QAbstractAudioBuffer *memBuffer = new QMemoryAudioBufferProvider(constData(), sampleCount(), format(), startTime());
+    QAbstractAudioBuffer *memBuffer = new QMemoryAudioBufferProvider(constData(), frameCount(), format(), startTime());
 
     if (memBuffer) {
         d->mProvider->release();
@@ -487,35 +499,35 @@ void *QAudioBuffer::data()
 // Template helper classes worth documenting
 
 /*!
-    \class QAudioBuffer::StereoSampleDefault
+    \class QAudioBuffer::StereoFrameDefault
     \internal
 
     Just a trait class for the default value.
 */
 
 /*!
-    \class QAudioBuffer::StereoSample
-    \brief The StereoSample class provides a simple wrapper for a stereo audio sample.
+    \class QAudioBuffer::StereoFrame
+    \brief The StereoFrame class provides a simple wrapper for a stereo audio frame.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
     This templatized structure lets you treat a block of individual samples as an
-    interleaved stereo stream.  This is most useful when used with the templatized
+    interleaved stereo stream frame.  This is most useful when used with the templatized
     \l {QAudioBuffer::data()}{data()} functions of QAudioBuffer.  Generally the data
     is accessed as a pointer, so no copying should occur.
 
     There are some predefined instantiations of this template for working with common
     stereo sample depths in a convenient way.
 
-    This structure has \e left and \e right members for accessing individual channel data.
+    This frame structure has \e left and \e right members for accessing individual channel data.
 
     For example:
     \code
     // Assuming 'buffer' is an unsigned 16 bit stereo buffer..
-    QAudioBuffer::S16U *sample = buffer->data<QAudioBuffer::S16U>();
-    for (int i=0; i < buffer->sampleCount() / 2; i++) {
-        qSwap(sample[i].left, sample[i].right);
+    QAudioBuffer::S16U *frames = buffer->data<QAudioBuffer::S16U>();
+    for (int i=0; i < buffer->frameCount(); i++) {
+        qSwap(frames[i].left, frames[i].right);
     }
     \endcode
 
@@ -523,77 +535,77 @@ void *QAudioBuffer::data()
 */
 
 /*!
-    \fn QAudioBuffer::StereoSample::StereoSample()
+    \fn QAudioBuffer::StereoFrame::StereoFrame()
 
-    Constructs a new sample with the "silent" value for this
+    Constructs a new frame with the "silent" value for this
     sample format (0 for signed formats and floats, 0x8* for unsigned formats).
 */
 
 /*!
-    \fn QAudioBuffer::StereoSample::StereoSample(T leftSample, T rightSample)
+    \fn QAudioBuffer::StereoFrame::StereoFrame(T leftSample, T rightSample)
 
-    Constructs a new sample with the supplied \a leftSample and \a rightSample values.
+    Constructs a new frame with the supplied \a leftSample and \a rightSample values.
 */
 
 /*!
-    \fn QAudioBuffer::StereoSample::operator=(const StereoSample &other)
+    \fn QAudioBuffer::StereoFrame::operator=(const StereoFrame &other)
 
-    Assigns \a other to this sample.
+    Assigns \a other to this frame.
  */
 
 
 /*!
-    \fn QAudioBuffer::StereoSample::average() const
+    \fn QAudioBuffer::StereoFrame::average() const
 
     Returns the arithmetic average of the left and right samples.
  */
 
-/*! \fn QAudioBuffer::StereoSample::clear()
+/*! \fn QAudioBuffer::StereoFrame::clear()
 
-    Sets the values of this sample to the "silent" value.
+    Sets the values of this frame to the "silent" value.
 */
 
 /*!
-    \variable QAudioBuffer::StereoSample::left
+    \variable QAudioBuffer::StereoFrame::left
     \brief the left sample
 */
 
 /*!
-    \variable QAudioBuffer::StereoSample::right
+    \variable QAudioBuffer::StereoFrame::right
     \brief the right sample
 */
 
 /*!
     \typedef QAudioBuffer::S8U
-    \relates QAudioBuffer::StereoSample
+    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for an unsigned stereo 8 bit sample.  Each
     channel is an \e {unsigned char}.
 */
 /*!
     \typedef QAudioBuffer::S8S
-    \relates QAudioBuffer::StereoSample
+    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for a signed stereo 8 bit sample.  Each
     channel is a \e {signed char}.
 */
 /*!
     \typedef QAudioBuffer::S16U
-    \relates QAudioBuffer::StereoSample
+    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for an unsigned stereo 16 bit sample.  Each
     channel is an \e {unsigned short}.
 */
 /*!
     \typedef QAudioBuffer::S16S
-    \relates QAudioBuffer::StereoSample
+    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for a signed stereo 16 bit sample.  Each
     channel is a \e {signed short}.
 */
 /*!
     \typedef QAudioBuffer::S32F
-    \relates QAudioBuffer::StereoSample
+    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for an 32 bit float sample.  Each
     channel is a \e float.

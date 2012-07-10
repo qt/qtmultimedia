@@ -67,6 +67,9 @@ private slots:
     void checkSampleRate();
     void checkChannelCount();
 
+    void checkSizes();
+    void checkSizes_data();
+
     void debugOperator();
     void debugOperator_data();
 };
@@ -220,6 +223,97 @@ void tst_QAudioFormat::checkChannelCount()
     audioFormat.setChannelCount(5);
     QVERIFY(audioFormat.channelCount() == 5);
     QVERIFY(audioFormat.channelCount() == 5);
+}
+
+void tst_QAudioFormat::checkSizes()
+{
+    QFETCH(QAudioFormat, format);
+    QFETCH(int, frameSize);
+    QFETCH(int, byteCount);
+    QFETCH(int, frameCount);
+    QFETCH(qint64, durationForByte);
+    QFETCH(int, byteForFrame);
+    QFETCH(qint64, durationForByteForDuration);
+    QFETCH(int, byteForDuration);
+    QFETCH(int, framesForDuration);
+
+    QCOMPARE(format.bytesPerFrame(), frameSize);
+
+    // Byte input
+    QCOMPARE(format.framesForBytes(byteCount), frameCount);
+    QCOMPARE(format.durationForBytes(byteCount), durationForByte);
+
+    // Framecount input
+    QCOMPARE(format.bytesForFrames(frameCount), byteForFrame);
+    QCOMPARE(format.durationForFrames(frameCount), durationForByte);
+
+    // Duration input
+    QCOMPARE(format.bytesForDuration(durationForByteForDuration), byteForDuration);
+    QCOMPARE(format.framesForDuration(durationForByte), frameCount);
+    QCOMPARE(format.framesForDuration(durationForByteForDuration), framesForDuration);
+}
+
+void tst_QAudioFormat::checkSizes_data()
+{
+    QTest::addColumn<QAudioFormat>("format");
+    QTest::addColumn<int>("frameSize");
+    QTest::addColumn<int>("byteCount");
+    QTest::addColumn<qint64>("durationForByte");
+    QTest::addColumn<int>("frameCount"); // output of sampleCountforByte, input for byteForFrame
+    QTest::addColumn<int>("byteForFrame");
+    QTest::addColumn<qint64>("durationForByteForDuration"); // input for byteForDuration
+    QTest::addColumn<int>("byteForDuration");
+    QTest::addColumn<int>("framesForDuration");
+
+    QAudioFormat f;
+    QTest::newRow("invalid") << f << 0 << 0 << 0LL << 0 << 0 << 0LL << 0 << 0;
+
+    f.setByteOrder(QAudioFormat::LittleEndian);
+    f.setChannelCount(1);
+    f.setSampleRate(8000);
+    f.setCodec("audio/pcm");
+    f.setSampleSize(8);
+    f.setSampleType(QAudioFormat::SignedInt);
+
+    qint64 qrtr = 250000LL;
+    qint64 half = 500000LL;
+    qint64 one = 1000000LL;
+    qint64 two = 2000000LL;
+
+    // No rounding errors with mono 8 bit
+    QTest::newRow("1ch_8b_8k_signed_4000") << f << 1 << 4000 << half << 4000 << 4000 << half << 4000 << 4000;
+    QTest::newRow("1ch_8b_8k_signed_8000") << f << 1 << 8000 << one << 8000 << 8000 << one << 8000 << 8000;
+    QTest::newRow("1ch_8b_8k_signed_16000") << f << 1 << 16000 << two << 16000 << 16000 << two << 16000 << 16000;
+
+    // Mono 16bit
+    f.setSampleSize(16);
+    QTest::newRow("1ch_16b_8k_signed_8000") << f << 2 << 8000 << half << 4000 << 8000 << half << 8000 << 4000;
+    QTest::newRow("1ch_16b_8k_signed_16000") << f << 2 << 16000 << one << 8000 << 16000 << one << 16000 << 8000;
+
+    // Rounding errors
+    QTest::newRow("1ch_16b_8k_signed_8001") << f << 2 << 8001 << half << 4000 << 8000 << half << 8000 << 4000;
+    QTest::newRow("1ch_16b_8k_signed_8000_duration1") << f << 2 << 8000 << half << 4000 << 8000 << half + 1 << 8000 << 4000;
+    QTest::newRow("1ch_16b_8k_signed_8000_duration2") << f << 2 << 8000 << half << 4000 << 8000 << half + 124 << 8000 << 4000;
+    QTest::newRow("1ch_16b_8k_signed_8000_duration3") << f << 2 << 8000 << half << 4000 << 8000 << half + 125 << 8002 << 4001;
+    QTest::newRow("1ch_16b_8k_signed_8000_duration4") << f << 2 << 8000 << half << 4000 << 8000 << half + 126 << 8002 << 4001;
+
+    // Stereo 16 bit
+    f.setChannelCount(2);
+    QTest::newRow("2ch_16b_8k_signed_8000") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr << 8000 << 2000;
+    QTest::newRow("2ch_16b_8k_signed_16000") << f << 4 << 16000 << half << 4000 << 16000 << half << 16000 << 4000;
+
+    // More rounding errors
+    // First rounding bytes
+    QTest::newRow("2ch_16b_8k_signed_8001") << f << 4 << 8001 << qrtr << 2000 << 8000 << qrtr << 8000 << 2000;
+    QTest::newRow("2ch_16b_8k_signed_8002") << f << 4 << 8002 << qrtr << 2000 << 8000 << qrtr << 8000 << 2000;
+    QTest::newRow("2ch_16b_8k_signed_8003") << f << 4 << 8003 << qrtr << 2000 << 8000 << qrtr << 8000 << 2000;
+
+    // Then rounding duration
+    // 8khz = 125us per frame
+    QTest::newRow("2ch_16b_8k_signed_8000_duration1") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr + 1 << 8000 << 2000;
+    QTest::newRow("2ch_16b_8k_signed_8000_duration2") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr + 124 << 8000 << 2000;
+    QTest::newRow("2ch_16b_8k_signed_8000_duration3") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr + 125 << 8004 << 2001;
+    QTest::newRow("2ch_16b_8k_signed_8000_duration4") << f << 4 << 8000 << qrtr << 2000 << 8000 << qrtr + 126 << 8004 << 2001;
 }
 
 void tst_QAudioFormat::debugOperator_data()

@@ -146,7 +146,8 @@ public:
 
     This class is typically used in conjunction with QAudioInput or
     QAudioOutput to allow you to specify the parameters of the audio
-    stream being read or written.
+    stream being read or written, or with QAudioBuffer when dealing with
+    samples in memory.
 
     You can obtain audio formats compatible with the audio device used
     through functions in QAudioDeviceInfo. This class also lets you
@@ -154,6 +155,11 @@ public:
     the parameters yourself. See the \l QAudioDeviceInfo class
     description for details. You need to know the format of the audio
     streams you wish to play or record.
+
+    In the common case of interleaved linear PCM data, the codec will
+    be "audio/pcm", and the samples for all channels will be interleaved.
+    One sample for each channel for the same instant in time is referred
+    to as a frame in QtMultimedia (and other places).
 */
 
 /*!
@@ -282,6 +288,8 @@ void QAudioFormat::setSampleSize(int sampleSize)
 
 /*!
     Returns the current sample size value, in bits.
+
+    \sa bytesPerFrame()
 */
 int QAudioFormat::sampleSize() const
 {
@@ -342,6 +350,108 @@ void QAudioFormat::setSampleType(QAudioFormat::SampleType sampleType)
 QAudioFormat::SampleType QAudioFormat::sampleType() const
 {
     return d->sampleType;
+}
+
+/*!
+    Returns the number of bytes required for this audio format for \a duration microseconds.
+
+    Returns 0 if this format is not valid.
+
+    Note that some rounding may occur if \a duration is not an exact fraction of the
+    sampleRate().
+
+    \sa durationForBytes()
+ */
+qint32 QAudioFormat::bytesForDuration(qint64 duration) const
+{
+    return bytesPerFrame() * framesForDuration(duration);
+}
+
+/*!
+    Returns the number of microseconds represented by \a bytes in this format.
+
+    Returns 0 if this format is not valid.
+
+    Note that some rounding may occur if \a bytes is not an exact multiple
+    of the number of bytes per frame.
+
+    \sa bytesForDuration()
+*/
+qint64 QAudioFormat::durationForBytes(qint32 bytes) const
+{
+    if (!isValid() || bytes <= 0)
+        return 0;
+
+    // We round the byte count to ensure whole frames
+    return qint64(1000000LL * (bytes / bytesPerFrame())) / sampleRate();
+}
+
+/*!
+    Returns the number of bytes required for \a frameCount frames of this format.
+
+    Returns 0 if this format is not valid.
+
+    \sa bytesForDuration()
+*/
+qint32 QAudioFormat::bytesForFrames(qint32 frameCount) const
+{
+    return frameCount * bytesPerFrame();
+}
+
+/*!
+    Returns the number of frames represented by \a byteCount in this format.
+
+    Note that some rounding may occur if \a byteCount is not an exact multiple
+    of the number of bytes per frame.
+
+    Each frame has one sample per channel.
+
+    \sa framesForDuration()
+*/
+qint32 QAudioFormat::framesForBytes(qint32 byteCount) const
+{
+    int size = bytesPerFrame();
+    if (size > 0)
+        return byteCount / size;
+    return 0;
+}
+
+/*!
+    Returns the number of frames required to represent \a duration microseconds in this format.
+
+    Note that some rounding may occur if \a duration is not an exact fraction of the
+    \l sampleRate().
+*/
+qint32 QAudioFormat::framesForDuration(qint64 duration) const
+{
+    if (!isValid())
+        return 0;
+
+    return qint32((duration * sampleRate()) / 1000000LL);
+}
+
+/*!
+    Return the number of microseconds represented by \a frameCount frames in this format.
+*/
+qint64 QAudioFormat::durationForFrames(qint32 frameCount) const
+{
+    if (!isValid() || frameCount <= 0)
+        return 0;
+
+    return (frameCount * 1000000LL) / sampleRate();
+}
+
+/*!
+    Returns the number of bytes required to represent one frame (a sample in each channel) in this format.
+
+    Returns 0 if this format is invalid.
+*/
+int QAudioFormat::bytesPerFrame() const
+{
+    if (!isValid())
+        return 0;
+
+    return (sampleSize() * channelCount()) / 8;
 }
 
 /*!
