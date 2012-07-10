@@ -71,9 +71,9 @@ public:
         , mPosition(-1)
         , mSerial(0)
     {
-        mFormat.setChannels(1);
+        mFormat.setChannelCount(1);
         mFormat.setSampleSize(8);
-        mFormat.setFrequency(1000);
+        mFormat.setSampleRate(1000);
         mFormat.setCodec("audio/x-raw");
         mFormat.setSampleType(QAudioFormat::UnSignedInt);
     }
@@ -184,7 +184,7 @@ public:
 
     qint64 duration() const
     {
-        return (sizeof(mSerial) * MOCK_DECODER_MAX_BUFFERS * qint64(1000)) / (mFormat.sampleRate() * mFormat.channels());
+        return (sizeof(mSerial) * MOCK_DECODER_MAX_BUFFERS * qint64(1000)) / (mFormat.sampleRate() * mFormat.channelCount());
     }
 
 private slots:
@@ -198,7 +198,7 @@ private slots:
         if (mBuffers.length() < 3) {
             QByteArray b(sizeof(mSerial), 0);
             memcpy(b.data(), &mSerial, sizeof(mSerial));
-            qint64 position = (sizeof(mSerial) * mSerial * qint64(1000000)) / (mFormat.sampleRate() * mFormat.channels());
+            qint64 position = (sizeof(mSerial) * mSerial * qint64(1000000)) / (mFormat.sampleRate() * mFormat.channelCount());
             mSerial++;
             mBuffers.push_back(QAudioBuffer(b, mFormat, position));
             emit bufferReady();

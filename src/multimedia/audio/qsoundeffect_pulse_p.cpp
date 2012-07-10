@@ -76,8 +76,8 @@ inline pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format)
 {
     pa_sample_spec  spec;
 
-    spec.rate = format.frequency();
-    spec.channels = format.channels();
+    spec.rate = format.sampleRate();
+    spec.channels = format.channelCount();
 
     if (format.sampleSize() == 8)
         spec.format = PA_SAMPLE_U8;

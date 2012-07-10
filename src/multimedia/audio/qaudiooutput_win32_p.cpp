@@ -280,12 +280,12 @@ bool QAudioOutputPrivate::open()
     } else if (settings.sampleSize() <= 0) {
         qWarning("QAudioOutput: open error, invalid sample size (%d).",
                  settings.sampleSize());
-    } else if (settings.frequency() < 8000 || settings.frequency() > 96000) {
-        qWarning("QAudioOutput: open error, frequency out of range (%d).", settings.frequency());
+    } else if (settings.sampleRate() < 8000 || settings.sampleRate() > 96000) {
+        qWarning("QAudioOutput: open error, sample rate out of range (%d).", settings.sampleRate());
     } else if (buffer_size == 0) {
         // Default buffer size, 200ms, default period size is 40ms
         buffer_size
-                = (settings.frequency()
+                = (settings.sampleRate()
                 * settings.channelCount()
                 * settings.sampleSize()
                 + 39) / 40;
@@ -315,14 +315,14 @@ bool QAudioOutputPrivate::open()
     timeStamp.restart();
     elapsedTimeOffset = 0;
 
-    wfx.nSamplesPerSec = settings.frequency();
+    wfx.nSamplesPerSec = settings.sampleRate();
     wfx.wBitsPerSample = settings.sampleSize();
-    wfx.nChannels = settings.channels();
+    wfx.nChannels = settings.channelCount();
     wfx.cbSize = 0;
 
     bool surround = false;
 
-    if (settings.channels() > 2)
+    if (settings.channelCount() > 2)
         surround = true;
 
     wfx.wFormatTag = WAVE_FORMAT_PCM;
@@ -347,9 +347,9 @@ bool QAudioOutputPrivate::open()
     } else {
         WAVEFORMATEXTENSIBLE wfex;
         wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-        wfex.Format.nChannels = settings.channels();
+        wfex.Format.nChannels = settings.channelCount();
         wfex.Format.wBitsPerSample = settings.sampleSize();
-        wfex.Format.nSamplesPerSec = settings.frequency();
+        wfex.Format.nSamplesPerSec = settings.sampleRate();
         wfex.Format.nBlockAlign = wfex.Format.nChannels*wfex.Format.wBitsPerSample/8;
         wfex.Format.nAvgBytesPerSec=wfex.Format.nSamplesPerSec*wfex.Format.nBlockAlign;
         wfex.Samples.wValidBitsPerSample=wfex.Format.wBitsPerSample;
@@ -359,11 +359,11 @@ bool QAudioOutputPrivate::open()
         wfex.Format.cbSize=22;
 
         wfex.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-        if (settings.channels() >= 4)
+        if (settings.channelCount() >= 4)
             wfex.dwChannelMask |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
-        if (settings.channels() >= 6)
+        if (settings.channelCount() >= 6)
             wfex.dwChannelMask |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
-        if (settings.channels() == 8)
+        if (settings.channelCount() == 8)
             wfex.dwChannelMask |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
 
         if (waveOutOpen(&hWaveOut, UINT_PTR(deviceId), &wfex.Format,
@@ -401,8 +401,8 @@ void QAudioOutputPrivate::close()
 
     deviceState = QAudio::StoppedState;
     errorState = QAudio::NoError;
-    int delay = (buffer_size-bytesFree())*1000/(settings.frequency()
-                  *settings.channels()*(settings.sampleSize()/8));
+    int delay = (buffer_size-bytesFree())*1000/(settings.sampleRate()
+                  *settings.channelCount()*(settings.sampleSize()/8));
     waveOutReset(hWaveOut);
     Sleep(delay+10);
 
@@ -452,8 +452,8 @@ qint64 QAudioOutputPrivate::processedUSecs() const
     if (deviceState == QAudio::StoppedState)
         return 0;
     qint64 result = qint64(1000000) * totalTimeValue /
-        (settings.channels()*(settings.sampleSize()/8)) /
-        settings.frequency();
+        (settings.channelCount()*(settings.sampleSize()/8)) /
+        settings.sampleRate();
 
     return result;
 }
@@ -553,8 +553,8 @@ void QAudioOutputPrivate::resume()
 void QAudioOutputPrivate::suspend()
 {
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState) {
-        int delay = (buffer_size-bytesFree())*1000/(settings.frequency()
-                *settings.channels()*(settings.sampleSize()/8));
+        int delay = (buffer_size-bytesFree())*1000/(settings.sampleRate()
+                *settings.channelCount()*(settings.sampleSize()/8));
         waveOutPause(hWaveOut);
         Sleep(delay+10);
         deviceState = QAudio::SuspendedState;

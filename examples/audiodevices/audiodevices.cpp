@@ -96,7 +96,7 @@ AudioTest::AudioTest(QWidget *parent, Qt::WFlags f)
     connect(testButton, SIGNAL(clicked()), SLOT(test()));
     connect(modeBox, SIGNAL(activated(int)), SLOT(modeChanged(int)));
     connect(deviceBox, SIGNAL(activated(int)), SLOT(deviceChanged(int)));
-    connect(frequencyBox, SIGNAL(activated(int)), SLOT(freqChanged(int)));
+    connect(sampleRateBox, SIGNAL(activated(int)), SLOT(sampleRateChanged(int)));
     connect(channelsBox, SIGNAL(activated(int)), SLOT(channelChanged(int)));
     connect(codecsBox, SIGNAL(activated(int)), SLOT(codecChanged(int)));
     connect(sampleSizesBox, SIGNAL(activated(int)), SLOT(sampleSizeChanged(int)));
@@ -122,7 +122,7 @@ void AudioTest::test()
     if (!deviceInfo.isNull()) {
         if (deviceInfo.isFormatSupported(settings)) {
             testResult->setText(tr("Success"));
-            nearestFreq->setText("");
+            nearestSampleRate->setText("");
             nearestChannel->setText("");
             nearestCodec->setText("");
             nearestSampleSize->setText("");
@@ -131,8 +131,8 @@ void AudioTest::test()
         } else {
             QAudioFormat nearest = deviceInfo.nearestFormat(settings);
             testResult->setText(tr("Failed"));
-            nearestFreq->setText(QString("%1").arg(nearest.frequency()));
-            nearestChannel->setText(QString("%1").arg(nearest.channels()));
+            nearestSampleRate->setText(QString("%1").arg(nearest.sampleRate()));
+            nearestChannel->setText(QString("%1").arg(nearest.channelCount()));
             nearestCodec->setText(nearest.codec());
             nearestSampleSize->setText(QString("%1").arg(nearest.sampleSize()));
             nearestSampleType->setText(toString(nearest.sampleType()));
@@ -171,19 +171,19 @@ void AudioTest::deviceChanged(int idx)
     // device has changed
     deviceInfo = deviceBox->itemData(idx).value<QAudioDeviceInfo>();
 
-    frequencyBox->clear();
-    QList<int> freqz = deviceInfo.supportedFrequencies();
-    for(int i = 0; i < freqz.size(); ++i)
-        frequencyBox->addItem(QString("%1").arg(freqz.at(i)));
-    if(freqz.size())
-        settings.setFrequency(freqz.at(0));
+    sampleRateBox->clear();
+    QList<int> sampleRatez = deviceInfo.supportedSampleRates();
+    for (int i = 0; i < sampleRatez.size(); ++i)
+        sampleRateBox->addItem(QString("%1").arg(sampleRatez.at(i)));
+    if (sampleRatez.size())
+        settings.setSampleRate(sampleRatez.at(0));
 
     channelsBox->clear();
-    QList<int> chz = deviceInfo.supportedChannels();
-    for(int i = 0; i < chz.size(); ++i)
+    QList<int> chz = deviceInfo.supportedChannelCounts();
+    for (int i = 0; i < chz.size(); ++i)
         channelsBox->addItem(QString("%1").arg(chz.at(i)));
-    if(chz.size())
-        settings.setChannels(chz.at(0));
+    if (chz.size())
+        settings.setChannelCount(chz.at(0));
 
     codecsBox->clear();
     QStringList codecz = deviceInfo.supportedCodecs();
@@ -226,10 +226,10 @@ void AudioTest::populateTable()
     QAudioFormat format;
     foreach (QString codec, deviceInfo.supportedCodecs()) {
         format.setCodec(codec);
-        foreach (int frequency, deviceInfo.supportedFrequencies()) {
-            format.setFrequency(frequency);
-            foreach (int channels, deviceInfo.supportedChannels()) {
-                format.setChannels(channels);
+        foreach (int sampleRate, deviceInfo.supportedSampleRates()) {
+            format.setSampleRate(sampleRate);
+            foreach (int channels, deviceInfo.supportedChannelCounts()) {
+                format.setChannelCount(channels);
                 foreach (QAudioFormat::SampleType sampleType, deviceInfo.supportedSampleTypes()) {
                     format.setSampleType(sampleType);
                     foreach (int sampleSize, deviceInfo.supportedSampleSizes()) {
@@ -242,10 +242,10 @@ void AudioTest::populateTable()
                                 QTableWidgetItem *codecItem = new QTableWidgetItem(format.codec());
                                 allFormatsTable->setItem(row, 0, codecItem);
 
-                                QTableWidgetItem *frequencyItem = new QTableWidgetItem(QString("%1").arg(format.frequency()));
-                                allFormatsTable->setItem(row, 1, frequencyItem);
+                                QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1").arg(format.sampleRate()));
+                                allFormatsTable->setItem(row, 1, sampleRateItem);
 
-                                QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1").arg(format.channels()));
+                                QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1").arg(format.channelCount()));
                                 allFormatsTable->setItem(row, 2, channelsItem);
 
                                 QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(format.sampleType()));
@@ -267,15 +267,15 @@ void AudioTest::populateTable()
     }
 }
 
-void AudioTest::freqChanged(int idx)
+void AudioTest::sampleRateChanged(int idx)
 {
-    // freq has changed
-    settings.setFrequency(frequencyBox->itemText(idx).toInt());
+    // sample rate has changed
+    settings.setSampleRate(sampleRateBox->itemText(idx).toInt());
 }
 
 void AudioTest::channelChanged(int idx)
 {
-    settings.setChannels(channelsBox->itemText(idx).toInt());
+    settings.setChannelCount(channelsBox->itemText(idx).toInt());
 }
 
 void AudioTest::codecChanged(int idx)

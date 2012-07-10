@@ -49,8 +49,8 @@ pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format)
 {
     pa_sample_spec  spec;
 
-    spec.rate = format.frequency();
-    spec.channels = format.channels();
+    spec.rate = format.sampleRate();
+    spec.channels = format.channelCount();
 
     if (format.sampleSize() == 8) {
         spec.format = PA_SAMPLE_U8;
@@ -139,7 +139,7 @@ QString stateToQString(pa_context_state_t state)
 QAudioFormat sampleSpecToAudioFormat(pa_sample_spec spec)
 {
     QAudioFormat format;
-    format.setFrequency(spec.rate);
+    format.setSampleRate(spec.rate);
     format.setChannelCount(spec.channels);
     format.setCodec("audio/pcm");
 

@@ -152,10 +152,10 @@ bool WaveFileWriter::writeHeader(const QAudioFormat& format)
     memcpy(header.wave.descriptor.id, "fmt ", 4);
     header.wave.descriptor.size = quint32(16);
     header.wave.audioFormat = quint16(1);
-    header.wave.numChannels = quint16(format.channels());
+    header.wave.numChannels = quint16(format.channelCount());
     header.wave.sampleRate = quint32(format.sampleRate());
-    header.wave.byteRate = quint32(format.sampleRate() * format.channels() * format.sampleSize() / 8);
-    header.wave.blockAlign = quint16(format.channels() * format.sampleSize() / 8);
+    header.wave.byteRate = quint32(format.sampleRate() * format.channelCount() * format.sampleSize() / 8);
+    header.wave.blockAlign = quint16(format.channelCount() * format.sampleSize() / 8);
     header.wave.bitsPerSample = quint16(format.sampleSize());
 
     // DATA header

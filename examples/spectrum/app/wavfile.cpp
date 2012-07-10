@@ -137,9 +137,9 @@ bool WavFile::readHeader()
                 m_fileFormat.setByteOrder(QAudioFormat::BigEndian);
 
             int bps = qFromLittleEndian<quint16>(header.wave.bitsPerSample);
-            m_fileFormat.setChannels(qFromLittleEndian<quint16>(header.wave.numChannels));
+            m_fileFormat.setChannelCount(qFromLittleEndian<quint16>(header.wave.numChannels));
             m_fileFormat.setCodec("audio/pcm");
-            m_fileFormat.setFrequency(qFromLittleEndian<quint32>(header.wave.sampleRate));
+            m_fileFormat.setSampleRate(qFromLittleEndian<quint32>(header.wave.sampleRate));
             m_fileFormat.setSampleSize(qFromLittleEndian<quint16>(header.wave.bitsPerSample));
             m_fileFormat.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
         } else {

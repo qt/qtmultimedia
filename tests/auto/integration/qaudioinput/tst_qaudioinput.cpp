@@ -128,11 +128,11 @@ QString tst_QAudioInput::formatToFileName(const QAudioFormat &format)
         ?   QString("signed") : QString("unsigned");
 
     return QString("%1_%2_%3_%4_%5")
-        .arg(format.frequency())
+        .arg(format.sampleRate())
         .arg(format.sampleSize())
         .arg(formatSigned)
         .arg(formatEndian)
-        .arg(format.channels());
+        .arg(format.channelCount());
 }
 
 void tst_QAudioInput::initTestCase()
@@ -157,37 +157,37 @@ void tst_QAudioInput::initTestCase()
         testFormats.append(audioDevice.preferredFormat());
 
     // PCM 8000  mono S8
-    format.setFrequency(8000);
+    format.setSampleRate(8000);
     format.setSampleSize(8);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setChannels(1);
+    format.setChannelCount(1);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 11025 mono S16LE
-    format.setFrequency(11025);
+    format.setSampleRate(11025);
     format.setSampleSize(16);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 22050 mono S16LE
-    format.setFrequency(22050);
+    format.setSampleRate(22050);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 22050 stereo S16LE
-    format.setChannels(2);
+    format.setChannelCount(2);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 44100 stereo S16LE
-    format.setFrequency(44100);
+    format.setSampleRate(44100);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 48000 stereo S16LE
-    format.setFrequency(48000);
+    format.setSampleRate(48000);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
@@ -217,10 +217,10 @@ void tst_QAudioInput::format()
     QAudioFormat requested = audioDevice.preferredFormat();
     QAudioFormat actual    = audioInput.format();
 
-    QVERIFY2((requested.channels() == actual.channels()),
-            QString("channels: requested=%1, actual=%2").arg(requested.channels()).arg(actual.channels()).toLocal8Bit().constData());
-    QVERIFY2((requested.frequency() == actual.frequency()),
-            QString("frequency: requested=%1, actual=%2").arg(requested.frequency()).arg(actual.frequency()).toLocal8Bit().constData());
+    QVERIFY2((requested.channelCount() == actual.channelCount()),
+            QString("channels: requested=%1, actual=%2").arg(requested.channelCount()).arg(actual.channelCount()).toLocal8Bit().constData());
+    QVERIFY2((requested.sampleRate() == actual.sampleRate()),
+            QString("sampleRate: requested=%1, actual=%2").arg(requested.sampleRate()).arg(actual.sampleRate()).toLocal8Bit().constData());
     QVERIFY2((requested.sampleSize() == actual.sampleSize()),
             QString("sampleSize: requested=%1, actual=%2").arg(requested.sampleSize()).arg(actual.sampleSize()).toLocal8Bit().constData());
     QVERIFY2((requested.codec() == actual.codec()),
@@ -620,7 +620,7 @@ void tst_QAudioInput::push()
         qint64 totalBytesRead = 0;
         bool firstBuffer = true;
         QByteArray buffer(AUDIO_BUFFER, 0);
-        qint64 len = (testFormats.at(i).frequency()*testFormats.at(i).channels()*(testFormats.at(i).sampleSize()/8)*2); // 2 seconds
+        qint64 len = (testFormats.at(i).sampleRate()*testFormats.at(i).channelCount()*(testFormats.at(i).sampleSize()/8)*2); // 2 seconds
         while (totalBytesRead < len) {
             if (audioInput.bytesReady() >= audioInput.periodSize()) {
                 qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
@@ -703,7 +703,7 @@ void tst_QAudioInput::pushSuspendResume()
         qint64 totalBytesRead = 0;
         bool firstBuffer = true;
         QByteArray buffer(AUDIO_BUFFER, 0);
-        qint64 len = (testFormats.at(i).frequency()*testFormats.at(i).channels()*(testFormats.at(i).sampleSize()/8)); // 1 seconds
+        qint64 len = (testFormats.at(i).sampleRate()*testFormats.at(i).channelCount()*(testFormats.at(i).sampleSize()/8)); // 1 seconds
         while (totalBytesRead < len) {
             if (audioInput.bytesReady() >= audioInput.periodSize()) {
                 qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());

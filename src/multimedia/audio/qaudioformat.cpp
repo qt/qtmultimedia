@@ -64,7 +64,7 @@ class QAudioFormatPrivate : public QSharedData
 public:
     QAudioFormatPrivate()
     {
-        frequency = -1;
+        sampleRate = -1;
         channels = -1;
         sampleSize = -1;
         byteOrder = QAudioFormat::Endian(QSysInfo::ByteOrder);
@@ -76,7 +76,7 @@ public:
         codec(other.codec),
         byteOrder(other.byteOrder),
         sampleType(other.sampleType),
-        frequency(other.frequency),
+        sampleRate(other.sampleRate),
         channels(other.channels),
         sampleSize(other.sampleSize)
     {
@@ -87,7 +87,7 @@ public:
         codec = other.codec;
         byteOrder = other.byteOrder;
         sampleType = other.sampleType;
-        frequency = other.frequency;
+        sampleRate = other.sampleRate;
         channels = other.channels;
         sampleSize = other.sampleSize;
 
@@ -97,7 +97,7 @@ public:
     QString codec;
     QAudioFormat::Endian byteOrder;
     QAudioFormat::SampleType sampleType;
-    int frequency;
+    int sampleRate;
     int channels;
     int sampleSize;
 };
@@ -206,7 +206,7 @@ QAudioFormat& QAudioFormat::operator=(const QAudioFormat &other)
 */
 bool QAudioFormat::operator==(const QAudioFormat &other) const
 {
-    return d->frequency == other.d->frequency &&
+    return d->sampleRate == other.d->sampleRate &&
             d->channels == other.d->channels &&
             d->sampleSize == other.d->sampleSize &&
             d->byteOrder == other.d->byteOrder &&
@@ -230,7 +230,7 @@ bool QAudioFormat::operator!=(const QAudioFormat& other) const
 */
 bool QAudioFormat::isValid() const
 {
-    return d->frequency != -1 && d->channels != -1 && d->sampleSize != -1 &&
+    return d->sampleRate != -1 && d->channels != -1 && d->sampleSize != -1 &&
             d->sampleType != QAudioFormat::Unknown && !d->codec.isEmpty();
 }
 
@@ -240,17 +240,7 @@ bool QAudioFormat::isValid() const
 */
 void QAudioFormat::setSampleRate(int samplerate)
 {
-    d->frequency = samplerate;
-}
-
-/*!
-   \obsolete
-
-   Use setSampleRate() instead.
-*/
-void QAudioFormat::setFrequency(int frequency)
-{
-    d->frequency = frequency;
+    d->sampleRate = samplerate;
 }
 
 /*!
@@ -259,17 +249,7 @@ void QAudioFormat::setFrequency(int frequency)
 */
 int QAudioFormat::sampleRate() const
 {
-    return d->frequency;
-}
-
-/*!
-   \obsolete
-
-   Use sampleRate() instead.
-*/
-int QAudioFormat::frequency() const
-{
-    return d->frequency;
+    return d->sampleRate;
 }
 
 /*!
@@ -282,30 +262,10 @@ void QAudioFormat::setChannelCount(int channels)
 }
 
 /*!
-   \obsolete
-
-   Use setChannelCount() instead.
-*/
-void QAudioFormat::setChannels(int channels)
-{
-    d->channels = channels;
-}
-
-/*!
     Returns the current channel count value.
 
 */
 int QAudioFormat::channelCount() const
-{
-    return d->channels;
-}
-
-/*!
-    \obsolete
-
-    Use channelCount() instead.
-*/
-int QAudioFormat::channels() const
 {
     return d->channels;
 }

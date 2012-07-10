@@ -183,9 +183,9 @@ void tst_QAudioDecoderBackend::fileTest()
 
     // change output audio format
     QAudioFormat format;
-    format.setChannels(2);
+    format.setChannelCount(2);
     format.setSampleSize(8);
-    format.setFrequency(11050);
+    format.setSampleRate(11050);
     format.setCodec("audio/pcm");
     format.setSampleType(QAudioFormat::SignedInt);
 
@@ -509,9 +509,9 @@ void tst_QAudioDecoderBackend::deviceTest()
 
     // Now try changing formats
     QAudioFormat format;
-    format.setChannels(2);
+    format.setChannelCount(2);
     format.setSampleSize(8);
-    format.setFrequency(8000);
+    format.setSampleRate(8000);
     format.setCodec("audio/pcm");
     format.setSampleType(QAudioFormat::SignedInt);
 

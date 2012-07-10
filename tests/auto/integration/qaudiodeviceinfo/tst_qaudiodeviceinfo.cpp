@@ -64,7 +64,7 @@ private slots:
     void sampleSizes();
     void byteOrders();
     void sampleTypes();
-    void frequencies();
+    void sampleRates();
     void isFormatSupported();
     void preferred();
     void nearest();
@@ -112,7 +112,7 @@ void tst_QAudioDeviceInfo::codecs()
 
 void tst_QAudioDeviceInfo::channels()
 {
-    QList<int> avail = device->supportedChannels();
+    QList<int> avail = device->supportedChannelCounts();
     QVERIFY(avail.size() > 0);
 }
 
@@ -134,17 +134,17 @@ void tst_QAudioDeviceInfo::sampleTypes()
     QVERIFY(avail.size() > 0);
 }
 
-void tst_QAudioDeviceInfo::frequencies()
+void tst_QAudioDeviceInfo::sampleRates()
 {
-    QList<int> avail = device->supportedFrequencies();
+    QList<int> avail = device->supportedSampleRates();
     QVERIFY(avail.size() > 0);
 }
 
 void tst_QAudioDeviceInfo::isFormatSupported()
 {
     QAudioFormat format;
-    format.setFrequency(44100);
-    format.setChannels(2);
+    format.setSampleRate(44100);
+    format.setChannelCount(2);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleSize(16);
@@ -167,13 +167,13 @@ void tst_QAudioDeviceInfo::nearest()
 {
     /*
     QAudioFormat format1, format2;
-    format1.setFrequency(8000);
+    format1.setSampleRate(8000);
     format2 = device->nearestFormat(format1);
-    QVERIFY(format2.frequency() == 44100);
+    QVERIFY(format2.sampleRate() == 44100);
     */
     QAudioFormat format;
-    format.setFrequency(44100);
-    format.setChannels(2);
+    format.setSampleRate(44100);
+    format.setChannelCount(2);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleSize(16);
@@ -182,7 +182,7 @@ void tst_QAudioDeviceInfo::nearest()
     QAudioFormat format2 = device->nearestFormat(format);
 
     // This is definitely dependent on platform support (but isFormatSupported tests that above)
-    QVERIFY(format2.frequency() == 44100);
+    QVERIFY(format2.sampleRate() == 44100);
 }
 
 // Returns a list of supported channel counts.

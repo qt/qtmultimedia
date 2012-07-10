@@ -171,7 +171,7 @@ public Q_SLOTS:
             return;
         }
         alBufferData(m_alBuffer, alFormat, m_sample->data().data(),
-                     m_sample->data().size(), m_sample->format().frequency());
+                     m_sample->data().size(), m_sample->format().sampleRate());
 
         if (!QAudioEnginePrivate::checkNoError("fill buffer")) {
             return;

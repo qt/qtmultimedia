@@ -184,7 +184,7 @@ void tst_QWaveDecoder::file()
         QVERIFY(waveDecoder.duration() == 250);
         QAudioFormat format = waveDecoder.audioFormat();
         QVERIFY(format.isValid());
-        QVERIFY(format.channels() == channels);
+        QVERIFY(format.channelCount() == channels);
         QVERIFY(format.sampleSize() == samplesize);
         QVERIFY(format.sampleRate() == samplerate);
         if (format.sampleSize() != 8) {
@@ -247,7 +247,7 @@ void tst_QWaveDecoder::http()
         QVERIFY(waveDecoder.duration() == 250);
         QAudioFormat format = waveDecoder.audioFormat();
         QVERIFY(format.isValid());
-        QVERIFY(format.channels() == channels);
+        QVERIFY(format.channelCount() == channels);
         QVERIFY(format.sampleSize() == samplesize);
         QVERIFY(format.sampleRate() == samplerate);
         if (format.sampleSize() != 8) {

@@ -50,9 +50,9 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
     // Make sure the data we receive is in correct PCM format.
     // Our wav file writer only supports SignedInt sample type.
     QAudioFormat format;
-    format.setChannels(2);
+    format.setChannelCount(2);
     format.setSampleSize(16);
-    format.setFrequency(48000);
+    format.setSampleRate(48000);
     format.setCodec("audio/pcm");
     format.setSampleType(QAudioFormat::SignedInt);
     m_decoder.setAudioFormat(format);

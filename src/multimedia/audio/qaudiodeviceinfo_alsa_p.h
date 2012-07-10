@@ -110,7 +110,7 @@ private:
     QString device;
     QAudio::Mode mode;
     QAudioFormat nearest;
-    QList<int> freqz;
+    QList<int> sampleRatez;
     QList<int> channelz;
     QList<int> sizez;
     QList<QAudioFormat::Endian> byteOrderz;

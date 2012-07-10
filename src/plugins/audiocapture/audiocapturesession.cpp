@@ -56,8 +56,8 @@ AudioCaptureSession::AudioCaptureSession(QObject *parent):
     m_position = 0;
     m_state = QMediaRecorder::StoppedState;
 
-    m_format.setFrequency(8000);
-    m_format.setChannels(1);
+    m_format.setSampleRate(8000);
+    m_format.setChannelCount(1);
     m_format.setSampleSize(8);
     m_format.setSampleType(QAudioFormat::UnSignedInt);
     m_format.setCodec("audio/pcm");
@@ -264,10 +264,10 @@ void AudioCaptureSession::record()
                 memcpy(header.wave.descriptor.id,"fmt ",4);
                 header.wave.descriptor.size = 16;
                 header.wave.audioFormat = 1; // for PCM data
-                header.wave.numChannels = m_format.channels();
-                header.wave.sampleRate = m_format.frequency();
-                header.wave.byteRate = m_format.frequency()*m_format.channels()*m_format.sampleSize()/8;
-                header.wave.blockAlign = m_format.channels()*m_format.sampleSize()/8;
+                header.wave.numChannels = m_format.channelCount();
+                header.wave.sampleRate = m_format.sampleRate();
+                header.wave.byteRate = m_format.sampleRate()*m_format.channelCount()*m_format.sampleSize()/8;
+                header.wave.blockAlign = m_format.channelCount()*m_format.sampleSize()/8;
                 header.wave.bitsPerSample = m_format.sampleSize();
                 memcpy(header.data.descriptor.id,"data",4);
                 header.data.descriptor.size = 0xFFFFFFFF; // This should be updated on stop(),samples*channels*sampleSize/8

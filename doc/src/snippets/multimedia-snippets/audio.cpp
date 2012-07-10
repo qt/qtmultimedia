@@ -76,8 +76,8 @@ void AudioInputExample::setup()
 
     QAudioFormat format;
     // set up the format you want, eg.
-    format.setFrequency(8000);
-    format.setChannels(1);
+    format.setSampleRate(8000);
+    format.setChannelCount(1);
     format.setSampleSize(8);
     format.setCodec("audio/pcm");
     format.setByteOrder(QAudioFormat::LittleEndian);
@@ -155,8 +155,8 @@ void AudioOutputExample::setup()
 
     QAudioFormat format;
     // Set up the format, eg.
-    format.setFrequency(8000);
-    format.setChannels(1);
+    format.setSampleRate(8000);
+    format.setChannelCount(1);
     format.setSampleSize(8);
     format.setCodec("audio/pcm");
     format.setByteOrder(QAudioFormat::LittleEndian);
@@ -203,7 +203,7 @@ void AudioDeviceInfo()
 {
     //! [Setting audio format]
     QAudioFormat format;
-    format.setFrequency(44100);
+    format.setSampleRate(44100);
     // ... other format parameters
     format.setSampleType(QAudioFormat::SignedInt);
 

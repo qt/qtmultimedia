@@ -50,7 +50,7 @@ void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray 
     Q_ASSERT(isPCMS16LE(format));
 
     const int channelBytes = format.sampleSize() / 8;
-    const int sampleBytes = format.channels() * channelBytes;
+    const int sampleBytes = format.channelCount() * channelBytes;
     int length = buffer.size();
     const int numSamples = buffer.size() / sampleBytes;
 
@@ -61,7 +61,7 @@ void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray 
 
     qreal phase = 0.0;
 
-    const qreal d = 2 * M_PI / format.frequency();
+    const qreal d = 2 * M_PI / format.sampleRate();
 
     // We can't generate a zero-frequency sine wave
     const qreal startFreq = tone.startFreq ? tone.startFreq : 1.0;
@@ -76,7 +76,7 @@ void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray 
     while (length) {
         const qreal x = tone.amplitude * qSin(phase);
         const qint16 value = realToPcm(x);
-        for (int i=0; i<format.channels(); ++i) {
+        for (int i=0; i<format.channelCount(); ++i) {
             qToLittleEndian<qint16>(value, ptr);
             ptr += channelBytes;
             length -= channelBytes;

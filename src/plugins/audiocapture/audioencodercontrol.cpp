@@ -53,8 +53,8 @@ AudioEncoderControl::AudioEncoderControl(QObject *parent)
 
     QT_PREPEND_NAMESPACE(QAudioFormat) fmt;
     fmt.setSampleSize(8);
-    fmt.setChannels(1);
-    fmt.setFrequency(8000);
+    fmt.setChannelCount(1);
+    fmt.setSampleRate(8000);
     fmt.setSampleType(QT_PREPEND_NAMESPACE(QAudioFormat)::SignedInt);
     fmt.setCodec("audio/pcm");
     fmt.setByteOrder(QAudioFormat::LittleEndian);
@@ -94,7 +94,7 @@ QList<int> AudioEncoderControl::supportedSampleRates(const QAudioEncoderSettings
     if (continuous)
         *continuous = false;
 
-    return m_session->deviceInfo()->supportedFrequencies();
+    return m_session->deviceInfo()->supportedSampleRates();
 }
 
 QAudioEncoderSettings AudioEncoderControl::audioSettings() const
@@ -109,26 +109,26 @@ void AudioEncoderControl::setAudioSettings(const QAudioEncoderSettings &settings
     if (settings.encodingMode() == QtMultimedia::ConstantQualityEncoding) {
         if (settings.quality() == QtMultimedia::LowQuality) {
             fmt.setSampleSize(8);
-            fmt.setChannels(1);
-            fmt.setFrequency(8000);
+            fmt.setChannelCount(1);
+            fmt.setSampleRate(8000);
             fmt.setSampleType(QAudioFormat::UnSignedInt);
 
         } else if (settings.quality() == QtMultimedia::NormalQuality) {
             fmt.setSampleSize(16);
-            fmt.setChannels(1);
-            fmt.setFrequency(22050);
+            fmt.setChannelCount(1);
+            fmt.setSampleRate(22050);
             fmt.setSampleType(QAudioFormat::SignedInt);
 
         } else {
             fmt.setSampleSize(16);
-            fmt.setChannels(1);
-            fmt.setFrequency(44100);
+            fmt.setChannelCount(1);
+            fmt.setSampleRate(44100);
             fmt.setSampleType(QAudioFormat::SignedInt);
         }
 
     } else {
-        fmt.setChannels(settings.channelCount());
-        fmt.setFrequency(settings.sampleRate());
+        fmt.setChannelCount(settings.channelCount());
+        fmt.setSampleRate(settings.sampleRate());
         if (settings.sampleRate() == 8000 && settings.bitRate() == 8000) {
             fmt.setSampleType(QAudioFormat::UnSignedInt);
             fmt.setSampleSize(8);

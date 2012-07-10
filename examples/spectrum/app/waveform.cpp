@@ -366,7 +366,7 @@ void Waveform::paintTile(int index)
 
     const qint16* base = reinterpret_cast<const qint16*>(m_buffer.constData());
     const qint16* buffer = base + ((tileStart - m_bufferPosition) / 2);
-    const int numSamples = m_tileLength / (2 * m_format.channels());
+    const int numSamples = m_tileLength / (2 * m_format.channelCount());
 
     QPainter painter(tile.pixmap);
 
@@ -378,7 +378,7 @@ void Waveform::paintTile(int index)
     // Calculate initial PCM value
     qint16 previousPcmValue = 0;
     if (buffer > base)
-        previousPcmValue = *(buffer - m_format.channels());
+        previousPcmValue = *(buffer - m_format.channelCount());
 
     // Calculate initial point
     const qreal previousRealValue = pcmToReal(previousPcmValue);
@@ -388,7 +388,7 @@ void Waveform::paintTile(int index)
     QLine line(origin, origin);
 
     for (int i=0; i<numSamples; ++i) {
-        const qint16* ptr = buffer + i * m_format.channels();
+        const qint16* ptr = buffer + i * m_format.channelCount();
 
         const int offset = reinterpret_cast<const char*>(ptr) - m_buffer.constData();
         Q_ASSERT(offset >= 0);
@@ -398,7 +398,7 @@ void Waveform::paintTile(int index)
         const qint16 pcmValue = *ptr;
         const qreal realValue = pcmToReal(pcmValue);
 
-        const int x = tilePixelOffset(i * 2 * m_format.channels());
+        const int x = tilePixelOffset(i * 2 * m_format.channelCount());
         const int y = ((realValue + 1.0) / 2) * m_pixmapSize.height();
 
         line.setP2(QPoint(x, y));

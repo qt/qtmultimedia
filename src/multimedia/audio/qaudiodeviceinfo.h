@@ -88,9 +88,7 @@ public:
     QAudioFormat nearestFormat(const QAudioFormat &format) const;
 
     QStringList supportedCodecs() const;
-    QList<int> supportedFrequencies() const;
     QList<int> supportedSampleRates() const;
-    QList<int> supportedChannels() const;
     QList<int> supportedChannelCounts() const;
     QList<int> supportedSampleSizes() const;
     QList<QAudioFormat::Endian> supportedByteOrders() const;

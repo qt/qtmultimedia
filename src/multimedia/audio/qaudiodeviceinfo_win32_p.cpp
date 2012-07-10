@@ -126,15 +126,15 @@ bool QAudioDeviceInfoInternal::isFormatSupported(const QAudioFormat& format) con
 QAudioFormat QAudioDeviceInfoInternal::preferredFormat() const
 {
     QAudioFormat nearest;
-    if(mode == QAudio::AudioOutput) {
-        nearest.setFrequency(44100);
+    if (mode == QAudio::AudioOutput) {
+        nearest.setSampleRate(44100);
         nearest.setChannelCount(2);
         nearest.setByteOrder(QAudioFormat::LittleEndian);
         nearest.setSampleType(QAudioFormat::SignedInt);
         nearest.setSampleSize(16);
         nearest.setCodec(QLatin1String("audio/pcm"));
     } else {
-        nearest.setFrequency(11025);
+        nearest.setSampleRate(11025);
         nearest.setChannelCount(1);
         nearest.setByteOrder(QAudioFormat::LittleEndian);
         nearest.setSampleType(QAudioFormat::SignedInt);
@@ -158,7 +158,7 @@ QStringList QAudioDeviceInfoInternal::supportedCodecs()
 QList<int> QAudioDeviceInfoInternal::supportedSampleRates()
 {
     updateLists();
-    return freqz;
+    return sampleRatez;
 }
 
 QList<int> QAudioDeviceInfoInternal::supportedChannelCounts()
@@ -213,8 +213,8 @@ bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
     // check channel
     match = false;
     if (!failed) {
-        for( int i = 0; i < channelz.count(); i++) {
-            if (format.channels() == channelz.at(i)) {
+        for (int i = 0; i < channelz.count(); i++) {
+            if (format.channelCount() == channelz.at(i)) {
                 match = true;
                 break;
             }
@@ -223,11 +223,11 @@ bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
             failed = true;
     }
 
-    // check frequency
+    // check sampleRate
     match = false;
     if (!failed) {
-        for( int i = 0; i < freqz.count(); i++) {
-            if (format.frequency() == freqz.at(i)) {
+        for (int i = 0; i < sampleRatez.count(); i++) {
+            if (format.sampleRate() == sampleRatez.at(i)) {
                 match = true;
                 break;
             }
@@ -302,7 +302,7 @@ void QAudioDeviceInfoInternal::updateLists()
         }
     }
     sizez.clear();
-    freqz.clear();
+    sampleRatez.clear();
     channelz.clear();
     byteOrderz.clear();
     typez.clear();
@@ -339,31 +339,31 @@ void QAudioDeviceInfoInternal::updateLists()
            || (fmt & WAVE_FORMAT_1S08)
            || (fmt & WAVE_FORMAT_1M16)
            || (fmt & WAVE_FORMAT_1S16)) {
-            freqz.append(11025);
+            sampleRatez.append(11025);
 	}
         if ((fmt & WAVE_FORMAT_2M08)
            || (fmt & WAVE_FORMAT_2S08)
            || (fmt & WAVE_FORMAT_2M16)
            || (fmt & WAVE_FORMAT_2S16)) {
-            freqz.append(22050);
+            sampleRatez.append(22050);
 	}
         if ((fmt & WAVE_FORMAT_4M08)
            || (fmt & WAVE_FORMAT_4S08)
            || (fmt & WAVE_FORMAT_4M16)
            || (fmt & WAVE_FORMAT_4S16)) {
-            freqz.append(44100);
+            sampleRatez.append(44100);
 	}
         if ((fmt & WAVE_FORMAT_48M08)
             || (fmt & WAVE_FORMAT_48S08)
             || (fmt & WAVE_FORMAT_48M16)
             || (fmt & WAVE_FORMAT_48S16)) {
-            freqz.append(48000);
+            sampleRatez.append(48000);
 	}
         if ((fmt & WAVE_FORMAT_96M08)
            || (fmt & WAVE_FORMAT_96S08)
            || (fmt & WAVE_FORMAT_96M16)
            || (fmt & WAVE_FORMAT_96S16)) {
-            freqz.append(96000);
+            sampleRatez.append(96000);
         }
 	channelz.append(1);
 	channelz.append(2);
@@ -380,8 +380,8 @@ void QAudioDeviceInfoInternal::updateLists()
 
 	codecz.append(QLatin1String("audio/pcm"));
     }
-    if (freqz.count() > 0)
-        freqz.prepend(8000);
+    if (sampleRatez.count() > 0)
+        sampleRatez.prepend(8000);
 }
 
 QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)

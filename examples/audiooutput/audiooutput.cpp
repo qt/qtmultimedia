@@ -54,19 +54,19 @@
 #define VOLUME_LABEL    "Volume:"
 
 const int DurationSeconds = 1;
-const int ToneFrequencyHz = 600;
-const int DataFrequencyHz = 44100;
+const int ToneSampleRateHz = 600;
+const int DataSampleRateHz = 44100;
 const int BufferSize      = 32768;
 
 
 Generator::Generator(const QAudioFormat &format,
                      qint64 durationUs,
-                     int frequency,
+                     int sampleRate,
                      QObject *parent)
     :   QIODevice(parent)
     ,   m_pos(0)
 {
-    generateData(format, durationUs, frequency);
+    generateData(format, durationUs, sampleRate);
 }
 
 Generator::~Generator()
@@ -85,12 +85,12 @@ void Generator::stop()
     close();
 }
 
-void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int frequency)
+void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int sampleRate)
 {
     const int channelBytes = format.sampleSize() / 8;
-    const int sampleBytes = format.channels() * channelBytes;
+    const int sampleBytes = format.channelCount() * channelBytes;
 
-    qint64 length = (format.frequency() * format.channels() * (format.sampleSize() / 8))
+    qint64 length = (format.sampleRate() * format.channelCount() * (format.sampleSize() / 8))
                         * durationUs / 100000;
 
     Q_ASSERT(length % sampleBytes == 0);
@@ -101,8 +101,8 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int 
     int sampleIndex = 0;
 
     while (length) {
-        const qreal x = qSin(2 * M_PI * frequency * qreal(sampleIndex % format.frequency()) / format.frequency());
-        for (int i=0; i<format.channels(); ++i) {
+        const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex % format.sampleRate()) / format.sampleRate());
+        for (int i=0; i<format.channelCount(); ++i) {
             if (format.sampleSize() == 8 && format.sampleType() == QAudioFormat::UnSignedInt) {
                 const quint8 value = static_cast<quint8>((1.0 + x) / 2 * 255);
                 *reinterpret_cast<quint8*>(ptr) = value;
@@ -217,8 +217,8 @@ void AudioTest::initializeAudio()
 
     m_pullMode = true;
 
-    m_format.setFrequency(DataFrequencyHz);
-    m_format.setChannels(1);
+    m_format.setSampleRate(DataSampleRateHz);
+    m_format.setChannelCount(1);
     m_format.setSampleSize(16);
     m_format.setCodec("audio/pcm");
     m_format.setByteOrder(QAudioFormat::LittleEndian);
@@ -230,7 +230,7 @@ void AudioTest::initializeAudio()
         m_format = info.nearestFormat(m_format);
     }
 
-    m_generator = new Generator(m_format, DurationSeconds*1000000, ToneFrequencyHz, this);
+    m_generator = new Generator(m_format, DurationSeconds*1000000, ToneSampleRateHz, this);
 
     createAudioOutput();
 }

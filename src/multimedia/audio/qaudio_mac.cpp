@@ -49,8 +49,8 @@ QAudioFormat toQAudioFormat(AudioStreamBasicDescription const& sf)
 {
     QAudioFormat    audioFormat;
 
-    audioFormat.setFrequency(sf.mSampleRate);
-    audioFormat.setChannels(sf.mChannelsPerFrame);
+    audioFormat.setSampleRate(sf.mSampleRate);
+    audioFormat.setChannelCount(sf.mChannelsPerFrame);
     audioFormat.setSampleSize(sf.mBitsPerChannel);
     audioFormat.setCodec(QString::fromLatin1("audio/pcm"));
     audioFormat.setByteOrder((sf.mFormatFlags & kAudioFormatFlagIsBigEndian) != 0 ? QAudioFormat::BigEndian : QAudioFormat::LittleEndian);
@@ -69,9 +69,9 @@ AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& au
     AudioStreamBasicDescription sf;
 
     sf.mFormatFlags         = kAudioFormatFlagIsPacked;
-    sf.mSampleRate          = audioFormat.frequency();
+    sf.mSampleRate          = audioFormat.sampleRate();
     sf.mFramesPerPacket     = 1;
-    sf.mChannelsPerFrame    = audioFormat.channels();
+    sf.mChannelsPerFrame    = audioFormat.channelCount();
     sf.mBitsPerChannel      = audioFormat.sampleSize();
     sf.mBytesPerFrame       = sf.mChannelsPerFrame * (sf.mBitsPerChannel / 8);
     sf.mBytesPerPacket      = sf.mFramesPerPacket * sf.mBytesPerFrame;

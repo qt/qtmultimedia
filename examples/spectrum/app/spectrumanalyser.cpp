@@ -207,7 +207,7 @@ void SpectrumAnalyser::calculate(const QByteArray &buffer,
     if (isReady()) {
         Q_ASSERT(isPCMS16LE(format));
 
-        const int bytesPerSample = format.sampleSize() * format.channels() / 8;
+        const int bytesPerSample = format.sampleSize() * format.channelCount() / 8;
 
 #ifdef DUMP_SPECTRUMANALYSER
         m_count++;
@@ -235,7 +235,7 @@ void SpectrumAnalyser::calculate(const QByteArray &buffer,
         const bool b = QMetaObject::invokeMethod(m_thread, "calculateSpectrum",
                                   Qt::AutoConnection,
                                   Q_ARG(QByteArray, buffer),
-                                  Q_ARG(int, format.frequency()),
+                                  Q_ARG(int, format.sampleRate()),
                                   Q_ARG(int, bytesPerSample));
         Q_ASSERT(b);
         Q_UNUSED(b) // suppress warnings in release builds

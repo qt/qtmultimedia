@@ -274,7 +274,7 @@ bool QPulseAudioOutput::open()
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
     pa_threaded_mainloop_lock(pulseEngine->mainloop());
 
-    qint64 bytesPerSecond = m_format.sampleRate() * m_format.channels() * m_format.sampleSize() / 8;
+    qint64 bytesPerSecond = m_format.sampleRate() * m_format.channelCount() * m_format.sampleSize() / 8;
 
     pa_proplist *propList = pa_proplist_new();
     if (m_category.isNull()) {
@@ -503,8 +503,8 @@ int QPulseAudioOutput::notifyInterval() const
 qint64 QPulseAudioOutput::processedUSecs() const
 {
     qint64 result = qint64(1000000) * m_totalTimeValue /
-        (m_format.channels() * (m_format.sampleSize() / 8)) /
-        m_format.frequency();
+        (m_format.channelCount() * (m_format.sampleSize() / 8)) /
+        m_format.sampleRate();
 
     return result;
 }

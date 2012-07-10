@@ -362,7 +362,7 @@ void tst_QAudioDecoder::nullControl()
     QVERIFY(d.sourceDevice() == 0);
 
     QAudioFormat format;
-    format.setChannels(2);
+    format.setChannelCount(2);
     QVERIFY(!d.audioFormat().isValid());
     d.setAudioFormat(format);
     QVERIFY(!d.audioFormat().isValid());
@@ -403,7 +403,7 @@ void tst_QAudioDecoder::nullService()
     QVERIFY(d.sourceDevice() == 0);
 
     QAudioFormat format;
-    format.setChannels(2);
+    format.setChannelCount(2);
     QVERIFY(!d.audioFormat().isValid());
     d.setAudioFormat(format);
     QVERIFY(!d.audioFormat().isValid());

@@ -242,12 +242,12 @@ bool QAudioInputPrivate::open()
     } else if (settings.sampleSize() <= 0) {
         qWarning("QAudioInput: open error, invalid sample size (%d).",
                  settings.sampleSize());
-    } else if (settings.frequency() < 8000 || settings.frequency() > 96000) {
-        qWarning("QAudioInput: open error, frequency out of range (%d).", settings.frequency());
+    } else if (settings.sampleRate() < 8000 || settings.sampleRate() > 96000) {
+        qWarning("QAudioInput: open error, sample rate out of range (%d).", settings.sampleRate());
     } else if (buffer_size == 0) {
 
         buffer_size
-                = (settings.frequency()
+                = (settings.sampleRate()
                 * settings.channelCount()
                 * settings.sampleSize()
                 + 39) / 40;
@@ -265,9 +265,9 @@ bool QAudioInputPrivate::open()
 
     timeStamp.restart();
     elapsedTimeOffset = 0;
-    wfx.nSamplesPerSec = settings.frequency();
+    wfx.nSamplesPerSec = settings.sampleRate();
     wfx.wBitsPerSample = settings.sampleSize();
-    wfx.nChannels = settings.channels();
+    wfx.nChannels = settings.channelCount();
     wfx.cbSize = 0;
 
     wfx.wFormatTag = WAVE_FORMAT_PCM;
@@ -539,8 +539,8 @@ qint64 QAudioInputPrivate::processedUSecs() const
     if (deviceState == QAudio::StoppedState)
         return 0;
     qint64 result = qint64(1000000) * totalTimeValue /
-        (settings.channels()*(settings.sampleSize()/8)) /
-        settings.frequency();
+        (settings.channelCount()*(settings.sampleSize()/8)) /
+        settings.sampleRate();
 
     return result;
 }

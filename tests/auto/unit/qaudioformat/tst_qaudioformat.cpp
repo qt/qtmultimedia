@@ -58,7 +58,6 @@ public:
 
 private slots:
     void checkNull();
-    void checkFrequency();
     void checkSampleSize();
     void checkCodec();
     void checkByteOrder();
@@ -82,19 +81,12 @@ void tst_QAudioFormat::checkNull()
     QAudioFormat audioFormat1(audioFormat0);
     QVERIFY(!audioFormat1.isValid());
 
-    audioFormat0.setFrequency(44100);
-    audioFormat0.setChannels(2);
+    audioFormat0.setSampleRate(44100);
+    audioFormat0.setChannelCount(2);
     audioFormat0.setSampleSize(16);
     audioFormat0.setCodec("audio/pcm");
     audioFormat0.setSampleType(QAudioFormat::SignedInt);
     QVERIFY(audioFormat0.isValid());
-}
-
-void tst_QAudioFormat::checkFrequency()
-{
-    QAudioFormat audioFormat;
-    audioFormat.setFrequency(44100);
-    QVERIFY(audioFormat.frequency() == 44100);
 }
 
 void tst_QAudioFormat::checkSampleSize()
@@ -161,15 +153,15 @@ void tst_QAudioFormat::checkEquality()
     QVERIFY(!(audioFormat0 != audioFormat1));
 
     // on filled formats
-    audioFormat0.setFrequency(8000);
-    audioFormat0.setChannels(1);
+    audioFormat0.setSampleRate(8000);
+    audioFormat0.setChannelCount(1);
     audioFormat0.setSampleSize(8);
     audioFormat0.setCodec("audio/pcm");
     audioFormat0.setByteOrder(QAudioFormat::LittleEndian);
     audioFormat0.setSampleType(QAudioFormat::UnSignedInt);
 
-    audioFormat1.setFrequency(8000);
-    audioFormat1.setChannels(1);
+    audioFormat1.setSampleRate(8000);
+    audioFormat1.setChannelCount(1);
     audioFormat1.setSampleSize(8);
     audioFormat1.setCodec("audio/pcm");
     audioFormat1.setByteOrder(QAudioFormat::LittleEndian);
@@ -178,7 +170,7 @@ void tst_QAudioFormat::checkEquality()
     QVERIFY(audioFormat0 == audioFormat1);
     QVERIFY(!(audioFormat0 != audioFormat1));
 
-    audioFormat0.setFrequency(44100);
+    audioFormat0.setSampleRate(44100);
     QVERIFY(audioFormat0 != audioFormat1);
     QVERIFY(!(audioFormat0 == audioFormat1));
 }
@@ -188,8 +180,8 @@ void tst_QAudioFormat::checkAssignment()
     QAudioFormat audioFormat0;
     QAudioFormat audioFormat1;
 
-    audioFormat0.setFrequency(8000);
-    audioFormat0.setChannels(1);
+    audioFormat0.setSampleRate(8000);
+    audioFormat0.setChannelCount(1);
     audioFormat0.setSampleSize(8);
     audioFormat0.setCodec("audio/pcm");
     audioFormat0.setByteOrder(QAudioFormat::LittleEndian);
@@ -219,15 +211,15 @@ void tst_QAudioFormat::checkChannelCount()
     // they should always be equal
     QAudioFormat audioFormat;
     QVERIFY(audioFormat.channelCount() == -1);
-    QVERIFY(audioFormat.channels() == -1);
+    QVERIFY(audioFormat.channelCount() == -1);
 
     audioFormat.setChannelCount(123);
     QVERIFY(audioFormat.channelCount() == 123);
-    QVERIFY(audioFormat.channels() == 123);
+    QVERIFY(audioFormat.channelCount() == 123);
 
-    audioFormat.setChannels(5);
+    audioFormat.setChannelCount(5);
     QVERIFY(audioFormat.channelCount() == 5);
-    QVERIFY(audioFormat.channels() == 5);
+    QVERIFY(audioFormat.channelCount() == 5);
 }
 
 void tst_QAudioFormat::debugOperator_data()

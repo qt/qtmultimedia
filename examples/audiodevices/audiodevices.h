@@ -68,7 +68,7 @@ public:
 private slots:
     void modeChanged(int idx);
     void deviceChanged(int idx);
-    void freqChanged(int idx);
+    void sampleRateChanged(int idx);
     void channelChanged(int idx);
     void codecChanged(int idx);
     void sampleSizeChanged(int idx);

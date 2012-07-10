@@ -111,9 +111,9 @@ bool WavHeader::read(QIODevice &device)
                 else
                     m_format.setByteOrder(QAudioFormat::BigEndian);
 
-                m_format.setChannels(qFromLittleEndian<quint16>(header.wave.numChannels));
+                m_format.setChannelCount(qFromLittleEndian<quint16>(header.wave.numChannels));
                 m_format.setCodec("audio/pcm");
-                m_format.setFrequency(qFromLittleEndian<quint32>(header.wave.sampleRate));
+                m_format.setSampleRate(qFromLittleEndian<quint32>(header.wave.sampleRate));
                 m_format.setSampleSize(qFromLittleEndian<quint16>(header.wave.bitsPerSample));
 
                 switch(header.wave.bitsPerSample) {
@@ -158,13 +158,13 @@ bool WavHeader::write(QIODevice &device)
                              reinterpret_cast<unsigned char*>(&header.wave.descriptor.size));
     qToLittleEndian<quint16>(quint16(1),
                              reinterpret_cast<unsigned char*>(&header.wave.audioFormat));
-    qToLittleEndian<quint16>(quint16(m_format.channels()),
+    qToLittleEndian<quint16>(quint16(m_format.channelCount()),
                              reinterpret_cast<unsigned char*>(&header.wave.numChannels));
-    qToLittleEndian<quint32>(quint32(m_format.frequency()),
+    qToLittleEndian<quint32>(quint32(m_format.sampleRate()),
                              reinterpret_cast<unsigned char*>(&header.wave.sampleRate));
-    qToLittleEndian<quint32>(quint32(m_format.frequency() * m_format.channels() * m_format.sampleSize() / 8),
+    qToLittleEndian<quint32>(quint32(m_format.sampleRate() * m_format.channelCount() * m_format.sampleSize() / 8),
                              reinterpret_cast<unsigned char*>(&header.wave.byteRate));
-    qToLittleEndian<quint16>(quint16(m_format.channels() * m_format.sampleSize() / 8),
+    qToLittleEndian<quint16>(quint16(m_format.channelCount() * m_format.sampleSize() / 8),
                              reinterpret_cast<unsigned char*>(&header.wave.blockAlign));
     qToLittleEndian<quint16>(quint16(m_format.sampleSize()),
                              reinterpret_cast<unsigned char*>(&header.wave.bitsPerSample));

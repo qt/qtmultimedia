@@ -134,7 +134,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QComboBox" name="frequencyBox">
+               <widget class="QComboBox" name="sampleRateBox">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -144,7 +144,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item row="3" column="2">
-               <widget class="QLineEdit" name="nearestFreq">
+               <widget class="QLineEdit" name="nearestSampleRate">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -316,15 +316,6 @@ p, li { white-space: pre-wrap; }
                  <bool>false</bool>
                 </attribute>
                 <attribute name="verticalHeaderVisible">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="verticalHeaderHighlightSections">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="verticalHeaderVisible">
-                 <bool>false</bool>
-                </attribute>
-                <attribute name="horizontalHeaderHighlightSections">
                  <bool>false</bool>
                 </attribute>
                 <attribute name="verticalHeaderHighlightSections">

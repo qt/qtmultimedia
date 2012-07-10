@@ -292,7 +292,7 @@ bool QAudioOutputPrivate::open()
     int dir;
     int err = 0;
     int count=0;
-    unsigned int freakuency=settings.frequency();
+    unsigned int sampleRate=settings.sampleRate();
 
     if (!settings.isValid()) {
         qWarning("QAudioOutput: open error, invalid format.");
@@ -387,14 +387,14 @@ bool QAudioOutputPrivate::open()
         }
     }
     if ( !fatal ) {
-        err = snd_pcm_hw_params_set_channels( handle, hwparams, (unsigned int)settings.channels() );
+        err = snd_pcm_hw_params_set_channels( handle, hwparams, (unsigned int)settings.channelCount() );
         if ( err < 0 ) {
             fatal = true;
             errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_channels: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
-        err = snd_pcm_hw_params_set_rate_near( handle, hwparams, &freakuency, 0 );
+        err = snd_pcm_hw_params_set_rate_near( handle, hwparams, &sampleRate, 0 );
         if ( err < 0 ) {
             fatal = true;
             errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_rate_near: err = %1").arg(err);
@@ -630,7 +630,7 @@ int QAudioOutputPrivate::notifyInterval() const
 
 qint64 QAudioOutputPrivate::processedUSecs() const
 {
-    return qint64(1000000) * totalTimeValue / settings.frequency();
+    return qint64(1000000) * totalTimeValue / settings.sampleRate();
 }
 
 void QAudioOutputPrivate::resume()

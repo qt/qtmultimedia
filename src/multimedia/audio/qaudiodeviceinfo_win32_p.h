@@ -104,7 +104,7 @@ private:
     QString device;
     quint32 devId;
     QAudioFormat nearest;
-    QList<int> freqz;
+    QList<int> sampleRatez;
     QList<int> channelz;
     QList<int> sizez;
     QList<QAudioFormat::Endian> byteOrderz;

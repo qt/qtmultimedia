@@ -106,7 +106,7 @@ private:
     typedef QSharedPointer<QFile> FilePtr;
 
     QString formatToFileName(const QAudioFormat &format);
-    void createSineWaveData(const QAudioFormat &format, qint64 length, int frequency = 440);
+    void createSineWaveData(const QAudioFormat &format, qint64 length, int sampleRate = 440);
 
     QAudioDeviceInfo audioDevice;
     QList<QAudioFormat> testFormats;
@@ -128,17 +128,17 @@ QString tst_QAudioOutput::formatToFileName(const QAudioFormat &format)
         ?   QString("signed") : QString("unsigned");
 
     return QString("%1_%2_%3_%4_%5")
-        .arg(format.frequency())
+        .arg(format.sampleRate())
         .arg(format.sampleSize())
         .arg(formatSigned)
         .arg(formatEndian)
-        .arg(format.channels());
+        .arg(format.channelCount());
 }
 
-void tst_QAudioOutput::createSineWaveData(const QAudioFormat &format, qint64 length, int frequency)
+void tst_QAudioOutput::createSineWaveData(const QAudioFormat &format, qint64 length, int sampleRate)
 {
     const int channelBytes = format.sampleSize() / 8;
-    const int sampleBytes = format.channels() * channelBytes;
+    const int sampleBytes = format.channelCount() * channelBytes;
 
     Q_ASSERT(length % sampleBytes == 0);
     Q_UNUSED(sampleBytes) // suppress warning in release builds
@@ -148,8 +148,8 @@ void tst_QAudioOutput::createSineWaveData(const QAudioFormat &format, qint64 len
     int sampleIndex = 0;
 
     while (length) {
-        const qreal x = qSin(2 * M_PI * frequency * qreal(sampleIndex % format.frequency()) / format.frequency());
-        for (int i=0; i<format.channels(); ++i) {
+        const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex % format.sampleRate()) / format.sampleRate());
+        for (int i=0; i<format.channelCount(); ++i) {
             if (format.sampleSize() == 8 && format.sampleType() == QAudioFormat::UnSignedInt) {
                 const quint8 value = static_cast<quint8>((1.0 + x) / 2 * 255);
                 *reinterpret_cast<quint8*>(ptr) = value;
@@ -202,37 +202,37 @@ void tst_QAudioOutput::initTestCase()
         testFormats.append(audioDevice.preferredFormat());
 
     // PCM 8000  mono S8
-    format.setFrequency(8000);
+    format.setSampleRate(8000);
     format.setSampleSize(8);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setChannels(1);
+    format.setChannelCount(1);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 11025 mono S16LE
-    format.setFrequency(11025);
+    format.setSampleRate(11025);
     format.setSampleSize(16);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 22050 mono S16LE
-    format.setFrequency(22050);
+    format.setSampleRate(22050);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 22050 stereo S16LE
-    format.setChannels(2);
+    format.setChannelCount(2);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 44100 stereo S16LE
-    format.setFrequency(44100);
+    format.setSampleRate(44100);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 48000 stereo S16LE
-    format.setFrequency(48000);
+    format.setSampleRate(48000);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
@@ -249,7 +249,7 @@ void tst_QAudioOutput::initTestCase()
 
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
     foreach (const QAudioFormat &format, testFormats) {
-        qint64 len = (format.frequency()*format.channels()*(format.sampleSize()/8)*2); // 2 seconds
+        qint64 len = (format.sampleRate()*format.channelCount()*(format.sampleSize()/8)*2); // 2 seconds
         createSineWaveData(format, len);
         // Write generate sine wave data to file
         const QString fileName = temporaryAudioPath + QStringLiteral("generated")
@@ -272,10 +272,10 @@ void tst_QAudioOutput::format()
     QAudioFormat requested = audioDevice.preferredFormat();
     QAudioFormat actual    = audioOutput.format();
 
-    QVERIFY2((requested.channels() == actual.channels()),
-            QString("channels: requested=%1, actual=%2").arg(requested.channels()).arg(actual.channels()).toLocal8Bit().constData());
-    QVERIFY2((requested.frequency() == actual.frequency()),
-            QString("frequency: requested=%1, actual=%2").arg(requested.frequency()).arg(actual.frequency()).toLocal8Bit().constData());
+    QVERIFY2((requested.channelCount() == actual.channelCount()),
+            QString("channels: requested=%1, actual=%2").arg(requested.channelCount()).arg(actual.channelCount()).toLocal8Bit().constData());
+    QVERIFY2((requested.sampleRate() == actual.sampleRate()),
+            QString("sampleRate: requested=%1, actual=%2").arg(requested.sampleRate()).arg(actual.sampleRate()).toLocal8Bit().constData());
     QVERIFY2((requested.sampleSize() == actual.sampleSize()),
             QString("sampleSize: requested=%1, actual=%2").arg(requested.sampleSize()).arg(actual.sampleSize()).toLocal8Bit().constData());
     QVERIFY2((requested.codec() == actual.codec()),

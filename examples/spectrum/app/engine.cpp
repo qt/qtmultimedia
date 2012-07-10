@@ -528,25 +528,25 @@ bool Engine::selectFormat()
         }
     } else {
 
-        QList<int> frequenciesList;
+        QList<int> sampleRatesList;
     #ifdef Q_OS_WIN
         // The Windows audio backend does not correctly report format support
         // (see QTBUG-9100).  Furthermore, although the audio subsystem captures
         // at 11025Hz, the resulting audio is corrupted.
-        frequenciesList += 8000;
+        sampleRatesList += 8000;
     #endif
 
         if (!m_generateTone)
-            frequenciesList += m_audioInputDevice.supportedFrequencies();
+            sampleRatesList += m_audioInputDevice.supportedSampleRates();
 
-        frequenciesList += m_audioOutputDevice.supportedFrequencies();
-        frequenciesList = frequenciesList.toSet().toList(); // remove duplicates
-        qSort(frequenciesList);
-        ENGINE_DEBUG << "Engine::initialize frequenciesList" << frequenciesList;
+        sampleRatesList += m_audioOutputDevice.supportedSampleRates();
+        sampleRatesList = sampleRatesList.toSet().toList(); // remove duplicates
+        qSort(sampleRatesList);
+        ENGINE_DEBUG << "Engine::initialize frequenciesList" << sampleRatesList;
 
         QList<int> channelsList;
-        channelsList += m_audioInputDevice.supportedChannels();
-        channelsList += m_audioOutputDevice.supportedChannels();
+        channelsList += m_audioInputDevice.supportedChannelCounts();
+        channelsList += m_audioOutputDevice.supportedChannelCounts();
         channelsList = channelsList.toSet().toList();
         qSort(channelsList);
         ENGINE_DEBUG << "Engine::initialize channelsList" << channelsList;
@@ -556,13 +556,13 @@ bool Engine::selectFormat()
         format.setCodec("audio/pcm");
         format.setSampleSize(16);
         format.setSampleType(QAudioFormat::SignedInt);
-        int frequency, channels;
-        foreach (frequency, frequenciesList) {
+        int sampleRate, channels;
+        foreach (sampleRate, sampleRatesList) {
             if (foundSupportedFormat)
                 break;
-            format.setFrequency(frequency);
+            format.setSampleRate(sampleRate);
             foreach (channels, channelsList) {
-                format.setChannels(channels);
+                format.setChannelCount(channels);
                 const bool inputSupport = m_generateTone ||
                                           m_audioInputDevice.isFormatSupported(format);
                 const bool outputSupport = m_audioOutputDevice.isFormatSupported(format);
@@ -703,7 +703,7 @@ void Engine::setFormat(const QAudioFormat &format)
     m_format = format;
     m_levelBufferLength = audioLength(m_format, LevelWindowUs);
     m_spectrumBufferLength = SpectrumLengthSamples *
-                            (m_format.sampleSize() / 8) * m_format.channels();
+                            (m_format.sampleSize() / 8) * m_format.channelCount();
     if (changed)
         emit formatChanged(m_format);
 }
