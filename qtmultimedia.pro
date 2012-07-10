@@ -8,7 +8,7 @@ win32 {
     qtCompileTest(evr)
 } else {
     qtCompileTest(alsa)
-    qtCompileTest(pulsaudio)
+    qtCompileTest(pulseaudio)
     qtCompileTest(gstreamer) {
         qtCompileTest(gstreamer_photography)
         qtCompileTest(gstreamer_appsrc)
