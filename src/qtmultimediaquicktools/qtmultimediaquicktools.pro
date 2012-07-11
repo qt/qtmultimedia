@@ -1,9 +1,9 @@
 load(qt_build_config)
 
-TEMPLATE = lib
-
 TARGET = QtMultimediaQuick_p
 QT = core quick multimedia-private
+
+load(qt_module_config)
 
 !static:DEFINES += QT_MAKEDLL
 
@@ -22,8 +22,3 @@ SOURCES += \
     qsgvideonode_p.cpp
 
 HEADERS += $$PRIVATE_HEADERS
-
-DESTDIR = $$QT.multimedia.libs
-target.path = $$[QT_INSTALL_LIBS]
-
-INSTALLS += target
