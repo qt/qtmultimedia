@@ -445,6 +445,9 @@ void tst_QVideoWidget::nullService()
 
     widget.setFullScreen(true);
     QTest::qWaitForWindowShown(&widget);
+#ifdef Q_OS_MAC
+    QEXPECT_FAIL("", "QTBUG-25310 - Fails on Mac", Continue);
+#endif
     QCOMPARE(widget.isFullScreen(), true);
 
     widget.setAspectRatioMode(Qt::IgnoreAspectRatio);
@@ -491,6 +494,10 @@ void tst_QVideoWidget::noOutputs()
 
 void tst_QVideoWidget::serviceDestroyed()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject object(new QtTestWindowControl, new QtTestWidgetControl, 0);
 
     QVideoWidget widget;
@@ -521,6 +528,10 @@ void tst_QVideoWidget::serviceDestroyed()
 
 void tst_QVideoWidget::objectDestroyed()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject *object = new QtTestVideoObject(
             new QtTestWindowControl,
             new QtTestWidgetControl,
@@ -643,6 +654,10 @@ void tst_QVideoWidget::showWindowControl()
 
 void tst_QVideoWidget::showWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject object(0, new QtTestWidgetControl, 0);
     QVideoWidget widget;
     object.bind(&widget);
@@ -663,6 +678,10 @@ void tst_QVideoWidget::showWidgetControl()
 
 void tst_QVideoWidget::showRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject object(0, 0, new QtTestRendererControl);
     QVideoWidget widget;
     object.bind(&widget);
@@ -714,6 +733,10 @@ void tst_QVideoWidget::aspectRatioWindowControl()
 
 void tst_QVideoWidget::aspectRatioWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject object(0, new QtTestWidgetControl, 0);
     object.testService->widgetControl->setAspectRatioMode(Qt::IgnoreAspectRatio);
 
@@ -746,6 +769,10 @@ void tst_QVideoWidget::aspectRatioWidgetControl()
 
 void tst_QVideoWidget::aspectRatioRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject object(0, 0, new QtTestRendererControl);
 
     QVideoWidget widget;
@@ -799,6 +826,10 @@ void tst_QVideoWidget::sizeHintWindowControl()
 
 void tst_QVideoWidget::sizeHintWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(QSize, size);
 
     QtTestVideoObject object(0, new QtTestWidgetControl, 0);
@@ -816,6 +847,10 @@ void tst_QVideoWidget::sizeHintWidgetControl()
 
 void tst_QVideoWidget::sizeHintRendererControl_data()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QTest::addColumn<QSize>("frameSize");
     QTest::addColumn<QRect>("viewport");
     QTest::addColumn<QSize>("pixelAspectRatio");
@@ -843,6 +878,10 @@ void tst_QVideoWidget::sizeHintRendererControl_data()
 
 void tst_QVideoWidget::sizeHintRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(QSize, frameSize);
     QFETCH(QRect, viewport);
     QFETCH(QSize, pixelAspectRatio);
@@ -919,6 +958,9 @@ void tst_QVideoWidget::fullScreenWindowControl()
     QCOMPARE(spy.count(), 4);
     widget.showNormal();
     QTest::qWaitForWindowShown(&widget);
+#ifdef Q_OS_MAC
+    QEXPECT_FAIL("", "QTBUG-25310 - Fails on Mac", Abort);
+#endif
     QCOMPARE(object.testService->windowControl->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
@@ -949,6 +991,10 @@ void tst_QVideoWidget::fullScreenWindowControl()
 
 void tst_QVideoWidget::fullScreenWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject object(0, new QtTestWidgetControl, 0);
     QVideoWidget widget;
     object.bind(&widget);
@@ -1031,6 +1077,10 @@ void tst_QVideoWidget::fullScreenWidgetControl()
 
 void tst_QVideoWidget::fullScreenRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QtTestVideoObject object(0, 0, new QtTestRendererControl);
     QVideoWidget widget;
     object.bind(&widget);
@@ -1162,6 +1212,10 @@ void tst_QVideoWidget::brightnessWindowControl()
 
 void tst_QVideoWidget::brightnessWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, controlValue);
     QFETCH(int, value);
     QFETCH(int, expectedValue);
@@ -1199,6 +1253,10 @@ void tst_QVideoWidget::brightnessWidgetControl()
 
 void tst_QVideoWidget::brightnessRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
@@ -1262,6 +1320,10 @@ void tst_QVideoWidget::contrastWindowControl()
 
 void tst_QVideoWidget::contrastWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, controlValue);
     QFETCH(int, value);
     QFETCH(int, expectedValue);
@@ -1299,6 +1361,10 @@ void tst_QVideoWidget::contrastWidgetControl()
 
 void tst_QVideoWidget::contrastRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
@@ -1361,6 +1427,10 @@ void tst_QVideoWidget::hueWindowControl()
 
 void tst_QVideoWidget::hueWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, controlValue);
     QFETCH(int, value);
     QFETCH(int, expectedValue);
@@ -1398,6 +1468,10 @@ void tst_QVideoWidget::hueWidgetControl()
 
 void tst_QVideoWidget::hueRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
@@ -1459,6 +1533,10 @@ void tst_QVideoWidget::saturationWindowControl()
 
 void tst_QVideoWidget::saturationWidgetControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, controlValue);
     QFETCH(int, value);
     QFETCH(int, expectedValue);
@@ -1497,6 +1575,10 @@ void tst_QVideoWidget::saturationWidgetControl()
 
 void tst_QVideoWidget::saturationRendererControl()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-26481 - Crashes on Mac");
+#endif
+
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
