@@ -3,6 +3,8 @@ TARGET = audiorecorder
 
 QT += multimedia
 
+win32:INCLUDEPATH += $$PWD
+
 HEADERS = \
     audiorecorder.h \
     qaudiolevel.h
