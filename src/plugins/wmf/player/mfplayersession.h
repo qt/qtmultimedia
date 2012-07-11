@@ -54,6 +54,7 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qwaitcondition.h>
+#include <QtMultimedia/qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
 class QMediaContent;
@@ -70,6 +71,8 @@ class MFVideoRendererControl;
 class MFPlayerControl;
 class MFMetaDataControl;
 class MFPlayerService;
+class AudioSampleGrabberCallback;
+class MFAudioProbeControl;
 
 class MFPlayerSession : public QObject, public IMFAsyncCallback
 {
@@ -114,6 +117,9 @@ public:
     void changeStatus(QMediaPlayer::MediaStatus newStatus);
 
     void close();
+
+    void addProbe(MFAudioProbeControl* probe);
+    void removeProbe(MFAudioProbeControl* probe);
 
 Q_SIGNALS:
     void error(QMediaPlayer::Error error, QString errorString, bool isFatal);
@@ -211,6 +217,12 @@ private:
     IMFTopologyNode* addSourceNode(IMFTopology* topology, IMFMediaSource* source,
         IMFPresentationDescriptor* presentationDesc, IMFStreamDescriptor *streamDesc);
     IMFTopologyNode* addOutputNode(IMFStreamDescriptor *streamDesc, MediaType& mediaType, IMFTopology* topology, DWORD sinkID);
+
+    bool addAudioSampleGrabberNode(IMFTopology* topology);
+    bool setupAudioSampleGrabber(IMFTopology *topology, IMFTopologyNode *sourceNode, IMFTopologyNode *outputNode);
+    QAudioFormat audioFormatForMFMediaType(IMFMediaType *mediaType) const;
+    AudioSampleGrabberCallback *m_audioSampleGrabber;
+    IMFTopologyNode *m_audioSampleGrabberNode;
 };
 
 

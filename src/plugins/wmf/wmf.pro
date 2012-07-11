@@ -18,12 +18,14 @@ INCLUDEPATH += .
 HEADERS += \
     wmfserviceplugin.h \
     mfstream.h \
-    sourceresolver.h
+    sourceresolver.h \
+    samplegrabber.h
 
 SOURCES += \
     wmfserviceplugin.cpp \
     mfstream.cpp \
-    sourceresolver.cpp
+    sourceresolver.cpp \
+    samplegrabber.cpp
 
 include (player/player.pri)
 include (decoder/decoder.pri)

@@ -63,6 +63,7 @@
 #include <Mferror.h>
 #include <nserror.h>
 #include "sourceresolver.h"
+#include "samplegrabber.h"
 
 //#define DEBUG_MEDIAFOUNDATION
 //#define TEST_STREAMING
@@ -416,6 +417,8 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_scrubbing(false)
     , m_restoreRate(1)
     , m_mediaTypes(0)
+    , m_audioSampleGrabber(0)
+    , m_audioSampleGrabberNode(0)
 {
     m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     m_sourceResolver = new SourceResolver();
@@ -437,6 +440,8 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     PropVariantInit(&m_varStart);
     m_varStart.vt = VT_I8;
     m_varStart.uhVal.QuadPart = 0;
+
+    m_audioSampleGrabber = new AudioSampleGrabberCallback;
 }
 
 void MFPlayerSession::close()
@@ -470,8 +475,19 @@ void MFPlayerSession::close()
     CloseHandle(m_hCloseEvent);
 }
 
+void MFPlayerSession::addProbe(MFAudioProbeControl *probe)
+{
+    m_audioSampleGrabber->addProbe(probe);
+}
+
+void MFPlayerSession::removeProbe(MFAudioProbeControl *probe)
+{
+    m_audioSampleGrabber->removeProbe(probe);
+}
+
 MFPlayerSession::~MFPlayerSession()
 {
+    m_audioSampleGrabber->Release();
 }
 
 
@@ -579,7 +595,12 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
             if (sourceNode) {
                 IMFTopologyNode *outputNode = addOutputNode(streamDesc, mediaType, topology, 0);
                 if (outputNode) {
-                    hr = sourceNode->ConnectOutput(0, outputNode, 0);
+                    // Only install audio sample grabber for the first audio stream.
+                    if (mediaType != Audio || m_audioSampleGrabberNode || !setupAudioSampleGrabber(topology, sourceNode, outputNode)) {
+                        hr = sourceNode->ConnectOutput(0, outputNode, 0);
+                    } else {
+                        hr = S_OK;
+                    }
                     if (FAILED(hr)) {
                         emit error(QMediaPlayer::FormatError, tr("Unable to play some stream"), false);
                     }
@@ -687,6 +708,133 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
     }
     node->Release();
     return NULL;
+}
+
+bool MFPlayerSession::addAudioSampleGrabberNode(IMFTopology *topology)
+{
+    HRESULT hr = S_OK;
+    IMFMediaType *pType = 0;
+    IMFActivate *sinkActivate = 0;
+    do {
+        hr = MFCreateMediaType(&pType);
+        if (FAILED(hr))
+            break;
+
+        hr = pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+        if (FAILED(hr))
+            break;
+
+        hr = pType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+        if (FAILED(hr))
+            break;
+
+        hr = MFCreateSampleGrabberSinkActivate(pType, m_audioSampleGrabber, &sinkActivate);
+        if (FAILED(hr))
+            break;
+
+        // Note: Data is distorted if this attribute is enabled
+        hr = sinkActivate->SetUINT32(MF_SAMPLEGRABBERSINK_IGNORE_CLOCK, FALSE);
+        if (FAILED(hr))
+            break;
+
+        hr = MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &m_audioSampleGrabberNode);
+        if (FAILED(hr))
+            break;
+
+        hr = m_audioSampleGrabberNode->SetObject(sinkActivate);
+        if (FAILED(hr))
+            break;
+
+        hr = m_audioSampleGrabberNode->SetUINT32(MF_TOPONODE_STREAMID, 0); // Identifier of the stream sink.
+        if (FAILED(hr))
+            break;
+
+        hr = m_audioSampleGrabberNode->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+        if (FAILED(hr))
+            break;
+
+        hr = topology->AddNode(m_audioSampleGrabberNode);
+        if (FAILED(hr))
+            break;
+
+        pType->Release();
+        sinkActivate->Release();
+        return true;
+    } while (false);
+
+    if (pType)
+        pType->Release();
+    if (sinkActivate)
+        sinkActivate->Release();
+    if (m_audioSampleGrabberNode) {
+        m_audioSampleGrabberNode->Release();
+        m_audioSampleGrabberNode = NULL;
+    }
+    return false;
+}
+
+bool MFPlayerSession::setupAudioSampleGrabber(IMFTopology *topology, IMFTopologyNode *sourceNode, IMFTopologyNode *outputNode)
+{
+    if (!addAudioSampleGrabberNode(topology))
+        return false;
+
+    HRESULT hr = S_OK;
+    IMFTopologyNode *pTeeNode = NULL;
+
+    IMFMediaTypeHandler *typeHandler = NULL;
+    IMFMediaType *mediaType = NULL;
+    do {
+        hr = MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE, &pTeeNode);
+        if (FAILED(hr))
+            break;
+        hr = sourceNode->ConnectOutput(0, pTeeNode, 0);
+        if (FAILED(hr))
+            break;
+        hr = pTeeNode->ConnectOutput(0, outputNode, 0);
+        if (FAILED(hr))
+            break;
+        hr = pTeeNode->ConnectOutput(1, m_audioSampleGrabberNode, 0);
+        if (FAILED(hr))
+            break;
+    } while (false);
+
+    if (pTeeNode)
+        pTeeNode->Release();
+    if (mediaType)
+        mediaType->Release();
+    if (typeHandler)
+        typeHandler->Release();
+    return hr == S_OK;
+}
+
+QAudioFormat MFPlayerSession::audioFormatForMFMediaType(IMFMediaType *mediaType) const
+{
+    WAVEFORMATEX *wfx = 0;
+    UINT32 size;
+    HRESULT hr = MFCreateWaveFormatExFromMFMediaType(mediaType, &wfx, &size, MFWaveFormatExConvertFlag_Normal);
+    if (FAILED(hr))
+        return QAudioFormat();
+
+    if (size < sizeof(WAVEFORMATEX)) {
+        CoTaskMemFree(wfx);
+        return QAudioFormat();
+    }
+
+    if (wfx->wFormatTag != WAVE_FORMAT_PCM) {
+        CoTaskMemFree(wfx);
+        return QAudioFormat();
+    }
+
+    QAudioFormat format;
+    format.setSampleRate(wfx->nSamplesPerSec);
+    format.setChannelCount(wfx->nChannels);
+    format.setSampleSize(wfx->wBitsPerSample);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::SignedInt);
+
+    CoTaskMemFree(wfx);
+    return format;
 }
 
 void MFPlayerSession::stop(bool immediate)
@@ -1270,6 +1418,15 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         }
         break;
     case MESessionTopologySet: {
+            if (m_audioSampleGrabberNode) {
+                IMFMediaType *mediaType = 0;
+                hr = MFGetTopoNodeCurrentType(m_audioSampleGrabberNode, 0, FALSE, &mediaType);
+                if (SUCCEEDED(hr)) {
+                    m_audioSampleGrabber->setFormat(audioFormatForMFMediaType(mediaType));
+                    mediaType->Release();
+                }
+            }
+
             if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
                 m_volumeControl->SetMasterVolume(m_volume);
                 m_volumeControl->SetMute(m_muted);
@@ -1401,5 +1558,9 @@ void MFPlayerSession::clear()
     if (m_netsourceStatistics) {
         m_netsourceStatistics->Release();
         m_netsourceStatistics = NULL;
+    }
+    if (m_audioSampleGrabberNode) {
+        m_audioSampleGrabberNode->Release();
+        m_audioSampleGrabberNode = NULL;
     }
 }

@@ -10,7 +10,8 @@ HEADERS += \
     $$PWD/mfplayercontrol.h \
     $$PWD/mfvideorenderercontrol.h \
     $$PWD/mfaudioendpointcontrol.h \
-    $$PWD/mfmetadatacontrol.h
+    $$PWD/mfmetadatacontrol.h \
+    $$PWD/mfaudioprobecontrol.h
 
 SOURCES += \
     $$PWD/mfplayerservice.cpp \
@@ -18,7 +19,8 @@ SOURCES += \
     $$PWD/mfplayercontrol.cpp \
     $$PWD/mfvideorenderercontrol.cpp \
     $$PWD/mfaudioendpointcontrol.cpp \
-    $$PWD/mfmetadatacontrol.cpp
+    $$PWD/mfmetadatacontrol.cpp \
+    $$PWD/mfaudioprobecontrol.cpp
 
 !isEmpty(QT.widgets.name):!simulator {
     HEADERS += $$PWD/evr9videowindowcontrol.h
