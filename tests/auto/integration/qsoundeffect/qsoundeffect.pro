@@ -4,7 +4,7 @@ QT += core multimedia-private testlib
 CONFIG += no_private_qt_headers_warning
 
 # This is more of a system test
-CONFIG += testcase insignificant_test
+CONFIG += testcase
 
 SOURCES += tst_qsoundeffect.cpp
 
@@ -15,3 +15,5 @@ unix:!mac {
 }
 
 TESTDATA += test.wav
+
+win32: CONFIG += insignificant_test
