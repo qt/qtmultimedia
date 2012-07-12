@@ -55,7 +55,7 @@
 //TESTED_COMPONENT=src/multimedia
 
 #define AUDIO_BUFFER 192000
-#define RANGE_ERR 0.2
+#define RANGE_ERR 0.5
 
 template<typename T> inline bool qTolerantCompare(T value, T expected)
 {
@@ -577,8 +577,7 @@ void tst_QAudioInput::pullSuspendResume()
                 QString("processedUSecs() doesn't fall in acceptable range, should be 3040000 (%1)").arg(processedUs).toLocal8Bit().constData());
         QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
         QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
-        QVERIFY2((notifySignal.count() > 10 && notifySignal.count() < 50),
-                QString("notify() signals emitted (%1) should be 30").arg(notifySignal.count()).toLocal8Bit().constData());
+        QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
         WavHeader::writeDataLength(*audioFiles.at(i),audioFiles.at(i)->pos()-WavHeader::headerLength());
         audioFile->close();
@@ -660,8 +659,7 @@ void tst_QAudioInput::push()
                 QString("processedUSecs() doesn't fall in acceptable range, should be 2040000 (%1)").arg(processedUs).toLocal8Bit().constData());
         QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
         QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
-        QVERIFY2((notifySignal.count() > 20 && notifySignal.count() < 40),
-                QString("notify() signals emitted (%1) should be 30").arg(notifySignal.count()).toLocal8Bit().constData());
+        QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
         WavHeader::writeDataLength(*audioFiles.at(i),audioFiles.at(i)->pos()-WavHeader::headerLength());
         audioFiles.at(i)->close();

@@ -533,8 +533,7 @@ void tst_QAudioOutput::pull()
                 QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toLocal8Bit().constData());
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
-        QVERIFY2((notifySignal.count() > 15 && notifySignal.count() < 25),
-                QString("too many notify() signals emitted (%1)").arg(notifySignal.count()).toLocal8Bit().constData());
+        QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
         audioFile->close();
 
@@ -719,8 +718,7 @@ void tst_QAudioOutput::push()
                 QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toLocal8Bit().constData());
         QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
         QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
-        QVERIFY2((notifySignal.count() > 15 && notifySignal.count() < 25),
-                QString("too many notify() signals emitted (%1)").arg(notifySignal.count()).toLocal8Bit().constData());
+        QVERIFY2(notifySignal.count() > 0, "not emitting notify signal");
 
         audioFile->close();
 
@@ -732,6 +730,10 @@ void tst_QAudioOutput::push()
 
 void tst_QAudioOutput::pushSuspendResume()
 {
+#ifdef Q_OS_LINUX
+    if (m_inCISystem)
+        QSKIP("QTBUG-26504 Fails 20% of time with pulseaudio backend");
+#endif
     for(int i=0; i<audioFiles.count(); i++) {
         QAudioOutput audioOutput(testFormats.at(i), this);
 
@@ -812,7 +814,7 @@ void tst_QAudioOutput::pushSuspendResume()
 
         audioOutput.resume();
 
-        // Give backends running in separate threads a chance to suspend.
+        // Give backends running in separate threads a chance to resume.
         QTest::qWait(100);
 
         // Check that QAudioOutput immediately transitions to ActiveState
