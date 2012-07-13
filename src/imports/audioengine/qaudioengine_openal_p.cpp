@@ -327,7 +327,7 @@ void QAudioEnginePrivate::releaseSoundBuffer(QSoundBuffer *buffer)
 #ifdef DEBUG_AUDIOENGINE
     qDebug() << "QAudioEnginePrivate: recycle sound buffer";
 #endif
-    if (buffer->inherits("StaticSoundBufferOpenAL")) {
+    if (buffer->inherits("StaticSoundBufferAL")) {
         StaticSoundBufferAL *staticBuffer = static_cast<StaticSoundBufferAL*>(buffer);
         //decrement the reference count, still kept in memory for reuse
         staticBuffer->release();
