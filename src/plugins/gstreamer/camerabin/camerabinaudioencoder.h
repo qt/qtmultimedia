@@ -80,6 +80,7 @@ public:
     QAudioEncoderSettings audioSettings() const;
     void setAudioSettings(const QAudioEncoderSettings&);
 
+    QAudioEncoderSettings actualAudioSettings() const;
     void setActualAudioSettings(const QAudioEncoderSettings&);
     void resetActualSettings();
 
@@ -91,8 +92,8 @@ Q_SIGNALS:
 private:
     QGstCodecsInfo m_codecs;
 
+    QAudioEncoderSettings m_actualAudioSettings;
     QAudioEncoderSettings m_audioSettings;
-    QAudioEncoderSettings m_userSettings;
 };
 
 QT_END_NAMESPACE

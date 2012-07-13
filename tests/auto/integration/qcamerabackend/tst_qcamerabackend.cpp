@@ -602,10 +602,8 @@ void tst_QCameraBackend::testVideoRecording()
     camera->setCaptureMode(QCamera::CaptureVideo);
 
     QVideoEncoderSettings videoSettings;
-    videoSettings.setResolution(640, 480);
+    videoSettings.setResolution(320, 240);
     recorder.setVideoSettings(videoSettings);
-
-    recorder.setContainerFormat("ogg");
 
     QCOMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
 

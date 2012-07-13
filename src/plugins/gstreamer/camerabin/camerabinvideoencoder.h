@@ -78,6 +78,7 @@ public:
     QVideoEncoderSettings videoSettings() const;
     void setVideoSettings(const QVideoEncoderSettings &settings);
 
+    QVideoEncoderSettings actualVideoSettings() const;
     void setActualVideoSettings(const QVideoEncoderSettings&);
     void resetActualSettings();
 
@@ -91,8 +92,8 @@ private:
 
     QGstCodecsInfo m_codecs;
 
-    QVideoEncoderSettings m_videoSettings; // backend selected settings, using m_userSettings
-    QVideoEncoderSettings m_userSettings;
+    QVideoEncoderSettings m_actualVideoSettings;
+    QVideoEncoderSettings m_videoSettings;
 };
 
 QT_END_NAMESPACE

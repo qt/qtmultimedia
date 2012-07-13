@@ -338,7 +338,7 @@ void CameraBinSession::setupCaptureResolution()
     }
 
     if (m_captureMode == QCamera::CaptureVideo) {
-        QSize resolution = m_videoEncodeControl->videoSettings().resolution();
+        QSize resolution = m_videoEncodeControl->actualVideoSettings().resolution();
         //qreal framerate = m_videoEncodeControl->videoSettings().frameRate();
 
         if (resolution.isEmpty()) {
@@ -644,12 +644,16 @@ void CameraBinSession::setState(QCamera::State newState)
             GstState pending = GST_STATE_NULL;
             gst_element_get_state(m_camerabin, &binState, &pending, 0);
 
-            setupCaptureResolution();
-            if (captureMode() == QCamera::CaptureVideo)
+            if (captureMode() == QCamera::CaptureVideo) {
+                m_recorderControl->applySettings();
+
                 g_object_set (G_OBJECT(m_camerabin),
                               "video-profile",
                               m_recorderControl->videoProfile(),
                               NULL);
+            }
+
+            setupCaptureResolution();
 
             gst_element_set_state(m_camerabin, GST_STATE_PLAYING);
         }
@@ -947,7 +951,7 @@ void CameraBinSession::recordVideo()
     m_recordingActive = true;
     m_actualSink = m_sink;
     if (m_actualSink.isEmpty()) {
-        QString ext = m_mediaContainerControl->suggestedFileExtension(m_mediaContainerControl->containerFormat());
+        QString ext = m_mediaContainerControl->suggestedFileExtension(m_mediaContainerControl->actualContainerFormat());
         m_actualSink = QUrl::fromLocalFile(generateFileName("clip_", defaultDir(QCamera::CaptureVideo), ext));
     } else if (!m_actualSink.isLocalFile()) {
         m_actualSink = QUrl::fromLocalFile(m_actualSink.toEncoded());

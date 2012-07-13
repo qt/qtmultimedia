@@ -79,24 +79,40 @@ void CameraBinContainer::setContainerFormat(const QString &format)
 {
     if (m_format != format) {
         m_format = format;
+        m_actualFormat = format;
         emit settingsChanged();
     }
+}
+
+QString CameraBinContainer::actualContainerFormat() const
+{
+    return m_actualFormat;
+}
+
+void CameraBinContainer::setActualContainerFormat(const QString &containerFormat)
+{
+    m_actualFormat = containerFormat;
+}
+
+void CameraBinContainer::resetActualContainerFormat()
+{
+    m_actualFormat = m_format;
 }
 
 GstEncodingContainerProfile *CameraBinContainer::createProfile()
 {
     GstCaps *caps;
 
-    if (m_format.isEmpty()) {
+    if (m_actualFormat.isEmpty()) {
         caps = gst_caps_new_any();
     } else {
-        QString format = m_format;
+        QString format = m_actualFormat;
         QStringList supportedFormats = m_supportedContainers.supportedCodecs();
 
         //if format is not in the list of supported gstreamer mime types,
         //try to find the mime type with matching extension
         if (!supportedFormats.contains(format)) {
-            QString extension = suggestedFileExtension(m_format);
+            QString extension = suggestedFileExtension(m_actualFormat);
             foreach (const QString &formatCandidate, supportedFormats) {
                 if (suggestedFileExtension(formatCandidate) == extension) {
                     format = formatCandidate;

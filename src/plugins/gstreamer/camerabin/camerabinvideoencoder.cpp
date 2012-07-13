@@ -103,19 +103,26 @@ QVideoEncoderSettings CameraBinVideoEncoder::videoSettings() const
 
 void CameraBinVideoEncoder::setVideoSettings(const QVideoEncoderSettings &settings)
 {
-    m_videoSettings = settings;
-    m_userSettings = settings;
-    emit settingsChanged();
+    if (m_videoSettings != settings) {
+        m_actualVideoSettings = settings;
+        m_videoSettings = settings;
+        emit settingsChanged();
+    }
+}
+
+QVideoEncoderSettings CameraBinVideoEncoder::actualVideoSettings() const
+{
+    return m_actualVideoSettings;
 }
 
 void CameraBinVideoEncoder::setActualVideoSettings(const QVideoEncoderSettings &settings)
 {
-    m_videoSettings = settings;
+    m_actualVideoSettings = settings;
 }
 
 void CameraBinVideoEncoder::resetActualSettings()
 {
-    m_videoSettings = m_userSettings;
+    m_actualVideoSettings = m_videoSettings;
 }
 
 
@@ -152,7 +159,7 @@ QPair<int,int> CameraBinVideoEncoder::rateAsRational(qreal frameRate) const
 
 GstEncodingProfile *CameraBinVideoEncoder::createProfile()
 {
-    QString codec = m_videoSettings.codec();
+    QString codec = m_actualVideoSettings.codec();
     GstCaps *caps;
 
     if (codec.isEmpty())

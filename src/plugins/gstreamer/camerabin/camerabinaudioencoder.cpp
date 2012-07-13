@@ -81,24 +81,31 @@ QAudioEncoderSettings CameraBinAudioEncoder::audioSettings() const
 
 void CameraBinAudioEncoder::setAudioSettings(const QAudioEncoderSettings &settings)
 {
-    m_userSettings = settings;
-    m_audioSettings = settings;
-    emit settingsChanged();
+    if (m_audioSettings != settings) {
+        m_audioSettings = settings;
+        m_actualAudioSettings = settings;
+        emit settingsChanged();
+    }
+}
+
+QAudioEncoderSettings CameraBinAudioEncoder::actualAudioSettings() const
+{
+    return m_actualAudioSettings;
 }
 
 void CameraBinAudioEncoder::setActualAudioSettings(const QAudioEncoderSettings &settings)
 {
-    m_audioSettings = settings;
+    m_actualAudioSettings = settings;
 }
 
 void CameraBinAudioEncoder::resetActualSettings()
 {
-    m_audioSettings = m_userSettings;
+    m_actualAudioSettings = m_audioSettings;
 }
 
 GstEncodingProfile *CameraBinAudioEncoder::createProfile()
 {
-    QString codec = m_audioSettings.codec();
+    QString codec = m_actualAudioSettings.codec();
     GstCaps *caps;
 
     if (codec.isEmpty())

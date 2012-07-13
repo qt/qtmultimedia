@@ -68,6 +68,10 @@ public:
     virtual QString containerFormat() const;
     virtual void setContainerFormat(const QString &format);
 
+    QString actualContainerFormat() const;
+    void setActualContainerFormat(const QString &containerFormat);
+    void resetActualContainerFormat();
+
     QString suggestedFileExtension(const QString &containerFormat) const;
 
     GstEncodingContainerProfile *createProfile();
@@ -76,7 +80,8 @@ Q_SIGNALS:
     void settingsChanged();
 
 private:
-    QString m_format; // backend selected format, using m_userFormat
+    QString m_format;
+    QString m_actualFormat;
     QMap<QString, QString> m_fileExtensions;
 
     QGstCodecsInfo m_supportedContainers;
