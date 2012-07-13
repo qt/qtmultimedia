@@ -199,7 +199,7 @@ Rectangle {
                     }
                     width: view1.currentItem == null ? 0 : view1.currentItem.width
                 }
-                highlightMoveSpeed: 1000
+                highlightMoveVelocity: 1000
                 pressDelay: 100
                 focus: true
                 state: "current"
@@ -249,7 +249,7 @@ Rectangle {
                     }
                     width: view1.currentItem == null ? 0 : view1.currentItem.width
                 }
-                highlightMoveSpeed: 1000
+                highlightMoveVelocity: 1000
                 pressDelay: 100
                 states: [
                     State {
