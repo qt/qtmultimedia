@@ -545,6 +545,10 @@ void tst_QAudioOutput::pull()
 
 void tst_QAudioOutput::pullSuspendResume()
 {
+#ifdef Q_OS_LINUX
+    if (m_inCISystem)
+        QSKIP("QTBUG-26504 Fails 20% of time with pulseaudio backend");
+#endif
     for(int i=0; i<audioFiles.count(); i++) {
         QAudioOutput audioOutput(testFormats.at(i), this);
 
