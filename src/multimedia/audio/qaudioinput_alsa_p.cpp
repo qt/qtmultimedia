@@ -280,9 +280,9 @@ bool QAudioInputPrivate::open()
     unsigned int sampleRate=settings.sampleRate();
 
     if (!settings.isValid()) {
-        qWarning("QAudioOutput: open error, invalid format.");
+        qWarning("QAudioInput: open error, invalid format.");
     } else if (settings.sampleRate() <= 0) {
-        qWarning("QAudioOutput: open error, invalid sample rate (%d).",
+        qWarning("QAudioInput: open error, invalid sample rate (%d).",
                  settings.sampleRate());
     } else {
         err = -1;
