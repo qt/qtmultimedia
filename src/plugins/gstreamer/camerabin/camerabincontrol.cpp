@@ -62,6 +62,8 @@
 #include <sys/mman.h>
 #include <linux/videodev2.h>
 
+QT_BEGIN_NAMESPACE
+
 //#define CAMEABIN_DEBUG 1
 #define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
 
@@ -113,6 +115,10 @@ void CameraBinControl::setCaptureMode(QCamera::CaptureModes mode)
                         captureMode() == QCamera::CaptureStillImage ?
                             CamerabinResourcePolicy::ImageCaptureResources :
                             CamerabinResourcePolicy::VideoCaptureResources);
+
+            //due to bug in v4l2src, it's necessary to reload camera on video caps changes
+            //https://bugzilla.gnome.org/show_bug.cgi?id=649832
+            reloadLater();
         }
         emit captureModeChanged(mode);
     }
@@ -339,3 +345,5 @@ void CameraBinControl::setViewfinderColorSpaceConversion(bool enabled)
 
     g_object_set(G_OBJECT(m_session->cameraBin()), "flags", flags, NULL);
 }
+
+QT_END_NAMESPACE

@@ -47,12 +47,18 @@
 
 #include <gst/pbutils/encoding-profile.h>
 
+QT_BEGIN_NAMESPACE
+
 CameraBinRecorder::CameraBinRecorder(CameraBinSession *session)
     :QMediaRecorderControl(session),
      m_session(session),
-     m_state(QMediaRecorder::StoppedState)
+     m_state(QMediaRecorder::StoppedState),
+     m_status(QMediaRecorder::UnloadedStatus)
 {
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
+    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
+    connect(m_session, SIGNAL(pendingStateChanged(QCamera::State)), SLOT(updateStatus()));
+    connect(m_session, SIGNAL(busyChanged(bool)), SLOT(updateStatus()));
+
     connect(m_session, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
 }
@@ -77,13 +83,43 @@ QMediaRecorder::State CameraBinRecorder::state() const
     return m_state;
 }
 
-void CameraBinRecorder::updateState()
+QMediaRecorder::Status CameraBinRecorder::status() const
 {
-    if (m_session->state() != QCamera::ActiveState &&
-            m_state != QMediaRecorder::StoppedState) {
-        m_session->stopVideoRecording();
-        emit stateChanged(m_state = QMediaRecorder::StoppedState);
+    return m_status;
+}
+
+void CameraBinRecorder::updateStatus()
+{
+    QCamera::State sessionState = m_session->state();
+
+    QMediaRecorder::State oldState = m_state;
+    QMediaRecorder::Status oldStatus = m_status;
+
+    if (sessionState == QCamera::ActiveState &&
+            m_session->captureMode().testFlag(QCamera::CaptureVideo)) {
+
+        if (m_state == QMediaRecorder::RecordingState) {
+            m_status = QMediaRecorder::RecordingStatus;
+        } else {
+            m_status = m_session->isBusy() ?
+                        QMediaRecorder::FinalizingStatus :
+                        QMediaRecorder::LoadedStatus;
+        }
+    } else {
+        if (m_state == QMediaRecorder::RecordingState) {
+            m_state = QMediaRecorder::StoppedState;
+            m_session->stopVideoRecording();
+        }
+        m_status = m_session->pendingState() == QCamera::ActiveState ?
+                    QMediaRecorder::LoadingStatus :
+                    QMediaRecorder::UnloadedStatus;
     }
+
+    if (m_state != oldState)
+        emit stateChanged(m_state);
+
+    if (m_status != oldStatus)
+        emit statusChanged(m_status);
 }
 
 qint64 CameraBinRecorder::duration() const
@@ -91,29 +127,13 @@ qint64 CameraBinRecorder::duration() const
     return m_session->duration();
 }
 
-void CameraBinRecorder::record()
-{
-    if (m_session->state() == QCamera::ActiveState) {
-        m_session->recordVideo();
-        emit stateChanged(m_state = QMediaRecorder::RecordingState);
-    } else
-        emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
-}
-
-void CameraBinRecorder::pause()
-{
-    emit error(QMediaRecorder::ResourceError, tr("QMediaRecorder::pause() is not supported by camerabin2."));
-}
-
-void CameraBinRecorder::stop()
-{
-    if (m_session->state() == QCamera::ActiveState) {
-        m_session->stopVideoRecording();
-        emit stateChanged(m_state = QMediaRecorder::StoppedState);
-    }
-}
 
 void CameraBinRecorder::applySettings()
+{
+    //settings are applied during camera startup
+}
+
+GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
 {
     GstEncodingContainerProfile *containerProfile = m_session->mediaContainerControl()->createProfile();
 
@@ -125,7 +145,42 @@ void CameraBinRecorder::applySettings()
         gst_encoding_container_profile_add_profile(containerProfile, videoProfile);
     }
 
-    g_object_set (G_OBJECT(m_session->cameraBin()), "video-profile", containerProfile, NULL);
+    return containerProfile;
+}
+
+void CameraBinRecorder::setState(QMediaRecorder::State state)
+{
+    if (m_state == state)
+        return;
+
+    QMediaRecorder::State oldState = m_state;
+    QMediaRecorder::Status oldStatus = m_status;
+
+    switch (state) {
+    case QMediaRecorder::StoppedState:
+        m_state = state;
+        m_status = QMediaRecorder::FinalizingStatus;
+        m_session->stopVideoRecording();
+        break;
+    case QMediaRecorder::PausedState:
+        emit error(QMediaRecorder::ResourceError, tr("QMediaRecorder::pause() is not supported by camerabin2."));
+        break;
+    case QMediaRecorder::RecordingState:
+        if (m_session->state() == QCamera::ActiveState) {
+            m_session->recordVideo();
+            m_state = state;
+            m_status = QMediaRecorder::RecordingStatus;
+            emit actualLocationChanged(m_session->outputLocation());
+        } else {
+            emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
+        }
+    }
+
+    if (m_state != oldState)
+        emit stateChanged(m_state);
+
+    if (m_status != oldStatus)
+        emit statusChanged(m_status);
 }
 
 bool CameraBinRecorder::isMuted() const
@@ -137,3 +192,5 @@ void CameraBinRecorder::setMuted(bool muted)
 {
     m_session->setMuted(muted);
 }
+
+QT_END_NAMESPACE

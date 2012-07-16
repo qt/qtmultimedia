@@ -45,6 +45,8 @@
 
 #include <QtCore/qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 CameraBinVideoEncoder::CameraBinVideoEncoder(CameraBinSession *session)
     :QVideoEncoderSettingsControl(session),
      m_session(session),
@@ -164,3 +166,5 @@ GstEncodingProfile *CameraBinVideoEncoder::createProfile()
                 NULL, //restriction
                 0); //presence
 }
+
+QT_END_NAMESPACE

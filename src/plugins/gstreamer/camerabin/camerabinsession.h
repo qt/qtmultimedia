@@ -48,11 +48,14 @@
 #include <QtCore/qdir.h>
 
 #include <gst/gst.h>
+#ifdef HAVE_GST_PHOTOGRAPHY
 #include <gst/interfaces/photography.h>
+#endif
 
 #include <private/qgstreamerbushelper_p.h>
 #include "qcamera.h"
 
+QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
@@ -76,6 +79,7 @@ public:
     virtual GstElement *buildElement() = 0;
 };
 
+
 class CameraBinSession : public QObject,
                          public QGstreamerBusMessageFilter,
                          public QGstreamerSyncMessageFilter
@@ -92,7 +96,9 @@ public:
     CameraBinSession(QObject *parent);
     ~CameraBinSession();
 
+#ifdef HAVE_GST_PHOTOGRAPHY
     GstPhotography *photography();
+#endif
     GstElement *cameraBin() { return m_camerabin; }
     QGstreamerBusHelper *bus() { return m_busHelper; }
 
@@ -113,11 +119,15 @@ public:
     CameraBinAudioEncoder *audioEncodeControl() const { return m_audioEncodeControl; }
     CameraBinVideoEncoder *videoEncodeControl() const { return m_videoEncodeControl; }
     CameraBinImageEncoder *imageEncodeControl() const { return m_imageEncodeControl; }
+
+#ifdef HAVE_GST_PHOTOGRAPHY
     CameraBinExposure *cameraExposureControl() const  { return m_cameraExposureControl; }
     CameraBinFlash *cameraFlashControl() const  { return m_cameraFlashControl; }
     CameraBinFocus *cameraFocusControl() const  { return m_cameraFocusControl; }
-    CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
     CameraBinLocks *cameraLocksControl() const { return m_cameraLocksControl; }
+#endif
+
+    CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
     CameraBinCaptureDestination *captureDestinationControl() const { return m_captureDestinationControl; }
     CameraBinCaptureBufferFormat *captureBufferFormatControl() const { return m_captureBufferFormatControl; }
 
@@ -138,6 +148,7 @@ public:
     void captureImage(int requestId, const QString &fileName);
 
     QCamera::State state() const;
+    QCamera::State pendingState() const;
     bool isBusy() const;
 
     qint64 duration() const;
@@ -152,6 +163,7 @@ public:
 
 signals:
     void stateChanged(QCamera::State state);
+    void pendingStateChanged(QCamera::State state);
     void durationChanged(qint64 duration);
     void error(int error, const QString &errorString);
     void imageExposed(int requestId);
@@ -184,7 +196,6 @@ private:
     QCamera::State m_state;
     QCamera::State m_pendingState;
     QString m_inputDevice;
-    bool m_pendingResolutionUpdate;
     bool m_muted;
     bool m_busy;
 
@@ -201,11 +212,14 @@ private:
     CameraBinImageEncoder *m_imageEncodeControl;
     CameraBinRecorder *m_recorderControl;
     CameraBinContainer *m_mediaContainerControl;
+#ifdef HAVE_GST_PHOTOGRAPHY
     CameraBinExposure *m_cameraExposureControl;
     CameraBinFlash *m_cameraFlashControl;
     CameraBinFocus *m_cameraFocusControl;
-    CameraBinImageProcessing *m_imageProcessingControl;
     CameraBinLocks *m_cameraLocksControl;
+#endif
+
+    CameraBinImageProcessing *m_imageProcessingControl;
     CameraBinCaptureDestination *m_captureDestinationControl;
     CameraBinCaptureBufferFormat *m_captureBufferFormatControl;
 
@@ -228,5 +242,7 @@ public:
     QString m_imageFileName;
     int m_requestId;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINCAPTURESESSION_MAEMO_H

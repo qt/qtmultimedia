@@ -48,6 +48,8 @@
 #include <gst/gst.h>
 #include <glib.h>
 
+QT_BEGIN_NAMESPACE
+
 class CameraBinSession;
 
 QT_USE_NAMESPACE
@@ -68,5 +70,7 @@ private:
     CameraBinSession *m_session;
     QVideoFrame::PixelFormat m_format;
 };
+
+QT_END_NAMESPACE
 
 #endif

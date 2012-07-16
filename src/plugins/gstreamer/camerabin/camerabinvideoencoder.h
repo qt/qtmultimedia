@@ -43,7 +43,6 @@
 #define CAMERABINVIDEOENCODE_H
 
 #include <qvideoencodersettingscontrol.h>
-class CameraBinSession;
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
@@ -52,9 +51,11 @@ class CameraBinSession;
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 #include <gst/pbutils/encoding-profile.h>
-#include "qgstcodecsinfo.h"
+#include <private/qgstcodecsinfo_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
+
+class CameraBinSession;
 
 class CameraBinVideoEncoder : public QVideoEncoderSettingsControl
 {
@@ -93,5 +94,7 @@ private:
     QVideoEncoderSettings m_videoSettings; // backend selected settings, using m_userSettings
     QVideoEncoderSettings m_userSettings;
 };
+
+QT_END_NAMESPACE
 
 #endif

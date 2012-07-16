@@ -51,6 +51,8 @@
 #include <policy/resource-set.h>
 #endif
 
+QT_BEGIN_NAMESPACE
+
 CamerabinResourcePolicy::CamerabinResourcePolicy(QObject *parent) :
     QObject(parent),
     m_resourceSet(NoResources),
@@ -182,3 +184,5 @@ void CamerabinResourcePolicy::handleResourcesReleased()
     m_releasingResources = false;
 #endif
 }
+
+QT_END_NAMESPACE

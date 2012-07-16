@@ -44,6 +44,8 @@
 
 #include <QtCore/qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 CameraBinContainer::CameraBinContainer(QObject *parent)
     :QMediaContainerControl(parent),
       m_supportedContainers(QGstCodecsInfo::Muxer)
@@ -68,39 +70,43 @@ QString CameraBinContainer::containerDescription(const QString &formatMimeType) 
     return m_supportedContainers.codecDescription(formatMimeType);
 }
 
-QString CameraBinContainer::containerMimeType() const
+QString CameraBinContainer::containerFormat() const
 {
     return m_format;
 }
 
-void CameraBinContainer::setContainerMimeType(const QString &formatMimeType)
+void CameraBinContainer::setContainerFormat(const QString &format)
 {
-    m_format = formatMimeType;
-
-    if (m_userFormat != formatMimeType) {
-        m_userFormat = formatMimeType;
+    if (m_format != format) {
+        m_format = format;
         emit settingsChanged();
     }
-}
-
-void CameraBinContainer::setActualContainer(const QString &formatMimeType)
-{
-    m_format = formatMimeType;
-}
-
-void CameraBinContainer::resetActualContainer()
-{
-    m_format = m_userFormat;
 }
 
 GstEncodingContainerProfile *CameraBinContainer::createProfile()
 {
     GstCaps *caps;
 
-    if (m_format.isEmpty())
+    if (m_format.isEmpty()) {
         caps = gst_caps_new_any();
-    else
-        caps = gst_caps_from_string(m_format.toLatin1());
+    } else {
+        QString format = m_format;
+        QStringList supportedFormats = m_supportedContainers.supportedCodecs();
+
+        //if format is not in the list of supported gstreamer mime types,
+        //try to find the mime type with matching extension
+        if (!supportedFormats.contains(format)) {
+            QString extension = suggestedFileExtension(m_format);
+            foreach (const QString &formatCandidate, supportedFormats) {
+                if (suggestedFileExtension(formatCandidate) == extension) {
+                    format = formatCandidate;
+                    break;
+                }
+            }
+        }
+
+        caps = gst_caps_from_string(format.toLatin1());
+    }
 
     return (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
                                         "camerabin2_profile",
@@ -112,9 +118,13 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
 /*!
   Suggest file extension for current container mimetype.
  */
-QString CameraBinContainer::suggestedFileExtension() const
+QString CameraBinContainer::suggestedFileExtension(const QString &containerFormat) const
 {
-    QString format = m_format.left(m_format.indexOf(','));
+    //for container names like avi instead of video/x-msvideo, use it as extension
+    if (!containerFormat.contains('/'))
+        return containerFormat;
+
+    QString format = containerFormat.left(containerFormat.indexOf(','));
     QString extension = m_fileExtensions.value(format);
 
     if (!extension.isEmpty() || format.isEmpty())
@@ -127,3 +137,5 @@ QString CameraBinContainer::suggestedFileExtension() const
 
     return extension;
 }
+
+QT_END_NAMESPACE

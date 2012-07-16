@@ -41,9 +41,11 @@
 
 #include "camerabinaudioencoder.h"
 #include "camerabincontainer.h"
-#include "qgstcodecsinfo.h"
+#include <private/qgstcodecsinfo_p.h>
 
 #include <QtCore/qdebug.h>
+
+QT_BEGIN_NAMESPACE
 
 CameraBinAudioEncoder::CameraBinAudioEncoder(QObject *parent)
     :QAudioEncoderSettingsControl(parent),
@@ -110,3 +112,5 @@ GstEncodingProfile *CameraBinAudioEncoder::createProfile()
                                         NULL, //restriction
                                         0); //presence
 }
+
+QT_END_NAMESPACE

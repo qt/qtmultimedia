@@ -48,9 +48,9 @@
 #include <gst/gst.h>
 #include <glib.h>
 
-class CameraBinSession;
+QT_BEGIN_NAMESPACE
 
-QT_USE_NAMESPACE
+class CameraBinSession;
 
 class Q_MULTIMEDIA_EXPORT CameraBinExposure : public QCameraExposureControl
 {
@@ -79,5 +79,7 @@ public:
 private:
     CameraBinSession *m_session;    
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINEXPOSURECONTROL_MAEMO_H

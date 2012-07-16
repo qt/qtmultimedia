@@ -45,6 +45,7 @@
 #include <qcameraimagecapture.h>
 #include <qcameracapturedestinationcontrol.h>
 
+QT_BEGIN_NAMESPACE
 
 class CameraBinSession;
 
@@ -65,5 +66,7 @@ private:
     CameraBinSession *m_session;
     QCameraImageCapture::CaptureDestinations m_destination;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINFLASHCONTROL_H

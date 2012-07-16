@@ -40,46 +40,40 @@
 ****************************************************************************/
 
 
-#ifndef CAMERABINIMAGECAPTURECONTROL_H
-#define CAMERABINIMAGECAPTURECONTROL_H
+#ifndef CAMERABINSERVICEPLUGIN_H
+#define CAMERABINSERVICEPLUGIN_H
 
-#include <qcameraimagecapturecontrol.h>
-#include "camerabinsession.h"
+#include <qmediaserviceproviderplugin.h>
+#include <QtCore/QObject>
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinImageCapture : public QCameraImageCaptureControl, public QGstreamerBusMessageFilter
+class CameraBinServicePlugin
+    : public QMediaServiceProviderPlugin
+    , public QMediaServiceSupportedDevicesInterface
+    , public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerBusMessageFilter)
+    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_INTERFACES(QMediaServiceFeaturesInterface)
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "camerabin.json")
 public:
-    CameraBinImageCapture(CameraBinSession *session);
-    virtual ~CameraBinImageCapture();
+    QMediaService* create(QString const& key);
+    void release(QMediaService *service);
 
-    QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode) {}
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
 
-    bool isReadyForCapture() const;
-    int capture(const QString &fileName);
-    void cancelCapture();
-
-    bool processBusMessage(const QGstreamerMessage &message);
-
-private slots:
-    void updateState();
+    QList<QByteArray> devices(const QByteArray &service) const;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device);
+    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
 
 private:
-    static gboolean metadataEventProbe(GstPad *pad, GstEvent *event, CameraBinImageCapture *);
-    static gboolean uncompressedBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *);
-    static gboolean jpegBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *);
+    void updateDevices() const;
 
-    CameraBinSession *m_session;
-    bool m_ready;
-    int m_requestId;
-    GstElement *m_jpegEncoderElement;
-    GstElement *m_metadataMuxerElement;
+    mutable QList<QByteArray> m_cameraDevices;
+    mutable QStringList m_cameraDescriptions;
 };
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINCAPTURECORNTROL_H
+#endif // QGSTREAMERCAPTURESERVICEPLUGIN_H

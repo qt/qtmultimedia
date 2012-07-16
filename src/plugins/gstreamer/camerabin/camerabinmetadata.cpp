@@ -44,6 +44,8 @@
 #include <gst/gst.h>
 #include <gst/gstversion.h>
 
+QT_BEGIN_NAMESPACE
+
 struct QGstreamerMetaDataKeyLookup
 {
     QString key;
@@ -175,3 +177,5 @@ QStringList CameraBinMetaData::availableMetaData() const
 
     return res;
 }
+
+QT_END_NAMESPACE

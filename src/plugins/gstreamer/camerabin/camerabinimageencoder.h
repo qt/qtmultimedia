@@ -42,15 +42,15 @@
 #ifndef CAMERABINIMAGEENCODE_H
 #define CAMERABINIMAGEENCODE_H
 
-class CameraBinSession;
-
 #include <qimageencodercontrol.h>
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
 
 #include <gst/gst.h>
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
+
+class CameraBinSession;
 
 class CameraBinImageEncoder : public QImageEncoderControl
 {
@@ -82,5 +82,7 @@ private:
     QMap<QString,QString> m_codecDescriptions;
     QMap<QString,QStringList> m_codecOptions;
 };
+
+QT_END_NAMESPACE
 
 #endif

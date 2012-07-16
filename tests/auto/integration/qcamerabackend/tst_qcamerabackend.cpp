@@ -91,6 +91,9 @@ private slots:
     void testCameraCaptureMetadata();
     void testExposureCompensation();
     void testExposureMode();
+
+    void testVideoRecording_data();
+    void testVideoRecording();
 private:
 };
 
@@ -563,6 +566,81 @@ void tst_QCameraBackend::testExposureMode()
     camera.start();
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
     QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureAuto);
+}
+
+void tst_QCameraBackend::testVideoRecording_data()
+{
+    QTest::addColumn<QByteArray>("device");
+
+    QList<QByteArray> devices = QCamera::availableDevices();
+
+    foreach (const QByteArray &device, devices) {
+        QTest::newRow(QCamera::deviceDescription(device).toUtf8())
+                << device;
+    }
+
+    if (devices.isEmpty())
+        QTest::newRow("Default device") << QByteArray();
+}
+
+void tst_QCameraBackend::testVideoRecording()
+{
+    QFETCH(QByteArray, device);
+
+    QCamera *camera = device.isEmpty() ? new QCamera : new QCamera(device);
+
+    QMediaRecorder recorder(camera);
+
+    QSignalSpy errorSignal(camera, SIGNAL(error(QCamera::Error)));
+    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(error(QMediaRecorder::Error)));
+    QSignalSpy recorderStatusSignal(&recorder, SIGNAL(statusChanged(QMediaRecorder::Status)));
+
+    if (!camera->isCaptureModeSupported(QCamera::CaptureVideo)) {
+        QSKIP("Video capture not supported");
+    }
+
+    camera->setCaptureMode(QCamera::CaptureVideo);
+
+    QVideoEncoderSettings videoSettings;
+    videoSettings.setResolution(640, 480);
+    recorder.setVideoSettings(videoSettings);
+
+    recorder.setContainerFormat("ogg");
+
+    QCOMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
+
+    camera->start();
+    QCOMPARE(recorder.status(), QMediaRecorder::LoadingStatus);
+    QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
+    QTRY_COMPARE(camera->status(), QCamera::ActiveStatus);
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::LoadedStatus);
+    QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
+
+    //record 5 seconds clip
+    recorder.record();
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::RecordingStatus);
+    QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
+    QTest::qWait(5000);
+    recorder.stop();
+    QCOMPARE(recorder.status(), QMediaRecorder::FinalizingStatus);
+    QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::LoadedStatus);
+    QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
+
+    QVERIFY(errorSignal.isEmpty());
+    QVERIFY(recorderErrorSignal.isEmpty());
+
+    QString fileName = recorder.actualLocation().toLocalFile();
+    QVERIFY(!fileName.isEmpty());
+
+    QVERIFY(QFileInfo(fileName).size() > 0);
+    QFile(fileName).remove();
+
+    camera->setCaptureMode(QCamera::CaptureStillImage);
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
+    QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
+
+    delete camera;
 }
 
 QTEST_MAIN(tst_QCameraBackend)

@@ -39,47 +39,12 @@
 **
 ****************************************************************************/
 
+#define GST_USE_UNSTABLE_API
 
-#ifndef CAMERABINIMAGECAPTURECONTROL_H
-#define CAMERABINIMAGECAPTURECONTROL_H
+#include <gst/pbutils/pbutils.h>
+#include <gst/pbutils/encoding-profile.h>
 
-#include <qcameraimagecapturecontrol.h>
-#include "camerabinsession.h"
-
-QT_BEGIN_NAMESPACE
-
-class CameraBinImageCapture : public QCameraImageCaptureControl, public QGstreamerBusMessageFilter
+int main(int argc, char** argv)
 {
-    Q_OBJECT
-    Q_INTERFACES(QGstreamerBusMessageFilter)
-public:
-    CameraBinImageCapture(CameraBinSession *session);
-    virtual ~CameraBinImageCapture();
-
-    QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode) {}
-
-    bool isReadyForCapture() const;
-    int capture(const QString &fileName);
-    void cancelCapture();
-
-    bool processBusMessage(const QGstreamerMessage &message);
-
-private slots:
-    void updateState();
-
-private:
-    static gboolean metadataEventProbe(GstPad *pad, GstEvent *event, CameraBinImageCapture *);
-    static gboolean uncompressedBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *);
-    static gboolean jpegBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *);
-
-    CameraBinSession *m_session;
-    bool m_ready;
-    int m_requestId;
-    GstElement *m_jpegEncoderElement;
-    GstElement *m_metadataMuxerElement;
-};
-
-QT_END_NAMESPACE
-
-#endif // CAMERABINCAPTURECORNTROL_H
+    return 0;
+}

@@ -48,6 +48,8 @@ namespace ResourcePolicy {
 class ResourceSet;
 };
 
+QT_BEGIN_NAMESPACE
+
 class CamerabinResourcePolicy : public QObject
 {
     Q_OBJECT
@@ -80,5 +82,7 @@ private:
     ResourcePolicy::ResourceSet *m_resource;
     bool m_releasingResources;
 };
+
+QT_END_NAMESPACE
 
 #endif

@@ -48,9 +48,9 @@
 #include <gst/gst.h>
 #include <glib.h>
 
-class CameraBinSession;
+QT_BEGIN_NAMESPACE
 
-QT_USE_NAMESPACE
+class CameraBinSession;
 
 class CameraBinFocus  : public QCameraFocusControl
 {
@@ -99,5 +99,7 @@ private:
     QCamera::LockStatus m_focusStatus;
     QCameraFocusZone::FocusZoneStatus m_focusZoneStatus;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINFOCUSCONTROL_H

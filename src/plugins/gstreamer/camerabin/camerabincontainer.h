@@ -51,9 +51,9 @@
 #include <gst/pbutils/pbutils.h>
 #include <gst/pbutils/encoding-profile.h>
 
-#include "qgstcodecsinfo.h"
+#include <private/qgstcodecsinfo_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class CameraBinContainer : public QMediaContainerControl
 {
@@ -65,13 +65,10 @@ public:
     virtual QStringList supportedContainers() const;
     virtual QString containerDescription(const QString &formatMimeType) const;
 
-    virtual QString containerMimeType() const;
-    virtual void setContainerMimeType(const QString &formatMimeType);
+    virtual QString containerFormat() const;
+    virtual void setContainerFormat(const QString &format);
 
-    void setActualContainer(const QString &formatMimeType);
-    void resetActualContainer();
-
-    QString suggestedFileExtension() const;
+    QString suggestedFileExtension(const QString &containerFormat) const;
 
     GstEncodingContainerProfile *createProfile();
 
@@ -80,10 +77,11 @@ Q_SIGNALS:
 
 private:
     QString m_format; // backend selected format, using m_userFormat
-    QString m_userFormat;
     QMap<QString, QString> m_fileExtensions;
 
     QGstCodecsInfo m_supportedContainers;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINMEDIACONTAINERCONTROL_H

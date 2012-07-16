@@ -42,6 +42,8 @@
 #include "camerabincapturebufferformat.h"
 #include "camerabinsession.h"
 
+QT_BEGIN_NAMESPACE
+
 CameraBinCaptureBufferFormat::CameraBinCaptureBufferFormat(CameraBinSession *session)
     :QCameraCaptureBufferFormatControl(session)
      , m_session(session)
@@ -76,3 +78,5 @@ void CameraBinCaptureBufferFormat::setBufferFormat(QVideoFrame::PixelFormat form
         emit bufferFormatChanged(format);
     }
 }
+
+QT_END_NAMESPACE

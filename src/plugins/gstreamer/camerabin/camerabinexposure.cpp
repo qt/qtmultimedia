@@ -45,6 +45,8 @@
 
 #include <QDebug>
 
+QT_BEGIN_NAMESPACE
+
 CameraBinExposure::CameraBinExposure(CameraBinSession *session)
     :QCameraExposureControl(session),
      m_session(session)
@@ -230,3 +232,5 @@ QString CameraBinExposure::extendedParameterName(ExposureParameter)
 {
     return QString();
 }
+
+QT_END_NAMESPACE

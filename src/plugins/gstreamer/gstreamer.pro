@@ -5,11 +5,8 @@ SUBDIRS += \
     mediacapture \
     mediaplayer
 
-# Camerabin2 based camera backend is untested and currently disabled
-disabled {
-    config_gstreamer_photography {
-        SUBDIRS += camerabin
-    }
+config_gstreamer_encodingprofiles {
+    SUBDIRS += camerabin
 }
 
 OTHER_FILES += \

@@ -42,6 +42,8 @@
 #include "camerabincapturedestination.h"
 #include "camerabinsession.h"
 
+QT_BEGIN_NAMESPACE
+
 CameraBinCaptureDestination::CameraBinCaptureDestination(CameraBinSession *session)
     :QCameraCaptureDestinationControl(session)
     , m_session(session)
@@ -72,3 +74,5 @@ void CameraBinCaptureDestination::setCaptureDestination(QCameraImageCapture::Cap
         emit captureDestinationChanged(m_destination);
     }
 }
+
+QT_END_NAMESPACE

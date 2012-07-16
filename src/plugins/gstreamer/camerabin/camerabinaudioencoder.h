@@ -43,7 +43,6 @@
 #define CAMERABINAUDIOENCODE_H
 
 #include <qaudioencodersettingscontrol.h>
-class CameraBinSession;
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
@@ -54,9 +53,10 @@ class CameraBinSession;
 #include <gst/pbutils/encoding-profile.h>
 
 #include <qaudioformat.h>
-#include "qgstcodecsinfo.h"
+#include <private/qgstcodecsinfo_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
+class CameraBinSession;
 
 class CameraBinAudioEncoder : public QAudioEncoderSettingsControl
 {
@@ -94,5 +94,7 @@ private:
     QAudioEncoderSettings m_audioSettings;
     QAudioEncoderSettings m_userSettings;
 };
+
+QT_END_NAMESPACE
 
 #endif

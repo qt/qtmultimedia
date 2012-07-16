@@ -46,6 +46,8 @@
 #include <QtCore/qobject.h>
 #include <qmsystem2/qmkeys.h>
 
+QT_BEGIN_NAMESPACE
+
 class CameraButtonListener : public QObject
 {
     Q_OBJECT
@@ -61,5 +63,7 @@ private:
     bool m_focusPressed;
     bool m_shutterPressed;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABUTTONLISTENER_MEEGO_H

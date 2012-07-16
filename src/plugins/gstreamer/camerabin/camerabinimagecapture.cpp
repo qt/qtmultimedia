@@ -54,6 +54,7 @@
 
 #define IMAGE_DONE_SIGNAL "image-done"
 
+QT_BEGIN_NAMESPACE
 
 CameraBinImageCapture::CameraBinImageCapture(CameraBinSession *session)
     :QCameraImageCaptureControl(session)
@@ -254,6 +255,9 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
                 return false;
 
             QString elementName = QString::fromLatin1(gst_element_get_name(element));
+            GstElementClass *elementClass = GST_ELEMENT_GET_CLASS(element);
+            QString elementLongName = elementClass->details.longname;
+
             if (elementName.contains("jpegenc") && element != m_jpegEncoderElement) {
                 m_jpegEncoderElement = element;
                 GstPad *sinkpad = gst_element_get_static_pad(element, "sink");
@@ -275,7 +279,9 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
                                          this);
 
                 gst_object_unref(sinkpad);
-            } else if ((elementName.contains("jifmux") || elementName.startsWith("metadatamux"))
+            } else if ((elementName.contains("jifmux") ||
+                        elementName.startsWith("metadatamux") ||
+                        elementLongName == QLatin1String("JPEG stream muxer"))
                        && element != m_metadataMuxerElement) {
                 //Jpeg encoded buffer probe is added after jifmux/metadatamux
                 //element to ensure the resulting jpeg buffer contains capture metadata
@@ -321,3 +327,4 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
     return false;
 }
 
+QT_END_NAMESPACE

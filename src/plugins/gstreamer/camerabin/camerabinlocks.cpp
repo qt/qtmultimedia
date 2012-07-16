@@ -47,6 +47,8 @@
 
 #include <QDebug>
 
+QT_BEGIN_NAMESPACE
+
 CameraBinLocks::CameraBinLocks(CameraBinSession *session)
     :QCameraLocksControl(session),
      m_session(session),
@@ -86,3 +88,5 @@ void CameraBinLocks::updateFocusStatus(QCamera::LockStatus status, QCamera::Lock
 {
     emit lockStatusChanged(QCamera::LockFocus, status, reason);
 }
+
+QT_END_NAMESPACE

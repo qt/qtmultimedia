@@ -47,33 +47,37 @@
 #include "camerabinvideoencoder.h"
 #include "camerabinimageencoder.h"
 #include "camerabincontrol.h"
-#include "camerabinlocks.h"
 #include "camerabinmetadata.h"
+
+#ifdef HAVE_GST_PHOTOGRAPHY
 #include "camerabinexposure.h"
 #include "camerabinflash.h"
 #include "camerabinfocus.h"
+#include "camerabinlocks.h"
+#endif
+
 #include "camerabinimagecapture.h"
 #include "camerabinimageprocessing.h"
 #include "camerabincapturebufferformat.h"
 #include "camerabincapturedestination.h"
 #include <private/qgstreamerbushelper_p.h>
 
-#include "qgstreameraudioinputendpointselector.h"
-#include "qgstreamervideoinputdevicecontrol.h"
+#include <private/qgstreameraudioinputendpointselector_p.h>
+#include <private/qgstreamervideoinputdevicecontrol_p.h>
 
 #if defined(HAVE_WIDGETS)
-#include "qgstreamervideooverlay.h"
-#include "qgstreamervideowindow.h"
-#include "qgstreamervideowidget.h"
+#include <private/qgstreamervideooverlay_p.h>
+#include <private/qgstreamervideowindow_p.h>
+#include <private/qgstreamervideowidget_p.h>
 #endif
 
-#include "qgstreamervideorenderer.h"
+#include <private/qgstreamervideorenderer_p.h>
 
 #if defined(Q_WS_MAEMO_6) && defined(__arm__)
 #include "qgstreamergltexturerenderer.h"
 #endif
 
-#include <qmediaserviceprovider.h>
+#include <private/qmediaserviceprovider_p.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qprocess.h>
@@ -81,6 +85,8 @@
 #if defined(Q_WS_MAEMO_6)
 #include "camerabuttonlistener_meego.h"
 #endif
+
+QT_BEGIN_NAMESPACE
 
 CameraBinService::CameraBinService(const QString &service, QObject *parent):
     QMediaService(parent)
@@ -208,6 +214,7 @@ QMediaControl *CameraBinService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
 
+#ifdef HAVE_GST_PHOTOGRAPHY
     if (qstrcmp(name, QCameraExposureControl_iid) == 0)
         return m_captureSession->cameraExposureControl();
 
@@ -217,11 +224,12 @@ QMediaControl *CameraBinService::requestControl(const char *name)
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return m_captureSession->cameraFocusControl();
 
-    if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
-        return m_captureSession->imageProcessingControl();
-
     if (qstrcmp(name, QCameraLocksControl_iid) == 0)
         return m_captureSession->cameraLocksControl();
+#endif
+
+    if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
+        return m_captureSession->imageProcessingControl();
 
     if (qstrcmp(name, QCameraCaptureDestinationControl_iid) == 0)
         return m_captureSession->captureDestinationControl();
@@ -250,3 +258,5 @@ bool CameraBinService::isCameraBinAvailable()
 
     return false;
 }
+
+QT_END_NAMESPACE

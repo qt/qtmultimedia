@@ -45,10 +45,11 @@
 #include <qmediaservice.h>
 
 #include <gst/gst.h>
+
 QT_BEGIN_NAMESPACE
 class QAudioEndpointSelectorControl;
 class QVideoDeviceSelectorControl;
-QT_END_NAMESPACE
+
 
 class CameraBinSession;
 class CameraBinControl;
@@ -94,5 +95,7 @@ private:
 #endif
     CameraBinImageCapture *m_imageCaptureControl;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINCAPTURESERVICE_H

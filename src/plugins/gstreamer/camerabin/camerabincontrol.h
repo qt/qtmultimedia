@@ -47,7 +47,7 @@
 #include <qcameracontrol.h>
 #include "camerabinsession.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class CamerabinResourcePolicy;
 
@@ -97,5 +97,7 @@ private:
 
     bool m_reloadPending;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINCONTROL_H

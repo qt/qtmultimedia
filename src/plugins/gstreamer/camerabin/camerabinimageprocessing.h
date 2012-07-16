@@ -48,12 +48,11 @@
 #include <gst/gst.h>
 #include <glib.h>
 
-#include <gst/interfaces/photography.h>
 #include <gst/interfaces/colorbalance.h>
 
-class CameraBinSession;
+QT_BEGIN_NAMESPACE
 
-QT_USE_NAMESPACE
+class CameraBinSession;
 
 class CameraBinImageProcessing : public QCameraImageProcessingControl
 {
@@ -67,18 +66,23 @@ public:
     void setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
     bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
 
-    bool isProcessingParameterSupported(ProcessingParameter) const;
-    QVariant processingParameter(ProcessingParameter parameter) const;
-    void setProcessingParameter(ProcessingParameter parameter, QVariant value);
+    bool isParameterSupported(ProcessingParameter) const;
+    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const;
+    QVariant parameter(ProcessingParameter parameter) const;
+    void setParameter(ProcessingParameter parameter, const QVariant &value);
 
 private:
-    bool setColorBalanceValue(const QString& channel, int value);
+    bool setColorBalanceValue(const QString& channel, qreal value);
     void updateColorBalanceValues();
 
 private:
     CameraBinSession *m_session;
     QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
+#ifdef HAVE_GST_PHOTOGRAPHY
     QMap<GstWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
+#endif
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINIMAGEPROCESSINGCONTROL_H

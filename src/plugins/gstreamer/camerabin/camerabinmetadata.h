@@ -44,7 +44,7 @@
 
 #include <qmetadatawritercontrol.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class CameraBinMetaData : public QMetaDataWriterControl
 {
@@ -67,5 +67,7 @@ Q_SIGNALS:
 private:
     QMap<QByteArray, QVariant> m_values;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINCAPTUREMETADATACONTROL_H

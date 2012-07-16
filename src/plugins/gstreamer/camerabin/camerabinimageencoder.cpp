@@ -44,6 +44,8 @@
 
 #include <QtCore/qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 CameraBinImageEncoder::CameraBinImageEncoder(CameraBinSession *session)
     :QImageEncoderControl(session), m_session(session)
 {
@@ -85,3 +87,5 @@ void CameraBinImageEncoder::setImageSettings(const QImageEncoderSettings &settin
     m_settings = settings;
     emit settingsChanged();
 }
+
+QT_END_NAMESPACE

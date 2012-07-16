@@ -48,10 +48,10 @@
 #include <gst/gst.h>
 #include <glib.h>
 
+QT_BEGIN_NAMESPACE
+
 class CameraBinSession;
 class CameraBinFocus;
-
-QT_USE_NAMESPACE
 
 class CameraBinLocks  : public QCameraLocksControl
 {
@@ -75,5 +75,7 @@ private:
     CameraBinSession *m_session;
     CameraBinFocus *m_focus;
 };
+
+QT_END_NAMESPACE
 
 #endif

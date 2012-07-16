@@ -11,6 +11,7 @@ win32 {
     qtCompileTest(pulseaudio)
     qtCompileTest(gstreamer) {
         qtCompileTest(gstreamer_photography)
+        qtCompileTest(gstreamer_encodingprofiles)
         qtCompileTest(gstreamer_appsrc)
     }
     qtCompileTest(resourcepolicy)

@@ -45,7 +45,9 @@
 
 #include <qmediarecordercontrol.h>
 #include "camerabinsession.h"
-QT_USE_NAMESPACE
+#include <gst/pbutils/encoding-profile.h>
+
+QT_BEGIN_NAMESPACE
 
 class CameraBinRecorder : public QMediaRecorderControl
 {
@@ -59,25 +61,28 @@ public:
     bool setOutputLocation(const QUrl &sink);
 
     QMediaRecorder::State state() const;
+    QMediaRecorder::Status status() const;
 
     qint64 duration() const;
 
     bool isMuted() const;
 
     void applySettings();
+    GstEncodingContainerProfile *videoProfile();
 
 public slots:
-    void record();
-    void pause();
-    void stop();
+    void setState(QMediaRecorder::State state);
     void setMuted(bool);
 
 private slots:
-    void updateState();
+    void updateStatus();
 
 private:
     CameraBinSession *m_session;
     QMediaRecorder::State m_state;
+    QMediaRecorder::Status m_status;
 };
+
+QT_END_NAMESPACE
 
 #endif // CAMERABINCAPTURECORNTROL_H

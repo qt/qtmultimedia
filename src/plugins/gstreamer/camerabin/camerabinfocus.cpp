@@ -51,6 +51,8 @@
 #define ZOOM_PROPERTY "zoom"
 #define MAX_ZOOM_PROPERTY "max-zoom"
 
+QT_BEGIN_NAMESPACE
+
 CameraBinFocus::CameraBinFocus(CameraBinSession *session)
     :QCameraFocusControl(session),
      m_session(session),
@@ -223,3 +225,5 @@ void CameraBinFocus::_q_stopFocusing()
     gst_photography_set_autofocus(m_session->photography(), FALSE);
     _q_setFocusStatus(QCamera::Unlocked, QCamera::UserRequest);
 }
+
+QT_END_NAMESPACE

@@ -45,6 +45,8 @@
 
 #include <QDebug>
 
+QT_BEGIN_NAMESPACE
+
 CameraBinFlash::CameraBinFlash(CameraBinSession *session)
     :QCameraFlashControl(session),
      m_session(session)
@@ -102,3 +104,4 @@ bool CameraBinFlash::isFlashReady() const
     return true;
 }
 
+QT_END_NAMESPACE

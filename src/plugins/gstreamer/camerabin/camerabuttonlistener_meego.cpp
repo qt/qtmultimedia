@@ -46,6 +46,8 @@
 #include <QtWidgets/qwidget.h>
 #include <QtCore/qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 CameraButtonListener::CameraButtonListener(QObject *parent) :
     QObject(parent),
     m_focusPressed(false),
@@ -90,3 +92,5 @@ void CameraButtonListener::handleQmKeyEvent(MeeGo::QmKeys::Key key, MeeGo::QmKey
         }
     }
 }
+
+QT_END_NAMESPACE
