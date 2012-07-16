@@ -46,7 +46,7 @@
 
 DirectShowAudioEndpointControl::DirectShowAudioEndpointControl(
         DirectShowPlayerService *service, QObject *parent)
-    : QAudioEndpointSelectorControl(parent)
+    : QAudioOutputSelectorControl(parent)
     , m_service(service)
     , m_bindContext(0)
     , m_deviceEnumerator(0)
@@ -56,7 +56,7 @@ DirectShowAudioEndpointControl::DirectShowAudioEndpointControl(
 
         updateEndpoints();
 
-        setActiveEndpoint(m_defaultEndpoint);
+        setActiveOutput(m_defaultEndpoint);
     }
 }
 
@@ -72,12 +72,12 @@ DirectShowAudioEndpointControl::~DirectShowAudioEndpointControl()
         m_deviceEnumerator->Release();
 }
 
-QList<QString> DirectShowAudioEndpointControl::availableEndpoints() const
+QList<QString> DirectShowAudioEndpointControl::availableOutputs() const
 {
     return m_devices.keys();
 }
 
-QString DirectShowAudioEndpointControl::endpointDescription(const QString &name) const
+QString DirectShowAudioEndpointControl::outputDescription(const QString &name) const
 {
 #ifdef __IPropertyBag_INTERFACE_DEFINED__
     QString description;
@@ -101,17 +101,17 @@ QString DirectShowAudioEndpointControl::endpointDescription(const QString &name)
 #endif
 }
 
-QString DirectShowAudioEndpointControl::defaultEndpoint() const
+QString DirectShowAudioEndpointControl::defaultOutput() const
 {
     return m_defaultEndpoint;
 }
 
-QString DirectShowAudioEndpointControl::activeEndpoint() const
+QString DirectShowAudioEndpointControl::activeOutput() const
 {
     return m_activeEndpoint;
 }
 
-void DirectShowAudioEndpointControl::setActiveEndpoint(const QString &name)
+void DirectShowAudioEndpointControl::setActiveOutput(const QString &name)
 {
     if (m_activeEndpoint == name)
         return;

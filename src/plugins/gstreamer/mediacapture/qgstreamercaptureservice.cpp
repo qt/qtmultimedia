@@ -52,7 +52,7 @@
 #include "qgstreamercapturemetadatacontrol.h"
 
 #include "qgstreamerimagecapturecontrol.h"
-#include <private/qgstreameraudioinputendpointselector_p.h>
+#include <private/qgstreameraudioinputselector_p.h>
 #include <private/qgstreamervideoinputdevicecontrol_p.h>
 #include <private/qgstreameraudioprobecontrol_p.h>
 
@@ -75,7 +75,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
     m_metaDataControl = 0;
 
     m_videoInput = 0;
-    m_audioInputEndpointSelector = 0;
+    m_audioInputSelector = 0;
     m_videoInputDevice = 0;
 
     m_videoOutput = 0;
@@ -112,11 +112,11 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
         m_imageCaptureControl = new QGstreamerImageCaptureControl(m_captureSession);
     }
 
-    m_audioInputEndpointSelector = new QGstreamerAudioInputEndpointSelector(this);
-    connect(m_audioInputEndpointSelector, SIGNAL(activeEndpointChanged(QString)), m_captureSession, SLOT(setCaptureDevice(QString)));
+    m_audioInputSelector = new QGstreamerAudioInputSelector(this);
+    connect(m_audioInputSelector, SIGNAL(activeInputChanged(QString)), m_captureSession, SLOT(setCaptureDevice(QString)));
 
-    if (m_captureSession && m_audioInputEndpointSelector->availableEndpoints().size() > 0)
-        m_captureSession->setCaptureDevice(m_audioInputEndpointSelector->defaultEndpoint());
+    if (m_captureSession && m_audioInputSelector->availableInputs().size() > 0)
+        m_captureSession->setCaptureDevice(m_audioInputSelector->defaultInput());
 
     m_metaDataControl = new QGstreamerCaptureMetaDataControl(this);
     connect(m_metaDataControl, SIGNAL(metaDataChanged(QMap<QByteArray,QVariant>)),
@@ -132,8 +132,8 @@ QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
     if (!m_captureSession)
         return 0;
 
-    if (qstrcmp(name,QAudioEndpointSelectorControl_iid) == 0)
-        return m_audioInputEndpointSelector;
+    if (qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
+        return m_audioInputSelector;
 
     if (qstrcmp(name,QVideoDeviceSelectorControl_iid) == 0)
         return m_videoInputDevice;

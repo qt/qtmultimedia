@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "qaudiorecorder.h"
-#include "qaudioendpointselectorcontrol.h"
+#include "qaudioinputselectorcontrol.h"
 #include "qmediaobject_p.h"
 #include "qmediarecorder_p.h"
 #include <qmediaservice.h>
@@ -68,15 +68,14 @@ QT_BEGIN_NAMESPACE
 
     \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder
 
-    In addition QAudioRecorder provides functionality for selecting the audio
-    input from available audio endpoints.
+    In addition QAudioRecorder provides functionality for selecting the audio input.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder endpoints
+    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder inputs
 
     The \l {audiorecorder}{Audio Recorder} example shows how to use this class
     in more detail.
 
-    \sa QMediaRecorder, QAudioEndpointSelectorControl
+    \sa QMediaRecorder, QAudioInputSelectorControl
 */
 
 class QAudioRecorderObject : public QMediaObject
@@ -100,17 +99,17 @@ public:
     void initControls()
     {
         Q_Q(QAudioRecorder);
-        audioEndpointSelector = 0;
+        audioInputSelector = 0;
 
         QMediaService *service = mediaObject ? mediaObject->service() : 0;
 
         if (service != 0)
-            audioEndpointSelector = qobject_cast<QAudioEndpointSelectorControl*>(service->requestControl(QAudioEndpointSelectorControl_iid));
+            audioInputSelector = qobject_cast<QAudioInputSelectorControl*>(service->requestControl(QAudioInputSelectorControl_iid));
 
-        if (audioEndpointSelector) {
-            q->connect(audioEndpointSelector, SIGNAL(activeEndpointChanged(QString)),
+        if (audioInputSelector) {
+            q->connect(audioInputSelector, SIGNAL(activeInputChanged(QString)),
                        SIGNAL(audioInputChanged(QString)));
-            q->connect(audioEndpointSelector, SIGNAL(availableEndpointsChanged()),
+            q->connect(audioInputSelector, SIGNAL(availableInputsChanged()),
                        SIGNAL(availableAudioInputsChanged()));
         }
     }
@@ -118,10 +117,10 @@ public:
     QAudioRecorderPrivate():
         QMediaRecorderPrivate(),
         provider(0),
-        audioEndpointSelector(0) {}
+        audioInputSelector(0) {}
 
     QMediaServiceProvider *provider;
-    QAudioEndpointSelectorControl   *audioEndpointSelector;
+    QAudioInputSelectorControl   *audioInputSelector;
 };
 
 
@@ -153,8 +152,8 @@ QAudioRecorder::~QAudioRecorder()
     QMediaObject *mediaObject = d->mediaObject;
     setMediaObject(0);
 
-    if (service && d->audioEndpointSelector)
-        service->releaseControl(d->audioEndpointSelector);
+    if (service && d->audioInputSelector)
+        service->releaseControl(d->audioInputSelector);
 
     if (d->provider && service)
         d->provider->releaseService(service);
@@ -169,8 +168,8 @@ QAudioRecorder::~QAudioRecorder()
 QStringList QAudioRecorder::audioInputs() const
 {
     Q_D(const QAudioRecorder);
-    if (d->audioEndpointSelector)
-        return d->audioEndpointSelector->availableEndpoints();
+    if (d->audioInputSelector)
+        return d->audioInputSelector->availableInputs();
     else
         return QStringList();
 }
@@ -183,8 +182,8 @@ QString QAudioRecorder::audioInputDescription(const QString& name) const
 {
     Q_D(const QAudioRecorder);
 
-    if (d->audioEndpointSelector)
-        return d->audioEndpointSelector->endpointDescription(name);
+    if (d->audioInputSelector)
+        return d->audioInputSelector->inputDescription(name);
     else
         return QString();
 }
@@ -197,8 +196,8 @@ QString QAudioRecorder::defaultAudioInput() const
 {
     Q_D(const QAudioRecorder);
 
-    if (d->audioEndpointSelector)
-        return d->audioEndpointSelector->defaultEndpoint();
+    if (d->audioInputSelector)
+        return d->audioInputSelector->defaultInput();
     else
         return QString();
 }
@@ -217,8 +216,8 @@ QString QAudioRecorder::audioInput() const
 {
     Q_D(const QAudioRecorder);
 
-    if (d->audioEndpointSelector)
-        return d->audioEndpointSelector->activeEndpoint();
+    if (d->audioInputSelector)
+        return d->audioInputSelector->activeInput();
     else
         return QString();
 }
@@ -231,8 +230,8 @@ void QAudioRecorder::setAudioInput(const QString& name)
 {
     Q_D(const QAudioRecorder);
 
-    if (d->audioEndpointSelector)
-        return d->audioEndpointSelector->setActiveEndpoint(name);
+    if (d->audioInputSelector)
+        return d->audioInputSelector->setActiveInput(name);
 }
 
 /*!

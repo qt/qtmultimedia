@@ -39,31 +39,31 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKAUDIOENDPOINTSELECTOR_H
-#define MOCKAUDIOENDPOINTSELECTOR_H
+#ifndef MOCKAUDIOINPUTSELECTOR_H
+#define MOCKAUDIOINPUTSELECTOR_H
 
-#include "qaudioendpointselectorcontrol.h"
+#include "qaudioinputselectorcontrol.h"
 
-class MockAudioEndpointSelector : public QAudioEndpointSelectorControl
+class MockAudioInputSelector : public QAudioInputSelectorControl
 {
     Q_OBJECT
 public:
-    MockAudioEndpointSelector(QObject *parent):
-        QAudioEndpointSelectorControl(parent)
+    MockAudioInputSelector(QObject *parent):
+        QAudioInputSelectorControl(parent)
     {
         m_names << "device1" << "device2" << "device3";
         m_descriptions << "dev1 comment" << "dev2 comment" << "dev3 comment";
         m_audioInput = "device1";
-        emit availableEndpointsChanged();
+        emit availableInputsChanged();
     }
-    ~MockAudioEndpointSelector() {}
+    ~MockAudioInputSelector() {}
 
-    QList<QString> availableEndpoints() const
+    QList<QString> availableInputs() const
     {
         return m_names;
     }
 
-    QString endpointDescription(const QString& name) const
+    QString inputDescription(const QString& name) const
     {
         QString desc;
 
@@ -76,34 +76,34 @@ public:
         return desc;
     }
 
-    QString defaultEndpoint() const
+    QString defaultInput() const
     {
         return m_names.at(0);
     }
 
-    QString activeEndpoint() const
+    QString activeInput() const
     {
         return m_audioInput;
     }
 
 public Q_SLOTS:
 
-    void setActiveEndpoint(const QString& name)
+    void setActiveInput(const QString& name)
     {
         m_audioInput = name;
-        emit activeEndpointChanged(name);
+        emit activeInputChanged(name);
     }
 
-    void addEndpoints()
+    void addInputs()
     {
         m_names << "device4";
-        emit availableEndpointsChanged();
+        emit availableInputsChanged();
     }
 
-    void removeEndpoints()
+    void removeInputs()
     {
         m_names.clear();
-        emit availableEndpointsChanged();
+        emit availableInputsChanged();
     }
 
 private:
@@ -114,4 +114,4 @@ private:
 
 
 
-#endif // MOCKAUDIOENDPOINTSELECTOR_H
+#endif // MOCKAUDIOINPUTSELECTOR_H

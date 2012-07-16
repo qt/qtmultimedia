@@ -43,11 +43,11 @@
 #include "mfaudioendpointcontrol.h"
 
 MFAudioEndpointControl::MFAudioEndpointControl(QObject *parent)
-    : QAudioEndpointSelectorControl(parent)
+    : QAudioOutputSelectorControl(parent)
     , m_currentActivate(0)
 {
     updateEndpoints();
-    setActiveEndpoint(m_defaultEndpoint);
+    setActiveOutput(m_defaultEndpoint);
 }
 
 MFAudioEndpointControl::~MFAudioEndpointControl()
@@ -59,27 +59,27 @@ MFAudioEndpointControl::~MFAudioEndpointControl()
         m_currentActivate->Release();
 }
 
-QList<QString> MFAudioEndpointControl::availableEndpoints() const
+QList<QString> MFAudioEndpointControl::availableOutputs() const
 {
     return m_devices.keys();
 }
 
-QString MFAudioEndpointControl::endpointDescription(const QString &name) const
+QString MFAudioEndpointControl::outputDescription(const QString &name) const
 {
     return name.section(QLatin1Char('\\'), -1);
 }
 
-QString MFAudioEndpointControl::defaultEndpoint() const
+QString MFAudioEndpointControl::defaultOutput() const
 {
     return m_defaultEndpoint;
 }
 
-QString MFAudioEndpointControl::activeEndpoint() const
+QString MFAudioEndpointControl::activeOutput() const
 {
     return m_activeEndpoint;
 }
 
-void MFAudioEndpointControl::setActiveEndpoint(const QString &name)
+void MFAudioEndpointControl::setActiveOutput(const QString &name)
 {
     if (m_activeEndpoint == name)
         return;

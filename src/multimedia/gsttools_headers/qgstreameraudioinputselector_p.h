@@ -39,72 +39,40 @@
 **
 ****************************************************************************/
 
-#include "audiocapturesession.h"
-#include "audioendpointselector.h"
+#ifndef QGSTREAMERAUDIOINPUTSELECTOR_H
+#define QGSTREAMERAUDIOINPUTSELECTOR_H
 
-#include <qaudiodeviceinfo.h>
+#include <qaudioinputselectorcontrol.h>
+#include <QtCore/qstringlist.h>
 
+QT_BEGIN_NAMESPACE
 
-AudioEndpointSelector::AudioEndpointSelector(QObject *parent)
-    :QAudioEndpointSelectorControl(parent)
+class QGstreamerAudioInputSelector : public QAudioInputSelectorControl
 {
-    m_session = qobject_cast<AudioCaptureSession*>(parent);
+Q_OBJECT
+public:
+    QGstreamerAudioInputSelector(QObject *parent);
+    ~QGstreamerAudioInputSelector();
 
-    update();
+    QList<QString> availableInputs() const;
+    QString inputDescription(const QString& name) const;
+    QString defaultInput() const;
+    QString activeInput() const;
 
-    m_audioInput = defaultEndpoint();
-}
+public Q_SLOTS:
+    void setActiveInput(const QString& name);
 
-AudioEndpointSelector::~AudioEndpointSelector()
-{
-}
+private:
+    void update();
+    void updateAlsaDevices();
+    void updateOssDevices();
+    void updatePulseDevices();
 
-QList<QString> AudioEndpointSelector::availableEndpoints() const
-{
-    return m_names;
-}
+    QString     m_audioInput;
+    QList<QString> m_names;
+    QList<QString> m_descriptions;
+};
 
-QString AudioEndpointSelector::endpointDescription(const QString& name) const
-{
-    QString desc;
+QT_END_NAMESPACE
 
-    for(int i = 0; i < m_names.count(); i++) {
-        if (m_names.at(i).compare(name) == 0) {
-            desc = m_names.at(i);
-            break;
-        }
-    }
-    return desc;
-}
-
-QString AudioEndpointSelector::defaultEndpoint() const
-{
-    return QAudioDeviceInfo(QAudioDeviceInfo::defaultInputDevice()).deviceName();
-}
-
-QString AudioEndpointSelector::activeEndpoint() const
-{
-    return m_audioInput;
-}
-
-void AudioEndpointSelector::setActiveEndpoint(const QString& name)
-{
-    if (m_audioInput.compare(name) != 0) {
-        m_audioInput = name;
-        m_session->setCaptureDevice(name);
-        emit activeEndpointChanged(name);
-    }
-}
-
-void AudioEndpointSelector::update()
-{
-    m_names.clear();
-    m_descriptions.clear();
-
-    QList<QAudioDeviceInfo> devices;
-    devices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-    for(int i = 0; i < devices.size(); ++i) {
-        m_names.append(devices.at(i).deviceName());
-        m_descriptions.append(devices.at(i).deviceName());
-    }
-}
+#endif // QGSTREAMERAUDIOINPUTSELECTOR_H

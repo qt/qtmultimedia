@@ -39,40 +39,39 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERAUDIOINPUTENDPOINTSELECTOR_H
-#define QGSTREAMERAUDIOINPUTENDPOINTSELECTOR_H
+#ifndef AUDIOINPUTSELECTOR_H
+#define AUDIOINPUTSELECTOR_H
 
-#include <qaudioendpointselectorcontrol.h>
-#include <QtCore/qstringlist.h>
+#include <QStringList>
 
-QT_BEGIN_NAMESPACE
+#include "qaudioinputselectorcontrol.h"
 
-class QGstreamerAudioInputEndpointSelector : public QAudioEndpointSelectorControl
+class AudioCaptureSession;
+
+QT_USE_NAMESPACE
+
+class AudioInputSelector : public QAudioInputSelectorControl
 {
 Q_OBJECT
 public:
-    QGstreamerAudioInputEndpointSelector(QObject *parent);
-    ~QGstreamerAudioInputEndpointSelector();
+    AudioInputSelector(QObject *parent);
+    virtual ~AudioInputSelector();
 
-    QList<QString> availableEndpoints() const;
-    QString endpointDescription(const QString& name) const;
-    QString defaultEndpoint() const;
-    QString activeEndpoint() const;
+    QList<QString> availableInputs() const;
+    QString inputDescription(const QString& name) const;
+    QString defaultInput() const;
+    QString activeInput() const;
 
 public Q_SLOTS:
-    void setActiveEndpoint(const QString& name);
+    void setActiveInput(const QString& name);
 
 private:
     void update();
-    void updateAlsaDevices();
-    void updateOssDevices();
-    void updatePulseDevices();
 
-    QString     m_audioInput;
+    QString        m_audioInput;
     QList<QString> m_names;
     QList<QString> m_descriptions;
+    AudioCaptureSession* m_session;
 };
 
-QT_END_NAMESPACE
-
-#endif // QGSTREAMERAUDIOINPUTENDPOINTSELECTOR_H
+#endif // AUDIOINPUTSELECTOR_H

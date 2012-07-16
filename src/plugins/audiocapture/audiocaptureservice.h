@@ -50,7 +50,7 @@ class AudioCaptureSession;
 class AudioEncoderControl;
 class AudioContainerControl;
 class AudioMediaRecorderControl;
-class AudioEndpointSelector;
+class AudioInputSelector;
 
 QT_USE_NAMESPACE
 
@@ -67,7 +67,7 @@ private:
     AudioCaptureSession       *m_session;
     AudioEncoderControl       *m_encoderControl;
     AudioContainerControl     *m_containerControl;
-    AudioEndpointSelector     *m_endpointSelector;
+    AudioInputSelector        *m_inputSelector;
     AudioMediaRecorderControl *m_mediaControl;
 };
 

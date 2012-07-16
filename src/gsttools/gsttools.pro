@@ -42,7 +42,7 @@ PRIVATE_HEADERS += \
     qgstvideobuffer_p.h \
     qvideosurfacegstsink_p.h \
     qgstreamervideorendererinterface_p.h \
-    qgstreameraudioinputendpointselector_p.h \
+    qgstreameraudioinputselector_p.h \
     qgstreamervideorenderer_p.h \
     qgstreamervideoinputdevicecontrol_p.h \
     gstvideoconnector_p.h \
@@ -58,7 +58,7 @@ SOURCES += \
     qgstvideobuffer.cpp \
     qvideosurfacegstsink.cpp \
     qgstreamervideorendererinterface.cpp \
-    qgstreameraudioinputendpointselector.cpp \
+    qgstreameraudioinputselector.cpp \
     qgstreamervideorenderer.cpp \
     qgstreamervideoinputdevicecontrol.cpp \
     qgstcodecsinfo.cpp \

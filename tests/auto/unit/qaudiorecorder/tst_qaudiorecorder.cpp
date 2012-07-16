@@ -47,7 +47,7 @@
 #include <qaudiorecorder.h>
 #include <qaudioencodersettingscontrol.h>
 #include <qmediarecordercontrol.h>
-#include <qaudioendpointselectorcontrol.h>
+#include <qaudioinputselectorcontrol.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudioinput.h>
 #include <qmediaobject.h>
@@ -171,19 +171,19 @@ void tst_QAudioRecorder::testAvailableAudioInputChangedSignal()
     // The availabilityChangedSignal is implemented in QAudioRecorder. SO using it to test the signal.
     audiosource = new QAudioRecorder;
 
-    /* Spy the signal availableEndpointChanged and audioInputchanged */
-    QSignalSpy changed(mockMediaRecorderService->mockAudioEndpointSelector, SIGNAL(availableEndpointsChanged()));
+    /* Spy the signal availableInputsChanged and audioInputchanged */
+    QSignalSpy changed(mockMediaRecorderService->mockAudioInputSelector, SIGNAL(availableInputsChanged()));
     QSignalSpy audioInputchange(audiosource, SIGNAL(availableAudioInputsChanged()));
 
     /* Add the end points and verify if the available end point changed signal is emitted. */
-    QMetaObject::invokeMethod(mockMediaRecorderService->mockAudioEndpointSelector, "addEndpoints");
+    QMetaObject::invokeMethod(mockMediaRecorderService->mockAudioInputSelector, "addInputs");
     QVERIFY(changed.count() == 1);
     QVERIFY(audioInputchange.count() == 1);
 
     /* Now try removes */
     changed.clear();
     audioInputchange.clear();
-    QMetaObject::invokeMethod(mockMediaRecorderService->mockAudioEndpointSelector, "removeEndpoints");
+    QMetaObject::invokeMethod(mockMediaRecorderService->mockAudioInputSelector, "removeInputs");
     QVERIFY(changed.count() == 1);
     QVERIFY(audioInputchange.count() == 1);
 }

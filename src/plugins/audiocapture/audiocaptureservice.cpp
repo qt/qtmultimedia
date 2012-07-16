@@ -41,7 +41,7 @@
 
 #include "audiocaptureservice.h"
 #include "audiocapturesession.h"
-#include "audioendpointselector.h"
+#include "audioinputselector.h"
 #include "audioencodercontrol.h"
 #include "audiocontainercontrol.h"
 #include "audiomediarecordercontrol.h"
@@ -53,14 +53,14 @@ AudioCaptureService::AudioCaptureService(QObject *parent):
     m_encoderControl  = new AudioEncoderControl(m_session);
     m_containerControl = new AudioContainerControl(m_session);
     m_mediaControl   = new AudioMediaRecorderControl(m_session);
-    m_endpointSelector  = new AudioEndpointSelector(m_session);
+    m_inputSelector  = new AudioInputSelector(m_session);
 }
 
 AudioCaptureService::~AudioCaptureService()
 {
     delete m_encoderControl;
     delete m_containerControl;
-    delete m_endpointSelector;
+    delete m_inputSelector;
     delete m_mediaControl;
     delete m_session;
 }
@@ -73,8 +73,8 @@ QMediaControl *AudioCaptureService::requestControl(const char *name)
     if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
         return m_encoderControl;
 
-    if (qstrcmp(name,QAudioEndpointSelectorControl_iid) == 0)
-        return m_endpointSelector;
+    if (qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
+        return m_inputSelector;
 
     if (qstrcmp(name,QMediaContainerControl_iid) == 0)
         return m_containerControl;

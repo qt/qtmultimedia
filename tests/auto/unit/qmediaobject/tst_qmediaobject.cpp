@@ -48,7 +48,7 @@
 #include <qmediaobject.h>
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>
-#include <qaudioendpointselectorcontrol.h>
+#include <qaudioinputselectorcontrol.h>
 
 #include "mockmediarecorderservice.h"
 #include "mockmediaserviceprovider.h"

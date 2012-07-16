@@ -39,62 +39,50 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERCAPTURESERVICE_H
-#define QGSTREAMERCAPTURESERVICE_H
+#ifndef QAUDIOOUTPUTSELECTORCONTROL_H
+#define QAUDIOOUTPUTSELECTORCONTROL_H
 
-#include <qmediaservice.h>
+#include <qaudio.h>
 #include <qmediacontrol.h>
 
-#include <gst/gst.h>
+QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
-class QVideoDeviceSelectorControl;
 
-class QGstreamerCaptureSession;
-class QGstreamerCameraControl;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoOverlay;
-class QGstreamerVideoWidgetControl;
-class QGstreamerElementFactory;
-class QGstreamerCaptureMetaDataControl;
-class QGstreamerImageCaptureControl;
-class QGstreamerV4L2Input;
+QT_MODULE(Multimedia)
 
-class QGstreamerCaptureService : public QMediaService
+
+// Class forward declaration required for QDoc bug
+class QString;
+class Q_MULTIMEDIA_EXPORT QAudioOutputSelectorControl : public QMediaControl
 {
     Q_OBJECT
 
 public:
-    QGstreamerCaptureService(const QString &service, QObject *parent = 0);
-    virtual ~QGstreamerCaptureService();
+    virtual ~QAudioOutputSelectorControl();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+    virtual QList<QString> availableOutputs() const = 0;
+    virtual QString outputDescription(const QString& name) const = 0;
+    virtual QString defaultOutput() const = 0;
+    virtual QString activeOutput() const = 0;
 
-private:
-    void setAudioPreview(GstElement *);
+public Q_SLOTS:
+    virtual void setActiveOutput(const QString& name) = 0;
 
-    QGstreamerCaptureSession *m_captureSession;
-    QGstreamerCameraControl *m_cameraControl;
-    QGstreamerV4L2Input *m_videoInput;
-    QGstreamerCaptureMetaDataControl *m_metaDataControl;
+Q_SIGNALS:
+    void activeOutputChanged(const QString& name);
+    void availableOutputsChanged();
 
-    QAudioInputSelectorControl *m_audioInputSelector;
-    QVideoDeviceSelectorControl *m_videoInputDevice;
-
-    QMediaControl *m_videoOutput;
-
-    QGstreamerVideoRenderer *m_videoRenderer;
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
-    QMediaControl *m_videoWindow;
-    QMediaControl *m_videoWidgetControl;
-#endif
-    QGstreamerImageCaptureControl *m_imageCaptureControl;
+protected:
+    QAudioOutputSelectorControl(QObject *parent = 0);
 };
+
+#define QAudioOutputSelectorControl_iid "org.qt-project.qt.audiooutputselectorcontrol/5.0"
+Q_MEDIA_DECLARE_CONTROL(QAudioOutputSelectorControl, QAudioOutputSelectorControl_iid)
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURESERVICE_H
+QT_END_HEADER
+
+
+#endif // QAUDIOOUTPUTSELECTORCONTROL_H

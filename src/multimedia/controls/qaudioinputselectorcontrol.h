@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIOENDPOINTSELECTORCONTROL_H
-#define QAUDIOENDPOINTSELECTORCONTROL_H
+#ifndef QAUDIOINPUTSELECTORCONTROL_H
+#define QAUDIOINPUTSELECTORCONTROL_H
 
 #include <qaudio.h>
 #include <qmediacontrol.h>
@@ -54,35 +54,35 @@ QT_MODULE(Multimedia)
 
 // Class forward declaration required for QDoc bug
 class QString;
-class Q_MULTIMEDIA_EXPORT QAudioEndpointSelectorControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QAudioInputSelectorControl : public QMediaControl
 {
     Q_OBJECT
 
 public:
-    virtual ~QAudioEndpointSelectorControl();
+    virtual ~QAudioInputSelectorControl();
 
-    virtual QList<QString> availableEndpoints() const = 0;
-    virtual QString endpointDescription(const QString& name) const = 0;
-    virtual QString defaultEndpoint() const = 0;
-    virtual QString activeEndpoint() const = 0;
+    virtual QList<QString> availableInputs() const = 0;
+    virtual QString inputDescription(const QString& name) const = 0;
+    virtual QString defaultInput() const = 0;
+    virtual QString activeInput() const = 0;
 
 public Q_SLOTS:
-    virtual void setActiveEndpoint(const QString& name) = 0;
+    virtual void setActiveInput(const QString& name) = 0;
 
 Q_SIGNALS:
-    void activeEndpointChanged(const QString& name);
-    void availableEndpointsChanged();
+    void activeInputChanged(const QString& name);
+    void availableInputsChanged();
 
 protected:
-    QAudioEndpointSelectorControl(QObject *parent = 0);
+    QAudioInputSelectorControl(QObject *parent = 0);
 };
 
-#define QAudioEndpointSelectorControl_iid "org.qt-project.qt.audioendpointselectorcontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QAudioEndpointSelectorControl, QAudioEndpointSelectorControl_iid)
+#define QAudioInputSelectorControl_iid "org.qt-project.qt.audioinputselectorcontrol/5.0"
+Q_MEDIA_DECLARE_CONTROL(QAudioInputSelectorControl, QAudioInputSelectorControl_iid)
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
 
-#endif // QAUDIOENDPOINTSELECTORCONTROL_H
+#endif // QAUDIOINPUTSELECTORCONTROL_H

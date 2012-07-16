@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreameraudioinputendpointselector_p.h"
+#include "qgstreameraudioinputselector_p.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
@@ -50,22 +50,22 @@
 #include <alsa/asoundlib.h>
 #endif
 
-QGstreamerAudioInputEndpointSelector::QGstreamerAudioInputEndpointSelector(QObject *parent)
-    :QAudioEndpointSelectorControl(parent)
+QGstreamerAudioInputSelector::QGstreamerAudioInputSelector(QObject *parent)
+    :QAudioInputSelectorControl(parent)
 {
     update();
 }
 
-QGstreamerAudioInputEndpointSelector::~QGstreamerAudioInputEndpointSelector()
+QGstreamerAudioInputSelector::~QGstreamerAudioInputSelector()
 {
 }
 
-QList<QString> QGstreamerAudioInputEndpointSelector::availableEndpoints() const
+QList<QString> QGstreamerAudioInputSelector::availableInputs() const
 {
     return m_names;
 }
 
-QString QGstreamerAudioInputEndpointSelector::endpointDescription(const QString& name) const
+QString QGstreamerAudioInputSelector::inputDescription(const QString& name) const
 {
     QString desc;
 
@@ -78,7 +78,7 @@ QString QGstreamerAudioInputEndpointSelector::endpointDescription(const QString&
     return desc;
 }
 
-QString QGstreamerAudioInputEndpointSelector::defaultEndpoint() const
+QString QGstreamerAudioInputSelector::defaultInput() const
 {
     if (m_names.size() > 0)
         return m_names.at(0);
@@ -86,20 +86,20 @@ QString QGstreamerAudioInputEndpointSelector::defaultEndpoint() const
     return QString();
 }
 
-QString QGstreamerAudioInputEndpointSelector::activeEndpoint() const
+QString QGstreamerAudioInputSelector::activeInput() const
 {
     return m_audioInput;
 }
 
-void QGstreamerAudioInputEndpointSelector::setActiveEndpoint(const QString& name)
+void QGstreamerAudioInputSelector::setActiveInput(const QString& name)
 {
     if (m_audioInput.compare(name) != 0) {
         m_audioInput = name;
-        emit activeEndpointChanged(name);
+        emit activeInputChanged(name);
     }
 }
 
-void QGstreamerAudioInputEndpointSelector::update()
+void QGstreamerAudioInputSelector::update()
 {
     m_names.clear();
     m_descriptions.clear();
@@ -115,7 +115,7 @@ void QGstreamerAudioInputEndpointSelector::update()
         m_audioInput = m_names.at(0);
 }
 
-void QGstreamerAudioInputEndpointSelector::updateAlsaDevices()
+void QGstreamerAudioInputSelector::updateAlsaDevices()
 {
 #ifdef HAVE_ALSA
     void **hints, **n;
@@ -149,7 +149,7 @@ void QGstreamerAudioInputEndpointSelector::updateAlsaDevices()
 #endif
 }
 
-void QGstreamerAudioInputEndpointSelector::updateOssDevices()
+void QGstreamerAudioInputSelector::updateOssDevices()
 {
     QDir devDir("/dev");
     devDir.setFilter(QDir::System);
@@ -160,7 +160,7 @@ void QGstreamerAudioInputEndpointSelector::updateOssDevices()
     }
 }
 
-void QGstreamerAudioInputEndpointSelector::updatePulseDevices()
+void QGstreamerAudioInputSelector::updatePulseDevices()
 {
     GstElementFactory *factory = gst_element_factory_find("pulsesrc");
     if (factory) {

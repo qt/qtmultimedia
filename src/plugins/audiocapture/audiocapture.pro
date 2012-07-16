@@ -10,7 +10,7 @@ DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 HEADERS += audioencodercontrol.h \
     audiocontainercontrol.h \
     audiomediarecordercontrol.h \
-    audioendpointselector.h \
+    audioinputselector.h \
     audiocaptureservice.h \
     audiocaptureserviceplugin.h \
     audiocapturesession.h
@@ -18,7 +18,7 @@ HEADERS += audioencodercontrol.h \
 SOURCES += audioencodercontrol.cpp \
     audiocontainercontrol.cpp \
     audiomediarecordercontrol.cpp \
-    audioendpointselector.cpp \
+    audioinputselector.cpp \
     audiocaptureservice.cpp \
     audiocaptureserviceplugin.cpp \
     audiocapturesession.cpp

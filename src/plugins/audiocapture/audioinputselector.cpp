@@ -39,39 +39,72 @@
 **
 ****************************************************************************/
 
-#ifndef AUDIOENDPOINTSELECTOR_H
-#define AUDIOENDPOINTSELECTOR_H
+#include "audiocapturesession.h"
+#include "audioinputselector.h"
 
-#include <QStringList>
+#include <qaudiodeviceinfo.h>
 
-#include "qaudioendpointselectorcontrol.h"
 
-class AudioCaptureSession;
-
-QT_USE_NAMESPACE
-
-class AudioEndpointSelector : public QAudioEndpointSelectorControl
+AudioInputSelector::AudioInputSelector(QObject *parent)
+    :QAudioInputSelectorControl(parent)
 {
-Q_OBJECT
-public:
-    AudioEndpointSelector(QObject *parent);
-    virtual ~AudioEndpointSelector();
+    m_session = qobject_cast<AudioCaptureSession*>(parent);
 
-    QList<QString> availableEndpoints() const;
-    QString endpointDescription(const QString& name) const;
-    QString defaultEndpoint() const;
-    QString activeEndpoint() const;
+    update();
 
-public Q_SLOTS:
-    void setActiveEndpoint(const QString& name);
+    m_audioInput = defaultInput();
+}
 
-private:
-    void update();
+AudioInputSelector::~AudioInputSelector()
+{
+}
 
-    QString        m_audioInput;
-    QList<QString> m_names;
-    QList<QString> m_descriptions;
-    AudioCaptureSession* m_session;
-};
+QList<QString> AudioInputSelector::availableInputs() const
+{
+    return m_names;
+}
 
-#endif // AUDIOENDPOINTSELECTOR_H
+QString AudioInputSelector::inputDescription(const QString& name) const
+{
+    QString desc;
+
+    for(int i = 0; i < m_names.count(); i++) {
+        if (m_names.at(i).compare(name) == 0) {
+            desc = m_names.at(i);
+            break;
+        }
+    }
+    return desc;
+}
+
+QString AudioInputSelector::defaultInput() const
+{
+    return QAudioDeviceInfo(QAudioDeviceInfo::defaultInputDevice()).deviceName();
+}
+
+QString AudioInputSelector::activeInput() const
+{
+    return m_audioInput;
+}
+
+void AudioInputSelector::setActiveInput(const QString& name)
+{
+    if (m_audioInput.compare(name) != 0) {
+        m_audioInput = name;
+        m_session->setCaptureDevice(name);
+        emit activeInputChanged(name);
+    }
+}
+
+void AudioInputSelector::update()
+{
+    m_names.clear();
+    m_descriptions.clear();
+
+    QList<QAudioDeviceInfo> devices;
+    devices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+    for(int i = 0; i < devices.size(); ++i) {
+        m_names.append(devices.at(i).deviceName());
+        m_descriptions.append(devices.at(i).deviceName());
+    }
+}

@@ -224,7 +224,7 @@ void MediaExample::AudioRecorder()
     audioRecorder->record();
     //! [Audio recorder]
 
-    //! [Audio recorder endpoints]
+    //! [Audio recorder inputs]
     QStringList inputs = audioRecorder->audioInputs();
     QString selectedInput = audioRecorder->defaultAudioInput();
 
@@ -235,7 +235,7 @@ void MediaExample::AudioRecorder()
     }
 
     audioRecorder->setAudioInput(selectedInput);
-    //! [Audio recorder endpoints]
+    //! [Audio recorder inputs]
 }
 
 void MediaExample::RadioTuna()

@@ -46,27 +46,27 @@
 #include <mfidl.h>
 #include <mmdeviceapi.h>
 
-#include "qaudioendpointselectorcontrol.h"
+#include "qaudiooutputselectorcontrol.h"
 
 class MFPlayerService;
 
 QT_USE_NAMESPACE
 
-class MFAudioEndpointControl : public QAudioEndpointSelectorControl
+class MFAudioEndpointControl : public QAudioOutputSelectorControl
 {
     Q_OBJECT
 public:
     MFAudioEndpointControl(QObject *parent = 0);
     ~MFAudioEndpointControl();
 
-    QList<QString> availableEndpoints() const;
+    QList<QString> availableOutputs() const;
 
-    QString endpointDescription(const QString &name) const;
+    QString outputDescription(const QString &name) const;
 
-    QString defaultEndpoint() const;
-    QString activeEndpoint() const;
+    QString defaultOutput() const;
+    QString activeOutput() const;
 
-    void setActiveEndpoint(const QString& name);
+    void setActiveOutput(const QString& name);
 
     IMFActivate* currentActivate() const;
 

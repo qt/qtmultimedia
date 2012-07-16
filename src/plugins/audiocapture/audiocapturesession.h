@@ -47,7 +47,7 @@
 #include <QDir>
 
 #include "audioencodercontrol.h"
-#include "audioendpointselector.h"
+#include "audioinputselector.h"
 #include "audiomediarecordercontrol.h"
 
 #include <qaudioformat.h>

@@ -49,7 +49,7 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qmetadatawritercontrol.h>
-#include <qaudioendpointselectorcontrol.h>
+#include <qaudioinputselectorcontrol.h>
 #include <qaudioencodersettingscontrol.h>
 #include <qmediacontainercontrol.h>
 #include <qvideoencodersettingscontrol.h>
@@ -116,7 +116,7 @@ private slots:
 
 private:
     QAudioEncoderSettingsControl* encode;
-    QAudioEndpointSelectorControl* audio;
+    QAudioInputSelectorControl* audio;
     MockMediaObject *object;
     MockMediaRecorderService*service;
     MockMediaRecorderControl *mock;
@@ -134,7 +134,7 @@ void tst_QMediaRecorder::initTestCase()
     object = new MockMediaObject(this, service);
     capture = new QMediaRecorder(object);
 
-    audio = qobject_cast<QAudioEndpointSelectorControl*>(service->requestControl(QAudioEndpointSelectorControl_iid));
+    audio = qobject_cast<QAudioInputSelectorControl*>(service->requestControl(QAudioInputSelectorControl_iid));
     encode = qobject_cast<QAudioEncoderSettingsControl*>(service->requestControl(QAudioEncoderSettingsControl_iid));
     videoEncode = qobject_cast<QVideoEncoderSettingsControl*>(service->requestControl(QVideoEncoderSettingsControl_iid));
 }
@@ -396,14 +396,14 @@ void tst_QMediaRecorder::testVolume()
 
 void tst_QMediaRecorder::testAudioDeviceControl()
 {
-    QSignalSpy readSignal(audio,SIGNAL(activeEndpointChanged(QString)));
-    QVERIFY(audio->availableEndpoints().size() == 3);
-    QVERIFY(audio->defaultEndpoint().compare("device1") == 0);
-    audio->setActiveEndpoint("device2");
+    QSignalSpy readSignal(audio,SIGNAL(activeInputChanged(QString)));
+    QVERIFY(audio->availableInputs().size() == 3);
+    QVERIFY(audio->defaultInput().compare("device1") == 0);
+    audio->setActiveInput("device2");
     QTestEventLoop::instance().enterLoop(1);
-    QVERIFY(audio->activeEndpoint().compare("device2") == 0);
+    QVERIFY(audio->activeInput().compare("device2") == 0);
     QVERIFY(readSignal.count() == 1);
-    QVERIFY(audio->endpointDescription("device2").compare("dev2 comment") == 0);
+    QVERIFY(audio->inputDescription("device2").compare("dev2 comment") == 0);
 }
 
 void tst_QMediaRecorder::testAudioEncodeControl()

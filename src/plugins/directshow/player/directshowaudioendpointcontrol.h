@@ -42,7 +42,7 @@
 #ifndef DIRECTSHOWAUDIOENDPOINTCONTROL_H
 #define DIRECTSHOWAUDIOENDPOINTCONTROL_H
 
-#include "qaudioendpointselectorcontrol.h"
+#include "qaudiooutputselectorcontrol.h"
 
 #include <dshow.h>
 
@@ -50,21 +50,21 @@ class DirectShowPlayerService;
 
 QT_USE_NAMESPACE
 
-class DirectShowAudioEndpointControl : public QAudioEndpointSelectorControl
+class DirectShowAudioEndpointControl : public QAudioOutputSelectorControl
 {
     Q_OBJECT
 public:
     DirectShowAudioEndpointControl(DirectShowPlayerService *service, QObject *parent = 0);
     ~DirectShowAudioEndpointControl();
 
-    QList<QString> availableEndpoints() const;
+    QList<QString> availableOutputs() const;
 
-    QString endpointDescription(const QString &name) const;
+    QString outputDescription(const QString &name) const;
 
-    QString defaultEndpoint() const;
-    QString activeEndpoint() const;
+    QString defaultOutput() const;
+    QString activeOutput() const;
 
-    void setActiveEndpoint(const QString& name);
+    void setActiveOutput(const QString& name);
 
 private:
     void updateEndpoints();
