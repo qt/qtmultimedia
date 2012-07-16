@@ -1,22 +1,24 @@
-
 TEMPLATE=app
+TARGET=declarative-camera
 
-QT += qtquick1 network multimedia
+QT += quick qml multimedia
 
-contains(QT_CONFIG, opengl) {
-    QT += opengl
-}
+SOURCES += qmlcamera.cpp
 
-SOURCES += $$PWD/qmlcamera.cpp
-!mac:TARGET = qml_camera
-else:TARGET = QmlCamera
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/declarative-camera
 
-RESOURCES += declarative-camera.qrc
+qml.files = declarative-camera.qml \
+            CameraButton.qml \
+            CameraPropertyButton.qml \
+            CameraPropertyPopup.qml \
+            FocusButton.qml \
+            PhotoCaptureControls.qml \
+            PhotoPreview.qml \
+            VideoCaptureControls.qml \
+            VideoPreview.qml \
+            ZoomControl.qml \
+            images
 
-target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/qml_camera
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/qml_camera
+qml.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/declarative-camera
 
-INSTALLS += target sources
-
-QT+=widgets
+INSTALLS += target qml

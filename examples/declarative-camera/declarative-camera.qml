@@ -43,6 +43,10 @@ import QtMultimedia 5.0
 
 Rectangle {
     id : cameraUI
+
+    width: 800
+    height: 480
+
     color: "black"
     state: "PhotoCapture"
 
@@ -51,66 +55,97 @@ Rectangle {
             name: "PhotoCapture"
             StateChangeScript {
                 script: {
-                    camera.visible = true
-                    camera.focus = true
-                    stillControls.visible = true
-                    photoPreview.visible = false
+                    camera.captureMode = Camera.CaptureStillImage
+                    camera.start()
                 }
             }
         },
         State {
             name: "PhotoPreview"
+        },
+        State {
+            name: "VideoCapture"
             StateChangeScript {
                 script: {
-                    camera.visible = false                    
-                    stillControls.visible = false
-                    photoPreview.visible = true
-                    photoPreview.focus = true
+                    camera.captureMode = Camera.CaptureVideo
+                    camera.start()
+                }
+            }
+        },
+        State {
+            name: "VideoPreview"
+            StateChangeScript {
+                script: {
+                    camera.stop()
                 }
             }
         }
     ]
 
+    Camera {
+        id: camera
+        captureMode: Camera.CaptureStillImage
+
+        imageCapture {
+            onImageCaptured: {
+                photoPreview.source = preview
+                stillControls.previewAvailable = true
+                cameraUI.state = "PhotoPreview"
+            }
+        }
+
+        videoRecorder {
+             resolution: "640x480"
+             frameRate: 15
+        }
+    }
+
     PhotoPreview {
         id : photoPreview
         anchors.fill : parent
         onClosed: cameraUI.state = "PhotoCapture"
+        visible: cameraUI.state == "PhotoPreview"
         focus: visible
-
-        Keys.onPressed : {
-            //return to capture mode if the shutter button is touched
-            if (event.key == Qt.Key_CameraFocus && !event.isAutoRepeat) {
-                cameraUI.state = "PhotoCapture"
-                event.accepted = true;
-            }
-        }
     }
 
-    Camera {
-        id: camera
+    VideoPreview {
+        id : videoPreview
+        anchors.fill : parent
+        onClosed: cameraUI.state = "VideoCapture"
+        visible: cameraUI.state == "VideoPreview"
+        focus: visible
+
+        //don't load recorded video if preview is invisible
+        source: visible ? camera.videoRecorder.actualLocation : ""
+    }
+
+    VideoOutput {
+        id: viewfinder
+        visible: cameraUI.state == "PhotoCapture" || cameraUI.state == "VideoCapture"
+
         x: 0
         y: 0
         width: parent.width - stillControls.buttonsPanelWidth
         height: parent.height
-        focus: visible //to receive focus and capture key events
-        //captureResolution : "640x480"
 
-        flashMode: stillControls.flashMode
-        whiteBalanceMode: stillControls.whiteBalance
-        exposureCompensation: stillControls.exposureCompensation
-
-        onImageCaptured : {
-            photoPreview.source = preview
-            stillControls.previewAvailable = true
-            cameraUI.state = "PhotoPreview"
-        }
+        source: camera
     }
 
-    CaptureControls {
+    PhotoCaptureControls {
         id: stillControls
         anchors.fill: parent
         camera: camera
+        visible: cameraUI.state == "PhotoCapture"
         onPreviewSelected: cameraUI.state = "PhotoPreview"
+        onVideoModeSelected: cameraUI.state = "VideoCapture"
     }
 
+    VideoCaptureControls {
+        id: videoControls
+        anchors.fill: parent
+        camera: camera
+        visible: cameraUI.state == "VideoCapture"
+        onPreviewSelected: cameraUI.state = "VideoPreview"
+        onPhotoModeSelected: cameraUI.state = "PhotoCapture"
+    }
 }

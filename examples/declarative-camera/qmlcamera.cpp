@@ -38,51 +38,21 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QDesktopWidget>
-#include <QtQuick1/qdeclarativeview.h>
-#include <QtQml/QQmlEngine>
+#include <QGuiApplication>
+#include <QQuickView>
+#include <QQmlEngine>
 
-#if !defined(QT_NO_OPENGL)
-#include <QtOpenGL/QGLWidget>
-#endif
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-
-#if defined (Q_WS_X11) || defined (Q_WS_MAC)
-    //### default to using raster graphics backend for now
-    bool gsSpecified = false;
-    for (int i = 0; i < argc; ++i) {
-        QString arg = argv[i];
-        if (arg == "-graphicssystem") {
-            gsSpecified = true;
-            break;
-        }
-    }
-
-    if (!gsSpecified)
-        QApplication::setGraphicsSystem("raster");
-#endif
-
-    QApplication application(argc, argv);
-    const QString mainQmlApp = QLatin1String("qrc:/declarative-camera.qml");
+    QGuiApplication app(argc,argv);
     QQuickView view;
-#if !defined(QT_NO_OPENGL)
-    view.setViewport(new QGLWidget);
-#endif
-    view.setSource(QUrl(mainQmlApp));
     view.setResizeMode(QQuickView::SizeRootObjectToView);
     // Qt.quit() called in embedded .qml by default only emits
     // quit() signal, so do this (optionally use Qt.exit()).
     QObject::connect(view.engine(), SIGNAL(quit()), qApp, SLOT(quit()));
-#if defined(Q_WS_MAEMO_6)
-    view.setGeometry(application.desktop()->screenGeometry());
-    view.showFullScreen();
-#else
-    view.setGeometry(QRect(100, 100, 800, 480));
+    view.setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() +
+                                       QLatin1String("/declarative-camera.qml")));
+    view.resize(800, 480);
     view.show();
-#endif
-    return application.exec();
+    return app.exec();
 }
-

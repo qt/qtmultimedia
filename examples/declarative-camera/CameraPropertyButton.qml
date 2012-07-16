@@ -79,7 +79,6 @@ Item {
             State {
                 name: "invisible"
                 PropertyChanges { target: popup; opacity: 0 }
-                PropertyChanges { target: camera; focus: true }
             },
 
             State {

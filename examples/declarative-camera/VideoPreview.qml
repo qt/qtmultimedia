@@ -39,46 +39,33 @@
 ****************************************************************************/
 
 import QtQuick 2.0
+import QtMultimedia 5.0
 
 Item {
-    id: exposureCompensation
-    property real value : flickableList.items[flickableList.index]
-    signal clicked
+    id: videoPreview
+    property alias source : player.source
+    signal closed
 
-    width : 144
-    height: 70
+    MediaPlayer {
+        id: player
+        autoPlay: true
 
-    BorderImage {
-        id: buttonImage
-        source: "images/toolbutton.sci"
-        width: exposureCompensation.width; height: exposureCompensation.height
+        //switch back to viewfinder after playback finished
+        onStatusChanged: {
+            if (status == MediaPlayer.EndOfMedia)
+                videoPreview.closed();
+        }
     }
 
-    Text {
-        text: "Ev:"
-        x: 8
-        y: 8
-        font.pixelSize: 18
-        color: "white"
+    VideoOutput {
+        source: player
+        anchors.fill : parent
     }
 
-    FlickableList {
-        anchors.fill: buttonImage
-        id: flickableList        
-        items: ["-2", "-1.5", "-1", "-0.5", "0", "+0.5", "+1", "+1.5", "+2"]
-        index: 4
-
-        onClicked: exposureCompensation.clicked()
-
-        delegate: Text {
-            font.pixelSize: 22
-            color: "white"
-            styleColor: "black"
-            width: flickableList.width
-            height: flickableList.height
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            text: flickableList.items[index]
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            videoPreview.closed();
         }
     }
 }

@@ -59,7 +59,7 @@ Item {
             initialZoom = zoomControl.currentZoom
         }
 
-        onMousePositionChanged: {
+        onPositionChanged: {
             if (pressed) {
                 var target = initialZoom * Math.pow(2, (initialPos-mouseY)/zoomControl.height);
                 target = Math.max(1, Math.min(target, zoomControl.maximumZoom))
