@@ -72,9 +72,9 @@ unix:!mac {
         SOURCES += audio/qsoundeffect_pulse_p.cpp
         !maemo*:DEFINES += QTM_PULSEAUDIO_DEFAULTBUFFER
     } else {
-        DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER
-        PRIVATE_HEADERS += audio/qsoundeffect_qmedia_p.h
-        SOURCES += audio/qsoundeffect_qmedia_p.cpp
+        DEFINES += QT_MULTIMEDIA_QAUDIO
+        PRIVATE_HEADERS += audio/qsoundeffect_qaudio_p.h
+        SOURCES += audio/qsoundeffect_qaudio_p.cpp
 
         config_alsa {
             DEFINES += HAS_ALSA
@@ -86,7 +86,7 @@ unix:!mac {
         }
     }
 } else {
-    DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER
-    PRIVATE_HEADERS += audio/qsoundeffect_qmedia_p.h
-    SOURCES += audio/qsoundeffect_qmedia_p.cpp
+    DEFINES += QT_MULTIMEDIA_QAUDIO
+    PRIVATE_HEADERS += audio/qsoundeffect_qaudio_p.h
+    SOURCES += audio/qsoundeffect_qaudio_p.cpp
 }

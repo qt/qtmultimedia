@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef QSOUNDEFFECT_QMEDIA_H
-#define QSOUNDEFFECT_QMEDIA_H
+#ifndef QSOUNDEFFECT_QAUDIO_H
+#define QSOUNDEFFECT_QAUDIO_H
 
 //
 //  W A R N I N G
@@ -55,7 +55,8 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
-#include "qmediaplayer.h"
+#include "qaudiooutput.h"
+#include "qsamplecache_p.h"
 #include "qsoundeffect.h"
 
 QT_BEGIN_HEADER
@@ -64,10 +65,45 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
+class QSoundEffectPrivate;
+
+class PrivateSoundSource : public QIODevice
+{
+    friend class QSoundEffectPrivate;
+    Q_OBJECT
+public:
+    PrivateSoundSource(QSoundEffectPrivate* s);
+    ~PrivateSoundSource() {}
+
+    qint64 readData( char* data, qint64 len);
+    qint64 writeData(const char* data, qint64 len);
+
+private Q_SLOTS:
+    void sampleReady();
+    void decoderError();
+    void stateChanged(QAudio::State);
+
+private:
+    QUrl           m_url;
+    int            m_loopCount;
+    int            m_runningCount;
+    bool           m_playing;
+    QSoundEffect::Status  m_status;
+    QAudioOutput   *m_audioOutput;
+    QSample        *m_sample;
+    bool           m_muted;
+    int            m_volume;
+    bool           m_sampleReady;
+    qint64         m_offset;
+    QString        m_category;
+
+    QSoundEffectPrivate *soundeffect;
+};
 
 
 class QSoundEffectPrivate : public QObject
 {
+    friend class PrivateSoundSource;
     Q_OBJECT
 public:
 
@@ -91,7 +127,6 @@ public:
 
     void release();
 
-    // Categories are not really supported with QMediaPlayer
     QString category() const;
     void setCategory(const QString &);
 
@@ -108,26 +143,16 @@ Q_SIGNALS:
     void statusChanged();
     void categoryChanged();
 
-private Q_SLOTS:
-    void stateChanged(QMediaPlayer::State);
-    void mediaStatusChanged(QMediaPlayer::MediaStatus);
-    void error(QMediaPlayer::Error);
-
 private:
     void setStatus(QSoundEffect::Status status);
     void setPlaying(bool playing);
     void setLoopsRemaining(int loopsRemaining);
 
-    int            m_loopCount;
-    int            m_runningCount;
-    bool           m_playing;
-    QSoundEffect::Status  m_status;
-    QMediaPlayer  *m_player;
-    QString         m_category;
+    PrivateSoundSource* d;
 };
 
 QT_END_NAMESPACE
 
 QT_END_HEADER
 
-#endif // QSOUNDEFFECT_QMEDIA_H
+#endif // QSOUNDEFFECT_QAUDIO_H

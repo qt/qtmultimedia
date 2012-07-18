@@ -155,10 +155,7 @@ void tst_QSoundEffect::testLooping()
     // test.wav is about 200ms, wait until it has finished playing 5 times
     QTestEventLoop::instance().enterLoop(3);
 
-    QCOMPARE(sound->loopsRemaining(), 0);
-#ifdef Q_OS_MAC
-    QEXPECT_FAIL("", "QTBUG-26488 Fails on Mac", Abort);
-#endif
+    QTRY_COMPARE(sound->loopsRemaining(), 0);
     QCOMPARE(readSignal_Remaining.count(),5);
 }
 
@@ -193,7 +190,7 @@ void tst_QSoundEffect::testPlaying()
     QTestEventLoop::instance().enterLoop(1);
     sound->play();
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(sound->isPlaying(), true);
+    QTRY_COMPARE(sound->isPlaying(), true);
     sound->stop();
 
     //empty source
@@ -201,17 +198,14 @@ void tst_QSoundEffect::testPlaying()
     QTestEventLoop::instance().enterLoop(1);
     sound->play();
     QTestEventLoop::instance().enterLoop(1);
-#ifdef Q_OS_MAC
-    QEXPECT_FAIL("", "QTBUG-26488 Fails on Mac", Abort);
-#endif
-    QCOMPARE(sound->isPlaying(), false);
+    QTRY_COMPARE(sound->isPlaying(), false);
 
     //invalid source
     sound->setSource(QUrl((QLatin1String("invalid source"))));
     QTestEventLoop::instance().enterLoop(1);
     sound->play();
     QTestEventLoop::instance().enterLoop(1);
-    QTRY_VERIFY(!sound->isPlaying());
+    QTRY_COMPARE(sound->isPlaying(), false);
 
     sound->setLoopCount(1); // TODO: What if one of the tests fail?
 }
@@ -219,9 +213,6 @@ void tst_QSoundEffect::testPlaying()
 void tst_QSoundEffect::testStatus()
 {
     sound->setSource(QUrl());
-#ifdef Q_OS_MAC
-    QEXPECT_FAIL("", "QTBUG-26488 Fails on Mac", Abort);
-#endif
     QCOMPARE(sound->status(), QSoundEffect::Null);
 
     //valid source
@@ -281,9 +272,6 @@ void tst_QSoundEffect::testSetSourceWhileLoading()
         QVERIFY(sound->isPlaying());
 
         sound->setSource(QUrl());
-#ifdef Q_OS_MAC
-        QEXPECT_FAIL("", "QTBUG-26488 Fails on Mac", Abort);
-#endif
         QCOMPARE(sound->status(), QSoundEffect::Null);
 
         sound->setSource(url2);
@@ -314,9 +302,6 @@ void tst_QSoundEffect::testSetSourceWhilePlaying()
         QVERIFY(sound->isPlaying());
 
         sound->setSource(QUrl());
-#ifdef Q_OS_MAC
-        QEXPECT_FAIL("", "QTBUG-26488 Fails on Mac", Abort);
-#endif
         QCOMPARE(sound->status(), QSoundEffect::Null);
 
         sound->setSource(url2);
@@ -338,9 +323,6 @@ void tst_QSoundEffect::testSetSourceWhilePlaying()
 void tst_QSoundEffect::testSupportedMimeTypes()
 {
     QStringList mimeTypes = sound->supportedMimeTypes();
-#ifdef Q_OS_MAC
-    QEXPECT_FAIL("", "QTBUG-26488 Fails on Mac", Abort);
-#endif
     QVERIFY(!mimeTypes.empty());
     QVERIFY(mimeTypes.indexOf(QLatin1String("audio/wav")) != -1 ||
             mimeTypes.indexOf(QLatin1String("audio/x-wav")) != -1 ||
@@ -356,9 +338,6 @@ void tst_QSoundEffect::testCorruptFile()
         QVERIFY(!sound->isPlaying());
         QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Error);
         QTRY_COMPARE(sound->status(), QSoundEffect::Error);
-#ifdef Q_OS_MAC
-        QEXPECT_FAIL("", "QTBUG-26488 Fails on Mac", Abort);
-#endif
         QCOMPARE(statusSpy.count(), 2);
         sound->play();
         QVERIFY(!sound->isPlaying());

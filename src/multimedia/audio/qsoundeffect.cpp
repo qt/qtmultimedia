@@ -43,8 +43,8 @@
 
 #if defined(QT_MULTIMEDIA_PULSEAUDIO)
 #include "qsoundeffect_pulse_p.h"
-#elif(QT_MULTIMEDIA_QMEDIAPLAYER)
-#include "qsoundeffect_qmedia_p.h"
+#elif(QT_MULTIMEDIA_QAUDIO)
+#include "qsoundeffect_qaudio_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
