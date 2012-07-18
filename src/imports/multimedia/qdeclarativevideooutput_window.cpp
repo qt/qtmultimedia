@@ -77,8 +77,8 @@ void QDeclarativeVideoWindowBackend::itemChange(QQuickItem::ItemChange change,
                                                 const QQuickItem::ItemChangeData &changeData)
 {
     if (change == QQuickItem::ItemSceneChange && m_videoWindowControl) {
-        if (changeData.canvas)
-            m_videoWindowControl->setWinId(changeData.canvas->winId());
+        if (changeData.window)
+            m_videoWindowControl->setWinId(changeData.window->winId());
         else
             m_videoWindowControl->setWinId(0);
     }
