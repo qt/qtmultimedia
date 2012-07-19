@@ -85,7 +85,11 @@ QMediaServiceProviderHint::Features QGstreamerPlayerServicePlugin::supportedFeat
         const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
+        return
+#ifdef HAVE_GST_APPSRC
+                QMediaServiceProviderHint::StreamPlayback |
+#endif
+                QMediaServiceProviderHint::VideoSurface;
     else
         return QMediaServiceProviderHint::Features();
 }

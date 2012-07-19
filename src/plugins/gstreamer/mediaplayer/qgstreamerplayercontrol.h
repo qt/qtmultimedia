@@ -111,9 +111,6 @@ public Q_SLOTS:
     void setMuted(bool muted);
 
 private Q_SLOTS:
-    void writeFifo();
-    void fifoReadyWrite(int socket);
-
     void updateSessionState(QMediaPlayer::State state);
     void updateMediaStatus();
     void processEOS();
@@ -128,8 +125,6 @@ private Q_SLOTS:
     void handleResourcesDenied();
 
 private:
-    bool openFifo();
-    void closeFifo();
     void playOrPause(QMediaPlayer::State state);
 
     void pushState();
@@ -149,12 +144,6 @@ private:
     bool m_setMediaPending;
     QMediaContent m_currentResource;
     QIODevice *m_stream;
-    QSocketNotifier *m_fifoNotifier;
-    int m_fifoFd[2];
-    bool m_fifoCanWrite;
-    int m_bufferSize;
-    int m_bufferOffset;
-    char m_buffer[PIPE_BUF];
 
     QMediaPlayerResourceSetInterface *m_resources;
 };

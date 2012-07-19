@@ -72,14 +72,7 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     , m_pendingSeekPosition(-1)
     , m_setMediaPending(false)
     , m_stream(0)
-    , m_fifoNotifier(0)
-    , m_fifoCanWrite(false)
-    , m_bufferSize(0)
-    , m_bufferOffset(0)
 {
-    m_fifoFd[0] = -1;
-    m_fifoFd[1] = -1;
-
     m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>();
     Q_ASSERT(m_resources);
 
@@ -123,13 +116,6 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
 QGstreamerPlayerControl::~QGstreamerPlayerControl()
 {
     QMediaResourcePolicy::destroyResourceSet(m_resources);
-
-    if (m_fifoFd[0] >= 0) {
-        ::close(m_fifoFd[0]);
-        ::close(m_fifoFd[1]);
-        m_fifoFd[0] = -1;
-        m_fifoFd[1] = -1;
-    }
 }
 
 QMediaPlayerResourceSetInterface* QGstreamerPlayerControl::resources() const
@@ -386,12 +372,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     }
 
     if (m_stream) {
-#if !defined(HAVE_GST_APPSRC)
-        closeFifo();
-
-        disconnect(m_stream, SIGNAL(readyRead()), this, SLOT(writeFifo()));
-#endif
-
         if (m_ownStream)
             delete m_stream;
         m_stream = 0;
@@ -423,14 +403,8 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     QNetworkRequest request;
 
     if (m_stream) {
-#if !defined(HAVE_GST_APPSRC)
-        if (m_stream->isReadable() && openFifo()) {
-            request = QNetworkRequest(QUrl(QString(QLatin1String("fd://%1")).arg(m_fifoFd[0])));
-        }
-#else
         userStreamValid = stream->isOpen() && m_stream->isReadable();
         request = content.canonicalRequest();
-#endif
     } else if (!content.isNull()) {
         request = content.canonicalRequest();
     }
@@ -453,13 +427,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
         m_session->loadFromUri(request);
 #endif
 
-#if !defined(HAVE_GST_APPSRC)
-    if (m_fifoFd[1] >= 0) {
-        m_fifoCanWrite = true;
-
-        writeFifo();
-    }
-#endif
 
 #if defined(HAVE_GST_APPSRC)
     if (!request.url().isEmpty() || userStreamValid) {
@@ -588,98 +555,6 @@ void QGstreamerPlayerControl::setBufferProgress(int progress)
     updateMediaStatus();
 
     emit bufferStatusChanged(m_bufferProgress);
-}
-
-void QGstreamerPlayerControl::writeFifo()
-{
-    if (m_fifoCanWrite) {
-        qint64 bytesToRead = qMin<qint64>(
-                m_stream->bytesAvailable(), PIPE_BUF - m_bufferSize);
-
-        if (bytesToRead > 0) {
-            int bytesRead = m_stream->read(&m_buffer[m_bufferOffset + m_bufferSize], bytesToRead);
-
-            if (bytesRead > 0)
-                m_bufferSize += bytesRead;
-        }
-
-        if (m_bufferSize > 0) {
-            int bytesWritten = ::write(m_fifoFd[1], &m_buffer[m_bufferOffset], size_t(m_bufferSize));
-
-            if (bytesWritten > 0) {
-                m_bufferOffset += bytesWritten;
-                m_bufferSize -= bytesWritten;
-
-                if (m_bufferSize == 0)
-                    m_bufferOffset = 0;
-            } else if (errno == EAGAIN) {
-                m_fifoCanWrite = false;
-            } else {
-                closeFifo();
-            }
-        }
-    }
-
-    m_fifoNotifier->setEnabled(m_stream->bytesAvailable() > 0);
-}
-
-void QGstreamerPlayerControl::fifoReadyWrite(int socket)
-{
-    if (socket == m_fifoFd[1]) {
-        m_fifoCanWrite = true;
-
-        writeFifo();
-    }
-}
-
-bool QGstreamerPlayerControl::openFifo()
-{
-    Q_ASSERT(m_fifoFd[0] < 0);
-    Q_ASSERT(m_fifoFd[1] < 0);
-
-    if (::pipe(m_fifoFd) == 0) {
-        int flags = ::fcntl(m_fifoFd[1], F_GETFD);
-
-        if (::fcntl(m_fifoFd[1], F_SETFD, flags | O_NONBLOCK) >= 0) {
-            m_fifoNotifier = new QSocketNotifier(m_fifoFd[1], QSocketNotifier::Write);
-
-            connect(m_fifoNotifier, SIGNAL(activated(int)), this, SLOT(fifoReadyWrite(int)));
-
-            return true;
-        } else {
-            qWarning("Failed to make pipe non blocking %d", errno);
-
-            ::close(m_fifoFd[0]);
-            ::close(m_fifoFd[1]);
-
-            m_fifoFd[0] = -1;
-            m_fifoFd[1] = -1;
-
-            return false;
-        }
-    } else {
-        qWarning("Failed to create pipe %d", errno);
-
-        return false;
-    }
-}
-
-void QGstreamerPlayerControl::closeFifo()
-{
-    if (m_fifoFd[0] >= 0) {
-        delete m_fifoNotifier;
-        m_fifoNotifier = 0;
-
-        ::close(m_fifoFd[0]);
-        ::close(m_fifoFd[1]);
-        m_fifoFd[0] = -1;
-        m_fifoFd[1] = -1;
-
-        m_fifoCanWrite = false;
-
-        m_bufferSize = 0;
-        m_bufferOffset = 0;
-    }
 }
 
 void QGstreamerPlayerControl::applyPendingSeek(bool isSeekable)
