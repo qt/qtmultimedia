@@ -20,12 +20,5 @@ win32 {
 
 load(qt_parts)
 
-module_qtmultimedia_docsnippets.subdir = doc
-module_qtmultimedia_docsnippets.target = sub-doc
-module_qtmultimedia_docsnippets.depends = sub_src
-module_qtmultimedia_docsnippets.CONFIG = no_default_install
-
-SUBDIRS += module_qtmultimedia_docsnippets
-
 # for make docs:
-include(doc/config/qtmultimedia_doc.pri)
+include(src/multimedia/doc/qtmultimedia_doc.pri)

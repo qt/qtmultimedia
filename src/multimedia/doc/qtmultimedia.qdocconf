@@ -14,17 +14,16 @@ description = Qt Multimedia Documentation
 # <rootdir>/examples.
 # Paths are relative to the  location of this file.
 
-exampledirs += ../src/examples \
-               ../.. \
-               ../../examples
+exampledirs += .. \
+               ../../../examples
 
-headerdirs += ../src \
-              ../../src
+headerdirs += src \
+              ../..
 
-imagedirs += ../src/images \
+imagedirs += src/images \
 
-sourcedirs += ../src \
-              ../../src
+sourcedirs += src \
+              ../..
 
 excludedirs +=
 
@@ -67,7 +66,7 @@ qhp.qtmultimedia.subprojects.classes.sortPages = true
 
 # Do NOT change the variables after this line unless you know what you are doing.
 
-outputdir = ../html
+outputdir = html
 outputformats = HTML
 
 examples.fileextensions = "*.cpp *.h *.js *.svg *.xml *.ui *.qml"
