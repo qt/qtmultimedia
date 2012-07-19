@@ -337,13 +337,6 @@ Item {
     */
     signal playing
 
-    /*!
-        \qmlsignal Video::playbackStateChanged()
-
-        This signal is emitted whenever the state of playback changes.
-    */
-    signal playbackStateChanged
-
     VideoOutput {
         id: videoOut
         anchors.fill: video
@@ -355,8 +348,6 @@ Item {
         onPaused:  video.paused()
         onStopped: video.stopped()
         onPlaying: video.playing()
-
-        onPlaybackStateChanged: video.playbackStateChanged()
     }
 
     /*!
