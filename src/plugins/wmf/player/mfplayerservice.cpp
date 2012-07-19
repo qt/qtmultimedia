@@ -50,6 +50,7 @@
 #include "mfvideorenderercontrol.h"
 #include "mfaudioendpointcontrol.h"
 #include "mfaudioprobecontrol.h"
+#include "mfvideoprobecontrol.h"
 #include "mfplayerservice.h"
 #include "mfplayersession.h"
 #include "mfmetadatacontrol.h"
@@ -113,6 +114,13 @@ QMediaControl* MFPlayerService::requestControl(const char *name)
             return probe;
         }
         return 0;
+    } else if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
+        if (m_session) {
+            MFVideoProbeControl *probe = new MFVideoProbeControl(this);
+            m_session->addProbe(probe);
+            return probe;
+        }
+        return 0;
     }
 
     return 0;
@@ -139,6 +147,14 @@ void MFPlayerService::releaseControl(QMediaControl *control)
         if (m_session)
             m_session->removeProbe(audioProbe);
         delete audioProbe;
+        return;
+    }
+
+    MFVideoProbeControl* videoProbe = qobject_cast<MFVideoProbeControl*>(control);
+    if (videoProbe) {
+        if (m_session)
+            m_session->removeProbe(videoProbe);
+        delete videoProbe;
         return;
     }
 }

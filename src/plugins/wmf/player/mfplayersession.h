@@ -55,6 +55,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qwaitcondition.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_BEGIN_NAMESPACE
 class QMediaContent;
@@ -72,7 +73,9 @@ class MFPlayerControl;
 class MFMetaDataControl;
 class MFPlayerService;
 class AudioSampleGrabberCallback;
+class MFTransform;
 class MFAudioProbeControl;
+class MFVideoProbeControl;
 
 class MFPlayerSession : public QObject, public IMFAsyncCallback
 {
@@ -120,6 +123,8 @@ public:
 
     void addProbe(MFAudioProbeControl* probe);
     void removeProbe(MFAudioProbeControl* probe);
+    void addProbe(MFVideoProbeControl* probe);
+    void removeProbe(MFVideoProbeControl* probe);
 
 Q_SIGNALS:
     void error(QMediaPlayer::Error error, QString errorString, bool isFatal);
@@ -223,6 +228,9 @@ private:
     QAudioFormat audioFormatForMFMediaType(IMFMediaType *mediaType) const;
     AudioSampleGrabberCallback *m_audioSampleGrabber;
     IMFTopologyNode *m_audioSampleGrabberNode;
+
+    IMFTopology *insertMFT(IMFTopology *topology, TOPOID outputNodeId);
+    MFTransform *m_videoProbeMFT;
 };
 
 

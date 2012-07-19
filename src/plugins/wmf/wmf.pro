@@ -19,13 +19,15 @@ HEADERS += \
     wmfserviceplugin.h \
     mfstream.h \
     sourceresolver.h \
-    samplegrabber.h
+    samplegrabber.h \
+    mftvideo.h
 
 SOURCES += \
     wmfserviceplugin.cpp \
     mfstream.cpp \
     sourceresolver.cpp \
-    samplegrabber.cpp
+    samplegrabber.cpp \
+    mftvideo.cpp
 
 include (player/player.pri)
 include (decoder/decoder.pri)

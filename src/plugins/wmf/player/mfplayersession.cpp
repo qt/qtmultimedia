@@ -64,6 +64,7 @@
 #include <nserror.h>
 #include "sourceresolver.h"
 #include "samplegrabber.h"
+#include "mftvideo.h"
 
 //#define DEBUG_MEDIAFOUNDATION
 //#define TEST_STREAMING
@@ -419,6 +420,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_mediaTypes(0)
     , m_audioSampleGrabber(0)
     , m_audioSampleGrabberNode(0)
+    , m_videoProbeMFT(0)
 {
     m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     m_sourceResolver = new SourceResolver();
@@ -442,6 +444,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     m_varStart.uhVal.QuadPart = 0;
 
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
+    m_videoProbeMFT = new MFTransform;
 }
 
 void MFPlayerSession::close()
@@ -485,9 +488,20 @@ void MFPlayerSession::removeProbe(MFAudioProbeControl *probe)
     m_audioSampleGrabber->removeProbe(probe);
 }
 
+void MFPlayerSession::addProbe(MFVideoProbeControl* probe)
+{
+    m_videoProbeMFT->addProbe(probe);
+}
+
+void MFPlayerSession::removeProbe(MFVideoProbeControl* probe)
+{
+    m_videoProbeMFT->removeProbe(probe);
+}
+
 MFPlayerSession::~MFPlayerSession()
 {
     m_audioSampleGrabber->Release();
+    m_videoProbeMFT->Release();
 }
 
 
@@ -581,6 +595,9 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         return;
     }
 
+    // Remember output node id for a first video stream
+    TOPOID outputNodeId = -1;
+
     // For each stream, create the topology nodes and add them to the topology.
     DWORD succeededCount = 0;
     for (DWORD i = 0; i < cSourceStreams; i++)
@@ -595,12 +612,17 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
             if (sourceNode) {
                 IMFTopologyNode *outputNode = addOutputNode(streamDesc, mediaType, topology, 0);
                 if (outputNode) {
-                    // Only install audio sample grabber for the first audio stream.
-                    if (mediaType != Audio || m_audioSampleGrabberNode || !setupAudioSampleGrabber(topology, sourceNode, outputNode)) {
-                        hr = sourceNode->ConnectOutput(0, outputNode, 0);
-                    } else {
-                        hr = S_OK;
+                    bool connected = false;
+                    if (mediaType == Audio) {
+                        if (!m_audioSampleGrabberNode)
+                            connected = setupAudioSampleGrabber(topology, sourceNode, outputNode);
+                    } else if (mediaType == Video && outputNodeId == -1) {
+                        // Remember video output node ID.
+                        outputNode->GetTopoNodeID(&outputNodeId);
                     }
+
+                    if (!connected)
+                        hr = sourceNode->ConnectOutput(0, outputNode, 0);
                     if (FAILED(hr)) {
                         emit error(QMediaPlayer::FormatError, tr("Unable to play some stream"), false);
                     }
@@ -627,6 +649,10 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Unable to play"), true);
     } else {
+        if (outputNodeId != -1) {
+            topology = insertMFT(topology, outputNodeId);
+        }
+
         hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
         if (FAILED(hr)) {
             changeStatus(QMediaPlayer::UnknownMediaStatus);
@@ -835,6 +861,204 @@ QAudioFormat MFPlayerSession::audioFormatForMFMediaType(IMFMediaType *mediaType)
 
     CoTaskMemFree(wfx);
     return format;
+}
+
+// BindOutputNode
+// Sets the IMFStreamSink pointer on an output node.
+// IMFActivate pointer in the output node must be converted to an
+// IMFStreamSink pointer before the topology loader resolves the topology.
+HRESULT BindOutputNode(IMFTopologyNode *pNode)
+{
+    IUnknown *nodeObject = NULL;
+    IMFActivate *activate = NULL;
+    IMFStreamSink *stream = NULL;
+    IMFMediaSink *sink = NULL;
+
+    HRESULT hr = pNode->GetObject(&nodeObject);
+    if (FAILED(hr))
+        return hr;
+
+    hr = nodeObject->QueryInterface(IID_PPV_ARGS(&activate));
+    if (SUCCEEDED(hr)) {
+        DWORD dwStreamID = 0;
+
+        // Try to create the media sink.
+        hr = activate->ActivateObject(IID_PPV_ARGS(&sink));
+        if (SUCCEEDED(hr))
+           dwStreamID = MFGetAttributeUINT32(pNode, MF_TOPONODE_STREAMID, 0);
+
+        if (SUCCEEDED(hr)) {
+            // First check if the media sink already has a stream sink with the requested ID.
+            hr = sink->GetStreamSinkById(dwStreamID, &stream);
+            if (FAILED(hr)) {
+                // Create the stream sink.
+                hr = sink->AddStreamSink(dwStreamID, NULL, &stream);
+            }
+        }
+
+        // Replace the node's object pointer with the stream sink.
+        if (SUCCEEDED(hr)) {
+            hr = pNode->SetObject(stream);
+        }
+    } else {
+        hr = nodeObject->QueryInterface(IID_PPV_ARGS(&stream));
+    }
+
+    if (nodeObject)
+        nodeObject->Release();
+    if (activate)
+        activate->Release();
+    if (stream)
+        stream->Release();
+    if (sink)
+        sink->Release();
+    return hr;
+}
+
+// BindOutputNodes
+// Sets the IMFStreamSink pointers on all of the output nodes in a topology.
+HRESULT BindOutputNodes(IMFTopology *pTopology)
+{
+    DWORD cNodes = 0;
+
+    IMFCollection *collection = NULL;
+    IUnknown *element = NULL;
+    IMFTopologyNode *node = NULL;
+
+    // Get the collection of output nodes.
+    HRESULT hr = pTopology->GetOutputNodeCollection(&collection);
+
+    // Enumerate all of the nodes in the collection.
+    if (SUCCEEDED(hr))
+        hr = collection->GetElementCount(&cNodes);
+
+    if (SUCCEEDED(hr)) {
+        for (DWORD i = 0; i < cNodes; i++) {
+            hr = collection->GetElement(i, &element);
+            if (FAILED(hr))
+                break;
+
+            hr = element->QueryInterface(IID_IMFTopologyNode, (void**)&node);
+            if (FAILED(hr))
+                break;
+
+            // Bind this node.
+            hr = BindOutputNode(node);
+            if (FAILED(hr))
+                break;
+        }
+    }
+
+    if (collection)
+        collection->Release();
+    if (element)
+        element->Release();
+    if (node)
+        node->Release();
+    return hr;
+}
+
+// This method binds output nodes to complete the topology,
+// then loads the topology and inserts MFT between the output node
+// and a filter connected to the output node.
+IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNodeId)
+{
+    bool isNewTopology = false;
+
+    IMFTopoLoader *topoLoader = 0;
+    IMFTopology *resolvedTopology = 0;
+    IMFCollection *outputNodes = 0;
+
+    do {
+        if (FAILED(BindOutputNodes(topology)))
+            break;
+
+        if (FAILED(MFCreateTopoLoader(&topoLoader)))
+            break;
+
+        if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL)))
+            break;
+
+        // Get all output nodes and search for video output node.
+        if (FAILED(resolvedTopology->GetOutputNodeCollection(&outputNodes)))
+            break;
+
+        DWORD elementCount = 0;
+        if (FAILED(outputNodes->GetElementCount(&elementCount)))
+            break;
+
+        for (DWORD n = 0; n < elementCount; n++) {
+            IUnknown *element = 0;
+            IMFTopologyNode *node = 0;
+            IMFTopologyNode *inputNode = 0;
+            IMFTopologyNode *mftNode = 0;
+
+            do {
+                if (FAILED(outputNodes->GetElement(n, &element)))
+                    break;
+
+                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
+                    break;
+
+                TOPOID id;
+                if (FAILED(node->GetTopoNodeID(&id)))
+                    break;
+
+                if (id != outputNodeId)
+                    break;
+
+                // Insert MFT between the output node and the node connected to it.
+                DWORD outputIndex = 0;
+                if (FAILED(node->GetInput(0, &inputNode, &outputIndex)))
+                    break;
+
+                if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
+                    break;
+
+                if (FAILED(mftNode->SetObject(m_videoProbeMFT)))
+                    break;
+
+                if (FAILED(resolvedTopology->AddNode(mftNode)))
+                    break;
+
+                if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
+                    break;
+
+                if (FAILED(mftNode->ConnectOutput(0, node, 0)))
+                    break;
+
+                isNewTopology = true;
+            } while (false);
+
+            if (mftNode)
+                mftNode->Release();
+            if (inputNode)
+                inputNode->Release();
+            if (node)
+                node->Release();
+            if (element)
+                element->Release();
+
+            if (isNewTopology)
+                break;
+        }
+    } while (false);
+
+    if (outputNodes)
+        outputNodes->Release();
+
+    if (topoLoader)
+        topoLoader->Release();
+
+    if (isNewTopology) {
+        topology->Release();
+        return resolvedTopology;
+    }
+
+    if (resolvedTopology)
+        resolvedTopology->Release();
+
+    return topology;
 }
 
 void MFPlayerSession::stop(bool immediate)
