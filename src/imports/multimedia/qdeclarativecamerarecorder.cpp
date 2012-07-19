@@ -98,7 +98,7 @@ QDeclarativeCameraRecorder::~QDeclarativeCameraRecorder()
 }
 
 /*!
-    \qmlproperty size QtMultimedia5::CameraRecorder::captureResolution
+    \qmlproperty size QtMultimedia5::CameraRecorder::resolution
 
     The video frame dimensions to use when capturing
     video.

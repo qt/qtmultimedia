@@ -146,7 +146,7 @@ bool QDeclarativeAudioSample::isPreloaded() const
 }
 
 /*!
-    \qmlproperty bool QtAudioEngine1::AudioSample::isLoaded
+    \qmlproperty bool QtAudioEngine1::AudioSample::loaded
 
     This property holds indicates whether this sample has been loaded into memory or not.
 */
