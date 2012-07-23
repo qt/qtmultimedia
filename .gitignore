@@ -40,3 +40,4 @@ src/multimediawidgets/qtmultimediawidgetsversion.h
 #
 tst_*
 !tst_*.cpp
+tests/auto/cmake/build
