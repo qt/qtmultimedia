@@ -2,6 +2,7 @@ load(qt_build_config)
 
 TARGET = QtMultimediaQuick_p
 QT = core quick multimedia-private
+CONFIG += internal_module
 
 load(qt_module_config)
 
