@@ -43,6 +43,7 @@
 
 #include "bbmetadata.h"
 #include <qmediaplayercontrol.h>
+#include <QtCore/qabstractnativeeventfilter.h>
 #include <QtCore/qpointer.h>
 
 struct bps_event_t;
@@ -54,7 +55,7 @@ QT_BEGIN_NAMESPACE
 
 class BbVideoWindowControl;
 
-class BbMediaPlayerControl : public QMediaPlayerControl
+class BbMediaPlayerControl : public QMediaPlayerControl, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 public:
@@ -97,7 +98,7 @@ public:
     void stop();
 
     void setVideoControl(BbVideoWindowControl *videoControl);
-    void bpsEventHandler(bps_event_t *event);
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void continueLoadMedia();
