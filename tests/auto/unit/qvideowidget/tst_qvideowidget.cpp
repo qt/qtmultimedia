@@ -445,9 +445,6 @@ void tst_QVideoWidget::nullService()
 
     widget.setFullScreen(true);
     QTest::qWaitForWindowShown(&widget);
-#ifdef Q_OS_MAC
-    QEXPECT_FAIL("", "QTBUG-25310 - Fails on Mac", Continue);
-#endif
     QCOMPARE(widget.isFullScreen(), true);
 
     widget.setAspectRatioMode(Qt::IgnoreAspectRatio);
@@ -958,9 +955,6 @@ void tst_QVideoWidget::fullScreenWindowControl()
     QCOMPARE(spy.count(), 4);
     widget.showNormal();
     QTest::qWaitForWindowShown(&widget);
-#ifdef Q_OS_MAC
-    QEXPECT_FAIL("", "QTBUG-25310 - Fails on Mac", Abort);
-#endif
     QCOMPARE(object.testService->windowControl->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
