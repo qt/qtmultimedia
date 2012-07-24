@@ -353,10 +353,10 @@ void tst_QVideoWidget::nullObject()
     QVERIFY(widget.sizeHint().isEmpty());
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     widget.setFullScreen(true);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.isFullScreen(), true);
 
     widget.setAspectRatioMode(Qt::IgnoreAspectRatio);
@@ -441,10 +441,10 @@ void tst_QVideoWidget::nullService()
     QVERIFY(widget.sizeHint().isEmpty());
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     widget.setFullScreen(true);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.isFullScreen(), true);
 
     widget.setAspectRatioMode(Qt::IgnoreAspectRatio);
@@ -502,7 +502,7 @@ void tst_QVideoWidget::serviceDestroyed()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     widget.setBrightness(100);
     widget.setContrast(100);
@@ -543,7 +543,7 @@ void tst_QVideoWidget::objectDestroyed()
     QCOMPARE(object->testService->rendererRef, 0);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     widget.setBrightness(100);
     widget.setContrast(100);
@@ -581,7 +581,7 @@ void tst_QVideoWidget::setMediaObject()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QCOMPARE(widget.mediaObject(), nullObject);
     QCOMPARE(windowObject.testService->windowRef, 0);
@@ -635,7 +635,7 @@ void tst_QVideoWidget::showWindowControl()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QVERIFY(object.testService->windowControl->winId() != 0);
     QVERIFY(object.testService->windowControl->repaintCount() > 0);
@@ -661,7 +661,7 @@ void tst_QVideoWidget::showWidgetControl()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->widgetControl->videoWidget()->isVisible(), true);
 
     widget.resize(640, 480);
@@ -685,7 +685,7 @@ void tst_QVideoWidget::showRendererControl()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QVERIFY(object.testService->rendererControl->surface() != 0);
 
@@ -710,7 +710,7 @@ void tst_QVideoWidget::aspectRatioWindowControl()
 
     // Test the control has been informed of the aspect ratio change, post show.
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
     QCOMPARE(object.testService->windowControl->aspectRatioMode(), Qt::KeepAspectRatio);
 
@@ -746,7 +746,7 @@ void tst_QVideoWidget::aspectRatioWidgetControl()
 
     // Test the control has been informed of the aspect ratio change, post show.
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
     QCOMPARE(object.testService->widgetControl->aspectRatioMode(), Qt::KeepAspectRatio);
 
@@ -781,7 +781,7 @@ void tst_QVideoWidget::aspectRatioRendererControl()
 
     // Test the control has been informed of the aspect ratio change, post show.
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
 
     // Test an aspect ratio change is enforced immediately while visible.
@@ -813,7 +813,7 @@ void tst_QVideoWidget::sizeHintWindowControl()
     object.bind(&widget);
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QVERIFY(widget.sizeHint().isEmpty());
 
@@ -834,7 +834,7 @@ void tst_QVideoWidget::sizeHintWidgetControl()
     object.bind(&widget);
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QVERIFY(widget.sizeHint().isEmpty());
 
@@ -890,7 +890,7 @@ void tst_QVideoWidget::sizeHintRendererControl()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QVideoSurfaceFormat format(frameSize, QVideoFrame::Format_ARGB32);
     format.setViewport(viewport);
@@ -908,7 +908,7 @@ void tst_QVideoWidget::fullScreenWindowControl()
     QVideoWidget widget;
     object.bind(&widget);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     Qt::WindowFlags windowFlags = widget.windowFlags();
 
@@ -916,7 +916,7 @@ void tst_QVideoWidget::fullScreenWindowControl()
 
     // Test showing full screen with setFullScreen(true).
     widget.setFullScreen(true);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->windowControl->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 1);
@@ -924,7 +924,7 @@ void tst_QVideoWidget::fullScreenWindowControl()
 
     // Test returning to normal with setFullScreen(false).
     widget.setFullScreen(false);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->windowControl->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 2);
@@ -933,7 +933,7 @@ void tst_QVideoWidget::fullScreenWindowControl()
 
     // Test showing full screen with showFullScreen().
     widget.showFullScreen();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->windowControl->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 3);
@@ -941,7 +941,7 @@ void tst_QVideoWidget::fullScreenWindowControl()
 
     // Test returning to normal with showNormal().
     widget.showNormal();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->windowControl->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
@@ -954,14 +954,14 @@ void tst_QVideoWidget::fullScreenWindowControl()
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
     widget.showNormal();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->windowControl->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
 
     // Test setFullScreen(true) and showFullScreen() do nothing when isFullScreen() == true.
     widget.showFullScreen();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.setFullScreen(true);
     QCOMPARE(object.testService->windowControl->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
@@ -993,7 +993,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
     QVideoWidget widget;
     object.bind(&widget);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     Qt::WindowFlags windowFlags = widget.windowFlags();
 
@@ -1001,7 +1001,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
 
     // Test showing full screen with setFullScreen(true).
     widget.setFullScreen(true);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->widgetControl->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 1);
@@ -1009,7 +1009,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
 
     // Test returning to normal with setFullScreen(false).
     widget.setFullScreen(false);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->widgetControl->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 2);
@@ -1018,7 +1018,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
 
     // Test showing full screen with showFullScreen().
     widget.showFullScreen();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->widgetControl->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 3);
@@ -1026,7 +1026,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
 
     // Test returning to normal with showNormal().
     widget.showNormal();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(object.testService->widgetControl->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
@@ -1045,7 +1045,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
 
     // Test setFullScreen(true) and showFullScreen() do nothing when isFullScreen() == true.
     widget.showFullScreen();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.setFullScreen(true);
     QCOMPARE(object.testService->widgetControl->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
@@ -1057,7 +1057,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
 
     // Test if the window control exits full screen mode, the widget follows suit.
     object.testService->widgetControl->setFullScreen(false);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 6);
     QCOMPARE(spy.value(5).value(0).toBool(), false);
@@ -1079,7 +1079,7 @@ void tst_QVideoWidget::fullScreenRendererControl()
     QVideoWidget widget;
     object.bind(&widget);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     Qt::WindowFlags windowFlags = widget.windowFlags();
 
@@ -1087,14 +1087,14 @@ void tst_QVideoWidget::fullScreenRendererControl()
 
     // Test showing full screen with setFullScreen(true).
     widget.setFullScreen(true);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 1);
     QCOMPARE(spy.value(0).value(0).toBool(), true);
 
     // Test returning to normal with setFullScreen(false).
     widget.setFullScreen(false);
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 2);
     QCOMPARE(spy.value(1).value(0).toBool(), false);
@@ -1102,14 +1102,14 @@ void tst_QVideoWidget::fullScreenRendererControl()
 
     // Test showing full screen with showFullScreen().
     widget.showFullScreen();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 3);
     QCOMPARE(spy.value(2).value(0).toBool(), true);
 
     // Test returning to normal with showNormal().
     widget.showNormal();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
     QCOMPARE(spy.value(3).value(0).toBool(), false);
@@ -1125,7 +1125,7 @@ void tst_QVideoWidget::fullScreenRendererControl()
 
     // Test setFullScreen(true) and showFullScreen() do nothing when isFullScreen() == true.
     widget.showFullScreen();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.setFullScreen(true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 5);
@@ -1176,7 +1176,7 @@ void tst_QVideoWidget::brightnessWindowControl()
     object.bind(&widget);
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     // Test the video widget resets the controls starting brightness to the default.
     QCOMPARE(widget.brightness(), 0);
@@ -1224,7 +1224,7 @@ void tst_QVideoWidget::brightnessWidgetControl()
     QCOMPARE(widget.brightness(), 0);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QSignalSpy spy(&widget, SIGNAL(brightnessChanged(int)));
 
@@ -1260,7 +1260,7 @@ void tst_QVideoWidget::brightnessRendererControl()
     object.bind(&widget);
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QSignalSpy spy(&widget, SIGNAL(brightnessChanged(int)));
 
@@ -1290,7 +1290,7 @@ void tst_QVideoWidget::contrastWindowControl()
     QCOMPARE(widget.contrast(), 0);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.contrast(), 0);
 
     QSignalSpy spy(&widget, SIGNAL(contrastChanged(int)));
@@ -1331,7 +1331,7 @@ void tst_QVideoWidget::contrastWidgetControl()
     QCOMPARE(widget.contrast(), 0);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.contrast(), 0);
 
     QSignalSpy spy(&widget, SIGNAL(contrastChanged(int)));
@@ -1368,7 +1368,7 @@ void tst_QVideoWidget::contrastRendererControl()
     object.bind(&widget);
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QSignalSpy spy(&widget, SIGNAL(contrastChanged(int)));
 
@@ -1397,7 +1397,7 @@ void tst_QVideoWidget::hueWindowControl()
     QCOMPARE(widget.hue(), 0);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.hue(), 0);
 
     QSignalSpy spy(&widget, SIGNAL(hueChanged(int)));
@@ -1438,7 +1438,7 @@ void tst_QVideoWidget::hueWidgetControl()
     QCOMPARE(widget.hue(), 0);
 
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.hue(), 0);
 
     QSignalSpy spy(&widget, SIGNAL(hueChanged(int)));
@@ -1475,7 +1475,7 @@ void tst_QVideoWidget::hueRendererControl()
     object.bind(&widget);
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QSignalSpy spy(&widget, SIGNAL(hueChanged(int)));
 
@@ -1503,7 +1503,7 @@ void tst_QVideoWidget::saturationWindowControl()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     QCOMPARE(widget.saturation(), 0);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.saturation(), 0);
 
     QSignalSpy spy(&widget, SIGNAL(saturationChanged(int)));
@@ -1544,7 +1544,7 @@ void tst_QVideoWidget::saturationWidgetControl()
 
     QCOMPARE(widget.saturation(), 0);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.saturation(), 0);
 
     QSignalSpy spy(&widget, SIGNAL(saturationChanged(int)));
@@ -1582,7 +1582,7 @@ void tst_QVideoWidget::saturationRendererControl()
     object.bind(&widget);
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QSignalSpy spy(&widget, SIGNAL(saturationChanged(int)));
 
     widget.setSaturation(value);
@@ -1610,7 +1610,7 @@ void tst_QVideoWidget::paintRendererControl()
     widget.setWindowFlags(Qt::X11BypassWindowManagerHint);
     widget.resize(640,480);
     widget.show();
-    QTest::qWaitForWindowShown(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     QPainterVideoSurface *surface = qobject_cast<QPainterVideoSurface *>(
             object.testService->rendererControl->surface());
