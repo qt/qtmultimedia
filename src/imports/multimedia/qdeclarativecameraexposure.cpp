@@ -175,8 +175,8 @@ qreal QDeclarativeCameraExposure::aperture() const
 }
 
 /*!
-    \qmlproperty integer QtMultimedia5::CameraExposure::manualIsoSensitivity
-    \property QDeclarativeCameraExposure::manualIsoSensitivity
+    \qmlproperty real QtMultimedia5::CameraExposure::manualIso
+    \property QReal QDeclarativeCameraExposure::manualIso
 
     This property allows you to set a specific ISO setting
     for image capturing.

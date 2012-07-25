@@ -83,7 +83,7 @@ can see from the code, this makes use of a type of inheritance: a
 ... is-a
 \l{video/qmlvideo/qml/qmlvideo/SceneBasic.qml}{SceneBasic} ...
 
-\quotefromfile examples/video/qmlvideo/qml/qmlvideo/SceneBasic.qml
+\quotefromfile video/qmlvideo/qml/qmlvideo/SceneBasic.qml
 \skipto import
 \printuntil contentType
 \dots

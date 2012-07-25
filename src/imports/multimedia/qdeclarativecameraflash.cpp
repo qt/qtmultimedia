@@ -101,8 +101,8 @@ bool QDeclarativeCameraFlash::isFlashReady() const
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraFlash::flashMode
-    \property QDeclarativeCameraFlash::flashMode
+    \qmlproperty enumeration QtMultimedia5::CameraFlash::mode
+    \property int QDeclarativeCameraFlash::mode
 
     \table
     \header \li Value \li Description

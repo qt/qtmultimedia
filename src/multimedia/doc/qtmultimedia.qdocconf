@@ -17,13 +17,11 @@ description = Qt Multimedia Documentation
 exampledirs += .. \
                ../../../examples
 
-headerdirs += src \
-              ../..
+headerdirs += ../..
 
 imagedirs += src/images \
 
-sourcedirs += src \
-              ../..
+sourcedirs += ../..
 
 excludedirs +=
 

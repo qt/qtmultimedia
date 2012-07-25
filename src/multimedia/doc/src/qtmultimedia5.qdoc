@@ -37,6 +37,5 @@ The identifying string for this component is \e QtMultimedia. Use this in the QM
 \section1 QML types
 
 \annotatedlist multimedia_qml
-
 */
 

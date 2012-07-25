@@ -199,7 +199,7 @@ QMediaRecorderControl::~QMediaRecorderControl()
 */
 
 /*!
-    \fn void QMediaRecorderControl::volume(qreal gain)
+    \fn void QMediaRecorderControl::volumeChanged(qreal gain)
 
     Signals that the audio \a gain value has changed.
 */

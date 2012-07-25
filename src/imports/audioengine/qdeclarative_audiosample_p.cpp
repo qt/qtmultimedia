@@ -236,9 +236,12 @@ QSoundBuffer* QDeclarativeAudioSample::soundBuffer() const
 }
 
 /*!
+    \omit
+    Note: This QML property is documented twice.
     \qmlproperty bool QtAudioEngine1::AudioSample::loaded
 
     This property holds the load status of the audio sample.
+    \endomit
 */
 
 

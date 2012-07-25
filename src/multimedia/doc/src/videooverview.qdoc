@@ -82,7 +82,7 @@ allows you to receive these frames from \l QMediaPlayer and
 and with an instance of this surface, \c myVideoSurface, you can set
 the surface as the \l {QMediaPlayer::setVideoOutput()}{video output} for QMediaPlayer.
 
-\snippet doc/src/snippets/multimedia-snippets/video.cpp Setting Surface in Player
+\snippet doc/src/snippets/multimedia-snippets/video.cpp Setting surface in player
 
 Several of the built-in Qt classes offer this functionality
 as well, so if you decode video in your application, you can present
