@@ -747,6 +747,11 @@ bool QAudioOutputPrivate::deviceReady()
         if(input > (int)buffer_frames)
             input = buffer_frames;
         l = audioSource->read(audioBuffer,snd_pcm_frames_to_bytes(handle, input));
+
+        // reading can take a while and stream may have been stopped
+        if (!handle)
+            return false;
+
         if(l > 0) {
             // Got some data to output
             if(deviceState != QAudio::ActiveState)
