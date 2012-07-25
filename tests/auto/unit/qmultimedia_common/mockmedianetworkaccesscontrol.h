@@ -77,7 +77,6 @@ private:
     QNetworkConfiguration _current;
 };
 
-Q_DECLARE_METATYPE(QNetworkConfiguration)
 
 
 #endif // MOCKMEDIANETWORKACCESSCONTROL_H
