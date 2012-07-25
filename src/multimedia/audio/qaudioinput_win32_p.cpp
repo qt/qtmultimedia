@@ -72,11 +72,16 @@ QAudioInputPrivate::QAudioInputPrivate(const QByteArray &device)
     resuming = false;
     finished = false;
     waveBlockOffset = 0;
+
+    mixerID = 0;
+    memset(&mixerLineControls, 0, sizeof(mixerLineControls));
+    initMixer();
 }
 
 QAudioInputPrivate::~QAudioInputPrivate()
 {
     stop();
+    closeMixer();
 }
 
 void QT_WIN_CALLBACK QAudioInputPrivate::waveInProc( HWAVEIN hWaveIn, UINT uMsg,
@@ -161,6 +166,71 @@ QAudio::Error QAudioInputPrivate::error() const
 QAudio::State QAudioInputPrivate::state() const
 {
     return deviceState;
+}
+
+#ifndef  DRVM_MAPPER_CONSOLEVOICECOM_GET
+    #ifndef DRVM_MAPPER
+    #define DRVM_MAPPER                     0x2000
+    #endif
+    #ifndef DRVM_MAPPER_STATUS
+    #define DRVM_MAPPER_STATUS      (DRVM_MAPPER+0)
+    #endif
+    #define DRVM_USER                       0x4000
+    #define DRVM_MAPPER_RECONFIGURE         (DRVM_MAPPER+1)
+    #define DRVM_MAPPER_PREFERRED_GET       (DRVM_MAPPER+21)
+    #define DRVM_MAPPER_CONSOLEVOICECOM_GET (DRVM_MAPPER+23)
+#endif
+
+void QAudioInputPrivate::setVolume(qreal volume)
+{
+    for (DWORD i = 0; i < mixerLineControls.cControls; i++) {
+
+        MIXERCONTROLDETAILS controlDetails;
+        controlDetails.cbStruct = sizeof(MIXERCONTROLDETAILS);
+        controlDetails.dwControlID = mixerLineControls.pamxctrl[i].dwControlID;
+        controlDetails.cChannels = 1;
+
+        if ((mixerLineControls.pamxctrl[i].dwControlType == MIXERCONTROL_CONTROLTYPE_FADER) ||
+            (mixerLineControls.pamxctrl[i].dwControlType == MIXERCONTROL_CONTROLTYPE_VOLUME)) {
+            MIXERCONTROLDETAILS_UNSIGNED controlDetailsUnsigned;
+            controlDetailsUnsigned.dwValue = qBound(DWORD(0), DWORD(65535.0 * volume + 0.5), DWORD(65535));
+            controlDetails.cMultipleItems = 0;
+            controlDetails.cbDetails = sizeof(MIXERCONTROLDETAILS_UNSIGNED);
+            controlDetails.paDetails = &controlDetailsUnsigned;
+            mixerSetControlDetails((HMIXEROBJ)mixerID, &controlDetails, MIXER_SETCONTROLDETAILSF_VALUE);
+        }
+    }
+}
+
+qreal QAudioInputPrivate::volume() const
+{
+    DWORD volume = 0;
+    for (DWORD i = 0; i < mixerLineControls.cControls; i++) {
+        if ((mixerLineControls.pamxctrl[i].dwControlType != MIXERCONTROL_CONTROLTYPE_FADER) &&
+            (mixerLineControls.pamxctrl[i].dwControlType != MIXERCONTROL_CONTROLTYPE_VOLUME)) {
+            continue;
+        }
+
+        MIXERCONTROLDETAILS controlDetails;
+        controlDetails.cbStruct = sizeof(controlDetails);
+        controlDetails.dwControlID = mixerLineControls.pamxctrl[i].dwControlID;
+        controlDetails.cChannels = 1;
+        controlDetails.cMultipleItems = 0;
+        controlDetails.cbDetails = sizeof(MIXERCONTROLDETAILS_UNSIGNED);
+        MIXERCONTROLDETAILS_UNSIGNED detailsUnsigned;
+        controlDetails.paDetails = &detailsUnsigned;
+        memset(controlDetails.paDetails, 0, controlDetails.cbDetails);
+
+        MMRESULT result = mixerGetControlDetails((HMIXEROBJ)mixerID, &controlDetails, MIXER_GETCONTROLDETAILSF_VALUE);
+        if (result != MMSYSERR_NOERROR)
+            continue;
+        if (controlDetails.cbDetails < sizeof(MIXERCONTROLDETAILS_UNSIGNED))
+            continue;
+        volume = detailsUnsigned.dwValue;
+        break;
+    }
+
+    return volume / 65535.0;
 }
 
 void QAudioInputPrivate::setFormat(const QAudioFormat& fmt)
@@ -349,6 +419,44 @@ void QAudioInputPrivate::close()
         count++;
         Sleep(10);
     }
+}
+
+void QAudioInputPrivate::initMixer()
+{
+    QDataStream ds(&m_device, QIODevice::ReadOnly);
+    quint32 inputDevice;
+    ds >> inputDevice;
+
+    if (int(inputDevice) < 0)
+        return;
+
+    // Get the Mixer ID from the Sound Device ID
+    if (mixerGetID((HMIXEROBJ)inputDevice, &mixerID, MIXER_OBJECTF_WAVEIN) != MMSYSERR_NOERROR)
+        return;
+
+    // Get the Destination (Recording) Line Infomation
+    MIXERLINE mixerLine;
+    mixerLine.cbStruct = sizeof(MIXERLINE);
+    mixerLine.dwComponentType = MIXERLINE_COMPONENTTYPE_DST_WAVEIN;
+    if (mixerGetLineInfo((HMIXEROBJ)mixerID, &mixerLine, MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
+        return;
+
+    // Set all the Destination (Recording) Line Controls
+    if (mixerLine.cControls > 0) {
+        mixerLineControls.cbStruct = sizeof(MIXERLINECONTROLS);
+        mixerLineControls.dwLineID = mixerLine.dwLineID;
+        mixerLineControls.cControls = mixerLine.cControls;
+        mixerLineControls.cbmxctrl = sizeof(MIXERCONTROL);
+        mixerLineControls.pamxctrl = new MIXERCONTROL[mixerLineControls.cControls];
+        if (mixerGetLineControls((HMIXEROBJ)mixerID, &mixerLineControls, MIXER_GETLINECONTROLSF_ALL) != MMSYSERR_NOERROR)
+            closeMixer();
+    }
+}
+
+void QAudioInputPrivate::closeMixer()
+{
+    delete[] mixerLineControls.pamxctrl;
+    memset(&mixerLineControls, 0, sizeof(mixerLineControls));
 }
 
 int QAudioInputPrivate::bytesReady() const

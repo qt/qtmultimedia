@@ -114,6 +114,8 @@ public:
     qint64 elapsedUSecs() const;
     QAudio::Error error() const;
     QAudio::State state() const;
+    void setVolume(qreal volume);
+    qreal volume() const;
 
     QIODevice* audioSource;
     QAudioFormat settings;
@@ -149,6 +151,11 @@ private:
     void freeBlocks(WAVEHDR* blockArray);
     bool open();
     void close();
+
+    void initMixer();
+    void closeMixer();
+    UINT mixerID;
+    MIXERLINECONTROLS mixerLineControls;
 
 private slots:
     void feedback();
