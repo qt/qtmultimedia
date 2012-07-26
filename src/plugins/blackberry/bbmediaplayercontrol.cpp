@@ -45,7 +45,6 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
-#include <QtCore/qtimer.h>
 #include <QtCore/quuid.h>
 #include <mm/renderer.h>
 #include <bps/mmrenderer.h>
@@ -84,6 +83,9 @@ BbMediaPlayerControl::BbMediaPlayerControl(QObject *parent)
       m_stopEventsToIgnore(0),
       m_bufferStatus(0)
 {
+    m_loadingTimer.setSingleShot(true);
+    m_loadingTimer.setInterval(0);
+    connect(&m_loadingTimer, SIGNAL(timeout()), this, SLOT(continueLoadMedia()));
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
     openConnection();
 }
@@ -221,6 +223,7 @@ void BbMediaPlayerControl::detach()
         QFile::remove(m_tempMediaFileName);
         m_tempMediaFileName.clear();
     }
+    m_loadingTimer.stop();
 }
 
 QMediaPlayer::State BbMediaPlayerControl::state() const
@@ -423,8 +426,12 @@ void BbMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *strea
     // canvas is ready.
     // The mmrenderer doesn't allow to attach video outputs after playing has started, otherwise
     // this would be unnecessary.
-    setMediaStatus(QMediaPlayer::LoadingMedia);
-    QTimer::singleShot(0, this, SLOT(continueLoadMedia()));
+    if (!m_media.isNull()) {
+        setMediaStatus(QMediaPlayer::LoadingMedia);
+        m_loadingTimer.start(); // singleshot timer to continueLoadMedia()
+    } else {
+        continueLoadMedia(); // still needed, as it will update the media status and clear metadata
+    }
 }
 
 void BbMediaPlayerControl::continueLoadMedia()

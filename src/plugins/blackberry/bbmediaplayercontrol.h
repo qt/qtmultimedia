@@ -45,6 +45,7 @@
 #include <qmediaplayercontrol.h>
 #include <QtCore/qabstractnativeeventfilter.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qtimer.h>
 
 struct bps_event_t;
 typedef struct mmr_connection mmr_connection_t;
@@ -145,6 +146,7 @@ private:
     int m_stopEventsToIgnore;
     int m_bufferStatus;
     QString m_tempMediaFileName;
+    QTimer m_loadingTimer;
 };
 
 QT_END_NAMESPACE
