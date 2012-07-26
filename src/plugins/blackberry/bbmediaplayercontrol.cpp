@@ -143,6 +143,42 @@ void BbMediaPlayerControl::closeConnection()
     }
 }
 
+QString BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
+{
+    // If this is a local file, mmrenderer expects the file:// prefix and an absolute path.
+    // We treat URLs without scheme as local files, most likely someone just forgot to set the
+    // file:// prefix when constructing the URL.
+    if (url.isLocalFile() || url.scheme().isEmpty()) {
+        QString relativeFilePath;
+        if (!url.scheme().isEmpty())
+            relativeFilePath = url.toLocalFile();
+        else
+            relativeFilePath = url.path();
+        const QFileInfo fileInfo(relativeFilePath);
+        return QStringLiteral("file://") + fileInfo.absoluteFilePath();
+
+    // QRC, copy to temporary file, as mmrenderer does not support resource files
+    } else if (url.scheme() == QStringLiteral("qrc")) {
+        const QString qrcPath = ':' + url.path();
+        const QFileInfo resourceFileInfo(qrcPath);
+        m_tempMediaFileName = QDir::tempPath() + QStringLiteral("/qtmedia_") +
+                              QUuid::createUuid().toString() + QStringLiteral(".") +
+                              resourceFileInfo.suffix();
+        if (!QFile::copy(qrcPath, m_tempMediaFileName)) {
+            const QString errorMsg =
+                QString("Failed to copy resource file to temporary file %1 for playback").arg(m_tempMediaFileName);
+            qBbMediaDebug() << errorMsg;
+            emit error(0, errorMsg);
+            return QString();
+        }
+        return m_tempMediaFileName;
+
+    // HTTP or similar URL, use as-is
+    } else {
+        return url.toString();
+    }
+}
+
 void BbMediaPlayerControl::attach()
 {
     if (m_media.isNull() || !m_context) {
@@ -159,35 +195,14 @@ void BbMediaPlayerControl::attach()
         return;
     }
 
-    // If this is a local file, use the full path as the resource identifier
-    QString mediaFile = m_media.canonicalUrl().toString();
-
-    // The mmrenderer does not support playback from resource files, so copy it to a temporary
-    // file
-    const QString resourcePrefix("qrc:");
-    if (mediaFile.startsWith(resourcePrefix)) {
-        mediaFile.remove(0, resourcePrefix.length() - 1);
-        const QFileInfo resourceFileInfo(mediaFile);
-        m_tempMediaFileName = QDir::tempPath() + "/qtmedia_" + QUuid::createUuid().toString() + "." +
-                              resourceFileInfo.suffix();
-        if (!QFile::copy(mediaFile, m_tempMediaFileName)) {
-            const QString errorMsg =
-                QString("Failed to copy resource file to temporary file %1 for playback").arg(m_tempMediaFileName);
-            qBbMediaDebug() << errorMsg;
-            emit error(0, errorMsg);
-            detach();
-            return;
-        }
-        mediaFile = m_tempMediaFileName;
+    const QString resourcePath = resourcePathForUrl(m_media.canonicalUrl());
+    if (resourcePath.isEmpty()) {
+        detach();
+        return;
     }
 
-    if (m_media.canonicalUrl().scheme().isEmpty()) {
-        const QFileInfo fileInfo(mediaFile);
-        mediaFile = "file://" + fileInfo.absoluteFilePath();
-    }
-
-    if (mmr_input_attach(m_context, QFile::encodeName(mediaFile), "track") != 0) {
-        emitMmError(QString("mmr_input_attach() for %1 failed").arg(mediaFile));
+    if (mmr_input_attach(m_context, QFile::encodeName(resourcePath), "track") != 0) {
+        emitMmError(QString("mmr_input_attach() for %1 failed").arg(resourcePath));
         setMediaStatus(QMediaPlayer::InvalidMedia);
         detach();
         return;
