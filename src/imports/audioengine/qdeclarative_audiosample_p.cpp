@@ -50,7 +50,8 @@
 QT_USE_NAMESPACE
 
 /*!
-    \qmlclass AudioSample QDeclarativeAudioSample
+    \qmltype AudioSample
+    \instantiates QDeclarativeAudioSample
     \since 1.0
     \brief Load audio samples, mostly .wav.
     \inqmlmodule QtAudioEngine 1.0

@@ -44,7 +44,8 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \qmlclass RadioData QDeclarativeRadioData
+    \qmltype RadioData
+    \instantiates QDeclarativeRadioData
     \inqmlmodule QtMultimedia 5.0
     \brief Access RDS data from a QML application.
     \ingroup multimedia_qml

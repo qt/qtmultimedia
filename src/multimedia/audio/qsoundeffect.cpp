@@ -82,7 +82,8 @@ QT_BEGIN_NAMESPACE
 
 
 /*!
-    \qmlclass SoundEffect QSoundEffect
+    \qmltype SoundEffect
+    \instantiates QSoundEffect
     \brief The SoundEffect type provides a way to play sound effects in QML.
 
     \inmodule QtMultimedia

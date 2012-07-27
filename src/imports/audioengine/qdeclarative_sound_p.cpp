@@ -138,7 +138,8 @@ void QDeclarativeSoundCone::componentComplete()
 
 ////////////////////////////////////////////////////////////
 /*!
-    \qmlclass Sound QDeclarativeSound
+    \qmltype Sound
+    \instantiates QDeclarativeSound
     \since 1.0
     \brief Define a variety of samples and parameters to be used for
     SoundInstance.

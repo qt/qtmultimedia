@@ -49,7 +49,8 @@
 QT_USE_NAMESPACE
 
 /*!
-    \qmlclass PlayVariation QDeclarativePlayVariation
+    \qmltype PlayVariation
+    \instantiates QDeclarativePlayVariation
     \since 1.0
     \brief Define a playback variation for \l {Sound} {sounds}.
     So each time the playback of the same sound can be a slightly different even with the same

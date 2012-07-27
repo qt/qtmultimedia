@@ -45,7 +45,8 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \qmlclass CameraExposure QDeclarativeCameraExposure
+    \qmltype CameraExposure
+    \instantiates QDeclarativeCameraExposure
     \brief An interface for exposure related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml

@@ -43,7 +43,7 @@ import QtQuick 2.0
 import QtMultimedia 5.0
 
 /*!
-    \qmlclass Video
+    \qmltype Video
     \inherits Item
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml

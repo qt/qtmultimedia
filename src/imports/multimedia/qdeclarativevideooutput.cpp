@@ -51,7 +51,8 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \qmlclass VideoOutput QDeclarativeVideoOutput
+    \qmltype VideoOutput
+    \instantiates QDeclarativeVideoOutput
     \brief Render video or camera viewfinder.
 
     \ingroup multimedia_qml

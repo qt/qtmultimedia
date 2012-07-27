@@ -48,7 +48,8 @@
 QT_USE_NAMESPACE
 
 /*!
-    \qmlclass AudioListener QDeclarativeAudioListener
+    \qmltype AudioListener
+    \instantiates QDeclarativeAudioListener
     \since 1.0
     \brief Control global listener parameters.
     \inqmlmodule QtAudioEngine 1.0

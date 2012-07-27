@@ -90,7 +90,8 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /*!
-    \qmlclass AttenuationModelLinear QDeclarativeAttenuationModelLinear
+    \qmltype AttenuationModelLinear
+    \instantiates QDeclarativeAttenuationModelLinear
     \since 1.0
     \brief Defines a linear attenuation curve for a \l Sound.
     \inqmlmodule QtAudioEngine 1.0
@@ -221,7 +222,8 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /*!
-    \qmlclass AttenuationModelInverse QDeclarativeAttenuationModelInverse
+    \qmltype AttenuationModelInverse
+    \instantiates QDeclarativeAttenuationModelInverse
 
     \since 1.0
     \brief Defines a non-linear attenuation curve for a \l Sound.

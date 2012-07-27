@@ -74,7 +74,8 @@ void QDeclarativeCamera::_q_availabilityChanged(QtMultimedia::AvailabilityStatus
 }
 
 /*!
-    \qmlclass Camera QDeclarativeCamera
+    \qmltype Camera
+    \instantiates QDeclarativeCamera
     \brief Access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
     \ingroup camera_qml
