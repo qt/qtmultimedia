@@ -64,7 +64,7 @@ public:
 
     virtual QtMultimedia::AvailabilityStatus availability() const = 0;
 
-signals:
+Q_SIGNALS:
     void availabilityChanged(QtMultimedia::AvailabilityStatus availability);
 
 protected:

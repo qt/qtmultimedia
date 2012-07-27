@@ -57,7 +57,7 @@ class Q_MULTIMEDIA_EXPORT QMediaAudioProbeControl : public QMediaControl
 public:
     virtual ~QMediaAudioProbeControl();
 
-signals:
+Q_SIGNALS:
     void audioBufferProbed(const QAudioBuffer &buffer);
     void flush();
 

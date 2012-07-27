@@ -57,6 +57,8 @@
 
 QT_BEGIN_HEADER
 
+QT_MODULE(Multimedia)
+
 #ifndef QT_STATIC
 #    if defined(QT_BUILD_MULTIMEDIA_LIB)
 #        define Q_MULTIMEDIA_EXPORT Q_DECL_EXPORT

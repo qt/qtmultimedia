@@ -57,6 +57,8 @@
 
 QT_BEGIN_HEADER
 
+QT_MODULE(Multimedia)
+
 #if defined(Q_OS_WIN)
 #  if defined(QT_NODLL)
 #    undef QT_MAKEDLL

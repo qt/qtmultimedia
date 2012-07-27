@@ -59,7 +59,7 @@ class Q_MULTIMEDIA_EXPORT QMediaVideoProbeControl : public QMediaControl
 public:
     virtual ~QMediaVideoProbeControl();
 
-signals:
+Q_SIGNALS:
     void videoFrameProbed(const QVideoFrame &frame);
     void flush();
 

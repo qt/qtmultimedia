@@ -57,6 +57,8 @@
 
 QT_BEGIN_HEADER
 
+QT_MODULE(Multimedia)
+
 #ifndef QT_NO_DEBUG_STREAM
 
 #define Q_MEDIA_ENUM_DEBUG(Class,Enum) \
