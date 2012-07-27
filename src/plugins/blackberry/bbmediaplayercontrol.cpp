@@ -557,7 +557,12 @@ bool BbMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *
 
             // Prevent spurious position change events from overriding our own position, for example
             // when setting the position to 0 in stop().
-            if (m_state != QMediaPlayer::PlayingState)
+            // Also, don't change the position while we're loading the media, as then play() would
+            // set a wrong initial position.
+            if (m_state != QMediaPlayer::PlayingState ||
+                m_mediaStatus == QMediaPlayer::LoadingMedia ||
+                m_mediaStatus == QMediaPlayer::NoMedia ||
+                m_mediaStatus == QMediaPlayer::InvalidMedia)
                 return false;
 
             const qint64 newPosition = QString::fromLatin1(mmrenderer_event_get_position(event)).toLongLong();
