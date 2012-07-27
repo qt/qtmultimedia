@@ -43,6 +43,7 @@
 #define DSVIDEODEVICECONTROL_H
 
 #include <qvideodeviceselectorcontrol.h>
+#include <QStringList>
 
 QT_BEGIN_HEADER
 
@@ -63,14 +64,16 @@ public:
     int defaultDevice() const;
     int selectedDevice() const;
 
+    static void enumerateDevices(QList<QByteArray> *devices, QStringList *descriptions);
+
 public Q_SLOTS:
     void setSelectedDevice(int index);
 
 private:
     DSCameraSession* m_session;
 
-    QList<QString> devices;
-    QList<QString> descriptions;
+    QList<QByteArray> m_devices;
+    QStringList m_descriptions;
 
     int selected;
 };

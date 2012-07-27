@@ -44,7 +44,7 @@
 #include <QtCore/QFile>
 
 #include "dsserviceplugin.h"
-
+#include "dsvideodevicecontrol.h"
 
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
 #include <dshow.h>
@@ -138,58 +138,9 @@ QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByt
 
 void DSServicePlugin::updateDevices() const
 {
-    m_cameraDevices.clear();
-    m_cameraDescriptions.clear();
-    BOOL bFound = TRUE;
-    CoInitialize(NULL);
-    ICreateDevEnum* pDevEnum = NULL;
-    IEnumMoniker* pEnum = NULL;
-    // Create the System device enumerator
-    HRESULT hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
-                 CLSCTX_INPROC_SERVER, IID_ICreateDevEnum,
-		 reinterpret_cast<void**>(&pDevEnum));
-    if(SUCCEEDED(hr)) {
-        // Create the enumerator for the video capture category
-	hr = pDevEnum->CreateClassEnumerator(
-	     CLSID_VideoInputDeviceCategory, &pEnum, 0);
-        if (S_OK == hr) {
-            pEnum->Reset();
-            // go through and find all video capture devices
-            IMoniker* pMoniker = NULL;
-            while(pEnum->Next(1, &pMoniker, NULL) == S_OK) {
-                IPropertyBag *pPropBag;
-                hr = pMoniker->BindToStorage(0,0,IID_IPropertyBag,
-                     (void**)(&pPropBag));
-                if(FAILED(hr)) {
-                    pMoniker->Release();
-                    continue; // skip this one
-                }
-                bFound = TRUE;
-                // Find the description
-                WCHAR str[120];
-                VARIANT varName;
-                varName.vt = VT_BSTR;
-                hr = pPropBag->Read(L"FriendlyName", &varName, 0);
-                if(SUCCEEDED(hr)) {
-                    wcsncpy(str, varName.bstrVal, sizeof(str)/sizeof(str[0]));
-                    QString temp(QString::fromUtf16((unsigned short*)str));
-                    m_cameraDevices.append(QString("ds:%1").arg(temp).toLocal8Bit().constData());
-                    hr = pPropBag->Read(L"Description", &varName, 0);
-                    wcsncpy(str, varName.bstrVal, sizeof(str)/sizeof(str[0]));
-                    QString temp2(QString::fromUtf16((unsigned short*)str));
-                    m_cameraDescriptions.append(temp2);
-                } else {
-                    qWarning() << "No friendly name";
-                }
-                pPropBag->Release();
-                pMoniker->Release();
-            }
-            pEnum->Release();
-        }
-        pDevEnum->Release();
-    }
-    CoUninitialize();
-    if (!bFound) {
+    DSVideoDeviceControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
+
+    if (m_cameraDevices.isEmpty()) {
         qWarning() << "No camera devices found";
     }
 }

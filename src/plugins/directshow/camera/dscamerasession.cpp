@@ -417,31 +417,23 @@ void DSCameraSession::setDevice(const QString &device)
             pEnum->Reset();
             // go through and find all video capture devices
             IMoniker* pMoniker = NULL;
+            IMalloc *mallocInterface = 0;
+            CoGetMalloc(1, (LPMALLOC*)&mallocInterface);
             while(pEnum->Next(1, &pMoniker, NULL) == S_OK) {
-                IPropertyBag *pPropBag;
-                hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag,
-                                             (void**)(&pPropBag));
-                if(FAILED(hr)) {
-                    pMoniker->Release();
-                    continue; // skip this one
-                }
-                // Find the description
-                WCHAR str[120];
-                VARIANT varName;
-                varName.vt = VT_BSTR;
-                hr = pPropBag->Read(L"Description", &varName, 0);
-                if(FAILED(hr))
-                    hr = pPropBag->Read(L"FriendlyName", &varName, 0);
-                if(SUCCEEDED(hr)) {
-                    wcsncpy(str, varName.bstrVal, sizeof(str)/sizeof(str[0]));
-                    QString temp(QString::fromUtf16((unsigned short*)str));
+
+                BSTR strName = 0;
+                hr = pMoniker->GetDisplayName(NULL, NULL, &strName);
+                if (SUCCEEDED(hr)) {
+                    QString temp(QString::fromWCharArray(strName));
+                    mallocInterface->Free(strName);
                     if(temp.contains(device)) {
                         available = true;
                     }
                 }
-                pPropBag->Release();
+
                 pMoniker->Release();
             }
+            mallocInterface->Release();
             pEnum->Release();
         }
         pDevEnum->Release();
@@ -449,7 +441,7 @@ void DSCameraSession::setDevice(const QString &device)
     CoUninitialize();
 
     if(available) {
-        m_device = QByteArray(device.toLocal8Bit().constData());
+        m_device = QByteArray(device.toUtf8().constData());
         graph = createFilterGraph();
         if(!graph)
             available = false;
@@ -698,36 +690,27 @@ bool DSCameraSession::createFilterGraph()
         pDevEnum->Release();
         if (S_OK == hr) {
             pEnum->Reset();
+            IMalloc *mallocInterface = 0;
+            CoGetMalloc(1, (LPMALLOC*)&mallocInterface);
             //go through and find all video capture devices
             while (pEnum->Next(1, &pMoniker, NULL) == S_OK) {
-                IPropertyBag *pPropBag;
-                hr = pMoniker->BindToStorage(0, 0,
-                                             IID_IPropertyBag, (void**)(&pPropBag));
-                if(FAILED(hr)) {
-                    pMoniker->Release();
-                    continue; // skip this one
-                }
-                // Find the description
-                WCHAR str[120];
-                VARIANT varName;
-                varName.vt = VT_BSTR;
-                hr = pPropBag->Read(L"FriendlyName", &varName, 0);
+
+                BSTR strName = 0;
+                hr = pMoniker->GetDisplayName(NULL, NULL, &strName);
                 if (SUCCEEDED(hr)) {
-                    // check if it is the selected device
-                    wcsncpy(str, varName.bstrVal, sizeof(str)/sizeof(str[0]));
-                    QString output = QString::fromUtf16((unsigned short*)str);
-                    if (m_device.contains(output.toLocal8Bit().constData())) {
+                    QString output = QString::fromWCharArray(strName);
+                    mallocInterface->Free(strName);
+                    if (m_device.contains(output.toUtf8().constData())) {
                         hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&pCap);
                         if (SUCCEEDED(hr)) {
-                            pPropBag->Release();
                             pMoniker->Release();
                             break;
                         }
                     }
                 }
-                pPropBag->Release();
                 pMoniker->Release();
             }
+            mallocInterface->Release();
             if (NULL == pCap)
             {
                 if (m_device.contains("default"))
@@ -770,7 +753,7 @@ bool DSCameraSession::createFilterGraph()
         return false;
     }
 
-    pSG_Filter->QueryInterface(IID_ISampleGrabber, (void**)&pSG);
+    hr = pSG_Filter->QueryInterface(IID_ISampleGrabber, (void**)&pSG);
     if (FAILED(hr)) {
         qWarning() << "failed to get sample grabber";
         return false;
