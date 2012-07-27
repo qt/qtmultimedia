@@ -543,10 +543,12 @@ bool BbMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *
                 // playback is stopped because of this.
                 // Ignore other stop event sources, souch as calling mmr_stop() ourselves and
                 // mmr_input_attach().
-                if (m_stopEventsToIgnore > 0)
+                if (m_stopEventsToIgnore > 0) {
                     --m_stopEventsToIgnore;
-                else
+                } else {
+                    setMediaStatus(QMediaPlayer::EndOfMedia);
                     stopInternal(IgnoreMmRenderer);
+                }
                 return false;
             }
         }
