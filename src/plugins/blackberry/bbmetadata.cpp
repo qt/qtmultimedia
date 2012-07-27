@@ -64,8 +64,13 @@ static const int mediaTypeVideoFlag = 2;
 bool BbMetaData::parse(const QString &contextName)
 {
     clear();
-    const QString fileName =
+    QString fileName =
             QString("/pps/services/multimedia/renderer/context/%1/metadata").arg(contextName);
+
+    // In newer OS versions, the filename is "metadata0", not metadata, so try both.
+    if (!QFile::exists(fileName))
+        fileName += '0';
+
     QFile metaDataFile(fileName);
     if (!metaDataFile.open(QFile::ReadOnly)) {
         qWarning() << "Unable to open media metadata file" << fileName << ":"
