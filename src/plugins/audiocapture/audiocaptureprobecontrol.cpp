@@ -39,59 +39,22 @@
 **
 ****************************************************************************/
 
-#include "audiocaptureservice.h"
-#include "audiocapturesession.h"
-#include "audioinputselector.h"
-#include "audioencodercontrol.h"
-#include "audiocontainercontrol.h"
-#include "audiomediarecordercontrol.h"
 #include "audiocaptureprobecontrol.h"
 
-AudioCaptureService::AudioCaptureService(QObject *parent):
-    QMediaService(parent)
+AudioCaptureProbeControl::AudioCaptureProbeControl(QObject *parent):
+    QMediaAudioProbeControl(parent)
 {
-    m_session = new AudioCaptureSession(this);
-    m_encoderControl  = new AudioEncoderControl(m_session);
-    m_containerControl = new AudioContainerControl(m_session);
-    m_mediaControl   = new AudioMediaRecorderControl(m_session);
-    m_inputSelector  = new AudioInputSelector(m_session);
 }
 
-AudioCaptureService::~AudioCaptureService()
+AudioCaptureProbeControl::~AudioCaptureProbeControl()
 {
-    delete m_encoderControl;
-    delete m_containerControl;
-    delete m_inputSelector;
-    delete m_mediaControl;
-    delete m_session;
 }
 
-QMediaControl *AudioCaptureService::requestControl(const char *name)
+void AudioCaptureProbeControl::bufferProbed(const char *data, quint32 size, const QAudioFormat& format)
 {
-    if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
-        return m_mediaControl;
+    if (!format.isValid())
+        return;
 
-    if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
-        return m_encoderControl;
-
-    if (qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
-        return m_inputSelector;
-
-    if (qstrcmp(name,QMediaContainerControl_iid) == 0)
-        return m_containerControl;
-
-    if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
-        AudioCaptureProbeControl *probe = new AudioCaptureProbeControl(this);
-        m_session->addProbe(probe);
-        return probe;
-    }
-
-    return 0;
+    QAudioBuffer audioBuffer = QAudioBuffer(QByteArray::fromRawData(data, size), format);
+    QMetaObject::invokeMethod(this, "audioBufferProbed", Qt::QueuedConnection, Q_ARG(QAudioBuffer, audioBuffer));
 }
-
-void AudioCaptureService::releaseControl(QMediaControl *control)
-{
-    Q_UNUSED(control)
-}
-
-

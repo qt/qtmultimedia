@@ -13,7 +13,8 @@ HEADERS += audioencodercontrol.h \
     audioinputselector.h \
     audiocaptureservice.h \
     audiocaptureserviceplugin.h \
-    audiocapturesession.h
+    audiocapturesession.h \
+    audiocaptureprobecontrol.h
 
 SOURCES += audioencodercontrol.cpp \
     audiocontainercontrol.cpp \
@@ -21,7 +22,8 @@ SOURCES += audioencodercontrol.cpp \
     audioinputselector.cpp \
     audiocaptureservice.cpp \
     audiocaptureserviceplugin.cpp \
-    audiocapturesession.cpp
+    audiocapturesession.cpp \
+    audiocaptureprobecontrol.cpp
 
 target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
 INSTALLS += target

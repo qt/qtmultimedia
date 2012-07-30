@@ -47,6 +47,45 @@
 #include "qmediarecorder.h"
 
 #include "audiocapturesession.h"
+#include "audiocaptureprobecontrol.h"
+
+void FileProbeProxy::startProbes(const QAudioFormat &format)
+{
+    m_format = format;
+}
+
+void FileProbeProxy::stopProbes()
+{
+    m_format = QAudioFormat();
+}
+
+void FileProbeProxy::addProbe(AudioCaptureProbeControl *probe)
+{
+    QMutexLocker locker(&m_probeMutex);
+
+    if (m_probes.contains(probe))
+        return;
+
+    m_probes.append(probe);
+}
+
+void FileProbeProxy::removeProbe(AudioCaptureProbeControl *probe)
+{
+    QMutexLocker locker(&m_probeMutex);
+    m_probes.removeOne(probe);
+}
+
+qint64 FileProbeProxy::writeData(const char *data, qint64 len)
+{
+    if (m_format.isValid()) {
+        QMutexLocker locker(&m_probeMutex);
+
+        foreach (AudioCaptureProbeControl* probe, m_probes)
+            probe->bufferProbed(data, len, m_format);
+    }
+
+    return QFile::writeData(data, len);
+}
 
 AudioCaptureSession::AudioCaptureSession(QObject *parent):
     QObject(parent)
@@ -274,6 +313,7 @@ void AudioCaptureSession::record()
                 if (wavFile)
                     file.write((char*)&header,sizeof(CombinedHeader));
 
+                file.startProbes(m_format);
                 m_audioInput->start(qobject_cast<QIODevice*>(&file));
             } else {
                 emit error(1,QString("can't open source, failed"));
@@ -298,6 +338,7 @@ void AudioCaptureSession::stop()
 {
     if(m_audioInput) {
         m_audioInput->stop();
+        file.stopProbes();
         file.close();
         if (wavFile) {
             qint32 fileSize = file.size()-8;
@@ -312,6 +353,16 @@ void AudioCaptureSession::stop()
         m_position = 0;
     }
     m_state = QMediaRecorder::StoppedState;
+}
+
+void AudioCaptureSession::addProbe(AudioCaptureProbeControl *probe)
+{
+    file.addProbe(probe);
+}
+
+void AudioCaptureSession::removeProbe(AudioCaptureProbeControl *probe)
+{
+    file.removeProbe(probe);
 }
 
 void AudioCaptureSession::stateChanged(QAudio::State state)

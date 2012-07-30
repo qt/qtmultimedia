@@ -45,6 +45,7 @@
 #include <QFile>
 #include <QUrl>
 #include <QDir>
+#include <QMutex>
 
 #include "audioencodercontrol.h"
 #include "audioinputselector.h"
@@ -55,6 +56,25 @@
 #include <qaudiodeviceinfo.h>
 
 QT_USE_NAMESPACE
+
+class AudioCaptureProbeControl;
+
+class FileProbeProxy: public QFile {
+public:
+    void startProbes(const QAudioFormat& format);
+    void stopProbes();
+    void addProbe(AudioCaptureProbeControl *probe);
+    void removeProbe(AudioCaptureProbeControl *probe);
+
+protected:
+    virtual qint64 writeData(const char *data, qint64 len);
+
+private:
+    QAudioFormat m_format;
+    QList<AudioCaptureProbeControl*> m_probes;
+    QMutex m_probeMutex;
+};
+
 
 class AudioCaptureSession : public QObject
 {
@@ -80,6 +100,8 @@ public:
     void record();
     void pause();
     void stop();
+    void addProbe(AudioCaptureProbeControl *probe);
+    void removeProbe(AudioCaptureProbeControl *probe);
 
 public slots:
     void setCaptureDevice(const QString &deviceName);
@@ -97,7 +119,7 @@ private:
     QDir defaultDir() const;
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
-    QFile file;
+    FileProbeProxy file;
     QString m_captureDevice;
     QUrl m_sink;
     QUrl m_actualSink;
