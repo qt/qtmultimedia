@@ -398,7 +398,7 @@ void AudioCaptureSession::setCaptureDevice(const QString &deviceName)
     for(int i = 0; i < devices.size(); i++) {
         if(qstrcmp(m_captureDevice.toLocal8Bit().constData(),
                     devices.at(i).deviceName().toLocal8Bit().constData())==0){
-            m_deviceInfo = new QAudioDeviceInfo(QAudioDeviceInfo::defaultInputDevice());
+            m_deviceInfo = new QAudioDeviceInfo(devices.at(i));
             return;
         }
     }
