@@ -181,6 +181,9 @@ QString BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
 
 void BbMediaPlayerControl::attach()
 {
+    // Should only be called in detached state
+    Q_ASSERT(m_audioId == -1 && !m_inputAttached && m_tempMediaFileName.isEmpty());
+
     if (m_media.isNull() || !m_context) {
         setMediaStatus(QMediaPlayer::NoMedia);
         return;
