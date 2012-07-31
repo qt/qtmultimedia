@@ -89,6 +89,11 @@ void QSoundEffectPrivate::release()
 
 QStringList QSoundEffectPrivate::supportedMimeTypes()
 {
+    // Only return supported mime types if we have a audio device available
+    const QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    if (devices.size() <= 0)
+        return QStringList();
+
     return QStringList() << QLatin1String("audio/x-wav")
                          << QLatin1String("audio/wav")
                          << QLatin1String("audio/wave")

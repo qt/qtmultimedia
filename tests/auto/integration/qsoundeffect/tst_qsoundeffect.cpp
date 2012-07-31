@@ -98,6 +98,11 @@ void tst_QSoundEffect::cleanup()
 
 void tst_QSoundEffect::initTestCase()
 {
+    // Only perform tests if audio device exists
+    QStringList mimeTypes = sound->supportedMimeTypes();
+    if (mimeTypes.empty())
+        QSKIP("No audio devices available");
+
     QString testFileName = QStringLiteral("test.wav");
     QString fullPath = QFINDTESTDATA(testFileName);
     QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));

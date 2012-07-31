@@ -43,6 +43,7 @@
 #include <QtTest/QtTest>
 #include <QtCore/QString>
 #include <QSound>
+#include <QSoundEffect>
 
 class tst_QSound : public QObject
 {
@@ -67,6 +68,12 @@ private:
 
 void tst_QSound::initTestCase()
 {
+    sound = 0;
+    // Only perform tests if audio device exists
+    QStringList mimeTypes = QSoundEffect::supportedMimeTypes();
+    if (mimeTypes.empty())
+        QSKIP("No audio devices available");
+
     const QString testFileName = QStringLiteral("test.wav");
     const QString fullPath = QFINDTESTDATA(testFileName);
     QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
