@@ -191,9 +191,7 @@ DSCameraSession::DSCameraSession(QObject *parent)
 
     m_output = 0;
     m_surface = 0;
-    m_windowSize = QSize(320,240);
-    pixelF = QVideoFrame::Format_RGB24;
-    actualFormat = QVideoSurfaceFormat(m_windowSize,pixelF);
+    pixelF = QVideoFrame::Format_Invalid;
 
     graph = false;
     active = false;
@@ -499,25 +497,31 @@ void DSCameraSession::record()
     }
 
     if(m_surface) {
-        bool match = false;
 
-        if (!m_surface->isFormatSupported(actualFormat)) {
-            QList<QVideoFrame::PixelFormat> fmts;
+        if (!graph)
+            graph = createFilterGraph();
+
+        if (types.isEmpty()) {
+            if (pixelF == QVideoFrame::Format_Invalid)
+                pixelF = QVideoFrame::Format_RGB32;
+            if (!m_windowSize.isValid())
+                m_windowSize = QSize(320, 240);
+        }
+        actualFormat = QVideoSurfaceFormat(m_windowSize, pixelF);
+
+        if (!m_surface->isFormatSupported(actualFormat) && !types.isEmpty()) {
+            // enumerate through camera formats
+            QList<QVideoFrame::PixelFormat> fmts = m_surface->supportedPixelFormats();
             foreach(QVideoFrame::PixelFormat f, types) {
                 if (fmts.contains(f)) {
-                    match = true;
                     pixelF = f;
-                    actualFormat = QVideoSurfaceFormat(m_windowSize,pixelF);
+                    if (!resolutions[pixelF].contains(m_windowSize)) {
+                        Q_ASSERT(!resolutions[pixelF].isEmpty());
+                        m_windowSize = resolutions[pixelF].first();
+                    }
+                    actualFormat = QVideoSurfaceFormat(m_windowSize, pixelF);
                     break;
                 }
-            }
-        }
-        if (!m_surface->isFormatSupported(actualFormat) && !match) {
-            // fallback
-            if (types.contains(QVideoFrame::Format_RGB24)) {
-                // get RGB24 from camera and convert to RGB32 for surface!
-                pixelF = QVideoFrame::Format_RGB32;
-                actualFormat = QVideoSurfaceFormat(m_windowSize,pixelF);
             }
         }
 
@@ -589,9 +593,9 @@ void DSCameraSession::captureFrame()
             mutex.lock();
 
             image = QImage(frames.at(0)->buffer,m_windowSize.width(),m_windowSize.height(),
-                    QImage::Format_RGB888).rgbSwapped().mirrored(true);
+                    QImage::Format_RGB32).rgbSwapped().mirrored(true);
 
-            QVideoFrame frame(image.convertToFormat(QImage::Format_RGB32));
+            QVideoFrame frame(image);
             frame.setStartTime(frames.at(0)->time);
 
             mutex.unlock();
@@ -762,8 +766,8 @@ bool DSCameraSession::createFilterGraph()
     pSG->SetBufferSamples(TRUE);
     pSG->SetCallback(StillCapCB, 1);
 
+    updateProperties();
     CoUninitialize();
-
     return true;
 }
 
@@ -849,6 +853,18 @@ void DSCameraSession::updateProperties()
         }
     }
     pConfig->Release();
+
+    if (!types.isEmpty()) {
+        // Add RGB formats and let directshow do color space conversion if required.
+        if (!types.contains(QVideoFrame::Format_RGB24)) {
+            types.append(QVideoFrame::Format_RGB24);
+            resolutions.insert(QVideoFrame::Format_RGB24, resolutions[types.first()]);
+        }
+        if (!types.contains(QVideoFrame::Format_RGB32)) {
+            types.append(QVideoFrame::Format_RGB32);
+            resolutions.insert(QVideoFrame::Format_RGB32, resolutions[types.first()]);
+        }
+    }
 }
 
 bool DSCameraSession::setProperties()
@@ -913,7 +929,7 @@ bool DSCameraSession::setProperties()
     am_media_type.majortype = MEDIATYPE_Video;
 
     if (actualFormat.pixelFormat() == QVideoFrame::Format_RGB32)
-        am_media_type.subtype = MEDIASUBTYPE_RGB24;
+        am_media_type.subtype = MEDIASUBTYPE_RGB32;
     else if (actualFormat.pixelFormat() == QVideoFrame::Format_RGB24)
         am_media_type.subtype = MEDIASUBTYPE_RGB24;
     else if (actualFormat.pixelFormat() == QVideoFrame::Format_YUYV)
