@@ -105,13 +105,7 @@ class tst_QDeclarativeVideoOutput : public QObject
 {
     Q_OBJECT
 public:
-    tst_QDeclarativeVideoOutput()
-        : m_mappingComponent(0)
-        , m_mappingOutput(0)
-        , m_mappingSurface(0)
-    {
-        qRegisterMetaType<QDeclarativeVideoOutput::FillMode>();
-    }
+    tst_QDeclarativeVideoOutput();
 
     ~tst_QDeclarativeVideoOutput()
     {
@@ -180,6 +174,14 @@ void tst_QDeclarativeVideoOutput::initTestCase()
 }
 
 Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FillMode)
+
+tst_QDeclarativeVideoOutput::tst_QDeclarativeVideoOutput()
+    : m_mappingComponent(0)
+    , m_mappingOutput(0)
+    , m_mappingSurface(0)
+{
+    qRegisterMetaType<QDeclarativeVideoOutput::FillMode>();
+}
 
 void tst_QDeclarativeVideoOutput::fillMode()
 {
