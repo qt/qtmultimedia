@@ -106,6 +106,7 @@ void PlaylistModel::setPlaylist(QMediaPlaylist *playlist)
         disconnect(m_playlist, SIGNAL(mediaChanged(int,int)), this, SLOT(changeItems(int,int)));
     }
 
+    beginResetModel();
     m_playlist = playlist;
 
     if (m_playlist) {
@@ -116,8 +117,7 @@ void PlaylistModel::setPlaylist(QMediaPlaylist *playlist)
         connect(m_playlist, SIGNAL(mediaChanged(int,int)), this, SLOT(changeItems(int,int)));
     }
 
-
-    reset();
+    endResetModel();
 }
 
 bool PlaylistModel::setData(const QModelIndex &index, const QVariant &value, int role)
