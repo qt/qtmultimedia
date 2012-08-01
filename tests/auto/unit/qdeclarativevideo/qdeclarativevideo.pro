@@ -16,3 +16,4 @@ SOURCES += \
 
 INCLUDEPATH += $$QT.multimedia.sources/../imports/multimedia
 QT+=widgets
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

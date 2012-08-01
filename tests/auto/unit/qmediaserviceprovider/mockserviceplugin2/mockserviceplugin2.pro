@@ -23,3 +23,4 @@ OTHER_FILES += mockserviceplugin2.json
 
 target.path += $$[QT_INSTALL_TESTS]/tst_qmediaserviceprovider/$${PLUGIN_TYPE}
 INSTALLS += target
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

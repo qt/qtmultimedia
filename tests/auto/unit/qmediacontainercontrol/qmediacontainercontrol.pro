@@ -8,3 +8,4 @@ SOURCES += tst_qmediacontainercontrol.cpp
 
 include (../qmultimedia_common/mockcontainer.pri)
 
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

@@ -14,3 +14,4 @@ contains(QT_CONFIG, opengl): QT += opengl
 SOURCES += tst_qpaintervideosurface.cpp
 
 QT+=widgets
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

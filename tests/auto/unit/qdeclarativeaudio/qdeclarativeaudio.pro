@@ -13,3 +13,4 @@ SOURCES += \
         $$QT.multimedia.sources/../imports/multimedia/qdeclarativeaudio.cpp
 
 INCLUDEPATH += $$QT.multimedia.sources/../imports/multimedia
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

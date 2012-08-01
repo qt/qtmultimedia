@@ -12,3 +12,4 @@ INCLUDEPATH += \
 
 SOURCES += \
     tst_qaudiodecoderbackend.cpp
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

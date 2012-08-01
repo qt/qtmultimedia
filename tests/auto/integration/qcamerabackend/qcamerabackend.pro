@@ -7,3 +7,4 @@ CONFIG += no_private_qt_headers_warning
 CONFIG += testcase
 
 SOURCES += tst_qcamerabackend.cpp
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

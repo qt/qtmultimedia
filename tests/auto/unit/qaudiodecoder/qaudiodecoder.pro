@@ -19,3 +19,4 @@ include (../qmultimedia_common/mock.pri)
 include (../qmultimedia_common/mockdecoder.pri)
 
 SOURCES += tst_qaudiodecoder.cpp
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

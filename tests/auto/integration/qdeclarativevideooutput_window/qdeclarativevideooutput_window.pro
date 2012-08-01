@@ -11,3 +11,4 @@ SOURCES += \
         tst_qdeclarativevideooutput_window.cpp
 
 INCLUDEPATH += ../../../../src/imports/multimedia
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
