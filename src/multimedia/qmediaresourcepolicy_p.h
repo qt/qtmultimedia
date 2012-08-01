@@ -43,6 +43,7 @@
 #define QMEDIARESOURCEPOLICY_H
 
 #include <QObject>
+#include "qtmultimediadefs.h"
 
 QT_BEGIN_HEADER
 

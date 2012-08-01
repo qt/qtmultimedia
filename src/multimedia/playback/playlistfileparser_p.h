@@ -54,6 +54,7 @@
 //
 
 #include <QtNetwork>
+#include "qtmultimediadefs.h"
 
 QT_BEGIN_HEADER
 
