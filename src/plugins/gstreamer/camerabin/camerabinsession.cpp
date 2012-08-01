@@ -462,11 +462,11 @@ QDir CameraBinSession::defaultDir(QCamera::CaptureModes mode) const
 #endif
 
     if (mode == QCamera::CaptureVideo) {
-        dirCandidates << QDesktopServices::storageLocation(QDesktopServices::MoviesLocation);
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
         dirCandidates << QDir::home().filePath("Documents/Video");
         dirCandidates << QDir::home().filePath("Documents/Videos");
     } else {
-        dirCandidates << QDesktopServices::storageLocation(QDesktopServices::PicturesLocation);
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
         dirCandidates << QDir::home().filePath("Documents/Photo");
         dirCandidates << QDir::home().filePath("Documents/Photos");
         dirCandidates << QDir::home().filePath("Documents/photo");

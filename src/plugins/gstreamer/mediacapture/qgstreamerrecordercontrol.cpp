@@ -334,9 +334,9 @@ QDir QGstreamerRecorderControl::defaultDir() const
 #endif
 
     if (m_session->captureMode() & QGstreamerCaptureSession::Video)
-        dirCandidates << QDesktopServices::storageLocation(QDesktopServices::MoviesLocation);
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     else
-        dirCandidates << QDesktopServices::storageLocation(QDesktopServices::MusicLocation);
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
 
     dirCandidates << QDir::home().filePath("Documents");
     dirCandidates << QDir::home().filePath("My Documents");
