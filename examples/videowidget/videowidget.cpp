@@ -89,7 +89,7 @@ void VideoWidget::paintEvent(QPaintEvent *event)
 
         if (!videoRect.contains(event->rect())) {
             QRegion region = event->region();
-            region.subtract(videoRect);
+            region = region.subtracted(videoRect);
 
             QBrush brush = palette().background();
 
