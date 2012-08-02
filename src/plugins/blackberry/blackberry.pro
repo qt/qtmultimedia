@@ -1,4 +1,4 @@
-load(qt_module)
+load(qt_build_config)
 
 TARGET = qtmedia_blackberry
 QT += multimedia-private gui-private
