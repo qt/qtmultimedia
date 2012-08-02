@@ -126,16 +126,27 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
 }
 
 /*!
-    \qmlproperty bool QtMultimedia5::CameraCapture::ready
     \property QDeclarativeCameraCapture::ready
 
-    Indicates camera is ready to capture photo.
+    This property holds a bool value indicating whether the camera
+    is ready to capture photos or not.
+
+   If camera is not ready to capture image immediately,
+   the capture request is queued with all the related camera settings,
+   and the request will be executed as soon as possible.
+*/
+
+/*!
+    \qmlproperty bool QtMultimedia5::CameraCapture::ready
+
+    This property holds a bool value indicating whether the camera
+    is ready to capture photos or not.
 
    It's permissible to call capture() while the camera is active
    regardless of the \e ready property value.
    If camera is not ready to capture image immediately,
-   the capture request is queued with all the related camera settings
-   to be executed as soon as possible.
+   the capture request is queued with all the related camera settings,
+   and the request will be executed as soon as possible.
 */
 bool QDeclarativeCameraCapture::isReadyForCapture() const
 {
@@ -194,12 +205,15 @@ void QDeclarativeCameraCapture::cancelCapture()
 {
     m_capture->cancelCapture();
 }
-
 /*!
-    \qmlproperty string QtMultimedia5::CameraCapture::capturedImagePath
     \property QDeclarativeCameraCapture::capturedImagePath
 
-    The path to the last captured image.
+    This property holds the location of the last captured image.
+*/
+/*!
+    \qmlproperty string QtMultimedia5::CameraCapture::capturedImagePath
+
+    This property holds the location of the last captured image.
 */
 QString QDeclarativeCameraCapture::capturedImagePath() const
 {
@@ -232,13 +246,18 @@ void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Er
     qWarning() << "QCameraImageCapture error:" << message;
     emit captureFailed(id, message);
 }
+/*!
+    \property QDeclarativeCameraCapture::resolution
+
+    This property holds the resolution/size of the image to be captured.
+    If empty, the system chooses the appropriate resolution.
+*/
 
 /*!
     \qmlproperty size QtMultimedia5::CameraCapture::resolution
-    \property QDeclarativeCameraCapture::resolution
 
-    The resolution to capture the image at.  If empty, the system will pick
-    a good size.
+    This property holds the resolution/size of the image to be captured.
+    If empty, the system chooses the appropriate resolution.
 */
 
 QSize QDeclarativeCameraCapture::resolution()
@@ -259,13 +278,16 @@ QCameraImageCapture::Error QDeclarativeCameraCapture::error() const
 {
     return m_capture->error();
 }
+/*!
+    \property QDeclarativeCameraCapture::errorString
 
+    This property holds the error message related to the last capture.
+*/
 
 /*!
     \qmlproperty string QtMultimedia5::CameraCapture::errorString
-    \property QDeclarativeCameraCapture::errorString
 
-    The last capture related error message.
+    This property holds the error message related to the last capture.
 */
 QString QDeclarativeCameraCapture::errorString() const
 {

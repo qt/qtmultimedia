@@ -27,7 +27,7 @@
 
 /*!
 \page multimediaoverview.html
-\title Multimedia Overview
+\title Qt Multimedia Overview
 \brief A set of APIs for working with audio, video, radio and camera devices.
 
 \ingroup technology-apis

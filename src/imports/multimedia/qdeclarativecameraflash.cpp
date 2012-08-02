@@ -89,22 +89,31 @@ QDeclarativeCameraFlash::QDeclarativeCameraFlash(QCamera *camera, QObject *paren
 QDeclarativeCameraFlash::~QDeclarativeCameraFlash()
 {
 }
-
 /*!
-    \qmlproperty bool QtMultimedia5::CameraFlash::ready
     \property bool QDeclarativeCameraFlash::ready
 
-    Indicates flash is charged.
+    This property indicates whether the flash is charged.
+*/
+/*!
+    \qmlproperty bool QtMultimedia5::CameraFlash::ready
+
+    This property indicates whether the flash is charged.
 */
 bool QDeclarativeCameraFlash::isFlashReady() const
 {
     return m_exposure->isFlashReady();
 }
+/*!
+    \property QDeclarativeCameraFlash::mode
 
+    This property holds the camera flash mode. The mode can be one of the constants in \l QCameraExposure::FlashMode.
+*/
 /*!
     \qmlproperty enumeration QtMultimedia5::CameraFlash::mode
-    \property int QDeclarativeCameraFlash::mode
 
+    This property holds the camera flash mode.
+
+    The mode can be one of the following:
     \table
     \header \li Value \li Description
     \row \li Camera.FlashOff             \li Flash is Off.

@@ -93,16 +93,17 @@ QDeclarativeTorch::~QDeclarativeTorch()
 
 /*!
     \qmlproperty bool QtMultimedia5::Torch::enabled
-    \property QDeclarativeTorch::enabled
 
-    Whether the torch is on.  If the torch functionality is shared
+    This property indicates whether the torch is enabled.  If the torch functionality is shared
     with the camera flash hardware, the camera will take priority
-    over torch settings and the torch may be disabled.
+    over torch settings and the torch is disabled.
 */
 /*!
-    Returns whether the torch is on.  If the torch functionality
+    \property QDeclarativeTorch::enabled
+
+    This property indicates whether the torch is enabled.  If the torch functionality
     is shared with the camera flash hardware, the camera will take
-    priority and the torch may be disabled.
+    priority and the torch is disabled.
  */
 bool QDeclarativeTorch::enabled() const
 {
@@ -140,15 +141,16 @@ void QDeclarativeTorch::setEnabled(bool on)
 
 /*!
     \qmlproperty int QtMultimedia5::Torch::power
-    \property QDeclarativeTorch::power
 
-    The current torch power setting, as a percentage of full power.
+    This property holds the current torch power setting, as a percentage of full power.
 
     In some cases this setting may change automatically as a result
     of temperature or battery conditions.
 */
 /*!
-    Returns the current torch power settings, as a percentage of full power.
+    \property QDeclarativeTorch::power
+
+    This property holds the current torch power settings, as a percentage of full power.
 */
 int QDeclarativeTorch::power() const
 {

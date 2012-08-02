@@ -225,7 +225,7 @@ QDeclarativeCamera::Error QDeclarativeCamera::errorCode() const
 /*!
     \qmlproperty string QtMultimedia5::Camera::errorString
 
-    A description of the current error, if any.
+    This property holds the last error string, if any.
 
     \sa QtMultimedia5::Camera::onError
 */
@@ -237,24 +237,22 @@ QString QDeclarativeCamera::errorString() const
 /*!
     \qmlproperty enumeration QtMultimedia5::Camera::availability
 
-    Returns the availability state of the camera.
+    This property holds the availability state of the camera.
 
-    This is one of:
+    The availability states can be one of the following:
 
     \table
     \header \li Value \li Description
     \row \li Available
         \li The camera is available to use
     \row \li Busy
-        \li The camera is usually available to use, but is currently busy.
-           This can happen when some other process needs to use the camera
-           hardware.
+        \li The camera is busy at the moment as it is being used by another process.
     \row \li Unavailable
         \li The camera is not available to use (there may be no camera
            hardware)
     \row \li ResourceMissing
-        \li There is one or more resources missing, so the camera cannot
-           be used.  It may be possible to try again at a later time.
+        \li The camera cannot be used because of missing resources.
+         It may be possible to try again at a later time.
     \endtable
  */
 QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
@@ -265,6 +263,9 @@ QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
 
 /*!
     \qmlproperty enumeration QtMultimedia5::Camera::captureMode
+
+    This property holds the camera capture mode, which can be one of the
+    following:
 
     \table
     \header \li Value \li Description
@@ -294,7 +295,7 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
 /*!
     \qmlproperty enumeration QtMultimedia5::Camera::cameraState
 
-    The current state of the camera object.
+    This property holds the camera object's current state, which can be one of the following:
 
     \table
     \header \li Value \li Description
@@ -331,7 +332,7 @@ QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
 /*!
     \qmlproperty enumeration QtMultimedia5::Camera::cameraStatus
 
-    The current status of the camera instance.
+    This property holds the camera object's current status, which can be one of the following:
 
     \table
     \header \li Value \li Description
@@ -339,17 +340,17 @@ QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
          \li The camera has been started and can produce data,
              viewfinder displays video frames.
 
-             Depending on backend, changing some camera settings like
-             capture mode, codecs or resolution in ActiveState may lead
-             to changing the camera status to LoadedStatus and StartingStatus while
-             the settings are applied and back to ActiveStatus when the camera is ready.
+             Depending on backend, changing camera settings such as
+             capture mode, codecs, or resolution in ActiveState may lead
+             to changing the status to LoadedStatus and StartingStatus while
+             the settings are applied, and back to ActiveStatus when the camera is ready.
 
     \row \li StartingStatus
-         \li The camera is starting in result of state transition to Camera.ActiveState.
+         \li The camera is starting as a result of state transition to Camera.ActiveState.
              The camera service is not ready to capture yet.
 
     \row \li StoppingStatus
-         \li The camera is stopping in result of state transition from Camera.ActiveState
+         \li The camera is stopping as a result of state transition from Camera.ActiveState
              to Camera.LoadedState or Camera.UnloadedState.
 
     \row \li StandbyStatus
@@ -360,15 +361,15 @@ QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
     \row \li LoadedStatus
          \li The camera is loaded and ready to be configured.
              This status indicates the camera device is opened and
-             it's possible to query for supported image and video capture settings,
-             like resolution, framerate and codecs.
+             it's possible to query for supported image and video capture settings
+             such as resolution, frame rate, and codecs.
 
     \row \li LoadingStatus
-         \li The camera device loading in result of state transition from
+         \li The camera device loading as a result of state transition from
              Camera.UnloadedState to Camera.LoadedState or Camera.ActiveState.
 
     \row \li UnloadingStatus
-         \li The camera device is unloading in result of state transition from
+         \li The camera device is unloading as a result of state transition from
              Camera.LoadedState or Camera.ActiveState to Camera.UnloadedState.
 
     \row \li UnloadedStatus
@@ -432,25 +433,27 @@ void QDeclarativeCamera::stop()
 /*!
     \qmlproperty enumeration QtMultimedia5::Camera::lockStatus
 
-    The overall status for all the requested camera locks.
+    This property holds the status of all the requested camera locks.
+
+    The status can be one of the following values:
 
     \table
     \header \li Value \li Description
     \row \li Unlocked
         \li The application is not interested in camera settings value.
-        The camera may keep this parameter without changes, this is common with camera focus,
+        The camera may keep this parameter without changes, which is common with camera focus,
         or adjust exposure and white balance constantly to keep the viewfinder image nice.
 
     \row \li Searching
-        \li The application has requested the camera focus, exposure or white balance lock with
+        \li The application has requested the camera focus, exposure, or white balance lock with
         searchAndLock(). This state indicates the camera is focusing or calculating exposure and white balance.
 
     \row \li Locked
-        \li The camera focus, exposure or white balance is locked.
-        The camera is ready to capture, application may check the exposure parameters.
+        \li The camera focus, exposure, or white balance is locked.
+        The camera is ready to capture, and the application may check the exposure parameters.
 
         The locked state usually means the requested parameter stays the same,
-        except in the cases when the parameter is requested to be constantly updated.
+        except in cases where the parameter is requested to be updated constantly.
         For example in continuous focusing mode, the focus is considered locked as long
         as the object is in focus, even while the actual focusing distance may be constantly changing.
     \endtable
@@ -458,7 +461,9 @@ void QDeclarativeCamera::stop()
 /*!
     \property QDeclarativeCamera::lockStatus
 
-    The overall status for all the requested camera locks.
+    This property holds the status of all the requested camera locks.
+
+    The status can be one of the following:
 
     \table
     \header \li Value \li Description
@@ -473,10 +478,10 @@ void QDeclarativeCamera::stop()
 
     \row \li Locked
         \li The camera focus, exposure or white balance is locked.
-        The camera is ready to capture, application may check the exposure parameters.
+        The camera is ready to capture, and the application may check the exposure parameters.
 
         The locked state usually means the requested parameter stays the same,
-        except in the cases when the parameter is requested to be constantly updated.
+        except in the cases when the parameter is requested to be updated constantly.
         For example in continuous focusing mode, the focus is considered locked as long
         and the object is in focus, even while the actual focusing distance may be constantly changing.
     \endtable
@@ -510,34 +515,44 @@ void QDeclarativeCamera::unlock()
 {
     m_camera->unlock();
 }
-
 /*!
-    \qmlproperty real QtMultimedia5::Camera::maximumOpticalZoom
     \property QDeclarativeCamera::maximumOpticalZoom
 
-    The maximum optical zoom factor, or 1.0 if optical zoom is not supported.
+    This property holds the maximum optical zoom factor supported, or 1.0 if optical zoom is not supported.
+*/
+/*!
+    \qmlproperty real QtMultimedia5::Camera::maximumOpticalZoom
+
+    This property holds the maximum optical zoom factor supported, or 1.0 if optical zoom is not supported.
 */
 qreal QDeclarativeCamera::maximumOpticalZoom() const
 {
     return m_camera->focus()->maximumOpticalZoom();
 }
-
 /*!
-    \qmlproperty real QtMultimedia5::Camera::maximumDigitalZoom
     \property  QDeclarativeCamera::maximumDigitalZoom
 
-    The maximum digital zoom factor, or 1.0 if digital zoom is not supported.
+    This property holds the maximum digital zoom factor supported, or 1.0 if digital zoom is not supported.
+*/
+/*!
+    \qmlproperty real QtMultimedia5::Camera::maximumDigitalZoom
+
+    This property holds the maximum digital zoom factor supported, or 1.0 if digital zoom is not supported.
 */
 qreal QDeclarativeCamera::maximumDigitalZoom() const
 {
     return m_camera->focus()->maximumDigitalZoom();
 }
+/*!
+    \property QDeclarativeCamera::opticalZoom
+
+    This property holds the current optical zoom factor.
+*/
 
 /*!
     \qmlproperty real QtMultimedia5::Camera::opticalZoom
-    \property QDeclarativeCamera::opticalZoom
 
-    The current optical zoom factor.
+    This property holds the current optical zoom factor.
 */
 qreal QDeclarativeCamera::opticalZoom() const
 {
@@ -548,12 +563,15 @@ void QDeclarativeCamera::setOpticalZoom(qreal value)
 {
     m_camera->focus()->zoomTo(value, digitalZoom());
 }
-
 /*!
-    \qmlproperty real QtMultimedia5::Camera::digitalZoom
     \property   QDeclarativeCamera::digitalZoom
 
-    The current digital zoom factor.
+    This property holds the current digital zoom factor.
+*/
+/*!
+    \qmlproperty real QtMultimedia5::Camera::digitalZoom
+
+    This property holds the current digital zoom factor.
 */
 qreal QDeclarativeCamera::digitalZoom() const
 {
@@ -568,13 +586,13 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 /*!
     \qmlproperty variant QtMultimedia5::Camera::mediaObject
 
-    The media object for the Camera.
+    This property holds the media object for the camera.
 */
 
 /*!
     \qmlproperty enumeration QtMultimedia5::Camera::errorCode
 
-    Error state of the camera.
+    This property holds the last error code.
 
     \sa QtMultimedia5::Camera::onError
 */
@@ -582,8 +600,9 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 /*!
     \qmlsignal QtMultimedia5::Camera::onError(errorCode, errorString)
 
-    This handler is called when an error occurs.  The enumeration value \a errorCode is one of the
-    values defined below, and a descriptive string value is available in \a errorString.
+    This handler is called when an error occurs. The enumeration value
+    \a errorCode is one of the values defined below, and a descriptive string
+    value is available in \a errorString.
 
     \table
     \header \li Value \li Description
