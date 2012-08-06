@@ -167,7 +167,6 @@ bool QGstreamerVideoWidgetControl::eventFilter(QObject *object, QEvent *e)
             // Setting these values ensures smooth resizing since it
             // will prevent the system from clearing the background
             m_widget->setAttribute(Qt::WA_NoSystemBackground, true);
-            m_widget->setAttribute(Qt::WA_PaintOnScreen, true);
         } else if (e->type() == QEvent::Resize) {
             // This is a workaround for missing background repaints
             // when reducing window size
