@@ -8,7 +8,7 @@ contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
    DEFINES += QT_NO_OPENGL
 }
 
-load(qt_module_config)
+load(qt_module)
 
 INCLUDEPATH *= .
 

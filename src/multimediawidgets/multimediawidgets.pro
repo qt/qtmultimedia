@@ -6,7 +6,7 @@ QT = core gui multimedia-private widgets-private
 
 CONFIG += no_private_qt_headers_warning
 
-load(qt_module_config)
+load(qt_module)
 
 # private dependencies
 contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {

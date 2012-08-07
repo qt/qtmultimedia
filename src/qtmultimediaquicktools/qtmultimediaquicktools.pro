@@ -4,7 +4,7 @@ TARGET = QtMultimediaQuick_p
 QT = core quick multimedia-private
 CONFIG += internal_module
 
-load(qt_module_config)
+load(qt_module)
 
 !static:DEFINES += QT_MAKEDLL
 
