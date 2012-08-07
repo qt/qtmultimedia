@@ -3,17 +3,15 @@ load(qt_build_config)
 # distinct from QtMultimedia
 TARGET = QtMultimediaWidgets
 QT = core gui multimedia-private widgets-private
+contains(QT_CONFIG, opengl)|contains(QT_CONFIG, opengles2) {
+   QT_PRIVATE += opengl
+} else {
+   DEFINES += QT_NO_OPENGL
+}
 
 CONFIG += no_private_qt_headers_warning
 
 load(qt_module)
-
-# private dependencies
-contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
-   QT += opengl
-} else {
-   DEFINES += QT_NO_OPENGL
-}
 
 PRIVATE_HEADERS += \
     qvideowidget_p.h \
