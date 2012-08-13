@@ -79,7 +79,7 @@ QString toString(QAudioFormat::Endian endian)
 }
 
 
-AudioDevicesBase::AudioDevicesBase(QWidget *parent, Qt::WFlags f)
+AudioDevicesBase::AudioDevicesBase(QWidget *parent, Qt::WindowFlags f)
     : QMainWindow(parent, f)
 {
     setupUi(this);
@@ -88,7 +88,7 @@ AudioDevicesBase::AudioDevicesBase(QWidget *parent, Qt::WFlags f)
 AudioDevicesBase::~AudioDevicesBase() {}
 
 
-AudioTest::AudioTest(QWidget *parent, Qt::WFlags f)
+AudioTest::AudioTest(QWidget *parent, Qt::WindowFlags f)
     : AudioDevicesBase(parent, f)
 {
     mode = QAudio::AudioOutput;

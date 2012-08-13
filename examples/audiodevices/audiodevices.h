@@ -50,7 +50,7 @@
 class AudioDevicesBase : public QMainWindow, public Ui::AudioDevicesBase
 {
 public:
-    AudioDevicesBase(QWidget *parent = 0, Qt::WFlags f = 0);
+    AudioDevicesBase(QWidget *parent = 0, Qt::WindowFlags f = 0);
     virtual ~AudioDevicesBase();
 };
 
@@ -58,7 +58,7 @@ class AudioTest : public AudioDevicesBase
 {
     Q_OBJECT
 public:
-    AudioTest(QWidget *parent = 0, Qt::WFlags f = 0);
+    AudioTest(QWidget *parent = 0, Qt::WindowFlags f = 0);
     virtual ~AudioTest();
 
     QAudioDeviceInfo deviceInfo;
