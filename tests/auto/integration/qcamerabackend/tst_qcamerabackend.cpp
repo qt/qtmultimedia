@@ -128,17 +128,16 @@ void tst_QCameraBackend::testDeviceDescription()
 
 void tst_QCameraBackend::testCtorWithDevice()
 {
-    int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
-    QCamera *camera = 0;
+    if (QCamera::availableDevices().isEmpty())
+        QSKIP("Camera selection not supported");
 
-    if (deviceCount == 0) {
-        camera = new QCamera("random");
-        QCOMPARE(camera->error(), QCamera::ServiceMissingError);
-    }
-    else {
-        camera = new QCamera(QCamera::availableDevices().first());
-        QCOMPARE(camera->error(), QCamera::NoError);
-    }
+    QCamera *camera = new QCamera(QCamera::availableDevices().first());
+    QCOMPARE(camera->error(), QCamera::NoError);
+    delete camera;
+
+    //loading non existing camera should fail
+    camera = new QCamera(QUuid::createUuid().toByteArray());
+    QCOMPARE(camera->error(), QCamera::ServiceMissingError);
 
     delete camera;
 }
@@ -608,7 +607,8 @@ void tst_QCameraBackend::testVideoRecording()
     QCOMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
 
     camera->start();
-    QCOMPARE(recorder.status(), QMediaRecorder::LoadingStatus);
+    QVERIFY(recorder.status() == QMediaRecorder::LoadingStatus ||
+            recorder.status() == QMediaRecorder::LoadedStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
     QTRY_COMPARE(camera->status(), QCamera::ActiveStatus);
     QTRY_COMPARE(recorder.status(), QMediaRecorder::LoadedStatus);
