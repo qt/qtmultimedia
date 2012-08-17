@@ -1,0 +1,237 @@
+/****************************************************************************
+**
+** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/
+**
+** This file is part of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser General Public
+** License version 2.1 as published by the Free Software Foundation and
+** appearing in the file LICENSE.LGPL included in the packaging of this
+** file. Please review the following information to ensure the GNU Lesser
+** General Public License version 2.1 requirements will be met:
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+** In addition, as a special exception, Nokia gives you certain additional
+** rights. These rights are described in the Nokia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU General
+** Public License version 3.0 as published by the Free Software Foundation
+** and appearing in the file LICENSE.GPL included in the packaging of this
+** file. Please review the following information to ensure the GNU General
+** Public License version 3.0 requirements will be met:
+** http://www.gnu.org/copyleft/gpl.html.
+**
+** Other Usage
+** Alternatively, this file may be used in accordance with the terms and
+** conditions contained in a signed written agreement between you and Nokia.
+**
+**
+**
+**
+**
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include "avfvideorenderercontrol.h"
+#include "avfcamerasession.h"
+#include "avfcameraservice.h"
+#include "avfcameradebug.h"
+
+#include <QtMultimedia/qabstractvideosurface.h>
+#include <QtMultimedia/qabstractvideobuffer.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
+
+QT_USE_NAMESPACE
+
+class CVPixelBufferVideoBuffer : public QAbstractVideoBuffer
+{
+public:
+    CVPixelBufferVideoBuffer(CVPixelBufferRef buffer)
+        : QAbstractVideoBuffer(NoHandle)
+        , m_buffer(buffer)
+        , m_mode(NotMapped)
+    {
+        CVPixelBufferRetain(m_buffer);
+    }
+
+    virtual ~CVPixelBufferVideoBuffer()
+    {
+        CVPixelBufferRelease(m_buffer);
+    }
+
+    MapMode mapMode() const { return m_mode; }
+
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
+    {
+        if (mode != NotMapped && m_mode == NotMapped) {
+            CVPixelBufferLockBaseAddress(m_buffer, 0);
+
+            if (numBytes)
+                *numBytes = CVPixelBufferGetDataSize(m_buffer);
+
+            if (bytesPerLine)
+                *bytesPerLine = CVPixelBufferGetBytesPerRow(m_buffer);
+
+            m_mode = mode;
+
+            return (uchar*)CVPixelBufferGetBaseAddress(m_buffer);
+        } else {
+            return 0;
+        }
+    }
+
+    void unmap()
+    {
+        if (m_mode != NotMapped) {
+            m_mode = NotMapped;
+            CVPixelBufferUnlockBaseAddress(m_buffer, 0);
+        }
+    }
+
+private:
+    CVPixelBufferRef m_buffer;
+    MapMode m_mode;
+};
+
+@interface AVFCaptureFramesDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
+{
+@private
+    AVFVideoRendererControl *m_renderer;
+}
+
+- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFVideoRendererControl*)renderer;
+
+- (void) captureOutput:(AVCaptureOutput *)captureOutput
+         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
+         fromConnection:(AVCaptureConnection *)connection;
+@end
+
+@implementation AVFCaptureFramesDelegate
+
+- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFVideoRendererControl*)renderer
+{
+    if (!(self = [super init]))
+        return nil;
+
+    self->m_renderer = renderer;
+    return self;
+}
+
+- (void)captureOutput:(AVCaptureOutput *)captureOutput
+         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
+         fromConnection:(AVCaptureConnection *)connection
+{
+    Q_UNUSED(connection);
+    Q_UNUSED(captureOutput);
+
+    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+
+    int width = CVPixelBufferGetWidth(imageBuffer);
+    int height = CVPixelBufferGetHeight(imageBuffer);
+
+    QAbstractVideoBuffer *buffer = new CVPixelBufferVideoBuffer(imageBuffer);
+    QVideoFrame frame(buffer, QSize(width, height), QVideoFrame::Format_RGB32);
+    m_renderer->syncHandleViewfinderFrame(frame);
+}
+@end
+
+
+AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
+   : QVideoRendererControl(parent)
+   , m_surface(0)
+{
+    m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
+}
+
+AVFVideoRendererControl::~AVFVideoRendererControl()
+{
+    [m_captureSession removeOutput:m_videoDataOutput];
+    [m_viewfinderFramesDelegate release];
+}
+
+QAbstractVideoSurface *AVFVideoRendererControl::surface() const
+{
+    return m_surface;
+}
+
+void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+{
+    if (m_surface != surface) {
+        m_surface = surface;
+        Q_EMIT surfaceChanged(surface);
+    }
+}
+
+void AVFVideoRendererControl::configureAVCaptureSession(AVCaptureSession *captureSession)
+{
+    m_captureSession = captureSession;
+
+    m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
+
+    // Configure video output
+    dispatch_queue_t queue = dispatch_queue_create("vf_queue", NULL);
+    [m_videoDataOutput
+            setSampleBufferDelegate:m_viewfinderFramesDelegate
+            queue:queue];
+    dispatch_release(queue);
+
+    // Specify the pixel format
+    m_videoDataOutput.videoSettings =
+            [NSDictionary dictionaryWithObject:
+            [NSNumber numberWithInt:kCVPixelFormatType_32BGRA]
+            forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+
+    [m_captureSession addOutput:m_videoDataOutput];
+}
+
+//can be called from non main thread
+void AVFVideoRendererControl::syncHandleViewfinderFrame(const QVideoFrame &frame)
+{
+    QMutexLocker lock(&m_vfMutex);
+    if (!m_lastViewfinderFrame.isValid()) {
+        static QMetaMethod handleViewfinderFrameSlot = metaObject()->method(
+                    metaObject()->indexOfMethod("handleViewfinderFrame()"));
+
+        handleViewfinderFrameSlot.invoke(this, Qt::QueuedConnection);
+    }
+
+    m_lastViewfinderFrame = frame;
+}
+
+void AVFVideoRendererControl::handleViewfinderFrame()
+{
+    QVideoFrame frame;
+    {
+        QMutexLocker lock(&m_vfMutex);
+        frame = m_lastViewfinderFrame;
+        m_lastViewfinderFrame = QVideoFrame();
+    }
+
+    if (m_surface && frame.isValid()) {
+        if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
+            m_surface->stop();
+
+        if (!m_surface->isActive()) {
+            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat());
+
+            if (!m_surface->start(format)) {
+                qWarning() << "Failed to start viewfinder m_surface, format:" << format;
+            } else {
+                qDebugCamera() << "Viewfinder started: " << format;
+            }
+        }
+
+        if (m_surface->isActive())
+            m_surface->present(frame);
+    }
+}
+
+
+#include "moc_avfvideorenderercontrol.cpp"
