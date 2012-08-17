@@ -18,6 +18,10 @@ win32 {
     qtCompileTest(xvideo)
 }
 
+mac {
+    qtCompileTest(avfoundation)
+}
+
 load(qt_parts)
 
 # for make docs:
