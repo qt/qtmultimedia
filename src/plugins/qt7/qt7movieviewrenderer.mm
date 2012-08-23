@@ -330,11 +330,11 @@ void QT7MovieViewRenderer::setupVideoOutput()
         QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle;
         QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_RGB32;
 
-        if (glTextureSupported) {
+        if (coreImageFrameSupported) {
+            handleType = QAbstractVideoBuffer::CoreImageHandle;
+        } else if (glTextureSupported) {
             handleType = QAbstractVideoBuffer::GLTextureHandle;
             pixelFormat = QVideoFrame::Format_BGR32;
-        } else if (coreImageFrameSupported) {
-            handleType = QAbstractVideoBuffer::CoreImageHandle;
         }
 
         QVideoSurfaceFormat format(m_nativeSize, pixelFormat, handleType);

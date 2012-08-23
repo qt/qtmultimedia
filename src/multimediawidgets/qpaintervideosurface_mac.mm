@@ -134,6 +134,8 @@ QAbstractVideoSurface::Error QVideoSurfaceCoreGraphicsPainter::paint(
             const QRectF &target, QPainter *painter, const QRectF &source)
 {
     if (m_frame.handleType() == QAbstractVideoBuffer::CoreImageHandle) {
+//Non OpenGL CI rendering is disabled for now since qt_mac_cg_context is moved to platform plugin
+#ifdef ENABLE_CORE_GRAPHICS_VIDEO_RENDERING
         if (painter->paintEngine()->type() == QPaintEngine::CoreGraphics ) {
 
             CIImage *img = (CIImage*)(m_frame.handle().value<void*>());
@@ -168,7 +170,9 @@ QAbstractVideoSurface::Error QVideoSurfaceCoreGraphicsPainter::paint(
                     return QAbstractVideoSurface::NoError;
                 }
             }
-        } else if (painter->paintEngine()->type() == QPaintEngine::OpenGL2 ||
+        } else
+#endif
+        if (painter->paintEngine()->type() == QPaintEngine::OpenGL2 ||
                    painter->paintEngine()->type() == QPaintEngine::OpenGL) {
             CIImage *img = (CIImage*)(m_frame.handle().value<void*>());
 

@@ -31,8 +31,7 @@ SOURCES += \
     qvideowidget.cpp
 
 mac {
-    # QtWidgets is not yet supported on Mac (!).
-    false:!simulator {
+    !simulator {
         PRIVATE_HEADERS += qpaintervideosurface_mac_p.h
         OBJECTIVE_SOURCES += qpaintervideosurface_mac.mm
     }
