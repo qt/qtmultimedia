@@ -47,12 +47,13 @@
 
 #import <AVFoundation/AVFoundation.h>
 
+@class AVFCameraSessionObserver;
+
 QT_BEGIN_NAMESPACE
 
 class AVFCameraControl;
 class AVFCameraService;
 class AVFVideoRendererControl;
-@class AVFCameraSessionObserver;
 
 class AVFCameraSession : public QObject
 {

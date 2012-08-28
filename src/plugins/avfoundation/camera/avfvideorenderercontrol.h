@@ -48,13 +48,13 @@
 
 #import <AVFoundation/AVFoundation.h>
 
+@class AVFCaptureFramesDelegate;
+
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
 class AVFVideoRendererControl;
-
-@class AVFCaptureFramesDelegate;
 
 class AVFVideoRendererControl : public QVideoRendererControl
 {

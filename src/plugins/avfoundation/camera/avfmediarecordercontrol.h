@@ -48,12 +48,13 @@
 #import <AVFoundation/AVFoundation.h>
 #include "avfstoragelocation.h"
 
+@class AVFMediaRecorderDelegate;
+
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraControl;
 class AVFCameraService;
-@class AVFMediaRecorderDelegate;
 
 class AVFMediaRecorderControl : public QMediaRecorderControl
 {
