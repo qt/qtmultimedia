@@ -412,6 +412,9 @@ qint64 PrivateSoundSource::readData( char* data, qint64 len)
                 dataOffset += (sampleSize - m_offset);
                 m_offset = 0;
 
+                if (m_runningCount > 0 && m_runningCount != QSoundEffect::Infinite)
+                    soundeffect->setLoopsRemaining(m_runningCount-1);
+
                 if (m_runningCount > 0 || m_runningCount == QSoundEffect::Infinite) {
                     // There are still more loops of this sound to play, append the start of sound to make up full period
                     memcpy(data + dataOffset, sampleData + m_offset, wrapLen);
@@ -423,8 +426,6 @@ qint64 PrivateSoundSource::readData( char* data, qint64 len)
                              << ", part2=" << wrapLen;
                     qDebug() << "part1 + part2 should be a period " << periodSize;
 #endif
-                    if (m_runningCount != QSoundEffect::Infinite)
-                        soundeffect->setLoopsRemaining(m_runningCount-1);
                 }
             }
             if (m_runningCount == 0)
