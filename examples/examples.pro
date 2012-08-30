@@ -1,12 +1,13 @@
 TEMPLATE = subdirs
 
+SUBDIRS += audiodecoder
+
 # These examples all need widgets for now (using creator templates that use widgets)
 !isEmpty(QT.widgets.name) {
     SUBDIRS += \
         radio \
         camera \
         spectrum \
-        audiodecoder \
         audiorecorder \
         audiodevices \
         audioinput \
@@ -15,14 +16,15 @@ TEMPLATE = subdirs
         videowidget \
         player
 
-    contains(QT_CONFIG, qml) {
-        disabled:SUBDIRS += declarative-camera
-        SUBDIRS += \
-            declarative-radio \
-            video
-    }
-
     QT += widgets
 }
 
+!isEmpty(QT.gui.name):!isEmpty(QT.qml.name) {
+    disabled:SUBDIRS += declarative-camera
+    SUBDIRS += \
+        declarative-radio \
+        video
+}
+
 config_openal: SUBDIRS += audioengine
+
