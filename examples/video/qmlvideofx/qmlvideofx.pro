@@ -1,6 +1,5 @@
 TEMPLATE = app
 TARGET = qmlvideofx
-QT += opengl
 
 SOURCES += filereader.cpp \
            main.cpp
