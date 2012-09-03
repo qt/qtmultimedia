@@ -1,6 +1,3 @@
-
-load(qt_build_config)
-
 TARGET = mockserviceplugin1
 QT += multimedia-private
 CONFIG += no_private_qt_headers_warning

@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 TARGET = QtMultimedia
 QT = core-private network gui
 

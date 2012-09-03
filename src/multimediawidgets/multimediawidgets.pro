@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 # distinct from QtMultimedia
 TARGET = QtMultimediaWidgets
 QT = core gui multimedia-private widgets-private

@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 # Avoid clash with a variable named `slots' in a Quartz header
 CONFIG += no_keywords
 

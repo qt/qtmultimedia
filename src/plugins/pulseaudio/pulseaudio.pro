@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 TARGET = qtmedia_pulse
 QT += multimedia-private
 PLUGIN_TYPE = audio

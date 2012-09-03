@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 TARGET = wmfengine
 QT += multimedia-private network
 !isEmpty(QT.widgets.name) {

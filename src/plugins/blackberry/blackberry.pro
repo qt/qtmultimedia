@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 TARGET = qtmedia_blackberry
 QT += multimedia-private gui-private
 CONFIG += no_private_qt_headers_warning

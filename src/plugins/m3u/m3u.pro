@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 TARGET = qtmultimedia_m3u
 QT += multimedia-private
 PLUGIN_TYPE=playlistformats

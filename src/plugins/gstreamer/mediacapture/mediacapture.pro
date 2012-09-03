@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 TARGET = gstmediacapture
 PLUGIN_TYPE = mediaservice
 

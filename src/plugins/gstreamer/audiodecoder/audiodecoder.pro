@@ -1,5 +1,3 @@
-load(qt_build_config)
-
 TARGET = gstaudiodecoder
 PLUGIN_TYPE = mediaservice
 
