@@ -135,10 +135,12 @@ void MFPlayerService::releaseControl(QMediaControl *control)
         m_videoRendererControl->setSurface(0);
         delete m_videoRendererControl;
         m_videoRendererControl = 0;
+        return;
 #if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (control == m_videoWindowControl) {
         delete m_videoWindowControl;
         m_videoWindowControl = 0;
+        return;
 #endif
     }
 
