@@ -57,33 +57,33 @@ public:
     explicit BbVideoWindowControl(QObject *parent = 0);
     ~BbVideoWindowControl();
 
-    WId winId() const;
-    void setWinId(WId id);
+    WId winId() const Q_DECL_OVERRIDE;
+    void setWinId(WId id) Q_DECL_OVERRIDE;
 
-    QRect displayRect() const;
-    void setDisplayRect(const QRect &rect);
+    QRect displayRect() const Q_DECL_OVERRIDE;
+    void setDisplayRect(const QRect &rect) Q_DECL_OVERRIDE;
 
-    bool isFullScreen() const;
-    void setFullScreen(bool fullScreen);
+    bool isFullScreen() const Q_DECL_OVERRIDE;
+    void setFullScreen(bool fullScreen) Q_DECL_OVERRIDE;
 
-    void repaint();
+    void repaint() Q_DECL_OVERRIDE;
 
-    QSize nativeSize() const;
+    QSize nativeSize() const Q_DECL_OVERRIDE;
 
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    Qt::AspectRatioMode aspectRatioMode() const Q_DECL_OVERRIDE;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) Q_DECL_OVERRIDE;
 
-    int brightness() const;
-    void setBrightness(int brightness);
+    int brightness() const Q_DECL_OVERRIDE;
+    void setBrightness(int brightness) Q_DECL_OVERRIDE;
 
-    int contrast() const;
-    void setContrast(int contrast);
+    int contrast() const Q_DECL_OVERRIDE;
+    void setContrast(int contrast) Q_DECL_OVERRIDE;
 
-    int hue() const;
-    void setHue(int hue);
+    int hue() const Q_DECL_OVERRIDE;
+    void setHue(int hue) Q_DECL_OVERRIDE;
 
-    int saturation() const;
-    void setSaturation(int saturation);
+    int saturation() const Q_DECL_OVERRIDE;
+    void setSaturation(int saturation) Q_DECL_OVERRIDE;
 
     //
     // Called by media control

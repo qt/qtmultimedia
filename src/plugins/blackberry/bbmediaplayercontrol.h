@@ -63,40 +63,40 @@ public:
     explicit BbMediaPlayerControl(QObject *parent = 0);
     ~BbMediaPlayerControl();
 
-    QMediaPlayer::State state() const;
+    QMediaPlayer::State state() const Q_DECL_OVERRIDE;
 
-    QMediaPlayer::MediaStatus mediaStatus() const;
+    QMediaPlayer::MediaStatus mediaStatus() const Q_DECL_OVERRIDE;
 
-    qint64 duration() const;
+    qint64 duration() const Q_DECL_OVERRIDE;
 
-    qint64 position() const;
-    void setPosition(qint64 position);
+    qint64 position() const Q_DECL_OVERRIDE;
+    void setPosition(qint64 position) Q_DECL_OVERRIDE;
 
-    int volume() const;
-    void setVolume(int volume);
+    int volume() const Q_DECL_OVERRIDE;
+    void setVolume(int volume) Q_DECL_OVERRIDE;
 
-    bool isMuted() const;
-    void setMuted(bool muted);
+    bool isMuted() const Q_DECL_OVERRIDE;
+    void setMuted(bool muted) Q_DECL_OVERRIDE;
 
-    int bufferStatus() const;
+    int bufferStatus() const Q_DECL_OVERRIDE;
 
-    bool isAudioAvailable() const;
-    bool isVideoAvailable() const;
+    bool isAudioAvailable() const Q_DECL_OVERRIDE;
+    bool isVideoAvailable() const Q_DECL_OVERRIDE;
 
-    bool isSeekable() const;
+    bool isSeekable() const Q_DECL_OVERRIDE;
 
-    QMediaTimeRange availablePlaybackRanges() const;
+    QMediaTimeRange availablePlaybackRanges() const Q_DECL_OVERRIDE;
 
-    qreal playbackRate() const;
-    void setPlaybackRate(qreal rate);
+    qreal playbackRate() const Q_DECL_OVERRIDE;
+    void setPlaybackRate(qreal rate) Q_DECL_OVERRIDE;
 
-    QMediaContent media() const;
-    const QIODevice *mediaStream() const;
-    void setMedia(const QMediaContent &media, QIODevice *stream);
+    QMediaContent media() const Q_DECL_OVERRIDE;
+    const QIODevice *mediaStream() const Q_DECL_OVERRIDE;
+    void setMedia(const QMediaContent &media, QIODevice *stream) Q_DECL_OVERRIDE;
 
-    void play();
-    void pause();
-    void stop();
+    void play() Q_DECL_OVERRIDE;
+    void pause() Q_DECL_OVERRIDE;
+    void stop() Q_DECL_OVERRIDE;
 
     void setVideoControl(BbVideoWindowControl *videoControl);
     bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;

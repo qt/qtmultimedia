@@ -56,8 +56,8 @@ public:
     explicit BbMediaPlayerService(QObject *parent = 0);
     ~BbMediaPlayerService();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
+    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
 
 private:
     void updateControls();

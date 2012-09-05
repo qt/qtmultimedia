@@ -55,9 +55,9 @@ class BbServicePlugin
 public:
     BbServicePlugin();
 
-    QMediaService *create(const QString &key);
-    void release(QMediaService *service);
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
+    void release(QMediaService *service) Q_DECL_OVERRIDE;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
 };
 
 QT_END_NAMESPACE
