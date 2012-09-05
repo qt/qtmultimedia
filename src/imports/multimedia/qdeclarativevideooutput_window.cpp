@@ -48,7 +48,8 @@
 QT_BEGIN_NAMESPACE
 
 QDeclarativeVideoWindowBackend::QDeclarativeVideoWindowBackend(QDeclarativeVideoOutput *parent)
-    : QDeclarativeVideoBackend(parent)
+    : QDeclarativeVideoBackend(parent),
+      m_visible(true)
 {
 }
 
@@ -76,11 +77,21 @@ bool QDeclarativeVideoWindowBackend::init(QMediaService *service)
 void QDeclarativeVideoWindowBackend::itemChange(QQuickItem::ItemChange change,
                                                 const QQuickItem::ItemChangeData &changeData)
 {
-    if (change == QQuickItem::ItemSceneChange && m_videoWindowControl) {
+    if (!m_videoWindowControl)
+        return;
+
+    switch (change) {
+    case QQuickItem::ItemVisibleHasChanged:
+        m_visible = changeData.boolValue;
+        updateGeometry();
+        break;
+    case QQuickItem::ItemSceneChange:
         if (changeData.window)
             m_videoWindowControl->setWinId(changeData.window->winId());
         else
             m_videoWindowControl->setWinId(0);
+        break;
+    default: break;
     }
 }
 
@@ -115,7 +126,7 @@ void QDeclarativeVideoWindowBackend::updateGeometry()
     };
 
     const QRectF canvasRect = q->mapRectToScene(QRectF(0, 0, q->width(), q->height()));
-    m_videoWindowControl->setDisplayRect(canvasRect.toAlignedRect());
+    m_videoWindowControl->setDisplayRect(m_visible ? canvasRect.toAlignedRect() : QRect());
 }
 
 QSGNode *QDeclarativeVideoWindowBackend::updatePaintNode(QSGNode *oldNode,

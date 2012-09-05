@@ -292,10 +292,13 @@ void BbVideoWindowControl::updateVideoPosition()
         if (m_window != 0) {
             const int position[2] = { topLeft.x(), topLeft.y() };
             const int size[2] = { width, height };
+            const int visible = m_displayRect.isValid();
             if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_POSITION, position) != 0)
                 perror("Setting video position failed");
             if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_SIZE, size) != 0)
                 perror("Setting video size failed");
+            if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_VISIBLE, &visible) != 0)
+                perror("Setting video visibility failed");
         }
     }
 }

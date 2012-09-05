@@ -65,6 +65,7 @@ public:
 
 private:
     QPointer<QVideoWindowControl> m_videoWindowControl;
+    bool m_visible;
 };
 
 QT_END_NAMESPACE
