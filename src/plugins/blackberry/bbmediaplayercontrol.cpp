@@ -53,14 +53,6 @@
 #include <sys/strm.h>
 #include <sys/stat.h>
 
-//#define QBBMEDIA_DEBUG
-
-#ifdef QBBMEDIA_DEBUG
-#define qBbMediaDebug qDebug
-#else
-#define qBbMediaDebug QT_NO_QDEBUG_MACRO
-#endif
-
 QT_BEGIN_NAMESPACE
 
 static int idCounter = 0;
@@ -119,7 +111,7 @@ void BbMediaPlayerControl::openConnection()
 
     m_eventMonitor = mmrenderer_request_events(m_contextName.toLatin1(), 0, m_id);
     if (!m_eventMonitor) {
-        qBbMediaDebug() << "Unable to request multimedia events";
+        qDebug() << "Unable to request multimedia events";
         emit error(0, "Unable to request multimedia events");
     }
 }
@@ -167,7 +159,7 @@ QString BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
         if (!QFile::copy(qrcPath, m_tempMediaFileName)) {
             const QString errorMsg =
                 QString("Failed to copy resource file to temporary file %1 for playback").arg(m_tempMediaFileName);
-            qBbMediaDebug() << errorMsg;
+            qDebug() << errorMsg;
             emit error(0, errorMsg);
             return QString();
         }
@@ -610,14 +602,14 @@ void BbMediaPlayerControl::emitMmError(const QString &msg)
 {
     int errorCode = MMR_ERROR_NONE;
     const QString errorMessage = mmErrorMessage(msg, m_context, &errorCode);
-    qBbMediaDebug() << errorMessage;
+    qDebug() << errorMessage;
     emit error(errorCode, errorMessage);
 }
 
 void BbMediaPlayerControl::emitPError(const QString &msg)
 {
     const QString errorMessage = QString("%1: %2").arg(msg).arg(strerror(errno));
-    qBbMediaDebug() << errorMessage;
+    qDebug() << errorMessage;
     emit error(errno, errorMessage);
 }
 
