@@ -34,7 +34,25 @@
 
    \section1 Getting started
 
-    To start using the QML types and C++ classes in your application, include/import the QtMultimedia module. Refer to \l {Qt Multimedia - QML Types} and \l {Qt Multimedia - C++ Classes}, for the include/import statements and the complete list of QML types and C++ classes.
+    The QML types can be imported into your applciation using the following import statement in your \c {.qml} file.
+
+    \code
+     import QtMultimedia 5.0
+    \endcode
+
+    If you intend to use the C++ classes in your application, include the C++ definitions using the following directive:
+
+    \code
+      #include <QtMultimedia>
+    \endcode
+
+    \note If your using a few classes from this module, we recommend including those specific classes only instead of the module.
+
+    To link against the corresponding C++ libraries, add the following to your \c {qmake} project file:
+
+   \code
+     QT += multimedia
+   \endcode
 
     \section1 Key types and classes
 
@@ -86,15 +104,48 @@
     \endtable
 
     \section1 Related topics
-    \list
-     \li \l {Qt Multimedia Overview}
-     \li \l {Changes in Qt Multimedia}
-     \li \l {Audio Overview}
-     \li \l {Camera Overview}
-     \li \l {Radio Overview}
-     \li \l {Video Overview}
-     \li \l {Positional Audio}
-    \endlist
-
-
+    \table
+    \header
+        \li {1,4} Reference
+        \li {1,4} Guides
+        \li {4,1} Examples
+    \header
+      \li QML API examples
+      \li C++ API examples
+    \row
+        \li \l{Qt Multimedia QML Types}{QML Types}
+        \li \l{Qt Multimedia Overview}
+        \li
+        \li
+    \row
+        \li \l{Qt Multimedia C++ Classes}{C++ Classes}
+        \li \l{Audio Overview}
+        \li
+        \li \l{audiooutput}
+            \l{audioinput}
+            \l{audiorecorder}
+            \l{audiodevices}
+            \l{spectrum}
+    \row
+        \li
+        \li \l{Positional Audio}
+        \li
+        \li \l{AudioEngine Example}{Audio Engine}
+    \row
+        \li
+        \li \l{Video Overview}
+        \li \l{video/qmlvideo}{qmlvideo}
+            \l{video/qmlvideofx}{qmlvideofx}
+        \li \l {player}
+    \row
+        \li
+        \li \l{Camera Overview}
+        \li \l{declarative-camera}
+        \li \l{Camera Example}
+    \row
+        \li
+        \li \l{Radio Overview}
+        \li \l{declarative-radio}
+        \li
+    \endtable
  */

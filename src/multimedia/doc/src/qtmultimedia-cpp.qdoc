@@ -27,23 +27,13 @@
 
 /*!
     \module QtMultimedia
-    \title Qt Multimedia - C++ Classes
+    \title Qt Multimedia C++ Classes
     \ingroup modules
 
-    \brief The QtMultimedia module provides audio, video, radio and camera functionality.
+    \brief The \l {Qt Multimedia}{QtMultimedia} module provides audio, video, radio and camera functionality.
 
-    To include the definitions of the module's classes, use the
-    following directive:
-
-    \code
-    #include <QtMultimedia>
-    \endcode
-
-    To link against the module, add this line to your \l qmake \c
-    .pro file:
-
-    \code
-    QT += multimedia
-    \endcode
-
+    The C++ classes provide more control over the multimedia content than the QML alternatives.
+    If your application is serving complex use cases such as decoding media files, accessing video or audio buffers,
+    use the C++ alternative. For more details about the complex audio, video, and camera use cases supported by the C++
+    classes, refer to \l {Qt Multimedia Overview}.
 */
