@@ -4,8 +4,6 @@ CONFIG += internal_module
 
 load(qt_module)
 
-!static:DEFINES += QT_MAKEDLL
-
 DEFINES += QT_BUILD_QTMM_QUICK_LIB
 
 # Header files must go inside source directory of a module
