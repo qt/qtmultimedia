@@ -32,10 +32,14 @@
 
 \section1 Overview
 
-The identifying string for this component is \e QtMultimedia. Use this in the QML \e import statement.
+The QML types for Qt Multimedia support the basic use cases such as:
+\list
+ \li audio and video playback,
+ \li access camera and radio functionality,
+ \li record video,
+ \li and access camera settings.
+\endlist
 
 \section1 QML types
-
-\annotatedlist multimedia_qml
 */
 
