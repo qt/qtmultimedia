@@ -527,7 +527,7 @@ HRESULT DirectShowIOSource::QueryPinInfo(PIN_INFO *pInfo)
 
         const int bytes = qMin(MAX_FILTER_NAME, (m_pinId.length() + 1) * 2);
 
-        qMemCopy(pInfo->achName, m_pinId.utf16(), bytes);
+        ::memcpy(pInfo->achName, m_pinId.utf16(), bytes);
 
         return S_OK;
     }
@@ -542,7 +542,7 @@ HRESULT DirectShowIOSource::QueryId(LPWSTR *Id)
 
         *Id = static_cast<LPWSTR>(::CoTaskMemAlloc(bytes));
 
-        qMemCopy(*Id, m_pinId.utf16(), bytes);
+        ::memcpy(*Id, m_pinId.utf16(), bytes);
 
         return S_OK;
     }

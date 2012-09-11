@@ -429,7 +429,7 @@ HRESULT DirectShowIOReader::blockingRead(
     *bytesRead = m_device->read(reinterpret_cast<char *>(buffer), maxBytes);
 
     if (*bytesRead != length) {
-        qMemSet(buffer + *bytesRead, 0, length - *bytesRead);
+        ::memset(buffer + *bytesRead, 0, length - *bytesRead);
 
         return S_FALSE;
     } else {
@@ -459,7 +459,7 @@ bool DirectShowIOReader::nonBlockingRead(
             *bytesRead = m_device->read(reinterpret_cast<char *>(buffer), maxBytes);
 
             if (*bytesRead != length) {
-                qMemSet(buffer + *bytesRead, 0, length - *bytesRead);
+                ::memset(buffer + *bytesRead, 0, length - *bytesRead);
 
                 *result = S_FALSE;
             } else {
