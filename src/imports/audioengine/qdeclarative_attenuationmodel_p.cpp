@@ -379,6 +379,6 @@ void QDeclarativeAttenuationModelInverse::setRolloffFactor(qreal rolloffFactor)
 qreal QDeclarativeAttenuationModelInverse::calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const
 {
     Q_ASSERT(m_ref > 0);
-    return m_ref / (m_ref + (qBound(m_ref, (listenerPosition - sourcePosition).length(), m_max) - m_ref) * m_rolloff);
+    return m_ref / (m_ref + (qBound<qreal>(m_ref, (listenerPosition - sourcePosition).length(), m_max) - m_ref) * m_rolloff);
 }
 
