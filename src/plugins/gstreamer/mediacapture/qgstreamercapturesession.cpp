@@ -1025,7 +1025,7 @@ void QGstreamerCaptureSession::setMuted(bool muted)
 
 void QGstreamerCaptureSession::setVolume(qreal volume)
 {
-    if (!qFuzzyCompare(volume, m_volume)) {
+    if (!qFuzzyCompare(double(volume), m_volume)) {
         m_volume = volume;
         if (m_audioVolume)
             g_object_set(G_OBJECT(m_audioVolume), "volume", m_volume, NULL);
