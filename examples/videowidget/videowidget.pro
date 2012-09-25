@@ -4,15 +4,11 @@ TARGET = videowidget
 QT += multimedia multimediawidgets
 
 HEADERS = \
-    videoplayer.h \
-    videowidget.h \
-    videowidgetsurface.h
+    videoplayer.h
 
 SOURCES = \
     main.cpp \
-    videoplayer.cpp \
-    videowidget.cpp \
-    videowidgetsurface.cpp
+    videoplayer.cpp
 
 target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/videowidget
 sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro

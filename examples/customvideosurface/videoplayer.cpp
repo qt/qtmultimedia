@@ -40,8 +40,9 @@
 
 #include "videoplayer.h"
 
+#include "videowidget.h"
+
 #include <QtWidgets>
-#include <qvideowidget.h>
 #include <qvideosurfaceformat.h>
 
 VideoPlayer::VideoPlayer(QWidget *parent)
@@ -50,7 +51,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     , playButton(0)
     , positionSlider(0)
 {
-    QVideoWidget *videoWidget = new QVideoWidget;
+    VideoWidget *videoWidget = new VideoWidget;
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
     connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
@@ -80,7 +81,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     setLayout(layout);
 
-    mediaPlayer.setVideoOutput(videoWidget);
+    mediaPlayer.setVideoOutput(videoWidget->videoSurface());
     connect(&mediaPlayer, SIGNAL(stateChanged(QMediaPlayer::State)),
             this, SLOT(mediaStateChanged(QMediaPlayer::State)));
     connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));

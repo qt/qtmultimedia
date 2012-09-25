@@ -38,17 +38,40 @@
 **
 ****************************************************************************/
 
-#include "videoplayer.h"
+#ifndef VIDEOPLAYER_H
+#define VIDEOPLAYER_H
 
-#include <QtWidgets/QApplication>
+#include <qmediaplayer.h>
 
-int main(int argc, char *argv[])
+#include <QtGui/QMovie>
+#include <QtWidgets/QWidget>
+
+QT_BEGIN_NAMESPACE
+class QAbstractButton;
+class QSlider;
+QT_END_NAMESPACE
+
+class VideoPlayer : public QWidget
 {
-    QApplication app(argc, argv);
+    Q_OBJECT
+public:
+    VideoPlayer(QWidget *parent = 0);
+    ~VideoPlayer();
 
-    VideoPlayer player;
-    player.resize(320, 240);
-    player.show();
+public slots:
+    void openFile();
+    void play();
 
-    return app.exec();
-}
+private slots:
+    void mediaStateChanged(QMediaPlayer::State state);
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
+    void setPosition(int position);
+
+private:
+    QMediaPlayer mediaPlayer;
+    QAbstractButton *playButton;
+    QSlider *positionSlider;
+};
+
+#endif

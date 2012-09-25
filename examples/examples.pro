@@ -14,7 +14,8 @@ SUBDIRS += audiodecoder
         audiooutput \
         videographicsitem \
         videowidget \
-        player
+        player \
+        customvideosurface
 
     QT += widgets
 }
