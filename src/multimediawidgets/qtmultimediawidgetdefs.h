@@ -56,6 +56,7 @@
 #include <QtCore/qglobal.h>
 
 QT_BEGIN_HEADER
+QT_BEGIN_NAMESPACE
 
 QT_MODULE(Multimedia)
 
@@ -69,6 +70,7 @@ QT_MODULE(Multimedia)
 #    define Q_MULTIMEDIAWIDGETS_EXPORT
 #endif
 
+QT_END_NAMESPACE
 QT_END_HEADER
 
 #endif // QMULTIMEDIAWIDGETS_P_H
