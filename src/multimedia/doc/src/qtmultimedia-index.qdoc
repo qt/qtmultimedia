@@ -46,7 +46,7 @@
       #include <QtMultimedia>
     \endcode
 
-    \note If your using a few classes from this module, we recommend including those specific classes only instead of the module.
+    \note If you are using a few classes from this module, we recommend including those specific classes only instead of the module.
 
     To link against the corresponding C++ libraries, add the following to your \c {qmake} project file:
 
@@ -54,9 +54,9 @@
      QT += multimedia
    \endcode
 
-    \section1 Key types and classes
+    \section1 QML types and C++ classes
 
-    The following is a list of key QML types and C++ classes provided by this module:
+    The following is a list of important QML types and C++ classes provided by this module:
 
     \table
     \header
@@ -103,49 +103,43 @@
      \li Control video data.
     \endtable
 
-    \section1 Related topics
-    \table
-    \header
-        \li {1,4} Reference
-        \li {1,4} Guides
-        \li {4,1} Examples
-    \header
-      \li QML API examples
-      \li C++ API examples
-    \row
-        \li \l{Qt Multimedia QML Types}{QML Types}
-        \li \l{Qt Multimedia Overview}
-        \li
-        \li
-    \row
-        \li \l{Qt Multimedia C++ Classes}{C++ Classes}
-        \li \l{Audio Overview}
-        \li
-        \li \l{audiooutput}
-            \l{audioinput}
-            \l{audiorecorder}
-            \l{audiodevices}
-            \l{spectrum}
-    \row
-        \li
-        \li \l{Positional Audio}
-        \li
-        \li \l{AudioEngine Example}{Audio Engine}
-    \row
-        \li
-        \li \l{Video Overview}
+    \section1 Related information
+
+    \section2 Guides
+     \list
+      \li \l{Qt Multimedia Overview}
+      \li \l{Audio Overview}
+      \li \l{Positional Audio}
+      \li \l{Video Overview}
+      \li \l{Camera Overview}
+      \li \l{Radio Overview}
+     \endlist
+
+    \section2 Reference
+     \list
+      \li \l{Qt Multimedia QML Types}{QML Types}
+      \li \l{Qt Multimedia C++ Classes}{C++ Classes}
+     \endlist
+
+    \section2 Examples
+     \list
+      \li QML
+       \list
         \li \l{video/qmlvideo}{qmlvideo}
-            \l{video/qmlvideofx}{qmlvideofx}
-        \li \l {player}
-    \row
-        \li
-        \li \l{Camera Overview}
+        \li \l{video/qmlvideofx}{qmlvideofx}
         \li \l{declarative-camera}
-        \li \l{Camera Example}
-    \row
-        \li
-        \li \l{Radio Overview}
         \li \l{declarative-radio}
-        \li
-    \endtable
- */
+       \endlist
+      \li C++
+       \list
+        \li \l{audiooutput}
+        \li \l{audioinput}
+        \li \l{audiorecorder}
+        \li \l{audiodevices}
+        \li \l{spectrum}
+        \li \l{AudioEngine Example}{Audio Engine}
+        \li \l{player}
+        \li \l{Camera Example}
+       \endlist
+     \endlist
+*/
