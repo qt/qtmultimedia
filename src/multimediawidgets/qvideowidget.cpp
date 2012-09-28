@@ -720,9 +720,9 @@ void QVideoWidget::setFullScreen(bool fullScreen)
 {
     Q_D(QVideoWidget);
 
-    if (fullScreen) {
-        Qt::WindowFlags flags = windowFlags();
+    Qt::WindowFlags flags = windowFlags();
 
+    if (fullScreen) {
         d->nonFullScreenFlags = flags & (Qt::Window | Qt::SubWindow);
         flags |= Qt::Window;
         flags &= ~Qt::SubWindow;
@@ -730,6 +730,10 @@ void QVideoWidget::setFullScreen(bool fullScreen)
 
         showFullScreen();
     } else {
+        flags &= ~(Qt::Window | Qt::SubWindow); //clear the flags...
+        flags |= d->nonFullScreenFlags; //then we reset the flags (window and subwindow)
+        setWindowFlags(flags);
+
         showNormal();
     }
 }
@@ -910,13 +914,8 @@ bool QVideoWidget::event(QEvent *event)
             if (d->currentControl)
                 d->currentControl->setFullScreen(false);
 
-            if (d->wasFullScreen) {
-                flags &= ~(Qt::Window | Qt::SubWindow); //clear the flags...
-                flags |= d->nonFullScreenFlags; //then we reset the flags (window and subwindow)
-                setWindowFlags(flags);
-
+            if (d->wasFullScreen)
                 emit fullScreenChanged(d->wasFullScreen = false);
-            }
         }
     }
     return QWidget::event(event);
