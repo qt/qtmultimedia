@@ -39,10 +39,10 @@
 ****************************************************************************/
 
 #include "videoplayer.h"
+#include "videoitem.h"
 
 #include <QtWidgets>
 #include <qvideosurfaceformat.h>
-#include <qgraphicsvideoitem.h>
 
 #if !defined(QT_NO_OPENGL)
 # include <QtOpenGL/QGLWidget>
@@ -55,8 +55,7 @@ VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags flags)
     , playButton(0)
     , positionSlider(0)
 {
-    videoItem = new QGraphicsVideoItem;
-    videoItem->setSize(QSizeF(640, 480));
+    videoItem = new VideoItem;
 
     QGraphicsScene *scene = new QGraphicsScene(this);
     QGraphicsView *graphicsView = new QGraphicsView(scene);
