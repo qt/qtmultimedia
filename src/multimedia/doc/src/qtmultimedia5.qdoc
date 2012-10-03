@@ -28,7 +28,8 @@
 /*!
 \qmlmodule QtMultimedia 5
 \title Qt Multimedia QML Types
-\brief List of all QML types in the Qt Multimedia module.
+\ingroup qmlmodules
+\brief Provides QML types for multimedia support.
 
 \section1 Overview
 
