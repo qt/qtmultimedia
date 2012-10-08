@@ -171,7 +171,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 
     if (!m_glContext) {
         m_glContext = QOpenGLContext::currentContext();
-        m_surface->setProperty("GLContext", QVariant::fromValue<QObject*>(m_glContext));
+        m_surface->scheduleOpenGLContextUpdate();
     }
 
     if (m_frameChanged) {
@@ -221,6 +221,11 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 QAbstractVideoSurface *QDeclarativeVideoRendererBackend::videoSurface() const
 {
     return m_surface;
+}
+
+QOpenGLContext *QDeclarativeVideoRendererBackend::glContext() const
+{
+    return m_glContext;
 }
 
 void QDeclarativeVideoRendererBackend::present(const QVideoFrame &frame)
@@ -285,6 +290,18 @@ bool QSGVideoItemSurface::present(const QVideoFrame &frame)
     }
     m_backend->present(frame);
     return true;
+}
+
+void QSGVideoItemSurface::scheduleOpenGLContextUpdate()
+{
+    //This method is called from render thread
+    QMetaObject::invokeMethod(this, "updateOpenGLContext");
+}
+
+void QSGVideoItemSurface::updateOpenGLContext()
+{
+    //Set a dynamic property to access the OpenGL context in Qt Quick render thread.
+    this->setProperty("GLContext", QVariant::fromValue<QObject*>(m_backend->glContext()));
 }
 
 QT_END_NAMESPACE

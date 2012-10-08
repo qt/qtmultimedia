@@ -71,6 +71,7 @@ public:
     void updateGeometry();
     QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data);
     QAbstractVideoSurface *videoSurface() const;
+    QOpenGLContext *glContext() const;
 
     friend class QSGVideoItemSurface;
     void present(const QVideoFrame &frame);
@@ -93,6 +94,7 @@ private:
 
 class QSGVideoItemSurface : public QAbstractVideoSurface
 {
+    Q_OBJECT
 public:
     explicit QSGVideoItemSurface(QDeclarativeVideoRendererBackend *backend, QObject *parent = 0);
     ~QSGVideoItemSurface();
@@ -100,6 +102,10 @@ public:
     bool start(const QVideoSurfaceFormat &format);
     void stop();
     bool present(const QVideoFrame &frame);
+    void scheduleOpenGLContextUpdate();
+
+private slots:
+    void updateOpenGLContext();
 
 private:
     QDeclarativeVideoRendererBackend *m_backend;
