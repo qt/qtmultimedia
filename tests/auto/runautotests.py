@@ -149,6 +149,11 @@ def runAllTests(test):
                 #Set path to this if on Windows
                 if(os.name=="nt"):
                     exePath = test+"\\"+filename+"\\debug\\tst_"+filename+".exe"
+                #Set path on OS X
+                if(sys.platform=="darwin"):
+                    exePath = test +"/"+filename+"/tst_"+filename
+                    if not (os.path.exists(exePath)):
+                        exePath = test + "/"+filename+"/tst_"+filename+".app/Contents/MacOS/tst_"+filename
                 #Set path to this if on Unix
                 else:
                     exePath = test +"/"+filename+"/tst_"+filename
