@@ -895,14 +895,14 @@ void tst_QVideoSurfaceFormat::propertyEdgeCases()
     QCOMPARE(original.sizeHint(), QSize(1024,768));
 
     // Now test setting some r/w properties with the wrong data type
-    original.setProperty("frameSize", Qt::red);
+    original.setProperty("frameSize", QColor(Qt::red));
     QCOMPARE(original.frameSize(), QSize(1024, 768));
 
-    original.setProperty("viewport", Qt::red);
+    original.setProperty("viewport", QColor(Qt::red));
     QCOMPARE(original.viewport(), QRect(0, 0, 1024, 768));
 
     original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
-    original.setProperty("scanLineDirection", Qt::red);
+    original.setProperty("scanLineDirection", QColor(Qt::red));
     QCOMPARE(original.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
 
     original.setFrameRate(32);
@@ -914,7 +914,7 @@ void tst_QVideoSurfaceFormat::propertyEdgeCases()
     QCOMPARE(original.yCbCrColorSpace(), QVideoSurfaceFormat::YCbCr_BT709);
 
     original.setPixelAspectRatio(53, 45);
-    original.setProperty("pixelAspectRatio", Qt::red);
+    original.setProperty("pixelAspectRatio", QColor(Qt::red));
     QCOMPARE(original.pixelAspectRatio(), QSize(53, 45));
 }
 
