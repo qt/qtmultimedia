@@ -1,3 +1,6 @@
+include($QT_INSTALL_DOCS/global/qt-html-templates-offline.qdocconf)
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
 include(compat.qdocconf)
 include(macros.qdocconf)
 include(qt-cpp-ignore.qdocconf)
@@ -64,7 +67,6 @@ qhp.qtmultimedia.subprojects.classes.sortPages = true
 
 # Do NOT change the variables after this line unless you know what you are doing.
 
-outputdir = html
 outputformats = HTML
 
 examples.fileextensions = "*.cpp *.h *.js *.svg *.xml *.ui *.qml"

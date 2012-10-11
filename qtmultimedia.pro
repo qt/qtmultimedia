@@ -24,5 +24,3 @@ mac {
 
 load(qt_parts)
 
-# for make docs:
-include(src/multimedia/doc/qtmultimedia_doc.pri)
