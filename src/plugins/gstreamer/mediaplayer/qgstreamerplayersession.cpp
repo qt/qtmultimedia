@@ -77,6 +77,19 @@ typedef enum {
     GST_PLAY_FLAG_BUFFERING     = 0x000000100
 } GstPlayFlags;
 
+#define DEFAULT_RAW_CAPS \
+    "video/x-raw-yuv; " \
+    "video/x-raw-rgb; " \
+    "video/x-raw-gray; " \
+    "video/x-surface; " \
+    "audio/x-raw-int; " \
+    "audio/x-raw-float; " \
+    "text/plain; " \
+    "text/x-pango-markup; " \
+    "video/x-dvd-subpicture; " \
+    "subpicture/x-pgs"
+static GstStaticCaps static_RawCaps = GST_STATIC_CAPS(DEFAULT_RAW_CAPS);
+
 QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
     :QObject(parent),
      m_state(QMediaPlayer::StoppedState),
@@ -1548,6 +1561,63 @@ void QGstreamerPlayerSession::updateMuted()
     }
 }
 
+#if (GST_VERSION_MAJOR == 0) && ((GST_VERSION_MINOR < 10) || (GST_VERSION_MICRO < 33))
+static gboolean factory_can_src_any_caps (GstElementFactory *factory, const GstCaps *caps)
+{
+    GList *templates;
+
+    g_return_val_if_fail(factory != NULL, FALSE);
+    g_return_val_if_fail(caps != NULL, FALSE);
+
+    templates = factory->staticpadtemplates;
+
+    while (templates) {
+        GstStaticPadTemplate *templ = (GstStaticPadTemplate *)templates->data;
+
+        if (templ->direction == GST_PAD_SRC) {
+            GstCaps *templcaps = gst_static_caps_get(&templ->static_caps);
+
+            if (gst_caps_can_intersect(caps, templcaps)) {
+                gst_caps_unref(templcaps);
+                return TRUE;
+            }
+            gst_caps_unref(templcaps);
+        }
+        templates = g_list_next(templates);
+    }
+
+    return FALSE;
+}
+#endif
+
+GstAutoplugSelectResult QGstreamerPlayerSession::handleAutoplugSelect(GstBin *bin, GstPad *pad, GstCaps *caps, GstElementFactory *factory, QGstreamerPlayerSession *session)
+{
+    Q_UNUSED(bin);
+    Q_UNUSED(pad);
+    Q_UNUSED(caps);
+
+    GstAutoplugSelectResult res = GST_AUTOPLUG_SELECT_TRY;
+
+    // if VAAPI is available and can be used to decode but the current video sink cannot handle
+    // the decoded format, don't use it
+    const gchar *factoryName = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
+    if (g_str_has_prefix(factoryName, "vaapi")) {
+        GstPad *sinkPad = gst_element_get_static_pad(session->m_videoSink, "sink");
+        GstCaps *sinkCaps = gst_pad_get_caps(sinkPad);
+
+#if (GST_VERSION_MAJOR == 0) && ((GST_VERSION_MINOR < 10) || (GST_VERSION_MICRO < 33))
+        if (!factory_can_src_any_caps(factory, sinkCaps))
+#else
+        if (!gst_element_factory_can_src_any_caps(factory, sinkCaps))
+#endif
+            res = GST_AUTOPLUG_SELECT_SKIP;
+
+        gst_object_unref(sinkPad);
+        gst_caps_unref(sinkCaps);
+    }
+
+    return res;
+}
 
 void QGstreamerPlayerSession::handleElementAdded(GstBin *bin, GstElement *element, QGstreamerPlayerSession *session)
 {
@@ -1573,6 +1643,15 @@ void QGstreamerPlayerSession::handleElementAdded(GstBin *bin, GstElement *elemen
         }
     } else if (g_str_has_prefix(elementName, "uridecodebin") ||
                g_str_has_prefix(elementName, "decodebin2")) {
+
+        if (g_str_has_prefix(elementName, "uridecodebin")) {
+            // Add video/x-surface (VAAPI) to default raw formats
+            g_object_set(G_OBJECT(element), "caps", gst_static_caps_get(&static_RawCaps), NULL);
+            // listen for uridecodebin autoplug-select to skip VAAPI usage when the current
+            // video sink doesn't support it
+            g_signal_connect(element, "autoplug-select", G_CALLBACK(handleAutoplugSelect), session);
+        }
+
         //listen for queue2 element added to uridecodebin/decodebin2 as well.
         //Don't touch other bins since they may have unrelated queues
         g_signal_connect(element, "element-added",

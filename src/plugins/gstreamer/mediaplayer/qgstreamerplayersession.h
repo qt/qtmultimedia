@@ -66,6 +66,12 @@ class QGstreamerVideoRendererInterface;
 class QGstreamerVideoProbeControl;
 class QGstreamerAudioProbeControl;
 
+typedef enum {
+  GST_AUTOPLUG_SELECT_TRY,
+  GST_AUTOPLUG_SELECT_EXPOSE,
+  GST_AUTOPLUG_SELECT_SKIP
+} GstAutoplugSelectResult;
+
 class QGstreamerPlayerSession : public QObject,
                                 public QGstreamerBusMessageFilter
 {
@@ -182,6 +188,7 @@ private:
     static void insertColorSpaceElement(GstElement *element, gpointer data);
     static void handleElementAdded(GstBin *bin, GstElement *element, QGstreamerPlayerSession *session);
     static void handleStreamsChange(GstBin *bin, gpointer user_data);
+    static GstAutoplugSelectResult handleAutoplugSelect(GstBin *bin, GstPad *pad, GstCaps *caps, GstElementFactory *factory, QGstreamerPlayerSession *session);
 
     void processInvalidMedia(QMediaPlayer::Error errorCode, const QString& errorString);
 
