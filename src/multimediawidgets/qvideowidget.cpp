@@ -902,8 +902,6 @@ bool QVideoWidget::event(QEvent *event)
     Q_D(QVideoWidget);
 
     if (event->type() == QEvent::WindowStateChange) {
-        Qt::WindowFlags flags = windowFlags();
-
         if (windowState() & Qt::WindowFullScreen) {
             if (d->currentControl)
                 d->currentControl->setFullScreen(true);
