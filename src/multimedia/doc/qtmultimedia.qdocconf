@@ -6,8 +6,7 @@ include(macros.qdocconf)
 include(qt-cpp-ignore.qdocconf)
 include(qt-defines.qdocconf)
 
-# Name of the project.
-project = Qt Multimedia
+project = qtmultimedia
 description = Qt Multimedia Documentation
 
 # Directories in which to search for files to document and images.
