@@ -53,9 +53,7 @@
 #ifndef QAUDIOOUTPUTWIN_H
 #define QAUDIOOUTPUTWIN_H
 
-#define NOMINMAX
-
-#include <windows.h>
+#include <QtCore/qt_windows.h>
 #include <mmsystem.h>
 
 #include <QtCore/qdebug.h>
