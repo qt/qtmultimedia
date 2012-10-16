@@ -226,7 +226,7 @@ void tst_QDeclarativeVideoOutputWindow::initTestCase()
     m_rootItem.reset(qobject_cast<QQuickItem *>(component.create()));
     m_videoItem = m_rootItem->findChild<QQuickItem *>("videoOutput");
     QVERIFY(m_videoItem);
-    m_rootItem->setParentItem(m_view.rootItem());
+    m_rootItem->setParentItem(m_view.contentItem());
     m_videoItem->setProperty("source", QVariant::fromValue<QObject *>(&m_sourceObject));
 
     m_windowControl.setNativeSize(QSize(400, 200));

@@ -41,7 +41,7 @@
 
 #include "qdeclarativevideooutput_window_p.h"
 #include "qdeclarativevideooutput_p.h"
-#include <QtQuick/qquickcanvas.h>
+#include <QtQuick/qquickwindow.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qvideowindowcontrol.h>
 
@@ -63,8 +63,8 @@ bool QDeclarativeVideoWindowBackend::init(QMediaService *service)
 {
     if (QMediaControl *control = service->requestControl(QVideoWindowControl_iid)) {
         if ((m_videoWindowControl = qobject_cast<QVideoWindowControl *>(control))) {
-            if (q->canvas())
-                m_videoWindowControl->setWinId(q->canvas()->winId());
+            if (q->window())
+                m_videoWindowControl->setWinId(q->window()->winId());
             m_service = service;
             QObject::connect(m_videoWindowControl.data(), SIGNAL(nativeSizeChanged()),
                              q, SLOT(_q_updateNativeSize()));
