@@ -13,7 +13,6 @@ HEADERS += \
     $$PWD/dsvideodevicecontrol.h \
     $$PWD/dsimagecapturecontrol.h \
     $$PWD/dscamerasession.h \
-    $$PWD/dscameraservice.h \
     $$PWD/directshowglobal.h
 
 SOURCES += \

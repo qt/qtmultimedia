@@ -188,7 +188,8 @@ void QMediaRecorderPrivate::_q_applySettings()
 void QMediaRecorderPrivate::_q_availabilityChanged(QtMultimedia::AvailabilityStatus availability)
 {
     Q_Q(QMediaRecorder);
-    Q_UNUSED(error);
+    Q_UNUSED(error)
+    Q_UNUSED(availability)
 
     // Really this should not always emit, but
     // we can't really tell from here (isAvailable

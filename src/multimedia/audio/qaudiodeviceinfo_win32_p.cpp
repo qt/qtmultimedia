@@ -309,7 +309,7 @@ void QAudioDeviceInfoInternal::updateLists()
 {
     // redo all lists based on current settings
     bool match = false;
-    DWORD fmt = NULL;
+    DWORD fmt = 0;
 
     if(mode == QAudio::AudioOutput) {
         WAVEOUTCAPS woc;
