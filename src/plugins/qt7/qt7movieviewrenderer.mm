@@ -137,7 +137,7 @@ private:
 @interface HiddenQTMovieView : QTMovieView
 {
 @private
-    QWidget *m_window;
+    QWindow *m_window;
     QT7MovieViewRenderer *m_renderer;
     QReadWriteLock m_rendererLock;
 }
@@ -160,10 +160,10 @@ private:
         QWriteLocker lock(&self->m_rendererLock);
         self->m_renderer = renderer;
 
-        self->m_window = new QWidget;
-        self->m_window->setWindowOpacity(0.0);
-        self->m_window->show();
-        self->m_window->hide();
+        self->m_window = new QWindow;
+        self->m_window->setOpacity(0.0);
+        self->m_window->setGeometry(0,0,1,1);
+        self->m_window->create();
 
         [(NSView *)(self->m_window->winId()) addSubview:self];
         [self setDrawRect:QRect(0,0,1,1)];
@@ -173,7 +173,7 @@ private:
 
 - (void) dealloc
 {
-    delete self->m_window;
+    self->m_window->deleteLater();
     [super dealloc];
 }
 
@@ -273,7 +273,8 @@ QT7MovieViewRenderer::QT7MovieViewRenderer(QObject *parent)
     m_movie(0),
     m_movieView(0),
     m_surface(0),
-    m_glWidget(0),
+    m_window(0),
+    m_context(0),
     m_fbo(0),
     m_ciContext(0),
     m_pendingRenderEvent(false)
@@ -289,7 +290,7 @@ QT7MovieViewRenderer::~QT7MovieViewRenderer()
     [(HiddenQTMovieView*)m_movieView release];
     [m_ciContext release];
     delete m_fbo;
-    delete m_glWidget;
+    delete m_window;
 }
 
 void QT7MovieViewRenderer::setupVideoOutput()
@@ -364,24 +365,35 @@ QVideoFrame QT7MovieViewRenderer::convertCIImageToGLTexture(const QVideoFrame &f
     if (frame.handleType() != QAbstractVideoBuffer::CoreImageHandle)
         return QVideoFrame();
 
-    if (!m_glWidget) {
+    if (!m_window) {
         QOpenGLContext *qGlContext = 0;
 
         if (m_surface)
             qGlContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
 
         if (qGlContext) {
-            QGLContext *surfaceContext = QGLContext::fromOpenGLContext(qGlContext);
-            m_glWidget = new QGLWidget();
+            m_window = new QWindow();
 
-            QGLContext *context = new QGLContext(surfaceContext->format());
-            m_glWidget->setContext(context, surfaceContext);
+            QSurfaceFormat format(qGlContext->format());
+
+            m_context = new QOpenGLContext(m_window);
+            m_context->setShareContext(qGlContext);
+            m_context->setFormat(format);
+            m_context->create();
+
+            m_window->setFormat(format);
+            m_window->setGeometry(0, 0, 1, 1);
+            m_window->setSurfaceType(QWindow::OpenGLSurface);
+            m_window->create();
         } else {
             return QVideoFrame();
         }
     }
 
-    m_glWidget->makeCurrent();
+    if (!m_context)
+        return QVideoFrame();
+
+    m_context->makeCurrent(m_window);
 
     if (!m_fbo || m_fbo->size() != frame.size()) {
         delete m_fbo;
@@ -414,6 +426,7 @@ QVideoFrame QT7MovieViewRenderer::convertCIImageToGLTexture(const QVideoFrame &f
 
             [m_ciContext drawImage:ciImg inRect:dRect fromRect:sRect];
         }
+
         p.endNativePainting();
 
         QAbstractVideoBuffer *buffer = new TextureVideoBuffer(m_fbo->texture());
@@ -462,7 +475,6 @@ void QT7MovieViewRenderer::setSurface(QAbstractVideoSurface *surface)
 
 void QT7MovieViewRenderer::renderFrame(const QVideoFrame &frame)
 {
-
     QMutexLocker locker(&m_mutex);
     m_currentFrame = frame;
 

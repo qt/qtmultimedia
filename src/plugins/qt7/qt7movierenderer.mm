@@ -55,6 +55,8 @@
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 
+#include <QtOpenGl/QGLContext>
+
 QT_USE_NAMESPACE
 
 //#define USE_MAIN_MONITOR_COLOR_SPACE 1
