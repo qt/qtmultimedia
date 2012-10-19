@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 
     QmlApplicationViewer viewer;
 
-    viewer.requestWindowOrientation(Qt::LandscapeOrientation);
+    viewer.requestOrientation(Qt::LandscapeOrientation);
     viewer.setMainQmlFile(QLatin1String("qml/qmlvideofx/") + MainQmlFile);
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("fileName", fileName);
@@ -129,8 +129,8 @@ int main(int argc, char *argv[])
         videoPath = moviesLocation.first();
     viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
-    viewer.setWindowTitle("qmlvideofx");
-    viewer.setWindowFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint |
+    viewer.setTitle("qmlvideofx");
+    viewer.setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint |
                           Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     viewer.setMinimumSize(QSize(600, 400));
 
