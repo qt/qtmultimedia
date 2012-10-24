@@ -363,7 +363,7 @@ void QDeclarativeSound::setCategoryObject(QDeclarativeAudioCategory *categoryObj
 
 QQmlListProperty<QDeclarativePlayVariation> QDeclarativeSound::playVariationlist()
 {
-    return QQmlListProperty<QDeclarativePlayVariation>(this, 0, appendFunction);
+    return QQmlListProperty<QDeclarativePlayVariation>(this, 0, appendFunction, 0, 0, 0);
 }
 
 QList<QDeclarativePlayVariation*>& QDeclarativeSound::playlist()
