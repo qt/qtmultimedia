@@ -1,9 +1,7 @@
-TEMPLATE = lib
-
-CONFIG += plugin
-TARGET = $$qtLibraryTarget(dsengine)
+TARGET = dsengine
 
 PLUGIN_TYPE=mediaservice
+load(qt_plugin)
 
 QT += multimedia
 
@@ -23,9 +21,6 @@ win32-g++ {
 
 !config_wmf: include(player/player.pri)
 include(camera/camera.pri)
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
 
 OTHER_FILES += \
     directshow.json

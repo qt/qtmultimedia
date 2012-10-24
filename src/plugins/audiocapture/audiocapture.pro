@@ -1,9 +1,8 @@
 TARGET = qtmedia_audioengine
 QT += multimedia-private
-PLUGIN_TYPE=mediaservice
 
+PLUGIN_TYPE=mediaservice
 load(qt_plugin)
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 HEADERS += audioencodercontrol.h \
     audiocontainercontrol.h \
@@ -22,9 +21,6 @@ SOURCES += audioencodercontrol.cpp \
     audiocaptureserviceplugin.cpp \
     audiocapturesession.cpp \
     audiocaptureprobecontrol.cpp
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
 
 OTHER_FILES += \
     audiocapture.json

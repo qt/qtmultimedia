@@ -8,14 +8,9 @@ TARGET = qavfmediaplayer
 QT += multimedia-private network
 
 PLUGIN_TYPE = mediaservice
-
 load(qt_plugin)
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 LIBS += -framework AVFoundation -framework CoreMedia
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
 
 DEFINES += QMEDIA_AVF_MEDIAPLAYER
 

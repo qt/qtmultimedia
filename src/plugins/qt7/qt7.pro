@@ -8,9 +8,7 @@ QT += multimedia-private network
 }
 
 PLUGIN_TYPE = mediaservice
-
 load(qt_plugin)
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 !simulator {
 QT += opengl
@@ -67,9 +65,6 @@ OBJECTIVE_SOURCES += \
 }
 
 include(mediaplayer/mediaplayer.pri)
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
 
 OTHER_FILES += \
     qt7.json

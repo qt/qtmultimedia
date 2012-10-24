@@ -3,6 +3,8 @@ QT += multimedia-private
 CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE=mediaservice
+load(qt_plugin)
+
 DESTDIR = ../$${PLUGIN_TYPE}
 win32 {
     CONFIG(debug, debug|release) {
@@ -12,12 +14,10 @@ win32 {
     }
 }
 
-load(qt_plugin)
-
 HEADERS += ../mockservice.h
 SOURCES += mockserviceplugin1.cpp
 OTHER_FILES += mockserviceplugin1.json
 
-target.path += $$[QT_INSTALL_TESTS]/tst_qmediaserviceprovider/$${PLUGIN_TYPE}
-INSTALLS += target
+target.path = $$[QT_INSTALL_TESTS]/tst_qmediaserviceprovider/$${PLUGIN_TYPE}
+
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

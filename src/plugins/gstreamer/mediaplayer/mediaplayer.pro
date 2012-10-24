@@ -1,8 +1,7 @@
 TARGET = gstmediaplayer
-PLUGIN_TYPE = mediaservice
 
+PLUGIN_TYPE = mediaservice
 load(qt_plugin)
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 include(../common.pri)
 
@@ -25,9 +24,6 @@ SOURCES += \
     $$PWD/qgstreamermetadataprovider.cpp \
     $$PWD/qgstreameravailabilitycontrol.cpp \
     $$PWD/qgstreamerplayerserviceplugin.cpp
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
 
 OTHER_FILES += \
     mediaplayer.json

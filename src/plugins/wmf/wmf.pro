@@ -4,11 +4,9 @@ QT += multimedia-private network
     QT += multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }
+
 PLUGIN_TYPE=mediaservice
-
 load(qt_plugin)
-
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 DEPENDPATH += .
 INCLUDEPATH += .
@@ -29,9 +27,6 @@ SOURCES += \
 
 include (player/player.pri)
 include (decoder/decoder.pri)
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
 
 OTHER_FILES += \
     wmf.json

@@ -1,10 +1,9 @@
 TARGET = gstcamerabin
-PLUGIN_TYPE = mediaservice
 
 QT += multimedia-private
 
+PLUGIN_TYPE = mediaservice
 load(qt_plugin)
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
 
 include(../common.pri)
 
@@ -76,11 +75,6 @@ have_gst_photography {
     LIBS += -lgstphotography-0.10
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API
 }
-
-
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
 
 OTHER_FILES += \
     camerabin.json

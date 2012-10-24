@@ -3,9 +3,8 @@ QT += multimedia-private gui-private
 CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE=mediaservice
-
 load(qt_plugin)
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
+
 LIBS += -lmmrndclient -lstrm -lscreen
 
 HEADERS += \
@@ -28,6 +27,3 @@ SOURCES += \
 }
 
 OTHER_FILES += blackberry_mediaservice.json
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target
