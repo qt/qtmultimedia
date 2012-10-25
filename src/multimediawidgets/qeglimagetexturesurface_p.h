@@ -69,8 +69,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 class QGLContext;
 class QGLShaderProgram;
 class QPainterVideoSurface;

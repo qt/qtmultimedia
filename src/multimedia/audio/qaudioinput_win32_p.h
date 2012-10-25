@@ -73,8 +73,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 
 // For compat with 4.6
 #if !defined(QT_WIN_CALLBACK)

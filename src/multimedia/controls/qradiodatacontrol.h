@@ -49,8 +49,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 // Required for QDoc workaround
 class QString;
 

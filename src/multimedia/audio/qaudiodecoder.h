@@ -51,8 +51,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 class QAudioDecoderPrivate;
 class Q_MULTIMEDIA_EXPORT QAudioDecoder : public QMediaObject
 {

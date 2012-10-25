@@ -53,8 +53,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 class QIODevice;
 class Q_MULTIMEDIA_EXPORT QAudioDecoderControl : public QMediaControl
 {

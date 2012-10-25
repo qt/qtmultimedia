@@ -53,8 +53,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 class QRadioData;
 class QRadioTunerPrivate;
 class Q_MULTIMEDIA_EXPORT QRadioTuner : public QMediaObject

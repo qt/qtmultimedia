@@ -48,8 +48,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 class QAudioBuffer;
 class Q_MULTIMEDIA_EXPORT QMediaAudioProbeControl : public QMediaControl
 {
