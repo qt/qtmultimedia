@@ -1,6 +1,7 @@
 SOURCES += main.cpp
 
 win32: LIBS += -lOpenAL32
-unix:!mac: LIBS += -lopenal
+unix:!mac:!blackberry: LIBS += -lopenal
+blackberry: LIBS += -lOpenAL
 mac: LIBS += -framework OpenAL
 mac: DEFINES += HEADER_OPENAL_PREFIX
