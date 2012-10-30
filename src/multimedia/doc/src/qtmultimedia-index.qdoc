@@ -115,6 +115,11 @@
       \li \l{Radio Overview}
      \endlist
 
+    \section2 Platform Notes
+     \list
+      \li \l{BlackBerry}
+     \endlist
+
     \section2 Reference
      \list
       \li \l{Qt Multimedia QML Types}{QML Types}
