@@ -26,6 +26,7 @@ PUBLIC_HEADERS += \
     qmediabindableinterface.h \
     qmediacontrol.h \
     qmediaenumdebug.h \
+    qmediametadata.h \
     qmediaobject.h \
     qmediaservice.h \
     qmediaserviceproviderplugin.h \
@@ -36,6 +37,7 @@ PUBLIC_HEADERS += \
 SOURCES += \
     qmediabindableinterface.cpp \
     qmediacontrol.cpp \
+    qmediametadata.cpp \
     qmediaobject.cpp \
     qmediapluginloader.cpp \
     qmediaservice.cpp \
