@@ -126,16 +126,16 @@ gboolean CameraBinImageCapture::metadataEventProbe(GstPad *pad, GstEvent *event,
 #endif
 
         QVariantMap tags;
-        tags[QtMultimedia::MetaData::ISOSpeedRatings] = extendedTags.value("capturing-iso-speed");
-        tags[QtMultimedia::MetaData::DigitalZoomRatio] = extendedTags.value("capturing-digital-zoom-ratio");
-        tags[QtMultimedia::MetaData::ExposureTime] = extendedTags.value("capturing-shutter-speed");
-        tags[QtMultimedia::MetaData::WhiteBalance] = extendedTags.value("capturing-white-balance");
-        tags[QtMultimedia::MetaData::Flash] = extendedTags.value("capturing-flash-fired");
-        tags[QtMultimedia::MetaData::FocalLengthIn35mmFilm] = extendedTags.value("capturing-focal-length");
-        tags[QtMultimedia::MetaData::MeteringMode] = extendedTags.value("capturing-metering-mode");
-        tags[QtMultimedia::MetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");
-        tags[QtMultimedia::MetaData::FNumber] = extendedTags.value("capturing-focal-ratio");
-        tags[QtMultimedia::MetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");
+        tags[QMediaMetaData::ISOSpeedRatings] = extendedTags.value("capturing-iso-speed");
+        tags[QMediaMetaData::DigitalZoomRatio] = extendedTags.value("capturing-digital-zoom-ratio");
+        tags[QMediaMetaData::ExposureTime] = extendedTags.value("capturing-shutter-speed");
+        tags[QMediaMetaData::WhiteBalance] = extendedTags.value("capturing-white-balance");
+        tags[QMediaMetaData::Flash] = extendedTags.value("capturing-flash-fired");
+        tags[QMediaMetaData::FocalLengthIn35mmFilm] = extendedTags.value("capturing-focal-length");
+        tags[QMediaMetaData::MeteringMode] = extendedTags.value("capturing-metering-mode");
+        tags[QMediaMetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");
+        tags[QMediaMetaData::FNumber] = extendedTags.value("capturing-focal-ratio");
+        tags[QMediaMetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");
 
         QMapIterator<QString, QVariant> i(tags);
         while (i.hasNext()) {

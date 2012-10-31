@@ -1313,7 +1313,7 @@ void QGstreamerPlayerSession::getStreamsInfo()
         if (tags && gst_is_tag_list(tags)) {
             gchar *languageCode = 0;
             if (gst_tag_list_get_string(tags, GST_TAG_LANGUAGE_CODE, &languageCode))
-                streamProperties[QtMultimedia::MetaData::Language] = QString::fromUtf8(languageCode);
+                streamProperties[QMediaMetaData::Language] = QString::fromUtf8(languageCode);
 
             //qDebug() << "language for setream" << i << QString::fromUtf8(languageCode);
             g_free (languageCode);

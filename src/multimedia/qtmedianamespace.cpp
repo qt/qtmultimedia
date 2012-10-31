@@ -68,9 +68,9 @@ namespace
     Fall back to the less-performant QLatin1String in this case.
 */
 #if defined(Q_CC_GNU) && defined(Q_COMPILER_LAMBDA)
-#    define Q_DEFINE_METADATA(key) const QString QtMultimedia::MetaData::key(QStringLiteral(#key))
+#    define Q_DEFINE_METADATA(key) const QString QMediaMetaData::key(QStringLiteral(#key))
 #else
-#    define Q_DEFINE_METADATA(key) const QString QtMultimedia::MetaData::key(QLatin1String(#key))
+#    define Q_DEFINE_METADATA(key) const QString QMediaMetaData::key(QLatin1String(#key))
 #endif
 
 // Common
@@ -187,7 +187,7 @@ Q_DEFINE_METADATA(ThumbnailImage);
 
 
 /*!
-    \namespace QtMultimedia::MetaData
+    \namespace QMediaMetaData
     \inheaderfile qtmedianamespace.h
 
     This namespace provides identifiers for meta-data attributes.

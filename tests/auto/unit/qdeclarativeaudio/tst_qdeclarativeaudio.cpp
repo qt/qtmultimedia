@@ -846,17 +846,17 @@ void tst_QDeclarativeAudio::metaData_data()
 
     QTest::newRow("title")
             << QByteArray("title")
-            << QtMultimedia::MetaData::Title
+            << QMediaMetaData::Title
             << QVariant(QString::fromLatin1("This is a title"));
 
     QTest::newRow("genre")
             << QByteArray("genre")
-            << QtMultimedia::MetaData::Genre
+            << QMediaMetaData::Genre
             << QVariant(QString::fromLatin1("rock"));
 
     QTest::newRow("trackNumber")
             << QByteArray("trackNumber")
-            << QtMultimedia::MetaData::TrackNumber
+            << QMediaMetaData::TrackNumber
             << QVariant(8);
 }
 

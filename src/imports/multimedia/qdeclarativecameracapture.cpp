@@ -300,7 +300,7 @@ QString QDeclarativeCameraCapture::errorString() const
 
     Sets a particular metadata \a key to \a value for the subsequent image captures.
 
-    \sa QtMultimedia::MetaData
+    \sa QMediaMetaData
 */
 void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &value)
 {

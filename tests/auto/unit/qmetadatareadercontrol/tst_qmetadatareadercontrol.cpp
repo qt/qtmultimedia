@@ -91,7 +91,7 @@ void tst_QMetaDataReaderControl::metaDataReaderControlMetaData ()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
     QVERIFY(metaData !=NULL);
-    metaData->metaData(QtMultimedia::MetaData::Title);
+    metaData->metaData(QMediaMetaData::Title);
     delete metaData;
 }
 

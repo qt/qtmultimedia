@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
     current media it will implement QMetaDataWriterControl.  This control
     provides functions for both retrieving and setting meta-data values.
     Meta-data may be addressed by the keys defined in the
-    QtMultimedia::MetaData namespace.
+    QMediaMetaData namespace.
 
     The functionality provided by this control is exposed to application code
     by the meta-data members of QMediaObject, and so meta-data access is

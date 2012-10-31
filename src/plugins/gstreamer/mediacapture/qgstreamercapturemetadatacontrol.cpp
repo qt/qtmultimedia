@@ -52,71 +52,71 @@ struct QGstreamerMetaDataKeyLookup
 
 static const QGstreamerMetaDataKeyLookup qt_gstreamerMetaDataKeys[] =
 {
-    { QtMultimedia::MetaData::Title, GST_TAG_TITLE },
-    //{ QtMultimedia::MetaData::SubTitle, 0 },
-    //{ QtMultimedia::MetaData::Author, 0 },
-    { QtMultimedia::MetaData::Comment, GST_TAG_COMMENT },
-    { QtMultimedia::MetaData::Description, GST_TAG_DESCRIPTION },
-    //{ QtMultimedia::MetaData::Category, 0 },
-    { QtMultimedia::MetaData::Genre, GST_TAG_GENRE },
-    //{ QtMultimedia::MetaData::Year, 0 },
-    //{ QtMultimedia::MetaData::UserRating, 0 },
+    { QMediaMetaData::Title, GST_TAG_TITLE },
+    //{ QMediaMetaData::SubTitle, 0 },
+    //{ QMediaMetaData::Author, 0 },
+    { QMediaMetaData::Comment, GST_TAG_COMMENT },
+    { QMediaMetaData::Description, GST_TAG_DESCRIPTION },
+    //{ QMediaMetaData::Category, 0 },
+    { QMediaMetaData::Genre, GST_TAG_GENRE },
+    //{ QMediaMetaData::Year, 0 },
+    //{ QMediaMetaData::UserRating, 0 },
 
-    { QtMultimedia::MetaData::Language, GST_TAG_LANGUAGE_CODE },
+    { QMediaMetaData::Language, GST_TAG_LANGUAGE_CODE },
 
-    { QtMultimedia::MetaData::Publisher, GST_TAG_ORGANIZATION },
-    { QtMultimedia::MetaData::Copyright, GST_TAG_COPYRIGHT },
-    //{ QtMultimedia::MetaData::ParentalRating, 0 },
-    //{ QtMultimedia::MetaData::RatingOrganisation, 0 },
+    { QMediaMetaData::Publisher, GST_TAG_ORGANIZATION },
+    { QMediaMetaData::Copyright, GST_TAG_COPYRIGHT },
+    //{ QMediaMetaData::ParentalRating, 0 },
+    //{ QMediaMetaData::RatingOrganisation, 0 },
 
     // Media
-    //{ QtMultimedia::MetaData::Size, 0 },
-    //{ QtMultimedia::MetaData::MediaType, 0 },
-    { QtMultimedia::MetaData::Duration, GST_TAG_DURATION },
+    //{ QMediaMetaData::Size, 0 },
+    //{ QMediaMetaData::MediaType, 0 },
+    { QMediaMetaData::Duration, GST_TAG_DURATION },
 
     // Audio
-    { QtMultimedia::MetaData::AudioBitRate, GST_TAG_BITRATE },
-    { QtMultimedia::MetaData::AudioCodec, GST_TAG_AUDIO_CODEC },
-    //{ QtMultimedia::MetaData::ChannelCount, 0 },
-    //{ QtMultimedia::MetaData::SampleRate, 0 },
+    { QMediaMetaData::AudioBitRate, GST_TAG_BITRATE },
+    { QMediaMetaData::AudioCodec, GST_TAG_AUDIO_CODEC },
+    //{ QMediaMetaData::ChannelCount, 0 },
+    //{ QMediaMetaData::SampleRate, 0 },
 
     // Music
-    { QtMultimedia::MetaData::AlbumTitle, GST_TAG_ALBUM },
-    { QtMultimedia::MetaData::AlbumArtist,  GST_TAG_ARTIST},
-    { QtMultimedia::MetaData::ContributingArtist, GST_TAG_PERFORMER },
+    { QMediaMetaData::AlbumTitle, GST_TAG_ALBUM },
+    { QMediaMetaData::AlbumArtist,  GST_TAG_ARTIST},
+    { QMediaMetaData::ContributingArtist, GST_TAG_PERFORMER },
 #if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 19)
-    { QtMultimedia::MetaData::Composer, GST_TAG_COMPOSER },
+    { QMediaMetaData::Composer, GST_TAG_COMPOSER },
 #endif
-    //{ QtMultimedia::MetaData::Conductor, 0 },
-    //{ QtMultimedia::MetaData::Lyrics, 0 },
-    //{ QtMultimedia::MetaData::Mood, 0 },
-    { QtMultimedia::MetaData::TrackNumber, GST_TAG_TRACK_NUMBER },
+    //{ QMediaMetaData::Conductor, 0 },
+    //{ QMediaMetaData::Lyrics, 0 },
+    //{ QMediaMetaData::Mood, 0 },
+    { QMediaMetaData::TrackNumber, GST_TAG_TRACK_NUMBER },
 
-    //{ QtMultimedia::MetaData::CoverArtUrlSmall, 0 },
-    //{ QtMultimedia::MetaData::CoverArtUrlLarge, 0 },
+    //{ QMediaMetaData::CoverArtUrlSmall, 0 },
+    //{ QMediaMetaData::CoverArtUrlLarge, 0 },
 
     // Image/Video
-    //{ QtMultimedia::MetaData::Resolution, 0 },
-    //{ QtMultimedia::MetaData::PixelAspectRatio, 0 },
+    //{ QMediaMetaData::Resolution, 0 },
+    //{ QMediaMetaData::PixelAspectRatio, 0 },
 
     // Video
-    //{ QtMultimedia::MetaData::VideoFrameRate, 0 },
-    //{ QtMultimedia::MetaData::VideoBitRate, 0 },
-    { QtMultimedia::MetaData::VideoCodec, GST_TAG_VIDEO_CODEC },
+    //{ QMediaMetaData::VideoFrameRate, 0 },
+    //{ QMediaMetaData::VideoBitRate, 0 },
+    { QMediaMetaData::VideoCodec, GST_TAG_VIDEO_CODEC },
 
-    //{ QtMultimedia::MetaData::PosterUrl, 0 },
+    //{ QMediaMetaData::PosterUrl, 0 },
 
     // Movie
-    //{ QtMultimedia::MetaData::ChapterNumber, 0 },
-    //{ QtMultimedia::MetaData::Director, 0 },
-    { QtMultimedia::MetaData::LeadPerformer, GST_TAG_PERFORMER },
-    //{ QtMultimedia::MetaData::Writer, 0 },
+    //{ QMediaMetaData::ChapterNumber, 0 },
+    //{ QMediaMetaData::Director, 0 },
+    { QMediaMetaData::LeadPerformer, GST_TAG_PERFORMER },
+    //{ QMediaMetaData::Writer, 0 },
 
     // Photos
-    //{ QtMultimedia::MetaData::CameraManufacturer, 0 },
-    //{ QtMultimedia::MetaData::CameraModel, 0 },
-    //{ QtMultimedia::MetaData::Event, 0 },
-    //{ QtMultimedia::MetaData::Subject, 0 }
+    //{ QMediaMetaData::CameraManufacturer, 0 },
+    //{ QMediaMetaData::CameraModel, 0 },
+    //{ QMediaMetaData::Event, 0 },
+    //{ QMediaMetaData::Subject, 0 }
 };
 
 QGstreamerCaptureMetaDataControl::QGstreamerCaptureMetaDataControl(QObject *parent)

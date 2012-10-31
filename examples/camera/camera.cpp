@@ -124,7 +124,7 @@ void Camera::setCamera(const QByteArray &cameraDevice)
     connect(mediaRecorder, SIGNAL(durationChanged(qint64)), this, SLOT(updateRecordTime()));
     connect(mediaRecorder, SIGNAL(error(QMediaRecorder::Error)), this, SLOT(displayRecorderError()));
 
-    mediaRecorder->setMetaData(QtMultimedia::MetaData::Title, QVariant(QLatin1String("Test Title")));
+    mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
 
     connect(ui->exposureCompensation, SIGNAL(valueChanged(int)), SLOT(setExposureCompensation(int)));
 

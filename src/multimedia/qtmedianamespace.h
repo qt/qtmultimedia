@@ -57,9 +57,7 @@ class QString;
 
 #define Q_DECLARE_METADATA(key) Q_MULTIMEDIA_EXPORT extern const QString key
 
-namespace QtMultimedia
-{
-    namespace MetaData {
+    namespace QMediaMetaData {
 #ifdef Q_QDOC
         // QDoc does not like macros, so try to keep this in sync :)
         QString Title;
@@ -287,6 +285,8 @@ namespace QtMultimedia
 #endif
     }
 
+namespace QtMultimedia
+{
     enum SupportEstimate
     {
         NotSupported,

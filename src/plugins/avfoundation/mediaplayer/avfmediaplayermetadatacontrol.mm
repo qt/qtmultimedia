@@ -113,33 +113,33 @@ void AVFMediaPlayerMetaDataControl::updateTags()
             if (keyString.length != 0) {
                 //Process "commonMetadata" tags here:
                 if ([keyString isEqualToString:AVMetadataCommonKeyTitle]) {
-                    m_tags.insert(QtMultimedia::MetaData::Title, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Title, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyCreator]) {
-                    m_tags.insert(QtMultimedia::MetaData::Author, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Author, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeySubject]) {
-                    m_tags.insert(QtMultimedia::MetaData::SubTitle, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::SubTitle, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyDescription]) {
-                    m_tags.insert(QtMultimedia::MetaData::Description, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Description, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyPublisher]) {
-                    m_tags.insert(QtMultimedia::MetaData::Publisher, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Publisher, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyContributor]) {
-                    m_tags.insert(QtMultimedia::MetaData::ContributingArtist, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::ContributingArtist, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyCreationDate]) {
-                    m_tags.insert(QtMultimedia::MetaData::Date, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Date, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyType]) {
-                    m_tags.insert(QtMultimedia::MetaData::MediaType, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::MediaType, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyLanguage]) {
-                    m_tags.insert(QtMultimedia::MetaData::Language, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Language, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyCopyrights]) {
-                    m_tags.insert(QtMultimedia::MetaData::Copyright, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Copyright, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyAlbumName]) {
-                    m_tags.insert(QtMultimedia::MetaData::AlbumTitle, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::AlbumTitle, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyAuthor]) {
-                    m_tags.insert(QtMultimedia::MetaData::Author, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::Author, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyArtist]) {
-                    m_tags.insert(QtMultimedia::MetaData::AlbumArtist, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::AlbumArtist, QString([value UTF8String]));
                 } else if ([keyString isEqualToString: AVMetadataCommonKeyArtwork]) {
-                    m_tags.insert(QtMultimedia::MetaData::PosterUrl, QString([value UTF8String]));
+                    m_tags.insert(QMediaMetaData::PosterUrl, QString([value UTF8String]));
                 }
             }
 

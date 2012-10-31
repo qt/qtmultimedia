@@ -74,8 +74,8 @@ void tst_QMetaDataWriterControl::constructor()
     mock->availableMetaData();
     mock->isMetaDataAvailable();
     mock->isWritable();
-    mock->metaData(QtMultimedia::MetaData::Title);
-    mock->setMetaData(QtMultimedia::MetaData::Title, QVariant());
+    mock->metaData(QMediaMetaData::Title);
+    mock->setMetaData(QMediaMetaData::Title, QVariant());
     ((MockMetaDataWriterControl*)mock)->setWritable();
     ((MockMetaDataWriterControl*)mock)->setMetaDataAvailable();
     delete mock;

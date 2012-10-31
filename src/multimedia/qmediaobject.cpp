@@ -347,7 +347,7 @@ bool QMediaObject::isMetaDataAvailable() const
 /*!
     Returns the value associated with a meta-data \a key.
 
-    See the list of predefined \l {QtMultimedia::MetaData}{meta-data keys}.
+    See the list of predefined \l {QMediaMetaData}{meta-data keys}.
 */
 QVariant QMediaObject::metaData(const QString &key) const
 {

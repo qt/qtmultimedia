@@ -48,7 +48,6 @@
 #include <qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
-class QMediaMetaData;
 class QMediaPlayerControl;
 class QMediaPlaylist;
 class QMediaPlaylistNavigator;

@@ -61,69 +61,69 @@ namespace
 
 static const QWMMetaDataKeyLookup qt_wmMetaDataKeys[] =
 {
-    { QtMultimedia::MetaData::Title, L"Title" },
-    { QtMultimedia::MetaData::SubTitle, L"WM/SubTitle" },
-    { QtMultimedia::MetaData::Author, L"Author" },
-    { QtMultimedia::MetaData::Comment, L"Comment" },
-    { QtMultimedia::MetaData::Description, L"Description" },
-    { QtMultimedia::MetaData::Category, L"WM/Category" },
-    { QtMultimedia::MetaData::Genre, L"WM/Genre" },
-    //{ QtMultimedia::MetaData::Date, 0 },
-    { QtMultimedia::MetaData::Year, L"WM/Year" },
-    { QtMultimedia::MetaData::UserRating, L"UserRating" },
-    //{ QtMultimedia::MetaData::MetaDatawords, 0 },
-    { QtMultimedia::MetaData::Language, L"Language" },
-    { QtMultimedia::MetaData::Publisher, L"WM/Publisher" },
-    { QtMultimedia::MetaData::Copyright, L"Copyright" },
-    { QtMultimedia::MetaData::ParentalRating, L"ParentalRating" },
-    //{ QtMultimedia::MetaData::RatingOrganisation, L"RatingOrganisation" },
+    { QMediaMetaData::Title, L"Title" },
+    { QMediaMetaData::SubTitle, L"WM/SubTitle" },
+    { QMediaMetaData::Author, L"Author" },
+    { QMediaMetaData::Comment, L"Comment" },
+    { QMediaMetaData::Description, L"Description" },
+    { QMediaMetaData::Category, L"WM/Category" },
+    { QMediaMetaData::Genre, L"WM/Genre" },
+    //{ QMediaMetaData::Date, 0 },
+    { QMediaMetaData::Year, L"WM/Year" },
+    { QMediaMetaData::UserRating, L"UserRating" },
+    //{ QMediaMetaData::MetaDatawords, 0 },
+    { QMediaMetaData::Language, L"Language" },
+    { QMediaMetaData::Publisher, L"WM/Publisher" },
+    { QMediaMetaData::Copyright, L"Copyright" },
+    { QMediaMetaData::ParentalRating, L"ParentalRating" },
+    //{ QMediaMetaData::RatingOrganisation, L"RatingOrganisation" },
 
     // Media
-    { QtMultimedia::MetaData::Size, L"FileSize" },
-    { QtMultimedia::MetaData::MediaType, L"MediaType" },
-    { QtMultimedia::MetaData::Duration, L"Duration" },
+    { QMediaMetaData::Size, L"FileSize" },
+    { QMediaMetaData::MediaType, L"MediaType" },
+    { QMediaMetaData::Duration, L"Duration" },
 
     // Audio
-    { QtMultimedia::MetaData::AudioBitRate, L"AudioBitRate" },
-    { QtMultimedia::MetaData::AudioCodec, L"AudioCodec" },
-    { QtMultimedia::MetaData::ChannelCount, L"ChannelCount" },
-    { QtMultimedia::MetaData::SampleRate, L"Frequency" },
+    { QMediaMetaData::AudioBitRate, L"AudioBitRate" },
+    { QMediaMetaData::AudioCodec, L"AudioCodec" },
+    { QMediaMetaData::ChannelCount, L"ChannelCount" },
+    { QMediaMetaData::SampleRate, L"Frequency" },
 
     // Music
-    { QtMultimedia::MetaData::AlbumTitle, L"WM/AlbumTitle" },
-    { QtMultimedia::MetaData::AlbumArtist, L"WM/AlbumArtist" },
-    { QtMultimedia::MetaData::ContributingArtist, L"Author" },
-    { QtMultimedia::MetaData::Composer, L"WM/Composer" },
-    { QtMultimedia::MetaData::Conductor, L"WM/Conductor" },
-    { QtMultimedia::MetaData::Lyrics, L"WM/Lyrics" },
-    { QtMultimedia::MetaData::Mood, L"WM/Mood" },
-    { QtMultimedia::MetaData::TrackNumber, L"WM/TrackNumber" },
-    //{ QtMultimedia::MetaData::TrackCount, 0 },
-    //{ QtMultimedia::MetaData::CoverArtUriSmall, 0 },
-    //{ QtMultimedia::MetaData::CoverArtUriLarge, 0 },
+    { QMediaMetaData::AlbumTitle, L"WM/AlbumTitle" },
+    { QMediaMetaData::AlbumArtist, L"WM/AlbumArtist" },
+    { QMediaMetaData::ContributingArtist, L"Author" },
+    { QMediaMetaData::Composer, L"WM/Composer" },
+    { QMediaMetaData::Conductor, L"WM/Conductor" },
+    { QMediaMetaData::Lyrics, L"WM/Lyrics" },
+    { QMediaMetaData::Mood, L"WM/Mood" },
+    { QMediaMetaData::TrackNumber, L"WM/TrackNumber" },
+    //{ QMediaMetaData::TrackCount, 0 },
+    //{ QMediaMetaData::CoverArtUriSmall, 0 },
+    //{ QMediaMetaData::CoverArtUriLarge, 0 },
 
     // Image/Video
-    //{ QtMultimedia::MetaData::Resolution, 0 },
-    //{ QtMultimedia::MetaData::PixelAspectRatio, 0 },
+    //{ QMediaMetaData::Resolution, 0 },
+    //{ QMediaMetaData::PixelAspectRatio, 0 },
 
     // Video
-    //{ QtMultimedia::MetaData::FrameRate, 0 },
-    { QtMultimedia::MetaData::VideoBitRate, L"VideoBitRate" },
-    { QtMultimedia::MetaData::VideoCodec, L"VideoCodec" },
+    //{ QMediaMetaData::FrameRate, 0 },
+    { QMediaMetaData::VideoBitRate, L"VideoBitRate" },
+    { QMediaMetaData::VideoCodec, L"VideoCodec" },
 
-    //{ QtMultimedia::MetaData::PosterUri, 0 },
+    //{ QMediaMetaData::PosterUri, 0 },
 
     // Movie
-    { QtMultimedia::MetaData::ChapterNumber, L"ChapterNumber" },
-    { QtMultimedia::MetaData::Director, L"WM/Director" },
-    { QtMultimedia::MetaData::LeadPerformer, L"LeadPerformer" },
-    { QtMultimedia::MetaData::Writer, L"WM/Writer" },
+    { QMediaMetaData::ChapterNumber, L"ChapterNumber" },
+    { QMediaMetaData::Director, L"WM/Director" },
+    { QMediaMetaData::LeadPerformer, L"LeadPerformer" },
+    { QMediaMetaData::Writer, L"WM/Writer" },
 
     // Photos
-    { QtMultimedia::MetaData::CameraManufacturer, L"CameraManufacturer" },
-    { QtMultimedia::MetaData::CameraModel, L"CameraModel" },
-    { QtMultimedia::MetaData::Event, L"Event" },
-    { QtMultimedia::MetaData::Subject, L"Subject" }
+    { QMediaMetaData::CameraManufacturer, L"CameraManufacturer" },
+    { QMediaMetaData::CameraModel, L"CameraModel" },
+    { QMediaMetaData::Event, L"Event" },
+    { QMediaMetaData::Subject, L"Subject" }
 };
 
 static QVariant getValue(IWMHeaderInfo *header, const wchar_t *key)
@@ -268,15 +268,15 @@ QVariant DirectShowMetaDataControl::metaData(const QString &key) const
 #endif
         BSTR string = 0;
 
-        if (key == QtMultimedia::MetaData::Author)
+        if (key == QMediaMetaData::Author)
             m_content->get_AuthorName(&string);
-        else if (key == QtMultimedia::MetaData::Title)
+        else if (key == QMediaMetaData::Title)
             m_content->get_Title(&string);
-        else if (key == QtMultimedia::MetaData::ParentalRating)
+        else if (key == QMediaMetaData::ParentalRating)
             m_content->get_Rating(&string);
-        else if (key == QtMultimedia::MetaData::Description)
+        else if (key == QMediaMetaData::Description)
             m_content->get_Description(&string);
-        else if (key == QtMultimedia::MetaData::Copyright)
+        else if (key == QMediaMetaData::Copyright)
             m_content->get_Copyright(&string);
 
         if (string) {

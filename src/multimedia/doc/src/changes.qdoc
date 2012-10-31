@@ -114,9 +114,9 @@ they are documented elsewhere.
         \li Meta-data enumeration changes
         \li In Qt Multimedia Kit the available meta-data keys were in an enumeration
            in the \c QtMultimediaKit namespace.  These meta-data keys have been changed
-           to string literals in the \c {QtMultimedia::MetaData} namespace - generally your
+           to string literals in the \c {QMediaMetaData} namespace - generally your
            source code will mostly be compatible unless you have created variables or
-           parameters with the \c {QtMultimedia::MetaData} type - you should replace these
+           parameters with the \c {QMediaMetaData} type - you should replace these
            with \c QString.
     \row
         \li Meta-data method changes

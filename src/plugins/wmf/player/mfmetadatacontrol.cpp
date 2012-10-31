@@ -144,15 +144,15 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
                     continue;
                 bool common = true;
                 if (key == PKEY_Author) {
-                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Author);
+                    m_availableMetaDatas.push_back(QMediaMetaData::Author);
                 } else if (key == PKEY_Title) {
-                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Title);
+                    m_availableMetaDatas.push_back(QMediaMetaData::Title);
                 } else if (key == PKEY_ParentalRating) {
-                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::ParentalRating);
+                    m_availableMetaDatas.push_back(QMediaMetaData::ParentalRating);
                 } else if (key == PKEY_Comment) {
-                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Description);
+                    m_availableMetaDatas.push_back(QMediaMetaData::Description);
                 } else if (key == PKEY_Copyright) {
-                    m_availableMetaDatas.push_back(QtMultimedia::MetaData::Copyright);
+                    m_availableMetaDatas.push_back(QMediaMetaData::Copyright);
                 //TODO: add more common keys
                 } else {
                     common = false;
@@ -183,15 +183,15 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
                         qDebug() << "metadata: " << QString::fromUtf16(sName);
 #endif
                         if (wcscmp(sName, L"Author") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Author);
+                            m_availableMetaDatas.push_back(QMediaMetaData::Author);
                         } else if (wcscmp(sName, L"Title") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Title);
+                            m_availableMetaDatas.push_back(QMediaMetaData::Title);
                         } else if (wcscmp(sName, L"Rating") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::ParentalRating);
+                            m_availableMetaDatas.push_back(QMediaMetaData::ParentalRating);
                         } else if (wcscmp(sName, L"Description") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Description);
+                            m_availableMetaDatas.push_back(QMediaMetaData::Description);
                         } else if (wcscmp(sName, L"Copyright") == 0) {
-                            m_availableMetaDatas.push_back(QtMultimedia::MetaData::Copyright);
+                            m_availableMetaDatas.push_back(QMediaMetaData::Copyright);
                             //TODO: add more common keys
                         } else {
                             m_availableMetaDatas.push_back(QString::fromUtf16(reinterpret_cast<const ushort*>(sName)));

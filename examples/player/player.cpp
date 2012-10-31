@@ -236,11 +236,11 @@ void Player::metaDataChanged()
 {
     if (player->isMetaDataAvailable()) {
         setTrackInfo(QString("%1 - %2")
-                .arg(player->metaData(QtMultimedia::MetaData::AlbumArtist).toString())
-                .arg(player->metaData(QtMultimedia::MetaData::Title).toString()));
+                .arg(player->metaData(QMediaMetaData::AlbumArtist).toString())
+                .arg(player->metaData(QMediaMetaData::Title).toString()));
 
         if (coverLabel) {
-            QUrl url = player->metaData(QtMultimedia::MetaData::CoverArtUrlLarge).value<QUrl>();
+            QUrl url = player->metaData(QMediaMetaData::CoverArtUrlLarge).value<QUrl>();
 
             coverLabel->setPixmap(!url.isEmpty()
                     ? QPixmap(url.toString())

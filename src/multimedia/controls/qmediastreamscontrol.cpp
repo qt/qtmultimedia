@@ -129,8 +129,8 @@ QMediaStreamsControl::~QMediaStreamsControl()
 
     Returns the meta-data value of \a key for a given \a stream.
 
-    Useful metadata keys are QtMultimedia::MetaData::Title,
-    QtMultimedia::MetaData::Description and QtMultimedia::MetaData::Language.
+    Useful metadata keys are QMediaMetaData::Title,
+    QMediaMetaData::Description and QMediaMetaData::Language.
 */
 
 /*!

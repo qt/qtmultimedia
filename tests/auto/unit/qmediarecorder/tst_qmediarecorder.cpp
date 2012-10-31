@@ -843,9 +843,9 @@ void tst_QMediaRecorder::nullMetaDataControl()
     QCOMPARE(recorder.isMetaDataAvailable(), false);
     QCOMPARE(recorder.isMetaDataWritable(), false);
 
-    recorder.setMetaData(QtMultimedia::MetaData::Title, title);
+    recorder.setMetaData(QMediaMetaData::Title, title);
 
-    QCOMPARE(recorder.metaData(QtMultimedia::MetaData::Title).toString(), QString());
+    QCOMPARE(recorder.metaData(QMediaMetaData::Title).toString(), QString());
     QCOMPARE(recorder.availableMetaData(), QStringList());
     QCOMPARE(spy.count(), 0);
 }
@@ -959,19 +959,19 @@ void tst_QMediaRecorder::metaData()
     QMediaRecorder recorder(&object);
     QVERIFY(object.availableMetaData().isEmpty());
 
-    service.mockMetaDataControl->m_data.insert(QtMultimedia::MetaData::AlbumArtist, artist);
-    service.mockMetaDataControl->m_data.insert(QtMultimedia::MetaData::Title, title);
-    service.mockMetaDataControl->m_data.insert(QtMultimedia::MetaData::Genre, genre);
+    service.mockMetaDataControl->m_data.insert(QMediaMetaData::AlbumArtist, artist);
+    service.mockMetaDataControl->m_data.insert(QMediaMetaData::Title, title);
+    service.mockMetaDataControl->m_data.insert(QMediaMetaData::Genre, genre);
     service.mockMetaDataControl->m_data.insert(QLatin1String("CustomEntry"), custom );
 
-    QCOMPARE(recorder.metaData(QtMultimedia::MetaData::AlbumArtist).toString(), artist);
-    QCOMPARE(recorder.metaData(QtMultimedia::MetaData::Title).toString(), title);
+    QCOMPARE(recorder.metaData(QMediaMetaData::AlbumArtist).toString(), artist);
+    QCOMPARE(recorder.metaData(QMediaMetaData::Title).toString(), title);
 
     QStringList metaDataKeys = recorder.availableMetaData();
     QCOMPARE(metaDataKeys.size(), 4);
-    QVERIFY(metaDataKeys.contains(QtMultimedia::MetaData::AlbumArtist));
-    QVERIFY(metaDataKeys.contains(QtMultimedia::MetaData::Title));
-    QVERIFY(metaDataKeys.contains(QtMultimedia::MetaData::Genre));
+    QVERIFY(metaDataKeys.contains(QMediaMetaData::AlbumArtist));
+    QVERIFY(metaDataKeys.contains(QMediaMetaData::Title));
+    QVERIFY(metaDataKeys.contains(QMediaMetaData::Genre));
     QVERIFY(metaDataKeys.contains(QLatin1String("CustomEntry")));
 }
 
@@ -995,9 +995,9 @@ void tst_QMediaRecorder::setMetaData()
 
     QMediaRecorder recorder(&object);
 
-    recorder.setMetaData(QtMultimedia::MetaData::Title, title);
-    QCOMPARE(recorder.metaData(QtMultimedia::MetaData::Title).toString(), title);
-    QCOMPARE(service.mockMetaDataControl->m_data.value(QtMultimedia::MetaData::Title).toString(), title);
+    recorder.setMetaData(QMediaMetaData::Title, title);
+    QCOMPARE(recorder.metaData(QMediaMetaData::Title).toString(), title);
+    QCOMPARE(service.mockMetaDataControl->m_data.value(QMediaMetaData::Title).toString(), title);
 }
 
 void tst_QMediaRecorder::testAudioSettingsCopyConstructor()

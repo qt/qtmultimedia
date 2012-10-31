@@ -103,18 +103,18 @@ public:
                     int length = line.mid(8, artistStart < 8 ? -1 : artistStart - 8).trimmed().toInt(&ok);
                     if (ok && length > 0) {
                         //convert from second to milisecond
-                        m_extraInfo[QtMultimedia::MetaData::Duration] = QVariant(length * 1000);
+                        m_extraInfo[QMediaMetaData::Duration] = QVariant(length * 1000);
                     }
                     if (artistStart > 0) {
                         int titleStart = getSplitIndex(line, artistStart);
                         if (titleStart > artistStart) {
-                            m_extraInfo[QtMultimedia::MetaData::Author] = line.mid(artistStart + 1,
+                            m_extraInfo[QMediaMetaData::Author] = line.mid(artistStart + 1,
                                                              titleStart - artistStart - 1).trimmed().
                                                              replace(QLatin1String("--"), QLatin1String("-"));
-                            m_extraInfo[QtMultimedia::MetaData::Title] = line.mid(titleStart + 1).trimmed().
+                            m_extraInfo[QMediaMetaData::Title] = line.mid(titleStart + 1).trimmed().
                                                    replace(QLatin1String("--"), QLatin1String("-"));
                         } else {
-                            m_extraInfo[QtMultimedia::MetaData::Title] = line.mid(artistStart + 1).trimmed().
+                            m_extraInfo[QMediaMetaData::Title] = line.mid(artistStart + 1).trimmed().
                                                    replace(QLatin1String("--"), QLatin1String("-"));
                         }
                     }
@@ -262,13 +262,13 @@ Version=2
                 m_item[QLatin1String("url")] = getValue(lineIndex, line);
                 setFlag(FileRead);
             } else if (!containsFlag(TitleRead) && line.startsWith(m_titleName)) {
-                m_item[QtMultimedia::MetaData::Title] = getValue(lineIndex, line);
+                m_item[QMediaMetaData::Title] = getValue(lineIndex, line);
                 setFlag(TitleRead);
             } else if (!containsFlag(LengthRead) && line.startsWith(m_lengthName)) {
                 //convert from seconds to miliseconds
                 int length = getValue(lineIndex, line).toInt();
                 if (length > 0)
-                    m_item[QtMultimedia::MetaData::Duration] = length * 1000;
+                    m_item[QMediaMetaData::Duration] = length * 1000;
                 setFlag(LengthRead);
             } else if (line.startsWith(QLatin1String("NumberOfEntries"))) {
                 m_state = Footer;
