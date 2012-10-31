@@ -31,7 +31,7 @@ PUBLIC_HEADERS += \
     qmediaservice.h \
     qmediaserviceproviderplugin.h \
     qmediatimerange.h \
-    qtmedianamespace.h \
+    qmultimedia.h \
     qtmultimediadefs.h \
 
 SOURCES += \
@@ -43,10 +43,10 @@ SOURCES += \
     qmediaservice.cpp \
     qmediaserviceprovider.cpp \
     qmediatimerange.cpp \
-    qtmedianamespace.cpp \
     qmediaresourcepolicyplugin_p.cpp \
     qmediaresourcepolicy_p.cpp \
-    qmediaresourceset_p.cpp
+    qmediaresourceset_p.cpp \
+    qmultimedia.cpp
 
 include(audio/audio.pri)
 include(camera/camera.pri)

@@ -42,7 +42,7 @@
 #ifndef QMEDIARECORDER_H
 #define QMEDIARECORDER_H
 
-#include <qtmedianamespace.h>
+#include <qmultimedia.h>
 #include <qmediaobject.h>
 #include <qmediaencodersettings.h>
 #include <qmediabindableinterface.h>

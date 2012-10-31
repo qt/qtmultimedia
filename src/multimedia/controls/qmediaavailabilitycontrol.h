@@ -44,7 +44,7 @@
 
 #include <qmediacontrol.h>
 #include <qmediaobject.h>
-#include <qtmedianamespace.h>
+#include <qmultimedia.h>
 
 QT_BEGIN_HEADER
 

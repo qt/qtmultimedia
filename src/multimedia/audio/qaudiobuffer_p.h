@@ -43,7 +43,7 @@
 #define QAUDIOBUFFER_P_H
 
 #include <qtmultimediadefs.h>
-#include <qtmedianamespace.h>
+#include <qmultimedia.h>
 
 #include "qaudioformat.h"
 

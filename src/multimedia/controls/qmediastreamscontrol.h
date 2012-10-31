@@ -44,7 +44,7 @@
 #define QMEDIASTREAMSCONTROL_H
 
 #include "qmediacontrol.h"
-#include "qtmedianamespace.h"
+#include "qmultimedia.h"
 #include "qtmultimediadefs.h"
 #include <qmediaenumdebug.h>
 

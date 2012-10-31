@@ -45,7 +45,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qshareddata.h>
 #include <qtmultimediadefs.h>
-#include "qtmedianamespace.h"
+#include "qmultimedia.h"
 #include "qmediaserviceproviderplugin.h"
 
 QT_BEGIN_HEADER

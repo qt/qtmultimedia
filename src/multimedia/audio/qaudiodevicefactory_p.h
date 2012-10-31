@@ -57,7 +57,7 @@
 #include <QtCore/qlist.h>
 
 #include <qtmultimediadefs.h>
-#include <qtmedianamespace.h>
+#include <qmultimedia.h>
 
 #include "qaudiodeviceinfo.h"
 

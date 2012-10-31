@@ -8,7 +8,8 @@
 );
 
 %classnames = (
-    "qmediametadata.h" => "QMediaMetaData"
+    "qmediametadata.h" => "QMediaMetaData",
+    "qmultimedia.h" => "QMultimedia"
 );
 
 # Module dependencies.

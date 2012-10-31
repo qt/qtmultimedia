@@ -44,7 +44,7 @@
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qplugin.h>
-#include <qtmedianamespace.h>
+#include <qmultimedia.h>
 #include <qtmultimediadefs.h>
 
 #ifdef Q_MOC_RUN

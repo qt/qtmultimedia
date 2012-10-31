@@ -47,7 +47,7 @@
 #include <QtCore/qplugin.h>
 
 #include <qtmultimediadefs.h>
-#include <qtmedianamespace.h>
+#include <qmultimedia.h>
 
 #include "qaudioformat.h"
 #include "qaudiodeviceinfo.h"

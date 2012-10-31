@@ -57,7 +57,7 @@
 #include "qabstractvideobuffer.h"
 
 #include <qtmultimediadefs.h>
-#include <qtmedianamespace.h>
+#include <qmultimedia.h>
 
 
 QT_BEGIN_HEADER

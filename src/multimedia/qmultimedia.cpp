@@ -25,13 +25,12 @@
 **
 ****************************************************************************/
 
-#include "qtmedianamespace.h"
+#include "qmultimedia.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
     \namespace QMultimedia
-    \inheaderfile qtmedianamespace.h
     \ingroup multimedia
     \inmodule QtMultimedia
 

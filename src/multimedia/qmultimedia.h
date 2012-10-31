@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef QTMEDIANAMESPACE_H
-#define QTMEDIANAMESPACE_H
+#ifndef QMULTIMEDIA_H
+#define QMULTIMEDIA_H
 
 #include <QtCore/qpair.h>
 #include <QtCore/qmetatype.h>
