@@ -8,6 +8,7 @@
 );
 
 %classnames = (
+    "qaudio.h" => "QAudio",
     "qmediametadata.h" => "QMediaMetaData",
     "qmultimedia.h" => "QMultimedia"
 );
