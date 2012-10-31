@@ -913,7 +913,7 @@ void QMediaPlayer::unbind(QObject *obj)
     The \a flags argument allows additional requirements such as performance indicators to be
     specified.
 */
-QtMultimedia::SupportEstimate QMediaPlayer::hasSupport(const QString &mimeType,
+QMultimedia::SupportEstimate QMediaPlayer::hasSupport(const QString &mimeType,
                                                const QStringList& codecs,
                                                Flags flags)
 {
@@ -1013,12 +1013,12 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 }
 
 /*! \reimp */
-QtMultimedia::AvailabilityStatus QMediaPlayer::availability() const
+QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
 {
     Q_D(const QMediaPlayer);
 
     if (!d->control)
-        return QtMultimedia::ServiceMissing;
+        return QMultimedia::ServiceMissing;
 
     return QMediaObject::availability();
 }

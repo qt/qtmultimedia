@@ -116,9 +116,9 @@ public:
 
     enum EncodingMode
     {
-        ConstantQualityEncoding = QtMultimedia::ConstantQualityEncoding,
-        ConstantBitRateEncoding = QtMultimedia::ConstantBitRateEncoding,
-        AverageBitRateEncoding = QtMultimedia::AverageBitRateEncoding
+        ConstantQualityEncoding = QMultimedia::ConstantQualityEncoding,
+        ConstantBitRateEncoding = QMultimedia::ConstantBitRateEncoding,
+        AverageBitRateEncoding = QMultimedia::AverageBitRateEncoding
     };
 
     enum Error {

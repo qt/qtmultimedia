@@ -80,7 +80,7 @@ public:
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
 #endif
 
-    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
     QStringList supportedMimeTypes() const;
 
 private:

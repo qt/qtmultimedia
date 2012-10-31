@@ -778,9 +778,9 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings != QImageEncoderSettings());
 
     settings = QImageEncoderSettings();
-    QCOMPARE(settings.quality(), QtMultimedia::NormalQuality);
-    settings.setQuality(QtMultimedia::HighQuality);
-    QCOMPARE(settings.quality(), QtMultimedia::HighQuality);
+    QCOMPARE(settings.quality(), QMultimedia::NormalQuality);
+    settings.setQuality(QMultimedia::HighQuality);
+    QCOMPARE(settings.quality(), QMultimedia::HighQuality);
     QVERIFY(!settings.isNull());
 
     settings = QImageEncoderSettings();
@@ -808,7 +808,7 @@ void tst_QCamera::testImageSettings()
     settings = QImageEncoderSettings();
     QVERIFY(settings.isNull());
     QCOMPARE(settings.codec(), QString());
-    QCOMPARE(settings.quality(), QtMultimedia::NormalQuality);
+    QCOMPARE(settings.quality(), QMultimedia::NormalQuality);
     QCOMPARE(settings.resolution(), QSize());
     QVERIFY(settings.encodingOptions().isEmpty());
 
@@ -821,7 +821,7 @@ void tst_QCamera::testImageSettings()
         QCOMPARE(settings2, settings1);
         QVERIFY(settings2.isNull());
 
-        settings1.setQuality(QtMultimedia::HighQuality);
+        settings1.setQuality(QMultimedia::HighQuality);
 
         QVERIFY(settings2.isNull());
         QVERIFY(!settings1.isNull());
@@ -837,7 +837,7 @@ void tst_QCamera::testImageSettings()
         QCOMPARE(settings2, settings1);
         QVERIFY(settings2.isNull());
 
-        settings1.setQuality(QtMultimedia::HighQuality);
+        settings1.setQuality(QMultimedia::HighQuality);
 
         QVERIFY(settings2.isNull());
         QVERIFY(!settings1.isNull());
@@ -864,11 +864,11 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings1 != settings2);
 
     settings1 = QImageEncoderSettings();
-    settings1.setQuality(QtMultimedia::NormalQuality);
+    settings1.setQuality(QMultimedia::NormalQuality);
     settings2 = QImageEncoderSettings();
-    settings2.setQuality(QtMultimedia::NormalQuality);
+    settings2.setQuality(QMultimedia::NormalQuality);
     QVERIFY(settings1 == settings2);
-    settings2.setQuality(QtMultimedia::LowQuality);
+    settings2.setQuality(QMultimedia::LowQuality);
     QVERIFY(settings1 != settings2);
 
     settings1 = QImageEncoderSettings();
@@ -1233,7 +1233,7 @@ void tst_QCamera::testQCameraIsAvailable()
 {
     QCamera camera;
     QVERIFY(camera.isAvailable());
-    QVERIFY(camera.availability() == QtMultimedia::Available);
+    QVERIFY(camera.availability() == QMultimedia::Available);
 }
 
 void tst_QCamera::testQCameraIsNotAvailable()
@@ -1243,7 +1243,7 @@ void tst_QCamera::testQCameraIsNotAvailable()
 
     QCOMPARE(camera.error(), QCamera::ServiceMissingError);
     QVERIFY(!camera.isAvailable());
-    QCOMPARE(camera.availability(), QtMultimedia::ServiceMissing);
+    QCOMPARE(camera.availability(), QMultimedia::ServiceMissing);
 }
 
 /* Test case for searchAndLock ( QCamera::LockTypes locks ) */

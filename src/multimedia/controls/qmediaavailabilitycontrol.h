@@ -60,10 +60,10 @@ class Q_MULTIMEDIA_EXPORT QMediaAvailabilityControl : public QMediaControl
 public:
     ~QMediaAvailabilityControl();
 
-    virtual QtMultimedia::AvailabilityStatus availability() const = 0;
+    virtual QMultimedia::AvailabilityStatus availability() const = 0;
 
 Q_SIGNALS:
-    void availabilityChanged(QtMultimedia::AvailabilityStatus availability);
+    void availabilityChanged(QMultimedia::AvailabilityStatus availability);
 
 protected:
     QMediaAvailabilityControl(QObject* parent = 0);

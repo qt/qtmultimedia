@@ -260,11 +260,11 @@ void tst_QCameraImageCapture::encodingSettings()
     QVERIFY(imageCapture.encodingSettings() == QImageEncoderSettings());
     QImageEncoderSettings settings;
     settings.setCodec("JPEG");
-    settings.setQuality(QtMultimedia::NormalQuality);
+    settings.setQuality(QMultimedia::NormalQuality);
     imageCapture.setEncodingSettings(settings);
     QVERIFY(!imageCapture.encodingSettings().isNull());
     QVERIFY(imageCapture.encodingSettings().codec() == "JPEG");
-    QVERIFY(imageCapture.encodingSettings().quality() == QtMultimedia::NormalQuality);
+    QVERIFY(imageCapture.encodingSettings().quality() == QMultimedia::NormalQuality);
 }
 
 //MaemoAPI-1838:test supportedImageCodecs
@@ -312,7 +312,7 @@ void tst_QCameraImageCapture::errors()
     imageCapture1.capture(QString::fromLatin1("/dev/null"));
     QVERIFY(imageCapture1.error() == QCameraImageCapture::NotSupportedFeatureError);
     QVERIFY2(!imageCapture1.errorString().isEmpty(), "Device does not support images capture");
-    QVERIFY(imageCapture1.availability() == QtMultimedia::ServiceMissing);
+    QVERIFY(imageCapture1.availability() == QMultimedia::ServiceMissing);
 
     provider->service = mockcameraservice;
 
@@ -321,12 +321,12 @@ void tst_QCameraImageCapture::errors()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
-    QVERIFY(imageCapture.availability() == QtMultimedia::Available);
+    QVERIFY(imageCapture.availability() == QMultimedia::Available);
 
     imageCapture.capture();
     QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
     QVERIFY2(!imageCapture.errorString().isEmpty(), "Could not capture in stopped state");
-    QVERIFY(imageCapture.availability() == QtMultimedia::Available);
+    QVERIFY(imageCapture.availability() == QMultimedia::Available);
 }
 
 //MaemoAPI-1831:test error

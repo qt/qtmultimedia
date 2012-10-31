@@ -94,7 +94,7 @@ QMediaServiceProviderHint::Features QGstreamerPlayerServicePlugin::supportedFeat
         return QMediaServiceProviderHint::Features();
 }
 
-QtMultimedia::SupportEstimate QGstreamerPlayerServicePlugin::hasSupport(const QString &mimeType,
+QMultimedia::SupportEstimate QGstreamerPlayerServicePlugin::hasSupport(const QString &mimeType,
                                                                      const QStringList &codecs) const
 {
     if (m_supportedMimeTypeSet.isEmpty())

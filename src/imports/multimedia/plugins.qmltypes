@@ -1436,7 +1436,7 @@ Module {
         Signal {
             name: "availabilityChanged"
             type: "void"
-            Parameter { name: "error"; type: "QtMultimedia::AvailabilityStatus" }
+            Parameter { name: "error"; type: "QMultimedia::AvailabilityStatus" }
         }
     }
     Component {

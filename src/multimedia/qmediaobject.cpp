@@ -121,15 +121,15 @@ QMediaObject::~QMediaObject()
     audio playback during a phone call or similar).
 */
 
-QtMultimedia::AvailabilityStatus QMediaObject::availability() const
+QMultimedia::AvailabilityStatus QMediaObject::availability() const
 {
     if (d_func()->service == 0)
-        return QtMultimedia::ServiceMissing;
+        return QMultimedia::ServiceMissing;
 
     if (d_func()->availabilityControl)
         return d_func()->availabilityControl->availability();
 
-    return QtMultimedia::Available;
+    return QMultimedia::Available;
 }
 
 /*!
@@ -138,7 +138,7 @@ QtMultimedia::AvailabilityStatus QMediaObject::availability() const
 
 bool QMediaObject::isAvailable() const
 {
-    return availability() == QtMultimedia::Available;
+    return availability() == QMultimedia::Available;
 }
 
 /*!
@@ -408,7 +408,7 @@ void QMediaObject::setupControls()
         d->availabilityControl = d->service->requestControl<QMediaAvailabilityControl*>();
         if (d->availabilityControl) {
             connect(d->availabilityControl,
-                    SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)),
+                    SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
                     SLOT(_q_availabilityChanged()));
         }
     }
@@ -421,7 +421,7 @@ void QMediaObject::setupControls()
 */
 
 /*!
-    \fn QMediaObject::availabilityChanged(QtMultimedia::AvailabilityStatus availability)
+    \fn QMediaObject::availabilityChanged(QMultimedia::AvailabilityStatus availability)
 
     Signal emitted when the availability of the service has changed to \a availabilty
 */

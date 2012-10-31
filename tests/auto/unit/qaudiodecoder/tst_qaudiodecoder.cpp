@@ -348,7 +348,7 @@ void tst_QAudioDecoder::nullControl()
     QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
     QVERIFY(!d.errorString().isEmpty());
 
-    QVERIFY(d.hasSupport("MIME") == QtMultimedia::MaybeSupported);
+    QVERIFY(d.hasSupport("MIME") == QMultimedia::MaybeSupported);
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
 
@@ -389,7 +389,7 @@ void tst_QAudioDecoder::nullService()
     QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
     QVERIFY(!d.errorString().isEmpty());
 
-    QVERIFY(d.hasSupport("MIME") == QtMultimedia::MaybeSupported);
+    QVERIFY(d.hasSupport("MIME") == QMultimedia::MaybeSupported);
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
 

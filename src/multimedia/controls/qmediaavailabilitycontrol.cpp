@@ -90,7 +90,7 @@ QMediaAvailabilityControl::~QMediaAvailabilityControl()
 
 
 /*!
-  \fn QtMultimedia::AvailabilityStatus QMediaAvailabilityControl::availability() const
+  \fn QMultimedia::AvailabilityStatus QMediaAvailabilityControl::availability() const
 
   Returns the current availability of this instance of the media service.
   If the availability changes at run time (for example, some other media
@@ -100,7 +100,7 @@ QMediaAvailabilityControl::~QMediaAvailabilityControl()
 
 
 /*!
-    \fn void QMediaAvailabilityControl::availabilityChanged(QtMultimedia::AvailabilityStatus availability)
+    \fn void QMediaAvailabilityControl::availabilityChanged(QMultimedia::AvailabilityStatus availability)
 
     Signal emitted when the current \a availability value changed.
 */

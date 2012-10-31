@@ -65,7 +65,7 @@ public:
     ~V4LRadioControl();
 
     bool isAvailable() const;
-    QtMultimedia::AvailabilityStatus availability() const;
+    QMultimedia::AvailabilityStatus availability() const;
 
     QRadioTuner::State state() const;
 

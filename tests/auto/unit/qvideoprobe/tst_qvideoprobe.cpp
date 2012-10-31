@@ -116,7 +116,7 @@ void tst_QVideoProbe::testNullService()
     player = new QMediaPlayer;
 
     QVERIFY(!player->isAvailable());
-    QCOMPARE(player->availability(), QtMultimedia::ServiceMissing);
+    QCOMPARE(player->availability(), QMultimedia::ServiceMissing);
 
     QVideoProbe probe;
     QVERIFY(!probe.isActive());

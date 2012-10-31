@@ -358,12 +358,12 @@ namespace {
     }
 }
 
-QtMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
+QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
                                                     const QStringList &codecs,
                                                     const QSet<QString> &supportedMimeTypeSet)
 {
     if (supportedMimeTypeSet.isEmpty())
-        return QtMultimedia::NotSupported;
+        return QMultimedia::NotSupported;
 
     QString mimeTypeLowcase = mimeType.toLower();
     bool containsMimeType = supportedMimeTypeSet.contains(mimeTypeLowcase);
@@ -393,12 +393,12 @@ QtMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
         }
     }
     if (supportedCodecCount > 0 && supportedCodecCount == codecs.size())
-        return QtMultimedia::ProbablySupported;
+        return QMultimedia::ProbablySupported;
 
     if (supportedCodecCount == 0 && !containsMimeType)
-        return QtMultimedia::NotSupported;
+        return QMultimedia::NotSupported;
 
-    return QtMultimedia::MaybeSupported;
+    return QMultimedia::MaybeSupported;
 }
 
 QT_END_NAMESPACE

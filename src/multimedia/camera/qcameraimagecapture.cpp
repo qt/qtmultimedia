@@ -314,12 +314,12 @@ bool QCameraImageCapture::isAvailable() const
 /*!
     Returns the availability of this functionality.
 */
-QtMultimedia::AvailabilityStatus QCameraImageCapture::availability() const
+QMultimedia::AvailabilityStatus QCameraImageCapture::availability() const
 {
     if (d_func()->control != NULL)
-        return QtMultimedia::Available;
+        return QMultimedia::Available;
     else
-        return QtMultimedia::ServiceMissing;
+        return QMultimedia::ServiceMissing;
 }
 
 /*!

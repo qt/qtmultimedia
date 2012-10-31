@@ -58,9 +58,9 @@ void QGStreamerAvailabilityControl::handleAvailabilityChanged()
     emit availabilityChanged(this->availability());
 }
 
-QtMultimedia::AvailabilityStatus QGStreamerAvailabilityControl::availability() const
+QMultimedia::AvailabilityStatus QGStreamerAvailabilityControl::availability() const
 {
-    return m_resources->isAvailable() ? QtMultimedia::Available : QtMultimedia::Busy;
+    return m_resources->isAvailable() ? QMultimedia::Available : QMultimedia::Busy;
 }
 
 QT_END_NAMESPACE

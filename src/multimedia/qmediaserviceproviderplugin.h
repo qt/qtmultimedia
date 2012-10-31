@@ -124,7 +124,7 @@ class QString;
 struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedFormatsInterface
 {
     virtual ~QMediaServiceSupportedFormatsInterface() {}
-    virtual QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const = 0;
+    virtual QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const = 0;
     virtual QStringList supportedMimeTypes() const = 0;
 };
 

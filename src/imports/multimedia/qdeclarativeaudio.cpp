@@ -100,7 +100,7 @@ void QDeclarativeAudio::_q_error(QMediaPlayer::Error errorCode)
     emit errorChanged();
 }
 
-void QDeclarativeAudio::_q_availabilityChanged(QtMultimedia::AvailabilityStatus)
+void QDeclarativeAudio::_q_availabilityChanged(QMultimedia::AvailabilityStatus)
 {
     emit availabilityChanged(availability());
 }
@@ -659,10 +659,10 @@ void QDeclarativeAudio::classBegin()
     connect(m_player, SIGNAL(videoAvailableChanged(bool)),
             this, SIGNAL(hasVideoChanged()));
 
-    m_error = m_player->availability() == QtMultimedia::ServiceMissing ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
+    m_error = m_player->availability() == QMultimedia::ServiceMissing ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
 
-    connect(m_player, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)),
-                     this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityStatus)));
+    connect(m_player, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
+                     this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
 
     m_metaData.reset(new QDeclarativeMediaMetaData(m_player));
 

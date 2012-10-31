@@ -91,8 +91,8 @@ AudioRecorder::AudioRecorder(QWidget *parent)
                 sampleRate));
     }
 
-    ui->qualitySlider->setRange(0, int(QtMultimedia::VeryHighQuality));
-    ui->qualitySlider->setValue(int(QtMultimedia::NormalQuality));
+    ui->qualitySlider->setRange(0, int(QMultimedia::VeryHighQuality));
+    ui->qualitySlider->setValue(int(QMultimedia::NormalQuality));
 
     //bitrates:
     ui->bitrateBox->addItem(QString("Default"), QVariant(0));
@@ -175,10 +175,10 @@ void AudioRecorder::toggleRecord()
         settings.setCodec(boxValue(ui->audioCodecBox).toString());
         settings.setSampleRate(boxValue(ui->sampleRateBox).toInt());
         settings.setBitRate(boxValue(ui->bitrateBox).toInt());
-        settings.setQuality(QtMultimedia::EncodingQuality(ui->qualitySlider->value()));
+        settings.setQuality(QMultimedia::EncodingQuality(ui->qualitySlider->value()));
         settings.setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
-                                 QtMultimedia::ConstantQualityEncoding :
-                                 QtMultimedia::ConstantBitRateEncoding);
+                                 QMultimedia::ConstantQualityEncoding :
+                                 QMultimedia::ConstantBitRateEncoding);
 
         QString container = boxValue(ui->containerBox).toString();
 

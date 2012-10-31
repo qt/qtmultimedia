@@ -177,7 +177,7 @@ void QGstreamerCaptureServicePlugin::updateDevices() const
 }
 #endif
 
-QtMultimedia::SupportEstimate QGstreamerCaptureServicePlugin::hasSupport(const QString &mimeType,
+QMultimedia::SupportEstimate QGstreamerCaptureServicePlugin::hasSupport(const QString &mimeType,
                                                                      const QStringList& codecs) const
 {
     if (m_supportedMimeTypeSet.isEmpty())

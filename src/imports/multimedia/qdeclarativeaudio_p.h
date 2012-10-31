@@ -138,10 +138,10 @@ public:
     };
 
     enum Availability {
-        Available = QtMultimedia::Available,
-        Busy = QtMultimedia::Busy,
-        Unavailable = QtMultimedia::ServiceMissing,
-        ResourceMissing = QtMultimedia::ResourceError
+        Available = QMultimedia::Available,
+        Busy = QMultimedia::Busy,
+        Unavailable = QMultimedia::ServiceMissing,
+        ResourceMissing = QMultimedia::ResourceError
     };
 
     QDeclarativeAudio(QObject *parent = 0);
@@ -237,7 +237,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void _q_error(QMediaPlayer::Error);
-    void _q_availabilityChanged(QtMultimedia::AvailabilityStatus);
+    void _q_availabilityChanged(QMultimedia::AvailabilityStatus);
     void _q_statusChanged();
 
 private:

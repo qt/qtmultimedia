@@ -30,7 +30,7 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \namespace QtMultimedia
+    \namespace QMultimedia
     \inheaderfile qtmedianamespace.h
     \ingroup multimedia
     \inmodule QtMultimedia
@@ -38,7 +38,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_core
 
-    \brief The QtMultimedia namespace contains miscellaneous identifiers used throughout the Qt Multimedia library.
+    \brief The QMultimedia namespace contains miscellaneous identifiers used throughout the Qt Multimedia library.
 
 */
 
@@ -49,16 +49,16 @@ namespace
     public:
         QMultimediaNamespacePrivateRegisterMetaTypes()
         {
-            qRegisterMetaType<QtMultimedia::AvailabilityStatus>();
-            qRegisterMetaType<QtMultimedia::SupportEstimate>();
-            qRegisterMetaType<QtMultimedia::EncodingMode>();
-            qRegisterMetaType<QtMultimedia::EncodingQuality>();
+            qRegisterMetaType<QMultimedia::AvailabilityStatus>();
+            qRegisterMetaType<QMultimedia::SupportEstimate>();
+            qRegisterMetaType<QMultimedia::EncodingMode>();
+            qRegisterMetaType<QMultimedia::EncodingQuality>();
         }
     } _registerMetaTypes;
 }
 
 /*!
-    \enum QtMultimedia::SupportEstimate
+    \enum QMultimedia::SupportEstimate
 
     Enumerates the levels of support a media service provider may have for a feature.
 
@@ -69,7 +69,7 @@ namespace
 */
 
 /*!
-    \enum QtMultimedia::EncodingQuality
+    \enum QMultimedia::EncodingQuality
 
     Enumerates quality encoding levels.
 
@@ -81,7 +81,7 @@ namespace
 */
 
 /*!
-    \enum QtMultimedia::EncodingMode
+    \enum QMultimedia::EncodingMode
 
     Enumerates encoding modes.
 
@@ -95,7 +95,7 @@ namespace
 */
 
 /*!
-    \enum QtMultimedia::AvailabilityStatus
+    \enum QMultimedia::AvailabilityStatus
 
     Enumerates Service status errors.
 

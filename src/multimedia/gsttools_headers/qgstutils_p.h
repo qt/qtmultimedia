@@ -73,7 +73,7 @@ namespace QGstUtils {
     QAudioFormat audioFormatForBuffer(GstBuffer *buffer);
     GstCaps *capsForAudioFormat(QAudioFormat format);
     void initializeGst();
-    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType,
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
                                              const QStringList &codecs,
                                              const QSet<QString> &supportedMimeTypeSet);
 }

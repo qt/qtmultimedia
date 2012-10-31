@@ -119,7 +119,7 @@ void tst_QMediaServiceProvider::testHasSupport()
 {
     MockMediaServiceProvider mockProvider;
     QCOMPARE(mockProvider.hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER), "video/ogv", QStringList()),
-             QtMultimedia::MaybeSupported);
+             QMultimedia::MaybeSupported);
 
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
@@ -127,44 +127,44 @@ void tst_QMediaServiceProvider::testHasSupport()
         QSKIP("No default provider");
 
     QCOMPARE(provider->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER), "video/ogv", QStringList()),
-             QtMultimedia::MaybeSupported);
+             QMultimedia::MaybeSupported);
 
     QCOMPARE(provider->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER), "audio/ogg", QStringList()),
-             QtMultimedia::ProbablySupported);
+             QMultimedia::ProbablySupported);
 
     //while the service returns PreferredService, provider should return ProbablySupported
     QCOMPARE(provider->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER), "audio/wav", QStringList()),
-             QtMultimedia::ProbablySupported);
+             QMultimedia::ProbablySupported);
 
     //even while all the plugins with "hasSupport" returned NotSupported,
     //MockServicePlugin3 has no "hasSupport" interface, so MaybeSupported
     QCOMPARE(provider->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER), "video/avi",
                                   QStringList() << "mpeg4"),
-             QtMultimedia::MaybeSupported);
+             QMultimedia::MaybeSupported);
 
     QCOMPARE(provider->hasSupport(QByteArray("non existing service"), "video/ogv", QStringList()),
-             QtMultimedia::NotSupported);
+             QMultimedia::NotSupported);
 
-    QCOMPARE(QMediaPlayer::hasSupport("video/ogv"), QtMultimedia::MaybeSupported);
-    QCOMPARE(QMediaPlayer::hasSupport("audio/ogg"), QtMultimedia::ProbablySupported);
-    QCOMPARE(QMediaPlayer::hasSupport("audio/wav"), QtMultimedia::ProbablySupported);
+    QCOMPARE(QMediaPlayer::hasSupport("video/ogv"), QMultimedia::MaybeSupported);
+    QCOMPARE(QMediaPlayer::hasSupport("audio/ogg"), QMultimedia::ProbablySupported);
+    QCOMPARE(QMediaPlayer::hasSupport("audio/wav"), QMultimedia::ProbablySupported);
 
     //test low latency flag support
     QCOMPARE(QMediaPlayer::hasSupport("audio/wav", QStringList(), QMediaPlayer::LowLatency),
-             QtMultimedia::ProbablySupported);
+             QMultimedia::ProbablySupported);
     //plugin1 probably supports audio/ogg, it checked because it doesn't provide features iface
     QCOMPARE(QMediaPlayer::hasSupport("audio/ogg", QStringList(), QMediaPlayer::LowLatency),
-             QtMultimedia::ProbablySupported);
+             QMultimedia::ProbablySupported);
     //Plugin4 is not checked here, sine it's known not support low latency
     QCOMPARE(QMediaPlayer::hasSupport("video/quicktime", QStringList(), QMediaPlayer::LowLatency),
-             QtMultimedia::MaybeSupported);
+             QMultimedia::MaybeSupported);
 
     //test streaming flag support
     QCOMPARE(QMediaPlayer::hasSupport("video/quicktime", QStringList(), QMediaPlayer::StreamPlayback),
-             QtMultimedia::ProbablySupported);
+             QMultimedia::ProbablySupported);
     //Plugin2 is not checked here, sine it's known not support streaming
     QCOMPARE(QMediaPlayer::hasSupport("audio/wav", QStringList(), QMediaPlayer::StreamPlayback),
-             QtMultimedia::MaybeSupported);
+             QMultimedia::MaybeSupported);
 
     //ensure the correct media player plugin is chosen for mime type
     QMediaPlayer simplePlayer(0, QMediaPlayer::LowLatency);

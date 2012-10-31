@@ -45,8 +45,8 @@
     \l{QAudioRecorder::supportedContainers()}{supportedContainers()}, and
     \l{QAudioRecorder::supportedAudioSampleRates()}{supportedAudioSampleRates()}
     methods. The quality slider is setup from 0 (zero) to
-    \l{QtMultimedia::VeryHighQuality} with a default value of
-    \l{QtMultimedia::NormalQuality}, while the bitrates are hardcoded
+    \l{QMultimedia::VeryHighQuality} with a default value of
+    \l{QMultimedia::NormalQuality}, while the bitrates are hardcoded
     into the list.
 
     \image audiorecorder.png
@@ -77,10 +77,10 @@
         settings.setCodec(boxValue(ui->audioCodecBox).toString());
         settings.setSampleRate(boxValue(ui->sampleRateBox).toInt());
         settings.setBitRate(boxValue(ui->bitrateBox).toInt());
-        settings.setQuality(QtMultimedia::EncodingQuality(ui->qualitySlider->value()));
+        settings.setQuality(QMultimedia::EncodingQuality(ui->qualitySlider->value()));
         settings.setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
-                                 QtMultimedia::ConstantQualityEncoding :
-                                 QtMultimedia::ConstantBitRateEncoding);
+                                 QMultimedia::ConstantQualityEncoding :
+                                 QMultimedia::ConstantBitRateEncoding);
 
         QString container = boxValue(ui->containerBox).toString();
 

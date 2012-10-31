@@ -60,7 +60,7 @@ public:
     QMediaService* create(QString const& key);
     void release(QMediaService *service);
 
-    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
     QStringList supportedMimeTypes() const;
 
 private:

@@ -89,7 +89,7 @@ void tst_QRadioData::initTestCase()
 {
     qRegisterMetaType<QRadioData::ProgramType>("QRadioData::ProgramType");
 
-    mockAvailability = new MockAvailabilityControl(QtMultimedia::Available);
+    mockAvailability = new MockAvailabilityControl(QMultimedia::Available);
     mockTuner = new MockRadioTunerControl(this);
     mockData = new MockRadioDataControl(this);
 
@@ -105,7 +105,7 @@ void tst_QRadioData::initTestCase()
     radio = new QRadioTuner;
     radioData = radio->radioData();
 
-    QVERIFY(radioData->availability() == QtMultimedia::Available);
+    QVERIFY(radioData->availability() == QMultimedia::Available);
 }
 
 void tst_QRadioData::cleanupTestCase()

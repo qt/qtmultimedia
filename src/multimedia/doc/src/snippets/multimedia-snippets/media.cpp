@@ -200,7 +200,7 @@ void MediaExample::MediaRecorder()
 
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QtMultimedia::HighQuality);
+    audioSettings.setQuality(QMultimedia::HighQuality);
 
     recorder->setAudioSettings(audioSettings);
 
@@ -216,7 +216,7 @@ void MediaExample::AudioRecorder()
 
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QtMultimedia::HighQuality);
+    audioSettings.setQuality(QMultimedia::HighQuality);
 
     audioRecorder->setEncodingSettings(audioSettings);
 
@@ -264,7 +264,7 @@ void MediaExample::AudioProbe()
 
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QtMultimedia::HighQuality);
+    audioSettings.setQuality(QMultimedia::HighQuality);
 
     audioRecorder->setEncodingSettings(audioSettings);
 

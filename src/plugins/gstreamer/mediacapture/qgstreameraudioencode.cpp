@@ -199,8 +199,8 @@ GstElement *QGstreamerAudioEncode::createEncoder()
     }
 
     if (encoderElement) {
-        if (m_audioSettings.encodingMode() == QtMultimedia::ConstantQualityEncoding) {
-            QtMultimedia::EncodingQuality qualityValue = m_audioSettings.quality();
+        if (m_audioSettings.encodingMode() == QMultimedia::ConstantQualityEncoding) {
+            QMultimedia::EncodingQuality qualityValue = m_audioSettings.quality();
 
             if (codec == QLatin1String("audio/vorbis")) {
                 double qualityTable[] = {

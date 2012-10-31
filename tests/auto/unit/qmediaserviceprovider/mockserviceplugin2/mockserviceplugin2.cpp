@@ -71,14 +71,14 @@ public:
         delete service;
     }
 
-    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
     {
         Q_UNUSED(codecs);
 
         if (mimeType == "audio/wav")
-            return QtMultimedia::PreferredService;
+            return QMultimedia::PreferredService;
 
-        return QtMultimedia::NotSupported;
+        return QMultimedia::NotSupported;
     }
 
     QStringList supportedMimeTypes() const

@@ -78,14 +78,14 @@ QMediaServiceProviderHint::Features AVFMediaPlayerServicePlugin::supportedFeatur
         return QMediaServiceProviderHint::Features();
 }
 
-QtMultimedia::SupportEstimate AVFMediaPlayerServicePlugin::hasSupport(const QString &mimeType, const QStringList &codecs) const
+QMultimedia::SupportEstimate AVFMediaPlayerServicePlugin::hasSupport(const QString &mimeType, const QStringList &codecs) const
 {
     Q_UNUSED(codecs);
 
     if (m_supportedMimeTypes.contains(mimeType))
-        return QtMultimedia::ProbablySupported;
+        return QMultimedia::ProbablySupported;
 
-    return QtMultimedia::MaybeSupported;
+    return QMultimedia::MaybeSupported;
 }
 
 QStringList AVFMediaPlayerServicePlugin::supportedMimeTypes() const

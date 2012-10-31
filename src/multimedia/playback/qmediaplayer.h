@@ -124,7 +124,7 @@ public:
     QMediaPlayer(QObject *parent = 0, Flags flags = 0);
     ~QMediaPlayer();
 
-    static QtMultimedia::SupportEstimate hasSupport(const QString &mimeType,
+    static QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
                                             const QStringList& codecs = QStringList(),
                                             Flags flags = 0);
     static QStringList supportedMimeTypes(Flags flags = 0);
@@ -159,7 +159,7 @@ public:
 
     QNetworkConfiguration currentNetworkConfiguration() const;
 
-    QtMultimedia::AvailabilityStatus availability() const;
+    QMultimedia::AvailabilityStatus availability() const;
 
 public Q_SLOTS:
     void play();

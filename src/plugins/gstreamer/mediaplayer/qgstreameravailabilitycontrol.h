@@ -53,7 +53,7 @@ class QGStreamerAvailabilityControl : public QMediaAvailabilityControl
     Q_OBJECT
 public:
     QGStreamerAvailabilityControl(QMediaPlayerResourceSetInterface *resources, QObject *parent = 0);
-    QtMultimedia::AvailabilityStatus availability() const;
+    QMultimedia::AvailabilityStatus availability() const;
 
 private Q_SLOTS:
     void handleAvailabilityChanged();

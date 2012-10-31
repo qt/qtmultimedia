@@ -359,7 +359,7 @@ void QAudioDecoder::unbind(QObject *obj)
 /*!
     Returns the level of support an audio decoder has for a \a mimeType and a set of \a codecs.
 */
-QtMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
+QMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
                                                const QStringList& codecs)
 {
     return QMediaServiceProvider::defaultServiceProvider()->hasSupport(QByteArray(Q_MEDIASERVICE_AUDIODECODER),

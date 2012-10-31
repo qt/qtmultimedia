@@ -116,7 +116,7 @@ QDeclarativeRadio::QDeclarativeRadio(QObject *parent) :
     connect(m_radioTuner, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
     connect(m_radioTuner, SIGNAL(stationFound(int, QString)), this, SIGNAL(stationFound(int, QString)));
     connect(m_radioTuner, SIGNAL(antennaConnectedChanged(bool)), this, SIGNAL(antennaConnectedChanged(bool)));
-    connect(m_radioTuner, SIGNAL(availabilityChanged(QtMultimedia::AvailabilityStatus)), this, SLOT(_q_availabilityChanged(QtMultimedia::AvailabilityStatus)));
+    connect(m_radioTuner, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)), this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
 
     connect(m_radioTuner, SIGNAL(error(QRadioTuner::Error)), this, SLOT(_q_error(QRadioTuner::Error)));
 }
@@ -527,7 +527,7 @@ void QDeclarativeRadio::_q_error(QRadioTuner::Error errorCode)
     emit errorChanged();
 }
 
-void QDeclarativeRadio::_q_availabilityChanged(QtMultimedia::AvailabilityStatus availability)
+void QDeclarativeRadio::_q_availabilityChanged(QMultimedia::AvailabilityStatus availability)
 {
     emit availabilityChanged(Availability(availability));
 }

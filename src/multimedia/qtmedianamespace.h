@@ -53,10 +53,7 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-// Class forward declaration required for QDoc bug
-class QString;
-
-namespace QtMultimedia
+namespace QMultimedia
 {
     enum SupportEstimate
     {
@@ -95,10 +92,10 @@ namespace QtMultimedia
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QtMultimedia::AvailabilityStatus)
-Q_DECLARE_METATYPE(QtMultimedia::SupportEstimate)
-Q_DECLARE_METATYPE(QtMultimedia::EncodingMode)
-Q_DECLARE_METATYPE(QtMultimedia::EncodingQuality)
+Q_DECLARE_METATYPE(QMultimedia::AvailabilityStatus)
+Q_DECLARE_METATYPE(QMultimedia::SupportEstimate)
+Q_DECLARE_METATYPE(QMultimedia::EncodingMode)
+Q_DECLARE_METATYPE(QMultimedia::EncodingQuality)
 
 QT_END_HEADER
 

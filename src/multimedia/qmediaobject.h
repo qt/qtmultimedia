@@ -65,7 +65,7 @@ public:
     ~QMediaObject();
 
     virtual bool isAvailable() const;
-    virtual QtMultimedia::AvailabilityStatus availability() const;
+    virtual QMultimedia::AvailabilityStatus availability() const;
 
     virtual QMediaService* service() const;
 
@@ -88,7 +88,7 @@ Q_SIGNALS:
     void metaDataChanged(const QString &key, const QVariant &value);
 
     void availabilityChanged(bool available);
-    void availabilityChanged(QtMultimedia::AvailabilityStatus availability);
+    void availabilityChanged(QMultimedia::AvailabilityStatus availability);
 
 protected:
     QMediaObject(QObject *parent, QMediaService *service);

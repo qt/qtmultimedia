@@ -116,7 +116,7 @@ public:
     QMediaObject *mediaObject() const;
 
     bool isAvailable() const;
-    QtMultimedia::AvailabilityStatus availability() const;
+    QMultimedia::AvailabilityStatus availability() const;
 
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
@@ -194,7 +194,7 @@ Q_SIGNALS:
     void metaDataChanged(const QString &key, const QVariant &value);
 
     void availabilityChanged(bool available);
-    void availabilityChanged(QtMultimedia::AvailabilityStatus availability);
+    void availabilityChanged(QMultimedia::AvailabilityStatus availability);
 
 protected:
     QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = 0);
@@ -211,7 +211,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateNotifyInterval(int))
     Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
-    Q_PRIVATE_SLOT(d_func(), void _q_availabilityChanged(QtMultimedia::AvailabilityStatus))
+    Q_PRIVATE_SLOT(d_func(), void _q_availabilityChanged(QMultimedia::AvailabilityStatus))
 };
 
 QT_END_NAMESPACE

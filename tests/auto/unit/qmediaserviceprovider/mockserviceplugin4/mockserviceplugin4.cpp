@@ -70,15 +70,15 @@ public:
         delete service;
     }
 
-    QtMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
     {
         if (codecs.contains(QLatin1String("jpeg2000")))
-            return QtMultimedia::NotSupported;
+            return QMultimedia::NotSupported;
 
         if (supportedMimeTypes().contains(mimeType))
-            return QtMultimedia::ProbablySupported;
+            return QMultimedia::ProbablySupported;
 
-        return QtMultimedia::MaybeSupported;
+        return QMultimedia::MaybeSupported;
     }
 
     QStringList supportedMimeTypes() const

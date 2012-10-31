@@ -50,18 +50,18 @@ class MockAvailabilityControl : public QMediaAvailabilityControl
     Q_OBJECT
 
 public:
-    MockAvailabilityControl(QtMultimedia::AvailabilityStatus available)
+    MockAvailabilityControl(QMultimedia::AvailabilityStatus available)
         : m_availability(available)
     {
 
     }
 
-    QtMultimedia::AvailabilityStatus availability() const
+    QMultimedia::AvailabilityStatus availability() const
     {
         return m_availability;
     }
 
-    void setAvailability(QtMultimedia::AvailabilityStatus availability)
+    void setAvailability(QMultimedia::AvailabilityStatus availability)
     {
         if (m_availability != availability) {
             m_availability = availability;
@@ -69,7 +69,7 @@ public:
         }
     }
 
-    QtMultimedia::AvailabilityStatus m_availability;
+    QMultimedia::AvailabilityStatus m_availability;
 };
 
 #endif // MOCKAVAILABILITYCONTROL_H

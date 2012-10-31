@@ -70,8 +70,8 @@ public:
 
     bool isNull() const;
 
-    QtMultimedia::EncodingMode encodingMode() const;
-    void setEncodingMode(QtMultimedia::EncodingMode);
+    QMultimedia::EncodingMode encodingMode() const;
+    void setEncodingMode(QMultimedia::EncodingMode);
 
     QString codec() const;
     void setCodec(const QString& codec);
@@ -85,8 +85,8 @@ public:
     int sampleRate() const;
     void setSampleRate(int rate);
 
-    QtMultimedia::EncodingQuality quality() const;
-    void setQuality(QtMultimedia::EncodingQuality quality);
+    QMultimedia::EncodingQuality quality() const;
+    void setQuality(QMultimedia::EncodingQuality quality);
 
     QVariant encodingOption(const QString &option) const;
     QVariantMap encodingOptions() const;
@@ -112,8 +112,8 @@ public:
 
     bool isNull() const;
 
-    QtMultimedia::EncodingMode encodingMode() const;
-    void setEncodingMode(QtMultimedia::EncodingMode);
+    QMultimedia::EncodingMode encodingMode() const;
+    void setEncodingMode(QMultimedia::EncodingMode);
 
     QString codec() const;
     void setCodec(const QString &);
@@ -128,8 +128,8 @@ public:
     int bitRate() const;
     void setBitRate(int bitrate);
 
-    QtMultimedia::EncodingQuality quality() const;
-    void setQuality(QtMultimedia::EncodingQuality quality);
+    QMultimedia::EncodingQuality quality() const;
+    void setQuality(QMultimedia::EncodingQuality quality);
 
     QVariant encodingOption(const QString &option) const;
     QVariantMap encodingOptions() const;
@@ -162,8 +162,8 @@ public:
     void setResolution(const QSize &);
     void setResolution(int width, int height);
 
-    QtMultimedia::EncodingQuality quality() const;
-    void setQuality(QtMultimedia::EncodingQuality quality);
+    QMultimedia::EncodingQuality quality() const;
+    void setQuality(QMultimedia::EncodingQuality quality);
 
     QVariant encodingOption(const QString &option) const;
     QVariantMap encodingOptions() const;
