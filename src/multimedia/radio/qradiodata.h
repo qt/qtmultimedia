@@ -52,8 +52,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 
 class QRadioDataPrivate;
 class Q_MULTIMEDIA_EXPORT QRadioData : public QObject, public QMediaBindableInterface

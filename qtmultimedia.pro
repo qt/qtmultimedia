@@ -6,6 +6,8 @@ win32 {
     qtCompileTest(wmp)
     qtCompileTest(wmf)
     qtCompileTest(evr)
+} else:mac {
+    qtCompileTest(avfoundation)
 } else {
     qtCompileTest(alsa)
     qtCompileTest(pulseaudio)
@@ -16,10 +18,6 @@ win32 {
     }
     qtCompileTest(resourcepolicy)
     qtCompileTest(xvideo)
-}
-
-mac {
-    qtCompileTest(avfoundation)
 }
 
 load(qt_parts)

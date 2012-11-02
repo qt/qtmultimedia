@@ -61,6 +61,8 @@ class QT7PlayerSession;
 class QT7PlayerService;
 class QGLWidget;
 class QGLFramebufferObject;
+class QWindow;
+class QOpenGLContext;
 
 class QT7MovieViewRenderer : public QT7VideoRendererControl
 {
@@ -88,7 +90,8 @@ private:
     QSize m_nativeSize;
     QAbstractVideoSurface *m_surface;
     QVideoFrame m_currentFrame;
-    QGLWidget *m_glWidget;
+    QWindow *m_window;
+    QOpenGLContext *m_context;
     QGLFramebufferObject *m_fbo;
     CIContext *m_ciContext;
 

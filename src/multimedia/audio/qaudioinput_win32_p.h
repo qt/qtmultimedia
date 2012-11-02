@@ -53,9 +53,7 @@
 #ifndef QAUDIOINPUTWIN_H
 #define QAUDIOINPUTWIN_H
 
-#define NOMINMAX
-
-#include <windows.h>
+#include <QtCore/qt_windows.h>
 #include <mmsystem.h>
 
 #include <QtCore/qfile.h>
@@ -74,8 +72,6 @@
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
-
-QT_MODULE(Multimedia)
 
 
 // For compat with 4.6

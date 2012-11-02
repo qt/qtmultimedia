@@ -69,8 +69,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 
 const unsigned int MAX_SAMPLE_RATES = 5;
 const unsigned int SAMPLE_RATES[] =

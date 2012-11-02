@@ -76,9 +76,4 @@ sources.fileextensions = "*.cpp *.qdoc *.mm *.qml"
 HTML.nobreadcrumbs = "true"
 
 HTML.templatedir = .
-HTML.stylesheets = style/qtmultimedia.css
 
-HTML.headerstyles = "  <link rel=\"stylesheet\" type=\"text/css\" href=\"style/qtmultimedia.css\" />\n"
-HTML.endheader = "</head>\n<body>\n"
-
-HTML.footer = "<div class=\"footer\">Copyright (c) 2012 Digia Plc and/or its subsidiaries. All rights reserved.</div>\n"

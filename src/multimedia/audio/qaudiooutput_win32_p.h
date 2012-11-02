@@ -53,9 +53,7 @@
 #ifndef QAUDIOOUTPUTWIN_H
 #define QAUDIOOUTPUTWIN_H
 
-#define NOMINMAX
-
-#include <windows.h>
+#include <QtCore/qt_windows.h>
 #include <mmsystem.h>
 
 #include <QtCore/qdebug.h>
@@ -81,8 +79,6 @@
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
-
-QT_MODULE(Multimedia)
 
 
 class QAudioOutputPrivate : public QAbstractAudioOutput

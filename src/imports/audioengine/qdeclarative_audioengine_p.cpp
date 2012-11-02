@@ -404,7 +404,7 @@ void QDeclarativeAudioEngine::appendFunction(QQmlListProperty<QObject> *property
 
 QQmlListProperty<QObject> QDeclarativeAudioEngine::bank()
 {
-    return QQmlListProperty<QObject>(this, 0, appendFunction);
+    return QQmlListProperty<QObject>(this, 0, appendFunction, 0, 0, 0);
 }
 
 /*!

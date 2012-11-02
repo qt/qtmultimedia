@@ -48,8 +48,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 #define QMediaPlayerResourceSetInterface_iid \
     "org.qt-project.qt.mediaplayerresourceset/5.0"
 

@@ -49,8 +49,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 struct Q_MULTIMEDIA_EXPORT QMediaResourceSetFactoryInterface
 {
     virtual QObject* create(const QString& interfaceId) = 0;

@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author Stephen Kelly <stephen.kelly@kdab.com>
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the test suite of the Qt Toolkit.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,14 +39,56 @@
 **
 ****************************************************************************/
 
-#include <QCamera>
-#include <QVideoWidget>
+#ifndef AVFVIDEOFRAMERENDERER_H
+#define AVFVIDEOFRAMERENDERER_H
 
-int main(int argc, char **argv)
+#include <QtCore/QObject>
+#include <QtGui/QImage>
+#include <QtGui/QOpenGLContext>
+#include <QtCore/QSize>
+
+@class CARenderer;
+@class AVPlayerLayer;
+
+QT_BEGIN_NAMESPACE
+
+class QOpenGLFramebufferObject;
+class QWindow;
+class QOpenGLContext;
+class QAbstractVideoSurface;
+class QGLWidget;
+
+class AVFVideoFrameRenderer : public QObject
 {
-    QCamera camera;
+public:
+    AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QObject *parent = 0);
+#ifndef QT_NO_WIDGETS
+    AVFVideoFrameRenderer(QGLWidget *glWidget, const QSize &size, QObject *parent = 0);
+#endif
 
-    QVideoWidget videoWidget;
+    virtual ~AVFVideoFrameRenderer();
 
-    return 0;
-}
+    GLuint renderLayerToTexture(AVPlayerLayer *layer);
+    QImage renderLayerToImage(AVPlayerLayer *layer);
+
+private:
+    QOpenGLFramebufferObject* initRenderer(AVPlayerLayer *layer);
+    void renderLayerToFBO(AVPlayerLayer *layer, QOpenGLFramebufferObject *fbo);
+
+    CARenderer *m_videoLayerRenderer;
+#ifndef QT_NO_WIDGETS
+    QGLWidget *m_glWidget;
+#endif
+    QAbstractVideoSurface *m_surface;
+    QOpenGLFramebufferObject *m_fbo[2];
+    QWindow *m_offscreenSurface;
+    QOpenGLContext *m_glContext;
+    QSize m_targetSize;
+
+    uint m_currentBuffer;
+    bool m_isContextShared;
+};
+
+QT_END_NAMESPACE
+
+#endif // AVFVIDEOFRAMERENDERER_H

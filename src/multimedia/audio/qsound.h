@@ -49,8 +49,6 @@ QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Multimedia)
-
 class QSoundEffect;
 
 class Q_MULTIMEDIA_EXPORT QSound : public QObject

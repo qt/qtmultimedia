@@ -51,14 +51,37 @@
 //
 
 
-#include <windows.h>
+#include <QtCore/qt_windows.h>
 #include <mmsystem.h>
 #include "qaudiodeviceinfo_win32_p.h"
-#include <dshow.h>
 
 #if defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
+struct IBaseFilter; // Needed for strmif.h from stock MinGW.
+struct _DDPIXELFORMAT;
+typedef struct _DDPIXELFORMAT* LPDDPIXELFORMAT;
+#endif
+
+#include <strmif.h>
+#if !defined(Q_CC_MINGW) || defined(__MINGW64_VERSION_MAJOR)
+#  include <uuids.h>
+#else
 
 extern GUID CLSID_AudioInputDeviceCategory;
+extern GUID CLSID_AudioRendererCategory;
+extern GUID IID_ICreateDevEnum;
+extern GUID CLSID_SystemDeviceEnum;
+
+#ifndef __ICreateDevEnum_INTERFACE_DEFINED__
+#define __ICreateDevEnum_INTERFACE_DEFINED__
+
+DECLARE_INTERFACE_(ICreateDevEnum, IUnknown)
+{
+    STDMETHOD(CreateClassEnumerator)(REFCLSID clsidDeviceClass,
+                                     IEnumMoniker **ppEnumMoniker,
+                                     DWORD dwFlags) PURE;
+};
+
+#endif //  __ICreateDevEnum_INTERFACE_DEFINED__
 
 #ifndef __IErrorLog_INTERFACE_DEFINED__
 #define __IErrorLog_INTERFACE_DEFINED__
@@ -286,7 +309,7 @@ void QAudioDeviceInfoInternal::updateLists()
 {
     // redo all lists based on current settings
     bool match = false;
-    DWORD fmt = NULL;
+    DWORD fmt = 0;
 
     if(mode == QAudio::AudioOutput) {
         WAVEOUTCAPS woc;
