@@ -33,6 +33,7 @@ config_resourcepolicy {
 # to be installed by syncqt.
 INCLUDEPATH += ../multimedia/gsttools_headers/
 DEPENDPATH += ../multimedia/gsttools_headers/
+VPATH += ../multimedia/gsttools_headers/
 
 PRIVATE_HEADERS += \
     qgstbufferpoolinterface_p.h \
