@@ -216,8 +216,6 @@ private:
     QObject *m_videoOutput;
     QGstreamerVideoRendererInterface *m_renderer;
 
-    bool m_haveQueueElement;
-
 #if defined(HAVE_GST_APPSRC)
     QGstAppSrc *m_appSrc;
 #endif

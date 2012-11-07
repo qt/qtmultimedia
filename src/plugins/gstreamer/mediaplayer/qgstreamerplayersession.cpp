@@ -104,7 +104,6 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_bus(0),
      m_videoOutput(0),
      m_renderer(0),
-     m_haveQueueElement(false),
 #if defined(HAVE_GST_APPSRC)
      m_appSrc(0),
 #endif
@@ -244,7 +243,6 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
     m_request = request;
     m_duration = -1;
     m_lastPosition = 0;
-    m_haveQueueElement = false;
     m_isPlaylist = false;
 
     if (m_appSrc)
@@ -277,7 +275,6 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     m_request = request;
     m_duration = -1;
     m_lastPosition = 0;
-    m_haveQueueElement = false;
     m_isPlaylist = false;
 
     if (m_playbin) {
@@ -336,29 +333,32 @@ void QGstreamerPlayerSession::setPlaybackRate(qreal rate)
 QMediaTimeRange QGstreamerPlayerSession::availablePlaybackRanges() const
 {
     QMediaTimeRange ranges;
+
+    if (duration() <= 0)
+        return ranges;
+
 #if (GST_VERSION_MAJOR >= 0) &&  (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 31)
     //GST_FORMAT_TIME would be more appropriate, but unfortunately it's not supported.
     //with GST_FORMAT_PERCENT media is treated as encoded with constant bitrate.
     GstQuery* query = gst_query_new_buffering(GST_FORMAT_PERCENT);
 
-    if (gst_element_query(m_playbin, query)) {
-        for (guint index = 0; index < gst_query_get_n_buffering_ranges(query); index++) {
-            gint64 rangeStart = 0;
-            gint64 rangeStop = 0;
+    if (!gst_element_query(m_playbin, query)) {
+        gst_query_unref(query);
+        return ranges;
+    }
 
-            //This query should return values in GST_FORMAT_PERCENT_MAX range,
-            //but queue2 returns values in 0..100 range instead
-            if (gst_query_parse_nth_buffering_range(query, index, &rangeStart, &rangeStop))
-                ranges.addInterval(rangeStart * duration() / 100,
-                                   rangeStop * duration() / 100);
-        }
+    gint64 rangeStart = 0;
+    gint64 rangeStop = 0;
+    for (guint index = 0; index < gst_query_get_n_buffering_ranges(query); index++) {
+        if (gst_query_parse_nth_buffering_range(query, index, &rangeStart, &rangeStop))
+            ranges.addInterval(rangeStart * duration() / 100,
+                               rangeStop * duration() / 100);
     }
 
     gst_query_unref(query);
 #endif
 
-    //without queue2 element in pipeline all the media is considered available
-    if (ranges.isEmpty() && duration() > 0 && !m_haveQueueElement)
+    if (ranges.isEmpty() && !isLiveSource() && isSeekable())
         ranges.addInterval(0, duration());
 
 #ifdef DEBUG_PLAYBIN
@@ -1612,11 +1612,8 @@ void QGstreamerPlayerSession::handleElementAdded(GstBin *bin, GstElement *elemen
     gchar *elementName = gst_element_get_name(element);
 
     if (g_str_has_prefix(elementName, "queue2")) {
-        session->m_haveQueueElement = true;
-
         // Disable on-disk buffering.
         g_object_set(G_OBJECT(element), "temp-template", NULL, NULL);
-
     } else if (g_str_has_prefix(elementName, "uridecodebin") ||
                g_str_has_prefix(elementName, "decodebin2")) {
 
