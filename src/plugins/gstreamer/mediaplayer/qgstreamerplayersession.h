@@ -93,10 +93,6 @@ public:
     qint64 duration() const;
     qint64 position() const;
 
-    bool isBuffering() const;
-
-    int bufferingProgress() const;
-
     int volume() const;
     bool isMuted() const;
 
@@ -161,7 +157,6 @@ signals:
     void mutedStateChanged(bool muted);
     void audioAvailableChanged(bool audioAvailable);
     void videoAvailableChanged(bool videoAvailable);
-    void bufferingChanged(bool buffering);
     void bufferingProgressChanged(int percentFilled);
     void playbackFinished();
     void tagsChanged();

@@ -127,6 +127,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
 {
     gboolean result = gst_type_find_register(0, "playlist", GST_RANK_MARGINAL, playlistTypeFindFunction, 0, 0, this, 0);
     Q_ASSERT(result == TRUE);
+    Q_UNUSED(result);
 
     m_playbin = gst_element_factory_make("playbin2", NULL);
 
@@ -418,17 +419,6 @@ void QGstreamerPlayerSession::setActiveStream(QMediaStreamsControl::StreamType s
     }
 }
 
-
-bool QGstreamerPlayerSession::isBuffering() const
-{
-    return false;
-}
-
-int QGstreamerPlayerSession::bufferingProgress() const
-{
-    return 0;
-}
-
 int QGstreamerPlayerSession::volume() const
 {
     return m_volume;
@@ -699,7 +689,7 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
                           );
 
 
-    GstState state;
+    GstState state = GST_STATE_VOID_PENDING;
 
     switch (m_pendingState) {
     case QMediaPlayer::StoppedState:
@@ -767,7 +757,7 @@ void QGstreamerPlayerSession::insertColorSpaceElement(GstElement *element, gpoin
     gst_bin_add(GST_BIN(session->m_videoOutputBin), session->m_colorSpace);
     gst_element_link_many(session->m_videoIdentity, session->m_colorSpace, session->m_videoSink, NULL);
 
-    GstState state;
+    GstState state = GST_STATE_VOID_PENDING;
 
     switch (session->m_pendingState) {
     case QMediaPlayer::StoppedState:
