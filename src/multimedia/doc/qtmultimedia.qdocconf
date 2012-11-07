@@ -1,20 +1,33 @@
-include($QT_INSTALL_DOCS/global/qt-html-templates-offline.qdocconf)
 include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 
-include(compat.qdocconf)
-include(macros.qdocconf)
-include(qt-cpp-ignore.qdocconf)
-include(qt-defines.qdocconf)
+project                 = qtmultimedia
+description             = Qt Multimedia Documentation
+url                     = http://qt-project.org/doc/qtmultimedia
+version                 = 5.0.0
 
-project = qtmultimedia
-description = Qt Multimedia Documentation
+# The following parameters are for creating a qhp file, the qhelpgenerator
+# program can convert the qhp file into a qch file which can be opened in
+# Qt Assistant and/or Qt Creator.
 
-# Directories in which to search for files to document and images.
-# By default set to the root directory of the project for sources
-# and headers and qdoc will therefore generate output for each file.
-# Images should be placed in <rootdir>/dic/images and examples in
-# <rootdir>/examples.
-# Paths are relative to the  location of this file.
+# Defines the name of the project. You cannot use operators (+, =, -) in
+# the name. Properties for this project are set using a qhp.<projectname>.property
+# format.
+qhp.projects = qtmultimedia
+qhp.qtmultimedia.file = qtmultimedia.qhp
+qhp.qtmultimedia.namespace = org.qt-project.qtmultimedia.500
+qhp.qtmultimedia.indexTitle = Qt Multimedia
+qhp.qtmultimedia.virtualFolder  = qtmultimedia
+
+# For listing child nodes in Qt Creator or Assistant.
+qhp.qtmultimedia.subprojects = classes qmltypes
+qhp.qtmultimedia.subprojects.classes.title = C++ Classes
+qhp.qtmultimedia.subprojects.classes.indexTitle = Qt Multimedia C++ Classes
+qhp.qtmultimedia.subprojects.classes.selectors = class fake:headerfile
+qhp.qtmultimedia.subprojects.classes.sortPages = true
+qhp.qtmultimedia.subprojects.qmltypes.title = QML Types
+qhp.qtmultimedia.subprojects.qmltypes.indexTitle = Qt Multimedia QML Types
+qhp.qtmultimedia.subprojects.qmltypes.selectors = class fake:headerfile
+qhp.qtmultimedia.subprojects.qmltypes.sortPages = true
 
 exampledirs += .. \
                ../../../examples
@@ -27,53 +40,4 @@ sourcedirs += ../..
 
 excludedirs +=
 
-# The index file contains links to the Qt 5 documentation.
-# Point to the any .index file to cross link to other projects
-#indexes = $QT5DOC/doc/html/qt.index
-
-# The following parameters are for creating a qhp file, the qhelpgenerator
-# program can convert the qhp file into a qch file which can be opened in
-# Qt Assistant and/or Qt Creator.
-
-# Defines the name of the project. You cannot use operators (+, =, -) in
-# the name. Properties for this project are set using a qhp.<projectname>.property
-# format.
-qhp.projects = qtmultimedia
-
-# Sets the name of the output qhp file.
-qhp.qtmultimedia.file = qtmultimedia.qhp
-
-# Namespace for the output file. This namespace is used to distinguish between
-# different documentation files in Creator/Assistant.
-qhp.qtmultimedia.namespace = qtmultimedia.500
-
-# Title for the package, will be the main title for the package in
-# Assistant/Creator.
-qhp.qtmultimedia.indexTitle = Qt Multimedia Documentation
-
-# Extra files to add to the output which are not linked to from anywhere
-# using a qdoc \l command.
-qhp.qtmultimedia.extraFiles = style/qtmultimedia.css
-
-# Only update the name of the project for the next variables.
-qhp.qtmultimedia.virtualFolder  = qdoc
-qhp.qtmultimedia.subprojects = classes
-qhp.qtmultimedia.subprojects.classes.title = Classes
-qhp.qtmultimedia.subprojects.classes.selectors = class fake:headerfile
-qhp.qtmultimedia.subprojects.classes.sortPages = true
-
-
-
-# Do NOT change the variables after this line unless you know what you are doing.
-
-outputformats = HTML
-
-examples.fileextensions = "*.cpp *.h *.js *.svg *.xml *.ui *.qml"
-examples.imageextensions = "*.png *.jpeg *.jpg *.gif *.mng"
-headers.fileextensions = "*.h *.ch *.h++ *.hh *.hpp *.hxx"
-sources.fileextensions = "*.cpp *.qdoc *.mm *.qml"
-
-HTML.nobreadcrumbs = "true"
-
-HTML.templatedir = .
-
+depends                 += qtcore qtdoc qtquick qtqml
