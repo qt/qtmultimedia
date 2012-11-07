@@ -87,7 +87,7 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged)
     Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged)
-    Q_PROPERTY(int bufferProgress READ bufferProgress NOTIFY bufferProgressChanged)
+    Q_PROPERTY(qreal bufferProgress READ bufferProgress NOTIFY bufferProgressChanged)
     Q_PROPERTY(bool seekable READ isSeekable NOTIFY seekableChanged)
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
