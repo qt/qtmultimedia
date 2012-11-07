@@ -838,7 +838,9 @@ void QSoundEffectPrivate::playSample()
 #endif
     Q_ASSERT(m_pulseStream);
     Q_ASSERT(pa_stream_get_state(m_pulseStream) == PA_STREAM_READY);
-    pa_operation_unref(pa_stream_cork(m_pulseStream, 0, 0, 0));
+    pa_operation *o = pa_stream_cork(m_pulseStream, 0, 0, 0);
+    if (o)
+        pa_operation_unref(o);
 }
 
 void QSoundEffectPrivate::stop()
