@@ -160,6 +160,8 @@ Q_DEFINE_METADATA(ThumbnailImage);
 
 /*!
     \namespace QMediaMetaData
+    \ingroup multimedia
+    \inmodule QtMultimedia
 
     This namespace provides identifiers for meta-data attributes.
 
