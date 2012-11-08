@@ -39,8 +39,9 @@ macx {
 
 # Install
 
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum
 sources.files = $$SOURCES $$HEADERS fftreal.pro readme.txt license.txt
 sources.files += bwins/fftreal.def eabi/fftreal.def
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/spectrum/3rdparty/fftreal
-INSTALLS += sources
+INSTALLS += sources target
 
