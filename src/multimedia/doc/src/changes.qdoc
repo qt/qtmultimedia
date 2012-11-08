@@ -32,31 +32,31 @@
 \brief A description of changes in this version of Qt Multimedia
 
 
-The Qt Multimedia module in Qt 5 is a combination of the Qt Multimedia module
-in Qt 4.x and the Qt Multimedia Kit module of Qt Mobility.  It replaces both
-of these modules by combining the code.  If you've previously used Qt Multimedia
-there are not too many changes required for existing code, but there are some
-larger changes required for porting code that used Qt Multimedia Kit (most notably
-the namespace and header file prefix has changed, and the qmake pro file changes
-needed to enable Qt Multimedia).
+The Qt Multimedia module in Qt 5 combines (and replaces) two older modules, namely the
+Qt Multimedia module from Qt 4.x, and Qt Multimedia Kit module from Qt Mobility.
+Existing code that uses Qt Multimedia from Qt 4 can be ported with minimal effort, but
+porting code that uses Qt Multimedia Kit may be a more involved process. The
+\l {changed features} section highlights changes relevant to porting.
 
-One other change of note is that widget related classes (like \l QVideoWidget)
-are now in a new library (Qt Multimedia Widgets).
+Also, note that widget-based classes, such as \l QVideoWidget, are now in a separate
+module called Qt Multimedia Widgets.
 
-\section1 New features in 5.0
+\section1 New features in Qt 5.0
 
-There are a number of new features in Qt Multimedia 5.0:
+There are a number of new features in Qt Multimedia:
 \list
 \li Expanded QML API
+\li In addition to the \l Video QML type, there is now the option of using \l MediaPlayer and \l VideoOutput together
+\li QML \l Torch class
 \li New \l QAudioRecorder class
 \li Volume support for QAudioOutput and QAudioInput
 \li More examples and documentation
-\li QML \l Torch class
-\li QSound moved from QtGui to QtMultimedia
+\li QSound moved from Qt GUI to Qt Multimedia
 \li QSoundEffect available to C++ now, as well as QML
 \li FM Radio Data System classes and types now available (\l QRadioData, \l RadioData)
 \li Various other API improvements and bugfixes
 \endlist
+
 
 \section1 Removed features
 
@@ -76,81 +76,65 @@ been removed.
 \section1 Changed features
 
 A number of classes previously offered in Qt Multimedia or Qt Multimedia Kit have
-changed in ways that may affect previously written code.  There may be other
-changes (like new features) that will not affect previously written code, and
-they are documented elsewhere.
+changed in ways that may affect previously written code. This table highlights such changes.
 
 \table 70%
     \header
         \li Changed feature
         \li Notes
     \row
-        \li qmake .pro file changes
-        \li If you've used QtMultimediaKit in the past, you needed to put
+        \li \c qmake project file changes
+        \li Previously, to use Qt Multimedia Kit, the \c qmake project file must contain
            \code
            CONFIG += mobility
            MOBILITY += multimedia
            \endcode
-           in your .pro file.  Now you need to use:
+           Now, you only need to write
            \code
            QT += multimedia
            \endcode
-           or
+           Or, if you want to use the widget classes,
            \code
            QT += multimedia multimediawidgets
            \endcode
-           if you need to use the widget classes.
     \row
-        \li Namespace changes
-        \li For Qt Multimedia Kit the majority of the classes were in the
-           normal Qt namespace (usually nothing, unless built specially).  There
-           was a Qt Multimedia Kit namespace for several enumerations.  This namespace
-           has now changed to Qt Multimedia, so if you've used one of the
-           \c SupportEstimate, \c EncodingQuality, \c EncodingMode or \c AvailabilityStatus
-           enumerations you'll need to change your code.  In fact, running a global
-           search and replace on \c QtMultimediaKit (to replace it with \c QtMultimedia) will
-           go a long way with porting your code.
+        \li Namespaces
+        \li The \c QtMultimediaKit namespace has been renamed to QMultimedia. This
+           affects a few enumerations, namely \c SupportEstimate, \c EncodingQuality,
+           \c EncodingMode and \c AvailabilityStatus. Searching and replacing
+           \c QtMultimediaKit with \c QMultimedia will greatly aid porting efforts. Metadata
+           have been split off into their own namespace, QMediaMetaData.
     \row
-        \li Meta-data enumeration changes
-        \li In Qt Multimedia Kit the available meta-data keys were in an enumeration
-           in the \c QtMultimediaKit namespace.  These meta-data keys have been changed
-           to string literals in the \c {QMediaMetaData} namespace - generally your
-           source code will mostly be compatible unless you have created variables or
-           parameters with the \c {QMediaMetaData} type - you should replace these
-           with \c QString.
+        \li Metadata types
+        \li In Qt Multimedia Kit, pre-defined metadata keys were enumerations in the
+           \c QtMultimediaKit namespace. These pre-defined keys have been changed to
+           string literals in the \c QMediaMetaData namespace, for consistency with
+           extended keys.
     \row
-        \li Meta-data method changes
-        \li In Qt Multimedia Kit the available meta-data was split between methods to
-           access standard, pre-defined keys, and methods to access extensible free
-           form key meta-data.  These have been combined into a single method to
-           access meta-data given a string key, and a list of pre-defined keys.  If
-           you've used the \c extendedMetaData method of any class, you will need
-           to change your code to combine the standard and extended metadata methods.
+        \li Metadata accessor methods
+        \li In Qt Multimedia Kit, there were two different families of methods to access
+           metadata. Functions such as \c QMediaObject::metaData() operated on pre-defined
+           metadata using enumerated keys, while functions such as
+           \c QMediaObject::extendedMetaData() operated on extended metadata using
+           string keys. Qt 5 combines both families into one (e.g. QMediaObject::metaData()),
+           which can operate on both pre-defined and extended metadata, using string keys.
     \row
         \li Qt Metatype registration
-        \li In Qt Multimedia 5.0 we've tried to make sure that we register any classes
-           or types that would be useful to use in cross process signals or in
-           QVariants.  If you've previously added Q_DECLARE_METATYPE macros for any
-           Qt Multimedia class you will probably need to remove them.
+        \li Qt 5 registers many more classes and types with the meta-object system than before.
+           If you have previously applied Q_DECLARE_METATYPE macros to any Qt Multimedia class,
+           you will probably need to remove them.
     \row
-        \li Video QML type
-        \li If you've previously used \l Video you may be excited
-           to learn that it should still work as expected, but you also have
-           the choice of using \l MediaPlayer and \l VideoOutput
-           together for more flexible and advanced use cases.
-    \row
-        \li QSoundEffect
-        \li The SoundEffect QML type was public and accessible in Qt Multimeda Kit,
-           and now the C++ version is also available.  If you managed to use the
-           private class previously, you'll need to update your code.
+        \li QSoundEffect availability
+        \li The SoundEffect QML type was publically accessible in Qt Multimeda Kit,
+           and now the C++ version is officially public too. If your code contains the
+           previously undocumented QSoundEffect, you may need to update it.
     \row
         \li Camera controls
         \li A large number of the camera controls (QCameraImageProcessingControl,
-           QCameraFocusControl etc) have been updated to address a number of
-           design flaws.  If you have previously been using these classes, you
-           should check the new design.  In particular, a number of discrete
+           QCameraFocusControl, etc.) have been updated to address a number of
+           design flaws. In particular, a number of discrete
            accessor methods have been collapsed into parametrized methods, and
-           the range or data type of some parameters has been adjusted.
+           the ranges or data types of some parameters have been adjusted.
 
 \endtable
 
