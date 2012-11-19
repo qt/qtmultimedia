@@ -64,7 +64,6 @@ class QGstreamerPlayerService;
 class QGstreamerPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
-    Q_PROPERTY(bool mediaDownloadEnabled READ isMediaDownloadEnabled WRITE setMediaDownloadEnabled)
 
 public:
     QGstreamerPlayerControl(QGstreamerPlayerSession *session, QObject *parent = 0);
@@ -94,9 +93,6 @@ public:
     QMediaContent media() const;
     const QIODevice *mediaStream() const;
     void setMedia(const QMediaContent&, QIODevice *);
-
-    bool isMediaDownloadEnabled() const;
-    void setMediaDownloadEnabled(bool enabled);
 
     QMediaPlayerResourceSetInterface* resources() const;
 

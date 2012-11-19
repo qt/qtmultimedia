@@ -1614,16 +1614,9 @@ void QGstreamerPlayerSession::handleElementAdded(GstBin *bin, GstElement *elemen
     if (g_str_has_prefix(elementName, "queue2")) {
         session->m_haveQueueElement = true;
 
-        if (session->property("mediaDownloadEnabled").toBool()) {
-            QDir cacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
-            QString cacheLocation = cacheDir.absoluteFilePath("gstmedia__XXXXXX");
-#ifdef DEBUG_PLAYBIN
-            qDebug() << "set queue2 temp-location" << cacheLocation;
-#endif
-            g_object_set(G_OBJECT(element), "temp-template", cacheLocation.toUtf8().constData(), NULL);
-        } else {
-            g_object_set(G_OBJECT(element), "temp-template", NULL, NULL);
-        }
+        // Disable on-disk buffering.
+        g_object_set(G_OBJECT(element), "temp-template", NULL, NULL);
+
     } else if (g_str_has_prefix(elementName, "uridecodebin") ||
                g_str_has_prefix(elementName, "decodebin2")) {
 

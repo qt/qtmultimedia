@@ -614,16 +614,6 @@ void QGstreamerPlayerControl::handleResourcesDenied()
     popAndNotifyState();
 }
 
-bool QGstreamerPlayerControl::isMediaDownloadEnabled() const
-{
-    return m_session->property("mediaDownloadEnabled").toBool();
-}
-
-void QGstreamerPlayerControl::setMediaDownloadEnabled(bool enabled)
-{
-    m_session->setProperty("mediaDownloadEnabled", enabled);
-}
-
 void QGstreamerPlayerControl::pushState()
 {
     m_stateStack.push(m_currentState);
