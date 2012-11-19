@@ -85,6 +85,7 @@ private:
     AVFVideoFrameRenderer *m_frameRenderer;
     AVFDisplayLink *m_displayLink;
     QSize m_nativeSize;
+    bool m_enableOpenGL;
 };
 
 QT_END_NAMESPACE

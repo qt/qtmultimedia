@@ -71,6 +71,7 @@ QVideoSurfaceCoreGraphicsPainter::QVideoSurfaceCoreGraphicsPainter(bool glSuppor
         << QVideoFrame::Format_RGB32
         << QVideoFrame::Format_ARGB32
         << QVideoFrame::Format_ARGB32_Premultiplied
+        << QVideoFrame::Format_BGR32
         << QVideoFrame::Format_RGB24
         << QVideoFrame::Format_RGB565
         << QVideoFrame::Format_RGB555
@@ -112,7 +113,7 @@ QAbstractVideoSurface::Error QVideoSurfaceCoreGraphicsPainter::start(const QVide
     m_scanLineDirection = format.scanLineDirection();
 
     return m_supportedHandles.contains(format.handleType())
-            && m_imageFormat != QImage::Format_Invalid
+            && ((m_imageFormat != QImage::Format_Invalid) || (format.handleType() == QAbstractVideoBuffer::GLTextureHandle))
             && !m_imageSize.isEmpty()
             ? QAbstractVideoSurface::NoError
             : QAbstractVideoSurface::UnsupportedFormatError;

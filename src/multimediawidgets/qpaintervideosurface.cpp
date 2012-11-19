@@ -50,6 +50,7 @@
 
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
 #include <qglshaderprogram.h>
+#include <QtGui/QOpenGLContext>
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE 0x812F
 #endif
@@ -1567,6 +1568,9 @@ void QPainterVideoSurface::setGLContext(QGLContext *context)
     m_shaderTypes = NoShaders;
 
     if (m_glContext) {
+        //Set a dynamic property to access the OpenGL context
+        this->setProperty("GLContext", QVariant::fromValue<QObject*>(m_glContext->contextHandle()));
+
         m_glContext->makeCurrent();
 
         const QByteArray extensions(reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS)));

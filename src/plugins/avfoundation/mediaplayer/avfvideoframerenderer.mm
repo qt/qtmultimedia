@@ -131,6 +131,7 @@ GLuint AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer)
         return 0;
 
     renderLayerToFBO(layer, fbo);
+    m_glContext->doneCurrent();
 
     return fbo->texture();
 }
@@ -148,8 +149,10 @@ QImage AVFVideoFrameRenderer::renderLayerToImage(AVPlayerLayer *layer)
         return QImage();
 
     renderLayerToFBO(layer, fbo);
+    QImage fboImage = fbo->toImage().mirrored();
+    m_glContext->doneCurrent();
 
-    return fbo->toImage();
+    return fboImage;
 }
 
 QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *layer)
@@ -179,8 +182,8 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
         } else {
 #ifdef QT_DEBUG_AVF
             qWarning("failed to get Render Thread context");
-            m_isContextShared = false;
 #endif
+            m_isContextShared = false;
         }
         if (!m_glContext->create()) {
             qWarning("failed to create QOpenGLContext");
@@ -253,6 +256,4 @@ void AVFVideoFrameRenderer::renderLayerToFBO(AVPlayerLayer *layer, QOpenGLFrameb
     glFinish(); //Rendering needs to be done before passing texture to video frame
 
     fbo->release();
-
-    m_glContext->doneCurrent();
 }

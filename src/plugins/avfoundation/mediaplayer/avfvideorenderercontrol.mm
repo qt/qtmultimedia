@@ -75,11 +75,41 @@ private:
     GLuint m_textureId;
 };
 
+class QImageVideoBuffer : public QAbstractVideoBuffer
+{
+public:
+    QImageVideoBuffer(const QImage &image)
+        : QAbstractVideoBuffer(NoHandle)
+        , m_image(image)
+        , m_mode(NotMapped)
+    {
+
+    }
+
+    MapMode mapMode() const { return m_mode; }
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
+    {
+        if (mode != NotMapped && m_mode == NotMapped) {
+            m_mode = mode;
+            return m_image.bits();
+        } else
+            return 0;
+    }
+
+    void unmap() {
+        m_mode = NotMapped;
+    }
+private:
+    QImage m_image;
+    MapMode m_mode;
+};
+
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
     , m_surface(0)
     , m_playerLayer(0)
     , m_frameRenderer(0)
+    , m_enableOpenGL(false)
 
 {
     m_displayLink = new AVFDisplayLink(this);
@@ -132,6 +162,9 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     //Surface changed, so we need a new frame renderer
     m_frameRenderer = new AVFVideoFrameRenderer(m_surface, this);
 
+    //Check for needed formats to render as OpenGL Texture
+    m_enableOpenGL = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+
     //If we already have a layer, but changed surfaces start rendering again
     if (m_playerLayer && !m_displayLink->isActive()) {
         m_displayLink->start();
@@ -177,31 +210,64 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     if (!playerLayer.readyForDisplay)
         return;
 
-    GLuint textureId = m_frameRenderer->renderLayerToTexture(playerLayer);
+    if (m_enableOpenGL) {
 
-    //Make sure we got a valid texture
-    if (textureId == 0) {
-        qWarning("renderLayerToTexture failed");
-        return;
-    }
+        GLuint textureId = m_frameRenderer->renderLayerToTexture(playerLayer);
 
-    QAbstractVideoBuffer *buffer = new TextureVideoBuffer(textureId);
-    QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
-
-    if (m_surface && frame.isValid()) {
-        if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
-            m_surface->stop();
-
-        if (!m_surface->isActive()) {
-            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::GLTextureHandle);
-
-            if (!m_surface->start(format)) {
-                qWarning("Failed to activate video surface");
-            }
+        //Make sure we got a valid texture
+        if (textureId == 0) {
+            qWarning("renderLayerToTexture failed");
+            return;
         }
 
-        if (m_surface->isActive())
-            m_surface->present(frame);
+        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(textureId);
+        QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
+
+        if (m_surface && frame.isValid()) {
+            if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
+                m_surface->stop();
+
+            if (!m_surface->isActive()) {
+                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::GLTextureHandle);
+                format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+
+                if (!m_surface->start(format)) {
+                    //Surface doesn't support GLTextureHandle
+                    qWarning("Failed to activate video surface");
+                }
+            }
+
+            if (m_surface->isActive())
+                m_surface->present(frame);
+        }
+    } else {
+        //fallback to rendering frames to QImages
+        QImage frameData = m_frameRenderer->renderLayerToImage(playerLayer);
+
+        if (frameData.isNull()) {
+            qWarning("renterLayerToImage failed");
+            return;
+        }
+
+        QAbstractVideoBuffer *buffer = new QImageVideoBuffer(frameData);
+        QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_ARGB32_Premultiplied);
+
+        if (m_surface && frame.isValid()) {
+            if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
+                m_surface->stop();
+
+            if (!m_surface->isActive()) {
+                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::NoHandle);
+
+                if (!m_surface->start(format)) {
+                    qWarning("Failed to activate video surface");
+                }
+            }
+
+            if (m_surface->isActive())
+                m_surface->present(frame);
+        }
+
     }
 }
 
