@@ -12,8 +12,8 @@ INCLUDEPATH += ../multimedia/qtmultimediaquicktools_headers/
 DEPENDPATH += ../multimedia/qtmultimediaquicktools_headers/
 
 PRIVATE_HEADERS += \
-    qsgvideonode_p.h \
-    qtmultimediaquickdefs_p.h
+    ../multimedia/qtmultimediaquicktools_headers/qsgvideonode_p.h \
+    ../multimedia/qtmultimediaquicktools_headers/qtmultimediaquickdefs_p.h
 
 SOURCES += \
     qsgvideonode_p.cpp
