@@ -188,7 +188,10 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
             // Make sure our backend is a QDeclarativeVideoRendererBackend
             m_backend.reset();
             createBackend(0);
-            Q_ASSERT(m_backend && dynamic_cast<QDeclarativeVideoRendererBackend *>(m_backend.data()));
+            Q_ASSERT(m_backend);
+#ifndef QT_NO_DYNAMIC_CAST
+            Q_ASSERT(dynamic_cast<QDeclarativeVideoRendererBackend *>(m_backend.data()));
+#endif
             QAbstractVideoSurface * const surface = m_backend->videoSurface();
             Q_ASSERT(surface);
             m_source.data()->setProperty("videoSurface",
