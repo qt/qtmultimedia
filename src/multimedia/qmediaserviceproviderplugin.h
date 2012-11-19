@@ -44,8 +44,8 @@
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qplugin.h>
-#include <qmultimedia.h>
-#include <qtmultimediadefs.h>
+#include <QtMultimedia/qmultimedia.h>
+#include <QtMultimedia/qtmultimediadefs.h>
 
 #ifdef Q_MOC_RUN
 # pragma Q_MOC_EXPAND_MACROS

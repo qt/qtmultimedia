@@ -42,9 +42,9 @@
 #ifndef QMEDIAPLAYERCONTROL_H
 #define QMEDIAPLAYERCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qmediaplayer.h"
-#include "qmediatimerange.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediatimerange.h>
 
 #include <QtCore/qpair.h>
 

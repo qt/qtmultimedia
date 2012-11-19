@@ -42,7 +42,7 @@
 #ifndef QSOUND_H
 #define QSOUND_H
 
-#include <qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediadefs.h>
 #include <QtCore/qobject.h>
 
 QT_BEGIN_HEADER

@@ -42,8 +42,8 @@
 #ifndef QMEDIARECORDERCONTROL_H
 #define QMEDIARECORDERCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qmediarecorder.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediarecorder.h>
 
 QT_BEGIN_HEADER
 

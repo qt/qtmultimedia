@@ -45,9 +45,9 @@
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
 
-#include "qmediaresource.h"
+#include <QtMultimedia/qmediaresource.h>
 
-#include <qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediadefs.h>
 
 QT_BEGIN_HEADER
 

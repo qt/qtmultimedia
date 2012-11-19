@@ -42,12 +42,12 @@
 #ifndef QAUDIODECODERCONTROL_H
 #define QAUDIODECODERCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qaudiodecoder.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qaudiodecoder.h>
 
 #include <QtCore/qpair.h>
 
-#include "qaudiobuffer.h"
+#include <QtMultimedia/qaudiobuffer.h>
 
 QT_BEGIN_HEADER
 

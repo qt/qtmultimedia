@@ -44,8 +44,8 @@
 
 #include <QtWidgets/qgraphicsitem.h>
 
-#include <qvideowidget.h>
-#include <qmediabindableinterface.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtMultimedia/qmediabindableinterface.h>
 
 QT_BEGIN_HEADER
 

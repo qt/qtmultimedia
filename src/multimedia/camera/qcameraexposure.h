@@ -42,8 +42,8 @@
 #ifndef QCAMERAEXPOSURE_H
 #define QCAMERAEXPOSURE_H
 
-#include <qmediaobject.h>
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_HEADER
 

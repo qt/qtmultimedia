@@ -42,9 +42,9 @@
 #ifndef QIMAGEENCODERCONTROL_H
 #define QIMAGEENCODERCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qmediarecorder.h"
-#include "qmediaencodersettings.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qmediaencodersettings.h>
 
 #include <QtCore/qsize.h>
 

@@ -45,8 +45,8 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qstringlist.h>
 
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qmultimedia.h>
 
 QT_BEGIN_HEADER
 

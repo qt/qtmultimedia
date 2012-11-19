@@ -42,8 +42,8 @@
 #ifndef QCAMERACAPTUREDESTINATIONCONTROL_H
 #define QCAMERACAPTUREDESTINATIONCONTROL_H
 
-#include <qmediacontrol.h>
-#include <qcameraimagecapture.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qcameraimagecapture.h>
 
 QT_BEGIN_HEADER
 

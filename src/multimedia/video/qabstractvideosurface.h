@@ -43,7 +43,7 @@
 #define QABSTRACTVIDEOSURFACE_H
 
 #include <QtCore/qobject.h>
-#include <qvideoframe.h>
+#include <QtMultimedia/qvideoframe.h>
 
 QT_BEGIN_HEADER
 

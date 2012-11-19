@@ -43,7 +43,7 @@
 #define QVIDEOPROBE_H
 
 #include <QObject>
-#include <qvideoframe.h>
+#include <QtMultimedia/qvideoframe.h>
 
 QT_BEGIN_HEADER
 

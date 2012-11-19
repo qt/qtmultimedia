@@ -43,7 +43,7 @@
 #ifndef QMEDIANETWORKACCESSCONTROL_H
 #define QMEDIANETWORKACCESSCONTROL_H
 
-#include "qmediacontrol.h"
+#include <QtMultimedia/qmediacontrol.h>
 
 #include <QtCore/qlist.h>
 #include <QtNetwork/qnetworkconfiguration.h>

@@ -42,7 +42,7 @@
 #ifndef QVIDEOWINDOWCONTROL_H
 #define QVIDEOWINDOWCONTROL_H
 
-#include "qmediacontrol.h"
+#include <QtMultimedia/qmediacontrol.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qwindowdefs.h>

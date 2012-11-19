@@ -42,7 +42,7 @@
 #ifndef MOCKCAMERACAPTUREDESTINATIONCONTROL_H
 #define MOCKCAMERACAPTUREDESTINATIONCONTROL_H
 
-#include "qcameracapturedestinationcontrol.h"
+#include <QtMultimedia/qcameracapturedestinationcontrol.h>
 
 class MockCaptureDestinationControl : public QCameraCaptureDestinationControl
 {

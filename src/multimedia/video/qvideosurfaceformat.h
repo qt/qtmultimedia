@@ -47,7 +47,7 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qimage.h>
-#include <qvideoframe.h>
+#include <QtMultimedia/qvideoframe.h>
 
 QT_BEGIN_HEADER
 

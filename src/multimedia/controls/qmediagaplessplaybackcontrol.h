@@ -41,8 +41,8 @@
 #ifndef QMEDIAGAPLESSPLAYBACKCONTROL_H
 #define QMEDIAGAPLESSPLAYBACKCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qmediacontent.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediacontent.h>
 
 QT_BEGIN_HEADER
 

@@ -42,8 +42,8 @@
 #ifndef QCAMERAZOOMCONTROL_H
 #define QCAMERAZOOMCONTROL_H
 
-#include <qmediacontrol.h>
-#include <qmediaobject.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaobject.h>
 
 QT_BEGIN_HEADER
 

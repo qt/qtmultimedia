@@ -42,8 +42,8 @@
 #ifndef QRADIODATACONTROL_H
 #define QRADIODATACONTROL_H
 
-#include "qmediacontrol.h"
-#include "qradiodata.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qradiodata.h>
 
 QT_BEGIN_HEADER
 

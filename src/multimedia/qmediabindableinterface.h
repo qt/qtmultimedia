@@ -42,7 +42,7 @@
 #ifndef QMEDIABINDABLEINTERFACE_H
 #define QMEDIABINDABLEINTERFACE_H
 
-#include <qmediaobject.h>
+#include <QtMultimedia/qmediaobject.h>
 
 QT_BEGIN_HEADER
 

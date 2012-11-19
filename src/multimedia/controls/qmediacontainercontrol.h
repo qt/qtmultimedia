@@ -43,7 +43,7 @@
 #ifndef QMEDIACONTAINERCONTROL_H
 #define QMEDIACONTAINERCONTROL_H
 
-#include "qmediacontrol.h"
+#include <QtMultimedia/qmediacontrol.h>
 
 QT_BEGIN_HEADER
 

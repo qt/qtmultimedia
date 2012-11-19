@@ -44,7 +44,7 @@
 #ifndef QMEDIAVIDEOPROBECONTROL_H
 #define QMEDIAVIDEOPROBECONTROL_H
 
-#include "qmediacontrol.h"
+#include <QtMultimedia/qmediacontrol.h>
 
 QT_BEGIN_HEADER
 

@@ -42,11 +42,11 @@
 #ifndef QMEDIARECORDER_H
 #define QMEDIARECORDER_H
 
-#include <qmultimedia.h>
-#include <qmediaobject.h>
-#include <qmediaencodersettings.h>
-#include <qmediabindableinterface.h>
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmultimedia.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaencodersettings.h>
+#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 #include <QtCore/qpair.h>
 

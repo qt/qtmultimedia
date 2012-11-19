@@ -45,12 +45,12 @@
 
 #include <QtCore/qiodevice.h>
 
-#include <qtmultimediadefs.h>
-#include <qmultimedia.h>
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qmultimedia.h>
 
-#include <qaudio.h>
-#include <qaudioformat.h>
-#include <qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
 
 
 QT_BEGIN_HEADER

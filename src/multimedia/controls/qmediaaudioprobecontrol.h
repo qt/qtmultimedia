@@ -42,7 +42,7 @@
 #ifndef QMEDIAAUDIOPROBECONTROL_H
 #define QMEDIAAUDIOPROBECONTROL_H
 
-#include "qmediacontrol.h"
+#include <QtMultimedia/qmediacontrol.h>
 
 QT_BEGIN_HEADER
 

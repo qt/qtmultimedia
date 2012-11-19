@@ -42,9 +42,9 @@
 #ifndef QMEDIAAVAILABILITYCONTROL_H
 #define QMEDIAAVAILABILITYCONTROL_H
 
-#include <qmediacontrol.h>
-#include <qmediaobject.h>
-#include <qmultimedia.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmultimedia.h>
 
 QT_BEGIN_HEADER
 

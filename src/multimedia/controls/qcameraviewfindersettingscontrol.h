@@ -44,7 +44,7 @@
 #ifndef QCAMERAVIEWFINDERSETTINGSCONTROL_H
 #define QCAMERAVIEWFINDERSETTINGSCONTROL_H
 
-#include <qmediacontrol.h>
+#include <QtMultimedia/qmediacontrol.h>
 
 QT_BEGIN_HEADER
 

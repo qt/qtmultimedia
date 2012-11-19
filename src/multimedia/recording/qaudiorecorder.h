@@ -42,10 +42,10 @@
 #ifndef QAUDIORECORDER_H
 #define QAUDIORECORDER_H
 
-#include <qmediarecorder.h>
-#include <qmediaobject.h>
-#include <qmediaencodersettings.h>
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaencodersettings.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 #include <QtCore/qpair.h>
 

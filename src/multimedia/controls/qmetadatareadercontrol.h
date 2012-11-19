@@ -42,13 +42,13 @@
 #ifndef QMETADATAREADERCONTROL_H
 #define QMETADATAREADERCONTROL_H
 
-#include <qmediacontrol.h>
-#include <qmediaobject.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaobject.h>
 
-#include <qmediaresource.h>
+#include <QtMultimedia/qmediaresource.h>
 
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qmultimedia.h>
 
 QT_BEGIN_HEADER
 

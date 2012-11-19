@@ -44,8 +44,8 @@
 
 #include <QtWidgets/qwidget.h>
 
-#include <qtmultimediawidgetdefs.h>
-#include <qmediabindableinterface.h>
+#include <QtMultimediaWidgets/qtmultimediawidgetdefs.h>
+#include <QtMultimedia/qmediabindableinterface.h>
 
 QT_BEGIN_HEADER
 

@@ -46,7 +46,7 @@
 #include <QtCore/qmetatype.h>
 #include <QtNetwork/qnetworkrequest.h>
 
-#include <qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediadefs.h>
 
 QT_BEGIN_HEADER
 

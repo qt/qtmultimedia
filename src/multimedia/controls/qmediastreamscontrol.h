@@ -43,10 +43,10 @@
 #ifndef QMEDIASTREAMSCONTROL_H
 #define QMEDIASTREAMSCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qmultimedia.h"
-#include "qtmultimediadefs.h"
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmultimedia.h>
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_HEADER
 

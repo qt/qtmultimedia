@@ -42,8 +42,8 @@
 #ifndef QAUDIOINPUTSELECTORCONTROL_H
 #define QAUDIOINPUTSELECTORCONTROL_H
 
-#include <qaudio.h>
-#include <qmediacontrol.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qmediacontrol.h>
 
 QT_BEGIN_HEADER
 

@@ -42,8 +42,8 @@
 #ifndef QCAMERACAPTUREBUFFERFORMATCONTROL_H
 #define QCAMERACAPTUREBUFFERFORMATCONTROL_H
 
-#include <qmediacontrol.h>
-#include <qcameraimagecapture.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qcameraimagecapture.h>
 
 QT_BEGIN_HEADER
 

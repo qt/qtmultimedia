@@ -42,10 +42,10 @@
 #ifndef QCAMERACONTROL_H
 #define QCAMERACONTROL_H
 
-#include <qmediacontrol.h>
-#include <qmediaobject.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaobject.h>
 
-#include <qcamera.h>
+#include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_HEADER
 

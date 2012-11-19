@@ -44,10 +44,10 @@
 
 #include <QtCore/qobject.h>
 
-#include <qmediacontent.h>
-#include <qmediaobject.h>
-#include <qmediabindableinterface.h>
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmediacontent.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 
 QT_BEGIN_HEADER

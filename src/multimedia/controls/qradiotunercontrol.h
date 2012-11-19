@@ -42,8 +42,8 @@
 #ifndef QRADIOTUNERCONTROL_H
 #define QRADIOTUNERCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qradiotuner.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qradiotuner.h>
 
 QT_BEGIN_HEADER
 

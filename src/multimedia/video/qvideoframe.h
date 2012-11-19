@@ -45,7 +45,7 @@
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
 #include <QtGui/qimage.h>
-#include <qabstractvideobuffer.h>
+#include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtCore/qvariant.h>
 
 QT_BEGIN_HEADER

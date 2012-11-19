@@ -42,12 +42,12 @@
 #ifndef QCAMERAIMAGECAPTURE_H
 #define QCAMERAIMAGECAPTURE_H
 
-#include <qmediaobject.h>
-#include <qmediaencodersettings.h>
-#include <qmediabindableinterface.h>
-#include <qvideoframe.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaencodersettings.h>
+#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qvideoframe.h>
 
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_HEADER
 

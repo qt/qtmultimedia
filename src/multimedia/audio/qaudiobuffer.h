@@ -42,13 +42,13 @@
 #ifndef QAUDIOBUFFER_H
 #define QAUDIOBUFFER_H
 
-#include <QSharedDataPointer>
+#include <QtCore/qshareddata.h>
 
-#include <qtmultimediadefs.h>
-#include <qmultimedia.h>
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qmultimedia.h>
 
-#include <qaudio.h>
-#include <qaudioformat.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudioformat.h>
 
 QT_BEGIN_HEADER
 

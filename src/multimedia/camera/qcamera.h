@@ -48,15 +48,15 @@
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
 
-#include <qmediacontrol.h>
-#include <qmediaobject.h>
-#include <qmediaservice.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaservice.h>
 
-#include <qcameraexposure.h>
-#include <qcamerafocus.h>
-#include <qcameraimageprocessing.h>
+#include <QtMultimedia/qcameraexposure.h>
+#include <QtMultimedia/qcamerafocus.h>
+#include <QtMultimedia/qcameraimageprocessing.h>
 
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_HEADER
 

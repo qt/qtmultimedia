@@ -42,8 +42,8 @@
 #ifndef QMEDIATIMERANGE_H
 #define QMEDIATIMERANGE_H
 
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qmultimedia.h>
 #include <QtCore/qshareddata.h>
 
 QT_BEGIN_HEADER

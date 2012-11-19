@@ -42,8 +42,8 @@
 #ifndef QVIDEOENCODERSETTINGSCONTROL_H
 #define QVIDEOENCODERSETTINGSCONTROL_H
 
-#include "qmediacontrol.h"
-#include "qmediarecorder.h"
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediarecorder.h>
 
 #include <QtCore/qpair.h>
 #include <QtCore/qsize.h>

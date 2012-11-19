@@ -42,9 +42,9 @@
 #ifndef QMEDIAPLAYER_H
 #define QMEDIAPLAYER_H
 
-#include "qmediaobject.h"
-#include "qmediacontent.h"
-#include "qmediaenumdebug.h"
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediacontent.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 #include <QtNetwork/qnetworkconfiguration.h>
 

@@ -49,8 +49,8 @@
 #include <QtCore/qrect.h>
 #include <QtCore/qshareddata.h>
 
-#include <qmediaobject.h>
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_HEADER
 

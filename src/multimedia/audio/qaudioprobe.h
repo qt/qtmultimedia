@@ -42,8 +42,8 @@
 #ifndef QAUDIOPROBE_H
 #define QAUDIOPROBE_H
 
-#include <QObject>
-#include <qaudiobuffer.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qaudiobuffer.h>
 
 QT_BEGIN_HEADER
 

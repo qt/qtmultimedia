@@ -48,10 +48,10 @@
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
 
-#include <qmediacontrol.h>
-#include <qmediaobject.h>
-#include <qmediaservice.h>
-#include <qvideowidget.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaservice.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
 
 QT_BEGIN_HEADER
 

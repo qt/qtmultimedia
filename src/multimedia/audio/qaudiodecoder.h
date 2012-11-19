@@ -42,10 +42,10 @@
 #ifndef QAUDIODECODER_H
 #define QAUDIODECODER_H
 
-#include "qmediaobject.h"
-#include "qmediaenumdebug.h"
+#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
-#include "qaudiobuffer.h"
+#include <QtMultimedia/qaudiobuffer.h>
 
 QT_BEGIN_HEADER
 

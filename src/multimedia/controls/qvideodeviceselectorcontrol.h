@@ -42,7 +42,7 @@
 #ifndef QVIDEODEVICESELECTORCONTROL_H
 #define QVIDEODEVICESELECTORCONTROL_H
 
-#include "qmediacontrol.h"
+#include <QtMultimedia/qmediacontrol.h>
 
 QT_BEGIN_HEADER
 

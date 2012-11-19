@@ -42,11 +42,11 @@
 #ifndef QABSTRACTMEDIASERVICE_H
 #define QABSTRACTMEDIASERVICE_H
 
-#include <qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediadefs.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qstringlist.h>
 
-#include "qmediacontrol.h"
+#include <QtMultimedia/qmediacontrol.h>
 
 QT_BEGIN_HEADER
 

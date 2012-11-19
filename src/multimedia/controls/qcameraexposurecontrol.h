@@ -42,12 +42,12 @@
 #ifndef QCAMERAEXPOSURECONTROL_H
 #define QCAMERAEXPOSURECONTROL_H
 
-#include <qmediacontrol.h>
-#include <qmediaobject.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaobject.h>
 
-#include <qcameraexposure.h>
-#include <qcamera.h>
-#include <qmediaenumdebug.h>
+#include <QtMultimedia/qcameraexposure.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_HEADER
 

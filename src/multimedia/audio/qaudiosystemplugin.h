@@ -46,12 +46,12 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qplugin.h>
 
-#include <qtmultimediadefs.h>
-#include <qmultimedia.h>
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qmultimedia.h>
 
-#include "qaudioformat.h"
-#include "qaudiodeviceinfo.h"
-#include "qaudiosystem.h"
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiosystem.h>
 
 QT_BEGIN_HEADER
 

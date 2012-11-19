@@ -42,8 +42,8 @@
 #ifndef QVIDEOWIDGETCONTROL_H
 #define QVIDEOWIDGETCONTROL_H
 
-#include "qvideowidget.h"
-#include "qmediacontrol.h"
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtMultimedia/qmediacontrol.h>
 
 #include <QtWidgets/qwidget.h>
 
