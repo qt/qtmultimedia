@@ -329,7 +329,7 @@ void Evr9VideoWindowControl::setProcAmpValues()
             values.Saturation = scaleProcAmpValue(DXVA2_ProcAmp_Saturation, m_saturation);
         }
 
-        if (SUCCEEDED(m_processor->SetProcAmpValues(0, &values))) {
+        if (SUCCEEDED(m_processor->SetProcAmpValues(m_dirtyValues, &values))) {
             m_dirtyValues = 0;
         }
     }
