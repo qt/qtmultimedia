@@ -1031,22 +1031,8 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
                             //information is ready, GST_MESSAGE_DURATION is not sent by most elements
                             //the duration is queried up to 5 times with increasing delay
                             m_durationQueries = 5;
+                            // This should also update the seekable flag.
                             updateDuration();
-
-                            /*
-                                //gst_element_seek_simple doesn't work reliably here, have to find a better solution
-
-                                GstFormat   format = GST_FORMAT_TIME;
-                                gint64      position = 0;
-                                bool seekable = false;
-                                if (gst_element_query_position(m_playbin, &format, &position)) {
-                                    seekable = gst_element_seek_simple(m_playbin, format, GST_SEEK_FLAG_NONE, position);
-                                }
-
-                                setSeekable(seekable);
-                                */
-
-                            setSeekable(true);
 
                             if (!qFuzzyCompare(m_playbackRate, qreal(1.0))) {
                                 qreal rate = m_playbackRate;
@@ -1401,8 +1387,15 @@ void QGstreamerPlayerSession::updateDuration()
         emit durationChanged(m_duration);
     }
 
-    if (m_duration > 0)
+    gboolean seekable = false;
+    if (m_duration > 0) {
         m_durationQueries = 0;
+        GstQuery *query = gst_query_new_seeking(GST_FORMAT_TIME);
+        if (gst_element_query(m_playbin, query))
+            gst_query_parse_seeking(query, 0, &seekable, 0, 0);
+        gst_query_unref(query);
+    }
+    setSeekable(seekable);
 
     if (m_durationQueries > 0) {
         //increase delay between duration requests
