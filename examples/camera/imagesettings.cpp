@@ -41,11 +41,10 @@
 #include "imagesettings.h"
 #include "ui_imagesettings.h"
 
-#include <QtWidgets/qcombobox.h>
-#include <QtCore/qdebug.h>
-#include <qcameraimagecapture.h>
-#include <qmediaservice.h>
-
+#include <QComboBox>
+#include <QDebug>
+#include <QCameraImageCapture>
+#include <QMediaService>
 
 
 ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent) :
@@ -117,7 +116,7 @@ QVariant ImageSettings::boxValue(const QComboBox *box) const
 
 void ImageSettings::selectComboBoxItem(QComboBox *box, const QVariant &value)
 {
-    for (int i=0; i<box->count(); i++) {
+    for (int i = 0; i < box->count(); ++i) {
         if (box->itemData(i) == value) {
             box->setCurrentIndex(i);
             break;

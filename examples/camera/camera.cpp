@@ -43,13 +43,12 @@
 #include "videosettings.h"
 #include "imagesettings.h"
 
-#include <qmediaservice.h>
-#include <qmediarecorder.h>
-#include <qcamera.h>
-#include <qcameraviewfinder.h>
+#include <QMediaService>
+#include <QMediaRecorder>
+#include <QCameraViewfinder>
 
-#include <qmessagebox.h>
-#include <qpalette.h>
+#include <QMessageBox>
+#include <QPalette>
 
 #include <QtWidgets>
 
@@ -85,7 +84,7 @@ Camera::Camera(QWidget *parent) :
         ui->menuDevices->addAction(videoDeviceAction);
     }
 
-    connect(videoDevicesGroup, SIGNAL(triggered(QAction*)), this, SLOT(updateCameraDevice(QAction*)));
+    connect(videoDevicesGroup, SIGNAL(triggered(QAction*)), SLOT(updateCameraDevice(QAction*)));
     connect(ui->captureWidget, SIGNAL(currentChanged(int)), SLOT(updateCaptureMode()));
 
 #ifdef HAVE_CAMERA_BUTTONS
@@ -154,7 +153,6 @@ void Camera::keyPressEvent(QKeyEvent * event)
         return;
 
     switch (event->key()) {
-#if QT_VERSION >= 0x040700
     case Qt::Key_CameraFocus:
         displayViewfinder();
         camera->searchAndLock();
@@ -171,23 +169,20 @@ void Camera::keyPressEvent(QKeyEvent * event)
         }
         event->accept();
         break;
-#endif
     default:
         QMainWindow::keyPressEvent(event);
     }
 }
 
-void Camera::keyReleaseEvent(QKeyEvent * event)
+void Camera::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->isAutoRepeat())
         return;
 
     switch (event->key()) {
-#if QT_VERSION >= 0x040700
     case Qt::Key_CameraFocus:
         camera->unlock();
         break;
-#endif
     default:
         QMainWindow::keyReleaseEvent(event);
     }
@@ -207,7 +202,8 @@ void Camera::processCapturedImage(int requestId, const QImage& img)
                                     Qt::SmoothTransformation);
 
     ui->lastImagePreviewLabel->setPixmap(QPixmap::fromImage(scaledImage));
-    //display captured image for 4 seconds
+
+    // Display captured image for 4 seconds.
     displayCapturedImage();
     QTimer::singleShot(4000, this, SLOT(displayViewfinder()));
 }
@@ -319,7 +315,6 @@ void Camera::updateLockStatus(QCamera::LockStatus status, QCamera::LockChangeRea
 }
 
 void Camera::takeImage()
-
 {
     isCapturingImage = true;
     imageCapture->capture();

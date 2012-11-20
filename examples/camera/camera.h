@@ -41,25 +41,20 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <qcamera.h>
-#include <qmediarecorder.h>
-#include <qcameraimagecapture.h>
-
-QT_BEGIN_NAMESPACE
-namespace Ui {
-    class Camera;
-}
-class QCameraViewfinder;
-QT_END_NAMESPACE
+#include <QCamera>
+#include <QCameraImageCapture>
+#include <QMediaRecorder>
 
 #include <QMainWindow>
-#include <QDir>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
+namespace Ui { class Camera; }
+QT_END_NAMESPACE
 
 class Camera : public QMainWindow
 {
     Q_OBJECT
+
 public:
     Camera(QWidget *parent = 0);
     ~Camera();
@@ -85,7 +80,7 @@ private slots:
     void displayRecorderError();
     void displayCameraError();
 
-    void updateCameraDevice(QAction*);
+    void updateCameraDevice(QAction *action);
 
     void updateCameraState(QCamera::State);
     void updateCaptureMode();
@@ -94,19 +89,19 @@ private slots:
 
     void updateRecordTime();
 
-    void processCapturedImage(int requestId, const QImage& img);
+    void processCapturedImage(int requestId, const QImage &img);
     void updateLockStatus(QCamera::LockStatus, QCamera::LockChangeReason);
 
     void displayViewfinder();
     void displayCapturedImage();
 
-    void readyForCapture(bool);
-    void imageSaved(int, const QString&);
+    void readyForCapture(bool ready);
+    void imageSaved(int id, const QString &fileName);
 
 protected:
-    void keyPressEvent(QKeyEvent * event);
-    void keyReleaseEvent(QKeyEvent * event);
-    void closeEvent(QCloseEvent *event );
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::Camera *ui;

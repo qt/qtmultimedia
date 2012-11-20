@@ -41,22 +41,20 @@
 #ifndef VIDEOSETTINGS_H
 #define VIDEOSETTINGS_H
 
-#include <QtWidgets/QDialog>
-#include <qmediaencodersettings.h>
+#include <QDialog>
+#include <QAudioEncoderSettings>
+#include <QVideoEncoderSettings>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;
-namespace Ui {
-    class VideoSettingsUi;
-}
-
 class QMediaRecorder;
+namespace Ui { class VideoSettingsUi; }
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
-
-class VideoSettings : public QDialog {
+class VideoSettings : public QDialog
+{
     Q_OBJECT
+
 public:
     VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent = 0);
     ~VideoSettings();
