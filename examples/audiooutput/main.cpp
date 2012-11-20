@@ -38,14 +38,13 @@
 **
 ****************************************************************************/
 
-
-#include <QtWidgets>
+#include <QApplication>
 
 #include "audiooutput.h"
 
-int main(int argv, char **args)
+int main(int argc, char *argv[])
 {
-    QApplication app(argv, args);
+    QApplication app(argc, argv);
     app.setApplicationName("Audio Output Test");
 
     AudioTest audio;

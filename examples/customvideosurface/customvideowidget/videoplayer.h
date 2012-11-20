@@ -41,10 +41,9 @@
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
-#include <qmediaplayer.h>
-
-#include <QtGui/QMovie>
-#include <QtWidgets/QWidget>
+#include <QMediaPlayer>
+#include <QMovie>
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAbstractButton;
@@ -54,6 +53,7 @@ QT_END_NAMESPACE
 class VideoPlayer : public QWidget
 {
     Q_OBJECT
+
 public:
     VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
@@ -74,4 +74,4 @@ private:
     QSlider *positionSlider;
 };
 
-#endif
+#endif // VIDEOPLAYER_H

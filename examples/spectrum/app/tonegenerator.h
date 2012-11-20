@@ -41,11 +41,13 @@
 #ifndef TONEGENERATOR_H
 #define TONEGENERATOR_H
 
-#include <QtCore/qglobal.h>
+#include <qglobal.h>
 #include "spectrum.h"
 
-QT_FORWARD_DECLARE_CLASS(QAudioFormat)
-QT_FORWARD_DECLARE_CLASS(QByteArray)
+QT_BEGIN_NAMESPACE
+class QAudioFormat;
+class QByteArray;
+QT_END_NAMESPACE
 
 /**
  * Generate a sine wave

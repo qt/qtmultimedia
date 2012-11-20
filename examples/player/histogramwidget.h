@@ -41,13 +41,12 @@
 #ifndef HISTOGRAMWIDGET_H
 #define HISTOGRAMWIDGET_H
 
-#include <QWidget>
-#include <qvideoframe.h>
 #include <QThread>
+#include <QVideoFrame>
+#include <QWidget>
 
-QT_USE_NAMESPACE
-
-class FrameProcessor: public QObject {
+class FrameProcessor: public QObject
+{
     Q_OBJECT
 
 public slots:
@@ -60,6 +59,7 @@ signals:
 class HistogramWidget : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit HistogramWidget(QWidget *parent = 0);
     ~HistogramWidget();

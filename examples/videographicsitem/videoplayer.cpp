@@ -41,11 +41,11 @@
 #include "videoplayer.h"
 
 #include <QtWidgets>
-#include <qvideosurfaceformat.h>
-#include <qgraphicsvideoitem.h>
+#include <QVideoSurfaceFormat>
+#include <QGraphicsVideoItem>
 
-VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags flags)
-    : QWidget(parent, flags)
+VideoPlayer::VideoPlayer(QWidget *parent)
+    : QWidget(parent)
     , mediaPlayer(0, QMediaPlayer::VideoSurface)
     , videoItem(0)
     , playButton(0)

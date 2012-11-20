@@ -42,16 +42,7 @@
 #define RADIO_H
 
 #include <QtWidgets>
-
-#include <qradiotuner.h>
-
-QT_BEGIN_NAMESPACE
-class QLabel;
-class QPushButton;
-class QSlider;
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
+#include <QRadioTuner>
 
 class Radio : public QMainWindow
 {
@@ -71,14 +62,14 @@ public slots:
     void error(QRadioTuner::Error error);
 
 private:
-    QLabel* freq;
-    QLabel* signal;
-    QPushButton* left;
-    QPushButton* right;
-    QPushButton* searchLeft;
-    QPushButton* searchRight;
-    QSlider* volumeSlider;
-    QRadioTuner* radio;
+    QLabel *freq;
+    QLabel *signal;
+    QPushButton *left;
+    QPushButton *right;
+    QPushButton *searchLeft;
+    QPushButton *searchRight;
+    QSlider *volumeSlider;
+    QRadioTuner *radio;
 };
 
-#endif
+#endif // RADIO_H

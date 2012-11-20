@@ -41,28 +41,21 @@
 #ifndef AUDIORECORDER_H
 #define AUDIORECORDER_H
 
-#include <QtCore/qurl.h>
-#include <QtWidgets/qmainwindow.h>
-
-#include <qmediarecorder.h>
-
+#include <QMainWindow>
+#include <QMediaRecorder>
+#include <QUrl>
 
 QT_BEGIN_NAMESPACE
-
-namespace Ui {
-    class AudioRecorder;
-}
-
+namespace Ui { class AudioRecorder; }
 class QAudioRecorder;
 class QAudioProbe;
 class QAudioBuffer;
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
-
 class AudioRecorder : public QMainWindow
 {
     Q_OBJECT
+
 public:
     AudioRecorder(QWidget *parent = 0);
     ~AudioRecorder();
@@ -81,18 +74,12 @@ private slots:
     QUrl generateAudioFilePath();
 
 private:
-    static qreal GetPeakValue(const QAudioFormat& format);
-    static qreal GetBufferLevel(const QAudioBuffer& buffer);
-
-    template <class T>
-    static qreal GetBufferLevel(const T* buffer, int samples);
-
     Ui::AudioRecorder *ui;
 
-    QAudioRecorder* audioRecorder;
-    QAudioProbe* probe;
+    QAudioRecorder *audioRecorder;
+    QAudioProbe *probe;
     bool outputLocationSet;
 
 };
 
-#endif
+#endif // AUDIORECORDER_H

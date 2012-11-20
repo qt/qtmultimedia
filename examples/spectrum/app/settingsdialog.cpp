@@ -39,14 +39,14 @@
 ****************************************************************************/
 
 #include "settingsdialog.h"
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QVBoxLayout>
-#include <QCheckBox>
 #include <QSlider>
 #include <QSpinBox>
+#include <QVBoxLayout>
 
 SettingsDialog::SettingsDialog(
             const QList<QAudioDeviceInfo> &availableInputDevices,

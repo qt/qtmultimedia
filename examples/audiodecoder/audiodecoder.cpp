@@ -39,7 +39,7 @@
 ****************************************************************************/
 
 #include "audiodecoder.h"
-#include <iostream>
+#include <stdio.h>
 
 AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
     : m_cout(stdout, QIODevice::WriteOnly)

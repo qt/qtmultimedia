@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = audioinput
 
-QT += multimedia
+QT += multimedia widgets
 
 HEADERS       = audioinput.h
 
@@ -13,5 +13,3 @@ sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/audioinput
 
 INSTALLS += target sources
-
-QT+=widgets

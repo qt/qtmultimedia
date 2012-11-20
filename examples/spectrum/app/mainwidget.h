@@ -41,33 +41,37 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
-#include <QWidget>
+#include <QAudio>
 #include <QIcon>
-#include <QtMultimedia/qaudio.h>
+#include <QWidget>
 
 class Engine;
 class FrequencySpectrum;
-class ProgressBar;
-class Spectrograph;
-class Waveform;
 class LevelMeter;
+class ProgressBar;
 class SettingsDialog;
+class Spectrograph;
 class ToneGeneratorDialog;
+class Waveform;
 
-QT_FORWARD_DECLARE_CLASS(QAudioFormat)
-QT_FORWARD_DECLARE_CLASS(QLabel)
-QT_FORWARD_DECLARE_CLASS(QPushButton)
-QT_FORWARD_DECLARE_CLASS(QMenu)
-QT_FORWARD_DECLARE_CLASS(QAction)
+QT_BEGIN_NAMESPACE
+class QAction;
+class QAudioFormat;
+class QLabel;
+class QMenu;
+class QPushButton;
+QT_END_NAMESPACE
 
 /**
  * Main application widget, responsible for connecting the various UI
  * elements to the Engine.
  */
-class MainWidget : public QWidget {
+class MainWidget : public QWidget
+{
     Q_OBJECT
+
 public:
-    MainWidget(QWidget *parent = 0);
+    explicit MainWidget(QWidget *parent = 0);
     ~MainWidget();
 
     // QObject
@@ -138,7 +142,6 @@ private:
     QAction*                m_loadFileAction;
     QAction*                m_generateToneAction;
     QAction*                m_recordAction;
-
 };
 
 #endif // MAINWIDGET_H

@@ -1,12 +1,11 @@
 TEMPLATE = app
 TARGET = player
 
-CONFIG += qt warn_on
-
 QT += network \
       xml \
       multimedia \
-      multimediawidgets
+      multimediawidgets \
+      widgets
 
 HEADERS = \
     player.h \
@@ -25,10 +24,7 @@ maemo* {
     DEFINES += PLAYER_NO_COLOROPTIONS
 }
 
-#install
 target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/player
 sources.files = $$SOURCES $HEADERS $$RESOURCES $$FORMS *.pro
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/player
 INSTALLS += target sources
-
-QT+=widgets

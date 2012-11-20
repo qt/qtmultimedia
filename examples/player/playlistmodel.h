@@ -41,18 +41,16 @@
 #ifndef PLAYLISTMODEL_H
 #define PLAYLISTMODEL_H
 
-#include <qtmultimediadefs.h>
-#include <QtCore/qabstractitemmodel.h>
+#include <QAbstractItemModel>
 
 QT_BEGIN_NAMESPACE
 class QMediaPlaylist;
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
-
 class PlaylistModel : public QAbstractItemModel
 {
     Q_OBJECT
+
 public:
     enum Column
     {
@@ -87,4 +85,4 @@ private:
     QMap<QModelIndex, QVariant> m_data;
 };
 
-#endif
+#endif // PLAYLISTMODEL_H

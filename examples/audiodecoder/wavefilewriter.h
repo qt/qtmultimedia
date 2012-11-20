@@ -41,24 +41,25 @@
 #ifndef WAVEFILEWRITER_H
 #define WAVEFILEWRITER_H
 
+#include <QAudioBuffer>
+#include <QFile>
 #include <QObject>
-#include <qfile.h>
-#include <qaudiobuffer.h>
 
 class WaveFileWriter : public QObject
 {
     Q_OBJECT
+
 public:
     explicit WaveFileWriter(QObject *parent = 0);
     ~WaveFileWriter();
 
-    bool open(const QString& fileName, const QAudioFormat& format);
-    bool write(const QAudioBuffer& buffer);
+    bool open(const QString &fileName, const QAudioFormat &format);
+    bool write(const QAudioBuffer &buffer);
     bool close();
     bool isOpen() const { return file.isOpen(); }
 
 private:
-    bool writeHeader(const QAudioFormat& format);
+    bool writeHeader(const QAudioFormat &format);
     bool writeDataLength();
 
     QFile file;

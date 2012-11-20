@@ -42,21 +42,25 @@
 #define TONEGENERATORDIALOG_H
 
 #include "spectrum.h"
+#include <QAudioDeviceInfo>
 #include <QDialog>
-#include <QtMultimedia/QAudioDeviceInfo>
 
-QT_FORWARD_DECLARE_CLASS(QCheckBox)
-QT_FORWARD_DECLARE_CLASS(QSlider)
-QT_FORWARD_DECLARE_CLASS(QSpinBox)
-QT_FORWARD_DECLARE_CLASS(QGridLayout)
+QT_BEGIN_NAMESPACE
+class QCheckBox;
+class QSlider;
+class QSpinBox;
+class QGridLayout;
+QT_END_NAMESPACE
 
 /**
  * Dialog which controls the parameters of the tone generator.
  */
-class ToneGeneratorDialog : public QDialog {
+class ToneGeneratorDialog : public QDialog
+{
     Q_OBJECT
+
 public:
-    ToneGeneratorDialog(QWidget *parent = 0);
+    explicit ToneGeneratorDialog(QWidget *parent = 0);
     ~ToneGeneratorDialog();
 
     bool isFrequencySweepEnabled() const;
@@ -67,15 +71,14 @@ private slots:
     void frequencySweepEnabled(bool enabled);
 
 private:
-    QCheckBox*      m_toneGeneratorSweepCheckBox;
-    bool            m_frequencySweepEnabled;
-    QWidget*        m_toneGeneratorControl;
-    QWidget*        m_toneGeneratorFrequencyControl;
-    QSlider*        m_frequencySlider;
-    QSpinBox*       m_frequencySpinBox;
-    qreal           m_frequency;
-    QSlider*        m_amplitudeSlider;
-
+    QCheckBox *m_toneGeneratorSweepCheckBox;
+    bool m_frequencySweepEnabled;
+    QWidget *m_toneGeneratorControl;
+    QWidget *m_toneGeneratorFrequencyControl;
+    QSlider *m_frequencySlider;
+    QSpinBox *m_frequencySpinBox;
+    qreal m_frequency;
+    QSlider *m_amplitudeSlider;
 };
 
 #endif // TONEGENERATORDIALOG_H

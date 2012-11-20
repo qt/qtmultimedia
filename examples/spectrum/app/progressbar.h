@@ -47,10 +47,12 @@
  * Widget which displays a the current fill state of the Engine's internal
  * buffer, and the current play/record position within that buffer.
  */
-class ProgressBar : public QWidget {
+class ProgressBar : public QWidget
+{
     Q_OBJECT
+
 public:
-    ProgressBar(QWidget *parent = 0);
+    explicit ProgressBar(QWidget *parent = 0);
     ~ProgressBar();
 
     void reset();
@@ -68,7 +70,6 @@ private:
     qint64 m_playPosition;
     qint64 m_windowPosition;
     qint64 m_windowLength;
-
 };
 
 #endif // PROGRESSBAR_H

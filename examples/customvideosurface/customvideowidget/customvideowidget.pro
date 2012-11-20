@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = customvideowidget
 
-QT += multimedia multimediawidgets
+QT += multimedia multimediawidgets widgets
 
 HEADERS = \
     videoplayer.h \
@@ -19,5 +19,3 @@ sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/customvideowidget
 
 INSTALLS += target sources
-
-QT+=widgets

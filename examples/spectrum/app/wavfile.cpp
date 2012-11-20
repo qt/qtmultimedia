@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qendian.h>
+#include <qendian.h>
 #include <QVector>
 #include <QDebug>
 #include "utils.h"

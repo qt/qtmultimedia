@@ -41,19 +41,20 @@
 #ifndef SPECTROGRAPH_H
 #define SPECTROGRAPH_H
 
-#include <QWidget>
 #include "frequencyspectrum.h"
 
-QT_FORWARD_DECLARE_CLASS(QMouseEvent)
+#include <QWidget>
 
 /**
  * Widget which displays a spectrograph showing the frequency spectrum
  * of the window of audio samples most recently analyzed by the Engine.
  */
-class Spectrograph : public QWidget {
+class Spectrograph : public QWidget
+{
     Q_OBJECT
+
 public:
-    Spectrograph(QWidget *parent = 0);
+    explicit Spectrograph(QWidget *parent = 0);
     ~Spectrograph();
 
     void setParams(int numBars, qreal lowFreq, qreal highFreq);
@@ -92,8 +93,6 @@ private:
     qreal               m_lowFreq;
     qreal               m_highFreq;
     FrequencySpectrum   m_spectrum;
-
-
 };
 
 #endif // SPECTROGRAPH_H

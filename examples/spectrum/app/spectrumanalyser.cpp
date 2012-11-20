@@ -40,13 +40,12 @@
 
 #include "spectrumanalyser.h"
 #include "utils.h"
-
-#include <QtCore/qmath.h>
-#include <QtCore/qmetatype.h>
-#include <QtMultimedia/QAudioFormat>
-#include <QThread>
-
 #include "fftreal_wrapper.h"
+
+#include <qmath.h>
+#include <qmetatype.h>
+#include <QAudioFormat>
+#include <QThread>
 
 SpectrumAnalyserThread::SpectrumAnalyserThread(QObject *parent)
     :   QObject(parent)
@@ -275,7 +274,3 @@ void SpectrumAnalyser::calculationComplete(const FrequencySpectrum &spectrum)
         emit spectrumChanged(spectrum);
     m_state = Idle;
 }
-
-
-
-

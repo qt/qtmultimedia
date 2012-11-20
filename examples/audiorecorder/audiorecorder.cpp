@@ -38,12 +38,11 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qdir.h>
-#include <QtWidgets/qfiledialog.h>
-
-#include <qaudiorecorder.h>
-#include <qmediarecorder.h>
-#include <qaudioprobe.h>
+#include <QAudioProbe>
+#include <QAudioRecorder>
+#include <QDir>
+#include <QFileDialog>
+#include <QMediaRecorder>
 
 #include "audiorecorder.h"
 
@@ -53,8 +52,13 @@
 #include "ui_audiorecorder.h"
 #endif
 
-AudioRecorder::AudioRecorder(QWidget *parent)
-    :
+static qreal getPeakValue(const QAudioFormat &format);
+static qreal getBufferLevel(const QAudioBuffer &buffer);
+
+template <class T>
+static qreal getBufferLevel(const T *buffer, int samples);
+
+AudioRecorder::AudioRecorder(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::AudioRecorder),
     outputLocationSet(false)
@@ -63,7 +67,7 @@ AudioRecorder::AudioRecorder(QWidget *parent)
 
     audioRecorder = new QAudioRecorder(this);
     probe = new QAudioProbe;
-    connect(probe, SIGNAL(audioBufferProbed(const QAudioBuffer&)), this, SLOT(processBuffer(QAudioBuffer)));
+    connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
     probe->setSource(audioRecorder);
 
     //audio devices
@@ -216,19 +220,20 @@ QUrl AudioRecorder::generateAudioFilePath()
 
     int lastImage = 0;
     int fileCount = 0;
-    foreach(QString fileName, outputDir.entryList(QStringList() << "testclip_*")) {
+    foreach (const QString &fileName, outputDir.entryList(QStringList(QString("testclip_*")))) {
         int imgNumber = fileName.mid(5, fileName.size() - 9).toInt();
         lastImage = qMax(lastImage, imgNumber);
         if (outputDir.exists(fileName))
             fileCount += 1;
     }
     lastImage += fileCount;
-    QUrl location(QDir::toNativeSeparators(outputDir.canonicalPath() + QString("/testclip_%1").arg(lastImage + 1, 4, 10, QLatin1Char('0'))));
+    QUrl location(QDir::toNativeSeparators(outputDir.canonicalPath()
+        + QString("/testclip_%1").arg(lastImage + 1, 4, 10, QLatin1Char('0'))));
     return location;
 }
 
 // This function returns the maximum possible sample value for a given audio format
-qreal AudioRecorder::GetPeakValue(const QAudioFormat& format)
+qreal getPeakValue(const QAudioFormat& format)
 {
     // Note: Only the most common sample formats are supported
     if (!format.isValid())
@@ -247,9 +252,9 @@ qreal AudioRecorder::GetPeakValue(const QAudioFormat& format)
     case QAudioFormat::SignedInt:
         if (format.sampleSize() == 32)
             return 2147483648.0;
-        else if (format.sampleSize() == 16)
+        if (format.sampleSize() == 16)
             return 32768.0;
-        else if (format.sampleSize() == 8)
+        if (format.sampleSize() == 8)
             return 128.0;
         break;
     case QAudioFormat::UnSignedInt:
@@ -260,7 +265,7 @@ qreal AudioRecorder::GetPeakValue(const QAudioFormat& format)
     return 0.0;
 }
 
-qreal AudioRecorder::GetBufferLevel(const QAudioBuffer& buffer)
+qreal getBufferLevel(const QAudioBuffer& buffer)
 {
     if (!buffer.format().isValid() || buffer.format().byteOrder() != QAudioFormat::LittleEndian)
         return 0.0;
@@ -268,7 +273,7 @@ qreal AudioRecorder::GetBufferLevel(const QAudioBuffer& buffer)
     if (buffer.format().codec() != "audio/pcm")
         return 0.0;
 
-    qreal peak_value = GetPeakValue(buffer.format());
+    qreal peak_value = getPeakValue(buffer.format());
     if (qFuzzyCompare(peak_value, 0.0))
         return 0.0;
 
@@ -278,15 +283,15 @@ qreal AudioRecorder::GetBufferLevel(const QAudioBuffer& buffer)
         break;
     case QAudioFormat::Float:
         if (buffer.format().sampleSize() == 32)
-            return GetBufferLevel(buffer.constData<float>(), buffer.sampleCount()) / peak_value;
+            return getBufferLevel(buffer.constData<float>(), buffer.sampleCount()) / peak_value;
         break;
     case QAudioFormat::SignedInt:
         if (buffer.format().sampleSize() == 32)
-            return GetBufferLevel(buffer.constData<long int>(), buffer.sampleCount()) / peak_value;
-        else if (buffer.format().sampleSize() == 16)
-            return GetBufferLevel(buffer.constData<short int>(), buffer.sampleCount()) / peak_value;
-        else if (buffer.format().sampleSize() == 8)
-            return GetBufferLevel(buffer.constData<signed char>(), buffer.sampleCount()) / peak_value;
+            return getBufferLevel(buffer.constData<long int>(), buffer.sampleCount()) / peak_value;
+        if (buffer.format().sampleSize() == 16)
+            return getBufferLevel(buffer.constData<short int>(), buffer.sampleCount()) / peak_value;
+        if (buffer.format().sampleSize() == 8)
+            return getBufferLevel(buffer.constData<signed char>(), buffer.sampleCount()) / peak_value;
         break;
     }
 
@@ -294,12 +299,12 @@ qreal AudioRecorder::GetBufferLevel(const QAudioBuffer& buffer)
 }
 
 template <class T>
-qreal AudioRecorder::GetBufferLevel(const T* buffer, int samples)
+qreal getBufferLevel(const T *buffer, int samples)
 {
     qreal max_value = 0.0;
 
-    for (int i = 0; i < samples; i++) {
-        qreal value = qAbs((qreal)buffer[i]);
+    for (int i = 0; i < samples; ++i) {
+        qreal value = qAbs(qreal(buffer[i]));
         if (value > max_value)
             max_value = value;
     }
@@ -309,6 +314,6 @@ qreal AudioRecorder::GetBufferLevel(const T* buffer, int samples)
 
 void AudioRecorder::processBuffer(const QAudioBuffer& buffer)
 {
-    qreal level = GetBufferLevel(buffer);
+    qreal level = getBufferLevel(buffer);
     ui->audioLevel->setLevel(level);
 }

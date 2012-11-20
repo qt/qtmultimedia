@@ -77,26 +77,23 @@ ToneGeneratorDialog::ToneGeneratorDialog(QWidget *parent)
     m_amplitudeSlider->setValue(ToneGeneratorAmplitudeDefault);
 
     // Add widgets to layout
-
-    QScopedPointer<QGridLayout> frequencyControlLayout(new QGridLayout);
+    QGridLayout *frequencyControlLayout = new QGridLayout;
     QLabel *frequencyLabel = new QLabel(tr("Frequency (Hz)"), this);
     frequencyControlLayout->addWidget(frequencyLabel, 0, 0, 2, 1);
     frequencyControlLayout->addWidget(m_frequencySlider, 0, 1);
     frequencyControlLayout->addWidget(m_frequencySpinBox, 1, 1);
-    m_toneGeneratorFrequencyControl->setLayout(frequencyControlLayout.data());
-    frequencyControlLayout.take(); // ownership transferred to m_toneGeneratorFrequencyControl
+    m_toneGeneratorFrequencyControl->setLayout(frequencyControlLayout);
     m_toneGeneratorFrequencyControl->setEnabled(false);
 
-    QScopedPointer<QGridLayout> toneGeneratorLayout(new QGridLayout);
+    QGridLayout *toneGeneratorLayout = new QGridLayout;
     QLabel *amplitudeLabel = new QLabel(tr("Amplitude"), this);
     toneGeneratorLayout->addWidget(m_toneGeneratorSweepCheckBox, 0, 1);
     toneGeneratorLayout->addWidget(m_toneGeneratorFrequencyControl, 1, 0, 1, 2);
     toneGeneratorLayout->addWidget(amplitudeLabel, 2, 0);
     toneGeneratorLayout->addWidget(m_amplitudeSlider, 2, 1);
-    m_toneGeneratorControl->setLayout(toneGeneratorLayout.data());
+    m_toneGeneratorControl->setLayout(toneGeneratorLayout);
     m_toneGeneratorControl->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     dialogLayout->addWidget(m_toneGeneratorControl);
-    toneGeneratorLayout.take(); // ownership transferred
 
     // Connect
     CHECKED_CONNECT(m_toneGeneratorSweepCheckBox, SIGNAL(toggled(bool)),

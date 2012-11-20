@@ -41,16 +41,16 @@
 #ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
-#include <qaudiodecoder.h>
 #include "wavefilewriter.h"
+
+#include <QAudioDecoder>
 #include <QSoundEffect>
 #include <QTextStream>
-
-QT_USE_NAMESPACE
 
 class AudioDecoder : public QObject
 {
     Q_OBJECT
+
 public:
     AudioDecoder(bool isPlayback, bool isDelete);
     ~AudioDecoder() { }
@@ -61,7 +61,7 @@ public:
 
     void setTargetFilename(const QString &fileName);
 
-Q_SIGNALS:
+signals:
     void done();
 
 public slots:

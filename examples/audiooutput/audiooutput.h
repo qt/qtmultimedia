@@ -43,21 +43,21 @@
 
 #include <math.h>
 
-#include <QObject>
-#include <QMainWindow>
-#include <QLabel>
-#include <QSlider>
-#include <QIODevice>
-#include <QTimer>
-#include <QPushButton>
-#include <QComboBox>
+#include <QAudioOutput>
 #include <QByteArray>
-
-#include <qaudiooutput.h>
+#include <QComboBox>
+#include <QIODevice>
+#include <QLabel>
+#include <QMainWindow>
+#include <QObject>
+#include <QPushButton>
+#include <QSlider>
+#include <QTimer>
 
 class Generator : public QIODevice
 {
     Q_OBJECT
+
 public:
     Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate, QObject *parent);
     ~Generator();
@@ -80,6 +80,7 @@ private:
 class AudioTest : public QMainWindow
 {
     Q_OBJECT
+
 public:
     AudioTest();
     ~AudioTest();
@@ -90,23 +91,24 @@ private:
     void createAudioOutput();
 
 private:
-    QTimer*          m_pullTimer;
+    QTimer *m_pullTimer;
 
     // Owned by layout
-    QPushButton*     m_modeButton;
-    QPushButton*     m_suspendResumeButton;
-    QComboBox*       m_deviceBox;
-    QLabel*          m_volumeLabel;
-    QSlider*         m_volumeSlider;
+    QPushButton *m_modeButton;
+    QPushButton *m_suspendResumeButton;
+    QComboBox *m_deviceBox;
+    QLabel *m_volumeLabel;
+    QSlider *m_volumeSlider;
 
     QAudioDeviceInfo m_device;
-    Generator*       m_generator;
-    QAudioOutput*    m_audioOutput;
-    QIODevice*       m_output; // not owned
-    QAudioFormat     m_format;
+    Generator *m_generator;
+    QAudioOutput *m_audioOutput;
+    QIODevice *m_output; // not owned
+    QAudioFormat m_format;
 
-    bool             m_pullMode;
-    QByteArray       m_buffer;
+    bool m_pullMode;
+    QByteArray m_buffer;
+
 private slots:
     void notified();
     void pullTimerExpired();
@@ -117,5 +119,4 @@ private slots:
     void volumeChanged(int);
 };
 
-#endif
-
+#endif // AUDIOOUTPUT_H

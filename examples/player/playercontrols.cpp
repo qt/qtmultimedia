@@ -40,11 +40,11 @@
 
 #include "playercontrols.h"
 
-#include <QtWidgets/qboxlayout.h>
-#include <QtWidgets/qslider.h>
-#include <QtWidgets/qstyle.h>
-#include <QtWidgets/qtoolbutton.h>
-#include <QtWidgets/qcombobox.h>
+#include <QBoxLayout>
+#include <QSlider>
+#include <QStyle>
+#include <QToolButton>
+#include <QComboBox>
 
 PlayerControls::PlayerControls(QWidget *parent)
     : QWidget(parent)
@@ -89,7 +89,6 @@ PlayerControls::PlayerControls(QWidget *parent)
 
     connect(volumeSlider, SIGNAL(sliderMoved(int)), this, SIGNAL(changeVolume(int)));
 
-
     rateBox = new QComboBox(this);
     rateBox->addItem("0.5x", QVariant(0.5));
     rateBox->addItem("1.0x", QVariant(1.0));
@@ -105,11 +104,8 @@ PlayerControls::PlayerControls(QWidget *parent)
     layout->addWidget(playButton);
     layout->addWidget(nextButton);
     layout->addWidget(muteButton);
-    if (volumeSlider)
-        layout->addWidget(volumeSlider);
-
-    if (rateBox)
-        layout->addWidget(rateBox);
+    layout->addWidget(volumeSlider);
+    layout->addWidget(rateBox);
     setLayout(layout);
 }
 
@@ -192,15 +188,15 @@ qreal PlayerControls::playbackRate() const
 
 void PlayerControls::setPlaybackRate(float rate)
 {
-    for (int i=0; i<rateBox->count(); i++) {
+    for (int i = 0; i < rateBox->count(); ++i) {
         if (qFuzzyCompare(rate, float(rateBox->itemData(i).toDouble()))) {
             rateBox->setCurrentIndex(i);
             return;
         }
     }
 
-    rateBox->addItem( QString("%1x").arg(rate), QVariant(rate));
-    rateBox->setCurrentIndex(rateBox->count()-1);
+    rateBox->addItem(QString("%1x").arg(rate), QVariant(rate));
+    rateBox->setCurrentIndex(rateBox->count() - 1);
 }
 
 void PlayerControls::updateRate()

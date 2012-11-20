@@ -38,13 +38,12 @@
 **
 ****************************************************************************/
 
-
 #ifndef WAVFILE_H
 #define WAVFILE_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qfile.h>
-#include <QtMultimedia/qaudioformat.h>
+#include <QObject>
+#include <QFile>
+#include <QAudioFormat>
 
 class WavFile : public QFile
 {
@@ -62,8 +61,6 @@ private:
 private:
     QAudioFormat m_fileFormat;
     qint64 m_headerLength;
-
 };
 
-#endif
-
+#endif // WAVFILE_H

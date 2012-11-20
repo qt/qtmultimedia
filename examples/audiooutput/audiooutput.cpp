@@ -38,13 +38,13 @@
 **
 ****************************************************************************/
 
+#include <QAudioDeviceInfo>
+#include <QAudioOutput>
 #include <QDebug>
 #include <QVBoxLayout>
+#include <qmath.h>
+#include <qendian.h>
 
-#include <qaudiooutput.h>
-#include <qaudiodeviceinfo.h>
-#include <QtCore/qmath.h>
-#include <QtCore/qendian.h>
 #include "audiooutput.h"
 
 #define PUSH_MODE_LABEL "Enable push mode"

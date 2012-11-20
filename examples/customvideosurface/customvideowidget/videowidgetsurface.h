@@ -41,15 +41,16 @@
 #ifndef VIDEOWIDGETSURFACE_H
 #define VIDEOWIDGETSURFACE_H
 
-#include <QtCore/QRect>
-#include <QtGui/QImage>
-#include <qabstractvideosurface.h>
-#include <qvideoframe.h>
+#include <QAbstractVideoSurface>
+#include <QImage>
+#include <QRect>
+#include <QVideoFrame>
 
 //! [0]
 class VideoWidgetSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
+
 public:
     VideoWidgetSurface(QWidget *widget, QObject *parent = 0);
 

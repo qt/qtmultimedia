@@ -43,8 +43,6 @@
 
 #include <QWidget>
 
-QT_USE_NAMESPACE
-
 class QAudioLevel : public QWidget
 {
     Q_OBJECT

@@ -41,7 +41,7 @@
 #ifndef SPECTRUM_H
 #define SPECTRUM_H
 
-#include <QtCore/qglobal.h>
+#include <qglobal.h>
 #include "utils.h"
 #include "fftreal_wrapper.h" // For FFTLengthPowerOfTwo
 
@@ -89,7 +89,8 @@ enum WindowFunction {
 
 const WindowFunction DefaultWindowFunction = HannWindow;
 
-struct Tone {
+struct Tone
+{
     Tone(qreal freq = 0.0, qreal amp = 0.0)
     :   frequency(freq), amplitude(amp)
     { }
@@ -101,7 +102,8 @@ struct Tone {
     qreal   amplitude;
 };
 
-struct SweptTone {
+struct SweptTone
+{
     SweptTone(qreal start = 0.0, qreal end = 0.0, qreal amp = 0.0)
     :   startFreq(start), endFreq(end), amplitude(amp)
     { Q_ASSERT(end >= start); }

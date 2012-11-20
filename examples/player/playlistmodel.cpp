@@ -40,10 +40,9 @@
 
 #include "playlistmodel.h"
 
-#include <QtCore/qfileinfo.h>
-#include <QtCore/qurl.h>
-
-#include <qmediaplaylist.h>
+#include <QFileInfo>
+#include <QUrl>
+#include <QMediaPlaylist>
 
 PlaylistModel::PlaylistModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -155,5 +154,3 @@ void PlaylistModel::changeItems(int start, int end)
     m_data.clear();
     emit dataChanged(index(start,0), index(end,ColumnCount));
 }
-
-

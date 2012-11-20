@@ -41,9 +41,8 @@
 #ifndef PLAYERCONTROLS_H
 #define PLAYERCONTROLS_H
 
-#include <qmediaplayer.h>
-
-#include <QtWidgets/qwidget.h>
+#include <QMediaPlayer>
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAbstractButton;
@@ -51,16 +50,14 @@ class QAbstractSlider;
 class QComboBox;
 QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
-
 class PlayerControls : public QWidget
 {
     Q_OBJECT
+
 public:
     PlayerControls(QWidget *parent = 0);
 
     QMediaPlayer::State state() const;
-
     int volume() const;
     bool isMuted() const;
     qreal playbackRate() const;
@@ -98,4 +95,4 @@ private:
     QComboBox *rateBox;
 };
 
-#endif
+#endif // PLAYERCONTROLS_H

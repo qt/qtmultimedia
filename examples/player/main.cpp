@@ -40,7 +40,7 @@
 
 #include "player.h"
 
-#include <QtWidgets>
+#include <QApplication>
 
 int main(int argc, char *argv[])
 {
@@ -53,18 +53,10 @@ int main(int argc, char *argv[])
     Player player;
 
 #if defined(Q_WS_SIMULATOR)
-# if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 2))
     player.setAttribute(Qt::WA_LockLandscapeOrientation);
-# else
-    // lock screen orientation
-    CAknAppUi* appUi = dynamic_cast<CAknAppUi*>(CEikonEnv::Static()->AppUi());
-    if(appUi){
-        QT_TRAP_THROWING(appUi ->SetOrientationL(CAknAppUi::EAppUiOrientationLandscape));
-    }
-# endif
     player.showMaximized();
 #else
     player.show();
 #endif
     return app.exec();
-};
+}

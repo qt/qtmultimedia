@@ -49,10 +49,12 @@
  * RMS and peak levels of the window of audio samples most recently analyzed
  * by the Engine.
  */
-class LevelMeter : public QWidget {
+class LevelMeter : public QWidget
+{
     Q_OBJECT
+
 public:
-    LevelMeter(QWidget *parent = 0);
+    explicit LevelMeter(QWidget *parent = 0);
     ~LevelMeter();
 
     void paintEvent(QPaintEvent *event);

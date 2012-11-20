@@ -42,15 +42,12 @@
 #include <math.h>
 
 #include <QDateTime>
-
 #include <QDebug>
 #include <QPainter>
 #include <QVBoxLayout>
-
-#include <qaudiodeviceinfo.h>
-#include <qaudioinput.h>
-
-#include <QtCore/qendian.h>
+#include <QAudioDeviceInfo>
+#include <QAudioInput>
+#include <qendian.h>
 
 #include "audioinput.h"
 
@@ -331,15 +328,14 @@ void InputTest::notified()
 
 void InputTest::readMore()
 {
-    if(!m_audioInput)
+    if (!m_audioInput)
         return;
     qint64 len = m_audioInput->bytesReady();
-    if(len > BufferSize)
+    if (len > BufferSize)
         len = BufferSize;
     qint64 l = m_input->read(m_buffer.data(), len);
-    if(l > 0) {
+    if (l > 0)
         m_audioInfo->write(m_buffer.constData(), l);
-    }
 }
 
 void InputTest::toggleMode()
@@ -364,7 +360,7 @@ void InputTest::toggleMode()
 void InputTest::toggleSuspend()
 {
     // toggle suspend/resume
-    if(m_audioInput->state() == QAudio::SuspendedState) {
+    if (m_audioInput->state() == QAudio::SuspendedState) {
         qWarning() << "status: Suspended, resume()";
         m_audioInput->resume();
         m_suspendResumeButton->setText(tr(SUSPEND_LABEL));

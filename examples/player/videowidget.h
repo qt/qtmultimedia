@@ -37,16 +37,16 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
 
-#include <qvideowidget.h>
-
-QT_USE_NAMESPACE
+#include <QVideoWidget>
 
 class VideoWidget : public QVideoWidget
 {
     Q_OBJECT
+
 public:
     VideoWidget(QWidget *parent = 0);
 
@@ -56,4 +56,4 @@ protected:
     void mousePressEvent(QMouseEvent *event);
 };
 
-#endif
+#endif // VIDEOWIDGET_H

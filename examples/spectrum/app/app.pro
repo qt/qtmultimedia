@@ -6,7 +6,7 @@ TEMPLATE = app
 
 TARGET = spectrum
 
-QT       += multimedia
+QT       += multimedia widgets
 
 SOURCES  += main.cpp \
             engine.cpp \
@@ -89,6 +89,3 @@ macx {
         QMAKE_LFLAGS += -Wl,--rpath=\\\$\$ORIGIN
     }
 }
-
-
-QT+=widgets

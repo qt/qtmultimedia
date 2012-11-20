@@ -38,14 +38,11 @@
 **
 ****************************************************************************/
 
-
-#include <qaudiodeviceinfo.h>
-
 #include "audiodevices.h"
 
 // Utility functions for converting QAudioFormat fields into text
 
-QString toString(QAudioFormat::SampleType sampleType)
+static QString toString(QAudioFormat::SampleType sampleType)
 {
     QString result("Unknown");
     switch (sampleType) {
@@ -64,7 +61,7 @@ QString toString(QAudioFormat::SampleType sampleType)
     return result;
 }
 
-QString toString(QAudioFormat::Endian endian)
+static QString toString(QAudioFormat::Endian endian)
 {
     QString result("Unknown");
     switch (endian) {
@@ -79,8 +76,8 @@ QString toString(QAudioFormat::Endian endian)
 }
 
 
-AudioDevicesBase::AudioDevicesBase(QWidget *parent, Qt::WindowFlags f)
-    : QMainWindow(parent, f)
+AudioDevicesBase::AudioDevicesBase(QWidget *parent)
+    : QMainWindow(parent)
 {
     setupUi(this);
 }
@@ -88,8 +85,8 @@ AudioDevicesBase::AudioDevicesBase(QWidget *parent, Qt::WindowFlags f)
 AudioDevicesBase::~AudioDevicesBase() {}
 
 
-AudioTest::AudioTest(QWidget *parent, Qt::WindowFlags f)
-    : AudioDevicesBase(parent, f)
+AudioTest::AudioTest(QWidget *parent)
+    : AudioDevicesBase(parent)
 {
     mode = QAudio::AudioOutput;
 
@@ -186,11 +183,11 @@ void AudioTest::deviceChanged(int idx)
         settings.setChannelCount(chz.at(0));
 
     codecsBox->clear();
-    QStringList codecz = deviceInfo.supportedCodecs();
-    for (int i = 0; i < codecz.size(); ++i)
-        codecsBox->addItem(QString("%1").arg(codecz.at(i)));
-    if (codecz.size())
-        settings.setCodec(codecz.at(0));
+    QStringList codecs = deviceInfo.supportedCodecs();
+    for (int i = 0; i < codecs.size(); ++i)
+        codecsBox->addItem(QString("%1").arg(codecs.at(i)));
+    if (codecs.size())
+        settings.setCodec(codecs.at(0));
     // Add false to create failed condition!
     codecsBox->addItem("audio/test");
 

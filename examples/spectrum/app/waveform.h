@@ -41,12 +41,10 @@
 #ifndef WAVEFORM_H
 #define WAVEFORM_H
 
-#include <QWidget>
-#include <QtMultimedia/QAudioFormat>
+#include <QAudioFormat>
 #include <QPixmap>
 #include <QScopedPointer>
-
-QT_FORWARD_DECLARE_CLASS(QByteArray)
+#include <QWidget>
 
 /**
  * Widget which displays a section of the audio waveform.
@@ -57,10 +55,12 @@ QT_FORWARD_DECLARE_CLASS(QByteArray)
  * outside the widget, it is moved to the right end of the tile array and
  * painted with the next section of the waveform.
  */
-class Waveform : public QWidget {
+class Waveform : public QWidget
+{
     Q_OBJECT
+
 public:
-    Waveform(QWidget *parent = 0);
+    explicit Waveform(QWidget *parent = 0);
     ~Waveform();
 
     // QWidget
@@ -197,7 +197,6 @@ private:
 
     qint64                  m_windowPosition;
     qint64                  m_windowLength;
-
 };
 
 #endif // WAVEFORM_H

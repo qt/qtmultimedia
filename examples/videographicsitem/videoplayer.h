@@ -41,10 +41,9 @@
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
-#include <qmediaplayer.h>
-
-#include <QtGui/QMovie>
-#include <QtWidgets/QWidget>
+#include <QMediaPlayer>
+#include <QMovie>
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAbstractButton;
@@ -55,8 +54,9 @@ QT_END_NAMESPACE
 class VideoPlayer : public QWidget
 {
     Q_OBJECT
+
 public:
-    VideoPlayer(QWidget *parent = 0, Qt::WindowFlags flags = 0);
+    VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
 
     QSize sizeHint() const { return QSize(800, 600); }

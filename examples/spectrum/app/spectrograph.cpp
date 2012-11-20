@@ -39,9 +39,9 @@
 ****************************************************************************/
 
 #include "spectrograph.h"
-#include <QPainter>
-#include <QMouseEvent>
 #include <QDebug>
+#include <QMouseEvent>
+#include <QPainter>
 #include <QTimerEvent>
 
 const int NullTimerId = -1;

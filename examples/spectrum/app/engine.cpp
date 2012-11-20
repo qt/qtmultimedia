@@ -44,14 +44,14 @@
 
 #include <math.h>
 
+#include <QAudioInput>
+#include <QAudioOutput>
 #include <QCoreApplication>
+#include <QDebug>
+#include <QFile>
 #include <QMetaObject>
 #include <QSet>
-#include <QtMultimedia/QAudioInput>
-#include <QtMultimedia/QAudioOutput>
-#include <QDebug>
 #include <QThread>
-#include <QFile>
 
 //-----------------------------------------------------------------------------
 // Constants

@@ -44,10 +44,9 @@
 #include "playlistmodel.h"
 #include "histogramwidget.h"
 
-#include <qmediaservice.h>
-#include <qmediaplaylist.h>
-#include <qvideoprobe.h>
-
+#include <QMediaService>
+#include <QMediaPlaylist>
+#include <QVideoProbe>
 #include <QtWidgets>
 
 
@@ -308,7 +307,7 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
 void Player::handleCursor(QMediaPlayer::MediaStatus status)
 {
 #ifndef QT_NO_CURSOR
-    if( status == QMediaPlayer::LoadingMedia ||
+    if (status == QMediaPlayer::LoadingMedia ||
         status == QMediaPlayer::BufferingMedia ||
         status == QMediaPlayer::StalledMedia)
         setCursor(QCursor(Qt::BusyCursor));
@@ -427,4 +426,3 @@ void Player::showColorDialog()
     colorDialog->show();
 }
 #endif
-

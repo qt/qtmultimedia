@@ -72,6 +72,7 @@ class SpectrumAnalyserThreadPrivate;
 class SpectrumAnalyserThread : public QObject
 {
     Q_OBJECT
+
 public:
     SpectrumAnalyserThread(QObject *parent);
     ~SpectrumAnalyserThread();
@@ -121,6 +122,7 @@ private:
 class SpectrumAnalyser : public QObject
 {
     Q_OBJECT
+
 public:
     SpectrumAnalyser(QObject *parent = 0);
     ~SpectrumAnalyser();

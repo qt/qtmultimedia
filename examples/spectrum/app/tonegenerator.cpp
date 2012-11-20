@@ -41,9 +41,9 @@
 #include "spectrum.h"
 #include "utils.h"
 #include <QByteArray>
-#include <QtMultimedia/QAudioFormat>
-#include <QtCore/qmath.h>
-#include <QtCore/qendian.h>
+#include <QAudioFormat>
+#include <qmath.h>
+#include <qendian.h>
 
 void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray &buffer)
 {
@@ -88,4 +88,3 @@ void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray 
         phaseStep += phaseStepStep;
     }
 }
-

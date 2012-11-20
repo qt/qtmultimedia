@@ -43,18 +43,13 @@
 
 #include "videowidgetsurface.h"
 
-#include <QtWidgets/QWidget>
-
-QT_BEGIN_NAMESPACE
-class QAbstractVideoSurface;
-QT_END_NAMESPACE
-
-class VideoWidgetSurface;
+#include <QWidget>
 
 //! [0]
 class VideoWidget : public QWidget
 {
     Q_OBJECT
+
 public:
     VideoWidget(QWidget *parent = 0);
     ~VideoWidget();
@@ -72,4 +67,4 @@ private:
 };
 //! [0]
 
-#endif
+#endif // VIDEOWIDGET_H

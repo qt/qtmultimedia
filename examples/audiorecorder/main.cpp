@@ -50,4 +50,4 @@ int main(int argc, char *argv[])
     recorder.show();
 
     return app.exec();
-};
+}

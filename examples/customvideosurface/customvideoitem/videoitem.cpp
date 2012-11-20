@@ -40,8 +40,9 @@
 
 #include "videoitem.h"
 
-#include <QtWidgets>
-#include <qvideosurfaceformat.h>
+#include <QPainter>
+#include <QTransform>
+#include <QVideoSurfaceFormat>
 
 VideoItem::VideoItem(QGraphicsItem *parent)
     : QGraphicsItem(parent)

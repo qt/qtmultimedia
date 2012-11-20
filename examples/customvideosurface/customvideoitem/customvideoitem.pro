@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = customvideoitem
 
-QT += multimedia multimediawidgets
+QT += multimedia multimediawidgets widgets
 
 contains(QT_CONFIG, opengl): QT += opengl
 
@@ -17,5 +17,3 @@ sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/customvideoitem
 
 INSTALLS += target sources
-
-QT+=widgets

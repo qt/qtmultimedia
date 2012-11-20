@@ -41,8 +41,8 @@
 #ifndef VIDEOITEM_H
 #define VIDEOITEM_H
 
-#include <qabstractvideosurface.h>
-#include <QtWidgets/QGraphicsItem>
+#include <QAbstractVideoSurface>
+#include <QGraphicsItem>
 
 class VideoItem
     : public QAbstractVideoSurface,
@@ -50,13 +50,13 @@ class VideoItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
+
 public:
     explicit VideoItem(QGraphicsItem *parentItem = 0);
     ~VideoItem();
 
     QRectF boundingRect() const;
-    void paint(
-        QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
 
     //video surface
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
@@ -74,5 +74,5 @@ private:
     bool framePainted;
 };
 
-#endif
+#endif // VIDEOITEM_H
 

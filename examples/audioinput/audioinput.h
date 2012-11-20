@@ -41,20 +41,20 @@
 #ifndef AUDIOINPUT_H
 #define AUDIOINPUT_H
 
-#include <QPixmap>
-#include <QWidget>
-#include <QObject>
-#include <QMainWindow>
-#include <QPushButton>
-#include <QComboBox>
+#include <QAudioInput>
 #include <QByteArray>
+#include <QComboBox>
+#include <QMainWindow>
+#include <QObject>
+#include <QPixmap>
+#include <QPushButton>
 #include <QSlider>
-
-#include <qaudioinput.h>
+#include <QWidget>
 
 class AudioInfo : public QIODevice
 {
     Q_OBJECT
+
 public:
     AudioInfo(const QAudioFormat &format, QObject *parent);
     ~AudioInfo();
@@ -94,9 +94,11 @@ private:
     QPixmap m_pixmap;
 };
 
+
 class InputTest : public QMainWindow
 {
     Q_OBJECT
+
 public:
     InputTest();
     ~InputTest();
@@ -133,5 +135,4 @@ private:
     QByteArray m_buffer;
 };
 
-#endif
-
+#endif // AUDIOINPUT_H

@@ -38,13 +38,14 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QCoreApplication>
-#include <QTextStream>
-#include <iostream>
-
-#include <qfileinfo.h>
-#include <qdir.h>
 #include "audiodecoder.h"
+
+#include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
+#include <QTextStream>
+
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
@@ -90,4 +91,4 @@ int main(int argc, char *argv[])
     decoder.start();
 
     return app.exec();
-};
+}

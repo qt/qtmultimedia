@@ -107,12 +107,12 @@ bool WaveFileWriter::open(const QString& fileName, const QAudioFormat& format)
     return true;
 }
 
-bool WaveFileWriter::write(const QAudioBuffer& buffer)
+bool WaveFileWriter::write(const QAudioBuffer &buffer)
 {
     if (buffer.format() != m_format)
         return false; // buffer format has changed
 
-    qint64 written = file.write((const char*)buffer.constData(), buffer.byteCount());
+    qint64 written = file.write((const char *)buffer.constData(), buffer.byteCount());
     m_dataLength += written;
     return written == buffer.byteCount();
 }
@@ -130,7 +130,7 @@ bool WaveFileWriter::close()
     return result;
 }
 
-bool WaveFileWriter::writeHeader(const QAudioFormat& format)
+bool WaveFileWriter::writeHeader(const QAudioFormat &format)
 {
     // check if format is supported
     if (format.byteOrder() == QAudioFormat::BigEndian || format.sampleType() != QAudioFormat::SignedInt)

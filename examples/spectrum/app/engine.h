@@ -45,12 +45,13 @@
 #include "spectrumanalyser.h"
 #include "wavfile.h"
 
-#include <QObject>
-#include <QByteArray>
+#include <QAudioDeviceInfo>
+#include <QAudioFormat>
 #include <QBuffer>
+#include <QByteArray>
+#include <QDir>
+#include <QObject>
 #include <QVector>
-#include <QtMultimedia/QAudioDeviceInfo>
-#include <QtMultimedia/QAudioFormat>
 
 #ifdef DUMP_CAPTURED_AUDIO
 #define DUMP_DATA
@@ -60,14 +61,11 @@
 #define DUMP_DATA
 #endif
 
-#ifdef DUMP_DATA
-#include <QDir>
-#endif
-
 class FrequencySpectrum;
-QT_FORWARD_DECLARE_CLASS(QAudioInput)
-QT_FORWARD_DECLARE_CLASS(QAudioOutput)
-QT_FORWARD_DECLARE_CLASS(QFile)
+QT_BEGIN_NAMESPACE
+class QAudioInput;
+class QAudioOutput;
+QT_END_NAMESPACE
 
 /**
  * This class interfaces with the QtMultimedia audio classes, and also with
@@ -75,26 +73,28 @@ QT_FORWARD_DECLARE_CLASS(QFile)
  * of audio data, meanwhile performing real-time analysis of the audio level
  * and frequency spectrum.
  */
-class Engine : public QObject {
+class Engine : public QObject
+{
     Q_OBJECT
+
 public:
-    Engine(QObject *parent = 0);
+    explicit Engine(QObject *parent = 0);
     ~Engine();
 
-    const QList<QAudioDeviceInfo>& availableAudioInputDevices() const
+    const QList<QAudioDeviceInfo> &availableAudioInputDevices() const
                                     { return m_availableAudioInputDevices; }
 
-    const QList<QAudioDeviceInfo>& availableAudioOutputDevices() const
+    const QList<QAudioDeviceInfo> &availableAudioOutputDevices() const
                                     { return m_availableAudioOutputDevices; }
 
-    QAudio::Mode mode() const       { return m_mode; }
-    QAudio::State state() const     { return m_state; }
+    QAudio::Mode mode() const { return m_mode; }
+    QAudio::State state() const { return m_state; }
 
     /**
      * \return Current audio format
      * \note May be QAudioFormat() if engine is not initialized
      */
-    const QAudioFormat& format() const  { return m_format; }
+    const QAudioFormat& format() const { return m_format; }
 
     /**
      * Stop any ongoing recording or playback, and reset to ground state.
@@ -125,25 +125,25 @@ public:
      * Position of the audio input device.
      * \return Position in bytes.
      */
-    qint64 recordPosition() const   { return m_recordPosition; }
+    qint64 recordPosition() const { return m_recordPosition; }
 
     /**
      * RMS level of the most recently processed set of audio samples.
      * \return Level in range (0.0, 1.0)
      */
-    qreal rmsLevel() const          { return m_rmsLevel; }
+    qreal rmsLevel() const { return m_rmsLevel; }
 
     /**
      * Peak level of the most recently processed set of audio samples.
      * \return Level in range (0.0, 1.0)
      */
-    qreal peakLevel() const         { return m_peakLevel; }
+    qreal peakLevel() const { return m_peakLevel; }
 
     /**
      * Position of the audio output device.
      * \return Position in bytes.
      */
-    qint64 playPosition() const     { return m_playPosition; }
+    qint64 playPosition() const { return m_playPosition; }
 
     /**
      * Length of the internal engine buffer.
@@ -155,7 +155,7 @@ public:
      * Amount of data held in the buffer.
      * \return Data length in bytes.
      */
-    qint64 dataLength() const       { return m_dataLength; }
+    qint64 dataLength() const { return m_dataLength; }
 
     /**
      * Set window function applied to audio data before spectral analysis.

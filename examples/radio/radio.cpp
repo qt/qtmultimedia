@@ -40,27 +40,25 @@
 
 #include "radio.h"
 
-#include <QtWidgets>
-
 Radio::Radio()
 {
     radio = new QRadioTuner;
     connect(radio, SIGNAL(error(QRadioTuner::Error)), this, SLOT(error(QRadioTuner::Error)));
 
-    if(radio->isBandSupported(QRadioTuner::FM))
+    if (radio->isBandSupported(QRadioTuner::FM))
         radio->setBand(QRadioTuner::FM);
 
     QWidget *window = new QWidget;
-    QVBoxLayout* layout = new QVBoxLayout;
-    QHBoxLayout* buttonBar = new QHBoxLayout;
-    QHBoxLayout* topBar = new QHBoxLayout;
+    QVBoxLayout *layout = new QVBoxLayout;
+    QHBoxLayout *buttonBar = new QHBoxLayout;
+    QHBoxLayout *topBar = new QHBoxLayout;
 
     layout->addLayout(topBar);
 
     freq = new QLabel;
     freq->setText(QString("%1 kHz").arg(radio->frequency()/1000));
     topBar->addWidget(freq);
-    connect(radio,SIGNAL(frequencyChanged(int)),this,SLOT(freqChanged(int)));
+    connect(radio, SIGNAL(frequencyChanged(int)), SLOT(freqChanged(int)));
 
     signal = new QLabel;
     if (radio->isAvailable())
@@ -68,34 +66,34 @@ Radio::Radio()
     else
         signal->setText(tr("No radio found"));
     topBar->addWidget(signal);
-    connect(radio,SIGNAL(signalStrengthChanged(int)),this,SLOT(signalChanged(int)));
+    connect(radio, SIGNAL(signalStrengthChanged(int)), SLOT(signalChanged(int)));
 
     volumeSlider = new QSlider(Qt::Vertical,this);
-    volumeSlider->setRange(0,100);
+    volumeSlider->setRange(0, 100);
     volumeSlider->setValue(50);
-    connect(volumeSlider,SIGNAL(valueChanged(int)),this,SLOT(updateVolume(int)));
+    connect(volumeSlider, SIGNAL(valueChanged(int)), SLOT(updateVolume(int)));
     topBar->addWidget(volumeSlider);
 
     layout->addLayout(buttonBar);
 
     searchLeft = new QPushButton;
     searchLeft->setText(tr("scan Down"));
-    connect(searchLeft,SIGNAL(clicked()),SLOT(searchDown()));
+    connect(searchLeft, SIGNAL(clicked()), SLOT(searchDown()));
     buttonBar->addWidget(searchLeft);
 
     left = new QPushButton;
     left->setText(tr("Freq Down"));
-    connect(left,SIGNAL(clicked()),SLOT(freqDown()));
+    connect(left, SIGNAL(clicked()), SLOT(freqDown()));
     buttonBar->addWidget(left);
 
     right = new QPushButton;
-    connect(right,SIGNAL(clicked()),SLOT(freqUp()));
+    connect(right, SIGNAL(clicked()), SLOT(freqUp()));
     right->setText(tr("Freq Up"));
     buttonBar->addWidget(right);
 
     searchRight = new QPushButton;
     searchRight->setText(tr("scan Up"));
-    connect(searchRight,SIGNAL(clicked()),SLOT(searchUp()));
+    connect(searchRight, SIGNAL(clicked()), SLOT(searchUp()));
     buttonBar->addWidget(searchRight);
 
     window->setLayout(layout);
@@ -112,14 +110,14 @@ Radio::~Radio()
 void Radio::freqUp()
 {
     int f = radio->frequency();
-    f = f + radio->frequencyStep(QRadioTuner::FM);
+    f += radio->frequencyStep(QRadioTuner::FM);
     radio->setFrequency(f);
 }
 
 void Radio::freqDown()
 {
     int f = radio->frequency();
-    f = f - radio->frequencyStep(QRadioTuner::FM);
+    f -= radio->frequencyStep(QRadioTuner::FM);
     radio->setFrequency(f);
 }
 
@@ -153,7 +151,7 @@ void Radio::updateVolume(int v)
 
 void Radio::error(QRadioTuner::Error error)
 {
-    const QMetaObject* metaObj = radio->metaObject();
+    const QMetaObject *metaObj = radio->metaObject();
     QMetaEnum errorEnum = metaObj->enumerator(metaObj->indexOfEnumerator("Error"));
     qWarning().nospace() << "Warning: Example application received error QRadioTuner::" << errorEnum.valueToKey(error);
 }

@@ -38,15 +38,15 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets/QApplication>
 #include "mainwidget.h"
+#include <QApplication>
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     app.setApplicationName("QtMultimedia spectrum analyzer");
-    MainWidget w;
 
+    MainWidget w;
     w.show();
 
     return app.exec();
