@@ -3,8 +3,6 @@ TARGET = videographicsitem
 
 QT += multimedia multimediawidgets
 
-contains(QT_CONFIG, opengl): QT += opengl
-
 HEADERS   += videoplayer.h
 
 SOURCES   += main.cpp \
