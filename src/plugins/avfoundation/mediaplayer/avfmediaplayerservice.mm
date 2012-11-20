@@ -84,18 +84,22 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
     if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
         return m_playerMetaDataControl;
 
-    if (!m_videoOutput) {
-        if (qstrcmp(name, QVideoRendererControl_iid) == 0)
+    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
+        if (!m_videoOutput)
             m_videoOutput = new AVFVideoRendererControl(this);
-#ifndef QT_NO_WIDGETS
-        if (qstrcmp(name, QVideoWidgetControl_iid) == 0)
-            m_videoOutput = new AVFVideoWidgetControl(this);
-#endif
-    }
-    if (m_videoOutput) {
+
         m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
         return m_videoOutput;
     }
+#ifndef QT_NO_WIDGETS
+    if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
+        if (!m_videoOutput)
+            m_videoOutput = new AVFVideoWidgetControl(this);
+
+        m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
+        return m_videoOutput;
+    }
+#endif
 
     return 0;
 }
