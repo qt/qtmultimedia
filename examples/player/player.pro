@@ -25,6 +25,6 @@ maemo* {
 }
 
 target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/player
-sources.files = $$SOURCES $HEADERS $$RESOURCES $$FORMS *.pro
+sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS *.pro
 sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/player
 INSTALLS += target sources
