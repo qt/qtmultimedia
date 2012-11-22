@@ -12,3 +12,9 @@ SOURCES = main.cpp \
 
 QT += multimedia
 CONFIG += console
+
+# install
+target.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/audiodecoder
+sources.files = $$SOURCES $$HEADERS audiodecoder.pro
+sources.path = $$[QT_INSTALL_EXAMPLES]/qtmultimedia/audiodecoder
+INSTALLS += target sources
