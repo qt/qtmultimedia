@@ -35,12 +35,18 @@
 
 \section1 Overview
 
+Multimedia support in Qt is provided by the Qt Multimedia module. The
+Qt Multimedia module provides a rich feature set that enables you to easily
+take advantage of a platforms multimedia capabilites and hardware.  This
+ranges from the playback and recording of audio and video content to the use
+of available devices like cameras and radios.
+
 \section2 Features
 
-Qt Multimedia offers APIs for doing many multimedia related tasks:
+Here are some examples of what can be done with Qt Multimedia APIs:
 
 \list
-\li Accessing raw audio devices for input and output
+\li Access raw audio devices for input and output
 \li Play low latency sound effects
 \li Play media files in playlists (like compressed audio, or video files)
 \li Record audio and compress it
@@ -74,7 +80,7 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li C++ Classes
     \row
         \li Playing a sound effect
-        \li TBD
+        \li
         \li \l SoundEffect
         \li QSoundEffect
     \row
@@ -139,6 +145,7 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li QCamera, QMediaRecorder
     \row
         \li 3D sound sources
+        \li
         \li \l {AudioEngine Example}{Audio Engine}
         \li \l {AudioEngine}, \l Sound
         \li
