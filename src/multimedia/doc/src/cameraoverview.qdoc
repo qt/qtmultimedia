@@ -40,10 +40,6 @@ In order to use the camera classes a quick overview of the way a camera
 works is needed.  If you're already familiar with this, you can skip ahead to
 \l {camera-tldr}{Camera implementation details}.
 
-[TBD - this needs a diagram]
-* Camera features
- * lens -> sensors -> image processing -> capture/recording
-
 \section2 The Lens Assembly
 At one end of the camera assembly is the lens assembly (one or
 more lenses, arranged to focus light onto the sensor).  The lenses
