@@ -12,18 +12,15 @@ HEADERS += \
     bbmediaplayerservice.h \
     bbmediaplayercontrol.h \
     bbmetadata.h \
-    bbutil.h
+    bbutil.h \
+    bbvideowindowcontrol.h
 
 SOURCES += \
     bbserviceplugin.cpp \
     bbmediaplayerservice.cpp \
     bbmediaplayercontrol.cpp \
     bbmetadata.cpp \
-    bbutil.cpp
-
-!isEmpty(QT.widgets.name) {
-    HEADERS += bbvideowindowcontrol.h
-    SOURCES += bbvideowindowcontrol.cpp
-}
+    bbutil.cpp \
+    bbvideowindowcontrol.cpp
 
 OTHER_FILES += blackberry_mediaservice.json
