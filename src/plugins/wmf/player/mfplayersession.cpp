@@ -520,7 +520,7 @@ void MFPlayerSession::load(const QMediaContent &media, QIODevice *stream)
         changeStatus(QMediaPlayer::NoMedia);
     } else if (stream && (!stream->isReadable())) {
         changeStatus(QMediaPlayer::InvalidMedia);
-        emit error(QMediaPlayer::ResourceError, tr("Invalid stream source!"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Invalid stream source."), true);
     } else {
         changeStatus(QMediaPlayer::LoadingMedia);
         m_sourceResolver->load(resources, stream);
@@ -535,7 +535,7 @@ void MFPlayerSession::handleSourceError(long hr)
     switch (hr) {
     case QMediaPlayer::FormatError:
         errorCode = QMediaPlayer::FormatError;
-        errorString = tr("Attempting to play invalid Qt resource");
+        errorString = tr("Attempting to play invalid Qt resource.");
         break;
     case NS_E_FILE_NOT_FOUND:
         errorString = tr("The system cannot find the file specified.");
@@ -571,7 +571,7 @@ void MFPlayerSession::handleMediaSourceReady()
         setupPlaybackTopology(mediaSource, sourcePD);
     } else {
         changeStatus(QMediaPlayer::InvalidMedia);
-        emit error(QMediaPlayer::ResourceError, tr("Can't create presentation descriptor!"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Cannot create presentation descriptor."), true);
     }
 }
 
@@ -583,7 +583,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
     hr = sourcePD->GetStreamDescriptorCount(&cSourceStreams);
     if (FAILED(hr)) {
         changeStatus(QMediaPlayer::UnknownMediaStatus);
-        emit error(QMediaPlayer::ResourceError, tr("Failed to get stream count"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Failed to get stream count."), true);
         return;
     }
 
@@ -591,7 +591,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
     hr = MFCreateTopology(&topology);
     if (FAILED(hr)) {
         changeStatus(QMediaPlayer::UnknownMediaStatus);
-        emit error(QMediaPlayer::ResourceError, tr("Failed to create topology!"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Failed to create topology."), true);
         return;
     }
 
@@ -624,7 +624,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
                     if (!connected)
                         hr = sourceNode->ConnectOutput(0, outputNode, 0);
                     if (FAILED(hr)) {
-                        emit error(QMediaPlayer::FormatError, tr("Unable to play some stream"), false);
+                        emit error(QMediaPlayer::FormatError, tr("Unable to play any stream."), false);
                     }
                     else {
                         succeededCount++;
@@ -647,7 +647,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
 
     if (succeededCount == 0) {
         changeStatus(QMediaPlayer::InvalidMedia);
-        emit error(QMediaPlayer::ResourceError, tr("Unable to play"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Unable to play."), true);
     } else {
         if (outputNodeId != -1) {
             topology = insertMFT(topology, outputNodeId);
@@ -656,7 +656,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
         if (FAILED(hr)) {
             changeStatus(QMediaPlayer::UnknownMediaStatus);
-            emit error(QMediaPlayer::ResourceError, tr("Failed to set topology!"), true);
+            emit error(QMediaPlayer::ResourceError, tr("Failed to set topology."), true);
         }
     }
     topology->Release();
@@ -717,7 +717,7 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
                 }
             } else {
                 // Unknown stream type.
-                emit error(QMediaPlayer::FormatError, tr("Unknown stream type"), false);
+                emit error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);
             }
 
             if (activate) {
@@ -1083,7 +1083,7 @@ void MFPlayerSession::stop(bool immediate)
                 m_varStart.hVal.QuadPart = 0;
             }
         } else {
-            emit error(QMediaPlayer::ResourceError, tr("failed to stop"), true);
+            emit error(QMediaPlayer::ResourceError, tr("Failed to stop."), true);
         }
     }
 }
@@ -1136,7 +1136,7 @@ void MFPlayerSession::pause()
             m_state.setCommand(CmdPause);
             m_pendingState = CmdPending;
         } else {
-            emit error(QMediaPlayer::ResourceError, tr("failed to pause"), false);
+            emit error(QMediaPlayer::ResourceError, tr("Failed to pause."), false);
         }
     }
 }
@@ -1163,14 +1163,14 @@ void MFPlayerSession::createSession()
     HRESULT hr = MFCreateMediaSession(NULL, &m_session);
     if (FAILED(hr)) {
         changeStatus(QMediaPlayer::UnknownMediaStatus);
-        emit error(QMediaPlayer::ResourceError, tr("Unable to create mediasession"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Unable to create mediasession."), true);
     }
 
     hr = m_session->BeginGetEvent(this, m_session);
 
     if (FAILED(hr)) {
         changeStatus(QMediaPlayer::UnknownMediaStatus);
-        emit error(QMediaPlayer::ResourceError, tr("Unable to pulling session events"), false);
+        emit error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
     }
 }
 
@@ -1235,7 +1235,7 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
         m_state.start = position;
         m_pendingState = SeekPending;
     } else {
-        emit error(QMediaPlayer::ResourceError, tr("failed to seek"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Failed to seek."), true);
     }
 }
 
@@ -1537,14 +1537,14 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             sessionEvent->GetValue(&var);
             qWarning() << "handleSessionEvent: non fatal error = " << var.ulVal;
             PropVariantClear(&var);
-            emit error(QMediaPlayer::ResourceError, tr("media session non-fatal error!"), false);
+            emit error(QMediaPlayer::ResourceError, tr("Media session non-fatal error."), false);
         }
         break;
     case MESourceUnknown:
         changeStatus(QMediaPlayer::InvalidMedia);
     case MEError:
         qWarning() << "handleSessionEvent: serious error = " << hrStatus;
-        emit error(QMediaPlayer::ResourceError, tr("media session serious error!"), true);
+        emit error(QMediaPlayer::ResourceError, tr("Media session serious error."), true);
         break;
     case MESessionRateChanged:
         // If the rate change succeeded, we've already got the rate

@@ -275,7 +275,7 @@ Version=2
                 int entries = getValue(lineIndex, line).toInt();
                 int count = m_readFlags == 0 ? (m_count - 1) : m_count;
                 if (entries != count) {
-                    emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing pls: %1, expected count = %2")).
+                    emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing playlist: %1, expected count = %2")).
                                arg(line, QString::number(count)));
                 }
                 break;
@@ -289,7 +289,7 @@ Version=2
             if (line.startsWith(QLatin1String("Version"))) {
                 int version = getValue(lineIndex, line).toInt();
                 if (version != 2)
-                    emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing pls at line[%1], expected version = 2")).arg(line));
+                    emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing playlist at line[%1], expected version = 2")).arg(line));
             }
             break;
         }
@@ -298,7 +298,7 @@ Version=2
     QString getValue(int lineIndex, const QString& line) {
         int start = line.indexOf('=');
         if (start < 0) {
-            emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing pls at line[%1]:%2")).arg(QString::number(lineIndex), line));
+            emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing playlist at line[%1]:%2")).arg(QString::number(lineIndex), line));
             return QString();
         }
         return line.mid(start + 1).trimmed();
