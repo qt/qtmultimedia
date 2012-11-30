@@ -979,69 +979,73 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
         if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL)))
             break;
 
+// FIXME!! VideoProbe disabled in Qt 5.0 because it is unstable.
+//         Commented out the following code to skip inserting the transform node
+//         getting the video frames.
+
         // Get all output nodes and search for video output node.
-        if (FAILED(resolvedTopology->GetOutputNodeCollection(&outputNodes)))
-            break;
+//        if (FAILED(resolvedTopology->GetOutputNodeCollection(&outputNodes)))
+//            break;
 
-        DWORD elementCount = 0;
-        if (FAILED(outputNodes->GetElementCount(&elementCount)))
-            break;
+//        DWORD elementCount = 0;
+//        if (FAILED(outputNodes->GetElementCount(&elementCount)))
+//            break;
 
-        for (DWORD n = 0; n < elementCount; n++) {
-            IUnknown *element = 0;
-            IMFTopologyNode *node = 0;
-            IMFTopologyNode *inputNode = 0;
-            IMFTopologyNode *mftNode = 0;
+//        for (DWORD n = 0; n < elementCount; n++) {
+//            IUnknown *element = 0;
+//            IMFTopologyNode *node = 0;
+//            IMFTopologyNode *inputNode = 0;
+//            IMFTopologyNode *mftNode = 0;
 
-            do {
-                if (FAILED(outputNodes->GetElement(n, &element)))
-                    break;
+//            do {
+//                if (FAILED(outputNodes->GetElement(n, &element)))
+//                    break;
 
-                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
-                    break;
+//                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
+//                    break;
 
-                TOPOID id;
-                if (FAILED(node->GetTopoNodeID(&id)))
-                    break;
+//                TOPOID id;
+//                if (FAILED(node->GetTopoNodeID(&id)))
+//                    break;
 
-                if (id != outputNodeId)
-                    break;
+//                if (id != outputNodeId)
+//                    break;
 
-                // Insert MFT between the output node and the node connected to it.
-                DWORD outputIndex = 0;
-                if (FAILED(node->GetInput(0, &inputNode, &outputIndex)))
-                    break;
+//                // Insert MFT between the output node and the node connected to it.
+//                DWORD outputIndex = 0;
+//                if (FAILED(node->GetInput(0, &inputNode, &outputIndex)))
+//                    break;
 
-                if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
-                    break;
+//                if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
+//                    break;
 
-                if (FAILED(mftNode->SetObject(m_videoProbeMFT)))
-                    break;
+//                if (FAILED(mftNode->SetObject(m_videoProbeMFT)))
+//                    break;
 
-                if (FAILED(resolvedTopology->AddNode(mftNode)))
-                    break;
+//                if (FAILED(resolvedTopology->AddNode(mftNode)))
+//                    break;
 
-                if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
-                    break;
+//                if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
+//                    break;
 
-                if (FAILED(mftNode->ConnectOutput(0, node, 0)))
-                    break;
+//                if (FAILED(mftNode->ConnectOutput(0, node, 0)))
+//                    break;
 
-                isNewTopology = true;
-            } while (false);
+//                isNewTopology = true;
+//            } while (false);
 
-            if (mftNode)
-                mftNode->Release();
-            if (inputNode)
-                inputNode->Release();
-            if (node)
-                node->Release();
-            if (element)
-                element->Release();
+//            if (mftNode)
+//                mftNode->Release();
+//            if (inputNode)
+//                inputNode->Release();
+//            if (node)
+//                node->Release();
+//            if (element)
+//                element->Release();
 
-            if (isNewTopology)
-                break;
-        }
+//            if (isNewTopology)
+//                break;
+//        }
     } while (false);
 
     if (outputNodes)
