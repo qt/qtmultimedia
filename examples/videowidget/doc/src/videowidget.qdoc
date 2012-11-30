@@ -26,11 +26,13 @@
 ****************************************************************************/
 
 /*!
-\example videowidget
-\title Video Widget Example
-\ingroup video_examples
+    \example videowidget
+    \title Video Widget Example
+    \ingroup video_examples
+    \brief This example is a simple video player
 
-\brief This example demonstrates how to make a simple video player using the QMediaPlayer
-and QVideoWidget classes
+    The Video Widget example denonstrates how to implement a video widget using
+    QtMultimedia's QAbstractVideoSurface.
 
+    \image video-videowidget.png
 */

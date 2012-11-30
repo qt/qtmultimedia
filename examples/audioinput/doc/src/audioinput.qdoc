@@ -30,7 +30,14 @@
     \title Audio Input Example
     \ingroup audio_examples
     \brief The Audio Input Example shows the use of the QAudioInput class.
+    The example demonstrates the basic use cases of the QAudioInput class.
 
+    \image audioinput-example.png
+
+    Qt provides the QAudioInput class to enable audio functionality within
+    a standard application user interface.
+
+    This example calculates the maximum linear value of the input audio from the microphone and displays the output.
 */
 
 

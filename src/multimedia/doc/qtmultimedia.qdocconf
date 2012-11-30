@@ -29,8 +29,7 @@ qhp.qtmultimedia.subprojects.qmltypes.indexTitle = Qt Multimedia QML Types
 qhp.qtmultimedia.subprojects.qmltypes.selectors = class fake:headerfile
 qhp.qtmultimedia.subprojects.qmltypes.sortPages = true
 
-exampledirs += .. \
-               ../../../examples
+exampledirs += ../../../examples \
 
 headerdirs += ../..
 

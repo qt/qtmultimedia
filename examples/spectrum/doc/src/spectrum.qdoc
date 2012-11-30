@@ -31,6 +31,34 @@
     \ingroup audio_examples
     \brief The Spectrum Example uses a combination multimedia APIs to process microphone input.
 
+    The Spectrum Analyzer example shows how the \l{QtMultimedia Module} can be
+    used to record and then play back an audio stream.
+
+    \image spectrum-demo.png
+
+    Because QtMultimedia allows the application to access the raw audio
+    stream, the data can either be inspected or modified by the application.
+    The Spectrum Analyzer example displays three pieces of information while
+    audio is being either captured or played back:
+
+    \list
+    \li Information about the raw audio stream, shown in the uppermost widget:
+    \list
+        \li The amount of data currently in the buffer, shown in blue
+        \li The segment of data which was most recently analysed to compute
+        the frequency spectrum, shown in green
+        \li The raw audio waveform, shown in white and scrolling from right to
+        left
+    \endlist
+    \li A representation of the frequency spectrum, shown at the lower left
+    \li The current RMS level of the audio stream, and the recent 'high
+    watermark' level, shown at the lower right
+    \endlist
+
+    Spectrum analysis is performed by calculating the Fast Fourier Transform
+    (FFT) of a segment of audio data.  An open-source library,
+    \l{http://ldesoras.free.fr/prod.html}{FFTReal}, against which the
+    application is dynamically linked, is used to compute the transform.
 */
 
 

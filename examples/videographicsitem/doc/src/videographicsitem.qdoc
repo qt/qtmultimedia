@@ -29,8 +29,12 @@
 \example videographicsitem
 \title Video Graphics Item Example
 \ingroup video_examples
+\brief This example demonstrates how to stream video on a graphics scene.
 
-\brief This example demonstrates how to make a simple video player using the QMediaPlayer
-and QVideoGraphicsItem classes in the Graphics View framework.
+    The Video Graphics Item example shows how to implement a QGraphicsItem that displays video on a
+    graphics scene using QtMultimedia's QAbstractVideoSurface.
 
+    \image video-videographicsitem.png
+
+    \sa {Video Widget Example}
 */

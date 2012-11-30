@@ -31,8 +31,13 @@
     \ingroup audio_examples
     \brief The Audio Output Example show the use of the QAudioOutput API.
 
+    The example demonstrates the basic use cases of the QAudioOutput class.
 
+    \image audiooutput-example.png
 
+    This example provides a tone generator to supply continuous audio playback.
+    The first button allows pause and resume of the playback, and the second
+    button allows toggling between push and pull modes of operation.
 */
 
 
