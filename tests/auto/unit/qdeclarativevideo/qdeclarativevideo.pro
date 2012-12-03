@@ -5,15 +5,15 @@ QT += multimedia-private qml testlib
 CONFIG += no_private_qt_headers_warning
 
 HEADERS += \
-        $$QT.multimedia.sources/../imports/multimedia/qdeclarativevideo_p.h \
-        $$QT.multimedia.sources/../imports/multimedia/qdeclarativemediabase_p.h \
-        $$QT.multimedia.sources/../imports/multimedia/qdeclarativemediametadata_p.h
+        ../../../../src/imports/multimedia/qdeclarativevideo_p.h \
+        ../../../../src/imports/multimedia/qdeclarativemediabase_p.h \
+        ../../../../src/imports/multimedia/qdeclarativemediametadata_p.h
 
 SOURCES += \
         tst_qdeclarativevideo.cpp \
-        $$QT.multimedia.sources/../imports/multimedia/qdeclarativevideo.cpp \
-        $$QT.multimedia.sources/../imports/multimedia/qdeclarativemediabase.cpp
+        ../../../../src/imports/multimedia/qdeclarativevideo.cpp \
+        ../../../../src/imports/multimedia/qdeclarativemediabase.cpp
 
-INCLUDEPATH += $$QT.multimedia.sources/../imports/multimedia
+INCLUDEPATH += ../../../../src/imports/multimedia
 QT+=widgets
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
