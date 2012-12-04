@@ -103,11 +103,11 @@ void AVFVideoWidget::paintGL()
         return;
 
     QRect targetRect = displayRect();
-    int x1 = targetRect.left();
-    int x2 = targetRect.right();
-    int y1 = targetRect.bottom();
-    int y2 = targetRect.top();
-    int zValue = 0;
+    GLfloat x1 = targetRect.left();
+    GLfloat x2 = targetRect.right();
+    GLfloat y1 = targetRect.bottom();
+    GLfloat y2 = targetRect.top();
+    GLfloat zValue = 0;
 
     const GLfloat textureCoordinates[] = {
         0, 0,
