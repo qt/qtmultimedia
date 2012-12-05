@@ -99,7 +99,6 @@ int main(int argc, char *argv[])
 
     QmlApplicationViewer viewer;
 
-    viewer.requestOrientation(Qt::LandscapeOrientation);
     viewer.setMainQmlFile(QLatin1String("qml/qmlvideofx/") + MainQmlFile);
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("fileName", fileName);

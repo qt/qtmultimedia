@@ -110,7 +110,6 @@ int main(int argc, char *argv[])
 
     QmlApplicationViewer viewer;
 
-    viewer.requestOrientation(Qt::LandscapeOrientation);
     viewer.setMainQmlFile(QLatin1String("qml/qmlvideo/main.qml"));
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("source1", url1);
