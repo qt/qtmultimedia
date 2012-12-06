@@ -55,7 +55,7 @@
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 
-#include <QtOpenGl/QGLContext>
+#include <QtOpenGL/QGLContext>
 
 QT_USE_NAMESPACE
 
