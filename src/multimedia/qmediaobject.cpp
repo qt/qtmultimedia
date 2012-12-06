@@ -423,7 +423,7 @@ void QMediaObject::setupControls()
 /*!
     \fn QMediaObject::availabilityChanged(QMultimedia::AvailabilityStatus availability)
 
-    Signal emitted when the availability of the service has changed to \a availabilty
+    Signal emitted when the availability of the service has changed to \a availability.
 */
 
 

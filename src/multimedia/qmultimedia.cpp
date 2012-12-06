@@ -98,10 +98,10 @@ namespace
 
     Enumerates Service status errors.
 
-    \value NoError The service is operating correctly.
-    \value ServiceMissingError There is no service available to provide the requested functionality.
+    \value Available The service is operating correctly.
+    \value ServiceMissing There is no service available to provide the requested functionality.
     \value ResourceError The service could not allocate resources required to function correctly.
-    \value BusyError The service must wait for access to necessary resources.
+    \value Busy The service must wait for access to necessary resources.
 */
 
 QT_END_NAMESPACE
