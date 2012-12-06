@@ -85,10 +85,12 @@ public:
     int saturation() const;
     void setSaturation(int saturation);
 
-    IMFActivate* currentActivate() const;
+    IMFActivate* createActivate();
+
+    void setProcAmpValues();
 
 private:
-    void setProcAmpValues();
+    void clear();
     DXVA2_Fixed32 scaleProcAmpValue(DWORD prop, int value) const;
 
     WId m_windowId;

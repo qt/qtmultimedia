@@ -57,26 +57,16 @@ Evr9VideoWindowControl::Evr9VideoWindowControl(QObject *parent)
     , m_currentActivate(0)
     , m_evrSink(0)
     , m_displayControl(0)
+    , m_processor(0)
 {
-    if (FAILED(MFCreateVideoRendererActivate(0, &m_currentActivate))) {
-        qWarning() << "Failed to create evr video renderer activate!";
-        return;
-    }
-    if (FAILED(m_currentActivate->ActivateObject(IID_IMFMediaSink, (LPVOID*)(&m_evrSink)))) {
-        qWarning() << "Failed to activate evr media sink!";
-        return;
-    }
-    if (FAILED(MFGetService(m_evrSink, MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_displayControl)))) {
-        qWarning() << "Failed to get display control from evr media sink!";
-        return;
-    }
-    if (FAILED(MFGetService(m_evrSink,  MR_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_processor)))) {
-        qWarning() << "Failed to get video processor from evr media sink!";
-        return;
-    }
 }
 
 Evr9VideoWindowControl::~Evr9VideoWindowControl()
+{
+   clear();
+}
+
+void Evr9VideoWindowControl::clear()
 {
     if (m_processor)
         m_processor->Release();
@@ -88,8 +78,12 @@ Evr9VideoWindowControl::~Evr9VideoWindowControl()
         m_currentActivate->ShutdownObject();
         m_currentActivate->Release();
     }
-}
 
+    m_processor = NULL;
+    m_displayControl = NULL;
+    m_evrSink = NULL;
+    m_currentActivate = NULL;
+}
 
 WId Evr9VideoWindowControl::winId() const
 {
@@ -307,8 +301,32 @@ void Evr9VideoWindowControl::setSaturation(int saturation)
     emit saturationChanged(saturation);
 }
 
-IMFActivate* Evr9VideoWindowControl::currentActivate() const
+IMFActivate* Evr9VideoWindowControl::createActivate()
 {
+    clear();
+
+    if (FAILED(MFCreateVideoRendererActivate(0, &m_currentActivate))) {
+        qWarning() << "Failed to create evr video renderer activate!";
+        return 0;
+    }
+    if (FAILED(m_currentActivate->ActivateObject(IID_IMFMediaSink, (LPVOID*)(&m_evrSink)))) {
+        qWarning() << "Failed to activate evr media sink!";
+        return 0;
+    }
+    if (FAILED(MFGetService(m_evrSink, MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_displayControl)))) {
+        qWarning() << "Failed to get display control from evr media sink!";
+        return 0;
+    }
+    if (FAILED(MFGetService(m_evrSink,  MR_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_processor)))) {
+        qWarning() << "Failed to get video processor from evr media sink!";
+        return 0;
+    }
+
+    setWinId(m_windowId);
+    setDisplayRect(m_displayRect);
+    setAspectRatioMode(m_aspectRatioMode);
+    m_dirtyValues = DXVA2_ProcAmp_Brightness | DXVA2_ProcAmp_Contrast | DXVA2_ProcAmp_Hue | DXVA2_ProcAmp_Saturation;
+
     return m_currentActivate;
 }
 

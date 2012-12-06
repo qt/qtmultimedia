@@ -58,7 +58,7 @@ public:
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
-    IMFActivate* currentActivate() const;
+    IMFActivate* createActivate();
 
 protected:
     void customEvent(QEvent *event);
@@ -68,6 +68,8 @@ private Q_SLOTS:
     void present();
 
 private:
+    void clear();
+
     QAbstractVideoSurface *m_surface;
     IMFActivate *m_currentActivate;
     IMFSampleGrabberSinkCallback *m_callback;

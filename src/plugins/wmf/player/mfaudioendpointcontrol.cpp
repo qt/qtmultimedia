@@ -46,17 +46,23 @@ MFAudioEndpointControl::MFAudioEndpointControl(QObject *parent)
     : QAudioOutputSelectorControl(parent)
     , m_currentActivate(0)
 {
-    updateEndpoints();
-    setActiveOutput(m_defaultEndpoint);
 }
 
 MFAudioEndpointControl::~MFAudioEndpointControl()
 {
+    clear();
+}
+
+void MFAudioEndpointControl::clear()
+{
+    m_activeEndpoint.clear();
+
     foreach (LPWSTR wstrID, m_devices)
          CoTaskMemFree(wstrID);
 
     if (m_currentActivate)
         m_currentActivate->Release();
+    m_currentActivate = NULL;
 }
 
 QList<QString> MFAudioEndpointControl::availableOutputs() const
@@ -119,8 +125,13 @@ void MFAudioEndpointControl::setActiveOutput(const QString &name)
     m_activeEndpoint = name;
 }
 
-IMFActivate*  MFAudioEndpointControl::currentActivate() const
+IMFActivate*  MFAudioEndpointControl::createActivate()
 {
+    clear();
+
+    updateEndpoints();
+    setActiveOutput(m_defaultEndpoint);
+
     return m_currentActivate;
 }
 
