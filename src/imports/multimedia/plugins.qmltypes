@@ -2,6 +2,8 @@ import QtQuick.tooling 1.1
 
 // This file describes the plugin-supplied types contained in the library.
 // It is used for QML tooling purposes only.
+//
+// This file was auto-generated with the command 'qmlplugindump -notrelocatable QtMultimedia 5.0'.
 
 Module {
     Component {
@@ -80,65 +82,56 @@ Module {
         Property { name: "lockStatus"; type: "QCamera::LockStatus"; isReadonly: true }
         Signal {
             name: "stateChanged"
-            type: "void"
             Parameter { type: "QCamera::State" }
         }
         Signal {
             name: "captureModeChanged"
-            type: "void"
             Parameter { type: "QCamera::CaptureModes" }
         }
         Signal {
             name: "statusChanged"
-            type: "void"
             Parameter { type: "QCamera::Status" }
         }
-        Signal { name: "locked"; type: "void" }
-        Signal { name: "lockFailed"; type: "void" }
+        Signal { name: "locked" }
+        Signal { name: "lockFailed" }
         Signal {
             name: "lockStatusChanged"
-            type: "void"
             Parameter { type: "QCamera::LockStatus" }
             Parameter { type: "QCamera::LockChangeReason" }
         }
         Signal {
             name: "lockStatusChanged"
-            type: "void"
             Parameter { type: "QCamera::LockType" }
             Parameter { type: "QCamera::LockStatus" }
             Parameter { type: "QCamera::LockChangeReason" }
         }
         Signal {
             name: "error"
-            type: "void"
             Parameter { type: "QCamera::Error" }
         }
         Method {
             name: "setCaptureMode"
-            type: "void"
             Parameter { name: "mode"; type: "QCamera::CaptureModes" }
         }
-        Method { name: "load"; type: "void" }
-        Method { name: "unload"; type: "void" }
-        Method { name: "start"; type: "void" }
-        Method { name: "stop"; type: "void" }
-        Method { name: "searchAndLock"; type: "void" }
-        Method { name: "unlock"; type: "void" }
+        Method { name: "load" }
+        Method { name: "unload" }
+        Method { name: "start" }
+        Method { name: "stop" }
+        Method { name: "searchAndLock" }
+        Method { name: "unlock" }
         Method {
             name: "searchAndLock"
-            type: "void"
             Parameter { name: "locks"; type: "QCamera::LockTypes" }
         }
         Method {
             name: "unlock"
-            type: "void"
             Parameter { name: "locks"; type: "QCamera::LockTypes" }
         }
     }
     Component {
         name: "QDeclarativeAudio"
         prototype: "QObject"
-        exports: ["Audio 5.0", "MediaPlayer 5.0"]
+        exports: ["QtMultimedia/Audio 5.0", "QtMultimedia/MediaPlayer 5.0"]
         Enum {
             name: "Status"
             values: {
@@ -194,12 +187,12 @@ Module {
         Property { name: "autoLoad"; type: "bool" }
         Property { name: "status"; type: "Status"; isReadonly: true }
         Property { name: "duration"; type: "int"; isReadonly: true }
-        Property { name: "position"; type: "int" }
+        Property { name: "position"; type: "int"; isReadonly: true }
         Property { name: "volume"; type: "double" }
         Property { name: "muted"; type: "bool" }
         Property { name: "hasAudio"; type: "bool"; isReadonly: true }
         Property { name: "hasVideo"; type: "bool"; isReadonly: true }
-        Property { name: "bufferProgress"; type: "int"; isReadonly: true }
+        Property { name: "bufferProgress"; type: "double"; isReadonly: true }
         Property { name: "seekable"; type: "bool"; isReadonly: true }
         Property { name: "playbackRate"; type: "double" }
         Property { name: "error"; type: "Error"; isReadonly: true }
@@ -212,45 +205,31 @@ Module {
         }
         Property { name: "mediaObject"; type: "QObject"; isReadonly: true; isPointer: true }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
-        Signal { name: "sourceChanged"; type: "void" }
-        Signal { name: "autoLoadChanged"; type: "void" }
-        Signal { name: "loopCountChanged"; type: "void" }
-        Signal { name: "playbackStateChanged"; type: "void" }
-        Signal { name: "autoPlayChanged"; type: "void" }
-        Signal { name: "paused"; type: "void" }
-        Signal { name: "stopped"; type: "void" }
-        Signal { name: "playing"; type: "void" }
-        Signal { name: "statusChanged"; type: "void" }
-        Signal { name: "durationChanged"; type: "void" }
-        Signal { name: "positionChanged"; type: "void" }
-        Signal { name: "volumeChanged"; type: "void" }
-        Signal { name: "mutedChanged"; type: "void" }
-        Signal { name: "hasAudioChanged"; type: "void" }
-        Signal { name: "hasVideoChanged"; type: "void" }
-        Signal { name: "bufferProgressChanged"; type: "void" }
-        Signal { name: "seekableChanged"; type: "void" }
-        Signal { name: "playbackRateChanged"; type: "void" }
+        Signal { name: "loopCountChanged" }
+        Signal { name: "paused" }
+        Signal { name: "stopped" }
+        Signal { name: "playing" }
         Signal {
             name: "availabilityChanged"
-            type: "void"
             Parameter { name: "availability"; type: "Availability" }
         }
-        Signal { name: "errorChanged"; type: "void" }
         Signal {
             name: "error"
-            type: "void"
             Parameter { name: "error"; type: "QDeclarativeAudio::Error" }
             Parameter { name: "errorString"; type: "string" }
         }
-        Signal { name: "mediaObjectChanged"; type: "void" }
-        Method { name: "play"; type: "void" }
-        Method { name: "pause"; type: "void" }
-        Method { name: "stop"; type: "void" }
+        Method { name: "play" }
+        Method { name: "pause" }
+        Method { name: "stop" }
+        Method {
+            name: "seek"
+            Parameter { name: "position"; type: "int" }
+        }
     }
     Component {
         name: "QDeclarativeCamera"
         prototype: "QObject"
-        exports: ["Camera 5.0"]
+        exports: ["QtMultimedia/Camera 5.0"]
         Enum {
             name: "CaptureMode"
             values: {
@@ -414,118 +393,96 @@ Module {
             isReadonly: true
             isPointer: true
         }
-        Signal { name: "errorChanged"; type: "void" }
+        Signal { name: "errorChanged" }
         Signal {
             name: "error"
-            type: "void"
             Parameter { name: "errorCode"; type: "QDeclarativeCamera::Error" }
             Parameter { name: "errorString"; type: "string" }
         }
-        Signal { name: "captureModeChanged"; type: "void" }
         Signal {
             name: "cameraStateChanged"
-            type: "void"
             Parameter { type: "QDeclarativeCamera::State" }
         }
-        Signal { name: "cameraStatusChanged"; type: "void" }
-        Signal { name: "lockStatusChanged"; type: "void" }
         Signal {
             name: "opticalZoomChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "digitalZoomChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "maximumOpticalZoomChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "maximumDigitalZoomChanged"
-            type: "void"
             Parameter { type: "double" }
         }
-        Signal { name: "mediaObjectChanged"; type: "void" }
         Signal {
             name: "availabilityChanged"
-            type: "void"
             Parameter { name: "availability"; type: "Availability" }
         }
         Method {
             name: "setCaptureMode"
-            type: "void"
             Parameter { name: "mode"; type: "CaptureMode" }
         }
-        Method { name: "start"; type: "void" }
-        Method { name: "stop"; type: "void" }
+        Method { name: "start" }
+        Method { name: "stop" }
         Method {
             name: "setCameraState"
-            type: "void"
             Parameter { name: "state"; type: "State" }
         }
-        Method { name: "searchAndLock"; type: "void" }
-        Method { name: "unlock"; type: "void" }
+        Method { name: "searchAndLock" }
+        Method { name: "unlock" }
         Method {
             name: "setOpticalZoom"
-            type: "void"
             Parameter { type: "double" }
         }
         Method {
             name: "setDigitalZoom"
-            type: "void"
             Parameter { type: "double" }
         }
     }
     Component {
         name: "QDeclarativeCameraCapture"
         prototype: "QObject"
-        exports: ["CameraCapture 5.0"]
+        exports: ["QtMultimedia/CameraCapture 5.0"]
         Property { name: "ready"; type: "bool"; isReadonly: true }
         Property { name: "capturedImagePath"; type: "string"; isReadonly: true }
         Property { name: "resolution"; type: "QSize" }
         Property { name: "errorString"; type: "string"; isReadonly: true }
         Signal {
             name: "readyForCaptureChanged"
-            type: "void"
             Parameter { type: "bool" }
         }
         Signal {
             name: "imageExposed"
-            type: "void"
             Parameter { name: "requestId"; type: "int" }
         }
         Signal {
             name: "imageCaptured"
-            type: "void"
             Parameter { name: "requestId"; type: "int" }
             Parameter { name: "preview"; type: "string" }
         }
         Signal {
             name: "imageMetadataAvailable"
-            type: "void"
             Parameter { name: "requestId"; type: "int" }
             Parameter { name: "key"; type: "string" }
             Parameter { name: "value"; type: "QVariant" }
         }
         Signal {
             name: "imageSaved"
-            type: "void"
             Parameter { name: "requestId"; type: "int" }
             Parameter { name: "path"; type: "string" }
         }
         Signal {
             name: "captureFailed"
-            type: "void"
             Parameter { name: "requestId"; type: "int" }
             Parameter { name: "message"; type: "string" }
         }
         Signal {
             name: "resolutionChanged"
-            type: "void"
             Parameter { type: "QSize" }
         }
         Method { name: "capture"; type: "int" }
@@ -534,15 +491,13 @@ Module {
             type: "int"
             Parameter { name: "location"; type: "string" }
         }
-        Method { name: "cancelCapture"; type: "void" }
+        Method { name: "cancelCapture" }
         Method {
             name: "setResolution"
-            type: "void"
             Parameter { name: "resolution"; type: "QSize" }
         }
         Method {
             name: "setMetadata"
-            type: "void"
             Parameter { name: "key"; type: "string" }
             Parameter { name: "value"; type: "QVariant" }
         }
@@ -550,7 +505,7 @@ Module {
     Component {
         name: "QDeclarativeCameraExposure"
         prototype: "QObject"
-        exports: ["CameraExposure 5.0"]
+        exports: ["QtMultimedia/CameraExposure 5.0"]
         Property { name: "exposureCompensation"; type: "double" }
         Property { name: "iso"; type: "int"; isReadonly: true }
         Property { name: "shutterSpeed"; type: "double"; isReadonly: true }
@@ -563,141 +518,117 @@ Module {
         Property { name: "meteringMode"; type: "QDeclarativeCamera::MeteringMode" }
         Signal {
             name: "isoSensitivityChanged"
-            type: "void"
             Parameter { type: "int" }
         }
         Signal {
             name: "apertureChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "shutterSpeedChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "manualIsoSensitivityChanged"
-            type: "void"
             Parameter { type: "int" }
         }
         Signal {
             name: "manualApertureChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "manualShutterSpeedChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "exposureCompensationChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "exposureModeChanged"
-            type: "void"
             Parameter { type: "QDeclarativeCamera::ExposureMode" }
         }
         Signal {
             name: "meteringModeChanged"
-            type: "void"
             Parameter { type: "QDeclarativeCamera::MeteringMode" }
         }
         Signal {
             name: "spotMeteringPointChanged"
-            type: "void"
             Parameter { type: "QPointF" }
         }
         Method {
             name: "setExposureMode"
-            type: "void"
             Parameter { type: "QDeclarativeCamera::ExposureMode" }
         }
         Method {
             name: "setExposureCompensation"
-            type: "void"
             Parameter { name: "ev"; type: "double" }
         }
         Method {
             name: "setManualAperture"
-            type: "void"
             Parameter { type: "double" }
         }
         Method {
             name: "setManualShutterSpeed"
-            type: "void"
             Parameter { type: "double" }
         }
         Method {
             name: "setManualIsoSensitivity"
-            type: "void"
             Parameter { name: "iso"; type: "int" }
         }
-        Method { name: "setAutoAperture"; type: "void" }
-        Method { name: "setAutoShutterSpeed"; type: "void" }
-        Method { name: "setAutoIsoSensitivity"; type: "void" }
+        Method { name: "setAutoAperture" }
+        Method { name: "setAutoShutterSpeed" }
+        Method { name: "setAutoIsoSensitivity" }
     }
     Component {
         name: "QDeclarativeCameraFlash"
         prototype: "QObject"
-        exports: ["CameraFlash 5.0"]
+        exports: ["QtMultimedia/CameraFlash 5.0"]
         Property { name: "ready"; type: "bool"; isReadonly: true }
         Property { name: "mode"; type: "int" }
         Signal {
             name: "flashReady"
-            type: "void"
             Parameter { name: "status"; type: "bool" }
         }
         Signal {
             name: "flashModeChanged"
-            type: "void"
             Parameter { type: "int" }
         }
         Method {
             name: "setFlashMode"
-            type: "void"
             Parameter { type: "int" }
         }
     }
     Component {
         name: "QDeclarativeCameraFocus"
         prototype: "QObject"
-        exports: ["CameraFocus 5.0"]
+        exports: ["QtMultimedia/CameraFocus 5.0"]
         Property { name: "focusMode"; type: "QDeclarativeCamera::FocusMode" }
         Property { name: "focusPointMode"; type: "QDeclarativeCamera::FocusPointMode" }
         Property { name: "customFocusPoint"; type: "QPointF" }
         Property { name: "focusZones"; type: "QObject"; isReadonly: true; isPointer: true }
         Signal {
             name: "focusModeChanged"
-            type: "void"
             Parameter { type: "QDeclarativeCamera::FocusMode" }
         }
         Signal {
             name: "focusPointModeChanged"
-            type: "void"
             Parameter { type: "QDeclarativeCamera::FocusPointMode" }
         }
         Signal {
             name: "customFocusPointChanged"
-            type: "void"
             Parameter { type: "QPointF" }
         }
         Method {
             name: "setFocusMode"
-            type: "void"
             Parameter { type: "QDeclarativeCamera::FocusMode" }
         }
         Method {
             name: "setFocusPointMode"
-            type: "void"
             Parameter { name: "mode"; type: "QDeclarativeCamera::FocusPointMode" }
         }
         Method {
             name: "setCustomFocusPoint"
-            type: "void"
             Parameter { name: "point"; type: "QPointF" }
         }
         Method {
@@ -714,7 +645,7 @@ Module {
     Component {
         name: "QDeclarativeCameraImageProcessing"
         prototype: "QObject"
-        exports: ["CameraImageProcessing 5.0"]
+        exports: ["QtMultimedia/CameraImageProcessing 5.0"]
         Enum {
             name: "WhiteBalanceMode"
             values: {
@@ -738,69 +669,57 @@ Module {
         Property { name: "denoisingLevel"; type: "double" }
         Signal {
             name: "whiteBalanceModeChanged"
-            type: "void"
             Parameter { type: "QDeclarativeCameraImageProcessing::WhiteBalanceMode" }
         }
         Signal {
             name: "manualWhiteBalanceChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "contrastChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "saturationChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "sharpeningLevelChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Signal {
             name: "denoisingLevelChanged"
-            type: "void"
             Parameter { type: "double" }
         }
         Method {
             name: "setWhiteBalanceMode"
-            type: "void"
             Parameter { name: "mode"; type: "QDeclarativeCameraImageProcessing::WhiteBalanceMode" }
         }
         Method {
             name: "setManualWhiteBalance"
-            type: "void"
             Parameter { name: "colorTemp"; type: "double" }
         }
         Method {
             name: "setContrast"
-            type: "void"
             Parameter { name: "value"; type: "double" }
         }
         Method {
             name: "setSaturation"
-            type: "void"
             Parameter { name: "value"; type: "double" }
         }
         Method {
             name: "setSharpeningLevel"
-            type: "void"
             Parameter { name: "value"; type: "double" }
         }
         Method {
             name: "setDenoisingLevel"
-            type: "void"
             Parameter { name: "value"; type: "double" }
         }
     }
     Component {
         name: "QDeclarativeCameraRecorder"
         prototype: "QObject"
-        exports: ["CameraRecorder 5.0"]
+        exports: ["QtMultimedia/CameraRecorder 5.0"]
         Enum {
             name: "RecorderState"
             values: {
@@ -859,180 +778,146 @@ Module {
         Property { name: "errorCode"; type: "string"; isReadonly: true }
         Signal {
             name: "recorderStateChanged"
-            type: "void"
             Parameter { name: "state"; type: "QDeclarativeCameraRecorder::RecorderState" }
         }
-        Signal { name: "recorderStatusChanged"; type: "void" }
         Signal {
             name: "durationChanged"
-            type: "void"
             Parameter { name: "duration"; type: "qlonglong" }
         }
         Signal {
             name: "mutedChanged"
-            type: "void"
             Parameter { name: "muted"; type: "bool" }
         }
         Signal {
             name: "outputLocationChanged"
-            type: "void"
             Parameter { name: "location"; type: "string" }
         }
         Signal {
             name: "actualLocationChanged"
-            type: "void"
             Parameter { name: "location"; type: "string" }
         }
         Signal {
             name: "error"
-            type: "void"
             Parameter { name: "errorCode"; type: "QDeclarativeCameraRecorder::Error" }
             Parameter { name: "errorString"; type: "string" }
         }
         Signal {
             name: "metaDataChanged"
-            type: "void"
             Parameter { name: "key"; type: "string" }
             Parameter { name: "value"; type: "QVariant" }
         }
         Signal {
             name: "captureResolutionChanged"
-            type: "void"
             Parameter { type: "QSize" }
         }
         Signal {
             name: "audioCodecChanged"
-            type: "void"
             Parameter { name: "codec"; type: "string" }
         }
         Signal {
             name: "videoCodecChanged"
-            type: "void"
             Parameter { name: "codec"; type: "string" }
         }
         Signal {
             name: "mediaContainerChanged"
-            type: "void"
             Parameter { name: "container"; type: "string" }
         }
         Signal {
             name: "frameRateChanged"
-            type: "void"
             Parameter { name: "arg"; type: "double" }
         }
         Signal {
             name: "videoBitRateChanged"
-            type: "void"
             Parameter { name: "arg"; type: "int" }
         }
         Signal {
             name: "audioBitRateChanged"
-            type: "void"
             Parameter { name: "arg"; type: "int" }
         }
         Signal {
             name: "audioChannelsChanged"
-            type: "void"
             Parameter { name: "arg"; type: "int" }
         }
         Signal {
             name: "audioSampleRateChanged"
-            type: "void"
             Parameter { name: "arg"; type: "int" }
         }
         Signal {
             name: "audioEncodingModeChanged"
-            type: "void"
             Parameter { name: "encodingMode"; type: "EncodingMode" }
         }
         Signal {
             name: "videoEncodingModeChanged"
-            type: "void"
             Parameter { name: "encodingMode"; type: "EncodingMode" }
         }
         Method {
             name: "setOutputLocation"
-            type: "void"
             Parameter { name: "location"; type: "string" }
         }
-        Method { name: "record"; type: "void" }
-        Method { name: "stop"; type: "void" }
+        Method { name: "record" }
+        Method { name: "stop" }
         Method {
             name: "setRecorderState"
-            type: "void"
             Parameter { name: "state"; type: "QDeclarativeCameraRecorder::RecorderState" }
         }
         Method {
             name: "setMuted"
-            type: "void"
             Parameter { name: "muted"; type: "bool" }
         }
         Method {
             name: "setMetadata"
-            type: "void"
             Parameter { name: "key"; type: "string" }
             Parameter { name: "value"; type: "QVariant" }
         }
         Method {
             name: "setCaptureResolution"
-            type: "void"
             Parameter { name: "resolution"; type: "QSize" }
         }
         Method {
             name: "setAudioCodec"
-            type: "void"
             Parameter { name: "codec"; type: "string" }
         }
         Method {
             name: "setVideoCodec"
-            type: "void"
             Parameter { name: "codec"; type: "string" }
         }
         Method {
             name: "setMediaContainer"
-            type: "void"
             Parameter { name: "container"; type: "string" }
         }
         Method {
             name: "setFrameRate"
-            type: "void"
             Parameter { name: "frameRate"; type: "double" }
         }
         Method {
             name: "setVideoBitRate"
-            type: "void"
             Parameter { name: "rate"; type: "int" }
         }
         Method {
             name: "setAudioBitRate"
-            type: "void"
             Parameter { name: "rate"; type: "int" }
         }
         Method {
             name: "setAudioChannels"
-            type: "void"
             Parameter { name: "channels"; type: "int" }
         }
         Method {
             name: "setAudioSampleRate"
-            type: "void"
             Parameter { name: "rate"; type: "int" }
         }
         Method {
             name: "setVideoEncodingMode"
-            type: "void"
             Parameter { name: "encodingMode"; type: "EncodingMode" }
         }
         Method {
             name: "setAudioEncodingMode"
-            type: "void"
             Parameter { name: "encodingMode"; type: "EncodingMode" }
         }
     }
     Component {
         name: "QDeclarativeRadio"
         prototype: "QObject"
-        exports: ["Radio 5.0"]
+        exports: ["QtMultimedia/Radio 5.0"]
         Enum {
             name: "State"
             values: {
@@ -1100,110 +985,92 @@ Module {
         Property { name: "radioData"; type: "QDeclarativeRadioData"; isReadonly: true; isPointer: true }
         Signal {
             name: "stateChanged"
-            type: "void"
             Parameter { name: "state"; type: "QDeclarativeRadio::State" }
         }
         Signal {
             name: "bandChanged"
-            type: "void"
             Parameter { name: "band"; type: "QDeclarativeRadio::Band" }
         }
         Signal {
             name: "frequencyChanged"
-            type: "void"
             Parameter { name: "frequency"; type: "int" }
         }
         Signal {
             name: "stereoStatusChanged"
-            type: "void"
             Parameter { name: "stereo"; type: "bool" }
         }
         Signal {
             name: "searchingChanged"
-            type: "void"
             Parameter { name: "searching"; type: "bool" }
         }
         Signal {
             name: "signalStrengthChanged"
-            type: "void"
             Parameter { name: "signalStrength"; type: "int" }
         }
         Signal {
             name: "volumeChanged"
-            type: "void"
             Parameter { name: "volume"; type: "int" }
         }
         Signal {
             name: "mutedChanged"
-            type: "void"
             Parameter { name: "muted"; type: "bool" }
         }
         Signal {
             name: "stationFound"
-            type: "void"
             Parameter { name: "frequency"; type: "int" }
             Parameter { name: "stationId"; type: "string" }
         }
         Signal {
             name: "antennaConnectedChanged"
-            type: "void"
             Parameter { name: "connectionStatus"; type: "bool" }
         }
         Signal {
             name: "availabilityChanged"
-            type: "void"
             Parameter { name: "availability"; type: "Availability" }
         }
-        Signal { name: "errorChanged"; type: "void" }
+        Signal { name: "errorChanged" }
         Signal {
             name: "error"
-            type: "void"
             Parameter { name: "errorCode"; type: "QDeclarativeRadio::Error" }
         }
         Method {
             name: "setBand"
-            type: "void"
             Parameter { name: "band"; type: "QDeclarativeRadio::Band" }
         }
         Method {
             name: "setFrequency"
-            type: "void"
             Parameter { name: "frequency"; type: "int" }
         }
         Method {
             name: "setStereoMode"
-            type: "void"
             Parameter { name: "stereoMode"; type: "QDeclarativeRadio::StereoMode" }
         }
         Method {
             name: "setVolume"
-            type: "void"
             Parameter { name: "volume"; type: "int" }
         }
         Method {
             name: "setMuted"
-            type: "void"
             Parameter { name: "muted"; type: "bool" }
         }
-        Method { name: "cancelScan"; type: "void" }
-        Method { name: "scanDown"; type: "void" }
-        Method { name: "scanUp"; type: "void" }
-        Method { name: "tuneUp"; type: "void" }
-        Method { name: "tuneDown"; type: "void" }
+        Method { name: "cancelScan" }
+        Method { name: "scanDown" }
+        Method { name: "scanUp" }
+        Method { name: "tuneUp" }
+        Method { name: "tuneDown" }
         Method {
             name: "searchAllStations"
-            type: "void"
             Parameter { name: "searchMode"; type: "QDeclarativeRadio::SearchMode" }
         }
-        Method { name: "searchAllStations"; type: "void" }
-        Method { name: "start"; type: "void" }
-        Method { name: "stop"; type: "void" }
+        Method { name: "searchAllStations" }
+        Method { name: "start" }
+        Method { name: "stop" }
         Method { name: "isAvailable"; type: "bool" }
     }
     Component {
         name: "QDeclarativeRadioData"
         prototype: "QObject"
-        exports: ["RadioData 5.0"]
+        exports: ["QtMultimedia/RadioData 5.0"]
         Enum {
             name: "Error"
             values: {
@@ -1284,48 +1151,39 @@ Module {
         Property { name: "availability"; type: "Availability"; isReadonly: true }
         Signal {
             name: "stationIdChanged"
-            type: "void"
             Parameter { name: "stationId"; type: "string" }
         }
         Signal {
             name: "programTypeChanged"
-            type: "void"
             Parameter { name: "programType"; type: "QDeclarativeRadioData::ProgramType" }
         }
         Signal {
             name: "programTypeNameChanged"
-            type: "void"
             Parameter { name: "programTypeName"; type: "string" }
         }
         Signal {
             name: "stationNameChanged"
-            type: "void"
             Parameter { name: "stationName"; type: "string" }
         }
         Signal {
             name: "radioTextChanged"
-            type: "void"
             Parameter { name: "radioText"; type: "string" }
         }
         Signal {
             name: "alternativeFrequenciesEnabledChanged"
-            type: "void"
             Parameter { name: "enabled"; type: "bool" }
         }
         Signal {
             name: "availabilityChanged"
-            type: "void"
             Parameter { name: "availability"; type: "Availability" }
         }
-        Signal { name: "errorChanged"; type: "void" }
+        Signal { name: "errorChanged" }
         Signal {
             name: "error"
-            type: "void"
             Parameter { name: "errorCode"; type: "QDeclarativeRadioData::Error" }
         }
         Method {
             name: "setAlternativeFrequenciesEnabled"
-            type: "void"
             Parameter { name: "enabled"; type: "bool" }
         }
         Method { name: "isAvailable"; type: "bool" }
@@ -1333,17 +1191,15 @@ Module {
     Component {
         name: "QDeclarativeTorch"
         prototype: "QObject"
-        exports: ["Torch 5.0"]
+        exports: ["QtMultimedia/Torch 5.0"]
         Property { name: "enabled"; type: "bool" }
         Property { name: "power"; type: "int" }
-        Signal { name: "enabledChanged"; type: "void" }
-        Signal { name: "powerChanged"; type: "void" }
     }
     Component {
         name: "QDeclarativeVideoOutput"
         defaultProperty: "data"
         prototype: "QQuickItem"
-        exports: ["VideoOutput 5.0"]
+        exports: ["QtMultimedia/VideoOutput 5.0"]
         Enum {
             name: "FillMode"
             values: {
@@ -1357,15 +1213,10 @@ Module {
         Property { name: "orientation"; type: "int" }
         Property { name: "sourceRect"; type: "QRectF"; isReadonly: true }
         Property { name: "contentRect"; type: "QRectF"; isReadonly: true }
-        Signal { name: "sourceChanged"; type: "void" }
         Signal {
             name: "fillModeChanged"
-            type: "void"
             Parameter { type: "QDeclarativeVideoOutput::FillMode" }
         }
-        Signal { name: "orientationChanged"; type: "void" }
-        Signal { name: "sourceRectChanged"; type: "void" }
-        Signal { name: "contentRectChanged"; type: "void" }
         Method {
             name: "mapPointToItem"
             type: "QPointF"
@@ -1413,36 +1264,31 @@ Module {
         Property { name: "notifyInterval"; type: "int" }
         Signal {
             name: "notifyIntervalChanged"
-            type: "void"
             Parameter { name: "milliSeconds"; type: "int" }
         }
         Signal {
             name: "metaDataAvailableChanged"
-            type: "void"
             Parameter { name: "available"; type: "bool" }
         }
-        Signal { name: "metaDataChanged"; type: "void" }
+        Signal { name: "metaDataChanged" }
         Signal {
             name: "metaDataChanged"
-            type: "void"
             Parameter { name: "key"; type: "string" }
             Parameter { name: "value"; type: "QVariant" }
         }
         Signal {
             name: "availabilityChanged"
-            type: "void"
             Parameter { name: "available"; type: "bool" }
         }
         Signal {
             name: "availabilityChanged"
-            type: "void"
-            Parameter { name: "error"; type: "QMultimedia::AvailabilityStatus" }
+            Parameter { name: "availability"; type: "QMultimedia::AvailabilityStatus" }
         }
     }
     Component {
         name: "QSoundEffect"
         prototype: "QObject"
-        exports: ["SoundEffect 5.0"]
+        exports: ["QtMultimedia/SoundEffect 5.0"]
         Enum {
             name: "Loop"
             values: {
@@ -1466,16 +1312,9 @@ Module {
         Property { name: "playing"; type: "bool"; isReadonly: true }
         Property { name: "status"; type: "Status"; isReadonly: true }
         Property { name: "category"; type: "string" }
-        Signal { name: "sourceChanged"; type: "void" }
-        Signal { name: "loopCountChanged"; type: "void" }
-        Signal { name: "loopsRemainingChanged"; type: "void" }
-        Signal { name: "volumeChanged"; type: "void" }
-        Signal { name: "mutedChanged"; type: "void" }
-        Signal { name: "loadedChanged"; type: "void" }
-        Signal { name: "playingChanged"; type: "void" }
-        Signal { name: "statusChanged"; type: "void" }
-        Signal { name: "categoryChanged"; type: "void" }
-        Method { name: "play"; type: "void" }
-        Method { name: "stop"; type: "void" }
+        Signal { name: "loopCountChanged" }
+        Signal { name: "loadedChanged" }
+        Method { name: "play" }
+        Method { name: "stop" }
     }
 }
