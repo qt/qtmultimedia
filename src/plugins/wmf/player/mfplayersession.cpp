@@ -454,7 +454,7 @@ void MFPlayerSession::close()
     if (m_session) {
         hr = m_session->Close();
         if (SUCCEEDED(hr)) {
-            DWORD dwWaitResult = WaitForSingleObject(m_hCloseEvent, 5000);
+            DWORD dwWaitResult = WaitForSingleObject(m_hCloseEvent, 100);
             if (dwWaitResult == WAIT_TIMEOUT) {
                 qWarning() << "session close time out!";
             }

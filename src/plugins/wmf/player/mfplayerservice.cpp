@@ -71,6 +71,8 @@ MFPlayerService::MFPlayerService(QObject *parent)
 
 MFPlayerService::~MFPlayerService()
 {
+    m_session->close();
+
 #ifndef Q_WS_SIMULATOR
     if (m_videoWindowControl)
         delete m_videoWindowControl;
@@ -79,7 +81,6 @@ MFPlayerService::~MFPlayerService()
     if (m_videoRendererControl)
         delete m_videoRendererControl;
 
-    m_session->close();
     m_session->Release();
 }
 
