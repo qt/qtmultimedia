@@ -95,7 +95,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     Construct a new audio plugin with \a parent.
-    This is invoked automatically by the Q_EXPORT_PLUGIN2() macro.
+    This is invoked automatically by the Q_PLUGIN_METADATA() macro.
 */
 
 QAudioSystemPlugin::QAudioSystemPlugin(QObject* parent) :
