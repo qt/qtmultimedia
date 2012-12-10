@@ -8,6 +8,7 @@ QT += multimedia-private network
 }
 
 PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = QT7ServicePlugin
 load(qt_plugin)
 
 !simulator {

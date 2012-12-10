@@ -6,6 +6,7 @@ QT += multimedia-private network
 }
 
 PLUGIN_TYPE=mediaservice
+PLUGIN_CLASS_NAME = WMFServicePlugin
 load(qt_plugin)
 
 DEPENDPATH += .

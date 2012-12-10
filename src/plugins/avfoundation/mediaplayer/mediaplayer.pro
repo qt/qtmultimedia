@@ -8,6 +8,7 @@ TARGET = qavfmediaplayer
 QT += multimedia-private network
 
 PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = AVFMediaPlayerServicePlugin
 load(qt_plugin)
 
 LIBS += -framework AVFoundation -framework CoreMedia

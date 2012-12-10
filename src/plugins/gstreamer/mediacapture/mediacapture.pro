@@ -1,6 +1,7 @@
 TARGET = gstmediacapture
 
 PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = QGstreamerCaptureServicePlugin
 load(qt_plugin)
 
 include(../common.pri)

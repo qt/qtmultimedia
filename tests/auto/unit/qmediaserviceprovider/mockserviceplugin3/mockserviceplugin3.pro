@@ -3,6 +3,7 @@ QT += multimedia-private
 CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE=mediaservice
+PLUGIN_CLASS_NAME = MockServicePlugin3
 load(qt_plugin)
 
 DESTDIR = ../$${PLUGIN_TYPE}

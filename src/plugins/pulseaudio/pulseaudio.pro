@@ -2,6 +2,7 @@ TARGET = qtmedia_pulse
 QT += multimedia-private
 
 PLUGIN_TYPE = audio
+PLUGIN_CLASS_NAME = QPulseAudioPlugin
 load(qt_plugin)
 
 CONFIG += link_pkgconfig

@@ -1,6 +1,7 @@
 TARGET = gstmediaplayer
 
 PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = QGstreamerPlayerServicePlugin
 load(qt_plugin)
 
 include(../common.pri)
