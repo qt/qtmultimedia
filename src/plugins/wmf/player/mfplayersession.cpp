@@ -547,6 +547,10 @@ void MFPlayerSession::handleSourceError(long hr)
     case NS_E_SERVER_NOT_FOUND:
         errorString = tr("The specified server could not be found.");
         break;
+    case MF_E_UNSUPPORTED_BYTESTREAM_TYPE:
+        errorCode = QMediaPlayer::FormatError;
+        errorString = tr("Unsupported media type.");
+        break;
     default:
         errorString = tr("Failed to load source.");
         break;
@@ -1621,6 +1625,37 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             qDebug() << "MEReconnectEnd" << ((hrStatus == S_OK) ? "OK" : "Failed");
 #endif
         break;
+    case MESessionTopologySet:
+        if (FAILED(hrStatus)) {
+            changeStatus(QMediaPlayer::InvalidMedia);
+            emit error(QMediaPlayer::FormatError, tr("Unsupported media, a codec is missing."), true);
+        } else {
+            if (m_audioSampleGrabberNode) {
+                IMFMediaType *mediaType = 0;
+                hr = MFGetTopoNodeCurrentType(m_audioSampleGrabberNode, 0, FALSE, &mediaType);
+                if (SUCCEEDED(hr)) {
+                    m_audioSampleGrabber->setFormat(audioFormatForMFMediaType(mediaType));
+                    mediaType->Release();
+                }
+            }
+
+            if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
+                m_volumeControl->SetMasterVolume(m_volume);
+                m_volumeControl->SetMute(m_muted);
+            }
+
+            DWORD dwCharacteristics = 0;
+            m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
+            emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
+
+            // Topology is resolved and successfuly set, this happens only after loading a new media.
+            // Make sure we always start the media from the beginning
+            m_varStart.vt = VT_I8;
+            m_varStart.hVal.QuadPart = 0;
+
+            changeStatus(QMediaPlayer::LoadedMedia);
+        }
+        break;
     }
 
     if (FAILED(hrStatus)) {
@@ -1669,33 +1704,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                     emit mutedChanged(m_muted);
                 }
             }
-        }
-        break;
-    case MESessionTopologySet: {
-            if (m_audioSampleGrabberNode) {
-                IMFMediaType *mediaType = 0;
-                hr = MFGetTopoNodeCurrentType(m_audioSampleGrabberNode, 0, FALSE, &mediaType);
-                if (SUCCEEDED(hr)) {
-                    m_audioSampleGrabber->setFormat(audioFormatForMFMediaType(mediaType));
-                    mediaType->Release();
-                }
-            }
-
-            if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
-                m_volumeControl->SetMasterVolume(m_volume);
-                m_volumeControl->SetMute(m_muted);
-            }
-
-            DWORD dwCharacteristics = 0;
-            m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
-            emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
-
-            // Topology is resolved and successfuly set, this happens only after loading a new media.
-            // Make sure we always start the media from the beginning
-            m_varStart.vt = VT_I8;
-            m_varStart.hVal.QuadPart = 0;
-
-            changeStatus(QMediaPlayer::LoadedMedia);
         }
         break;
     case MESessionTopologyStatus: {
