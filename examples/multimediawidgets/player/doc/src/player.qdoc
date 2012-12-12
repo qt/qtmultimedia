@@ -26,10 +26,10 @@
 ****************************************************************************/
 
 /*!
-    \example player
+    \example multimediawidgets/player
     \title Media Player Example
-    \ingroup video_examples
-
+    \ingroup multimedia_examples
+    \brief Demonstrates the audio and video playback functionality
 
     This example creates a simple multimedia player. We can play audio and
     or video files using various codecs.

@@ -26,10 +26,9 @@
 ****************************************************************************/
 
 /*!
-\example declarative-camera
+\example multimediawidgets/declarative-camera
 \title QML Camera Example
-\ingroup camera_examples_qml
-
+\ingroup multimedia_examples
 \brief  The Camera Example shows how to use the API to capture a still image
 or video.
 

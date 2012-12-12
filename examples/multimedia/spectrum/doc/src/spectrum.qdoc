@@ -26,12 +26,12 @@
 ****************************************************************************/
 
 /*!
-    \example spectrum
+    \example multimedia/spectrum
     \title Spectrum Example
-    \ingroup audio_examples
+    \ingroup multimedia_examples
     \brief The Spectrum Example uses a combination multimedia APIs to process microphone input.
 
-    The Spectrum Analyzer example shows how the \l{QtMultimedia Module} can be
+    The Spectrum Analyzer example shows how the \l{Qt Multimedia} module can be
     used to record and then play back an audio stream.
 
     \image spectrum-demo.png

@@ -26,9 +26,9 @@
 ****************************************************************************/
 
 /*!
-    \example audiorecorder
+    \example multimedia/audiorecorder
     \title Audio Recorder Example
-    \ingroup audio_examples
+    \ingroup multimedia_examples
     \brief The Audio Recorder Example shows how to create a simple audio recorder.
 
     It demonstrates the discovery of the supported devices and codecs and the use
@@ -95,10 +95,6 @@
     \code
     ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
     \endcode
-
-
-
-
 */
 
 

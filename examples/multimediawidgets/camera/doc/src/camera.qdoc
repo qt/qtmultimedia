@@ -29,13 +29,11 @@
 
 /*!
 
-\example camera
+\example multimediawidgets/camera
 \title  Camera Example
-\ingroup camera_examples
+\ingroup multimedia_examples
 \brief  The Camera Example shows how to use the API to capture a still image
 or video.
-
-
 
 The Camera Example demonstrates how you can use QtMultimedia to implement
 some basic Camera functionality to take still images and record video clips

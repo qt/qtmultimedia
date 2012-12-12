@@ -26,9 +26,9 @@
 ****************************************************************************/
 
 /*!
-    \example videowidget
+    \example multimediawidgets/videowidget
     \title Video Widget Example
-    \ingroup video_examples
+    \ingroup multimedia_examples
     \brief This example is a simple video player
 
     The Video Widget example denonstrates how to implement a video widget using

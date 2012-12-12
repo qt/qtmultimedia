@@ -26,9 +26,9 @@
 ****************************************************************************/
 
 /*!
-    \example audiooutput
+    \example multimedia/audiooutput
     \title Audio Output Example
-    \ingroup audio_examples
+    \ingroup multimedia_examples
     \brief The Audio Output Example show the use of the QAudioOutput API.
 
     The example demonstrates the basic use cases of the QAudioOutput class.

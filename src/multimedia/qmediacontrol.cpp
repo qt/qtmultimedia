@@ -68,14 +68,14 @@ QT_BEGIN_NAMESPACE
     the \l {QMediaService::requestControl()} member of QMediaService.  If the
     service doesn't implement a control it will instead return a null pointer.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Request control
+    \snippet multimedia-snippets/media.cpp Request control
 
     Alternatively if the IId of the control has been declared using
     Q_MEDIA_DECLARE_CONTROL the template version of
     QMediaService::requestControl() can be used to request the service without
     explicitly passing the IId or using qobject_cast().
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Request control templated
+    \snippet multimedia-snippets/media.cpp Request control templated
 
     Most application code will not interface directly with a media service's
     controls, instead the QMediaObject which owns the service acts as an
@@ -95,7 +95,7 @@ QT_BEGIN_NAMESPACE
     be requested from QMediaService::requestControl() without explicitly
     passing the IId.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Request control templated
+    \snippet multimedia-snippets/media.cpp Request control templated
 
     \sa QMediaService::requestControl()
 */

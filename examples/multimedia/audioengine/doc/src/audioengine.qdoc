@@ -26,9 +26,9 @@
 ****************************************************************************/
 
 /*!
-    \example audioengine
+    \example multimedia/audioengine
     \title AudioEngine Example
-    \ingroup audioengine_examples
+    \ingroup multimedia_examples
     \brief The Audio Engine example demonstrates 3D sound control using
     the QtAudioEngine API.
 

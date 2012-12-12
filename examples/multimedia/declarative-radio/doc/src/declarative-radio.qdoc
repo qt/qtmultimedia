@@ -26,10 +26,13 @@
 ****************************************************************************/
 
 /*!
-    \example declarative-radio
+    \example multimedia/declarative-radio
     \title Declarative Radio Example
+    \brief Demonstrates the radio functionality
+    \ingroup multimedia_examples
 
-
+    This examples uses the Qt Multimedia Radio QML type to list the available
+    channels on the FM frequency.
 */
 
 

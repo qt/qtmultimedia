@@ -79,7 +79,7 @@ namespace
 
     You can control the systems analog radio device using this interface, for example:
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Radio tuner
+    \snippet multimedia-snippets/media.cpp Radio tuner
 
     The radio object will emit signals for any changes in state such as:
     bandChanged(), frequencyChanged(), stereoStatusChanged(), searchingChanged(),

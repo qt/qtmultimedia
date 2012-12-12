@@ -78,7 +78,7 @@ namespace
     You can get a QRadioData instance fromt the \l{QRadioTuner::radioData()}{radioData}
     property from a QRadioTuner instance.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Radio data setup
+    \snippet multimedia-snippets/media.cpp Radio data setup
 
     Alternatively, you can pass an instance of QRadioTuner to the constructor to QRadioData.
 
