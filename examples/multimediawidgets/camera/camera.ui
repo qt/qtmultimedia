@@ -138,6 +138,9 @@
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
          <widget class="QPushButton" name="takeImageButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Capture Photo</string>
           </property>
@@ -245,7 +248,7 @@
      <x>0</x>
      <y>0</y>
      <width>668</width>
-     <height>29</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
