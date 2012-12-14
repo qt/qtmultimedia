@@ -8,8 +8,6 @@ TEMPLATE = subdirs
         videowidget \
         player \
         customvideosurface
-
-    QT += widgets
 }
 
 !isEmpty(QT.gui.name):!isEmpty(QT.qml.name) {

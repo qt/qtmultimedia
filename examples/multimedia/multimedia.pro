@@ -11,8 +11,6 @@ SUBDIRS += audiodecoder
         audiodevices \
         audioinput \
         audiooutput \
-
-    QT += widgets
 }
 
 !isEmpty(QT.gui.name):!isEmpty(QT.qml.name) {
