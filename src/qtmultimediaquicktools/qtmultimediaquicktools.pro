@@ -9,7 +9,6 @@ DEFINES += QT_BUILD_QTMM_QUICK_LIB
 # Header files must go inside source directory of a module
 # to be installed by syncqt.
 INCLUDEPATH += ../multimedia/qtmultimediaquicktools_headers/
-DEPENDPATH += ../multimedia/qtmultimediaquicktools_headers/
 
 PRIVATE_HEADERS += \
     ../multimedia/qtmultimediaquicktools_headers/qsgvideonode_p.h \
