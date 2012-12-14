@@ -1,10 +1,48 @@
 <RCC>
-    <qresource prefix="/images">
-        <file alias="close.png">images/close.png</file>
-        <file alias="folder.png">images/folder.png</file>
-        <file alias="titlebar.png">images/titlebar.png</file>
-        <file alias="titlebar.sci">images/titlebar.sci</file>
-        <file alias="up.png">images/up.png</file>
-        <file alias="qt-logo.png">images/qt-logo.png</file>
+    <qresource prefix="/">
+        <file>images/close.png</file>
+        <file>images/folder.png</file>
+        <file>images/titlebar.png</file>
+        <file>images/titlebar.sci</file>
+        <file>images/up.png</file>
+        <file>images/qt-logo.png</file>
+        <file>qml/qmlvideofx/Button.qml</file>
+        <file>qml/qmlvideofx/Content.qml</file>
+        <file>qml/qmlvideofx/ContentCamera.qml</file>
+        <file>qml/qmlvideofx/ContentImage.qml</file>
+        <file>qml/qmlvideofx/ContentVideo.qml</file>
+        <file>qml/qmlvideofx/DisableScreenSaver.qml</file>
+        <file>qml/qmlvideofx/Divider.qml</file>
+        <file>qml/qmlvideofx/Effect.qml</file>
+        <file>qml/qmlvideofx/EffectBillboard.qml</file>
+        <file>qml/qmlvideofx/EffectBlackAndWhite.qml</file>
+        <file>qml/qmlvideofx/EffectEmboss.qml</file>
+        <file>qml/qmlvideofx/EffectGaussianBlur.qml</file>
+        <file>qml/qmlvideofx/EffectGlow.qml</file>
+        <file>qml/qmlvideofx/EffectIsolate.qml</file>
+        <file>qml/qmlvideofx/EffectMagnify.qml</file>
+        <file>qml/qmlvideofx/EffectPageCurl.qml</file>
+        <file>qml/qmlvideofx/EffectPassThrough.qml</file>
+        <file>qml/qmlvideofx/EffectPixelate.qml</file>
+        <file>qml/qmlvideofx/EffectPosterize.qml</file>
+        <file>qml/qmlvideofx/EffectRipple.qml</file>
+        <file>qml/qmlvideofx/EffectSelectionPanel.qml</file>
+        <file>qml/qmlvideofx/EffectSepia.qml</file>
+        <file>qml/qmlvideofx/EffectSharpen.qml</file>
+        <file>qml/qmlvideofx/EffectShockwave.qml</file>
+        <file>qml/qmlvideofx/EffectSobelEdgeDetection1.qml</file>
+        <file>qml/qmlvideofx/EffectSobelEdgeDetection2.qml</file>
+        <file>qml/qmlvideofx/EffectTiltShift.qml</file>
+        <file>qml/qmlvideofx/EffectToon.qml</file>
+        <file>qml/qmlvideofx/EffectVignette.qml</file>
+        <file>qml/qmlvideofx/EffectWarhol.qml</file>
+        <file>qml/qmlvideofx/EffectWobble.qml</file>
+        <file>qml/qmlvideofx/FileBrowser.qml</file>
+        <file>qml/qmlvideofx/FileOpen.qml</file>
+        <file>qml/qmlvideofx/HintedMouseArea.qml</file>
+        <file>qml/qmlvideofx/main-largescreen.qml</file>
+        <file>qml/qmlvideofx/main-smallscreen.qml</file>
+        <file>qml/qmlvideofx/ParameterPanel.qml</file>
+        <file>qml/qmlvideofx/Slider.qml</file>
     </qresource>
 </RCC>

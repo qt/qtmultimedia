@@ -43,9 +43,10 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtQml/QQmlContext>
+#include <QtQml/QQmlEngine>
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickItem>
-#include "qmlapplicationviewer.h"
+#include <QtQuick/QQuickView>
 #include "trace.h"
 
 #ifdef PERFORMANCEMONITOR_SUPPORT
@@ -108,9 +109,10 @@ int main(int argc, char *argv[])
             url2 = QUrl::fromLocalFile(source2);
     }
 
-    QmlApplicationViewer viewer;
+    QQuickView viewer;
+    viewer.setSource(QUrl("qrc:///qml/qmlvideo/main.qml"));
+    QObject::connect(viewer.engine(), SIGNAL(quit()), &viewer, SLOT(close()));
 
-    viewer.setMainQmlFile(QLatin1String("qml/qmlvideo/main.qml"));
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("source1", url1);
     rootObject->setProperty("source2", url2);
@@ -133,7 +135,7 @@ int main(int argc, char *argv[])
 
     QMetaObject::invokeMethod(rootObject, "init");
 
-    viewer.showExpanded();
+    viewer.show();
 
     return app.exec();
 }

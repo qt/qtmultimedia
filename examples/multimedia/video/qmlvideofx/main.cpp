@@ -44,8 +44,8 @@
 #include <QtQml/QQmlContext>
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickItem>
+#include <QtQuick/QQuickView>
 #include "filereader.h"
-#include "qmlapplicationviewer.h"
 #include "trace.h"
 
 #ifdef SMALL_SCREEN_LAYOUT
@@ -97,9 +97,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    QmlApplicationViewer viewer;
+    QQuickView viewer;
 
-    viewer.setMainQmlFile(QLatin1String("qml/qmlvideofx/") + MainQmlFile);
+    viewer.setSource(QLatin1String("qrc:///qml/qmlvideofx/") + MainQmlFile);
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("fileName", fileName);
     viewer.rootObject()->setProperty("volume", volume);
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 #ifdef SMALL_SCREEN_PHYSICAL
     viewer.showFullScreen();
 #else
-    viewer.showExpanded();
+    viewer.show();
 #endif
 
     // Delay invocation of init until the event loop has started, to work around
