@@ -1,8 +1,6 @@
 TEMPLATE = app
 TARGET = audiodecoder
 
-CONFIG += qt warn_on
-
 HEADERS = \
     audiodecoder.h \
     wavefilewriter.h

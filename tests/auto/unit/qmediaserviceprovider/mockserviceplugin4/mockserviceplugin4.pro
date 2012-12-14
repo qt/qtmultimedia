@@ -1,6 +1,5 @@
 TARGET = mockserviceplugin4
 QT += multimedia-private
-CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE=mediaservice
 PLUGIN_CLASS_NAME = MockServicePlugin4

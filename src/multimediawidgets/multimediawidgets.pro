@@ -7,8 +7,6 @@ contains(QT_CONFIG, opengl)|contains(QT_CONFIG, opengles2) {
    DEFINES += QT_NO_OPENGL
 }
 
-CONFIG += no_private_qt_headers_warning
-
 load(qt_module)
 
 PRIVATE_HEADERS += \

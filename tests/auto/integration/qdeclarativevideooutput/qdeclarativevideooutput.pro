@@ -1,7 +1,6 @@
 TARGET = tst_qdeclarativevideooutput
 
 QT += multimedia-private qml testlib quick
-CONFIG += no_private_qt_headers_warning
 CONFIG += testcase
 
 OTHER_FILES += \

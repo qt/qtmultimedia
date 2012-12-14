@@ -2,7 +2,6 @@ CONFIG += testcase
 TARGET = tst_qmediabindableinterface
 
 QT += multimedia-private testlib
-CONFIG += no_private_qt_headers_warning
 
 SOURCES += \
     tst_qmediabindableinterface.cpp
