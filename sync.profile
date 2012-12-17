@@ -20,8 +20,8 @@
 #   - any git symbolic ref resolvable from the module's repository (e.g. "refs/heads/master" to track master branch)
 #
 %dependencies = (
-    "qtbase" => "refs/heads/stable",
-    "qtxmlpatterns" => "refs/heads/stable",
-    "qtdeclarative" => "refs/heads/stable",
-    "qtjsbackend" => "refs/heads/stable",
+    "qtbase" => "refs/heads/release",
+    "qtxmlpatterns" => "refs/heads/release",
+    "qtdeclarative" => "refs/heads/release",
+    "qtjsbackend" => "refs/heads/release",
 );
