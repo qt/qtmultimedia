@@ -52,5 +52,5 @@ Effect {
     // Transform slider values, and bind result to shader uniforms
     property real granularity: parameters.get(0).value * 20
 
-    fragmentShaderFilename: "shaders/pixelate.fsh"
+    fragmentShaderFilename: "pixelate.fsh"
 }

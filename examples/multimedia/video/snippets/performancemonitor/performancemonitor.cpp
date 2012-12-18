@@ -43,27 +43,27 @@
 
 namespace PerformanceMonitor {
 
-    bool parseArgument(const QString &arg, State &state)
-    {
-        bool result = false;
-        if ("-log-perf" == arg) {
-            state.logging = true;
-            state.valid = true;
-            result = true;
-        } else if ("-no-log-perf" == arg) {
-            state.logging = false;
-            state.valid = true;
-            result = true;
-        } else if ("-show-perf" == arg) {
-            state.visible = true;
-            state.valid = true;
-            result = true;
-        } else if ("-hide-perf" == arg) {
-            state.visible = false;
-            state.valid = true;
-            result = true;
-        }
-        return result;
+bool State::parseArgument(const QByteArray &arg)
+{
+    bool result = false;
+    if (arg == "-log-perf") {
+        logging = true;
+        valid = true;
+        result = true;
+    } else if (arg == "-no-log-perf") {
+        logging = false;
+        valid = true;
+        result = true;
+    } else if (arg == "-show-perf") {
+        visible = true;
+        valid = true;
+        result = true;
+    } else if (arg == "-hide-perf") {
+        visible = false;
+        valid = true;
+        result = true;
     }
-
+    return result;
 }
+
+} // namespace PerformanceMonitor

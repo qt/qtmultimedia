@@ -3,16 +3,12 @@ TARGET = qmlvideofx
 
 QT += quick
 
-LOCAL_SOURCES = filereader.cpp main.cpp
-LOCAL_HEADERS = filereader.h trace.h
-
-SOURCES += $$LOCAL_SOURCES
-HEADERS += $$LOCAL_HEADERS
+SOURCES += filereader.cpp main.cpp
+HEADERS += filereader.h trace.h
 
 RESOURCES += qmlvideofx.qrc
 
-SNIPPETS_PATH = ../snippets
-include($$SNIPPETS_PATH/performancemonitor/performancemonitordeclarative.pri)
+include($$PWD/../snippets/performancemonitor/performancemonitordeclarative.pri)
 
 maemo6: {
     DEFINES += SMALL_SCREEN_LAYOUT

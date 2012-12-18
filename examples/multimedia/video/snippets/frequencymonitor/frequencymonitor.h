@@ -42,8 +42,8 @@
 #ifndef FREQUENCYMONITOR_H
 #define FREQUENCYMONITOR_H
 
-#include <QtCore/QObject>
-#include <QtCore/QTimer>
+#include <QObject>
+#include <QTimer>
 
 class FrequencyMonitorPrivate;
 
@@ -64,13 +64,14 @@ class FrequencyMonitor : public QObject
     Q_PROPERTY(int traceInterval READ traceInterval WRITE setTraceInterval NOTIFY traceIntervalChanged)
     Q_PROPERTY(qreal instantaneousFrequency READ instantaneousFrequency NOTIFY instantaneousFrequencyChanged)
     Q_PROPERTY(qreal averageFrequency READ averageFrequency NOTIFY averageFrequencyChanged)
+
 public:
     FrequencyMonitor(QObject *parent = 0);
     ~FrequencyMonitor();
 
     static void qmlRegisterType();
 
-    const QString &label() const;
+    QString label() const;
     bool active() const;
     int samplingInterval() const;
     int traceInterval() const;

@@ -53,5 +53,5 @@ Effect {
     // Transform slider values, and bind result to shader uniforms
     property real curlExtent: 1.0 - parameters.get(0).value
 
-    fragmentShaderFilename: "shaders/pagecurl.fsh"
+    fragmentShaderFilename: "pagecurl.fsh"
 }

@@ -55,5 +55,5 @@ Effect {
     property real step_x: 0.0015625
     property real step_y: targetHeight ? (step_x * targetWidth / targetHeight) : 0.0
 
-    fragmentShaderFilename: "shaders/billboard.fsh"
+    fragmentShaderFilename: "billboard.fsh"
 }

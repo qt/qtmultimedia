@@ -41,36 +41,18 @@
 
 #include "filereader.h"
 #include "trace.h"
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-#include <QtCore/QTextStream>
 
-QString adjustPath(const QString &path)
-{
-#ifdef Q_OS_UNIX
-#ifdef Q_OS_MAC
-    if (!QDir::isAbsolutePath(path))
-        return QCoreApplication::applicationDirPath()
-                + QLatin1String("/../Resources/") + path;
-#else
-    QString pathInInstallDir;
-    const QString applicationDirPath = QCoreApplication::applicationDirPath();
-    pathInInstallDir = QString::fromLatin1("%1/../%2").arg(applicationDirPath, path);
-
-    if (QFileInfo(pathInInstallDir).exists())
-        return pathInInstallDir;
-#endif
-#endif
-    return path;
-}
+#include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QTextStream>
 
 QString FileReader::readFile(const QString &fileName)
 {
     qtTrace() << "FileReader::readFile" << "fileName" << fileName;
     QString content;
-    QFile file(adjustPath(fileName));
+    QFile file(fileName);
     if (file.open(QIODevice::ReadOnly)) {
         QTextStream stream(&file);
         content = stream.readAll();

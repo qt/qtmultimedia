@@ -72,17 +72,17 @@ int main(int argc, char *argv[])
 #ifdef PERFORMANCEMONITOR_SUPPORT
     PerformanceMonitor::State performanceMonitorState;
 #endif
-    for (int i=1; i<args.count(); ++i) {
-        const QString &arg = args.at(i);
+    for (int i = 1; i < args.size(); ++i) {
+        const QByteArray arg = args.at(i).toUtf8();
         if (arg.startsWith('-')) {
             if ("-volume" == arg) {
-                if (i+1 < args.count())
+                if (i + 1 < args.size())
                     volume = 0.01 * args.at(++i).toInt();
                 else
                     qtTrace() << "Option \"-volume\" takes a value";
             }
 #ifdef PERFORMANCEMONITOR_SUPPORT
-            else if (PerformanceMonitor::parseArgument(arg, performanceMonitorState)) {
+            else if (performanceMonitorState.parseArgument(arg)) {
                 // Do nothing
             }
 #endif

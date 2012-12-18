@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QObject>
+#include <QObject>
 
 class FileReader : public QObject
 {

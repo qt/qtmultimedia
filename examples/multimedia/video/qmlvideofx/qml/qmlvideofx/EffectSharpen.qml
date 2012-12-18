@@ -52,5 +52,5 @@ Effect {
     // Transform slider values, and bind result to shader uniforms
     property real amount: parameters.get(0).value * 18
 
-    fragmentShaderFilename: "shaders/sharpen.fsh"
+    fragmentShaderFilename: "sharpen.fsh"
 }

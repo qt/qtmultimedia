@@ -52,5 +52,5 @@ Effect {
     // Transform slider values, and bind result to shader uniforms
     property real weight: parameters.get(0).value
 
-    fragmentShaderFilename: "shaders/sobeledgedetection2.fsh"
+    fragmentShaderFilename: "sobeledgedetection2.fsh"
 }

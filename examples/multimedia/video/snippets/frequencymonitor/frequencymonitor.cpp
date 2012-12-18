@@ -40,11 +40,11 @@
 ****************************************************************************/
 
 #include "frequencymonitor.h"
-#include <QtCore/QDebug>
-#include <QtCore/QElapsedTimer>
-#include <QtCore/QString>
-#include <QtCore/QTime>
-#include <QtCore/QTimer>
+#include <QDebug>
+#include <QElapsedTimer>
+#include <QString>
+#include <QTime>
+#include <QTimer>
 
 //#define VERBOSE_TRACE
 
@@ -61,6 +61,7 @@ static const int DefaultTraceInterval = 0;
 class FrequencyMonitorPrivate : public QObject
 {
     Q_OBJECT
+
 public:
     FrequencyMonitorPrivate(FrequencyMonitor *parent);
     void calculateInstantaneousFrequency();
@@ -116,16 +117,16 @@ void FrequencyMonitorPrivate::calculateInstantaneousFrequency()
     m_stalledTimer->start(3 * ms);
     if (m_instantaneousFrequency)
         q_ptr->setActive(true);
-    q_ptr->emit instantaneousFrequencyChanged(m_instantaneousFrequency);
-    q_ptr->emit frequencyChanged();
+    emit q_ptr->instantaneousFrequencyChanged(m_instantaneousFrequency);
+    emit q_ptr->frequencyChanged();
 }
 
 void FrequencyMonitorPrivate::calculateAverageFrequency()
 {
     const qint64 ms = m_averageElapsed.restart();
     m_averageFrequency = qreal(m_count * 1000) / ms;
-    q_ptr->emit averageFrequencyChanged(m_averageFrequency);
-    q_ptr->emit frequencyChanged();
+    emit q_ptr->averageFrequencyChanged(m_averageFrequency);
+    emit q_ptr->frequencyChanged();
     m_count = 0;
 }
 
@@ -134,14 +135,13 @@ void FrequencyMonitorPrivate::stalled()
     if (m_instantaneousFrequency) {
         qtVerboseTrace() << "FrequencyMonitor::stalled";
         m_instantaneousFrequency = 0;
-        q_ptr->emit instantaneousFrequencyChanged(m_instantaneousFrequency);
-        q_ptr->emit frequencyChanged();
+        emit q_ptr->instantaneousFrequencyChanged(m_instantaneousFrequency);
+        emit q_ptr->frequencyChanged();
     }
 }
 
 FrequencyMonitor::FrequencyMonitor(QObject *parent)
 :   QObject(parent)
-,   d_ptr(0)
 {
     d_ptr = new FrequencyMonitorPrivate(this);
     qtTrace() << "FrequencyMonitor::FrequencyMonitor";
@@ -152,7 +152,7 @@ FrequencyMonitor::~FrequencyMonitor()
 
 }
 
-const QString &FrequencyMonitor::label() const
+QString FrequencyMonitor::label() const
 {
     return d_func()->m_label;
 }
