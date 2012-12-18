@@ -85,6 +85,11 @@ void Evr9VideoWindowControl::clear()
     m_currentActivate = NULL;
 }
 
+void Evr9VideoWindowControl::releaseActivate()
+{
+    clear();
+}
+
 WId Evr9VideoWindowControl::winId() const
 {
     return m_windowId;

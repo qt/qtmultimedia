@@ -476,6 +476,13 @@ void MFPlayerSession::close()
         m_videoProbeMFT = 0;
     }
 
+    if (m_playerService->videoRendererControl()) {
+        m_playerService->videoRendererControl()->releaseActivate();
+#ifndef Q_WS_SIMULATOR
+    } else if (m_playerService->videoWindowControl()) {
+        m_playerService->videoWindowControl()->releaseActivate();
+#endif
+    }
 
     if (m_session)
         m_session->Release();
