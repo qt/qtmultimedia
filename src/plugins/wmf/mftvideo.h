@@ -61,6 +61,8 @@ public:
     void addProbe(MFVideoProbeControl* probe);
     void removeProbe(MFVideoProbeControl* probe);
 
+    void addSupportedMediaType(IMFMediaType *type);
+
     // IUnknown methods
     STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
     STDMETHODIMP_(ULONG) AddRef();
@@ -97,12 +99,15 @@ private:
     static QVideoSurfaceFormat videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine);
     QVideoFrame makeVideoFrame();
     QByteArray dataFromBuffer(IMFMediaBuffer *buffer, int height, int *bytesPerLine);
+    bool isMediaTypeSupported(IMFMediaType *type);
 
     long m_cRef;
     IMFMediaType *m_inputType;
     IMFMediaType *m_outputType;
     IMFSample *m_sample;
     QMutex m_mutex;
+
+    QList<IMFMediaType*> m_mediaTypes;
 
     QList<MFVideoProbeControl*> m_videoProbes;
     QMutex m_videoProbeMutex;

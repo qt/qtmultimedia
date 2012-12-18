@@ -47,6 +47,7 @@
 #include <uuids.h>
 #include <InitGuid.h>
 #include <d3d9.h>
+#include <qdebug.h>
 
 // This MFT sends all samples it processes to connected video probes.
 // Sample is sent to probes in ProcessInput.
@@ -70,6 +71,9 @@ MFTransform::~MFTransform()
 
     if (m_outputType)
         m_outputType->Release();
+
+    for (int i = 0; i < m_mediaTypes.size(); ++i)
+        m_mediaTypes[i]->Release();
 }
 
 void MFTransform::addProbe(MFVideoProbeControl *probe)
@@ -86,6 +90,14 @@ void MFTransform::removeProbe(MFVideoProbeControl *probe)
 {
     QMutexLocker locker(&m_videoProbeMutex);
     m_videoProbes.removeOne(probe);
+}
+
+void MFTransform::addSupportedMediaType(IMFMediaType *type)
+{
+    if (!type)
+        return;
+    QMutexLocker locker(&m_mutex);
+    m_mediaTypes.append(type);
 }
 
 STDMETHODIMP MFTransform::QueryInterface(REFIID riid, void** ppv)
@@ -151,6 +163,8 @@ STDMETHODIMP MFTransform::GetStreamIDs(DWORD dwInputIDArraySize, DWORD *pdwInput
 
 STDMETHODIMP MFTransform::GetInputStreamInfo(DWORD dwInputStreamID, MFT_INPUT_STREAM_INFO *pStreamInfo)
 {
+    QMutexLocker locker(&m_mutex);
+
     if (dwInputStreamID > 0)
         return MF_E_INVALIDSTREAMNUMBER;
 
@@ -167,6 +181,8 @@ STDMETHODIMP MFTransform::GetInputStreamInfo(DWORD dwInputStreamID, MFT_INPUT_ST
 
 STDMETHODIMP MFTransform::GetOutputStreamInfo(DWORD dwOutputStreamID, MFT_OUTPUT_STREAM_INFO *pStreamInfo)
 {
+    QMutexLocker locker(&m_mutex);
+
     if (dwOutputStreamID > 0)
         return MF_E_INVALIDSTREAMNUMBER;
 
@@ -243,16 +259,27 @@ STDMETHODIMP MFTransform::SetInputType(DWORD dwInputStreamID, IMFMediaType *pTyp
 
     QMutexLocker locker(&m_mutex);
 
-    DWORD flags = 0;
-    if (m_outputType && m_outputType->IsEqual(pType, &flags) != S_OK) {
+    if (m_sample)
+        return MF_E_TRANSFORM_CANNOT_CHANGE_MEDIATYPE_WHILE_PROCESSING;
+
+    if (!isMediaTypeSupported(pType))
         return MF_E_INVALIDMEDIATYPE;
-    }
+
+    DWORD flags = 0;
+    if (pType && !m_inputType && m_outputType && m_outputType->IsEqual(pType, &flags) != S_OK)
+        return MF_E_INVALIDMEDIATYPE;
 
     if (dwFlags == MFT_SET_TYPE_TEST_ONLY)
         return pType ? S_OK : E_POINTER;
 
-    if (m_inputType)
+    if (m_inputType) {
         m_inputType->Release();
+        // Input type has changed, discard output type (if it's set) so it's reset later on
+        if (m_outputType &&  m_outputType->IsEqual(pType, &flags) != S_OK) {
+            m_outputType->Release();
+            m_outputType = 0;
+        }
+    }
 
     m_inputType = pType;
 
@@ -269,16 +296,27 @@ STDMETHODIMP MFTransform::SetOutputType(DWORD dwOutputStreamID, IMFMediaType *pT
 
     QMutexLocker locker(&m_mutex);
 
-    DWORD flags = 0;
-    if (m_inputType && m_inputType->IsEqual(pType, &flags) != S_OK) {
+    if (m_sample)
+        return MF_E_TRANSFORM_CANNOT_CHANGE_MEDIATYPE_WHILE_PROCESSING;
+
+    if (!isMediaTypeSupported(pType))
         return MF_E_INVALIDMEDIATYPE;
-    }
+
+    DWORD flags = 0;
+    if (pType && !m_outputType && m_inputType && m_inputType->IsEqual(pType, &flags) != S_OK)
+        return MF_E_INVALIDMEDIATYPE;
 
     if (dwFlags == MFT_SET_TYPE_TEST_ONLY)
         return pType ? S_OK : E_POINTER;
 
-    if (m_outputType)
+    if (m_outputType) {
         m_outputType->Release();
+        // Output type has changed, discard input type (if it's set) so it's reset later on
+        if (m_inputType &&  m_inputType->IsEqual(pType, &flags) != S_OK) {
+            m_inputType->Release();
+            m_inputType = 0;
+        }
+    }
 
     m_outputType = pType;
 
@@ -644,4 +682,20 @@ QByteArray MFTransform::dataFromBuffer(IMFMediaBuffer *buffer, int height, int *
     }
 
     return array;
+}
+
+bool MFTransform::isMediaTypeSupported(IMFMediaType *type)
+{
+    // if the list is empty, it supports all formats
+    if (!type || m_mediaTypes.isEmpty())
+        return true;
+
+    for (int i = 0; i < m_mediaTypes.size(); ++i) {
+        DWORD flags = 0;
+        m_mediaTypes.at(i)->IsEqual(type, &flags);
+        if (flags & MF_MEDIATYPE_EQUAL_FORMAT_TYPES)
+            return true;
+    }
+
+    return false;
 }

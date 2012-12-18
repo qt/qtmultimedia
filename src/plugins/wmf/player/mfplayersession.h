@@ -232,6 +232,7 @@ private:
 
     IMFTopology *insertMFT(IMFTopology *topology, TOPOID outputNodeId);
     MFTransform *m_videoProbeMFT;
+    QList<MFVideoProbeControl*> m_videoProbes;
 };
 
 
