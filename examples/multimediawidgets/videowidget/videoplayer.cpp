@@ -49,6 +49,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     , mediaPlayer(0, QMediaPlayer::VideoSurface)
     , playButton(0)
     , positionSlider(0)
+    , errorLabel(0)
 {
     QVideoWidget *videoWidget = new QVideoWidget;
 
@@ -68,6 +69,9 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     connect(positionSlider, SIGNAL(sliderMoved(int)),
             this, SLOT(setPosition(int)));
 
+    errorLabel = new QLabel;
+    errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setMargin(0);
     controlLayout->addWidget(openButton);
@@ -77,6 +81,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     QBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(videoWidget);
     layout->addLayout(controlLayout);
+    layout->addWidget(errorLabel);
 
     setLayout(layout);
 
@@ -85,6 +90,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
             this, SLOT(mediaStateChanged(QMediaPlayer::State)));
     connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
     connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
+    connect(&mediaPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handleError()));
 }
 
 VideoPlayer::~VideoPlayer()
@@ -93,11 +99,12 @@ VideoPlayer::~VideoPlayer()
 
 void VideoPlayer::openFile()
 {
+    errorLabel->setText("");
+
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Movie"),QDir::homePath());
 
     if (!fileName.isEmpty()) {
         mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
-
         playButton->setEnabled(true);
     }
 }
@@ -139,4 +146,10 @@ void VideoPlayer::durationChanged(qint64 duration)
 void VideoPlayer::setPosition(int position)
 {
     mediaPlayer.setPosition(position);
+}
+
+void VideoPlayer::handleError()
+{
+    playButton->setEnabled(false);
+    errorLabel->setText("Error: " + mediaPlayer.errorString());
 }
