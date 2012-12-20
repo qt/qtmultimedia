@@ -49,7 +49,7 @@
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 #include <qvideowidgetcontrol.h>
-#include "DsCameraControl.h"
+#include "dscameracontrol.h"
 
 QT_BEGIN_HEADER
 

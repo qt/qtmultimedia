@@ -44,7 +44,7 @@
 
 #if defined(HAVE_WIDGETS)
 #include <QtWidgets/qwidget.h>
-#include <QVideoWidgetControl.h>
+#include <QVideoWidgetControl>
 #endif
 
 #include "dscameraservice.h"
