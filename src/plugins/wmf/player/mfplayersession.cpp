@@ -413,7 +413,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_hCloseEvent(0)
     , m_closing(false)
     , m_pendingRate(1)
-    , m_volume(1)
+    , m_volume(100)
     , m_muted(false)
     , m_status(QMediaPlayer::NoMedia)
     , m_scrubbing(false)
@@ -1640,7 +1640,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             }
 
             if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
-                m_volumeControl->SetMasterVolume(m_volume);
+                m_volumeControl->SetMasterVolume(m_volume * 0.01f);
                 m_volumeControl->SetMute(m_muted);
             }
 
@@ -1692,9 +1692,10 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         if (m_volumeControl) {
             float currentVolume = 1;
             if (SUCCEEDED(m_volumeControl->GetMasterVolume(&currentVolume))) {
-                if (currentVolume != m_volume) {
-                    m_volume = currentVolume;
-                    emit volumeChanged(int(m_volume * 100));
+                int scaledVolume = currentVolume * 100;
+                if (scaledVolume != m_volume) {
+                    m_volume = scaledVolume;
+                    emit volumeChanged(scaledVolume);
                 }
             }
             BOOL currentMuted = FALSE;
