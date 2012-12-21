@@ -1,11 +1,6 @@
 TARGET = QtMultimedia
 QT = core-private network gui
 
-contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
-} else {
-   DEFINES += QT_NO_OPENGL
-}
-
 QMAKE_DOCS = $$PWD/doc/qtmultimedia.qdocconf
 
 load(qt_module)
