@@ -3,7 +3,7 @@ TARGET = customvideoitem
 
 QT += multimedia multimediawidgets widgets
 
-contains(QT_CONFIG, opengl): QT += opengl
+qtHaveModule(opengl): QT += opengl
 
 HEADERS   += videoplayer.h \
              videoitem.h

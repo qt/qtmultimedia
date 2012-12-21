@@ -37,7 +37,7 @@ OBJECTIVE_SOURCES += \
     avfvideoframerenderer.mm \
     avfvideooutput.mm
 
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     QT += multimediawidgets-private opengl
     HEADERS += \
         avfvideowidgetcontrol.h \

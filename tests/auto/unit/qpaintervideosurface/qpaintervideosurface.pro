@@ -2,13 +2,11 @@ CONFIG += testcase
 TARGET = tst_qpaintervideosurface
 
 QT += multimedia-private multimediawidgets-private testlib
-contains(QT_CONFIG, opengl) | contains(QT_CONFIG, opengles2) {
+qtHaveModule(opengl) {
    QT += opengl
 } else {
    DEFINES += QT_NO_OPENGL
 }
-
-contains(QT_CONFIG, opengl): QT += opengl
 
 SOURCES += tst_qpaintervideosurface.cpp
 

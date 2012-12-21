@@ -1,6 +1,6 @@
 TARGET = wmfengine
 QT += multimedia-private network
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     QT += multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }
