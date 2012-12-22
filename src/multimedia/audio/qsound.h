@@ -57,7 +57,7 @@ class Q_MULTIMEDIA_EXPORT QSound : public QObject
 public:
     enum Loop
     {
-        Infinite = -1,
+        Infinite = -1
     };
 
     static void play(const QString& filename);
