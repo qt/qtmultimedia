@@ -47,7 +47,7 @@
 /*!
     \class QSound
     \brief The QSound class provides a method to play .wav sound files.
-
+    \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
@@ -55,12 +55,12 @@
     applications: asynchronously playing a sound file. This is most
     easily accomplished using the static play() function:
 
-    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 0
+    \snippet multimedia-snippets/qsound.cpp 0
 
     Alternatively, create a QSound object from the sound file first
     and then call the play() slot:
 
-    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 1
+    \snippet multimedia-snippets/qsound.cpp 1
 
     Once created a QSound object can be queried for its fileName() and
     total number of loops() (i.e. the number of times the sound will

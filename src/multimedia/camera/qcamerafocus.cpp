@@ -162,7 +162,7 @@ public:
     rectangles around areas of the camera frame that are in focus, or changing the
     color of a zone as it comes into focus.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera focus zones
+    \snippet multimedia-snippets/camera.cpp Camera focus zones
 
     \sa QCameraFocus
 */
@@ -291,7 +291,7 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
     interesting area of the viewfinder for the hardware to attempt
     to focus on.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera custom zoom
+    \snippet multimedia-snippets/camera.cpp Camera custom zoom
 
     Zooming can be accomplished in a number of ways - usually the more
     expensive but higher quality approach is an optical zoom, which allows
@@ -303,7 +303,7 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
     checked.  The \l zoomTo() method allows changing both optical and
     digital zoom at once.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera combined zoom
+    \snippet multimedia-snippets/camera.cpp Camera combined zoom
 
     \section2 Some notes on autofocus
     Some hardware supports a movable focus lens assembly, and typically
@@ -319,7 +319,7 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
     are in focus or are being used for autofocusing via the \l focusZones()
     property:
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera focus zones
+    \snippet multimedia-snippets/camera.cpp Camera focus zones
 
     \sa QCameraFocusZone
 */

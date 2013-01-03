@@ -76,9 +76,9 @@ QT_BEGIN_NAMESPACE
     with a QIODevice opened for writing. For instance, to record to a
     file, you can:
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio input class members
+    \snippet multimedia-snippets/audio.cpp Audio input class members
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio input setup
+    \snippet multimedia-snippets/audio.cpp Audio input setup
 
     This will start recording if the format specified is supported by
     the input device (you can check this with
@@ -86,7 +86,7 @@ QT_BEGIN_NAMESPACE
     snags, use the error() function to check what went wrong. We stop
     recording in the \c stopRecording() slot.
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio input stop recording
+    \snippet multimedia-snippets/audio.cpp Audio input stop recording
 
     At any point in time, QAudioInput will be in one of four states:
     active, suspended, stopped, or idle. These states are specified by
@@ -108,7 +108,7 @@ QT_BEGIN_NAMESPACE
     an error is encountered.  Connect to the stateChanged() signal to
     handle the error:
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio input state changed
+    \snippet multimedia-snippets/audio.cpp Audio input state changed
 
     \sa QAudioOutput, QAudioDeviceInfo
 */

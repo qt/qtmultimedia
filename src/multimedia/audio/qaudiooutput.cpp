@@ -72,9 +72,9 @@ QT_BEGIN_NAMESPACE
     needs from the io device. So playing back an audio file is as
     simple as:
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio output class members
+    \snippet multimedia-snippets/audio.cpp Audio output class members
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio output setup
+    \snippet multimedia-snippets/audio.cpp Audio output setup
 
     The file will start playing assuming that the audio system and
     output device support it. If you run out of luck, check what's
@@ -82,7 +82,7 @@ QT_BEGIN_NAMESPACE
 
     After the file has finished playing, we need to stop the device:
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio output state changed
+    \snippet multimedia-snippets/audio.cpp Audio output state changed
 
     At any given time, the QAudioOutput will be in one of four states:
     active, suspended, stopped, or idle. These states are described
@@ -110,7 +110,7 @@ QT_BEGIN_NAMESPACE
     You can check for errors by connecting to the stateChanged()
     signal:
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Audio output state changed
+    \snippet multimedia-snippets/audio.cpp Audio output state changed
 
     \sa QAudioInput, QAudioDeviceInfo
 */

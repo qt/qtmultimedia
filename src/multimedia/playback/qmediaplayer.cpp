@@ -72,12 +72,12 @@ QT_BEGIN_NAMESPACE
     main or canonical URL with additional information attached. When provided
     with a QMediaContent playback may be able to commence.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Player
+    \snippet multimedia-snippets/media.cpp Player
 
     QVideoWidget can be used with QMediaPlayer for video rendering and QMediaPlaylist
     for accessing playlist functionality.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Movie playlist
+    \snippet multimedia-snippets/media.cpp Movie playlist
 
     Since QMediaPlayer is a QMediaObject, you can use several of the QMediaObject
     functions for things like:
