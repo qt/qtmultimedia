@@ -67,13 +67,13 @@ QT_BEGIN_NAMESPACE
     This example shows how a looping, somewhat quiet sound effect
     can be played:
 
-    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 2
+    \snippet multimedia-snippets/qsound.cpp 2
 
     Typically the sound effect should be reused, which allows all the
     parsing and preparation to be done ahead of time, and only triggered
     when necessary.  This assists with lower latency audio playback.
 
-    \snippet doc/src/snippets/multimedia-snippets/qsound.cpp 3
+    \snippet multimedia-snippets/qsound.cpp 3
 
     Since QSoundEffect requires slightly more resources to achieve lower
     latency playback, the platform may limit the number of simultaneously playing
@@ -107,7 +107,7 @@ QT_BEGIN_NAMESPACE
 
     The following example plays a WAV file on mouse click.
 
-    \snippet doc/src/snippets/multimedia-snippets/soundeffect.qml complete snippet
+    \snippet multimedia-snippets/soundeffect.qml complete snippet
 
     Since SoundEffect requires slightly more resources to achieve lower
     latency playback, the platform may limit the number of simultaneously playing
@@ -340,7 +340,7 @@ bool QSoundEffect::isLoaded() const
 
     This is the default method for SoundEffect.
 
-    \snippet doc/src/snippets/multimedia-snippets/soundeffect.qml play sound on click
+    \snippet multimedia-snippets/soundeffect.qml play sound on click
 */
 /*!
     \fn QSoundEffect::play()

@@ -90,7 +90,7 @@ QT_BEGIN_NAMESPACE
 
     See the \l{Camera Overview}{camera overview} for more information.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Request control
+    \snippet multimedia-snippets/media.cpp Request control
 
 */
 

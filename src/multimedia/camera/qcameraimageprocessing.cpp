@@ -87,11 +87,11 @@ QT_BEGIN_NAMESPACE
     For example, you can set the white balance (or color temperature) used
     for processing images:
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera image whitebalance
+    \snippet multimedia-snippets/camera.cpp Camera image whitebalance
 
     Or adjust the amount of denoising performed:
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera image denoising
+    \snippet multimedia-snippets/camera.cpp Camera image denoising
 
     In some cases changing these settings may result in a longer delay
     before an image is ready.

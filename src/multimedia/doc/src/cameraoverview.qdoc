@@ -104,14 +104,17 @@ In QML, you can use \l Camera and \l VideoOutput together to show a
 simple viewfinder:
 
 \qml
+import QtQuick 2.0
+import QtMultimedia 5.0
+
+VideoOutput {
+    source: camera
+
     Camera {
         id: camera
         // You can adjust various settings in here
     }
-
-    VideoOutput {
-        source: camera
-    }
+}
 \endqml
 
 In C++, your choice depends on whether you are using widgets, or QGraphicsView.

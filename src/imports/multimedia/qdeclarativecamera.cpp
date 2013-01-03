@@ -630,21 +630,18 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \fn void QDeclarativeCamera::opticalZoomChanged(qreal zoom)
     \qmlsignal Camera::opticalZoomChanged(zoom)
 
     The optical zoom setting has changed to \a zoom.
 */
 
 /*!
-    \fn void QDeclarativeCamera::digitalZoomChanged(qreal zoom)
     \qmlsignal Camera::digitalZoomChanged(zoom)
 
     The digital zoom setting has changed to \a zoom.
 */
 
 /*!
-    \fn void QDeclarativeCamera::maximumOpticalZoomChanged(qreal zoom)
     \qmlsignal Camera::maximumOpticalZoomChanged(zoom)
 
     The maximum optical zoom setting has changed to \a zoom.  This
@@ -653,7 +650,6 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \fn void QDeclarativeCamera::maximumDigitalZoomChanged(qreal zoom)
     \qmlsignal Camera::maximumDigitalZoomChanged(zoom)
 
     The maximum digital zoom setting has changed to \a zoom.  This

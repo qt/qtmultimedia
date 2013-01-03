@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_control
     \ingroup multimedia_core
-
+    \inmodule QtMultimedia
 
     Media services provide implementations of the functionality promised
     by media objects, and allow multiple providers to implement a QMediaObject.

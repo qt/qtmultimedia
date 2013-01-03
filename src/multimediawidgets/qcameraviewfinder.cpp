@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
     \inmodule QtMultimediaWidgets
     \ingroup camera
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera
+    \snippet multimedia-snippets/camera.cpp Camera
 
 */
 

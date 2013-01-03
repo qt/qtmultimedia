@@ -176,14 +176,14 @@ change when porting code.
 
 \section2 QML Types
 The following types are accessed by using:
-\qml
+\code
 import QtMultimedia 5.0
-\endqml
+\endcode
 \annotatedlist multimedia_qml
 The following types are accessed by using \l {Positional Audio} {QtAudioEngine}:
-\qml
+\code
 import QtAudioEngine 1.0
-\endqml
+\endcode
 \annotatedlist multimedia_audioengine
 
 \section2 Multimedia Classes

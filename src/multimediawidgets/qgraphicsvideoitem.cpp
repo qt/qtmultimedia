@@ -181,7 +181,7 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
     is attached to a media object by passing a pointer to the QMediaObject
     to the setMediaObject() function.
 
-    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video graphics item
+    \snippet multimedia-snippets/video.cpp Video graphics item
 
     \b {Note}: Only a single display output can be attached to a media
     object at one time.

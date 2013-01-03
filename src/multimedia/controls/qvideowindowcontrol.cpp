@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
     should be rendered to, and the aspectRatioMode() property indicates how the
     video should be scaled to fit the displayRect().
 
-    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video window control
+    \snippet multimedia-snippets/video.cpp Video window control
 
     QVideoWindowControl is one of a number of possible video output controls.
 

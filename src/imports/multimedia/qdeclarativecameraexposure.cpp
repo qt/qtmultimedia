@@ -80,15 +80,15 @@ QT_BEGIN_NAMESPACE
 
     For example, to select automatic shutter speed selection:
 
-    \qml
+    \code
         camera.exposure.setAutoShutterSpeed()
-    \endqml
+    \endcode
 
     Or for a specific shutter speed:
 
-    \qml
+    \code
         camera.exposure.manualShutterSpeed = 0.01 // 10ms
-    \endqml
+    \endcode
 
     You can only choose one or the other mode.
 */
@@ -331,7 +331,6 @@ void QDeclarativeCameraExposure::setAutoIsoSensitivity()
 */
 /*!
     \qmlproperty enumeration QtMultimedia5::CameraExposure::exposureMode
-    \property QDeclarativeCameraExposure::exposureMode
 
     This property holds the camera exposure mode.
 
@@ -402,7 +401,6 @@ void QDeclarativeCameraExposure::setSpotMeteringPoint(const QPointF &point)
 */
 /*!
     \qmlproperty enumeration QtMultimedia5::CameraExposure::meteringMode
-    \property QDeclarativeCameraExposure::meteringMode
 
     This property holds the camera metering mode (how exposure is balanced).
 
