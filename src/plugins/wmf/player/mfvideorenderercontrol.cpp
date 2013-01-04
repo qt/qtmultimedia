@@ -318,6 +318,7 @@ namespace
             , m_prerollTargetTime(0)
             , m_startTime(0)
             , m_rendererControl(rendererControl)
+            , m_rate(1.f)
         {
             m_sink = parent;
 
