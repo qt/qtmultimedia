@@ -5,6 +5,7 @@ TARGET = qavfcamera
 QT += multimedia-private network
 
 PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = AVFServicePlugin
 load(qt_plugin)
 
 LIBS += -framework AppKit -framework AudioUnit \

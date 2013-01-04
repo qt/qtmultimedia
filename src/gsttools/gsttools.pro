@@ -32,7 +32,6 @@ config_resourcepolicy {
 # Header files must go inside source directory of a module
 # to be installed by syncqt.
 INCLUDEPATH += ../multimedia/gsttools_headers/
-DEPENDPATH += ../multimedia/gsttools_headers/
 VPATH += ../multimedia/gsttools_headers/
 
 PRIVATE_HEADERS += \

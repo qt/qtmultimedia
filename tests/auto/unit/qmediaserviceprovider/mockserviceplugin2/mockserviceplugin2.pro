@@ -1,8 +1,8 @@
 TARGET = mockserviceplugin2
 QT += multimedia-private
-CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE=mediaservice
+PLUGIN_CLASS_NAME = MockServicePlugin2
 load(qt_plugin)
 
 DESTDIR = ../$${PLUGIN_TYPE}

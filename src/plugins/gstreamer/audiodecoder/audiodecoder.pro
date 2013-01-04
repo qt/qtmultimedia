@@ -1,6 +1,7 @@
 TARGET = gstaudiodecoder
 
 PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = QGstreamerAudioDecoderServicePlugin
 load(qt_plugin)
 
 include(../common.pri)

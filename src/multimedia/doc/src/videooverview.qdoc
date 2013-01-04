@@ -47,10 +47,10 @@ You can use the \l QMediaPlayer class to decode a video file, and display
 it using \l QVideoWidget, \l QGraphicsVideoItem, or a custom class.
 
 Here's an example of using QVideoWidget:
-    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video widget
+    \snippet multimedia-snippets/video.cpp Video widget
 
 And an example with QGraphicsVideoItem:
-    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video graphics item
+    \snippet multimedia-snippets/video.cpp Video graphics item
 
 \section2 Playing Video in QML
 
@@ -77,12 +77,12 @@ processing, while deriving a class from \l QAbstractVideoSurface
 allows you to receive these frames from \l QMediaPlayer and
 \l QCamera.
 
-\snippet doc/src/snippets/multimedia-snippets/video.cpp Derived Surface
+\snippet multimedia-snippets/video.cpp Derived Surface
 
 and with an instance of this surface, \c myVideoSurface, you can set
 the surface as the \l {QMediaPlayer::setVideoOutput()}{video output} for QMediaPlayer.
 
-\snippet doc/src/snippets/multimedia-snippets/video.cpp Setting surface in player
+\snippet multimedia-snippets/video.cpp Setting surface in player
 
 Several of the built-in Qt classes offer this functionality
 as well, so if you decode video in your application, you can present
@@ -97,7 +97,7 @@ The following snippet shows a class that has a writable \c videoSurface property
 and receives frames through a public slot \c onNewVideoContentReceived(). These
 frames are then presented on the surface set in \c setVideoSurface().
 
-\snippet doc/src/snippets/multimedia-snippets/video.cpp Video producer
+\snippet multimedia-snippets/video.cpp Video producer
 
 \section2 Recording Video
 You can use the \l QMediaRecorder class in conjunction with other
@@ -116,7 +116,7 @@ the video frames using this class, and they may arrive at a slightly
 different time than they are being rendered.
 
 Here's an example of installing a video probe while recording the camera:
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Video probe
+    \snippet multimedia-snippets/media.cpp Video probe
 
 \section1 Examples
 

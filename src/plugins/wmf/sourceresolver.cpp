@@ -108,6 +108,10 @@ STDMETHODIMP_(ULONG) SourceResolver::Release(void)
 HRESULT STDMETHODCALLTYPE SourceResolver::Invoke(IMFAsyncResult *pAsyncResult)
 {
     QMutexLocker locker(&m_mutex);
+
+    if (!m_sourceResolver)
+        return S_OK;
+
     MF_OBJECT_TYPE ObjectType = MF_OBJECT_INVALID;
     IUnknown* pSource = NULL;
     State *state = static_cast<State*>(pAsyncResult->GetStateNoAddRef());

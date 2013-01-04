@@ -1,8 +1,8 @@
 TARGET = qtmedia_blackberry
 QT += multimedia-private gui-private
-CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE=mediaservice
+PLUGIN_CLASS_NAME = BbServicePlugin
 load(qt_plugin)
 
 LIBS += -lmmrndclient -lstrm -lscreen

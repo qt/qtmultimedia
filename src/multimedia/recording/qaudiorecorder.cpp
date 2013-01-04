@@ -66,11 +66,11 @@ QT_BEGIN_NAMESPACE
     The QAudioRecorder class is a high level media recording class and contains
     the same functionality as \l QMediaRecorder.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder
+    \snippet multimedia-snippets/media.cpp Audio recorder
 
     In addition QAudioRecorder provides functionality for selecting the audio input.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio recorder inputs
+    \snippet multimedia-snippets/media.cpp Audio recorder inputs
 
     The \l {audiorecorder}{Audio Recorder} example shows how to use this class
     in more detail.

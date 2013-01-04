@@ -178,6 +178,7 @@ private:
 
     SourceResolver  *m_sourceResolver;
     HANDLE           m_hCloseEvent;
+    bool m_closing;
 
     enum MediaType
     {

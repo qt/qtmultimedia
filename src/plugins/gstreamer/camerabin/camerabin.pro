@@ -3,6 +3,7 @@ TARGET = gstcamerabin
 QT += multimedia-private
 
 PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = CameraBinServicePlugin
 load(qt_plugin)
 
 include(../common.pri)

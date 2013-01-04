@@ -411,8 +411,9 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_volumeControl(0)
     , m_netsourceStatistics(0)
     , m_hCloseEvent(0)
+    , m_closing(false)
     , m_pendingRate(1)
-    , m_volume(1)
+    , m_volume(100)
     , m_muted(false)
     , m_status(QMediaPlayer::NoMedia)
     , m_scrubbing(false)
@@ -422,10 +423,6 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_audioSampleGrabberNode(0)
     , m_videoProbeMFT(0)
 {
-    m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    m_sourceResolver = new SourceResolver();
-    QObject::connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
-    QObject::connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleSourceError(long)));
     QObject::connect(this, SIGNAL(sessionEvent(IMFMediaEvent *)), this, SLOT(handleSessionEvent(IMFMediaEvent *)));
 
     m_pendingState = NoPending;
@@ -438,27 +435,31 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     m_request.prevCmd = CmdNone;
     m_request.rate = 1.0f;
 
-    createSession();
-    PropVariantInit(&m_varStart);
-    m_varStart.vt = VT_I8;
-    m_varStart.uhVal.QuadPart = 0;
-
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
     m_videoProbeMFT = new MFTransform;
 }
 
 void MFPlayerSession::close()
 {
+#ifdef DEBUG_MEDIAFOUNDATION
+    qDebug() << "close";
+#endif
+
     clear();
+    if (!m_session)
+        return;
+
     HRESULT hr = S_OK;
     if (m_session) {
+        m_closing = true;
         hr = m_session->Close();
         if (SUCCEEDED(hr)) {
-            DWORD dwWaitResult = WaitForSingleObject(m_hCloseEvent, 5000);
+            DWORD dwWaitResult = WaitForSingleObject(m_hCloseEvent, 100);
             if (dwWaitResult == WAIT_TIMEOUT) {
                 qWarning() << "session close time out!";
             }
         }
+         m_closing = false;
     }
 
     if (SUCCEEDED(hr)) {
@@ -475,7 +476,9 @@ void MFPlayerSession::close()
     if (m_session)
         m_session->Release();
     m_session = 0;
-    CloseHandle(m_hCloseEvent);
+    if (m_hCloseEvent)
+        CloseHandle(m_hCloseEvent);
+    m_hCloseEvent = 0;
 }
 
 void MFPlayerSession::addProbe(MFAudioProbeControl *probe)
@@ -522,6 +525,7 @@ void MFPlayerSession::load(const QMediaContent &media, QIODevice *stream)
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Invalid stream source."), true);
     } else {
+        createSession();
         changeStatus(QMediaPlayer::LoadingMedia);
         m_sourceResolver->load(resources, stream);
     }
@@ -542,6 +546,10 @@ void MFPlayerSession::handleSourceError(long hr)
         break;
     case NS_E_SERVER_NOT_FOUND:
         errorString = tr("The specified server could not be found.");
+        break;
+    case MF_E_UNSUPPORTED_BYTESTREAM_TYPE:
+        errorCode = QMediaPlayer::FormatError;
+        errorString = tr("Unsupported media type.");
         break;
     default:
         errorString = tr("Failed to load source.");
@@ -638,6 +646,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
                             break;
                         }
                     }
+                    outputNode->Release();
                 }
                 sourceNode->Release();
             }
@@ -703,14 +712,14 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
             IMFActivate *activate = NULL;
             if (MFMediaType_Audio == guidMajorType) {
                 mediaType = Audio;
-                activate = m_playerService->audioEndpointControl()->currentActivate();
+                activate = m_playerService->audioEndpointControl()->createActivate();
             } else if (MFMediaType_Video == guidMajorType) {
                 mediaType = Video;
                 if (m_playerService->videoRendererControl()) {
-                    activate = m_playerService->videoRendererControl()->currentActivate();
+                    activate = m_playerService->videoRendererControl()->createActivate();
 #ifndef Q_WS_SIMULATOR
                 } else if (m_playerService->videoWindowControl()) {
-                    activate = m_playerService->videoWindowControl()->currentActivate();
+                    activate = m_playerService->videoWindowControl()->createActivate();
 #endif
                 } else {
                     qWarning() << "no videoWindowControl or videoRendererControl, unable to add output node for video data";
@@ -1136,6 +1145,7 @@ void MFPlayerSession::pause()
     } else {
         if (m_state.command == CmdPause)
             return;
+
         if (SUCCEEDED(m_session->Pause())) {
             m_state.setCommand(CmdPause);
             m_pendingState = CmdPending;
@@ -1163,6 +1173,14 @@ QMediaPlayer::MediaStatus MFPlayerSession::status() const
 
 void MFPlayerSession::createSession()
 {
+    close();
+
+    m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    m_sourceResolver = new SourceResolver();
+    QObject::connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
+    QObject::connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleSourceError(long)));
+
     Q_ASSERT(m_session == NULL);
     HRESULT hr = MFCreateMediaSession(NULL, &m_session);
     if (FAILED(hr)) {
@@ -1176,6 +1194,10 @@ void MFPlayerSession::createSession()
         changeStatus(QMediaPlayer::UnknownMediaStatus);
         emit error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
     }
+
+    PropVariantInit(&m_varStart);
+    m_varStart.vt = VT_I8;
+    m_varStart.hVal.QuadPart = 0;
 }
 
 qint64 MFPlayerSession::position()
@@ -1511,7 +1533,8 @@ HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
         }
     }
 
-    emit sessionEvent(pEvent);
+    if (!m_closing)
+        emit sessionEvent(pEvent);
     return S_OK;
 }
 
@@ -1569,6 +1592,13 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
     case MESessionStarted:
         if (!m_scrubbing)
             updatePendingCommands(CmdStart);
+#ifndef Q_WS_SIMULATOR
+        // playback started, we can now set again the procAmpValues if they have been
+        // changed previously (these are lost when loading a new media)
+        if (m_playerService->videoWindowControl()) {
+            m_playerService->videoWindowControl()->setProcAmpValues();
+        }
+#endif
         break;
     case MESessionStopped:
         if (m_status != QMediaPlayer::EndOfMedia) {
@@ -1594,6 +1624,37 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 #ifdef DEBUG_MEDIAFOUNDATION
             qDebug() << "MEReconnectEnd" << ((hrStatus == S_OK) ? "OK" : "Failed");
 #endif
+        break;
+    case MESessionTopologySet:
+        if (FAILED(hrStatus)) {
+            changeStatus(QMediaPlayer::InvalidMedia);
+            emit error(QMediaPlayer::FormatError, tr("Unsupported media, a codec is missing."), true);
+        } else {
+            if (m_audioSampleGrabberNode) {
+                IMFMediaType *mediaType = 0;
+                hr = MFGetTopoNodeCurrentType(m_audioSampleGrabberNode, 0, FALSE, &mediaType);
+                if (SUCCEEDED(hr)) {
+                    m_audioSampleGrabber->setFormat(audioFormatForMFMediaType(mediaType));
+                    mediaType->Release();
+                }
+            }
+
+            if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
+                m_volumeControl->SetMasterVolume(m_volume * 0.01f);
+                m_volumeControl->SetMute(m_muted);
+            }
+
+            DWORD dwCharacteristics = 0;
+            m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
+            emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
+
+            // Topology is resolved and successfuly set, this happens only after loading a new media.
+            // Make sure we always start the media from the beginning
+            m_varStart.vt = VT_I8;
+            m_varStart.hVal.QuadPart = 0;
+
+            changeStatus(QMediaPlayer::LoadedMedia);
+        }
         break;
     }
 
@@ -1631,9 +1692,10 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         if (m_volumeControl) {
             float currentVolume = 1;
             if (SUCCEEDED(m_volumeControl->GetMasterVolume(&currentVolume))) {
-                if (currentVolume != m_volume) {
-                    m_volume = currentVolume;
-                    emit volumeChanged(int(m_volume * 100));
+                int scaledVolume = currentVolume * 100;
+                if (scaledVolume != m_volume) {
+                    m_volume = scaledVolume;
+                    emit volumeChanged(scaledVolume);
                 }
             }
             BOOL currentMuted = FALSE;
@@ -1643,26 +1705,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                     emit mutedChanged(m_muted);
                 }
             }
-        }
-        break;
-    case MESessionTopologySet: {
-            if (m_audioSampleGrabberNode) {
-                IMFMediaType *mediaType = 0;
-                hr = MFGetTopoNodeCurrentType(m_audioSampleGrabberNode, 0, FALSE, &mediaType);
-                if (SUCCEEDED(hr)) {
-                    m_audioSampleGrabber->setFormat(audioFormatForMFMediaType(mediaType));
-                    mediaType->Release();
-                }
-            }
-
-            if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
-                m_volumeControl->SetMasterVolume(m_volume);
-                m_volumeControl->SetMute(m_muted);
-            }
-            DWORD dwCharacteristics = 0;
-            m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
-            emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
-            changeStatus(QMediaPlayer::LoadedMedia);
         }
         break;
     case MESessionTopologyStatus: {

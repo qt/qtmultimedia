@@ -1,0 +1,68 @@
+/****************************************************************************
+**
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the documentation of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file.  Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: http://www.gnu.org/copyleft/fdl.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+\example multimediawidgets/declarative-camera
+\title QML Camera Example
+\ingroup multimedia_examples
+\brief  The Camera Example shows how to use the API to capture a still image
+or video.
+
+\image qml-camera.png
+
+This example demonstrates how to use the Qt Multimedia QML API to access
+camera functions. It shows how to change settings and to capture images.
+
+Most of the QML code supports the user interface for this application with the
+camera types being mostly found in \e {declarative-camera.qml} and
+\e {CaptureControls.qml}.
+
+In \e {declarative-camera.qml} the \l Camera is initialized with an id
+of \e {camera}, a photo preview is setup, states are implemented for image
+preview or capture and \l CaptureControls is initialized. The initial
+\e state is \e PhotoCapture. \l CameraCapture includes a handler, \e onImageCaptured,
+for the \l {imageCaptured} signal. The handler sets up the application to process
+the preview including a change in the user interface state. The \l PhotoPreview
+becomes visible with any key press being picked up by the handler
+in PhotoPreview and returning the state to \e PhotoCapture.
+
+\e CaptureControls, which is implemented in \e {CaptureControls.qml},
+generates a column on the right hand side of the screen which includes control
+buttons for \e focus (not initially visible), \e {capture}, \e {flash modes},
+\e {white balance}, \e {exposure compensation}, and if a preview is
+available a \e {preview} button. The last button exits from the application.
+
+When the Capture button is pressed the \e onClicked handler calls
+\l {Camera::captureImage()}{captureImage()}
+
+
+
+
+
+
+
+*/

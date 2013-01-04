@@ -111,7 +111,7 @@ private:
     and then passing it to a QMediaRecorder instance using the
     QMediaRecorder::setEncodingSettings() function.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Audio encoder settings
+    \snippet multimedia-snippets/media.cpp Audio encoder settings
 
     \sa QMediaRecorder, QAudioEncoderSettingsControl
 */
@@ -425,7 +425,7 @@ private:
     and then passing it to a QMediaRecorder instance using the
     QMediaRecorder::setEncodingSettings() function.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Video encoder settings
+    \snippet multimedia-snippets/media.cpp Video encoder settings
 
     \sa QMediaRecorder, QVideoEncoderSettingsControl
 */
@@ -751,7 +751,7 @@ private:
     properties and then passing it to a QCameraImageCapture instance using the
     QCameraImageCapture::setImageSettings() function.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Image encoder settings
+    \snippet multimedia-snippets/media.cpp Image encoder settings
 
     \sa QImageEncoderControl
 */

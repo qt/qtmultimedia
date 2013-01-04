@@ -92,8 +92,8 @@ QMediaService* WMFServicePlugin::create(QString const& key)
 
 void WMFServicePlugin::release(QMediaService *service)
 {
-    releaseRefCount();
     delete service;
+    releaseRefCount();
 }
 
 QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(

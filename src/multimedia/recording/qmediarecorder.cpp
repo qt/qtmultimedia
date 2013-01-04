@@ -75,7 +75,7 @@ QT_BEGIN_NAMESPACE
     intended to be used alone but for accessing the media recording functions
     of other media objects, like QRadioTuner, or QCamera.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Media recorder
+    \snippet multimedia-snippets/media.cpp Media recorder
 
     \sa QAudioRecorder
 */

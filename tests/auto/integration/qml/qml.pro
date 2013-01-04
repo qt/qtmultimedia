@@ -1,6 +1,6 @@
 TEMPLATE=app
 TARGET=tst_qml
-CONFIG += warn_on qmltestcase
+CONFIG += qmltestcase
 SOURCES += tst_qml.cpp
 
 

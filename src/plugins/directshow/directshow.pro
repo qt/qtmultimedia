@@ -1,6 +1,7 @@
 TARGET = dsengine
 
 PLUGIN_TYPE=mediaservice
+PLUGIN_CLASS_NAME = DSServicePlugin
 load(qt_plugin)
 
 QT += multimedia

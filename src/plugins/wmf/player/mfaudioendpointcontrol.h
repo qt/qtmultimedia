@@ -68,9 +68,10 @@ public:
 
     void setActiveOutput(const QString& name);
 
-    IMFActivate* currentActivate() const;
+    IMFActivate* createActivate();
 
 private:
+    void clear();
     void updateEndpoints();
 
     QString m_defaultEndpoint;

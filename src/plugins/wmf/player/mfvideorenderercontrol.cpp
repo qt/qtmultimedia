@@ -2130,17 +2130,23 @@ namespace
 MFVideoRendererControl::MFVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
     , m_surface(0)
+    , m_currentActivate(0)
     , m_callback(0)
 {
-    m_currentActivate = new VideoRendererActivate(this);
 }
 
 MFVideoRendererControl::~MFVideoRendererControl()
+{
+    clear();
+}
+
+void MFVideoRendererControl::clear()
 {
     if (m_currentActivate) {
         m_currentActivate->ShutdownObject();
         m_currentActivate->Release();
     }
+    m_currentActivate = NULL;
 }
 
 QAbstractVideoSurface *MFVideoRendererControl::surface() const
@@ -2150,9 +2156,6 @@ QAbstractVideoSurface *MFVideoRendererControl::surface() const
 
 void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 {
-    if (m_surface == surface)
-        return;
-
     if (m_surface)
         disconnect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
     m_surface = surface;
@@ -2160,11 +2163,16 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (m_surface) {
         connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
     }
-    static_cast<VideoRendererActivate*>(m_currentActivate)->setSurface(m_surface);
+
+    if (m_currentActivate)
+        static_cast<VideoRendererActivate*>(m_currentActivate)->setSurface(m_surface);
 }
 
 void MFVideoRendererControl::customEvent(QEvent *event)
 {
+    if (!m_currentActivate)
+        return;
+
     if (event->type() == MediaStream::PresentSurface) {
         MFTIME targetTime = static_cast<MediaStream::PresentEvent*>(event)->targetTime();
         MFTIME currentTime = static_cast<VideoRendererActivate*>(m_currentActivate)->getTime();
@@ -2185,16 +2193,26 @@ void MFVideoRendererControl::customEvent(QEvent *event)
 
 void MFVideoRendererControl::supportedFormatsChanged()
 {
-    static_cast<VideoRendererActivate*>(m_currentActivate)->supportedFormatsChanged();
+    if (m_currentActivate)
+        static_cast<VideoRendererActivate*>(m_currentActivate)->supportedFormatsChanged();
 }
 
 void MFVideoRendererControl::present()
 {
-    static_cast<VideoRendererActivate*>(m_currentActivate)->present();
+    if (m_currentActivate)
+        static_cast<VideoRendererActivate*>(m_currentActivate)->present();
 }
 
-IMFActivate* MFVideoRendererControl::currentActivate() const
+IMFActivate* MFVideoRendererControl::createActivate()
 {
+    clear();
+
+    m_currentActivate = new VideoRendererActivate(this);
+    if (m_surface) {
+        setSurface(m_surface);
+        supportedFormatsChanged();
+    }
+
     return m_currentActivate;
 }
 

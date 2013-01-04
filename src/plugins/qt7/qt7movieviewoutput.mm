@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#import <QTKit/QTkit.h>
+#import <QTKit/QTKit.h>
 
 #include "qt7backend.h"
 

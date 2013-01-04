@@ -128,23 +128,6 @@
 
     \section2 Examples
      \list
-      \li QML
-       \list
-        \li \l{video/qmlvideo}{qmlvideo}
-        \li \l{video/qmlvideofx}{qmlvideofx}
-        \li \l{declarative-camera}
-        \li \l{declarative-radio}
-       \endlist
-      \li C++
-       \list
-        \li \l{audiooutput}
-        \li \l{audioinput}
-        \li \l{audiorecorder}
-        \li \l{audiodevices}
-        \li \l{spectrum}
-        \li \l{AudioEngine Example}{Audio Engine}
-        \li \l{player}
-        \li \l{Camera Example}
-       \endlist
+      \li \l{Qt Multimedia Examples}
      \endlist
 */

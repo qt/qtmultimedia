@@ -118,14 +118,14 @@ In C++, your choice depends on whether you are using widgets, or QGraphicsView.
 The \l QVideoWidget class is used in the widgets case, and \l QGraphicsVideoItem
 is useful for QGraphicsView.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera overview viewfinder
+    \snippet multimedia-snippets/camera.cpp Camera overview viewfinder
 
 For advanced usage (like processing viewfinder frames as they come, to detect
 objects or patterns), you can also derive from \l QAbstractVideoSurface and
 set that as the viewfinder for the QCamera object.  In this case you will
 need to render the viewfinder image yourself.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera overview surface
+    \snippet multimedia-snippets/camera.cpp Camera overview surface
 
 \section2 Still Images
 
@@ -136,7 +136,7 @@ that things are in focus and the settings are not different from the
 viewfinder while the image capture occurs, capture the image, and
 finally unlock the camera ready for the next photo.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera overview capture
+    \snippet multimedia-snippets/camera.cpp Camera overview capture
 
 \section2 Movies
 
@@ -146,7 +146,7 @@ video requires the use of a \l QMediaRecorder object.
 To record video we need to create a camera object as before but this time as
 well as creating a viewfinder, we will also initialize a media recorder object.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera overview movie
+    \snippet multimedia-snippets/camera.cpp Camera overview movie
 
 Signals from the \e mediaRecorder can be connected to slots to react to
 changes in the state of the recorder or error events. Recording itself
