@@ -23,7 +23,7 @@ LIBS += -framework AppKit -framework AudioUnit \
 
 # QUICKTIME_C_API_AVAILABLE is true only on i386
 # so make sure to link QuickTime
-contains(QMAKE_HOST.arch, i386) {
+contains(QT_ARCH, i386) {
     LIBS += -framework QuickTime
 }
 
