@@ -1,3 +1,5 @@
+requires(qtHaveModule(gui))
+
 load(configure)
 qtCompileTest(openal)
 win32 {
