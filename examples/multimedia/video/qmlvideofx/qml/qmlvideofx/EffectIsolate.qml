@@ -57,5 +57,5 @@ Effect {
     property real targetHue: parameters.get(0).value * 360
     property real windowWidth: parameters.get(1).value * 60
 
-    fragmentShaderFilename: "shaders/isolate.fsh"
+    fragmentShaderFilename: "isolate.fsh"
 }

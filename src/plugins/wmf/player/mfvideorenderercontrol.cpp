@@ -318,6 +318,7 @@ namespace
             , m_prerollTargetTime(0)
             , m_startTime(0)
             , m_rendererControl(rendererControl)
+            , m_rate(1.f)
         {
             m_sink = parent;
 
@@ -1780,6 +1781,7 @@ namespace
             , m_sink(0)
             , m_rendererControl(rendererControl)
             , m_attributes(0)
+            , m_surface(0)
         {
             MFCreateAttributes(&m_attributes, 0);
             m_sink = new MediaSink(rendererControl);
@@ -2142,11 +2144,19 @@ MFVideoRendererControl::~MFVideoRendererControl()
 
 void MFVideoRendererControl::clear()
 {
+    if (m_surface)
+        m_surface->stop();
+
     if (m_currentActivate) {
         m_currentActivate->ShutdownObject();
         m_currentActivate->Release();
     }
     m_currentActivate = NULL;
+}
+
+void MFVideoRendererControl::releaseActivate()
+{
+    clear();
 }
 
 QAbstractVideoSurface *MFVideoRendererControl::surface() const
@@ -2208,10 +2218,8 @@ IMFActivate* MFVideoRendererControl::createActivate()
     clear();
 
     m_currentActivate = new VideoRendererActivate(this);
-    if (m_surface) {
+    if (m_surface)
         setSurface(m_surface);
-        supportedFormatsChanged();
-    }
 
     return m_currentActivate;
 }

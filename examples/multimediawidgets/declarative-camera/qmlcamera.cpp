@@ -50,8 +50,7 @@ int main(int argc, char* argv[])
     // Qt.quit() called in embedded .qml by default only emits
     // quit() signal, so do this (optionally use Qt.exit()).
     QObject::connect(view.engine(), SIGNAL(quit()), qApp, SLOT(quit()));
-    view.setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() +
-                                       QLatin1String("/declarative-camera.qml")));
+    view.setSource(QUrl("qrc:///declarative-camera.qml"));
     view.resize(800, 480);
     view.show();
     return app.exec();

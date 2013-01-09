@@ -49,7 +49,7 @@
 #include <dshow.h>
 #include <objbase.h>
 #include <initguid.h>
-#include <Ocidl.h>
+#include <ocidl.h>
 #include <string.h>
 
 extern const CLSID CLSID_VideoInputDeviceCategory;

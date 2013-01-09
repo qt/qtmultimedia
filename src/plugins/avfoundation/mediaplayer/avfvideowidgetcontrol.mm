@@ -207,7 +207,7 @@ void AVFVideoWidgetControl::updateVideoFrame(const CVTimeStamp &ts)
 
 void AVFVideoWidgetControl::setupVideoOutput()
 {
-    NSRect layerBounds = [(AVPlayerLayer*)m_playerLayer bounds];
+    CGRect layerBounds = [(AVPlayerLayer*)m_playerLayer bounds];
     m_nativeSize = QSize(layerBounds.size.width, layerBounds.size.height);
     m_videoWidget->setNativeSize(m_nativeSize);
 

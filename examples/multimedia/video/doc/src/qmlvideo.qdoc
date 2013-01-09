@@ -129,13 +129,13 @@ instance, the embedded
 
 \section1 Calculating and displaying QML painting rate
 
-\input video-qml-paint-rate.qdocinc
+\input multimedia/doc/src/examples/video-qml-paint-rate.qdocinc
 
 All that remains is to connect the afterRendering() signal of the QQuickView
 object to a JavaScript function, which will eventually call frequencyItem.notify():
 
 \quotefromfile multimedia/video/qmlvideo/main.cpp
-\skipto QmlApplicationViewer
+\skipto QGuiApplication
 \printuntil ;
 \dots
 \skipto QQuickItem

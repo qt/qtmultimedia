@@ -84,7 +84,7 @@ Effect {
         d.oldTargetHeight = targetHeight
     }
 
-    fragmentShaderFilename: "shaders/magnify.fsh"
+    fragmentShaderFilename: "magnify.fsh"
 
     MouseArea {
         anchors.fill: parent

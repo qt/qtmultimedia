@@ -57,5 +57,5 @@ Effect {
 
     NumberAnimation on time { loops: Animation.Infinite; from: 0; to: Math.PI * 2; duration: 600 }
 
-    fragmentShaderFilename: "shaders/wobble.fsh"
+    fragmentShaderFilename: "wobble.fsh"
 }

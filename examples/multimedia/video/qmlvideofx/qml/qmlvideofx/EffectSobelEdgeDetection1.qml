@@ -55,5 +55,5 @@ Effect {
     property real resS: targetSize
     property real resT: targetSize
 
-    fragmentShaderFilename: "shaders/sobeledgedetection1.fsh"
+    fragmentShaderFilename: "sobeledgedetection1.fsh"
 }

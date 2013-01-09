@@ -413,7 +413,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_hCloseEvent(0)
     , m_closing(false)
     , m_pendingRate(1)
-    , m_volume(1)
+    , m_volume(100)
     , m_muted(false)
     , m_status(QMediaPlayer::NoMedia)
     , m_scrubbing(false)
@@ -436,7 +436,6 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     m_request.rate = 1.0f;
 
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
-    m_videoProbeMFT = new MFTransform;
 }
 
 void MFPlayerSession::close()
@@ -472,6 +471,18 @@ void MFPlayerSession::close()
         m_sourceResolver->Release();
         m_sourceResolver = 0;
     }
+    if (m_videoProbeMFT) {
+        m_videoProbeMFT->Release();
+        m_videoProbeMFT = 0;
+    }
+
+    if (m_playerService->videoRendererControl()) {
+        m_playerService->videoRendererControl()->releaseActivate();
+#ifndef Q_WS_SIMULATOR
+    } else if (m_playerService->videoWindowControl()) {
+        m_playerService->videoWindowControl()->releaseActivate();
+#endif
+    }
 
     if (m_session)
         m_session->Release();
@@ -493,18 +504,26 @@ void MFPlayerSession::removeProbe(MFAudioProbeControl *probe)
 
 void MFPlayerSession::addProbe(MFVideoProbeControl* probe)
 {
-    m_videoProbeMFT->addProbe(probe);
+    if (m_videoProbes.contains(probe))
+        return;
+
+    m_videoProbes.append(probe);
+
+    if (m_videoProbeMFT)
+        m_videoProbeMFT->addProbe(probe);
 }
 
 void MFPlayerSession::removeProbe(MFVideoProbeControl* probe)
 {
-    m_videoProbeMFT->removeProbe(probe);
+    m_videoProbes.removeOne(probe);
+
+    if (m_videoProbeMFT)
+        m_videoProbeMFT->removeProbe(probe);
 }
 
 MFPlayerSession::~MFPlayerSession()
 {
     m_audioSampleGrabber->Release();
-    m_videoProbeMFT->Release();
 }
 
 
@@ -988,73 +1007,92 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
         if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL)))
             break;
 
-// FIXME!! VideoProbe disabled in Qt 5.0 because it is unstable.
-//         Commented out the following code to skip inserting the transform node
-//         getting the video frames.
-
         // Get all output nodes and search for video output node.
-//        if (FAILED(resolvedTopology->GetOutputNodeCollection(&outputNodes)))
-//            break;
+        if (FAILED(resolvedTopology->GetOutputNodeCollection(&outputNodes)))
+            break;
 
-//        DWORD elementCount = 0;
-//        if (FAILED(outputNodes->GetElementCount(&elementCount)))
-//            break;
+        DWORD elementCount = 0;
+        if (FAILED(outputNodes->GetElementCount(&elementCount)))
+            break;
 
-//        for (DWORD n = 0; n < elementCount; n++) {
-//            IUnknown *element = 0;
-//            IMFTopologyNode *node = 0;
-//            IMFTopologyNode *inputNode = 0;
-//            IMFTopologyNode *mftNode = 0;
+        for (DWORD n = 0; n < elementCount; n++) {
+            IUnknown *element = 0;
+            IMFTopologyNode *node = 0;
+            IUnknown *outputObject = 0;
+            IMFMediaTypeHandler *videoSink = 0;
+            IMFTopologyNode *inputNode = 0;
+            IMFTopologyNode *mftNode = 0;
 
-//            do {
-//                if (FAILED(outputNodes->GetElement(n, &element)))
-//                    break;
+            do {
+                if (FAILED(outputNodes->GetElement(n, &element)))
+                    break;
 
-//                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
-//                    break;
+                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
+                    break;
 
-//                TOPOID id;
-//                if (FAILED(node->GetTopoNodeID(&id)))
-//                    break;
+                TOPOID id;
+                if (FAILED(node->GetTopoNodeID(&id)))
+                    break;
 
-//                if (id != outputNodeId)
-//                    break;
+                if (id != outputNodeId)
+                    break;
 
-//                // Insert MFT between the output node and the node connected to it.
-//                DWORD outputIndex = 0;
-//                if (FAILED(node->GetInput(0, &inputNode, &outputIndex)))
-//                    break;
+                // Use output supported media types for the MFT
+                if (FAILED(node->GetObject(&outputObject)))
+                    break;
 
-//                if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
-//                    break;
+                if (FAILED(outputObject->QueryInterface(IID_IMFMediaTypeHandler, (void**)&videoSink)))
+                    break;
 
-//                if (FAILED(mftNode->SetObject(m_videoProbeMFT)))
-//                    break;
+                DWORD mtCount;
+                if (FAILED(videoSink->GetMediaTypeCount(&mtCount)))
+                    break;
 
-//                if (FAILED(resolvedTopology->AddNode(mftNode)))
-//                    break;
+                for (DWORD i = 0; i < mtCount; ++i) {
+                    IMFMediaType *type = 0;
+                    if (SUCCEEDED(videoSink->GetMediaTypeByIndex(i, &type)))
+                        m_videoProbeMFT->addSupportedMediaType(type);
+                }
 
-//                if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
-//                    break;
+                // Insert MFT between the output node and the node connected to it.
+                DWORD outputIndex = 0;
+                if (FAILED(node->GetInput(0, &inputNode, &outputIndex)))
+                    break;
 
-//                if (FAILED(mftNode->ConnectOutput(0, node, 0)))
-//                    break;
+                if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
+                    break;
 
-//                isNewTopology = true;
-//            } while (false);
+                if (FAILED(mftNode->SetObject(m_videoProbeMFT)))
+                    break;
 
-//            if (mftNode)
-//                mftNode->Release();
-//            if (inputNode)
-//                inputNode->Release();
-//            if (node)
-//                node->Release();
-//            if (element)
-//                element->Release();
+                if (FAILED(resolvedTopology->AddNode(mftNode)))
+                    break;
 
-//            if (isNewTopology)
-//                break;
-//        }
+                if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
+                    break;
+
+                if (FAILED(mftNode->ConnectOutput(0, node, 0)))
+                    break;
+
+                isNewTopology = true;
+            } while (false);
+
+            if (mftNode)
+                mftNode->Release();
+            if (inputNode)
+                inputNode->Release();
+            if (node)
+                node->Release();
+            if (element)
+                element->Release();
+            if (videoSink)
+                videoSink->Release();
+            if (outputObject)
+                outputObject->Release();
+
+            if (isNewTopology)
+                break;
+        }
     } while (false);
 
     if (outputNodes)
@@ -1180,6 +1218,10 @@ void MFPlayerSession::createSession()
     m_sourceResolver = new SourceResolver();
     QObject::connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
     QObject::connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleSourceError(long)));
+
+    m_videoProbeMFT = new MFTransform;
+    for (int i = 0; i < m_videoProbes.size(); ++i)
+        m_videoProbeMFT->addProbe(m_videoProbes.at(i));
 
     Q_ASSERT(m_session == NULL);
     HRESULT hr = MFCreateMediaSession(NULL, &m_session);
@@ -1569,7 +1611,9 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         break;
     case MESourceUnknown:
         changeStatus(QMediaPlayer::InvalidMedia);
+        break;
     case MEError:
+        changeStatus(QMediaPlayer::UnknownMediaStatus);
         qWarning() << "handleSessionEvent: serious error = " << hrStatus;
         emit error(QMediaPlayer::ResourceError, tr("Media session serious error."), true);
         break;
@@ -1640,7 +1684,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             }
 
             if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
-                m_volumeControl->SetMasterVolume(m_volume);
+                m_volumeControl->SetMasterVolume(m_volume * 0.01f);
                 m_volumeControl->SetMute(m_muted);
             }
 
@@ -1692,9 +1736,10 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         if (m_volumeControl) {
             float currentVolume = 1;
             if (SUCCEEDED(m_volumeControl->GetMasterVolume(&currentVolume))) {
-                if (currentVolume != m_volume) {
-                    m_volume = currentVolume;
-                    emit volumeChanged(int(m_volume * 100));
+                int scaledVolume = currentVolume * 100;
+                if (scaledVolume != m_volume) {
+                    m_volume = scaledVolume;
+                    emit volumeChanged(scaledVolume);
                 }
             }
             BOOL currentMuted = FALSE;

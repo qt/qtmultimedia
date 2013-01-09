@@ -42,7 +42,7 @@
 #ifndef TRACE_H
 #define TRACE_H
 
-#include <QtCore/QDebug>
+#include <QDebug>
 
 #define ENABLE_TRACE
 //#define VERBOSE_TRACE
@@ -53,7 +53,7 @@ class NullDebug
 {
 public:
     template <typename T>
-    NullDebug& operator<<(const T&) { return *this; }
+    NullDebug &operator<<(const T &) { return *this; }
 };
 
 inline NullDebug nullDebug() { return NullDebug(); }
@@ -68,17 +68,11 @@ struct PtrWrapper
 } // namespace Trace
 
 template <typename T>
-inline QDebug& operator<<(QDebug &debug, const Trace::PtrWrapper<T> &wrapper)
+inline QDebug &operator<<(QDebug &debug, const Trace::PtrWrapper<T> &wrapper)
 {
     debug.nospace() << "[" << (void*)wrapper.m_ptr << "]";
     return debug.space();
 }
-
-template<typename T>
-inline const void *qtVoidPtr(const T *ptr)
-{ return static_cast<const void *>(ptr); }
-
-#define qtThisPtr() qtVoidPtr(this)
 
 #ifdef ENABLE_TRACE
         inline QDebug qtTrace() { return qDebug() << "[qmlvideofx]"; }

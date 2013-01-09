@@ -54,5 +54,5 @@ Effect {
 
     property real numColors: 8.0
 
-    fragmentShaderFilename: "shaders/posterize.fsh"
+    fragmentShaderFilename: "posterize.fsh"
 }

@@ -59,5 +59,5 @@ Effect {
     property real magTol: 0.3
     property real quantize: 8.0
 
-    fragmentShaderFilename: "shaders/toon.fsh"
+    fragmentShaderFilename: "toon.fsh"
 }

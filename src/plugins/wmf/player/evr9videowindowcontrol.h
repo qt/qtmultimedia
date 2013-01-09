@@ -86,6 +86,7 @@ public:
     void setSaturation(int saturation);
 
     IMFActivate* createActivate();
+    void releaseActivate();
 
     void setProcAmpValues();
 

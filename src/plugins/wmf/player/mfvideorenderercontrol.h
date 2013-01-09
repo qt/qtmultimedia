@@ -59,6 +59,7 @@ public:
     void setSurface(QAbstractVideoSurface *surface);
 
     IMFActivate* createActivate();
+    void releaseActivate();
 
 protected:
     void customEvent(QEvent *event);

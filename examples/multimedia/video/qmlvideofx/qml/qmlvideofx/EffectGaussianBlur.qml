@@ -63,7 +63,7 @@ Item {
         anchors.fill:  parent
         dividerValue: parent.dividerValue
         property real blurSize: 4.0 * parent.parameters.get(0).value / targetHeight
-        fragmentShaderFilename: "shaders/gaussianblur_v.fsh"
+        fragmentShaderFilename: "gaussianblur_v.fsh"
     }
 
     Effect {
@@ -71,7 +71,7 @@ Item {
         anchors.fill: parent
         dividerValue: parent.dividerValue
         property real blurSize: 4.0 * parent.parameters.get(0).value / parent.targetWidth
-        fragmentShaderFilename: "shaders/gaussianblur_h.fsh"
+        fragmentShaderFilename: "gaussianblur_h.fsh"
         source: horizontalShaderSource
 
         ShaderEffectSource {

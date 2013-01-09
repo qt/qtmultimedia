@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
     QStringList args = app.arguments();
     PerformanceMonitor::State performanceMonitorState;
     bool sourceIsUrl = false;
-    for (int i=1; i<args.count(); ++i) {
-        const QString &arg = args.at(i);
+    for (int i = 1; i < args.size(); ++i) {
+        const QByteArray arg = args.at(i).toUtf8();
         if (arg.startsWith('-')) {
             if ("-volume" == arg) {
                 if (i+1 < args.count())
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
                     qtTrace() << "Option \"-volume\" takes a value";
             }
 #ifdef PERFORMANCEMONITOR_SUPPORT
-            else if (PerformanceMonitor::parseArgument(arg, performanceMonitorState)) {
+            else if (performanceMonitorState.parseArgument(arg)) {
                 // Do nothing
             }
 #endif

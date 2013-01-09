@@ -41,3 +41,6 @@ src/multimediawidgets/qtmultimediawidgetsversion.h
 tst_*
 !tst_*.cpp
 tests/auto/cmake/build
+
+# Generated static plugin import sources
+*_plugin_import.cpp

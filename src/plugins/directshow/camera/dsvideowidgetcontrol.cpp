@@ -42,7 +42,7 @@
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qtimer.h>
 
-#include "DSVideoWidgetControl.h"
+#include "dsvideowidgetcontrol.h"
 #include "dscamerasession.h"
 
 QT_BEGIN_NAMESPACE

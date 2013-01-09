@@ -60,5 +60,5 @@ Effect {
     property real time: 0
     NumberAnimation on time { loops: Animation.Infinite; from: 0; to: Math.PI * 2; duration: 600 }
 
-    fragmentShaderFilename: "shaders/ripple.fsh"
+    fragmentShaderFilename: "ripple.fsh"
 }

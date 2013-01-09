@@ -76,5 +76,5 @@ Effect {
         }
     }
 
-    fragmentShaderFilename: "shaders/shockwave.fsh"
+    fragmentShaderFilename: "shockwave.fsh"
 }
