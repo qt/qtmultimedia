@@ -69,6 +69,9 @@ public:
     static QVideoSurfaceFormat formatFromType(const AM_MEDIA_TYPE &type);
 
     static int bytesPerLine(const QVideoSurfaceFormat &format);
+
+private:
+    static QVideoSurfaceFormat::Direction scanLineDirection(QVideoFrame::PixelFormat pixelFormat, const BITMAPINFOHEADER &bmiHeader);
 };
 
 #endif
