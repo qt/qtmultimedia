@@ -864,19 +864,12 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::paint(
             txRight, txTop
         };
 
-        const GLfloat vTop = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.top()
-                : target.bottom() + 1;
-        const GLfloat vBottom = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.bottom() + 1
-                : target.top();
-
         const GLfloat v_array[] =
         {
-            GLfloat(target.left())     , GLfloat(vBottom),
-            GLfloat(target.right() + 1), GLfloat(vBottom),
-            GLfloat(target.left())     , GLfloat(vTop),
-            GLfloat(target.right() + 1), GLfloat(vTop)
+            GLfloat(target.left())     , GLfloat(target.bottom() + 1),
+            GLfloat(target.right() + 1), GLfloat(target.bottom() + 1),
+            GLfloat(target.left())     , GLfloat(target.top()),
+            GLfloat(target.right() + 1), GLfloat(target.top())
         };
 
         glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -1231,20 +1224,12 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::paint(
             }
         };
 
-        const GLfloat vTop = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.top()
-                : target.bottom() + 1;
-        const GLfloat vBottom = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.bottom() + 1
-                : target.top();
-
-
         const GLfloat vertexCoordArray[] =
         {
-            GLfloat(target.left())     , GLfloat(vBottom),
-            GLfloat(target.right() + 1), GLfloat(vBottom),
-            GLfloat(target.left())     , GLfloat(vTop),
-            GLfloat(target.right() + 1), GLfloat(vTop)
+            GLfloat(target.left())     , GLfloat(target.bottom() + 1),
+            GLfloat(target.right() + 1), GLfloat(target.bottom() + 1),
+            GLfloat(target.left())     , GLfloat(target.top()),
+            GLfloat(target.right() + 1), GLfloat(target.top())
         };
 
         const GLfloat txLeft = source.left() / m_frameSize.width();
