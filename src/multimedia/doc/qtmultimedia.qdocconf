@@ -14,7 +14,7 @@ version                 = 5.0.1
 # format.
 qhp.projects = qtmultimedia
 qhp.qtmultimedia.file = qtmultimedia.qhp
-qhp.qtmultimedia.namespace = org.qt-project.qtmultimedia.500
+qhp.qtmultimedia.namespace = org.qt-project.qtmultimedia.501
 qhp.qtmultimedia.indexTitle = Qt Multimedia
 qhp.qtmultimedia.virtualFolder  = qtmultimedia
 
