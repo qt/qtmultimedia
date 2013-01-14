@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,53 +39,51 @@
 **
 ****************************************************************************/
 
-#ifndef MFVIDEORENDERERCONTROL_H
-#define MFVIDEORENDERERCONTROL_H
+#include "mfactivate.h"
 
-#include "qvideorenderercontrol.h"
 #include <mfapi.h>
-#include <mfidl.h>
 
-QT_BEGIN_NAMESPACE
-
-#ifdef QT_OPENGL_ES_2_ANGLE
-class EVRCustomPresenterActivate;
-#endif
-
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
-
-class MFVideoRendererControl : public QVideoRendererControl
+MFAbstractActivate::MFAbstractActivate()
+    : m_attributes(0)
+    , m_cRef(1)
 {
-    Q_OBJECT
-public:
-    MFVideoRendererControl(QObject *parent = 0);
-    ~MFVideoRendererControl();
+    MFCreateAttributes(&m_attributes, 0);
+}
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+MFAbstractActivate::~MFAbstractActivate()
+{
+    if (m_attributes)
+        m_attributes->Release();
+}
 
-    IMFActivate* createActivate();
-    void releaseActivate();
 
-protected:
-    void customEvent(QEvent *event);
+HRESULT MFAbstractActivate::QueryInterface(REFIID riid, LPVOID *ppvObject)
+{
+    if (!ppvObject)
+        return E_POINTER;
+    if (riid == IID_IMFActivate) {
+        *ppvObject = static_cast<IMFActivate*>(this);
+    } else if (riid == IID_IMFAttributes) {
+        *ppvObject = static_cast<IMFAttributes*>(this);
+    } else if (riid == IID_IUnknown) {
+        *ppvObject = static_cast<IUnknown*>(static_cast<IMFActivate*>(this));
+    } else {
+        *ppvObject =  NULL;
+        return E_NOINTERFACE;
+    }
+    AddRef();
+    return S_OK;
+}
 
-private Q_SLOTS:
-    void supportedFormatsChanged();
-    void present();
+ULONG MFAbstractActivate::AddRef(void)
+{
+    return InterlockedIncrement(&m_cRef);
+}
 
-private:
-    void clear();
-
-    QAbstractVideoSurface *m_surface;
-    IMFActivate *m_currentActivate;
-    IMFSampleGrabberSinkCallback *m_callback;
-
-#ifdef QT_OPENGL_ES_2_ANGLE
-    EVRCustomPresenterActivate *m_presenterActivate;
-#endif
-};
-
-#endif
+ULONG MFAbstractActivate::Release(void)
+{
+    ULONG cRef = InterlockedDecrement(&m_cRef);
+    if (cRef == 0)
+        delete this;
+    return m_cRef;
+}
