@@ -313,7 +313,7 @@ void InputTest::createAudioInput()
 {
     m_audioInput = new QAudioInput(m_device, m_format, this);
     connect(m_audioInput, SIGNAL(notify()), SLOT(notified()));
-    connect(m_audioInput, SIGNAL(stateChanged(QAudio::State)), SLOT(stateChanged(QAudio::State)));
+    connect(m_audioInput, SIGNAL(stateChanged(QAudio::State)), SLOT(handleStateChanged(QAudio::State)));
     m_volumeSlider->setValue(m_audioInput->volume() * 100);
     m_audioInfo->start();
     m_audioInput->start(m_audioInfo);
@@ -377,7 +377,7 @@ void InputTest::toggleSuspend()
     }
 }
 
-void InputTest::stateChanged(QAudio::State state)
+void InputTest::handleStateChanged(QAudio::State state)
 {
     qWarning() << "state = " << state;
 }

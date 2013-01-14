@@ -114,7 +114,7 @@ private slots:
     void pullTimerExpired();
     void toggleMode();
     void toggleSuspendResume();
-    void stateChanged(QAudio::State state);
+    void handleStateChanged(QAudio::State state);
     void deviceChanged(int index);
     void volumeChanged(int);
 };
