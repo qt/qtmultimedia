@@ -8,6 +8,10 @@ TEMPLATE = subdirs
 
 SUBDIRS += m3u
 
+android {
+   SUBDIRS += android
+}
+
 blackberry {
     SUBDIRS += blackberry
 }
