@@ -249,6 +249,7 @@ public:
 QSGVideoNode_RGB::QSGVideoNode_RGB(const QVideoSurfaceFormat &format) :
     m_format(format)
 {
+    setFlag(QSGNode::OwnsMaterial);
     m_material = new QSGVideoMaterial_RGB(format);
     setMaterial(m_material);
 }

@@ -227,6 +227,7 @@ public:
 QSGVideoNode_Texture::QSGVideoNode_Texture(const QVideoSurfaceFormat &format) :
     m_format(format)
 {
+    setFlag(QSGNode::OwnsMaterial);
     m_material = new QSGVideoMaterial_Texture(format);
     setMaterial(m_material);
 }
