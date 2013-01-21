@@ -1376,29 +1376,41 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
     // Negative <-> zero:       Stopped
     // Postive <-> zero:        Paused or stopped
     if ((rate > 0 && m_state.rate <= 0) || (rate < 0 && m_state.rate >= 0)) {
-        // Transition to stopped.
         if (cmdNow == CmdStart) {
             // Get the current clock position. This will be the restart time.
             m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
             Q_ASSERT(hnsSystemTime != 0);
 
-            // Stop and set the rate
-            stop();
+            // We need to stop only when dealing with negative rates
+            if (rate >= 0 && m_state.rate >= 0)
+                pause();
+            else
+                stop();
 
-            //Cache Request: Restart from stop.
-            m_request.setCommand(CmdSeekResume);
+            // If we deal with negative rates, we stopped the session and consequently
+            // reset the position to zero. We then need to resume to the current position.
+            m_request.setCommand(rate < 0 || m_state.rate < 0 ? CmdSeekResume : CmdStart);
             m_request.start = hnsClockTime / 10000;
         } else if (cmdNow == CmdPause) {
-            // The current state is paused.
-            // For this rate change, the session must be stopped. However, the
-            // session cannot transition back from stopped to paused.
-            // Therefore, this rate transition is not supported while paused.
             if (rate < 0 || m_state.rate < 0) {
+                // The current state is paused.
+                // For this rate change, the session must be stopped. However, the
+                // session cannot transition back from stopped to paused.
+                // Therefore, this rate transition is not supported while paused.
                 qWarning() << "Unable to change rate from positive to negative or vice versa in paused state";
                 return;
             }
+
+            // This happens when resuming playback after scrubbing in pause mode.
+            // This transition requires the session to be paused. Even though our
+            // internal state is set to paused, the session might not be so we need
+            // to enforce it
+            if (rate > 0 && m_state.rate == 0) {
+                m_state.setCommand(CmdNone);
+                pause();
+            }
         }
-    } else if (rate == 0 && m_state.rate != 0) {
+    } else if (rate == 0 && m_state.rate > 0) {
         if (cmdNow != CmdPause) {
             // Transition to paused.
             // This transisition requires the paused state.
@@ -1408,6 +1420,15 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
             // Request: Switch back to current state.
             m_request.setCommand(cmdNow);
         }
+    } else if (rate == 0 && m_state.rate < 0) {
+        // Changing rate from negative to zero requires to stop the session
+        m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
+
+        stop();
+
+        // Resumte to the current position (stop() will reset the position to 0)
+        m_request.setCommand(CmdSeekResume);
+        m_request.start = hnsClockTime / 10000;
     }
 
     // Set the rate.
@@ -1634,8 +1655,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             updatePendingCommands(CmdStart);
         break;
     case MESessionStarted:
-        if (!m_scrubbing)
-            updatePendingCommands(CmdStart);
+        updatePendingCommands(CmdStart);
 #ifndef Q_WS_SIMULATOR
         // playback started, we can now set again the procAmpValues if they have been
         // changed previously (these are lost when loading a new media)
@@ -1649,10 +1669,10 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             m_varStart.vt = VT_I8;
             m_varStart.hVal.QuadPart = 0;
 
-            //only change to loadedMedia when not loading a new media source
-            if (m_status != QMediaPlayer::LoadingMedia) {
+            // Reset to Loaded status unless we are loading a new media
+            // or if the media is buffered (to avoid restarting the video surface)
+            if (m_status != QMediaPlayer::LoadingMedia && m_status != QMediaPlayer::BufferedMedia)
                 changeStatus(QMediaPlayer::LoadedMedia);
-            }
         }
         updatePendingCommands(CmdStop);
         break;
@@ -1795,15 +1815,7 @@ void MFPlayerSession::updatePendingCommands(Command command)
     // The current pending command has completed.
     if (m_pendingState == SeekPending && m_state.prevCmd == CmdPause) {
         m_pendingState = NoPending;
-        //if we have pending seek request,
-        //then we just keep current state to paused and continue the seek request,
-        //otherwise we will restore to pause state
-        if (m_request.command == CmdSeek) {
-            m_state.setCommand(CmdPause);
-        } else {
-            pause();
-            return;
-        }
+        m_state.setCommand(CmdPause);
     }
 
     m_pendingState = NoPending;
