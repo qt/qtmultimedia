@@ -231,6 +231,8 @@ private:
     IMFTopologyNode *m_audioSampleGrabberNode;
 
     IMFTopology *insertMFT(IMFTopology *topology, TOPOID outputNodeId);
+    bool insertResizer(IMFTopology *topology);
+    void insertColorConverter(IMFTopology *topology, TOPOID outputNodeId);
     MFTransform *m_videoProbeMFT;
     QList<MFVideoProbeControl*> m_videoProbes;
 };

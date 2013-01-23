@@ -65,6 +65,7 @@
 #include "sourceresolver.h"
 #include "samplegrabber.h"
 #include "mftvideo.h"
+#include <wmcodecdsp.h>
 
 //#define DEBUG_MEDIAFOUNDATION
 //#define TEST_STREAMING
@@ -1004,8 +1005,16 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
         if (FAILED(MFCreateTopoLoader(&topoLoader)))
             break;
 
-        if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL)))
-            break;
+        if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL))) {
+            // Topology could not be resolved, adding ourselves a color converter
+            // to the topology might solve the problem
+            insertColorConverter(topology, outputNodeId);
+            if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL)))
+                break;
+        }
+
+        if (insertResizer(resolvedTopology))
+            isNewTopology = true;
 
         // Get all output nodes and search for video output node.
         if (FAILED(resolvedTopology->GetOutputNodeCollection(&outputNodes)))
@@ -1022,6 +1031,7 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
             IMFMediaTypeHandler *videoSink = 0;
             IMFTopologyNode *inputNode = 0;
             IMFTopologyNode *mftNode = 0;
+            bool mftAdded = false;
 
             do {
                 if (FAILED(outputNodes->GetElement(n, &element)))
@@ -1074,6 +1084,7 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
                 if (FAILED(mftNode->ConnectOutput(0, node, 0)))
                     break;
 
+                mftAdded = true;
                 isNewTopology = true;
             } while (false);
 
@@ -1090,7 +1101,7 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
             if (outputObject)
                 outputObject->Release();
 
-            if (isNewTopology)
+            if (mftAdded)
                 break;
         }
     } while (false);
@@ -1110,6 +1121,177 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
         resolvedTopology->Release();
 
     return topology;
+}
+
+// This method checks if the topology contains a color converter transform (CColorConvertDMO),
+// if it does it inserts a resizer transform (CResizerDMO) to handle dynamic frame size change
+// of the video stream.
+// Returns true if it inserted a resizer
+bool MFPlayerSession::insertResizer(IMFTopology *topology)
+{
+    bool inserted = false;
+    WORD elementCount = 0;
+    IMFTopologyNode *node = 0;
+    IUnknown *object = 0;
+    IWMColorConvProps *colorConv = 0;
+    IMFTransform *resizer = 0;
+    IMFTopologyNode *resizerNode = 0;
+    IMFTopologyNode *inputNode = 0;
+
+    HRESULT hr = topology->GetNodeCount(&elementCount);
+    if (FAILED(hr))
+        return false;
+
+    for (WORD i = 0; i < elementCount; ++i) {
+        if (node) {
+            node->Release();
+            node = 0;
+        }
+        if (object) {
+            object->Release();
+            object = 0;
+        }
+
+        if (FAILED(topology->GetNode(i, &node)))
+            break;
+
+        MF_TOPOLOGY_TYPE nodeType;
+        if (FAILED(node->GetNodeType(&nodeType)))
+            break;
+
+        if (nodeType != MF_TOPOLOGY_TRANSFORM_NODE)
+            continue;
+
+        if (FAILED(node->GetObject(&object)))
+            break;
+
+        if (FAILED(object->QueryInterface(&colorConv)))
+            continue;
+
+        if (FAILED(CoCreateInstance(CLSID_CResizerDMO, NULL, CLSCTX_INPROC_SERVER, IID_IMFTransform, (void**)&resizer)))
+            break;
+
+        if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &resizerNode)))
+            break;
+
+        if (FAILED(resizerNode->SetObject(resizer)))
+            break;
+
+        if (FAILED(topology->AddNode(resizerNode)))
+            break;
+
+        DWORD outputIndex = 0;
+        if (FAILED(node->GetInput(0, &inputNode, &outputIndex))) {
+            topology->RemoveNode(resizerNode);
+            break;
+        }
+
+        if (FAILED(inputNode->ConnectOutput(0, resizerNode, 0))) {
+            topology->RemoveNode(resizerNode);
+            break;
+        }
+
+        if (FAILED(resizerNode->ConnectOutput(0, node, 0))) {
+            inputNode->ConnectOutput(0, node, 0);
+            topology->RemoveNode(resizerNode);
+            break;
+        }
+
+        inserted = true;
+        break;
+    }
+
+    if (node)
+        node->Release();
+    if (object)
+        object->Release();
+    if (colorConv)
+        colorConv->Release();
+    if (resizer)
+        resizer->Release();
+    if (resizerNode)
+        resizerNode->Release();
+    if (inputNode)
+        inputNode->Release();
+
+    return inserted;
+}
+
+// This method inserts a color converter (CColorConvertDMO) in the topology,
+// typically to convert to RGB format.
+// Usually this converter is automatically inserted when the topology is resolved but
+// for some reason it fails to do so in some cases, we then do it ourselves.
+void MFPlayerSession::insertColorConverter(IMFTopology *topology, TOPOID outputNodeId)
+{
+    IMFCollection *outputNodes = 0;
+
+    if (FAILED(topology->GetOutputNodeCollection(&outputNodes)))
+        return;
+
+    DWORD elementCount = 0;
+    if (FAILED(outputNodes->GetElementCount(&elementCount)))
+        goto done;
+
+    for (DWORD n = 0; n < elementCount; n++) {
+        IUnknown *element = 0;
+        IMFTopologyNode *node = 0;
+        IMFTopologyNode *inputNode = 0;
+        IMFTopologyNode *mftNode = 0;
+        IMFTransform *converter = 0;
+
+        do {
+            if (FAILED(outputNodes->GetElement(n, &element)))
+                break;
+
+            if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
+                break;
+
+            TOPOID id;
+            if (FAILED(node->GetTopoNodeID(&id)))
+                break;
+
+            if (id != outputNodeId)
+                break;
+
+            DWORD outputIndex = 0;
+            if (FAILED(node->GetInput(0, &inputNode, &outputIndex)))
+                break;
+
+            if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
+                break;
+
+            if (FAILED(CoCreateInstance(CLSID_CColorConvertDMO, NULL, CLSCTX_INPROC_SERVER, IID_IMFTransform, (void**)&converter)))
+                break;
+
+            if (FAILED(mftNode->SetObject(converter)))
+                break;
+
+            if (FAILED(topology->AddNode(mftNode)))
+                break;
+
+            if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
+                break;
+
+            if (FAILED(mftNode->ConnectOutput(0, node, 0)))
+                break;
+
+        } while (false);
+
+        if (mftNode)
+            mftNode->Release();
+        if (inputNode)
+            inputNode->Release();
+        if (node)
+            node->Release();
+        if (element)
+            element->Release();
+        if (converter)
+            converter->Release();
+    }
+
+done:
+    if (outputNodes)
+        outputNodes->Release();
 }
 
 void MFPlayerSession::stop(bool immediate)
