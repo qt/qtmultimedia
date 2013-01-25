@@ -50,6 +50,10 @@
 
 QT_BEGIN_NAMESPACE
 
+QMediaServiceProviderFactoryInterface::~QMediaServiceProviderFactoryInterface()
+{
+}
+
 class QMediaServiceProviderHintPrivate : public QSharedData
 {
 public:

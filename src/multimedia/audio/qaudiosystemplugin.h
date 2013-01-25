@@ -66,6 +66,7 @@ struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
     virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
     virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
     virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
+    virtual ~QAudioSystemFactoryInterface();
 };
 
 #define QAudioSystemFactoryInterface_iid \

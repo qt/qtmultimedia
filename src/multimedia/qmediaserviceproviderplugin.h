@@ -112,6 +112,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface
 {
     virtual QMediaService* create(QString const& key) = 0;
     virtual void release(QMediaService *service) = 0;
+    virtual ~QMediaServiceProviderFactoryInterface();
 };
 
 #define QMediaServiceProviderFactoryInterface_iid \
