@@ -415,6 +415,7 @@ void QPulseAudioOutput::userFeed()
             }
             qint64 bytesWritten = write(m_audioBuffer, audioBytesPulled);
             Q_ASSERT(bytesWritten == audioBytesPulled); //unfinished write should not happen since the data provided is less than writableSize
+            Q_UNUSED(bytesWritten);
 
             if (chunks > 1) {
                 // PulseAudio needs more data. Ask for it immediately.
