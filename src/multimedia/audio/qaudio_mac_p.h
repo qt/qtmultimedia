@@ -61,8 +61,6 @@
 
 #include <qaudioformat.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 extern QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
@@ -131,8 +129,6 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif  // QAUDIO_MAC_P_H
 

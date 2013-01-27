@@ -45,8 +45,6 @@
 #include <qcameraimagecapturecontrol.h>
 #include "dscamerasession.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class DSImageCaptureControl : public QCameraImageCaptureControl
@@ -74,7 +72,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // DSCAPTURECONTROL_H

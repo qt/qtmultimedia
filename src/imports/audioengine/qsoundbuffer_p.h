@@ -44,8 +44,6 @@
 
 #include <QObject>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QSoundBuffer : public QObject
@@ -64,7 +62,5 @@ protected:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QSOUNDBUFFER_P_H

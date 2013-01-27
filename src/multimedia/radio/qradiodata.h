@@ -48,8 +48,6 @@
 #include <QtMultimedia/qmediabindableinterface.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -134,7 +132,5 @@ Q_DECLARE_METATYPE(QRadioData::ProgramType)
 
 Q_MEDIA_ENUM_DEBUG(QRadioData, Error)
 Q_MEDIA_ENUM_DEBUG(QRadioData, ProgramType)
-
-QT_END_HEADER
 
 #endif  // QRADIOPLAYER_H

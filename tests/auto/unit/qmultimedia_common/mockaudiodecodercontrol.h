@@ -53,8 +53,6 @@
 
 #define MOCK_DECODER_MAX_BUFFERS 10
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class MockAudioDecoderControl : public QAudioDecoderControl
@@ -217,7 +215,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif  // QAUDIODECODERCONTROL_H

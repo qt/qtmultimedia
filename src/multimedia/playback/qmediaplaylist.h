@@ -50,8 +50,6 @@
 #include <QtMultimedia/qmediaenumdebug.h>
 
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -147,7 +145,5 @@ Q_DECLARE_METATYPE(QMediaPlaylist::Error)
 
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, PlaybackMode)
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, Error)
-
-QT_END_HEADER
 
 #endif  // QMEDIAPLAYLIST_H

@@ -49,8 +49,6 @@
 
 #include <QtCore/qpair.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QString;
@@ -88,7 +86,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif  // QAUDIORECORDER_H

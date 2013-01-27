@@ -49,8 +49,6 @@
 #include <QtMultimedia/qcamera.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -102,8 +100,6 @@ QT_END_NAMESPACE
 Q_DECLARE_METATYPE(QCameraExposureControl::ExposureParameter)
 
 Q_MEDIA_ENUM_DEBUG(QCameraExposureControl, ExposureParameter)
-
-QT_END_HEADER
 
 
 #endif  // QCAMERAEXPOSURECONTROL_H

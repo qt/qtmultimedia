@@ -48,8 +48,6 @@
 #include <QtMultimedia/qtmultimediadefs.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -88,8 +86,6 @@ QT_END_NAMESPACE
 Q_DECLARE_METATYPE(QMediaStreamsControl::StreamType)
 
 Q_MEDIA_ENUM_DEBUG(QMediaStreamsControl, StreamType)
-
-QT_END_HEADER
 
 #endif // QMEDIASTREAMSCONTROL_H
 

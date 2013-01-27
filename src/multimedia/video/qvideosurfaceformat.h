@@ -49,8 +49,6 @@
 #include <QtGui/qimage.h>
 #include <QtMultimedia/qvideoframe.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -142,8 +140,6 @@ QT_END_NAMESPACE
 Q_DECLARE_METATYPE(QVideoSurfaceFormat)
 Q_DECLARE_METATYPE(QVideoSurfaceFormat::Direction)
 Q_DECLARE_METATYPE(QVideoSurfaceFormat::YCbCrColorSpace)
-
-QT_END_HEADER
 
 #endif
 

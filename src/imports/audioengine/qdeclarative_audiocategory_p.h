@@ -45,8 +45,6 @@
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlcomponent.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeAudioCategory : public QObject, public QQmlParserStatus
@@ -88,7 +86,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif

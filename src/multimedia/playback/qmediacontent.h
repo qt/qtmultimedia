@@ -49,8 +49,6 @@
 
 #include <QtMultimedia/qtmultimediadefs.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QMediaPlaylist;
@@ -89,7 +87,5 @@ private:
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QMediaContent)
-
-QT_END_HEADER
 
 #endif  // QMEDIACONTENT_H

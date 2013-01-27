@@ -49,8 +49,6 @@
 
 #include <QtMultimedia/qaudiobuffer.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
@@ -103,7 +101,5 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QAudioDecoderControl, QAudioDecoderControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif  // QAUDIODECODERCONTROL_H

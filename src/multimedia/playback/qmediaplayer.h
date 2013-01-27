@@ -48,8 +48,6 @@
 
 #include <QtNetwork/qnetworkconfiguration.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -225,7 +223,5 @@ Q_DECLARE_METATYPE(QMediaPlayer::Error)
 Q_MEDIA_ENUM_DEBUG(QMediaPlayer, State)
 Q_MEDIA_ENUM_DEBUG(QMediaPlayer, MediaStatus)
 Q_MEDIA_ENUM_DEBUG(QMediaPlayer, Error)
-
-QT_END_HEADER
 
 #endif  // QMEDIAPLAYER_H

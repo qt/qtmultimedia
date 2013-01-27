@@ -53,8 +53,6 @@
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -115,7 +113,5 @@ QT_END_NAMESPACE
 Q_DECLARE_METATYPE(QCameraImageProcessing::WhiteBalanceMode)
 
 Q_MEDIA_ENUM_DEBUG(QCameraImageProcessing, WhiteBalanceMode)
-
-QT_END_HEADER
 
 #endif  // QCAMERAIMAGEPROCESSING_H

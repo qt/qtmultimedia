@@ -47,8 +47,6 @@
 
 #include <QtMultimedia/qaudiobuffer.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QAudioDecoderPrivate;
@@ -141,7 +139,5 @@ Q_DECLARE_METATYPE(QAudioDecoder::Error)
 
 Q_MEDIA_ENUM_DEBUG(QAudioDecoder, State)
 Q_MEDIA_ENUM_DEBUG(QAudioDecoder, Error)
-
-QT_END_HEADER
 
 #endif  // QAUDIODECODER_H

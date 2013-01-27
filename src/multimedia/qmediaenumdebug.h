@@ -55,7 +55,6 @@
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qdebug.h>
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 #ifndef QT_NO_DEBUG_STREAM
@@ -75,7 +74,6 @@ inline QDebug operator<<(QDebug dbg, Class::Enum value) \
 #endif //QT_NO_DEBUG_STREAM
 
 QT_END_NAMESPACE
-QT_END_HEADER
 
 #endif
 

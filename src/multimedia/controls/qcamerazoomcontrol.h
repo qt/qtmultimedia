@@ -45,8 +45,6 @@
 #include <QtMultimedia/qmediacontrol.h>
 #include <QtMultimedia/qmediaobject.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -86,7 +84,5 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QCameraZoomControl, QCameraZoomControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif  // QCAMERAZOOMCONTROL_H

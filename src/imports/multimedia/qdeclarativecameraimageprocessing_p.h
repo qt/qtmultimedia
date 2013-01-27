@@ -56,8 +56,6 @@
 #include <qcamera.h>
 #include <qcameraimageprocessing.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;
@@ -126,7 +124,5 @@ private:
 QT_END_NAMESPACE
 
 QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeCameraImageProcessing))
-
-QT_END_HEADER
 
 #endif

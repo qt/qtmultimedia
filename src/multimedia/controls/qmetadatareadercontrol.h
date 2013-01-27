@@ -50,8 +50,6 @@
 #include <QtMultimedia/qtmultimediadefs.h>
 #include <QtMultimedia/qmultimedia.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -82,8 +80,6 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMetaDataReaderControl, QMetaDataReaderControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif  // QMETADATAPROVIDER_H

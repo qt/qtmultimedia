@@ -44,8 +44,6 @@
 #include <QtMultimedia/qmediacontrol.h>
 #include <QtMultimedia/qmediacontent.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -77,7 +75,5 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaGaplessPlaybackControl, QMediaGaplessPlaybackControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QMEDIAGAPLESSPLAYBACKCONTROL_H

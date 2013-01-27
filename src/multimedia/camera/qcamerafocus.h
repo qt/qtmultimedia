@@ -52,8 +52,6 @@
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -175,7 +173,5 @@ Q_DECLARE_METATYPE(QCameraFocus::FocusPointMode)
 
 Q_MEDIA_ENUM_DEBUG(QCameraFocus, FocusMode)
 Q_MEDIA_ENUM_DEBUG(QCameraFocus, FocusPointMode)
-
-QT_END_HEADER
 
 #endif  // QCAMERAFOCUS_H

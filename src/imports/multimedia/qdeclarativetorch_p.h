@@ -49,8 +49,6 @@
 #include <qcameraexposurecontrol.h>
 #include <qcameraflashcontrol.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeTorch : public QObject
@@ -87,7 +85,5 @@ private:
 QT_END_NAMESPACE
 
 QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeTorch))
-
-QT_END_HEADER
 
 #endif // QDECLARATIVETORCH_P_H

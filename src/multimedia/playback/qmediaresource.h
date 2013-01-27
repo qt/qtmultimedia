@@ -48,8 +48,6 @@
 
 #include <QtMultimedia/qtmultimediadefs.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Class forward declaration required for QDoc bug
@@ -127,7 +125,5 @@ QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QMediaResource)
 Q_DECLARE_METATYPE(QMediaResourceList)
-
-QT_END_HEADER
 
 #endif

@@ -51,8 +51,6 @@
 #include <qvideowidgetcontrol.h>
 #include "dscameracontrol.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class DSVideoWidgetSurface : public QAbstractVideoSurface
@@ -148,7 +146,5 @@ private: // Data
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // DSVideoWidgetControl_H

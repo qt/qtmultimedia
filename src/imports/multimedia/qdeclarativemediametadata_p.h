@@ -56,8 +56,6 @@
 #include <QtQml/qqml.h>
 #include "qmediaobject.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeMediaMetaData : public QObject
@@ -178,7 +176,5 @@ private:
 QT_END_NAMESPACE
 
 QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeMediaMetaData))
-
-QT_END_HEADER
 
 #endif

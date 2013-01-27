@@ -55,8 +55,6 @@
 
 #include <QtCore/qglobal.h>
 
-QT_BEGIN_HEADER
-
 #ifndef QT_STATIC
 #    if defined(QT_BUILD_QTMM_QUICK_LIB)
 #        define Q_MULTIMEDIAQUICK_EXPORT Q_DECL_EXPORT
@@ -66,8 +64,6 @@ QT_BEGIN_HEADER
 #else
 #    define Q_MULTIMEDIAQUICK_EXPORT
 #endif
-
-QT_END_HEADER
 
 
 #endif // QMULTIMEDIAQUICKDEFS_P_H

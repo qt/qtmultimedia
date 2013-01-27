@@ -55,7 +55,6 @@
 
 #include <QtCore/qglobal.h>
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 #ifndef QT_STATIC
@@ -69,7 +68,6 @@ QT_BEGIN_NAMESPACE
 #endif
 
 QT_END_NAMESPACE
-QT_END_HEADER
 
 #endif // QMULTIMEDIAWIDGETS_P_H
 
