@@ -41,7 +41,7 @@
 
 import QtQuick 2.0
 
-// Item which is loaded by CameraItem if QtMultimediaKit is not available
+// Item which is loaded by CameraItem if Qt Multimedia is not available
 Rectangle {
     id: root
     color: "grey"
@@ -56,7 +56,7 @@ Rectangle {
         anchors.margins: 10
         color: "white"
         horizontalAlignment: Text.AlignHCenter
-        text: "Failed to create Camera item\n\nCheck that QtMultimediaKit is installed"
+        text: "Failed to create Camera item\n\nCheck that Qt Multimedia is installed"
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.Wrap
     }

@@ -151,7 +151,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QMultimedia::AvailabilityStatus 
     Basic camera state management, error reporting, and simple zoom properties are
     available in the Camera itself.  For integration with C++ code, the
     \l mediaObject property allows you to
-    access the standard QtMultimedia camera controls.
+    access the standard Qt Multimedia camera controls.
 
     Many of the camera settings may take some time to apply, and might be limited
     to certain supported values depending on the hardware.  Some camera settings may be

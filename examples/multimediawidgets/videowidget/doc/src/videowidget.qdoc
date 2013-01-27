@@ -32,7 +32,7 @@
     \brief This example is a simple video player
 
     The Video Widget example denonstrates how to implement a video widget using
-    QtMultimedia's QAbstractVideoSurface.
+    Qt Multimedia's QAbstractVideoSurface.
 
     \image video-videowidget.png
 */

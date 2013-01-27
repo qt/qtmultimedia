@@ -36,7 +36,7 @@
 
     \image spectrum-demo.png
 
-    Because QtMultimedia allows the application to access the raw audio
+    Because Qt Multimedia allows the application to access the raw audio
     stream, the data can either be inspected or modified by the application.
     The Spectrum Analyzer example displays three pieces of information while
     audio is being either captured or played back:

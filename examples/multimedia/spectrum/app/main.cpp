@@ -44,7 +44,7 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setApplicationName("QtMultimedia spectrum analyzer");
+    app.setApplicationName("Qt Multimedia spectrum analyzer");
 
     MainWidget w;
     w.show();

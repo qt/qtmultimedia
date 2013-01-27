@@ -1,4 +1,4 @@
-# distinct from QtMultimedia
+# distinct from Qt Multimedia
 TARGET = QtMultimediaWidgets
 QT = core gui multimedia-private widgets-private
 qtHaveModule(opengl):!contains(QT_CONFIG, opengles1) {

@@ -32,7 +32,7 @@
 \brief This example demonstrates how to stream video on a graphics scene.
 
     The Video Graphics Item example shows how to implement a QGraphicsItem that displays video on a
-    graphics scene using QtMultimedia's QAbstractVideoSurface.
+    graphics scene using Qt Multimedia's QAbstractVideoSurface.
 
     \image video-videographicsitem.png
 

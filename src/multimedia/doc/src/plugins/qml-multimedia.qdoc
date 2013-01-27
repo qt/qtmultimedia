@@ -48,7 +48,7 @@
     \section2 Audio
 
     \l Audio is an easy way to add audio playback to a Qt Quick
-    scene. QtMultimedia provides properties for control, methods (functions) and signals.
+    scene. Qt Multimedia provides properties for control, methods (functions) and signals.
 
     The code extract below shows the creation and use of an Audio instance.
 
