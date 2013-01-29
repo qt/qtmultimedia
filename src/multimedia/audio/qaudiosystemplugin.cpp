@@ -44,6 +44,10 @@
 
 QT_BEGIN_NAMESPACE
 
+QAudioSystemFactoryInterface::~QAudioSystemFactoryInterface()
+{
+}
+
 /*!
     \class QAudioSystemPlugin
     \brief The QAudioSystemPlugin class provides an abstract base for audio plugins.
