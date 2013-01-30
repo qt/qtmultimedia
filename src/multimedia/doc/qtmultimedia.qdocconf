@@ -2,7 +2,7 @@ include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 
 project                 = qtmultimedia
 description             = Qt Multimedia Documentation
-url                     = http://qt-project.org/doc/qtmultimedia
+url                     = http://qt-project.org/doc/qt-$QT_VER/qtmultimedia
 version                 = $QT_VERSION
 
 # The following parameters are for creating a qhp file, the qhelpgenerator
