@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,38 +38,40 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#ifndef BBCAMERAFOCUSCONTROL_H
+#define BBCAMERAFOCUSCONTROL_H
 
-#include <qmediaserviceproviderplugin.h>
+#include <qcamerafocuscontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+class BbCameraSession;
+
+class BbCameraFocusControl : public QCameraFocusControl
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
 public:
-    BbServicePlugin();
+    explicit BbCameraFocusControl(BbCameraSession *session, QObject *parent = 0);
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
-
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+    QCameraFocus::FocusModes focusMode() const Q_DECL_OVERRIDE;
+    void setFocusMode(QCameraFocus::FocusModes mode) Q_DECL_OVERRIDE;
+    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const Q_DECL_OVERRIDE;
+    QCameraFocus::FocusPointMode focusPointMode() const Q_DECL_OVERRIDE;
+    void setFocusPointMode(QCameraFocus::FocusPointMode mode) Q_DECL_OVERRIDE;
+    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const Q_DECL_OVERRIDE;
+    QPointF customFocusPoint() const Q_DECL_OVERRIDE;
+    void setCustomFocusPoint(const QPointF &point) Q_DECL_OVERRIDE;
+    QCameraFocusZoneList focusZones() const Q_DECL_OVERRIDE;
 
 private:
-    void updateDevices() const;
+    void updateCustomFocusRegion();
+    bool retrieveViewfinderSize(int *width, int *height);
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
+    BbCameraSession *m_session;
+
+    QCameraFocus::FocusModes m_focusMode;
+    QCameraFocus::FocusPointMode m_focusPointMode;
+    QPointF m_customFocusPoint;
 };
 
 QT_END_NAMESPACE

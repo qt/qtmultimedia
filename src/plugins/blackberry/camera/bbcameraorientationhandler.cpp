@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,40 +38,63 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#include "bbcameraorientationhandler.h"
 
-#include <qmediaserviceproviderplugin.h>
+#include <QAbstractEventDispatcher>
+#include <QCoreApplication>
+#include <QDebug>
+
+#include <bps/orientation.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+BbCameraOrientationHandler::BbCameraOrientationHandler(QObject *parent)
+    : QObject(parent)
+    , m_orientation(0)
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
-public:
-    BbServicePlugin();
+    QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
+    int result = orientation_request_events(0);
+    if (result == BPS_FAILURE)
+        qWarning() << "Unable to register for orientation change events";
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+    orientation_direction_t direction = ORIENTATION_FACE_UP;
+    int angle = 0;
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+    result = orientation_get(&direction, &angle);
+    if (result == BPS_FAILURE) {
+        qWarning() << "Unable to retrieve initial orientation";
+    } else {
+        m_orientation = angle;
+    }
+}
 
-private:
-    void updateDevices() const;
+BbCameraOrientationHandler::~BbCameraOrientationHandler()
+{
+    const int result = orientation_stop_events(0);
+    if (result == BPS_FAILURE)
+        qWarning() << "Unable to unregister for orientation change events";
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-};
+    QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
+}
+
+bool BbCameraOrientationHandler::nativeEventFilter(const QByteArray&, void *message, long*)
+{
+    bps_event_t* const event = static_cast<bps_event_t*>(message);
+    if (!event || bps_event_get_domain(event) != orientation_get_domain())
+        return false;
+
+    const int angle = orientation_event_get_angle(event);
+    if (angle != m_orientation) {
+        m_orientation = angle;
+        emit orientationChanged(m_orientation);
+    }
+
+    return false; // do not drop the event
+}
+
+int BbCameraOrientationHandler::orientation() const
+{
+    return m_orientation;
+}
 
 QT_END_NAMESPACE
-
-#endif

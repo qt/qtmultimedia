@@ -39,7 +39,12 @@
 **
 ****************************************************************************/
 #include "bbserviceplugin.h"
+
+#include "bbcameraservice.h"
 #include "bbmediaplayerservice.h"
+#include "bbvideodeviceselectorcontrol.h"
+
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
@@ -49,6 +54,9 @@ BbServicePlugin::BbServicePlugin()
 
 QMediaService *BbServicePlugin::create(const QString &key)
 {
+    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
+        return new BbCameraService();
+
     if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
         return new BbMediaPlayerService();
 
@@ -64,6 +72,41 @@ QMediaServiceProviderHint::Features BbServicePlugin::supportedFeatures(const QBy
 {
     Q_UNUSED(service)
     return QMediaServiceProviderHint::Features();
+}
+
+QList<QByteArray> BbServicePlugin::devices(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        return m_cameraDevices;
+    }
+
+    return QList<QByteArray>();
+}
+
+QString BbServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        for (int i = 0; i < m_cameraDevices.count(); i++)
+            if (m_cameraDevices[i] == device)
+                return m_cameraDescriptions[i];
+    }
+
+    return QString();
+}
+
+void BbServicePlugin::updateDevices() const
+{
+    BbVideoDeviceSelectorControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
+
+    if (m_cameraDevices.isEmpty()) {
+        qWarning() << "No camera devices found";
+    }
 }
 
 QT_END_NAMESPACE

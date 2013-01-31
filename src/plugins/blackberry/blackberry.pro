@@ -10,6 +10,7 @@ LIBS += -lscreen
 HEADERS += bbserviceplugin.h
 SOURCES += bbserviceplugin.cpp
 
+include(camera/camera.pri)
 include(mediaplayer/mediaplayer.pri)
 
 OTHER_FILES += blackberry_mediaservice.json

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,40 +38,48 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#include "bbcameraimagecapturecontrol.h"
 
-#include <qmediaserviceproviderplugin.h>
+#include "bbcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+BbCameraImageCaptureControl::BbCameraImageCaptureControl(BbCameraSession *session, QObject *parent)
+    : QCameraImageCaptureControl(parent)
+    , m_session(session)
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
-public:
-    BbServicePlugin();
+    connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
+    connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
+    connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
+    connect(m_session, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+    connect(m_session, SIGNAL(imageAvailable(int,QVideoFrame)), this, SIGNAL(imageAvailable(int,QVideoFrame)));
+    connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
+    connect(m_session, SIGNAL(imageCaptureError(int,int,QString)), this, SIGNAL(error(int,int,QString)));
+}
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+bool BbCameraImageCaptureControl::isReadyForCapture() const
+{
+    return m_session->isReadyForCapture();
+}
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+QCameraImageCapture::DriveMode BbCameraImageCaptureControl::driveMode() const
+{
+    return m_session->driveMode();
+}
 
-private:
-    void updateDevices() const;
+void BbCameraImageCaptureControl::setDriveMode(QCameraImageCapture::DriveMode mode)
+{
+    m_session->setDriveMode(mode);
+}
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-};
+int BbCameraImageCaptureControl::capture(const QString &fileName)
+{
+    return m_session->capture(fileName);
+}
+
+void BbCameraImageCaptureControl::cancelCapture()
+{
+    m_session->cancelCapture();
+}
 
 QT_END_NAMESPACE
-
-#endif

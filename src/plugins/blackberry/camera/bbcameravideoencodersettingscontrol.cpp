@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,40 +38,53 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#include "bbcameravideoencodersettingscontrol.h"
 
-#include <qmediaserviceproviderplugin.h>
+#include "bbcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+BbCameraVideoEncoderSettingsControl::BbCameraVideoEncoderSettingsControl(BbCameraSession *session, QObject *parent)
+    : QVideoEncoderSettingsControl(parent)
+    , m_session(session)
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
-public:
-    BbServicePlugin();
+}
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+QList<QSize> BbCameraVideoEncoderSettingsControl::supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous) const
+{
+    return m_session->supportedResolutions(settings, continuous);
+}
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+QList<qreal> BbCameraVideoEncoderSettingsControl::supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous) const
+{
+    return m_session->supportedFrameRates(settings, continuous);
+}
 
-private:
-    void updateDevices() const;
+QStringList BbCameraVideoEncoderSettingsControl::supportedVideoCodecs() const
+{
+    return QStringList() << QLatin1String("none") << QLatin1String("avc1") << QLatin1String("h264");
+}
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-};
+QString BbCameraVideoEncoderSettingsControl::videoCodecDescription(const QString &codecName) const
+{
+    if (codecName == QLatin1String("none"))
+        return tr("No compression");
+    else if (codecName == QLatin1String("avc1"))
+        return tr("AVC1 compression");
+    else if (codecName == QLatin1String("h264"))
+        return tr("H264 compression");
+
+    return QString();
+}
+
+QVideoEncoderSettings BbCameraVideoEncoderSettingsControl::videoSettings() const
+{
+    return m_session->videoSettings();
+}
+
+void BbCameraVideoEncoderSettingsControl::setVideoSettings(const QVideoEncoderSettings &settings)
+{
+    m_session->setVideoSettings(settings);
+}
 
 QT_END_NAMESPACE
-
-#endif

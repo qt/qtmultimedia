@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,40 +38,52 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#include "bbcameraaudioencodersettingscontrol.h"
 
-#include <qmediaserviceproviderplugin.h>
+#include "bbcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+BbCameraAudioEncoderSettingsControl::BbCameraAudioEncoderSettingsControl(BbCameraSession *session, QObject *parent)
+    : QAudioEncoderSettingsControl(parent)
+    , m_session(session)
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
-public:
-    BbServicePlugin();
+}
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+QStringList BbCameraAudioEncoderSettingsControl::supportedAudioCodecs() const
+{
+    return QStringList() << QLatin1String("none") << QLatin1String("aac") << QLatin1String("raw");
+}
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+QString BbCameraAudioEncoderSettingsControl::codecDescription(const QString &codecName) const
+{
+    if (codecName == QLatin1String("none"))
+        return tr("No compression");
+    else if (codecName == QLatin1String("aac"))
+        return tr("AAC compression");
+    else if (codecName == QLatin1String("raw"))
+        return tr("PCM uncompressed");
 
-private:
-    void updateDevices() const;
+    return QString();
+}
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-};
+QList<int> BbCameraAudioEncoderSettingsControl::supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous) const
+{
+    Q_UNUSED(settings);
+    Q_UNUSED(continuous);
+
+    // no API provided by BB10 yet
+    return QList<int>();
+}
+
+QAudioEncoderSettings BbCameraAudioEncoderSettingsControl::audioSettings() const
+{
+    return m_session->audioSettings();
+}
+
+void BbCameraAudioEncoderSettingsControl::setAudioSettings(const QAudioEncoderSettings &settings)
+{
+    m_session->setAudioSettings(settings);
+}
 
 QT_END_NAMESPACE
-
-#endif

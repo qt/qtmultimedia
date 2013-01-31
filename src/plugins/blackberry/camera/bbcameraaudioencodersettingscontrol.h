@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,38 +38,29 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#ifndef BBCAMERAAUDIOENCODERSETTINGSCONTROL_H
+#define BBCAMERAAUDIOENCODERSETTINGSCONTROL_H
 
-#include <qmediaserviceproviderplugin.h>
+#include <qaudioencodersettingscontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+class BbCameraSession;
+
+class BbCameraAudioEncoderSettingsControl : public QAudioEncoderSettingsControl
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
 public:
-    BbServicePlugin();
+    explicit BbCameraAudioEncoderSettingsControl(BbCameraSession *session, QObject *parent = 0);
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
-
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+    QStringList supportedAudioCodecs() const Q_DECL_OVERRIDE;
+    QString codecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
+    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
+    QAudioEncoderSettings audioSettings() const Q_DECL_OVERRIDE;
+    void setAudioSettings(const QAudioEncoderSettings &settings) Q_DECL_OVERRIDE;
 
 private:
-    void updateDevices() const;
-
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
+    BbCameraSession *m_session;
 };
 
 QT_END_NAMESPACE

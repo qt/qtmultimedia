@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,38 +38,40 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#ifndef BBVIDEODEVICESELECTORCONTROL_H
+#define BBVIDEODEVICESELECTORCONTROL_H
 
-#include <qmediaserviceproviderplugin.h>
+#include <qvideodeviceselectorcontrol.h>
+#include <QStringList>
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+class BbCameraSession;
+
+class BbVideoDeviceSelectorControl : public QVideoDeviceSelectorControl
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
 public:
-    BbServicePlugin();
+    explicit BbVideoDeviceSelectorControl(BbCameraSession *session, QObject *parent = 0);
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+    int deviceCount() const Q_DECL_OVERRIDE;
+    QString deviceName(int index) const Q_DECL_OVERRIDE;
+    QString deviceDescription(int index) const Q_DECL_OVERRIDE;
+    int defaultDevice() const Q_DECL_OVERRIDE;
+    int selectedDevice() const Q_DECL_OVERRIDE;
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+    static void enumerateDevices(QList<QByteArray> *devices, QStringList *descriptions);
+
+public Q_SLOTS:
+    void setSelectedDevice(int index) Q_DECL_OVERRIDE;
 
 private:
-    void updateDevices() const;
+    BbCameraSession* m_session;
 
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
+    QList<QByteArray> m_devices;
+    QStringList m_descriptions;
+
+    int m_selected;
 };
 
 QT_END_NAMESPACE

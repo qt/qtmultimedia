@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,40 +38,33 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#include "bbcameracapturedestinationcontrol.h"
 
-#include <qmediaserviceproviderplugin.h>
+#include "bbcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+BbCameraCaptureDestinationControl::BbCameraCaptureDestinationControl(BbCameraSession *session, QObject *parent)
+    : QCameraCaptureDestinationControl(parent)
+    , m_session(session)
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
-public:
-    BbServicePlugin();
+    connect(m_session, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)),
+            this, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
+}
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+bool BbCameraCaptureDestinationControl::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
+{
+    return m_session->isCaptureDestinationSupported(destination);
+}
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+QCameraImageCapture::CaptureDestinations BbCameraCaptureDestinationControl::captureDestination() const
+{
+    return m_session->captureDestination();;
+}
 
-private:
-    void updateDevices() const;
-
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-};
+void BbCameraCaptureDestinationControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+{
+    m_session->setCaptureDestination(destination);
+}
 
 QT_END_NAMESPACE
-
-#endif

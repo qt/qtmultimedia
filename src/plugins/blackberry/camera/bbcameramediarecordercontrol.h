@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,38 +38,37 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
+#ifndef BBCAMERAMEDIARECORDERCONTROL_H
+#define BBCAMERAMEDIARECORDERCONTROL_H
 
-#include <qmediaserviceproviderplugin.h>
+#include <qmediarecordercontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceFeaturesInterface
+class BbCameraSession;
+
+class BbCameraMediaRecorderControl : public QMediaRecorderControl
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
 public:
-    BbServicePlugin();
+    explicit BbCameraMediaRecorderControl(BbCameraSession *session, QObject *parent = 0);
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QUrl outputLocation() const Q_DECL_OVERRIDE;
+    bool setOutputLocation(const QUrl &location) Q_DECL_OVERRIDE;
+    QMediaRecorder::State state() const Q_DECL_OVERRIDE;
+    QMediaRecorder::Status status() const Q_DECL_OVERRIDE;
+    qint64 duration() const Q_DECL_OVERRIDE;
+    bool isMuted() const Q_DECL_OVERRIDE;
+    qreal volume() const Q_DECL_OVERRIDE;
+    void applySettings() Q_DECL_OVERRIDE;
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+public Q_SLOTS:
+    void setState(QMediaRecorder::State state) Q_DECL_OVERRIDE;
+    void setMuted(bool muted) Q_DECL_OVERRIDE;
+    void setVolume(qreal volume) Q_DECL_OVERRIDE;
 
 private:
-    void updateDevices() const;
-
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
+    BbCameraSession *m_session;
 };
 
 QT_END_NAMESPACE
