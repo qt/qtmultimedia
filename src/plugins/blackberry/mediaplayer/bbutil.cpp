@@ -80,7 +80,7 @@ static const MmError mmErrors[] = {
     MM_ERROR_ENTRY(MMR_ERROR_DRM_OPL_BLUETOOTH),
     MM_ERROR_ENTRY(MMR_ERROR_DRM_OPL_WIRELESSHD),
 };
-static const int numMmErrors = sizeof(mmErrors) / sizeof(MmError);
+static const unsigned int numMmErrors = sizeof(mmErrors) / sizeof(MmError);
 
 QString mmErrorMessage(const QString &msg, mmr_context_t *context, int *errorCode)
 {
@@ -89,7 +89,7 @@ QString mmErrorMessage(const QString &msg, mmr_context_t *context, int *errorCod
     if (errorCode)
         *errorCode = mmError->error_code;
 
-    if (mmError->error_code >= 0 && mmError->error_code < numMmErrors) {
+    if (mmError->error_code < numMmErrors) {
         return QString("%1: %2 (code %3)").arg(msg).arg(mmErrors[mmError->error_code].name)
                                           .arg(mmError->error_code);
     } else {
