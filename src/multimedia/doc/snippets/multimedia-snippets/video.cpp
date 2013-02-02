@@ -79,9 +79,11 @@ class MyVideoSurface : public QAbstractVideoSurface
 class MyVideoProducer : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QAbstractVideoSurface *videoSurface WRITE setVideoSurface)
+    Q_PROPERTY(QAbstractVideoSurface *videoSurface READ videoSurface WRITE setVideoSurface)
 
 public:
+    QAbstractVideoSurface* videoSurface() const { return m_surface; }
+
     void setVideoSurface(QAbstractVideoSurface *surface)
     {
         m_surface = surface;
