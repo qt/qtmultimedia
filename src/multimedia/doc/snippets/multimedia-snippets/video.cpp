@@ -86,8 +86,12 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface)
     {
+        if (m_surface != surface && m_surface && m_surface->isActive()) {
+            m_surface->stop();
+        }
         m_surface = surface;
-        m_surface->start(m_format);
+        if (m_surface)
+            m_surface->start(m_format);
     }
 
     // ...
