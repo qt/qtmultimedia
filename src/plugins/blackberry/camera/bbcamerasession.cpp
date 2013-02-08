@@ -924,6 +924,12 @@ void BbCameraSession::deviceOrientationChanged(int angle)
         camera_set_device_orientation(m_handle, angle);
 }
 
+void BbCameraSession::handleCameraPowerUp()
+{
+    stopViewFinder();
+    startViewFinder();
+}
+
 bool BbCameraSession::openCamera()
 {
     if (m_handle != CAMERA_HANDLE_INVALID) // camera is already open
@@ -1011,6 +1017,9 @@ static void viewFinderStatusCallback(camera_handle_t handle, camera_devstatus_t 
     if (status == CAMERA_STATUS_FOCUS_CHANGE) {
         BbCameraSession *session = static_cast<BbCameraSession*>(context);
         QMetaObject::invokeMethod(session, "handleFocusStatusChanged", Qt::QueuedConnection, Q_ARG(int, value));
+    } else if (status == CAMERA_STATUS_POWERUP) {
+        BbCameraSession *session = static_cast<BbCameraSession*>(context);
+        QMetaObject::invokeMethod(session, "handleCameraPowerUp", Qt::QueuedConnection);
     }
 }
 

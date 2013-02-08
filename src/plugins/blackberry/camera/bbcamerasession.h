@@ -177,6 +177,7 @@ private slots:
     void handleVideoRecordingPaused();
     void handleVideoRecordingResumed();
     void deviceOrientationChanged(int);
+    void handleCameraPowerUp();
 
 private:
     bool openCamera();
