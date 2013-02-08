@@ -785,7 +785,7 @@ void BbCameraSession::handlePhotoViewFinderData(camera_buffer_t *buffer)
 {
     QTransform transform;
 
-    transform.rotate(360 - m_nativeCameraOrientation);
+    transform.rotate(m_nativeCameraOrientation);
 
     const QImage frame = convertFrameToImage(buffer).transformed(transform);
 
