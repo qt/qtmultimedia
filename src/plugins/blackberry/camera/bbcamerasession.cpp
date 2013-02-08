@@ -807,7 +807,7 @@ void BbCameraSession::handleVideoViewFinderData(camera_buffer_t *buffer)
 {
     QTransform transform;
 
-    transform.rotate(360 - m_nativeCameraOrientation);
+    transform.rotate(m_nativeCameraOrientation);
 
     const QImage frame = convertFrameToImage(buffer).transformed(transform);
 
@@ -829,8 +829,21 @@ void BbCameraSession::updateReadyForCapture()
     emit readyForCaptureChanged(isReadyForCapture());
 }
 
-void BbCameraSession::imageCaptured(int requestId, const QImage &image, const QString &fileName)
+void BbCameraSession::imageCaptured(int requestId, const QImage &rawImage, const QString &fileName)
 {
+    QTransform transform;
+
+    // subtract out the native rotation
+    transform.rotate(m_nativeCameraOrientation);
+
+    // subtract out the current device orientation
+    if (m_device == cameraIdentifierRear())
+        transform.rotate(360 - m_orientationHandler->orientation());
+    else
+        transform.rotate(m_orientationHandler->orientation());
+
+    const QImage image = rawImage.transformed(transform);
+
     // Generate snap preview as downscaled image
     {
         QSize previewSize = image.size();
@@ -1139,7 +1152,7 @@ void BbCameraSession::applyConfiguration()
                                                             CAMERA_IMGPROP_WIDTH, viewfinderResolution.width(),
                                                             CAMERA_IMGPROP_HEIGHT, viewfinderResolution.height(),
                                                             CAMERA_IMGPROP_FORMAT, CAMERA_FRAMETYPE_NV12,
-                                                            CAMERA_IMGPROP_ROTATION, m_nativeCameraOrientation);
+                                                            CAMERA_IMGPROP_ROTATION, 360 - m_nativeCameraOrientation);
 
         if (result != CAMERA_EOK) {
             qWarning() << "Unable to apply photo viewfinder settings:" << result;
@@ -1171,7 +1184,7 @@ void BbCameraSession::applyConfiguration()
                                            CAMERA_IMGPROP_WIDTH, photoResolution.width(),
                                            CAMERA_IMGPROP_HEIGHT, photoResolution.height(),
                                            CAMERA_IMGPROP_JPEGQFACTOR, jpegQuality,
-                                           CAMERA_IMGPROP_ROTATION, m_nativeCameraOrientation);
+                                           CAMERA_IMGPROP_ROTATION, 360 - m_nativeCameraOrientation);
 
         if (result != CAMERA_EOK) {
             qWarning() << "Unable to apply photo settings:" << result;
@@ -1204,7 +1217,7 @@ void BbCameraSession::applyConfiguration()
         const camera_error_t result = camera_set_videovf_property(m_handle,
                                                                   CAMERA_IMGPROP_WIDTH, viewfinderResolution.width(),
                                                                   CAMERA_IMGPROP_HEIGHT, viewfinderResolution.height(),
-                                                                  CAMERA_IMGPROP_ROTATION, m_nativeCameraOrientation);
+                                                                  CAMERA_IMGPROP_ROTATION, 360 - m_nativeCameraOrientation);
 
         if (result != CAMERA_EOK) {
             qWarning() << "Unable to apply video viewfinder settings:" << result;
