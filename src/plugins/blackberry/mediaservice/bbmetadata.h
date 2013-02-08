@@ -59,6 +59,7 @@ public:
     int width() const;
     bool hasVideo() const;
     bool hasAudio() const;
+    bool isSeekable() const;
 
 private:
     qlonglong m_duration;
@@ -67,6 +68,7 @@ private:
     int m_mediaType;
     float m_pixelWidth;
     float m_pixelHeight;
+    bool m_seekable;
 };
 
 QT_END_NAMESPACE
