@@ -62,6 +62,7 @@ VideoOutput {
     MediaPlayer {
         id: mediaPlayer
         autoLoad: false
+        loops: Audio.Infinite
 
         onError: {
             if (MediaPlayer.NoError != error) {
