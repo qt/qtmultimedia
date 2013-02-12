@@ -51,6 +51,7 @@ VideoOutput {
         id: mediaPlayer
         autoPlay: true
         volume: 0.5
+        loops: Audio.Infinite
     }
 
     function play() { mediaPlayer.play() }
