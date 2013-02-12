@@ -123,7 +123,7 @@ Rectangle {
                     Item {
                         width: 48; height: 48
                         Image {
-                            source: "qrc:/images/folder.png"
+                            source: "qrc:/folder.png"
                             anchors.centerIn: parent
                             visible: folders.isFolder(index)
                         }
@@ -290,7 +290,7 @@ Rectangle {
             }
 
             BorderImage {
-                source: "qrc:/images/titlebar.sci";
+                source: "qrc:/titlebar.sci";
                 width: parent.width;
                 height: 52
                 y: -7
@@ -301,7 +301,7 @@ Rectangle {
                     width: 48
                     height: titleBar.height - 7
                     color: "transparent"
-                    Image { anchors.centerIn: parent; source: "qrc:/images/up.png" }
+                    Image { anchors.centerIn: parent; source: "qrc:/up.png" }
                     MouseArea { id: upRegion; anchors.centerIn: parent
                         width: 56
                         height: 56
