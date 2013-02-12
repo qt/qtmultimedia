@@ -100,10 +100,11 @@ Rectangle {
                 Rectangle {
                     id: wrapper
                     function launch() {
+                        var path = "file:///" + filePath;
                         if (folders.isFolder(index))
-                            down(filePath);
+                            down(path);
                         else
-                            fileBrowser.selectFile(filePath)
+                            fileBrowser.selectFile(path)
                     }
                     width: root.width
                     height: 52
