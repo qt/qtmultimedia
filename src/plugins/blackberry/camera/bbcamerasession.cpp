@@ -113,6 +113,7 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_state(QCamera::UnloadedState)
     , m_captureMode(QCamera::CaptureStillImage)
     , m_device("bb:RearCamera")
+    , m_previewIsVideo(true)
     , m_surface(0)
     , m_captureImageDriveMode(QCameraImageCapture::SingleImageCapture)
     , m_lastImageCaptureId(0)
@@ -591,10 +592,50 @@ qint64 BbCameraSession::duration() const
     return (m_videoRecordingDuration.isValid() ? m_videoRecordingDuration.elapsed() : 0);
 }
 
-void BbCameraSession::applySettings()
+void BbCameraSession::applyVideoSettings()
 {
     if (m_handle == CAMERA_HANDLE_INVALID)
         return;
+
+    // apply viewfinder configuration
+    const QList<QSize> videoOutputResolutions = supportedResolutions(QCamera::CaptureVideo);
+
+    if (!m_videoEncoderSettings.resolution().isValid() || !videoOutputResolutions.contains(m_videoEncoderSettings.resolution()))
+        m_videoEncoderSettings.setResolution(videoOutputResolutions.first());
+
+    QSize viewfinderResolution;
+
+    if (m_previewIsVideo) {
+        // The viewfinder is responsible for encoding the video frames, so the resolutions must match.
+        viewfinderResolution = m_videoEncoderSettings.resolution();
+    } else {
+        // The frames are encoded separately from the viewfinder, so only the aspect ratio must match.
+        const QSize videoResolution = m_videoEncoderSettings.resolution();
+        const qreal aspectRatio = static_cast<qreal>(videoResolution.width())/static_cast<qreal>(videoResolution.height());
+
+        QList<QSize> sizes = supportedViewfinderResolutions(QCamera::CaptureVideo);
+        std::reverse(sizes.begin(), sizes.end()); // use smallest possible resolution
+        foreach (const QSize &size, sizes) {
+            // search for viewfinder resolution with the same aspect ratio
+            if (qFuzzyCompare(aspectRatio, (static_cast<qreal>(size.width())/static_cast<qreal>(size.height())))) {
+                viewfinderResolution = size;
+                break;
+            }
+        }
+    }
+
+    Q_ASSERT(viewfinderResolution.isValid());
+
+    camera_error_t result = CAMERA_EOK;
+    result = camera_set_videovf_property(m_handle,
+                                         CAMERA_IMGPROP_WIDTH, viewfinderResolution.width(),
+                                         CAMERA_IMGPROP_HEIGHT, viewfinderResolution.height(),
+                                         CAMERA_IMGPROP_ROTATION, 360 - m_nativeCameraOrientation);
+
+    if (result != CAMERA_EOK) {
+        qWarning() << "Unable to apply video viewfinder settings:" << result;
+        return;
+    }
 
     QString videoCodec = m_videoEncoderSettings.codec();
     if (videoCodec.isEmpty())
@@ -608,14 +649,8 @@ void BbCameraSession::applySettings()
     else if (videoCodec == QLatin1String("h264"))
         cameraVideoCodec = CAMERA_VIDEOCODEC_H264;
 
-    QSize resolution = m_videoEncoderSettings.resolution();
-    if (!resolution.isValid()) {
-        const QList<QSize> resolutions = supportedResolutions(QCamera::CaptureVideo);
-        if (!resolutions.isEmpty())
-            resolution = resolutions.first();
-    }
+    const QSize resolution = m_videoEncoderSettings.resolution();
 
-    //TODO: how to retrieve the supported video framerates from BB10 API?
     qreal frameRate = m_videoEncoderSettings.frameRate();
     if (frameRate == 0) {
         const QList<qreal> frameRates = supportedFrameRates(QVideoEncoderSettings(), 0);
@@ -635,11 +670,11 @@ void BbCameraSession::applySettings()
     else if (audioCodec == QLatin1String("raw"))
         cameraAudioCodec = CAMERA_AUDIOCODEC_RAW;
 
-    const camera_error_t result = camera_set_video_property(m_handle,
-                                                            CAMERA_IMGPROP_WIDTH, resolution.width(),
-                                                            CAMERA_IMGPROP_HEIGHT, resolution.height(),
-                                                            CAMERA_IMGPROP_VIDEOCODEC, cameraVideoCodec,
-                                                            CAMERA_IMGPROP_AUDIOCODEC, cameraAudioCodec);
+    result = camera_set_video_property(m_handle,
+                                       CAMERA_IMGPROP_WIDTH, resolution.width(),
+                                       CAMERA_IMGPROP_HEIGHT, resolution.height(),
+                                       CAMERA_IMGPROP_VIDEOCODEC, cameraVideoCodec,
+                                       CAMERA_IMGPROP_AUDIOCODEC, cameraAudioCodec);
 
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to apply video settings:" << result;
@@ -668,7 +703,10 @@ QList<qreal> BbCameraSession::supportedFrameRates(const QVideoEncoderSettings &s
     double rates[20];
     bool maxmin = false;
 
-    //TODO: actually we want to retrieve the framerates of the video here, not the viewfinder
+    /**
+     * Since in current version of the BB10 platform the video viewfinder encodes the video frames, we use
+     * the values as returned by camera_get_video_vf_framerates().
+     */
     const camera_error_t result = camera_get_video_vf_framerates(m_handle, 20, &supported, rates, &maxmin);
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to retrieve supported viewfinder framerates:" << result;
@@ -977,6 +1015,8 @@ bool BbCameraSession::openCamera()
         return false;
     }
 
+    m_previewIsVideo = camera_has_feature(m_handle, CAMERA_FEATURE_PREVIEWISVIDEO);
+
     m_status = QCamera::LoadedStatus;
     emit statusChanged(m_status);
 
@@ -1192,39 +1232,7 @@ void BbCameraSession::applyConfiguration()
         }
 
     } else if (m_captureMode & QCamera::CaptureVideo) {
-        const QList<QSize> videoOutputResolutions = supportedResolutions(QCamera::CaptureVideo);
-
-        if (!m_videoEncoderSettings.resolution().isValid() || !videoOutputResolutions.contains(m_videoEncoderSettings.resolution()))
-            m_videoEncoderSettings.setResolution(videoOutputResolutions.first());
-
-        const QSize videoResolution = m_videoEncoderSettings.resolution();
-        const qreal aspectRatio = static_cast<qreal>(videoResolution.width())/static_cast<qreal>(videoResolution.height());
-
-        // apply viewfinder configuration
-        QSize viewfinderResolution;
-        QList<QSize> sizes = supportedViewfinderResolutions(QCamera::CaptureVideo);
-        std::reverse(sizes.begin(), sizes.end()); // use smallest possible resolution
-        foreach (const QSize &size, sizes) {
-            // search for viewfinder resolution with the same aspect ratio
-            if (qFuzzyCompare(aspectRatio, (static_cast<qreal>(size.width())/static_cast<qreal>(size.height())))) {
-                viewfinderResolution = size;
-                break;
-            }
-        }
-
-        Q_ASSERT(viewfinderResolution.isValid());
-
-        const camera_error_t result = camera_set_videovf_property(m_handle,
-                                                                  CAMERA_IMGPROP_WIDTH, viewfinderResolution.width(),
-                                                                  CAMERA_IMGPROP_HEIGHT, viewfinderResolution.height(),
-                                                                  CAMERA_IMGPROP_ROTATION, 360 - m_nativeCameraOrientation);
-
-        if (result != CAMERA_EOK) {
-            qWarning() << "Unable to apply video viewfinder settings:" << result;
-            return;
-        }
-
-        applySettings();
+        applyVideoSettings();
     }
 }
 

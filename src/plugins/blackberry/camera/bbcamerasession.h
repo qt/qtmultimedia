@@ -125,7 +125,7 @@ public:
     void setVideoState(QMediaRecorder::State state);
     QMediaRecorder::Status videoStatus() const;
     qint64 duration() const;
-    void applySettings();
+    void applyVideoSettings();
 
     // video encoder settings control
     QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous) const;
@@ -201,6 +201,7 @@ private:
     QCamera::CaptureModes m_captureMode;
 
     QByteArray m_device;
+    bool m_previewIsVideo;
 
     QPointer<QAbstractVideoSurface> m_surface;
     QMutex m_surfaceMutex;

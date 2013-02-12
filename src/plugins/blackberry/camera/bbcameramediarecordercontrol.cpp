@@ -127,7 +127,7 @@ qreal BbCameraMediaRecorderControl::volume() const
 
 void BbCameraMediaRecorderControl::applySettings()
 {
-    m_session->applySettings();
+    m_session->applyVideoSettings();
 }
 
 void BbCameraMediaRecorderControl::setState(QMediaRecorder::State state)
