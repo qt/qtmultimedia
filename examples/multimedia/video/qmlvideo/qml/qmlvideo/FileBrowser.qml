@@ -51,10 +51,11 @@ Rectangle {
     signal fileSelected(string file)
 
     function selectFile(file) {
-        if (file != "")
+        if (file !== "") {
             folder = loader.item.folders.folder
+            fileBrowser.fileSelected(file)
+        }
         loader.sourceComponent = undefined
-        fileBrowser.fileSelected(file)
     }
 
     Loader {
@@ -160,28 +161,6 @@ Rectangle {
                 }
             }
 
-            Rectangle {
-                id: cancelButton
-                width: 100
-                height: titleBar.height - 7
-                color: "black"
-                anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
-
-                Text {
-                    anchors { fill: parent; margins: 4 }
-                    text: "Cancel"
-                    color: "white"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: 20
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: fileBrowser.selectFile("")
-                }
-            }
-
             ListView {
                 id: view1
                 anchors.top: titleBar.bottom
@@ -277,6 +256,28 @@ Rectangle {
                     }
                 ]
                 Keys.onPressed: root.keyPressed(event.key)
+            }
+
+            Rectangle {
+                id: cancelButton
+                width: 100
+                height: titleBar.height - 7
+                color: "black"
+                anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
+
+                Text {
+                    anchors { fill: parent; margins: 4 }
+                    text: "Cancel"
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.pixelSize: 20
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: fileBrowser.selectFile("")
+                }
             }
 
             Keys.onPressed: {
