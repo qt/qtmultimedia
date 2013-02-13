@@ -179,7 +179,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
             if (mediaObjectProperty.hasNotifySignal()) {
                 QMetaMethod method = mediaObjectProperty.notifySignal();
                 QMetaObject::connect(m_source.data(), method.methodIndex(),
-                                     this, this->metaObject()->indexOfSlot("updateMediaObject()"),
+                                     this, this->metaObject()->indexOfSlot("_q_updateMediaObject()"),
                                      Qt::DirectConnection, 0);
 
             }
