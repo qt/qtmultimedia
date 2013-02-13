@@ -42,6 +42,7 @@
 
 #include "bbcameraorientationhandler.h"
 #include "bbcameraviewfindersettingscontrol.h"
+#include "windowgrabber.h"
 
 #include <QAbstractVideoSurface>
 #include <QBuffer>
@@ -123,10 +124,13 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_videoState(QMediaRecorder::StoppedState)
     , m_videoStatus(QMediaRecorder::LoadedStatus)
     , m_handle(CAMERA_HANDLE_INVALID)
+    , m_windowGrabber(new WindowGrabber(this))
 {
     connect(this, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateReadyForCapture()));
     connect(this, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateReadyForCapture()));
     connect(m_orientationHandler, SIGNAL(orientationChanged(int)), SLOT(deviceOrientationChanged(int)));
+
+    connect(m_windowGrabber, SIGNAL(frameGrabbed(QImage)), SLOT(viewfinderFrameGrabbed(QImage)));
 }
 
 BbCameraSession::~BbCameraSession()
@@ -626,8 +630,15 @@ void BbCameraSession::applyVideoSettings()
 
     Q_ASSERT(viewfinderResolution.isValid());
 
+    const QByteArray windowId = QString().sprintf("qcamera_vf_%p", this).toLatin1();
+    m_windowGrabber->setWindowId(windowId);
+
+    const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
+
     camera_error_t result = CAMERA_EOK;
     result = camera_set_videovf_property(m_handle,
+                                         CAMERA_IMGPROP_WIN_GROUPID, windowGroupId.data(),
+                                         CAMERA_IMGPROP_WIN_ID, windowId.data(),
                                          CAMERA_IMGPROP_WIDTH, viewfinderResolution.width(),
                                          CAMERA_IMGPROP_HEIGHT, viewfinderResolution.height(),
                                          CAMERA_IMGPROP_ROTATION, 360 - m_nativeCameraOrientation);
@@ -741,125 +752,6 @@ QAudioEncoderSettings BbCameraSession::audioSettings() const
 void BbCameraSession::setAudioSettings(const QAudioEncoderSettings &settings)
 {
     m_audioEncoderSettings = settings;
-}
-
-static QImage convertFrameToImage(camera_buffer_t *buffer)
-{
-    if (buffer->frametype != CAMERA_FRAMETYPE_NV12)
-        return QImage();
-
-    const unsigned int width = buffer->framedesc.nv12.width;
-    const unsigned int height = buffer->framedesc.nv12.height;
-
-    /**
-     * Copying the data from the buffer into our own data array and working
-     * on this copy is actually faster than working on the buffer.
-     * Looks like we hit some cache misses here, since the stride inside the
-     * NV12 frame is really large (4096) in comparison to the actual image width (768)
-     */
-    const unsigned long long size = width*height + width*height/2;
-    unsigned char *data = new unsigned char[size];
-
-    unsigned char *source = buffer->framebuf;
-    unsigned char *dest = data;
-    for (uint row = 0; row < height; ++row) {
-        memcpy(dest, source, width);
-        source += buffer->framedesc.nv12.stride;
-        dest += width;
-    }
-
-    source = buffer->framebuf + buffer->framedesc.nv12.uv_offset;
-    for (uint row = 0; row < height/2; ++row) {
-        memcpy(dest, source, width);
-        source += buffer->framedesc.nv12.uv_stride;
-        dest += width;
-    }
-
-    QImage image(width, height, QImage::Format_RGB32);
-
-    unsigned char *dataPtr = data;
-    unsigned char *uvDataPtr = 0;
-    unsigned int uv_base_offset = width*height;
-    int yValue = 0;
-    int uValue = 0;
-    int vValue = 0;
-    int bValue = 0;
-    int gValue = 0;
-    int rValue = 0;
-    unsigned char *rowStart = 0;
-
-    unsigned char *imageDest = 0;
-    for (unsigned int y = 0; y < height; ++y) {
-        imageDest = const_cast<unsigned char*>(image.constScanLine(y));
-        rowStart = data + (uv_base_offset + (width*qFloor(y/2.0)));
-        for (unsigned int x = 0; x < width; ++x) {
-            uvDataPtr = rowStart + (qFloor(x/2)*2);
-
-            yValue = ((*dataPtr++) - 16) * 1.164;
-            uValue = ((*uvDataPtr++) - 128);
-            vValue = ((*uvDataPtr) - 128);
-
-            bValue = yValue + 2.018 * uValue;
-            gValue = yValue - 0.813 * vValue - 0.391 * uValue;
-            rValue = yValue + 1.596 * vValue;
-
-            *imageDest = qBound(0, bValue, 255);
-            imageDest++;
-            *imageDest = qBound(0, gValue, 255);
-            imageDest++;
-            *imageDest = qBound(0, rValue, 255);
-            imageDest++;
-            *imageDest = 255;
-            imageDest++;
-        }
-    }
-
-    delete [] data;
-
-    return image;
-}
-
-void BbCameraSession::handlePhotoViewFinderData(camera_buffer_t *buffer)
-{
-    QTransform transform;
-
-    transform.rotate(m_nativeCameraOrientation);
-
-    const QImage frame = convertFrameToImage(buffer).transformed(transform);
-
-    QMutexLocker locker(&m_surfaceMutex);
-    if (m_surface) {
-        if (frame.size() != m_surface->surfaceFormat().frameSize()) {
-            m_surface->stop();
-            m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_RGB32));
-        }
-
-        QVideoFrame videoFrame(frame);
-
-        m_surface->present(videoFrame);
-    }
-}
-
-
-void BbCameraSession::handleVideoViewFinderData(camera_buffer_t *buffer)
-{
-    QTransform transform;
-
-    transform.rotate(m_nativeCameraOrientation);
-
-    const QImage frame = convertFrameToImage(buffer).transformed(transform);
-
-    QMutexLocker locker(&m_surfaceMutex);
-    if (m_surface) {
-        if (frame.size() != m_surface->surfaceFormat().frameSize()) {
-            m_surface->stop();
-            m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_RGB32));
-        }
-
-        QVideoFrame videoFrame(frame);
-
-        m_surface->present(videoFrame);
-    }
 }
 
 void BbCameraSession::updateReadyForCapture()
@@ -981,6 +873,27 @@ void BbCameraSession::handleCameraPowerUp()
     startViewFinder();
 }
 
+void BbCameraSession::viewfinderFrameGrabbed(const QImage &image)
+{
+    QTransform transform;
+
+    transform.rotate(m_nativeCameraOrientation);
+
+    const QImage frame = image.copy().transformed(transform);
+
+    QMutexLocker locker(&m_surfaceMutex);
+    if (m_surface) {
+        if (frame.size() != m_surface->surfaceFormat().frameSize()) {
+            m_surface->stop();
+            m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_ARGB32));
+        }
+
+        QVideoFrame videoFrame(frame);
+
+        m_surface->present(videoFrame);
+    }
+}
+
 bool BbCameraSession::openCamera()
 {
     if (m_handle != CAMERA_HANDLE_INVALID) // camera is already open
@@ -1047,22 +960,6 @@ void BbCameraSession::closeCamera()
     emit statusChanged(m_status);
 }
 
-static void photoViewFinderDataCallback(camera_handle_t handle, camera_buffer_t *buffer, void *context)
-{
-    Q_UNUSED(handle)
-
-    BbCameraSession *session = static_cast<BbCameraSession*>(context);
-    session->handlePhotoViewFinderData(buffer);
-}
-
-static void videoViewFinderDataCallback(camera_handle_t handle, camera_buffer_t *buffer, void *context)
-{
-    Q_UNUSED(handle)
-
-    BbCameraSession *session = static_cast<BbCameraSession*>(context);
-    session->handleVideoViewFinderData(buffer);
-}
-
 static void viewFinderStatusCallback(camera_handle_t handle, camera_devstatus_t status, uint16_t value, void *context)
 {
     Q_UNUSED(handle)
@@ -1084,10 +981,10 @@ bool BbCameraSession::startViewFinder()
     QSize viewfinderResolution;
     camera_error_t result = CAMERA_EOK;
     if (m_captureMode & QCamera::CaptureStillImage) {
-        result = camera_start_photo_viewfinder(m_handle, photoViewFinderDataCallback, viewFinderStatusCallback, this);
+        result = camera_start_photo_viewfinder(m_handle, 0, viewFinderStatusCallback, this);
         viewfinderResolution = currentViewfinderResolution(QCamera::CaptureStillImage);
     } else if (m_captureMode & QCamera::CaptureVideo) {
-        result = camera_start_video_viewfinder(m_handle, videoViewFinderDataCallback, viewFinderStatusCallback, this);
+        result = camera_start_video_viewfinder(m_handle, 0, viewFinderStatusCallback, this);
         viewfinderResolution = currentViewfinderResolution(QCamera::CaptureVideo);
     }
 
@@ -1125,7 +1022,7 @@ bool BbCameraSession::startViewFinder()
 
     m_surfaceMutex.lock();
     if (m_surface) {
-        const bool ok = m_surface->start(QVideoSurfaceFormat(rotatedSize, QVideoFrame::Format_RGB32));
+        const bool ok = m_surface->start(QVideoSurfaceFormat(rotatedSize, QVideoFrame::Format_ARGB32));
         if (!ok)
             qWarning() << "Unable to start camera viewfinder surface";
     }
@@ -1139,6 +1036,8 @@ bool BbCameraSession::startViewFinder()
 
 void BbCameraSession::stopViewFinder()
 {
+    m_windowGrabber->stop();
+
     m_status = QCamera::StoppingStatus;
     emit statusChanged(m_status);
 
@@ -1188,7 +1087,14 @@ void BbCameraSession::applyConfiguration()
 
         Q_ASSERT(viewfinderResolution.isValid());
 
+        const QByteArray windowId = QString().sprintf("qcamera_vf_%p", this).toLatin1();
+        m_windowGrabber->setWindowId(windowId);
+
+        const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
+
         camera_error_t result = camera_set_photovf_property(m_handle,
+                                                            CAMERA_IMGPROP_WIN_GROUPID, windowGroupId.data(),
+                                                            CAMERA_IMGPROP_WIN_ID, windowId.data(),
                                                             CAMERA_IMGPROP_WIDTH, viewfinderResolution.width(),
                                                             CAMERA_IMGPROP_HEIGHT, viewfinderResolution.height(),
                                                             CAMERA_IMGPROP_FORMAT, CAMERA_FRAMETYPE_NV12,

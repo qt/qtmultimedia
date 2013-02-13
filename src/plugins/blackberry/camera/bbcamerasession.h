@@ -57,6 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 class BbCameraOrientationHandler;
+class WindowGrabber;
 
 class BbCameraSession : public QObject
 {
@@ -137,10 +138,6 @@ public:
     QAudioEncoderSettings audioSettings() const;
     void setAudioSettings(const QAudioEncoderSettings &settings);
 
-    // methods invoked from BB10 camera API callbacks in separated thread
-    void handlePhotoViewFinderData(camera_buffer_t*);
-    void handleVideoViewFinderData(camera_buffer_t*);
-
 Q_SIGNALS:
     // camera control
     void statusChanged(QCamera::Status);
@@ -178,6 +175,7 @@ private slots:
     void handleVideoRecordingResumed();
     void deviceOrientationChanged(int);
     void handleCameraPowerUp();
+    void viewfinderFrameGrabbed(const QImage &image);
 
 private:
     bool openCamera();
@@ -227,6 +225,8 @@ private:
     BbMediaStorageLocation m_mediaStorageLocation;
 
     camera_handle_t m_handle;
+
+    WindowGrabber* m_windowGrabber;
 };
 
 QDebug operator<<(QDebug debug, camera_error_t error);
