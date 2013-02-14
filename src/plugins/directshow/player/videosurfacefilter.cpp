@@ -160,6 +160,7 @@ HRESULT VideoSurfaceFilter::Stop()
 
 HRESULT VideoSurfaceFilter::GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *pState)
 {
+    Q_UNUSED(dwMilliSecsTimeout)
     if (!pState)
         return E_POINTER;
 
@@ -264,6 +265,8 @@ ULONG VideoSurfaceFilter::GetMiscFlags()
 
 HRESULT VideoSurfaceFilter::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
 {
+    Q_UNUSED(pReceivePin)
+    Q_UNUSED(pmt)
     // This is an input pin, you shouldn't be calling Connect on it.
     return E_POINTER;
 }

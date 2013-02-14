@@ -96,6 +96,8 @@ public:
 
     STDMETHODIMP SampleCB(double Time, IMediaSample *pSample)
     {
+        Q_UNUSED(Time)
+        Q_UNUSED(pSample)
         return E_NOTIMPL;
     }
 

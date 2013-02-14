@@ -107,6 +107,7 @@ void DSVideoWidgetSurface::updateVideoRect()
 
 void DSVideoWidgetSurface::paint(QPainter *painter)
 {
+    Q_UNUSED(painter)
 }
 
 

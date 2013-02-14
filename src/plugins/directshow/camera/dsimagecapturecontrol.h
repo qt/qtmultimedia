@@ -58,7 +58,7 @@ public:
     int capture(const QString &fileName);
 
     virtual QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    virtual void setDriveMode(QCameraImageCapture::DriveMode mode) { }
+    virtual void setDriveMode(QCameraImageCapture::DriveMode mode) { Q_UNUSED(mode) }
 
     virtual void cancelCapture() {}
 
