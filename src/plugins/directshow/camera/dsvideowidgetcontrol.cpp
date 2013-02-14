@@ -48,6 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 DSVideoWidgetSurface::DSVideoWidgetSurface(QLabel *pWidget, QObject *parent)
+    : QAbstractVideoSurface(parent)
 {
     widget = pWidget;
     myPixmap = 0;
