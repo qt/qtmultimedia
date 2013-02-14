@@ -112,7 +112,8 @@ void DSVideoWidgetSurface::paint(QPainter *painter)
 
 
 DSVideoWidgetControl::DSVideoWidgetControl(DSCameraSession* session, QObject *parent) :
-    m_session(session), QVideoWidgetControl(parent),
+    QVideoWidgetControl(parent),
+    m_session(session),
     m_widget(new QLabel()),
     m_fullScreen(false)
 {
