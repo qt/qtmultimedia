@@ -39,6 +39,7 @@
 **
 ****************************************************************************/
 #include "bbmediaplayercontrol.h"
+#include "bbmetadatareadercontrol.h"
 #include "bbvideowindowcontrol.h"
 #include "bbutil.h"
 #include <QtCore/qabstracteventdispatcher.h>
@@ -515,6 +516,11 @@ void BbMediaPlayerControl::setVideoControl(BbVideoWindowControl *videoControl)
     m_videoControl = videoControl;
 }
 
+void BbMediaPlayerControl::setMetaDataReaderControl(BbMetaDataReaderControl *metaDataReaderControl)
+{
+    m_metaDataReaderControl = metaDataReaderControl;
+}
+
 bool BbMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
 {
     Q_UNUSED(eventType);
@@ -591,6 +597,9 @@ void BbMediaPlayerControl::updateMetaData()
 
     if (m_videoControl)
         m_videoControl->setMetaData(m_metaData);
+
+    if (m_metaDataReaderControl)
+        m_metaDataReaderControl->setMetaData(m_metaData);
 
     emit durationChanged(m_metaData.duration());
     emit audioAvailableChanged(m_metaData.hasAudio());

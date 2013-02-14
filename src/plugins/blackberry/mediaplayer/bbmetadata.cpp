@@ -51,7 +51,16 @@ BbMetaData::BbMetaData()
     clear();
 }
 
+static const char * titleKey = "md_title_name";
+static const char * artistKey = "md_title_artist";
+static const char * commentKey = "md_title_comment";
+static const char * genreKey = "md_title_genre";
+static const char * yearKey = "md_title_year";
 static const char * durationKey = "md_title_duration";
+static const char * bitRateKey = "md_title_bitrate";
+static const char * sampleKey = "md_title_samplerate";
+static const char * albumKey = "md_title_album";
+static const char * trackKey = "md_title_track";
 static const char * widthKey = "md_video_width";
 static const char * heightKey = "md_video_height";
 static const char * mediaTypeKey = "md_title_mediatype";
@@ -102,6 +111,24 @@ bool BbMetaData::parse(const QString &contextName)
                 m_pixelWidth = value.toFloat();
             else if (key == pixelHeightKey)
                 m_pixelHeight = value.toFloat();
+            else if (key == titleKey)
+                m_title = value;
+            else if (key == artistKey)
+                m_artist = value;
+            else if (key == commentKey)
+                m_comment = value;
+            else if (key == genreKey)
+                m_genre = value;
+            else if (key == yearKey)
+                m_year = value.toInt();
+            else if (key == bitRateKey)
+                m_audioBitRate = value.toInt();
+            else if (key == sampleKey)
+                m_sampleRate = value.toInt();
+            else if (key == albumKey)
+                m_album = value;
+            else if (key == trackKey)
+                m_track = value.toInt();
         }
     }
 
@@ -116,6 +143,16 @@ void BbMetaData::clear()
     m_mediaType = -1;
     m_pixelWidth = 1;
     m_pixelHeight = 1;
+
+    m_title.clear();
+    m_artist.clear();
+    m_comment.clear();
+    m_genre.clear();
+    m_year = 0;
+    m_audioBitRate = 0;
+    m_sampleRate = 0;
+    m_album.clear();
+    m_track = 0;
 }
 
 qlonglong BbMetaData::duration() const
@@ -159,6 +196,66 @@ bool BbMetaData::hasAudio() const
         return true;
 
     return (m_mediaType & mediaTypeAudioFlag);
+}
+
+QString BbMetaData::title() const
+{
+    return m_title;
+}
+
+QString BbMetaData::artist() const
+{
+    return m_artist;
+}
+
+QString BbMetaData::comment() const
+{
+    return m_comment;
+}
+
+QString BbMetaData::genre() const
+{
+    return m_genre;
+}
+
+int BbMetaData::year() const
+{
+    return m_year;
+}
+
+QString BbMetaData::mediaType() const
+{
+    if (hasVideo())
+        return QLatin1String("video");
+    else if (hasAudio())
+        return QLatin1String("audio");
+    else
+        return QString();
+}
+
+int BbMetaData::audioBitRate() const
+{
+    return m_audioBitRate;
+}
+
+int BbMetaData::sampleRate() const
+{
+    return m_sampleRate;
+}
+
+QString BbMetaData::album() const
+{
+    return m_album;
+}
+
+int BbMetaData::track() const
+{
+    return m_track;
+}
+
+QSize BbMetaData::resolution() const
+{
+    return QSize(width(), height());
 }
 
 QT_END_NAMESPACE

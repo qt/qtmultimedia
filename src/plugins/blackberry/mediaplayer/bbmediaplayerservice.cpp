@@ -41,6 +41,7 @@
 #include "bbmediaplayerservice.h"
 
 #include "bbmediaplayercontrol.h"
+#include "bbmetadatareadercontrol.h"
 #include "bbvideowindowcontrol.h"
 
 QT_BEGIN_NAMESPACE
@@ -48,7 +49,8 @@ QT_BEGIN_NAMESPACE
 BbMediaPlayerService::BbMediaPlayerService(QObject *parent)
     : QMediaService(parent),
       m_videoWindowControl(0),
-      m_mediaPlayerControl(0)
+      m_mediaPlayerControl(0),
+      m_metaDataReaderControl(0)
 {
 }
 
@@ -68,6 +70,13 @@ QMediaControl *BbMediaPlayerService::requestControl(const char *name)
         }
         return m_mediaPlayerControl;
     }
+    else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
+        if (!m_metaDataReaderControl) {
+            m_metaDataReaderControl = new BbMetaDataReaderControl();
+            updateControls();
+        }
+        return m_metaDataReaderControl;
+    }
     else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoWindowControl) {
             m_videoWindowControl = new BbVideoWindowControl();
@@ -84,6 +93,8 @@ void BbMediaPlayerService::releaseControl(QMediaControl *control)
         m_videoWindowControl = 0;
     if (control == m_mediaPlayerControl)
         m_mediaPlayerControl = 0;
+    if (control == m_metaDataReaderControl)
+        m_metaDataReaderControl = 0;
     delete control;
 }
 
@@ -91,6 +102,9 @@ void BbMediaPlayerService::updateControls()
 {
     if (m_videoWindowControl && m_mediaPlayerControl)
         m_mediaPlayerControl->setVideoControl(m_videoWindowControl);
+
+    if (m_metaDataReaderControl && m_mediaPlayerControl)
+        m_mediaPlayerControl->setMetaDataReaderControl(m_metaDataReaderControl);
 }
 
 QT_END_NAMESPACE

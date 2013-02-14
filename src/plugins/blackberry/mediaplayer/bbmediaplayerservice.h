@@ -47,6 +47,7 @@
 QT_BEGIN_NAMESPACE
 
 class BbMediaPlayerControl;
+class BbMetaDataReaderControl;
 class BbVideoWindowControl;
 
 class BbMediaPlayerService : public QMediaService
@@ -64,6 +65,7 @@ private:
 
     QPointer<BbVideoWindowControl> m_videoWindowControl;
     QPointer<BbMediaPlayerControl> m_mediaPlayerControl;
+    QPointer<BbMetaDataReaderControl> m_metaDataReaderControl;
 };
 
 QT_END_NAMESPACE
