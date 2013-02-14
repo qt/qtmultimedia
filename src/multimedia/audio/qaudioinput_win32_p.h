@@ -148,7 +148,7 @@ private:
 
     void initMixer();
     void closeMixer();
-    UINT mixerID;
+    HMIXEROBJ mixerID;
     MIXERLINECONTROLS mixerLineControls;
 
 private slots:
