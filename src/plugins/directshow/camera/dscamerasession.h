@@ -56,11 +56,15 @@
 #include <dshow.h>
 #include <objbase.h>
 #include <initguid.h>
-#pragma comment(lib, "strmiids.lib")
-#pragma comment(lib, "ole32.lib")
+#ifdef Q_CC_MSVC
+#  pragma comment(lib, "strmiids.lib")
+#  pragma comment(lib, "ole32.lib")
+#endif // Q_CC_MSVC
 #include <windows.h>
 
-#pragma include_alias("dxtrans.h","qedit.h")
+#ifdef Q_CC_MSVC
+#  pragma include_alias("dxtrans.h","qedit.h")
+#endif // Q_CC_MSVC
 #define __IDxtCompositor_INTERFACE_DEFINED__
 #define __IDxtAlphaSetter_INTERFACE_DEFINED__
 #define __IDxtJpeg_INTERFACE_DEFINED__

@@ -69,8 +69,10 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 #include <dshow.h>
 #include <objbase.h>
 #include <initguid.h>
-#pragma comment(lib, "strmiids.lib")
-#pragma comment(lib, "ole32.lib")
+#ifdef Q_CC_MSVC
+#  pragma comment(lib, "strmiids.lib")
+#  pragma comment(lib, "ole32.lib")
+#endif // Q_CC_MSVC
 #include <windows.h>
 #include <ocidl.h>
 #endif
