@@ -198,7 +198,7 @@ HRESULT DirectShowMediaTypeList::nextMediaType(
         if (fetchedCount)
             *fetchedCount = boundedCount;
 
-        return boundedCount == count ? S_OK : S_FALSE;
+        return boundedCount == int(count) ? S_OK : S_FALSE;
     }
 }
 

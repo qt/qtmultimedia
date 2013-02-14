@@ -550,19 +550,20 @@ HRESULT VideoSurfaceFilter::cloneMediaType(int token, int index, IEnumMediaTypes
 
 void VideoSurfaceFilter::customEvent(QEvent *event)
 {
-    if (event->type() == StartSurface) {
+    const int type = event->type();
+    if (type == StartSurface) {
         QMutexLocker locker(&m_mutex);
 
         m_startResult = start();
 
         m_wait.wakeAll();
-    } else if (event->type() == StopSurface) {
+    } else if (type == StopSurface) {
         QMutexLocker locker(&m_mutex);
 
         stop();
 
         m_wait.wakeAll();
-    } else if (event->type() == FlushSurface) {
+    } else if (type == FlushSurface) {
         QMutexLocker locker(&m_mutex);
 
         flush();
