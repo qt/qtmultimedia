@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -90,7 +90,7 @@ QT_BEGIN_NAMESPACE
 
     See the \l{Camera Overview}{camera overview} for more information.
 
-    \snippet doc/src/snippets/multimedia-snippets/media.cpp Request control
+    \snippet multimedia-snippets/media.cpp Request control
 
 */
 
@@ -180,7 +180,7 @@ void QCameraPrivate::setState(QCamera::State newState)
     unsetError();
 
     if (!control) {
-        _q_error(QCamera::ServiceMissingError, q_ptr->tr("The camera service is missing"));
+        _q_error(QCamera::ServiceMissingError, QCamera::tr("The camera service is missing"));
         return;
     }
 

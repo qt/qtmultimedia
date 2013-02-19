@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -69,9 +69,9 @@ QT_BEGIN_NAMESPACE
     It's not intended to be used alone but for accessing the media
     recording functions of other media objects, like QCamera.
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera
+    \snippet multimedia-snippets/camera.cpp Camera
 
-    \snippet doc/src/snippets/multimedia-snippets/camera.cpp Camera keys
+    \snippet multimedia-snippets/camera.cpp Camera keys
 
     \sa QCamera
 */

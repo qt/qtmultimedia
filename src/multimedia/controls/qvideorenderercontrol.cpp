@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
     QAbstractVideoSurface may be set as the video render target of a
     QMediaService.
 
-    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video renderer control
+    \snippet multimedia-snippets/video.cpp Video renderer control
 
     QVideoRendererControl is one of a number of possible video output controls.
 

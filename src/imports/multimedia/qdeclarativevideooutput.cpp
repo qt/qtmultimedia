@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
@@ -179,7 +179,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
             if (mediaObjectProperty.hasNotifySignal()) {
                 QMetaMethod method = mediaObjectProperty.notifySignal();
                 QMetaObject::connect(m_source.data(), method.methodIndex(),
-                                     this, this->metaObject()->indexOfSlot("updateMediaObject()"),
+                                     this, this->metaObject()->indexOfSlot("_q_updateMediaObject()"),
                                      Qt::DirectConnection, 0);
 
             }

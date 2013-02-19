@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -286,6 +286,7 @@ void QSGVideoMaterial_YUV420::bindTexture(int id, int w, int h, const uchar *bit
 QSGVideoNode_I420::QSGVideoNode_I420(const QVideoSurfaceFormat &format) :
     m_format(format)
 {
+    setFlag(QSGNode::OwnsMaterial);
     m_material = new QSGVideoMaterial_YUV420(format);
     setMaterial(m_material);
 }

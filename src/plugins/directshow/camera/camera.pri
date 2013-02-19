@@ -23,7 +23,7 @@ SOURCES += \
     $$PWD/dsimagecapturecontrol.cpp \
     $$PWD/dscamerasession.cpp
 
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     HEADERS += $$PWD/dsvideowidgetcontrol.h
     SOURCES += $$PWD/dsvideowidgetcontrol.cpp
 }

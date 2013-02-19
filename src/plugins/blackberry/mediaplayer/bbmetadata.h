@@ -61,6 +61,7 @@ public:
     int width() const;
     bool hasVideo() const;
     bool hasAudio() const;
+    bool isSeekable() const;
 
     QString title() const;
     QString artist() const;
@@ -81,7 +82,7 @@ private:
     int m_mediaType;
     float m_pixelWidth;
     float m_pixelHeight;
-
+    bool m_seekable;
     QString m_title;
     QString m_artist;
     QString m_comment;

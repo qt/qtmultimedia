@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -357,6 +357,11 @@ QAbstractVideoSurface::Error QVideoSurfaceGLPainter::setCurrentFrame(const QVide
 
     if (m_handleType == QAbstractVideoBuffer::GLTextureHandle) {
         m_textureIds[0] = frame.handle().toInt();
+        glBindTexture(GL_TEXTURE_2D, m_textureIds[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     } else if (m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
         m_context->makeCurrent();
 
@@ -864,19 +869,12 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::paint(
             txRight, txTop
         };
 
-        const GLfloat vTop = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.top()
-                : target.bottom() + 1;
-        const GLfloat vBottom = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.bottom() + 1
-                : target.top();
-
         const GLfloat v_array[] =
         {
-            GLfloat(target.left())     , GLfloat(vBottom),
-            GLfloat(target.right() + 1), GLfloat(vBottom),
-            GLfloat(target.left())     , GLfloat(vTop),
-            GLfloat(target.right() + 1), GLfloat(vTop)
+            GLfloat(target.left())     , GLfloat(target.bottom() + 1),
+            GLfloat(target.right() + 1), GLfloat(target.bottom() + 1),
+            GLfloat(target.left())     , GLfloat(target.top()),
+            GLfloat(target.right() + 1), GLfloat(target.top())
         };
 
         glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -1231,20 +1229,12 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::paint(
             }
         };
 
-        const GLfloat vTop = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.top()
-                : target.bottom() + 1;
-        const GLfloat vBottom = m_scanLineDirection == QVideoSurfaceFormat::TopToBottom
-                ? target.bottom() + 1
-                : target.top();
-
-
         const GLfloat vertexCoordArray[] =
         {
-            GLfloat(target.left())     , GLfloat(vBottom),
-            GLfloat(target.right() + 1), GLfloat(vBottom),
-            GLfloat(target.left())     , GLfloat(vTop),
-            GLfloat(target.right() + 1), GLfloat(vTop)
+            GLfloat(target.left())     , GLfloat(target.bottom() + 1),
+            GLfloat(target.right() + 1), GLfloat(target.bottom() + 1),
+            GLfloat(target.left())     , GLfloat(target.top()),
+            GLfloat(target.right() + 1), GLfloat(target.top())
         };
 
         const GLfloat txLeft = source.left() / m_frameSize.width();

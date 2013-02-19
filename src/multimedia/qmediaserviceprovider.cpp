@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -49,6 +49,10 @@
 #include "qmediaplayer.h"
 
 QT_BEGIN_NAMESPACE
+
+QMediaServiceProviderFactoryInterface::~QMediaServiceProviderFactoryInterface()
+{
+}
 
 class QMediaServiceProviderHintPrivate : public QSharedData
 {
@@ -640,7 +644,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceProviderPlugin
-
+    \inmodule QtMultimedia
     \brief The QMediaServiceProviderPlugin class interface provides an interface for QMediaService
     plug-ins.
 
@@ -667,6 +671,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceSupportedFormatsInterface
+    \inmodule QtMultimedia
     \brief The QMediaServiceSupportedFormatsInterface class interface
     identifies if a media service plug-in supports a media format.
 
@@ -694,6 +699,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceSupportedDevicesInterface
+    \inmodule QtMultimedia
     \brief The QMediaServiceSupportedDevicesInterface class interface
     identifies the devices supported by a media service plug-in.
 
@@ -720,6 +726,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceFeaturesInterface
+    \inmodule QtMultimedia
     \brief The QMediaServiceFeaturesInterface class interface identifies
     features supported by a media service plug-in.
 

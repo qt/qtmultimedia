@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -41,7 +41,7 @@
 
 import QtQuick 2.0
 
-// Item which is loaded by VideoItem if QtMultimediaKit is not available
+// Item which is loaded by VideoItem if Qt Multimedia is not available
 Rectangle {
     id: root
     color: "grey"
@@ -61,7 +61,7 @@ Rectangle {
         anchors.margins: 10
         color: "white"
         horizontalAlignment: Text.AlignHCenter
-        text: "Failed to create Video item\n\nCheck that QtMultimediaKit is installed"
+        text: "Failed to create Video item\n\nCheck that Qt Multimedia is installed"
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.Wrap
     }

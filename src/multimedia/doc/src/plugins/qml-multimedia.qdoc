@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -48,7 +48,7 @@
     \section2 Audio
 
     \l Audio is an easy way to add audio playback to a Qt Quick
-    scene. QtMultimedia provides properties for control, methods (functions) and signals.
+    scene. Qt Multimedia provides properties for control, methods (functions) and signals.
 
     The code extract below shows the creation and use of an Audio instance.
 

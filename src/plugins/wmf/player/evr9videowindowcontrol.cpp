@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -83,6 +83,11 @@ void Evr9VideoWindowControl::clear()
     m_displayControl = NULL;
     m_evrSink = NULL;
     m_currentActivate = NULL;
+}
+
+void Evr9VideoWindowControl::releaseActivate()
+{
+    clear();
 }
 
 WId Evr9VideoWindowControl::winId() const

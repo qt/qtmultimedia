@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -64,6 +64,7 @@ struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
     virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
     virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
     virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
+    virtual ~QAudioSystemFactoryInterface();
 };
 
 #define QAudioSystemFactoryInterface_iid \

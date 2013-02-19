@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -138,7 +138,7 @@ public:
     supported format that is as close as possible to the format with
     nearestFormat(). For instance:
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Setting audio format
+    \snippet multimedia-snippets/audio.cpp Setting audio format
 
     The static
     functions defaultInputDevice(), defaultOutputDevice(), and
@@ -149,7 +149,7 @@ public:
 
     For instance:
 
-    \snippet doc/src/snippets/multimedia-snippets/audio.cpp Dumping audio formats
+    \snippet multimedia-snippets/audio.cpp Dumping audio formats
 
     In this code sample, we loop through all devices that are able to output
     sound, i.e., play an audio stream in a supported format. For each device we

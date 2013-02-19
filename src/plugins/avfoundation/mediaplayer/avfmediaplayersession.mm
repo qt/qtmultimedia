@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -257,8 +257,8 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
             NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
             if ([tracks count]) {
                 AVAssetTrack *videoTrack = [tracks objectAtIndex:0];
-                m_playerLayer.anchorPoint = NSMakePoint(0.0f, 0.0f);
-                m_playerLayer.bounds = NSMakeRect(0.0f, 0.0f, videoTrack.naturalSize.width, videoTrack.naturalSize.height);
+                m_playerLayer.anchorPoint = CGPointMake(0.0f, 0.0f);
+                m_playerLayer.bounds = CGRectMake(0.0f, 0.0f, videoTrack.naturalSize.width, videoTrack.naturalSize.height);
             }
         }
 
@@ -368,8 +368,8 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
                 NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
                 if ([tracks count]) {
                     AVAssetTrack *videoTrack = [tracks objectAtIndex:0];
-                    m_playerLayer.anchorPoint = NSMakePoint(0.0f, 0.0f);
-                    m_playerLayer.bounds = NSMakeRect(0.0f, 0.0f, videoTrack.naturalSize.width, videoTrack.naturalSize.height);
+                    m_playerLayer.anchorPoint = CGPointMake(0.0f, 0.0f);
+                    m_playerLayer.bounds = CGRectMake(0.0f, 0.0f, videoTrack.naturalSize.width, videoTrack.naturalSize.height);
                 }
             }
 

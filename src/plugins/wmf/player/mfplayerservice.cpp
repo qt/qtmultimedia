@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -116,12 +116,11 @@ QMediaControl* MFPlayerService::requestControl(const char *name)
         }
         return 0;
     } else if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
-        // FIXME!! Disabled in Qt 5.0 because it is unstable
-//        if (m_session) {
-//            MFVideoProbeControl *probe = new MFVideoProbeControl(this);
-//            m_session->addProbe(probe);
-//            return probe;
-//        }
+        if (m_session) {
+            MFVideoProbeControl *probe = new MFVideoProbeControl(this);
+            m_session->addProbe(probe);
+            return probe;
+        }
         return 0;
     }
 

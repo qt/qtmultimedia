@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -241,7 +241,7 @@ void AudioTest::createAudioOutput()
     m_audioOutput = 0;
     m_audioOutput = new QAudioOutput(m_device, m_format, this);
     connect(m_audioOutput, SIGNAL(notify()), SLOT(notified()));
-    connect(m_audioOutput, SIGNAL(stateChanged(QAudio::State)), SLOT(stateChanged(QAudio::State)));
+    connect(m_audioOutput, SIGNAL(stateChanged(QAudio::State)), SLOT(handleStateChanged(QAudio::State)));
     m_generator->start();
     m_audioOutput->start(m_generator);
     m_volumeSlider->setValue(int(m_audioOutput->volume()*100.0f));
@@ -328,7 +328,7 @@ void AudioTest::toggleSuspendResume()
     }
 }
 
-void AudioTest::stateChanged(QAudio::State state)
+void AudioTest::handleStateChanged(QAudio::State state)
 {
     qWarning() << "state = " << state;
 }

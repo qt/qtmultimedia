@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -149,7 +149,7 @@ bool QDeclarativeAudioSample::isPreloaded() const
 /*!
     \qmlproperty bool QtAudioEngine1::AudioSample::loaded
 
-    This property holds indicates whether this sample has been loaded into memory or not.
+    This property indicates whether this sample has been loaded into memory or not.
 */
 bool QDeclarativeAudioSample::isLoaded() const
 {
@@ -235,16 +235,6 @@ QSoundBuffer* QDeclarativeAudioSample::soundBuffer() const
 {
     return m_soundBuffer;
 }
-
-/*!
-    \omit
-    Note: This QML property is documented twice.
-    \qmlproperty bool QtAudioEngine1::AudioSample::loaded
-
-    This property holds the load status of the audio sample.
-    \endomit
-*/
-
 
 /*!
     \qmlsignal QtAudioEngine1::AudioSample::onLoadedChanged()

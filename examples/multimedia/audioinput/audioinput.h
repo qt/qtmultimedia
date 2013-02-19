@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -114,7 +114,7 @@ private slots:
     void readMore();
     void toggleMode();
     void toggleSuspend();
-    void stateChanged(QAudio::State state);
+    void handleStateChanged(QAudio::State state);
     void deviceChanged(int index);
     void sliderChanged(int value);
 

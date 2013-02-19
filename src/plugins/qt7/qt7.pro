@@ -3,7 +3,7 @@ CONFIG += no_keywords
 
 TARGET = qqt7engine
 QT += multimedia-private network
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     QT += multimediawidgets-private widgets
 }
 
@@ -23,7 +23,7 @@ LIBS += -framework AppKit -framework AudioUnit \
 
 # QUICKTIME_C_API_AVAILABLE is true only on i386
 # so make sure to link QuickTime
-contains(QMAKE_HOST.arch, i386) {
+contains(QT_ARCH, i386) {
     LIBS += -framework QuickTime
 }
 
@@ -50,7 +50,7 @@ OBJECTIVE_SOURCES += \
         qt7ciimagevideobuffer.mm \
         qcvdisplaylink.mm
 
-    !isEmpty(QT.widgets.name) {
+    qtHaveModule(widgets) {
         HEADERS += \
             qt7movieviewrenderer.h \
             qt7movievideowidget.h

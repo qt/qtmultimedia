@@ -1,6 +1,6 @@
 TARGET = wmfengine
 QT += multimedia-private network
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     QT += multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }
@@ -16,14 +16,32 @@ HEADERS += \
     mfstream.h \
     sourceresolver.h \
     samplegrabber.h \
-    mftvideo.h
+    mftvideo.h \
+    mfglobal.h \
+    mfactivate.h
 
 SOURCES += \
     wmfserviceplugin.cpp \
     mfstream.cpp \
     sourceresolver.cpp \
     samplegrabber.cpp \
-    mftvideo.cpp
+    mftvideo.cpp \
+    mfactivate.cpp \
+    mfglobal.cpp
+
+contains(QT_CONFIG, angle) {
+    LIBS += -ld3d9 -ldxva2 -lwinmm -levr
+    QT += gui-private
+
+    HEADERS += \
+        evrcustompresenter.h \
+        evrd3dpresentengine.h
+
+    SOURCES += \
+        evrcustompresenter.cpp \
+        evrd3dpresentengine.cpp
+}
+
 
 include (player/player.pri)
 include (decoder/decoder.pri)

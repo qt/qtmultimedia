@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -591,7 +591,7 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     to media object by passing a pointer to the QMediaObject in its
     constructor, and detached by destroying the QVideoWidget.
 
-    \snippet doc/src/snippets/multimedia-snippets/video.cpp Video widget
+    \snippet multimedia-snippets/video.cpp Video widget
 
     \b {Note}: Only a single display output can be attached to a media
     object at one time.

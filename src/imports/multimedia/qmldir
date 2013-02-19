@@ -1,3 +1,4 @@
+module QtMultimedia
 plugin declarative_multimedia
 typeinfo plugins.qmltypes
 Video 5.0 Video.qml

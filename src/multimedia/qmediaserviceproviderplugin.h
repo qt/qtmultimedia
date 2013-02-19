@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -110,6 +110,7 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface
 {
     virtual QMediaService* create(QString const& key) = 0;
     virtual void release(QMediaService *service) = 0;
+    virtual ~QMediaServiceProviderFactoryInterface();
 };
 
 #define QMediaServiceProviderFactoryInterface_iid \

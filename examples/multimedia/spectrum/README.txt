@@ -4,7 +4,7 @@ Spectrum analyser demo app
 Introduction
 ------------
 
-This application is a demo which uses the QtMultimedia APIs to capture and play back PCM audio.  While either recording or playback is ongoing, the application performs real-time level and frequency spectrum analysis, displaying the results in its main window.
+This application is a demo which uses the Qt Multimedia APIs to capture and play back PCM audio.  While either recording or playback is ongoing, the application performs real-time level and frequency spectrum analysis, displaying the results in its main window.
 
 
 Acknowledgments
@@ -96,7 +96,7 @@ If you don't like the combination of the waveform and progress bar in a single w
 
 The spectrum.h file defines a number of parameters which can be played with.  These control things such as the number of audio samples analysed per FFT calculation, the range and number of bands displayed by the spectrograph, and so on.
 
-The part of the application which interacts with QtMultimedia is in the Engine class.
+The part of the application which interacts with Qt Multimedia is in the Engine class.
 
 Some ideas for enhancements to the app are listed in TODO.txt.  Feel free to start work on any of them :)
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -231,7 +231,10 @@ private:
     IMFTopologyNode *m_audioSampleGrabberNode;
 
     IMFTopology *insertMFT(IMFTopology *topology, TOPOID outputNodeId);
+    bool insertResizer(IMFTopology *topology);
+    void insertColorConverter(IMFTopology *topology, TOPOID outputNodeId);
     MFTransform *m_videoProbeMFT;
+    QList<MFVideoProbeControl*> m_videoProbes;
 };
 
 

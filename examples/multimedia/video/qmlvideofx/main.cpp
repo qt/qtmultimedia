@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -116,16 +116,21 @@ int main(int argc, char *argv[])
     FileReader fileReader;
     viewer.rootContext()->setContextProperty("fileReader", &fileReader);
 
-    QString imagePath = "../../images";
+    QUrl appPath(QString("file:///%1").arg(app.applicationDirPath()));
+    QUrl imagePath;
     const QStringList picturesLocation = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
-    if (!picturesLocation.isEmpty())
-        imagePath = picturesLocation.first();
+    if (picturesLocation.isEmpty())
+        imagePath = appPath.resolved(QUrl("images"));
+    else
+        imagePath = QString("file:///%1").arg(picturesLocation.first());
     viewer.rootContext()->setContextProperty("imagePath", imagePath);
 
-    QString videoPath;
+    QUrl videoPath;
     const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
-    if (!moviesLocation.isEmpty())
-        videoPath = moviesLocation.first();
+    if (moviesLocation.isEmpty())
+        videoPath = appPath.resolved(QUrl("./"));
+    else
+        videoPath = QString("file:///%1").arg(moviesLocation.first());
     viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
     viewer.setTitle("qmlvideofx");
