@@ -2156,12 +2156,12 @@ void MFVideoRendererControl::customEvent(QEvent *event)
             present();
         return;
     }
-    QChildEvent *childEvent = dynamic_cast<QChildEvent*>(event);
-    if (!childEvent) {
+    if (event->type() >= MediaStream::StartSurface) {
+        QChildEvent *childEvent = static_cast<QChildEvent*>(event);
+        static_cast<MediaStream*>(childEvent->child())->customEvent(event);
+    } else {
         QObject::customEvent(event);
-        return;
     }
-    static_cast<MediaStream*>(childEvent->child())->customEvent(event);
 }
 
 void MFVideoRendererControl::supportedFormatsChanged()
