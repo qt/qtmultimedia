@@ -51,6 +51,8 @@ class QString;
 
 QString mmErrorMessage(const QString &msg, mmr_context_t *context, int * errorCode = 0);
 
+bool checkForDrmPermission();
+
 QT_END_NAMESPACE
 
 #endif

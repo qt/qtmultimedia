@@ -40,7 +40,12 @@
 ****************************************************************************/
 #include "bbutil.h"
 
-#include <QtCore/qstring.h>
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QString>
+#include <QXmlStreamReader>
+
 #include <mm/renderer.h>
 
 QT_BEGIN_NAMESPACE
@@ -95,6 +100,30 @@ QString mmErrorMessage(const QString &msg, mmr_context_t *context, int *errorCod
     } else {
         return QString("%1: Unknown error code %2").arg(msg).arg(mmError->error_code);
     }
+}
+
+bool checkForDrmPermission()
+{
+    QDir sandboxDir = QDir::home(); // always returns 'data' directory
+    sandboxDir.cdUp(); // change to app sandbox directory
+
+    QFile file(sandboxDir.filePath("app/native/bar-descriptor.xml"));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "checkForDrmPermission: Unable to open bar-descriptor.xml";
+        return false;
+    }
+
+    QXmlStreamReader reader(&file);
+    while (!reader.atEnd()) {
+        reader.readNextStartElement();
+        if (reader.name() == QLatin1String("action")
+            || reader.name() == QLatin1String("permission")) {
+            if (reader.readElementText().trimmed() == QLatin1String("access_protected_media"))
+                return true;
+        }
+    }
+
+    return false;
 }
 
 QT_END_NAMESPACE

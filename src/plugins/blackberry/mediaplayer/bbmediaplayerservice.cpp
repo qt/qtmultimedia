@@ -42,23 +42,30 @@
 
 #include "bbmediaplayercontrol.h"
 #include "bbmetadatareadercontrol.h"
+#include "bbplayervideorenderercontrol.h"
+#include "bbutil.h"
 #include "bbvideowindowcontrol.h"
 
 QT_BEGIN_NAMESPACE
 
 BbMediaPlayerService::BbMediaPlayerService(QObject *parent)
     : QMediaService(parent),
+      m_videoRendererControl(0),
       m_videoWindowControl(0),
       m_mediaPlayerControl(0),
-      m_metaDataReaderControl(0)
+      m_metaDataReaderControl(0),
+      m_appHasDrmPermission(false),
+      m_appHasDrmPermissionChecked(false)
 {
 }
 
 BbMediaPlayerService::~BbMediaPlayerService()
 {
     // Someone should have called releaseControl(), but better be safe
+    delete m_videoRendererControl;
     delete m_videoWindowControl;
     delete m_mediaPlayerControl;
+    delete m_metaDataReaderControl;
 }
 
 QMediaControl *BbMediaPlayerService::requestControl(const char *name)
@@ -77,6 +84,25 @@ QMediaControl *BbMediaPlayerService::requestControl(const char *name)
         }
         return m_metaDataReaderControl;
     }
+    else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
+        if (!m_appHasDrmPermissionChecked) {
+            m_appHasDrmPermission = checkForDrmPermission();
+            m_appHasDrmPermissionChecked = true;
+        }
+
+        if (m_appHasDrmPermission) {
+            // When the application wants to play back DRM secured media, we can't use
+            // the QVideoRendererControl, because we won't have access to the pixel data
+            // in this case.
+            return 0;
+        }
+
+        if (!m_videoRendererControl) {
+            m_videoRendererControl = new BbPlayerVideoRendererControl();
+            updateControls();
+        }
+        return m_videoRendererControl;
+    }
     else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoWindowControl) {
             m_videoWindowControl = new BbVideoWindowControl();
@@ -89,6 +115,8 @@ QMediaControl *BbMediaPlayerService::requestControl(const char *name)
 
 void BbMediaPlayerService::releaseControl(QMediaControl *control)
 {
+    if (control == m_videoRendererControl)
+        m_videoRendererControl = 0;
     if (control == m_videoWindowControl)
         m_videoWindowControl = 0;
     if (control == m_mediaPlayerControl)
@@ -100,8 +128,11 @@ void BbMediaPlayerService::releaseControl(QMediaControl *control)
 
 void BbMediaPlayerService::updateControls()
 {
+    if (m_videoRendererControl && m_mediaPlayerControl)
+        m_mediaPlayerControl->setVideoRendererControl(m_videoRendererControl);
+
     if (m_videoWindowControl && m_mediaPlayerControl)
-        m_mediaPlayerControl->setVideoControl(m_videoWindowControl);
+        m_mediaPlayerControl->setVideoWindowControl(m_videoWindowControl);
 
     if (m_metaDataReaderControl && m_mediaPlayerControl)
         m_mediaPlayerControl->setMetaDataReaderControl(m_metaDataReaderControl);

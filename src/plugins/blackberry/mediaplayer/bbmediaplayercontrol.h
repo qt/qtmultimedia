@@ -55,6 +55,7 @@ typedef struct mmrenderer_monitor mmrenderer_monitor_t;
 QT_BEGIN_NAMESPACE
 
 class BbMetaDataReaderControl;
+class BbPlayerVideoRendererControl;
 class BbVideoWindowControl;
 
 class BbMediaPlayerControl : public QMediaPlayerControl, public QAbstractNativeEventFilter
@@ -99,7 +100,8 @@ public:
     void pause() Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
 
-    void setVideoControl(BbVideoWindowControl *videoControl);
+    void setVideoRendererControl(BbPlayerVideoRendererControl *videoControl);
+    void setVideoWindowControl(BbVideoWindowControl *videoControl);
     void setMetaDataReaderControl(BbMetaDataReaderControl *metaDataReaderControl);
     bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
 
@@ -138,7 +140,8 @@ private:
     int m_volume;
     bool m_muted;
     qreal m_rate;
-    QPointer<BbVideoWindowControl> m_videoControl;
+    QPointer<BbPlayerVideoRendererControl> m_videoRendererControl;
+    QPointer<BbVideoWindowControl> m_videoWindowControl;
     QPointer<BbMetaDataReaderControl> m_metaDataReaderControl;
     BbMetaData m_metaData;
     int m_id;

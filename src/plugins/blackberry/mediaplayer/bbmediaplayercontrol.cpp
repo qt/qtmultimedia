@@ -40,8 +40,9 @@
 ****************************************************************************/
 #include "bbmediaplayercontrol.h"
 #include "bbmetadatareadercontrol.h"
-#include "bbvideowindowcontrol.h"
+#include "bbplayervideorenderercontrol.h"
 #include "bbutil.h"
+#include "bbvideowindowcontrol.h"
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
@@ -182,8 +183,11 @@ void BbMediaPlayerControl::attach()
         return;
     }
 
-    if (m_videoControl)
-        m_videoControl->attachDisplay(m_context);
+    if (m_videoRendererControl)
+        m_videoRendererControl->attachDisplay(m_context);
+
+    if (m_videoWindowControl)
+        m_videoWindowControl->attachDisplay(m_context);
 
     m_audioId = mmr_output_attach(m_context, "audio:default", "audio");
     if (m_audioId == -1) {
@@ -222,8 +226,10 @@ void BbMediaPlayerControl::detach()
             mmr_input_detach(m_context);
             m_inputAttached = false;
         }
-        if (m_videoControl)
-            m_videoControl->detachDisplay();
+        if (m_videoRendererControl)
+            m_videoRendererControl->detachDisplay();
+        if (m_videoWindowControl)
+            m_videoWindowControl->detachDisplay();
         if (m_audioId != -1 && m_context) {
             mmr_output_detach(m_context, m_audioId);
             m_audioId = -1;
@@ -322,6 +328,15 @@ void BbMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status)
 void BbMediaPlayerControl::setState(QMediaPlayer::State state)
 {
     if (m_state != state) {
+        if (m_videoRendererControl) {
+            if (state == QMediaPlayer::PausedState)
+                m_videoRendererControl->pause();
+            else if ((state == QMediaPlayer::PlayingState)
+                     && (m_state == QMediaPlayer::PausedState)) {
+                m_videoRendererControl->resume();
+            }
+        }
+
         m_state = state;
         emit stateChanged(m_state);
     }
@@ -511,9 +526,14 @@ void BbMediaPlayerControl::stop()
     stopInternal(StopMmRenderer);
 }
 
-void BbMediaPlayerControl::setVideoControl(BbVideoWindowControl *videoControl)
+void BbMediaPlayerControl::setVideoRendererControl(BbPlayerVideoRendererControl *videoControl)
 {
-    m_videoControl = videoControl;
+    m_videoRendererControl = videoControl;
+}
+
+void BbMediaPlayerControl::setVideoWindowControl(BbVideoWindowControl *videoControl)
+{
+    m_videoWindowControl = videoControl;
 }
 
 void BbMediaPlayerControl::setMetaDataReaderControl(BbMetaDataReaderControl *metaDataReaderControl)
@@ -532,8 +552,8 @@ bool BbMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *
          bps_event_get_domain(event) != screen_get_domain()))
         return false;
 
-    if (m_videoControl)
-        m_videoControl->bpsEventHandler(event);
+    if (m_videoWindowControl)
+        m_videoWindowControl->bpsEventHandler(event);
 
     if (bps_event_get_domain(event) == mmrenderer_get_domain()) {
         if (bps_event_get_code(event) == MMRENDERER_STATE_CHANGE) {
@@ -595,8 +615,8 @@ void BbMediaPlayerControl::updateMetaData()
     else
         m_metaData.clear();
 
-    if (m_videoControl)
-        m_videoControl->setMetaData(m_metaData);
+    if (m_videoWindowControl)
+        m_videoWindowControl->setMetaData(m_metaData);
 
     if (m_metaDataReaderControl)
         m_metaDataReaderControl->setMetaData(m_metaData);

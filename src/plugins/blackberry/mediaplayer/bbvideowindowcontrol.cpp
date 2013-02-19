@@ -204,7 +204,7 @@ void BbVideoWindowControl::attachDisplay(mmr_context_t *context)
 
     QPlatformNativeInterface * const nativeInterface = QGuiApplication::platformNativeInterface();
     if (!nativeInterface) {
-        qDebug() << "BbVideoWindowControl: Unable to get platform native interface. Qt too old?";
+        qDebug() << "BbVideoWindowControl: Unable to get platform native interface";
         return;
     }
 

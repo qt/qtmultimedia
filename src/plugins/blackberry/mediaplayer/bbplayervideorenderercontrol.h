@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,39 +38,46 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBMEDIAPLAYERSERVICE_H
-#define BBMEDIAPLAYERSERVICE_H
+#ifndef BBPLAYERVIDEORENDERERCONTROL_H
+#define BBPLAYERVIDEORENDERERCONTROL_H
 
-#include <qmediaservice.h>
-#include <QtCore/qpointer.h>
+#include <QPointer>
+#include <qabstractvideosurface.h>
+#include <qvideorenderercontrol.h>
+
+typedef struct mmr_context mmr_context_t;
+struct bps_event_t;
 
 QT_BEGIN_NAMESPACE
 
-class BbMediaPlayerControl;
-class BbMetaDataReaderControl;
-class BbPlayerVideoRendererControl;
-class BbVideoWindowControl;
+class WindowGrabber;
 
-class BbMediaPlayerService : public QMediaService
+class BbPlayerVideoRendererControl : public QVideoRendererControl
 {
     Q_OBJECT
 public:
-    explicit BbMediaPlayerService(QObject *parent = 0);
-    ~BbMediaPlayerService();
+    explicit BbPlayerVideoRendererControl(QObject *parent = 0);
+    ~BbPlayerVideoRendererControl();
 
-    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
-    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
+    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
+    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+
+    // Called by media control
+    void attachDisplay(mmr_context_t *context);
+    void detachDisplay();
+    void pause();
+    void resume();
+
+private Q_SLOTS:
+    void frameGrabbed(const QImage &frame);
 
 private:
-    void updateControls();
+    QPointer<QAbstractVideoSurface> m_surface;
 
-    QPointer<BbPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<BbVideoWindowControl> m_videoWindowControl;
-    QPointer<BbMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<BbMetaDataReaderControl> m_metaDataReaderControl;
+    WindowGrabber* m_windowGrabber;
+    mmr_context_t *m_context;
 
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
+    int m_videoId;
 };
 
 QT_END_NAMESPACE
