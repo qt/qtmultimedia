@@ -2,7 +2,7 @@
 QT += multimedia-private network
 CONFIG += no_private_qt_headers_warning
 
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     QT += widgets multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }
@@ -26,7 +26,7 @@ config_resourcepolicy {
     PKGCONFIG += libresourceqt1
 }
 
-config_xvideo:!isEmpty(QT.widgets.name): {
+config_xvideo:qtHaveModule(widgets) {
     DEFINES += HAVE_XVIDEO
     LIBS += -lXv -lX11 -lXext
 }

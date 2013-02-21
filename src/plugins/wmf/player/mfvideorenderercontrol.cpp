@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -40,7 +40,10 @@
 ****************************************************************************/
 
 #include "mfvideorenderercontrol.h"
-#include <mferror.h>
+#include "mfglobal.h"
+#ifdef QT_OPENGL_ES_2_ANGLE
+#include "evrcustompresenter.h"
+#endif
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 #include <qtcore/qtimer.h>
@@ -113,67 +116,6 @@ namespace
         int m_bytesPerLine;
         MapMode m_mapMode;
     };
-
-    template<class T>
-    class AsyncCallback : public IMFAsyncCallback
-    {
-    public:
-        typedef HRESULT (T::*InvokeFn)(IMFAsyncResult *pAsyncResult);
-
-        AsyncCallback(T *pParent, InvokeFn fn) : m_pParent(pParent), m_pInvokeFn(fn)
-        {
-        }
-
-        // IUnknown
-        STDMETHODIMP QueryInterface(REFIID iid, void** ppv)
-        {
-            if (!ppv)
-            {
-                return E_POINTER;
-            }
-            if (iid == __uuidof(IUnknown))
-            {
-                *ppv = static_cast<IUnknown*>(static_cast<IMFAsyncCallback*>(this));
-            }
-            else if (iid == __uuidof(IMFAsyncCallback))
-            {
-                *ppv = static_cast<IMFAsyncCallback*>(this);
-            }
-            else
-            {
-                *ppv = NULL;
-                return E_NOINTERFACE;
-            }
-            AddRef();
-            return S_OK;
-        }
-        STDMETHODIMP_(ULONG) AddRef()
-        {
-            // Delegate to parent class.
-            return m_pParent->AddRef();
-        }
-        STDMETHODIMP_(ULONG) Release()
-        {
-            // Delegate to parent class.
-            return m_pParent->Release();
-        }
-
-        // IMFAsyncCallback methods
-        STDMETHODIMP GetParameters(DWORD*, DWORD*)
-        {
-            // Implementation of this method is optional.
-            return E_NOTIMPL;
-        }
-
-        STDMETHODIMP Invoke(IMFAsyncResult* pAsyncResult)
-        {
-            return (m_pParent->*m_pInvokeFn)(pAsyncResult);
-        }
-
-        T *m_pParent;
-        InvokeFn m_pInvokeFn;
-    };
-
 
     // Custom interface for handling IMFStreamSink::PlaceMarker calls asynchronously.
     MIDL_INTERFACE("a3ff32de-1031-438a-8b47-82f8acda59b7")
@@ -2134,6 +2076,9 @@ MFVideoRendererControl::MFVideoRendererControl(QObject *parent)
     , m_surface(0)
     , m_currentActivate(0)
     , m_callback(0)
+#ifdef QT_OPENGL_ES_2_ANGLE
+    , m_presenterActivate(0)
+#endif
 {
 }
 
@@ -2146,6 +2091,14 @@ void MFVideoRendererControl::clear()
 {
     if (m_surface)
         m_surface->stop();
+
+#ifdef QT_OPENGL_ES_2_ANGLE
+    if (m_presenterActivate) {
+        m_presenterActivate->ShutdownObject();
+        m_presenterActivate->Release();
+        m_presenterActivate = NULL;
+    }
+#endif
 
     if (m_currentActivate) {
         m_currentActivate->ShutdownObject();
@@ -2174,12 +2127,22 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
         connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
     }
 
+#ifdef QT_OPENGL_ES_2_ANGLE
+    if (m_presenterActivate)
+        m_presenterActivate->setSurface(m_surface);
+    else
+#endif
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->setSurface(m_surface);
 }
 
 void MFVideoRendererControl::customEvent(QEvent *event)
 {
+#ifdef QT_OPENGL_ES_2_ANGLE
+    if (m_presenterActivate)
+        return;
+#endif
+
     if (!m_currentActivate)
         return;
 
@@ -2193,33 +2156,58 @@ void MFVideoRendererControl::customEvent(QEvent *event)
             present();
         return;
     }
-    QChildEvent *childEvent = dynamic_cast<QChildEvent*>(event);
-    if (!childEvent) {
+    if (event->type() >= MediaStream::StartSurface) {
+        QChildEvent *childEvent = static_cast<QChildEvent*>(event);
+        static_cast<MediaStream*>(childEvent->child())->customEvent(event);
+    } else {
         QObject::customEvent(event);
-        return;
     }
-    static_cast<MediaStream*>(childEvent->child())->customEvent(event);
 }
 
 void MFVideoRendererControl::supportedFormatsChanged()
 {
+#ifdef QT_OPENGL_ES_2_ANGLE
+    if (m_presenterActivate)
+        m_presenterActivate->supportedFormatsChanged();
+    else
+#endif
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->supportedFormatsChanged();
 }
 
 void MFVideoRendererControl::present()
 {
+#ifdef QT_OPENGL_ES_2_ANGLE
+    if (m_presenterActivate)
+        return;
+#endif
+
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->present();
 }
 
 IMFActivate* MFVideoRendererControl::createActivate()
 {
+    Q_ASSERT(m_surface);
+
     clear();
 
+#ifdef QT_OPENGL_ES_2_ANGLE
+    // We can use the EVR with our custom presenter only if the surface supports OpenGL
+    // texture handles
+    if (!m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()) {
+        // Create the EVR media sink, but replace the presenter with our own
+        if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
+            m_presenterActivate = new EVRCustomPresenterActivate;
+            m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
+        }
+    }
+
+    if (!m_currentActivate)
+#endif
     m_currentActivate = new VideoRendererActivate(this);
-    if (m_surface)
-        setSurface(m_surface);
+
+    setSurface(m_surface);
 
     return m_currentActivate;
 }

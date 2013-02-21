@@ -30,7 +30,7 @@
 \title BlackBerry
 \brief Platform notes for the BlackBerry Platform
 
-QtMultimedia supports BlackBerry devices that run the BB10 operating system.
+Qt Multimedia supports BlackBerry devices that run the BB10 operating system.
 This page covers the availibility of different features on BB10.
 
 \section1 Implementation
@@ -41,7 +41,7 @@ and video playback is \e mmrenderer. For low-latency output of raw audio samples
 three-dimensional positional audio playback, \e OpenAL is supported and present
 on BB10.
 
-The QtMultimedia BlackBerry backend uses mmrenderer for media playback.
+The Qt Multimedia BlackBerry backend uses mmrenderer for media playback.
 
 For the positional audio classes in the \l {Positional Audio} {QtAudioEngine} QML
 module, OpenAL is used as on all other platforms.
@@ -54,7 +54,7 @@ Since the playback is delegated to mmrenderer, the supported formats are the sam
 mmrenderer. As mmrenderer supports streaming from HTTP and other URLs, this is
 supported in QMediaPlayer as well. Playlists as sources are also supported.
 
-mmrenderer does not allow access to the pixel data of video frames, hence QtMultimedia
+mmrenderer does not allow access to the pixel data of video frames, hence Qt Multimedia
 classes like QVideoFrame and QAbstractVideoSurface will not work since they require access
 to the image data. QVideoWidget and the VideoOutput QML element are implemented with an overlay window;
 mmrenderer creates a seperate window displaying a video and puts that on top of the Qt application.

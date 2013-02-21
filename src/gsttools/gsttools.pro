@@ -77,7 +77,7 @@ config_xvideo {
     SOURCES += \
         qgstxvimagebuffer.cpp \
 
-    !isEmpty(QT.widgets.name) {
+    qtHaveModule(widgets) {
         QT += multimediawidgets
 
         PRIVATE_HEADERS += \
@@ -97,7 +97,7 @@ config_xvideo {
 maemo6 {
     PKGCONFIG += qmsystem2
 
-    contains(QT_CONFIG, opengles2):!isEmpty(QT.widgets.name) {
+    contains(QT_CONFIG, opengles2):qtHaveModule(widgets) {
         PRIVATE_HEADERS += qgstreamergltexturerenderer_p.h
         SOURCES += qgstreamergltexturerenderer.cpp
         QT += opengl

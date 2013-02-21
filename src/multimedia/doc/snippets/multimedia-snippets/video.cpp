@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -79,13 +79,19 @@ class MyVideoSurface : public QAbstractVideoSurface
 class MyVideoProducer : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QAbstractVideoSurface *videoSurface WRITE setVideoSurface)
+    Q_PROPERTY(QAbstractVideoSurface *videoSurface READ videoSurface WRITE setVideoSurface)
 
 public:
+    QAbstractVideoSurface* videoSurface() const { return m_surface; }
+
     void setVideoSurface(QAbstractVideoSurface *surface)
     {
+        if (m_surface != surface && m_surface && m_surface->isActive()) {
+            m_surface->stop();
+        }
         m_surface = surface;
-        m_surface->start(m_format);
+        if (m_surface)
+            m_surface->start(m_format);
     }
 
     // ...

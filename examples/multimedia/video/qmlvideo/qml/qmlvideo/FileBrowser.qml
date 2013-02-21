@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -51,10 +51,11 @@ Rectangle {
     signal fileSelected(string file)
 
     function selectFile(file) {
-        if (file != "")
+        if (file !== "") {
             folder = loader.item.folders.folder
+            fileBrowser.fileSelected(file)
+        }
         loader.sourceComponent = undefined
-        fileBrowser.fileSelected(file)
     }
 
     Loader {
@@ -100,10 +101,11 @@ Rectangle {
                 Rectangle {
                     id: wrapper
                     function launch() {
+                        var path = "file:///" + filePath;
                         if (folders.isFolder(index))
-                            down(filePath);
+                            down(path);
                         else
-                            fileBrowser.selectFile(filePath)
+                            fileBrowser.selectFile(path)
                     }
                     width: root.width
                     height: 52
@@ -122,7 +124,7 @@ Rectangle {
                     Item {
                         width: 48; height: 48
                         Image {
-                            source: "qrc:/images/folder.png"
+                            source: "qrc:/folder.png"
                             anchors.centerIn: parent
                             visible: folders.isFolder(index)
                         }
@@ -156,28 +158,6 @@ Rectangle {
                             PropertyChanges { target: nameText; color: palette.highlightedText }
                         }
                     ]
-                }
-            }
-
-            Rectangle {
-                id: cancelButton
-                width: 100
-                height: titleBar.height - 7
-                color: "black"
-                anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
-
-                Text {
-                    anchors { fill: parent; margins: 4 }
-                    text: "Cancel"
-                    color: "white"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: 20
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: fileBrowser.selectFile("")
                 }
             }
 
@@ -278,6 +258,28 @@ Rectangle {
                 Keys.onPressed: root.keyPressed(event.key)
             }
 
+            Rectangle {
+                id: cancelButton
+                width: 100
+                height: titleBar.height - 7
+                color: "black"
+                anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
+
+                Text {
+                    anchors { fill: parent; margins: 4 }
+                    text: "Cancel"
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.pixelSize: 20
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: fileBrowser.selectFile("")
+                }
+            }
+
             Keys.onPressed: {
                 root.keyPressed(event.key);
                 if (event.key == Qt.Key_Return || event.key == Qt.Key_Select || event.key == Qt.Key_Right) {
@@ -289,7 +291,7 @@ Rectangle {
             }
 
             BorderImage {
-                source: "qrc:/images/titlebar.sci";
+                source: "qrc:/titlebar.sci";
                 width: parent.width;
                 height: 52
                 y: -7
@@ -300,7 +302,7 @@ Rectangle {
                     width: 48
                     height: titleBar.height - 7
                     color: "transparent"
-                    Image { anchors.centerIn: parent; source: "qrc:/images/up.png" }
+                    Image { anchors.centerIn: parent; source: "qrc:/up.png" }
                     MouseArea { id: upRegion; anchors.centerIn: parent
                         width: 56
                         height: 56

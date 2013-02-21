@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -58,12 +58,12 @@ public:
 
 public Q_SLOTS:
     void stopRecording();
-    void stateChanged(QAudio::State newState);
+    void handleStateChanged(QAudio::State newState);
 
 private:
     //! [Audio input class members]
-    QFile destinationFile;   // class member.
-    QAudioInput* audio; // class member.
+    QFile destinationFile;   // Class member
+    QAudioInput* audio; // Class member
     //! [Audio input class members]
 };
 
@@ -75,7 +75,7 @@ void AudioInputExample::setup()
     destinationFile.open( QIODevice::WriteOnly | QIODevice::Truncate );
 
     QAudioFormat format;
-    // set up the format you want, eg.
+    // Set up the desired format, for example:
     format.setSampleRate(8000);
     format.setChannelCount(1);
     format.setSampleSize(8);
@@ -85,12 +85,12 @@ void AudioInputExample::setup()
 
     QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
     if (!info.isFormatSupported(format)) {
-        qWarning()<<"default format not supported try to use nearest";
+        qWarning() << "Default format not supported, trying to use the nearest.";
         format = info.nearestFormat(format);
     }
 
     audio = new QAudioInput(format, this);
-    connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(stateChanged(QAudio::State)));
+    connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
 
     QTimer::singleShot(3000, this, SLOT(stopRecording()));
     audio->start(&destinationFile);
@@ -108,7 +108,7 @@ void AudioInputExample::stopRecording()
 //! [Audio input stop recording]
 
 //! [Audio input state changed]
-void AudioInputExample::stateChanged(QAudio::State newState)
+void AudioInputExample::handleStateChanged(QAudio::State newState)
 {
     switch (newState) {
         case QAudio::StoppedState:
@@ -137,7 +137,7 @@ public:
     void setup();
 
 public Q_SLOTS:
-    void stateChanged(QAudio::State newState);
+    void handleStateChanged(QAudio::State newState);
 
 private:
     //! [Audio output class members]
@@ -164,18 +164,18 @@ void AudioOutputExample::setup()
 
     QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
     if (!info.isFormatSupported(format)) {
-        qWarning() << "raw audio format not supported by backend, cannot play audio.";
+        qWarning() << "Raw audio format not supported by backend, cannot play audio.";
         return;
     }
 
     audio = new QAudioOutput(format, this);
-    connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(stateChanged(QAudio::State)));
+    connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
     audio->start(&sourceFile);
 }
 //! [Audio output setup]
 
 //! [Audio output state changed]
-void AudioOutputExample::stateChanged(QAudio::State newState)
+void AudioOutputExample::handleStateChanged(QAudio::State newState)
 {
     switch (newState) {
         case QAudio::IdleState:
@@ -225,7 +225,7 @@ public:
     void decode();
 
 public Q_SLOTS:
-    void stateChanged(QAudio::State newState);
+    void handleStateChanged(QAudio::State newState);
     void readBuffer();
 };
 

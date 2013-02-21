@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -68,7 +68,7 @@ class QAudioOutput;
 QT_END_NAMESPACE
 
 /**
- * This class interfaces with the QtMultimedia audio classes, and also with
+ * This class interfaces with the Qt Multimedia audio classes, and also with
  * the SpectrumAnalyser class.  Its role is to manage the capture and playback
  * of audio data, meanwhile performing real-time analysis of the audio level
  * and frequency spectrum.

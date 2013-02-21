@@ -2,8 +2,8 @@ include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 
 project                 = qtmultimedia
 description             = Qt Multimedia Documentation
-url                     = http://qt-project.org/doc/qtmultimedia
-version                 = 5.0.1
+url                     = http://qt-project.org/doc/qt-$QT_VER/qtmultimedia
+version                 = $QT_VERSION
 
 # The following parameters are for creating a qhp file, the qhelpgenerator
 # program can convert the qhp file into a qch file which can be opened in
@@ -14,7 +14,7 @@ version                 = 5.0.1
 # format.
 qhp.projects = qtmultimedia
 qhp.qtmultimedia.file = qtmultimedia.qhp
-qhp.qtmultimedia.namespace = org.qt-project.qtmultimedia.501
+qhp.qtmultimedia.namespace = org.qt-project.qtmultimedia.$QT_VERSION_TAG
 qhp.qtmultimedia.indexTitle = Qt Multimedia
 qhp.qtmultimedia.virtualFolder  = qtmultimedia
 

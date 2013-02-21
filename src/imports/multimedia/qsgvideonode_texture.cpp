@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -118,6 +118,7 @@ protected:
         "    gl_FragColor = texture2D(rgbTexture, qt_TexCoord) * opacity;"
         "}";
 
+#ifndef QT_OPENGL_ES_2_ANGLE
         static const char *colorsSwapShader =
         "uniform sampler2D rgbTexture;"
         "uniform lowp float opacity;"
@@ -137,6 +138,9 @@ protected:
             default:
                 return shader;
         }
+#else
+        return shader;
+#endif
     }
 
     virtual void initialize() {
@@ -227,6 +231,7 @@ public:
 QSGVideoNode_Texture::QSGVideoNode_Texture(const QVideoSurfaceFormat &format) :
     m_format(format)
 {
+    setFlag(QSGNode::OwnsMaterial);
     m_material = new QSGVideoMaterial_Texture(format);
     setMaterial(m_material);
 }

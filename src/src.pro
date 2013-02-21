@@ -13,7 +13,7 @@ src_plugins.subdir = plugins
 src_plugins.depends = multimedia
 
 
-!isEmpty(QT.quick.name) {
+qtHaveModule(quick) {
     src_qtmultimediaquicktools.subdir = qtmultimediaquicktools
     src_qtmultimediaquicktools.depends = multimedia
 
@@ -26,7 +26,7 @@ src_plugins.depends = multimedia
 }
 
 # Optional bits
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     SUBDIRS += src_qtmmwidgets
 
     # If widgets is around, plugins depends on widgets too (imports does not)

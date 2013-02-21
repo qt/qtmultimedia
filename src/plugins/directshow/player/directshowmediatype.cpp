@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -127,9 +127,7 @@ QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &typ
                 if (header->AvgTimePerFrame > 0)
                     format.setFrameRate(10000 /header->AvgTimePerFrame);
 
-                format.setScanLineDirection(header->bmiHeader.biHeight < 0
-                        ? QVideoSurfaceFormat::TopToBottom
-                        : QVideoSurfaceFormat::BottomToTop);
+                format.setScanLineDirection(scanLineDirection(format.pixelFormat(), header->bmiHeader));
 
                 return format;
             } else if (IsEqualGUID(type.formattype, FORMAT_VideoInfo2)) {
@@ -142,9 +140,7 @@ QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &typ
                 if (header->AvgTimePerFrame > 0)
                     format.setFrameRate(10000 / header->AvgTimePerFrame);
 
-                format.setScanLineDirection(header->bmiHeader.biHeight < 0
-                        ? QVideoSurfaceFormat::TopToBottom
-                        : QVideoSurfaceFormat::BottomToTop);
+                format.setScanLineDirection(scanLineDirection(format.pixelFormat(), header->bmiHeader));
 
                 return format;
             }
@@ -181,5 +177,33 @@ int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
         return PAD_TO_DWORD(format.frameWidth());
     default:
         return 0;
+    }
+}
+
+QVideoSurfaceFormat::Direction DirectShowMediaType::scanLineDirection(QVideoFrame::PixelFormat pixelFormat, const BITMAPINFOHEADER &bmiHeader)
+{
+    /* MSDN http://msdn.microsoft.com/en-us/library/windows/desktop/dd318229(v=vs.85).aspx */
+    /* For uncompressed RGB bitmaps:
+     *    if biHeight is positive, the bitmap is a bottom-up DIB with the origin at the lower left corner.
+     *    If biHeight is negative, the bitmap is a top-down DIB with the origin at the upper left corner.
+     *
+     * For YUV bitmaps:
+     *    the bitmap is always top-down, regardless of the sign of biHeight.
+     *    Decoders should offer YUV formats with postive biHeight, but for backward compatibility they should accept YUV formats with either positive or negative biHeight.
+     *
+     * For compressed formats:
+     *    biHeight must be positive, regardless of image orientation.
+     */
+    switch (pixelFormat)
+    {
+    case QVideoFrame::Format_RGB32:
+    case QVideoFrame::Format_BGR24:
+    case QVideoFrame::Format_RGB565:
+    case QVideoFrame::Format_RGB555:
+        return bmiHeader.biHeight < 0
+            ? QVideoSurfaceFormat::TopToBottom
+            : QVideoSurfaceFormat::BottomToTop;
+    default:
+        return QVideoSurfaceFormat::TopToBottom;
     }
 }

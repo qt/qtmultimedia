@@ -24,7 +24,7 @@ SOURCES += \
     $$PWD/mfaudioprobecontrol.cpp \
     $$PWD/mfvideoprobecontrol.cpp
 
-!isEmpty(QT.widgets.name):!simulator {
+qtHaveModule(widgets):!simulator {
     HEADERS += $$PWD/evr9videowindowcontrol.h
     SOURCES += $$PWD/evr9videowindowcontrol.cpp
 }

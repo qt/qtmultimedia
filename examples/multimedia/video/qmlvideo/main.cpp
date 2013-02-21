@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -127,10 +127,13 @@ int main(int argc, char *argv[])
                      rootObject, SLOT(qmlFramePainted()));
 #endif
 
-    QString videoPath;
+    QUrl videoPath;
     const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
-    if (!moviesLocation.isEmpty())
-        videoPath = moviesLocation.first();
+    if (moviesLocation.isEmpty()) {
+        QUrl appPath(QString("file:///%1").arg(app.applicationDirPath()));
+        videoPath = appPath.resolved(QUrl("./"));
+    } else
+        videoPath = QString("file:///%1").arg(moviesLocation.first());
     viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
     QMetaObject::invokeMethod(rootObject, "init");

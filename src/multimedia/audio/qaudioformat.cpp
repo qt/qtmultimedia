@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -159,7 +159,7 @@ public:
     In the common case of interleaved linear PCM data, the codec will
     be "audio/pcm", and the samples for all channels will be interleaved.
     One sample for each channel for the same instant in time is referred
-    to as a frame in QtMultimedia (and other places).
+    to as a frame in Qt Multimedia (and other places).
 */
 
 /*!

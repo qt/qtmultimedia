@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -1039,7 +1039,7 @@ void tst_QPainterVideoSurface::shaderPresent()
 
     QVideoSurfaceFormat formatA(frameSizeA, pixelFormatA);
 
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX) && !defined(UBUNTU_PRECISE_PANGOLIN)
     QEXPECT_FAIL("ARBfp: rgb32 -> argb32", "QTBUG-26320 - Failing for linux versions", Abort);
     QEXPECT_FAIL("ARBfp: rgb32 -> rgb565", "QTBUG-26320 - Failing for linux versions", Abort);
     QEXPECT_FAIL("ARBfp: rgb32 -> yuv420p", "QTBUG-26320 - Failing for linux versions", Abort);

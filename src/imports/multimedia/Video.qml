@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -73,9 +73,9 @@ import QtMultimedia 5.0
         }
 
         focus: true
-        Keys.onSpacePressed: video.paused = !video.paused
-        Keys.onLeftPressed: video.position -= 5000
-        Keys.onRightPressed: video.position += 5000
+        Keys.onSpacePressed: video.playbackState == MediaPlayer.PlayingState ? video.pause() : video.play()
+        Keys.onLeftPressed: video.seek(video.position - 5000)
+        Keys.onRightPressed: video.seek(video.position + 5000)
     }
     \endqml
 
@@ -265,6 +265,10 @@ Item {
         \qmlproperty int Video::position
 
         This property holds the current playback position in milliseconds.
+
+        To change this position, use the \l seek() method.
+
+        \sa seek()
     */
     property alias position:        player.position
 
@@ -273,6 +277,8 @@ Item {
 
         This property holds whether the playback position of the video can be
         changed.
+
+        If true, calling the \l seek() method will cause playback to seek to the new position.
     */
     property alias seekable:        player.seekable
 
@@ -313,6 +319,8 @@ Item {
         \qmlproperty bool Video::autoPlay
 
         This property determines whether the media should begin playback automatically.
+
+        Setting to \c true also sets \l autoLoad to \c true. The default is \c false.
     */
     property alias autoPlay:        player.autoPlay
 
@@ -375,6 +383,21 @@ Item {
     */
     function stop() {
         player.stop();
+    }
+
+    /*!
+        \qmlmethod Video::seek(offset)
+
+        If the \l seekable property is true, seeks the current
+        playback position to \a offset.
+
+        Seeking may be asynchronous, so the \l position property
+        may not be updated immediately.
+
+        \sa seekable, position
+    */
+    function seek(offset) {
+        player.seek(offset);
     }
 
 }

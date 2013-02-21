@@ -3,7 +3,7 @@ CONFIG += no_keywords
 
 TARGET = qqt7engine
 QT += multimedia-private network
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     QT += multimediawidgets-private widgets
 }
 
@@ -50,7 +50,7 @@ OBJECTIVE_SOURCES += \
         qt7ciimagevideobuffer.mm \
         qcvdisplaylink.mm
 
-    !isEmpty(QT.widgets.name) {
+    qtHaveModule(widgets) {
         HEADERS += \
             qt7movieviewrenderer.h \
             qt7movievideowidget.h

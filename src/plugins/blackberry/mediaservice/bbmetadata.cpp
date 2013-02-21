@@ -57,6 +57,7 @@ static const char * heightKey = "md_video_height";
 static const char * mediaTypeKey = "md_title_mediatype";
 static const char * pixelWidthKey = "md_video_pixel_height";
 static const char * pixelHeightKey = "md_video_pixel_width";
+static const char * seekableKey = "md_title_seekable";
 
 static const int mediaTypeAudioFlag = 4;
 static const int mediaTypeVideoFlag = 2;
@@ -102,6 +103,8 @@ bool BbMetaData::parse(const QString &contextName)
                 m_pixelWidth = value.toFloat();
             else if (key == pixelHeightKey)
                 m_pixelHeight = value.toFloat();
+            else if (key == seekableKey)
+                m_seekable = !(value == QLatin1String("0"));
         }
     }
 
@@ -116,6 +119,7 @@ void BbMetaData::clear()
     m_mediaType = -1;
     m_pixelWidth = 1;
     m_pixelHeight = 1;
+    m_seekable = true;
 }
 
 qlonglong BbMetaData::duration() const
@@ -159,6 +163,11 @@ bool BbMetaData::hasAudio() const
         return true;
 
     return (m_mediaType & mediaTypeAudioFlag);
+}
+
+bool BbMetaData::isSeekable() const
+{
+    return m_seekable;
 }
 
 QT_END_NAMESPACE

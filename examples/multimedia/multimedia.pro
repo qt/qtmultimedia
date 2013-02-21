@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += audiodecoder
 
 # These examples all need widgets for now (using creator templates that use widgets)
-!isEmpty(QT.widgets.name) {
+qtHaveModule(widgets) {
     SUBDIRS += \
         radio \
         spectrum \
@@ -13,7 +13,7 @@ SUBDIRS += audiodecoder
         audiooutput \
 }
 
-!isEmpty(QT.gui.name):!isEmpty(QT.qml.name) {
+qtHaveModule(gui):qtHaveModule(qml) {
     SUBDIRS += \
         declarative-radio \
         video
