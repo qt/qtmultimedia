@@ -12,6 +12,10 @@ blackberry {
     SUBDIRS += blackberry
 }
 
+qnx {
+    SUBDIRS += qnx
+}
+
 win32 {
     SUBDIRS += audiocapture
 }
