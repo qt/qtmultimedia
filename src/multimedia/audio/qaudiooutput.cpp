@@ -161,16 +161,16 @@ QAudioFormat QAudioOutput::format() const
 }
 
 /*!
-    Uses the \a device as the QIODevice to transfer data.
-    Passing a QIODevice allows the data to be transferred without any extra code.
-    All that is required is to open the QIODevice.
+    Starts transferring audio data from the \a device to the system's audio output.
+    The \a device must have been opened in the \l{QIODevice::ReadOnly}{ReadOnly} or
+    \l{QIODevice::ReadWrite}{ReadWrite} modes.
 
-    If able to successfully output audio data to the systems audio device the
-    state() is set to QAudio::ActiveState, error() is set to QAudio::NoError
+    If the QAudioOutput is able to successfully output audio data, state() returns
+    QAudio::ActiveState, error() returns QAudio::NoError
     and the stateChanged() signal is emitted.
 
-    If a problem occurs during this process the error() is set to QAudio::OpenError,
-    state() is set to QAudio::StoppedState and stateChanged() signal is emitted.
+    If a problem occurs during this process, error() returns QAudio::OpenError,
+    state() returns QAudio::StoppedState and the stateChanged() signal is emitted.
 
     \sa QIODevice
 */
@@ -180,15 +180,19 @@ void QAudioOutput::start(QIODevice* device)
 }
 
 /*!
-    Returns a pointer to the QIODevice being used to handle the data
-    transfer. This QIODevice can be used to write() audio data directly.
+    Returns a pointer to the internal QIODevice being used to transfer data to
+    the system's audio output. The device will already be open and
+    \l{QIODevice::write()}{write()} can write data directly to it.
 
-    If able to access the systems audio device the state() is set to
-    QAudio::IdleState, error() is set to QAudio::NoError
+    \note The pointer will become invalid after the stream is stopped or
+    if you start another stream.
+
+    If the QAudioOutput is able to access the system's audio device, state() returns
+    QAudio::IdleState, error() returns QAudio::NoError
     and the stateChanged() signal is emitted.
 
-    If a problem occurs during this process the error() is set to QAudio::OpenError,
-    state() is set to QAudio::StoppedState and stateChanged() signal is emitted.
+    If a problem occurs during this process, error() returns QAudio::OpenError,
+    state() returns QAudio::StoppedState and the stateChanged() signal is emitted.
 
     \sa QIODevice
 */
