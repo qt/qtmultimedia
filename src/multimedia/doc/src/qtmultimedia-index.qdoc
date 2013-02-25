@@ -32,6 +32,8 @@
 
     Qt Multimedia is an essential module that provides a rich set of QML types and C++ classes to handle multimedia content. It also provides necessary APIs to access the camera and radio functionality.
 
+    The \l{Qt Multimedia Widgets} module provides widget based multimedia classes.
+
    \section1 Getting started
 
     The QML types can be imported into your applciation using the following import statement in your \c {.qml} file.
