@@ -42,10 +42,12 @@
 #include "qnxaudioplugin.h"
 
 #include "qnxaudiodeviceinfo.h"
+#include "qnxaudioinput.h"
 #include "qnxaudiooutput.h"
 
 #include <sys/asoundlib.h>
 
+static const char *INPUT_ID = "QnxAudioInput";
 static const char *OUTPUT_ID = "QnxAudioOutput";
 
 QT_BEGIN_NAMESPACE
@@ -60,13 +62,14 @@ QList<QByteArray> QnxAudioPlugin::availableDevices(QAudio::Mode mode) const
     if (mode == QAudio::AudioOutput)
         return QList<QByteArray>() << OUTPUT_ID;
     else
-        return QList<QByteArray>();
+        return QList<QByteArray>() << INPUT_ID;
 }
 
 QAbstractAudioInput *QnxAudioPlugin::createInput(const QByteArray &device)
 {
+    Q_ASSERT(device == INPUT_ID);
     Q_UNUSED(device);
-    return 0;
+    return new QnxAudioInput();
 }
 
 QAbstractAudioOutput *QnxAudioPlugin::createOutput(const QByteArray &device)
