@@ -879,7 +879,9 @@ void BbCameraSession::viewfinderFrameGrabbed(const QImage &image)
 
     transform.rotate(m_nativeCameraOrientation);
 
-    const QImage frame = image.copy().transformed(transform);
+    QImage frame = image.copy().transformed(transform);
+    if (m_device == cameraIdentifierFront())
+        frame = frame.mirrored(true, false);
 
     QMutexLocker locker(&m_surfaceMutex);
     if (m_surface) {
