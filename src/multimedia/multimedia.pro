@@ -1,5 +1,5 @@
 TARGET = QtMultimedia
-QT = core-private network gui
+QT = core-private network gui-private
 
 QMAKE_DOCS = $$PWD/doc/qtmultimedia.qdocconf
 

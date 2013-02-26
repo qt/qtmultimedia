@@ -43,6 +43,7 @@
 
 #include "qdeclarativevideooutput_render_p.h"
 #include "qdeclarativevideooutput_window_p.h"
+#include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaservice.h>
 
@@ -127,7 +128,9 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     m_sourceType(NoSource),
     m_fillMode(PreserveAspectFit),
     m_geometryDirty(true),
-    m_orientation(0)
+    m_orientation(0),
+    m_autoOrientation(false),
+    m_screenOrientationHandler(0)
 {
     setFlag(ItemHasContents, true);
 }
@@ -349,6 +352,12 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
     if (m_contentRect != oldContentRect)
         emit contentRectChanged();
 }
+
+void QDeclarativeVideoOutput::_q_screenOrientationChanged(int orientation)
+{
+    setOrientation(orientation);
+}
+
 /*!
     \qmlproperty int QtMultimedia5::VideoOutput::orientation
 
@@ -408,6 +417,45 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
 
     update();
     emit orientationChanged();
+}
+
+/*!
+    \qmlproperty int QtMultimedia5::VideoOutput::autoOrientation
+
+    This property allows you to enable and disable auto orientation
+    of the video stream, so that its orientation always matches
+    the orientation of the screen. If \c autoOrientation is enabled,
+    the \c orientation property is overwritten.
+
+    By default \c autoOrientation is disabled.
+
+    \since QtMultimedia 5.1
+*/
+bool QDeclarativeVideoOutput::autoOrientation() const
+{
+    return m_autoOrientation;
+}
+
+void QDeclarativeVideoOutput::setAutoOrientation(bool autoOrientation)
+{
+    if (autoOrientation == m_autoOrientation)
+        return;
+
+    m_autoOrientation = autoOrientation;
+    if (m_autoOrientation) {
+        m_screenOrientationHandler = new QVideoOutputOrientationHandler(this);
+        connect(m_screenOrientationHandler, SIGNAL(orientationChanged(int)),
+                this, SLOT(_q_screenOrientationChanged(int)));
+
+        _q_screenOrientationChanged(m_screenOrientationHandler->currentOrientation());
+    } else {
+        disconnect(m_screenOrientationHandler, SIGNAL(orientationChanged(int)),
+                   this, SLOT(_q_screenOrientationChanged(int)));
+        m_screenOrientationHandler->deleteLater();
+        m_screenOrientationHandler = 0;
+    }
+
+    emit autoOrientationChanged();
 }
 
 /*!

@@ -53,6 +53,7 @@ QT_BEGIN_NAMESPACE
 class QMediaObject;
 class QMediaService;
 class QDeclarativeVideoBackend;
+class QVideoOutputOrientationHandler;
 
 class QDeclarativeVideoOutput : public QQuickItem
 {
@@ -61,6 +62,7 @@ class QDeclarativeVideoOutput : public QQuickItem
     Q_PROPERTY(QObject* source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(int orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
+    Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged REVISION 1)
     Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
     Q_ENUMS(FillMode)
@@ -85,6 +87,9 @@ public:
     int orientation() const;
     void setOrientation(int);
 
+    bool autoOrientation() const;
+    void setAutoOrientation(bool);
+
     QRectF sourceRect() const;
     QRectF contentRect() const;
 
@@ -108,6 +113,7 @@ Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QDeclarativeVideoOutput::FillMode);
     void orientationChanged();
+    void autoOrientationChanged();
     void sourceRectChanged();
     void contentRectChanged();
 
@@ -120,6 +126,7 @@ private Q_SLOTS:
     void _q_updateMediaObject();
     void _q_updateNativeSize();
     void _q_updateGeometry();
+    void _q_screenOrientationChanged(int);
 
 private:
     bool createBackend(QMediaService *service);
@@ -137,6 +144,8 @@ private:
     QRectF m_lastRect;      // Cache of last rect to avoid recalculating geometry
     QRectF m_contentRect;   // Destination pixel coordinates, unclipped
     int m_orientation;
+    bool m_autoOrientation;
+    QVideoOutputOrientationHandler *m_screenOrientationHandler;
 
     QScopedPointer<QDeclarativeVideoBackend> m_backend;
 };
