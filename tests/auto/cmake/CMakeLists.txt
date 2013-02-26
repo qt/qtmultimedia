@@ -9,8 +9,6 @@ find_package(Qt5Core REQUIRED)
 
 include("${_Qt5CTestMacros}")
 
-set(Qt5_MODULE_TEST_DEPENDS Network Widgets)
-
 test_module_includes(
   Multimedia QCamera
   MultimediaWidgets QVideoWidget
