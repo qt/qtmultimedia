@@ -57,69 +57,6 @@ CameraBinExposure::~CameraBinExposure()
 {
 }
 
-QCameraExposure::ExposureMode CameraBinExposure::exposureMode() const
-{
-    GstSceneMode sceneMode;
-    gst_photography_get_scene_mode(m_session->photography(), &sceneMode);
-
-    switch (sceneMode) {
-    case GST_PHOTOGRAPHY_SCENE_MODE_PORTRAIT: return QCameraExposure::ExposurePortrait;
-    case GST_PHOTOGRAPHY_SCENE_MODE_SPORT: return QCameraExposure::ExposureSports;
-    case GST_PHOTOGRAPHY_SCENE_MODE_NIGHT: return QCameraExposure::ExposureNight;
-    case GST_PHOTOGRAPHY_SCENE_MODE_MANUAL: return QCameraExposure::ExposureManual;
-    case GST_PHOTOGRAPHY_SCENE_MODE_CLOSEUP:    //no direct mapping available so mapping to auto mode
-    case GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE:  //no direct mapping available so mapping to auto mode
-    case GST_PHOTOGRAPHY_SCENE_MODE_AUTO:
-    default:
-         return QCameraExposure::ExposureAuto;
-    }
-}
-
-void CameraBinExposure::setExposureMode(QCameraExposure::ExposureMode mode)
-{
-    GstSceneMode sceneMode;
-    gst_photography_get_scene_mode(m_session->photography(), &sceneMode);
-
-    switch (mode) {
-    case QCameraExposure::ExposureManual: sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_MANUAL; break;
-    case QCameraExposure::ExposurePortrait: sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_PORTRAIT; break;
-    case QCameraExposure::ExposureSports: sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SPORT; break;
-    case QCameraExposure::ExposureNight: sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_NIGHT; break;
-    case QCameraExposure::ExposureAuto: sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_AUTO; break;
-    default:
-        break;
-    }
-
-    gst_photography_set_scene_mode(m_session->photography(), sceneMode);
-}
-
-bool CameraBinExposure::isExposureModeSupported(QCameraExposure::ExposureMode mode) const
-{
-    //Similar mode names can be found in gst as GstSceneMode
-    return  mode == QCameraExposure::ExposureAuto ||
-            mode == QCameraExposure::ExposurePortrait ||
-            mode == QCameraExposure::ExposureSports ||
-            mode == QCameraExposure::ExposureNight;
-
-    //No direct mapping available for GST_PHOTOGRAPHY_SCENE_MODE_CLOSEUP and
-    //GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE
-}
-
-QCameraExposure::MeteringMode CameraBinExposure::meteringMode() const
-{
-    return QCameraExposure::MeteringMatrix;
-}
-
-void CameraBinExposure::setMeteringMode(QCameraExposure::MeteringMode mode)
-{
-    Q_UNUSED(mode);
-}
-
-bool CameraBinExposure::isMeteringModeSupported(QCameraExposure::MeteringMode mode) const
-{
-    return mode == QCameraExposure::MeteringMatrix;
-}
-
 bool CameraBinExposure::isParameterSupported(ExposureParameter parameter) const
 {
     switch (parameter) {
@@ -133,58 +70,17 @@ bool CameraBinExposure::isParameterSupported(ExposureParameter parameter) const
     }
 }
 
-QVariant CameraBinExposure::exposureParameter(ExposureParameter parameter) const
+QVariantList CameraBinExposure::supportedParameterRange(ExposureParameter parameter,
+                                                        bool *continuous) const
 {
-    switch (parameter) {
-    case QCameraExposureControl::ExposureCompensation:
-        {
-            gfloat ev;
-            gst_photography_get_ev_compensation(m_session->photography(), &ev);
-            return QVariant(ev);
-        }
-    case QCameraExposureControl::ISO:
-        {
-            guint isoSpeed = 0;
-            gst_photography_get_iso_speed(m_session->photography(), &isoSpeed);
-            return QVariant(isoSpeed);
-        }
-    case QCameraExposureControl::Aperture:
-        return QVariant(2.8);
-    case QCameraExposureControl::ShutterSpeed:
-        {
-            guint32 shutterSpeed = 0;
-            gst_photography_get_exposure(m_session->photography(), &shutterSpeed);
+    if (continuous)
+        *continuous = false;
 
-            return QVariant(shutterSpeed/1000000.0);
-        }
-    default:
-        return QVariant();
-    }
-}
-
-QCameraExposureControl::ParameterFlags CameraBinExposure::exposureParameterFlags(ExposureParameter parameter) const
-{
-    QCameraExposureControl::ParameterFlags flags = 0;
-
-    switch (parameter) {
-    case QCameraExposureControl::ExposureCompensation:
-        flags |= ContinuousRange;
-        break;
-    case QCameraExposureControl::Aperture:
-        flags |= ReadOnly;
-        break;
-    default:
-        break;
-    }
-
-    return flags;
-}
-
-QVariantList CameraBinExposure::supportedParameterRange(ExposureParameter parameter) const
-{
     QVariantList res;
     switch (parameter) {
     case QCameraExposureControl::ExposureCompensation:
+        if (continuous)
+            *continuous = true;
         res << -2.0 << 2.0;
         break;
     case QCameraExposureControl::ISO:
@@ -200,9 +96,68 @@ QVariantList CameraBinExposure::supportedParameterRange(ExposureParameter parame
     return res;
 }
 
-bool CameraBinExposure::setExposureParameter(ExposureParameter parameter, const QVariant& value)
+QVariant CameraBinExposure::requestedValue(ExposureParameter parameter) const
 {
-    QVariant oldValue = exposureParameter(parameter);
+    return m_requestedValues.value(parameter);
+}
+
+QVariant CameraBinExposure::actualValue(ExposureParameter parameter) const
+{
+    switch (parameter) {
+    case QCameraExposureControl::ExposureCompensation:
+    {
+        gfloat ev;
+        gst_photography_get_ev_compensation(m_session->photography(), &ev);
+        return QVariant(ev);
+    }
+    case QCameraExposureControl::ISO:
+    {
+        guint isoSpeed = 0;
+        gst_photography_get_iso_speed(m_session->photography(), &isoSpeed);
+        return QVariant(isoSpeed);
+    }
+    case QCameraExposureControl::Aperture:
+        return QVariant(2.8);
+    case QCameraExposureControl::ShutterSpeed:
+    {
+        guint32 shutterSpeed = 0;
+        gst_photography_get_exposure(m_session->photography(), &shutterSpeed);
+
+        return QVariant(shutterSpeed/1000000.0);
+    }
+    case QCameraExposureControl::ExposureMode:
+    {
+        GstSceneMode sceneMode;
+        gst_photography_get_scene_mode(m_session->photography(), &sceneMode);
+
+        switch (sceneMode) {
+        case GST_PHOTOGRAPHY_SCENE_MODE_PORTRAIT:
+            return QCameraExposure::ExposurePortrait;
+        case GST_PHOTOGRAPHY_SCENE_MODE_SPORT:
+            return QCameraExposure::ExposureSports;
+        case GST_PHOTOGRAPHY_SCENE_MODE_NIGHT:
+            return QCameraExposure::ExposureNight;
+        case GST_PHOTOGRAPHY_SCENE_MODE_MANUAL:
+            return QCameraExposure::ExposureManual;
+        case GST_PHOTOGRAPHY_SCENE_MODE_CLOSEUP:
+            //no direct mapping available so mapping to auto mode
+        case GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE:
+            //no direct mapping available so mapping to auto mode
+        case GST_PHOTOGRAPHY_SCENE_MODE_AUTO:
+        default:
+            return QCameraExposure::ExposureAuto;
+        }
+    }
+    case QCameraExposureControl::MeteringMode:
+        return QCameraExposure::MeteringMatrix;
+    default:
+        return QVariant();
+    }
+}
+
+bool CameraBinExposure::setValue(ExposureParameter parameter, const QVariant& value)
+{
+    QVariant oldValue = actualValue(parameter);
 
     switch (parameter) {
     case QCameraExposureControl::ExposureCompensation:
@@ -217,20 +172,49 @@ bool CameraBinExposure::setExposureParameter(ExposureParameter parameter, const 
     case QCameraExposureControl::ShutterSpeed:
         gst_photography_set_exposure(m_session->photography(), guint(value.toReal()*1000000));
         break;
+    case QCameraExposureControl::ExposureMode:
+    {
+        QCameraExposure::ExposureMode mode = QCameraExposure::ExposureMode(value.toInt());
+        GstSceneMode sceneMode;
+        gst_photography_get_scene_mode(m_session->photography(), &sceneMode);
+
+        switch (mode) {
+        case QCameraExposure::ExposureManual:
+            sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_MANUAL;
+            break;
+        case QCameraExposure::ExposurePortrait:
+            sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_PORTRAIT;
+            break;
+        case QCameraExposure::ExposureSports:
+            sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SPORT;
+            break;
+        case QCameraExposure::ExposureNight:
+            sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_NIGHT;
+            break;
+        case QCameraExposure::ExposureAuto:
+            sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_AUTO;
+            break;
+        default:
+            break;
+        }
+
+        gst_photography_set_scene_mode(m_session->photography(), sceneMode);
+        break;
+    }
     default:
         return false;
     }
 
-    QVariant newValue = exposureParameter(parameter);
+    if (!qFuzzyCompare(m_requestedValues.value(parameter).toReal(), value.toReal())) {
+        m_requestedValues[parameter] = value;
+        emit requestedValueChanged(parameter);
+    }
+
+    QVariant newValue = actualValue(parameter);
     if (!qFuzzyCompare(oldValue.toReal(), newValue.toReal()))
-        emit exposureParameterChanged(parameter);
+        emit actualValueChanged(parameter);
 
     return true;
-}
-
-QString CameraBinExposure::extendedParameterName(ExposureParameter)
-{
-    return QString();
 }
 
 QT_END_NAMESPACE

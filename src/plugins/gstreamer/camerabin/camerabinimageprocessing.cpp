@@ -42,9 +42,7 @@
 #include "camerabinimageprocessing.h"
 #include "camerabinsession.h"
 
-#ifdef HAVE_GST_PHOTOGRAPHY
-#include <gst/interfaces/photography.h>
-#endif
+#include <gst/interfaces/colorbalance.h>
 
 QT_BEGIN_NAMESPACE
 

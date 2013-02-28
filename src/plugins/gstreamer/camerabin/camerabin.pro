@@ -65,13 +65,15 @@ have_gst_photography {
         $$PWD/camerabinfocus.h \
         $$PWD/camerabinexposure.h \
         $$PWD/camerabinflash.h \
-        $$PWD/camerabinlocks.h
+        $$PWD/camerabinlocks.h \
+        $$PWD/camerabinzoom.h
 
     SOURCES += \
         $$PWD/camerabinexposure.cpp \
         $$PWD/camerabinflash.cpp \
         $$PWD/camerabinfocus.cpp \
-        $$PWD/camerabinlocks.cpp
+        $$PWD/camerabinlocks.cpp \
+        $$PWD/camerabinzoom.cpp
 
     LIBS += -lgstphotography-0.10
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API

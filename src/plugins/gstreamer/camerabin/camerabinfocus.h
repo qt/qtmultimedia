@@ -60,16 +60,9 @@ public:
     CameraBinFocus(CameraBinSession *session);
     virtual ~CameraBinFocus();
 
-    QCameraFocus::FocusMode focusMode() const;
-    void setFocusMode(QCameraFocus::FocusMode mode);
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const;
-
-    qreal maximumOpticalZoom() const;
-    qreal maximumDigitalZoom() const;
-    qreal opticalZoom() const;
-    qreal digitalZoom() const;
-
-    void zoomTo(qreal optical, qreal digital) ;
+    QCameraFocus::FocusModes focusMode() const;
+    void setFocusMode(QCameraFocus::FocusModes mode);
+    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const;
 
     QCameraFocus::FocusPointMode focusPointMode() const;
     void setFocusPointMode(QCameraFocus::FocusPointMode mode) ;
@@ -95,7 +88,7 @@ private Q_SLOTS:
 
 private:
     CameraBinSession *m_session;
-    QCameraFocus::FocusMode m_focusMode;
+    QCameraFocus::FocusModes m_focusMode;
     QCamera::LockStatus m_focusStatus;
     QCameraFocusZone::FocusZoneStatus m_focusZoneStatus;
 };

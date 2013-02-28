@@ -60,24 +60,16 @@ public:
     CameraBinExposure(CameraBinSession *session);
     virtual ~CameraBinExposure();
 
-    QCameraExposure::ExposureMode exposureMode() const;
-    void setExposureMode(QCameraExposure::ExposureMode mode);
-    bool isExposureModeSupported(QCameraExposure::ExposureMode mode) const;
-
-    QCameraExposure::MeteringMode meteringMode() const;
-    void setMeteringMode(QCameraExposure::MeteringMode mode);
-    bool isMeteringModeSupported(QCameraExposure::MeteringMode mode) const;
-
     bool isParameterSupported(ExposureParameter parameter) const;
-    QVariant exposureParameter(ExposureParameter parameter) const;
-    ParameterFlags exposureParameterFlags(ExposureParameter parameter) const;
-    QVariantList supportedParameterRange(ExposureParameter parameter) const;
-    bool setExposureParameter(ExposureParameter parameter, const QVariant& value);
+    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const;
 
-    QString extendedParameterName(ExposureParameter parameter);
+    QVariant requestedValue(ExposureParameter parameter) const;
+    QVariant actualValue(ExposureParameter parameter) const;
+    bool setValue(ExposureParameter parameter, const QVariant& value);
 
 private:
-    CameraBinSession *m_session;    
+    CameraBinSession *m_session;
+    QHash<ExposureParameter, QVariant> m_requestedValues;
 };
 
 QT_END_NAMESPACE

@@ -39,52 +39,38 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINIMAGEPROCESSINGCONTROL_H
-#define CAMERABINIMAGEPROCESSINGCONTROL_H
+#ifndef CAMERABINZOOMCONTROL_H
+#define CAMERABINZOOMCONTROL_H
 
-#include <qcamera.h>
-#include <qcameraimageprocessingcontrol.h>
-
-#include <gst/gst.h>
-#include <glib.h>
-
-#ifdef HAVE_GST_PHOTOGRAPHY
-#include <gst/interfaces/photography.h>
-#endif
+#include <qcamerazoomcontrol.h>
 
 QT_BEGIN_NAMESPACE
 
 class CameraBinSession;
 
-class CameraBinImageProcessing : public QCameraImageProcessingControl
+class CameraBinZoom  : public QCameraZoomControl
 {
     Q_OBJECT
-
 public:
-    CameraBinImageProcessing(CameraBinSession *session);
-    virtual ~CameraBinImageProcessing();
+    CameraBinZoom(CameraBinSession *session);
+    virtual ~CameraBinZoom();
 
-    QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const;
-    void setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
-    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
+    qreal maximumOpticalZoom() const;
+    qreal maximumDigitalZoom() const;
 
-    bool isParameterSupported(ProcessingParameter) const;
-    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const;
-    QVariant parameter(ProcessingParameter parameter) const;
-    void setParameter(ProcessingParameter parameter, const QVariant &value);
+    qreal requestedOpticalZoom() const;
+    qreal requestedDigitalZoom() const;
+    qreal currentOpticalZoom() const;
+    qreal currentDigitalZoom() const;
 
-private:
-    bool setColorBalanceValue(const QString& channel, qreal value);
-    void updateColorBalanceValues();
+    void zoomTo(qreal optical, qreal digital);
 
 private:
     CameraBinSession *m_session;
-    QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
-#ifdef HAVE_GST_PHOTOGRAPHY
-    QMap<GstWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
-#endif
+    qreal m_requestedOpticalZoom;
+    qreal m_requestedDigitalZoom;
 };
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINIMAGEPROCESSINGCONTROL_H
+#endif // CAMERABINZOOMCONTROL_H
