@@ -53,3 +53,6 @@ mac:!simulator {
     }
 }
 
+config_opensles {
+    SUBDIRS += opensles
+}
