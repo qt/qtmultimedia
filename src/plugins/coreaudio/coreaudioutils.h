@@ -3,7 +3,7 @@
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the plugins of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,80 +39,42 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#ifndef IOSAUDIOUTILS_H
+#define IOSAUDIOUTILS_H
 
+#include <CoreAudio/CoreAudioTypes.h>
 
-#ifndef QAUDIO_MAC_P_H
-#define QAUDIO_MAC_P_H
-
-#include <CoreAudio/CoreAudio.h>
-
-#include <QtCore/qdebug.h>
-#include <QtCore/qatomic.h>
-
-#include <qaudioformat.h>
+#include <QtMultimedia/QAudioFormat>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 
-extern QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
-extern AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
+class CoreAudioUtils
+{
+public:
+    static quint64 currentTime();
+    static double frequency();
+    static QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
+    static AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
 
-class QAudioRingBuffer
+private:
+    static void initialize();
+    static double sFrequency;
+    static bool sIsInitialized;
+};
+
+class CoreAudioRingBuffer
 {
 public:
     typedef QPair<char*, int> Region;
 
-    QAudioRingBuffer(int bufferSize);
-    ~QAudioRingBuffer();
+    CoreAudioRingBuffer(int bufferSize);
+    ~CoreAudioRingBuffer();
 
-    Region acquireReadRegion(int size)
-    {
-        const int used = m_bufferUsed.fetchAndAddAcquire(0);
-
-        if (used > 0) {
-            const int readSize = qMin(size, qMin(m_bufferSize - m_readPos, used));
-
-            return readSize > 0 ? Region(m_buffer + m_readPos, readSize) : Region(0, 0);
-        }
-
-        return Region(0, 0);
-    }
-
-    void releaseReadRegion(Region const& region)
-    {
-        m_readPos = (m_readPos + region.second) % m_bufferSize;
-
-        m_bufferUsed.fetchAndAddRelease(-region.second);
-    }
-
-    Region acquireWriteRegion(int size)
-    {
-        const int free = m_bufferSize - m_bufferUsed.fetchAndAddAcquire(0);
-
-        if (free > 0) {
-            const int writeSize = qMin(size, qMin(m_bufferSize - m_writePos, free));
-
-            return writeSize > 0 ? Region(m_buffer + m_writePos, writeSize) : Region(0, 0);
-        }
-
-        return Region(0, 0);
-    }
-
-    void releaseWriteRegion(Region const& region)
-    {
-        m_writePos = (m_writePos + region.second) % m_bufferSize;
-
-        m_bufferUsed.fetchAndAddRelease(region.second);
-    }
+    Region acquireReadRegion(int size);
+    void releaseReadRegion(Region const& region);
+    Region acquireWriteRegion(int size);
+    void releaseWriteRegion(Region const& region);
 
     int used() const;
     int free() const;
@@ -130,6 +92,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif  // QAUDIO_MAC_P_H
-
-
+#endif // IOSAUDIOUTILS_H

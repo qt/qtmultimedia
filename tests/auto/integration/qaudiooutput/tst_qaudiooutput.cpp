@@ -829,8 +829,9 @@ void tst_QAudioOutput::pushSuspendResume()
 
     audioOutput.resume();
 
-    // Give backends running in separate threads a chance to resume.
-    QTest::qWait(100);
+    // Give backends running in separate threads a chance to resume
+    // but not too much or the rest of the file may be processed
+    QTest::qWait(20);
 
     // Check that QAudioOutput immediately transitions to ActiveState
     QVERIFY2((stateSignal.count() == 1),

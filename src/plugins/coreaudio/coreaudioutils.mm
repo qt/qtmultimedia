@@ -3,7 +3,7 @@
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the plugins of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,13 +39,38 @@
 **
 ****************************************************************************/
 
-
-#include "qaudio_mac_p.h"
+#include "coreaudioutils.h"
+#include <mach/mach_time.h>
 
 QT_BEGIN_NAMESPACE
 
-// Conversion
-QAudioFormat toQAudioFormat(AudioStreamBasicDescription const& sf)
+double CoreAudioUtils::sFrequency = 0.0;
+bool CoreAudioUtils::sIsInitialized = false;
+
+void CoreAudioUtils::initialize()
+{
+    struct mach_timebase_info timeBaseInfo;
+    mach_timebase_info(&timeBaseInfo);
+    sFrequency = static_cast<double>(timeBaseInfo.denom) / static_cast<double>(timeBaseInfo.numer);
+    sFrequency *= 1000000000.0;
+
+    sIsInitialized = true;
+}
+
+
+quint64 CoreAudioUtils::currentTime()
+{
+    return mach_absolute_time();
+}
+
+double CoreAudioUtils::frequency()
+{
+    if (!sIsInitialized)
+        initialize();
+    return sFrequency;
+}
+
+QAudioFormat CoreAudioUtils::toQAudioFormat(AudioStreamBasicDescription const& sf)
 {
     QAudioFormat    audioFormat;
 
@@ -64,7 +89,7 @@ QAudioFormat toQAudioFormat(AudioStreamBasicDescription const& sf)
     return audioFormat;
 }
 
-AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat)
+AudioStreamBasicDescription CoreAudioUtils::toAudioStreamBasicDescription(QAudioFormat const& audioFormat)
 {
     AudioStreamBasicDescription sf;
 
@@ -91,34 +116,81 @@ AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& au
 }
 
 // QAudioRingBuffer
-QAudioRingBuffer::QAudioRingBuffer(int bufferSize):
+CoreAudioRingBuffer::CoreAudioRingBuffer(int bufferSize):
     m_bufferSize(bufferSize)
 {
     m_buffer = new char[m_bufferSize];
     reset();
 }
 
-QAudioRingBuffer::~QAudioRingBuffer()
+CoreAudioRingBuffer::~CoreAudioRingBuffer()
 {
     delete m_buffer;
 }
 
-int QAudioRingBuffer::used() const
+CoreAudioRingBuffer::Region CoreAudioRingBuffer::acquireReadRegion(int size)
+{
+    const int used = m_bufferUsed.fetchAndAddAcquire(0);
+
+    if (used > 0) {
+        const int readSize = qMin(size, qMin(m_bufferSize - m_readPos, used));
+
+        return readSize > 0 ? Region(m_buffer + m_readPos, readSize) : Region(0, 0);
+    }
+
+    return Region(0, 0);
+}
+
+void CoreAudioRingBuffer::releaseReadRegion(const CoreAudioRingBuffer::Region &region)
+{
+    m_readPos = (m_readPos + region.second) % m_bufferSize;
+
+    m_bufferUsed.fetchAndAddRelease(-region.second);
+}
+
+CoreAudioRingBuffer::Region CoreAudioRingBuffer::acquireWriteRegion(int size)
+{
+    const int free = m_bufferSize - m_bufferUsed.fetchAndAddAcquire(0);
+
+    Region output;
+
+    if (free > 0) {
+        const int writeSize = qMin(size, qMin(m_bufferSize - m_writePos, free));
+        output =  writeSize > 0 ? Region(m_buffer + m_writePos, writeSize) : Region(0, 0);
+    } else {
+        output = Region(0, 0);
+    }
+#ifdef QT_DEBUG_COREAUDIO
+    qDebug("acquireWriteRegion(%d) free: %d returning Region(%p, %d)", size, free, output.first, output.second);
+#endif
+    return output;
+}
+void CoreAudioRingBuffer::releaseWriteRegion(const CoreAudioRingBuffer::Region &region)
+{
+    m_writePos = (m_writePos + region.second) % m_bufferSize;
+
+    m_bufferUsed.fetchAndAddRelease(region.second);
+#ifdef QT_DEBUG_COREAUDIO
+    qDebug("releaseWriteRegion(%p,%d): m_writePos:%d", region.first, region.second, m_writePos);
+#endif
+}
+
+int CoreAudioRingBuffer::used() const
 {
     return m_bufferUsed.load();
 }
 
-int QAudioRingBuffer::free() const
+int CoreAudioRingBuffer::free() const
 {
     return m_bufferSize - m_bufferUsed.load();
 }
 
-int QAudioRingBuffer::size() const
+int CoreAudioRingBuffer::size() const
 {
     return m_bufferSize;
 }
 
-void QAudioRingBuffer::reset()
+void CoreAudioRingBuffer::reset()
 {
     m_readPos = 0;
     m_writePos = 0;
@@ -126,5 +198,3 @@ void QAudioRingBuffer::reset()
 }
 
 QT_END_NAMESPACE
-
-
