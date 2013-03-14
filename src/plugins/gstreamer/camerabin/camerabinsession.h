@@ -69,6 +69,7 @@ class CameraBinFlash;
 class CameraBinFocus;
 class CameraBinImageProcessing;
 class CameraBinLocks;
+class CameraBinZoom;
 class CameraBinCaptureDestination;
 class CameraBinCaptureBufferFormat;
 class QGstreamerVideoRendererInterface;
@@ -125,6 +126,7 @@ public:
     CameraBinFlash *cameraFlashControl() const  { return m_cameraFlashControl; }
     CameraBinFocus *cameraFocusControl() const  { return m_cameraFocusControl; }
     CameraBinLocks *cameraLocksControl() const { return m_cameraLocksControl; }
+    CameraBinZoom *cameraZoomControl() const { return m_cameraZoomControl; }
 #endif
 
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
@@ -217,6 +219,7 @@ private:
     CameraBinFlash *m_cameraFlashControl;
     CameraBinFocus *m_cameraFocusControl;
     CameraBinLocks *m_cameraLocksControl;
+    CameraBinZoom *m_cameraZoomControl;
 #endif
 
     CameraBinImageProcessing *m_imageProcessingControl;

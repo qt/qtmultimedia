@@ -39,52 +39,83 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINIMAGEPROCESSINGCONTROL_H
-#define CAMERABINIMAGEPROCESSINGCONTROL_H
+#include "camerabinzoom.h"
+#include "camerabinsession.h"
 
-#include <qcamera.h>
-#include <qcameraimageprocessingcontrol.h>
-
-#include <gst/gst.h>
-#include <glib.h>
-
-#ifdef HAVE_GST_PHOTOGRAPHY
 #include <gst/interfaces/photography.h>
-#endif
+
+#define ZOOM_PROPERTY "zoom"
+#define MAX_ZOOM_PROPERTY "max-zoom"
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinSession;
-
-class CameraBinImageProcessing : public QCameraImageProcessingControl
+CameraBinZoom::CameraBinZoom(CameraBinSession *session)
+    : QCameraZoomControl(session)
+    , m_session(session)
+    , m_requestedOpticalZoom(1.0)
+    , m_requestedDigitalZoom(1.0)
 {
-    Q_OBJECT
 
-public:
-    CameraBinImageProcessing(CameraBinSession *session);
-    virtual ~CameraBinImageProcessing();
+}
 
-    QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const;
-    void setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
-    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
+CameraBinZoom::~CameraBinZoom()
+{
+}
 
-    bool isParameterSupported(ProcessingParameter) const;
-    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const;
-    QVariant parameter(ProcessingParameter parameter) const;
-    void setParameter(ProcessingParameter parameter, const QVariant &value);
+qreal CameraBinZoom::maximumOpticalZoom() const
+{
+    return 1.0;
+}
 
-private:
-    bool setColorBalanceValue(const QString& channel, qreal value);
-    void updateColorBalanceValues();
+qreal CameraBinZoom::maximumDigitalZoom() const
+{
+    gfloat zoomFactor = 1.0;
+    g_object_get(GST_BIN(m_session->cameraBin()), MAX_ZOOM_PROPERTY, &zoomFactor, NULL);
+    return zoomFactor;
+}
 
-private:
-    CameraBinSession *m_session;
-    QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
-#ifdef HAVE_GST_PHOTOGRAPHY
-    QMap<GstWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
-#endif
-};
+qreal CameraBinZoom::requestedDigitalZoom() const
+{
+    return m_requestedDigitalZoom;
+}
+
+qreal CameraBinZoom::requestedOpticalZoom() const
+{
+    return m_requestedOpticalZoom;
+}
+
+qreal CameraBinZoom::currentOpticalZoom() const
+{
+    return 1.0;
+}
+
+qreal CameraBinZoom::currentDigitalZoom() const
+{
+    gfloat zoomFactor = 1.0;
+    g_object_get(GST_BIN(m_session->cameraBin()), ZOOM_PROPERTY, &zoomFactor, NULL);
+    return zoomFactor;
+}
+
+void CameraBinZoom::zoomTo(qreal optical, qreal digital)
+{
+    qreal oldDigitalZoom = currentDigitalZoom();
+
+    if (m_requestedDigitalZoom != digital) {
+        m_requestedDigitalZoom = digital;
+        emit requestedDigitalZoomChanged(digital);
+    }
+
+    if (m_requestedOpticalZoom != optical) {
+        m_requestedOpticalZoom = optical;
+        emit requestedOpticalZoomChanged(optical);
+    }
+
+    digital = qBound(qreal(1.0), digital, maximumDigitalZoom());
+    g_object_set(GST_BIN(m_session->cameraBin()), ZOOM_PROPERTY, digital, NULL);
+
+    qreal newDigitalZoom = currentDigitalZoom();
+    if (!qFuzzyCompare(oldDigitalZoom, newDigitalZoom))
+        emit currentDigitalZoomChanged(digital);
+}
 
 QT_END_NAMESPACE
-
-#endif // CAMERABINIMAGEPROCESSINGCONTROL_H

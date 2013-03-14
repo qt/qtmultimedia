@@ -48,8 +48,6 @@
 #include <QtCore/qmetaobject.h>
 
 //#define CAMERABIN_DEBUG 1
-#define ZOOM_PROPERTY "zoom"
-#define MAX_ZOOM_PROPERTY "max-zoom"
 
 QT_BEGIN_NAMESPACE
 
@@ -68,53 +66,21 @@ CameraBinFocus::~CameraBinFocus()
 {
 }
 
-QCameraFocus::FocusMode CameraBinFocus::focusMode() const
+QCameraFocus::FocusModes CameraBinFocus::focusMode() const
 {
     return m_focusMode;
 }
 
-void CameraBinFocus::setFocusMode(QCameraFocus::FocusMode mode)
+void CameraBinFocus::setFocusMode(QCameraFocus::FocusModes mode)
 {
     if (isFocusModeSupported(mode)) {
         m_focusMode = mode;
     }
 }
 
-bool CameraBinFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
+bool CameraBinFocus::isFocusModeSupported(QCameraFocus::FocusModes mode) const
 {
     return mode & QCameraFocus::AutoFocus;
-}
-
-qreal CameraBinFocus::maximumOpticalZoom() const
-{
-    return 1.0;
-}
-
-qreal CameraBinFocus::maximumDigitalZoom() const
-{
-    gfloat zoomFactor = 1.0;
-    g_object_get(GST_BIN(m_session->cameraBin()), MAX_ZOOM_PROPERTY, &zoomFactor, NULL);
-    return zoomFactor;
-}
-
-qreal CameraBinFocus::opticalZoom() const
-{
-    return 1.0;
-}
-
-qreal CameraBinFocus::digitalZoom() const
-{
-    gfloat zoomFactor = 1.0;
-    g_object_get(GST_BIN(m_session->cameraBin()), ZOOM_PROPERTY, &zoomFactor, NULL);
-    return zoomFactor;
-}
-
-void CameraBinFocus::zoomTo(qreal optical, qreal digital)
-{
-    Q_UNUSED(optical);
-    digital = qBound(qreal(1.0), digital, maximumDigitalZoom());
-    g_object_set(GST_BIN(m_session->cameraBin()), ZOOM_PROPERTY, digital, NULL);
-    emit digitalZoomChanged(digital);
 }
 
 QCameraFocus::FocusPointMode CameraBinFocus::focusPointMode() const
