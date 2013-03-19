@@ -45,8 +45,6 @@
 #include <QtMultimedia/qmediacontrol.h>
 #include <QtMultimedia/qradiodata.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -87,8 +85,6 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QRadioDataControl, QRadioDataControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif  // QRADIODATACONTROL_H

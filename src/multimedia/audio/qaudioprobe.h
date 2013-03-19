@@ -45,8 +45,6 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qaudiobuffer.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QMediaObject;
@@ -74,7 +72,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QAUDIOPROBE_H

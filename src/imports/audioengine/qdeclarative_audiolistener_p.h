@@ -45,8 +45,6 @@
 #include <QtCore/QObject>
 #include <QtGui/qvector3d.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeAudioEngine;
@@ -96,7 +94,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif

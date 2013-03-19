@@ -45,8 +45,6 @@
 #include <QtMultimedia/qmediacontrol.h>
 #include <QtMultimedia/qmediarecorder.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QUrl;
@@ -99,8 +97,6 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaRecorderControl, QMediaRecorderControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif

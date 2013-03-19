@@ -47,8 +47,6 @@
 #include <QtCore/qlist.h>
 #include "qdeclarative_playvariation_p.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeAudioCategory;
@@ -170,7 +168,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif

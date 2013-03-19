@@ -49,8 +49,6 @@
 #include <QtMultimedia/qtmultimediadefs.h>
 #include <QtMultimedia/qmultimedia.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QAudioFormatPrivate;
@@ -116,7 +114,5 @@ QT_END_NAMESPACE
 Q_DECLARE_METATYPE(QAudioFormat)
 Q_DECLARE_METATYPE(QAudioFormat::SampleType)
 Q_DECLARE_METATYPE(QAudioFormat::Endian)
-
-QT_END_HEADER
 
 #endif  // QAUDIOFORMAT_H

@@ -69,8 +69,6 @@
 #include <qaudiosystem.h>
 
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -141,7 +139,7 @@ private:
 
     QMutex mutex;
     static void QT_WIN_CALLBACK waveInProc( HWAVEIN hWaveIn, UINT uMsg,
-            DWORD dwInstance, DWORD dwParam1, DWORD dwParam2 );
+            DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
 
     WAVEHDR* allocateBlocks(int size, int count);
     void freeBlocks(WAVEHDR* blockArray);
@@ -150,7 +148,7 @@ private:
 
     void initMixer();
     void closeMixer();
-    UINT mixerID;
+    HMIXEROBJ mixerID;
     MIXERLINECONTROLS mixerLineControls;
 
 private slots:
@@ -177,8 +175,6 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif

@@ -76,8 +76,6 @@
 #  endif
 #endif
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -134,7 +132,7 @@ private:
     int intervalTime;
     qreal volumeCache;
     static void QT_WIN_CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
-            DWORD dwInstance, DWORD dwParam1, DWORD dwParam2 );
+            DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
 
     QMutex mutex;
 
@@ -169,8 +167,6 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif

@@ -136,6 +136,8 @@ void Camera::setCamera(const QByteArray &cameraDevice)
     connect(imageCapture, SIGNAL(readyForCaptureChanged(bool)), this, SLOT(readyForCapture(bool)));
     connect(imageCapture, SIGNAL(imageCaptured(int,QImage)), this, SLOT(processCapturedImage(int,QImage)));
     connect(imageCapture, SIGNAL(imageSaved(int,QString)), this, SLOT(imageSaved(int,QString)));
+    connect(imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)), this,
+            SLOT(displayCaptureError(int,QCameraImageCapture::Error,QString)));
 
     connect(camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)),
             this, SLOT(updateLockStatus(QCamera::LockStatus, QCamera::LockChangeReason)));
@@ -318,6 +320,14 @@ void Camera::takeImage()
 {
     isCapturingImage = true;
     imageCapture->capture();
+}
+
+void Camera::displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(error);
+    QMessageBox::warning(this, tr("Image Capture Error"), errorString);
+    isCapturingImage = false;
 }
 
 void Camera::startCamera()

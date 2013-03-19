@@ -45,8 +45,6 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qvideoframe.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QRectF;
@@ -112,7 +110,5 @@ QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QAbstractVideoSurface*)
 Q_DECLARE_METATYPE(QAbstractVideoSurface::Error)
-
-QT_END_HEADER
 
 #endif

@@ -48,8 +48,6 @@
 #include <QtCore/qpair.h>
 #include <QtCore/qsize.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QByteArray;
@@ -88,8 +86,6 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QVideoEncoderSettingsControl, QVideoEncoderSettingsControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif

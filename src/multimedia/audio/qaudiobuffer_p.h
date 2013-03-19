@@ -47,8 +47,6 @@
 
 #include "qaudioformat.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -85,7 +83,5 @@ public:
 
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QAUDIOBUFFER_P_H

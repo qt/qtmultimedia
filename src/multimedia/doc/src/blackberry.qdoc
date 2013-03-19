@@ -46,6 +46,8 @@ The Qt Multimedia BlackBerry backend uses mmrenderer for media playback.
 For the positional audio classes in the \l {Positional Audio} {QtAudioEngine} QML
 module, OpenAL is used as on all other platforms.
 
+For recording videos and taking photos, the camapi library is used.
+
 \section1 Supported Features
 
 Playback of audio and video with QMediaPlayer and related classes is supported.
@@ -64,6 +66,12 @@ no effect.
 The \l {Positional Audio} {QtAudioEngine} QML module is fully supported, as it is based on OpenAL which is available
 in BB10.
 
+The \l {camera} {QCamera} support includes recording of videos and taking photos. The viewfinder
+is available through QCameraViewfinder and the VideoOutput QML element.
+
+Note: To use the camera on BB10, your application needs the 'access_shared', 'use_camera' and 'record_audio'
+permissions set in the bar-descriptor.xml file.
+
 \section1 Unsupported Features
 
 Low-latency output and input of raw audio samples with QAudioOutput, QAudioInput and related classes is
@@ -74,5 +82,5 @@ QMediaPlayer does not support QIODevice-based streaming sources. However, stream
 an HTTP URL as the source does work. In addition, QMediaPlayer does not yet provide metadata like
 the artist and album of the current track.
 
-Camera, radio and audio and video recording are not yet supported.
+Radio and audio recording are not yet supported.
 */

@@ -53,8 +53,6 @@
 #include <QtMultimedia/qaudiodeviceinfo.h>
 #include <QtMultimedia/qaudiosystem.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -92,7 +90,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QAUDIOSYSTEMPLUGIN_H

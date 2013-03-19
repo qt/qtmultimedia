@@ -49,8 +49,6 @@
 #include <QtMultimedia/qtmultimediadefs.h>
 #include <QtMultimedia/qmultimedia.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -179,8 +177,6 @@ QT_END_NAMESPACE
 Q_DECLARE_METATYPE(QAudioEncoderSettings)
 Q_DECLARE_METATYPE(QVideoEncoderSettings)
 Q_DECLARE_METATYPE(QImageEncoderSettings)
-
-QT_END_HEADER
 
 
 #endif

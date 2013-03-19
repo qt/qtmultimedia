@@ -119,6 +119,7 @@ QMediaControl* DSCameraService::requestControl(const char *name)
 
 void DSCameraService::releaseControl(QMediaControl *control)
 {
+    Q_UNUSED(control)
    // Implemented as a singleton, so we do nothing.
 }
 

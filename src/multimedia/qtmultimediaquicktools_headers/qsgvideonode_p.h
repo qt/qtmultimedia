@@ -49,8 +49,6 @@
 #include <QtMultimedia/qvideosurfaceformat.h>
 #include <QtGui/qopenglfunctions.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 const QLatin1String QSGVideoNodeFactoryPluginKey("sgvideonodes");
@@ -91,7 +89,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QSGVIDEONODE_H

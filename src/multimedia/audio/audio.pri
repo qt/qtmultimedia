@@ -39,7 +39,8 @@ SOURCES += \
            audio/qaudiodecoder.cpp \
            audio/qaudiohelpers.cpp
 
-mac {
+mac:!ios {
+
     PRIVATE_HEADERS +=  audio/qaudioinput_mac_p.h \
                 audio/qaudiooutput_mac_p.h \
                 audio/qaudiodeviceinfo_mac_p.h \
@@ -49,7 +50,6 @@ mac {
                audio/qaudiooutput_mac_p.cpp \
                audio/qaudioinput_mac_p.cpp \
                audio/qaudio_mac.cpp
-
     LIBS += -framework ApplicationServices -framework CoreAudio -framework AudioUnit -framework AudioToolbox
 }
 

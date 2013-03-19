@@ -50,8 +50,6 @@
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudioformat.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QAbstractAudioBuffer;
@@ -151,7 +149,5 @@ template <> struct QAudioBuffer::StereoFrameDefault<unsigned short> { enum { Def
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QAudioBuffer)
-
-QT_END_HEADER
 
 #endif // QAUDIOBUFFER_H

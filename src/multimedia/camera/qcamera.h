@@ -58,8 +58,6 @@
 
 #include <QtMultimedia/qmediaenumdebug.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -233,7 +231,5 @@ Q_MEDIA_ENUM_DEBUG(QCamera, CaptureMode)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockType)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockStatus)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockChangeReason)
-
-QT_END_HEADER
 
 #endif  // QCAMERA_H

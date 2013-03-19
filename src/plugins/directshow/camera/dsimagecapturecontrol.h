@@ -45,8 +45,6 @@
 #include <qcameraimagecapturecontrol.h>
 #include "dscamerasession.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class DSImageCaptureControl : public QCameraImageCaptureControl
@@ -60,7 +58,7 @@ public:
     int capture(const QString &fileName);
 
     virtual QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    virtual void setDriveMode(QCameraImageCapture::DriveMode mode) { }
+    virtual void setDriveMode(QCameraImageCapture::DriveMode mode) { Q_UNUSED(mode) }
 
     virtual void cancelCapture() {}
 
@@ -74,7 +72,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // DSCAPTURECONTROL_H

@@ -29,7 +29,7 @@ qhp.qtmultimedia.subprojects.qmltypes.indexTitle = Qt Multimedia QML Types
 qhp.qtmultimedia.subprojects.qmltypes.selectors = fake:qmlclass
 qhp.qtmultimedia.subprojects.qmltypes.sortPages = true
 
-exampledirs += ../../../examples \
+exampledirs += ../../../examples/multimedia \
                snippets
 
 headerdirs += ../..
@@ -38,6 +38,6 @@ imagedirs += src/images \
 
 sourcedirs += ../..
 
-excludedirs +=
+excludedirs += ../../multimediawidgets
 
-depends                 += qtcore qtdoc qtquick qtqml
+depends                 += qtcore qtdoc qtquick qtqml qtmultimediawidgets

@@ -85,7 +85,7 @@ QAudioInputPrivate::~QAudioInputPrivate()
 }
 
 void QT_WIN_CALLBACK QAudioInputPrivate::waveInProc( HWAVEIN hWaveIn, UINT uMsg,
-        DWORD dwInstance, DWORD dwParam1, DWORD dwParam2 )
+        DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 )
 {
     Q_UNUSED(dwParam1)
     Q_UNUSED(dwParam2)
@@ -197,7 +197,7 @@ void QAudioInputPrivate::setVolume(qreal volume)
             controlDetails.cMultipleItems = 0;
             controlDetails.cbDetails = sizeof(MIXERCONTROLDETAILS_UNSIGNED);
             controlDetails.paDetails = &controlDetailsUnsigned;
-            mixerSetControlDetails((HMIXEROBJ)mixerID, &controlDetails, MIXER_SETCONTROLDETAILSF_VALUE);
+            mixerSetControlDetails(mixerID, &controlDetails, MIXER_SETCONTROLDETAILSF_VALUE);
         }
     }
 }
@@ -221,7 +221,7 @@ qreal QAudioInputPrivate::volume() const
         controlDetails.paDetails = &detailsUnsigned;
         memset(controlDetails.paDetails, 0, controlDetails.cbDetails);
 
-        MMRESULT result = mixerGetControlDetails((HMIXEROBJ)mixerID, &controlDetails, MIXER_GETCONTROLDETAILSF_VALUE);
+        MMRESULT result = mixerGetControlDetails(mixerID, &controlDetails, MIXER_GETCONTROLDETAILSF_VALUE);
         if (result != MMSYSERR_NOERROR)
             continue;
         if (controlDetails.cbDetails < sizeof(MIXERCONTROLDETAILS_UNSIGNED))
@@ -431,14 +431,16 @@ void QAudioInputPrivate::initMixer()
         return;
 
     // Get the Mixer ID from the Sound Device ID
-    if (mixerGetID((HMIXEROBJ)inputDevice, &mixerID, MIXER_OBJECTF_WAVEIN) != MMSYSERR_NOERROR)
+    UINT mixerIntID = 0;
+    if (mixerGetID((HMIXEROBJ)(quintptr(inputDevice)), &mixerIntID, MIXER_OBJECTF_WAVEIN) != MMSYSERR_NOERROR)
         return;
+    mixerID = (HMIXEROBJ)mixerIntID;
 
     // Get the Destination (Recording) Line Infomation
     MIXERLINE mixerLine;
     mixerLine.cbStruct = sizeof(MIXERLINE);
     mixerLine.dwComponentType = MIXERLINE_COMPONENTTYPE_DST_WAVEIN;
-    if (mixerGetLineInfo((HMIXEROBJ)mixerID, &mixerLine, MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
+    if (mixerGetLineInfo(mixerID, &mixerLine, MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
         return;
 
     // Set all the Destination (Recording) Line Controls
@@ -448,7 +450,7 @@ void QAudioInputPrivate::initMixer()
         mixerLineControls.cControls = mixerLine.cControls;
         mixerLineControls.cbmxctrl = sizeof(MIXERCONTROL);
         mixerLineControls.pamxctrl = new MIXERCONTROL[mixerLineControls.cControls];
-        if (mixerGetLineControls((HMIXEROBJ)mixerID, &mixerLineControls, MIXER_GETLINECONTROLSF_ALL) != MMSYSERR_NOERROR)
+        if (mixerGetLineControls(mixerID, &mixerLineControls, MIXER_GETLINECONTROLSF_ALL) != MMSYSERR_NOERROR)
             closeMixer();
     }
 }

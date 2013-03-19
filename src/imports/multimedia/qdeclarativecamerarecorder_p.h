@@ -57,8 +57,6 @@
 #include <qmediarecorder.h>
 #include <qmediaencodersettings.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;
@@ -226,7 +224,5 @@ private:
 QT_END_NAMESPACE
 
 QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeCameraRecorder))
-
-QT_END_HEADER
 
 #endif

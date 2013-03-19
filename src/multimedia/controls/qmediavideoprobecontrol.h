@@ -46,8 +46,6 @@
 
 #include <QtMultimedia/qmediacontrol.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
@@ -69,8 +67,6 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaVideoProbeControl, QMediaVideoProbeControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif // QMEDIAVIDEOPROBECONTROL_H

@@ -160,6 +160,7 @@ HRESULT VideoSurfaceFilter::Stop()
 
 HRESULT VideoSurfaceFilter::GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *pState)
 {
+    Q_UNUSED(dwMilliSecsTimeout)
     if (!pState)
         return E_POINTER;
 
@@ -264,6 +265,8 @@ ULONG VideoSurfaceFilter::GetMiscFlags()
 
 HRESULT VideoSurfaceFilter::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
 {
+    Q_UNUSED(pReceivePin)
+    Q_UNUSED(pmt)
     // This is an input pin, you shouldn't be calling Connect on it.
     return E_POINTER;
 }
@@ -547,19 +550,20 @@ HRESULT VideoSurfaceFilter::cloneMediaType(int token, int index, IEnumMediaTypes
 
 void VideoSurfaceFilter::customEvent(QEvent *event)
 {
-    if (event->type() == StartSurface) {
+    const int type = event->type();
+    if (type == StartSurface) {
         QMutexLocker locker(&m_mutex);
 
         m_startResult = start();
 
         m_wait.wakeAll();
-    } else if (event->type() == StopSurface) {
+    } else if (type == StopSurface) {
         QMutexLocker locker(&m_mutex);
 
         stop();
 
         m_wait.wakeAll();
-    } else if (event->type() == FlushSurface) {
+    } else if (type == FlushSurface) {
         QMutexLocker locker(&m_mutex);
 
         flush();

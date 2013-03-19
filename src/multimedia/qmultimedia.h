@@ -49,8 +49,6 @@
 #include <QtMultimedia/qtmultimediadefs.h>
 #include <QtMultimedia/qmediametadata.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 namespace QMultimedia
@@ -96,8 +94,6 @@ Q_DECLARE_METATYPE(QMultimedia::AvailabilityStatus)
 Q_DECLARE_METATYPE(QMultimedia::SupportEstimate)
 Q_DECLARE_METATYPE(QMultimedia::EncodingMode)
 Q_DECLARE_METATYPE(QMultimedia::EncodingQuality)
-
-QT_END_HEADER
 
 
 #endif

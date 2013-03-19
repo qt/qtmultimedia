@@ -58,8 +58,6 @@
 #include <qcamerafocus.h>
 #include "qdeclarativecamera_p.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class FocusZonesModel;
@@ -130,7 +128,5 @@ private:
 QT_END_NAMESPACE
 
 QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeCameraFocus))
-
-QT_END_HEADER
 
 #endif

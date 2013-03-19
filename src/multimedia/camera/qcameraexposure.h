@@ -45,8 +45,6 @@
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -182,7 +180,5 @@ Q_DECLARE_METATYPE(QCameraExposure::MeteringMode)
 Q_MEDIA_ENUM_DEBUG(QCameraExposure, ExposureMode)
 Q_MEDIA_ENUM_DEBUG(QCameraExposure, FlashMode)
 Q_MEDIA_ENUM_DEBUG(QCameraExposure, MeteringMode)
-
-QT_END_HEADER
 
 #endif // QCAMERAEXPOSURE_H

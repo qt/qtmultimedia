@@ -45,8 +45,6 @@
 #include <QtCore/qobject.h>
 #include <qcameracontrol.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class DSCameraService;
@@ -86,8 +84,6 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif
 

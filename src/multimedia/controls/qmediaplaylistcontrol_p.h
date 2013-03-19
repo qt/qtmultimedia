@@ -59,8 +59,6 @@
 #include <private/qmediaplaylistnavigator_p.h>
 
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -101,8 +99,6 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaPlaylistControl, QMediaPlaylistControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif // QMEDIAPLAYLISTCONTROL_P_H

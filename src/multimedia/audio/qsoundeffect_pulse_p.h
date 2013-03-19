@@ -62,8 +62,6 @@
 #include <pulse/pulseaudio.h>
 #include "qsamplecache_p.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QSoundEffectRef;
@@ -168,7 +166,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QSOUNDEFFECT_PULSE_H

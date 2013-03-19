@@ -48,8 +48,6 @@
 
 #include <QtCore/qpair.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -121,8 +119,6 @@ protected:
 Q_MEDIA_DECLARE_CONTROL(QMediaPlayerControl, QMediaPlayerControl_iid)
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 
 #endif  // QMEDIAPLAYERCONTROL_H

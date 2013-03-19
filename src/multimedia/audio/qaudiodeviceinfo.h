@@ -55,8 +55,6 @@
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudioformat.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -109,7 +107,5 @@ private:
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QAudioDeviceInfo)
-
-QT_END_HEADER
 
 #endif // QAUDIODEVICEINFO_H

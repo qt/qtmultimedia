@@ -57,8 +57,6 @@
 #include <qradiotuner.h>
 #include <QtQml/qqml.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeRadioData : public QObject
@@ -190,7 +188,5 @@ private:
 QT_END_NAMESPACE
 
 QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeRadioData))
-
-QT_END_HEADER
 
 #endif // QDECLARATIVERADIODATA_P_H

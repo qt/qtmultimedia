@@ -7,6 +7,8 @@ qtHaveModule(opengl):!contains(QT_CONFIG, opengles1) {
    DEFINES += QT_NO_OPENGL
 }
 
+QMAKE_DOCS = $$PWD/doc/qtmultimediawidgets.qdocconf
+
 load(qt_module)
 
 PRIVATE_HEADERS += \
@@ -26,7 +28,7 @@ SOURCES += \
     qvideowidgetcontrol.cpp \
     qvideowidget.cpp
 
-mac {
+mac:!ios {
     !simulator {
         PRIVATE_HEADERS += qpaintervideosurface_mac_p.h
         OBJECTIVE_SOURCES += qpaintervideosurface_mac.mm
@@ -52,4 +54,3 @@ maemo6 {
 }
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
-

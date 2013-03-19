@@ -46,8 +46,6 @@
 #include <QtGui/qvector3d.h>
 #include "qsoundinstance_p.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeSound;
@@ -149,7 +147,5 @@ private Q_SLOTS:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif

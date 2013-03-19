@@ -59,8 +59,6 @@
 #include "qsamplecache_p.h"
 #include "qsoundeffect.h"
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QSoundEffectPrivate;
@@ -150,7 +148,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QSOUNDEFFECT_QAUDIO_H

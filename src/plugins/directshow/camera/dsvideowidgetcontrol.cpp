@@ -48,6 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 DSVideoWidgetSurface::DSVideoWidgetSurface(QLabel *pWidget, QObject *parent)
+    : QAbstractVideoSurface(parent)
 {
     widget = pWidget;
     myPixmap = 0;
@@ -106,11 +107,13 @@ void DSVideoWidgetSurface::updateVideoRect()
 
 void DSVideoWidgetSurface::paint(QPainter *painter)
 {
+    Q_UNUSED(painter)
 }
 
 
 DSVideoWidgetControl::DSVideoWidgetControl(DSCameraSession* session, QObject *parent) :
-    m_session(session), QVideoWidgetControl(parent),
+    QVideoWidgetControl(parent),
+    m_session(session),
     m_widget(new QLabel()),
     m_fullScreen(false)
 {

@@ -51,8 +51,6 @@
 # pragma Q_MOC_EXPAND_MACROS
 #endif
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -226,7 +224,5 @@ public:
 #define Q_MEDIASERVICE_AUDIODECODER "org.qt-project.qt.audiodecode"
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif  // QMEDIASERVICEPROVIDERPLUGIN_H
