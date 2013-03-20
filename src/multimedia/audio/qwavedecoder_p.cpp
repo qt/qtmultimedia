@@ -153,13 +153,15 @@ void QWaveDecoder::handleData()
             chunk descriptor;
             peekChunk(&descriptor);
 
-            if (source->bytesAvailable() < qint64(descriptor.size + sizeof(chunk)))
+            quint32 rawChunkSize = descriptor.size + sizeof(chunk);
+            if (source->bytesAvailable() < qint64(rawChunkSize))
                 return;
 
             WAVEHeader wave;
             source->read(reinterpret_cast<char *>(&wave), sizeof(WAVEHeader));
-            if (descriptor.size > sizeof(WAVEHeader))
-                discardBytes(descriptor.size - sizeof(WAVEHeader));
+
+            if (rawChunkSize > sizeof(WAVEHeader))
+                discardBytes(rawChunkSize - sizeof(WAVEHeader));
 
             // Swizzle this
             if (bigEndian) {
