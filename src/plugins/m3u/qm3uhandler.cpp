@@ -190,7 +190,7 @@ QM3uPlaylistPlugin::~QM3uPlaylistPlugin()
 
 bool QM3uPlaylistPlugin::canRead(QIODevice *device, const QByteArray &format) const
 {
-    return device->isReadable() && (format == "m3u" || format.isEmpty());
+    return device->isReadable() && (format == "m3u" || format == "m3u8" || format.isEmpty());
 }
 
 bool QM3uPlaylistPlugin::canRead(const QUrl& location, const QByteArray &format) const
@@ -198,18 +198,18 @@ bool QM3uPlaylistPlugin::canRead(const QUrl& location, const QByteArray &format)
     if (!QFileInfo(location.toLocalFile()).isReadable())
         return false;
 
-    if (format == "m3u")
+    if (format == "m3u" || format == "m3u8")
         return true;
 
     if (!format.isEmpty())
         return false;
-    else
-        return location.toLocalFile().toLower().endsWith(QLatin1String("m3u"));
+    QString localFile = location.toLocalFile().toLower();
+    return localFile.endsWith(QLatin1String("m3u")) || localFile.endsWith(QLatin1String("m3u8"));
 }
 
 bool QM3uPlaylistPlugin::canWrite(QIODevice *device, const QByteArray &format) const
 {
-    return device->isOpen() && device->isWritable() && format == "m3u";
+    return device->isOpen() && device->isWritable() && (format == "m3u" || format == "m3u8");
 }
 
 QMediaPlaylistReader *QM3uPlaylistPlugin::createReader(QIODevice *device, const QByteArray &format)
