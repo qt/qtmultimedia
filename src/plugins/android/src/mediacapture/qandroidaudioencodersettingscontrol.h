@@ -39,80 +39,31 @@
 **
 ****************************************************************************/
 
-#include "jsurfacetexture.h"
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#ifndef QANDROIDAUDIOENCODERSETTINGSCONTROL_H
+#define QANDROIDAUDIOENCODERSETTINGSCONTROL_H
+
+#include <qaudioencodersettingscontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-static jclass g_qtSurfaceTextureClass = 0;
-static QHash<int, JSurfaceTexture*> g_objectMap;
+class QAndroidCaptureSession;
 
-// native method for QtSurfaceTexture.java
-static void notifyFrameAvailable(JNIEnv* , jobject, int id)
+class QAndroidAudioEncoderSettingsControl : public QAudioEncoderSettingsControl
 {
-    JSurfaceTexture *obj = g_objectMap.value(id, 0);
-    if (obj)
-        Q_EMIT obj->frameAvailable();
-}
+    Q_OBJECT
+public:
+    explicit QAndroidAudioEncoderSettingsControl(QAndroidCaptureSession *session);
 
-JSurfaceTexture::JSurfaceTexture(unsigned int texName)
-    : QObject()
-    , QJNIObject(g_qtSurfaceTextureClass, "(I)V", jint(texName))
-    , m_texID(int(texName))
-{
-    if (isValid())
-        g_objectMap.insert(int(texName), this);
-}
+    QStringList supportedAudioCodecs() const Q_DECL_OVERRIDE;
+    QString codecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
+    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
+    QAudioEncoderSettings audioSettings() const Q_DECL_OVERRIDE;
+    void setAudioSettings(const QAudioEncoderSettings &settings) Q_DECL_OVERRIDE;
 
-JSurfaceTexture::~JSurfaceTexture()
-{
-    if (isValid())
-        g_objectMap.remove(m_texID);
-}
-
-QMatrix4x4 JSurfaceTexture::getTransformMatrix()
-{
-    QAttachedJNIEnv env;
-
-    QMatrix4x4 matrix;
-    jfloatArray array = env->NewFloatArray(16);
-    callMethod<void>("getTransformMatrix", "([F)V", array);
-    env->GetFloatArrayRegion(array, 0, 16, matrix.data());
-    env->DeleteLocalRef(array);
-
-    return matrix;
-}
-
-void JSurfaceTexture::updateTexImage()
-{
-    callMethod<void>("updateTexImage");
-}
-
-QJNILocalRef<jobject> JSurfaceTexture::surfaceTexture()
-{
-    return getObjectField<jobject>("surfaceTexture", "Landroid/graphics/SurfaceTexture;");
-}
-
-static JNINativeMethod methods[] = {
-    {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
+private:
+    QAndroidCaptureSession *m_session;
 };
 
-bool JSurfaceTexture::initJNI(JNIEnv *env)
-{
-    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtSurfaceTexture");
-    if (env->ExceptionCheck())
-        env->ExceptionClear();
-
-    if (clazz) {
-        g_qtSurfaceTextureClass = static_cast<jclass>(env->NewGlobalRef(clazz));
-        if (env->RegisterNatives(g_qtSurfaceTextureClass,
-                                 methods,
-                                 sizeof(methods) / sizeof(methods[0])) < 0) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 QT_END_NAMESPACE
+
+#endif // QANDROIDAUDIOENCODERSETTINGSCONTROL_H

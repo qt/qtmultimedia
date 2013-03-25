@@ -81,6 +81,7 @@ QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
 
 QAndroidMediaPlayerControl::~QAndroidMediaPlayerControl()
 {
+    mMediaPlayer->stop();
     mMediaPlayer->release();
     delete mMediaPlayer;
 }

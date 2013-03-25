@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS += mediaplayer \
+SUBDIRS += src \
            jar
 

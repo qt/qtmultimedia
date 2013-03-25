@@ -39,37 +39,37 @@
 **
 ****************************************************************************/
 
-#ifndef JSURFACETEXTURE_H
-#define JSURFACETEXTURE_H
+#ifndef QANDROIDMEDIASERVICEPLUGIN_H
+#define QANDROIDMEDIASERVICEPLUGIN_H
 
-#include <qobject.h>
-#include <QtPlatformSupport/private/qjniobject_p.h>
-
-#include <QMatrix4x4>
+#include <QMediaServiceProviderPlugin>
 
 QT_BEGIN_NAMESPACE
 
-class JSurfaceTexture : public QObject, public QJNIObject
+class QAndroidMediaServicePlugin
+        : public QMediaServiceProviderPlugin
+        , public QMediaServiceSupportedDevicesInterface
+        , public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
+    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_INTERFACES(QMediaServiceFeaturesInterface)
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0"
+                      FILE "android_mediaservice.json")
+
 public:
-    explicit JSurfaceTexture(unsigned int texName);
-    ~JSurfaceTexture();
+    QAndroidMediaServicePlugin();
+    ~QAndroidMediaServicePlugin();
 
-    QMatrix4x4 getTransformMatrix();
-    void updateTexImage();
+    QMediaService* create(QString const& key) Q_DECL_OVERRIDE;
+    void release(QMediaService *service) Q_DECL_OVERRIDE;
 
-    QJNILocalRef<jobject> surfaceTexture();
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
 
-    static bool initJNI(JNIEnv *env);
-
-Q_SIGNALS:
-    void frameAvailable();
-
-private:
-    int m_texID;
+    QList<QByteArray> devices(const QByteArray &service) const;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device);
 };
 
 QT_END_NAMESPACE
 
-#endif // JSURFACETEXTURE_H
+#endif // QANDROIDMEDIASERVICEPLUGIN_H

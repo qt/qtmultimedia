@@ -1,0 +1,19 @@
+TARGET = qtmedia_android
+QT += multimedia-private gui-private platformsupport-private network
+
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = QAndroidMediaServicePlugin
+load(qt_plugin)
+
+HEADERS += \
+    qandroidmediaserviceplugin.h
+
+SOURCES += \
+    qandroidmediaserviceplugin.cpp
+
+include (wrappers/wrappers.pri)
+include (common/common.pri)
+include (mediaplayer/mediaplayer.pri)
+include (mediacapture/mediacapture.pri)
+
+OTHER_FILES += android_mediaservice.json

@@ -39,34 +39,61 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASERVICEPLUGIN_H
-#define QANDROIDMEDIASERVICEPLUGIN_H
+#include "qandroidvideoencodersettingscontrol.h"
 
-#include <QMediaServiceProviderPlugin>
+#include "qandroidcapturesession.h"
 
 QT_BEGIN_NAMESPACE
 
-class QMediaService;
-class QAndroidMediaService;
-
-class QAndroidMediaServicePlugin
-        : public QMediaServiceProviderPlugin
-        , public QMediaServiceFeaturesInterface
+QAndroidVideoEncoderSettingsControl::QAndroidVideoEncoderSettingsControl(QAndroidCaptureSession *session)
+    : QVideoEncoderSettingsControl()
+    , m_session(session)
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0"
-                      FILE "mediaplayer.json")
+}
 
-public:
-    QAndroidMediaServicePlugin();
-    ~QAndroidMediaServicePlugin();
+QList<QSize> QAndroidVideoEncoderSettingsControl::supportedResolutions(const QVideoEncoderSettings &, bool *continuous) const
+{
+    if (continuous)
+        *continuous = false;
 
-    QMediaService* create(QString const& key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
-};
+    return m_session->supportedResolutions();
+}
+
+QList<qreal> QAndroidVideoEncoderSettingsControl::supportedFrameRates(const QVideoEncoderSettings &, bool *continuous) const
+{
+    if (continuous)
+        *continuous = false;
+
+    return m_session->supportedFrameRates();
+}
+
+QStringList QAndroidVideoEncoderSettingsControl::supportedVideoCodecs() const
+{
+    return QStringList() << QLatin1String("h263")
+                         << QLatin1String("h264")
+                         << QLatin1String("mpeg4_sp");
+}
+
+QString QAndroidVideoEncoderSettingsControl::videoCodecDescription(const QString &codecName) const
+{
+    if (codecName == QLatin1String("h263"))
+        return tr("H.263 compression");
+    else if (codecName == QLatin1String("h264"))
+        return tr("H.264 compression");
+    else if (codecName == QLatin1String("mpeg4_sp"))
+        return tr("MPEG-4 SP compression");
+
+    return QString();
+}
+
+QVideoEncoderSettings QAndroidVideoEncoderSettingsControl::videoSettings() const
+{
+    return m_session->videoSettings();
+}
+
+void QAndroidVideoEncoderSettingsControl::setVideoSettings(const QVideoEncoderSettings &settings)
+{
+    m_session->setVideoSettings(settings);
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDMEDIASERVICEPLUGIN_H

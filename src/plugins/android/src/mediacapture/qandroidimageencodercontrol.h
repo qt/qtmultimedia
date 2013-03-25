@@ -39,32 +39,34 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDVIDEOOUTPUT_H
-#define QANDROIDVIDEOOUTPUT_H
+#ifndef QANDROIDIMAGEENCODERCONTROL_H
+#define QANDROIDIMAGEENCODERCONTROL_H
 
-#include <qglobal.h>
-#include <qsize.h>
-#include <jni.h>
+#include <qimageencodercontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-typedef void (*TextureReadyCallback)(void*);
+class QAndroidCameraSession;
 
-class QAndroidVideoOutput
+class QAndroidImageEncoderControl : public QImageEncoderControl
 {
+    Q_OBJECT
 public:
-    QAndroidVideoOutput() { }
-    virtual ~QAndroidVideoOutput() { }
+    explicit QAndroidImageEncoderControl(QAndroidCameraSession *session);
 
-    virtual jobject surfaceHolder() = 0;
+    QStringList supportedImageCodecs() const Q_DECL_OVERRIDE;
+    QString imageCodecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
+    QList<QSize> supportedResolutions(const QImageEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
+    QImageEncoderSettings imageSettings() const Q_DECL_OVERRIDE;
+    void setImageSettings(const QImageEncoderSettings &settings) Q_DECL_OVERRIDE;
 
-    virtual bool isTextureReady() = 0;
-    virtual void setTextureReadyCallback(TextureReadyCallback cb, void *context = 0) = 0;
+private Q_SLOTS:
+    void onCameraOpened();
 
-    virtual void setVideoSize(const QSize &size) = 0;
-    virtual void stop() = 0;
+private:
+    QAndroidCameraSession *m_session;
+
+    QList<QSize> m_supportedResolutions;
 };
 
-QT_END_NAMESPACE
-
-#endif // QANDROIDVIDEOOUTPUT_H
+#endif // QANDROIDIMAGEENCODERCONTROL_H

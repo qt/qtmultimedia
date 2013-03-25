@@ -146,9 +146,7 @@ QAndroidVideoRendererControl::~QAndroidVideoRendererControl()
         m_glContext->makeCurrent(m_offscreenSurface);
 
     if (m_surfaceTexture) {
-        QJNILocalRef<jobject> surfaceTex = m_surfaceTexture->surfaceTexture();
-        QJNIObject obj(surfaceTex.object());
-        obj.callMethod<void>("release");
+        m_surfaceTexture->callMethod<void>("release");
         delete m_surfaceTexture;
         m_surfaceTexture = 0;
     }
@@ -270,11 +268,9 @@ jobject QAndroidVideoRendererControl::surfaceHolder()
         return 0;
 
     if (!m_surfaceHolder) {
-        QJNILocalRef<jobject> surfaceTex = m_surfaceTexture->surfaceTexture();
-
         m_androidSurface = new QJNIObject("android/view/Surface",
                                           "(Landroid/graphics/SurfaceTexture;)V",
-                                          surfaceTex.object());
+                                          m_surfaceTexture->object());
 
         m_surfaceHolder = new JSurfaceTextureHolder(m_androidSurface->object());
     }
@@ -282,10 +278,20 @@ jobject QAndroidVideoRendererControl::surfaceHolder()
     return m_surfaceHolder->object();
 }
 
+jobject QAndroidVideoRendererControl::surfaceTexture()
+{
+    if (!initSurfaceTexture())
+        return 0;
+
+    return m_surfaceTexture->object();
+}
+
 void QAndroidVideoRendererControl::setVideoSize(const QSize &size)
 {
     if (m_nativeSize == size)
         return;
+
+    stop();
 
     m_nativeSize = size;
 
@@ -298,6 +304,14 @@ void QAndroidVideoRendererControl::stop()
     if (m_surface && m_surface->isActive())
         m_surface->stop();
     m_nativeSize = QSize();
+}
+
+QImage QAndroidVideoRendererControl::toImage()
+{
+    if (!m_fbo)
+        return QImage();
+
+    return m_fbo->toImage().mirrored();
 }
 
 void QAndroidVideoRendererControl::onFrameAvailable()

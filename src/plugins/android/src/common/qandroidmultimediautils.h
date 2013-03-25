@@ -39,64 +39,20 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDVIDEORENDERCONTROL_H
-#define QANDROIDVIDEORENDERCONTROL_H
+#ifndef QANDROIDMULTIMEDIAUTILS_H
+#define QANDROIDMULTIMEDIAUTILS_H
 
-#include <qvideorenderercontrol.h>
-#include "qandroidvideooutput.h"
-#include "jsurfacetexture.h"
+#include <qglobal.h>
+#include <qsize.h>
 
 QT_BEGIN_NAMESPACE
 
-class QOpenGLContext;
-class QOffscreenSurface;
-class QOpenGLFramebufferObject;
-class QOpenGLShaderProgram;
-class JSurfaceTextureHolder;
+// return the index of the closest value to <value> in <list>
+// (binary search)
+int qt_findClosestValue(const QList<int> &list, int value);
 
-class QAndroidVideoRendererControl : public QVideoRendererControl, public QAndroidVideoOutput
-{
-    Q_OBJECT
-public:
-    explicit QAndroidVideoRendererControl(QObject *parent = 0);
-    ~QAndroidVideoRendererControl() Q_DECL_OVERRIDE;
-
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
-
-    jobject surfaceHolder() Q_DECL_OVERRIDE;
-    bool isTextureReady() Q_DECL_OVERRIDE;
-    void setTextureReadyCallback(TextureReadyCallback cb, void *context = 0) Q_DECL_OVERRIDE;
-    void setVideoSize(const QSize &size) Q_DECL_OVERRIDE;
-    void stop() Q_DECL_OVERRIDE;
-
-    bool eventFilter(QObject *obj, QEvent *event) Q_DECL_OVERRIDE;
-
-private Q_SLOTS:
-    void onFrameAvailable();
-
-private:
-    bool initSurfaceTexture();
-    void renderFrameToFbo();
-    void createGLResources();
-
-    QAbstractVideoSurface *m_surface;
-    QOffscreenSurface *m_offscreenSurface;
-    QOpenGLContext *m_glContext;
-    QOpenGLFramebufferObject *m_fbo;
-    QOpenGLShaderProgram *m_program;
-    bool m_useImage;
-    QSize m_nativeSize;
-
-    QJNIObject *m_androidSurface;
-    JSurfaceTexture *m_surfaceTexture;
-    JSurfaceTextureHolder *m_surfaceHolder;
-    uint m_externalTex;
-
-    TextureReadyCallback m_textureReadyCallback;
-    void *m_textureReadyContext;
-};
+bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDVIDEORENDERCONTROL_H
+#endif // QANDROIDMULTIMEDIAUTILS_H

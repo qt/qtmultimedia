@@ -29,7 +29,7 @@ win32 {
     config_wmf: SUBDIRS += wmf
 }
 
-unix:!mac {
+unix:!mac:!android {
     config_gstreamer {
        SUBDIRS += gstreamer
     } else {

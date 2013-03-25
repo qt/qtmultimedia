@@ -39,69 +39,32 @@
 **
 ****************************************************************************/
 
-#include "qandroidmediaserviceplugin.h"
+#ifndef QANDROIDVIDEOENCODERSETTINGSCONTROL_H
+#define QANDROIDVIDEOENCODERSETTINGSCONTROL_H
 
-#include "qandroidmediaservice.h"
-#include "jmediaplayer.h"
-#include "jsurfacetexture.h"
-#include "jsurfacetextureholder.h"
-#include <qdebug.h>
+#include <qvideoencodersettingscontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaServicePlugin::QAndroidMediaServicePlugin()
+class QAndroidCaptureSession;
+
+class QAndroidVideoEncoderSettingsControl : public QVideoEncoderSettingsControl
 {
-}
+    Q_OBJECT
+public:
+    explicit QAndroidVideoEncoderSettingsControl(QAndroidCaptureSession *session);
 
-QAndroidMediaServicePlugin::~QAndroidMediaServicePlugin()
-{
-}
+    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
+    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
+    QStringList supportedVideoCodecs() const Q_DECL_OVERRIDE;
+    QString videoCodecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
+    QVideoEncoderSettings videoSettings() const Q_DECL_OVERRIDE;
+    void setVideoSettings(const QVideoEncoderSettings &settings) Q_DECL_OVERRIDE;
 
-QMediaService *QAndroidMediaServicePlugin::create(const QString &key)
-{
-    if (key == QStringLiteral(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QAndroidMediaService;
-
-    qWarning() << "Android service plugin: unsupported key:" << key;
-    return 0;
-}
-
-void QAndroidMediaServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
-
-QMediaServiceProviderHint::Features QAndroidMediaServicePlugin::supportedFeatures(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return  QMediaServiceProviderHint::VideoSurface;
-
-    return QMediaServiceProviderHint::Features();
-}
-
-
-Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
-{
-    typedef union {
-        JNIEnv *nativeEnvironment;
-        void *venv;
-    } UnionJNIEnvToVoid;
-
-    UnionJNIEnvToVoid uenv;
-    uenv.venv = NULL;
-
-    if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_4) != JNI_OK)
-        return JNI_ERR;
-
-    JNIEnv *jniEnv = uenv.nativeEnvironment;
-
-    if (!JMediaPlayer::initJNI(jniEnv) ||
-        !JSurfaceTexture::initJNI(jniEnv) ||
-        !JSurfaceTextureHolder::initJNI(jniEnv)) {
-        return JNI_ERR;
-    }
-
-    return JNI_VERSION_1_4;
-}
+private:
+    QAndroidCaptureSession *m_session;
+};
 
 QT_END_NAMESPACE
+
+#endif // QANDROIDVIDEOENCODERSETTINGSCONTROL_H
