@@ -9,7 +9,16 @@ find_package(Qt5Core REQUIRED)
 
 include("${_Qt5CTestMacros}")
 
+set(qt_module_includes
+    Multimedia QCamera
+)
+
+if (NOT NO_WIDGETS)
+    list(APPEND qt_module_includes
+        MultimediaWidgets QVideoWidget
+    )
+endif()
+
 test_module_includes(
-  Multimedia QCamera
-  MultimediaWidgets QVideoWidget
+    ${qt_module_includes}
 )

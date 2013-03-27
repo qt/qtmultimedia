@@ -130,6 +130,8 @@ void tst_QWaveDecoder::file_data()
     QTest::newRow("File isawav_1_16_44100_le.wav") << testFilePath("isawav_1_16_44100_le.wav")  << tst_QWaveDecoder::None << 1 << 16 << 44100 << QAudioFormat::LittleEndian;
     QTest::newRow("File isawav_2_16_8000_be.wav") << testFilePath("isawav_2_16_8000_be.wav")  << tst_QWaveDecoder::None << 2 << 16 << 8000 << QAudioFormat::BigEndian;
     QTest::newRow("File isawav_2_16_44100_be.wav") << testFilePath("isawav_2_16_44100_be.wav")  << tst_QWaveDecoder::None << 2 << 16 << 44100 << QAudioFormat::BigEndian;
+    // The next file has extra data in the wave header.
+    QTest::newRow("File isawav_1_16_44100_le_2.wav") << testFilePath("isawav_1_16_44100_le_2.wav")  << tst_QWaveDecoder::None << 1 << 16 << 44100 << QAudioFormat::LittleEndian;
 
     // 32 bit waves are not supported
     QTest::newRow("File isawav_1_32_8000_le.wav") << testFilePath("isawav_1_32_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 8000 << QAudioFormat::LittleEndian;
