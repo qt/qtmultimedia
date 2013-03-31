@@ -113,12 +113,12 @@ Item {
         \li VideoOutput.Stretch - the video is scaled to fit
         \li VideoOutput.PreserveAspectFit - the video is scaled uniformly to fit without
             cropping
-        \li VideoOuput.PreserveAspectCrop - the video is scaled uniformly to fill, cropping
+        \li VideoOutput.PreserveAspectCrop - the video is scaled uniformly to fill, cropping
             if necessary
         \endlist
 
         Because this type is for convenience in QML, it does not
-        support enumerations directly, so enumerations from \c VideoOuput are
+        support enumerations directly, so enumerations from \c VideoOutput are
         used to access the available fill modes.
 
         The default fill mode is preserveAspectFit.

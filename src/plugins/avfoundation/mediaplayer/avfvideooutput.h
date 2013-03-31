@@ -54,7 +54,7 @@ public:
 };
 
 #define AVFVideoOutput_iid \
-    "org.qt-project.qt.AVFVideoOuput/5.0"
+    "org.qt-project.qt.AVFVideoOutput/5.0"
 Q_DECLARE_INTERFACE(AVFVideoOutput, AVFVideoOutput_iid)
 
 QT_END_NAMESPACE
