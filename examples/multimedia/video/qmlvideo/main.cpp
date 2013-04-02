@@ -67,7 +67,9 @@ int main(int argc, char *argv[])
     QString source1, source2;
     qreal volume = 0.5;
     QStringList args = app.arguments();
+#ifdef PERFORMANCEMONITOR_SUPPORT
     PerformanceMonitor::State performanceMonitorState;
+#endif
     bool sourceIsUrl = false;
     for (int i = 1; i < args.size(); ++i) {
         const QByteArray arg = args.at(i).toUtf8();
