@@ -23,6 +23,8 @@ DEFINES += LOG_ENGINE
 # If this macro is defined, the FFTReal DLL will not be built
 #DEFINES += DISABLE_FFT
 
+static: DEFINES += DISABLE_FFT
+
 # Disables rendering of the waveform
 #DEFINES += DISABLE_WAVEFORM
 
