@@ -40,7 +40,6 @@
 ****************************************************************************/
 
 #include "qpaintervideosurface_p.h"
-#include "qpaintervideosurface_mac_p.h"
 
 #include <qmath.h>
 
@@ -51,6 +50,7 @@
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
 #include <qglshaderprogram.h>
 #include <QtGui/QOpenGLContext>
+#include <QtGui/QWindow>
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE 0x812F
 #endif
@@ -1196,8 +1196,8 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::paint(
         if (scissorTestEnabled)
             glEnable(GL_SCISSOR_TEST);
 
-        const int width = QGLContext::currentContext()->device()->width();
-        const int height = QGLContext::currentContext()->device()->height();
+        const int width = QOpenGLContext::currentContext()->surface()->size().width();
+        const int height = QOpenGLContext::currentContext()->surface()->size().height();
 
         const QTransform transform = painter->deviceTransform();
 
@@ -1666,14 +1666,6 @@ void QPainterVideoSurface::viewportDestroyed()
 void QPainterVideoSurface::createPainter()
 {
     Q_ASSERT(!m_painter);
-
-#ifdef Q_OS_MAC
-    if (m_glContext)
-        m_glContext->makeCurrent();
-
-    m_painter = new QVideoSurfaceCoreGraphicsPainter(m_glContext != 0);
-    return;
-#endif
 
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
     switch (m_shaderType) {
