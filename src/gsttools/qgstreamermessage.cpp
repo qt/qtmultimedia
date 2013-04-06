@@ -56,6 +56,7 @@ static int wuchi = qRegisterMetaType<QGstreamerMessage>();
 QGstreamerMessage::QGstreamerMessage():
     m_message(0)
 {
+    Q_UNUSED(wuchi);
 }
 
 QGstreamerMessage::QGstreamerMessage(GstMessage* message):
