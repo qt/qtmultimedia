@@ -172,9 +172,6 @@ void AudioRecorder::toggleRecord()
     if (audioRecorder->state() == QMediaRecorder::StoppedState) {
         audioRecorder->setAudioInput(boxValue(ui->audioDeviceBox).toString());
 
-        if (!outputLocationSet)
-            audioRecorder->setOutputLocation(generateAudioFilePath());
-
         QAudioEncoderSettings settings;
         settings.setCodec(boxValue(ui->audioCodecBox).toString());
         settings.setSampleRate(boxValue(ui->sampleRateBox).toInt());
@@ -212,24 +209,6 @@ void AudioRecorder::setOutputLocation()
 void AudioRecorder::displayErrorMessage()
 {
     ui->statusbar->showMessage(audioRecorder->errorString());
-}
-
-QUrl AudioRecorder::generateAudioFilePath()
-{
-    QDir outputDir(QDir::rootPath());
-
-    int lastImage = 0;
-    int fileCount = 0;
-    foreach (const QString &fileName, outputDir.entryList(QStringList(QString("testclip_*")))) {
-        int imgNumber = fileName.mid(5, fileName.size() - 9).toInt();
-        lastImage = qMax(lastImage, imgNumber);
-        if (outputDir.exists(fileName))
-            fileCount += 1;
-    }
-    lastImage += fileCount;
-    QUrl location(QDir::toNativeSeparators(outputDir.canonicalPath()
-        + QString("/testclip_%1").arg(lastImage + 1, 4, 10, QLatin1Char('0'))));
-    return location;
 }
 
 // This function returns the maximum possible sample value for a given audio format
