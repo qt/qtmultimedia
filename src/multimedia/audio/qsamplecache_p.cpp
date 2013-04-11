@@ -129,7 +129,7 @@ QSampleCache::~QSampleCache()
     foreach (QSample* sample, m_staleSamples)
         delete sample; // deleting a sample does affect the m_staleSamples list, but foreach copies it
 
-    delete m_networkAccessManager;
+    m_networkAccessManager->deleteLater();
 }
 
 void QSampleCache::loadingRelease()
