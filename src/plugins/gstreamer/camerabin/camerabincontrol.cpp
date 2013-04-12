@@ -149,7 +149,7 @@ void CameraBinControl::setState(QCamera::State state)
             return;
         }
 
-        CamerabinResourcePolicy::ResourceSet resourceSet;
+        CamerabinResourcePolicy::ResourceSet resourceSet = CamerabinResourcePolicy::NoResources;
         switch (state) {
         case QCamera::UnloadedState:
             resourceSet = CamerabinResourcePolicy::NoResources;

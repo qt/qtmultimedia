@@ -442,7 +442,7 @@ void QDeclarativeSoundInstance::setVelocity(const QVector3D& velocity)
 /*!
     \qmlproperty vector3d QtAudioEngine1::SoundInstance::gain
 
-    This property holds the gain adjustment which will be used to modulate the audio ouput level
+    This property holds the gain adjustment which will be used to modulate the audio output level
     from this SoundInstance.
 */
 qreal QDeclarativeSoundInstance::gain() const

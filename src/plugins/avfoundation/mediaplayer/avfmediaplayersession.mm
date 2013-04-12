@@ -447,7 +447,7 @@ void AVFMediaPlayerSession::setVideoOutput(AVFVideoOutput *output)
     if (m_videoOutput == output)
         return;
 
-    //Set the current ouput layer to null to stop rendering
+    //Set the current output layer to null to stop rendering
     if (m_videoOutput) {
         m_videoOutput->setLayer(0);
     }

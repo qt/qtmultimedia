@@ -162,6 +162,8 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
             m_resource->release();
         }
     }
+#else
+    Q_UNUSED(oldSet);
 #endif
 }
 
