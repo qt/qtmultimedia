@@ -357,7 +357,7 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
     else if (context == AVFMediaPlayerSessionObserverCurrentItemObservationContext)
     {
         AVPlayerItem *newPlayerItem = [change objectForKey:NSKeyValueChangeNewKey];
-        if (m_playerItem != newPlayerItem);
+        if (m_playerItem != newPlayerItem)
         {
             m_playerItem = newPlayerItem;
 
