@@ -103,6 +103,7 @@ public Q_SLOTS:
     void processEOS();
     void processLoadStateChange();
     void processPositionChange();
+    void processMediaLoadError();
 
     void processCurrentItemChanged();
 

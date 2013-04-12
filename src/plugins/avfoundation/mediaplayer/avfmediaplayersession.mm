@@ -283,7 +283,7 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 -(void) assetFailedToPrepareForPlayback:(NSError *)error
 {
     Q_UNUSED(error)
-    //TODO: Let the session know that the assest failed to prepare for playback
+    QMetaObject::invokeMethod(m_session, "processMediaLoadError", Qt::AutoConnection);
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
     qDebug() << [[error localizedDescription] UTF8String];
@@ -799,13 +799,6 @@ void AVFMediaPlayerSession::processLoadStateChange()
             [[(AVFMediaPlayerSessionObserver*)m_observer player] setRate:m_rate];
             [[(AVFMediaPlayerSessionObserver*)m_observer player] play];
         }
-
-    } else {
-        Q_EMIT error(QMediaPlayer::FormatError, tr("Failed to load media"));
-        Q_EMIT mediaStatusChanged(m_mediaStatus = QMediaPlayer::InvalidMedia);
-        Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
-
-        return;
     }
 
     if (newStatus != m_mediaStatus)
@@ -815,6 +808,13 @@ void AVFMediaPlayerSession::processLoadStateChange()
 void AVFMediaPlayerSession::processPositionChange()
 {
     Q_EMIT positionChanged(position());
+}
+
+void AVFMediaPlayerSession::processMediaLoadError()
+{
+    Q_EMIT error(QMediaPlayer::FormatError, tr("Failed to load media"));
+    Q_EMIT mediaStatusChanged(m_mediaStatus = QMediaPlayer::InvalidMedia);
+    Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
 }
 
 void AVFMediaPlayerSession::processCurrentItemChanged()
