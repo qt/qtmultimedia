@@ -672,7 +672,7 @@ void CameraBinSession::updateBusyStatus(GObject *o, GParamSpec *p, gpointer d)
     Q_UNUSED(p);
     CameraBinSession *session = reinterpret_cast<CameraBinSession *>(d);
 
-    bool idle = false;
+    gboolean idle = false;
     g_object_get(o, "idle", &idle, NULL);
     bool busy = !idle;
 
