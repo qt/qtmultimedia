@@ -90,7 +90,7 @@ void QGstreamerVideoRenderer::setSurface(QAbstractVideoSurface *surface)
         m_videoSink = 0;
 
         if (m_surface) {
-            disconnect(m_surface, SIGNAL(supportedFormatsChanged()),
+            disconnect(m_surface.data(), SIGNAL(supportedFormatsChanged()),
                        this, SLOT(handleFormatChange()));
         }
 
@@ -99,7 +99,7 @@ void QGstreamerVideoRenderer::setSurface(QAbstractVideoSurface *surface)
         m_surface = surface;
 
         if (m_surface) {
-            connect(m_surface, SIGNAL(supportedFormatsChanged()),
+            connect(m_surface.data(), SIGNAL(supportedFormatsChanged()),
                     this, SLOT(handleFormatChange()));
         }
 
