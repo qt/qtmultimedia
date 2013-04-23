@@ -27,40 +27,37 @@
 
 /*!
 \page multimediaoverview.html
-\title Qt Multimedia Overview
+\title Multimedia
 \brief A set of APIs for working with audio, video, radio and camera devices.
 
 \ingroup technology-apis
 
+Multimedia support in Qt is provided by the \l{Qt Multimedia} module. The Qt
+Multimedia module provides a rich feature set that enables you to easily take
+advantage of a platform's multimedia capabilities such as media playback and
+the use of camera and radio devices.
 
-\section1 Overview
-
-Multimedia support in Qt is provided by the Qt Multimedia module. The
-Qt Multimedia module provides a rich feature set that enables you to easily
-take advantage of a platforms multimedia capabilites and hardware.  This
-ranges from the playback and recording of audio and video content to the use
-of available devices like cameras and radios.
-
-\section2 Features
+\section1 Features
 
 Here are some examples of what can be done with Qt Multimedia APIs:
 
 \list
 \li Access raw audio devices for input and output
 \li Play low latency sound effects
-\li Play media files in playlists (like compressed audio, or video files)
+\li Play media files in playlists (such as compressed audio or video files)
 \li Record audio and compress it
-\li Tune and listen to radio stations, and receive radio program information
+\li Tune and listen to radio stations
 \li Use a camera, including viewfinder, image capture, and movie recording
 \li Play 3D positional audio with \l {Positional Audio} {QtAudioEngine}
 \li Decode audio media files into memory for processing
 \li Accessing video frames or audio buffers as they are played or recorded
 \endlist
 
-\section2 Multimedia Components
+\section1 Multimedia Components
 
-All of these tasks can be broadly broken down into four main areas.  More information
-(including background information and class references) are available here:
+Qt's multimedia APIs are categorized into four main components.  More
+information (including background information and class references) is
+available here:
 
 \list
 \li \l {Audio Overview}
@@ -69,8 +66,9 @@ All of these tasks can be broadly broken down into four main areas.  More inform
 \li \l {Radio Overview}
 \endlist
 
-\section2 Multimedia Recipes
-For some quick recipes for specific tasks, look at the overviews above and consult this table:
+\section1 Multimedia Recipes
+
+For some quick recipes, look at the overviews above and consult this table:
 
 \table 70%
     \header
@@ -85,7 +83,8 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li QSoundEffect
     \row
         \li Playing low latency audio
-        \li \l{multimedia/audiooutput}{audioinput}, \l{multimedia/spectrum}{spectrum}
+        \li \l{multimedia/audiooutput}{audioinput},
+            \l{multimedia/spectrum}{spectrum}
         \li
         \li QAudioOutput
     \row
@@ -95,7 +94,8 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li QMediaPlayer
     \row
         \li Accessing raw audio input data
-        \li \l{multimedia/spectrum}{spectrum}, \l {multimedia/audioinput}{audioinput}
+        \li \l{multimedia/spectrum}{spectrum},
+            \l {multimedia/audioinput}{audioinput}
         \li
         \li QAudioInput
     \row
@@ -138,12 +138,14 @@ For some quick recipes for specific tasks, look at the overviews above and consu
         \li QCamera, QAbstractVideoSurface, QVideoFrame
     \row
         \li Capturing photos
-        \li \l {Camera Example}{camera}, \l {multimediawidgets/declarative-camera}{declarative-camera}
+        \li \l {Camera Example}{camera},
+            \l {multimediawidgets/declarative-camera}{declarative-camera}
         \li \l Camera
         \li QCamera, QCameraImageCapture
     \row
         \li Capturing movies
-        \li \l {Camera Example}{camera}, \l {multimediawidgets/declarative-camera}{declarative-camera}
+        \li \l {Camera Example}{camera},
+            \l {multimediawidgets/declarative-camera}{declarative-camera}
         \li \l Camera
         \li QCamera, QMediaRecorder
     \row
@@ -156,26 +158,26 @@ For some quick recipes for specific tasks, look at the overviews above and consu
 
 \section1 Limitations
 
-In many cases the Qt Multimedia APIs build upon the multimedia framework of the underlying system.
-This can mean that support for various codec or containers can vary between machines,
-depending on what the end user has installed.
+The Qt Multimedia APIs build upon the multimedia framework of the underlying
+platform. This can mean that support for various codecs or containers can vary
+between machines, depending on what the end user has installed.
 
 \section1 Advanced Usage
 
-For developers wishing to access some platform specific settings,
-or to port the Qt Multimedia APIs to a new platform or technology,
-see \l{Multimedia Backend Development}.
+For developers wishing to access some platform specific settings, or to port the
+Qt Multimedia APIs to a new platform or technology, see \l{Multimedia Backend
+Development}.
 
 \section1 Changes from Previous Versions
 
-If you've previously used Qt Multimedia in Qt 4.x, or used Qt Multimedia Kit in Qt Mobility, please see
-\l {Changes in Qt Multimedia} for more information on what has changed, and what you might need to
-change when porting code.
+If you previously used Qt Multimedia in Qt 4, or used Qt Multimedia Kit in
+Qt Mobility, please see \l {Changes in Qt Multimedia} for more information on
+what changed, and what you might need to change when porting code.
 
 \section1 Reference Documentation
 
 \section2 QML Types
-The following types are accessed by using:
+The QML types are accessed by using:
 \code
 import QtMultimedia 5.0
 \endcode

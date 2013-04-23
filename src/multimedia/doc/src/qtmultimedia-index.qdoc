@@ -28,37 +28,46 @@
 /*!
     \page qtmultimedia-index.html
     \title Qt Multimedia
-    \brief The Qt Multimedia module provides APIs for audio, video, radio and camera-related functionality.
+    \brief The Qt Multimedia module provides APIs for audio, video, radio, and
+    camera-related functionality.
 
-    Qt Multimedia is an essential module that provides a rich set of QML types and C++ classes to handle multimedia content. It also provides necessary APIs to access the camera and radio functionality.
+    Qt Multimedia is an essential module that provides a rich set of QML types
+    and C++ classes to handle multimedia content. It also provides necessary
+    APIs to access the camera and radio functionality.
 
-    The \l{Qt Multimedia Widgets} module provides widget based multimedia classes.
+    The \l{Qt Multimedia Widgets} module provides widget based multimedia
+    classes.
 
-   \section1 Getting started
+   \section1 Getting Started
 
-    The QML types can be imported into your applciation using the following import statement in your \c {.qml} file.
+    The QML types can be imported into your applciation using the following
+    import statement in your \c {.qml} file.
 
     \code
      import QtMultimedia 5.0
     \endcode
 
-    If you intend to use the C++ classes in your application, include the C++ definitions using the following directive:
+    If you intend to use the C++ classes in your application, include the C++
+    definitions using the following directive:
 
     \code
       #include <QtMultimedia>
     \endcode
 
-    \note If you are using a few classes from this module, we recommend including those specific classes only instead of the module.
+    \note If you are using a few classes from this module, we recommend
+    including those specific classes only instead of the module.
 
-    To link against the corresponding C++ libraries, add the following to your \c {qmake} project file:
+    To link against the corresponding C++ libraries, add the following to your
+    \c {qmake} project file:
 
    \code
      QT += multimedia
    \endcode
 
-    \section1 QML types and C++ classes
+    \section1 QML Types and C++ Classes
 
-    The following is a list of important QML types and C++ classes provided by this module:
+    The following is a list of important QML types and C++ classes provided by
+    this module:
 
     \table
     \header
@@ -72,13 +81,15 @@
      \li Access camera viewfinder frames
     \row
      \li MediaPlayer
-     \li Add media playback functionality to a scene. It is same as Audio type, but can be used for video playback with the VideoOutput type.
+     \li Add media playback functionality to a scene. It is same as Audio type,
+     but can be used for video playback with the VideoOutput type.
     \row
      \li \l {QtMultimedia5::Radio}{Radio}
      \li Access radio functionality
     \row
      \li \l {QtMultimedia5::Video}{Video}
-     \li Add Video playback functionality to a scene. It uses MediaPlayer and VideoOutput types to provide video playback functionality.
+     \li Add Video playback functionality to a scene. It uses MediaPlayer and
+     VideoOutput types to provide video playback functionality.
     \endtable
 
     \table
@@ -105,11 +116,11 @@
      \li Control video data.
     \endtable
 
-    \section1 Related information
+    \section1 Related Information
 
     \section2 Guides
      \list
-      \li \l{Qt Multimedia Overview}
+      \li \l Multimedia - overview of multimedia support in Qt
       \li \l{Audio Overview}
       \li \l{Positional Audio}
       \li \l{Video Overview}
