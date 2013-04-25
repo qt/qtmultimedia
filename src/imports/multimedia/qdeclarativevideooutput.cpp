@@ -436,13 +436,18 @@ QRectF QDeclarativeVideoOutput::contentRect() const
 
     This property holds the area of the source video
     content that is considered for rendering.  The
-    values are in source pixel coordinates.
+    values are in source pixel coordinates, adjusted for
+    the source's pixel aspect ratio.
 
     Note that typically the top left corner of this rectangle
     will be \c {0,0} while the width and height will be the
-    width and height of the input content.
+    width and height of the input content. Only when the video
+    source has a viewport set, these values will differ.
 
     The orientation setting does not affect this rectangle.
+
+    \sa QVideoSurfaceFormat::pixelAspectRatio()
+    \sa QVideoSurfaceFormat::viewport()
 */
 QRectF QDeclarativeVideoOutput::sourceRect() const
 {
@@ -451,7 +456,19 @@ QRectF QDeclarativeVideoOutput::sourceRect() const
     if (!qIsDefaultAspect(m_orientation)) {
         size.transpose();
     }
-    return QRectF(QPointF(), size); // XXX ignores viewport
+
+    // No backend? Just assume no viewport.
+    if (!m_nativeSize.isValid() || !m_backend) {
+        return QRectF(QPointF(), size);
+    }
+
+    // Take the viewport into account for the top left position.
+    // m_nativeSize is already adjusted to the viewport, as it originats
+    // from QVideoSurfaceFormat::sizeHint(), which includes pixel aspect
+    // ratio and viewport.
+    const QRectF viewport = m_backend->adjustedViewport();
+    Q_ASSERT(viewport.size() == size);
+    return QRectF(viewport.topLeft(), size);
 }
 
 /*!

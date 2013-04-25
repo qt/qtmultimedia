@@ -62,6 +62,7 @@ public:
     void updateGeometry();
     QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data);
     QAbstractVideoSurface *videoSurface() const;
+    QRectF adjustedViewport() const Q_DECL_OVERRIDE;
 
 private:
     QPointer<QVideoWindowControl> m_videoWindowControl;

@@ -133,30 +133,45 @@ QSize QDeclarativeVideoRendererBackend::nativeSize() const
 
 void QDeclarativeVideoRendererBackend::updateGeometry()
 {
+    const QRectF viewport = videoSurface()->surfaceFormat().viewport();
+    const QSizeF frameSize = videoSurface()->surfaceFormat().frameSize();
+    const QRectF normalizedViewport(viewport.x() / frameSize.width(),
+                                    viewport.y() / frameSize.height(),
+                                    viewport.width() / frameSize.width(),
+                                    viewport.height() / frameSize.height());
     const QRectF rect(0, 0, q->width(), q->height());
     if (nativeSize().isEmpty()) {
         m_renderedRect = rect;
-        m_sourceTextureRect = QRectF(0, 0, 1, 1);
+        m_sourceTextureRect = normalizedViewport;
     } else if (q->fillMode() == QDeclarativeVideoOutput::Stretch) {
         m_renderedRect = rect;
-        m_sourceTextureRect = QRectF(0, 0, 1, 1);
+        m_sourceTextureRect = normalizedViewport;
     } else if (q->fillMode() == QDeclarativeVideoOutput::PreserveAspectFit) {
-        m_sourceTextureRect = QRectF(0, 0, 1, 1);
+        m_sourceTextureRect = normalizedViewport;
         m_renderedRect = q->contentRect();
     } else if (q->fillMode() == QDeclarativeVideoOutput::PreserveAspectCrop) {
         m_renderedRect = rect;
         const qreal contentHeight = q->contentRect().height();
         const qreal contentWidth = q->contentRect().width();
+
+        // Calculate the size of the source rectangle without taking the viewport into account
+        const qreal relativeOffsetLeft = -q->contentRect().left() / contentWidth;
+        const qreal relativeOffsetTop = -q->contentRect().top() / contentHeight;
+        const qreal relativeWidth = rect.width() / contentWidth;
+        const qreal relativeHeight = rect.height() / contentHeight;
+
+        // Now take the viewport size into account
+        const qreal totalOffsetLeft = normalizedViewport.x() + relativeOffsetLeft * normalizedViewport.width();
+        const qreal totalOffsetTop = normalizedViewport.y() + relativeOffsetTop * normalizedViewport.height();
+        const qreal totalWidth = normalizedViewport.width() * relativeWidth;
+        const qreal totalHeight = normalizedViewport.height() * relativeHeight;
+
         if (qIsDefaultAspect(q->orientation())) {
-            m_sourceTextureRect = QRectF(-q->contentRect().left() / contentWidth,
-                                         -q->contentRect().top() / contentHeight,
-                                         rect.width() / contentWidth,
-                                         rect.height() / contentHeight);
+            m_sourceTextureRect = QRectF(totalOffsetLeft, totalOffsetTop,
+                                         totalWidth, totalHeight);
         } else {
-            m_sourceTextureRect = QRectF(-q->contentRect().top() / contentHeight,
-                                         -q->contentRect().left() / contentWidth,
-                                         rect.height() / contentHeight,
-                                         rect.width() / contentWidth);
+            m_sourceTextureRect = QRectF(totalOffsetTop, totalOffsetLeft,
+                                         totalHeight, totalWidth);
         }
     }
 }
@@ -221,6 +236,22 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 QAbstractVideoSurface *QDeclarativeVideoRendererBackend::videoSurface() const
 {
     return m_surface;
+}
+
+QRectF QDeclarativeVideoRendererBackend::adjustedViewport() const
+{
+    const QRectF viewport = m_surface->surfaceFormat().viewport();
+    const QSize pixelAspectRatio = m_surface->surfaceFormat().pixelAspectRatio();
+
+    if (pixelAspectRatio.height() != 0) {
+        const qreal ratio = pixelAspectRatio.width() / pixelAspectRatio.height();
+        QRectF result = viewport;
+        result.setX(result.x() * ratio);
+        result.setWidth(result.width() * ratio);
+        return result;
+    }
+
+    return viewport;
 }
 
 QOpenGLContext *QDeclarativeVideoRendererBackend::glContext() const

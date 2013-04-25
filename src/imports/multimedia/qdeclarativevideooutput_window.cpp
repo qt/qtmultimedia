@@ -143,4 +143,11 @@ QAbstractVideoSurface *QDeclarativeVideoWindowBackend::videoSurface() const
     return 0;
 }
 
+QRectF QDeclarativeVideoWindowBackend::adjustedViewport() const
+{
+    // No viewport supported by QVideoWindowControl, so make the viewport the same size
+    // as the source
+    return QRectF(QPointF(0, 0), nativeSize());
+}
+
 QT_END_NAMESPACE
