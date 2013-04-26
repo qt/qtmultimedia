@@ -8,6 +8,8 @@ win32 {
     qtCompileTest(evr)
 } else:mac {
     qtCompileTest(avfoundation)
+} else:android {
+    !qtCompileTest(android):error("QtMultimedia for Android requires API level 11")
 } else {
     qtCompileTest(alsa)
     qtCompileTest(pulseaudio)
