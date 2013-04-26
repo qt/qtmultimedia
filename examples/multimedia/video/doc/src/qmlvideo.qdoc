@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-\example multimedia/video/qmlvideo
+\example video/qmlvideo
 \title QML Video Example
 \ingroup multimedia_examples
 

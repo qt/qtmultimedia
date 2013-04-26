@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example multimedia/audioinput
+    \example audioinput
     \title Audio Input Example
     \ingroup multimedia_examples
     \brief The Audio Input Example shows the use of the QAudioInput class.

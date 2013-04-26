@@ -29,7 +29,7 @@
 
 /*!
 
-\example multimediawidgets/camera
+\example camera
 \title  Camera Example
 \ingroup multimedia_examples
 \brief  The Camera Example shows how to use the API to capture a still image

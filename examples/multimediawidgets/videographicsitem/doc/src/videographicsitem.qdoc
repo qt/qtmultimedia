@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-\example multimediawidgets/videographicsitem
+\example videographicsitem
 \title Video Graphics Item Example
 \ingroup multimedia_examples
 \brief This example demonstrates how to stream video on a graphics scene.

@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example multimedia/audiodevices
+    \example audiodevices
     \title Audio Devices Example
     \ingroup multimedia_examples
     \brief The Audio Devices example shows the application of the audio devices APIs
