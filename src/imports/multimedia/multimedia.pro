@@ -1,7 +1,5 @@
 QT += qml quick network multimedia-private qtmultimediaquicktools-private
 
-LIBS += -L$$QT.multimedia.libs
-
 HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediametadata_p.h \
