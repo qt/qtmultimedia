@@ -46,6 +46,7 @@
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativemediametadata_p.h"
 
+#include <QtMultimedia/qmediametadata.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
 #include <private/qmediaserviceprovider_p.h>

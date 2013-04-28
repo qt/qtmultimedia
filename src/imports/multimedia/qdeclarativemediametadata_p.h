@@ -54,6 +54,7 @@
 //
 
 #include <QtQml/qqml.h>
+#include <QtMultimedia/qmediametadata.h>
 #include "qmediaobject.h"
 
 QT_BEGIN_NAMESPACE

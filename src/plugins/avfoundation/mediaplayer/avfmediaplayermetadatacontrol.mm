@@ -42,7 +42,7 @@
 #include "avfmediaplayermetadatacontrol.h"
 #include "avfmediaplayersession.h"
 
-#include <QtMultimedia/qmultimedia.h>
+#include <QtMultimedia/qmediametadata.h>
 
 #import <AVFoundation/AVFoundation.h>
 

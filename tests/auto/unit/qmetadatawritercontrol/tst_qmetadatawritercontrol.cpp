@@ -41,6 +41,7 @@
 #include <QtCore/QString>
 #include <QtTest/QtTest>
 #include <QtCore/QCoreApplication>
+#include <QtMultimedia/qmediametadata.h>
 #include "qmetadatawritercontrol.h"
 
 #include "mockmetadatawritercontrol.h"

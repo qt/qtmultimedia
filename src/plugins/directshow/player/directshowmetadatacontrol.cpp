@@ -44,9 +44,9 @@
 #include <qnetwork.h>
 
 #include "directshowmetadatacontrol.h"
-
 #include "directshowplayerservice.h"
 
+#include <QtMultimedia/qmediametadata.h>
 #include <QtCore/qcoreapplication.h>
 
 #ifndef QT_NO_WMSDK

@@ -42,6 +42,7 @@
 #include "qandroidmetadatareadercontrol.h"
 
 #include "jmediametadataretriever.h"
+#include <QtMultimedia/qmediametadata.h>
 #include <qsize.h>
 #include <QDate>
 

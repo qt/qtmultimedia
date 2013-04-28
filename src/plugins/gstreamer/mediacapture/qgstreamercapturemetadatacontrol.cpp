@@ -41,6 +41,8 @@
 
 #include "qgstreamercapturemetadatacontrol.h"
 
+#include <QtMultimedia/qmediametadata.h>
+
 #include <gst/gst.h>
 #include <gst/gstversion.h>
 

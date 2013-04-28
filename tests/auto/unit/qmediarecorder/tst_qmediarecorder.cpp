@@ -43,6 +43,7 @@
 
 #include <QtTest/QtTest>
 #include <QDebug>
+#include <QtMultimedia/qmediametadata.h>
 #include <qmediaobject.h>
 #include <qmediacontrol.h>
 #include <qmediaservice.h>

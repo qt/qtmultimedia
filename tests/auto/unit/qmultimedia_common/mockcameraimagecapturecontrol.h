@@ -44,6 +44,7 @@
 
 #include <QDateTime>
 #include <QTimer>
+#include <QtMultimedia/qmediametadata.h>
 
 #include "qcameraimagecapturecontrol.h"
 #include "qcameracontrol.h"

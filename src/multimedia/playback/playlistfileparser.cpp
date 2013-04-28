@@ -43,7 +43,7 @@
 #include <qfileinfo.h>
 #include <QtNetwork/QNetworkReply>
 #include "qmediaobject_p.h"
-#include "qmultimedia.h"
+#include "qmediametadata.h"
 
 QT_BEGIN_NAMESPACE
 

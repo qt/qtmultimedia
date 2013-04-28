@@ -52,6 +52,7 @@
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>
 
+#include <QtMultimedia/qmediametadata.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qsize.h>

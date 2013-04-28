@@ -47,8 +47,8 @@
 #include <QMediaService>
 #include <QMediaPlaylist>
 #include <QVideoProbe>
+#include <QMediaMetaData>
 #include <QtWidgets>
-
 
 Player::Player(QWidget *parent)
     : QWidget(parent)
