@@ -44,6 +44,7 @@
 
 #include <qvideorenderercontrol.h>
 #include <private/qvideosurfacegstsink_p.h>
+#include <qabstractvideosurface.h>
 
 #include "qgstreamervideorendererinterface_p.h"
 
@@ -74,7 +75,7 @@ private slots:
 
 private:    
     QVideoSurfaceGstSink *m_videoSink;
-    QAbstractVideoSurface *m_surface;
+    QPointer<QAbstractVideoSurface> m_surface;
 };
 
 QT_END_NAMESPACE

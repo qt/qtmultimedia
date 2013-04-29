@@ -11,7 +11,11 @@ HEADERS += bbserviceplugin.h
 SOURCES += bbserviceplugin.cpp
 
 include(common/common.pri)
-include(camera/camera.pri)
+
+!blackberry-playbook {
+    include(camera/camera.pri)
+}
+
 include(mediaplayer/mediaplayer.pri)
 
 OTHER_FILES += blackberry_mediaservice.json

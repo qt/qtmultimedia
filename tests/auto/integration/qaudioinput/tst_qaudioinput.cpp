@@ -767,9 +767,9 @@ void tst_QAudioInput::pushSuspendResume()
     QVERIFY(audioInput.processedUSecs() == processedUs);
 
     // Drain any data, in case we run out of space when resuming
-    while (audioInput.bytesReady() >= audioInput.periodSize()) {
+    const int reads = audioInput.bytesReady() / audioInput.periodSize();
+    for (int r = 0; r < reads; ++r)
         feed->read(buffer.data(), audioInput.periodSize());
-    }
 
     audioInput.resume();
 

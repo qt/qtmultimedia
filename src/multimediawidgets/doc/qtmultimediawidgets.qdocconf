@@ -1,6 +1,6 @@
 include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 
-project                 = qtmultimediawidgets
+project                 = QtMultimediaWidgets
 description             = Qt Multimedia Widgets Documentation
 url                     = http://qt-project.org/doc/qt-$QT_VER/qtmultimediawidgets
 version                 = $QT_VERSION
@@ -12,22 +12,18 @@ version                 = $QT_VERSION
 # Defines the name of the project. You cannot use operators (+, =, -) in
 # the name. Properties for this project are set using a qhp.<projectname>.property
 # format.
-qhp.projects = qtmultimediawidgets
-qhp.qtmultimediawidgets.file = qtmultimediawidgets.qhp
-qhp.qtmultimediawidgets.namespace = org.qt-project.qtmultimediawidgets.$QT_VERSION_TAG
-qhp.qtmultimediawidgets.indexTitle = Qt Multimedia
-qhp.qtmultimediawidgets.virtualFolder  = qtmultimediawidgets
+qhp.projects = QtMultimediaWidgets
+qhp.QtMultimediaWidgets.file = qtmultimediawidgets.qhp
+qhp.QtMultimediaWidgets.namespace = org.qt-project.qtmultimediawidgets.$QT_VERSION_TAG
+qhp.QtMultimediaWidgets.indexTitle = Qt Multimedia Widgets
+qhp.QtMultimediaWidgets.virtualFolder  = qtmultimediawidgets
 
 # For listing child nodes in Qt Creator or Assistant.
-qhp.qtmultimediawidgets.subprojects = classes qmltypes
-qhp.qtmultimediawidgets.subprojects.classes.title = C++ Classes
-qhp.qtmultimediawidgets.subprojects.classes.indexTitle = Qt Multimedia Widgets C++ Classes
-qhp.qtmultimediawidgets.subprojects.classes.selectors = class fake:headerfile
-qhp.qtmultimediawidgets.subprojects.classes.sortPages = true
-qhp.qtmultimediawidgets.subprojects.qmltypes.title = QML Types
-qhp.qtmultimediawidgets.subprojects.qmltypes.indexTitle = Qt Multimedia Widgets QML Types
-qhp.qtmultimediawidgets.subprojects.qmltypes.selectors = fake:qmlclass
-qhp.qtmultimediawidgets.subprojects.qmltypes.sortPages = true
+qhp.QtMultimediaWidgets.subprojects = classes
+qhp.QtMultimediaWidgets.subprojects.classes.title = C++ Classes
+qhp.QtMultimediaWidgets.subprojects.classes.indexTitle = Qt Multimedia Widgets C++ Classes
+qhp.QtMultimediaWidgets.subprojects.classes.selectors = class fake:headerfile
+qhp.QtMultimediaWidgets.subprojects.classes.sortPages = true
 
 exampledirs += ../../../examples/multimediawidgets \
                snippets

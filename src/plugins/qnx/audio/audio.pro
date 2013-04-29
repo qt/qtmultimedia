@@ -3,9 +3,8 @@ QT += multimedia-private
 CONFIG += no_private_qt_headers_warning
 
 PLUGIN_TYPE = audio
-
 load(qt_plugin)
-DESTDIR = $$QT.multimedia.plugins/$${PLUGIN_TYPE}
+
 LIBS += -lasound
 
 HEADERS += qnxaudioplugin.h \
@@ -21,6 +20,3 @@ SOURCES += qnxaudioplugin.cpp \
            qnxaudioutils.cpp
 
 OTHER_FILES += qnx_audio.json
-
-target.path += $$[QT_INSTALL_PLUGINS]/$${PLUGIN_TYPE}
-INSTALLS += target

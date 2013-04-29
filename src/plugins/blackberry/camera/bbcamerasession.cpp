@@ -335,7 +335,7 @@ static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *b
         QMetaObject::invokeMethod(data->session, "imageCaptureError", Qt::QueuedConnection,
                                   Q_ARG(int, data->requestId),
                                   Q_ARG(QCameraImageCapture::Error, QCameraImageCapture::FormatError),
-                                  Q_ARG(QString, QObject::tr("Camera provides image in unsupported format")));
+                                  Q_ARG(QString, BbCameraSession::tr("Camera provides image in unsupported format")));
         return;
     }
 
@@ -344,7 +344,7 @@ static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *b
     QImage image;
     const bool ok = image.loadFromData(rawData, "JPG");
     if (!ok) {
-        const QString errorMessage = QObject::tr("Could not load JPEG data from frame");
+        const QString errorMessage = BbCameraSession::tr("Could not load JPEG data from frame");
         // We are inside a worker thread here, so emit error signal inside the main thread
         QMetaObject::invokeMethod(data->session, "imageCaptureError", Qt::QueuedConnection,
                                   Q_ARG(int, data->requestId),
