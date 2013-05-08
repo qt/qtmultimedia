@@ -12,3 +12,4 @@ SUBDIRS += \
     qsoundeffect \
     qsound
 
+!qtHaveModule(widgets): SUBDIRS -= qcamerabackend
