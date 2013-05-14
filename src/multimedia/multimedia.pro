@@ -56,7 +56,10 @@ ANDROID_BUNDLED_JAR_DEPENDENCIES = \
 ANDROID_JAR_DEPENDENCIES = \
     jar/QtMultimedia.jar:org.qtproject.qt5.android.multimedia.QtAndroidMediaPlayer
 ANDROID_LIB_DEPENDENCIES = \
-    plugins/mediaservice/libandroidmediaplayer.so
+    plugins/mediaservice/libandroidmediaplayer.so \
+    lib/libQt5MultimediaQuick_p.so:Qt5Quick
+ANDROID_BUNDLED_FILES += \
+    lib/libQt5MultimediaQuick_p.so
 MODULE_PLUGIN_TYPES = \
     mediaservice
 
