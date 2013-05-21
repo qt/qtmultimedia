@@ -182,7 +182,8 @@ void QAndroidVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
     m_surface = surface;
 
-    m_useImage = !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+    if (m_surface)
+        m_useImage = !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
 }
 
 jobject QAndroidVideoRendererControl::surfaceHolder()
