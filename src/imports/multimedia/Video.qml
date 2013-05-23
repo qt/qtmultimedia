@@ -186,14 +186,14 @@ Item {
         This property holds the error state of the video.  It can be one of:
 
         \list
-        \li NoError - there is no current error.
-        \li ResourceError - the video cannot be played due to a problem
+        \li MediaPlayer.NoError - there is no current error.
+        \li MediaPlayer.ResourceError - the video cannot be played due to a problem
             allocating resources.
-        \li FormatError - the video format is not supported.
-        \li NetworkError - the video cannot be played due to network issues.
-        \li AccessDenied - the video cannot be played due to insufficient
+        \li MediaPlayer.FormatError - the video format is not supported.
+        \li MediaPlayer.NetworkError - the video cannot be played due to network issues.
+        \li MediaPlayer.AccessDenied - the video cannot be played due to insufficient
             permissions.
-        \li ServiceMissing -  the video cannot be played because the media
+        \li MediaPlayer.ServiceMissing -  the video cannot be played because the media
             service could not be
         instantiated.
         \endlist
@@ -295,15 +295,15 @@ Item {
         This property holds the status of media loading. It can be one of:
 
         \list
-        \li NoMedia - no media has been set.
-        \li Loading - the media is currently being loaded.
-        \li Loaded - the media has been loaded.
-        \li Buffering - the media is buffering data.
-        \li Stalled - playback has been interrupted while the media is buffering data.
-        \li Buffered - the media has buffered data.
-        \li EndOfMedia - the media has played to the end.
-        \li InvalidMedia - the media cannot be played.
-        \li UnknownStatus - the status of the media cannot be determined.
+        \li MediaPlayer.NoMedia - no media has been set.
+        \li MediaPlayer.Loading - the media is currently being loaded.
+        \li MediaPlayer.Loaded - the media has been loaded.
+        \li MediaPlayer.Buffering - the media is buffering data.
+        \li MediaPlayer.Stalled - playback has been interrupted while the media is buffering data.
+        \li MediaPlayer.Buffered - the media has buffered data.
+        \li MediaPlayer.EndOfMedia - the media has played to the end.
+        \li MediaPlayer.InvalidMedia - the media cannot be played.
+        \li MediaPlayer.UnknownStatus - the status of the media cannot be determined.
         \endlist
     */
     property alias status:          player.status

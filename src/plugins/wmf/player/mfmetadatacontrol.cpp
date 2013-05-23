@@ -39,6 +39,7 @@
 **
 ****************************************************************************/
 
+#include <qmediametadata.h>
 #include <qdatetime.h>
 #include <qimage.h>
 

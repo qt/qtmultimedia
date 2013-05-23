@@ -45,6 +45,7 @@
 
 #include <QtCore/qtimer.h>
 
+#include <QtMultimedia/qmediametadata.h>
 #include <qmediaobject.h>
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>

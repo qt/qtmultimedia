@@ -39,6 +39,7 @@
 **
 ****************************************************************************/
 #include "bbmetadatareadercontrol.h"
+#include <QtMultimedia/qmediametadata.h>
 
 QT_BEGIN_NAMESPACE
 

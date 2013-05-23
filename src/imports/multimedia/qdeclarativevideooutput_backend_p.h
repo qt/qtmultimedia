@@ -74,6 +74,9 @@ public:
     virtual QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) = 0;
     virtual QAbstractVideoSurface *videoSurface() const = 0;
 
+    // The viewport, adjusted for the pixel aspect ratio
+    virtual QRectF adjustedViewport() const = 0;
+
 protected:
     QDeclarativeVideoOutput *q;
     QPointer<QMediaService> m_service;

@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example multimediawidgets/player
+    \example player
     \title Media Player Example
     \ingroup multimedia_examples
     \brief Demonstrates the audio and video playback functionality

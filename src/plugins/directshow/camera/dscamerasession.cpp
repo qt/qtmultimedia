@@ -656,6 +656,10 @@ HRESULT DSCameraSession::getPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin
 
 bool DSCameraSession::createFilterGraph()
 {
+    // Previously containered in <qedit.h>.
+    static const IID iID_ISampleGrabber = { 0x6B652FFF, 0x11FE, 0x4fce, { 0x92, 0xAD, 0x02, 0x66, 0xB5, 0xD7, 0xC7, 0x8F } };
+    static const CLSID cLSID_SampleGrabber = { 0xC1F400A0, 0x3F08, 0x11d3, { 0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37 } };
+
     HRESULT hr;
     IMoniker* pMoniker = NULL;
     ICreateDevEnum* pDevEnum = NULL;
@@ -752,14 +756,14 @@ bool DSCameraSession::createFilterGraph()
     }
 
     // Sample grabber filter
-    hr = CoCreateInstance(CLSID_SampleGrabber, NULL,CLSCTX_INPROC,
+    hr = CoCreateInstance(cLSID_SampleGrabber, NULL,CLSCTX_INPROC,
                           IID_IBaseFilter, (void**)&pSG_Filter);
     if (FAILED(hr)) {
         qWarning() << "failed to create sample grabber";
         return false;
     }
 
-    hr = pSG_Filter->QueryInterface(IID_ISampleGrabber, (void**)&pSG);
+    hr = pSG_Filter->QueryInterface(iID_ISampleGrabber, (void**)&pSG);
     if (FAILED(hr)) {
         qWarning() << "failed to get sample grabber";
         return false;

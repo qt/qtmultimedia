@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example multimedia/declarative-radio
+    \example declarative-radio
     \title Declarative Radio Example
     \brief Demonstrates the radio functionality
     \ingroup multimedia_examples

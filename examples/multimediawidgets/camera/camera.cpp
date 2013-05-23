@@ -46,6 +46,7 @@
 #include <QMediaService>
 #include <QMediaRecorder>
 #include <QCameraViewfinder>
+#include <QMediaMetaData>
 
 #include <QMessageBox>
 #include <QPalette>

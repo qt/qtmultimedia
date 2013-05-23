@@ -32,6 +32,9 @@ qhp.QtMultimedia.subprojects.qmltypes.sortPages = true
 exampledirs += ../../../examples/multimedia \
                snippets
 
+# Specify example install dir under QT_INSTALL_EXAMPLES
+examplesinstallpath = multimedia
+
 headerdirs += ../..
 
 imagedirs += src/images \

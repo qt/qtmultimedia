@@ -1,6 +1,7 @@
 TARGET = tst_qcamerabackend
 
-QT += multimedia-private testlib
+# DirectShow plugin requires widgets.
+QT += multimedia-private widgets testlib
 
 # This is more of a system test
 CONFIG += testcase

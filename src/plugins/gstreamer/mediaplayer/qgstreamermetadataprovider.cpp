@@ -42,6 +42,7 @@
 #include "qgstreamermetadataprovider.h"
 #include "qgstreamerplayersession.h"
 #include <QDebug>
+#include <QtMultimedia/qmediametadata.h>
 
 #include <gst/gstversion.h>
 

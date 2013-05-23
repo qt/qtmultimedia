@@ -47,7 +47,6 @@
 #include <QtCore/qstring.h>
 
 #include <QtMultimedia/qtmultimediadefs.h>
-#include <QtMultimedia/qmediametadata.h>
 
 QT_BEGIN_NAMESPACE
 

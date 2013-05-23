@@ -179,7 +179,10 @@ bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusMode
 
 void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCamera::FocusMode mode)
 {
-    m_focus->setFocusMode(QCameraFocus::FocusModes(int(mode)));
+    if (mode != focusMode()) {
+        m_focus->setFocusMode(QCameraFocus::FocusModes(int(mode)));
+        emit focusModeChanged(focusMode());
+    }
 }
 /*!
     \property QDeclarativeCameraFocus::focusPointMode

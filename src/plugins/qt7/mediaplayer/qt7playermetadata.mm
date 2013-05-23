@@ -43,6 +43,7 @@
 #include "qt7playermetadata.h"
 #include "qt7playersession.h"
 #include <QtCore/qvarlengtharray.h>
+#include <QtMultimedia/qmediametadata.h>
 
 #import <QTKit/QTMovie.h>
 

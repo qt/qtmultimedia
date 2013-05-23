@@ -24,4 +24,5 @@ win32-g++ {
 include(camera/camera.pri)
 
 OTHER_FILES += \
-    directshow.json
+    directshow.json \
+    directshow_camera.json
