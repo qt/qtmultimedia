@@ -82,6 +82,11 @@ JMediaPlayer::~JMediaPlayer()
     mplayers.remove(mId);
 }
 
+void JMediaPlayer::release()
+{
+    callMethod<void>("release");
+}
+
 void JMediaPlayer::onError(qint32 what, qint32 extra)
 {
     Q_EMIT error(what, extra);

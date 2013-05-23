@@ -89,6 +89,8 @@ public:
         MEDIA_PLAYER_FINISHED = 6
     };
 
+    void release();
+
     int getCurrentPosition();
     int getDuration();
     bool isPlaying();
