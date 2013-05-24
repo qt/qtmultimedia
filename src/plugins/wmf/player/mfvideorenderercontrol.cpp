@@ -1286,6 +1286,7 @@ namespace
         {
             HRESULT hr = S_OK;
             Q_ASSERT(pOp != NULL);
+            Q_UNUSED(pOp)
             hr = processSamplesFromQueue(WriteSamples);
             // We are in the middle of an asynchronous operation, so if something failed, send an error.
             if (FAILED(hr))
