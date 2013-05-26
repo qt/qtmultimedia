@@ -134,10 +134,10 @@ types is a bit more complicated, for the following reasons:
 \endlist
 
 The abstraction of source item type is achieved by the
-\l{multimedia/video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content}, which uses a
+\l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content}, which uses a
 \l{Loader} to create either a \l{MediaPlayer}, \l{Camera} or \l{Image}:
 
-\quotefromfile multimedia/video/qmlvideofx/qml/qmlvideofx/Content.qml
+\quotefromfile video/qmlvideofx/qml/qmlvideofx/Content.qml
 \skipto import
 \printuntil {
 \dots
@@ -164,10 +164,10 @@ The abstraction of source item type is achieved by the
 \printuntil }
 
 Each effect is implemented as a QML item which is based on the
-\l{multimedia/video/qmlvideofx/qml/qmlvideofx/Effect.qml}{Effect}, which in turn
+\l{video/qmlvideofx/qml/qmlvideofx/Effect.qml}{Effect}, which in turn
 is based on the \l{ShaderEffect}:
 
-\quotefromfile multimedia/video/qmlvideofx/qml/qmlvideofx/Effect.qml
+\quotefromfile video/qmlvideofx/qml/qmlvideofx/Effect.qml
 \skipto import
 \printuntil /^\}/
 
@@ -179,20 +179,20 @@ implementation of the pixelation effect.  As you can see, the pixelation effect
 supports one parameter (which controls the pixelation granularity), and states
 that the divider should be displayed.
 
-\quotefromfile multimedia/video/qmlvideofx/qml/qmlvideofx/EffectPixelate.qml
+\quotefromfile video/qmlvideofx/qml/qmlvideofx/EffectPixelate.qml
 \skipto import
 \printuntil /^\}/
 
 The main.qml file shows a
-\l{multimedia/video/qmlvideofx/qml/qmlvideofx/FileOpen.qml}{FileOpen}, which allows
+\l{video/qmlvideofx/qml/qmlvideofx/FileOpen.qml}{FileOpen}, which allows
 the user to select the input source and an
-\l{multimedia/video/qmlvideofx/qml/qmlvideofx/EffectSelectionPanel.qml}{EffectSelectionPanel}
+\l{video/qmlvideofx/qml/qmlvideofx/EffectSelectionPanel.qml}{EffectSelectionPanel}
 item, which lists each of the available shader effects.  As described above, a
-\l{multimedia/video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content} item is used to load the
+\l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content} item is used to load the
 appropriate input and effect type.  A
-\l{multimedia/video/qmlvideofx/qml/qmlvideofx/Divider.qml}{Divider} item draws the
+\l{video/qmlvideofx/qml/qmlvideofx/Divider.qml}{Divider} item draws the
 vertical dividing line, which can be dragged left / right by the user.  Finally,
-a \l{multimedia/video/qmlvideofx/qml/qmlvideofx/ParameterPanel.qml}{ParameterPanel} item
+a \l{video/qmlvideofx/qml/qmlvideofx/ParameterPanel.qml}{ParameterPanel} item
 renders the sliders corresponding to each effect parameter.
 
 Here is the source selection menu:
@@ -208,7 +208,7 @@ And here is the effect selection menu:
 All that remains is to connect the afterRendering() signal of the QQuickView
 object to a JavaScript function, which will eventually call frequencyItem.notify():
 
-\quotefromfile multimedia/video/qmlvideofx/main.cpp
+\quotefromfile video/qmlvideofx/main.cpp
 \skipto QGuiApplication
 \printuntil ;
 \dots
