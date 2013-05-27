@@ -125,7 +125,7 @@ void QAudioOutputPrivate::async_callback(snd_async_handler_t *ahandler)
     audioOut = static_cast<QAudioOutputPrivate*>
         (snd_async_handler_get_callback_private(ahandler));
 
-    if((audioOut->deviceState==QAudio::ActiveState)||(audioOut->resuming))
+    if (audioOut && (audioOut->deviceState == QAudio::ActiveState || audioOut->resuming))
         audioOut->feedback();
 }
 
