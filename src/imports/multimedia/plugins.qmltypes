@@ -132,6 +132,7 @@ Module {
         name: "QDeclarativeAudio"
         prototype: "QObject"
         exports: ["QtMultimedia/Audio 5.0", "QtMultimedia/MediaPlayer 5.0"]
+        exportMetaObjectRevisions: [0, 0]
         Enum {
             name: "Status"
             values: {
@@ -230,6 +231,7 @@ Module {
         name: "QDeclarativeCamera"
         prototype: "QObject"
         exports: ["QtMultimedia/Camera 5.0"]
+        exportMetaObjectRevisions: [0]
         Enum {
             name: "CaptureMode"
             values: {
@@ -448,6 +450,7 @@ Module {
         name: "QDeclarativeCameraCapture"
         prototype: "QObject"
         exports: ["QtMultimedia/CameraCapture 5.0"]
+        exportMetaObjectRevisions: [0]
         Property { name: "ready"; type: "bool"; isReadonly: true }
         Property { name: "capturedImagePath"; type: "string"; isReadonly: true }
         Property { name: "resolution"; type: "QSize" }
@@ -506,6 +509,7 @@ Module {
         name: "QDeclarativeCameraExposure"
         prototype: "QObject"
         exports: ["QtMultimedia/CameraExposure 5.0"]
+        exportMetaObjectRevisions: [0]
         Property { name: "exposureCompensation"; type: "double" }
         Property { name: "iso"; type: "int"; isReadonly: true }
         Property { name: "shutterSpeed"; type: "double"; isReadonly: true }
@@ -584,6 +588,7 @@ Module {
         name: "QDeclarativeCameraFlash"
         prototype: "QObject"
         exports: ["QtMultimedia/CameraFlash 5.0"]
+        exportMetaObjectRevisions: [0]
         Property { name: "ready"; type: "bool"; isReadonly: true }
         Property { name: "mode"; type: "int" }
         Signal {
@@ -603,6 +608,7 @@ Module {
         name: "QDeclarativeCameraFocus"
         prototype: "QObject"
         exports: ["QtMultimedia/CameraFocus 5.0"]
+        exportMetaObjectRevisions: [0]
         Property { name: "focusMode"; type: "QDeclarativeCamera::FocusMode" }
         Property { name: "focusPointMode"; type: "QDeclarativeCamera::FocusPointMode" }
         Property { name: "customFocusPoint"; type: "QPointF" }
@@ -646,6 +652,7 @@ Module {
         name: "QDeclarativeCameraImageProcessing"
         prototype: "QObject"
         exports: ["QtMultimedia/CameraImageProcessing 5.0"]
+        exportMetaObjectRevisions: [0]
         Enum {
             name: "WhiteBalanceMode"
             values: {
@@ -720,6 +727,7 @@ Module {
         name: "QDeclarativeCameraRecorder"
         prototype: "QObject"
         exports: ["QtMultimedia/CameraRecorder 5.0"]
+        exportMetaObjectRevisions: [0]
         Enum {
             name: "RecorderState"
             values: {
@@ -918,6 +926,7 @@ Module {
         name: "QDeclarativeRadio"
         prototype: "QObject"
         exports: ["QtMultimedia/Radio 5.0"]
+        exportMetaObjectRevisions: [0]
         Enum {
             name: "State"
             values: {
@@ -1071,6 +1080,7 @@ Module {
         name: "QDeclarativeRadioData"
         prototype: "QObject"
         exports: ["QtMultimedia/RadioData 5.0"]
+        exportMetaObjectRevisions: [0]
         Enum {
             name: "Error"
             values: {
@@ -1192,6 +1202,7 @@ Module {
         name: "QDeclarativeTorch"
         prototype: "QObject"
         exports: ["QtMultimedia/Torch 5.0"]
+        exportMetaObjectRevisions: [0]
         Property { name: "enabled"; type: "bool" }
         Property { name: "power"; type: "int" }
     }
@@ -1200,6 +1211,7 @@ Module {
         defaultProperty: "data"
         prototype: "QQuickItem"
         exports: ["QtMultimedia/VideoOutput 5.0"]
+        exportMetaObjectRevisions: [0]
         Enum {
             name: "FillMode"
             values: {
@@ -1289,6 +1301,7 @@ Module {
         name: "QSoundEffect"
         prototype: "QObject"
         exports: ["QtMultimedia/SoundEffect 5.0"]
+        exportMetaObjectRevisions: [0]
         Enum {
             name: "Loop"
             values: {
