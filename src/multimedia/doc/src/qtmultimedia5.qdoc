@@ -31,9 +31,7 @@
 \ingroup qmlmodules
 \brief Provides QML types for multimedia support.
 
-\section1 Overview
-
-The QML types for Qt Multimedia support the basic use cases such as:
+The QML types for \l{Qt Multimedia} support the basic use cases such as:
 \list
  \li audio and video playback,
  \li access camera and radio functionality,
@@ -41,6 +39,11 @@ The QML types for Qt Multimedia support the basic use cases such as:
  \li and access camera settings.
 \endlist
 
+The QML types can be imported into your application using the following import
+statement in your .qml file:
+\code
+import QtMultimedia 5.0
+\endcode
+
 \section1 QML types
 */
-
