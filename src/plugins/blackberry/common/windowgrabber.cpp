@@ -55,6 +55,8 @@ QT_BEGIN_NAMESPACE
 WindowGrabber::WindowGrabber(QObject *parent)
     : QObject(parent),
       m_screenBuffer(0),
+      m_screenBufferWidth(-1),
+      m_screenBufferHeight(-1),
       m_active(false),
       m_screenContextInitialized(false),
       m_screenPixmapInitialized(false),
@@ -145,7 +147,8 @@ void WindowGrabber::start()
     }
 
     int size[2] = { 0, 0 };
-    result = screen_get_window_property_iv(m_window, SCREEN_PROPERTY_SIZE, size);
+
+    result = screen_get_window_property_iv(m_window, SCREEN_PROPERTY_SOURCE_SIZE, size);
     if (result != 0) {
         cleanup();
         qWarning() << "WindowGrabber: cannot get window size:" << strerror(errno);
@@ -155,7 +158,18 @@ void WindowGrabber::start()
     m_screenBufferWidth = size[0];
     m_screenBufferHeight = size[1];
 
-    result = screen_set_pixmap_property_iv(m_screenPixmap, SCREEN_PROPERTY_BUFFER_SIZE, size);
+    updateFrameSize();
+
+    m_timer.start();
+
+    m_active = true;
+}
+
+void WindowGrabber::updateFrameSize()
+{
+    int size[2] = { m_screenBufferWidth, m_screenBufferHeight };
+
+    int result = screen_set_pixmap_property_iv(m_screenPixmap, SCREEN_PROPERTY_BUFFER_SIZE, size);
     if (result != 0) {
         cleanup();
         qWarning() << "WindowGrabber: cannot set pixmap size:" << strerror(errno);
@@ -191,10 +205,6 @@ void WindowGrabber::start()
         qWarning() << "WindowGrabber: cannot get pixmap buffer stride:" << strerror(errno);
         return;
     }
-
-    m_timer.start();
-
-    m_active = true;
 }
 
 void WindowGrabber::stop()
@@ -284,7 +294,31 @@ QByteArray WindowGrabber::windowGroupId() const
 
 void WindowGrabber::grab()
 {
-    const int result = screen_read_window(m_window, m_screenPixmapBuffer, 0, 0, 0);
+    int size[2] = { 0, 0 };
+
+    int result = screen_get_window_property_iv(m_window, SCREEN_PROPERTY_SOURCE_SIZE, size);
+    if (result != 0) {
+        cleanup();
+        qWarning() << "WindowGrabber: cannot get window size:" << strerror(errno);
+        return;
+    }
+
+    if (m_screenBufferWidth != size[0] || m_screenBufferHeight != size[1]) {
+        // The source viewport size changed, so we have to adapt our buffers
+
+        if (m_screenPixmapBufferInitialized) {
+            screen_destroy_pixmap_buffer(m_screenPixmap);
+            m_screenPixmapBufferInitialized = false;
+        }
+
+        m_screenBufferWidth = size[0];
+        m_screenBufferHeight = size[1];
+
+        updateFrameSize();
+    }
+
+    const int rect[] = { 0, 0, m_screenBufferWidth, m_screenBufferHeight };
+    result = screen_read_window(m_window, m_screenPixmapBuffer, 1, rect, 0);
     if (result != 0)
         return;
 
