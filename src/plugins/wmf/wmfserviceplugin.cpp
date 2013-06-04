@@ -105,12 +105,12 @@ QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
         return QMediaServiceProviderHint::Features();
 }
 
-QList<QByteArray> WMFServicePlugin::devices(const QByteArray &service) const
+QList<QByteArray> WMFServicePlugin::devices(const QByteArray &) const
 {
     return QList<QByteArray>();
 }
 
-QString WMFServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
+QString WMFServicePlugin::deviceDescription(const QByteArray &, const QByteArray &)
 {
     return QString();
 }

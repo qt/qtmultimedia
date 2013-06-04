@@ -30,8 +30,6 @@
 \title Multimedia
 \brief A set of APIs for working with audio, video, radio and camera devices.
 
-\ingroup technology-apis
-
 Multimedia support in Qt is provided by the \l{Qt Multimedia} module. The Qt
 Multimedia module provides a rich feature set that enables you to easily take
 advantage of a platform's multimedia capabilities such as media playback and
