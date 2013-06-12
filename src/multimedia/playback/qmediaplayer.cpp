@@ -1220,7 +1220,7 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
     \property QMediaPlayer::volume
     \brief the current playback volume.
 
-    The playback volume is a linear in effect and the value can range from 0 -
+    The playback volume is linear in effect and the value can range from 0 -
     100, values outside this range will be clamped.
 */
 
