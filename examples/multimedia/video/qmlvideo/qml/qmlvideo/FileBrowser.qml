@@ -101,7 +101,7 @@ Rectangle {
                 Rectangle {
                     id: wrapper
                     function launch() {
-                        var path = "file:///" + filePath;
+                        var path = "file://" + filePath;
                         if (folders.isFolder(index))
                             down(path);
                         else

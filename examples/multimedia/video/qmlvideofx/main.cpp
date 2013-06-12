@@ -116,13 +116,13 @@ int main(int argc, char *argv[])
     FileReader fileReader;
     viewer.rootContext()->setContextProperty("fileReader", &fileReader);
 
-    QUrl appPath(QString("file:///%1").arg(app.applicationDirPath()));
+    QUrl appPath(QString("file://%1").arg(app.applicationDirPath()));
     QUrl imagePath;
     const QStringList picturesLocation = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
     if (picturesLocation.isEmpty())
         imagePath = appPath.resolved(QUrl("images"));
     else
-        imagePath = QString("file:///%1").arg(picturesLocation.first());
+        imagePath = QString("file://%1").arg(picturesLocation.first());
     viewer.rootContext()->setContextProperty("imagePath", imagePath);
 
     QUrl videoPath;
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     if (moviesLocation.isEmpty())
         videoPath = appPath.resolved(QUrl("./"));
     else
-        videoPath = QString("file:///%1").arg(moviesLocation.first());
+        videoPath = QString("file://%1").arg(moviesLocation.first());
     viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
     viewer.setTitle("qmlvideofx");
