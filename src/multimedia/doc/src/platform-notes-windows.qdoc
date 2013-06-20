@@ -26,24 +26,32 @@
 ****************************************************************************/
 
 /*!
-\qmlmodule QtMultimedia 5
-\title Qt Multimedia QML Types
-\ingroup qmlmodules
-\brief Provides QML types for multimedia support.
+\page platform-notes-windows.html
+\title Qt Multimedia on Windows
+\brief Platform notes for Windows
 
-The QML types for \l{Qt Multimedia} support the basic use cases such as:
-\list
- \li audio and video playback,
- \li access camera and radio functionality,
- \li record video,
- \li and access camera settings.
-\endlist
+This page covers the availability of Qt Multimedia features on Windows.
 
-The QML types can be imported into your application using the following import
-statement in your .qml file:
-\code
-import QtMultimedia 5.0
-\endcode
+\section1 Implementation
 
-\section1 QML types
+Qt Multimedia features for Windows are implemented in two plugins; one
+using the Microsoft DirectShow API, and another using WMF (Windows Media
+Foundation) framework. DirectShow API was introduced in Windows 98, and
+gradually deprecated from Windows XP onwards. Media Foundation framework
+was introduced in Windows Vista as a replacement for DirectShow and other
+multimedia APIs. Consequently, WMF plugin in Qt is supported only for
+Windows Vista and later versions of the operating system.
+
+\section1 Limitations
+
+The WMF plugin in Qt does not currently provide a camera backend. Instead,
+limited support for camera features is provided by the DirectShow
+plugin. Basic features such as displaying a viewfinder and capturing a
+still image are supported, however, majority of camera controls are not
+implemented.
+
+Video recording is currently not supported. Additionally, the DirectShow
+plugin does not support any low-level video functionality such as
+monitoring video frames being played or recorded using \l QVideoProbe or
+related classes.
 */

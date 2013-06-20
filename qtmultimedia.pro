@@ -1,3 +1,5 @@
+requires(qtHaveModule(gui))
+
 load(configure)
 qtCompileTest(openal)
 win32 {
@@ -9,7 +11,9 @@ win32 {
 } else:mac {
     qtCompileTest(avfoundation)
 } else:android {
-    !qtCompileTest(android):error("QtMultimedia for Android requires API level 11")
+    SDK_ROOT = $$(ANDROID_SDK_ROOT)
+    isEmpty(SDK_ROOT): SDK_ROOT = $$DEFAULT_ANDROID_SDK_ROOT
+    !exists($$SDK_ROOT/platforms/android-11/android.jar): error("QtMultimedia for Android requires API level 11")
 } else {
     qtCompileTest(alsa)
     qtCompileTest(pulseaudio)

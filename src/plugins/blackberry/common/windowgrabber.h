@@ -79,6 +79,7 @@ private slots:
 
 private:
     void cleanup();
+    void updateFrameSize();
 
     QTimer m_timer;
 

@@ -142,8 +142,14 @@ void BbPlayerVideoRendererControl::resume()
 void BbPlayerVideoRendererControl::frameGrabbed(const QImage &frame)
 {
     if (m_surface) {
-        if (!m_surface->isActive())
+        if (!m_surface->isActive()) {
             m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_ARGB32));
+        } else {
+            if (m_surface->surfaceFormat().frameSize() != frame.size()) {
+                m_surface->stop();
+                m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_ARGB32));
+            }
+        }
 
         m_surface->present(frame.copy());
     }
