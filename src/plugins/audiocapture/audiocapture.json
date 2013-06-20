@@ -1,3 +1,4 @@
 {
-    "Keys": ["org.qt-project.qt.audiosource"]
+    "Keys": ["audiocapture"],
+    "Services": ["org.qt-project.qt.audiosource"]
 }
