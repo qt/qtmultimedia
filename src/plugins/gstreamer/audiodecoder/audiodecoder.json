@@ -1,3 +1,4 @@
 {
-    "Keys": ["org.qt-project.qt.audiodecode"]
+    "Keys": ["gstreameraudiodecode"],
+    "Services": ["org.qt-project.qt.audiodecode"]
 }

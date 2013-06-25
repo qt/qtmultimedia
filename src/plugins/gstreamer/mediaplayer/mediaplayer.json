@@ -1,3 +1,4 @@
 {
-    "Keys": ["org.qt-project.qt.mediaplayer"]
+    "Keys": ["gstreamermediaplayer"],
+    "Services": ["org.qt-project.qt.mediaplayer"]
 }

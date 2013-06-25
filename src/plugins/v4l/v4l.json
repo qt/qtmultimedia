@@ -1,3 +1,4 @@
 {
-    "Keys": ["org.qt-project.qt.radio"]
+    "Keys": ["v4l"],
+    "Services": ["org.qt-project.qt.radio"]
 }

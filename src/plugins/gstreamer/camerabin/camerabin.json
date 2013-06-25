@@ -1,3 +1,4 @@
 {
-    "Keys": ["org.qt-project.qt.camera"]
+    "Keys": ["gstreamercamerabin"],
+    "Services": ["org.qt-project.qt.camera"]
 }

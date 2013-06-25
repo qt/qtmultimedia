@@ -127,7 +127,12 @@ void QMediaPluginLoader::loadMetadata()
             qDebug() << "QMediaPluginLoader: Inserted index " << i << " into metadata: " << jsonobj;
 #endif
 
-        QJsonArray arr = jsonobj.value(QStringLiteral("Keys")).toArray();
+        QJsonArray arr = jsonobj.value(QStringLiteral("Services")).toArray();
+        // Preserve compatibility with older plugins (made before 5.1) in which
+        // services were declared in the 'Keys' property
+        if (arr.isEmpty())
+            arr = jsonobj.value(QStringLiteral("Keys")).toArray();
+
         foreach (QJsonValue value, arr) {
             QString key = value.toString();
 
