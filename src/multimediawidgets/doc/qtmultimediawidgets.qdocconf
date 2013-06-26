@@ -40,3 +40,6 @@ sourcedirs += ../
 excludedirs +=
 
 depends                 += qtcore qtdoc qtquick qtqml qtmultimedia qtwidgets qtgui
+
+navigation.landingpage = "Qt Multimedia Widgets"
+navigation.cppclassespage = "Qt Multimedia Widgets C++ Classes"

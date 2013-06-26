@@ -44,3 +44,7 @@ sourcedirs += ../..
 excludedirs += ../../multimediawidgets
 
 depends                 += qtcore qtdoc qtquick qtqml qtmultimediawidgets
+
+navigation.landingpage = "Qt Multimedia"
+navigation.cppclassespage = "Qt Multimedia C++ Classes"
+navigation.qmltypespage = "Qt Multimedia QML Types"
