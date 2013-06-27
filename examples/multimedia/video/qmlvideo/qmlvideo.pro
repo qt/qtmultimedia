@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = qmlvideo
 
-QT += quick
+QT += quick multimedia
 
 LOCAL_SOURCES = main.cpp
 LOCAL_HEADERS = trace.h

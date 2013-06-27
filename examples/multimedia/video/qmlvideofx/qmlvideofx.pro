@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = qmlvideofx
 
-QT += quick
+QT += quick multimedia
 
 SOURCES += filereader.cpp main.cpp
 HEADERS += filereader.h trace.h
