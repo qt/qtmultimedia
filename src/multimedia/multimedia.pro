@@ -52,9 +52,9 @@ include(recording/recording.pri)
 include(video/video.pri)
 
 ANDROID_BUNDLED_JAR_DEPENDENCIES = \
-    jar/QtMultimedia-bundled.jar:org.qtproject.qt5.android.multimedia.QtAndroidMediaPlayer
+    jar/QtMultimedia-bundled.jar
 ANDROID_JAR_DEPENDENCIES = \
-    jar/QtMultimedia.jar:org.qtproject.qt5.android.multimedia.QtAndroidMediaPlayer
+    jar/QtMultimedia.jar
 ANDROID_LIB_DEPENDENCIES = \
     plugins/mediaservice/libandroidmediaplayer.so \
     lib/libQt5MultimediaQuick_p.so:Qt5Quick
