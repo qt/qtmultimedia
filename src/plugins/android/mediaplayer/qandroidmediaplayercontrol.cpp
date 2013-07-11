@@ -45,6 +45,12 @@
 
 QT_BEGIN_NAMESPACE
 
+static void textureReadyCallback(void *context)
+{
+    if (context)
+        reinterpret_cast<QAndroidMediaPlayerControl *>(context)->onSurfaceTextureReady();
+}
+
 QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
     : QMediaPlayerControl(parent),
       mMediaPlayer(new JMediaPlayer),
@@ -58,7 +64,8 @@ QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
       mVideoAvailable(false),
       mBuffering(false),
       mMediaPlayerReady(false),
-      mPendingPosition(-1)
+      mPendingPosition(-1),
+      mPendingSetMedia(false)
 {
     connect(mMediaPlayer, SIGNAL(bufferingUpdate(qint32)),
             this, SLOT(onBufferChanged(qint32)));
@@ -74,6 +81,7 @@ QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
 
 QAndroidMediaPlayerControl::~QAndroidMediaPlayerControl()
 {
+    mMediaPlayer->release();
     delete mMediaPlayer;
 }
 
@@ -207,6 +215,13 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
     mMediaContent = mediaContent;
     mMediaStream = stream;
 
+    if (mVideoOutput && !mMediaPlayer->display()) {
+        // if a video output is set but the video texture is not ready, delay loading the media
+        // since it can cause problems on some hardware
+        mPendingSetMedia = true;
+        return;
+    }
+
     const QString uri = mediaContent.canonicalUrl().toString();
 
     if (!uri.isEmpty())
@@ -230,6 +245,13 @@ void QAndroidMediaPlayerControl::setVideoOutput(QAndroidVideoOutput *videoOutput
         mVideoOutput->stop();
 
     mVideoOutput = videoOutput;
+
+    if (mVideoOutput && !mMediaPlayer->display()) {
+        if (mVideoOutput->isTextureReady())
+            mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+        else
+            mVideoOutput->setTextureReadyCallback(textureReadyCallback, this);
+    }
 }
 
 void QAndroidMediaPlayerControl::play()
@@ -238,7 +260,8 @@ void QAndroidMediaPlayerControl::play()
         mPendingState = QMediaPlayer::PlayingState;
         if (mCurrentState == QMediaPlayer::StoppedState
             && !mMediaContent.isNull()
-            && mCurrentMediaStatus != QMediaPlayer::LoadingMedia) {
+            && mCurrentMediaStatus != QMediaPlayer::LoadingMedia
+            && !mPendingSetMedia) {
             setMedia(mMediaContent, 0);
         }
         return;
@@ -391,16 +414,23 @@ void QAndroidMediaPlayerControl::onBufferChanged(qint32 percent)
 
 void QAndroidMediaPlayerControl::onVideoSizeChanged(qint32 width, qint32 height)
 {
-    if (width == 0 || height == 0)
+    QSize newSize(width, height);
+
+    if (width == 0 || height == 0 || newSize == mVideoSize)
         return;
 
     setVideoAvailable(true);
+    mVideoSize = newSize;
 
-    if (mVideoOutput) {
-        if (!mMediaPlayer->display())
-            mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
-        if (mMediaPlayer->display())
-            mVideoOutput->setVideoSize(QSize(width, height));
+    if (mVideoOutput)
+        mVideoOutput->setVideoSize(mVideoSize);
+}
+
+void QAndroidMediaPlayerControl::onSurfaceTextureReady()
+{
+    if (!mMediaPlayer->display() && mVideoOutput) {
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+        flushPendingStates();
     }
 }
 
@@ -464,6 +494,9 @@ void QAndroidMediaPlayerControl::setVideoAvailable(bool available)
     if (mVideoAvailable == available)
         return;
 
+    if (!available)
+        mVideoSize = QSize();
+
     mVideoAvailable = available;
     Q_EMIT videoAvailableChanged(mVideoAvailable);
 }
@@ -478,6 +511,12 @@ void QAndroidMediaPlayerControl::resetBufferingProgress()
 
 void QAndroidMediaPlayerControl::flushPendingStates()
 {
+    if (mPendingSetMedia) {
+        setMedia(mMediaContent, 0);
+        mPendingSetMedia = false;
+        return;
+    }
+
     switch (mPendingState) {
     case QMediaPlayer::PlayingState:
         if (mPendingPosition > -1)

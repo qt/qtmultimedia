@@ -50,6 +50,7 @@
 #include <QVideoSurfaceFormat>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
+#include <qevent.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -134,6 +135,8 @@ QAndroidVideoRendererControl::QAndroidVideoRendererControl(QObject *parent)
     , m_surfaceTexture(0)
     , m_surfaceHolder(0)
     , m_externalTex(0)
+    , m_textureReadyCallback(0)
+    , m_textureReadyContext(0)
 {
 }
 
@@ -177,42 +180,66 @@ void QAndroidVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (surface == m_surface)
         return;
 
-    if (m_surface && m_surface->isActive())
+    if (m_surface && m_surface->isActive()) {
         m_surface->stop();
+        m_surface->removeEventFilter(this);
+    }
 
     m_surface = surface;
 
-    if (m_surface)
+    if (m_surface) {
         m_useImage = !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+        m_surface->installEventFilter(this);
+    }
 }
 
-jobject QAndroidVideoRendererControl::surfaceHolder()
+bool QAndroidVideoRendererControl::isTextureReady()
 {
-    if (m_surfaceHolder)
-        return m_surfaceHolder->object();
+    return QOpenGLContext::currentContext() || (m_surface && m_surface->property("GLContext").isValid());
+}
+
+void QAndroidVideoRendererControl::setTextureReadyCallback(TextureReadyCallback cb, void *context)
+{
+    m_textureReadyCallback = cb;
+    m_textureReadyContext = context;
+}
+
+bool QAndroidVideoRendererControl::initSurfaceTexture()
+{
+    if (m_surfaceTexture)
+        return true;
+
+    if (!m_surface)
+        return false;
 
     QOpenGLContext *currContext = QOpenGLContext::currentContext();
 
     // If we don't have a GL context in the current thread, create one and share it
     // with the render thread GL context
     if (!currContext && !m_glContext) {
+        QOpenGLContext *shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
+        if (!shareContext)
+            return false;
+
         m_offscreenSurface = new QOffscreenSurface;
         QSurfaceFormat format;
         format.setSwapBehavior(QSurfaceFormat::SingleBuffer);
         m_offscreenSurface->setFormat(format);
         m_offscreenSurface->create();
 
-        QOpenGLContext *shareContext = 0;
-        if (m_surface)
-            shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
         m_glContext = new QOpenGLContext;
         m_glContext->setFormat(m_offscreenSurface->requestedFormat());
 
         if (shareContext)
             m_glContext->setShareContext(shareContext);
 
-        if (!m_glContext->create())
-            return 0;
+        if (!m_glContext->create()) {
+            delete m_glContext;
+            m_glContext = 0;
+            delete m_offscreenSurface;
+            m_offscreenSurface = 0;
+            return false;
+        }
 
         // if sharing contexts is not supported, fallback to image rendering and send the bits
         // to the video surface
@@ -228,7 +255,21 @@ jobject QAndroidVideoRendererControl::surfaceHolder()
 
     if (m_surfaceTexture->isValid()) {
         connect(m_surfaceTexture, SIGNAL(frameAvailable()), this, SLOT(onFrameAvailable()));
+    } else {
+        delete m_surfaceTexture;
+        m_surfaceTexture = 0;
+        glDeleteTextures(1, &m_externalTex);
+    }
 
+    return m_surfaceTexture != 0;
+}
+
+jobject QAndroidVideoRendererControl::surfaceHolder()
+{
+    if (!initSurfaceTexture())
+        return 0;
+
+    if (!m_surfaceHolder) {
         QJNILocalRef<jobject> surfaceTex = m_surfaceTexture->surfaceTexture();
 
         m_androidSurface = new QJNIObject("android/view/Surface",
@@ -236,16 +277,9 @@ jobject QAndroidVideoRendererControl::surfaceHolder()
                                           surfaceTex.object());
 
         m_surfaceHolder = new JSurfaceTextureHolder(m_androidSurface->object());
-    } else {
-        delete m_surfaceTexture;
-        m_surfaceTexture = 0;
-        glDeleteTextures(1, &m_externalTex);
     }
 
-    if (m_surfaceHolder)
-        return m_surfaceHolder->object();
-
-    return 0;
+    return m_surfaceHolder->object();
 }
 
 void QAndroidVideoRendererControl::setVideoSize(const QSize &size)
@@ -371,6 +405,20 @@ void QAndroidVideoRendererControl::createGLResources()
         m_program->bindAttributeLocation("textureCoordArray", 1);
         m_program->link();
     }
+}
+
+bool QAndroidVideoRendererControl::eventFilter(QObject *, QEvent *e)
+{
+    if (e->type() == QEvent::DynamicPropertyChange) {
+        QDynamicPropertyChangeEvent *event = static_cast<QDynamicPropertyChangeEvent*>(e);
+        if (event->propertyName() == "GLContext" && m_textureReadyCallback) {
+            m_textureReadyCallback(m_textureReadyContext);
+            m_textureReadyCallback = 0;
+            m_textureReadyContext = 0;
+        }
+    }
+
+    return false;
 }
 
 QT_END_NAMESPACE

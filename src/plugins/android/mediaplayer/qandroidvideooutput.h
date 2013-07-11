@@ -48,6 +48,8 @@
 
 QT_BEGIN_NAMESPACE
 
+typedef void (*TextureReadyCallback)(void*);
+
 class QAndroidVideoOutput
 {
 public:
@@ -55,6 +57,10 @@ public:
     virtual ~QAndroidVideoOutput() { }
 
     virtual jobject surfaceHolder() = 0;
+
+    virtual bool isTextureReady() = 0;
+    virtual void setTextureReadyCallback(TextureReadyCallback cb, void *context = 0) = 0;
+
     virtual void setVideoSize(const QSize &size) = 0;
     virtual void stop() = 0;
 };

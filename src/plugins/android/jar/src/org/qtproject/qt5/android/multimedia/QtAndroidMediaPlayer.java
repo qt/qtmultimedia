@@ -50,6 +50,9 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
+import java.io.FileDescriptor;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 
 public class QtAndroidMediaPlayer extends MediaPlayer
 {
@@ -335,7 +338,17 @@ public class QtAndroidMediaPlayer extends MediaPlayer
             mPreparing = true;
             onMediaPlayerInfoNative(MEDIA_PLAYER_PREPARING, 0, mID);
             mUri = Uri.parse(path);
-            setDataSource(mApplicationContext, mUri);
+            if (mUri.getScheme().compareTo("assets") == 0) {
+                final String asset = mUri.getPath().substring(1 /* Remove first '/' */);
+                final AssetManager am = mApplicationContext.getAssets();
+                final AssetFileDescriptor afd = am.openFd(asset);
+                final long offset = afd.getStartOffset();
+                final long length = afd.getLength();
+                FileDescriptor fd = afd.getFileDescriptor();
+                setDataSource(fd, offset, length);
+            } else {
+                setDataSource(mApplicationContext, mUri);
+            }
             mInitialized = true;
             setOnPreparedListener(new MediaPlayerPreparedListener());
             prepareAsync();
