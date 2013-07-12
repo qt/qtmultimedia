@@ -1326,8 +1326,6 @@ void MFPlayerSession::start()
     switch (m_status) {
     case QMediaPlayer::EndOfMedia:
         m_varStart.hVal.QuadPart = 0;
-        //since it must be loaded already, just fallthrough
-    case QMediaPlayer::LoadedMedia:
         changeStatus(QMediaPlayer::BufferedMedia);
         return;
     }
@@ -1911,10 +1909,12 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
     switch (meType) {
     case MEBufferingStarted:
-        changeStatus(QMediaPlayer::StalledMedia);
+        changeStatus(m_status == QMediaPlayer::LoadedMedia ? QMediaPlayer::BufferingMedia : QMediaPlayer::StalledMedia);
         emit bufferStatusChanged(bufferStatus());
         break;
     case MEBufferingStopped:
+        if (m_status == QMediaPlayer::BufferingMedia)
+            stop(true);
         changeStatus(QMediaPlayer::BufferedMedia);
         emit bufferStatusChanged(bufferStatus());
         break;
@@ -1979,6 +1979,16 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                         }
                     }
                     MFGetService(m_session, MFNETSOURCE_STATISTICS_SERVICE, IID_PPV_ARGS(&m_netsourceStatistics));
+
+                    if (!m_netsourceStatistics || bufferStatus() == 100) {
+                        // If the source reader doesn't implement the statistics service, just set the status
+                        // to buffered, since there is no way to query the buffering progress...
+                        changeStatus(QMediaPlayer::BufferedMedia);
+                    } else {
+                        // Start to trigger buffering. Once enough buffering is done, the session will
+                        // be automatically stopped unless the user has explicitly started playback.
+                        start();
+                    }
                 }
             }
         }
