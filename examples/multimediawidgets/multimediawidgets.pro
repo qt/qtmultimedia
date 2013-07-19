@@ -9,8 +9,3 @@ qtHaveModule(widgets) {
         player \
         customvideosurface
 }
-
-qtHaveModule(gui):qtHaveModule(qml) {
-    disabled:SUBDIRS += declarative-camera
-}
-

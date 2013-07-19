@@ -57,7 +57,6 @@ QT += multimediawidgets
 
 \section2 Examples
 \list
-\li \l{QML Camera Example}
 \li \l{Camera Example}
 \li \l{Media Player Example}
 \li \l{Video Graphics Item Example}

@@ -15,6 +15,7 @@ qtHaveModule(widgets) {
 
 qtHaveModule(gui):qtHaveModule(qml) {
     SUBDIRS += \
+        declarative-camera \
         declarative-radio \
         video
 }
