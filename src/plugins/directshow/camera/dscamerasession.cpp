@@ -595,7 +595,7 @@ void DSCameraSession::captureFrame()
             mutex.lock();
 
             image = QImage(frames.at(0)->buffer,m_windowSize.width(),m_windowSize.height(),
-                    QImage::Format_RGB32).rgbSwapped().mirrored(true);
+                    QImage::Format_RGB32).mirrored(true);
 
             QVideoFrame frame(image);
             frame.setStartTime(frames.at(0)->time);

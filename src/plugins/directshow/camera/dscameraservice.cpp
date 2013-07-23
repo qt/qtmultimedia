@@ -62,6 +62,10 @@ QT_BEGIN_NAMESPACE
 
 DSCameraService::DSCameraService(QObject *parent):
     QMediaService(parent)
+#if defined(HAVE_WIDGETS)
+  , m_viewFinderWidget(0)
+  #endif
+  , m_videoRenderer(0)
 {
     m_session = new DSCameraSession(this);
 
@@ -69,13 +73,7 @@ DSCameraService::DSCameraService(QObject *parent):
 
     m_videoDevice = new DSVideoDeviceControl(m_session);
 
-    m_videoRenderer = new DSVideoRendererControl(m_session, this);
-
     m_imageCapture = new DSImageCaptureControl(m_session);
-
-#if defined(HAVE_WIDGETS)
-    m_viewFinderWidget = new DSVideoWidgetControl(m_session);
-#endif
 
     m_device = QByteArray("default");
 }
@@ -102,14 +100,23 @@ QMediaControl* DSCameraService::requestControl(const char *name)
 
 #if defined(HAVE_WIDGETS)
     if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
-        if (m_viewFinderWidget) {
+        if (!m_viewFinderWidget && !m_videoRenderer) {
+            m_viewFinderWidget = new DSVideoWidgetControl(m_session);
             return m_viewFinderWidget;
         }
     }
 #endif
 
-    if(qstrcmp(name,QVideoRendererControl_iid) == 0)
-        return m_videoRenderer;
+    if (qstrcmp(name,QVideoRendererControl_iid) == 0) {
+#if defined(HAVE_WIDGETS)
+        if (!m_videoRenderer && !m_viewFinderWidget) {
+#else
+        if (!m_videoRenderer) {
+#endif
+            m_videoRenderer = new DSVideoRendererControl(m_session, this);
+            return m_videoRenderer;
+        }
+    }
 
     if (qstrcmp(name,QVideoDeviceSelectorControl_iid) == 0)
         return m_videoDevice;
@@ -119,8 +126,19 @@ QMediaControl* DSCameraService::requestControl(const char *name)
 
 void DSCameraService::releaseControl(QMediaControl *control)
 {
-    Q_UNUSED(control)
-   // Implemented as a singleton, so we do nothing.
+    if (control == m_videoRenderer) {
+        delete m_videoRenderer;
+        m_videoRenderer = 0;
+        return;
+    }
+
+#if defined(HAVE_WIDGETS)
+    if (control == m_viewFinderWidget) {
+        delete m_viewFinderWidget;
+        m_viewFinderWidget = 0;
+        return;
+    }
+#endif
 }
 
 QT_END_NAMESPACE
