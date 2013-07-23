@@ -6,7 +6,7 @@ win32 {
     qtCompileTest(directshow)
     qtCompileTest(wmsdk)
     qtCompileTest(wmp)
-    qtCompileTest(wmf)
+    contains(QT_CONFIG, wmf-backend): qtCompileTest(wmf)
     qtCompileTest(evr)
 } else:mac {
     qtCompileTest(avfoundation)
