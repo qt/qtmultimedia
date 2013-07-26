@@ -129,13 +129,11 @@ int main(int argc, char *argv[])
                      rootObject, SLOT(qmlFramePainted()));
 #endif
 
-    QUrl videoPath;
     const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
-    if (moviesLocation.isEmpty()) {
-        QUrl appPath(QString("file://%1").arg(app.applicationDirPath()));
-        videoPath = appPath.resolved(QUrl("./"));
-    } else
-        videoPath = QString("file://%1").arg(moviesLocation.first());
+    const QUrl videoPath =
+        QUrl::fromLocalFile(moviesLocation.isEmpty() ?
+                            app.applicationDirPath() :
+                            moviesLocation.front());
     viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
     QMetaObject::invokeMethod(rootObject, "init");
