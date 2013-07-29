@@ -98,8 +98,9 @@ QMediaPlayer::MediaStatus QAndroidMediaPlayerControl::mediaStatus() const
 qint64 QAndroidMediaPlayerControl::duration() const
 {
     return (mCurrentMediaStatus == QMediaPlayer::InvalidMedia
-            || mCurrentMediaStatus == QMediaPlayer::NoMedia) ? 0
-                                                             : mMediaPlayer->getDuration();
+            || mCurrentMediaStatus == QMediaPlayer::NoMedia
+            || !mMediaPlayerReady) ? 0
+                                   : mMediaPlayer->getDuration();
 }
 
 qint64 QAndroidMediaPlayerControl::position() const
@@ -330,14 +331,12 @@ void QAndroidMediaPlayerControl::onMediaPlayerInfo(qint32 what, qint32 extra)
         setState(QMediaPlayer::StoppedState);
         break;
     case JMediaPlayer::MEDIA_PLAYER_READY:
+        setMediaStatus(QMediaPlayer::LoadedMedia);
         if (mBuffering) {
             setMediaStatus(mBufferPercent == 100 ? QMediaPlayer::BufferedMedia
                                                  : QMediaPlayer::BufferingMedia);
         } else {
-            setMediaStatus(QMediaPlayer::LoadedMedia);
-            mBufferPercent = 100;
-            Q_EMIT bufferStatusChanged(mBufferPercent);
-            updateAvailablePlaybackRanges();
+            onBufferChanged(100);
         }
         setAudioAvailable(true);
         mMediaPlayerReady = true;
@@ -402,7 +401,7 @@ void QAndroidMediaPlayerControl::onError(qint32 what, qint32 extra)
 
 void QAndroidMediaPlayerControl::onBufferChanged(qint32 percent)
 {
-    mBuffering = true;
+    mBuffering = percent != 100;
     mBufferPercent = percent;
     Q_EMIT bufferStatusChanged(mBufferPercent);
 
