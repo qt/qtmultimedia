@@ -1918,19 +1918,17 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         changeStatus(QMediaPlayer::BufferedMedia);
         emit bufferStatusChanged(bufferStatus());
         break;
-    case MEEndOfPresentation:
-        stop();
-        changeStatus(QMediaPlayer::EndOfMedia);
-        m_varStart.vt = VT_I8;
-        //keep reporting the final position after end of media
-        m_varStart.hVal.QuadPart = m_duration;
-        break;
     case MESessionEnded:
         m_pendingState = NoPending;
         m_state.command = CmdStop;
         m_state.prevCmd = CmdNone;
         m_request.command = CmdNone;
         m_request.prevCmd = CmdNone;
+
+        changeStatus(QMediaPlayer::EndOfMedia);
+        m_varStart.vt = VT_I8;
+        //keep reporting the final position after end of media
+        m_varStart.hVal.QuadPart = m_duration;
         break;
     case MEEndOfPresentationSegment:
         break;
@@ -1992,6 +1990,8 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                 }
             }
         }
+        break;
+    default:
         break;
     }
 
