@@ -101,7 +101,6 @@ Rectangle {
                 Rectangle {
                     id: wrapper
                     function launch() {
-                        console.debug("launch " + filePath);
                         var path = "file://";
                         if (filePath.length > 2 && filePath[1] === ':') // Windows drive logic, see QUrl::fromLocalFile()
                             path += '/';
