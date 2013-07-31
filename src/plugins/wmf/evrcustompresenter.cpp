@@ -50,6 +50,7 @@
 #include <qabstractvideosurface.h>
 #include <qthread.h>
 #include <qcoreapplication.h>
+#include <qmath.h>
 #include <QtCore/qdebug.h>
 #include <d3d9.h>
 #include <dshow.h>
@@ -325,7 +326,7 @@ HRESULT Scheduler::processSample(IMFSample *sample, LONG *pNextSleep)
             // Adjust the sleep time for the clock rate. (The presentation clock runs
             // at m_fRate, but sleeping uses the system clock.)
             if (m_playbackRate != 0)
-                nextSleep = (LONG)(nextSleep / fabsf(m_playbackRate));
+                nextSleep = (LONG)(nextSleep / qFabs(m_playbackRate));
 
             // Don't present yet.
             presentNow = false;
@@ -987,7 +988,7 @@ HRESULT EVRCustomPresenter::IsRateSupported(BOOL thin, float rate, float *neares
     // Note: We have no minimum rate (that is, we support anything down to 0).
     maxRate = getMaxRate(thin);
 
-    if (fabsf(rate) > maxRate) {
+    if (qFabs(rate) > maxRate) {
         // The (absolute) requested rate exceeds the maximum rate.
         hr = MF_E_UNSUPPORTED_RATE;
 
