@@ -29,6 +29,7 @@
     \module QtMultimedia
     \title Qt Multimedia C++ Classes
     \ingroup modules
+    \qtvariable multimedia
 
     \brief The \l {Qt Multimedia} module provides audio, video, radio and camera
     functionality.

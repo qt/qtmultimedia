@@ -29,6 +29,7 @@
 \module QtMultimediaWidgets
 \title Qt Multimedia Widgets C++ Classes
 \brief Classes provided by the Qt Multimedia Widgets module.
+\qtvariable multimediawidgets
 
 These classes are part of the \l{Qt Multimedia Widgets} module.
 
