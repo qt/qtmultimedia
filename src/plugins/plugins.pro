@@ -53,3 +53,7 @@ mac:!simulator {
     }
 }
 
+config_resourcepolicy {
+    SUBDIRS += resourcepolicy
+}
+
