@@ -111,6 +111,7 @@ private Q_SLOTS:
     void sampleReady();
     void uploadSample();
     void contextReady();
+    void contextFailed();
     void underRun();
     void prepare();
     void streamReady();

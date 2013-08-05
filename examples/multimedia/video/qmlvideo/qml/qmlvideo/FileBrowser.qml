@@ -101,7 +101,10 @@ Rectangle {
                 Rectangle {
                     id: wrapper
                     function launch() {
-                        var path = "file://" + filePath;
+                        var path = "file://";
+                        if (filePath.length > 2 && filePath[1] === ':') // Windows drive logic, see QUrl::fromLocalFile()
+                            path += '/';
+                        path += filePath;
                         if (folders.isFolder(index))
                             down(path);
                         else
@@ -306,7 +309,7 @@ Rectangle {
                     MouseArea { id: upRegion; anchors.centerIn: parent
                         width: 56
                         height: 56
-                        onClicked: if (folders.parentFolder != "") up()
+                        onClicked: up()
                     }
                     states: [
                         State {
@@ -352,6 +355,8 @@ Rectangle {
 
             function up() {
                 var path = folders.parentFolder;
+                if (path.toString().length === 0 || path.toString() === 'file:')
+                    return;
                 if (folders == folders1) {
                     view = view2
                     folders = folders2;
