@@ -24,5 +24,4 @@
     "qtbase" => "",
     "qtxmlpatterns" => "",
     "qtdeclarative" => "",
-    "qtjsbackend" => "",
 );
