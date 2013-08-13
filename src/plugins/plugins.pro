@@ -56,3 +56,8 @@ mac:!simulator {
 config_opensles {
     SUBDIRS += opensles
 }
+
+config_resourcepolicy {
+    SUBDIRS += resourcepolicy
+}
+

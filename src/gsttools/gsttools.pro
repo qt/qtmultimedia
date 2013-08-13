@@ -26,7 +26,7 @@ maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
 
 config_resourcepolicy {
     DEFINES += HAVE_RESOURCE_POLICY
-    PKGCONFIG += libresourceqt1
+    PKGCONFIG += libresourceqt5
 }
 
 # Header files must go inside source directory of a module
