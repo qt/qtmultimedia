@@ -369,7 +369,7 @@ void PrivateSoundSource::stateChanged(QAudio::State state)
 
 qint64 PrivateSoundSource::readData( char* data, qint64 len)
 {
-    if (m_runningCount > 0 && m_playing) {
+    if ((m_runningCount > 0  || m_runningCount == QSoundEffect::Infinite) && m_playing) {
 
         if (m_sample->state() != QSample::Ready)
             return 0;
