@@ -20,32 +20,39 @@ HEADERS += \
     avfmediaplayermetadatacontrol.h \
     avfmediaplayerservice.h \
     avfmediaplayersession.h \
-    avfmediaplayerserviceplugin.h \
-    avfvideorenderercontrol.h \
-    avfdisplaylink.h \
-    avfvideoframerenderer.h \
-    avfvideooutput.h
+    avfmediaplayerserviceplugin.h
 
 OBJECTIVE_SOURCES += \
     avfmediaplayercontrol.mm \
     avfmediaplayermetadatacontrol.mm \
     avfmediaplayerservice.mm \
     avfmediaplayerserviceplugin.mm \
-    avfmediaplayersession.mm \
-    avfvideorenderercontrol.mm \
-    avfdisplaylink.mm \
-    avfvideoframerenderer.mm \
-    avfvideooutput.mm
+    avfmediaplayersession.mm
 
-qtHaveModule(widgets) {
-    QT += multimediawidgets-private opengl
+!ios {
     HEADERS += \
-        avfvideowidgetcontrol.h \
-        avfvideowidget.h
-
+        avfvideorenderercontrol.h \
+        avfdisplaylink.h \
+        avfvideoframerenderer.h \
+        avfvideooutput.h
     OBJECTIVE_SOURCES += \
-        avfvideowidgetcontrol.mm \
-        avfvideowidget.mm
+        avfvideorenderercontrol.mm \
+        avfdisplaylink.mm \
+        avfvideoframerenderer.mm \
+        avfvideooutput.mm
+
+    LIBS += -framework QuartzCore -framework AppKit
+
+    qtHaveModule(widgets) {
+        QT += multimediawidgets-private opengl
+        HEADERS += \
+            avfvideowidgetcontrol.h \
+            avfvideowidget.h
+
+        OBJECTIVE_SOURCES += \
+            avfvideowidgetcontrol.mm \
+            avfvideowidget.mm
+    }
 }
 
 OTHER_FILES += \

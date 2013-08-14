@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS += camera \
-           mediaplayer
+!ios: SUBDIRS += camera
+
+SUBDIRS += mediaplayer

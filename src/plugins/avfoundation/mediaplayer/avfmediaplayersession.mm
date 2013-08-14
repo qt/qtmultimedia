@@ -240,9 +240,11 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
     m_player = [AVPlayer playerWithPlayerItem:m_playerItem];
     [m_player retain];
 
+#if defined(Q_OS_OSX)
     //Set the initial volume on new player object
     if (self.session)
         m_player.volume = m_session->volume() / 100.0f;
+#endif
 
     //Create a new player layer if we don't have one already
     if (!m_playerLayer)
@@ -735,10 +737,12 @@ void AVFMediaPlayerSession::setVolume(int volume)
 
     m_volume = volume;
 
+#if defined(Q_OS_OSX)
     AVPlayer *player = [(AVFMediaPlayerSessionObserver*)m_observer player];
     if (player) {
         [[(AVFMediaPlayerSessionObserver*)m_observer player] setVolume:m_volume / 100.0f];
     }
+#endif
 
     Q_EMIT volumeChanged(m_volume);
 }
@@ -752,9 +756,9 @@ void AVFMediaPlayerSession::setMuted(bool muted)
         return;
 
     m_muted = muted;
-
+#if defined(Q_OS_OSX)
     [[(AVFMediaPlayerSessionObserver*)m_observer player] setMuted:m_muted];
-
+#endif
     Q_EMIT mutedChanged(muted);
 }
 
