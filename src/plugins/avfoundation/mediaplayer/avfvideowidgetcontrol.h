@@ -45,13 +45,11 @@
 #include <qvideowidgetcontrol.h>
 #include "avfvideooutput.h"
 
-#import <CoreVideo/CVBase.h>
+@class AVPlayerLayer;
 
 QT_BEGIN_NAMESPACE
 
-class AVFDisplayLink;
 class AVFVideoWidget;
-class AVFVideoFrameRenderer;
 
 class AVFVideoWidgetControl : public QVideoWidgetControl, public AVFVideoOutput
 {
@@ -83,24 +81,15 @@ public:
     int saturation() const;
     void setSaturation(int saturation);
 
-private Q_SLOTS:
-    void updateVideoFrame(const CVTimeStamp &ts);
-
 private:
-    void setupVideoOutput();
-
-    AVFDisplayLink *m_displayLink;
     AVFVideoWidget *m_videoWidget;
-    AVFVideoFrameRenderer *m_frameRenderer;
-    QSize m_nativeSize;
-    Qt::AspectRatioMode m_aspectRatioMode;
+
     bool m_fullscreen;
     int m_brightness;
     int m_contrast;
     int m_hue;
     int m_saturation;
 
-    void *m_playerLayer;
 };
 
 QT_END_NAMESPACE

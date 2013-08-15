@@ -41,15 +41,19 @@
 
 #include "avfvideowidget.h"
 #include <QtCore/QDebug>
-#include <QtGui/QOpenGLShaderProgram>
+
+#include <AVFoundation/AVFoundation.h>
+#include <QtGui/QResizeEvent>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 
 QT_USE_NAMESPACE
 
-AVFVideoWidget::AVFVideoWidget(QWidget *parent, const QGLFormat &format)
-    : QGLWidget(format, parent)
-    , m_textureId(0)
+AVFVideoWidget::AVFVideoWidget(QWidget *parent)
+    : QWidget(parent)
     , m_aspectRatioMode(Qt::KeepAspectRatio)
-    , m_shaderProgram(0)
+    , m_playerLayer(0)
+    , m_nativeView(0)
 {
     setAutoFillBackground(false);
 }
@@ -59,113 +63,9 @@ AVFVideoWidget::~AVFVideoWidget()
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
-    delete m_shaderProgram;
-}
 
-void AVFVideoWidget::initializeGL()
-{
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    m_shaderProgram = new QOpenGLShaderProgram;
-
-    static const char *textureVertexProgram =
-            "uniform highp mat4 matrix;\n"
-            "attribute highp vec3 vertexCoordEntry;\n"
-            "attribute highp vec2 textureCoordEntry;\n"
-            "varying highp vec2 textureCoord;\n"
-            "void main() {\n"
-            "   textureCoord = textureCoordEntry;\n"
-            "   gl_Position = matrix * vec4(vertexCoordEntry, 1);\n"
-            "}\n";
-
-    static const char *textureFragmentProgram =
-            "uniform sampler2D texture;\n"
-            "varying highp vec2 textureCoord;\n"
-            "void main() {\n"
-            "   gl_FragColor = texture2D(texture, textureCoord);\n"
-            "}\n";
-
-    m_shaderProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, textureVertexProgram);
-    m_shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, textureFragmentProgram);
-    m_shaderProgram->link();
-}
-
-void AVFVideoWidget::resizeGL(int w, int h)
-{
-    glViewport(0, 0, GLsizei(w), GLsizei(h));
-    updateGL();
-}
-
-void AVFVideoWidget::paintGL()
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-    if (!m_textureId)
-        return;
-
-    QRect targetRect = displayRect();
-    GLfloat x1 = targetRect.left();
-    GLfloat x2 = targetRect.right();
-    GLfloat y1 = targetRect.bottom();
-    GLfloat y2 = targetRect.top();
-    GLfloat zValue = 0;
-
-    const GLfloat textureCoordinates[] = {
-        0, 0,
-        1, 0,
-        1, 1,
-        0, 1
-    };
-
-    const GLfloat vertexCoordinates[] = {
-        x1, y1, zValue,
-        x2, y1, zValue,
-        x2, y2, zValue,
-        x1, y2, zValue
-    };
-
-    //Set matrix to transfrom geometry values into gl coordinate space.
-    m_transformMatrix.setToIdentity();
-    m_transformMatrix.scale( 2.0f / size().width(), 2.0f / size().height() );
-    m_transformMatrix.translate(-size().width() / 2.0f, -size().height() / 2.0f);
-
-    m_shaderProgram->bind();
-
-    m_vertexCoordEntry = m_shaderProgram->attributeLocation("vertexCoordEntry");
-    m_textureCoordEntry = m_shaderProgram->attributeLocation("textureCoordEntry");
-    m_matrixLocation = m_shaderProgram->uniformLocation("matrix");
-
-    //attach the data!
-    glEnableVertexAttribArray(m_vertexCoordEntry);
-    glEnableVertexAttribArray(m_textureCoordEntry);
-
-    glVertexAttribPointer(m_vertexCoordEntry, 3, GL_FLOAT, GL_FALSE, 0, vertexCoordinates);
-    glVertexAttribPointer(m_textureCoordEntry, 2, GL_FLOAT, GL_FALSE, 0, textureCoordinates);
-    m_shaderProgram->setUniformValue(m_matrixLocation, m_transformMatrix);
-
-    glBindTexture(GL_TEXTURE_2D, m_textureId);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glDisableVertexAttribArray(m_vertexCoordEntry);
-    glDisableVertexAttribArray(m_textureCoordEntry);
-
-    m_shaderProgram->release();
-}
-
-void AVFVideoWidget::setTexture(GLuint texture)
-{
-    m_textureId = texture;
-
-    if (isVisible()) {
-        makeCurrent();
-        updateGL();
-    }
+    if (m_playerLayer)
+        [m_playerLayer release];
 }
 
 QSize AVFVideoWidget::sizeHint() const
@@ -173,29 +73,104 @@ QSize AVFVideoWidget::sizeHint() const
     return m_nativeSize;
 }
 
-void AVFVideoWidget::setNativeSize(const QSize &size)
+Qt::AspectRatioMode AVFVideoWidget::aspectRatioMode() const
 {
-    m_nativeSize = size;
+    return m_aspectRatioMode;
 }
 
 void AVFVideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     if (m_aspectRatioMode != mode) {
         m_aspectRatioMode = mode;
-        update();
+
+        updateAspectRatio();
     }
 }
 
-QRect AVFVideoWidget::displayRect() const
+void AVFVideoWidget::setPlayerLayer(AVPlayerLayer *layer)
 {
-    QRect displayRect = rect();
+    if (m_playerLayer == layer)
+        return;
 
-    if (m_aspectRatioMode == Qt::KeepAspectRatio) {
-        QSize size = m_nativeSize;
-        size.scale(displayRect.size(), Qt::KeepAspectRatio);
-
-        displayRect = QRect(QPoint(0, 0), size);
-        displayRect.moveCenter(rect().center());
+    if (!m_nativeView) {
+        //make video widget a native window
+#if defined(Q_OS_OSX)
+        m_nativeView = (NSView*)this->winId();
+        [m_nativeView setWantsLayer:YES];
+#else
+        m_nativeView = (UIView*)this->winId();
+#endif
     }
-    return displayRect;
+
+    if (m_playerLayer) {
+        [m_playerLayer removeFromSuperlayer];
+        [m_playerLayer release];
+    }
+
+    m_playerLayer = layer;
+
+    CALayer *nativeLayer = [m_nativeView layer];
+
+    if (layer) {
+        [layer retain];
+
+        m_nativeSize = QSize(m_playerLayer.bounds.size.width,
+                             m_playerLayer.bounds.size.height);
+
+        updateAspectRatio();
+        [nativeLayer addSublayer:m_playerLayer];
+        updatePlayerLayerBounds(this->size());
+    }
+
+    NSArray *sublayers = [nativeLayer sublayers];
+    qDebug() << "playerlayer: " << "at z:" << [m_playerLayer zPosition]
+                << " frame: " << m_playerLayer.frame.size.width << "x"  << m_playerLayer.frame.size.height;
+    qDebug() << "superlayer: " << "at z:" << [nativeLayer zPosition]
+                << " frame: " << nativeLayer.frame.size.width << "x"  << nativeLayer.frame.size.height;
+    int i = 0;
+    for (CALayer *layer in sublayers) {
+        qDebug() << "layer " << i << ": at z:" << [layer zPosition]
+                    << " frame: " << layer.frame.size.width << "x"  << layer.frame.size.height;
+        i++;
+    }
+
+
+}
+
+void AVFVideoWidget::resizeEvent(QResizeEvent *event)
+{
+    updatePlayerLayerBounds(event->size());
+    QWidget::resizeEvent(event);
+}
+
+void AVFVideoWidget::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+    painter.fillRect(rect(), Qt::black);
+
+    QWidget::paintEvent(event);
+}
+
+void AVFVideoWidget::updateAspectRatio()
+{
+    if (m_playerLayer) {
+        switch (m_aspectRatioMode) {
+        case Qt::IgnoreAspectRatio:
+            [m_playerLayer setVideoGravity:AVLayerVideoGravityResize];
+            break;
+        case Qt::KeepAspectRatio:
+            [m_playerLayer setVideoGravity:AVLayerVideoGravityResizeAspect];
+            break;
+        case Qt::KeepAspectRatioByExpanding:
+            [m_playerLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void AVFVideoWidget::updatePlayerLayerBounds(const QSize &size)
+{
+    m_playerLayer.bounds = CGRectMake(0.0f, 0.0f, (float)size.width(), (float)size.height());
 }

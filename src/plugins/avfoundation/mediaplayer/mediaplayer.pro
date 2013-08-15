@@ -44,7 +44,7 @@ OBJECTIVE_SOURCES += \
     LIBS += -framework QuartzCore -framework AppKit
 
     qtHaveModule(widgets) {
-        QT += multimediawidgets-private opengl
+        QT += multimediawidgets-private
         HEADERS += \
             avfvideowidgetcontrol.h \
             avfvideowidget.h

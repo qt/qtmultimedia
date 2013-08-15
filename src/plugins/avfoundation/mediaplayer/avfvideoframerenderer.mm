@@ -45,10 +45,6 @@
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtGui/QWindow>
 
-#ifndef QT_NO_WIDGETS
-#include <QtOpenGL/QGLWidget>
-#endif
-
 #ifdef QT_DEBUG_AVF
 #include <QtCore/qdebug.h>
 #endif
@@ -76,31 +72,6 @@ AVFVideoFrameRenderer::AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QOb
     m_offscreenSurface->setGeometry(0, 0, 1, 1);
     m_offscreenSurface->create();
 }
-#ifndef QT_NO_WIDGETS
-AVFVideoFrameRenderer::AVFVideoFrameRenderer(QGLWidget *glWidget, const QSize &size, QObject *parent)
-    : QObject(parent)
-    , m_videoLayerRenderer(0)
-    , m_glWidget(glWidget)
-    , m_surface(0)
-    , m_offscreenSurface(0)
-    , m_glContext(0)
-    , m_targetSize(size)
-    , m_currentBuffer(1)
-    , m_isContextShared(true)
-{
-    m_fbo[0] = 0;
-    m_fbo[1] = 0;
-
-    //Create Hidden QWindow surface to create context in this thread
-    m_offscreenSurface = new QWindow();
-    m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
-    //Needs geometry to be a valid surface, but size is not important
-    m_offscreenSurface->setGeometry(0, 0, 1, 1);
-    m_offscreenSurface->create();
-
-
-}
-#endif
 
 AVFVideoFrameRenderer::~AVFVideoFrameRenderer()
 {
@@ -168,10 +139,6 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
         if (m_surface) {
             //QOpenGLContext *renderThreadContext = 0;
             shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
-#ifndef QT_NO_WIDGETS
-        } else {
-            shareContext = m_glWidget->context()->contextHandle();
-#endif
         }
         m_glContext = new QOpenGLContext();
         m_glContext->setFormat(m_offscreenSurface->requestedFormat());

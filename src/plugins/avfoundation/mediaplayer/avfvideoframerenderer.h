@@ -56,15 +56,11 @@ class QOpenGLFramebufferObject;
 class QWindow;
 class QOpenGLContext;
 class QAbstractVideoSurface;
-class QGLWidget;
 
 class AVFVideoFrameRenderer : public QObject
 {
 public:
     AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QObject *parent = 0);
-#ifndef QT_NO_WIDGETS
-    AVFVideoFrameRenderer(QGLWidget *glWidget, const QSize &size, QObject *parent = 0);
-#endif
 
     virtual ~AVFVideoFrameRenderer();
 
@@ -76,9 +72,6 @@ private:
     void renderLayerToFBO(AVPlayerLayer *layer, QOpenGLFramebufferObject *fbo);
 
     CARenderer *m_videoLayerRenderer;
-#ifndef QT_NO_WIDGETS
-    QGLWidget *m_glWidget;
-#endif
     QAbstractVideoSurface *m_surface;
     QOpenGLFramebufferObject *m_fbo[2];
     QWindow *m_offscreenSurface;
