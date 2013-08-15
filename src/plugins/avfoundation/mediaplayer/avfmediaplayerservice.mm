@@ -46,10 +46,9 @@
 #if defined(Q_OS_OSX)
 # include "avfvideooutput.h"
 # include "avfvideorenderercontrol.h"
-
-# ifndef QT_NO_WIDGETS
-#  include "avfvideowidgetcontrol.h"
-# endif
+#endif
+#ifndef QT_NO_WIDGETS
+# include "avfvideowidgetcontrol.h"
 #endif
 
 QT_USE_NAMESPACE
@@ -93,7 +92,8 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
         m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
         return m_videoOutput;
     }
-# ifndef QT_NO_WIDGETS
+#endif
+#ifndef QT_NO_WIDGETS
     if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
         if (!m_videoOutput)
             m_videoOutput = new AVFVideoWidgetControl(this);
@@ -101,7 +101,6 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
         m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
         return m_videoOutput;
     }
-# endif
 #endif
     return 0;
 }
