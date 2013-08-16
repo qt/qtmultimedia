@@ -288,9 +288,21 @@ void D3DPresentEngine::presentSample(void *opaque, qint64)
     }
 
     if (surface && updateTexture(surface)) {
-        m_surface->present(QVideoFrame(new TextureVideoBuffer(m_glTexture),
-                                       m_surfaceFormat.frameSize(),
-                                       m_surfaceFormat.pixelFormat()));
+        QVideoFrame frame = QVideoFrame(new TextureVideoBuffer(m_glTexture),
+                                        m_surfaceFormat.frameSize(),
+                                        m_surfaceFormat.pixelFormat());
+
+        // WMF uses 100-nanosecond units, Qt uses microseconds
+        LONGLONG startTime = -1;
+        if (SUCCEEDED(sample->GetSampleTime(&startTime))) {
+            frame.setStartTime(startTime * 0.1);
+
+            LONGLONG duration = -1;
+            if (SUCCEEDED(sample->GetSampleDuration(&duration)))
+                frame.setEndTime((startTime + duration) * 0.1);
+        }
+
+        m_surface->present(frame);
     }
 
 done:
