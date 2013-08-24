@@ -702,7 +702,7 @@ void QAudioOutputPrivate::setVolume(qreal v)
         volumeCache = normalizedVolume;
         return;
     }
-    const qint16 scaled = normalizedVolume * 0xFFFF;
+    const quint16 scaled = normalizedVolume * 0xFFFF;
     DWORD vol = MAKELONG(scaled, scaled);
     MMRESULT res = waveOutSetVolume(hWaveOut, vol);
     if (res == MMSYSERR_NOERROR)
