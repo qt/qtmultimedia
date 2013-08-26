@@ -8,10 +8,14 @@ PLUGIN_TYPE = mediaservice
 PLUGIN_CLASS_NAME = AVFServicePlugin
 load(qt_plugin)
 
-LIBS += -framework AppKit -framework AudioUnit \
-        -framework AudioToolbox -framework CoreAudio \
-        -framework QuartzCore -framework AVFoundation \
+LIBS += -framework AudioToolbox \
+        -framework CoreAudio \
+        -framework QuartzCore \
+        -framework AVFoundation \
         -framework CoreMedia
+osx:LIBS += -framework AppKit \
+            -framework AudioUnit
+ios:LIBS += -framework CoreVideo
 
 OTHER_FILES += avfcamera.json
 
