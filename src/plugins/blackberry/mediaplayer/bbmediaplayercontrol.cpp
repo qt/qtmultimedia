@@ -137,7 +137,7 @@ void BbMediaPlayerControl::closeConnection()
     }
 }
 
-QString BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
+QByteArray BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
 {
     // If this is a local file, mmrenderer expects the file:// prefix and an absolute path.
     // We treat URLs without scheme as local files, most likely someone just forgot to set the
@@ -149,7 +149,7 @@ QString BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
         else
             relativeFilePath = url.path();
         const QFileInfo fileInfo(relativeFilePath);
-        return QStringLiteral("file://") + fileInfo.absoluteFilePath();
+        return QFile::encodeName(QStringLiteral("file://") + fileInfo.absoluteFilePath());
 
     // QRC, copy to temporary file, as mmrenderer does not support resource files
     } else if (url.scheme() == QStringLiteral("qrc")) {
@@ -159,17 +159,17 @@ QString BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
                               QUuid::createUuid().toString() + QStringLiteral(".") +
                               resourceFileInfo.suffix();
         if (!QFile::copy(qrcPath, m_tempMediaFileName)) {
-            const QString errorMsg =
-                QString("Failed to copy resource file to temporary file %1 for playback").arg(m_tempMediaFileName);
+            const QString errorMsg = QString("Failed to copy resource file to temporary file "
+                                             "%1 for playback").arg(m_tempMediaFileName);
             qDebug() << errorMsg;
             emit error(0, errorMsg);
-            return QString();
+            return QByteArray();
         }
-        return m_tempMediaFileName;
+        return QFile::encodeName(m_tempMediaFileName);
 
-    // HTTP or similar URL, use as-is
+    // HTTP or similar URL
     } else {
-        return url.toString();
+        return url.toEncoded();
     }
 }
 
@@ -195,14 +195,14 @@ void BbMediaPlayerControl::attach()
         return;
     }
 
-    const QString resourcePath = resourcePathForUrl(m_media.canonicalUrl());
+    const QByteArray resourcePath = resourcePathForUrl(m_media.canonicalUrl());
     if (resourcePath.isEmpty()) {
         detach();
         return;
     }
 
-    if (mmr_input_attach(m_context, QFile::encodeName(resourcePath), "track") != 0) {
-        emitMmError(QString("mmr_input_attach() for %1 failed").arg(resourcePath));
+    if (mmr_input_attach(m_context, resourcePath.constData(), "track") != 0) {
+        emitMmError(QStringLiteral("mmr_input_attach() failed for ") + QString(resourcePath));
         setMediaStatus(QMediaPlayer::InvalidMedia);
         detach();
         return;
