@@ -254,6 +254,8 @@ namespace
             , m_workQueueCB(this, &MediaStream::onDispatchWorkItem)
             , m_finalizeResult(0)
             , m_scheduledBuffer(0)
+            , m_bufferStartTime(-1)
+            , m_bufferDuration(-1)
             , m_presentationClock(0)
             , m_currentMediaType(0)
             , m_prerolling(false)
@@ -839,10 +841,13 @@ namespace
             QMutexLocker locker(&m_mutex);
             if (!m_scheduledBuffer)
                 return;
-            m_surface->present(QVideoFrame(
-                    new MediaSampleVideoBuffer(m_scheduledBuffer, m_bytesPerLine),
-                    m_surfaceFormat.frameSize(),
-                    m_surfaceFormat.pixelFormat()));
+            QVideoFrame frame = QVideoFrame(
+                        new MediaSampleVideoBuffer(m_scheduledBuffer, m_bytesPerLine),
+                        m_surfaceFormat.frameSize(),
+                        m_surfaceFormat.pixelFormat());
+            frame.setStartTime(m_bufferStartTime * 0.1);
+            frame.setEndTime((m_bufferStartTime + m_bufferDuration) * 0.1);
+            m_surface->present(frame);
             m_scheduledBuffer->Release();
             m_scheduledBuffer = NULL;
             if (m_rate != 0)
@@ -1309,8 +1314,10 @@ namespace
 
         HRESULT processSampleData(IMFSample *pSample)
         {
-            LONGLONG time;
+            LONGLONG time, duration = -1;
             HRESULT hr = pSample->GetSampleTime(&time);
+            if (SUCCEEDED(hr))
+               pSample->GetSampleDuration(&duration);
 
             if (m_prerolling) {
                 if (SUCCEEDED(hr) && time >= m_prerollTargetTime) {
@@ -1320,6 +1327,7 @@ namespace
                         SampleBuffer sb;
                         sb.m_buffer = pBuffer;
                         sb.m_time = time;
+                        sb.m_duration = duration;
                         m_bufferCache.push_back(sb);
                         endPreroll(S_OK);
                     }
@@ -1336,6 +1344,7 @@ namespace
                         SampleBuffer sb;
                         sb.m_buffer = pBuffer;
                         sb.m_time = time;
+                        sb.m_duration = duration;
                         m_bufferCache.push_back(sb);
                     }
                     if (m_rate == 0)
@@ -1351,6 +1360,7 @@ namespace
         public:
             IMFMediaBuffer *m_buffer;
             LONGLONG m_time;
+            LONGLONG m_duration;
         };
         QList<SampleBuffer> m_bufferCache;
         static const int BUFFER_CACHE_SIZE = 2;
@@ -1383,6 +1393,8 @@ namespace
                         continue;
                     }
                     m_scheduledBuffer = sb.m_buffer;
+                    m_bufferStartTime = sb.m_time;
+                    m_bufferDuration = sb.m_duration;
                     QCoreApplication::postEvent(m_rendererControl, new PresentEvent(sb.m_time));
                     if (m_rate == 0)
                         queueEvent(MEStreamSinkScrubSampleComplete, GUID_NULL, S_OK, NULL);
@@ -1393,6 +1405,8 @@ namespace
                 queueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, NULL);
         }
         IMFMediaBuffer *m_scheduledBuffer;
+        MFTIME m_bufferStartTime;
+        MFTIME m_bufferDuration;
         IMFPresentationClock *m_presentationClock;
         float m_rate;
     };

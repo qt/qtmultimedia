@@ -713,13 +713,14 @@ QVideoSurfaceFormat QVideoSurfaceGstSink::formatForCaps(GstCaps *caps, int *byte
 
 void QVideoSurfaceGstSink::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
 {
+    // GStreamer uses nanoseconds, Qt uses microseconds
     qint64 startTime = GST_BUFFER_TIMESTAMP(buffer);
     if (startTime >= 0) {
-        frame->setStartTime(startTime/G_GINT64_CONSTANT (1000000));
+        frame->setStartTime(startTime/G_GINT64_CONSTANT (1000));
 
         qint64 duration = GST_BUFFER_DURATION(buffer);
         if (duration >= 0)
-            frame->setEndTime((startTime + duration)/G_GINT64_CONSTANT (1000000));
+            frame->setEndTime((startTime + duration)/G_GINT64_CONSTANT (1000));
     }
 }
 

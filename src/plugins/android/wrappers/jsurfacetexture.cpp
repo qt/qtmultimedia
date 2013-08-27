@@ -60,13 +60,13 @@ JSurfaceTexture::JSurfaceTexture(unsigned int texName)
     , QJNIObject(g_qtSurfaceTextureClass, "(I)V", jint(texName))
     , m_texID(int(texName))
 {
-    if (m_jobject)
+    if (isValid())
         g_objectMap.insert(int(texName), this);
 }
 
 JSurfaceTexture::~JSurfaceTexture()
 {
-    if (m_jobject)
+    if (isValid())
         g_objectMap.remove(m_texID);
 }
 

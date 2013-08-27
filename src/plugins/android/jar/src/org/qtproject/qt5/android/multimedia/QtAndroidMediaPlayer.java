@@ -191,8 +191,8 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         @Override
         public void onPrepared(final MediaPlayer mp)
         {
-            onMediaPlayerInfoNative(MEDIA_PLAYER_DURATION, getDuration(), mID);
             onMediaPlayerInfoNative(MEDIA_PLAYER_READY, 0, mID);
+            onMediaPlayerInfoNative(MEDIA_PLAYER_DURATION, getDuration(), mID);
             mPreparing = false;
         }
 

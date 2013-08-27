@@ -632,13 +632,14 @@ QVideoFrame MFTransform::makeVideoFrame()
         // That is why we copy data from IMFMediaBuffer here.
         frame = QVideoFrame(new QMemoryVideoBuffer(array, m_bytesPerLine), m_format.frameSize(), m_format.pixelFormat());
 
+        // WMF uses 100-nanosecond units, Qt uses microseconds
         LONGLONG startTime = -1;
         if (SUCCEEDED(m_sample->GetSampleTime(&startTime))) {
-            frame.setStartTime(startTime);
+            frame.setStartTime(startTime * 0.1);
 
             LONGLONG duration = -1;
             if (SUCCEEDED(m_sample->GetSampleDuration(&duration)))
-                frame.setEndTime(startTime + duration);
+                frame.setEndTime((startTime + duration) * 0.1);
         }
     } while (false);
 
