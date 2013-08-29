@@ -74,7 +74,8 @@ QT_BEGIN_NAMESPACE
 
 class QGstXvImageBufferPool;
 
-struct QGstXvImageBuffer {
+class QGstXvImageBuffer {
+public:
     GstBuffer buffer;
     QGstXvImageBufferPool *pool;
     XvImage *xvImage;
