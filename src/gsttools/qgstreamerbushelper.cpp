@@ -118,7 +118,9 @@ private:
     guint m_tag;
     GstBus* m_bus;
     QGstreamerBusHelper*  m_helper;
+#ifdef QT_NO_GLIB
     QTimer*     m_intervalTimer;
+#endif
 
 private slots:
     void doProcessMessage(const QGstreamerMessage& msg)
