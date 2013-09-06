@@ -109,7 +109,7 @@ private Q_SLOTS:
     void continueLoadMedia();
 
 private:
-    QString resourcePathForUrl(const QUrl &url);
+    QByteArray resourcePathForUrl(const QUrl &url);
     void openConnection();
     void closeConnection();
     void attach();
