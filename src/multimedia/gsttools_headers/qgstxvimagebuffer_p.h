@@ -59,6 +59,9 @@
 #include <QtCore/qwaitcondition.h>
 #include <QtCore/qqueue.h>
 
+#include <gst/gst.h>
+#include "qgstbufferpoolinterface_p.h"
+
 #include <X11/Xlib.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -66,9 +69,6 @@
 #include <X11/Xlib.h>
 #include <X11/extensions/Xv.h>
 #include <X11/extensions/Xvlib.h>
-
-#include <gst/gst.h>
-#include "qgstbufferpoolinterface_p.h"
 
 QT_BEGIN_NAMESPACE
 
