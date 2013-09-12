@@ -42,9 +42,9 @@
 #include "jmediaplayer.h"
 
 #include <QString>
-#include <qpa/qplatformnativeinterface.h>
-#include <qguiapplication.h>
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
+#include <QtCore/private/qjnihelpers_p.h>
+#include <QMap>
 
 namespace {
 
@@ -60,19 +60,17 @@ bool JMediaPlayer::mActivitySet = false;
 
 JMediaPlayer::JMediaPlayer()
     : QObject()
-    , QJNIObject(mediaPlayerClass, "(J)V", reinterpret_cast<jlong>(this))
+    , QJNIObjectPrivate(mediaPlayerClass, "(J)V", reinterpret_cast<jlong>(this))
     , mId(reinterpret_cast<jlong>(this))
     , mDisplay(0)
 {
     mplayers.insert(mId, this);
 
     if (!mActivitySet) {
-        QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
-        jobject activity = static_cast<jobject>(nativeInterface->nativeResourceForIntegration("QtActivity"));
-        QJNIObject::callStaticMethod<void>(mediaPlayerClass,
+        QJNIObjectPrivate::callStaticMethod<void>(mediaPlayerClass,
                                            "setActivity",
                                            "(Landroid/app/Activity;)V",
-                                           activity);
+                                           QtAndroidPrivate::activity());
         mActivitySet = true;
     }
 }
@@ -164,7 +162,7 @@ void JMediaPlayer::setMuted(bool mute)
 
 void JMediaPlayer::setDataSource(const QString &path)
 {
-    QJNILocalRef<jstring> string = qt_toJString(path);
+    QJNIObjectPrivate string = QJNIObjectPrivate::fromString(path);
     callMethod<void>("setMediaPath", "(Ljava/lang/String;)V", string.object());
 }
 

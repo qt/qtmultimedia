@@ -43,11 +43,11 @@
 #define JMULTIMEDIAUTILS_H
 
 #include <qobject.h>
-#include <QtPlatformSupport/private/qjniobject_p.h>
+#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class JMultimediaUtils : public QObject, public QJNIObject
+class JMultimediaUtils : public QObject, public QJNIObjectPrivate
 {
     Q_OBJECT
 public:

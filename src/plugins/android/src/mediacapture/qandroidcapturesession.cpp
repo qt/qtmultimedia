@@ -45,7 +45,7 @@
 #include "qandroidcamerasession.h"
 #include "jmultimediautils.h"
 #include "qandroidmultimediautils.h"
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -466,21 +466,19 @@ void QAndroidCaptureSession::onCameraOpened()
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)
 {
     CaptureProfile profile;
-    bool hasProfile = QJNIObject::callStaticMethod<jboolean>("android/media/CamcorderProfile",
+    bool hasProfile = QJNIObjectPrivate::callStaticMethod<jboolean>("android/media/CamcorderProfile",
                                                              "hasProfile",
                                                              "(II)Z",
                                                              m_cameraSession->camera()->cameraId(),
                                                              id);
 
     if (hasProfile) {
-        QJNILocalRef<jobject> ref = QJNIObject::callStaticObjectMethod<jobject>("android/media/CamcorderProfile",
-                                                                                "get",
-                                                                                "(II)Landroid/media/CamcorderProfile;",
-                                                                                m_cameraSession->camera()->cameraId(),
-                                                                                id);
+        QJNIObjectPrivate obj = QJNIObjectPrivate::callStaticObjectMethod("android/media/CamcorderProfile",
+                                                                          "get",
+                                                                          "(II)Landroid/media/CamcorderProfile;",
+                                                                          m_cameraSession->camera()->cameraId(),
+                                                                          id);
 
-
-        QJNIObject obj(ref.object());
 
         profile.outputFormat = JMediaRecorder::OutputFormat(obj.getField<jint>("fileFormat"));
         profile.audioEncoder = JMediaRecorder::AudioEncoder(obj.getField<jint>("audioCodec"));

@@ -41,21 +41,14 @@
 
 #include "jmediametadataretriever.h"
 
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
-#include <qpa/qplatformnativeinterface.h>
-#include <qguiapplication.h>
+#include <QtCore/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
-static jobject g_activity = 0;
-
 JMediaMetadataRetriever::JMediaMetadataRetriever()
-    : QJNIObject("android/media/MediaMetadataRetriever")
+    : QJNIObjectPrivate("android/media/MediaMetadataRetriever")
 {
-    if (!g_activity) {
-        QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
-        g_activity = static_cast<jobject>(nativeInterface->nativeResourceForIntegration("QtActivity"));
-    }
 }
 
 JMediaMetadataRetriever::~JMediaMetadataRetriever()
@@ -66,11 +59,11 @@ QString JMediaMetadataRetriever::extractMetadata(MetadataKey key)
 {
     QString value;
 
-    QJNILocalRef<jstring> metadata = callObjectMethod<jstring>("extractMetadata",
-                                                               "(I)Ljava/lang/String;",
-                                                               jint(key));
-    if (!metadata.isNull())
-        value = qt_convertJString(metadata.object());
+    QJNIObjectPrivate metadata = callObjectMethod("extractMetadata",
+                                           "(I)Ljava/lang/String;",
+                                           jint(key));
+    if (metadata.isValid())
+        value = metadata.toString();
 
     return value;
 }
@@ -82,22 +75,22 @@ void JMediaMetadataRetriever::release()
 
 bool JMediaMetadataRetriever::setDataSource(const QUrl &url)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
 
     bool loaded = false;
 
-    QJNILocalRef<jstring> string = qt_toJString(url.toString());
+    QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.toString());
 
-    QJNILocalRef<jobject> uri = callStaticObjectMethod<jobject>("android/net/Uri",
-                                                                "parse",
-                                                                "(Ljava/lang/String;)Landroid/net/Uri;",
-                                                                string.object());
+    QJNIObjectPrivate uri = callStaticObjectMethod("android/net/Uri",
+                                                   "parse",
+                                                   "(Ljava/lang/String;)Landroid/net/Uri;",
+                                                   string.object());
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
     } else {
         callMethod<void>("setDataSource",
                          "(Landroid/content/Context;Landroid/net/Uri;)V",
-                         g_activity,
+                         QtAndroidPrivate::activity(),
                          uri.object());
         if (env->ExceptionCheck())
             env->ExceptionClear();
@@ -110,11 +103,13 @@ bool JMediaMetadataRetriever::setDataSource(const QUrl &url)
 
 bool JMediaMetadataRetriever::setDataSource(const QString &path)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
 
     bool loaded = false;
 
-    callMethod<void>("setDataSource", "(Ljava/lang/String;)V", qt_toJString(path).object());
+    callMethod<void>("setDataSource",
+                     "(Ljava/lang/String;)V",
+                     QJNIObjectPrivate::fromString(path).object());
     if (env->ExceptionCheck())
         env->ExceptionClear();
     else

@@ -42,12 +42,12 @@
 #ifndef JMEDIAMETADATARETRIEVER_H
 #define JMEDIAMETADATARETRIEVER_H
 
-#include <QtPlatformSupport/private/qjniobject_p.h>
+#include <QtCore/private/qjni_p.h>
 #include <qurl.h>
 
 QT_BEGIN_NAMESPACE
 
-class JMediaMetadataRetriever : public QJNIObject
+class JMediaMetadataRetriever : public QJNIObjectPrivate
 {
 public:
     enum MetadataKey {

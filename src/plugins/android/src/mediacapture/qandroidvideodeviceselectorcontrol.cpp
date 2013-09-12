@@ -43,7 +43,6 @@
 
 #include "qandroidcamerasession.h"
 #include "jcamera.h"
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -103,12 +102,12 @@ void QAndroidVideoDeviceSelectorControl::update()
     m_names.clear();
     m_descriptions.clear();
 
-    QJNIObject cameraInfo("android/hardware/Camera$CameraInfo");
-    int numCameras = QJNIObject::callStaticMethod<jint>("android/hardware/Camera",
+    QJNIObjectPrivate cameraInfo("android/hardware/Camera$CameraInfo");
+    int numCameras = QJNIObjectPrivate::callStaticMethod<jint>("android/hardware/Camera",
                                                         "getNumberOfCameras");
 
     for (int i = 0; i < numCameras; ++i) {
-        QJNIObject::callStaticMethod<void>("android/hardware/Camera",
+        QJNIObjectPrivate::callStaticMethod<void>("android/hardware/Camera",
                                            "getCameraInfo",
                                            "(ILandroid/hardware/Camera$CameraInfo;)V",
                                            i, cameraInfo.object());

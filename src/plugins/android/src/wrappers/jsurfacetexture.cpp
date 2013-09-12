@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "jsurfacetexture.h"
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -57,7 +57,7 @@ static void notifyFrameAvailable(JNIEnv* , jobject, int id)
 
 JSurfaceTexture::JSurfaceTexture(unsigned int texName)
     : QObject()
-    , QJNIObject(g_qtSurfaceTextureClass, "(I)V", jint(texName))
+    , QJNIObjectPrivate(g_qtSurfaceTextureClass, "(I)V", jint(texName))
     , m_texID(int(texName))
 {
     if (isValid())
@@ -72,7 +72,7 @@ JSurfaceTexture::~JSurfaceTexture()
 
 QMatrix4x4 JSurfaceTexture::getTransformMatrix()
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
 
     QMatrix4x4 matrix;
     jfloatArray array = env->NewFloatArray(16);

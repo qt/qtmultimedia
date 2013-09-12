@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 static jclass g_qtSurfaceTextureHolderClass = 0;
 
 JSurfaceTextureHolder::JSurfaceTextureHolder(jobject surface)
-    : QJNIObject(g_qtSurfaceTextureHolderClass, "(Landroid/view/Surface;)V", surface)
+    : QJNIObjectPrivate(g_qtSurfaceTextureHolderClass, "(Landroid/view/Surface;)V", surface)
 {
 }
 

@@ -1,5 +1,5 @@
 TARGET = qtmedia_android
-QT += multimedia-private gui-private platformsupport-private network
+QT += multimedia-private core-private network
 
 PLUGIN_TYPE = mediaservice
 PLUGIN_CLASS_NAME = QAndroidMediaServicePlugin

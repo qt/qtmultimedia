@@ -43,13 +43,13 @@
 #define JCAMERA_H
 
 #include <qobject.h>
-#include <QtPlatformSupport/private/qjniobject_p.h>
+#include <QtCore/private/qjni_p.h>
 #include <qsize.h>
 #include <qrect.h>
 
 QT_BEGIN_NAMESPACE
 
-class JCamera : public QObject, public QJNIObject
+class JCamera : public QObject, public QJNIObjectPrivate
 {
     Q_OBJECT
 public:
@@ -153,8 +153,8 @@ private:
     QStringList callStringListMethod(const char *methodName);
 
     int m_cameraId;
-    QJNIObject *m_info;
-    QJNIObject *m_parameters;
+    QJNIObjectPrivate m_info;
+    QJNIObjectPrivate m_parameters;
 
     QSize m_previewSize;
 

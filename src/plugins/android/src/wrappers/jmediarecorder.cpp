@@ -42,7 +42,7 @@
 #include "jmediarecorder.h"
 
 #include "jcamera.h"
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 #include <qmap.h>
 
 QT_BEGIN_NAMESPACE
@@ -66,7 +66,7 @@ static void notifyInfo(JNIEnv* , jobject, jlong id, jint what, jint extra)
 
 JMediaRecorder::JMediaRecorder()
     : QObject()
-    , QJNIObject(g_qtMediaRecorderClass, "(J)V", reinterpret_cast<jlong>(this))
+    , QJNIObjectPrivate(g_qtMediaRecorderClass, "(J)V", reinterpret_cast<jlong>(this))
     , m_id(reinterpret_cast<jlong>(this))
 {
     if (isValid())
@@ -85,7 +85,7 @@ void JMediaRecorder::release()
 
 bool JMediaRecorder::prepare()
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("prepare");
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
@@ -101,7 +101,7 @@ void JMediaRecorder::reset()
 
 bool JMediaRecorder::start()
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("start");
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
@@ -112,7 +112,7 @@ bool JMediaRecorder::start()
 
 void JMediaRecorder::stop()
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("stop");
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -125,7 +125,7 @@ void JMediaRecorder::setAudioChannels(int numChannels)
 
 void JMediaRecorder::setAudioEncoder(AudioEncoder encoder)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setAudioEncoder", "(I)V", int(encoder));
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -143,7 +143,7 @@ void JMediaRecorder::setAudioSamplingRate(int samplingRate)
 
 void JMediaRecorder::setAudioSource(AudioSource source)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setAudioSource", "(I)V", int(source));
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -151,13 +151,13 @@ void JMediaRecorder::setAudioSource(AudioSource source)
 
 void JMediaRecorder::setCamera(JCamera *camera)
 {
-    QJNILocalRef<jobject> cam = camera->getObjectField<jobject>("m_camera", "Landroid/hardware/Camera;");
+    QJNIObjectPrivate cam = camera->getObjectField("m_camera", "Landroid/hardware/Camera;");
     callMethod<void>("setCamera", "(Landroid/hardware/Camera;)V", cam.object());
 }
 
 void JMediaRecorder::setVideoEncoder(VideoEncoder encoder)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoEncoder", "(I)V", int(encoder));
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -170,7 +170,7 @@ void JMediaRecorder::setVideoEncodingBitRate(int bitRate)
 
 void JMediaRecorder::setVideoFrameRate(int rate)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoFrameRate", "(I)V", rate);
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -178,7 +178,7 @@ void JMediaRecorder::setVideoFrameRate(int rate)
 
 void JMediaRecorder::setVideoSize(const QSize &size)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoSize", "(II)V", size.width(), size.height());
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -186,7 +186,7 @@ void JMediaRecorder::setVideoSize(const QSize &size)
 
 void JMediaRecorder::setVideoSource(VideoSource source)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoSource", "(I)V", int(source));
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -194,7 +194,7 @@ void JMediaRecorder::setVideoSource(VideoSource source)
 
 void JMediaRecorder::setOrientationHint(int degrees)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setOrientationHint", "(I)V", degrees);
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -202,7 +202,7 @@ void JMediaRecorder::setOrientationHint(int degrees)
 
 void JMediaRecorder::setOutputFormat(OutputFormat format)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
     callMethod<void>("setOutputFormat", "(I)V", int(format));
     if (env->ExceptionCheck())
         env->ExceptionClear();
@@ -210,8 +210,10 @@ void JMediaRecorder::setOutputFormat(OutputFormat format)
 
 void JMediaRecorder::setOutputFile(const QString &path)
 {
-    QAttachedJNIEnv env;
-    callMethod<void>("setOutputFile", "(Ljava/lang/String;)V", qt_toJString(path).object());
+    QJNIEnvironmentPrivate env;
+    callMethod<void>("setOutputFile",
+                     "(Ljava/lang/String;)V",
+                     QJNIObjectPrivate::fromString(path).object());
     if (env->ExceptionCheck())
         env->ExceptionClear();
 }

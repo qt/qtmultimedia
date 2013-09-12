@@ -41,7 +41,7 @@
 
 #include "jmultimediautils.h"
 
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -49,7 +49,7 @@ static jclass g_qtMultimediaUtilsClass = 0;
 
 JMultimediaUtils::JMultimediaUtils()
     : QObject()
-    , QJNIObject(g_qtMultimediaUtilsClass)
+    , QJNIObjectPrivate(g_qtMultimediaUtilsClass)
 {
 }
 
@@ -65,11 +65,11 @@ int JMultimediaUtils::getDeviceOrientation()
 
 QString JMultimediaUtils::getDefaultMediaDirectory(MediaType type)
 {
-    QJNILocalRef<jstring> path = callStaticObjectMethod<jstring>(g_qtMultimediaUtilsClass,
-                                                                 "getDefaultMediaDirectory",
-                                                                 "(I)Ljava/lang/String;",
-                                                                 jint(type));
-    return qt_convertJString(path.object());
+    QJNIObjectPrivate path = callStaticObjectMethod(g_qtMultimediaUtilsClass,
+                                                    "getDefaultMediaDirectory",
+                                                    "(I)Ljava/lang/String;",
+                                                    jint(type));
+    return path.toString();
 }
 
 void JMultimediaUtils::registerMediaFile(const QString &file)
@@ -77,7 +77,7 @@ void JMultimediaUtils::registerMediaFile(const QString &file)
     callStaticMethod<void>(g_qtMultimediaUtilsClass,
                            "registerMediaFile",
                            "(Ljava/lang/String;)V",
-                           qt_toJString(file).object());
+                           QJNIObjectPrivate::fromString(file).object());
 }
 
 bool JMultimediaUtils::initJNI(JNIEnv *env)

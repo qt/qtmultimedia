@@ -43,11 +43,11 @@
 #define QANDROIDMEDIAPLAYER_H
 
 #include <QObject>
-#include <QtPlatformSupport/private/qjniobject_p.h>
+#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class JMediaPlayer : public QObject, public QJNIObject
+class JMediaPlayer : public QObject, public QJNIObjectPrivate
 {
     Q_OBJECT
 public:

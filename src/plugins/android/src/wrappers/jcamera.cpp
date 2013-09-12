@@ -41,7 +41,7 @@
 
 #include "jcamera.h"
 
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 #include <qstringlist.h>
 #include <qdebug.h>
 #include "qandroidmultimediautils.h"
@@ -53,9 +53,8 @@ static QMap<int, JCamera*> g_objectMap;
 
 static QRect areaToRect(jobject areaObj)
 {
-    QJNIObject area(areaObj);
-    QJNILocalRef<jobject> rectRef = area.getObjectField<jobject>("rect", "android/graphics/Rect");
-    QJNIObject rect(rectRef.object());
+    QJNIObjectPrivate area(areaObj);
+    QJNIObjectPrivate rect = area.getObjectField("rect", "android/graphics/Rect");
 
     return QRect(rect.getField<jint>("left"),
                  rect.getField<jint>("top"),
@@ -63,17 +62,17 @@ static QRect areaToRect(jobject areaObj)
                  rect.callMethod<jint>("height"));
 }
 
-static QJNILocalRef<jobject> rectToArea(const QRect &rect)
+static QJNIObjectPrivate rectToArea(const QRect &rect)
 {
-    QJNIObject jrect("android/graphics/Rect",
+    QJNIObjectPrivate jrect("android/graphics/Rect",
                      "(IIII)V",
                      rect.left(), rect.top(), rect.right(), rect.bottom());
 
-    QJNIObject area("android/hardware/Camera$Area",
+    QJNIObjectPrivate area("android/hardware/Camera$Area",
                     "(Landroid/graphics/Rect;I)V",
                     jrect.object(), 500);
 
-    return QJNILocalRef<jobject>(QAttachedJNIEnv()->NewLocalRef(area.object()));
+    return area;
 }
 
 // native method for QtCamera.java
@@ -105,27 +104,25 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 
 JCamera::JCamera(int cameraId, jobject cam)
     : QObject()
-    , QJNIObject(cam)
+    , QJNIObjectPrivate(cam)
     , m_cameraId(cameraId)
-    , m_info(0)
-    , m_parameters(0)
     , m_hasAPI14(false)
 {
     if (isValid()) {
         g_objectMap.insert(cameraId, this);
 
-        m_info = new QJNIObject("android/hardware/Camera$CameraInfo");
+        m_info = QJNIObjectPrivate("android/hardware/Camera$CameraInfo");
         callStaticMethod<void>("android/hardware/Camera",
                                "getCameraInfo",
                                "(ILandroid/hardware/Camera$CameraInfo;)V",
-                               cameraId, m_info->object());
+                               cameraId, m_info.object());
 
-        QJNILocalRef<jobject> params = callObjectMethod<jobject>("getParameters",
-                                                                 "()Landroid/hardware/Camera$Parameters;");
-        m_parameters = new QJNIObject(params.object());
+        QJNIObjectPrivate params = callObjectMethod("getParameters",
+                                                    "()Landroid/hardware/Camera$Parameters;");
+        m_parameters = QJNIObjectPrivate(params);
 
         // Check if API 14 is available
-        QAttachedJNIEnv env;
+        QJNIEnvironmentPrivate env;
         jclass clazz = env->FindClass("android/hardware/Camera");
         if (env->ExceptionCheck()) {
             clazz = 0;
@@ -147,20 +144,18 @@ JCamera::~JCamera()
 {
     if (isValid())
         g_objectMap.remove(m_cameraId);
-    delete m_parameters;
-    delete m_info;
 }
 
 JCamera *JCamera::open(int cameraId)
 {
-    QAttachedJNIEnv env;
+    QJNIEnvironmentPrivate env;
 
-    QJNILocalRef<jobject> camera = callStaticObjectMethod<jobject>(g_qtCameraClass,
-                                                                   "open",
-                                                                   "(I)Lorg/qtproject/qt5/android/multimedia/QtCamera;",
-                                                                   cameraId);
+    QJNIObjectPrivate camera = callStaticObjectMethod(g_qtCameraClass,
+                                                      "open",
+                                                      "(I)Lorg/qtproject/qt5/android/multimedia/QtCamera;",
+                                                      cameraId);
 
-    if (camera.isNull())
+    if (!camera.isValid())
         return 0;
     else
         return new JCamera(cameraId, camera.object());
@@ -184,30 +179,28 @@ void JCamera::reconnect()
 void JCamera::release()
 {
     m_previewSize = QSize();
-    delete m_parameters;
-    m_parameters = 0;
+    m_parameters = QJNIObjectPrivate();
     callMethod<void>("release");
 }
 
 JCamera::CameraFacing JCamera::getFacing()
 {
-    return CameraFacing(m_info->getField<jint>("facing"));
+    return CameraFacing(m_info.getField<jint>("facing"));
 }
 
 int JCamera::getNativeOrientation()
 {
-    return m_info->getField<jint>("orientation");
+    return m_info.getField<jint>("orientation");
 }
 
 QSize JCamera::getPreferredPreviewSizeForVideo()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return QSize();
 
-    QJNILocalRef<jobject> sizeRef = m_parameters->callObjectMethod<jobject>("getPreferredPreviewSizeForVideo",
-                                                                            "()Landroid/hardware/Camera$Size;");
+    QJNIObjectPrivate size = m_parameters.callObjectMethod("getPreferredPreviewSizeForVideo",
+                                                           "()Landroid/hardware/Camera$Size;");
 
-    QJNIObject size(sizeRef.object());
     return QSize(size.getField<jint>("width"), size.getField<jint>("height"));
 }
 
@@ -215,16 +208,14 @@ QList<QSize> JCamera::getSupportedPreviewSizes()
 {
     QList<QSize> list;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jobject> sizeListRef = m_parameters->callObjectMethod<jobject>("getSupportedPreviewSizes",
-                                                                                    "()Ljava/util/List;");
-        QJNIObject sizeList(sizeListRef.object());
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate sizeList = m_parameters.callObjectMethod("getSupportedPreviewSizes",
+                                                                   "()Ljava/util/List;");
         int count = sizeList.callMethod<jint>("size");
         for (int i = 0; i < count; ++i) {
-            QJNILocalRef<jobject> sizeRef = sizeList.callObjectMethod<jobject>("get",
-                                                                               "(I)Ljava/lang/Object;",
-                                                                               i);
-            QJNIObject size(sizeRef.object());
+            QJNIObjectPrivate size = sizeList.callObjectMethod("get",
+                                                               "(I)Ljava/lang/Object;",
+                                                               i);
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
@@ -236,12 +227,12 @@ QList<QSize> JCamera::getSupportedPreviewSizes()
 
 void JCamera::setPreviewSize(const QSize &size)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
     m_previewSize = size;
 
-    m_parameters->callMethod<void>("setPreviewSize", "(II)V", size.width(), size.height());
+    m_parameters.callMethod<void>("setPreviewSize", "(II)V", size.width(), size.height());
     applyParameters();
 
     emit previewSizeChanged();
@@ -254,35 +245,33 @@ void JCamera::setPreviewTexture(jobject surfaceTexture)
 
 bool JCamera::isZoomSupported()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return false;
 
-    return m_parameters->callMethod<jboolean>("isZoomSupported");
+    return m_parameters.callMethod<jboolean>("isZoomSupported");
 }
 
 int JCamera::getMaxZoom()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return 0;
 
-    return m_parameters->callMethod<jint>("getMaxZoom");
+    return m_parameters.callMethod<jint>("getMaxZoom");
 }
 
 QList<int> JCamera::getZoomRatios()
 {
     QList<int> ratios;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jobject> ratioListRef = m_parameters->callObjectMethod<jobject>("getZoomRatios",
-                                                                                     "()Ljava/util/List;");
-        QJNIObject ratioList(ratioListRef.object());
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate ratioList = m_parameters.callObjectMethod("getZoomRatios",
+                                                                    "()Ljava/util/List;");
         int count = ratioList.callMethod<jint>("size");
         for (int i = 0; i < count; ++i) {
-            QJNILocalRef<jobject> zoomRatioRef = ratioList.callObjectMethod<jobject>("get",
-                                                                                     "(I)Ljava/lang/Object;",
-                                                                                     i);
+            QJNIObjectPrivate zoomRatio = ratioList.callObjectMethod("get",
+                                                                     "(I)Ljava/lang/Object;",
+                                                                     i);
 
-            QJNIObject zoomRatio(zoomRatioRef.object());
             ratios.append(zoomRatio.callMethod<jint>("intValue"));
         }
     }
@@ -292,18 +281,18 @@ QList<int> JCamera::getZoomRatios()
 
 int JCamera::getZoom()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return 0;
 
-    return m_parameters->callMethod<jint>("getZoom");
+    return m_parameters.callMethod<jint>("getZoom");
 }
 
 void JCamera::setZoom(int value)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setZoom", "(I)V", value);
+    m_parameters.callMethod<void>("setZoom", "(I)V", value);
     applyParameters();
 }
 
@@ -316,11 +305,11 @@ QString JCamera::getFlashMode()
 {
     QString value;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jstring> flashMode = m_parameters->callObjectMethod<jstring>("getFlashMode",
-                                                                                  "()Ljava/lang/String;");
-        if (!flashMode.isNull())
-            value = qt_convertJString(flashMode.object());
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate flashMode = m_parameters.callObjectMethod("getFlashMode",
+                                                                    "()Ljava/lang/String;");
+        if (flashMode.isValid())
+            value = flashMode.toString();
     }
 
     return value;
@@ -328,12 +317,12 @@ QString JCamera::getFlashMode()
 
 void JCamera::setFlashMode(const QString &value)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setFlashMode",
-                                   "(Ljava/lang/String;)V",
-                                   qt_toJString(value).object());
+    m_parameters.callMethod<void>("setFlashMode",
+                                  "(Ljava/lang/String;)V",
+                                  QJNIObjectPrivate::fromString(value).object());
     applyParameters();
 }
 
@@ -346,11 +335,11 @@ QString JCamera::getFocusMode()
 {
     QString value;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jstring> focusMode = m_parameters->callObjectMethod<jstring>("getFocusMode",
-                                                                                  "()Ljava/lang/String;");
-        if (!focusMode.isNull())
-            value = qt_convertJString(focusMode.object());
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate focusMode = m_parameters.callObjectMethod("getFocusMode",
+                                                                    "()Ljava/lang/String;");
+        if (focusMode.isValid())
+            value = focusMode.toString();
     }
 
     return value;
@@ -358,40 +347,39 @@ QString JCamera::getFocusMode()
 
 void JCamera::setFocusMode(const QString &value)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setFocusMode",
-                                   "(Ljava/lang/String;)V",
-                                   qt_toJString(value).object());
+    m_parameters.callMethod<void>("setFocusMode",
+                                  "(Ljava/lang/String;)V",
+                                  QJNIObjectPrivate::fromString(value).object());
     applyParameters();
 }
 
 int JCamera::getMaxNumFocusAreas()
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return 0;
 
-    return m_parameters->callMethod<jint>("getMaxNumFocusAreas");
+    return m_parameters.callMethod<jint>("getMaxNumFocusAreas");
 }
 
 QList<QRect> JCamera::getFocusAreas()
 {
     QList<QRect> areas;
 
-    if (m_hasAPI14 && m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jobject> listRef = m_parameters->callObjectMethod<jobject>("getFocusAreas",
-                                                                                "()Ljava/util/List;");
+    if (m_hasAPI14 && m_parameters.isValid()) {
+        QJNIObjectPrivate list = m_parameters.callObjectMethod("getFocusAreas",
+                                                               "()Ljava/util/List;");
 
-        if (!listRef.isNull()) {
-            QJNIObject list(listRef.object());
+        if (list.isValid()) {
             int count = list.callMethod<jint>("size");
             for (int i = 0; i < count; ++i) {
-                QJNILocalRef<jobject> areaRef = list.callObjectMethod<jobject>("get",
-                                                                               "(I)Ljava/lang/Object;",
-                                                                               i);
+                QJNIObjectPrivate area = list.callObjectMethod("get",
+                                                               "(I)Ljava/lang/Object;",
+                                                               i);
 
-                areas.append(areaToRect(areaRef.object()));
+                areas.append(areaToRect(area.object()));
             }
         }
     }
@@ -401,14 +389,14 @@ QList<QRect> JCamera::getFocusAreas()
 
 void JCamera::setFocusAreas(const QList<QRect> &areas)
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return;
 
-    QJNILocalRef<jobject> list(0);
+    QJNIObjectPrivate list;
 
     if (!areas.isEmpty()) {
-        QAttachedJNIEnv env;
-        QJNIObject arrayList("java/util/ArrayList", "(I)V", areas.size());
+        QJNIEnvironmentPrivate env;
+        QJNIObjectPrivate arrayList("java/util/ArrayList", "(I)V", areas.size());
         for (int i = 0; i < areas.size(); ++i) {
             arrayList.callMethod<jboolean>("add",
                                            "(Ljava/lang/Object;)Z",
@@ -416,10 +404,10 @@ void JCamera::setFocusAreas(const QList<QRect> &areas)
             if (env->ExceptionCheck())
                 env->ExceptionClear();
         }
-        list = env->NewLocalRef(arrayList.object());
+        list = arrayList;
     }
 
-    m_parameters->callMethod<void>("setFocusAreas", "(Ljava/util/List;)V", list.object());
+    m_parameters.callMethod<void>("setFocusAreas", "(Ljava/util/List;)V", list.object());
 
     applyParameters();
 }
@@ -437,93 +425,93 @@ void JCamera::cancelAutoFocus()
 
 bool JCamera::isAutoExposureLockSupported()
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return false;
 
-    return m_parameters->callMethod<jboolean>("isAutoExposureLockSupported");
+    return m_parameters.callMethod<jboolean>("isAutoExposureLockSupported");
 }
 
 bool JCamera::getAutoExposureLock()
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return false;
 
-    return m_parameters->callMethod<jboolean>("getAutoExposureLock");
+    return m_parameters.callMethod<jboolean>("getAutoExposureLock");
 }
 
 void JCamera::setAutoExposureLock(bool toggle)
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setAutoExposureLock", "(Z)V", toggle);
+    m_parameters.callMethod<void>("setAutoExposureLock", "(Z)V", toggle);
     applyParameters();
 }
 
 bool JCamera::isAutoWhiteBalanceLockSupported()
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return false;
 
-    return m_parameters->callMethod<jboolean>("isAutoWhiteBalanceLockSupported");
+    return m_parameters.callMethod<jboolean>("isAutoWhiteBalanceLockSupported");
 }
 
 bool JCamera::getAutoWhiteBalanceLock()
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return false;
 
-    return m_parameters->callMethod<jboolean>("getAutoWhiteBalanceLock");
+    return m_parameters.callMethod<jboolean>("getAutoWhiteBalanceLock");
 }
 
 void JCamera::setAutoWhiteBalanceLock(bool toggle)
 {
-    if (!m_hasAPI14 || !m_parameters || !m_parameters->isValid())
+    if (!m_hasAPI14 || !m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setAutoWhiteBalanceLock", "(Z)V", toggle);
+    m_parameters.callMethod<void>("setAutoWhiteBalanceLock", "(Z)V", toggle);
     applyParameters();
 }
 
 int JCamera::getExposureCompensation()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return 0;
 
-    return m_parameters->callMethod<jint>("getExposureCompensation");
+    return m_parameters.callMethod<jint>("getExposureCompensation");
 }
 
 void JCamera::setExposureCompensation(int value)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setExposureCompensation", "(I)V", value);
+    m_parameters.callMethod<void>("setExposureCompensation", "(I)V", value);
     applyParameters();
 }
 
 float JCamera::getExposureCompensationStep()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return 0;
 
-    return m_parameters->callMethod<jfloat>("getExposureCompensationStep");
+    return m_parameters.callMethod<jfloat>("getExposureCompensationStep");
 }
 
 int JCamera::getMinExposureCompensation()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return 0;
 
-    return m_parameters->callMethod<jint>("getMinExposureCompensation");
+    return m_parameters.callMethod<jint>("getMinExposureCompensation");
 }
 
 int JCamera::getMaxExposureCompensation()
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return 0;
 
-    return m_parameters->callMethod<jint>("getMaxExposureCompensation");
+    return m_parameters.callMethod<jint>("getMaxExposureCompensation");
 }
 
 QStringList JCamera::getSupportedSceneModes()
@@ -535,11 +523,11 @@ QString JCamera::getSceneMode()
 {
     QString value;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jstring> sceneMode = m_parameters->callObjectMethod<jstring>("getSceneMode",
-                                                                                  "()Ljava/lang/String;");
-        if (!sceneMode.isNull())
-            value = qt_convertJString(sceneMode.object());
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate sceneMode = m_parameters.callObjectMethod("getSceneMode",
+                                                                    "()Ljava/lang/String;");
+        if (sceneMode.isValid())
+            value = sceneMode.toString();
     }
 
     return value;
@@ -547,12 +535,12 @@ QString JCamera::getSceneMode()
 
 void JCamera::setSceneMode(const QString &value)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setSceneMode",
-                                   "(Ljava/lang/String;)V",
-                                   qt_toJString(value).object());
+    m_parameters.callMethod<void>("setSceneMode",
+                                  "(Ljava/lang/String;)V",
+                                  QJNIObjectPrivate::fromString(value).object());
     applyParameters();
 }
 
@@ -565,11 +553,11 @@ QString JCamera::getWhiteBalance()
 {
     QString value;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jstring> wb = m_parameters->callObjectMethod<jstring>("getWhiteBalance",
-                                                                           "()Ljava/lang/String;");
-        if (!wb.isNull())
-            value = qt_convertJString(wb.object());
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate wb = m_parameters.callObjectMethod("getWhiteBalance",
+                                                             "()Ljava/lang/String;");
+        if (wb.isValid())
+            value = wb.toString();
     }
 
     return value;
@@ -577,12 +565,12 @@ QString JCamera::getWhiteBalance()
 
 void JCamera::setWhiteBalance(const QString &value)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setWhiteBalance",
-                                   "(Ljava/lang/String;)V",
-                                   qt_toJString(value).object());
+    m_parameters.callMethod<void>("setWhiteBalance",
+                                  "(Ljava/lang/String;)V",
+                                  QJNIObjectPrivate::fromString(value).object());
     applyParameters();
 
     emit whiteBalanceChanged();
@@ -590,10 +578,10 @@ void JCamera::setWhiteBalance(const QString &value)
 
 void JCamera::setRotation(int rotation)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setRotation", "(I)V", rotation);
+    m_parameters.callMethod<void>("setRotation", "(I)V", rotation);
     applyParameters();
 }
 
@@ -601,16 +589,14 @@ QList<QSize> JCamera::getSupportedPictureSizes()
 {
     QList<QSize> list;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jobject> sizeListRef = m_parameters->callObjectMethod<jobject>("getSupportedPictureSizes",
-                                                                                    "()Ljava/util/List;");
-        QJNIObject sizeList(sizeListRef.object());
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate sizeList = m_parameters.callObjectMethod("getSupportedPictureSizes",
+                                                                   "()Ljava/util/List;");
         int count = sizeList.callMethod<jint>("size");
         for (int i = 0; i < count; ++i) {
-            QJNILocalRef<jobject> sizeRef = sizeList.callObjectMethod<jobject>("get",
-                                                                               "(I)Ljava/lang/Object;",
-                                                                               i);
-            QJNIObject size(sizeRef.object());
+            QJNIObjectPrivate size = sizeList.callObjectMethod("get",
+                                                               "(I)Ljava/lang/Object;",
+                                                               i);
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
@@ -622,19 +608,19 @@ QList<QSize> JCamera::getSupportedPictureSizes()
 
 void JCamera::setPictureSize(const QSize &size)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setPictureSize", "(II)V", size.width(), size.height());
+    m_parameters.callMethod<void>("setPictureSize", "(II)V", size.width(), size.height());
     applyParameters();
 }
 
 void JCamera::setJpegQuality(int quality)
 {
-    if (!m_parameters || !m_parameters->isValid())
+    if (!m_parameters.isValid())
         return;
 
-    m_parameters->callMethod<void>("setJpegQuality", "(I)V", quality);
+    m_parameters.callMethod<void>("setJpegQuality", "(I)V", quality);
     applyParameters();
 }
 
@@ -657,27 +643,25 @@ void JCamera::applyParameters()
 {
     callMethod<void>("setParameters",
                      "(Landroid/hardware/Camera$Parameters;)V",
-                     m_parameters->object());
+                     m_parameters.object());
 }
 
 QStringList JCamera::callStringListMethod(const char *methodName)
 {
     QStringList stringList;
 
-    if (m_parameters && m_parameters->isValid()) {
-        QJNILocalRef<jobject> listRef = m_parameters->callObjectMethod<jobject>(methodName,
-                                                                                "()Ljava/util/List;");
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate list = m_parameters.callObjectMethod(methodName,
+                                                               "()Ljava/util/List;");
 
-        if (!listRef.isNull()) {
-            QJNIObject list(listRef.object());
+        if (list.isValid()) {
             int count = list.callMethod<jint>("size");
             for (int i = 0; i < count; ++i) {
-                QJNILocalRef<jobject> stringRef = list.callObjectMethod<jobject>("get",
-                                                                                 "(I)Ljava/lang/Object;",
-                                                                                 i);
+                QJNIObjectPrivate string = list.callObjectMethod("get",
+                                                                 "(I)Ljava/lang/Object;",
+                                                                 i);
 
-                QJNIObject string(stringRef.object());
-                stringList.append(qt_convertJString(string.callObjectMethod<jstring>("toString").object()));
+                stringList.append(string.toString());
             }
         }
     }

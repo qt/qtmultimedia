@@ -41,7 +41,7 @@
 
 #include "qandroidvideorendercontrol.h"
 
-#include <QtPlatformSupport/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 #include "jsurfacetextureholder.h"
 #include <QAbstractVideoSurface>
 #include <QOpenGLContext>
@@ -268,7 +268,7 @@ jobject QAndroidVideoRendererControl::surfaceHolder()
         return 0;
 
     if (!m_surfaceHolder) {
-        m_androidSurface = new QJNIObject("android/view/Surface",
+        m_androidSurface = new QJNIObjectPrivate("android/view/Surface",
                                           "(Landroid/graphics/SurfaceTexture;)V",
                                           m_surfaceTexture->object());
 

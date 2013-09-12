@@ -42,11 +42,11 @@
 #ifndef JSURFACETEXTUREHOLDER_H
 #define JSURFACETEXTUREHOLDER_H
 
-#include <QtPlatformSupport/private/qjniobject_p.h>
+#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class JSurfaceTextureHolder : public QJNIObject
+class JSurfaceTextureHolder : public QJNIObjectPrivate
 {
 public:
     JSurfaceTextureHolder(jobject surface);

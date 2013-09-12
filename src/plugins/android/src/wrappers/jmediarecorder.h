@@ -43,14 +43,14 @@
 #define JMEDIARECORDER_H
 
 #include <qobject.h>
-#include <QtPlatformSupport/private/qjniobject_p.h>
+#include <QtCore/private/qjni_p.h>
 #include <qsize.h>
 
 QT_BEGIN_NAMESPACE
 
 class JCamera;
 
-class JMediaRecorder : public QObject, public QJNIObject
+class JMediaRecorder : public QObject, public QJNIObjectPrivate
 {
     Q_OBJECT
 public:

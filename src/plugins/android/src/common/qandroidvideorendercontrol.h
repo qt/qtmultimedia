@@ -90,7 +90,7 @@ private:
     bool m_useImage;
     QSize m_nativeSize;
 
-    QJNIObject *m_androidSurface;
+    QJNIObjectPrivate *m_androidSurface;
     JSurfaceTexture *m_surfaceTexture;
     JSurfaceTextureHolder *m_surfaceHolder;
     uint m_externalTex;
