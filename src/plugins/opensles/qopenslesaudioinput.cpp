@@ -327,9 +327,8 @@ void QOpenSLESAudioInput::stopRecording()
 {
     flushBuffers();
 
-    SLresult result;
-    result = (*m_recorder)->SetRecordState(m_recorder, SL_RECORDSTATE_STOPPED);
-    result = (*m_bufferQueue)->Clear(m_bufferQueue);
+    (*m_recorder)->SetRecordState(m_recorder, SL_RECORDSTATE_STOPPED);
+    (*m_bufferQueue)->Clear(m_bufferQueue);
 
     (*m_recorderObject)->Destroy(m_recorderObject);
     m_recorderObject = 0;
