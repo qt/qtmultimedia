@@ -129,7 +129,7 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
         m_processedBytes += readSize;
     }
 
-    // Change to state to playing.
+    // Change the state to playing.
     // We need to do this after filling the buffers or processedBytes might get corrupted.
     if (SL_RESULT_SUCCESS != (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_PLAYING)) {
         setError(QAudio::FatalError);
@@ -149,7 +149,7 @@ QIODevice *QOpenSLESAudioOutput::start()
     m_audioSource = new SLIODevicePrivate(this);
     m_audioSource->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
 
-    // Change to state to playing
+    // Change the state to playing
     if (SL_RESULT_SUCCESS != (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_PLAYING)) {
         setError(QAudio::FatalError);
         destroyPlayer();
