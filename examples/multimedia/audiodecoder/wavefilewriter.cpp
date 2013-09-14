@@ -40,19 +40,19 @@
 
 #include "wavefilewriter.h"
 
-struct Q_PACKED chunk
+struct chunk
 {
     char        id[4];
     quint32     size;
 };
 
-struct Q_PACKED RIFFHeader
+struct RIFFHeader
 {
     chunk       descriptor;     // "RIFF"
     char        type[4];        // "WAVE"
 };
 
-struct Q_PACKED WAVEHeader
+struct WAVEHeader
 {
     chunk       descriptor;
     quint16     audioFormat;
@@ -63,12 +63,12 @@ struct Q_PACKED WAVEHeader
     quint16     bitsPerSample;
 };
 
-struct Q_PACKED DATAHeader
+struct DATAHeader
 {
     chunk       descriptor;
 };
 
-struct Q_PACKED CombinedHeader
+struct CombinedHeader
 {
     RIFFHeader  riff;
     WAVEHeader  wave;
