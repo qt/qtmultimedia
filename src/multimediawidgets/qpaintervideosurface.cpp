@@ -773,6 +773,8 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::start(const QVideoSurfac
     if (!program) {
         error = QAbstractVideoSurface::UnsupportedFormatError;
     } else {
+        while (glGetError() != GL_NO_ERROR) { } // clear previous unrelated errors
+
         glGenProgramsARB(1, &m_programId);
 
         GLenum glError = glGetError();
