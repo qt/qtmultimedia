@@ -194,25 +194,25 @@ QSGVideoMaterial_YUV420::QSGVideoMaterial_YUV420(const QVideoSurfaceFormat &form
     switch (format.yCbCrColorSpace()) {
     case QVideoSurfaceFormat::YCbCr_JPEG:
         m_colorMatrix = QMatrix4x4(
-                    1.0,  0.000,  1.402, -0.701,
-                    1.0, -0.344, -0.714,  0.529,
-                    1.0,  1.772,  0.000, -0.886,
-                    0.0,  0.000,  0.000,  1.0000);
+                    1.0f,  0.000f,  1.402f, -0.701f,
+                    1.0f, -0.344f, -0.714f,  0.529f,
+                    1.0f,  1.772f,  0.000f, -0.886f,
+                    0.0f,  0.000f,  0.000f,  1.0000f);
         break;
     case QVideoSurfaceFormat::YCbCr_BT709:
     case QVideoSurfaceFormat::YCbCr_xvYCC709:
         m_colorMatrix = QMatrix4x4(
-                    1.164,  0.000,  1.793, -0.5727,
-                    1.164, -0.534, -0.213,  0.3007,
-                    1.164,  2.115,  0.000, -1.1302,
-                    0.0,    0.000,  0.000,  1.0000);
+                    1.164f,  0.000f,  1.793f, -0.5727f,
+                    1.164f, -0.534f, -0.213f,  0.3007f,
+                    1.164f,  2.115f,  0.000f, -1.1302f,
+                    0.0f,    0.000f,  0.000f,  1.0000f);
         break;
     default: //BT 601:
         m_colorMatrix = QMatrix4x4(
-                    1.164,  0.000,  1.596, -0.8708,
-                    1.164, -0.392, -0.813,  0.5296,
-                    1.164,  2.017,  0.000, -1.081,
-                    0.0,    0.000,  0.000,  1.0000);
+                    1.164f,  0.000f,  1.596f, -0.8708f,
+                    1.164f, -0.392f, -0.813f,  0.5296f,
+                    1.164f,  2.017f,  0.000f, -1.081f,
+                    0.0f,    0.000f,  0.000f,  1.0000f);
     }
 
     setFlag(Blending, false);
