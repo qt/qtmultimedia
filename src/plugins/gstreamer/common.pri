@@ -26,11 +26,6 @@ config_resourcepolicy {
     PKGCONFIG += libresourceqt5
 }
 
-config_xvideo:qtHaveModule(widgets) {
-    DEFINES += HAVE_XVIDEO
-    LIBS += -lXv -lX11 -lXext
-}
-
 config_gstreamer_appsrc {
     PKGCONFIG += gstreamer-app-0.10
     DEFINES += HAVE_GST_APPSRC

@@ -57,9 +57,9 @@
 #include <private/qgstreameraudioprobecontrol_p.h>
 
 #include <private/qgstreamervideorenderer_p.h>
+#include <private/qgstreamervideowindow_p.h>
 
 #if defined(HAVE_WIDGETS)
-#include <private/qgstreamervideooverlay_p.h>
 #include <private/qgstreamervideowidget_p.h>
 #endif
 
@@ -80,8 +80,8 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
 
     m_videoOutput = 0;
     m_videoRenderer = 0;
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
     m_videoWindow = 0;
+#if defined(HAVE_WIDGETS)
     m_videoWidgetControl = 0;
 #endif
     m_imageCaptureControl = 0;
@@ -104,9 +104,9 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
             m_videoInput->setDevice(m_videoInputDevice->deviceName(m_videoInputDevice->selectedDevice()));
 
         m_videoRenderer = new QGstreamerVideoRenderer(this);
+        m_videoWindow = new QGstreamerVideoWindow(this);
 
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
-        m_videoWindow = new QGstreamerVideoOverlay(this);
+#if defined(HAVE_WIDGETS)
         m_videoWidgetControl = new QGstreamerVideoWidgetControl(this);
 #endif
         m_imageCaptureControl = new QGstreamerImageCaptureControl(m_captureSession);
@@ -175,11 +175,11 @@ QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             m_videoOutput = m_videoRenderer;
-        }
-#if defined(HAVE_WIDGETS) && defined(HAVE_XVIDEO)
-        else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
+        } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
             m_videoOutput = m_videoWindow;
-        } else if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
+        }
+#if defined(HAVE_WIDGETS)
+        else if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
             m_videoOutput = m_videoWidgetControl;
         }
 #endif

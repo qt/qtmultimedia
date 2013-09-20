@@ -50,7 +50,6 @@
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
-class QX11VideoSurface;
 
 class QGstreamerVideoWindow : public QVideoWindowControl,
         public QGstreamerVideoRendererInterface,

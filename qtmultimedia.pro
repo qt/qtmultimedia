@@ -24,7 +24,6 @@ win32 {
         qtCompileTest(gstreamer_appsrc)
     }
     qtCompileTest(resourcepolicy)
-    qtCompileTest(xvideo)
 }
 
 load(qt_parts)

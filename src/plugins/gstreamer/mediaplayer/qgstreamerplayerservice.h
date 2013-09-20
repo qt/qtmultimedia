@@ -58,7 +58,6 @@ class QGstreamerPlayerSession;
 class QGstreamerMetaDataProvider;
 class QGstreamerStreamsControl;
 class QGstreamerVideoRenderer;
-class QGstreamerVideoOverlay;
 class QGstreamerVideoWidgetControl;
 class QGStreamerAvailabilityControl;
 
@@ -81,8 +80,8 @@ private:
 
     QMediaControl *m_videoOutput;
     QMediaControl *m_videoRenderer;
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
     QMediaControl *m_videoWindow;
+#if defined(HAVE_WIDGETS)
     QMediaControl *m_videoWidget;
 #endif
 

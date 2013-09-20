@@ -49,6 +49,7 @@ PRIVATE_HEADERS += \
     qgstcodecsinfo_p.h \
     qgstreamervideoprobecontrol_p.h \
     qgstreameraudioprobecontrol_p.h \
+    qgstreamervideowindow_p.h
 
 SOURCES += \
     qgstbufferpoolinterface.cpp \
@@ -65,33 +66,16 @@ SOURCES += \
     gstvideoconnector.c \
     qgstreamervideoprobecontrol.cpp \
     qgstreameraudioprobecontrol.cpp \
+    qgstreamervideowindow.cpp
 
-config_xvideo {
-    DEFINES += HAVE_XVIDEO
-
-    LIBS += -lXv -lX11 -lXext
+qtHaveModule(widgets) {
+    QT += multimediawidgets
 
     PRIVATE_HEADERS += \
-        qgstxvimagebuffer_p.h \
+        qgstreamervideowidget_p.h
 
     SOURCES += \
-        qgstxvimagebuffer.cpp \
-
-    qtHaveModule(widgets) {
-        QT += multimediawidgets
-
-        PRIVATE_HEADERS += \
-        qgstreamervideooverlay_p.h \
-        qgstreamervideowindow_p.h \
-        qgstreamervideowidget_p.h \
-        qx11videosurface_p.h \
-
-        SOURCES += \
-        qgstreamervideooverlay.cpp \
-        qgstreamervideowindow.cpp \
-        qgstreamervideowidget.cpp \
-        qx11videosurface.cpp \
-    }
+        qgstreamervideowidget.cpp
 }
 
 maemo6 {

@@ -69,11 +69,6 @@
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 
-#ifdef HAVE_XVIDEO
-class QGstXvImageBuffer;
-class QGstXvImageBufferPool;
-#endif
-
 class QVideoSurfaceGstDelegate : public QObject
 {
     Q_OBJECT

@@ -48,14 +48,6 @@
 #include <gst/interfaces/xoverlay.h>
 #include <gst/interfaces/propertyprobe.h>
 
-/*
-   QGstreamerVideoWindow is similar to QGstreamerVideoOverlay,
-   but uses xvimagesink like gstreamer element instead of QX11VideoSurface.
-
-   This allows to use the accelerated elements if available on the target platform,
-   but requires at least 0.10.29 gstreamer version
-   with gst_x_overlay_set_render_rectangle to set display rect.
-*/
 
 QGstreamerVideoWindow::QGstreamerVideoWindow(QObject *parent, const char *elementName)
     : QVideoWindowControl(parent)
@@ -94,8 +86,6 @@ void QGstreamerVideoWindow::setWinId(WId id)
 {
     if (m_windowId == id)
         return;
-
-    qDebug() << Q_FUNC_INFO << id;
 
     WId oldId = m_windowId;
 

@@ -49,10 +49,6 @@
 #include <private/qmediapluginloader_p.h>
 #include "qgstvideobuffer_p.h"
 
-#if defined(HAVE_XVIDEO)
-#include "qgstxvimagebuffer_p.h"
-#endif
-
 #include "qvideosurfacegstsink_p.h"
 
 //#define DEBUG_VIDEO_SURFACE_SINK
@@ -79,9 +75,6 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
                 m_pools.append(plugin);
             }
         }
-#ifdef HAVE_XVIDEO
-        m_pools.append(new QGstXvImageBufferPool(this));
-#endif
         updateSupportedFormats();
         connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(updateSupportedFormats()));
     }

@@ -53,11 +53,9 @@
 #include "qgstreameravailabilitycontrol.h"
 
 #if defined(HAVE_WIDGETS)
-#include <private/qgstreamervideooverlay_p.h>
-#include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideowidget_p.h>
 #endif
-
+#include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideorenderer_p.h>
 
 #if defined(Q_WS_MAEMO_6) && defined(__arm__)
@@ -78,8 +76,8 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
      QMediaService(parent)
      , m_videoOutput(0)
      , m_videoRenderer(0)
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
      , m_videoWindow(0)
+#if defined(HAVE_WIDGETS)
      , m_videoWidget(0)
 #endif
      , m_videoReferenceCount(0)
@@ -96,12 +94,13 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
     m_videoRenderer = new QGstreamerVideoRenderer(this);
 #endif
 
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
 #ifdef Q_WS_MAEMO_6
     m_videoWindow = new QGstreamerVideoWindow(this, "omapxvsink");
 #else
-    m_videoWindow = new QGstreamerVideoOverlay(this);
+    m_videoWindow = new QGstreamerVideoWindow(this);
 #endif
+
+#if defined(HAVE_WIDGETS)
     m_videoWidget = new QGstreamerVideoWidgetControl(this);
 #endif
 }
@@ -146,11 +145,11 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0)
             m_videoOutput = m_videoRenderer;
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
+        else if (qstrcmp(name, QVideoWindowControl_iid) == 0)
+            m_videoOutput = m_videoWindow;
+#if defined(HAVE_WIDGETS)
         else if (qstrcmp(name, QVideoWidgetControl_iid) == 0)
             m_videoOutput = m_videoWidget;
-        else  if (qstrcmp(name, QVideoWindowControl_iid) == 0)
-            m_videoOutput = m_videoWindow;
 #endif
 
         if (m_videoOutput) {

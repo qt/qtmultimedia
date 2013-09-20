@@ -56,7 +56,6 @@ class CameraBinControl;
 class QGstreamerMessage;
 class QGstreamerBusHelper;
 class QGstreamerVideoRenderer;
-class QGstreamerVideoOverlay;
 class QGstreamerVideoWidgetControl;
 class QGstreamerElementFactory;
 class CameraBinMetaData;
@@ -89,8 +88,8 @@ private:
     QMediaControl *m_videoOutput;
 
     QMediaControl *m_videoRenderer;
-#if defined(HAVE_XVIDEO) && defined(HAVE_WIDGETS)
     QMediaControl *m_videoWindow;
+#if defined(HAVE_WIDGETS)
     QGstreamerVideoWidgetControl *m_videoWidgetControl;
 #endif
     CameraBinImageCapture *m_imageCaptureControl;
