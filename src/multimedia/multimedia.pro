@@ -61,7 +61,8 @@ ANDROID_LIB_DEPENDENCIES = \
 ANDROID_BUNDLED_FILES += \
     lib/libQt5MultimediaQuick_p.so
 MODULE_PLUGIN_TYPES = \
-    mediaservice
+    mediaservice \
+    audio
 
 win32:LIBS += -luuid
 
