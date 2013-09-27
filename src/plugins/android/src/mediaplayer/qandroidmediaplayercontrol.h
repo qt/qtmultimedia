@@ -75,8 +75,7 @@ public:
     const QIODevice *mediaStream() const Q_DECL_OVERRIDE;
     void setMedia(const QMediaContent &mediaContent, QIODevice *stream) Q_DECL_OVERRIDE;
 
-    void setVideoOutput(QAndroidVideoOutput *videoOutput);
-    void onSurfaceTextureReady();
+    void setVideoOutput(QObject *videoOutput);
 
 Q_SIGNALS:
     void metaDataUpdated();
@@ -90,6 +89,7 @@ public Q_SLOTS:
     void setMuted(bool muted) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
+    void onVideoOutputReady(bool ready);
     void onError(qint32 what, qint32 extra);
     void onInfo(qint32 what, qint32 extra);
     void onMediaPlayerInfo(qint32 what, qint32 extra);

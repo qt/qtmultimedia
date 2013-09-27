@@ -88,7 +88,7 @@ private:
     QAndroidVideoDeviceSelectorControl *m_videoInputControl;
     QAndroidAudioInputSelectorControl *m_audioInputControl;
     QAndroidCameraSession *m_cameraSession;
-    QAndroidVideoRendererControl *m_videoRendererControl;
+    QMediaControl *m_videoRendererControl;
     QAndroidCameraZoomControl *m_cameraZoomControl;
     QAndroidCameraExposureControl *m_cameraExposureControl;
     QAndroidCameraFlashControl *m_cameraFlashControl;

@@ -39,37 +39,24 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDVIDEOOUTPUT_H
-#define QANDROIDVIDEOOUTPUT_H
+#ifndef QANDROIDSGVIDEONODEPLUGIN_H
+#define QANDROIDSGVIDEONODEPLUGIN_H
 
-#include <qglobal.h>
-#include <qsize.h>
-#include <jni.h>
+#include <private/qsgvideonode_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidVideoOutput
+class QAndroidSGVideoNodeFactoryPlugin : public QSGVideoNodeFactoryPlugin
 {
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QSGVideoNodeFactoryInterface_iid
+                      FILE "android_videonode.json")
+
 public:
-    virtual ~QAndroidVideoOutput() { }
-
-    virtual jobject surfaceHolder() = 0;
-    virtual jobject surfaceTexture() { return 0; }
-
-    virtual bool isReady() { return true; }
-
-    virtual void setVideoSize(const QSize &) { }
-    virtual void stop() { }
-
-    virtual QImage toImage() = 0;
-
-    // signals:
-    // void readyChanged(bool);
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
 };
-
-#define QAndroidVideoOutput_iid "org.qt-project.qt.qandroidvideooutput/5.0"
-Q_DECLARE_INTERFACE(QAndroidVideoOutput, QAndroidVideoOutput_iid)
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDVIDEOOUTPUT_H
+#endif // QANDROIDSGVIDEONODEPLUGIN_H

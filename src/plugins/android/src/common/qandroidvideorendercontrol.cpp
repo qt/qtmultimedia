@@ -44,39 +44,31 @@
 #include <QtCore/private/qjni_p.h>
 #include "jsurfacetextureholder.h"
 #include <QAbstractVideoSurface>
-#include <QOpenGLContext>
-#include <QOffscreenSurface>
-#include <QOpenGLFramebufferObject>
 #include <QVideoSurfaceFormat>
-#include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
 #include <qevent.h>
+#include <qcoreapplication.h>
+#include <qopenglcontext.h>
+#include <qopenglfunctions.h>
 
 QT_BEGIN_NAMESPACE
 
-static const GLfloat g_vertex_data[] = {
-    -1.f, 1.f,
-    1.f, 1.f,
-    1.f, -1.f,
-    -1.f, -1.f
-};
+#define ExternalGLTextureHandle QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle + 1)
 
-static const GLfloat g_texture_data[] = {
-    0.f, 0.f,
-    1.f, 0.f,
-    1.f, 1.f,
-    0.f, 1.f
-};
+TextureDeleter::~TextureDeleter()
+{
+    glDeleteTextures(1, &m_id);
+}
 
-class TextureVideoBuffer : public QAbstractVideoBuffer
+class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    TextureVideoBuffer(GLuint textureId)
-        : QAbstractVideoBuffer(GLTextureHandle)
-        , m_textureId(textureId)
-    {}
+    AndroidTextureVideoBuffer(JSurfaceTexture *surface)
+        : QAbstractVideoBuffer(ExternalGLTextureHandle)
+        , m_surfaceTexture(surface)
+    {
+    }
 
-    virtual ~TextureVideoBuffer() {}
+    virtual ~AndroidTextureVideoBuffer() {}
 
     MapMode mapMode() const { return NotMapped; }
     uchar *map(MapMode, int*, int*) { return 0; }
@@ -84,67 +76,33 @@ public:
 
     QVariant handle() const
     {
-        return QVariant::fromValue<unsigned int>(m_textureId);
-    }
-
-private:
-    GLuint m_textureId;
-};
-
-class ImageVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    ImageVideoBuffer(const QImage &image)
-        : QAbstractVideoBuffer(NoHandle)
-        , m_image(image)
-        , m_mode(NotMapped)
-    {
-
-    }
-
-    MapMode mapMode() const { return m_mode; }
-    uchar *map(MapMode mode, int *, int *)
-    {
-        if (mode != NotMapped && m_mode == NotMapped) {
-            m_mode = mode;
-            return m_image.bits();
+        if (m_data.isEmpty()) {
+            // update the video texture (called from the render thread)
+            m_surfaceTexture->updateTexImage();
+            m_data << (uint)m_surfaceTexture->textureID() << m_surfaceTexture->getTransformMatrix();
         }
 
-        return 0;
-    }
-
-    void unmap()
-    {
-        m_mode = NotMapped;
+        return m_data;
     }
 
 private:
-    QImage m_image;
-    MapMode m_mode;
+    mutable JSurfaceTexture *m_surfaceTexture;
+    mutable QVariantList m_data;
 };
 
 QAndroidVideoRendererControl::QAndroidVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
     , m_surface(0)
-    , m_offscreenSurface(0)
-    , m_glContext(0)
-    , m_fbo(0)
-    , m_program(0)
-    , m_useImage(false)
     , m_androidSurface(0)
     , m_surfaceTexture(0)
     , m_surfaceHolder(0)
     , m_externalTex(0)
-    , m_textureReadyCallback(0)
-    , m_textureReadyContext(0)
+    , m_textureDeleter(0)
 {
 }
 
 QAndroidVideoRendererControl::~QAndroidVideoRendererControl()
 {
-    if (m_glContext)
-        m_glContext->makeCurrent(m_offscreenSurface);
-
     if (m_surfaceTexture) {
         m_surfaceTexture->callMethod<void>("release");
         delete m_surfaceTexture;
@@ -159,13 +117,8 @@ QAndroidVideoRendererControl::~QAndroidVideoRendererControl()
         delete m_surfaceHolder;
         m_surfaceHolder = 0;
     }
-    if (m_externalTex)
-        glDeleteTextures(1, &m_externalTex);
-
-    delete m_fbo;
-    delete m_program;
-    delete m_glContext;
-    delete m_offscreenSurface;
+    if (m_textureDeleter)
+        m_textureDeleter->deleteLater();
 }
 
 QAbstractVideoSurface *QAndroidVideoRendererControl::surface() const
@@ -178,28 +131,23 @@ void QAndroidVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (surface == m_surface)
         return;
 
-    if (m_surface && m_surface->isActive()) {
-        m_surface->stop();
-        m_surface->removeEventFilter(this);
+    if (m_surface) {
+        if (m_surface->isActive())
+            m_surface->stop();
+        m_surface->setProperty("_q_GLThreadCallback", QVariant());
     }
 
     m_surface = surface;
 
     if (m_surface) {
-        m_useImage = !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
-        m_surface->installEventFilter(this);
+        m_surface->setProperty("_q_GLThreadCallback",
+                               QVariant::fromValue<QObject*>(this));
     }
 }
 
-bool QAndroidVideoRendererControl::isTextureReady()
+bool QAndroidVideoRendererControl::isReady()
 {
-    return QOpenGLContext::currentContext() || (m_surface && m_surface->property("GLContext").isValid());
-}
-
-void QAndroidVideoRendererControl::setTextureReadyCallback(TextureReadyCallback cb, void *context)
-{
-    m_textureReadyCallback = cb;
-    m_textureReadyContext = context;
+    return QOpenGLContext::currentContext() || m_externalTex;
 }
 
 bool QAndroidVideoRendererControl::initSurfaceTexture()
@@ -210,45 +158,15 @@ bool QAndroidVideoRendererControl::initSurfaceTexture()
     if (!m_surface)
         return false;
 
-    QOpenGLContext *currContext = QOpenGLContext::currentContext();
-
-    // If we don't have a GL context in the current thread, create one and share it
-    // with the render thread GL context
-    if (!currContext && !m_glContext) {
-        QOpenGLContext *shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
-        if (!shareContext)
-            return false;
-
-        m_offscreenSurface = new QOffscreenSurface;
-        QSurfaceFormat format;
-        format.setSwapBehavior(QSurfaceFormat::SingleBuffer);
-        m_offscreenSurface->setFormat(format);
-        m_offscreenSurface->create();
-
-        m_glContext = new QOpenGLContext;
-        m_glContext->setFormat(m_offscreenSurface->requestedFormat());
-
-        if (shareContext)
-            m_glContext->setShareContext(shareContext);
-
-        if (!m_glContext->create()) {
-            delete m_glContext;
-            m_glContext = 0;
-            delete m_offscreenSurface;
-            m_offscreenSurface = 0;
-            return false;
-        }
-
-        // if sharing contexts is not supported, fallback to image rendering and send the bits
-        // to the video surface
-        if (!m_glContext->shareContext())
-            m_useImage = true;
+    // if we have an OpenGL context in the current thread, create a texture. Otherwise, wait
+    // for the GL render thread to call us back to do it.
+    if (QOpenGLContext::currentContext()) {
+        glGenTextures(1, &m_externalTex);
+        m_textureDeleter = new TextureDeleter(m_externalTex);
+    } else if (!m_externalTex) {
+        return false;
     }
 
-    if (m_glContext)
-        m_glContext->makeCurrent(m_offscreenSurface);
-
-    glGenTextures(1, &m_externalTex);
     m_surfaceTexture = new JSurfaceTexture(m_externalTex);
 
     if (m_surfaceTexture->isValid()) {
@@ -256,7 +174,9 @@ bool QAndroidVideoRendererControl::initSurfaceTexture()
     } else {
         delete m_surfaceTexture;
         m_surfaceTexture = 0;
-        glDeleteTextures(1, &m_externalTex);
+        m_textureDeleter->deleteLater();
+        m_externalTex = 0;
+        m_textureDeleter = 0;
     }
 
     return m_surfaceTexture != 0;
@@ -294,9 +214,6 @@ void QAndroidVideoRendererControl::setVideoSize(const QSize &size)
     stop();
 
     m_nativeSize = size;
-
-    delete m_fbo;
-    m_fbo = 0;
 }
 
 void QAndroidVideoRendererControl::stop()
@@ -308,131 +225,45 @@ void QAndroidVideoRendererControl::stop()
 
 QImage QAndroidVideoRendererControl::toImage()
 {
-    if (!m_fbo)
-        return QImage();
-
-    return m_fbo->toImage().mirrored();
+    // FIXME!!! Since we are not using a FBO anymore, we can't grab the pixels. And glGetTexImage
+    // doesn't work on GL_TEXTURE_EXTERNAL_OES
+    return QImage();
 }
 
 void QAndroidVideoRendererControl::onFrameAvailable()
 {
-    if (m_glContext)
-        m_glContext->makeCurrent(m_offscreenSurface);
-
-    m_surfaceTexture->updateTexImage();
-
-    if (!m_nativeSize.isValid())
+    if (!m_nativeSize.isValid() || !m_surface)
         return;
 
-    renderFrameToFbo();
+    QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(m_surfaceTexture);
+    QVideoFrame frame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
 
-    QAbstractVideoBuffer *buffer = 0;
-    QVideoFrame frame;
-
-    if (m_useImage) {
-        buffer = new ImageVideoBuffer(m_fbo->toImage().mirrored());
-        frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_RGB32);
-    } else {
-        buffer = new TextureVideoBuffer(m_fbo->texture());
-        frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
+    if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
+                                  || m_surface->nativeResolution() != frame.size())) {
+        m_surface->stop();
     }
 
-    if (m_surface && frame.isValid()) {
-        if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
-                                      || m_surface->nativeResolution() != frame.size())) {
-            m_surface->stop();
-        }
+    if (!m_surface->isActive()) {
+        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), ExternalGLTextureHandle);
+        format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
 
-        if (!m_surface->isActive()) {
-            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(),
-                                       m_useImage ? QAbstractVideoBuffer::NoHandle
-                                                  : QAbstractVideoBuffer::GLTextureHandle);
-
-            m_surface->start(format);
-        }
-
-        if (m_surface->isActive())
-            m_surface->present(frame);
+        m_surface->start(format);
     }
+
+    if (m_surface->isActive())
+        m_surface->present(frame);
 }
 
-void QAndroidVideoRendererControl::renderFrameToFbo()
+void QAndroidVideoRendererControl::customEvent(QEvent *e)
 {
-    createGLResources();
-
-    m_fbo->bind();
-
-    glViewport(0, 0, m_nativeSize.width(), m_nativeSize.height());
-
-    m_program->bind();
-    m_program->enableAttributeArray(0);
-    m_program->enableAttributeArray(1);
-    m_program->setUniformValue("frameTexture", GLuint(0));
-    m_program->setUniformValue("texMatrix", m_surfaceTexture->getTransformMatrix());
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, g_vertex_data);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, g_texture_data);
-
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    m_program->disableAttributeArray(0);
-    m_program->disableAttributeArray(1);
-    m_program->release();
-
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
-    m_fbo->release();
-
-    glFinish();
-}
-
-void QAndroidVideoRendererControl::createGLResources()
-{
-    if (!m_fbo)
-        m_fbo = new QOpenGLFramebufferObject(m_nativeSize);
-
-    if (!m_program) {
-        m_program = new QOpenGLShaderProgram;
-
-        QOpenGLShader *vertexShader = new QOpenGLShader(QOpenGLShader::Vertex, m_program);
-        vertexShader->compileSourceCode("attribute highp vec4 vertexCoordsArray; \n" \
-                                        "attribute highp vec2 textureCoordArray; \n" \
-                                        "uniform   highp mat4 texMatrix; \n" \
-                                        "varying   highp vec2 textureCoords; \n" \
-                                        "void main(void) \n" \
-                                        "{ \n" \
-                                        "    gl_Position = vertexCoordsArray; \n" \
-                                        "    textureCoords = (texMatrix * vec4(textureCoordArray, 0.0, 1.0)).xy; \n" \
-                                        "}\n");
-        m_program->addShader(vertexShader);
-
-        QOpenGLShader *fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment, m_program);
-        fragmentShader->compileSourceCode("#extension GL_OES_EGL_image_external : require \n" \
-                                          "varying highp vec2         textureCoords; \n" \
-                                          "uniform samplerExternalOES frameTexture; \n" \
-                                          "void main() \n" \
-                                          "{ \n" \
-                                          "    gl_FragColor = texture2D(frameTexture, textureCoords); \n" \
-                                          "}\n");
-        m_program->addShader(fragmentShader);
-
-        m_program->bindAttributeLocation("vertexCoordsArray", 0);
-        m_program->bindAttributeLocation("textureCoordArray", 1);
-        m_program->link();
-    }
-}
-
-bool QAndroidVideoRendererControl::eventFilter(QObject *, QEvent *e)
-{
-    if (e->type() == QEvent::DynamicPropertyChange) {
-        QDynamicPropertyChangeEvent *event = static_cast<QDynamicPropertyChangeEvent*>(e);
-        if (event->propertyName() == "GLContext" && m_textureReadyCallback) {
-            m_textureReadyCallback(m_textureReadyContext);
-            m_textureReadyCallback = 0;
-            m_textureReadyContext = 0;
+    if (e->type() == QEvent::User) {
+        // This is running in the render thread (OpenGL enabled)
+        if (!m_externalTex) {
+            glGenTextures(1, &m_externalTex);
+            m_textureDeleter = new TextureDeleter(m_externalTex); // will be deleted in the correct thread
+            emit readyChanged(true);
         }
     }
-
-    return false;
 }
 
 QT_END_NAMESPACE

@@ -69,7 +69,7 @@ private:
     int m_orientation;
 };
 
-class QSGVideoNodeFactoryInterface
+class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryInterface
 {
 public:
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
@@ -79,7 +79,7 @@ public:
 #define QSGVideoNodeFactoryInterface_iid "org.qt-project.qt.sgvideonodefactory/5.0"
 Q_DECLARE_INTERFACE(QSGVideoNodeFactoryInterface, QSGVideoNodeFactoryInterface_iid)
 
-class QSGVideoNodeFactoryPlugin : public QObject, public QSGVideoNodeFactoryInterface
+class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryPlugin : public QObject, public QSGVideoNodeFactoryInterface
 {
     Q_OBJECT
     Q_INTERFACES(QSGVideoNodeFactoryInterface)

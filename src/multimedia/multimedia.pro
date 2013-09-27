@@ -62,7 +62,8 @@ ANDROID_BUNDLED_FILES += \
     lib/libQt5MultimediaQuick_p.so
 MODULE_PLUGIN_TYPES = \
     mediaservice \
-    audio
+    audio \
+    video/videonode
 
 win32:LIBS += -luuid
 

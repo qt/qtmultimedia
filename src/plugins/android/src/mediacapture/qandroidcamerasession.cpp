@@ -52,12 +52,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static void textureReadyCallback(void *context)
-{
-    if (context)
-        reinterpret_cast<QAndroidCameraSession *>(context)->onSurfaceTextureReady();
-}
-
 QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     : QObject(parent)
     , m_selectedCamera(0)
@@ -188,12 +182,17 @@ void QAndroidCameraSession::close()
     emit statusChanged(m_status);
 }
 
-void QAndroidCameraSession::setVideoPreview(QAndroidVideoOutput *videoOutput)
+void QAndroidCameraSession::setVideoPreview(QObject *videoOutput)
 {
     if (m_videoOutput)
         m_videoOutput->stop();
 
-    m_videoOutput = videoOutput;
+    if (videoOutput) {
+        connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
+        m_videoOutput = qobject_cast<QAndroidVideoOutput *>(videoOutput);
+    } else {
+        m_videoOutput = 0;
+    }
 }
 
 void QAndroidCameraSession::adjustViewfinderSize(const QSize &captureSize, bool restartPreview)
@@ -243,12 +242,8 @@ void QAndroidCameraSession::startPreview()
     applyImageSettings();
     adjustViewfinderSize(m_imageSettings.resolution());
 
-    if (m_videoOutput) {
-        if (m_videoOutput->isTextureReady())
-            m_camera->setPreviewTexture(m_videoOutput->surfaceTexture());
-        else
-            m_videoOutput->setTextureReadyCallback(textureReadyCallback, this);
-    }
+    if (m_videoOutput && m_videoOutput->isReady())
+        onVideoOutputReady(true);
 
     JMultimediaUtils::enableOrientationListener(true);
 
@@ -522,9 +517,9 @@ void QAndroidCameraSession::processCapturedImage(int id,
     }
 }
 
-void QAndroidCameraSession::onSurfaceTextureReady()
+void QAndroidCameraSession::onVideoOutputReady(bool ready)
 {
-    if (m_camera && m_videoOutput)
+    if (m_camera && m_videoOutput && ready)
         m_camera->setPreviewTexture(m_videoOutput->surfaceTexture());
 }
 

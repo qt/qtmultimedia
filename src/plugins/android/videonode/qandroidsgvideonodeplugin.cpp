@@ -39,37 +39,31 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDVIDEOOUTPUT_H
-#define QANDROIDVIDEOOUTPUT_H
-
-#include <qglobal.h>
-#include <qsize.h>
-#include <jni.h>
+#include "qandroidsgvideonodeplugin.h"
+#include "qandroidsgvideonode.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidVideoOutput
+#define ExternalGLTextureHandle (QAbstractVideoBuffer::UserHandle + 1)
+
+QList<QVideoFrame::PixelFormat> QAndroidSGVideoNodeFactoryPlugin::supportedPixelFormats(
+        QAbstractVideoBuffer::HandleType handleType) const
 {
-public:
-    virtual ~QAndroidVideoOutput() { }
+    QList<QVideoFrame::PixelFormat> pixelFormats;
 
-    virtual jobject surfaceHolder() = 0;
-    virtual jobject surfaceTexture() { return 0; }
+    if (handleType == ExternalGLTextureHandle)
+        pixelFormats.append(QVideoFrame::Format_BGR32);
 
-    virtual bool isReady() { return true; }
+    return pixelFormats;
+}
 
-    virtual void setVideoSize(const QSize &) { }
-    virtual void stop() { }
+QSGVideoNode *QAndroidSGVideoNodeFactoryPlugin::createNode(const QVideoSurfaceFormat &format)
+{
+    if (supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
+        return new QAndroidSGVideoNode(format);
 
-    virtual QImage toImage() = 0;
+    return 0;
+}
 
-    // signals:
-    // void readyChanged(bool);
-};
-
-#define QAndroidVideoOutput_iid "org.qt-project.qt.qandroidvideooutput/5.0"
-Q_DECLARE_INTERFACE(QAndroidVideoOutput, QAndroidVideoOutput_iid)
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDVIDEOOUTPUT_H

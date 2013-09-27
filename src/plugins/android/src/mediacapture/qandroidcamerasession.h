@@ -71,7 +71,7 @@ public:
     void setCaptureMode(QCamera::CaptureModes mode);
     bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
 
-    void setVideoPreview(QAndroidVideoOutput *videoOutput);
+    void setVideoPreview(QObject *videoOutput);
     void adjustViewfinderSize(const QSize &captureSize, bool restartPreview = true);
 
     QImageEncoderSettings imageSettings() const { return m_imageSettings; }
@@ -87,8 +87,6 @@ public:
     void setDriveMode(QCameraImageCapture::DriveMode mode);
     int capture(const QString &fileName);
     void cancelCapture();
-
-    void onSurfaceTextureReady();
 
     int currentCameraRotation() const;
 
@@ -110,6 +108,8 @@ Q_SIGNALS:
     void imageCaptureError(int id, int error, const QString &errorString);
 
 private Q_SLOTS:
+    void onVideoOutputReady(bool ready);
+
     void onApplicationStateChanged(Qt::ApplicationState state);
 
     void onCameraPictureExposed();

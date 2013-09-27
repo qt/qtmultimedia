@@ -56,6 +56,7 @@ public:
     explicit JSurfaceTexture(unsigned int texName);
     ~JSurfaceTexture();
 
+    int textureID() const { return m_texID; }
     QMatrix4x4 getTransformMatrix();
     void updateTexImage();
 

@@ -193,6 +193,13 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     if (!m_glContext) {
         m_glContext = QOpenGLContext::currentContext();
         m_surface->scheduleOpenGLContextUpdate();
+
+        // Internal mechanism to call back the surface renderer from the QtQuick render thread
+        QObject *obj = m_surface->property("_q_GLThreadCallback").value<QObject*>();
+        if (obj) {
+            QEvent ev(QEvent::User);
+            obj->event(&ev);
+        }
     }
 
     if (m_frameChanged) {

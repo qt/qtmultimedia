@@ -48,15 +48,23 @@
 
 QT_BEGIN_NAMESPACE
 
-class QOpenGLContext;
-class QOffscreenSurface;
-class QOpenGLFramebufferObject;
-class QOpenGLShaderProgram;
 class JSurfaceTextureHolder;
+
+class TextureDeleter : public QObject
+{
+    Q_OBJECT
+public:
+    TextureDeleter(uint id) : m_id(id) { }
+    ~TextureDeleter();
+
+private:
+    uint m_id;
+};
 
 class QAndroidVideoRendererControl : public QVideoRendererControl, public QAndroidVideoOutput
 {
     Q_OBJECT
+    Q_INTERFACES(QAndroidVideoOutput)
 public:
     explicit QAndroidVideoRendererControl(QObject *parent = 0);
     ~QAndroidVideoRendererControl() Q_DECL_OVERRIDE;
@@ -65,38 +73,31 @@ public:
     void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
 
     jobject surfaceHolder() Q_DECL_OVERRIDE;
-    bool isTextureReady() Q_DECL_OVERRIDE;
-    void setTextureReadyCallback(TextureReadyCallback cb, void *context = 0) Q_DECL_OVERRIDE;
     jobject surfaceTexture() Q_DECL_OVERRIDE;
+    bool isReady() Q_DECL_OVERRIDE;
     void setVideoSize(const QSize &size) Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
     QImage toImage() Q_DECL_OVERRIDE;
 
-    bool eventFilter(QObject *obj, QEvent *event) Q_DECL_OVERRIDE;
+    void customEvent(QEvent *) Q_DECL_OVERRIDE;
+
+Q_SIGNALS:
+    void readyChanged(bool);
 
 private Q_SLOTS:
     void onFrameAvailable();
 
 private:
     bool initSurfaceTexture();
-    void renderFrameToFbo();
-    void createGLResources();
 
     QAbstractVideoSurface *m_surface;
-    QOffscreenSurface *m_offscreenSurface;
-    QOpenGLContext *m_glContext;
-    QOpenGLFramebufferObject *m_fbo;
-    QOpenGLShaderProgram *m_program;
-    bool m_useImage;
     QSize m_nativeSize;
 
     QJNIObjectPrivate *m_androidSurface;
     JSurfaceTexture *m_surfaceTexture;
     JSurfaceTextureHolder *m_surfaceHolder;
     uint m_externalTex;
-
-    TextureReadyCallback m_textureReadyCallback;
-    void *m_textureReadyContext;
+    TextureDeleter *m_textureDeleter;
 };
 
 QT_END_NAMESPACE
