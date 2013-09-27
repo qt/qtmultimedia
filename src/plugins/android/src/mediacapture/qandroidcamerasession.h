@@ -114,6 +114,7 @@ private Q_SLOTS:
 
     void onCameraPictureExposed();
     void onCameraPictureCaptured(const QByteArray &data);
+    void onCameraPreviewFrameAvailable(const QByteArray &data);
 
 private:
     bool open();
@@ -123,7 +124,7 @@ private:
     void stopPreview();
 
     void applyImageSettings();
-    void processPreviewImage(int id);
+    void processPreviewImage(int id, const QByteArray &data);
     void processCapturedImage(int id,
                               const QByteArray &data,
                               QCameraImageCapture::CaptureDestinations dest,

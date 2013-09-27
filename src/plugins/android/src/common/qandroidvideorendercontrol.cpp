@@ -223,13 +223,6 @@ void QAndroidVideoRendererControl::stop()
     m_nativeSize = QSize();
 }
 
-QImage QAndroidVideoRendererControl::toImage()
-{
-    // FIXME!!! Since we are not using a FBO anymore, we can't grab the pixels. And glGetTexImage
-    // doesn't work on GL_TEXTURE_EXTERNAL_OES
-    return QImage();
-}
-
 void QAndroidVideoRendererControl::onFrameAvailable()
 {
     if (!m_nativeSize.isValid() || !m_surface)

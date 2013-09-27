@@ -61,8 +61,6 @@ public:
     virtual void setVideoSize(const QSize &) { }
     virtual void stop() { }
 
-    virtual QImage toImage() = 0;
-
     // signals:
     // void readyChanged(bool);
 };

@@ -77,7 +77,6 @@ public:
     bool isReady() Q_DECL_OVERRIDE;
     void setVideoSize(const QSize &size) Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
-    QImage toImage() Q_DECL_OVERRIDE;
 
     void customEvent(QEvent *) Q_DECL_OVERRIDE;
 

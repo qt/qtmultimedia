@@ -58,6 +58,16 @@ public:
         CameraFacingFront = 1
     };
 
+    enum ImageFormat { // same values as in android.graphics.ImageFormat Java class
+        Unknown = 0,
+        RGB565 = 4,
+        NV16 = 16,
+        NV21 = 17,
+        YUY2 = 20,
+        JPEG = 256,
+        YV12 = 842094169
+    };
+
     ~JCamera();
 
     static JCamera *open(int cameraId);
@@ -74,6 +84,9 @@ public:
 
     QSize getPreferredPreviewSizeForVideo();
     QList<QSize> getSupportedPreviewSizes();
+
+    ImageFormat getPreviewFormat();
+    void setPreviewFormat(ImageFormat fmt);
 
     QSize previewSize() const { return m_previewSize; }
     void setPreviewSize(const QSize &size);
@@ -131,6 +144,8 @@ public:
     void startPreview();
     void stopPreview();
 
+    void requestPreviewFrame();
+
     void takePicture();
 
     static bool initJNI(JNIEnv *env);
@@ -142,6 +157,8 @@ Q_SIGNALS:
     void autoFocusComplete(bool success);
 
     void whiteBalanceChanged();
+
+    void previewFrameAvailable(const QByteArray &data);
 
     void pictureExposed();
     void pictureCaptured(const QByteArray &data);
