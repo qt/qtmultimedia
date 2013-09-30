@@ -75,6 +75,8 @@ static QString errorToString(camera_error_t error)
         return QLatin1String("No permission");
     case CAMERA_EBADR:
         return QLatin1String("Invalid file descriptor");
+    case CAMERA_ENODATA:
+        return QLatin1String("Data does not exist");
     case CAMERA_ENOENT:
         return QLatin1String("File or directory does not exists");
     case CAMERA_ENOMEM:
@@ -85,6 +87,8 @@ static QString errorToString(camera_error_t error)
         return QLatin1String("Communication timeout");
     case CAMERA_EALREADY:
         return QLatin1String("Operation already in progress");
+    case CAMERA_EBUSY:
+        return QLatin1String("Camera busy");
     case CAMERA_ENOSPC:
         return QLatin1String("Disk is full");
     case CAMERA_EUNINIT:
@@ -95,6 +99,12 @@ static QString errorToString(camera_error_t error)
         return QLatin1String("Microphone in use already");
     case CAMERA_EDESKTOPCAMERAINUSE:
         return QLatin1String("Desktop camera in use already");
+    case CAMERA_EPOWERDOWN:
+        return QLatin1String("Camera in power down state");
+    case CAMERA_3ALOCKED:
+        return QLatin1String("3A have been locked");
+    case CAMERA_EVIEWFINDERFROZEN:
+        return QLatin1String("Freeze flag set");
     default:
         return QLatin1String("Unknown error");
     }
