@@ -176,6 +176,7 @@ private:
 
 class PLSParser : public ParserBase
 {
+    Q_OBJECT
 public:
     PLSParser(QObject *parent)
         : ParserBase(parent)
@@ -275,7 +276,7 @@ Version=2
                 int entries = getValue(lineIndex, line).toInt();
                 int count = m_readFlags == 0 ? (m_count - 1) : m_count;
                 if (entries != count) {
-                    emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing playlist: %1, expected count = %2")).
+                    emit error(QPlaylistFileParser::FormatError, tr("Error parsing playlist: %1, expected count = %2").
                                arg(line, QString::number(count)));
                 }
                 break;
