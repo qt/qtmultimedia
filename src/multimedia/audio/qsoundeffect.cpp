@@ -89,7 +89,7 @@ QT_BEGIN_NAMESPACE
     \inmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
 
     SoundEffect is part of the \b{QtMultimedia 5.0} module.
 

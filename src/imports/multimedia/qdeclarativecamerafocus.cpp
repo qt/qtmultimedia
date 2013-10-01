@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype CameraFocus
     \instantiates QDeclarativeCameraFocus
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \brief An interface for focus related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml

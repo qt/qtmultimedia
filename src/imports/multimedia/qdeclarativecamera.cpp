@@ -79,7 +79,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QMultimedia::AvailabilityStatus 
     \brief Access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
     \ingroup camera_qml
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
 
     \inherits Item
 

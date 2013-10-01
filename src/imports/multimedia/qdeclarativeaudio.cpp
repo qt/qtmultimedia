@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
     \instantiates QDeclarativeAudio
     \brief Add audio playback to a scene.
 
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
 
@@ -1123,7 +1123,7 @@ void QDeclarativeAudio::_q_statusChanged()
     \instantiates QDeclarativeAudio
     \brief Add media playback to a scene.
 
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
