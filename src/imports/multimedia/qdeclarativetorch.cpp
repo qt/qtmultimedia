@@ -92,7 +92,7 @@ QDeclarativeTorch::~QDeclarativeTorch()
 }
 
 /*!
-    \qmlproperty bool QtMultimedia5::Torch::enabled
+    \qmlproperty bool QtMultimedia::Torch::enabled
 
     This property indicates whether the torch is enabled.  If the torch functionality is shared
     with the camera flash hardware, the camera will take priority
@@ -140,7 +140,7 @@ void QDeclarativeTorch::setEnabled(bool on)
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::Torch::power
+    \qmlproperty int QtMultimedia::Torch::power
 
     This property holds the current torch power setting, as a percentage of full power.
 

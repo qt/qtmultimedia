@@ -74,20 +74,20 @@
      \li Type
      \li Description
     \row
-     \li \l {QtMultimedia5::Audio}{Audio}
+     \li \l {QtMultimedia::Audio}{Audio}
      \li Add audio playback functionality to a scene
     \row
-     \li \l {QtMultimedia5::Camera}{Camera}
+     \li \l {QtMultimedia::Camera}{Camera}
      \li Access camera viewfinder frames
     \row
      \li MediaPlayer
      \li Add media playback functionality to a scene. It is same as Audio type,
      but can be used for video playback with the VideoOutput type.
     \row
-     \li \l {QtMultimedia5::Radio}{Radio}
+     \li \l {QtMultimedia::Radio}{Radio}
      \li Access radio functionality
     \row
-     \li \l {QtMultimedia5::Video}{Video}
+     \li \l {QtMultimedia::Video}{Video}
      \li Add Video playback functionality to a scene. It uses MediaPlayer and
      VideoOutput types to provide video playback functionality.
     \endtable
