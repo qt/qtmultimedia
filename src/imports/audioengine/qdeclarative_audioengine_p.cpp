@@ -58,9 +58,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype AudioEngine
     \instantiates QDeclarativeAudioEngine
-    \since 1.0
+    \since 5.0
     \brief Organize all your 3d audio content in one place.
-    \inqmlmodule QtAudioEngine 1.0
+    \inqmlmodule QtAudioEngine
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary

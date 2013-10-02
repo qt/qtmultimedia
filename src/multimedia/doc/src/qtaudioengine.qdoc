@@ -26,54 +26,34 @@
 ****************************************************************************/
 
 /*!
-\page audioengineoverview.html
-\title Positional Audio
-\brief 3D positional audio playback and content management
+\qmlmodule QtAudioEngine 1.0
+\title Qt Audio Engine QML Types
+\ingroup qmlmodules
+\brief Provides QML types for 3D positional audio playback and content management.
 
-\section1 QtAudioEngine Features
+Qt Audio Engine is part of the \l{Qt Multimedia} module. Qt Audio
+Engine provides types for 3D positional audio playback and content management.
 
-Qt Multimedia includes the \c QtAudioEngine QML module for
-providing 3D positional audio playback and content management.
-
-QtAudioEngine enables developers to organize wave files into discrete \l Sound with different
-\l {PlayVariation}{play variations}, group sound controls by \l {AudioCategory} categories and
-define \l {AttenuationModelLinear}{attenuation models} and various 3d audio settings all in one
-place. Playback of \l {SoundInstance}{sound instances} can be conveniently activated by in-app
-events and managed by QtAudioEngine or controlled by explicitly defining \l SoundInstance
-for easier QML bindings.
-
-To access these QML types import the
-\b{QtAudioEngine 1.0} module.
-
-\qml
-import QtQuick 2.0
+The QML types can be imported into your application using the following import
+statement in your .qml file:
+\code
 import QtAudioEngine 1.0
+\endcode
 
-AudioEngine {
-//...
-}
-\endqml
+\section1 Qt Audio Engine Features
+
+Qt Audio Engine enables developers to organize wave files into discrete \l Sound
+with different \l {PlayVariation}{play variations}, group sound controls by \l
+{AudioCategory} categories and define \l {AttenuationModelLinear}{attenuation
+models} and various 3D audio settings all in one place. Playback of \l
+{SoundInstance}{sound instances} can be conveniently activated by in-app events
+and managed by QtAudioEngine or controlled by explicitly defining \l
+SoundInstance for easier QML bindings.
 
 \section1 Examples
 \list
     \li \l {AudioEngine Example}{Audio Engine}
 \endlist
 
-\section1 Reference Documentation
-
-\section2 QML Types
-
-\list
-    \li \l AudioEngine
-    \li \l AudioSample
-    \li \l AudioCategory
-    \li \l AttenuationModelLinear
-    \li \l AttenuationModelInverse
-    \li \l Sound
-    \li \l PlayVariation
-    \li \l AudioListener
-    \li \l SoundInstance
-
-\endlist
-
+\section1 QML types
 */
