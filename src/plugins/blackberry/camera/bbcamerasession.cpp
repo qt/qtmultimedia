@@ -85,16 +85,18 @@ static QString errorToString(camera_error_t error)
         return QLatin1String("Communication timeout");
     case CAMERA_EALREADY:
         return QLatin1String("Operation already in progress");
-    case CAMERA_ENOSPC:
-        return QLatin1String("Disk is full");
     case CAMERA_EUNINIT:
         return QLatin1String("Camera library not initialized");
     case CAMERA_EREGFAULT:
         return QLatin1String("Callback registration failed");
     case CAMERA_EMICINUSE:
         return QLatin1String("Microphone in use already");
+#ifndef Q_OS_BLACKBERRY_TABLET
     case CAMERA_EDESKTOPCAMERAINUSE:
         return QLatin1String("Desktop camera in use already");
+    case CAMERA_ENOSPC:
+        return QLatin1String("Disk is full");
+#endif
     default:
         return QLatin1String("Unknown error");
     }
@@ -648,6 +650,9 @@ void BbCameraSession::applyVideoSettings()
         return;
     }
 
+    const QSize resolution = m_videoEncoderSettings.resolution();
+
+#ifndef Q_OS_BLACKBERRY_TABLET
     QString videoCodec = m_videoEncoderSettings.codec();
     if (videoCodec.isEmpty())
         videoCodec = QLatin1String("h264");
@@ -659,8 +664,6 @@ void BbCameraSession::applyVideoSettings()
         cameraVideoCodec = CAMERA_VIDEOCODEC_AVC1;
     else if (videoCodec == QLatin1String("h264"))
         cameraVideoCodec = CAMERA_VIDEOCODEC_H264;
-
-    const QSize resolution = m_videoEncoderSettings.resolution();
 
     qreal frameRate = m_videoEncoderSettings.frameRate();
     if (frameRate == 0) {
@@ -680,12 +683,16 @@ void BbCameraSession::applyVideoSettings()
         cameraAudioCodec = CAMERA_AUDIOCODEC_AAC;
     else if (audioCodec == QLatin1String("raw"))
         cameraAudioCodec = CAMERA_AUDIOCODEC_RAW;
-
     result = camera_set_video_property(m_handle,
                                        CAMERA_IMGPROP_WIDTH, resolution.width(),
                                        CAMERA_IMGPROP_HEIGHT, resolution.height(),
                                        CAMERA_IMGPROP_VIDEOCODEC, cameraVideoCodec,
                                        CAMERA_IMGPROP_AUDIOCODEC, cameraAudioCodec);
+#else
+    result = camera_set_video_property(m_handle,
+                                       CAMERA_IMGPROP_WIDTH, resolution.width(),
+                                       CAMERA_IMGPROP_HEIGHT, resolution.height());
+#endif
 
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to apply video settings:" << result;
@@ -969,10 +976,14 @@ static void viewFinderStatusCallback(camera_handle_t handle, camera_devstatus_t 
     if (status == CAMERA_STATUS_FOCUS_CHANGE) {
         BbCameraSession *session = static_cast<BbCameraSession*>(context);
         QMetaObject::invokeMethod(session, "handleFocusStatusChanged", Qt::QueuedConnection, Q_ARG(int, value));
-    } else if (status == CAMERA_STATUS_POWERUP) {
+        return;
+    }
+#ifndef Q_OS_BLACKBERRY_TABLET
+    else if (status == CAMERA_STATUS_POWERUP) {
         BbCameraSession *session = static_cast<BbCameraSession*>(context);
         QMetaObject::invokeMethod(session, "handleCameraPowerUp", Qt::QueuedConnection);
     }
+#endif
 }
 
 bool BbCameraSession::startViewFinder()
@@ -1149,6 +1160,7 @@ static void videoRecordingStatusCallback(camera_handle_t handle, camera_devstatu
     Q_UNUSED(handle)
     Q_UNUSED(value)
 
+#ifndef Q_OS_BLACKBERRY_TABLET
     if (status == CAMERA_STATUS_VIDEO_PAUSE) {
         BbCameraSession *session = static_cast<BbCameraSession*>(context);
         QMetaObject::invokeMethod(session, "handleVideoRecordingPaused", Qt::QueuedConnection);
@@ -1156,6 +1168,7 @@ static void videoRecordingStatusCallback(camera_handle_t handle, camera_devstatu
         BbCameraSession *session = static_cast<BbCameraSession*>(context);
         QMetaObject::invokeMethod(session, "handleVideoRecordingResumed", Qt::QueuedConnection);
     }
+#endif
 }
 
 bool BbCameraSession::startVideoRecording()

@@ -40,10 +40,8 @@
 ****************************************************************************/
 #include "bbserviceplugin.h"
 
-#ifndef Q_OS_BLACKBERRY_TABLET
 #include "bbcameraservice.h"
 #include "bbvideodeviceselectorcontrol.h"
-#endif
 #include "bbmediaplayerservice.h"
 
 #include <QDebug>
@@ -56,10 +54,8 @@ BbServicePlugin::BbServicePlugin()
 
 QMediaService *BbServicePlugin::create(const QString &key)
 {
-#ifndef Q_OS_BLACKBERRY_TABLET
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
         return new BbCameraService();
-#endif
 
     if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
         return new BbMediaPlayerService();
@@ -106,9 +102,7 @@ QString BbServicePlugin::deviceDescription(const QByteArray &service, const QByt
 
 void BbServicePlugin::updateDevices() const
 {
-#ifndef Q_OS_BLACKBERRY_TABLET
     BbVideoDeviceSelectorControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
-#endif
 
     if (m_cameraDevices.isEmpty()) {
         qWarning() << "No camera devices found";

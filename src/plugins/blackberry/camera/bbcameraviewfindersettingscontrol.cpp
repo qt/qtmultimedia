@@ -156,10 +156,12 @@ QVariant BbCameraViewfinderSettingsControl::viewfinderParameter(ViewfinderParame
             return QVideoFrame::Format_Invalid;
         case CAMERA_FRAMETYPE_CBYCRY:
             return QVideoFrame::Format_Invalid;
+#ifndef Q_OS_BLACKBERRY_TABLET
         case CAMERA_FRAMETYPE_COMPRESSEDVIDEO:
             return QVideoFrame::Format_Invalid;
         case CAMERA_FRAMETYPE_COMPRESSEDAUDIO:
             return QVideoFrame::Format_Invalid;
+#endif
         default:
             return QVideoFrame::Format_Invalid;
         }

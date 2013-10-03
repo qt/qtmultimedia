@@ -12,9 +12,7 @@ SOURCES += bbserviceplugin.cpp
 
 include(common/common.pri)
 
-!blackberry-playbook {
-    include(camera/camera.pri)
-}
+include(camera/camera.pri)
 
 include(mediaplayer/mediaplayer.pri)
 
