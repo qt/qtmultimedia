@@ -46,7 +46,7 @@
 #include <QtCore/qmutex.h>
 #include <qaudiobuffer.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class AudioCaptureProbeControl : public QMediaAudioProbeControl
 {
@@ -57,5 +57,7 @@ public:
 
     void bufferProbed(const char *data, quint32 size, const QAudioFormat& format);
 };
+
+QT_END_NAMESPACE
 
 #endif

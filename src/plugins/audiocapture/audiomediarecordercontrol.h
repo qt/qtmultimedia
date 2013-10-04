@@ -47,9 +47,9 @@
 #include "qmediarecorder.h"
 #include "qmediarecordercontrol.h"
 
-class AudioCaptureSession;
+QT_BEGIN_NAMESPACE
 
-QT_USE_NAMESPACE
+class AudioCaptureSession;
 
 class AudioMediaRecorderControl : public QMediaRecorderControl
 {
@@ -59,7 +59,7 @@ public:
     ~AudioMediaRecorderControl();
 
     QUrl outputLocation() const;
-    bool setOutputLocation(const QUrl &sink);
+    bool setOutputLocation(const QUrl &location);
 
     QMediaRecorder::State state() const;
     QMediaRecorder::Status status() const;
@@ -71,19 +71,14 @@ public:
 
     void applySettings() {}
 
-public slots:
     void setState(QMediaRecorder::State state);
     void setMuted(bool);
     void setVolume(qreal volume);
 
-private slots:
-    void updateStatus();
-    void handleSessionError(int code, const QString &description);
-
 private:
     AudioCaptureSession* m_session;
-    QMediaRecorder::State m_state;
-    QMediaRecorder::Status m_prevStatus;
 };
+
+QT_END_NAMESPACE
 
 #endif

@@ -46,6 +46,7 @@
 
 #include "qmediaserviceproviderplugin.h"
 
+QT_BEGIN_NAMESPACE
 
 QMediaService* AudioCaptureServicePlugin::create(QString const& key)
 {
@@ -60,3 +61,4 @@ void AudioCaptureServicePlugin::release(QMediaService *service)
     delete service;
 }
 
+QT_END_NAMESPACE
