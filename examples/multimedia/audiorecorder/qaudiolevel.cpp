@@ -45,6 +45,8 @@ QAudioLevel::QAudioLevel(QWidget *parent)
   : QWidget(parent)
   , m_level(0.0)
 {
+    setMinimumHeight(15);
+    setMaximumHeight(50);
 }
 
 void QAudioLevel::setLevel(qreal level)
