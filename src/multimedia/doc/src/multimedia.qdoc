@@ -46,7 +46,7 @@ Here are some examples of what can be done with Qt Multimedia APIs:
 \li Record audio and compress it
 \li Tune and listen to radio stations
 \li Use a camera, including viewfinder, image capture, and movie recording
-\li Play 3D positional audio with \l {Positional Audio} {QtAudioEngine}
+\li Play 3D positional audio with \l{Qt Audio Engine QML Types}{Qt Audio Engine}
 \li Decode audio media files into memory for processing
 \li Accessing video frames or audio buffers as they are played or recorded
 \endlist
@@ -180,7 +180,7 @@ The QML types are accessed by using:
 import QtMultimedia 5.0
 \endcode
 \annotatedlist multimedia_qml
-The following types are accessed by using \l {Positional Audio} {QtAudioEngine}:
+The following types are accessed by using \l{Qt Audio Engine QML Types}{Qt Audio Engine}:
 \code
 import QtAudioEngine 1.0
 \endcode
