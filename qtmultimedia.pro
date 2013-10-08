@@ -4,7 +4,9 @@ load(configure)
 qtCompileTest(openal)
 qtCompileTest(opensles)
 win32 {
-    qtCompileTest(directshow)
+    qtCompileTest(directshow) {
+        qtCompileTest(wshellitem)
+    }
     qtCompileTest(wmsdk)
     qtCompileTest(wmp)
     contains(QT_CONFIG, wmf-backend): qtCompileTest(wmf)

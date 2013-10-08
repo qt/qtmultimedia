@@ -43,5 +43,11 @@ qtHaveModule(widgets):!simulator {
         $$PWD/vmr9videowindowcontrol.cpp
 }
 
+config_wshellitem {
+    QT += core-private
+} else {
+    DEFINES += QT_NO_SHELLITEM
+}
+
 LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32 -lgdi32
 

@@ -50,6 +50,10 @@
 #include "vmr9videowindowcontrol.h"
 #endif
 
+#ifndef QT_NO_WMSDK
+#include <wmsdk.h>
+#endif
+
 #include "qmediacontent.h"
 
 #include <QtCore/qcoreapplication.h>
@@ -268,11 +272,10 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
     IBaseFilter *source = 0;
 
     QMediaResource resource = m_resources.takeFirst();
-    QUrl url = resource.url();
+    m_url = resource.url();
 
     HRESULT hr = E_FAIL;
-
-    if (url.scheme() == QLatin1String("http") || url.scheme() == QLatin1String("https")) {
+    if (m_url.scheme() == QLatin1String("http") || m_url.scheme() == QLatin1String("https")) {
         static const GUID clsid_WMAsfReader = {
             0x187463a0, 0x5bb7, 0x11d3, {0xac, 0xbe, 0x00, 0x80, 0xc7, 0x5e, 0x24, 0x6e} };
 
@@ -283,7 +286,7 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
         if (IFileSourceFilter *fileSource = com_new<IFileSourceFilter>(
                 clsid_WMAsfReader, iid_IFileSourceFilter)) {
             locker->unlock();
-            hr = fileSource->Load(reinterpret_cast<const OLECHAR *>(url.toString().utf16()), 0);
+            hr = fileSource->Load(reinterpret_cast<const OLECHAR *>(m_url.toString().utf16()), 0);
 
             if (SUCCEEDED(hr)) {
                 source = com_cast<IBaseFilter>(fileSource, IID_IBaseFilter);
@@ -296,11 +299,11 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             fileSource->Release();
             locker->relock();
         }
-    } else if (url.scheme() == QLatin1String("qrc")) {
+    } else if (m_url.scheme() == QLatin1String("qrc")) {
         DirectShowRcSource *rcSource = new DirectShowRcSource(m_loop);
 
         locker->unlock();
-        if (rcSource->open(url) && SUCCEEDED(hr = m_graph->AddFilter(rcSource, L"Source")))
+        if (rcSource->open(m_url) && SUCCEEDED(hr = m_graph->AddFilter(rcSource, L"Source")))
             source = rcSource;
         else
             rcSource->Release();
@@ -310,7 +313,7 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
     if (!SUCCEEDED(hr)) {
         locker->unlock();
         hr = m_graph->AddSourceFilter(
-                reinterpret_cast<const OLECHAR *>(url.toString().utf16()), L"Source", &source);
+                reinterpret_cast<const OLECHAR *>(m_url.toString().utf16()), L"Source", &source);
         locker->relock();
     }
 
@@ -1128,7 +1131,7 @@ void DirectShowPlayerService::customEvent(QEvent *event)
         QMutexLocker locker(&m_mutex);
 
         m_playerControl->updateMediaInfo(m_duration, m_streamTypes, m_seekable);
-        m_metaDataControl->updateGraph(m_graph, m_source);
+        m_metaDataControl->updateGraph(m_graph, m_source, m_url.toString());
 
         updateStatus();
     } else if (event->type() == QEvent::Type(Error)) {

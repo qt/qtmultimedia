@@ -39,45 +39,12 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWMETADATACONTROL_H
-#define DIRECTSHOWMETADATACONTROL_H
+#include <ShlObj.h>
 
-#include <qmetadatareadercontrol.h>
-
-#include "directshowglobal.h"
-
-#include <QtCore/qcoreevent.h>
-
-class DirectShowPlayerService;
-
-QT_USE_NAMESPACE
-
-class DirectShowMetaDataControl : public QMetaDataReaderControl
+int main(int, char**)
 {
-    Q_OBJECT
-public:
-    DirectShowMetaDataControl(QObject *parent = 0);
-    ~DirectShowMetaDataControl();
+    IShellItem2 *item;
+    IPropertyStore *store;
 
-    bool isMetaDataAvailable() const;
-
-    QVariant metaData(const QString &key) const;
-    QStringList availableMetaData() const;
-
-    void updateGraph(IFilterGraph2 *graph, IBaseFilter *source,
-                     const QString &fileSrc = QString());
-
-protected:
-    void customEvent(QEvent *event);
-
-private:
-    enum Event
-    {
-        MetaDataChanged = QEvent::User
-    };
-
-    QVariantMap m_metadata;
-    bool m_available;
-};
-
-#endif
+    return 0;
+}
