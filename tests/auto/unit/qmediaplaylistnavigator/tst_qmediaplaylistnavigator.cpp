@@ -115,8 +115,7 @@ void tst_QMediaPlaylistNavigator::linearPlayback()
     QMediaPlaylistNavigator navigator(&playlist);
 
     navigator.setPlaybackMode(QMediaPlaylist::Sequential);
-    QTest::ignoreMessage(QtWarningMsg, "QMediaPlaylistNavigator: Jump outside playlist range ");
-    navigator.jump(0);//it's ok to have warning here
+    navigator.jump(0);
     QVERIFY(navigator.currentItem().isNull());
     QCOMPARE(navigator.currentIndex(), -1);
 
@@ -169,7 +168,6 @@ void tst_QMediaPlaylistNavigator::loopPlayback()
     QMediaPlaylistNavigator navigator(&playlist);
 
     navigator.setPlaybackMode(QMediaPlaylist::Loop);
-    QTest::ignoreMessage(QtWarningMsg, "QMediaPlaylistNavigator: Jump outside playlist range ");
     navigator.jump(0);
     QVERIFY(navigator.currentItem().isNull());
     QCOMPARE(navigator.currentIndex(), -1);
