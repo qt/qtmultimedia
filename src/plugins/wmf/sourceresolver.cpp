@@ -175,19 +175,16 @@ void SourceResolver::load(QMediaResourceList& resources, QIODevice* stream)
         qWarning() << "Failed to create Source Resolver!";
         emit error(hr);
     } else if (stream) {
-        if (resources.count() > 0) {
-            QMediaResource resource = resources.takeFirst();
-            QUrl url = resource.url();
-            m_stream = new MFStream(stream, false);
-            hr = m_sourceResolver->BeginCreateObjectFromByteStream(m_stream, reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
-                MF_RESOLUTION_MEDIASOURCE, NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
-            if (FAILED(hr)) {
-                qWarning() << "Unsupported stream!";
-                emit error(hr);
-            }
-        } else {
-            hr = MF_E_UNSUPPORTED_BYTESTREAM_TYPE;
-            qWarning() << "Can't load stream without a hint of MIME type in a url";
+        QString url;
+        if (!resources.isEmpty())
+            url = resources.takeFirst().url().toString();
+        m_stream = new MFStream(stream, false);
+        hr = m_sourceResolver->BeginCreateObjectFromByteStream(
+                    m_stream, url.isEmpty() ? 0 : reinterpret_cast<LPCWSTR>(url.utf16()),
+                    MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE
+                    , NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
+        if (FAILED(hr)) {
+            qWarning() << "Unsupported stream!";
             emit error(hr);
         }
     } else {
@@ -203,8 +200,10 @@ void SourceResolver::load(QMediaResourceList& resources, QIODevice* stream)
             stream = new QFile(url.path().mid(1), this);
             if (stream->open(QIODevice::ReadOnly)) {
                 m_stream = new MFStream(stream, true);
-                hr = m_sourceResolver->BeginCreateObjectFromByteStream(m_stream, reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
-                        MF_RESOLUTION_MEDIASOURCE, NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
+                hr = m_sourceResolver->BeginCreateObjectFromByteStream(
+                            m_stream, reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
+                            MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE,
+                            NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
                 if (FAILED(hr)) {
                     qWarning() << "Unsupported stream!";
                     emit error(hr);
@@ -221,8 +220,10 @@ void SourceResolver::load(QMediaResourceList& resources, QIODevice* stream)
             stream = new QFile(QLatin1Char(':') + url.path(), this);
             if (stream->open(QIODevice::ReadOnly)) {
                 m_stream = new MFStream(stream, true);
-                hr = m_sourceResolver->BeginCreateObjectFromByteStream(m_stream, reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
-                         MF_RESOLUTION_MEDIASOURCE, NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
+                hr = m_sourceResolver->BeginCreateObjectFromByteStream(
+                            m_stream, reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
+                            MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE,
+                            NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
                 if (FAILED(hr)) {
                     qWarning() << "Unsupported stream!";
                     emit error(hr);
@@ -232,8 +233,10 @@ void SourceResolver::load(QMediaResourceList& resources, QIODevice* stream)
                 emit error(QMediaPlayer::FormatError);
             }
         } else {
-            hr = m_sourceResolver->BeginCreateObjectFromURL(reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
-                     MF_RESOLUTION_MEDIASOURCE, NULL, &m_cancelCookie, this, new State(m_sourceResolver, false));
+            hr = m_sourceResolver->BeginCreateObjectFromURL(
+                        reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
+                        MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE,
+                        NULL, &m_cancelCookie, this, new State(m_sourceResolver, false));
             if (FAILED(hr)) {
                 qWarning() << "Unsupported url scheme!";
                 emit error(hr);
