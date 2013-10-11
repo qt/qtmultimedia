@@ -52,12 +52,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static void textureReadyCallback(void *context)
-{
-    if (context)
-        reinterpret_cast<QAndroidCameraSession *>(context)->onSurfaceTextureReady();
-}
-
 QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     : QObject(parent)
     , m_selectedCamera(0)
@@ -153,8 +147,11 @@ bool QAndroidCameraSession::open()
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
         connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
+        connect(m_camera, SIGNAL(previewFrameAvailable(QByteArray)), this, SLOT(onCameraPreviewFrameAvailable(QByteArray)));
         m_nativeOrientation = m_camera->getNativeOrientation();
         m_status = QCamera::LoadedStatus;
+        if (m_camera->getPreviewFormat() != JCamera::NV21)
+            m_camera->setPreviewFormat(JCamera::NV21);
         emit opened();
     } else {
         m_status = QCamera::UnavailableStatus;
@@ -188,12 +185,17 @@ void QAndroidCameraSession::close()
     emit statusChanged(m_status);
 }
 
-void QAndroidCameraSession::setVideoPreview(QAndroidVideoOutput *videoOutput)
+void QAndroidCameraSession::setVideoPreview(QObject *videoOutput)
 {
     if (m_videoOutput)
         m_videoOutput->stop();
 
-    m_videoOutput = videoOutput;
+    if (videoOutput) {
+        connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
+        m_videoOutput = qobject_cast<QAndroidVideoOutput *>(videoOutput);
+    } else {
+        m_videoOutput = 0;
+    }
 }
 
 void QAndroidCameraSession::adjustViewfinderSize(const QSize &captureSize, bool restartPreview)
@@ -243,12 +245,8 @@ void QAndroidCameraSession::startPreview()
     applyImageSettings();
     adjustViewfinderSize(m_imageSettings.resolution());
 
-    if (m_videoOutput) {
-        if (m_videoOutput->isTextureReady())
-            m_camera->setPreviewTexture(m_videoOutput->surfaceTexture());
-        else
-            m_videoOutput->setTextureReadyCallback(textureReadyCallback, this);
-    }
+    if (m_videoOutput && m_videoOutput->isReady())
+        onVideoOutputReady(true);
 
     JMultimediaUtils::enableOrientationListener(true);
 
@@ -427,6 +425,7 @@ int QAndroidCameraSession::capture(const QString &fileName)
         // adjust picture rotation depending on the device orientation
         m_camera->setRotation(currentCameraRotation());
 
+        m_camera->requestPreviewFrame();
         m_camera->takePicture();
     } else {
         emit imageCaptureError(m_lastImageCaptureId, QCameraImageCapture::NotSupportedFeatureError,
@@ -455,10 +454,6 @@ void QAndroidCameraSession::onCameraPictureExposed()
 void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 {
     if (!m_captureCanceled) {
-        // generate a preview from the viewport
-        if (m_videoOutput)
-            emit imageCaptured(m_currentImageCaptureId, m_videoOutput->toImage());
-
         // Loading and saving the captured image can be slow, do it in a separate thread
         QtConcurrent::run(this, &QAndroidCameraSession::processCapturedImage,
                           m_currentImageCaptureId,
@@ -522,9 +517,37 @@ void QAndroidCameraSession::processCapturedImage(int id,
     }
 }
 
-void QAndroidCameraSession::onSurfaceTextureReady()
+void QAndroidCameraSession::onCameraPreviewFrameAvailable(const QByteArray &data)
 {
-    if (m_camera && m_videoOutput)
+    if (m_captureCanceled || m_readyForCapture)
+        return;
+
+    QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
+                      m_currentImageCaptureId,
+                      data);
+}
+
+void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data)
+{
+    QSize frameSize = m_camera->previewSize();
+    QImage preview(frameSize, QImage::Format_ARGB32);
+    qt_convert_NV21_to_ARGB32((const uchar *)data.constData(),
+                              (quint32 *)preview.bits(),
+                              frameSize.width(),
+                              frameSize.height());
+
+    // Preview display of front-facing cameras is flipped horizontally, but the frame data
+    // we get here is not. Flip it ourselves if the camera is front-facing to match what the user
+    // sees on the viewfinder.
+    if (m_camera->getFacing() == JCamera::CameraFacingFront)
+        preview = preview.transformed(QTransform().scale(-1, 1));
+
+    emit imageCaptured(id, preview);
+}
+
+void QAndroidCameraSession::onVideoOutputReady(bool ready)
+{
+    if (m_camera && m_videoOutput && ready)
         m_camera->setPreviewTexture(m_videoOutput->surfaceTexture());
 }
 

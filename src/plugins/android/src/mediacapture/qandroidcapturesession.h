@@ -160,7 +160,8 @@ private:
 
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;
-    QUrl m_outputLocation;
+    QUrl m_requestedOutputLocation;
+    QUrl m_actualOutputLocation;
 
     CaptureProfile m_defaultSettings;
 

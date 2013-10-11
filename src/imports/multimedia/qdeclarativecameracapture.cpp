@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
     \instantiates QDeclarativeCameraCapture
     \brief An interface for capturing camera images
     \ingroup multimedia_qml
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \ingroup camera_qml
 
     This type allows you to capture still images and be notified when they
@@ -137,7 +137,7 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::CameraCapture::ready
+    \qmlproperty bool QtMultimedia::CameraCapture::ready
 
     This property holds a bool value indicating whether the camera
     is ready to capture photos or not.
@@ -154,7 +154,7 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraCapture::capture()
+    \qmlmethod QtMultimedia::CameraCapture::capture()
 
     Start image capture.  The \l onImageCaptured() and \l onImageSaved() signals will
     be emitted when the capture is complete.
@@ -177,7 +177,7 @@ int QDeclarativeCameraCapture::capture()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraCapture::captureToLocation(location)
+    \qmlmethod QtMultimedia::CameraCapture::captureToLocation(location)
 
     Start image capture to specified \a location.  The \l onImageCaptured() and \l onImageSaved() signals will
     be emitted when the capture is complete.
@@ -196,7 +196,7 @@ int QDeclarativeCameraCapture::captureToLocation(const QString &location)
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraCapture::cancelCapture()
+    \qmlmethod QtMultimedia::CameraCapture::cancelCapture()
 
     Cancel pending image capture requests.
 */
@@ -211,7 +211,7 @@ void QDeclarativeCameraCapture::cancelCapture()
     This property holds the location of the last captured image.
 */
 /*!
-    \qmlproperty string QtMultimedia5::CameraCapture::capturedImagePath
+    \qmlproperty string QtMultimedia::CameraCapture::capturedImagePath
 
     This property holds the location of the last captured image.
 */
@@ -254,7 +254,7 @@ void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Er
 */
 
 /*!
-    \qmlproperty size QtMultimedia5::CameraCapture::resolution
+    \qmlproperty size QtMultimedia::CameraCapture::resolution
 
     This property holds the resolution/size of the image to be captured.
     If empty, the system chooses the appropriate resolution.
@@ -285,7 +285,7 @@ QCameraImageCapture::Error QDeclarativeCameraCapture::error() const
 */
 
 /*!
-    \qmlproperty string QtMultimedia5::CameraCapture::errorString
+    \qmlproperty string QtMultimedia::CameraCapture::errorString
 
     This property holds the error message related to the last capture.
 */
@@ -295,7 +295,7 @@ QString QDeclarativeCameraCapture::errorString() const
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraCapture::setMetadata(key, value)
+    \qmlmethod QtMultimedia::CameraCapture::setMetadata(key, value)
 
 
     Sets a particular metadata \a key to \a value for the subsequent image captures.
@@ -309,14 +309,14 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 }
 
 /*!
-    \qmlsignal QtMultimedia5::CameraCapture::onCaptureFailed(requestId, message)
+    \qmlsignal QtMultimedia::CameraCapture::onCaptureFailed(requestId, message)
 
     This handler is called when an error occurs during capture with \a requestId.
     A descriptive message is available in \a message.
 */
 
 /*!
-    \qmlsignal QtMultimedia5::CameraCapture::onImageCaptured(requestId, preview)
+    \qmlsignal QtMultimedia::CameraCapture::onImageCaptured(requestId, preview)
 
     This handler is called when an image with \a requestId has been captured
     but not yet saved to the filesystem.  The \a preview
@@ -326,7 +326,7 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 */
 
 /*!
-    \qmlsignal QtMultimedia5::CameraCapture::onImageSaved(requestId, path)
+    \qmlsignal QtMultimedia::CameraCapture::onImageSaved(requestId, path)
 
     This handler is called after the image with \a requestId has been written to the filesystem.
     The \a path is a local file path, not a URL.
@@ -336,7 +336,7 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 
 
 /*!
-    \qmlsignal QtMultimedia5::CameraCapture::onImageMetadataAvailable(requestId, key, value)
+    \qmlsignal QtMultimedia::CameraCapture::onImageMetadataAvailable(requestId, key, value)
 
     This handler is called when the image with \a requestId has new metadata
     available with the key \a key and value \a value.

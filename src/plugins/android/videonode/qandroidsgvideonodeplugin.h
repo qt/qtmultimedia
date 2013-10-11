@@ -39,61 +39,24 @@
 **
 ****************************************************************************/
 
-#include "audiocaptureservice.h"
-#include "audiocapturesession.h"
-#include "audioinputselector.h"
-#include "audioencodercontrol.h"
-#include "audiocontainercontrol.h"
-#include "audiomediarecordercontrol.h"
-#include "audiocaptureprobecontrol.h"
+#ifndef QANDROIDSGVIDEONODEPLUGIN_H
+#define QANDROIDSGVIDEONODEPLUGIN_H
+
+#include <private/qsgvideonode_p.h>
 
 QT_BEGIN_NAMESPACE
 
-AudioCaptureService::AudioCaptureService(QObject *parent):
-    QMediaService(parent)
+class QAndroidSGVideoNodeFactoryPlugin : public QSGVideoNodeFactoryPlugin
 {
-    m_session = new AudioCaptureSession(this);
-    m_encoderControl  = new AudioEncoderControl(m_session);
-    m_containerControl = new AudioContainerControl(m_session);
-    m_mediaControl   = new AudioMediaRecorderControl(m_session);
-    m_inputSelector  = new AudioInputSelector(m_session);
-}
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QSGVideoNodeFactoryInterface_iid
+                      FILE "android_videonode.json")
 
-AudioCaptureService::~AudioCaptureService()
-{
-    delete m_encoderControl;
-    delete m_containerControl;
-    delete m_inputSelector;
-    delete m_mediaControl;
-    delete m_session;
-}
-
-QMediaControl *AudioCaptureService::requestControl(const char *name)
-{
-    if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
-        return m_mediaControl;
-
-    if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
-        return m_encoderControl;
-
-    if (qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
-        return m_inputSelector;
-
-    if (qstrcmp(name,QMediaContainerControl_iid) == 0)
-        return m_containerControl;
-
-    if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
-        AudioCaptureProbeControl *probe = new AudioCaptureProbeControl(this);
-        m_session->addProbe(probe);
-        return probe;
-    }
-
-    return 0;
-}
-
-void AudioCaptureService::releaseControl(QMediaControl *control)
-{
-    Q_UNUSED(control)
-}
+public:
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
+};
 
 QT_END_NAMESPACE
+
+#endif // QANDROIDSGVIDEONODEPLUGIN_H

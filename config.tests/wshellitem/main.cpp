@@ -39,61 +39,12 @@
 **
 ****************************************************************************/
 
-#include "audiocaptureservice.h"
-#include "audiocapturesession.h"
-#include "audioinputselector.h"
-#include "audioencodercontrol.h"
-#include "audiocontainercontrol.h"
-#include "audiomediarecordercontrol.h"
-#include "audiocaptureprobecontrol.h"
+#include <ShlObj.h>
 
-QT_BEGIN_NAMESPACE
-
-AudioCaptureService::AudioCaptureService(QObject *parent):
-    QMediaService(parent)
+int main(int, char**)
 {
-    m_session = new AudioCaptureSession(this);
-    m_encoderControl  = new AudioEncoderControl(m_session);
-    m_containerControl = new AudioContainerControl(m_session);
-    m_mediaControl   = new AudioMediaRecorderControl(m_session);
-    m_inputSelector  = new AudioInputSelector(m_session);
-}
-
-AudioCaptureService::~AudioCaptureService()
-{
-    delete m_encoderControl;
-    delete m_containerControl;
-    delete m_inputSelector;
-    delete m_mediaControl;
-    delete m_session;
-}
-
-QMediaControl *AudioCaptureService::requestControl(const char *name)
-{
-    if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
-        return m_mediaControl;
-
-    if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
-        return m_encoderControl;
-
-    if (qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
-        return m_inputSelector;
-
-    if (qstrcmp(name,QMediaContainerControl_iid) == 0)
-        return m_containerControl;
-
-    if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
-        AudioCaptureProbeControl *probe = new AudioCaptureProbeControl(this);
-        m_session->addProbe(probe);
-        return probe;
-    }
+    IShellItem2 *item;
+    IPropertyStore *store;
 
     return 0;
 }
-
-void AudioCaptureService::releaseControl(QMediaControl *control)
-{
-    Q_UNUSED(control)
-}
-
-QT_END_NAMESPACE

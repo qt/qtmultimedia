@@ -79,7 +79,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QMultimedia::AvailabilityStatus 
     \brief Access viewfinder frames, and take photos and movies.
     \ingroup multimedia_qml
     \ingroup camera_qml
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
 
     \inherits Item
 
@@ -223,11 +223,11 @@ QDeclarativeCamera::Error QDeclarativeCamera::errorCode() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia5::Camera::errorString
+    \qmlproperty string QtMultimedia::Camera::errorString
 
     This property holds the last error string, if any.
 
-    \sa QtMultimedia5::Camera::onError
+    \sa QtMultimedia::Camera::onError
 */
 QString QDeclarativeCamera::errorString() const
 {
@@ -235,7 +235,7 @@ QString QDeclarativeCamera::errorString() const
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Camera::availability
+    \qmlproperty enumeration QtMultimedia::Camera::availability
 
     This property holds the availability state of the camera.
 
@@ -262,7 +262,7 @@ QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
 
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Camera::captureMode
+    \qmlproperty enumeration QtMultimedia::Camera::captureMode
 
     This property holds the camera capture mode, which can be one of the
     following:
@@ -293,7 +293,7 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
 
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Camera::cameraState
+    \qmlproperty enumeration QtMultimedia::Camera::cameraState
 
     This property holds the camera object's current state, which can be one of the following:
 
@@ -330,7 +330,7 @@ QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Camera::cameraStatus
+    \qmlproperty enumeration QtMultimedia::Camera::cameraStatus
 
     This property holds the camera object's current status, which can be one of the following:
 
@@ -407,7 +407,7 @@ void QDeclarativeCamera::setCameraState(QDeclarativeCamera::State state)
 }
 
 /*!
-    \qmlmethod QtMultimedia5::Camera::start()
+    \qmlmethod QtMultimedia::Camera::start()
 
     Starts the camera.  Viewfinder frames will
     be available and image or movie capture will
@@ -419,7 +419,7 @@ void QDeclarativeCamera::start()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::Camera::stop()
+    \qmlmethod QtMultimedia::Camera::stop()
 
     Stops the camera, but leaves the camera
     stack loaded.
@@ -431,7 +431,7 @@ void QDeclarativeCamera::stop()
 
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Camera::lockStatus
+    \qmlproperty enumeration QtMultimedia::Camera::lockStatus
 
     This property holds the status of all the requested camera locks.
 
@@ -492,7 +492,7 @@ QDeclarativeCamera::LockStatus QDeclarativeCamera::lockStatus() const
 }
 
 /*!
-    \qmlmethod QtMultimedia5::Camera::searchAndLock()
+    \qmlmethod QtMultimedia::Camera::searchAndLock()
 
     Start focusing, exposure and white balance calculation.
 
@@ -507,7 +507,7 @@ void QDeclarativeCamera::searchAndLock()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::Camera::unlock()
+    \qmlmethod QtMultimedia::Camera::unlock()
 
     Unlock focus, exposure and white balance locks.
  */
@@ -521,7 +521,7 @@ void QDeclarativeCamera::unlock()
     This property holds the maximum optical zoom factor supported, or 1.0 if optical zoom is not supported.
 */
 /*!
-    \qmlproperty real QtMultimedia5::Camera::maximumOpticalZoom
+    \qmlproperty real QtMultimedia::Camera::maximumOpticalZoom
 
     This property holds the maximum optical zoom factor supported, or 1.0 if optical zoom is not supported.
 */
@@ -535,7 +535,7 @@ qreal QDeclarativeCamera::maximumOpticalZoom() const
     This property holds the maximum digital zoom factor supported, or 1.0 if digital zoom is not supported.
 */
 /*!
-    \qmlproperty real QtMultimedia5::Camera::maximumDigitalZoom
+    \qmlproperty real QtMultimedia::Camera::maximumDigitalZoom
 
     This property holds the maximum digital zoom factor supported, or 1.0 if digital zoom is not supported.
 */
@@ -550,7 +550,7 @@ qreal QDeclarativeCamera::maximumDigitalZoom() const
 */
 
 /*!
-    \qmlproperty real QtMultimedia5::Camera::opticalZoom
+    \qmlproperty real QtMultimedia::Camera::opticalZoom
 
     This property holds the current optical zoom factor.
 */
@@ -569,7 +569,7 @@ void QDeclarativeCamera::setOpticalZoom(qreal value)
     This property holds the current digital zoom factor.
 */
 /*!
-    \qmlproperty real QtMultimedia5::Camera::digitalZoom
+    \qmlproperty real QtMultimedia::Camera::digitalZoom
 
     This property holds the current digital zoom factor.
 */
@@ -584,21 +584,21 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 }
 
 /*!
-    \qmlproperty variant QtMultimedia5::Camera::mediaObject
+    \qmlproperty variant QtMultimedia::Camera::mediaObject
 
     This property holds the media object for the camera.
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Camera::errorCode
+    \qmlproperty enumeration QtMultimedia::Camera::errorCode
 
     This property holds the last error code.
 
-    \sa QtMultimedia5::Camera::onError
+    \sa QtMultimedia::Camera::onError
 */
 
 /*!
-    \qmlsignal QtMultimedia5::Camera::onError(errorCode, errorString)
+    \qmlsignal QtMultimedia::Camera::onError(errorCode, errorString)
 
     This handler is called when an error occurs. The enumeration value
     \a errorCode is one of the values defined below, and a descriptive string

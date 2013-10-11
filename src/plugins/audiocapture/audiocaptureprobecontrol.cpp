@@ -41,6 +41,8 @@
 
 #include "audiocaptureprobecontrol.h"
 
+QT_BEGIN_NAMESPACE
+
 AudioCaptureProbeControl::AudioCaptureProbeControl(QObject *parent):
     QMediaAudioProbeControl(parent)
 {
@@ -58,3 +60,5 @@ void AudioCaptureProbeControl::bufferProbed(const char *data, quint32 size, cons
     QAudioBuffer audioBuffer = QAudioBuffer(QByteArray::fromRawData(data, size), format);
     QMetaObject::invokeMethod(this, "audioBufferProbed", Qt::QueuedConnection, Q_ARG(QAudioBuffer, audioBuffer));
 }
+
+QT_END_NAMESPACE

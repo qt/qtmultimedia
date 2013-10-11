@@ -70,9 +70,11 @@ BbCameraOrientationHandler::BbCameraOrientationHandler(QObject *parent)
 
 BbCameraOrientationHandler::~BbCameraOrientationHandler()
 {
+#ifndef Q_OS_BLACKBERRY_TABLET
     const int result = orientation_stop_events(0);
     if (result == BPS_FAILURE)
         qWarning() << "Unable to unregister for orientation change events";
+#endif
 
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
 }

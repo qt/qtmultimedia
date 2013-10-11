@@ -43,8 +43,8 @@ on BB10.
 
 The Qt Multimedia BlackBerry backend uses mmrenderer for media playback.
 
-For the positional audio classes in the \l {Positional Audio} {QtAudioEngine} QML
-module, OpenAL is used as on all other platforms.
+For the positional audio classes in the \l{Qt Audio Engine QML Types}{Qt Audio Engine}
+QML module, OpenAL is used as on all other platforms.
 
 For recording videos and taking photos, the camapi library is used.
 
@@ -63,7 +63,7 @@ mmrenderer creates a seperate window displaying a video and puts that on top of 
 As a consequence, no other widget or QML element can be put on top of the video, and QML shaders have
 no effect.
 
-The \l {Positional Audio} {QtAudioEngine} QML module is fully supported, as it is based on OpenAL which is available
+The \l{Qt Audio Engine QML Types}{Qt Audio Engine} QML module is fully supported, as it is based on OpenAL which is available
 in BB10.
 
 The \l {camera} {QCamera} support includes recording of videos and taking photos. The viewfinder

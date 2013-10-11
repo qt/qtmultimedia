@@ -110,25 +110,27 @@ void QAndroidCaptureSession::setAudioInput(const QString &input)
 
 QUrl QAndroidCaptureSession::outputLocation() const
 {
-    return m_outputLocation;
+    return m_actualOutputLocation;
 }
 
 bool QAndroidCaptureSession::setOutputLocation(const QUrl &location)
 {
-    if (m_outputLocation == location)
+    if (m_requestedOutputLocation == location)
         return false;
 
-    m_outputLocation = location;
+    m_actualOutputLocation = QUrl();
+    m_requestedOutputLocation = location;
 
-    if (m_outputLocation.isEmpty())
+    if (m_requestedOutputLocation.isEmpty())
         return true;
 
-    if (m_outputLocation.isValid() && (m_outputLocation.isLocalFile() || m_outputLocation.isRelative())) {
-        emit actualLocationChanged(m_outputLocation);
+    if (m_requestedOutputLocation.isValid()
+            && (m_requestedOutputLocation.isLocalFile() || m_requestedOutputLocation.isRelative())) {
+        emit actualLocationChanged(m_requestedOutputLocation);
         return true;
     }
 
-    m_outputLocation = QUrl();
+    m_requestedOutputLocation = QUrl();
     return false;
 }
 
@@ -213,15 +215,18 @@ bool QAndroidCaptureSession::start()
 
 
     // Set output file
-    QString filePath = m_mediaStorageLocation.generateFileName(m_outputLocation.isLocalFile() ? m_outputLocation.toLocalFile()
-                                                                                              : m_outputLocation.toString(),
-                                                               m_cameraSession ? QAndroidMediaStorageLocation::Camera
-                                                                               : QAndroidMediaStorageLocation::Audio,
-                                                               m_cameraSession ? QLatin1String("VID_")
-                                                                               : QLatin1String("REC_"),
-                                                               m_containerFormat);
-    m_outputLocation = QUrl::fromLocalFile(filePath);
-    emit actualLocationChanged(m_outputLocation);
+    QString filePath = m_mediaStorageLocation.generateFileName(
+                m_requestedOutputLocation.isLocalFile() ? m_requestedOutputLocation.toLocalFile()
+                                                        : m_requestedOutputLocation.toString(),
+                m_cameraSession ? QAndroidMediaStorageLocation::Camera
+                                : QAndroidMediaStorageLocation::Audio,
+                m_cameraSession ? QLatin1String("VID_")
+                                : QLatin1String("REC_"),
+                m_containerFormat);
+
+    m_actualOutputLocation = QUrl::fromLocalFile(filePath);
+    if (m_actualOutputLocation != m_requestedOutputLocation)
+        emit actualLocationChanged(m_actualOutputLocation);
 
     m_mediaRecorder->setOutputFile(filePath);
 
@@ -280,7 +285,7 @@ void QAndroidCaptureSession::stop(bool error)
         // if the media is saved into the standard media location, register it
         // with the Android media scanner so it appears immediately in apps
         // such as the gallery.
-        QString mediaPath = m_outputLocation.toLocalFile();
+        QString mediaPath = m_actualOutputLocation.toLocalFile();
         QString standardLoc = m_cameraSession ? JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::DCIM)
                                               : JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::Sounds);
         if (mediaPath.startsWith(standardLoc))

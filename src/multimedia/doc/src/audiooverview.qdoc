@@ -34,7 +34,7 @@
 
 Qt Multimedia offers a range of audio classes, covering both low and
 high level approaches to audio input, output and processing.  In
-addition to traditional audio usage, the \l {Positional Audio}{Qt AudioEngine}
+addition to traditional audio usage, the \l{Qt Audio Engine QML Types}{Qt Audio Engine}
 QML types offer high level 3D positional audio for QML applications.
 See that documentation for more information.
 

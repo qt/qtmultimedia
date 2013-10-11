@@ -53,6 +53,8 @@ int qt_findClosestValue(const QList<int> &list, int value);
 
 bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
 
+void qt_convert_NV21_to_ARGB32(const uchar *yuv, quint32 *rgb, int width, int height);
+
 QT_END_NAMESPACE
 
 #endif // QANDROIDMULTIMEDIAUTILS_H

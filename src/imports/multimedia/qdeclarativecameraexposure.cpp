@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
     \brief An interface for exposure related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
 
     This type is part of the \b{QtMultimedia 5.0} module.
 
@@ -124,7 +124,7 @@ QDeclarativeCameraExposure::~QDeclarativeCameraExposure()
     This property holds the adjustment value for the automatically calculated exposure. The value is in EV units.
  */
 /*!
-    \qmlproperty real QtMultimedia5::CameraExposure::exposureCompensation
+    \qmlproperty real QtMultimedia::CameraExposure::exposureCompensation
 
     This property holds the adjustment value for the automatically calculated exposure.  The value is
     in EV units.
@@ -144,7 +144,7 @@ void QDeclarativeCameraExposure::setExposureCompensation(qreal ev)
     This property holds the sensor's ISO sensitivity value.
  */
 /*!
-    \qmlproperty int QtMultimedia5::CameraExposure::iso
+    \qmlproperty int QtMultimedia::CameraExposure::iso
 
     This property holds the sensor's ISO sensitivity value.
  */
@@ -161,7 +161,7 @@ int QDeclarativeCameraExposure::isoSensitivity() const
 
 */
 /*!
-    \qmlproperty real QtMultimedia5::CameraExposure::shutterSpeed
+    \qmlproperty real QtMultimedia::CameraExposure::shutterSpeed
 
     This property holds the camera's current shutter speed value in seconds.
     To affect the shutter speed you can use the \l manualShutterSpeed
@@ -180,7 +180,7 @@ qreal QDeclarativeCameraExposure::shutterSpeed() const
     \sa manualAperture, setAutoAperture()
 */
 /*!
-    \qmlproperty real QtMultimedia5::CameraExposure::aperture
+    \qmlproperty real QtMultimedia::CameraExposure::aperture
 
     This property holds the current lens aperture as an F number (the ratio of
     the focal length to effective aperture diameter).
@@ -202,7 +202,7 @@ qreal QDeclarativeCameraExposure::aperture() const
     \sa iso, setAutoIsoSensitivity()
 */
 /*!
-    \qmlproperty real QtMultimedia5::CameraExposure::manualIso
+    \qmlproperty real QtMultimedia::CameraExposure::manualIso
 
     This property holds the ISO settings for capturing photos.
 
@@ -237,7 +237,7 @@ void QDeclarativeCameraExposure::setManualIsoSensitivity(int iso)
     \l shutterSpeed, setAutoShutterSpeed()
 */
 /*!
-    \qmlproperty real QtMultimedia5::CameraExposure::manualShutterSpeed
+    \qmlproperty real QtMultimedia::CameraExposure::manualShutterSpeed
 
     This property holds the shutter speed value (in seconds).
     If the value is less than zero, the camera automatically
@@ -272,7 +272,7 @@ void QDeclarativeCameraExposure::setManualShutterSpeed(qreal speed)
     \l aperture, setAutoAperture()
 */
 /*!
-    \qmlproperty real QtMultimedia5::CameraExposure::manualAperture
+    \qmlproperty real QtMultimedia::CameraExposure::manualAperture
 
     This property holds the aperture (F number) value
     for capturing photos.
@@ -299,7 +299,7 @@ void QDeclarativeCameraExposure::setManualAperture(qreal aperture)
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraExposure::setAutoAperture()
+    \qmlmethod QtMultimedia::CameraExposure::setAutoAperture()
   Turn on auto aperture selection. The manual aperture value is reset to -1.0
  */
 void QDeclarativeCameraExposure::setAutoAperture()
@@ -308,7 +308,7 @@ void QDeclarativeCameraExposure::setAutoAperture()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraExposure::setAutoShutterSpeed()
+    \qmlmethod QtMultimedia::CameraExposure::setAutoShutterSpeed()
   Turn on auto shutter speed selection. The manual shutter speed value is reset to -1.0
  */
 void QDeclarativeCameraExposure::setAutoShutterSpeed()
@@ -317,7 +317,7 @@ void QDeclarativeCameraExposure::setAutoShutterSpeed()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraExposure::setAutoIsoSensitivity()
+    \qmlmethod QtMultimedia::CameraExposure::setAutoIsoSensitivity()
   Turn on auto ISO sensitivity selection. The manual ISO value is reset to -1.
  */
 void QDeclarativeCameraExposure::setAutoIsoSensitivity()
@@ -330,7 +330,7 @@ void QDeclarativeCameraExposure::setAutoIsoSensitivity()
     This property holds the camera exposure mode. The mode can one of the values in \l QCameraExposure::ExposureMode.
 */
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraExposure::exposureMode
+    \qmlproperty enumeration QtMultimedia::CameraExposure::exposureMode
 
     This property holds the camera exposure mode.
 
@@ -373,7 +373,7 @@ void QDeclarativeCameraExposure::setExposureMode(QDeclarativeCamera::ExposureMod
     typically defaults to the center \c (0.5, 0.5).
  */
 /*!
-    \qmlproperty QPointF QtMultimedia5::CameraExposure::spotMeteringPoint
+    \qmlproperty QPointF QtMultimedia::CameraExposure::spotMeteringPoint
 
     The property holds the frame coordinates of the point to use for exposure metering.
     This point is only used in spot metering mode, and it typically defaults
@@ -400,7 +400,7 @@ void QDeclarativeCameraExposure::setSpotMeteringPoint(const QPointF &point)
     The mode can be one of the constants in \l QCameraExposure::MeteringMode.
 */
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraExposure::meteringMode
+    \qmlproperty enumeration QtMultimedia::CameraExposure::meteringMode
 
     This property holds the camera metering mode (how exposure is balanced).
 

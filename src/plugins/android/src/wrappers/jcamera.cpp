@@ -102,6 +102,18 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
     }
 }
 
+static void notifyPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data)
+{
+    JCamera *obj = g_objectMap.value(id, 0);
+    if (obj) {
+        QByteArray bytes;
+        int arrayLength = env->GetArrayLength(data);
+        bytes.resize(arrayLength);
+        env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
+        Q_EMIT obj->previewFrameAvailable(bytes);
+    }
+}
+
 JCamera::JCamera(int cameraId, jobject cam)
     : QObject()
     , QJNIObjectPrivate(cam)
@@ -223,6 +235,23 @@ QList<QSize> JCamera::getSupportedPreviewSizes()
     }
 
     return list;
+}
+
+JCamera::ImageFormat JCamera::getPreviewFormat()
+{
+    if (!m_parameters.isValid())
+        return Unknown;
+
+    return JCamera::ImageFormat(m_parameters.callMethod<jint>("getPreviewFormat"));
+}
+
+void JCamera::setPreviewFormat(ImageFormat fmt)
+{
+    if (!m_parameters.isValid())
+        return;
+
+    m_parameters.callMethod<void>("setPreviewFormat", "(I)V", jint(fmt));
+    applyParameters();
 }
 
 void JCamera::setPreviewSize(const QSize &size)
@@ -624,6 +653,11 @@ void JCamera::setJpegQuality(int quality)
     applyParameters();
 }
 
+void JCamera::requestPreviewFrame()
+{
+    callMethod<void>("requestPreviewFrame");
+}
+
 void JCamera::takePicture()
 {
     callMethod<void>("takePicture");
@@ -672,7 +706,8 @@ QStringList JCamera::callStringListMethod(const char *methodName)
 static JNINativeMethod methods[] = {
     {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
     {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
-    {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured}
+    {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
+    {"notifyPreviewFrame", "(I[B)V", (void *)notifyPreviewFrame}
 };
 
 bool JCamera::initJNI(JNIEnv *env)

@@ -53,9 +53,9 @@ QT_USE_NAMESPACE
 /*!
     \qmltype SoundInstance
     \instantiates QDeclarativeSoundInstance
-    \since 1.0
+    \since 5.0
     \brief Play 3d audio content.
-    \inqmlmodule QtAudioEngine 1.0
+    \inqmlmodule QtAudioEngine
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary

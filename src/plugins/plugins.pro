@@ -17,7 +17,7 @@ blackberry {
 }
 
 qnx {
-    SUBDIRS += qnx
+    SUBDIRS += audiocapture qnx
 }
 
 win32 {

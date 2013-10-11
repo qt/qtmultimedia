@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype CameraFocus
     \instantiates QDeclarativeCameraFocus
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \brief An interface for focus related camera settings.
     \ingroup multimedia_qml
     \ingroup camera_qml
@@ -167,7 +167,7 @@ QDeclarativeCamera::FocusMode QDeclarativeCameraFocus::focusMode() const
 }
 
 /*!
-    \qmlmethod bool QtMultimedia5::CameraFocus::isFocusModeSupported(mode) const
+    \qmlmethod bool QtMultimedia::CameraFocus::isFocusModeSupported(mode) const
 
     Returns true if the supplied \a mode is a supported focus mode, and
     false otherwise.
@@ -235,7 +235,7 @@ void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCamera::FocusPointMo
 }
 
 /*!
-    \qmlmethod bool QtMultimedia5::CameraFocus::isFocusPointModeSupported(mode) const
+    \qmlmethod bool QtMultimedia::CameraFocus::isFocusPointModeSupported(mode) const
 
     Returns true if the supplied \a mode is a supported focus point mode, and
     false otherwise.
@@ -255,7 +255,7 @@ bool QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::Focu
 */
 
 /*!
-  \qmlproperty point QtMultimedia5::CameraFocus::customFocusPoint
+  \qmlproperty point QtMultimedia::CameraFocus::customFocusPoint
 
   This property holds the position of custom focus point, in relative frame coordinates:
   QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5)
@@ -289,7 +289,7 @@ void QDeclarativeCameraFocus::setCustomFocusPoint(const QPointF &point)
     \endtable
 */
 /*!
-  \qmlproperty list<focusZone> QtMultimedia5::CameraFocus::focusZones
+  \qmlproperty list<focusZone> QtMultimedia::CameraFocus::focusZones
 
   This property holds the list of current camera focus zones,
   each including \c area specified in the same coordinates as \l customFocusPoint,

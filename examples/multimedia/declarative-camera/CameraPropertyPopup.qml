@@ -83,10 +83,6 @@ Rectangle {
         highlight: Rectangle { color: "gray"; radius: 5 }
         currentIndex: indexForValue(propertyPopup.currentValue)
 
-        onCurrentIndexChanged: {
-            propertyPopup.currentValue = model.get(view.currentIndex).value
-        }
-
         delegate: Item {
             width: propertyPopup.itemWidth
             height: 70

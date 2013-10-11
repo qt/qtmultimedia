@@ -46,13 +46,13 @@
 
 #include "qmediaservice.h"
 
+QT_BEGIN_NAMESPACE
+
 class AudioCaptureSession;
 class AudioEncoderControl;
 class AudioContainerControl;
 class AudioMediaRecorderControl;
 class AudioInputSelector;
-
-QT_USE_NAMESPACE
 
 class AudioCaptureService : public QMediaService
 {
@@ -70,5 +70,7 @@ private:
     AudioInputSelector        *m_inputSelector;
     AudioMediaRecorderControl *m_mediaControl;
 };
+
+QT_END_NAMESPACE
 
 #endif

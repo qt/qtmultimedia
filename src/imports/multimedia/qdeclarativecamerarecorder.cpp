@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype CameraRecorder
     \instantiates QDeclarativeCameraRecorder
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \brief Controls video recording with the Camera.
     \ingroup multimedia_qml
     \ingroup camera_qml
@@ -99,7 +99,7 @@ QDeclarativeCameraRecorder::~QDeclarativeCameraRecorder()
 }
 
 /*!
-    \qmlproperty size QtMultimedia5::CameraRecorder::resolution
+    \qmlproperty size QtMultimedia::CameraRecorder::resolution
 
     This property holds the video frame dimensions to be used for video capture.
 */
@@ -109,12 +109,12 @@ QSize QDeclarativeCameraRecorder::captureResolution()
 }
 
 /*!
-    \qmlproperty string QtMultimedia5::CameraRecorder::audioCodec
+    \qmlproperty string QtMultimedia::CameraRecorder::audioCodec
 
     This property holds the audio codec to be used for recording video.
     Typically this is \c aac or \c amr-wb.
 
-    \sa {QtMultimedia5::CameraImageProcessing::whiteBalanceMode}{whileBalanceMode}
+    \sa {QtMultimedia::CameraImageProcessing::whiteBalanceMode}{whileBalanceMode}
 */
 QString QDeclarativeCameraRecorder::audioCodec() const
 {
@@ -122,7 +122,7 @@ QString QDeclarativeCameraRecorder::audioCodec() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia5::CameraRecorder::videoCodec
+    \qmlproperty string QtMultimedia::CameraRecorder::videoCodec
 
     This property holds the video codec to be used for recording video.
     Typically this is \c h264.
@@ -133,7 +133,7 @@ QString QDeclarativeCameraRecorder::videoCodec() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia5::CameraRecorder::mediaContainer
+    \qmlproperty string QtMultimedia::CameraRecorder::mediaContainer
 
     This property holds the media container to be used for recording video.
     Typically this is \c mp4.
@@ -180,7 +180,7 @@ void QDeclarativeCameraRecorder::setMediaContainer(const QString &container)
 }
 
 /*!
-    \qmlproperty qreal QtMultimedia5::CameraRecorder::frameRate
+    \qmlproperty qreal QtMultimedia::CameraRecorder::frameRate
 
     This property holds the framerate (in frames per second) to be used for recording video.
 */
@@ -190,7 +190,7 @@ qreal QDeclarativeCameraRecorder::frameRate() const
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraRecorder::videoBitRate
+    \qmlproperty int QtMultimedia::CameraRecorder::videoBitRate
 
     This property holds the bit rate (in bits per second) to be used for recording video.
 */
@@ -200,7 +200,7 @@ int QDeclarativeCameraRecorder::videoBitRate() const
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraRecorder::audioBitRate
+    \qmlproperty int QtMultimedia::CameraRecorder::audioBitRate
 
     This property holds the audio bit rate (in bits per second) to be used for recording video.
 */
@@ -210,7 +210,7 @@ int QDeclarativeCameraRecorder::audioBitRate() const
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraRecorder::audioChannels
+    \qmlproperty int QtMultimedia::CameraRecorder::audioChannels
 
     This property indicates the number of audio channels to be encoded while
     recording video (1 is mono, 2 is stereo).
@@ -221,7 +221,7 @@ int QDeclarativeCameraRecorder::audioChannels() const
 }
 
 /*!
-    \qmlproperty int QtMultimedia5::CameraRecorder::audioSampleRate
+    \qmlproperty int QtMultimedia::CameraRecorder::audioSampleRate
 
     This property holds the sample rate to be used to encode audio while recording video.
 */
@@ -231,7 +231,7 @@ int QDeclarativeCameraRecorder::audioSampleRate() const
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraRecorder::videoEncodingMode
+    \qmlproperty enumeration QtMultimedia::CameraRecorder::videoEncodingMode
 
     This property holds the type of encoding method to be used for recording video.
 
@@ -257,7 +257,7 @@ QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::videoEncodi
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraRecorder::audioEncodingMode
+    \qmlproperty enumeration QtMultimedia::CameraRecorder::audioEncodingMode
 
     The type of encoding method to use when recording audio.
 
@@ -343,7 +343,7 @@ void QDeclarativeCameraRecorder::setVideoEncodingMode(QDeclarativeCameraRecorder
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraRecorder::errorCode
+    \qmlproperty enumeration QtMultimedia::CameraRecorder::errorCode
 
     This property holds the last error code.
 
@@ -369,7 +369,7 @@ QDeclarativeCameraRecorder::Error QDeclarativeCameraRecorder::errorCode() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia5::CameraRecorder::errorString
+    \qmlproperty string QtMultimedia::CameraRecorder::errorString
 
     This property holds the description of the last error.
 */
@@ -379,7 +379,7 @@ QString QDeclarativeCameraRecorder::errorString() const
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraRecorder::recorderState
+    \qmlproperty enumeration QtMultimedia::CameraRecorder::recorderState
 
     This property holds the current state of the camera recorder object.
 
@@ -407,7 +407,7 @@ QDeclarativeCameraRecorder::RecorderState QDeclarativeCameraRecorder::recorderSt
 
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::CameraRecorder::recorderStatus
+    \qmlproperty enumeration QtMultimedia::CameraRecorder::recorderStatus
 
     This property holds the current status of media recording.
 
@@ -438,7 +438,7 @@ QDeclarativeCameraRecorder::RecorderStatus QDeclarativeCameraRecorder::recorderS
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraRecorder::record()
+    \qmlmethod QtMultimedia::CameraRecorder::record()
 
     Starts recording.
 */
@@ -448,7 +448,7 @@ void QDeclarativeCameraRecorder::record()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraRecorder::stop()
+    \qmlmethod QtMultimedia::CameraRecorder::stop()
 
     Stops recording.
 */
@@ -478,7 +478,7 @@ void QDeclarativeCameraRecorder::setRecorderState(QDeclarativeCameraRecorder::Re
     the recorder uses the system-specific place and file naming scheme.
 */
 /*!
-    \qmlproperty string QtMultimedia5::CameraRecorder::outputLocation
+    \qmlproperty string QtMultimedia::CameraRecorder::outputLocation
 
     This property holds the destination location of the media content. If the location is empty,
     the recorder uses the system-specific place and file naming scheme.
@@ -496,7 +496,7 @@ QString QDeclarativeCameraRecorder::outputLocation() const
     new location is set or new recording starts.
 */
 /*!
-    \qmlproperty string QtMultimedia5::CameraRecorder::actualLocation
+    \qmlproperty string QtMultimedia::CameraRecorder::actualLocation
 
     This property holds the actual location of the last saved media content. The actual location is
     usually available after the recording starts, and reset when new location is set or the new recording starts.
@@ -520,7 +520,7 @@ void QDeclarativeCameraRecorder::setOutputLocation(const QString &location)
     This property holds the duration (in miliseconds) of the last recording.
 */
 /*!
-    \qmlproperty int QtMultimedia5::CameraRecorder::duration
+    \qmlproperty int QtMultimedia::CameraRecorder::duration
 
    This property holds the duration (in miliseconds) of the last recording.
 */
@@ -535,7 +535,7 @@ qint64 QDeclarativeCameraRecorder::duration() const
     recording.
 */
 /*!
-    \qmlproperty bool QtMultimedia5::CameraRecorder::muted
+    \qmlproperty bool QtMultimedia::CameraRecorder::muted
 
     This property indicates whether the audio input is muted during recording.
 */
@@ -550,7 +550,7 @@ void QDeclarativeCameraRecorder::setMuted(bool muted)
 }
 
 /*!
-    \qmlmethod QtMultimedia5::CameraRecorder::setMetadata(key, value)
+    \qmlmethod QtMultimedia::CameraRecorder::setMetadata(key, value)
 
     Sets metadata for the next video to be recorder, with
     the given \a key being associated with \a value.

@@ -45,6 +45,7 @@
 #include <QMediaRecorder>
 
 #include "audiorecorder.h"
+#include "qaudiolevel.h"
 
 #if defined(Q_WS_MAEMO_6)
 #include "ui_audiorecorder_small.h"
@@ -53,10 +54,10 @@
 #endif
 
 static qreal getPeakValue(const QAudioFormat &format);
-static qreal getBufferLevel(const QAudioBuffer &buffer);
+static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
 template <class T>
-static qreal getBufferLevel(const T *buffer, int samples);
+static QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels);
 
 AudioRecorder::AudioRecorder(QWidget *parent) :
     QMainWindow(parent),
@@ -67,7 +68,8 @@ AudioRecorder::AudioRecorder(QWidget *parent) :
 
     audioRecorder = new QAudioRecorder(this);
     probe = new QAudioProbe;
-    connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
+    connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)),
+            this, SLOT(processBuffer(QAudioBuffer)));
     probe->setSource(audioRecorder);
 
     //audio devices
@@ -88,27 +90,34 @@ AudioRecorder::AudioRecorder(QWidget *parent) :
         ui->containerBox->addItem(containerName, QVariant(containerName));
     }
 
-    //sample rate:
+    //sample rate
     ui->sampleRateBox->addItem(tr("Default"), QVariant(0));
     foreach (int sampleRate, audioRecorder->supportedAudioSampleRates()) {
         ui->sampleRateBox->addItem(QString::number(sampleRate), QVariant(
                 sampleRate));
     }
 
+    //channels
+    ui->channelsBox->addItem(tr("Default"), QVariant(-1));
+    ui->channelsBox->addItem(QStringLiteral("1"), QVariant(1));
+    ui->channelsBox->addItem(QStringLiteral("2"), QVariant(2));
+    ui->channelsBox->addItem(QStringLiteral("4"), QVariant(4));
+
+    //quality
     ui->qualitySlider->setRange(0, int(QMultimedia::VeryHighQuality));
     ui->qualitySlider->setValue(int(QMultimedia::NormalQuality));
 
     //bitrates:
-    ui->bitrateBox->addItem(QString("Default"), QVariant(0));
-    ui->bitrateBox->addItem(QString("32000"), QVariant(32000));
-    ui->bitrateBox->addItem(QString("64000"), QVariant(64000));
-    ui->bitrateBox->addItem(QString("96000"), QVariant(96000));
-    ui->bitrateBox->addItem(QString("128000"), QVariant(128000));
+    ui->bitrateBox->addItem(tr("Default"), QVariant(0));
+    ui->bitrateBox->addItem(QStringLiteral("32000"), QVariant(32000));
+    ui->bitrateBox->addItem(QStringLiteral("64000"), QVariant(64000));
+    ui->bitrateBox->addItem(QStringLiteral("96000"), QVariant(96000));
+    ui->bitrateBox->addItem(QStringLiteral("128000"), QVariant(128000));
 
     connect(audioRecorder, SIGNAL(durationChanged(qint64)), this,
             SLOT(updateProgress(qint64)));
-    connect(audioRecorder, SIGNAL(stateChanged(QMediaRecorder::State)), this,
-            SLOT(updateState(QMediaRecorder::State)));
+    connect(audioRecorder, SIGNAL(statusChanged(QMediaRecorder::Status)), this,
+            SLOT(updateStatus(QMediaRecorder::Status)));
     connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this,
             SLOT(displayErrorMessage()));
 }
@@ -127,32 +136,47 @@ void AudioRecorder::updateProgress(qint64 duration)
     ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
 }
 
-void AudioRecorder::updateState(QMediaRecorder::State state)
+void AudioRecorder::updateStatus(QMediaRecorder::Status status)
 {
     QString statusMessage;
 
-    switch (state) {
-        case QMediaRecorder::RecordingState:
-            ui->recordButton->setText(tr("Stop"));
-            ui->pauseButton->setText(tr("Pause"));
-            if (audioRecorder->outputLocation().isEmpty())
-                statusMessage = tr("Recording");
-            else
-                statusMessage = tr("Recording to %1").arg(
+    switch (status) {
+    case QMediaRecorder::RecordingStatus:
+        if (audioLevels.count() != audioRecorder->audioSettings().channelCount()) {
+            qDeleteAll(audioLevels);
+            audioLevels.clear();
+            for (int i = 0; i < audioRecorder->audioSettings().channelCount(); ++i) {
+                QAudioLevel *level = new QAudioLevel(ui->centralwidget);
+                audioLevels.append(level);
+                ui->levelsLayout->addWidget(level);
+            }
+        }
+
+        ui->recordButton->setText(tr("Stop"));
+        ui->pauseButton->setText(tr("Pause"));
+        if (audioRecorder->outputLocation().isEmpty())
+            statusMessage = tr("Recording");
+        else
+            statusMessage = tr("Recording to %1").arg(
                         audioRecorder->outputLocation().toString());
-            break;
-        case QMediaRecorder::PausedState:
-            ui->recordButton->setText(tr("Stop"));
-            ui->pauseButton->setText(tr("Resume"));
-            statusMessage = tr("Paused");
-            break;
-        case QMediaRecorder::StoppedState:
-            ui->recordButton->setText(tr("Record"));
-            ui->pauseButton->setText(tr("Pause"));
-            statusMessage = tr("Stopped");
+        break;
+    case QMediaRecorder::PausedStatus:
+        clearAudioLevels();
+        ui->recordButton->setText(tr("Stop"));
+        ui->pauseButton->setText(tr("Resume"));
+        statusMessage = tr("Paused");
+        break;
+    case QMediaRecorder::UnloadedStatus:
+        clearAudioLevels();
+        ui->recordButton->setText(tr("Record"));
+        ui->pauseButton->setText(tr("Pause"));
+        statusMessage = tr("Stopped");
+    default:
+        break;
     }
 
-    ui->pauseButton->setEnabled(state != QMediaRecorder::StoppedState);
+    ui->pauseButton->setEnabled(audioRecorder->state()
+                                != QMediaRecorder::StoppedState);
 
     if (audioRecorder->error() == QMediaRecorder::NoError)
         ui->statusbar->showMessage(statusMessage);
@@ -176,6 +200,7 @@ void AudioRecorder::toggleRecord()
         settings.setCodec(boxValue(ui->audioCodecBox).toString());
         settings.setSampleRate(boxValue(ui->sampleRateBox).toInt());
         settings.setBitRate(boxValue(ui->bitrateBox).toInt());
+        settings.setChannelCount(boxValue(ui->channelsBox).toInt());
         settings.setQuality(QMultimedia::EncodingQuality(ui->qualitySlider->value()));
         settings.setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
                                  QMultimedia::ConstantQualityEncoding :
@@ -202,7 +227,7 @@ void AudioRecorder::togglePause()
 void AudioRecorder::setOutputLocation()
 {
     QString fileName = QFileDialog::getSaveFileName();
-    audioRecorder->setOutputLocation(QUrl(fileName));
+    audioRecorder->setOutputLocation(QUrl::fromLocalFile(fileName));
     outputLocationSet = true;
 }
 
@@ -211,88 +236,121 @@ void AudioRecorder::displayErrorMessage()
     ui->statusbar->showMessage(audioRecorder->errorString());
 }
 
+void AudioRecorder::clearAudioLevels()
+{
+    for (int i = 0; i < audioLevels.size(); ++i)
+        audioLevels.at(i)->setLevel(0);
+}
+
 // This function returns the maximum possible sample value for a given audio format
 qreal getPeakValue(const QAudioFormat& format)
 {
     // Note: Only the most common sample formats are supported
     if (!format.isValid())
-        return 0.0;
+        return qreal(0);
 
     if (format.codec() != "audio/pcm")
-        return 0.0;
+        return qreal(0);
 
     switch (format.sampleType()) {
     case QAudioFormat::Unknown:
         break;
     case QAudioFormat::Float:
         if (format.sampleSize() != 32) // other sample formats are not supported
-            return 0.0;
-        return 1.00003;
+            return qreal(0);
+        return qreal(1.00003);
     case QAudioFormat::SignedInt:
         if (format.sampleSize() == 32)
-            return 2147483648.0;
+            return qreal(INT_MAX);
         if (format.sampleSize() == 16)
-            return 32768.0;
+            return qreal(SHRT_MAX);
         if (format.sampleSize() == 8)
-            return 128.0;
+            return qreal(CHAR_MAX);
         break;
     case QAudioFormat::UnSignedInt:
-        // Unsigned formats are not supported in this example
+        if (format.sampleSize() == 32)
+            return qreal(UINT_MAX);
+        if (format.sampleSize() == 16)
+            return qreal(USHRT_MAX);
+        if (format.sampleSize() == 8)
+            return qreal(UCHAR_MAX);
         break;
     }
 
-    return 0.0;
+    return qreal(0);
 }
 
-qreal getBufferLevel(const QAudioBuffer& buffer)
+// returns the audio level for each channel
+QVector<qreal> getBufferLevels(const QAudioBuffer& buffer)
 {
+    QVector<qreal> values;
+
     if (!buffer.format().isValid() || buffer.format().byteOrder() != QAudioFormat::LittleEndian)
-        return 0.0;
+        return values;
 
     if (buffer.format().codec() != "audio/pcm")
-        return 0.0;
+        return values;
 
+    int channelCount = buffer.format().channelCount();
+    values.fill(0, channelCount);
     qreal peak_value = getPeakValue(buffer.format());
-    if (qFuzzyCompare(peak_value, 0.0))
-        return 0.0;
+    if (qFuzzyCompare(peak_value, qreal(0)))
+        return values;
 
     switch (buffer.format().sampleType()) {
     case QAudioFormat::Unknown:
     case QAudioFormat::UnSignedInt:
+        if (buffer.format().sampleSize() == 32)
+            values = getBufferLevels(buffer.constData<quint32>(), buffer.frameCount(), channelCount);
+        if (buffer.format().sampleSize() == 16)
+            values = getBufferLevels(buffer.constData<quint16>(), buffer.frameCount(), channelCount);
+        if (buffer.format().sampleSize() == 8)
+            values = getBufferLevels(buffer.constData<quint8>(), buffer.frameCount(), channelCount);
+        for (int i = 0; i < values.size(); ++i)
+            values[i] = qAbs(values.at(i) - peak_value / 2) / (peak_value / 2);
         break;
     case QAudioFormat::Float:
-        if (buffer.format().sampleSize() == 32)
-            return getBufferLevel(buffer.constData<float>(), buffer.sampleCount()) / peak_value;
+        if (buffer.format().sampleSize() == 32) {
+            values = getBufferLevels(buffer.constData<float>(), buffer.frameCount(), channelCount);
+            for (int i = 0; i < values.size(); ++i)
+                values[i] /= peak_value;
+        }
         break;
     case QAudioFormat::SignedInt:
         if (buffer.format().sampleSize() == 32)
-            return getBufferLevel(buffer.constData<long int>(), buffer.sampleCount()) / peak_value;
+            values = getBufferLevels(buffer.constData<qint32>(), buffer.frameCount(), channelCount);
         if (buffer.format().sampleSize() == 16)
-            return getBufferLevel(buffer.constData<short int>(), buffer.sampleCount()) / peak_value;
+            values = getBufferLevels(buffer.constData<qint16>(), buffer.frameCount(), channelCount);
         if (buffer.format().sampleSize() == 8)
-            return getBufferLevel(buffer.constData<signed char>(), buffer.sampleCount()) / peak_value;
+            values = getBufferLevels(buffer.constData<qint8>(), buffer.frameCount(), channelCount);
+        for (int i = 0; i < values.size(); ++i)
+            values[i] /= peak_value;
         break;
     }
 
-    return 0.0;
+    return values;
 }
 
 template <class T>
-qreal getBufferLevel(const T *buffer, int samples)
+QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels)
 {
-    qreal max_value = 0.0;
+    QVector<qreal> max_values;
+    max_values.fill(0, channels);
 
-    for (int i = 0; i < samples; ++i) {
-        qreal value = qAbs(qreal(buffer[i]));
-        if (value > max_value)
-            max_value = value;
+    for (int i = 0; i < frames; ++i) {
+        for (int j = 0; j < channels; ++j) {
+            qreal value = qAbs(qreal(buffer[i * channels + j]));
+            if (value > max_values.at(j))
+                max_values.replace(j, value);
+        }
     }
 
-    return max_value;
+    return max_values;
 }
 
 void AudioRecorder::processBuffer(const QAudioBuffer& buffer)
 {
-    qreal level = getBufferLevel(buffer);
-    ui->audioLevel->setLevel(level);
+    QVector<qreal> levels = getBufferLevels(buffer);
+    for (int i = 0; i < levels.count(); ++i)
+        audioLevels.at(i)->setLevel(levels.at(i));
 }

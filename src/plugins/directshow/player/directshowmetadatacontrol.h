@@ -46,12 +46,6 @@
 
 #include "directshowglobal.h"
 
-#include <qnetwork.h>
-
-#ifndef QT_NO_WMSDK
-#include <wmsdk.h>
-#endif
-
 #include <QtCore/qcoreevent.h>
 
 class DirectShowPlayerService;
@@ -70,7 +64,8 @@ public:
     QVariant metaData(const QString &key) const;
     QStringList availableMetaData() const;
 
-    void updateGraph(IFilterGraph2 *graph, IBaseFilter *source);
+    void updateGraph(IFilterGraph2 *graph, IBaseFilter *source,
+                     const QString &fileSrc = QString());
 
 protected:
     void customEvent(QEvent *event);
@@ -81,10 +76,8 @@ private:
         MetaDataChanged = QEvent::User
     };
 
-    IAMMediaContent *m_content;
-#ifndef QT_NO_WMSDK
-    IWMHeaderInfo *m_headerInfo;
-#endif
+    QVariantMap m_metadata;
+    bool m_available;
 };
 
 #endif

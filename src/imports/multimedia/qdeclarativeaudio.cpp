@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
     \instantiates QDeclarativeAudio
     \brief Add audio playback to a scene.
 
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
 
@@ -131,7 +131,7 @@ QDeclarativeAudio::~QDeclarativeAudio()
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Audio::availability
+    \qmlproperty enumeration QtMultimedia::Audio::availability
 
     Returns the availability state of the media player.
 
@@ -358,7 +358,7 @@ QDeclarativeMediaMetaData *QDeclarativeAudio::metaData() const
 
 
 /*!
-    \qmlmethod QtMultimedia5::Audio::play()
+    \qmlmethod QtMultimedia::Audio::play()
 
     Starts playback of the media.
 
@@ -374,7 +374,7 @@ void QDeclarativeAudio::play()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::Audio::pause()
+    \qmlmethod QtMultimedia::Audio::pause()
 
     Pauses playback of the media.
 
@@ -390,7 +390,7 @@ void QDeclarativeAudio::pause()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::Audio::stop()
+    \qmlmethod QtMultimedia::Audio::stop()
 
     Stops playback of the media.
 
@@ -406,7 +406,7 @@ void QDeclarativeAudio::stop()
 }
 
 /*!
-    \qmlmethod QtMultimedia5::Audio::seek(offset)
+    \qmlmethod QtMultimedia::Audio::seek(offset)
 
     If the \l seekable property is true, seeks the current
     playback position to \a offset.
@@ -434,13 +434,13 @@ void QDeclarativeAudio::seek(int position)
 }
 
 /*!
-    \qmlproperty url QtMultimedia5::Audio::source
+    \qmlproperty url QtMultimedia::Audio::source
 
     This property holds the source URL of the media.
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::Audio::autoLoad
+    \qmlproperty bool QtMultimedia::Audio::autoLoad
 
     This property indicates if loading of media should begin immediately.
 
@@ -448,32 +448,32 @@ void QDeclarativeAudio::seek(int position)
 */
 
 /*!
-    \qmlsignal QtMultimedia5::Audio::playbackStateChanged()
+    \qmlsignal QtMultimedia::Audio::playbackStateChanged()
 
     This handler is called when the \l playbackState property is altered.
 */
 
 
 /*!
-    \qmlsignal QtMultimedia5::Audio::paused()
+    \qmlsignal QtMultimedia::Audio::paused()
 
     This handler is called when playback is paused.
 */
 
 /*!
-    \qmlsignal QtMultimedia5::Audio::stopped()
+    \qmlsignal QtMultimedia::Audio::stopped()
 
     This handler is called when playback is stopped.
 */
 
 /*!
-    \qmlsignal QtMultimedia5::Audio::playing()
+    \qmlsignal QtMultimedia::Audio::playing()
 
     This handler is called when playback is started or resumed.
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Audio::status
+    \qmlproperty enumeration QtMultimedia::Audio::status
 
     This property holds the status of media loading. It can be one of:
 
@@ -497,7 +497,7 @@ QDeclarativeAudio::Status QDeclarativeAudio::status() const
 
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Audio::playbackState
+    \qmlproperty enumeration QtMultimedia::Audio::playbackState
 
     This property holds the state of media playback. It can be one of:
 
@@ -514,7 +514,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 }
 
 /*!
-    \qmlproperty bool QtMultimedia5::Audio::autoPlay
+    \qmlproperty bool QtMultimedia::Audio::autoPlay
 
     This property controls whether the media will begin to play on start up.
 
@@ -522,7 +522,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 */
 
 /*!
-    \qmlproperty int QtMultimedia5::Audio::duration
+    \qmlproperty int QtMultimedia::Audio::duration
 
     This property holds the duration of the media in milliseconds.
 
@@ -530,7 +530,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 */
 
 /*!
-    \qmlproperty int QtMultimedia5::Audio::position
+    \qmlproperty int QtMultimedia::Audio::position
 
     This property holds the current playback position in milliseconds.
 
@@ -540,7 +540,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 */
 
 /*!
-    \qmlproperty real QtMultimedia5::Audio::volume
+    \qmlproperty real QtMultimedia::Audio::volume
 
     This property holds the volume of the audio output, from 0.0 (silent) to 1.0 (maximum volume).
 
@@ -548,7 +548,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::Audio::muted
+    \qmlproperty bool QtMultimedia::Audio::muted
 
     This property holds whether the audio output is muted.
 
@@ -556,7 +556,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::Audio::hasAudio
+    \qmlproperty bool QtMultimedia::Audio::hasAudio
 
     This property holds whether the media contains audio.
 */
@@ -567,7 +567,7 @@ bool QDeclarativeAudio::hasAudio() const
 }
 
 /*!
-    \qmlproperty bool QtMultimedia5::Audio::hasVideo
+    \qmlproperty bool QtMultimedia::Audio::hasVideo
 
     This property holds whether the media contains video.
 */
@@ -578,14 +578,14 @@ bool QDeclarativeAudio::hasVideo() const
 }
 
 /*!
-    \qmlproperty real QtMultimedia5::Audio::bufferProgress
+    \qmlproperty real QtMultimedia::Audio::bufferProgress
 
     This property holds how much of the data buffer is currently filled, from 0.0 (empty) to 1.0
     (full).
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::Audio::seekable
+    \qmlproperty bool QtMultimedia::Audio::seekable
 
     This property holds whether position of the audio can be changed.
 
@@ -593,7 +593,7 @@ bool QDeclarativeAudio::hasVideo() const
 */
 
 /*!
-    \qmlproperty real QtMultimedia5::Audio::playbackRate
+    \qmlproperty real QtMultimedia::Audio::playbackRate
 
     This property holds the rate at which audio is played at as a multiple of the normal rate.
 
@@ -601,7 +601,7 @@ bool QDeclarativeAudio::hasVideo() const
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::Audio::error
+    \qmlproperty enumeration QtMultimedia::Audio::error
 
     This property holds the error state of the audio.  It can be one of:
 
@@ -739,13 +739,13 @@ void QDeclarativeAudio::_q_statusChanged()
 }
 
 /*!
-    \qmlproperty string QtMultimedia5::Audio::errorString
+    \qmlproperty string QtMultimedia::Audio::errorString
 
     This property holds a string describing the current error condition in more detail.
 */
 
 /*!
-    \qmlsignal QtMultimedia5::Audio::error(error, errorString)
+    \qmlsignal QtMultimedia::Audio::error(error, errorString)
 
     This handler is called when an \l {QMediaPlayer::Error}{error} has
     occurred.  The errorString parameter may contain more detailed
@@ -753,7 +753,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.title
+    \qmlproperty variant QtMultimedia::Audio::metaData.title
 
     This property holds the title of the media.
 
@@ -761,7 +761,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.subTitle
+    \qmlproperty variant QtMultimedia::Audio::metaData.subTitle
 
     This property holds the sub-title of the media.
 
@@ -769,7 +769,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.author
+    \qmlproperty variant QtMultimedia::Audio::metaData.author
 
     This property holds the author of the media.
 
@@ -777,7 +777,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.comment
+    \qmlproperty variant QtMultimedia::Audio::metaData.comment
 
     This property holds a user comment about the media.
 
@@ -785,7 +785,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.description
+    \qmlproperty variant QtMultimedia::Audio::metaData.description
 
     This property holds a description of the media.
 
@@ -793,7 +793,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.category
+    \qmlproperty variant QtMultimedia::Audio::metaData.category
 
     This property holds the category of the media
 
@@ -801,7 +801,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.genre
+    \qmlproperty variant QtMultimedia::Audio::metaData.genre
 
     This property holds the genre of the media.
 
@@ -809,7 +809,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.year
+    \qmlproperty variant QtMultimedia::Audio::metaData.year
 
     This property holds the year of release of the media.
 
@@ -817,7 +817,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.date
+    \qmlproperty variant QtMultimedia::Audio::metaData.date
 
     This property holds the date of the media.
 
@@ -825,7 +825,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.userRating
+    \qmlproperty variant QtMultimedia::Audio::metaData.userRating
 
     This property holds a user rating of the media in the range of 0 to 100.
 
@@ -833,7 +833,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.keywords
+    \qmlproperty variant QtMultimedia::Audio::metaData.keywords
 
     This property holds a list of keywords describing the media.
 
@@ -841,7 +841,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.language
+    \qmlproperty variant QtMultimedia::Audio::metaData.language
 
     This property holds the language of the media, as an ISO 639-2 code.
 
@@ -849,7 +849,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.publisher
+    \qmlproperty variant QtMultimedia::Audio::metaData.publisher
 
     This property holds the publisher of the media.
 
@@ -857,7 +857,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.copyright
+    \qmlproperty variant QtMultimedia::Audio::metaData.copyright
 
     This property holds the media's copyright notice.
 
@@ -865,7 +865,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.parentalRating
+    \qmlproperty variant QtMultimedia::Audio::metaData.parentalRating
 
     This property holds the parental rating of the media.
 
@@ -873,7 +873,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.ratingOrganization
+    \qmlproperty variant QtMultimedia::Audio::metaData.ratingOrganization
 
     This property holds the name of the rating organization responsible for the
     parental rating of the media.
@@ -882,7 +882,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.size
+    \qmlproperty variant QtMultimedia::Audio::metaData.size
 
     This property property holds the size of the media in bytes.
 
@@ -890,7 +890,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.mediaType
+    \qmlproperty variant QtMultimedia::Audio::metaData.mediaType
 
     This property holds the type of the media.
 
@@ -898,7 +898,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.audioBitRate
+    \qmlproperty variant QtMultimedia::Audio::metaData.audioBitRate
 
     This property holds the bit rate of the media's audio stream in bits per
     second.
@@ -907,7 +907,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.audioCodec
+    \qmlproperty variant QtMultimedia::Audio::metaData.audioCodec
 
     This property holds the encoding of the media audio stream.
 
@@ -915,7 +915,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.averageLevel
+    \qmlproperty variant QtMultimedia::Audio::metaData.averageLevel
 
     This property holds the average volume level of the media.
 
@@ -923,7 +923,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.channelCount
+    \qmlproperty variant QtMultimedia::Audio::metaData.channelCount
 
     This property holds the number of channels in the media's audio stream.
 
@@ -931,7 +931,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.peakValue
+    \qmlproperty variant QtMultimedia::Audio::metaData.peakValue
 
     This property holds the peak volume of media's audio stream.
 
@@ -939,7 +939,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.sampleRate
+    \qmlproperty variant QtMultimedia::Audio::metaData.sampleRate
 
     This property holds the sample rate of the media's audio stream in hertz.
 
@@ -947,7 +947,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.albumTitle
+    \qmlproperty variant QtMultimedia::Audio::metaData.albumTitle
 
     This property holds the title of the album the media belongs to.
 
@@ -955,7 +955,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.albumArtist
+    \qmlproperty variant QtMultimedia::Audio::metaData.albumArtist
 
     This property holds the name of the principal artist of the album the media
     belongs to.
@@ -964,7 +964,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.contributingArtist
+    \qmlproperty variant QtMultimedia::Audio::metaData.contributingArtist
 
     This property holds the names of artists contributing to the media.
 
@@ -972,7 +972,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.composer
+    \qmlproperty variant QtMultimedia::Audio::metaData.composer
 
     This property holds the composer of the media.
 
@@ -980,7 +980,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.conductor
+    \qmlproperty variant QtMultimedia::Audio::metaData.conductor
 
     This property holds the conductor of the media.
 
@@ -988,7 +988,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.lyrics
+    \qmlproperty variant QtMultimedia::Audio::metaData.lyrics
 
     This property holds the lyrics to the media.
 
@@ -996,7 +996,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.mood
+    \qmlproperty variant QtMultimedia::Audio::metaData.mood
 
     This property holds the mood of the media.
 
@@ -1004,7 +1004,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.trackNumber
+    \qmlproperty variant QtMultimedia::Audio::metaData.trackNumber
 
     This property holds the track number of the media.
 
@@ -1012,7 +1012,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.trackCount
+    \qmlproperty variant QtMultimedia::Audio::metaData.trackCount
 
     This property holds the number of tracks on the album containing the media.
 
@@ -1020,7 +1020,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.coverArtUrlSmall
+    \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlSmall
 
     This property holds the URL of a small cover art image.
 
@@ -1028,7 +1028,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.coverArtUrlLarge
+    \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlLarge
 
     This property holds the URL of a large cover art image.
 
@@ -1036,7 +1036,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.resolution
+    \qmlproperty variant QtMultimedia::Audio::metaData.resolution
 
     This property holds the dimension of an image or video.
 
@@ -1044,7 +1044,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.pixelAspectRatio
+    \qmlproperty variant QtMultimedia::Audio::metaData.pixelAspectRatio
 
     This property holds the pixel aspect ratio of an image or video.
 
@@ -1052,7 +1052,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.videoFrameRate
+    \qmlproperty variant QtMultimedia::Audio::metaData.videoFrameRate
 
     This property holds the frame rate of the media's video stream.
 
@@ -1060,7 +1060,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.videoBitRate
+    \qmlproperty variant QtMultimedia::Audio::metaData.videoBitRate
 
     This property holds the bit rate of the media's video stream in bits per
     second.
@@ -1069,7 +1069,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.videoCodec
+    \qmlproperty variant QtMultimedia::Audio::metaData.videoCodec
 
     This property holds the encoding of the media's video stream.
 
@@ -1077,7 +1077,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.posterUrl
+    \qmlproperty variant QtMultimedia::Audio::metaData.posterUrl
 
     This property holds the URL of a poster image.
 
@@ -1085,7 +1085,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.chapterNumber
+    \qmlproperty variant QtMultimedia::Audio::metaData.chapterNumber
 
     This property holds the chapter number of the media.
 
@@ -1093,7 +1093,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.director
+    \qmlproperty variant QtMultimedia::Audio::metaData.director
 
     This property holds the director of the media.
 
@@ -1101,7 +1101,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.leadPerformer
+    \qmlproperty variant QtMultimedia::Audio::metaData.leadPerformer
 
     This property holds the lead performer in the media.
 
@@ -1109,7 +1109,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::Audio::metaData.writer
+    \qmlproperty variant QtMultimedia::Audio::metaData.writer
 
     This property holds the writer of the media.
 
@@ -1123,7 +1123,7 @@ void QDeclarativeAudio::_q_statusChanged()
     \instantiates QDeclarativeAudio
     \brief Add media playback to a scene.
 
-    \inqmlmodule QtMultimedia 5.0
+    \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
@@ -1181,7 +1181,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::MediaPlayer::availability
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::availability
 
     Returns the availability state of the media player.
 
@@ -1202,7 +1202,7 @@ void QDeclarativeAudio::_q_statusChanged()
  */
 
 /*!
-    \qmlmethod QtMultimedia5::MediaPlayer::play()
+    \qmlmethod QtMultimedia::MediaPlayer::play()
 
     Starts playback of the media.
 
@@ -1210,7 +1210,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlmethod QtMultimedia5::MediaPlayer::pause()
+    \qmlmethod QtMultimedia::MediaPlayer::pause()
 
     Pauses playback of the media.
 
@@ -1218,7 +1218,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlmethod QtMultimedia5::MediaPlayer::stop()
+    \qmlmethod QtMultimedia::MediaPlayer::stop()
 
     Stops playback of the media.
 
@@ -1226,13 +1226,13 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty url QtMultimedia5::MediaPlayer::source
+    \qmlproperty url QtMultimedia::MediaPlayer::source
 
     This property holds the source URL of the media.
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::MediaPlayer::autoLoad
+    \qmlproperty bool QtMultimedia::MediaPlayer::autoLoad
 
     This property indicates if loading of media should begin immediately.
 
@@ -1240,32 +1240,32 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlsignal QtMultimedia5::MediaPlayer::playbackStateChanged()
+    \qmlsignal QtMultimedia::MediaPlayer::playbackStateChanged()
 
     This handler is called when the \l playbackState property is altered.
 */
 
 
 /*!
-    \qmlsignal QtMultimedia5::MediaPlayer::paused()
+    \qmlsignal QtMultimedia::MediaPlayer::paused()
 
     This handler is called when playback is paused.
 */
 
 /*!
-    \qmlsignal QtMultimedia5::MediaPlayer::stopped()
+    \qmlsignal QtMultimedia::MediaPlayer::stopped()
 
     This handler is called when playback is stopped.
 */
 
 /*!
-    \qmlsignal QtMultimedia5::MediaPlayer::playing()
+    \qmlsignal QtMultimedia::MediaPlayer::playing()
 
     This handler is called when playback is started or resumed.
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::MediaPlayer::status
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::status
 
     This property holds the status of media loading. It can be one of:
 
@@ -1283,7 +1283,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::MediaPlayer::playbackState
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::playbackState
 
     This property holds the state of media playback. It can be one of:
 
@@ -1295,7 +1295,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::MediaPlayer::autoPlay
+    \qmlproperty bool QtMultimedia::MediaPlayer::autoPlay
 
     This property controls whether the media will begin to play on start up.
 
@@ -1303,7 +1303,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty int QtMultimedia5::MediaPlayer::duration
+    \qmlproperty int QtMultimedia::MediaPlayer::duration
 
     This property holds the duration of the media in milliseconds.
 
@@ -1311,7 +1311,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty int QtMultimedia5::MediaPlayer::position
+    \qmlproperty int QtMultimedia::MediaPlayer::position
 
     This property holds the current playback position in milliseconds.
 
@@ -1321,7 +1321,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty real QtMultimedia5::MediaPlayer::volume
+    \qmlproperty real QtMultimedia::MediaPlayer::volume
 
     This property holds the volume of the audio output, from 0.0 (silent) to 1.0 (maximum volume).
 
@@ -1329,7 +1329,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::MediaPlayer::muted
+    \qmlproperty bool QtMultimedia::MediaPlayer::muted
 
     This property holds whether the audio output is muted.
 
@@ -1337,26 +1337,26 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::MediaPlayer::hasAudio
+    \qmlproperty bool QtMultimedia::MediaPlayer::hasAudio
 
     This property holds whether the media contains audio.
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::MediaPlayer::hasVideo
+    \qmlproperty bool QtMultimedia::MediaPlayer::hasVideo
 
     This property holds whether the media contains video.
 */
 
 /*!
-    \qmlproperty real QtMultimedia5::MediaPlayer::bufferProgress
+    \qmlproperty real QtMultimedia::MediaPlayer::bufferProgress
 
     This property holds how much of the data buffer is currently filled, from 0.0 (empty) to 1.0
     (full).
 */
 
 /*!
-    \qmlproperty bool QtMultimedia5::MediaPlayer::seekable
+    \qmlproperty bool QtMultimedia::MediaPlayer::seekable
 
     This property holds whether position of the audio can be changed.
 
@@ -1364,7 +1364,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlmethod QtMultimedia5::MediaPlayer::seek(offset)
+    \qmlmethod QtMultimedia::MediaPlayer::seek(offset)
 
     If the \l seekable property is true, seeks the current
     playback position to \a offset.
@@ -1376,7 +1376,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty real QtMultimedia5::MediaPlayer::playbackRate
+    \qmlproperty real QtMultimedia::MediaPlayer::playbackRate
 
     This property holds the rate at which audio is played at as a multiple of the normal rate.
 
@@ -1384,7 +1384,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia5::MediaPlayer::error
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::error
 
     This property holds the error state of the audio.  It can be one of:
 
@@ -1407,13 +1407,13 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty string QtMultimedia5::MediaPlayer::errorString
+    \qmlproperty string QtMultimedia::MediaPlayer::errorString
 
     This property holds a string describing the current error condition in more detail.
 */
 
 /*!
-    \qmlsignal QtMultimedia5::MediaPlayer::error(error, errorString)
+    \qmlsignal QtMultimedia::MediaPlayer::error(error, errorString)
 
     This handler is called when an \l {QMediaPlayer::Error}{error} has
     occurred.  The errorString parameter may contain more detailed
@@ -1421,7 +1421,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.title
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.title
 
     This property holds the title of the media.
 
@@ -1429,7 +1429,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.subTitle
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.subTitle
 
     This property holds the sub-title of the media.
 
@@ -1437,7 +1437,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.author
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.author
 
     This property holds the author of the media.
 
@@ -1445,7 +1445,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.comment
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.comment
 
     This property holds a user comment about the media.
 
@@ -1453,7 +1453,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.description
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.description
 
     This property holds a description of the media.
 
@@ -1461,7 +1461,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.category
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.category
 
     This property holds the category of the media
 
@@ -1469,7 +1469,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.genre
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.genre
 
     This property holds the genre of the media.
 
@@ -1477,7 +1477,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.year
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.year
 
     This property holds the year of release of the media.
 
@@ -1485,7 +1485,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.date
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.date
 
     This property holds the date of the media.
 
@@ -1493,7 +1493,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.userRating
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.userRating
 
     This property holds a user rating of the media in the range of 0 to 100.
 
@@ -1501,7 +1501,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.keywords
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.keywords
 
     This property holds a list of keywords describing the media.
 
@@ -1509,7 +1509,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.language
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.language
 
     This property holds the language of the media, as an ISO 639-2 code.
 
@@ -1517,7 +1517,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.publisher
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.publisher
 
     This property holds the publisher of the media.
 
@@ -1525,7 +1525,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.copyright
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.copyright
 
     This property holds the media's copyright notice.
 
@@ -1533,7 +1533,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.parentalRating
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.parentalRating
 
     This property holds the parental rating of the media.
 
@@ -1541,7 +1541,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.ratingOrganization
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.ratingOrganization
 
     This property holds the name of the rating organization responsible for the
     parental rating of the media.
@@ -1550,7 +1550,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.size
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.size
 
     This property property holds the size of the media in bytes.
 
@@ -1558,7 +1558,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.mediaType
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.mediaType
 
     This property holds the type of the media.
 
@@ -1566,7 +1566,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.audioBitRate
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.audioBitRate
 
     This property holds the bit rate of the media's audio stream in bits per
     second.
@@ -1575,7 +1575,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.audioCodec
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.audioCodec
 
     This property holds the encoding of the media audio stream.
 
@@ -1583,7 +1583,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.averageLevel
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.averageLevel
 
     This property holds the average volume level of the media.
 
@@ -1591,7 +1591,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.channelCount
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.channelCount
 
     This property holds the number of channels in the media's audio stream.
 
@@ -1599,7 +1599,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.peakValue
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.peakValue
 
     This property holds the peak volume of media's audio stream.
 
@@ -1607,7 +1607,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.sampleRate
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.sampleRate
 
     This property holds the sample rate of the media's audio stream in hertz.
 
@@ -1615,7 +1615,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.albumTitle
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.albumTitle
 
     This property holds the title of the album the media belongs to.
 
@@ -1623,7 +1623,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.albumArtist
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.albumArtist
 
     This property holds the name of the principal artist of the album the media
     belongs to.
@@ -1632,7 +1632,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.contributingArtist
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.contributingArtist
 
     This property holds the names of artists contributing to the media.
 
@@ -1640,7 +1640,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.composer
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.composer
 
     This property holds the composer of the media.
 
@@ -1648,7 +1648,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.conductor
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.conductor
 
     This property holds the conductor of the media.
 
@@ -1656,7 +1656,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.lyrics
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.lyrics
 
     This property holds the lyrics to the media.
 
@@ -1664,7 +1664,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.mood
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.mood
 
     This property holds the mood of the media.
 
@@ -1672,7 +1672,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.trackNumber
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.trackNumber
 
     This property holds the track number of the media.
 
@@ -1680,7 +1680,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.trackCount
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.trackCount
 
     This property holds the number of tracks on the album containing the media.
 
@@ -1688,7 +1688,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.coverArtUrlSmall
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.coverArtUrlSmall
 
     This property holds the URL of a small cover art image.
 
@@ -1696,7 +1696,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.coverArtUrlLarge
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.coverArtUrlLarge
 
     This property holds the URL of a large cover art image.
 
@@ -1704,7 +1704,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.resolution
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.resolution
 
     This property holds the dimension of an image or video.
 
@@ -1712,7 +1712,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.pixelAspectRatio
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.pixelAspectRatio
 
     This property holds the pixel aspect ratio of an image or video.
 
@@ -1720,7 +1720,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.videoFrameRate
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoFrameRate
 
     This property holds the frame rate of the media's video stream.
 
@@ -1728,7 +1728,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.videoBitRate
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoBitRate
 
     This property holds the bit rate of the media's video stream in bits per
     second.
@@ -1737,7 +1737,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.videoCodec
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoCodec
 
     This property holds the encoding of the media's video stream.
 
@@ -1745,7 +1745,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.posterUrl
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.posterUrl
 
     This property holds the URL of a poster image.
 
@@ -1753,7 +1753,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.chapterNumber
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.chapterNumber
 
     This property holds the chapter number of the media.
 
@@ -1761,7 +1761,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.director
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.director
 
     This property holds the director of the media.
 
@@ -1769,7 +1769,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.leadPerformer
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.leadPerformer
 
     This property holds the lead performer in the media.
 
@@ -1777,7 +1777,7 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia5::MediaPlayer::metaData.writer
+    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.writer
 
     This property holds the writer of the media.
 

@@ -45,11 +45,14 @@
 #include <QDebug>
 #include <QUrl>
 
+#ifndef Q_OS_BLACKBERRY_TABLET
 #include <audio/audio_manager_device.h>
 #include <audio/audio_manager_volume.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
+#ifndef Q_OS_BLACKBERRY_TABLET
 static audio_manager_device_t currentAudioInputDevice()
 {
     audio_manager_device_t device = AUDIO_DEVICE_HEADSET;
@@ -62,6 +65,7 @@ static audio_manager_device_t currentAudioInputDevice()
 
     return device;
 }
+#endif
 
 BbCameraMediaRecorderControl::BbCameraMediaRecorderControl(BbCameraSession *session, QObject *parent)
     : QMediaRecorderControl(parent)
@@ -103,12 +107,13 @@ bool BbCameraMediaRecorderControl::isMuted() const
 {
     bool muted = false;
 
+#ifndef Q_OS_BLACKBERRY_TABLET
     const int result = audio_manager_get_input_mute(currentAudioInputDevice(), &muted);
     if (result != EOK) {
         emit const_cast<BbCameraMediaRecorderControl*>(this)->error(QMediaRecorder::ResourceError, tr("Unable to retrieve mute status"));
         return false;
     }
-
+#endif
     return muted;
 }
 
@@ -116,11 +121,13 @@ qreal BbCameraMediaRecorderControl::volume() const
 {
     double level = 0.0;
 
+#ifndef Q_OS_BLACKBERRY_TABLET
     const int result = audio_manager_get_input_level(currentAudioInputDevice(), &level);
     if (result != EOK) {
         emit const_cast<BbCameraMediaRecorderControl*>(this)->error(QMediaRecorder::ResourceError, tr("Unable to retrieve audio input volume"));
         return 0.0;
     }
+#endif
 
     return (level / 100);
 }
@@ -137,22 +144,26 @@ void BbCameraMediaRecorderControl::setState(QMediaRecorder::State state)
 
 void BbCameraMediaRecorderControl::setMuted(bool muted)
 {
+#ifndef Q_OS_BLACKBERRY_TABLET
     const int result = audio_manager_set_input_mute(currentAudioInputDevice(), muted);
     if (result != EOK) {
         emit error(QMediaRecorder::ResourceError, tr("Unable to set mute status"));
     } else {
         emit mutedChanged(muted);
     }
+#endif
 }
 
 void BbCameraMediaRecorderControl::setVolume(qreal volume)
 {
+#ifndef Q_OS_BLACKBERRY_TABLET
     const int result = audio_manager_set_input_level(currentAudioInputDevice(), (volume * 100));
     if (result != EOK) {
         emit error(QMediaRecorder::ResourceError, tr("Unable to set audio input volume"));
     } else {
         emit volumeChanged(volume);
     }
+#endif
 }
 
 QT_END_NAMESPACE

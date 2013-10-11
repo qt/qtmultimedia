@@ -139,6 +139,7 @@ QVariant BbCameraExposureControl::requestedValue(ExposureParameter parameter) co
 
 QVariant BbCameraExposureControl::actualValue(ExposureParameter parameter) const
 {
+#ifndef Q_OS_BLACKBERRY_TABLET
     if (parameter != QCameraExposureControl::ExposureMode) // no other parameter supported by BB10 API at the moment
         return QVariantList();
 
@@ -170,6 +171,9 @@ QVariant BbCameraExposureControl::actualValue(ExposureParameter parameter) const
     default:
         return QVariant();
     }
+#else
+    return QVariant();
+#endif
 }
 
 bool BbCameraExposureControl::setValue(ExposureParameter parameter, const QVariant& value)

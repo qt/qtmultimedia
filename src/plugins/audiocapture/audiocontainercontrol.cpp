@@ -42,6 +42,8 @@
 #include "audiocontainercontrol.h"
 #include "audiocapturesession.h"
 
+QT_BEGIN_NAMESPACE
+
 AudioContainerControl::AudioContainerControl(QObject *parent)
     :QMediaContainerControl(parent)
 {
@@ -54,7 +56,8 @@ AudioContainerControl::~AudioContainerControl()
 
 QStringList AudioContainerControl::supportedContainers() const
 {
-    return m_session->supportedContainers();
+    return QStringList() << QStringLiteral("audio/x-wav")
+                         << QStringLiteral("audio/x-raw");
 }
 
 QString AudioContainerControl::containerFormat() const
@@ -64,11 +67,18 @@ QString AudioContainerControl::containerFormat() const
 
 void AudioContainerControl::setContainerFormat(const QString &formatMimeType)
 {
-    m_session->setContainerFormat(formatMimeType);
+    if (formatMimeType.isEmpty() || supportedContainers().contains(formatMimeType))
+        m_session->setContainerFormat(formatMimeType);
 }
 
 QString AudioContainerControl::containerDescription(const QString &formatMimeType) const
 {
-    return m_session->containerDescription(formatMimeType);
+    if (QString::compare(formatMimeType, QLatin1String("audio/x-raw")) == 0)
+        return tr("RAW (headerless) file format");
+    if (QString::compare(formatMimeType, QLatin1String("audio/x-wav")) == 0)
+        return tr("WAV file format");
+
+    return QString();
 }
 
+QT_END_NAMESPACE
