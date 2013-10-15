@@ -428,6 +428,7 @@ int QAndroidCameraSession::capture(const QString &fileName)
         m_camera->requestPreviewFrame();
         m_camera->takePicture();
     } else {
+        //: Drive mode is the camera's shutter mode, for example single shot, continuos exposure, etc.
         emit imageCaptureError(m_lastImageCaptureId, QCameraImageCapture::NotSupportedFeatureError,
                                tr("Drive mode not supported"));
     }
