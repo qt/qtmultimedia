@@ -104,8 +104,8 @@ static QString errorToString(camera_error_t error)
         return QLatin1String("Camera in power down state");
     case CAMERA_3ALOCKED:
         return QLatin1String("3A have been locked");
-    case CAMERA_EVIEWFINDERFROZEN:
-        return QLatin1String("Freeze flag set");
+//  case CAMERA_EVIEWFINDERFROZEN: // not yet available in 10.2 NDK
+//      return QLatin1String("Freeze flag set");
 #endif
     default:
         return QLatin1String("Unknown error");
