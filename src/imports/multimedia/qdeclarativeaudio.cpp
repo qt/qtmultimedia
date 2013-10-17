@@ -183,8 +183,9 @@ void QDeclarativeAudio::setSource(const QUrl &url)
         return;
 
     m_source = url;
+    m_content = m_source.isEmpty() ? QMediaContent() : m_source;
     m_loaded = false;
-    if (m_complete && (m_autoLoad || url.isEmpty() || m_autoPlay)) {
+    if (m_complete && (m_autoLoad || m_content.isNull() || m_autoPlay)) {
         if (m_error != QMediaPlayer::ServiceMissingError && m_error != QMediaPlayer::NoError) {
             m_error = QMediaPlayer::NoError;
             m_errorString = QString();
@@ -192,7 +193,7 @@ void QDeclarativeAudio::setSource(const QUrl &url)
             emit errorChanged();
         }
 
-        m_player->setMedia(m_source, 0);
+        m_player->setMedia(m_content, 0);
         m_loaded = true;
     }
     else
@@ -245,7 +246,7 @@ void QDeclarativeAudio::setPlaybackState(QMediaPlayer::State playbackState)
         switch (playbackState){
         case (QMediaPlayer::PlayingState):
             if (!m_loaded) {
-                m_player->setMedia(m_source, 0);
+                m_player->setMedia(m_content, 0);
                 m_player->setPosition(m_position);
                 m_loaded = true;
             }
@@ -254,7 +255,7 @@ void QDeclarativeAudio::setPlaybackState(QMediaPlayer::State playbackState)
 
         case (QMediaPlayer::PausedState):
             if (!m_loaded) {
-                m_player->setMedia(m_source, 0);
+                m_player->setMedia(m_content, 0);
                 m_player->setPosition(m_position);
                 m_loaded = true;
             }
@@ -681,8 +682,8 @@ void QDeclarativeAudio::componentComplete()
     if (!qFuzzyCompare(m_playbackRate, qreal(1.0)))
         m_player->setPlaybackRate(m_playbackRate);
 
-    if (!m_source.isEmpty() && (m_autoLoad || m_autoPlay)) {
-        m_player->setMedia(m_source, 0);
+    if (!m_content.isNull() && (m_autoLoad || m_autoPlay)) {
+        m_player->setMedia(m_content, 0);
         m_loaded = true;
         if (m_position > 0)
             m_player->setPosition(m_position);
@@ -691,7 +692,7 @@ void QDeclarativeAudio::componentComplete()
     m_complete = true;
 
     if (m_autoPlay) {
-        if (m_source.isEmpty()) {
+        if (m_content.isNull()) {
             m_player->stop();
         } else {
             m_player->play();
