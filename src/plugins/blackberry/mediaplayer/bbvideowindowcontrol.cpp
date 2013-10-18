@@ -196,7 +196,7 @@ void BbVideoWindowControl::attachDisplay(mmr_context_t *context)
         return;
     }
 
-    QWindow * const window = findWindow(m_winId);
+    QWindow *window = findWindow(m_winId);
     if (!window) {
         qDebug() << "BbVideoWindowControl: No video window!";
         return;
@@ -218,6 +218,10 @@ void BbVideoWindowControl::attachDisplay(mmr_context_t *context)
     const QString groupName = QString::fromLatin1(groupNameData);
     m_windowName = QString("BbVideoWindowControl_%1_%2").arg(winIdCounter++)
                                                         .arg(QCoreApplication::applicationPid());
+
+    nativeInterface->setWindowProperty(window->handle(),
+            QStringLiteral("mmRendererWindowName"), m_windowName);
+
     // Start with an invisible window. If it would be visible right away, it would be at the wrong
     // position, and we can only change the position once we get the window handle.
     const QString videoDeviceUrl =
