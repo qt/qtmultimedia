@@ -637,13 +637,15 @@ void BbCameraSession::applyVideoSettings()
 
     const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
 
+    const int rotationAngle = (360 - m_nativeCameraOrientation);
+
     camera_error_t result = CAMERA_EOK;
     result = camera_set_videovf_property(m_handle,
                                          CAMERA_IMGPROP_WIN_GROUPID, windowGroupId.data(),
                                          CAMERA_IMGPROP_WIN_ID, windowId.data(),
                                          CAMERA_IMGPROP_WIDTH, viewfinderResolution.width(),
                                          CAMERA_IMGPROP_HEIGHT, viewfinderResolution.height(),
-                                         CAMERA_IMGPROP_ROTATION, 360 - m_nativeCameraOrientation);
+                                         CAMERA_IMGPROP_ROTATION, rotationAngle);
 
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to apply video viewfinder settings:" << result;
@@ -683,9 +685,11 @@ void BbCameraSession::applyVideoSettings()
         cameraAudioCodec = CAMERA_AUDIOCODEC_AAC;
     else if (audioCodec == QLatin1String("raw"))
         cameraAudioCodec = CAMERA_AUDIOCODEC_RAW;
+
     result = camera_set_video_property(m_handle,
                                        CAMERA_IMGPROP_WIDTH, resolution.width(),
                                        CAMERA_IMGPROP_HEIGHT, resolution.height(),
+                                       CAMERA_IMGPROP_ROTATION, rotationAngle,
                                        CAMERA_IMGPROP_VIDEOCODEC, cameraVideoCodec,
                                        CAMERA_IMGPROP_AUDIOCODEC, cameraAudioCodec);
 #else
