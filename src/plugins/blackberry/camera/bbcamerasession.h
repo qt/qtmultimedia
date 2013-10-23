@@ -176,13 +176,13 @@ private slots:
     void deviceOrientationChanged(int);
     void handleCameraPowerUp();
     void viewfinderFrameGrabbed(const QImage &image);
+    void applyConfiguration();
 
 private:
     bool openCamera();
     void closeCamera();
     bool startViewFinder();
     void stopViewFinder();
-    void applyConfiguration();
     bool startVideoRecording();
     void stopVideoRecording();
 

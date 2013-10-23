@@ -165,10 +165,8 @@ void BbCameraSession::setState(QCamera::State state)
             }
         } else if (state == QCamera::ActiveState) {
             if (openCamera()) {
-                applyConfiguration();
-                if (startViewFinder()) {
-                    m_state = state;
-                }
+                QMetaObject::invokeMethod(this, "applyConfiguration", Qt::QueuedConnection);
+                m_state = state;
             }
         }
     } else if (previousState == QCamera::LoadedState) {
@@ -176,10 +174,8 @@ void BbCameraSession::setState(QCamera::State state)
             closeCamera();
             m_state = state;
         } else if (state == QCamera::ActiveState) {
-            applyConfiguration();
-            if (startViewFinder()) {
-                m_state = state;
-            }
+            QMetaObject::invokeMethod(this, "applyConfiguration", Qt::QueuedConnection);
+            m_state = state;
         }
     } else if (previousState == QCamera::ActiveState) {
         if (state == QCamera::LoadedState) {
@@ -1157,6 +1153,8 @@ void BbCameraSession::applyConfiguration()
     } else if (m_captureMode & QCamera::CaptureVideo) {
         applyVideoSettings();
     }
+
+    startViewFinder();
 }
 
 static void videoRecordingStatusCallback(camera_handle_t handle, camera_devstatus_t status, uint16_t value, void *context)
