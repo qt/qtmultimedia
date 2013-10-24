@@ -105,20 +105,6 @@ public:
     QImageEncoderSettings imageSettings() const;
     void setImageSettings(const QImageEncoderSettings &settings);
 
-    // locks control
-    enum LocksApplyMode
-    {
-        IndependentMode,
-        FocusExposureBoundMode,
-        AllBoundMode,
-        FocusOnlyMode
-    };
-
-    QCamera::LockTypes supportedLocks() const;
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const;
-    void searchAndLock(QCamera::LockTypes locks);
-    void unlock(QCamera::LockTypes locks);
-
     // media recorder control
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
@@ -157,9 +143,6 @@ Q_SIGNALS:
     // capture destination control
     void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
 
-    // locks control
-    void lockStatusChanged(QCamera::LockType type, QCamera::LockStatus status, QCamera::LockChangeReason reason);
-
     // media recorder control
     void videoStateChanged(QMediaRecorder::State state);
     void videoStatusChanged(QMediaRecorder::Status status);
@@ -167,10 +150,12 @@ Q_SIGNALS:
     void actualLocationChanged(const QUrl &location);
     void videoError(int error, const QString &errorString);
 
+    void cameraOpened();
+    void focusStatusChanged(int status);
+
 private slots:
     void updateReadyForCapture();
     void imageCaptured(int, const QImage&, const QString&);
-    void handleFocusStatusChanged(int);
     void handleVideoRecordingPaused();
     void handleVideoRecordingResumed();
     void deviceOrientationChanged(int);
@@ -209,10 +194,6 @@ private:
     QCameraImageCapture::CaptureDestinations m_captureDestination;
 
     QImageEncoderSettings m_imageEncoderSettings;
-
-    LocksApplyMode m_locksApplyMode;
-    QCamera::LockStatus m_focusLockStatus;
-    QCamera::LockTypes m_currentLockTypes;
 
     QString m_videoOutputLocation;
     QMediaRecorder::State m_videoState;

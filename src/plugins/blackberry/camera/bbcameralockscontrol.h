@@ -51,6 +51,14 @@ class BbCameraLocksControl : public QCameraLocksControl
 {
     Q_OBJECT
 public:
+    enum LocksApplyMode
+    {
+        IndependentMode,
+        FocusExposureBoundMode,
+        AllBoundMode,
+        FocusOnlyMode
+    };
+
     explicit BbCameraLocksControl(BbCameraSession *session, QObject *parent = 0);
 
     QCamera::LockTypes supportedLocks() const Q_DECL_OVERRIDE;
@@ -58,8 +66,19 @@ public:
     void searchAndLock(QCamera::LockTypes locks) Q_DECL_OVERRIDE;
     void unlock(QCamera::LockTypes locks) Q_DECL_OVERRIDE;
 
+private Q_SLOTS:
+    void cameraOpened();
+    void focusStatusChanged(int value);
+
 private:
     BbCameraSession *m_session;
+
+    LocksApplyMode m_locksApplyMode;
+    QCamera::LockStatus m_focusLockStatus;
+    QCamera::LockStatus m_exposureLockStatus;
+    QCamera::LockStatus m_whiteBalanceLockStatus;
+    QCamera::LockTypes m_currentLockTypes;
+    QCamera::LockTypes m_supportedLockTypes;
 };
 
 QT_END_NAMESPACE

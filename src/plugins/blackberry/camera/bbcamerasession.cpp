@@ -121,8 +121,6 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_captureImageDriveMode(QCameraImageCapture::SingleImageCapture)
     , m_lastImageCaptureId(0)
     , m_captureDestination(QCameraImageCapture::CaptureToFile)
-    , m_locksApplyMode(IndependentMode)
-    , m_focusLockStatus(QCamera::Unlocked)
     , m_videoState(QMediaRecorder::StoppedState)
     , m_videoStatus(QMediaRecorder::LoadedStatus)
     , m_handle(CAMERA_HANDLE_INVALID)
@@ -444,95 +442,6 @@ void BbCameraSession::setImageSettings(const QImageEncoderSettings &settings)
         m_imageEncoderSettings.setCodec(QLatin1String("jpeg"));
 }
 
-QCamera::LockTypes BbCameraSession::supportedLocks() const
-{
-    if (m_locksApplyMode == FocusOnlyMode)
-        return QCamera::LockFocus;
-    else
-        return (QCamera::LockExposure | QCamera::LockWhiteBalance | QCamera::LockFocus);
-}
-
-QCamera::LockStatus BbCameraSession::lockStatus(QCamera::LockType lock) const
-{
-    switch (lock) {
-    case QCamera::LockExposure:
-        return QCamera::Unlocked;
-    case QCamera::LockWhiteBalance:
-        return QCamera::Unlocked;
-    case QCamera::LockFocus:
-        return m_focusLockStatus;
-    default:
-        return QCamera::Unlocked;
-    }
-}
-
-void BbCameraSession::searchAndLock(QCamera::LockTypes locks)
-{
-    m_currentLockTypes |= locks;
-
-    uint32_t lockModes = CAMERA_3A_NONE;
-
-    switch (m_locksApplyMode) {
-    case IndependentMode:
-        if (m_currentLockTypes & QCamera::LockExposure)
-            lockModes |= CAMERA_3A_AUTOEXPOSURE;
-        if (m_currentLockTypes & QCamera::LockWhiteBalance)
-            lockModes |= CAMERA_3A_AUTOWHITEBALANCE;
-        if (m_currentLockTypes & QCamera::LockFocus)
-            lockModes |= CAMERA_3A_AUTOFOCUS;
-        break;
-    case FocusExposureBoundMode:
-        if ((m_currentLockTypes & QCamera::LockExposure) || (m_currentLockTypes & QCamera::LockFocus))
-            lockModes = (CAMERA_3A_AUTOEXPOSURE | CAMERA_3A_AUTOFOCUS);
-        break;
-    case AllBoundMode:
-            lockModes = (CAMERA_3A_AUTOEXPOSURE | CAMERA_3A_AUTOFOCUS | CAMERA_3A_AUTOWHITEBALANCE);
-        break;
-    case FocusOnlyMode:
-            lockModes = CAMERA_3A_AUTOFOCUS;
-        break;
-    }
-
-    const camera_error_t result = camera_set_3a_lock(m_handle, lockModes);
-
-    if (result != CAMERA_EOK) {
-        qWarning() << "Unable to set lock modes:" << result;
-    }
-}
-
-void BbCameraSession::unlock(QCamera::LockTypes locks)
-{
-    m_currentLockTypes &= ~locks;
-
-    uint32_t lockModes = CAMERA_3A_NONE;
-
-    switch (m_locksApplyMode) {
-    case IndependentMode:
-        if (m_currentLockTypes & QCamera::LockExposure)
-            lockModes |= CAMERA_3A_AUTOEXPOSURE;
-        if (m_currentLockTypes & QCamera::LockWhiteBalance)
-            lockModes |= CAMERA_3A_AUTOWHITEBALANCE;
-        if (m_currentLockTypes & QCamera::LockFocus)
-            lockModes |= CAMERA_3A_AUTOFOCUS;
-        break;
-    case FocusExposureBoundMode:
-        if ((m_currentLockTypes & QCamera::LockExposure) || (m_currentLockTypes & QCamera::LockFocus))
-            lockModes = (CAMERA_3A_AUTOEXPOSURE | CAMERA_3A_AUTOFOCUS);
-        break;
-    case AllBoundMode:
-            lockModes = (CAMERA_3A_AUTOEXPOSURE | CAMERA_3A_AUTOFOCUS | CAMERA_3A_AUTOWHITEBALANCE);
-        break;
-    case FocusOnlyMode:
-            lockModes = CAMERA_3A_AUTOFOCUS;
-        break;
-    }
-
-    const camera_error_t result = camera_set_3a_lock(m_handle, lockModes);
-
-    if (result != CAMERA_EOK)
-        qWarning() << "Unable to set lock modes:" << result;
-}
-
 QUrl BbCameraSession::outputLocation() const
 {
     return QUrl::fromLocalFile(m_videoOutputLocation);
@@ -822,37 +731,6 @@ void BbCameraSession::imageCaptured(int requestId, const QImage &rawImage, const
     }
 }
 
-void BbCameraSession::handleFocusStatusChanged(int value)
-{
-    const camera_focusstate_t focusState = static_cast<camera_focusstate_t>(value);
-
-    switch (focusState) {
-    case CAMERA_FOCUSSTATE_NONE:
-    case CAMERA_FOCUSSTATE_WAITING:
-        m_focusLockStatus = QCamera::Unlocked;
-        emit lockStatusChanged(QCamera::LockFocus, QCamera::Unlocked, QCamera::UserRequest);
-        break;
-    case CAMERA_FOCUSSTATE_SEARCHING:
-        m_focusLockStatus = QCamera::Searching;
-        emit lockStatusChanged(QCamera::LockFocus, QCamera::Searching, QCamera::UserRequest);
-        break;
-    case CAMERA_FOCUSSTATE_FAILED:
-        m_focusLockStatus = QCamera::Unlocked;
-        emit lockStatusChanged(QCamera::LockFocus, QCamera::Unlocked, QCamera::LockFailed);
-        break;
-    case CAMERA_FOCUSSTATE_LOCKED:
-        m_focusLockStatus = QCamera::Locked;
-        emit lockStatusChanged(QCamera::LockFocus, QCamera::Locked, QCamera::LockAcquired);
-        break;
-    case CAMERA_FOCUSSTATE_SCENECHANGE:
-        m_focusLockStatus = QCamera::Unlocked;
-        emit lockStatusChanged(QCamera::LockFocus, QCamera::Unlocked, QCamera::LockTemporaryLost);
-        break;
-    default:
-        break;
-    }
-}
-
 void BbCameraSession::handleVideoRecordingPaused()
 {
     //TODO: implement once BB10 API supports pausing a video
@@ -942,6 +820,8 @@ bool BbCameraSession::openCamera()
     m_status = QCamera::LoadedStatus;
     emit statusChanged(m_status);
 
+    emit cameraOpened();
+
     return true;
 }
 
@@ -975,7 +855,7 @@ static void viewFinderStatusCallback(camera_handle_t handle, camera_devstatus_t 
 
     if (status == CAMERA_STATUS_FOCUS_CHANGE) {
         BbCameraSession *session = static_cast<BbCameraSession*>(context);
-        QMetaObject::invokeMethod(session, "handleFocusStatusChanged", Qt::QueuedConnection, Q_ARG(int, value));
+        QMetaObject::invokeMethod(session, "focusStatusChanged", Qt::QueuedConnection, Q_ARG(int, value));
         return;
     }
 #ifndef Q_OS_BLACKBERRY_TABLET
@@ -1004,28 +884,6 @@ bool BbCameraSession::startViewFinder()
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to start viewfinder:" << result;
         return false;
-    }
-
-    // retrieve information about lock apply modes
-    {
-        int supported = 0;
-        uint32_t modes[20];
-
-        const camera_error_t result = camera_get_3a_lock_modes(m_handle, 20, &supported, modes);
-
-        if (result == CAMERA_EOK) {
-            // see API documentation of camera_get_3a_lock_modes for explanation of case discrimination below
-            if (supported == 4) {
-                m_locksApplyMode = IndependentMode;
-            } else if (supported == 3) {
-                m_locksApplyMode = FocusExposureBoundMode;
-            } else if (supported == 2) {
-                if (modes[0] == (CAMERA_3A_AUTOFOCUS | CAMERA_3A_AUTOEXPOSURE | CAMERA_3A_AUTOWHITEBALANCE))
-                    m_locksApplyMode = AllBoundMode;
-                else
-                    m_locksApplyMode = FocusOnlyMode;
-            }
-        }
     }
 
     const int angle = m_orientationHandler->orientation();
