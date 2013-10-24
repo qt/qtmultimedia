@@ -521,17 +521,66 @@ STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount,
     if (!m_sample)
         return MF_E_TRANSFORM_NEED_MORE_INPUT;
 
-    if (pOutputSamples[0].pSample)
-        pOutputSamples[0].pSample->Release();
+    IMFMediaBuffer *input = NULL;
+    IMFMediaBuffer *output = NULL;
 
-    pOutputSamples[0].pSample = m_sample;
-    pOutputSamples[0].pSample->AddRef();
+    DWORD sampleLength = 0;
+    m_sample->GetTotalLength(&sampleLength);
 
+    // If the sample length is null, it means we're getting DXVA buffers.
+    // In that case just pass on the sample we got as input.
+    // Otherwise we need to copy the input buffer into the buffer the sink
+    // is giving us.
+    if (pOutputSamples[0].pSample && sampleLength > 0) {
+
+        if (FAILED(m_sample->ConvertToContiguousBuffer(&input)))
+            goto done;
+
+        if (FAILED(pOutputSamples[0].pSample->ConvertToContiguousBuffer(&output)))
+            goto done;
+
+        DWORD inputLength = 0;
+        DWORD outputLength = 0;
+        input->GetMaxLength(&inputLength);
+        output->GetMaxLength(&outputLength);
+
+        if (outputLength < inputLength) {
+            pOutputSamples[0].pSample->RemoveAllBuffers();
+            output->Release();
+            output = NULL;
+            if (SUCCEEDED(MFCreateMemoryBuffer(inputLength, &output)))
+                pOutputSamples[0].pSample->AddBuffer(output);
+        }
+
+        if (output)
+            m_sample->CopyToBuffer(output);
+
+        LONGLONG hnsDuration = 0;
+        LONGLONG hnsTime = 0;
+        if (SUCCEEDED(m_sample->GetSampleDuration(&hnsDuration)))
+            pOutputSamples[0].pSample->SetSampleDuration(hnsDuration);
+        if (SUCCEEDED(m_sample->GetSampleTime(&hnsTime)))
+            pOutputSamples[0].pSample->SetSampleTime(hnsTime);
+
+
+    } else {
+        if (pOutputSamples[0].pSample)
+            pOutputSamples[0].pSample->Release();
+        pOutputSamples[0].pSample = m_sample;
+        pOutputSamples[0].pSample->AddRef();
+    }
+
+done:
     pOutputSamples[0].dwStatus = 0;
     *pdwStatus = 0;
 
     m_sample->Release();
     m_sample = 0;
+
+    if (input)
+        input->Release();
+    if (output)
+        output->Release();
 
     return S_OK;
 }

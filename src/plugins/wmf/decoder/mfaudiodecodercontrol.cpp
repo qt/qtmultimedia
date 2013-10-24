@@ -125,7 +125,12 @@ void MFAudioDecoderControl::setSourceFilename(const QString &fileName)
     if (!m_sourceFilename.isEmpty()) {
         m_sourceResolver->shutdown();
         QMediaResourceList rl;
-        rl.push_back(QMediaResource(QUrl::fromLocalFile(m_sourceFilename)));
+        QUrl url;
+        if (m_sourceFilename.startsWith(':'))
+            url = QUrl(QStringLiteral("qrc%1").arg(m_sourceFilename));
+        else
+            url = QUrl::fromLocalFile(m_sourceFilename);
+        rl.push_back(QMediaResource(url));
         m_sourceResolver->load(rl, 0);
         m_loadingSource = true;
     } else {

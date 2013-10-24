@@ -257,6 +257,7 @@ private:
     QMediaPlayer::Error m_error;
     QString m_errorString;
     QUrl m_source;
+    QMediaContent m_content;
 
     QScopedPointer<QDeclarativeMediaMetaData> m_metaData;
 
