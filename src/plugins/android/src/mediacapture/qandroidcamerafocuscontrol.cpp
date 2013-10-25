@@ -238,6 +238,10 @@ void QAndroidCameraFocusControl::updateFocusZones(QCameraFocusZone::FocusZoneSta
         return;
 
     QSize viewportSize = m_session->camera()->previewSize();
+
+    if (!viewportSize.isValid())
+        return;
+
     QSizeF focusSize(50.f / viewportSize.width(), 50.f / viewportSize.height());
     float x = qBound(qreal(0),
                      m_actualFocusPoint.x() - (focusSize.width() / 2),

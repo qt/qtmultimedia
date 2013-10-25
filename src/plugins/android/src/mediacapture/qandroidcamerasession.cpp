@@ -205,8 +205,11 @@ void QAndroidCameraSession::adjustViewfinderSize(const QSize &captureSize, bool 
 
     QSize viewfinderResolution = m_camera->previewSize();
     const qreal aspectRatio = qreal(captureSize.width()) / qreal(captureSize.height());
-    if (qFuzzyCompare(aspectRatio, qreal(viewfinderResolution.width()) / qreal(viewfinderResolution.height())))
+    if (viewfinderResolution.isValid() &&
+            qFuzzyCompare(aspectRatio,
+                          qreal(viewfinderResolution.width()) / viewfinderResolution.height())) {
         return;
+    }
 
     QList<QSize> previewSizes = m_camera->getSupportedPreviewSizes();
     for (int i = previewSizes.count() - 1; i >= 0; --i) {
@@ -270,6 +273,7 @@ void QAndroidCameraSession::stopPreview()
     JMultimediaUtils::enableOrientationListener(false);
 
     m_camera->stopPreview();
+    m_camera->setPreviewSize(QSize());
     if (m_videoOutput)
         m_videoOutput->stop();
     m_previewStarted = false;
