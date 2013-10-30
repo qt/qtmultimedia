@@ -323,7 +323,7 @@ void tst_QAudioFormat::debugOperator_data()
 
     // A small sampling
     QAudioFormat f;
-    QTest::newRow("plain") << f << QString::fromLatin1("QAudioFormat(-1Hz, -1bit, channelCount=-1, sampleType=Unknown, byteOrder=LittleEndian, codec=\"\") ");
+    QTest::newRow("plain") << f << QString::fromLatin1("QAudioFormat(-1Hz, -1bit, channelCount=-1, sampleType=Unknown, byteOrder=LittleEndian, codec=\"\")");
 
     f.setSampleRate(22050);
     f.setByteOrder(QAudioFormat::LittleEndian);
@@ -331,16 +331,16 @@ void tst_QAudioFormat::debugOperator_data()
     f.setCodec("audio/pcm");
     f.setSampleType(QAudioFormat::Float);
 
-    QTest::newRow("float") << f << QString::fromLatin1("QAudioFormat(22050Hz, -1bit, channelCount=4, sampleType=Float, byteOrder=LittleEndian, codec=\"audio/pcm\") ");
+    QTest::newRow("float") << f << QString::fromLatin1("QAudioFormat(22050Hz, -1bit, channelCount=4, sampleType=Float, byteOrder=LittleEndian, codec=\"audio/pcm\")");
 
     f.setSampleType(QAudioFormat::UnSignedInt);
-    QTest::newRow("unsigned") << f << QString::fromLatin1("QAudioFormat(22050Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=LittleEndian, codec=\"audio/pcm\") ");
+    QTest::newRow("unsigned") << f << QString::fromLatin1("QAudioFormat(22050Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=LittleEndian, codec=\"audio/pcm\")");
 
     f.setSampleRate(44100);
-    QTest::newRow("44.1 unsigned") << f << QString::fromLatin1("QAudioFormat(44100Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=LittleEndian, codec=\"audio/pcm\") ");
+    QTest::newRow("44.1 unsigned") << f << QString::fromLatin1("QAudioFormat(44100Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=LittleEndian, codec=\"audio/pcm\")");
 
     f.setByteOrder(QAudioFormat::BigEndian);
-    QTest::newRow("44.1 big unsigned") << f << QString::fromLatin1("QAudioFormat(44100Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=BigEndian, codec=\"audio/pcm\") ");
+    QTest::newRow("44.1 big unsigned") << f << QString::fromLatin1("QAudioFormat(44100Hz, -1bit, channelCount=4, sampleType=UnSignedInt, byteOrder=BigEndian, codec=\"audio/pcm\")");
 }
 
 void tst_QAudioFormat::debugOperator()

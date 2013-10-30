@@ -999,7 +999,7 @@ void tst_QVideoSurfaceFormat::debugOperator()
         "     frameRate  =  QVariant(%7, %8) \n"
         "     pixelAspectRatio  =  QVariant(QSize, QSize(320, 200) ) \n"
         "     sizeHint  =  QVariant(QSize, QSize(1280, 600) ) \n"
-        "     yCbCrColorSpace  =  QVariant(QVideoSurfaceFormat::YCbCrColorSpace, )  ")
+        "     yCbCrColorSpace  =  QVariant(QVideoSurfaceFormat::YCbCrColorSpace, ) ")
             .arg(formatString)
             .arg(frameSize.width())
             .arg(frameSize.height())
