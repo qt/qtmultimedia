@@ -8,13 +8,13 @@ QT = core multimedia-private gui-private
 
 unix:!maemo*:contains(QT_CONFIG, alsa) {
 DEFINES += HAVE_ALSA
-LIBS += \
+LIBS_PRIVATE += \
     -lasound
 }
 
 CONFIG += link_pkgconfig
 
-PKGCONFIG += \
+PKGCONFIG_PRIVATE += \
     gstreamer-0.10 \
     gstreamer-base-0.10 \
     gstreamer-interfaces-0.10 \
@@ -22,11 +22,11 @@ PKGCONFIG += \
     gstreamer-video-0.10 \
     gstreamer-pbutils-0.10
 
-maemo*:PKGCONFIG +=gstreamer-plugins-bad-0.10
+maemo*: PKGCONFIG_PRIVATE +=gstreamer-plugins-bad-0.10
 
 config_resourcepolicy {
     DEFINES += HAVE_RESOURCE_POLICY
-    PKGCONFIG += libresourceqt5
+    PKGCONFIG_PRIVATE += libresourceqt5
 }
 
 # Header files must go inside source directory of a module
@@ -79,24 +79,24 @@ qtHaveModule(widgets) {
 }
 
 maemo6 {
-    PKGCONFIG += qmsystem2
+    PKGCONFIG_PRIVATE += qmsystem2
 
     contains(QT_CONFIG, opengles2):qtHaveModule(widgets) {
         PRIVATE_HEADERS += qgstreamergltexturerenderer_p.h
         SOURCES += qgstreamergltexturerenderer.cpp
         QT += opengl
-        LIBS += -lEGL -lgstmeegointerfaces-0.10
+        LIBS_PRIVATE += -lEGL -lgstmeegointerfaces-0.10
     }
 }
 
 config_gstreamer_appsrc {
-    PKGCONFIG += gstreamer-app-0.10
+    PKGCONFIG_PRIVATE += gstreamer-app-0.10
     PRIVATE_HEADERS += qgstappsrc_p.h
     SOURCES += qgstappsrc.cpp
 
     DEFINES += HAVE_GST_APPSRC
 
-    LIBS += -lgstapp-0.10
+    LIBS_PRIVATE += -lgstapp-0.10
 }
 
 HEADERS += $$PRIVATE_HEADERS

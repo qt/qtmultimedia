@@ -65,6 +65,6 @@ MODULE_PLUGIN_TYPES = \
     audio \
     video/videonode
 
-win32:LIBS += -luuid
+win32: LIBS_PRIVATE += -luuid
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
