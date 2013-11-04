@@ -46,7 +46,6 @@
 #include <screen/screen.h>
 
 typedef struct mmr_context mmr_context_t;
-struct bps_event_t;
 
 QT_BEGIN_NAMESPACE
 
@@ -91,7 +90,7 @@ public:
     void detachDisplay();
     void attachDisplay(mmr_context_t *context);
     void setMetaData(const BbMetaData &metaData);
-    void bpsEventHandler(bps_event_t *event);
+    void screenEventHandler(const screen_event_t &event);
 
 private:
     QWindow *findWindow(WId id) const;

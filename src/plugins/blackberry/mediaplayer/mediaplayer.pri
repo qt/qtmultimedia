@@ -19,3 +19,13 @@ SOURCES += \
     $$PWD/bbvideowindowcontrol.cpp
 
 LIBS += -lmmrndclient -lstrm
+
+blackberry {
+    HEADERS += $$PWD/bpsmediaplayercontrol.h
+    SOURCES += $$PWD/bpsmediaplayercontrol.cpp
+} else {
+    HEADERS += $$PWD/ppsmediaplayercontrol.h
+    SOURCES += $$PWD/ppsmediaplayercontrol.cpp
+    QT += core-private
+    LIBS += -lpps
+}

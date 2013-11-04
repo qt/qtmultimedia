@@ -7,13 +7,16 @@ load(qt_plugin)
 
 LIBS += -lscreen
 
-HEADERS += bbserviceplugin.h
-SOURCES += bbserviceplugin.cpp
-
 include(common/common.pri)
-
-include(camera/camera.pri)
-
 include(mediaplayer/mediaplayer.pri)
 
-OTHER_FILES += blackberry_mediaservice.json
+blackberry {
+    include(camera/camera.pri)
+    HEADERS += bbserviceplugin.h
+    SOURCES += bbserviceplugin.cpp
+    OTHER_FILES += blackberry_mediaservice.json
+} else {
+    HEADERS += neutrinoserviceplugin.h
+    SOURCES += neutrinoserviceplugin.cpp
+    OTHER_FILES += neutrino_mediaservice.json
+}

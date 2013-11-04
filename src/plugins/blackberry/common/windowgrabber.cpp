@@ -47,7 +47,10 @@
 #include <QImage>
 #include <qpa/qplatformnativeinterface.h>
 
+#ifdef Q_OS_BLACKBERRY
+#include <bps/event.h>
 #include <bps/screen.h>
+#endif
 #include <errno.h>
 
 QT_BEGIN_NAMESPACE
@@ -232,40 +235,55 @@ void WindowGrabber::resume()
     m_timer.start();
 }
 
-bool WindowGrabber::nativeEventFilter(const QByteArray&, void *message, long*)
+bool WindowGrabber::handleScreenEvent(screen_event_t screen_event)
 {
+
+    int eventType;
+    if (screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_TYPE, &eventType) != 0) {
+        qWarning() << "WindowGrabber: Failed to query screen event type";
+        return false;
+    }
+
+    if (eventType != SCREEN_EVENT_CREATE)
+        return false;
+
+    screen_window_t window = 0;
+    if (screen_get_event_property_pv(screen_event, SCREEN_PROPERTY_WINDOW, (void**)&window) != 0) {
+        qWarning() << "WindowGrabber: Failed to query window property";
+        return false;
+    }
+
+    const int maxIdStrLength = 128;
+    char idString[maxIdStrLength];
+    if (screen_get_window_property_cv(window, SCREEN_PROPERTY_ID_STRING, maxIdStrLength, idString) != 0) {
+        qWarning() << "WindowGrabber: Failed to query window ID string";
+        return false;
+    }
+
+    if (m_windowId == idString) {
+        m_window = window;
+        start();
+    }
+
+    return false;
+}
+
+bool WindowGrabber::nativeEventFilter(const QByteArray &eventType, void *message, long*)
+{
+#ifdef Q_OS_BLACKBERRY
+    Q_UNUSED(eventType)
     bps_event_t * const event = static_cast<bps_event_t *>(message);
 
     if (event && bps_event_get_domain(event) == screen_get_domain()) {
         const screen_event_t screen_event = screen_event_get_event(event);
-
-        int eventType;
-        if (screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_TYPE, &eventType) != 0) {
-            qWarning() << "WindowGrabber: Failed to query screen event type";
-            return false;
-        }
-
-        if (eventType != SCREEN_EVENT_CREATE)
-            return false;
-
-        screen_window_t window = 0;
-        if (screen_get_event_property_pv(screen_event, SCREEN_PROPERTY_WINDOW, (void**)&window) != 0) {
-            qWarning() << "WindowGrabber: Failed to query window property";
-            return false;
-        }
-
-        const int maxIdStrLength = 128;
-        char idString[maxIdStrLength];
-        if (screen_get_window_property_cv(window, SCREEN_PROPERTY_ID_STRING, maxIdStrLength, idString) != 0) {
-            qWarning() << "WindowGrabber: Failed to query window ID string";
-            return false;
-        }
-
-        if (m_windowId == idString) {
-            m_window = window;
-            start();
-        }
+        return handleScreenEvent(screen_event);
     }
+#else
+    if (eventType == "screen_event_t") {
+        const screen_event_t event = static_cast<screen_event_t>(message);
+        return handleScreenEvent(event);
+    }
+#endif
 
     return false;
 }

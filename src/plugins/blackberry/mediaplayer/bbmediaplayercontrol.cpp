@@ -49,8 +49,7 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/quuid.h>
 #include <mm/renderer.h>
-#include <bps/mmrenderer.h>
-#include <bps/screen.h>
+
 #include <errno.h>
 #include <sys/strm.h>
 #include <sys/stat.h>
@@ -69,7 +68,6 @@ BbMediaPlayerControl::BbMediaPlayerControl(QObject *parent)
       m_muted(false),
       m_rate(1),
       m_id(-1),
-      m_eventMonitor(0),
       m_position(0),
       m_mediaStatus(QMediaPlayer::NoMedia),
       m_playAfterMediaLoaded(false),
@@ -81,10 +79,9 @@ BbMediaPlayerControl::BbMediaPlayerControl(QObject *parent)
     m_loadingTimer.setInterval(0);
     connect(&m_loadingTimer, SIGNAL(timeout()), this, SLOT(continueLoadMedia()));
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
-    openConnection();
 }
 
-BbMediaPlayerControl::~BbMediaPlayerControl()
+void BbMediaPlayerControl::destroy()
 {
     stop();
     detach();
@@ -111,19 +108,41 @@ void BbMediaPlayerControl::openConnection()
         return;
     }
 
-    m_eventMonitor = mmrenderer_request_events(m_contextName.toLatin1(), 0, m_id);
-    if (!m_eventMonitor) {
-        qDebug() << "Unable to request multimedia events";
-        emit error(0, "Unable to request multimedia events");
+    startMonitoring(m_id, m_contextName);
+}
+
+void BbMediaPlayerControl::handleMmStatusUpdate(qint64 newPosition)
+{
+    // Prevent spurious position change events from overriding our own position, for example
+    // when setting the position to 0 in stop().
+    // Also, don't change the position while we're loading the media, as then play() would
+    // set a wrong initial position.
+    if (m_state != QMediaPlayer::PlayingState ||
+        m_mediaStatus == QMediaPlayer::LoadingMedia ||
+        m_mediaStatus == QMediaPlayer::NoMedia ||
+        m_mediaStatus == QMediaPlayer::InvalidMedia)
+        return;
+
+    setMmPosition(newPosition);
+}
+
+void BbMediaPlayerControl::handleMmStopped()
+{
+    // Only react to stop events that happen when the end of the stream is reached and
+    // playback is stopped because of this.
+    // Ignore other stop event sources, souch as calling mmr_stop() ourselves and
+    // mmr_input_attach().
+    if (m_stopEventsToIgnore > 0) {
+        --m_stopEventsToIgnore;
+    } else {
+        setMediaStatus(QMediaPlayer::EndOfMedia);
+        stopInternal(IgnoreMmRenderer);
     }
 }
 
 void BbMediaPlayerControl::closeConnection()
 {
-    if (m_eventMonitor) {
-        mmrenderer_stop_events(m_eventMonitor);
-        m_eventMonitor = 0;
-    }
+    stopMonitoring();
 
     if (m_context) {
         mmr_context_destroy(m_context);
@@ -468,6 +487,16 @@ void BbMediaPlayerControl::continueLoadMedia()
         play();
 }
 
+QString BbMediaPlayerControl::contextName() const
+{
+    return m_contextName;
+}
+
+BbVideoWindowControl *BbMediaPlayerControl::videoWindowControl() const
+{
+    return m_videoWindowControl;
+}
+
 void BbMediaPlayerControl::play()
 {
     if (m_playAfterMediaLoaded)
@@ -526,6 +555,11 @@ void BbMediaPlayerControl::stop()
     stopInternal(StopMmRenderer);
 }
 
+BbPlayerVideoRendererControl *BbMediaPlayerControl::videoRendererControl() const
+{
+    return m_videoRendererControl;
+}
+
 void BbMediaPlayerControl::setVideoRendererControl(BbPlayerVideoRendererControl *videoControl)
 {
     m_videoRendererControl = videoControl;
@@ -541,71 +575,25 @@ void BbMediaPlayerControl::setMetaDataReaderControl(BbMetaDataReaderControl *met
     m_metaDataReaderControl = metaDataReaderControl;
 }
 
-bool BbMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
+void BbMediaPlayerControl::setMmPosition(qint64 newPosition)
 {
-    Q_UNUSED(eventType);
-    Q_UNUSED(result);
+    if (newPosition != 0 && newPosition != m_position) {
+        m_position = newPosition;
+        emit positionChanged(m_position);
+    }
+}
 
-    bps_event_t * const event = static_cast<bps_event_t *>(message);
-    if (!event ||
-        (bps_event_get_domain(event) != mmrenderer_get_domain() &&
-         bps_event_get_domain(event) != screen_get_domain()))
-        return false;
-
-    if (m_videoWindowControl)
-        m_videoWindowControl->bpsEventHandler(event);
-
-    if (bps_event_get_domain(event) == mmrenderer_get_domain()) {
-        if (bps_event_get_code(event) == MMRENDERER_STATE_CHANGE) {
-            const mmrenderer_state_t newState = mmrenderer_event_get_state(event);
-            if (newState == MMR_STOPPED) {
-
-                // Only react to stop events that happen when the end of the stream is reached and
-                // playback is stopped because of this.
-                // Ignore other stop event sources, souch as calling mmr_stop() ourselves and
-                // mmr_input_attach().
-                if (m_stopEventsToIgnore > 0) {
-                    --m_stopEventsToIgnore;
-                } else {
-                    setMediaStatus(QMediaPlayer::EndOfMedia);
-                    stopInternal(IgnoreMmRenderer);
-                }
-                return false;
-            }
-        }
-
-        if (bps_event_get_code(event) == MMRENDERER_STATUS_UPDATE) {
-
-            // Prevent spurious position change events from overriding our own position, for example
-            // when setting the position to 0 in stop().
-            // Also, don't change the position while we're loading the media, as then play() would
-            // set a wrong initial position.
-            if (m_state != QMediaPlayer::PlayingState ||
-                m_mediaStatus == QMediaPlayer::LoadingMedia ||
-                m_mediaStatus == QMediaPlayer::NoMedia ||
-                m_mediaStatus == QMediaPlayer::InvalidMedia)
-                return false;
-
-            const qint64 newPosition = QString::fromLatin1(mmrenderer_event_get_position(event)).toLongLong();
-            if (newPosition != 0 && newPosition != m_position) {
-                m_position = newPosition;
-                emit positionChanged(m_position);
-            }
-
-            const QString bufferStatus = QString::fromLatin1(mmrenderer_event_get_bufferlevel(event));
-            const int slashPos = bufferStatus.indexOf('/');
-            if (slashPos != -1) {
-                const int fill = bufferStatus.left(slashPos).toInt();
-                const int capacity = bufferStatus.mid(slashPos + 1).toInt();
-                if (capacity != 0) {
-                    m_bufferStatus = fill / static_cast<float>(capacity) * 100.0f;
-                    emit bufferStatusChanged(m_bufferStatus);
-                }
-            }
+void BbMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus)
+{
+    const int slashPos = bufferStatus.indexOf('/');
+    if (slashPos != -1) {
+        const int fill = bufferStatus.left(slashPos).toInt();
+        const int capacity = bufferStatus.mid(slashPos + 1).toInt();
+        if (capacity != 0) {
+            m_bufferStatus = fill / static_cast<float>(capacity) * 100.0f;
+            emit bufferStatusChanged(m_bufferStatus);
         }
     }
-
-    return false;
 }
 
 void BbMediaPlayerControl::updateMetaData()

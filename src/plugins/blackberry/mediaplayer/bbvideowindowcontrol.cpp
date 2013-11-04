@@ -46,7 +46,6 @@
 #include <QtGui/qscreen.h>
 #include <QtGui/qwindow.h>
 #include <mm/renderer.h>
-#include <bps/screen.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -368,42 +367,38 @@ void BbVideoWindowControl::setMetaData(const BbMetaData &metaData)
     updateVideoPosition();
 }
 
-void BbVideoWindowControl::bpsEventHandler(bps_event_t *event)
+void BbVideoWindowControl::screenEventHandler(const screen_event_t &screen_event)
 {
-    if (event && bps_event_get_domain(event) == screen_get_domain()) {
-        const screen_event_t screen_event = screen_event_get_event(event);
+    int eventType;
+    if (screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_TYPE, &eventType) != 0) {
+        perror("BbVideoWindowControl: Failed to query screen event type");
+        return;
+    }
 
-        int eventType;
-        if (screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_TYPE, &eventType) != 0) {
-            perror("BbVideoWindowControl: Failed to query screen event type");
+    if (eventType != SCREEN_EVENT_CREATE)
+        return;
+
+    screen_window_t window = 0;
+    if (screen_get_event_property_pv(screen_event, SCREEN_PROPERTY_WINDOW, (void**)&window) != 0) {
+        perror("BbVideoWindowControl: Failed to query window property");
+        return;
+    }
+
+    const int maxIdStrLength = 128;
+    char idString[maxIdStrLength];
+    if (screen_get_window_property_cv(window, SCREEN_PROPERTY_ID_STRING, maxIdStrLength, idString) != 0) {
+        perror("BbVideoWindowControl: Failed to query window ID string");
+        return;
+    }
+
+    if (m_windowName == idString) {
+        m_window = window;
+        updateVideoPosition();
+
+        const int visibleFlag = 1;
+        if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_VISIBLE, &visibleFlag) != 0) {
+            perror("BbVideoWindowControl: Failed to make window visible");
             return;
-        }
-
-        if (eventType != SCREEN_EVENT_CREATE)
-            return;
-
-        screen_window_t window = 0;
-        if (screen_get_event_property_pv(screen_event, SCREEN_PROPERTY_WINDOW, (void**)&window) != 0) {
-            perror("BbVideoWindowControl: Failed to query window property");
-            return;
-        }
-
-        const int maxIdStrLength = 128;
-        char idString[maxIdStrLength];
-        if (screen_get_window_property_cv(window, SCREEN_PROPERTY_ID_STRING, maxIdStrLength, idString) != 0) {
-            perror("BbVideoWindowControl: Failed to query window ID string");
-            return;
-        }
-
-        if (m_windowName == idString) {
-            m_window = window;
-            updateVideoPosition();
-
-            const int visibleFlag = 1;
-            if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_VISIBLE, &visibleFlag) != 0) {
-                perror("BbVideoWindowControl: Failed to make window visible");
-                return;
-            }
         }
     }
 }

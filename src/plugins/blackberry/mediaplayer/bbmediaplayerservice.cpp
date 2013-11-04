@@ -46,6 +46,14 @@
 #include "bbutil.h"
 #include "bbvideowindowcontrol.h"
 
+#ifdef Q_OS_BLACKBERRY
+#include "bpsmediaplayercontrol.h"
+typedef BpsMediaPlayerControl PlatformSpecificMediaPlayerControl;
+#else
+#include "ppsmediaplayercontrol.h"
+typedef PpsMediaPlayerControl PlatformSpecificMediaPlayerControl;
+#endif
+
 QT_BEGIN_NAMESPACE
 
 BbMediaPlayerService::BbMediaPlayerService(QObject *parent)
@@ -72,7 +80,7 @@ QMediaControl *BbMediaPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         if (!m_mediaPlayerControl) {
-            m_mediaPlayerControl = new BbMediaPlayerControl();
+            m_mediaPlayerControl = new PlatformSpecificMediaPlayerControl;
             updateControls();
         }
         return m_mediaPlayerControl;

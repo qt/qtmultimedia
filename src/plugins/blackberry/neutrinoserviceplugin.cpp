@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Research In Motion
+** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,72 +38,33 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef WINDOWGRABBER_H
-#define WINDOWGRABBER_H
+#include "neutrinoserviceplugin.h"
 
-#include <QAbstractNativeEventFilter>
-#include <QObject>
-#include <QTimer>
-
-#include <screen/screen.h>
+#include "bbmediaplayerservice.h"
 
 QT_BEGIN_NAMESPACE
 
-class WindowGrabber : public QObject, public QAbstractNativeEventFilter
+NeutrinoServicePlugin::NeutrinoServicePlugin()
 {
-    Q_OBJECT
+}
 
-public:
-    explicit WindowGrabber(QObject *parent = 0);
-    ~WindowGrabber();
+QMediaService *NeutrinoServicePlugin::create(const QString &key)
+{
+    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
+        return new BbMediaPlayerService();
 
-    void setFrameRate(int frameRate);
+    return 0;
+}
 
-    void setWindowId(const QByteArray &windowId);
+void NeutrinoServicePlugin::release(QMediaService *service)
+{
+    delete service;
+}
 
-    void start();
-    void stop();
-
-    void pause();
-    void resume();
-
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
-
-    bool handleScreenEvent(screen_event_t event);
-
-    QByteArray windowGroupId() const;
-
-signals:
-    void frameGrabbed(const QImage &frame);
-
-private slots:
-    void grab();
-
-private:
-    void cleanup();
-    void updateFrameSize();
-
-    QTimer m_timer;
-
-    QByteArray m_windowId;
-
-    screen_window_t m_window;
-    screen_context_t m_screenContext;
-    screen_pixmap_t m_screenPixmap;
-    screen_buffer_t m_screenPixmapBuffer;
-
-    char* m_screenBuffer;
-
-    int m_screenBufferWidth;
-    int m_screenBufferHeight;
-    int m_screenBufferStride;
-
-    bool m_active : 1;
-    bool m_screenContextInitialized : 1;
-    bool m_screenPixmapInitialized : 1;
-    bool m_screenPixmapBufferInitialized : 1;
-};
+QMediaServiceProviderHint::Features NeutrinoServicePlugin::supportedFeatures(const QByteArray &service) const
+{
+    Q_UNUSED(service)
+    return QMediaServiceProviderHint::Features();
+}
 
 QT_END_NAMESPACE
-
-#endif

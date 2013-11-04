@@ -12,11 +12,8 @@ android {
    SUBDIRS += android opensles
 }
 
-blackberry {
-    SUBDIRS += blackberry
-}
-
 qnx {
+    SUBDIRS += blackberry
     SUBDIRS += audiocapture qnx
 }
 

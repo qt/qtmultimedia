@@ -46,7 +46,6 @@
 #include <qvideorenderercontrol.h>
 
 typedef struct mmr_context mmr_context_t;
-struct bps_event_t;
 
 QT_BEGIN_NAMESPACE
 

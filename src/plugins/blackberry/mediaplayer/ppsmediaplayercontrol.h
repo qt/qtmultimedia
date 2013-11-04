@@ -38,70 +38,36 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef WINDOWGRABBER_H
-#define WINDOWGRABBER_H
+#ifndef PPSMEDIAPLAYERCONTROL_H
+#define PPSMEDIAPLAYERCONTROL_H
 
-#include <QAbstractNativeEventFilter>
-#include <QObject>
-#include <QTimer>
-
-#include <screen/screen.h>
+#include "bbmediaplayercontrol.h"
 
 QT_BEGIN_NAMESPACE
 
-class WindowGrabber : public QObject, public QAbstractNativeEventFilter
+class QSocketNotifier;
+
+class PpsMediaPlayerControl  Q_DECL_FINAL : public BbMediaPlayerControl
 {
     Q_OBJECT
-
 public:
-    explicit WindowGrabber(QObject *parent = 0);
-    ~WindowGrabber();
+    explicit PpsMediaPlayerControl(QObject *parent = 0);
+    ~PpsMediaPlayerControl();
 
-    void setFrameRate(int frameRate);
-
-    void setWindowId(const QByteArray &windowId);
-
-    void start();
-    void stop();
-
-    void pause();
-    void resume();
+    void startMonitoring(int contextId, const QString &contextName) Q_DECL_OVERRIDE;
+    void stopMonitoring() Q_DECL_OVERRIDE;
 
     bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
 
-    bool handleScreenEvent(screen_event_t event);
-
-    QByteArray windowGroupId() const;
-
-signals:
-    void frameGrabbed(const QImage &frame);
-
-private slots:
-    void grab();
+private Q_SLOTS:
+    void ppsReadyRead(int fd);
 
 private:
-    void cleanup();
-    void updateFrameSize();
-
-    QTimer m_timer;
-
-    QByteArray m_windowId;
-
-    screen_window_t m_window;
-    screen_context_t m_screenContext;
-    screen_pixmap_t m_screenPixmap;
-    screen_buffer_t m_screenPixmapBuffer;
-
-    char* m_screenBuffer;
-
-    int m_screenBufferWidth;
-    int m_screenBufferHeight;
-    int m_screenBufferStride;
-
-    bool m_active : 1;
-    bool m_screenContextInitialized : 1;
-    bool m_screenPixmapInitialized : 1;
-    bool m_screenPixmapBufferInitialized : 1;
+    QSocketNotifier *m_ppsStatusNotifier;
+    int m_ppsStatusFd;
+    QSocketNotifier *m_ppsStateNotifier;
+    int m_ppsStateFd;
+    QByteArray m_previouslySeenState;
 };
 
 QT_END_NAMESPACE

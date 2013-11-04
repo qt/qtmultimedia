@@ -47,7 +47,6 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qtimer.h>
 
-struct bps_event_t;
 typedef struct mmr_connection mmr_connection_t;
 typedef struct mmr_context mmr_context_t;
 typedef struct mmrenderer_monitor mmrenderer_monitor_t;
@@ -63,7 +62,6 @@ class BbMediaPlayerControl : public QMediaPlayerControl, public QAbstractNativeE
     Q_OBJECT
 public:
     explicit BbMediaPlayerControl(QObject *parent = 0);
-    ~BbMediaPlayerControl();
 
     QMediaPlayer::State state() const Q_DECL_OVERRIDE;
 
@@ -100,24 +98,38 @@ public:
     void pause() Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
 
+    BbPlayerVideoRendererControl *videoRendererControl() const;
     void setVideoRendererControl(BbPlayerVideoRendererControl *videoControl);
+
+    BbVideoWindowControl *videoWindowControl() const;
     void setVideoWindowControl(BbVideoWindowControl *videoControl);
     void setMetaDataReaderControl(BbMetaDataReaderControl *metaDataReaderControl);
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
+
+protected:
+    virtual void startMonitoring(int contextId, const QString &contextName) = 0;
+    virtual void stopMonitoring() = 0;
+
+    QString contextName() const;
+    void openConnection();
+    void emitMmError(const QString &msg);
+    void emitPError(const QString &msg);
+    void setMmPosition(qint64 newPosition);
+    void setMmBufferStatus(const QString &bufferStatus);
+    void handleMmStopped();
+    void handleMmStatusUpdate(qint64 position);
+
+    // must be called from subclass dtors (calls virtual function stopMonitoring())
+    void destroy();
 
 private Q_SLOTS:
     void continueLoadMedia();
 
 private:
     QByteArray resourcePathForUrl(const QUrl &url);
-    void openConnection();
     void closeConnection();
     void attach();
     void detach();
     void updateMetaData();
-
-    void emitMmError(const QString &msg);
-    void emitPError(const QString &msg);
 
     // All these set the specified value to the backend, but neither emit changed signals
     // nor change the member value.
@@ -145,7 +157,6 @@ private:
     QPointer<BbMetaDataReaderControl> m_metaDataReaderControl;
     BbMetaData m_metaData;
     int m_id;
-    mmrenderer_monitor_t *m_eventMonitor;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;
     bool m_playAfterMediaLoaded;
