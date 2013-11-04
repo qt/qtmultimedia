@@ -159,7 +159,6 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         public void onCompletion(final MediaPlayer mp)
         {
             onMediaPlayerInfoNative(MEDIA_PLAYER_FINISHED, 0, mID);
-            reset();
         }
 
     }
@@ -191,9 +190,9 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         @Override
         public void onPrepared(final MediaPlayer mp)
         {
+            mPreparing = false;
             onMediaPlayerInfoNative(MEDIA_PLAYER_READY, 0, mID);
             onMediaPlayerInfoNative(MEDIA_PLAYER_DURATION, getDuration(), mID);
-            mPreparing = false;
         }
 
     }
