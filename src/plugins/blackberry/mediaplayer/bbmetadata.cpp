@@ -64,8 +64,8 @@ static const char * trackKey = "md_title_track";
 static const char * widthKey = "md_video_width";
 static const char * heightKey = "md_video_height";
 static const char * mediaTypeKey = "md_title_mediatype";
-static const char * pixelWidthKey = "md_video_pixel_height";
-static const char * pixelHeightKey = "md_video_pixel_width";
+static const char * pixelWidthKey = "md_video_pixel_width";
+static const char * pixelHeightKey = "md_video_pixel_height";
 static const char * seekableKey = "md_title_seekable";
 
 static const int mediaTypeAudioFlag = 4;
