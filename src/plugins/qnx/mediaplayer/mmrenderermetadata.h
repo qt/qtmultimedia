@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Research In Motion
+** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,27 +38,60 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BPSMEDIAPLAYERCONTROL_H
-#define BPSMEDIAPLAYERCONTROL_H
+#ifndef MMRENDERERMETADATA_H
+#define MMRENDERERMETADATA_H
 
-#include "bbmediaplayercontrol.h"
+#include <QtCore/qglobal.h>
+#include <QtCore/QSize>
+#include <QtCore/QString>
 
 QT_BEGIN_NAMESPACE
 
-class BpsMediaPlayerControl Q_DECL_FINAL : public BbMediaPlayerControl
+class MmRendererMetaData
 {
-    Q_OBJECT
 public:
-    explicit BpsMediaPlayerControl(QObject *parent = 0);
-    ~BpsMediaPlayerControl();
+    MmRendererMetaData();
+    bool parse(const QString &contextName);
+    void clear();
 
-    void startMonitoring(int contextId, const QString &contextName) Q_DECL_OVERRIDE;
-    void stopMonitoring() Q_DECL_OVERRIDE;
+    // Duration in milliseconds
+    qlonglong duration() const;
 
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
+    int height() const;
+    int width() const;
+    bool hasVideo() const;
+    bool hasAudio() const;
+    bool isSeekable() const;
+
+    QString title() const;
+    QString artist() const;
+    QString comment() const;
+    QString genre() const;
+    int year() const;
+    QString mediaType() const;
+    int audioBitRate() const;
+    int sampleRate() const;
+    QString album() const;
+    int track() const;
+    QSize resolution() const;
 
 private:
-    mmrenderer_monitor_t *m_eventMonitor;
+    qlonglong m_duration;
+    int m_height;
+    int m_width;
+    int m_mediaType;
+    float m_pixelWidth;
+    float m_pixelHeight;
+    bool m_seekable;
+    QString m_title;
+    QString m_artist;
+    QString m_comment;
+    QString m_genre;
+    int m_year;
+    int m_audioBitRate;
+    int m_sampleRate;
+    QString m_album;
+    int m_track;
 };
 
 QT_END_NAMESPACE

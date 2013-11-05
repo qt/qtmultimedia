@@ -38,29 +38,36 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBMETADATAREADERCONTROL_H
-#define BBMETADATAREADERCONTROL_H
+#ifndef PPSMEDIAPLAYERCONTROL_H
+#define PPSMEDIAPLAYERCONTROL_H
 
-#include "bbmetadata.h"
-#include <qmetadatareadercontrol.h>
+#include "mmrenderermediaplayercontrol.h"
 
 QT_BEGIN_NAMESPACE
 
-class BbMetaDataReaderControl : public QMetaDataReaderControl
+class QSocketNotifier;
+
+class PpsMediaPlayerControl Q_DECL_FINAL : public MmRendererMediaPlayerControl
 {
     Q_OBJECT
 public:
-    explicit BbMetaDataReaderControl(QObject *parent = 0);
+    explicit PpsMediaPlayerControl(QObject *parent = 0);
+    ~PpsMediaPlayerControl();
 
-    bool isMetaDataAvailable() const Q_DECL_OVERRIDE;
+    void startMonitoring(int contextId, const QString &contextName) Q_DECL_OVERRIDE;
+    void stopMonitoring() Q_DECL_OVERRIDE;
 
-    QVariant metaData(const QString &key) const Q_DECL_OVERRIDE;
-    QStringList availableMetaData() const Q_DECL_OVERRIDE;
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
 
-    void setMetaData(const BbMetaData &data);
+private Q_SLOTS:
+    void ppsReadyRead(int fd);
 
 private:
-    BbMetaData m_metaData;
+    QSocketNotifier *m_ppsStatusNotifier;
+    int m_ppsStatusFd;
+    QSocketNotifier *m_ppsStateNotifier;
+    int m_ppsStateFd;
+    QByteArray m_previouslySeenState;
 };
 
 QT_END_NAMESPACE

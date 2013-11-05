@@ -38,22 +38,22 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbmetadatareadercontrol.h"
+#include "mmrenderermetadatareadercontrol.h"
 #include <QtMultimedia/qmediametadata.h>
 
 QT_BEGIN_NAMESPACE
 
-BbMetaDataReaderControl::BbMetaDataReaderControl(QObject *parent)
+MmRendererMetaDataReaderControl::MmRendererMetaDataReaderControl(QObject *parent)
     : QMetaDataReaderControl(parent)
 {
 }
 
-bool BbMetaDataReaderControl::isMetaDataAvailable() const
+bool MmRendererMetaDataReaderControl::isMetaDataAvailable() const
 {
     return !availableMetaData().isEmpty();
 }
 
-QVariant BbMetaDataReaderControl::metaData(const QString &key) const
+QVariant MmRendererMetaDataReaderControl::metaData(const QString &key) const
 {
     if (key == QMediaMetaData::Title)
         return m_metaData.title();
@@ -83,7 +83,7 @@ QVariant BbMetaDataReaderControl::metaData(const QString &key) const
     return QVariant();
 }
 
-QStringList BbMetaDataReaderControl::availableMetaData() const
+QStringList MmRendererMetaDataReaderControl::availableMetaData() const
 {
     QStringList metaData;
 
@@ -115,9 +115,9 @@ QStringList BbMetaDataReaderControl::availableMetaData() const
     return metaData;
 }
 
-void BbMetaDataReaderControl::setMetaData(const BbMetaData &data)
+void MmRendererMetaDataReaderControl::setMetaData(const MmRendererMetaData &data)
 {
-    const BbMetaData oldMetaData = m_metaData;
+    const MmRendererMetaData oldMetaData = m_metaData;
     const bool oldMetaDataAvailable = isMetaDataAvailable();
 
     m_metaData = data;

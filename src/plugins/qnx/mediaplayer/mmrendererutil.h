@@ -38,82 +38,20 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBVIDEOWINDOWCONTROL_H
-#define BBVIDEOWINDOWCONTROL_H
+#ifndef MMRENDERERUTIL_H
+#define MMRENDERERUTIL_H
 
-#include "bbmetadata.h"
-#include <qvideowindowcontrol.h>
-#include <screen/screen.h>
+#include <QtCore/qglobal.h>
 
 typedef struct mmr_context mmr_context_t;
 
 QT_BEGIN_NAMESPACE
 
-class BbVideoWindowControl : public QVideoWindowControl
-{
-    Q_OBJECT
-public:
-    explicit BbVideoWindowControl(QObject *parent = 0);
-    ~BbVideoWindowControl();
+class QString;
 
-    WId winId() const Q_DECL_OVERRIDE;
-    void setWinId(WId id) Q_DECL_OVERRIDE;
+QString mmErrorMessage(const QString &msg, mmr_context_t *context, int * errorCode = 0);
 
-    QRect displayRect() const Q_DECL_OVERRIDE;
-    void setDisplayRect(const QRect &rect) Q_DECL_OVERRIDE;
-
-    bool isFullScreen() const Q_DECL_OVERRIDE;
-    void setFullScreen(bool fullScreen) Q_DECL_OVERRIDE;
-
-    void repaint() Q_DECL_OVERRIDE;
-
-    QSize nativeSize() const Q_DECL_OVERRIDE;
-
-    Qt::AspectRatioMode aspectRatioMode() const Q_DECL_OVERRIDE;
-    void setAspectRatioMode(Qt::AspectRatioMode mode) Q_DECL_OVERRIDE;
-
-    int brightness() const Q_DECL_OVERRIDE;
-    void setBrightness(int brightness) Q_DECL_OVERRIDE;
-
-    int contrast() const Q_DECL_OVERRIDE;
-    void setContrast(int contrast) Q_DECL_OVERRIDE;
-
-    int hue() const Q_DECL_OVERRIDE;
-    void setHue(int hue) Q_DECL_OVERRIDE;
-
-    int saturation() const Q_DECL_OVERRIDE;
-    void setSaturation(int saturation) Q_DECL_OVERRIDE;
-
-    //
-    // Called by media control
-    //
-    void detachDisplay();
-    void attachDisplay(mmr_context_t *context);
-    void setMetaData(const BbMetaData &metaData);
-    void screenEventHandler(const screen_event_t &event);
-
-private:
-    QWindow *findWindow(WId id) const;
-    void updateVideoPosition();
-    void updateBrightness();
-    void updateContrast();
-    void updateHue();
-    void updateSaturation();
-
-    int m_videoId;
-    WId m_winId;
-    QRect m_displayRect;
-    mmr_context_t *m_context;
-    bool m_fullscreen;
-    BbMetaData m_metaData;
-    Qt::AspectRatioMode m_aspectRatioMode;
-    QString m_windowName;
-    screen_window_t m_window;
-    int m_hue;
-    int m_brightness;
-    int m_contrast;
-    int m_saturation;
-};
+bool checkForDrmPermission();
 
 QT_END_NAMESPACE
 

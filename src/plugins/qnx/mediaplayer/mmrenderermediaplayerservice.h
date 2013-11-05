@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Research In Motion
+** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,36 +38,39 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef PPSMEDIAPLAYERCONTROL_H
-#define PPSMEDIAPLAYERCONTROL_H
+#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
+#define MMRENDERERMEDIAPLAYERSERVICE_H
 
-#include "bbmediaplayercontrol.h"
+#include <qmediaservice.h>
+#include <QtCore/qpointer.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSocketNotifier;
+class MmRendererMediaPlayerControl;
+class MmRendererMetaDataReaderControl;
+class MmRendererPlayerVideoRendererControl;
+class MmRendererVideoWindowControl;
 
-class PpsMediaPlayerControl  Q_DECL_FINAL : public BbMediaPlayerControl
+class MmRendererMediaPlayerService : public QMediaService
 {
     Q_OBJECT
 public:
-    explicit PpsMediaPlayerControl(QObject *parent = 0);
-    ~PpsMediaPlayerControl();
+    explicit MmRendererMediaPlayerService(QObject *parent = 0);
+    ~MmRendererMediaPlayerService();
 
-    void startMonitoring(int contextId, const QString &contextName) Q_DECL_OVERRIDE;
-    void stopMonitoring() Q_DECL_OVERRIDE;
-
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
-
-private Q_SLOTS:
-    void ppsReadyRead(int fd);
+    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
+    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
 
 private:
-    QSocketNotifier *m_ppsStatusNotifier;
-    int m_ppsStatusFd;
-    QSocketNotifier *m_ppsStateNotifier;
-    int m_ppsStateFd;
-    QByteArray m_previouslySeenState;
+    void updateControls();
+
+    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
+    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
+    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
+    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
+
+    bool m_appHasDrmPermission : 1;
+    bool m_appHasDrmPermissionChecked : 1;
 };
 
 QT_END_NAMESPACE

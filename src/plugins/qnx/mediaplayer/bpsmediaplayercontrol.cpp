@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "bpsmediaplayercontrol.h"
-#include "bbvideowindowcontrol.h"
+#include "mmrenderervideowindowcontrol.h"
 
 #include <bps/mmrenderer.h>
 #include <bps/screen.h>
@@ -48,7 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 BpsMediaPlayerControl::BpsMediaPlayerControl(QObject *parent)
-    : BbMediaPlayerControl(parent),
+    : MmRendererMediaPlayerControl(parent),
       m_eventMonitor(0)
 {
     openConnection();
@@ -89,7 +89,7 @@ bool BpsMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void 
 
     if (event && bps_event_get_domain(event) == screen_get_domain()) {
         const screen_event_t screen_event = screen_event_get_event(event);
-        if (BbVideoWindowControl *control = videoWindowControl())
+        if (MmRendererVideoWindowControl *control = videoWindowControl())
             control->screenEventHandler(screen_event);
     }
 

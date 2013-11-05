@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,33 +38,47 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "neutrinoserviceplugin.h"
+#ifndef MMRENDERERPLAYERVIDEORENDERERCONTROL_H
+#define MMRENDERERPLAYERVIDEORENDERERCONTROL_H
 
-#include "bbmediaplayerservice.h"
+#include <QPointer>
+#include <qabstractvideosurface.h>
+#include <qvideorenderercontrol.h>
+
+typedef struct mmr_context mmr_context_t;
 
 QT_BEGIN_NAMESPACE
 
-NeutrinoServicePlugin::NeutrinoServicePlugin()
-{
-}
+class WindowGrabber;
 
-QMediaService *NeutrinoServicePlugin::create(const QString &key)
+class MmRendererPlayerVideoRendererControl : public QVideoRendererControl
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new BbMediaPlayerService();
+    Q_OBJECT
+public:
+    explicit MmRendererPlayerVideoRendererControl(QObject *parent = 0);
+    ~MmRendererPlayerVideoRendererControl();
 
-    return 0;
-}
+    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
+    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
 
-void NeutrinoServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
+    // Called by media control
+    void attachDisplay(mmr_context_t *context);
+    void detachDisplay();
+    void pause();
+    void resume();
 
-QMediaServiceProviderHint::Features NeutrinoServicePlugin::supportedFeatures(const QByteArray &service) const
-{
-    Q_UNUSED(service)
-    return QMediaServiceProviderHint::Features();
-}
+private Q_SLOTS:
+    void frameGrabbed(const QImage &frame);
+
+private:
+    QPointer<QAbstractVideoSurface> m_surface;
+
+    WindowGrabber* m_windowGrabber;
+    mmr_context_t *m_context;
+
+    int m_videoId;
+};
 
 QT_END_NAMESPACE
+
+#endif

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Research In Motion
+** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,45 +38,81 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBPLAYERVIDEORENDERERCONTROL_H
-#define BBPLAYERVIDEORENDERERCONTROL_H
+#ifndef MMRENDERERVIDEOWINDOWCONTROL_H
+#define MMRENDERERVIDEOWINDOWCONTROL_H
 
-#include <QPointer>
-#include <qabstractvideosurface.h>
-#include <qvideorenderercontrol.h>
+#include "mmrenderermetadata.h"
+#include <qvideowindowcontrol.h>
+#include <screen/screen.h>
 
 typedef struct mmr_context mmr_context_t;
 
 QT_BEGIN_NAMESPACE
 
-class WindowGrabber;
-
-class BbPlayerVideoRendererControl : public QVideoRendererControl
+class MmRendererVideoWindowControl : public QVideoWindowControl
 {
     Q_OBJECT
 public:
-    explicit BbPlayerVideoRendererControl(QObject *parent = 0);
-    ~BbPlayerVideoRendererControl();
+    explicit MmRendererVideoWindowControl(QObject *parent = 0);
+    ~MmRendererVideoWindowControl();
 
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+    WId winId() const Q_DECL_OVERRIDE;
+    void setWinId(WId id) Q_DECL_OVERRIDE;
 
+    QRect displayRect() const Q_DECL_OVERRIDE;
+    void setDisplayRect(const QRect &rect) Q_DECL_OVERRIDE;
+
+    bool isFullScreen() const Q_DECL_OVERRIDE;
+    void setFullScreen(bool fullScreen) Q_DECL_OVERRIDE;
+
+    void repaint() Q_DECL_OVERRIDE;
+
+    QSize nativeSize() const Q_DECL_OVERRIDE;
+
+    Qt::AspectRatioMode aspectRatioMode() const Q_DECL_OVERRIDE;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) Q_DECL_OVERRIDE;
+
+    int brightness() const Q_DECL_OVERRIDE;
+    void setBrightness(int brightness) Q_DECL_OVERRIDE;
+
+    int contrast() const Q_DECL_OVERRIDE;
+    void setContrast(int contrast) Q_DECL_OVERRIDE;
+
+    int hue() const Q_DECL_OVERRIDE;
+    void setHue(int hue) Q_DECL_OVERRIDE;
+
+    int saturation() const Q_DECL_OVERRIDE;
+    void setSaturation(int saturation) Q_DECL_OVERRIDE;
+
+    //
     // Called by media control
-    void attachDisplay(mmr_context_t *context);
+    //
     void detachDisplay();
-    void pause();
-    void resume();
-
-private Q_SLOTS:
-    void frameGrabbed(const QImage &frame);
+    void attachDisplay(mmr_context_t *context);
+    void setMetaData(const MmRendererMetaData &metaData);
+    void screenEventHandler(const screen_event_t &event);
 
 private:
-    QPointer<QAbstractVideoSurface> m_surface;
-
-    WindowGrabber* m_windowGrabber;
-    mmr_context_t *m_context;
+    QWindow *findWindow(WId id) const;
+    void updateVideoPosition();
+    void updateBrightness();
+    void updateContrast();
+    void updateHue();
+    void updateSaturation();
 
     int m_videoId;
+    WId m_winId;
+    QRect m_displayRect;
+    mmr_context_t *m_context;
+    bool m_fullscreen;
+    MmRendererMetaData m_metaData;
+    Qt::AspectRatioMode m_aspectRatioMode;
+    QString m_windowName;
+    screen_window_t m_window;
+    int m_hue;
+    int m_brightness;
+    int m_contrast;
+    int m_saturation;
 };
 
 QT_END_NAMESPACE

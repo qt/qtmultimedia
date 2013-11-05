@@ -38,11 +38,11 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbmediaplayercontrol.h"
-#include "bbmetadatareadercontrol.h"
-#include "bbplayervideorenderercontrol.h"
-#include "bbutil.h"
-#include "bbvideowindowcontrol.h"
+#include "mmrenderermediaplayercontrol.h"
+#include "mmrenderermetadatareadercontrol.h"
+#include "mmrendererplayervideorenderercontrol.h"
+#include "mmrendererutil.h"
+#include "mmrenderervideowindowcontrol.h"
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 
 static int idCounter = 0;
 
-BbMediaPlayerControl::BbMediaPlayerControl(QObject *parent)
+MmRendererMediaPlayerControl::MmRendererMediaPlayerControl(QObject *parent)
     : QMediaPlayerControl(parent),
       m_connection(0),
       m_context(0),
@@ -81,7 +81,7 @@ BbMediaPlayerControl::BbMediaPlayerControl(QObject *parent)
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
 }
 
-void BbMediaPlayerControl::destroy()
+void MmRendererMediaPlayerControl::destroy()
 {
     stop();
     detach();
@@ -89,7 +89,7 @@ void BbMediaPlayerControl::destroy()
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
 }
 
-void BbMediaPlayerControl::openConnection()
+void MmRendererMediaPlayerControl::openConnection()
 {
     m_connection = mmr_connect(NULL);
     if (!m_connection) {
@@ -98,7 +98,7 @@ void BbMediaPlayerControl::openConnection()
     }
 
     m_id = idCounter++;
-    m_contextName = QString("BbMediaPlayerControl_%1_%2").arg(m_id)
+    m_contextName = QString("MmRendererMediaPlayerControl_%1_%2").arg(m_id)
                                                          .arg(QCoreApplication::applicationPid());
     m_context = mmr_context_create(m_connection, m_contextName.toLatin1(),
                                    0, S_IRWXU|S_IRWXG|S_IRWXO);
@@ -111,7 +111,7 @@ void BbMediaPlayerControl::openConnection()
     startMonitoring(m_id, m_contextName);
 }
 
-void BbMediaPlayerControl::handleMmStatusUpdate(qint64 newPosition)
+void MmRendererMediaPlayerControl::handleMmStatusUpdate(qint64 newPosition)
 {
     // Prevent spurious position change events from overriding our own position, for example
     // when setting the position to 0 in stop().
@@ -126,7 +126,7 @@ void BbMediaPlayerControl::handleMmStatusUpdate(qint64 newPosition)
     setMmPosition(newPosition);
 }
 
-void BbMediaPlayerControl::handleMmStopped()
+void MmRendererMediaPlayerControl::handleMmStopped()
 {
     // Only react to stop events that happen when the end of the stream is reached and
     // playback is stopped because of this.
@@ -140,7 +140,7 @@ void BbMediaPlayerControl::handleMmStopped()
     }
 }
 
-void BbMediaPlayerControl::closeConnection()
+void MmRendererMediaPlayerControl::closeConnection()
 {
     stopMonitoring();
 
@@ -156,7 +156,7 @@ void BbMediaPlayerControl::closeConnection()
     }
 }
 
-QByteArray BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
+QByteArray MmRendererMediaPlayerControl::resourcePathForUrl(const QUrl &url)
 {
     // If this is a local file, mmrenderer expects the file:// prefix and an absolute path.
     // We treat URLs without scheme as local files, most likely someone just forgot to set the
@@ -192,7 +192,7 @@ QByteArray BbMediaPlayerControl::resourcePathForUrl(const QUrl &url)
     }
 }
 
-void BbMediaPlayerControl::attach()
+void MmRendererMediaPlayerControl::attach()
 {
     // Should only be called in detached state
     Q_ASSERT(m_audioId == -1 && !m_inputAttached && m_tempMediaFileName.isEmpty());
@@ -238,7 +238,7 @@ void BbMediaPlayerControl::attach()
     emit bufferStatusChanged(m_bufferStatus);
 }
 
-void BbMediaPlayerControl::detach()
+void MmRendererMediaPlayerControl::detach()
 {
     if (m_context) {
         if (m_inputAttached) {
@@ -262,27 +262,27 @@ void BbMediaPlayerControl::detach()
     m_loadingTimer.stop();
 }
 
-QMediaPlayer::State BbMediaPlayerControl::state() const
+QMediaPlayer::State MmRendererMediaPlayerControl::state() const
 {
     return m_state;
 }
 
-QMediaPlayer::MediaStatus BbMediaPlayerControl::mediaStatus() const
+QMediaPlayer::MediaStatus MmRendererMediaPlayerControl::mediaStatus() const
 {
     return m_mediaStatus;
 }
 
-qint64 BbMediaPlayerControl::duration() const
+qint64 MmRendererMediaPlayerControl::duration() const
 {
     return m_metaData.duration();
 }
 
-qint64 BbMediaPlayerControl::position() const
+qint64 MmRendererMediaPlayerControl::position() const
 {
     return m_position;
 }
 
-void BbMediaPlayerControl::setPosition(qint64 position)
+void MmRendererMediaPlayerControl::setPosition(qint64 position)
 {
     if (m_position != position) {
         m_position = position;
@@ -296,12 +296,12 @@ void BbMediaPlayerControl::setPosition(qint64 position)
     }
 }
 
-int BbMediaPlayerControl::volume() const
+int MmRendererMediaPlayerControl::volume() const
 {
     return m_volume;
 }
 
-void BbMediaPlayerControl::setVolumeInternal(int newVolume)
+void MmRendererMediaPlayerControl::setVolumeInternal(int newVolume)
 {
     if (!m_context)
         return;
@@ -315,7 +315,7 @@ void BbMediaPlayerControl::setVolumeInternal(int newVolume)
     }
 }
 
-void BbMediaPlayerControl::setPlaybackRateInternal(qreal rate)
+void MmRendererMediaPlayerControl::setPlaybackRateInternal(qreal rate)
 {
     if (!m_context)
         return;
@@ -325,7 +325,7 @@ void BbMediaPlayerControl::setPlaybackRateInternal(qreal rate)
         emitMmError("mmr_speed_set failed");
 }
 
-void BbMediaPlayerControl::setPositionInternal(qint64 position)
+void MmRendererMediaPlayerControl::setPositionInternal(qint64 position)
 {
     if (!m_context)
         return;
@@ -336,7 +336,7 @@ void BbMediaPlayerControl::setPositionInternal(qint64 position)
     }
 }
 
-void BbMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status)
+void MmRendererMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status)
 {
     if (m_mediaStatus != status) {
         m_mediaStatus = status;
@@ -344,7 +344,7 @@ void BbMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status)
     }
 }
 
-void BbMediaPlayerControl::setState(QMediaPlayer::State state)
+void MmRendererMediaPlayerControl::setState(QMediaPlayer::State state)
 {
     if (m_state != state) {
         if (m_videoRendererControl) {
@@ -361,7 +361,7 @@ void BbMediaPlayerControl::setState(QMediaPlayer::State state)
     }
 }
 
-void BbMediaPlayerControl::stopInternal(StopCommand stopCommand)
+void MmRendererMediaPlayerControl::stopInternal(StopCommand stopCommand)
 {
     if (m_state != QMediaPlayer::StoppedState) {
 
@@ -379,7 +379,7 @@ void BbMediaPlayerControl::stopInternal(StopCommand stopCommand)
     }
 }
 
-void BbMediaPlayerControl::setVolume(int volume)
+void MmRendererMediaPlayerControl::setVolume(int volume)
 {
     const int newVolume = qBound(0, volume, 100);
     if (m_volume != newVolume) {
@@ -390,12 +390,12 @@ void BbMediaPlayerControl::setVolume(int volume)
     }
 }
 
-bool BbMediaPlayerControl::isMuted() const
+bool MmRendererMediaPlayerControl::isMuted() const
 {
     return m_muted;
 }
 
-void BbMediaPlayerControl::setMuted(bool muted)
+void MmRendererMediaPlayerControl::setMuted(bool muted)
 {
     if (m_muted != muted) {
         m_muted = muted;
@@ -404,38 +404,38 @@ void BbMediaPlayerControl::setMuted(bool muted)
     }
 }
 
-int BbMediaPlayerControl::bufferStatus() const
+int MmRendererMediaPlayerControl::bufferStatus() const
 {
     return m_bufferStatus;
 }
 
-bool BbMediaPlayerControl::isAudioAvailable() const
+bool MmRendererMediaPlayerControl::isAudioAvailable() const
 {
     return m_metaData.hasAudio();
 }
 
-bool BbMediaPlayerControl::isVideoAvailable() const
+bool MmRendererMediaPlayerControl::isVideoAvailable() const
 {
     return m_metaData.hasVideo();
 }
 
-bool BbMediaPlayerControl::isSeekable() const
+bool MmRendererMediaPlayerControl::isSeekable() const
 {
     return m_metaData.isSeekable();
 }
 
-QMediaTimeRange BbMediaPlayerControl::availablePlaybackRanges() const
+QMediaTimeRange MmRendererMediaPlayerControl::availablePlaybackRanges() const
 {
     // We can't get this information from the mmrenderer API yet, so pretend we can seek everywhere
     return QMediaTimeRange(0, m_metaData.duration());
 }
 
-qreal BbMediaPlayerControl::playbackRate() const
+qreal MmRendererMediaPlayerControl::playbackRate() const
 {
     return m_rate;
 }
 
-void BbMediaPlayerControl::setPlaybackRate(qreal rate)
+void MmRendererMediaPlayerControl::setPlaybackRate(qreal rate)
 {
     if (m_rate != rate) {
         m_rate = rate;
@@ -444,18 +444,18 @@ void BbMediaPlayerControl::setPlaybackRate(qreal rate)
     }
 }
 
-QMediaContent BbMediaPlayerControl::media() const
+QMediaContent MmRendererMediaPlayerControl::media() const
 {
     return m_media;
 }
 
-const QIODevice *BbMediaPlayerControl::mediaStream() const
+const QIODevice *MmRendererMediaPlayerControl::mediaStream() const
 {
     // Always 0, we don't support QIODevice streams
     return 0;
 }
 
-void BbMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
+void MmRendererMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
 {
     Q_UNUSED(stream); // not supported
 
@@ -479,7 +479,7 @@ void BbMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *strea
     }
 }
 
-void BbMediaPlayerControl::continueLoadMedia()
+void MmRendererMediaPlayerControl::continueLoadMedia()
 {
     attach();
     updateMetaData();
@@ -487,17 +487,17 @@ void BbMediaPlayerControl::continueLoadMedia()
         play();
 }
 
-QString BbMediaPlayerControl::contextName() const
+QString MmRendererMediaPlayerControl::contextName() const
 {
     return m_contextName;
 }
 
-BbVideoWindowControl *BbMediaPlayerControl::videoWindowControl() const
+MmRendererVideoWindowControl *MmRendererMediaPlayerControl::videoWindowControl() const
 {
     return m_videoWindowControl;
 }
 
-void BbMediaPlayerControl::play()
+void MmRendererMediaPlayerControl::play()
 {
     if (m_playAfterMediaLoaded)
         m_playAfterMediaLoaded = false;
@@ -542,7 +542,7 @@ void BbMediaPlayerControl::play()
     setState( QMediaPlayer::PlayingState);
 }
 
-void BbMediaPlayerControl::pause()
+void MmRendererMediaPlayerControl::pause()
 {
     if (m_state == QMediaPlayer::PlayingState) {
         setPlaybackRateInternal(0);
@@ -550,32 +550,32 @@ void BbMediaPlayerControl::pause()
     }
 }
 
-void BbMediaPlayerControl::stop()
+void MmRendererMediaPlayerControl::stop()
 {
     stopInternal(StopMmRenderer);
 }
 
-BbPlayerVideoRendererControl *BbMediaPlayerControl::videoRendererControl() const
+MmRendererPlayerVideoRendererControl *MmRendererMediaPlayerControl::videoRendererControl() const
 {
     return m_videoRendererControl;
 }
 
-void BbMediaPlayerControl::setVideoRendererControl(BbPlayerVideoRendererControl *videoControl)
+void MmRendererMediaPlayerControl::setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl)
 {
     m_videoRendererControl = videoControl;
 }
 
-void BbMediaPlayerControl::setVideoWindowControl(BbVideoWindowControl *videoControl)
+void MmRendererMediaPlayerControl::setVideoWindowControl(MmRendererVideoWindowControl *videoControl)
 {
     m_videoWindowControl = videoControl;
 }
 
-void BbMediaPlayerControl::setMetaDataReaderControl(BbMetaDataReaderControl *metaDataReaderControl)
+void MmRendererMediaPlayerControl::setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl)
 {
     m_metaDataReaderControl = metaDataReaderControl;
 }
 
-void BbMediaPlayerControl::setMmPosition(qint64 newPosition)
+void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)
 {
     if (newPosition != 0 && newPosition != m_position) {
         m_position = newPosition;
@@ -583,7 +583,7 @@ void BbMediaPlayerControl::setMmPosition(qint64 newPosition)
     }
 }
 
-void BbMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus)
+void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus)
 {
     const int slashPos = bufferStatus.indexOf('/');
     if (slashPos != -1) {
@@ -596,7 +596,7 @@ void BbMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus)
     }
 }
 
-void BbMediaPlayerControl::updateMetaData()
+void MmRendererMediaPlayerControl::updateMetaData()
 {
     if (m_mediaStatus == QMediaPlayer::LoadedMedia)
         m_metaData.parse(m_contextName);
@@ -616,7 +616,7 @@ void BbMediaPlayerControl::updateMetaData()
     emit seekableChanged(m_metaData.isSeekable());
 }
 
-void BbMediaPlayerControl::emitMmError(const QString &msg)
+void MmRendererMediaPlayerControl::emitMmError(const QString &msg)
 {
     int errorCode = MMR_ERROR_NONE;
     const QString errorMessage = mmErrorMessage(msg, m_context, &errorCode);
@@ -624,7 +624,7 @@ void BbMediaPlayerControl::emitMmError(const QString &msg)
     emit error(errorCode, errorMessage);
 }
 
-void BbMediaPlayerControl::emitPError(const QString &msg)
+void MmRendererMediaPlayerControl::emitPError(const QString &msg)
 {
     const QString errorMessage = QString("%1: %2").arg(msg).arg(strerror(errno));
     qDebug() << errorMessage;

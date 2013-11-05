@@ -38,21 +38,33 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBUTIL_H
-#define BBUTIL_H
+#include "neutrinoserviceplugin.h"
 
-#include <QtCore/qglobal.h>
-
-typedef struct mmr_context mmr_context_t;
+#include "mmrenderermediaplayerservice.h"
 
 QT_BEGIN_NAMESPACE
 
-class QString;
+NeutrinoServicePlugin::NeutrinoServicePlugin()
+{
+}
 
-QString mmErrorMessage(const QString &msg, mmr_context_t *context, int * errorCode = 0);
+QMediaService *NeutrinoServicePlugin::create(const QString &key)
+{
+    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
+        return new MmRendererMediaPlayerService();
 
-bool checkForDrmPermission();
+    return 0;
+}
+
+void NeutrinoServicePlugin::release(QMediaService *service)
+{
+    delete service;
+}
+
+QMediaServiceProviderHint::Features NeutrinoServicePlugin::supportedFeatures(const QByteArray &service) const
+{
+    Q_UNUSED(service)
+    return QMediaServiceProviderHint::Features();
+}
 
 QT_END_NAMESPACE
-
-#endif

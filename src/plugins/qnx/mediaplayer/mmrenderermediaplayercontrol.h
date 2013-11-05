@@ -38,10 +38,10 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBMEDIAPLAYERCONTROL_H
-#define BBMEDIAPLAYERCONTROL_H
+#ifndef MMRENDERERMEDIAPLAYERCONTROL_H
+#define MMRENDERERMEDIAPLAYERCONTROL_H
 
-#include "bbmetadata.h"
+#include "mmrenderermetadata.h"
 #include <qmediaplayercontrol.h>
 #include <QtCore/qabstractnativeeventfilter.h>
 #include <QtCore/qpointer.h>
@@ -53,15 +53,15 @@ typedef struct mmrenderer_monitor mmrenderer_monitor_t;
 
 QT_BEGIN_NAMESPACE
 
-class BbMetaDataReaderControl;
-class BbPlayerVideoRendererControl;
-class BbVideoWindowControl;
+class MmRendererMetaDataReaderControl;
+class MmRendererPlayerVideoRendererControl;
+class MmRendererVideoWindowControl;
 
-class BbMediaPlayerControl : public QMediaPlayerControl, public QAbstractNativeEventFilter
+class MmRendererMediaPlayerControl : public QMediaPlayerControl, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 public:
-    explicit BbMediaPlayerControl(QObject *parent = 0);
+    explicit MmRendererMediaPlayerControl(QObject *parent = 0);
 
     QMediaPlayer::State state() const Q_DECL_OVERRIDE;
 
@@ -98,12 +98,12 @@ public:
     void pause() Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
 
-    BbPlayerVideoRendererControl *videoRendererControl() const;
-    void setVideoRendererControl(BbPlayerVideoRendererControl *videoControl);
+    MmRendererPlayerVideoRendererControl *videoRendererControl() const;
+    void setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl);
 
-    BbVideoWindowControl *videoWindowControl() const;
-    void setVideoWindowControl(BbVideoWindowControl *videoControl);
-    void setMetaDataReaderControl(BbMetaDataReaderControl *metaDataReaderControl);
+    MmRendererVideoWindowControl *videoWindowControl() const;
+    void setVideoWindowControl(MmRendererVideoWindowControl *videoControl);
+    void setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl);
 
 protected:
     virtual void startMonitoring(int contextId, const QString &contextName) = 0;
@@ -152,10 +152,10 @@ private:
     int m_volume;
     bool m_muted;
     qreal m_rate;
-    QPointer<BbPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<BbVideoWindowControl> m_videoWindowControl;
-    QPointer<BbMetaDataReaderControl> m_metaDataReaderControl;
-    BbMetaData m_metaData;
+    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
+    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
+    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
+    MmRendererMetaData m_metaData;
     int m_id;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;

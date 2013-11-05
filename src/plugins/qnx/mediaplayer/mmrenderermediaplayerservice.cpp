@@ -38,13 +38,13 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbmediaplayerservice.h"
+#include "mmrenderermediaplayerservice.h"
 
-#include "bbmediaplayercontrol.h"
-#include "bbmetadatareadercontrol.h"
-#include "bbplayervideorenderercontrol.h"
-#include "bbutil.h"
-#include "bbvideowindowcontrol.h"
+#include "mmrenderermediaplayercontrol.h"
+#include "mmrenderermetadatareadercontrol.h"
+#include "mmrendererplayervideorenderercontrol.h"
+#include "mmrendererutil.h"
+#include "mmrenderervideowindowcontrol.h"
 
 #ifdef Q_OS_BLACKBERRY
 #include "bpsmediaplayercontrol.h"
@@ -56,7 +56,7 @@ typedef PpsMediaPlayerControl PlatformSpecificMediaPlayerControl;
 
 QT_BEGIN_NAMESPACE
 
-BbMediaPlayerService::BbMediaPlayerService(QObject *parent)
+MmRendererMediaPlayerService::MmRendererMediaPlayerService(QObject *parent)
     : QMediaService(parent),
       m_videoRendererControl(0),
       m_videoWindowControl(0),
@@ -67,7 +67,7 @@ BbMediaPlayerService::BbMediaPlayerService(QObject *parent)
 {
 }
 
-BbMediaPlayerService::~BbMediaPlayerService()
+MmRendererMediaPlayerService::~MmRendererMediaPlayerService()
 {
     // Someone should have called releaseControl(), but better be safe
     delete m_videoRendererControl;
@@ -76,7 +76,7 @@ BbMediaPlayerService::~BbMediaPlayerService()
     delete m_metaDataReaderControl;
 }
 
-QMediaControl *BbMediaPlayerService::requestControl(const char *name)
+QMediaControl *MmRendererMediaPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         if (!m_mediaPlayerControl) {
@@ -87,7 +87,7 @@ QMediaControl *BbMediaPlayerService::requestControl(const char *name)
     }
     else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
         if (!m_metaDataReaderControl) {
-            m_metaDataReaderControl = new BbMetaDataReaderControl();
+            m_metaDataReaderControl = new MmRendererMetaDataReaderControl();
             updateControls();
         }
         return m_metaDataReaderControl;
@@ -106,14 +106,14 @@ QMediaControl *BbMediaPlayerService::requestControl(const char *name)
         }
 
         if (!m_videoRendererControl) {
-            m_videoRendererControl = new BbPlayerVideoRendererControl();
+            m_videoRendererControl = new MmRendererPlayerVideoRendererControl();
             updateControls();
         }
         return m_videoRendererControl;
     }
     else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoWindowControl) {
-            m_videoWindowControl = new BbVideoWindowControl();
+            m_videoWindowControl = new MmRendererVideoWindowControl();
             updateControls();
         }
         return m_videoWindowControl;
@@ -121,7 +121,7 @@ QMediaControl *BbMediaPlayerService::requestControl(const char *name)
     return 0;
 }
 
-void BbMediaPlayerService::releaseControl(QMediaControl *control)
+void MmRendererMediaPlayerService::releaseControl(QMediaControl *control)
 {
     if (control == m_videoRendererControl)
         m_videoRendererControl = 0;
@@ -134,7 +134,7 @@ void BbMediaPlayerService::releaseControl(QMediaControl *control)
     delete control;
 }
 
-void BbMediaPlayerService::updateControls()
+void MmRendererMediaPlayerService::updateControls()
 {
     if (m_videoRendererControl && m_mediaPlayerControl)
         m_mediaPlayerControl->setVideoRendererControl(m_videoRendererControl);

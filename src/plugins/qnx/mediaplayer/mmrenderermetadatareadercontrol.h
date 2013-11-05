@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,60 +38,29 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBMETADATA_H
-#define BBMETADATA_H
+#ifndef MMRENDERERMETADATAREADERCONTROL_H
+#define MMRENDERERMETADATAREADERCONTROL_H
 
-#include <QtCore/qglobal.h>
-#include <QtCore/QSize>
-#include <QtCore/QString>
+#include "mmrenderermetadata.h"
+#include <qmetadatareadercontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbMetaData
+class MmRendererMetaDataReaderControl : public QMetaDataReaderControl
 {
+    Q_OBJECT
 public:
-    BbMetaData();
-    bool parse(const QString &contextName);
-    void clear();
+    explicit MmRendererMetaDataReaderControl(QObject *parent = 0);
 
-    // Duration in milliseconds
-    qlonglong duration() const;
+    bool isMetaDataAvailable() const Q_DECL_OVERRIDE;
 
-    int height() const;
-    int width() const;
-    bool hasVideo() const;
-    bool hasAudio() const;
-    bool isSeekable() const;
+    QVariant metaData(const QString &key) const Q_DECL_OVERRIDE;
+    QStringList availableMetaData() const Q_DECL_OVERRIDE;
 
-    QString title() const;
-    QString artist() const;
-    QString comment() const;
-    QString genre() const;
-    int year() const;
-    QString mediaType() const;
-    int audioBitRate() const;
-    int sampleRate() const;
-    QString album() const;
-    int track() const;
-    QSize resolution() const;
+    void setMetaData(const MmRendererMetaData &data);
 
 private:
-    qlonglong m_duration;
-    int m_height;
-    int m_width;
-    int m_mediaType;
-    float m_pixelWidth;
-    float m_pixelHeight;
-    bool m_seekable;
-    QString m_title;
-    QString m_artist;
-    QString m_comment;
-    QString m_genre;
-    int m_year;
-    int m_audioBitRate;
-    int m_sampleRate;
-    QString m_album;
-    int m_track;
+    MmRendererMetaData m_metaData;
 };
 
 QT_END_NAMESPACE

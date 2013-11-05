@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2013 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,75 +38,29 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbserviceplugin.h"
+#ifndef BPSMEDIAPLAYERCONTROL_H
+#define BPSMEDIAPLAYERCONTROL_H
 
-#include "bbcameraservice.h"
-#include "bbvideodeviceselectorcontrol.h"
-#include "bbmediaplayerservice.h"
-
-#include <QDebug>
+#include "mmrenderermediaplayercontrol.h"
 
 QT_BEGIN_NAMESPACE
 
-BbServicePlugin::BbServicePlugin()
+class BpsMediaPlayerControl Q_DECL_FINAL : public MmRendererMediaPlayerControl
 {
-}
+    Q_OBJECT
+public:
+    explicit BpsMediaPlayerControl(QObject *parent = 0);
+    ~BpsMediaPlayerControl();
 
-QMediaService *BbServicePlugin::create(const QString &key)
-{
-    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
-        return new BbCameraService();
+    void startMonitoring(int contextId, const QString &contextName) Q_DECL_OVERRIDE;
+    void stopMonitoring() Q_DECL_OVERRIDE;
 
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new BbMediaPlayerService();
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
 
-    return 0;
-}
-
-void BbServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
-
-QMediaServiceProviderHint::Features BbServicePlugin::supportedFeatures(const QByteArray &service) const
-{
-    Q_UNUSED(service)
-    return QMediaServiceProviderHint::Features();
-}
-
-QList<QByteArray> BbServicePlugin::devices(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        return m_cameraDevices;
-    }
-
-    return QList<QByteArray>();
-}
-
-QString BbServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        for (int i = 0; i < m_cameraDevices.count(); i++)
-            if (m_cameraDevices[i] == device)
-                return m_cameraDescriptions[i];
-    }
-
-    return QString();
-}
-
-void BbServicePlugin::updateDevices() const
-{
-    BbVideoDeviceSelectorControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
-
-    if (m_cameraDevices.isEmpty()) {
-        qWarning() << "No camera devices found";
-    }
-}
+private:
+    mmrenderer_monitor_t *m_eventMonitor;
+};
 
 QT_END_NAMESPACE
+
+#endif

@@ -40,7 +40,7 @@
 ****************************************************************************/
 
 #include "ppsmediaplayercontrol.h"
-#include "bbvideowindowcontrol.h"
+#include "mmrenderervideowindowcontrol.h"
 
 #include <QtCore/qfile.h>
 #include <QtCore/qsocketnotifier.h>
@@ -52,7 +52,7 @@
 QT_BEGIN_NAMESPACE
 
 PpsMediaPlayerControl::PpsMediaPlayerControl(QObject *parent)
-    : BbMediaPlayerControl(parent),
+    : MmRendererMediaPlayerControl(parent),
     m_ppsStatusNotifier(0),
     m_ppsStatusFd(-1),
     m_ppsStateNotifier(0),
@@ -129,7 +129,7 @@ bool PpsMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void 
     Q_UNUSED(result)
     if (eventType == "screen_event_t") {
         screen_event_t event = static_cast<screen_event_t>(message);
-        if (BbVideoWindowControl *control = videoWindowControl())
+        if (MmRendererVideoWindowControl *control = videoWindowControl())
             control->screenEventHandler(event);
     }
 

@@ -13,8 +13,11 @@ android {
 }
 
 qnx {
-    SUBDIRS += blackberry
-    SUBDIRS += audiocapture qnx
+    SUBDIRS += qnx audiocapture
+}
+
+qnx:!blackberry {
+    SUBDIRS += qnx-audio
 }
 
 win32 {

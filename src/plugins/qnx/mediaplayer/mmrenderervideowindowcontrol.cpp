@@ -38,8 +38,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbvideowindowcontrol.h"
-#include "bbutil.h"
+#include "mmrenderervideowindowcontrol.h"
+#include "mmrendererutil.h"
 #include <QtCore/qdebug.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qpa/qplatformnativeinterface.h>
@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
 static int winIdCounter = 0;
 
-BbVideoWindowControl::BbVideoWindowControl(QObject *parent)
+MmRendererVideoWindowControl::MmRendererVideoWindowControl(QObject *parent)
     : QVideoWindowControl(parent),
       m_videoId(-1),
       m_winId(0),
@@ -66,26 +66,26 @@ BbVideoWindowControl::BbVideoWindowControl(QObject *parent)
 {
 }
 
-BbVideoWindowControl::~BbVideoWindowControl()
+MmRendererVideoWindowControl::~MmRendererVideoWindowControl()
 {
 }
 
-WId BbVideoWindowControl::winId() const
+WId MmRendererVideoWindowControl::winId() const
 {
     return m_winId;
 }
 
-void BbVideoWindowControl::setWinId(WId id)
+void MmRendererVideoWindowControl::setWinId(WId id)
 {
     m_winId = id;
 }
 
-QRect BbVideoWindowControl::displayRect() const
+QRect MmRendererVideoWindowControl::displayRect() const
 {
     return m_displayRect ;
 }
 
-void BbVideoWindowControl::setDisplayRect(const QRect &rect)
+void MmRendererVideoWindowControl::setDisplayRect(const QRect &rect)
 {
     if (m_displayRect != rect) {
         m_displayRect = rect;
@@ -93,12 +93,12 @@ void BbVideoWindowControl::setDisplayRect(const QRect &rect)
     }
 }
 
-bool BbVideoWindowControl::isFullScreen() const
+bool MmRendererVideoWindowControl::isFullScreen() const
 {
     return m_fullscreen;
 }
 
-void BbVideoWindowControl::setFullScreen(bool fullScreen)
+void MmRendererVideoWindowControl::setFullScreen(bool fullScreen)
 {
     if (m_fullscreen != fullScreen) {
         m_fullscreen = fullScreen;
@@ -107,32 +107,32 @@ void BbVideoWindowControl::setFullScreen(bool fullScreen)
     }
 }
 
-void BbVideoWindowControl::repaint()
+void MmRendererVideoWindowControl::repaint()
 {
     // Nothing we can or should do here
 }
 
-QSize BbVideoWindowControl::nativeSize() const
+QSize MmRendererVideoWindowControl::nativeSize() const
 {
     return QSize(m_metaData.width(), m_metaData.height());
 }
 
-Qt::AspectRatioMode BbVideoWindowControl::aspectRatioMode() const
+Qt::AspectRatioMode MmRendererVideoWindowControl::aspectRatioMode() const
 {
     return m_aspectRatioMode;
 }
 
-void BbVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
+void MmRendererVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     m_aspectRatioMode = mode;
 }
 
-int BbVideoWindowControl::brightness() const
+int MmRendererVideoWindowControl::brightness() const
 {
     return m_brightness;
 }
 
-void BbVideoWindowControl::setBrightness(int brightness)
+void MmRendererVideoWindowControl::setBrightness(int brightness)
 {
     if (m_brightness != brightness) {
         m_brightness = brightness;
@@ -141,12 +141,12 @@ void BbVideoWindowControl::setBrightness(int brightness)
     }
 }
 
-int BbVideoWindowControl::contrast() const
+int MmRendererVideoWindowControl::contrast() const
 {
     return m_contrast;
 }
 
-void BbVideoWindowControl::setContrast(int contrast)
+void MmRendererVideoWindowControl::setContrast(int contrast)
 {
     if (m_contrast != contrast) {
         m_contrast = contrast;
@@ -155,12 +155,12 @@ void BbVideoWindowControl::setContrast(int contrast)
     }
 }
 
-int BbVideoWindowControl::hue() const
+int MmRendererVideoWindowControl::hue() const
 {
     return m_hue;
 }
 
-void BbVideoWindowControl::setHue(int hue)
+void MmRendererVideoWindowControl::setHue(int hue)
 {
     if (m_hue != hue) {
         m_hue = hue;
@@ -169,12 +169,12 @@ void BbVideoWindowControl::setHue(int hue)
     }
 }
 
-int BbVideoWindowControl::saturation() const
+int MmRendererVideoWindowControl::saturation() const
 {
     return m_saturation;
 }
 
-void BbVideoWindowControl::setSaturation(int saturation)
+void MmRendererVideoWindowControl::setSaturation(int saturation)
 {
     if (m_saturation != saturation) {
         m_saturation = saturation;
@@ -183,39 +183,39 @@ void BbVideoWindowControl::setSaturation(int saturation)
     }
 }
 
-void BbVideoWindowControl::attachDisplay(mmr_context_t *context)
+void MmRendererVideoWindowControl::attachDisplay(mmr_context_t *context)
 {
     if (m_videoId != -1) {
-        qDebug() << "BbVideoWindowControl: Video output already attached!";
+        qDebug() << "MmRendererVideoWindowControl: Video output already attached!";
         return;
     }
 
     if (!context) {
-        qDebug() << "BbVideoWindowControl: No media player context!";
+        qDebug() << "MmRendererVideoWindowControl: No media player context!";
         return;
     }
 
     QWindow *window = findWindow(m_winId);
     if (!window) {
-        qDebug() << "BbVideoWindowControl: No video window!";
+        qDebug() << "MmRendererVideoWindowControl: No video window!";
         return;
     }
 
     QPlatformNativeInterface * const nativeInterface = QGuiApplication::platformNativeInterface();
     if (!nativeInterface) {
-        qDebug() << "BbVideoWindowControl: Unable to get platform native interface";
+        qDebug() << "MmRendererVideoWindowControl: Unable to get platform native interface";
         return;
     }
 
     const char * const groupNameData = static_cast<const char *>(
         nativeInterface->nativeResourceForWindow("windowGroup", window));
     if (!groupNameData) {
-        qDebug() << "BbVideoWindowControl: Unable to find window group for window" << window;
+        qDebug() << "MmRendererVideoWindowControl: Unable to find window group for window" << window;
         return;
     }
 
     const QString groupName = QString::fromLatin1(groupNameData);
-    m_windowName = QString("BbVideoWindowControl_%1_%2").arg(winIdCounter++)
+    m_windowName = QString("MmRendererVideoWindowControl_%1_%2").arg(winIdCounter++)
                                                         .arg(QCoreApplication::applicationPid());
 
     nativeInterface->setWindowProperty(window->handle(),
@@ -240,7 +240,7 @@ void BbVideoWindowControl::attachDisplay(mmr_context_t *context)
     updateSaturation();
 }
 
-void BbVideoWindowControl::updateVideoPosition()
+void MmRendererVideoWindowControl::updateVideoPosition()
 {
     QWindow * const window = findWindow(m_winId);
     if (m_context && m_videoId != -1 && window) {
@@ -306,7 +306,7 @@ void BbVideoWindowControl::updateVideoPosition()
     }
 }
 
-void BbVideoWindowControl::updateBrightness()
+void MmRendererVideoWindowControl::updateBrightness()
 {
     if (m_window != 0) {
         const int backendValue = m_brightness * 2.55f;
@@ -315,7 +315,7 @@ void BbVideoWindowControl::updateBrightness()
     }
 }
 
-void BbVideoWindowControl::updateContrast()
+void MmRendererVideoWindowControl::updateContrast()
 {
     if (m_window != 0) {
         const int backendValue = m_contrast * 1.27f;
@@ -324,7 +324,7 @@ void BbVideoWindowControl::updateContrast()
     }
 }
 
-void BbVideoWindowControl::updateHue()
+void MmRendererVideoWindowControl::updateHue()
 {
     if (m_window != 0) {
         const int backendValue = m_hue * 1.27f;
@@ -333,7 +333,7 @@ void BbVideoWindowControl::updateHue()
     }
 }
 
-void BbVideoWindowControl::updateSaturation()
+void MmRendererVideoWindowControl::updateSaturation()
 {
     if (m_window != 0) {
         const int backendValue = m_saturation * 1.27f;
@@ -342,7 +342,7 @@ void BbVideoWindowControl::updateSaturation()
     }
 }
 
-void BbVideoWindowControl::detachDisplay()
+void MmRendererVideoWindowControl::detachDisplay()
 {
     if (m_context && m_videoId != -1)
         mmr_output_detach(m_context, m_videoId);
@@ -358,7 +358,7 @@ void BbVideoWindowControl::detachDisplay()
     m_saturation = 0;
 }
 
-void BbVideoWindowControl::setMetaData(const BbMetaData &metaData)
+void MmRendererVideoWindowControl::setMetaData(const MmRendererMetaData &metaData)
 {
     m_metaData = metaData;
     emit nativeSizeChanged();
@@ -367,11 +367,11 @@ void BbVideoWindowControl::setMetaData(const BbMetaData &metaData)
     updateVideoPosition();
 }
 
-void BbVideoWindowControl::screenEventHandler(const screen_event_t &screen_event)
+void MmRendererVideoWindowControl::screenEventHandler(const screen_event_t &screen_event)
 {
     int eventType;
     if (screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_TYPE, &eventType) != 0) {
-        perror("BbVideoWindowControl: Failed to query screen event type");
+        perror("MmRendererVideoWindowControl: Failed to query screen event type");
         return;
     }
 
@@ -380,14 +380,14 @@ void BbVideoWindowControl::screenEventHandler(const screen_event_t &screen_event
 
     screen_window_t window = 0;
     if (screen_get_event_property_pv(screen_event, SCREEN_PROPERTY_WINDOW, (void**)&window) != 0) {
-        perror("BbVideoWindowControl: Failed to query window property");
+        perror("MmRendererVideoWindowControl: Failed to query window property");
         return;
     }
 
     const int maxIdStrLength = 128;
     char idString[maxIdStrLength];
     if (screen_get_window_property_cv(window, SCREEN_PROPERTY_ID_STRING, maxIdStrLength, idString) != 0) {
-        perror("BbVideoWindowControl: Failed to query window ID string");
+        perror("MmRendererVideoWindowControl: Failed to query window ID string");
         return;
     }
 
@@ -397,13 +397,13 @@ void BbVideoWindowControl::screenEventHandler(const screen_event_t &screen_event
 
         const int visibleFlag = 1;
         if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_VISIBLE, &visibleFlag) != 0) {
-            perror("BbVideoWindowControl: Failed to make window visible");
+            perror("MmRendererVideoWindowControl: Failed to make window visible");
             return;
         }
     }
 }
 
-QWindow *BbVideoWindowControl::findWindow(WId id) const
+QWindow *MmRendererVideoWindowControl::findWindow(WId id) const
 {
     Q_FOREACH (QWindow *window, QGuiApplication::allWindows())
         if (window->winId() == id)

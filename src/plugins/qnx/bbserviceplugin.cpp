@@ -38,41 +38,75 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBMEDIAPLAYERSERVICE_H
-#define BBMEDIAPLAYERSERVICE_H
+#include "bbserviceplugin.h"
 
-#include <qmediaservice.h>
-#include <QtCore/qpointer.h>
+#include "bbcameraservice.h"
+#include "bbvideodeviceselectorcontrol.h"
+#include "bbmediaplayerservice.h"
+
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
-class BbMediaPlayerControl;
-class BbMetaDataReaderControl;
-class BbPlayerVideoRendererControl;
-class BbVideoWindowControl;
-
-class BbMediaPlayerService : public QMediaService
+BbServicePlugin::BbServicePlugin()
 {
-    Q_OBJECT
-public:
-    explicit BbMediaPlayerService(QObject *parent = 0);
-    ~BbMediaPlayerService();
+}
 
-    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
-    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
+QMediaService *BbServicePlugin::create(const QString &key)
+{
+    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
+        return new BbCameraService();
 
-private:
-    void updateControls();
+    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
+        return new MmRendererMediaPlayerService();
 
-    QPointer<BbPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<BbVideoWindowControl> m_videoWindowControl;
-    QPointer<BbMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<BbMetaDataReaderControl> m_metaDataReaderControl;
+    return 0;
+}
 
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
-};
+void BbServicePlugin::release(QMediaService *service)
+{
+    delete service;
+}
+
+QMediaServiceProviderHint::Features BbServicePlugin::supportedFeatures(const QByteArray &service) const
+{
+    Q_UNUSED(service)
+    return QMediaServiceProviderHint::Features();
+}
+
+QList<QByteArray> BbServicePlugin::devices(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        return m_cameraDevices;
+    }
+
+    return QList<QByteArray>();
+}
+
+QString BbServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        for (int i = 0; i < m_cameraDevices.count(); i++)
+            if (m_cameraDevices[i] == device)
+                return m_cameraDescriptions[i];
+    }
+
+    return QString();
+}
+
+void BbServicePlugin::updateDevices() const
+{
+    BbVideoDeviceSelectorControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
+
+    if (m_cameraDevices.isEmpty()) {
+        qWarning() << "No camera devices found";
+    }
+}
 
 QT_END_NAMESPACE
-
-#endif

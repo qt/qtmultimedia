@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "bbplayervideorenderercontrol.h"
+#include "mmrendererplayervideorenderercontrol.h"
 
 #include "windowgrabber.h"
 
@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
 static int winIdCounter = 0;
 
-BbPlayerVideoRendererControl::BbPlayerVideoRendererControl(QObject *parent)
+MmRendererPlayerVideoRendererControl::MmRendererPlayerVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
     , m_windowGrabber(new WindowGrabber(this))
     , m_context(0)
@@ -62,40 +62,40 @@ BbPlayerVideoRendererControl::BbPlayerVideoRendererControl(QObject *parent)
     connect(m_windowGrabber, SIGNAL(frameGrabbed(QImage)), SLOT(frameGrabbed(QImage)));
 }
 
-BbPlayerVideoRendererControl::~BbPlayerVideoRendererControl()
+MmRendererPlayerVideoRendererControl::~MmRendererPlayerVideoRendererControl()
 {
     detachDisplay();
 }
 
-QAbstractVideoSurface *BbPlayerVideoRendererControl::surface() const
+QAbstractVideoSurface *MmRendererPlayerVideoRendererControl::surface() const
 {
     return m_surface;
 }
 
-void BbPlayerVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+void MmRendererPlayerVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 {
     m_surface = QPointer<QAbstractVideoSurface>(surface);
 }
 
-void BbPlayerVideoRendererControl::attachDisplay(mmr_context_t *context)
+void MmRendererPlayerVideoRendererControl::attachDisplay(mmr_context_t *context)
 {
     if (m_videoId != -1) {
-        qWarning() << "BbPlayerVideoRendererControl: Video output already attached!";
+        qWarning() << "MmRendererPlayerVideoRendererControl: Video output already attached!";
         return;
     }
 
     if (!context) {
-        qWarning() << "BbPlayerVideoRendererControl: No media player context!";
+        qWarning() << "MmRendererPlayerVideoRendererControl: No media player context!";
         return;
     }
 
     const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
     if (windowGroupId.isEmpty()) {
-        qWarning() << "BbPlayerVideoRendererControl: Unable to find window group";
+        qWarning() << "MmRendererPlayerVideoRendererControl: Unable to find window group";
         return;
     }
 
-    const QString windowName = QStringLiteral("BbPlayerVideoRendererControl_%1_%2")
+    const QString windowName = QStringLiteral("MmRendererPlayerVideoRendererControl_%1_%2")
                                              .arg(winIdCounter++)
                                              .arg(QCoreApplication::applicationPid());
 
@@ -115,7 +115,7 @@ void BbPlayerVideoRendererControl::attachDisplay(mmr_context_t *context)
     m_context = context;
 }
 
-void BbPlayerVideoRendererControl::detachDisplay()
+void MmRendererPlayerVideoRendererControl::detachDisplay()
 {
     m_windowGrabber->stop();
 
@@ -129,17 +129,17 @@ void BbPlayerVideoRendererControl::detachDisplay()
     m_videoId = -1;
 }
 
-void BbPlayerVideoRendererControl::pause()
+void MmRendererPlayerVideoRendererControl::pause()
 {
     m_windowGrabber->pause();
 }
 
-void BbPlayerVideoRendererControl::resume()
+void MmRendererPlayerVideoRendererControl::resume()
 {
     m_windowGrabber->resume();
 }
 
-void BbPlayerVideoRendererControl::frameGrabbed(const QImage &frame)
+void MmRendererPlayerVideoRendererControl::frameGrabbed(const QImage &frame)
 {
     if (m_surface) {
         if (!m_surface->isActive()) {
