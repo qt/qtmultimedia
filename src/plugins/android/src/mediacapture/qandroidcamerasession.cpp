@@ -52,6 +52,41 @@
 
 QT_BEGIN_NAMESPACE
 
+class DataVideoBuffer : public QAbstractVideoBuffer
+{
+public:
+    DataVideoBuffer(const QByteArray &d)
+        : QAbstractVideoBuffer(NoHandle)
+        , data(d)
+        , mode(NotMapped)
+    { }
+
+    MapMode mapMode() const { return mode; }
+
+    uchar *map(MapMode m, int *numBytes, int *bytesPerLine)
+    {
+        if (mode != NotMapped || m == NotMapped)
+            return 0;
+
+        mode = m;
+
+        if (numBytes)
+            *numBytes = data.size();
+
+        if (bytesPerLine)
+            *bytesPerLine = -1;
+
+        return reinterpret_cast<uchar *>(data.data());
+    }
+
+    void unmap() { mode = NotMapped; }
+
+private:
+    QByteArray data;
+    MapMode mode;
+};
+
+
 QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     : QObject(parent)
     , m_selectedCamera(0)
@@ -463,6 +498,7 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
         QtConcurrent::run(this, &QAndroidCameraSession::processCapturedImage,
                           m_currentImageCaptureId,
                           data,
+                          m_imageSettings.resolution(),
                           m_captureDestination,
                           m_currentImageCaptureFileName);
     }
@@ -477,6 +513,7 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 
 void QAndroidCameraSession::processCapturedImage(int id,
                                                  const QByteArray &data,
+                                                 const QSize &resolution,
                                                  QCameraImageCapture::CaptureDestinations dest,
                                                  const QString &fileName)
 {
@@ -509,16 +546,8 @@ void QAndroidCameraSession::processCapturedImage(int id,
     }
 
     if (dest & QCameraImageCapture::CaptureToBuffer) {
-        QImage image;
-        const bool ok = image.loadFromData(data, "JPG");
-
-        if (ok) {
-            QVideoFrame frame(image);
-            emit imageAvailable(id, frame);
-        } else {
-            emit imageCaptureError(id, QCameraImageCapture::FormatError,
-                                   tr("Could not load JPEG data from captured image"));
-        }
+        QVideoFrame frame(new DataVideoBuffer(data), resolution, QVideoFrame::Format_Jpeg);
+        emit imageAvailable(id, frame);
     }
 }
 

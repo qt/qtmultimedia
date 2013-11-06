@@ -127,6 +127,7 @@ private:
     void processPreviewImage(int id, const QByteArray &data);
     void processCapturedImage(int id,
                               const QByteArray &data,
+                              const QSize &resolution,
                               QCameraImageCapture::CaptureDestinations dest,
                               const QString &fileName);
 
