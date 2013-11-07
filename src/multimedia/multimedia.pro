@@ -60,6 +60,11 @@ ANDROID_LIB_DEPENDENCIES = \
     lib/libQt5MultimediaQuick_p.so:Qt5Quick
 ANDROID_BUNDLED_FILES += \
     lib/libQt5MultimediaQuick_p.so
+ANDROID_PERMISSIONS += \
+    android.permission.CAMERA \
+    android.permission.RECORD_AUDIO
+ANDROID_FEATURES += \
+    android.hardware.camera
 MODULE_PLUGIN_TYPES = \
     mediaservice \
     audio \
