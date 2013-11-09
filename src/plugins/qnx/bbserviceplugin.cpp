@@ -42,7 +42,7 @@
 
 #include "bbcameraservice.h"
 #include "bbvideodeviceselectorcontrol.h"
-#include "bbmediaplayerservice.h"
+#include "mmrenderermediaplayerservice.h"
 
 #include <QDebug>
 
