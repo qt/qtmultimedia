@@ -52,6 +52,8 @@
 #define BUFFER_COUNT 2
 #define DEFAULT_PERIOD_TIME_MS 50
 #define MINIMUM_PERIOD_TIME_MS 5
+#define EBASE 2.302585093
+#define LOG10(x) qLn(x)/qreal(EBASE)
 
 QT_BEGIN_NAMESPACE
 
@@ -622,7 +624,7 @@ inline SLmillibel QOpenSLESAudioOutput::adjustVolume(qreal vol)
     if (qFuzzyCompare(vol, qreal(1.0)))
         return 0;
 
-    return SL_MILLIBEL_MIN + ((1 - (qLn(10 - (vol * 10)) / qLn(10))) * SL_MILLIBEL_MAX);
+    return 20 * LOG10(vol) * 100; // I.e., 20 * LOG10(SL_MILLIBEL_MAX * vol / SL_MILLIBEL_MAX)
 }
 
 QT_END_NAMESPACE
