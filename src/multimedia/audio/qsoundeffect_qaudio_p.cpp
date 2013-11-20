@@ -236,10 +236,9 @@ void QSoundEffectPrivate::play()
         setStatus(QSoundEffect::Null);
         return;
     }
+    setPlaying(true);
     if (d->m_audioOutput && d->m_audioOutput->state() == QAudio::StoppedState && d->m_sampleReady)
         d->m_audioOutput->start(d);
-
-    setPlaying(true);
 }
 
 void QSoundEffectPrivate::stop()

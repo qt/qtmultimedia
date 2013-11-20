@@ -389,86 +389,86 @@ void DirectShowMetaDataControl::updateGraph(IFilterGraph2 *graph, IBaseFilter *s
                         if (FAILED(pStore->GetValue(key, &var)))
                             continue;
 
-                        if (key == PKEY_Author) {
+                        if (IsEqualPropertyKey(key, PKEY_Author)) {
                             m_metadata.insert(QMediaMetaData::Author, convertValue(var));
-                        } else if (key == PKEY_Title) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Title)) {
                             m_metadata.insert(QMediaMetaData::Title, convertValue(var));
-                        } else if (key == PKEY_Media_SubTitle) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_SubTitle)) {
                             m_metadata.insert(QMediaMetaData::SubTitle, convertValue(var));
-                        } else if (key == PKEY_ParentalRating) {
+                        } else if (IsEqualPropertyKey(key, PKEY_ParentalRating)) {
                             m_metadata.insert(QMediaMetaData::ParentalRating, convertValue(var));
-                        } else if (key == PKEY_Comment) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Comment)) {
                             m_metadata.insert(QMediaMetaData::Description, convertValue(var));
-                        } else if (key == PKEY_Copyright) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Copyright)) {
                             m_metadata.insert(QMediaMetaData::Copyright, convertValue(var));
-                        } else if (key == PKEY_Media_ProviderStyle) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_ProviderStyle)) {
                             m_metadata.insert(QMediaMetaData::Genre, convertValue(var));
-                        } else if (key == PKEY_Media_Year) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_Year)) {
                             m_metadata.insert(QMediaMetaData::Year, convertValue(var));
-                        } else if (key == PKEY_Media_DateEncoded) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_DateEncoded)) {
                             m_metadata.insert(QMediaMetaData::Date, convertValue(var));
-                        } else if (key == PKEY_Rating) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Rating)) {
                             m_metadata.insert(QMediaMetaData::UserRating,
                                               int((convertValue(var).toUInt() - 1) / qreal(98) * 100));
-                        } else if (key == PKEY_Keywords) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Keywords)) {
                             m_metadata.insert(QMediaMetaData::Keywords, convertValue(var));
-                        } else if (key == PKEY_Language) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Language)) {
                             m_metadata.insert(QMediaMetaData::Language, convertValue(var));
-                        } else if (key == PKEY_Media_Publisher) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_Publisher)) {
                             m_metadata.insert(QMediaMetaData::Publisher, convertValue(var));
-                        } else if (key == PKEY_Media_Duration) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_Duration)) {
                             m_metadata.insert(QMediaMetaData::Duration,
                                               (convertValue(var).toLongLong() + 10000) / 10000);
-                        } else if (key == PKEY_Audio_EncodingBitrate) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Audio_EncodingBitrate)) {
                             m_metadata.insert(QMediaMetaData::AudioBitRate, convertValue(var));
-                        } else if (key == PKEY_Media_AverageLevel) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_AverageLevel)) {
                             m_metadata.insert(QMediaMetaData::AverageLevel, convertValue(var));
-                        } else if (key == PKEY_Audio_ChannelCount) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Audio_ChannelCount)) {
                             m_metadata.insert(QMediaMetaData::ChannelCount, convertValue(var));
-                        } else if (key == PKEY_Audio_PeakValue) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Audio_PeakValue)) {
                             m_metadata.insert(QMediaMetaData::PeakValue, convertValue(var));
-                        } else if (key == PKEY_Audio_SampleRate) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Audio_SampleRate)) {
                             m_metadata.insert(QMediaMetaData::SampleRate, convertValue(var));
-                        } else if (key == PKEY_Music_AlbumTitle) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_AlbumTitle)) {
                             m_metadata.insert(QMediaMetaData::AlbumTitle, convertValue(var));
-                        } else if (key == PKEY_Music_AlbumArtist) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_AlbumArtist)) {
                             m_metadata.insert(QMediaMetaData::AlbumArtist, convertValue(var));
-                        } else if (key == PKEY_Music_Artist) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_Artist)) {
                             m_metadata.insert(QMediaMetaData::ContributingArtist, convertValue(var));
-                        } else if (key == PKEY_Music_Composer) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_Composer)) {
                             m_metadata.insert(QMediaMetaData::Composer, convertValue(var));
-                        } else if (key == PKEY_Music_Conductor) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_Conductor)) {
                             m_metadata.insert(QMediaMetaData::Conductor, convertValue(var));
-                        } else if (key == PKEY_Music_Lyrics) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_Lyrics)) {
                             m_metadata.insert(QMediaMetaData::Lyrics, convertValue(var));
-                        } else if (key == PKEY_Music_Mood) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_Mood)) {
                             m_metadata.insert(QMediaMetaData::Mood, convertValue(var));
-                        } else if (key == PKEY_Music_TrackNumber) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_TrackNumber)) {
                             m_metadata.insert(QMediaMetaData::TrackNumber, convertValue(var));
-                        } else if (key == PKEY_Music_Genre) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Music_Genre)) {
                             m_metadata.insert(QMediaMetaData::Genre, convertValue(var));
-                        } else if (key == PKEY_ThumbnailStream) {
+                        } else if (IsEqualPropertyKey(key, PKEY_ThumbnailStream)) {
                             m_metadata.insert(QMediaMetaData::ThumbnailImage, convertValue(var));
-                        } else if (key == PKEY_Video_FrameHeight) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Video_FrameHeight)) {
                             QSize res;
                             res.setHeight(convertValue(var).toUInt());
                             if (SUCCEEDED(pStore->GetValue(PKEY_Video_FrameWidth, &var)))
                                 res.setWidth(convertValue(var).toUInt());
                             m_metadata.insert(QMediaMetaData::Resolution, res);
-                        } else if (key == PKEY_Video_HorizontalAspectRatio) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Video_HorizontalAspectRatio)) {
                             QSize aspectRatio;
                             aspectRatio.setWidth(convertValue(var).toUInt());
                             if (SUCCEEDED(pStore->GetValue(PKEY_Video_VerticalAspectRatio, &var)))
                                 aspectRatio.setHeight(convertValue(var).toUInt());
                             m_metadata.insert(QMediaMetaData::PixelAspectRatio, aspectRatio);
-                        } else if (key == PKEY_Video_FrameRate) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Video_FrameRate)) {
                             m_metadata.insert(QMediaMetaData::VideoFrameRate,
                                               convertValue(var).toReal() / 1000);
-                        } else if (key == PKEY_Video_EncodingBitrate) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Video_EncodingBitrate)) {
                             m_metadata.insert(QMediaMetaData::VideoBitRate, convertValue(var));
-                        } else if (key == PKEY_Video_Director) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Video_Director)) {
                             m_metadata.insert(QMediaMetaData::Director, convertValue(var));
-                        } else if (key == PKEY_Media_Writer) {
+                        } else if (IsEqualPropertyKey(key, PKEY_Media_Writer)) {
                             m_metadata.insert(QMediaMetaData::Writer, convertValue(var));
                         }
 

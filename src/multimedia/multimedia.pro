@@ -60,11 +60,16 @@ ANDROID_LIB_DEPENDENCIES = \
     lib/libQt5MultimediaQuick_p.so:Qt5Quick
 ANDROID_BUNDLED_FILES += \
     lib/libQt5MultimediaQuick_p.so
+ANDROID_PERMISSIONS += \
+    android.permission.CAMERA \
+    android.permission.RECORD_AUDIO
+ANDROID_FEATURES += \
+    android.hardware.camera
 MODULE_PLUGIN_TYPES = \
     mediaservice \
     audio \
     video/videonode
 
-win32:LIBS += -luuid
+win32: LIBS_PRIVATE += -luuid
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS

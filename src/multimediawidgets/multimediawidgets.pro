@@ -35,7 +35,7 @@ maemo6 {
 
         SOURCES += qgraphicsvideoitem_maemo6.cpp
 
-        LIBS += -lX11
+        LIBS_PRIVATE += -lX11
     } else {
         SOURCES += qgraphicsvideoitem.cpp
     }

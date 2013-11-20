@@ -2,7 +2,6 @@ requires(qtHaveModule(gui))
 
 load(configure)
 qtCompileTest(openal)
-qtCompileTest(opensles)
 win32 {
     qtCompileTest(directshow) {
         qtCompileTest(wshellitem)

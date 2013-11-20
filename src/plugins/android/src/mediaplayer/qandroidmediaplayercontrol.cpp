@@ -344,7 +344,7 @@ void QAndroidMediaPlayerControl::onMediaPlayerInfo(qint32 what, qint32 extra)
         Q_EMIT positionChanged(extra);
         break;
     case JMediaPlayer::MEDIA_PLAYER_FINISHED:
-        setState(QMediaPlayer::StoppedState);
+        stop();
         setMediaStatus(QMediaPlayer::EndOfMedia);
         break;
     }

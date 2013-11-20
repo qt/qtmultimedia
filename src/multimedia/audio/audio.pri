@@ -44,14 +44,14 @@ win32 {
     SOURCES += audio/qaudiodeviceinfo_win32_p.cpp \
                audio/qaudiooutput_win32_p.cpp \
                audio/qaudioinput_win32_p.cpp
-    LIBS += -lwinmm -lstrmiids -lole32 -loleaut32
+    LIBS_PRIVATE += -lwinmm -lstrmiids -lole32 -loleaut32
 }
 
 unix:!mac {
     config_pulseaudio {
         DEFINES += QT_NO_AUDIO_BACKEND
         CONFIG += link_pkgconfig
-        PKGCONFIG += libpulse
+        PKGCONFIG_PRIVATE += libpulse
 
         DEFINES += QT_MULTIMEDIA_PULSEAUDIO
         PRIVATE_HEADERS += audio/qsoundeffect_pulse_p.h

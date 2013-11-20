@@ -261,8 +261,10 @@ void JCamera::setPreviewSize(const QSize &size)
 
     m_previewSize = size;
 
-    m_parameters.callMethod<void>("setPreviewSize", "(II)V", size.width(), size.height());
-    applyParameters();
+    if (m_previewSize.isValid()) {
+        m_parameters.callMethod<void>("setPreviewSize", "(II)V", size.width(), size.height());
+        applyParameters();
+    }
 
     emit previewSizeChanged();
 }

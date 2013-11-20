@@ -1936,10 +1936,12 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         m_request.command = CmdNone;
         m_request.prevCmd = CmdNone;
 
-        changeStatus(QMediaPlayer::EndOfMedia);
         m_varStart.vt = VT_I8;
         //keep reporting the final position after end of media
         m_varStart.hVal.QuadPart = m_duration;
+        emit positionChanged(position());
+
+        changeStatus(QMediaPlayer::EndOfMedia);
         break;
     case MEEndOfPresentationSegment:
         break;
