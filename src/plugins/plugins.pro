@@ -22,10 +22,9 @@ qnx:!blackberry {
 }
 
 win32 {
-    SUBDIRS += audiocapture
-}
+    SUBDIRS += audiocapture \
+               windowsaudio
 
-win32 {
     config_directshow: SUBDIRS += directshow
     config_wmf: SUBDIRS += wmf
 }
@@ -37,12 +36,14 @@ unix:!mac:!android {
         SUBDIRS += audiocapture
     }
 
-    # v4l is turned off because it is not supported in Qt 5
-    # !maemo*:SUBDIRS += v4l
-
     config_pulseaudio {
         SUBDIRS += pulseaudio
+    } else:config_alsa {
+        SUBDIRS += alsa
     }
+
+    # v4l is turned off because it is not supported in Qt 5
+    # !maemo*:SUBDIRS += v4l
 }
 
 mac:!simulator {

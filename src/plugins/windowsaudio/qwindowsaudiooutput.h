@@ -50,8 +50,8 @@
 // We mean it.
 //
 
-#ifndef QAUDIOOUTPUTWIN_H
-#define QAUDIOOUTPUTWIN_H
+#ifndef QWINDOWSAUDIOOUTPUT_H
+#define QWINDOWSAUDIOOUTPUT_H
 
 #include <QtCore/qt_windows.h>
 #include <mmsystem.h>
@@ -63,9 +63,9 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qmutex.h>
 
-#include <qaudio.h>
-#include <qaudiodeviceinfo.h>
-#include <qaudiosystem.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiosystem.h>
 
 // For compat with 4.6
 #if !defined(QT_WIN_CALLBACK)
@@ -78,13 +78,12 @@
 
 QT_BEGIN_NAMESPACE
 
-
-class QAudioOutputPrivate : public QAbstractAudioOutput
+class QWindowsAudioOutput : public QAbstractAudioOutput
 {
     Q_OBJECT
 public:
-    QAudioOutputPrivate(const QByteArray &device);
-    ~QAudioOutputPrivate();
+    QWindowsAudioOutput(const QByteArray &device);
+    ~QWindowsAudioOutput();
 
     qint64 write( const char *data, qint64 len );
 
@@ -156,17 +155,17 @@ class OutputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    OutputPrivate(QAudioOutputPrivate* audio);
+    OutputPrivate(QWindowsAudioOutput* audio);
     ~OutputPrivate();
 
     qint64 readData( char* data, qint64 len);
     qint64 writeData(const char* data, qint64 len);
 
 private:
-    QAudioOutputPrivate *audioDevice;
+    QWindowsAudioOutput *audioDevice;
 };
 
 QT_END_NAMESPACE
 
 
-#endif
+#endif // QWINDOWSAUDIOOUTPUT_H

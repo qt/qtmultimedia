@@ -50,13 +50,13 @@
 // INTERNAL USE ONLY: Do NOT use for any other purpose.
 //
 
-#include "qaudiodeviceinfo_alsa_p.h"
+#include "qalsaaudiodeviceinfo.h"
 
 #include <alsa/version.h>
 
 QT_BEGIN_NAMESPACE
 
-QAudioDeviceInfoInternal::QAudioDeviceInfoInternal(QByteArray dev, QAudio::Mode mode)
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(QByteArray dev, QAudio::Mode mode)
 {
     handle = 0;
 
@@ -66,17 +66,17 @@ QAudioDeviceInfoInternal::QAudioDeviceInfoInternal(QByteArray dev, QAudio::Mode 
     checkSurround();
 }
 
-QAudioDeviceInfoInternal::~QAudioDeviceInfoInternal()
+QAlsaAudioDeviceInfo::~QAlsaAudioDeviceInfo()
 {
     close();
 }
 
-bool QAudioDeviceInfoInternal::isFormatSupported(const QAudioFormat& format) const
+bool QAlsaAudioDeviceInfo::isFormatSupported(const QAudioFormat& format) const
 {
     return testSettings(format);
 }
 
-QAudioFormat QAudioDeviceInfoInternal::preferredFormat() const
+QAudioFormat QAlsaAudioDeviceInfo::preferredFormat() const
 {
     QAudioFormat nearest;
     if(mode == QAudio::AudioOutput) {
@@ -101,48 +101,48 @@ QAudioFormat QAudioDeviceInfoInternal::preferredFormat() const
     return nearest;
 }
 
-QString QAudioDeviceInfoInternal::deviceName() const
+QString QAlsaAudioDeviceInfo::deviceName() const
 {
     return device;
 }
 
-QStringList QAudioDeviceInfoInternal::supportedCodecs()
+QStringList QAlsaAudioDeviceInfo::supportedCodecs()
 {
     updateLists();
     return codecz;
 }
 
-QList<int> QAudioDeviceInfoInternal::supportedSampleRates()
+QList<int> QAlsaAudioDeviceInfo::supportedSampleRates()
 {
     updateLists();
     return sampleRatez;
 }
 
-QList<int> QAudioDeviceInfoInternal::supportedChannelCounts()
+QList<int> QAlsaAudioDeviceInfo::supportedChannelCounts()
 {
     updateLists();
     return channelz;
 }
 
-QList<int> QAudioDeviceInfoInternal::supportedSampleSizes()
+QList<int> QAlsaAudioDeviceInfo::supportedSampleSizes()
 {
     updateLists();
     return sizez;
 }
 
-QList<QAudioFormat::Endian> QAudioDeviceInfoInternal::supportedByteOrders()
+QList<QAudioFormat::Endian> QAlsaAudioDeviceInfo::supportedByteOrders()
 {
     updateLists();
     return byteOrderz;
 }
 
-QList<QAudioFormat::SampleType> QAudioDeviceInfoInternal::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QAlsaAudioDeviceInfo::supportedSampleTypes()
 {
     updateLists();
     return typez;
 }
 
-bool QAudioDeviceInfoInternal::open()
+bool QAlsaAudioDeviceInfo::open()
 {
     int err = 0;
     QString dev = device;
@@ -186,14 +186,14 @@ bool QAudioDeviceInfoInternal::open()
     return true;
 }
 
-void QAudioDeviceInfoInternal::close()
+void QAlsaAudioDeviceInfo::close()
 {
     if(handle)
         snd_pcm_close(handle);
     handle = 0;
 }
 
-bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
+bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
 {
     // Set nearest to closest settings that do work.
     // See if what is in settings will work (return value).
@@ -301,7 +301,7 @@ bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
     return (err == 0);
 }
 
-void QAudioDeviceInfoInternal::updateLists()
+void QAlsaAudioDeviceInfo::updateLists()
 {
     // redo all lists based on current settings
     sampleRatez.clear();
@@ -338,7 +338,7 @@ void QAudioDeviceInfoInternal::updateLists()
     close();
 }
 
-QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
+QList<QByteArray> QAlsaAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 {
     QList<QByteArray> devices;
     QByteArray filter;
@@ -400,7 +400,7 @@ QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QByteArray QAudioDeviceInfoInternal::defaultInputDevice()
+QByteArray QAlsaAudioDeviceInfo::defaultInputDevice()
 {
     QList<QByteArray> devices = availableDevices(QAudio::AudioInput);
     if(devices.size() == 0)
@@ -409,7 +409,7 @@ QByteArray QAudioDeviceInfoInternal::defaultInputDevice()
     return devices.first();
 }
 
-QByteArray QAudioDeviceInfoInternal::defaultOutputDevice()
+QByteArray QAlsaAudioDeviceInfo::defaultOutputDevice()
 {
     QList<QByteArray> devices = availableDevices(QAudio::AudioOutput);
     if(devices.size() == 0)
@@ -418,7 +418,7 @@ QByteArray QAudioDeviceInfoInternal::defaultOutputDevice()
     return devices.first();
 }
 
-void QAudioDeviceInfoInternal::checkSurround()
+void QAlsaAudioDeviceInfo::checkSurround()
 {
     surround40 = false;
     surround51 = false;
