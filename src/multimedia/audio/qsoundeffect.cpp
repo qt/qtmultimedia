@@ -265,7 +265,7 @@ int QSoundEffect::loopsRemaining() const
  */
 qreal QSoundEffect::volume() const
 {
-    return qreal(d->volume()) / 100;
+    return d->volume();
 }
 
 /*!
@@ -273,15 +273,15 @@ qreal QSoundEffect::volume() const
  */
 void QSoundEffect::setVolume(qreal volume)
 {
-    if (volume < 0 || volume > 1) {
+    if (volume < qreal(0.0) || volume > qreal(1.0)) {
         qWarning("SoundEffect: volume should be between 0.0 and 1.0");
         return;
     }
-    int iVolume = qRound(volume * 100);
-    if (d->volume() == iVolume)
+
+    if (qFuzzyCompare(d->volume(), volume))
         return;
 
-    d->setVolume(iVolume);
+    d->setVolume(volume);
 }
 
 /*!

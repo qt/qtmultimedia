@@ -80,8 +80,8 @@ public:
     int loopCount() const;
     int loopsRemaining() const;
     void setLoopCount(int loopCount);
-    int volume() const;
-    void setVolume(int volume);
+    qreal volume() const;
+    void setVolume(qreal volume);
     bool isMuted() const;
     void setMuted(bool muted);
     bool isLoaded() const;
@@ -153,7 +153,7 @@ private:
     bool    m_muted;
     bool    m_playQueued;
     bool    m_stopping;
-    int     m_volume;
+    qreal     m_volume;
     int     m_loopCount;
     int     m_runningCount;
     QUrl    m_source;

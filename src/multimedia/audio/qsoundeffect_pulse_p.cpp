@@ -382,7 +382,7 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     m_muted(false),
     m_playQueued(false),
     m_stopping(false),
-    m_volume(100),
+    m_volume(1.0),
     m_loopCount(1),
     m_runningCount(0),
     m_reloadCategory(false),
@@ -517,12 +517,12 @@ void QSoundEffectPrivate::setLoopCount(int loopCount)
     m_loopCount = loopCount;
 }
 
-int QSoundEffectPrivate::volume() const
+qreal QSoundEffectPrivate::volume() const
 {
     return m_volume;
 }
 
-void QSoundEffectPrivate::setVolume(int volume)
+void QSoundEffectPrivate::setVolume(qreal volume)
 {
     m_volume = volume;
     emit volumeChanged();
@@ -537,7 +537,7 @@ void QSoundEffectPrivate::updateVolume()
     pa_cvolume volume;
     volume.channels = m_pulseSpec.channels;
     if (pulseDaemon()->context())
-        pa_operation_unref(pa_context_set_sink_input_volume(pulseDaemon()->context(), m_sinkInputId, pulseDaemon()->calcVolume(&volume, m_volume), setvolume_callback, m_ref->getRef()));
+        pa_operation_unref(pa_context_set_sink_input_volume(pulseDaemon()->context(), m_sinkInputId, pulseDaemon()->calcVolume(&volume, qRound(m_volume * 100)), setvolume_callback, m_ref->getRef()));
     Q_ASSERT(pa_cvolume_valid(&volume));
 #ifdef QT_PA_DEBUG
     qDebug() << this << "updateVolume =" << pa_cvolume_max(&volume);
