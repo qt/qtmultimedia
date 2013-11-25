@@ -60,6 +60,8 @@ void MFAudioEndpointControl::clear()
     foreach (LPWSTR wstrID, m_devices)
          CoTaskMemFree(wstrID);
 
+    m_devices.clear();
+
     if (m_currentActivate)
         m_currentActivate->Release();
     m_currentActivate = NULL;
@@ -130,6 +132,11 @@ IMFActivate*  MFAudioEndpointControl::createActivate()
     clear();
 
     updateEndpoints();
+
+    // Check if an endpoint is available ("Default" is always inserted)
+    if (m_devices.count() <= 1)
+        return NULL;
+
     setActiveOutput(m_defaultEndpoint);
 
     return m_currentActivate;
