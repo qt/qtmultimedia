@@ -57,7 +57,7 @@ QVariant MmRendererMetaDataReaderControl::metaData(const QString &key) const
 {
     if (key == QMediaMetaData::Title)
         return m_metaData.title();
-    else if (key == QMediaMetaData::Author)
+    else if (key == QMediaMetaData::AlbumArtist)
         return m_metaData.artist();
     else if (key == QMediaMetaData::Comment)
         return m_metaData.comment();
