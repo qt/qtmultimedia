@@ -13,7 +13,8 @@ android {
 }
 
 qnx {
-    SUBDIRS += qnx audiocapture
+    config_mmrenderer: SUBDIRS += qnx
+    SUBDIRS += audiocapture
 }
 
 qnx:!blackberry {
