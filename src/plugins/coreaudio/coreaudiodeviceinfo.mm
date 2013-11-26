@@ -188,11 +188,11 @@ QList<int> CoreAudioDeviceInfo::supportedSampleRates()
 
 QList<int> CoreAudioDeviceInfo::supportedChannelCounts()
 {
-    QSet<int> supportedChannels;
+    QList<int> supportedChannels;
+    int maxChannels = 0;
 
 #if defined(Q_OS_OSX)
     UInt32 propSize = 0;
-    int channels = 0;
     AudioObjectPropertyScope scope = m_mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
     AudioObjectPropertyAddress streamConfigurationPropertyAddress = { kAudioDevicePropertyStreamConfiguration,
                                                                       scope,
@@ -203,24 +203,25 @@ QList<int> CoreAudioDeviceInfo::supportedChannelCounts()
 
         if (audioBufferList != 0) {
             if (AudioObjectGetPropertyData(m_deviceId, &streamConfigurationPropertyAddress, 0, NULL, &propSize, audioBufferList) == noErr) {
-                for (int i = 0; i < int(audioBufferList->mNumberBuffers); ++i) {
-                    channels += audioBufferList->mBuffers[i].mNumberChannels;
-                    supportedChannels << channels;
-                }
+                for (int i = 0; i < int(audioBufferList->mNumberBuffers); ++i)
+                    maxChannels += audioBufferList->mBuffers[i].mNumberChannels;
             }
 
             free(audioBufferList);
         }
     }
 #else //iOS
-    if (m_mode == QAudio::AudioInput) {
-        supportedChannels << CoreAudioSessionManager::instance().inputChannelCount();
-    } else if (m_mode == QAudio::AudioOutput) {
-        supportedChannels << CoreAudioSessionManager::instance().outputChannelCount();
-    }
+    if (m_mode == QAudio::AudioInput)
+        maxChannels = CoreAudioSessionManager::instance().inputChannelCount();
+    else if (m_mode == QAudio::AudioOutput)
+        maxChannels = CoreAudioSessionManager::instance().outputChannelCount();
 #endif
 
-    return supportedChannels.toList();
+    // Assume all channel configurations are supported up to the maximum number of channels
+    for (int i = 1; i <= maxChannels; ++i)
+        supportedChannels.append(i);
+
+    return supportedChannels;
 }
 
 
