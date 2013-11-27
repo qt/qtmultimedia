@@ -429,7 +429,7 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
 
     By default \c autoOrientation is disabled.
 
-    \since QtMultimedia 5.1
+    \since QtMultimedia 5.2
 */
 bool QDeclarativeVideoOutput::autoOrientation() const
 {
