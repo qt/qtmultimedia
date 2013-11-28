@@ -45,6 +45,7 @@
 #include <qglobal.h>
 #include <QMediaPlayerControl>
 #include <qsize.h>
+#include <QtCore/QTemporaryFile>
 
 QT_BEGIN_NAMESPACE
 
@@ -114,6 +115,7 @@ private:
     QMediaPlayer::State mPendingState;
     qint64 mPendingPosition;
     bool mPendingSetMedia;
+    QScopedPointer<QTemporaryFile> mTempFile;
 
     void setState(QMediaPlayer::State state);
     void setMediaStatus(QMediaPlayer::MediaStatus status);
