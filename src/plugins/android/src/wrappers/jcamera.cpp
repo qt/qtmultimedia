@@ -118,6 +118,7 @@ JCamera::JCamera(int cameraId, jobject cam)
     : QObject()
     , QJNIObjectPrivate(cam)
     , m_cameraId(cameraId)
+    , m_rotation(0)
     , m_hasAPI14(false)
 {
     if (isValid()) {
@@ -203,6 +204,11 @@ JCamera::CameraFacing JCamera::getFacing()
 int JCamera::getNativeOrientation()
 {
     return m_info.getField<jint>("orientation");
+}
+
+void JCamera::setDisplayOrientation(int degrees)
+{
+    callMethod<void>("setDisplayOrientation", "(I)V", degrees);
 }
 
 QSize JCamera::getPreferredPreviewSizeForVideo()
@@ -612,8 +618,14 @@ void JCamera::setRotation(int rotation)
     if (!m_parameters.isValid())
         return;
 
+    m_rotation = rotation;
     m_parameters.callMethod<void>("setRotation", "(I)V", rotation);
     applyParameters();
+}
+
+int JCamera::getRotation() const
+{
+    return m_rotation;
 }
 
 QList<QSize> JCamera::getSupportedPictureSizes()

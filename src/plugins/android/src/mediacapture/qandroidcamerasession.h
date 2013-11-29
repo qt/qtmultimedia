@@ -124,7 +124,7 @@ private:
     void stopPreview();
 
     void applyImageSettings();
-    void processPreviewImage(int id, const QByteArray &data);
+    void processPreviewImage(int id, const QByteArray &data, int rotation);
     void processCapturedImage(int id,
                               const QByteArray &data,
                               const QSize &resolution,
@@ -134,6 +134,7 @@ private:
     int m_selectedCamera;
     JCamera *m_camera;
     int m_nativeOrientation;
+    int m_previewOrientation;
     QAndroidVideoOutput *m_videoOutput;
 
     QCamera::CaptureModes m_captureMode;

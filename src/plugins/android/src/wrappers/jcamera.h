@@ -82,6 +82,8 @@ public:
     CameraFacing getFacing();
     int getNativeOrientation();
 
+    void setDisplayOrientation(int degrees);
+
     QSize getPreferredPreviewSizeForVideo();
     QList<QSize> getSupportedPreviewSizes();
 
@@ -136,6 +138,7 @@ public:
     void setWhiteBalance(const QString &value);
 
     void setRotation(int rotation);
+    int getRotation() const;
 
     QList<QSize> getSupportedPictureSizes();
     void setPictureSize(const QSize &size);
@@ -174,6 +177,7 @@ private:
     QJNIObjectPrivate m_parameters;
 
     QSize m_previewSize;
+    int m_rotation;
 
     bool m_hasAPI14;
 };
