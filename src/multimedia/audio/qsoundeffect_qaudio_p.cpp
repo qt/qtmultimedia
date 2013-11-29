@@ -175,20 +175,20 @@ void QSoundEffectPrivate::setLoopCount(int loopCount)
     d->m_runningCount = loopCount;
 }
 
-int QSoundEffectPrivate::volume() const
+qreal QSoundEffectPrivate::volume() const
 {
     if (d->m_audioOutput && !d->m_muted)
-        return d->m_audioOutput->volume()*100.0f;
+        return d->m_audioOutput->volume();
 
     return d->m_volume;
 }
 
-void QSoundEffectPrivate::setVolume(int volume)
+void QSoundEffectPrivate::setVolume(qreal volume)
 {
     d->m_volume = volume;
 
     if (d->m_audioOutput && !d->m_muted)
-        d->m_audioOutput->setVolume(volume/100.0f);
+        d->m_audioOutput->setVolume(volume);
 
     emit volumeChanged();
 }
@@ -203,7 +203,7 @@ void QSoundEffectPrivate::setMuted(bool muted)
     if (muted && d->m_audioOutput)
         d->m_audioOutput->setVolume(0);
     else if (!muted && d->m_audioOutput && d->m_muted)
-        d->m_audioOutput->setVolume(d->m_volume/100.0f);
+        d->m_audioOutput->setVolume(d->m_volume);
 
     d->m_muted = muted;
     emit mutedChanged();
@@ -314,7 +314,7 @@ PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate* s):
     m_audioOutput(0),
     m_sample(0),
     m_muted(false),
-    m_volume(100),
+    m_volume(1.0),
     m_sampleReady(false),
     m_offset(0)
 {
@@ -337,7 +337,7 @@ void PrivateSoundSource::sampleReady()
         m_audioOutput = new QAudioOutput(m_sample->format());
         connect(m_audioOutput,SIGNAL(stateChanged(QAudio::State)), this, SLOT(stateChanged(QAudio::State)));
         if (!m_muted)
-            m_audioOutput->setVolume(m_volume/100.0f);
+            m_audioOutput->setVolume(m_volume);
         else
             m_audioOutput->setVolume(0);
     }

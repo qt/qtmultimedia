@@ -88,7 +88,7 @@ private:
     QAudioOutput   *m_audioOutput;
     QSample        *m_sample;
     bool           m_muted;
-    int            m_volume;
+    qreal          m_volume;
     bool           m_sampleReady;
     qint64         m_offset;
     QString        m_category;
@@ -113,8 +113,8 @@ public:
     int loopCount() const;
     int loopsRemaining() const;
     void setLoopCount(int loopCount);
-    int volume() const;
-    void setVolume(int volume);
+    qreal volume() const;
+    void setVolume(qreal volume);
     bool isMuted() const;
     void setMuted(bool muted);
     bool isLoaded() const;

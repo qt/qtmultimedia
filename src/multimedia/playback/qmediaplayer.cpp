@@ -864,6 +864,11 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     Setting the media to a null QMediaContent will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
     to that media.
+
+    \note This function returns immediately after recording the specified source of the media.
+    It does not wait for the media to finish loading and does not check for errors. Listen for
+    the mediaStatusChanged() and error() signals to be notified when the media is loaded and
+    when an error occurs during loading.
 */
 
 void QMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
