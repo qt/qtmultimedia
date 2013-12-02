@@ -54,7 +54,7 @@ static QMap<int, JCamera*> g_objectMap;
 static QRect areaToRect(jobject areaObj)
 {
     QJNIObjectPrivate area(areaObj);
-    QJNIObjectPrivate rect = area.getObjectField("rect", "android/graphics/Rect");
+    QJNIObjectPrivate rect = area.getObjectField("rect", "Landroid/graphics/Rect;");
 
     return QRect(rect.getField<jint>("left"),
                  rect.getField<jint>("top"),
