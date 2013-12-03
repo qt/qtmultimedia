@@ -62,6 +62,8 @@ JSurfaceTexture::JSurfaceTexture(unsigned int texName)
 {
     if (isValid())
         g_objectMap.insert(int(texName), this);
+    else // If the class is not available, it means the Android version is < 3.0
+        qWarning("Camera preview and video playback require Android 3.0 (API level 11) or later.");
 }
 
 JSurfaceTexture::~JSurfaceTexture()
@@ -94,16 +96,24 @@ static JNINativeMethod methods[] = {
 
 bool JSurfaceTexture::initJNI(JNIEnv *env)
 {
-    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtSurfaceTexture");
+    // SurfaceTexture is available since API 11, try to find it first before loading
+    // our custom class
+    jclass surfaceTextureClass = env->FindClass("android/graphics/SurfaceTexture");
     if (env->ExceptionCheck())
         env->ExceptionClear();
 
-    if (clazz) {
-        g_qtSurfaceTextureClass = static_cast<jclass>(env->NewGlobalRef(clazz));
-        if (env->RegisterNatives(g_qtSurfaceTextureClass,
-                                 methods,
-                                 sizeof(methods) / sizeof(methods[0])) < 0) {
-            return false;
+    if (surfaceTextureClass) {
+        jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtSurfaceTexture");
+        if (env->ExceptionCheck())
+            env->ExceptionClear();
+
+        if (clazz) {
+            g_qtSurfaceTextureClass = static_cast<jclass>(env->NewGlobalRef(clazz));
+            if (env->RegisterNatives(g_qtSurfaceTextureClass,
+                                     methods,
+                                     sizeof(methods) / sizeof(methods[0])) < 0) {
+                return false;
+            }
         }
     }
 

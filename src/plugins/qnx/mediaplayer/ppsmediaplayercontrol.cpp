@@ -57,7 +57,7 @@ PpsMediaPlayerControl::PpsMediaPlayerControl(QObject *parent)
     m_ppsStatusFd(-1),
     m_ppsStateNotifier(0),
     m_ppsStateFd(-1)
-  , m_previouslySeenState("STOPPED")
+  , m_previouslySeenState("stopped")
 {
     openConnection();
 }
@@ -177,7 +177,7 @@ void PpsMediaPlayerControl::ppsReadyRead(int fd)
 
     if (pps_decoder_get_string(&decoder, "state", &value) == PPS_DECODER_OK) {
         const QByteArray state = value;
-        if (state != m_previouslySeenState && state == "STOPPED")
+        if (state != m_previouslySeenState && state == "stopped")
             handleMmStopped();
         m_previouslySeenState = state;
     }
