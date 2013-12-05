@@ -45,9 +45,10 @@
 #include <QtQml/qqmlcomponent.h>
 #include "qsoundeffect.h"
 
+#include <private/qdeclarativevideooutput_p.h>
+
 #include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
-#include "qdeclarativevideooutput_p.h"
 #include "qdeclarativeradio_p.h"
 #include "qdeclarativeradiodata_p.h"
 #include "qdeclarativecamera_p.h"

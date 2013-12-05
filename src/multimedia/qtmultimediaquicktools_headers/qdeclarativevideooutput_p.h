@@ -48,6 +48,8 @@
 #include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
 
+#include <private/qtmultimediaquickdefs_p.h>
+
 QT_BEGIN_NAMESPACE
 
 class QMediaObject;
@@ -55,7 +57,7 @@ class QMediaService;
 class QDeclarativeVideoBackend;
 class QVideoOutputOrientationHandler;
 
-class QDeclarativeVideoOutput : public QQuickItem
+class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY(QDeclarativeVideoOutput)
