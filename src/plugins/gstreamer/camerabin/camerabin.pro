@@ -58,7 +58,7 @@ maemo6 {
     CONFIG += have_gst_photography
 }
 
-have_gst_photography {
+config_gstreamer_photography {
     DEFINES += HAVE_GST_PHOTOGRAPHY
 
     HEADERS += \

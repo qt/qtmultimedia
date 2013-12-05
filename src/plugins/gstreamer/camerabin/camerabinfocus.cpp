@@ -58,6 +58,8 @@ CameraBinFocus::CameraBinFocus(CameraBinSession *session)
      m_focusStatus(QCamera::Unlocked),
      m_focusZoneStatus(QCameraFocusZone::Selected)
 {
+    gst_photography_set_focus_mode(m_session->photography(), GST_PHOTOGRAPHY_FOCUS_MODE_AUTO);
+
     connect(m_session, SIGNAL(stateChanged(QCamera::State)),
             this, SLOT(_q_handleCameraStateChange(QCamera::State)));
 }
@@ -73,14 +75,49 @@ QCameraFocus::FocusModes CameraBinFocus::focusMode() const
 
 void CameraBinFocus::setFocusMode(QCameraFocus::FocusModes mode)
 {
-    if (isFocusModeSupported(mode)) {
-        m_focusMode = mode;
+    GstFocusMode photographyMode;
+
+    switch (mode) {
+    case QCameraFocus::AutoFocus:
+        photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_AUTO;
+        break;
+    case QCameraFocus::HyperfocalFocus:
+        photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_HYPERFOCAL;
+        break;
+    case QCameraFocus::InfinityFocus:
+        photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_INFINITY;
+        break;
+    case QCameraFocus::ContinuousFocus:
+        photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_CONTINUOUS_NORMAL;
+        break;
+    case QCameraFocus::MacroFocus:
+        photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_MACRO;
+        break;
+    default:
+        if (mode & QCameraFocus::AutoFocus) {
+            photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_AUTO;
+            break;
+        } else {
+            return;
+        }
     }
+
+    if (gst_photography_set_focus_mode(m_session->photography(), photographyMode))
+        m_focusMode = mode;
 }
 
 bool CameraBinFocus::isFocusModeSupported(QCameraFocus::FocusModes mode) const
 {
-    return mode & QCameraFocus::AutoFocus;
+    switch (mode) {
+    case QCameraFocus::AutoFocus:
+    case QCameraFocus::HyperfocalFocus:
+    case QCameraFocus::InfinityFocus:
+    case QCameraFocus::ContinuousFocus:
+    case QCameraFocus::MacroFocus:
+        return true;
+    default:
+        return mode & QCameraFocus::AutoFocus;
+    }
 }
 
 QCameraFocus::FocusPointMode CameraBinFocus::focusPointMode() const

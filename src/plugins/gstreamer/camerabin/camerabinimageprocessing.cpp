@@ -188,7 +188,9 @@ bool CameraBinImageProcessing::isParameterValueSupported(QCameraImageProcessingC
 QVariant CameraBinImageProcessing::parameter(
         QCameraImageProcessingControl::ProcessingParameter parameter) const
 {
-    if (m_values.contains(parameter))
+    if (parameter == QCameraImageProcessingControl::WhiteBalancePreset)
+        return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(whiteBalanceMode());
+    else if (m_values.contains(parameter))
         return m_values.value(parameter);
     else
         return QVariant();
