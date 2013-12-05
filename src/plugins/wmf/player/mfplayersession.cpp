@@ -411,6 +411,8 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_rateSupport(0)
     , m_volumeControl(0)
     , m_netsourceStatistics(0)
+    , m_duration(0)
+    , m_sourceResolver(0)
     , m_hCloseEvent(0)
     , m_closing(false)
     , m_pendingRate(1)
@@ -536,7 +538,7 @@ void MFPlayerSession::load(const QMediaContent &media, QIODevice *stream)
     clear();
     QMediaResourceList resources = media.resources();
 
-    if (m_status == QMediaPlayer::LoadingMedia)
+    if (m_status == QMediaPlayer::LoadingMedia && m_sourceResolver)
         m_sourceResolver->cancel();
 
     if (resources.isEmpty() && !stream) {
@@ -581,7 +583,7 @@ void MFPlayerSession::handleSourceError(long hr)
 
 void MFPlayerSession::handleMediaSourceReady()
 {
-    if (QMediaPlayer::LoadingMedia != m_status)
+    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver)
         return;
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "handleMediaSourceReady";
@@ -1786,7 +1788,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 {
     HRESULT hrStatus = S_OK;
     HRESULT hr = sessionEvent->GetStatus(&hrStatus);
-    if (FAILED(hr)) {
+    if (FAILED(hr) || !m_session) {
         sessionEvent->Release();
         return;
     }
