@@ -114,7 +114,6 @@ private Q_SLOTS:
 
     void onCameraPictureExposed();
     void onCameraPictureCaptured(const QByteArray &data);
-    void onCameraPreviewFrameAvailable(const QByteArray &data);
 
 private:
     bool open();

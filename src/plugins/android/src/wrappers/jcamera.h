@@ -147,9 +147,9 @@ public:
     void startPreview();
     void stopPreview();
 
-    void requestPreviewFrame();
-
     void takePicture();
+
+    QByteArray fetchLastPreviewFrame();
 
     static bool initJNI(JNIEnv *env);
 
@@ -160,8 +160,6 @@ Q_SIGNALS:
     void autoFocusComplete(bool success);
 
     void whiteBalanceChanged();
-
-    void previewFrameAvailable(const QByteArray &data);
 
     void pictureExposed();
     void pictureCaptured(const QByteArray &data);

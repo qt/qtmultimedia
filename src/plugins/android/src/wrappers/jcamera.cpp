@@ -102,18 +102,6 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
     }
 }
 
-static void notifyPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data)
-{
-    JCamera *obj = g_objectMap.value(id, 0);
-    if (obj) {
-        QByteArray bytes;
-        int arrayLength = env->GetArrayLength(data);
-        bytes.resize(arrayLength);
-        env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
-        Q_EMIT obj->previewFrameAvailable(bytes);
-    }
-}
-
 JCamera::JCamera(int cameraId, jobject cam)
     : QObject()
     , QJNIObjectPrivate(cam)
@@ -667,14 +655,26 @@ void JCamera::setJpegQuality(int quality)
     applyParameters();
 }
 
-void JCamera::requestPreviewFrame()
-{
-    callMethod<void>("requestPreviewFrame");
-}
-
 void JCamera::takePicture()
 {
     callMethod<void>("takePicture");
+}
+
+QByteArray JCamera::fetchLastPreviewFrame()
+{
+    QJNIEnvironmentPrivate env;
+    QJNIObjectPrivate dataObj = callObjectMethod("lockAndFetchPreviewBuffer", "()[B");
+    if (!dataObj.object()) {
+        callMethod<void>("unlockPreviewBuffer");
+        return QByteArray();
+    }
+    jbyteArray data = static_cast<jbyteArray>(dataObj.object());
+    QByteArray bytes;
+    int arrayLength = env->GetArrayLength(data);
+    bytes.resize(arrayLength);
+    env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
+    callMethod<void>("unlockPreviewBuffer");
+    return bytes;
 }
 
 void JCamera::startPreview()
@@ -720,8 +720,7 @@ QStringList JCamera::callStringListMethod(const char *methodName)
 static JNINativeMethod methods[] = {
     {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
     {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
-    {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
-    {"notifyPreviewFrame", "(I[B)V", (void *)notifyPreviewFrame}
+    {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured}
 };
 
 bool JCamera::initJNI(JNIEnv *env)

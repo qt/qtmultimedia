@@ -183,7 +183,6 @@ bool QAndroidCameraSession::open()
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
         connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
-        connect(m_camera, SIGNAL(previewFrameAvailable(QByteArray)), this, SLOT(onCameraPreviewFrameAvailable(QByteArray)));
 
         m_nativeOrientation = m_camera->getNativeOrientation();
 
@@ -484,7 +483,6 @@ int QAndroidCameraSession::capture(const QString &fileName)
         // adjust picture rotation depending on the device orientation
         m_camera->setRotation(currentCameraRotation());
 
-        m_camera->requestPreviewFrame();
         m_camera->takePicture();
     } else {
         //: Drive mode is the camera's shutter mode, for example single shot, continuos exposure, etc.
@@ -509,6 +507,13 @@ void QAndroidCameraSession::onCameraPictureExposed()
         return;
 
     emit imageExposed(m_currentImageCaptureId);
+    QByteArray lastFrame = m_camera->fetchLastPreviewFrame();
+    if (lastFrame.size()) {
+        QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
+                          m_currentImageCaptureId,
+                          lastFrame,
+                          m_camera->getRotation());
+    }
 }
 
 void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
@@ -569,17 +574,6 @@ void QAndroidCameraSession::processCapturedImage(int id,
         QVideoFrame frame(new DataVideoBuffer(data), resolution, QVideoFrame::Format_Jpeg);
         emit imageAvailable(id, frame);
     }
-}
-
-void QAndroidCameraSession::onCameraPreviewFrameAvailable(const QByteArray &data)
-{
-    if (m_captureCanceled || m_readyForCapture)
-        return;
-
-    QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
-                      m_currentImageCaptureId,
-                      data,
-                      m_camera->getRotation());
 }
 
 void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data, int rotation)
