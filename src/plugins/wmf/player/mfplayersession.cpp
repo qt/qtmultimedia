@@ -1323,12 +1323,8 @@ void MFPlayerSession::stop(bool immediate)
 
 void MFPlayerSession::start()
 {
-    switch (m_status) {
-    case QMediaPlayer::EndOfMedia:
-        m_varStart.hVal.QuadPart = 0;
-        changeStatus(QMediaPlayer::BufferedMedia);
-        return;
-    }
+    if (m_status == QMediaPlayer::EndOfMedia)
+        m_varStart.hVal.QuadPart = 0; // restart from the beginning
 
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "start";
@@ -1462,6 +1458,9 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
     if (m_state.command == CmdStop && requestCmd != CmdSeekResume) {
         m_varStart.vt = VT_I8;
         m_varStart.hVal.QuadPart = LONGLONG(position * 10000);
+        // Even though the position is not actually set on the session yet,
+        // report it to have changed anyway for UI controls to be updated
+        emit positionChanged(this->position());
         return;
     }
 
@@ -1561,6 +1560,8 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
             m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
             Q_ASSERT(hnsSystemTime != 0);
 
+            m_request.setCommand(rate < 0 || m_state.rate < 0 ? CmdSeekResume : CmdStart);
+
             // We need to stop only when dealing with negative rates
             if (rate >= 0 && m_state.rate >= 0)
                 pause();
@@ -1569,7 +1570,6 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
 
             // If we deal with negative rates, we stopped the session and consequently
             // reset the position to zero. We then need to resume to the current position.
-            m_request.setCommand(rate < 0 || m_state.rate < 0 ? CmdSeekResume : CmdStart);
             m_request.start = hnsClockTime / 10000;
         } else if (cmdNow == CmdPause) {
             if (rate < 0 || m_state.rate < 0) {
@@ -1604,10 +1604,11 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
         // Changing rate from negative to zero requires to stop the session
         m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
 
+        m_request.setCommand(CmdSeekResume);
+
         stop();
 
-        // Resumte to the current position (stop() will reset the position to 0)
-        m_request.setCommand(CmdSeekResume);
+        // Resume to the current position (stop() will reset the position to 0)
         m_request.start = hnsClockTime / 10000;
     }
 
@@ -1835,6 +1836,12 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             updatePendingCommands(CmdStart);
         break;
     case MESessionStarted:
+        if (m_status == QMediaPlayer::EndOfMedia
+                || m_status == QMediaPlayer::LoadedMedia) {
+            // If the session started, then enough data is buffered to play
+            changeStatus(QMediaPlayer::BufferedMedia);
+        }
+
         updatePendingCommands(CmdStart);
 #ifndef Q_WS_SIMULATOR
         // playback started, we can now set again the procAmpValues if they have been
@@ -1850,8 +1857,8 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             m_varStart.hVal.QuadPart = 0;
 
             // Reset to Loaded status unless we are loading a new media
-            // or if the media is buffered (to avoid restarting the video surface)
-            if (m_status != QMediaPlayer::LoadingMedia && m_status != QMediaPlayer::BufferedMedia)
+            // or changing the playback rate to negative values (stop required)
+            if (m_status != QMediaPlayer::LoadingMedia && m_request.command != CmdSeekResume)
                 changeStatus(QMediaPlayer::LoadedMedia);
         }
         updatePendingCommands(CmdStop);
@@ -1920,12 +1927,10 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
     switch (meType) {
     case MEBufferingStarted:
-        changeStatus(m_status == QMediaPlayer::LoadedMedia ? QMediaPlayer::BufferingMedia : QMediaPlayer::StalledMedia);
+        changeStatus(QMediaPlayer::StalledMedia);
         emit bufferStatusChanged(bufferStatus());
         break;
     case MEBufferingStopped:
-        if (m_status == QMediaPlayer::BufferingMedia)
-            stop(true);
         changeStatus(QMediaPlayer::BufferedMedia);
         emit bufferStatusChanged(bufferStatus());
         break;
@@ -1990,16 +1995,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                         }
                     }
                     MFGetService(m_session, MFNETSOURCE_STATISTICS_SERVICE, IID_PPV_ARGS(&m_netsourceStatistics));
-
-                    if (!m_netsourceStatistics || bufferStatus() == 100) {
-                        // If the source reader doesn't implement the statistics service, just set the status
-                        // to buffered, since there is no way to query the buffering progress...
-                        changeStatus(QMediaPlayer::BufferedMedia);
-                    } else {
-                        // Start to trigger buffering. Once enough buffering is done, the session will
-                        // be automatically stopped unless the user has explicitly started playback.
-                        start();
-                    }
                 }
             }
         }
