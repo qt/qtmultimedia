@@ -267,6 +267,7 @@ QSize QDeclarativeCameraCapture::resolution()
 
 void QDeclarativeCameraCapture::setResolution(const QSize &captureResolution)
 {
+    m_imageSettings = m_capture->encodingSettings();
     if (captureResolution != resolution()) {
         m_imageSettings.setResolution(captureResolution);
         m_capture->setEncodingSettings(m_imageSettings);
