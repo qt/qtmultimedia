@@ -98,11 +98,14 @@ QMediaRecorder::Status QGstreamerRecorderControl::status() const
     switch ( m_session->state() ) {
         case QGstreamerCaptureSession::RecordingState:
             sessionState = QMediaRecorder::RecordingState;
+            break;
         case QGstreamerCaptureSession::PausedState:
             sessionState = QMediaRecorder::PausedState;
+            break;
         case QGstreamerCaptureSession::PreviewState:
         case QGstreamerCaptureSession::StoppedState:
             sessionState = QMediaRecorder::StoppedState;
+            break;
     }
 
     return statusTable[m_state][sessionState];
