@@ -117,6 +117,8 @@ public:
     QDir defaultDir(QCamera::CaptureModes mode) const;
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
+    GstElement *buildCameraSource();
+
     CameraBinAudioEncoder *audioEncodeControl() const { return m_audioEncodeControl; }
     CameraBinVideoEncoder *videoEncodeControl() const { return m_videoEncodeControl; }
     CameraBinImageEncoder *imageEncodeControl() const { return m_imageEncodeControl; }
@@ -188,7 +190,6 @@ private slots:
 private:
     bool setupCameraBin();
     void setupCaptureResolution();
-    GstElement *buildCameraSource();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
     QUrl m_sink;

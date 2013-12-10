@@ -169,6 +169,10 @@ CameraBinSession::CameraBinSession(QObject *parent)
     m_captureDestinationControl = new CameraBinCaptureDestination(this);
     m_captureBufferFormatControl = new CameraBinCaptureBufferFormat(this);
 
+    QByteArray envFlags = qgetenv("QT_GSTREAMER_CAMERABIN_FLAGS");
+    if (!envFlags.isEmpty())
+        g_object_set(G_OBJECT(m_camerabin), "flags", envFlags.toInt(), NULL);
+
     //post image preview in RGB format
     g_object_set(G_OBJECT(m_camerabin), POST_PREVIEWS_PROPERTY, TRUE, NULL);
 
@@ -197,19 +201,10 @@ GstPhotography *CameraBinSession::photography()
         return GST_PHOTOGRAPHY(m_camerabin);
     }
 
-    if (!m_videoSrc) {
-        m_videoSrc = buildCameraSource();
+    GstElement * const source = buildCameraSource();
 
-        if (m_videoSrc)
-            g_object_set(m_camerabin, CAMERA_SOURCE_PROPERTY, m_videoSrc, NULL);
-        else
-            g_object_get(m_camerabin, CAMERA_SOURCE_PROPERTY, &m_videoSrc, NULL);
-
-        m_videoInputHasChanged = false;
-    }
-
-    if (m_videoSrc && GST_IS_PHOTOGRAPHY(m_videoSrc))
-        return GST_PHOTOGRAPHY(m_videoSrc);
+    if (source && GST_IS_PHOTOGRAPHY(source))
+        return GST_PHOTOGRAPHY(source);
 
     return 0;
 }
@@ -225,17 +220,8 @@ CameraBinSession::CameraRole CameraBinSession::cameraRole() const
 */
 bool CameraBinSession::setupCameraBin()
 {
-    if (m_videoInputHasChanged) {
-        m_videoSrc = buildCameraSource();
-
-        if (m_videoSrc)
-            g_object_set(m_camerabin, CAMERA_SOURCE_PROPERTY, m_videoSrc, NULL);
-        else
-            g_object_get(m_camerabin, CAMERA_SOURCE_PROPERTY, &m_videoSrc, NULL);
-
-        m_videoInputHasChanged = false;
-    }
-
+    if (!buildCameraSource())
+        return false;
 
     if (m_viewfinderHasChanged) {
         if (m_viewfinderElement)
@@ -370,28 +356,43 @@ GstElement *CameraBinSession::buildCameraSource()
 #if CAMERABIN_DEBUG
     qDebug() << Q_FUNC_INFO;
 #endif
+    if (!m_videoInputHasChanged)
+        return m_videoSrc;
+    m_videoInputHasChanged = false;
+
     GstElement *videoSrc = 0;
+    g_object_get(G_OBJECT(m_camerabin), CAMERA_SOURCE_PROPERTY, &videoSrc, NULL);
 
-    QList<QByteArray> candidates;
-    candidates << "subdevsrc" << "wrappercamerabinsrc";
-    QByteArray sourceElementName;
-
-    foreach (sourceElementName, candidates) {
-        videoSrc = gst_element_factory_make(sourceElementName.constData(), "camera_source");
-        if (videoSrc)
-            break;
+    // If the QT_GSTREAMER_CAMERABIN_SRC environment variable has been set use the source
+    // it recommends.
+    const QByteArray envCandidate = qgetenv("QT_GSTREAMER_CAMERABIN_SRC");
+    if (!m_videoSrc && !envCandidate.isEmpty()) {
+        m_videoSrc = gst_element_factory_make(envCandidate.constData(), "camera_source");
     }
 
-    if (videoSrc && !m_inputDevice.isEmpty()) {
+    // If gstreamer has set a default source use it.
+    if (!m_videoSrc)
+        m_videoSrc = videoSrc;
+
+    // If there's no better guidance try the names of some known camera source elements.
+    if (!m_videoSrc) {
+        const QList<QByteArray> candidates = QList<QByteArray>()
+                << "subdevsrc"
+                << "wrappercamerabinsrc";
+
+        foreach (const QByteArray &sourceElementName, candidates) {
+            m_videoSrc = gst_element_factory_make(sourceElementName.constData(), "camera_source");
+            if (m_videoSrc)
+                break;
+        }
+    }
+
+    if (m_videoSrc && !m_inputDevice.isEmpty()) {
 #if CAMERABIN_DEBUG
         qDebug() << "set camera device" << m_inputDevice;
 #endif
-        if (sourceElementName == "subdevsrc") {
-            if (m_inputDevice == QLatin1String("secondary"))
-                g_object_set(G_OBJECT(videoSrc), "camera-device", 1, NULL);
-            else
-                g_object_set(G_OBJECT(videoSrc), "camera-device", 0, NULL);
-        } else if (sourceElementName == "wrappercamerabinsrc") {
+
+        if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "video-source")) {
             GstElement *src = 0;
 
             if (m_videoInputFactory)
@@ -401,12 +402,21 @@ GstElement *CameraBinSession::buildCameraSource()
 
             if (src) {
                 g_object_set(G_OBJECT(src), "device", m_inputDevice.toUtf8().constData(), NULL);
-                g_object_set(G_OBJECT(videoSrc), "video-source", src, NULL);
+                g_object_set(G_OBJECT(m_videoSrc), "video-source", src, NULL);
+            }
+        } else if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "camera-device")) {
+            if (m_inputDevice == QLatin1String("secondary")) {
+                g_object_set(G_OBJECT(m_videoSrc), "camera-device", 1, NULL);
+            } else {
+                g_object_set(G_OBJECT(m_videoSrc), "camera-device", 0, NULL);
             }
         }
     }
 
-    return videoSrc;
+    if (m_videoSrc != videoSrc)
+        g_object_set(G_OBJECT(m_camerabin), CAMERA_SOURCE_PROPERTY, m_videoSrc, NULL);
+
+    return m_videoSrc;
 }
 
 void CameraBinSession::captureImage(int requestId, const QString &fileName)
@@ -626,9 +636,7 @@ void CameraBinSession::setState(QCamera::State newState)
                 m_viewfinderInterface->stopRenderer();
 
             gst_element_set_state(m_camerabin, GST_STATE_NULL);
-            m_videoSrc = buildCameraSource();
-            g_object_set(m_camerabin, CAMERA_SOURCE_PROPERTY, m_videoSrc, NULL);
-            m_videoInputHasChanged = false;
+            buildCameraSource();
         }
 #ifdef USE_READY_STATE_ON_LOADED
         gst_element_set_state(m_camerabin, GST_STATE_READY);

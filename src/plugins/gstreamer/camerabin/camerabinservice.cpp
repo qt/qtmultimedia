@@ -109,7 +109,8 @@ CameraBinService::CameraBinService(const QString &service, QObject *parent):
     if (service == Q_MEDIASERVICE_CAMERA) {
         m_captureSession = new CameraBinSession(this);
         m_cameraControl = new CameraBinControl(m_captureSession);
-        m_videoInputDevice = new QGstreamerVideoInputDeviceControl(m_captureSession);
+        m_videoInputDevice = new QGstreamerVideoInputDeviceControl(
+                    m_captureSession->buildCameraSource(), m_captureSession);
         m_imageCaptureControl = new CameraBinImageCapture(m_captureSession);
 
         connect(m_videoInputDevice, SIGNAL(selectedDeviceChanged(QString)),
