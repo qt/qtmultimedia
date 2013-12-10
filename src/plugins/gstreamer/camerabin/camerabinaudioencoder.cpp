@@ -106,18 +106,19 @@ void CameraBinAudioEncoder::resetActualSettings()
 GstEncodingProfile *CameraBinAudioEncoder::createProfile()
 {
     QString codec = m_actualAudioSettings.codec();
+    QString preset = m_actualAudioSettings.encodingOption(QStringLiteral("preset")).toString();
     GstCaps *caps;
 
     if (codec.isEmpty())
-        caps = gst_caps_new_any();
+        return 0;
     else
         caps = gst_caps_from_string(codec.toLatin1());
 
     return (GstEncodingProfile *)gst_encoding_audio_profile_new(
                                         caps,
-                                        NULL, //preset
-                                        NULL, //restriction
-                                        0); //presence
+                                        !preset.isEmpty() ? preset.toLatin1().constData() : NULL, //preset
+                                        NULL,   //restriction
+                                        0);     //presence
 }
 
 QT_END_NAMESPACE

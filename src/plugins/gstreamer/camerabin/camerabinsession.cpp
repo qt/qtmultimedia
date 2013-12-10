@@ -94,6 +94,7 @@
 #define SUPPORTED_IMAGE_CAPTURE_CAPS_PROPERTY "image-capture-supported-caps"
 #define SUPPORTED_VIDEO_CAPTURE_CAPS_PROPERTY "video-capture-supported-caps"
 #define SUPPORTED_VIEWFINDER_CAPS_PROPERTY "viewfinder-supported-caps"
+#define AUDIO_CAPTURE_CAPS_PROPERTY "audio-capture-caps"
 #define IMAGE_CAPTURE_CAPS_PROPERTY "image-capture-caps"
 #define VIDEO_CAPTURE_CAPS_PROPERTY "video-capture-caps"
 #define VIEWFINDER_CAPS_PROPERTY "viewfinder-caps"
@@ -344,6 +345,32 @@ void CameraBinSession::setupCaptureResolution()
     } else {
         g_object_set(m_camerabin, VIEWFINDER_CAPS_PROPERTY, NULL, NULL);
     }
+}
+
+void CameraBinSession::setAudioCaptureCaps()
+{
+    QAudioEncoderSettings settings = m_audioEncodeControl->audioSettings();
+    const int sampleRate = settings.sampleRate();
+    const int channelCount = settings.channelCount();
+
+    if (sampleRate == -1 && channelCount == -1)
+        return;
+
+    GstStructure *structure = gst_structure_new(
+                "audio/x-raw-int",
+                "endianness", G_TYPE_INT, 1234,
+                "signed", G_TYPE_BOOLEAN, TRUE,
+                "width", G_TYPE_INT, 16,
+                "depth", G_TYPE_INT, 16,
+                NULL);
+    if (sampleRate != -1)
+        gst_structure_set(structure, "rate", G_TYPE_INT, sampleRate, NULL);
+    if (channelCount != -1)
+        gst_structure_set(structure, "channels", G_TYPE_INT, channelCount, NULL);
+
+    GstCaps *caps = gst_caps_new_full(structure, NULL);
+    g_object_set(G_OBJECT(m_camerabin), AUDIO_CAPTURE_CAPS_PROPERTY, caps, NULL);
+    gst_caps_unref(caps);
 }
 
 GstElement *CameraBinSession::buildCameraSource()
@@ -651,14 +678,14 @@ void CameraBinSession::setState(QCamera::State newState)
             GstState pending = GST_STATE_NULL;
             gst_element_get_state(m_camerabin, &binState, &pending, 0);
 
-            if (captureMode() == QCamera::CaptureVideo) {
-                m_recorderControl->applySettings();
+            m_recorderControl->applySettings();
 
-                g_object_set (G_OBJECT(m_camerabin),
-                              "video-profile",
-                              m_recorderControl->videoProfile(),
-                              NULL);
-            }
+            g_object_set (G_OBJECT(m_camerabin),
+                          "video-profile",
+                          m_recorderControl->videoProfile(),
+                          NULL);
+
+            setAudioCaptureCaps();
 
             setupCaptureResolution();
 
