@@ -83,6 +83,7 @@ typedef enum {
     "video/x-raw-rgb; " \
     "video/x-raw-gray; " \
     "video/x-surface; " \
+    "video/x-android-buffer; " \
     "audio/x-raw-int; " \
     "audio/x-raw-float; " \
     "text/plain; " \
@@ -140,7 +141,12 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
 #else
         int flags = 0;
         g_object_get(G_OBJECT(m_playbin), "flags", &flags, NULL);
-        flags |= GST_PLAY_FLAG_NATIVE_VIDEO;
+        QByteArray envFlags = qgetenv("QT_GSTREAMER_PLAYBIN_FLAGS");
+        if (!envFlags.isEmpty()) {
+            flags |= envFlags.toInt();
+        } else {
+            flags |= GST_PLAY_FLAG_NATIVE_VIDEO;
+        }
 #endif
         g_object_set(G_OBJECT(m_playbin), "flags", flags, NULL);
 
