@@ -59,6 +59,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
+class CameraBinControl;
 class CameraBinAudioEncoder;
 class CameraBinVideoEncoder;
 class CameraBinImageEncoder;
@@ -119,6 +120,7 @@ public:
 
     GstElement *buildCameraSource();
 
+    CameraBinControl *cameraControl() const { return m_cameraControl; }
     CameraBinAudioEncoder *audioEncodeControl() const { return m_audioEncodeControl; }
     CameraBinVideoEncoder *videoEncodeControl() const { return m_videoEncodeControl; }
     CameraBinImageEncoder *imageEncodeControl() const { return m_imageEncodeControl; }
@@ -210,6 +212,7 @@ private:
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
 
+    CameraBinControl *m_cameraControl;
     CameraBinAudioEncoder *m_audioEncodeControl;
     CameraBinVideoEncoder *m_videoEncodeControl;
     CameraBinImageEncoder *m_imageEncodeControl;

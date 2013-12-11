@@ -40,9 +40,11 @@
 ****************************************************************************/
 
 #include "camerabinimagecapture.h"
+#include "camerabincontrol.h"
 #include "camerabincapturedestination.h"
 #include "camerabincapturebufferformat.h"
 #include "camerabinsession.h"
+#include "camerabinresourcepolicy.h"
 #include <private/qgstvideobuffer_p.h>
 #include <private/qvideosurfacegstsink_p.h>
 #include <private/qgstutils_p.h>
@@ -68,6 +70,7 @@ CameraBinImageCapture::CameraBinImageCapture(CameraBinSession *session)
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
     connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
     connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
+    connect(m_session->cameraControl()->resourcePolicy(), SIGNAL(canCaptureChanged()), this, SLOT(updateState()));
 
     m_session->bus()->installMessageFilter(this);
 }
@@ -103,7 +106,8 @@ void CameraBinImageCapture::cancelCapture()
 
 void CameraBinImageCapture::updateState()
 {
-    bool ready = m_session->state() == QCamera::ActiveState;
+    bool ready = m_session->state() == QCamera::ActiveState
+            && m_session->cameraControl()->resourcePolicy()->canCapture();
     if (m_ready != ready) {
 #ifdef DEBUG_CAPTURE
         qDebug() << "readyForCaptureChanged" << ready;

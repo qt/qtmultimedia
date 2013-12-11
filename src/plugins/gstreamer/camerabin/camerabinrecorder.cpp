@@ -40,6 +40,8 @@
 ****************************************************************************/
 
 #include "camerabinrecorder.h"
+#include "camerabincontrol.h"
+#include "camerabinresourcepolicy.h"
 #include "camerabinaudioencoder.h"
 #include "camerabinvideoencoder.h"
 #include "camerabincontainer.h"
@@ -61,6 +63,8 @@ CameraBinRecorder::CameraBinRecorder(CameraBinSession *session)
 
     connect(m_session, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
+    connect(m_session->cameraControl()->resourcePolicy(), SIGNAL(canCaptureChanged()),
+            this, SLOT(updateStatus()));
 }
 
 CameraBinRecorder::~CameraBinRecorder()
@@ -98,7 +102,11 @@ void CameraBinRecorder::updateStatus()
     if (sessionState == QCamera::ActiveState &&
             m_session->captureMode().testFlag(QCamera::CaptureVideo)) {
 
-        if (m_state == QMediaRecorder::RecordingState) {
+        if (!m_session->cameraControl()->resourcePolicy()->canCapture()) {
+            m_status = QMediaRecorder::UnavailableStatus;
+            m_state = QMediaRecorder::StoppedState;
+            m_session->stopVideoRecording();
+        } else  if (m_state == QMediaRecorder::RecordingState) {
             m_status = QMediaRecorder::RecordingStatus;
         } else {
             m_status = m_session->isBusy() ?
@@ -208,13 +216,16 @@ void CameraBinRecorder::setState(QMediaRecorder::State state)
         emit error(QMediaRecorder::ResourceError, tr("QMediaRecorder::pause() is not supported by camerabin2."));
         break;
     case QMediaRecorder::RecordingState:
-        if (m_session->state() == QCamera::ActiveState) {
+
+        if (m_session->state() != QCamera::ActiveState) {
+            emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
+        } else if (!m_session->cameraControl()->resourcePolicy()->canCapture()) {
+            emit error(QMediaRecorder::ResourceError, tr("Recording permissions are not available"));
+        } else {
             m_session->recordVideo();
             m_state = state;
             m_status = QMediaRecorder::RecordingStatus;
             emit actualLocationChanged(m_session->outputLocation());
-        } else {
-            emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
         }
     }
 

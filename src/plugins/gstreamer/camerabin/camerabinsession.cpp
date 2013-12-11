@@ -39,6 +39,7 @@
 **
 ****************************************************************************/
 #include "camerabinsession.h"
+#include "camerabincontrol.h"
 #include "camerabinrecorder.h"
 #include "camerabincontainer.h"
 #include "camerabinaudioencoder.h"
@@ -152,6 +153,7 @@ CameraBinSession::CameraBinSession(QObject *parent)
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
     m_busHelper->installMessageFilter(this);
 
+    m_cameraControl = new CameraBinControl(this);
     m_audioEncodeControl = new CameraBinAudioEncoder(this);
     m_videoEncodeControl = new CameraBinVideoEncoder(this);
     m_imageEncodeControl = new CameraBinImageEncoder(this);
@@ -450,6 +452,8 @@ void CameraBinSession::setCaptureMode(QCamera::CaptureModes mode)
         g_object_set(m_camerabin, MODE_PROPERTY, CAMERABIN_VIDEO_MODE, NULL);
         break;
     }
+
+    m_recorderControl->updateStatus();
 }
 
 QUrl CameraBinSession::outputLocation() const

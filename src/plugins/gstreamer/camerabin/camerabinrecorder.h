@@ -76,7 +76,6 @@ public slots:
     void setMuted(bool);
     void setVolume(qreal volume);
 
-private slots:
     void updateStatus();
 
 private:
