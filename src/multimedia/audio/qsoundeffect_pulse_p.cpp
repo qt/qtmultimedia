@@ -183,15 +183,16 @@ private Q_SLOTS:
         lock();
         m_context = pa_context_new(m_mainLoopApi, QString(QLatin1String("QtPulseAudio:%1")).arg(::getpid()).toLatin1().constData());
 
-        pa_context_set_state_callback(m_context, context_state_callback, this);
-
         if (m_context == 0) {
             qWarning("PulseAudioService: Unable to create new pulseaudio context");
             pa_threaded_mainloop_unlock(m_mainLoop);
             pa_threaded_mainloop_free(m_mainLoop);
             m_mainLoop = 0;
+            onContextFailed();
             return;
         }
+
+        pa_context_set_state_callback(m_context, context_state_callback, this);
 
         if (pa_context_connect(m_context, 0, (pa_context_flags_t)0, 0) < 0) {
             qWarning("PulseAudioService: pa_context_connect() failed");
