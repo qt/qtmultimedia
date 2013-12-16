@@ -68,7 +68,8 @@ ANDROID_FEATURES += \
 MODULE_PLUGIN_TYPES = \
     mediaservice \
     audio \
-    video/videonode
+    video/videonode \
+    playlistformats
 
 win32: LIBS_PRIVATE += -luuid
 

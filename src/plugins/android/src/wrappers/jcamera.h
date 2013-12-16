@@ -82,6 +82,8 @@ public:
     CameraFacing getFacing();
     int getNativeOrientation();
 
+    void setDisplayOrientation(int degrees);
+
     QSize getPreferredPreviewSizeForVideo();
     QList<QSize> getSupportedPreviewSizes();
 
@@ -136,6 +138,7 @@ public:
     void setWhiteBalance(const QString &value);
 
     void setRotation(int rotation);
+    int getRotation() const;
 
     QList<QSize> getSupportedPictureSizes();
     void setPictureSize(const QSize &size);
@@ -144,9 +147,9 @@ public:
     void startPreview();
     void stopPreview();
 
-    void requestPreviewFrame();
-
     void takePicture();
+
+    QByteArray fetchLastPreviewFrame();
 
     static bool initJNI(JNIEnv *env);
 
@@ -157,8 +160,6 @@ Q_SIGNALS:
     void autoFocusComplete(bool success);
 
     void whiteBalanceChanged();
-
-    void previewFrameAvailable(const QByteArray &data);
 
     void pictureExposed();
     void pictureCaptured(const QByteArray &data);
@@ -174,6 +175,7 @@ private:
     QJNIObjectPrivate m_parameters;
 
     QSize m_previewSize;
+    int m_rotation;
 
     bool m_hasAPI14;
 };

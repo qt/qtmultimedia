@@ -175,8 +175,6 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
 
 void QCameraPrivate::setState(QCamera::State newState)
 {
-    Q_Q(QCamera);
-
     unsetError();
 
     if (!control) {
@@ -184,13 +182,8 @@ void QCameraPrivate::setState(QCamera::State newState)
         return;
     }
 
-    if (state == newState)
-        return;
-
     restartPending = false;
-    state = newState;
-    control->setState(state);
-    emit q->stateChanged(state);
+    control->setState(newState);
 }
 
 void QCameraPrivate::_q_updateState(QCamera::State newState)
@@ -203,7 +196,6 @@ void QCameraPrivate::_q_updateState(QCamera::State newState)
         return;
 
     if (newState != state) {
-        qDebug() << "Camera state changed:" << newState;
         state = newState;
         emit q->stateChanged(state);
     }

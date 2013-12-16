@@ -218,10 +218,19 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
         return;
     }
 
-    const QString uri = mediaContent.canonicalUrl().toString();
+    const QUrl url = mediaContent.canonicalUrl();
+    QString mediaPath;
+    if (url.scheme() == QLatin1String("qrc")) {
+        const QString path = url.toString().mid(3);
+        mTempFile.reset(QTemporaryFile::createNativeFile(path));
+        if (!mTempFile.isNull())
+            mediaPath = QLatin1String("file://") + mTempFile->fileName();
+    } else {
+        mediaPath = url.toString();
+    }
 
-    if (!uri.isEmpty())
-        mMediaPlayer->setDataSource(uri);
+    if (!mediaPath.isEmpty())
+        mMediaPlayer->setDataSource(mediaPath);
     else
         setMediaStatus(QMediaPlayer::NoMedia);
 

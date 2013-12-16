@@ -1085,6 +1085,9 @@ namespace
         HRESULT onDispatchWorkItem(IMFAsyncResult* pAsyncResult)
         {
             QMutexLocker locker(&m_mutex);
+            if (m_shutdown)
+                return MF_E_SHUTDOWN;
+
             HRESULT hr = S_OK;
             IUnknown *pState = NULL;
             hr = pAsyncResult->GetState(&pState);
