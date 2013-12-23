@@ -182,7 +182,10 @@ bool QAndroidCameraSession::open()
 
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
+        connect(m_camera, SIGNAL(previewFetched(QByteArray)), this, SLOT(onCameraPreviewFetched(QByteArray)));
         connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
+        connect(m_camera, SIGNAL(previewStarted()), this, SLOT(onCameraPreviewStarted()));
+        connect(m_camera, SIGNAL(previewStopped()), this, SLOT(onCameraPreviewStopped()));
 
         m_nativeOrientation = m_camera->getNativeOrientation();
 
@@ -309,11 +312,6 @@ void QAndroidCameraSession::startPreview()
 
     m_camera->startPreview();
     m_previewStarted = true;
-
-    m_status = QCamera::ActiveStatus;
-    emit statusChanged(m_status);
-
-    setReadyForCapture(true);
 }
 
 void QAndroidCameraSession::stopPreview()
@@ -331,11 +329,6 @@ void QAndroidCameraSession::stopPreview()
     if (m_videoOutput)
         m_videoOutput->stop();
     m_previewStarted = false;
-
-    m_status = QCamera::LoadedStatus;
-    emit statusChanged(m_status);
-
-    setReadyForCapture(false);
 }
 
 void QAndroidCameraSession::setImageSettings(const QImageEncoderSettings &settings)
@@ -507,11 +500,15 @@ void QAndroidCameraSession::onCameraPictureExposed()
         return;
 
     emit imageExposed(m_currentImageCaptureId);
-    QByteArray lastFrame = m_camera->fetchLastPreviewFrame();
-    if (lastFrame.size()) {
+    m_camera->fetchLastPreviewFrame();
+}
+
+void QAndroidCameraSession::onCameraPreviewFetched(const QByteArray &preview)
+{
+    if (preview.size()) {
         QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
                           m_currentImageCaptureId,
-                          lastFrame,
+                          preview,
                           m_camera->getRotation());
     }
 }
@@ -532,8 +529,26 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 
     // Preview needs to be restarted after taking a picture
     m_camera->startPreview();
+}
+
+void QAndroidCameraSession::onCameraPreviewStarted()
+{
+    if (m_status == QCamera::StartingStatus) {
+        m_status = QCamera::ActiveStatus;
+        emit statusChanged(m_status);
+    }
 
     setReadyForCapture(true);
+}
+
+void QAndroidCameraSession::onCameraPreviewStopped()
+{
+    if (m_status == QCamera::StoppingStatus) {
+        m_status = QCamera::LoadedStatus;
+        emit statusChanged(m_status);
+    }
+
+    setReadyForCapture(false);
 }
 
 void QAndroidCameraSession::processCapturedImage(int id,

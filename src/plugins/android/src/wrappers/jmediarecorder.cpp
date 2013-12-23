@@ -151,7 +151,7 @@ void JMediaRecorder::setAudioSource(AudioSource source)
 
 void JMediaRecorder::setCamera(JCamera *camera)
 {
-    QJNIObjectPrivate cam = camera->getObjectField("m_camera", "Landroid/hardware/Camera;");
+    QJNIObjectPrivate cam = camera->getCameraObject();
     callMethod<void>("setCamera", "(Landroid/hardware/Camera;)V", cam.object());
 }
 

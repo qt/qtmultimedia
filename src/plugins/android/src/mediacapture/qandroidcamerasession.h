@@ -113,7 +113,10 @@ private Q_SLOTS:
     void onApplicationStateChanged(Qt::ApplicationState state);
 
     void onCameraPictureExposed();
+    void onCameraPreviewFetched(const QByteArray &preview);
     void onCameraPictureCaptured(const QByteArray &data);
+    void onCameraPreviewStarted();
+    void onCameraPreviewStopped();
 
 private:
     bool open();
