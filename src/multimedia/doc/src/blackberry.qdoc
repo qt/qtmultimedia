@@ -59,7 +59,7 @@ supported in QMediaPlayer as well. Playlists as sources are also supported.
 mmrenderer does not allow access to the pixel data of video frames, hence Qt Multimedia
 classes like QVideoFrame and QAbstractVideoSurface will not work since they require access
 to the image data. QVideoWidget and the VideoOutput QML element are implemented with an overlay window;
-mmrenderer creates a seperate window displaying a video and puts that on top of the Qt application.
+mmrenderer creates a separate window displaying a video and puts that on top of the Qt application.
 As a consequence, no other widget or QML element can be put on top of the video, and QML shaders have
 no effect.
 

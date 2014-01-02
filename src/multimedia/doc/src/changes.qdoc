@@ -125,7 +125,7 @@ changed in ways that may affect previously written code. This table highlights s
            you will probably need to remove them.
     \row
         \li QSoundEffect availability
-        \li The SoundEffect QML type was publically accessible in Qt Multimeda Kit,
+        \li The SoundEffect QML type was publicly accessible in Qt Multimeda Kit,
            and now the C++ version is officially public too. If your code contains the
            previously undocumented QSoundEffect, you may need to update it.
     \row

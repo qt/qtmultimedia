@@ -78,7 +78,7 @@ namespace
     a new hardware accelerated video system, for example.
 
     The contents of a buffer can be accessed by mapping the buffer to memory using the map()
-    function, which returns a pointer to memory containing the contents of the the video buffer.
+    function, which returns a pointer to memory containing the contents of the video buffer.
     The memory returned by map() is released by calling the unmap() function.
 
     The handle() of a buffer may also be used to manipulate its contents using type specific APIs.
