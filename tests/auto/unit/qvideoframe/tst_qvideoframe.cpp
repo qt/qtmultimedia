@@ -1108,7 +1108,7 @@ void tst_QVideoFrame::debug_data()
     QVideoFrame g7(0, QSize(320,240), 640, QVideoFrame::Format_ARGB32);
     g7.setStartTime(9000000000LL);
     g7.setMetaData("bar", 42);
-    QTest::newRow("more valid for long forever + metadata") << g7 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 2:30:00.00 - forever, metaData: QMap((\"bar\", QVariant(int, 42) ) )  )");
+    QTest::newRow("more valid for long forever + metadata") << g7 << QString::fromLatin1("QVideoFrame(QSize(320, 240) , Format_ARGB32, NoHandle, NotMapped, 2:30:00.00 - forever, metaData: QMap((\"bar\", QVariant(int, 42) ) ) )");
 }
 
 void tst_QVideoFrame::debug()
