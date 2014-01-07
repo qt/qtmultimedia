@@ -141,7 +141,7 @@ QSoundEffect::~QSoundEffect()
 /*!
     \fn QSoundEffect::supportedMimeTypes()
 
-    Returns a list of the supported mime types for this sound effect.
+    Returns a list of the supported mime types for this platform.
 */
 QStringList QSoundEffect::supportedMimeTypes()
 {
