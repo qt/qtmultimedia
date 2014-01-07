@@ -1,7 +1,5 @@
 include(../spectrum.pri)
 
-static: error(This application cannot be statically linked to the fftreal library)
-
 TEMPLATE = app
 
 TARGET = spectrum
