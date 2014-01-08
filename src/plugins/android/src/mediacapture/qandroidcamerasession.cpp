@@ -44,11 +44,13 @@
 #include "jcamera.h"
 #include "jmultimediautils.h"
 #include "qandroidvideooutput.h"
+#include "qandroidmediavideoprobecontrol.h"
 #include "qandroidmultimediautils.h"
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>
 #include <qguiapplication.h>
 #include <qdebug.h>
+#include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -183,6 +185,9 @@ bool QAndroidCameraSession::open()
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
         connect(m_camera, SIGNAL(previewFetched(QByteArray)), this, SLOT(onCameraPreviewFetched(QByteArray)));
+        connect(m_camera, SIGNAL(frameFetched(QByteArray)),
+                this, SLOT(onCameraFrameFetched(QByteArray)),
+                Qt::DirectConnection);
         connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
         connect(m_camera, SIGNAL(previewStarted()), this, SLOT(onCameraPreviewStarted()));
         connect(m_camera, SIGNAL(previewStopped()), this, SLOT(onCameraPreviewStopped()));
@@ -199,6 +204,8 @@ bool QAndroidCameraSession::open()
 
         if (m_camera->getPreviewFormat() != JCamera::NV21)
             m_camera->setPreviewFormat(JCamera::NV21);
+
+        m_camera->fetchEachFrame(m_videoProbes.count());
 
         emit opened();
     } else {
@@ -364,6 +371,25 @@ int QAndroidCameraSession::currentCameraRotation() const
     return rotation;
 }
 
+void QAndroidCameraSession::addProbe(QAndroidMediaVideoProbeControl *probe)
+{
+    m_videoProbesMutex.lock();
+    if (probe)
+        m_videoProbes << probe;
+    if (m_camera)
+        m_camera->fetchEachFrame(m_videoProbes.count());
+    m_videoProbesMutex.unlock();
+}
+
+void QAndroidCameraSession::removeProbe(QAndroidMediaVideoProbeControl *probe)
+{
+    m_videoProbesMutex.lock();
+    m_videoProbes.remove(probe);
+    if (m_camera)
+        m_camera->fetchEachFrame(m_videoProbes.count());
+    m_videoProbesMutex.unlock();
+}
+
 void QAndroidCameraSession::applyImageSettings()
 {
     if (!m_camera || !m_imageSettingsDirty)
@@ -513,6 +539,19 @@ void QAndroidCameraSession::onCameraPreviewFetched(const QByteArray &preview)
     }
 }
 
+void QAndroidCameraSession::onCameraFrameFetched(const QByteArray &frame)
+{
+    m_videoProbesMutex.lock();
+    if (frame.size() && m_videoProbes.count()) {
+        QVideoFrame videoFrame(new DataVideoBuffer(frame),
+                               m_camera->previewSize(),
+                               QVideoFrame::Format_NV21);
+        foreach (QAndroidMediaVideoProbeControl *probe, m_videoProbes)
+            probe->newFrameProbed(videoFrame);
+    }
+    m_videoProbesMutex.unlock();
+}
+
 void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 {
     if (!m_captureCanceled) {
@@ -593,10 +632,15 @@ void QAndroidCameraSession::processCapturedImage(int id,
 
 void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data, int rotation)
 {
+    emit imageCaptured(id, prepareImageFromPreviewData(data, rotation));
+}
+
+QImage QAndroidCameraSession::prepareImageFromPreviewData(const QByteArray &data, int rotation)
+{
     QSize frameSize = m_camera->previewSize();
-    QImage preview(frameSize, QImage::Format_ARGB32);
+    QImage result(frameSize, QImage::Format_ARGB32);
     qt_convert_NV21_to_ARGB32((const uchar *)data.constData(),
-                              (quint32 *)preview.bits(),
+                              (quint32 *)result.bits(),
                               frameSize.width(),
                               frameSize.height());
 
@@ -610,9 +654,9 @@ void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data, 
 
     transform.rotate(rotation);
 
-    preview = preview.transformed(transform);
+    result = result.transformed(transform);
 
-    emit imageCaptured(id, preview);
+    return result;
 }
 
 void QAndroidCameraSession::onVideoOutputReady(bool ready)

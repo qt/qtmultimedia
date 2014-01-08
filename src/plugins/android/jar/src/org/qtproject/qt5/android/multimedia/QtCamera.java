@@ -60,6 +60,7 @@ public class QtCamera implements Camera.ShutterCallback,
     private int m_actualPreviewBuffer = 0;
     private final ReentrantLock m_buffersLock = new ReentrantLock();
     private boolean m_isReleased = false;
+    private boolean m_fetchEachFrame = false;
 
     private static final String TAG = "Qt Camera";
 
@@ -139,6 +140,11 @@ public class QtCamera implements Camera.ShutterCallback,
         } catch(Exception e) {
             Log.d(TAG, e.getMessage());
         }
+    }
+
+    public void fetchEachFrame(boolean fetch)
+    {
+        m_fetchEachFrame = fetch;
     }
 
     public void startPreview()
@@ -233,6 +239,10 @@ public class QtCamera implements Camera.ShutterCallback,
     public void onPreviewFrame(byte[] data, Camera camera)
     {
         m_buffersLock.lock();
+
+        if (data != null && m_fetchEachFrame)
+            notifyFrameFetched(m_cameraId, data);
+
         if (data == m_cameraPreviewFirstBuffer)
             m_actualPreviewBuffer = 1;
         else if (data == m_cameraPreviewSecondBuffer)
@@ -252,4 +262,5 @@ public class QtCamera implements Camera.ShutterCallback,
     private static native void notifyAutoFocusComplete(int id, boolean success);
     private static native void notifyPictureExposed(int id);
     private static native void notifyPictureCaptured(int id, byte[] data);
+    private static native void notifyFrameFetched(int id, byte[] data);
 }

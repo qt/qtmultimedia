@@ -155,6 +155,7 @@ public:
 
     void takePicture();
 
+    void fetchEachFrame(bool fetch);
     void fetchLastPreviewFrame();
     QJNIObjectPrivate getCameraObject();
 
@@ -173,6 +174,7 @@ Q_SIGNALS:
     void pictureExposed();
     void pictureCaptured(const QByteArray &data);
     void previewFetched(const QByteArray &preview);
+    void frameFetched(const QByteArray &frame);
 
 private:
     JCamera(int cameraId, jobject cam, QThread *workerThread);

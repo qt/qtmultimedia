@@ -61,6 +61,7 @@
 #include "qandroidaudioencodersettingscontrol.h"
 #include "qandroidvideoencodersettingscontrol.h"
 #include "qandroidmediacontainercontrol.h"
+#include "qandroidmediavideoprobecontrol.h"
 
 #include <qmediaserviceproviderplugin.h>
 
@@ -201,16 +202,37 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
         return m_videoRendererControl;
     }
 
+    if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
+        QAndroidMediaVideoProbeControl *videoProbe = 0;
+        if (m_cameraSession) {
+            videoProbe = new QAndroidMediaVideoProbeControl(this);
+            m_cameraSession->addProbe(videoProbe);
+        }
+        return videoProbe;
+    }
+
     return 0;
 }
 
 void QAndroidCaptureService::releaseControl(QMediaControl *control)
 {
-    if (control && control == m_videoRendererControl) {
-        m_cameraSession->setVideoPreview(0);
-        delete m_videoRendererControl;
-        m_videoRendererControl = 0;
+    if (control) {
+        if (control == m_videoRendererControl) {
+            m_cameraSession->setVideoPreview(0);
+            delete m_videoRendererControl;
+            m_videoRendererControl = 0;
+            return;
+        }
+
+        QAndroidMediaVideoProbeControl *videoProbe = qobject_cast<QAndroidMediaVideoProbeControl *>(control);
+        if (videoProbe) {
+            if (m_cameraSession)
+                m_cameraSession->removeProbe(videoProbe);
+            delete videoProbe;
+            return;
+        }
     }
+
 }
 
 QT_END_NAMESPACE

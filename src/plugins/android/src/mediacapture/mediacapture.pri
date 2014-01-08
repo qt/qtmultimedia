@@ -21,7 +21,8 @@ SOURCES += \
     $$PWD/qandroidaudioencodersettingscontrol.cpp \
     $$PWD/qandroidmediacontainercontrol.cpp \
     $$PWD/qandroidvideoencodersettingscontrol.cpp \
-    $$PWD/qandroidaudioinputselectorcontrol.cpp
+    $$PWD/qandroidaudioinputselectorcontrol.cpp \
+    $$PWD/qandroidmediavideoprobecontrol.cpp
 
 HEADERS += \
     $$PWD/qandroidcaptureservice.h \
@@ -44,4 +45,5 @@ HEADERS += \
     $$PWD/qandroidaudioencodersettingscontrol.h \
     $$PWD/qandroidmediacontainercontrol.h \
     $$PWD/qandroidvideoencodersettingscontrol.h \
-    $$PWD/qandroidaudioinputselectorcontrol.h
+    $$PWD/qandroidaudioinputselectorcontrol.h \
+    $$PWD/qandroidmediavideoprobecontrol.h
