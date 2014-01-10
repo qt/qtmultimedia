@@ -120,8 +120,8 @@ QCameraImageProcessingControl::~QCameraImageProcessingControl()
 
     Returns true if the camera supports adjusting image processing \a parameter.
 
-    Usually the the supported settings is static,
-    but some parameter may not be available depending on other
+    Usually the supported setting is static,
+    but some parameters may not be available depending on other
     camera settings, like presets.
     In such case the currently supported parameters should be returned.
 */
@@ -129,7 +129,7 @@ QCameraImageProcessingControl::~QCameraImageProcessingControl()
 /*!
     \fn bool QCameraImageProcessingControl::isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const
 
-    Returns true if the camera supports settings the the image processing \a parameter \a value.
+    Returns true if the camera supports setting the image processing \a parameter \a value.
 
     It's used only for parameters with a limited set of values, like WhiteBalancePreset.
 */

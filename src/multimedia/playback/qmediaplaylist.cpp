@@ -88,7 +88,7 @@ namespace
     like QMediaPlayer.
 
     QMediaPlaylist allows to access the service intrinsic playlist functionality
-    if available, otherwise it provides the the local memory playlist implementation.
+    if available, otherwise it provides the local memory playlist implementation.
 
     \snippet multimedia-snippets/media.cpp Movie playlist
 

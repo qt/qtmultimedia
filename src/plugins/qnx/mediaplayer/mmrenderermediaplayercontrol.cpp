@@ -530,7 +530,7 @@ void MmRendererMediaPlayerControl::play()
     }
 
     setPositionInternal(m_position);
-    setVolumeInternal(m_volume);
+    setVolumeInternal(m_muted ? 0 : m_volume);
     setPlaybackRateInternal(m_rate);
 
     if (mmr_play(m_context) != 0) {

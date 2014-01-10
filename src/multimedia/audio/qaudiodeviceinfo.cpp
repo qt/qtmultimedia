@@ -127,7 +127,7 @@ public:
     order, channel, codec, frequency, sample rate, and sample type.  A
     format is represented by the QAudioFormat class.
 
-    The values supported by the the device for each of these
+    The values supported by the device for each of these
     parameters can be fetched with
     supportedByteOrders(), supportedChannelCounts(), supportedCodecs(),
     supportedSampleRates(), supportedSampleSizes(), and

@@ -111,6 +111,21 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
     }
 }
 
+static void notifyFrameFetched(JNIEnv *env, jobject, int id, jbyteArray data)
+{
+    g_objectMapMutex.lock();
+    JCamera *obj = g_objectMap.value(id, 0);
+    g_objectMapMutex.unlock();
+    if (obj) {
+        QByteArray bytes;
+        int arrayLength = env->GetArrayLength(data);
+        bytes.resize(arrayLength);
+        env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
+
+        Q_EMIT obj->frameFetched(bytes);
+    }
+}
+
 class JCameraInstantiator : public QObject
 {
     Q_OBJECT
@@ -201,6 +216,7 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
     Q_INVOKABLE void startPreview();
     Q_INVOKABLE void stopPreview();
 
+    Q_INVOKABLE void fetchEachFrame(bool fetch);
     Q_INVOKABLE void fetchLastPreviewFrame();
 
     Q_INVOKABLE void applyParameters();
@@ -569,6 +585,11 @@ void JCamera::setJpegQuality(int quality)
 void JCamera::takePicture()
 {
     QMetaObject::invokeMethod(d, "callVoidMethod", Q_ARG(QByteArray, "takePicture"));
+}
+
+void JCamera::fetchEachFrame(bool fetch)
+{
+    QMetaObject::invokeMethod(d, "fetchEachFrame", Q_ARG(bool, fetch));
 }
 
 void JCamera::fetchLastPreviewFrame()
@@ -1165,6 +1186,11 @@ void JCameraWorker::stopPreview()
     emit previewStopped();
 }
 
+void JCameraWorker::fetchEachFrame(bool fetch)
+{
+    callMethod<void>("fetchEachFrame", "(Z)V", fetch);
+}
+
 void JCameraWorker::fetchLastPreviewFrame()
 {
     QJNIEnvironmentPrivate env;
@@ -1224,7 +1250,8 @@ void JCameraWorker::callVoidMethod(const QByteArray &methodName)
 static JNINativeMethod methods[] = {
     {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
     {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
-    {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured}
+    {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
+    {"notifyFrameFetched", "(I[B)V", (void *)notifyFrameFetched}
 };
 
 bool JCamera::initJNI(JNIEnv *env)
