@@ -27,7 +27,7 @@
 
 /*!
 \page blackberry.html
-\title BlackBerry
+\title Qt Multimedia on BlackBerry
 \brief Platform notes for the BlackBerry Platform
 
 Qt Multimedia supports BlackBerry devices that run the BB10 operating system.
