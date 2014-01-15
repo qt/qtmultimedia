@@ -231,6 +231,7 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
 
     QSize m_previewSize;
     int m_rotation;
+    int m_displayOrientation;
 
     bool m_hasAPI14;
 
@@ -336,8 +337,14 @@ int JCamera::getNativeOrientation()
     return d->getNativeOrientation();
 }
 
+int JCamera::getDisplayOrientation() const
+{
+    return d->m_displayOrientation;
+}
+
 void JCamera::setDisplayOrientation(int degrees)
 {
+    d->m_displayOrientation = degrees;
     QMetaObject::invokeMethod(d, "setDisplayOrientation", Q_ARG(int, degrees));
 }
 
@@ -619,6 +626,7 @@ JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread
     , QJNIObjectPrivate(cam)
     , m_cameraId(cameraId)
     , m_rotation(0)
+    , m_displayOrientation(0)
     , m_hasAPI14(false)
     , m_parametersMutex(QMutex::Recursive)
 {
