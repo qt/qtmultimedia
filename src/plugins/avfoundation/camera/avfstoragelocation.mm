@@ -105,7 +105,7 @@ QString AVFStorageLocation::generateFileName(const QString &prefix, const QDir &
     if (lastClip == 0) {
         //first run, find the maximum clip number during the fist capture
         Q_FOREACH (const QString &fileName, dir.entryList(QStringList() << QString("%1*.%2").arg(prefix).arg(ext))) {
-            int imgNumber = fileName.mid(prefix.length(), fileName.size()-prefix.length()-ext.length()-1).toInt();
+            int imgNumber = fileName.midRef(prefix.length(), fileName.size()-prefix.length()-ext.length()-1).toInt();
             lastClip = qMax(lastClip, imgNumber);
         }
     }

@@ -97,8 +97,8 @@ bool MmRendererMetaData::parse(const QString &contextName)
 
         const int separatorPos = line.indexOf(separator);
         if (separatorPos != -1) {
-            const QString key = line.left(separatorPos);
-            const QString value = line.mid(separatorPos + separator.length());
+            const QStringRef key = line.left(separatorPos);
+            const QStringRef value = line.mid(separatorPos + separator.length());
 
             if (key == durationKey)
                 m_duration = value.toLongLong();
@@ -113,15 +113,15 @@ bool MmRendererMetaData::parse(const QString &contextName)
             else if (key == pixelHeightKey)
                 m_pixelHeight = value.toFloat();
             else if (key == titleKey)
-                m_title = value;
+                m_title = value.toString();
             else if (key == seekableKey)
                 m_seekable = !(value == QLatin1String("0"));
             else if (key == artistKey)
-                m_artist = value;
+                m_artist = value.toString();
             else if (key == commentKey)
-                m_comment = value;
+                m_comment = value.toString();
             else if (key == genreKey)
-                m_genre = value;
+                m_genre = value.toString();
             else if (key == yearKey)
                 m_year = value.toInt();
             else if (key == bitRateKey)
@@ -129,7 +129,7 @@ bool MmRendererMetaData::parse(const QString &contextName)
             else if (key == sampleKey)
                 m_sampleRate = value.toInt();
             else if (key == albumKey)
-                m_album = value;
+                m_album = value.toString();
             else if (key == trackKey)
                 m_track = value.toInt();
         }

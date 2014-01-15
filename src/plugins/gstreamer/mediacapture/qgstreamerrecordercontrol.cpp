@@ -361,7 +361,7 @@ QString QGstreamerRecorderControl::generateFileName(const QDir &dir, const QStri
 
     int lastClip = 0;
     foreach(QString fileName, dir.entryList(QStringList() << QString("clip_*.%1").arg(ext))) {
-        int imgNumber = fileName.mid(5, fileName.size()-6-ext.length()).toInt();
+        int imgNumber = fileName.midRef(5, fileName.size()-6-ext.length()).toInt();
         lastClip = qMax(lastClip, imgNumber);
     }
 

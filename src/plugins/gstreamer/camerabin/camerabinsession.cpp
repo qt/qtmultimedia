@@ -508,7 +508,7 @@ QString CameraBinSession::generateFileName(const QString &prefix, const QDir &di
 {
     int lastClip = 0;
     foreach(QString fileName, dir.entryList(QStringList() << QString("%1*.%2").arg(prefix).arg(ext))) {
-        int imgNumber = fileName.mid(prefix.length(), fileName.size()-prefix.length()-ext.length()-1).toInt();
+        int imgNumber = fileName.midRef(prefix.length(), fileName.size()-prefix.length()-ext.length()-1).toInt();
         lastClip = qMax(lastClip, imgNumber);
     }
 
