@@ -151,6 +151,7 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
     friend class JCamera;
 
     JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread *workerThread);
+    ~JCameraWorker();
 
     Q_INVOKABLE void release();
 
@@ -275,9 +276,7 @@ JCamera::~JCamera()
         g_objectMap.remove(d->m_cameraId);
         g_objectMapMutex.unlock();
     }
-    QThread *workerThread = d->m_workerThread;
     d->deleteLater();
-    workerThread->quit();
 }
 
 JCamera *JCamera::open(int cameraId)
@@ -372,7 +371,7 @@ void JCamera::setPreviewSize(const QSize &size)
     d->m_parametersMutex.lock();
     bool areParametersValid = d->m_parameters.isValid();
     d->m_parametersMutex.unlock();
-    if (!areParametersValid || !size.isValid())
+    if (!areParametersValid)
         return;
 
     d->m_previewSize = size;
@@ -659,6 +658,11 @@ JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread
             m_hasAPI14 = bool(id);
         }
     }
+}
+
+JCameraWorker::~JCameraWorker()
+{
+    m_workerThread->quit();
 }
 
 void JCameraWorker::release()
