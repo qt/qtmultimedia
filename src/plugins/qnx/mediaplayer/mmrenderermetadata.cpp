@@ -97,8 +97,8 @@ bool MmRendererMetaData::parse(const QString &contextName)
 
         const int separatorPos = line.indexOf(separator);
         if (separatorPos != -1) {
-            const QStringRef key = line.left(separatorPos);
-            const QStringRef value = line.mid(separatorPos + separator.length());
+            const QStringRef key = line.leftRef(separatorPos);
+            const QStringRef value = line.midRef(separatorPos + separator.length());
 
             if (key == durationKey)
                 m_duration = value.toLongLong();
