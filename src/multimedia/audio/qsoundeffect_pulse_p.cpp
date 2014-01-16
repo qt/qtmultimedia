@@ -928,12 +928,8 @@ void QSoundEffectPrivate::createPulseStream()
         return;
 
     pa_proplist *propList = pa_proplist_new();
-    if (m_category.isNull()) {
-        // Meant to be one of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y", "test"
-        pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, "game");
-    } else {
+    if (!m_category.isNull())
         pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, m_category.toLatin1().constData());
-    }
     pa_stream *stream = pa_stream_new_with_proplist(pulseDaemon()->context(), m_name.constData(), &m_pulseSpec, 0, propList);
     pa_proplist_free(propList);
 
