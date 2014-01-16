@@ -5,11 +5,15 @@ SUBDIRS += \
     qaudiodeviceinfo \
     qaudioinput \
     qaudiooutput \
-    qdeclarativevideooutput \
-    qdeclarativevideooutput_window \
     qmediaplayerbackend \
     qcamerabackend \
     qsoundeffect \
     qsound
+
+qtHaveModule(quick) {
+    SUBDIRS += \
+        qdeclarativevideooutput \
+        qdeclarativevideooutput_window
+}
 
 !qtHaveModule(widgets): SUBDIRS -= qcamerabackend
