@@ -96,7 +96,7 @@ void tst_QMediaServiceProvider::initTestCase()
 
 void tst_QMediaServiceProvider::testDefaultProviderAvailable()
 {
-    // Must always be a default provider available    
+    // Must always be a default provider available
     QVERIFY(QMediaServiceProvider::defaultServiceProvider() != 0);
 }
 

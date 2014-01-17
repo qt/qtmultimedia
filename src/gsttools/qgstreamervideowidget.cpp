@@ -100,7 +100,7 @@ QGstreamerVideoWidgetControl::QGstreamerVideoWidgetControl(QObject *parent)
     , m_videoSink(0)
     , m_widget(0)
     , m_fullScreen(false)
-{    
+{
 }
 
 QGstreamerVideoWidgetControl::~QGstreamerVideoWidgetControl()

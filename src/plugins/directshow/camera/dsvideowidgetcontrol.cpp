@@ -120,7 +120,7 @@ DSVideoWidgetControl::DSVideoWidgetControl(DSCameraSession* session, QObject *pa
     m_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_widget->setAlignment(Qt::AlignCenter);
     m_widget->setAttribute(Qt::WA_NoSystemBackground, true);
-    
+
     surface = new DSVideoWidgetSurface(m_widget);
 
     QPalette palette;
@@ -157,7 +157,7 @@ bool DSVideoWidgetControl::eventFilter(QObject *object, QEvent *e)
             case QEvent::PolishRequest:
                 m_widget->ensurePolished();
                 break;
-            
+
             default:
                 // Do nothing
                 break;

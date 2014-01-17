@@ -47,10 +47,10 @@ QT_USE_NAMESPACE
 
 /*
 QT7VideoOutputControl::QT7VideoOutputControl(QObject *parent)
-   :QVideoOutputControl(parent), 
+   :QVideoOutputControl(parent),
     m_session(0),
     m_output(QVideoOutputControl::NoOutput)
-{    
+{
 }
 
 QT7VideoOutputControl::~QT7VideoOutputControl()

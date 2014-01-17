@@ -57,7 +57,7 @@ class QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerV
 public:
     QGstreamerVideoRenderer(QObject *parent = 0);
     virtual ~QGstreamerVideoRenderer();
-    
+
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
@@ -73,7 +73,7 @@ signals:
 private slots:
     void handleFormatChange();
 
-private:    
+private:
     QVideoSurfaceGstSink *m_videoSink;
     QPointer<QAbstractVideoSurface> m_surface;
 };

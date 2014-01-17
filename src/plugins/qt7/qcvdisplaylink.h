@@ -73,7 +73,7 @@ public:
 
 protected:
     virtual bool event(QEvent *);
-    
+
 private:
     CVDisplayLinkRef m_displayLink;
     QMutex m_displayLinkMutex;

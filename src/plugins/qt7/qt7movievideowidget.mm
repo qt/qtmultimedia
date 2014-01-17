@@ -76,7 +76,7 @@ public:
           m_nativeSize(640,480),
           m_aspectRatioMode(Qt::KeepAspectRatio)
     {
-        setAutoFillBackground(false);        
+        setAutoFillBackground(false);
     }
 
     void initializeGL()
@@ -151,7 +151,7 @@ public:
 
     void setNativeSize(const QSize &size)
     {
-        m_nativeSize = size;        
+        m_nativeSize = size;
     }
 
     void setAspectRatioMode(Qt::AspectRatioMode mode)
@@ -184,8 +184,8 @@ private:
 
 QT7MovieVideoWidget::QT7MovieVideoWidget(QObject *parent)
    :QT7VideoWidgetControl(parent),
-    m_movie(0),    
-    m_videoWidget(0),    
+    m_movie(0),
+    m_videoWidget(0),
     m_fullscreen(false),
     m_aspectRatioMode(Qt::KeepAspectRatio),
     m_brightness(0),
@@ -325,7 +325,7 @@ bool QT7MovieVideoWidget::isFullScreen() const
 
 void QT7MovieVideoWidget::setFullScreen(bool fullScreen)
 {
-    m_fullscreen = fullScreen;    
+    m_fullscreen = fullScreen;
 }
 
 QSize QT7MovieVideoWidget::nativeSize() const
@@ -341,7 +341,7 @@ Qt::AspectRatioMode QT7MovieVideoWidget::aspectRatioMode() const
 void QT7MovieVideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     m_aspectRatioMode = mode;
-    m_videoWidget->setAspectRatioMode(mode);    
+    m_videoWidget->setAspectRatioMode(mode);
 }
 
 int QT7MovieVideoWidget::brightness() const
@@ -410,7 +410,7 @@ void QT7MovieVideoWidget::updateColors()
 void QT7MovieVideoWidget::updateVideoFrame(const CVTimeStamp &ts)
 {
 #ifdef QUICKTIME_C_API_AVAILABLE
-    AutoReleasePool pool;    
+    AutoReleasePool pool;
     // check for new frame
     if (m_visualContext && QTVisualContextIsNewImageAvailable(m_visualContext, &ts)) {
         CVOpenGLTextureRef currentFrame = NULL;

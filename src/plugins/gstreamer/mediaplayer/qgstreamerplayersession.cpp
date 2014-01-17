@@ -491,7 +491,7 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
         }
     }
 
-    QGstreamerVideoRendererInterface* renderer = qobject_cast<QGstreamerVideoRendererInterface*>(videoOutput);   
+    QGstreamerVideoRendererInterface* renderer = qobject_cast<QGstreamerVideoRendererInterface*>(videoOutput);
 
     m_renderer = renderer;
 
@@ -646,7 +646,7 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
         m_pendingVideoSink = 0;
         gst_object_unref(GST_OBJECT(srcPad));
         return;
-    }  
+    }
 
     if (m_usingColorspaceElement) {
         gst_element_set_state(m_colorSpace, GST_STATE_NULL);

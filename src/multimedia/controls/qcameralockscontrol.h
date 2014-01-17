@@ -57,7 +57,7 @@ class Q_MULTIMEDIA_EXPORT QCameraLocksControl : public QMediaControl
     Q_OBJECT
 public:
     ~QCameraLocksControl();
-    
+
     virtual QCamera::LockTypes supportedLocks() const = 0;
 
     virtual QCamera::LockStatus lockStatus(QCamera::LockType lock) const = 0;

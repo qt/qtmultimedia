@@ -166,7 +166,7 @@ QT7MovieViewOutput::QT7MovieViewOutput(QObject *parent)
     m_contrast(0),
     m_hue(0),
     m_saturation(0)
-{    
+{
 }
 
 QT7MovieViewOutput::~QT7MovieViewOutput()

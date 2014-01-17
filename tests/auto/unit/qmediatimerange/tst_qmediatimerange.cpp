@@ -269,7 +269,7 @@ void tst_QMediaTimeRange::testEarliestLatest()
 }
 
 void tst_QMediaTimeRange::testContains()
-{    
+{
     // Test over a single interval
     QMediaTimeRange x(10, 20);
 
@@ -282,7 +282,7 @@ void tst_QMediaTimeRange::testContains()
 
     // Test over multiple intervals
     x.addInterval(40, 50);
-    
+
     QVERIFY(!x.isEmpty());
     QVERIFY(!x.isContinuous());
     QVERIFY(x.contains(15));

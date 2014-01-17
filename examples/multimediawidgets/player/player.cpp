@@ -95,7 +95,7 @@ Player::Player(QWidget *parent)
 
     labelDuration = new QLabel(this);
     connect(slider, SIGNAL(sliderMoved(int)), this, SLOT(seek(int)));
-    
+
     labelHistogram = new QLabel(this);
     labelHistogram->setText("Histogram:");
     histogram = new HistogramWidget(this);

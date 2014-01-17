@@ -67,9 +67,9 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaBin
 
 public:
     QVideoWidget(QWidget *parent = 0);
-    ~QVideoWidget();   
+    ~QVideoWidget();
 
-    QMediaObject *mediaObject() const;    
+    QMediaObject *mediaObject() const;
 
 #ifdef Q_QDOC
     bool isFullScreen() const;

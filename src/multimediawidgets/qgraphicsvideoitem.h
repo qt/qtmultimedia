@@ -68,7 +68,7 @@ public:
     QGraphicsVideoItem(QGraphicsItem *parent = 0);
     ~QGraphicsVideoItem();
 
-    QMediaObject *mediaObject() const;    
+    QMediaObject *mediaObject() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);

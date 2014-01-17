@@ -94,7 +94,7 @@ void DirectShowEventLoop::wait(QMutex *mutex)
     HANDLE handles[] = { m_eventHandle, m_waitHandle };
     while (::WaitForMultipleObjects(2, handles, false, INFINITE) == WAIT_OBJECT_0)
         processEvents();
-  
+
     mutex->lock();
 }
 

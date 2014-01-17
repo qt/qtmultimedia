@@ -336,7 +336,7 @@ HRESULT DirectShowIOSource::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
         return VFW_E_NOT_STOPPED;
     } else if (m_peerPin) {
         return VFW_E_ALREADY_CONNECTED;
-    } else { 
+    } else {
         HRESULT hr = VFW_E_TYPE_NOT_ACCEPTED;
 
         m_peerPin = pReceivePin;
@@ -424,7 +424,7 @@ HRESULT DirectShowIOSource::tryConnect(IPin *pin, const AM_MEDIA_TYPE *type)
                         || m_allocator->GetProperties(&properties) == S_OK) {
                     if (properties.cbAlign == 0)
                         properties.cbAlign = 1;
-              
+
                     ALLOCATOR_PROPERTIES actualProperties;
                     if (SUCCEEDED(hr = m_allocator->SetProperties(&properties, &actualProperties)))
                         hr = memPin->NotifyAllocator(m_allocator, TRUE);
@@ -435,7 +435,7 @@ HRESULT DirectShowIOSource::tryConnect(IPin *pin, const AM_MEDIA_TYPE *type)
                 }
             }
             memPin->Release();
-        }        
+        }
         if (!SUCCEEDED(hr))
             pin->Disconnect();
     }

@@ -150,7 +150,7 @@ public:
     int bufferStatus() const;
 
     bool isSeekable() const;
-    qreal playbackRate() const;   
+    qreal playbackRate() const;
 
     Error error() const;
     QString errorString() const;

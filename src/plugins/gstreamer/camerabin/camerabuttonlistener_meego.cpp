@@ -65,7 +65,7 @@ CameraButtonListener::~CameraButtonListener()
 void CameraButtonListener::handleQmKeyEvent(MeeGo::QmKeys::Key key, MeeGo::QmKeys::State state)
 {
     if (key == MeeGo::QmKeys::Camera) {
-        QWidget *window = QApplication::focusWidget();        
+        QWidget *window = QApplication::focusWidget();
 
         bool focusPressed = (state == MeeGo::QmKeys::KeyHalfDown) ||
                             (state == MeeGo::QmKeys::KeyDown);

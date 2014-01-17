@@ -166,11 +166,11 @@ bool QAudioDeviceInfoInternal::open()
 
         QString shortName = device.mid(device.indexOf(QLatin1String("="),0)+1);
 
-	while(snd_card_get_name(idx,&name) == 0) {
+        while (snd_card_get_name(idx,&name) == 0) {
             if(dev.contains(QLatin1String(name)))
                 break;
             idx++;
-	}
+        }
         dev = QString(QLatin1String("hw:%1,0")).arg(idx);
 #endif
     }

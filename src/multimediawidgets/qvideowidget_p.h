@@ -230,7 +230,7 @@ public:
     QVideoWidgetPrivate()
         : q_ptr(0)
         , mediaObject(0)
-        , service(0)        
+        , service(0)
         , widgetBackend(0)
         , windowBackend(0)
         , rendererBackend(0)

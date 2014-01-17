@@ -343,11 +343,11 @@ bool QAudioOutputPrivate::open()
 
         QString shortName = QLatin1String(m_device.mid(m_device.indexOf('=',0)+1).constData());
 
-	while(snd_card_get_name(idx,&name) == 0) {
+        while (snd_card_get_name(idx,&name) == 0) {
             if(qstrncmp(shortName.toLocal8Bit().constData(),name,shortName.length()) == 0)
                 break;
             idx++;
-	}
+        }
         dev = QString(QLatin1String("hw:%1,0")).arg(idx);
 #endif
     }

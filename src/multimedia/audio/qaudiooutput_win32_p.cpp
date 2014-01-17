@@ -153,7 +153,7 @@ void CALLBACK QAudioOutputPrivate::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
         case WOM_DONE:
             if(qAudio->finished || qAudio->buffer_size == 0 || qAudio->period_size == 0) {
                 return;
-	    }
+            }
             qAudio->waveFreeBlockCount++;
             if(qAudio->waveFreeBlockCount >= qAudio->buffer_size/qAudio->period_size)
                 qAudio->waveFreeBlockCount = qAudio->buffer_size/qAudio->period_size;
@@ -590,28 +590,28 @@ bool QAudioOutputPrivate::deviceReady()
 #endif
         bool startup = false;
         if(totalTimeValue == 0)
-	    startup = true;
+            startup = true;
 
-	bool full=false;
+        bool full=false;
 
         mutex.lock();
-	if(waveFreeBlockCount==0) full = true;
+        if (waveFreeBlockCount==0) full = true;
         mutex.unlock();
 
-	if (full){
+        if (full) {
 #ifdef DEBUG_AUDIO
             qDebug() << "Skipping data as unable to write";
 #endif
-	    if((timeStamp.elapsed() + elapsedTimeOffset) > intervalTime ) {
+            if ((timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
                 emit notify();
-		elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
-		timeStamp.restart();
-	    }
-	    return true;
-	}
+                elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
+                timeStamp.restart();
+            }
+            return true;
+        }
 
         if(startup)
-	    waveOutPause(hWaveOut);
+            waveOutPause(hWaveOut);
         int input = period_size*chunks;
         int l = audioSource->read(audioBuffer,input);
         if(l > 0) {
@@ -626,8 +626,8 @@ bool QAudioOutputPrivate::deviceReady()
                 // Didn't write all data
                 audioSource->seek(audioSource->pos()-(l-out));
             }
-	    if(startup)
-	        waveOutRestart(hWaveOut);
+            if (startup)
+                waveOutRestart(hWaveOut);
         } else if(l == 0) {
             bytesAvailable = bytesFree();
 
@@ -654,7 +654,7 @@ bool QAudioOutputPrivate::deviceReady()
         int buffered;
 
         mutex.lock();
-	buffered = waveFreeBlockCount;
+        buffered = waveFreeBlockCount;
         mutex.unlock();
 
         if (buffered >= buffer_size/period_size && deviceState == QAudio::ActiveState) {
@@ -670,7 +670,7 @@ bool QAudioOutputPrivate::deviceReady()
 
     if(intervalTime && (timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
         emit notify();
-	elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
+        elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
         timeStamp.restart();
     }
 

@@ -344,7 +344,7 @@ void QAudioDeviceInfoInternal::updateLists()
             || (fmt & WAVE_FORMAT_96S08)
        ) {
             sizez.append(8);
-	}
+        }
         if ((fmt & WAVE_FORMAT_1M16)
             || (fmt & WAVE_FORMAT_1S16)
             || (fmt & WAVE_FORMAT_2M16)
@@ -357,51 +357,51 @@ void QAudioDeviceInfoInternal::updateLists()
             || (fmt & WAVE_FORMAT_96S16)
        ) {
             sizez.append(16);
-	}
+        }
         if ((fmt & WAVE_FORMAT_1M08)
            || (fmt & WAVE_FORMAT_1S08)
            || (fmt & WAVE_FORMAT_1M16)
            || (fmt & WAVE_FORMAT_1S16)) {
             sampleRatez.append(11025);
-	}
+        }
         if ((fmt & WAVE_FORMAT_2M08)
            || (fmt & WAVE_FORMAT_2S08)
            || (fmt & WAVE_FORMAT_2M16)
            || (fmt & WAVE_FORMAT_2S16)) {
             sampleRatez.append(22050);
-	}
+        }
         if ((fmt & WAVE_FORMAT_4M08)
            || (fmt & WAVE_FORMAT_4S08)
            || (fmt & WAVE_FORMAT_4M16)
            || (fmt & WAVE_FORMAT_4S16)) {
             sampleRatez.append(44100);
-	}
+        }
         if ((fmt & WAVE_FORMAT_48M08)
             || (fmt & WAVE_FORMAT_48S08)
             || (fmt & WAVE_FORMAT_48M16)
             || (fmt & WAVE_FORMAT_48S16)) {
             sampleRatez.append(48000);
-	}
+        }
         if ((fmt & WAVE_FORMAT_96M08)
            || (fmt & WAVE_FORMAT_96S08)
            || (fmt & WAVE_FORMAT_96M16)
            || (fmt & WAVE_FORMAT_96S16)) {
             sampleRatez.append(96000);
         }
-	channelz.append(1);
-	channelz.append(2);
+        channelz.append(1);
+        channelz.append(2);
         if (mode == QAudio::AudioOutput) {
             channelz.append(4);
             channelz.append(6);
             channelz.append(8);
         }
 
-	byteOrderz.append(QAudioFormat::LittleEndian);
+        byteOrderz.append(QAudioFormat::LittleEndian);
 
-	typez.append(QAudioFormat::SignedInt);
-	typez.append(QAudioFormat::UnSignedInt);
+        typez.append(QAudioFormat::SignedInt);
+        typez.append(QAudioFormat::UnSignedInt);
 
-	codecz.append(QLatin1String("audio/pcm"));
+        codecz.append(QLatin1String("audio/pcm"));
     }
     if (sampleRatez.count() > 0)
         sampleRatez.prepend(8000);

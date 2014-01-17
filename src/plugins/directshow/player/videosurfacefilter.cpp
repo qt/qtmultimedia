@@ -81,7 +81,7 @@ VideoSurfaceFilter::~VideoSurfaceFilter()
 }
 
 HRESULT VideoSurfaceFilter::QueryInterface(REFIID riid, void **ppvObject)
-{    
+{
     // 2dd74950-a890-11d1-abe8-00a0c905f375
     static const GUID iid_IAmFilterMiscFlags = {
         0x2dd74950, 0xa890, 0x11d1, {0xab, 0xe8, 0x00, 0xa0, 0xc9, 0x05, 0xf3, 0x75} };

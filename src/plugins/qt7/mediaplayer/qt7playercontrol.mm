@@ -51,7 +51,7 @@ QT_USE_NAMESPACE
 
 QT7PlayerControl::QT7PlayerControl(QObject *parent)
    : QMediaPlayerControl(parent)
-{    
+{
 }
 
 QT7PlayerControl::~QT7PlayerControl()

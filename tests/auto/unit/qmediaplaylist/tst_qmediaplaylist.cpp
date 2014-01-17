@@ -560,7 +560,7 @@ void tst_QMediaPlaylist::readOnlyPlaylist()
     buffer.seek(0);
 
     QSignalSpy errorSignal(&playlist, SIGNAL(loadFailed()));
-    playlist.load(&buffer, "m3u");    
+    playlist.load(&buffer, "m3u");
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(playlist.error(), QMediaPlaylist::AccessDeniedError);
     QVERIFY(!playlist.errorString().isEmpty());

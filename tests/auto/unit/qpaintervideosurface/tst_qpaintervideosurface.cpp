@@ -102,7 +102,7 @@ public:
     {
         glGenTextures(1, &m_textureId);
     }
-    
+
     ~QtTestGLVideoBuffer()
     {
         glDeleteTextures(1, &m_textureId);
@@ -114,7 +114,7 @@ public:
 
     uchar *map(MapMode, int *, int *) { return 0; }
     void unmap() {}
-    MapMode	mapMode() const { return NotMapped; }
+    MapMode mapMode() const { return NotMapped; }
 
 private:
     GLuint m_textureId;
@@ -131,7 +131,7 @@ public:
 
     uchar *map(MapMode, int *, int *) { return 0; }
     void unmap() {}
-    MapMode	mapMode() const { return NotMapped; }
+    MapMode mapMode() const { return NotMapped; }
 };
 
 void tst_QPainterVideoSurface::colors()

@@ -255,7 +255,7 @@ static QVariant getValue(IWMHeaderInfo *header, const wchar_t *key)
                 WORD word;
                 if (header->GetAttributeByName(
                         &streamNumber,
-                        key, 
+                        key,
                         &type,
                         reinterpret_cast<BYTE *>(&word),
                         &size) == S_OK) {

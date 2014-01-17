@@ -71,24 +71,24 @@
     slider) or the QVideoWidget object will update the other object.
 
     \code
-            connect(brightnessSlider, SIGNAL(sliderMoved(int)), videoWidget, 
+            connect(brightnessSlider, SIGNAL(sliderMoved(int)), videoWidget,
                 SLOT(setBrightness(int)));
-            connect(videoWidget, SIGNAL(brightnessChanged(int)), 
+            connect(videoWidget, SIGNAL(brightnessChanged(int)),
                 brightnessSlider, SLOT(setValue(int)));
 
-            connect(contrastSlider, SIGNAL(sliderMoved(int)), videoWidget, 
+            connect(contrastSlider, SIGNAL(sliderMoved(int)), videoWidget,
                 SLOT(setContrast(int)));
-            connect(videoWidget, SIGNAL(contrastChanged(int)), contrastSlider, 
+            connect(videoWidget, SIGNAL(contrastChanged(int)), contrastSlider,
                 SLOT(setValue(int)));
 
-            connect(hueSlider, SIGNAL(sliderMoved(int)), videoWidget, 
+            connect(hueSlider, SIGNAL(sliderMoved(int)), videoWidget,
                 SLOT(setHue(int)));
-            connect(videoWidget, SIGNAL(hueChanged(int)), hueSlider, 
+            connect(videoWidget, SIGNAL(hueChanged(int)), hueSlider,
                 SLOT(setValue(int)));
 
-            connect(saturationSlider, SIGNAL(sliderMoved(int)), videoWidget, 
+            connect(saturationSlider, SIGNAL(sliderMoved(int)), videoWidget,
                 SLOT(setSaturation(int)));
-            connect(videoWidget, SIGNAL(saturationChanged(int)), 
+            connect(videoWidget, SIGNAL(saturationChanged(int)),
                 saturationSlider, SLOT(setValue(int)));
     \endcode
 

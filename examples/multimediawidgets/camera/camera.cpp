@@ -301,7 +301,7 @@ void Camera::updateLockStatus(QCamera::LockStatus status, QCamera::LockChangeRea
         ui->lockButton->setText(tr("Focusing..."));
         break;
     case QCamera::Locked:
-        indicationColor = Qt::darkGreen;        
+        indicationColor = Qt::darkGreen;
         ui->lockButton->setText(tr("Unlock"));
         ui->statusbar->showMessage(tr("Focused"), 2000);
         break;
@@ -352,7 +352,7 @@ void Camera::updateCaptureMode()
 
 void Camera::updateCameraState(QCamera::State state)
 {
-    switch (state) {    
+    switch (state) {
     case QCamera::ActiveState:
         ui->actionStartCamera->setEnabled(false);
         ui->actionStopCamera->setEnabled(true);

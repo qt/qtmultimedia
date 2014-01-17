@@ -274,7 +274,7 @@ void tst_QCamera::testSimpleCameraExposure()
     cameraExposure->setAutoShutterSpeed();
     QVERIFY(cameraExposure->shutterSpeed() < 0);
     cameraExposure->setManualShutterSpeed(1/128.0);
-    QVERIFY(cameraExposure->shutterSpeed() < 0);   
+    QVERIFY(cameraExposure->shutterSpeed() < 0);
 }
 
 void tst_QCamera::testSimpleCameraFocus()
@@ -292,7 +292,7 @@ void tst_QCamera::testSimpleCameraFocus()
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
     QTest::ignoreMessage(QtWarningMsg, "Focus mode selection is not supported");
     cameraFocus->setFocusMode(QCameraFocus::ContinuousFocus);
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);    
+    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
 
     QCOMPARE(cameraFocus->maximumOpticalZoom(), 1.0);
     QCOMPARE(cameraFocus->maximumDigitalZoom(), 1.0);
@@ -459,7 +459,7 @@ void tst_QCamera::testCameraCapture()
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
-    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));    
+    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int, QCameraImageCapture::Error,QString)));
 
     imageCapture.capture(QString::fromLatin1("/dev/null"));

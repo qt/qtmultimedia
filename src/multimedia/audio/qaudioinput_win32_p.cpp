@@ -505,7 +505,7 @@ qint64 QAudioInputPrivate::read(char* data, qint64 len)
                         deviceState = QAudio::ActiveState;
                         emit stateChanged(deviceState);
                     }
-		    resuming = false;
+                    resuming = false;
                 }
             } else {
                 l = qMin<qint64>(len, waveBlocks[header].dwBytesRecorded - waveBlockOffset);
@@ -523,7 +523,7 @@ qint64 QAudioInputPrivate::read(char* data, qint64 len)
                     deviceState = QAudio::ActiveState;
                     emit stateChanged(deviceState);
                 }
-		resuming = false;
+                resuming = false;
             }
         } else {
             //no data, not ready yet, next time
@@ -583,7 +583,7 @@ qint64 QAudioInputPrivate::read(char* data, qint64 len)
             mutex.unlock();
         }
 
-	written+=l;
+        written+=l;
     }
 #ifdef DEBUG_AUDIO
     qDebug()<<"read in len="<<written;
@@ -611,7 +611,7 @@ void QAudioInputPrivate::resume()
         mutex.unlock();
 
         header = 0;
-	resuming = true;
+        resuming = true;
         waveBlockOffset = 0;
         waveInStart(hWaveIn);
         QTimer::singleShot(20,this,SLOT(feedback()));
@@ -689,8 +689,8 @@ bool QAudioInputPrivate::deviceReady()
         read(0, buffer_size);
     } else {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
-	InputPrivate* a = qobject_cast<InputPrivate*>(audioSource);
-	a->trigger();
+        InputPrivate* a = qobject_cast<InputPrivate*>(audioSource);
+        a->trigger();
     }
 
     if(intervalTime && (timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {

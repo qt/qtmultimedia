@@ -113,7 +113,7 @@ public:
     void setCaptureMode(QCamera::CaptureModes mode);
 
     QUrl outputLocation() const;
-    bool setOutputLocation(const QUrl& sink);    
+    bool setOutputLocation(const QUrl& sink);
 
     QDir defaultDir(QCamera::CaptureModes mode) const;
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
