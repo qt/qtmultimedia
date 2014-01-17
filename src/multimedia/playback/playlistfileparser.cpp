@@ -100,7 +100,7 @@ public:
                     m_extraInfo.clear();
                     int artistStart = line.indexOf(QLatin1String(","), 8);
                     bool ok = false;
-                    int length = line.mid(8, artistStart < 8 ? -1 : artistStart - 8).trimmed().toInt(&ok);
+                    int length = line.midRef(8, artistStart < 8 ? -1 : artistStart - 8).trimmed().toInt(&ok);
                     if (ok && length > 0) {
                         //convert from second to milisecond
                         m_extraInfo[QMediaMetaData::Duration] = QVariant(length * 1000);
@@ -108,13 +108,13 @@ public:
                     if (artistStart > 0) {
                         int titleStart = getSplitIndex(line, artistStart);
                         if (titleStart > artistStart) {
-                            m_extraInfo[QMediaMetaData::Author] = line.mid(artistStart + 1,
-                                                             titleStart - artistStart - 1).trimmed().
+                            m_extraInfo[QMediaMetaData::Author] = line.midRef(artistStart + 1,
+                                                             titleStart - artistStart - 1).trimmed().toString().
                                                              replace(QLatin1String("--"), QLatin1String("-"));
-                            m_extraInfo[QMediaMetaData::Title] = line.mid(titleStart + 1).trimmed().
+                            m_extraInfo[QMediaMetaData::Title] = line.midRef(titleStart + 1).trimmed().toString().
                                                    replace(QLatin1String("--"), QLatin1String("-"));
                         } else {
-                            m_extraInfo[QMediaMetaData::Title] = line.mid(artistStart + 1).trimmed().
+                            m_extraInfo[QMediaMetaData::Title] = line.midRef(artistStart + 1).trimmed().toString().
                                                    replace(QLatin1String("--"), QLatin1String("-"));
                         }
                     }
@@ -302,7 +302,7 @@ Version=2
             emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing playlist at line[%1]:%2")).arg(QString::number(lineIndex), line));
             return QString();
         }
-        return line.mid(start + 1).trimmed();
+        return line.midRef(start + 1).trimmed().toString();
     }
 
     void setCount(int count) {

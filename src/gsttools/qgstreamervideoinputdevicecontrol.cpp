@@ -57,13 +57,24 @@
 #include <linux/videodev2.h>
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(QObject *parent)
-    :QVideoDeviceSelectorControl(parent), m_selectedDevice(0)
+    :QVideoDeviceSelectorControl(parent), m_source(0), m_selectedDevice(0)
 {
+    update();
+}
+
+QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(GstElement *source, QObject *parent)
+    :QVideoDeviceSelectorControl(parent), m_source(source), m_selectedDevice(0)
+{
+    if (m_source)
+        gst_object_ref(GST_OBJECT(m_source));
+
     update();
 }
 
 QGstreamerVideoInputDeviceControl::~QGstreamerVideoInputDeviceControl()
 {
+    if (m_source)
+        gst_object_unref(GST_OBJECT(m_source));
 }
 
 int QGstreamerVideoInputDeviceControl::deviceCount() const
@@ -107,10 +118,15 @@ void QGstreamerVideoInputDeviceControl::update()
     m_names.clear();
     m_descriptions.clear();
 
-#ifdef Q_WS_MAEMO_6
-    m_names << QLatin1String("primary") << QLatin1String("secondary");
-    m_descriptions << tr("Main camera") << tr("Front camera");
-#else
+    // subdevsrc and the like have a camera-device property that takes an enumeration
+    // identifying a primary or secondary camera, so return identifiers that map to those
+    // instead of a list of actual devices.
+    if (m_source && g_object_class_find_property(G_OBJECT_GET_CLASS(m_source), "camera-device")) {
+        m_names << QLatin1String("primary") << QLatin1String("secondary");
+        m_descriptions << tr("Main camera") << tr("Front camera");
+        return;
+    }
+
     QDir devDir("/dev");
     devDir.setFilter(QDir::System);
 
@@ -151,5 +167,4 @@ void QGstreamerVideoInputDeviceControl::update()
         }
         ::close(fd);
     }
-#endif
 }

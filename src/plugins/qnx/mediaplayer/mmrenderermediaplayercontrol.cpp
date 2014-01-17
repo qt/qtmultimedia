@@ -587,8 +587,8 @@ void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus
 {
     const int slashPos = bufferStatus.indexOf('/');
     if (slashPos != -1) {
-        const int fill = bufferStatus.left(slashPos).toInt();
-        const int capacity = bufferStatus.mid(slashPos + 1).toInt();
+        const int fill = bufferStatus.leftRef(slashPos).toInt();
+        const int capacity = bufferStatus.midRef(slashPos + 1).toInt();
         if (capacity != 0) {
             m_bufferStatus = fill / static_cast<float>(capacity) * 100.0f;
             emit bufferStatusChanged(m_bufferStatus);

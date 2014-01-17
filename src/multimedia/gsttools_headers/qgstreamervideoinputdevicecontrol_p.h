@@ -45,6 +45,8 @@
 #include <qvideodeviceselectorcontrol.h>
 #include <QtCore/qstringlist.h>
 
+#include <gst/gst.h>
+
 QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
@@ -52,6 +54,7 @@ class QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
 Q_OBJECT
 public:
     QGstreamerVideoInputDeviceControl(QObject *parent);
+    QGstreamerVideoInputDeviceControl(GstElement *source, QObject *parent);
     ~QGstreamerVideoInputDeviceControl();
 
     int deviceCount() const;
@@ -67,6 +70,8 @@ public Q_SLOTS:
 
 private:
     void update();
+
+    GstElement *m_source;
 
     int m_selectedDevice;
     QStringList m_names;

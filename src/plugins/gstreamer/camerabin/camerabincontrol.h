@@ -73,6 +73,8 @@ public:
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const;
     bool viewfinderColorSpaceConversion() const;
 
+    CamerabinResourcePolicy *resourcePolicy() { return m_resourcePolicy; }
+
 public slots:
     void reloadLater();
     void setViewfinderColorSpaceConversion(bool enabled);

@@ -69,18 +69,27 @@ public:
 
     bool isResourcesGranted() const;
 
+    bool canCapture() const;
+
 Q_SIGNALS:
     void resourcesDenied();
     void resourcesGranted();
     void resourcesLost();
+    void canCaptureChanged();
 
 private Q_SLOTS:
+    void handleResourcesLost();
+    void handleResourcesGranted();
     void handleResourcesReleased();
+    void resourcesAvailable();
+    void updateCanCapture();
+
 
 private:
     ResourceSet m_resourceSet;
     ResourcePolicy::ResourceSet *m_resource;
     bool m_releasingResources;
+    bool m_canCapture;
 };
 
 QT_END_NAMESPACE

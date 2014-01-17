@@ -59,6 +59,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
+class CameraBinControl;
 class CameraBinAudioEncoder;
 class CameraBinVideoEncoder;
 class CameraBinImageEncoder;
@@ -117,6 +118,9 @@ public:
     QDir defaultDir(QCamera::CaptureModes mode) const;
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
+    GstElement *buildCameraSource();
+
+    CameraBinControl *cameraControl() const { return m_cameraControl; }
     CameraBinAudioEncoder *audioEncodeControl() const { return m_audioEncodeControl; }
     CameraBinVideoEncoder *videoEncodeControl() const { return m_videoEncodeControl; }
     CameraBinImageEncoder *imageEncodeControl() const { return m_imageEncodeControl; }
@@ -188,7 +192,6 @@ private slots:
 private:
     bool setupCameraBin();
     void setupCaptureResolution();
-    GstElement *buildCameraSource();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
     QUrl m_sink;
@@ -209,6 +212,7 @@ private:
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
 
+    CameraBinControl *m_cameraControl;
     CameraBinAudioEncoder *m_audioEncodeControl;
     CameraBinVideoEncoder *m_videoEncodeControl;
     CameraBinImageEncoder *m_imageEncodeControl;

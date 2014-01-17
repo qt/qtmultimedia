@@ -183,7 +183,7 @@ void QAndroidMetaDataReaderControl::updateData()
                 // The genre can be returned as an ID3v2 id, get the name for it in that case
                 if (string.startsWith('(') && string.endsWith(')')) {
                     bool ok = false;
-                    int genreId = string.mid(1, string.length() - 2).toInt(&ok);
+                    int genreId = string.midRef(1, string.length() - 2).toInt(&ok);
                     if (ok && genreId >= 0 && genreId <= 125)
                         string = QLatin1String(qt_ID3GenreNames[genreId]);
                 }

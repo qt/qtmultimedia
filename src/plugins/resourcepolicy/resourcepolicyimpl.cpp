@@ -48,6 +48,8 @@
 
 ResourcePolicyImpl::ResourcePolicyImpl(QObject *parent)
     : QMediaPlayerResourceSetInterface(parent)
+    , m_status(Initial)
+    , m_videoEnabled(false)
 {
     m_resourceSet = new ResourcePolicy::ResourceSet("player", this);
     m_resourceSet->setAlwaysReply();
@@ -57,7 +59,6 @@ ResourcePolicyImpl::ResourcePolicyImpl(QObject *parent)
     audioResource->setStreamTag("media.name", "*");
     m_resourceSet->addResourceObject(audioResource);
 
-    m_resourceSet->addResource(ResourcePolicy::VideoPlaybackType);
     m_resourceSet->update();
 
     connect(m_resourceSet, SIGNAL(resourcesGranted(const QList<ResourcePolicy::ResourceType>)),

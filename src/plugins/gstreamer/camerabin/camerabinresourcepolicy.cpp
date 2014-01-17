@@ -56,7 +56,8 @@ QT_BEGIN_NAMESPACE
 CamerabinResourcePolicy::CamerabinResourcePolicy(QObject *parent) :
     QObject(parent),
     m_resourceSet(NoResources),
-    m_releasingResources(false)
+    m_releasingResources(false),
+    m_canCapture(false)
 {
 #ifdef HAVE_RESOURCE_POLICY
     //loaded resource set is also kept requested for image and video capture sets
@@ -65,10 +66,13 @@ CamerabinResourcePolicy::CamerabinResourcePolicy(QObject *parent) :
     m_resource->initAndConnect();
 
     connect(m_resource, SIGNAL(resourcesGranted(const QList<ResourcePolicy::ResourceType>)),
-            SIGNAL(resourcesGranted()));
+            SLOT(handleResourcesGranted()));
     connect(m_resource, SIGNAL(resourcesDenied()), SIGNAL(resourcesDenied()));
-    connect(m_resource, SIGNAL(lostResources()), SIGNAL(resourcesLost()));
+    connect(m_resource, SIGNAL(lostResources()), SLOT(handleResourcesLost()));
     connect(m_resource, SIGNAL(resourcesReleased()), SLOT(handleResourcesReleased()));
+    connect(m_resource, SIGNAL(resourcesBecameAvailable(QList<ResourcePolicy::ResourceType>)),
+            this, SLOT(resourcesAvailable()));
+    connect(m_resource, SIGNAL(updateOK()), this, SLOT(updateCanCapture()));
 #endif
 }
 
@@ -112,17 +116,13 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
         break;
     case LoadedResources:
         requestedTypes << ResourcePolicy::LensCoverType //to detect lens cover is opened/closed
-                       << ResourcePolicy::VideoRecorderType //to open camera device
-                       << ResourcePolicy::SnapButtonType; //to detect capture button events
+                       << ResourcePolicy::VideoRecorderType; //to open camera device
         break;
     case ImageCaptureResources:
         requestedTypes << ResourcePolicy::LensCoverType
                        << ResourcePolicy::VideoPlaybackType
                        << ResourcePolicy::VideoRecorderType
-                       << ResourcePolicy::AudioPlaybackType
-                       << ResourcePolicy::ScaleButtonType
-                       << ResourcePolicy::LedsType
-                       << ResourcePolicy::SnapButtonType;
+                       << ResourcePolicy::LedsType;
         break;
     case VideoCaptureResources:
         requestedTypes << ResourcePolicy::LensCoverType
@@ -130,9 +130,7 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
                        << ResourcePolicy::VideoRecorderType
                        << ResourcePolicy::AudioPlaybackType
                        << ResourcePolicy::AudioRecorderType
-                       << ResourcePolicy::ScaleButtonType
-                       << ResourcePolicy::LedsType
-                       << ResourcePolicy::SnapButtonType;
+                       << ResourcePolicy::LedsType;
         break;
     }
 
@@ -148,6 +146,14 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
             ResourcePolicy::LensCoverResource *lensCoverResource = new ResourcePolicy::LensCoverResource;
             lensCoverResource->setOptional(true);
             m_resource->addResourceObject(lensCoverResource);
+        } else if (resourceType == ResourcePolicy::AudioPlaybackType) {
+            ResourcePolicy::Resource *resource = new ResourcePolicy::AudioResource;
+            resource->setOptional(true);
+            m_resource->addResourceObject(resource);
+        } else if (resourceType == ResourcePolicy::AudioRecorderType) {
+            ResourcePolicy::Resource *resource = new ResourcePolicy::AudioRecorderResource;
+            resource->setOptional(true);
+            m_resource->addResourceObject(resource);
         } else {
             m_resource->addResource(resourceType);
         }
@@ -164,6 +170,7 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
     }
 #else
     Q_UNUSED(oldSet);
+    updateCanCapture();
 #endif
 }
 
@@ -177,6 +184,18 @@ bool CamerabinResourcePolicy::isResourcesGranted() const
     return true;
 }
 
+void CamerabinResourcePolicy::handleResourcesLost()
+{
+    updateCanCapture();
+    emit resourcesLost();
+}
+
+void CamerabinResourcePolicy::handleResourcesGranted()
+{
+    updateCanCapture();
+    emit resourcesGranted();
+}
+
 void CamerabinResourcePolicy::handleResourcesReleased()
 {
 #ifdef HAVE_RESOURCE_POLICY
@@ -185,6 +204,35 @@ void CamerabinResourcePolicy::handleResourcesReleased()
 #endif
     m_releasingResources = false;
 #endif
+    updateCanCapture();
+}
+
+void CamerabinResourcePolicy::resourcesAvailable()
+{
+#ifdef HAVE_RESOURCE_POLICY
+    if (m_resourceSet != NoResources) {
+        m_resource->acquire();
+    }
+#endif
+}
+
+bool CamerabinResourcePolicy::canCapture() const
+{
+    return m_canCapture;
+}
+
+void CamerabinResourcePolicy::updateCanCapture()
+{
+    const bool wasAbleToRecord = m_canCapture;
+    m_canCapture = (m_resourceSet == VideoCaptureResources) || (m_resourceSet == ImageCaptureResources);
+#ifdef HAVE_RESOURCE_POLICY
+    foreach (ResourcePolicy::Resource *resource, m_resource->resources()) {
+        if (resource->type() != ResourcePolicy::LensCoverType)
+            m_canCapture = m_canCapture && resource->isGranted();
+    }
+#endif
+    if (wasAbleToRecord != m_canCapture)
+        emit canCaptureChanged();
 }
 
 QT_END_NAMESPACE
