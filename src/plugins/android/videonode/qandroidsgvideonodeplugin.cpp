@@ -44,14 +44,12 @@
 
 QT_BEGIN_NAMESPACE
 
-#define ExternalGLTextureHandle (QAbstractVideoBuffer::UserHandle + 1)
-
 QList<QVideoFrame::PixelFormat> QAndroidSGVideoNodeFactoryPlugin::supportedPixelFormats(
         QAbstractVideoBuffer::HandleType handleType) const
 {
     QList<QVideoFrame::PixelFormat> pixelFormats;
 
-    if (handleType == ExternalGLTextureHandle)
+    if (handleType == QAbstractVideoBuffer::GLTextureHandle)
         pixelFormats.append(QVideoFrame::Format_BGR32);
 
     return pixelFormats;

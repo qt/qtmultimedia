@@ -61,41 +61,42 @@ public:
     }
 
 protected:
+
     const char *vertexShader() const {
-        return
-                "uniform highp mat4 qt_Matrix;                                          \n"
-                "uniform highp mat4 texMatrix;                                          \n"
-                "attribute highp vec4 qt_VertexPosition;                                \n"
-                "attribute highp vec2 qt_VertexTexCoord;                                \n"
-                "varying highp vec2 qt_TexCoord;                                        \n"
-                "void main() {                                                          \n"
-                "    qt_TexCoord = (texMatrix * vec4(qt_VertexTexCoord, 0.0, 1.0)).xy;  \n"
-                "    gl_Position = qt_Matrix * qt_VertexPosition;                       \n"
-                "}";
+        const char *shader =
+        "uniform highp mat4 qt_Matrix;                      \n"
+        "attribute highp vec4 qt_VertexPosition;            \n"
+        "attribute highp vec2 qt_VertexTexCoord;            \n"
+        "varying highp vec2 qt_TexCoord;                    \n"
+        "void main() {                                      \n"
+        "    qt_TexCoord = qt_VertexTexCoord;               \n"
+        "    gl_Position = qt_Matrix * qt_VertexPosition;   \n"
+        "}";
+        return shader;
     }
 
     const char *fragmentShader() const {
-        return
-                "#extension GL_OES_EGL_image_external : require                      \n"
-                "uniform samplerExternalOES videoTexture;                            \n"
-                "uniform lowp float opacity;                                         \n"
-                "varying highp vec2 qt_TexCoord;                                     \n"
-                "void main()                                                         \n"
-                "{                                                                   \n"
-                "    gl_FragColor = texture2D(videoTexture, qt_TexCoord) * opacity;  \n"
-                "}";
+        static const char *shader =
+        "uniform sampler2D rgbTexture;"
+        "uniform lowp float opacity;"
+        ""
+        "varying highp vec2 qt_TexCoord;"
+        ""
+        "void main()"
+        "{"
+        "    gl_FragColor = texture2D(rgbTexture, qt_TexCoord) * opacity;"
+        "}";
+        return shader;
     }
 
     void initialize() {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
-        m_id_texMatrix = program()->uniformLocation("texMatrix");
-        m_id_texture = program()->uniformLocation("videoTexture");
+        m_id_Texture = program()->uniformLocation("rgbTexture");
         m_id_opacity = program()->uniformLocation("opacity");
     }
 
     int m_id_matrix;
-    int m_id_texMatrix;
-    int m_id_texture;
+    int m_id_Texture;
     int m_id_opacity;
 };
 
@@ -104,13 +105,10 @@ class QAndroidSGVideoNodeMaterial : public QSGMaterial
 public:
     QAndroidSGVideoNodeMaterial()
         : m_textureId(0)
+        , m_textureUpdated(false)
+        , m_opacity(1.0)
     {
         setFlag(Blending, false);
-    }
-
-    ~QAndroidSGVideoNodeMaterial()
-    {
-        m_frame = QVideoFrame();
     }
 
     QSGMaterialType *type() const {
@@ -124,45 +122,63 @@ public:
 
     int compare(const QSGMaterial *other) const {
         const QAndroidSGVideoNodeMaterial *m = static_cast<const QAndroidSGVideoNodeMaterial *>(other);
-        return m_textureId - m->m_textureId;
+        int diff = m_textureId - m->m_textureId;
+        if (diff)
+            return diff;
+
+        return (m_opacity > m->m_opacity) ? 1 : -1;
     }
 
-    void setVideoFrame(const QVideoFrame &frame) {
-        QMutexLocker lock(&m_frameMutex);
-        m_frame = frame;
+    void updateBlending() {
+        setFlag(Blending, qFuzzyCompare(m_opacity, qreal(1.0)) ? false : true);
     }
 
-    bool updateTexture()
-    {
-        QMutexLocker lock(&m_frameMutex);
-        bool texMatrixDirty = false;
-
-        if (m_frame.isValid()) {
-            QVariantList list = m_frame.handle().toList();
-
-            GLuint texId = list.at(0).toUInt();
-            QMatrix4x4 mat = qvariant_cast<QMatrix4x4>(list.at(1));
-
-            texMatrixDirty = texId != m_textureId || mat != m_texMatrix;
-
-            m_textureId = texId;
-            m_texMatrix = mat;
-
-            // the texture is already bound and initialized at this point,
-            // no need to call glTexParams
-
-        } else {
-            m_textureId = 0;
+    void updateTexture(GLuint id, const QSize &size) {
+        if (m_textureId != id || m_textureSize != size) {
+            m_textureId = id;
+            m_textureSize = size;
+            m_textureUpdated = true;
         }
-
-        return texMatrixDirty;
     }
 
-    QVideoFrame m_frame;
-    QMutex m_frameMutex;
+    void bind()
+    {
+        glBindTexture(GL_TEXTURE_2D, m_textureId);
+        if (m_textureUpdated) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            m_textureUpdated = false;
+        }
+    }
+
+    QSize m_textureSize;
     GLuint m_textureId;
-    QMatrix4x4 m_texMatrix;
+    bool m_textureUpdated;
+    qreal m_opacity;
 };
+
+
+QAndroidSGVideoNode::QAndroidSGVideoNode(const QVideoSurfaceFormat &format)
+    : m_format(format)
+{
+    setFlags(OwnsMaterial | UsePreprocess);
+    m_material = new QAndroidSGVideoNodeMaterial;
+    setMaterial(m_material);
+}
+
+QAndroidSGVideoNode::~QAndroidSGVideoNode()
+{
+    m_frame = QVideoFrame();
+}
+
+void QAndroidSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
+{
+    QMutexLocker lock(&m_frameMutex);
+    m_frame = frame;
+    markDirty(DirtyMaterial);
+}
 
 void QAndroidSGVideoNodeMaterialShader::updateState(const RenderState &state,
                                                     QSGMaterial *newMaterial,
@@ -170,35 +186,29 @@ void QAndroidSGVideoNodeMaterialShader::updateState(const RenderState &state,
 {
     Q_UNUSED(oldMaterial);
     QAndroidSGVideoNodeMaterial *mat = static_cast<QAndroidSGVideoNodeMaterial *>(newMaterial);
-    program()->setUniformValue(m_id_texture, 0);
+    program()->setUniformValue(m_id_Texture, 0);
 
-    if (mat->updateTexture())
-        program()->setUniformValue(m_id_texMatrix, mat->m_texMatrix);
+    mat->bind();
 
-    if (state.isOpacityDirty())
-        program()->setUniformValue(m_id_opacity, state.opacity());
+    if (state.isOpacityDirty()) {
+        mat->m_opacity = state.opacity();
+        mat->updateBlending();
+        program()->setUniformValue(m_id_opacity, GLfloat(mat->m_opacity));
+    }
 
     if (state.isMatrixDirty())
         program()->setUniformValue(m_id_matrix, state.combinedMatrix());
 }
 
-QAndroidSGVideoNode::QAndroidSGVideoNode(const QVideoSurfaceFormat &format)
-    : m_format(format)
+void QAndroidSGVideoNode::preprocess()
 {
-    setFlag(QSGNode::OwnsMaterial);
-    m_material = new QAndroidSGVideoNodeMaterial;
-    setMaterial(m_material);
-}
+    QMutexLocker lock(&m_frameMutex);
 
-void QAndroidSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
-{
-    m_material->setVideoFrame(frame);
-    markDirty(DirtyMaterial);
-}
+    GLuint texId = 0;
+    if (m_frame.isValid())
+        texId = m_frame.handle().toUInt();
 
-QVideoFrame::PixelFormat QAndroidSGVideoNode::pixelFormat() const
-{
-    return m_format.pixelFormat();
+    m_material->updateTexture(texId, m_frame.size());
 }
 
 QT_END_NAMESPACE

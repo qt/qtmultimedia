@@ -43,6 +43,7 @@
 #define QANDROIDSGVIDEONODE_H
 
 #include <private/qsgvideonode_p.h>
+#include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -52,14 +53,18 @@ class QAndroidSGVideoNode : public QSGVideoNode
 {
 public:
     QAndroidSGVideoNode(const QVideoSurfaceFormat &format);
+    ~QAndroidSGVideoNode();
 
     void setCurrentFrame(const QVideoFrame &frame);
-    QVideoFrame::PixelFormat pixelFormat() const;
+    QVideoFrame::PixelFormat pixelFormat() const { return m_format.pixelFormat(); }
+
+    void preprocess();
 
 private:
-    QVideoSurfaceFormat m_format;
     QAndroidSGVideoNodeMaterial *m_material;
+    QMutex m_frameMutex;
     QVideoFrame m_frame;
+    QVideoSurfaceFormat m_format;
 };
 
 QT_END_NAMESPACE
