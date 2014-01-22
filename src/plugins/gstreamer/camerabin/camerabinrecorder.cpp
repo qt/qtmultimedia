@@ -191,8 +191,10 @@ GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
         GstEncodingProfile *audioProfile = m_session->audioEncodeControl()->createProfile();
         GstEncodingProfile *videoProfile = m_session->videoEncodeControl()->createProfile();
 
-        gst_encoding_container_profile_add_profile(containerProfile, audioProfile);
-        gst_encoding_container_profile_add_profile(containerProfile, videoProfile);
+        if (audioProfile)
+            gst_encoding_container_profile_add_profile(containerProfile, audioProfile);
+        if (videoProfile)
+            gst_encoding_container_profile_add_profile(containerProfile, videoProfile);
     }
 
     return containerProfile;

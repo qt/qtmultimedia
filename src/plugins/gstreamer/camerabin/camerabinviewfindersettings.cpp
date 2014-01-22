@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Jolla Ltd.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,34 +39,68 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDSGVIDEONODE_H
-#define QANDROIDSGVIDEONODE_H
 
-#include <private/qsgvideonode_p.h>
-#include <qmutex.h>
+#include "camerabinviewfindersettings.h"
+
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidSGVideoNodeMaterial;
-
-class QAndroidSGVideoNode : public QSGVideoNode
+CameraBinViewfinderSettings::CameraBinViewfinderSettings(QObject *parent)
+    : QCameraViewfinderSettingsControl(parent)
 {
-public:
-    QAndroidSGVideoNode(const QVideoSurfaceFormat &format);
-    ~QAndroidSGVideoNode();
+}
 
-    void setCurrentFrame(const QVideoFrame &frame);
-    QVideoFrame::PixelFormat pixelFormat() const { return m_format.pixelFormat(); }
+CameraBinViewfinderSettings::~CameraBinViewfinderSettings()
+{
+}
 
-    void preprocess();
+bool CameraBinViewfinderSettings::isViewfinderParameterSupported(ViewfinderParameter parameter) const
+{
+    switch (parameter) {
+    case Resolution:
+        return true;
+    case PixelAspectRatio:
+    case MinimumFrameRate:
+    case MaximumFrameRate:
+    case PixelFormat:
+    case UserParameter:
+        return false;
+    }
+    return false;
+}
 
-private:
-    QAndroidSGVideoNodeMaterial *m_material;
-    QMutex m_frameMutex;
-    QVideoFrame m_frame;
-    QVideoSurfaceFormat m_format;
-};
+QVariant CameraBinViewfinderSettings::viewfinderParameter(ViewfinderParameter parameter) const
+{
+    switch (parameter) {
+    case Resolution:
+        return m_resolution;
+    case PixelAspectRatio:
+    case MinimumFrameRate:
+    case MaximumFrameRate:
+    case PixelFormat:
+    case UserParameter:
+        return QVariant();
+    }
+    return false;
+}
+
+void CameraBinViewfinderSettings::setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value)
+{
+    switch (parameter) {
+    case Resolution:
+        m_resolution = value.toSize();
+    case PixelAspectRatio:
+    case MinimumFrameRate:
+    case MaximumFrameRate:
+    case PixelFormat:
+    case UserParameter:
+        break;
+    }
+}
+
+QSize CameraBinViewfinderSettings::resolution() const
+{
+    return m_resolution;
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDSGVIDEONODE_H

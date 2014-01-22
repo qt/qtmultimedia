@@ -43,22 +43,37 @@
 #define QANDROIDVIDEORENDERCONTROL_H
 
 #include <qvideorenderercontrol.h>
+#include <qmutex.h>
 #include "qandroidvideooutput.h"
 #include "jsurfacetexture.h"
 
 QT_BEGIN_NAMESPACE
 
 class JSurfaceTextureHolder;
+class QOpenGLTexture;
+class QOpenGLFramebufferObject;
+class QOpenGLShaderProgram;
 
-class TextureDeleter : public QObject
+class OpenGLResourcesDeleter : public QObject
 {
     Q_OBJECT
 public:
-    TextureDeleter(uint id) : m_id(id) { }
-    ~TextureDeleter();
+    OpenGLResourcesDeleter()
+        : m_textureID(0)
+        , m_fbo(0)
+        , m_program(0)
+    { }
+
+    ~OpenGLResourcesDeleter();
+
+    void setTexture(quint32 id) { m_textureID = id; }
+    void setFbo(QOpenGLFramebufferObject *fbo) { m_fbo = fbo; }
+    void setShaderProgram(QOpenGLShaderProgram *prog) { m_program = prog; }
 
 private:
-    uint m_id;
+    quint32 m_textureID;
+    QOpenGLFramebufferObject *m_fbo;
+    QOpenGLShaderProgram *m_program;
 };
 
 class QAndroidVideoRendererControl : public QVideoRendererControl, public QAndroidVideoOutput
@@ -88,6 +103,10 @@ private Q_SLOTS:
 
 private:
     bool initSurfaceTexture();
+    void renderFrameToFbo();
+    void createGLResources();
+
+    QMutex m_mutex;
 
     QAbstractVideoSurface *m_surface;
     QSize m_nativeSize;
@@ -95,8 +114,13 @@ private:
     QJNIObjectPrivate *m_androidSurface;
     JSurfaceTexture *m_surfaceTexture;
     JSurfaceTextureHolder *m_surfaceHolder;
-    uint m_externalTex;
-    TextureDeleter *m_textureDeleter;
+
+    quint32 m_externalTex;
+    QOpenGLFramebufferObject *m_fbo;
+    QOpenGLShaderProgram *m_program;
+    OpenGLResourcesDeleter *m_glDeleter;
+
+    friend class AndroidTextureVideoBuffer;
 };
 
 QT_END_NAMESPACE

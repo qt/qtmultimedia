@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Jolla Ltd.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,34 +39,32 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDSGVIDEONODE_H
-#define QANDROIDSGVIDEONODE_H
+#ifndef CAMERABINVIEWFINDERSETTINGS_H
+#define CAMERABINVIEWFINDERSETTINGS_H
 
-#include <private/qsgvideonode_p.h>
-#include <qmutex.h>
+#include <qcameraviewfindersettingscontrol.h>
+
+#include <QtCore/qsize.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidSGVideoNodeMaterial;
-
-class QAndroidSGVideoNode : public QSGVideoNode
+class CameraBinViewfinderSettings : public QCameraViewfinderSettingsControl
 {
+    Q_OBJECT
 public:
-    QAndroidSGVideoNode(const QVideoSurfaceFormat &format);
-    ~QAndroidSGVideoNode();
+    CameraBinViewfinderSettings(QObject *parent);
+    ~CameraBinViewfinderSettings();
 
-    void setCurrentFrame(const QVideoFrame &frame);
-    QVideoFrame::PixelFormat pixelFormat() const { return m_format.pixelFormat(); }
+    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const;
+    QVariant viewfinderParameter(ViewfinderParameter parameter) const;
+    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value);
 
-    void preprocess();
+    QSize resolution() const;
 
 private:
-    QAndroidSGVideoNodeMaterial *m_material;
-    QMutex m_frameMutex;
-    QVideoFrame m_frame;
-    QVideoSurfaceFormat m_format;
+    QSize m_resolution;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDSGVIDEONODE_H
+#endif
