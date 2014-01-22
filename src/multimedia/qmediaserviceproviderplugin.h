@@ -46,6 +46,7 @@
 #include <QtCore/qplugin.h>
 #include <QtMultimedia/qmultimedia.h>
 #include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qcamera.h>
 
 #ifdef Q_MOC_RUN
 # pragma Q_MOC_EXPAND_MACROS
@@ -62,7 +63,7 @@ class QMediaServiceProviderHintPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaServiceProviderHint
 {
 public:
-    enum Type { Null, ContentType, Device, SupportedFeatures };
+    enum Type { Null, ContentType, Device, SupportedFeatures, CameraPosition };
 
     enum Feature {
         LowLatencyPlayback = 0x01,
@@ -75,6 +76,7 @@ public:
     QMediaServiceProviderHint();
     QMediaServiceProviderHint(const QString &mimeType, const QStringList& codecs);
     QMediaServiceProviderHint(const QByteArray &device);
+    QMediaServiceProviderHint(QCamera::Position position);
     QMediaServiceProviderHint(Features features);
     QMediaServiceProviderHint(const QMediaServiceProviderHint &other);
     ~QMediaServiceProviderHint();
@@ -92,6 +94,7 @@ public:
     QStringList codecs() const;
 
     QByteArray device() const;
+    QCamera::Position cameraPosition() const;
 
     Features features() const;
 
@@ -144,6 +147,31 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedDevicesInterface
 #define QMediaServiceSupportedDevicesInterface_iid \
     "org.qt-project.qt.mediaservicesupporteddevices/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceSupportedDevicesInterface, QMediaServiceSupportedDevicesInterface_iid)
+
+// This should be part of QMediaServiceSupportedDevicesInterface but it can't in order
+// to preserve binary compatibility with 5.2 and earlier.
+// The whole media service plugin API shouldn't even be public in the first place. It should
+// be made private in Qt 6.0 and QMediaServiceDefaultDeviceInterface should be merged with
+// QMediaServiceSupportedDevicesInterface
+struct Q_MULTIMEDIA_EXPORT QMediaServiceDefaultDeviceInterface
+{
+    virtual ~QMediaServiceDefaultDeviceInterface() {}
+    virtual QByteArray defaultDevice(const QByteArray &service) const = 0;
+};
+
+#define QMediaServiceDefaultDeviceInterface_iid \
+    "org.qt-project.qt.mediaservicedefaultdevice/5.3"
+Q_DECLARE_INTERFACE(QMediaServiceDefaultDeviceInterface, QMediaServiceDefaultDeviceInterface_iid)
+
+struct Q_MULTIMEDIA_EXPORT QMediaServiceCameraInfoInterface
+{
+    virtual QCamera::Position cameraPosition(const QByteArray &device) const = 0;
+    virtual int cameraOrientation(const QByteArray &device) const = 0;
+};
+
+#define QMediaServiceCameraInfoInterface_iid \
+    "org.qt-project.qt.mediaservicecamerainfo/5.3"
+Q_DECLARE_INTERFACE(QMediaServiceCameraInfoInterface, QMediaServiceCameraInfoInterface_iid)
 
 // Required for QDoc workaround
 class QString;

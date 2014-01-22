@@ -118,7 +118,7 @@ VideoOutput {
 \endqml
 
 In C++, your choice depends on whether you are using widgets, or QGraphicsView.
-The \l QVideoWidget class is used in the widgets case, and \l QGraphicsVideoItem
+The \l QCameraViewfinder class is used in the widgets case, and \l QGraphicsVideoItem
 is useful for QGraphicsView.
 
     \snippet multimedia-snippets/camera.cpp Camera overview viewfinder
@@ -129,6 +129,15 @@ set that as the viewfinder for the QCamera object.  In this case you will
 need to render the viewfinder image yourself.
 
     \snippet multimedia-snippets/camera.cpp Camera overview surface
+
+On mobile devices, the viewfinder image might not always be in the orientation you would expect.
+The camera sensors on these devices are often mounted in landscape while the natural
+orientation of the screen is portrait. This results in the image appearing sideways or inverted
+depending on the device orientation. In order to reflect on screen what the user actually sees, you
+should make sure the viewfinder frames are always rotated to the correct orientation, taking into
+account the camera sensor orientation and the current display orientation.
+
+    \snippet multimedia-snippets/camera.cpp Camera overview viewfinder orientation
 
 \section2 Still Images
 

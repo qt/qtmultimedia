@@ -44,12 +44,10 @@
 #include "../mockservice.h"
 
 class MockServicePlugin1 : public QMediaServiceProviderPlugin,
-                           public QMediaServiceSupportedFormatsInterface,
-                           public QMediaServiceSupportedDevicesInterface
+                           public QMediaServiceSupportedFormatsInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin1.json")
 public:
     QStringList keys() const
@@ -86,21 +84,6 @@ public:
     QStringList supportedMimeTypes() const
     {
         return QStringList("audio/ogg");
-    }
-
-    QList<QByteArray> devices(const QByteArray &service) const
-    {
-        Q_UNUSED(service);
-        QList<QByteArray> res;
-        return res;
-    }
-
-    QString deviceDescription(const QByteArray &service, const QByteArray &device)
-    {
-        if (devices(service).contains(device))
-            return QString(device)+" description";
-        else
-            return QString();
     }
 };
 

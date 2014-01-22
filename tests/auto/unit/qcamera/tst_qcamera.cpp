@@ -57,6 +57,7 @@
 #include <qcameracapturedestinationcontrol.h>
 #include <qmediaservice.h>
 #include <qcamera.h>
+#include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
 #include <qvideorenderercontrol.h>
 
@@ -101,7 +102,7 @@ private slots:
     void testCaptureDestination();
     void testCaptureFormat();
 
-    void testConstructorWithDefaultProvider();
+    void testConstructor();
     void testCaptureMode();
     void testIsCaptureModeSupported();
     void testRequestedLocks();
@@ -1141,6 +1142,8 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::NoLock;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::LockExposure ");
     qDebug() << QCamera::LockExposure;
+    QTest::ignoreMessage(QtDebugMsg, "QCamera::FrontFace ");
+    qDebug() << QCamera::FrontFace;
 }
 
 void tst_QCamera::testCameraControl()
@@ -1149,13 +1152,75 @@ void tst_QCamera::testCameraControl()
     QVERIFY(m_cameraControl != NULL);
 }
 
-/* Test case for constructor with default provider */
-void tst_QCamera::testConstructorWithDefaultProvider()
+void tst_QCamera::testConstructor()
 {
-    QCamera *camera = new QCamera(0);
-    QVERIFY(camera != NULL);
-    QCOMPARE(camera->state(), QCamera::UnloadedState);
-    delete camera;
+    // Service doesn't implement QVideoDeviceSelectorControl
+    provider->service = mockSimpleCameraService;
+
+    {
+        QCamera camera;
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+    }
+
+    {
+        // Requesting a camera at a specific position from a service which doesn't implement
+        // the QVideoDeviceSelectorControl should result in loading the default camera
+        QCamera camera(QCamera::FrontFace);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+    }
+
+    // Service implements QVideoDeviceSelectorControl
+    provider->service = mockCameraService;
+
+    {
+        QCamera camera;
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1); // default is 1
+    }
+
+    {
+        QCamera camera(QCameraInfo::defaultCamera());
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1);
+        QCOMPARE(QCameraInfo(camera), QCameraInfo::defaultCamera());
+    }
+
+    {
+        QCameraInfo cameraInfo = QCameraInfo::availableCameras().at(0);
+        QCamera camera(cameraInfo);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 0);
+        QCOMPARE(QCameraInfo(camera), cameraInfo);
+    }
+
+    {
+        // Requesting a camera at a position which is not available should result in
+        // loading the default camera
+        QCamera camera(QCamera::FrontFace);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1);
+    }
+
+    {
+        QCamera camera(QCamera::BackFace);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 0);
+    }
+
+    {
+        // Should load the default camera when UnspecifiedPosition is requested
+        QCamera camera(QCamera::UnspecifiedPosition);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1);
+    }
 }
 
 /* captureModeChanged Signal test case. */
@@ -1530,6 +1595,7 @@ void tst_QCamera::testLockChangeReason()
     QVERIFY(LockChangeReason == QCamera::LockAcquired);
 
 }
+
 /* All the enums test case for QCameraControl class*/
 void tst_QCamera::testEnumsOfQCameraControl()
 {

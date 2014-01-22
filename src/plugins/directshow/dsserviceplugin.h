@@ -49,10 +49,12 @@ QT_USE_NAMESPACE
 class DSServicePlugin
     : public QMediaServiceProviderPlugin
     , public QMediaServiceSupportedDevicesInterface
+    , public QMediaServiceDefaultDeviceInterface
     , public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
     // The player service provided by the WMF-plugin should preferably be used.
     // DirectShow should then only provide the camera (see QTBUG-29172, QTBUG-29175).
@@ -68,6 +70,7 @@ public:
 
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
 
+    QByteArray defaultDevice(const QByteArray &service) const;
     QList<QByteArray> devices(const QByteArray &service) const;
     QString deviceDescription(const QByteArray &service, const QByteArray &device);
 
@@ -75,6 +78,7 @@ private:
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     void updateDevices() const;
 
+    mutable QByteArray m_defaultCameraDevice;
     mutable QList<QByteArray> m_cameraDevices;
     mutable QStringList m_cameraDescriptions;
 #endif

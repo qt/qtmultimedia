@@ -7,6 +7,7 @@ SUBDIRS += \
     qaudioformat \
     qaudionamespace \
     qcamera \
+    qcamerainfo \
     qcameraimagecapture \
     qmediabindableinterface \
     qmediacontainercontrol \

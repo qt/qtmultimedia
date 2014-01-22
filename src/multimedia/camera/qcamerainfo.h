@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,46 +39,48 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIASERVICEPROVIDER_H
-#define QMEDIASERVICEPROVIDER_H
+#ifndef QCAMERAINFO_H
+#define QCAMERAINFO_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qshareddata.h>
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
-#include "qmediaserviceproviderplugin.h"
+#include <QtMultimedia/qcamera.h>
+#include <QtCore/qsharedpointer.h>
 
 QT_BEGIN_NAMESPACE
 
+class QCameraInfoPrivate;
 
-class QMediaService;
-
-class Q_MULTIMEDIA_EXPORT QMediaServiceProvider : public QObject
+class Q_MULTIMEDIA_EXPORT QCameraInfo
 {
-    Q_OBJECT
-
 public:
-    virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
-    virtual void releaseService(QMediaService *service) = 0;
+    explicit QCameraInfo(const QByteArray &name = QByteArray());
+    explicit QCameraInfo(const QCamera &camera);
+    QCameraInfo(const QCameraInfo& other);
+    ~QCameraInfo();
 
-    virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
-                                             const QString &mimeType,
-                                             const QStringList& codecs,
-                                             int flags = 0) const;
-    virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
+    QCameraInfo& operator=(const QCameraInfo& other);
+    bool operator==(const QCameraInfo &other) const;
+    inline bool operator!=(const QCameraInfo &other) const;
 
-    virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
-    virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
-    virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
+    bool isNull() const;
 
-    virtual QCamera::Position cameraPosition(const QByteArray &device) const;
-    virtual int cameraOrientation(const QByteArray &device) const;
+    QString deviceName() const;
+    QString description() const;
+    QCamera::Position position() const;
+    int orientation() const;
 
-    static QMediaServiceProvider* defaultServiceProvider();
-    static void setDefaultServiceProvider(QMediaServiceProvider *provider);
+    static QCameraInfo defaultCamera();
+    static QList<QCameraInfo> availableCameras(QCamera::Position position = QCamera::UnspecifiedPosition);
+
+private:
+    QSharedPointer<QCameraInfoPrivate> d;
 };
+
+bool QCameraInfo::operator!=(const QCameraInfo &other) const { return !operator==(other); }
+
+#ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QCameraInfo&);
+#endif
 
 QT_END_NAMESPACE
 
-
-#endif  // QMEDIASERVICEPROVIDER_H
+#endif // QCAMERAINFO_H

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,46 +39,33 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIASERVICEPROVIDER_H
-#define QMEDIASERVICEPROVIDER_H
+#ifndef QCAMERAINFOCONTROL_H
+#define QCAMERAINFOCONTROL_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qshareddata.h>
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
-#include "qmediaserviceproviderplugin.h"
+#include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
+// Required for QDoc workaround
+class QString;
 
-class QMediaService;
-
-class Q_MULTIMEDIA_EXPORT QMediaServiceProvider : public QObject
+class Q_MULTIMEDIA_EXPORT QCameraInfoControl : public QMediaControl
 {
     Q_OBJECT
 
 public:
-    virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
-    virtual void releaseService(QMediaService *service) = 0;
+    virtual ~QCameraInfoControl();
 
-    virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
-                                             const QString &mimeType,
-                                             const QStringList& codecs,
-                                             int flags = 0) const;
-    virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
+    virtual QCamera::Position cameraPosition(const QString &deviceName) const = 0;
+    virtual int cameraOrientation(const QString &deviceName) const = 0;
 
-    virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
-    virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
-    virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
-
-    virtual QCamera::Position cameraPosition(const QByteArray &device) const;
-    virtual int cameraOrientation(const QByteArray &device) const;
-
-    static QMediaServiceProvider* defaultServiceProvider();
-    static void setDefaultServiceProvider(QMediaServiceProvider *provider);
+protected:
+    QCameraInfoControl(QObject *parent = 0);
 };
+
+#define QCameraInfoControl_iid "org.qt-project.qt.camerainfocontrol/5.3"
+Q_MEDIA_DECLARE_CONTROL(QCameraInfoControl, QCameraInfoControl_iid)
 
 QT_END_NAMESPACE
 
-
-#endif  // QMEDIASERVICEPROVIDER_H
+#endif // QCAMERAINFOCONTROL_H

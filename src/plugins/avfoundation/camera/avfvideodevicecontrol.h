@@ -80,6 +80,7 @@ private:
 
     int m_selectedDevice;
     bool m_dirty;
+    int m_defaultDevice;
     QStringList m_devices;
     QStringList m_deviceDescriptions;
 };

@@ -46,6 +46,7 @@
 
 QT_BEGIN_NAMESPACE
 
+QByteArray QAndroidVideoDeviceSelectorControl::m_defaultDevice;
 QList<QByteArray> QAndroidVideoDeviceSelectorControl::m_names;
 QStringList QAndroidVideoDeviceSelectorControl::m_descriptions;
 
@@ -99,6 +100,7 @@ void QAndroidVideoDeviceSelectorControl::setSelectedDevice(int index)
 
 void QAndroidVideoDeviceSelectorControl::update()
 {
+    m_defaultDevice.clear();
     m_names.clear();
     m_descriptions.clear();
 
@@ -127,6 +129,17 @@ void QAndroidVideoDeviceSelectorControl::update()
             break;
         }
     }
+
+    if (!m_names.isEmpty())
+        m_defaultDevice = m_names.first();
+}
+
+QByteArray QAndroidVideoDeviceSelectorControl::defaultDeviceName()
+{
+    if (m_names.isEmpty())
+        update();
+
+    return m_defaultDevice;
 }
 
 QList<QByteArray> QAndroidVideoDeviceSelectorControl::availableDevices()

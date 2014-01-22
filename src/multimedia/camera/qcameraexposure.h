@@ -159,6 +159,7 @@ Q_SIGNALS:
 
 private:
     friend class QCamera;
+    friend class QCameraPrivate;
     explicit QCameraExposure(QCamera *parent = 0);
     virtual ~QCameraExposure();
 

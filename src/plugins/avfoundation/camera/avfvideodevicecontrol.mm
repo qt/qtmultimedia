@@ -50,11 +50,17 @@ AVFVideoDeviceControl::AVFVideoDeviceControl(AVFCameraService *service, QObject 
    , m_service(service)
    , m_selectedDevice(0)
    , m_dirty(true)
+   , m_defaultDevice(0)
 {
+    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    int i = 0;
     for (AVCaptureDevice *device in videoDevices) {
         m_devices << QString::fromUtf8([[device uniqueID] UTF8String]);
         m_deviceDescriptions << QString::fromUtf8([[device localizedName] UTF8String]);
+        if (defaultDevice && [[device uniqueID] isEqualToString:[defaultDevice uniqueID]])
+            m_defaultDevice = i;
+        ++i;
     }
 }
 
@@ -79,7 +85,7 @@ QString AVFVideoDeviceControl::deviceDescription(int index) const
 
 int AVFVideoDeviceControl::defaultDevice() const
 {
-    return 0;
+    return m_defaultDevice;
 }
 
 int AVFVideoDeviceControl::selectedDevice() const

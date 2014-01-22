@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,46 +39,47 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIASERVICEPROVIDER_H
-#define QMEDIASERVICEPROVIDER_H
+#ifndef MOCKCAMERAINFOCONTROL_H
+#define MOCKCAMERAINFOCONTROL_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qshareddata.h>
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
-#include "qmediaserviceproviderplugin.h"
+#include <qcamerainfocontrol.h>
 
-QT_BEGIN_NAMESPACE
-
-
-class QMediaService;
-
-class Q_MULTIMEDIA_EXPORT QMediaServiceProvider : public QObject
+class MockCameraInfoControl : public QCameraInfoControl
 {
     Q_OBJECT
-
 public:
-    virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
-    virtual void releaseService(QMediaService *service) = 0;
+    MockCameraInfoControl(QObject *parent)
+        : QCameraInfoControl(parent)
+    {
+    }
 
-    virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
-                                             const QString &mimeType,
-                                             const QStringList& codecs,
-                                             int flags = 0) const;
-    virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
+    ~MockCameraInfoControl() { }
 
-    virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
-    virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
-    virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
+    QCamera::Position cameraPosition(const QString &deviceName) const
+    {
+        return position(deviceName.toLatin1());
+    }
 
-    virtual QCamera::Position cameraPosition(const QByteArray &device) const;
-    virtual int cameraOrientation(const QByteArray &device) const;
+    int cameraOrientation(const QString &deviceName) const
+    {
+        return orientation(deviceName.toLatin1());
+    }
 
-    static QMediaServiceProvider* defaultServiceProvider();
-    static void setDefaultServiceProvider(QMediaServiceProvider *provider);
+    static QCamera::Position position(const QByteArray &camera)
+    {
+        if (camera == "backcamera")
+            return QCamera::BackFace;
+        else
+            return QCamera::UnspecifiedPosition;
+    }
+
+    static int orientation(const QByteArray &camera)
+    {
+        if (camera == "backcamera")
+            return 90;
+        else
+            return 0;
+    }
 };
 
-QT_END_NAMESPACE
-
-
-#endif  // QMEDIASERVICEPROVIDER_H
+#endif // MOCKCAMERAINFOCONTROL_H

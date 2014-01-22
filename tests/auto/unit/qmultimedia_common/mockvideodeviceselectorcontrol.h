@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,46 +39,61 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIASERVICEPROVIDER_H
-#define QMEDIASERVICEPROVIDER_H
+#ifndef MOCKVIDEODEVICESELECTORCONTROL_H
+#define MOCKVIDEODEVICESELECTORCONTROL_H
 
-#include <QtCore/qobject.h>
-#include <QtCore/qshareddata.h>
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
-#include "qmediaserviceproviderplugin.h"
+#include <qvideodeviceselectorcontrol.h>
 
-QT_BEGIN_NAMESPACE
-
-
-class QMediaService;
-
-class Q_MULTIMEDIA_EXPORT QMediaServiceProvider : public QObject
+class MockVideoDeviceSelectorControl : public QVideoDeviceSelectorControl
 {
     Q_OBJECT
-
 public:
-    virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
-    virtual void releaseService(QMediaService *service) = 0;
+    MockVideoDeviceSelectorControl(QObject *parent)
+        : QVideoDeviceSelectorControl(parent)
+        , m_selectedDevice(1)
+    {
+    }
 
-    virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
-                                             const QString &mimeType,
-                                             const QStringList& codecs,
-                                             int flags = 0) const;
-    virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
+    ~MockVideoDeviceSelectorControl() { }
 
-    virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
-    virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
-    virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
+    int deviceCount() const { return availableCameras().count(); }
 
-    virtual QCamera::Position cameraPosition(const QByteArray &device) const;
-    virtual int cameraOrientation(const QByteArray &device) const;
+    QString deviceName(int index) const { return QString::fromLatin1(availableCameras().at(index)); }
+    QString deviceDescription(int index) const { return cameraDescription(availableCameras().at(index)); }
 
-    static QMediaServiceProvider* defaultServiceProvider();
-    static void setDefaultServiceProvider(QMediaServiceProvider *provider);
+    int defaultDevice() const { return availableCameras().indexOf(defaultCamera()); }
+    int selectedDevice() const { return m_selectedDevice; }
+    void setSelectedDevice(int index)
+    {
+        m_selectedDevice = index;
+        emit selectedDeviceChanged(m_selectedDevice);
+        emit selectedDeviceChanged(deviceName(m_selectedDevice));
+    }
+
+    static QByteArray defaultCamera()
+    {
+        return "othercamera";
+    }
+
+    static QList<QByteArray> availableCameras()
+    {
+        return QList<QByteArray>() << "backcamera" << "othercamera";
+    }
+
+    static QString cameraDescription(const QByteArray &camera)
+    {
+        if (camera == "backcamera")
+            return QStringLiteral("backcamera desc");
+        else if (camera == "othercamera")
+            return QStringLiteral("othercamera desc");
+        else
+            return QString();
+    }
+
+private:
+    int m_selectedDevice;
+    QStringList m_devices;
+    QStringList m_descriptions;
 };
 
-QT_END_NAMESPACE
-
-
-#endif  // QMEDIASERVICEPROVIDER_H
+#endif // MOCKVIDEODEVICESELECTORCONTROL_H

@@ -17,6 +17,8 @@ HEADERS *= \
     ../qmultimedia_common/mockcameracapturebuffercontrol.h \
     ../qmultimedia_common/mockimageencodercontrol.h \
     ../qmultimedia_common/mockcameracontrol.h \
+    ../qmultimedia_common/mockvideodeviceselectorcontrol.h \
+    ../qmultimedia_common/mockcamerainfocontrol.h
 
 
 include(mockvideo.pri)

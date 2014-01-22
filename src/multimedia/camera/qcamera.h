@@ -64,6 +64,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 class QVideoWidget;
 class QGraphicsVideoItem;
+class QCameraInfo;
 
 class QCameraPrivate;
 class Q_MULTIMEDIA_EXPORT QCamera : public QMediaObject
@@ -81,6 +82,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QMediaObject
     Q_ENUMS(LockStatus)
     Q_ENUMS(LockChangeReason)
     Q_ENUMS(LockType)
+    Q_ENUMS(Position)
 public:
     enum Status {
         UnavailableStatus,
@@ -141,12 +143,23 @@ public:
     };
     Q_DECLARE_FLAGS(LockTypes, LockType)
 
+    enum Position
+    {
+        UnspecifiedPosition,
+        BackFace,
+        FrontFace
+    };
+
     QCamera(QObject *parent = 0);
-    QCamera(const QByteArray& device, QObject *parent = 0);
+    QCamera(const QByteArray& deviceName, QObject *parent = 0);
+    QCamera(const QCameraInfo& cameraInfo, QObject *parent = 0);
+    QCamera(QCamera::Position position, QObject *parent = 0);
     ~QCamera();
 
-    static QList<QByteArray> availableDevices();
-    static QString deviceDescription(const QByteArray &device);
+#if QT_DEPRECATED_SINCE(5, 3)
+    QT_DEPRECATED static QList<QByteArray> availableDevices();
+    QT_DEPRECATED static QString deviceDescription(const QByteArray &device);
+#endif
 
     QMultimedia::AvailabilityStatus availability() const;
 
@@ -209,6 +222,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateLockStatus(QCamera::LockType, QCamera::LockStatus, QCamera::LockChangeReason))
     Q_PRIVATE_SLOT(d_func(), void _q_updateState(QCamera::State))
+    friend class QCameraInfo;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::LockTypes)
@@ -223,6 +237,7 @@ Q_DECLARE_METATYPE(QCamera::CaptureModes)
 Q_DECLARE_METATYPE(QCamera::LockType)
 Q_DECLARE_METATYPE(QCamera::LockStatus)
 Q_DECLARE_METATYPE(QCamera::LockChangeReason)
+Q_DECLARE_METATYPE(QCamera::Position)
 
 Q_MEDIA_ENUM_DEBUG(QCamera, State)
 Q_MEDIA_ENUM_DEBUG(QCamera, Status)
@@ -231,5 +246,6 @@ Q_MEDIA_ENUM_DEBUG(QCamera, CaptureMode)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockType)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockStatus)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockChangeReason)
+Q_MEDIA_ENUM_DEBUG(QCamera, Position)
 
 #endif  // QCAMERA_H

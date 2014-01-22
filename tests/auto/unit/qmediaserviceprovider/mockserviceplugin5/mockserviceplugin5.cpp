@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Research In Motion
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,44 +38,81 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBRSERVICEPLUGIN_H
-#define BBRSERVICEPLUGIN_H
 
 #include <qmediaserviceproviderplugin.h>
+#include <qmediaservice.h>
+#include "../mockservice.h"
 
-QT_BEGIN_NAMESPACE
-
-class BbServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceSupportedDevicesInterface,
-      public QMediaServiceDefaultDeviceInterface,
-      public QMediaServiceFeaturesInterface
+class MockServicePlugin5 : public QMediaServiceProviderPlugin,
+                           public QMediaServiceSupportedDevicesInterface,
+                           public QMediaServiceDefaultDeviceInterface,
+                           public QMediaServiceCameraInfoInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
+    Q_INTERFACES(QMediaServiceCameraInfoInterface)
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin5.json")
 public:
-    BbServicePlugin();
+    QStringList keys() const
+    {
+        return QStringList() << QLatin1String(Q_MEDIASERVICE_CAMERA);
+    }
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QMediaService* create(QString const& key)
+    {
+        if (keys().contains(key))
+            return new MockMediaService("MockServicePlugin5");
+        else
+            return 0;
+    }
 
-    QByteArray defaultDevice(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
+    void release(QMediaService *service)
+    {
+        delete service;
+    }
 
-private:
-    void updateDevices() const;
+    QByteArray defaultDevice(const QByteArray &service) const
+    {
+        if (service == Q_MEDIASERVICE_CAMERA)
+            return "backcamera";
 
-    mutable QByteArray m_defaultCameraDevice;
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
+        return QByteArray();
+    }
+
+    QList<QByteArray> devices(const QByteArray &service) const
+    {
+        QList<QByteArray> res;
+        if (service == Q_MEDIASERVICE_CAMERA)
+            res << "backcamera" << "somecamera";
+
+        return res;
+    }
+
+    QString deviceDescription(const QByteArray &service, const QByteArray &device)
+    {
+        if (devices(service).contains(device))
+            return QString(device)+" description";
+        else
+            return QString();
+    }
+
+    QCamera::Position cameraPosition(const QByteArray &device) const
+    {
+        if (device == "backcamera")
+            return QCamera::BackFace;
+
+        return QCamera::UnspecifiedPosition;
+    }
+
+    int cameraOrientation(const QByteArray &device) const
+    {
+        if (device == "backcamera")
+            return 90;
+
+        return 0;
+    }
 };
 
-QT_END_NAMESPACE
+#include "mockserviceplugin5.moc"
 
-#endif

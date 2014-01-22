@@ -90,6 +90,18 @@ QMediaServiceProviderHint::Features CameraBinServicePlugin::supportedFeatures(
     return QMediaServiceProviderHint::Features();
 }
 
+QByteArray CameraBinServicePlugin::defaultDevice(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        return m_defaultCameraDevice;
+    }
+
+    return QByteArray();
+}
+
 QList<QByteArray> CameraBinServicePlugin::devices(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
@@ -126,6 +138,7 @@ QVariant CameraBinServicePlugin::deviceProperty(const QByteArray &service, const
 
 void CameraBinServicePlugin::updateDevices() const
 {
+    m_defaultCameraDevice.clear();
     m_cameraDevices.clear();
     m_cameraDescriptions.clear();
 
@@ -167,6 +180,9 @@ void CameraBinServicePlugin::updateDevices() const
         }
         ::close(fd);
     }
+
+    if (!m_cameraDevices.isEmpty())
+        m_defaultCameraDevice = m_cameraDevices.first();
 }
 
 QT_END_NAMESPACE

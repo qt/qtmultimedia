@@ -52,6 +52,8 @@
 #include <qmediaservice.h>
 #include <qmediaplayer.h>
 #include <qaudiorecorder.h>
+#include <qcamera.h>
+#include <qcamerainfo.h>
 
 QT_USE_NAMESPACE
 
@@ -83,6 +85,9 @@ private slots:
     void testHasSupport();
     void testSupportedMimeTypes();
     void testProviderHints();
+    void testDefaultDevice();
+    void testAvailableDevices();
+    void testCameraInfo();
 
 private:
     QObjectList plugins;
@@ -195,6 +200,7 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::Null);
         QVERIFY(hint.device().isEmpty());
+        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), 0);
@@ -206,6 +212,18 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::Device);
         QCOMPARE(hint.device(), deviceName);
+        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
+        QVERIFY(hint.mimeType().isEmpty());
+        QVERIFY(hint.codecs().isEmpty());
+        QCOMPARE(hint.features(), 0);
+    }
+
+    {
+        QMediaServiceProviderHint hint(QCamera::FrontFace);
+        QVERIFY(!hint.isNull());
+        QCOMPARE(hint.type(), QMediaServiceProviderHint::CameraPosition);
+        QVERIFY(hint.device().isEmpty());
+        QCOMPARE(hint.cameraPosition(), QCamera::FrontFace);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), 0);
@@ -216,6 +234,7 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::SupportedFeatures);
         QVERIFY(hint.device().isEmpty());
+        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), QMediaServiceProviderHint::LowLatencyPlayback);
@@ -226,6 +245,7 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::SupportedFeatures);
         QVERIFY(hint.device().isEmpty());
+        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), QMediaServiceProviderHint::RecordingSupport);
@@ -240,6 +260,7 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::ContentType);
         QVERIFY(hint.device().isEmpty());
+        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QCOMPARE(hint.mimeType(), mimeType);
         QCOMPARE(hint.codecs(), codecs);
 
@@ -248,6 +269,7 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint2.isNull());
         QCOMPARE(hint2.type(), QMediaServiceProviderHint::ContentType);
         QVERIFY(hint2.device().isEmpty());
+        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QCOMPARE(hint2.mimeType(), mimeType);
         QCOMPARE(hint2.codecs(), codecs);
 
@@ -257,6 +279,7 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint3.isNull());
         QCOMPARE(hint3.type(), QMediaServiceProviderHint::ContentType);
         QVERIFY(hint3.device().isEmpty());
+        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QCOMPARE(hint3.mimeType(), mimeType);
         QCOMPARE(hint3.codecs(), codecs);
 
@@ -268,6 +291,99 @@ void tst_QMediaServiceProvider::testProviderHints()
 
         QMediaServiceProviderHint hint5(mimeType,QStringList());
         QVERIFY(hint != hint5);
+    }
+}
+
+void tst_QMediaServiceProvider::testDefaultDevice()
+{
+    QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
+
+    if (provider == 0)
+        QSKIP("No default provider");
+
+    QCOMPARE(provider->defaultDevice(Q_MEDIASERVICE_AUDIOSOURCE), QByteArray("audiosource1"));
+    QCOMPARE(provider->defaultDevice(Q_MEDIASERVICE_CAMERA), QByteArray("frontcamera"));
+}
+
+void tst_QMediaServiceProvider::testAvailableDevices()
+{
+    QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
+
+    if (provider == 0)
+        QSKIP("No default provider");
+
+    QList<QByteArray> devices = provider->devices(Q_MEDIASERVICE_AUDIOSOURCE);
+    QCOMPARE(devices.count(), 2);
+    QCOMPARE(devices.at(0), QByteArray("audiosource1"));
+    QCOMPARE(devices.at(1), QByteArray("audiosource2"));
+
+    devices = provider->devices(Q_MEDIASERVICE_CAMERA);
+    QCOMPARE(devices.count(), 3);
+    QCOMPARE(devices.at(0), QByteArray("frontcamera"));
+    QCOMPARE(devices.at(1), QByteArray("backcamera"));
+    QCOMPARE(devices.at(2), QByteArray("somecamera"));
+}
+
+void tst_QMediaServiceProvider::testCameraInfo()
+{
+    QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
+
+    if (provider == 0)
+        QSKIP("No default provider");
+
+    QCOMPARE(provider->cameraPosition("backcamera"), QCamera::BackFace);
+    QCOMPARE(provider->cameraOrientation("backcamera"), 90);
+    QCOMPARE(provider->cameraPosition("frontcamera"), QCamera::FrontFace);
+    QCOMPARE(provider->cameraOrientation("frontcamera"), 270);
+    QCOMPARE(provider->cameraPosition("somecamera"), QCamera::UnspecifiedPosition);
+    QCOMPARE(provider->cameraOrientation("somecamera"), 0);
+
+    {
+        QCamera camera;
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin3"));
+    }
+
+    {
+        QCamera camera(QCameraInfo::defaultCamera());
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin3"));
+    }
+
+    {
+        QCamera camera(QCameraInfo::availableCameras().at(0));
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin3"));
+    }
+
+    {
+        QCamera camera(QCameraInfo::availableCameras().at(1));
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin5"));
+    }
+
+    {
+        QCamera camera(QCameraInfo::availableCameras().at(2));
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin5"));
+    }
+
+    {
+        QCamera camera(QCamera::FrontFace);
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin3"));
+    }
+
+    {
+        QCamera camera(QCamera::BackFace);
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin5"));
+    }
+
+    {
+        QCamera camera(QCamera::UnspecifiedPosition);
+        QVERIFY(camera.service());
+        QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin3"));
     }
 }
 

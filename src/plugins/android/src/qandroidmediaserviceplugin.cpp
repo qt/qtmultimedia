@@ -96,6 +96,14 @@ QMediaServiceProviderHint::Features QAndroidMediaServicePlugin::supportedFeature
     return QMediaServiceProviderHint::Features();
 }
 
+QByteArray QAndroidMediaServicePlugin::defaultDevice(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA)
+        return QAndroidVideoDeviceSelectorControl::defaultDeviceName();
+
+    return QByteArray();
+}
+
 QList<QByteArray> QAndroidMediaServicePlugin::devices(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA)

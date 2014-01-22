@@ -39,11 +39,11 @@
 **
 ****************************************************************************/
 
-#include "qvideosurfaceoutput_p.h"
-#include "qmediaobject_p.h"
+
+#include "qcamera_p.h"
 #include "qmediaserviceprovider_p.h"
 
-#include <qcamera.h>
+#include <qcamerainfo.h>
 #include <qcameracontrol.h>
 #include <qcameralockscontrol.h>
 #include <qcameraexposurecontrol.h>
@@ -52,6 +52,7 @@
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
+#include <qcamerainfocontrol.h>
 
 #include <QDebug>
 
@@ -69,6 +70,7 @@ public:
         qRegisterMetaType<QCamera::LockType>("QCamera::LockType");
         qRegisterMetaType<QCamera::LockStatus>("QCamera::LockStatus");
         qRegisterMetaType<QCamera::LockChangeReason>("QCamera::LockChangeReason");
+        qRegisterMetaType<QCamera::Position>("QCamera::Position");
     }
 } _registerCameraMetaTypes;
 }
@@ -85,81 +87,15 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_camera
 
-    QCamera can be used with QVideoWidget for viewfinder display,
+    QCamera can be used with QCameraViewfinder for viewfinder display,
     QMediaRecorder for video recording and QCameraImageCapture for image taking.
 
+    You can use QCameraInfo to list available cameras and choose which one to use.
+
+    \snippet multimedia-snippets/camera.cpp Camera selection
+
     See the \l{Camera Overview}{camera overview} for more information.
-
-    \snippet multimedia-snippets/media.cpp Request control
-
 */
-
-
-class QCameraPrivate : public QMediaObjectPrivate
-{
-    Q_DECLARE_NON_CONST_PUBLIC(QCamera)
-public:
-    QCameraPrivate():
-        QMediaObjectPrivate(),
-        provider(0),
-        control(0),
-        deviceControl(0),
-        viewfinder(0),
-        capture(0),
-        state(QCamera::UnloadedState),
-        error(QCamera::NoError),
-        supportedLocks(QCamera::NoLock),
-        requestedLocks(QCamera::NoLock),
-        lockStatus(QCamera::Unlocked),
-        lockChangeReason(QCamera::UserRequest),
-        supressLockChangedSignal(false),
-        restartPending(false)
-    {
-    }
-
-    void initControls();
-
-    QMediaServiceProvider *provider;
-
-    QCameraControl *control;
-    QVideoDeviceSelectorControl *deviceControl;
-    QCameraLocksControl *locksControl;
-
-    QCameraExposure *cameraExposure;
-    QCameraFocus *cameraFocus;
-    QCameraImageProcessing *imageProcessing;
-
-    QObject *viewfinder;
-    QObject *capture;
-
-    QCamera::State state;
-
-    QCamera::Error error;
-    QString errorString;
-
-    QCamera::LockTypes supportedLocks;
-    QCamera::LockTypes requestedLocks;
-
-    QCamera::LockStatus lockStatus;
-    QCamera::LockChangeReason lockChangeReason;
-    bool supressLockChangedSignal;
-
-    bool restartPending;
-
-    QVideoSurfaceOutput surfaceViewfinder;
-
-    void _q_error(int error, const QString &errorString);
-    void unsetError() { error = QCamera::NoError; errorString.clear(); }
-
-    void setState(QCamera::State);
-
-    void _q_updateLockStatus(QCamera::LockType, QCamera::LockStatus, QCamera::LockChangeReason);
-    void _q_updateState(QCamera::State newState);
-    void _q_preparePropertyChange(int changeType);
-    void _q_restartCamera();
-    void updateLockStatus();
-};
-
 
 void QCameraPrivate::_q_error(int error, const QString &errorString)
 {
@@ -167,8 +103,6 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
 
     this->error = QCamera::Error(error);
     this->errorString = errorString;
-
-    qWarning() << "Camera error:" << errorString;
 
     emit q->error(this->error);
 }
@@ -228,6 +162,16 @@ void QCameraPrivate::_q_restartCamera()
     }
 }
 
+void QCameraPrivate::init()
+{
+    Q_Q(QCamera);
+    provider = QMediaServiceProvider::defaultServiceProvider();
+    initControls();
+    cameraExposure = new QCameraExposure(q);
+    cameraFocus = new QCameraFocus(q);
+    imageProcessing = new QCameraImageProcessing(q);
+}
+
 void QCameraPrivate::initControls()
 {
     Q_Q(QCamera);
@@ -238,6 +182,7 @@ void QCameraPrivate::initControls()
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
         locksControl = qobject_cast<QCameraLocksControl *>(service->requestControl(QCameraLocksControl_iid));
         deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
+        infoControl = qobject_cast<QCameraInfoControl*>(service->requestControl(QCameraInfoControl_iid));
 
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
@@ -259,10 +204,41 @@ void QCameraPrivate::initControls()
         control = 0;
         locksControl = 0;
         deviceControl = 0;
+        infoControl = 0;
 
         error = QCamera::ServiceMissingError;
         errorString = QCamera::tr("The camera service is missing");
     }
+}
+
+void QCameraPrivate::clear()
+{
+    delete cameraExposure;
+    delete cameraFocus;
+    delete imageProcessing;
+
+    if (service) {
+        if (control)
+            service->releaseControl(control);
+        if (locksControl)
+            service->releaseControl(locksControl);
+        if (deviceControl)
+            service->releaseControl(deviceControl);
+        if (infoControl)
+            service->releaseControl(infoControl);
+
+        provider->releaseService(service);
+    }
+
+    cameraExposure = 0;
+    cameraFocus = 0;
+    imageProcessing = 0;
+    control = 0;
+    locksControl = 0;
+    deviceControl = 0;
+    infoControl = 0;
+    service = 0;
+    supportedLocks = 0;
 }
 
 void QCameraPrivate::updateLockStatus()
@@ -337,42 +313,103 @@ QCamera::QCamera(QObject *parent):
                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
 {
     Q_D(QCamera);
-    d->provider = QMediaServiceProvider::defaultServiceProvider();
-    d->initControls();
-    d->cameraExposure = new QCameraExposure(this);
-    d->cameraFocus = new QCameraFocus(this);
-    d->imageProcessing = new QCameraImageProcessing(this);
+    d->init();
+
+    // Select the default camera
+    if (d->service != 0 && d->deviceControl)
+        d->deviceControl->setSelectedDevice(d->deviceControl->defaultDevice());
 }
 
 /*!
-    Construct a QCamera from device name \a device and \a parent.
+    Construct a QCamera from \a deviceName and \a parent.
+
+    If no camera with that \a deviceName exists, the camera object will
+    be invalid.
 */
 
-QCamera::QCamera(const QByteArray& device, QObject *parent):
+QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
     QMediaObject(*new QCameraPrivate, parent,
-                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA, QMediaServiceProviderHint(device)))
+                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA,
+                                                                                  QMediaServiceProviderHint(deviceName)))
 {
     Q_D(QCamera);
-    d->provider = QMediaServiceProvider::defaultServiceProvider();
-    d->initControls();
+    d->init();
 
     if (d->service != 0) {
         //pass device name to service
         if (d->deviceControl) {
-            QString deviceName = QString::fromLatin1(device);
-
-            for (int i=0; i<d->deviceControl->deviceCount(); i++) {
-                if (d->deviceControl->deviceName(i) == deviceName) {
+            const QString name = QString::fromLatin1(deviceName);
+            for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
+                if (d->deviceControl->deviceName(i) == name) {
                     d->deviceControl->setSelectedDevice(i);
                     break;
                 }
             }
         }
     }
+}
 
-    d->cameraExposure = new QCameraExposure(this);
-    d->cameraFocus = new QCameraFocus(this);
-    d->imageProcessing = new QCameraImageProcessing(this);
+/*!
+    \since 5.3
+
+    Construct a QCamera from a camera description \a cameraInfo and \a parent.
+*/
+
+QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
+    : QMediaObject(*new QCameraPrivate,
+                   parent,
+                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA,
+                                                                                   QMediaServiceProviderHint(cameraInfo.deviceName().toLatin1())))
+{
+    Q_D(QCamera);
+    d->init();
+
+    if (d->service != 0 && d->deviceControl) {
+        for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
+            if (d->deviceControl->deviceName(i) == cameraInfo.deviceName()) {
+                d->deviceControl->setSelectedDevice(i);
+                break;
+            }
+        }
+    }
+}
+
+/*!
+    \since 5.3
+
+    Construct a QCamera which uses a hardware camera located a the specified \a position.
+
+    For example on a mobile phone it can be used to easily choose between front-facing and
+    back-facing cameras.
+
+    If no camera is available at the specified \a position or if \a position is
+    QCamera::UnspecifiedPosition, the default camera is used.
+*/
+
+QCamera::QCamera(QCamera::Position position, QObject *parent)
+    : QMediaObject(*new QCameraPrivate,
+                   parent,
+                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA, QMediaServiceProviderHint(position)))
+{
+    Q_D(QCamera);
+    d->init();
+
+    if (d->service != 0 && d->deviceControl) {
+        bool selectDefault = true;
+
+        if (d->infoControl && position != UnspecifiedPosition) {
+            for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
+                if (d->infoControl->cameraPosition(d->deviceControl->deviceName(i)) == position) {
+                    d->deviceControl->setSelectedDevice(i);
+                    selectDefault = false;
+                    break;
+                }
+            }
+        }
+
+        if (selectDefault)
+            d->deviceControl->setSelectedDevice(d->deviceControl->defaultDevice());
+    }
 }
 
 /*!
@@ -382,23 +419,7 @@ QCamera::QCamera(const QByteArray& device, QObject *parent):
 QCamera::~QCamera()
 {
     Q_D(QCamera);
-    delete d->cameraExposure;
-    d->cameraExposure = 0;
-    delete d->cameraFocus;
-    d->cameraFocus = 0;
-    delete d->imageProcessing;
-    d->imageProcessing = 0;
-
-    if (d->service) {
-        if (d->control)
-            d->service->releaseControl(d->control);
-        if (d->locksControl)
-            d->service->releaseControl(d->locksControl);
-        if (d->deviceControl)
-            d->service->releaseControl(d->deviceControl);
-
-        d->provider->releaseService(d->service);
-    }
+    d->clear();
 }
 
 /*!
@@ -622,9 +643,11 @@ void QCamera::unload()
     d->setState(QCamera::UnloadedState);
 }
 
-
+#if QT_DEPRECATED_SINCE(5, 3)
 /*!
     Returns a list of camera device's available from the default service provider.
+    \deprecated
+    \sa QCameraInfo::availableCameras()
 */
 
 QList<QByteArray> QCamera::availableDevices()
@@ -634,12 +657,15 @@ QList<QByteArray> QCamera::availableDevices()
 
 /*!
     Returns the description of the \a device.
+    \deprecated
+    \sa QCameraInfo::availableCameras(), QCameraInfo::description()
 */
 
 QString QCamera::deviceDescription(const QByteArray &device)
 {
     return QMediaServiceProvider::defaultServiceProvider()->deviceDescription(QByteArray(Q_MEDIASERVICE_CAMERA), device);
 }
+#endif
 
 QCamera::State QCamera::state() const
 {
@@ -970,6 +996,25 @@ void QCamera::unlock()
     \fn void QCamera::error(QCamera::Error value)
 
     Signal emitted when error state changes to \a value.
+*/
+
+/*!
+    \enum QCamera::Position
+    \since 5.3
+
+    This enum specifies the physical position of the camera on the system hardware.
+
+    \value UnspecifiedPosition  The camera position is unspecified or unknown.
+
+    \value BackFace  The camera is on the back face of the system hardware. For example on a
+    mobile device, it means it is on the opposite side to that of the screen.
+
+    \value FrontFace  The camera is on the front face of the system hardware. For example on a
+    mobile device, it means it is on the same side as that of the screen. Viewfinder frames of
+    front-facing cameras are mirrored horizontally, so the users can see themselves as looking
+    into a mirror. Captured images or videos are not mirrored.
+
+    \sa QCameraInfo::position()
 */
 
 /*!

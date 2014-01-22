@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,46 +39,66 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIASERVICEPROVIDER_H
-#define QMEDIASERVICEPROVIDER_H
-
-#include <QtCore/qobject.h>
-#include <QtCore/qshareddata.h>
-#include <qtmultimediadefs.h>
-#include "qmultimedia.h"
-#include "qmediaserviceproviderplugin.h"
+#include "qcamerainfocontrol.h"
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \class QCameraInfoControl
+    \since 5.3
 
-class QMediaService;
+    \brief The QCameraInfoControl class provides a camera info media control.
+    \inmodule QtMultimedia
 
-class Q_MULTIMEDIA_EXPORT QMediaServiceProvider : public QObject
+    \ingroup multimedia_control
+
+    The QCameraInfoControl class provides information about the camera devices
+    available on the system.
+
+    The interface name of QCameraInfoControl is \c org.qt-project.qt.camerainfocontrol/5.3 as
+    defined in QCameraInfoControl_iid.
+*/
+
+/*!
+    \macro QCameraInfoControl_iid
+
+    \c org.qt-project.qt.camerainfocontrol/5.3
+
+    Defines the interface name of the QCameraInfoControl class.
+
+    \relates QVideoDeviceSelectorControl
+*/
+
+/*!
+    Constructs a camera info control with the given \a parent.
+*/
+QCameraInfoControl::QCameraInfoControl(QObject *parent)
+    : QMediaControl(parent)
 {
-    Q_OBJECT
+}
 
-public:
-    virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
-    virtual void releaseService(QMediaService *service) = 0;
+/*!
+    Destroys a camera info control.
+*/
+QCameraInfoControl::~QCameraInfoControl()
+{
+}
 
-    virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
-                                             const QString &mimeType,
-                                             const QStringList& codecs,
-                                             int flags = 0) const;
-    virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
+/*!
+    \fn QCameraInfoControl::cameraPosition(const QString &deviceName) const
 
-    virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
-    virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
-    virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
+    Returns the physical position of the camera named \a deviceName on the hardware system.
+*/
 
-    virtual QCamera::Position cameraPosition(const QByteArray &device) const;
-    virtual int cameraOrientation(const QByteArray &device) const;
+/*!
+    \fn QCameraInfoControl::cameraOrientation(const QString &deviceName) const
 
-    static QMediaServiceProvider* defaultServiceProvider();
-    static void setDefaultServiceProvider(QMediaServiceProvider *provider);
-};
+    Returns the physical orientation of the sensor for the camera named \a deviceName.
+
+    The value is the orientation angle (clockwise, in steps of 90 degrees) of the camera sensor
+    in relation to the display in its natural orientation.
+*/
+
+#include "moc_qcamerainfocontrol.cpp"
 
 QT_END_NAMESPACE
-
-
-#endif  // QMEDIASERVICEPROVIDER_H

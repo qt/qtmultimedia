@@ -156,6 +156,7 @@ Q_SIGNALS:
 
 private:
     friend class QCamera;
+    friend class QCameraPrivate;
     QCameraFocus(QCamera *camera);
     ~QCameraFocus();
 

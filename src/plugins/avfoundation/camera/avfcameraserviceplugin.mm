@@ -72,6 +72,18 @@ void AVFServicePlugin::release(QMediaService *service)
     delete service;
 }
 
+QByteArray AVFServicePlugin::defaultDevice(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        return m_defaultCameraDevice;
+    }
+
+    return QByteArray();
+}
+
 QList<QByteArray> AVFServicePlugin::devices(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
@@ -98,8 +110,13 @@ QString AVFServicePlugin::deviceDescription(const QByteArray &service, const QBy
 
 void AVFServicePlugin::updateDevices() const
 {
+    m_defaultCameraDevice.clear();
     m_cameraDevices.clear();
     m_cameraDescriptions.clear();
+
+    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    if (defaultDevice)
+        m_defaultCameraDevice = QByteArray([[defaultDevice uniqueID] UTF8String]);
 
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
     for (AVCaptureDevice *device in videoDevices) {

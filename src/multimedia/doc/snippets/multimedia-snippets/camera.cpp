@@ -42,11 +42,15 @@
 /* Camera snippets */
 
 #include "qcamera.h"
+#include "qcamerainfo.h"
 #include "qcameraviewfinder.h"
 #include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
 #include "qcameraimageprocessing.h"
 #include "qabstractvideosurface.h"
+#include <QtGui/qscreen.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qimage.h>
 
 /* Globals so that everything is consistent. */
 QCamera *camera = 0;
@@ -94,6 +98,32 @@ void overview_surface()
     //! [Camera overview surface]
 }
 
+void overview_viewfinder_orientation()
+{
+    QCamera camera;
+
+    //! [Camera overview viewfinder orientation]
+    // Assuming a QImage has been created from the QVideoFrame that needs to be presented
+    QImage videoFrame;
+    QCameraInfo cameraInfo(camera); // needed to get the camera sensor position and orientation
+
+    // Get the current display orientation
+    const QScreen *screen = QGuiApplication::primaryScreen();
+    const int screenAngle = screen->angleBetween(screen->nativeOrientation(), screen->orientation());
+
+    int rotation;
+    if (cameraInfo.position() == QCamera::BackFace) {
+        rotation = (cameraInfo.orientation() - screenAngle) % 360;
+    } else {
+        // Front position, compensate the mirror
+        rotation = (360 - cameraInfo.orientation() + screenAngle) % 360;
+    }
+
+    // Rotate the frame so it always shows in the correct orientation
+    videoFrame = videoFrame.transformed(QTransform().rotate(rotation));
+    //! [Camera overview viewfinder orientation]
+}
+
 void overview_still()
 {
     //! [Camera overview capture]
@@ -128,6 +158,41 @@ void overview_movie()
     // sometime later, or on another press
     recorder->stop();
     //! [Camera overview movie]
+}
+
+void camera_listing()
+{
+    //! [Camera listing]
+    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    foreach (const QCameraInfo &cameraInfo, cameras)
+        qDebug() << cameraInfo.deviceName();
+    //! [Camera listing]
+}
+
+void camera_selection()
+{
+    //! [Camera selection]
+    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    foreach (const QCameraInfo &cameraInfo, cameras) {
+        if (cameraInfo.deviceName() == "mycamera")
+            camera = new QCamera(cameraInfo);
+    }
+    //! [Camera selection]
+}
+
+void camera_info()
+{
+    //! [Camera info]
+    QCamera myCamera;
+    QCameraInfo cameraInfo(myCamera);
+
+    if (cameraInfo.position() == QCamera::FrontFace)
+        qDebug() << "The camera is on the front face of the hardware system.";
+    else if (cameraInfo.position() == QCamera::BackFace)
+        qDebug() << "The camera is on the back face of the hardware system.";
+
+    qDebug() << "The camera sensor orientation is " << cameraInfo.orientation() << " degrees.";
+    //! [Camera info]
 }
 
 void camera_blah()

@@ -95,6 +95,18 @@ QMediaServiceProviderHint::Features QGstreamerCaptureServicePlugin::supportedFea
     return QMediaServiceProviderHint::Features();
 }
 
+QByteArray QGstreamerCaptureServicePlugin::defaultDevice(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        return m_defaultCameraDevice;
+    }
+
+    return QByteArray();
+}
+
 QList<QByteArray> QGstreamerCaptureServicePlugin::devices(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
@@ -131,6 +143,7 @@ QVariant QGstreamerCaptureServicePlugin::deviceProperty(const QByteArray &servic
 
 void QGstreamerCaptureServicePlugin::updateDevices() const
 {
+    m_defaultCameraDevice.clear();
     m_cameraDevices.clear();
     m_cameraDescriptions.clear();
 
@@ -174,6 +187,9 @@ void QGstreamerCaptureServicePlugin::updateDevices() const
         }
         ::close(fd);
     }
+
+    if (!m_cameraDevices.isEmpty())
+        m_defaultCameraDevice = m_cameraDevices.first();
 }
 #endif
 
