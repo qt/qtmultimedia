@@ -71,6 +71,7 @@ class QDeclarativeCameraExposure;
 class QDeclarativeCameraFocus;
 class QDeclarativeCameraFlash;
 class QDeclarativeCameraImageProcessing;
+class QDeclarativeMediaMetaData;
 
 class QDeclarativeCamera : public QObject, public QQmlParserStatus
 {
@@ -98,6 +99,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeCameraFlash* flash READ flash CONSTANT)
     Q_PROPERTY(QDeclarativeCameraFocus* focus READ focus CONSTANT)
     Q_PROPERTY(QDeclarativeCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
+    Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT REVISION 1)
 
     Q_ENUMS(CaptureMode)
     Q_ENUMS(State)
@@ -232,6 +234,8 @@ public:
     QDeclarativeCameraFocus *focus() { return m_focus; }
     QDeclarativeCameraImageProcessing *imageProcessing() { return m_imageProcessing; }
 
+    QDeclarativeMediaMetaData *metaData();
+
     CaptureMode captureMode() const;
     State cameraState() const;
     Status cameraStatus() const;
@@ -301,6 +305,7 @@ private:
     QDeclarativeCameraFlash *m_flash;
     QDeclarativeCameraFocus *m_focus;
     QDeclarativeCameraImageProcessing *m_imageProcessing;
+    QDeclarativeMediaMetaData *m_metaData;
 
     State m_pendingState;
     bool m_componentComplete;

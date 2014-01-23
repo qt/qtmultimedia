@@ -47,6 +47,8 @@
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
 
+#include "qdeclarativemediametadata_p.h"
+
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
@@ -172,6 +174,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QMultimedia::AvailabilityStatus 
 QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     QObject(parent),
     m_camera(0),
+    m_metaData(0),
     m_pendingState(ActiveState),
     m_componentComplete(false)
 {
@@ -200,6 +203,8 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
 /*! Destructor, clean up memory */
 QDeclarativeCamera::~QDeclarativeCamera()
 {
+    delete m_metaData;
+
     m_camera->unload();
 }
 
@@ -672,6 +677,129 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 
     The corresponding handler is \c onMaximumDigitalZoomChanged.
 */
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.cameraManufacturer
+
+    This property holds the name of the manufacturer of the camera.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.cameraModel
+
+    This property holds the name of the model of the camera.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.event
+
+    This property holds the event during which the photo or video is to be captured.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.subject
+
+    This property holds the name of the subject of the capture or recording.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.orientation
+
+    This property holds the clockwise rotation of the camera at time of capture.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.dateTimeOriginal
+
+    This property holds the initial time at which the photo or video is
+    captured.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsLatitude
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsLongitude
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsAltitude
+
+    These properties hold the the geographic position in decimal degrees of the
+    camera at time of capture.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsTimestamp
+
+    This property holds the timestamp of the GPS position data.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsTrack
+
+    This property holds direction of movement of the camera at the time of
+    capture. It is measured in degrees clockwise from north.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsSpeed
+
+    This property holds the velocity in kilometers per hour of the camera at
+    time of capture.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsImgDirection
+
+    This property holds direction the camera is facing at the time of capture.
+    It is measured in degrees clockwise from north.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty variant QtMultimedia::Camera::metaData.gpsProcessingMethod
+
+    This property holds the name of the method for determining the GPS position
+    data.
+
+    \sa {QMediaMetaData}
+    \since 5.4
+*/
+
+QDeclarativeMediaMetaData *QDeclarativeCamera::metaData()
+{
+    if (!m_metaData)
+        m_metaData = new QDeclarativeMediaMetaData(m_camera, this);
+    return m_metaData;
+}
 
 QT_END_NAMESPACE
 

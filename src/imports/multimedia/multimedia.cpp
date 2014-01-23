@@ -81,6 +81,7 @@ public:
         qmlRegisterType<QDeclarativeRadio>(uri, 5, 0, "Radio");
         qmlRegisterType<QDeclarativeRadioData>(uri, 5, 0, "RadioData");
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
+        qmlRegisterRevision<QDeclarativeCamera, 1>(uri, 5, 4);
         qmlRegisterType<QDeclarativeTorch>(uri, 5, 0, "Torch");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
                                 trUtf8("CameraCapture is provided by Camera"));
