@@ -694,16 +694,14 @@ void tst_QDeclarativeVideoOutput::contentRect_data()
 QRectF tst_QDeclarativeVideoOutput::invokeR2R(QObject *object, const char *signature, const QRectF &rect)
 {
     QRectF r;
-    const QMetaObject *meta = object->metaObject();
-    meta->invokeMethod(object, signature, Q_RETURN_ARG(QRectF, r), Q_ARG(QRectF, rect));
+    QMetaObject::invokeMethod(object, signature, Q_RETURN_ARG(QRectF, r), Q_ARG(QRectF, rect));
     return r;
 }
 
 QPointF tst_QDeclarativeVideoOutput::invokeP2P(QObject *object, const char *signature, const QPointF &point)
 {
     QPointF p;
-    const QMetaObject *meta = object->metaObject();
-    meta->invokeMethod(object, signature, Q_RETURN_ARG(QPointF, p), Q_ARG(QPointF, point));
+    QMetaObject::invokeMethod(object, signature, Q_RETURN_ARG(QPointF, p), Q_ARG(QPointF, point));
     return p;
 }
 
