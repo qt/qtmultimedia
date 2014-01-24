@@ -504,7 +504,8 @@ void tst_QCamera::testCameraCaptureMetadata()
     QCOMPARE(metadata[0].toInt(), id);
     QCOMPARE(metadata[1].toString(), QMediaMetaData::DateTimeOriginal);
     QDateTime captureTime = metadata[2].value<QVariant>().value<QDateTime>();
-    QVERIFY(qAbs(captureTime.secsTo(QDateTime::currentDateTime()) < 5)); //it should not takes more than 5 seconds for signal to arrive here
+    const qint64 dt = captureTime.secsTo(QDateTime::currentDateTime());
+    QVERIFY2(qAbs(dt) < 5, QByteArray::number(dt).constData()); // it should not take more than 5 seconds for signal to arrive here
 
     metadata = metadataSignal[2];
     QCOMPARE(metadata[0].toInt(), id);
