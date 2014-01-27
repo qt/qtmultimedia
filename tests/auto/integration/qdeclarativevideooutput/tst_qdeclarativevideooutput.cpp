@@ -46,7 +46,7 @@
 #include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlcomponent.h>
 
-#include "qdeclarativevideooutput_p.h"
+#include "private/qdeclarativevideooutput_p.h"
 
 #include <qabstractvideosurface.h>
 #include <qvideorenderercontrol.h>

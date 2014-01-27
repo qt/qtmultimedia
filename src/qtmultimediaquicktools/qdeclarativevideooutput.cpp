@@ -46,6 +46,7 @@
 #include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaservice.h>
+#include <private/qmediapluginloader_p.h>
 
 //#define DEBUG_VIDEOITEM
 
@@ -211,12 +212,28 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     emit sourceChanged();
 }
 
+Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoBackendFactoryLoader,
+        (QDeclarativeVideoBackendFactoryInterface_iid, QLatin1String("video/declarativevideobackend"), Qt::CaseInsensitive))
+
 bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
 {
     bool backendAvailable = false;
-    m_backend.reset(new QDeclarativeVideoRendererBackend(this));
-    if (m_backend->init(service))
-        backendAvailable = true;
+
+    foreach (QObject *instance, videoBackendFactoryLoader()->instances(QLatin1String("declarativevideobackend"))) {
+        if (QDeclarativeVideoBackendFactoryInterface *plugin = qobject_cast<QDeclarativeVideoBackendFactoryInterface*>(instance)) {
+            m_backend.reset(plugin->create(this));
+            if (m_backend && m_backend->init(service)) {
+                backendAvailable = true;
+                break;
+            }
+        }
+    }
+
+    if (!backendAvailable) {
+        m_backend.reset(new QDeclarativeVideoRendererBackend(this));
+        if (m_backend->init(service))
+            backendAvailable = true;
+    }
 
     // QDeclarativeVideoWindowBackend only works when there is a service with a QVideoWindowControl.
     // Without service, the QDeclarativeVideoRendererBackend should always work.

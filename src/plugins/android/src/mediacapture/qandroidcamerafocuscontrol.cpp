@@ -46,15 +46,36 @@
 
 QT_BEGIN_NAMESPACE
 
-static QRect adjustedArea(const QRectF &area)
+static QPointF rotateNormalizedPoint(const QPointF &point, int rotation)
+{
+    const qreal one(1.0f);
+
+    switch (rotation) {
+    case 0:
+    default:
+        return point;
+    case 90:
+        return QPointF(point.y(), one - point.x());
+    case 180:
+        return QPointF(one - point.x(), one - point.y());
+    case 270:
+        return QPointF(one - point.y(), point.x());
+    }
+}
+
+static QRect adjustedArea(const QRectF &area, int rotation)
 {
     // Qt maps focus points in the range (0.0, 0.0) -> (1.0, 1.0)
     // Android maps focus points in the range (-1000, -1000) -> (1000, 1000)
     // Converts an area in Qt coordinates to Android coordinates
-    return QRect(-1000 + qRound(area.x() * 2000),
-                 -1000 + qRound(area.y() * 2000),
-                 qRound(area.width() * 2000),
-                 qRound(area.height() * 2000))
+    // Applies 'rotation' in the counter-clockwise direction
+    QRectF rotated(rotateNormalizedPoint(area.topLeft(), rotation),
+                   rotateNormalizedPoint(area.bottomRight(), rotation));
+
+    return QRect(-1000 + qRound(rotated.x() * 2000),
+                 -1000 + qRound(rotated.y() * 2000),
+                 qRound(rotated.width() * 2000),
+                 qRound(rotated.height() * 2000))
             .intersected(QRect(-1000, -1000, 2000, 2000));
 }
 
@@ -242,6 +263,9 @@ void QAndroidCameraFocusControl::updateFocusZones(QCameraFocusZone::FocusZoneSta
     if (!viewportSize.isValid())
         return;
 
+    if (m_session->camera()->getDisplayOrientation() % 180)
+        viewportSize.transpose();
+
     QSizeF focusSize(50.f / viewportSize.width(), 50.f / viewportSize.height());
     float x = qBound(qreal(0),
                      m_actualFocusPoint.x() - (focusSize.width() / 2),
@@ -264,8 +288,13 @@ void QAndroidCameraFocusControl::setCameraFocusArea()
         // in FocusPointAuto mode, leave the area list empty
         // to let the driver choose the focus point.
 
-        for (int i = 0; i < m_focusZones.size(); ++i)
-            areas.append(adjustedArea(m_focusZones.at(i).area()));
+        for (int i = 0; i < m_focusZones.size(); ++i) {
+            // The area passed to Android should be in sensor orientation.
+            // What we have in m_focusZones is in viewport orientation, so revert the rotation set
+            // on the viewport to get sensor coordinates.
+            areas.append(adjustedArea(m_focusZones.at(i).area(),
+                                      m_session->camera()->getDisplayOrientation()));
+        }
 
     }
     m_session->camera()->setFocusAreas(areas);

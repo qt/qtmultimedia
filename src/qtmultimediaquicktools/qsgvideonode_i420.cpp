@@ -46,6 +46,8 @@
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLShaderProgram>
 
+QT_BEGIN_NAMESPACE
+
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_I420::supportedPixelFormats(
                                         QAbstractVideoBuffer::HandleType handleType) const
 {
@@ -324,3 +326,5 @@ void QSGVideoMaterialShader_YUV420::updateState(const RenderState &state,
     if (state.isMatrixDirty())
         program()->setUniformValue(m_id_matrix, state.combinedMatrix());
 }
+
+QT_END_NAMESPACE

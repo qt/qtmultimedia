@@ -39,34 +39,39 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDSGVIDEONODE_H
-#define QANDROIDSGVIDEONODE_H
+#ifndef QSGVIDEONODE_I420_H
+#define QSGVIDEONODE_I420_H
 
 #include <private/qsgvideonode_p.h>
-#include <qmutex.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidSGVideoNodeMaterial;
-
-class QAndroidSGVideoNode : public QSGVideoNode
+class QSGVideoMaterial_YUV420;
+class QSGVideoNode_I420 : public QSGVideoNode
 {
 public:
-    QAndroidSGVideoNode(const QVideoSurfaceFormat &format);
-    ~QAndroidSGVideoNode();
+    QSGVideoNode_I420(const QVideoSurfaceFormat &format);
+    ~QSGVideoNode_I420();
 
+    virtual QVideoFrame::PixelFormat pixelFormat() const {
+        return m_format.pixelFormat();
+    }
     void setCurrentFrame(const QVideoFrame &frame);
-    QVideoFrame::PixelFormat pixelFormat() const { return m_format.pixelFormat(); }
-
-    void preprocess();
 
 private:
-    QAndroidSGVideoNodeMaterial *m_material;
-    QMutex m_frameMutex;
-    QVideoFrame m_frame;
+    void bindTexture(int id, int unit, int w, int h, const uchar *bits);
+
     QVideoSurfaceFormat m_format;
+    QSGVideoMaterial_YUV420 *m_material;
+};
+
+class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactoryInterface {
+public:
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDSGVIDEONODE_H
+#endif // QSGVIDEONODE_I420_H

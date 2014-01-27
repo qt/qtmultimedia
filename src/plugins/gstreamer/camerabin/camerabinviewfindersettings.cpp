@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Jolla Ltd.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,36 +39,68 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_I420_H
-#define QSGVIDEONODE_I420_H
 
-#include <private/qsgvideonode_p.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include "camerabinviewfindersettings.h"
 
-class QSGVideoMaterial_YUV420;
-class QSGVideoNode_I420 : public QSGVideoNode
+
+QT_BEGIN_NAMESPACE
+
+CameraBinViewfinderSettings::CameraBinViewfinderSettings(QObject *parent)
+    : QCameraViewfinderSettingsControl(parent)
 {
-public:
-    QSGVideoNode_I420(const QVideoSurfaceFormat &format);
-    ~QSGVideoNode_I420();
+}
 
-    virtual QVideoFrame::PixelFormat pixelFormat() const {
-        return m_format.pixelFormat();
+CameraBinViewfinderSettings::~CameraBinViewfinderSettings()
+{
+}
+
+bool CameraBinViewfinderSettings::isViewfinderParameterSupported(ViewfinderParameter parameter) const
+{
+    switch (parameter) {
+    case Resolution:
+        return true;
+    case PixelAspectRatio:
+    case MinimumFrameRate:
+    case MaximumFrameRate:
+    case PixelFormat:
+    case UserParameter:
+        return false;
     }
-    void setCurrentFrame(const QVideoFrame &frame);
+    return false;
+}
 
-private:
-    void bindTexture(int id, int unit, int w, int h, const uchar *bits);
+QVariant CameraBinViewfinderSettings::viewfinderParameter(ViewfinderParameter parameter) const
+{
+    switch (parameter) {
+    case Resolution:
+        return m_resolution;
+    case PixelAspectRatio:
+    case MinimumFrameRate:
+    case MaximumFrameRate:
+    case PixelFormat:
+    case UserParameter:
+        return QVariant();
+    }
+    return false;
+}
 
-    QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_YUV420 *m_material;
-};
+void CameraBinViewfinderSettings::setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value)
+{
+    switch (parameter) {
+    case Resolution:
+        m_resolution = value.toSize();
+    case PixelAspectRatio:
+    case MinimumFrameRate:
+    case MaximumFrameRate:
+    case PixelFormat:
+    case UserParameter:
+        break;
+    }
+}
 
-class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactoryInterface {
-public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
-};
+QSize CameraBinViewfinderSettings::resolution() const
+{
+    return m_resolution;
+}
 
-
-#endif // QSGVIDEONODE_I420_H
+QT_END_NAMESPACE

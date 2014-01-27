@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,55 +40,82 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_P_H
-#define QSGVIDEONODE_P_H
+#ifndef QDECLARATIVEVIDEOOUTPUT_BACKEND_P_H
+#define QDECLARATIVEVIDEOOUTPUT_BACKEND_P_H
 
+#include <QtCore/qpointer.h>
+#include <QtCore/qsize.h>
+#include <QtQuick/qquickitem.h>
 #include <QtQuick/qsgnode.h>
 #include <private/qtmultimediaquickdefs_p.h>
 
-#include <QtMultimedia/qvideoframe.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
-#include <QtGui/qopenglfunctions.h>
-
 QT_BEGIN_NAMESPACE
 
-const QLatin1String QSGVideoNodeFactoryPluginKey("sgvideonodes");
+class QAbstractVideoSurface;
+class QDeclarativeVideoOutput;
+class QMediaService;
 
-class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNode : public QSGGeometryNode
+class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoBackend
 {
 public:
-    QSGVideoNode();
+    explicit QDeclarativeVideoBackend(QDeclarativeVideoOutput *parent)
+        : q(parent)
+    {}
 
-    virtual void setCurrentFrame(const QVideoFrame &frame) = 0;
-    virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
+    virtual ~QDeclarativeVideoBackend()
+    {}
 
-    void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
+    virtual bool init(QMediaService *service) = 0;
+    virtual void releaseSource() = 0;
+    virtual void releaseControl() = 0;
+    virtual void itemChange(QQuickItem::ItemChange change,
+                            const QQuickItem::ItemChangeData &changeData) = 0;
+    virtual QSize nativeSize() const = 0;
+    virtual void updateGeometry() = 0;
+    virtual QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) = 0;
+    virtual QAbstractVideoSurface *videoSurface() const = 0;
 
-private:
-    QRectF m_rect;
-    QRectF m_textureRect;
-    int m_orientation;
+    // The viewport, adjusted for the pixel aspect ratio
+    virtual QRectF adjustedViewport() const = 0;
+
+protected:
+    QDeclarativeVideoOutput *q;
+    QPointer<QMediaService> m_service;
 };
 
-class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryInterface
+class QDeclarativeVideoBackendFactoryInterface
 {
 public:
-    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
-    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
+    virtual QDeclarativeVideoBackend *create(QDeclarativeVideoOutput *parent) = 0;
 };
 
-#define QSGVideoNodeFactoryInterface_iid "org.qt-project.qt.sgvideonodefactory/5.2"
-Q_DECLARE_INTERFACE(QSGVideoNodeFactoryInterface, QSGVideoNodeFactoryInterface_iid)
+#define QDeclarativeVideoBackendFactoryInterface_iid "org.qt-project.qt.declarativevideobackendfactory/5.2"
+Q_DECLARE_INTERFACE(QDeclarativeVideoBackendFactoryInterface, QDeclarativeVideoBackendFactoryInterface_iid)
 
-class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryPlugin : public QObject, public QSGVideoNodeFactoryInterface
+/*
+ * Helper - returns true if the given orientation has the same aspect as the default (e.g. 180*n)
+ */
+namespace {
+
+inline bool qIsDefaultAspect(int o)
 {
-    Q_OBJECT
-    Q_INTERFACES(QSGVideoNodeFactoryInterface)
-public:
-    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
-    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
-};
+    return (o % 180) == 0;
+}
+
+/*
+ * Return the orientation normalized to 0-359
+ */
+inline int qNormalizedOrientation(int o)
+{
+    // Negative orientations give negative results
+    int o2 = o % 360;
+    if (o2 < 0)
+        o2 += 360;
+    return o2;
+}
+
+}
 
 QT_END_NAMESPACE
 
-#endif // QSGVIDEONODE_H
+#endif
