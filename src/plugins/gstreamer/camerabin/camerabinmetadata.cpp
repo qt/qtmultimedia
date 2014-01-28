@@ -46,12 +46,15 @@
 #include <gst/gst.h>
 #include <gst/gstversion.h>
 
+#include <QDebug>
+
 QT_BEGIN_NAMESPACE
 
 struct QGstreamerMetaDataKeyLookup
 {
     QString key;
     const char *token;
+    QVariant::Type type;
 };
 
 static QVariant fromGStreamerOrientation(const QVariant &value)
@@ -86,74 +89,77 @@ static QVariant toGStreamerOrientation(const QVariant &value)
 
 static const QGstreamerMetaDataKeyLookup qt_gstreamerMetaDataKeys[] =
 {
-    { QMediaMetaData::Title, GST_TAG_TITLE },
-    //{ QMediaMetaData::SubTitle, 0 },
-    //{ QMediaMetaData::Author, 0 },
-    { QMediaMetaData::Comment, GST_TAG_COMMENT },
-    { QMediaMetaData::Date, GST_TAG_DATE_TIME },
-    { QMediaMetaData::Description, GST_TAG_DESCRIPTION },
-    //{ QMediaMetaData::Category, 0 },
-    { QMediaMetaData::Genre, GST_TAG_GENRE },
-    //{ QMediaMetaData::Year, 0 },
-    //{ QMediaMetaData::UserRating, 0 },
+    { QMediaMetaData::Title, GST_TAG_TITLE, QVariant::String },
+    //{ QMediaMetaData::SubTitle, 0, QVariant::String },
+    //{ QMediaMetaData::Author, 0, QVariant::String },
+    { QMediaMetaData::Comment, GST_TAG_COMMENT, QVariant::String },
+    { QMediaMetaData::Date, GST_TAG_DATE_TIME, QVariant::DateTime },
+    { QMediaMetaData::Description, GST_TAG_DESCRIPTION, QVariant::String },
+    //{ QMediaMetaData::Category, 0, QVariant::String },
+    { QMediaMetaData::Genre, GST_TAG_GENRE, QVariant::String },
+    //{ QMediaMetaData::Year, 0, QVariant::Int },
+    //{ QMediaMetaData::UserRating, , QVariant::Int },
 
-    { QMediaMetaData::Language, GST_TAG_LANGUAGE_CODE },
+    { QMediaMetaData::Language, GST_TAG_LANGUAGE_CODE, QVariant::String },
 
-    { QMediaMetaData::Publisher, GST_TAG_ORGANIZATION },
-    { QMediaMetaData::Copyright, GST_TAG_COPYRIGHT },
-    //{ QMediaMetaData::ParentalRating, 0 },
-    //{ QMediaMetaData::RatingOrganisation, 0 },
+    { QMediaMetaData::Publisher, GST_TAG_ORGANIZATION, QVariant::String },
+    { QMediaMetaData::Copyright, GST_TAG_COPYRIGHT, QVariant::String },
+    //{ QMediaMetaData::ParentalRating, 0, QVariant::String },
+    //{ QMediaMetaData::RatingOrganisation, 0, QVariant::String },
 
     // Media
-    //{ QMediaMetaData::Size, 0 },
-    //{ QMediaMetaData::MediaType, 0 },
-    { QMediaMetaData::Duration, GST_TAG_DURATION },
+    //{ QMediaMetaData::Size, 0, QVariant::Int },
+    //{ QMediaMetaData::MediaType, 0, QVariant::String },
+    { QMediaMetaData::Duration, GST_TAG_DURATION, QVariant::Int },
 
     // Audio
-    { QMediaMetaData::AudioBitRate, GST_TAG_BITRATE },
-    { QMediaMetaData::AudioCodec, GST_TAG_AUDIO_CODEC },
-    //{ QMediaMetaData::ChannelCount, 0 },
-    //{ QMediaMetaData::SampleRate, 0 },
+    { QMediaMetaData::AudioBitRate, GST_TAG_BITRATE, QVariant::Int },
+    { QMediaMetaData::AudioCodec, GST_TAG_AUDIO_CODEC, QVariant::String },
+    //{ QMediaMetaData::ChannelCount, 0, QVariant::Int },
+    //{ QMediaMetaData::SampleRate, 0, QVariant::Int },
 
     // Music
-    { QMediaMetaData::AlbumTitle, GST_TAG_ALBUM },
-    { QMediaMetaData::AlbumArtist,  GST_TAG_ARTIST},
-    { QMediaMetaData::ContributingArtist, GST_TAG_PERFORMER },
+    { QMediaMetaData::AlbumTitle, GST_TAG_ALBUM, QVariant::String },
+    { QMediaMetaData::AlbumArtist,  GST_TAG_ARTIST, QVariant::String},
+    { QMediaMetaData::ContributingArtist, GST_TAG_PERFORMER, QVariant::String },
 #if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 19)
-    { QMediaMetaData::Composer, GST_TAG_COMPOSER },
+    { QMediaMetaData::Composer, GST_TAG_COMPOSER, QVariant::String },
 #endif
-    //{ QMediaMetaData::Conductor, 0 },
-    //{ QMediaMetaData::Lyrics, 0 },
-    //{ QMediaMetaData::Mood, 0 },
-    { QMediaMetaData::TrackNumber, GST_TAG_TRACK_NUMBER },
+    //{ QMediaMetaData::Conductor, 0, QVariant::String },
+    //{ QMediaMetaData::Lyrics, 0, QVariant::String },
+    //{ QMediaMetaData::Mood, 0, QVariant::String },
+    { QMediaMetaData::TrackNumber, GST_TAG_TRACK_NUMBER, QVariant::Int },
 
-    //{ QMediaMetaData::CoverArtUrlSmall, 0 },
-    //{ QMediaMetaData::CoverArtUrlLarge, 0 },
+    //{ QMediaMetaData::CoverArtUrlSmall, 0, QVariant::String },
+    //{ QMediaMetaData::CoverArtUrlLarge, 0, QVariant::String },
 
     // Image/Video
-    //{ QMediaMetaData::Resolution, 0 },
-    //{ QMediaMetaData::PixelAspectRatio, 0 },
+    //{ QMediaMetaData::Resolution, 0, QVariant::Size },
+    //{ QMediaMetaData::PixelAspectRatio, 0, QVariant::Size },
 
     // Video
-    //{ QMediaMetaData::VideoFrameRate, 0 },
-    //{ QMediaMetaData::VideoBitRate, 0 },
-    { QMediaMetaData::VideoCodec, GST_TAG_VIDEO_CODEC },
+    //{ QMediaMetaData::VideoFrameRate, 0, QVariant::String },
+    //{ QMediaMetaData::VideoBitRate, 0, QVariant::Double },
+    { QMediaMetaData::VideoCodec, GST_TAG_VIDEO_CODEC, QVariant::String },
 
-    //{ QMediaMetaData::PosterUrl, 0 },
+    //{ QMediaMetaData::PosterUrl, 0, QVariant::String },
 
     // Movie
-    //{ QMediaMetaData::ChapterNumber, 0 },
-    //{ QMediaMetaData::Director, 0 },
-    { QMediaMetaData::LeadPerformer, GST_TAG_PERFORMER },
-    //{ QMediaMetaData::Writer, 0 },
+    //{ QMediaMetaData::ChapterNumber, 0, QVariant::Int },
+    //{ QMediaMetaData::Director, 0, QVariant::String },
+    { QMediaMetaData::LeadPerformer, GST_TAG_PERFORMER, QVariant::String },
+    //{ QMediaMetaData::Writer, 0, QVariant::String },
 
+#if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 30)
     // Photos
-    //{ QMediaMetaData::CameraManufacturer, 0 },
-    //{ QMediaMetaData::CameraModel, 0 },
-    //{ QMediaMetaData::Event, 0 },
-    //{ QMediaMetaData::Subject, 0 },
+    { QMediaMetaData::CameraManufacturer, 0, QVariant::String },
+    { QMediaMetaData::CameraModel, 0, QVariant::String },
+    //{ QMediaMetaData::Event, 0, QVariant::String },
+    //{ QMediaMetaData::Subject, 0, QVariant::String },
 
-    { QMediaMetaData::Orientation, GST_TAG_IMAGE_ORIENTATION }
+    { QMediaMetaData::Orientation, GST_TAG_IMAGE_ORIENTATION, QVariant::String },
+
+#endif
 };
 
 CameraBinMetaData::CameraBinMetaData(QObject *parent)
@@ -165,6 +171,9 @@ QVariant CameraBinMetaData::metaData(const QString &key) const
 {
     if (key == QMediaMetaData::Orientation) {
         return fromGStreamerOrientation(m_values.value(QByteArray(GST_TAG_IMAGE_ORIENTATION)));
+    } else if (key == QMediaMetaData::GPSSpeed) {
+        const double metersPerSec = m_values.value(QByteArray(GST_TAG_GEO_LOCATION_MOVEMENT_SPEED)).toDouble();
+        return (metersPerSec * 3600) / 1000;
     }
 
     static const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
@@ -181,13 +190,12 @@ QVariant CameraBinMetaData::metaData(const QString &key) const
 
 void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
 {
+    QVariant correctedValue = value;
     if (key == QMediaMetaData::Orientation) {
-        m_values.insert(QByteArray(GST_TAG_IMAGE_ORIENTATION), toGStreamerOrientation(value));
-
-        emit QMetaDataWriterControl::metaDataChanged();
-        emit metaDataChanged(m_values);
-
-        return;
+        correctedValue = toGStreamerOrientation(value);
+    } else if (key == QMediaMetaData::GPSSpeed) {
+        // kilometers per hour to meters per second.
+        correctedValue = (value.toDouble() * 1000) / 3600;
     }
 
     static const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
@@ -196,7 +204,9 @@ void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
         if (qt_gstreamerMetaDataKeys[i].key == key) {
             const char *name = qt_gstreamerMetaDataKeys[i].token;
 
-            m_values.insert(QByteArray::fromRawData(name, qstrlen(name)), value);
+            correctedValue.convert(qt_gstreamerMetaDataKeys[i].type);
+
+            m_values.insert(QByteArray::fromRawData(name, qstrlen(name)), correctedValue);
 
             emit QMetaDataWriterControl::metaDataChanged();
             emit metaDataChanged(m_values);
