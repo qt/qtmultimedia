@@ -3,13 +3,6 @@ QT += qml quick network multimedia-private qtmultimediaquicktools-private
 HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediametadata_p.h \
-        qdeclarativevideooutput_p.h \
-        qdeclarativevideooutput_backend_p.h \
-        qdeclarativevideooutput_render_p.h \
-        qdeclarativevideooutput_window_p.h \
-        qsgvideonode_i420.h \
-        qsgvideonode_rgb.h \
-        qsgvideonode_texture.h \
         qdeclarativeradio_p.h \
         qdeclarativeradiodata_p.h \
         qdeclarativecamera_p.h \
@@ -25,12 +18,6 @@ HEADERS += \
 SOURCES += \
         multimedia.cpp \
         qdeclarativeaudio.cpp \
-        qdeclarativevideooutput.cpp \
-        qdeclarativevideooutput_render.cpp \
-        qdeclarativevideooutput_window.cpp \
-        qsgvideonode_i420.cpp \
-        qsgvideonode_rgb.cpp \
-        qsgvideonode_texture.cpp \
         qdeclarativeradio.cpp \
         qdeclarativeradiodata.cpp \
         qdeclarativecamera.cpp \

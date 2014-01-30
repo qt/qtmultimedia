@@ -149,28 +149,29 @@ void QGstAppSrc::pushDataToAppSrc()
             size = qMin(m_stream->bytesAvailable(), queueSize());
         else
             size = qMin(m_stream->bytesAvailable(), (qint64)m_dataRequestSize);
-        void *data = g_malloc(size);
-        GstBuffer* buffer = gst_app_buffer_new(data, size, g_free, data);
-        buffer->offset = m_stream->pos();
-        qint64 bytesRead = m_stream->read((char*)GST_BUFFER_DATA(buffer), size);
-        buffer->offset_end =  buffer->offset + bytesRead - 1;
 
-        if (bytesRead > 0) {
-            m_dataRequested = false;
-            m_enoughData = false;
-            GstFlowReturn ret = gst_app_src_push_buffer (GST_APP_SRC (element()), buffer);
-            if (ret == GST_FLOW_ERROR) {
-                qWarning()<<"appsrc: push buffer error";
-            } else if (ret == GST_FLOW_WRONG_STATE) {
-                qWarning()<<"appsrc: push buffer wrong state";
-            } else if (ret == GST_FLOW_RESEND) {
-                qWarning()<<"appsrc: push buffer resend";
+        if (size) {
+            void *data = g_malloc(size);
+            GstBuffer* buffer = gst_app_buffer_new(data, size, g_free, data);
+            buffer->offset = m_stream->pos();
+            qint64 bytesRead = m_stream->read((char*)GST_BUFFER_DATA(buffer), size);
+            buffer->offset_end =  buffer->offset + bytesRead - 1;
+
+            if (bytesRead > 0) {
+                m_dataRequested = false;
+                m_enoughData = false;
+                GstFlowReturn ret = gst_app_src_push_buffer (GST_APP_SRC (element()), buffer);
+                if (ret == GST_FLOW_ERROR) {
+                    qWarning()<<"appsrc: push buffer error";
+                } else if (ret == GST_FLOW_WRONG_STATE) {
+                    qWarning()<<"appsrc: push buffer wrong state";
+                } else if (ret == GST_FLOW_RESEND) {
+                    qWarning()<<"appsrc: push buffer resend";
+                }
             }
-        }
-
-        // After reading we might be all done
-        if (m_stream->atEnd())
+        } else {
             sendEOS();
+        }
     } else if (m_stream->atEnd()) {
         sendEOS();
     }

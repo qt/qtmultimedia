@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Copyright (C) 2012 Research In Motion
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -40,71 +39,38 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVEVIDEOOUTPUT_BACKEND_P_H
-#define QDECLARATIVEVIDEOOUTPUT_BACKEND_P_H
+#ifndef QSGVIDEONODE_TEXTURE_H
+#define QSGVIDEONODE_TEXTURE_H
 
-#include <QtCore/qpointer.h>
-#include <QtCore/qsize.h>
-#include <QtQuick/qquickitem.h>
-#include <QtQuick/qsgnode.h>
+#include <private/qsgvideonode_p.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAbstractVideoSurface;
-class QDeclarativeVideoOutput;
-class QMediaService;
+class QSGVideoMaterial_Texture;
 
-class QDeclarativeVideoBackend
+class QSGVideoNode_Texture : public QSGVideoNode
 {
 public:
-    explicit QDeclarativeVideoBackend(QDeclarativeVideoOutput *parent)
-        : q(parent)
-    {}
+    QSGVideoNode_Texture(const QVideoSurfaceFormat &format);
+    ~QSGVideoNode_Texture();
 
-    virtual ~QDeclarativeVideoBackend()
-    {}
+    virtual QVideoFrame::PixelFormat pixelFormat() const {
+        return m_format.pixelFormat();
+    }
+    void setCurrentFrame(const QVideoFrame &frame);
 
-    virtual bool init(QMediaService *service) = 0;
-    virtual void releaseSource() = 0;
-    virtual void releaseControl() = 0;
-    virtual void itemChange(QQuickItem::ItemChange change,
-                            const QQuickItem::ItemChangeData &changeData) = 0;
-    virtual QSize nativeSize() const = 0;
-    virtual void updateGeometry() = 0;
-    virtual QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) = 0;
-    virtual QAbstractVideoSurface *videoSurface() const = 0;
-
-    // The viewport, adjusted for the pixel aspect ratio
-    virtual QRectF adjustedViewport() const = 0;
-
-protected:
-    QDeclarativeVideoOutput *q;
-    QPointer<QMediaService> m_service;
+private:
+    QVideoSurfaceFormat m_format;
+    QSGVideoMaterial_Texture *m_material;
+    QVideoFrame m_frame;
 };
 
-/*
- * Helper - returns true if the given orientation has the same aspect as the default (e.g. 180*n)
- */
-namespace {
-
-inline bool qIsDefaultAspect(int o)
-{
-    return (o % 180) == 0;
-}
-
-/*
- * Return the orientation normalized to 0-359
- */
-inline int qNormalizedOrientation(int o)
-{
-    // Negative orientations give negative results
-    int o2 = o % 360;
-    if (o2 < 0)
-        o2 += 360;
-    return o2;
-}
-
-}
+class QSGVideoNodeFactory_Texture : public QSGVideoNodeFactoryInterface {
+public:
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
+};
 
 QT_END_NAMESPACE
 

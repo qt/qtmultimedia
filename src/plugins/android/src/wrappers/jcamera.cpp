@@ -151,6 +151,7 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
     friend class JCamera;
 
     JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread *workerThread);
+    ~JCameraWorker();
 
     Q_INVOKABLE void release();
 
@@ -230,6 +231,7 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
 
     QSize m_previewSize;
     int m_rotation;
+    int m_displayOrientation;
 
     bool m_hasAPI14;
 
@@ -275,9 +277,7 @@ JCamera::~JCamera()
         g_objectMap.remove(d->m_cameraId);
         g_objectMapMutex.unlock();
     }
-    QThread *workerThread = d->m_workerThread;
     d->deleteLater();
-    workerThread->quit();
 }
 
 JCamera *JCamera::open(int cameraId)
@@ -337,8 +337,14 @@ int JCamera::getNativeOrientation()
     return d->getNativeOrientation();
 }
 
+int JCamera::getDisplayOrientation() const
+{
+    return d->m_displayOrientation;
+}
+
 void JCamera::setDisplayOrientation(int degrees)
 {
+    d->m_displayOrientation = degrees;
     QMetaObject::invokeMethod(d, "setDisplayOrientation", Q_ARG(int, degrees));
 }
 
@@ -372,7 +378,7 @@ void JCamera::setPreviewSize(const QSize &size)
     d->m_parametersMutex.lock();
     bool areParametersValid = d->m_parameters.isValid();
     d->m_parametersMutex.unlock();
-    if (!areParametersValid || !size.isValid())
+    if (!areParametersValid)
         return;
 
     d->m_previewSize = size;
@@ -620,6 +626,7 @@ JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread
     , QJNIObjectPrivate(cam)
     , m_cameraId(cameraId)
     , m_rotation(0)
+    , m_displayOrientation(0)
     , m_hasAPI14(false)
     , m_parametersMutex(QMutex::Recursive)
 {
@@ -659,6 +666,11 @@ JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread
             m_hasAPI14 = bool(id);
         }
     }
+}
+
+JCameraWorker::~JCameraWorker()
+{
+    m_workerThread->quit();
 }
 
 void JCameraWorker::release()

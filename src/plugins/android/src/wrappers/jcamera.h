@@ -88,6 +88,7 @@ public:
     CameraFacing getFacing();
     int getNativeOrientation();
 
+    int getDisplayOrientation() const;
     void setDisplayOrientation(int degrees);
 
     QSize getPreferredPreviewSizeForVideo();

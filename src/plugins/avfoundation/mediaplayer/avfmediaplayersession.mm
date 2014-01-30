@@ -134,15 +134,17 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 - (void) unloadMedia
 {
     [m_player setRate:0.0];
-    [m_playerItem removeObserver:self forKeyPath:AVF_STATUS_KEY];
+    if (m_playerItem) {
+        [m_playerItem removeObserver:self forKeyPath:AVF_STATUS_KEY];
 
-    [[NSNotificationCenter defaultCenter] removeObserver:self
+        [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemDidPlayToEndTimeNotification
                                                   object:m_playerItem];
-    [[NSNotificationCenter defaultCenter] removeObserver:self
+        [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemTimeJumpedNotification
                                                     object:m_playerItem];
-    m_playerItem = 0;
+        m_playerItem = 0;
+    }
 }
 
 - (void) prepareToPlayAsset:(AVURLAsset *)asset
@@ -232,8 +234,11 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
         [m_player release];
         m_player = 0;
-        [m_playerLayer release];
-        m_playerLayer = 0; //Will have been released
+
+        if (m_playerLayer) {
+            [m_playerLayer release];
+            m_playerLayer = 0; //Will have been released
+        }
     }
 
     //Get a new AVPlayer initialized to play the specified player item.
@@ -398,14 +403,21 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 #ifdef QT_DEBUG_AVF
         qDebug() << Q_FUNC_INFO;
 #endif
-    [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
-    [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
-    [m_player release];
+    if (m_player) {
+        [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
+        [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
+        [m_player release];
+    }
 
-    [m_playerLayer release];
+    if (m_playerLayer) {
+        [m_playerLayer release];
+    }
 
     [self unloadMedia];
-    [m_URL release];
+
+    if (m_URL) {
+        [m_URL release];
+    }
 
     [super dealloc];
 }

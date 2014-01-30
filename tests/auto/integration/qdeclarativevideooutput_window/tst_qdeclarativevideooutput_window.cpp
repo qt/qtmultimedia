@@ -42,7 +42,7 @@
 
 //TESTED_COMPONENT=plugins/declarative/multimedia
 
-#include "qdeclarativevideooutput_p.h"
+#include "private/qdeclarativevideooutput_p.h"
 #include <QtCore/qobject.h>
 #include <QtTest/qtest.h>
 #include <QtQml/qqmlengine.h>
