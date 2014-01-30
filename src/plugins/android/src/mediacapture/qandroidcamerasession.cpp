@@ -57,15 +57,16 @@ QT_BEGIN_NAMESPACE
 class DataVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    DataVideoBuffer(const QByteArray &d)
+    DataVideoBuffer(const QByteArray &d, int bpl = -1)
         : QAbstractVideoBuffer(NoHandle)
         , data(d)
         , mode(NotMapped)
+        , bytesPerLine(bpl)
     { }
 
     MapMode mapMode() const { return mode; }
 
-    uchar *map(MapMode m, int *numBytes, int *bytesPerLine)
+    uchar *map(MapMode m, int *numBytes, int *bpl)
     {
         if (mode != NotMapped || m == NotMapped)
             return 0;
@@ -75,8 +76,8 @@ public:
         if (numBytes)
             *numBytes = data.size();
 
-        if (bytesPerLine)
-            *bytesPerLine = -1;
+        if (bpl)
+            *bpl = bytesPerLine;
 
         return reinterpret_cast<uchar *>(data.data());
     }
@@ -86,6 +87,7 @@ public:
 private:
     QByteArray data;
     MapMode mode;
+    int bytesPerLine;
 };
 
 
@@ -543,8 +545,11 @@ void QAndroidCameraSession::onCameraFrameFetched(const QByteArray &frame)
 {
     m_videoProbesMutex.lock();
     if (frame.size() && m_videoProbes.count()) {
-        QVideoFrame videoFrame(new DataVideoBuffer(frame),
-                               m_camera->previewSize(),
+        const QSize frameSize = m_camera->previewSize();
+        // Bytes per line should be only for the first plane. For NV21, the Y plane has 8 bits
+        // per sample, so bpl == width
+        QVideoFrame videoFrame(new DataVideoBuffer(frame, frameSize.width()),
+                               frameSize,
                                QVideoFrame::Format_NV21);
         foreach (QAndroidMediaVideoProbeControl *probe, m_videoProbes)
             probe->newFrameProbed(videoFrame);
