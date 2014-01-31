@@ -173,6 +173,8 @@ public:
 DSCameraSession::DSCameraSession(QObject *parent)
     : QObject(parent)
       ,m_currentImageId(0)
+    , needsHorizontalMirroring(false)
+    , needsVerticalMirroring(true)
 {
     pBuild = NULL;
     pGraph = NULL;
@@ -581,7 +583,7 @@ void DSCameraSession::captureFrame()
             mutex.lock();
 
             image = QImage(frames.at(0)->buffer,m_windowSize.width(),m_windowSize.height(),
-                    QImage::Format_RGB888).rgbSwapped().mirrored(true);
+                    QImage::Format_RGB888).rgbSwapped().mirrored(needsHorizontalMirroring, needsVerticalMirroring);
 
             QVideoFrame frame(image);
             frame.setStartTime(frames.at(0)->time);
@@ -595,7 +597,7 @@ void DSCameraSession::captureFrame()
             mutex.lock();
 
             image = QImage(frames.at(0)->buffer,m_windowSize.width(),m_windowSize.height(),
-                    QImage::Format_RGB32).mirrored(true);
+                    QImage::Format_RGB32).mirrored(needsHorizontalMirroring, needsVerticalMirroring);
 
             QVideoFrame frame(image);
             frame.setStartTime(frames.at(0)->time);
@@ -805,7 +807,39 @@ void DSCameraSession::updateProperties()
 
     types.clear();
     resolutions.clear();
-
+    IAMVideoControl *pVideoControl = 0;
+    hr = pBuild->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,pCap,
+                               IID_IAMVideoControl, (void**)&pVideoControl);
+    if (FAILED(hr)) {
+        qWarning() << "Failed to get the video control";
+    } else {
+        IPin *pPin = 0;
+        if (pCap) {
+            hr = getPin(pCap, PINDIR_OUTPUT, &pPin);
+            if (FAILED(hr)) {
+                qWarning() << "Failed to get the pin for the video control";
+            } else {
+                long supportedModes;
+                hr = pVideoControl->GetCaps(pPin, &supportedModes);
+                if (FAILED(hr)) {
+                    qWarning() << "Failed to get the supported modes of the video control";
+                } else if (supportedModes & VideoControlFlag_FlipHorizontal || supportedModes & VideoControlFlag_FlipVertical) {
+                    long mode;
+                    hr = pVideoControl->GetMode(pPin, &mode);
+                    if (FAILED(hr)) {
+                        qWarning() << "Failed to get the mode of the video control";
+                    } else {
+                        if (supportedModes & VideoControlFlag_FlipHorizontal)
+                            needsHorizontalMirroring = (mode & VideoControlFlag_FlipHorizontal);
+                        if (supportedModes & VideoControlFlag_FlipVertical)
+                            needsVerticalMirroring = (mode & VideoControlFlag_FlipVertical);
+                    }
+                }
+                pPin->Release();
+            }
+        }
+        pVideoControl->Release();
+    }
     for (int iIndex = 0; iIndex < iCount; iIndex++) {
         hr = pConfig->GetStreamCaps(iIndex, &pmt, reinterpret_cast<BYTE*>(&scc));
         if (hr == S_OK) {

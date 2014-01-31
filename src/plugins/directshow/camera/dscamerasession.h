@@ -188,6 +188,8 @@ private:
 
     QString m_snapshot;
     int m_currentImageId;
+    bool needsHorizontalMirroring;
+    bool needsVerticalMirroring;
 protected:
     HRESULT getPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin);
     bool createFilterGraph();
