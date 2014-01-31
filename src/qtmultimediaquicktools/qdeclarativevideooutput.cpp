@@ -247,7 +247,10 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
     if (!backendAvailable) {
         qWarning() << Q_FUNC_INFO << "Media service has neither renderer nor window control available.";
         m_backend.reset();
+    } else if (!m_geometryDirty) {
+        m_backend->updateGeometry();
     }
+
     return backendAvailable;
 }
 
