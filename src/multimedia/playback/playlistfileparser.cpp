@@ -396,8 +396,8 @@ void QPlaylistFileParserPrivate::processLine(int startIndex, int length)
         Q_ASSERT(m_currentParser);
         connect(m_currentParser, SIGNAL(newItem(QVariant)), q, SIGNAL(newItem(QVariant)));
         connect(m_currentParser, SIGNAL(finished()), q, SLOT(_q_handleParserFinished()));
-        connect(m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError, QString)),
-                q, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError, QString)));
+        connect(m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError,QString)),
+                q, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError,QString)));
     }
 
     QString line;
@@ -583,8 +583,8 @@ void QPlaylistFileParser::stop()
     if (d->m_currentParser) {
         disconnect(d->m_currentParser, SIGNAL(newItem(QVariant)), this, SIGNAL(newItem(QVariant)));
         disconnect(d->m_currentParser, SIGNAL(finished()), this, SLOT(_q_handleParserFinished()));
-        disconnect(d->m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError, QString)),
-                   this, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError, QString)));
+        disconnect(d->m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError,QString)),
+                   this, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError,QString)));
         d->m_currentParser->deleteLater();
         d->m_currentParser = 0;
     }

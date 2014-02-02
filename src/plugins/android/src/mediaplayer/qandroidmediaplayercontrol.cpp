@@ -63,12 +63,12 @@ QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
 {
     connect(mMediaPlayer, SIGNAL(bufferingUpdate(qint32)),
             this, SLOT(onBufferChanged(qint32)));
-    connect(mMediaPlayer, SIGNAL(info(qint32, qint32)),
-            this, SLOT(onInfo(qint32, qint32)));
-    connect(mMediaPlayer, SIGNAL(error(qint32, qint32)),
-            this, SLOT(onError(qint32, qint32)));
-    connect(mMediaPlayer, SIGNAL(mediaPlayerInfo(qint32, qint32)),
-            this, SLOT(onMediaPlayerInfo(qint32, qint32)));
+    connect(mMediaPlayer, SIGNAL(info(qint32,qint32)),
+            this, SLOT(onInfo(qint32,qint32)));
+    connect(mMediaPlayer, SIGNAL(error(qint32,qint32)),
+            this, SLOT(onError(qint32,qint32)));
+    connect(mMediaPlayer, SIGNAL(mediaPlayerInfo(qint32,qint32)),
+            this, SLOT(onMediaPlayerInfo(qint32,qint32)));
     connect(mMediaPlayer, SIGNAL(videoSizeChanged(qint32,qint32)),
             this, SLOT(onVideoSizeChanged(qint32,qint32)));
 }

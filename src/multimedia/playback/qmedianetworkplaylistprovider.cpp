@@ -113,11 +113,11 @@ QMediaNetworkPlaylistProvider::QMediaNetworkPlaylistProvider(QObject *parent)
     :QMediaPlaylistProvider(*new QMediaNetworkPlaylistProviderPrivate, parent)
 {
     d_func()->q_ptr = this;
-    connect(&d_func()->parser, SIGNAL(newItem(const QVariant&)),
-            this, SLOT(_q_handleNewItem(const QVariant&)));
+    connect(&d_func()->parser, SIGNAL(newItem(QVariant)),
+            this, SLOT(_q_handleNewItem(QVariant)));
     connect(&d_func()->parser, SIGNAL(finished()), this, SIGNAL(loaded()));
-    connect(&d_func()->parser, SIGNAL(error(QPlaylistFileParser::ParserError, const QString &)),
-            this, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError, const QString &)));
+    connect(&d_func()->parser, SIGNAL(error(QPlaylistFileParser::ParserError,QString)),
+            this, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError,QString)));
 }
 
 QMediaNetworkPlaylistProvider::~QMediaNetworkPlaylistProvider()

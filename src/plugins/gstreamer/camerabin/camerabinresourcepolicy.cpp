@@ -65,7 +65,7 @@ CamerabinResourcePolicy::CamerabinResourcePolicy(QObject *parent) :
     m_resource->setAlwaysReply();
     m_resource->initAndConnect();
 
-    connect(m_resource, SIGNAL(resourcesGranted(const QList<ResourcePolicy::ResourceType>)),
+    connect(m_resource, SIGNAL(resourcesGranted(QList<ResourcePolicy::ResourceType>)),
             SLOT(handleResourcesGranted()));
     connect(m_resource, SIGNAL(resourcesDenied()), SIGNAL(resourcesDenied()));
     connect(m_resource, SIGNAL(lostResources()), SLOT(handleResourcesLost()));

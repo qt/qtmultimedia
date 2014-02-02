@@ -61,7 +61,7 @@ ResourcePolicyImpl::ResourcePolicyImpl(QObject *parent)
 
     m_resourceSet->update();
 
-    connect(m_resourceSet, SIGNAL(resourcesGranted(const QList<ResourcePolicy::ResourceType>)),
+    connect(m_resourceSet, SIGNAL(resourcesGranted(QList<ResourcePolicy::ResourceType>)),
             this, SLOT(handleResourcesGranted()));
     connect(m_resourceSet, SIGNAL(resourcesDenied()),
             this, SLOT(handleResourcesDenied()));

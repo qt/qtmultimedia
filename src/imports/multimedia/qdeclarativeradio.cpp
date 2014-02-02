@@ -114,7 +114,7 @@ QDeclarativeRadio::QDeclarativeRadio(QObject *parent) :
     connect(m_radioTuner, SIGNAL(signalStrengthChanged(int)), this, SIGNAL(signalStrengthChanged(int)));
     connect(m_radioTuner, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
     connect(m_radioTuner, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
-    connect(m_radioTuner, SIGNAL(stationFound(int, QString)), this, SIGNAL(stationFound(int, QString)));
+    connect(m_radioTuner, SIGNAL(stationFound(int,QString)), this, SIGNAL(stationFound(int,QString)));
     connect(m_radioTuner, SIGNAL(antennaConnectedChanged(bool)), this, SIGNAL(antennaConnectedChanged(bool)));
     connect(m_radioTuner, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)), this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
 

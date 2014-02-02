@@ -49,10 +49,10 @@ DSImageCaptureControl::DSImageCaptureControl(DSCameraSession *session)
     :QCameraImageCaptureControl(session), m_session(session), m_ready(false)
 {
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
-    connect(m_session, SIGNAL(imageCaptured(const int, QImage)),
-        this, SIGNAL(imageCaptured(const int, QImage)));
-    connect(m_session, SIGNAL(imageSaved(const int, const QString &)),
-            this, SIGNAL(imageSaved(const int, const QString &)));
+    connect(m_session, SIGNAL(imageCaptured(int,QImage)),
+        this, SIGNAL(imageCaptured(int,QImage)));
+    connect(m_session, SIGNAL(imageSaved(int,QString)),
+            this, SIGNAL(imageSaved(int,QString)));
     connect(m_session, SIGNAL(readyForCaptureChanged(bool)),
             this, SIGNAL(readyForCaptureChanged(bool)));
 }

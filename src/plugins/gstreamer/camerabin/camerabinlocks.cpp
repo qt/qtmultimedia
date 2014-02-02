@@ -54,8 +54,8 @@ CameraBinLocks::CameraBinLocks(CameraBinSession *session)
      m_session(session),
      m_focus(m_session->cameraFocusControl())
 {
-    connect(m_focus, SIGNAL(_q_focusStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)),
-            this, SLOT(updateFocusStatus(QCamera::LockStatus, QCamera::LockChangeReason)));
+    connect(m_focus, SIGNAL(_q_focusStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)),
+            this, SLOT(updateFocusStatus(QCamera::LockStatus,QCamera::LockChangeReason)));
 }
 
 CameraBinLocks::~CameraBinLocks()

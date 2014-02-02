@@ -93,7 +93,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_audioSampleGrabberNode(0)
     , m_videoProbeMFT(0)
 {
-    QObject::connect(this, SIGNAL(sessionEvent(IMFMediaEvent *)), this, SLOT(handleSessionEvent(IMFMediaEvent *)));
+    QObject::connect(this, SIGNAL(sessionEvent(IMFMediaEvent*)), this, SLOT(handleSessionEvent(IMFMediaEvent*)));
 
     m_pendingState = NoPending;
     ZeroMemory(&m_state, sizeof(m_state));
