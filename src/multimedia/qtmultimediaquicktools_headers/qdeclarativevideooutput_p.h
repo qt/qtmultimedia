@@ -47,6 +47,7 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
+#include <QtMultimedia/qcamerainfo.h>
 
 #include <private/qtmultimediaquickdefs_p.h>
 
@@ -138,6 +139,7 @@ private:
     QPointer<QObject> m_source;
     QPointer<QMediaObject> m_mediaObject;
     QPointer<QMediaService> m_service;
+    QCameraInfo m_cameraInfo;
 
     FillMode m_fillMode;
     QSize m_nativeSize;

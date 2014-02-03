@@ -73,7 +73,7 @@ void QVideoOutputOrientationHandler::screenOrientationChanged(Qt::ScreenOrientat
     const QScreen *screen = QGuiApplication::primaryScreen();
     const QPlatformScreen *platformScreen = screen->handle();
 
-    const int angle = (360 - screen->angleBetween(platformScreen->nativeOrientation(), orientation));
+    const int angle = (360 - screen->angleBetween(platformScreen->nativeOrientation(), orientation)) % 360;
 
     if (angle == m_currentOrientation)
         return;
