@@ -50,11 +50,13 @@ class QAndroidMediaServicePlugin
         : public QMediaServiceProviderPlugin
         , public QMediaServiceSupportedDevicesInterface
         , public QMediaServiceDefaultDeviceInterface
+        , public QMediaServiceCameraInfoInterface
         , public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
+    Q_INTERFACES(QMediaServiceCameraInfoInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0"
                       FILE "android_mediaservice.json")
@@ -68,9 +70,12 @@ public:
 
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
 
-    QByteArray defaultDevice(const QByteArray &service) const;
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
+    QByteArray defaultDevice(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
+
+    QCamera::Position cameraPosition(const QByteArray &device) const Q_DECL_OVERRIDE;
+    int cameraOrientation(const QByteArray &device) const Q_DECL_OVERRIDE;
 };
 
 QT_END_NAMESPACE

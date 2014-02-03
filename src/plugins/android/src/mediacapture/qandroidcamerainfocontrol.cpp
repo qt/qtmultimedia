@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,38 +39,44 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDVIDEODEVICESELECTORCONTROL_H
-#define QANDROIDVIDEODEVICESELECTORCONTROL_H
+#include "qandroidcamerainfocontrol.h"
 
-#include <qvideodeviceselectorcontrol.h>
-#include <QtCore/qstringlist.h>
+#include "qandroidcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidCameraSession;
-
-class QAndroidVideoDeviceSelectorControl : public QVideoDeviceSelectorControl
+QCamera::Position QAndroidCameraInfoControl::position(const QString &deviceName)
 {
-    Q_OBJECT
-public:
-    explicit QAndroidVideoDeviceSelectorControl(QAndroidCameraSession *session);
-    ~QAndroidVideoDeviceSelectorControl();
+    const QList<AndroidCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
+    for (int i = 0; i < cameras.count(); ++i) {
+        const AndroidCameraInfo &info = cameras.at(i);
+        if (QString::fromLatin1(info.name) == deviceName)
+            return info.position;
+    }
 
-    int deviceCount() const;
+    return QCamera::UnspecifiedPosition;
+}
 
-    QString deviceName(int index) const;
-    QString deviceDescription(int index) const;
+int QAndroidCameraInfoControl::orientation(const QString &deviceName)
+{
+    const QList<AndroidCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
+    for (int i = 0; i < cameras.count(); ++i) {
+        const AndroidCameraInfo &info = cameras.at(i);
+        if (QString::fromLatin1(info.name) == deviceName)
+            return info.orientation;
+    }
 
-    int defaultDevice() const;
-    int selectedDevice() const;
-    void setSelectedDevice(int index);
+    return 0;
+}
 
-private:
-    int m_selectedDevice;
+QCamera::Position QAndroidCameraInfoControl::cameraPosition(const QString &deviceName) const
+{
+    return position(deviceName);
+}
 
-    QAndroidCameraSession *m_cameraSession;
-};
+int QAndroidCameraInfoControl::cameraOrientation(const QString &deviceName) const
+{
+    return orientation(deviceName);
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDVIDEODEVICESELECTORCONTROL_H

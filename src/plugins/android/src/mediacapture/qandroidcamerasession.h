@@ -55,12 +55,22 @@ class JCamera;
 class QAndroidVideoOutput;
 class QAndroidMediaVideoProbeControl;
 
+struct AndroidCameraInfo
+{
+    QByteArray name;
+    QString description;
+    QCamera::Position position;
+    int orientation;
+};
+
 class QAndroidCameraSession : public QObject
 {
     Q_OBJECT
 public:
     explicit QAndroidCameraSession(QObject *parent = 0);
     ~QAndroidCameraSession();
+
+    static const QList<AndroidCameraInfo> &availableCameras();
 
     void setSelectedCamera(int cameraId) { m_selectedCamera = cameraId; }
     JCamera *camera() const { return m_camera; }
@@ -126,6 +136,8 @@ private Q_SLOTS:
     void onCameraPreviewStopped();
 
 private:
+    static void updateAvailableCameras();
+
     bool open();
     void close();
 
@@ -144,7 +156,6 @@ private:
     int m_selectedCamera;
     JCamera *m_camera;
     int m_nativeOrientation;
-    int m_previewOrientation;
     QAndroidVideoOutput *m_videoOutput;
 
     QCamera::CaptureModes m_captureMode;

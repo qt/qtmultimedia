@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,38 +39,24 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDVIDEODEVICESELECTORCONTROL_H
-#define QANDROIDVIDEODEVICESELECTORCONTROL_H
+#ifndef QANDROIDCAMERAINFOCONTROL_H
+#define QANDROIDCAMERAINFOCONTROL_H
 
-#include <qvideodeviceselectorcontrol.h>
-#include <QtCore/qstringlist.h>
+#include <qcamerainfocontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidCameraSession;
-
-class QAndroidVideoDeviceSelectorControl : public QVideoDeviceSelectorControl
+class QAndroidCameraInfoControl : public QCameraInfoControl
 {
     Q_OBJECT
 public:
-    explicit QAndroidVideoDeviceSelectorControl(QAndroidCameraSession *session);
-    ~QAndroidVideoDeviceSelectorControl();
+    QCamera::Position cameraPosition(const QString &deviceName) const;
+    int cameraOrientation(const QString &deviceName) const;
 
-    int deviceCount() const;
-
-    QString deviceName(int index) const;
-    QString deviceDescription(int index) const;
-
-    int defaultDevice() const;
-    int selectedDevice() const;
-    void setSelectedDevice(int index);
-
-private:
-    int m_selectedDevice;
-
-    QAndroidCameraSession *m_cameraSession;
+    static QCamera::Position position(const QString &deviceName);
+    static int orientation(const QString &deviceName);
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDVIDEODEVICESELECTORCONTROL_H
+#endif // QANDROIDCAMERAINFOCONTROL_H
