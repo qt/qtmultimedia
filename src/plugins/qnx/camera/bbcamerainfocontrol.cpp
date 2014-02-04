@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Research In Motion
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -38,43 +38,46 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBVIDEODEVICESELECTORCONTROL_H
-#define BBVIDEODEVICESELECTORCONTROL_H
 
-#include <qvideodeviceselectorcontrol.h>
-#include <QStringList>
+#include "bbcamerainfocontrol.h"
+
+#include "bbcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class BbCameraSession;
-
-class BbVideoDeviceSelectorControl : public QVideoDeviceSelectorControl
+BbCameraInfoControl::BbCameraInfoControl(QObject *parent)
+    : QCameraInfoControl(parent)
 {
-    Q_OBJECT
-public:
-    explicit BbVideoDeviceSelectorControl(BbCameraSession *session, QObject *parent = 0);
+}
 
-    int deviceCount() const Q_DECL_OVERRIDE;
-    QString deviceName(int index) const Q_DECL_OVERRIDE;
-    QString deviceDescription(int index) const Q_DECL_OVERRIDE;
-    int defaultDevice() const Q_DECL_OVERRIDE;
-    int selectedDevice() const Q_DECL_OVERRIDE;
+QCamera::Position BbCameraInfoControl::position(const QString &deviceName)
+{
+    if (deviceName == QString::fromUtf8(BbCameraSession::cameraIdentifierFront()))
+        return QCamera::FrontFace;
+    else if (deviceName == QString::fromUtf8(BbCameraSession::cameraIdentifierRear()))
+        return QCamera::BackFace;
+    else
+        return QCamera::UnspecifiedPosition;
+}
 
-    static void enumerateDevices(QList<QByteArray> *devices, QStringList *descriptions);
+int BbCameraInfoControl::orientation(const QString &deviceName)
+{
+    // The camera sensor orientation could be retrieved with camera_get_native_orientation()
+    // but since the sensor angular offset is compensated with camera_set_videovf_property() and
+    // camera_set_photovf_property() we should always return 0 here.
+    Q_UNUSED(deviceName);
+    return 0;
+}
 
-public Q_SLOTS:
-    void setSelectedDevice(int index) Q_DECL_OVERRIDE;
+QCamera::Position BbCameraInfoControl::cameraPosition(const QString &deviceName) const
+{
+    return position(deviceName);
+}
 
-private:
-    BbCameraSession* m_session;
-
-    QList<QByteArray> m_devices;
-    QStringList m_descriptions;
-
-    int m_default;
-    int m_selected;
-};
+int BbCameraInfoControl::cameraOrientation(const QString &deviceName) const
+{
+    return orientation(deviceName);
+}
 
 QT_END_NAMESPACE
 
-#endif

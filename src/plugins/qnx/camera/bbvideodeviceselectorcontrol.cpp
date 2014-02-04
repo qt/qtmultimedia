@@ -49,6 +49,7 @@ QT_BEGIN_NAMESPACE
 BbVideoDeviceSelectorControl::BbVideoDeviceSelectorControl(BbCameraSession *session, QObject *parent)
     : QVideoDeviceSelectorControl(parent)
     , m_session(session)
+    , m_default(0)
     , m_selected(0)
 {
     enumerateDevices(&m_devices, &m_descriptions);
@@ -56,7 +57,7 @@ BbVideoDeviceSelectorControl::BbVideoDeviceSelectorControl(BbCameraSession *sess
     // pre-select the rear camera
     const int index = m_devices.indexOf(BbCameraSession::cameraIdentifierRear());
     if (index != -1)
-        m_selected = index;
+        m_default = m_selected = index;
 }
 
 int BbVideoDeviceSelectorControl::deviceCount() const
@@ -82,7 +83,7 @@ QString BbVideoDeviceSelectorControl::deviceDescription(int index) const
 
 int BbVideoDeviceSelectorControl::defaultDevice() const
 {
-    return 0;
+    return m_default;
 }
 
 int BbVideoDeviceSelectorControl::selectedDevice() const
