@@ -45,6 +45,7 @@
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLShaderProgram>
+#include <QtMultimedia/private/qmediaopenglhelper_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -120,7 +121,6 @@ protected:
         "    gl_FragColor = texture2D(rgbTexture, qt_TexCoord) * opacity;"
         "}";
 
-#ifndef QT_OPENGL_ES_2_ANGLE
         static const char *colorsSwapShader =
         "uniform sampler2D rgbTexture;"
         "uniform lowp float opacity;"
@@ -132,17 +132,17 @@ protected:
         "    gl_FragColor =  vec4(texture2D(rgbTexture, qt_TexCoord).bgr, 1.0) * opacity;"
         "}";
 
-
-        switch (m_pixelFormat) {
+        if (!QMediaOpenGLHelper::isANGLE()) {
+            switch (m_pixelFormat) {
             case QVideoFrame::Format_RGB32:
             case QVideoFrame::Format_ARGB32:
                 return colorsSwapShader;
             default:
-                return shader;
+                break;
+            }
         }
-#else
+
         return shader;
-#endif
     }
 
     virtual void initialize() {
@@ -210,12 +210,13 @@ public:
         QMutexLocker lock(&m_frameMutex);
         if (m_frame.isValid()) {
             m_textureId = m_frame.handle().toUInt();
-            glBindTexture(GL_TEXTURE_2D, m_textureId);
+            QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
+            functions->glBindTexture(GL_TEXTURE_2D, m_textureId);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         } else {
             m_textureId = 0;
         }

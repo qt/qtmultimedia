@@ -70,6 +70,31 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 class QOpenGLContext;
 
+class EGLWrapper
+{
+public:
+    EGLWrapper();
+
+    __eglMustCastToProperFunctionPointerType getProcAddress(const char *procname);
+    EGLSurface createPbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list);
+    EGLBoolean destroySurface(EGLDisplay dpy, EGLSurface surface);
+    EGLBoolean bindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+    EGLBoolean releaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+
+private:
+    typedef __eglMustCastToProperFunctionPointerType (EGLAPIENTRYP EglGetProcAddress)(const char *procname);
+    typedef EGLSurface (EGLAPIENTRYP EglCreatePbufferSurface)(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list);
+    typedef EGLBoolean (EGLAPIENTRYP EglDestroySurface)(EGLDisplay dpy, EGLSurface surface);
+    typedef EGLBoolean (EGLAPIENTRYP EglBindTexImage)(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+    typedef EGLBoolean (EGLAPIENTRYP EglReleaseTexImage)(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+
+    EglGetProcAddress m_eglGetProcAddress;
+    EglCreatePbufferSurface m_eglCreatePbufferSurface;
+    EglDestroySurface m_eglDestroySurface;
+    EglBindTexImage m_eglBindTexImage;
+    EglReleaseTexImage m_eglReleaseTexImage;
+};
+
 class D3DPresentEngine : public QObject
 {
     Q_OBJECT
@@ -123,6 +148,7 @@ private:
     EGLSurface m_eglSurface;
     unsigned int m_glTexture;
     IDirect3DTexture9 *m_texture;
+    EGLWrapper *m_egl;
 };
 
 QT_END_NAMESPACE

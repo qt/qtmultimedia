@@ -176,7 +176,7 @@ public:
     ~QSGVideoMaterial_RGB()
     {
         if (m_textureId)
-            glDeleteTextures(1, &m_textureId);
+            QOpenGLContext::currentContext()->functions()->glDeleteTextures(1, &m_textureId);
     }
 
     virtual QSGMaterialType *type() const {
@@ -225,8 +225,8 @@ public:
 
                 if (m_textureSize != textureSize) {
                     if (!m_textureSize.isEmpty())
-                        glDeleteTextures(1, &m_textureId);
-                    glGenTextures(1, &m_textureId);
+                        functions->glDeleteTextures(1, &m_textureId);
+                    functions->glGenTextures(1, &m_textureId);
                     m_textureSize = textureSize;
                 }
 
@@ -239,28 +239,28 @@ public:
                 }
 
                 GLint previousAlignment;
-                glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                functions->glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
+                functions->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
                 functions->glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, m_textureId);
-                glTexImage2D(GL_TEXTURE_2D, 0, dataFormat,
-                             m_textureSize.width(), m_textureSize.height(),
-                             0, dataFormat, dataType, m_frame.bits());
+                functions->glBindTexture(GL_TEXTURE_2D, m_textureId);
+                functions->glTexImage2D(GL_TEXTURE_2D, 0, dataFormat,
+                                        m_textureSize.width(), m_textureSize.height(),
+                                        0, dataFormat, dataType, m_frame.bits());
 
-                glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
+                functions->glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
 
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
                 m_frame.unmap();
             }
             m_frame = QVideoFrame();
         } else {
             functions->glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, m_textureId);
+            functions->glBindTexture(GL_TEXTURE_2D, m_textureId);
         }
     }
 

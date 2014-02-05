@@ -48,9 +48,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#ifdef QT_OPENGL_ES_2_ANGLE
 class EVRCustomPresenterActivate;
-#endif
 
 QT_END_NAMESPACE
 
@@ -83,9 +81,7 @@ private:
     IMFActivate *m_currentActivate;
     IMFSampleGrabberSinkCallback *m_callback;
 
-#ifdef QT_OPENGL_ES_2_ANGLE
     EVRCustomPresenterActivate *m_presenterActivate;
-#endif
 };
 
 #endif

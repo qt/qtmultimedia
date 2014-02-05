@@ -41,9 +41,15 @@
 
 #include "mfvideorenderercontrol.h"
 #include "mfglobal.h"
-#ifdef QT_OPENGL_ES_2_ANGLE
+
+#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_DYNAMIC)
+#define MAYBE_ANGLE
+#endif
+
+#ifdef MAYBE_ANGLE
 #include "evrcustompresenter.h"
 #endif
+
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 #include <qtcore/qtimer.h>
@@ -53,6 +59,7 @@
 #include <qtcore/qthread.h>
 #include "guiddef.h"
 #include <qtcore/qdebug.h>
+#include <QtMultimedia/private/qmediaopenglhelper_p.h>
 
 //#define DEBUG_MEDIAFOUNDATION
 #define PAD_TO_DWORD(x)  (((x) + 3) & ~3)
@@ -2228,9 +2235,7 @@ MFVideoRendererControl::MFVideoRendererControl(QObject *parent)
     , m_surface(0)
     , m_currentActivate(0)
     , m_callback(0)
-#ifdef QT_OPENGL_ES_2_ANGLE
     , m_presenterActivate(0)
-#endif
 {
 }
 
@@ -2244,7 +2249,7 @@ void MFVideoRendererControl::clear()
     if (m_surface)
         m_surface->stop();
 
-#ifdef QT_OPENGL_ES_2_ANGLE
+#ifdef MAYBE_ANGLE
     if (m_presenterActivate) {
         m_presenterActivate->ShutdownObject();
         m_presenterActivate->Release();
@@ -2279,7 +2284,7 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
         connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
     }
 
-#ifdef QT_OPENGL_ES_2_ANGLE
+#ifdef MAYBE_ANGLE
     if (m_presenterActivate)
         m_presenterActivate->setSurface(m_surface);
     else
@@ -2290,10 +2295,8 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
 void MFVideoRendererControl::customEvent(QEvent *event)
 {
-#ifdef QT_OPENGL_ES_2_ANGLE
     if (m_presenterActivate)
         return;
-#endif
 
     if (!m_currentActivate)
         return;
@@ -2324,7 +2327,7 @@ void MFVideoRendererControl::customEvent(QEvent *event)
 
 void MFVideoRendererControl::supportedFormatsChanged()
 {
-#ifdef QT_OPENGL_ES_2_ANGLE
+#ifdef MAYBE_ANGLE
     if (m_presenterActivate)
         m_presenterActivate->supportedFormatsChanged();
     else
@@ -2335,10 +2338,8 @@ void MFVideoRendererControl::supportedFormatsChanged()
 
 void MFVideoRendererControl::present()
 {
-#ifdef QT_OPENGL_ES_2_ANGLE
     if (m_presenterActivate)
         return;
-#endif
 
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->present();
@@ -2350,20 +2351,21 @@ IMFActivate* MFVideoRendererControl::createActivate()
 
     clear();
 
-#ifdef QT_OPENGL_ES_2_ANGLE
+#ifdef MAYBE_ANGLE
     // We can use the EVR with our custom presenter only if the surface supports OpenGL
-    // texture handles
-    if (!m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()) {
+    // texture handles. We also require ANGLE (due to the D3D interop).
+    if (!m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()
+        && QMediaOpenGLHelper::isANGLE()) {
         // Create the EVR media sink, but replace the presenter with our own
         if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
             m_presenterActivate = new EVRCustomPresenterActivate;
             m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
         }
     }
+#endif
 
     if (!m_currentActivate)
-#endif
-    m_currentActivate = new VideoRendererActivate(this);
+        m_currentActivate = new VideoRendererActivate(this);
 
     setSurface(m_surface);
 

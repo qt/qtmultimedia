@@ -51,6 +51,7 @@
 #include <qvideoframe.h>
 #include <QDebug>
 #include <qopenglcontext.h>
+#include <qopenglfunctions.h>
 #include <qwindow.h>
 
 #include <EGL/egl.h>
@@ -88,6 +89,67 @@ private:
     GLuint m_textureId;
 };
 
+EGLWrapper::EGLWrapper()
+{
+#ifndef QT_OPENGL_ES_2_ANGLE_STATIC
+    // Resolve the EGL functions we use. When configured for dynamic OpenGL, no
+    // component in Qt will link to libEGL.lib and libGLESv2.lib. We know
+    // however that libEGL is loaded for sure, since this is an ANGLE-only path.
+
+# ifdef QT_DEBUG
+    HMODULE eglHandle = GetModuleHandle(L"libEGLd.dll");
+# else
+    HMODULE eglHandle = GetModuleHandle(L"libEGL.dll");
+# endif
+
+    if (!eglHandle)
+        qWarning("No EGL library loaded");
+
+    m_eglGetProcAddress = (EglGetProcAddress) GetProcAddress(eglHandle, "eglGetProcAddress");
+    m_eglCreatePbufferSurface = (EglCreatePbufferSurface) GetProcAddress(eglHandle, "eglCreatePbufferSurface");
+    m_eglDestroySurface = (EglDestroySurface) GetProcAddress(eglHandle, "eglDestroySurface");
+    m_eglBindTexImage = (EglBindTexImage) GetProcAddress(eglHandle, "eglBindTexImage");
+    m_eglReleaseTexImage = (EglReleaseTexImage) GetProcAddress(eglHandle, "eglReleaseTexImage");
+#else
+    // Static ANGLE-only build. There is no libEGL.dll in use.
+
+    m_eglGetProcAddress = ::eglGetProcAddress;
+    m_eglCreatePbufferSurface = ::eglCreatePbufferSurface;
+    m_eglDestroySurface = ::eglDestroySurface;
+    m_eglBindTexImage = ::eglBindTexImage;
+    m_eglReleaseTexImage = ::eglReleaseTexImage;
+#endif
+}
+
+__eglMustCastToProperFunctionPointerType EGLWrapper::getProcAddress(const char *procname)
+{
+    Q_ASSERT(m_eglGetProcAddress);
+    return m_eglGetProcAddress(procname);
+}
+
+EGLSurface EGLWrapper::createPbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
+{
+    Q_ASSERT(m_eglCreatePbufferSurface);
+    return m_eglCreatePbufferSurface(dpy, config, attrib_list);
+}
+
+EGLBoolean EGLWrapper::destroySurface(EGLDisplay dpy, EGLSurface surface)
+{
+    Q_ASSERT(m_eglDestroySurface);
+    return m_eglDestroySurface(dpy, surface);
+}
+
+EGLBoolean EGLWrapper::bindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
+{
+    Q_ASSERT(m_eglBindTexImage);
+    return m_eglBindTexImage(dpy, surface, buffer);
+}
+
+EGLBoolean EGLWrapper::releaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
+{
+    Q_ASSERT(m_eglReleaseTexImage);
+    return m_eglReleaseTexImage(dpy, surface, buffer);
+}
 
 D3DPresentEngine::D3DPresentEngine()
     : QObject()
@@ -104,6 +166,7 @@ D3DPresentEngine::D3DPresentEngine()
     , m_eglSurface(0)
     , m_glTexture(0)
     , m_texture(0)
+    , m_egl(0)
 {
     ZeroMemory(&m_displayMode, sizeof(m_displayMode));
 
@@ -126,15 +189,16 @@ D3DPresentEngine::~D3DPresentEngine()
     qt_wmf_safeRelease(&m_D3D9);
 
     if (m_eglSurface) {
-        eglReleaseTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
-        eglDestroySurface(m_eglDisplay, m_eglSurface);
+        m_egl->releaseTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
+        m_egl->destroySurface(m_eglDisplay, m_eglSurface);
         m_eglSurface = NULL;
     }
     if (m_glTexture)
-        glDeleteTextures(1, &m_glTexture);
+        QOpenGLContext::currentContext()->functions()->glDeleteTextures(1, &m_glTexture);
 
     delete m_glContext;
     delete m_offscreenSurface;
+    delete m_egl;
 }
 
 void D3DPresentEngine::start()
@@ -358,14 +422,16 @@ void D3DPresentEngine::createOffscreenTexture()
     if (m_glContext)
         m_glContext->makeCurrent(m_offscreenSurface);
 
+    if (!m_egl)
+        m_egl = new EGLWrapper;
+
     QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
     m_eglDisplay = static_cast<EGLDisplay*>(
                 nativeInterface->nativeResourceForContext("eglDisplay", currentContext));
     m_eglConfig = static_cast<EGLDisplay*>(
                 nativeInterface->nativeResourceForContext("eglConfig", currentContext));
 
-    glGenTextures(1, &m_glTexture);
-
+    currentContext->functions()->glGenTextures(1, &m_glTexture);
 
     int w = m_surfaceFormat.frameWidth();
     int h = m_surfaceFormat.frameHeight();
@@ -378,11 +444,12 @@ void D3DPresentEngine::createOffscreenTexture()
         EGL_NONE
     };
 
-    EGLSurface pbuffer = eglCreatePbufferSurface(m_eglDisplay, m_eglConfig, attribs);
+    EGLSurface pbuffer = m_egl->createPbufferSurface(m_eglDisplay, m_eglConfig, attribs);
 
     HANDLE share_handle = 0;
     PFNEGLQUERYSURFACEPOINTERANGLEPROC eglQuerySurfacePointerANGLE =
-            reinterpret_cast<PFNEGLQUERYSURFACEPOINTERANGLEPROC>(eglGetProcAddress("eglQuerySurfacePointerANGLE"));
+            reinterpret_cast<PFNEGLQUERYSURFACEPOINTERANGLEPROC>(m_egl->getProcAddress("eglQuerySurfacePointerANGLE"));
+    Q_ASSERT(eglQuerySurfacePointerANGLE);
     eglQuerySurfacePointerANGLE(
                 m_eglDisplay,
                 pbuffer,
@@ -410,7 +477,7 @@ bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
     if (m_glContext)
         m_glContext->makeCurrent(m_offscreenSurface);
 
-    glBindTexture(GL_TEXTURE_2D, m_glTexture);
+    QOpenGLContext::currentContext()->functions()->glBindTexture(GL_TEXTURE_2D, m_glTexture);
 
     IDirect3DSurface9 *dest = NULL;
 
@@ -424,7 +491,7 @@ bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
         qWarning("Failed to copy D3D surface");
 
     if (hr == S_OK)
-        eglBindTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
+        m_egl->bindTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
 
 done:
     qt_wmf_safeRelease(&dest);

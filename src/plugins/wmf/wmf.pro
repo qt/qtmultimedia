@@ -32,7 +32,7 @@ SOURCES += \
     mfactivate.cpp \
     mfglobal.cpp
 
-contains(QT_CONFIG, angle) {
+contains(QT_CONFIG, angle)|contains(QT_CONFIG, dynamicgl) {
     LIBS += -ld3d9 -ldxva2 -lwinmm -levr
     QT += gui-private
 

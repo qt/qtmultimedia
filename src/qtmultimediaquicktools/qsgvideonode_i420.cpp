@@ -236,7 +236,7 @@ QSGVideoMaterial_YUV420::QSGVideoMaterial_YUV420(const QVideoSurfaceFormat &form
 QSGVideoMaterial_YUV420::~QSGVideoMaterial_YUV420()
 {
     if (!m_textureSize.isEmpty())
-        glDeleteTextures(Num_Texture_IDs, m_textureIds);
+        QOpenGLContext::currentContext()->functions()->glDeleteTextures(Num_Texture_IDs, m_textureIds);
 }
 
 void QSGVideoMaterial_YUV420::bind()
@@ -252,8 +252,8 @@ void QSGVideoMaterial_YUV420::bind()
             // Frame has changed size, recreate textures...
             if (m_textureSize != m_frame.size()) {
                 if (!m_textureSize.isEmpty())
-                    glDeleteTextures(Num_Texture_IDs, m_textureIds);
-                glGenTextures(Num_Texture_IDs, m_textureIds);
+                    functions->glDeleteTextures(Num_Texture_IDs, m_textureIds);
+                functions->glGenTextures(Num_Texture_IDs, m_textureIds);
                 m_textureSize = m_frame.size();
             }
 
@@ -265,8 +265,8 @@ void QSGVideoMaterial_YUV420::bind()
             m_uvWidth = qreal(fw) / (2 * m_frame.bytesPerLine(u));
 
             GLint previousAlignment;
-            glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            functions->glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
+            functions->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
             functions->glActiveTexture(GL_TEXTURE1);
             bindTexture(m_textureIds[1], m_frame.bytesPerLine(u), fh / 2, m_frame.bits(u));
@@ -275,7 +275,7 @@ void QSGVideoMaterial_YUV420::bind()
             functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
             bindTexture(m_textureIds[0], m_frame.bytesPerLine(y), fh, m_frame.bits(y));
 
-            glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
+            functions->glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
 
             m_frame.unmap();
         }
@@ -283,22 +283,24 @@ void QSGVideoMaterial_YUV420::bind()
         m_frame = QVideoFrame();
     } else {
         functions->glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, m_textureIds[1]);
+        functions->glBindTexture(GL_TEXTURE_2D, m_textureIds[1]);
         functions->glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, m_textureIds[2]);
+        functions->glBindTexture(GL_TEXTURE_2D, m_textureIds[2]);
         functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
-        glBindTexture(GL_TEXTURE_2D, m_textureIds[0]);
+        functions->glBindTexture(GL_TEXTURE_2D, m_textureIds[0]);
     }
 }
 
 void QSGVideoMaterial_YUV420::bindTexture(int id, int w, int h, const uchar *bits)
 {
-    glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, bits);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
+
+    functions->glBindTexture(GL_TEXTURE_2D, id);
+    functions->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, bits);
+    functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    functions->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 QSGVideoNode_I420::QSGVideoNode_I420(const QVideoSurfaceFormat &format) :

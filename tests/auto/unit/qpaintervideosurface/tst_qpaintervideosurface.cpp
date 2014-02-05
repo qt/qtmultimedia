@@ -50,6 +50,7 @@
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
 #include <QtOpenGL/qgl.h>
 #include <QtOpenGL/qglframebufferobject.h>
+#include <QtGui/qopenglfunctions.h>
 #endif
 
 QT_USE_NAMESPACE
@@ -100,12 +101,12 @@ public:
         : QAbstractVideoBuffer(GLTextureHandle)
         , m_textureId(0)
     {
-        glGenTextures(1, &m_textureId);
+        QOpenGLContext::currentContext()->functions()->glGenTextures(1, &m_textureId);
     }
 
     ~QtTestGLVideoBuffer()
     {
-        glDeleteTextures(1, &m_textureId);
+        QOpenGLContext::currentContext()->functions()->glDeleteTextures(1, &m_textureId);
     }
 
     GLuint textureId() const { return m_textureId; }
@@ -1226,12 +1227,13 @@ void tst_QPainterVideoSurface::shaderPresentGLFrame()
 
     QtTestGLVideoBuffer *buffer = new QtTestGLVideoBuffer;
 
-    glBindTexture(GL_TEXTURE_2D, buffer->textureId());
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, rgb32ImageData);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    f->glBindTexture(GL_TEXTURE_2D, buffer->textureId());
+    f->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, rgb32ImageData);
+    f->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    f->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    f->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    f->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     QVideoFrame frame(buffer, QSize(2, 2), QVideoFrame::Format_RGB32);
 

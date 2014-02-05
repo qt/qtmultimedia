@@ -22,7 +22,8 @@ PRIVATE_HEADERS += \
     qmediaresourcepolicyplugin_p.h \
     qmediaresourcepolicy_p.h \
     qmediaresourceset_p.h \
-    qmediastoragelocation_p.h
+    qmediastoragelocation_p.h \
+    qmediaopenglhelper_p.h
 
 PUBLIC_HEADERS += \
     qmediabindableinterface.h \

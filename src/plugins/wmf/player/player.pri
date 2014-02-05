@@ -1,6 +1,6 @@
 INCLUDEPATH += $$PWD
 
-LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32 -lMf -lMfuuid -lMfplat -lPropsys
+LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lgdi32 -luser32 -lole32 -loleaut32 -lMf -lMfuuid -lMfplat -lPropsys
 
 DEFINES += QMEDIA_MEDIAFOUNDATION_PLAYER
 
