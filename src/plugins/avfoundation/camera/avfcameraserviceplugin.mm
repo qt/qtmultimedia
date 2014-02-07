@@ -44,14 +44,11 @@
 
 #include "avfcameraserviceplugin.h"
 #include "avfcameraservice.h"
+#include "avfcamerasession.h"
 
 #include <qmediaserviceproviderplugin.h>
 
-#import <AVFoundation/AVFoundation.h>
-
-
 QT_BEGIN_NAMESPACE
-
 
 AVFServicePlugin::AVFServicePlugin()
 {
@@ -74,56 +71,36 @@ void AVFServicePlugin::release(QMediaService *service)
 
 QByteArray AVFServicePlugin::defaultDevice(const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        return m_defaultCameraDevice;
-    }
+    if (service == Q_MEDIASERVICE_CAMERA)
+        return AVFCameraSession::defaultCameraDevice();
 
     return QByteArray();
 }
 
 QList<QByteArray> AVFServicePlugin::devices(const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        return m_cameraDevices;
-    }
+    if (service == Q_MEDIASERVICE_CAMERA)
+        return AVFCameraSession::availableCameraDevices();
 
     return QList<QByteArray>();
 }
 
 QString AVFServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        return m_cameraDescriptions.value(device);
-    }
+    if (service == Q_MEDIASERVICE_CAMERA)
+        return AVFCameraSession::cameraDeviceInfo(device).description;
 
     return QString();
 }
 
-void AVFServicePlugin::updateDevices() const
+QCamera::Position AVFServicePlugin::cameraPosition(const QByteArray &device) const
 {
-    m_defaultCameraDevice.clear();
-    m_cameraDevices.clear();
-    m_cameraDescriptions.clear();
+    return AVFCameraSession::cameraDeviceInfo(device).position;
+}
 
-    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    if (defaultDevice)
-        m_defaultCameraDevice = QByteArray([[defaultDevice uniqueID] UTF8String]);
-
-    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-    for (AVCaptureDevice *device in videoDevices) {
-        QByteArray deviceId([[device uniqueID] UTF8String]);
-        m_cameraDevices << deviceId;
-        m_cameraDescriptions.insert(deviceId, QString::fromUtf8([[device localizedName] UTF8String]));
-    }
+int AVFServicePlugin::cameraOrientation(const QByteArray &device) const
+{
+    return AVFCameraSession::cameraDeviceInfo(device).orientation;
 }
 
 QT_END_NAMESPACE

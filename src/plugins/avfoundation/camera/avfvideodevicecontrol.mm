@@ -42,6 +42,7 @@
 #include "avfcameradebug.h"
 #include "avfvideodevicecontrol.h"
 #include "avfcameraservice.h"
+#include "avfcamerasession.h"
 
 QT_USE_NAMESPACE
 
@@ -50,18 +51,7 @@ AVFVideoDeviceControl::AVFVideoDeviceControl(AVFCameraService *service, QObject 
    , m_service(service)
    , m_selectedDevice(0)
    , m_dirty(true)
-   , m_defaultDevice(0)
 {
-    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-    int i = 0;
-    for (AVCaptureDevice *device in videoDevices) {
-        m_devices << QString::fromUtf8([[device uniqueID] UTF8String]);
-        m_deviceDescriptions << QString::fromUtf8([[device localizedName] UTF8String]);
-        if (defaultDevice && [[device uniqueID] isEqualToString:[defaultDevice uniqueID]])
-            m_defaultDevice = i;
-        ++i;
-    }
 }
 
 AVFVideoDeviceControl::~AVFVideoDeviceControl()
@@ -70,22 +60,30 @@ AVFVideoDeviceControl::~AVFVideoDeviceControl()
 
 int AVFVideoDeviceControl::deviceCount() const
 {
-    return m_devices.size();
+    return AVFCameraSession::availableCameraDevices().count();
 }
 
 QString AVFVideoDeviceControl::deviceName(int index) const
 {
-    return m_devices[index];
+    const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
+    if (index >= devices.count())
+        return QString();
+
+    return QString::fromUtf8(devices.at(index));
 }
 
 QString AVFVideoDeviceControl::deviceDescription(int index) const
 {
-    return m_deviceDescriptions[index];
+    const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
+    if (index >= devices.count())
+        return QString();
+
+    return AVFCameraSession::cameraDeviceInfo(devices.at(index)).description;
 }
 
 int AVFVideoDeviceControl::defaultDevice() const
 {
-    return m_defaultDevice;
+    return AVFCameraSession::availableCameraDevices().indexOf(AVFCameraSession::defaultCameraDevice());
 }
 
 int AVFVideoDeviceControl::selectedDevice() const
@@ -99,7 +97,7 @@ void AVFVideoDeviceControl::setSelectedDevice(int index)
         m_dirty = true;
         m_selectedDevice = index;
         Q_EMIT selectedDeviceChanged(index);
-        Q_EMIT selectedDeviceChanged(m_devices[index]);
+        Q_EMIT selectedDeviceChanged(deviceName(index));
     }
 }
 
@@ -108,9 +106,8 @@ AVCaptureDevice *AVFVideoDeviceControl::createCaptureDevice()
     m_dirty = false;
     AVCaptureDevice *device = 0;
 
-    if (!m_devices.isEmpty()) {
-        QString deviceId = m_devices.at(m_selectedDevice);
-
+    QString deviceId = deviceName(m_selectedDevice);
+    if (!deviceId.isEmpty()) {
         device = [AVCaptureDevice deviceWithUniqueID:
                     [NSString stringWithUTF8String:
                         deviceId.toUtf8().constData()]];

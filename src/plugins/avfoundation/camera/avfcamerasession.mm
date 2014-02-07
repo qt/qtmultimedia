@@ -57,6 +57,10 @@
 
 QT_USE_NAMESPACE
 
+QByteArray AVFCameraSession::m_defaultCameraDevice;
+QList<QByteArray> AVFCameraSession::m_cameraDevices;
+QMap<QByteArray, AVFCameraInfo> AVFCameraSession::m_cameraInfo;
+
 @interface AVFCameraSessionObserver : NSObject
 {
 @private
@@ -149,6 +153,74 @@ AVFCameraSession::~AVFCameraSession()
 
     [m_observer release];
     [m_captureSession release];
+}
+
+const QByteArray &AVFCameraSession::defaultCameraDevice()
+{
+    if (m_cameraDevices.isEmpty())
+        updateCameraDevices();
+
+    return m_defaultCameraDevice;
+}
+
+const QList<QByteArray> &AVFCameraSession::availableCameraDevices()
+{
+    if (m_cameraDevices.isEmpty())
+        updateCameraDevices();
+
+    return m_cameraDevices;
+}
+
+AVFCameraInfo AVFCameraSession::cameraDeviceInfo(const QByteArray &device)
+{
+    if (m_cameraDevices.isEmpty())
+        updateCameraDevices();
+
+    return m_cameraInfo.value(device);
+}
+
+void AVFCameraSession::updateCameraDevices()
+{
+    m_defaultCameraDevice.clear();
+    m_cameraDevices.clear();
+    m_cameraInfo.clear();
+
+    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    if (defaultDevice)
+        m_defaultCameraDevice = QByteArray([[defaultDevice uniqueID] UTF8String]);
+
+    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in videoDevices) {
+        QByteArray deviceId([[device uniqueID] UTF8String]);
+
+        AVFCameraInfo info;
+        info.description = QString::fromNSString([device localizedName]);
+
+        // There is no API to get the camera sensor orientation, however, cameras are always
+        // mounted in landscape on iDevices.
+        //   - Back-facing cameras have the top side of the sensor aligned with the right side of
+        //     the screen when held in portrait ==> 270 degrees clockwise angle
+        //   - Front-facing cameras have the top side of the sensor aligned with the left side of
+        //     the screen when held in portrait ==> 270 degrees clockwise angle
+        // On Mac OS, the position will always be unspecified and the sensor orientation unknown.
+        switch (device.position) {
+        case AVCaptureDevicePositionBack:
+            info.position = QCamera::BackFace;
+            info.orientation = 270;
+            break;
+        case AVCaptureDevicePositionFront:
+            info.position = QCamera::FrontFace;
+            info.orientation = 270;
+            break;
+        default:
+            info.position = QCamera::UnspecifiedPosition;
+            info.orientation = 0;
+            break;
+        }
+
+        m_cameraDevices << deviceId;
+        m_cameraInfo.insert(deviceId, info);
+    }
 }
 
 void AVFCameraSession::setVideoOutput(AVFVideoRendererControl *output)

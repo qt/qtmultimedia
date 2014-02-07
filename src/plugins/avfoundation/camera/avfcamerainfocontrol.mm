@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,40 +39,24 @@
 **
 ****************************************************************************/
 
-
-#ifndef AVFSERVICEPLUGIN_H
-#define AVFSERVICEPLUGIN_H
-
-#include <qmediaserviceproviderplugin.h>
-#include <QtCore/qmap.h>
+#include "avfcamerainfocontrol.h"
+#include "avfcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class AVFServicePlugin : public QMediaServiceProviderPlugin,
-                         public QMediaServiceSupportedDevicesInterface,
-                         public QMediaServiceDefaultDeviceInterface,
-                         public QMediaServiceCameraInfoInterface
+AVFCameraInfoControl::AVFCameraInfoControl(QObject *parent)
+    : QCameraInfoControl(parent)
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
-    Q_INTERFACES(QMediaServiceCameraInfoInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "avfcamera.json")
+}
 
-public:
-    AVFServicePlugin();
+QCamera::Position AVFCameraInfoControl::cameraPosition(const QString &deviceName) const
+{
+    return AVFCameraSession::cameraDeviceInfo(deviceName.toUtf8()).position;
+}
 
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
-
-    QByteArray defaultDevice(const QByteArray &service) const;
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
-
-    QCamera::Position cameraPosition(const QByteArray &device) const;
-    int cameraOrientation(const QByteArray &device) const;
-};
+int AVFCameraInfoControl::cameraOrientation(const QString &deviceName) const
+{
+    return AVFCameraSession::cameraDeviceInfo(deviceName.toUtf8()).orientation;
+}
 
 QT_END_NAMESPACE
-
-#endif

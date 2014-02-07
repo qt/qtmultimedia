@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,40 +39,23 @@
 **
 ****************************************************************************/
 
+#ifndef AVFCAMERAINFOCONTROL_H
+#define AVFCAMERAINFOCONTROL_H
 
-#ifndef AVFSERVICEPLUGIN_H
-#define AVFSERVICEPLUGIN_H
-
-#include <qmediaserviceproviderplugin.h>
-#include <QtCore/qmap.h>
+#include <qcamerainfocontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class AVFServicePlugin : public QMediaServiceProviderPlugin,
-                         public QMediaServiceSupportedDevicesInterface,
-                         public QMediaServiceDefaultDeviceInterface,
-                         public QMediaServiceCameraInfoInterface
+class AVFCameraInfoControl : public QCameraInfoControl
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
-    Q_INTERFACES(QMediaServiceCameraInfoInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "avfcamera.json")
-
 public:
-    AVFServicePlugin();
+    explicit AVFCameraInfoControl(QObject *parent = 0);
 
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
-
-    QByteArray defaultDevice(const QByteArray &service) const;
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
-
-    QCamera::Position cameraPosition(const QByteArray &device) const;
-    int cameraOrientation(const QByteArray &device) const;
+    QCamera::Position cameraPosition(const QString &deviceName) const;
+    int cameraOrientation(const QString &deviceName) const;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // AVFCAMERAINFOCONTROL_H
