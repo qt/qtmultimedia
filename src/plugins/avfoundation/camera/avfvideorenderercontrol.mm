@@ -146,13 +146,14 @@ private:
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
    : QVideoRendererControl(parent)
    , m_surface(0)
+   , m_needsHorizontalMirroring(false)
 {
     m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
 }
 
 AVFVideoRendererControl::~AVFVideoRendererControl()
 {
-    [m_captureSession removeOutput:m_videoDataOutput];
+    [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
     [m_viewfinderFramesDelegate release];
 }
 
@@ -169,9 +170,13 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     }
 }
 
-void AVFVideoRendererControl::configureAVCaptureSession(AVCaptureSession *captureSession)
+void AVFVideoRendererControl::configureAVCaptureSession(AVFCameraSession *cameraSession)
 {
-    m_captureSession = captureSession;
+    m_cameraSession = cameraSession;
+    connect(m_cameraSession, SIGNAL(readyToConfigureConnections()),
+            this, SLOT(updateCaptureConnection()));
+
+    m_needsHorizontalMirroring = false;
 
     m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
 
@@ -188,7 +193,23 @@ void AVFVideoRendererControl::configureAVCaptureSession(AVCaptureSession *captur
             [NSNumber numberWithInt:kCVPixelFormatType_32BGRA]
             forKey:(id)kCVPixelBufferPixelFormatTypeKey];
 
-    [m_captureSession addOutput:m_videoDataOutput];
+    [m_cameraSession->captureSession() addOutput:m_videoDataOutput];
+}
+
+void AVFVideoRendererControl::updateCaptureConnection()
+{
+    AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
+    if (connection == nil || !m_cameraSession->videoCaptureDevice())
+        return;
+
+    // Frames of front-facing cameras should be mirrored horizontally (it's the default when using
+    // AVCaptureVideoPreviewLayer but not with AVCaptureVideoDataOutput)
+    if (connection.isVideoMirroringSupported)
+        connection.videoMirrored = m_cameraSession->videoCaptureDevice().position == AVCaptureDevicePositionFront;
+
+    // If the connection does't support mirroring, we'll have to do it ourselves
+    m_needsHorizontalMirroring = !connection.isVideoMirrored
+            && m_cameraSession->videoCaptureDevice().position == AVCaptureDevicePositionFront;
 }
 
 //can be called from non main thread
@@ -203,6 +224,22 @@ void AVFVideoRendererControl::syncHandleViewfinderFrame(const QVideoFrame &frame
     }
 
     m_lastViewfinderFrame = frame;
+
+    if (m_needsHorizontalMirroring) {
+        m_lastViewfinderFrame.map(QAbstractVideoBuffer::ReadOnly);
+
+        // no deep copy
+        QImage image(m_lastViewfinderFrame.bits(),
+                     m_lastViewfinderFrame.size().width(),
+                     m_lastViewfinderFrame.size().height(),
+                     m_lastViewfinderFrame.bytesPerLine(),
+                     QImage::Format_RGB32);
+
+        QImage mirrored = image.mirrored(true, false);
+
+        m_lastViewfinderFrame.unmap();
+        m_lastViewfinderFrame = QVideoFrame(mirrored);
+    }
 }
 
 void AVFVideoRendererControl::handleViewfinderFrame()

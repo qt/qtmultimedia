@@ -64,6 +64,7 @@ public:
 
     void setVideoOutput(AVFVideoRendererControl *output);
     AVCaptureSession *captureSession() const { return m_captureSession; }
+    AVCaptureDevice *videoCaptureDevice() const;
 
     QCamera::State state() const;
     QCamera::State requestedState() const { return m_state; }
