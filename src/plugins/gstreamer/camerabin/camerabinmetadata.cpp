@@ -152,13 +152,20 @@ static const QGstreamerMetaDataKeyLookup qt_gstreamerMetaDataKeys[] =
 
 #if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 30)
     // Photos
-    { QMediaMetaData::CameraManufacturer, 0, QVariant::String },
-    { QMediaMetaData::CameraModel, 0, QVariant::String },
+    { QMediaMetaData::CameraManufacturer, GST_TAG_DEVICE_MANUFACTURER, QVariant::String },
+    { QMediaMetaData::CameraModel, GST_TAG_DEVICE_MODEL, QVariant::String },
     //{ QMediaMetaData::Event, 0, QVariant::String },
     //{ QMediaMetaData::Subject, 0, QVariant::String },
 
     { QMediaMetaData::Orientation, GST_TAG_IMAGE_ORIENTATION, QVariant::String },
 
+    // GPS
+    { QMediaMetaData::GPSLatitude, GST_TAG_GEO_LOCATION_LATITUDE, QVariant::Double },
+    { QMediaMetaData::GPSLongitude, GST_TAG_GEO_LOCATION_LONGITUDE, QVariant::Double },
+    { QMediaMetaData::GPSAltitude, GST_TAG_GEO_LOCATION_ELEVATION, QVariant::Double },
+    { QMediaMetaData::GPSTrack, GST_TAG_GEO_LOCATION_MOVEMENT_DIRECTION, QVariant::Double },
+    { QMediaMetaData::GPSSpeed, GST_TAG_GEO_LOCATION_MOVEMENT_SPEED, QVariant::Double },
+    { QMediaMetaData::GPSImgDirection, GST_TAG_GEO_LOCATION_CAPTURE_DIRECTION, QVariant::Double }
 #endif
 };
 
