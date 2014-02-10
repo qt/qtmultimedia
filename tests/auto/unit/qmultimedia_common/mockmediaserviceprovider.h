@@ -42,7 +42,7 @@
 #ifndef MOCKMEDIASERVICEPROVIDER_H
 #define MOCKMEDIASERVICEPROVIDER_H
 
-#include "private/qmediaserviceprovider_p.h"
+#include "qmediaserviceprovider_p.h"
 #include "qmediaservice.h"
 #include "mockvideodeviceselectorcontrol.h"
 #include "mockcamerainfocontrol.h"

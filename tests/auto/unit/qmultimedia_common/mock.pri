@@ -1,5 +1,5 @@
 INCLUDEPATH += $$PWD \
-    ../../../src/multimedia \
+    ../../../../src/multimedia \
 
 HEADERS *= \
     ../qmultimedia_common/mockmediaserviceprovider.h \

@@ -421,6 +421,8 @@ void QDeclarativeVideoOutput::_q_screenOrientationChanged(int orientation)
 
     The orientation change will also affect the mapping
     of coordinates from source to viewport.
+
+    \sa autoOrientation
 */
 int QDeclarativeVideoOutput::orientation() const
 {
@@ -477,6 +479,7 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
 
     By default \c autoOrientation is disabled.
 
+    \sa orientation
     \since QtMultimedia 5.2
 */
 bool QDeclarativeVideoOutput::autoOrientation() const

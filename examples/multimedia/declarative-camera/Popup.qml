@@ -40,73 +40,37 @@
 
 import QtQuick 2.0
 
-Popup {
-    id: propertyPopup
+Rectangle {
+    id: popup
 
-    property alias model : view.model
-    property variant currentValue
-    property variant currentItem : model.get(view.currentIndex)
+    radius: 5
+    border.color: "#000000"
+    border.width: 2
+    smooth: true
+    color: "#5e5e5e"
 
-    property int itemWidth : 100
-    property int itemHeight : 70
-    property int columns : 2
+    state: "invisible"
 
-    width: columns*itemWidth + view.anchors.margins*2
-    height: Math.ceil(model.count/columns)*itemHeight + view.anchors.margins*2 + 25
+    states: [
+        State {
+            name: "invisible"
+            PropertyChanges { target: popup; opacity: 0 }
+        },
 
-    signal selected
-
-    function indexForValue(value) {
-        for (var i = 0; i < view.count; i++) {
-            if (model.get(i).value == value) {
-                return i;
-            }
+        State {
+            name: "visible"
+            PropertyChanges { target: popup; opacity: 1.0 }
         }
+    ]
 
-        return 0;
+    transitions: Transition {
+        NumberAnimation { properties: "opacity"; duration: 100 }
     }
 
-    GridView {
-        id: view
-        anchors.fill: parent
-        anchors.margins: 5
-        cellWidth: propertyPopup.itemWidth
-        cellHeight: propertyPopup.itemHeight
-        snapMode: ListView.SnapOneItem
-        highlightFollowsCurrentItem: true
-        highlight: Rectangle { color: "gray"; radius: 5 }
-        currentIndex: indexForValue(propertyPopup.currentValue)
-
-        delegate: Item {
-            width: propertyPopup.itemWidth
-            height: 70
-
-            Image {
-                anchors.centerIn: parent
-                source: icon
-            }
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    propertyPopup.currentValue = value
-                    propertyPopup.selected(value)
-                }
-            }
-        }
-    }
-
-    Text {
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-        anchors.left: parent.left
-        anchors.leftMargin: 16
-
-        color: "#ffffff"
-        font.bold: true
-        style: Text.Raised;
-        styleColor: "black"
-        font.pixelSize: 14
-
-        text: view.model.get(view.currentIndex).text
+    function toggle() {
+        if (state == "visible")
+            state = "invisible";
+        else
+            state = "visible";
     }
 }

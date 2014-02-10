@@ -58,6 +58,16 @@ QCameraViewfinder *viewfinder = 0;
 QMediaRecorder *recorder = 0;
 QCameraImageCapture *imageCapture = 0;
 
+//! [Camera overview check]
+bool checkCameraAvailability()
+{
+    if (QCameraInfo::availableCameras().count() > 0)
+        return true;
+    else
+        return false;
+}
+//! [Camera overview check]
+
 void overview_viewfinder()
 {
     //! [Camera overview viewfinder]
@@ -68,6 +78,13 @@ void overview_viewfinder()
 
     camera->start(); // to start the viewfinder
     //! [Camera overview viewfinder]
+}
+
+void overview_camera_by_position()
+{
+    //! [Camera overview position]
+    camera = new QCamera(QCamera::FrontFace);
+    //! [Camera overview position]
 }
 
 // -.-

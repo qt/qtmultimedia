@@ -177,7 +177,7 @@ what changed, and what you might need to change when porting code.
 \section2 QML Types
 The QML types are accessed by using:
 \code
-import QtMultimedia 5.0
+import QtMultimedia 5.4
 \endcode
 \annotatedlist multimedia_qml
 The following types are accessed by using \l{Qt Audio Engine QML Types}{Qt Audio Engine}:

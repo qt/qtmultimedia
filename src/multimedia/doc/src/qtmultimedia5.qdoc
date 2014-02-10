@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-\qmlmodule QtMultimedia 5.0
+\qmlmodule QtMultimedia 5.4
 \title Qt Multimedia QML Types
 \ingroup qmlmodules
 \brief Provides QML types for multimedia support.
@@ -42,7 +42,7 @@ The QML types for \l{Qt Multimedia} support the basic use cases such as:
 The QML types can be imported into your application using the following import
 statement in your .qml file:
 \code
-import QtMultimedia 5.0
+import QtMultimedia 5.4
 \endcode
 
 \section1 QML types

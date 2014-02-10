@@ -41,72 +41,55 @@
 import QtQuick 2.0
 
 Popup {
-    id: propertyPopup
+    id: cameraListPopup
 
     property alias model : view.model
     property variant currentValue
-    property variant currentItem : model.get(view.currentIndex)
+    property variant currentItem : model[view.currentIndex]
 
-    property int itemWidth : 100
-    property int itemHeight : 70
-    property int columns : 2
+    property int itemWidth : 200
+    property int itemHeight : 50
 
-    width: columns*itemWidth + view.anchors.margins*2
-    height: Math.ceil(model.count/columns)*itemHeight + view.anchors.margins*2 + 25
+    width: itemWidth + view.anchors.margins*2
+    height: view.count * itemHeight + view.anchors.margins*2
 
     signal selected
 
-    function indexForValue(value) {
-        for (var i = 0; i < view.count; i++) {
-            if (model.get(i).value == value) {
-                return i;
-            }
-        }
-
-        return 0;
-    }
-
-    GridView {
+    ListView {
         id: view
         anchors.fill: parent
         anchors.margins: 5
-        cellWidth: propertyPopup.itemWidth
-        cellHeight: propertyPopup.itemHeight
         snapMode: ListView.SnapOneItem
         highlightFollowsCurrentItem: true
         highlight: Rectangle { color: "gray"; radius: 5 }
-        currentIndex: indexForValue(propertyPopup.currentValue)
+        currentIndex: 0
 
         delegate: Item {
-            width: propertyPopup.itemWidth
-            height: 70
+            width: cameraListPopup.itemWidth
+            height: cameraListPopup.itemHeight
 
-            Image {
-                anchors.centerIn: parent
-                source: icon
+            Text {
+                text: modelData.displayName
+
+                anchors.fill: parent
+                anchors.margins: 5
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                color: "white"
+                font.bold: true
+                style: Text.Raised
+                styleColor: "black"
+                font.pixelSize: 14
             }
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    propertyPopup.currentValue = value
-                    propertyPopup.selected(value)
+                    view.currentIndex = index
+                    cameraListPopup.currentValue = modelData.deviceId
+                    cameraListPopup.selected(modelData.deviceId)
                 }
             }
         }
-    }
-
-    Text {
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-        anchors.left: parent.left
-        anchors.leftMargin: 16
-
-        color: "#ffffff"
-        font.bold: true
-        style: Text.Raised;
-        styleColor: "black"
-        font.pixelSize: 14
-
-        text: view.model.get(view.currentIndex).text
     }
 }

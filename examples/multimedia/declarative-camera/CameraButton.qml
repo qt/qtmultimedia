@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -63,9 +63,16 @@ Item {
     }
     Text {
         id: btnText
+        anchors.fill: buttonImage
+        anchors.margins: 5
+        text: button.text
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        elide: Text.ElideRight
         color: button.color
-        anchors.centerIn: buttonImage; font.bold: true
-        text: button.text; style: Text.Raised; styleColor: "black"
+        font.bold: true
+        style: Text.Raised
+        styleColor: "black"
         font.pixelSize: 14
     }
 }

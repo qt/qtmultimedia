@@ -90,6 +90,65 @@ Many of these tasks have classes to assist them.
 
 \target camera-tldr
 \section1 Camera Implementation Details
+\section2 Detecting and Selecting Camera
+
+Before using the camera APIs, you should check that a camera is available at runtime. If there
+is none, you could for example disable camera related features in your application. To perform this
+check in C++, use the \l QCameraInfo::availableCameras() function, as shown in the example below:
+
+    \snippet multimedia-snippets/camera.cpp Camera overview check
+
+In QML, use the \l{QtMultimedia::QtMultimedia::availableCameras}{QtMultimedia.availableCameras}
+property:
+
+\qml
+import QtQuick 2.0
+import QtMultimedia 5.4
+
+Item {
+    property bool isCameraAvailable: QtMultimedia.availableCameras.length > 0
+}
+\endqml
+
+After determining whether a camera is available, access it using the \l QCamera class in C++ or
+the \l Camera type in QML.
+
+When multiple cameras are available, you can specify which one to use.
+
+In C++:
+
+     \snippet multimedia-snippets/camera.cpp Camera selection
+
+In QML, you can set the \c Camera \l{Camera::deviceId}{deviceId} property. All available IDs can
+be retrieved from \l{QtMultimedia::QtMultimedia::availableCameras}{QtMultimedia.availableCameras}:
+
+\qml
+Camera {
+    deviceId: QtMultimedia.availableCameras[0].deviceId
+}
+\endqml
+
+You can also select the camera by its physical position on the system rather than its device ID.
+This is useful on mobile devices, which often have a front-facing and a back-facing camera.
+
+In C++:
+
+    \snippet multimedia-snippets/camera.cpp Camera overview position
+
+In QML:
+
+\qml
+Camera {
+    position: Camera.FrontFace
+}
+\endqml
+
+If neither device ID nor position is specified, the default camera will be used. On desktop
+platforms, the default camera is set by the user in the system settings. On a mobile device, the
+back-facing camera is usually the default camera. You can get information about the default camera
+using \l QCameraInfo::defaultCamera() in C++ or
+\l{QtMultimedia::QtMultimedia::defaultCamera}{QtMultimedia.defaultCamera} in QML.
+
 \section2 Viewfinder
 
 While not strictly necessary, it's often useful to be able to see
@@ -105,7 +164,7 @@ simple viewfinder:
 
 \qml
 import QtQuick 2.0
-import QtMultimedia 5.0
+import QtMultimedia 5.4
 
 VideoOutput {
     source: camera

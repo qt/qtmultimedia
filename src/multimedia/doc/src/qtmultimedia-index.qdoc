@@ -46,7 +46,7 @@
     import statement in your \c {.qml} file.
 
     \code
-     import QtMultimedia 5.0
+     import QtMultimedia 5.4
     \endcode
 
     If you intend to use the C++ classes in your application, include the C++

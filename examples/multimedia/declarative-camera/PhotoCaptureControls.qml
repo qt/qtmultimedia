@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -39,7 +39,7 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import QtMultimedia 5.0
+import QtMultimedia 5.4
 
 FocusScope {
     property Camera camera
@@ -53,7 +53,7 @@ FocusScope {
 
     Rectangle {
         id: buttonPaneShadow
-        width: buttonsColumn.width + 16
+        width: bottomColumn.width + 16
         height: parent.height
         anchors.top: parent.top
         anchors.right: parent.right
@@ -130,11 +130,15 @@ FocusScope {
             id: bottomColumn
             spacing: 8
 
+            CameraListButton {
+                model: QtMultimedia.availableCameras
+                onValueChanged: captureControls.camera.deviceId = value
+            }
+
             CameraButton {
                 text: "Switch to Video"
                 onClicked: captureControls.videoModeSelected()
             }
-
 
             CameraButton {
                 id: quitButton

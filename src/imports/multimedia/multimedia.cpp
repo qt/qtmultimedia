@@ -47,6 +47,7 @@
 
 #include <private/qdeclarativevideooutput_p.h>
 
+#include "qdeclarativemultimediaglobal_p.h"
 #include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativeradio_p.h"
@@ -73,15 +74,14 @@ public:
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia"));
 
+        // 5.0 types
         qmlRegisterType<QSoundEffect>(uri, 5, 0, "SoundEffect");
         qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "Audio");
         qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 5, 0, "VideoOutput");
-        qmlRegisterType<QDeclarativeVideoOutput, 2>(uri, 5, 2, "VideoOutput");
         qmlRegisterType<QDeclarativeRadio>(uri, 5, 0, "Radio");
         qmlRegisterType<QDeclarativeRadioData>(uri, 5, 0, "RadioData");
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
-        qmlRegisterRevision<QDeclarativeCamera, 1>(uri, 5, 4);
         qmlRegisterType<QDeclarativeTorch>(uri, 5, 0, "Torch");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
                                 trUtf8("CameraCapture is provided by Camera"));
@@ -96,10 +96,17 @@ public:
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 5, 0, "CameraImageProcessing",
                                 trUtf8("CameraImageProcessing is provided by Camera"));
 
-        // Make types available for the 5.3 version
-        // Adding "import QtMultimedia 5.3" in QML will fail unless at least one type is registered
-        // for that version.
+        // 5.2 types
+        qmlRegisterRevision<QDeclarativeVideoOutput, 2>(uri, 5, 2);
+
+        // 5.3 types
+        // Nothing changed, but adding "import QtMultimedia 5.3" in QML will fail unless at
+        // least one type is registered for that version.
         qmlRegisterType<QSoundEffect>(uri, 5, 3, "SoundEffect");
+
+        // 5.4 types
+        qmlRegisterSingletonType(uri, 5, 4, "QtMultimedia", QDeclarativeMultimedia::initGlobalObject);
+        qmlRegisterRevision<QDeclarativeCamera, 1>(uri, 5, 4);
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }

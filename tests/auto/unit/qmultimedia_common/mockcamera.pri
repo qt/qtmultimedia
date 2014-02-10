@@ -1,8 +1,8 @@
 # Camera related mock backend files
 INCLUDEPATH += $$PWD \
-    ../../../src/multimedia \
-    ../../../src/multimedia/video \
-    ../../../src/multimedia/camera
+    ../../../../src/multimedia \
+    ../../../../src/multimedia/video \
+    ../../../../src/multimedia/camera
 
 HEADERS *= \
     ../qmultimedia_common/mockcameraservice.h \

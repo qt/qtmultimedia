@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -70,37 +70,11 @@ Item {
         anchors.right: parent.left
         anchors.rightMargin: 16
         anchors.top: parent.top
-        state: "invisible"
         visible: opacity > 0
 
         currentValue: propertyButton.value
 
-        states: [
-            State {
-                name: "invisible"
-                PropertyChanges { target: popup; opacity: 0 }
-            },
-
-            State {
-                name: "visible"
-                PropertyChanges { target: popup; opacity: 1.0 }
-            }
-        ]
-
-        transitions: Transition {
-            NumberAnimation { properties: "opacity"; duration: 100 }
-        }
-
-        function toggle() {
-            if (state == "visible")
-                state = "invisible";
-            else
-                state = "visible";
-        }
-
-        onSelected: {
-            popup.state = "invisible"
-        }
+        onSelected: popup.toggle()
     }
 }
 

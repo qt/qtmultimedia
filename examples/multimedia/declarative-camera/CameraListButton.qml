@@ -40,73 +40,37 @@
 
 import QtQuick 2.0
 
-Popup {
-    id: propertyPopup
+Item {
+    id: cameraListButton
+    property alias value : popup.currentValue
+    property alias model : popup.model
 
-    property alias model : view.model
-    property variant currentValue
-    property variant currentItem : model.get(view.currentIndex)
+    width : 144
+    height: 70
+    visible: model.length > 0
 
-    property int itemWidth : 100
-    property int itemHeight : 70
-    property int columns : 2
-
-    width: columns*itemWidth + view.anchors.margins*2
-    height: Math.ceil(model.count/columns)*itemHeight + view.anchors.margins*2 + 25
-
-    signal selected
-
-    function indexForValue(value) {
-        for (var i = 0; i < view.count; i++) {
-            if (model.get(i).value == value) {
-                return i;
-            }
-        }
-
-        return 0;
+    BorderImage {
+        id: buttonImage
+        source: "images/toolbutton.sci"
+        width: cameraListButton.width; height: cameraListButton.height
     }
 
-    GridView {
-        id: view
+    CameraButton {
         anchors.fill: parent
-        anchors.margins: 5
-        cellWidth: propertyPopup.itemWidth
-        cellHeight: propertyPopup.itemHeight
-        snapMode: ListView.SnapOneItem
-        highlightFollowsCurrentItem: true
-        highlight: Rectangle { color: "gray"; radius: 5 }
-        currentIndex: indexForValue(propertyPopup.currentValue)
+        text: popup.currentItem != null ? popup.currentItem.displayName : ""
 
-        delegate: Item {
-            width: propertyPopup.itemWidth
-            height: 70
-
-            Image {
-                anchors.centerIn: parent
-                source: icon
-            }
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    propertyPopup.currentValue = value
-                    propertyPopup.selected(value)
-                }
-            }
-        }
+        onClicked: popup.toggle()
     }
 
-    Text {
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
-        anchors.left: parent.left
-        anchors.leftMargin: 16
+    CameraListPopup {
+        id: popup
+        anchors.right: parent.left
+        anchors.rightMargin: 16
+        anchors.top: parent.top
+        visible: opacity > 0
 
-        color: "#ffffff"
-        font.bold: true
-        style: Text.Raised;
-        styleColor: "black"
-        font.pixelSize: 14
+        currentValue: cameraListButton.value
 
-        text: view.model.get(view.currentIndex).text
+        onSelected: popup.toggle()
     }
 }

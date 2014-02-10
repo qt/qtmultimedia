@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -57,6 +57,7 @@
 #include "qdeclarativecamerarecorder_p.h"
 
 #include <qcamera.h>
+#include <qcamerainfo.h>
 #include <qcameraimageprocessing.h>
 #include <qcameraimagecapture.h>
 
@@ -78,6 +79,11 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
+
+    Q_PROPERTY(QString deviceId READ deviceId WRITE setDeviceId NOTIFY deviceIdChanged REVISION 1)
+    Q_PROPERTY(Position position READ position WRITE setPosition NOTIFY positionChanged REVISION 1)
+    Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged REVISION 1)
+    Q_PROPERTY(int orientation READ orientation NOTIFY orientationChanged REVISION 1)
 
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
@@ -103,6 +109,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT REVISION 1)
     Q_PROPERTY(QDeclarativeCameraViewfinder *viewfinder READ viewfinder CONSTANT REVISION 1)
 
+    Q_ENUMS(Position)
     Q_ENUMS(CaptureMode)
     Q_ENUMS(State)
     Q_ENUMS(Status)
@@ -119,6 +126,12 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_ENUMS(Availability)
 
 public:
+    enum Position {
+        UnspecifiedPosition = QCamera::UnspecifiedPosition,
+        BackFace = QCamera::BackFace,
+        FrontFace = QCamera::FrontFace
+    };
+
     enum CaptureMode {
         CaptureViewfinder = QCamera::CaptureViewfinder,
         CaptureStillImage = QCamera::CaptureStillImage,
@@ -239,6 +252,15 @@ public:
 
     QDeclarativeMediaMetaData *metaData();
 
+    QString deviceId() const;
+    void setDeviceId(const QString &name);
+
+    Position position() const;
+    void setPosition(Position position);
+
+    QString displayName() const;
+    int orientation() const;
+
     CaptureMode captureMode() const;
     State cameraState() const;
     Status cameraStatus() const;
@@ -274,6 +296,11 @@ Q_SIGNALS:
     void errorChanged();
     void error(QDeclarativeCamera::Error errorCode, const QString &errorString);
 
+    Q_REVISION(1) void deviceIdChanged();
+    Q_REVISION(1) void positionChanged();
+    Q_REVISION(1) void displayNameChanged();
+    Q_REVISION(1) void orientationChanged();
+
     void captureModeChanged();
     void cameraStateChanged(QDeclarativeCamera::State);
     void cameraStatusChanged();
@@ -300,7 +327,10 @@ protected:
 
 private:
     Q_DISABLE_COPY(QDeclarativeCamera)
+    void setupDevice(const QString &deviceName);
+
     QCamera *m_camera;
+    QCameraInfo m_currentCameraInfo;
 
     QDeclarativeCameraCapture *m_imageCapture;
     QDeclarativeCameraRecorder *m_videoRecorder;
