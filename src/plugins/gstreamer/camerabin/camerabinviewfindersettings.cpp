@@ -89,6 +89,7 @@ void CameraBinViewfinderSettings::setViewfinderParameter(ViewfinderParameter par
     switch (parameter) {
     case Resolution:
         m_resolution = value.toSize();
+        break;
     case PixelAspectRatio:
     case MinimumFrameRate:
     case MaximumFrameRate:

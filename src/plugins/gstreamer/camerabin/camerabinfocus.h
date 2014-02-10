@@ -82,15 +82,25 @@ public Q_SLOTS:
     void _q_startFocusing();
     void _q_stopFocusing();
 
+    void setViewfinderResolution(const QSize &resolution);
+
 private Q_SLOTS:
     void _q_setFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
     void _q_handleCameraStateChange(QCamera::State state);
 
 private:
+    void resetFocusPoint();
+    void updateRegionOfInterest(const QRectF &focusRect, int priority);
+
     CameraBinSession *m_session;
+    QCamera::State m_cameraState;
     QCameraFocus::FocusModes m_focusMode;
+    QCameraFocus::FocusPointMode m_focusPointMode;
     QCamera::LockStatus m_focusStatus;
     QCameraFocusZone::FocusZoneStatus m_focusZoneStatus;
+    QPointF m_focusPoint;
+    QRectF m_focusRect;
+    QSize m_viewfinderResolution;
 };
 
 QT_END_NAMESPACE
