@@ -277,16 +277,8 @@ bool QPulseAudioOutput::open()
     qint64 bytesPerSecond = m_format.sampleRate() * m_format.channelCount() * m_format.sampleSize() / 8;
 
     pa_proplist *propList = pa_proplist_new();
-    if (m_category.isNull()) {
-        // Meant to be one of the strings "video", "music", "game", "event", "phone", "animation", "production", "a11y", "test"
-        // We choose music unless the buffer size is small, where we choose game..
-        if (m_bufferSize > 0 && bytesPerSecond > 0 && (m_bufferSize * 1000LL / bytesPerSecond <= LowLatencyBufferSizeMs)) {
-            m_category = LOW_LATENCY_CATEGORY_NAME;
-        } else {
-            m_category = "music";
-        }
-    }
-    pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, m_category.toLatin1().constData());
+    if (!m_category.isNull())
+        pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, m_category.toLatin1().constData());
 
     m_stream = pa_stream_new_with_proplist(pulseEngine->context(), m_streamName.constData(), &spec, 0, propList);
     pa_proplist_free(propList);

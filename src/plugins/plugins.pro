@@ -6,7 +6,7 @@
 
 TEMPLATE = subdirs
 
-SUBDIRS += m3u
+SUBDIRS += m3u videonode
 
 android {
    SUBDIRS += android opensles
