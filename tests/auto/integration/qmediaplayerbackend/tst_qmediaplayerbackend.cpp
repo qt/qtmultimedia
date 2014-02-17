@@ -630,8 +630,9 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     QVERIFY(surface->m_frameList.isEmpty()); // frame must not appear until we call pause() or play()
 
     positionSpy.clear();
-    player.setPosition((qint64)7000);
-    QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - (qint64)7000) < (qint64)500);
+    qint64 position = 7000;
+    player.setPosition(position);
+    QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - position) < (qint64)500);
     QCOMPARE(player.state(), QMediaPlayer::StoppedState);
     QTest::qWait(250); // wait a bit to ensure the frame is not rendered
     QVERIFY(surface->m_frameList.isEmpty()); // still no frame, we must call pause() or play() to see a frame
@@ -642,7 +643,8 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     {
         QVideoFrame frame = surface->m_frameList.back();
-        QVERIFY(qAbs(frame.startTime() - (qint64)7000) < (qint64)500);
+        const qint64 elapsed = frame.startTime() - position;
+        QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
         QCOMPARE(frame.width(), 160);
         QCOMPARE(frame.height(), 120);
 
@@ -657,14 +659,16 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     }
 
     positionSpy.clear();
-    player.setPosition((qint64)12000);
-    QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - (qint64)12000) < (qint64)500);
+    position = 12000;
+    player.setPosition(position);
+    QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - position) < (qint64)500);
     QCOMPARE(player.state(), QMediaPlayer::PausedState);
     QCOMPARE(surface->m_frameList.size(), 2);
 
     {
         QVideoFrame frame = surface->m_frameList.back();
-        QVERIFY(qAbs(frame.startTime() - (qint64)12000) < (qint64)500);
+        const qint64 elapsed = frame.startTime() - position;
+        QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
         QCOMPARE(frame.width(), 160);
         QCOMPARE(frame.height(), 120);
 
