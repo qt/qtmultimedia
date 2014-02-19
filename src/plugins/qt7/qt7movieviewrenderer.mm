@@ -278,7 +278,7 @@ QT7MovieViewRenderer::QT7MovieViewRenderer(QObject *parent)
     m_fbo(0),
     m_ciContext(0),
     m_pendingRenderEvent(false)
-{    
+{
 }
 
 QT7MovieViewRenderer::~QT7MovieViewRenderer()

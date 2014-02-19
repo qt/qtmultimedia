@@ -80,7 +80,7 @@ public:
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
-    
+
 private:
     void setupVideoOutput();
     bool createPixelBufferVisualContext();
@@ -92,7 +92,7 @@ private:
 
     QCvDisplayLink *m_displayLink;
 #ifdef QUICKTIME_C_API_AVAILABLE
-    QTVisualContextRef	m_visualContext;
+    QTVisualContextRef m_visualContext;
     bool m_usingGLContext;
     const QGLContext *m_currentGLContext;
     QSize m_pixelBufferContextGeometry;

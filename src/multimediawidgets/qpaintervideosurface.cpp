@@ -841,7 +841,7 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::paint(
         painter->fillRect(target, Qt::black);
         return QAbstractVideoSurface::NoError;
     }
- 
+
     const QAbstractVideoBuffer::HandleType h = m_frame.handleType();
     if (h == QAbstractVideoBuffer::NoHandle || h == QAbstractVideoBuffer::GLTextureHandle) {
         bool stencilTestEnabled = glIsEnabled(GL_STENCIL_TEST);

@@ -50,9 +50,8 @@
 // We mean it.
 //
 
-
-#ifndef QAUDIOINPUTALSA_H
-#define QAUDIOINPUTALSA_H
+#ifndef QAUDIOOUTPUTALSA_H
+#define QAUDIOOUTPUTALSA_H
 
 #include <alsa/asoundlib.h>
 
@@ -63,46 +62,21 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qdatetime.h>
 
-#include "qaudio.h"
-#include "qaudiodeviceinfo.h"
-#include "qaudiosystem.h"
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiosystem.h>
 
 QT_BEGIN_NAMESPACE
 
-
-class InputPrivate;
-
-class RingBuffer
+class QAlsaAudioOutput : public QAbstractAudioOutput
 {
-public:
-    RingBuffer();
-
-    void resize(int size);
-
-    int bytesOfDataInBuffer() const;
-    int freeBytes() const;
-
-    const char *availableData() const;
-    int availableDataBlockSize() const;
-    void readBytes(int bytes);
-
-    void write(char *data, int len);
-
-private:
-    int m_head;
-    int m_tail;
-
-    QByteArray m_data;
-};
-
-class QAudioInputPrivate : public QAbstractAudioInput
-{
+    friend class OutputPrivate;
     Q_OBJECT
 public:
-    QAudioInputPrivate(const QByteArray &device);
-    ~QAudioInputPrivate();
+    QAlsaAudioOutput(const QByteArray &device);
+    ~QAlsaAudioOutput();
 
-    qint64 read(char* data, qint64 len);
+    qint64 write( const char *data, qint64 len );
 
     void start(QIODevice* device);
     QIODevice* start();
@@ -110,7 +84,7 @@ public:
     void reset();
     void suspend();
     void resume();
-    int bytesReady() const;
+    int bytesFree() const;
     int periodSize() const;
     void setBufferSize(int value);
     int bufferSize() const;
@@ -124,9 +98,8 @@ public:
     QAudioFormat format() const;
     void setVolume(qreal);
     qreal volume() const;
-    bool resuming;
-    snd_pcm_t* handle;
-    qint64 totalTimeValue;
+
+
     QIODevice* audioSource;
     QAudioFormat settings;
     QAudio::Error errorState;
@@ -134,31 +107,40 @@ public:
 
 private slots:
     void userFeed();
+    void feedback();
+    void updateAvailable();
     bool deviceReady();
 
-private:
-    int checkBytesReady();
-    int xrun_recovery(int err);
-    int setFormat();
-    bool open();
-    void close();
-    void drain();
+signals:
+    void processMore();
 
-    QTimer* timer;
-    QTime timeStamp;
-    QTime clockStamp;
-    qint64 elapsedTimeOffset;
-    int intervalTime;
-    RingBuffer ringBuffer;
-    int bytesAvailable;
-    QByteArray m_device;
+private:
+    bool opened;
     bool pullMode;
+    bool resuming;
     int buffer_size;
     int period_size;
+    int intervalTime;
+    qint64 totalTimeValue;
     unsigned int buffer_time;
     unsigned int period_time;
     snd_pcm_uframes_t buffer_frames;
     snd_pcm_uframes_t period_frames;
+    static void async_callback(snd_async_handler_t *ahandler);
+    int xrun_recovery(int err);
+
+    int setFormat();
+    bool open();
+    void close();
+
+    QTimer* timer;
+    QByteArray m_device;
+    int bytesAvailable;
+    QTime timeStamp;
+    QTime clockStamp;
+    qint64 elapsedTimeOffset;
+    char* audioBuffer;
+    snd_pcm_t* handle;
     snd_async_handler_t* ahandler;
     snd_pcm_access_t access;
     snd_pcm_format_t pcmformat;
@@ -167,19 +149,19 @@ private:
     qreal m_volume;
 };
 
-class InputPrivate : public QIODevice
+class OutputPrivate : public QIODevice
 {
+    friend class QAlsaAudioOutput;
     Q_OBJECT
 public:
-    InputPrivate(QAudioInputPrivate* audio);
-    ~InputPrivate();
+    OutputPrivate(QAlsaAudioOutput* audio);
+    ~OutputPrivate();
 
     qint64 readData( char* data, qint64 len);
     qint64 writeData(const char* data, qint64 len);
 
-    void trigger();
 private:
-    QAudioInputPrivate *audioDevice;
+    QAlsaAudioOutput *audioDevice;
 };
 
 QT_END_NAMESPACE

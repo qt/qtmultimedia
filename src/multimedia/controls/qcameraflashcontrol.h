@@ -59,7 +59,7 @@ class Q_MULTIMEDIA_EXPORT QCameraFlashControl : public QMediaControl
 
 public:
     ~QCameraFlashControl();
-    
+
     virtual QCameraExposure::FlashModes flashMode() const = 0;
     virtual void setFlashMode(QCameraExposure::FlashModes mode) = 0;
     virtual bool isFlashModeSupported(QCameraExposure::FlashModes mode) const = 0;

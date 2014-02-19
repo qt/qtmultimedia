@@ -50,7 +50,7 @@
 // INTERNAL USE ONLY: Do NOT use for any other purpose.
 //
 
-#include "qaudiooutput_win32_p.h"
+#include "qwindowsaudiooutput.h"
 #include <QtEndian>
 
 #ifndef SPEAKER_FRONT_LEFT
@@ -104,7 +104,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QAudioOutputPrivate::QAudioOutputPrivate(const QByteArray &device)
+QWindowsAudioOutput::QWindowsAudioOutput(const QByteArray &device)
 {
     bytesAvailable = 0;
     buffer_size = 0;
@@ -121,7 +121,7 @@ QAudioOutputPrivate::QAudioOutputPrivate(const QByteArray &device)
     volumeCache = (qreal)1.;
 }
 
-QAudioOutputPrivate::~QAudioOutputPrivate()
+QWindowsAudioOutput::~QWindowsAudioOutput()
 {
     mutex.lock();
     finished = true;
@@ -130,15 +130,15 @@ QAudioOutputPrivate::~QAudioOutputPrivate()
     close();
 }
 
-void CALLBACK QAudioOutputPrivate::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
+void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
         DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 )
 {
     Q_UNUSED(dwParam1)
     Q_UNUSED(dwParam2)
     Q_UNUSED(hWaveOut)
 
-    QAudioOutputPrivate* qAudio;
-    qAudio = (QAudioOutputPrivate*)(dwInstance);
+    QWindowsAudioOutput* qAudio;
+    qAudio = (QWindowsAudioOutput*)(dwInstance);
     if(!qAudio)
         return;
 
@@ -153,7 +153,7 @@ void CALLBACK QAudioOutputPrivate::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
         case WOM_DONE:
             if(qAudio->finished || qAudio->buffer_size == 0 || qAudio->period_size == 0) {
                 return;
-	    }
+            }
             qAudio->waveFreeBlockCount++;
             if(qAudio->waveFreeBlockCount >= qAudio->buffer_size/qAudio->period_size)
                 qAudio->waveFreeBlockCount = qAudio->buffer_size/qAudio->period_size;
@@ -164,7 +164,7 @@ void CALLBACK QAudioOutputPrivate::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
     }
 }
 
-WAVEHDR* QAudioOutputPrivate::allocateBlocks(int size, int count)
+WAVEHDR* QWindowsAudioOutput::allocateBlocks(int size, int count)
 {
     int i;
     unsigned char* buffer;
@@ -186,7 +186,7 @@ WAVEHDR* QAudioOutputPrivate::allocateBlocks(int size, int count)
     return blocks;
 }
 
-void QAudioOutputPrivate::freeBlocks(WAVEHDR* blockArray)
+void QWindowsAudioOutput::freeBlocks(WAVEHDR* blockArray)
 {
     WAVEHDR* blocks = blockArray;
 
@@ -199,18 +199,18 @@ void QAudioOutputPrivate::freeBlocks(WAVEHDR* blockArray)
     HeapFree(GetProcessHeap(), 0, blockArray);
 }
 
-QAudioFormat QAudioOutputPrivate::format() const
+QAudioFormat QWindowsAudioOutput::format() const
 {
     return settings;
 }
 
-void QAudioOutputPrivate::setFormat(const QAudioFormat& fmt)
+void QWindowsAudioOutput::setFormat(const QAudioFormat& fmt)
 {
     if (deviceState == QAudio::StoppedState)
         settings = fmt;
 }
 
-void QAudioOutputPrivate::start(QIODevice* device)
+void QWindowsAudioOutput::start(QIODevice* device)
 {
     if(deviceState != QAudio::StoppedState)
         close();
@@ -229,7 +229,7 @@ void QAudioOutputPrivate::start(QIODevice* device)
     emit stateChanged(deviceState);
 }
 
-QIODevice* QAudioOutputPrivate::start()
+QIODevice* QWindowsAudioOutput::start()
 {
     if(deviceState != QAudio::StoppedState)
         close();
@@ -251,7 +251,7 @@ QIODevice* QAudioOutputPrivate::start()
     return audioSource;
 }
 
-void QAudioOutputPrivate::stop()
+void QWindowsAudioOutput::stop()
 {
     if(deviceState == QAudio::StoppedState)
         return;
@@ -263,7 +263,7 @@ void QAudioOutputPrivate::stop()
     emit stateChanged(deviceState);
 }
 
-bool QAudioOutputPrivate::open()
+bool QWindowsAudioOutput::open()
 {
 #ifdef DEBUG_AUDIO
     QTime now(QTime::currentTime());
@@ -394,7 +394,7 @@ bool QAudioOutputPrivate::open()
     return true;
 }
 
-void QAudioOutputPrivate::close()
+void QWindowsAudioOutput::close()
 {
     if(deviceState == QAudio::StoppedState)
         return;
@@ -413,7 +413,7 @@ void QAudioOutputPrivate::close()
     buffer_size = 0;
 }
 
-int QAudioOutputPrivate::bytesFree() const
+int QWindowsAudioOutput::bytesFree() const
 {
     int buf;
     buf = waveFreeBlockCount*period_size;
@@ -421,33 +421,33 @@ int QAudioOutputPrivate::bytesFree() const
     return buf;
 }
 
-int QAudioOutputPrivate::periodSize() const
+int QWindowsAudioOutput::periodSize() const
 {
     return period_size;
 }
 
-void QAudioOutputPrivate::setBufferSize(int value)
+void QWindowsAudioOutput::setBufferSize(int value)
 {
     if(deviceState == QAudio::StoppedState)
         buffer_size = value;
 }
 
-int QAudioOutputPrivate::bufferSize() const
+int QWindowsAudioOutput::bufferSize() const
 {
     return buffer_size;
 }
 
-void QAudioOutputPrivate::setNotifyInterval(int ms)
+void QWindowsAudioOutput::setNotifyInterval(int ms)
 {
     intervalTime = qMax(0, ms);
 }
 
-int QAudioOutputPrivate::notifyInterval() const
+int QWindowsAudioOutput::notifyInterval() const
 {
     return intervalTime;
 }
 
-qint64 QAudioOutputPrivate::processedUSecs() const
+qint64 QWindowsAudioOutput::processedUSecs() const
 {
     if (deviceState == QAudio::StoppedState)
         return 0;
@@ -458,7 +458,7 @@ qint64 QAudioOutputPrivate::processedUSecs() const
     return result;
 }
 
-qint64 QAudioOutputPrivate::write( const char *data, qint64 len )
+qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
 {
     // Write out some audio data
     if (deviceState != QAudio::ActiveState && deviceState != QAudio::IdleState)
@@ -539,7 +539,7 @@ qint64 QAudioOutputPrivate::write( const char *data, qint64 len )
     return (len-l);
 }
 
-void QAudioOutputPrivate::resume()
+void QWindowsAudioOutput::resume()
 {
     if(deviceState == QAudio::SuspendedState) {
         deviceState = QAudio::ActiveState;
@@ -550,7 +550,7 @@ void QAudioOutputPrivate::resume()
     }
 }
 
-void QAudioOutputPrivate::suspend()
+void QWindowsAudioOutput::suspend()
 {
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState) {
         int delay = (buffer_size-bytesFree())*1000/(settings.sampleRate()
@@ -563,7 +563,7 @@ void QAudioOutputPrivate::suspend()
     }
 }
 
-void QAudioOutputPrivate::feedback()
+void QWindowsAudioOutput::feedback()
 {
 #ifdef DEBUG_AUDIO
     QTime now(QTime::currentTime());
@@ -577,7 +577,7 @@ void QAudioOutputPrivate::feedback()
     }
 }
 
-bool QAudioOutputPrivate::deviceReady()
+bool QWindowsAudioOutput::deviceReady()
 {
     if(deviceState == QAudio::StoppedState || deviceState == QAudio::SuspendedState)
         return false;
@@ -590,28 +590,28 @@ bool QAudioOutputPrivate::deviceReady()
 #endif
         bool startup = false;
         if(totalTimeValue == 0)
-	    startup = true;
+            startup = true;
 
-	bool full=false;
+        bool full=false;
 
         mutex.lock();
-	if(waveFreeBlockCount==0) full = true;
+        if (waveFreeBlockCount==0) full = true;
         mutex.unlock();
 
-	if (full){
+        if (full) {
 #ifdef DEBUG_AUDIO
             qDebug() << "Skipping data as unable to write";
 #endif
-	    if((timeStamp.elapsed() + elapsedTimeOffset) > intervalTime ) {
+            if ((timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
                 emit notify();
-		elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
-		timeStamp.restart();
-	    }
-	    return true;
-	}
+                elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
+                timeStamp.restart();
+            }
+            return true;
+        }
 
         if(startup)
-	    waveOutPause(hWaveOut);
+            waveOutPause(hWaveOut);
         int input = period_size*chunks;
         int l = audioSource->read(audioBuffer,input);
         if(l > 0) {
@@ -626,8 +626,8 @@ bool QAudioOutputPrivate::deviceReady()
                 // Didn't write all data
                 audioSource->seek(audioSource->pos()-(l-out));
             }
-	    if(startup)
-	        waveOutRestart(hWaveOut);
+            if (startup)
+                waveOutRestart(hWaveOut);
         } else if(l == 0) {
             bytesAvailable = bytesFree();
 
@@ -654,7 +654,7 @@ bool QAudioOutputPrivate::deviceReady()
         int buffered;
 
         mutex.lock();
-	buffered = waveFreeBlockCount;
+        buffered = waveFreeBlockCount;
         mutex.unlock();
 
         if (buffered >= buffer_size/period_size && deviceState == QAudio::ActiveState) {
@@ -670,14 +670,14 @@ bool QAudioOutputPrivate::deviceReady()
 
     if(intervalTime && (timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
         emit notify();
-	elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
+        elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
         timeStamp.restart();
     }
 
     return true;
 }
 
-qint64 QAudioOutputPrivate::elapsedUSecs() const
+qint64 QWindowsAudioOutput::elapsedUSecs() const
 {
     if (deviceState == QAudio::StoppedState)
         return 0;
@@ -685,17 +685,17 @@ qint64 QAudioOutputPrivate::elapsedUSecs() const
     return timeStampOpened.elapsed()*1000;
 }
 
-QAudio::Error QAudioOutputPrivate::error() const
+QAudio::Error QWindowsAudioOutput::error() const
 {
     return errorState;
 }
 
-QAudio::State QAudioOutputPrivate::state() const
+QAudio::State QWindowsAudioOutput::state() const
 {
     return deviceState;
 }
 
-void QAudioOutputPrivate::setVolume(qreal v)
+void QWindowsAudioOutput::setVolume(qreal v)
 {
     const qreal normalizedVolume = qBound(qreal(0.0), v, qreal(1.0));
     if (deviceState != QAudio::ActiveState) {
@@ -709,19 +709,19 @@ void QAudioOutputPrivate::setVolume(qreal v)
         volumeCache = normalizedVolume;
 }
 
-qreal QAudioOutputPrivate::volume() const
+qreal QWindowsAudioOutput::volume() const
 {
     return volumeCache;
 }
 
-void QAudioOutputPrivate::reset()
+void QWindowsAudioOutput::reset()
 {
     close();
 }
 
-OutputPrivate::OutputPrivate(QAudioOutputPrivate* audio)
+OutputPrivate::OutputPrivate(QWindowsAudioOutput* audio)
 {
-    audioDevice = qobject_cast<QAudioOutputPrivate*>(audio);
+    audioDevice = qobject_cast<QWindowsAudioOutput*>(audio);
 }
 
 OutputPrivate::~OutputPrivate() {}
@@ -759,4 +759,4 @@ qint64 OutputPrivate::writeData(const char* data, qint64 len)
 
 QT_END_NAMESPACE
 
-#include "moc_qaudiooutput_win32_p.cpp"
+#include "moc_qwindowsaudiooutput.cpp"

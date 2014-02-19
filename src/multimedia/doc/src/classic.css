@@ -34,44 +34,44 @@ hr {
 }
 
 table.valuelist {
-	border-width: 1px 1px 1px 1px;
-	border-style: solid;
-	border-color: #dddddd;
-	border-collapse: collapse;
-	background-color: #f0f0f0;
+    border-width: 1px 1px 1px 1px;
+    border-style: solid;
+    border-color: #dddddd;
+    border-collapse: collapse;
+    background-color: #f0f0f0;
 }
 
 table.indextable {
-	border-width: 1px 1px 1px 1px;
-	border-style: solid;
-	border-collapse: collapse;
-	background-color: #f0f0f0;
+    border-width: 1px 1px 1px 1px;
+    border-style: solid;
+    border-collapse: collapse;
+    background-color: #f0f0f0;
     border-color:#555;
     font-size: 100%;
 }
 
 table td.largeindex {
-	border-width: 1px 1px 1px 1px;
-	border-collapse: collapse;
-	background-color: #f0f0f0;
+    border-width: 1px 1px 1px 1px;
+    border-collapse: collapse;
+    background-color: #f0f0f0;
     border-color:#555;
     font-size: 120%;
 }
 
 table.valuelist th {
-	border-width: 1px 1px 1px 2px;
-	padding: 4px;
-	border-style: solid;
-	border-color: #666;
+    border-width: 1px 1px 1px 2px;
+    padding: 4px;
+    border-style: solid;
+    border-color: #666;
     color:white;
     background-color:#666;
 }
 
 th.titleheader  {
-	border-width: 1px 0px 1px 0px;
-	padding: 2px;
-	border-style: solid;
-	border-color: #666;
+    border-width: 1px 0px 1px 0px;
+    padding: 2px;
+    border-style: solid;
+    border-color: #666;
     color:white;
     background-color:#555;
     background-image:url('images/gradient.png')};
@@ -81,10 +81,10 @@ th.titleheader  {
 
 
 th.largeheader {
-	border-width: 1px 0px 1px 0px;
-	padding: 4px;
-	border-style: solid;
-	border-color: #444;
+    border-width: 1px 0px 1px 0px;
+    padding: 4px;
+    border-style: solid;
+    border-color: #444;
     color:white;
     background-color:#555555;
     font-size: 120%;
@@ -143,7 +143,7 @@ table.generic, table.annotated
 {
   border-width: 1px;
   border-color:#bbb;
-  border-style:solid;  
+  border-style:solid;
   border-collapse:collapse;
 }
 

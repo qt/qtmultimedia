@@ -66,7 +66,7 @@ public:
     bool isFlashReady() const;
 
 private:
-    CameraBinSession *m_session;    
+    CameraBinSession *m_session;
 };
 
 QT_END_NAMESPACE

@@ -271,7 +271,7 @@ void tst_QGraphicsVideoItem::serviceDestroyed()
     object.testService = 0;
 
     delete service;
-   
+
     QCOMPARE(item.mediaObject(), static_cast<QMediaObject *>(&object));
     QVERIFY(item.boundingRect().isEmpty());
 }
@@ -330,7 +330,7 @@ void tst_QGraphicsVideoItem::setMediaObject()
 }
 
 void tst_QGraphicsVideoItem::show()
-{    
+{
     QtTestVideoObject object(new QtTestRendererControl);
     QtTestGraphicsVideoItem *item = new QtTestGraphicsVideoItem;
     object.bind(item);
@@ -630,7 +630,7 @@ void tst_QGraphicsVideoItem::paint()
     QtTestVideoObject object(new QtTestRendererControl);
     QtTestGraphicsVideoItem *item = new QtTestGraphicsVideoItem;
     object.bind(item);
-    
+
     QGraphicsScene graphicsScene;
     graphicsScene.addItem(item);
     QGraphicsView graphicsView(&graphicsScene);

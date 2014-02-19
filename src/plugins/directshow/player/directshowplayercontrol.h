@@ -79,7 +79,7 @@ public:
     bool isVideoAvailable() const;
 
     bool isSeekable() const;
-    
+
     QMediaTimeRange availablePlaybackRanges() const;
 
     qreal playbackRate() const;
@@ -140,7 +140,7 @@ private:
     bool m_seekable;
     QMediaContent m_media;
     QString m_errorString;
-    
+
 };
 
 #endif

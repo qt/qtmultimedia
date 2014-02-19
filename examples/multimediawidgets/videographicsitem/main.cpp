@@ -49,6 +49,6 @@ int main(int argc, char **argv)
     VideoPlayer player;
     player.show();
 
-    return app.exec(); 
+    return app.exec();
 }
 

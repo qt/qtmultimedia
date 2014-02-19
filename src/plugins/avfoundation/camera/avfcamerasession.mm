@@ -155,7 +155,15 @@ void AVFCameraSession::setVideoOutput(AVFVideoRendererControl *output)
 {
     m_videoOutput = output;
     if (output)
-        output->configureAVCaptureSession(m_captureSession);
+        output->configureAVCaptureSession(this);
+}
+
+AVCaptureDevice *AVFCameraSession::videoCaptureDevice() const
+{
+    if (m_videoInput)
+        return m_videoInput.device;
+
+    return 0;
 }
 
 QCamera::State AVFCameraSession::state() const

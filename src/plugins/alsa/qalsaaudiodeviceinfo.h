@@ -39,71 +39,84 @@
 **
 ****************************************************************************/
 
-#ifndef QGRAPHICSVIDEOITEM_H
-#define QGRAPHICSVIDEOITEM_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists for the convenience
+// of other Qt classes.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtWidgets/qgraphicsitem.h>
 
-#include <QtMultimediaWidgets/qvideowidget.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#ifndef QALSAAUDIODEVICEINFO_H
+#define QALSAAUDIODEVICEINFO_H
+
+#include <alsa/asoundlib.h>
+
+#include <QtCore/qbytearray.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qdebug.h>
+
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiosystem.h>
 
 QT_BEGIN_NAMESPACE
 
-class QVideoSurfaceFormat;
-QT_END_NAMESPACE
 
-QT_BEGIN_NAMESPACE
+const unsigned int MAX_SAMPLE_RATES = 5;
+const unsigned int SAMPLE_RATES[] =
+    { 8000, 11025, 22050, 44100, 48000 };
 
-class QGraphicsVideoItemPrivate;
-class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaBindableInterface
+class QAlsaAudioDeviceInfo : public QAbstractAudioDeviceInfo
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
-    Q_PROPERTY(QMediaObject* mediaObject READ mediaObject WRITE setMediaObject)
-    Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
-    Q_PROPERTY(QPointF offset READ offset WRITE setOffset)
-    Q_PROPERTY(QSizeF size READ size WRITE setSize)
-    Q_PROPERTY(QSizeF nativeSize READ nativeSize NOTIFY nativeSizeChanged)
 public:
-    QGraphicsVideoItem(QGraphicsItem *parent = 0);
-    ~QGraphicsVideoItem();
+    QAlsaAudioDeviceInfo(QByteArray dev,QAudio::Mode mode);
+    ~QAlsaAudioDeviceInfo();
 
-    QMediaObject *mediaObject() const;
-
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    QPointF offset() const;
-    void setOffset(const QPointF &offset);
-
-    QSizeF size() const;
-    void setSize(const QSizeF &size);
-
-    QSizeF nativeSize() const;
-
-    QRectF boundingRect() const;
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
-
-Q_SIGNALS:
-    void nativeSizeChanged(const QSizeF &size);
-
-protected:
-    void timerEvent(QTimerEvent *event);
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
-
-    bool setMediaObject(QMediaObject *object);
-
-    QGraphicsVideoItemPrivate *d_ptr;
+    bool testSettings(const QAudioFormat& format) const;
+    void updateLists();
+    QAudioFormat preferredFormat() const;
+    bool isFormatSupported(const QAudioFormat& format) const;
+    QString deviceName() const;
+    QStringList supportedCodecs();
+    QList<int> supportedSampleRates();
+    QList<int> supportedChannelCounts();
+    QList<int> supportedSampleSizes();
+    QList<QAudioFormat::Endian> supportedByteOrders();
+    QList<QAudioFormat::SampleType> supportedSampleTypes();
+    static QByteArray defaultInputDevice();
+    static QByteArray defaultOutputDevice();
+    static QList<QByteArray> availableDevices(QAudio::Mode);
 
 private:
-    Q_DECLARE_PRIVATE(QGraphicsVideoItem)
-    Q_PRIVATE_SLOT(d_func(), void _q_present())
-    Q_PRIVATE_SLOT(d_func(), void _q_updateNativeSize())
-    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
+    bool open();
+    void close();
+
+    void checkSurround();
+    bool surround40;
+    bool surround51;
+    bool surround71;
+
+    QString device;
+    QAudio::Mode mode;
+    QAudioFormat nearest;
+    QList<int> sampleRatez;
+    QList<int> channelz;
+    QList<int> sizez;
+    QList<QAudioFormat::Endian> byteOrderz;
+    QStringList codecz;
+    QList<QAudioFormat::SampleType> typez;
+    snd_pcm_t* handle;
+    snd_pcm_hw_params_t *params;
 };
 
 QT_END_NAMESPACE
 
 
-#endif
+#endif // QALSAAUDIODEVICEINFO_H

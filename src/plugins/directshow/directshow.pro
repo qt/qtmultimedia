@@ -16,9 +16,7 @@ qtHaveModule(widgets) {
     DEFINES += HAVE_WIDGETS
 }
 
-win32-g++ {
-    DEFINES += NO_DSHOW_STRSAFE
-}
+mingw: DEFINES += NO_DSHOW_STRSAFE
 
 !config_wmf: include(player/player.pri)
 include(camera/camera.pri)

@@ -81,7 +81,7 @@ public:
 
     STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject)
     {
-        if (NULL == ppvObject) 
+        if (NULL == ppvObject)
             return E_POINTER;
         if (riid == IID_IUnknown /*__uuidof(IUnknown) */ ) {
             *ppvObject = static_cast<IUnknown*>(this);
@@ -382,9 +382,9 @@ QSize DSCameraSession::frameSize() const
 
 void DSCameraSession::setFrameSize(const QSize& s)
 {
-	if (supportedResolutions(pixelF).contains(s)) 
+    if (supportedResolutions(pixelF).contains(s))
         m_windowSize = s;
-    else 
+    else
         qWarning() << "frame size if not supported for current pixel format, no change";
 }
 
@@ -467,8 +467,8 @@ void DSCameraSession::setPixelFormat(QVideoFrame::PixelFormat fmt)
 
 QList<QSize> DSCameraSession::supportedResolutions(QVideoFrame::PixelFormat format)
 {
-    if (!resolutions.contains(format)) 
-		return QList<QSize>();
+    if (!resolutions.contains(format))
+        return QList<QSize>();
     return resolutions.value(format);
 }
 

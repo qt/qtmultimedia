@@ -389,7 +389,7 @@ void QAndroidCaptureSession::applySettings()
     }
 
     // video settings
-    if (m_cameraSession && m_videoSettingsDirty) {
+    if (m_cameraSession && m_cameraSession->camera() && m_videoSettingsDirty) {
         if (m_videoSettings.resolution().isEmpty()) {
             m_videoSettings.setResolution(m_defaultSettings.videoResolution);
             m_resolutionDirty = true;
@@ -466,6 +466,8 @@ void QAndroidCaptureSession::onCameraOpened()
 
     qSort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
     qSort(m_supportedFramerates.begin(), m_supportedFramerates.end());
+
+    applySettings();
 }
 
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)

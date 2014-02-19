@@ -39,71 +39,29 @@
 **
 ****************************************************************************/
 
-#ifndef QGRAPHICSVIDEOITEM_H
-#define QGRAPHICSVIDEOITEM_H
+#ifndef QALSAPLUGIN_H
+#define QALSAPLUGIN_H
 
-#include <QtWidgets/qgraphicsitem.h>
-
-#include <QtMultimediaWidgets/qvideowidget.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qaudiosystemplugin.h>
 
 QT_BEGIN_NAMESPACE
 
-class QVideoSurfaceFormat;
-QT_END_NAMESPACE
-
-QT_BEGIN_NAMESPACE
-
-class QGraphicsVideoItemPrivate;
-class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaBindableInterface
+class QAlsaPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
-    Q_PROPERTY(QMediaObject* mediaObject READ mediaObject WRITE setMediaObject)
-    Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
-    Q_PROPERTY(QPointF offset READ offset WRITE setOffset)
-    Q_PROPERTY(QSizeF size READ size WRITE setSize)
-    Q_PROPERTY(QSizeF nativeSize READ nativeSize NOTIFY nativeSizeChanged)
+
+    Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "alsa.json")
+
 public:
-    QGraphicsVideoItem(QGraphicsItem *parent = 0);
-    ~QGraphicsVideoItem();
+    QAlsaPlugin(QObject *parent = 0);
+    ~QAlsaPlugin() {}
 
-    QMediaObject *mediaObject() const;
-
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    QPointF offset() const;
-    void setOffset(const QPointF &offset);
-
-    QSizeF size() const;
-    void setSize(const QSizeF &size);
-
-    QSizeF nativeSize() const;
-
-    QRectF boundingRect() const;
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
-
-Q_SIGNALS:
-    void nativeSizeChanged(const QSizeF &size);
-
-protected:
-    void timerEvent(QTimerEvent *event);
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
-
-    bool setMediaObject(QMediaObject *object);
-
-    QGraphicsVideoItemPrivate *d_ptr;
-
-private:
-    Q_DECLARE_PRIVATE(QGraphicsVideoItem)
-    Q_PRIVATE_SLOT(d_func(), void _q_present())
-    Q_PRIVATE_SLOT(d_func(), void _q_updateNativeSize())
-    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
+    QList<QByteArray> availableDevices(QAudio::Mode mode) const Q_DECL_OVERRIDE;
+    QAbstractAudioInput *createInput(const QByteArray &device) Q_DECL_OVERRIDE;
+    QAbstractAudioOutput *createOutput(const QByteArray &device) Q_DECL_OVERRIDE;
+    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) Q_DECL_OVERRIDE;
 };
 
 QT_END_NAMESPACE
 
-
-#endif
+#endif // QALSAPLUGIN_H

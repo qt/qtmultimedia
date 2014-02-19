@@ -54,7 +54,7 @@ CameraButtonListener::CameraButtonListener(QObject *parent) :
     m_shutterPressed(false)
 {
     m_keys = new MeeGo::QmKeys(this);
-    connect(m_keys, SIGNAL(keyEvent(MeeGo::QmKeys::Key, MeeGo::QmKeys::State)),
+    connect(m_keys, SIGNAL(keyEvent(MeeGo::QmKeys::Key,MeeGo::QmKeys::State)),
             this, SLOT(handleQmKeyEvent(MeeGo::QmKeys::Key,MeeGo::QmKeys::State)));
 }
 
@@ -65,7 +65,7 @@ CameraButtonListener::~CameraButtonListener()
 void CameraButtonListener::handleQmKeyEvent(MeeGo::QmKeys::Key key, MeeGo::QmKeys::State state)
 {
     if (key == MeeGo::QmKeys::Camera) {
-        QWidget *window = QApplication::focusWidget();        
+        QWidget *window = QApplication::focusWidget();
 
         bool focusPressed = (state == MeeGo::QmKeys::KeyHalfDown) ||
                             (state == MeeGo::QmKeys::KeyDown);

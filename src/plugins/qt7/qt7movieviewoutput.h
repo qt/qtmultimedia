@@ -91,7 +91,7 @@ public:
 
     int saturation() const;
     void setSaturation(int saturation);
-    
+
 private:
     void setupVideoOutput();
 

@@ -58,7 +58,7 @@ MFPlayerControl::MFPlayerControl(MFPlayerSession *session)
     QObject::connect(m_session, SIGNAL(audioAvailable()), this, SLOT(handleAudioAvailable()));
     QObject::connect(m_session, SIGNAL(durationUpdate(qint64)), this, SLOT(handleDurationUpdate(qint64)));
     QObject::connect(m_session, SIGNAL(seekableUpdate(bool)), this, SLOT(handleSeekableUpdate(bool)));
-    QObject::connect(m_session, SIGNAL(error(QMediaPlayer::Error, QString, bool)), this, SLOT(handleError(QMediaPlayer::Error, QString, bool)));
+    QObject::connect(m_session, SIGNAL(error(QMediaPlayer::Error,QString,bool)), this, SLOT(handleError(QMediaPlayer::Error,QString,bool)));
     QObject::connect(m_session, SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
     QObject::connect(m_session, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
     QObject::connect(m_session, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));

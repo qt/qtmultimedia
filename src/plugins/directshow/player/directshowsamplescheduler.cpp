@@ -308,10 +308,10 @@ void DirectShowSampleScheduler::run(REFERENCE_TIME startTime)
     for (DirectShowTimedSample *sample = m_head; sample; sample = sample->nextSample()) {
         sample->schedule(m_clock, m_startTime, m_timeoutEvent);
     }
-    
+
     if (!(m_state & Flushing))
         ::ResetEvent(m_flushEvent);
-    
+
     if (!m_head)
         ::SetEvent(m_timeoutEvent);
 
@@ -338,7 +338,7 @@ void DirectShowSampleScheduler::stop()
 
     for (DirectShowTimedSample *sample = m_head; sample; sample = sample->remove()) {
         sample->unschedule(m_clock);
-        
+
         m_semaphore.release(1);
     }
 

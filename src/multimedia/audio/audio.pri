@@ -39,17 +39,8 @@ SOURCES += \
            audio/qaudiodecoder.cpp \
            audio/qaudiohelpers.cpp
 
-win32 {
-    PRIVATE_HEADERS += audio/qaudioinput_win32_p.h audio/qaudiooutput_win32_p.h audio/qaudiodeviceinfo_win32_p.h
-    SOURCES += audio/qaudiodeviceinfo_win32_p.cpp \
-               audio/qaudiooutput_win32_p.cpp \
-               audio/qaudioinput_win32_p.cpp
-    LIBS_PRIVATE += -lwinmm -lstrmiids -lole32 -loleaut32
-}
-
 unix:!mac {
     config_pulseaudio {
-        DEFINES += QT_NO_AUDIO_BACKEND
         CONFIG += link_pkgconfig
         PKGCONFIG_PRIVATE += libpulse
 
@@ -61,15 +52,6 @@ unix:!mac {
         DEFINES += QT_MULTIMEDIA_QAUDIO
         PRIVATE_HEADERS += audio/qsoundeffect_qaudio_p.h
         SOURCES += audio/qsoundeffect_qaudio_p.cpp
-
-        config_alsa {
-            DEFINES += HAS_ALSA
-            PRIVATE_HEADERS += audio/qaudiooutput_alsa_p.h audio/qaudioinput_alsa_p.h audio/qaudiodeviceinfo_alsa_p.h
-            SOURCES += audio/qaudiodeviceinfo_alsa_p.cpp \
-                audio/qaudiooutput_alsa_p.cpp \
-                audio/qaudioinput_alsa_p.cpp
-            LIBS_PRIVATE += -lasound
-        }
     }
 } else {
     DEFINES += QT_MULTIMEDIA_QAUDIO

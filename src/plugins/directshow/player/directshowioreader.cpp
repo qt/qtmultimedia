@@ -259,7 +259,7 @@ HRESULT DirectShowIOReader::SyncReadAligned(IMediaSample *pSample)
 
                 if (SUCCEEDED(hr))
                     pSample->SetActualDataLength(bytesRead);
-   
+
                 return hr;
             } else {
                 m_synchronousPosition = position;

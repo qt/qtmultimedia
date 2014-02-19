@@ -76,7 +76,7 @@ DECLARE_INTERFACE_(IFilterGraph2 ,IGraphBuilder)
     STDMETHOD(ReconnectEx)(THIS_ IPin *, const AM_MEDIA_TYPE *) PURE;
     STDMETHOD(RenderEx)(IPin *, DWORD, DWORD *) PURE;
 };
-#undef INTERFACE  
+#undef INTERFACE
 #endif
 
 #ifndef __IAMFilterMiscFlags_INTERFACE_DEFINED__
@@ -89,7 +89,7 @@ DECLARE_INTERFACE_(IAMFilterMiscFlags ,IUnknown)
     STDMETHOD_(ULONG,Release)(THIS) PURE;
     STDMETHOD_(ULONG,GetMiscFlags)(THIS) PURE;
 };
-#undef INTERFACE  
+#undef INTERFACE
 #endif
 
 #ifndef __IFileSourceFilter_INTERFACE_DEFINED__
@@ -103,7 +103,7 @@ DECLARE_INTERFACE_(IFileSourceFilter ,IUnknown)
     STDMETHOD(Load)(THIS_ LPCOLESTR, const AM_MEDIA_TYPE *) PURE;
     STDMETHOD(GetCurFile)(THIS_ LPOLESTR *ppszFileName, AM_MEDIA_TYPE *) PURE;
 };
-#undef INTERFACE  
+#undef INTERFACE
 #endif
 
 #ifndef __IAMOpenProgress_INTERFACE_DEFINED__
@@ -117,7 +117,7 @@ DECLARE_INTERFACE_(IAMOpenProgress ,IUnknown)
     STDMETHOD(QueryProgress)(THIS_ LONGLONG *, LONGLONG *) PURE;
     STDMETHOD(AbortOperation)(THIS) PURE;
 };
-#undef INTERFACE  
+#undef INTERFACE
 #endif
 
 #ifndef __IFilterChain_INTERFACE_DEFINED__
@@ -133,7 +133,7 @@ DECLARE_INTERFACE_(IFilterChain ,IUnknown)
     STDMETHOD(StopChain)(IBaseFilter *, IBaseFilter *) PURE;
     STDMETHOD(RemoveChain)(IBaseFilter *, IBaseFilter *) PURE;
 };
-#undef INTERFACE  
+#undef INTERFACE
 #endif
 
 #endif

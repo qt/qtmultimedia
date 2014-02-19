@@ -799,7 +799,7 @@ void tst_QVideoWidget::aspectRatioRendererControl()
 void tst_QVideoWidget::sizeHint_data()
 {
     QTest::addColumn<QSize>("size");
-    
+
     QTest::newRow("720x576")
             << QSize(720, 576);
 }

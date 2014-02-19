@@ -66,7 +66,7 @@ public:
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
-    void configureAVCaptureSession(AVCaptureSession *captureSession);
+    void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);
 
 Q_SIGNALS:
@@ -74,12 +74,15 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void handleViewfinderFrame();
+    void updateCaptureConnection();
 
 private:
     QAbstractVideoSurface *m_surface;
     AVFCaptureFramesDelegate *m_viewfinderFramesDelegate;
-    AVCaptureSession *m_captureSession;
+    AVFCameraSession *m_cameraSession;
     AVCaptureVideoDataOutput *m_videoDataOutput;
+
+    bool m_needsHorizontalMirroring;
 
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;

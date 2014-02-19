@@ -51,15 +51,15 @@
 //
 
 #include <QtCore/qcoreapplication.h>
-#include "qaudioinput_alsa_p.h"
-#include "qaudiodeviceinfo_alsa_p.h"
-#include "qaudiohelpers_p.h"
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include "qalsaaudioinput.h"
+#include "qalsaaudiodeviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 
 //#define DEBUG_AUDIO 1
 
-QAudioInputPrivate::QAudioInputPrivate(const QByteArray &device)
+QAlsaAudioInput::QAlsaAudioInput(const QByteArray &device)
 {
     bytesAvailable = 0;
     handle = 0;
@@ -86,7 +86,7 @@ QAudioInputPrivate::QAudioInputPrivate(const QByteArray &device)
     connect(timer,SIGNAL(timeout()),SLOT(userFeed()));
 }
 
-QAudioInputPrivate::~QAudioInputPrivate()
+QAlsaAudioInput::~QAlsaAudioInput()
 {
     close();
     disconnect(timer, SIGNAL(timeout()));
@@ -94,38 +94,38 @@ QAudioInputPrivate::~QAudioInputPrivate()
     delete timer;
 }
 
-void QAudioInputPrivate::setVolume(qreal vol)
+void QAlsaAudioInput::setVolume(qreal vol)
 {
     m_volume = vol;
 }
 
-qreal QAudioInputPrivate::volume() const
+qreal QAlsaAudioInput::volume() const
 {
     return m_volume;
 }
 
-QAudio::Error QAudioInputPrivate::error() const
+QAudio::Error QAlsaAudioInput::error() const
 {
     return errorState;
 }
 
-QAudio::State QAudioInputPrivate::state() const
+QAudio::State QAlsaAudioInput::state() const
 {
     return deviceState;
 }
 
-void QAudioInputPrivate::setFormat(const QAudioFormat& fmt)
+void QAlsaAudioInput::setFormat(const QAudioFormat& fmt)
 {
     if (deviceState == QAudio::StoppedState)
         settings = fmt;
 }
 
-QAudioFormat QAudioInputPrivate::format() const
+QAudioFormat QAlsaAudioInput::format() const
 {
     return settings;
 }
 
-int QAudioInputPrivate::xrun_recovery(int err)
+int QAlsaAudioInput::xrun_recovery(int err)
 {
     int  count = 0;
     bool reset = false;
@@ -166,7 +166,7 @@ int QAudioInputPrivate::xrun_recovery(int err)
     return err;
 }
 
-int QAudioInputPrivate::setFormat()
+int QAlsaAudioInput::setFormat()
 {
     snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
 
@@ -225,7 +225,7 @@ int QAudioInputPrivate::setFormat()
             : -1;
 }
 
-void QAudioInputPrivate::start(QIODevice* device)
+void QAlsaAudioInput::start(QIODevice* device)
 {
     if(deviceState != QAudio::StoppedState)
         close();
@@ -244,7 +244,7 @@ void QAudioInputPrivate::start(QIODevice* device)
     emit stateChanged(deviceState);
 }
 
-QIODevice* QAudioInputPrivate::start()
+QIODevice* QAlsaAudioInput::start()
 {
     if(deviceState != QAudio::StoppedState)
         close();
@@ -266,7 +266,7 @@ QIODevice* QAudioInputPrivate::start()
     return audioSource;
 }
 
-void QAudioInputPrivate::stop()
+void QAlsaAudioInput::stop()
 {
     if(deviceState == QAudio::StoppedState)
         return;
@@ -277,7 +277,7 @@ void QAudioInputPrivate::stop()
     emit stateChanged(deviceState);
 }
 
-bool QAudioInputPrivate::open()
+bool QAlsaAudioInput::open()
 {
 #ifdef DEBUG_AUDIO
     QTime now(QTime::currentTime());
@@ -310,7 +310,7 @@ bool QAudioInputPrivate::open()
 
 
     QString dev = QString(QLatin1String(m_device.constData()));
-    QList<QByteArray> devices = QAudioDeviceInfoInternal::availableDevices(QAudio::AudioInput);
+    QList<QByteArray> devices = QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioInput);
     if(dev.compare(QLatin1String("default")) == 0) {
 #if(SND_LIB_MAJOR == 1 && SND_LIB_MINOR == 0 && SND_LIB_SUBMINOR >= 14)
         if (devices.size() > 0)
@@ -472,7 +472,7 @@ bool QAudioInputPrivate::open()
     return true;
 }
 
-void QAudioInputPrivate::close()
+void QAlsaAudioInput::close()
 {
     timer->stop();
 
@@ -483,7 +483,7 @@ void QAudioInputPrivate::close()
     }
 }
 
-int QAudioInputPrivate::checkBytesReady()
+int QAlsaAudioInput::checkBytesReady()
 {
     if(resuming)
         bytesAvailable = period_size;
@@ -503,12 +503,12 @@ int QAudioInputPrivate::checkBytesReady()
     return bytesAvailable;
 }
 
-int QAudioInputPrivate::bytesReady() const
+int QAlsaAudioInput::bytesReady() const
 {
     return qMax(bytesAvailable, 0);
 }
 
-qint64 QAudioInputPrivate::read(char* data, qint64 len)
+qint64 QAlsaAudioInput::read(char* data, qint64 len)
 {
     // Read in some audio data and write it to QIODevice, pull mode
     if ( !handle )
@@ -649,7 +649,7 @@ qint64 QAudioInputPrivate::read(char* data, qint64 len)
     return 0;
 }
 
-void QAudioInputPrivate::resume()
+void QAlsaAudioInput::resume()
 {
     if(deviceState == QAudio::SuspendedState) {
         int err = 0;
@@ -673,32 +673,32 @@ void QAudioInputPrivate::resume()
     }
 }
 
-void QAudioInputPrivate::setBufferSize(int value)
+void QAlsaAudioInput::setBufferSize(int value)
 {
     buffer_size = value;
 }
 
-int QAudioInputPrivate::bufferSize() const
+int QAlsaAudioInput::bufferSize() const
 {
     return buffer_size;
 }
 
-int QAudioInputPrivate::periodSize() const
+int QAlsaAudioInput::periodSize() const
 {
     return period_size;
 }
 
-void QAudioInputPrivate::setNotifyInterval(int ms)
+void QAlsaAudioInput::setNotifyInterval(int ms)
 {
     intervalTime = qMax(0, ms);
 }
 
-int QAudioInputPrivate::notifyInterval() const
+int QAlsaAudioInput::notifyInterval() const
 {
     return intervalTime;
 }
 
-qint64 QAudioInputPrivate::processedUSecs() const
+qint64 QAlsaAudioInput::processedUSecs() const
 {
     qint64 result = qint64(1000000) * totalTimeValue /
         (settings.channelCount()*(settings.sampleSize()/8)) /
@@ -707,7 +707,7 @@ qint64 QAudioInputPrivate::processedUSecs() const
     return result;
 }
 
-void QAudioInputPrivate::suspend()
+void QAlsaAudioInput::suspend()
 {
     if(deviceState == QAudio::ActiveState||resuming) {
         timer->stop();
@@ -716,7 +716,7 @@ void QAudioInputPrivate::suspend()
     }
 }
 
-void QAudioInputPrivate::userFeed()
+void QAlsaAudioInput::userFeed()
 {
     if(deviceState == QAudio::StoppedState || deviceState == QAudio::SuspendedState)
         return;
@@ -727,7 +727,7 @@ void QAudioInputPrivate::userFeed()
     deviceReady();
 }
 
-bool QAudioInputPrivate::deviceReady()
+bool QAlsaAudioInput::deviceReady()
 {
     if(pullMode) {
         // reads some audio data and writes it to QIODevice
@@ -764,7 +764,7 @@ bool QAudioInputPrivate::deviceReady()
     return true;
 }
 
-qint64 QAudioInputPrivate::elapsedUSecs() const
+qint64 QAlsaAudioInput::elapsedUSecs() const
 {
     if (deviceState == QAudio::StoppedState)
         return 0;
@@ -772,7 +772,7 @@ qint64 QAudioInputPrivate::elapsedUSecs() const
     return clockStamp.elapsed()*1000;
 }
 
-void QAudioInputPrivate::reset()
+void QAlsaAudioInput::reset()
 {
     if(handle)
         snd_pcm_reset(handle);
@@ -780,15 +780,15 @@ void QAudioInputPrivate::reset()
     bytesAvailable = 0;
 }
 
-void QAudioInputPrivate::drain()
+void QAlsaAudioInput::drain()
 {
     if(handle)
         snd_pcm_drain(handle);
 }
 
-InputPrivate::InputPrivate(QAudioInputPrivate* audio)
+InputPrivate::InputPrivate(QAlsaAudioInput* audio)
 {
-    audioDevice = qobject_cast<QAudioInputPrivate*>(audio);
+    audioDevice = qobject_cast<QAlsaAudioInput*>(audio);
 }
 
 InputPrivate::~InputPrivate()
@@ -879,4 +879,4 @@ void RingBuffer::write(char *data, int len)
 
 QT_END_NAMESPACE
 
-#include "moc_qaudioinput_alsa_p.cpp"
+#include "moc_qalsaaudioinput.cpp"

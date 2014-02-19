@@ -50,8 +50,8 @@
 // We mean it.
 //
 
-#ifndef QAUDIOINPUTWIN_H
-#define QAUDIOINPUTWIN_H
+#ifndef QWINDOWSAUDIOINPUT_H
+#define QWINDOWSAUDIOINPUT_H
 
 #include <QtCore/qt_windows.h>
 #include <mmsystem.h>
@@ -64,9 +64,9 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qmutex.h>
 
-#include <qaudio.h>
-#include <qaudiodeviceinfo.h>
-#include <qaudiosystem.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiosystem.h>
 
 
 QT_BEGIN_NAMESPACE
@@ -81,12 +81,12 @@ QT_BEGIN_NAMESPACE
 #  endif
 #endif
 
-class QAudioInputPrivate : public QAbstractAudioInput
+class QWindowsAudioInput : public QAbstractAudioInput
 {
     Q_OBJECT
 public:
-    QAudioInputPrivate(const QByteArray &device);
-    ~QAudioInputPrivate();
+    QWindowsAudioInput(const QByteArray &device);
+    ~QWindowsAudioInput();
 
     qint64 read(char* data, qint64 len);
 
@@ -163,7 +163,7 @@ class InputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    InputPrivate(QAudioInputPrivate* audio);
+    InputPrivate(QWindowsAudioInput* audio);
     ~InputPrivate();
 
     qint64 readData( char* data, qint64 len);
@@ -171,10 +171,9 @@ public:
 
     void trigger();
 private:
-    QAudioInputPrivate *audioDevice;
+    QWindowsAudioInput *audioDevice;
 };
 
 QT_END_NAMESPACE
-
 
 #endif

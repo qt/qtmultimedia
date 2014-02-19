@@ -119,33 +119,36 @@ void QGstreamerAudioInputSelector::updateAlsaDevices()
 {
 #ifdef HAVE_ALSA
     void **hints, **n;
-    if (snd_device_name_hint(-1, "pcm", &hints) < 0) {
-        qWarning()<<"no alsa devices available";
-        return;
-    }
-    n = hints;
+    int card = -1;
 
-    while (*n != NULL) {
-        char *name = snd_device_name_get_hint(*n, "NAME");
-        char *descr = snd_device_name_get_hint(*n, "DESC");
-        char *io = snd_device_name_get_hint(*n, "IOID");
+    while (snd_card_next(&card) == 0 && card >= 0) {
+        if (snd_device_name_hint(card, "pcm", &hints) < 0)
+            continue;
 
-        if ((name != NULL) && (descr != NULL)) {
-            if ( io == NULL || qstrcmp(io,"Input") == 0 ) {
-                m_names.append(QLatin1String("alsa:")+QString::fromUtf8(name));
-                m_descriptions.append(QString::fromUtf8(descr));
+        n = hints;
+        while (*n != NULL) {
+            char *name = snd_device_name_get_hint(*n, "NAME");
+            char *descr = snd_device_name_get_hint(*n, "DESC");
+            char *io = snd_device_name_get_hint(*n, "IOID");
+
+            if ((name != NULL) && (descr != NULL)) {
+                if ( io == NULL || qstrcmp(io,"Input") == 0 ) {
+                    m_names.append(QLatin1String("alsa:")+QString::fromUtf8(name));
+                    m_descriptions.append(QString::fromUtf8(descr));
+                }
             }
+
+            if (name != NULL)
+                free(name);
+            if (descr != NULL)
+                free(descr);
+            if (io != NULL)
+                free(io);
+            ++n;
         }
 
-        if (name != NULL)
-            free(name);
-        if (descr != NULL)
-            free(descr);
-        if (io != NULL)
-            free(io);
-        n++;
+        snd_device_name_free_hint(hints);
     }
-    snd_device_name_free_hint(hints);
 #endif
 }
 

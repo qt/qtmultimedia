@@ -563,7 +563,7 @@ void DirectShowPlayerService::releaseGraph()
             }
             m_graph->Abort();
         }
-        
+
         m_pendingTasks = ReleaseGraph;
 
         ::SetEvent(m_taskHandle);
@@ -803,7 +803,7 @@ void DirectShowPlayerService::doStop(QMutexLocker *locker)
         m_pendingTasks |= Seek;
 
         m_executedTasks &= ~(Play | Pause);
-        
+
         QCoreApplication::postEvent(this, new QEvent(QEvent::Type(StatusChange)));
     }
 
@@ -852,7 +852,7 @@ void DirectShowPlayerService::doSetRate(QMutexLocker *locker)
 
         seeking->Release();
     } else if (m_rate != 1.0) {
-        m_rate = 1.0;   
+        m_rate = 1.0;
     }
     QCoreApplication::postEvent(this, new QEvent(QEvent::Type(RateChange)));
 }
@@ -980,7 +980,7 @@ void DirectShowPlayerService::setAudioOutput(IBaseFilter *filter)
                 m_loop->wait(&m_mutex);
             }
             m_audioOutput->Release();
-        } 
+        }
 
         m_audioOutput = filter;
 

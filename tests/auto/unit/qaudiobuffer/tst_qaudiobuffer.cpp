@@ -78,7 +78,7 @@ tst_QAudioBuffer::tst_QAudioBuffer()
     mFormat.setSampleRate(10000);
     mFormat.setCodec("audio/pcm");
 
-    QByteArray b(4000, 0x80);
+    QByteArray b(4000, char(0x80));
     mNull = new QAudioBuffer;
     mEmpty = new QAudioBuffer(500, mFormat); // 500 stereo frames of 16 bits -> 2KB
     mFromArray = new QAudioBuffer(b, mFormat);

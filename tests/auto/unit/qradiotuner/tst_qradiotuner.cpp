@@ -112,7 +112,7 @@ void tst_QRadioTuner::initTestCase()
 
     QSignalSpy stateSpy(radio, SIGNAL(stateChanged(QRadioTuner::State)));
 
-    QCOMPARE(radio->state(), QRadioTuner::StoppedState);    
+    QCOMPARE(radio->state(), QRadioTuner::StoppedState);
     radio->start();
     QVERIFY(radio->availability() == QMultimedia::Available);
     QCOMPARE(radio->state(), QRadioTuner::ActiveState);

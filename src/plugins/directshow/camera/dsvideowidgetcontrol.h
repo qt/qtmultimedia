@@ -82,15 +82,15 @@ class DSVideoWidgetSurface : public QAbstractVideoSurface
 class DSVideoWidgetControl : public QVideoWidgetControl
 {
     Q_OBJECT
-	
+
     DSVideoWidgetSurface* surface;
 public: // Constructor & Destructor
-    
+
     DSVideoWidgetControl(DSCameraSession* session, QObject *parent = 0);
     virtual ~DSVideoWidgetControl();
 
 public: // QVideoWidgetControl
-    
+
     QWidget *videoWidget();
 
     // Aspect Ratio
@@ -118,10 +118,10 @@ public: // QVideoWidgetControl
     void setSaturation(int saturation);
 
 public: // Internal
-    
+
     bool eventFilter(QObject *object, QEvent *event);
-    
-/*    
+
+/*
 Q_SIGNALS: // QVideoWidgetControl
 
     void fullScreenChanged(bool fullScreen);

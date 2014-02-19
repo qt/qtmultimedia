@@ -53,7 +53,7 @@
 
 #include <QtCore/qt_windows.h>
 #include <mmsystem.h>
-#include "qaudiodeviceinfo_win32_p.h"
+#include "qwindowsaudiodeviceinfo.h"
 
 #if defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
 struct IBaseFilter; // Needed for strmif.h from stock MinGW.
@@ -127,7 +127,7 @@ QT_BEGIN_NAMESPACE
 #endif
 
 
-QAudioDeviceInfoInternal::QAudioDeviceInfoInternal(QByteArray dev, QAudio::Mode mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QAudio::Mode mode)
 {
     QDataStream ds(&dev, QIODevice::ReadOnly);
     ds >> devId >> device;
@@ -136,17 +136,17 @@ QAudioDeviceInfoInternal::QAudioDeviceInfoInternal(QByteArray dev, QAudio::Mode 
     updateLists();
 }
 
-QAudioDeviceInfoInternal::~QAudioDeviceInfoInternal()
+QWindowsAudioDeviceInfo::~QWindowsAudioDeviceInfo()
 {
     close();
 }
 
-bool QAudioDeviceInfoInternal::isFormatSupported(const QAudioFormat& format) const
+bool QWindowsAudioDeviceInfo::isFormatSupported(const QAudioFormat& format) const
 {
     return testSettings(format);
 }
 
-QAudioFormat QAudioDeviceInfoInternal::preferredFormat() const
+QAudioFormat QWindowsAudioDeviceInfo::preferredFormat() const
 {
     QAudioFormat nearest;
     if (mode == QAudio::AudioOutput) {
@@ -167,58 +167,58 @@ QAudioFormat QAudioDeviceInfoInternal::preferredFormat() const
     return nearest;
 }
 
-QString QAudioDeviceInfoInternal::deviceName() const
+QString QWindowsAudioDeviceInfo::deviceName() const
 {
     return device;
 }
 
-QStringList QAudioDeviceInfoInternal::supportedCodecs()
+QStringList QWindowsAudioDeviceInfo::supportedCodecs()
 {
     updateLists();
     return codecz;
 }
 
-QList<int> QAudioDeviceInfoInternal::supportedSampleRates()
+QList<int> QWindowsAudioDeviceInfo::supportedSampleRates()
 {
     updateLists();
     return sampleRatez;
 }
 
-QList<int> QAudioDeviceInfoInternal::supportedChannelCounts()
+QList<int> QWindowsAudioDeviceInfo::supportedChannelCounts()
 {
     updateLists();
     return channelz;
 }
 
-QList<int> QAudioDeviceInfoInternal::supportedSampleSizes()
+QList<int> QWindowsAudioDeviceInfo::supportedSampleSizes()
 {
     updateLists();
     return sizez;
 }
 
-QList<QAudioFormat::Endian> QAudioDeviceInfoInternal::supportedByteOrders()
+QList<QAudioFormat::Endian> QWindowsAudioDeviceInfo::supportedByteOrders()
 {
     updateLists();
     return byteOrderz;
 }
 
-QList<QAudioFormat::SampleType> QAudioDeviceInfoInternal::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QWindowsAudioDeviceInfo::supportedSampleTypes()
 {
     updateLists();
     return typez;
 }
 
 
-bool QAudioDeviceInfoInternal::open()
+bool QWindowsAudioDeviceInfo::open()
 {
     return true;
 }
 
-void QAudioDeviceInfoInternal::close()
+void QWindowsAudioDeviceInfo::close()
 {
 }
 
-bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
+bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
 {
     // Set nearest to closest settings that do work.
     // See if what is in settings will work (return value).
@@ -305,7 +305,7 @@ bool QAudioDeviceInfoInternal::testSettings(const QAudioFormat& format) const
     return false;
 }
 
-void QAudioDeviceInfoInternal::updateLists()
+void QWindowsAudioDeviceInfo::updateLists()
 {
     // redo all lists based on current settings
     bool match = false;
@@ -344,7 +344,7 @@ void QAudioDeviceInfoInternal::updateLists()
             || (fmt & WAVE_FORMAT_96S08)
        ) {
             sizez.append(8);
-	}
+        }
         if ((fmt & WAVE_FORMAT_1M16)
             || (fmt & WAVE_FORMAT_1S16)
             || (fmt & WAVE_FORMAT_2M16)
@@ -357,57 +357,57 @@ void QAudioDeviceInfoInternal::updateLists()
             || (fmt & WAVE_FORMAT_96S16)
        ) {
             sizez.append(16);
-	}
+        }
         if ((fmt & WAVE_FORMAT_1M08)
            || (fmt & WAVE_FORMAT_1S08)
            || (fmt & WAVE_FORMAT_1M16)
            || (fmt & WAVE_FORMAT_1S16)) {
             sampleRatez.append(11025);
-	}
+        }
         if ((fmt & WAVE_FORMAT_2M08)
            || (fmt & WAVE_FORMAT_2S08)
            || (fmt & WAVE_FORMAT_2M16)
            || (fmt & WAVE_FORMAT_2S16)) {
             sampleRatez.append(22050);
-	}
+        }
         if ((fmt & WAVE_FORMAT_4M08)
            || (fmt & WAVE_FORMAT_4S08)
            || (fmt & WAVE_FORMAT_4M16)
            || (fmt & WAVE_FORMAT_4S16)) {
             sampleRatez.append(44100);
-	}
+        }
         if ((fmt & WAVE_FORMAT_48M08)
             || (fmt & WAVE_FORMAT_48S08)
             || (fmt & WAVE_FORMAT_48M16)
             || (fmt & WAVE_FORMAT_48S16)) {
             sampleRatez.append(48000);
-	}
+        }
         if ((fmt & WAVE_FORMAT_96M08)
            || (fmt & WAVE_FORMAT_96S08)
            || (fmt & WAVE_FORMAT_96M16)
            || (fmt & WAVE_FORMAT_96S16)) {
             sampleRatez.append(96000);
         }
-	channelz.append(1);
-	channelz.append(2);
+        channelz.append(1);
+        channelz.append(2);
         if (mode == QAudio::AudioOutput) {
             channelz.append(4);
             channelz.append(6);
             channelz.append(8);
         }
 
-	byteOrderz.append(QAudioFormat::LittleEndian);
+        byteOrderz.append(QAudioFormat::LittleEndian);
 
-	typez.append(QAudioFormat::SignedInt);
-	typez.append(QAudioFormat::UnSignedInt);
+        typez.append(QAudioFormat::SignedInt);
+        typez.append(QAudioFormat::UnSignedInt);
 
-	codecz.append(QLatin1String("audio/pcm"));
+        codecz.append(QLatin1String("audio/pcm"));
     }
     if (sampleRatez.count() > 0)
         sampleRatez.prepend(8000);
 }
 
-QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
+QList<QByteArray> QWindowsAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 {
     Q_UNUSED(mode)
 
@@ -467,7 +467,7 @@ QList<QByteArray> QAudioDeviceInfoInternal::availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QByteArray QAudioDeviceInfoInternal::defaultOutputDevice()
+QByteArray QWindowsAudioDeviceInfo::defaultOutputDevice()
 {
     QByteArray defaultDevice;
     QDataStream ds(&defaultDevice, QIODevice::WriteOnly);
@@ -477,7 +477,7 @@ QByteArray QAudioDeviceInfoInternal::defaultOutputDevice()
     return defaultDevice;
 }
 
-QByteArray QAudioDeviceInfoInternal::defaultInputDevice()
+QByteArray QWindowsAudioDeviceInfo::defaultInputDevice()
 {
     QByteArray defaultDevice;
     QDataStream ds(&defaultDevice, QIODevice::WriteOnly);
