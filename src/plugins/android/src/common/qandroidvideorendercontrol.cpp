@@ -122,20 +122,8 @@ QAndroidVideoRendererControl::QAndroidVideoRendererControl(QObject *parent)
 
 QAndroidVideoRendererControl::~QAndroidVideoRendererControl()
 {
-    if (m_surfaceTexture) {
-        m_surfaceTexture->callMethod<void>("release");
-        delete m_surfaceTexture;
-        m_surfaceTexture = 0;
-    }
-    if (m_androidSurface) {
-        m_androidSurface->callMethod<void>("release");
-        delete m_androidSurface;
-        m_androidSurface = 0;
-    }
-    if (m_surfaceHolder) {
-        delete m_surfaceHolder;
-        m_surfaceHolder = 0;
-    }
+    clearSurfaceTexture();
+
     if (m_glDeleter)
         m_glDeleter->deleteLater();
 }
@@ -202,6 +190,24 @@ bool QAndroidVideoRendererControl::initSurfaceTexture()
     return m_surfaceTexture != 0;
 }
 
+void QAndroidVideoRendererControl::clearSurfaceTexture()
+{
+    if (m_surfaceTexture) {
+        m_surfaceTexture->callMethod<void>("release");
+        delete m_surfaceTexture;
+        m_surfaceTexture = 0;
+    }
+    if (m_androidSurface) {
+        m_androidSurface->callMethod<void>("release");
+        delete m_androidSurface;
+        m_androidSurface = 0;
+    }
+    if (m_surfaceHolder) {
+        delete m_surfaceHolder;
+        m_surfaceHolder = 0;
+    }
+}
+
 jobject QAndroidVideoRendererControl::surfaceHolder()
 {
     if (!initSurfaceTexture())
@@ -243,6 +249,11 @@ void QAndroidVideoRendererControl::stop()
     if (m_surface && m_surface->isActive())
         m_surface->stop();
     m_nativeSize = QSize();
+}
+
+void QAndroidVideoRendererControl::reset()
+{
+    clearSurfaceTexture();
 }
 
 void QAndroidVideoRendererControl::onFrameAvailable()

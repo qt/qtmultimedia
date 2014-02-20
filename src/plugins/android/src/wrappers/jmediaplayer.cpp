@@ -46,135 +46,113 @@
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QMap>
 
-namespace {
-
-jclass mediaPlayerClass = 0;
-
-QMap<jlong, JMediaPlayer *> mplayers;
-
-}
+static jclass mediaPlayerClass = Q_NULLPTR;
+typedef QMap<jlong, JMediaPlayer *> MediaPlayerMap;
+Q_GLOBAL_STATIC(MediaPlayerMap, mediaPlayers)
 
 QT_BEGIN_NAMESPACE
 
-bool JMediaPlayer::mActivitySet = false;
-
 JMediaPlayer::JMediaPlayer()
     : QObject()
-    , QJNIObjectPrivate(mediaPlayerClass, "(J)V", reinterpret_cast<jlong>(this))
-    , mId(reinterpret_cast<jlong>(this))
-    , mDisplay(0)
 {
-    mplayers.insert(mId, this);
 
-    if (!mActivitySet) {
-        QJNIObjectPrivate::callStaticMethod<void>(mediaPlayerClass,
-                                           "setActivity",
-                                           "(Landroid/app/Activity;)V",
-                                           QtAndroidPrivate::activity());
-        mActivitySet = true;
-    }
+    const jlong id = reinterpret_cast<jlong>(this);
+    mMediaPlayer = QJNIObjectPrivate(mediaPlayerClass,
+                                      "(Landroid/app/Activity;J)V",
+                                      QtAndroidPrivate::activity(),
+                                      id);
+    (*mediaPlayers)[id] = this;
 }
 
 JMediaPlayer::~JMediaPlayer()
 {
-    mplayers.remove(mId);
+    mediaPlayers->remove(reinterpret_cast<jlong>(this));
 }
 
 void JMediaPlayer::release()
 {
-    callMethod<void>("release");
+    mMediaPlayer.callMethod<void>("release");
 }
 
-void JMediaPlayer::onError(qint32 what, qint32 extra)
+void JMediaPlayer::reset()
 {
-    Q_EMIT error(what, extra);
-}
-
-void JMediaPlayer::onBufferingUpdate(qint32 percent)
-{
-    Q_EMIT bufferingUpdate(percent);
-}
-
-void JMediaPlayer::onInfo(qint32 what, qint32 extra)
-{
-    Q_EMIT info(what, extra);
-}
-
-void JMediaPlayer::onMediaPlayerInfo(qint32 what, qint32 extra)
-{
-    Q_EMIT mediaPlayerInfo(what, extra);
-}
-
-void JMediaPlayer::onVideoSizeChanged(qint32 width, qint32 height)
-{
-    Q_EMIT videoSizeChanged(width, height);
+    mMediaPlayer.callMethod<void>("reset");
 }
 
 int JMediaPlayer::getCurrentPosition()
 {
-    return callMethod<jint>("getCurrentPosition");
+    return mMediaPlayer.callMethod<jint>("getCurrentPosition");
 }
 
 int JMediaPlayer::getDuration()
 {
-    return callMethod<jint>("getDuration");
+    return mMediaPlayer.callMethod<jint>("getDuration");
 }
 
 bool JMediaPlayer::isPlaying()
 {
-    return callMethod<jboolean>("isPlaying");
+    return mMediaPlayer.callMethod<jboolean>("isPlaying");
 }
 
 int JMediaPlayer::volume()
 {
-    return callMethod<jint>("getVolume");
+    return mMediaPlayer.callMethod<jint>("getVolume");
 }
 
 bool JMediaPlayer::isMuted()
 {
-    return callMethod<jboolean>("isMuted");
+    return mMediaPlayer.callMethod<jboolean>("isMuted");
+}
+
+jobject JMediaPlayer::display()
+{
+    return mMediaPlayer.callObjectMethod("display", "()Landroid/view/SurfaceHolder;").object();
 }
 
 void JMediaPlayer::play()
 {
-    callMethod<void>("start");
+    mMediaPlayer.callMethod<void>("start");
 }
 
 void JMediaPlayer::pause()
 {
-    callMethod<void>("pause");
+    mMediaPlayer.callMethod<void>("pause");
 }
 
 void JMediaPlayer::stop()
 {
-    callMethod<void>("stop");
+    mMediaPlayer.callMethod<void>("stop");
 }
 
 void JMediaPlayer::seekTo(qint32 msec)
 {
-    callMethod<void>("seekTo", "(I)V", jint(msec));
+    mMediaPlayer.callMethod<void>("seekTo", "(I)V", jint(msec));
 }
 
 void JMediaPlayer::setMuted(bool mute)
 {
-    callMethod<void>("mute", "(Z)V", jboolean(mute));
+    mMediaPlayer.callMethod<void>("mute", "(Z)V", jboolean(mute));
 }
 
 void JMediaPlayer::setDataSource(const QString &path)
 {
     QJNIObjectPrivate string = QJNIObjectPrivate::fromString(path);
-    callMethod<void>("setMediaPath", "(Ljava/lang/String;)V", string.object());
+    mMediaPlayer.callMethod<void>("setDataSource", "(Ljava/lang/String;)V", string.object());
+}
+
+void JMediaPlayer::prepareAsync()
+{
+    mMediaPlayer.callMethod<void>("prepareAsync");
 }
 
 void JMediaPlayer::setVolume(int volume)
 {
-    callMethod<void>("setVolume", "(I)V", jint(volume));
+    mMediaPlayer.callMethod<void>("setVolume", "(I)V", jint(volume));
 }
 
 void JMediaPlayer::setDisplay(jobject surfaceHolder)
 {
-    mDisplay = surfaceHolder;
-    callMethod<void>("setDisplay", "(Landroid/view/SurfaceHolder;)V", mDisplay);
+    mMediaPlayer.callMethod<void>("setDisplay", "(Landroid/view/SurfaceHolder;)V", surfaceHolder);
 }
 
 QT_END_NAMESPACE
@@ -183,44 +161,66 @@ static void onErrorNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlon
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    JMediaPlayer *const mp = mplayers[id];
+    JMediaPlayer *const mp = (*mediaPlayers)[id];
     if (!mp)
         return;
 
-    mp->onError(what, extra);
+    Q_EMIT mp->error(what, extra);
 }
 
 static void onBufferingUpdateNative(JNIEnv *env, jobject thiz, jint percent, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    JMediaPlayer *const mp = mplayers[id];
+    JMediaPlayer *const mp = (*mediaPlayers)[id];
     if (!mp)
         return;
 
-    mp->onBufferingUpdate(percent);
+    Q_EMIT mp->bufferingChanged(percent);
+}
+
+static void onProgressUpdateNative(JNIEnv *env, jobject thiz, jint progress, jlong id)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(thiz);
+    JMediaPlayer *const mp = (*mediaPlayers)[id];
+    if (!mp)
+        return;
+
+    Q_EMIT mp->progressChanged(progress);
+}
+
+static void onDurationChangedNative(JNIEnv *env, jobject thiz, jint duration, jlong id)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(thiz);
+    JMediaPlayer *const mp = (*mediaPlayers)[id];
+    if (!mp)
+        return;
+
+    Q_EMIT mp->durationChanged(duration);
 }
 
 static void onInfoNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    JMediaPlayer *const mp = mplayers[id];
+    JMediaPlayer *const mp = (*mediaPlayers)[id];
     if (!mp)
         return;
 
-    mp->onInfo(what, extra);
+    Q_EMIT mp->info(what, extra);
 }
 
-static void onMediaPlayerInfoNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlong id)
+static void onStateChangedNative(JNIEnv *env, jobject thiz, jint state, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    JMediaPlayer *const mp = mplayers[id];
+    JMediaPlayer *const mp = (*mediaPlayers)[id];
     if (!mp)
         return;
 
-    mp->onMediaPlayerInfo(what, extra);
+    Q_EMIT mp->stateChanged(state);
 }
 
 static void onVideoSizeChangedNative(JNIEnv *env,
@@ -231,11 +231,11 @@ static void onVideoSizeChangedNative(JNIEnv *env,
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    JMediaPlayer *const mp = mplayers[id];
+    JMediaPlayer *const mp = (*mediaPlayers)[id];
     if (!mp)
         return;
 
-    mp->onVideoSizeChanged(width, height);
+    Q_EMIT mp->videoSizeChanged(width, height);
 }
 
 QT_BEGIN_NAMESPACE
@@ -250,9 +250,11 @@ bool JMediaPlayer::initJNI(JNIEnv *env)
         JNINativeMethod methods[] = {
             {"onErrorNative", "(IIJ)V", reinterpret_cast<void *>(onErrorNative)},
             {"onBufferingUpdateNative", "(IJ)V", reinterpret_cast<void *>(onBufferingUpdateNative)},
+            {"onProgressUpdateNative", "(IJ)V", reinterpret_cast<void *>(onProgressUpdateNative)},
+            {"onDurationChangedNative", "(IJ)V", reinterpret_cast<void *>(onDurationChangedNative)},
             {"onInfoNative", "(IIJ)V", reinterpret_cast<void *>(onInfoNative)},
-            {"onMediaPlayerInfoNative", "(IIJ)V", reinterpret_cast<void *>(onMediaPlayerInfoNative)},
-            {"onVideoSizeChangedNative", "(IIJ)V", reinterpret_cast<void *>(onVideoSizeChangedNative)}
+            {"onVideoSizeChangedNative", "(IIJ)V", reinterpret_cast<void *>(onVideoSizeChangedNative)},
+            {"onStateChangedNative", "(IJ)V", reinterpret_cast<void *>(onStateChangedNative)}
         };
 
         if (env->RegisterNatives(mediaPlayerClass,
