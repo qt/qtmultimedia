@@ -64,7 +64,9 @@ ANDROID_PERMISSIONS += \
     android.permission.CAMERA \
     android.permission.RECORD_AUDIO
 ANDROID_FEATURES += \
-    android.hardware.camera
+    android.hardware.camera \
+    android.hardware.camera.autofocus \
+    android.hardware.microphone
 MODULE_PLUGIN_TYPES = \
     mediaservice \
     audio \
