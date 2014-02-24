@@ -4,6 +4,9 @@ qtHaveModule(widgets) {
     QT += multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }
+win32:!qtHaveModule(opengl) {
+    LIBS_PRIVATE += -lgdi32 -luser32
+}
 
 PLUGIN_TYPE=mediaservice
 PLUGIN_CLASS_NAME = WMFServicePlugin

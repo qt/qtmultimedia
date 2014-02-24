@@ -207,10 +207,18 @@ void MmRendererVideoWindowControl::attachDisplay(mmr_context_t *context)
         return;
     }
 
+    QWindow *windowForGroup = window;
+
+    //According to mmr_output_attach() documentation, the window group name of the
+    //application's top-level window is expected.
+    while (windowForGroup->parent())
+        windowForGroup = windowForGroup->parent();
+
     const char * const groupNameData = static_cast<const char *>(
-        nativeInterface->nativeResourceForWindow("windowGroup", window));
+        nativeInterface->nativeResourceForWindow("windowGroup", windowForGroup));
     if (!groupNameData) {
-        qDebug() << "MmRendererVideoWindowControl: Unable to find window group for window" << window;
+        qDebug() << "MmRendererVideoWindowControl: Unable to find window group for window"
+                 << windowForGroup;
         return;
     }
 
