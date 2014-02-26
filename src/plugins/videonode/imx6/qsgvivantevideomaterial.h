@@ -70,6 +70,10 @@ public:
 private:
     qreal mOpacity;
 
+    int mWidth;
+    int mHeight;
+    QVideoFrame::PixelFormat mFormat;
+
     QMap<const uchar*, GLuint> mBitsToTextureMap;
     QVideoFrame mCurrentFrame, mNextFrame;
     GLuint mCurrentTexture;
