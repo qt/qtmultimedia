@@ -27,6 +27,7 @@ win32 {
         qtCompileTest(gstreamer_appsrc)
     }
     qtCompileTest(resourcepolicy)
+    qtCompileTest(gpu_vivante)
 }
 
 load(qt_parts)
