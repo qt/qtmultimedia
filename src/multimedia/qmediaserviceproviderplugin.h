@@ -165,6 +165,7 @@ Q_DECLARE_INTERFACE(QMediaServiceDefaultDeviceInterface, QMediaServiceDefaultDev
 
 struct Q_MULTIMEDIA_EXPORT QMediaServiceCameraInfoInterface
 {
+    virtual ~QMediaServiceCameraInfoInterface() {}
     virtual QCamera::Position cameraPosition(const QByteArray &device) const = 0;
     virtual int cameraOrientation(const QByteArray &device) const = 0;
 };
