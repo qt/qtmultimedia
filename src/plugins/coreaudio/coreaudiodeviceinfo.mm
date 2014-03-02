@@ -130,9 +130,11 @@ bool CoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
     CoreAudioDeviceInfo *self = const_cast<CoreAudioDeviceInfo*>(this);
 
+    //Sample rates are more of a suggestion with CoreAudio so as long as we get a
+    //sane value then we can likely use it.
     return format.isValid()
             && format.codec() == QString::fromLatin1("audio/pcm")
-            && self->supportedSampleRates().contains(format.sampleRate())
+            && format.sampleRate() > 0
             && self->supportedChannelCounts().contains(format.channelCount())
             && self->supportedSampleSizes().contains(format.sampleSize());
 }
@@ -168,8 +170,9 @@ QList<int> CoreAudioDeviceInfo::supportedSampleRates()
             AudioValueRange* vr = new AudioValueRange[pc];
 
             if (AudioObjectGetPropertyData(m_deviceId, &availableNominalSampleRatesAddress, 0, NULL, &propSize, vr) == noErr) {
-                for (int i = 0; i < pc; ++i)
-                    sampleRates << vr[i].mMaximum;
+                for (int i = 0; i < pc; ++i) {
+                    sampleRates << vr[i].mMinimum << vr[i].mMaximum;
+                }
             }
 
             delete vr;
