@@ -380,7 +380,7 @@ void tst_QMediaObject::metaDataChanged()
     QtTestMediaObject object(&service);
 
     QSignalSpy changedSpy(&object, SIGNAL(metaDataChanged()));
-    QSignalSpy changedWithValueSpy(&object, SIGNAL(metaDataChanged(QString, QVariant)));
+    QSignalSpy changedWithValueSpy(&object, SIGNAL(metaDataChanged(QString,QVariant)));
 
     service.metaData.setMetaData("key", "Value");
     QCOMPARE(changedSpy.count(), 1);

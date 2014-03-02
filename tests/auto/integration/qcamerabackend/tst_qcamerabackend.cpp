@@ -356,7 +356,7 @@ void tst_QCameraBackend::testCameraCapture()
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int, QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
 
     imageCapture.capture();
     QTRY_COMPARE(errorSignal.size(), 1);
@@ -427,7 +427,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy imageAvailableSignal(&imageCapture, SIGNAL(imageAvailable(int,QVideoFrame)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int, QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
 
     camera.start();
     QTRY_VERIFY(imageCapture.isReadyForCapture());

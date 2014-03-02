@@ -331,7 +331,7 @@ void tst_QCamera::testSimpleCameraCapture()
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int, QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
     imageCapture.capture(QString::fromLatin1("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NotSupportedFeatureError);
@@ -349,7 +349,7 @@ void tst_QCamera::testSimpleCameraLock()
 
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
 
     camera.searchAndLock();
     QCOMPARE(camera.lockStatus(), QCamera::Locked);
@@ -461,7 +461,7 @@ void tst_QCamera::testCameraCapture()
     QVERIFY(!imageCapture.isReadyForCapture());
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int, QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
 
     imageCapture.capture(QString::fromLatin1("/dev/null"));
     QCOMPARE(capturedSignal.size(), 0);
@@ -942,7 +942,7 @@ void tst_QCamera::testCameraLockCancel()
 
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
     camera.searchAndLock();
     QCOMPARE(camera.lockStatus(), QCamera::Searching);
     QCOMPARE(lockedSignal.count(), 0);
@@ -1322,8 +1322,8 @@ void tst_QCamera::testSearchAndLockWithLockTypes()
     /* Spy the signals */
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* search and lock the camera with QCamera::LockExposure and verify if the signal is emitted correctly */
     camera.searchAndLock(QCamera::LockExposure);
@@ -1357,8 +1357,8 @@ void tst_QCamera::testUnlockWithType()
     /* Spy the signal */
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* lock the camera with QCamera::LockExposure and Verify if the signal is emitted correctly */
     camera.searchAndLock(QCamera::LockExposure);
@@ -1438,7 +1438,7 @@ void tst_QCamera::testLockStatusChangedWithTypesSignal()
     QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
 
     /* Spy the signal lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason) */
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* Lock the camera with type QCamera::LockExposure */
     camera.searchAndLock(QCamera::LockExposure);
@@ -1584,7 +1584,7 @@ void tst_QCamera::testLockChangeReason()
 
     QCamera camera;
 
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* Set the lockChangeReason */
     service.mockLocksControl->setLockChangeReason(QCamera::LockAcquired);

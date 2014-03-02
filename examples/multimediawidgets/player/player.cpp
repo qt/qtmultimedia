@@ -104,7 +104,7 @@ Player::Player(QWidget *parent)
     histogramLayout->addWidget(histogram, 1);
 
     probe = new QVideoProbe(this);
-    connect(probe, SIGNAL(videoFrameProbed(const QVideoFrame&)), histogram, SLOT(processFrame(QVideoFrame)));
+    connect(probe, SIGNAL(videoFrameProbed(QVideoFrame)), histogram, SLOT(processFrame(QVideoFrame)));
     probe->setSource(player);
 
     QPushButton *openButton = new QPushButton(tr("Open"), this);
