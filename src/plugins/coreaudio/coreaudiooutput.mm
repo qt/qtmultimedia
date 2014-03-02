@@ -52,6 +52,10 @@
 # include <CoreServices/CoreServices.h>
 #endif
 
+#if defined(Q_OS_IOS)
+# include <QtMultimedia/private/qaudiohelpers_p.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 static const int DEFAULT_BUFFER_SIZE = 8 * 1024;
@@ -430,13 +434,23 @@ QAudioFormat CoreAudioOutput::format() const
 void CoreAudioOutput::setVolume(qreal volume)
 {
     const qreal normalizedVolume = qBound(qreal(0.0), volume, qreal(1.0));
-    m_cachedVolume = normalizedVolume;
     if (!m_isOpen) {
+        m_cachedVolume = normalizedVolume;
         return;
     }
 
-    //TODO: actually set the output volume here
-    //To set the output volume you need a handle to the mixer unit
+#if defined(Q_OS_OSX)
+    //on OS X the volume can be set directly on the AudioUnit
+    if (AudioUnitSetParameter(m_audioUnit,
+                              kHALOutputParam_Volume,
+                              kAudioUnitScope_Global,
+                              0 /* bus */,
+                              (float)normalizedVolume,
+                              0) == noErr)
+        m_cachedVolume = normalizedVolume;
+#else
+    m_cachedVolume = normalizedVolume;
+#endif
 }
 
 qreal CoreAudioOutput::volume() const
@@ -497,6 +511,17 @@ OSStatus CoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFl
         if (framesRead > 0) {
             ioData->mBuffers[0].mDataByteSize = framesRead * bytesPerFrame;
             d->m_totalFrames += framesRead;
+#ifdef Q_OS_IOS
+        // on iOS we have to adjust the sound volume ourselves
+        if (!qFuzzyCompare(d->m_cachedVolume, qreal(1.0f))) {
+            QAudioHelperInternal::qMultiplySamples(d->m_cachedVolume,
+                                                   d->m_audioFormat,
+                                                   ioData->mBuffers[0].mData, /* input */
+                                                   ioData->mBuffers[0].mData, /* output */
+                                                   ioData->mBuffers[0].mDataByteSize);
+        }
+#endif
+
         }
         else {
             ioData->mBuffers[0].mDataByteSize = 0;
