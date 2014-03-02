@@ -327,7 +327,7 @@ QByteArray CoreAudioDeviceInfo::defaultOutputDevice()
 #if defined(Q_OS_OSX)
     AudioDeviceID audioDevice;
     UInt32        size = sizeof(audioDevice);
-    AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = { kAudioHardwarePropertyDefaultInputDevice,
+    AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = { kAudioHardwarePropertyDefaultOutputDevice,
                                                                      kAudioObjectPropertyScopeGlobal,
                                                                      kAudioObjectPropertyElementMaster };
 
@@ -363,10 +363,15 @@ QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
             AudioDeviceID*  audioDevices = new AudioDeviceID[dc];
 
             if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &audioDevicesPropertyAddress, 0, NULL, &propSize, audioDevices) == noErr) {
+                QByteArray defaultDevice = (mode == QAudio::AudioOutput) ? defaultOutputDevice() : defaultInputDevice();
                 for (int i = 0; i < dc; ++i) {
                     QByteArray info = get_device_info(audioDevices[i], mode);
-                    if (!info.isNull())
-                        devices << info;
+                    if (!info.isNull()) {
+                        if (info == defaultDevice)
+                            devices.prepend(info);
+                        else
+                            devices << info;
+                    }
                 }
             }
 
