@@ -120,7 +120,7 @@ QImage AVFVideoFrameRenderer::renderLayerToImage(AVPlayerLayer *layer)
         return QImage();
 
     renderLayerToFBO(layer, fbo);
-    QImage fboImage = fbo->toImage().mirrored();
+    QImage fboImage = fbo->toImage();
     m_glContext->doneCurrent();
 
     return fboImage;
@@ -204,7 +204,8 @@ void AVFVideoFrameRenderer::renderLayerToFBO(AVPlayerLayer *layer, QOpenGLFrameb
     glPushMatrix();
     glLoadIdentity();
 
-    glOrtho(0.0f, m_targetSize.width(), m_targetSize.height(), 0.0f, 0.0f, 1.0f);
+    //Render to FBO with inverted Y
+    glOrtho(0.0, m_targetSize.width(), 0.0, m_targetSize.height(), 0.0, 1.0);
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
