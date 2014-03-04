@@ -9,4 +9,3 @@ CONFIG += testcase
 SOURCES += tst_qcamerabackend.cpp
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 
-mac: CONFIG += insignificant_test # QTBUG-36040
