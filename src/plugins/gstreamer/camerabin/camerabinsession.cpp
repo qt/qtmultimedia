@@ -756,6 +756,8 @@ void CameraBinSession::setMetaData(const QMap<QByteArray, QVariant> &data)
         GstIterator *elements = gst_bin_iterate_all_by_interface(GST_BIN(m_camerabin), GST_TYPE_TAG_SETTER);
         GstElement *element = 0;
         while (gst_iterator_next(elements, (void**)&element) == GST_ITERATOR_OK) {
+            gst_tag_setter_reset_tags(GST_TAG_SETTER(element));
+
             QMapIterator<QByteArray, QVariant> it(data);
             while (it.hasNext()) {
                 it.next();

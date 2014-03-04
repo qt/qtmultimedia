@@ -198,11 +198,13 @@ QVariant CameraBinMetaData::metaData(const QString &key) const
 void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
 {
     QVariant correctedValue = value;
-    if (key == QMediaMetaData::Orientation) {
-        correctedValue = toGStreamerOrientation(value);
-    } else if (key == QMediaMetaData::GPSSpeed) {
-        // kilometers per hour to meters per second.
-        correctedValue = (value.toDouble() * 1000) / 3600;
+    if (value.isValid()) {
+        if (key == QMediaMetaData::Orientation) {
+            correctedValue = toGStreamerOrientation(value);
+        } else if (key == QMediaMetaData::GPSSpeed) {
+            // kilometers per hour to meters per second.
+            correctedValue = (value.toDouble() * 1000) / 3600;
+        }
     }
 
     static const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
@@ -211,9 +213,12 @@ void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
         if (qt_gstreamerMetaDataKeys[i].key == key) {
             const char *name = qt_gstreamerMetaDataKeys[i].token;
 
-            correctedValue.convert(qt_gstreamerMetaDataKeys[i].type);
-
-            m_values.insert(QByteArray::fromRawData(name, qstrlen(name)), correctedValue);
+            if (correctedValue.isValid()) {
+                correctedValue.convert(qt_gstreamerMetaDataKeys[i].type);
+                m_values.insert(QByteArray::fromRawData(name, qstrlen(name)), correctedValue);
+            } else {
+                m_values.remove(QByteArray::fromRawData(name, qstrlen(name)));
+            }
 
             emit QMetaDataWriterControl::metaDataChanged();
             emit metaDataChanged(m_values);
