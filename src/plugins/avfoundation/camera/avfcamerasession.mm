@@ -85,6 +85,7 @@ QMap<QByteArray, AVFCameraInfo> AVFCameraSession::m_cameraInfo;
     self->m_session = session;
     self->m_captureSession = session->captureSession();
 
+    [m_captureSession retain];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(processRuntimeError:)
                                                  name:AVCaptureSessionRuntimeErrorNotification
@@ -103,6 +104,22 @@ QMap<QByteArray, AVFCameraInfo> AVFCameraSession::m_cameraInfo;
     return self;
 }
 
+- (void) dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:AVCaptureSessionRuntimeErrorNotification
+                                                  object:m_captureSession];
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:AVCaptureSessionDidStartRunningNotification
+                                                  object:m_captureSession];
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:AVCaptureSessionDidStopRunningNotification
+                                                  object:m_captureSession];
+    [m_captureSession release];
+    [super dealloc];
+}
 
 - (void) processRuntimeError:(NSNotification *)notification
 {
