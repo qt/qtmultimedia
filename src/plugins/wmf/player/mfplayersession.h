@@ -152,7 +152,7 @@ private:
     IMFPresentationClock *m_presentationClock;
     IMFRateControl *m_rateControl;
     IMFRateSupport *m_rateSupport;
-    IMFSimpleAudioVolume *m_volumeControl;
+    IMFAudioStreamVolume *m_volumeControl;
     IPropertyStore *m_netsourceStatistics;
     PROPVARIANT m_varStart;
     UINT64 m_duration;
@@ -217,6 +217,8 @@ private:
     bool m_canScrub;
     int m_volume;
     bool m_muted;
+
+    void setVolumeInternal(int volume);
 
     void createSession();
     void setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD);
