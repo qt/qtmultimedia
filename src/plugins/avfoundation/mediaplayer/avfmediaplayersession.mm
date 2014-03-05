@@ -133,7 +133,8 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 
 - (void) unloadMedia
 {
-    [m_player setRate:0.0];
+    if (m_player)
+        [m_player setRate:0.0];
     if (m_playerItem) {
         [m_playerItem removeObserver:self forKeyPath:AVF_STATUS_KEY];
 
@@ -407,10 +408,12 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
         [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
         [m_player release];
+        m_player = 0;
     }
 
     if (m_playerLayer) {
         [m_playerLayer release];
+        m_playerLayer = 0;
     }
 
     [self unloadMedia];
