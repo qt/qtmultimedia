@@ -61,6 +61,11 @@ CoreAudioDeviceInfo::CoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode 
     m_deviceId = AudioDeviceID(deviceID);
 #else //iOS
     m_device = device;
+    if (mode == QAudio::AudioInput) {
+        if (CoreAudioSessionManager::instance().category() != CoreAudioSessionManager::PlayAndRecord) {
+            CoreAudioSessionManager::instance().setCategory(CoreAudioSessionManager::PlayAndRecord);
+        }
+    }
 #endif
 }
 
@@ -379,6 +384,12 @@ QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
         }
     }
 #else //iOS
+    if (mode == QAudio::AudioInput) {
+        if (CoreAudioSessionManager::instance().category() != CoreAudioSessionManager::PlayAndRecord) {
+            CoreAudioSessionManager::instance().setCategory(CoreAudioSessionManager::PlayAndRecord);
+        }
+    }
+
     CoreAudioSessionManager::instance().setActive(true);
 
     if (mode == QAudio::AudioOutput)

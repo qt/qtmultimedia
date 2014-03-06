@@ -47,6 +47,10 @@
 # include <CoreServices/CoreServices.h>
 #endif
 
+#if defined(Q_OS_IOS)
+# include "coreaudiosessionmanager.h"
+#endif
+
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtCore/QDebug>
 
