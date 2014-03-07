@@ -67,6 +67,20 @@
 
 QT_BEGIN_NAMESPACE
 
+static bool usePlaybinVolume()
+{
+    static enum { Yes, No, Unknown } status = Unknown;
+    if (status == Unknown) {
+        QByteArray v = qgetenv("QT_GSTREAMER_USE_PLAYBIN_VOLUME");
+        bool value = !v.isEmpty() && v != "0" && v != "false";
+        if (value)
+            status = Yes;
+        else
+            status = No;
+    }
+    return status == Yes;
+}
+
 typedef enum {
     GST_PLAY_FLAG_VIDEO         = 0x00000001,
     GST_PLAY_FLAG_AUDIO         = 0x00000002,
@@ -104,6 +118,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_pendingVideoSink(0),
      m_nullVideoSink(0),
      m_audioSink(0),
+     m_volumeElement(0),
      m_bus(0),
      m_videoOutput(0),
      m_renderer(0),
@@ -151,8 +166,28 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
 #endif
         g_object_set(G_OBJECT(m_playbin), "flags", flags, NULL);
 
-        m_audioSink = gst_element_factory_make("autoaudiosink", "audiosink");
-        if (m_audioSink) {
+        GstElement *audioSink = gst_element_factory_make("autoaudiosink", "audiosink");
+        if (audioSink) {
+            if (usePlaybinVolume()) {
+                m_audioSink = audioSink;
+                m_volumeElement = m_playbin;
+            } else {
+                m_volumeElement = gst_element_factory_make("volume", "volumeelement");
+                if (m_volumeElement) {
+                    m_audioSink = gst_bin_new("audio-output-bin");
+
+                    gst_bin_add_many(GST_BIN(m_audioSink), m_volumeElement, audioSink, NULL);
+                    gst_element_link(m_volumeElement, audioSink);
+
+                    GstPad *pad = gst_element_get_static_pad(m_volumeElement, "sink");
+                    gst_element_add_pad(GST_ELEMENT(m_audioSink), gst_ghost_pad_new("sink", pad));
+                    gst_object_unref(GST_OBJECT(pad));
+                } else {
+                    m_audioSink = audioSink;
+                    m_volumeElement = m_playbin;
+                }
+            }
+
             g_object_set(G_OBJECT(m_playbin), "audio-sink", m_audioSink, NULL);
             addAudioBufferProbe();
         }
@@ -193,12 +228,12 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         g_signal_connect(G_OBJECT(m_playbin), "notify::source", G_CALLBACK(playbinNotifySource), this);
         g_signal_connect(G_OBJECT(m_playbin), "element-added",  G_CALLBACK(handleElementAdded), this);
 
-        // Init volume and mute state
-        g_object_set(G_OBJECT(m_playbin), "volume", 1.0, NULL);
-        g_object_set(G_OBJECT(m_playbin), "mute", FALSE, NULL);
-
-        g_signal_connect(G_OBJECT(m_playbin), "notify::volume", G_CALLBACK(handleVolumeChange), this);
-        g_signal_connect(G_OBJECT(m_playbin), "notify::mute", G_CALLBACK(handleMutedChange), this);
+        if (usePlaybinVolume()) {
+            updateVolume();
+            updateMuted();
+            g_signal_connect(G_OBJECT(m_playbin), "notify::volume", G_CALLBACK(handleVolumeChange), this);
+            g_signal_connect(G_OBJECT(m_playbin), "notify::mute", G_CALLBACK(handleMutedChange), this);
+        }
 
         g_signal_connect(G_OBJECT(m_playbin), "video-changed", G_CALLBACK(handleStreamsChange), this);
         g_signal_connect(G_OBJECT(m_playbin), "audio-changed", G_CALLBACK(handleStreamsChange), this);
@@ -912,10 +947,8 @@ void QGstreamerPlayerSession::setVolume(int volume)
     if (m_volume != volume) {
         m_volume = volume;
 
-        if (m_playbin) {
-            //playbin2 allows to set volume and muted independently,
-            g_object_set(G_OBJECT(m_playbin), "volume", m_volume/100.0, NULL);
-        }
+        if (m_volumeElement)
+            g_object_set(G_OBJECT(m_volumeElement), "volume", m_volume / 100.0, NULL);
 
         emit volumeChanged(m_volume);
     }
@@ -929,7 +962,9 @@ void QGstreamerPlayerSession::setMuted(bool muted)
     if (m_muted != muted) {
         m_muted = muted;
 
-        g_object_set(G_OBJECT(m_playbin), "mute", m_muted ? TRUE : FALSE, NULL);
+        if (m_volumeElement)
+            g_object_set(G_OBJECT(m_volumeElement), "mute", m_muted ? TRUE : FALSE, NULL);
+
         emit mutedStateChanged(m_muted);
     }
 }
