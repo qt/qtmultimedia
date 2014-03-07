@@ -66,7 +66,7 @@ int AVFVideoDeviceControl::deviceCount() const
 QString AVFVideoDeviceControl::deviceName(int index) const
 {
     const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
-    if (index >= devices.count())
+    if (index < 0 || index >= devices.count())
         return QString();
 
     return QString::fromUtf8(devices.at(index));
@@ -75,7 +75,7 @@ QString AVFVideoDeviceControl::deviceName(int index) const
 QString AVFVideoDeviceControl::deviceDescription(int index) const
 {
     const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
-    if (index >= devices.count())
+    if (index < 0 || index >= devices.count())
         return QString();
 
     return AVFCameraSession::cameraDeviceInfo(devices.at(index)).description;
@@ -93,7 +93,9 @@ int AVFVideoDeviceControl::selectedDevice() const
 
 void AVFVideoDeviceControl::setSelectedDevice(int index)
 {
-    if (index != m_selectedDevice) {
+    if (index >= 0 &&
+            index < deviceCount() &&
+            index != m_selectedDevice) {
         m_dirty = true;
         m_selectedDevice = index;
         Q_EMIT selectedDeviceChanged(index);
