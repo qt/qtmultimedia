@@ -464,7 +464,7 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
 }
 
 /*!
-    \qmlproperty int QtMultimedia::VideoOutput::autoOrientation
+    \qmlproperty bool QtMultimedia::VideoOutput::autoOrientation
 
     This property allows you to enable and disable auto orientation
     of the video stream, so that its orientation always matches
