@@ -55,6 +55,7 @@ Q_GLOBAL_STATIC(QOpenSLESEngine, openslesEngine);
 QOpenSLESEngine::QOpenSLESEngine()
     : m_engineObject(0)
     , m_engine(0)
+    , m_checkedInputFormats(false)
 {
     SLresult result;
 
@@ -66,8 +67,6 @@ QOpenSLESEngine::QOpenSLESEngine()
 
     result = (*m_engineObject)->GetInterface(m_engineObject, SL_IID_ENGINE, &m_engine);
     CheckError("Failed to get engine interface");
-
-    checkSupportedInputFormats();
 }
 
 QOpenSLESEngine::~QOpenSLESEngine()
@@ -118,15 +117,20 @@ QList<QByteArray> QOpenSLESEngine::availableDevices(QAudio::Mode mode) const
 
 QList<int> QOpenSLESEngine::supportedChannelCounts(QAudio::Mode mode) const
 {
-    if (mode == QAudio::AudioInput)
+    if (mode == QAudio::AudioInput) {
+        if (!m_checkedInputFormats)
+            const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputChannelCounts;
-    else
+    } else {
         return QList<int>() << 1 << 2;
+    }
 }
 
 QList<int> QOpenSLESEngine::supportedSampleRates(QAudio::Mode mode) const
 {
     if (mode == QAudio::AudioInput) {
+        if (!m_checkedInputFormats)
+            const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputSampleRates;
     } else {
         return QList<int>() << 8000 << 11025 << 12000 << 16000 << 22050
@@ -177,6 +181,8 @@ void QOpenSLESEngine::checkSupportedInputFormats()
         if (inputFormatIsSupported(format))
             m_supportedInputChannelCounts.append(2);
     }
+
+    m_checkedInputFormats = true;
 }
 
 bool QOpenSLESEngine::inputFormatIsSupported(SLDataFormat_PCM format)
