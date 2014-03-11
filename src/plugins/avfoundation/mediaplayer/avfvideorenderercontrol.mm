@@ -182,6 +182,11 @@ void AVFVideoRendererControl::setLayer(void *playerLayer)
 
     m_playerLayer = playerLayer;
 
+    //If there is an active surface, make sure it has been stopped so that
+    //we can update it's state with the new content.
+    if (m_surface && m_surface->isActive())
+        m_surface->stop();
+
     //If there is no layer to render, stop scheduling updates
     if (m_playerLayer == 0) {
         m_displayLink->stop();

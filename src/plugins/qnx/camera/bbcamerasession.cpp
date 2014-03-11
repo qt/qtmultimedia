@@ -64,7 +64,7 @@ static QString errorToString(camera_error_t error)
     case CAMERA_EAGAIN:
         return QLatin1String("Camera unavailable");
     case CAMERA_EINVAL:
-        return QLatin1String("Inavlid argument");
+        return QLatin1String("Invalid argument");
     case CAMERA_ENODEV:
         return QLatin1String("Camera not found");
     case CAMERA_EMFILE:

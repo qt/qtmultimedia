@@ -39,7 +39,7 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import QtMultimedia 5.0
+import QtMultimedia 5.2
 
 Rectangle {
     id : cameraUI
@@ -129,6 +129,7 @@ Rectangle {
         height: parent.height
 
         source: camera
+        autoOrientation: true
     }
 
     PhotoCaptureControls {

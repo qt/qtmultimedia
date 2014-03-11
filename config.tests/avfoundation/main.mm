@@ -39,9 +39,11 @@
 **
 ****************************************************************************/
 
+#import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
 int main(int argc, char** argv)
 {
+    AVPlayer *player = [AVPlayer playerWithURL:[NSURL URLWithString:@"http://doesnotmatter.com"]];
     return 0;
 }

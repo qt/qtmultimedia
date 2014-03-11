@@ -273,12 +273,22 @@ void QDeclarativeVideoOutput::_q_updateMediaObject()
 
     m_mediaObject.clear();
     m_service.clear();
+    m_cameraInfo = QCameraInfo();
 
     if (mediaObject) {
         if (QMediaService *service = mediaObject->service()) {
             if (createBackend(service)) {
                 m_service = service;
                 m_mediaObject = mediaObject;
+                const QCamera *camera = qobject_cast<const QCamera *>(mediaObject);
+                if (camera) {
+                    m_cameraInfo = QCameraInfo(*camera);
+
+                    // The camera position and orientation need to be taken into account for
+                    // the viewport auto orientation
+                    if (m_autoOrientation)
+                        _q_screenOrientationChanged(m_screenOrientationHandler->currentOrientation());
+                }
             }
         }
     }
@@ -375,7 +385,21 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
 
 void QDeclarativeVideoOutput::_q_screenOrientationChanged(int orientation)
 {
-    setOrientation(orientation);
+    // If the source is a camera, take into account its sensor position and orientation
+    if (!m_cameraInfo.isNull()) {
+        switch (m_cameraInfo.position()) {
+        case QCamera::FrontFace:
+            // Front facing cameras are flipped horizontally, compensate the mirror
+            orientation += (360 - m_cameraInfo.orientation());
+            break;
+        case QCamera::BackFace:
+        default:
+            orientation += m_cameraInfo.orientation();
+            break;
+        }
+    }
+
+    setOrientation(orientation % 360);
 }
 
 /*!

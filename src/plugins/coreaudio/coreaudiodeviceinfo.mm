@@ -61,6 +61,11 @@ CoreAudioDeviceInfo::CoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode 
     m_deviceId = AudioDeviceID(deviceID);
 #else //iOS
     m_device = device;
+    if (mode == QAudio::AudioInput) {
+        if (CoreAudioSessionManager::instance().category() != CoreAudioSessionManager::PlayAndRecord) {
+            CoreAudioSessionManager::instance().setCategory(CoreAudioSessionManager::PlayAndRecord);
+        }
+    }
 #endif
 }
 
@@ -130,9 +135,11 @@ bool CoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
     CoreAudioDeviceInfo *self = const_cast<CoreAudioDeviceInfo*>(this);
 
+    //Sample rates are more of a suggestion with CoreAudio so as long as we get a
+    //sane value then we can likely use it.
     return format.isValid()
             && format.codec() == QString::fromLatin1("audio/pcm")
-            && self->supportedSampleRates().contains(format.sampleRate())
+            && format.sampleRate() > 0
             && self->supportedChannelCounts().contains(format.channelCount())
             && self->supportedSampleSizes().contains(format.sampleSize());
 }
@@ -168,8 +175,9 @@ QList<int> CoreAudioDeviceInfo::supportedSampleRates()
             AudioValueRange* vr = new AudioValueRange[pc];
 
             if (AudioObjectGetPropertyData(m_deviceId, &availableNominalSampleRatesAddress, 0, NULL, &propSize, vr) == noErr) {
-                for (int i = 0; i < pc; ++i)
-                    sampleRates << vr[i].mMaximum;
+                for (int i = 0; i < pc; ++i) {
+                    sampleRates << vr[i].mMinimum << vr[i].mMaximum;
+                }
             }
 
             delete vr;
@@ -324,7 +332,7 @@ QByteArray CoreAudioDeviceInfo::defaultOutputDevice()
 #if defined(Q_OS_OSX)
     AudioDeviceID audioDevice;
     UInt32        size = sizeof(audioDevice);
-    AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = { kAudioHardwarePropertyDefaultInputDevice,
+    AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = { kAudioHardwarePropertyDefaultOutputDevice,
                                                                      kAudioObjectPropertyScopeGlobal,
                                                                      kAudioObjectPropertyElementMaster };
 
@@ -360,10 +368,15 @@ QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
             AudioDeviceID*  audioDevices = new AudioDeviceID[dc];
 
             if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &audioDevicesPropertyAddress, 0, NULL, &propSize, audioDevices) == noErr) {
+                QByteArray defaultDevice = (mode == QAudio::AudioOutput) ? defaultOutputDevice() : defaultInputDevice();
                 for (int i = 0; i < dc; ++i) {
                     QByteArray info = get_device_info(audioDevices[i], mode);
-                    if (!info.isNull())
-                        devices << info;
+                    if (!info.isNull()) {
+                        if (info == defaultDevice)
+                            devices.prepend(info);
+                        else
+                            devices << info;
+                    }
                 }
             }
 
@@ -371,6 +384,12 @@ QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
         }
     }
 #else //iOS
+    if (mode == QAudio::AudioInput) {
+        if (CoreAudioSessionManager::instance().category() != CoreAudioSessionManager::PlayAndRecord) {
+            CoreAudioSessionManager::instance().setCategory(CoreAudioSessionManager::PlayAndRecord);
+        }
+    }
+
     CoreAudioSessionManager::instance().setActive(true);
 
     if (mode == QAudio::AudioOutput)

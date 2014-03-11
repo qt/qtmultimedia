@@ -107,6 +107,20 @@ QMediaServiceProviderHint::Features DSServicePlugin::supportedFeatures(
         return QMediaServiceProviderHint::Features();
 }
 
+QByteArray DSServicePlugin::defaultDevice(const QByteArray &service) const
+{
+#ifdef QMEDIA_DIRECTSHOW_CAMERA
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        return m_defaultCameraDevice;
+    }
+#endif
+
+    return QByteArray();
+}
+
 QList<QByteArray> DSServicePlugin::devices(const QByteArray &service) const
 {
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
@@ -140,10 +154,13 @@ QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByt
 
 void DSServicePlugin::updateDevices() const
 {
+    m_defaultCameraDevice.clear();
     DSVideoDeviceControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
 
     if (m_cameraDevices.isEmpty()) {
         qWarning() << "No camera devices found";
+    } else {
+        m_defaultCameraDevice = m_cameraDevices.first();
     }
 }
 #endif

@@ -56,6 +56,9 @@
 
 QSGVivanteVideoMaterial::QSGVivanteVideoMaterial() :
     mOpacity(1.0),
+    mWidth(0),
+    mHeight(0),
+    mFormat(QVideoFrame::Format_Invalid),
     mCurrentTexture(0)
 {
 #ifdef QT_VIVANTE_VIDEO_DEBUG
@@ -147,6 +150,18 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
         return 0;
     }
 
+    if (mWidth != vF.width() || mHeight != vF.height() || mFormat != vF.pixelFormat()) {
+        mWidth = vF.width();
+        mHeight = vF.height();
+        mFormat = vF.pixelFormat();
+        for (GLuint id : mBitsToTextureMap.values()) {
+#ifdef QT_VIVANTE_VIDEO_DEBUG
+            qDebug() << "delete texture: " << id;
+#endif
+            glDeleteTextures(1, &id);
+        }
+        mBitsToTextureMap.clear();
+    }
 
     if (vF.map(QAbstractVideoBuffer::ReadOnly)) {
 

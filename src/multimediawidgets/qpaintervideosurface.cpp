@@ -247,6 +247,8 @@ public:
 
     bool isFormatSupported(const QVideoSurfaceFormat &format) const;
 
+    void stop();
+
     QAbstractVideoSurface::Error setCurrentFrame(const QVideoFrame &frame);
 
     QAbstractVideoSurface::Error paint(
@@ -349,6 +351,12 @@ bool QVideoSurfaceGLPainter::isFormatSupported(const QVideoSurfaceFormat &format
         }
     }
     return false;
+}
+
+
+void QVideoSurfaceGLPainter::stop()
+{
+    m_frame = QVideoFrame();
 }
 
 QAbstractVideoSurface::Error QVideoSurfaceGLPainter::setCurrentFrame(const QVideoFrame &frame)
@@ -832,6 +840,8 @@ void QVideoSurfaceArbFpPainter::stop()
     m_textureCount = 0;
     m_programId = 0;
     m_handleType = QAbstractVideoBuffer::NoHandle;
+
+    QVideoSurfaceGLPainter::stop();
 }
 
 QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::paint(
@@ -1176,6 +1186,8 @@ void QVideoSurfaceGlslPainter::stop()
 
     m_textureCount = 0;
     m_handleType = QAbstractVideoBuffer::NoHandle;
+
+    QVideoSurfaceGLPainter::stop();
 }
 
 QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::paint(

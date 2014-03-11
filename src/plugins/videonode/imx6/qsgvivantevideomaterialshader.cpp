@@ -91,7 +91,7 @@ const char *QSGVivanteVideoMaterialShader::fragmentShader() const {
             ""
             "void main()"
             "{"
-            "  gl_FragColor = texture2D( texture, qt_TexCoord ) * opacity;\n"
+            "  gl_FragColor = vec4(texture2D( texture, qt_TexCoord ).rgb, 1.0) * opacity;\n"
             "}";
     return shader;
 }

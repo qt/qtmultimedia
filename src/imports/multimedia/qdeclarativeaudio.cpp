@@ -441,6 +441,18 @@ void QDeclarativeAudio::seek(int position)
 */
 
 /*!
+    \qmlproperty int QtMultimedia::Audio::loops
+
+    This property holds the number of times the media is played. A value of \c 0 or \c 1 means
+    the media will be played only once; set to \c Audio.Infinite to enable infinite looping.
+
+    The value can be changed while the media is playing, in which case it will update
+    the remaining loops to the new value.
+
+    The default is \c 1.
+*/
+
+/*!
     \qmlproperty bool QtMultimedia::Audio::autoLoad
 
     This property indicates if loading of media should begin immediately.
@@ -1230,6 +1242,18 @@ void QDeclarativeAudio::_q_statusChanged()
     \qmlproperty url QtMultimedia::MediaPlayer::source
 
     This property holds the source URL of the media.
+*/
+
+/*!
+    \qmlproperty int QtMultimedia::MediaPlayer::loops
+
+    This property holds the number of times the media is played. A value of \c 0 or \c 1 means
+    the media will be played only once; set to \c MediaPlayer.Infinite to enable infinite looping.
+
+    The value can be changed while the media is playing, in which case it will update
+    the remaining loops to the new value.
+
+    The default is \c 1.
 */
 
 /*!

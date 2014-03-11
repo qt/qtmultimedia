@@ -63,18 +63,10 @@ public:
 
     int defaultDevice() const;
     int selectedDevice() const;
-
     void setSelectedDevice(int index);
 
-    static QList<QByteArray> availableDevices();
-    static QString availableDeviceDescription(const QByteArray &device);
-
 private:
-    static void update();
-
     int m_selectedDevice;
-    static QList<QByteArray> m_names;
-    static QStringList m_descriptions;
 
     QAndroidCameraSession *m_cameraSession;
 };

@@ -172,7 +172,8 @@ void QSoundEffectPrivate::setLoopCount(int loopCount)
     if (loopCount == 0)
         loopCount = 1;
     d->m_loopCount = loopCount;
-    d->m_runningCount = loopCount;
+    if (d->m_playing)
+        setLoopsRemaining(loopCount);
 }
 
 qreal QSoundEffectPrivate::volume() const
@@ -228,7 +229,7 @@ QSoundEffect::Status QSoundEffectPrivate::status() const
 void QSoundEffectPrivate::play()
 {
     d->m_offset = 0;
-    d->m_runningCount = d->m_loopCount;
+    setLoopsRemaining(d->m_loopCount);
 #ifdef QT_QAUDIO_DEBUG
     qDebug() << this << "play";
 #endif
@@ -283,7 +284,7 @@ void QSoundEffectPrivate::setPlaying(bool playing)
 
 void QSoundEffectPrivate::setLoopsRemaining(int loopsRemaining)
 {
-    if (!d->m_runningCount && loopsRemaining)
+    if (d->m_runningCount == loopsRemaining)
         return;
 #ifdef QT_QAUDIO_DEBUG
     qDebug() << this << "setLoopsRemaining " << loopsRemaining;

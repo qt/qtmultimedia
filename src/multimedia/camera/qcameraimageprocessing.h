@@ -100,6 +100,7 @@ public:
 
 private:
     friend class QCamera;
+    friend class QCameraPrivate;
     QCameraImageProcessing(QCamera *camera);
     ~QCameraImageProcessing();
 

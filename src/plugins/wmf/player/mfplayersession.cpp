@@ -1325,8 +1325,10 @@ void MFPlayerSession::setVolume(int volume)
     if (m_volume == volume)
         return;
     m_volume = volume;
-    if (m_volumeControl)
-        m_volumeControl->SetMasterVolume(m_volume * 0.01f);
+
+    if (!m_muted)
+        setVolumeInternal(volume);
+
     emit volumeChanged(m_volume);
 }
 
@@ -1340,9 +1342,24 @@ void MFPlayerSession::setMuted(bool muted)
     if (m_muted == muted)
         return;
     m_muted = muted;
-    if (m_volumeControl)
-        m_volumeControl->SetMute(BOOL(m_muted));
+
+    setVolumeInternal(muted ? 0 : m_volume);
+
     emit mutedChanged(m_muted);
+}
+
+void MFPlayerSession::setVolumeInternal(int volume)
+{
+    if (m_volumeControl) {
+        quint32 channelCount = 0;
+        if (!SUCCEEDED(m_volumeControl->GetChannelCount(&channelCount))
+                || channelCount == 0)
+            return;
+
+        float scaled = volume * 0.01f;
+        for (quint32 i = 0; i < channelCount; ++i)
+            m_volumeControl->SetChannelVolume(i, scaled);
+    }
 }
 
 int MFPlayerSession::bufferStatus()
@@ -1570,10 +1587,8 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                 }
             }
 
-            if (SUCCEEDED(MFGetService(m_session, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl)))) {
-                m_volumeControl->SetMasterVolume(m_volume * 0.01f);
-                m_volumeControl->SetMute(m_muted);
-            }
+            if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
+                setVolumeInternal(m_muted ? 0 : m_volume);
 
             DWORD dwCharacteristics = 0;
             m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
@@ -1618,25 +1633,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         changeStatus(QMediaPlayer::EndOfMedia);
         break;
     case MEEndOfPresentationSegment:
-        break;
-    case MEAudioSessionVolumeChanged:
-        if (m_volumeControl) {
-            float currentVolume = 1;
-            if (SUCCEEDED(m_volumeControl->GetMasterVolume(&currentVolume))) {
-                int scaledVolume = currentVolume * 100;
-                if (scaledVolume != m_volume) {
-                    m_volume = scaledVolume;
-                    emit volumeChanged(scaledVolume);
-                }
-            }
-            BOOL currentMuted = FALSE;
-            if (SUCCEEDED(m_volumeControl->GetMute(&currentMuted))) {
-                if (currentMuted != BOOL(m_muted)) {
-                    m_muted = bool(currentMuted);
-                    emit mutedChanged(m_muted);
-                }
-            }
-        }
         break;
     case MESessionTopologyStatus: {
             UINT32 status;

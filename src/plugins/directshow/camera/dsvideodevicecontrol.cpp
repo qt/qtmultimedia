@@ -153,7 +153,7 @@ void DSVideoDeviceControl::enumerateDevices(QList<QByteArray> *devices, QStringL
 
 void DSVideoDeviceControl::setSelectedDevice(int index)
 {
-    if (index >= 0 && index <= m_devices.count()) {
+    if (index >= 0 && index < m_devices.count()) {
         if (m_session) {
             QString device = m_devices.at(index);
             if (device.startsWith("ds:"))

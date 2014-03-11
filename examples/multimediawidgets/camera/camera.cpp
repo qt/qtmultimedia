@@ -140,8 +140,8 @@ void Camera::setCamera(const QByteArray &cameraDevice)
     connect(imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)), this,
             SLOT(displayCaptureError(int,QCameraImageCapture::Error,QString)));
 
-    connect(camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)),
-            this, SLOT(updateLockStatus(QCamera::LockStatus, QCamera::LockChangeReason)));
+    connect(camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)),
+            this, SLOT(updateLockStatus(QCamera::LockStatus,QCamera::LockChangeReason)));
 
     ui->captureWidget->setTabEnabled(0, (camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
     ui->captureWidget->setTabEnabled(1, (camera->isCaptureModeSupported(QCamera::CaptureVideo)));

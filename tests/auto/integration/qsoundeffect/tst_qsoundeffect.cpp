@@ -152,16 +152,86 @@ void tst_QSoundEffect::testLooping()
 
     sound->setLoopCount(5);
     sound->setVolume(0.1f);
-    QCOMPARE(sound->loopCount(),5);
-    QCOMPARE(readSignal_Count.count(),1);
+    QCOMPARE(sound->loopCount(), 5);
+    QCOMPARE(readSignal_Count.count(), 1);
+    QCOMPARE(sound->loopsRemaining(), 0);
+    QCOMPARE(readSignal_Remaining.count(), 0);
 
     sound->play();
+    QCOMPARE(sound->loopsRemaining(), 5);
+    QCOMPARE(readSignal_Remaining.count(), 1);
 
     // test.wav is about 200ms, wait until it has finished playing 5 times
     QTestEventLoop::instance().enterLoop(3);
 
     QTRY_COMPARE(sound->loopsRemaining(), 0);
-    QCOMPARE(readSignal_Remaining.count(),5);
+    QVERIFY(readSignal_Remaining.count() >= 6);
+    QTRY_VERIFY(!sound->isPlaying());
+
+    // QTBUG-36643 (setting the loop count while playing should work)
+    {
+        readSignal_Count.clear();
+        readSignal_Remaining.clear();
+
+        sound->setLoopCount(30);
+        QCOMPARE(sound->loopCount(), 30);
+        QCOMPARE(readSignal_Count.count(), 1);
+        QCOMPARE(sound->loopsRemaining(), 0);
+        QCOMPARE(readSignal_Remaining.count(), 0);
+
+        sound->play();
+        QCOMPARE(sound->loopsRemaining(), 30);
+        QCOMPARE(readSignal_Remaining.count(), 1);
+
+        // wait for the sound to be played several times
+        QTRY_COMPARE(sound->loopsRemaining(), 20);
+        QVERIFY(readSignal_Remaining.count() >= 10);
+        readSignal_Count.clear();
+        readSignal_Remaining.clear();
+
+        // change the loop count while playing
+        sound->setLoopCount(5);
+        QCOMPARE(sound->loopCount(), 5);
+        QCOMPARE(readSignal_Count.count(), 1);
+        QCOMPARE(sound->loopsRemaining(), 5);
+        QCOMPARE(readSignal_Remaining.count(), 1);
+
+        // wait for all the loops to be completed
+        QTRY_COMPARE(sound->loopsRemaining(), 0);
+        QVERIFY(readSignal_Remaining.count() >= 6);
+        QTRY_VERIFY(!sound->isPlaying());
+    }
+
+    {
+        readSignal_Count.clear();
+        readSignal_Remaining.clear();
+
+        sound->setLoopCount(QSoundEffect::Infinite);
+        QCOMPARE(sound->loopCount(), int(QSoundEffect::Infinite));
+        QCOMPARE(readSignal_Count.count(), 1);
+        QCOMPARE(sound->loopsRemaining(), 0);
+        QCOMPARE(readSignal_Remaining.count(), 0);
+
+        sound->play();
+        QCOMPARE(sound->loopsRemaining(), int(QSoundEffect::Infinite));
+        QCOMPARE(readSignal_Remaining.count(), 1);
+
+        QTest::qWait(1500);
+        QVERIFY(sound->isPlaying());
+        readSignal_Count.clear();
+        readSignal_Remaining.clear();
+
+        // Setting the loop count to 0 should play it one last time
+        sound->setLoopCount(0);
+        QCOMPARE(sound->loopCount(), 1);
+        QCOMPARE(readSignal_Count.count(), 1);
+        QCOMPARE(sound->loopsRemaining(), 1);
+        QCOMPARE(readSignal_Remaining.count(), 1);
+
+        QTRY_COMPARE(sound->loopsRemaining(), 0);
+        QVERIFY(readSignal_Remaining.count() >= 2);
+        QTRY_VERIFY(!sound->isPlaying());
+    }
 }
 
 void tst_QSoundEffect::testVolume()

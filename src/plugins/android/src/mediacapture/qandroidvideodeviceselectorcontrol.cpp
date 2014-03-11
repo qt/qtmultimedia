@@ -46,16 +46,11 @@
 
 QT_BEGIN_NAMESPACE
 
-QList<QByteArray> QAndroidVideoDeviceSelectorControl::m_names;
-QStringList QAndroidVideoDeviceSelectorControl::m_descriptions;
-
 QAndroidVideoDeviceSelectorControl::QAndroidVideoDeviceSelectorControl(QAndroidCameraSession *session)
     : QVideoDeviceSelectorControl(0)
     , m_selectedDevice(0)
     , m_cameraSession(session)
 {
-    if (m_names.isEmpty())
-        update();
 }
 
 QAndroidVideoDeviceSelectorControl::~QAndroidVideoDeviceSelectorControl()
@@ -64,17 +59,23 @@ QAndroidVideoDeviceSelectorControl::~QAndroidVideoDeviceSelectorControl()
 
 int QAndroidVideoDeviceSelectorControl::deviceCount() const
 {
-    return m_names.size();
+    return QAndroidCameraSession::availableCameras().count();
 }
 
 QString QAndroidVideoDeviceSelectorControl::deviceName(int index) const
 {
-    return m_names.at(index);
+    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
+        return QString();
+
+    return QString::fromLatin1(QAndroidCameraSession::availableCameras().at(index).name);
 }
 
 QString QAndroidVideoDeviceSelectorControl::deviceDescription(int index) const
 {
-    return m_descriptions.at(index);
+    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
+        return QString();
+
+    return QAndroidCameraSession::availableCameras().at(index).description;
 }
 
 int QAndroidVideoDeviceSelectorControl::defaultDevice() const
@@ -95,55 +96,6 @@ void QAndroidVideoDeviceSelectorControl::setSelectedDevice(int index)
         emit selectedDeviceChanged(index);
         emit selectedDeviceChanged(deviceName(index));
     }
-}
-
-void QAndroidVideoDeviceSelectorControl::update()
-{
-    m_names.clear();
-    m_descriptions.clear();
-
-    QJNIObjectPrivate cameraInfo("android/hardware/Camera$CameraInfo");
-    int numCameras = QJNIObjectPrivate::callStaticMethod<jint>("android/hardware/Camera",
-                                                        "getNumberOfCameras");
-
-    for (int i = 0; i < numCameras; ++i) {
-        QJNIObjectPrivate::callStaticMethod<void>("android/hardware/Camera",
-                                           "getCameraInfo",
-                                           "(ILandroid/hardware/Camera$CameraInfo;)V",
-                                           i, cameraInfo.object());
-
-        JCamera::CameraFacing facing = JCamera::CameraFacing(cameraInfo.getField<jint>("facing"));
-
-        switch (facing) {
-        case JCamera::CameraFacingBack:
-            m_names.append("back");
-            m_descriptions.append(QStringLiteral("Rear-facing camera"));
-            break;
-        case JCamera::CameraFacingFront:
-            m_names.append("front");
-            m_descriptions.append(QStringLiteral("Front-facing camera"));
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-QList<QByteArray> QAndroidVideoDeviceSelectorControl::availableDevices()
-{
-    if (m_names.isEmpty())
-        update();
-
-    return m_names;
-}
-
-QString QAndroidVideoDeviceSelectorControl::availableDeviceDescription(const QByteArray &device)
-{
-    int i = m_names.indexOf(device);
-    if (i != -1)
-        return m_descriptions.at(i);
-
-    return QString();
 }
 
 QT_END_NAMESPACE

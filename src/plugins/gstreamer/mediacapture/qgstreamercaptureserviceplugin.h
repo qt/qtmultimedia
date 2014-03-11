@@ -53,6 +53,7 @@ class QGstreamerCaptureServicePlugin
     : public QMediaServiceProviderPlugin
 #if defined(USE_GSTREAMER_CAMERA)
     , public QMediaServiceSupportedDevicesInterface
+    , public QMediaServiceDefaultDeviceInterface
     , public QMediaServiceFeaturesInterface
 #endif
     , public QMediaServiceSupportedFormatsInterface
@@ -60,6 +61,7 @@ class QGstreamerCaptureServicePlugin
     Q_OBJECT
 #if defined(USE_GSTREAMER_CAMERA)
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
 #endif
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
@@ -75,6 +77,7 @@ public:
 #if defined(USE_GSTREAMER_CAMERA)
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
 
+    QByteArray defaultDevice(const QByteArray &service) const;
     QList<QByteArray> devices(const QByteArray &service) const;
     QString deviceDescription(const QByteArray &service, const QByteArray &device);
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
@@ -87,6 +90,7 @@ private:
 #if defined(USE_GSTREAMER_CAMERA)
     void updateDevices() const;
 
+    mutable QByteArray m_defaultCameraDevice;
     mutable QList<QByteArray> m_cameraDevices;
     mutable QStringList m_cameraDescriptions;
 #endif

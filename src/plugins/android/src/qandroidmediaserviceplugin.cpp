@@ -43,8 +43,9 @@
 
 #include "qandroidmediaservice.h"
 #include "qandroidcaptureservice.h"
-#include "qandroidvideodeviceselectorcontrol.h"
 #include "qandroidaudioinputselectorcontrol.h"
+#include "qandroidcamerainfocontrol.h"
+#include "qandroidcamerasession.h"
 #include "jmediaplayer.h"
 #include "jsurfacetexture.h"
 #include "jsurfacetextureholder.h"
@@ -96,10 +97,23 @@ QMediaServiceProviderHint::Features QAndroidMediaServicePlugin::supportedFeature
     return QMediaServiceProviderHint::Features();
 }
 
+QByteArray QAndroidMediaServicePlugin::defaultDevice(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA && !QAndroidCameraSession::availableCameras().isEmpty())
+        return QAndroidCameraSession::availableCameras().first().name;
+
+    return QByteArray();
+}
+
 QList<QByteArray> QAndroidMediaServicePlugin::devices(const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QAndroidVideoDeviceSelectorControl::availableDevices();
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        QList<QByteArray> devices;
+        const QList<AndroidCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
+        for (int i = 0; i < cameras.count(); ++i)
+            devices.append(cameras.at(i).name);
+        return devices;
+    }
 
     if (service == Q_MEDIASERVICE_AUDIOSOURCE)
         return QAndroidAudioInputSelectorControl::availableDevices();
@@ -109,13 +123,29 @@ QList<QByteArray> QAndroidMediaServicePlugin::devices(const QByteArray &service)
 
 QString QAndroidMediaServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QAndroidVideoDeviceSelectorControl::availableDeviceDescription(device);
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        const QList<AndroidCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
+        for (int i = 0; i < cameras.count(); ++i) {
+            const AndroidCameraInfo &info = cameras.at(i);
+            if (info.name == device)
+                return info.description;
+        }
+    }
 
     if (service == Q_MEDIASERVICE_AUDIOSOURCE)
         return QAndroidAudioInputSelectorControl::availableDeviceDescription(device);
 
     return QString();
+}
+
+QCamera::Position QAndroidMediaServicePlugin::cameraPosition(const QByteArray &device) const
+{
+    return QAndroidCameraInfoControl::position(device);
+}
+
+int QAndroidMediaServicePlugin::cameraOrientation(const QByteArray &device) const
+{
+    return QAndroidCameraInfoControl::orientation(device);
 }
 
 

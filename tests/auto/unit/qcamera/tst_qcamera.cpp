@@ -57,6 +57,7 @@
 #include <qcameracapturedestinationcontrol.h>
 #include <qmediaservice.h>
 #include <qcamera.h>
+#include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
 #include <qvideorenderercontrol.h>
 
@@ -101,7 +102,7 @@ private slots:
     void testCaptureDestination();
     void testCaptureFormat();
 
-    void testConstructorWithDefaultProvider();
+    void testConstructor();
     void testCaptureMode();
     void testIsCaptureModeSupported();
     void testRequestedLocks();
@@ -330,7 +331,7 @@ void tst_QCamera::testSimpleCameraCapture()
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int, QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
     imageCapture.capture(QString::fromLatin1("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NotSupportedFeatureError);
@@ -348,7 +349,7 @@ void tst_QCamera::testSimpleCameraLock()
 
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
 
     camera.searchAndLock();
     QCOMPARE(camera.lockStatus(), QCamera::Locked);
@@ -460,7 +461,7 @@ void tst_QCamera::testCameraCapture()
     QVERIFY(!imageCapture.isReadyForCapture());
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int, QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
 
     imageCapture.capture(QString::fromLatin1("/dev/null"));
     QCOMPARE(capturedSignal.size(), 0);
@@ -941,7 +942,7 @@ void tst_QCamera::testCameraLockCancel()
 
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
     camera.searchAndLock();
     QCOMPARE(camera.lockStatus(), QCamera::Searching);
     QCOMPARE(lockedSignal.count(), 0);
@@ -1141,6 +1142,8 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::NoLock;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::LockExposure");
     qDebug() << QCamera::LockExposure;
+    QTest::ignoreMessage(QtDebugMsg, "QCamera::FrontFace ");
+    qDebug() << QCamera::FrontFace;
 }
 
 void tst_QCamera::testCameraControl()
@@ -1149,13 +1152,75 @@ void tst_QCamera::testCameraControl()
     QVERIFY(m_cameraControl != NULL);
 }
 
-/* Test case for constructor with default provider */
-void tst_QCamera::testConstructorWithDefaultProvider()
+void tst_QCamera::testConstructor()
 {
-    QCamera *camera = new QCamera(0);
-    QVERIFY(camera != NULL);
-    QCOMPARE(camera->state(), QCamera::UnloadedState);
-    delete camera;
+    // Service doesn't implement QVideoDeviceSelectorControl
+    provider->service = mockSimpleCameraService;
+
+    {
+        QCamera camera;
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+    }
+
+    {
+        // Requesting a camera at a specific position from a service which doesn't implement
+        // the QVideoDeviceSelectorControl should result in loading the default camera
+        QCamera camera(QCamera::FrontFace);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+    }
+
+    // Service implements QVideoDeviceSelectorControl
+    provider->service = mockCameraService;
+
+    {
+        QCamera camera;
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1); // default is 1
+    }
+
+    {
+        QCamera camera(QCameraInfo::defaultCamera());
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1);
+        QCOMPARE(QCameraInfo(camera), QCameraInfo::defaultCamera());
+    }
+
+    {
+        QCameraInfo cameraInfo = QCameraInfo::availableCameras().at(0);
+        QCamera camera(cameraInfo);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 0);
+        QCOMPARE(QCameraInfo(camera), cameraInfo);
+    }
+
+    {
+        // Requesting a camera at a position which is not available should result in
+        // loading the default camera
+        QCamera camera(QCamera::FrontFace);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1);
+    }
+
+    {
+        QCamera camera(QCamera::BackFace);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 0);
+    }
+
+    {
+        // Should load the default camera when UnspecifiedPosition is requested
+        QCamera camera(QCamera::UnspecifiedPosition);
+        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1);
+    }
 }
 
 /* captureModeChanged Signal test case. */
@@ -1257,8 +1322,8 @@ void tst_QCamera::testSearchAndLockWithLockTypes()
     /* Spy the signals */
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* search and lock the camera with QCamera::LockExposure and verify if the signal is emitted correctly */
     camera.searchAndLock(QCamera::LockExposure);
@@ -1292,8 +1357,8 @@ void tst_QCamera::testUnlockWithType()
     /* Spy the signal */
     QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
     QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason)));
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* lock the camera with QCamera::LockExposure and Verify if the signal is emitted correctly */
     camera.searchAndLock(QCamera::LockExposure);
@@ -1373,7 +1438,7 @@ void tst_QCamera::testLockStatusChangedWithTypesSignal()
     QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
 
     /* Spy the signal lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason) */
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* Lock the camera with type QCamera::LockExposure */
     camera.searchAndLock(QCamera::LockExposure);
@@ -1519,7 +1584,7 @@ void tst_QCamera::testLockChangeReason()
 
     QCamera camera;
 
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason)));
+    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* Set the lockChangeReason */
     service.mockLocksControl->setLockChangeReason(QCamera::LockAcquired);
@@ -1530,6 +1595,7 @@ void tst_QCamera::testLockChangeReason()
     QVERIFY(LockChangeReason == QCamera::LockAcquired);
 
 }
+
 /* All the enums test case for QCameraControl class*/
 void tst_QCamera::testEnumsOfQCameraControl()
 {

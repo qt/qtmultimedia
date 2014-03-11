@@ -48,10 +48,12 @@ QT_BEGIN_NAMESPACE
 class BbServicePlugin
     : public QMediaServiceProviderPlugin,
       public QMediaServiceSupportedDevicesInterface,
+      public QMediaServiceDefaultDeviceInterface,
       public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "blackberry_mediaservice.json")
 public:
@@ -61,6 +63,7 @@ public:
     void release(QMediaService *service) Q_DECL_OVERRIDE;
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
 
+    QByteArray defaultDevice(const QByteArray &service) const Q_DECL_OVERRIDE;
     QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
     QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property) Q_DECL_OVERRIDE;
@@ -68,6 +71,7 @@ public:
 private:
     void updateDevices() const;
 
+    mutable QByteArray m_defaultCameraDevice;
     mutable QList<QByteArray> m_cameraDevices;
     mutable QStringList m_cameraDescriptions;
 };

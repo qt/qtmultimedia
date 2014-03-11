@@ -9,6 +9,7 @@ PUBLIC_HEADERS += \
     controls/qcameracapturebufferformatcontrol.h \
     controls/qcameracapturedestinationcontrol.h \
     controls/qcameracontrol.h \
+    controls/qcamerainfocontrol.h \
     controls/qcameraexposurecontrol.h \
     controls/qcamerafeedbackcontrol.h \
     controls/qcameraflashcontrol.h \
@@ -45,6 +46,7 @@ SOURCES += \
     controls/qcameracapturebufferformatcontrol.cpp \
     controls/qcameracapturedestinationcontrol.cpp \
     controls/qcameracontrol.cpp \
+    controls/qcamerainfocontrol.cpp \
     controls/qcameraexposurecontrol.cpp \
     controls/qcamerafeedbackcontrol.cpp \
     controls/qcameraflashcontrol.cpp \
@@ -78,5 +80,4 @@ SOURCES += \
     controls/qaudioinputselectorcontrol.cpp \
     controls/qaudiooutputselectorcontrol.cpp \
     controls/qvideodeviceselectorcontrol.cpp
-
 

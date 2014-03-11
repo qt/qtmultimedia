@@ -74,6 +74,18 @@ QMediaServiceProviderHint::Features BbServicePlugin::supportedFeatures(const QBy
     return QMediaServiceProviderHint::Features();
 }
 
+QByteArray BbServicePlugin::defaultDevice(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        if (m_cameraDevices.isEmpty())
+            updateDevices();
+
+        return m_defaultCameraDevice;
+    }
+
+    return QByteArray();
+}
+
 QList<QByteArray> BbServicePlugin::devices(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
@@ -102,10 +114,13 @@ QString BbServicePlugin::deviceDescription(const QByteArray &service, const QByt
 
 void BbServicePlugin::updateDevices() const
 {
+    m_defaultCameraDevice.clear();
     BbVideoDeviceSelectorControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
 
     if (m_cameraDevices.isEmpty()) {
         qWarning() << "No camera devices found";
+    } else {
+        m_defaultCameraDevice = m_cameraDevices.first();
     }
 }
 

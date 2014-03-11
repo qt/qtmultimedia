@@ -736,9 +736,9 @@ void tst_QMediaPlayerBackend::probes()
     QAudioProbe *audioProbe = new QAudioProbe;
 
     ProbeDataHandler probeHandler;
-    connect(videoProbe, SIGNAL(videoFrameProbed(const QVideoFrame&)), &probeHandler, SLOT(processFrame(QVideoFrame)));
+    connect(videoProbe, SIGNAL(videoFrameProbed(QVideoFrame)), &probeHandler, SLOT(processFrame(QVideoFrame)));
     connect(videoProbe, SIGNAL(flush()), &probeHandler, SLOT(flushVideo()));
-    connect(audioProbe, SIGNAL(audioBufferProbed(const QAudioBuffer&)), &probeHandler, SLOT(processBuffer(QAudioBuffer)));
+    connect(audioProbe, SIGNAL(audioBufferProbed(QAudioBuffer)), &probeHandler, SLOT(processBuffer(QAudioBuffer)));
     connect(audioProbe, SIGNAL(flush()), &probeHandler, SLOT(flushAudio()));
 
     QVERIFY(videoProbe->setSource(player));
@@ -762,8 +762,8 @@ void tst_QMediaPlayerBackend::playlist()
 {
     QMediaPlayer player;
 
-    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(const QMediaContent&)));
-    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(const QMediaContent&)));
+    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QMediaContent)));
+    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
 

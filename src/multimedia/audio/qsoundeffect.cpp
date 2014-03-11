@@ -184,16 +184,20 @@ void QSoundEffect::setSource(const QUrl &url)
 /*!
     \qmlproperty int QtMultimedia::SoundEffect::loops
 
-    This property provides a way to control the number of times to repeat the sound on each play().
+    This property holds the number of times the sound is played. A value of 0 or 1 means
+    the sound will be played only once; set to SoundEffect.Infinite to enable infinite looping.
 
-    Set to SoundEffect.Infinite to enable infinite looping.
+    The value can be changed while the sound effect is playing, in which case it will update
+    the remaining loops to the new value.
 */
 
 /*!
     \property QSoundEffect::loops
-    This property provides a way to control the number of times to repeat the sound on each play().
+    This property holds the number of times the sound is played. A value of 0 or 1 means
+    the sound will be played only once; set to SoundEffect.Infinite to enable infinite looping.
 
-    Set to QSoundEffect::Infinite to enable infinite looping.
+    The value can be changed while the sound effect is playing, in which case it will update
+    the remaining loops to the new value.
 */
 
 /*!
@@ -213,8 +217,14 @@ int QSoundEffect::loopCount() const
 */
 
 /*!
-    Set the total number of times to repeat playing this sound effect on each play() call to \a loopCount.
-    Pass \c QSoundEffect::Infinite to repeat until stop() is called.
+    Set the total number of times to play this sound effect to \a loopCount.
+
+    Setting the loop count to 0 or 1 means the sound effect will be played only once;
+    pass \c QSoundEffect::Infinite to repeat indefinitely. The loop count can be changed while
+    the sound effect is playing, in which case it will update the remaining loops to
+    the new \a loopCount.
+
+    \sa loopsRemaining()
 */
 void QSoundEffect::setLoopCount(int loopCount)
 {

@@ -71,16 +71,14 @@ const QMap<QVideoFrame::PixelFormat, GLenum>& QSGVivanteVideoNode::getVideoForma
     if (static_VideoFormat2GLFormatMap.isEmpty()) {
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_YV12,     GL_VIV_YV12);
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_NV12,     GL_VIV_NV12);
-
-
-        // The following formats should work but are untested!
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_NV21,     GL_VIV_NV21);
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_UYVY,     GL_VIV_UYVY);
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_YUYV,     GL_VIV_YUY2);
-        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_RGB32,    GL_RGBA);
-        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_RGB24,    GL_RGB);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_RGB32,    GL_BGRA_EXT);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_ARGB32,   GL_BGRA_EXT);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_BGR32,    GL_RGBA);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_BGRA32,   GL_RGBA);
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_RGB565,   GL_RGB565);
-        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_BGRA32,   GL_BGRA_EXT);
     }
 
     return static_VideoFormat2GLFormatMap;

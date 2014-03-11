@@ -80,8 +80,6 @@ private:
 
     int m_selectedDevice;
     bool m_dirty;
-    QStringList m_devices;
-    QStringList m_deviceDescriptions;
 };
 
 QT_END_NAMESPACE

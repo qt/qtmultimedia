@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
-*imx6* {
+config_gpu_vivante {
     SUBDIRS += imx6
 }

@@ -158,8 +158,6 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
     Q_INVOKABLE JCamera::CameraFacing getFacing();
     Q_INVOKABLE int getNativeOrientation();
 
-    Q_INVOKABLE void setDisplayOrientation(int degrees);
-
     Q_INVOKABLE QSize getPreferredPreviewSizeForVideo();
     Q_INVOKABLE QList<QSize> getSupportedPreviewSizes();
 
@@ -231,7 +229,6 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
 
     QSize m_previewSize;
     int m_rotation;
-    int m_displayOrientation;
 
     bool m_hasAPI14;
 
@@ -335,17 +332,6 @@ JCamera::CameraFacing JCamera::getFacing()
 int JCamera::getNativeOrientation()
 {
     return d->getNativeOrientation();
-}
-
-int JCamera::getDisplayOrientation() const
-{
-    return d->m_displayOrientation;
-}
-
-void JCamera::setDisplayOrientation(int degrees)
-{
-    d->m_displayOrientation = degrees;
-    QMetaObject::invokeMethod(d, "setDisplayOrientation", Q_ARG(int, degrees));
 }
 
 QSize JCamera::getPreferredPreviewSizeForVideo()
@@ -626,7 +612,6 @@ JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread
     , QJNIObjectPrivate(cam)
     , m_cameraId(cameraId)
     , m_rotation(0)
-    , m_displayOrientation(0)
     , m_hasAPI14(false)
     , m_parametersMutex(QMutex::Recursive)
 {
@@ -690,11 +675,6 @@ JCamera::CameraFacing JCameraWorker::getFacing()
 int JCameraWorker::getNativeOrientation()
 {
     return m_info.getField<jint>("orientation");
-}
-
-void JCameraWorker::setDisplayOrientation(int degrees)
-{
-    callMethod<void>("setDisplayOrientation", "(I)V", degrees);
 }
 
 QSize JCameraWorker::getPreferredPreviewSizeForVideo()

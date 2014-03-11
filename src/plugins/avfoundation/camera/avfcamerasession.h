@@ -55,12 +55,26 @@ class AVFCameraControl;
 class AVFCameraService;
 class AVFVideoRendererControl;
 
+struct AVFCameraInfo
+{
+    AVFCameraInfo() : position(QCamera::UnspecifiedPosition), orientation(0)
+    { }
+
+    QString description;
+    QCamera::Position position;
+    int orientation;
+};
+
 class AVFCameraSession : public QObject
 {
     Q_OBJECT
 public:
     AVFCameraSession(AVFCameraService *service, QObject *parent = 0);
     ~AVFCameraSession();
+
+    static const QByteArray &defaultCameraDevice();
+    static const QList<QByteArray> &availableCameraDevices();
+    static AVFCameraInfo cameraDeviceInfo(const QByteArray &device);
 
     void setVideoOutput(AVFVideoRendererControl *output);
     AVCaptureSession *captureSession() const { return m_captureSession; }
@@ -84,7 +98,12 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 private:
+    static void updateCameraDevices();
     void attachInputDevices();
+
+    static QByteArray m_defaultCameraDevice;
+    static QList<QByteArray> m_cameraDevices;
+    static QMap<QByteArray, AVFCameraInfo> m_cameraInfo;
 
     AVFCameraService *m_service;
     AVFVideoRendererControl *m_videoOutput;

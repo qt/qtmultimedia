@@ -67,8 +67,12 @@ public:
                                              int flags = 0) const;
     virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
 
+    virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
     virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
     virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
+
+    virtual QCamera::Position cameraPosition(const QByteArray &device) const;
+    virtual int cameraOrientation(const QByteArray &device) const;
 
     static QMediaServiceProvider* defaultServiceProvider();
     static void setDefaultServiceProvider(QMediaServiceProvider *provider);
