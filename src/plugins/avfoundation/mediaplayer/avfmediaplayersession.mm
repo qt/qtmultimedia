@@ -404,6 +404,8 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 #ifdef QT_DEBUG_AVF
         qDebug() << Q_FUNC_INFO;
 #endif
+    [self unloadMedia];
+
     if (m_player) {
         [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
@@ -415,8 +417,6 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
         [m_playerLayer release];
         m_playerLayer = 0;
     }
-
-    [self unloadMedia];
 
     if (m_URL) {
         [m_URL release];
