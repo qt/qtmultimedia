@@ -64,19 +64,34 @@ class QDeclarativeCameraFlash : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool ready READ isFlashReady NOTIFY flashReady)
-    Q_PROPERTY(int mode READ flashMode WRITE setFlashMode NOTIFY flashModeChanged)
+    Q_PROPERTY(FlashMode mode READ flashMode WRITE setFlashMode NOTIFY flashModeChanged)
+
+    Q_ENUMS(FlashMode)
 public:
+    enum FlashMode {
+        FlashAuto = QCameraExposure::FlashAuto,
+        FlashOff = QCameraExposure::FlashOff,
+        FlashOn = QCameraExposure::FlashOn,
+        FlashRedEyeReduction = QCameraExposure::FlashRedEyeReduction,
+        FlashFill = QCameraExposure::FlashFill,
+        FlashTorch = QCameraExposure::FlashTorch,
+        FlashVideoLight = QCameraExposure::FlashVideoLight,
+        FlashSlowSyncFrontCurtain = QCameraExposure::FlashSlowSyncFrontCurtain,
+        FlashSlowSyncRearCurtain = QCameraExposure::FlashSlowSyncRearCurtain,
+        FlashManual = QCameraExposure::FlashManual
+    };
+
     ~QDeclarativeCameraFlash();
 
-    int flashMode() const;
+    FlashMode flashMode() const;
     bool isFlashReady() const;
 
 public Q_SLOTS:
-    void setFlashMode(int);
+    void setFlashMode(FlashMode);
 
 Q_SIGNALS:
     void flashReady(bool status);
-    void flashModeChanged(int);
+    void flashModeChanged(FlashMode);
 
 private:
     friend class QDeclarativeCamera;

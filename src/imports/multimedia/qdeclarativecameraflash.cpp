@@ -131,14 +131,14 @@ bool QDeclarativeCameraFlash::isFlashReady() const
     \endtable
 
 */
-int QDeclarativeCameraFlash::flashMode() const
+QDeclarativeCameraFlash::FlashMode QDeclarativeCameraFlash::flashMode() const
 {
-    return m_exposure->flashMode();
+    return QDeclarativeCameraFlash::FlashMode(int(m_exposure->flashMode()));
 }
 
-void QDeclarativeCameraFlash::setFlashMode(int mode)
+void QDeclarativeCameraFlash::setFlashMode(QDeclarativeCameraFlash::FlashMode mode)
 {
-    if (m_exposure->flashMode() != mode) {
+    if (flashMode() != mode) {
         m_exposure->setFlashMode(QCameraExposure::FlashModes(mode));
         emit flashModeChanged(mode);
     }

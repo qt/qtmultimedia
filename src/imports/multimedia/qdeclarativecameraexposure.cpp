@@ -353,12 +353,12 @@ void QDeclarativeCameraExposure::setAutoIsoSensitivity()
     \endtable
 */
 
-QDeclarativeCamera::ExposureMode QDeclarativeCameraExposure::exposureMode() const
+QDeclarativeCameraExposure::ExposureMode QDeclarativeCameraExposure::exposureMode() const
 {
-    return QDeclarativeCamera::ExposureMode(m_exposure->exposureMode());
+    return QDeclarativeCameraExposure::ExposureMode(m_exposure->exposureMode());
 }
 
-void QDeclarativeCameraExposure::setExposureMode(QDeclarativeCamera::ExposureMode mode)
+void QDeclarativeCameraExposure::setExposureMode(QDeclarativeCameraExposure::ExposureMode mode)
 {
     if (exposureMode() != mode) {
         m_exposure->setExposureMode(QCameraExposure::ExposureMode(mode));
@@ -413,14 +413,14 @@ void QDeclarativeCameraExposure::setSpotMeteringPoint(const QPointF &point)
     \row \li Camera.MeteringSpot         \li A specific location (\l spotMeteringPoint) is used to measure exposure.
     \endtable
 */
-QDeclarativeCamera::MeteringMode QDeclarativeCameraExposure::meteringMode() const
+QDeclarativeCameraExposure::MeteringMode QDeclarativeCameraExposure::meteringMode() const
 {
-    return QDeclarativeCamera::MeteringMode(m_exposure->meteringMode());
+    return QDeclarativeCameraExposure::MeteringMode(m_exposure->meteringMode());
 }
 
-void QDeclarativeCameraExposure::setMeteringMode(QDeclarativeCamera::MeteringMode mode)
+void QDeclarativeCameraExposure::setMeteringMode(QDeclarativeCameraExposure::MeteringMode mode)
 {
-    QDeclarativeCamera::MeteringMode oldMode = meteringMode();
+    QDeclarativeCameraExposure::MeteringMode oldMode = meteringMode();
     m_exposure->setMeteringMode(QCameraExposure::MeteringMode(mode));
     if (oldMode != meteringMode())
         emit meteringModeChanged(meteringMode());
