@@ -144,6 +144,7 @@ private:
     void setStatus(QMediaRecorder::Status status);
 
     void updateViewfinder();
+    void restartViewfinder();
 
     JMediaRecorder *m_mediaRecorder;
     QAndroidCameraSession *m_cameraSession;

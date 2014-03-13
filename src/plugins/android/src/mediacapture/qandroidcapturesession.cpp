@@ -225,13 +225,13 @@ bool QAndroidCaptureSession::start()
 
     if (!m_mediaRecorder->prepare()) {
         emit error(QMediaRecorder::FormatError, QLatin1String("Unable to prepare the media recorder."));
-        setStatus(QMediaRecorder::UnloadedStatus);
+        restartViewfinder();
         return false;
     }
 
     if (!m_mediaRecorder->start()) {
         emit error(QMediaRecorder::FormatError, QLatin1String("Unable to start the media recorder."));
-        setStatus(QMediaRecorder::UnloadedStatus);
+        restartViewfinder();
         return false;
     }
 
@@ -258,16 +258,14 @@ void QAndroidCaptureSession::stop(bool error)
     updateDuration();
     m_elapsedTime.invalidate();
 
-    if (m_cameraSession) {
-        m_cameraSession->camera()->reconnect();
-        // Viewport needs to be restarted
-        m_cameraSession->camera()->startPreview();
-        m_cameraSession->setReadyForCapture(true);
-    }
-
     m_mediaRecorder->release();
     delete m_mediaRecorder;
     m_mediaRecorder = 0;
+
+    if (m_cameraSession) {
+        // Viewport needs to be restarted after recording
+        restartViewfinder();
+    }
 
     if (!error) {
         // if the media is saved into the standard media location, register it
@@ -424,6 +422,13 @@ void QAndroidCaptureSession::updateViewfinder()
     m_cameraSession->camera()->stopPreview();
     m_cameraSession->adjustViewfinderSize(m_videoSettings.resolution(), false);
     m_resolutionDirty = false;
+}
+
+void QAndroidCaptureSession::restartViewfinder()
+{
+    m_cameraSession->camera()->reconnect();
+    m_cameraSession->camera()->startPreview();
+    m_cameraSession->setReadyForCapture(true);
 }
 
 void QAndroidCaptureSession::updateDuration()
