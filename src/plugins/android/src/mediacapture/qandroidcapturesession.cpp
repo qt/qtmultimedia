@@ -130,7 +130,6 @@ bool QAndroidCaptureSession::setOutputLocation(const QUrl &location)
 
     if (m_requestedOutputLocation.isValid()
             && (m_requestedOutputLocation.isLocalFile() || m_requestedOutputLocation.isRelative())) {
-        emit actualLocationChanged(m_requestedOutputLocation);
         return true;
     }
 
@@ -221,10 +220,7 @@ bool QAndroidCaptureSession::start()
                                 : QLatin1String("REC_"),
                 m_containerFormat);
 
-    m_actualOutputLocation = QUrl::fromLocalFile(filePath);
-    if (m_actualOutputLocation != m_requestedOutputLocation)
-        emit actualLocationChanged(m_actualOutputLocation);
-
+    m_usedOutputLocation = QUrl::fromLocalFile(filePath);
     m_mediaRecorder->setOutputFile(filePath);
 
     if (!m_mediaRecorder->prepare()) {
@@ -282,8 +278,10 @@ void QAndroidCaptureSession::stop(bool error)
                                               : JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::Sounds);
         if (mediaPath.startsWith(standardLoc))
             JMultimediaUtils::registerMediaFile(mediaPath);
-    }
 
+        m_actualOutputLocation = m_usedOutputLocation;
+        emit actualLocationChanged(m_actualOutputLocation);
+    }
 }
 
 void QAndroidCaptureSession::setStatus(QMediaRecorder::Status status)
