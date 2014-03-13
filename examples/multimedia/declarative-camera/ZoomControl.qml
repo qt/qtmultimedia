@@ -47,6 +47,8 @@ Item {
     property real maximumZoom : 1
     signal zoomTo(real value)
 
+    visible: zoomControl.maximumZoom > 1
+
     MouseArea {
         id : mouseArea
         anchors.fill: parent
@@ -61,7 +63,7 @@ Item {
 
         onPositionChanged: {
             if (pressed) {
-                var target = initialZoom * Math.pow(2, (initialPos-mouseY)/zoomControl.height);
+                var target = initialZoom * Math.pow(5, (initialPos-mouseY)/zoomControl.height);
                 target = Math.max(1, Math.min(target, zoomControl.maximumZoom))
                 zoomControl.zoomTo(target)
             }
@@ -74,45 +76,42 @@ Item {
         y : parent.height/4
         width : 24
         height : parent.height/2
-        opacity : 0
 
         Rectangle {
             anchors.fill: parent
 
             smooth: true
             radius: 8
-            border.color: "black"
+            border.color: "white"
             border.width: 2
-            color: "white"
+            color: "black"
             opacity: 0.3
         }
 
         Rectangle {
+            id: groove
             x : 0
             y : parent.height * (1.0 - (zoomControl.currentZoom-1.0) / (zoomControl.maximumZoom-1.0))
             width: parent.width
             height: parent.height - y
             smooth: true
             radius: 8
-            color: "black"
+            color: "white"
             opacity: 0.5
         }
 
-        states: State {
-            name: "ShowBar"
-            when: mouseArea.pressed || zoomControl.currentZoom > 1.0
-            PropertyChanges { target: bar; opacity: 1 }
-        }
-
-        transitions: [
-            Transition {
-                to : "ShowBar"
-                NumberAnimation { properties: "opacity"; duration: 100 }
-            },
-            Transition {
-                from : "ShowBar"
-                NumberAnimation { properties: "opacity"; duration: 500 }
+        Text {
+            id: zoomText
+            anchors {
+                left: bar.right; leftMargin: 16
             }
-        ]
+            y: Math.min(parent.height - height, Math.max(0, groove.y - height / 2))
+            text: "x" + Math.round(zoomControl.currentZoom * 100) / 100
+            font.bold: true
+            color: "white"
+            style: Text.Raised; styleColor: "black"
+            opacity: 0.85
+            font.pixelSize: 18
+        }
     }
 }
