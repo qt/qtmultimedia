@@ -99,8 +99,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void updateDuration();
     void onCameraOpened();
-    void onCameraStatusChanged(QCamera::Status);
-    void onCameraCaptureModeChanged(QCamera::CaptureModes mode);
+    void updateStatus();
 
     void onError(int what, int extra);
     void onInfo(int what, int extra);
