@@ -155,7 +155,7 @@ QDeclarativeAudioListener::~QDeclarativeAudioListener()
 }
 
 /*!
-    \qmlproperty QtAudioEngine1::AudioEngine QtAudioEngine1::AudioListener::engine
+    \qmlproperty QtAudioEngine::AudioEngine QtAudioEngine::AudioListener::engine
 
     This property holds the reference to AudioEngine, must be set only once.
 */
@@ -171,7 +171,7 @@ void QDeclarativeAudioListener::setEngine(QDeclarativeAudioEngine *engine)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::AudioListener::position
+    \qmlproperty vector3d QtAudioEngine::AudioListener::position
 
     This property holds the 3d position of the listener.
 */
@@ -190,7 +190,7 @@ void QDeclarativeAudioListener::setPosition(const QVector3D &position)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::AudioListener::direction
+    \qmlproperty vector3d QtAudioEngine::AudioListener::direction
 
     This property holds the normalized 3d direction vector of the listener.
 */
@@ -209,7 +209,7 @@ void QDeclarativeAudioListener::setDirection(const QVector3D &direction)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::AudioListener::velocity
+    \qmlproperty vector3d QtAudioEngine::AudioListener::velocity
 
     This property holds the 3d velocity vector of the listener.
 */
@@ -228,7 +228,7 @@ void QDeclarativeAudioListener::setVelocity(const QVector3D &velocity)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::AudioListener::up
+    \qmlproperty vector3d QtAudioEngine::AudioListener::up
 
     This property holds the normalized 3d up vector of the listener.
 */
@@ -247,7 +247,7 @@ void QDeclarativeAudioListener::setUp(const QVector3D &up)
 }
 
 /*!
-    \qmlproperty real QtAudioEngine1::AudioListener::gain
+    \qmlproperty real QtAudioEngine::AudioListener::gain
 
     This property will modulate all audio output from audio engine instances.
 */
