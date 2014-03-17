@@ -257,6 +257,7 @@ namespace
             , m_bufferStartTime(-1)
             , m_bufferDuration(-1)
             , m_presentationClock(0)
+            , m_sampleRequested(false)
             , m_currentMediaType(0)
             , m_prerolling(false)
             , m_prerollTargetTime(0)
@@ -854,6 +855,15 @@ namespace
                 schedulePresentation(true);
         }
 
+        void clearScheduledFrame()
+        {
+            QMutexLocker locker(&m_mutex);
+            if (m_scheduledBuffer) {
+                m_scheduledBuffer->Release();
+                m_scheduledBuffer = NULL;
+            }
+        }
+
         enum
         {
             StartSurface = QEvent::User,
@@ -871,7 +881,7 @@ namespace
             {
             }
 
-            int targetTime()
+            MFTIME targetTime()
             {
                 return m_time;
             }
@@ -1317,6 +1327,8 @@ namespace
 
         HRESULT processSampleData(IMFSample *pSample)
         {
+            m_sampleRequested = false;
+
             LONGLONG time, duration = -1;
             HRESULT hr = pSample->GetSampleTime(&time);
             if (SUCCEEDED(hr))
@@ -1406,13 +1418,16 @@ namespace
                     break;
                 }
             }
-            if (requestSample && m_bufferCache.size() < BUFFER_CACHE_SIZE)
+            if (requestSample && !m_sampleRequested && m_bufferCache.size() < BUFFER_CACHE_SIZE) {
+                m_sampleRequested = true;
                 queueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, NULL);
+            }
         }
         IMFMediaBuffer *m_scheduledBuffer;
         MFTIME m_bufferStartTime;
         MFTIME m_bufferDuration;
         IMFPresentationClock *m_presentationClock;
+        bool m_sampleRequested;
         float m_rate;
     };
 
@@ -1478,6 +1493,14 @@ namespace
             if (m_shutdown)
                 return;
             m_stream->present();
+        }
+
+        void clearScheduledFrame()
+        {
+            QMutexLocker locker(&m_mutex);
+            if (m_shutdown)
+                return;
+            m_stream->clearScheduledFrame();
         }
 
         MFTIME getTime()
@@ -2066,6 +2089,14 @@ namespace
             m_sink->present();
         }
 
+        void clearScheduledFrame()
+        {
+            QMutexLocker locker(&m_mutex);
+            if (!m_sink)
+                return;
+            m_sink->clearScheduledFrame();
+        }
+
         MFTIME getTime()
         {
             if (m_sink)
@@ -2170,10 +2201,16 @@ void MFVideoRendererControl::customEvent(QEvent *event)
         MFTIME targetTime = static_cast<MediaStream::PresentEvent*>(event)->targetTime();
         MFTIME currentTime = static_cast<VideoRendererActivate*>(m_currentActivate)->getTime();
         float playRate = static_cast<VideoRendererActivate*>(m_currentActivate)->getPlayRate();
-        if (playRate > 0.0001f && targetTime > currentTime)
-            QTimer::singleShot(int((float)((targetTime - currentTime) / 10000) / playRate), this, SLOT(present()));
-        else
+        if (!qFuzzyIsNull(playRate)) {
+            // If the scheduled frame is too late or too much in advance, skip it
+            const int diff = (targetTime - currentTime) / 10000;
+            if (diff < 0 || diff > 500)
+                static_cast<VideoRendererActivate*>(m_currentActivate)->clearScheduledFrame();
+            else
+                QTimer::singleShot(diff / playRate, this, SLOT(present()));
+        } else {
             present();
+        }
         return;
     }
     if (event->type() >= MediaStream::StartSurface) {
