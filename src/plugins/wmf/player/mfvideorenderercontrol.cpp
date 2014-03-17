@@ -1392,7 +1392,9 @@ namespace
                     m_bufferCache.pop_front();
                     if (timeOK && currentTime > sb.m_time) {
                         sb.m_buffer->Release();
+#ifdef DEBUG_MEDIAFOUNDATION
                         qDebug() << "currentPresentTime =" << float(currentTime / 10000) * 0.001f << " and sampleTime is" << float(sb.m_time / 10000) * 0.001f;
+#endif
                         continue;
                     }
                     m_scheduledBuffer = sb.m_buffer;
