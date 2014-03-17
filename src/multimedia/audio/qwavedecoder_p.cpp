@@ -166,6 +166,8 @@ void QWaveDecoder::handleData()
             // Swizzle this
             if (bigEndian) {
                 wave.audioFormat = qFromBigEndian<quint16>(wave.audioFormat);
+            } else {
+                wave.audioFormat = qFromLittleEndian<quint16>(wave.audioFormat);
             }
 
             if (wave.audioFormat != 0 && wave.audioFormat != 1) {
@@ -207,6 +209,8 @@ void QWaveDecoder::handleData()
             source->read(reinterpret_cast<char *>(&descriptor), sizeof(chunk));
             if (bigEndian)
                 descriptor.size = qFromBigEndian<quint32>(descriptor.size);
+            else
+                descriptor.size = qFromLittleEndian<quint32>(descriptor.size);
 
             dataSize = descriptor.size;
 
@@ -227,13 +231,15 @@ void QWaveDecoder::handleData()
 bool QWaveDecoder::enoughDataAvailable()
 {
     chunk descriptor;
-    if (!peekChunk(&descriptor))
+    if (!peekChunk(&descriptor, false))
         return false;
 
     // This is only called for the RIFF/RIFX header, before bigEndian is set,
     // so we have to manually swizzle
     if (qstrncmp(descriptor.id, "RIFX", 4) == 0)
         descriptor.size = qFromBigEndian<quint32>(descriptor.size);
+    if (qstrncmp(descriptor.id, "RIFF", 4) == 0)
+        descriptor.size = qFromLittleEndian<quint32>(descriptor.size);
 
     if (source->bytesAvailable() < qint64(sizeof(chunk) + descriptor.size))
         return false;
@@ -270,16 +276,18 @@ bool QWaveDecoder::findChunk(const char *chunkId)
     return false;
 }
 
-// Handles endianness
-bool QWaveDecoder::peekChunk(chunk *pChunk)
+bool QWaveDecoder::peekChunk(chunk *pChunk, bool handleEndianness)
 {
     if (source->bytesAvailable() < qint64(sizeof(chunk)))
         return false;
 
     source->peek(reinterpret_cast<char *>(pChunk), sizeof(chunk));
-    if (bigEndian)
-        pChunk->size = qFromBigEndian<quint32>(pChunk->size);
-
+    if (handleEndianness) {
+        if (bigEndian)
+            pChunk->size = qFromBigEndian<quint32>(pChunk->size);
+        else
+            pChunk->size = qFromLittleEndian<quint32>(pChunk->size);
+    }
     return true;
 }
 

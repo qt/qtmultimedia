@@ -323,10 +323,10 @@ void tst_QAudioFormat::debugOperator_data()
 
     // A small sampling
     QAudioFormat f;
+    f.setByteOrder(QAudioFormat::LittleEndian);
     QTest::newRow("plain") << f << QString::fromLatin1("QAudioFormat(-1Hz, -1bit, channelCount=-1, sampleType=Unknown, byteOrder=LittleEndian, codec=\"\") ");
 
     f.setSampleRate(22050);
-    f.setByteOrder(QAudioFormat::LittleEndian);
     f.setChannelCount(4);
     f.setCodec("audio/pcm");
     f.setSampleType(QAudioFormat::Float);
