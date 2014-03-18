@@ -171,9 +171,12 @@ void PpsMediaPlayerControl::ppsReadyRead(int fd)
     pps_decoder_push(&decoder, 0);
 
     const char *value = 0;
-    if (pps_decoder_get_string(&decoder, "bufferlevel", &value) == PPS_DECODER_OK) {
+
+    if (pps_decoder_get_string(&decoder, "bufferstatus", &value) == PPS_DECODER_OK)
         setMmBufferStatus(QString::fromLatin1(value));
-    }
+
+    if (pps_decoder_get_string(&decoder, "bufferlevel", &value) == PPS_DECODER_OK)
+        setMmBufferLevel(QString::fromLatin1(value));
 
     if (pps_decoder_get_string(&decoder, "state", &value) == PPS_DECODER_OK) {
         const QByteArray state = value;
