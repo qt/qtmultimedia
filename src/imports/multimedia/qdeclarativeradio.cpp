@@ -540,6 +540,8 @@ void QDeclarativeRadio::_q_availabilityChanged(QMultimedia::AvailabilityStatus a
 
     The \a frequency is returned in Hertz, and the \a stationId corresponds to the station Id
     in the \l RadioData for this radio station.
+
+    The corresponding handler is \c onStationFound.
   */
 
 QT_END_NAMESPACE

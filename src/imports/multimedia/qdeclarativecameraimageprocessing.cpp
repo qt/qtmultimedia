@@ -230,11 +230,15 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 /*!
     \qmlsignal QtMultimedia::Camera::whiteBalanceModeChanged(Camera::WhiteBalanceMode)
     This signal is emitted when the \c whiteBalanceMode property is changed.
+
+    The corresponding handler is \c onWhiteBalanceModeChanged.
 */
 
 /*!
     \qmlsignal QtMultimedia::Camera::manualWhiteBalanceChanged(qreal)
     This signal is emitted when the \c manualWhiteBalance property is changed.
+
+    The corresponding handler is \c onManualWhiteBalanceChanged.
 */
 
 QT_END_NAMESPACE

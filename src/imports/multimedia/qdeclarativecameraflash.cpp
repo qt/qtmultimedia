@@ -154,7 +154,7 @@ void QDeclarativeCameraFlash::setFlashMode(int mode)
     \qmlsignal QtMultimedia::CameraFlash::flashReady(bool)
     This signal is emitted when QCameraExposure indicates that
     the flash is ready to use.
-    The corresponsing handler is \c onFlashReadyChanged.
+    The corresponding handler is \c onFlashReadyChanged.
 */
 
 QT_END_NAMESPACE

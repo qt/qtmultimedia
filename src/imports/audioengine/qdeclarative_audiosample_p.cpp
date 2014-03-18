@@ -237,9 +237,11 @@ QSoundBuffer* QDeclarativeAudioSample::soundBuffer() const
 }
 
 /*!
-    \qmlsignal QtAudioEngine::AudioSample::onLoadedChanged()
+    \qmlsignal QtAudioEngine::AudioSample::loadedChanged()
 
-    This handler is called when \l loaded is changed
+    This signal is emitted when \l loaded is changed
+
+    The corresponding handler is \c onLoadedChanged.
 */
 
 
