@@ -49,7 +49,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class JSurfaceTexture : public QObject, public QJNIObjectPrivate
+class JSurfaceTexture : public QObject
 {
     Q_OBJECT
 public:
@@ -57,7 +57,10 @@ public:
     ~JSurfaceTexture();
 
     int textureID() const { return m_texID; }
+    jobject object();
+
     QMatrix4x4 getTransformMatrix();
+    void release(); // API level 14
     void updateTexImage();
 
     static bool initJNI(JNIEnv *env);
@@ -67,6 +70,7 @@ Q_SIGNALS:
 
 private:
     int m_texID;
+    QJNIObjectPrivate m_surfaceTexture;
 };
 
 QT_END_NAMESPACE

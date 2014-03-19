@@ -43,15 +43,13 @@ package org.qtproject.qt5.android.multimedia;
 
 import android.graphics.SurfaceTexture;
 
-public class QtSurfaceTexture extends SurfaceTexture implements SurfaceTexture.OnFrameAvailableListener
+public class QtSurfaceTextureListener implements SurfaceTexture.OnFrameAvailableListener
 {
-    private int texID;
+    private final int texID;
 
-    public QtSurfaceTexture(int texName)
+    public QtSurfaceTextureListener(int texName)
     {
-        super(texName);
         texID = texName;
-        setOnFrameAvailableListener(this);
     }
 
     @Override
