@@ -47,8 +47,8 @@
 QT_BEGIN_NAMESPACE
 
 JMediaMetadataRetriever::JMediaMetadataRetriever()
-    : QJNIObjectPrivate("android/media/MediaMetadataRetriever")
 {
+    m_metadataRetriever = QJNIObjectPrivate("android/media/MediaMetadataRetriever");
 }
 
 JMediaMetadataRetriever::~JMediaMetadataRetriever()
@@ -59,9 +59,9 @@ QString JMediaMetadataRetriever::extractMetadata(MetadataKey key)
 {
     QString value;
 
-    QJNIObjectPrivate metadata = callObjectMethod("extractMetadata",
-                                           "(I)Ljava/lang/String;",
-                                           jint(key));
+    QJNIObjectPrivate metadata = m_metadataRetriever.callObjectMethod("extractMetadata",
+                                                                      "(I)Ljava/lang/String;",
+                                                                      jint(key));
     if (metadata.isValid())
         value = metadata.toString();
 
@@ -70,28 +70,34 @@ QString JMediaMetadataRetriever::extractMetadata(MetadataKey key)
 
 void JMediaMetadataRetriever::release()
 {
-    callMethod<void>("release");
+    if (!m_metadataRetriever.isValid())
+        return;
+
+    m_metadataRetriever.callMethod<void>("release");
 }
 
 bool JMediaMetadataRetriever::setDataSource(const QUrl &url)
 {
+    if (!m_metadataRetriever.isValid())
+        return false;
+
     QJNIEnvironmentPrivate env;
 
     bool loaded = false;
 
     QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.toString());
 
-    QJNIObjectPrivate uri = callStaticObjectMethod("android/net/Uri",
-                                                   "parse",
-                                                   "(Ljava/lang/String;)Landroid/net/Uri;",
-                                                   string.object());
+    QJNIObjectPrivate uri = m_metadataRetriever.callStaticObjectMethod("android/net/Uri",
+                                                                       "parse",
+                                                                       "(Ljava/lang/String;)Landroid/net/Uri;",
+                                                                       string.object());
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
     } else {
-        callMethod<void>("setDataSource",
-                         "(Landroid/content/Context;Landroid/net/Uri;)V",
-                         QtAndroidPrivate::activity(),
-                         uri.object());
+        m_metadataRetriever.callMethod<void>("setDataSource",
+                                             "(Landroid/content/Context;Landroid/net/Uri;)V",
+                                             QtAndroidPrivate::activity(),
+                                             uri.object());
         if (env->ExceptionCheck())
             env->ExceptionClear();
         else
@@ -103,13 +109,16 @@ bool JMediaMetadataRetriever::setDataSource(const QUrl &url)
 
 bool JMediaMetadataRetriever::setDataSource(const QString &path)
 {
+    if (!m_metadataRetriever.isValid())
+        return false;
+
     QJNIEnvironmentPrivate env;
 
     bool loaded = false;
 
-    callMethod<void>("setDataSource",
-                     "(Ljava/lang/String;)V",
-                     QJNIObjectPrivate::fromString(path).object());
+    m_metadataRetriever.callMethod<void>("setDataSource",
+                                         "(Ljava/lang/String;)V",
+                                         QJNIObjectPrivate::fromString(path).object());
     if (env->ExceptionCheck())
         env->ExceptionClear();
     else

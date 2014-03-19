@@ -47,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class JMediaMetadataRetriever : public QJNIObjectPrivate
+class JMediaMetadataRetriever
 {
 public:
     enum MetadataKey {
@@ -84,6 +84,8 @@ public:
     bool setDataSource(const QUrl &url);
     bool setDataSource(const QString &path);
 
+private:
+    QJNIObjectPrivate m_metadataRetriever;
 };
 
 QT_END_NAMESPACE
