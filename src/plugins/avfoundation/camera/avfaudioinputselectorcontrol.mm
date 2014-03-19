@@ -60,7 +60,8 @@ AVFAudioInputSelectorControl::AVFAudioInputSelectorControl(AVFCameraService *ser
                                     QString::fromUtf8([[device localizedName] UTF8String]));
     }
 
-    m_activeInput = m_devices.first();
+    if (m_devices.size() > 0)
+        m_activeInput = m_devices.first();
 }
 
 AVFAudioInputSelectorControl::~AVFAudioInputSelectorControl()
@@ -79,7 +80,7 @@ QString AVFAudioInputSelectorControl::inputDescription(const QString &name) cons
 
 QString AVFAudioInputSelectorControl::defaultInput() const
 {
-    return m_devices.first();
+    return m_devices.size() > 0 ? m_devices.first() : QString();
 }
 
 QString AVFAudioInputSelectorControl::activeInput() const
