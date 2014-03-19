@@ -137,8 +137,9 @@ bool QDeclarativeAudioSample::isStreaming() const
     \qmlproperty bool QtAudioEngine::AudioSample::preloaded
 
     This property indicates whether this sample needs to be preloaded or not.
-    If true, the audio engine will start loading the sample file immediately when the app started,
-    otherwise the sample will not be loaded until explicitly requested.
+    If \c true, the audio engine will start loading the sample file immediately
+    when the application starts, otherwise the sample will not be loaded until
+    explicitly requested.
 */
 
 bool QDeclarativeAudioSample::isPreloaded() const
@@ -195,8 +196,8 @@ void QDeclarativeAudioSample::setStreaming(bool streaming)
 /*!
     \qmlproperty string QtAudioEngine::AudioSample::name
 
-    This property holds the name of AudioSample, must be unique among all samples and only
-    defined once.
+    This property holds the name of the sample, which must be unique among all
+    samples and only defined once.
 */
 QString QDeclarativeAudioSample::name() const
 {
@@ -239,7 +240,7 @@ QSoundBuffer* QDeclarativeAudioSample::soundBuffer() const
 /*!
     \qmlsignal QtAudioEngine::AudioSample::loadedChanged()
 
-    This signal is emitted when \l loaded is changed
+    This signal is emitted when \l loaded is changed.
 
     The corresponding handler is \c onLoadedChanged.
 */

@@ -457,7 +457,7 @@ void QDeclarativeAudio::seek(int position)
 
     This property indicates if loading of media should begin immediately.
 
-    Defaults to true, if false media will not be loaded until playback is started.
+    Defaults to \c true. If \c false, the media will not be loaded until playback is started.
 */
 
 /*!
@@ -539,7 +539,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 
     This property controls whether the media will begin to play on start up.
 
-    Defaults to false, if set true the value of autoLoad will be overwritten to true.
+    Defaults to \c false. If set to \c true, the value of autoLoad will be overwritten to \c true.
 */
 
 /*!
@@ -1342,7 +1342,7 @@ void QDeclarativeAudio::_q_statusChanged()
 
     This property controls whether the media will begin to play on start up.
 
-    Defaults to false, if set true the value of autoLoad will be overwritten to true.
+    Defaults to \c false. If set to \c true, the value of autoLoad will be overwritten to \c true.
 */
 
 /*!
