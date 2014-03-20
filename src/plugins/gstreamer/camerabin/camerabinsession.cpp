@@ -61,6 +61,7 @@
 #include "camerabincapturebufferformat.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamervideorendererinterface_p.h>
+#include <private/qgstutils_p.h>
 #include <qmediarecorder.h>
 
 #ifdef HAVE_GST_PHOTOGRAPHY
@@ -108,9 +109,6 @@
 #define CAMERABIN_IMAGE_MODE 1
 #define CAMERABIN_VIDEO_MODE 2
 
-#define gstRef(element) { gst_object_ref(GST_OBJECT(element)); gst_object_sink(GST_OBJECT(element)); }
-#define gstUnref(element) { if (element) { gst_object_unref(GST_OBJECT(element)); element = 0; } }
-
 #define PREVIEW_CAPS_4_3 \
     "video/x-raw-rgb, width = (int) 640, height = (int) 480"
 
@@ -146,7 +144,7 @@ CameraBinSession::CameraBinSession(QObject *parent)
 {
     m_camerabin = gst_element_factory_make("camerabin2", "camerabin2");
     g_signal_connect(G_OBJECT(m_camerabin), "notify::idle", G_CALLBACK(updateBusyStatus), this);
-    gstRef(m_camerabin);
+    qt_gst_object_ref_sink(m_camerabin);
 
     m_bus = gst_element_get_bus(m_camerabin);
 
@@ -192,9 +190,11 @@ CameraBinSession::~CameraBinSession()
 
         gst_element_set_state(m_camerabin, GST_STATE_NULL);
         gst_element_get_state(m_camerabin, NULL, NULL, GST_CLOCK_TIME_NONE);
-        gstUnref(m_camerabin);
-        gstUnref(m_viewfinderElement);
+        gst_object_unref(GST_OBJECT(m_bus));
+        gst_object_unref(GST_OBJECT(m_camerabin));
     }
+    if (m_viewfinderElement)
+        gst_object_unref(GST_OBJECT(m_viewfinderElement));
 }
 
 #ifdef HAVE_GST_PHOTOGRAPHY
@@ -239,7 +239,7 @@ bool CameraBinSession::setupCameraBin()
             qWarning() << "Staring camera without viewfinder available";
             m_viewfinderElement = gst_element_factory_make("fakesink", NULL);
         }
-        gst_object_ref(GST_OBJECT(m_viewfinderElement));
+        qt_gst_object_ref_sink(GST_OBJECT(m_viewfinderElement));
         gst_element_set_state(m_camerabin, GST_STATE_NULL);
         g_object_set(G_OBJECT(m_camerabin), VIEWFINDER_SINK_PROPERTY, m_viewfinderElement, NULL);
     }
@@ -437,6 +437,9 @@ GstElement *CameraBinSession::buildCameraSource()
 
     if (m_videoSrc != videoSrc)
         g_object_set(G_OBJECT(m_camerabin), CAMERA_SOURCE_PROPERTY, m_videoSrc, NULL);
+
+    if (videoSrc)
+        gst_object_unref(GST_OBJECT(videoSrc));
 
     return m_videoSrc;
 }
@@ -680,10 +683,12 @@ void CameraBinSession::setState(QCamera::State newState)
 
             m_recorderControl->applySettings();
 
+            GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
             g_object_set (G_OBJECT(m_camerabin),
                           "video-profile",
-                          m_recorderControl->videoProfile(),
+                          profile,
                           NULL);
+            gst_encoding_profile_unref(profile);
 
             setAudioCaptureCaps();
 
@@ -803,6 +808,7 @@ void CameraBinSession::setMetaData(const QMap<QByteArray, QVariant> &data)
                 }
             }
         }
+        gst_iterator_free(elements);
     }
 }
 

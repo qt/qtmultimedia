@@ -48,6 +48,7 @@
 #include <private/gstvideoconnector_p.h>
 #include <private/qgstutils_p.h>
 #include <private/playlistfileparser_p.h>
+#include <private/qgstutils_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>
@@ -157,17 +158,20 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         }
     }
 
-    m_videoOutputBin = gst_bin_new("video-output-bin");
-    gst_object_ref(GST_OBJECT(m_videoOutputBin));
-
-    m_videoIdentity = GST_ELEMENT(g_object_new(gst_video_connector_get_type(), 0));
+    m_videoIdentity = GST_ELEMENT(g_object_new(gst_video_connector_get_type(), 0)); // floating ref
     g_signal_connect(G_OBJECT(m_videoIdentity), "connection-failed", G_CALLBACK(insertColorSpaceElement), (gpointer)this);
+
     m_colorSpace = gst_element_factory_make("ffmpegcolorspace", "ffmpegcolorspace-vo");
-    gst_object_ref(GST_OBJECT(m_colorSpace));
+    // might not get a parent, take ownership to avoid leak
+    qt_gst_object_ref_sink(GST_OBJECT(m_colorSpace));
 
     m_nullVideoSink = gst_element_factory_make("fakesink", NULL);
     g_object_set(G_OBJECT(m_nullVideoSink), "sync", true, NULL);
     gst_object_ref(GST_OBJECT(m_nullVideoSink));
+
+    m_videoOutputBin = gst_bin_new("video-output-bin");
+    // might not get a parent, take ownership to avoid leak
+    qt_gst_object_ref_sink(GST_OBJECT(m_videoOutputBin));
     gst_bin_add_many(GST_BIN(m_videoOutputBin), m_videoIdentity, m_nullVideoSink, NULL);
     gst_element_link(m_videoIdentity, m_nullVideoSink);
 
@@ -238,6 +242,8 @@ void QGstreamerPlayerSession::configureAppSrcElement(GObject* object, GObject *o
 
     if (!self->appsrc()->setup(appsrc))
         qWarning()<<"Could not setup appsrc element";
+
+    g_object_unref(G_OBJECT(appsrc));
 }
 #endif
 

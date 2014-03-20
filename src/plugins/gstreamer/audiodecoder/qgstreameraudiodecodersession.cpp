@@ -158,6 +158,8 @@ void QGstreamerAudioDecoderSession::configureAppSrcElement(GObject* object, GObj
 
     if (!self->appsrc()->setup(appsrc))
         qWarning()<<"Could not setup appsrc element";
+
+    g_object_unref(G_OBJECT(appsrc));
 }
 #endif
 
@@ -372,7 +374,8 @@ void QGstreamerAudioDecoderSession::start()
         if (mFormat.isValid()) {
             setAudioFlags(false);
             GstCaps *caps = QGstUtils::capsForAudioFormat(mFormat);
-            gst_app_sink_set_caps(m_appSink, caps); // appsink unrefs caps
+            gst_app_sink_set_caps(m_appSink, caps);
+            gst_caps_unref(caps);
         } else {
             // We want whatever the native audio format is
             setAudioFlags(true);

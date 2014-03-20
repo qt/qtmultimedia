@@ -93,6 +93,9 @@ QGstCodecsInfo::QGstCodecsInfo(QGstCodecsInfo::ElementType elementType)
 
         gst_caps_remove_structure(caps, 0);
     }
+
+    gst_caps_unref(caps);
+    gst_caps_unref(allCaps);
 #else
     Q_UNUSED(elementType);
 #endif // GST_CHECK_VERSION(0,10,31)
@@ -143,7 +146,7 @@ GstCaps* QGstCodecsInfo::supportedElementCaps(GstElementFactoryListType elementT
             padTemplates = padTemplates->next;
 
             if (padTemplate->direction == padDirection) {
-                const GstCaps *caps = gst_static_caps_get(&padTemplate->static_caps);
+                GstCaps *caps = gst_static_caps_get(&padTemplate->static_caps);
                 for (uint i=0; i<gst_caps_get_size(caps); i++) {
                     const GstStructure *structure = gst_caps_get_structure(caps, i);
 
@@ -173,6 +176,7 @@ GstCaps* QGstCodecsInfo::supportedElementCaps(GstElementFactoryListType elementT
 
                     gst_caps_merge_structure(res, newStructure);
                 }
+                gst_caps_unref(caps);
             }
         }
     }

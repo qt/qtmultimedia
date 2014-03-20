@@ -137,8 +137,7 @@ void QGstreamerVideoWidgetControl::createVideoWidget()
     if (!m_videoSink)
         m_videoSink = gst_element_factory_make ("ximagesink", NULL);
 
-    gst_object_ref (GST_OBJECT (m_videoSink)); //Take ownership
-    gst_object_sink (GST_OBJECT (m_videoSink));
+    qt_gst_object_ref_sink(GST_OBJECT (m_videoSink)); //Take ownership
 
 
 }
@@ -219,6 +218,7 @@ void QGstreamerVideoWidgetControl::updateNativeVideoSize()
         //find video native size to update video widget size hint
         GstPad *pad = gst_element_get_static_pad(m_videoSink,"sink");
         GstCaps *caps = gst_pad_get_negotiated_caps(pad);
+        gst_object_unref(GST_OBJECT(pad));
 
         if (caps) {
             m_widget->setNativeSize(QGstUtils::capsCorrectedResolution(caps));

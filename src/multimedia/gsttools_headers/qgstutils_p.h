@@ -78,6 +78,8 @@ namespace QGstUtils {
                                              const QSet<QString> &supportedMimeTypeSet);
 }
 
+void qt_gst_object_ref_sink(gpointer object);
+
 QT_END_NAMESPACE
 
 #endif
