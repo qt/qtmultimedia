@@ -327,7 +327,7 @@ void QGstreamerPlayerSession::setPlaybackRate(qreal rate)
 #endif
     if (!qFuzzyCompare(m_playbackRate, rate)) {
         m_playbackRate = rate;
-        if (m_playbin) {
+        if (m_playbin && m_seekable) {
             gst_element_seek(m_playbin, rate, GST_FORMAT_TIME,
                              GstSeekFlags(GST_SEEK_FLAG_FLUSH),
                              GST_SEEK_TYPE_NONE,0,
@@ -877,7 +877,7 @@ bool QGstreamerPlayerSession::seek(qint64 ms)
     qDebug() << Q_FUNC_INFO << ms;
 #endif
     //seek locks when the video output sink is changing and pad is blocked
-    if (m_playbin && !m_pendingVideoSink && m_state != QMediaPlayer::StoppedState) {
+    if (m_playbin && !m_pendingVideoSink && m_state != QMediaPlayer::StoppedState && m_seekable) {
         ms = qMax(ms,qint64(0));
         gint64  position = ms * 1000000;
         bool isSeeking = gst_element_seek(m_playbin,
