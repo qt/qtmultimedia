@@ -987,13 +987,15 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
     if (gm) {
         //tag message comes from elements inside playbin, not from playbin itself
         if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_TAG) {
-            //qDebug() << "tag message";
             GstTagList *tag_list;
             gst_message_parse_tag(gm, &tag_list);
-            m_tags.unite(QGstUtils::gstTagListToMap(tag_list));
+
+            QMap<QByteArray, QVariant> newTags = QGstUtils::gstTagListToMap(tag_list);
+            QMap<QByteArray, QVariant>::const_iterator it = newTags.constBegin();
+            for ( ; it != newTags.constEnd(); ++it)
+                m_tags.insert(it.key(), it.value()); // overwrite existing tags
 
             gst_tag_list_free(tag_list);
-            //qDebug() << m_tags;
 
             emit tagsChanged();
         } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_DURATION) {
@@ -1458,13 +1460,6 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
 #ifdef DEBUG_PLAYBIN
     qDebug() << "Playbin source added:" << G_OBJECT_CLASS_NAME(G_OBJECT_GET_CLASS(source));
 #endif
-
-    // Turn off icecast metadata request, will be re-set if in QNetworkRequest
-    // (souphttpsrc docs say is false by default, but header appears in request
-    // @version 0.10.21)
-    if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "iradio-mode") != 0)
-        g_object_set(G_OBJECT(source), "iradio-mode", FALSE, NULL);
-
 
     // Set Headers
     const QByteArray userAgentString("User-Agent");
