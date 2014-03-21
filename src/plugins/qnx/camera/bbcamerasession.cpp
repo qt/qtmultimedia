@@ -140,7 +140,7 @@ BbCameraSession::BbCameraSession(QObject *parent)
     connect(this, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateReadyForCapture()));
     connect(m_orientationHandler, SIGNAL(orientationChanged(int)), SLOT(deviceOrientationChanged(int)));
 
-    connect(m_windowGrabber, SIGNAL(frameGrabbed(QImage)), SLOT(viewfinderFrameGrabbed(QImage)));
+    connect(m_windowGrabber, SIGNAL(frameGrabbed(QImage, int)), SLOT(viewfinderFrameGrabbed(QImage)));
 }
 
 BbCameraSession::~BbCameraSession()

@@ -67,8 +67,10 @@ public:
     void pause();
     void resume();
 
+    void customEvent(QEvent *) Q_DECL_OVERRIDE;
+
 private Q_SLOTS:
-    void frameGrabbed(const QImage &frame);
+    void frameGrabbed(const QImage &frame, int);
 
 private:
     QPointer<QAbstractVideoSurface> m_surface;

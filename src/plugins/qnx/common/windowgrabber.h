@@ -41,6 +41,12 @@
 #ifndef WINDOWGRABBER_H
 #define WINDOWGRABBER_H
 
+#define EGL_EGLEXT_PROTOTYPES = 1
+#define GL_GLEXT_PROTOTYPES = 1
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#include <EGL/eglext.h>
 #include <QAbstractNativeEventFilter>
 #include <QObject>
 #include <QTimer>
@@ -59,6 +65,8 @@ public:
 
     void setFrameRate(int frameRate);
 
+    void createEglImages();
+
     void setWindowId(const QByteArray &windowId);
 
     void start();
@@ -73,8 +81,12 @@ public:
 
     QByteArray windowGroupId() const;
 
+    bool eglImageSupported();
+    void checkForEglImageExtension();
+    bool eglImagesInitialized();
+
 signals:
-    void frameGrabbed(const QImage &frame);
+    void frameGrabbed(const QImage &frame, int);
 
 private slots:
     void grab();
@@ -89,10 +101,10 @@ private:
 
     screen_window_t m_window;
     screen_context_t m_screenContext;
-    screen_pixmap_t m_screenPixmap;
-    screen_buffer_t m_screenPixmapBuffer;
+    screen_pixmap_t m_screenPixmaps[2];
+    screen_buffer_t m_screenPixmapBuffers[2];
 
-    char* m_screenBuffer;
+    char *m_screenBuffers[2];
 
     int m_screenBufferWidth;
     int m_screenBufferHeight;
@@ -100,8 +112,13 @@ private:
 
     bool m_active : 1;
     bool m_screenContextInitialized : 1;
-    bool m_screenPixmapInitialized : 1;
-    bool m_screenPixmapBufferInitialized : 1;
+    bool m_screenPixmapBuffersInitialized : 1;
+    int m_currentFrame;
+    EGLImageKHR img[2];
+    GLuint imgTextures[2];
+    bool m_eglImageSupported : 1;
+    bool m_eglImagesInitialized : 1;
+    bool m_eglImageCheck : 1; // We must not send a grabed frame before this is true
 };
 
 QT_END_NAMESPACE

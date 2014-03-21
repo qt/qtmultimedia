@@ -201,6 +201,16 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
             obj->event(&ev);
         }
     }
+#if defined (Q_OS_QNX) // On QNX we need to be called back again for creating the egl images
+    else {
+        // Internal mechanism to call back the surface renderer from the QtQuick render thread
+        QObject *obj = m_surface->property("_q_GLThreadCallback").value<QObject*>();
+        if (obj) {
+            QEvent ev(static_cast<QEvent::Type>(QEvent::User + 1));
+            obj->event(&ev);
+        }
+    }
+#endif
 
     if (m_frameChanged) {
         if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
