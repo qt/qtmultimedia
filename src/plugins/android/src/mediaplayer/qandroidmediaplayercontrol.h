@@ -93,9 +93,9 @@ private Q_SLOTS:
     void onVideoOutputReady(bool ready);
     void onError(qint32 what, qint32 extra);
     void onInfo(qint32 what, qint32 extra);
-    void onMediaPlayerInfo(qint32 what, qint32 extra);
-    void onBufferChanged(qint32 percent);
+    void onBufferingChanged(qint32 percent);
     void onVideoSizeChanged(qint32 width, qint32 height);
+    void onStateChanged(qint32 state);
 
 private:
     JMediaPlayer *mMediaPlayer;
@@ -111,15 +111,16 @@ private:
     QSize mVideoSize;
     bool mBuffering;
     QMediaTimeRange mAvailablePlaybackRange;
-    bool mMediaPlayerReady;
-    QMediaPlayer::State mPendingState;
+    int mState;
+    int mPendingState;
     qint64 mPendingPosition;
     bool mPendingSetMedia;
+    int mPendingVolume;
+    int mPendingMute;
     QScopedPointer<QTemporaryFile> mTempFile;
 
     void setState(QMediaPlayer::State state);
     void setMediaStatus(QMediaPlayer::MediaStatus status);
-    void setError(int error, const QString &errorString);
     void setSeekable(bool seekable);
     void setAudioAvailable(bool available);
     void setVideoAvailable(bool available);

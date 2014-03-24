@@ -104,7 +104,7 @@ QCameraInfo::QCameraInfo(const QCamera &camera)
     : d(new QCameraInfoPrivate)
 {
     const QVideoDeviceSelectorControl *deviceControl = camera.d_func()->deviceControl;
-    if (deviceControl) {
+    if (deviceControl && deviceControl->deviceCount() > 0) {
         const int selectedDevice = deviceControl->selectedDevice();
         d->deviceName = deviceControl->deviceName(selectedDevice);
         d->description = deviceControl->deviceDescription(selectedDevice);

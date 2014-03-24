@@ -50,6 +50,7 @@
 #ifndef QT_NO_WIDGETS
 # include "avfvideowidgetcontrol.h"
 #endif
+#include "avfvideowindowcontrol.h"
 
 QT_USE_NAMESPACE
 
@@ -102,6 +103,13 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
         return m_videoOutput;
     }
 #endif
+    if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
+        if (!m_videoOutput)
+            m_videoOutput = new AVFVideoWindowControl(this);
+
+        m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
+        return m_videoOutput;
+    }
     return 0;
 }
 

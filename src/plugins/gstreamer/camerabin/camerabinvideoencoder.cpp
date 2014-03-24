@@ -175,6 +175,8 @@ GstEncodingProfile *CameraBinVideoEncoder::createProfile()
                 NULL, //restriction
                 1); //presence
 
+    gst_caps_unref(caps);
+
     gst_encoding_video_profile_set_pass(profile, 0);
     gst_encoding_video_profile_set_variableframerate(profile, TRUE);
 

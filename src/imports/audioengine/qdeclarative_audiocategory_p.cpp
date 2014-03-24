@@ -58,8 +58,8 @@ QT_USE_NAMESPACE
 
     This type is part of the \b{QtAudioEngine 1.0} module.
 
-    An instance of AudioCategory can be accessed through QtAudioEngine1::AudioEngine::categories with its
-    unique name and must be defined inside AudioEngine.
+    An instance of AudioCategory can be accessed through \l {QtAudioEngine::AudioEngine::categories}
+    {AudioEngine.categories} with its unique name and must be defined inside AudioEngine.
 
     \qml
     import QtQuick 2.0
@@ -138,7 +138,7 @@ void QDeclarativeAudioCategory::componentComplete()
 }
 
 /*!
-    \qmlproperty real QtAudioEngine1::AudioCategory::volume
+    \qmlproperty real QtAudioEngine::AudioCategory::volume
 
     This property holds the volume of the category and will modulate all audio output from the
     instances which belong to this category.
@@ -160,7 +160,7 @@ void QDeclarativeAudioCategory::setVolume(qreal volume)
 }
 
 /*!
-    \qmlproperty string QtAudioEngine1::AudioCategory::name
+    \qmlproperty string QtAudioEngine::AudioCategory::name
 
     This property holds the name of AudioCategory. The name must be unique among all categories and only
     defined once. The name cannot be changed after the instance has been initialized.
@@ -180,7 +180,7 @@ QString QDeclarativeAudioCategory::name() const
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::AudioCategory::stop()
+    \qmlmethod QtAudioEngine::AudioCategory::stop()
 
     Stops all active sound instances which belong to this category.
 */
@@ -190,7 +190,7 @@ void QDeclarativeAudioCategory::stop()
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::AudioCategory::pause()
+    \qmlmethod QtAudioEngine::AudioCategory::pause()
 
     Pauses all active sound instances which belong to this category.
 */
@@ -200,7 +200,7 @@ void QDeclarativeAudioCategory::pause()
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::AudioCategory::pause()
+    \qmlmethod QtAudioEngine::AudioCategory::pause()
 
     Resumes all active sound instances from paused state which belong to this category.
 */

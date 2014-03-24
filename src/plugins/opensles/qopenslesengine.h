@@ -75,6 +75,7 @@ private:
 
     QList<int> m_supportedInputChannelCounts;
     QList<int> m_supportedInputSampleRates;
+    bool m_checkedInputFormats;
 };
 
 QT_END_NAMESPACE

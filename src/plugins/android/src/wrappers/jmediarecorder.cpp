@@ -88,6 +88,9 @@ bool JMediaRecorder::prepare()
     QJNIEnvironmentPrivate env;
     callMethod<void>("prepare");
     if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
         return false;
     }
@@ -104,6 +107,9 @@ bool JMediaRecorder::start()
     QJNIEnvironmentPrivate env;
     callMethod<void>("start");
     if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
         return false;
     }
@@ -114,8 +120,12 @@ void JMediaRecorder::stop()
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("stop");
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setAudioChannels(int numChannels)
@@ -127,8 +137,12 @@ void JMediaRecorder::setAudioEncoder(AudioEncoder encoder)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setAudioEncoder", "(I)V", int(encoder));
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setAudioEncodingBitRate(int bitRate)
@@ -145,8 +159,12 @@ void JMediaRecorder::setAudioSource(AudioSource source)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setAudioSource", "(I)V", int(source));
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setCamera(JCamera *camera)
@@ -159,8 +177,12 @@ void JMediaRecorder::setVideoEncoder(VideoEncoder encoder)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoEncoder", "(I)V", int(encoder));
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setVideoEncodingBitRate(int bitRate)
@@ -172,40 +194,60 @@ void JMediaRecorder::setVideoFrameRate(int rate)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoFrameRate", "(I)V", rate);
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setVideoSize(const QSize &size)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoSize", "(II)V", size.width(), size.height());
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setVideoSource(VideoSource source)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setVideoSource", "(I)V", int(source));
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setOrientationHint(int degrees)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setOrientationHint", "(I)V", degrees);
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setOutputFormat(OutputFormat format)
 {
     QJNIEnvironmentPrivate env;
     callMethod<void>("setOutputFormat", "(I)V", int(format));
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 void JMediaRecorder::setOutputFile(const QString &path)
@@ -214,8 +256,12 @@ void JMediaRecorder::setOutputFile(const QString &path)
     callMethod<void>("setOutputFile",
                      "(Ljava/lang/String;)V",
                      QJNIObjectPrivate::fromString(path).object());
-    if (env->ExceptionCheck())
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
         env->ExceptionClear();
+    }
 }
 
 static JNINativeMethod methods[] = {

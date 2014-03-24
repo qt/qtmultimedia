@@ -92,6 +92,7 @@ public:
     bool isReady() Q_DECL_OVERRIDE;
     void setVideoSize(const QSize &size) Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
+    void reset() Q_DECL_OVERRIDE;
 
     void customEvent(QEvent *) Q_DECL_OVERRIDE;
 
@@ -107,6 +108,7 @@ private:
     void createGLResources();
 
     QMutex m_mutex;
+    void clearSurfaceTexture();
 
     QAbstractVideoSurface *m_surface;
     QSize m_nativeSize;

@@ -66,30 +66,49 @@ class QDeclarativeCamera;
 class QDeclarativeCameraFocus : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QDeclarativeCamera::FocusMode focusMode READ focusMode WRITE setFocusMode NOTIFY focusModeChanged)
-    Q_PROPERTY(QDeclarativeCamera::FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode NOTIFY focusPointModeChanged)
+    Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode NOTIFY focusModeChanged)
+    Q_PROPERTY(FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode NOTIFY focusPointModeChanged)
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
     Q_PROPERTY(QObject *focusZones READ focusZones CONSTANT)
+
+    Q_ENUMS(FocusMode)
+    Q_ENUMS(FocusPointMode)
 public:
+    enum FocusMode {
+        FocusManual = QCameraFocus::ManualFocus,
+        FocusHyperfocal = QCameraFocus::HyperfocalFocus,
+        FocusInfinity = QCameraFocus::InfinityFocus,
+        FocusAuto = QCameraFocus::AutoFocus,
+        FocusContinuous = QCameraFocus::ContinuousFocus,
+        FocusMacro = QCameraFocus::MacroFocus
+    };
+
+    enum FocusPointMode {
+        FocusPointAuto = QCameraFocus::FocusPointAuto,
+        FocusPointCenter = QCameraFocus::FocusPointCenter,
+        FocusPointFaceDetection = QCameraFocus::FocusPointFaceDetection,
+        FocusPointCustom = QCameraFocus::FocusPointCustom
+    };
+
     ~QDeclarativeCameraFocus();
 
-    QDeclarativeCamera::FocusMode focusMode() const;
-    QDeclarativeCamera::FocusPointMode focusPointMode() const;
+    FocusMode focusMode() const;
+    FocusPointMode focusPointMode() const;
     QPointF customFocusPoint() const;
 
     QAbstractListModel *focusZones() const;
 
-    Q_INVOKABLE bool isFocusModeSupported(QDeclarativeCamera::FocusMode mode) const;
-    Q_INVOKABLE bool isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode) const;
+    Q_INVOKABLE bool isFocusModeSupported(FocusMode mode) const;
+    Q_INVOKABLE bool isFocusPointModeSupported(FocusPointMode mode) const;
 
 public Q_SLOTS:
-    void setFocusMode(QDeclarativeCamera::FocusMode);
-    void setFocusPointMode(QDeclarativeCamera::FocusPointMode mode);
+    void setFocusMode(FocusMode);
+    void setFocusPointMode(FocusPointMode mode);
     void setCustomFocusPoint(const QPointF &point);
 
 Q_SIGNALS:
-    void focusModeChanged(QDeclarativeCamera::FocusMode);
-    void focusPointModeChanged(QDeclarativeCamera::FocusPointMode);
+    void focusModeChanged(FocusMode);
+    void focusPointModeChanged(FocusPointMode);
     void customFocusPointChanged(const QPointF &);
 
 private Q_SLOTS:

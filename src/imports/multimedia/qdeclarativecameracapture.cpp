@@ -156,7 +156,7 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
 /*!
     \qmlmethod QtMultimedia::CameraCapture::capture()
 
-    Start image capture.  The \l onImageCaptured() and \l onImageSaved() signals will
+    Start image capture.  The \l imageCaptured and \l imageSaved signals will
     be emitted when the capture is complete.
 
     The image will be captured to the default system location, typically
@@ -179,7 +179,7 @@ int QDeclarativeCameraCapture::capture()
 /*!
     \qmlmethod QtMultimedia::CameraCapture::captureToLocation(location)
 
-    Start image capture to specified \a location.  The \l onImageCaptured() and \l onImageSaved() signals will
+    Start image capture to specified \a location.  The \l imageCaptured and \l imageSaved signals will
     be emitted when the capture is complete.
 
     CameraCapture::captureToLocation returns the capture requestId parameter, used with
@@ -310,39 +310,47 @@ void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &
 }
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::onCaptureFailed(requestId, message)
+    \qmlsignal QtMultimedia::CameraCapture::captureFailed(requestId, message)
 
-    This handler is called when an error occurs during capture with \a requestId.
+    This signal is emitted when an error occurs during capture with \a requestId.
     A descriptive message is available in \a message.
+
+    The corresponding handler is \c onCaptureFailed.
 */
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::onImageCaptured(requestId, preview)
+    \qmlsignal QtMultimedia::CameraCapture::imageCaptured(requestId, preview)
 
-    This handler is called when an image with \a requestId has been captured
+    This signal is emitted when an image with \a requestId has been captured
     but not yet saved to the filesystem.  The \a preview
     parameter can be used as the URL supplied to an \l Image.
 
-    \sa onImageSaved
+    The corresponding handler is \c onImageCaptured.
+
+    \sa imageSaved
 */
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::onImageSaved(requestId, path)
+    \qmlsignal QtMultimedia::CameraCapture::imageSaved(requestId, path)
 
-    This handler is called after the image with \a requestId has been written to the filesystem.
+    This signal is emitted after the image with \a requestId has been written to the filesystem.
     The \a path is a local file path, not a URL.
 
-    \sa onImageCaptured
+    The corresponding handler is \c onImageSaved.
+
+    \sa imageCaptured
 */
 
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::onImageMetadataAvailable(requestId, key, value)
+    \qmlsignal QtMultimedia::CameraCapture::imageMetadataAvailable(requestId, key, value)
 
-    This handler is called when the image with \a requestId has new metadata
+    This signal is emitted when the image with \a requestId has new metadata
     available with the key \a key and value \a value.
 
-    \sa onImageCaptured
+    The corresponding handler is \c onImageMetadataAvailable.
+
+    \sa imageCaptured
 */
 
 

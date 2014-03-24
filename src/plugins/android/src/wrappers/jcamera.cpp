@@ -306,12 +306,16 @@ int JCamera::cameraId() const
 
 void JCamera::lock()
 {
-    QMetaObject::invokeMethod(d, "callVoidMethod", Q_ARG(QByteArray, "lock"));
+    QMetaObject::invokeMethod(d, "callVoidMethod",
+                              Qt::BlockingQueuedConnection,
+                              Q_ARG(QByteArray, "lock"));
 }
 
 void JCamera::unlock()
 {
-    QMetaObject::invokeMethod(d, "callVoidMethod", Q_ARG(QByteArray, "unlock"));
+    QMetaObject::invokeMethod(d, "callVoidMethod",
+                              Qt::BlockingQueuedConnection,
+                              Q_ARG(QByteArray, "unlock"));
 }
 
 void JCamera::reconnect()

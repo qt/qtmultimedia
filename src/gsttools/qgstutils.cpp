@@ -401,4 +401,22 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
     return QMultimedia::MaybeSupported;
 }
 
+void qt_gst_object_ref_sink(gpointer object)
+{
+#if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 24)
+    gst_object_ref_sink(object);
+#else
+    g_return_if_fail (GST_IS_OBJECT(object));
+
+    GST_OBJECT_LOCK(object);
+    if (G_LIKELY(GST_OBJECT_IS_FLOATING(object))) {
+        GST_OBJECT_FLAG_UNSET(object, GST_OBJECT_FLOATING);
+        GST_OBJECT_UNLOCK(object);
+    } else {
+        GST_OBJECT_UNLOCK(object);
+        gst_object_ref(object);
+    }
+#endif
+}
+
 QT_END_NAMESPACE

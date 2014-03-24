@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the plugins of the Qt Toolkit.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,69 +39,82 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVECAMERAFLASH_H
-#define QDECLARATIVECAMERAFLASH_H
+#ifndef AVFVIDEOWINDOWCONTROL_H
+#define AVFVIDEOWINDOWCONTROL_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include <QVideoWindowControl>
 
-#include <qcamera.h>
-#include <qcameraexposure.h>
+@class AVPlayerLayer;
+#if defined(Q_OS_OSX)
+@class NSView;
+typedef NSView NativeView;
+#else
+@class UIView;
+typedef UIView NativeView;
+#endif
+
+#include "avfvideooutput.h"
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeCamera;
-
-class QDeclarativeCameraFlash : public QObject
+class AVFVideoWindowControl : public QVideoWindowControl, public AVFVideoOutput
 {
     Q_OBJECT
-    Q_PROPERTY(bool ready READ isFlashReady NOTIFY flashReady)
-    Q_PROPERTY(FlashMode mode READ flashMode WRITE setFlashMode NOTIFY flashModeChanged)
+    Q_INTERFACES(AVFVideoOutput)
 
-    Q_ENUMS(FlashMode)
 public:
-    enum FlashMode {
-        FlashAuto = QCameraExposure::FlashAuto,
-        FlashOff = QCameraExposure::FlashOff,
-        FlashOn = QCameraExposure::FlashOn,
-        FlashRedEyeReduction = QCameraExposure::FlashRedEyeReduction,
-        FlashFill = QCameraExposure::FlashFill,
-        FlashTorch = QCameraExposure::FlashTorch,
-        FlashVideoLight = QCameraExposure::FlashVideoLight,
-        FlashSlowSyncFrontCurtain = QCameraExposure::FlashSlowSyncFrontCurtain,
-        FlashSlowSyncRearCurtain = QCameraExposure::FlashSlowSyncRearCurtain,
-        FlashManual = QCameraExposure::FlashManual
-    };
+    AVFVideoWindowControl(QObject *parent = 0);
+    virtual ~AVFVideoWindowControl();
 
-    ~QDeclarativeCameraFlash();
+    // QVideoWindowControl interface
+public:
+    WId winId() const;
+    void setWinId(WId id);
 
-    FlashMode flashMode() const;
-    bool isFlashReady() const;
+    QRect displayRect() const;
+    void setDisplayRect(const QRect &rect);
 
-public Q_SLOTS:
-    void setFlashMode(FlashMode);
+    bool isFullScreen() const;
+    void setFullScreen(bool fullScreen);
 
-Q_SIGNALS:
-    void flashReady(bool status);
-    void flashModeChanged(FlashMode);
+    void repaint();
+    QSize nativeSize() const;
+
+    Qt::AspectRatioMode aspectRatioMode() const;
+    void setAspectRatioMode(Qt::AspectRatioMode mode);
+
+    int brightness() const;
+    void setBrightness(int brightness);
+
+    int contrast() const;
+    void setContrast(int contrast);
+
+    int hue() const;
+    void setHue(int hue);
+
+    int saturation() const;
+    void setSaturation(int saturation);
+
+    // AVFVideoOutput interface
+    void setLayer(void *playerLayer);
 
 private:
-    friend class QDeclarativeCamera;
-    QDeclarativeCameraFlash(QCamera *camera, QObject *parent = 0);
+    void updateAspectRatio();
+    void updatePlayerLayerBounds();
 
-    QCameraExposure *m_exposure;
+    WId m_winId;
+    QRect m_displayRect;
+    bool m_fullscreen;
+    int m_brightness;
+    int m_contrast;
+    int m_hue;
+    int m_saturation;
+    Qt::AspectRatioMode m_aspectRatioMode;
+    QSize m_nativeSize;
+    AVPlayerLayer *m_playerLayer;
+    NativeView *m_nativeView;
 };
 
 QT_END_NAMESPACE
 
-QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeCameraFlash))
-
-#endif
+#endif // AVFVIDEOWINDOWCONTROL_H

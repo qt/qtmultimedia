@@ -114,11 +114,15 @@ GstEncodingProfile *CameraBinAudioEncoder::createProfile()
     else
         caps = gst_caps_from_string(codec.toLatin1());
 
-    return (GstEncodingProfile *)gst_encoding_audio_profile_new(
-                                        caps,
-                                        !preset.isEmpty() ? preset.toLatin1().constData() : NULL, //preset
-                                        NULL,   //restriction
-                                        0);     //presence
+    GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
+                caps,
+                !preset.isEmpty() ? preset.toLatin1().constData() : NULL, //preset
+                NULL,   //restriction
+                0);     //presence
+
+    gst_caps_unref(caps);
+
+    return profile;
 }
 
 QT_END_NAMESPACE
