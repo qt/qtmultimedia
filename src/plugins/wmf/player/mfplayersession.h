@@ -165,6 +165,7 @@ private:
         CmdPause,
         CmdSeek,
         CmdSeekResume,
+        CmdStartAndSeek
     };
 
     void clear();
