@@ -1188,7 +1188,7 @@ void QDeclarativeAudio::_q_statusChanged()
         }
 
         VideoOutput {
-            anchors: parent.fill
+            anchors.fill: parent
             source: mediaplayer
         }
 
