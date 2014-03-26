@@ -93,8 +93,6 @@ private slots:
     void assignAllParameters ();
 
     void propertyEdgeCases();
-    void debugOperator();
-    void debugOperator_data();
 };
 
 tst_QVideoSurfaceFormat::tst_QVideoSurfaceFormat()
@@ -917,108 +915,6 @@ void tst_QVideoSurfaceFormat::propertyEdgeCases()
     original.setProperty("pixelAspectRatio", QColor(Qt::red));
     QCOMPARE(original.pixelAspectRatio(), QSize(53, 45));
 }
-
-#define ADDDEBUGTEST(format, w, h, r) \
-    QTest::newRow(#format "-" #w "x" #h "@" #r) \
-        << QVideoFrame::Format_ ##format \
-        << "Format_" #format \
-        << QSize(w, h) \
-        << r;
-
-void tst_QVideoSurfaceFormat::debugOperator_data()
-{
-    // This is not too exhaustive
-    QTest::addColumn<QVideoFrame::PixelFormat>("format");
-    QTest::addColumn<QString>("formatString");
-    QTest::addColumn<QSize>("frameSize");
-    QTest::addColumn<int>("frameRate"); // could be double, but formatting is unstable
-
-    ADDDEBUGTEST(Invalid, 100, 200, 3);
-    ADDDEBUGTEST(ARGB32,101, 201, 4);
-    ADDDEBUGTEST(ARGB32_Premultiplied, 100, 202, 5);
-    ADDDEBUGTEST(RGB32, 8, 16, 30);
-    ADDDEBUGTEST(RGB24, 8, 16, 30);
-    ADDDEBUGTEST(RGB565, 8, 16, 30);
-    ADDDEBUGTEST(RGB555, 8, 16, 30);
-    ADDDEBUGTEST(ARGB8565_Premultiplied, 8, 16, 30);
-    ADDDEBUGTEST(BGRA32, 8, 16, 30);
-    ADDDEBUGTEST(BGRA32_Premultiplied, 8, 16, 30);
-    ADDDEBUGTEST(BGR32, 8, 16, 30);
-    ADDDEBUGTEST(BGR24, 8, 16, 30);
-    ADDDEBUGTEST(BGR565, 8, 16, 30);
-    ADDDEBUGTEST(BGR555, 8, 16, 30);
-    ADDDEBUGTEST(BGRA5658_Premultiplied, 8, 16, 30);
-
-    ADDDEBUGTEST(AYUV444, 8, 16, 30);
-    ADDDEBUGTEST(AYUV444, 8, 16, 31);
-    ADDDEBUGTEST(AYUV444_Premultiplied, 8, 16, 30);
-    ADDDEBUGTEST(YUV444, 8, 16, 30);
-    ADDDEBUGTEST(YUV420P, 8, 16, 30);
-    ADDDEBUGTEST(YV12, 8, 16, 30);
-    ADDDEBUGTEST(UYVY, 8, 16, 30);
-    ADDDEBUGTEST(YUYV, 8, 16, 30);
-    ADDDEBUGTEST(NV12, 8, 16, 30);
-    ADDDEBUGTEST(NV12, 80, 16, 30);
-    ADDDEBUGTEST(NV21, 8, 16, 30);
-    ADDDEBUGTEST(IMC1, 8, 16, 30);
-    ADDDEBUGTEST(IMC2, 8, 16, 30);
-    ADDDEBUGTEST(IMC3, 8, 16, 30);
-    ADDDEBUGTEST(IMC3, 8, 160, 30);
-    ADDDEBUGTEST(IMC4, 8, 16, 30);
-    ADDDEBUGTEST(Y8, 8, 16, 30);
-    ADDDEBUGTEST(Y16, 8, 16, 30);
-
-    ADDDEBUGTEST(Jpeg, 8, 16, 30);
-
-    ADDDEBUGTEST(CameraRaw, 8, 16, 30);
-    ADDDEBUGTEST(AdobeDng, 8, 16, 30);
-
-    // User is special
-    QTest::newRow("User-0x0@0)")
-                  << QVideoFrame::Format_User
-                  << "UserType(1000)"
-                  << QSize()
-                  << 0;
-}
-
-void tst_QVideoSurfaceFormat::debugOperator()
-{
-    QFETCH(QVideoFrame::PixelFormat, format);
-    QFETCH(QString, formatString);
-    QFETCH(QSize, frameSize);
-    QFETCH(int, frameRate);
-
-    QString templateOutput = QString("QVideoSurfaceFormat(%1, QSize(%2, %3) , viewport=QRect(0,1 800x600) , pixelAspectRatio=QSize(320, 200) "
-        ", handleType=GLTextureHandle, yCbCrColorSpace=YCbCr_BT709)\n"
-        "    handleType = QVariant(QAbstractVideoBuffer::HandleType, ) \n"
-        "     pixelFormat  =  QVariant(QVideoFrame::PixelFormat, ) \n"
-        "     frameSize  =  QVariant(QSize, QSize(%4, %5) ) \n"
-        "     frameWidth  =  QVariant(int, %6) \n"
-        "     viewport  =  QVariant(QRect, QRect(0,1 800x600) ) \n"
-        "     scanLineDirection  =  QVariant(QVideoSurfaceFormat::Direction, ) \n"
-        "     frameRate  =  QVariant(%7, %8) \n"
-        "     pixelAspectRatio  =  QVariant(QSize, QSize(320, 200) ) \n"
-        "     sizeHint  =  QVariant(QSize, QSize(1280, 600) ) \n"
-        "     yCbCrColorSpace  =  QVariant(QVideoSurfaceFormat::YCbCrColorSpace, ) ")
-            .arg(formatString)
-            .arg(frameSize.width())
-            .arg(frameSize.height())
-            .arg(frameSize.width())
-            .arg(frameSize.height())
-            .arg(frameSize.width())
-            .arg(sizeof(qreal) == sizeof(double) ? "double" : "float")
-            .arg(frameRate);
-
-    QVideoSurfaceFormat vsf(frameSize, format, QAbstractVideoBuffer::GLTextureHandle);
-    vsf.setViewport(QRect(0,1, 800, 600));
-    vsf.setPixelAspectRatio(QSize(320, 200));
-    vsf.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_BT709);
-    vsf.setFrameRate(frameRate);
-
-    QTest::ignoreMessage(QtDebugMsg, templateOutput.toLatin1().constData());
-    qDebug() << vsf;
-}
-
 
 
 QTEST_MAIN(tst_QVideoSurfaceFormat)

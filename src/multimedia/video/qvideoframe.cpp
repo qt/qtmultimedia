@@ -1022,7 +1022,7 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
 
 QDebug operator<<(QDebug dbg, const QVideoFrame& f)
 {
-    dbg.nospace() << "QVideoFrame(" << f.size() << ","
+    dbg.nospace() << "QVideoFrame(" << f.size() << ", "
                << f.pixelFormat() << ", "
                << f.handleType() << ", "
                << f.mapMode() << ", "
