@@ -289,7 +289,9 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
         mMediaStream = stream;
     }
 
-    mMediaPlayer->release();
+    // Release the mediaplayer if it's not in in Idle or Uninitialized state
+    if ((mState & (JMediaPlayer::Idle | JMediaPlayer::Uninitialized)) == 0)
+        mMediaPlayer->release();
 
     if (mediaContent.isNull()) {
         setMediaStatus(QMediaPlayer::NoMedia);
