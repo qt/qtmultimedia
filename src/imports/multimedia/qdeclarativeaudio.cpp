@@ -457,32 +457,40 @@ void QDeclarativeAudio::seek(int position)
 
     This property indicates if loading of media should begin immediately.
 
-    Defaults to true, if false media will not be loaded until playback is started.
+    Defaults to \c true. If \c false, the media will not be loaded until playback is started.
 */
 
 /*!
     \qmlsignal QtMultimedia::Audio::playbackStateChanged()
 
-    This handler is called when the \l playbackState property is altered.
+    This signal is emitted when the \l playbackState property is altered.
+
+    The corresponding handler is \c onPlaybackStateChanged.
 */
 
 
 /*!
     \qmlsignal QtMultimedia::Audio::paused()
 
-    This handler is called when playback is paused.
+    This signal is emitted when playback is paused.
+
+    The corresponding handler is \c onPaused.
 */
 
 /*!
     \qmlsignal QtMultimedia::Audio::stopped()
 
-    This handler is called when playback is stopped.
+    This signal is emitted when playback is stopped.
+
+    The corresponding handler is \c onStopped.
 */
 
 /*!
     \qmlsignal QtMultimedia::Audio::playing()
 
-    This handler is called when playback is started or resumed.
+    This signal is emitted when playback is started or resumed.
+
+    The corresponding handler is \c onPlaying.
 */
 
 /*!
@@ -531,7 +539,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 
     This property controls whether the media will begin to play on start up.
 
-    Defaults to false, if set true the value of autoLoad will be overwritten to true.
+    Defaults to \c false. If set to \c true, the value of autoLoad will be overwritten to \c true.
 */
 
 /*!
@@ -760,9 +768,11 @@ void QDeclarativeAudio::_q_statusChanged()
 /*!
     \qmlsignal QtMultimedia::Audio::error(error, errorString)
 
-    This handler is called when an \l {QMediaPlayer::Error}{error} has
+    This signal is emitted when an \l {QMediaPlayer::Error}{error} has
     occurred.  The errorString parameter may contain more detailed
     information about the error.
+
+    The corresponding handler is \c onError.
 */
 
 /*!
@@ -1267,26 +1277,34 @@ void QDeclarativeAudio::_q_statusChanged()
 /*!
     \qmlsignal QtMultimedia::MediaPlayer::playbackStateChanged()
 
-    This handler is called when the \l playbackState property is altered.
+    This signal is emitted when the \l playbackState property is altered.
+
+    The corresponding handler is \c onPlaybackStateChanged.
 */
 
 
 /*!
     \qmlsignal QtMultimedia::MediaPlayer::paused()
 
-    This handler is called when playback is paused.
+    This signal is emitted when playback is paused.
+
+    The corresponding handler is \c onPaused.
 */
 
 /*!
     \qmlsignal QtMultimedia::MediaPlayer::stopped()
 
-    This handler is called when playback is stopped.
+    This signal is emitted when playback is stopped.
+
+    The corresponding handler is \c onStopped.
 */
 
 /*!
     \qmlsignal QtMultimedia::MediaPlayer::playing()
 
-    This handler is called when playback is started or resumed.
+    This signal is emitted when playback is started or resumed.
+
+    The corresponding handler is \c onPlaying.
 */
 
 /*!
@@ -1324,7 +1342,7 @@ void QDeclarativeAudio::_q_statusChanged()
 
     This property controls whether the media will begin to play on start up.
 
-    Defaults to false, if set true the value of autoLoad will be overwritten to true.
+    Defaults to \c false. If set to \c true, the value of autoLoad will be overwritten to \c true.
 */
 
 /*!
@@ -1440,9 +1458,11 @@ void QDeclarativeAudio::_q_statusChanged()
 /*!
     \qmlsignal QtMultimedia::MediaPlayer::error(error, errorString)
 
-    This handler is called when an \l {QMediaPlayer::Error}{error} has
+    This signal is emitted when an \l {QMediaPlayer::Error}{error} has
     occurred.  The errorString parameter may contain more detailed
     information about the error.
+
+    The corresponding handler is \c onError.
 */
 
 /*!

@@ -73,7 +73,7 @@ MmRendererMediaPlayerControl::MmRendererMediaPlayerControl(QObject *parent)
       m_playAfterMediaLoaded(false),
       m_inputAttached(false),
       m_stopEventsToIgnore(0),
-      m_bufferStatus(0)
+      m_bufferLevel(0)
 {
     m_loadingTimer.setSingleShot(true);
     m_loadingTimer.setInterval(0);
@@ -234,8 +234,11 @@ void MmRendererMediaPlayerControl::attach()
 
     m_inputAttached = true;
     setMediaStatus(QMediaPlayer::LoadedMedia);
-    m_bufferStatus = 0;
-    emit bufferStatusChanged(m_bufferStatus);
+
+    // mm-renderer has buffer properties "status" and "level"
+    // QMediaPlayer's buffer status maps to mm-renderer's buffer level
+    m_bufferLevel = 0;
+    emit bufferStatusChanged(m_bufferLevel);
 }
 
 void MmRendererMediaPlayerControl::detach()
@@ -406,7 +409,9 @@ void MmRendererMediaPlayerControl::setMuted(bool muted)
 
 int MmRendererMediaPlayerControl::bufferStatus() const
 {
-    return m_bufferStatus;
+    // mm-renderer has buffer properties "status" and "level"
+    // QMediaPlayer's buffer status maps to mm-renderer's buffer level
+    return m_bufferLevel;
 }
 
 bool MmRendererMediaPlayerControl::isAudioAvailable() const
@@ -585,13 +590,23 @@ void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)
 
 void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus)
 {
-    const int slashPos = bufferStatus.indexOf('/');
+    if (bufferStatus == QLatin1String("buffering"))
+        setMediaStatus(QMediaPlayer::BufferingMedia);
+    else if (bufferStatus == QLatin1String("playing"))
+        setMediaStatus(QMediaPlayer::BufferedMedia);
+    // ignore "idle" buffer status
+}
+
+void MmRendererMediaPlayerControl::setMmBufferLevel(const QString &bufferLevel)
+{
+    // buffer level has format level/capacity, e.g. "91319/124402"
+    const int slashPos = bufferLevel.indexOf('/');
     if (slashPos != -1) {
-        const int fill = bufferStatus.leftRef(slashPos).toInt();
-        const int capacity = bufferStatus.midRef(slashPos + 1).toInt();
+        const int fill = bufferLevel.leftRef(slashPos).toInt();
+        const int capacity = bufferLevel.midRef(slashPos + 1).toInt();
         if (capacity != 0) {
-            m_bufferStatus = fill / static_cast<float>(capacity) * 100.0f;
-            emit bufferStatusChanged(m_bufferStatus);
+            m_bufferLevel = fill / static_cast<float>(capacity) * 100.0f;
+            emit bufferStatusChanged(m_bufferLevel);
         }
     }
 }

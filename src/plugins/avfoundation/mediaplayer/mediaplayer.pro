@@ -21,7 +21,8 @@ HEADERS += \
     avfmediaplayerservice.h \
     avfmediaplayersession.h \
     avfmediaplayerserviceplugin.h \
-    avfvideooutput.h
+    avfvideooutput.h \
+    avfvideowindowcontrol.h
 
 OBJECTIVE_SOURCES += \
     avfmediaplayercontrol.mm \
@@ -29,7 +30,8 @@ OBJECTIVE_SOURCES += \
     avfmediaplayerservice.mm \
     avfmediaplayerserviceplugin.mm \
     avfmediaplayersession.mm \
-    avfvideooutput.mm
+    avfvideooutput.mm \
+    avfvideowindowcontrol.mm
 
     qtHaveModule(widgets) {
         QT += multimediawidgets-private

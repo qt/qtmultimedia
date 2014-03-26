@@ -227,7 +227,7 @@ QDeclarativeCamera::Error QDeclarativeCamera::errorCode() const
 
     This property holds the last error string, if any.
 
-    \sa QtMultimedia::Camera::onError
+    \sa error, errorCode
 */
 QString QDeclarativeCamera::errorString() const
 {
@@ -594,13 +594,13 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 
     This property holds the last error code.
 
-    \sa QtMultimedia::Camera::onError
+    \sa error, errorString
 */
 
 /*!
-    \qmlsignal QtMultimedia::Camera::onError(errorCode, errorString)
+    \qmlsignal QtMultimedia::Camera::error(errorCode, errorString)
 
-    This handler is called when an error occurs. The enumeration value
+    This signal is emitted when an error occurs. The enumeration value
     \a errorCode is one of the values defined below, and a descriptive string
     value is available in \a errorString.
 
@@ -612,6 +612,10 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
     \row \li ServiceMissingError \li No camera service available.
     \row \li NotSupportedFeatureError \li The feature is not supported.
     \endtable
+
+    The corresponding handler is \c onError.
+
+    \sa errorCode, errorString
 */
 
 /*!
@@ -619,6 +623,8 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 
     This signal is emitted when the lock status (focus, exposure etc) changes.
     This can happen when locking (e.g. autofocusing) is complete or has failed.
+
+    The corresponding handler is \c onLockStatusChanged.
 */
 
 /*!
@@ -627,34 +633,44 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
     This signal is emitted when the camera state has changed to \a state.  Since the
     state changes may take some time to occur this signal may arrive sometime
     after the state change has been requested.
+
+    The corresponding handler is \c onStateChanged.
 */
 
 /*!
     \qmlsignal Camera::opticalZoomChanged(zoom)
 
-    The optical zoom setting has changed to \a zoom.
+    This signal is emitted when the optical zoom setting has changed to \a zoom.
+
+    The corresponding handler is \c onOpticalZoomChanged.
 */
 
 /*!
     \qmlsignal Camera::digitalZoomChanged(zoom)
 
-    The digital zoom setting has changed to \a zoom.
+    This signal is emitted when the digital zoom setting has changed to \a zoom.
+
+    The corresponding handler is \c onDigitalZoomChanged.
 */
 
 /*!
     \qmlsignal Camera::maximumOpticalZoomChanged(zoom)
 
-    The maximum optical zoom setting has changed to \a zoom.  This
-    can occur when you change between video and still image capture
-    modes, or the capture settings are changed.
+    This signal is emitted when the maximum optical zoom setting has
+    changed to \a zoom.  This can occur when you change between video
+    and still image capture modes, or the capture settings are changed.
+
+    The corresponding handler is \c onMaximumOpticalZoomChanged.
 */
 
 /*!
     \qmlsignal Camera::maximumDigitalZoomChanged(zoom)
 
-    The maximum digital zoom setting has changed to \a zoom.  This
-    can occur when you change between video and still image capture
-    modes, or the capture settings are changed.
+    This signal is emitted when the maximum digital zoom setting has
+    changed to \a zoom.  This can occur when you change between video
+    and still image capture modes, or the capture settings are changed.
+
+    The corresponding handler is \c onMaximumDigitalZoomChanged.
 */
 
 QT_END_NAMESPACE

@@ -147,6 +147,7 @@ void QGstreamerAudioDecoderServicePlugin::updateSupportedMimeTypes() const
                                         }
                                     }
                                 }
+                                gst_caps_unref(caps);
                             }
                         }
                         gst_object_unref (factory);

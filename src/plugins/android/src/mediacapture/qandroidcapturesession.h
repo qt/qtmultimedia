@@ -99,8 +99,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void updateDuration();
     void onCameraOpened();
-    void onCameraStatusChanged(QCamera::Status);
-    void onCameraCaptureModeChanged(QCamera::CaptureModes mode);
+    void updateStatus();
 
     void onError(int what, int extra);
     void onInfo(int what, int extra);
@@ -145,6 +144,7 @@ private:
     void setStatus(QMediaRecorder::Status status);
 
     void updateViewfinder();
+    void restartViewfinder();
 
     JMediaRecorder *m_mediaRecorder;
     QAndroidCameraSession *m_cameraSession;
@@ -161,6 +161,7 @@ private:
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;
     QUrl m_requestedOutputLocation;
+    QUrl m_usedOutputLocation;
     QUrl m_actualOutputLocation;
 
     CaptureProfile m_defaultSettings;

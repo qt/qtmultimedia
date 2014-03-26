@@ -185,7 +185,7 @@ QDeclarativeSoundInstance::QDeclarativeSoundInstance(QObject *parent)
 }
 
 /*!
-    \qmlproperty QtAudioEngine1::AudioEngine QtAudioEngine1::SoundInstance::engine
+    \qmlproperty QtAudioEngine::AudioEngine QtAudioEngine::SoundInstance::engine
 
     This property holds the reference to AudioEngine, must be set only once.
 */
@@ -234,7 +234,7 @@ QDeclarativeSoundInstance::~QDeclarativeSoundInstance()
 }
 
 /*!
-    \qmlproperty string QtAudioEngine1::SoundInstance::sound
+    \qmlproperty string QtAudioEngine::SoundInstance::sound
 
     This property specifies which Sound this SoundInstance will use. Unlike some properties in
     other types, this property can be changed dynamically.
@@ -294,7 +294,7 @@ void QDeclarativeSoundInstance::dropInstance()
 }
 
 /*!
-    \qmlproperty enumeration QtAudioEngine1::SoundInstance::state
+    \qmlproperty enumeration QtAudioEngine::SoundInstance::state
 
     This property holds the current playback state. It can be one of:
 
@@ -318,7 +318,7 @@ QDeclarativeSoundInstance::State QDeclarativeSoundInstance::state() const
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::SoundInstance::play()
+    \qmlmethod QtAudioEngine::SoundInstance::play()
 
     Starts playback.
 */
@@ -335,7 +335,7 @@ void QDeclarativeSoundInstance::play()
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::SoundInstance::play()
+    \qmlmethod QtAudioEngine::SoundInstance::play()
 
     Stops current playback.
 */
@@ -351,7 +351,7 @@ void QDeclarativeSoundInstance::stop()
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::SoundInstance::play()
+    \qmlmethod QtAudioEngine::SoundInstance::play()
 
     Pauses current playback.
 */
@@ -375,7 +375,7 @@ void QDeclarativeSoundInstance::updatePosition(qreal deltaTime)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::SoundInstance::position
+    \qmlproperty vector3d QtAudioEngine::SoundInstance::position
 
     This property holds the current 3d position.
 */
@@ -397,7 +397,7 @@ void QDeclarativeSoundInstance::setPosition(const QVector3D& position)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::SoundInstance::direction
+    \qmlproperty vector3d QtAudioEngine::SoundInstance::direction
 
     This property holds the current 3d direction.
 */
@@ -419,7 +419,7 @@ void QDeclarativeSoundInstance::setDirection(const QVector3D& direction)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::SoundInstance::velocity
+    \qmlproperty vector3d QtAudioEngine::SoundInstance::velocity
 
     This property holds the current 3d velocity.
 */
@@ -440,7 +440,7 @@ void QDeclarativeSoundInstance::setVelocity(const QVector3D& velocity)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::SoundInstance::gain
+    \qmlproperty vector3d QtAudioEngine::SoundInstance::gain
 
     This property holds the gain adjustment which will be used to modulate the audio output level
     from this SoundInstance.
@@ -466,7 +466,7 @@ void QDeclarativeSoundInstance::setGain(qreal gain)
 }
 
 /*!
-    \qmlproperty vector3d QtAudioEngine1::SoundInstance::pitch
+    \qmlproperty vector3d QtAudioEngine::SoundInstance::pitch
 
     This property holds the pitch adjustment which will be used to modulate the audio pitch
     from this SoundInstance.
@@ -527,43 +527,57 @@ void QDeclarativeSoundInstance::handleStateChanged()
 }
 
 /*!
-    \qmlsignal QtAudioEngine1::SoundInstance::onStateChanged(state)
+    \qmlsignal QtAudioEngine::SoundInstance::stateChanged(state)
 
-    This handler is called when \l state is changed
+    This signal is emitted when \l state is changed
+
+    The corresponding handler is \c onStateChanged.
 */
 
 /*!
-    \qmlsignal QtAudioEngine1::SoundInstance::onPositionChanged()
+    \qmlsignal QtAudioEngine::SoundInstance::positionChanged()
 
-    This handler is called when \l position is changed
+    This signal is emitted when \l position is changed
+
+    The corresponding handler is \c onPositionChanged.
 */
 
 /*!
-    \qmlsignal QtAudioEngine1::SoundInstance::onDirectionChanged()
+    \qmlsignal QtAudioEngine::SoundInstance::directionChanged()
 
-    This handler is called when \l direction is changed
+    This signal is emitted when \l direction is changed
+
+    The corresponding handler is \c onDirectionChanged.
 */
 
 /*!
-    \qmlsignal QtAudioEngine1::SoundInstance::onVelocityChanged()
+    \qmlsignal QtAudioEngine::SoundInstance::velocityChanged()
 
-    This handler is called when \l velocity is changed
+    This signal is emitted when \l velocity is changed
+
+    The corresponding handler is \c onVelocityChanged.
 */
 
 /*!
-    \qmlsignal QtAudioEngine1::SoundInstance::onGainChanged()
+    \qmlsignal QtAudioEngine::SoundInstance::gainChanged()
 
-    This handler is called when \l gain is changed
+    This signal is emitted when \l gain is changed
+
+    The corresponding handler is \c onGainChanged.
 */
 
 /*!
-    \qmlsignal QtAudioEngine1::SoundInstance::onPitchChanged()
+    \qmlsignal QtAudioEngine::SoundInstance::pitchChanged()
 
-    This handler is called when \l pitch is changed
+    This signal is emitted when \l pitch is changed
+
+    The corresponding handler is \c onPitchChanged.
 */
 
 /*!
-    \qmlsignal QtAudioEngine1::SoundInstance::onSoundChanged()
+    \qmlsignal QtAudioEngine::SoundInstance::soundChanged()
 
-    This handler is called when \l sound is changed
+    This signal is emitted when \l sound is changed
+
+    The corresponding handler is \c onSoundChanged.
 */

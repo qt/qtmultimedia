@@ -124,11 +124,15 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
         caps = gst_caps_from_string(format.toLatin1());
     }
 
-    return (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
-                                        "camerabin2_profile",
-                                        (gchar *)"custom camera profile",
-                                        caps,
-                                        NULL); //preset
+    GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
+                "camerabin2_profile",
+                (gchar *)"custom camera profile",
+                caps,
+                NULL); //preset
+
+    gst_caps_unref(caps);
+
+    return profile;
 }
 
 /*!

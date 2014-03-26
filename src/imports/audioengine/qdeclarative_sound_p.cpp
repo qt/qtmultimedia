@@ -150,7 +150,7 @@ void QDeclarativeSoundCone::componentComplete()
 
     This type is part of the \b{QtAudioEngine 1.0} module.
 
-    Sound can be accessed through QtAudioEngine1::AudioEngine::sounds with its unique name
+    Sound can be accessed through QtAudioEngine::AudioEngine::sounds with its unique name
     and must be defined inside AudioEngine.
 
     \qml
@@ -228,7 +228,7 @@ void QDeclarativeSound::componentComplete()
 }
 
 /*!
-    \qmlproperty enumeration QtAudioEngine1::Sound::playType
+    \qmlproperty enumeration QtAudioEngine::Sound::playType
 
     This property holds the playType.  It can be one of:
 
@@ -254,7 +254,7 @@ void QDeclarativeSound::setPlayType(PlayType playType)
 }
 
 /*!
-    \qmlproperty string QtAudioEngine1::Sound::category
+    \qmlproperty string QtAudioEngine::Sound::category
 
     This property specifies which AudioCategory this sound belongs to.
 */
@@ -273,7 +273,7 @@ void QDeclarativeSound::setCategory(const QString& category)
 }
 
 /*!
-    \qmlproperty string QtAudioEngine1::Sound::name
+    \qmlproperty string QtAudioEngine::Sound::name
 
     This property holds the name of Sound, must be unique among all sounds and only
     defined once.
@@ -293,7 +293,7 @@ void QDeclarativeSound::setName(const QString& name)
 }
 
 /*!
-    \qmlproperty string QtAudioEngine1::Sound::attenuationModel
+    \qmlproperty string QtAudioEngine::Sound::attenuationModel
 
     This property specifies which attenuation model this sound will apply.
 */
@@ -382,7 +382,7 @@ void QDeclarativeSound::appendFunction(QQmlListProperty<QDeclarativePlayVariatio
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play()
+    \qmlmethod QtAudioEngine::Sound::play()
 
     Creates a new \l SoundInstance and starts playing.
     Position, direction and velocity are all set to \c "0,0,0".
@@ -393,7 +393,7 @@ void QDeclarativeSound::play()
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(gain)
+    \qmlmethod QtAudioEngine::Sound::play(gain)
 
     Creates a new SoundInstance and starts playing with the adjusted \a gain.
     Position, direction and velocity are all set to \c "0,0,0".
@@ -404,7 +404,7 @@ void QDeclarativeSound::play(qreal gain)
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(gain, pitch)
+    \qmlmethod QtAudioEngine::Sound::play(gain, pitch)
 
     Creates a new SoundInstance and starts playing with the adjusted \a gain and \a pitch.
     Position, direction and velocity are all set to \c "0,0,0".
@@ -415,7 +415,7 @@ void QDeclarativeSound::play(qreal gain, qreal pitch)
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position)
+    \qmlmethod QtAudioEngine::Sound::play(position)
 
     Creates a new SoundInstance and starts playing with specified \a position.
     Direction and velocity are all set to \c "0,0,0".
@@ -426,7 +426,7 @@ void QDeclarativeSound::play(const QVector3D& position)
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, velocity)
+    \qmlmethod QtAudioEngine::Sound::play(position, velocity)
 
     Creates a new SoundInstance and starts playing with specified \a position and \a velocity.
     Direction is set to \c "0,0,0".
@@ -437,7 +437,7 @@ void QDeclarativeSound::play(const QVector3D& position, const QVector3D& velocit
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, velocity, direction)
+    \qmlmethod QtAudioEngine::Sound::play(position, velocity, direction)
 
     Creates a new SoundInstance and starts playing with specified \a position, \a velocity and
     \a direction.
@@ -449,7 +449,7 @@ void QDeclarativeSound::play(const QVector3D& position, const QVector3D& velocit
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, gain)
+    \qmlmethod QtAudioEngine::Sound::play(position, gain)
 
     Creates a new SoundInstance and starts playing with specified \a position and adjusted \a gain.
     Direction and velocity are all set to \c "0,0,0".
@@ -460,7 +460,7 @@ void QDeclarativeSound::play(const QVector3D& position, qreal gain)
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, velocity, gain)
+    \qmlmethod QtAudioEngine::Sound::play(position, velocity, gain)
 
     Creates a new SoundInstance and starts playing with specified \a position, \a velocity and
     adjusted \a gain.
@@ -472,7 +472,7 @@ void QDeclarativeSound::play(const QVector3D& position, const QVector3D& velocit
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, velocity, direction, gain)
+    \qmlmethod QtAudioEngine::Sound::play(position, velocity, direction, gain)
 
     Creates a new SoundInstance and starts playing with specified \a position, \a velocity,
     \a direction and adjusted \a gain.
@@ -483,7 +483,7 @@ void QDeclarativeSound::play(const QVector3D& position, const QVector3D& velocit
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, gain, pitch)
+    \qmlmethod QtAudioEngine::Sound::play(position, gain, pitch)
 
     Creates a new SoundInstance and starts playing with specified \a position, adjusted \a gain and
     \a pitch.
@@ -495,7 +495,7 @@ void QDeclarativeSound::play(const QVector3D& position, qreal gain, qreal pitch)
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, velocity, gain, pitch)
+    \qmlmethod QtAudioEngine::Sound::play(position, velocity, gain, pitch)
 
     Creates a new SoundInstance and starts playing with specified \a position, \a velocity,
     adjusted \a gain and \a pitch.
@@ -507,7 +507,7 @@ void QDeclarativeSound::play(const QVector3D& position, const QVector3D& velocit
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::Sound::play(position, velocity, direction, gain, pitch)
+    \qmlmethod QtAudioEngine::Sound::play(position, velocity, direction, gain, pitch)
 
     Creates a new SoundInstance and starts playing with specified \a position, \a velocity,
     \a direction, adjusted \a gain and \a pitch.
@@ -542,7 +542,7 @@ void QDeclarativeSound::play(const QVector3D& position, const QVector3D& velocit
 }
 
 /*!
-    \qmlmethod QtAudioEngine1::SoundInstance QtAudioEngine1::Sound::newInstance()
+    \qmlmethod QtAudioEngine::SoundInstance QtAudioEngine::Sound::newInstance()
 
     Returns a new \l SoundInstance.
 */

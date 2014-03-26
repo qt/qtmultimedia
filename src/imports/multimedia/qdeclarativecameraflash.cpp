@@ -131,14 +131,14 @@ bool QDeclarativeCameraFlash::isFlashReady() const
     \endtable
 
 */
-int QDeclarativeCameraFlash::flashMode() const
+QDeclarativeCameraFlash::FlashMode QDeclarativeCameraFlash::flashMode() const
 {
-    return m_exposure->flashMode();
+    return QDeclarativeCameraFlash::FlashMode(int(m_exposure->flashMode()));
 }
 
-void QDeclarativeCameraFlash::setFlashMode(int mode)
+void QDeclarativeCameraFlash::setFlashMode(QDeclarativeCameraFlash::FlashMode mode)
 {
-    if (m_exposure->flashMode() != mode) {
+    if (flashMode() != mode) {
         m_exposure->setFlashMode(QCameraExposure::FlashModes(mode));
         emit flashModeChanged(mode);
     }
@@ -154,7 +154,7 @@ void QDeclarativeCameraFlash::setFlashMode(int mode)
     \qmlsignal QtMultimedia::CameraFlash::flashReady(bool)
     This signal is emitted when QCameraExposure indicates that
     the flash is ready to use.
-    The corresponsing handler is \c onFlashReadyChanged.
+    The corresponding handler is \c onFlashReadyChanged.
 */
 
 QT_END_NAMESPACE

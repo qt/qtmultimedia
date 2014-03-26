@@ -110,6 +110,7 @@ FocusScope {
                         text: "Fluorescent"
                     }
                 }
+                onValueChanged: captureControls.camera.imageProcessing.whiteBalanceMode = wbModesButton.value
             }
 
             CameraButton {

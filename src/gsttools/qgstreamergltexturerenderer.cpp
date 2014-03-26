@@ -216,6 +216,7 @@ GstElement *QGstreamerGLTextureRenderer::videoSink()
 
             GstPad *pad = gst_element_get_static_pad(m_videoSink,"sink");
             m_bufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padBufferProbe), this);
+            gst_object_unref(GST_OBJECT(pad));
         }
     }
 

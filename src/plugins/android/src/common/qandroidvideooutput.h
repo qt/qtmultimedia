@@ -60,6 +60,7 @@ public:
 
     virtual void setVideoSize(const QSize &) { }
     virtual void stop() { }
+    virtual void reset() { }
 
     // signals:
     // void readyChanged(bool);

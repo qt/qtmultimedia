@@ -61,7 +61,7 @@ QT_USE_NAMESPACE
 
     \c AudioSample is part of the \b{QtAudioEngine 1.0} module.
 
-    It can be accessed through QtAudioEngine1::AudioEngine::samples with its unique
+    It can be accessed through QtAudioEngine::AudioEngine::samples with its unique
     name and must be defined inside AudioEngine.
 
     \qml
@@ -134,11 +134,12 @@ bool QDeclarativeAudioSample::isStreaming() const
 }
 
 /*!
-    \qmlproperty bool QtAudioEngine1::AudioSample::preloaded
+    \qmlproperty bool QtAudioEngine::AudioSample::preloaded
 
     This property indicates whether this sample needs to be preloaded or not.
-    If true, the audio engine will start loading the sample file immediately when the app started,
-    otherwise the sample will not be loaded until explicitly requested.
+    If \c true, the audio engine will start loading the sample file immediately
+    when the application starts, otherwise the sample will not be loaded until
+    explicitly requested.
 */
 
 bool QDeclarativeAudioSample::isPreloaded() const
@@ -147,7 +148,7 @@ bool QDeclarativeAudioSample::isPreloaded() const
 }
 
 /*!
-    \qmlproperty bool QtAudioEngine1::AudioSample::loaded
+    \qmlproperty bool QtAudioEngine::AudioSample::loaded
 
     This property indicates whether this sample has been loaded into memory or not.
 */
@@ -159,7 +160,7 @@ bool QDeclarativeAudioSample::isLoaded() const
 }
 
 /*!
-    \qmlmethod void QtAudioEngine1::AudioSample::load()
+    \qmlmethod void QtAudioEngine::AudioSample::load()
 
     Starts loading the sample into memory if not loaded.
 */
@@ -193,10 +194,10 @@ void QDeclarativeAudioSample::setStreaming(bool streaming)
 }
 
 /*!
-    \qmlproperty string QtAudioEngine1::AudioSample::name
+    \qmlproperty string QtAudioEngine::AudioSample::name
 
-    This property holds the name of AudioSample, must be unique among all samples and only
-    defined once.
+    This property holds the name of the sample, which must be unique among all
+    samples and only defined once.
 */
 QString QDeclarativeAudioSample::name() const
 {
@@ -237,9 +238,11 @@ QSoundBuffer* QDeclarativeAudioSample::soundBuffer() const
 }
 
 /*!
-    \qmlsignal QtAudioEngine1::AudioSample::onLoadedChanged()
+    \qmlsignal QtAudioEngine::AudioSample::loadedChanged()
 
-    This handler is called when \l loaded is changed
+    This signal is emitted when \l loaded is changed.
+
+    The corresponding handler is \c onLoadedChanged.
 */
 
 

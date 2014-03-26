@@ -103,11 +103,15 @@ bool BpsMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void 
         }
 
         if (bps_event_get_code(event) == MMRENDERER_STATUS_UPDATE) {
-            const qint64 newPosition = QString::fromLatin1(mmrenderer_event_get_position(event)).toLongLong();
+            const qint64 newPosition = QString::fromLatin1(mmrenderer_event_get_position(event)).
+                                       toLongLong();
             handleMmStatusUpdate(newPosition);
 
-            const QString bufferStatus = QString::fromLatin1(mmrenderer_event_get_bufferlevel(event));
-            setMmBufferStatus(bufferStatus);
+            const QString status = QString::fromLatin1(mmrenderer_event_get_bufferstatus(event));
+            setMmBufferStatus(status);
+
+            const QString level = QString::fromLatin1(mmrenderer_event_get_bufferlevel(event));
+            setMmBufferLevel(level);
         }
     }
 

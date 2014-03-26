@@ -53,59 +53,56 @@ import android.util.Log;
 import java.io.FileDescriptor;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.view.SurfaceHolder;
 
-public class QtAndroidMediaPlayer extends MediaPlayer
+public class QtAndroidMediaPlayer
 {
     // Native callback functions for MediaPlayer
     native public void onErrorNative(int what, int extra, long id);
     native public void onBufferingUpdateNative(int percent, long id);
+    native public void onProgressUpdateNative(int progress, long id);
+    native public void onDurationChangedNative(int duration, long id);
     native public void onInfoNative(int what, int extra, long id);
-    native public void onMediaPlayerInfoNative(int what, int extra, long id);
     native public void onVideoSizeChangedNative(int width, int height, long id);
+    native public void onStateChangedNative(int state, long id);
 
+    private MediaPlayer mMediaPlayer = null;
     private Uri mUri = null;
     private final long mID;
+    private final Activity mActivity;
     private boolean mMuted = false;
-    private boolean mPreparing = false;
-    private boolean mInitialized = false;
     private int mVolume = 100;
     private static final String TAG = "Qt MediaPlayer";
-    private static Context mApplicationContext = null;
+    private SurfaceHolder mSurfaceHolder = null;
 
-    final int MEDIA_PLAYER_INVALID_STATE = 1;
-    final int MEDIA_PLAYER_PREPARING = 2;
-    final int MEDIA_PLAYER_READY = 3;
-    final int MEDIA_PLAYER_DURATION = 4;
-    final int MEDIA_PLAYER_PROGRESS = 5;
-    final int MEDIA_PLAYER_FINISHED = 6;
-
-    // Activity set by Qt on load.
-    static public void setActivity(final Activity activity)
-    {
-        try {
-            mApplicationContext = activity.getApplicationContext();
-        } catch(final Exception e) {
-            Log.d(TAG, "" + e.getMessage());
-        }
+    private class State {
+        final static int Uninitialized = 0x1 /* End */;
+        final static int Idle = 0x2;
+        final static int Preparing = 0x4;
+        final static int Prepared = 0x8;
+        final static int Initialized = 0x10;
+        final static int Started = 0x20;
+        final static int Stopped = 0x40;
+        final static int Paused = 0x80;
+        final static int PlaybackCompleted = 0x100;
+        final static int Error = 0x200;
     }
 
-    private class ProgressWatcher implements Runnable
+    private volatile int mState = State.Uninitialized;
+
+    private class ProgressWatcher
+    implements Runnable
     {
         @Override
         public void run()
         {
-            final int duratation = getDuration();
-            int currentPosition = getCurrentPosition();
-
             try {
-                while (duratation >= currentPosition && isPlaying()) {
-                    onMediaPlayerInfoNative(MEDIA_PLAYER_PROGRESS, currentPosition, mID);
+                while ((mState & (State.Started)) != 0) {
+                    onProgressUpdateNative(getCurrentPosition(), mID);
                     Thread.sleep(1000);
-                    currentPosition = getCurrentPosition();
                 }
             } catch (final InterruptedException e) {
-                Log.d(TAG, "" + e.getMessage());
-                return;
+                // Ignore
             }
         }
     }
@@ -121,7 +118,7 @@ public class QtAndroidMediaPlayer extends MediaPlayer
                                final int what,
                                final int extra)
         {
-            reset();
+            setState(State.Error);
             onErrorNative(what, extra, mID);
             return true;
         }
@@ -158,7 +155,7 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         @Override
         public void onCompletion(final MediaPlayer mp)
         {
-            onMediaPlayerInfoNative(MEDIA_PLAYER_FINISHED, 0, mID);
+            setState(State.PlaybackCompleted);
         }
 
     }
@@ -190,9 +187,8 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         @Override
         public void onPrepared(final MediaPlayer mp)
         {
-            mPreparing = false;
-            onMediaPlayerInfoNative(MEDIA_PLAYER_READY, 0, mID);
-            onMediaPlayerInfoNative(MEDIA_PLAYER_DURATION, getDuration(), mID);
+            setState(State.Prepared);
+            onDurationChangedNative(getDuration(), mID);
         }
 
     }
@@ -207,7 +203,7 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         @Override
         public void onSeekComplete(final MediaPlayer mp)
         {
-            onMediaPlayerInfoNative(MEDIA_PLAYER_PROGRESS, getCurrentPosition(), mID);
+            onProgressUpdateNative(getCurrentPosition(), mID);
         }
 
     }
@@ -229,98 +225,117 @@ public class QtAndroidMediaPlayer extends MediaPlayer
 
     }
 
-    public QtAndroidMediaPlayer(final long id)
+    public QtAndroidMediaPlayer(final Activity activity, final long id)
     {
-        super();
         mID = id;
-        setOnBufferingUpdateListener(new MediaPlayerBufferingListener());
-        setOnCompletionListener(new MediaPlayerCompletionListener());
-        setOnInfoListener(new MediaPlayerInfoListener());
-        setOnSeekCompleteListener(new MediaPlayerSeekCompleteListener());
-        setOnVideoSizeChangedListener(new MediaPlayerVideoSizeChangedListener());
-        setOnErrorListener(new MediaPlayerErrorListener());
+        mActivity = activity;
     }
 
-    @Override
+    private void setState(int state)
+    {
+        if (mState == state)
+            return;
+
+        mState = state;
+
+        onStateChangedNative(mState, mID);
+    }
+
+
+    private void init()
+    {
+        if (mMediaPlayer == null) {
+            mMediaPlayer = new MediaPlayer();
+            setState(State.Idle);
+        }
+    }
+
     public void start()
     {
-        if (!mInitialized) {
-            onMediaPlayerInfoNative(MEDIA_PLAYER_INVALID_STATE, 0, mID);
+        if ((mState & (State.Prepared
+                       | State.Started
+                       | State.Paused
+                       | State.PlaybackCompleted)) == 0) {
             return;
         }
 
-        if (mApplicationContext == null)
-            return;
-
-        if (mPreparing)
-            return;
-
-        if (isPlaying())
-            return;
-
         try {
-            super.start();
+            mMediaPlayer.start();
+            setState(State.Started);
             Thread progressThread = new Thread(new ProgressWatcher());
             progressThread.start();
         } catch (final IllegalStateException e) {
-            reset();
             Log.d(TAG, "" + e.getMessage());
         }
     }
 
-    @Override
+
     public void pause()
     {
-        if (!isPlaying())
+        if ((mState & (State.Started | State.Paused | State.PlaybackCompleted)) == 0)
             return;
 
         try {
-            super.pause();
+            mMediaPlayer.pause();
+            setState(State.Paused);
         } catch (final IllegalStateException e) {
-            reset();
             Log.d(TAG, "" + e.getMessage());
         }
     }
 
-    @Override
+
     public void stop()
     {
-        if (!mInitialized)
+        if ((mState & (State.Prepared
+                       | State.Started
+                       | State.Stopped
+                       | State.Paused
+                       | State.PlaybackCompleted)) == 0) {
             return;
+        }
 
         try {
-            super.stop();
+            mMediaPlayer.stop();
+            setState(State.Stopped);
         } catch (final IllegalStateException e) {
             Log.d(TAG, "" + e.getMessage());
-        } finally {
-            reset();
         }
     }
 
-    @Override
+
     public void seekTo(final int msec)
     {
-        if (!mInitialized)
+        if ((mState & (State.Prepared
+                       | State.Started
+                       | State.Paused
+                       | State.PlaybackCompleted)) == 0) {
             return;
+        }
 
         try {
-            super.seekTo(msec);
-            onMediaPlayerInfoNative(MEDIA_PLAYER_PROGRESS, msec, mID);
+            mMediaPlayer.seekTo(msec);
+            onProgressUpdateNative(msec, mID);
         } catch (final IllegalStateException e) {
             Log.d(TAG, "" + e.getMessage());
         }
     }
 
-    @Override
+
     public boolean isPlaying()
     {
         boolean playing = false;
-
-        if (!mInitialized)
+        if ((mState & (State.Idle
+                       | State.Initialized
+                       | State.Prepared
+                       | State.Started
+                       | State.Paused
+                       | State.Stopped
+                       | State.PlaybackCompleted)) == 0) {
             return playing;
+        }
 
         try {
-            playing = super.isPlaying();
+            playing = mMediaPlayer.isPlaying();
         } catch (final IllegalStateException e) {
             Log.d(TAG, "" + e.getMessage());
         }
@@ -328,34 +343,56 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         return playing;
     }
 
-    public void setMediaPath(final String path)
+    public void prepareAsync()
     {
-        if (mInitialized)
-            reset();
+        if ((mState & (State.Initialized | State.Stopped)) == 0)
+           return;
 
         try {
-            mPreparing = true;
-            onMediaPlayerInfoNative(MEDIA_PLAYER_PREPARING, 0, mID);
+            mMediaPlayer.prepareAsync();
+            setState(State.Preparing);
+        } catch (final IllegalStateException e) {
+            Log.d(TAG, "" + e.getMessage());
+        }
+    }
+
+    public void setDataSource(final String path)
+    {
+        if ((mState & State.Uninitialized) != 0)
+            init();
+
+        if ((mState & State.Idle) == 0)
+           return;
+
+        mMediaPlayer.setOnBufferingUpdateListener(new MediaPlayerBufferingListener());
+        mMediaPlayer.setOnCompletionListener(new MediaPlayerCompletionListener());
+        mMediaPlayer.setOnInfoListener(new MediaPlayerInfoListener());
+        mMediaPlayer.setOnSeekCompleteListener(new MediaPlayerSeekCompleteListener());
+        mMediaPlayer.setOnVideoSizeChangedListener(new MediaPlayerVideoSizeChangedListener());
+        mMediaPlayer.setOnErrorListener(new MediaPlayerErrorListener());
+        mMediaPlayer.setOnPreparedListener(new MediaPlayerPreparedListener());
+
+        if (mSurfaceHolder != null)
+            mMediaPlayer.setDisplay(mSurfaceHolder);
+
+        AssetFileDescriptor afd = null;
+        try {
             mUri = Uri.parse(path);
-            if (mUri.getScheme().compareTo("assets") == 0) {
+            final boolean inAssets = (mUri.getScheme().compareTo("assets") == 0);
+            if (inAssets) {
                 final String asset = mUri.getPath().substring(1 /* Remove first '/' */);
-                final AssetManager am = mApplicationContext.getAssets();
-                final AssetFileDescriptor afd = am.openFd(asset);
+                final AssetManager am = mActivity.getAssets();
+                afd = am.openFd(asset);
                 final long offset = afd.getStartOffset();
                 final long length = afd.getLength();
                 FileDescriptor fd = afd.getFileDescriptor();
-                setDataSource(fd, offset, length);
+                mMediaPlayer.setDataSource(fd, offset, length);
             } else {
-                setDataSource(mApplicationContext, mUri);
+                mMediaPlayer.setDataSource(mActivity, mUri);
             }
-            mInitialized = true;
-            setOnPreparedListener(new MediaPlayerPreparedListener());
-            prepareAsync();
+            setState(State.Initialized);
         } catch (final IOException e) {
-            mPreparing = false;
-            onErrorNative(MEDIA_ERROR_UNKNOWN,
-                          /* MEDIA_ERROR_UNSUPPORTED= */ -1010,
-                          mID);
+            Log.d(TAG, "" + e.getMessage());
         } catch (final IllegalArgumentException e) {
             Log.d(TAG, "" + e.getMessage());
         } catch (final SecurityException e) {
@@ -364,19 +401,36 @@ public class QtAndroidMediaPlayer extends MediaPlayer
             Log.d(TAG, "" + e.getMessage());
         } catch (final NullPointerException e) {
             Log.d(TAG, "" + e.getMessage());
+        } finally {
+            if (afd !=null) {
+                try { afd.close(); } catch (final IOException ioe) { /* Ignore... */ }
+            }
+            if ((mState & State.Initialized) == 0) {
+                setState(State.Error);
+                onErrorNative(MediaPlayer.MEDIA_ERROR_UNKNOWN,
+                              -1004 /*MEDIA_ERROR_IO*/,
+                              mID);
+                return;
+            }
         }
     }
 
-   @Override
+
    public int getCurrentPosition()
    {
        int currentPosition = 0;
-
-       if (!mInitialized)
+       if ((mState & (State.Idle
+                      | State.Initialized
+                      | State.Prepared
+                      | State.Started
+                      | State.Paused
+                      | State.Stopped
+                      | State.PlaybackCompleted)) == 0) {
            return currentPosition;
+       }
 
        try {
-           currentPosition = super.getCurrentPosition();
+           currentPosition = mMediaPlayer.getCurrentPosition();
        } catch (final IllegalStateException e) {
            Log.d(TAG, "" + e.getMessage());
        }
@@ -384,16 +438,20 @@ public class QtAndroidMediaPlayer extends MediaPlayer
        return currentPosition;
    }
 
-   @Override
+
    public int getDuration()
    {
        int duration = 0;
-
-       if (!mInitialized)
+       if ((mState & (State.Prepared
+                      | State.Started
+                      | State.Paused
+                      | State.Stopped
+                      | State.PlaybackCompleted)) == 0) {
            return duration;
+       }
 
        try {
-           duration = super.getDuration();
+           duration = mMediaPlayer.getDuration();
        } catch (final IllegalStateException e) {
            Log.d(TAG, "" + e.getMessage());
        }
@@ -414,6 +472,16 @@ public class QtAndroidMediaPlayer extends MediaPlayer
 
    public void setVolume(int volume)
    {
+       if ((mState & (State.Idle
+                      | State.Initialized
+                      | State.Stopped
+                      | State.Prepared
+                      | State.Started
+                      | State.Paused
+                      | State.PlaybackCompleted)) == 0) {
+           return;
+       }
+
        if (volume < 0)
            volume = 0;
 
@@ -423,13 +491,29 @@ public class QtAndroidMediaPlayer extends MediaPlayer
        float newVolume = adjustVolume(volume);
 
        try {
-           super.setVolume(newVolume, newVolume);
+           mMediaPlayer.setVolume(newVolume, newVolume);
            if (!mMuted)
                mVolume = volume;
        } catch (final IllegalStateException e) {
            Log.d(TAG, "" + e.getMessage());
        }
    }
+
+   public SurfaceHolder display()
+   {
+       return mSurfaceHolder;
+   }
+
+   public void setDisplay(SurfaceHolder sh)
+   {
+       mSurfaceHolder = sh;
+
+       if ((mState & State.Uninitialized) != 0)
+           return;
+
+       mMediaPlayer.setDisplay(mSurfaceHolder);
+   }
+
 
    public int getVolume()
    {
@@ -447,11 +531,32 @@ public class QtAndroidMediaPlayer extends MediaPlayer
         return mMuted;
     }
 
-    @Override
+
     public void reset()
     {
-        mInitialized = false;
-        super.reset();
+        if ((mState & (State.Idle
+                       | State.Initialized
+                       | State.Prepared
+                       | State.Started
+                       | State.Paused
+                       | State.Stopped
+                       | State.PlaybackCompleted
+                       | State.Error)) == 0) {
+            return;
+        }
+
+        mMediaPlayer.reset();
+        setState(State.Idle);
     }
 
+    public void release()
+    {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.reset();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
+
+        setState(State.Uninitialized);
+    }
 }

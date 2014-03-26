@@ -161,9 +161,9 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus()
     and \l focusZones property provide information and control
     over how automatic focusing is performed.
 */
-QDeclarativeCamera::FocusMode QDeclarativeCameraFocus::focusMode() const
+QDeclarativeCameraFocus::FocusMode QDeclarativeCameraFocus::focusMode() const
 {
-    return QDeclarativeCamera::FocusMode(int(m_focus->focusMode()));
+    return QDeclarativeCameraFocus::FocusMode(int(m_focus->focusMode()));
 }
 
 /*!
@@ -172,12 +172,12 @@ QDeclarativeCamera::FocusMode QDeclarativeCameraFocus::focusMode() const
     Returns true if the supplied \a mode is a supported focus mode, and
     false otherwise.
 */
-bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCamera::FocusMode mode) const
+bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCameraFocus::FocusMode mode) const
 {
     return m_focus->isFocusModeSupported(QCameraFocus::FocusModes(int(mode)));
 }
 
-void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCamera::FocusMode mode)
+void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCameraFocus::FocusMode mode)
 {
     if (mode != focusMode()) {
         m_focus->setFocusMode(QCameraFocus::FocusModes(int(mode)));
@@ -221,12 +221,12 @@ void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCamera::FocusMode mode)
       \li Focus to the custom point, defined by the customFocusPoint property.
     \endtable
 */
-QDeclarativeCamera::FocusPointMode QDeclarativeCameraFocus::focusPointMode() const
+QDeclarativeCameraFocus::FocusPointMode QDeclarativeCameraFocus::focusPointMode() const
 {
-    return QDeclarativeCamera::FocusPointMode(m_focus->focusPointMode());
+    return QDeclarativeCameraFocus::FocusPointMode(m_focus->focusPointMode());
 }
 
-void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCamera::FocusPointMode mode)
+void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCameraFocus::FocusPointMode mode)
 {
     if (mode != focusPointMode()) {
         m_focus->setFocusPointMode(QCameraFocus::FocusPointMode(mode));
@@ -240,7 +240,7 @@ void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCamera::FocusPointMo
     Returns true if the supplied \a mode is a supported focus point mode, and
     false otherwise.
 */
-bool QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCamera::FocusPointMode mode) const
+bool QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCameraFocus::FocusPointMode mode) const
 {
     return m_focus->isFocusPointModeSupported(QCameraFocus::FocusPointMode(mode));
 }

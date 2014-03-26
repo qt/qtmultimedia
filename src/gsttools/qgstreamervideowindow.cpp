@@ -63,11 +63,11 @@ QGstreamerVideoWindow::QGstreamerVideoWindow(QObject *parent, const char *elemen
         m_videoSink = gst_element_factory_make("xvimagesink", NULL);
 
     if (m_videoSink) {
-        gst_object_ref(GST_OBJECT(m_videoSink)); //Take ownership
-        gst_object_sink(GST_OBJECT(m_videoSink));
+        qt_gst_object_ref_sink(GST_OBJECT(m_videoSink)); //Take ownership
 
         GstPad *pad = gst_element_get_static_pad(m_videoSink,"sink");
         m_bufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padBufferProbe), this);
+        gst_object_unref(GST_OBJECT(pad));
     }
 }
 
@@ -114,6 +114,7 @@ bool QGstreamerVideoWindow::processSyncMessage(const QGstreamerMessage &message)
 
         GstPad *pad = gst_element_get_static_pad(m_videoSink,"sink");
         m_bufferProbeId = gst_pad_add_buffer_probe(pad, G_CALLBACK(padBufferProbe), this);
+        gst_object_unref(GST_OBJECT(pad));
 
         return true;
     }
@@ -319,6 +320,7 @@ void QGstreamerVideoWindow::updateNativeVideoSize()
         //find video native size to update video widget size hint
         GstPad *pad = gst_element_get_static_pad(m_videoSink,"sink");
         GstCaps *caps = gst_pad_get_negotiated_caps(pad);
+        gst_object_unref(GST_OBJECT(pad));
 
         if (caps) {
             m_nativeSize = QGstUtils::capsCorrectedResolution(caps);

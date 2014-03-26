@@ -196,6 +196,8 @@ GstElement *QGstreamerAudioEncode::createEncoder()
         //qDebug() << "set caps filter:" << gst_caps_to_string(caps);
 
         g_object_set(G_OBJECT(capsFilter), "caps", caps, NULL);
+
+        gst_caps_unref(caps);
     }
 
     if (encoderElement) {

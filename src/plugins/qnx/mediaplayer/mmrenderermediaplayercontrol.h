@@ -115,6 +115,7 @@ protected:
     void emitPError(const QString &msg);
     void setMmPosition(qint64 newPosition);
     void setMmBufferStatus(const QString &bufferStatus);
+    void setMmBufferLevel(const QString &bufferLevel);
     void handleMmStopped();
     void handleMmStatusUpdate(qint64 position);
 
@@ -162,7 +163,7 @@ private:
     bool m_playAfterMediaLoaded;
     bool m_inputAttached;
     int m_stopEventsToIgnore;
-    int m_bufferStatus;
+    int m_bufferLevel;
     QString m_tempMediaFileName;
     QTimer m_loadingTimer;
 };
