@@ -165,7 +165,6 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     if (!JMediaPlayer::initJNI(jniEnv) ||
         !JCamera::initJNI(jniEnv) ||
-        !JMultimediaUtils::initJNI(jniEnv) ||
         !JMediaRecorder::initJNI(jniEnv)) {
         return JNI_ERR;
     }

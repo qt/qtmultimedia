@@ -47,9 +47,8 @@
 
 QT_BEGIN_NAMESPACE
 
-class JMultimediaUtils : public QObject, public QJNIObjectPrivate
+class JMultimediaUtils
 {
-    Q_OBJECT
 public:
     enum MediaType {
         Music = 0,
@@ -58,14 +57,10 @@ public:
         Sounds = 3
     };
 
-    JMultimediaUtils();
-
     static void enableOrientationListener(bool enable);
     static int getDeviceOrientation();
     static QString getDefaultMediaDirectory(MediaType type);
     static void registerMediaFile(const QString &file);
-
-    static bool initJNI(JNIEnv *env);
 };
 
 QT_END_NAMESPACE
