@@ -510,8 +510,10 @@ void QAndroidMediaPlayerControl::onVideoSizeChanged(qint32 width, qint32 height)
 void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
 {
     // If reloading, don't report state changes unless the new state is Prepared or Error.
-    if ((mState & JMediaPlayer::Stopped) && !(state & (JMediaPlayer::Prepared | JMediaPlayer::Error)))
+    if ((mState & JMediaPlayer::Stopped)
+        && (state & (JMediaPlayer::Prepared | JMediaPlayer::Error | JMediaPlayer::Uninitialized)) == 0) {
         return;
+    }
 
     mState = state;
     switch (mState) {
