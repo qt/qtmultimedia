@@ -41,7 +41,8 @@
 #include "bbcameraorientationhandler.h"
 
 #include <QAbstractEventDispatcher>
-#include <QCoreApplication>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QDebug>
 
 #include <bps/orientation.h>
@@ -87,11 +88,26 @@ bool BbCameraOrientationHandler::nativeEventFilter(const QByteArray&, void *mess
 
     const int angle = orientation_event_get_angle(event);
     if (angle != m_orientation) {
+#ifndef Q_OS_BLACKBERRY_TABLET
+        if (angle == 180) // The screen does not rotate at 180 degrees
+            return false;
+#endif
         m_orientation = angle;
         emit orientationChanged(m_orientation);
     }
 
     return false; // do not drop the event
+}
+
+int BbCameraOrientationHandler::viewfinderOrientation() const
+{
+    // On a keyboard device we do not rotate the screen at all
+    if (qGuiApp->primaryScreen()->nativeOrientation()
+            != qGuiApp->primaryScreen()->primaryOrientation()) {
+        return m_orientation;
+    }
+
+    return 0;
 }
 
 int BbCameraOrientationHandler::orientation() const

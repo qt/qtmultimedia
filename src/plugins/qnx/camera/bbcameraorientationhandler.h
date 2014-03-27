@@ -57,6 +57,8 @@ public:
 
     int orientation() const;
 
+    int viewfinderOrientation() const;
+
 Q_SIGNALS:
     void orientationChanged(int degree);
 
