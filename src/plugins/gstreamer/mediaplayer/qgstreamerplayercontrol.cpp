@@ -630,7 +630,7 @@ void QGstreamerPlayerControl::popAndNotifyState()
     if (m_stateStack.isEmpty()) {
         if (m_currentState != oldState) {
 #ifdef DEBUG_PLAYBIN
-            qDebug() << "State changed:" << m_state;
+            qDebug() << "State changed:" << m_currentState;
 #endif
             emit stateChanged(m_currentState);
         }
