@@ -196,38 +196,14 @@ QList<int> CoreAudioDeviceInfo::supportedSampleRates()
 
 QList<int> CoreAudioDeviceInfo::supportedChannelCounts()
 {
-    QList<int> supportedChannels;
-    int maxChannels = 0;
+    static QList<int> supportedChannels;
 
-#if defined(Q_OS_OSX)
-    UInt32 propSize = 0;
-    AudioObjectPropertyScope scope = m_mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
-    AudioObjectPropertyAddress streamConfigurationPropertyAddress = { kAudioDevicePropertyStreamConfiguration,
-                                                                      scope,
-                                                                      kAudioObjectPropertyElementMaster };
-
-    if (AudioObjectGetPropertyDataSize(m_deviceId, &streamConfigurationPropertyAddress, 0, NULL, &propSize) == noErr) {
-        AudioBufferList* audioBufferList = static_cast<AudioBufferList*>(malloc(propSize));
-
-        if (audioBufferList != 0) {
-            if (AudioObjectGetPropertyData(m_deviceId, &streamConfigurationPropertyAddress, 0, NULL, &propSize, audioBufferList) == noErr) {
-                for (int i = 0; i < int(audioBufferList->mNumberBuffers); ++i)
-                    maxChannels += audioBufferList->mBuffers[i].mNumberChannels;
-            }
-
-            free(audioBufferList);
-        }
+    if (supportedChannels.isEmpty()) {
+        // If the number of channels is not supported by an audio device, Core Audio will
+        // automatically convert the audio data.
+        for (int i = 1; i <= 16; ++i)
+            supportedChannels.append(i);
     }
-#else //iOS
-    if (m_mode == QAudio::AudioInput)
-        maxChannels = CoreAudioSessionManager::instance().inputChannelCount();
-    else if (m_mode == QAudio::AudioOutput)
-        maxChannels = CoreAudioSessionManager::instance().outputChannelCount();
-#endif
-
-    // Assume all channel configurations are supported up to the maximum number of channels
-    for (int i = 1; i <= maxChannels; ++i)
-        supportedChannels.append(i);
 
     return supportedChannels;
 }
