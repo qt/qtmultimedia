@@ -907,7 +907,7 @@ void tst_QVideoWidget::fullScreenWindowControl()
     QtTestVideoObject object(new QtTestWindowControl, 0, 0);
     QVideoWidget widget;
     object.bind(&widget);
-    widget.show();
+    widget.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     Qt::WindowFlags windowFlags = widget.windowFlags();
@@ -992,7 +992,7 @@ void tst_QVideoWidget::fullScreenWidgetControl()
     QtTestVideoObject object(0, new QtTestWidgetControl, 0);
     QVideoWidget widget;
     object.bind(&widget);
-    widget.show();
+    widget.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     Qt::WindowFlags windowFlags = widget.windowFlags();
@@ -1078,7 +1078,7 @@ void tst_QVideoWidget::fullScreenRendererControl()
     QtTestVideoObject object(0, 0, new QtTestRendererControl);
     QVideoWidget widget;
     object.bind(&widget);
-    widget.show();
+    widget.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     Qt::WindowFlags windowFlags = widget.windowFlags();
