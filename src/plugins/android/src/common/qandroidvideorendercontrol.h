@@ -49,7 +49,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class JSurfaceTextureHolder;
 class QOpenGLTexture;
 class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
@@ -115,7 +114,7 @@ private:
 
     QJNIObjectPrivate *m_androidSurface;
     JSurfaceTexture *m_surfaceTexture;
-    JSurfaceTextureHolder *m_surfaceHolder;
+    QJNIObjectPrivate *m_surfaceHolder;
 
     quint32 m_externalTex;
     QOpenGLFramebufferObject *m_fbo;

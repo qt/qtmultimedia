@@ -125,7 +125,7 @@ CoreAudioRingBuffer::CoreAudioRingBuffer(int bufferSize):
 
 CoreAudioRingBuffer::~CoreAudioRingBuffer()
 {
-    delete m_buffer;
+    delete[] m_buffer;
 }
 
 CoreAudioRingBuffer::Region CoreAudioRingBuffer::acquireReadRegion(int size)

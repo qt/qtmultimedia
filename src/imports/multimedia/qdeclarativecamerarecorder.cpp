@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
     settings and metadata for videos.
 
     It should not be constructed separately, instead the
-    \c videRecorder property of a \l Camera should be used.
+    \c videoRecorder property of a \l Camera should be used.
 
     \qml
     Camera {

@@ -48,7 +48,6 @@
 #include "qandroidcamerasession.h"
 #include "jmediaplayer.h"
 #include "jsurfacetexture.h"
-#include "jsurfacetextureholder.h"
 #include "jcamera.h"
 #include "jmultimediautils.h"
 #include "jmediarecorder.h"
@@ -165,13 +164,12 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     JNIEnv *jniEnv = uenv.nativeEnvironment;
 
     if (!JMediaPlayer::initJNI(jniEnv) ||
-        !JSurfaceTexture::initJNI(jniEnv) ||
-        !JSurfaceTextureHolder::initJNI(jniEnv) ||
         !JCamera::initJNI(jniEnv) ||
-        !JMultimediaUtils::initJNI(jniEnv) ||
         !JMediaRecorder::initJNI(jniEnv)) {
         return JNI_ERR;
     }
+
+    JSurfaceTexture::initJNI(jniEnv);
 
     return JNI_VERSION_1_4;
 }

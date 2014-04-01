@@ -74,13 +74,8 @@ static const char* qt_ID3GenreNames[] =
 QAndroidMetaDataReaderControl::QAndroidMetaDataReaderControl(QObject *parent)
     : QMetaDataReaderControl(parent)
     , m_available(false)
-    , m_retriever(0)
+    , m_retriever(new JMediaMetadataRetriever)
 {
-    m_retriever = new JMediaMetadataRetriever;
-    if (!m_retriever->isValid()) {
-        delete m_retriever;
-        m_retriever = 0;
-    }
 }
 
 QAndroidMetaDataReaderControl::~QAndroidMetaDataReaderControl()

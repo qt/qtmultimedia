@@ -110,7 +110,7 @@ QAudioFormat CoreAudioDeviceInfo::preferredFormat() const
                 }
             }
 
-            delete streams;
+            delete[] streams;
         }
     }
 #else //iOS
@@ -180,7 +180,7 @@ QList<int> CoreAudioDeviceInfo::supportedSampleRates()
                 }
             }
 
-            delete vr;
+            delete[] vr;
         }
     }
 #else //iOS
@@ -380,7 +380,7 @@ QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
                 }
             }
 
-            delete audioDevices;
+            delete[] audioDevices;
         }
     }
 #else //iOS

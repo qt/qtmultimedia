@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,21 +39,45 @@
 **
 ****************************************************************************/
 
-#ifndef JSURFACETEXTUREHOLDER_H
-#define JSURFACETEXTUREHOLDER_H
+#include "bbcamerainfocontrol.h"
 
-#include <QtCore/private/qjni_p.h>
+#include "bbcamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class JSurfaceTextureHolder : public QJNIObjectPrivate
+BbCameraInfoControl::BbCameraInfoControl(QObject *parent)
+    : QCameraInfoControl(parent)
 {
-public:
-    JSurfaceTextureHolder(jobject surface);
+}
 
-    static bool initJNI(JNIEnv *env);
-};
+QCamera::Position BbCameraInfoControl::position(const QString &deviceName)
+{
+    if (deviceName == QString::fromUtf8(BbCameraSession::cameraIdentifierFront()))
+        return QCamera::FrontFace;
+    else if (deviceName == QString::fromUtf8(BbCameraSession::cameraIdentifierRear()))
+        return QCamera::BackFace;
+    else
+        return QCamera::UnspecifiedPosition;
+}
+
+int BbCameraInfoControl::orientation(const QString &deviceName)
+{
+    // The camera sensor orientation could be retrieved with camera_get_native_orientation()
+    // but since the sensor angular offset is compensated with camera_set_videovf_property() and
+    // camera_set_photovf_property() we should always return 0 here.
+    Q_UNUSED(deviceName);
+    return 0;
+}
+
+QCamera::Position BbCameraInfoControl::cameraPosition(const QString &deviceName) const
+{
+    return position(deviceName);
+}
+
+int BbCameraInfoControl::cameraOrientation(const QString &deviceName) const
+{
+    return orientation(deviceName);
+}
 
 QT_END_NAMESPACE
 
-#endif // JSURFACETEXTUREHOLDER_H

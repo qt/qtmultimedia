@@ -71,6 +71,7 @@ private:
     QList<QByteArray> m_devices;
     QStringList m_descriptions;
 
+    int m_default;
     int m_selected;
 };
 

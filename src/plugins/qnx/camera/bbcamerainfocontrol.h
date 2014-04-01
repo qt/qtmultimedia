@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,27 +39,27 @@
 **
 ****************************************************************************/
 
-#include "jsurfacetextureholder.h"
+#ifndef BBCAMERAINFOCONTROL_H
+#define BBCAMERAINFOCONTROL_H
+
+#include <qcamerainfocontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-static jclass g_qtSurfaceTextureHolderClass = 0;
-
-JSurfaceTextureHolder::JSurfaceTextureHolder(jobject surface)
-    : QJNIObjectPrivate(g_qtSurfaceTextureHolderClass, "(Landroid/view/Surface;)V", surface)
+class BbCameraInfoControl : public QCameraInfoControl
 {
-}
+    Q_OBJECT
+public:
+    explicit BbCameraInfoControl(QObject *parent = 0);
 
-bool JSurfaceTextureHolder::initJNI(JNIEnv *env)
-{
-    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtSurfaceTextureHolder");
-    if (env->ExceptionCheck())
-        env->ExceptionClear();
+    QCamera::Position cameraPosition(const QString &deviceName) const;
+    int cameraOrientation(const QString &deviceName) const;
 
-    if (clazz)
-        g_qtSurfaceTextureHolderClass = static_cast<jclass>(env->NewGlobalRef(clazz));
-
-    return true;
-}
+    static QCamera::Position position(const QString &deviceName);
+    static int orientation(const QString &deviceName);
+};
 
 QT_END_NAMESPACE
+
+#endif // BBCAMERAINFOCONTROL_H
+

@@ -40,7 +40,9 @@
 ****************************************************************************/
 #include "bbserviceplugin.h"
 
+#include "bbcamerainfocontrol.h"
 #include "bbcameraservice.h"
+#include "bbcamerasession.h"
 #include "bbvideodeviceselectorcontrol.h"
 #include "mmrenderermediaplayerservice.h"
 
@@ -120,8 +122,20 @@ void BbServicePlugin::updateDevices() const
     if (m_cameraDevices.isEmpty()) {
         qWarning() << "No camera devices found";
     } else {
-        m_defaultCameraDevice = m_cameraDevices.first();
+        m_defaultCameraDevice = m_cameraDevices.contains(BbCameraSession::cameraIdentifierRear())
+                                ? BbCameraSession::cameraIdentifierRear()
+                                : m_cameraDevices.first();
     }
+}
+
+QCamera::Position BbServicePlugin::cameraPosition(const QByteArray &device) const
+{
+    return BbCameraInfoControl::position(device);
+}
+
+int BbServicePlugin::cameraOrientation(const QByteArray &device) const
+{
+    return BbCameraInfoControl::orientation(device);
 }
 
 QT_END_NAMESPACE
