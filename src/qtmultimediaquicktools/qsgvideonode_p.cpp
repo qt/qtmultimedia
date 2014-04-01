@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 QSGVideoNode::QSGVideoNode()
     : m_orientation(-1)
 {
+    setFlag(QSGNode::OwnsGeometry);
 }
 
 /* Helpers */
