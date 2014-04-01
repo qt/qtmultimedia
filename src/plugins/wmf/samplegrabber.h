@@ -72,6 +72,9 @@ public:
 protected:
     SampleGrabberCallback() : m_cRef(1) {}
 
+public:
+    virtual ~SampleGrabberCallback() {}
+
 private:
     long m_cRef;
 };
