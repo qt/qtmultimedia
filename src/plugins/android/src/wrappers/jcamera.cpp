@@ -47,6 +47,7 @@
 #include "qandroidmultimediautils.h"
 #include <qthread.h>
 #include <qmutex.h>
+#include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -229,8 +230,6 @@ class JCameraWorker : public QObject
 
     QSize m_previewSize;
     int m_rotation;
-
-    bool m_hasAPI14;
 
     JCamera *q;
 
@@ -616,7 +615,6 @@ JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread
     : QObject(0)
     , m_cameraId(cameraId)
     , m_rotation(0)
-    , m_hasAPI14(false)
     , m_parametersMutex(QMutex::Recursive)
     , m_camera(cam)
 {
@@ -638,23 +636,6 @@ JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread
         QJNIObjectPrivate params = m_camera.callObjectMethod("getParameters",
                                                              "()Landroid/hardware/Camera$Parameters;");
         m_parameters = QJNIObjectPrivate(params);
-
-        // Check if API 14 is available
-        QJNIEnvironmentPrivate env;
-        jclass clazz = env->FindClass("android/hardware/Camera");
-        if (env->ExceptionCheck()) {
-            clazz = 0;
-            env->ExceptionClear();
-        }
-        if (clazz) {
-            // startFaceDetection() was added in API 14
-            jmethodID id = env->GetMethodID(clazz, "startFaceDetection", "()V");
-            if (env->ExceptionCheck()) {
-                id = 0;
-                env->ExceptionClear();
-            }
-            m_hasAPI14 = bool(id);
-        }
     }
 }
 
@@ -881,9 +862,12 @@ void JCameraWorker::setFocusMode(const QString &value)
 
 int JCameraWorker::getMaxNumFocusAreas()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return 0;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return 0;
 
     return m_parameters.callMethod<jint>("getMaxNumFocusAreas");
@@ -891,11 +875,14 @@ int JCameraWorker::getMaxNumFocusAreas()
 
 QList<QRect> JCameraWorker::getFocusAreas()
 {
-    QMutexLocker parametersLocker(&m_parametersMutex);
-
     QList<QRect> areas;
 
-    if (m_hasAPI14 && m_parameters.isValid()) {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return areas;
+
+    QMutexLocker parametersLocker(&m_parametersMutex);
+
+    if (m_parameters.isValid()) {
         QJNIObjectPrivate list = m_parameters.callObjectMethod("getFocusAreas",
                                                                "()Ljava/util/List;");
 
@@ -916,9 +903,12 @@ QList<QRect> JCameraWorker::getFocusAreas()
 
 void JCameraWorker::setFocusAreas(const QList<QRect> &areas)
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return;
 
     QJNIObjectPrivate list;
@@ -949,9 +939,12 @@ void JCameraWorker::autoFocus()
 
 bool JCameraWorker::isAutoExposureLockSupported()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("isAutoExposureLockSupported");
@@ -959,9 +952,12 @@ bool JCameraWorker::isAutoExposureLockSupported()
 
 bool JCameraWorker::getAutoExposureLock()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("getAutoExposureLock");
@@ -969,9 +965,12 @@ bool JCameraWorker::getAutoExposureLock()
 
 void JCameraWorker::setAutoExposureLock(bool toggle)
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return;
 
     m_parameters.callMethod<void>("setAutoExposureLock", "(Z)V", toggle);
@@ -980,9 +979,12 @@ void JCameraWorker::setAutoExposureLock(bool toggle)
 
 bool JCameraWorker::isAutoWhiteBalanceLockSupported()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("isAutoWhiteBalanceLockSupported");
@@ -990,9 +992,12 @@ bool JCameraWorker::isAutoWhiteBalanceLockSupported()
 
 bool JCameraWorker::getAutoWhiteBalanceLock()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("getAutoWhiteBalanceLock");
@@ -1000,9 +1005,12 @@ bool JCameraWorker::getAutoWhiteBalanceLock()
 
 void JCameraWorker::setAutoWhiteBalanceLock(bool toggle)
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return;
 
     m_parameters.callMethod<void>("setAutoWhiteBalanceLock", "(Z)V", toggle);
