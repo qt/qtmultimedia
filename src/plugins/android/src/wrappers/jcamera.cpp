@@ -82,27 +82,24 @@ static QJNIObjectPrivate rectToArea(const QRect &rect)
 // native method for QtCamera.java
 static void notifyAutoFocusComplete(JNIEnv* , jobject, int id, jboolean success)
 {
-    g_objectMapMutex.lock();
+    QMutexLocker locker(&g_objectMapMutex);
     JCamera *obj = g_objectMap.value(id, 0);
-    g_objectMapMutex.unlock();
     if (obj)
         Q_EMIT obj->autoFocusComplete(success);
 }
 
 static void notifyPictureExposed(JNIEnv* , jobject, int id)
 {
-    g_objectMapMutex.lock();
+    QMutexLocker locker(&g_objectMapMutex);
     JCamera *obj = g_objectMap.value(id, 0);
-    g_objectMapMutex.unlock();
     if (obj)
         Q_EMIT obj->pictureExposed();
 }
 
 static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 {
-    g_objectMapMutex.lock();
+    QMutexLocker locker(&g_objectMapMutex);
     JCamera *obj = g_objectMap.value(id, 0);
-    g_objectMapMutex.unlock();
     if (obj) {
         QByteArray bytes;
         int arrayLength = env->GetArrayLength(data);
@@ -114,9 +111,8 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 
 static void notifyFrameFetched(JNIEnv *env, jobject, int id, jbyteArray data)
 {
-    g_objectMapMutex.lock();
+    QMutexLocker locker(&g_objectMapMutex);
     JCamera *obj = g_objectMap.value(id, 0);
-    g_objectMapMutex.unlock();
     if (obj) {
         QByteArray bytes;
         int arrayLength = env->GetArrayLength(data);
