@@ -50,18 +50,6 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qmetaobject.h>
 
-#include <linux/types.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/mman.h>
-#include <linux/videodev2.h>
-
 QT_BEGIN_NAMESPACE
 
 //#define CAMEABIN_DEBUG 1

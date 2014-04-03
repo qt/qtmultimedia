@@ -49,19 +49,6 @@
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 
-#include <linux/types.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/mman.h>
-#include <linux/videodev2.h>
-#include <gst/gst.h>
-
 // #define QT_SUPPORTEDMIMETYPES_DEBUG
 
 QMediaService* QGstreamerAudioDecoderServicePlugin::create(const QString &key)
