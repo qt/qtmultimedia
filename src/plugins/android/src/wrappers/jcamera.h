@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
 class QThread;
 
-class JCameraWorker;
+class JCameraPrivate;
 
 class JCamera : public QObject
 {
@@ -175,9 +175,11 @@ Q_SIGNALS:
     void frameFetched(const QByteArray &frame);
 
 private:
-    JCamera(int cameraId, jobject cam, QThread *workerThread);
+    JCamera(JCameraPrivate *d, QThread *worker);
 
-    JCameraWorker *d;
+    Q_DECLARE_PRIVATE(JCamera)
+    JCameraPrivate *d_ptr;
+    QScopedPointer<QThread> m_worker;
 };
 
 QT_END_NAMESPACE

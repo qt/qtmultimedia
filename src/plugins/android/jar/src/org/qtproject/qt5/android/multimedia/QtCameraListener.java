@@ -48,148 +48,38 @@ import android.util.Log;
 import java.lang.Math;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class QtCamera implements Camera.ShutterCallback,
-                                 Camera.PictureCallback,
-                                 Camera.AutoFocusCallback,
-                                 Camera.PreviewCallback
+public class QtCameraListener implements Camera.ShutterCallback,
+                                         Camera.PictureCallback,
+                                         Camera.AutoFocusCallback,
+                                         Camera.PreviewCallback
 {
     private int m_cameraId = -1;
-    private Camera m_camera = null;
-    private byte[] m_cameraPreviewFirstBuffer = null;
-    private byte[] m_cameraPreviewSecondBuffer = null;
-    private int m_actualPreviewBuffer = 0;
+    private byte[][] m_cameraPreviewBuffer = null;
+    private volatile int m_actualPreviewBuffer = 0;
     private final ReentrantLock m_buffersLock = new ReentrantLock();
-    private boolean m_isReleased = false;
     private boolean m_fetchEachFrame = false;
 
     private static final String TAG = "Qt Camera";
 
-    private QtCamera(int id, Camera cam)
+    private QtCameraListener(int id)
     {
         m_cameraId = id;
-        m_camera = cam;
     }
 
-    public static QtCamera open(int cameraId)
+    public void preparePreviewBuffer(Camera camera)
     {
-        try {
-            Camera cam = Camera.open(cameraId);
-            return new QtCamera(cameraId, cam);
-        } catch(Exception e) {
-            Log.d(TAG, e.getMessage());
-        }
-        return null;
-    }
-
-    public Camera.Parameters getParameters()
-    {
-        return m_camera.getParameters();
-    }
-
-    public void lock()
-    {
-        try {
-            m_camera.lock();
-        } catch(Exception e) {
-            Log.d(TAG, e.getMessage());
-        }
-    }
-
-    public void unlock()
-    {
-        try {
-            m_camera.unlock();
-        } catch(Exception e) {
-            Log.d(TAG, e.getMessage());
-        }
-    }
-
-    public void release()
-    {
-        m_isReleased = true;
-        m_camera.release();
-    }
-
-    public void reconnect()
-    {
-        try {
-            m_camera.reconnect();
-        } catch(Exception e) {
-            Log.d(TAG, e.getMessage());
-        }
-    }
-
-    public void setDisplayOrientation(int degrees)
-    {
-        m_camera.setDisplayOrientation(degrees);
-    }
-
-    public void setParameters(Camera.Parameters params)
-    {
-        try {
-            m_camera.setParameters(params);
-        } catch(Exception e) {
-            Log.d(TAG, e.getMessage());
-        }
-    }
-
-    public void setPreviewTexture(SurfaceTexture surfaceTexture)
-    {
-        try {
-            m_camera.setPreviewTexture(surfaceTexture);
-        } catch(Exception e) {
-            Log.d(TAG, e.getMessage());
-        }
+        Camera.Size previewSize = camera.getParameters().getPreviewSize();
+        double bytesPerPixel = ImageFormat.getBitsPerPixel(camera.getParameters().getPreviewFormat()) / 8.0;
+        int bufferSizeNeeded = (int)Math.ceil(bytesPerPixel*previewSize.width*previewSize.height);
+        m_buffersLock.lock();
+        if (m_cameraPreviewBuffer == null || m_cameraPreviewBuffer[0].length < bufferSizeNeeded)
+            m_cameraPreviewBuffer = new byte[2][bufferSizeNeeded];
+        m_buffersLock.unlock();
     }
 
     public void fetchEachFrame(boolean fetch)
     {
         m_fetchEachFrame = fetch;
-    }
-
-    public void startPreview()
-    {
-        Camera.Size previewSize = m_camera.getParameters().getPreviewSize();
-        double bytesPerPixel = ImageFormat.getBitsPerPixel(m_camera.getParameters().getPreviewFormat()) / 8.0;
-        int bufferSizeNeeded = (int)Math.ceil(bytesPerPixel*previewSize.width*previewSize.height);
-
-        //We need to clear preview buffers queue here, but there is no method to do it
-        //Though just resetting preview callback do the trick
-        m_camera.setPreviewCallback(null);
-        m_buffersLock.lock();
-        if (m_cameraPreviewFirstBuffer == null || m_cameraPreviewFirstBuffer.length < bufferSizeNeeded)
-            m_cameraPreviewFirstBuffer = new byte[bufferSizeNeeded];
-        if (m_cameraPreviewSecondBuffer == null || m_cameraPreviewSecondBuffer.length < bufferSizeNeeded)
-            m_cameraPreviewSecondBuffer = new byte[bufferSizeNeeded];
-        addCallbackBuffer();
-        m_buffersLock.unlock();
-        m_camera.setPreviewCallbackWithBuffer(this);
-
-        m_camera.startPreview();
-    }
-
-    public void stopPreview()
-    {
-        m_camera.stopPreview();
-    }
-
-    public void autoFocus()
-    {
-        m_camera.autoFocus(this);
-    }
-
-    public void cancelAutoFocus()
-    {
-        m_camera.cancelAutoFocus();
-    }
-
-    public void takePicture()
-    {
-        try {
-            m_camera.takePicture(this, null, this);
-        } catch(Exception e) {
-            Log.d(TAG, e.getMessage());
-        }
     }
 
     public byte[] lockAndFetchPreviewBuffer()
@@ -199,10 +89,7 @@ public class QtCamera implements Camera.ShutterCallback,
         //We should reset actualBuffer flag here to make sure we will not use old preview with future captures
         byte[] result = null;
         m_buffersLock.lock();
-        if (m_actualPreviewBuffer == 1)
-            result = m_cameraPreviewFirstBuffer;
-        else if (m_actualPreviewBuffer == 2)
-            result = m_cameraPreviewSecondBuffer;
+        result = m_cameraPreviewBuffer[(m_actualPreviewBuffer == 1) ? 0 : 1];
         m_actualPreviewBuffer = 0;
         return result;
     }
@@ -213,14 +100,9 @@ public class QtCamera implements Camera.ShutterCallback,
             m_buffersLock.unlock();
     }
 
-    private void addCallbackBuffer()
+    public byte[] callbackBuffer()
     {
-        if (m_isReleased)
-            return;
-
-        m_camera.addCallbackBuffer((m_actualPreviewBuffer == 1)
-                                    ? m_cameraPreviewSecondBuffer
-                                    : m_cameraPreviewFirstBuffer);
+        return m_cameraPreviewBuffer[(m_actualPreviewBuffer == 1) ? 1 : 0];
     }
 
     @Override
@@ -243,13 +125,13 @@ public class QtCamera implements Camera.ShutterCallback,
         if (data != null && m_fetchEachFrame)
             notifyFrameFetched(m_cameraId, data);
 
-        if (data == m_cameraPreviewFirstBuffer)
+        if (data == m_cameraPreviewBuffer[0])
             m_actualPreviewBuffer = 1;
-        else if (data == m_cameraPreviewSecondBuffer)
+        else if (data == m_cameraPreviewBuffer[1])
             m_actualPreviewBuffer = 2;
         else
             m_actualPreviewBuffer = 0;
-        addCallbackBuffer();
+        camera.addCallbackBuffer(m_cameraPreviewBuffer[(m_actualPreviewBuffer == 1) ? 1 : 0]);
         m_buffersLock.unlock();
     }
 
