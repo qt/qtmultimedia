@@ -1,6 +1,12 @@
 TARGET = QtMultimedia
 QT = core-private network gui-private
 
+MODULE_PLUGIN_TYPES = \
+    mediaservice \
+    audio \
+    video/videonode \
+    playlistformats
+
 QMAKE_DOCS = $$PWD/doc/qtmultimedia.qdocconf
 
 load(qt_module)
@@ -67,11 +73,6 @@ ANDROID_FEATURES += \
     android.hardware.camera \
     android.hardware.camera.autofocus \
     android.hardware.microphone
-MODULE_PLUGIN_TYPES = \
-    mediaservice \
-    audio \
-    video/videonode \
-    playlistformats
 
 win32: LIBS_PRIVATE += -luuid
 
