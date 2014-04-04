@@ -655,11 +655,6 @@ namespace
                 m_presentationClock = NULL;
             }
 
-            if (m_scheduledBuffer) {
-                m_scheduledBuffer->Release();
-                m_scheduledBuffer = NULL;
-            }
-
             clearMediaTypes();
             clearSampleQueue();
             clearBufferCache();
@@ -677,6 +672,7 @@ namespace
             QMutexLocker locker(&m_mutex);
             HRESULT hr = validateOperation(OpPreroll);
             if (SUCCEEDED(hr)) {
+                m_state = State_Prerolling;
                 m_prerollTargetTime = hnsUpcomingStartTime;
                 hr = queueAsyncOperation(OpPreroll);
             }
@@ -864,6 +860,7 @@ namespace
             if (m_scheduledBuffer) {
                 m_scheduledBuffer->Release();
                 m_scheduledBuffer = NULL;
+                schedulePresentation(true);
             }
         }
 
@@ -936,6 +933,7 @@ namespace
         {
             State_TypeNotSet = 0,    // No media type is set
             State_Ready,             // Media type is set, Start has never been called.
+            State_Prerolling,
             State_Started,
             State_Paused,
             State_Stopped,
@@ -1124,6 +1122,9 @@ namespace
                             break;
                         }
                     }
+
+                    if (m_state == State_Started)
+                        schedulePresentation(true);
                 case OpRestart:
                     endPreroll(S_FALSE);
                     if (SUCCEEDED(hr)) {
@@ -1142,10 +1143,7 @@ namespace
                 case OpStop:
                     // Drop samples from queue.
                     hr = processSamplesFromQueue(DropSamples);
-                    if (m_scheduledBuffer) {
-                        m_scheduledBuffer->Release();
-                        m_scheduledBuffer = NULL;
-                    }
+                    clearBufferCache();
                     // Send the event even if the previous call failed.
                     hr = queueEvent(MEStreamSinkStopped, GUID_NULL, hr, NULL);
                     if (m_surface->isActive()) {
@@ -1388,11 +1386,16 @@ namespace
             foreach (SampleBuffer sb, m_bufferCache)
                 sb.m_buffer->Release();
             m_bufferCache.clear();
+
+            if (m_scheduledBuffer) {
+                m_scheduledBuffer->Release();
+                m_scheduledBuffer = NULL;
+            }
         }
 
         void schedulePresentation(bool requestSample)
         {
-            if (m_state == State_Paused)
+            if (m_state == State_Paused || m_state == State_Prerolling)
                 return;
             if (!m_scheduledBuffer) {
                 //get time from presentation time
@@ -1440,6 +1443,8 @@ namespace
         /* NotSet */                TRUE,   FALSE,  FALSE,    FALSE,    FALSE,    FALSE,    FALSE,      FALSE,    FALSE,    FALSE,
 
         /* Ready */                 TRUE,   TRUE,   TRUE,       FALSE,    TRUE,     TRUE,     TRUE,      FALSE,    TRUE,     TRUE,
+
+        /* Prerolling */            TRUE,   TRUE,   FALSE,    FALSE,     TRUE,    TRUE,      TRUE,      TRUE,      TRUE,     TRUE,
 
         /* Start */                 FALSE,  TRUE,   TRUE,      FALSE,    TRUE,     TRUE,     TRUE,       TRUE,     TRUE,     TRUE,
 
