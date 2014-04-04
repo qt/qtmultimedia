@@ -135,6 +135,7 @@ private:
     int m_streamTypes;
     int m_muteVolume;
     qint64 m_position;
+    qint64 m_pendingPosition;
     qint64 m_duration;
     qreal m_playbackRate;
     bool m_seekable;

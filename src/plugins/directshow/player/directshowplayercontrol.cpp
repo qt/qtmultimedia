@@ -83,6 +83,7 @@ DirectShowPlayerControl::DirectShowPlayerControl(DirectShowPlayerService *servic
     , m_streamTypes(0)
     , m_muteVolume(-1)
     , m_position(0)
+    , m_pendingPosition(-1)
     , m_duration(0)
     , m_playbackRate(0)
     , m_seekable(false)
@@ -112,12 +113,22 @@ qint64 DirectShowPlayerControl::duration() const
 
 qint64 DirectShowPlayerControl::position() const
 {
+    if (m_pendingPosition != -1)
+        return m_pendingPosition;
+
     return const_cast<qint64 &>(m_position) = m_service->position();
 }
 
 void DirectShowPlayerControl::setPosition(qint64 position)
 {
+    if (m_state == QMediaPlayer::StoppedState && m_pendingPosition != position) {
+        m_pendingPosition = position;
+        emit positionChanged(m_pendingPosition);
+        return;
+    }
+
     m_service->seek(position);
+    m_pendingPosition = -1;
 }
 
 int DirectShowPlayerControl::volume() const
@@ -253,6 +264,8 @@ void DirectShowPlayerControl::play()
             return;
     }
     m_service->play();
+    if (m_pendingPosition != -1)
+        setPosition(m_pendingPosition);
     emit stateChanged(m_state = QMediaPlayer::PlayingState);
 }
 
