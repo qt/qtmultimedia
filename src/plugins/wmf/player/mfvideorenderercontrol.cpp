@@ -772,9 +772,12 @@ namespace
             qDebug() << "MediaStream::setRate" << rate;
 #endif
             QMutexLocker locker(&m_mutex);
-            m_rate = rate;
-            queueEvent(MEStreamSinkRateChanged, GUID_NULL, S_OK, NULL);
-            return S_OK;
+            HRESULT hr = validateOperation(OpSetRate);
+            if (SUCCEEDED(hr)) {
+                m_rate = rate;
+                hr = queueAsyncOperation(OpSetRate);
+            }
+            return hr;
         }
 
         void supportedFormatsChanged()
@@ -1158,7 +1161,7 @@ namespace
                     hr = queueEvent(MEStreamSinkPaused, GUID_NULL, hr, NULL);
                     break;
                 case OpSetRate:
-                    //TODO:
+                    hr = queueEvent(MEStreamSinkRateChanged, GUID_NULL, S_OK, NULL);
                     break;
                 case OpProcessSample:
                 case OpPlaceMarker:
@@ -1335,7 +1338,7 @@ namespace
                pSample->GetSampleDuration(&duration);
 
             if (m_prerolling) {
-                if (SUCCEEDED(hr) && time >= m_prerollTargetTime) {
+                if (SUCCEEDED(hr) && ((time - m_prerollTargetTime) * m_rate) >= 0) {
                     IMFMediaBuffer *pBuffer = NULL;
                     hr = pSample->ConvertToContiguousBuffer(&pBuffer);
                     if (SUCCEEDED(hr)) {
@@ -1352,7 +1355,7 @@ namespace
             } else {
                 bool requestSample = true;
                 // If the time stamp is too early, just discard this sample.
-                if (SUCCEEDED(hr) && time >= m_startTime) {
+                if (SUCCEEDED(hr) && ((time - m_startTime) * m_rate) >= 0) {
                     IMFMediaBuffer *pBuffer = NULL;
                     hr = pSample->ConvertToContiguousBuffer(&pBuffer);
                     if (SUCCEEDED(hr)) {
@@ -1400,9 +1403,8 @@ namespace
                         timeOK = false;
                 }
                 while (!m_bufferCache.isEmpty()) {
-                    SampleBuffer sb = m_bufferCache.first();
-                    m_bufferCache.pop_front();
-                    if (timeOK && currentTime > sb.m_time) {
+                    SampleBuffer sb = m_bufferCache.takeFirst();
+                    if (timeOK && ((sb.m_time - currentTime) * m_rate) < 0) {
                         sb.m_buffer->Release();
 #ifdef DEBUG_MEDIAFOUNDATION
                         qDebug() << "currentPresentTime =" << float(currentTime / 10000) * 0.001f << " and sampleTime is" << float(sb.m_time / 10000) * 0.001f;
@@ -1454,7 +1456,11 @@ namespace
         // 2. While paused, the sink accepts samples but does not process them.
     };
 
-    class MediaSink : public IMFFinalizableMediaSink, public IMFClockStateSink, public IMFMediaSinkPreroll
+    class MediaSink : public IMFFinalizableMediaSink,
+                      public IMFClockStateSink,
+                      public IMFMediaSinkPreroll,
+                      public IMFGetService,
+                      public IMFRateSupport
     {
     public:
         MediaSink(MFVideoRendererControl *rendererControl)
@@ -1526,10 +1532,14 @@ namespace
                 return E_POINTER;
             if (riid == IID_IMFMediaSink) {
                 *ppvObject = static_cast<IMFMediaSink*>(this);
+            } else if (riid == IID_IMFGetService) {
+                *ppvObject = static_cast<IMFGetService*>(this);
             } else if (riid == IID_IMFMediaSinkPreroll) {
                 *ppvObject = static_cast<IMFMediaSinkPreroll*>(this);
             } else if (riid == IID_IMFClockStateSink) {
                 *ppvObject = static_cast<IMFClockStateSink*>(this);
+            } else if (riid == IID_IMFRateSupport) {
+                *ppvObject = static_cast<IMFRateSupport*>(this);
             } else if (riid == IID_IUnknown) {
                 *ppvObject = static_cast<IUnknown*>(static_cast<IMFFinalizableMediaSink*>(this));
             } else {
@@ -1554,7 +1564,19 @@ namespace
             return cRef;
         }
 
+        // IMFGetService methods
+        STDMETHODIMP GetService(const GUID &guidService,
+                                const IID &riid,
+                                LPVOID *ppvObject)
+        {
+            if (!ppvObject)
+                return E_POINTER;
 
+            if (guidService != MF_RATE_CONTROL_SERVICE)
+                return MF_E_UNSUPPORTED_SERVICE;
+
+            return QueryInterface(riid, ppvObject);
+        }
 
         //IMFMediaSinkPreroll
         STDMETHODIMP NotifyPreroll(MFTIME hnsUpcomingStartTime)
@@ -1747,6 +1769,68 @@ namespace
                 return MF_E_SHUTDOWN;
             m_playRate = flRate;
             return m_stream->setRate(flRate);
+        }
+
+        // IMFRateSupport methods
+        STDMETHODIMP GetFastestRate(MFRATE_DIRECTION eDirection,
+                                    BOOL fThin,
+                                    float *pflRate)
+        {
+            if (!pflRate)
+                return E_POINTER;
+
+            *pflRate = (fThin ? 8.f : 2.0f) * (eDirection == MFRATE_FORWARD ? 1 : -1) ;
+
+            return S_OK;
+        }
+
+        STDMETHODIMP GetSlowestRate(MFRATE_DIRECTION eDirection,
+                                    BOOL fThin,
+                                    float *pflRate)
+        {
+            Q_UNUSED(eDirection);
+            Q_UNUSED(fThin);
+
+            if (!pflRate)
+                return E_POINTER;
+
+            // we support any rate
+            *pflRate = 0.f;
+
+            return S_OK;
+        }
+
+        STDMETHODIMP IsRateSupported(BOOL fThin,
+                                     float flRate,
+                                     float *pflNearestSupportedRate)
+        {
+            HRESULT hr = S_OK;
+
+            if (!qFuzzyIsNull(flRate)) {
+                MFRATE_DIRECTION direction = flRate > 0.f ? MFRATE_FORWARD
+                                                          : MFRATE_REVERSE;
+
+                float fastestRate = 0.f;
+                float slowestRate = 0.f;
+                GetFastestRate(direction, fThin, &fastestRate);
+                GetSlowestRate(direction, fThin, &slowestRate);
+
+                if (direction == MFRATE_REVERSE)
+                    qSwap(fastestRate, slowestRate);
+
+                if (flRate < slowestRate || flRate > fastestRate) {
+                    hr = MF_E_UNSUPPORTED_RATE;
+                    if (pflNearestSupportedRate) {
+                        *pflNearestSupportedRate = qBound(slowestRate,
+                                                          flRate,
+                                                          fastestRate);
+                    }
+                }
+            } else if (pflNearestSupportedRate) {
+                *pflNearestSupportedRate = flRate;
+            }
+
+            return hr;
         }
 
     private:
@@ -2201,13 +2285,13 @@ void MFVideoRendererControl::customEvent(QEvent *event)
         MFTIME targetTime = static_cast<MediaStream::PresentEvent*>(event)->targetTime();
         MFTIME currentTime = static_cast<VideoRendererActivate*>(m_currentActivate)->getTime();
         float playRate = static_cast<VideoRendererActivate*>(m_currentActivate)->getPlayRate();
-        if (!qFuzzyIsNull(playRate)) {
-            // If the scheduled frame is too late or too much in advance, skip it
-            const int diff = (targetTime - currentTime) / 10000;
-            if (diff < 0 || diff > 500)
+        if (!qFuzzyIsNull(playRate) && targetTime != currentTime) {
+            // If the scheduled frame is too late, skip it
+            const int interval = ((targetTime - currentTime) / 10000) / playRate;
+            if (interval < 0)
                 static_cast<VideoRendererActivate*>(m_currentActivate)->clearScheduledFrame();
             else
-                QTimer::singleShot(diff / playRate, this, SLOT(present()));
+                QTimer::singleShot(interval, this, SLOT(present()));
         } else {
             present();
         }
