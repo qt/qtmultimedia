@@ -286,8 +286,10 @@ void QAndroidCameraSession::close()
 
 void QAndroidCameraSession::setVideoPreview(QObject *videoOutput)
 {
-    if (m_videoOutput)
+    if (m_videoOutput) {
         m_videoOutput->stop();
+        m_videoOutput->reset();
+    }
 
     if (videoOutput) {
         connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
@@ -368,8 +370,12 @@ void QAndroidCameraSession::stopPreview()
 
     m_camera->stopPreview();
     m_camera->setPreviewSize(QSize());
-    if (m_videoOutput)
+    m_camera->setPreviewTexture(0);
+
+    if (m_videoOutput) {
         m_videoOutput->stop();
+        m_videoOutput->reset();
+    }
     m_previewStarted = false;
 }
 
