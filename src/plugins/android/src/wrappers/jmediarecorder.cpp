@@ -48,18 +48,19 @@
 QT_BEGIN_NAMESPACE
 
 static jclass g_qtMediaRecorderListenerClass = 0;
-static QMap<jlong, JMediaRecorder*> g_objectMap;
+typedef QMap<jlong, JMediaRecorder*> MediaRecorderMap;
+Q_GLOBAL_STATIC(MediaRecorderMap, mediaRecorders)
 
 static void notifyError(JNIEnv* , jobject, jlong id, jint what, jint extra)
 {
-    JMediaRecorder *obj = g_objectMap.value(id, 0);
+    JMediaRecorder *obj = mediaRecorders->value(id, 0);
     if (obj)
         emit obj->error(what, extra);
 }
 
 static void notifyInfo(JNIEnv* , jobject, jlong id, jint what, jint extra)
 {
-    JMediaRecorder *obj = g_objectMap.value(id, 0);
+    JMediaRecorder *obj = mediaRecorders->value(id, 0);
     if (obj)
         emit obj->info(what, extra);
 }
@@ -77,13 +78,13 @@ JMediaRecorder::JMediaRecorder()
         m_mediaRecorder.callMethod<void>("setOnInfoListener",
                                          "(Landroid/media/MediaRecorder$OnInfoListener;)V",
                                          listener.object());
-        g_objectMap.insert(m_id, this);
+        mediaRecorders->insert(m_id, this);
     }
 }
 
 JMediaRecorder::~JMediaRecorder()
 {
-    g_objectMap.remove(m_id);
+    mediaRecorders->remove(m_id);
 }
 
 void JMediaRecorder::release()
