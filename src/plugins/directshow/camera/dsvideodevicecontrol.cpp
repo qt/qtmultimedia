@@ -102,7 +102,6 @@ void DSVideoDeviceControl::enumerateDevices(QList<QByteArray> *devices, QStringL
     devices->clear();
     descriptions->clear();
 
-    CoInitialize(NULL);
     ICreateDevEnum* pDevEnum = NULL;
     IEnumMoniker* pEnum = NULL;
     // Create the System device enumerator
@@ -148,7 +147,6 @@ void DSVideoDeviceControl::enumerateDevices(QList<QByteArray> *devices, QStringL
         }
         pDevEnum->Release();
     }
-    CoUninitialize();
 }
 
 void DSVideoDeviceControl::setSelectedDevice(int index)

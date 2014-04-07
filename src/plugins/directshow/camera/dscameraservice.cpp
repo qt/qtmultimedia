@@ -42,11 +42,6 @@
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
 
-#if defined(HAVE_WIDGETS)
-#include <QtWidgets/qwidget.h>
-#include <QVideoWidgetControl>
-#endif
-
 #include "dscameraservice.h"
 #include "dscameracontrol.h"
 #include "dscamerasession.h"
@@ -54,28 +49,16 @@
 #include "dsvideodevicecontrol.h"
 #include "dsimagecapturecontrol.h"
 
-#if defined(HAVE_WIDGETS)
-#include "dsvideowidgetcontrol.h"
-#endif
-
 QT_BEGIN_NAMESPACE
 
 DSCameraService::DSCameraService(QObject *parent):
     QMediaService(parent)
-#if defined(HAVE_WIDGETS)
-  , m_viewFinderWidget(0)
-  #endif
   , m_videoRenderer(0)
 {
     m_session = new DSCameraSession(this);
-
     m_control = new DSCameraControl(m_session);
-
     m_videoDevice = new DSVideoDeviceControl(m_session);
-
     m_imageCapture = new DSImageCaptureControl(m_session);
-
-    m_device = QByteArray("default");
 }
 
 DSCameraService::~DSCameraService()
@@ -84,9 +67,6 @@ DSCameraService::~DSCameraService()
     delete m_videoDevice;
     delete m_videoRenderer;
     delete m_imageCapture;
-#if defined(HAVE_WIDGETS)
-    delete m_viewFinderWidget;
-#endif
     delete m_session;
 }
 
@@ -98,21 +78,8 @@ QMediaControl* DSCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCapture;
 
-#if defined(HAVE_WIDGETS)
-    if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
-        if (!m_viewFinderWidget && !m_videoRenderer) {
-            m_viewFinderWidget = new DSVideoWidgetControl(m_session);
-            return m_viewFinderWidget;
-        }
-    }
-#endif
-
     if (qstrcmp(name,QVideoRendererControl_iid) == 0) {
-#if defined(HAVE_WIDGETS)
-        if (!m_videoRenderer && !m_viewFinderWidget) {
-#else
         if (!m_videoRenderer) {
-#endif
             m_videoRenderer = new DSVideoRendererControl(m_session, this);
             return m_videoRenderer;
         }
@@ -131,14 +98,6 @@ void DSCameraService::releaseControl(QMediaControl *control)
         m_videoRenderer = 0;
         return;
     }
-
-#if defined(HAVE_WIDGETS)
-    if (control == m_viewFinderWidget) {
-        delete m_viewFinderWidget;
-        m_viewFinderWidget = 0;
-        return;
-    }
-#endif
 }
 
 QT_END_NAMESPACE

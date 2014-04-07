@@ -23,10 +23,5 @@ SOURCES += \
     $$PWD/dsimagecapturecontrol.cpp \
     $$PWD/dscamerasession.cpp
 
-qtHaveModule(widgets) {
-    HEADERS += $$PWD/dsvideowidgetcontrol.h
-    SOURCES += $$PWD/dsvideowidgetcontrol.cpp
-}
-
 *-msvc*:INCLUDEPATH += $$(DXSDK_DIR)/include
 LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32

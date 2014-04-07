@@ -70,13 +70,9 @@ private:
     DSCameraControl        *m_control;
     DSCameraSession        *m_session;
     DSVideoOutputControl   *m_videoOutput;
-#if defined(HAVE_WIDGETS)
-    QMediaControl          *m_viewFinderWidget;
-#endif
     DSVideoDeviceControl   *m_videoDevice;
     QMediaControl          *m_videoRenderer;
     DSImageCaptureControl  *m_imageCapture;
-    QByteArray m_device;
 };
 
 QT_END_NAMESPACE
