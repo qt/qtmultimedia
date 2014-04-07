@@ -43,16 +43,13 @@ package org.qtproject.qt5.android.multimedia;
 
 import android.media.MediaRecorder;
 
-public class QtMediaRecorder extends MediaRecorder implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
+public class QtMediaRecorderListener implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
 {
     private long m_id = -1;
 
-    public QtMediaRecorder(long id)
+    public QtMediaRecorderListener(long id)
     {
-        super();
         m_id = id;
-        setOnErrorListener(this);
-        setOnInfoListener(this);
     }
 
     @Override

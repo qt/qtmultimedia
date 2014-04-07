@@ -47,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static jclass g_qtMediaRecorderClass = 0;
+static jclass g_qtMediaRecorderListenerClass = 0;
 static QMap<jlong, JMediaRecorder*> g_objectMap;
 
 static void notifyError(JNIEnv* , jobject, jlong id, jint what, jint extra)
@@ -68,9 +68,17 @@ JMediaRecorder::JMediaRecorder()
     : QObject()
     , m_id(reinterpret_cast<jlong>(this))
 {
-    m_mediaRecorder = QJNIObjectPrivate(g_qtMediaRecorderClass, "(J)V", m_id);
-    if (m_mediaRecorder.isValid())
+    m_mediaRecorder = QJNIObjectPrivate("android/media/MediaRecorder");
+    if (m_mediaRecorder.isValid()) {
+        QJNIObjectPrivate listener(g_qtMediaRecorderListenerClass, "(J)V", m_id);
+        m_mediaRecorder.callMethod<void>("setOnErrorListener",
+                                         "(Landroid/media/MediaRecorder$OnErrorListener;)V",
+                                         listener.object());
+        m_mediaRecorder.callMethod<void>("setOnInfoListener",
+                                         "(Landroid/media/MediaRecorder$OnErrorListener;)V",
+                                         listener.object());
         g_objectMap.insert(m_id, this);
+    }
 }
 
 JMediaRecorder::~JMediaRecorder()
@@ -271,13 +279,13 @@ static JNINativeMethod methods[] = {
 
 bool JMediaRecorder::initJNI(JNIEnv *env)
 {
-    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtMediaRecorder");
+    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtMediaRecorderListener");
     if (env->ExceptionCheck())
         env->ExceptionClear();
 
     if (clazz) {
-        g_qtMediaRecorderClass = static_cast<jclass>(env->NewGlobalRef(clazz));
-        if (env->RegisterNatives(g_qtMediaRecorderClass,
+        g_qtMediaRecorderListenerClass = static_cast<jclass>(env->NewGlobalRef(clazz));
+        if (env->RegisterNatives(g_qtMediaRecorderListenerClass,
                                  methods,
                                  sizeof(methods) / sizeof(methods[0])) < 0) {
             return false;
