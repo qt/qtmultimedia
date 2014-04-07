@@ -85,5 +85,5 @@ ULONG MFAbstractActivate::Release(void)
     ULONG cRef = InterlockedDecrement(&m_cRef);
     if (cRef == 0)
         delete this;
-    return m_cRef;
+    return cRef;
 }
