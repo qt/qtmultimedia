@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -47,7 +47,7 @@
 #include <qurl.h>
 #include <qelapsedtimer.h>
 #include <qtimer.h>
-#include "qandroidmediastoragelocation.h"
+#include <private/qmediastoragelocation_p.h>
 #include "jmediarecorder.h"
 
 QT_BEGIN_NAMESPACE
@@ -152,7 +152,7 @@ private:
     QString m_audioInput;
     JMediaRecorder::AudioSource m_audioSource;
 
-    QAndroidMediaStorageLocation m_mediaStorageLocation;
+    QMediaStorageLocation m_mediaStorageLocation;
 
     QElapsedTimer m_elapsedTime;
     QTimer m_notifyTimer;

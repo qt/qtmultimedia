@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,37 +39,42 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASTORAGELOCATION_H
-#define QANDROIDMEDIASTORAGELOCATION_H
+#ifndef QMEDIASTORAGELOCATION_H
+#define QMEDIASTORAGELOCATION_H
 
-#include <QCamera>
+#include <qtmultimediadefs.h>
 #include <QDir>
+#include <QMap>
 #include <QHash>
 #include <QMutex>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaStorageLocation
+class Q_MULTIMEDIA_EXPORT QMediaStorageLocation
 {
 public:
-    enum CaptureSource {
-        Camera,
-        Audio
+    enum MediaType {
+        Movies,
+        Music,
+        Pictures,
+        Sounds
     };
 
-    QAndroidMediaStorageLocation();
+    QMediaStorageLocation();
 
-    QDir defaultDir(CaptureSource source) const;
+    void addStorageLocation(MediaType type, const QString &location);
 
-    QString generateFileName(const QString &requestedName, CaptureSource source, const QString &prefix, const QString &extension) const;
+    QDir defaultLocation(MediaType type) const;
+
+    QString generateFileName(const QString &requestedName, MediaType type, const QString &prefix, const QString &extension) const;
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &extension) const;
 
 private:
-    mutable QHash<QString, qint64> m_lastUsedIndex;
-
     mutable QMutex m_mutex;
+    mutable QHash<QString, qint64> m_lastUsedIndex;
+    QMap<MediaType, QStringList> m_customLocations;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMEDIASTORAGELOCATION_H
+#endif // QMEDIASTORAGELOCATION_H

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -65,6 +65,14 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
     , m_audioEncoder(JMediaRecorder::DefaultAudioEncoder)
     , m_videoEncoder(JMediaRecorder::DefaultVideoEncoder)
 {
+    m_mediaStorageLocation.addStorageLocation(
+                QMediaStorageLocation::Movies,
+                JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::DCIM));
+
+    m_mediaStorageLocation.addStorageLocation(
+                QMediaStorageLocation::Sounds,
+                JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::Sounds));
+
     connect(this, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(updateStatus()));
 
     if (cameraSession) {
@@ -214,8 +222,8 @@ bool QAndroidCaptureSession::start()
     QString filePath = m_mediaStorageLocation.generateFileName(
                 m_requestedOutputLocation.isLocalFile() ? m_requestedOutputLocation.toLocalFile()
                                                         : m_requestedOutputLocation.toString(),
-                m_cameraSession ? QAndroidMediaStorageLocation::Camera
-                                : QAndroidMediaStorageLocation::Audio,
+                m_cameraSession ? QMediaStorageLocation::Movies
+                                : QMediaStorageLocation::Sounds,
                 m_cameraSession ? QLatin1String("VID_")
                                 : QLatin1String("REC_"),
                 m_containerFormat);

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -47,7 +47,7 @@
 #include <QCameraImageCapture>
 #include <QSet>
 #include <QMutex>
-#include "qandroidmediastoragelocation.h"
+#include <private/qmediastoragelocation_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -174,7 +174,7 @@ private:
     int m_currentImageCaptureId;
     QString m_currentImageCaptureFileName;
 
-    QAndroidMediaStorageLocation m_mediaStorageLocation;
+    QMediaStorageLocation m_mediaStorageLocation;
 
     QSet<QAndroidMediaVideoProbeControl *> m_videoProbes;
     QMutex m_videoProbesMutex;

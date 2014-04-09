@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -111,6 +111,10 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_captureCanceled(false)
     , m_currentImageCaptureId(-1)
 {
+    m_mediaStorageLocation.addStorageLocation(
+                QMediaStorageLocation::Pictures,
+                JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::DCIM));
+
     if (qApp) {
         connect(qApp, SIGNAL(applicationStateChanged(Qt::ApplicationState)),
                 this, SLOT(onApplicationStateChanged(Qt::ApplicationState)));
@@ -644,7 +648,7 @@ void QAndroidCameraSession::processCapturedImage(int id,
 
     if (dest & QCameraImageCapture::CaptureToFile) {
         const QString actualFileName = m_mediaStorageLocation.generateFileName(fileName,
-                                                                               QAndroidMediaStorageLocation::Camera,
+                                                                               QMediaStorageLocation::Pictures,
                                                                                QLatin1String("IMG_"),
                                                                                QLatin1String("jpg"));
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,24 +39,40 @@
 **
 ****************************************************************************/
 
-#include "qandroidmediastoragelocation.h"
+#include "qmediastoragelocation_p.h"
 
-#include "jmultimediautils.h"
+#include <QStandardPaths>
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaStorageLocation::QAndroidMediaStorageLocation()
+QMediaStorageLocation::QMediaStorageLocation()
 {
 }
 
-QDir QAndroidMediaStorageLocation::defaultDir(CaptureSource source) const
+void QMediaStorageLocation::addStorageLocation(MediaType type, const QString &location)
+{
+    m_customLocations[type].append(location);
+}
+
+QDir QMediaStorageLocation::defaultLocation(MediaType type) const
 {
     QStringList dirCandidates;
 
-    if (source == Camera)
-        dirCandidates << JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::DCIM);
-    else
-        dirCandidates << JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::Sounds);
+    dirCandidates << m_customLocations.value(type);
+
+    switch (type) {
+    case Movies:
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
+        break;
+    case Music:
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
+        break;
+    case Pictures:
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+    default:
+        break;
+    }
+
     dirCandidates << QDir::homePath();
     dirCandidates << QDir::currentPath();
     dirCandidates << QDir::tempPath();
@@ -69,31 +85,31 @@ QDir QAndroidMediaStorageLocation::defaultDir(CaptureSource source) const
     return QDir();
 }
 
-QString QAndroidMediaStorageLocation::generateFileName(const QString &requestedName,
-                                                       CaptureSource source,
-                                                       const QString &prefix,
-                                                       const QString &extension) const
+QString QMediaStorageLocation::generateFileName(const QString &requestedName,
+                                                MediaType type,
+                                                const QString &prefix,
+                                                const QString &extension) const
 {
     if (requestedName.isEmpty())
-        return generateFileName(prefix, defaultDir(source), extension);
+        return generateFileName(prefix, defaultLocation(type), extension);
 
     QString path = requestedName;
 
     if (QFileInfo(path).isRelative())
-        path = defaultDir(source).absoluteFilePath(path);
+        path = defaultLocation(type).absoluteFilePath(path);
 
     if (QFileInfo(path).isDir())
         return generateFileName(prefix, QDir(path), extension);
 
     if (!path.endsWith(extension))
-        path.append(QString(".%1").arg(extension));
+        path.append(QString(QLatin1String(".%1")).arg(extension));
 
     return path;
 }
 
-QString QAndroidMediaStorageLocation::generateFileName(const QString &prefix,
-                                                       const QDir &dir,
-                                                       const QString &extension) const
+QString QMediaStorageLocation::generateFileName(const QString &prefix,
+                                                const QDir &dir,
+                                                const QString &extension) const
 {
     QMutexLocker lock(&m_mutex);
 
@@ -102,7 +118,7 @@ QString QAndroidMediaStorageLocation::generateFileName(const QString &prefix,
 
     if (lastMediaIndex == 0) {
         // first run, find the maximum media number during the fist capture
-        Q_FOREACH (const QString &fileName, dir.entryList(QStringList() << QString("%1*.%2").arg(prefix).arg(extension))) {
+        Q_FOREACH (const QString &fileName, dir.entryList(QStringList() << QString(QLatin1String("%1*.%2")).arg(prefix).arg(extension))) {
             const qint64 mediaIndex = fileName.midRef(prefix.length(), fileName.size() - prefix.length() - extension.length() - 1).toInt();
             lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
         }
@@ -111,7 +127,7 @@ QString QAndroidMediaStorageLocation::generateFileName(const QString &prefix,
     // don't just rely on cached lastMediaIndex value,
     // someone else may create a file after camera started
     while (true) {
-        const QString name = QString("%1%2.%3").arg(prefix)
+        const QString name = QString(QLatin1String("%1%2.%3")).arg(prefix)
                                                .arg(lastMediaIndex + 1, 8, 10, QLatin1Char('0'))
                                                .arg(extension);
 
