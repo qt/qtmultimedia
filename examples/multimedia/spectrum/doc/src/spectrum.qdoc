@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -59,6 +59,6 @@
     (FFT) of a segment of audio data.  An open-source library,
     \l{http://ldesoras.free.fr/prod.html}{FFTReal}, against which the
     application is dynamically linked, is used to compute the transform.
+
+    \include examples-run.qdocinc
 */
-
-

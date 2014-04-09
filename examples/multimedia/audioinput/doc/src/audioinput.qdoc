@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -37,7 +37,8 @@
     Qt provides the QAudioInput class to enable audio functionality within
     a standard application user interface.
 
-    This example calculates the maximum linear value of the input audio from the microphone and displays the output.
+    This example calculates the maximum linear value of the input audio from the
+    microphone and displays the output.
+
+    \include examples-run.qdocinc
 */
-
-

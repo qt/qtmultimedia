@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -34,35 +34,22 @@ or video.
 
 \image qml-camera.png
 
-This example demonstrates how to use the Qt Multimedia QML API to access
-camera functions. It shows how to change settings and to capture images.
+This example demonstrates how to use the
+\l{Qt Multimedia QML Types}{Qt Multimedia QML API} to access camera functions.
+It shows how to change settings and to capture images.
+
+\include examples-run.qdocinc
+
+\section1 Application Structure
 
 Most of the QML code supports the user interface for this application with the
 camera types being mostly found in \e {declarative-camera.qml} and
 \e {CaptureControls.qml}.
 
-In \e {declarative-camera.qml} the \l Camera is initialized with an id
-of \e {camera}, a photo preview is setup, states are implemented for image
-preview or capture and \l CaptureControls is initialized. The initial
-\e state is \e PhotoCapture. \l CameraCapture includes a handler, \e onImageCaptured,
-for the \l {imageCaptured} signal. The handler sets up the application to process
-the preview including a change in the user interface state. The \l PhotoPreview
-becomes visible with any key press being picked up by the handler
-in PhotoPreview and returning the state to \e PhotoCapture.
-
-\e CaptureControls, which is implemented in \e {CaptureControls.qml},
+CaptureControls, which is implemented in \e {CaptureControls.qml},
 generates a column on the right hand side of the screen which includes control
-buttons for \e focus (not initially visible), \e {capture}, \e {flash modes},
-\e {white balance}, \e {exposure compensation}, and if a preview is
-available a \e {preview} button. The last button exits from the application.
-
-When the Capture button is pressed the \e onClicked handler calls
-\l {Camera::captureImage()}{captureImage()}
-
-
-
-
-
-
+buttons for focus (not initially visible), capture, flash modes,
+white balance, exposure compensation, and if a preview is
+available, a preview button. The last button exits from the application.
 
 */

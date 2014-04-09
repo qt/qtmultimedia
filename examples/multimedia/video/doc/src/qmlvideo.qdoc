@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -34,8 +34,6 @@
 resize; rotate; change aspect ratio) which can be applied to QML \l{VideoOutput}
 items.
 
-\section1 Overview
-
 This example demonstrates the various manipulations (move; resize; rotate;
 change aspect ratio) which can be applied to QML \l{VideoOutput} items.
 
@@ -50,7 +48,9 @@ which moves across the \l{VideoOutput} item.
 
 \image qmlvideo-overlay.png
 
-\section1 Application structure
+\include examples-run.qdocinc
+
+\section1 Application Structure
 
 The \l{video/qmlvideo/qml/qmlvideo/main.qml} file creates a UI which includes
 the following items:
@@ -127,7 +127,7 @@ instance, the embedded
 \l{video/qmlvideo/qml/qmlvideo/Content.qml}{Content} item creates either a
 \l{MediaPlayer} or a \l{Camera} item.
 
-\section1 Calculating and displaying QML painting rate
+\section1 Calculating and Displaying QML Painting Rate
 
 \input multimedia/doc/src/examples/video-qml-paint-rate.qdocinc
 
@@ -145,4 +145,3 @@ object to a JavaScript function, which will eventually call frequencyItem.notify
 \printuntil SLOT(qmlFramePainted()));
 
 */
-
