@@ -75,7 +75,7 @@ JMediaRecorder::JMediaRecorder()
                                          "(Landroid/media/MediaRecorder$OnErrorListener;)V",
                                          listener.object());
         m_mediaRecorder.callMethod<void>("setOnInfoListener",
-                                         "(Landroid/media/MediaRecorder$OnErrorListener;)V",
+                                         "(Landroid/media/MediaRecorder$OnInfoListener;)V",
                                          listener.object());
         g_objectMap.insert(m_id, this);
     }
