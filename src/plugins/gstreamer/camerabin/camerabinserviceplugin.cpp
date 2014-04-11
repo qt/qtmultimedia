@@ -50,18 +50,8 @@
 #include "camerabinservice.h"
 #include <private/qgstutils_p.h>
 
-#include <linux/types.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/mman.h>
+#include <private/qcore_unix_p.h>
 #include <linux/videodev2.h>
-#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -148,7 +138,7 @@ void CameraBinServicePlugin::updateDevices() const
     QFileInfoList entries = devDir.entryInfoList(QStringList() << "video*");
 
     foreach (const QFileInfo &entryInfo, entries) {
-        int fd = ::open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
+        int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
         if (fd == -1)
             continue;
 
@@ -178,7 +168,7 @@ void CameraBinServicePlugin::updateDevices() const
             m_cameraDevices.append(entryInfo.filePath().toLocal8Bit());
             m_cameraDescriptions.append(name);
         }
-        ::close(fd);
+        qt_safe_close(fd);
     }
 
     if (!m_cameraDevices.isEmpty())

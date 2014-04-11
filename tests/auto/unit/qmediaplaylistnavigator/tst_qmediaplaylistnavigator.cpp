@@ -413,8 +413,7 @@ void tst_QMediaPlaylistNavigator::testCurrentIndexChangedSignal()
 {
     QMediaNetworkPlaylistProvider playlist;
     QMediaPlaylistNavigator navigator(&playlist);
-    navigator.setPlaybackMode(QMediaPlaylist::Random);
-    QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Random);
+    QCOMPARE(navigator.playbackMode(), QMediaPlaylist::Sequential);
     QCOMPARE(navigator.currentIndex(), -1);
 
     //Creating a QSignalSpy object for currentIndexChanged() signal

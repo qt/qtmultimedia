@@ -377,16 +377,6 @@ QList<QByteArray> CoreAudioSessionManager::outputDevices()
     return outputDevices;
 }
 
-int CoreAudioSessionManager::inputChannelCount()
-{
-    return [[m_sessionObserver audioSession] inputNumberOfChannels];
-}
-
-int CoreAudioSessionManager::outputChannelCount()
-{
-    return [[m_sessionObserver audioSession] outputNumberOfChannels];
-}
-
 float CoreAudioSessionManager::currentIOBufferDuration()
 {
     return [[m_sessionObserver audioSession] IOBufferDuration];

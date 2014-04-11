@@ -47,6 +47,7 @@
 #include "qandroidmultimediautils.h"
 #include <qthread.h>
 #include <qmutex.h>
+#include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -145,7 +146,7 @@ private:
     QJNIObjectPrivate lastCamera;
 };
 
-class JCameraWorker : public QObject, public QJNIObjectPrivate
+class JCameraWorker : public QObject
 {
     Q_OBJECT
     friend class JCamera;
@@ -230,12 +231,11 @@ class JCameraWorker : public QObject, public QJNIObjectPrivate
     QSize m_previewSize;
     int m_rotation;
 
-    bool m_hasAPI14;
-
     JCamera *q;
 
     QThread *m_workerThread;
     QMutex m_parametersMutex;
+    QJNIObjectPrivate m_camera;
 
 Q_SIGNALS:
     void previewSizeChanged();
@@ -269,7 +269,7 @@ JCamera::JCamera(int cameraId, jobject cam, QThread *workerThread)
 
 JCamera::~JCamera()
 {
-    if (d->isValid()) {
+    if (d->m_camera.isValid()) {
         g_objectMapMutex.lock();
         g_objectMap.remove(d->m_cameraId);
         g_objectMapMutex.unlock();
@@ -595,7 +595,7 @@ void JCamera::fetchLastPreviewFrame()
 
 QJNIObjectPrivate JCamera::getCameraObject()
 {
-    return d->getObjectField("m_camera", "Landroid/hardware/Camera;");
+    return d->m_camera.getObjectField("m_camera", "Landroid/hardware/Camera;");
 }
 
 void JCamera::startPreview()
@@ -613,47 +613,29 @@ void JCamera::stopPreview()
 
 JCameraWorker::JCameraWorker(JCamera *camera, int cameraId, jobject cam, QThread *workerThread)
     : QObject(0)
-    , QJNIObjectPrivate(cam)
     , m_cameraId(cameraId)
     , m_rotation(0)
-    , m_hasAPI14(false)
     , m_parametersMutex(QMutex::Recursive)
+    , m_camera(cam)
 {
     q = camera;
     m_workerThread = workerThread;
     moveToThread(m_workerThread);
 
-    if (isValid()) {
+    if (m_camera.isValid()) {
         g_objectMapMutex.lock();
         g_objectMap.insert(cameraId, q);
         g_objectMapMutex.unlock();
 
         m_info = QJNIObjectPrivate("android/hardware/Camera$CameraInfo");
-        callStaticMethod<void>("android/hardware/Camera",
-                               "getCameraInfo",
-                               "(ILandroid/hardware/Camera$CameraInfo;)V",
-                               cameraId, m_info.object());
+        m_camera.callStaticMethod<void>("android/hardware/Camera",
+                                        "getCameraInfo",
+                                        "(ILandroid/hardware/Camera$CameraInfo;)V",
+                                        cameraId, m_info.object());
 
-        QJNIObjectPrivate params = callObjectMethod("getParameters",
-                                                    "()Landroid/hardware/Camera$Parameters;");
+        QJNIObjectPrivate params = m_camera.callObjectMethod("getParameters",
+                                                             "()Landroid/hardware/Camera$Parameters;");
         m_parameters = QJNIObjectPrivate(params);
-
-        // Check if API 14 is available
-        QJNIEnvironmentPrivate env;
-        jclass clazz = env->FindClass("android/hardware/Camera");
-        if (env->ExceptionCheck()) {
-            clazz = 0;
-            env->ExceptionClear();
-        }
-        if (clazz) {
-            // startFaceDetection() was added in API 14
-            jmethodID id = env->GetMethodID(clazz, "startFaceDetection", "()V");
-            if (env->ExceptionCheck()) {
-                id = 0;
-                env->ExceptionClear();
-            }
-            m_hasAPI14 = bool(id);
-        }
     }
 }
 
@@ -668,7 +650,7 @@ void JCameraWorker::release()
     m_parametersMutex.lock();
     m_parameters = QJNIObjectPrivate();
     m_parametersMutex.unlock();
-    callMethod<void>("release");
+    m_camera.callMethod<void>("release");
 }
 
 JCamera::CameraFacing JCameraWorker::getFacing()
@@ -752,7 +734,9 @@ void JCameraWorker::updatePreviewSize()
 
 void JCameraWorker::setPreviewTexture(void *surfaceTexture)
 {
-    callMethod<void>("setPreviewTexture", "(Landroid/graphics/SurfaceTexture;)V", static_cast<jobject>(surfaceTexture));
+    m_camera.callMethod<void>("setPreviewTexture",
+                              "(Landroid/graphics/SurfaceTexture;)V",
+                              static_cast<jobject>(surfaceTexture));
 }
 
 bool JCameraWorker::isZoomSupported()
@@ -878,9 +862,12 @@ void JCameraWorker::setFocusMode(const QString &value)
 
 int JCameraWorker::getMaxNumFocusAreas()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return 0;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return 0;
 
     return m_parameters.callMethod<jint>("getMaxNumFocusAreas");
@@ -888,11 +875,14 @@ int JCameraWorker::getMaxNumFocusAreas()
 
 QList<QRect> JCameraWorker::getFocusAreas()
 {
-    QMutexLocker parametersLocker(&m_parametersMutex);
-
     QList<QRect> areas;
 
-    if (m_hasAPI14 && m_parameters.isValid()) {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return areas;
+
+    QMutexLocker parametersLocker(&m_parametersMutex);
+
+    if (m_parameters.isValid()) {
         QJNIObjectPrivate list = m_parameters.callObjectMethod("getFocusAreas",
                                                                "()Ljava/util/List;");
 
@@ -913,9 +903,12 @@ QList<QRect> JCameraWorker::getFocusAreas()
 
 void JCameraWorker::setFocusAreas(const QList<QRect> &areas)
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return;
 
     QJNIObjectPrivate list;
@@ -940,15 +933,18 @@ void JCameraWorker::setFocusAreas(const QList<QRect> &areas)
 
 void JCameraWorker::autoFocus()
 {
-    callMethod<void>("autoFocus");
+    m_camera.callMethod<void>("autoFocus");
     emit autoFocusStarted();
 }
 
 bool JCameraWorker::isAutoExposureLockSupported()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("isAutoExposureLockSupported");
@@ -956,9 +952,12 @@ bool JCameraWorker::isAutoExposureLockSupported()
 
 bool JCameraWorker::getAutoExposureLock()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("getAutoExposureLock");
@@ -966,9 +965,12 @@ bool JCameraWorker::getAutoExposureLock()
 
 void JCameraWorker::setAutoExposureLock(bool toggle)
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return;
 
     m_parameters.callMethod<void>("setAutoExposureLock", "(Z)V", toggle);
@@ -977,9 +979,12 @@ void JCameraWorker::setAutoExposureLock(bool toggle)
 
 bool JCameraWorker::isAutoWhiteBalanceLockSupported()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("isAutoWhiteBalanceLockSupported");
@@ -987,9 +992,12 @@ bool JCameraWorker::isAutoWhiteBalanceLockSupported()
 
 bool JCameraWorker::getAutoWhiteBalanceLock()
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return false;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return false;
 
     return m_parameters.callMethod<jboolean>("getAutoWhiteBalanceLock");
@@ -997,9 +1005,12 @@ bool JCameraWorker::getAutoWhiteBalanceLock()
 
 void JCameraWorker::setAutoWhiteBalanceLock(bool toggle)
 {
+    if (QtAndroidPrivate::androidSdkVersion() < 14)
+        return;
+
     QMutexLocker parametersLocker(&m_parametersMutex);
 
-    if (!m_hasAPI14 || !m_parameters.isValid())
+    if (!m_parameters.isValid())
         return;
 
     m_parameters.callMethod<void>("setAutoWhiteBalanceLock", "(Z)V", toggle);
@@ -1184,15 +1195,15 @@ void JCameraWorker::stopPreview()
 
 void JCameraWorker::fetchEachFrame(bool fetch)
 {
-    callMethod<void>("fetchEachFrame", "(Z)V", fetch);
+    m_camera.callMethod<void>("fetchEachFrame", "(Z)V", fetch);
 }
 
 void JCameraWorker::fetchLastPreviewFrame()
 {
     QJNIEnvironmentPrivate env;
-    QJNIObjectPrivate dataObj = callObjectMethod("lockAndFetchPreviewBuffer", "()[B");
+    QJNIObjectPrivate dataObj = m_camera.callObjectMethod("lockAndFetchPreviewBuffer", "()[B");
     if (!dataObj.object()) {
-        callMethod<void>("unlockPreviewBuffer");
+        m_camera.callMethod<void>("unlockPreviewBuffer");
         return;
     }
     jbyteArray data = static_cast<jbyteArray>(dataObj.object());
@@ -1200,16 +1211,16 @@ void JCameraWorker::fetchLastPreviewFrame()
     int arrayLength = env->GetArrayLength(data);
     bytes.resize(arrayLength);
     env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
-    callMethod<void>("unlockPreviewBuffer");
+    m_camera.callMethod<void>("unlockPreviewBuffer");
 
     emit previewFetched(bytes);
 }
 
 void JCameraWorker::applyParameters()
 {
-    callMethod<void>("setParameters",
-                     "(Landroid/hardware/Camera$Parameters;)V",
-                     m_parameters.object());
+    m_camera.callMethod<void>("setParameters",
+                              "(Landroid/hardware/Camera$Parameters;)V",
+                              m_parameters.object());
 }
 
 QStringList JCameraWorker::callParametersStringListMethod(const QByteArray &methodName)
@@ -1239,7 +1250,7 @@ QStringList JCameraWorker::callParametersStringListMethod(const QByteArray &meth
 
 void JCameraWorker::callVoidMethod(const QByteArray &methodName)
 {
-    callMethod<void>(methodName.constData());
+    m_camera.callMethod<void>(methodName.constData());
 }
 
 

@@ -777,7 +777,7 @@ void tst_QDeclarativeAudio::playbackRate()
     audio.setPlaybackRate(2.0);
     QCOMPARE(audio.playbackRate(), qreal(2.0));
     QCOMPARE(provider.playerControl()->playbackRate(), qreal(2.0));
-    QCOMPARE(spy.count(), 3);
+    QCOMPARE(spy.count(), 2);
 }
 
 void tst_QDeclarativeAudio::status()

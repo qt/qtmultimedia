@@ -2,6 +2,7 @@ TARGET = imx6vivantevideonode
 QT += multimedia-private qtmultimediaquicktools-private
 
 PLUGIN_TYPE=video/videonode
+PLUGIN_EXTENDS = quick
 PLUGIN_CLASS_NAME = QSGVivanteVideoNodeFactory
 load(qt_plugin)
 

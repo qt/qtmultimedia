@@ -44,16 +44,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 
-#include <linux/types.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/mman.h>
+#include <private/qcore_unix_p.h>
 #include <linux/videodev2.h>
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(QObject *parent)
@@ -135,7 +126,7 @@ void QGstreamerVideoInputDeviceControl::update()
     foreach( const QFileInfo &entryInfo, entries ) {
         //qDebug() << "Try" << entryInfo.filePath();
 
-        int fd = ::open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
+        int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
         if (fd == -1)
             continue;
 
@@ -165,6 +156,6 @@ void QGstreamerVideoInputDeviceControl::update()
             m_names.append(entryInfo.filePath());
             m_descriptions.append(name);
         }
-        ::close(fd);
+        qt_safe_close(fd);
     }
 }

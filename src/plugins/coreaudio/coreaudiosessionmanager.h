@@ -92,9 +92,6 @@ public:
     QList<QByteArray> inputDevices();
     QList<QByteArray> outputDevices();
 
-    int inputChannelCount();
-    int outputChannelCount();
-
     float currentIOBufferDuration();
     float preferredSampleRate();
 

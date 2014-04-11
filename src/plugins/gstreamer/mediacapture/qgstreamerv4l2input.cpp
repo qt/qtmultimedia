@@ -44,16 +44,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
 
-#include <linux/types.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/mman.h>
+#include <private/qcore_unix_p.h>
 #include <linux/videodev2.h>
 
 QT_BEGIN_NAMESPACE

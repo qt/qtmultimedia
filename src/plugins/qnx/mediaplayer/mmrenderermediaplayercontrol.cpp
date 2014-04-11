@@ -351,10 +351,11 @@ void MmRendererMediaPlayerControl::setState(QMediaPlayer::State state)
 {
     if (m_state != state) {
         if (m_videoRendererControl) {
-            if (state == QMediaPlayer::PausedState)
+            if (state == QMediaPlayer::PausedState || state == QMediaPlayer::StoppedState) {
                 m_videoRendererControl->pause();
-            else if ((state == QMediaPlayer::PlayingState)
-                     && (m_state == QMediaPlayer::PausedState)) {
+            } else if ((state == QMediaPlayer::PlayingState)
+                       && (m_state == QMediaPlayer::PausedState
+                           || m_state == QMediaPlayer::StoppedState)) {
                 m_videoRendererControl->resume();
             }
         }

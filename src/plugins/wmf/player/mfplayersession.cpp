@@ -1157,8 +1157,8 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
 
 qreal MFPlayerSession::playbackRate() const
 {
-    if (m_pendingState != NoPending)
-        return m_request.rate;
+    if (m_scrubbing)
+        return m_restoreRate;
     return m_state.rate;
 }
 
@@ -1166,6 +1166,7 @@ void MFPlayerSession::setPlaybackRate(qreal rate)
 {
     if (m_scrubbing) {
         m_restoreRate = rate;
+        emit playbackRateChanged(rate);
         return;
     }
     setPlaybackRateInternal(rate);
@@ -1194,6 +1195,8 @@ void MFPlayerSession::setPlaybackRateInternal(qreal rate)
         isThin = TRUE;
         if (FAILED(m_rateSupport->IsRateSupported(isThin, rate, NULL))) {
             qWarning() << "unable to set playbackrate = " << rate;
+            m_pendingRate = m_request.rate = m_state.rate;
+            return;
         }
     }
     if (m_pendingState != NoPending) {
@@ -1219,6 +1222,7 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
     MFTIME  hnsSystemTime = 0;
     MFTIME  hnsClockTime = 0;
     Command cmdNow = m_state.command;
+    bool resetPosition = false;
     // Allowed rate transitions:
     // Positive <-> negative:   Stopped
     // Negative <-> zero:       Stopped
@@ -1229,7 +1233,12 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
             m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
             Q_ASSERT(hnsSystemTime != 0);
 
-            m_request.setCommand(rate < 0 || m_state.rate < 0 ? CmdSeekResume : CmdStart);
+            if (rate < 0 || m_state.rate < 0)
+                m_request.setCommand(CmdSeekResume);
+            else if (isThin || m_state.isThin)
+                m_request.setCommand(CmdStartAndSeek);
+            else
+                m_request.setCommand(CmdStart);
 
             // We need to stop only when dealing with negative rates
             if (rate >= 0 && m_state.rate >= 0)
@@ -1247,7 +1256,9 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
                 // session cannot transition back from stopped to paused.
                 // Therefore, this rate transition is not supported while paused.
                 qWarning() << "Unable to change rate from positive to negative or vice versa in paused state";
-                return;
+                rate = m_state.rate;
+                isThin = m_state.isThin;
+                goto done;
             }
 
             // This happens when resuming playback after scrubbing in pause mode.
@@ -1279,17 +1290,42 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
 
         // Resume to the current position (stop() will reset the position to 0)
         m_request.start = hnsClockTime / 10000;
+    } else if (!isThin && m_state.isThin) {
+        if (cmdNow == CmdStart) {
+            // When thinning, only key frames are read and presented. Going back
+            // to normal playback requires to reset the current position to force
+            // the pipeline to decode the actual frame at the current position
+            // (which might be earlier than the last decoded key frame)
+            resetPosition = true;
+        } else if (cmdNow == CmdPause) {
+            // If paused, dont reset the position until we resume, otherwise
+            // a new frame will be rendered
+            m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
+            m_request.setCommand(CmdSeekResume);
+            m_request.start = hnsClockTime / 10000;
+        }
+
     }
 
     // Set the rate.
     if (FAILED(m_rateControl->SetRate(isThin, rate))) {
         qWarning() << "failed to set playbackrate = " << rate;
-        return;
+        rate = m_state.rate;
+        isThin = m_state.isThin;
+        goto done;
     }
 
+    if (resetPosition) {
+        m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
+        setPosition(hnsClockTime / 10000);
+    }
+
+done:
     // Adjust our current rate and requested rate.
     m_pendingRate = m_request.rate = m_state.rate = rate;
-
+    if (rate != 0)
+        m_state.isThin = isThin;
+    emit playbackRateChanged(rate);
 }
 
 void MFPlayerSession::scrub(bool enableScrub)
@@ -1705,6 +1741,11 @@ void MFPlayerSession::updatePendingCommands(Command command)
         case CmdSeek:
         case CmdSeekResume:
             setPositionInternal(m_request.start, m_request.command);
+            break;
+        case CmdStartAndSeek:
+            start();
+            setPositionInternal(m_request.start, m_request.command);
+            break;
         }
         m_request.setCommand(CmdNone);
     }

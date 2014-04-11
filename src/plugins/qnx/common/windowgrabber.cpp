@@ -47,6 +47,8 @@
 #include <QImage>
 #include <qpa/qplatformnativeinterface.h>
 
+#include <QOpenGLContext>
+
 #ifdef Q_OS_BLACKBERRY
 #include <bps/event.h>
 #include <bps/screen.h>
@@ -57,13 +59,15 @@ QT_BEGIN_NAMESPACE
 
 WindowGrabber::WindowGrabber(QObject *parent)
     : QObject(parent),
-      m_screenBuffer(0),
       m_screenBufferWidth(-1),
       m_screenBufferHeight(-1),
       m_active(false),
       m_screenContextInitialized(false),
-      m_screenPixmapInitialized(false),
-      m_screenPixmapBufferInitialized(false)
+      m_screenPixmapBuffersInitialized(false),
+      m_currentFrame(0),
+      m_eglImageSupported(false),
+      m_eglImagesInitialized(false),
+      m_eglImageCheck(false)
 {
     // grab the window frame with 60 frames per second
     m_timer.setInterval(1000/60);
@@ -76,11 +80,47 @@ WindowGrabber::WindowGrabber(QObject *parent)
 WindowGrabber::~WindowGrabber()
 {
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
+    if (eglImagesInitialized()) {
+        glDeleteTextures(2, imgTextures);
+        eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY), img[0]);
+        eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY), img[1]);
+    }
 }
 
 void WindowGrabber::setFrameRate(int frameRate)
 {
     m_timer.setInterval(1000/frameRate);
+}
+
+void WindowGrabber::createEglImages()
+{
+    // Do nothing if either egl images are not supported, the screen context is not valid
+    // or the images are already created
+    if (!eglImageSupported() || !m_screenContextInitialized || eglImagesInitialized())
+        return;
+
+    glGenTextures(2, imgTextures);
+    glBindTexture(GL_TEXTURE_2D, imgTextures[0]);
+    img[0] = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY), EGL_NO_CONTEXT,
+                                        EGL_NATIVE_PIXMAP_KHR,
+                                        m_screenPixmaps[0],
+                                        0);
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, img[0]);
+
+    glBindTexture(GL_TEXTURE_2D, imgTextures[1]);
+    img[1] = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY), EGL_NO_CONTEXT,
+                                        EGL_NATIVE_PIXMAP_KHR,
+                                        m_screenPixmaps[1],
+                                        0);
+
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, img[1]);
+
+    if (img[0] == 0 || img[1] == 0) {
+        qWarning() << "Failed to create KHR images" << img[0] << img[1] << strerror(errno) << errno;
+        m_eglImageSupported = false;
+    } else {
+        m_eglImagesInitialized = true;
+    }
 }
 
 void WindowGrabber::setWindowId(const QByteArray &windowId)
@@ -90,6 +130,9 @@ void WindowGrabber::setWindowId(const QByteArray &windowId)
 
 void WindowGrabber::start()
 {
+    if (m_active)
+        return;
+
     int result = 0;
 
 #ifdef Q_OS_BLACKBERRY_TABLET
@@ -124,30 +167,21 @@ void WindowGrabber::start()
         m_screenContextInitialized = true;
     }
 
-    result = screen_create_pixmap(&m_screenPixmap, m_screenContext);
+    result = screen_create_pixmap(&m_screenPixmaps[0], m_screenContext);
+    result = screen_create_pixmap(&m_screenPixmaps[1], m_screenContext);
     if (result != 0) {
         cleanup();
-        qWarning() << "WindowGrabber: cannot create pixmap:" << strerror(errno);
-        return;
-    } else {
-        m_screenPixmapInitialized = true;
-    }
-
-    const int usage = SCREEN_USAGE_READ | SCREEN_USAGE_NATIVE;
-    result = screen_set_pixmap_property_iv(m_screenPixmap, SCREEN_PROPERTY_USAGE, &usage);
-    if (result != 0) {
-        cleanup();
-        qWarning() << "WindowGrabber: cannot set pixmap usage:" << strerror(errno);
+        qWarning() << "WindowGrabber: cannot create pixmaps:" << strerror(errno);
         return;
     }
 
-    const int format = SCREEN_FORMAT_RGBA8888;
-    result = screen_set_pixmap_property_iv(m_screenPixmap, SCREEN_PROPERTY_FORMAT, &format);
-    if (result != 0) {
-        cleanup();
-        qWarning() << "WindowGrabber: cannot set pixmap format:" << strerror(errno);
-        return;
-    }
+    const int usage = SCREEN_USAGE_NATIVE;
+    result = screen_set_pixmap_property_iv(m_screenPixmaps[0], SCREEN_PROPERTY_USAGE, &usage);
+    result |= screen_set_pixmap_property_iv(m_screenPixmaps[1], SCREEN_PROPERTY_USAGE, &usage);
+
+    const int format = SCREEN_FORMAT_RGBX8888;
+    screen_set_pixmap_property_iv(m_screenPixmaps[0], SCREEN_PROPERTY_FORMAT, &format);
+    screen_set_pixmap_property_iv(m_screenPixmaps[1], SCREEN_PROPERTY_FORMAT, &format);
 
     int size[2] = { 0, 0 };
 
@@ -172,37 +206,51 @@ void WindowGrabber::updateFrameSize()
 {
     int size[2] = { m_screenBufferWidth, m_screenBufferHeight };
 
-    int result = screen_set_pixmap_property_iv(m_screenPixmap, SCREEN_PROPERTY_BUFFER_SIZE, size);
-    if (result != 0) {
-        cleanup();
-        qWarning() << "WindowGrabber: cannot set pixmap size:" << strerror(errno);
-        return;
-    }
+    screen_set_pixmap_property_iv(m_screenPixmaps[0], SCREEN_PROPERTY_BUFFER_SIZE, size);
+    if (eglImageSupported())
+        screen_set_pixmap_property_iv(m_screenPixmaps[1], SCREEN_PROPERTY_BUFFER_SIZE, size);
 
-    result = screen_create_pixmap_buffer(m_screenPixmap);
+    int result = screen_create_pixmap_buffer(m_screenPixmaps[0]);
+    if (eglImageSupported())
+        result |= screen_create_pixmap_buffer(m_screenPixmaps[1]);
+
     if (result != 0) {
         cleanup();
         qWarning() << "WindowGrabber: cannot create pixmap buffer:" << strerror(errno);
         return;
+    } else {
+        m_screenPixmapBuffersInitialized = true;
     }
 
-    result = screen_get_pixmap_property_pv(m_screenPixmap, SCREEN_PROPERTY_RENDER_BUFFERS, (void**)&m_screenPixmapBuffer);
+    result = screen_get_pixmap_property_pv(m_screenPixmaps[0], SCREEN_PROPERTY_RENDER_BUFFERS,
+            (void**)&m_screenPixmapBuffers[0]);
+    if (eglImageSupported()) {
+        result |= screen_get_pixmap_property_pv(m_screenPixmaps[1], SCREEN_PROPERTY_RENDER_BUFFERS,
+                (void**)&m_screenPixmapBuffers[1]);
+    }
+
     if (result != 0) {
         cleanup();
         qWarning() << "WindowGrabber: cannot get pixmap buffer:" << strerror(errno);
         return;
-    } else {
-        m_screenPixmapBufferInitialized = true;
     }
 
-    result = screen_get_buffer_property_pv(m_screenPixmapBuffer, SCREEN_PROPERTY_POINTER, (void**)&m_screenBuffer);
+    result = screen_get_buffer_property_pv(m_screenPixmapBuffers[0], SCREEN_PROPERTY_POINTER,
+            (void**)&m_screenBuffers[0]);
+    if (eglImageSupported()) {
+        result |= screen_get_buffer_property_pv(m_screenPixmapBuffers[1], SCREEN_PROPERTY_POINTER,
+                (void**)&m_screenBuffers[1]);
+    }
+
     if (result != 0) {
         cleanup();
         qWarning() << "WindowGrabber: cannot get pixmap buffer pointer:" << strerror(errno);
         return;
     }
 
-    result = screen_get_buffer_property_iv(m_screenPixmapBuffer, SCREEN_PROPERTY_STRIDE, &m_screenBufferStride);
+    result = screen_get_buffer_property_iv(m_screenPixmapBuffers[0], SCREEN_PROPERTY_STRIDE,
+            &m_screenBufferStride);
+
     if (result != 0) {
         cleanup();
         qWarning() << "WindowGrabber: cannot get pixmap buffer stride:" << strerror(errno);
@@ -310,8 +358,40 @@ QByteArray WindowGrabber::windowGroupId() const
     return QByteArray(groupIdData);
 }
 
+bool WindowGrabber::eglImageSupported()
+{
+    return m_eglImageSupported;
+}
+
+void WindowGrabber::checkForEglImageExtension()
+{
+    QOpenGLContext *m_context = QOpenGLContext::currentContext();
+    if (!m_context) //Should not happen, because we are called from the render thread
+        return;
+
+    QByteArray eglExtensions = QByteArray(eglQueryString(eglGetDisplay(EGL_DEFAULT_DISPLAY),
+                                                         EGL_EXTENSIONS));
+    m_eglImageSupported = m_context->hasExtension(QByteArrayLiteral("GL_OES_EGL_image"))
+                          && eglExtensions.contains(QByteArrayLiteral("EGL_KHR_image"));
+
+    m_eglImageCheck = true;
+}
+
+bool WindowGrabber::eglImagesInitialized()
+{
+    return m_eglImagesInitialized;
+}
+
 void WindowGrabber::grab()
 {
+    if (!m_eglImageCheck) // We did not check for egl images yet
+        return;
+
+    if (eglImageSupported())
+        m_currentFrame = (m_currentFrame + 1) % 2;
+    else
+        m_currentFrame = 0;
+
     int size[2] = { 0, 0 };
 
     int result = screen_get_window_property_iv(m_window, SCREEN_PROPERTY_SOURCE_SIZE, size);
@@ -324,40 +404,33 @@ void WindowGrabber::grab()
     if (m_screenBufferWidth != size[0] || m_screenBufferHeight != size[1]) {
         // The source viewport size changed, so we have to adapt our buffers
 
-        if (m_screenPixmapBufferInitialized) {
-            screen_destroy_pixmap_buffer(m_screenPixmap);
-            m_screenPixmapBufferInitialized = false;
+        if (m_screenPixmapBuffersInitialized) {
+            screen_destroy_pixmap_buffer(m_screenPixmaps[0]);
+            if (eglImageSupported())
+                screen_destroy_pixmap_buffer(m_screenPixmaps[1]);
         }
 
         m_screenBufferWidth = size[0];
         m_screenBufferHeight = size[1];
 
         updateFrameSize();
+        m_eglImagesInitialized = false;
     }
 
     const int rect[] = { 0, 0, m_screenBufferWidth, m_screenBufferHeight };
-    result = screen_read_window(m_window, m_screenPixmapBuffer, 1, rect, 0);
+    result = screen_read_window(m_window, m_screenPixmapBuffers[m_currentFrame], 1, rect, 0);
     if (result != 0)
         return;
 
-    const QImage frame((unsigned char*)m_screenBuffer, m_screenBufferWidth, m_screenBufferHeight,
-                       m_screenBufferStride, QImage::Format_ARGB32);
+    const QImage frame((unsigned char*)m_screenBuffers[m_currentFrame], m_screenBufferWidth,
+                       m_screenBufferHeight, m_screenBufferStride, QImage::Format_ARGB32);
 
-    emit frameGrabbed(frame);
+    emit frameGrabbed(frame, imgTextures[m_currentFrame]);
 }
 
 void WindowGrabber::cleanup()
 {
-    if (m_screenPixmapBufferInitialized) {
-        screen_destroy_buffer(m_screenPixmapBuffer);
-        m_screenPixmapBufferInitialized = false;
-    }
-
-    if (m_screenPixmapInitialized) {
-        screen_destroy_pixmap(m_screenPixmap);
-        m_screenPixmapInitialized = false;
-    }
-
+    //We only need to destroy the context as it frees all resources associated with it
     if (m_screenContextInitialized) {
         screen_destroy_context(m_screenContext);
         m_screenContextInitialized = false;

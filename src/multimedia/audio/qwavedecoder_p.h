@@ -103,7 +103,7 @@ private:
         char        id[4];
         quint32     size;
     };
-    bool peekChunk(chunk* pChunk);
+    bool peekChunk(chunk* pChunk, bool handleEndianness = true);
 
     struct RIFFHeader
     {

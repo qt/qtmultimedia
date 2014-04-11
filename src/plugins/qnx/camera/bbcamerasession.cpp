@@ -140,7 +140,7 @@ BbCameraSession::BbCameraSession(QObject *parent)
     connect(this, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateReadyForCapture()));
     connect(m_orientationHandler, SIGNAL(orientationChanged(int)), SLOT(deviceOrientationChanged(int)));
 
-    connect(m_windowGrabber, SIGNAL(frameGrabbed(QImage)), SLOT(viewfinderFrameGrabbed(QImage)));
+    connect(m_windowGrabber, SIGNAL(frameGrabbed(QImage, int)), SLOT(viewfinderFrameGrabbed(QImage)));
 }
 
 BbCameraSession::~BbCameraSession()
@@ -772,11 +772,16 @@ void BbCameraSession::viewfinderFrameGrabbed(const QImage &image)
 {
     QTransform transform;
 
+    // subtract out the native rotation
     transform.rotate(m_nativeCameraOrientation);
 
+    // subtract out the current device orientation
+    if (m_device == cameraIdentifierRear())
+        transform.rotate(360 - m_orientationHandler->viewfinderOrientation());
+    else
+        transform.rotate(m_orientationHandler->viewfinderOrientation());
+
     QImage frame = image.copy().transformed(transform);
-    if (m_device == cameraIdentifierFront())
-        frame = frame.mirrored(true, false);
 
     QMutexLocker locker(&m_surfaceMutex);
     if (m_surface) {
@@ -896,7 +901,7 @@ bool BbCameraSession::startViewFinder()
         return false;
     }
 
-    const int angle = m_orientationHandler->orientation();
+    const int angle = m_orientationHandler->viewfinderOrientation();
 
     const QSize rotatedSize = ((angle == 0 || angle == 180) ? viewfinderResolution
                                                             : viewfinderResolution.transposed());

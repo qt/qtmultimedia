@@ -162,25 +162,18 @@ void QGstreamerMetaDataProvider::updateTags()
 {
     QVariantMap oldTags = m_tags;
     m_tags.clear();
-
-    QSet<QString> allTags = QSet<QString>::fromList(m_tags.keys());
+    bool changed = false;
 
     QMapIterator<QByteArray ,QVariant> i(m_session->tags());
     while (i.hasNext()) {
          i.next();
          //use gstreamer native keys for elements not in m_keysMap
          QString key = m_keysMap.value(i.key(), i.key());
-         m_tags[key] = i.value();
-         allTags.insert(key);
-    }
-
-    bool changed = false;
-    foreach (const QString &key, allTags) {
-        const QVariant value = m_tags.value(key);
-        if (value != oldTags.value(key)) {
-            changed = true;
-            emit metaDataChanged(key, value);
-        }
+         m_tags.insert(key, i.value());
+         if (i.value() != oldTags.value(key)) {
+             changed = true;
+             emit metaDataChanged(key, i.value());
+         }
     }
 
     if (changed)

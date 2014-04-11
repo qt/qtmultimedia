@@ -278,7 +278,7 @@ IMFMediaSource* SourceResolver::mediaSource() const
 
 /////////////////////////////////////////////////////////////////////////////////
 SourceResolver::State::State(IMFSourceResolver *sourceResolver, bool fromStream)
-    : m_cRef(1)
+    : m_cRef(0)
     , m_sourceResolver(sourceResolver)
     , m_fromStream(fromStream)
 {

@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 class JCamera;
 
-class JMediaRecorder : public QObject, public QJNIObjectPrivate
+class JMediaRecorder : public QObject
 {
     Q_OBJECT
 public:
@@ -127,6 +127,7 @@ Q_SIGNALS:
 
 private:
     jlong m_id;
+    QJNIObjectPrivate m_mediaRecorder;
 };
 
 QT_END_NAMESPACE

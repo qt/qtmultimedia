@@ -290,15 +290,15 @@ void QDeclarativeAudio::setVolume(qreal volume)
         return;
     }
 
-    if (m_vol == volume)
+    if (this->volume() == volume)
         return;
 
-    m_vol = volume;
-
-    if (m_complete)
+    if (m_complete) {
         m_player->setVolume(qRound(volume * 100));
-    else
+    } else {
+        m_vol = volume;
         emit volumeChanged();
+    }
 }
 
 bool QDeclarativeAudio::isMuted() const
@@ -308,15 +308,15 @@ bool QDeclarativeAudio::isMuted() const
 
 void QDeclarativeAudio::setMuted(bool muted)
 {
-    if (m_muted == muted)
+    if (isMuted() == muted)
         return;
 
-    m_muted = muted;
-
-    if (m_complete)
+    if (m_complete) {
         m_player->setMuted(muted);
-    else
+    } else {
+        m_muted = muted;
         emit mutedChanged();
+    }
 }
 
 qreal QDeclarativeAudio::bufferProgress() const
@@ -331,20 +331,20 @@ bool QDeclarativeAudio::isSeekable() const
 
 qreal QDeclarativeAudio::playbackRate() const
 {
-    return m_playbackRate;
+    return m_complete ? m_player->playbackRate() : m_playbackRate;
 }
 
 void QDeclarativeAudio::setPlaybackRate(qreal rate)
 {
-    if (m_playbackRate == rate)
+    if (playbackRate() == rate)
         return;
 
-    m_playbackRate = rate;
-
-    if (m_complete)
-        m_player->setPlaybackRate(m_playbackRate);
-    else
+    if (m_complete) {
+        m_player->setPlaybackRate(rate);
+    } else {
+        m_playbackRate = rate;
         emit playbackRateChanged();
+    }
 }
 
 QString QDeclarativeAudio::errorString() const
@@ -426,12 +426,12 @@ void QDeclarativeAudio::seek(int position)
     if (this->position() == position)
         return;
 
-    m_position = position;
-
-    if (m_complete)
-        m_player->setPosition(m_position);
-    else
+    if (m_complete) {
+        m_player->setPosition(position);
+    } else {
+        m_position = position;
         emit positionChanged();
+    }
 }
 
 /*!

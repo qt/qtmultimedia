@@ -211,6 +211,7 @@ private:
     GstElement* m_nullVideoSink;
 
     GstElement* m_audioSink;
+    GstElement* m_volumeElement;
 
     GstBus* m_bus;
     QObject *m_videoOutput;

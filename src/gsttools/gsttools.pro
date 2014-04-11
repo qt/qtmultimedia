@@ -2,9 +2,10 @@ TEMPLATE = lib
 
 TARGET = qgsttools_p
 QPRO_PWD = $$PWD
-QT = core multimedia-private gui-private
+QT = core-private multimedia-private gui-private
 
 !static:DEFINES += QT_MAKEDLL
+DEFINES += GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
 
 unix:!maemo*:contains(QT_CONFIG, alsa) {
 DEFINES += HAVE_ALSA

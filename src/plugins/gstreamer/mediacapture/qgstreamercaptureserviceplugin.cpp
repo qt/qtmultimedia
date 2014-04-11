@@ -51,18 +51,8 @@
 #include "qgstreamercaptureservice.h"
 #include <private/qgstutils_p.h>
 
-#include <linux/types.h>
-#include <sys/time.h>
-#include <sys/ioctl.h>
-#include <sys/poll.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/mman.h>
+#include <private/qcore_unix_p.h>
 #include <linux/videodev2.h>
-#include <gst/gst.h>
 
 QMediaService* QGstreamerCaptureServicePlugin::create(const QString &key)
 {
@@ -155,7 +145,7 @@ void QGstreamerCaptureServicePlugin::updateDevices() const
     foreach( const QFileInfo &entryInfo, entries ) {
         //qDebug() << "Try" << entryInfo.filePath();
 
-        int fd = ::open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
+        int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
         if (fd == -1)
             continue;
 
@@ -185,7 +175,7 @@ void QGstreamerCaptureServicePlugin::updateDevices() const
             m_cameraDevices.append(entryInfo.filePath().toLocal8Bit());
             m_cameraDescriptions.append(name);
         }
-        ::close(fd);
+        qt_safe_close(fd);
     }
 
     if (!m_cameraDevices.isEmpty())
