@@ -257,33 +257,23 @@ void QSGVideoMaterial_YUV420::bind()
                 m_textureSize = m_frame.size();
             }
 
-            const uchar *bits = m_frame.bits();
-            int yStride = m_frame.bytesPerLine();
-            // The UV stride is usually half the Y stride and is 32-bit aligned.
-            // However it's not always the case, at least on Windows where the
-            // UV planes are sometimes not aligned.
-            // We calculate the stride using the UV byte count to always
-            // have a correct stride.
-            int uvStride = (m_frame.mappedBytes() - yStride * fh) / fh;
-            int offsetU = yStride * fh;
-            int offsetV = yStride * fh + uvStride * fh / 2;
+            const int y = 0;
+            const int u = m_frame.pixelFormat() == QVideoFrame::Format_YUV420P ? 1 : 2;
+            const int v = m_frame.pixelFormat() == QVideoFrame::Format_YUV420P ? 2 : 1;
 
-            m_yWidth = qreal(fw) / yStride;
-            m_uvWidth = qreal(fw) /  (2 * uvStride);
-
-            if (m_frame.pixelFormat() == QVideoFrame::Format_YV12)
-                qSwap(offsetU, offsetV);
+            m_yWidth = qreal(fw) / m_frame.bytesPerLine(y);
+            m_uvWidth = qreal(fw) / (2 * m_frame.bytesPerLine(u));
 
             GLint previousAlignment;
             glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
             functions->glActiveTexture(GL_TEXTURE1);
-            bindTexture(m_textureIds[1], uvStride, fh / 2, bits + offsetU);
+            bindTexture(m_textureIds[1], m_frame.bytesPerLine(u), fh / 2, m_frame.bits(u));
             functions->glActiveTexture(GL_TEXTURE2);
-            bindTexture(m_textureIds[2], uvStride, fh / 2, bits + offsetV);
+            bindTexture(m_textureIds[2], m_frame.bytesPerLine(v), fh / 2, m_frame.bits(v));
             functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
-            bindTexture(m_textureIds[0], yStride, fh, bits);
+            bindTexture(m_textureIds[0], m_frame.bytesPerLine(y), fh, m_frame.bits(y));
 
             glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
 
@@ -350,7 +340,6 @@ void QSGVideoMaterialShader_YUV420::updateState(const RenderState &state,
         mat->m_opacity = state.opacity();
         program()->setUniformValue(m_id_opacity, GLfloat(mat->m_opacity));
     }
-
     if (state.isMatrixDirty())
         program()->setUniformValue(m_id_matrix, state.combinedMatrix());
 }

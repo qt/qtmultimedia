@@ -85,6 +85,7 @@ public:
     virtual MapMode mapMode() const = 0;
 
     virtual uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) = 0;
+    int mapPlanes(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]);
     virtual void unmap() = 0;
 
     virtual QVariant handle() const;
@@ -98,6 +99,23 @@ protected:
 private:
     Q_DECLARE_PRIVATE(QAbstractVideoBuffer)
     Q_DISABLE_COPY(QAbstractVideoBuffer)
+};
+
+class QAbstractPlanarVideoBufferPrivate;
+class Q_MULTIMEDIA_EXPORT QAbstractPlanarVideoBuffer : public QAbstractVideoBuffer
+{
+public:
+    QAbstractPlanarVideoBuffer(HandleType type);
+    virtual ~QAbstractPlanarVideoBuffer();
+
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine);
+    virtual int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) = 0;
+
+protected:
+    QAbstractPlanarVideoBuffer(QAbstractPlanarVideoBufferPrivate &dd, HandleType type);
+
+private:
+    Q_DISABLE_COPY(QAbstractPlanarVideoBuffer)
 };
 
 #ifndef QT_NO_DEBUG_STREAM

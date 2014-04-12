@@ -56,6 +56,15 @@ static void qRegisterAbstractVideoBufferMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterAbstractVideoBufferMetaTypes)
 
+int QAbstractVideoBufferPrivate::map(
+            QAbstractVideoBuffer::MapMode mode,
+            int *numBytes,
+            int bytesPerLine[4],
+            uchar *data[4])
+{
+    data[0] = q_ptr->map(mode, numBytes, bytesPerLine);
+    return data[0] ? 1 : 0;
+}
 
 /*!
     \class QAbstractVideoBuffer
@@ -130,6 +139,7 @@ QAbstractVideoBuffer::QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, Hand
     : d_ptr(&dd)
     , m_type(type)
 {
+    d_ptr->q_ptr = this;
 }
 
 /*!
@@ -199,6 +209,44 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
     \sa unmap(), mapMode()
 */
 
+
+/*!
+    Independently maps the planes of a video buffer to memory.
+
+    The map \a mode indicates whether the contents of the mapped memory should be read from and/or
+    written to the buffer.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
+    mapped memory will be populated with the content of the buffer when initially mapped.  If the map
+    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
+    mapped memory will be written back to the buffer when unmapped.
+
+    When access to the data is no longer needed be sure to call the unmap() function to release the
+    mapped memory and possibly update the buffer contents.
+
+    Returns the number of planes in the mapped video data.  For each plane the line stride of that
+    plane will be returned in \a bytesPerLine, and a pointer to the plane data will be returned in
+    \a data.  The accumulative size of the mapped data is returned in \a numBytes.
+
+    Not all buffer implementations will map more than the first plane, if this returns a single
+    plane for a planar format the additional planes will have to be calculated from the line stride
+    of the first plane and the frame height.  Mapping a buffer with QVideoFrame will do this for
+    you.
+
+    To implement this function create a derivative of QAbstractPlanarVideoBuffer and implement
+    its map function instance instead.
+
+    \since 5.4
+*/
+int QAbstractVideoBuffer::mapPlanes(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
+{
+    if (d_ptr) {
+        return d_ptr->map(mode, numBytes, bytesPerLine, data);
+    } else {
+        data[0] = map(mode, numBytes, bytesPerLine);
+
+        return data[0] ? 1 : 0;
+    }
+}
+
 /*!
     \fn QAbstractVideoBuffer::unmap()
 
@@ -221,6 +269,90 @@ QVariant QAbstractVideoBuffer::handle() const
 {
     return QVariant();
 }
+
+
+int QAbstractPlanarVideoBufferPrivate::map(
+        QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
+{
+    return q_func()->map(mode, numBytes, bytesPerLine, data);
+}
+
+/*!
+    \class QAbstractPlanarVideoBuffer
+    \brief The QAbstractPlanarVideoBuffer class is an abstraction for planar video data.
+    \inmodule QtMultimedia
+    \ingroup QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_video
+
+    QAbstractPlanarVideoBuffer extends QAbstractVideoBuffer to support mapping
+    non-continuous planar video data.  Implement this instead of QAbstractVideoBuffer when the
+    abstracted video data stores planes in separate buffers or includes padding between planes
+    which would interfere with calculating offsets from the bytes per line and frame height.
+
+    \sa QAbstractVideoBuffer::mapPlanes()
+    \since 5.4
+*/
+
+/*!
+    Constructs an abstract planar video buffer of the given \a type.
+*/
+QAbstractPlanarVideoBuffer::QAbstractPlanarVideoBuffer(HandleType type)
+    : QAbstractVideoBuffer(*new QAbstractPlanarVideoBufferPrivate, type)
+{
+}
+
+/*!
+    \internal
+*/
+QAbstractPlanarVideoBuffer::QAbstractPlanarVideoBuffer(
+        QAbstractPlanarVideoBufferPrivate &dd, HandleType type)
+    : QAbstractVideoBuffer(dd, type)
+{
+}
+/*!
+    Destroys an abstract planar video buffer.
+*/
+QAbstractPlanarVideoBuffer::~QAbstractPlanarVideoBuffer()
+{
+}
+
+/*!
+    \internal
+*/
+uchar *QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
+{
+    uchar *data[4];
+    int strides[4];
+    if (map(mode, numBytes, strides, data) > 0) {
+        if (bytesPerLine)
+            *bytesPerLine = strides[0];
+        return data[0];
+    } else {
+        return 0;
+    }
+}
+
+/*!
+    \fn int QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
+
+    Maps the contents of a video buffer to memory.
+
+    The map \a mode indicates whether the contents of the mapped memory should be read from and/or
+    written to the buffer.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
+    mapped memory will be populated with the content of the buffer when initially mapped.  If the map
+    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
+    mapped memory will be written back to the buffer when unmapped.
+
+    When access to the data is no longer needed be sure to call the unmap() function to release the
+    mapped memory and possibly update the buffer contents.
+
+    Returns the number of planes in the mapped video data.  For each plane the line stride of that
+    plane will be returned in \a bytesPerLine, and a pointer to the plane data will be returned in
+    \a data.  The accumulative size of the mapped data is returned in \a numBytes.
+
+    \sa QAbstractVideoBuffer::map(), QAbstractVideoBuffer::unmap(), QAbstractVideoBuffer::mapMode()
+*/
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::HandleType type)

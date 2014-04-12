@@ -87,6 +87,8 @@ private slots:
     void map();
     void mapImage_data();
     void mapImage();
+    void mapPlanes_data();
+    void mapPlanes();
     void imageDetach();
     void formatConversion_data();
     void formatConversion();
@@ -113,6 +115,35 @@ public:
 
     uchar *map(MapMode, int *, int *) { return 0; }
     void unmap() {}
+};
+
+class QtTestPlanarVideoBuffer : public QAbstractPlanarVideoBuffer
+{
+public:
+    QtTestPlanarVideoBuffer()
+        : QAbstractPlanarVideoBuffer(NoHandle), m_planeCount(0), m_mapMode(NotMapped) {}
+    explicit QtTestPlanarVideoBuffer(QAbstractVideoBuffer::HandleType type)
+        : QAbstractPlanarVideoBuffer(type), m_planeCount(0), m_mapMode(NotMapped) {}
+
+    MapMode mapMode() const { return m_mapMode; }
+
+    int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) {
+        m_mapMode = mode;
+        if (numBytes)
+            *numBytes = m_numBytes;
+        for (int i = 0; i < m_planeCount; ++i) {
+            data[i] = m_data[i];
+            bytesPerLine[i] = m_bytesPerLine[i];
+        }
+        return m_planeCount;
+    }
+    void unmap() { m_mapMode = NotMapped; }
+
+    uchar *m_data[4];
+    int m_bytesPerLine[4];
+    int m_planeCount;
+    int m_numBytes;
+    MapMode m_mapMode;
 };
 
 tst_QVideoFrame::tst_QVideoFrame()
@@ -725,6 +756,97 @@ void tst_QVideoFrame::mapImage()
     QCOMPARE(frame.mappedBytes(), 0);
     QCOMPARE(frame.bytesPerLine(), 0);
     QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
+}
+
+void tst_QVideoFrame::mapPlanes_data()
+{
+    QTest::addColumn<QVideoFrame>("frame");
+    QTest::addColumn<QList<int> >("strides");
+    QTest::addColumn<QList<int> >("offsets");
+
+    static uchar bufferData[1024];
+
+    QtTestPlanarVideoBuffer *planarBuffer = new QtTestPlanarVideoBuffer;
+    planarBuffer->m_data[0] = bufferData;
+    planarBuffer->m_data[1] = bufferData + 512;
+    planarBuffer->m_data[2] = bufferData + 765;
+    planarBuffer->m_bytesPerLine[0] = 64;
+    planarBuffer->m_bytesPerLine[1] = 36;
+    planarBuffer->m_bytesPerLine[2] = 36;
+    planarBuffer->m_planeCount = 3;
+    planarBuffer->m_numBytes = sizeof(bufferData);
+
+    QTest::newRow("Planar")
+            << QVideoFrame(planarBuffer, QSize(64, 64), QVideoFrame::Format_YUV420P)
+            << (QList<int>() << 64 << 36 << 36)
+            << (QList<int>() << 512 << 765);
+    QTest::newRow("Format_YUV420P")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_YUV420P)
+            << (QList<int>() << 64 << 62 << 62)
+            << (QList<int>() << 4096 << 6080);
+    QTest::newRow("Format_YV12")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_YV12)
+            << (QList<int>() << 64 << 62 << 62)
+            << (QList<int>() << 4096 << 6080);
+    QTest::newRow("Format_NV12")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_NV12)
+            << (QList<int>() << 64 << 64)
+            << (QList<int>() << 4096);
+    QTest::newRow("Format_NV21")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_NV21)
+            << (QList<int>() << 64 << 64)
+            << (QList<int>() << 4096);
+    QTest::newRow("Format_IMC2")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_IMC2)
+            << (QList<int>() << 64 << 64)
+            << (QList<int>() << 4096);
+    QTest::newRow("Format_IMC4")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_IMC4)
+            << (QList<int>() << 64 << 64)
+            << (QList<int>() << 4096);
+    QTest::newRow("Format_IMC1")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_IMC1)
+            << (QList<int>() << 64 << 64 << 64)
+            << (QList<int>() << 4096 << 6144);
+    QTest::newRow("Format_IMC3")
+            << QVideoFrame(8096, QSize(60, 64), 64, QVideoFrame::Format_IMC3)
+            << (QList<int>() << 64 << 64 << 64)
+            << (QList<int>() << 4096 << 6144);
+    QTest::newRow("Format_ARGB32")
+            << QVideoFrame(8096, QSize(60, 64), 256, QVideoFrame::Format_ARGB32)
+            << (QList<int>() << 256)
+            << (QList<int>());
+}
+
+void tst_QVideoFrame::mapPlanes()
+{
+    QFETCH(QVideoFrame, frame);
+    QFETCH(QList<int>, strides);
+    QFETCH(QList<int>, offsets);
+
+    QCOMPARE(strides.count(), offsets.count() + 1);
+
+    QCOMPARE(frame.map(QAbstractVideoBuffer::ReadOnly), true);
+    QCOMPARE(frame.planeCount(), strides.count());
+
+    QVERIFY(strides.count() > 0);
+    QCOMPARE(frame.bytesPerLine(0), strides.at(0));
+    QVERIFY(frame.bits(0));
+
+    if (strides.count() > 1) {
+        QCOMPARE(frame.bytesPerLine(1), strides.at(1));
+        QCOMPARE(int(frame.bits(1) - frame.bits(0)), offsets.at(0));
+    }
+    if (strides.count() > 2) {
+        QCOMPARE(frame.bytesPerLine(2), strides.at(2));
+        QCOMPARE(int(frame.bits(2) - frame.bits(0)), offsets.at(1));
+    }
+    if (strides.count() > 3) {
+        QCOMPARE(frame.bytesPerLine(3), strides.at(3));
+        QCOMPARE(int(frame.bits(3) - frame.bits(0)), offsets.at(0));
+    }
+
+    frame.unmap();
 }
 
 void tst_QVideoFrame::imageDetach()

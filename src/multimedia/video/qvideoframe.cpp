@@ -71,28 +71,30 @@ public:
     QVideoFramePrivate()
         : startTime(-1)
         , endTime(-1)
-        , data(0)
         , mappedBytes(0)
-        , bytesPerLine(0)
+        , planeCount(0)
         , pixelFormat(QVideoFrame::Format_Invalid)
         , fieldType(QVideoFrame::ProgressiveFrame)
         , buffer(0)
         , mappedCount(0)
     {
+        memset(data, 0, sizeof(data));
+        memset(bytesPerLine, 0, sizeof(bytesPerLine));
     }
 
     QVideoFramePrivate(const QSize &size, QVideoFrame::PixelFormat format)
         : size(size)
         , startTime(-1)
         , endTime(-1)
-        , data(0)
         , mappedBytes(0)
-        , bytesPerLine(0)
+        , planeCount(0)
         , pixelFormat(format)
         , fieldType(QVideoFrame::ProgressiveFrame)
         , buffer(0)
         , mappedCount(0)
     {
+        memset(data, 0, sizeof(data));
+        memset(bytesPerLine, 0, sizeof(bytesPerLine));
     }
 
     ~QVideoFramePrivate()
@@ -104,9 +106,10 @@ public:
     QSize size;
     qint64 startTime;
     qint64 endTime;
-    uchar *data;
+    uchar *data[4];
+    int bytesPerLine[4];
     int mappedBytes;
-    int bytesPerLine;
+    int planeCount;
     QVideoFrame::PixelFormat pixelFormat;
     QVideoFrame::FieldType fieldType;
     QAbstractVideoBuffer *buffer;
@@ -564,18 +567,88 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
         }
     }
 
-    Q_ASSERT(d->data == 0);
-    Q_ASSERT(d->bytesPerLine == 0);
+    Q_ASSERT(d->data[0] == 0);
+    Q_ASSERT(d->bytesPerLine[0] == 0);
+    Q_ASSERT(d->planeCount == 0);
     Q_ASSERT(d->mappedBytes == 0);
 
-    d->data = d->buffer->map(mode, &d->mappedBytes, &d->bytesPerLine);
+    d->planeCount = d->buffer->mapPlanes(mode, &d->mappedBytes, d->bytesPerLine, d->data);
+    if (d->planeCount == 0)
+        return false;
 
-    if (d->data) {
-        d->mappedCount++;
-        return true;
+    if (d->planeCount > 1) {
+        // If the plane count is derive the additional planes for planar formats.
+    } else switch (d->pixelFormat) {
+    case Format_Invalid:
+    case Format_ARGB32:
+    case Format_ARGB32_Premultiplied:
+    case Format_RGB32:
+    case Format_RGB24:
+    case Format_RGB565:
+    case Format_RGB555:
+    case Format_ARGB8565_Premultiplied:
+    case Format_BGRA32:
+    case Format_BGRA32_Premultiplied:
+    case Format_BGR32:
+    case Format_BGR24:
+    case Format_BGR565:
+    case Format_BGR555:
+    case Format_BGRA5658_Premultiplied:
+    case Format_AYUV444:
+    case Format_AYUV444_Premultiplied:
+    case Format_YUV444:
+    case Format_UYVY:
+    case Format_YUYV:
+    case Format_Y8:
+    case Format_Y16:
+    case Format_Jpeg:
+    case Format_CameraRaw:
+    case Format_AdobeDng:
+    case Format_User:
+        // Single plane or opaque format.
+        break;
+    case Format_YUV420P:
+    case Format_YV12: {
+        // The UV stride is usually half the Y stride and is 32-bit aligned.
+        // However it's not always the case, at least on Windows where the
+        // UV planes are sometimes not aligned.
+        // We calculate the stride using the UV byte count to always
+        // have a correct stride.
+        const int height = d->size.height();
+        const int yStride = d->bytesPerLine[0];
+        const int uvStride = (d->mappedBytes - (yStride * height)) / height;
+
+        // Three planes, the second and third vertically and horizontally subsampled.
+        d->planeCount = 3;
+        d->bytesPerLine[2] = d->bytesPerLine[1] = uvStride;
+        d->data[1] = d->data[0] + (yStride * height);
+        d->data[2] = d->data[1] + (uvStride * height / 2);
+        break;
+    }
+    case Format_NV12:
+    case Format_NV21:
+    case Format_IMC2:
+    case Format_IMC4: {
+        // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
+        d->planeCount = 2;
+        d->bytesPerLine[1] = d->bytesPerLine[0];
+        d->data[1] = d->data[0] + (d->bytesPerLine[0] * d->size.height());
+        break;
+    }
+    case Format_IMC1:
+    case Format_IMC3: {
+        // Three planes, the second and third vertically and horizontally subsumpled,
+        // but with lines padded to the width of the first plane.
+        d->planeCount = 3;
+        d->bytesPerLine[2] = d->bytesPerLine[1] = d->bytesPerLine[0];
+        d->data[1] = d->data[0] + (d->bytesPerLine[0] * d->size.height());
+        d->data[2] = d->data[1] + (d->bytesPerLine[1] * d->size.height() / 2);
+        break;
+    }
     }
 
-    return false;
+    d->mappedCount++;
+    return true;
 }
 
 /*!
@@ -604,8 +677,9 @@ void QVideoFrame::unmap()
 
     if (d->mappedCount == 0) {
         d->mappedBytes = 0;
-        d->bytesPerLine = 0;
-        d->data = 0;
+        d->planeCount = 0;
+        memset(d->bytesPerLine, 0, sizeof(d->bytesPerLine));
+        memset(d->data, 0, sizeof(d->data));
 
         d->buffer->unmap();
     }
@@ -623,7 +697,21 @@ void QVideoFrame::unmap()
 */
 int QVideoFrame::bytesPerLine() const
 {
-    return d->bytesPerLine;
+    return d->bytesPerLine[0];
+}
+
+/*!
+    Returns the number of bytes in a scan line of a \a plane.
+
+    This value is only valid while the frame data is \l {map()}{mapped}.
+
+    \sa bits(), map(), mappedBytes(), planeCount()
+    \since 5.4
+*/
+
+int QVideoFrame::bytesPerLine(int plane) const
+{
+    return plane >= 0 && plane < d->planeCount ? d->bytesPerLine[plane] : 0;
 }
 
 /*!
@@ -639,7 +727,24 @@ int QVideoFrame::bytesPerLine() const
 */
 uchar *QVideoFrame::bits()
 {
-    return d->data;
+    return d->data[0];
+}
+
+/*!
+    Returns a pointer to the start of the frame data buffer for a \a plane.
+
+    This value is only valid while the frame data is \l {map()}{mapped}.
+
+    Changes made to data accessed via this pointer (when mapped with write access)
+    are only guaranteed to have been persisted when unmap() is called and when the
+    buffer has been mapped for writing.
+
+    \sa map(), mappedBytes(), bytesPerLine(), planeCount()
+    \since 5.4
+*/
+uchar *QVideoFrame::bits(int plane)
+{
+    return plane >= 0 && plane < d->planeCount ? d->data[plane] : 0;
 }
 
 /*!
@@ -654,7 +759,23 @@ uchar *QVideoFrame::bits()
 */
 const uchar *QVideoFrame::bits() const
 {
-    return d->data;
+    return d->data[0];
+}
+
+/*!
+    Returns a pointer to the start of the frame data buffer for a \a plane.
+
+    This value is only valid while the frame data is \l {map()}{mapped}.
+
+    If the buffer was not mapped with read access, the contents of this
+    buffer will initially be uninitialized.
+
+    \sa map(), mappedBytes(), bytesPerLine(), planeCount()
+    \since 5.4
+*/
+const uchar *QVideoFrame::bits(int plane) const
+{
+    return plane >= 0 && plane < d->planeCount ?  d->data[plane] : 0;
 }
 
 /*!
@@ -667,6 +788,20 @@ const uchar *QVideoFrame::bits() const
 int QVideoFrame::mappedBytes() const
 {
     return d->mappedBytes;
+}
+
+/*!
+    Returns the number of planes in the video frame.
+
+    This value is only valid while the frame data is \l {map()}{mapped}.
+
+    \sa map()
+    \since 5.4
+*/
+
+int QVideoFrame::planeCount() const
+{
+    return d->planeCount;
 }
 
 /*!
@@ -851,9 +986,6 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
     }
     return QImage::Format_Invalid;
 }
-
-
-
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)

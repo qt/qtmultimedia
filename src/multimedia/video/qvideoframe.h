@@ -139,10 +139,14 @@ public:
     void unmap();
 
     int bytesPerLine() const;
+    int bytesPerLine(int plane) const;
 
     uchar *bits();
+    uchar *bits(int plane);
     const uchar *bits() const;
+    const uchar *bits(int plane) const;
     int mappedBytes() const;
+    int planeCount() const;
 
     QVariant handle() const;
 
