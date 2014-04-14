@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -41,16 +41,27 @@
 
 import QtQuick 2.0
 
-Effect {
-    parameters: ListModel {
-        ListElement {
-            name: "threshold"
-            value: 0.5
-        }
-    }
-
-    // Transform slider values, and bind result to shader uniforms
-    property real weight: parameters.get(0).value
-
-    fragmentShaderFilename: "sobeledgedetection2.fsh"
+ListModel {
+    id: sources
+    ListElement { name: "No effect"; source: "EffectPassThrough.qml" }
+    ListElement { name: "Billboard"; source: "EffectBillboard.qml" }
+    ListElement { name: "Black & white"; source: "EffectBlackAndWhite.qml" }
+    ListElement { name: "Blur"; source: "EffectGaussianBlur.qml" }
+    ListElement { name: "Edge detection"; source: "EffectSobelEdgeDetection1.qml" }
+    ListElement { name: "Emboss"; source: "EffectEmboss.qml" }
+    ListElement { name: "Glow"; source: "EffectGlow.qml" }
+    ListElement { name: "Isolate"; source: "EffectIsolate.qml" }
+    //ListElement { name: "Magnify"; source: "EffectMagnify.qml" }
+    ListElement { name: "Page curl"; source: "EffectPageCurl.qml" }
+    ListElement { name: "Pixelate"; source: "EffectPixelate.qml" }
+    ListElement { name: "Posterize"; source: "EffectPosterize.qml" }
+    ListElement { name: "Ripple"; source: "EffectRipple.qml" }
+    ListElement { name: "Sepia"; source: "EffectSepia.qml" }
+    ListElement { name: "Sharpen"; source: "EffectSharpen.qml" }
+    ListElement { name: "Shockwave"; source: "EffectShockwave.qml" }
+    ListElement { name: "Tilt shift"; source: "EffectTiltShift.qml" }
+    ListElement { name: "Toon"; source: "EffectToon.qml" }
+    ListElement { name: "Warhol"; source: "EffectWarhol.qml" }
+    ListElement { name: "Wobble"; source: "EffectWobble.qml" }
+    ListElement { name: "Vignette"; source: "EffectVignette.qml" }
 }

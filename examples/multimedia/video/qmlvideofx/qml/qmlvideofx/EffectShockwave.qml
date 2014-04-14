@@ -45,7 +45,7 @@ Effect {
     id: root
     parameters: ListModel {
         ListElement {
-            name: "amplitude"
+            name: "Amplitude"
             value: 0.5
         }
     }

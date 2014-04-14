@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -39,56 +39,95 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
 
 Rectangle {
     id: root
-    color: "white"
-    property int buttonHeight: 35
-    property int topMargin: 0
-
+    color: "#151515"
+    signal openCamera
     signal openImage
     signal openVideo
-    signal openCamera
     signal close
 
-    Rectangle {
-        anchors {
-            top: parent.top;
-            topMargin: root.topMargin
-            bottom: parent.bottom;
-            horizontalCenter: parent.horizontalCenter
+    Column {
+        anchors.fill: parent
+        spacing: 10
+        Rectangle {
+            height: itemHeight
+            width: itemHeight
+            color: "transparent"
+            anchors.right: parent.right
+            Image {
+                id: menu
+                source: "qrc:///images/icon_Menu.png"
+                anchors {
+                    right: parent.right
+                    top: parent.top
+                    margins: scaledMargin
+                }
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: fileOpen.state == "expanded" ? fileOpen.state = "collapsed" : fileOpen.state = "expanded"
+            }
         }
-        width: 0.9 * parent.width
-        color: "transparent"
-
-        Column {
-            anchors.fill: parent
-            spacing: 5
-            Button {
-                text: "Open image"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.openImage()
-            }
-            Button {
-                text: "Open video"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.openVideo()
-            }
-            Button {
-                text: "Start camera"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.openCamera()
-            }
-            Button {
-                text: "Reset"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.close()
-            }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Start camera"
+            height: itemHeight
+            width: parent.width
+            onClicked: root.openCamera()
+            active: fileOpen.state == "expanded"
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Open image"
+            height: itemHeight
+            width: parent.width
+            onClicked: root.openImage()
+            active: fileOpen.state == "expanded"
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Open video"
+            height: itemHeight
+            width: parent.width
+            onClicked: root.openVideo()
+            active: fileOpen.state == "expanded"
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Reset"
+            height: itemHeight
+            width: parent.width
+            onClicked: root.close()
+            active: fileOpen.state == "expanded"
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
         }
     }
 }

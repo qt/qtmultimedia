@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -39,39 +39,56 @@
 **
 ****************************************************************************/
 
-// Based on http://rastergrid.com/blog/downloads/frei-chen-edge-detector/
+import QtQuick 2.0
 
-#version 130
-uniform sampler2D source;
-uniform float dividerValue;
-uniform float weight;
-mat3 G[2] = mat3[](
-    mat3( 1.0, 2.0, 1.0, 0.0, 0.0, 0.0, -1.0, -2.0, -1.0 ),
-    mat3( 1.0, 0.0, -1.0, 2.0, 0.0, -2.0, 1.0, 0.0, -1.0 )
-);
-uniform lowp float qt_Opacity;
-in vec2 qt_TexCoord0;
-out vec4 FragmentColor;
-void main() {
-    vec2 uv = qt_TexCoord0.xy;
-    vec4 c = vec4(0.0);
-    if (uv.x < dividerValue) {
-        mat3 intensity;
-        float conv[2];
-        vec3 sample;
-        for (int i=0; i<3; ++i) {
-            for (int j=0; j<3; ++j) {
-                sample = texelFetch(source, ivec2(gl_FragCoord) + ivec2(i-1, j-1), 0).rgb;
-                intensity[i][j] = length(sample) * weight;
+Rectangle {
+    id: root
+    color: "transparent"
+    radius: 5
+    property alias value: grip.value
+    property color gripColor: "transparent"
+    property real gripSize: 20
+    property real gripTolerance: 3.0
+    property real increment: 0.1
+    property bool enabled: true
+    property string imageSource: "qrc:/images/Triangle_Top.png"
+
+    Rectangle {
+        id: grip
+        property real value: 0.5
+        x: (value * parent.width) - width/2
+        anchors.verticalCenter: parent.verticalCenter
+        width: root.gripTolerance * root.gripSize
+        height: width
+        radius: width/2
+        color: "transparent"
+
+        Image {
+            id: sliderhandleimage
+            source: imageSource
+            anchors.centerIn: parent
+        }
+
+        MouseArea {
+            id: mouseArea
+            enabled: root.enabled
+            anchors.fill:  parent
+            drag {
+                target: grip
+                axis: Drag.XAxis
+                minimumX: -parent.width/2
+                maximumX: root.width - parent.width/2
+            }
+            onPositionChanged:  {
+                if (drag.active)
+                    updatePosition()
+            }
+            onReleased: {
+                updatePosition()
+            }
+            function updatePosition() {
+                value = (grip.x + grip.width/2) / grip.parent.width
             }
         }
-        for (int i=0; i<2; ++i) {
-            float dp3 = dot(G[i][0], intensity[0]) + dot(G[i][1], intensity[1]) + dot(G[i][2], intensity[2]);
-            conv[i] = dp3 * dp3;
-        }
-        c = vec4(0.5 * sqrt(conv[0]*conv[0] + conv[1]*conv[1]));
-    } else {
-        c = texture2D(source, qt_TexCoord0);
     }
-    FragmentColor = qt_Opacity * c;
 }

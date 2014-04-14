@@ -46,11 +46,11 @@ Effect {
     divider: false
     parameters: ListModel {
         ListElement {
-            name: "radius"
+            name: "Radius"
             value: 0.5
         }
         ListElement {
-            name: "diffraction"
+            name: "Diffraction"
             value: 0.5
         }
     }
