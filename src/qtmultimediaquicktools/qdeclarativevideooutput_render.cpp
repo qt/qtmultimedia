@@ -321,7 +321,7 @@ QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
 bool QSGVideoItemSurface::start(const QVideoSurfaceFormat &format)
 {
 #ifdef DEBUG_VIDEOITEM
-    qDebug() << Q_FUNC_INFO << format;
+    qDebug() << Q_FUNC_INFO << format << supportedPixelFormats(format.handleType());
 #endif
 
     if (!supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))

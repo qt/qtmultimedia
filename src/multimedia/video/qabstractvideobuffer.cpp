@@ -102,6 +102,7 @@ int QAbstractVideoBufferPrivate::map(
     \value XvShmImageHandle The handle contains pointer to shared memory XVideo image.
     \value CoreImageHandle The handle contains pointer to Mac OS X CIImage.
     \value QPixmapHandle The handle of the buffer is a QPixmap.
+    \value EGLImageHandle The handle of the buffer is an EGLImageKHR.
     \value UserHandle Start value for user defined handle types.
 
     \sa handleType()

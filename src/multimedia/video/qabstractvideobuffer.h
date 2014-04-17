@@ -65,6 +65,7 @@ public:
         XvShmImageHandle,
         CoreImageHandle,
         QPixmapHandle,
+        EGLImageHandle,
         UserHandle = 1000
     };
 
