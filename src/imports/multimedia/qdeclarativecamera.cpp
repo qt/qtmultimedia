@@ -46,6 +46,7 @@
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
+#include "qdeclarativecameraviewfinder_p.h"
 
 #include "qdeclarativemediametadata_p.h"
 
@@ -799,6 +800,33 @@ QDeclarativeMediaMetaData *QDeclarativeCamera::metaData()
     if (!m_metaData)
         m_metaData = new QDeclarativeMediaMetaData(m_camera, this);
     return m_metaData;
+}
+
+/*!
+    \qmlproperty size QtMultimedia::Camera::viewfinder.resolution
+
+    This property holds the resolution of the camera viewfinder. If no
+    resolution is given the backend will use a default value.
+
+    \since 5.4
+*/
+
+/*!
+    \qmlproperty real QtMultimedia::Camera::viewfinder.minimumFrameRate
+    \qmlproperty real QtMultimedia::Camera::viewfinder.maximumFrameRate
+
+    These properties hold the limits of the preferred frame rate for the
+    viewfinder in frames per second.
+
+    \since 5.4
+ */
+
+QDeclarativeCameraViewfinder *QDeclarativeCamera::viewfinder()
+{
+    if (!m_viewfinder)
+        m_viewfinder = new QDeclarativeCameraViewfinder(m_camera, this);
+
+    return m_viewfinder;
 }
 
 QT_END_NAMESPACE
