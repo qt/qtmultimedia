@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -29,8 +29,8 @@
     \example audiodevices
     \title Audio Devices Example
     \ingroup multimedia_examples
-    \brief The Audio Devices example shows the application of the audio devices APIs
-
+    \brief The Audio Devices example shows the application of the audio devices
+    APIs.
 
     This example shows how to create a simple application to list and test
     the configuration for the various audio devices available on the device
@@ -38,6 +38,5 @@
 
     \image audiodevices.png
 
+    \include examples-run.qdocinc
 */
-
-

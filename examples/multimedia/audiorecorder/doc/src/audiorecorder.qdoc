@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -34,6 +34,12 @@
     It demonstrates the discovery of the supported devices and codecs and the use
     of recording functions in the QAudioRecorder class.
 
+    \image audiorecorder.png
+
+    \include examples-run.qdocinc
+
+    \section1 Displaying the Window and Audio Settings
+
     We display a window for the user to select the appropriate audio input,
     codec, container, and sample rate. Allow a setting of either quality or
     bitrate. Finally, the output file can be selected and recording can be
@@ -49,7 +55,7 @@
     \l{QMultimedia::NormalQuality}, while the bitrates are hardcoded
     into the list.
 
-    \image audiorecorder.png
+    \section1 Recording Audio
 
     To record audio we simply create a QAudioRecorder object.
 
@@ -96,5 +102,3 @@
     ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
     \endcode
 */
-
-

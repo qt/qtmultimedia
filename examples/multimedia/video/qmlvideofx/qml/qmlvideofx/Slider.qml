@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -39,91 +39,84 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
 
 Rectangle {
     id: root
     color: "transparent"
     radius: 5
     property alias value: grip.value
-    property color fillColor: "white"
-    property color lineColor: "black"
-    property color gripColor: "white"
-    property real gripSize: 20
+    property color fillColor: "#14aaff"
+    property real gripSize: 40
     property real gripTolerance: 3.0
     property real increment: 0.1
     property bool enabled: true
 
     Rectangle {
-        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
-        height: 3
-        color: displayedColor(root.lineColor)
-
-        Rectangle {
-            anchors { fill: parent; margins: 1 }
-            color: root.fillColor
+        id: slider
+        anchors {
+            left: parent.left
+            right: parent.right
+            verticalCenter: parent.verticalCenter
         }
-    }
+        height: 10
+        color: "transparent"
 
-    MouseArea {
-        anchors.fill: parent
-        enabled: root.enabled
-        onClicked: {
-            if (parent.width) {
-                var newValue = mouse.x / parent.width
-                if (Math.abs(newValue - parent.value) > parent.increment) {
-                    if (newValue > parent.value)
-                        parent.value = Math.min(1.0, parent.value + parent.increment)
-                    else
-                        parent.value = Math.max(0.0, parent.value - parent.increment)
+        BorderImage {
+           id: sliderbarimage
+           source: "qrc:/images/Slider_bar.png"
+           anchors { fill: parent; margins: 1 }
+           border.right: 5
+           border.left: 5
+        }
+        Rectangle {
+            height: parent.height -2
+            anchors.left: parent.left
+            anchors.right: grip.horizontalCenter
+            color: root.fillColor
+            radius: 3
+            border.width: 1
+            border.color: Qt.darker(color, 1.3)
+            opacity: 0.8
+        }
+        Rectangle {
+            id: grip
+            property real value: 0.5
+            x: (value * parent.width) - width/2
+            anchors.verticalCenter: parent.verticalCenter
+            width: root.gripTolerance * root.gripSize
+            height: width
+            radius: width/2
+            color: "transparent"
+
+            Image {
+                id: sliderhandleimage
+                source: "qrc:/images/Slider_handle.png"
+                anchors.centerIn: parent
+            }
+
+            MouseArea {
+                id: mouseArea
+                enabled: root.enabled
+                anchors.fill:  parent
+                drag {
+                    target: grip
+                    axis: Drag.XAxis
+                    minimumX: -parent.width/2
+                    maximumX: root.width - parent.width/2
+                }
+                onPositionChanged:  {
+                    if (drag.active)
+                        updatePosition()
+                }
+                onReleased: {
+                    updatePosition()
+                }
+                function updatePosition() {
+                    value = (grip.x + grip.width/2) / slider.width
                 }
             }
         }
-    }
 
-    Rectangle {
-        id: grip
-        property real value: 0.5
-        x: (value * parent.width) - width/2
-        anchors.verticalCenter: parent.verticalCenter
-        width: root.gripTolerance * root.gripSize
-        height: width
-        radius: width/2
-        color: "transparent"
-
-        MouseArea {
-            id: mouseArea
-            enabled: root.enabled
-            anchors.fill:  parent
-            drag {
-                target: grip
-                axis: Drag.XAxis
-                minimumX: -parent.width/2
-                maximumX: root.width - parent.width/2
-            }
-            onPositionChanged:  {
-                if (drag.active)
-                    updatePosition()
-            }
-            onReleased: {
-                updatePosition()
-            }
-            function updatePosition() {
-                value = (grip.x + grip.width/2) / grip.parent.width
-            }
-        }
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: root.gripSize
-            height: width
-            radius: width/2
-            color: root.gripColor
-        }
-    }
-
-    function displayedColor(c) {
-        var tint = Qt.rgba(c.r, c.g, c.b, 0.25)
-        return enabled ? c : Qt.tint(c, tint)
     }
 }

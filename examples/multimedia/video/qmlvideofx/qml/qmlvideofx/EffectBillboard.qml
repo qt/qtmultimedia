@@ -44,7 +44,7 @@ import QtQuick 2.0
 Effect {
     parameters: ListModel {
         ListElement {
-            name: "grid spacing"
+            name: "Grid Spacing"
             value: 0.5
         }
     }

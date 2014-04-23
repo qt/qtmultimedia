@@ -44,11 +44,11 @@ import QtQuick 2.0
 Effect {
     parameters: ListModel {
         ListElement {
-            name: "hue"
+            name: "Hue"
             value: 0.5
         }
         ListElement {
-            name: "width"
+            name: "Width"
             value: 0.5
         }
     }

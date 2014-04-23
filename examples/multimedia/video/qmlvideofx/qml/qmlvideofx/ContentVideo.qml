@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -39,13 +39,14 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
 import QtMultimedia 5.0
 
 VideoOutput {
     source: mediaPlayer
     property alias mediaSource: mediaPlayer.source
     property alias volume: mediaPlayer.volume
+    property bool isRunning: true
 
     MediaPlayer {
         id: mediaPlayer
@@ -55,5 +56,21 @@ VideoOutput {
     }
 
     function play() { mediaPlayer.play() }
+    function pause() { mediaPlayer.pause() }
     function stop() { mediaPlayer.stop() }
+
+    function toggleplay() {
+        if (isRunning) {
+            pause()
+            isRunning = false
+        } else {
+            play()
+            isRunning = true
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: toggleplay()
+    }
 }

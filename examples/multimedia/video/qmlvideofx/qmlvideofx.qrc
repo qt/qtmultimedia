@@ -1,10 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/close.png</file>
-        <file>images/folder.png</file>
-        <file>images/titlebar.png</file>
-        <file>images/titlebar.sci</file>
-        <file>images/up.png</file>
         <file>images/qt-logo.png</file>
         <file>qml/qmlvideofx/Button.qml</file>
         <file>qml/qmlvideofx/Content.qml</file>
@@ -26,12 +21,10 @@
         <file>qml/qmlvideofx/EffectPixelate.qml</file>
         <file>qml/qmlvideofx/EffectPosterize.qml</file>
         <file>qml/qmlvideofx/EffectRipple.qml</file>
-        <file>qml/qmlvideofx/EffectSelectionPanel.qml</file>
         <file>qml/qmlvideofx/EffectSepia.qml</file>
         <file>qml/qmlvideofx/EffectSharpen.qml</file>
         <file>qml/qmlvideofx/EffectShockwave.qml</file>
         <file>qml/qmlvideofx/EffectSobelEdgeDetection1.qml</file>
-        <file>qml/qmlvideofx/EffectSobelEdgeDetection2.qml</file>
         <file>qml/qmlvideofx/EffectTiltShift.qml</file>
         <file>qml/qmlvideofx/EffectToon.qml</file>
         <file>qml/qmlvideofx/EffectVignette.qml</file>
@@ -40,8 +33,6 @@
         <file>qml/qmlvideofx/FileBrowser.qml</file>
         <file>qml/qmlvideofx/FileOpen.qml</file>
         <file>qml/qmlvideofx/HintedMouseArea.qml</file>
-        <file>qml/qmlvideofx/main-largescreen.qml</file>
-        <file>qml/qmlvideofx/main-smallscreen.qml</file>
         <file>qml/qmlvideofx/ParameterPanel.qml</file>
         <file>qml/qmlvideofx/Slider.qml</file>
         <file>shaders/billboard.fsh</file>
@@ -61,11 +52,21 @@
         <file>shaders/sharpen.fsh</file>
         <file>shaders/shockwave.fsh</file>
         <file>shaders/sobeledgedetection1.fsh</file>
-        <file>shaders/sobeledgedetection2.fsh</file>
         <file>shaders/tiltshift.fsh</file>
         <file>shaders/toon.fsh</file>
         <file>shaders/vignette.fsh</file>
         <file>shaders/warhol.fsh</file>
         <file>shaders/wobble.fsh</file>
+        <file>images/Slider_handle.png</file>
+        <file>images/Slider_bar.png</file>
+        <file>qml/qmlvideofx/Curtain.qml</file>
+        <file>images/Triangle_bottom.png</file>
+        <file>images/Triangle_Top.png</file>
+        <file>images/Dropdown_arrows.png</file>
+        <file>images/icon_Folder.png</file>
+        <file>images/icon_BackArrow.png</file>
+        <file>qml/qmlvideofx/Main.qml</file>
+        <file>images/icon_Menu.png</file>
+        <file>qml/qmlvideofx/EffectSelectionList.qml</file>
     </qresource>
 </RCC>

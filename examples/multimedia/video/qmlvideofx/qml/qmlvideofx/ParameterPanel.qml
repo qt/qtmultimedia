@@ -47,17 +47,12 @@ Rectangle {
     height: view.model.count * sliderHeight
     property color lineColor: "black"
     property real gripSize: 25
-    property real spacing: 10
-    property real sliderHeight: 40
+    property real spacing: 20
+    property real sliderHeight: 60
 
     property ListModel model: ListModel { }
 
-    Rectangle {
-        anchors.fill: parent
-        color: "black"
-        opacity: 0.5
-        radius: 10
-    }
+    anchors.topMargin: 10
 
     Component {
         id: editDelegate
@@ -77,10 +72,10 @@ Rectangle {
                     bottom: parent.bottom
                     left: parent.left
                 }
-                font.pixelSize: 0.5 * parent.height
+                font.pixelSize: fontSize
                 horizontalAlignment: Text.AlignRight
                 verticalAlignment: Text.AlignVCenter
-                width: 150
+                width: 8 * fontSize
             }
 
             Slider {

@@ -43,29 +43,33 @@ import QtQuick 2.0
 
 Rectangle {
     id: root
-    color: textColor
-    radius: 0.25 * height
+    color: "transparent"
+    height: itemHeight
+    width: itemWidth
 
     property string text
-    property color bgColor: "white"
-    property color bgColorSelected: "red"
-    property color textColor: "black"
+    property color bgColor: "transparent"
+    property color bgColorSelected: "#14aaff"
+    property color textColor: "white"
     property alias enabled: mouseArea.enabled
+    property bool active: true
+    property alias horizontalAlign: text.horizontalAlignment
 
     signal clicked
 
     Rectangle {
         anchors { fill: parent; margins: 1 }
         color: mouseArea.pressed ? bgColorSelected : bgColor
-        radius: 0.25 * height
+        radius: 0.1 * height
 
         Text {
             id: text
-            anchors.centerIn: parent
+            clip: true
             text: root.text
-            font.pixelSize: 0.5 * parent.height
+            anchors { fill: parent; margins: scaledMargin }
+            font.pixelSize: fontSize
             color: mouseArea.pressed ? bgColor : textColor
-            horizontalAlignment: Text.AlignHCenter
+            horizontalAlignment: Text.AlignLeft
             verticalAlignment: Text.AlignVCenter
         }
 
@@ -75,6 +79,7 @@ Rectangle {
             onClicked: {
                 root.clicked()
             }
+            enabled: active
         }
     }
 }

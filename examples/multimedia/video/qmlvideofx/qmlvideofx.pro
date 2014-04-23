@@ -10,10 +10,12 @@ RESOURCES += qmlvideofx.qrc
 
 include($$PWD/../snippets/performancemonitor/performancemonitordeclarative.pri)
 
-maemo6: {
-    DEFINES += SMALL_SCREEN_LAYOUT
-    DEFINES += SMALL_SCREEN_PHYSICAL
-}
-
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/video/qmlvideofx
 INSTALLS += target
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
+OTHER_FILES += \
+    android/AndroidManifest.xml
+
+QMAKE_INFO_PLIST = Info.plist

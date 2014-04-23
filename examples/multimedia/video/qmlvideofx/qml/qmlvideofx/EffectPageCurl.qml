@@ -45,7 +45,7 @@ Effect {
     divider: false
     parameters: ListModel {
         ListElement {
-            name: "extent"
+            name: "Extent"
             value: 0.5
         }
     }

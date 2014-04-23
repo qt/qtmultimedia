@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
 
 Rectangle {
     id: root
@@ -53,21 +53,34 @@ Rectangle {
         id: line
         anchors { top: parent.top; bottom: parent.bottom }
         x: parent.value * parent.width - (width / 2)
-        width: 2
-        color: "red"
+        width: 4
+        color: "#14aaff"
     }
 
-    Slider {
+    // topgrip
+    Curtain {
         id: slider
         increment: 0.0
-        lineColor: "transparent"
-        fillColor: "transparent"
-        gripColor: "red"
         anchors {
             top: parent.top
-            topMargin: gripSize / 2
+            topMargin: (gripSize / 2) + 5
             left: parent.left
             right: parent.right
         }
+        onValueChanged: slider2.value = slider.value
+    }
+
+    // bottomgrip
+    Curtain {
+        id: slider2
+        increment: 0.0
+        anchors {
+            bottom: parent.bottom
+            bottomMargin: (gripSize / 2) + 5
+            left: parent.left
+            right: parent.right
+        }
+        imageSource: "qrc:/images/Triangle_bottom.png"
+        onValueChanged: slider.value = slider2.value
     }
 }
