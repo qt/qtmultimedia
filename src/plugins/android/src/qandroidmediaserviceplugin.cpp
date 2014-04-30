@@ -147,9 +147,11 @@ int QAndroidMediaServicePlugin::cameraOrientation(const QByteArray &device) cons
     return QAndroidCameraInfoControl::orientation(device);
 }
 
+QT_END_NAMESPACE
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
+    QT_USE_NAMESPACE
     typedef union {
         JNIEnv *nativeEnvironment;
         void *venv;
@@ -173,5 +175,3 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     return JNI_VERSION_1_4;
 }
-
-QT_END_NAMESPACE

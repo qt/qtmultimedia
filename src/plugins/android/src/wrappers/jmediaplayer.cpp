@@ -155,8 +155,6 @@ void JMediaPlayer::setDisplay(jobject surfaceHolder)
     mMediaPlayer.callMethod<void>("setDisplay", "(Landroid/view/SurfaceHolder;)V", surfaceHolder);
 }
 
-QT_END_NAMESPACE
-
 static void onErrorNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlong id)
 {
     Q_UNUSED(env);
@@ -237,8 +235,6 @@ static void onVideoSizeChangedNative(JNIEnv *env,
 
     Q_EMIT mp->videoSizeChanged(width, height);
 }
-
-QT_BEGIN_NAMESPACE
 
 bool JMediaPlayer::initJNI(JNIEnv *env)
 {
