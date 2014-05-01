@@ -122,7 +122,8 @@ int main(int argc, char *argv[])
     viewer.setTitle("qmlvideofx");
     viewer.setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint |
                           Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
-    viewer.setMinimumSize(QSize(640, 360));
+    viewer.setMinimumSize(QSize(1280, 720));
+    viewer.setResizeMode(QQuickView::SizeRootObjectToView);
 
     viewer.show();
 

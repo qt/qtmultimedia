@@ -60,7 +60,6 @@ Rectangle {
     Rectangle {
         anchors { fill: parent; margins: 1 }
         color: mouseArea.pressed ? bgColorSelected : bgColor
-        radius: 0.1 * height
 
         Text {
             id: text
@@ -68,7 +67,7 @@ Rectangle {
             text: root.text
             anchors { fill: parent; margins: scaledMargin }
             font.pixelSize: fontSize
-            color: mouseArea.pressed ? bgColor : textColor
+            color: textColor
             horizontalAlignment: Text.AlignLeft
             verticalAlignment: Text.AlignVCenter
         }

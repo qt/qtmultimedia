@@ -80,7 +80,7 @@ Rectangle {
         id: parameterPanel
         anchors {
             left: parent.left
-            right: listview.left
+            right: effectName.left
             bottom: parent.bottom
             margins: scaledMargin
             leftMargin: scaledMargin + itemHeight
@@ -88,46 +88,50 @@ Rectangle {
         gripSize: d.gripSize
         height: root.itemHeight * 2.5
         width: root.itemWidth * 3
-
     }
-
 
     Button {
         id: effectName
         anchors {
                     right: parent.right
                     bottom: perfHolder.top
-                    top: content.bottom
                     margins: scaledMargin
                 }
 
         text: "No effect"
         width: itemWidth * 2
+        height: itemHeight
         onClicked: {
             effectName.visible = false
             listview.visible = true
+            lvbg.visible = true
         }
         color: "#303030"
     }
 
+    Rectangle {
+        id: lvbg
+        width: itemWidth * 2
+        color: "black"
+        opacity: 0.8
+        visible: false
+
+        anchors {
+                    right: parent.right
+                    bottom: perfHolder.top
+                    top: parent.top
+                    margins: scaledMargin
+                }
 
         ListView {
             id: listview
             width: itemWidth * 2
-            anchors {
-                        right: parent.right
-                        bottom: perfHolder.top
-                        top: parent.top
-                        margins: scaledMargin
-                    }
+            anchors.fill: parent
             visible: false
 
             model: EffectSelectionList {}
             delegate: effectDelegate
 
-            highlight: Rectangle { color: "#14aaff"; radius: 5 }
-            highlightFollowsCurrentItem: true
-            highlightRangeMode: ListView.StrictlyEnforceRange
             clip: true
             focus: true
 
@@ -139,6 +143,7 @@ Rectangle {
                     onClicked: {
                         content.effectSource = source
                         listview.visible = false
+                        lvbg.visible = false
                         effectName.text = name
                         effectName.visible = true
                         parameterPanel.model = content.effect.parameters
@@ -146,6 +151,7 @@ Rectangle {
                     }
                 }
             }
+        }
     }
 
     Rectangle {
@@ -213,8 +219,8 @@ Rectangle {
 
         transitions: [
             Transition {
-                NumberAnimation { target: fileOpen; property: "width"; duration: 400 }
-                NumberAnimation { target: fileOpen; property: "opacity"; duration: 400 }
+                NumberAnimation { target: fileOpen; property: "width"; duration: 100 }
+                NumberAnimation { target: fileOpen; property: "opacity"; duration: 100 }
             }
         ]
     }
