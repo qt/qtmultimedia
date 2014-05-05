@@ -39,7 +39,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
+import QtQuick.Window 2.1
 
 Effect {
     id: root
@@ -57,6 +58,7 @@ Effect {
 
     property real posX: -1
     property real posY: -1
+    property real pixDens: Screen.pixelDensity
 
     QtObject {
         id: d
