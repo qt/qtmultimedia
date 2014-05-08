@@ -85,6 +85,7 @@ import QtMultimedia 5.0
 
     \sa MediaPlayer, VideoOutput
 
+\omit
     \section1 Screen Saver
 
     If it is likely that an application will be playing video for an extended
@@ -97,7 +98,10 @@ import QtMultimedia 5.0
 
     ScreenSaver { screenSaverEnabled: false }
     \endqml
+\endomit
 */
+
+// TODO: Restore Qt System Info docs when the module is released
 
 Item {
     id: video

@@ -41,6 +41,7 @@
 
 import QtQuick 2.0
 import QtSystemInfo 5.0
+// NOTE: The QtSystemInfo module is not yet part of Qt 5
 
 Item {
     ScreenSaver {
