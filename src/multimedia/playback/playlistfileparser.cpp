@@ -307,9 +307,9 @@ Version=2
 
     void setCount(int count) {
         m_count = count;
-        m_fileName = QString(tr("File%1")).arg(count);
-        m_titleName = QString(tr("Title%1")).arg(count);
-        m_lengthName = QString(tr("Length%1")).arg(count);
+        m_fileName = QStringLiteral("File%1").arg(count);
+        m_titleName = QStringLiteral("Title%1").arg(count);
+        m_lengthName = QStringLiteral("Length%1").arg(count);
         m_item.clear();
         m_readFlags = 0;
     }
