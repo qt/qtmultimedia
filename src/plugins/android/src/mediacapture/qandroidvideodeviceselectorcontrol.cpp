@@ -42,7 +42,7 @@
 #include "qandroidvideodeviceselectorcontrol.h"
 
 #include "qandroidcamerasession.h"
-#include "jcamera.h"
+#include "androidcamera.h"
 
 QT_BEGIN_NAMESPACE
 

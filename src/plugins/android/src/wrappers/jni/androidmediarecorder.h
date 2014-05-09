@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef JMEDIARECORDER_H
-#define JMEDIARECORDER_H
+#ifndef ANDROIDMEDIARECORDER_H
+#define ANDROIDMEDIARECORDER_H
 
 #include <qobject.h>
 #include <QtCore/private/qjni_p.h>
@@ -48,9 +48,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class JCamera;
+class AndroidCamera;
 
-class JMediaRecorder : public QObject
+class AndroidMediaRecorder : public QObject
 {
     Q_OBJECT
 public:
@@ -91,8 +91,8 @@ public:
         AMR_WB_Format = 4
     };
 
-    JMediaRecorder();
-    ~JMediaRecorder();
+    AndroidMediaRecorder();
+    ~AndroidMediaRecorder();
 
     void release();
     bool prepare();
@@ -107,7 +107,7 @@ public:
     void setAudioSamplingRate(int samplingRate);
     void setAudioSource(AudioSource source);
 
-    void setCamera(JCamera *camera);
+    void setCamera(AndroidCamera *camera);
     void setVideoEncoder(VideoEncoder encoder);
     void setVideoEncodingBitRate(int bitRate);
     void setVideoFrameRate(int rate);
@@ -132,4 +132,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // JMEDIARECORDER_H
+#endif // ANDROIDMEDIARECORDER_H

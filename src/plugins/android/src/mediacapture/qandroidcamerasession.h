@@ -51,7 +51,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class JCamera;
+class AndroidCamera;
 class QAndroidVideoOutput;
 class QAndroidMediaVideoProbeControl;
 
@@ -73,7 +73,7 @@ public:
     static const QList<AndroidCameraInfo> &availableCameras();
 
     void setSelectedCamera(int cameraId) { m_selectedCamera = cameraId; }
-    JCamera *camera() const { return m_camera; }
+    AndroidCamera *camera() const { return m_camera; }
 
     QCamera::State state() const { return m_state; }
     void setState(QCamera::State state);
@@ -154,7 +154,7 @@ private:
                               const QString &fileName);
 
     int m_selectedCamera;
-    JCamera *m_camera;
+    AndroidCamera *m_camera;
     int m_nativeOrientation;
     QAndroidVideoOutput *m_videoOutput;
 

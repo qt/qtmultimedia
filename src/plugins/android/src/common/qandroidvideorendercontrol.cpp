@@ -40,8 +40,8 @@
 ****************************************************************************/
 
 #include "qandroidvideorendercontrol.h"
+#include "androidsurfacetexture.h"
 
-#include <QtCore/private/qjni_p.h>
 #include <QAbstractVideoSurface>
 #include <QVideoSurfaceFormat>
 #include <qevent.h>
@@ -50,7 +50,6 @@
 #include <qopenglfunctions.h>
 #include <qopenglshaderprogram.h>
 #include <qopenglframebufferobject.h>
-#include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -175,7 +174,7 @@ bool QAndroidVideoRendererControl::initSurfaceTexture()
         return false;
     }
 
-    m_surfaceTexture = new JSurfaceTexture(m_externalTex);
+    m_surfaceTexture = new AndroidSurfaceTexture(m_externalTex);
 
     if (m_surfaceTexture->object()) {
         connect(m_surfaceTexture, SIGNAL(frameAvailable()), this, SLOT(onFrameAvailable()));

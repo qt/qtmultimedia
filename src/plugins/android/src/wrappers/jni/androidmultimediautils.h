@@ -39,55 +39,30 @@
 **
 ****************************************************************************/
 
-#ifndef JMEDIAMETADATARETRIEVER_H
-#define JMEDIAMETADATARETRIEVER_H
+#ifndef ANDROIDMULTIMEDIAUTILS_H
+#define ANDROIDMULTIMEDIAUTILS_H
 
+#include <qobject.h>
 #include <QtCore/private/qjni_p.h>
-#include <qurl.h>
 
 QT_BEGIN_NAMESPACE
 
-class JMediaMetadataRetriever
+class AndroidMultimediaUtils
 {
 public:
-    enum MetadataKey {
-        Album = 1,
-        AlbumArtist = 13,
-        Artist = 2,
-        Author = 3,
-        Bitrate = 20,
-        CDTrackNumber = 0,
-        Compilation = 15,
-        Composer = 4,
-        Date = 5,
-        DiscNumber = 14,
-        Duration = 9,
-        Genre = 6,
-        HasAudio = 16,
-        HasVideo = 17,
-        Location = 23,
-        MimeType = 12,
-        NumTracks = 10,
-        Title = 7,
-        VideoHeight = 19,
-        VideoWidth = 18,
-        VideoRotation = 24,
-        Writer = 11,
-        Year = 8
+    enum MediaType {
+        Music = 0,
+        Movies = 1,
+        DCIM = 2,
+        Sounds = 3
     };
 
-    JMediaMetadataRetriever();
-    ~JMediaMetadataRetriever();
-
-    QString extractMetadata(MetadataKey key);
-    void release();
-    bool setDataSource(const QUrl &url);
-    bool setDataSource(const QString &path);
-
-private:
-    QJNIObjectPrivate m_metadataRetriever;
+    static void enableOrientationListener(bool enable);
+    static int getDeviceOrientation();
+    static QString getDefaultMediaDirectory(MediaType type);
+    static void registerMediaFile(const QString &file);
 };
 
 QT_END_NAMESPACE
 
-#endif // JMEDIAMETADATARETRIEVER_H
+#endif // ANDROIDMULTIMEDIAUTILS_H

@@ -42,7 +42,7 @@
 #include "qandroidcamerazoomcontrol.h"
 
 #include "qandroidcamerasession.h"
-#include "jcamera.h"
+#include "androidcamera.h"
 #include "qandroidmultimediautils.h"
 #include <qmath.h>
 

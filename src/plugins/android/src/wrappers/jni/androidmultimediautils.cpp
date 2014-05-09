@@ -39,14 +39,14 @@
 **
 ****************************************************************************/
 
-#include "jmultimediautils.h"
+#include "androidmultimediautils.h"
 
 #include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
 
-void JMultimediaUtils::enableOrientationListener(bool enable)
+void AndroidMultimediaUtils::enableOrientationListener(bool enable)
 {
     QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
                                               "enableOrientationListener",
@@ -54,13 +54,13 @@ void JMultimediaUtils::enableOrientationListener(bool enable)
                                               enable);
 }
 
-int JMultimediaUtils::getDeviceOrientation()
+int AndroidMultimediaUtils::getDeviceOrientation()
 {
     return QJNIObjectPrivate::callStaticMethod<jint>("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
                                                      "getDeviceOrientation");
 }
 
-QString JMultimediaUtils::getDefaultMediaDirectory(MediaType type)
+QString AndroidMultimediaUtils::getDefaultMediaDirectory(MediaType type)
 {
     QJNIObjectPrivate path = QJNIObjectPrivate::callStaticObjectMethod("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
                                                                        "getDefaultMediaDirectory",
@@ -69,7 +69,7 @@ QString JMultimediaUtils::getDefaultMediaDirectory(MediaType type)
     return path.toString();
 }
 
-void JMultimediaUtils::registerMediaFile(const QString &file)
+void AndroidMultimediaUtils::registerMediaFile(const QString &file)
 {
     QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
                                               "registerMediaFile",

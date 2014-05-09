@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "jcamera.h"
+#include "androidcamera.h"
 
 #include <qstringlist.h>
 #include <qdebug.h>
@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 
 static jclass g_qtCameraListenerClass = 0;
 static QMutex g_cameraMapMutex;
-typedef QMap<int, JCamera *> CameraMap;
+typedef QMap<int, AndroidCamera *> CameraMap;
 Q_GLOBAL_STATIC(CameraMap, g_cameraMap)
 
 static QRect areaToRect(jobject areaObj)
@@ -83,7 +83,7 @@ static QJNIObjectPrivate rectToArea(const QRect &rect)
 static void notifyAutoFocusComplete(JNIEnv* , jobject, int id, jboolean success)
 {
     QMutexLocker locker(&g_cameraMapMutex);
-    JCamera *obj = g_cameraMap->value(id, 0);
+    AndroidCamera *obj = g_cameraMap->value(id, 0);
     if (obj)
         Q_EMIT obj->autoFocusComplete(success);
 }
@@ -91,7 +91,7 @@ static void notifyAutoFocusComplete(JNIEnv* , jobject, int id, jboolean success)
 static void notifyPictureExposed(JNIEnv* , jobject, int id)
 {
     QMutexLocker locker(&g_cameraMapMutex);
-    JCamera *obj = g_cameraMap->value(id, 0);
+    AndroidCamera *obj = g_cameraMap->value(id, 0);
     if (obj)
         Q_EMIT obj->pictureExposed();
 }
@@ -99,7 +99,7 @@ static void notifyPictureExposed(JNIEnv* , jobject, int id)
 static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 {
     QMutexLocker locker(&g_cameraMapMutex);
-    JCamera *obj = g_cameraMap->value(id, 0);
+    AndroidCamera *obj = g_cameraMap->value(id, 0);
     if (obj) {
         const int arrayLength = env->GetArrayLength(data);
         QByteArray bytes(arrayLength, Qt::Uninitialized);
@@ -111,7 +111,7 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 static void notifyFrameFetched(JNIEnv *env, jobject, int id, jbyteArray data)
 {
     QMutexLocker locker(&g_cameraMapMutex);
-    JCamera *obj = g_cameraMap->value(id, 0);
+    AndroidCamera *obj = g_cameraMap->value(id, 0);
     if (obj) {
         const int arrayLength = env->GetArrayLength(data);
         QByteArray bytes(arrayLength, Qt::Uninitialized);
@@ -121,12 +121,12 @@ static void notifyFrameFetched(JNIEnv *env, jobject, int id, jbyteArray data)
     }
 }
 
-class JCameraPrivate : public QObject
+class AndroidCameraPrivate : public QObject
 {
     Q_OBJECT
 public:
-    JCameraPrivate();
-    ~JCameraPrivate();
+    AndroidCameraPrivate();
+    ~AndroidCameraPrivate();
 
     Q_INVOKABLE bool init(int cameraId);
 
@@ -135,14 +135,14 @@ public:
     Q_INVOKABLE void unlock();
     Q_INVOKABLE void reconnect();
 
-    Q_INVOKABLE JCamera::CameraFacing getFacing();
+    Q_INVOKABLE AndroidCamera::CameraFacing getFacing();
     Q_INVOKABLE int getNativeOrientation();
 
     Q_INVOKABLE QSize getPreferredPreviewSizeForVideo();
     Q_INVOKABLE QList<QSize> getSupportedPreviewSizes();
 
-    Q_INVOKABLE JCamera::ImageFormat getPreviewFormat();
-    Q_INVOKABLE void setPreviewFormat(JCamera::ImageFormat fmt);
+    Q_INVOKABLE AndroidCamera::ImageFormat getPreviewFormat();
+    Q_INVOKABLE void setPreviewFormat(AndroidCamera::ImageFormat fmt);
 
     Q_INVOKABLE QSize previewSize() const { return m_previewSize; }
     Q_INVOKABLE void updatePreviewSize();
@@ -226,7 +226,7 @@ Q_SIGNALS:
     void previewFetched(const QByteArray &preview);
 };
 
-JCamera::JCamera(JCameraPrivate *d, QThread *worker)
+AndroidCamera::AndroidCamera(AndroidCameraPrivate *d, QThread *worker)
     : QObject(),
       d_ptr(d),
       m_worker(worker)
@@ -236,17 +236,17 @@ JCamera::JCamera(JCameraPrivate *d, QThread *worker)
     qRegisterMetaType<QList<QSize> >();
     qRegisterMetaType<QList<QRect> >();
 
-    connect(d, &JCameraPrivate::previewSizeChanged, this, &JCamera::previewSizeChanged);
-    connect(d, &JCameraPrivate::previewStarted, this, &JCamera::previewStarted);
-    connect(d, &JCameraPrivate::previewStopped, this, &JCamera::previewStopped);
-    connect(d, &JCameraPrivate::autoFocusStarted, this, &JCamera::autoFocusStarted);
-    connect(d, &JCameraPrivate::whiteBalanceChanged, this, &JCamera::whiteBalanceChanged);
-    connect(d, &JCameraPrivate::previewFetched, this, &JCamera::previewFetched);
+    connect(d, &AndroidCameraPrivate::previewSizeChanged, this, &AndroidCamera::previewSizeChanged);
+    connect(d, &AndroidCameraPrivate::previewStarted, this, &AndroidCamera::previewStarted);
+    connect(d, &AndroidCameraPrivate::previewStopped, this, &AndroidCamera::previewStopped);
+    connect(d, &AndroidCameraPrivate::autoFocusStarted, this, &AndroidCamera::autoFocusStarted);
+    connect(d, &AndroidCameraPrivate::whiteBalanceChanged, this, &AndroidCamera::whiteBalanceChanged);
+    connect(d, &AndroidCameraPrivate::previewFetched, this, &AndroidCamera::previewFetched);
 }
 
-JCamera::~JCamera()
+AndroidCamera::~AndroidCamera()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     if (d->m_camera.isValid()) {
         g_cameraMapMutex.lock();
         g_cameraMap->remove(d->m_cameraId);
@@ -258,13 +258,13 @@ JCamera::~JCamera()
     m_worker->wait(5000);
 }
 
-JCamera *JCamera::open(int cameraId)
+AndroidCamera *AndroidCamera::open(int cameraId)
 {
-    JCameraPrivate *d = new JCameraPrivate();
+    AndroidCameraPrivate *d = new AndroidCameraPrivate();
     QThread *worker = new QThread;
     worker->start();
     d->moveToThread(worker);
-    connect(worker, &QThread::finished, d, &JCameraPrivate::deleteLater);
+    connect(worker, &QThread::finished, d, &AndroidCameraPrivate::deleteLater);
     bool ok = false;
     QMetaObject::invokeMethod(d, "init", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, ok), Q_ARG(int, cameraId));
     if (!ok) {
@@ -275,88 +275,88 @@ JCamera *JCamera::open(int cameraId)
         return 0;
     }
 
-    JCamera *q = new JCamera(d, worker);
+    AndroidCamera *q = new AndroidCamera(d, worker);
     g_cameraMapMutex.lock();
     g_cameraMap->insert(cameraId, q);
     g_cameraMapMutex.unlock();
     return q;
 }
 
-int JCamera::cameraId() const
+int AndroidCamera::cameraId() const
 {
-    Q_D(const JCamera);
+    Q_D(const AndroidCamera);
     return d->m_cameraId;
 }
 
-void JCamera::lock()
+void AndroidCamera::lock()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "lock", Qt::BlockingQueuedConnection);
 }
 
-void JCamera::unlock()
+void AndroidCamera::unlock()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "unlock", Qt::BlockingQueuedConnection);
 }
 
-void JCamera::reconnect()
+void AndroidCamera::reconnect()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "reconnect");
 }
 
-void JCamera::release()
+void AndroidCamera::release()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "release", Qt::BlockingQueuedConnection);
 }
 
-JCamera::CameraFacing JCamera::getFacing()
+AndroidCamera::CameraFacing AndroidCamera::getFacing()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getFacing();
 }
 
-int JCamera::getNativeOrientation()
+int AndroidCamera::getNativeOrientation()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getNativeOrientation();
 }
 
-QSize JCamera::getPreferredPreviewSizeForVideo()
+QSize AndroidCamera::getPreferredPreviewSizeForVideo()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getPreferredPreviewSizeForVideo();
 }
 
-QList<QSize> JCamera::getSupportedPreviewSizes()
+QList<QSize> AndroidCamera::getSupportedPreviewSizes()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getSupportedPreviewSizes();
 }
 
-JCamera::ImageFormat JCamera::getPreviewFormat()
+AndroidCamera::ImageFormat AndroidCamera::getPreviewFormat()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getPreviewFormat();
 }
 
-void JCamera::setPreviewFormat(ImageFormat fmt)
+void AndroidCamera::setPreviewFormat(ImageFormat fmt)
 {
-    Q_D(JCamera);
-    QMetaObject::invokeMethod(d, "setPreviewFormat", Q_ARG(JCamera::ImageFormat, fmt));
+    Q_D(AndroidCamera);
+    QMetaObject::invokeMethod(d, "setPreviewFormat", Q_ARG(AndroidCamera::ImageFormat, fmt));
 }
 
-QSize JCamera::previewSize() const
+QSize AndroidCamera::previewSize() const
 {
-    Q_D(const JCamera);
+    Q_D(const AndroidCamera);
     return d->m_previewSize;
 }
 
-void JCamera::setPreviewSize(const QSize &size)
+void AndroidCamera::setPreviewSize(const QSize &size)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     d->m_parametersMutex.lock();
     bool areParametersValid = d->m_parameters.isValid();
     d->m_parametersMutex.unlock();
@@ -367,213 +367,213 @@ void JCamera::setPreviewSize(const QSize &size)
     QMetaObject::invokeMethod(d, "updatePreviewSize");
 }
 
-void JCamera::setPreviewTexture(jobject surfaceTexture)
+void AndroidCamera::setPreviewTexture(jobject surfaceTexture)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setPreviewTexture", Qt::BlockingQueuedConnection, Q_ARG(void *, surfaceTexture));
 }
 
-bool JCamera::isZoomSupported()
+bool AndroidCamera::isZoomSupported()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->isZoomSupported();
 }
 
-int JCamera::getMaxZoom()
+int AndroidCamera::getMaxZoom()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getMaxZoom();
 }
 
-QList<int> JCamera::getZoomRatios()
+QList<int> AndroidCamera::getZoomRatios()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getZoomRatios();
 }
 
-int JCamera::getZoom()
+int AndroidCamera::getZoom()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getZoom();
 }
 
-void JCamera::setZoom(int value)
+void AndroidCamera::setZoom(int value)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setZoom", Q_ARG(int, value));
 }
 
-QStringList JCamera::getSupportedFlashModes()
+QStringList AndroidCamera::getSupportedFlashModes()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->callParametersStringListMethod("getSupportedFlashModes");
 }
 
-QString JCamera::getFlashMode()
+QString AndroidCamera::getFlashMode()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getFlashMode();
 }
 
-void JCamera::setFlashMode(const QString &value)
+void AndroidCamera::setFlashMode(const QString &value)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setFlashMode", Q_ARG(QString, value));
 }
 
-QStringList JCamera::getSupportedFocusModes()
+QStringList AndroidCamera::getSupportedFocusModes()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->callParametersStringListMethod("getSupportedFocusModes");
 }
 
-QString JCamera::getFocusMode()
+QString AndroidCamera::getFocusMode()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getFocusMode();
 }
 
-void JCamera::setFocusMode(const QString &value)
+void AndroidCamera::setFocusMode(const QString &value)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setFocusMode", Q_ARG(QString, value));
 }
 
-int JCamera::getMaxNumFocusAreas()
+int AndroidCamera::getMaxNumFocusAreas()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getMaxNumFocusAreas();
 }
 
-QList<QRect> JCamera::getFocusAreas()
+QList<QRect> AndroidCamera::getFocusAreas()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getFocusAreas();
 }
 
-void JCamera::setFocusAreas(const QList<QRect> &areas)
+void AndroidCamera::setFocusAreas(const QList<QRect> &areas)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setFocusAreas", Q_ARG(QList<QRect>, areas));
 }
 
-void JCamera::autoFocus()
+void AndroidCamera::autoFocus()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "autoFocus");
 }
 
-void JCamera::cancelAutoFocus()
+void AndroidCamera::cancelAutoFocus()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "cancelAutoFocus", Qt::QueuedConnection);
 }
 
-bool JCamera::isAutoExposureLockSupported()
+bool AndroidCamera::isAutoExposureLockSupported()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->isAutoExposureLockSupported();
 }
 
-bool JCamera::getAutoExposureLock()
+bool AndroidCamera::getAutoExposureLock()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getAutoExposureLock();
 }
 
-void JCamera::setAutoExposureLock(bool toggle)
+void AndroidCamera::setAutoExposureLock(bool toggle)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setAutoExposureLock", Q_ARG(bool, toggle));
 }
 
-bool JCamera::isAutoWhiteBalanceLockSupported()
+bool AndroidCamera::isAutoWhiteBalanceLockSupported()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->isAutoWhiteBalanceLockSupported();
 }
 
-bool JCamera::getAutoWhiteBalanceLock()
+bool AndroidCamera::getAutoWhiteBalanceLock()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getAutoWhiteBalanceLock();
 }
 
-void JCamera::setAutoWhiteBalanceLock(bool toggle)
+void AndroidCamera::setAutoWhiteBalanceLock(bool toggle)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setAutoWhiteBalanceLock", Q_ARG(bool, toggle));
 }
 
-int JCamera::getExposureCompensation()
+int AndroidCamera::getExposureCompensation()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getExposureCompensation();
 }
 
-void JCamera::setExposureCompensation(int value)
+void AndroidCamera::setExposureCompensation(int value)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setExposureCompensation", Q_ARG(int, value));
 }
 
-float JCamera::getExposureCompensationStep()
+float AndroidCamera::getExposureCompensationStep()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getExposureCompensationStep();
 }
 
-int JCamera::getMinExposureCompensation()
+int AndroidCamera::getMinExposureCompensation()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getMinExposureCompensation();
 }
 
-int JCamera::getMaxExposureCompensation()
+int AndroidCamera::getMaxExposureCompensation()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getMaxExposureCompensation();
 }
 
-QStringList JCamera::getSupportedSceneModes()
+QStringList AndroidCamera::getSupportedSceneModes()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->callParametersStringListMethod("getSupportedSceneModes");
 }
 
-QString JCamera::getSceneMode()
+QString AndroidCamera::getSceneMode()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getSceneMode();
 }
 
-void JCamera::setSceneMode(const QString &value)
+void AndroidCamera::setSceneMode(const QString &value)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setSceneMode", Q_ARG(QString, value));
 }
 
-QStringList JCamera::getSupportedWhiteBalance()
+QStringList AndroidCamera::getSupportedWhiteBalance()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->callParametersStringListMethod("getSupportedWhiteBalance");
 }
 
-QString JCamera::getWhiteBalance()
+QString AndroidCamera::getWhiteBalance()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getWhiteBalance();
 }
 
-void JCamera::setWhiteBalance(const QString &value)
+void AndroidCamera::setWhiteBalance(const QString &value)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setWhiteBalance", Q_ARG(QString, value));
 }
 
-void JCamera::setRotation(int rotation)
+void AndroidCamera::setRotation(int rotation)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     //We need to do it here and not in worker class because we cache rotation
     d->m_parametersMutex.lock();
     bool areParametersValid = d->m_parameters.isValid();
@@ -585,77 +585,77 @@ void JCamera::setRotation(int rotation)
     QMetaObject::invokeMethod(d, "updateRotation");
 }
 
-int JCamera::getRotation() const
+int AndroidCamera::getRotation() const
 {
-    Q_D(const JCamera);
+    Q_D(const AndroidCamera);
     return d->m_rotation;
 }
 
-QList<QSize> JCamera::getSupportedPictureSizes()
+QList<QSize> AndroidCamera::getSupportedPictureSizes()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->getSupportedPictureSizes();
 }
 
-void JCamera::setPictureSize(const QSize &size)
+void AndroidCamera::setPictureSize(const QSize &size)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setPictureSize", Q_ARG(QSize, size));
 }
 
-void JCamera::setJpegQuality(int quality)
+void AndroidCamera::setJpegQuality(int quality)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "setJpegQuality", Q_ARG(int, quality));
 }
 
-void JCamera::takePicture()
+void AndroidCamera::takePicture()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "takePicture", Qt::BlockingQueuedConnection);
 }
 
-void JCamera::fetchEachFrame(bool fetch)
+void AndroidCamera::fetchEachFrame(bool fetch)
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "fetchEachFrame", Q_ARG(bool, fetch));
 }
 
-void JCamera::fetchLastPreviewFrame()
+void AndroidCamera::fetchLastPreviewFrame()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "fetchLastPreviewFrame");
 }
 
-QJNIObjectPrivate JCamera::getCameraObject()
+QJNIObjectPrivate AndroidCamera::getCameraObject()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     return d->m_camera;
 }
 
-void JCamera::startPreview()
+void AndroidCamera::startPreview()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "startPreview");
 }
 
-void JCamera::stopPreview()
+void AndroidCamera::stopPreview()
 {
-    Q_D(JCamera);
+    Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "stopPreview");
 }
 
-JCameraPrivate::JCameraPrivate()
+AndroidCameraPrivate::AndroidCameraPrivate()
     : QObject(),
       m_parametersMutex(QMutex::Recursive)
 {
 }
 
-JCameraPrivate::~JCameraPrivate()
+AndroidCameraPrivate::~AndroidCameraPrivate()
 {
 }
 
-bool JCameraPrivate::init(int cameraId)
+bool AndroidCameraPrivate::init(int cameraId)
 {
     m_cameraId = cameraId;
     m_camera = QJNIObjectPrivate::callStaticObjectMethod("android/hardware/Camera",
@@ -681,7 +681,7 @@ bool JCameraPrivate::init(int cameraId)
     return true;
 }
 
-void JCameraPrivate::release()
+void AndroidCameraPrivate::release()
 {
     m_previewSize = QSize();
     m_parametersMutex.lock();
@@ -691,17 +691,17 @@ void JCameraPrivate::release()
         m_camera.callMethod<void>("release");
 }
 
-void JCameraPrivate::lock()
+void AndroidCameraPrivate::lock()
 {
     m_camera.callMethod<void>("lock");
 }
 
-void JCameraPrivate::unlock()
+void AndroidCameraPrivate::unlock()
 {
     m_camera.callMethod<void>("unlock");
 }
 
-void JCameraPrivate::reconnect()
+void AndroidCameraPrivate::reconnect()
 {
     QJNIEnvironmentPrivate env;
     m_camera.callMethod<void>("reconnect");
@@ -713,17 +713,17 @@ void JCameraPrivate::reconnect()
     }
 }
 
-JCamera::CameraFacing JCameraPrivate::getFacing()
+AndroidCamera::CameraFacing AndroidCameraPrivate::getFacing()
 {
-    return JCamera::CameraFacing(m_info.getField<jint>("facing"));
+    return AndroidCamera::CameraFacing(m_info.getField<jint>("facing"));
 }
 
-int JCameraPrivate::getNativeOrientation()
+int AndroidCameraPrivate::getNativeOrientation()
 {
     return m_info.getField<jint>("orientation");
 }
 
-QSize JCameraPrivate::getPreferredPreviewSizeForVideo()
+QSize AndroidCameraPrivate::getPreferredPreviewSizeForVideo()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -736,7 +736,7 @@ QSize JCameraPrivate::getPreferredPreviewSizeForVideo()
     return QSize(size.getField<jint>("width"), size.getField<jint>("height"));
 }
 
-QList<QSize> JCameraPrivate::getSupportedPreviewSizes()
+QList<QSize> AndroidCameraPrivate::getSupportedPreviewSizes()
 {
     QList<QSize> list;
 
@@ -759,17 +759,17 @@ QList<QSize> JCameraPrivate::getSupportedPreviewSizes()
     return list;
 }
 
-JCamera::ImageFormat JCameraPrivate::getPreviewFormat()
+AndroidCamera::ImageFormat AndroidCameraPrivate::getPreviewFormat()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
     if (!m_parameters.isValid())
-        return JCamera::Unknown;
+        return AndroidCamera::Unknown;
 
-    return JCamera::ImageFormat(m_parameters.callMethod<jint>("getPreviewFormat"));
+    return AndroidCamera::ImageFormat(m_parameters.callMethod<jint>("getPreviewFormat"));
 }
 
-void JCameraPrivate::setPreviewFormat(JCamera::ImageFormat fmt)
+void AndroidCameraPrivate::setPreviewFormat(AndroidCamera::ImageFormat fmt)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -780,7 +780,7 @@ void JCameraPrivate::setPreviewFormat(JCamera::ImageFormat fmt)
     applyParameters();
 }
 
-void JCameraPrivate::updatePreviewSize()
+void AndroidCameraPrivate::updatePreviewSize()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -792,14 +792,14 @@ void JCameraPrivate::updatePreviewSize()
     emit previewSizeChanged();
 }
 
-void JCameraPrivate::setPreviewTexture(void *surfaceTexture)
+void AndroidCameraPrivate::setPreviewTexture(void *surfaceTexture)
 {
     m_camera.callMethod<void>("setPreviewTexture",
                               "(Landroid/graphics/SurfaceTexture;)V",
                               static_cast<jobject>(surfaceTexture));
 }
 
-bool JCameraPrivate::isZoomSupported()
+bool AndroidCameraPrivate::isZoomSupported()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -809,7 +809,7 @@ bool JCameraPrivate::isZoomSupported()
     return m_parameters.callMethod<jboolean>("isZoomSupported");
 }
 
-int JCameraPrivate::getMaxZoom()
+int AndroidCameraPrivate::getMaxZoom()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -819,7 +819,7 @@ int JCameraPrivate::getMaxZoom()
     return m_parameters.callMethod<jint>("getMaxZoom");
 }
 
-QList<int> JCameraPrivate::getZoomRatios()
+QList<int> AndroidCameraPrivate::getZoomRatios()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -841,7 +841,7 @@ QList<int> JCameraPrivate::getZoomRatios()
     return ratios;
 }
 
-int JCameraPrivate::getZoom()
+int AndroidCameraPrivate::getZoom()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -851,7 +851,7 @@ int JCameraPrivate::getZoom()
     return m_parameters.callMethod<jint>("getZoom");
 }
 
-void JCameraPrivate::setZoom(int value)
+void AndroidCameraPrivate::setZoom(int value)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -862,7 +862,7 @@ void JCameraPrivate::setZoom(int value)
     applyParameters();
 }
 
-QString JCameraPrivate::getFlashMode()
+QString AndroidCameraPrivate::getFlashMode()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -878,7 +878,7 @@ QString JCameraPrivate::getFlashMode()
     return value;
 }
 
-void JCameraPrivate::setFlashMode(const QString &value)
+void AndroidCameraPrivate::setFlashMode(const QString &value)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -891,7 +891,7 @@ void JCameraPrivate::setFlashMode(const QString &value)
     applyParameters();
 }
 
-QString JCameraPrivate::getFocusMode()
+QString AndroidCameraPrivate::getFocusMode()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -907,7 +907,7 @@ QString JCameraPrivate::getFocusMode()
     return value;
 }
 
-void JCameraPrivate::setFocusMode(const QString &value)
+void AndroidCameraPrivate::setFocusMode(const QString &value)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -920,7 +920,7 @@ void JCameraPrivate::setFocusMode(const QString &value)
     applyParameters();
 }
 
-int JCameraPrivate::getMaxNumFocusAreas()
+int AndroidCameraPrivate::getMaxNumFocusAreas()
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return 0;
@@ -933,7 +933,7 @@ int JCameraPrivate::getMaxNumFocusAreas()
     return m_parameters.callMethod<jint>("getMaxNumFocusAreas");
 }
 
-QList<QRect> JCameraPrivate::getFocusAreas()
+QList<QRect> AndroidCameraPrivate::getFocusAreas()
 {
     QList<QRect> areas;
 
@@ -961,7 +961,7 @@ QList<QRect> JCameraPrivate::getFocusAreas()
     return areas;
 }
 
-void JCameraPrivate::setFocusAreas(const QList<QRect> &areas)
+void AndroidCameraPrivate::setFocusAreas(const QList<QRect> &areas)
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return;
@@ -991,7 +991,7 @@ void JCameraPrivate::setFocusAreas(const QList<QRect> &areas)
     applyParameters();
 }
 
-void JCameraPrivate::autoFocus()
+void AndroidCameraPrivate::autoFocus()
 {
     m_camera.callMethod<void>("autoFocus",
                               "(Landroid/hardware/Camera$AutoFocusCallback;)V",
@@ -999,12 +999,12 @@ void JCameraPrivate::autoFocus()
     emit autoFocusStarted();
 }
 
-void JCameraPrivate::cancelAutoFocus()
+void AndroidCameraPrivate::cancelAutoFocus()
 {
     m_camera.callMethod<void>("cancelAutoFocus");
 }
 
-bool JCameraPrivate::isAutoExposureLockSupported()
+bool AndroidCameraPrivate::isAutoExposureLockSupported()
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return false;
@@ -1017,7 +1017,7 @@ bool JCameraPrivate::isAutoExposureLockSupported()
     return m_parameters.callMethod<jboolean>("isAutoExposureLockSupported");
 }
 
-bool JCameraPrivate::getAutoExposureLock()
+bool AndroidCameraPrivate::getAutoExposureLock()
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return false;
@@ -1030,7 +1030,7 @@ bool JCameraPrivate::getAutoExposureLock()
     return m_parameters.callMethod<jboolean>("getAutoExposureLock");
 }
 
-void JCameraPrivate::setAutoExposureLock(bool toggle)
+void AndroidCameraPrivate::setAutoExposureLock(bool toggle)
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return;
@@ -1044,7 +1044,7 @@ void JCameraPrivate::setAutoExposureLock(bool toggle)
     applyParameters();
 }
 
-bool JCameraPrivate::isAutoWhiteBalanceLockSupported()
+bool AndroidCameraPrivate::isAutoWhiteBalanceLockSupported()
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return false;
@@ -1057,7 +1057,7 @@ bool JCameraPrivate::isAutoWhiteBalanceLockSupported()
     return m_parameters.callMethod<jboolean>("isAutoWhiteBalanceLockSupported");
 }
 
-bool JCameraPrivate::getAutoWhiteBalanceLock()
+bool AndroidCameraPrivate::getAutoWhiteBalanceLock()
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return false;
@@ -1070,7 +1070,7 @@ bool JCameraPrivate::getAutoWhiteBalanceLock()
     return m_parameters.callMethod<jboolean>("getAutoWhiteBalanceLock");
 }
 
-void JCameraPrivate::setAutoWhiteBalanceLock(bool toggle)
+void AndroidCameraPrivate::setAutoWhiteBalanceLock(bool toggle)
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return;
@@ -1084,7 +1084,7 @@ void JCameraPrivate::setAutoWhiteBalanceLock(bool toggle)
     applyParameters();
 }
 
-int JCameraPrivate::getExposureCompensation()
+int AndroidCameraPrivate::getExposureCompensation()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1094,7 +1094,7 @@ int JCameraPrivate::getExposureCompensation()
     return m_parameters.callMethod<jint>("getExposureCompensation");
 }
 
-void JCameraPrivate::setExposureCompensation(int value)
+void AndroidCameraPrivate::setExposureCompensation(int value)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1105,7 +1105,7 @@ void JCameraPrivate::setExposureCompensation(int value)
     applyParameters();
 }
 
-float JCameraPrivate::getExposureCompensationStep()
+float AndroidCameraPrivate::getExposureCompensationStep()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1115,7 +1115,7 @@ float JCameraPrivate::getExposureCompensationStep()
     return m_parameters.callMethod<jfloat>("getExposureCompensationStep");
 }
 
-int JCameraPrivate::getMinExposureCompensation()
+int AndroidCameraPrivate::getMinExposureCompensation()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1125,7 +1125,7 @@ int JCameraPrivate::getMinExposureCompensation()
     return m_parameters.callMethod<jint>("getMinExposureCompensation");
 }
 
-int JCameraPrivate::getMaxExposureCompensation()
+int AndroidCameraPrivate::getMaxExposureCompensation()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1135,7 +1135,7 @@ int JCameraPrivate::getMaxExposureCompensation()
     return m_parameters.callMethod<jint>("getMaxExposureCompensation");
 }
 
-QString JCameraPrivate::getSceneMode()
+QString AndroidCameraPrivate::getSceneMode()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1151,7 +1151,7 @@ QString JCameraPrivate::getSceneMode()
     return value;
 }
 
-void JCameraPrivate::setSceneMode(const QString &value)
+void AndroidCameraPrivate::setSceneMode(const QString &value)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1164,7 +1164,7 @@ void JCameraPrivate::setSceneMode(const QString &value)
     applyParameters();
 }
 
-QString JCameraPrivate::getWhiteBalance()
+QString AndroidCameraPrivate::getWhiteBalance()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1180,7 +1180,7 @@ QString JCameraPrivate::getWhiteBalance()
     return value;
 }
 
-void JCameraPrivate::setWhiteBalance(const QString &value)
+void AndroidCameraPrivate::setWhiteBalance(const QString &value)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1195,7 +1195,7 @@ void JCameraPrivate::setWhiteBalance(const QString &value)
     emit whiteBalanceChanged();
 }
 
-void JCameraPrivate::updateRotation()
+void AndroidCameraPrivate::updateRotation()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1203,7 +1203,7 @@ void JCameraPrivate::updateRotation()
     applyParameters();
 }
 
-QList<QSize> JCameraPrivate::getSupportedPictureSizes()
+QList<QSize> AndroidCameraPrivate::getSupportedPictureSizes()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1226,7 +1226,7 @@ QList<QSize> JCameraPrivate::getSupportedPictureSizes()
     return list;
 }
 
-void JCameraPrivate::setPictureSize(const QSize &size)
+void AndroidCameraPrivate::setPictureSize(const QSize &size)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1237,7 +1237,7 @@ void JCameraPrivate::setPictureSize(const QSize &size)
     applyParameters();
 }
 
-void JCameraPrivate::setJpegQuality(int quality)
+void AndroidCameraPrivate::setJpegQuality(int quality)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1248,7 +1248,7 @@ void JCameraPrivate::setJpegQuality(int quality)
     applyParameters();
 }
 
-void JCameraPrivate::startPreview()
+void AndroidCameraPrivate::startPreview()
 {
     //We need to clear preview buffers queue here, but there is no method to do it
     //Though just resetting preview callback do the trick
@@ -1265,13 +1265,13 @@ void JCameraPrivate::startPreview()
     emit previewStarted();
 }
 
-void JCameraPrivate::stopPreview()
+void AndroidCameraPrivate::stopPreview()
 {
     m_camera.callMethod<void>("stopPreview");
     emit previewStopped();
 }
 
-void JCameraPrivate::takePicture()
+void AndroidCameraPrivate::takePicture()
 {
     m_camera.callMethod<void>("takePicture", "(Landroid/hardware/Camera$ShutterCallback;"
                                              "Landroid/hardware/Camera$PictureCallback;"
@@ -1281,12 +1281,12 @@ void JCameraPrivate::takePicture()
                                               m_cameraListener.object());
 }
 
-void JCameraPrivate::fetchEachFrame(bool fetch)
+void AndroidCameraPrivate::fetchEachFrame(bool fetch)
 {
     m_cameraListener.callMethod<void>("fetchEachFrame", "(Z)V", fetch);
 }
 
-void JCameraPrivate::fetchLastPreviewFrame()
+void AndroidCameraPrivate::fetchLastPreviewFrame()
 {
     QJNIEnvironmentPrivate env;
     QJNIObjectPrivate data = m_cameraListener.callObjectMethod("lockAndFetchPreviewBuffer", "()[B");
@@ -1305,14 +1305,14 @@ void JCameraPrivate::fetchLastPreviewFrame()
     emit previewFetched(bytes);
 }
 
-void JCameraPrivate::applyParameters()
+void AndroidCameraPrivate::applyParameters()
 {
     m_camera.callMethod<void>("setParameters",
                               "(Landroid/hardware/Camera$Parameters;)V",
                               m_parameters.object());
 }
 
-QStringList JCameraPrivate::callParametersStringListMethod(const QByteArray &methodName)
+QStringList AndroidCameraPrivate::callParametersStringListMethod(const QByteArray &methodName)
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
 
@@ -1343,7 +1343,7 @@ static JNINativeMethod methods[] = {
     {"notifyFrameFetched", "(I[B)V", (void *)notifyFrameFetched}
 };
 
-bool JCamera::initJNI(JNIEnv *env)
+bool AndroidCamera::initJNI(JNIEnv *env)
 {
     jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtCameraListener");
     if (env->ExceptionCheck())
@@ -1363,4 +1363,4 @@ bool JCamera::initJNI(JNIEnv *env)
 
 QT_END_NAMESPACE
 
-#include "jcamera.moc"
+#include "androidcamera.moc"

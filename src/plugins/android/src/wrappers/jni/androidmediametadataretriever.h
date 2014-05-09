@@ -39,40 +39,55 @@
 **
 ****************************************************************************/
 
-#ifndef JSURFACETEXTURE_H
-#define JSURFACETEXTURE_H
+#ifndef ANDROIDMEDIAMETADATARETRIEVER_H
+#define ANDROIDMEDIAMETADATARETRIEVER_H
 
-#include <qobject.h>
 #include <QtCore/private/qjni_p.h>
-
-#include <QMatrix4x4>
+#include <qurl.h>
 
 QT_BEGIN_NAMESPACE
 
-class JSurfaceTexture : public QObject
+class AndroidMediaMetadataRetriever
 {
-    Q_OBJECT
 public:
-    explicit JSurfaceTexture(unsigned int texName);
-    ~JSurfaceTexture();
+    enum MetadataKey {
+        Album = 1,
+        AlbumArtist = 13,
+        Artist = 2,
+        Author = 3,
+        Bitrate = 20,
+        CDTrackNumber = 0,
+        Compilation = 15,
+        Composer = 4,
+        Date = 5,
+        DiscNumber = 14,
+        Duration = 9,
+        Genre = 6,
+        HasAudio = 16,
+        HasVideo = 17,
+        Location = 23,
+        MimeType = 12,
+        NumTracks = 10,
+        Title = 7,
+        VideoHeight = 19,
+        VideoWidth = 18,
+        VideoRotation = 24,
+        Writer = 11,
+        Year = 8
+    };
 
-    int textureID() const { return m_texID; }
-    jobject object();
+    AndroidMediaMetadataRetriever();
+    ~AndroidMediaMetadataRetriever();
 
-    QMatrix4x4 getTransformMatrix();
-    void release(); // API level 14
-    void updateTexImage();
-
-    static bool initJNI(JNIEnv *env);
-
-Q_SIGNALS:
-    void frameAvailable();
+    QString extractMetadata(MetadataKey key);
+    void release();
+    bool setDataSource(const QUrl &url);
+    bool setDataSource(const QString &path);
 
 private:
-    int m_texID;
-    QJNIObjectPrivate m_surfaceTexture;
+    QJNIObjectPrivate m_metadataRetriever;
 };
 
 QT_END_NAMESPACE
 
-#endif // JSURFACETEXTURE_H
+#endif // ANDROIDMEDIAMETADATARETRIEVER_H

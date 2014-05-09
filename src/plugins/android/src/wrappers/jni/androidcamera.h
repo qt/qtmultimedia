@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#ifndef JCAMERA_H
-#define JCAMERA_H
+#ifndef ANDROIDCAMERA_H
+#define ANDROIDCAMERA_H
 
 #include <qobject.h>
 #include <QtCore/private/qjni_p.h>
@@ -51,9 +51,9 @@ QT_BEGIN_NAMESPACE
 
 class QThread;
 
-class JCameraPrivate;
+class AndroidCameraPrivate;
 
-class JCamera : public QObject
+class AndroidCamera : public QObject
 {
     Q_OBJECT
     Q_ENUMS(CameraFacing)
@@ -74,9 +74,9 @@ public:
         YV12 = 842094169
     };
 
-    ~JCamera();
+    ~AndroidCamera();
 
-    static JCamera *open(int cameraId);
+    static AndroidCamera *open(int cameraId);
 
     int cameraId() const;
 
@@ -175,13 +175,13 @@ Q_SIGNALS:
     void frameFetched(const QByteArray &frame);
 
 private:
-    JCamera(JCameraPrivate *d, QThread *worker);
+    AndroidCamera(AndroidCameraPrivate *d, QThread *worker);
 
-    Q_DECLARE_PRIVATE(JCamera)
-    JCameraPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(AndroidCamera)
+    AndroidCameraPrivate *d_ptr;
     QScopedPointer<QThread> m_worker;
 };
 
 QT_END_NAMESPACE
 
-#endif // JCAMERA_H
+#endif // ANDROIDCAMERA_H

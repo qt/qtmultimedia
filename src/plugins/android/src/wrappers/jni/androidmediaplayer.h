@@ -39,20 +39,20 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIAPLAYER_H
-#define QANDROIDMEDIAPLAYER_H
+#ifndef ANDROIDMEDIAPLAYER_H
+#define ANDROIDMEDIAPLAYER_H
 
 #include <QObject>
 #include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class JMediaPlayer : public QObject
+class AndroidMediaPlayer : public QObject
 {
     Q_OBJECT
 public:
-    JMediaPlayer();
-    ~JMediaPlayer();
+    AndroidMediaPlayer();
+    ~AndroidMediaPlayer();
 
     enum MediaError
     {
@@ -132,4 +132,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMEDIAPLAYER_H
+#endif // ANDROIDMEDIAPLAYER_H

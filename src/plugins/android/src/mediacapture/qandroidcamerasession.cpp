@@ -41,8 +41,8 @@
 
 #include "qandroidcamerasession.h"
 
-#include "jcamera.h"
-#include "jmultimediautils.h"
+#include "androidcamera.h"
+#include "androidmultimediautils.h"
 #include "qandroidvideooutput.h"
 #include "qandroidmediavideoprobecontrol.h"
 #include "qandroidmultimediautils.h"
@@ -113,7 +113,7 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
 {
     m_mediaStorageLocation.addStorageLocation(
                 QMediaStorageLocation::Pictures,
-                JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::DCIM));
+                AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM));
 
     if (qApp) {
         connect(qApp, SIGNAL(applicationStateChanged(Qt::ApplicationState)),
@@ -195,17 +195,17 @@ void QAndroidCameraSession::updateAvailableCameras()
                                                   "(ILandroid/hardware/Camera$CameraInfo;)V",
                                                   i, cameraInfo.object());
 
-        JCamera::CameraFacing facing = JCamera::CameraFacing(cameraInfo.getField<jint>("facing"));
+        AndroidCamera::CameraFacing facing = AndroidCamera::CameraFacing(cameraInfo.getField<jint>("facing"));
         // The orientation provided by Android is counter-clockwise, we need it clockwise
         info.orientation = (360 - cameraInfo.getField<jint>("orientation")) % 360;
 
         switch (facing) {
-        case JCamera::CameraFacingBack:
+        case AndroidCamera::CameraFacingBack:
             info.name = QByteArray("back");
             info.description = QStringLiteral("Rear-facing camera");
             info.position = QCamera::BackFace;
             break;
-        case JCamera::CameraFacingFront:
+        case AndroidCamera::CameraFacingFront:
             info.name = QByteArray("front");
             info.description = QStringLiteral("Front-facing camera");
             info.position = QCamera::FrontFace;
@@ -234,7 +234,7 @@ bool QAndroidCameraSession::open()
     m_status = QCamera::LoadingStatus;
     emit statusChanged(m_status);
 
-    m_camera = JCamera::open(m_selectedCamera);
+    m_camera = AndroidCamera::open(m_selectedCamera);
 
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
@@ -250,8 +250,8 @@ bool QAndroidCameraSession::open()
 
         m_status = QCamera::LoadedStatus;
 
-        if (m_camera->getPreviewFormat() != JCamera::NV21)
-            m_camera->setPreviewFormat(JCamera::NV21);
+        if (m_camera->getPreviewFormat() != AndroidCamera::NV21)
+            m_camera->setPreviewFormat(AndroidCamera::NV21);
 
         m_camera->fetchEachFrame(m_videoProbes.count());
 
@@ -356,7 +356,7 @@ void QAndroidCameraSession::startPreview()
     if (m_videoOutput && m_videoOutput->isReady())
         onVideoOutputReady(true);
 
-    JMultimediaUtils::enableOrientationListener(true);
+    AndroidMultimediaUtils::enableOrientationListener(true);
 
     m_camera->startPreview();
     m_previewStarted = true;
@@ -370,7 +370,7 @@ void QAndroidCameraSession::stopPreview()
     m_status = QCamera::StoppingStatus;
     emit statusChanged(m_status);
 
-    JMultimediaUtils::enableOrientationListener(false);
+    AndroidMultimediaUtils::enableOrientationListener(false);
 
     m_camera->stopPreview();
     m_camera->setPreviewSize(QSize());
@@ -407,8 +407,8 @@ int QAndroidCameraSession::currentCameraRotation() const
 
     // subtract natural camera orientation and physical device orientation
     int rotation = 0;
-    int deviceOrientation = (JMultimediaUtils::getDeviceOrientation() + 45) / 90 * 90;
-    if (m_camera->getFacing() == JCamera::CameraFacingFront)
+    int deviceOrientation = (AndroidMultimediaUtils::getDeviceOrientation() + 45) / 90 * 90;
+    if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
         rotation = (m_nativeOrientation - deviceOrientation + 360) % 360;
     else // back-facing camera
         rotation = (m_nativeOrientation + deviceOrientation) % 360;
@@ -658,9 +658,9 @@ void QAndroidCameraSession::processCapturedImage(int id,
                 // if the picture is saved into the standard picture location, register it
                 // with the Android media scanner so it appears immediately in apps
                 // such as the gallery.
-                QString standardLoc = JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::DCIM);
+                QString standardLoc = AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM);
                 if (actualFileName.startsWith(standardLoc))
-                    JMultimediaUtils::registerMediaFile(actualFileName);
+                    AndroidMultimediaUtils::registerMediaFile(actualFileName);
 
                 emit imageSaved(id, actualFileName);
             } else {
@@ -697,7 +697,7 @@ QImage QAndroidCameraSession::prepareImageFromPreviewData(const QByteArray &data
     // Preview display of front-facing cameras is flipped horizontally, but the frame data
     // we get here is not. Flip it ourselves if the camera is front-facing to match what the user
     // sees on the viewfinder.
-    if (m_camera->getFacing() == JCamera::CameraFacingFront)
+    if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
         transform.scale(-1, 1);
 
     transform.rotate(rotation);

@@ -49,7 +49,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class JMediaPlayer;
+class AndroidMediaPlayer;
 class QAndroidVideoOutput;
 
 class QAndroidMediaPlayerControl : public QMediaPlayerControl
@@ -98,7 +98,7 @@ private Q_SLOTS:
     void onStateChanged(qint32 state);
 
 private:
-    JMediaPlayer *mMediaPlayer;
+    AndroidMediaPlayer *mMediaPlayer;
     QMediaPlayer::State mCurrentState;
     QMediaPlayer::MediaStatus mCurrentMediaStatus;
     QMediaContent mMediaContent;

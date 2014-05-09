@@ -39,24 +39,24 @@
 **
 ****************************************************************************/
 
-#include "jsurfacetexture.h"
+#include "androidsurfacetexture.h"
 #include <QtCore/private/qjni_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
 static jclass g_qtSurfaceTextureListenerClass = 0;
-static QMap<int, JSurfaceTexture*> g_objectMap;
+static QMap<int, AndroidSurfaceTexture*> g_objectMap;
 
 // native method for QtSurfaceTexture.java
 static void notifyFrameAvailable(JNIEnv* , jobject, int id)
 {
-    JSurfaceTexture *obj = g_objectMap.value(id, 0);
+    AndroidSurfaceTexture *obj = g_objectMap.value(id, 0);
     if (obj)
         Q_EMIT obj->frameAvailable();
 }
 
-JSurfaceTexture::JSurfaceTexture(unsigned int texName)
+AndroidSurfaceTexture::AndroidSurfaceTexture(unsigned int texName)
     : QObject()
     , m_texID(int(texName))
 {
@@ -84,7 +84,7 @@ JSurfaceTexture::JSurfaceTexture(unsigned int texName)
                                       listener.object());
 }
 
-JSurfaceTexture::~JSurfaceTexture()
+AndroidSurfaceTexture::~AndroidSurfaceTexture()
 {
     if (m_surfaceTexture.isValid()) {
         release();
@@ -92,7 +92,7 @@ JSurfaceTexture::~JSurfaceTexture()
     }
 }
 
-QMatrix4x4 JSurfaceTexture::getTransformMatrix()
+QMatrix4x4 AndroidSurfaceTexture::getTransformMatrix()
 {
     QMatrix4x4 matrix;
     if (!m_surfaceTexture.isValid())
@@ -108,7 +108,7 @@ QMatrix4x4 JSurfaceTexture::getTransformMatrix()
     return matrix;
 }
 
-void JSurfaceTexture::release()
+void AndroidSurfaceTexture::release()
 {
     if (QtAndroidPrivate::androidSdkVersion() < 14)
         return;
@@ -116,7 +116,7 @@ void JSurfaceTexture::release()
     m_surfaceTexture.callMethod<void>("release");
 }
 
-void JSurfaceTexture::updateTexImage()
+void AndroidSurfaceTexture::updateTexImage()
 {
     if (!m_surfaceTexture.isValid())
         return;
@@ -124,7 +124,7 @@ void JSurfaceTexture::updateTexImage()
     m_surfaceTexture.callMethod<void>("updateTexImage");
 }
 
-jobject JSurfaceTexture::object()
+jobject AndroidSurfaceTexture::object()
 {
     return m_surfaceTexture.object();
 }
@@ -133,7 +133,7 @@ static JNINativeMethod methods[] = {
     {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
 };
 
-bool JSurfaceTexture::initJNI(JNIEnv *env)
+bool AndroidSurfaceTexture::initJNI(JNIEnv *env)
 {
     // SurfaceTexture is available since API 11.
     if (QtAndroidPrivate::androidSdkVersion() < 11)

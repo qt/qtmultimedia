@@ -48,7 +48,7 @@
 #include <qelapsedtimer.h>
 #include <qtimer.h>
 #include <private/qmediastoragelocation_p.h>
-#include "jmediarecorder.h"
+#include "androidmediarecorder.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -106,15 +106,15 @@ private Q_SLOTS:
 
 private:
     struct CaptureProfile {
-        JMediaRecorder::OutputFormat outputFormat;
+        AndroidMediaRecorder::OutputFormat outputFormat;
         QString outputFileExtension;
 
-        JMediaRecorder::AudioEncoder audioEncoder;
+        AndroidMediaRecorder::AudioEncoder audioEncoder;
         int audioBitRate;
         int audioChannels;
         int audioSampleRate;
 
-        JMediaRecorder::VideoEncoder videoEncoder;
+        AndroidMediaRecorder::VideoEncoder videoEncoder;
         int videoBitRate;
         int videoFrameRate;
         QSize videoResolution;
@@ -122,13 +122,13 @@ private:
         bool isNull;
 
         CaptureProfile()
-            : outputFormat(JMediaRecorder::MPEG_4)
+            : outputFormat(AndroidMediaRecorder::MPEG_4)
             , outputFileExtension(QLatin1String("mp4"))
-            , audioEncoder(JMediaRecorder::DefaultAudioEncoder)
+            , audioEncoder(AndroidMediaRecorder::DefaultAudioEncoder)
             , audioBitRate(128000)
             , audioChannels(2)
             , audioSampleRate(44100)
-            , videoEncoder(JMediaRecorder::DefaultVideoEncoder)
+            , videoEncoder(AndroidMediaRecorder::DefaultVideoEncoder)
             , videoBitRate(1)
             , videoFrameRate(-1)
             , videoResolution(320, 240)
@@ -146,11 +146,11 @@ private:
     void updateViewfinder();
     void restartViewfinder();
 
-    JMediaRecorder *m_mediaRecorder;
+    AndroidMediaRecorder *m_mediaRecorder;
     QAndroidCameraSession *m_cameraSession;
 
     QString m_audioInput;
-    JMediaRecorder::AudioSource m_audioSource;
+    AndroidMediaRecorder::AudioSource m_audioSource;
 
     QMediaStorageLocation m_mediaStorageLocation;
 
@@ -173,9 +173,9 @@ private:
     bool m_containerFormatDirty;
     bool m_videoSettingsDirty;
     bool m_audioSettingsDirty;
-    JMediaRecorder::OutputFormat m_outputFormat;
-    JMediaRecorder::AudioEncoder m_audioEncoder;
-    JMediaRecorder::VideoEncoder m_videoEncoder;
+    AndroidMediaRecorder::OutputFormat m_outputFormat;
+    AndroidMediaRecorder::AudioEncoder m_audioEncoder;
+    AndroidMediaRecorder::VideoEncoder m_videoEncoder;
 
     QList<QSize> m_supportedResolutions;
     QList<qreal> m_supportedFramerates;

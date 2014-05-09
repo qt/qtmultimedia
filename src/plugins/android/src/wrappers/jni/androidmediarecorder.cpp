@@ -39,33 +39,33 @@
 **
 ****************************************************************************/
 
-#include "jmediarecorder.h"
+#include "androidmediarecorder.h"
 
-#include "jcamera.h"
+#include "androidcamera.h"
 #include <QtCore/private/qjni_p.h>
 #include <qmap.h>
 
 QT_BEGIN_NAMESPACE
 
 static jclass g_qtMediaRecorderListenerClass = 0;
-typedef QMap<jlong, JMediaRecorder*> MediaRecorderMap;
+typedef QMap<jlong, AndroidMediaRecorder*> MediaRecorderMap;
 Q_GLOBAL_STATIC(MediaRecorderMap, mediaRecorders)
 
 static void notifyError(JNIEnv* , jobject, jlong id, jint what, jint extra)
 {
-    JMediaRecorder *obj = mediaRecorders->value(id, 0);
+    AndroidMediaRecorder *obj = mediaRecorders->value(id, 0);
     if (obj)
         emit obj->error(what, extra);
 }
 
 static void notifyInfo(JNIEnv* , jobject, jlong id, jint what, jint extra)
 {
-    JMediaRecorder *obj = mediaRecorders->value(id, 0);
+    AndroidMediaRecorder *obj = mediaRecorders->value(id, 0);
     if (obj)
         emit obj->info(what, extra);
 }
 
-JMediaRecorder::JMediaRecorder()
+AndroidMediaRecorder::AndroidMediaRecorder()
     : QObject()
     , m_id(reinterpret_cast<jlong>(this))
 {
@@ -82,17 +82,17 @@ JMediaRecorder::JMediaRecorder()
     }
 }
 
-JMediaRecorder::~JMediaRecorder()
+AndroidMediaRecorder::~AndroidMediaRecorder()
 {
     mediaRecorders->remove(m_id);
 }
 
-void JMediaRecorder::release()
+void AndroidMediaRecorder::release()
 {
     m_mediaRecorder.callMethod<void>("release");
 }
 
-bool JMediaRecorder::prepare()
+bool AndroidMediaRecorder::prepare()
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("prepare");
@@ -106,12 +106,12 @@ bool JMediaRecorder::prepare()
     return true;
 }
 
-void JMediaRecorder::reset()
+void AndroidMediaRecorder::reset()
 {
     m_mediaRecorder.callMethod<void>("reset");
 }
 
-bool JMediaRecorder::start()
+bool AndroidMediaRecorder::start()
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("start");
@@ -125,7 +125,7 @@ bool JMediaRecorder::start()
     return true;
 }
 
-void JMediaRecorder::stop()
+void AndroidMediaRecorder::stop()
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("stop");
@@ -137,12 +137,12 @@ void JMediaRecorder::stop()
     }
 }
 
-void JMediaRecorder::setAudioChannels(int numChannels)
+void AndroidMediaRecorder::setAudioChannels(int numChannels)
 {
     m_mediaRecorder.callMethod<void>("setAudioChannels", "(I)V", numChannels);
 }
 
-void JMediaRecorder::setAudioEncoder(AudioEncoder encoder)
+void AndroidMediaRecorder::setAudioEncoder(AudioEncoder encoder)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setAudioEncoder", "(I)V", int(encoder));
@@ -154,17 +154,17 @@ void JMediaRecorder::setAudioEncoder(AudioEncoder encoder)
     }
 }
 
-void JMediaRecorder::setAudioEncodingBitRate(int bitRate)
+void AndroidMediaRecorder::setAudioEncodingBitRate(int bitRate)
 {
     m_mediaRecorder.callMethod<void>("setAudioEncodingBitRate", "(I)V", bitRate);
 }
 
-void JMediaRecorder::setAudioSamplingRate(int samplingRate)
+void AndroidMediaRecorder::setAudioSamplingRate(int samplingRate)
 {
     m_mediaRecorder.callMethod<void>("setAudioSamplingRate", "(I)V", samplingRate);
 }
 
-void JMediaRecorder::setAudioSource(AudioSource source)
+void AndroidMediaRecorder::setAudioSource(AudioSource source)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setAudioSource", "(I)V", int(source));
@@ -176,13 +176,13 @@ void JMediaRecorder::setAudioSource(AudioSource source)
     }
 }
 
-void JMediaRecorder::setCamera(JCamera *camera)
+void AndroidMediaRecorder::setCamera(AndroidCamera *camera)
 {
     QJNIObjectPrivate cam = camera->getCameraObject();
     m_mediaRecorder.callMethod<void>("setCamera", "(Landroid/hardware/Camera;)V", cam.object());
 }
 
-void JMediaRecorder::setVideoEncoder(VideoEncoder encoder)
+void AndroidMediaRecorder::setVideoEncoder(VideoEncoder encoder)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoEncoder", "(I)V", int(encoder));
@@ -194,12 +194,12 @@ void JMediaRecorder::setVideoEncoder(VideoEncoder encoder)
     }
 }
 
-void JMediaRecorder::setVideoEncodingBitRate(int bitRate)
+void AndroidMediaRecorder::setVideoEncodingBitRate(int bitRate)
 {
     m_mediaRecorder.callMethod<void>("setVideoEncodingBitRate", "(I)V", bitRate);
 }
 
-void JMediaRecorder::setVideoFrameRate(int rate)
+void AndroidMediaRecorder::setVideoFrameRate(int rate)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoFrameRate", "(I)V", rate);
@@ -211,7 +211,7 @@ void JMediaRecorder::setVideoFrameRate(int rate)
     }
 }
 
-void JMediaRecorder::setVideoSize(const QSize &size)
+void AndroidMediaRecorder::setVideoSize(const QSize &size)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoSize", "(II)V", size.width(), size.height());
@@ -223,7 +223,7 @@ void JMediaRecorder::setVideoSize(const QSize &size)
     }
 }
 
-void JMediaRecorder::setVideoSource(VideoSource source)
+void AndroidMediaRecorder::setVideoSource(VideoSource source)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoSource", "(I)V", int(source));
@@ -235,7 +235,7 @@ void JMediaRecorder::setVideoSource(VideoSource source)
     }
 }
 
-void JMediaRecorder::setOrientationHint(int degrees)
+void AndroidMediaRecorder::setOrientationHint(int degrees)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setOrientationHint", "(I)V", degrees);
@@ -247,7 +247,7 @@ void JMediaRecorder::setOrientationHint(int degrees)
     }
 }
 
-void JMediaRecorder::setOutputFormat(OutputFormat format)
+void AndroidMediaRecorder::setOutputFormat(OutputFormat format)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setOutputFormat", "(I)V", int(format));
@@ -259,7 +259,7 @@ void JMediaRecorder::setOutputFormat(OutputFormat format)
     }
 }
 
-void JMediaRecorder::setOutputFile(const QString &path)
+void AndroidMediaRecorder::setOutputFile(const QString &path)
 {
     QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setOutputFile",
@@ -278,7 +278,7 @@ static JNINativeMethod methods[] = {
     {"notifyInfo", "(JII)V", (void *)notifyInfo}
 };
 
-bool JMediaRecorder::initJNI(JNIEnv *env)
+bool AndroidMediaRecorder::initJNI(JNIEnv *env)
 {
     jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtMediaRecorderListener");
     if (env->ExceptionCheck())

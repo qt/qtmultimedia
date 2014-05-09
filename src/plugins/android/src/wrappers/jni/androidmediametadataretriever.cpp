@@ -39,23 +39,23 @@
 **
 ****************************************************************************/
 
-#include "jmediametadataretriever.h"
+#include "androidmediametadataretriever.h"
 
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
-JMediaMetadataRetriever::JMediaMetadataRetriever()
+AndroidMediaMetadataRetriever::AndroidMediaMetadataRetriever()
 {
     m_metadataRetriever = QJNIObjectPrivate("android/media/MediaMetadataRetriever");
 }
 
-JMediaMetadataRetriever::~JMediaMetadataRetriever()
+AndroidMediaMetadataRetriever::~AndroidMediaMetadataRetriever()
 {
 }
 
-QString JMediaMetadataRetriever::extractMetadata(MetadataKey key)
+QString AndroidMediaMetadataRetriever::extractMetadata(MetadataKey key)
 {
     QString value;
 
@@ -68,7 +68,7 @@ QString JMediaMetadataRetriever::extractMetadata(MetadataKey key)
     return value;
 }
 
-void JMediaMetadataRetriever::release()
+void AndroidMediaMetadataRetriever::release()
 {
     if (!m_metadataRetriever.isValid())
         return;
@@ -76,7 +76,7 @@ void JMediaMetadataRetriever::release()
     m_metadataRetriever.callMethod<void>("release");
 }
 
-bool JMediaMetadataRetriever::setDataSource(const QUrl &url)
+bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
 {
     if (!m_metadataRetriever.isValid())
         return false;
@@ -107,7 +107,7 @@ bool JMediaMetadataRetriever::setDataSource(const QUrl &url)
     return loaded;
 }
 
-bool JMediaMetadataRetriever::setDataSource(const QString &path)
+bool AndroidMediaMetadataRetriever::setDataSource(const QString &path)
 {
     if (!m_metadataRetriever.isValid())
         return false;

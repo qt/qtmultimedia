@@ -39,30 +39,40 @@
 **
 ****************************************************************************/
 
-#ifndef JMULTIMEDIAUTILS_H
-#define JMULTIMEDIAUTILS_H
+#ifndef ANDROIDSURFACETEXTURE_H
+#define ANDROIDSURFACETEXTURE_H
 
 #include <qobject.h>
 #include <QtCore/private/qjni_p.h>
 
+#include <QMatrix4x4>
+
 QT_BEGIN_NAMESPACE
 
-class JMultimediaUtils
+class AndroidSurfaceTexture : public QObject
 {
+    Q_OBJECT
 public:
-    enum MediaType {
-        Music = 0,
-        Movies = 1,
-        DCIM = 2,
-        Sounds = 3
-    };
+    explicit AndroidSurfaceTexture(unsigned int texName);
+    ~AndroidSurfaceTexture();
 
-    static void enableOrientationListener(bool enable);
-    static int getDeviceOrientation();
-    static QString getDefaultMediaDirectory(MediaType type);
-    static void registerMediaFile(const QString &file);
+    int textureID() const { return m_texID; }
+    jobject object();
+
+    QMatrix4x4 getTransformMatrix();
+    void release(); // API level 14
+    void updateTexImage();
+
+    static bool initJNI(JNIEnv *env);
+
+Q_SIGNALS:
+    void frameAvailable();
+
+private:
+    int m_texID;
+    QJNIObjectPrivate m_surfaceTexture;
 };
 
 QT_END_NAMESPACE
 
-#endif // JMULTIMEDIAUTILS_H
+#endif // ANDROIDSURFACETEXTURE_H
