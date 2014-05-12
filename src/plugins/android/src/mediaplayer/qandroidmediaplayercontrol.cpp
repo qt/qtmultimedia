@@ -54,6 +54,7 @@ QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
       mVideoOutput(0),
       mSeekable(true),
       mBufferPercent(-1),
+      mBufferFilled(false),
       mAudioAvailable(false),
       mVideoAvailable(false),
       mBuffering(false),
@@ -221,7 +222,7 @@ void QAndroidMediaPlayerControl::setMuted(bool muted)
 
 int QAndroidMediaPlayerControl::bufferStatus() const
 {
-    return mBufferPercent;
+    return mBufferFilled ? 100 : 0;
 }
 
 bool QAndroidMediaPlayerControl::isAudioAvailable() const
@@ -487,7 +488,6 @@ void QAndroidMediaPlayerControl::onBufferingChanged(qint32 percent)
 {
     mBuffering = percent != 100;
     mBufferPercent = percent;
-    Q_EMIT bufferStatusChanged(mBufferPercent);
 
     updateAvailablePlaybackRanges();
 
@@ -621,6 +621,8 @@ void QAndroidMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status
 
     mCurrentMediaStatus = status;
     Q_EMIT mediaStatusChanged(mCurrentMediaStatus);
+
+    updateBufferStatus();
 }
 
 void QAndroidMediaPlayerControl::setSeekable(bool seekable)
@@ -658,7 +660,6 @@ void QAndroidMediaPlayerControl::resetBufferingProgress()
     mBuffering = false;
     mBufferPercent = 0;
     mAvailablePlaybackRange = QMediaTimeRange();
-    Q_EMIT bufferStatusChanged(mBufferPercent);
 }
 
 void QAndroidMediaPlayerControl::flushPendingStates()
@@ -691,6 +692,17 @@ void QAndroidMediaPlayerControl::flushPendingStates()
         break;
     default:
         break;
+    }
+}
+
+void QAndroidMediaPlayerControl::updateBufferStatus()
+{
+    bool bufferFilled = (mCurrentMediaStatus == QMediaPlayer::BufferedMedia
+                         || mCurrentMediaStatus == QMediaPlayer::BufferingMedia);
+
+    if (mBufferFilled != bufferFilled) {
+        mBufferFilled = bufferFilled;
+        Q_EMIT bufferStatusChanged(bufferStatus());
     }
 }
 

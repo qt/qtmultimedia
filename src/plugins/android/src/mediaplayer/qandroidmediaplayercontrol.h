@@ -106,6 +106,7 @@ private:
     QAndroidVideoOutput *mVideoOutput;
     bool mSeekable;
     int mBufferPercent;
+    bool mBufferFilled;
     bool mAudioAvailable;
     bool mVideoAvailable;
     QSize mVideoSize;
@@ -127,6 +128,7 @@ private:
     void updateAvailablePlaybackRanges();
     void resetBufferingProgress();
     void flushPendingStates();
+    void updateBufferStatus();
 };
 
 QT_END_NAMESPACE
