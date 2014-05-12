@@ -44,10 +44,6 @@
 
 int main(int argc, char *argv[])
 {
-#ifdef Q_WS_MAEMO_6
-    //Meego graphics system conflicts with xvideo during fullscreen transition
-    QApplication::setGraphicsSystem("raster");
-#endif
     QApplication app(argc, argv);
 
     Player player;

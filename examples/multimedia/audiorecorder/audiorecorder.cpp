@@ -47,11 +47,7 @@
 #include "audiorecorder.h"
 #include "qaudiolevel.h"
 
-#if defined(Q_WS_MAEMO_6)
-#include "ui_audiorecorder_small.h"
-#else
 #include "ui_audiorecorder.h"
-#endif
 
 static qreal getPeakValue(const QAudioFormat &format);
 static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);

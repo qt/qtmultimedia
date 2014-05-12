@@ -53,10 +53,6 @@
 
 #include <QtWidgets>
 
-#if (defined(Q_WS_MAEMO_6)) && QT_VERSION >= 0x040700
-#define HAVE_CAMERA_BUTTONS
-#endif
-
 Camera::Camera(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Camera),
@@ -87,10 +83,6 @@ Camera::Camera(QWidget *parent) :
 
     connect(videoDevicesGroup, SIGNAL(triggered(QAction*)), SLOT(updateCameraDevice(QAction*)));
     connect(ui->captureWidget, SIGNAL(currentChanged(int)), SLOT(updateCaptureMode()));
-
-#ifdef HAVE_CAMERA_BUTTONS
-    ui->lockButton->hide();
-#endif
 
     setCamera(cameraDevice);
 }
