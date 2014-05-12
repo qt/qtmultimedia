@@ -86,6 +86,9 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(unsigned int texName)
 
 AndroidSurfaceTexture::~AndroidSurfaceTexture()
 {
+    if (QtAndroidPrivate::androidSdkVersion() > 13 && m_surfaceView.isValid())
+        m_surfaceView.callMethod<void>("release");
+
     if (m_surfaceTexture.isValid()) {
         release();
         g_objectMap.remove(m_texID);
@@ -124,9 +127,29 @@ void AndroidSurfaceTexture::updateTexImage()
     m_surfaceTexture.callMethod<void>("updateTexImage");
 }
 
-jobject AndroidSurfaceTexture::object()
+jobject AndroidSurfaceTexture::surfaceTexture()
 {
     return m_surfaceTexture.object();
+}
+
+jobject AndroidSurfaceTexture::surfaceView()
+{
+    return m_surfaceView.object();
+}
+
+jobject AndroidSurfaceTexture::surfaceHolder()
+{
+    if (!m_surfaceHolder.isValid()) {
+        m_surfaceView = QJNIObjectPrivate("android/view/Surface",
+                                          "(Landroid/graphics/SurfaceTexture;)V",
+                                          m_surfaceTexture.object());
+
+        m_surfaceHolder = QJNIObjectPrivate("org/qtproject/qt5/android/multimedia/QtSurfaceTextureHolder",
+                                            "(Landroid/view/Surface;)V",
+                                            m_surfaceView.object());
+    }
+
+    return m_surfaceHolder.object();
 }
 
 static JNINativeMethod methods[] = {

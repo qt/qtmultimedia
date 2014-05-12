@@ -455,7 +455,7 @@ void QAndroidCaptureSession::onCameraOpened()
     for (int i = 0; i < 8; ++i) {
         CaptureProfile profile = getProfile(i);
         if (!profile.isNull) {
-            if (i == 1) // QUALITY_HIGH
+            if (i == AndroidCamcorderProfile::QUALITY_HIGH)
                 m_defaultSettings = profile;
 
             if (!m_supportedResolutions.contains(profile.videoResolution))
@@ -474,30 +474,23 @@ void QAndroidCaptureSession::onCameraOpened()
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)
 {
     CaptureProfile profile;
-    bool hasProfile = QJNIObjectPrivate::callStaticMethod<jboolean>("android/media/CamcorderProfile",
-                                                             "hasProfile",
-                                                             "(II)Z",
-                                                             m_cameraSession->camera()->cameraId(),
-                                                             id);
+    const bool hasProfile = AndroidCamcorderProfile::hasProfile(m_cameraSession->camera()->cameraId(),
+                                                                AndroidCamcorderProfile::Quality(id));
 
     if (hasProfile) {
-        QJNIObjectPrivate obj = QJNIObjectPrivate::callStaticObjectMethod("android/media/CamcorderProfile",
-                                                                          "get",
-                                                                          "(II)Landroid/media/CamcorderProfile;",
-                                                                          m_cameraSession->camera()->cameraId(),
-                                                                          id);
+        AndroidCamcorderProfile camProfile = AndroidCamcorderProfile::get(m_cameraSession->camera()->cameraId(),
+                                                                          AndroidCamcorderProfile::Quality(id));
 
-
-        profile.outputFormat = AndroidMediaRecorder::OutputFormat(obj.getField<jint>("fileFormat"));
-        profile.audioEncoder = AndroidMediaRecorder::AudioEncoder(obj.getField<jint>("audioCodec"));
-        profile.audioBitRate = obj.getField<jint>("audioBitRate");
-        profile.audioChannels = obj.getField<jint>("audioChannels");
-        profile.audioSampleRate = obj.getField<jint>("audioSampleRate");
-        profile.videoEncoder = AndroidMediaRecorder::VideoEncoder(obj.getField<jint>("videoCodec"));
-        profile.videoBitRate = obj.getField<jint>("videoBitRate");
-        profile.videoFrameRate = obj.getField<jint>("videoFrameRate");
-        profile.videoResolution = QSize(obj.getField<jint>("videoFrameWidth"),
-                                        obj.getField<jint>("videoFrameHeight"));
+        profile.outputFormat = AndroidMediaRecorder::OutputFormat(camProfile.getValue(AndroidCamcorderProfile::fileFormat));
+        profile.audioEncoder = AndroidMediaRecorder::AudioEncoder(camProfile.getValue(AndroidCamcorderProfile::audioCodec));
+        profile.audioBitRate = camProfile.getValue(AndroidCamcorderProfile::audioBitRate);
+        profile.audioChannels = camProfile.getValue(AndroidCamcorderProfile::audioChannels);
+        profile.audioSampleRate = camProfile.getValue(AndroidCamcorderProfile::audioSampleRate);
+        profile.videoEncoder = AndroidMediaRecorder::VideoEncoder(camProfile.getValue(AndroidCamcorderProfile::videoCodec));
+        profile.videoBitRate = camProfile.getValue(AndroidCamcorderProfile::videoBitRate);
+        profile.videoFrameRate = camProfile.getValue(AndroidCamcorderProfile::videoFrameRate);
+        profile.videoResolution = QSize(camProfile.getValue(AndroidCamcorderProfile::videoFrameWidth),
+                                        camProfile.getValue(AndroidCamcorderProfile::videoFrameHeight));
 
         if (profile.outputFormat == AndroidMediaRecorder::MPEG_4)
             profile.outputFileExtension = QStringLiteral("mp4");

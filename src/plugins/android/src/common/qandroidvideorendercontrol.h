@@ -86,8 +86,7 @@ public:
     QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
     void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
 
-    jobject surfaceHolder() Q_DECL_OVERRIDE;
-    jobject surfaceTexture() Q_DECL_OVERRIDE;
+    AndroidSurfaceTexture *surfaceTexture() Q_DECL_OVERRIDE;
     bool isReady() Q_DECL_OVERRIDE;
     void setVideoSize(const QSize &size) Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
@@ -112,9 +111,7 @@ private:
     QAbstractVideoSurface *m_surface;
     QSize m_nativeSize;
 
-    QJNIObjectPrivate *m_androidSurface;
     AndroidSurfaceTexture *m_surfaceTexture;
-    QJNIObjectPrivate *m_surfaceHolder;
 
     quint32 m_externalTex;
     QOpenGLFramebufferObject *m_fbo;

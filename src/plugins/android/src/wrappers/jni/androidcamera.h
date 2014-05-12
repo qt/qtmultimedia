@@ -46,12 +46,22 @@
 #include <QtCore/private/qjni_p.h>
 #include <qsize.h>
 #include <qrect.h>
+#include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
 class QThread;
 
 class AndroidCameraPrivate;
+class AndroidSurfaceTexture;
+
+struct AndroidCameraInfo
+{
+    QByteArray name;
+    QString description;
+    QCamera::Position position;
+    int orientation;
+};
 
 class AndroidCamera : public QObject
 {
@@ -96,7 +106,7 @@ public:
 
     QSize previewSize() const;
     void setPreviewSize(const QSize &size);
-    void setPreviewTexture(jobject surfaceTexture);
+    void setPreviewTexture(AndroidSurfaceTexture *surfaceTexture);
 
     bool isZoomSupported();
     int getMaxZoom();
@@ -156,6 +166,9 @@ public:
     void fetchEachFrame(bool fetch);
     void fetchLastPreviewFrame();
     QJNIObjectPrivate getCameraObject();
+
+    static int getNumberOfCameras();
+    static void getCameraInfo(int id, AndroidCameraInfo *info);
 
     static bool initJNI(JNIEnv *env);
 

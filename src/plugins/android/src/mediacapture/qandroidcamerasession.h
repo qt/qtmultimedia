@@ -48,20 +48,12 @@
 #include <QSet>
 #include <QMutex>
 #include <private/qmediastoragelocation_p.h>
+#include "androidcamera.h"
 
 QT_BEGIN_NAMESPACE
 
-class AndroidCamera;
 class QAndroidVideoOutput;
 class QAndroidMediaVideoProbeControl;
-
-struct AndroidCameraInfo
-{
-    QByteArray name;
-    QString description;
-    QCamera::Position position;
-    int orientation;
-};
 
 class QAndroidCameraSession : public QObject
 {

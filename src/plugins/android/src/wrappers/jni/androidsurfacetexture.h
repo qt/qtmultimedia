@@ -57,7 +57,10 @@ public:
     ~AndroidSurfaceTexture();
 
     int textureID() const { return m_texID; }
-    jobject object();
+    jobject surfaceTexture();
+    jobject surfaceView();
+    jobject surfaceHolder();
+    inline bool isValid() const { return m_surfaceTexture.isValid(); }
 
     QMatrix4x4 getTransformMatrix();
     void release(); // API level 14
@@ -71,6 +74,8 @@ Q_SIGNALS:
 private:
     int m_texID;
     QJNIObjectPrivate m_surfaceTexture;
+    QJNIObjectPrivate m_surfaceView;
+    QJNIObjectPrivate m_surfaceHolder;
 };
 
 QT_END_NAMESPACE

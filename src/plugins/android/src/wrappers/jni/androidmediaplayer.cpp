@@ -44,6 +44,7 @@
 #include <QString>
 #include <QtCore/private/qjni_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
+#include "androidsurfacetexture.h"
 #include <QMap>
 
 static jclass mediaPlayerClass = Q_NULLPTR;
@@ -150,9 +151,11 @@ void AndroidMediaPlayer::setVolume(int volume)
     mMediaPlayer.callMethod<void>("setVolume", "(I)V", jint(volume));
 }
 
-void AndroidMediaPlayer::setDisplay(jobject surfaceHolder)
+void AndroidMediaPlayer::setDisplay(AndroidSurfaceTexture *surfaceTexture)
 {
-    mMediaPlayer.callMethod<void>("setDisplay", "(Landroid/view/SurfaceHolder;)V", surfaceHolder);
+    mMediaPlayer.callMethod<void>("setDisplay",
+                                  "(Landroid/view/SurfaceHolder;)V",
+                                  surfaceTexture ? surfaceTexture->surfaceHolder() : 0);
 }
 
 static void onErrorNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlong id)

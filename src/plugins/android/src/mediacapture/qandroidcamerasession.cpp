@@ -183,36 +183,10 @@ void QAndroidCameraSession::updateAvailableCameras()
 {
     g_availableCameras->clear();
 
-    const QJNIObjectPrivate cameraInfo("android/hardware/Camera$CameraInfo");
-    const int numCameras = QJNIObjectPrivate::callStaticMethod<jint>("android/hardware/Camera",
-                                                               "getNumberOfCameras");
-
+    const int numCameras = AndroidCamera::getNumberOfCameras();
     for (int i = 0; i < numCameras; ++i) {
         AndroidCameraInfo info;
-
-        QJNIObjectPrivate::callStaticMethod<void>("android/hardware/Camera",
-                                                  "getCameraInfo",
-                                                  "(ILandroid/hardware/Camera$CameraInfo;)V",
-                                                  i, cameraInfo.object());
-
-        AndroidCamera::CameraFacing facing = AndroidCamera::CameraFacing(cameraInfo.getField<jint>("facing"));
-        // The orientation provided by Android is counter-clockwise, we need it clockwise
-        info.orientation = (360 - cameraInfo.getField<jint>("orientation")) % 360;
-
-        switch (facing) {
-        case AndroidCamera::CameraFacingBack:
-            info.name = QByteArray("back");
-            info.description = QStringLiteral("Rear-facing camera");
-            info.position = QCamera::BackFace;
-            break;
-        case AndroidCamera::CameraFacingFront:
-            info.name = QByteArray("front");
-            info.description = QStringLiteral("Front-facing camera");
-            info.position = QCamera::FrontFace;
-            break;
-        default:
-            break;
-        }
+        AndroidCamera::getCameraInfo(i, &info);
 
         if (!info.name.isNull())
             g_availableCameras->append(info);

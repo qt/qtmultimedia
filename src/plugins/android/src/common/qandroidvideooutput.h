@@ -44,17 +44,17 @@
 
 #include <qglobal.h>
 #include <qsize.h>
-#include <jni.h>
 
 QT_BEGIN_NAMESPACE
+
+class AndroidSurfaceTexture;
 
 class QAndroidVideoOutput
 {
 public:
     virtual ~QAndroidVideoOutput() { }
 
-    virtual jobject surfaceHolder() = 0;
-    virtual jobject surfaceTexture() { return 0; }
+    virtual AndroidSurfaceTexture *surfaceTexture() { return 0; }
 
     virtual bool isReady() { return true; }
 

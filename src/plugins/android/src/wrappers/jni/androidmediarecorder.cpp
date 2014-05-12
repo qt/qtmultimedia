@@ -47,6 +47,80 @@
 
 QT_BEGIN_NAMESPACE
 
+typedef QMap<QString, QJNIObjectPrivate> CamcorderProfiles;
+Q_GLOBAL_STATIC(CamcorderProfiles, g_camcorderProfiles)
+
+static QString profileKey()
+{
+    return QStringLiteral("%1-%2");
+}
+
+bool AndroidCamcorderProfile::hasProfile(jint cameraId, Quality quality)
+{
+    if (g_camcorderProfiles->contains(profileKey().arg(cameraId).arg(quality)))
+        return true;
+
+    return QJNIObjectPrivate::callStaticMethod<jboolean>("android/media/CamcorderProfile",
+                                                         "hasProfile",
+                                                         "(II)Z",
+                                                         cameraId,
+                                                         quality);
+}
+
+AndroidCamcorderProfile AndroidCamcorderProfile::get(jint cameraId, Quality quality)
+{
+    const QString key = profileKey().arg(cameraId).arg(quality);
+    QMap<QString, QJNIObjectPrivate>::const_iterator it = g_camcorderProfiles->constFind(key);
+
+    if (it != g_camcorderProfiles->constEnd())
+        return AndroidCamcorderProfile(*it);
+
+    QJNIObjectPrivate camProfile = QJNIObjectPrivate::callStaticObjectMethod("android/media/CamcorderProfile",
+                                                                             "get",
+                                                                             "(II)Landroid/media/CamcorderProfile;",
+                                                                             cameraId,
+                                                                             quality);
+
+    return AndroidCamcorderProfile((*g_camcorderProfiles)[key] = camProfile);
+}
+
+int AndroidCamcorderProfile::getValue(AndroidCamcorderProfile::Field field) const
+{
+    switch (field) {
+    case audioBitRate:
+        return m_camcorderProfile.getField<jint>("audioBitRate");
+    case audioChannels:
+        return m_camcorderProfile.getField<jint>("audioChannels");
+    case audioCodec:
+        return m_camcorderProfile.getField<jint>("audioCodec");
+    case audioSampleRate:
+        return m_camcorderProfile.getField<jint>("audioSampleRate");
+    case duration:
+        return m_camcorderProfile.getField<jint>("duration");
+    case fileFormat:
+        return m_camcorderProfile.getField<jint>("fileFormat");
+    case quality:
+        return m_camcorderProfile.getField<jint>("quality");
+    case videoBitRate:
+        return m_camcorderProfile.getField<jint>("videoBitRate");
+    case videoCodec:
+        return m_camcorderProfile.getField<jint>("videoCodec");
+    case videoFrameHeight:
+        return m_camcorderProfile.getField<jint>("videoFrameHeight");
+    case videoFrameRate:
+        return m_camcorderProfile.getField<jint>("videoFrameRate");
+    case videoFrameWidth:
+        return m_camcorderProfile.getField<jint>("videoFrameWidth");
+    }
+
+    return 0;
+}
+
+AndroidCamcorderProfile::AndroidCamcorderProfile(const QJNIObjectPrivate &camcorderProfile)
+{
+    m_camcorderProfile = camcorderProfile;
+}
+
 static jclass g_qtMediaRecorderListenerClass = 0;
 typedef QMap<jlong, AndroidMediaRecorder*> MediaRecorderMap;
 Q_GLOBAL_STATIC(MediaRecorderMap, mediaRecorders)

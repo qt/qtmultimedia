@@ -40,10 +40,11 @@
 ****************************************************************************/
 
 #include "androidcamera.h"
+#include "androidsurfacetexture.h"
+#include "qandroidmultimediautils.h"
 
 #include <qstringlist.h>
 #include <qdebug.h>
-#include "qandroidmultimediautils.h"
 #include <qmutex.h>
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/qthread.h>
@@ -367,10 +368,13 @@ void AndroidCamera::setPreviewSize(const QSize &size)
     QMetaObject::invokeMethod(d, "updatePreviewSize");
 }
 
-void AndroidCamera::setPreviewTexture(jobject surfaceTexture)
+void AndroidCamera::setPreviewTexture(AndroidSurfaceTexture *surfaceTexture)
 {
     Q_D(AndroidCamera);
-    QMetaObject::invokeMethod(d, "setPreviewTexture", Qt::BlockingQueuedConnection, Q_ARG(void *, surfaceTexture));
+    QMetaObject::invokeMethod(d,
+                              "setPreviewTexture",
+                              Qt::BlockingQueuedConnection,
+                              Q_ARG(void *, surfaceTexture ? surfaceTexture->surfaceTexture() : 0));
 }
 
 bool AndroidCamera::isZoomSupported()
@@ -631,6 +635,42 @@ QJNIObjectPrivate AndroidCamera::getCameraObject()
 {
     Q_D(AndroidCamera);
     return d->m_camera;
+}
+
+int AndroidCamera::getNumberOfCameras()
+{
+    return QJNIObjectPrivate::callStaticMethod<jint>("android/hardware/Camera",
+                                                     "getNumberOfCameras");
+}
+
+void AndroidCamera::getCameraInfo(int id, AndroidCameraInfo *info)
+{
+    Q_ASSERT(info);
+
+    QJNIObjectPrivate cameraInfo("android/hardware/Camera$CameraInfo");
+    QJNIObjectPrivate::callStaticMethod<void>("android/hardware/Camera",
+                                              "getCameraInfo",
+                                              "(ILandroid/hardware/Camera$CameraInfo;)V",
+                                              id, cameraInfo.object());
+
+    AndroidCamera::CameraFacing facing = AndroidCamera::CameraFacing(cameraInfo.getField<jint>("facing"));
+    // The orientation provided by Android is counter-clockwise, we need it clockwise
+    info->orientation = (360 - cameraInfo.getField<jint>("orientation")) % 360;
+
+    switch (facing) {
+    case AndroidCamera::CameraFacingBack:
+        info->name = QByteArray("back");
+        info->description = QStringLiteral("Rear-facing camera");
+        info->position = QCamera::BackFace;
+        break;
+    case AndroidCamera::CameraFacingFront:
+        info->name = QByteArray("front");
+        info->description = QStringLiteral("Front-facing camera");
+        info->position = QCamera::FrontFace;
+        break;
+    default:
+        break;
+    }
 }
 
 void AndroidCamera::startPreview()

@@ -50,6 +50,44 @@ QT_BEGIN_NAMESPACE
 
 class AndroidCamera;
 
+class AndroidCamcorderProfile
+{
+public:
+    enum Quality { // Needs to match CamcorderProfile
+        QUALITY_LOW,
+        QUALITY_HIGH,
+        QUALITY_QCIF,
+        QUALITY_CIF,
+        QUALITY_480P,
+        QUALITY_720P,
+        QUALITY_1080P,
+        QUALITY_QVGA
+    };
+
+    enum Field {
+        audioBitRate,
+        audioChannels,
+        audioCodec,
+        audioSampleRate,
+        duration,
+        fileFormat,
+        quality,
+        videoBitRate,
+        videoCodec,
+        videoFrameHeight,
+        videoFrameRate,
+        videoFrameWidth
+    };
+
+    static bool hasProfile(jint cameraId, Quality quality);
+    static AndroidCamcorderProfile get(jint cameraId, Quality quality);
+    int getValue(Field field) const;
+
+private:
+    AndroidCamcorderProfile(const QJNIObjectPrivate &camcorderProfile);
+    QJNIObjectPrivate m_camcorderProfile;
+};
+
 class AndroidMediaRecorder : public QObject
 {
     Q_OBJECT

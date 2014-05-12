@@ -47,6 +47,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class AndroidSurfaceTexture;
+
 class AndroidMediaPlayer : public QObject
 {
     Q_OBJECT
@@ -113,7 +115,7 @@ public:
     void setDataSource(const QString &path);
     void prepareAsync();
     void setVolume(int volume);
-    void setDisplay(jobject surfaceHolder);
+    void setDisplay(AndroidSurfaceTexture *surfaceTexture);
 
     static bool initJNI(JNIEnv *env);
 

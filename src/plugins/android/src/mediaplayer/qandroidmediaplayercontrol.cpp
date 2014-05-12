@@ -320,8 +320,8 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
     if (mVideoSize.isValid() && mVideoOutput)
         mVideoOutput->setVideoSize(mVideoSize);
 
-    if (!mMediaPlayer->display() && mVideoOutput)
-        mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+    if ((mMediaPlayer->display() == 0) && mVideoOutput)
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
     mMediaPlayer->setDataSource(mediaPath);
     mMediaPlayer->prepareAsync();
 
@@ -345,7 +345,7 @@ void QAndroidMediaPlayerControl::setVideoOutput(QObject *videoOutput)
         return;
 
     if (mVideoOutput->isReady())
-        mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
 
     connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
 }
@@ -590,8 +590,8 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
 
 void QAndroidMediaPlayerControl::onVideoOutputReady(bool ready)
 {
-    if (!mMediaPlayer->display() && mVideoOutput && ready)
-        mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+    if ((mMediaPlayer->display() == 0) && mVideoOutput && ready)
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
 
     flushPendingStates();
 }
