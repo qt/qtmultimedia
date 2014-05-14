@@ -79,6 +79,7 @@ public:
     QSGVideoMaterialShader_RGB(QVideoFrame::PixelFormat pixelFormat)
         : QSGMaterialShader(),
           m_id_matrix(-1),
+          m_id_width(-1),
           m_id_rgbTexture(-1),
           m_id_opacity(-1),
           m_pixelFormat(pixelFormat)
@@ -101,11 +102,12 @@ protected:
     virtual const char *vertexShader() const {
         const char *shader =
         "uniform highp mat4 qt_Matrix;                      \n"
+        "uniform highp float width;                         \n"
         "attribute highp vec4 qt_VertexPosition;            \n"
         "attribute highp vec2 qt_VertexTexCoord;            \n"
         "varying highp vec2 qt_TexCoord;                    \n"
         "void main() {                                      \n"
-        "    qt_TexCoord = qt_VertexTexCoord;               \n"
+        "    qt_TexCoord = qt_VertexTexCoord * vec2(width, 1);\n"
         "    gl_Position = qt_Matrix * qt_VertexPosition;   \n"
         "}";
         return shader;
@@ -146,11 +148,13 @@ protected:
 
     virtual void initialize() {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
+        m_id_width = program()->uniformLocation("width");
         m_id_rgbTexture = program()->uniformLocation("rgbTexture");
         m_id_opacity = program()->uniformLocation("opacity");
     }
 
     int m_id_matrix;
+    int m_id_width;
     int m_id_rgbTexture;
     int m_id_opacity;
     QVideoFrame::PixelFormat m_pixelFormat;
@@ -163,7 +167,8 @@ public:
     QSGVideoMaterial_RGB(const QVideoSurfaceFormat &format) :
         m_format(format),
         m_textureId(0),
-        m_opacity(1.0)
+        m_opacity(1.0),
+        m_width(1.0)
     {
         setFlag(Blending, false);
     }
@@ -204,11 +209,25 @@ public:
         QMutexLocker lock(&m_frameMutex);
         if (m_frame.isValid()) {
             if (m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
-                if (m_textureSize != m_frame.size()) {
+                QSize textureSize = m_frame.size();
+
+                int stride = m_frame.bytesPerLine();
+                switch (m_frame.pixelFormat()) {
+                case QVideoFrame::Format_RGB565:
+                    stride /= 2;
+                    break;
+                default:
+                    stride /= 4;
+                }
+
+                m_width = qreal(m_frame.width() / stride);
+                textureSize.setWidth(stride);
+
+                if (m_textureSize != textureSize) {
                     if (!m_textureSize.isEmpty())
                         glDeleteTextures(1, &m_textureId);
                     glGenTextures(1, &m_textureId);
-                    m_textureSize = m_frame.size();
+                    m_textureSize = textureSize;
                 }
 
                 GLint dataType = GL_UNSIGNED_BYTE;
@@ -219,11 +238,17 @@ public:
                     dataFormat = GL_RGB;
                 }
 
+                GLint previousAlignment;
+                glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
                 functions->glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, m_textureId);
                 glTexImage2D(GL_TEXTURE_2D, 0, dataFormat,
                              m_textureSize.width(), m_textureSize.height(),
                              0, dataFormat, dataType, m_frame.bits());
+
+                glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -245,6 +270,7 @@ public:
     QVideoSurfaceFormat m_format;
     GLuint m_textureId;
     qreal m_opacity;
+    GLfloat m_width;
 };
 
 
@@ -276,6 +302,7 @@ void QSGVideoMaterialShader_RGB::updateState(const RenderState &state,
 
     mat->bind();
 
+    program()->setUniformValue(m_id_width, mat->m_width);
     if (state.isOpacityDirty()) {
         mat->m_opacity = state.opacity();
         mat->updateBlending();
