@@ -572,6 +572,18 @@ namespace
                         QVideoSurfaceFormat format(QSize(width, height), m_pixelFormats[index]);
                         m_surfaceFormat = format;
 
+                        MFVideoArea viewport;
+                        if (SUCCEEDED(pMediaType->GetBlob(MF_MT_GEOMETRIC_APERTURE,
+                                                          reinterpret_cast<UINT8*>(&viewport),
+                                                          sizeof(MFVideoArea),
+                                                          NULL))) {
+
+                            m_surfaceFormat.setViewport(QRect(viewport.OffsetX.value,
+                                                              viewport.OffsetY.value,
+                                                              viewport.Area.cx,
+                                                              viewport.Area.cy));
+                        }
+
                         if (FAILED(pMediaType->GetUINT32(MF_MT_DEFAULT_STRIDE, (UINT32*)&m_bytesPerLine))) {
                             m_bytesPerLine = getBytesPerLine(format);
                         }
