@@ -248,6 +248,8 @@ public class QtAndroidMediaPlayer
         if (mMediaPlayer == null) {
             mMediaPlayer = new MediaPlayer();
             setState(State.Idle);
+            // Make sure the new media player has the volume that was set on the QMediaPlayer
+            setVolumeHelper(mMuted ? 0 : mVolume);
         }
     }
 
@@ -477,6 +479,20 @@ public class QtAndroidMediaPlayer
 
    public void setVolume(int volume)
    {
+       if (volume < 0)
+           volume = 0;
+
+       if (volume > 100)
+           volume = 100;
+
+       mVolume = volume;
+
+       if (!mMuted)
+           setVolumeHelper(mVolume);
+   }
+
+   private void setVolumeHelper(int volume)
+   {
        if ((mState & (State.Idle
                       | State.Initialized
                       | State.Stopped
@@ -487,18 +503,9 @@ public class QtAndroidMediaPlayer
            return;
        }
 
-       if (volume < 0)
-           volume = 0;
-
-       if (volume > 100)
-           volume = 100;
-
-       float newVolume = adjustVolume(volume);
-
        try {
+           float newVolume = adjustVolume(volume);
            mMediaPlayer.setVolume(newVolume, newVolume);
-           if (!mMuted)
-               mVolume = volume;
        } catch (final IllegalStateException e) {
            Log.d(TAG, "" + e.getMessage());
        }
@@ -528,7 +535,7 @@ public class QtAndroidMediaPlayer
     public void mute(final boolean mute)
     {
         mMuted = mute;
-        setVolume(mute ? 0 : mVolume);
+        setVolumeHelper(mute ? 0 : mVolume);
     }
 
     public boolean isMuted()
