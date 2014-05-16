@@ -312,7 +312,7 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
         const QString path = url.toString().mid(3);
         mTempFile.reset(QTemporaryFile::createNativeFile(path));
         if (!mTempFile.isNull())
-            mediaPath = QLatin1String("file://") + mTempFile->fileName();
+            mediaPath = QLatin1String("tempfile://") + mTempFile->fileName();
     } else {
         mediaPath = url.toString();
     }

@@ -43,6 +43,7 @@ package org.qtproject.qt5.android.multimedia;
 
 import java.io.IOException;
 import java.lang.String;
+import java.io.FileInputStream;
 
 // API is level is < 9 unless marked otherwise.
 import android.app.Activity;
@@ -387,6 +388,10 @@ public class QtAndroidMediaPlayer
                 final long length = afd.getLength();
                 FileDescriptor fd = afd.getFileDescriptor();
                 mMediaPlayer.setDataSource(fd, offset, length);
+            } else if (mUri.getScheme().compareTo("tempfile") == 0) {
+                FileInputStream fis = new FileInputStream(mUri.getPath());
+                FileDescriptor fd = fis.getFD();
+                mMediaPlayer.setDataSource(fd);
             } else {
                 mMediaPlayer.setDataSource(mActivity, mUri);
             }
