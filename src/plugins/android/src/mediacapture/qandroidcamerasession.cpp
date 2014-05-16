@@ -168,10 +168,12 @@ void QAndroidCameraSession::setState(QCamera::State state)
             emit error(QCamera::CameraError, QStringLiteral("Failed to open camera"));
             return;
         }
-        if (state == QCamera::ActiveState)
-            startPreview();
-        else if (state == QCamera::LoadedState)
+        if (state == QCamera::ActiveState) {
+            if (!startPreview())
+                return;
+        } else if (state == QCamera::LoadedState) {
             stopPreview();
+        }
         break;
     }
 
@@ -316,10 +318,23 @@ void QAndroidCameraSession::adjustViewfinderSize(const QSize &captureSize, bool 
     }
 }
 
-void QAndroidCameraSession::startPreview()
+bool QAndroidCameraSession::startPreview()
 {
-    if (!m_camera || m_previewStarted)
-        return;
+    if (!m_camera)
+        return false;
+
+    if (!m_videoOutput) {
+        Q_EMIT error(QCamera::InvalidRequestError, tr("Camera cannot be started without a viewfinder."));
+        return false;
+    }
+
+    if (m_previewStarted)
+        return true;
+
+    if (m_videoOutput->isReady())
+        m_camera->setPreviewTexture(m_videoOutput->surfaceTexture());
+    else
+        return true; // delay starting until the video output is ready
 
     m_status = QCamera::StartingStatus;
     emit statusChanged(m_status);
@@ -327,13 +342,12 @@ void QAndroidCameraSession::startPreview()
     applyImageSettings();
     adjustViewfinderSize(m_imageSettings.resolution());
 
-    if (m_videoOutput && m_videoOutput->isReady())
-        onVideoOutputReady(true);
-
     AndroidMultimediaUtils::enableOrientationListener(true);
 
     m_camera->startPreview();
     m_previewStarted = true;
+
+    return true;
 }
 
 void QAndroidCameraSession::stopPreview()
@@ -683,8 +697,8 @@ QImage QAndroidCameraSession::prepareImageFromPreviewData(const QByteArray &data
 
 void QAndroidCameraSession::onVideoOutputReady(bool ready)
 {
-    if (m_camera && m_videoOutput && ready)
-        m_camera->setPreviewTexture(m_videoOutput->surfaceTexture());
+    if (ready && m_state == QCamera::ActiveState)
+        startPreview();
 }
 
 void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state)

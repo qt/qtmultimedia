@@ -133,7 +133,7 @@ private:
     bool open();
     void close();
 
-    void startPreview();
+    bool startPreview();
     void stopPreview();
 
     void applyImageSettings();
