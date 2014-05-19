@@ -267,7 +267,7 @@ void QAndroidVideoRendererControl::onFrameAvailable()
     QVideoFrame frame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
 
     if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
-                                  || m_surface->nativeResolution() != frame.size())) {
+                                  || m_surface->surfaceFormat().frameSize() != frame.size())) {
         m_surface->stop();
     }
 
