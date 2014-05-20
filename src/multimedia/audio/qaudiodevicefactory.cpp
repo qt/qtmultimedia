@@ -49,6 +49,11 @@
 
 QT_BEGIN_NAMESPACE
 
+static QString defaultKey()
+{
+    return QStringLiteral("default");
+}
+
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, audioLoader,
         (QAudioSystemFactoryInterface_iid, QLatin1String("audio"), Qt::CaseInsensitive))
@@ -137,13 +142,18 @@ QList<QAudioDeviceInfo> QAudioDeviceFactory::availableDevices(QAudio::Mode mode)
 QAudioDeviceInfo QAudioDeviceFactory::defaultInputDevice()
 {
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
-    QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(audioLoader()->instance(QLatin1String("default")));
-
+    QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(audioLoader()->instance(defaultKey()));
     if (plugin) {
         QList<QByteArray> list = plugin->availableDevices(QAudio::AudioInput);
         if (list.size() > 0)
-            return QAudioDeviceInfo(QLatin1String("default"), list.at(0), QAudio::AudioInput);
+            return QAudioDeviceInfo(defaultKey(), list.at(0), QAudio::AudioInput);
     }
+
+    // if no plugin is marked as default or if the default plugin doesn't have any input device,
+    // return the first input available from other plugins.
+    QList<QAudioDeviceInfo> inputDevices = availableDevices(QAudio::AudioInput);
+    if (!inputDevices.isEmpty())
+        return inputDevices.first();
 #endif
 
     return QAudioDeviceInfo();
@@ -152,13 +162,18 @@ QAudioDeviceInfo QAudioDeviceFactory::defaultInputDevice()
 QAudioDeviceInfo QAudioDeviceFactory::defaultOutputDevice()
 {
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
-    QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(audioLoader()->instance(QLatin1String("default")));
-
+    QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(audioLoader()->instance(defaultKey()));
     if (plugin) {
         QList<QByteArray> list = plugin->availableDevices(QAudio::AudioOutput);
         if (list.size() > 0)
-            return QAudioDeviceInfo(QLatin1String("default"), list.at(0), QAudio::AudioOutput);
+            return QAudioDeviceInfo(defaultKey(), list.at(0), QAudio::AudioOutput);
     }
+
+    // if no plugin is marked as default or if the default plugin doesn't have any output device,
+    // return the first output available from other plugins.
+    QList<QAudioDeviceInfo> outputDevices = availableDevices(QAudio::AudioOutput);
+    if (!outputDevices.isEmpty())
+        return outputDevices.first();
 #endif
 
     return QAudioDeviceInfo();
