@@ -216,8 +216,9 @@ CoreAudioSessionManager::CoreAudioSessionManager() :
 {
     m_sessionObserver = [[CoreAudioSessionObserver alloc] initWithAudioSessionManager:this];
     setActive(true);
-    //set default category to just Playback and only switch if we need more permissions
-    setCategory(CoreAudioSessionManager::Playback, CoreAudioSessionManager::MixWithOthers);
+    // Set default category to Ambient (implies MixWithOthers). This makes sure audio stops playing
+    // if the screen is locked or if the Silent switch is toggled.
+    setCategory(CoreAudioSessionManager::Ambient, CoreAudioSessionManager::None);
 }
 
 CoreAudioSessionManager::~CoreAudioSessionManager()
