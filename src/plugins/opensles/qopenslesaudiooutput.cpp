@@ -568,7 +568,7 @@ void QOpenSLESAudioOutput::destroyPlayer()
 
 qint64 QOpenSLESAudioOutput::writeData(const char *data, qint64 len)
 {
-    if (!len)
+    if (!len || !m_availableBuffers.load())
         return 0;
 
     if (len > m_bufferSize)
