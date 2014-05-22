@@ -119,7 +119,7 @@ QCameraExposureControl::~QCameraExposureControl()
          Camera metering mode.
   \value ExtendedExposureParameter
          The base value for platform specific extended parameters.
-         For such parameters the sequential values starting from ExtendedExposureParameter shuld be used.
+         For such parameters the sequential values starting from ExtendedExposureParameter should be used.
 */
 
 /*!
