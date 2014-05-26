@@ -50,19 +50,14 @@
 
 QT_BEGIN_NAMESPACE
 
-
-namespace
+static void qRegisterRadioDataMetaTypes()
 {
-    class QRadioDataPrivateRegisterMetaTypes
-    {
-    public:
-        QRadioDataPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QRadioData::Error>();
-            qRegisterMetaType<QRadioData::ProgramType>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QRadioData::Error>();
+    qRegisterMetaType<QRadioData::ProgramType>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterRadioDataMetaTypes)
+
 
 /*!
     \class QRadioData

@@ -56,26 +56,21 @@
 
 #include <QDebug>
 
-namespace
+QT_BEGIN_NAMESPACE
+
+static void qRegisterCameraMetaTypes()
 {
-class CameraRegisterMetaTypes
-{
-public:
-    CameraRegisterMetaTypes()
-    {
-        qRegisterMetaType<QCamera::Error>("QCamera::Error");
-        qRegisterMetaType<QCamera::State>("QCamera::State");
-        qRegisterMetaType<QCamera::Status>("QCamera::Status");
-        qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
-        qRegisterMetaType<QCamera::LockType>("QCamera::LockType");
-        qRegisterMetaType<QCamera::LockStatus>("QCamera::LockStatus");
-        qRegisterMetaType<QCamera::LockChangeReason>("QCamera::LockChangeReason");
-        qRegisterMetaType<QCamera::Position>("QCamera::Position");
-    }
-} _registerCameraMetaTypes;
+    qRegisterMetaType<QCamera::Error>("QCamera::Error");
+    qRegisterMetaType<QCamera::State>("QCamera::State");
+    qRegisterMetaType<QCamera::Status>("QCamera::Status");
+    qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
+    qRegisterMetaType<QCamera::LockType>("QCamera::LockType");
+    qRegisterMetaType<QCamera::LockStatus>("QCamera::LockStatus");
+    qRegisterMetaType<QCamera::LockChangeReason>("QCamera::LockChangeReason");
+    qRegisterMetaType<QCamera::Position>("QCamera::Position");
 }
 
-QT_BEGIN_NAMESPACE
+Q_CONSTRUCTOR_FUNCTION(qRegisterCameraMetaTypes)
 
 /*!
     \class QCamera

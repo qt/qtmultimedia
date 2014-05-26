@@ -55,19 +55,14 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterVideoFrameMetaTypes()
 {
-class QVideoFramePrivateRegisterMetaTypes
-{
-public:
-    QVideoFramePrivateRegisterMetaTypes()
-    {
-        qRegisterMetaType<QVideoFrame>();
-        qRegisterMetaType<QVideoFrame::FieldType>();
-        qRegisterMetaType<QVideoFrame::PixelFormat>();
-    }
-} _registerMetaTypes;
+    qRegisterMetaType<QVideoFrame>();
+    qRegisterMetaType<QVideoFrame::FieldType>();
+    qRegisterMetaType<QVideoFrame::PixelFormat>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterVideoFrameMetaTypes)
 
 
 class QVideoFramePrivate : public QSharedData

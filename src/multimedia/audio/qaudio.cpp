@@ -45,22 +45,14 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QAudio
+static void qRegisterAudioMetaTypes()
 {
-
-class RegisterMetaTypes
-{
-public:
-    RegisterMetaTypes()
-    {
-        qRegisterMetaType<QAudio::Error>();
-        qRegisterMetaType<QAudio::State>();
-        qRegisterMetaType<QAudio::Mode>();
-    }
-
-} _register;
-
+    qRegisterMetaType<QAudio::Error>();
+    qRegisterMetaType<QAudio::State>();
+    qRegisterMetaType<QAudio::Mode>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
 
 /*!
     \namespace QAudio

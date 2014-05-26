@@ -52,20 +52,15 @@
 
 #include <QtCore/QDebug>
 
-namespace
-{
-    class QCameraImageProcessingPrivateRegisterMetaTypes
-    {
-    public:
-        QCameraImageProcessingPrivateRegisterMetaTypes()
+QT_BEGIN_NAMESPACE
+
+static void qRegisterCameraImageProcessingMetaTypes()
         {
             qRegisterMetaType<QCameraImageProcessing::WhiteBalanceMode>();
         }
-    } _registerMetaTypes;
-}
 
+Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingMetaTypes)
 
-QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraImageProcessing

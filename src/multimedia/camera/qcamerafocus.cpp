@@ -55,18 +55,14 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterCameraFocusMetaTypes()
 {
-class CameraFocusRegisterMetaTypes
-{
-public:
-    CameraFocusRegisterMetaTypes()
-    {
-        qRegisterMetaType<QCameraFocus::FocusModes>("QCameraFocus::FocusModes");
-        qRegisterMetaType<QCameraFocus::FocusPointMode>("QCameraFocus::FocusPointMode");
-    }
-} _registerCameraFocusMetaTypes;
+    qRegisterMetaType<QCameraFocus::FocusModes>("QCameraFocus::FocusModes");
+    qRegisterMetaType<QCameraFocus::FocusPointMode>("QCameraFocus::FocusPointMode");
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterCameraFocusMetaTypes)
+
 
 class QCameraFocusFakeZoomControl : public QCameraZoomControl
 {

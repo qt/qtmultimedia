@@ -72,18 +72,13 @@ QT_BEGIN_NAMESPACE
     \sa QAudioBuffer
 */
 
-namespace
+static void qRegisterAudioDecoderMetaTypes()
 {
-class AudioDecoderRegisterMetaTypes
-{
-public:
-    AudioDecoderRegisterMetaTypes()
-    {
-        qRegisterMetaType<QAudioDecoder::State>("QAudioDecoder::State");
-        qRegisterMetaType<QAudioDecoder::Error>("QAudioDecoder::Error");
-    }
-} _registerPlayerMetaTypes;
+    qRegisterMetaType<QAudioDecoder::State>("QAudioDecoder::State");
+    qRegisterMetaType<QAudioDecoder::Error>("QAudioDecoder::Error");
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterAudioDecoderMetaTypes)
 
 class QAudioDecoderPrivate : public QMediaObjectPrivate
 {

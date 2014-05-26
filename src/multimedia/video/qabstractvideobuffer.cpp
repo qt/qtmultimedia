@@ -48,18 +48,14 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterAbstractVideoBufferMetaTypes()
 {
-    class QAbstractVideoBufferPrivateRegisterMetaTypes
-    {
-    public:
-        QAbstractVideoBufferPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QAbstractVideoBuffer::HandleType>();
-            qRegisterMetaType<QAbstractVideoBuffer::MapMode>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QAbstractVideoBuffer::HandleType>();
+    qRegisterMetaType<QAbstractVideoBuffer::MapMode>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterAbstractVideoBufferMetaTypes)
+
 
 /*!
     \class QAbstractVideoBuffer

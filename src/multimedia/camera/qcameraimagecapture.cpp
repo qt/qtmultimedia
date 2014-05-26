@@ -83,19 +83,14 @@ QT_BEGIN_NAMESPACE
     \value CaptureToBuffer  Capture the image to a buffer for further processing.
 */
 
-namespace
+static void qRegisterCameraImageCaptureMetaTypes()
 {
-class MediaRecorderRegisterMetaTypes
-{
-public:
-    MediaRecorderRegisterMetaTypes()
-    {
-        qRegisterMetaType<QCameraImageCapture::Error>("QCameraImageCapture::Error");
-        qRegisterMetaType<QCameraImageCapture::CaptureDestination>("QCameraImageCapture::CaptureDestination");
-        qRegisterMetaType<QCameraImageCapture::CaptureDestinations>("QCameraImageCapture::CaptureDestinations");
-    }
-} _registerRecorderMetaTypes;
+    qRegisterMetaType<QCameraImageCapture::Error>("QCameraImageCapture::Error");
+    qRegisterMetaType<QCameraImageCapture::CaptureDestination>("QCameraImageCapture::CaptureDestination");
+    qRegisterMetaType<QCameraImageCapture::CaptureDestinations>("QCameraImageCapture::CaptureDestinations");
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageCaptureMetaTypes)
 
 
 class QCameraImageCapturePrivate

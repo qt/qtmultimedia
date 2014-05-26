@@ -47,18 +47,14 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterMediaResourceMetaTypes()
 {
-    class QMediaResourcePrivateRegisterMetaTypes
-    {
-    public:
-        QMediaResourcePrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QMediaResource>();
-            qRegisterMetaType<QMediaResourceList>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QMediaResource>();
+    qRegisterMetaType<QMediaResourceList>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterMediaResourceMetaTypes)
+
 
 /*!
     \class QMediaResource

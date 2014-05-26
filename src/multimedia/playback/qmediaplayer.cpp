@@ -90,19 +90,15 @@ QT_BEGIN_NAMESPACE
     \sa QMediaObject, QMediaService, QVideoWidget, QMediaPlaylist
 */
 
-namespace
+static void qRegisterMediaPlayerMetaTypes()
 {
-class MediaPlayerRegisterMetaTypes
-{
-public:
-    MediaPlayerRegisterMetaTypes()
-    {
-        qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
-        qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
-        qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
-    }
-} _registerPlayerMetaTypes;
+    qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
+    qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
+    qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlayerMetaTypes)
+
 
 #define MAX_NESTED_PLAYLISTS 16
 

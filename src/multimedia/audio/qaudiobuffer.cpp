@@ -47,17 +47,13 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+
+static void qRegisterAudioBufferMetaTypes()
 {
-    class QAudioBufferPrivateRegisterMetaTypes
-    {
-    public:
-        QAudioBufferPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QAudioBuffer>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QAudioBuffer>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterAudioBufferMetaTypes)
 
 
 class QAudioBufferPrivate : public QSharedData
