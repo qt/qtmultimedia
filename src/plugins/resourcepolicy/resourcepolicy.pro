@@ -13,9 +13,11 @@ INCLUDEPATH += $$PWD \
 
 HEADERS += \
     $$PWD/resourcepolicyplugin.h \
-    $$PWD/resourcepolicyimpl.h
+    $$PWD/resourcepolicyimpl.h \
+    $$PWD/resourcepolicyint.h
 
 SOURCES += \
     $$PWD/resourcepolicyplugin.cpp \
-    $$PWD/resourcepolicyimpl.cpp
+    $$PWD/resourcepolicyimpl.cpp \
+    $$PWD/resourcepolicyint.cpp
 

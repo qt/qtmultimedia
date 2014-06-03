@@ -40,99 +40,62 @@
 **
 ****************************************************************************/
 
+#include <QGlobalStatic>
+
 #include <policy/resource.h>
 #include <policy/resources.h>
 #include <policy/resource-set.h>
 
 #include "resourcepolicyimpl.h"
+#include "resourcepolicyint.h"
+
+Q_GLOBAL_STATIC(ResourcePolicyInt, globalResourcePolicyInt);
 
 ResourcePolicyImpl::ResourcePolicyImpl(QObject *parent)
     : QMediaPlayerResourceSetInterface(parent)
-    , m_status(Initial)
-    , m_videoEnabled(false)
 {
-    m_resourceSet = new ResourcePolicy::ResourceSet("player", this);
-    m_resourceSet->setAlwaysReply();
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    set->addClient(this);
+}
 
-    ResourcePolicy::AudioResource *audioResource = new ResourcePolicy::AudioResource("player");
-    audioResource->setProcessID(QCoreApplication::applicationPid());
-    audioResource->setStreamTag("media.name", "*");
-    m_resourceSet->addResourceObject(audioResource);
-
-    m_resourceSet->update();
-
-    connect(m_resourceSet, SIGNAL(resourcesGranted(QList<ResourcePolicy::ResourceType>)),
-            this, SLOT(handleResourcesGranted()));
-    connect(m_resourceSet, SIGNAL(resourcesDenied()),
-            this, SLOT(handleResourcesDenied()));
-    connect(m_resourceSet, SIGNAL(lostResources()),
-            this, SLOT(handleResourcesLost()));
-    connect(m_resourceSet, SIGNAL(resourcesReleasedByManager()),
-            this, SLOT(handleResourcesLost()));
+ResourcePolicyImpl::~ResourcePolicyImpl()
+{
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    set->removeClient(this);
 }
 
 bool ResourcePolicyImpl::isVideoEnabled() const
 {
-    return m_videoEnabled;
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    return set->isVideoEnabled(this);
 }
 
 void ResourcePolicyImpl::setVideoEnabled(bool videoEnabled)
 {
-    if (m_videoEnabled != videoEnabled) {
-        m_videoEnabled = videoEnabled;
-
-        if (videoEnabled)
-            m_resourceSet->addResource(ResourcePolicy::VideoPlaybackType);
-        else
-            m_resourceSet->deleteResource(ResourcePolicy::VideoPlaybackType);
-
-        m_resourceSet->update();
-    }
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    set->setVideoEnabled(this, videoEnabled);
 }
 
 void ResourcePolicyImpl::acquire()
 {
-    m_status = RequestedResource;
-    m_resourceSet->acquire();
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    set->acquire(this);
 }
 
 void ResourcePolicyImpl::release()
 {
-    m_resourceSet->release();
-    m_status = Initial;
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    set->release(this);
 }
 
 bool ResourcePolicyImpl::isGranted() const
 {
-    return m_status == GrantedResource;
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    return set->isGranted(this);
 }
 
 bool ResourcePolicyImpl::isAvailable() const
 {
-    // TODO: is this used? what is it for?
-    qWarning() << Q_FUNC_INFO << "Stub";
-    return true;
+    ResourcePolicyInt *set = globalResourcePolicyInt;
+    return set->isAvailable();
 }
-
-void ResourcePolicyImpl::handleResourcesGranted()
-{
-    m_status = GrantedResource;
-    emit resourcesGranted();
-}
-
-void ResourcePolicyImpl::handleResourcesDenied()
-{
-    m_status = Initial;
-    emit resourcesDenied();
-}
-
-void ResourcePolicyImpl::handleResourcesLost()
-{
-    if (m_status != Initial) {
-        m_status = Initial;
-        emit resourcesLost();
-    }
-
-    m_resourceSet->release();
-}
-

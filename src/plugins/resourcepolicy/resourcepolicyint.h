@@ -40,30 +40,61 @@
 **
 ****************************************************************************/
 
-#ifndef RESOURCEPOLICYIMPL_H
-#define RESOURCEPOLICYIMPL_H
+#ifndef RESOURCEPOLICYINT_H
+#define RESOURCEPOLICYINT_H
 
 #include <QObject>
+#include <QMap>
 
 #include <private/qmediaresourceset_p.h>
+#include "resourcepolicyimpl.h"
 
 namespace ResourcePolicy {
     class ResourceSet;
 };
 
-class ResourcePolicyImpl : public QMediaPlayerResourceSetInterface
+enum ResourceStatus {
+    Initial = 0,
+    RequestedResource,
+    GrantedResource
+};
+
+struct clientEntry {
+    int id;
+    ResourcePolicyImpl *client;
+    ResourceStatus status;
+    bool videoEnabled;
+};
+
+class ResourcePolicyInt : public QObject
 {
     Q_OBJECT
 public:
-    ResourcePolicyImpl(QObject *parent = 0);
-    ~ResourcePolicyImpl();
+    ResourcePolicyInt(QObject *parent = 0);
+    ~ResourcePolicyInt();
 
-    bool isVideoEnabled() const;
-    void setVideoEnabled(bool videoEnabled);
-    void acquire();
-    void release();
-    bool isGranted() const;
+    bool isVideoEnabled(const ResourcePolicyImpl *client) const;
+    void setVideoEnabled(const ResourcePolicyImpl *client, bool videoEnabled);
+    void acquire(const ResourcePolicyImpl *client);
+    void release(const ResourcePolicyImpl *client);
+    bool isGranted(const ResourcePolicyImpl *client) const;
     bool isAvailable() const;
+
+    void addClient(ResourcePolicyImpl *client);
+    void removeClient(ResourcePolicyImpl *client);
+
+private slots:
+    void handleResourcesGranted();
+    void handleResourcesDenied();
+    void handleResourcesLost();
+
+private:
+    QMap<const ResourcePolicyImpl*, clientEntry> m_clients;
+
+    int m_acquired;
+    ResourceStatus m_status;
+    int m_video;
+    ResourcePolicy::ResourceSet *m_resourceSet;
 };
 
-#endif // RESOURCEPOLICYIMPL_H
+#endif // RESOURCEPOLICYINT_H
