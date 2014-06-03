@@ -67,7 +67,6 @@ private slots:
 private:
     QGstreamerPlayerSession *m_session;
     QVariantMap m_tags;
-    QMap<QByteArray, QString> m_keysMap;
 };
 
 QT_END_NAMESPACE

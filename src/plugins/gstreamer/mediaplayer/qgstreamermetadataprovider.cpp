@@ -48,90 +48,86 @@
 
 QT_BEGIN_NAMESPACE
 
-struct QGstreamerMetaDataKeyLookup
+typedef QMap<QByteArray, QString> QGstreamerMetaDataKeyLookup;
+Q_GLOBAL_STATIC(QGstreamerMetaDataKeyLookup, metadataKeys)
+
+static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
 {
-    QString key;
-    const char *token;
-};
+    if (metadataKeys->isEmpty()) {
+        metadataKeys->insert(GST_TAG_TITLE, QMediaMetaData::Title);
+        //metadataKeys->insert(0, QMediaMetaData::SubTitle);
+        //metadataKeys->insert(0, QMediaMetaData::Author);
+        metadataKeys->insert(GST_TAG_COMMENT, QMediaMetaData::Comment);
+        metadataKeys->insert(GST_TAG_DESCRIPTION, QMediaMetaData::Description);
+        //metadataKeys->insert(0, QMediaMetaData::Category);
+        metadataKeys->insert(GST_TAG_GENRE, QMediaMetaData::Genre);
+        metadataKeys->insert("year", QMediaMetaData::Year);
+        //metadataKeys->insert(0, QMediaMetaData::UserRating);
 
-static const QGstreamerMetaDataKeyLookup qt_gstreamerMetaDataKeys[] =
-{
-    { QMediaMetaData::Title, GST_TAG_TITLE },
-    //{ QMediaMetaData::SubTitle, 0 },
-    //{ QMediaMetaData::Author, 0 },
-    { QMediaMetaData::Comment, GST_TAG_COMMENT },
-    { QMediaMetaData::Description, GST_TAG_DESCRIPTION },
-    //{ QMediaMetaData::Category, 0 },
-    { QMediaMetaData::Genre, GST_TAG_GENRE },
-    { QMediaMetaData::Year, "year" },
-    //{ QMediaMetaData::UserRating, 0 },
+        metadataKeys->insert(GST_TAG_LANGUAGE_CODE, QMediaMetaData::Language);
 
-    { QMediaMetaData::Language, GST_TAG_LANGUAGE_CODE },
+        metadataKeys->insert(GST_TAG_ORGANIZATION, QMediaMetaData::Publisher);
+        metadataKeys->insert(GST_TAG_COPYRIGHT, QMediaMetaData::Copyright);
+        //metadataKeys->insert(0, QMediaMetaData::ParentalRating);
+        //metadataKeys->insert(0, QMediaMetaData::RatingOrganisation);
 
-    { QMediaMetaData::Publisher, GST_TAG_ORGANIZATION },
-    { QMediaMetaData::Copyright, GST_TAG_COPYRIGHT },
-    //{ QMediaMetaData::ParentalRating, 0 },
-    //{ QMediaMetaData::RatingOrganisation, 0 },
+        // Media
+        //metadataKeys->insert(0, QMediaMetaData::Size);
+        //metadataKeys->insert(0,QMediaMetaData::MediaType );
+        metadataKeys->insert(GST_TAG_DURATION, QMediaMetaData::Duration);
 
-    // Media
-    //{ QMediaMetaData::Size, 0 },
-    //{ QMediaMetaData::MediaType, 0 },
-    { QMediaMetaData::Duration, GST_TAG_DURATION },
+        // Audio
+        metadataKeys->insert(GST_TAG_BITRATE, QMediaMetaData::AudioBitRate);
+        metadataKeys->insert(GST_TAG_AUDIO_CODEC, QMediaMetaData::AudioCodec);
+        //metadataKeys->insert(0, QMediaMetaData::ChannelCount);
+        //metadataKeys->insert(0, QMediaMetaData::SampleRate);
 
-    // Audio
-    { QMediaMetaData::AudioBitRate, GST_TAG_BITRATE },
-    { QMediaMetaData::AudioCodec, GST_TAG_AUDIO_CODEC },
-    //{ QMediaMetaData::ChannelCount, 0 },
-    //{ QMediaMetaData::SampleRate, 0 },
-
-    // Music
-    { QMediaMetaData::AlbumTitle, GST_TAG_ALBUM },
-    { QMediaMetaData::AlbumArtist,  GST_TAG_ARTIST},
-    { QMediaMetaData::ContributingArtist, GST_TAG_PERFORMER },
+        // Music
+        metadataKeys->insert(GST_TAG_ALBUM, QMediaMetaData::AlbumTitle);
+        metadataKeys->insert(GST_TAG_ARTIST, QMediaMetaData::AlbumArtist);
+        metadataKeys->insert(GST_TAG_PERFORMER, QMediaMetaData::ContributingArtist);
 #if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 19)
-    { QMediaMetaData::Composer, GST_TAG_COMPOSER },
+        metadataKeys->insert(GST_TAG_COMPOSER, QMediaMetaData::Composer);
 #endif
-    //{ QMediaMetaData::Conductor, 0 },
-    //{ QMediaMetaData::Lyrics, 0 },
-    //{ QMediaMetaData::Mood, 0 },
-    { QMediaMetaData::TrackNumber, GST_TAG_TRACK_NUMBER },
+        //metadataKeys->insert(0, QMediaMetaData::Conductor);
+        //metadataKeys->insert(0, QMediaMetaData::Lyrics);
+        //metadataKeys->insert(0, QMediaMetaData::Mood);
+        metadataKeys->insert(GST_TAG_TRACK_NUMBER, QMediaMetaData::TrackNumber);
 
-    //{ QMediaMetaData::CoverArtUrlSmall, 0 },
-    //{ QMediaMetaData::CoverArtUrlLarge, 0 },
+        //metadataKeys->insert(0, QMediaMetaData::CoverArtUrlSmall);
+        //metadataKeys->insert(0, QMediaMetaData::CoverArtUrlLarge);
 
-    // Image/Video
-    { QMediaMetaData::Resolution, "resolution" },
-    { QMediaMetaData::PixelAspectRatio, "pixel-aspect-ratio" },
+        // Image/Video
+        metadataKeys->insert("resolution", QMediaMetaData::Resolution);
+        metadataKeys->insert("pixel-aspect-ratio", QMediaMetaData::PixelAspectRatio);
 
-    // Video
-    //{ QMediaMetaData::VideoFrameRate, 0 },
-    //{ QMediaMetaData::VideoBitRate, 0 },
-    { QMediaMetaData::VideoCodec, GST_TAG_VIDEO_CODEC },
+        // Video
+        //metadataKeys->insert(0, QMediaMetaData::VideoFrameRate);
+        //metadataKeys->insert(0, QMediaMetaData::VideoBitRate);
+        metadataKeys->insert(GST_TAG_VIDEO_CODEC, QMediaMetaData::VideoCodec);
 
-    //{ QMediaMetaData::PosterUrl, 0 },
+        //metadataKeys->insert(0, QMediaMetaData::PosterUrl);
 
-    // Movie
-    //{ QMediaMetaData::ChapterNumber, 0 },
-    //{ QMediaMetaData::Director, 0 },
-    { QMediaMetaData::LeadPerformer, GST_TAG_PERFORMER },
-    //{ QMediaMetaData::Writer, 0 },
+        // Movie
+        //metadataKeys->insert(0, QMediaMetaData::ChapterNumber);
+        //metadataKeys->insert(0, QMediaMetaData::Director);
+        metadataKeys->insert(GST_TAG_PERFORMER, QMediaMetaData::LeadPerformer);
+        //metadataKeys->insert(0, QMediaMetaData::Writer);
 
-    // Photos
-    //{ QMediaMetaData::CameraManufacturer, 0 },
-    //{ QMediaMetaData::CameraModel, 0 },
-    //{ QMediaMetaData::Event, 0 },
-    //{ QMediaMetaData::Subject, 0 }
-};
+        // Photos
+        //metadataKeys->insert(0, QMediaMetaData::CameraManufacturer);
+        //metadataKeys->insert(0, QMediaMetaData::CameraModel);
+        //metadataKeys->insert(0, QMediaMetaData::Event);
+        //metadataKeys->insert(0, QMediaMetaData::Subject);
+    }
+
+    return metadataKeys;
+}
 
 QGstreamerMetaDataProvider::QGstreamerMetaDataProvider(QGstreamerPlayerSession *session, QObject *parent)
     :QMetaDataReaderControl(parent), m_session(session)
 {
     connect(m_session, SIGNAL(tagsChanged()), SLOT(updateTags()));
-
-    const int count = sizeof(qt_gstreamerMetaDataKeys) / sizeof(QGstreamerMetaDataKeyLookup);
-    for (int i = 0; i < count; ++i) {
-        m_keysMap[QByteArray(qt_gstreamerMetaDataKeys[i].token)] = qt_gstreamerMetaDataKeys[i].key;
-    }
 }
 
 QGstreamerMetaDataProvider::~QGstreamerMetaDataProvider()
@@ -167,8 +163,8 @@ void QGstreamerMetaDataProvider::updateTags()
     QMapIterator<QByteArray ,QVariant> i(m_session->tags());
     while (i.hasNext()) {
          i.next();
-         //use gstreamer native keys for elements not in m_keysMap
-         QString key = m_keysMap.value(i.key(), i.key());
+         //use gstreamer native keys for elements not in our key map
+         QString key = qt_gstreamerMetaDataKeys()->value(i.key(), i.key());
          m_tags.insert(key, i.value());
          if (i.value() != oldTags.value(key)) {
              changed = true;
