@@ -116,17 +116,13 @@ code but more buffering, which may affect latency.
 
 \section2 Decoding Compressed Audio to Memory
 In some cases you may want to decode a compressed audio file and do further
-processing yourself (like mix multiple samples, or some custom digital signal
-processing algorithms).  Qt Multimedia 5.0 offers a preliminary API for this
-case - the \l QAudioDecoder class.  QAudioDecoder supports decoding local files
-or from a QIODevice instances.
+processing yourself (for example, mixing multiple samples or using custom
+digital signal processing algorithms). QAudioDecoder supports decoding local
+files or data streams from QIODevice instances.
 
 Here's an example of decoding a local file:
 
     \snippet multimedia-snippets/audio.cpp Local audio decoding
-
-Note:  This API is preliminary at this time - the API may change or be
-removed before the final 5.0 release.
 
 \section1 Examples
 
