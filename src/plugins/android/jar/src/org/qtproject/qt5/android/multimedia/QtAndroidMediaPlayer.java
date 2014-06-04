@@ -379,6 +379,7 @@ public class QtAndroidMediaPlayer
             mMediaPlayer.setDisplay(mSurfaceHolder);
 
         AssetFileDescriptor afd = null;
+        FileInputStream fis = null;
         try {
             mUri = Uri.parse(path);
             final boolean inAssets = (mUri.getScheme().compareTo("assets") == 0);
@@ -390,8 +391,8 @@ public class QtAndroidMediaPlayer
                 final long length = afd.getLength();
                 FileDescriptor fd = afd.getFileDescriptor();
                 mMediaPlayer.setDataSource(fd, offset, length);
-            } else if (mUri.getScheme().compareTo("tempfile") == 0) {
-                FileInputStream fis = new FileInputStream(mUri.getPath());
+            } else if (mUri.getScheme().compareTo("file") == 0) {
+                fis = new FileInputStream(mUri.getPath());
                 FileDescriptor fd = fis.getFD();
                 mMediaPlayer.setDataSource(fd);
             } else {
@@ -409,9 +410,13 @@ public class QtAndroidMediaPlayer
         } catch (final NullPointerException e) {
             Log.d(TAG, "" + e.getMessage());
         } finally {
-            if (afd !=null) {
-                try { afd.close(); } catch (final IOException ioe) { /* Ignore... */ }
-            }
+            try {
+               if (afd != null)
+                   afd.close();
+               if (fis != null)
+                   fis.close();
+            } catch (final IOException ioe) { /* Ignore... */ }
+
             if ((mState & State.Initialized) == 0) {
                 setState(State.Error);
                 onErrorNative(MediaPlayer.MEDIA_ERROR_UNKNOWN,
