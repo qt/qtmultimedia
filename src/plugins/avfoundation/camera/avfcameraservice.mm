@@ -135,9 +135,9 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
 void AVFCameraService::releaseControl(QMediaControl *control)
 {
     if (m_videoOutput == control) {
-        m_videoOutput = 0;
         m_session->setVideoOutput(0);
-        delete control;
+        delete m_videoOutput;
+        m_videoOutput = 0;
     }
 }
 
