@@ -49,6 +49,7 @@ QT_BEGIN_NAMESPACE
 QAndroidCameraImageProcessingControl::QAndroidCameraImageProcessingControl(QAndroidCameraSession *session)
     : QCameraImageProcessingControl()
     , m_session(session)
+    , m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
 {
     connect(m_session, SIGNAL(opened()),
             this, SLOT(onCameraOpened()));
@@ -56,19 +57,17 @@ QAndroidCameraImageProcessingControl::QAndroidCameraImageProcessingControl(QAndr
 
 bool QAndroidCameraImageProcessingControl::isParameterSupported(ProcessingParameter parameter) const
 {
-    return (parameter == QCameraImageProcessingControl::WhiteBalancePreset);
+    return parameter == QCameraImageProcessingControl::WhiteBalancePreset
+            && m_session->camera()
+            && !m_supportedWhiteBalanceModes.isEmpty();
 }
 
 bool QAndroidCameraImageProcessingControl::isParameterValueSupported(ProcessingParameter parameter,
                                                                      const QVariant &value) const
 {
-    if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
-        return false;
-
-    if (!m_session->camera())
-        return false;
-
-    return m_supportedWhiteBalanceModes.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+    return parameter == QCameraImageProcessingControl::WhiteBalancePreset
+            && m_session->camera()
+            && m_supportedWhiteBalanceModes.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
 }
 
 QVariant QAndroidCameraImageProcessingControl::parameter(ProcessingParameter parameter) const
@@ -76,13 +75,7 @@ QVariant QAndroidCameraImageProcessingControl::parameter(ProcessingParameter par
     if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
         return QVariant();
 
-    if (!m_session->camera())
-        return QVariant();
-
-    QString wb = m_session->camera()->getWhiteBalance();
-    QCameraImageProcessing::WhiteBalanceMode mode = m_supportedWhiteBalanceModes.key(wb, QCameraImageProcessing::WhiteBalanceAuto);
-
-    return QVariant::fromValue(mode);
+    return QVariant::fromValue(m_whiteBalanceMode);
 }
 
 void QAndroidCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
@@ -90,12 +83,21 @@ void QAndroidCameraImageProcessingControl::setParameter(ProcessingParameter para
     if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
         return;
 
-    if (!m_session->camera())
-        return;
+    QCameraImageProcessing::WhiteBalanceMode mode = value.value<QCameraImageProcessing::WhiteBalanceMode>();
 
-    QString wb = m_supportedWhiteBalanceModes.value(value.value<QCameraImageProcessing::WhiteBalanceMode>(), QString());
-    if (!wb.isEmpty())
+    if (m_session->camera())
+        setWhiteBalanceModeHelper(mode);
+    else
+        m_whiteBalanceMode = mode;
+}
+
+void QAndroidCameraImageProcessingControl::setWhiteBalanceModeHelper(QCameraImageProcessing::WhiteBalanceMode mode)
+{
+    QString wb = m_supportedWhiteBalanceModes.value(mode, QString());
+    if (!wb.isEmpty()) {
         m_session->camera()->setWhiteBalance(wb);
+        m_whiteBalanceMode = mode;
+    }
 }
 
 void QAndroidCameraImageProcessingControl::onCameraOpened()
@@ -130,6 +132,11 @@ void QAndroidCameraImageProcessingControl::onCameraOpened()
                                                 QStringLiteral("warm-fluorescent"));
         }
     }
+
+    if (!m_supportedWhiteBalanceModes.contains(m_whiteBalanceMode))
+        m_whiteBalanceMode = QCameraImageProcessing::WhiteBalanceAuto;
+
+    setWhiteBalanceModeHelper(m_whiteBalanceMode);
 }
 
 QT_END_NAMESPACE

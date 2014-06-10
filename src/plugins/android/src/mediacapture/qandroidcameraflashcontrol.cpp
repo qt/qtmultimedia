@@ -62,7 +62,12 @@ QCameraExposure::FlashModes QAndroidCameraFlashControl::flashMode() const
 
 void QAndroidCameraFlashControl::setFlashMode(QCameraExposure::FlashModes mode)
 {
-    if (m_flashMode == mode || !m_session->camera() || !isFlashModeSupported(mode))
+    if (!m_session->camera()) {
+        m_flashMode = mode;
+        return;
+    }
+
+    if (!isFlashModeSupported(mode))
         return;
 
     // if torch was enabled, it first needs to be turned off before setting another mode
@@ -88,7 +93,7 @@ void QAndroidCameraFlashControl::setFlashMode(QCameraExposure::FlashModes mode)
 
 bool QAndroidCameraFlashControl::isFlashModeSupported(QCameraExposure::FlashModes mode) const
 {
-    return m_supportedFlashModes.contains(mode);
+    return m_session->camera() ? m_supportedFlashModes.contains(mode) : false;
 }
 
 bool QAndroidCameraFlashControl::isFlashReady() const
@@ -115,6 +120,11 @@ void QAndroidCameraFlashControl::onCameraOpened()
         else if (flashMode == QLatin1String("torch"))
             m_supportedFlashModes << QCameraExposure::FlashVideoLight;
     }
+
+    if (!m_supportedFlashModes.contains(m_flashMode))
+        m_flashMode = QCameraExposure::FlashOff;
+
+    setFlashMode(m_flashMode);
 }
 
 QT_END_NAMESPACE
