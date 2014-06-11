@@ -95,6 +95,11 @@ public:
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 5, 0, "CameraImageProcessing",
                                 trUtf8("CameraImageProcessing is provided by Camera"));
 
+        // Make types available for the 5.3 version
+        // Adding "import QtMultimedia 5.3" in QML will fail unless at least one type is registered
+        // for that version.
+        qmlRegisterType<QSoundEffect>(uri, 5, 3, "SoundEffect");
+
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }
 
