@@ -66,7 +66,8 @@ Generator::Generator(const QAudioFormat &format,
     :   QIODevice(parent)
     ,   m_pos(0)
 {
-    generateData(format, durationUs, sampleRate);
+    if (format.isValid())
+        generateData(format, durationUs, sampleRate);
 }
 
 Generator::~Generator()
@@ -133,11 +134,13 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int 
 qint64 Generator::readData(char *data, qint64 len)
 {
     qint64 total = 0;
-    while (len - total > 0) {
-        const qint64 chunk = qMin((m_buffer.size() - m_pos), len - total);
-        memcpy(data + total, m_buffer.constData() + m_pos, chunk);
-        m_pos = (m_pos + chunk) % m_buffer.size();
-        total += chunk;
+    if (!m_buffer.isEmpty()) {
+        while (len - total > 0) {
+            const qint64 chunk = qMin((m_buffer.size() - m_pos), len - total);
+            memcpy(data + total, m_buffer.constData() + m_pos, chunk);
+            m_pos = (m_pos + chunk) % m_buffer.size();
+            total += chunk;
+        }
     }
     return total;
 }
