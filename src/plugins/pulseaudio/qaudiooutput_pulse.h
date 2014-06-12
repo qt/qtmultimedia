@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -105,12 +105,16 @@ public:
     void streamUnderflowCallback();
 
 private:
+    void setState(QAudio::State state);
+    void setError(QAudio::Error error);
+
     bool open();
     void close();
     qint64 write(const char *data, qint64 len);
 
 private Q_SLOTS:
     void userFeed();
+    void onPulseContextFailed();
 
 private:
     QByteArray m_device;

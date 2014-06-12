@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -74,12 +74,36 @@ public:
     pa_threaded_mainloop *mainloop() { return m_mainLoop; }
     pa_context *context() { return m_context; }
 
+    inline void lock()
+    {
+        if (m_mainLoop)
+            pa_threaded_mainloop_lock(m_mainLoop);
+    }
+
+    inline void unlock()
+    {
+        if (m_mainLoop)
+            pa_threaded_mainloop_unlock(m_mainLoop);
+    }
+
+    inline void wait(pa_operation *op)
+    {
+        while (m_mainLoop && pa_operation_get_state(op) == PA_OPERATION_RUNNING)
+            pa_threaded_mainloop_wait(m_mainLoop);
+    }
+
     QList<QByteArray> availableDevices(QAudio::Mode mode) const;
 
+Q_SIGNALS:
+    void contextFailed();
+
+private Q_SLOTS:
+    void prepare();
+    void onContextFailed();
+
 private:
-    void serverInfo();
-    void sinks();
-    void sources();
+    void updateDevices();
+    void release();
 
 public:
     QList<QByteArray> m_sinks;
@@ -93,6 +117,7 @@ private:
     pa_mainloop_api *m_mainLoopApi;
     pa_threaded_mainloop *m_mainLoop;
     pa_context *m_context;
+    bool m_prepared;
  };
 
 QT_END_NAMESPACE
