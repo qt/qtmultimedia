@@ -176,8 +176,12 @@ void AudioTest::initializeWindow()
     QScopedPointer<QVBoxLayout> layout(new QVBoxLayout);
 
     m_deviceBox = new QComboBox(this);
-    foreach (const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
-        m_deviceBox->addItem(deviceInfo.deviceName(), qVariantFromValue(deviceInfo));
+    const QAudioDeviceInfo &defaultDeviceInfo = QAudioDeviceInfo::defaultOutputDevice();
+    m_deviceBox->addItem(defaultDeviceInfo.deviceName(), qVariantFromValue(defaultDeviceInfo));
+    foreach (const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)) {
+        if (deviceInfo != defaultDeviceInfo)
+            m_deviceBox->addItem(deviceInfo.deviceName(), qVariantFromValue(deviceInfo));
+    }
     connect(m_deviceBox,SIGNAL(activated(int)),SLOT(deviceChanged(int)));
     layout->addWidget(m_deviceBox);
 

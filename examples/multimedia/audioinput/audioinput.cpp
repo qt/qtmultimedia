@@ -255,9 +255,12 @@ void InputTest::initializeWindow()
     layout->addWidget(m_canvas);
 
     m_deviceBox = new QComboBox(this);
-    QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-    for(int i = 0; i < devices.size(); ++i)
-        m_deviceBox->addItem(devices.at(i).deviceName(), qVariantFromValue(devices.at(i)));
+    const QAudioDeviceInfo &defaultDeviceInfo = QAudioDeviceInfo::defaultInputDevice();
+    m_deviceBox->addItem(defaultDeviceInfo.deviceName(), qVariantFromValue(defaultDeviceInfo));
+    foreach (const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
+        if (deviceInfo != defaultDeviceInfo)
+            m_deviceBox->addItem(deviceInfo.deviceName(), qVariantFromValue(deviceInfo));
+    }
 
     connect(m_deviceBox, SIGNAL(activated(int)), SLOT(deviceChanged(int)));
     layout->addWidget(m_deviceBox);
