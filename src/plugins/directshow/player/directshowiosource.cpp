@@ -622,17 +622,10 @@ DirectShowRcSource::DirectShowRcSource(DirectShowEventLoop *loop)
 bool DirectShowRcSource::open(const QUrl &url)
 {
     m_file.moveToThread(QCoreApplication::instance()->thread());
-
     m_file.setFileName(QLatin1Char(':') + url.path());
 
-    qDebug("qrc file %s", qPrintable(m_file.fileName()));
-
     if (m_file.open(QIODevice::ReadOnly)) {
-        qDebug("Size %d", int(m_file.size()));
-        qDebug("Sequential %d", int(m_file.isSequential()));
-
         setDevice(&m_file);
-
         return true;
     } else {
         return false;

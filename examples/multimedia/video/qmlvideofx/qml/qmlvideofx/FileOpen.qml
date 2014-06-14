@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -39,56 +39,115 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
 
 Rectangle {
     id: root
-    color: "white"
-    property int buttonHeight: 35
-    property int topMargin: 0
-
+    color: "#151515"
+    signal openCamera
     signal openImage
     signal openVideo
-    signal openCamera
     signal close
 
-    Rectangle {
-        anchors {
-            top: parent.top;
-            topMargin: root.topMargin
-            bottom: parent.bottom;
-            horizontalCenter: parent.horizontalCenter
-        }
-        width: 0.9 * parent.width
-        color: "transparent"
 
-        Column {
+    Rectangle {
+        id: menuField
+        height: itemHeight
+        width: itemHeight
+        color: "transparent"
+        anchors.right: parent.right
+        Image {
+            id: menu
+            source: "qrc:///images/icon_Menu.png"
+            anchors {
+                right: parent.right
+                top: parent.top
+                margins: scaledMargin
+            }
+        }
+        MouseArea {
             anchors.fill: parent
-            spacing: 5
-            Button {
-                text: "Open image"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.openImage()
+            onClicked: fileOpen.state == "expanded" ? fileOpen.state = "collapsed" : fileOpen.state = "expanded"
+        }
+    }
+
+    Column {
+        anchors {
+            top: menuField.bottom
+            right: parent.right
+            left: parent.left
+            bottom: parent.bottom
+            topMargin: 10
+        }
+
+        spacing: 10
+        visible: fileOpen.state == "expanded"
+
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Start camera"
+            height: itemHeight
+            width: parent.width
+            onClicked: {
+                fileOpen.state = "collapsed"
+                root.openCamera()
             }
-            Button {
-                text: "Open video"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.openVideo()
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Open image"
+            height: itemHeight
+            width: parent.width
+            onClicked: {
+                fileOpen.state = "collapsed"
+                root.openImage()
             }
-            Button {
-                text: "Start camera"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.openCamera()
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Open video"
+            height: itemHeight
+            width: parent.width
+            onClicked: {
+                fileOpen.state = "collapsed"
+                root.openVideo()
             }
-            Button {
-                text: "Reset"
-                height: buttonHeight
-                width: parent.width
-                onClicked: root.close()
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
+        }
+        Button {
+            text: "Reset"
+            height: itemHeight
+            width: parent.width
+            onClicked: {
+                fileOpen.state = "collapsed"
+                root.close()
             }
+        }
+        Rectangle {
+            width: 0.9 * parent.width
+            height: 1
+            color: "#353535"
+            anchors.left: parent.left
         }
     }
 }

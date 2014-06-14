@@ -601,8 +601,14 @@ bool QDeclarativeAudio::hasVideo() const
 /*!
     \qmlproperty real QtMultimedia::Audio::bufferProgress
 
-    This property holds how much of the data buffer is currently filled, from 0.0 (empty) to 1.0
-    (full).
+    This property holds how much of the data buffer is currently filled, from \c 0.0 (empty) to
+    \c 1.0 (full).
+
+    Playback can start or resume only when the buffer is entirely filled, in which case the
+    status is \c Audio.Buffered or \c Audio.Buffering. A value lower than \c 1.0 implies that
+    the status is \c Audio.Stalled.
+
+    \sa status
 */
 
 /*!
@@ -1394,8 +1400,14 @@ void QDeclarativeAudio::_q_statusChanged()
 /*!
     \qmlproperty real QtMultimedia::MediaPlayer::bufferProgress
 
-    This property holds how much of the data buffer is currently filled, from 0.0 (empty) to 1.0
-    (full).
+    This property holds how much of the data buffer is currently filled, from \c 0.0 (empty) to
+    \c 1.0 (full).
+
+    Playback can start or resume only when the buffer is entirely filled, in which case the
+    status is \c MediaPlayer.Buffered or \c MediaPlayer.Buffering. A value lower than \c 1.0
+    implies that the status is \c MediaPlayer.Stalled.
+
+    \sa status
 */
 
 /*!

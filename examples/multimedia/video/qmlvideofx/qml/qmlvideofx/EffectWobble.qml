@@ -44,7 +44,7 @@ import QtQuick 2.0
 Effect {
     parameters: ListModel {
         ListElement {
-            name: "amplitude"
+            name: "Amplitude"
             value: 0.5
         }
     }

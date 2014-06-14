@@ -42,7 +42,7 @@
 #include "qandroidcameralockscontrol.h"
 
 #include "qandroidcamerasession.h"
-#include "jcamera.h"
+#include "androidcamera.h"
 #include <qtimer.h>
 
 QT_BEGIN_NAMESPACE

@@ -49,7 +49,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class JMediaPlayer;
+class AndroidMediaPlayer;
 class QAndroidVideoOutput;
 
 class QAndroidMediaPlayerControl : public QMediaPlayerControl
@@ -98,7 +98,7 @@ private Q_SLOTS:
     void onStateChanged(qint32 state);
 
 private:
-    JMediaPlayer *mMediaPlayer;
+    AndroidMediaPlayer *mMediaPlayer;
     QMediaPlayer::State mCurrentState;
     QMediaPlayer::MediaStatus mCurrentMediaStatus;
     QMediaContent mMediaContent;
@@ -106,6 +106,7 @@ private:
     QAndroidVideoOutput *mVideoOutput;
     bool mSeekable;
     int mBufferPercent;
+    bool mBufferFilled;
     bool mAudioAvailable;
     bool mVideoAvailable;
     QSize mVideoSize;
@@ -127,6 +128,7 @@ private:
     void updateAvailablePlaybackRanges();
     void resetBufferingProgress();
     void flushPendingStates();
+    void updateBufferStatus();
 };
 
 QT_END_NAMESPACE

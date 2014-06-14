@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Mobility Components.
@@ -48,12 +48,6 @@
 #include "filereader.h"
 #include "trace.h"
 
-#ifdef SMALL_SCREEN_LAYOUT
-    static const QLatin1String MainQmlFile("main-smallscreen.qml");
-#else
-    static const QLatin1String MainQmlFile("main-largescreen.qml");
-#endif
-
 #ifdef PERFORMANCEMONITOR_SUPPORT
 #include "performancemonitordeclarative.h"
 #endif
@@ -99,7 +93,7 @@ int main(int argc, char *argv[])
 
     QQuickView viewer;
 
-    viewer.setSource(QLatin1String("qrc:///qml/qmlvideofx/") + MainQmlFile);
+    viewer.setSource(QUrl(QLatin1String("qrc:///qml/qmlvideofx/Main.qml")));
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("fileName", fileName);
     viewer.rootObject()->setProperty("volume", volume);
@@ -128,13 +122,10 @@ int main(int argc, char *argv[])
     viewer.setTitle("qmlvideofx");
     viewer.setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint |
                           Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
-    viewer.setMinimumSize(QSize(600, 400));
+    viewer.setMinimumSize(QSize(1280, 720));
+    viewer.setResizeMode(QQuickView::SizeRootObjectToView);
 
-#ifdef SMALL_SCREEN_PHYSICAL
-    viewer.showFullScreen();
-#else
     viewer.show();
-#endif
 
     // Delay invocation of init until the event loop has started, to work around
     // a GL context issue on Harmattan: without this, we get the following error

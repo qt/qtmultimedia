@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -35,9 +35,11 @@
 \brief  The Camera Example shows how to use the API to capture a still image
 or video.
 
-The Camera Example demonstrates how you can use Qt Multimedia to implement
+The Camera Example demonstrates how you can use \l{Qt Multimedia} to implement
 some basic Camera functionality to take still images and record video clips
 with audio.
+
+\include examples-run.qdocinc
 
 A Camera class is created that will act as our Camera. It has a user interface,
 control functions, setting values and a means of defining the location where
@@ -74,5 +76,3 @@ is started with a call to \l {QMediaRecorder::record()}.
 \image camera-example.png
 
 */
-
-

@@ -65,20 +65,14 @@ QT_BEGIN_NAMESPACE
 
 //#define DEBUG_EXPOSURE_CHANGES 1
 
-namespace
+static void qRegisterCameraExposureMetaTypes()
 {
-class CameraExposureRegisterMetaTypes
-{
-public:
-    CameraExposureRegisterMetaTypes()
-    {
-        qRegisterMetaType<QCameraExposure::ExposureMode>("QCameraExposure::ExposureMode");
-        qRegisterMetaType<QCameraExposure::FlashModes>("QCameraExposure::FlashModes");
-        qRegisterMetaType<QCameraExposure::MeteringMode>("QCameraExposure::MeteringMode");
-    }
-} _registerCameraExposureMetaTypes;
+    qRegisterMetaType<QCameraExposure::ExposureMode>("QCameraExposure::ExposureMode");
+    qRegisterMetaType<QCameraExposure::FlashModes>("QCameraExposure::FlashModes");
+    qRegisterMetaType<QCameraExposure::MeteringMode>("QCameraExposure::MeteringMode");
 }
 
+Q_CONSTRUCTOR_FUNCTION(qRegisterCameraExposureMetaTypes)
 
 
 class QCameraExposurePrivate

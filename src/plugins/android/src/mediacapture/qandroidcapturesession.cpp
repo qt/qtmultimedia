@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -41,11 +41,10 @@
 
 #include "qandroidcapturesession.h"
 
-#include "jcamera.h"
+#include "androidcamera.h"
 #include "qandroidcamerasession.h"
-#include "jmultimediautils.h"
+#include "androidmultimediautils.h"
 #include "qandroidmultimediautils.h"
-#include <QtCore/private/qjni_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -53,7 +52,7 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
     : QObject()
     , m_mediaRecorder(0)
     , m_cameraSession(cameraSession)
-    , m_audioSource(JMediaRecorder::DefaultAudioSource)
+    , m_audioSource(AndroidMediaRecorder::DefaultAudioSource)
     , m_duration(0)
     , m_state(QMediaRecorder::StoppedState)
     , m_status(QMediaRecorder::UnloadedStatus)
@@ -61,10 +60,18 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
     , m_containerFormatDirty(true)
     , m_videoSettingsDirty(true)
     , m_audioSettingsDirty(true)
-    , m_outputFormat(JMediaRecorder::DefaultOutputFormat)
-    , m_audioEncoder(JMediaRecorder::DefaultAudioEncoder)
-    , m_videoEncoder(JMediaRecorder::DefaultVideoEncoder)
+    , m_outputFormat(AndroidMediaRecorder::DefaultOutputFormat)
+    , m_audioEncoder(AndroidMediaRecorder::DefaultAudioEncoder)
+    , m_videoEncoder(AndroidMediaRecorder::DefaultVideoEncoder)
 {
+    m_mediaStorageLocation.addStorageLocation(
+                QMediaStorageLocation::Movies,
+                AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM));
+
+    m_mediaStorageLocation.addStorageLocation(
+                QMediaStorageLocation::Sounds,
+                AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::Sounds));
+
     connect(this, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(updateStatus()));
 
     if (cameraSession) {
@@ -95,19 +102,19 @@ void QAndroidCaptureSession::setAudioInput(const QString &input)
     m_audioInput = input;
 
     if (m_audioInput == QLatin1String("default"))
-        m_audioSource = JMediaRecorder::DefaultAudioSource;
+        m_audioSource = AndroidMediaRecorder::DefaultAudioSource;
     else if (m_audioInput == QLatin1String("mic"))
-        m_audioSource = JMediaRecorder::Mic;
+        m_audioSource = AndroidMediaRecorder::Mic;
     else if (m_audioInput == QLatin1String("voice_uplink"))
-        m_audioSource = JMediaRecorder::VoiceUplink;
+        m_audioSource = AndroidMediaRecorder::VoiceUplink;
     else if (m_audioInput == QLatin1String("voice_downlink"))
-        m_audioSource = JMediaRecorder::VoiceDownlink;
+        m_audioSource = AndroidMediaRecorder::VoiceDownlink;
     else if (m_audioInput == QLatin1String("voice_call"))
-        m_audioSource = JMediaRecorder::VoiceCall;
+        m_audioSource = AndroidMediaRecorder::VoiceCall;
     else if (m_audioInput == QLatin1String("voice_recognition"))
-        m_audioSource = JMediaRecorder::VoiceRecognition;
+        m_audioSource = AndroidMediaRecorder::VoiceRecognition;
     else
-        m_audioSource = JMediaRecorder::DefaultAudioSource;
+        m_audioSource = AndroidMediaRecorder::DefaultAudioSource;
 
     emit audioInputChanged(m_audioInput);
 }
@@ -176,7 +183,7 @@ bool QAndroidCaptureSession::start()
         m_mediaRecorder->release();
         delete m_mediaRecorder;
     }
-    m_mediaRecorder = new JMediaRecorder;
+    m_mediaRecorder = new AndroidMediaRecorder;
     connect(m_mediaRecorder, SIGNAL(error(int,int)), this, SLOT(onError(int,int)));
     connect(m_mediaRecorder, SIGNAL(info(int,int)), this, SLOT(onInfo(int,int)));
 
@@ -185,8 +192,8 @@ bool QAndroidCaptureSession::start()
         updateViewfinder();
         m_cameraSession->camera()->unlock();
         m_mediaRecorder->setCamera(m_cameraSession->camera());
-        m_mediaRecorder->setAudioSource(JMediaRecorder::Camcorder);
-        m_mediaRecorder->setVideoSource(JMediaRecorder::Camera);
+        m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
+        m_mediaRecorder->setVideoSource(AndroidMediaRecorder::Camera);
     } else {
         m_mediaRecorder->setAudioSource(m_audioSource);
     }
@@ -214,8 +221,8 @@ bool QAndroidCaptureSession::start()
     QString filePath = m_mediaStorageLocation.generateFileName(
                 m_requestedOutputLocation.isLocalFile() ? m_requestedOutputLocation.toLocalFile()
                                                         : m_requestedOutputLocation.toString(),
-                m_cameraSession ? QAndroidMediaStorageLocation::Camera
-                                : QAndroidMediaStorageLocation::Audio,
+                m_cameraSession ? QMediaStorageLocation::Movies
+                                : QMediaStorageLocation::Sounds,
                 m_cameraSession ? QLatin1String("VID_")
                                 : QLatin1String("REC_"),
                 m_containerFormat);
@@ -272,10 +279,10 @@ void QAndroidCaptureSession::stop(bool error)
         // with the Android media scanner so it appears immediately in apps
         // such as the gallery.
         QString mediaPath = m_actualOutputLocation.toLocalFile();
-        QString standardLoc = m_cameraSession ? JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::DCIM)
-                                              : JMultimediaUtils::getDefaultMediaDirectory(JMultimediaUtils::Sounds);
+        QString standardLoc = m_cameraSession ? AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM)
+                                              : AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::Sounds);
         if (mediaPath.startsWith(standardLoc))
-            JMultimediaUtils::registerMediaFile(mediaPath);
+            AndroidMultimediaUtils::registerMediaFile(mediaPath);
 
         m_actualOutputLocation = m_usedOutputLocation;
         emit actualLocationChanged(m_actualOutputLocation);
@@ -339,14 +346,14 @@ void QAndroidCaptureSession::applySettings()
             m_containerFormat = m_defaultSettings.outputFileExtension;
             m_outputFormat = m_defaultSettings.outputFormat;
         } else if (m_containerFormat == QLatin1String("3gp")) {
-            m_outputFormat = JMediaRecorder::THREE_GPP;
+            m_outputFormat = AndroidMediaRecorder::THREE_GPP;
         } else if (!m_cameraSession && m_containerFormat == QLatin1String("amr")) {
-            m_outputFormat = JMediaRecorder::AMR_NB_Format;
+            m_outputFormat = AndroidMediaRecorder::AMR_NB_Format;
         } else if (!m_cameraSession && m_containerFormat == QLatin1String("awb")) {
-            m_outputFormat = JMediaRecorder::AMR_WB_Format;
+            m_outputFormat = AndroidMediaRecorder::AMR_WB_Format;
         } else {
             m_containerFormat = QStringLiteral("mp4");
-            m_outputFormat = JMediaRecorder::MPEG_4;
+            m_outputFormat = AndroidMediaRecorder::MPEG_4;
         }
 
         m_containerFormatDirty = false;
@@ -364,11 +371,11 @@ void QAndroidCaptureSession::applySettings()
         if (m_audioSettings.codec().isEmpty())
             m_audioEncoder = m_defaultSettings.audioEncoder;
         else if (m_audioSettings.codec() == QLatin1String("aac"))
-            m_audioEncoder = JMediaRecorder::AAC;
+            m_audioEncoder = AndroidMediaRecorder::AAC;
         else if (m_audioSettings.codec() == QLatin1String("amr-nb"))
-            m_audioEncoder = JMediaRecorder::AMR_NB_Encoder;
+            m_audioEncoder = AndroidMediaRecorder::AMR_NB_Encoder;
         else if (m_audioSettings.codec() == QLatin1String("amr-wb"))
-            m_audioEncoder = JMediaRecorder::AMR_WB_Encoder;
+            m_audioEncoder = AndroidMediaRecorder::AMR_WB_Encoder;
         else
             m_audioEncoder = m_defaultSettings.audioEncoder;
 
@@ -402,11 +409,11 @@ void QAndroidCaptureSession::applySettings()
         if (m_videoSettings.codec().isEmpty())
             m_videoEncoder = m_defaultSettings.videoEncoder;
         else if (m_videoSettings.codec() == QLatin1String("h263"))
-            m_videoEncoder = JMediaRecorder::H263;
+            m_videoEncoder = AndroidMediaRecorder::H263;
         else if (m_videoSettings.codec() == QLatin1String("h264"))
-            m_videoEncoder = JMediaRecorder::H264;
+            m_videoEncoder = AndroidMediaRecorder::H264;
         else if (m_videoSettings.codec() == QLatin1String("mpeg4_sp"))
-            m_videoEncoder = JMediaRecorder::MPEG_4_SP;
+            m_videoEncoder = AndroidMediaRecorder::MPEG_4_SP;
         else
             m_videoEncoder = m_defaultSettings.videoEncoder;
 
@@ -448,7 +455,7 @@ void QAndroidCaptureSession::onCameraOpened()
     for (int i = 0; i < 8; ++i) {
         CaptureProfile profile = getProfile(i);
         if (!profile.isNull) {
-            if (i == 1) // QUALITY_HIGH
+            if (i == AndroidCamcorderProfile::QUALITY_HIGH)
                 m_defaultSettings = profile;
 
             if (!m_supportedResolutions.contains(profile.videoResolution))
@@ -467,38 +474,31 @@ void QAndroidCaptureSession::onCameraOpened()
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)
 {
     CaptureProfile profile;
-    bool hasProfile = QJNIObjectPrivate::callStaticMethod<jboolean>("android/media/CamcorderProfile",
-                                                             "hasProfile",
-                                                             "(II)Z",
-                                                             m_cameraSession->camera()->cameraId(),
-                                                             id);
+    const bool hasProfile = AndroidCamcorderProfile::hasProfile(m_cameraSession->camera()->cameraId(),
+                                                                AndroidCamcorderProfile::Quality(id));
 
     if (hasProfile) {
-        QJNIObjectPrivate obj = QJNIObjectPrivate::callStaticObjectMethod("android/media/CamcorderProfile",
-                                                                          "get",
-                                                                          "(II)Landroid/media/CamcorderProfile;",
-                                                                          m_cameraSession->camera()->cameraId(),
-                                                                          id);
+        AndroidCamcorderProfile camProfile = AndroidCamcorderProfile::get(m_cameraSession->camera()->cameraId(),
+                                                                          AndroidCamcorderProfile::Quality(id));
 
+        profile.outputFormat = AndroidMediaRecorder::OutputFormat(camProfile.getValue(AndroidCamcorderProfile::fileFormat));
+        profile.audioEncoder = AndroidMediaRecorder::AudioEncoder(camProfile.getValue(AndroidCamcorderProfile::audioCodec));
+        profile.audioBitRate = camProfile.getValue(AndroidCamcorderProfile::audioBitRate);
+        profile.audioChannels = camProfile.getValue(AndroidCamcorderProfile::audioChannels);
+        profile.audioSampleRate = camProfile.getValue(AndroidCamcorderProfile::audioSampleRate);
+        profile.videoEncoder = AndroidMediaRecorder::VideoEncoder(camProfile.getValue(AndroidCamcorderProfile::videoCodec));
+        profile.videoBitRate = camProfile.getValue(AndroidCamcorderProfile::videoBitRate);
+        profile.videoFrameRate = camProfile.getValue(AndroidCamcorderProfile::videoFrameRate);
+        profile.videoResolution = QSize(camProfile.getValue(AndroidCamcorderProfile::videoFrameWidth),
+                                        camProfile.getValue(AndroidCamcorderProfile::videoFrameHeight));
 
-        profile.outputFormat = JMediaRecorder::OutputFormat(obj.getField<jint>("fileFormat"));
-        profile.audioEncoder = JMediaRecorder::AudioEncoder(obj.getField<jint>("audioCodec"));
-        profile.audioBitRate = obj.getField<jint>("audioBitRate");
-        profile.audioChannels = obj.getField<jint>("audioChannels");
-        profile.audioSampleRate = obj.getField<jint>("audioSampleRate");
-        profile.videoEncoder = JMediaRecorder::VideoEncoder(obj.getField<jint>("videoCodec"));
-        profile.videoBitRate = obj.getField<jint>("videoBitRate");
-        profile.videoFrameRate = obj.getField<jint>("videoFrameRate");
-        profile.videoResolution = QSize(obj.getField<jint>("videoFrameWidth"),
-                                        obj.getField<jint>("videoFrameHeight"));
-
-        if (profile.outputFormat == JMediaRecorder::MPEG_4)
+        if (profile.outputFormat == AndroidMediaRecorder::MPEG_4)
             profile.outputFileExtension = QStringLiteral("mp4");
-        else if (profile.outputFormat == JMediaRecorder::THREE_GPP)
+        else if (profile.outputFormat == AndroidMediaRecorder::THREE_GPP)
             profile.outputFileExtension = QStringLiteral("3gp");
-        else if (profile.outputFormat == JMediaRecorder::AMR_NB_Format)
+        else if (profile.outputFormat == AndroidMediaRecorder::AMR_NB_Format)
             profile.outputFileExtension = QStringLiteral("amr");
-        else if (profile.outputFormat == JMediaRecorder::AMR_WB_Format)
+        else if (profile.outputFormat == AndroidMediaRecorder::AMR_WB_Format)
             profile.outputFileExtension = QStringLiteral("awb");
 
         profile.isNull = false;

@@ -61,18 +61,13 @@ QT_BEGIN_NAMESPACE
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, playlistIOLoader,
         (QMediaPlaylistIOInterface_iid, QLatin1String("playlistformats"), Qt::CaseInsensitive))
 
-namespace
+static void qRegisterMediaPlaylistMetaTypes()
 {
-    class QMediaPlaylistPrivateRegisterMetaTypes
-    {
-    public:
-        QMediaPlaylistPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QMediaPlaylist::Error>();
-            qRegisterMetaType<QMediaPlaylist::PlaybackMode>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QMediaPlaylist::Error>();
+    qRegisterMetaType<QMediaPlaylist::PlaybackMode>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlaylistMetaTypes)
 
 
 /*!

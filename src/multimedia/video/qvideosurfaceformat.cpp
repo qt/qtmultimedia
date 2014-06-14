@@ -49,19 +49,14 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterVideoSurfaceFormatMetaTypes()
 {
-    class QVideoSurfaceFormatPrivateRegisterMetaTypes
-    {
-    public:
-        QVideoSurfaceFormatPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QVideoSurfaceFormat>();
-            qRegisterMetaType<QVideoSurfaceFormat::Direction>();
-            qRegisterMetaType<QVideoSurfaceFormat::YCbCrColorSpace>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QVideoSurfaceFormat>();
+    qRegisterMetaType<QVideoSurfaceFormat::Direction>();
+    qRegisterMetaType<QVideoSurfaceFormat::YCbCrColorSpace>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterVideoSurfaceFormatMetaTypes)
 
 
 class QVideoSurfaceFormatPrivate : public QSharedData

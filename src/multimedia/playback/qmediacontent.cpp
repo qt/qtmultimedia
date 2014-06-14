@@ -48,17 +48,12 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterMediaContentMetaTypes()
 {
-    class QMediaContentPrivateRegisterMetaTypes
-    {
-    public:
-        QMediaContentPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QMediaContent>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QMediaContent>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterMediaContentMetaTypes)
 
 
 class QMediaContentPrivate : public QSharedData

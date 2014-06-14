@@ -47,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class JMediaMetadataRetriever;
+class AndroidMediaMetadataRetriever;
 
 class QAndroidMetaDataReaderControl : public QMetaDataReaderControl
 {
@@ -72,7 +72,7 @@ private:
     bool m_available;
     QVariantMap m_metadata;
 
-    JMediaMetadataRetriever *m_retriever;
+    AndroidMediaMetadataRetriever *m_retriever;
 };
 
 QT_END_NAMESPACE

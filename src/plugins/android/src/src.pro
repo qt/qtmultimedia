@@ -11,7 +11,7 @@ HEADERS += \
 SOURCES += \
     qandroidmediaserviceplugin.cpp
 
-include (wrappers/wrappers.pri)
+include (wrappers/jni/jni.pri)
 include (common/common.pri)
 include (mediaplayer/mediaplayer.pri)
 include (mediacapture/mediacapture.pri)

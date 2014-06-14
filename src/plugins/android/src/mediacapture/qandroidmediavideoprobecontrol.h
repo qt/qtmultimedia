@@ -45,6 +45,8 @@
 
 #include <qmediavideoprobecontrol.h>
 
+QT_BEGIN_NAMESPACE
+
 class QAndroidMediaVideoProbeControl : public QMediaVideoProbeControl
 {
     Q_OBJECT
@@ -55,5 +57,7 @@ public:
     void newFrameProbed(const QVideoFrame& frame);
 
 };
+
+QT_END_NAMESPACE
 
 #endif // QANDROIDMEDIAVIDEOPROBECONTROL_H

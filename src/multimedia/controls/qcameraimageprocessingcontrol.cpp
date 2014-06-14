@@ -44,17 +44,12 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterCameraImageProcessingControlMetaTypes()
 {
-    class QCameraImageProcessingControlPrivateRegisterMetaTypes
-    {
-    public:
-        QCameraImageProcessingControlPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QCameraImageProcessingControl::ProcessingParameter>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QCameraImageProcessingControl::ProcessingParameter>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingControlMetaTypes)
 
 /*!
     \class QCameraImageProcessingControl

@@ -104,6 +104,7 @@ QT_BEGIN_NAMESPACE
 
     \sa MediaPlayer, Camera
 
+\omit
     \section1 Screen Saver
 
     If it is likely that an application will be playing video for an extended
@@ -116,7 +117,10 @@ QT_BEGIN_NAMESPACE
 
     ScreenSaver { screenSaverEnabled: false }
     \endqml
+\endomit
 */
+
+// TODO: Restore Qt System Info docs when the module is released
 
 /*!
     \internal

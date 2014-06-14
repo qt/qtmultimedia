@@ -41,20 +41,16 @@ QT_BEGIN_NAMESPACE
 
 */
 
-namespace
+static void qRegisterMultimediaMetaTypes()
 {
-    class QMultimediaNamespacePrivateRegisterMetaTypes
-    {
-    public:
-        QMultimediaNamespacePrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QMultimedia::AvailabilityStatus>();
-            qRegisterMetaType<QMultimedia::SupportEstimate>();
-            qRegisterMetaType<QMultimedia::EncodingMode>();
-            qRegisterMetaType<QMultimedia::EncodingQuality>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QMultimedia::AvailabilityStatus>();
+    qRegisterMetaType<QMultimedia::SupportEstimate>();
+    qRegisterMetaType<QMultimedia::EncodingMode>();
+    qRegisterMetaType<QMultimedia::EncodingQuality>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterMultimediaMetaTypes)
+
 
 /*!
     \enum QMultimedia::SupportEstimate

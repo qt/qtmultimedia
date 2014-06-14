@@ -43,19 +43,15 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterEncoderSettingsMetaTypes()
 {
-class QMediaEncoderSettingsPrivateRegisterMetaTypes
-{
-public:
-    QMediaEncoderSettingsPrivateRegisterMetaTypes()
-    {
-        qRegisterMetaType<QAudioEncoderSettings>();
-        qRegisterMetaType<QVideoEncoderSettings>();
-        qRegisterMetaType<QImageEncoderSettings>();
-    }
-} _registerMetaTypes;
+    qRegisterMetaType<QAudioEncoderSettings>();
+    qRegisterMetaType<QVideoEncoderSettings>();
+    qRegisterMetaType<QImageEncoderSettings>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterEncoderSettingsMetaTypes)
+
 
 class QAudioEncoderSettingsPrivate  : public QSharedData
 {

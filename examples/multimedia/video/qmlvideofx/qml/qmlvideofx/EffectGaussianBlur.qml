@@ -49,7 +49,7 @@ Item {
     property real dividerValue: 0.5
     property ListModel parameters: ListModel {
         ListElement {
-            name: "radius"
+            name: "Radius"
             value: 0.5
         }
     }

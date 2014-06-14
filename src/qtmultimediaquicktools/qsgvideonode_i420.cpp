@@ -87,11 +87,15 @@ protected:
     virtual const char *vertexShader() const {
         const char *shader =
         "uniform highp mat4 qt_Matrix;                      \n"
+        "uniform highp float yWidth;                        \n"
+        "uniform highp float uvWidth;                       \n"
         "attribute highp vec4 qt_VertexPosition;            \n"
         "attribute highp vec2 qt_VertexTexCoord;            \n"
-        "varying highp vec2 qt_TexCoord;                    \n"
+        "varying highp vec2 yTexCoord;                      \n"
+        "varying highp vec2 uvTexCoord;                     \n"
         "void main() {                                      \n"
-        "    qt_TexCoord = qt_VertexTexCoord;               \n"
+        "    yTexCoord   = qt_VertexTexCoord * vec2(yWidth, 1);\n"
+        "    uvTexCoord  = qt_VertexTexCoord * vec2(uvWidth, 1);\n"
         "    gl_Position = qt_Matrix * qt_VertexPosition;   \n"
         "}";
         return shader;
@@ -105,13 +109,14 @@ protected:
         "uniform mediump mat4 colorMatrix;"
         "uniform lowp float opacity;"
         ""
-        "varying highp vec2 qt_TexCoord;"
+        "varying highp vec2 yTexCoord;"
+        "varying highp vec2 uvTexCoord;"
         ""
         "void main()"
         "{"
-        "    mediump float Y = texture2D(yTexture, qt_TexCoord).r;"
-        "    mediump float U = texture2D(uTexture, qt_TexCoord).r;"
-        "    mediump float V = texture2D(vTexture, qt_TexCoord).r;"
+        "    mediump float Y = texture2D(yTexture, yTexCoord).r;"
+        "    mediump float U = texture2D(uTexture, uvTexCoord).r;"
+        "    mediump float V = texture2D(vTexture, uvTexCoord).r;"
         "    mediump vec4 color = vec4(Y, U, V, 1.);"
         "    gl_FragColor = colorMatrix * color * opacity;"
         "}";
@@ -120,6 +125,8 @@ protected:
 
     virtual void initialize() {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
+        m_id_yWidth = program()->uniformLocation("yWidth");
+        m_id_uvWidth = program()->uniformLocation("uvWidth");
         m_id_yTexture = program()->uniformLocation("yTexture");
         m_id_uTexture = program()->uniformLocation("uTexture");
         m_id_vTexture = program()->uniformLocation("vTexture");
@@ -128,6 +135,8 @@ protected:
     }
 
     int m_id_matrix;
+    int m_id_yWidth;
+    int m_id_uvWidth;
     int m_id_yTexture;
     int m_id_uTexture;
     int m_id_vTexture;
@@ -181,6 +190,8 @@ public:
     GLuint m_textureIds[Num_Texture_IDs];
 
     qreal m_opacity;
+    GLfloat m_yWidth;
+    GLfloat m_uvWidth;
     QMatrix4x4 m_colorMatrix;
 
     QVideoFrame m_frame;
@@ -189,7 +200,9 @@ public:
 
 QSGVideoMaterial_YUV420::QSGVideoMaterial_YUV420(const QVideoSurfaceFormat &format) :
     m_format(format),
-    m_opacity(1.0)
+    m_opacity(1.0),
+    m_yWidth(1.0),
+    m_uvWidth(1.0)
 {
     memset(m_textureIds, 0, sizeof(m_textureIds));
 
@@ -245,21 +258,34 @@ void QSGVideoMaterial_YUV420::bind()
             }
 
             const uchar *bits = m_frame.bits();
-            int bpl = m_frame.bytesPerLine();
-            int bpl2 = (bpl / 2 + 3) & ~3;
-            int offsetU = bpl * fh;
-            int offsetV = bpl * fh + bpl2 * fh / 2;
+            int yStride = m_frame.bytesPerLine();
+            // The UV stride is usually half the Y stride and is 32-bit aligned.
+            // However it's not always the case, at least on Windows where the
+            // UV planes are sometimes not aligned.
+            // We calculate the stride using the UV byte count to always
+            // have a correct stride.
+            int uvStride = (m_frame.mappedBytes() - yStride * fh) / fh;
+            int offsetU = yStride * fh;
+            int offsetV = yStride * fh + uvStride * fh / 2;
+
+            m_yWidth = qreal(fw) / yStride;
+            m_uvWidth = qreal(fw) /  (2 * uvStride);
 
             if (m_frame.pixelFormat() == QVideoFrame::Format_YV12)
                 qSwap(offsetU, offsetV);
 
+            GLint previousAlignment;
+            glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
             functions->glActiveTexture(GL_TEXTURE1);
-            bindTexture(m_textureIds[1], fw/2, fh / 2, bits + offsetU);
+            bindTexture(m_textureIds[1], uvStride, fh / 2, bits + offsetU);
             functions->glActiveTexture(GL_TEXTURE2);
-            bindTexture(m_textureIds[2], fw/2, fh / 2, bits + offsetV);
+            bindTexture(m_textureIds[2], uvStride, fh / 2, bits + offsetV);
             functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
-            bindTexture(m_textureIds[0], fw, fh, bits);
+            bindTexture(m_textureIds[0], yStride, fh, bits);
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
 
             m_frame.unmap();
         }
@@ -318,6 +344,8 @@ void QSGVideoMaterialShader_YUV420::updateState(const RenderState &state,
     mat->bind();
 
     program()->setUniformValue(m_id_colorMatrix, mat->m_colorMatrix);
+    program()->setUniformValue(m_id_yWidth, mat->m_yWidth);
+    program()->setUniformValue(m_id_uvWidth, mat->m_uvWidth);
     if (state.isOpacityDirty()) {
         mat->m_opacity = state.opacity();
         program()->setUniformValue(m_id_opacity, GLfloat(mat->m_opacity));

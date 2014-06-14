@@ -52,21 +52,16 @@
 QT_BEGIN_NAMESPACE
 
 
-namespace
+static void qRegisterRadioTunerMetaTypes()
 {
-    class QRadioTunerPrivateRegisterMetaTypes
-    {
-    public:
-        QRadioTunerPrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QRadioTuner::Band>();
-            qRegisterMetaType<QRadioTuner::Error>();
-            qRegisterMetaType<QRadioTuner::SearchMode>();
-            qRegisterMetaType<QRadioTuner::State>();
-            qRegisterMetaType<QRadioTuner::StereoMode>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QRadioTuner::Band>();
+    qRegisterMetaType<QRadioTuner::Error>();
+    qRegisterMetaType<QRadioTuner::SearchMode>();
+    qRegisterMetaType<QRadioTuner::State>();
+    qRegisterMetaType<QRadioTuner::StereoMode>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterRadioTunerMetaTypes)
 
 
 /*!

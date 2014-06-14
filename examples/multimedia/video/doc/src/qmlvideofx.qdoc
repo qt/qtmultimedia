@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -34,9 +34,11 @@
 can be used to apply postprocessing effects, expressed in \c GLSL, to video
 and camera viewfinder content.
 
+\include examples-run.qdocinc
+
 \section1 Overview
 
-This example shows how a \l {ShaderEffectItem} can be used to apply
+This example shows how a \l {ShaderEffect} can be used to apply
 postprocessing effects, expressed in GLSL, to QML \l {VideoOutput} items.
 
 It also shows how native code can be combined with QML to implement more
@@ -44,36 +46,30 @@ advanced functionality - in this case, C++ code is used to calculate the QML
 frame rate.  This value is rendered in QML in a semi-transparent item
 overlaid on the video content.
 
-Finally, this application demonstrates the use of different top-level QML
-files to handle different physical screen sizes.  On small-screen devices,
-menus are by default hidden, and only appear when summoned by a gesture.
-Large-screen devices show a more traditional layout in which menus are
-displayed around the video content pane.
-
 The following screenshots show shader effects being applied.  In each case,
 the effect is implemented using a fragment shader.
 
 Here we see an edge detection algorithm being applied to a video clip
-(\l{http://orange.blender.org/}{Elephant's Dream from blender.org}).
-\image qmlvideofx-video-edgedetection.png
+(\l{http://durian.blender.org/}{Sintel from blender.org}).
+\image qmlvideofx-video-edgedetection.jpg
 
 This image shows a page curl effect, applied to the same video clip.
-\image qmlvideofx-video-pagecurl.png
+\image qmlvideofx-video-pagecurl.jpg
 
 Here we see a 'glow' effect (edge detection plus colour quantization) being
 applied to the camera viewfinder.
-\image qmlvideofx-camera-glow.png
+\image qmlvideofx-camera-glow.jpg
 
-This image shows a 'lens magnification' effect applied to the viewfinder.
-\image qmlvideofx-camera-magnify.png
+This image shows a 'wobble' effect applied to the viewfinder.
+\image qmlvideofx-camera-wobble.jpg
 
 The application includes many more effects than the ones shown here - look
-for Effect*.qml files in the list above to see the full range.
+for Effect*.qml files in the list of files below to see the full range.
 
 \section1 Application structure
 
 Shader effects can be applied to video or viewfinder content using
-\l{ShaderEffectItem}, as shown in the following example, which applies
+\l{ShaderEffect}, as shown in the following example, which applies
 a wiggly effect to the content:
 
 \code
@@ -171,7 +167,7 @@ is based on the \l{ShaderEffect}:
 \skipto import
 \printuntil /^\}/
 
-The interface of the \l Effect allows for derived effects to specify the
+The interface of Effect allows for derived effects to specify the
 number of parameters which they support (and therefore the number of sliders
 which should be displayed), and whether a vertical dividing line should be drawn
 between transformed and untransformed image regions.  As an example, here is the
@@ -195,11 +191,8 @@ vertical dividing line, which can be dragged left / right by the user.  Finally,
 a \l{video/qmlvideofx/qml/qmlvideofx/ParameterPanel.qml}{ParameterPanel} item
 renders the sliders corresponding to each effect parameter.
 
-Here is the source selection menu:
-\image qmlvideofx-source-menu.png
-
-And here is the effect selection menu:
-\image qmlvideofx-effects-menu.png
+Here is the effect selection menu:
+\image qmlvideofx-effects-menu.jpg
 
 \section1 Calculating and displaying QML painting rate
 
@@ -219,4 +212,3 @@ object to a JavaScript function, which will eventually call frequencyItem.notify
 \printuntil SLOT(qmlFramePainted()));
 
 */
-

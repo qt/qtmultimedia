@@ -90,19 +90,15 @@ QT_BEGIN_NAMESPACE
     \sa QMediaObject, QMediaService, QVideoWidget, QMediaPlaylist
 */
 
-namespace
+static void qRegisterMediaPlayerMetaTypes()
 {
-class MediaPlayerRegisterMetaTypes
-{
-public:
-    MediaPlayerRegisterMetaTypes()
-    {
-        qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
-        qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
-        qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
-    }
-} _registerPlayerMetaTypes;
+    qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
+    qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
+    qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlayerMetaTypes)
+
 
 #define MAX_NESTED_PLAYLISTS 16
 
@@ -1238,12 +1234,14 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
 
 /*!
     \property QMediaPlayer::bufferStatus
-    \brief the percentage of the temporary buffer filled before playback begins.
+    \brief the percentage of the temporary buffer filled before playback begins or resumes, from
+    \c 0 (empty) to \c 100 (full).
 
     When the player object is buffering; this property holds the percentage of
     the temporary buffer that is filled. The buffer will need to reach 100%
-    filled before playback can resume, at which time the MediaStatus will be
-    BufferedMedia.
+    filled before playback can start or resume, at which time mediaStatus() will return
+    BufferedMedia or BufferingMedia. If the value is anything lower than \c 100, mediaStatus() will
+    return StalledMedia.
 
     \sa mediaStatus()
 */

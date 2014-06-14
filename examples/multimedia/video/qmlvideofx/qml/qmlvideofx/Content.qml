@@ -39,11 +39,10 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
 
 Rectangle {
     id: root
-    color: "black"
     property alias effect: effectLoader.item
     property alias gripSize: divider.gripSize
     property string effectSource

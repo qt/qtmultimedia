@@ -43,6 +43,7 @@ package org.qtproject.qt5.android.multimedia;
 
 import java.io.IOException;
 import java.lang.String;
+import java.io.FileInputStream;
 
 // API is level is < 9 unless marked otherwise.
 import android.app.Activity;
@@ -247,6 +248,8 @@ public class QtAndroidMediaPlayer
         if (mMediaPlayer == null) {
             mMediaPlayer = new MediaPlayer();
             setState(State.Idle);
+            // Make sure the new media player has the volume that was set on the QMediaPlayer
+            setVolumeHelper(mMuted ? 0 : mVolume);
         }
     }
 
@@ -376,6 +379,7 @@ public class QtAndroidMediaPlayer
             mMediaPlayer.setDisplay(mSurfaceHolder);
 
         AssetFileDescriptor afd = null;
+        FileInputStream fis = null;
         try {
             mUri = Uri.parse(path);
             final boolean inAssets = (mUri.getScheme().compareTo("assets") == 0);
@@ -387,6 +391,10 @@ public class QtAndroidMediaPlayer
                 final long length = afd.getLength();
                 FileDescriptor fd = afd.getFileDescriptor();
                 mMediaPlayer.setDataSource(fd, offset, length);
+            } else if (mUri.getScheme().compareTo("file") == 0) {
+                fis = new FileInputStream(mUri.getPath());
+                FileDescriptor fd = fis.getFD();
+                mMediaPlayer.setDataSource(fd);
             } else {
                 mMediaPlayer.setDataSource(mActivity, mUri);
             }
@@ -402,9 +410,13 @@ public class QtAndroidMediaPlayer
         } catch (final NullPointerException e) {
             Log.d(TAG, "" + e.getMessage());
         } finally {
-            if (afd !=null) {
-                try { afd.close(); } catch (final IOException ioe) { /* Ignore... */ }
-            }
+            try {
+               if (afd != null)
+                   afd.close();
+               if (fis != null)
+                   fis.close();
+            } catch (final IOException ioe) { /* Ignore... */ }
+
             if ((mState & State.Initialized) == 0) {
                 setState(State.Error);
                 onErrorNative(MediaPlayer.MEDIA_ERROR_UNKNOWN,
@@ -472,6 +484,20 @@ public class QtAndroidMediaPlayer
 
    public void setVolume(int volume)
    {
+       if (volume < 0)
+           volume = 0;
+
+       if (volume > 100)
+           volume = 100;
+
+       mVolume = volume;
+
+       if (!mMuted)
+           setVolumeHelper(mVolume);
+   }
+
+   private void setVolumeHelper(int volume)
+   {
        if ((mState & (State.Idle
                       | State.Initialized
                       | State.Stopped
@@ -482,18 +508,9 @@ public class QtAndroidMediaPlayer
            return;
        }
 
-       if (volume < 0)
-           volume = 0;
-
-       if (volume > 100)
-           volume = 100;
-
-       float newVolume = adjustVolume(volume);
-
        try {
+           float newVolume = adjustVolume(volume);
            mMediaPlayer.setVolume(newVolume, newVolume);
-           if (!mMuted)
-               mVolume = volume;
        } catch (final IllegalStateException e) {
            Log.d(TAG, "" + e.getMessage());
        }
@@ -523,7 +540,7 @@ public class QtAndroidMediaPlayer
     public void mute(final boolean mute)
     {
         mMuted = mute;
-        setVolume(mute ? 0 : mVolume);
+        setVolumeHelper(mute ? 0 : mVolume);
     }
 
     public boolean isMuted()

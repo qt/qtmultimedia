@@ -50,17 +50,12 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace
+static void qRegisterAbstractVideoSurfaceMetaTypes()
 {
-    class QAbstractVideoSurfacePrivateRegisterMetaTypes
-    {
-    public:
-        QAbstractVideoSurfacePrivateRegisterMetaTypes()
-        {
-            qRegisterMetaType<QAbstractVideoSurface::Error>();
-        }
-    } _registerMetaTypes;
+    qRegisterMetaType<QAbstractVideoSurface::Error>();
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterAbstractVideoSurfaceMetaTypes)
 
 
 class QAbstractVideoSurfacePrivate {

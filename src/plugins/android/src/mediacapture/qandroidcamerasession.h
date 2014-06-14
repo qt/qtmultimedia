@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -47,21 +47,13 @@
 #include <QCameraImageCapture>
 #include <QSet>
 #include <QMutex>
-#include "qandroidmediastoragelocation.h"
+#include <private/qmediastoragelocation_p.h>
+#include "androidcamera.h"
 
 QT_BEGIN_NAMESPACE
 
-class JCamera;
 class QAndroidVideoOutput;
 class QAndroidMediaVideoProbeControl;
-
-struct AndroidCameraInfo
-{
-    QByteArray name;
-    QString description;
-    QCamera::Position position;
-    int orientation;
-};
 
 class QAndroidCameraSession : public QObject
 {
@@ -73,7 +65,7 @@ public:
     static const QList<AndroidCameraInfo> &availableCameras();
 
     void setSelectedCamera(int cameraId) { m_selectedCamera = cameraId; }
-    JCamera *camera() const { return m_camera; }
+    AndroidCamera *camera() const { return m_camera; }
 
     QCamera::State state() const { return m_state; }
     void setState(QCamera::State state);
@@ -141,7 +133,7 @@ private:
     bool open();
     void close();
 
-    void startPreview();
+    bool startPreview();
     void stopPreview();
 
     void applyImageSettings();
@@ -154,7 +146,7 @@ private:
                               const QString &fileName);
 
     int m_selectedCamera;
-    JCamera *m_camera;
+    AndroidCamera *m_camera;
     int m_nativeOrientation;
     QAndroidVideoOutput *m_videoOutput;
 
@@ -174,7 +166,7 @@ private:
     int m_currentImageCaptureId;
     QString m_currentImageCaptureFileName;
 
-    QAndroidMediaStorageLocation m_mediaStorageLocation;
+    QMediaStorageLocation m_mediaStorageLocation;
 
     QSet<QAndroidMediaVideoProbeControl *> m_videoProbes;
     QMutex m_videoProbesMutex;

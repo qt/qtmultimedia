@@ -45,13 +45,13 @@
 #include <qvideorenderercontrol.h>
 #include <qmutex.h>
 #include "qandroidvideooutput.h"
-#include "jsurfacetexture.h"
 
 QT_BEGIN_NAMESPACE
 
 class QOpenGLTexture;
 class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
+class AndroidSurfaceTexture;
 
 class OpenGLResourcesDeleter : public QObject
 {
@@ -86,8 +86,7 @@ public:
     QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
     void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
 
-    jobject surfaceHolder() Q_DECL_OVERRIDE;
-    jobject surfaceTexture() Q_DECL_OVERRIDE;
+    AndroidSurfaceTexture *surfaceTexture() Q_DECL_OVERRIDE;
     bool isReady() Q_DECL_OVERRIDE;
     void setVideoSize(const QSize &size) Q_DECL_OVERRIDE;
     void stop() Q_DECL_OVERRIDE;
@@ -112,9 +111,7 @@ private:
     QAbstractVideoSurface *m_surface;
     QSize m_nativeSize;
 
-    QJNIObjectPrivate *m_androidSurface;
-    JSurfaceTexture *m_surfaceTexture;
-    QJNIObjectPrivate *m_surfaceHolder;
+    AndroidSurfaceTexture *m_surfaceTexture;
 
     quint32 m_externalTex;
     QOpenGLFramebufferObject *m_fbo;

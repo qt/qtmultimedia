@@ -70,7 +70,7 @@ QSGVivanteVideoMaterial::QSGVivanteVideoMaterial() :
 
 QSGVivanteVideoMaterial::~QSGVivanteVideoMaterial()
 {
-    for (GLuint id : mBitsToTextureMap.values()) {
+    Q_FOREACH (GLuint id, mBitsToTextureMap.values()) {
 #ifdef QT_VIVANTE_VIDEO_DEBUG
         qDebug() << "delete texture: " << id;
 #endif
@@ -154,7 +154,7 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
         mWidth = vF.width();
         mHeight = vF.height();
         mFormat = vF.pixelFormat();
-        for (GLuint id : mBitsToTextureMap.values()) {
+        Q_FOREACH (GLuint id, mBitsToTextureMap.values()) {
 #ifdef QT_VIVANTE_VIDEO_DEBUG
             qDebug() << "delete texture: " << id;
 #endif

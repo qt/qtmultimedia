@@ -46,11 +46,11 @@
 #include "qandroidaudioinputselectorcontrol.h"
 #include "qandroidcamerainfocontrol.h"
 #include "qandroidcamerasession.h"
-#include "jmediaplayer.h"
-#include "jsurfacetexture.h"
-#include "jcamera.h"
-#include "jmultimediautils.h"
-#include "jmediarecorder.h"
+#include "androidmediaplayer.h"
+#include "androidsurfacetexture.h"
+#include "androidcamera.h"
+#include "androidmultimediautils.h"
+#include "androidmediarecorder.h"
 #include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
@@ -147,9 +147,12 @@ int QAndroidMediaServicePlugin::cameraOrientation(const QByteArray &device) cons
     return QAndroidCameraInfoControl::orientation(device);
 }
 
+QT_END_NAMESPACE
 
+#ifndef Q_OS_ANDROID_NO_SDK
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
+    QT_USE_NAMESPACE
     typedef union {
         JNIEnv *nativeEnvironment;
         void *venv;
@@ -163,15 +166,14 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     JNIEnv *jniEnv = uenv.nativeEnvironment;
 
-    if (!JMediaPlayer::initJNI(jniEnv) ||
-        !JCamera::initJNI(jniEnv) ||
-        !JMediaRecorder::initJNI(jniEnv)) {
+    if (!AndroidMediaPlayer::initJNI(jniEnv) ||
+        !AndroidCamera::initJNI(jniEnv) ||
+        !AndroidMediaRecorder::initJNI(jniEnv)) {
         return JNI_ERR;
     }
 
-    JSurfaceTexture::initJNI(jniEnv);
+    AndroidSurfaceTexture::initJNI(jniEnv);
 
     return JNI_VERSION_1_4;
 }
-
-QT_END_NAMESPACE
+#endif // Q_OS_ANDROID_NO_SDK

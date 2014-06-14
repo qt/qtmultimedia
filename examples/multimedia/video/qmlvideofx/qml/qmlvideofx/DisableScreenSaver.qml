@@ -41,6 +41,7 @@
 
 import QtQuick 2.0
 import QtMobility.systeminfo 1.1
+// NOTE: The QtSystemInfo module is not yet part of Qt 5
 
 Item {
     ScreenSaver {

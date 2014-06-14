@@ -40,24 +40,25 @@
 ****************************************************************************/
 
 #include "qandroidmediaplayercontrol.h"
-#include "jmediaplayer.h"
+#include "androidmediaplayer.h"
 #include "qandroidvideooutput.h"
 
 QT_BEGIN_NAMESPACE
 
 QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
     : QMediaPlayerControl(parent),
-      mMediaPlayer(new JMediaPlayer),
+      mMediaPlayer(new AndroidMediaPlayer),
       mCurrentState(QMediaPlayer::StoppedState),
       mCurrentMediaStatus(QMediaPlayer::NoMedia),
       mMediaStream(0),
       mVideoOutput(0),
       mSeekable(true),
       mBufferPercent(-1),
+      mBufferFilled(false),
       mAudioAvailable(false),
       mVideoAvailable(false),
       mBuffering(false),
-      mState(JMediaPlayer::Uninitialized),
+      mState(AndroidMediaPlayer::Uninitialized),
       mPendingState(-1),
       mPendingPosition(-1),
       mPendingSetMedia(false),
@@ -98,11 +99,11 @@ QMediaPlayer::MediaStatus QAndroidMediaPlayerControl::mediaStatus() const
 
 qint64 QAndroidMediaPlayerControl::duration() const
 {
-    if ((mState & (JMediaPlayer::Prepared
-                   | JMediaPlayer::Started
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::Stopped
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
+    if ((mState & (AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::Stopped
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
         return 0;
     }
 
@@ -114,13 +115,13 @@ qint64 QAndroidMediaPlayerControl::position() const
     if (mCurrentMediaStatus == QMediaPlayer::EndOfMedia)
         return duration();
 
-    if ((mState & (JMediaPlayer::Idle
-                   | JMediaPlayer::Initialized
-                   | JMediaPlayer::Prepared
-                   | JMediaPlayer::Started
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::Stopped
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
+    if ((mState & (AndroidMediaPlayer::Idle
+                   | AndroidMediaPlayer::Initialized
+                   | AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::Stopped
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
          return (mPendingPosition == -1) ? 0 : mPendingPosition;
     }
 
@@ -134,10 +135,10 @@ void QAndroidMediaPlayerControl::setPosition(qint64 position)
 
     const int seekPosition = (position > INT_MAX) ? INT_MAX : position;
 
-    if ((mState & (JMediaPlayer::Prepared
-                   | JMediaPlayer::Started
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
+    if ((mState & (AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
         if (mPendingPosition != seekPosition) {
             mPendingPosition = seekPosition;
             Q_EMIT positionChanged(seekPosition);
@@ -164,13 +165,13 @@ int QAndroidMediaPlayerControl::volume() const
 
 void QAndroidMediaPlayerControl::setVolume(int volume)
 {
-    if ((mState & (JMediaPlayer::Idle
-                   | JMediaPlayer::Initialized
-                   | JMediaPlayer::Stopped
-                   | JMediaPlayer::Prepared
-                   | JMediaPlayer::Started
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
+    if ((mState & (AndroidMediaPlayer::Idle
+                   | AndroidMediaPlayer::Initialized
+                   | AndroidMediaPlayer::Stopped
+                   | AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
         if (mPendingVolume != volume) {
             mPendingVolume = volume;
             Q_EMIT volumeChanged(volume);
@@ -195,13 +196,13 @@ bool QAndroidMediaPlayerControl::isMuted() const
 
 void QAndroidMediaPlayerControl::setMuted(bool muted)
 {
-    if ((mState & (JMediaPlayer::Idle
-                   | JMediaPlayer::Initialized
-                   | JMediaPlayer::Stopped
-                   | JMediaPlayer::Prepared
-                   | JMediaPlayer::Started
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
+    if ((mState & (AndroidMediaPlayer::Idle
+                   | AndroidMediaPlayer::Initialized
+                   | AndroidMediaPlayer::Stopped
+                   | AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
         if (mPendingMute != muted) {
             mPendingMute = muted;
             Q_EMIT mutedChanged(muted);
@@ -221,7 +222,7 @@ void QAndroidMediaPlayerControl::setMuted(bool muted)
 
 int QAndroidMediaPlayerControl::bufferStatus() const
 {
-    return mBufferPercent;
+    return mBufferFilled ? 100 : 0;
 }
 
 bool QAndroidMediaPlayerControl::isAudioAvailable() const
@@ -290,7 +291,7 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
     }
 
     // Release the mediaplayer if it's not in in Idle or Uninitialized state
-    if ((mState & (JMediaPlayer::Idle | JMediaPlayer::Uninitialized)) == 0)
+    if ((mState & (AndroidMediaPlayer::Idle | AndroidMediaPlayer::Uninitialized)) == 0)
         mMediaPlayer->release();
 
     if (mediaContent.isNull()) {
@@ -311,7 +312,7 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
         const QString path = url.toString().mid(3);
         mTempFile.reset(QTemporaryFile::createNativeFile(path));
         if (!mTempFile.isNull())
-            mediaPath = QLatin1String("file://") + mTempFile->fileName();
+            mediaPath = QStringLiteral("file://") + mTempFile->fileName();
     } else {
         mediaPath = url.toString();
     }
@@ -319,8 +320,8 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
     if (mVideoSize.isValid() && mVideoOutput)
         mVideoOutput->setVideoSize(mVideoSize);
 
-    if (!mMediaPlayer->display() && mVideoOutput)
-        mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+    if ((mMediaPlayer->display() == 0) && mVideoOutput)
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
     mMediaPlayer->setDataSource(mediaPath);
     mMediaPlayer->prepareAsync();
 
@@ -344,7 +345,7 @@ void QAndroidMediaPlayerControl::setVideoOutput(QObject *videoOutput)
         return;
 
     if (mVideoOutput->isReady())
-        mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
 
     connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
 }
@@ -352,16 +353,16 @@ void QAndroidMediaPlayerControl::setVideoOutput(QObject *videoOutput)
 void QAndroidMediaPlayerControl::play()
 {
     // We need to prepare the mediaplayer again.
-    if ((mState & JMediaPlayer::Stopped) && !mMediaContent.isNull()) {
+    if ((mState & AndroidMediaPlayer::Stopped) && !mMediaContent.isNull()) {
         setMedia(mMediaContent, mMediaStream);
     }
 
     setState(QMediaPlayer::PlayingState);
 
-    if ((mState & (JMediaPlayer::Prepared
-                   | JMediaPlayer::Started
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
+    if ((mState & (AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
         mPendingState = QMediaPlayer::PlayingState;
         return;
     }
@@ -373,9 +374,9 @@ void QAndroidMediaPlayerControl::pause()
 {
     setState(QMediaPlayer::PausedState);
 
-    if ((mState & (JMediaPlayer::Started
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
+    if ((mState & (AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
         mPendingState = QMediaPlayer::PausedState;
         return;
     }
@@ -387,12 +388,12 @@ void QAndroidMediaPlayerControl::stop()
 {
     setState(QMediaPlayer::StoppedState);
 
-    if ((mState & (JMediaPlayer::Prepared
-                   | JMediaPlayer::Started
-                   | JMediaPlayer::Stopped
-                   | JMediaPlayer::Paused
-                   | JMediaPlayer::PlaybackCompleted)) == 0) {
-        if ((mState & (JMediaPlayer::Idle | JMediaPlayer::Uninitialized | JMediaPlayer::Error)) == 0)
+    if ((mState & (AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Started
+                   | AndroidMediaPlayer::Stopped
+                   | AndroidMediaPlayer::Paused
+                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
+        if ((mState & (AndroidMediaPlayer::Idle | AndroidMediaPlayer::Uninitialized | AndroidMediaPlayer::Error)) == 0)
             mPendingState = QMediaPlayer::StoppedState;
         return;
     }
@@ -404,28 +405,28 @@ void QAndroidMediaPlayerControl::onInfo(qint32 what, qint32 extra)
 {
     Q_UNUSED(extra);
     switch (what) {
-    case JMediaPlayer::MEDIA_INFO_UNKNOWN:
+    case AndroidMediaPlayer::MEDIA_INFO_UNKNOWN:
         break;
-    case JMediaPlayer::MEDIA_INFO_VIDEO_TRACK_LAGGING:
+    case AndroidMediaPlayer::MEDIA_INFO_VIDEO_TRACK_LAGGING:
         // IGNORE
         break;
-    case JMediaPlayer::MEDIA_INFO_VIDEO_RENDERING_START:
+    case AndroidMediaPlayer::MEDIA_INFO_VIDEO_RENDERING_START:
         break;
-    case JMediaPlayer::MEDIA_INFO_BUFFERING_START:
+    case AndroidMediaPlayer::MEDIA_INFO_BUFFERING_START:
         mPendingState = mCurrentState;
         setState(QMediaPlayer::PausedState);
         setMediaStatus(QMediaPlayer::StalledMedia);
         break;
-    case JMediaPlayer::MEDIA_INFO_BUFFERING_END:
+    case AndroidMediaPlayer::MEDIA_INFO_BUFFERING_END:
         if (mCurrentState != QMediaPlayer::StoppedState)
             flushPendingStates();
         break;
-    case JMediaPlayer::MEDIA_INFO_BAD_INTERLEAVING:
+    case AndroidMediaPlayer::MEDIA_INFO_BAD_INTERLEAVING:
         break;
-    case JMediaPlayer::MEDIA_INFO_NOT_SEEKABLE:
+    case AndroidMediaPlayer::MEDIA_INFO_NOT_SEEKABLE:
         setSeekable(false);
         break;
-    case JMediaPlayer::MEDIA_INFO_METADATA_UPDATE:
+    case AndroidMediaPlayer::MEDIA_INFO_METADATA_UPDATE:
         Q_EMIT metaDataUpdated();
         break;
     }
@@ -437,44 +438,44 @@ void QAndroidMediaPlayerControl::onError(qint32 what, qint32 extra)
     QMediaPlayer::Error error = QMediaPlayer::ResourceError;
 
     switch (what) {
-    case JMediaPlayer::MEDIA_ERROR_UNKNOWN:
+    case AndroidMediaPlayer::MEDIA_ERROR_UNKNOWN:
         errorString = QLatin1String("Error:");
         break;
-    case JMediaPlayer::MEDIA_ERROR_SERVER_DIED:
+    case AndroidMediaPlayer::MEDIA_ERROR_SERVER_DIED:
         errorString = QLatin1String("Error: Server died");
         error = QMediaPlayer::ServiceMissingError;
         break;
-    case JMediaPlayer::MEDIA_ERROR_INVALID_STATE:
+    case AndroidMediaPlayer::MEDIA_ERROR_INVALID_STATE:
         errorString = QLatin1String("Error: Invalid state");
         error = QMediaPlayer::ServiceMissingError;
         break;
     }
 
     switch (extra) {
-    case JMediaPlayer::MEDIA_ERROR_IO: // Network OR file error
+    case AndroidMediaPlayer::MEDIA_ERROR_IO: // Network OR file error
         errorString += QLatin1String(" (I/O operation failed)");
         error = QMediaPlayer::NetworkError;
         setMediaStatus(QMediaPlayer::InvalidMedia);
         break;
-    case JMediaPlayer::MEDIA_ERROR_MALFORMED:
+    case AndroidMediaPlayer::MEDIA_ERROR_MALFORMED:
         errorString += QLatin1String(" (Malformed bitstream)");
         error = QMediaPlayer::FormatError;
         setMediaStatus(QMediaPlayer::InvalidMedia);
         break;
-    case JMediaPlayer::MEDIA_ERROR_UNSUPPORTED:
+    case AndroidMediaPlayer::MEDIA_ERROR_UNSUPPORTED:
         errorString += QLatin1String(" (Unsupported media)");
         error = QMediaPlayer::FormatError;
         setMediaStatus(QMediaPlayer::InvalidMedia);
         break;
-    case JMediaPlayer::MEDIA_ERROR_TIMED_OUT:
+    case AndroidMediaPlayer::MEDIA_ERROR_TIMED_OUT:
         errorString += QLatin1String(" (Timed out)");
         break;
-    case JMediaPlayer::MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
+    case AndroidMediaPlayer::MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
         errorString += QLatin1String(" (Unable to start progressive playback')");
         error = QMediaPlayer::FormatError;
         setMediaStatus(QMediaPlayer::InvalidMedia);
         break;
-    case JMediaPlayer::MEDIA_ERROR_BAD_THINGS_ARE_GOING_TO_HAPPEN:
+    case AndroidMediaPlayer::MEDIA_ERROR_BAD_THINGS_ARE_GOING_TO_HAPPEN:
         errorString += QLatin1String(" (Unknown error/Insufficient resources)");
         error = QMediaPlayer::ServiceMissingError;
         break;
@@ -487,7 +488,6 @@ void QAndroidMediaPlayerControl::onBufferingChanged(qint32 percent)
 {
     mBuffering = percent != 100;
     mBufferPercent = percent;
-    Q_EMIT bufferStatusChanged(mBufferPercent);
 
     updateAvailablePlaybackRanges();
 
@@ -512,21 +512,21 @@ void QAndroidMediaPlayerControl::onVideoSizeChanged(qint32 width, qint32 height)
 void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
 {
     // If reloading, don't report state changes unless the new state is Prepared or Error.
-    if ((mState & JMediaPlayer::Stopped)
-        && (state & (JMediaPlayer::Prepared | JMediaPlayer::Error | JMediaPlayer::Uninitialized)) == 0) {
+    if ((mState & AndroidMediaPlayer::Stopped)
+        && (state & (AndroidMediaPlayer::Prepared | AndroidMediaPlayer::Error | AndroidMediaPlayer::Uninitialized)) == 0) {
         return;
     }
 
     mState = state;
     switch (mState) {
-    case JMediaPlayer::Idle:
+    case AndroidMediaPlayer::Idle:
         break;
-    case JMediaPlayer::Initialized:
+    case AndroidMediaPlayer::Initialized:
         break;
-    case JMediaPlayer::Preparing:
+    case AndroidMediaPlayer::Preparing:
         setMediaStatus(QMediaPlayer::LoadingMedia);
         break;
-    case JMediaPlayer::Prepared:
+    case AndroidMediaPlayer::Prepared:
         setMediaStatus(QMediaPlayer::LoadedMedia);
         if (mBuffering) {
             setMediaStatus(mBufferPercent == 100 ? QMediaPlayer::BufferedMedia
@@ -537,7 +537,7 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
         setAudioAvailable(true);
         flushPendingStates();
         break;
-    case JMediaPlayer::Started:
+    case AndroidMediaPlayer::Started:
         setState(QMediaPlayer::PlayingState);
         if (mBuffering) {
             setMediaStatus(mBufferPercent == 100 ? QMediaPlayer::BufferedMedia
@@ -546,25 +546,25 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
             setMediaStatus(QMediaPlayer::BufferedMedia);
         }
         break;
-    case JMediaPlayer::Paused:
+    case AndroidMediaPlayer::Paused:
         setState(QMediaPlayer::PausedState);
         break;
-    case JMediaPlayer::Error:
+    case AndroidMediaPlayer::Error:
         setState(QMediaPlayer::StoppedState);
         setMediaStatus(QMediaPlayer::UnknownMediaStatus);
         mMediaPlayer->release();
         break;
-    case JMediaPlayer::Stopped:
+    case AndroidMediaPlayer::Stopped:
         setState(QMediaPlayer::StoppedState);
         setMediaStatus(QMediaPlayer::LoadedMedia);
         setPosition(0);
         break;
-    case JMediaPlayer::PlaybackCompleted:
+    case AndroidMediaPlayer::PlaybackCompleted:
         setState(QMediaPlayer::StoppedState);
         setPosition(0);
         setMediaStatus(QMediaPlayer::EndOfMedia);
         break;
-    case JMediaPlayer::Uninitialized:
+    case AndroidMediaPlayer::Uninitialized:
         // reset some properties
         resetBufferingProgress();
         mPendingPosition = -1;
@@ -579,7 +579,7 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
         break;
     }
 
-    if ((mState & (JMediaPlayer::Stopped | JMediaPlayer::Uninitialized)) != 0) {
+    if ((mState & (AndroidMediaPlayer::Stopped | AndroidMediaPlayer::Uninitialized)) != 0) {
         mMediaPlayer->setDisplay(0);
         if (mVideoOutput) {
             mVideoOutput->stop();
@@ -590,8 +590,8 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
 
 void QAndroidMediaPlayerControl::onVideoOutputReady(bool ready)
 {
-    if (!mMediaPlayer->display() && mVideoOutput && ready)
-        mMediaPlayer->setDisplay(mVideoOutput->surfaceHolder());
+    if ((mMediaPlayer->display() == 0) && mVideoOutput && ready)
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
 
     flushPendingStates();
 }
@@ -621,6 +621,8 @@ void QAndroidMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status
 
     mCurrentMediaStatus = status;
     Q_EMIT mediaStatusChanged(mCurrentMediaStatus);
+
+    updateBufferStatus();
 }
 
 void QAndroidMediaPlayerControl::setSeekable(bool seekable)
@@ -658,7 +660,6 @@ void QAndroidMediaPlayerControl::resetBufferingProgress()
     mBuffering = false;
     mBufferPercent = 0;
     mAvailablePlaybackRange = QMediaTimeRange();
-    Q_EMIT bufferStatusChanged(mBufferPercent);
 }
 
 void QAndroidMediaPlayerControl::flushPendingStates()
@@ -691,6 +692,17 @@ void QAndroidMediaPlayerControl::flushPendingStates()
         break;
     default:
         break;
+    }
+}
+
+void QAndroidMediaPlayerControl::updateBufferStatus()
+{
+    bool bufferFilled = (mCurrentMediaStatus == QMediaPlayer::BufferedMedia
+                         || mCurrentMediaStatus == QMediaPlayer::BufferingMedia);
+
+    if (mBufferFilled != bufferFilled) {
+        mBufferFilled = bufferFilled;
+        Q_EMIT bufferStatusChanged(bufferStatus());
     }
 }
 

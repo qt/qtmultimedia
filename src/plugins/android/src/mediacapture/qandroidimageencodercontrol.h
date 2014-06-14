@@ -69,4 +69,6 @@ private:
     QList<QSize> m_supportedResolutions;
 };
 
+QT_END_NAMESPACE
+
 #endif // QANDROIDIMAGEENCODERCONTROL_H

@@ -80,19 +80,15 @@ QT_BEGIN_NAMESPACE
     \sa QAudioRecorder
 */
 
-namespace
+static void qRegisterMediaRecorderMetaTypes()
 {
-class MediaRecorderRegisterMetaTypes
-{
-public:
-    MediaRecorderRegisterMetaTypes()
-    {
-        qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::State");
-        qRegisterMetaType<QMediaRecorder::Status>("QMediaRecorder::Status");
-        qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
-    }
-} _registerRecorderMetaTypes;
+    qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::State");
+    qRegisterMetaType<QMediaRecorder::Status>("QMediaRecorder::Status");
+    qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
 }
+
+Q_CONSTRUCTOR_FUNCTION(qRegisterMediaRecorderMetaTypes)
+
 
 QMediaRecorderPrivate::QMediaRecorderPrivate():
      mediaObject(0),
