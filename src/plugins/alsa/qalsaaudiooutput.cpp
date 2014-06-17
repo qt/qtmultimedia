@@ -63,7 +63,6 @@ QAlsaAudioOutput::QAlsaAudioOutput(const QByteArray &device)
 {
     bytesAvailable = 0;
     handle = 0;
-    ahandler = 0;
     access = SND_PCM_ACCESS_RW_INTERLEAVED;
     pcmformat = SND_PCM_FORMAT_S16;
     buffer_frames = 0;
@@ -116,17 +115,6 @@ QAudio::Error QAlsaAudioOutput::error() const
 QAudio::State QAlsaAudioOutput::state() const
 {
     return deviceState;
-}
-
-void QAlsaAudioOutput::async_callback(snd_async_handler_t *ahandler)
-{
-    QAlsaAudioOutput* audioOut;
-
-    audioOut = static_cast<QAlsaAudioOutput*>
-        (snd_async_handler_get_callback_private(ahandler));
-
-    if (audioOut && (audioOut->deviceState == QAudio::ActiveState || audioOut->resuming))
-        audioOut->feedback();
 }
 
 int QAlsaAudioOutput::xrun_recovery(int err)
@@ -512,8 +500,7 @@ bool QAlsaAudioOutput::open()
     snd_pcm_prepare( handle );
     snd_pcm_start(handle);
 
-    // Step 5: Setup callback and timer fallback
-    snd_async_add_pcm_handler(&ahandler, handle, async_callback, this);
+    // Step 5: Setup timer
     bytesAvailable = bytesFree();
 
     // Step 6: Start audio processing
@@ -713,21 +700,6 @@ void QAlsaAudioOutput::userFeed()
         bytesAvailable = bytesFree();
 
     deviceReady();
-}
-
-void QAlsaAudioOutput::feedback()
-{
-    updateAvailable();
-}
-
-
-void QAlsaAudioOutput::updateAvailable()
-{
-#ifdef DEBUG_AUDIO
-    QTime now(QTime::currentTime());
-    qDebug()<<now.second()<<"s "<<now.msec()<<"ms :updateAvailable()";
-#endif
-    bytesAvailable = bytesFree();
 }
 
 bool QAlsaAudioOutput::deviceReady()

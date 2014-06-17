@@ -107,8 +107,6 @@ public:
 
 private slots:
     void userFeed();
-    void feedback();
-    void updateAvailable();
     bool deviceReady();
 
 signals:
@@ -126,7 +124,6 @@ private:
     unsigned int period_time;
     snd_pcm_uframes_t buffer_frames;
     snd_pcm_uframes_t period_frames;
-    static void async_callback(snd_async_handler_t *ahandler);
     int xrun_recovery(int err);
 
     int setFormat();
@@ -141,7 +138,6 @@ private:
     qint64 elapsedTimeOffset;
     char* audioBuffer;
     snd_pcm_t* handle;
-    snd_async_handler_t* ahandler;
     snd_pcm_access_t access;
     snd_pcm_format_t pcmformat;
     snd_timestamp_t* timestamp;
