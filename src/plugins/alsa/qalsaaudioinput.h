@@ -159,7 +159,6 @@ private:
     unsigned int period_time;
     snd_pcm_uframes_t buffer_frames;
     snd_pcm_uframes_t period_frames;
-    snd_async_handler_t* ahandler;
     snd_pcm_access_t access;
     snd_pcm_format_t pcmformat;
     snd_timestamp_t* timestamp;
