@@ -234,25 +234,24 @@ void QAndroidCameraFocusControl::updateFocusZones(QCameraFocusZone::FocusZoneSta
     // create a focus zone (50x50 pixel) around the focus point
     m_focusZones.clear();
 
-    if (m_actualFocusPoint.isNull())
-        return;
+    if (!m_actualFocusPoint.isNull()) {
+        QSize viewportSize = m_session->camera()->previewSize();
 
-    QSize viewportSize = m_session->camera()->previewSize();
+        if (!viewportSize.isValid())
+            return;
 
-    if (!viewportSize.isValid())
-        return;
+        QSizeF focusSize(50.f / viewportSize.width(), 50.f / viewportSize.height());
+        float x = qBound(qreal(0),
+                         m_actualFocusPoint.x() - (focusSize.width() / 2),
+                         1.f - focusSize.width());
+        float y = qBound(qreal(0),
+                         m_actualFocusPoint.y() - (focusSize.height() / 2),
+                         1.f - focusSize.height());
 
-    QSizeF focusSize(50.f / viewportSize.width(), 50.f / viewportSize.height());
-    float x = qBound(qreal(0),
-                     m_actualFocusPoint.x() - (focusSize.width() / 2),
-                     1.f - focusSize.width());
-    float y = qBound(qreal(0),
-                     m_actualFocusPoint.y() - (focusSize.height() / 2),
-                     1.f - focusSize.height());
+        QRectF area(QPointF(x, y), focusSize);
 
-    QRectF area(QPointF(x, y), focusSize);
-
-    m_focusZones.append(QCameraFocusZone(area, status));
+        m_focusZones.append(QCameraFocusZone(area, status));
+    }
 
     emit focusZonesChanged();
 }
