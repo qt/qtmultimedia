@@ -278,7 +278,7 @@ void QAndroidCaptureSession::stop(bool error)
         // if the media is saved into the standard media location, register it
         // with the Android media scanner so it appears immediately in apps
         // such as the gallery.
-        QString mediaPath = m_actualOutputLocation.toLocalFile();
+        QString mediaPath = m_usedOutputLocation.toLocalFile();
         QString standardLoc = m_cameraSession ? AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM)
                                               : AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::Sounds);
         if (mediaPath.startsWith(standardLoc))
