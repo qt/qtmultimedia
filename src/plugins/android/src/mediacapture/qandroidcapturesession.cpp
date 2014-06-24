@@ -269,7 +269,7 @@ void QAndroidCaptureSession::stop(bool error)
     delete m_mediaRecorder;
     m_mediaRecorder = 0;
 
-    if (m_cameraSession) {
+    if (m_cameraSession && m_cameraSession->status() == QCamera::ActiveStatus) {
         // Viewport needs to be restarted after recording
         restartViewfinder();
     }
@@ -516,6 +516,7 @@ void QAndroidCaptureSession::updateStatus()
         if (m_cameraSession->status() == QCamera::StoppingStatus
                 || !m_cameraSession->captureMode().testFlag(QCamera::CaptureVideo)) {
             setState(QMediaRecorder::StoppedState);
+            return;
         }
 
         if (m_state == QMediaRecorder::RecordingState) {
