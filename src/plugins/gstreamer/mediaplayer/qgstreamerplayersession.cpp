@@ -1523,6 +1523,7 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
         //rtspsrc acts like a live source and will therefore only generate data in the PLAYING state.
         self->m_sourceType = RTSPSrc;
         self->m_isLiveSource = true;
+        g_object_set(G_OBJECT(source), "buffer-mode", 1, NULL);
     } else {
         self->m_sourceType = UnknownSrc;
         self->m_isLiveSource = gst_base_src_is_live(GST_BASE_SRC(source));
