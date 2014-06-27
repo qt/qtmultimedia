@@ -51,7 +51,7 @@ QGstAppSrc::QGstAppSrc(QObject *parent)
     ,m_sequential(false)
     ,m_maxBytes(0)
     ,m_setup(false)
-    ,m_dataRequestSize(-1)
+    ,m_dataRequestSize(~0)
     ,m_dataRequested(false)
     ,m_enoughData(false)
     ,m_forceData(false)
@@ -102,7 +102,7 @@ void QGstAppSrc::setStream(QIODevice *stream)
     if (m_appSrc)
         gst_object_unref(G_OBJECT(m_appSrc));
 
-    m_dataRequestSize = -1;
+    m_dataRequestSize = ~0;
     m_dataRequested = false;
     m_enoughData = false;
     m_forceData = false;
@@ -149,7 +149,7 @@ void QGstAppSrc::pushDataToAppSrc()
 
     if (m_dataRequested && !m_enoughData) {
         qint64 size;
-        if (m_dataRequestSize == (unsigned int)-1)
+        if (m_dataRequestSize == ~0)
             size = qMin(m_stream->bytesAvailable(), queueSize());
         else
             size = qMin(m_stream->bytesAvailable(), (qint64)m_dataRequestSize);
