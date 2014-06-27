@@ -71,7 +71,7 @@ classes derived from them.
 
 Consider a developer creating, for example, a media player class called MyPlayer.
 It may have special requirements beyond ordinary media players and so may
-need a custom service and a custom control. We can subclass \l QMediaServiceProvider
+need a custom service and a custom control. We can subclass QMediaServiceProvider
 to create our MyServiceProvider class. Also we will create a
 MyMediaService, and the MyMediaControl to manipulate the media service.
 

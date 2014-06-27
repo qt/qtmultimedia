@@ -38,5 +38,5 @@
     QML alternatives. If your application is serving complex use cases such as
     decoding media files, accessing video or audio buffers, use the C++
     alternative. For more details about the complex audio, video, and camera use
-    cases supported by the C++ classes, refer to \l {Qt Multimedia Overview}.
+    cases supported by the C++ classes, refer to \l {Multimedia}{Multimedia Overview}.
 */
