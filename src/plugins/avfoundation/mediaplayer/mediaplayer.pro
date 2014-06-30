@@ -49,12 +49,17 @@ OBJECTIVE_SOURCES += \
 
     HEADERS += \
         avfvideorenderercontrol.h \
-        avfdisplaylink.h \
-        avfvideoframerenderer.h
+        avfdisplaylink.h
     OBJECTIVE_SOURCES += \
         avfvideorenderercontrol.mm \
-        avfdisplaylink.mm \
-        avfvideoframerenderer.mm
+        avfdisplaylink.mm
+
+    contains(QT_CONFIG, opengl.*) {
+        HEADERS += \
+            avfvideoframerenderer.h
+        OBJECTIVE_SOURCES += \
+            avfvideoframerenderer.mm
+    }
 }
 
 OTHER_FILES += \

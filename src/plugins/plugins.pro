@@ -48,7 +48,7 @@ mac:!simulator {
 
     config_avfoundation: SUBDIRS += avfoundation
 
-    !ios: SUBDIRS += qt7
+    contains(QT_CONFIG, opengl.*):!ios: SUBDIRS += qt7
 }
 
 config_resourcepolicy {
