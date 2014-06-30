@@ -85,6 +85,16 @@ public:
         ExposureBeach = 8,
         ExposureLargeAperture = 9,
         ExposureSmallAperture = 10,
+        ExposureAction = 11,
+        ExposureLandscape = 12,
+        ExposureNightPortrait = 13,
+        ExposureTheatre = 14,
+        ExposureSunset = 15,
+        ExposureSteadyPhoto = 16,
+        ExposureFireworks = 17,
+        ExposureParty = 18,
+        ExposureCandlelight = 19,
+        ExposureBarcode = 20,
         ExposureModeVendor = 1000
     };
 

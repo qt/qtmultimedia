@@ -191,6 +191,16 @@ public:
         ExposureBeach = QCameraExposure::ExposureBeach,
         ExposureLargeAperture = QCameraExposure::ExposureLargeAperture,
         ExposureSmallAperture = QCameraExposure::ExposureSmallAperture,
+        ExposureAction = QCameraExposure::ExposureAction,
+        ExposureLandscape = QCameraExposure::ExposureLandscape,
+        ExposureNightPortrait = QCameraExposure::ExposureNightPortrait,
+        ExposureTheatre = QCameraExposure::ExposureTheatre,
+        ExposureSunset = QCameraExposure::ExposureSunset,
+        ExposureSteadyPhoto = QCameraExposure::ExposureSteadyPhoto,
+        ExposureFireworks = QCameraExposure::ExposureFireworks,
+        ExposureParty = QCameraExposure::ExposureParty,
+        ExposureCandlelight = QCameraExposure::ExposureCandlelight,
+        ExposureBarcode = QCameraExposure::ExposureBarcode,
         ExposureModeVendor = QCameraExposure::ExposureModeVendor
     };
 

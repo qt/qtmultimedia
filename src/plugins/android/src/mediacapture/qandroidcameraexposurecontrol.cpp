@@ -181,6 +181,36 @@ bool QAndroidCameraExposureControl::setValue(ExposureParameter parameter, const 
             case QCameraExposure::ExposureNight:
                 sceneMode = QLatin1String("night");
                 break;
+            case QCameraExposure::ExposureAction:
+                sceneMode = QLatin1String("action");
+                break;
+            case QCameraExposure::ExposureLandscape:
+                sceneMode = QLatin1String("landscape");
+                break;
+            case QCameraExposure::ExposureNightPortrait:
+                sceneMode = QLatin1String("night-portrait");
+                break;
+            case QCameraExposure::ExposureTheatre:
+                sceneMode = QLatin1String("theatre");
+                break;
+            case QCameraExposure::ExposureSunset:
+                sceneMode = QLatin1String("sunset");
+                break;
+            case QCameraExposure::ExposureSteadyPhoto:
+                sceneMode = QLatin1String("steadyphoto");
+                break;
+            case QCameraExposure::ExposureFireworks:
+                sceneMode = QLatin1String("fireworks");
+                break;
+            case QCameraExposure::ExposureParty:
+                sceneMode = QLatin1String("party");
+                break;
+            case QCameraExposure::ExposureCandlelight:
+                sceneMode = QLatin1String("candlelight");
+                break;
+            case QCameraExposure::ExposureBarcode:
+                sceneMode = QLatin1String("barcode");
+                break;
             default:
                 sceneMode = QLatin1String("auto");
                 m_actualExposureMode = QCameraExposure::ExposureAuto;
@@ -226,6 +256,26 @@ void QAndroidCameraExposureControl::onCameraOpened()
                 m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureSnow);
             else if (sceneMode == QLatin1String("sports"))
                 m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureSports);
+            else if (sceneMode == QLatin1String("action"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureAction);
+            else if (sceneMode == QLatin1String("landscape"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureLandscape);
+            else if (sceneMode == QLatin1String("night-portrait"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureNightPortrait);
+            else if (sceneMode == QLatin1String("theatre"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureTheatre);
+            else if (sceneMode == QLatin1String("sunset"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureSunset);
+            else if (sceneMode == QLatin1String("steadyphoto"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureSteadyPhoto);
+            else if (sceneMode == QLatin1String("fireworks"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureFireworks);
+            else if (sceneMode == QLatin1String("party"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureParty);
+            else if (sceneMode == QLatin1String("candlelight"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureCandlelight);
+            else if (sceneMode == QLatin1String("barcode"))
+                m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureBarcode);
         }
         emit parameterRangeChanged(QCameraExposureControl::ExposureMode);
     }

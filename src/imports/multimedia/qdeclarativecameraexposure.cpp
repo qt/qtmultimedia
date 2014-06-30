@@ -341,6 +341,16 @@ void QDeclarativeCameraExposure::setAutoIsoSensitivity()
     \row \li Camera.ExposureLargeAperture \li Use larger aperture with small depth of field.
     \row \li Camera.ExposureSmallAperture \li Use smaller aperture.
     \row \li Camera.ExposurePortrait      \li Portrait exposure mode.
+    \row \li Camera.ExposureAction        \li Action exposure mode.  Since 5.5
+    \row \li Camera.ExposureLandscape     \li Landscape exposure mode.  Since 5.5
+    \row \li Camera.ExposureNightPortrait \li Night portrait exposure mode.  Since 5.5
+    \row \li Camera.ExposureTheatre       \li Theatre exposure mode.  Since 5.5
+    \row \li Camera.ExposureSunset        \li Sunset exposure mode.  Since 5.5
+    \row \li Camera.ExposureSteadyPhoto   \li Steady photo exposure mode.  Since 5.5
+    \row \li Camera.ExposureFireworks     \li Fireworks exposure mode.  Since 5.5
+    \row \li Camera.ExposureParty         \li Party exposure mode.  Since 5.5
+    \row \li Camera.ExposureCandlelight   \li Candlelight exposure mode.  Since 5.5
+    \row \li Camera.ExposureBarcode       \li Barcode exposure mode.  Since 5.5
     \row \li Camera.ExposureModeVendor    \li The base value for device specific exposure modes.
     \endtable
 */
