@@ -134,8 +134,10 @@ GstElement *QGstreamerCaptureSession::buildEncodeBin()
         return 0;
     }
 
+    // Output location was rejected in setOutputlocation() if not a local file
+    QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(m_sink);
     GstElement *fileSink = gst_element_factory_make("filesink", "filesink");
-    g_object_set(G_OBJECT(fileSink), "location", m_sink.toString().toLocal8Bit().constData(), NULL);
+    g_object_set(G_OBJECT(fileSink), "location", QFile::encodeName(actualSink.toLocalFile()).constData(), NULL);
     gst_bin_add_many(GST_BIN(encodeBin), muxer, fileSink,  NULL);
 
     if (!gst_element_link(muxer, fileSink)) {
@@ -731,6 +733,11 @@ QUrl QGstreamerCaptureSession::outputLocation() const
 
 bool QGstreamerCaptureSession::setOutputLocation(const QUrl& sink)
 {
+    if (!sink.isRelative() && !sink.isLocalFile()) {
+        qWarning("Output location must be a local file");
+        return false;
+    }
+
     m_sink = sink;
     return true;
 }

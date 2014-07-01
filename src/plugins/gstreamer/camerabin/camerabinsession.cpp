@@ -487,6 +487,11 @@ QUrl CameraBinSession::outputLocation() const
 
 bool CameraBinSession::setOutputLocation(const QUrl& sink)
 {
+    if (!sink.isRelative() && !sink.isLocalFile()) {
+        qWarning("Output location must be a local file");
+        return false;
+    }
+
     m_sink = m_actualSink = sink;
     return true;
 }
@@ -1007,8 +1012,9 @@ void CameraBinSession::recordVideo()
     if (m_actualSink.isEmpty()) {
         QString ext = m_mediaContainerControl->suggestedFileExtension(m_mediaContainerControl->actualContainerFormat());
         m_actualSink = QUrl::fromLocalFile(generateFileName("clip_", defaultDir(QCamera::CaptureVideo), ext));
-    } else if (!m_actualSink.isLocalFile()) {
-        m_actualSink = QUrl::fromLocalFile(m_actualSink.toEncoded());
+    } else {
+        // Output location was rejected in setOutputlocation() if not a local file
+        m_actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(m_actualSink);
     }
 
     QString fileName = m_actualSink.toLocalFile();
