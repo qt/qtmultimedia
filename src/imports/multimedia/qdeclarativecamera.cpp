@@ -628,13 +628,13 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
-    \qmlsignal Camera::stateChanged(state)
+    \qmlsignal Camera::cameraStateChanged(state)
 
     This signal is emitted when the camera state has changed to \a state.  Since the
     state changes may take some time to occur this signal may arrive sometime
     after the state change has been requested.
 
-    The corresponding handler is \c onStateChanged.
+    The corresponding handler is \c onCameraStateChanged.
 */
 
 /*!
