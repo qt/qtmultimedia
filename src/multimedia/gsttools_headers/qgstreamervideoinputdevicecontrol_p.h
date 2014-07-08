@@ -46,6 +46,7 @@
 #include <QtCore/qstringlist.h>
 
 #include <gst/gst.h>
+#include <qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -54,7 +55,7 @@ class QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
 Q_OBJECT
 public:
     QGstreamerVideoInputDeviceControl(QObject *parent);
-    QGstreamerVideoInputDeviceControl(GstElement *source, QObject *parent);
+    QGstreamerVideoInputDeviceControl(GstElementFactory *factory, QObject *parent);
     ~QGstreamerVideoInputDeviceControl();
 
     int deviceCount() const;
@@ -65,17 +66,16 @@ public:
     int defaultDevice() const;
     int selectedDevice() const;
 
+    static QString primaryCamera() { return tr("Main camera"); }
+    static QString secondaryCamera() { return tr("Front camera"); }
+
 public Q_SLOTS:
     void setSelectedDevice(int index);
 
 private:
-    void update();
-
-    GstElement *m_source;
+    GstElementFactory *m_factory;
 
     int m_selectedDevice;
-    QStringList m_names;
-    QStringList m_descriptions;
 };
 
 QT_END_NAMESPACE

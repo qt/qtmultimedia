@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Jolla Ltd.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,62 +39,29 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINCAPTURESERVICE_H
-#define CAMERABINCAPTURESERVICE_H
+#ifndef CAMERABININFOCONTROL_H
+#define CAMERABININFOCONTROL_H
 
-#include <qmediaservice.h>
+#include <qcamerainfocontrol.h>
 
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
-class QVideoDeviceSelectorControl;
 
-
-class CameraBinSession;
-class CameraBinControl;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoWidgetControl;
-class QGstreamerElementFactory;
-class CameraBinMetaData;
-class CameraBinImageCapture;
-class CameraBinMetaData;
-
-class CameraBinService : public QMediaService
+class CameraBinInfoControl : public QCameraInfoControl
 {
     Q_OBJECT
-
 public:
-    CameraBinService(GstElementFactory *sourceFactory, QObject *parent = 0);
-    virtual ~CameraBinService();
+    CameraBinInfoControl(GstElementFactory *sourceFactory, QObject *parent);
+    ~CameraBinInfoControl();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
-
-    static bool isCameraBinAvailable();
+    QCamera::Position cameraPosition(const QString &deviceName) const;
+    int cameraOrientation(const QString &deviceName) const;
 
 private:
-    void setAudioPreview(GstElement*);
-
-    CameraBinSession *m_captureSession;
-    CameraBinMetaData *m_metaDataControl;
-
-    QAudioInputSelectorControl *m_audioInputSelector;
-    QVideoDeviceSelectorControl *m_videoInputDevice;
-
-    QMediaControl *m_videoOutput;
-
-    QMediaControl *m_videoRenderer;
-    QMediaControl *m_videoWindow;
-#if defined(HAVE_WIDGETS)
-    QGstreamerVideoWidgetControl *m_videoWidgetControl;
-#endif
-    CameraBinImageCapture *m_imageCaptureControl;
-    QMediaControl *m_cameraInfoControl;
+    GstElementFactory * const m_sourceFactory;
 };
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINCAPTURESERVICE_H
+#endif

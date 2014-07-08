@@ -42,12 +42,18 @@
 #include "qgstutils_p.h"
 
 #include <QtCore/qdatetime.h>
+#include <QtCore/qdir.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
 #include <qaudioformat.h>
+
+#include <private/qcore_unix_p.h>
+#include <linux/videodev2.h>
+
+#include "qgstreamervideoinputdevicecontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -400,6 +406,165 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
 
     return QMultimedia::MaybeSupported;
 }
+
+namespace {
+
+typedef QHash<GstElementFactory *, QVector<QGstUtils::CameraInfo> > FactoryCameraInfoMap;
+
+Q_GLOBAL_STATIC(FactoryCameraInfoMap, qt_camera_device_info);
+
+}
+
+QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *factory)
+{
+    FactoryCameraInfoMap::const_iterator it = qt_camera_device_info()->constFind(factory);
+    if (it != qt_camera_device_info()->constEnd())
+        return *it;
+
+    QVector<CameraInfo> &devices = (*qt_camera_device_info())[factory];
+
+    if (factory) {
+        bool hasVideoSource = false;
+
+        const GType type = gst_element_factory_get_element_type(factory);
+        GObjectClass * const objectClass = type
+                ? static_cast<GObjectClass *>(g_type_class_ref(type))
+                : 0;
+        if (objectClass) {
+            if (g_object_class_find_property(objectClass, "camera-device")) {
+                const CameraInfo primary = {
+                    QStringLiteral("primary"),
+                    QGstreamerVideoInputDeviceControl::primaryCamera(),
+                    0,
+                    QCamera::BackFace
+                };
+                const CameraInfo secondary = {
+                    QStringLiteral("secondary"),
+                    QGstreamerVideoInputDeviceControl::secondaryCamera(),
+                    0,
+                    QCamera::FrontFace
+                };
+
+                devices.append(primary);
+                devices.append(secondary);
+
+                GstElement *camera = g_object_class_find_property(objectClass, "sensor-mount-angle")
+                        ? gst_element_factory_create(factory, 0)
+                        : 0;
+                if (camera) {
+                    if (gst_element_set_state(camera, GST_STATE_READY) != GST_STATE_CHANGE_SUCCESS) {
+                        // no-op
+                    } else for (int i = 0; i < 2; ++i) {
+                        gint orientation = 0;
+                        g_object_set(G_OBJECT(camera), "camera-device", i, NULL);
+                        g_object_get(G_OBJECT(camera), "sensor-mount-angle", &orientation, NULL);
+
+                        devices[i].orientation = (720 - orientation) % 360;
+                    }
+                    gst_element_set_state(camera, GST_STATE_NULL);
+                    gst_object_unref(GST_OBJECT(camera));
+
+                }
+            } else if (g_object_class_find_property(objectClass, "video-source")) {
+                hasVideoSource = true;
+            }
+
+            g_type_class_unref(objectClass);
+        }
+
+        if (!devices.isEmpty() || !hasVideoSource) {
+            return devices;
+        }
+    }
+
+    QDir devDir(QStringLiteral("/dev"));
+    devDir.setFilter(QDir::System);
+
+    QFileInfoList entries = devDir.entryInfoList(QStringList()
+                << QStringLiteral("video*"));
+
+    foreach (const QFileInfo &entryInfo, entries) {
+        //qDebug() << "Try" << entryInfo.filePath();
+
+        int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
+        if (fd == -1)
+            continue;
+
+        bool isCamera = false;
+
+        v4l2_input input;
+        memset(&input, 0, sizeof(input));
+        for (; ::ioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0; ++input.index) {
+            if (input.type == V4L2_INPUT_TYPE_CAMERA || input.type == 0) {
+                isCamera = ::ioctl(fd, VIDIOC_S_INPUT, input.index) != 0;
+                break;
+            }
+        }
+
+        if (isCamera) {
+            // find out its driver "name"
+            QString name;
+            struct v4l2_capability vcap;
+            memset(&vcap, 0, sizeof(struct v4l2_capability));
+
+            if (ioctl(fd, VIDIOC_QUERYCAP, &vcap) != 0)
+                name = entryInfo.fileName();
+            else
+                name = QString::fromUtf8((const char*)vcap.card);
+            //qDebug() << "found camera: " << name;
+
+
+            CameraInfo device = {
+                entryInfo.absoluteFilePath(),
+                name,
+                0,
+                QCamera::UnspecifiedPosition
+            };
+            devices.append(device);
+        }
+        qt_safe_close(fd);
+    }
+
+    return devices;
+}
+
+QList<QByteArray> QGstUtils::cameraDevices(GstElementFactory * factory)
+{
+    QList<QByteArray> devices;
+
+    foreach (const CameraInfo &camera, enumerateCameras(factory))
+        devices.append(camera.name.toUtf8());
+
+    return devices;
+}
+
+QString QGstUtils::cameraDescription(const QString &device, GstElementFactory * factory)
+{
+    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+        if (camera.name == device)
+            return camera.description;
+    }
+    return QString();
+}
+
+QCamera::Position QGstUtils::cameraPosition(const QString &device, GstElementFactory * factory)
+{
+    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+        if (camera.name == device)
+            return camera.position;
+    }
+    return QCamera::UnspecifiedPosition;
+}
+
+int QGstUtils::cameraOrientation(const QString &device, GstElementFactory * factory)
+{
+    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+        if (camera.name == device)
+            return camera.orientation;
+    }
+    return 0;
+}
+
 
 void qt_gst_object_ref_sink(gpointer object)
 {

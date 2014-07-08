@@ -44,7 +44,9 @@
 #define CAMERABINSERVICEPLUGIN_H
 
 #include <qmediaserviceproviderplugin.h>
-#include <QtCore/QObject>
+#include <private/qgstreamervideoinputdevicecontrol_p.h>
+
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -53,13 +55,18 @@ class CameraBinServicePlugin
     , public QMediaServiceSupportedDevicesInterface
     , public QMediaServiceDefaultDeviceInterface
     , public QMediaServiceFeaturesInterface
+    , public QMediaServiceCameraInfoInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
+    Q_INTERFACES(QMediaServiceCameraInfoInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "camerabin.json")
 public:
+    CameraBinServicePlugin();
+    ~CameraBinServicePlugin();
+
     QMediaService* create(QString const& key);
     void release(QMediaService *service);
 
@@ -70,12 +77,13 @@ public:
     QString deviceDescription(const QByteArray &service, const QByteArray &device);
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
 
-private:
-    void updateDevices() const;
+    QCamera::Position cameraPosition(const QByteArray &device) const;
+    int cameraOrientation(const QByteArray &device) const;
 
-    mutable QByteArray m_defaultCameraDevice;
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
+private:
+    GstElementFactory *sourceFactory() const;
+
+    mutable GstElementFactory *m_sourceFactory;
 };
 
 QT_END_NAMESPACE

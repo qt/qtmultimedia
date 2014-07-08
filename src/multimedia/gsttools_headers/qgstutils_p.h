@@ -55,8 +55,10 @@
 
 #include <QtCore/qmap.h>
 #include <QtCore/qset.h>
+#include <QtCore/qvector.h>
 #include <gst/gst.h>
 #include <qaudioformat.h>
+#include <qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -65,6 +67,14 @@ class QVariant;
 class QByteArray;
 
 namespace QGstUtils {
+    struct CameraInfo
+    {
+        QString name;
+        QString description;
+        int orientation;
+        QCamera::Position position;
+    };
+
     QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
 
     QSize capsResolution(const GstCaps *caps);
@@ -76,6 +86,12 @@ namespace QGstUtils {
     QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
                                              const QStringList &codecs,
                                              const QSet<QString> &supportedMimeTypeSet);
+
+    QVector<CameraInfo> enumerateCameras(GstElementFactory *factory = 0);
+    QList<QByteArray> cameraDevices(GstElementFactory * factory = 0);
+    QString cameraDescription(const QString &device, GstElementFactory * factory = 0);
+    QCamera::Position cameraPosition(const QString &device, GstElementFactory * factory = 0);
+    int cameraOrientation(const QString &device, GstElementFactory * factory = 0);
 }
 
 void qt_gst_object_ref_sink(gpointer object);

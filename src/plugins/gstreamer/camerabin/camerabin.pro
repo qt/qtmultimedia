@@ -30,7 +30,8 @@ HEADERS += \
     $$PWD/camerabinresourcepolicy.h \
     $$PWD/camerabincapturedestination.h \
     $$PWD/camerabincapturebufferformat.h \
-    $$PWD/camerabinviewfindersettings.h
+    $$PWD/camerabinviewfindersettings.h \
+    $$PWD/camerabininfocontrol.h
 
 SOURCES += \
     $$PWD/camerabinserviceplugin.cpp \
@@ -48,7 +49,8 @@ SOURCES += \
     $$PWD/camerabinresourcepolicy.cpp \
     $$PWD/camerabincapturedestination.cpp \
     $$PWD/camerabinviewfindersettings.cpp \
-    $$PWD/camerabincapturebufferformat.cpp
+    $$PWD/camerabincapturebufferformat.cpp \
+    $$PWD/camerabininfocontrol.cpp
 
 maemo6 {
     HEADERS += \

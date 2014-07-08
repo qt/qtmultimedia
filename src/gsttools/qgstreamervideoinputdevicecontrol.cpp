@@ -44,43 +44,40 @@
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 
-#include <private/qcore_unix_p.h>
-#include <linux/videodev2.h>
+#include <private/qgstutils_p.h>
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(QObject *parent)
-    :QVideoDeviceSelectorControl(parent), m_source(0), m_selectedDevice(0)
+    :QVideoDeviceSelectorControl(parent), m_factory(0), m_selectedDevice(0)
 {
-    update();
 }
 
-QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(GstElement *source, QObject *parent)
-    :QVideoDeviceSelectorControl(parent), m_source(source), m_selectedDevice(0)
+QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(
+        GstElementFactory *factory, QObject *parent)
+    : QVideoDeviceSelectorControl(parent), m_factory(factory), m_selectedDevice(0)
 {
-    if (m_source)
-        gst_object_ref(GST_OBJECT(m_source));
-
-    update();
+    if (m_factory)
+        gst_object_ref(GST_OBJECT(m_factory));
 }
 
 QGstreamerVideoInputDeviceControl::~QGstreamerVideoInputDeviceControl()
 {
-    if (m_source)
-        gst_object_unref(GST_OBJECT(m_source));
+    if (m_factory)
+        gst_object_unref(GST_OBJECT(m_factory));
 }
 
 int QGstreamerVideoInputDeviceControl::deviceCount() const
 {
-    return m_names.size();
+    return QGstUtils::enumerateCameras(m_factory).count();
 }
 
 QString QGstreamerVideoInputDeviceControl::deviceName(int index) const
 {
-    return m_names[index];
+    return QGstUtils::enumerateCameras(m_factory).value(index).name;
 }
 
 QString QGstreamerVideoInputDeviceControl::deviceDescription(int index) const
 {
-    return m_descriptions[index];
+    return QGstUtils::enumerateCameras(m_factory).value(index).description;
 }
 
 int QGstreamerVideoInputDeviceControl::defaultDevice() const
@@ -93,69 +90,11 @@ int QGstreamerVideoInputDeviceControl::selectedDevice() const
     return m_selectedDevice;
 }
 
-
 void QGstreamerVideoInputDeviceControl::setSelectedDevice(int index)
 {
     if (index != m_selectedDevice) {
         m_selectedDevice = index;
         emit selectedDeviceChanged(index);
         emit selectedDeviceChanged(deviceName(index));
-    }
-}
-
-
-void QGstreamerVideoInputDeviceControl::update()
-{
-    m_names.clear();
-    m_descriptions.clear();
-
-    // subdevsrc and the like have a camera-device property that takes an enumeration
-    // identifying a primary or secondary camera, so return identifiers that map to those
-    // instead of a list of actual devices.
-    if (m_source && g_object_class_find_property(G_OBJECT_GET_CLASS(m_source), "camera-device")) {
-        m_names << QLatin1String("primary") << QLatin1String("secondary");
-        m_descriptions << tr("Main camera") << tr("Front camera");
-        return;
-    }
-
-    QDir devDir("/dev");
-    devDir.setFilter(QDir::System);
-
-    QFileInfoList entries = devDir.entryInfoList(QStringList() << "video*");
-
-    foreach( const QFileInfo &entryInfo, entries ) {
-        //qDebug() << "Try" << entryInfo.filePath();
-
-        int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
-        if (fd == -1)
-            continue;
-
-        bool isCamera = false;
-
-        v4l2_input input;
-        memset(&input, 0, sizeof(input));
-        for (; ::ioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0; ++input.index) {
-            if(input.type == V4L2_INPUT_TYPE_CAMERA || input.type == 0) {
-                isCamera = ::ioctl(fd, VIDIOC_S_INPUT, input.index) != 0;
-                break;
-            }
-        }
-
-        if (isCamera) {
-            // find out its driver "name"
-            QString name;
-            struct v4l2_capability vcap;
-            memset(&vcap, 0, sizeof(struct v4l2_capability));
-
-            if (ioctl(fd, VIDIOC_QUERYCAP, &vcap) != 0)
-                name = entryInfo.fileName();
-            else
-                name = QString((const char*)vcap.card);
-            //qDebug() << "found camera: " << name;
-
-            m_names.append(entryInfo.filePath());
-            m_descriptions.append(name);
-        }
-        qt_safe_close(fd);
     }
 }

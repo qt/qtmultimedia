@@ -51,9 +51,6 @@
 #include "qgstreamercaptureservice.h"
 #include <private/qgstutils_p.h>
 
-#include <private/qcore_unix_p.h>
-#include <linux/videodev2.h>
-
 QMediaService* QGstreamerCaptureServicePlugin::create(const QString &key)
 {
     QGstUtils::initializeGst();
@@ -87,40 +84,19 @@ QMediaServiceProviderHint::Features QGstreamerCaptureServicePlugin::supportedFea
 
 QByteArray QGstreamerCaptureServicePlugin::defaultDevice(const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        return m_defaultCameraDevice;
-    }
-
-    return QByteArray();
+    return service == Q_MEDIASERVICE_CAMERA
+            ? QGstUtils::enumerateCameras().value(0).name.toUtf8()
+            : QByteArray();
 }
 
 QList<QByteArray> QGstreamerCaptureServicePlugin::devices(const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        return m_cameraDevices;
-    }
-
-    return QList<QByteArray>();
+    return service == Q_MEDIASERVICE_CAMERA ? QGstUtils::cameraDevices() : QList<QByteArray>();
 }
 
 QString QGstreamerCaptureServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
-
-        for (int i=0; i<m_cameraDevices.count(); i++)
-            if (m_cameraDevices[i] == device)
-                return m_cameraDescriptions[i];
-    }
-
-    return QString();
+    return service == Q_MEDIASERVICE_CAMERA ? QGstUtils::cameraDescription(deviceName) : QString();
 }
 
 QVariant QGstreamerCaptureServicePlugin::deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property)
@@ -131,56 +107,6 @@ QVariant QGstreamerCaptureServicePlugin::deviceProperty(const QByteArray &servic
     return QVariant();
 }
 
-void QGstreamerCaptureServicePlugin::updateDevices() const
-{
-    m_defaultCameraDevice.clear();
-    m_cameraDevices.clear();
-    m_cameraDescriptions.clear();
-
-    QDir devDir("/dev");
-    devDir.setFilter(QDir::System);
-
-    QFileInfoList entries = devDir.entryInfoList(QStringList() << "video*");
-
-    foreach( const QFileInfo &entryInfo, entries ) {
-        //qDebug() << "Try" << entryInfo.filePath();
-
-        int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
-        if (fd == -1)
-            continue;
-
-        bool isCamera = false;
-
-        v4l2_input input;
-        memset(&input, 0, sizeof(input));
-        for (; ::ioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0; ++input.index) {
-            if(input.type == V4L2_INPUT_TYPE_CAMERA || input.type == 0) {
-                isCamera = ::ioctl(fd, VIDIOC_S_INPUT, input.index) != 0;
-                break;
-            }
-        }
-
-        if (isCamera) {
-            // find out its driver "name"
-            QString name;
-            struct v4l2_capability vcap;
-            memset(&vcap, 0, sizeof(struct v4l2_capability));
-
-            if (ioctl(fd, VIDIOC_QUERYCAP, &vcap) != 0)
-                name = entryInfo.fileName();
-            else
-                name = QString((const char*)vcap.card);
-            //qDebug() << "found camera: " << name;
-
-            m_cameraDevices.append(entryInfo.filePath().toLocal8Bit());
-            m_cameraDescriptions.append(name);
-        }
-        qt_safe_close(fd);
-    }
-
-    if (!m_cameraDevices.isEmpty())
-        m_defaultCameraDevice = m_cameraDevices.first();
-}
 #endif
 
 QMultimedia::SupportEstimate QGstreamerCaptureServicePlugin::hasSupport(const QString &mimeType,

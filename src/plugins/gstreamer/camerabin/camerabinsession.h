@@ -96,7 +96,7 @@ public:
        BackCamera // Main photo camera
     };
 
-    CameraBinSession(QObject *parent);
+    CameraBinSession(GstElementFactory *sourceFactory, QObject *parent);
     ~CameraBinSession();
 
 #ifdef HAVE_GST_PHOTOGRAPHY
@@ -121,6 +121,7 @@ public:
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
     GstElement *buildCameraSource();
+    GstElementFactory *sourceFactory() const { return m_sourceFactory; }
 
     CameraBinControl *cameraControl() const { return m_cameraControl; }
     CameraBinAudioEncoder *audioEncodeControl() const { return m_audioEncodeControl; }
@@ -239,6 +240,7 @@ private:
     GstElement *m_camerabin;
     GstElement *m_videoSrc;
     GstElement *m_viewfinderElement;
+    GstElementFactory *m_sourceFactory;
     bool m_viewfinderHasChanged;
     bool m_videoInputHasChanged;
 

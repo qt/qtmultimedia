@@ -87,13 +87,6 @@ public:
     QStringList supportedMimeTypes() const;
 
 private:
-#if defined(USE_GSTREAMER_CAMERA)
-    void updateDevices() const;
-
-    mutable QByteArray m_defaultCameraDevice;
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-#endif
     void updateSupportedMimeTypes() const;
 
     mutable QSet<QString> m_supportedMimeTypeSet; //for fast access

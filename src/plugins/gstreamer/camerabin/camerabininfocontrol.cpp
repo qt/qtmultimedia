@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Jolla Ltd.
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,62 +39,33 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINCAPTURESERVICE_H
-#define CAMERABINCAPTURESERVICE_H
 
-#include <qmediaservice.h>
+#include "camerabininfocontrol.h"
 
-#include <gst/gst.h>
+#include <private/qgstutils_p.h>
 
 QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
-class QVideoDeviceSelectorControl;
 
-
-class CameraBinSession;
-class CameraBinControl;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoWidgetControl;
-class QGstreamerElementFactory;
-class CameraBinMetaData;
-class CameraBinImageCapture;
-class CameraBinMetaData;
-
-class CameraBinService : public QMediaService
+CameraBinInfoControl::CameraBinInfoControl(GstElementFactory *sourceFactory, QObject *parent)
+    : QCameraInfoControl(parent)
+    , m_sourceFactory(sourceFactory)
 {
-    Q_OBJECT
+    gst_object_ref(GST_OBJECT(m_sourceFactory));
+}
 
-public:
-    CameraBinService(GstElementFactory *sourceFactory, QObject *parent = 0);
-    virtual ~CameraBinService();
+CameraBinInfoControl::~CameraBinInfoControl()
+{
+    gst_object_unref(GST_OBJECT(m_sourceFactory));
+}
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+QCamera::Position CameraBinInfoControl::cameraPosition(const QString &device) const
+{
+    return QGstUtils::cameraPosition(device, m_sourceFactory);
+}
 
-    static bool isCameraBinAvailable();
-
-private:
-    void setAudioPreview(GstElement*);
-
-    CameraBinSession *m_captureSession;
-    CameraBinMetaData *m_metaDataControl;
-
-    QAudioInputSelectorControl *m_audioInputSelector;
-    QVideoDeviceSelectorControl *m_videoInputDevice;
-
-    QMediaControl *m_videoOutput;
-
-    QMediaControl *m_videoRenderer;
-    QMediaControl *m_videoWindow;
-#if defined(HAVE_WIDGETS)
-    QGstreamerVideoWidgetControl *m_videoWidgetControl;
-#endif
-    CameraBinImageCapture *m_imageCaptureControl;
-    QMediaControl *m_cameraInfoControl;
-};
+int CameraBinInfoControl::cameraOrientation(const QString &device) const
+{
+    return QGstUtils::cameraOrientation(device, m_sourceFactory);
+}
 
 QT_END_NAMESPACE
-
-#endif // CAMERABINCAPTURESERVICE_H
