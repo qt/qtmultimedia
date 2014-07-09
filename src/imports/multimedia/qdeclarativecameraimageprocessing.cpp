@@ -220,6 +220,42 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 }
 
 /*!
+    \qmlproperty QtMultimedia::CameraImageProcessing::colorFilter
+
+    This property holds which color filter if any will be applied to image data captured by the camera.
+
+    It can be one of:
+
+    \table
+    \row \li CameraImageProcessing.ColorFilterNone       \li No filter is applied to images.
+    \row \li CameraImageProcessing.ColorFilterGrayscale  \li A grayscale filter.
+    \row \li CameraImageProcessing.ColorFilterNegative   \li A negative filter.
+    \row \li CameraImageProcessing.ColorFilterSolarize   \li A solarize filter.
+    \row \li CameraImageProcessing.ColorFilterSepia      \li A sepia filter.
+    \row \li CameraImageProcessing.ColorFilterPosterize  \li A posterize filter.
+    \row \li CameraImageProcessing.ColorFilterWhiteboard \li A whiteboard filter.
+    \row \li CameraImageProcessing.ColorFilterBlackboard \li A blackboard filter.
+    \row \li CameraImageProcessing.ColorFilterAqua       \li An aqua filter.
+    \row \li CameraImageProcessing.ColorFilterVendor     \li The base value for vendor defined filters.
+    \endtable
+
+    \since 5.5
+*/
+
+QDeclarativeCameraImageProcessing::ColorFilter QDeclarativeCameraImageProcessing::colorFilter() const
+{
+    return ColorFilter(m_imageProcessing->colorFilter());
+}
+
+void QDeclarativeCameraImageProcessing::setColorFilter(ColorFilter filter)
+{
+    if (this->colorFilter() != filter) {
+        m_imageProcessing->setColorFilter(QCameraImageProcessing::ColorFilter(filter));
+        emit colorFilterChanged();
+    }
+}
+
+/*!
     \qmlsignal QtMultimedia::Camera::whiteBalanceModeChanged(Camera::WhiteBalanceMode)
     This signal is emitted when the \c whiteBalanceMode property is changed.
 

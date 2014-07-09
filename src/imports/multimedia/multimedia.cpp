@@ -103,6 +103,9 @@ public:
         qmlRegisterUncreatableType<QDeclarativeCameraViewfinder>(uri, 5, 4, "CameraViewfinder",
                                 trUtf8("CameraViewfinder is provided by Camera"));
 
+        // 5.5 types
+        qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 1>(uri, 5, 5, "CameraImageProcessing", trUtf8("CameraImageProcessing is provided by Camera"));
+
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }
 

@@ -44,6 +44,7 @@
 # include <gst/interfaces/photography.h>
 # if !GST_CHECK_VERSION(1,0,0)
 typedef GstWhiteBalanceMode GstPhotographyWhiteBalanceMode;
+typedef GstColourToneMode GstPhotographyColorToneMode;
 # endif
 #endif
 
@@ -82,6 +83,7 @@ private:
     QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
 #ifdef HAVE_GST_PHOTOGRAPHY
     QMap<GstPhotographyWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
+    QMap<QCameraImageProcessing::ColorFilter, GstPhotographyColorToneMode> m_filterMap;
 #endif
     QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
 };

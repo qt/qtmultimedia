@@ -171,6 +171,8 @@ QCameraImageProcessingControl::~QCameraImageProcessingControl()
     Adjustment of sharpening applied.
   \value DenoisingAdjustment
     Adjustment of denoising applied.
+  \value ColorFilter
+    Image filter applied.  Since 5.5
   \value ExtendedParameter
     The base value for platform specific extended parameters.
  */

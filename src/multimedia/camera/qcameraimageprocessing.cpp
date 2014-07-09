@@ -49,6 +49,7 @@ QT_BEGIN_NAMESPACE
 static void qRegisterCameraImageProcessingMetaTypes()
         {
             qRegisterMetaType<QCameraImageProcessing::WhiteBalanceMode>();
+            qRegisterMetaType<QCameraImageProcessing::ColorFilter>();
         }
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingMetaTypes)
@@ -316,6 +317,64 @@ void QCameraImageProcessing::setDenoisingLevel(qreal level)
     \value WhiteBalanceSunset       Sunset white balance mode.
     \value WhiteBalanceVendor       Base value for vendor defined white balance modes.
 */
+
+/*!
+    \enum QCameraImageProcessing::Filter
+
+    \value ColorFilterNone               No filter is applied to images.
+    \value ColorFilterGrayscale          A grayscale filter.
+    \value ColorFilterNegative           A negative filter.
+    \value ColorFilterSolarize           A solarize filter.
+    \value ColorFilterSepia              A sepia filter.
+    \value ColorFilterPosterize          A posterize filter.
+    \value ColorFilterWhiteboard         A whiteboard filter.
+    \value ColorFilterBlackboard         A blackboard filter.
+    \value ColorFilterAqua               An aqua filter.
+    \value ColorFilterVendor             The base value for vendor defined filters.
+
+    \since 5.5
+*/
+
+/*!
+    Returns the color filter which will be applied to image data captured by the camera.
+
+    \since 5.5
+*/
+
+QCameraImageProcessing::ColorFilter QCameraImageProcessing::colorFilter() const
+{
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::ColorFilter)
+            .value<QCameraImageProcessing::ColorFilter>();
+}
+
+
+/*!
+    Sets the color \a filter which will be applied to image data captured by the camera.
+
+    \since 5.5
+*/
+
+void QCameraImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilter filter)
+{
+    d_func()->imageControl->setParameter(
+                QCameraImageProcessingControl::ColorFilter,
+                QVariant::fromValue<QCameraImageProcessing::ColorFilter>(filter));
+}
+
+/*!
+    Returns true if a color \a filter is supported.
+
+    \since 5.5
+*/
+
+bool QCameraImageProcessing::isColorFilterSupported(QCameraImageProcessing::ColorFilter filter) const
+{
+    return d_func()->imageControl->isParameterValueSupported(
+                QCameraImageProcessingControl::ColorFilter,
+                QVariant::fromValue<QCameraImageProcessing::ColorFilter>(filter));
+
+}
+
 
 #include "moc_qcameraimageprocessing.cpp"
 QT_END_NAMESPACE
