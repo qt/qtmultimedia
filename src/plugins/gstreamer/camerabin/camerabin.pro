@@ -81,6 +81,8 @@ config_gstreamer_photography {
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API
 }
 
+config_linux_v4l: DEFINES += USE_V4L
+
 OTHER_FILES += \
     camerabin.json
 

@@ -45,7 +45,10 @@
 #include <QtCore/QDebug>
 
 #include <private/qcore_unix_p.h>
+
+#if defined(USE_V4L)
 #include <linux/videodev2.h>
+#endif
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(QObject *parent)
     :QVideoDeviceSelectorControl(parent), m_source(0), m_selectedDevice(0)
@@ -118,6 +121,7 @@ void QGstreamerVideoInputDeviceControl::update()
         return;
     }
 
+#if defined(USE_V4L)
     QDir devDir("/dev");
     devDir.setFilter(QDir::System);
 
@@ -158,4 +162,5 @@ void QGstreamerVideoInputDeviceControl::update()
         }
         qt_safe_close(fd);
     }
+#endif
 }

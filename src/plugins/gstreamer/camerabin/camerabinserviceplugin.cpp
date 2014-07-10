@@ -51,7 +51,10 @@
 #include <private/qgstutils_p.h>
 
 #include <private/qcore_unix_p.h>
+
+#if defined(USE_V4L)
 #include <linux/videodev2.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -132,6 +135,7 @@ void CameraBinServicePlugin::updateDevices() const
     m_cameraDevices.clear();
     m_cameraDescriptions.clear();
 
+#if defined(USE_V4L)
     QDir devDir("/dev");
     devDir.setFilter(QDir::System);
 
@@ -173,6 +177,7 @@ void CameraBinServicePlugin::updateDevices() const
 
     if (!m_cameraDevices.isEmpty())
         m_defaultCameraDevice = m_cameraDevices.first();
+#endif
 }
 
 QT_END_NAMESPACE

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,63 +39,9 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERCAPTURESERVICE_H
-#define QGSTREAMERCAPTURESERVICE_H
+#include <linux/videodev2.h>
 
-#include <qmediaservice.h>
-#include <qmediacontrol.h>
-
-#include <gst/gst.h>
-
-QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
-class QVideoDeviceSelectorControl;
-
-class QGstreamerCaptureSession;
-class QGstreamerCameraControl;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoWidgetControl;
-class QGstreamerElementFactory;
-class QGstreamerCaptureMetaDataControl;
-class QGstreamerImageCaptureControl;
-class QGstreamerV4L2Input;
-
-class QGstreamerCaptureService : public QMediaService
+int main(int argc, char** argv)
 {
-    Q_OBJECT
-
-public:
-    QGstreamerCaptureService(const QString &service, QObject *parent = 0);
-    virtual ~QGstreamerCaptureService();
-
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
-
-private:
-    void setAudioPreview(GstElement *);
-
-    QGstreamerCaptureSession *m_captureSession;
-    QGstreamerCameraControl *m_cameraControl;
-#if defined(USE_GSTREAMER_CAMERA)
-    QGstreamerV4L2Input *m_videoInput;
-#endif
-    QGstreamerCaptureMetaDataControl *m_metaDataControl;
-
-    QAudioInputSelectorControl *m_audioInputSelector;
-    QVideoDeviceSelectorControl *m_videoInputDevice;
-
-    QMediaControl *m_videoOutput;
-
-    QGstreamerVideoRenderer *m_videoRenderer;
-    QMediaControl *m_videoWindow;
-#if defined(HAVE_WIDGETS)
-    QMediaControl *m_videoWidgetControl;
-#endif
-    QGstreamerImageCaptureControl *m_imageCaptureControl;
-};
-
-QT_END_NAMESPACE
-
-#endif // QGSTREAMERCAPTURESERVICE_H
+    return 0;
+}

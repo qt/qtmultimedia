@@ -52,7 +52,10 @@
 #include <private/qgstutils_p.h>
 
 #include <private/qcore_unix_p.h>
+
+#if defined(USE_GSTREAMER_CAMERA)
 #include <linux/videodev2.h>
+#endif
 
 QMediaService* QGstreamerCaptureServicePlugin::create(const QString &key)
 {

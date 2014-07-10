@@ -48,8 +48,11 @@
 #include "qgstreamerimageencode.h"
 #include "qgstreamercameracontrol.h"
 #include <private/qgstreamerbushelper_p.h>
-#include "qgstreamerv4l2input.h"
 #include "qgstreamercapturemetadatacontrol.h"
+
+#if defined(USE_GSTREAMER_CAMERA)
+#include "qgstreamerv4l2input.h"
+#endif
 
 #include "qgstreamerimagecapturecontrol.h"
 #include <private/qgstreameraudioinputselector_p.h>
@@ -74,7 +77,9 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
     m_cameraControl = 0;
     m_metaDataControl = 0;
 
+#if defined(USE_GSTREAMER_CAMERA)
     m_videoInput = 0;
+#endif
     m_audioInputSelector = 0;
     m_videoInputDevice = 0;
 
@@ -90,6 +95,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
     }
 
+#if defined(USE_GSTREAMER_CAMERA)
    if (service == Q_MEDIASERVICE_CAMERA) {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
         m_cameraControl = new QGstreamerCameraControl(m_captureSession);
@@ -111,6 +117,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
 #endif
         m_imageCaptureControl = new QGstreamerImageCaptureControl(m_captureSession);
     }
+#endif
 
     m_audioInputSelector = new QGstreamerAudioInputSelector(this);
     connect(m_audioInputSelector, SIGNAL(activeInputChanged(QString)), m_captureSession, SLOT(setCaptureDevice(QString)));
