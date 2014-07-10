@@ -181,8 +181,7 @@ that the divider should be displayed.
 
 The main.qml file shows a
 \l{video/qmlvideofx/qml/qmlvideofx/FileOpen.qml}{FileOpen}, which allows
-the user to select the input source and an
-\l{video/qmlvideofx/qml/qmlvideofx/EffectSelectionPanel.qml}{EffectSelectionPanel}
+the user to select the input source and an EffectSelectionPanel
 item, which lists each of the available shader effects.  As described above, a
 \l{video/qmlvideofx/qml/qmlvideofx/Content.qml}{Content} item is used to load the
 appropriate input and effect type.  A

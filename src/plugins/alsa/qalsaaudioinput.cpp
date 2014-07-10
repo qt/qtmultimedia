@@ -63,7 +63,6 @@ QAlsaAudioInput::QAlsaAudioInput(const QByteArray &device)
 {
     bytesAvailable = 0;
     handle = 0;
-    ahandler = 0;
     access = SND_PCM_ACCESS_RW_INTERLEAVED;
     pcmformat = SND_PCM_FORMAT_S16;
     buffer_size = 0;

@@ -371,7 +371,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
         emit bufferStatusChanged(0);
     }
 
-    if (m_stream) {
+    if (m_stream && m_stream != stream) {
         if (m_ownStream)
             delete m_stream;
         m_stream = 0;
