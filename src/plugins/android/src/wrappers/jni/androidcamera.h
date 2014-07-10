@@ -90,9 +90,9 @@ public:
 
     int cameraId() const;
 
-    void lock();
-    void unlock();
-    void reconnect();
+    bool lock();
+    bool unlock();
+    bool reconnect();
     void release();
 
     CameraFacing getFacing();
@@ -106,7 +106,7 @@ public:
 
     QSize previewSize() const;
     void setPreviewSize(const QSize &size);
-    void setPreviewTexture(AndroidSurfaceTexture *surfaceTexture);
+    bool setPreviewTexture(AndroidSurfaceTexture *surfaceTexture);
 
     bool isZoomSupported();
     int getMaxZoom();
