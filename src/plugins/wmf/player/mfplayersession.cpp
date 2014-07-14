@@ -1403,14 +1403,17 @@ int MFPlayerSession::bufferStatus()
     if (!m_netsourceStatistics)
         return 0;
     PROPVARIANT var;
+    PropVariantInit(&var);
     PROPERTYKEY key;
     key.fmtid = MFNETSOURCE_STATISTICS;
     key.pid = MFNETSOURCE_BUFFERPROGRESS_ID;
     int progress = -1;
-    if (SUCCEEDED(m_netsourceStatistics->GetValue(key, &var))) {
+    // GetValue returns S_FALSE if the property is not available, which has
+    // a value > 0. We therefore can't use the SUCCEEDED macro here.
+    if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
         progress = var.lVal;
+        PropVariantClear(&var);
     }
-    PropVariantClear(&var);
 
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "bufferStatus: progress = " << progress;
@@ -1421,22 +1424,30 @@ int MFPlayerSession::bufferStatus()
 
 QMediaTimeRange MFPlayerSession::availablePlaybackRanges()
 {
-    if (!m_netsourceStatistics)
-        return QMediaTimeRange();
+    // defaults to the whole media
+    qint64 start = 0;
+    qint64 end = qint64(m_duration / 10000);
 
-    qint64 start = 0, end = 0;
-    PROPVARIANT var;
-    PROPERTYKEY key;
-    key.fmtid = MFNETSOURCE_STATISTICS;
-    key.pid = MFNETSOURCE_SEEKRANGESTART_ID;
-    if (SUCCEEDED(m_netsourceStatistics->GetValue(key, &var))) {
-        start = qint64(var.uhVal.QuadPart / 10000);
-        key.pid = MFNETSOURCE_SEEKRANGEEND_ID;
-        if (SUCCEEDED(m_netsourceStatistics->GetValue(key, &var))) {
-            end = qint64(var.uhVal.QuadPart / 10000);
+    if (m_netsourceStatistics) {
+        PROPVARIANT var;
+        PropVariantInit(&var);
+        PROPERTYKEY key;
+        key.fmtid = MFNETSOURCE_STATISTICS;
+        key.pid = MFNETSOURCE_SEEKRANGESTART_ID;
+        // GetValue returns S_FALSE if the property is not available, which has
+        // a value > 0. We therefore can't use the SUCCEEDED macro here.
+        if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
+            start = qint64(var.uhVal.QuadPart / 10000);
+            PropVariantClear(&var);
+            PropVariantInit(&var);
+            key.pid = MFNETSOURCE_SEEKRANGEEND_ID;
+            if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
+                end = qint64(var.uhVal.QuadPart / 10000);
+                PropVariantClear(&var);
+            }
         }
     }
-    PropVariantClear(&var);
+
     return QMediaTimeRange(start, end);
 }
 
