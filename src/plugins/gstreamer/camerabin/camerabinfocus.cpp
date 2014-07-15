@@ -37,6 +37,7 @@
 #include <gst/interfaces/photography.h>
 
 #include <QDebug>
+#include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
 
 #include <private/qgstutils_p.h>
@@ -51,6 +52,9 @@ QT_BEGIN_NAMESPACE
 
 CameraBinFocus::CameraBinFocus(CameraBinSession *session)
     :QCameraFocusControl(session),
+#if GST_CHECK_VERSION(1,0,0)
+     QGstreamerBufferProbe(ProbeBuffers),
+#endif
      m_session(session),
      m_cameraState(QCamera::UnloadedState),
      m_focusMode(QCameraFocus::AutoFocus),
@@ -131,22 +135,72 @@ QCameraFocus::FocusPointMode CameraBinFocus::focusPointMode() const
 
 void CameraBinFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 {
-    Q_UNUSED(mode);
-    if (m_focusPointMode != mode
-            && (mode == QCameraFocus::FocusPointAuto || mode == QCameraFocus::FocusPointCustom)) {
-        m_focusPointMode = mode;
+    GstElement *source = m_session->cameraSource();
 
-        if (m_focusPointMode == QCameraFocus::FocusPointAuto)
-            resetFocusPoint();
+    if (m_focusPointMode == mode || !source)
+        return;
 
-        emit focusPointModeChanged(m_focusPointMode);
+#if GST_CHECK_VERSION(1,0,0)
+    if (m_focusPointMode == QCameraFocus::FocusPointFaceDetection) {
+        g_object_set (G_OBJECT(source), "detect-faces", FALSE, NULL);
 
+        if (GstPad *pad = gst_element_get_static_pad(source, "vfsrc")) {
+            removeProbeFromPad(pad);
+            gst_object_unref(GST_OBJECT(pad));
+        }
+
+        m_faceResetTimer.stop();
+        m_faceFocusRects.clear();
+
+        QMutexLocker locker(&m_mutex);
+        m_faces.clear();
     }
+#endif
+
+    if (m_focusPointMode != QCameraFocus::FocusPointAuto)
+        resetFocusPoint();
+
+    switch (mode) {
+    case QCameraFocus::FocusPointAuto:
+    case QCameraFocus::FocusPointCustom:
+        break;
+#if GST_CHECK_VERSION(1,0,0)
+    case QCameraFocus::FocusPointFaceDetection:
+        if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "detect-faces")) {
+            if (GstPad *pad = gst_element_get_static_pad(source, "vfsrc")) {
+                addProbeToPad(pad);
+                g_object_set (G_OBJECT(source), "detect-faces", TRUE, NULL);
+                break;
+            }
+        }
+        return;
+#endif
+    default:
+        return;
+    }
+
+    m_focusPointMode = mode;
+    emit focusPointModeChanged(m_focusPointMode);
+    emit focusZonesChanged();
 }
 
 bool CameraBinFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
 {
     return mode == QCameraFocus::FocusPointAuto || mode == QCameraFocus::FocusPointCustom;
+
+    switch (mode) {
+    case QCameraFocus::FocusPointAuto:
+    case QCameraFocus::FocusPointCustom:
+        return true;
+#if GST_CHECK_VERSION(1,0,0)
+    case QCameraFocus::FocusPointFaceDetection:
+        if (GstElement *source = m_session->cameraSource())
+            return g_object_class_find_property(G_OBJECT_GET_CLASS(source), "detect-faces");
+        return false;
+#endif
+    default:
+        return false;
+    }
 }
 
 QPointF CameraBinFocus::customFocusPoint() const
@@ -167,7 +221,7 @@ void CameraBinFocus::setCustomFocusPoint(const QPointF &point)
             const QRectF focusRect = m_focusRect;
             m_focusRect.moveCenter(m_focusPoint);
 
-            updateRegionOfInterest(m_focusRect, 1);
+            updateRegionOfInterest(m_focusRect);
 
             if (focusRect != m_focusRect) {
                 emit focusZonesChanged();
@@ -180,9 +234,22 @@ void CameraBinFocus::setCustomFocusPoint(const QPointF &point)
 
 QCameraFocusZoneList CameraBinFocus::focusZones() const
 {
-    return QCameraFocusZoneList() << QCameraFocusZone(m_focusRect, m_focusZoneStatus);
-}
+    QCameraFocusZoneList zones;
 
+    if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection) {
+        zones.append(QCameraFocusZone(m_focusRect, m_focusZoneStatus));
+#if GST_CHECK_VERSION(1,0,0)
+    } else foreach (const QRect &face, m_faceFocusRects) {
+        const QRectF normalizedRect(
+                    face.x() / qreal(m_viewfinderResolution.width()),
+                    face.y() / qreal(m_viewfinderResolution.height()),
+                    face.width() / qreal(m_viewfinderResolution.width()),
+                    face.height() / qreal(m_viewfinderResolution.height()));
+        zones.append(QCameraFocusZone(normalizedRect, m_focusZoneStatus));
+#endif
+    }
+    return zones;
+}
 
 void CameraBinFocus::handleFocusMessage(GstMessage *gm)
 {
@@ -241,6 +308,13 @@ void CameraBinFocus::_q_setFocusStatus(QCamera::LockStatus status, QCamera::Lock
             emit focusZonesChanged();
         }
 
+#if GST_CHECK_VERSION(1,0,0)
+        if (m_focusPointMode == QCameraFocus::FocusPointFaceDetection
+                && m_focusStatus == QCamera::Unlocked) {
+            _q_updateFaces();
+        }
+#endif
+
         emit _q_focusStatusChanged(m_focusStatus, reason);
     }
 }
@@ -263,7 +337,7 @@ void CameraBinFocus::_q_handleCameraStateChange(QCamera::State state)
             gst_object_unref(GST_OBJECT(pad));
         }
         if (m_focusPointMode == QCameraFocus::FocusPointCustom) {
-                updateRegionOfInterest(m_focusRect, 1);
+                updateRegionOfInterest(m_focusRect);
         }
     } else {
         _q_setFocusStatus(QCamera::Unlocked, QCamera::LockLost);
@@ -302,7 +376,7 @@ void CameraBinFocus::resetFocusPoint()
     m_focusPoint = QPointF(0.5, 0.5);
     m_focusRect.moveCenter(m_focusPoint);
 
-    updateRegionOfInterest(QRectF(0, 0, 0, 0), 0);
+    updateRegionOfInterest(QVector<QRect>());
 
     if (focusRect != m_focusRect) {
         emit customFocusPointChanged(m_focusPoint);
@@ -310,21 +384,14 @@ void CameraBinFocus::resetFocusPoint()
     }
 }
 
-void CameraBinFocus::updateRegionOfInterest(const QRectF &focusRect, int priority)
+static void appendRegion(GValue *regions, int priority, const QRect &rectangle)
 {
-    if (m_cameraState != QCamera::ActiveState)
-        return;
-
-    GstElement * const cameraSource = m_session->cameraSource();
-    if (!cameraSource)
-        return;
-
     GstStructure *region = gst_structure_new(
                 "region",
-                "region-x"        , G_TYPE_UINT , uint(m_viewfinderResolution.width()  * focusRect.x()),
-                "region-y"        , G_TYPE_UINT,  uint(m_viewfinderResolution.height() * focusRect.y()),
-                "region-w"        , G_TYPE_UINT , uint(m_viewfinderResolution.width()  * focusRect.width()),
-                "region-h"        , G_TYPE_UINT,  uint(m_viewfinderResolution.height() * focusRect.height()),
+                "region-x"        , G_TYPE_UINT , rectangle.x(),
+                "region-y"        , G_TYPE_UINT,  rectangle.y(),
+                "region-w"        , G_TYPE_UINT , rectangle.width(),
+                "region-h"        , G_TYPE_UINT,  rectangle.height(),
                 "region-priority" , G_TYPE_UINT,  priority,
                 NULL);
 
@@ -333,10 +400,51 @@ void CameraBinFocus::updateRegionOfInterest(const QRectF &focusRect, int priorit
     gst_value_set_structure(&regionValue, region);
     gst_structure_free(region);
 
+    gst_value_list_append_value(regions, &regionValue);
+    g_value_unset(&regionValue);
+}
+
+void CameraBinFocus::updateRegionOfInterest(const QRectF &rectangle)
+{
+    updateRegionOfInterest(QVector<QRect>() << QRect(
+            rectangle.x() * m_viewfinderResolution.width(),
+            rectangle.y() * m_viewfinderResolution.height(),
+            rectangle.width() * m_viewfinderResolution.width(),
+            rectangle.height() * m_viewfinderResolution.height()));
+}
+
+void CameraBinFocus::updateRegionOfInterest(const QVector<QRect> &rectangles)
+{
+    if (m_cameraState != QCamera::ActiveState)
+        return;
+
+    GstElement * const cameraSource = m_session->cameraSource();
+    if (!cameraSource)
+        return;
+
     GValue regions = G_VALUE_INIT;
     g_value_init(&regions, GST_TYPE_LIST);
-    gst_value_list_append_value(&regions, &regionValue);
-    g_value_unset(&regionValue);
+
+    if (rectangles.isEmpty()) {
+        appendRegion(&regions, 0, QRect(0, 0, 0, 0));
+    } else {
+        // Add padding around small face rectangles so the auto focus has a reasonable amount
+        // of image to work with.
+        const int minimumDimension = qMin(
+                    m_viewfinderResolution.width(), m_viewfinderResolution.height()) * 0.3;
+        const QRect viewfinderRectangle(QPoint(0, 0), m_viewfinderResolution);
+
+        foreach (const QRect &rectangle, rectangles) {
+            QRect paddedRectangle(
+                        0,
+                        0,
+                        qMax(rectangle.width(), minimumDimension),
+                        qMax(rectangle.height(), minimumDimension));
+            paddedRectangle.moveCenter(rectangle.center());
+
+            appendRegion(&regions, 1, viewfinderRectangle.intersected(paddedRectangle));
+        }
+    }
 
     GstStructure *regionsOfInterest = gst_structure_new(
                 "regions-of-interest",
@@ -349,5 +457,76 @@ void CameraBinFocus::updateRegionOfInterest(const QRectF &focusRect, int priorit
     GstEvent *event = gst_event_new_custom(GST_EVENT_CUSTOM_UPSTREAM, regionsOfInterest);
     gst_element_send_event(cameraSource, event);
 }
+
+#if GST_CHECK_VERSION(1,0,0)
+
+void CameraBinFocus::_q_updateFaces()
+{
+    if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection
+            || m_focusStatus != QCamera::Unlocked) {
+        return;
+    }
+
+    QVector<QRect> faces;
+
+    {
+        QMutexLocker locker(&m_mutex);
+        faces = m_faces;
+    }
+
+    if (!faces.isEmpty()) {
+        m_faceResetTimer.stop();
+        m_faceFocusRects = faces;
+        updateRegionOfInterest(m_faceFocusRects);
+        emit focusZonesChanged();
+    } else {
+        m_faceResetTimer.start(500, this);
+    }
+}
+
+void CameraBinFocus::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == m_faceResetTimer.timerId()) {
+        m_faceResetTimer.stop();
+
+        if (m_focusStatus == QCamera::Unlocked) {
+            m_faceFocusRects.clear();
+            updateRegionOfInterest(m_faceFocusRects);
+            emit focusZonesChanged();
+        }
+    } else {
+        QCameraFocusControl::timerEvent(event);
+    }
+}
+
+bool CameraBinFocus::probeBuffer(GstBuffer *buffer)
+{
+    QVector<QRect> faces;
+
+    gpointer state = NULL;
+    const GstMetaInfo *info = GST_VIDEO_REGION_OF_INTEREST_META_INFO;
+
+    while (GstMeta *meta = gst_buffer_iterate_meta(buffer, &state)) {
+        if (meta->info->api != info->api)
+            continue;
+
+        GstVideoRegionOfInterestMeta *region = reinterpret_cast<GstVideoRegionOfInterestMeta *>(meta);
+
+        faces.append(QRect(region->x, region->y, region->w, region->h));
+    }
+
+    QMutexLocker locker(&m_mutex);
+
+    if (m_faces != faces) {
+        m_faces = faces;
+
+        static const int signalIndex = metaObject()->indexOfSlot("_q_updateFaces()");
+        metaObject()->method(signalIndex).invoke(this, Qt::QueuedConnection);
+    }
+
+    return true;
+}
+
+#endif
 
 QT_END_NAMESPACE
