@@ -325,8 +325,10 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
     mMediaPlayer->setDataSource(mediaPath);
     mMediaPlayer->prepareAsync();
 
-    if (!reloading)
+    if (!reloading) {
         Q_EMIT mediaChanged(mMediaContent);
+        Q_EMIT actualMediaLocationChanged(mediaPath);
+    }
 
     resetBufferingProgress();
 }

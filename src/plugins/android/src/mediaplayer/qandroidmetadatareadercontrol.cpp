@@ -101,18 +101,18 @@ QStringList QAndroidMetaDataReaderControl::availableMetaData() const
     return m_metadata.keys();
 }
 
-void QAndroidMetaDataReaderControl::onMediaChanged(const QMediaContent &media)
+void QAndroidMetaDataReaderControl::onMediaChanged(const QString &url)
 {
     if (!m_retriever)
         return;
 
-    m_mediaContent = media;
+    m_mediaLocation = url;
     updateData();
 }
 
 void QAndroidMetaDataReaderControl::onUpdateMetaData()
 {
-    if (!m_retriever || m_mediaContent.isNull())
+    if (!m_retriever || m_mediaLocation.isEmpty())
         return;
 
     updateData();
@@ -122,8 +122,8 @@ void QAndroidMetaDataReaderControl::updateData()
 {
     m_metadata.clear();
 
-    if (!m_mediaContent.isNull()) {
-        if (m_retriever->setDataSource(m_mediaContent.canonicalUrl())) {
+    if (!m_mediaLocation.isEmpty()) {
+        if (m_retriever->setDataSource(m_mediaLocation)) {
             QString mimeType = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::MimeType);
             if (!mimeType.isNull())
                 m_metadata.insert(QMediaMetaData::MediaType, mimeType);

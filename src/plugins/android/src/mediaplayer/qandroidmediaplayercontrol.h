@@ -80,6 +80,7 @@ public:
 
 Q_SIGNALS:
     void metaDataUpdated();
+    void actualMediaLocationChanged(const QString &url);
 
 public Q_SLOTS:
     void setPosition(qint64 position) Q_DECL_OVERRIDE;
