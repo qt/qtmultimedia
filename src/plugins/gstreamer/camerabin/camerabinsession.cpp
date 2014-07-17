@@ -133,6 +133,7 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
      m_capsFilter(0),
      m_fileSink(0),
      m_audioEncoder(0),
+     m_videoEncoder(0),
      m_muxer(0)
 {
     if (m_sourceFactory)
@@ -140,6 +141,8 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
 
     m_camerabin = gst_element_factory_make("camerabin2", "camerabin2");
     g_signal_connect(G_OBJECT(m_camerabin), "notify::idle", G_CALLBACK(updateBusyStatus), this);
+    g_signal_connect(G_OBJECT(m_camerabin), "element-added",  G_CALLBACK(elementAdded), this);
+    g_signal_connect(G_OBJECT(m_camerabin), "element-removed",  G_CALLBACK(elementRemoved), this);
     qt_gst_object_ref_sink(m_camerabin);
 
     m_bus = gst_element_get_bus(m_camerabin);
@@ -344,6 +347,9 @@ void CameraBinSession::setupCaptureResolution()
     } else {
         g_object_set(m_camerabin, VIEWFINDER_CAPS_PROPERTY, NULL, NULL);
     }
+
+    if (m_videoEncoder)
+        m_videoEncodeControl->applySettings(m_videoEncoder);
 }
 
 void CameraBinSession::setAudioCaptureCaps()
@@ -370,6 +376,9 @@ void CameraBinSession::setAudioCaptureCaps()
     GstCaps *caps = gst_caps_new_full(structure, NULL);
     g_object_set(G_OBJECT(m_camerabin), AUDIO_CAPTURE_CAPS_PROPERTY, caps, NULL);
     gst_caps_unref(caps);
+
+    if (m_audioEncoder)
+        m_audioEncodeControl->applySettings(m_audioEncoder);
 }
 
 GstElement *CameraBinSession::buildCameraSource()
@@ -1291,6 +1300,34 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         *continuous = isContinuous;
 
     return res;
+}
+
+void CameraBinSession::elementAdded(GstBin *, GstElement *element, CameraBinSession *session)
+{
+    GstElementFactory *factory = gst_element_get_factory(element);
+
+    if (GST_IS_BIN(element)) {
+        g_signal_connect(G_OBJECT(element), "element-added",  G_CALLBACK(elementAdded), session);
+        g_signal_connect(G_OBJECT(element), "element-removed",  G_CALLBACK(elementRemoved), session);
+    } else if (!factory) {
+        // no-op
+    } else if (gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_AUDIO_ENCODER)) {
+        session->m_audioEncoder = element;
+
+        session->m_audioEncodeControl->applySettings(element);
+    } else if (gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER)) {
+        session->m_videoEncoder = element;
+
+        session->m_videoEncodeControl->applySettings(element);
+    }
+}
+
+void CameraBinSession::elementRemoved(GstBin *, GstElement *element, CameraBinSession *session)
+{
+    if (element == session->m_audioEncoder)
+        session->m_audioEncoder = 0;
+    else if (element == session->m_videoEncoder)
+        session->m_videoEncoder = 0;
 }
 
 QT_END_NAMESPACE

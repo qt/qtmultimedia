@@ -76,6 +76,8 @@ public:
 
     GstEncodingProfile *createProfile();
 
+    void applySettings(GstElement *encoder);
+
 Q_SIGNALS:
     void settingsChanged();
 

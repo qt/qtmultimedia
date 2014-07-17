@@ -175,4 +175,46 @@ GstEncodingProfile *CameraBinVideoEncoder::createProfile()
     return (GstEncodingProfile *)profile;
 }
 
+void CameraBinVideoEncoder::applySettings(GstElement *encoder)
+{
+    GObjectClass * const objectClass = G_OBJECT_GET_CLASS(encoder);
+    const char * const name = gst_plugin_feature_get_name(
+                GST_PLUGIN_FEATURE(gst_element_get_factory(encoder)));
+
+    const int bitRate = m_actualVideoSettings.bitRate();
+    if (bitRate == -1) {
+        // Bit rate is invalid, don't evaluate the remaining conditions.
+    } else if (g_object_class_find_property(objectClass, "bitrate")) {
+        g_object_set(G_OBJECT(encoder), "bitrate", bitRate, NULL);
+    } else if (g_object_class_find_property(objectClass, "target-bitrate")) {
+        g_object_set(G_OBJECT(encoder), "target-bitrate", bitRate, NULL);
+    }
+
+    if (qstrcmp(name, "theoraenc") == 0) {
+        static const int qualities[] = { 8, 16, 32, 45, 60 };
+        g_object_set(G_OBJECT(encoder), "quality", qualities[m_actualVideoSettings.quality()], NULL);
+    } else if (qstrncmp(name, "avenc_", 6) == 0) {
+        if (g_object_class_find_property(objectClass, "pass")) {
+            static const int modes[] = { 0, 2, 512, 1024 };
+            g_object_set(G_OBJECT(encoder), "pass", modes[m_actualVideoSettings.encodingMode()], NULL);
+        }
+        if (g_object_class_find_property(objectClass, "quantizer")) {
+            static const double qualities[] = { 20, 8.0, 3.0, 2.5, 2.0 };
+            g_object_set(G_OBJECT(encoder), "quantizer", qualities[m_actualVideoSettings.quality()], NULL);
+        }
+    } else if (qstrncmp(name, "omx", 3) == 0) {
+        if (!g_object_class_find_property(objectClass, "control-rate")) {
+        } else switch (m_actualVideoSettings.encodingMode()) {
+        case QMultimedia::ConstantBitRateEncoding:
+            g_object_set(G_OBJECT(encoder), "control-rate", 2, NULL);
+            break;
+        case QMultimedia::AverageBitRateEncoding:
+            g_object_set(G_OBJECT(encoder), "control-rate", 1, NULL);
+            break;
+        default:
+            g_object_set(G_OBJECT(encoder), "control-rate", 0, NULL);
+        }
+    }
+}
+
 QT_END_NAMESPACE

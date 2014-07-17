@@ -117,4 +117,28 @@ GstEncodingProfile *CameraBinAudioEncoder::createProfile()
     return profile;
 }
 
+void CameraBinAudioEncoder::applySettings(GstElement *encoder)
+{
+    GObjectClass * const objectClass = G_OBJECT_GET_CLASS(encoder);
+    const char * const name = gst_plugin_feature_get_name(
+                GST_PLUGIN_FEATURE(gst_element_get_factory(encoder)));
+
+    const bool isVorbis = qstrcmp(name, "vorbisenc") == 0;
+
+    const int bitRate = m_actualAudioSettings.bitRate();
+    if (!isVorbis && bitRate == -1) {
+        // Bit rate is invalid, don't evaluate the remaining conditions unless the encoder is
+        // vorbisenc which is known to accept -1 as an unspecified bitrate.
+    } else if (g_object_class_find_property(objectClass, "bitrate")) {
+        g_object_set(G_OBJECT(encoder), "bitrate", bitRate, NULL);
+    } else if (g_object_class_find_property(objectClass, "target-bitrate")) {
+        g_object_set(G_OBJECT(encoder), "target-bitrate", bitRate, NULL);
+    }
+
+    if (isVorbis) {
+        static const double qualities[] = { 0.1, 0.3, 0.5, 0.7, 1.0 };
+        g_object_set(G_OBJECT(encoder), "quality", qualities[m_actualAudioSettings.quality()], NULL);
+    }
+}
+
 QT_END_NAMESPACE

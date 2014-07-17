@@ -190,6 +190,9 @@ private:
     void setAudioCaptureCaps();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
+    static void elementAdded(GstBin *bin, GstElement *element, CameraBinSession *session);
+    static void elementRemoved(GstBin *bin, GstElement *element, CameraBinSession *session);
+
     QUrl m_sink;
     QUrl m_actualSink;
     bool m_recordingActive;
@@ -241,6 +244,7 @@ private:
     GstElement *m_capsFilter;
     GstElement *m_fileSink;
     GstElement *m_audioEncoder;
+    GstElement *m_videoEncoder;
     GstElement *m_muxer;
 
 public:
