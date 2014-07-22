@@ -61,6 +61,9 @@
 #include <pulse/ext-stream-restore.h>
 #endif
 
+#include <private/qmediaresourcepolicy_p.h>
+#include <private/qmediaresourceset_p.h>
+
 #include <unistd.h>
 
 //#define QT_PA_DEBUG
@@ -388,10 +391,26 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     m_runningCount(0),
     m_reloadCategory(false),
     m_sample(0),
-    m_position(0)
+    m_position(0),
+    m_resourcesAvailable(false)
 {
     m_ref = new QSoundEffectRef(this);
     pa_sample_spec_init(&m_pulseSpec);
+
+    m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>();
+    Q_ASSERT(m_resources);
+    m_resourcesAvailable = m_resources->isAvailable();
+    connect(m_resources, SIGNAL(availabilityChanged(bool)), SLOT(handleAvailabilityChanged(bool)));
+}
+
+void QSoundEffectPrivate::handleAvailabilityChanged(bool available)
+{
+    m_resourcesAvailable = available;
+#ifdef DEBUG_RESOURCE
+    qDebug() << Q_FUNC_INFO << "Resource availability changed " << m_resourcesAvailable;
+#endif
+    if (!m_resourcesAvailable)
+        stop();
 }
 
 void QSoundEffectPrivate::release()
@@ -437,6 +456,8 @@ void QSoundEffectPrivate::setCategory(const QString &category)
 
 QSoundEffectPrivate::~QSoundEffectPrivate()
 {
+    QMediaResourcePolicy::destroyResourceSet(m_resources);
+    m_resources = 0;
     m_ref->release();
 }
 
@@ -625,6 +646,14 @@ void QSoundEffectPrivate::setLoopsRemaining(int loopsRemaining)
 }
 
 void QSoundEffectPrivate::play()
+{
+    if (!m_resourcesAvailable)
+        return;
+
+    playAvailable();
+}
+
+void QSoundEffectPrivate::playAvailable()
 {
 #ifdef QT_PA_DEBUG
     qDebug() << this << "play";
