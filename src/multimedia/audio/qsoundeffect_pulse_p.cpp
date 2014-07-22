@@ -57,7 +57,7 @@
 
 #include "qsoundeffect_pulse_p.h"
 
-#if defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6) || defined(NEMO_AUDIO)
 #include <pulse/ext-stream-restore.h>
 #endif
 
@@ -240,7 +240,7 @@ private:
             case PA_CONTEXT_SETTING_NAME:
                 break;
             case PA_CONTEXT_READY:
-    #if defined(Q_WS_MAEMO_6)
+    #if defined(Q_WS_MAEMO_6) || defined(NEMO_AUDIO)
                 pa_ext_stream_restore_read(c, &stream_restore_info_callback, self);
                 pa_ext_stream_restore_set_subscribe_cb(c, &stream_restore_monitor_callback, self);
                 pa_ext_stream_restore_subscribe(c, 1, 0, self);
@@ -255,7 +255,7 @@ private:
         }
     }
 
-#if defined(Q_WS_MAEMO_6)
+#if defined(Q_WS_MAEMO_6) || defined(NEMO_AUDIO)
 
     static void stream_restore_monitor_callback(pa_context *c, void *userdata)
     {
@@ -393,6 +393,9 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     m_sample(0),
     m_position(0),
     m_resourcesAvailable(false)
+#if defined(Q_WS_MAEMO_6) || defined(NEMO_AUDIO)
+    , m_customVolume(false)
+#endif
 {
     m_ref = new QSoundEffectRef(this);
     pa_sample_spec_init(&m_pulseSpec);
@@ -548,6 +551,9 @@ qreal QSoundEffectPrivate::volume() const
 
 void QSoundEffectPrivate::setVolume(qreal volume)
 {
+#if defined(Q_WS_MAEMO_6) || defined(NEMO_AUDIO)
+    m_customVolume = true;
+#endif
     m_volume = volume;
     emit volumeChanged();
     updateVolume();
@@ -557,6 +563,10 @@ void QSoundEffectPrivate::updateVolume()
 {
     if (m_sinkInputId < 0)
         return;
+#if defined(Q_WS_MAEMO_6) || defined(NEMO_AUDIO)
+    if (!m_customVolume)
+        return;
+#endif
     PulseDaemonLocker locker;
     pa_cvolume volume;
     volume.channels = m_pulseSpec.channels;
