@@ -49,6 +49,8 @@
 #include "resourcepolicyimpl.h"
 
 #include <QMap>
+#include <QByteArray>
+#include <QString>
 
 static int clientid = 0;
 
@@ -57,26 +59,51 @@ ResourcePolicyInt::ResourcePolicyInt(QObject *parent)
     , m_acquired(0)
     , m_status(Initial)
     , m_video(0)
+    , m_available(false)
     , m_resourceSet(0)
 {
-    m_resourceSet = new ResourcePolicy::ResourceSet("player", this);
+    const char *resourceClass = "player";
+
+    QByteArray envVar = qgetenv("NEMO_RESOURCE_CLASS_OVERRIDE");
+    if (!envVar.isEmpty()) {
+        QString data(envVar);
+        // Only allow few resource classes
+        if (data == "navigator" ||
+            data == "call"      ||
+            data == "camera"    ||
+            data == "game"      ||
+            data == "player"    ||
+            data == "event")
+            resourceClass = envVar.constData();
+    }
+
+#ifdef RESOURCE_DEBUG
+    qDebug() << "##### Using resource class " << resourceClass;
+#endif
+
+    m_resourceSet = new ResourcePolicy::ResourceSet(resourceClass, this);
     m_resourceSet->setAlwaysReply();
-
-    ResourcePolicy::AudioResource *audioResource = new ResourcePolicy::AudioResource("player");
-    audioResource->setProcessID(QCoreApplication::applicationPid());
-    audioResource->setStreamTag("media.name", "*");
-    m_resourceSet->addResourceObject(audioResource);
-
-    m_resourceSet->update();
 
     connect(m_resourceSet, SIGNAL(resourcesGranted(QList<ResourcePolicy::ResourceType>)),
             this, SLOT(handleResourcesGranted()));
     connect(m_resourceSet, SIGNAL(resourcesDenied()),
             this, SLOT(handleResourcesDenied()));
+    connect(m_resourceSet, SIGNAL(resourcesReleased()),
+            this, SLOT(handleResourcesReleased()));
     connect(m_resourceSet, SIGNAL(lostResources()),
             this, SLOT(handleResourcesLost()));
     connect(m_resourceSet, SIGNAL(resourcesReleasedByManager()),
-            this, SLOT(handleResourcesLost()));
+            this, SLOT(handleResourcesReleasedByManager()));
+
+    connect(m_resourceSet, SIGNAL(resourcesBecameAvailable(const QList<ResourcePolicy::ResourceType>)),
+            this, SLOT(handleResourcesBecameAvailable(const QList<ResourcePolicy::ResourceType>)));
+
+    ResourcePolicy::AudioResource *audioResource = new ResourcePolicy::AudioResource(resourceClass);
+
+    audioResource->setProcessID(QCoreApplication::applicationPid());
+    audioResource->setStreamTag("media.name", "*");
+    m_resourceSet->addResourceObject(audioResource);
+    m_resourceSet->update();
 }
 
 ResourcePolicyInt::~ResourcePolicyInt()
@@ -113,7 +140,7 @@ void ResourcePolicyInt::removeClient(ResourcePolicyImpl *client)
         m_clients.erase(i);
     }
 
-    if (m_acquired == 0) {
+    if (m_acquired == 0 && m_status != Initial) {
 #ifdef RESOURCE_DEBUG
         qDebug() << "##### Remove client, acquired = 0, release";
 #endif
@@ -221,10 +248,11 @@ void ResourcePolicyInt::release(const ResourcePolicyImpl *client)
 #ifdef RESOURCE_DEBUG
             qDebug() << "##### " << i.value().id << ": RELEASE, acquired (" << m_acquired << ")";
 #endif
+            emit i.value().client->resourcesReleased();
         }
     }
 
-    if (m_acquired == 0) {
+    if (m_acquired == 0 && m_status != Initial) {
 #ifdef RESOURCE_DEBUG
         qDebug() << "##### " << i.value().id << ": RELEASE call resourceSet->release()";
 #endif
@@ -248,9 +276,10 @@ bool ResourcePolicyInt::isGranted(const ResourcePolicyImpl *client) const
 
 bool ResourcePolicyInt::isAvailable() const
 {
-    // TODO: is this used? what is it for?
-    qWarning() << Q_FUNC_INFO << "Stub";
-    return true;
+#ifdef RESOURCE_DEBUG
+            qDebug() << "##### isAvailable " << m_available;
+#endif
+    return m_available;
 }
 
 void ResourcePolicyInt::handleResourcesGranted()
@@ -288,24 +317,91 @@ void ResourcePolicyInt::handleResourcesDenied()
     }
 }
 
+void ResourcePolicyInt::handleResourcesReleased()
+{
+    m_status = Initial;
+    m_acquired = 0;
+    QMap<const ResourcePolicyImpl*, clientEntry>::iterator i = m_clients.begin();
+    while (i != m_clients.end()) {
+        if (i.value().status == GrantedResource) {
+#ifdef RESOURCE_DEBUG
+            qDebug() << "##### " << i.value().id << ": HANDLE RELEASED, acquired (" << m_acquired << ") emitting resourcesReleased()";
+#endif
+            i.value().status = Initial;
+            emit i.value().client->resourcesReleased();
+        }
+        ++i;
+    }
+}
+
 void ResourcePolicyInt::handleResourcesLost()
 {
-    if (m_status != Initial) {
-        m_status = Initial;
-    }
+    // If resources were granted switch to acquiring state,
+    // so that if the resources are freed elsewhere we
+    // will acquire them again properly.
+    if (m_status == GrantedResource)
+        m_status = RequestedResource;
 
     m_acquired = 0;
-    m_resourceSet->release();
+
+    QMap<const ResourcePolicyImpl*, clientEntry>::iterator i = m_clients.begin();
+    while (i != m_clients.end()) {
+        if (i.value().status == GrantedResource) {
+#ifdef RESOURCE_DEBUG
+            qDebug() << "##### " << i.value().id << ": HANDLE LOST, acquired (" << m_acquired << ") emitting resourcesLost()";
+#endif
+            i.value().status = RequestedResource;
+            emit i.value().client->resourcesLost();
+        }
+        ++i;
+    }
+}
+
+void ResourcePolicyInt::handleResourcesReleasedByManager()
+{
+    if (m_status != Initial)
+        m_status = Initial;
+
+    m_acquired = 0;
 
     QMap<const ResourcePolicyImpl*, clientEntry>::iterator i = m_clients.begin();
     while (i != m_clients.end()) {
         if (i.value().status != Initial) {
 #ifdef RESOURCE_DEBUG
-            qDebug() << "##### " << i.value().id << ": HANDLE LOST, acquired (" << m_acquired << ") emitting resourcesLost()";
+            qDebug() << "##### " << i.value().id << ": HANDLE RELEASEDBYMANAGER, acquired (" << m_acquired << ") emitting resourcesLost()";
 #endif
             i.value().status = Initial;
             emit i.value().client->resourcesLost();
         }
+        ++i;
+    }
+}
+
+void ResourcePolicyInt::handleResourcesBecameAvailable(const QList<ResourcePolicy::ResourceType> &resources)
+{
+    bool available = false;
+
+    for (int i = 0; i < resources.size(); ++i) {
+        if (resources.at(i) == ResourcePolicy::AudioPlaybackType)
+            available = true;
+    }
+
+    availabilityChanged(available);
+}
+
+void ResourcePolicyInt::availabilityChanged(bool available)
+{
+    if (available == m_available)
+        return;
+
+    m_available = available;
+
+    QMap<const ResourcePolicyImpl*, clientEntry>::const_iterator i = m_clients.constBegin();
+    while (i != m_clients.constEnd()) {
+#ifdef RESOURCE_DEBUG
+        qDebug() << "##### " << i.value().id << ": emitting availabilityChanged(" << m_available << ")";
+#endif
+        emit i.value().client->availabilityChanged(m_available);
         ++i;
     }
 }

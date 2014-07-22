@@ -46,6 +46,8 @@
 #include <QObject>
 #include <QMap>
 
+#include <policy/resource-set.h>
+#include <policy/resource.h>
 #include <private/qmediaresourceset_p.h>
 #include "resourcepolicyimpl.h"
 
@@ -86,14 +88,20 @@ public:
 private slots:
     void handleResourcesGranted();
     void handleResourcesDenied();
+    void handleResourcesReleased();
     void handleResourcesLost();
+    void handleResourcesReleasedByManager();
+    void handleResourcesBecameAvailable(const QList<ResourcePolicy::ResourceType> &resources);
 
 private:
+    void availabilityChanged(bool available);
+
     QMap<const ResourcePolicyImpl*, clientEntry> m_clients;
 
     int m_acquired;
     ResourceStatus m_status;
     int m_video;
+    bool m_available;
     ResourcePolicy::ResourceSet *m_resourceSet;
 };
 

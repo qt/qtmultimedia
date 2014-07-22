@@ -61,7 +61,8 @@ ResourcePolicyImpl::ResourcePolicyImpl(QObject *parent)
 ResourcePolicyImpl::~ResourcePolicyImpl()
 {
     ResourcePolicyInt *set = globalResourcePolicyInt;
-    set->removeClient(this);
+    if (!globalResourcePolicyInt.isDestroyed())
+        set->removeClient(this);
 }
 
 bool ResourcePolicyImpl::isVideoEnabled() const
