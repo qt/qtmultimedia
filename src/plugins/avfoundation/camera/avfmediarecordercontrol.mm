@@ -250,10 +250,8 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
 
             qDebugCamera() << "Video capture location:" << actualLocation.toString();
 
-            NSString *urlString = [NSString stringWithUTF8String:actualLocation.toString().toUtf8().constData()];
-            NSURL *fileURL = [NSURL URLWithString:urlString];
-
-            [m_movieOutput startRecordingToOutputFileURL:fileURL recordingDelegate:m_recorderDelagate];
+            [m_movieOutput startRecordingToOutputFileURL:actualLocation.toNSURL()
+                           recordingDelegate:m_recorderDelagate];
 
             Q_EMIT actualLocationChanged(actualLocation);
         } else {

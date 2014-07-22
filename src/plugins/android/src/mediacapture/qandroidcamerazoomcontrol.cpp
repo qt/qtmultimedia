@@ -96,32 +96,25 @@ void QAndroidCameraZoomControl::zoomTo(qreal optical, qreal digital)
 {
     Q_UNUSED(optical);
 
-    if (!m_cameraSession->camera() ||
-            qFuzzyCompare(m_requestedZoom, digital) ||
-            qFuzzyCompare(m_maximumZoom, qreal(1))) {
-        return;
+    if (!qFuzzyCompare(m_requestedZoom, digital)) {
+        m_requestedZoom = digital;
+        emit requestedDigitalZoomChanged(m_requestedZoom);
     }
 
-    m_requestedZoom = digital;
-    emit requestedDigitalZoomChanged(m_requestedZoom);
-
-    digital = qBound(qreal(1), digital, m_maximumZoom);
-    int validZoomIndex = qt_findClosestValue(m_zoomRatios, qRound(digital * 100));
-    qreal newZoom = m_zoomRatios.at(validZoomIndex) / qreal(100);
-    if (!qFuzzyCompare(m_currentZoom, newZoom)) {
-        m_cameraSession->camera()->setZoom(validZoomIndex);
-        m_currentZoom = newZoom;
-        emit currentDigitalZoomChanged(m_currentZoom);
+    if (m_cameraSession->camera()) {
+        digital = qBound(qreal(1), digital, m_maximumZoom);
+        int validZoomIndex = qt_findClosestValue(m_zoomRatios, qRound(digital * 100));
+        qreal newZoom = m_zoomRatios.at(validZoomIndex) / qreal(100);
+        if (!qFuzzyCompare(m_currentZoom, newZoom)) {
+            m_cameraSession->camera()->setZoom(validZoomIndex);
+            m_currentZoom = newZoom;
+            emit currentDigitalZoomChanged(m_currentZoom);
+        }
     }
 }
 
 void QAndroidCameraZoomControl::onCameraOpened()
 {
-    m_requestedZoom = 1.0;
-    m_currentZoom = 1.0;
-    emit requestedDigitalZoomChanged(m_requestedZoom);
-    emit currentDigitalZoomChanged(m_currentZoom);
-
     if (m_cameraSession->camera()->isZoomSupported()) {
         m_zoomRatios = m_cameraSession->camera()->getZoomRatios();
         qreal maxZoom = m_zoomRatios.last() / qreal(100);
@@ -129,6 +122,7 @@ void QAndroidCameraZoomControl::onCameraOpened()
             m_maximumZoom = maxZoom;
             emit maximumDigitalZoomChanged(m_maximumZoom);
         }
+        zoomTo(1, m_requestedZoom);
     } else {
         m_zoomRatios.clear();
         if (!qFuzzyCompare(m_maximumZoom, qreal(1))) {

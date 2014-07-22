@@ -46,15 +46,19 @@
 QT_BEGIN_NAMESPACE
 
 DSImageCaptureControl::DSImageCaptureControl(DSCameraSession *session)
-    :QCameraImageCaptureControl(session), m_session(session), m_ready(false)
+    : QCameraImageCaptureControl(session)
+    , m_session(session)
 {
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
+    connect(m_session, SIGNAL(imageExposed(int)),
+            this, SIGNAL(imageExposed(int)));
     connect(m_session, SIGNAL(imageCaptured(int,QImage)),
         this, SIGNAL(imageCaptured(int,QImage)));
     connect(m_session, SIGNAL(imageSaved(int,QString)),
             this, SIGNAL(imageSaved(int,QString)));
     connect(m_session, SIGNAL(readyForCaptureChanged(bool)),
             this, SIGNAL(readyForCaptureChanged(bool)));
+    connect(m_session, SIGNAL(captureError(int,int,QString)),
+            this, SIGNAL(error(int,int,QString)));
 }
 
 DSImageCaptureControl::~DSImageCaptureControl()
@@ -63,7 +67,7 @@ DSImageCaptureControl::~DSImageCaptureControl()
 
 bool DSImageCaptureControl::isReadyForCapture() const
 {
-    return m_ready;
+    return m_session->isReadyForCapture();
 }
 
 int DSImageCaptureControl::capture(const QString &fileName)
@@ -71,12 +75,15 @@ int DSImageCaptureControl::capture(const QString &fileName)
    return m_session->captureImage(fileName);
 }
 
-void DSImageCaptureControl::updateState()
+QCameraImageCapture::DriveMode DSImageCaptureControl::driveMode() const
 {
-    bool ready = (m_session->state() == QCamera::ActiveState) &&
-                 !m_session->pictureInProgress();
-    if(m_ready != ready)
-        emit readyForCaptureChanged(m_ready = ready);
+    return QCameraImageCapture::SingleImageCapture;
+}
+
+void DSImageCaptureControl::setDriveMode(QCameraImageCapture::DriveMode mode)
+{
+    if (mode != QCameraImageCapture::SingleImageCapture)
+        qWarning("Drive mode not supported.");
 }
 
 QT_END_NAMESPACE

@@ -72,6 +72,22 @@ private Q_SLOTS:
     void onAutoFocusComplete(bool success);
 
 private:
+    inline void setFocusModeHelper(QCameraFocus::FocusModes mode)
+    {
+        if (m_focusMode != mode) {
+            m_focusMode = mode;
+            emit focusModeChanged(mode);
+        }
+    }
+
+    inline void setFocusPointModeHelper(QCameraFocus::FocusPointMode mode)
+    {
+        if (m_focusPointMode != mode) {
+            m_focusPointMode = mode;
+            emit focusPointModeChanged(mode);
+        }
+    }
+
     void updateFocusZones(QCameraFocusZone::FocusZoneStatus status = QCameraFocusZone::Selected);
     void setCameraFocusArea();
 

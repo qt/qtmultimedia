@@ -111,7 +111,6 @@ DirectShowPlayerService::DirectShowPlayerService(QObject *parent)
     , m_seekable(false)
     , m_atEnd(false)
 {
-    CoInitialize(NULL);
     m_playerControl = new DirectShowPlayerControl(this);
     m_metaDataControl = new DirectShowMetaDataControl(this);
     m_audioEndpointControl = new DirectShowAudioEndpointControl(this);
@@ -153,7 +152,6 @@ DirectShowPlayerService::~DirectShowPlayerService()
 #endif
 
     ::CloseHandle(m_taskHandle);
-    CoUninitialize();
 }
 
 QMediaControl *DirectShowPlayerService::requestControl(const char *name)

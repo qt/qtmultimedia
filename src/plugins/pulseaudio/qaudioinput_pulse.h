@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -112,8 +112,12 @@ public:
 private slots:
     void userFeed();
     bool deviceReady();
+    void onPulseContextFailed();
 
 private:
+    void setState(QAudio::State state);
+    void setError(QAudio::Error error);
+
     int checkBytesReady();
     bool open();
     void close();

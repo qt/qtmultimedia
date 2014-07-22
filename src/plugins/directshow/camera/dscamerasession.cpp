@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -42,8 +42,11 @@
 #include <QtCore/qdebug.h>
 #include <QWidget>
 #include <QFile>
+#include <QtConcurrent/QtConcurrentRun>
 #include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qcameraimagecapture.h>
+#include <private/qmemoryvideobuffer_p.h>
 
 #include "dscamerasession.h"
 #include "dsvideorenderer.h"
@@ -51,12 +54,23 @@
 
 QT_BEGIN_NAMESPACE
 
-// If frames come in quicker than we display them, we allow the queue to build
-// up to this number before we start dropping them.
-const int LIMIT_FRAME = 5;
 
 namespace {
 // DirectShow helper implementation
+void _CopyMediaType(AM_MEDIA_TYPE *pmtTarget, const AM_MEDIA_TYPE *pmtSource)
+{
+    *pmtTarget = *pmtSource;
+    if (pmtTarget->cbFormat != 0) {
+        pmtTarget->pbFormat = reinterpret_cast<BYTE *>(CoTaskMemAlloc(pmtTarget->cbFormat));
+        if (pmtTarget->pbFormat)
+            memcpy(pmtTarget->pbFormat, pmtSource->pbFormat, pmtTarget->cbFormat);
+    }
+    if (pmtTarget->pUnk != NULL) {
+        // pUnk should not be used.
+        pmtTarget->pUnk->AddRef();
+    }
+}
+
 void _FreeMediaType(AM_MEDIA_TYPE& mt)
 {
     if (mt.cbFormat != 0) {
@@ -70,14 +84,36 @@ void _FreeMediaType(AM_MEDIA_TYPE& mt)
         mt.pUnk = NULL;
     }
 }
-
 } // end namespace
+
+typedef QList<QSize> SizeList;
+Q_GLOBAL_STATIC(SizeList, commonPreviewResolutions)
+
+static HRESULT getPin(IBaseFilter *filter, PIN_DIRECTION pinDir, IPin **pin);
+
 
 class SampleGrabberCallbackPrivate : public ISampleGrabberCB
 {
 public:
-    STDMETHODIMP_(ULONG) AddRef() { return 1; }
-    STDMETHODIMP_(ULONG) Release() { return 2; }
+    explicit SampleGrabberCallbackPrivate(DSCameraSession *session)
+        : m_ref(1)
+        , m_session(session)
+    { }
+
+    virtual ~SampleGrabberCallbackPrivate() { }
+
+    STDMETHODIMP_(ULONG) AddRef()
+    {
+        return InterlockedIncrement(&m_ref);
+    }
+
+    STDMETHODIMP_(ULONG) Release()
+    {
+        ULONG ref = InterlockedDecrement(&m_ref);
+        if (ref == 0)
+            delete this;
+        return ref;
+    }
 
     STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject)
     {
@@ -101,143 +137,53 @@ public:
         return E_NOTIMPL;
     }
 
-    STDMETHODIMP BufferCB(double Time, BYTE *pBuffer, long BufferLen)
+    STDMETHODIMP BufferCB(double time, BYTE *pBuffer, long bufferLen)
     {
-        if (!cs || active) {
-            return S_OK;
+        // We display frames as they arrive, the presentation time is
+        // irrelevant
+        Q_UNUSED(time);
+
+        if (m_session) {
+           m_session->onFrameAvailable(reinterpret_cast<const char *>(pBuffer),
+                                       bufferLen);
         }
-
-        if ((cs->StillMediaType.majortype != MEDIATYPE_Video) ||
-                (cs->StillMediaType.formattype != FORMAT_VideoInfo) ||
-                (cs->StillMediaType.cbFormat < sizeof(VIDEOINFOHEADER))) {
-            return VFW_E_INVALIDMEDIATYPE;
-        }
-
-        active = true;
-
-        if(toggle == true) {
-            toggle = false;
-        }
-        else {
-            toggle = true;
-        }
-
-        if(toggle) {
-            active = false;
-            return S_OK;
-        }
-
-        bool check = false;
-        cs->mutex.lock();
-
-        if (cs->frames.size() > LIMIT_FRAME) {
-            check = true;
-        }
-
-        if (check) {
-            cs->mutex.unlock();
-            // Frames building up. We're going to drop some here
-            Sleep(100);
-            active = false;
-            return S_OK;
-        }
-        cs->mutex.unlock();
-
-        unsigned char* vidData = new unsigned char[BufferLen];
-        memcpy(vidData, pBuffer, BufferLen);
-
-        cs->mutex.lock();
-
-        video_buffer* buf = new video_buffer;
-        buf->buffer = vidData;
-        buf->length = BufferLen;
-        buf->time   = (qint64)Time;
-
-        cs->frames.append(buf);
-
-        cs->mutex.unlock();
-
-        QMetaObject::invokeMethod(cs, "captureFrame", Qt::QueuedConnection);
-
-        active = false;
 
         return S_OK;
     }
 
-    DSCameraSession* cs;
-    bool active;
-    bool toggle;
+private:
+    ULONG m_ref;
+    DSCameraSession *m_session;
 };
 
 
 DSCameraSession::DSCameraSession(QObject *parent)
     : QObject(parent)
-      ,m_currentImageId(0)
-    , needsHorizontalMirroring(false)
-    , needsVerticalMirroring(true)
+    , m_graphBuilder(Q_NULLPTR)
+    , m_filterGraph(Q_NULLPTR)
+    , m_sourceDeviceName(QLatin1String("default"))
+    , m_sourceFilter(Q_NULLPTR)
+    , m_needsHorizontalMirroring(false)
+    , m_previewFilter(Q_NULLPTR)
+    , m_previewSampleGrabber(Q_NULLPTR)
+    , m_nullRendererFilter(Q_NULLPTR)
+    , m_previewStarted(false)
+    , m_surface(Q_NULLPTR)
+    , m_previewPixelFormat(QVideoFrame::Format_Invalid)
+    , m_readyForCapture(false)
+    , m_imageIdCounter(0)
+    , m_currentImageId(-1)
+    , m_status(QCamera::UnloadedStatus)
 {
-    pBuild = NULL;
-    pGraph = NULL;
-    pCap = NULL;
-    pSG_Filter = NULL;
-    pSG = NULL;
+    ZeroMemory(&m_sourcePreferredFormat, sizeof(m_sourcePreferredFormat));
 
-    opened = false;
-    available = false;
-    resolutions.clear();
-    m_state = QCamera::UnloadedState;
-    m_device = "default";
-
-    StillCapCB = new SampleGrabberCallbackPrivate;
-    StillCapCB->cs = this;
-    StillCapCB->active = false;
-    StillCapCB->toggle = false;
-
-    m_output = 0;
-    m_surface = 0;
-    pixelF = QVideoFrame::Format_Invalid;
-
-    graph = false;
-    active = false;
-
-    ::CoInitialize(NULL);
+    connect(this, SIGNAL(statusChanged(QCamera::Status)),
+            this, SLOT(updateReadyForCapture()));
 }
 
 DSCameraSession::~DSCameraSession()
 {
-    if (opened) {
-        closeStream();
-    }
-
-    CoUninitialize();
-
-    SAFE_RELEASE(pCap);
-    SAFE_RELEASE(pSG_Filter);
-    SAFE_RELEASE(pGraph);
-    SAFE_RELEASE(pBuild);
-
-    if (StillCapCB) {
-        delete StillCapCB;
-    }
-}
-
-int DSCameraSession::captureImage(const QString &fileName)
-{
-    emit readyForCaptureChanged(false);
-
-    // We're going to do this in one big synchronous call
-    m_currentImageId++;
-    if (fileName.isEmpty()) {
-        m_snapshot = "img.jpg";
-    } else {
-        m_snapshot = fileName;
-    }
-
-    if (!active) {
-        startStream();
-    }
-
-    return m_currentImageId;
+    unload();
 }
 
 void DSCameraSession::setSurface(QAbstractVideoSurface* surface)
@@ -245,415 +191,260 @@ void DSCameraSession::setSurface(QAbstractVideoSurface* surface)
     m_surface = surface;
 }
 
-bool DSCameraSession::deviceReady()
-{
-    return available;
-}
-
-bool DSCameraSession::pictureInProgress()
-{
-    return m_snapshot.isEmpty();
-}
-
-int DSCameraSession::framerate() const
-{
-    return -1;
-}
-
-void DSCameraSession::setFrameRate(int rate)
-{
-    Q_UNUSED(rate)
-}
-
-int DSCameraSession::brightness() const
-{
-    return -1;
-}
-
-void DSCameraSession::setBrightness(int b)
-{
-    Q_UNUSED(b)
-}
-
-int DSCameraSession::contrast() const
-{
-    return -1;
-}
-
-void DSCameraSession::setContrast(int c)
-{
-    Q_UNUSED(c)
-}
-
-int DSCameraSession::saturation() const
-{
-    return -1;
-}
-
-void DSCameraSession::setSaturation(int s)
-{
-    Q_UNUSED(s)
-}
-
-int DSCameraSession::hue() const
-{
-    return -1;
-}
-
-void DSCameraSession::setHue(int h)
-{
-    Q_UNUSED(h)
-}
-
-int DSCameraSession::sharpness() const
-{
-    return -1;
-}
-
-void DSCameraSession::setSharpness(int s)
-{
-    Q_UNUSED(s)
-}
-
-int DSCameraSession::zoom() const
-{
-    return -1;
-}
-
-void DSCameraSession::setZoom(int z)
-{
-    Q_UNUSED(z)
-}
-
-bool DSCameraSession::backlightCompensation() const
-{
-    return false;
-}
-
-void DSCameraSession::setBacklightCompensation(bool b)
-{
-    Q_UNUSED(b)
-}
-
-int DSCameraSession::whitelevel() const
-{
-    return -1;
-}
-
-void DSCameraSession::setWhitelevel(int w)
-{
-    Q_UNUSED(w)
-}
-
-int DSCameraSession::rotation() const
-{
-    return 0;
-}
-
-void DSCameraSession::setRotation(int r)
-{
-    Q_UNUSED(r)
-}
-
-bool DSCameraSession::flash() const
-{
-    return false;
-}
-
-void DSCameraSession::setFlash(bool f)
-{
-    Q_UNUSED(f)
-}
-
-bool DSCameraSession::autofocus() const
-{
-    return false;
-}
-
-void DSCameraSession::setAutofocus(bool f)
-{
-    Q_UNUSED(f)
-}
-
-QSize DSCameraSession::frameSize() const
-{
-    return m_windowSize;
-}
-
-void DSCameraSession::setFrameSize(const QSize& s)
-{
-    if (supportedResolutions(pixelF).contains(s))
-        m_windowSize = s;
-    else
-        qWarning() << "frame size if not supported for current pixel format, no change";
-}
-
 void DSCameraSession::setDevice(const QString &device)
 {
-    if(opened)
-        stopStream();
-
-    if(graph) {
-        SAFE_RELEASE(pCap);
-        SAFE_RELEASE(pSG_Filter);
-        SAFE_RELEASE(pGraph);
-        SAFE_RELEASE(pBuild);
-    }
-
-    available = false;
-    m_state = QCamera::LoadedState;
-
-    CoInitialize(NULL);
-
-    ICreateDevEnum* pDevEnum = NULL;
-    IEnumMoniker* pEnum = NULL;
-
-    // Create the System device enumerator
-    HRESULT hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
-                                  CLSCTX_INPROC_SERVER, IID_ICreateDevEnum,
-                                  reinterpret_cast<void**>(&pDevEnum));
-    if(SUCCEEDED(hr)) {
-        // Create the enumerator for the video capture category
-        hr = pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pEnum, 0);
-        if (S_OK == hr) {
-            pEnum->Reset();
-            // go through and find all video capture devices
-            IMoniker* pMoniker = NULL;
-            IMalloc *mallocInterface = 0;
-            CoGetMalloc(1, (LPMALLOC*)&mallocInterface);
-            while(pEnum->Next(1, &pMoniker, NULL) == S_OK) {
-
-                BSTR strName = 0;
-                hr = pMoniker->GetDisplayName(NULL, NULL, &strName);
-                if (SUCCEEDED(hr)) {
-                    QString temp(QString::fromWCharArray(strName));
-                    mallocInterface->Free(strName);
-                    if(temp.contains(device)) {
-                        available = true;
-                    }
-                }
-
-                pMoniker->Release();
-            }
-            mallocInterface->Release();
-            pEnum->Release();
-        }
-        pDevEnum->Release();
-    }
-    CoUninitialize();
-
-    if(available) {
-        m_device = QByteArray(device.toUtf8().constData());
-        graph = createFilterGraph();
-        if(!graph)
-            available = false;
-    }
+    m_sourceDeviceName = device;
 }
 
-QList<QVideoFrame::PixelFormat> DSCameraSession::supportedPixelFormats()
+bool DSCameraSession::load()
 {
-    return types;
+    unload();
+
+    setStatus(QCamera::LoadingStatus);
+
+    bool succeeded = createFilterGraph();
+    if (succeeded)
+        setStatus(QCamera::LoadedStatus);
+    else
+        setStatus(QCamera::UnavailableStatus);
+
+    return succeeded;
 }
 
-QVideoFrame::PixelFormat DSCameraSession::pixelFormat() const
+bool DSCameraSession::unload()
 {
-    return pixelF;
-}
+    if (!m_graphBuilder)
+        return false;
 
-void DSCameraSession::setPixelFormat(QVideoFrame::PixelFormat fmt)
-{
-    pixelF = fmt;
-}
+    if (!stopPreview())
+        return false;
 
-QList<QSize> DSCameraSession::supportedResolutions(QVideoFrame::PixelFormat format)
-{
-    if (!resolutions.contains(format))
-        return QList<QSize>();
-    return resolutions.value(format);
-}
+    setStatus(QCamera::UnloadingStatus);
 
-bool DSCameraSession::setOutputLocation(const QUrl &sink)
-{
-    m_sink = sink;
+    m_needsHorizontalMirroring = false;
+    m_sourcePreferredResolution = QSize();
+    _FreeMediaType(m_sourcePreferredFormat);
+    ZeroMemory(&m_sourcePreferredFormat, sizeof(m_sourcePreferredFormat));
+    SAFE_RELEASE(m_sourceFilter);
+    SAFE_RELEASE(m_previewSampleGrabber);
+    SAFE_RELEASE(m_previewFilter);
+    SAFE_RELEASE(m_nullRendererFilter);
+    SAFE_RELEASE(m_filterGraph);
+    SAFE_RELEASE(m_graphBuilder);
+
+    setStatus(QCamera::UnloadedStatus);
 
     return true;
 }
 
-QUrl DSCameraSession::outputLocation() const
+bool DSCameraSession::startPreview()
 {
-    return m_sink;
-}
+    if (m_previewStarted)
+        return true;
 
-qint64 DSCameraSession::position() const
-{
-    return timeStamp.elapsed();
-}
+    if (!m_graphBuilder)
+        return false;
 
-int DSCameraSession::state() const
-{
-    return int(m_state);
-}
+    setStatus(QCamera::StartingStatus);
 
-void DSCameraSession::record()
-{
-    if(opened) {
-        return;
+    HRESULT hr = S_OK;
+    IMediaControl* pControl = 0;
+
+    if (!configurePreviewFormat()) {
+        qWarning() << "Failed to configure preview format";
+        goto failed;
     }
 
-    if(m_surface) {
+    if (!connectGraph())
+        goto failed;
 
-        if (!graph)
-            graph = createFilterGraph();
+    if (m_surface)
+        m_surface->start(m_previewSurfaceFormat);
 
-        if (types.isEmpty()) {
-            if (pixelF == QVideoFrame::Format_Invalid)
-                pixelF = QVideoFrame::Format_RGB32;
-            if (!m_windowSize.isValid())
-                m_windowSize = QSize(320, 240);
-        }
-        actualFormat = QVideoSurfaceFormat(m_windowSize, pixelF);
+    hr = m_filterGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
+    if (FAILED(hr)) {
+        qWarning() << "failed to get stream control";
+        goto failed;
+    }
+    hr = pControl->Run();
+    pControl->Release();
 
-        if (!m_surface->isFormatSupported(actualFormat) && !types.isEmpty()) {
-            // enumerate through camera formats
-            QList<QVideoFrame::PixelFormat> fmts = m_surface->supportedPixelFormats();
-            foreach(QVideoFrame::PixelFormat f, types) {
-                if (fmts.contains(f)) {
-                    pixelF = f;
-                    if (!resolutions[pixelF].contains(m_windowSize)) {
-                        Q_ASSERT(!resolutions[pixelF].isEmpty());
-                        m_windowSize = resolutions[pixelF].first();
-                    }
-                    actualFormat = QVideoSurfaceFormat(m_windowSize, pixelF);
-                    break;
-                }
-            }
-        }
+    if (FAILED(hr)) {
+        qWarning() << "failed to start";
+        goto failed;
+    }
 
-        if (m_surface->isFormatSupported(actualFormat)) {
-            m_surface->start(actualFormat);
-            m_state = QCamera::ActiveState;
-            emit stateChanged(QCamera::ActiveState);
-        } else {
-            qWarning() << "surface doesn't support camera format, cant start";
-            m_state = QCamera::LoadedState;
-            emit stateChanged(QCamera::LoadedState);
-            return;
-        }
+    setStatus(QCamera::ActiveStatus);
+    m_previewStarted = true;
+    return true;
+
+failed:
+    // go back to a clean state
+    if (m_surface && m_surface->isActive())
+        m_surface->stop();
+    disconnectGraph();
+    setStatus(QCamera::LoadedStatus);
+    return false;
+}
+
+bool DSCameraSession::stopPreview()
+{
+    if (!m_previewStarted)
+        return true;
+
+    setStatus(QCamera::StoppingStatus);
+
+    IMediaControl* pControl = 0;
+    HRESULT hr = m_filterGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
+    if (FAILED(hr)) {
+        qWarning() << "failed to get stream control";
+        goto failed;
+    }
+
+    hr = pControl->Stop();
+    pControl->Release();
+    if (FAILED(hr)) {
+        qWarning() << "failed to stop";
+        goto failed;
+    }
+
+    disconnectGraph();
+
+    m_previewStarted = false;
+    setStatus(QCamera::LoadedStatus);
+    return true;
+
+failed:
+    setStatus(QCamera::ActiveStatus);
+    return false;
+}
+
+void DSCameraSession::setStatus(QCamera::Status status)
+{
+    if (m_status == status)
+        return;
+
+    m_status = status;
+    emit statusChanged(m_status);
+}
+
+bool DSCameraSession::isReadyForCapture()
+{
+    return m_readyForCapture;
+}
+
+void DSCameraSession::updateReadyForCapture()
+{
+    bool isReady = (m_status == QCamera::ActiveStatus && m_imageCaptureFileName.isEmpty());
+    if (isReady != m_readyForCapture) {
+        m_readyForCapture = isReady;
+        emit readyForCaptureChanged(isReady);
+    }
+}
+
+int DSCameraSession::captureImage(const QString &fileName)
+{
+    ++m_imageIdCounter;
+
+    if (!m_readyForCapture) {
+        emit captureError(m_imageIdCounter, QCameraImageCapture::NotReadyError,
+                          tr("Camera not ready for capture"));
+        return m_imageIdCounter;
+    }
+
+    m_imageCaptureFileName = m_fileNameGenerator.generateFileName(fileName,
+                                                         QMediaStorageLocation::Pictures,
+                                                         QLatin1String("IMG_"),
+                                                         QLatin1String("jpg"));
+
+    updateReadyForCapture();
+
+    m_captureMutex.lock();
+    m_currentImageId = m_imageIdCounter;
+    m_captureMutex.unlock();
+
+    return m_imageIdCounter;
+}
+
+void DSCameraSession::onFrameAvailable(const char *frameData, long len)
+{
+    // !!! Not called on the main thread
+
+    // Deep copy, the data might be modified or freed after the callback returns
+    QByteArray data(frameData, len);
+
+    m_presentMutex.lock();
+
+    // (We should be getting only RGB32 data)
+    int stride = m_previewSize.width() * 4;
+
+    // In case the source produces frames faster than we can display them,
+    // only keep the most recent one
+    m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(data, stride),
+                                 m_previewSize,
+                                 m_previewPixelFormat);
+
+    m_presentMutex.unlock();
+
+    // Image capture
+    QMutexLocker locker(&m_captureMutex);
+    if (m_currentImageId != -1 && !m_capturedFrame.isValid()) {
+        m_capturedFrame = m_currentFrame;
+        emit imageExposed(m_currentImageId);
+    }
+
+    QMetaObject::invokeMethod(this, "presentFrame", Qt::QueuedConnection);
+}
+
+void DSCameraSession::presentFrame()
+{
+    m_presentMutex.lock();
+
+    if (m_currentFrame.isValid() && m_surface) {
+        m_surface->present(m_currentFrame);
+        m_currentFrame = QVideoFrame();
+    }
+
+    m_presentMutex.unlock();
+
+    m_captureMutex.lock();
+
+    if (m_capturedFrame.isValid()) {
+        Q_ASSERT(m_previewPixelFormat == QVideoFrame::Format_RGB32);
+
+        m_capturedFrame.map(QAbstractVideoBuffer::ReadOnly);
+
+        QImage image = QImage(m_capturedFrame.bits(),
+                              m_previewSize.width(), m_previewSize.height(),
+                              QImage::Format_RGB32);
+
+        image = image.mirrored(m_needsHorizontalMirroring); // also causes a deep copy of the data
+
+        m_capturedFrame.unmap();
+
+        emit imageCaptured(m_currentImageId, image);
+
+        QtConcurrent::run(this, &DSCameraSession::saveCapturedImage,
+                          m_currentImageId, image, m_imageCaptureFileName);
+
+        m_imageCaptureFileName.clear();
+        m_currentImageId = -1;
+        updateReadyForCapture();
+
+        m_capturedFrame = QVideoFrame();
+    }
+
+    m_captureMutex.unlock();
+}
+
+void DSCameraSession::saveCapturedImage(int id, const QImage &image, const QString &path)
+{
+    if (image.save(path, "JPG")) {
+        emit imageSaved(id, path);
     } else {
-        qWarning() << "no video surface, cant start";
-        m_state = QCamera::LoadedState;
-        emit stateChanged(QCamera::LoadedState);
-        return;
+        emit captureError(id, QCameraImageCapture::ResourceError,
+                          tr("Could not save image to file."));
     }
-
-    opened = startStream();
-
-    if (!opened) {
-        qWarning() << "Stream did not open";
-        m_state = QCamera::LoadedState;
-        emit stateChanged(QCamera::LoadedState);
-    }
-}
-
-void DSCameraSession::pause()
-{
-    suspendStream();
-}
-
-void DSCameraSession::stop()
-{
-    if(!opened) {
-        return;
-    }
-
-    stopStream();
-    opened = false;
-    m_state = QCamera::LoadedState;
-    emit stateChanged(QCamera::LoadedState);
-}
-
-void DSCameraSession::captureFrame()
-{
-    if(m_surface && frames.count() > 0) {
-
-        QImage image;
-
-        if(pixelF == QVideoFrame::Format_RGB24) {
-
-            mutex.lock();
-
-            image = QImage(frames.at(0)->buffer,m_windowSize.width(),m_windowSize.height(),
-                    QImage::Format_RGB888).rgbSwapped().mirrored(needsHorizontalMirroring, needsVerticalMirroring);
-
-            QVideoFrame frame(image);
-            frame.setStartTime(frames.at(0)->time);
-
-            mutex.unlock();
-
-            m_surface->present(frame);
-
-        } else if (pixelF == QVideoFrame::Format_RGB32) {
-
-            mutex.lock();
-
-            image = QImage(frames.at(0)->buffer,m_windowSize.width(),m_windowSize.height(),
-                    QImage::Format_RGB32).mirrored(needsHorizontalMirroring, needsVerticalMirroring);
-
-            QVideoFrame frame(image);
-            frame.setStartTime(frames.at(0)->time);
-
-            mutex.unlock();
-
-            m_surface->present(frame);
-
-        } else {
-            qWarning() << "TODO:captureFrame() format =" << pixelF;
-        }
-
-        if (m_snapshot.length() > 0) {
-            emit imageCaptured(m_currentImageId, image);
-            image.save(m_snapshot,"JPG");
-            emit imageSaved(m_currentImageId, m_snapshot);
-            m_snapshot.clear();
-            emit readyForCaptureChanged(true);
-        }
-
-        mutex.lock();
-        if (frames.isEmpty()) {
-            qWarning() << "Frames over-run";
-        }
-
-        video_buffer* buf = frames.takeFirst();
-        delete buf->buffer;
-        delete buf;
-        mutex.unlock();
-    }
-}
-
-HRESULT DSCameraSession::getPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin)
-{
-    *ppPin = 0;
-    IEnumPins *pEnum = 0;
-    IPin *pPin = 0;
-
-    HRESULT hr = pFilter->EnumPins(&pEnum);
-    if(FAILED(hr)) {
-        return hr;
-    }
-
-    pEnum->Reset();
-    while(pEnum->Next(1, &pPin, NULL) == S_OK) {
-        PIN_DIRECTION ThisPinDir;
-        pPin->QueryDirection(&ThisPinDir);
-        if(ThisPinDir == PinDir) {
-            pEnum->Release();
-            *ppPin = pPin;
-            return S_OK;
-        }
-        pEnum->Release();
-    }
-    pEnum->Release();
-    return E_FAIL;
 }
 
 bool DSCameraSession::createFilterGraph()
@@ -661,35 +452,34 @@ bool DSCameraSession::createFilterGraph()
     // Previously containered in <qedit.h>.
     static const IID iID_ISampleGrabber = { 0x6B652FFF, 0x11FE, 0x4fce, { 0x92, 0xAD, 0x02, 0x66, 0xB5, 0xD7, 0xC7, 0x8F } };
     static const CLSID cLSID_SampleGrabber = { 0xC1F400A0, 0x3F08, 0x11d3, { 0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37 } };
+    static const CLSID cLSID_NullRenderer = { 0xC1F400A4, 0x3F08, 0x11d3, { 0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37 } };
 
     HRESULT hr;
     IMoniker* pMoniker = NULL;
     ICreateDevEnum* pDevEnum = NULL;
     IEnumMoniker* pEnum = NULL;
 
-    CoInitialize(NULL);
-
     // Create the filter graph
     hr = CoCreateInstance(CLSID_FilterGraph,NULL,CLSCTX_INPROC,
-            IID_IGraphBuilder, (void**)&pGraph);
+            IID_IGraphBuilder, (void**)&m_filterGraph);
     if (FAILED(hr)) {
-        qWarning()<<"failed to create filter graph";
-        return false;
+        qWarning() << "failed to create filter graph";
+        goto failed;
     }
 
     // Create the capture graph builder
     hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC,
-                          IID_ICaptureGraphBuilder2, (void**)&pBuild);
+                          IID_ICaptureGraphBuilder2, (void**)&m_graphBuilder);
     if (FAILED(hr)) {
-        qWarning()<<"failed to create graph builder";
-        return false;
+        qWarning() << "failed to create graph builder";
+        goto failed;
     }
 
     // Attach the filter graph to the capture graph
-    hr = pBuild->SetFiltergraph(pGraph);
+    hr = m_graphBuilder->SetFiltergraph(m_filterGraph);
     if (FAILED(hr)) {
-        qWarning()<<"failed to connect capture graph and filter graph";
-        return false;
+        qWarning() << "failed to connect capture graph and filter graph";
+        goto failed;
     }
 
     // Find the Capture device
@@ -712,8 +502,8 @@ bool DSCameraSession::createFilterGraph()
                 if (SUCCEEDED(hr)) {
                     QString output = QString::fromWCharArray(strName);
                     mallocInterface->Free(strName);
-                    if (m_device.contains(output.toUtf8().constData())) {
-                        hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&pCap);
+                    if (m_sourceDeviceName.contains(output)) {
+                        hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&m_sourceFilter);
                         if (SUCCEEDED(hr)) {
                             pMoniker->Release();
                             break;
@@ -723,9 +513,9 @@ bool DSCameraSession::createFilterGraph()
                 pMoniker->Release();
             }
             mallocInterface->Release();
-            if (NULL == pCap)
+            if (NULL == m_sourceFilter)
             {
-                if (m_device.contains("default"))
+                if (m_sourceDeviceName.contains(QLatin1String("default")))
                 {
                     pEnum->Reset();
                     // still have to loop to discard bind to storage failure case
@@ -740,7 +530,7 @@ bool DSCameraSession::createFilterGraph()
 
                         // No need to get the description, just grab it
 
-                        hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&pCap);
+                        hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&m_sourceFilter);
                         pPropBag->Release();
                         pMoniker->Release();
                         if (SUCCEEDED(hr)) {
@@ -757,29 +547,184 @@ bool DSCameraSession::createFilterGraph()
         }
     }
 
+    if (!m_sourceFilter) {
+        qWarning() << "No capture device found";
+        goto failed;
+    }
+
     // Sample grabber filter
     hr = CoCreateInstance(cLSID_SampleGrabber, NULL,CLSCTX_INPROC,
-                          IID_IBaseFilter, (void**)&pSG_Filter);
+                          IID_IBaseFilter, (void**)&m_previewFilter);
     if (FAILED(hr)) {
         qWarning() << "failed to create sample grabber";
-        return false;
+        goto failed;
     }
 
-    hr = pSG_Filter->QueryInterface(iID_ISampleGrabber, (void**)&pSG);
+    hr = m_previewFilter->QueryInterface(iID_ISampleGrabber, (void**)&m_previewSampleGrabber);
     if (FAILED(hr)) {
         qWarning() << "failed to get sample grabber";
+        goto failed;
+    }
+
+    {
+        SampleGrabberCallbackPrivate *callback = new SampleGrabberCallbackPrivate(this);
+        m_previewSampleGrabber->SetCallback(callback, 1);
+        m_previewSampleGrabber->SetOneShot(FALSE);
+        m_previewSampleGrabber->SetBufferSamples(FALSE);
+        callback->Release();
+    }
+
+    // Null renderer. Input connected to the sample grabber's output. Simply
+    // discard the samples it receives.
+    hr = CoCreateInstance(cLSID_NullRenderer, NULL, CLSCTX_INPROC,
+                          IID_IBaseFilter, (void**)&m_nullRendererFilter);
+    if (FAILED(hr)) {
+        qWarning() << "failed to create null renderer";
+        goto failed;
+    }
+
+    updateSourceCapabilities();
+
+    return true;
+
+failed:
+    m_needsHorizontalMirroring = false;
+    m_sourcePreferredResolution = QSize();
+    _FreeMediaType(m_sourcePreferredFormat);
+    ZeroMemory(&m_sourcePreferredFormat, sizeof(m_sourcePreferredFormat));
+    SAFE_RELEASE(m_sourceFilter);
+    SAFE_RELEASE(m_previewSampleGrabber);
+    SAFE_RELEASE(m_previewFilter);
+    SAFE_RELEASE(m_nullRendererFilter);
+    SAFE_RELEASE(m_filterGraph);
+    SAFE_RELEASE(m_graphBuilder);
+
+    return false;
+}
+
+bool DSCameraSession::configurePreviewFormat()
+{
+    // We only support RGB32, if the capture source doesn't support
+    // that format, the graph builder will automatically insert a
+    // converter.
+
+    if (m_surface && !m_surface->supportedPixelFormats(QAbstractVideoBuffer::NoHandle)
+            .contains(QVideoFrame::Format_RGB32)) {
+        qWarning() << "Video surface needs to support RGB32 pixel format";
         return false;
     }
-    pSG->SetOneShot(FALSE);
-    pSG->SetBufferSamples(TRUE);
-    pSG->SetCallback(StillCapCB, 1);
 
-    updateProperties();
-    CoUninitialize();
+    m_previewPixelFormat = QVideoFrame::Format_RGB32;
+    m_previewSize = m_sourcePreferredResolution;
+    m_previewSurfaceFormat = QVideoSurfaceFormat(m_previewSize,
+                                                 m_previewPixelFormat,
+                                                 QAbstractVideoBuffer::NoHandle);
+    m_previewSurfaceFormat.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+
+    HRESULT hr;
+    IAMStreamConfig* pConfig = 0;
+    hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE,
+                                       &MEDIATYPE_Video,
+                                       m_sourceFilter,
+                                       IID_IAMStreamConfig, (void**)&pConfig);
+    if (FAILED(hr)) {
+        qWarning() << "Failed to get config for capture device";
+        return false;
+    }
+
+    hr = pConfig->SetFormat(&m_sourcePreferredFormat);
+
+    pConfig->Release();
+
+    if (FAILED(hr)) {
+        qWarning() << "Unable to set video format on capture device";
+        return false;
+    }
+
+    // Set sample grabber format (always RGB32)
+    AM_MEDIA_TYPE grabberFormat;
+    ZeroMemory(&grabberFormat, sizeof(grabberFormat));
+    grabberFormat.majortype = MEDIATYPE_Video;
+    grabberFormat.subtype = MEDIASUBTYPE_RGB32;
+    grabberFormat.formattype = FORMAT_VideoInfo;
+    hr = m_previewSampleGrabber->SetMediaType(&grabberFormat);
+    if (FAILED(hr)) {
+        qWarning() << "Failed to set video format on grabber";
+        return false;
+    }
+
     return true;
 }
 
-void DSCameraSession::updateProperties()
+bool DSCameraSession::connectGraph()
+{
+    HRESULT hr = m_filterGraph->AddFilter(m_sourceFilter, L"Capture Filter");
+    if (FAILED(hr)) {
+        qWarning() << "failed to add capture filter to graph";
+        return false;
+    }
+
+    hr = m_filterGraph->AddFilter(m_previewFilter, L"Sample Grabber");
+    if (FAILED(hr)) {
+        qWarning() << "failed to add sample grabber to graph";
+        return false;
+    }
+
+    hr = m_filterGraph->AddFilter(m_nullRendererFilter, L"Null Renderer");
+    if (FAILED(hr)) {
+        qWarning() << "failed to add null renderer to graph";
+        return false;
+    }
+
+    hr = m_graphBuilder->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
+                                      m_sourceFilter,
+                                      m_previewFilter,
+                                      m_nullRendererFilter);
+    if (FAILED(hr)) {
+        qWarning() << "Graph failed to connect filters" << hr;
+        return false;
+    }
+
+    return true;
+}
+
+void DSCameraSession::disconnectGraph()
+{
+    IPin *pPin = 0;
+    HRESULT hr = getPin(m_sourceFilter, PINDIR_OUTPUT, &pPin);
+    if (SUCCEEDED(hr)) {
+        m_filterGraph->Disconnect(pPin);
+        pPin->Release();
+        pPin = NULL;
+    }
+
+    hr = getPin(m_previewFilter, PINDIR_INPUT, &pPin);
+    if (SUCCEEDED(hr)) {
+        m_filterGraph->Disconnect(pPin);
+        pPin->Release();
+        pPin = NULL;
+    }
+
+    hr = getPin(m_previewFilter, PINDIR_OUTPUT, &pPin);
+    if (SUCCEEDED(hr)) {
+        m_filterGraph->Disconnect(pPin);
+        pPin->Release();
+        pPin = NULL;
+    }
+
+    hr = getPin(m_nullRendererFilter, PINDIR_INPUT, &pPin);
+    if (SUCCEEDED(hr)) {
+        m_filterGraph->Disconnect(pPin);
+        pPin->Release();
+        pPin = NULL;
+    }
+
+    m_filterGraph->RemoveFilter(m_nullRendererFilter);
+    m_filterGraph->RemoveFilter(m_previewFilter);
+    m_filterGraph->RemoveFilter(m_sourceFilter);
+}
+
+void DSCameraSession::updateSourceCapabilities()
 {
     HRESULT hr;
     AM_MEDIA_TYPE *pmt = NULL;
@@ -787,413 +732,129 @@ void DSCameraSession::updateProperties()
     VIDEO_STREAM_CONFIG_CAPS scc;
     IAMStreamConfig* pConfig = 0;
 
-    hr = pBuild->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,pCap,
-                               IID_IAMStreamConfig, (void**)&pConfig);
-    if (FAILED(hr)) {
-        qWarning()<<"failed to get config on capture device";
-        return;
-    }
+    m_needsHorizontalMirroring = false;
+    m_sourcePreferredResolution = QSize();
+    _FreeMediaType(m_sourcePreferredFormat);
+    ZeroMemory(&m_sourcePreferredFormat, sizeof(m_sourcePreferredFormat));
 
-    int iCount;
-    int iSize;
-    hr = pConfig->GetNumberOfCapabilities(&iCount, &iSize);
-    if (FAILED(hr)) {
-        qWarning()<<"failed to get capabilities";
-        return;
-    }
-
-    QList<QSize> sizes;
-    QVideoFrame::PixelFormat f = QVideoFrame::Format_Invalid;
-
-    types.clear();
-    resolutions.clear();
     IAMVideoControl *pVideoControl = 0;
-    hr = pBuild->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,pCap,
-                               IID_IAMVideoControl, (void**)&pVideoControl);
+    hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
+                                       m_sourceFilter,
+                                       IID_IAMVideoControl, (void**)&pVideoControl);
     if (FAILED(hr)) {
         qWarning() << "Failed to get the video control";
     } else {
         IPin *pPin = 0;
-        if (pCap) {
-            hr = getPin(pCap, PINDIR_OUTPUT, &pPin);
+        hr = getPin(m_sourceFilter, PINDIR_OUTPUT, &pPin);
+        if (FAILED(hr)) {
+            qWarning() << "Failed to get the pin for the video control";
+        } else {
+            long supportedModes;
+            hr = pVideoControl->GetCaps(pPin, &supportedModes);
             if (FAILED(hr)) {
-                qWarning() << "Failed to get the pin for the video control";
-            } else {
-                long supportedModes;
-                hr = pVideoControl->GetCaps(pPin, &supportedModes);
-                if (FAILED(hr)) {
-                    qWarning() << "Failed to get the supported modes of the video control";
-                } else if (supportedModes & VideoControlFlag_FlipHorizontal || supportedModes & VideoControlFlag_FlipVertical) {
-                    long mode;
-                    hr = pVideoControl->GetMode(pPin, &mode);
-                    if (FAILED(hr)) {
-                        qWarning() << "Failed to get the mode of the video control";
-                    } else {
-                        if (supportedModes & VideoControlFlag_FlipHorizontal)
-                            needsHorizontalMirroring = (mode & VideoControlFlag_FlipHorizontal);
-                        if (supportedModes & VideoControlFlag_FlipVertical)
-                            needsVerticalMirroring = (mode & VideoControlFlag_FlipVertical);
-                    }
-                }
-                pPin->Release();
+                qWarning() << "Failed to get the supported modes of the video control";
+            } else if (supportedModes & VideoControlFlag_FlipHorizontal) {
+                long mode;
+                hr = pVideoControl->GetMode(pPin, &mode);
+                if (FAILED(hr))
+                    qWarning() << "Failed to get the mode of the video control";
+                else if (supportedModes & VideoControlFlag_FlipHorizontal)
+                    m_needsHorizontalMirroring = (mode & VideoControlFlag_FlipHorizontal);
             }
+            pPin->Release();
         }
         pVideoControl->Release();
     }
-    for (int iIndex = 0; iIndex < iCount; iIndex++) {
-        hr = pConfig->GetStreamCaps(iIndex, &pmt, reinterpret_cast<BYTE*>(&scc));
-        if (hr == S_OK) {
-            pvi = (VIDEOINFOHEADER*)pmt->pbFormat;
-            if ((pmt->majortype == MEDIATYPE_Video) &&
-                    (pmt->formattype == FORMAT_VideoInfo)) {
-                // Add types
-                if (pmt->subtype == MEDIASUBTYPE_RGB24) {
-                    if (!types.contains(QVideoFrame::Format_RGB24)) {
-                        types.append(QVideoFrame::Format_RGB24);
-                        f = QVideoFrame::Format_RGB24;
-                    }
-                } else if (pmt->subtype == MEDIASUBTYPE_RGB32) {
-                    if (!types.contains(QVideoFrame::Format_RGB32)) {
-                        types.append(QVideoFrame::Format_RGB32);
-                        f = QVideoFrame::Format_RGB32;
-                    }
-                } else if (pmt->subtype == MEDIASUBTYPE_YUY2) {
-                    if (!types.contains(QVideoFrame::Format_YUYV)) {
-                        types.append(QVideoFrame::Format_YUYV);
-                        f = QVideoFrame::Format_YUYV;
-                    }
-                } else if (pmt->subtype == MEDIASUBTYPE_MJPG) {
-                } else if (pmt->subtype == MEDIASUBTYPE_I420) {
-                    if (!types.contains(QVideoFrame::Format_YUV420P)) {
-                        types.append(QVideoFrame::Format_YUV420P);
-                        f = QVideoFrame::Format_YUV420P;
-                    }
-                } else if (pmt->subtype == MEDIASUBTYPE_RGB555) {
-                    if (!types.contains(QVideoFrame::Format_RGB555)) {
-                        types.append(QVideoFrame::Format_RGB555);
-                        f = QVideoFrame::Format_RGB555;
-                    }
-                } else if (pmt->subtype == MEDIASUBTYPE_YVU9) {
-                } else if (pmt->subtype == MEDIASUBTYPE_UYVY) {
-                    if (!types.contains(QVideoFrame::Format_UYVY)) {
-                        types.append(QVideoFrame::Format_UYVY);
-                        f = QVideoFrame::Format_UYVY;
-                    }
-                } else {
-                    qWarning() << "UNKNOWN FORMAT: " << pmt->subtype.Data1;
-                }
-                // Add resolutions
-                QSize res(pvi->bmiHeader.biWidth, pvi->bmiHeader.biHeight);
-                if (!resolutions.contains(f)) {
-                    sizes.clear();
-                    resolutions.insert(f,sizes);
-                }
-                resolutions[f].append(res);
-            }
-        }
-    }
-    pConfig->Release();
 
-    if (!types.isEmpty()) {
-        // Add RGB formats and let directshow do color space conversion if required.
-        if (!types.contains(QVideoFrame::Format_RGB24)) {
-            types.append(QVideoFrame::Format_RGB24);
-            resolutions.insert(QVideoFrame::Format_RGB24, resolutions[types.first()]);
-        }
-        if (!types.contains(QVideoFrame::Format_RGB32)) {
-            types.append(QVideoFrame::Format_RGB32);
-            resolutions.insert(QVideoFrame::Format_RGB32, resolutions[types.first()]);
-        }
-    }
-}
-
-bool DSCameraSession::setProperties()
-{
-    CoInitialize(NULL);
-
-    HRESULT hr;
-    AM_MEDIA_TYPE am_media_type;
-    AM_MEDIA_TYPE *pmt = NULL;
-    VIDEOINFOHEADER *pvi = NULL;
-    VIDEO_STREAM_CONFIG_CAPS scc;
-
-    IAMStreamConfig* pConfig = 0;
-    hr = pBuild->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video, pCap,
-                               IID_IAMStreamConfig, (void**)&pConfig);
-    if(FAILED(hr)) {
-        qWarning()<<"failed to get config on capture device";
-        return false;
+    hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
+                                       m_sourceFilter,
+                                       IID_IAMStreamConfig, (void**)&pConfig);
+    if (FAILED(hr)) {
+        qWarning() << "failed to get config on capture device";
+        return;
     }
 
     int iCount;
     int iSize;
     hr = pConfig->GetNumberOfCapabilities(&iCount, &iSize);
-    if(FAILED(hr)) {
-        qWarning()<<"failed to get capabilities";
-        return false;
+    if (FAILED(hr)) {
+        qWarning() << "failed to get capabilities";
+        return;
     }
 
-    bool setFormatOK = false;
-    for (int iIndex = 0; iIndex < iCount; iIndex++) {
+    // Use preferred pixel format (first in the list)
+    // Then, pick the highest available resolution among the typical resolutions
+    // used for camera preview.
+    if (commonPreviewResolutions->isEmpty())
+        populateCommonResolutions();
+
+    long maxPixelCount = 0;
+    for (int iIndex = 0; iIndex < iCount; ++iIndex) {
         hr = pConfig->GetStreamCaps(iIndex, &pmt, reinterpret_cast<BYTE*>(&scc));
         if (hr == S_OK) {
-            pvi = (VIDEOINFOHEADER*)pmt->pbFormat;
-
             if ((pmt->majortype == MEDIATYPE_Video) &&
-                (pmt->formattype == FORMAT_VideoInfo)) {
-                if ((actualFormat.frameWidth() == pvi->bmiHeader.biWidth) &&
-                    (actualFormat.frameHeight() == pvi->bmiHeader.biHeight)) {
-                    hr = pConfig->SetFormat(pmt);
-                    _FreeMediaType(*pmt);
-                    if(FAILED(hr)) {
-                        qWarning()<<"failed to set format:" << hr;
-                        qWarning()<<"but going to continue";
-                        continue; // We going to continue
-                    } else {
-                        setFormatOK = true;
-                        break;
-                    }
+                    (pmt->formattype == FORMAT_VideoInfo) &&
+                    (!m_sourcePreferredFormat.cbFormat ||
+                     m_sourcePreferredFormat.subtype == pmt->subtype)) {
+
+                pvi = reinterpret_cast<VIDEOINFOHEADER*>(pmt->pbFormat);
+
+                QSize resolution(pvi->bmiHeader.biWidth, pvi->bmiHeader.biHeight);
+                long pixelCount = resolution.width() * resolution.height();
+
+                if (!m_sourcePreferredFormat.cbFormat ||
+                        (pixelCount > maxPixelCount && commonPreviewResolutions->contains(resolution))) {
+                    _FreeMediaType(m_sourcePreferredFormat);
+                    _CopyMediaType(&m_sourcePreferredFormat, pmt);
+                    m_sourcePreferredResolution = resolution;
+                    maxPixelCount = pixelCount;
                 }
             }
+            _FreeMediaType(*pmt);
         }
     }
+
     pConfig->Release();
 
-    if (!setFormatOK) {
-            qWarning() << "unable to set any format for camera";
-            return false;
-    }
-
-    // Set Sample Grabber config to match capture
-    ZeroMemory(&am_media_type, sizeof(am_media_type));
-    am_media_type.majortype = MEDIATYPE_Video;
-
-    if (actualFormat.pixelFormat() == QVideoFrame::Format_RGB32)
-        am_media_type.subtype = MEDIASUBTYPE_RGB32;
-    else if (actualFormat.pixelFormat() == QVideoFrame::Format_RGB24)
-        am_media_type.subtype = MEDIASUBTYPE_RGB24;
-    else if (actualFormat.pixelFormat() == QVideoFrame::Format_YUYV)
-        am_media_type.subtype = MEDIASUBTYPE_YUY2;
-    else if (actualFormat.pixelFormat() == QVideoFrame::Format_YUV420P)
-        am_media_type.subtype = MEDIASUBTYPE_I420;
-    else if (actualFormat.pixelFormat() == QVideoFrame::Format_RGB555)
-        am_media_type.subtype = MEDIASUBTYPE_RGB555;
-    else if (actualFormat.pixelFormat() == QVideoFrame::Format_UYVY)
-        am_media_type.subtype = MEDIASUBTYPE_UYVY;
-    else {
-        qWarning()<<"unknown format? for SG";
-        return false;
-    }
-
-    am_media_type.formattype = FORMAT_VideoInfo;
-    hr = pSG->SetMediaType(&am_media_type);
-    if (FAILED(hr)) {
-        qWarning()<<"failed to set video format on grabber";
-        return false;
-    }
-
-    pSG->GetConnectedMediaType(&StillMediaType);
-
-    CoUninitialize();
-
-    return true;
+    if (!m_sourcePreferredResolution.isValid())
+       m_sourcePreferredResolution = QSize(640, 480);
 }
 
-bool DSCameraSession::openStream()
+void DSCameraSession::populateCommonResolutions()
 {
-    //Opens the stream for reading and allocates any necessary resources needed
-    //Return true if success, false otherwise
-
-    if (opened) {
-        return true;
-    }
-
-    if (!graph) {
-        graph = createFilterGraph();
-        if(!graph) {
-            qWarning()<<"failed to create filter graph in openStream";
-            return false;
-        }
-    }
-
-    CoInitialize(NULL);
-
-    HRESULT hr;
-
-    hr = pGraph->AddFilter(pCap, L"Capture Filter");
-    if (FAILED(hr)) {
-        qWarning()<<"failed to create capture filter";
-        return false;
-    }
-
-    hr = pGraph->AddFilter(pSG_Filter, L"Sample Grabber");
-    if (FAILED(hr)) {
-        qWarning()<<"failed to add sample grabber";
-        return false;
-    }
-
-    hr = pBuild->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
-                              pCap, NULL, pSG_Filter);
-    if (FAILED(hr)) {
-        qWarning() << "failed to renderstream" << hr;
-        return false;
-    }
-    pSG->GetConnectedMediaType(&StillMediaType);
-    pSG_Filter->Release();
-
-    CoUninitialize();
-
-    return true;
+    commonPreviewResolutions->append(QSize(1920, 1080)); // 1080p
+    commonPreviewResolutions->append(QSize(1280, 720)); // 720p
+    commonPreviewResolutions->append(QSize(1024, 576)); // WSVGA
+    commonPreviewResolutions->append(QSize(720, 480)); // 480p (16:9)
+    commonPreviewResolutions->append(QSize(640, 480)); // 480p (4:3)
+    commonPreviewResolutions->append(QSize(352, 288)); // CIF
+    commonPreviewResolutions->append(QSize(320, 240)); // QVGA
 }
 
-void DSCameraSession::closeStream()
+HRESULT getPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin)
 {
-    // Closes the stream and internally frees any resources used
-    HRESULT hr;
-    IMediaControl* pControl = 0;
-
-    hr = pGraph->QueryInterface(IID_IMediaControl,(void**)&pControl);
-    if (FAILED(hr)) {
-        qWarning()<<"failed to get stream control";
-        return;
-    }
-
-    hr = pControl->StopWhenReady();
-    if (FAILED(hr)) {
-        qWarning()<<"failed to stop";
-        pControl->Release();
-        return;
-    }
-
-    pControl->Release();
-
-    opened = false;
+    *ppPin = 0;
+    IEnumPins *pEnum = 0;
     IPin *pPin = 0;
 
-    if (pCap)
-    {
-        hr = getPin(pCap, PINDIR_OUTPUT, &pPin);
-        if(FAILED(hr)) {
-            qWarning()<<"failed to disconnect capture filter";
-            return;
+    HRESULT hr = pFilter->EnumPins(&pEnum);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    pEnum->Reset();
+    while (pEnum->Next(1, &pPin, NULL) == S_OK) {
+        PIN_DIRECTION ThisPinDir;
+        pPin->QueryDirection(&ThisPinDir);
+        if (ThisPinDir == PinDir) {
+            pEnum->Release();
+            *ppPin = pPin;
+            return S_OK;
         }
+        pPin->Release();
     }
-
-    pGraph->Disconnect(pPin);
-    if (FAILED(hr)) {
-        qWarning()<<"failed to disconnect grabber filter";
-        return;
-    }
-
-    hr = getPin(pSG_Filter,PINDIR_INPUT,&pPin);
-    pGraph->Disconnect(pPin);
-    pGraph->RemoveFilter(pSG_Filter);
-    pGraph->RemoveFilter(pCap);
-
-    SAFE_RELEASE(pCap);
-    SAFE_RELEASE(pSG_Filter);
-    SAFE_RELEASE(pGraph);
-    SAFE_RELEASE(pBuild);
-
-    graph = false;
-}
-
-bool DSCameraSession::startStream()
-{
-    // Starts the stream, by emitting either QVideoPackets
-    // or QvideoFrames, depending on Format chosen
-    if (!graph)
-        graph = createFilterGraph();
-
-    if (!setProperties()) {
-        qWarning() << "Couldn't set properties (retrying)";
-        closeStream();
-        if (!openStream()) {
-            qWarning() << "Retry to open strean failed";
-            return false;
-        }
-    }
-
-    if (!opened) {
-        opened = openStream();
-        if (!opened) {
-            qWarning() << "failed to openStream()";
-            return false;
-        }
-    }
-
-    HRESULT hr;
-    IMediaControl* pControl = 0;
-
-    hr = pGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
-    if (FAILED(hr)) {
-        qWarning() << "failed to get stream control";
-        return false;
-    }
-
-    hr = pControl->Run();
-    pControl->Release();
-
-    if (FAILED(hr)) {
-        qWarning() << "failed to start";
-        return false;
-    }
-    active = true;
-    return true;
-}
-
-void DSCameraSession::stopStream()
-{
-    // Stops the stream from emitting packets
-    HRESULT hr;
-
-    IMediaControl* pControl = 0;
-    hr = pGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
-    if (FAILED(hr)) {
-        qWarning() << "failed to get stream control";
-        return;
-    }
-
-    hr = pControl->Stop();
-    pControl->Release();
-    if (FAILED(hr)) {
-        qWarning() << "failed to stop";
-        return;
-    }
-    active = false;
-
-    if (opened) {
-        closeStream();
-    }
-}
-
-void DSCameraSession::suspendStream()
-{
-    // Pauses the stream
-    HRESULT hr;
-
-    IMediaControl* pControl = 0;
-    hr = pGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
-    if (FAILED(hr)) {
-        qWarning() << "failed to get stream control";
-        return;
-    }
-
-    hr = pControl->Pause();
-    pControl->Release();
-    if (FAILED(hr)) {
-        qWarning() << "failed to pause";
-        return;
-    }
-
-    active = false;
-}
-
-void DSCameraSession::resumeStream()
-{
-    // Resumes a paused stream
-    startStream();
+    pEnum->Release();
+    return E_FAIL;
 }
 
 QT_END_NAMESPACE
-

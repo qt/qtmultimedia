@@ -48,10 +48,13 @@
 QT_BEGIN_NAMESPACE
 
 DSCameraControl::DSCameraControl(QObject *parent)
-    :QCameraControl(parent), m_captureMode(QCamera::CaptureStillImage)
+    : QCameraControl(parent)
+    , m_state(QCamera::UnloadedState)
+    , m_captureMode(QCamera::CaptureStillImage)
 {
     m_session = qobject_cast<DSCameraSession*>(parent);
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)),this, SIGNAL(stateChanged(QCamera::State)));
+    connect(m_session, SIGNAL(statusChanged(QCamera::Status)),
+            this, SIGNAL(statusChanged(QCamera::Status)));
 }
 
 DSCameraControl::~DSCameraControl()
@@ -60,14 +63,30 @@ DSCameraControl::~DSCameraControl()
 
 void DSCameraControl::setState(QCamera::State state)
 {
+    if (m_state == state)
+        return;
+
+    bool succeeded = false;
     switch (state) {
-        case QCamera::ActiveState:
-            start();
-            break;
-        case QCamera::UnloadedState: /* fall through */
-        case QCamera::LoadedState:
-            stop();
-            break;
+    case QCamera::UnloadedState:
+        succeeded = m_session->unload();
+        break;
+    case QCamera::LoadedState:
+    case QCamera::ActiveState:
+        if (m_state == QCamera::UnloadedState && !m_session->load())
+            return;
+
+        if (state == QCamera::ActiveState)
+            succeeded = m_session->startPreview();
+        else
+            succeeded = m_session->stopPreview();
+
+        break;
+    }
+
+    if (succeeded) {
+        m_state = state;
+        emit stateChanged(m_state);
     }
 }
 
@@ -85,19 +104,17 @@ bool DSCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
     return bCaptureSupported;
 }
 
-void DSCameraControl::start()
+void DSCameraControl::setCaptureMode(QCamera::CaptureModes mode)
 {
-    m_session->record();
+    if (m_captureMode != mode && isCaptureModeSupported(mode)) {
+        m_captureMode = mode;
+        emit captureModeChanged(mode);
+    }
 }
 
-void DSCameraControl::stop()
+QCamera::Status DSCameraControl::status() const
 {
-    m_session->stop();
-}
-
-QCamera::State DSCameraControl::state() const
-{
-    return (QCamera::State)m_session->state();
+    return m_session->status();
 }
 
 QT_END_NAMESPACE
