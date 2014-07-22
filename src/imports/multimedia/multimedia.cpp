@@ -58,6 +58,7 @@
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
+#include "qdeclarativecameraviewfinder_p.h"
 #include "qdeclarativetorch_p.h"
 
 QML_DECLARE_TYPE(QSoundEffect)
@@ -107,6 +108,8 @@ public:
         // 5.4 types
         qmlRegisterSingletonType(uri, 5, 4, "QtMultimedia", QDeclarativeMultimedia::initGlobalObject);
         qmlRegisterRevision<QDeclarativeCamera, 1>(uri, 5, 4);
+        qmlRegisterUncreatableType<QDeclarativeCameraViewfinder>(uri, 5, 4, "CameraViewfinder",
+                                trUtf8("CameraViewfinder is provided by Camera"));
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }
