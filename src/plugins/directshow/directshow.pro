@@ -1,5 +1,7 @@
 TARGET = dsengine
-
+win32:!qtHaveModule(opengl) {
+    LIBS_PRIVATE += -lgdi32 -luser32
+}
 PLUGIN_TYPE=mediaservice
 PLUGIN_CLASS_NAME = DSServicePlugin
 load(qt_plugin)
