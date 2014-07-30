@@ -50,6 +50,10 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#ifdef Bool
+#  undef Bool
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QSGVideoMaterial_EGL : public QSGMaterial
