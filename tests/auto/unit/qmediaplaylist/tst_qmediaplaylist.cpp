@@ -86,6 +86,7 @@ private slots:
     void currentItem();
     void saveAndLoad();
     void loadM3uFile();
+    void loadPLSFile();
     void playbackMode();
     void playbackMode_data();
     void shuffle();
@@ -356,8 +357,10 @@ void tst_QMediaPlaylist::saveAndLoad()
     QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
     QVERIFY(!playlist.errorString().isEmpty());
 
+    QSignalSpy loadedSignal(&playlist, SIGNAL(loaded()));
     QSignalSpy errorSignal(&playlist, SIGNAL(loadFailed()));
     playlist.load(&buffer, "unsupported_format");
+    QTRY_VERIFY(loadedSignal.isEmpty());
     QCOMPARE(errorSignal.size(), 1);
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
     QVERIFY(!playlist.errorString().isEmpty());
@@ -367,8 +370,10 @@ void tst_QMediaPlaylist::saveAndLoad()
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
     QVERIFY(!playlist.errorString().isEmpty());
 
+    loadedSignal.clear();
     errorSignal.clear();
     playlist.load(QUrl::fromLocalFile(QLatin1String("tmp.unsupported_format")), "unsupported_format");
+    QTRY_VERIFY(loadedSignal.isEmpty());
     QCOMPARE(errorSignal.size(), 1);
     QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
     QVERIFY(!playlist.errorString().isEmpty());
@@ -380,7 +385,11 @@ void tst_QMediaPlaylist::saveAndLoad()
     buffer.seek(0);
 
     QMediaPlaylist playlist2;
+    QSignalSpy loadedSignal2(&playlist2, SIGNAL(loaded()));
+    QSignalSpy errorSignal2(&playlist2, SIGNAL(loadFailed()));
     playlist2.load(&buffer, "m3u");
+    QCOMPARE(loadedSignal2.size(), 1);
+    QTRY_VERIFY(errorSignal2.isEmpty());
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
 
     QCOMPARE(playlist.mediaCount(), playlist2.mediaCount());
@@ -390,9 +399,13 @@ void tst_QMediaPlaylist::saveAndLoad()
     res = playlist.save(QUrl::fromLocalFile(QLatin1String("tmp.m3u")), "m3u");
     QVERIFY(res);
 
+    loadedSignal2.clear();
+    errorSignal2.clear();
     playlist2.clear();
     QVERIFY(playlist2.isEmpty());
     playlist2.load(QUrl::fromLocalFile(QLatin1String("tmp.m3u")), "m3u");
+    QCOMPARE(loadedSignal2.size(), 1);
+    QTRY_VERIFY(errorSignal2.isEmpty());
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
 
     QCOMPARE(playlist.mediaCount(), playlist2.mediaCount());
@@ -406,12 +419,20 @@ void tst_QMediaPlaylist::loadM3uFile()
     QMediaPlaylist playlist;
 
     // Try to load playlist that does not exist in the testdata folder
+    QSignalSpy loadSpy(&playlist, SIGNAL(loaded()));
+    QSignalSpy loadFailedSpy(&playlist, SIGNAL(loadFailed()));
     QString testFileName = QFINDTESTDATA("testdata");
     playlist.load(QUrl::fromLocalFile(testFileName + "/missing_file.m3u"));
+    QTRY_VERIFY(loadSpy.isEmpty());
+    QVERIFY(!loadFailedSpy.isEmpty());
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
 
+    loadSpy.clear();
+    loadFailedSpy.clear();
     testFileName = QFINDTESTDATA("testdata/test.m3u");
     playlist.load(QUrl::fromLocalFile(testFileName));
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QVERIFY(loadFailedSpy.isEmpty());
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 7);
 
@@ -428,10 +449,79 @@ void tst_QMediaPlaylist::loadM3uFile()
     //ensure #2 suffix is not stripped from path
     testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
     QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
+
     // check ability to load from QNetworkRequest
+    loadSpy.clear();
+    loadFailedSpy.clear();
+    playlist.load(QNetworkRequest(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.m3u"))));
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QVERIFY(loadFailedSpy.isEmpty());
+}
+
+void tst_QMediaPlaylist::loadPLSFile()
+{
+    QMediaPlaylist playlist;
+
+    // Try to load playlist that does not exist in the testdata folder
     QSignalSpy loadSpy(&playlist, SIGNAL(loaded()));
     QSignalSpy loadFailedSpy(&playlist, SIGNAL(loadFailed()));
-    playlist.load(QNetworkRequest(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.m3u"))));
+    QString testFileName = QFINDTESTDATA("testdata");
+    playlist.load(QUrl::fromLocalFile(testFileName + "/missing_file.pls"));
+    QTRY_VERIFY(loadSpy.isEmpty());
+    QVERIFY(!loadFailedSpy.isEmpty());
+    QVERIFY(playlist.error() != QMediaPlaylist::NoError);
+
+    // Try to load bogus playlist
+    loadSpy.clear();
+    loadFailedSpy.clear();
+    testFileName = QFINDTESTDATA("testdata/trash.pls");
+    playlist.load(QUrl::fromLocalFile(testFileName));
+    QTRY_VERIFY(loadSpy.isEmpty());
+    QVERIFY(!loadFailedSpy.isEmpty());
+    QVERIFY(playlist.error() == QMediaPlaylist::FormatError);
+
+    // Try to load regular playlist
+    loadSpy.clear();
+    loadFailedSpy.clear();
+    testFileName = QFINDTESTDATA("testdata/test.pls");
+    playlist.load(QUrl::fromLocalFile(testFileName));
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QVERIFY(loadFailedSpy.isEmpty());
+    QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
+    QCOMPARE(playlist.mediaCount(), 7);
+
+    QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(1).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+    testFileName = QFINDTESTDATA("testdata/testfile");
+    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
+    QCOMPARE(playlist.media(2).canonicalUrl(),
+             QUrl::fromLocalFile(testFileName));
+    testFileName = QFINDTESTDATA("testdata");
+    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
+    QCOMPARE(playlist.media(3).canonicalUrl(),
+             QUrl::fromLocalFile(testFileName + "/testdir/testfile"));
+    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
+    QCOMPARE(playlist.media(4).canonicalUrl(), QUrl(QLatin1String("file:///testdir/testfile")));
+    QCOMPARE(playlist.media(5).canonicalUrl(), QUrl(QLatin1String("file://path/name#suffix")));
+    //ensure #2 suffix is not stripped from path
+    testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
+    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
+    QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
+
+    // Try to load a totem-pl generated playlist
+    loadSpy.clear();
+    loadFailedSpy.clear();
+    testFileName = QFINDTESTDATA("testdata/totem-pl-example.pls");
+    playlist.load(QUrl::fromLocalFile(testFileName));
+    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
+    QVERIFY(loadFailedSpy.isEmpty());
+
+    // check ability to load from QNetworkRequest
+    loadSpy.clear();
+    loadFailedSpy.clear();
+    playlist.load(QNetworkRequest(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.pls"))));
     QTRY_VERIFY(!loadSpy.isEmpty());
     QVERIFY(loadFailedSpy.isEmpty());
 }
