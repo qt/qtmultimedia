@@ -323,7 +323,7 @@ void ResourcePolicyInt::handleResourcesReleased()
     m_acquired = 0;
     QMap<const ResourcePolicyImpl*, clientEntry>::iterator i = m_clients.begin();
     while (i != m_clients.end()) {
-        if (i.value().status == GrantedResource) {
+        if (i.value().status != Initial) {
 #ifdef RESOURCE_DEBUG
             qDebug() << "##### " << i.value().id << ": HANDLE RELEASED, acquired (" << m_acquired << ") emitting resourcesReleased()";
 #endif
