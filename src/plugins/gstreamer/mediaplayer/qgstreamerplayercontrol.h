@@ -103,8 +103,6 @@ private Q_SLOTS:
     void updateMediaStatus();
     void processEOS();
     void setBufferProgress(int progress);
-    void applyPendingSeek(bool isSeekable);
-    void updatePosition(qint64 pos);
 
     void handleInvalidMedia();
 
@@ -127,7 +125,6 @@ private:
     QStack<QMediaPlayer::MediaStatus> m_mediaStatusStack;
 
     int m_bufferProgress;
-    bool m_seekToStartPending;
     qint64 m_pendingSeekPosition;
     bool m_setMediaPending;
     QMediaContent m_currentResource;

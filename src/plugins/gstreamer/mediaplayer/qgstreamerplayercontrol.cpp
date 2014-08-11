@@ -60,7 +60,6 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     , m_currentState(QMediaPlayer::StoppedState)
     , m_mediaStatus(QMediaPlayer::NoMedia)
     , m_bufferProgress(-1)
-    , m_seekToStartPending(false)
     , m_pendingSeekPosition(-1)
     , m_setMediaPending(false)
     , m_stream(0)
@@ -69,7 +68,7 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     Q_ASSERT(m_resources);
 
     connect(m_session, SIGNAL(positionChanged(qint64)),
-            this, SLOT(updatePosition(qint64)));
+            this, SIGNAL(positionChanged(qint64)));
     connect(m_session, SIGNAL(durationChanged(qint64)),
             this, SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(mutedStateChanged(bool)),
@@ -94,8 +93,6 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
             this, SLOT(handleInvalidMedia()));
     connect(m_session, SIGNAL(playbackRateChanged(qreal)),
             this, SIGNAL(playbackRateChanged(qreal)));
-    connect(m_session, SIGNAL(seekableChanged(bool)),
-            this, SLOT(applyPendingSeek(bool)));
 
     connect(m_resources, SIGNAL(resourcesGranted()), SLOT(handleResourcesGranted()));
     //denied signal should be queued to have correct state update process,
@@ -117,7 +114,7 @@ QMediaPlayerResourceSetInterface* QGstreamerPlayerControl::resources() const
 
 qint64 QGstreamerPlayerControl::position() const
 {
-    return m_seekToStartPending ? 0 : m_session->position();
+    return m_pendingSeekPosition != -1 ? m_pendingSeekPosition : m_session->position();
 }
 
 qint64 QGstreamerPlayerControl::duration() const
@@ -183,15 +180,21 @@ void QGstreamerPlayerControl::setPosition(qint64 pos)
 
     if (m_mediaStatus == QMediaPlayer::EndOfMedia) {
         m_mediaStatus = QMediaPlayer::LoadedMedia;
-        m_seekToStartPending = true;
     }
 
-    if (m_session->isSeekable() && m_session->seek(pos)) {
-        m_seekToStartPending = false;
-    } else {
+    if (m_currentState == QMediaPlayer::StoppedState) {
         m_pendingSeekPosition = pos;
-        //don't display the first video frame since it's not what user requested.
-        m_session->showPrerollFrames(false);
+        emit positionChanged(m_pendingSeekPosition);
+    } else if (m_session->isSeekable()) {
+        m_session->showPrerollFrames(true);
+        m_session->seek(pos);
+        m_pendingSeekPosition = -1;
+    } else if (m_session->state() == QMediaPlayer::StoppedState) {
+        m_pendingSeekPosition = pos;
+        emit positionChanged(m_pendingSeekPosition);
+    } else if (m_pendingSeekPosition != -1) {
+        m_pendingSeekPosition = -1;
+        emit positionChanged(m_pendingSeekPosition);
     }
 
     popAndNotifyState();
@@ -239,25 +242,29 @@ void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
     }
 #endif
 
+    if (m_mediaStatus == QMediaPlayer::EndOfMedia && m_pendingSeekPosition == -1) {
+        m_pendingSeekPosition = 0;
+    }
+
     if (!m_resources->isGranted())
         m_resources->acquire();
 
     if (m_resources->isGranted()) {
-        if (m_seekToStartPending) {
+        // show prerolled frame if switching from stopped state
+        if (m_pendingSeekPosition == -1) {
+            m_session->showPrerollFrames(true);
+        } else if (m_session->state() == QMediaPlayer::StoppedState) {
+            // Don't evaluate the next two conditions.
+        } else if (m_session->isSeekable()) {
             m_session->pause();
-            if (!m_session->seek(0)) {
-                m_bufferProgress = -1;
-                m_session->stop();
-                m_mediaStatus = QMediaPlayer::LoadingMedia;
-            }
-            m_seekToStartPending = false;
+            m_session->showPrerollFrames(true);
+            m_session->seek(m_pendingSeekPosition);
+            m_pendingSeekPosition = -1;
+        } else {
+            m_pendingSeekPosition = -1;
         }
 
         bool ok = false;
-
-        // show prerolled frame if switching from stopped state
-        if (newState != QMediaPlayer::StoppedState && m_currentState == QMediaPlayer::StoppedState && m_pendingSeekPosition == -1)
-            m_session->showPrerollFrames(true);
 
         //To prevent displaying the first video frame when playback is resumed
         //the pipeline is paused instead of playing, seeked to requested position,
@@ -305,7 +312,7 @@ void QGstreamerPlayerControl::stop()
             m_session->pause();
 
         if (m_mediaStatus != QMediaPlayer::EndOfMedia) {
-            m_seekToStartPending = true;
+            m_pendingSeekPosition = 0;
             emit positionChanged(position());
         }
     }
@@ -343,7 +350,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
 
     m_currentState = QMediaPlayer::StoppedState;
     QMediaContent oldMedia = m_currentResource;
-    m_pendingSeekPosition = -1;
+    m_pendingSeekPosition = 0;
     m_session->showPrerollFrames(false); // do not show prerolled frames until pause() or play() explicitly called
     m_setMediaPending = false;
 
@@ -390,7 +397,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
 
     m_currentResource = content;
     m_stream = stream;
-    m_seekToStartPending = false;
 
     QNetworkRequest request;
 
@@ -462,8 +468,21 @@ void QGstreamerPlayerControl::updateSessionState(QMediaPlayer::State state)
 {
     pushState();
 
-    if (state == QMediaPlayer::StoppedState)
+    if (state == QMediaPlayer::StoppedState) {
+        m_session->showPrerollFrames(false);
         m_currentState = QMediaPlayer::StoppedState;
+    }
+
+    if (state == QMediaPlayer::PausedState && m_currentState != QMediaPlayer::StoppedState) {
+        if (m_pendingSeekPosition != -1 && m_session->isSeekable()) {
+            m_session->showPrerollFrames(true);
+            m_session->seek(m_pendingSeekPosition);
+        }
+        m_pendingSeekPosition = -1;
+
+        if (m_currentState == QMediaPlayer::PlayingState)
+            m_session->play();
+    }
 
     updateMediaStatus();
 
@@ -512,7 +531,6 @@ void QGstreamerPlayerControl::processEOS()
     m_mediaStatus = QMediaPlayer::EndOfMedia;
     emit positionChanged(position());
     m_session->endOfMediaReset();
-    m_setMediaPending = true;
 
     if (m_currentState != QMediaPlayer::StoppedState) {
         m_currentState = QMediaPlayer::StoppedState;
@@ -549,17 +567,12 @@ void QGstreamerPlayerControl::setBufferProgress(int progress)
     emit bufferStatusChanged(m_bufferProgress);
 }
 
-void QGstreamerPlayerControl::applyPendingSeek(bool isSeekable)
-{
-    if (isSeekable && m_pendingSeekPosition != -1)
-        setPosition(m_pendingSeekPosition);
-}
-
 void QGstreamerPlayerControl::handleInvalidMedia()
 {
     pushState();
     m_mediaStatus = QMediaPlayer::InvalidMedia;
     m_currentState = QMediaPlayer::StoppedState;
+    m_setMediaPending = true;
     popAndNotifyState();
 }
 
@@ -634,26 +647,6 @@ void QGstreamerPlayerControl::popAndNotifyState()
             emit mediaStatusChanged(m_mediaStatus);
         }
     }
-}
-
-void QGstreamerPlayerControl::updatePosition(qint64 pos)
-{
-#ifdef DEBUG_PLAYBIN
-    qDebug() << Q_FUNC_INFO << pos/1000.0 << "pending:" << m_pendingSeekPosition/1000.0;
-#endif
-
-    if (m_pendingSeekPosition != -1) {
-        //seek request is complete, it's safe to resume playback
-        //with prerolled frame displayed
-        m_pendingSeekPosition = -1;
-        if (m_currentState != QMediaPlayer::StoppedState)
-            m_session->showPrerollFrames(true);
-        if (m_currentState == QMediaPlayer::PlayingState) {
-            m_session->play();
-        }
-    }
-
-    emit positionChanged(pos);
 }
 
 QT_END_NAMESPACE
