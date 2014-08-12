@@ -78,7 +78,8 @@ QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
       m_periodSize(0),
       m_elapsedTime(0),
       m_processedBytes(0),
-      m_availableBuffers(BUFFER_COUNT)
+      m_availableBuffers(BUFFER_COUNT),
+      m_eventMask(SL_PLAYEVENT_HEADATEND)
 {
 #ifndef ANDROID
       m_streamType = -1;
@@ -198,7 +199,33 @@ int QOpenSLESAudioOutput::bufferSize() const
 
 void QOpenSLESAudioOutput::setNotifyInterval(int ms)
 {
-    m_notifyInterval = ms > 0 ? ms : 0;
+    const int newInterval = ms > 0 ? ms : 0;
+
+    if (newInterval == m_notifyInterval)
+        return;
+
+    const SLuint32 newEvenMask = newInterval == 0 ? m_eventMask & ~SL_PLAYEVENT_HEADATNEWPOS
+                                                  : m_eventMask & SL_PLAYEVENT_HEADATNEWPOS;
+
+    if (m_state == QAudio::StoppedState) {
+        m_eventMask = newEvenMask;
+        m_notifyInterval = newInterval;
+        return;
+    }
+
+    if (newEvenMask != m_eventMask
+        && SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, newEvenMask)) {
+        return;
+    }
+
+    m_eventMask = newEvenMask;
+
+    if (newInterval && SL_RESULT_SUCCESS != (*m_playItf)->SetPositionUpdatePeriod(m_playItf,
+                                                                                  newInterval)) {
+        return;
+    }
+
+    m_notifyInterval = newInterval;
 }
 
 int QOpenSLESAudioOutput::notifyInterval() const
@@ -488,13 +515,12 @@ bool QOpenSLESAudioOutput::preparePlayer()
         return false;
     }
 
-    SLuint32 mask = SL_PLAYEVENT_HEADATEND;
     if (m_notifyInterval && SL_RESULT_SUCCESS == (*m_playItf)->SetPositionUpdatePeriod(m_playItf,
                                                                                        m_notifyInterval)) {
-        mask |= SL_PLAYEVENT_HEADATNEWPOS;
+        m_eventMask |= SL_PLAYEVENT_HEADATNEWPOS;
     }
 
-    if (SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, mask)) {
+    if (SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, m_eventMask)) {
         setError(QAudio::FatalError);
         return false;
     }

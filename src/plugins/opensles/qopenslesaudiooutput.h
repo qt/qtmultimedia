@@ -120,6 +120,7 @@ private:
     qint64 m_elapsedTime;
     qint64 m_processedBytes;
     QAtomicInt m_availableBuffers;
+    SLuint32 m_eventMask;
 
     qint32 m_streamType;
     QTime m_clockStamp;
