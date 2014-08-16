@@ -43,6 +43,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QIODevice;
+
 // Required for QDoc workaround
 class QString;
 
