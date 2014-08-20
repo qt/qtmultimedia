@@ -29,6 +29,10 @@ win32:!winrt {
     config_wmf: SUBDIRS += wmf
 }
 
+winrt {
+    SUBDIRS += winrt
+}
+
 unix:!mac:!android {
     config_gstreamer {
        SUBDIRS += gstreamer
