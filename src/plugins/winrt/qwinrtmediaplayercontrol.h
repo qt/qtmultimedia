@@ -39,32 +39,66 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QString>
-#include <QtCore/QFile>
+#ifndef QWINRTMEDIAPLAYERCONTROL_H
+#define QWINRTMEDIAPLAYERCONTROL_H
 
-#include "qwinrtserviceplugin.h"
-#include "qwinrtmediaplayerservice.h"
+#include <QtMultimedia/QMediaPlayerControl>
+
+struct IMFMediaEngineClassFactory;
 
 QT_USE_NAMESPACE
 
-QMediaService *QWinRTServicePlugin::create(QString const &key)
+class QVideoRendererControl;
+
+class QWinRTMediaPlayerControlPrivate;
+class QWinRTMediaPlayerControl : public QMediaPlayerControl
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QWinRTMediaPlayerService(this);
+    Q_OBJECT
+public:
+    QWinRTMediaPlayerControl(IMFMediaEngineClassFactory *factory, QObject *parent = 0);
+    ~QWinRTMediaPlayerControl();
 
-    return Q_NULLPTR;
-}
+    QMediaPlayer::State state() const Q_DECL_OVERRIDE;
+    QMediaPlayer::MediaStatus mediaStatus() const Q_DECL_OVERRIDE;
 
-void QWinRTServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
+    qint64 duration() const Q_DECL_OVERRIDE;
 
-QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-       return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
+    qint64 position() const Q_DECL_OVERRIDE;
+    void setPosition(qint64 position) Q_DECL_OVERRIDE;
 
-    return QMediaServiceProviderHint::Features();
-}
+    int volume() const Q_DECL_OVERRIDE;
+    void setVolume(int volume) Q_DECL_OVERRIDE;
+
+    bool isMuted() const Q_DECL_OVERRIDE;
+    void setMuted(bool muted) Q_DECL_OVERRIDE;
+
+    int bufferStatus() const Q_DECL_OVERRIDE;
+
+    bool isAudioAvailable() const Q_DECL_OVERRIDE;
+    bool isVideoAvailable() const Q_DECL_OVERRIDE;
+
+    bool isSeekable() const Q_DECL_OVERRIDE;
+
+    QMediaTimeRange availablePlaybackRanges() const Q_DECL_OVERRIDE;
+
+    qreal playbackRate() const Q_DECL_OVERRIDE;
+    void setPlaybackRate(qreal rate) Q_DECL_OVERRIDE;
+
+    QMediaContent media() const Q_DECL_OVERRIDE;
+    const QIODevice *mediaStream() const Q_DECL_OVERRIDE;
+    void setMedia(const QMediaContent &media, QIODevice *stream) Q_DECL_OVERRIDE;
+
+    void play() Q_DECL_OVERRIDE;
+    void pause() Q_DECL_OVERRIDE;
+    void stop() Q_DECL_OVERRIDE;
+
+    QVideoRendererControl *videoRendererControl();
+
+private:
+    Q_INVOKABLE void finishRead();
+
+    QScopedPointer<QWinRTMediaPlayerControlPrivate, QWinRTMediaPlayerControlPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTMediaPlayerControl)
+};
+
+#endif // QWINRTMEDIAPLAYERCONTROL_H

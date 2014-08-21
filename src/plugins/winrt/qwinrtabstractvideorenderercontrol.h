@@ -39,32 +39,49 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QString>
-#include <QtCore/QFile>
+#ifndef QWINRTABSTRACTVIDEORENDERERCONTROL_H
+#define QWINRTABSTRACTVIDEORENDERERCONTROL_H
 
-#include "qwinrtserviceplugin.h"
-#include "qwinrtmediaplayerservice.h"
+#include <QtMultimedia/QVideoRendererControl>
 
-QT_USE_NAMESPACE
+struct ID3D11Device;
+struct ID3D11Texture2D;
 
-QMediaService *QWinRTServicePlugin::create(QString const &key)
+QT_BEGIN_NAMESPACE
+
+class QWinRTAbstractVideoRendererControlPrivate;
+class QWinRTAbstractVideoRendererControl : public QVideoRendererControl
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QWinRTMediaPlayerService(this);
+    Q_OBJECT
+public:
+    explicit QWinRTAbstractVideoRendererControl(const QSize &size, QObject *parent = 0);
+    ~QWinRTAbstractVideoRendererControl();
 
-    return Q_NULLPTR;
-}
+    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
+    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
 
-void QWinRTServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
+    QSize size() const;
+    void setSize(const QSize &size);
 
-QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-       return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
+    void setActive(bool active);
 
-    return QMediaServiceProviderHint::Features();
-}
+    virtual bool render(ID3D11Texture2D *texture) = 0;
+
+    static ID3D11Device *d3dDevice();
+
+protected:
+    void shutdown();
+
+private slots:
+    void syncAndRender();
+
+private:
+    Q_INVOKABLE void present();
+
+    QScopedPointer<QWinRTAbstractVideoRendererControlPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTAbstractVideoRendererControl)
+};
+
+QT_END_NAMESPACE
+
+#endif // QWINRTABSTRACTVIDEORENDERERCONTROL_H

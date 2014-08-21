@@ -39,32 +39,73 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QString>
-#include <QtCore/QFile>
-
-#include "qwinrtserviceplugin.h"
 #include "qwinrtmediaplayerservice.h"
+#include "qwinrtmediaplayercontrol.h"
+
+#include <QtCore/qfunctions_winrt.h>
+#include <QtCore/QPointer>
+#include <QtMultimedia/QVideoRendererControl>
+
+#include <mfapi.h>
+#include <mfmediaengine.h>
+#include <wrl.h>
+
+using namespace Microsoft::WRL;
 
 QT_USE_NAMESPACE
 
-QMediaService *QWinRTServicePlugin::create(QString const &key)
+class QWinRTMediaPlayerServicePrivate
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QWinRTMediaPlayerService(this);
+public:
+    QPointer<QWinRTMediaPlayerControl> player;
+
+    ComPtr<IMFMediaEngineClassFactory> factory;
+};
+
+QWinRTMediaPlayerService::QWinRTMediaPlayerService(QObject *parent)
+    : QMediaService(parent), d_ptr(new QWinRTMediaPlayerServicePrivate)
+{
+    Q_D(QWinRTMediaPlayerService);
+
+    d->player = Q_NULLPTR;
+
+    HRESULT hr = MFStartup(MF_VERSION);
+    Q_ASSERT(SUCCEEDED(hr));
+
+    MULTI_QI results = { &IID_IUnknown, NULL, 0 };
+    hr = CoCreateInstanceFromApp(CLSID_MFMediaEngineClassFactory, NULL,
+                                 CLSCTX_INPROC_SERVER, NULL, 1, &results);
+    Q_ASSERT(SUCCEEDED(hr));
+
+    hr = results.pItf->QueryInterface(d->factory.GetAddressOf());
+    Q_ASSERT(SUCCEEDED(hr));
+}
+
+QWinRTMediaPlayerService::~QWinRTMediaPlayerService()
+{
+    MFShutdown();
+}
+
+QMediaControl *QWinRTMediaPlayerService::requestControl(const char *name)
+{
+    Q_D(QWinRTMediaPlayerService);
+    if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
+        if (!d->player)
+            d->player = new QWinRTMediaPlayerControl(d->factory.Get(), this);
+        return d->player;
+    }
+    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
+        if (!d->player)
+            return Q_NULLPTR;
+        return d->player->videoRendererControl();
+    }
 
     return Q_NULLPTR;
 }
 
-void QWinRTServicePlugin::release(QMediaService *service)
+void QWinRTMediaPlayerService::releaseControl(QMediaControl *control)
 {
-    delete service;
-}
-
-QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-       return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
-
-    return QMediaServiceProviderHint::Features();
+    Q_D(QWinRTMediaPlayerService);
+    if (control == d->player)
+        d->player->deleteLater();
 }

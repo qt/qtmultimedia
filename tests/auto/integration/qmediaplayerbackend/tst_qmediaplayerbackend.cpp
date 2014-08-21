@@ -764,6 +764,10 @@ void tst_QMediaPlayerBackend::playlist()
 
     player.play();
     QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+
+    if (player.mediaStatus() == QMediaPlayer::InvalidMedia)
+        QSKIP("Media player does not support M3U playlists");
+
     QCOMPARE(mediaSpy.count(), 2);
     // sample.m3u -> sample.m3u resolved -> test.wav ->
     // nested1.m3u -> nested1.m3u resolved -> test.wav ->

@@ -39,32 +39,34 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QString>
-#include <QtCore/QFile>
+#ifndef QWINRTPLAYERRENDERERCONTROL_H
+#define QWINRTPLAYERRENDERERCONTROL_H
 
-#include "qwinrtserviceplugin.h"
-#include "qwinrtmediaplayerservice.h"
+#include "qwinrtabstractvideorenderercontrol.h"
+#include <QtMultimedia/QMediaPlayer>
 
-QT_USE_NAMESPACE
+struct IMFMediaEngineEx;
+struct IMFDXGIDeviceManager;
 
-QMediaService *QWinRTServicePlugin::create(QString const &key)
+QT_BEGIN_NAMESPACE
+
+class QWinRTPlayerRendererControlPrivate;
+class QWinRTPlayerRendererControl : public QWinRTAbstractVideoRendererControl
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QWinRTMediaPlayerService(this);
+    Q_OBJECT
+public:
+    explicit QWinRTPlayerRendererControl(IMFMediaEngineEx *engine, IMFDXGIDeviceManager *manager, quint32 resetToken, QObject *parent);
+    ~QWinRTPlayerRendererControl();
 
-    return Q_NULLPTR;
-}
+    bool ensureReady();
 
-void QWinRTServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
+    bool render(ID3D11Texture2D *texture) Q_DECL_OVERRIDE;
 
-QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-       return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
+private:
+    QScopedPointer<QWinRTPlayerRendererControlPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTPlayerRendererControl)
+};
 
-    return QMediaServiceProviderHint::Features();
-}
+QT_END_NAMESPACE
+
+#endif // QWINRTPLAYERRENDERERCONTROL_H

@@ -1,4 +1,4 @@
 {
     "Keys": ["winrt"],
-    "Services": []
+    "Services": ["org.qt-project.qt.mediaplayer"]
 }
