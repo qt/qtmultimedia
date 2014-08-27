@@ -488,9 +488,21 @@ void tst_QMediaPlaylist::loadPLSFile()
     QTRY_VERIFY(!loadSpy.isEmpty());
     QVERIFY(loadFailedSpy.isEmpty());
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
-    QCOMPARE(playlist.mediaCount(), 2);
+    QCOMPARE(playlist.mediaCount(), 7);
+
     QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
     QCOMPARE(playlist.media(1).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+    testFileName = QFINDTESTDATA("testdata/testfile");
+    QCOMPARE(playlist.media(2).canonicalUrl(),
+             QUrl::fromLocalFile(testFileName));
+    testFileName = QFINDTESTDATA("testdata");
+    QCOMPARE(playlist.media(3).canonicalUrl(),
+             QUrl::fromLocalFile(testFileName + "/testdir/testfile"));
+    QCOMPARE(playlist.media(4).canonicalUrl(), QUrl(QLatin1String("file:///testdir/testfile")));
+    QCOMPARE(playlist.media(5).canonicalUrl(), QUrl(QLatin1String("file://path/name#suffix")));
+    //ensure #2 suffix is not stripped from path
+    testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
+    QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
 
     // Try to load a totem-pl generated playlist
     loadSpy.clear();

@@ -59,6 +59,30 @@ public:
 
     virtual void parseLine(int lineIndex, const QString& line, const QUrl& root) = 0;
 
+protected:
+    QUrl expandToFullPath(const QUrl &root, const QString &line)
+    {
+        // On Linux, backslashes are not converted to forward slashes :/
+        if (line.startsWith(QLatin1String("//")) || line.startsWith(QLatin1String("\\\\"))) {
+            // Network share paths are not resolved
+            return QUrl::fromLocalFile(line);
+        }
+
+        QUrl url(line);
+        if (url.scheme().isEmpty()) {
+            // Resolve it relative to root
+            if (root.isLocalFile())
+                return root.resolved(QUrl::fromLocalFile(line));
+            else
+                return root.resolved(url);
+        } else if (url.scheme().length() == 1) {
+            // Assume it's a drive letter for a Windows path
+            url = QUrl::fromLocalFile(line);
+        }
+
+        return url;
+    }
+
 Q_SIGNALS:
     void newItem(const QVariant& content);
     void finished();
@@ -146,29 +170,6 @@ public:
         return -1;
     }
 
-    QUrl expandToFullPath(const QUrl& root, const QString& line)
-    {
-        // On Linux, backslashes are not converted to forward slashes :/
-        if (line.startsWith(QLatin1String("//")) || line.startsWith(QLatin1String("\\\\"))) {
-            // Network share paths are not resolved
-            return QUrl::fromLocalFile(line);
-        }
-
-        QUrl url(line);
-        if (url.scheme().isEmpty()) {
-            // Resolve it relative to root
-            if (root.isLocalFile())
-                return root.resolved(QUrl::fromLocalFile(line));
-            else
-                return root.resolved(url);
-        } else if (url.scheme().length() == 1) {
-            // Assume it's a drive letter for a Windows path
-            url = QUrl::fromLocalFile(line);
-        }
-
-        return url;
-    }
-
 private:
     bool            m_extendedFormat;
     QVariantMap     m_extraInfo;
@@ -249,7 +250,7 @@ Version=2
         m_readFlags |= int(flag);
     }
 
-    void parseLine(int lineIndex, const QString& line, const QUrl&)
+    void parseLine(int lineIndex, const QString &line, const QUrl &root)
     {
         switch (m_state) {
         case Header:
@@ -260,7 +261,7 @@ Version=2
             break;
         case Track:
             if (!containsFlag(FileRead) && line.startsWith(m_fileName)) {
-                m_item[QLatin1String("url")] = getValue(lineIndex, line);
+                m_item[QLatin1String("url")] = expandToFullPath(root, getValue(lineIndex, line));
                 setFlag(FileRead);
             } else if (!containsFlag(TitleRead) && line.startsWith(m_titleName)) {
                 m_item[QMediaMetaData::Title] = getValue(lineIndex, line);
