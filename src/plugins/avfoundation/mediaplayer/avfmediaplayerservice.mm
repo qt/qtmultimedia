@@ -118,14 +118,15 @@ void AVFMediaPlayerService::releaseControl(QMediaControl *control)
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO << control;
 #endif
-#if defined(Q_OS_OSX)
     if (m_videoOutput == control) {
+#if defined(Q_OS_OSX)
         AVFVideoRendererControl *renderControl = qobject_cast<AVFVideoRendererControl*>(m_videoOutput);
         if (renderControl)
             renderControl->setSurface(0);
+#endif
         m_videoOutput = 0;
         m_session->setVideoOutput(0);
+
         delete control;
     }
-#endif
 }

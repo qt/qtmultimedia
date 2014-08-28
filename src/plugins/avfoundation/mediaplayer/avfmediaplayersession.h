@@ -148,6 +148,9 @@ private:
         QByteArray rawData;
     };
 
+    void setAudioAvailable(bool available);
+    void setVideoAvailable(bool available);
+
     AVFMediaPlayerService *m_service;
     AVFVideoOutput *m_videoOutput;
 

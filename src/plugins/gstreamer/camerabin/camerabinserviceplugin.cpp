@@ -43,7 +43,10 @@
 #include <private/qgstutils_p.h>
 
 #include <private/qcore_unix_p.h>
+
+#if defined(USE_V4L)
 #include <linux/videodev2.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
