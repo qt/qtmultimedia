@@ -471,14 +471,15 @@ void tst_QMediaPlaylist::loadPLSFile()
     QVERIFY(!loadFailedSpy.isEmpty());
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
 
-    // Try to load bogus playlist
+    // Try to load empty playlist
     loadSpy.clear();
     loadFailedSpy.clear();
-    testFileName = QFINDTESTDATA("testdata/trash.pls");
+    testFileName = QFINDTESTDATA("testdata/empty.pls");
     playlist.load(QUrl::fromLocalFile(testFileName));
-    QTRY_VERIFY(loadSpy.isEmpty());
-    QVERIFY(!loadFailedSpy.isEmpty());
-    QVERIFY(playlist.error() == QMediaPlaylist::FormatError);
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QVERIFY(loadFailedSpy.isEmpty());
+    QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
+    QCOMPARE(playlist.mediaCount(), 0);
 
     // Try to load regular playlist
     loadSpy.clear();
@@ -505,13 +506,18 @@ void tst_QMediaPlaylist::loadPLSFile()
     QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
 
     // Try to load a totem-pl generated playlist
+    // (Format doesn't respect the spec)
     loadSpy.clear();
     loadFailedSpy.clear();
+    playlist.clear();
     testFileName = QFINDTESTDATA("testdata/totem-pl-example.pls");
     playlist.load(QUrl::fromLocalFile(testFileName));
-    QTRY_VERIFY(loadSpy.isEmpty());
-    QVERIFY(!loadFailedSpy.isEmpty());
-    QVERIFY(playlist.error() == QMediaPlaylist::FormatError);
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QVERIFY(loadFailedSpy.isEmpty());
+    QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
+    QCOMPARE(playlist.mediaCount(), 1);
+    QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+
 
     // check ability to load from QNetworkRequest
     loadSpy.clear();
