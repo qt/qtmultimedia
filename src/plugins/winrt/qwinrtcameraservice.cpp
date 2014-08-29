@@ -39,71 +39,66 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QString>
-#include <QtCore/QFile>
-
-#include "qwinrtserviceplugin.h"
-#include "qwinrtmediaplayerservice.h"
 #include "qwinrtcameraservice.h"
-#include "qwinrtvideodeviceselectorcontrol.h"
+#include "qwinrtcameracontrol.h"
+#include "qwinrtcamerainfocontrol.h"
+
+#include <QtCore/QCoreApplication>
+#include <QtCore/qfunctions_winrt.h>
+#include <QtCore/QPointer>
+#include <QtMultimedia/QCameraImageCaptureControl>
+#include <QtMultimedia/QVideoRendererControl>
+#include <QtMultimedia/QVideoDeviceSelectorControl>
 
 QT_USE_NAMESPACE
 
-QMediaService *QWinRTServicePlugin::create(QString const &key)
+class QWinRTCameraServicePrivate
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QWinRTMediaPlayerService(this);
+public:
+    QPointer<QWinRTCameraControl> cameraControl;
+    QPointer<QWinRTCameraInfoControl> cameraInfoControl;
+};
 
-    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
-        return new QWinRTCameraService(this);
+QWinRTCameraService::QWinRTCameraService(QObject *parent)
+    : QMediaService(parent), d_ptr(new QWinRTCameraServicePrivate)
+{
+}
+
+QMediaControl *QWinRTCameraService::requestControl(const char *name)
+{
+    Q_D(QWinRTCameraService);
+
+    if (qstrcmp(name, QCameraControl_iid) == 0) {
+        if (!d->cameraControl)
+            d->cameraControl = new QWinRTCameraControl(this);
+        return d->cameraControl;
+    }
+
+    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
+        if (d->cameraControl)
+            return d->cameraControl->videoRenderer();
+    }
+
+    if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0) {
+        if (d->cameraControl)
+            return d->cameraControl->videoDeviceSelector();
+    }
+
+    if (qstrcmp(name, QCameraInfoControl_iid) == 0) {
+        if (!d->cameraInfoControl)
+            d->cameraInfoControl = new QWinRTCameraInfoControl(this);
+        return d->cameraInfoControl;
+    }
+
+    if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0) {
+        if (d->cameraControl)
+            return d->cameraControl->imageCaptureControl();
+    }
 
     return Q_NULLPTR;
 }
 
-void QWinRTServicePlugin::release(QMediaService *service)
+void QWinRTCameraService::releaseControl(QMediaControl *control)
 {
-    delete service;
-}
-
-QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-       return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
-
-    return QMediaServiceProviderHint::Features();
-}
-
-QCamera::Position QWinRTServicePlugin::cameraPosition(const QByteArray &device) const
-{
-    return QWinRTVideoDeviceSelectorControl::cameraPosition(device);
-}
-
-int QWinRTServicePlugin::cameraOrientation(const QByteArray &device) const
-{
-    return QWinRTVideoDeviceSelectorControl::cameraOrientation(device);
-}
-
-QList<QByteArray> QWinRTServicePlugin::devices(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::deviceNames();
-
-    return QList<QByteArray>();
-}
-
-QString QWinRTServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::deviceDescription(device);
-
-    return QString();
-}
-
-QByteArray QWinRTServicePlugin::defaultDevice(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::defaultDeviceName();
-
-    return QByteArray();
+    Q_UNUSED(control);
 }

@@ -39,71 +39,48 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QString>
-#include <QtCore/QFile>
+#ifndef QWINRTCAMERAIMAGECAPTURECONTROL_H
+#define QWINRTCAMERAIMAGECAPTURECONTROL_H
 
-#include "qwinrtserviceplugin.h"
-#include "qwinrtmediaplayerservice.h"
-#include "qwinrtcameraservice.h"
-#include "qwinrtvideodeviceselectorcontrol.h"
+#include <QtMultimedia/QCameraImageCaptureControl>
+#include <QtCore/qt_windows.h>
 
-QT_USE_NAMESPACE
-
-QMediaService *QWinRTServicePlugin::create(QString const &key)
-{
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QWinRTMediaPlayerService(this);
-
-    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
-        return new QWinRTCameraService(this);
-
-    return Q_NULLPTR;
+namespace ABI {
+    namespace Windows {
+        namespace Foundation {
+            struct IAsyncAction;
+            enum class AsyncStatus;
+        }
+    }
 }
 
-void QWinRTServicePlugin::release(QMediaService *service)
+QT_BEGIN_NAMESPACE
+
+class QWinRTCameraControl;
+
+class QWinRTCameraImageCaptureControlPrivate;
+class QWinRTCameraImageCaptureControl : public QCameraImageCaptureControl
 {
-    delete service;
-}
+    Q_OBJECT
+public:
+    explicit QWinRTCameraImageCaptureControl(QWinRTCameraControl *parent);
 
-QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-       return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
+    bool isReadyForCapture() const Q_DECL_OVERRIDE;
 
-    return QMediaServiceProviderHint::Features();
-}
+    QCameraImageCapture::DriveMode driveMode() const Q_DECL_OVERRIDE;
+    void setDriveMode(QCameraImageCapture::DriveMode mode) Q_DECL_OVERRIDE;
 
-QCamera::Position QWinRTServicePlugin::cameraPosition(const QByteArray &device) const
-{
-    return QWinRTVideoDeviceSelectorControl::cameraPosition(device);
-}
+    int capture(const QString &fileName) Q_DECL_OVERRIDE;
+    void cancelCapture() Q_DECL_OVERRIDE;
 
-int QWinRTServicePlugin::cameraOrientation(const QByteArray &device) const
-{
-    return QWinRTVideoDeviceSelectorControl::cameraOrientation(device);
-}
+private:
+    HRESULT onCaptureCompleted(ABI::Windows::Foundation::IAsyncAction *,
+                               ABI::Windows::Foundation::AsyncStatus);
 
-QList<QByteArray> QWinRTServicePlugin::devices(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::deviceNames();
+    QScopedPointer<QWinRTCameraImageCaptureControlPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTCameraImageCaptureControl)
+};
 
-    return QList<QByteArray>();
-}
+QT_END_NAMESPACE
 
-QString QWinRTServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::deviceDescription(device);
-
-    return QString();
-}
-
-QByteArray QWinRTServicePlugin::defaultDevice(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::defaultDeviceName();
-
-    return QByteArray();
-}
+#endif // QWINRTCAMERAIMAGECAPTURECONTROL_H

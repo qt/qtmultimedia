@@ -39,71 +39,36 @@
 **
 ****************************************************************************/
 
-#include <QtCore/QString>
-#include <QtCore/QFile>
+#ifndef QWINRTCAMERAVIDEORENDERERCONTROL_H
+#define QWINRTCAMERAVIDEORENDERERCONTROL_H
 
-#include "qwinrtserviceplugin.h"
-#include "qwinrtmediaplayerservice.h"
-#include "qwinrtcameraservice.h"
-#include "qwinrtvideodeviceselectorcontrol.h"
+#include "qwinrtabstractvideorenderercontrol.h"
 
-QT_USE_NAMESPACE
+struct IMF2DBuffer;
 
-QMediaService *QWinRTServicePlugin::create(QString const &key)
+QT_BEGIN_NAMESPACE
+
+class QVideoSurfaceFormat;
+class QWinRTCameraVideoRendererControlPrivate;
+class QWinRTCameraVideoRendererControl : public QWinRTAbstractVideoRendererControl
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QWinRTMediaPlayerService(this);
+    Q_OBJECT
+public:
+    explicit QWinRTCameraVideoRendererControl(const QSize &size, QObject *parent);
+    ~QWinRTCameraVideoRendererControl();
 
-    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
-        return new QWinRTCameraService(this);
+    bool render(ID3D11Texture2D *texture) Q_DECL_OVERRIDE;
+    void queueBuffer(IMF2DBuffer *buffer);
+    void discardBuffers();
 
-    return Q_NULLPTR;
-}
+signals:
+    void bufferRequested();
 
-void QWinRTServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
+private:
+    QScopedPointer<QWinRTCameraVideoRendererControlPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTCameraVideoRendererControl)
+};
 
-QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-       return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
+QT_END_NAMESPACE
 
-    return QMediaServiceProviderHint::Features();
-}
-
-QCamera::Position QWinRTServicePlugin::cameraPosition(const QByteArray &device) const
-{
-    return QWinRTVideoDeviceSelectorControl::cameraPosition(device);
-}
-
-int QWinRTServicePlugin::cameraOrientation(const QByteArray &device) const
-{
-    return QWinRTVideoDeviceSelectorControl::cameraOrientation(device);
-}
-
-QList<QByteArray> QWinRTServicePlugin::devices(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::deviceNames();
-
-    return QList<QByteArray>();
-}
-
-QString QWinRTServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::deviceDescription(device);
-
-    return QString();
-}
-
-QByteArray QWinRTServicePlugin::defaultDevice(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QWinRTVideoDeviceSelectorControl::defaultDeviceName();
-
-    return QByteArray();
-}
+#endif // QWINRTCAMERAVIDEORENDERERCONTROL_H
