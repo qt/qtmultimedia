@@ -1638,9 +1638,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                 }
             }
 
-            if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
-                setVolumeInternal(m_muted ? 0 : m_volume);
-
             DWORD dwCharacteristics = 0;
             m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
             emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
@@ -1711,6 +1708,9 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                         }
                     }
                     MFGetService(m_session, MFNETSOURCE_STATISTICS_SERVICE, IID_PPV_ARGS(&m_netsourceStatistics));
+
+                    if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
+                        setVolumeInternal(m_muted ? 0 : m_volume);
                 }
             }
         }
