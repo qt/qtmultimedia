@@ -54,13 +54,13 @@ public:
     QStringList availableMetaData() const Q_DECL_OVERRIDE;
 
 public Q_SLOTS:
-    void onMediaChanged(const QMediaContent &media);
+    void onMediaChanged(const QString &url);
     void onUpdateMetaData();
 
 private:
     void updateData();
 
-    QMediaContent m_mediaContent;
+    QString m_mediaLocation;
     bool m_available;
     QVariantMap m_metadata;
 

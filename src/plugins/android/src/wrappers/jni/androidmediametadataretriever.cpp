@@ -35,8 +35,23 @@
 
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/private/qjni_p.h>
+#include <QtCore/QUrl>
+#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
+
+static bool exceptionCheckAndClear(JNIEnv *env)
+{
+    if (Q_UNLIKELY(env->ExceptionCheck())) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif // QT_DEBUG
+        env->ExceptionClear();
+        return true;
+    }
+
+    return false;
+}
 
 AndroidMediaMetadataRetriever::AndroidMediaMetadataRetriever()
 {
@@ -68,55 +83,105 @@ void AndroidMediaMetadataRetriever::release()
     m_metadataRetriever.callMethod<void>("release");
 }
 
-bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
+bool AndroidMediaMetadataRetriever::setDataSource(const QString &urlString)
 {
     if (!m_metadataRetriever.isValid())
         return false;
 
     QJNIEnvironmentPrivate env;
+    QUrl url(urlString);
 
-    bool loaded = false;
+    if (url.isLocalFile()) { // also includes qrc files (copied to a temp file)
+        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.path());
+        QJNIObjectPrivate fileInputStream("java/io/FileInputStream",
+                                          "(Ljava/lang/String;)V",
+                                          string.object());
 
-    QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.toString());
+        if (exceptionCheckAndClear(env))
+            return false;
 
-    QJNIObjectPrivate uri = m_metadataRetriever.callStaticObjectMethod("android/net/Uri",
-                                                                       "parse",
-                                                                       "(Ljava/lang/String;)Landroid/net/Uri;",
-                                                                       string.object());
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
+        QJNIObjectPrivate fd = fileInputStream.callObjectMethod("getFD",
+                                                                "()Ljava/io/FileDescriptor;");
+        if (exceptionCheckAndClear(env)) {
+            fileInputStream.callMethod<void>("close");
+            exceptionCheckAndClear(env);
+            return false;
+        }
+
+        m_metadataRetriever.callMethod<void>("setDataSource",
+                                             "(Ljava/io/FileDescriptor;)V",
+                                             fd.object());
+
+        bool ok = !exceptionCheckAndClear(env);
+
+        fileInputStream.callMethod<void>("close");
+        exceptionCheckAndClear(env);
+
+        if (!ok)
+            return false;
+    } else if (url.scheme() == QLatin1String("assets")) {
+        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.path().mid(1)); // remove first '/'
+        QJNIObjectPrivate activity(QtAndroidPrivate::activity());
+        QJNIObjectPrivate assetManager = activity.callObjectMethod("getAssets",
+                                                                   "()Landroid/content/res/AssetManager;");
+        QJNIObjectPrivate assetFd = assetManager.callObjectMethod("openFd",
+                                                                  "(Ljava/lang/String;)Landroid/content/res/AssetFileDescriptor;",
+                                                                  string.object());
+        if (exceptionCheckAndClear(env))
+            return false;
+
+        QJNIObjectPrivate fd = assetFd.callObjectMethod("getFileDescriptor",
+                                                        "()Ljava/io/FileDescriptor;");
+        if (exceptionCheckAndClear(env)) {
+            assetFd.callMethod<void>("close");
+            exceptionCheckAndClear(env);
+            return false;
+        }
+
+        m_metadataRetriever.callMethod<void>("setDataSource",
+                                             "(Ljava/io/FileDescriptor;JJ)V",
+                                             fd.object(),
+                                             assetFd.callMethod<jlong>("getStartOffset"),
+                                             assetFd.callMethod<jlong>("getLength"));
+
+        bool ok = !exceptionCheckAndClear(env);
+
+        assetFd.callMethod<void>("close");
+        exceptionCheckAndClear(env);
+
+        if (!ok)
+            return false;
+    } else if (QtAndroidPrivate::androidSdkVersion() >= 14) {
+        // On API levels >= 14, only setDataSource(String, Map<String, String>) accepts remote media
+        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(urlString);
+        QJNIObjectPrivate hash("java/util/HashMap");
+
+        m_metadataRetriever.callMethod<void>("setDataSource",
+                                             "(Ljava/lang/String;Ljava/util/Map;)V",
+                                             string.object(),
+                                             hash.object());
+        if (exceptionCheckAndClear(env))
+            return false;
     } else {
+        // While on API levels < 14, only setDataSource(Context, Uri) is available and works for
+        // remote media...
+        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(urlString);
+        QJNIObjectPrivate uri = m_metadataRetriever.callStaticObjectMethod("android/net/Uri",
+                                                                           "parse",
+                                                                           "(Ljava/lang/String;)Landroid/net/Uri;",
+                                                                           string.object());
+        if (exceptionCheckAndClear(env))
+            return false;
+
         m_metadataRetriever.callMethod<void>("setDataSource",
                                              "(Landroid/content/Context;Landroid/net/Uri;)V",
                                              QtAndroidPrivate::activity(),
                                              uri.object());
-        if (env->ExceptionCheck())
-            env->ExceptionClear();
-        else
-            loaded = true;
+        if (exceptionCheckAndClear(env))
+            return false;
     }
 
-    return loaded;
-}
-
-bool AndroidMediaMetadataRetriever::setDataSource(const QString &path)
-{
-    if (!m_metadataRetriever.isValid())
-        return false;
-
-    QJNIEnvironmentPrivate env;
-
-    bool loaded = false;
-
-    m_metadataRetriever.callMethod<void>("setDataSource",
-                                         "(Ljava/lang/String;)V",
-                                         QJNIObjectPrivate::fromString(path).object());
-    if (env->ExceptionCheck())
-        env->ExceptionClear();
-    else
-        loaded = true;
-
-    return loaded;
+    return true;
 }
 
 QT_END_NAMESPACE

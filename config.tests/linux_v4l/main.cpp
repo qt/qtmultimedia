@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,41 +39,9 @@
 **
 ****************************************************************************/
 
-// Based on http://blog.qt.digia.com/blog/2011/03/22/the-convenient-power-of-qml-scene-graph/
+#include <linux/videodev2.h>
 
-uniform float dividerValue;
-uniform float targetWidth;
-uniform float targetHeight;
-uniform float time;
-
-uniform sampler2D source;
-uniform lowp float qt_Opacity;
-varying vec2 qt_TexCoord0;
-
-const float PI = 3.1415926535;
-const int ITER = 7;
-const float RATE = 0.1;
-uniform float amplitude;
-uniform float n;
-uniform float pixDens;
-
-void main()
+int main(int argc, char** argv)
 {
-    vec2 uv = qt_TexCoord0.xy;
-    vec2 tc = uv;
-    vec2 p = vec2(-1.0 + 2.0 * (gl_FragCoord.x - (pixDens * 14.0)) / targetWidth, -(-1.0 + 2.0 * (gl_FragCoord.y - (pixDens * 29.0)) / targetHeight));
-    float diffx = 0.0;
-    float diffy = 0.0;
-    vec4 col;
-    if (uv.x < dividerValue) {
-        for (int i=0; i<ITER; ++i) {
-            float theta = float(i) * PI / float(ITER);
-            vec2 r = vec2(cos(theta) * p.x + sin(theta) * p.y, -1.0 * sin(theta) * p.x + cos(theta) * p.y);
-            float diff = (sin(2.0 * PI * n * (r.y + time * RATE)) + 1.0) / 2.0;
-            diffx += diff * sin(theta);
-            diffy += diff * cos(theta);
-        }
-        tc = 0.5*(vec2(1.0,1.0) + p) + amplitude * vec2(diffx, diffy);
-    }
-    gl_FragColor = qt_Opacity * texture2D(source, tc);
+    return 0;
 }

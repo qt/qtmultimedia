@@ -31,7 +31,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.1
+import QtQuick.Window 2.1
 
 Effect {
     parameters: ListModel {
@@ -48,6 +49,7 @@ Effect {
     // Transform slider values, and bind result to shader uniforms
     property real amplitude: parameters.get(0).value * 0.03
     property real n: parameters.get(1).value * 7
+    property real pixDens: Screen.pixelDensity
 
     property real time: 0
     NumberAnimation on time { loops: Animation.Infinite; from: 0; to: Math.PI * 2; duration: 600 }

@@ -43,7 +43,7 @@ ListModel {
     ListElement { name: "Emboss"; source: "EffectEmboss.qml" }
     ListElement { name: "Glow"; source: "EffectGlow.qml" }
     ListElement { name: "Isolate"; source: "EffectIsolate.qml" }
-    //ListElement { name: "Magnify"; source: "EffectMagnify.qml" }
+    ListElement { name: "Magnify"; source: "EffectMagnify.qml" }
     ListElement { name: "Page curl"; source: "EffectPageCurl.qml" }
     ListElement { name: "Pixelate"; source: "EffectPixelate.qml" }
     ListElement { name: "Posterize"; source: "EffectPosterize.qml" }

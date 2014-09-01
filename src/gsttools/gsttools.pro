@@ -100,6 +100,8 @@ config_gstreamer_appsrc {
     LIBS_PRIVATE += -lgstapp-0.10
 }
 
+config_linux_v4l: DEFINES += USE_V4L
+
 HEADERS += $$PRIVATE_HEADERS
 
 DESTDIR = $$QT.multimedia.libs

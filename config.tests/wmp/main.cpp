@@ -30,8 +30,11 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
+#ifndef _WIN32_WCE
 #include <wmp.h>
+#else
+#include <wmpcore.h>
+#endif
 
 int main(int, char**)
 {
