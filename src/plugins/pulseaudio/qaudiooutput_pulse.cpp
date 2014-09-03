@@ -591,7 +591,7 @@ qint64 QPulseAudioOutput::elapsedUSecs() const
     if (m_deviceState == QAudio::StoppedState)
         return 0;
 
-    return m_clockStamp.elapsed() * 1000;
+    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QPulseAudioOutput::reset()

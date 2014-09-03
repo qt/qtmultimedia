@@ -290,7 +290,7 @@ qint64 QOpenSLESAudioOutput::elapsedUSecs() const
     if (m_state == QAudio::StoppedState)
         return 0;
 
-    return m_clockStamp.elapsed() * 1000;
+    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QOpenSLESAudioOutput::reset()
