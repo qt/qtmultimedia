@@ -43,6 +43,7 @@
 #include "coreaudiodeviceinfo.h"
 #include "coreaudioutils.h"
 
+#include <QtCore/QDataStream>
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
 

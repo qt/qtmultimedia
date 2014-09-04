@@ -45,6 +45,7 @@
 # include "coreaudiosessionmanager.h"
 #endif
 
+#include <QtCore/QDataStream>
 #include <QtCore/QDebug>
 #include <QtCore/QSet>
 
