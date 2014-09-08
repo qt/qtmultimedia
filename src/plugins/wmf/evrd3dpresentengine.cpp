@@ -48,7 +48,6 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES2/gl2.h>
 #include <d3d9.h>
 #include <dxva2api.h>
 #include <WinUser.h>
