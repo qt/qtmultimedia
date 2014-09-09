@@ -46,6 +46,7 @@
 #include "avfvideorenderercontrol.h"
 #include "avfvideodevicecontrol.h"
 #include "avfaudioinputselectorcontrol.h"
+#include "avfmediavideoprobecontrol.h"
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
@@ -369,6 +370,32 @@ void AVFCameraSession::attachInputDevices()
             [m_captureSession addInput:m_audioInput];
         }
     }
+}
+
+void AVFCameraSession::addProbe(AVFMediaVideoProbeControl *probe)
+{
+    m_videoProbesMutex.lock();
+    if (probe)
+        m_videoProbes << probe;
+    m_videoProbesMutex.unlock();
+}
+
+void AVFCameraSession::removeProbe(AVFMediaVideoProbeControl *probe)
+{
+    m_videoProbesMutex.lock();
+    m_videoProbes.remove(probe);
+    m_videoProbesMutex.unlock();
+}
+
+void AVFCameraSession::onCameraFrameFetched(const QVideoFrame &frame)
+{
+    m_videoProbesMutex.lock();
+    QSet<AVFMediaVideoProbeControl *>::const_iterator i = m_videoProbes.constBegin();
+    while (i != m_videoProbes.constEnd()) {
+        (*i)->newFrameProbed(frame);
+        ++i;
+    }
+    m_videoProbesMutex.unlock();
 }
 
 #include "moc_avfcamerasession.cpp"

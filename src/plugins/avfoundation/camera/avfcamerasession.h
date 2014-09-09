@@ -36,6 +36,7 @@
 
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/qcamera.h>
+#include <QVideoFrame>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -46,6 +47,7 @@ QT_BEGIN_NAMESPACE
 class AVFCameraControl;
 class AVFCameraService;
 class AVFVideoRendererControl;
+class AVFMediaVideoProbeControl;
 
 struct AVFCameraInfo
 {
@@ -76,6 +78,9 @@ public:
     QCamera::State requestedState() const { return m_state; }
     bool isActive() const { return m_active; }
 
+    void addProbe(AVFMediaVideoProbeControl *probe);
+    void removeProbe(AVFMediaVideoProbeControl *probe);
+
 public Q_SLOTS:
     void setState(QCamera::State state);
 
@@ -83,6 +88,7 @@ public Q_SLOTS:
     void processSessionStarted();
     void processSessionStopped();
 
+    void onCameraFrameFetched(const QVideoFrame &frame);
 Q_SIGNALS:
     void readyToConfigureConnections();
     void stateChanged(QCamera::State newState);
@@ -107,6 +113,10 @@ private:
     AVCaptureDeviceInput *m_videoInput;
     AVCaptureDeviceInput *m_audioInput;
     AVFCameraSessionObserver *m_observer;
+
+    QSet<AVFMediaVideoProbeControl *> m_videoProbes;
+    QMutex m_videoProbesMutex;
+
 };
 
 QT_END_NAMESPACE

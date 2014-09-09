@@ -240,6 +240,8 @@ void AVFVideoRendererControl::syncHandleViewfinderFrame(const QVideoFrame &frame
         m_lastViewfinderFrame.unmap();
         m_lastViewfinderFrame = QVideoFrame(mirrored);
     }
+    if (m_cameraSession && m_lastViewfinderFrame.isValid())
+        m_cameraSession->onCameraFrameFetched(m_lastViewfinderFrame);
 }
 
 void AVFVideoRendererControl::handleViewfinderFrame()

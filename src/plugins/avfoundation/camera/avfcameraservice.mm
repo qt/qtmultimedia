@@ -54,6 +54,7 @@
 #include "avfvideorenderercontrol.h"
 #include "avfmediarecordercontrol.h"
 #include "avfimagecapturecontrol.h"
+#include "avfmediavideoprobecontrol.h"
 
 #include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
@@ -119,6 +120,12 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
 
+    if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
+        AVFMediaVideoProbeControl *videoProbe = 0;
+        videoProbe = new AVFMediaVideoProbeControl(this);
+        m_session->addProbe(videoProbe);
+        return videoProbe;
+    }
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0)
             m_videoOutput = new AVFVideoRendererControl(this);
@@ -139,6 +146,13 @@ void AVFCameraService::releaseControl(QMediaControl *control)
         m_session->setVideoOutput(0);
         delete control;
     }
+    AVFMediaVideoProbeControl *videoProbe = qobject_cast<AVFMediaVideoProbeControl *>(control);
+    if (videoProbe) {
+        m_session->removeProbe(videoProbe);
+        delete videoProbe;
+        return;
+    }
+
 }
 
 #include "moc_avfcameraservice.cpp"
