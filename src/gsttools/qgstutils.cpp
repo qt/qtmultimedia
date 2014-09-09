@@ -42,8 +42,10 @@
 #include <QtCore/qstringlist.h>
 #include <qaudioformat.h>
 
-#include <private/qcore_unix_p.h>
-#include <linux/videodev2.h>
+#ifdef USE_V4L
+#  include <private/qcore_unix_p.h>
+#  include <linux/videodev2.h>
+#endif
 
 #include "qgstreamervideoinputdevicecontrol_p.h"
 
@@ -469,6 +471,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         }
     }
 
+#ifdef USE_V4L
     QDir devDir(QStringLiteral("/dev"));
     devDir.setFilter(QDir::System);
 
@@ -516,6 +519,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         }
         qt_safe_close(fd);
     }
+#endif // USE_V4L
 
     return devices;
 }
