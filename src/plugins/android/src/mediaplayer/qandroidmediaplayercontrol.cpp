@@ -37,6 +37,36 @@
 
 QT_BEGIN_NAMESPACE
 
+class StateChangeNotifier
+{
+public:
+    StateChangeNotifier(QAndroidMediaPlayerControl *mp)
+        : mControl(mp)
+        , mPreviousState(mp->state())
+        , mPreviousMediaStatus(mp->mediaStatus())
+    {
+        ++mControl->mActiveStateChangeNotifiers;
+    }
+
+    ~StateChangeNotifier()
+    {
+        if (--mControl->mActiveStateChangeNotifiers)
+            return;
+
+        if (mPreviousState != mControl->state())
+            Q_EMIT mControl->stateChanged(mControl->state());
+
+        if (mPreviousMediaStatus != mControl->mediaStatus())
+            Q_EMIT mControl->mediaStatusChanged(mControl->mediaStatus());
+    }
+
+private:
+    QAndroidMediaPlayerControl *mControl;
+    QMediaPlayer::State mPreviousState;
+    QMediaPlayer::MediaStatus mPreviousMediaStatus;
+};
+
+
 QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
     : QMediaPlayerControl(parent),
       mMediaPlayer(new AndroidMediaPlayer),
@@ -55,7 +85,8 @@ QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
       mPendingPosition(-1),
       mPendingSetMedia(false),
       mPendingVolume(-1),
-      mPendingMute(-1)
+      mPendingMute(-1),
+      mActiveStateChangeNotifiers(0)
 {
     connect(mMediaPlayer,SIGNAL(bufferingChanged(qint32)),
             this,SLOT(onBufferingChanged(qint32)));
@@ -137,6 +168,8 @@ void QAndroidMediaPlayerControl::setPosition(qint64 position)
         }
         return;
     }
+
+    StateChangeNotifier notifier(this);
 
     if (mCurrentMediaStatus == QMediaPlayer::EndOfMedia)
         setMediaStatus(QMediaPlayer::LoadedMedia);
@@ -275,6 +308,8 @@ const QIODevice *QAndroidMediaPlayerControl::mediaStream() const
 void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
                                           QIODevice *stream)
 {
+    StateChangeNotifier notifier(this);
+
     const bool reloading = (mMediaContent == mediaContent);
 
     if (!reloading) {
@@ -346,6 +381,8 @@ void QAndroidMediaPlayerControl::setVideoOutput(QObject *videoOutput)
 
 void QAndroidMediaPlayerControl::play()
 {
+    StateChangeNotifier notifier(this);
+
     // We need to prepare the mediaplayer again.
     if ((mState & AndroidMediaPlayer::Stopped) && !mMediaContent.isNull()) {
         setMedia(mMediaContent, mMediaStream);
@@ -366,6 +403,8 @@ void QAndroidMediaPlayerControl::play()
 
 void QAndroidMediaPlayerControl::pause()
 {
+    StateChangeNotifier notifier(this);
+
     setState(QMediaPlayer::PausedState);
 
     if ((mState & (AndroidMediaPlayer::Started
@@ -380,6 +419,8 @@ void QAndroidMediaPlayerControl::pause()
 
 void QAndroidMediaPlayerControl::stop()
 {
+    StateChangeNotifier notifier(this);
+
     setState(QMediaPlayer::StoppedState);
 
     if ((mState & (AndroidMediaPlayer::Prepared
@@ -397,6 +438,8 @@ void QAndroidMediaPlayerControl::stop()
 
 void QAndroidMediaPlayerControl::onInfo(qint32 what, qint32 extra)
 {
+    StateChangeNotifier notifier(this);
+
     Q_UNUSED(extra);
     switch (what) {
     case AndroidMediaPlayer::MEDIA_INFO_UNKNOWN:
@@ -428,6 +471,8 @@ void QAndroidMediaPlayerControl::onInfo(qint32 what, qint32 extra)
 
 void QAndroidMediaPlayerControl::onError(qint32 what, qint32 extra)
 {
+    StateChangeNotifier notifier(this);
+
     QString errorString;
     QMediaPlayer::Error error = QMediaPlayer::ResourceError;
 
@@ -480,6 +525,8 @@ void QAndroidMediaPlayerControl::onError(qint32 what, qint32 extra)
 
 void QAndroidMediaPlayerControl::onBufferingChanged(qint32 percent)
 {
+    StateChangeNotifier notifier(this);
+
     mBuffering = percent != 100;
     mBufferPercent = percent;
 
@@ -510,6 +557,8 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
         && (state & (AndroidMediaPlayer::Prepared | AndroidMediaPlayer::Error | AndroidMediaPlayer::Uninitialized)) == 0) {
         return;
     }
+
+    StateChangeNotifier notifier(this);
 
     mState = state;
     switch (mState) {
@@ -599,7 +648,6 @@ void QAndroidMediaPlayerControl::setState(QMediaPlayer::State state)
         return;
 
     mCurrentState = state;
-    Q_EMIT stateChanged(mCurrentState);
 }
 
 void QAndroidMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status)
@@ -614,7 +662,6 @@ void QAndroidMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status
         Q_EMIT durationChanged(duration());
 
     mCurrentMediaStatus = status;
-    Q_EMIT mediaStatusChanged(mCurrentMediaStatus);
 
     updateBufferStatus();
 }

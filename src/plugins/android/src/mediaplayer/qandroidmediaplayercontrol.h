@@ -112,6 +112,7 @@ private:
     int mPendingVolume;
     int mPendingMute;
     QScopedPointer<QTemporaryFile> mTempFile;
+    int mActiveStateChangeNotifiers;
 
     void setState(QMediaPlayer::State state);
     void setMediaStatus(QMediaPlayer::MediaStatus status);
@@ -122,6 +123,8 @@ private:
     void resetBufferingProgress();
     void flushPendingStates();
     void updateBufferStatus();
+
+    friend class StateChangeNotifier;
 };
 
 QT_END_NAMESPACE
