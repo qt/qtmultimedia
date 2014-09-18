@@ -110,11 +110,9 @@ private:
 
 private slots:
     void refreshDisplay();
-    void notified();
     void readMore();
     void toggleMode();
     void toggleSuspend();
-    void handleStateChanged(QAudio::State state);
     void deviceChanged(int index);
     void sliderChanged(int value);
 

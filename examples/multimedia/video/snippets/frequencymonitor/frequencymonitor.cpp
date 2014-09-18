@@ -125,7 +125,6 @@ void FrequencyMonitorPrivate::calculateAverageFrequency()
 void FrequencyMonitorPrivate::stalled()
 {
     if (m_instantaneousFrequency) {
-        qtVerboseTrace() << "FrequencyMonitor::stalled";
         m_instantaneousFrequency = 0;
         emit q_ptr->instantaneousFrequencyChanged(m_instantaneousFrequency);
         emit q_ptr->frequencyChanged();
@@ -136,7 +135,6 @@ FrequencyMonitor::FrequencyMonitor(QObject *parent)
 :   QObject(parent)
 {
     d_ptr = new FrequencyMonitorPrivate(this);
-    qtTrace() << "FrequencyMonitor::FrequencyMonitor";
 }
 
 FrequencyMonitor::~FrequencyMonitor()

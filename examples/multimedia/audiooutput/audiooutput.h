@@ -110,11 +110,9 @@ private:
     QByteArray m_buffer;
 
 private slots:
-    void notified();
     void pullTimerExpired();
     void toggleMode();
     void toggleSuspendResume();
-    void handleStateChanged(QAudio::State state);
     void deviceChanged(int index);
     void volumeChanged(int);
 };

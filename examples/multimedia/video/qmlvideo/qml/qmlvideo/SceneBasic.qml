@@ -67,7 +67,6 @@ Scene {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            console.log("[qmlvideo] SceneBasic.onClicked, started = " + content.started)
             if (content.started)
                 content.stop()
             else

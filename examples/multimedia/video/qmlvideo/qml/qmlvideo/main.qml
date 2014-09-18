@@ -65,7 +65,6 @@ Rectangle {
         }
 
         function init() {
-            console.log("[qmlvideo] performanceLoader.init logging " + root.perfMonitorsLogging + " visible " + root.perfMonitorsVisible)
             var enabled = root.perfMonitorsLogging || root.perfMonitorsVisible
             source = enabled ? "../performancemonitor/PerformanceItem.qml" : ""
         }
@@ -137,7 +136,6 @@ Rectangle {
             }
             radius: 10
             onSceneSourceChanged: {
-                console.log("[qmlvideo] main.onSceneSourceChanged source " + sceneSource)
                 sceneLoader.source = sceneSource
                 var scene = null
                 var innerVisible = true
@@ -224,7 +222,6 @@ Rectangle {
     }
 
     function closeScene() {
-        console.log("[qmlvideo] main.closeScene")
         sceneSelectionPanel.sceneSource = ""
     }
 }

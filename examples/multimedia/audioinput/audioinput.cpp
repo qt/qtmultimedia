@@ -315,18 +315,9 @@ void InputTest::initializeAudio()
 void InputTest::createAudioInput()
 {
     m_audioInput = new QAudioInput(m_device, m_format, this);
-    connect(m_audioInput, SIGNAL(notify()), SLOT(notified()));
-    connect(m_audioInput, SIGNAL(stateChanged(QAudio::State)), SLOT(handleStateChanged(QAudio::State)));
     m_volumeSlider->setValue(m_audioInput->volume() * 100);
     m_audioInfo->start();
     m_audioInput->start(m_audioInfo);
-}
-
-void InputTest::notified()
-{
-    qWarning() << "bytesReady = " << m_audioInput->bytesReady()
-               << ", " << "elapsedUSecs = " <<m_audioInput->elapsedUSecs()
-               << ", " << "processedUSecs = "<<m_audioInput->processedUSecs();
 }
 
 void InputTest::readMore()
@@ -364,25 +355,17 @@ void InputTest::toggleSuspend()
 {
     // toggle suspend/resume
     if (m_audioInput->state() == QAudio::SuspendedState) {
-        qWarning() << "status: Suspended, resume()";
         m_audioInput->resume();
         m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     } else if (m_audioInput->state() == QAudio::ActiveState) {
-        qWarning() << "status: Active, suspend()";
         m_audioInput->suspend();
         m_suspendResumeButton->setText(tr(RESUME_LABEL));
     } else if (m_audioInput->state() == QAudio::StoppedState) {
-        qWarning() << "status: Stopped, resume()";
         m_audioInput->resume();
         m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
     } else if (m_audioInput->state() == QAudio::IdleState) {
-        qWarning() << "status: IdleState";
+        // no-op
     }
-}
-
-void InputTest::handleStateChanged(QAudio::State state)
-{
-    qWarning() << "state = " << state;
 }
 
 void InputTest::refreshDisplay()

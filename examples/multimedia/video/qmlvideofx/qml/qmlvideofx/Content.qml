@@ -84,7 +84,6 @@ Rectangle {
     }
 
     onEffectSourceChanged: {
-        console.log("[qmlvideofx] Content.onEffectSourceChanged " + effectSource)
         effectLoader.source = effectSource
         effectLoader.item.parent = root
         effectLoader.item.targetWidth = root.width
@@ -96,7 +95,6 @@ Rectangle {
     }
 
     function init() {
-        console.log("[qmlvideofx] Content.init")
         openImage("qrc:/images/qt-logo.png")
         root.effectSource = "EffectPassThrough.qml"
     }
@@ -107,7 +105,6 @@ Rectangle {
     }
 
     function updateSource() {
-        console.log("[qmlvideofx] Content.updateSource")
         if (contentLoader.item) {
             contentLoader.item.parent = root
             contentLoader.item.anchors.fill = root
@@ -118,7 +115,6 @@ Rectangle {
     }
 
     function openImage(path) {
-        console.log("[qmlvideofx] Content.openImage \"" + path + "\"")
         stop()
         contentLoader.source = "ContentImage.qml"
         videoFramePaintedConnection.target = null
@@ -127,7 +123,6 @@ Rectangle {
     }
 
     function openVideo(path) {
-        console.log("[qmlvideofx] Content.openVideo \"" + path + "\"")
         stop()
         contentLoader.source = "ContentVideo.qml"
         videoFramePaintedConnection.target = contentLoader.item
@@ -138,7 +133,6 @@ Rectangle {
     }
 
     function openCamera() {
-        console.log("[qmlvideofx] Content.openCamera")
         stop()
         contentLoader.source = "ContentCamera.qml"
         videoFramePaintedConnection.target = contentLoader.item
@@ -146,7 +140,6 @@ Rectangle {
     }
 
     function stop() {
-        console.log("[qmlvideofx] Content.stop")
         if (contentLoader.source == "ContentVideo.qml")
             contentLoader.item.stop()
         theSource.sourceItem = null
