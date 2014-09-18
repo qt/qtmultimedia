@@ -53,12 +53,6 @@ Rectangle {
         property int margins: 10
     }
 
-    // Create ScreenSaver element via Loader, so this app will still run if the
-    // SystemInfo module is not available
-    Loader {
-        source: "DisableScreenSaver.qml"
-    }
-
     Loader {
         id: performanceLoader
 
