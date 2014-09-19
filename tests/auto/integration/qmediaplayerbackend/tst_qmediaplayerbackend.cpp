@@ -39,6 +39,7 @@
 #include "qaudioprobe.h"
 #include "qvideoprobe.h"
 #include <qmediaplaylist.h>
+#include <qmediametadata.h>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -77,6 +78,7 @@ private slots:
     void playlist();
     void surfaceTest_data();
     void surfaceTest();
+    void metadata();
 
 private:
     QMediaContent selectVideoFile(const QStringList& mediaCandidates);
@@ -87,6 +89,7 @@ private:
     QMediaContent localWavFile2;
     QMediaContent localVideoFile;
     QMediaContent localCompressedSoundFile;
+    QMediaContent localFileWithMetadata;
 
     bool m_inCISystem;
 };
@@ -225,6 +228,8 @@ void tst_QMediaPlayerBackend::initTestCase()
     mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mkv");
     mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mp3");
     localCompressedSoundFile = selectMediaFile(mediaCandidates);
+
+    localFileWithMetadata = selectMediaFile(QStringList() << QFINDTESTDATA("testdata/nokia-tune.mp3"));
 
     qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
@@ -1145,6 +1150,39 @@ void tst_QMediaPlayerBackend::surfaceTest()
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY(surface.m_totalFrames >= 25);
+}
+
+void tst_QMediaPlayerBackend::metadata()
+{
+    if (localFileWithMetadata.isNull())
+        QSKIP("No supported media file");
+
+    QMediaPlayer player;
+
+    QSignalSpy metadataAvailableSpy(&player, SIGNAL(metaDataAvailableChanged(bool)));
+    QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
+
+    player.setMedia(localFileWithMetadata);
+
+    QTRY_VERIFY(player.isMetaDataAvailable());
+    QCOMPARE(metadataAvailableSpy.count(), 1);
+    QVERIFY(metadataAvailableSpy.last()[0].toBool());
+    QVERIFY(metadataChangedSpy.count() > 0);
+
+    QCOMPARE(player.metaData(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
+    QCOMPARE(player.metaData(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
+    QCOMPARE(player.metaData(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
+
+    metadataAvailableSpy.clear();
+    metadataChangedSpy.clear();
+
+    player.setMedia(QMediaContent());
+
+    QVERIFY(!player.isMetaDataAvailable());
+    QCOMPARE(metadataAvailableSpy.count(), 1);
+    QVERIFY(!metadataAvailableSpy.last()[0].toBool());
+    QCOMPARE(metadataChangedSpy.count(), 1);
+    QVERIFY(player.availableMetaData().isEmpty());
 }
 
 TestVideoSurface::TestVideoSurface(bool storeFrames):
