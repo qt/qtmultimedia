@@ -111,6 +111,7 @@ private:
     bool mPendingSetMedia;
     int mPendingVolume;
     int mPendingMute;
+    bool mReloadingMedia;
     QScopedPointer<QTemporaryFile> mTempFile;
     int mActiveStateChangeNotifiers;
 

@@ -83,23 +83,6 @@ public class QtAndroidMediaPlayer
 
     private volatile int mState = State.Uninitialized;
 
-    private class ProgressWatcher
-    implements Runnable
-    {
-        @Override
-        public void run()
-        {
-            try {
-                while ((mState & (State.Started)) != 0) {
-                    onProgressUpdateNative(getCurrentPosition(), mID);
-                    Thread.sleep(1000);
-                }
-            } catch (final InterruptedException e) {
-                // Ignore
-            }
-        }
-    }
-
     /**
      * MediaPlayer OnErrorListener
      */
@@ -257,8 +240,6 @@ public class QtAndroidMediaPlayer
         try {
             mMediaPlayer.start();
             setState(State.Started);
-            Thread progressThread = new Thread(new ProgressWatcher());
-            progressThread.start();
         } catch (final IllegalStateException e) {
             Log.d(TAG, "" + e.getMessage());
         }
@@ -309,7 +290,6 @@ public class QtAndroidMediaPlayer
 
         try {
             mMediaPlayer.seekTo(msec);
-            onProgressUpdateNative(msec, mID);
         } catch (final IllegalStateException e) {
             Log.d(TAG, "" + e.getMessage());
         }
