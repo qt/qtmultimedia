@@ -164,6 +164,11 @@ void QGstreamerMetaDataProvider::updateTags()
          }
     }
 
+    if (oldTags.isEmpty() != m_tags.isEmpty()) {
+        emit metaDataAvailableChanged(isMetaDataAvailable());
+        changed = true;
+    }
+
     if (changed)
         emit metaDataChanged();
 }
