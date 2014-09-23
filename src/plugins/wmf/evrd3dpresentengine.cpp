@@ -330,34 +330,36 @@ void D3DPresentEngine::presentSample(void *opaque, qint64)
     IMFMediaBuffer* buffer = NULL;
     IDirect3DSurface9* surface = NULL;
 
-    if (sample) {
-        // Get the buffer from the sample.
-        hr = sample->GetBufferByIndex(0, &buffer);
-        if (FAILED(hr))
-            goto done;
+    if (m_surface && m_surface->isActive()) {
+        if (sample) {
+            // Get the buffer from the sample.
+            hr = sample->GetBufferByIndex(0, &buffer);
+            if (FAILED(hr))
+                goto done;
 
-        // Get the surface from the buffer.
-        hr = MFGetService(buffer, MR_BUFFER_SERVICE, IID_PPV_ARGS(&surface));
-        if (FAILED(hr))
-            goto done;
-    }
-
-    if (surface && updateTexture(surface)) {
-        QVideoFrame frame = QVideoFrame(new TextureVideoBuffer(m_glTexture),
-                                        m_surfaceFormat.frameSize(),
-                                        m_surfaceFormat.pixelFormat());
-
-        // WMF uses 100-nanosecond units, Qt uses microseconds
-        LONGLONG startTime = -1;
-        if (SUCCEEDED(sample->GetSampleTime(&startTime))) {
-            frame.setStartTime(startTime * 0.1);
-
-            LONGLONG duration = -1;
-            if (SUCCEEDED(sample->GetSampleDuration(&duration)))
-                frame.setEndTime((startTime + duration) * 0.1);
+            // Get the surface from the buffer.
+            hr = MFGetService(buffer, MR_BUFFER_SERVICE, IID_PPV_ARGS(&surface));
+            if (FAILED(hr))
+                goto done;
         }
 
-        m_surface->present(frame);
+        if (surface && updateTexture(surface)) {
+            QVideoFrame frame = QVideoFrame(new TextureVideoBuffer(m_glTexture),
+                                            m_surfaceFormat.frameSize(),
+                                            m_surfaceFormat.pixelFormat());
+
+            // WMF uses 100-nanosecond units, Qt uses microseconds
+            LONGLONG startTime = -1;
+            if (SUCCEEDED(sample->GetSampleTime(&startTime))) {
+                frame.setStartTime(startTime * 0.1);
+
+                LONGLONG duration = -1;
+                if (SUCCEEDED(sample->GetSampleDuration(&duration)))
+                    frame.setEndTime((startTime + duration) * 0.1);
+            }
+
+            m_surface->present(frame);
+        }
     }
 
 done:
