@@ -419,18 +419,19 @@ void D3DPresentEngine::createOffscreenTexture()
     QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
     m_eglDisplay = static_cast<EGLDisplay*>(
                 nativeInterface->nativeResourceForContext("eglDisplay", currentContext));
-    m_eglConfig = static_cast<EGLDisplay*>(
+    m_eglConfig = static_cast<EGLConfig*>(
                 nativeInterface->nativeResourceForContext("eglConfig", currentContext));
 
     currentContext->functions()->glGenTextures(1, &m_glTexture);
 
     int w = m_surfaceFormat.frameWidth();
     int h = m_surfaceFormat.frameHeight();
+    bool hasAlpha = currentContext->format().hasAlpha();
 
     EGLint attribs[] = {
         EGL_WIDTH, w,
         EGL_HEIGHT, h,
-        EGL_TEXTURE_FORMAT, EGL_TEXTURE_RGB,
+        EGL_TEXTURE_FORMAT, hasAlpha ? EGL_TEXTURE_RGBA : EGL_TEXTURE_RGB,
         EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
         EGL_NONE
     };
@@ -449,7 +450,7 @@ void D3DPresentEngine::createOffscreenTexture()
 
     m_device->CreateTexture(w, h, 1,
                             D3DUSAGE_RENDERTARGET,
-                            D3DFMT_X8R8G8B8,
+                            hasAlpha ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8,
                             D3DPOOL_DEFAULT,
                             &m_texture,
                             &share_handle);
