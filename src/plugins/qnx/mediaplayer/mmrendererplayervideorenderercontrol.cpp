@@ -78,7 +78,7 @@ void MmRendererPlayerVideoRendererControl::setSurface(QAbstractVideoSurface *sur
     m_surface = QPointer<QAbstractVideoSurface>(surface);
     if (QOpenGLContext::currentContext())
         m_windowGrabber->checkForEglImageExtension();
-    else
+    else if (m_surface)
         m_surface->setProperty("_q_GLThreadCallback", QVariant::fromValue<QObject*>(this));
 }
 
