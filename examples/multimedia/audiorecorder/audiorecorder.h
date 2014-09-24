@@ -71,6 +71,7 @@ private slots:
     void toggleRecord();
 
     void updateStatus(QMediaRecorder::Status);
+    void onStateChanged(QMediaRecorder::State);
     void updateProgress(qint64 pos);
     void displayErrorMessage();
 
