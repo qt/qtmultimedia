@@ -53,8 +53,6 @@ mac:!simulator {
     SUBDIRS += audiocapture coreaudio
 
     config_avfoundation: SUBDIRS += avfoundation
-
-    contains(QT_CONFIG, opengl.*):!ios: SUBDIRS += qt7
 }
 
 config_resourcepolicy {
