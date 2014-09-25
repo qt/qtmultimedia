@@ -250,7 +250,7 @@ void MFPlayerSession::handleSourceError(long hr)
 
 void MFPlayerSession::handleMediaSourceReady()
 {
-    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver)
+    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver || m_sourceResolver != sender())
         return;
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "handleMediaSourceReady";
