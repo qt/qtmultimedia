@@ -35,7 +35,7 @@ import QtQuick 2.0
 
 Item {
     id: seekControl
-    height: 46
+    height: Math.min(parent.width, parent.height) / 20
     property int duration: 0
     property int playPosition: 0
     property int seekPosition: 0
@@ -45,8 +45,9 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: "black"
+        color: "white"
         opacity: 0.3
+        radius: parent.height / 15
     }
 
     Rectangle {
@@ -60,7 +61,6 @@ Item {
     Text {
         width: 90
         anchors { left: parent.left; top: parent.top; bottom: parent.bottom; leftMargin: 10 }
-        font { family: "Nokia Sans S60"; pixelSize: 24 }
         horizontalAlignment: Text.AlignLeft
         verticalAlignment: Text.AlignVCenter
         color: "white"
@@ -71,7 +71,6 @@ Item {
     Text {
         width: 90
         anchors { right: parent.right; top: parent.top; bottom: parent.bottom; rightMargin: 10 }
-        font { family: "Nokia Sans S60"; pixelSize: 24 }
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
         color: "white"
@@ -79,35 +78,36 @@ Item {
         text: formatTime(duration)
     }
 
-    Image {
+    Rectangle {
         id: progressHandle
-        height: 46
-        width: 10
-        source: mouseArea.pressed ? "qrc:/images/progress_handle_pressed.svg" : "qrc:/images/progress_handle.svg"
+        height: parent.height
+        width: parent.height / 2
+        color: "white"
+        opacity: 0.5
         anchors.verticalCenter: progressBar.verticalCenter
-        x: seekControl.duration == 0 ? 0 : seekControl.playPosition / seekControl.duration * 630
+        x: seekControl.duration == 0 ? 0 : seekControl.playPosition / seekControl.duration * background.width
 
         MouseArea {
             id: mouseArea
             anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom }
-            height: 46+16
-            width: height
+            height: parent.height
+            width: parent.height * 2
             enabled: seekControl.enabled
             drag {
                 target: progressHandle
                 axis: Drag.XAxis
                 minimumX: 0
-                maximumX: 631
+                maximumX: background.width
             }
             onPressed: {
                 seekControl.seeking = true;
             }
             onCanceled: {
-                seekControl.seekPosition = progressHandle.x * seekControl.duration / 630
+                seekControl.seekPosition = progressHandle.x * seekControl.duration / background.width
                 seekControl.seeking = false
             }
             onReleased: {
-                seekControl.seekPosition = progressHandle.x * seekControl.duration / 630
+                seekControl.seekPosition = progressHandle.x * seekControl.duration / background.width
                 seekControl.seeking = false
                 mouse.accepted = true
             }
@@ -120,7 +120,7 @@ Item {
         interval: 300
         running: seekControl.seeking
         onTriggered: {
-            seekControl.seekPosition = progressHandle.x*seekControl.duration/630
+            seekControl.seekPosition = progressHandle.x*seekControl.duration / background.width
         }
     }
 

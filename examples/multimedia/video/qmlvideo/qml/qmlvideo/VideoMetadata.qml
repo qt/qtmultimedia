@@ -56,55 +56,55 @@ Scene {
         Column {
             anchors.fill: parent
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Title:" + content.contentItem().metaData.title
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Size:" + content.contentItem().metaData.size
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Resolution:" + content.contentItem().metaData.resolution
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Media type:" + content.contentItem().metaData.mediaType
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Video codec:" + content.contentItem().metaData.videoCodec
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Video bit rate:" + content.contentItem().metaData.videoBitRate
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Video frame rate:" +content.contentItem().metaData.videoFrameRate
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Audio codec:" + content.contentItem().metaData.audioCodec
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Audio bit rate:" + content.contentItem().metaData.audioBitRate
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Date:" + content.contentItem().metaData.date
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Description:" + content.contentItem().metaData.description
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Copyright:" + content.contentItem().metaData.copyright
             }
             Text {
-                color: "yellow"
+                color: "#e0e0e0"
                 text: "Seekable:" + content.contentItem().metaData.seekable
             }
         }

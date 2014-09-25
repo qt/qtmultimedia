@@ -56,12 +56,12 @@ Scene {
             bottom: decreaseButton.top
             margins: parent.margins
         }
-        width: 90
+        width: Math.max(parent.width, parent.height) / 10
         height: root.buttonHeight
         text: "Increase"
         onClicked: {
             var video = content.contentItem()
-            video.playbackRate = video.playbackRate + delta
+            video.playbackRate += delta
         }
     }
 
@@ -72,12 +72,12 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: 90
+        width: Math.max(parent.width, parent.height) / 10
         height: root.buttonHeight
         text: "Decrease"
         onClicked: {
             var video = content.contentItem()
-            video.playbackRate = video.playbackRate - delta
+            video.playbackRate -= delta
         }
     }
 
@@ -88,7 +88,7 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: 50
+        width: Math.max(parent.width, parent.height) / 25
         height: root.buttonHeight
         enabled: false
         text: Math.round(10 * content.contentItem().playbackRate) / 10

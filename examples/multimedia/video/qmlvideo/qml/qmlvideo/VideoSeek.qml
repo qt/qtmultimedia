@@ -36,6 +36,7 @@ import QtQuick 2.0
 Scene {
     id: root
     property string contentType: "video"
+    contentWidth: parent.width
 
     Content {
         id: content
@@ -51,13 +52,12 @@ Scene {
         anchors {
             left: parent.left
             right: parent.right
-            leftMargin: 100
-            rightMargin: 140
+            margins: 10
             bottom: parent.bottom
         }
         duration: content.contentItem() ? content.contentItem().duration : 0
         playPosition: content.contentItem() ? content.contentItem().position : 0
-        onSeekPositionChanged: { content.contentItem().seek(seekPosition); }
+        onSeekPositionChanged: content.contentItem().seek(seekPosition);
     }
 
     Component.onCompleted: root.content = content

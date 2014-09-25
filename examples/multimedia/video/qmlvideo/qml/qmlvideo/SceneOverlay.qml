@@ -53,7 +53,7 @@ Scene {
         y: 0.5 * parent.height
         width: content.width
         height: content.height
-        color: "yellow"
+        color: "#e0e0e0"
         opacity: 0.5
 
         SequentialAnimation on x {

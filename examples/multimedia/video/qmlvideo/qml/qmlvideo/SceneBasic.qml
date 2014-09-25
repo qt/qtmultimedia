@@ -59,8 +59,7 @@ Scene {
         }
         text: content.started ? "Tap the screen to stop content"
                               : "Tap the screen to start content"
-        color: "yellow"
-        font.pixelSize: 20
+        color: "#e0e0e0"
         z: 2.0
     }
 

@@ -65,8 +65,7 @@ Scene {
                     margins: 20
                 }
                 text: content() ? content().started ? "Tap to stop" : "Tap to start" : ""
-                color: "yellow"
-                font.pixelSize: 20
+                color: "#e0e0e0"
             }
 
             MouseArea {

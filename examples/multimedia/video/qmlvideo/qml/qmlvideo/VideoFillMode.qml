@@ -54,16 +54,16 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: 150
+        width: Math.max(parent.width, parent.height) / 5
         height: root.buttonHeight
         text: "PreserveAspectFit"
         onClicked: {
             if (!content.dummy) {
                 var video = content.contentItem()
-                if (video.fillMode == VideoOutput.Stretch) {
+                if (video.fillMode === VideoOutput.Stretch) {
                     video.fillMode = VideoOutput.PreserveAspectFit
                     text = "PreserveAspectFit"
-                } else if (video.fillMode == VideoOutput.PreserveAspectFit) {
+                } else if (video.fillMode === VideoOutput.PreserveAspectFit) {
                     video.fillMode = VideoOutput.PreserveAspectCrop
                     text = "PreserveAspectCrop"
                 } else {

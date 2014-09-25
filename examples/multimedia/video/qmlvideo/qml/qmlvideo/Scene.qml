@@ -39,9 +39,9 @@ Rectangle {
     property alias buttonHeight: closeButton.height
     property string source1
     property string source2
-    property int contentWidth: 250
+    property int contentWidth: parent.width / 2
     property real volume: 0.25
-    property int margins: 10
+    property int margins: 5
     property QtObject content
 
     signal close
@@ -54,9 +54,12 @@ Rectangle {
             right: parent.right
             margins: root.margins
         }
-        width: 50
-        height: 30
+        width: Math.max(parent.width, parent.height) / 12
+        height: Math.min(parent.width, parent.height) / 12
         z: 2.0
+        bgColor: "#212121"
+        bgColorSelected: "#757575"
+        textColorSelected: "white"
         text: "Back"
         onClicked: root.close()
     }

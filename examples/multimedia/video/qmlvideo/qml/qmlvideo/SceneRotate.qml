@@ -56,7 +56,7 @@ Scene {
             bottom: rotateNegativeButton.top
             margins: parent.margins
         }
-        width: 90
+        width: Math.max(parent.width, parent.height) / 10
         height: root.buttonHeight
         text: "Rotate +" + delta
         onClicked: content.rotation = content.rotation + delta
@@ -69,7 +69,7 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: 90
+        width: Math.max(parent.width, parent.height) / 10
         height: root.buttonHeight
         text: "Rotate -" + delta
         onClicked: content.rotation = content.rotation - delta
@@ -82,7 +82,7 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: 30
+        width: Math.max(parent.width, parent.height) / 25
         height: root.buttonHeight
         enabled: false
         text: content.rotation % 360

@@ -86,8 +86,7 @@ Scene {
             margins: 20
         }
         text: "Tap on the content to toggle full-screen mode"
-        color: "yellow"
-        font.pixelSize: 20
+        color: "#e0e0e0"
         z: 2.0
     }
 
