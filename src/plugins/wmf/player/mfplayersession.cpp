@@ -258,6 +258,7 @@ void MFPlayerSession::handleMediaSourceReady()
         //convert from 100 nanosecond to milisecond
         emit durationUpdate(qint64(m_duration / 10000));
         setupPlaybackTopology(mediaSource, sourcePD);
+        sourcePD->Release();
     } else {
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Cannot create presentation descriptor."), true);
@@ -415,12 +416,15 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
                 if (SUCCEEDED(hr)) {
                     hr = node->SetUINT32(MF_TOPONODE_STREAMID, sinkID);
                     if (SUCCEEDED(hr)) {
-                        if (SUCCEEDED(topology->AddNode(node)))
+                        if (SUCCEEDED(topology->AddNode(node))) {
+                            handler->Release();
                             return node;
+                        }
                     }
                 }
             }
         }
+        handler->Release();
     }
     node->Release();
     return NULL;
@@ -609,42 +613,39 @@ HRESULT BindOutputNode(IMFTopologyNode *pNode)
 // Sets the IMFStreamSink pointers on all of the output nodes in a topology.
 HRESULT BindOutputNodes(IMFTopology *pTopology)
 {
-    DWORD cNodes = 0;
-
-    IMFCollection *collection = NULL;
-    IUnknown *element = NULL;
-    IMFTopologyNode *node = NULL;
+    IMFCollection *collection;
 
     // Get the collection of output nodes.
     HRESULT hr = pTopology->GetOutputNodeCollection(&collection);
 
     // Enumerate all of the nodes in the collection.
-    if (SUCCEEDED(hr))
+    if (SUCCEEDED(hr)) {
+        DWORD cNodes;
         hr = collection->GetElementCount(&cNodes);
 
-    if (SUCCEEDED(hr)) {
-        for (DWORD i = 0; i < cNodes; i++) {
-            hr = collection->GetElement(i, &element);
-            if (FAILED(hr))
-                break;
+        if (SUCCEEDED(hr)) {
+            for (DWORD i = 0; i < cNodes; i++) {
+                IUnknown *element;
+                hr = collection->GetElement(i, &element);
+                if (FAILED(hr))
+                    break;
 
-            hr = element->QueryInterface(IID_IMFTopologyNode, (void**)&node);
-            if (FAILED(hr))
-                break;
+                IMFTopologyNode *node;
+                hr = element->QueryInterface(IID_IMFTopologyNode, (void**)&node);
+                element->Release();
+                if (FAILED(hr))
+                    break;
 
-            // Bind this node.
-            hr = BindOutputNode(node);
-            if (FAILED(hr))
-                break;
+                // Bind this node.
+                hr = BindOutputNode(node);
+                node->Release();
+                if (FAILED(hr))
+                    break;
+            }
         }
+        collection->Release();
     }
 
-    if (collection)
-        collection->Release();
-    if (element)
-        element->Release();
-    if (node)
-        node->Release();
     return hr;
 }
 
@@ -1502,8 +1503,11 @@ HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
         }
     }
 
-    if (!m_closing)
+    if (!m_closing) {
         emit sessionEvent(pEvent);
+    } else {
+        pEvent->Release();
+    }
     return S_OK;
 }
 
@@ -1626,9 +1630,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                 }
             }
 
-            if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
-                setVolumeInternal(m_muted ? 0 : m_volume);
-
             DWORD dwCharacteristics = 0;
             m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
             emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
@@ -1699,6 +1700,9 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                         }
                     }
                     MFGetService(m_session, MFNETSOURCE_STATISTICS_SERVICE, IID_PPV_ARGS(&m_netsourceStatistics));
+
+                    if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
+                        setVolumeInternal(m_muted ? 0 : m_volume);
                 }
             }
         }

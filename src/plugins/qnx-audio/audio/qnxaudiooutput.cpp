@@ -172,7 +172,7 @@ qint64 QnxAudioOutput::elapsedUSecs() const
     if (m_state == QAudio::StoppedState)
         return 0;
     else
-        return m_startTimeStamp.elapsed() * 1000;
+        return m_startTimeStamp.elapsed() * qint64(1000);
 }
 
 QAudio::Error QnxAudioOutput::error() const

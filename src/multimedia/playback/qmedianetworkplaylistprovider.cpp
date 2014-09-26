@@ -82,6 +82,8 @@ void QMediaNetworkPlaylistProviderPrivate::_q_handleParserError(QPlaylistFilePar
         break;
     }
 
+    parser.stop();
+
     emit q->loadFailed(playlistError, errorMessage);
 }
 

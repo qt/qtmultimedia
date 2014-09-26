@@ -155,6 +155,9 @@ STDMETHODIMP AudioSampleGrabberCallback::OnProcessSample(REFGUID guidMajorMediaT
     if (llSampleTime == _I64_MAX) {
         // Set default QAudioBuffer start time
         llSampleTime = -1;
+    } else {
+        // WMF uses 100-nanosecond units, Qt uses microseconds
+        llSampleTime /= 10;
     }
 
     foreach (MFAudioProbeControl* probe, m_audioProbes)
