@@ -474,7 +474,7 @@ qint64 QOpenSLESAudioInput::elapsedUSecs() const
     if (m_deviceState == QAudio::StoppedState)
         return 0;
 
-    return m_clockStamp.elapsed() * 1000;
+    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QOpenSLESAudioInput::setVolume(qreal vol)

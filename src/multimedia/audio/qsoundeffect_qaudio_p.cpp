@@ -45,9 +45,6 @@
 #include "qsoundeffect_qaudio_p.h"
 
 #include <QtCore/qcoreapplication.h>
-#include <QtCore/qthread.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qwaitcondition.h>
 #include <QtCore/qiodevice.h>
 
 //#include <QDebug>

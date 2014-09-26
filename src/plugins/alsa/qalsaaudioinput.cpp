@@ -760,7 +760,7 @@ qint64 QAlsaAudioInput::elapsedUSecs() const
     if (deviceState == QAudio::StoppedState)
         return 0;
 
-    return clockStamp.elapsed()*1000;
+    return clockStamp.elapsed() * qint64(1000);
 }
 
 void QAlsaAudioInput::reset()

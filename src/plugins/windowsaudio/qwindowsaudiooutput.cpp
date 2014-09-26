@@ -674,7 +674,7 @@ qint64 QWindowsAudioOutput::elapsedUSecs() const
     if (deviceState == QAudio::StoppedState)
         return 0;
 
-    return timeStampOpened.elapsed()*1000;
+    return timeStampOpened.elapsed() * qint64(1000);
 }
 
 QAudio::Error QWindowsAudioOutput::error() const
