@@ -43,7 +43,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static jclass g_qtCameraListenerClass = 0;
+static const char QtCameraListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtCameraListener";
 static QMutex g_cameraMapMutex;
 typedef QMap<int, AndroidCamera *> CameraMap;
 Q_GLOBAL_STATIC(CameraMap, g_cameraMap)
@@ -720,7 +720,7 @@ bool AndroidCameraPrivate::init(int cameraId)
     if (exceptionCheckAndClear(env) || !m_camera.isValid())
         return false;
 
-    m_cameraListener = QJNIObjectPrivate(g_qtCameraListenerClass, "(I)V", m_cameraId);
+    m_cameraListener = QJNIObjectPrivate(QtCameraListenerClassName, "(I)V", m_cameraId);
     m_info = QJNIObjectPrivate("android/hardware/Camera$CameraInfo");
     m_camera.callStaticMethod<void>("android/hardware/Camera",
                                     "getCameraInfo",
@@ -1392,24 +1392,22 @@ QStringList AndroidCameraPrivate::callParametersStringListMethod(const QByteArra
     return stringList;
 }
 
-static JNINativeMethod methods[] = {
-    {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
-    {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
-    {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
-    {"notifyFrameFetched", "(I[B)V", (void *)notifyFrameFetched}
-};
-
 bool AndroidCamera::initJNI(JNIEnv *env)
 {
-    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtCameraListener");
+    jclass clazz = QJNIEnvironmentPrivate::findClass(QtCameraListenerClassName,
+                                                     env);
 
-    if (!exceptionCheckAndClear(env) && clazz) {
-        g_qtCameraListenerClass = static_cast<jclass>(env->NewGlobalRef(clazz));
-        if (env->RegisterNatives(g_qtCameraListenerClass,
-                                 methods,
-                                 sizeof(methods) / sizeof(methods[0])) < 0) {
-            return false;
-        }
+    static const JNINativeMethod methods[] = {
+        {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
+        {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
+        {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
+        {"notifyFrameFetched", "(I[B)V", (void *)notifyFrameFetched}
+    };
+
+    if (clazz && env->RegisterNatives(clazz,
+                                      methods,
+                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
+        return false;
     }
 
     return true;

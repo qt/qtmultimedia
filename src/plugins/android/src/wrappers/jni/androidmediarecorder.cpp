@@ -113,7 +113,7 @@ AndroidCamcorderProfile::AndroidCamcorderProfile(const QJNIObjectPrivate &camcor
     m_camcorderProfile = camcorderProfile;
 }
 
-static jclass g_qtMediaRecorderListenerClass = 0;
+static const char QtMediaRecorderListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtMediaRecorderListener";
 typedef QMap<jlong, AndroidMediaRecorder*> MediaRecorderMap;
 Q_GLOBAL_STATIC(MediaRecorderMap, mediaRecorders)
 
@@ -137,7 +137,7 @@ AndroidMediaRecorder::AndroidMediaRecorder()
 {
     m_mediaRecorder = QJNIObjectPrivate("android/media/MediaRecorder");
     if (m_mediaRecorder.isValid()) {
-        QJNIObjectPrivate listener(g_qtMediaRecorderListenerClass, "(J)V", m_id);
+        QJNIObjectPrivate listener(QtMediaRecorderListenerClassName, "(J)V", m_id);
         m_mediaRecorder.callMethod<void>("setOnErrorListener",
                                          "(Landroid/media/MediaRecorder$OnErrorListener;)V",
                                          listener.object());
@@ -339,24 +339,20 @@ void AndroidMediaRecorder::setOutputFile(const QString &path)
     }
 }
 
-static JNINativeMethod methods[] = {
-    {"notifyError", "(JII)V", (void *)notifyError},
-    {"notifyInfo", "(JII)V", (void *)notifyInfo}
-};
-
 bool AndroidMediaRecorder::initJNI(JNIEnv *env)
 {
-    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtMediaRecorderListener");
-    if (env->ExceptionCheck())
-        env->ExceptionClear();
+    jclass clazz = QJNIEnvironmentPrivate::findClass(QtMediaRecorderListenerClassName,
+                                                     env);
 
-    if (clazz) {
-        g_qtMediaRecorderListenerClass = static_cast<jclass>(env->NewGlobalRef(clazz));
-        if (env->RegisterNatives(g_qtMediaRecorderListenerClass,
-                                 methods,
-                                 sizeof(methods) / sizeof(methods[0])) < 0) {
+    static const JNINativeMethod methods[] = {
+        {"notifyError", "(JII)V", (void *)notifyError},
+        {"notifyInfo", "(JII)V", (void *)notifyInfo}
+    };
+
+    if (clazz && env->RegisterNatives(clazz,
+                                      methods,
+                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
             return false;
-        }
     }
 
     return true;
