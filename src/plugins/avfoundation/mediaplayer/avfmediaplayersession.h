@@ -97,8 +97,6 @@ public Q_SLOTS:
     void processPositionChange();
     void processMediaLoadError();
 
-    void processCurrentItemChanged();
-
 Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);

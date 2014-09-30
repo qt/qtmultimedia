@@ -340,9 +340,6 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
         AVPlayerItem *newPlayerItem = [change objectForKey:NSKeyValueChangeNewKey];
         if (m_playerItem != newPlayerItem)
             m_playerItem = newPlayerItem;
-
-        if (self.session)
-            QMetaObject::invokeMethod(m_session, "processCurrentItemChanged", Qt::AutoConnection);
     }
     else
     {
@@ -806,6 +803,10 @@ void AVFMediaPlayerSession::processLoadStateChange()
                 playerLayer.bounds = CGRectMake(0.0f, 0.0f,
                                                 videoTrack.naturalSize.width,
                                                 videoTrack.naturalSize.height);
+
+                if (m_videoOutput && m_state != QMediaPlayer::StoppedState) {
+                    m_videoOutput->setLayer(playerLayer);
+                }
             }
         }
 
@@ -835,18 +836,4 @@ void AVFMediaPlayerSession::processMediaLoadError()
     Q_EMIT error(QMediaPlayer::FormatError, tr("Failed to load media"));
     Q_EMIT mediaStatusChanged(m_mediaStatus = QMediaPlayer::InvalidMedia);
     Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
-}
-
-void AVFMediaPlayerSession::processCurrentItemChanged()
-{
-#ifdef QT_DEBUG_AVF
-    qDebug() << Q_FUNC_INFO;
-#endif
-
-    AVPlayerLayer *playerLayer = [(AVFMediaPlayerSessionObserver*)m_observer playerLayer];
-
-    if (m_videoOutput && m_state != QMediaPlayer::StoppedState) {
-        m_videoOutput->setLayer(playerLayer);
-    }
-
 }
