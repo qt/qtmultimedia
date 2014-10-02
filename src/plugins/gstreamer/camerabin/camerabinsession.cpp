@@ -98,6 +98,8 @@
 #define CAPTURE_START "start-capture"
 #define CAPTURE_STOP "stop-capture"
 
+#define FILESINK_BIN_NAME "videobin-filesink"
+
 #define CAMERABIN_IMAGE_MODE 1
 #define CAMERABIN_VIDEO_MODE 2
 
@@ -721,13 +723,19 @@ void CameraBinSession::updateBusyStatus(GObject *o, GParamSpec *p, gpointer d)
 
 qint64 CameraBinSession::duration() const
 {
-    GstFormat   format = GST_FORMAT_TIME;
-    gint64      duration = 0;
+    if (m_camerabin) {
+        GstElement *fileSink = gst_bin_get_by_name(GST_BIN(m_camerabin), FILESINK_BIN_NAME);
+        if (fileSink) {
+            GstFormat format = GST_FORMAT_TIME;
+            gint64 duration = 0;
+            bool ret = gst_element_query_position(fileSink, &format, &duration);
+            gst_object_unref(GST_OBJECT(fileSink));
+            if (ret)
+                return duration / 1000000;
+        }
+    }
 
-    if ( m_camerabin && gst_element_query_position(m_camerabin, &format, &duration))
-        return duration / 1000000;
-    else
-        return 0;
+    return 0;
 }
 
 bool CameraBinSession::isMuted() const
