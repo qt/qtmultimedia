@@ -76,8 +76,10 @@ static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
 
         // Music
         metadataKeys->insert(GST_TAG_ALBUM, QMediaMetaData::AlbumTitle);
-        metadataKeys->insert(GST_TAG_ARTIST, QMediaMetaData::AlbumArtist);
-        metadataKeys->insert(GST_TAG_PERFORMER, QMediaMetaData::ContributingArtist);
+#if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 25)
+        metadataKeys->insert(GST_TAG_ALBUM_ARTIST, QMediaMetaData::AlbumArtist);
+#endif
+        metadataKeys->insert(GST_TAG_ARTIST, QMediaMetaData::ContributingArtist);
 #if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 19)
         metadataKeys->insert(GST_TAG_COMPOSER, QMediaMetaData::Composer);
 #endif
@@ -162,6 +164,11 @@ void QGstreamerMetaDataProvider::updateTags()
              changed = true;
              emit metaDataChanged(key, i.value());
          }
+    }
+
+    if (oldTags.isEmpty() != m_tags.isEmpty()) {
+        emit metaDataAvailableChanged(isMetaDataAvailable());
+        changed = true;
     }
 
     if (changed)

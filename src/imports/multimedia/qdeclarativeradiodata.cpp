@@ -281,6 +281,9 @@ void QDeclarativeRadioData::_q_availabilityChanged(QMultimedia::AvailabilityStat
 
 void QDeclarativeRadioData::connectSignals()
 {
+    if (!m_radioData)
+        return;
+
     connect(m_radioData, SIGNAL(programTypeChanged(QRadioData::ProgramType)), this,
                                  SLOT(_q_programTypeChanged(QRadioData::ProgramType)));
 

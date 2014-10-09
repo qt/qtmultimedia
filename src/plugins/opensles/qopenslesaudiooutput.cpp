@@ -70,7 +70,9 @@ QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
       m_periodSize(0),
       m_elapsedTime(0),
       m_processedBytes(0),
-      m_availableBuffers(BUFFER_COUNT)
+      m_availableBuffers(BUFFER_COUNT),
+      m_eventMask(SL_PLAYEVENT_HEADATEND),
+      m_startRequiresInit(true)
 {
 #ifndef ANDROID
       m_streamType = -1;
@@ -98,13 +100,10 @@ QAudio::State QOpenSLESAudioOutput::state() const
 void QOpenSLESAudioOutput::start(QIODevice *device)
 {
     Q_ASSERT(device);
-    destroyPlayer();
-
-    m_pullMode = true;
-
     if (!preparePlayer())
         return;
 
+    m_pullMode = true;
     m_audioSource = device;
     setState(QAudio::ActiveState);
     setError(QAudio::NoError);
@@ -125,29 +124,20 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
 
     // Change the state to playing.
     // We need to do this after filling the buffers or processedBytes might get corrupted.
-    if (SL_RESULT_SUCCESS != (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_PLAYING)) {
-        setError(QAudio::FatalError);
-        destroyPlayer();
-    }
+    startPlayer();
 }
 
 QIODevice *QOpenSLESAudioOutput::start()
 {
-    destroyPlayer();
-
-    m_pullMode = false;
-
     if (!preparePlayer())
         return Q_NULLPTR;
 
+    m_pullMode = false;
     m_audioSource = new SLIODevicePrivate(this);
     m_audioSource->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
 
     // Change the state to playing
-    if (SL_RESULT_SUCCESS != (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_PLAYING)) {
-        setError(QAudio::FatalError);
-        destroyPlayer();
-    }
+    startPlayer();
 
     setState(QAudio::IdleState);
     return m_audioSource;
@@ -158,7 +148,7 @@ void QOpenSLESAudioOutput::stop()
     if (m_state == QAudio::StoppedState)
         return;
 
-    destroyPlayer();
+    stopPlayer();
     setError(QAudio::NoError);
 }
 
@@ -180,6 +170,7 @@ void QOpenSLESAudioOutput::setBufferSize(int value)
     if (m_state != QAudio::StoppedState)
         return;
 
+    m_startRequiresInit = true;
     m_bufferSize = value;
 }
 
@@ -190,7 +181,33 @@ int QOpenSLESAudioOutput::bufferSize() const
 
 void QOpenSLESAudioOutput::setNotifyInterval(int ms)
 {
-    m_notifyInterval = ms > 0 ? ms : 0;
+    const int newInterval = ms > 0 ? ms : 0;
+
+    if (newInterval == m_notifyInterval)
+        return;
+
+    const SLuint32 newEvenMask = newInterval == 0 ? m_eventMask & ~SL_PLAYEVENT_HEADATNEWPOS
+                                                  : m_eventMask & SL_PLAYEVENT_HEADATNEWPOS;
+
+    if (m_state == QAudio::StoppedState) {
+        m_eventMask = newEvenMask;
+        m_notifyInterval = newInterval;
+        return;
+    }
+
+    if (newEvenMask != m_eventMask
+        && SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, newEvenMask)) {
+        return;
+    }
+
+    m_eventMask = newEvenMask;
+
+    if (newInterval && SL_RESULT_SUCCESS != (*m_playItf)->SetPositionUpdatePeriod(m_playItf,
+                                                                                  newInterval)) {
+        return;
+    }
+
+    m_notifyInterval = newInterval;
 }
 
 int QOpenSLESAudioOutput::notifyInterval() const
@@ -227,6 +244,7 @@ void QOpenSLESAudioOutput::resume()
 
 void QOpenSLESAudioOutput::setFormat(const QAudioFormat &format)
 {
+    m_startRequiresInit = true;
     m_format = format;
 }
 
@@ -255,7 +273,7 @@ qint64 QOpenSLESAudioOutput::elapsedUSecs() const
     if (m_state == QAudio::StoppedState)
         return 0;
 
-    return m_clockStamp.elapsed() * 1000;
+    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QOpenSLESAudioOutput::reset()
@@ -298,6 +316,7 @@ void QOpenSLESAudioOutput::setCategory(const QString &category)
         return;
     }
 
+    m_startRequiresInit = true;
     m_streamType = streamType;
     m_category = category;
 #endif // ANDROID
@@ -376,6 +395,11 @@ void QOpenSLESAudioOutput::bufferQueueCallback(SLBufferQueueItf bufferQueue, voi
 
 bool QOpenSLESAudioOutput::preparePlayer()
 {
+    if (m_startRequiresInit)
+        destroyPlayer();
+    else
+        return true;
+
     SLEngineItf engine = QOpenSLESEngine::instance()->slEngine();
     if (!engine) {
         qWarning() << "No engine";
@@ -480,13 +504,12 @@ bool QOpenSLESAudioOutput::preparePlayer()
         return false;
     }
 
-    SLuint32 mask = SL_PLAYEVENT_HEADATEND;
     if (m_notifyInterval && SL_RESULT_SUCCESS == (*m_playItf)->SetPositionUpdatePeriod(m_playItf,
                                                                                        m_notifyInterval)) {
-        mask |= SL_PLAYEVENT_HEADATNEWPOS;
+        m_eventMask |= SL_PLAYEVENT_HEADATNEWPOS;
     }
 
-    if (SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, mask)) {
+    if (SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, m_eventMask)) {
         setError(QAudio::FatalError);
         return false;
     }
@@ -517,20 +540,15 @@ bool QOpenSLESAudioOutput::preparePlayer()
 
     m_clockStamp.restart();
     setError(QAudio::NoError);
+    m_startRequiresInit = false;
 
     return true;
 }
 
 void QOpenSLESAudioOutput::destroyPlayer()
 {
-    setState(QAudio::StoppedState);
-
-    // We need to change the state manually...
-    if (m_playItf)
-        (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_STOPPED);
-
-    if (m_bufferQueueItf && SL_RESULT_SUCCESS != (*m_bufferQueueItf)->Clear(m_bufferQueueItf))
-        qWarning() << "Unable to clear buffer";
+    if (m_state != QAudio::StoppedState)
+        stopPlayer();
 
     if (m_playerObject) {
         (*m_playerObject)->Destroy(m_playerObject);
@@ -556,6 +574,27 @@ void QOpenSLESAudioOutput::destroyPlayer()
     m_playItf = Q_NULLPTR;
     m_volumeItf = Q_NULLPTR;
     m_bufferQueueItf = Q_NULLPTR;
+    m_startRequiresInit = true;
+}
+
+void QOpenSLESAudioOutput::stopPlayer()
+{
+    setState(QAudio::StoppedState);
+
+    // We need to change the state manually...
+    if (m_playItf)
+        (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_STOPPED);
+
+    if (m_bufferQueueItf && SL_RESULT_SUCCESS != (*m_bufferQueueItf)->Clear(m_bufferQueueItf))
+        qWarning() << "Unable to clear buffer";
+}
+
+void QOpenSLESAudioOutput::startPlayer()
+{
+    if (SL_RESULT_SUCCESS != (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_PLAYING)) {
+        setError(QAudio::FatalError);
+        destroyPlayer();
+    }
 }
 
 qint64 QOpenSLESAudioOutput::writeData(const char *data, qint64 len)

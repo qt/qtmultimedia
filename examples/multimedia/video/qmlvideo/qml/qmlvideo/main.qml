@@ -35,28 +35,21 @@ import QtQuick 2.0
 
 Rectangle {
     id: root
-    width: 640
-    height: 360
+    anchors.fill: parent
     color: "black"
 
     property string source1
     property string source2
-    property color bgColor: "#002244"
+    property color bgColor: "black"
     property real volume: 0.25
     property bool perfMonitorsLogging: false
     property bool perfMonitorsVisible: false
 
     QtObject {
         id: d
-        property int itemHeight: 40
+        property int itemHeight: root.height > root.width ? root.width / 10 : root.height / 10
         property int buttonHeight: 0.8 * itemHeight
-        property int margins: 10
-    }
-
-    // Create ScreenSaver element via Loader, so this app will still run if the
-    // SystemInfo module is not available
-    Loader {
-        source: "DisableScreenSaver.qml"
+        property int margins: 5
     }
 
     Loader {
@@ -71,7 +64,6 @@ Rectangle {
         }
 
         function init() {
-            console.log("[qmlvideo] performanceLoader.init logging " + root.perfMonitorsLogging + " visible " + root.perfMonitorsVisible)
             var enabled = root.perfMonitorsLogging || root.perfMonitorsVisible
             source = enabled ? "../performancemonitor/PerformanceItem.qml" : ""
         }
@@ -99,6 +91,9 @@ Rectangle {
                 right: exitButton.left
                 margins: d.margins
             }
+            bgColor: "#212121"
+            bgColorSelected: "#757575"
+            textColorSelected: "white"
             height: d.buttonHeight
             text: (root.source1 == "") ? "Select file 1" : root.source1
             onClicked: fileBrowser1.show()
@@ -112,6 +107,9 @@ Rectangle {
                 right: exitButton.left
                 margins: d.margins
             }
+            bgColor: "#212121"
+            bgColorSelected: "#757575"
+            textColorSelected: "white"
             height: d.buttonHeight
             text: (root.source2 == "") ? "Select file 2" : root.source2
             onClicked: fileBrowser2.show()
@@ -124,26 +122,58 @@ Rectangle {
                 right: parent.right
                 margins: d.margins
             }
-            width: 50
+            bgColor: "#212121"
+            bgColorSelected: "#757575"
+            textColorSelected: "white"
+            width: parent.width / 10
             height: d.buttonHeight
             text: "Exit"
             onClicked: Qt.quit()
         }
 
+        Row {
+            id: modes
+            anchors.top: openFile2Button.bottom
+            anchors.margins: 0
+            anchors.topMargin: 5
+            Button {
+                width: root.width / 2
+                height: 0.8 * d.itemHeight
+                bgColor: "#212121"
+                radius: 0
+                text: "Video Modes"
+                enabled: false
+            }
+            Button {
+                width: root.width / 2
+                height: 0.8 * d.itemHeight
+                bgColor: "#212121"
+                radius: 0
+                text: "Camera Modes"
+                enabled: false
+            }
+        }
+
+        Rectangle {
+            id: divider
+            height: 1
+            width: parent.width
+            color: "black"
+            anchors.top: modes.bottom
+        }
+
         SceneSelectionPanel {
             id: sceneSelectionPanel
             itemHeight: d.itemHeight
-            color: "#004444"
+            color: "#212121"
             anchors {
-                top: openFile2Button.bottom
+                top: divider.bottom
                 left: parent.left
                 right: parent.right
                 bottom: parent.bottom
-                margins: d.margins
             }
-            radius: 10
+            radius: 0
             onSceneSourceChanged: {
-                console.log("[qmlvideo] main.onSceneSourceChanged source " + sceneSource)
                 sceneLoader.source = sceneSource
                 var scene = null
                 var innerVisible = true
@@ -213,7 +243,9 @@ Rectangle {
 
     ErrorDialog {
         id: errorDialog
-        anchors.fill: parent
+        anchors.fill: root
+        dialogWidth: d.itemHeight * 5
+        dialogHeight: d.itemHeight * 3
         enabled: false
     }
 
@@ -230,7 +262,6 @@ Rectangle {
     }
 
     function closeScene() {
-        console.log("[qmlvideo] main.closeScene")
         sceneSelectionPanel.sceneSource = ""
     }
 }

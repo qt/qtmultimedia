@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,53 +39,28 @@
 **
 ****************************************************************************/
 
-#include "qt7playercontrol.h"
-#include "qt7playersession.h"
-#include <QtCore/qdebug.h>
+#ifndef QWINRTCAMERASERVICE_H
+#define QWINRTCAMERASERVICE_H
 
-QT_USE_NAMESPACE
+#include <QtMultimedia/QMediaService>
 
-/*
-QT7VideoOutputControl::QT7VideoOutputControl(QObject *parent)
-   :QVideoOutputControl(parent),
-    m_session(0),
-    m_output(QVideoOutputControl::NoOutput)
+QT_BEGIN_NAMESPACE
+
+class QWinRTCameraServicePrivate;
+class QWinRTCameraService : public QMediaService
 {
-}
+    Q_OBJECT
+public:
+    explicit QWinRTCameraService(QObject *parent = 0);
 
-QT7VideoOutputControl::~QT7VideoOutputControl()
-{
-}
+    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
+    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
 
-void QT7VideoOutputControl::setSession(QT7PlayerSession *session)
-{
-    m_session = session;
-}
+private:
+    QScopedPointer<QWinRTCameraServicePrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTCameraService)
+};
 
-QList<QVideoOutputControl::Output> QT7VideoOutputControl::availableOutputs() const
-{
-    return m_outputs;
-}
+QT_END_NAMESPACE
 
-void QT7VideoOutputControl::enableOutput(QVideoOutputControl::Output output)
-{
-    if (!m_outputs.contains(output))
-        m_outputs.append(output);
-}
-
-QVideoOutputControl::Output QT7VideoOutputControl::output() const
-{
-    return m_output;
-}
-
-void QT7VideoOutputControl::setOutput(Output output)
-{
-    if (m_output != output) {
-        m_output = output;
-        Q_EMIT videoOutputChanged(m_output);
-    }
-}
-
-#include "moc_qt7videooutputcontrol.cpp"
-
-*/
+#endif // QWINRTCAMERASERVICE_H

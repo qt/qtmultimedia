@@ -43,6 +43,7 @@
 #include "coreaudiodeviceinfo.h"
 #include "coreaudioutils.h"
 
+#include <QtCore/QDataStream>
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
 
@@ -698,14 +699,14 @@ void CoreAudioOutput::audioThreadStop()
 {
     stopTimers();
     if (m_audioThreadState.testAndSetAcquire(Running, Stopped))
-        m_threadFinished.wait(&m_mutex);
+        m_threadFinished.wait(&m_mutex, 500);
 }
 
 void CoreAudioOutput::audioThreadDrain()
 {
     stopTimers();
     if (m_audioThreadState.testAndSetAcquire(Running, Draining))
-        m_threadFinished.wait(&m_mutex);
+        m_threadFinished.wait(&m_mutex, 500);
 }
 
 void CoreAudioOutput::audioDeviceStop()

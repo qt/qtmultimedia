@@ -404,6 +404,7 @@ QList<QByteArray> QWindowsAudioDeviceInfo::availableDevices(QAudio::Mode mode)
     Q_UNUSED(mode)
 
     QList<QByteArray> devices;
+#ifndef Q_OS_WINCE
     //enumerate device fullnames through directshow api
     CoInitialize(NULL);
     ICreateDevEnum *pDevEnum = NULL;
@@ -455,6 +456,35 @@ QList<QByteArray> QWindowsAudioDeviceInfo::availableDevices(QAudio::Mode mode)
         }
     }
     CoUninitialize();
+#else // Q_OS_WINCE
+    if (mode == QAudio::AudioOutput) {
+        WAVEOUTCAPS woc;
+        unsigned long iNumDevs,i;
+        iNumDevs = waveOutGetNumDevs();
+        for (i=0;i<iNumDevs;i++) {
+            if (waveOutGetDevCaps(i, &woc, sizeof(WAVEOUTCAPS))
+                == MMSYSERR_NOERROR) {
+                QByteArray  device;
+                QDataStream ds(&device, QIODevice::WriteOnly);
+                ds << quint32(i) << QString::fromWCharArray(woc.szPname);
+                devices.append(device);
+            }
+        }
+    } else {
+        WAVEINCAPS woc;
+        unsigned long iNumDevs,i;
+        iNumDevs = waveInGetNumDevs();
+        for (i=0;i<iNumDevs;i++) {
+            if (waveInGetDevCaps(i, &woc, sizeof(WAVEINCAPS))
+                == MMSYSERR_NOERROR) {
+                QByteArray  device;
+                QDataStream ds(&device, QIODevice::WriteOnly);
+                ds << quint32(i) << QString::fromWCharArray(woc.szPname);
+                devices.append(device);
+            }
+        }
+    }
+#endif // !Q_OS_WINCE
 
     return devices;
 }

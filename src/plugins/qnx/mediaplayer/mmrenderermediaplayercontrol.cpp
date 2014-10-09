@@ -538,6 +538,7 @@ void MmRendererMediaPlayerControl::play()
         return;
     }
 
+    m_stopEventsToIgnore = 0;    // once playing, stop events must be proccessed
     setState( QMediaPlayer::PlayingState);
 }
 

@@ -39,44 +39,64 @@ Rectangle {
     property string sceneSource: ""
 
     ListModel {
-        id: list
-        ListElement { name: "multi"; source: "SceneMulti.qml" }
-        ListElement { name: "video"; source: "VideoBasic.qml" }
-        ListElement { name: "video-drag"; source: "VideoDrag.qml" }
-        ListElement { name: "video-fillmode"; source: "VideoFillMode.qml" }
-        ListElement { name: "video-fullscreen"; source: "VideoFullScreen.qml" }
-        ListElement { name: "video-fullscreen-inverted"; source: "VideoFullScreenInverted.qml" }
-        ListElement { name: "video-metadata"; source: "VideoMetadata.qml" }
-        ListElement { name: "video-move"; source: "VideoMove.qml" }
-        ListElement { name: "video-overlay"; source: "VideoOverlay.qml" }
-        ListElement { name: "video-playbackrate"; source: "VideoPlaybackRate.qml" }
-        ListElement { name: "video-resize"; source: "VideoResize.qml" }
-        ListElement { name: "video-rotate"; source: "VideoRotate.qml" }
-        ListElement { name: "video-spin"; source: "VideoSpin.qml" }
-        ListElement { name: "video-seek"; source: "VideoSeek.qml" }
-        ListElement { name: "camera"; source: "CameraBasic.qml" }
-        ListElement { name: "camera-drag"; source: "CameraDrag.qml" }
-        ListElement { name: "camera-fullscreen"; source: "CameraFullScreen.qml" }
-        ListElement { name: "camera-fullscreen-inverted"; source: "CameraFullScreenInverted.qml" }
-        ListElement { name: "camera-move"; source: "CameraMove.qml" }
-        ListElement { name: "camera-overlay"; source: "CameraOverlay.qml" }
-        ListElement { name: "camera-resize"; source: "CameraResize.qml" }
-        ListElement { name: "camera-rotate"; source: "CameraRotate.qml" }
-        ListElement { name: "camera-spin"; source: "CameraSpin.qml" }
+        id: videolist
+        ListElement { name: "Multi"; source: "SceneMulti.qml" }
+        ListElement { name: "Video"; source: "VideoBasic.qml" }
+        ListElement { name: "Drag"; source: "VideoDrag.qml" }
+        ListElement { name: "Fillmode"; source: "VideoFillMode.qml" }
+        ListElement { name: "Fullscreen"; source: "VideoFullScreen.qml" }
+        ListElement { name: "Fullscreen-inverted"; source: "VideoFullScreenInverted.qml" }
+        ListElement { name: "Metadata"; source: "VideoMetadata.qml" }
+        ListElement { name: "Move"; source: "VideoMove.qml" }
+        ListElement { name: "Overlay"; source: "VideoOverlay.qml" }
+        ListElement { name: "Playback Rate"; source: "VideoPlaybackRate.qml" }
+        ListElement { name: "Resize"; source: "VideoResize.qml" }
+        ListElement { name: "Rotate"; source: "VideoRotate.qml" }
+        ListElement { name: "Spin"; source: "VideoSpin.qml" }
+        ListElement { name: "Seek"; source: "VideoSeek.qml" }
+    }
+
+    ListModel {
+        id: cameralist
+        ListElement { name: "Camera"; source: "CameraBasic.qml" }
+        ListElement { name: "Drag"; source: "CameraDrag.qml" }
+        ListElement { name: "Fullscreen"; source: "CameraFullScreen.qml" }
+        ListElement { name: "Fullscreen-inverted"; source: "CameraFullScreenInverted.qml" }
+        ListElement { name: "Move"; source: "CameraMove.qml" }
+        ListElement { name: "Overlay"; source: "CameraOverlay.qml" }
+        ListElement { name: "Resize"; source: "CameraResize.qml" }
+        ListElement { name: "Rotate"; source: "CameraRotate.qml" }
+        ListElement { name: "Spin"; source: "CameraSpin.qml" }
     }
 
     Component {
-        id: delegate
+        id: leftDelegate
         Item {
-            id: delegateItem
-            width: root.width
-            height: itemHeight
+            width: root.width / 2
+            height: 0.8 * itemHeight
 
             Button {
-                id: selectorItem
-                anchors.centerIn: parent
-                width: 0.9 * parent.width
-                height: 0.8 * itemHeight
+                anchors.fill: parent
+                anchors.margins: 5
+                anchors.rightMargin: 2.5
+                anchors.bottomMargin: 0
+                text: name
+                onClicked: root.sceneSource = source
+            }
+        }
+    }
+
+    Component {
+        id: rightDelegate
+        Item {
+            width: root.width / 2
+            height: 0.8 * itemHeight
+
+            Button {
+                anchors.fill: parent
+                anchors.margins: 5
+                anchors.leftMargin: 2.5
+                anchors.bottomMargin: 0
                 text: name
                 onClicked: root.sceneSource = source
             }
@@ -85,20 +105,29 @@ Rectangle {
 
     Flickable {
         anchors.fill: parent
-        contentHeight: (itemHeight * list.count) + layout.anchors.topMargin + layout.spacing
+        contentHeight: (itemHeight * videolist.count) + 10
         clip: true
 
-        Column {
+        Row {
             id: layout
-
             anchors {
                 fill: parent
-                topMargin: 10
+                topMargin: 5
+                bottomMargin: 5
             }
 
-            Repeater {
-                model: list
-                delegate: delegate
+            Column {
+                Repeater {
+                    model: videolist
+                    delegate: leftDelegate
+                }
+            }
+
+            Column {
+                Repeater {
+                    model: cameralist
+                    delegate: rightDelegate
+                }
             }
         }
     }

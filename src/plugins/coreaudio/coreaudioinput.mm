@@ -52,6 +52,7 @@
 #endif
 
 #include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtCore/QDataStream>
 #include <QtCore/QDebug>
 
 QT_BEGIN_NAMESPACE

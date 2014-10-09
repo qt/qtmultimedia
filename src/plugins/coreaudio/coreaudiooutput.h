@@ -41,6 +41,7 @@
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
 
+#include <QtCore/QIODevice>
 #include <QtCore/QWaitCondition>
 #include <QtCore/QMutex>
 

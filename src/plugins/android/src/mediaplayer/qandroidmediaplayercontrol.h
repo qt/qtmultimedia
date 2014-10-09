@@ -72,6 +72,7 @@ public:
 
 Q_SIGNALS:
     void metaDataUpdated();
+    void actualMediaLocationChanged(const QString &url);
 
 public Q_SLOTS:
     void setPosition(qint64 position) Q_DECL_OVERRIDE;
@@ -110,7 +111,9 @@ private:
     bool mPendingSetMedia;
     int mPendingVolume;
     int mPendingMute;
+    bool mReloadingMedia;
     QScopedPointer<QTemporaryFile> mTempFile;
+    int mActiveStateChangeNotifiers;
 
     void setState(QMediaPlayer::State state);
     void setMediaStatus(QMediaPlayer::MediaStatus status);
@@ -121,6 +124,8 @@ private:
     void resetBufferingProgress();
     void flushPendingStates();
     void updateBufferStatus();
+
+    friend class StateChangeNotifier;
 };
 
 QT_END_NAMESPACE

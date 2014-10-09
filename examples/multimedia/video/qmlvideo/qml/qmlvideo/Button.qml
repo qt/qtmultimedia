@@ -33,30 +33,31 @@
 
 import QtQuick 2.0
 
-Rectangle {
+Item {
     id: root
-    color: textColor
-    radius: 0.25 * height
 
     property string text
-    property color bgColor: "white"
-    property color bgColorSelected: "red"
-    property color textColor: "black"
+    property color bgColor: "#757575"
+    property color bgColorSelected: "#bdbdbd"
+    property color textColor: "white"
+    property color textColorSelected: "black"
     property alias enabled: mouseArea.enabled
+    property alias radius: bgr.radius
 
     signal clicked
 
     Rectangle {
-        anchors { fill: parent; margins: 1 }
+        id: bgr
+        anchors.fill: parent
         color: mouseArea.pressed ? bgColorSelected : bgColor
-        radius: 0.25 * height
+        radius: height / 15
 
         Text {
             id: text
             anchors.centerIn: parent
             text: root.text
-            font.pixelSize: 0.5 * parent.height
-            color: mouseArea.pressed ? bgColor : textColor
+            font.pixelSize: 0.4 * parent.height
+            color: mouseArea.pressed ? textColorSelected : textColor
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }

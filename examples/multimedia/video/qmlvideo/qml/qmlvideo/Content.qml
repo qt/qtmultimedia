@@ -97,21 +97,16 @@ Rectangle {
     }
 
     function initialize() {
-        console.log("[qmlvideo] Content.initialize: contentType " + contentType)
         if ("video" == contentType) {
-            console.log("[qmlvideo] Content.initialize: loading VideoItem.qml")
             contentLoader.source = "VideoItem.qml"
             if (Loader.Error == contentLoader.status) {
-                console.log("[qmlvideo] Content.initialize: loading VideoDummy.qml")
                 contentLoader.source = "VideoDummy.qml"
                 dummy = true
             }
             contentLoader.item.volume = volume
         } else if ("camera" == contentType) {
-            console.log("[qmlvideo] Content.initialize: loading CameraItem.qml")
             contentLoader.source = "CameraItem.qml"
             if (Loader.Error == contentLoader.status) {
-                console.log("[qmlvideo] Content.initialize: loading CameraDummy.qml")
                 contentLoader.source = "CameraDummy.qml"
                 dummy = true
             }
@@ -127,12 +122,10 @@ Rectangle {
             if (root.autoStart)
                 root.start()
         }
-        console.log("[qmlvideo] Content.initialize: complete")
         root.initialized()
     }
 
     function start() {
-        console.log("[qmlvideo] Content.start")
         if (contentLoader.item) {
             if (root.contentType == "video")
                 contentLoader.item.mediaSource = root.source
@@ -142,7 +135,6 @@ Rectangle {
     }
 
     function stop() {
-        console.log("[qmlvideo] Content.stop")
         if (contentLoader.item) {
             contentLoader.item.stop()
             if (root.contentType == "video")

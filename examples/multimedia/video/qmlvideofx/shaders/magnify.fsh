@@ -50,12 +50,15 @@ uniform float targetWidth;
 uniform float targetHeight;
 uniform float posX;
 uniform float posY;
+uniform float pixDens;
 
 void main()
 {
     vec2 tc = qt_TexCoord0;
     vec2 center = vec2(posX, posY);
     vec2 xy = gl_FragCoord.xy - center.xy;
+    xy.x -= (pixDens * 14.0);
+    xy.y -= (pixDens * 29.0);
     float r = sqrt(xy.x * xy.x + xy.y * xy.y);
     if (r < radius) {
         float h = diffractionIndex * 0.5 * radius;

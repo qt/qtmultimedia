@@ -3,10 +3,8 @@
         <file>images/qt-logo.png</file>
         <file>qml/qmlvideofx/Button.qml</file>
         <file>qml/qmlvideofx/Content.qml</file>
-        <file>qml/qmlvideofx/ContentCamera.qml</file>
         <file>qml/qmlvideofx/ContentImage.qml</file>
         <file>qml/qmlvideofx/ContentVideo.qml</file>
-        <file>qml/qmlvideofx/DisableScreenSaver.qml</file>
         <file>qml/qmlvideofx/Divider.qml</file>
         <file>qml/qmlvideofx/Effect.qml</file>
         <file>qml/qmlvideofx/EffectBillboard.qml</file>

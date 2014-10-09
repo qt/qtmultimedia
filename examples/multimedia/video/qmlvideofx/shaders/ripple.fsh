@@ -55,12 +55,13 @@ const int ITER = 7;
 const float RATE = 0.1;
 uniform float amplitude;
 uniform float n;
+uniform float pixDens;
 
 void main()
 {
     vec2 uv = qt_TexCoord0.xy;
     vec2 tc = uv;
-    vec2 p = vec2(-1.0 + 2.0 * gl_FragCoord.x / targetWidth, -(-1.0 + 2.0 * gl_FragCoord.y / targetHeight));
+    vec2 p = vec2(-1.0 + 2.0 * (gl_FragCoord.x - (pixDens * 14.0)) / targetWidth, -(-1.0 + 2.0 * (gl_FragCoord.y - (pixDens * 29.0)) / targetHeight));
     float diffx = 0.0;
     float diffy = 0.0;
     vec4 col;

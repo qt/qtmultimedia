@@ -51,6 +51,30 @@ public:
 
     virtual void parseLine(int lineIndex, const QString& line, const QUrl& root) = 0;
 
+protected:
+    QUrl expandToFullPath(const QUrl &root, const QString &line)
+    {
+        // On Linux, backslashes are not converted to forward slashes :/
+        if (line.startsWith(QLatin1String("//")) || line.startsWith(QLatin1String("\\\\"))) {
+            // Network share paths are not resolved
+            return QUrl::fromLocalFile(line);
+        }
+
+        QUrl url(line);
+        if (url.scheme().isEmpty()) {
+            // Resolve it relative to root
+            if (root.isLocalFile())
+                return root.resolved(QUrl::fromLocalFile(line));
+            else
+                return root.resolved(url);
+        } else if (url.scheme().length() == 1) {
+            // Assume it's a drive letter for a Windows path
+            url = QUrl::fromLocalFile(line);
+        }
+
+        return url;
+    }
+
 Q_SIGNALS:
     void newItem(const QVariant& content);
     void finished();
@@ -138,29 +162,6 @@ public:
         return -1;
     }
 
-    QUrl expandToFullPath(const QUrl& root, const QString& line)
-    {
-        // On Linux, backslashes are not converted to forward slashes :/
-        if (line.startsWith(QLatin1String("//")) || line.startsWith(QLatin1String("\\\\"))) {
-            // Network share paths are not resolved
-            return QUrl::fromLocalFile(line);
-        }
-
-        QUrl url(line);
-        if (url.scheme().isEmpty()) {
-            // Resolve it relative to root
-            if (root.isLocalFile())
-                return root.resolved(QUrl::fromLocalFile(line));
-            else
-                return root.resolved(url);
-        } else if (url.scheme().length() == 1) {
-            // Assume it's a drive letter for a Windows path
-            url = QUrl::fromLocalFile(line);
-        }
-
-        return url;
-    }
-
 private:
     bool            m_extendedFormat;
     QVariantMap     m_extraInfo;
@@ -172,26 +173,8 @@ class PLSParser : public ParserBase
 public:
     PLSParser(QObject *parent)
         : ParserBase(parent)
-        , m_state(Header)
-        , m_count(0)
-        , m_readFlags(0)
     {
     }
-
-    enum ReadFlags
-    {
-        FileRead = 0x1,
-        TitleRead = 0x2,
-        LengthRead = 0x4,
-        All = FileRead | TitleRead | LengthRead
-    };
-
-    enum State
-    {
-        Header,
-        Track,
-        Footer
-    };
 
 /*
  *
@@ -231,89 +214,25 @@ NumberOfEntries=2
 
 Version=2
 */
-    inline bool containsFlag(const ReadFlags& flag)
+    void parseLine(int, const QString &line, const QUrl &root)
     {
-        return (m_readFlags & int(flag)) == flag;
+        // We ignore everything but 'File' entries, since that's the only thing we care about.
+        if (!line.startsWith(QLatin1String("File")))
+            return;
+
+        QString value = getValue(line);
+        if (value.isEmpty())
+            return;
+
+        emit newItem(expandToFullPath(root, value));
     }
 
-    inline void setFlag(const ReadFlags& flag)
-    {
-        m_readFlags |= int(flag);
-    }
-
-    void parseLine(int lineIndex, const QString& line, const QUrl&)
-    {
-        switch (m_state) {
-        case Header:
-            if (line == QLatin1String("[playlist]")) {
-                m_state = Track;
-                setCount(1);
-            }
-            break;
-        case Track:
-            if (!containsFlag(FileRead) && line.startsWith(m_fileName)) {
-                m_item[QLatin1String("url")] = getValue(lineIndex, line);
-                setFlag(FileRead);
-            } else if (!containsFlag(TitleRead) && line.startsWith(m_titleName)) {
-                m_item[QMediaMetaData::Title] = getValue(lineIndex, line);
-                setFlag(TitleRead);
-            } else if (!containsFlag(LengthRead) && line.startsWith(m_lengthName)) {
-                //convert from seconds to miliseconds
-                int length = getValue(lineIndex, line).toInt();
-                if (length > 0)
-                    m_item[QMediaMetaData::Duration] = length * 1000;
-                setFlag(LengthRead);
-            } else if (line.startsWith(QLatin1String("NumberOfEntries"))) {
-                m_state = Footer;
-                int entries = getValue(lineIndex, line).toInt();
-                int count = m_readFlags == 0 ? (m_count - 1) : m_count;
-                if (entries != count) {
-                    emit error(QPlaylistFileParser::FormatError, tr("Error parsing playlist: %1, expected count = %2").
-                               arg(line, QString::number(count)));
-                }
-                break;
-            }
-            if (m_readFlags == int(All)) {
-                emit newItem(m_item);
-                setCount(m_count + 1);
-            }
-            break;
-        case Footer:
-            if (line.startsWith(QLatin1String("Version"))) {
-                int version = getValue(lineIndex, line).toInt();
-                if (version != 2)
-                    emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing playlist at line[%1], expected version = 2")).arg(line));
-            }
-            break;
-        }
-    }
-
-    QString getValue(int lineIndex, const QString& line) {
+    QString getValue(const QString& line) {
         int start = line.indexOf('=');
-        if (start < 0) {
-            emit error(QPlaylistFileParser::FormatError, QString(tr("Error parsing playlist at line[%1]:%2")).arg(QString::number(lineIndex), line));
+        if (start < 0)
             return QString();
-        }
         return line.midRef(start + 1).trimmed().toString();
     }
-
-    void setCount(int count) {
-        m_count = count;
-        m_fileName = QStringLiteral("File%1").arg(count);
-        m_titleName = QStringLiteral("Title%1").arg(count);
-        m_lengthName = QStringLiteral("Length%1").arg(count);
-        m_item.clear();
-        m_readFlags = 0;
-    }
-
-private:
-    State m_state;
-    int  m_count;
-    QString m_titleName;
-    QString m_fileName;
-    QString m_lengthName;
-    QVariantMap m_item;
-    int m_readFlags;
 };
 }
 

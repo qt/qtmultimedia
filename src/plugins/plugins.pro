@@ -44,15 +44,15 @@ unix:!mac:!android {
     config_alsa: SUBDIRS += alsa
 
     # v4l is turned off because it is not supported in Qt 5
-    # !maemo*:SUBDIRS += v4l
+    # config_linux_v4l {
+    #     !maemo*:SUBDIRS += v4l
+    # }
 }
 
 mac:!simulator {
     SUBDIRS += audiocapture coreaudio
 
     config_avfoundation: SUBDIRS += avfoundation
-
-    contains(QT_CONFIG, opengl.*):!ios: SUBDIRS += qt7
 }
 
 config_resourcepolicy {

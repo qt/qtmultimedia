@@ -123,13 +123,14 @@ int main(int argc, char *argv[])
 
     const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
     const QUrl videoPath =
-        QUrl::fromLocalFile(moviesLocation.isEmpty() ?
-                            app.applicationDirPath() :
-                            moviesLocation.front());
+            QUrl::fromLocalFile(moviesLocation.isEmpty() ?
+                                    app.applicationDirPath() :
+                                    moviesLocation.front());
     viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
     QMetaObject::invokeMethod(rootObject, "init");
 
+    viewer.setMinimumSize(QSize(640, 360));
     viewer.show();
 
     return app.exec();

@@ -35,7 +35,6 @@
 #define ANDROIDMEDIAMETADATARETRIEVER_H
 
 #include <QtCore/private/qjni_p.h>
-#include <qurl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -73,8 +72,7 @@ public:
 
     QString extractMetadata(MetadataKey key);
     void release();
-    bool setDataSource(const QUrl &url);
-    bool setDataSource(const QString &path);
+    bool setDataSource(const QString &url);
 
 private:
     QJNIObjectPrivate m_metadataRetriever;

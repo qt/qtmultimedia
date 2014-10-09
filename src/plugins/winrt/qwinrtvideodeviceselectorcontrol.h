@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,80 +39,56 @@
 **
 ****************************************************************************/
 
-#import <Foundation/Foundation.h>
-#import <QTKit/QTKit.h>
+#ifndef QWINRTVIDEODEVICESELECTORCONTROL_H
+#define QWINRTVIDEODEVICESELECTORCONTROL_H
 
-#include <QtCore/qstring.h>
-#include <QtCore/qdebug.h>
+#include <QtMultimedia/QVideoDeviceSelectorControl>
+#include <QtMultimedia/QCameraInfoControl>
+#include <QtCore/qt_windows.h>
 
-#include "qt7backend.h"
-#include "qt7serviceplugin.h"
-#include "qt7playerservice.h"
-
-#include <qmediaserviceproviderplugin.h>
-
-QT_BEGIN_NAMESPACE
-
-
-QT7ServicePlugin::QT7ServicePlugin()
-{
-    buildSupportedTypes();
-}
-
-QMediaService* QT7ServicePlugin::create(QString const& key)
-{
-#ifdef QT_DEBUG_QT7
-    qDebug() << "QT7ServicePlugin::create" << key;
-#endif
-#ifdef QMEDIA_QT7_PLAYER
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QT7PlayerService;
-#endif
-    qWarning() << "unsupported key:" << key;
-
-    return 0;
-}
-
-void QT7ServicePlugin::release(QMediaService *service)
-{
-    delete service;
-}
-
-QMediaServiceProviderHint::Features QT7ServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::VideoSurface;
-    else
-        return QMediaServiceProviderHint::Features();
-}
-
-QMultimedia::SupportEstimate QT7ServicePlugin::hasSupport(const QString &mimeType, const QStringList& codecs) const
-{
-    Q_UNUSED(codecs);
-
-    if (m_supportedMimeTypes.contains(mimeType))
-        return QMultimedia::ProbablySupported;
-
-    return QMultimedia::MaybeSupported;
-}
-
-QStringList QT7ServicePlugin::supportedMimeTypes() const
-{
-    return m_supportedMimeTypes;
-}
-
-void QT7ServicePlugin::buildSupportedTypes()
-{
-    AutoReleasePool pool;
-    NSArray *utis = [QTMovie movieTypesWithOptions:QTIncludeCommonTypes];
-    for (NSString *uti in utis) {
-        NSString* mimeType = (NSString*)UTTypeCopyPreferredTagWithClass((CFStringRef)uti, kUTTagClassMIMEType);
-        if (mimeType != 0) {
-            m_supportedMimeTypes.append(QString::fromUtf8([mimeType UTF8String]));
-            [mimeType release];
+struct IInspectable;
+namespace ABI {
+    namespace Windows {
+        namespace Devices {
+            namespace Enumeration {
+                struct IDeviceInformation;
+            }
         }
     }
 }
 
+QT_BEGIN_NAMESPACE
+
+class QWinRTVideoDeviceSelectorControlPrivate;
+class QWinRTVideoDeviceSelectorControl : public QVideoDeviceSelectorControl
+{
+    Q_OBJECT
+public:
+    explicit QWinRTVideoDeviceSelectorControl(QObject *parent = 0);
+    ~QWinRTVideoDeviceSelectorControl();
+
+    int deviceCount() const Q_DECL_OVERRIDE;
+
+    QString deviceName(int index) const Q_DECL_OVERRIDE;
+    QString deviceDescription(int index) const Q_DECL_OVERRIDE;
+
+    int defaultDevice() const Q_DECL_OVERRIDE;
+    int selectedDevice() const Q_DECL_OVERRIDE;
+
+    static QCamera::Position cameraPosition(const QString &deviceName);
+    static int cameraOrientation(const QString &deviceName);
+    static QList<QByteArray> deviceNames();
+    static QByteArray deviceDescription(const QByteArray &deviceName);
+    static QByteArray defaultDeviceName();
+
+public slots:
+    void setSelectedDevice(int index) Q_DECL_OVERRIDE;
+
+private:
+    QScopedPointer<QWinRTVideoDeviceSelectorControlPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTVideoDeviceSelectorControl)
+};
+
 QT_END_NAMESPACE
+
+#endif // QWINRTVIDEODEVICESELECTORCONTROL_H

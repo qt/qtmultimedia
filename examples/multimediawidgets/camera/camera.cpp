@@ -46,12 +46,15 @@
 #include <QMediaService>
 #include <QMediaRecorder>
 #include <QCameraViewfinder>
+#include <QCameraInfo>
 #include <QMediaMetaData>
 
 #include <QMessageBox>
 #include <QPalette>
 
 #include <QtWidgets>
+
+Q_DECLARE_METATYPE(QCameraInfo)
 
 Camera::Camera(QWidget *parent) :
     QMainWindow(parent),
@@ -65,26 +68,23 @@ Camera::Camera(QWidget *parent) :
     ui->setupUi(this);
 
     //Camera devices:
-    QByteArray cameraDevice;
 
     QActionGroup *videoDevicesGroup = new QActionGroup(this);
     videoDevicesGroup->setExclusive(true);
-    foreach(const QByteArray &deviceName, QCamera::availableDevices()) {
-        QString description = camera->deviceDescription(deviceName);
-        QAction *videoDeviceAction = new QAction(description, videoDevicesGroup);
+    foreach (const QCameraInfo &cameraInfo, QCameraInfo::availableCameras()) {
+        QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
         videoDeviceAction->setCheckable(true);
-        videoDeviceAction->setData(QVariant(deviceName));
-        if (cameraDevice.isEmpty()) {
-            cameraDevice = deviceName;
+        videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
+        if (cameraInfo == QCameraInfo::defaultCamera())
             videoDeviceAction->setChecked(true);
-        }
+
         ui->menuDevices->addAction(videoDeviceAction);
     }
 
     connect(videoDevicesGroup, SIGNAL(triggered(QAction*)), SLOT(updateCameraDevice(QAction*)));
     connect(ui->captureWidget, SIGNAL(currentChanged(int)), SLOT(updateCaptureMode()));
 
-    setCamera(cameraDevice);
+    setCamera(QCameraInfo::defaultCamera());
 }
 
 Camera::~Camera()
@@ -94,16 +94,13 @@ Camera::~Camera()
     delete camera;
 }
 
-void Camera::setCamera(const QByteArray &cameraDevice)
+void Camera::setCamera(const QCameraInfo &cameraInfo)
 {
     delete imageCapture;
     delete mediaRecorder;
     delete camera;
 
-    if (cameraDevice.isEmpty())
-        camera = new QCamera;
-    else
-        camera = new QCamera(cameraDevice);
+    camera = new QCamera(cameraInfo);
 
     connect(camera, SIGNAL(stateChanged(QCamera::State)), this, SLOT(updateCameraState(QCamera::State)));
     connect(camera, SIGNAL(error(QCamera::Error)), this, SLOT(displayCameraError()));
@@ -398,7 +395,7 @@ void Camera::displayCameraError()
 
 void Camera::updateCameraDevice(QAction *action)
 {
-    setCamera(action->data().toByteArray());
+    setCamera(qvariant_cast<QCameraInfo>(action->data()));
 }
 
 void Camera::displayViewfinder()

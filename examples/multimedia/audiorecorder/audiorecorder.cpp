@@ -114,6 +114,8 @@ AudioRecorder::AudioRecorder(QWidget *parent) :
             SLOT(updateProgress(qint64)));
     connect(audioRecorder, SIGNAL(statusChanged(QMediaRecorder::Status)), this,
             SLOT(updateStatus(QMediaRecorder::Status)));
+    connect(audioRecorder, SIGNAL(stateChanged(QMediaRecorder::State)),
+            this, SLOT(onStateChanged(QMediaRecorder::State)));
     connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this,
             SLOT(displayErrorMessage()));
 }
@@ -138,45 +140,42 @@ void AudioRecorder::updateStatus(QMediaRecorder::Status status)
 
     switch (status) {
     case QMediaRecorder::RecordingStatus:
-        if (audioLevels.count() != audioRecorder->audioSettings().channelCount()) {
-            qDeleteAll(audioLevels);
-            audioLevels.clear();
-            for (int i = 0; i < audioRecorder->audioSettings().channelCount(); ++i) {
-                QAudioLevel *level = new QAudioLevel(ui->centralwidget);
-                audioLevels.append(level);
-                ui->levelsLayout->addWidget(level);
-            }
-        }
-
-        ui->recordButton->setText(tr("Stop"));
-        ui->pauseButton->setText(tr("Pause"));
-        if (audioRecorder->outputLocation().isEmpty())
-            statusMessage = tr("Recording");
-        else
-            statusMessage = tr("Recording to %1").arg(
-                        audioRecorder->outputLocation().toString());
+        statusMessage = tr("Recording to %1").arg(audioRecorder->actualLocation().toString());
         break;
     case QMediaRecorder::PausedStatus:
         clearAudioLevels();
-        ui->recordButton->setText(tr("Stop"));
-        ui->pauseButton->setText(tr("Resume"));
         statusMessage = tr("Paused");
         break;
     case QMediaRecorder::UnloadedStatus:
     case QMediaRecorder::LoadedStatus:
         clearAudioLevels();
-        ui->recordButton->setText(tr("Record"));
-        ui->pauseButton->setText(tr("Pause"));
         statusMessage = tr("Stopped");
     default:
         break;
     }
 
-    ui->pauseButton->setEnabled(audioRecorder->state()
-                                != QMediaRecorder::StoppedState);
-
     if (audioRecorder->error() == QMediaRecorder::NoError)
         ui->statusbar->showMessage(statusMessage);
+}
+
+void AudioRecorder::onStateChanged(QMediaRecorder::State state)
+{
+    switch (state) {
+    case QMediaRecorder::RecordingState:
+        ui->recordButton->setText(tr("Stop"));
+        ui->pauseButton->setText(tr("Pause"));
+        break;
+    case QMediaRecorder::PausedState:
+        ui->recordButton->setText(tr("Stop"));
+        ui->pauseButton->setText(tr("Resume"));
+        break;
+    case QMediaRecorder::StoppedState:
+        ui->recordButton->setText(tr("Record"));
+        ui->pauseButton->setText(tr("Pause"));
+        break;
+    }
+
+    ui->pauseButton->setEnabled(audioRecorder->state() != QMediaRecorder::StoppedState);
 }
 
 static QVariant boxValue(const QComboBox *box)
@@ -347,6 +346,16 @@ QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels)
 
 void AudioRecorder::processBuffer(const QAudioBuffer& buffer)
 {
+    if (audioLevels.count() != buffer.format().channelCount()) {
+        qDeleteAll(audioLevels);
+        audioLevels.clear();
+        for (int i = 0; i < buffer.format().channelCount(); ++i) {
+            QAudioLevel *level = new QAudioLevel(ui->centralwidget);
+            audioLevels.append(level);
+            ui->levelsLayout->addWidget(level);
+        }
+    }
+
     QVector<qreal> levels = getBufferLevels(buffer);
     for (int i = 0; i < levels.count(); ++i)
         audioLevels.at(i)->setLevel(levels.at(i));

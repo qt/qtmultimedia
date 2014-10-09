@@ -86,6 +86,8 @@ private:
 
     bool preparePlayer();
     void destroyPlayer();
+    void stopPlayer();
+    void startPlayer();
     qint64 writeData(const char *data, qint64 len);
 
     void setState(QAudio::State state);
@@ -112,6 +114,8 @@ private:
     qint64 m_elapsedTime;
     qint64 m_processedBytes;
     QAtomicInt m_availableBuffers;
+    SLuint32 m_eventMask;
+    bool m_startRequiresInit;
 
     qint32 m_streamType;
     QTime m_clockStamp;

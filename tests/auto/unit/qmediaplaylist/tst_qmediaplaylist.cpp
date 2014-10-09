@@ -463,14 +463,15 @@ void tst_QMediaPlaylist::loadPLSFile()
     QVERIFY(!loadFailedSpy.isEmpty());
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
 
-    // Try to load bogus playlist
+    // Try to load empty playlist
     loadSpy.clear();
     loadFailedSpy.clear();
-    testFileName = QFINDTESTDATA("testdata/trash.pls");
+    testFileName = QFINDTESTDATA("testdata/empty.pls");
     playlist.load(QUrl::fromLocalFile(testFileName));
-    QTRY_VERIFY(loadSpy.isEmpty());
-    QVERIFY(!loadFailedSpy.isEmpty());
-    QVERIFY(playlist.error() == QMediaPlaylist::FormatError);
+    QTRY_VERIFY(!loadSpy.isEmpty());
+    QVERIFY(loadFailedSpy.isEmpty());
+    QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
+    QCOMPARE(playlist.mediaCount(), 0);
 
     // Try to load regular playlist
     loadSpy.clear();
@@ -485,30 +486,30 @@ void tst_QMediaPlaylist::loadPLSFile()
     QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
     QCOMPARE(playlist.media(1).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
     testFileName = QFINDTESTDATA("testdata/testfile");
-    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
     QCOMPARE(playlist.media(2).canonicalUrl(),
              QUrl::fromLocalFile(testFileName));
     testFileName = QFINDTESTDATA("testdata");
-    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
     QCOMPARE(playlist.media(3).canonicalUrl(),
              QUrl::fromLocalFile(testFileName + "/testdir/testfile"));
-    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
     QCOMPARE(playlist.media(4).canonicalUrl(), QUrl(QLatin1String("file:///testdir/testfile")));
     QCOMPARE(playlist.media(5).canonicalUrl(), QUrl(QLatin1String("file://path/name#suffix")));
     //ensure #2 suffix is not stripped from path
     testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
-    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
     QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
 
     // Try to load a totem-pl generated playlist
+    // (Format doesn't respect the spec)
     loadSpy.clear();
     loadFailedSpy.clear();
+    playlist.clear();
     testFileName = QFINDTESTDATA("testdata/totem-pl-example.pls");
     playlist.load(QUrl::fromLocalFile(testFileName));
-    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
     QTRY_VERIFY(!loadSpy.isEmpty());
-    QEXPECT_FAIL("", "See QTBUG-40515", Continue);
     QVERIFY(loadFailedSpy.isEmpty());
+    QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
+    QCOMPARE(playlist.mediaCount(), 1);
+    QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+
 
     // check ability to load from QNetworkRequest
     loadSpy.clear();

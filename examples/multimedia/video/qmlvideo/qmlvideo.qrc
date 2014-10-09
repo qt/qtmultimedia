@@ -1,13 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file alias="leaves.jpg">images/leaves.jpg</file>
-        <file alias="close.png">images/close.png</file>
         <file alias="folder.png">images/folder.png</file>
-        <file alias="titlebar.png">images/titlebar.png</file>
-        <file alias="titlebar.sci">images/titlebar.sci</file>
         <file alias="up.png">images/up.png</file>
-        <file alias="progress_handle.svg">images/progress_handle.svg</file>
-        <file alias="progress_handle_pressed.svg">images/progress_handle_pressed.svg</file>
         <file>qml/qmlvideo/Button.qml</file>
         <file>qml/qmlvideo/CameraBasic.qml</file>
         <file>qml/qmlvideo/CameraDrag.qml</file>
@@ -21,7 +16,6 @@
         <file>qml/qmlvideo/CameraRotate.qml</file>
         <file>qml/qmlvideo/CameraSpin.qml</file>
         <file>qml/qmlvideo/Content.qml</file>
-        <file>qml/qmlvideo/DisableScreenSaver.qml</file>
         <file>qml/qmlvideo/ErrorDialog.qml</file>
         <file>qml/qmlvideo/FileBrowser.qml</file>
         <file>qml/qmlvideo/main.qml</file>

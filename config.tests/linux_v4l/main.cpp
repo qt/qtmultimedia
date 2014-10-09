@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -39,22 +39,9 @@
 **
 ****************************************************************************/
 
-#include "qt7backend.h"
+#include <linux/videodev2.h>
 
-#import <Foundation/NSAutoreleasePool.h>
-#include <CoreFoundation/CFBase.h>
-
-
-QT_BEGIN_NAMESPACE
-
-AutoReleasePool::AutoReleasePool()
+int main(int argc, char** argv)
 {
-    pool = (void*)[[NSAutoreleasePool alloc] init];
+    return 0;
 }
-
-AutoReleasePool::~AutoReleasePool()
-{
-    [(NSAutoreleasePool*)pool release];
-}
-
-QT_END_NAMESPACE

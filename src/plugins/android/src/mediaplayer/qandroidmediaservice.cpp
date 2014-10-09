@@ -45,8 +45,8 @@ QAndroidMediaService::QAndroidMediaService(QObject *parent)
 {
     mMediaControl = new QAndroidMediaPlayerControl;
     mMetadataControl = new QAndroidMetaDataReaderControl;
-    connect(mMediaControl, SIGNAL(mediaChanged(QMediaContent)),
-            mMetadataControl, SLOT(onMediaChanged(QMediaContent)));
+    connect(mMediaControl, SIGNAL(actualMediaLocationChanged(QString)),
+            mMetadataControl, SLOT(onMediaChanged(QString)));
     connect(mMediaControl, SIGNAL(metaDataUpdated()),
             mMetadataControl, SLOT(onUpdateMetaData()));
 }

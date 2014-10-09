@@ -46,7 +46,7 @@ The following image shows the application executing the video-overlay scene,
 which creates a dummy overlay item (just a semi-transparent \l{Rectangle}),
 which moves across the \l{VideoOutput} item.
 
-\image qmlvideo-overlay.png
+\image qmlvideo-overlay.jpg
 
 \include examples-run.qdocinc
 
@@ -67,7 +67,7 @@ the following items:
        average over the past second.
 \endlist
 
-\image qmlvideo-menu.png
+\image qmlvideo-menu.jpg
 
 Each scene in the flickable list is implemented in its own QML file - for
 example the video-basic scene (which just displays a static \l{VideoOutput}

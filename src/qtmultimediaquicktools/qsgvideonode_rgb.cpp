@@ -212,7 +212,7 @@ public:
                     stride /= 4;
                 }
 
-                m_width = qreal(m_frame.width() / stride);
+                m_width = qreal(m_frame.width()) / stride;
                 textureSize.setWidth(stride);
 
                 if (m_textureSize != textureSize) {

@@ -38,6 +38,7 @@
 #include <CoreAudio/CoreAudioTypes.h>
 #include <AudioToolbox/AudioToolbox.h>
 
+#include <QtCore/QIODevice>
 #include <QtCore/QWaitCondition>
 #include <QtCore/QMutex>
 #include <QtCore/QTimer>

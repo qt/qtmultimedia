@@ -97,8 +97,6 @@ public Q_SLOTS:
     void processPositionChange();
     void processMediaLoadError();
 
-    void processCurrentItemChanged();
-
 Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
@@ -147,6 +145,9 @@ private:
         QResource *resource;
         QByteArray rawData;
     };
+
+    void setAudioAvailable(bool available);
+    void setVideoAvailable(bool available);
 
     AVFMediaPlayerService *m_service;
     AVFVideoOutput *m_videoOutput;

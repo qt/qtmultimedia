@@ -44,6 +44,8 @@
 
 #include "qwinrtserviceplugin.h"
 #include "qwinrtmediaplayerservice.h"
+#include "qwinrtcameraservice.h"
+#include "qwinrtvideodeviceselectorcontrol.h"
 
 QT_USE_NAMESPACE
 
@@ -51,6 +53,9 @@ QMediaService *QWinRTServicePlugin::create(QString const &key)
 {
     if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
         return new QWinRTMediaPlayerService(this);
+
+    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
+        return new QWinRTCameraService(this);
 
     return Q_NULLPTR;
 }
@@ -67,4 +72,38 @@ QMediaServiceProviderHint::Features QWinRTServicePlugin::supportedFeatures(
        return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
 
     return QMediaServiceProviderHint::Features();
+}
+
+QCamera::Position QWinRTServicePlugin::cameraPosition(const QByteArray &device) const
+{
+    return QWinRTVideoDeviceSelectorControl::cameraPosition(device);
+}
+
+int QWinRTServicePlugin::cameraOrientation(const QByteArray &device) const
+{
+    return QWinRTVideoDeviceSelectorControl::cameraOrientation(device);
+}
+
+QList<QByteArray> QWinRTServicePlugin::devices(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA)
+        return QWinRTVideoDeviceSelectorControl::deviceNames();
+
+    return QList<QByteArray>();
+}
+
+QString QWinRTServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
+{
+    if (service == Q_MEDIASERVICE_CAMERA)
+        return QWinRTVideoDeviceSelectorControl::deviceDescription(device);
+
+    return QString();
+}
+
+QByteArray QWinRTServicePlugin::defaultDevice(const QByteArray &service) const
+{
+    if (service == Q_MEDIASERVICE_CAMERA)
+        return QWinRTVideoDeviceSelectorControl::defaultDeviceName();
+
+    return QByteArray();
 }

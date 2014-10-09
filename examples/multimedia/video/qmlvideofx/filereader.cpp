@@ -32,7 +32,6 @@
 ****************************************************************************/
 
 #include "filereader.h"
-#include "trace.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -42,7 +41,6 @@
 
 QString FileReader::readFile(const QString &fileName)
 {
-    qtTrace() << "FileReader::readFile" << "fileName" << fileName;
     QString content;
     QFile file(fileName);
     if (file.open(QIODevice::ReadOnly)) {

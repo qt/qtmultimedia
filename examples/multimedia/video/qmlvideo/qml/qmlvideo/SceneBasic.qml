@@ -59,15 +59,13 @@ Scene {
         }
         text: content.started ? "Tap the screen to stop content"
                               : "Tap the screen to start content"
-        color: "yellow"
-        font.pixelSize: 20
+        color: "#e0e0e0"
         z: 2.0
     }
 
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            console.log("[qmlvideo] SceneBasic.onClicked, started = " + content.started)
             if (content.started)
                 content.stop()
             else

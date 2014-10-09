@@ -160,7 +160,6 @@ Rectangle {
         Loader {
             id: performanceLoader
             function init() {
-                console.log("[qmlvideofx] performanceLoader.init logging " + root.perfMonitorsLogging + " visible " + root.perfMonitorsVisible)
                 var enabled = root.perfMonitorsLogging || root.perfMonitorsVisible
                 source = enabled ? "../performancemonitor/PerformanceItem.qml" : ""
             }
@@ -249,11 +248,6 @@ Rectangle {
         height = windowHeight
         width = windowWidth
 
-        console.log("[qmlvideofx] root.init")
-        console.log("Height: ", Screen.desktopAvailableHeight)
-        console.log("Width: ", Screen.desktopAvailableWidth)
-        console.log("Pixels per mm: ", Math.ceil(Screen.pixelDensity))
-        console.log("Orientation: ", Screen.orientation)
         imageFileBrowser.folder = imagePath
         videoFileBrowser.folder = videoPath
         content.init()

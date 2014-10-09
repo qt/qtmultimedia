@@ -258,6 +258,7 @@ void MFPlayerSession::handleMediaSourceReady()
         //convert from 100 nanosecond to milisecond
         emit durationUpdate(qint64(m_duration / 10000));
         setupPlaybackTopology(mediaSource, sourcePD);
+        sourcePD->Release();
     } else {
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Cannot create presentation descriptor."), true);
@@ -415,12 +416,15 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
                 if (SUCCEEDED(hr)) {
                     hr = node->SetUINT32(MF_TOPONODE_STREAMID, sinkID);
                     if (SUCCEEDED(hr)) {
-                        if (SUCCEEDED(topology->AddNode(node)))
+                        if (SUCCEEDED(topology->AddNode(node))) {
+                            handler->Release();
                             return node;
+                        }
                     }
                 }
             }
         }
+        handler->Release();
     }
     node->Release();
     return NULL;
@@ -609,42 +613,39 @@ HRESULT BindOutputNode(IMFTopologyNode *pNode)
 // Sets the IMFStreamSink pointers on all of the output nodes in a topology.
 HRESULT BindOutputNodes(IMFTopology *pTopology)
 {
-    DWORD cNodes = 0;
-
-    IMFCollection *collection = NULL;
-    IUnknown *element = NULL;
-    IMFTopologyNode *node = NULL;
+    IMFCollection *collection;
 
     // Get the collection of output nodes.
     HRESULT hr = pTopology->GetOutputNodeCollection(&collection);
 
     // Enumerate all of the nodes in the collection.
-    if (SUCCEEDED(hr))
+    if (SUCCEEDED(hr)) {
+        DWORD cNodes;
         hr = collection->GetElementCount(&cNodes);
 
-    if (SUCCEEDED(hr)) {
-        for (DWORD i = 0; i < cNodes; i++) {
-            hr = collection->GetElement(i, &element);
-            if (FAILED(hr))
-                break;
+        if (SUCCEEDED(hr)) {
+            for (DWORD i = 0; i < cNodes; i++) {
+                IUnknown *element;
+                hr = collection->GetElement(i, &element);
+                if (FAILED(hr))
+                    break;
 
-            hr = element->QueryInterface(IID_IMFTopologyNode, (void**)&node);
-            if (FAILED(hr))
-                break;
+                IMFTopologyNode *node;
+                hr = element->QueryInterface(IID_IMFTopologyNode, (void**)&node);
+                element->Release();
+                if (FAILED(hr))
+                    break;
 
-            // Bind this node.
-            hr = BindOutputNode(node);
-            if (FAILED(hr))
-                break;
+                // Bind this node.
+                hr = BindOutputNode(node);
+                node->Release();
+                if (FAILED(hr))
+                    break;
+            }
         }
+        collection->Release();
     }
 
-    if (collection)
-        collection->Release();
-    if (element)
-        element->Release();
-    if (node)
-        node->Release();
     return hr;
 }
 
@@ -1395,14 +1396,17 @@ int MFPlayerSession::bufferStatus()
     if (!m_netsourceStatistics)
         return 0;
     PROPVARIANT var;
+    PropVariantInit(&var);
     PROPERTYKEY key;
     key.fmtid = MFNETSOURCE_STATISTICS;
     key.pid = MFNETSOURCE_BUFFERPROGRESS_ID;
     int progress = -1;
-    if (SUCCEEDED(m_netsourceStatistics->GetValue(key, &var))) {
+    // GetValue returns S_FALSE if the property is not available, which has
+    // a value > 0. We therefore can't use the SUCCEEDED macro here.
+    if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
         progress = var.lVal;
+        PropVariantClear(&var);
     }
-    PropVariantClear(&var);
 
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "bufferStatus: progress = " << progress;
@@ -1413,22 +1417,30 @@ int MFPlayerSession::bufferStatus()
 
 QMediaTimeRange MFPlayerSession::availablePlaybackRanges()
 {
-    if (!m_netsourceStatistics)
-        return QMediaTimeRange();
+    // defaults to the whole media
+    qint64 start = 0;
+    qint64 end = qint64(m_duration / 10000);
 
-    qint64 start = 0, end = 0;
-    PROPVARIANT var;
-    PROPERTYKEY key;
-    key.fmtid = MFNETSOURCE_STATISTICS;
-    key.pid = MFNETSOURCE_SEEKRANGESTART_ID;
-    if (SUCCEEDED(m_netsourceStatistics->GetValue(key, &var))) {
-        start = qint64(var.uhVal.QuadPart / 10000);
-        key.pid = MFNETSOURCE_SEEKRANGEEND_ID;
-        if (SUCCEEDED(m_netsourceStatistics->GetValue(key, &var))) {
-            end = qint64(var.uhVal.QuadPart / 10000);
+    if (m_netsourceStatistics) {
+        PROPVARIANT var;
+        PropVariantInit(&var);
+        PROPERTYKEY key;
+        key.fmtid = MFNETSOURCE_STATISTICS;
+        key.pid = MFNETSOURCE_SEEKRANGESTART_ID;
+        // GetValue returns S_FALSE if the property is not available, which has
+        // a value > 0. We therefore can't use the SUCCEEDED macro here.
+        if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
+            start = qint64(var.uhVal.QuadPart / 10000);
+            PropVariantClear(&var);
+            PropVariantInit(&var);
+            key.pid = MFNETSOURCE_SEEKRANGEEND_ID;
+            if (m_netsourceStatistics->GetValue(key, &var) == S_OK) {
+                end = qint64(var.uhVal.QuadPart / 10000);
+                PropVariantClear(&var);
+            }
         }
     }
-    PropVariantClear(&var);
+
     return QMediaTimeRange(start, end);
 }
 
@@ -1491,8 +1503,11 @@ HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
         }
     }
 
-    if (!m_closing)
+    if (!m_closing) {
         emit sessionEvent(pEvent);
+    } else {
+        pEvent->Release();
+    }
     return S_OK;
 }
 
@@ -1615,9 +1630,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                 }
             }
 
-            if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
-                setVolumeInternal(m_muted ? 0 : m_volume);
-
             DWORD dwCharacteristics = 0;
             m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
             emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
@@ -1688,6 +1700,9 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                         }
                     }
                     MFGetService(m_session, MFNETSOURCE_STATISTICS_SERVICE, IID_PPV_ARGS(&m_netsourceStatistics));
+
+                    if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
+                        setVolumeInternal(m_muted ? 0 : m_volume);
                 }
             }
         }

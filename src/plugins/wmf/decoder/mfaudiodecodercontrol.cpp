@@ -236,7 +236,6 @@ void MFAudioDecoderControl::handleMediaSourceReady()
     }
 
     if (m_sourceResolver->mediaSource()) {
-        IMFPresentationDescriptor *pd = 0;
         if (mediaType && m_resampler) {
             HRESULT hr = S_OK;
             hr = m_resampler->SetInputType(m_mfInputStreamID, mediaType, 0);
@@ -246,9 +245,11 @@ void MFAudioDecoderControl::handleMediaSourceReady()
                 qWarning() << "MFAudioDecoderControl: failed to SetInputType of resampler" << hr;
             }
         }
+        IMFPresentationDescriptor *pd;
         if (SUCCEEDED(m_sourceResolver->mediaSource()->CreatePresentationDescriptor(&pd))) {
             UINT64 duration = 0;
             pd->GetUINT64(MF_PD_DURATION, &duration);
+            pd->Release();
             duration /= 10000;
             if (m_duration != qint64(duration)) {
                 m_duration = qint64(duration);

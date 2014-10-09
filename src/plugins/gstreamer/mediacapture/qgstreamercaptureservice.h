@@ -70,7 +70,9 @@ private:
 
     QGstreamerCaptureSession *m_captureSession;
     QGstreamerCameraControl *m_cameraControl;
+#if defined(USE_GSTREAMER_CAMERA)
     QGstreamerV4L2Input *m_videoInput;
+#endif
     QGstreamerCaptureMetaDataControl *m_metaDataControl;
 
     QAudioInputSelectorControl *m_audioInputSelector;

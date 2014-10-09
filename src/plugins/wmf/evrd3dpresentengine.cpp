@@ -48,7 +48,6 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES2/gl2.h>
 #include <d3d9.h>
 #include <dxva2api.h>
 #include <WinUser.h>
@@ -331,34 +330,36 @@ void D3DPresentEngine::presentSample(void *opaque, qint64)
     IMFMediaBuffer* buffer = NULL;
     IDirect3DSurface9* surface = NULL;
 
-    if (sample) {
-        // Get the buffer from the sample.
-        hr = sample->GetBufferByIndex(0, &buffer);
-        if (FAILED(hr))
-            goto done;
+    if (m_surface && m_surface->isActive()) {
+        if (sample) {
+            // Get the buffer from the sample.
+            hr = sample->GetBufferByIndex(0, &buffer);
+            if (FAILED(hr))
+                goto done;
 
-        // Get the surface from the buffer.
-        hr = MFGetService(buffer, MR_BUFFER_SERVICE, IID_PPV_ARGS(&surface));
-        if (FAILED(hr))
-            goto done;
-    }
-
-    if (surface && updateTexture(surface)) {
-        QVideoFrame frame = QVideoFrame(new TextureVideoBuffer(m_glTexture),
-                                        m_surfaceFormat.frameSize(),
-                                        m_surfaceFormat.pixelFormat());
-
-        // WMF uses 100-nanosecond units, Qt uses microseconds
-        LONGLONG startTime = -1;
-        if (SUCCEEDED(sample->GetSampleTime(&startTime))) {
-            frame.setStartTime(startTime * 0.1);
-
-            LONGLONG duration = -1;
-            if (SUCCEEDED(sample->GetSampleDuration(&duration)))
-                frame.setEndTime((startTime + duration) * 0.1);
+            // Get the surface from the buffer.
+            hr = MFGetService(buffer, MR_BUFFER_SERVICE, IID_PPV_ARGS(&surface));
+            if (FAILED(hr))
+                goto done;
         }
 
-        m_surface->present(frame);
+        if (surface && updateTexture(surface)) {
+            QVideoFrame frame = QVideoFrame(new TextureVideoBuffer(m_glTexture),
+                                            m_surfaceFormat.frameSize(),
+                                            m_surfaceFormat.pixelFormat());
+
+            // WMF uses 100-nanosecond units, Qt uses microseconds
+            LONGLONG startTime = -1;
+            if (SUCCEEDED(sample->GetSampleTime(&startTime))) {
+                frame.setStartTime(startTime * 0.1);
+
+                LONGLONG duration = -1;
+                if (SUCCEEDED(sample->GetSampleDuration(&duration)))
+                    frame.setEndTime((startTime + duration) * 0.1);
+            }
+
+            m_surface->present(frame);
+        }
     }
 
 done:
@@ -420,18 +421,19 @@ void D3DPresentEngine::createOffscreenTexture()
     QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
     m_eglDisplay = static_cast<EGLDisplay*>(
                 nativeInterface->nativeResourceForContext("eglDisplay", currentContext));
-    m_eglConfig = static_cast<EGLDisplay*>(
+    m_eglConfig = static_cast<EGLConfig*>(
                 nativeInterface->nativeResourceForContext("eglConfig", currentContext));
 
     currentContext->functions()->glGenTextures(1, &m_glTexture);
 
     int w = m_surfaceFormat.frameWidth();
     int h = m_surfaceFormat.frameHeight();
+    bool hasAlpha = currentContext->format().hasAlpha();
 
     EGLint attribs[] = {
         EGL_WIDTH, w,
         EGL_HEIGHT, h,
-        EGL_TEXTURE_FORMAT, EGL_TEXTURE_RGB,
+        EGL_TEXTURE_FORMAT, hasAlpha ? EGL_TEXTURE_RGBA : EGL_TEXTURE_RGB,
         EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
         EGL_NONE
     };
@@ -450,7 +452,7 @@ void D3DPresentEngine::createOffscreenTexture()
 
     m_device->CreateTexture(w, h, 1,
                             D3DUSAGE_RENDERTARGET,
-                            D3DFMT_X8R8G8B8,
+                            hasAlpha ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8,
                             D3DPOOL_DEFAULT,
                             &m_texture,
                             &share_handle);

@@ -38,12 +38,8 @@
 
 #include "camerabinserviceplugin.h"
 
-
 #include "camerabinservice.h"
 #include <private/qgstutils_p.h>
-
-#include <private/qcore_unix_p.h>
-#include <linux/videodev2.h>
 
 QT_BEGIN_NAMESPACE
 

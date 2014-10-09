@@ -38,6 +38,8 @@ Rectangle {
     color: "transparent"
     opacity: 0.0
     property alias enabled: mouseArea.enabled
+    property int dialogWidth: 300
+    property int dialogHeight: 200
     state: enabled ? "on" : "baseState"
 
     states: [
@@ -70,9 +72,9 @@ Rectangle {
 
     Rectangle {
         anchors.centerIn: parent
-        width: 300
-        height: 200
-        radius: 10
+        width: dialogWidth
+        height: dialogHeight
+        radius: 5
         color: "white"
 
         Text {

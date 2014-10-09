@@ -60,7 +60,7 @@ public:
     ~Camera();
 
 private slots:
-    void setCamera(const QByteArray &cameraDevice);
+    void setCamera(const QCameraInfo &cameraInfo);
 
     void startCamera();
     void stopCamera();

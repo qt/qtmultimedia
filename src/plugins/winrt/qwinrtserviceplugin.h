@@ -48,15 +48,29 @@ QT_USE_NAMESPACE
 
 class QWinRTServicePlugin : public QMediaServiceProviderPlugin
         , public QMediaServiceFeaturesInterface
+        , public QMediaServiceCameraInfoInterface
+        , public QMediaServiceSupportedDevicesInterface
+        , public QMediaServiceDefaultDeviceInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceFeaturesInterface)
+    Q_INTERFACES(QMediaServiceCameraInfoInterface)
+    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
+    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "winrt.json")
 public:
     QMediaService *create(QString const &key);
     void release(QMediaService *service);
 
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+
+    QCamera::Position cameraPosition(const QByteArray &device) const Q_DECL_OVERRIDE;
+    int cameraOrientation(const QByteArray &device) const Q_DECL_OVERRIDE;
+
+    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
+
+    QByteArray defaultDevice(const QByteArray &service) const Q_DECL_OVERRIDE;
 };
 
 #endif // QWINRTSERVICEPLUGIN_H
