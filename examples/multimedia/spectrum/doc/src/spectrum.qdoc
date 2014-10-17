@@ -29,10 +29,11 @@
     \example spectrum
     \title Spectrum Example
     \ingroup multimedia_examples
-    \brief The Spectrum Example uses a combination multimedia APIs to process microphone input.
+    \brief Analyzing a raw audio stream using the FFTReal library.
 
-    The Spectrum Analyzer example shows how the \l{Qt Multimedia} module can be
-    used to record and then play back an audio stream.
+    \e Spectrum demonstrates how the \l{Qt Multimedia} module can be used to
+    analyze an audio stream while recording it, and also play the recorded
+    stream.
 
     \image spectrum-demo.png
 

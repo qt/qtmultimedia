@@ -29,10 +29,9 @@
     \example audiooutput
     \title Audio Output Example
     \ingroup multimedia_examples
-    \brief The Audio Output Example show the use of the QAudioOutput API.
+    \brief Enabling audio playback using the QAudioOutput class.
 
-    The example demonstrates the basic use cases of the QAudioOutput class from
-    \l{Qt Multimedia}.
+    \e{Audio Output} demonstrates the basic use cases of QAudioOutput.
 
     \image audiooutput-example.png
 

@@ -30,23 +30,21 @@
 \title QML Video Shader Effects Example
 \ingroup multimedia_examples
 
-\brief The QML Video Shader Effects Example shows how \l {ShaderEffect}
-can be used to apply postprocessing effects, expressed in \c GLSL, to video
-and camera viewfinder content.
+\brief Applying shader effects on video and camera viewfinder content.
 
 \include examples-run.qdocinc
 
 \section1 Overview
 
-This example shows how a \l {ShaderEffect} can be used to apply
-postprocessing effects, expressed in GLSL, to QML \l {VideoOutput} items.
+\e{QML Video Shader Effects} demonstrates how a \l ShaderEffect can be used to
+apply postprocessing effects, expressed in GLSL, to QML \l VideoOutput type.
 
 It also shows how native code can be combined with QML to implement more
 advanced functionality - in this case, C++ code is used to calculate the QML
 frame rate.  This value is rendered in QML in a semi-transparent item
 overlaid on the video content.
 
-The following screenshots show shader effects being applied.  In each case,
+The following screenshots show shader effects being applied. In each case,
 the effect is implemented using a fragment shader.
 
 Here we see an edge detection algorithm being applied to a video clip
