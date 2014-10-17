@@ -430,13 +430,15 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
                     QStringLiteral("primary"),
                     QGstreamerVideoInputDeviceControl::primaryCamera(),
                     0,
-                    QCamera::BackFace
+                    QCamera::BackFace,
+                    QByteArray()
                 };
                 const CameraInfo secondary = {
                     QStringLiteral("secondary"),
                     QGstreamerVideoInputDeviceControl::secondaryCamera(),
                     0,
-                    QCamera::FrontFace
+                    QCamera::FrontFace,
+                    QByteArray()
                 };
 
                 devices.append(primary);
@@ -498,14 +500,17 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
 
         if (isCamera) {
             // find out its driver "name"
+            QByteArray driver;
             QString name;
             struct v4l2_capability vcap;
             memset(&vcap, 0, sizeof(struct v4l2_capability));
 
-            if (ioctl(fd, VIDIOC_QUERYCAP, &vcap) != 0)
+            if (ioctl(fd, VIDIOC_QUERYCAP, &vcap) != 0) {
                 name = entryInfo.fileName();
-            else
+            } else {
+                driver = QByteArray((const char*)vcap.driver);
                 name = QString::fromUtf8((const char*)vcap.card);
+            }
             //qDebug() << "found camera: " << name;
 
 
@@ -513,7 +518,8 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
                 entryInfo.absoluteFilePath(),
                 name,
                 0,
-                QCamera::UnspecifiedPosition
+                QCamera::UnspecifiedPosition,
+                driver
             };
             devices.append(device);
         }
@@ -559,6 +565,15 @@ int QGstUtils::cameraOrientation(const QString &device, GstElementFactory * fact
             return camera.orientation;
     }
     return 0;
+}
+
+QByteArray QGstUtils::cameraDriver(const QString &device, GstElementFactory *factory)
+{
+    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+        if (camera.name == device)
+            return camera.driver;
+    }
+    return QByteArray();
 }
 
 
