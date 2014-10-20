@@ -242,14 +242,19 @@ void MFPlayerSession::handleSourceError(long hr)
 
 void MFPlayerSession::handleMediaSourceReady()
 {
-    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver)
+    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver || m_sourceResolver != sender())
         return;
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "handleMediaSourceReady";
 #endif
     HRESULT hr = S_OK;
-    IMFPresentationDescriptor* sourcePD;
     IMFMediaSource* mediaSource = m_sourceResolver->mediaSource();
+
+    DWORD dwCharacteristics = 0;
+    mediaSource->GetCharacteristics(&dwCharacteristics);
+    emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
+
+    IMFPresentationDescriptor* sourcePD;
     hr = mediaSource->CreatePresentationDescriptor(&sourcePD);
     if (SUCCEEDED(hr)) {
         m_duration = 0;
@@ -1629,10 +1634,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                     obj->Release();
                 }
             }
-
-            DWORD dwCharacteristics = 0;
-            m_sourceResolver->mediaSource()->GetCharacteristics(&dwCharacteristics);
-            emit seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
 
             // Topology is resolved and successfuly set, this happens only after loading a new media.
             // Make sure we always start the media from the beginning

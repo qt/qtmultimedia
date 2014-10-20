@@ -39,7 +39,7 @@
 #include "androidsurfacetexture.h"
 #include <QMap>
 
-static jclass mediaPlayerClass = Q_NULLPTR;
+static const char QtAndroidMediaPlayerClassName[] = "org/qtproject/qt5/android/multimedia/QtAndroidMediaPlayer";
 typedef QMap<jlong, AndroidMediaPlayer *> MediaPlayerMap;
 Q_GLOBAL_STATIC(MediaPlayerMap, mediaPlayers)
 
@@ -50,10 +50,10 @@ AndroidMediaPlayer::AndroidMediaPlayer()
 {
 
     const jlong id = reinterpret_cast<jlong>(this);
-    mMediaPlayer = QJNIObjectPrivate(mediaPlayerClass,
-                                      "(Landroid/app/Activity;J)V",
-                                      QtAndroidPrivate::activity(),
-                                      id);
+    mMediaPlayer = QJNIObjectPrivate(QtAndroidMediaPlayerClassName,
+                                     "(Landroid/app/Activity;J)V",
+                                     QtAndroidPrivate::activity(),
+                                     id);
     (*mediaPlayers)[id] = this;
 }
 
@@ -233,26 +233,23 @@ static void onVideoSizeChangedNative(JNIEnv *env,
 
 bool AndroidMediaPlayer::initJNI(JNIEnv *env)
 {
-    jclass jClass = env->FindClass("org/qtproject/qt5/android/multimedia/QtAndroidMediaPlayer");
+    jclass clazz = QJNIEnvironmentPrivate::findClass(QtAndroidMediaPlayerClassName,
+                                                     env);
 
-    if (jClass) {
-        mediaPlayerClass = static_cast<jclass>(env->NewGlobalRef(jClass));
+    static const JNINativeMethod methods[] = {
+        {"onErrorNative", "(IIJ)V", reinterpret_cast<void *>(onErrorNative)},
+        {"onBufferingUpdateNative", "(IJ)V", reinterpret_cast<void *>(onBufferingUpdateNative)},
+        {"onProgressUpdateNative", "(IJ)V", reinterpret_cast<void *>(onProgressUpdateNative)},
+        {"onDurationChangedNative", "(IJ)V", reinterpret_cast<void *>(onDurationChangedNative)},
+        {"onInfoNative", "(IIJ)V", reinterpret_cast<void *>(onInfoNative)},
+        {"onVideoSizeChangedNative", "(IIJ)V", reinterpret_cast<void *>(onVideoSizeChangedNative)},
+        {"onStateChangedNative", "(IJ)V", reinterpret_cast<void *>(onStateChangedNative)}
+    };
 
-        JNINativeMethod methods[] = {
-            {"onErrorNative", "(IIJ)V", reinterpret_cast<void *>(onErrorNative)},
-            {"onBufferingUpdateNative", "(IJ)V", reinterpret_cast<void *>(onBufferingUpdateNative)},
-            {"onProgressUpdateNative", "(IJ)V", reinterpret_cast<void *>(onProgressUpdateNative)},
-            {"onDurationChangedNative", "(IJ)V", reinterpret_cast<void *>(onDurationChangedNative)},
-            {"onInfoNative", "(IIJ)V", reinterpret_cast<void *>(onInfoNative)},
-            {"onVideoSizeChangedNative", "(IIJ)V", reinterpret_cast<void *>(onVideoSizeChangedNative)},
-            {"onStateChangedNative", "(IJ)V", reinterpret_cast<void *>(onStateChangedNative)}
-        };
-
-        if (env->RegisterNatives(mediaPlayerClass,
-                                 methods,
-                                 sizeof(methods) / sizeof(methods[0])) < 0) {
+    if (clazz && env->RegisterNatives(clazz,
+                                      methods,
+                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
             return false;
-        }
     }
 
     return true;

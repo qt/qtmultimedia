@@ -37,7 +37,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static jclass g_qtSurfaceTextureListenerClass = 0;
+static const char QtSurfaceTextureListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtSurfaceTextureListener";
 static QMap<int, AndroidSurfaceTexture*> g_objectMap;
 
 // native method for QtSurfaceTexture.java
@@ -70,7 +70,7 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(unsigned int texName)
     if (m_surfaceTexture.isValid())
         g_objectMap.insert(int(texName), this);
 
-    QJNIObjectPrivate listener(g_qtSurfaceTextureListenerClass, "(I)V", jint(texName));
+    QJNIObjectPrivate listener(QtSurfaceTextureListenerClassName, "(I)V", jint(texName));
     m_surfaceTexture.callMethod<void>("setOnFrameAvailableListener",
                                       "(Landroid/graphics/SurfaceTexture$OnFrameAvailableListener;)V",
                                       listener.object());
@@ -144,27 +144,23 @@ jobject AndroidSurfaceTexture::surfaceHolder()
     return m_surfaceHolder.object();
 }
 
-static JNINativeMethod methods[] = {
-    {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
-};
-
 bool AndroidSurfaceTexture::initJNI(JNIEnv *env)
 {
     // SurfaceTexture is available since API 11.
     if (QtAndroidPrivate::androidSdkVersion() < 11)
         return false;
 
-    jclass clazz = env->FindClass("org/qtproject/qt5/android/multimedia/QtSurfaceTextureListener");
-    if (env->ExceptionCheck())
-        env->ExceptionClear();
+    jclass clazz = QJNIEnvironmentPrivate::findClass(QtSurfaceTextureListenerClassName,
+                                                     env);
 
-    if (clazz) {
-        g_qtSurfaceTextureListenerClass = static_cast<jclass>(env->NewGlobalRef(clazz));
-        if (env->RegisterNatives(g_qtSurfaceTextureListenerClass,
-                                 methods,
-                                 sizeof(methods) / sizeof(methods[0])) < 0) {
-            return false;
-        }
+    static const JNINativeMethod methods[] = {
+        {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
+    };
+
+    if (clazz && env->RegisterNatives(clazz,
+                                      methods,
+                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
+        return false;
     }
 
     return true;
