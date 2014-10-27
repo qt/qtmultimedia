@@ -29,10 +29,10 @@
     \example player
     \title Media Player Example
     \ingroup multimedia_examples
-    \brief Demonstrates the audio and video playback functionality
+    \brief Playing audio and video.
 
-    This example creates a simple multimedia player. We can play audio and
-    or video files using various codecs.
+    \e{Media Player} demonstrates a simple multimedia player that can play
+    audio and or video files using various codecs.
 
     \include examples-run.qdocinc
 
@@ -40,10 +40,9 @@
     control the video output. To give the application playlist capability
     we also use a QPlayList object.
 
-    To activate the various functions such as play and stop on the dialog
-    we connect clicked() signals to slots that emit the play() and stop()
-    signals and in turn which we connect to the play() and stop() slots in
-    QMediaPlayer.
+    To activate the various functions such as play and stop on the dialog,
+    the button clicked events emit the play() and stop() signals, which
+    are connected to the play() and stop() slots of QMediaPlayer.
 
     \code
         connect(controls, SIGNAL(play()), player, SLOT(play()));

@@ -29,12 +29,11 @@
     \example audiodevices
     \title Audio Devices Example
     \ingroup multimedia_examples
-    \brief The Audio Devices example shows the application of the audio devices
-    APIs.
+    \brief Testing the available audio devices and their configuration.
 
-    This example shows how to create a simple application to list and test
-    the configuration for the various audio devices available on the device
-    or machine. This is done using the QtMobility Multimedia API.
+    \e{Audio Devices} demonstrates how to create a simple application to list
+    and test the configuration for the various audio devices available on the
+    target device or desktop PC.
 
     \image audiodevices.png
 

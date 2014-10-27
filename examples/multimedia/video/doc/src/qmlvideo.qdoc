@@ -29,13 +29,11 @@
 \example video/qmlvideo
 \title QML Video Example
 \ingroup multimedia_examples
+\brief Transforming video and camera viewfinder content.
 
-\brief The QML Video Example demonstrates the various manipulations (move;
-resize; rotate; change aspect ratio) which can be applied to QML \l{VideoOutput}
-items.
-
-This example demonstrates the various manipulations (move; resize; rotate;
-change aspect ratio) which can be applied to QML \l{VideoOutput} items.
+\e{QML Video} demonstrates the various transformations (move; resize; rotate;
+change aspect ratio) that can be applied to QML \l VideoOutput and \l Camera
+types.
 
 It also shows how native code can be combined with QML to implement more
 advanced functionality - in this case, C++ code is used to calculate the QML

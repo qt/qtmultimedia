@@ -29,10 +29,10 @@
     \example videowidget
     \title Video Widget Example
     \ingroup multimedia_examples
-    \brief This example is a simple video player
+    \brief Implementing a video player widget.
 
-    The Video Widget example denonstrates how to implement a video widget using
-    \l{Qt Multimedia}'s QAbstractVideoSurface.
+    \e{Video Widget} demonstrates how to implement a video widget using
+    QAbstractVideoSurface.
 
     \image video-videowidget.png
 

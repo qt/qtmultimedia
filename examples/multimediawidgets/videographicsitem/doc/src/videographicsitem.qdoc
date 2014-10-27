@@ -29,10 +29,10 @@
 \example videographicsitem
 \title Video Graphics Item Example
 \ingroup multimedia_examples
-\brief This example demonstrates how to stream video on a graphics scene.
+\brief Streaming video on a graphics scene.
 
-    The Video Graphics Item example shows how to implement a QGraphicsItem that displays video on a
-    graphics scene using \l{Qt Multimedia}'s QAbstractVideoSurface.
+    \e{Video Graphics Item} demonstrates how to implement a QGraphicsItem that
+    displays video on a graphics scene using QAbstractVideoSurface.
 
     \image video-videographicsitem.png
 

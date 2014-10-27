@@ -29,8 +29,9 @@
     \example audioinput
     \title Audio Input Example
     \ingroup multimedia_examples
-    \brief The Audio Input Example shows the use of the QAudioInput class.
-    The example demonstrates the basic use cases of the QAudioInput class.
+    \brief Recording audio using the QAudioInput class
+
+    \e{Audio Input} demonstrates the basic use cases of QAudioInput.
 
     \image audioinput-example.png
 

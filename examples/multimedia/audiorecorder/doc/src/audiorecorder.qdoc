@@ -29,10 +29,10 @@
     \example audiorecorder
     \title Audio Recorder Example
     \ingroup multimedia_examples
-    \brief The Audio Recorder Example shows how to create a simple audio recorder.
+    \brief Discovering the available devices and supported codecs.
 
-    It demonstrates the discovery of the supported devices and codecs and the use
-    of recording functions in the QAudioRecorder class.
+    \e{Audio Recorder} demonstrates how to identify the available devices and
+    supported codecs, and the use of QAudioRecorder class.
 
     \image audiorecorder.png
 

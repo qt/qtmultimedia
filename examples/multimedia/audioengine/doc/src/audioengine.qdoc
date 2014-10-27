@@ -29,10 +29,9 @@
     \example audioengine
     \title AudioEngine Example
     \ingroup multimedia_examples
-    \brief The Audio Engine example demonstrates 3D sound control using
-    the Qt Audio Engine API.
+    \brief Enabling 3D sound control using the Qt Audio Engine API.
 
-    The Audio Engine example demonstrates 3D sound control using the
+    \e{Audio Engine} demonstrates 3D sound control using the
     \l{Qt Audio Engine QML Types}{Qt Audio Engine} API.
 
     \include examples-run.qdocinc
