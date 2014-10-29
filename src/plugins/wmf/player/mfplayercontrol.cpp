@@ -39,6 +39,7 @@
 MFPlayerControl::MFPlayerControl(MFPlayerSession *session)
 : QMediaPlayerControl(session)
 , m_state(QMediaPlayer::StoppedState)
+, m_stateDirty(false)
 , m_videoAvailable(false)
 , m_audioAvailable(false)
 , m_duration(-1)
