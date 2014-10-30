@@ -31,6 +31,8 @@
     \ingroup multimedia_examples
     \brief Playing audio and video.
 
+    \image mediaplayerex.jpg
+
     \e{Media Player} demonstrates a simple multimedia player that can play
     audio and or video files using various codecs.
 
