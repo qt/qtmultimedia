@@ -70,7 +70,6 @@ QOpenSLESAudioInput::QOpenSLESAudioInput(const QByteArray &device)
     , m_errorState(QAudio::NoError)
     , m_deviceState(QAudio::StoppedState)
     , m_lastNotifyTime(0)
-    , m_volume(1)
     , m_bufferSize(0)
     , m_periodSize(0)
     , m_intervalTime(1000)
@@ -480,12 +479,12 @@ qint64 QOpenSLESAudioInput::elapsedUSecs() const
 void QOpenSLESAudioInput::setVolume(qreal vol)
 {
     // Volume interface is not available for the recorder on Android
-    m_volume = vol;
+    Q_UNUSED(vol);
 }
 
 qreal QOpenSLESAudioInput::volume() const
 {
-    return m_volume;
+    return qreal(1.0);
 }
 
 void QOpenSLESAudioInput::reset()
