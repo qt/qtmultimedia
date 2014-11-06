@@ -227,8 +227,12 @@ QSGVideoMaterial_YUV420::QSGVideoMaterial_YUV420(const QVideoSurfaceFormat &form
 
 QSGVideoMaterial_YUV420::~QSGVideoMaterial_YUV420()
 {
-    if (!m_textureSize.isEmpty())
-        QOpenGLContext::currentContext()->functions()->glDeleteTextures(Num_Texture_IDs, m_textureIds);
+    if (!m_textureSize.isEmpty()) {
+        if (QOpenGLContext *current = QOpenGLContext::currentContext())
+            current->functions()->glDeleteTextures(Num_Texture_IDs, m_textureIds);
+        else
+            qWarning() << "QSGVideoMaterial_YUV420: Cannot obtain GL context, unable to delete textures";
+    }
 }
 
 void QSGVideoMaterial_YUV420::bind()
