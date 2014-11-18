@@ -55,10 +55,21 @@ QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeV
     QObject::connect(m_surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
                      q, SLOT(_q_updateNativeSize()), Qt::QueuedConnection);
 
-    foreach (QObject *instance, videoNodeFactoryLoader()->instances(QSGVideoNodeFactoryPluginKey)) {
+    // Prioritize the plugin requested by the environment
+    QString requestedVideoNode = QString::fromLatin1(qgetenv("QT_VIDEONODE"));
+
+    foreach (const QString &key, videoNodeFactoryLoader()->keys()) {
+        QObject *instance = videoNodeFactoryLoader()->instance(key);
         QSGVideoNodeFactoryInterface* plugin = qobject_cast<QSGVideoNodeFactoryInterface*>(instance);
-        if (plugin)
-            m_videoNodeFactories.append(plugin);
+        if (plugin) {
+            if (key == requestedVideoNode)
+                m_videoNodeFactories.prepend(plugin);
+            else
+                m_videoNodeFactories.append(plugin);
+#ifdef DEBUG_VIDEOITEM
+            qDebug() << "found videonode plugin" << key << plugin;
+#endif
+        }
     }
 
     // Append existing node factories as fallback if we have no plugins
@@ -224,8 +235,12 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
         if (!videoNode) {
             foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
                 videoNode = factory->createNode(m_surface->surfaceFormat());
-                if (videoNode)
+                if (videoNode) {
+#ifdef DEBUG_VIDEOITEM
+                    qDebug() << "using video node from factory" << factory;
+#endif
                     break;
+                }
             }
         }
     }
