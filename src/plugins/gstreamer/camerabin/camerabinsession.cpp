@@ -140,8 +140,8 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
 {
     if (m_sourceFactory)
         gst_object_ref(GST_OBJECT(m_sourceFactory));
+    m_camerabin = gst_element_factory_make(QT_GSTREAMER_CAMERABIN_ELEMENT_NAME, "camerabin");
 
-    m_camerabin = gst_element_factory_make("camerabin2", "camerabin2");
     g_signal_connect(G_OBJECT(m_camerabin), "notify::idle", G_CALLBACK(updateBusyStatus), this);
     g_signal_connect(G_OBJECT(m_camerabin), "element-added",  G_CALLBACK(elementAdded), this);
     g_signal_connect(G_OBJECT(m_camerabin), "element-removed",  G_CALLBACK(elementRemoved), this);
@@ -178,7 +178,15 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
     //post image preview in RGB format
     g_object_set(G_OBJECT(m_camerabin), POST_PREVIEWS_PROPERTY, TRUE, NULL);
 
+#if GST_CHECK_VERSION(1,0,0)
+    GstCaps *previewCaps = gst_caps_new_simple(
+                "video/x-raw",
+                "format", G_TYPE_STRING, "RGBx",
+                NULL);
+#else
     GstCaps *previewCaps = gst_caps_from_string("video/x-raw-rgb");
+#endif
+
     g_object_set(G_OBJECT(m_camerabin), PREVIEW_CAPS_PROPERTY, previewCaps, NULL);
     gst_caps_unref(previewCaps);
 }
@@ -243,6 +251,7 @@ bool CameraBinSession::setupCameraBin()
             qWarning() << "Staring camera without viewfinder available";
             m_viewfinderElement = gst_element_factory_make("fakesink", NULL);
         }
+        g_object_set(G_OBJECT(m_viewfinderElement), "sync", FALSE, NULL);
         qt_gst_object_ref_sink(GST_OBJECT(m_viewfinderElement));
         gst_element_set_state(m_camerabin, GST_STATE_NULL);
         g_object_set(G_OBJECT(m_camerabin), VIEWFINDER_SINK_PROPERTY, m_viewfinderElement, NULL);
@@ -251,61 +260,27 @@ bool CameraBinSession::setupCameraBin()
     return true;
 }
 
-static GstCaps *resolutionToCaps(const QSize &resolution, const QPair<int, int> &rate = qMakePair<int,int>(0,0))
+static GstCaps *resolutionToCaps(const QSize &resolution, qreal frameRate = 0.0)
 {
-    if (resolution.isEmpty())
-        return gst_caps_new_any();
+    GstCaps *caps = QGstUtils::videoFilterCaps();
 
-    GstCaps *caps = 0;
-    if (rate.second > 0) {
-        caps = gst_caps_new_full(gst_structure_new("video/x-raw-yuv",
-                                                   "width", G_TYPE_INT, resolution.width(),
-                                                   "height", G_TYPE_INT, resolution.height(),
-                                                   "framerate", GST_TYPE_FRACTION, rate.first, rate.second,
-                                                   NULL),
-                                 gst_structure_new("video/x-raw-rgb",
-                                                   "width", G_TYPE_INT, resolution.width(),
-                                                   "height", G_TYPE_INT, resolution.height(),
-                                                   "framerate", GST_TYPE_FRACTION, rate.first, rate.second,
-                                                   NULL),
-                                 gst_structure_new("video/x-raw-data",
-                                                   "width", G_TYPE_INT, resolution.width(),
-                                                   "height", G_TYPE_INT, resolution.height(),
-                                                   "framerate", GST_TYPE_FRACTION, rate.first, rate.second,
-                                                   NULL),
-                                gst_structure_new("video/x-android-buffer",
-                                                   "width", G_TYPE_INT, resolution.width(),
-                                                                                    "height", G_TYPE_INT, resolution.height(),
-                                                                                    "framerate", GST_TYPE_FRACTION, rate.first, rate.second,
-                                                                                    NULL),
-                                 gst_structure_new("image/jpeg",
-                                                   "width", G_TYPE_INT, resolution.width(),
-                                                   "height", G_TYPE_INT, resolution.height(),
-                                                   "framerate", GST_TYPE_FRACTION, rate.first, rate.second,
-                                                   NULL),
-                                 NULL);
-    } else {
-        caps = gst_caps_new_full (gst_structure_new ("video/x-raw-yuv",
-                                                     "width", G_TYPE_INT, resolution.width(),
-                                                     "height", G_TYPE_INT, resolution.height(),
-                                                     NULL),
-                                  gst_structure_new ("video/x-raw-rgb",
-                                                     "width", G_TYPE_INT, resolution.width(),
-                                                     "height", G_TYPE_INT, resolution.height(),
-                                                     NULL),
-                                  gst_structure_new("video/x-raw-data",
-                                                    "width", G_TYPE_INT, resolution.width(),
-                                                    "height", G_TYPE_INT, resolution.height(),
-                                                    NULL),
-                                  gst_structure_new ("video/x-android-buffer",
-                                                     "width", G_TYPE_INT, resolution.width(),
-                                                     "height", G_TYPE_INT, resolution.height(),
-                                                     NULL),
-                                  gst_structure_new ("image/jpeg",
-                                                     "width", G_TYPE_INT, resolution.width(),
-                                                     "height", G_TYPE_INT, resolution.height(),
-                                                     NULL),
-                                  NULL);
+    if (!resolution.isEmpty()) {
+        gst_caps_set_simple(
+                    caps,
+                    "width", G_TYPE_INT, resolution.width(),
+                    "height", G_TYPE_INT, resolution.height(),
+                     NULL);
+    }
+
+    if (frameRate > 0.0) {
+        gint numerator;
+        gint denominator;
+        gst_util_double_to_fraction(frameRate, &numerator, &denominator);
+
+        gst_caps_set_simple(
+                    caps,
+                    "framerate", GST_TYPE_FRACTION, numerator, denominator,
+                    NULL);
     }
 
     return caps;
@@ -314,40 +289,40 @@ static GstCaps *resolutionToCaps(const QSize &resolution, const QPair<int, int> 
 void CameraBinSession::setupCaptureResolution()
 {
     QSize resolution = m_imageEncodeControl->imageSettings().resolution();
-    if (!resolution.isEmpty()) {
+    {
         GstCaps *caps = resolutionToCaps(resolution);
 #if CAMERABIN_DEBUG
-        qDebug() << Q_FUNC_INFO << "set image resolution" << resolution << gst_caps_to_string(caps);
+        qDebug() << Q_FUNC_INFO << "set image resolution" << resolution << caps;
 #endif
         g_object_set(m_camerabin, IMAGE_CAPTURE_CAPS_PROPERTY, caps, NULL);
-        gst_caps_unref(caps);
-    } else {
-        g_object_set(m_camerabin, IMAGE_CAPTURE_CAPS_PROPERTY, NULL, NULL);
+        if (caps)
+            gst_caps_unref(caps);
     }
 
+    const QSize viewfinderResolution = m_viewfinderSettingsControl->resolution();
     resolution = m_videoEncodeControl->actualVideoSettings().resolution();
-    //qreal framerate = m_videoEncodeControl->videoSettings().frameRate();
-    if (!resolution.isEmpty()) {
-        GstCaps *caps = resolutionToCaps(resolution /*, framerate*/); //convert to rational
+    qreal framerate = m_videoEncodeControl->videoSettings().frameRate();
+    {
+        GstCaps *caps = resolutionToCaps(
+                    !resolution.isEmpty() ? resolution : viewfinderResolution, framerate);
 #if CAMERABIN_DEBUG
-        qDebug() << Q_FUNC_INFO << "set video resolution" << resolution << gst_caps_to_string(caps);
+        qDebug() << Q_FUNC_INFO << "set video resolution" << resolution << caps;
 #endif
         g_object_set(m_camerabin, VIDEO_CAPTURE_CAPS_PROPERTY, caps, NULL);
-        gst_caps_unref(caps);
-    } else {
-        g_object_set(m_camerabin, VIDEO_CAPTURE_CAPS_PROPERTY, NULL, NULL);
+        if (caps)
+            gst_caps_unref(caps);
     }
 
-    resolution = m_viewfinderSettingsControl->resolution();
-    if (!resolution.isEmpty()) {
+    if (!viewfinderResolution.isEmpty())
+        resolution = viewfinderResolution;
+    {
         GstCaps *caps = resolutionToCaps(resolution);
 #if CAMERABIN_DEBUG
-        qDebug() << Q_FUNC_INFO << "set viewfinder resolution" << resolution << gst_caps_to_string(caps);
+        qDebug() << Q_FUNC_INFO << "set viewfinder resolution" << resolution << caps;
 #endif
         g_object_set(m_camerabin, VIEWFINDER_CAPS_PROPERTY, caps, NULL);
-        gst_caps_unref(caps);
-    } else {
-        g_object_set(m_camerabin, VIEWFINDER_CAPS_PROPERTY, NULL, NULL);
+        if (caps)
+            gst_caps_unref(caps);
     }
 
     if (m_videoEncoder)
@@ -363,13 +338,17 @@ void CameraBinSession::setAudioCaptureCaps()
     if (sampleRate == -1 && channelCount == -1)
         return;
 
+#if GST_CHECK_VERSION(1,0,0)
+    GstStructure *structure = gst_structure_new_empty(QT_GSTREAMER_RAW_AUDIO_MIME);
+#else
     GstStructure *structure = gst_structure_new(
-                "audio/x-raw-int",
+                QT_GSTREAMER_RAW_AUDIO_MIME,
                 "endianness", G_TYPE_INT, 1234,
                 "signed", G_TYPE_BOOLEAN, TRUE,
                 "width", G_TYPE_INT, 16,
                 "depth", G_TYPE_INT, 16,
                 NULL);
+#endif
     if (sampleRate != -1)
         gst_structure_set(structure, "rate", G_TYPE_INT, sampleRate, NULL);
     if (channelCount != -1)
@@ -760,7 +739,7 @@ qint64 CameraBinSession::duration() const
         if (fileSink) {
             GstFormat format = GST_FORMAT_TIME;
             gint64 duration = 0;
-            bool ret = gst_element_query_position(fileSink, &format, &duration);
+            bool ret = qt_gst_element_query_position(fileSink, format, &duration);
             gst_object_unref(GST_OBJECT(fileSink));
             if (ret)
                 return duration / 1000000;
@@ -795,129 +774,57 @@ void CameraBinSession::setMetaData(const QMap<QByteArray, QVariant> &data)
 {
     m_metaData = data;
 
-    if (m_camerabin) {
-        GstIterator *elements = gst_bin_iterate_all_by_interface(GST_BIN(m_camerabin), GST_TYPE_TAG_SETTER);
-        GstElement *element = 0;
-        while (gst_iterator_next(elements, (void**)&element) == GST_ITERATOR_OK) {
-            gst_tag_setter_reset_tags(GST_TAG_SETTER(element));
-
-            QMapIterator<QByteArray, QVariant> it(data);
-            while (it.hasNext()) {
-                it.next();
-                const QString tagName = it.key();
-                const QVariant tagValue = it.value();
-
-                switch(tagValue.type()) {
-                    case QVariant::String:
-                        gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                            GST_TAG_MERGE_REPLACE,
-                            tagName.toUtf8().constData(),
-                            tagValue.toString().toUtf8().constData(),
-                            NULL);
-                        break;
-                    case QVariant::Int:
-                    case QVariant::LongLong:
-                        gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                            GST_TAG_MERGE_REPLACE,
-                            tagName.toUtf8().constData(),
-                            tagValue.toInt(),
-                            NULL);
-                        break;
-                    case QVariant::Double:
-                        gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                            GST_TAG_MERGE_REPLACE,
-                            tagName.toUtf8().constData(),
-                            tagValue.toDouble(),
-                            NULL);
-                        break;
-                    case QVariant::DateTime: {
-                        QDateTime date = tagValue.toDateTime().toLocalTime();
-                        gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                            GST_TAG_MERGE_REPLACE,
-                            tagName.toUtf8().constData(),
-                            gst_date_time_new_local_time(
-                                        date.date().year(), date.date().month(), date.date().day(),
-                                        date.time().hour(), date.time().minute(), date.time().second()),
-                            NULL);
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }
-        }
-        gst_iterator_free(elements);
-    }
+    if (m_camerabin)
+        QGstUtils::setMetaData(m_camerabin, data);
 }
 
 bool CameraBinSession::processSyncMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
-    const GstStructure *st;
-    const GValue *image;
-    GstBuffer *buffer = NULL;
 
     if (gm && GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) {
-        if (m_captureMode == QCamera::CaptureStillImage &&
-            gst_structure_has_name(gm->structure, "preview-image")) {
-            st = gst_message_get_structure(gm);
-
-            if (gst_structure_has_field_typed(st, "buffer", GST_TYPE_BUFFER)) {
-                image = gst_structure_get_value(st, "buffer");
-                if (image) {
-                    buffer = gst_value_get_buffer(image);
-
-                    QImage img;
-
-                    GstCaps *caps = gst_buffer_get_caps(buffer);
-                    if (caps) {
-                        GstStructure *structure = gst_caps_get_structure(caps, 0);
-                        gint width = 0;
-                        gint height = 0;
-#if CAMERABIN_DEBUG
-                        qDebug() << "Preview caps:" << gst_structure_to_string(structure);
+        const GstStructure *st = gst_message_get_structure(gm);
+        const GValue *sampleValue = 0;
+        if (m_captureMode == QCamera::CaptureStillImage
+                    && gst_structure_has_name(st, "preview-image")
+#if GST_CHECK_VERSION(1,0,0)
+                    && gst_structure_has_field_typed(st, "sample", GST_TYPE_SAMPLE)
+                    && (sampleValue = gst_structure_get_value(st, "sample"))) {
+            GstSample * const sample = gst_value_get_sample(sampleValue);
+            GstCaps * const previewCaps = gst_sample_get_caps(sample);
+            GstBuffer * const buffer = gst_sample_get_buffer(sample);
+#else
+                    && gst_structure_has_field_typed(st, "buffer", GST_TYPE_BUFFER)
+                    && (sampleValue = gst_structure_get_value(st, "buffer"))) {
+            GstBuffer * const buffer = gst_value_get_buffer(sampleValue);
 #endif
 
-                        if (structure &&
-                            gst_structure_get_int(structure, "width", &width) &&
-                            gst_structure_get_int(structure, "height", &height) &&
-                            width > 0 && height > 0) {
-                            if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-rgb") == 0) {
-                                QImage::Format format = QImage::Format_Invalid;
-                                int bpp = 0;
-                                gst_structure_get_int(structure, "bpp", &bpp);
+            QImage image;
+#if GST_CHECK_VERSION(1,0,0)
+            GstVideoInfo previewInfo;
+            if (gst_video_info_from_caps(&previewInfo, previewCaps))
+                image = QGstUtils::bufferToImage(buffer, previewInfo);
+            gst_sample_unref(sample);
+#else
+            image = QGstUtils::bufferToImage(buffer);
+            gst_buffer_unref(buffer);
+#endif
+            if (!image.isNull()) {
+                static QMetaMethod exposedSignal = QMetaMethod::fromSignal(&CameraBinSession::imageExposed);
+                exposedSignal.invoke(this,
+                                     Qt::QueuedConnection,
+                                     Q_ARG(int,m_requestId));
 
-                                if (bpp == 24)
-                                    format = QImage::Format_RGB888;
-                                else if (bpp == 32)
-                                    format = QImage::Format_RGB32;
-
-                                if (format != QImage::Format_Invalid) {
-                                    img = QImage((const uchar *)buffer->data, width, height, format);
-                                    img.bits(); //detach
-                                 }
-                            }
-                        }
-                        gst_caps_unref(caps);
-
-                        static QMetaMethod exposedSignal = QMetaMethod::fromSignal(&CameraBinSession::imageExposed);
-                        exposedSignal.invoke(this,
-                                             Qt::QueuedConnection,
-                                             Q_ARG(int,m_requestId));
-
-                        static QMetaMethod capturedSignal = QMetaMethod::fromSignal(&CameraBinSession::imageCaptured);
-                        capturedSignal.invoke(this,
-                                              Qt::QueuedConnection,
-                                              Q_ARG(int,m_requestId),
-                                              Q_ARG(QImage,img));
-                    }
-
-                }
-                return true;
+                static QMetaMethod capturedSignal = QMetaMethod::fromSignal(&CameraBinSession::imageCaptured);
+                capturedSignal.invoke(this,
+                                      Qt::QueuedConnection,
+                                      Q_ARG(int,m_requestId),
+                                      Q_ARG(QImage,image));
             }
+            return true;
         }
 #ifdef HAVE_GST_PHOTOGRAPHY
-        if (gst_structure_has_name(gm->structure, GST_PHOTOGRAPHY_AUTOFOCUS_DONE))
+        if (gst_structure_has_name(st, GST_PHOTOGRAPHY_AUTOFOCUS_DONE))
             m_cameraFocusControl->handleFocusMessage(gm);
 #endif
     }
@@ -1109,20 +1016,12 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
     if (frameSize.isEmpty()) {
         caps = gst_caps_copy(supportedCaps);
     } else {
-        GstCaps *filter = gst_caps_new_full(
-                gst_structure_new(
-                        "video/x-raw-rgb",
-                        "width"     , G_TYPE_INT , frameSize.width(),
-                        "height"    , G_TYPE_INT, frameSize.height(), NULL),
-                gst_structure_new(
-                        "video/x-raw-yuv",
-                        "width"     , G_TYPE_INT, frameSize.width(),
-                        "height"    , G_TYPE_INT, frameSize.height(), NULL),
-                gst_structure_new(
-                        "image/jpeg",
-                        "width"     , G_TYPE_INT, frameSize.width(),
-                        "height"    , G_TYPE_INT, frameSize.height(), NULL),
-                NULL);
+        GstCaps *filter = QGstUtils::videoFilterCaps();
+        gst_caps_set_simple(
+                    filter,
+                    "width", G_TYPE_INT, frameSize.width(),
+                    "height", G_TYPE_INT, frameSize.height(),
+                     NULL);
 
         caps = gst_caps_intersect(supportedCaps, filter);
         gst_caps_unref(filter);
@@ -1133,7 +1032,7 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
     caps = gst_caps_make_writable(caps);
     for (uint i=0; i<gst_caps_get_size(caps); i++) {
         GstStructure *structure = gst_caps_get_structure(caps, i);
-        gst_structure_set_name(structure, "video/x-raw-yuv");
+        gst_structure_set_name(structure, "video/x-raw");
         const GValue *oldRate = gst_structure_get_value(structure, "framerate");
         GValue rate;
         memset(&rate, 0, sizeof(rate));
@@ -1142,8 +1041,11 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
         gst_structure_remove_all_fields(structure);
         gst_structure_set_value(structure, "framerate", &rate);
     }
+#if GST_CHECK_VERSION(1,0,0)
+    caps = gst_caps_simplify(caps);
+#else
     gst_caps_do_simplify(caps);
-
+#endif
 
     for (uint i=0; i<gst_caps_get_size(caps); i++) {
         GstStructure *structure = gst_caps_get_structure(caps, i);
@@ -1154,7 +1056,7 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
     qSort(res.begin(), res.end(), rateLessThan);
 
 #if CAMERABIN_DEBUG
-    qDebug() << "Supported rates:" << gst_caps_to_string(caps);
+    qDebug() << "Supported rates:" << caps;
     qDebug() << res;
 #endif
 
@@ -1213,12 +1115,12 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
                      SUPPORTED_IMAGE_CAPTURE_CAPS_PROPERTY : SUPPORTED_VIDEO_CAPTURE_CAPS_PROPERTY,
                  &supportedCaps, NULL);
 
+#if CAMERABIN_DEBUG
+    qDebug() << "Source caps:" << supportedCaps;
+#endif
+
     if (!supportedCaps)
         return res;
-
-#if CAMERABIN_DEBUG
-    qDebug() << "Source caps:" << gst_caps_to_string(supportedCaps);
-#endif
 
     GstCaps *caps = 0;
     bool isContinuous = false;
@@ -1226,18 +1128,11 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
     if (rate.first <= 0 || rate.second <= 0) {
         caps = gst_caps_copy(supportedCaps);
     } else {
-        GstCaps *filter = gst_caps_new_full(
-                gst_structure_new(
-                        "video/x-raw-rgb",
-                        "framerate"     , GST_TYPE_FRACTION , rate.first, rate.second, NULL),
-                gst_structure_new(
-                        "video/x-raw-yuv",
-                        "framerate"     , GST_TYPE_FRACTION , rate.first, rate.second, NULL),
-                gst_structure_new(
-                        "image/jpeg",
-                        "framerate"     , GST_TYPE_FRACTION , rate.first, rate.second, NULL),
-                NULL);
-
+        GstCaps *filter = QGstUtils::videoFilterCaps();
+        gst_caps_set_simple(
+                    filter,
+                    "framerate"     , GST_TYPE_FRACTION , rate.first, rate.second,
+                     NULL);
         caps = gst_caps_intersect(supportedCaps, filter);
         gst_caps_unref(filter);
     }
@@ -1247,7 +1142,7 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
     caps = gst_caps_make_writable(caps);
     for (uint i=0; i<gst_caps_get_size(caps); i++) {
         GstStructure *structure = gst_caps_get_structure(caps, i);
-        gst_structure_set_name(structure, "video/x-raw-yuv");
+        gst_structure_set_name(structure, "video/x-raw");
         const GValue *oldW = gst_structure_get_value(structure, "width");
         const GValue *oldH = gst_structure_get_value(structure, "height");
         GValue w;
@@ -1262,7 +1157,13 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         gst_structure_set_value(structure, "width", &w);
         gst_structure_set_value(structure, "height", &h);
     }
+
+#if GST_CHECK_VERSION(1,0,0)
+    caps = gst_caps_simplify(caps);
+#else
     gst_caps_do_simplify(caps);
+#endif
+
 
     for (uint i=0; i<gst_caps_get_size(caps); i++) {
         GstStructure *structure = gst_caps_get_structure(caps, i);

@@ -119,11 +119,9 @@ public:
 
     void addProbe(QGstreamerVideoProbeControl* probe);
     void removeProbe(QGstreamerVideoProbeControl* probe);
-    static gboolean padVideoBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data);
 
     void addProbe(QGstreamerAudioProbeControl* probe);
     void removeProbe(QGstreamerAudioProbeControl* probe);
-    static gboolean padAudioBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data);
 
     void endOfMediaReset();
 
@@ -172,7 +170,9 @@ private:
     static void playbinNotifySource(GObject *o, GParamSpec *p, gpointer d);
     static void handleVolumeChange(GObject *o, GParamSpec *p, gpointer d);
     static void handleMutedChange(GObject *o, GParamSpec *p, gpointer d);
+#if !GST_CHECK_VERSION(1,0,0)
     static void insertColorSpaceElement(GstElement *element, gpointer data);
+#endif
     static void handleElementAdded(GstBin *bin, GstElement *element, QGstreamerPlayerSession *session);
     static void handleStreamsChange(GstBin *bin, gpointer user_data);
     static GstAutoplugSelectResult handleAutoplugSelect(GstBin *bin, GstPad *pad, GstCaps *caps, GstElementFactory *factory, QGstreamerPlayerSession *session);
@@ -194,11 +194,14 @@ private:
     QGstreamerBusHelper* m_busHelper;
     GstElement* m_playbin;
 
+    GstElement* m_videoSink;
+
     GstElement* m_videoOutputBin;
     GstElement* m_videoIdentity;
+#if !GST_CHECK_VERSION(1,0,0)
     GstElement* m_colorSpace;
     bool m_usingColorspaceElement;
-    GstElement* m_videoSink;
+#endif
     GstElement* m_pendingVideoSink;
     GstElement* m_nullVideoSink;
 
@@ -218,13 +221,8 @@ private:
     QList<QMediaStreamsControl::StreamType> m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> m_playbin2StreamOffset;
 
-    QList<QGstreamerVideoProbeControl*> m_videoProbes;
-    QMutex m_videoProbeMutex;
-    int m_videoBufferProbeId;
-
-    QList<QGstreamerAudioProbeControl*> m_audioProbes;
-    QMutex m_audioProbeMutex;
-    int m_audioBufferProbeId;
+    QGstreamerVideoProbeControl *m_videoProbe;
+    QGstreamerAudioProbeControl *m_audioProbe;
 
     int m_volume;
     qreal m_playbackRate;
@@ -252,6 +250,7 @@ private:
     bool m_isLiveSource;
 
     bool m_isPlaylist;
+    gulong pad_probe_id;
 };
 
 QT_END_NAMESPACE

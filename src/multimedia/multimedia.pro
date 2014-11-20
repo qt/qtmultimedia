@@ -4,6 +4,8 @@ QT = core-private network gui-private
 MODULE_PLUGIN_TYPES = \
     mediaservice \
     audio \
+    video/bufferpool \
+    video/gstvideorenderer \
     video/videonode \
     playlistformats
 

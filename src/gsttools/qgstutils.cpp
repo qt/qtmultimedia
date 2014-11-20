@@ -40,7 +40,14 @@
 #include <QtCore/qsize.h>
 #include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
+#include <QtGui/qimage.h>
 #include <qaudioformat.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
+
+#include <gst/audio/audio.h>
+#include <gst/video/video.h>
+
+template<typename T, int N> static int lengthOf(const T (&)[N]) { return N; }
 
 #ifdef USE_V4L
 #  include <private/qcore_unix_p.h>
@@ -82,15 +89,24 @@ static void addTagToMap(const GstTagList *list,
             map->insert(QByteArray(tag), g_value_get_boolean(&val));
             break;
         case G_TYPE_CHAR:
+#if GLIB_CHECK_VERSION(2,32,0)
+            map->insert(QByteArray(tag), g_value_get_schar(&val));
+#else
             map->insert(QByteArray(tag), g_value_get_char(&val));
+#endif
             break;
         case G_TYPE_DOUBLE:
             map->insert(QByteArray(tag), g_value_get_double(&val));
             break;
         default:
             // GST_TYPE_DATE is a function, not a constant, so pull it out of the switch
+#if GST_CHECK_VERSION(1,0,0)
+            if (G_VALUE_TYPE(&val) == G_TYPE_DATE) {
+                const GDate *date = (const GDate *)g_value_get_boxed(&val);
+#else
             if (G_VALUE_TYPE(&val) == GST_TYPE_DATE) {
                 const GDate *date = gst_value_get_date(&val);
+#endif
                 if (g_date_valid(date)) {
                     int year = g_date_get_year(date);
                     int month = g_date_get_month(date);
@@ -169,6 +185,42 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
     return size;
 }
 
+
+#if GST_CHECK_VERSION(1,0,0)
+namespace {
+
+struct AudioFormat
+{
+    GstAudioFormat format;
+    QAudioFormat::SampleType sampleType;
+    QAudioFormat::Endian byteOrder;
+    int sampleSize;
+};
+static const AudioFormat qt_audioLookup[] =
+{
+    { GST_AUDIO_FORMAT_S8   , QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 8  },
+    { GST_AUDIO_FORMAT_U8   , QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 8  },
+    { GST_AUDIO_FORMAT_S16LE, QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 16 },
+    { GST_AUDIO_FORMAT_S16BE, QAudioFormat::SignedInt  , QAudioFormat::BigEndian   , 16 },
+    { GST_AUDIO_FORMAT_U16LE, QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 16 },
+    { GST_AUDIO_FORMAT_U16BE, QAudioFormat::UnSignedInt, QAudioFormat::BigEndian   , 16 },
+    { GST_AUDIO_FORMAT_S32LE, QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 32 },
+    { GST_AUDIO_FORMAT_S32BE, QAudioFormat::SignedInt  , QAudioFormat::BigEndian   , 32 },
+    { GST_AUDIO_FORMAT_U32LE, QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 32 },
+    { GST_AUDIO_FORMAT_U32BE, QAudioFormat::UnSignedInt, QAudioFormat::BigEndian   , 32 },
+    { GST_AUDIO_FORMAT_S24LE, QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 24 },
+    { GST_AUDIO_FORMAT_S24BE, QAudioFormat::SignedInt  , QAudioFormat::BigEndian   , 24 },
+    { GST_AUDIO_FORMAT_U24LE, QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 24 },
+    { GST_AUDIO_FORMAT_U24BE, QAudioFormat::UnSignedInt, QAudioFormat::BigEndian   , 24 },
+    { GST_AUDIO_FORMAT_F32LE, QAudioFormat::Float      , QAudioFormat::LittleEndian, 32 },
+    { GST_AUDIO_FORMAT_F32BE, QAudioFormat::Float      , QAudioFormat::BigEndian   , 32 },
+    { GST_AUDIO_FORMAT_F64LE, QAudioFormat::Float      , QAudioFormat::LittleEndian, 64 },
+    { GST_AUDIO_FORMAT_F64BE, QAudioFormat::Float      , QAudioFormat::BigEndian   , 64 }
+};
+
+}
+#endif
+
 /*!
   Returns audio format for caps.
   If caps doesn't have a valid audio format, an empty QAudioFormat is returned.
@@ -176,9 +228,26 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
 
 QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
 {
-    const GstStructure *structure = gst_caps_get_structure(caps, 0);
-
     QAudioFormat format;
+#if GST_CHECK_VERSION(1,0,0)
+    GstAudioInfo info;
+    if (gst_audio_info_from_caps(&info, caps)) {
+        for (int i = 0; i < lengthOf(qt_audioLookup); ++i) {
+            if (qt_audioLookup[i].format != info.finfo->format)
+                continue;
+
+            format.setSampleType(qt_audioLookup[i].sampleType);
+            format.setByteOrder(qt_audioLookup[i].byteOrder);
+            format.setSampleSize(qt_audioLookup[i].sampleSize);
+            format.setSampleRate(info.rate);
+            format.setChannelCount(info.channels);
+            format.setCodec(QStringLiteral("audio/pcm"));
+
+            return format;
+        }
+    }
+#else
+    const GstStructure *structure = gst_caps_get_structure(caps, 0);
 
     if (qstrcmp(gst_structure_get_name(structure), "audio/x-raw-int") == 0) {
 
@@ -249,16 +318,28 @@ QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
     } else {
         return QAudioFormat();
     }
-
+#endif
     return format;
 }
 
+#if GST_CHECK_VERSION(1,0,0)
+/*!
+  Returns audio format for a sample.
+  If the buffer doesn't have a valid audio format, an empty QAudioFormat is returned.
+*/
+QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
+{
+    GstCaps* caps = gst_sample_get_caps(sample);
+    if (!caps)
+        return QAudioFormat();
 
+    return QGstUtils::audioFormatForCaps(caps);
+}
+#else
 /*!
   Returns audio format for a buffer.
   If the buffer doesn't have a valid audio format, an empty QAudioFormat is returned.
 */
-
 QAudioFormat QGstUtils::audioFormatForBuffer(GstBuffer *buffer)
 {
     GstCaps* caps = gst_buffer_get_caps(buffer);
@@ -269,7 +350,7 @@ QAudioFormat QGstUtils::audioFormatForBuffer(GstBuffer *buffer)
     gst_caps_unref(caps);
     return format;
 }
-
+#endif
 
 /*!
   Builds GstCaps for an audio format.
@@ -277,8 +358,32 @@ QAudioFormat QGstUtils::audioFormatForBuffer(GstBuffer *buffer)
   Caller must unref GstCaps.
 */
 
-GstCaps *QGstUtils::capsForAudioFormat(QAudioFormat format)
+GstCaps *QGstUtils::capsForAudioFormat(const QAudioFormat &format)
 {
+    if (!format.isValid())
+        return 0;
+
+#if GST_CHECK_VERSION(1,0,0)
+    const QAudioFormat::SampleType sampleType = format.sampleType();
+    const QAudioFormat::Endian byteOrder = format.byteOrder();
+    const int sampleSize = format.sampleSize();
+
+    for (int i = 0; i < lengthOf(qt_audioLookup); ++i) {
+        if (qt_audioLookup[i].sampleType != sampleType
+                || qt_audioLookup[i].byteOrder != byteOrder
+                || qt_audioLookup[i].sampleSize != sampleSize) {
+            continue;
+        }
+
+        return gst_caps_new_simple(
+                    "audio/x-raw",
+                    "format"  , G_TYPE_STRING, gst_audio_format_to_string(qt_audioLookup[i].format),
+                    "rate"    , G_TYPE_INT   , format.sampleRate(),
+                    "channels", G_TYPE_INT   , format.channelCount(),
+                    NULL);
+    }
+    return 0;
+#else
     GstStructure *structure = 0;
 
     if (format.isValid()) {
@@ -313,6 +418,7 @@ GstCaps *QGstUtils::capsForAudioFormat(QAudioFormat format)
     }
 
     return caps;
+#endif
 }
 
 void QGstUtils::initializeGst()
@@ -576,10 +682,629 @@ QByteArray QGstUtils::cameraDriver(const QString &device, GstElementFactory *fac
     return QByteArray();
 }
 
+QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory))
+{
+    QSet<QString> supportedMimeTypes;
+
+    //enumerate supported mime types
+    gst_init(NULL, NULL);
+
+#if GST_CHECK_VERSION(1,0,0)
+    GstRegistry *registry = gst_registry_get();
+    GList *orig_plugins = gst_registry_get_plugin_list(registry);
+#else
+    GstRegistry *registry = gst_registry_get_default();
+    GList *orig_plugins = gst_default_registry_get_plugin_list ();
+#endif
+    for (GList *plugins = orig_plugins; plugins; plugins = g_list_next(plugins)) {
+        GstPlugin *plugin = (GstPlugin *) (plugins->data);
+#if GST_CHECK_VERSION(1,0,0)
+        if (GST_OBJECT_FLAG_IS_SET(GST_OBJECT(plugin), GST_PLUGIN_FLAG_BLACKLISTED))
+            continue;
+#else
+        if (plugin->flags & (1<<1)) //GST_PLUGIN_FLAG_BLACKLISTED
+            continue;
+#endif
+
+        GList *orig_features = gst_registry_get_feature_list_by_plugin(
+                    registry, gst_plugin_get_name(plugin));
+        for (GList *features = orig_features; features; features = g_list_next(features)) {
+            if (G_UNLIKELY(features->data == NULL))
+                continue;
+
+            GstPluginFeature *feature = GST_PLUGIN_FEATURE(features->data);
+            GstElementFactory *factory;
+
+            if (GST_IS_TYPE_FIND_FACTORY(feature)) {
+                QString name(gst_plugin_feature_get_name(feature));
+                if (name.contains('/')) //filter out any string without '/' which is obviously not a mime type
+                    supportedMimeTypes.insert(name.toLower());
+                continue;
+            } else if (!GST_IS_ELEMENT_FACTORY (feature)
+                        || !(factory = GST_ELEMENT_FACTORY(gst_plugin_feature_load(feature)))) {
+                continue;
+            } else if (!isValidFactory(factory)) {
+                // Do nothing
+            } else for (const GList *pads = gst_element_factory_get_static_pad_templates(factory);
+                        pads;
+                        pads = g_list_next(pads)) {
+                GstStaticPadTemplate *padtemplate = static_cast<GstStaticPadTemplate *>(pads->data);
+
+                if (padtemplate->direction == GST_PAD_SINK && padtemplate->static_caps.string) {
+                    GstCaps *caps = gst_static_caps_get(&padtemplate->static_caps);
+                    if (gst_caps_is_any(caps) || gst_caps_is_empty(caps)) {
+                    } else for (guint i = 0; i < gst_caps_get_size(caps); i++) {
+                        GstStructure *structure = gst_caps_get_structure(caps, i);
+                        QString nameLowcase = QString(gst_structure_get_name(structure)).toLower();
+
+                        supportedMimeTypes.insert(nameLowcase);
+                        if (nameLowcase.contains("mpeg")) {
+                            //Because mpeg version number is only included in the detail
+                            //description,  it is necessary to manually extract this information
+                            //in order to match the mime type of mpeg4.
+                            const GValue *value = gst_structure_get_value(structure, "mpegversion");
+                            if (value) {
+                                gchar *str = gst_value_serialize(value);
+                                QString versions(str);
+                                QStringList elements = versions.split(QRegExp("\\D+"), QString::SkipEmptyParts);
+                                foreach (const QString &e, elements)
+                                    supportedMimeTypes.insert(nameLowcase + e);
+                                g_free(str);
+                            }
+                        }
+                    }
+                }
+            }
+            gst_object_unref(factory);
+        }
+        gst_plugin_feature_list_free(orig_features);
+    }
+    gst_plugin_list_free (orig_plugins);
+
+#if defined QT_SUPPORTEDMIMETYPES_DEBUG
+    QStringList list = supportedMimeTypes.toList();
+    list.sort();
+    if (qgetenv("QT_DEBUG_PLUGINS").toInt() > 0) {
+        foreach (const QString &type, list)
+            qDebug() << type;
+    }
+#endif
+    return supportedMimeTypes;
+}
+
+namespace {
+
+struct ColorFormat { QImage::Format imageFormat; GstVideoFormat gstFormat; };
+static const ColorFormat qt_colorLookup[] =
+{
+    { QImage::Format_RGBX8888, GST_VIDEO_FORMAT_RGBx  },
+    { QImage::Format_RGBA8888, GST_VIDEO_FORMAT_RGBA  },
+    { QImage::Format_RGB888  , GST_VIDEO_FORMAT_RGB   },
+    { QImage::Format_RGB16   , GST_VIDEO_FORMAT_RGB16 }
+};
+
+}
+
+#if GST_CHECK_VERSION(1,0,0)
+QImage QGstUtils::bufferToImage(GstBuffer *buffer, const GstVideoInfo &videoInfo)
+#else
+QImage QGstUtils::bufferToImage(GstBuffer *buffer)
+#endif
+{
+    QImage img;
+
+#if GST_CHECK_VERSION(1,0,0)
+    GstVideoInfo info = videoInfo;
+    GstVideoFrame frame;
+    if (!gst_video_frame_map(&frame, &info, buffer, GST_MAP_READ))
+        return img;
+#else
+    GstCaps *caps = gst_buffer_get_caps(buffer);
+    if (!caps)
+        return img;
+
+    GstStructure *structure = gst_caps_get_structure (caps, 0);
+    gint width = 0;
+    gint height = 0;
+
+    if (!structure
+            || !gst_structure_get_int(structure, "width", &width)
+            || !gst_structure_get_int(structure, "height", &height)
+            || width <= 0
+            || height <= 0) {
+        gst_caps_unref(caps);
+        return img;
+    }
+    gst_caps_unref(caps);
+#endif
+
+#if GST_CHECK_VERSION(1,0,0)
+    if (videoInfo.finfo->format == GST_VIDEO_FORMAT_I420) {
+        const int width = videoInfo.width;
+        const int height = videoInfo.height;
+
+        const int stride[] = { frame.info.stride[0], frame.info.stride[1], frame.info.stride[2] };
+        const uchar *data[] = {
+            static_cast<const uchar *>(frame.data[0]),
+            static_cast<const uchar *>(frame.data[1]),
+            static_cast<const uchar *>(frame.data[2])
+        };
+#else
+    if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-yuv") == 0) {
+        const int stride[] = { width, width / 2, width / 2 };
+        const uchar *data[] = {
+            (const uchar *)buffer->data,
+            (const uchar *)buffer->data + width * height,
+            (const uchar *)buffer->data + width * height * 5 / 4
+        };
+#endif
+        img = QImage(width/2, height/2, QImage::Format_RGB32);
+
+        for (int y=0; y<height; y+=2) {
+            const uchar *yLine = data[0] + (y * stride[0]);
+            const uchar *uLine = data[1] + (y * stride[1] / 2);
+            const uchar *vLine = data[2] + (y * stride[2] / 2);
+
+            for (int x=0; x<width; x+=2) {
+                const qreal Y = 1.164*(yLine[x]-16);
+                const int U = uLine[x/2]-128;
+                const int V = vLine[x/2]-128;
+
+                int b = qBound(0, int(Y + 2.018*U), 255);
+                int g = qBound(0, int(Y - 0.813*V - 0.391*U), 255);
+                int r = qBound(0, int(Y + 1.596*V), 255);
+
+                img.setPixel(x/2,y/2,qRgb(r,g,b));
+            }
+        }
+#if GST_CHECK_VERSION(1,0,0)
+    } else for (int i = 0; i < lengthOf(qt_colorLookup); ++i) {
+        if (qt_colorLookup[i].gstFormat != videoInfo.finfo->format)
+            continue;
+
+        const QImage image(
+                    static_cast<const uchar *>(frame.data[0]),
+                    videoInfo.width,
+                    videoInfo.height,
+                    frame.info.stride[0],
+                    qt_colorLookup[i].imageFormat);
+        img = image;
+        img.detach();
+
+        break;
+    }
+
+    gst_video_frame_unmap(&frame);
+#else
+    } else if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-rgb") == 0) {
+        QImage::Format format = QImage::Format_Invalid;
+        int bpp = 0;
+        gst_structure_get_int(structure, "bpp", &bpp);
+
+        if (bpp == 24)
+            format = QImage::Format_RGB888;
+        else if (bpp == 32)
+            format = QImage::Format_RGB32;
+
+        if (format != QImage::Format_Invalid) {
+            img = QImage((const uchar *)buffer->data,
+                         width,
+                         height,
+                         format);
+            img.bits(); //detach
+        }
+    }
+#endif
+    return img;
+}
+
+
+namespace {
+
+#if GST_CHECK_VERSION(1,0,0)
+
+struct VideoFormat
+{
+    QVideoFrame::PixelFormat pixelFormat;
+    GstVideoFormat gstFormat;
+};
+
+static const VideoFormat qt_videoFormatLookup[] =
+{
+    { QVideoFrame::Format_YUV420P, GST_VIDEO_FORMAT_I420 },
+    { QVideoFrame::Format_YV12   , GST_VIDEO_FORMAT_YV12 },
+    { QVideoFrame::Format_UYVY   , GST_VIDEO_FORMAT_UYVY },
+    { QVideoFrame::Format_YUYV   , GST_VIDEO_FORMAT_YUY2 },
+    { QVideoFrame::Format_NV12   , GST_VIDEO_FORMAT_NV12 },
+    { QVideoFrame::Format_NV21   , GST_VIDEO_FORMAT_NV21 },
+    { QVideoFrame::Format_AYUV444, GST_VIDEO_FORMAT_AYUV },
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    { QVideoFrame::Format_RGB32 ,  GST_VIDEO_FORMAT_BGRx },
+    { QVideoFrame::Format_BGR32 ,  GST_VIDEO_FORMAT_RGBx },
+    { QVideoFrame::Format_ARGB32,  GST_VIDEO_FORMAT_BGRA },
+    { QVideoFrame::Format_BGRA32,  GST_VIDEO_FORMAT_ARGB },
+#else
+    { QVideoFrame::Format_RGB32 ,  GST_VIDEO_FORMAT_xRGB },
+    { QVideoFrame::Format_BGR32 ,  GST_VIDEO_FORMAT_xBGR },
+    { QVideoFrame::Format_ARGB32,  GST_VIDEO_FORMAT_ARGB },
+    { QVideoFrame::Format_BGRA32,  GST_VIDEO_FORMAT_BGRA },
+#endif
+    { QVideoFrame::Format_RGB24 ,  GST_VIDEO_FORMAT_RGB },
+    { QVideoFrame::Format_BGR24 ,  GST_VIDEO_FORMAT_BGR },
+    { QVideoFrame::Format_RGB565,  GST_VIDEO_FORMAT_RGB16 }
+};
+
+static int indexOfVideoFormat(QVideoFrame::PixelFormat format)
+{
+    for (int i = 0; i < lengthOf(qt_videoFormatLookup); ++i)
+        if (qt_videoFormatLookup[i].pixelFormat == format)
+            return i;
+
+    return -1;
+}
+
+static int indexOfVideoFormat(GstVideoFormat format)
+{
+    for (int i = 0; i < lengthOf(qt_videoFormatLookup); ++i)
+        if (qt_videoFormatLookup[i].gstFormat == format)
+            return i;
+
+    return -1;
+}
+
+#else
+
+struct YuvFormat
+{
+    QVideoFrame::PixelFormat pixelFormat;
+    guint32 fourcc;
+    int bitsPerPixel;
+};
+
+static const YuvFormat qt_yuvColorLookup[] =
+{
+    { QVideoFrame::Format_YUV420P, GST_MAKE_FOURCC('I','4','2','0'), 8 },
+    { QVideoFrame::Format_YV12,    GST_MAKE_FOURCC('Y','V','1','2'), 8 },
+    { QVideoFrame::Format_UYVY,    GST_MAKE_FOURCC('U','Y','V','Y'), 16 },
+    { QVideoFrame::Format_YUYV,    GST_MAKE_FOURCC('Y','U','Y','2'), 16 },
+    { QVideoFrame::Format_NV12,    GST_MAKE_FOURCC('N','V','1','2'), 8 },
+    { QVideoFrame::Format_NV21,    GST_MAKE_FOURCC('N','V','2','1'), 8 },
+    { QVideoFrame::Format_AYUV444, GST_MAKE_FOURCC('A','Y','U','V'), 32 }
+};
+
+static int indexOfYuvColor(QVideoFrame::PixelFormat format)
+{
+    const int count = sizeof(qt_yuvColorLookup) / sizeof(YuvFormat);
+
+    for (int i = 0; i < count; ++i)
+        if (qt_yuvColorLookup[i].pixelFormat == format)
+            return i;
+
+    return -1;
+}
+
+static int indexOfYuvColor(guint32 fourcc)
+{
+    const int count = sizeof(qt_yuvColorLookup) / sizeof(YuvFormat);
+
+    for (int i = 0; i < count; ++i)
+        if (qt_yuvColorLookup[i].fourcc == fourcc)
+            return i;
+
+    return -1;
+}
+
+struct RgbFormat
+{
+    QVideoFrame::PixelFormat pixelFormat;
+    int bitsPerPixel;
+    int depth;
+    int endianness;
+    int red;
+    int green;
+    int blue;
+    int alpha;
+};
+
+static const RgbFormat qt_rgbColorLookup[] =
+{
+    { QVideoFrame::Format_RGB32 , 32, 24, 4321, 0x0000FF00, 0x00FF0000, int(0xFF000000), 0x00000000 },
+    { QVideoFrame::Format_RGB32 , 32, 24, 1234, 0x00FF0000, 0x0000FF00, 0x000000FF, 0x00000000 },
+    { QVideoFrame::Format_BGR32 , 32, 24, 4321, int(0xFF000000), 0x00FF0000, 0x0000FF00, 0x00000000 },
+    { QVideoFrame::Format_BGR32 , 32, 24, 1234, 0x000000FF, 0x0000FF00, 0x00FF0000, 0x00000000 },
+    { QVideoFrame::Format_ARGB32, 32, 24, 4321, 0x0000FF00, 0x00FF0000, int(0xFF000000), 0x000000FF },
+    { QVideoFrame::Format_ARGB32, 32, 24, 1234, 0x00FF0000, 0x0000FF00, 0x000000FF, int(0xFF000000) },
+    { QVideoFrame::Format_RGB24 , 24, 24, 4321, 0x00FF0000, 0x0000FF00, 0x000000FF, 0x00000000 },
+    { QVideoFrame::Format_BGR24 , 24, 24, 4321, 0x000000FF, 0x0000FF00, 0x00FF0000, 0x00000000 },
+    { QVideoFrame::Format_RGB565, 16, 16, 1234, 0x0000F800, 0x000007E0, 0x0000001F, 0x00000000 }
+};
+
+static int indexOfRgbColor(
+        int bits, int depth, int endianness, int red, int green, int blue, int alpha)
+{
+    const int count = sizeof(qt_rgbColorLookup) / sizeof(RgbFormat);
+
+    for (int i = 0; i < count; ++i) {
+        if (qt_rgbColorLookup[i].bitsPerPixel == bits
+            && qt_rgbColorLookup[i].depth == depth
+            && qt_rgbColorLookup[i].endianness == endianness
+            && qt_rgbColorLookup[i].red == red
+            && qt_rgbColorLookup[i].green == green
+            && qt_rgbColorLookup[i].blue == blue
+            && qt_rgbColorLookup[i].alpha == alpha) {
+            return i;
+        }
+    }
+    return -1;
+}
+#endif
+
+}
+
+#if GST_CHECK_VERSION(1,0,0)
+
+QVideoSurfaceFormat QGstUtils::formatForCaps(
+        GstCaps *caps, GstVideoInfo *info, QAbstractVideoBuffer::HandleType handleType)
+{
+    if (gst_video_info_from_caps(info, caps)) {
+        int index = indexOfVideoFormat(info->finfo->format);
+
+        if (index != -1) {
+            QVideoSurfaceFormat format(
+                        QSize(info->width, info->height),
+                        qt_videoFormatLookup[index].pixelFormat,
+                        handleType);
+
+            if (info->fps_d > 0)
+                format.setFrameRate(qreal(info->fps_d) / info->fps_n);
+
+            if (info->par_d > 0)
+                format.setPixelAspectRatio(info->par_n, info->par_d);
+
+            return format;
+        }
+    }
+    return QVideoSurfaceFormat();
+}
+
+#else
+
+QVideoSurfaceFormat QGstUtils::formatForCaps(
+        GstCaps *caps, int *bytesPerLine, QAbstractVideoBuffer::HandleType handleType)
+{
+    const GstStructure *structure = gst_caps_get_structure(caps, 0);
+
+    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+    int bitsPerPixel = 0;
+
+    QSize size;
+    gst_structure_get_int(structure, "width", &size.rwidth());
+    gst_structure_get_int(structure, "height", &size.rheight());
+
+    if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-yuv") == 0) {
+        guint32 fourcc = 0;
+        gst_structure_get_fourcc(structure, "format", &fourcc);
+
+        int index = indexOfYuvColor(fourcc);
+        if (index != -1) {
+            pixelFormat = qt_yuvColorLookup[index].pixelFormat;
+            bitsPerPixel = qt_yuvColorLookup[index].bitsPerPixel;
+        }
+    } else if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-rgb") == 0) {
+        int depth = 0;
+        int endianness = 0;
+        int red = 0;
+        int green = 0;
+        int blue = 0;
+        int alpha = 0;
+
+        gst_structure_get_int(structure, "bpp", &bitsPerPixel);
+        gst_structure_get_int(structure, "depth", &depth);
+        gst_structure_get_int(structure, "endianness", &endianness);
+        gst_structure_get_int(structure, "red_mask", &red);
+        gst_structure_get_int(structure, "green_mask", &green);
+        gst_structure_get_int(structure, "blue_mask", &blue);
+        gst_structure_get_int(structure, "alpha_mask", &alpha);
+
+        int index = indexOfRgbColor(bitsPerPixel, depth, endianness, red, green, blue, alpha);
+
+        if (index != -1)
+            pixelFormat = qt_rgbColorLookup[index].pixelFormat;
+    }
+
+    if (pixelFormat != QVideoFrame::Format_Invalid) {
+        QVideoSurfaceFormat format(size, pixelFormat, handleType);
+
+        QPair<int, int> rate;
+        gst_structure_get_fraction(structure, "framerate", &rate.first, &rate.second);
+
+        if (rate.second)
+            format.setFrameRate(qreal(rate.first)/rate.second);
+
+        gint aspectNum = 0;
+        gint aspectDenum = 0;
+        if (gst_structure_get_fraction(
+                structure, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
+            if (aspectDenum > 0)
+                format.setPixelAspectRatio(aspectNum, aspectDenum);
+        }
+
+        if (bytesPerLine)
+            *bytesPerLine = ((size.width() * bitsPerPixel / 8) + 3) & ~3;
+
+        return format;
+    }
+    return QVideoSurfaceFormat();
+}
+
+#endif
+
+GstCaps *QGstUtils::capsForFormats(const QList<QVideoFrame::PixelFormat> &formats)
+{
+    GstCaps *caps = gst_caps_new_empty();
+
+#if GST_CHECK_VERSION(1,0,0)
+    foreach (QVideoFrame::PixelFormat format, formats) {
+        int index = indexOfVideoFormat(format);
+
+        if (index != -1) {
+            gst_caps_append_structure(caps, gst_structure_new(
+                    "video/x-raw",
+                    "format"   , G_TYPE_STRING, gst_video_format_to_string(qt_videoFormatLookup[index].gstFormat),
+                    NULL));
+        }
+    }
+#else
+    foreach (QVideoFrame::PixelFormat format, formats) {
+        int index = indexOfYuvColor(format);
+
+        if (index != -1) {
+            gst_caps_append_structure(caps, gst_structure_new(
+                    "video/x-raw-yuv",
+                    "format", GST_TYPE_FOURCC, qt_yuvColorLookup[index].fourcc,
+                    NULL));
+            continue;
+        }
+
+        const int count = sizeof(qt_rgbColorLookup) / sizeof(RgbFormat);
+
+        for (int i = 0; i < count; ++i) {
+            if (qt_rgbColorLookup[i].pixelFormat == format) {
+                GstStructure *structure = gst_structure_new(
+                        "video/x-raw-rgb",
+                        "bpp"       , G_TYPE_INT, qt_rgbColorLookup[i].bitsPerPixel,
+                        "depth"     , G_TYPE_INT, qt_rgbColorLookup[i].depth,
+                        "endianness", G_TYPE_INT, qt_rgbColorLookup[i].endianness,
+                        "red_mask"  , G_TYPE_INT, qt_rgbColorLookup[i].red,
+                        "green_mask", G_TYPE_INT, qt_rgbColorLookup[i].green,
+                        "blue_mask" , G_TYPE_INT, qt_rgbColorLookup[i].blue,
+                        NULL);
+
+                if (qt_rgbColorLookup[i].alpha != 0) {
+                    gst_structure_set(
+                            structure, "alpha_mask", G_TYPE_INT, qt_rgbColorLookup[i].alpha, NULL);
+                }
+                gst_caps_append_structure(caps, structure);
+            }
+        }
+    }
+#endif
+
+    gst_caps_set_simple(
+                caps,
+                "framerate", GST_TYPE_FRACTION_RANGE, 0, 1, INT_MAX, 1,
+                "width"    , GST_TYPE_INT_RANGE, 1, INT_MAX,
+                "height"   , GST_TYPE_INT_RANGE, 1, INT_MAX,
+                NULL);
+
+    return caps;
+}
+
+void QGstUtils::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
+{
+    // GStreamer uses nanoseconds, Qt uses microseconds
+    qint64 startTime = GST_BUFFER_TIMESTAMP(buffer);
+    if (startTime >= 0) {
+        frame->setStartTime(startTime/G_GINT64_CONSTANT (1000));
+
+        qint64 duration = GST_BUFFER_DURATION(buffer);
+        if (duration >= 0)
+            frame->setEndTime((startTime + duration)/G_GINT64_CONSTANT (1000));
+    }
+}
+
+void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant> &data)
+{
+    if (!GST_IS_TAG_SETTER(element))
+        return;
+
+    gst_tag_setter_reset_tags(GST_TAG_SETTER(element));
+
+    QMapIterator<QByteArray, QVariant> it(data);
+    while (it.hasNext()) {
+        it.next();
+        const QString tagName = it.key();
+        const QVariant tagValue = it.value();
+
+        switch (tagValue.type()) {
+            case QVariant::String:
+                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
+                    GST_TAG_MERGE_REPLACE,
+                    tagName.toUtf8().constData(),
+                    tagValue.toString().toUtf8().constData(),
+                    NULL);
+                break;
+            case QVariant::Int:
+            case QVariant::LongLong:
+                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
+                    GST_TAG_MERGE_REPLACE,
+                    tagName.toUtf8().constData(),
+                    tagValue.toInt(),
+                    NULL);
+                break;
+            case QVariant::Double:
+                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
+                    GST_TAG_MERGE_REPLACE,
+                    tagName.toUtf8().constData(),
+                    tagValue.toDouble(),
+                    NULL);
+                break;
+            case QVariant::DateTime: {
+                QDateTime date = tagValue.toDateTime().toLocalTime();
+                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
+                    GST_TAG_MERGE_REPLACE,
+                    tagName.toUtf8().constData(),
+                    gst_date_time_new_local_time(
+                                date.date().year(), date.date().month(), date.date().day(),
+                                date.time().hour(), date.time().minute(), date.time().second()),
+                    NULL);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+void QGstUtils::setMetaData(GstBin *bin, const QMap<QByteArray, QVariant> &data)
+{
+    GstIterator *elements = gst_bin_iterate_all_by_interface(bin, GST_TYPE_TAG_SETTER);
+#if GST_CHECK_VERSION(1,0,0)
+    GValue item = G_VALUE_INIT;
+    while (gst_iterator_next(elements, &item) == GST_ITERATOR_OK) {
+        GstElement * const element = GST_ELEMENT(g_value_get_object(&item));
+#else
+    GstElement *element = 0;
+    while (gst_iterator_next(elements, (void**)&element) == GST_ITERATOR_OK) {
+#endif
+        setMetaData(element, data);
+    }
+    gst_iterator_free(elements);
+}
+
+
+GstCaps *QGstUtils::videoFilterCaps()
+{
+    static GstStaticCaps staticCaps = GST_STATIC_CAPS(
+#if GST_CHECK_VERSION(1,2,0)
+        "video/x-raw(ANY);"
+#elif GST_CHECK_VERSION(1,0,0)
+        "video/x-raw;"
+#else
+        "video/x-raw-yuv;"
+        "video/x-raw-rgb;"
+        "video/x-raw-data;"
+        "video/x-android-buffer;"
+#endif
+        "image/jpeg;"
+        "video/x-h264");
+
+    return gst_caps_make_writable(gst_static_caps_get(&staticCaps));
+}
 
 void qt_gst_object_ref_sink(gpointer object)
 {
-#if (GST_VERSION_MAJOR >= 0) && (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 24)
+#if GST_CHECK_VERSION(0,10,24)
     gst_object_ref_sink(object);
 #else
     g_return_if_fail (GST_IS_OBJECT(object));
@@ -593,6 +1318,52 @@ void qt_gst_object_ref_sink(gpointer object)
         gst_object_ref(object);
     }
 #endif
+}
+
+GstCaps *qt_gst_pad_get_current_caps(GstPad *pad)
+{
+#if GST_CHECK_VERSION(1,0,0)
+    return gst_pad_get_current_caps(pad);
+#else
+    return gst_pad_get_negotiated_caps(pad);
+#endif
+}
+
+GstStructure *qt_gst_structure_new_empty(const char *name)
+{
+#if GST_CHECK_VERSION(1,0,0)
+    return gst_structure_new_empty(name);
+#else
+    return gst_structure_new(name, NULL);
+#endif
+}
+
+gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur)
+{
+#if GST_CHECK_VERSION(1,0,0)
+    return gst_element_query_position(element, format, cur);
+#else
+    return gst_element_query_position(element, &format, cur);
+#endif
+}
+
+gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur)
+{
+#if GST_CHECK_VERSION(1,0,0)
+    return gst_element_query_duration(element, format, cur);
+#else
+    return gst_element_query_duration(element, &format, cur);
+#endif
+}
+
+QDebug operator <<(QDebug debug, GstCaps *caps)
+{
+    if (caps) {
+        gchar *string = gst_caps_to_string(caps);
+        debug = debug << string;
+        g_free(string);
+    }
+    return debug;
 }
 
 QT_END_NAMESPACE

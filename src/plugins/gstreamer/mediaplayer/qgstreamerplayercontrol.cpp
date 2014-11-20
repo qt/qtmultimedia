@@ -425,7 +425,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
         m_session->loadFromUri(request);
 #endif
 
-
 #if defined(HAVE_GST_APPSRC)
     if (!request.url().isEmpty() || userStreamValid) {
 #else

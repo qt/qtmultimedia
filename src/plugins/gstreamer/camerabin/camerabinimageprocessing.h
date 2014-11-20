@@ -41,7 +41,10 @@
 #include <glib.h>
 
 #ifdef HAVE_GST_PHOTOGRAPHY
-#include <gst/interfaces/photography.h>
+# include <gst/interfaces/photography.h>
+# if !GST_CHECK_VERSION(1,0,0)
+typedef GstWhiteBalanceMode GstPhotographyWhiteBalanceMode;
+# endif
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -73,7 +76,7 @@ private:
     CameraBinSession *m_session;
     QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
 #ifdef HAVE_GST_PHOTOGRAPHY
-    QMap<GstWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
+    QMap<GstPhotographyWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
 #endif
 };
 

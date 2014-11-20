@@ -17,11 +17,27 @@ win32 {
 } else {
     qtCompileTest(alsa)
     qtCompileTest(pulseaudio)
-    qtCompileTest(gstreamer) {
-        qtCompileTest(gstreamer_photography)
-        qtCompileTest(gstreamer_encodingprofiles)
-        qtCompileTest(gstreamer_appsrc)
-        qtCompileTest(linux_v4l)
+    !done_config_gstreamer {
+        gstver=0.10
+        !isEmpty(GST_VERSION): gstver=$$GST_VERSION
+        cache(GST_VERSION, set, gstver);
+        qtCompileTest(gstreamer) {
+            qtCompileTest(gstreamer_photography)
+            qtCompileTest(gstreamer_encodingprofiles)
+            qtCompileTest(gstreamer_appsrc)
+            qtCompileTest(linux_v4l)
+        } else {
+            gstver=1.0
+            cache(GST_VERSION, set, gstver);
+            # Force a re-run of the test
+            CONFIG -= done_config_gstreamer
+            qtCompileTest(gstreamer) {
+                qtCompileTest(gstreamer_photography)
+                qtCompileTest(gstreamer_encodingprofiles)
+                qtCompileTest(gstreamer_appsrc)
+                qtCompileTest(linux_v4l)
+            }
+        }
     }
     qtCompileTest(resourcepolicy)
     qtCompileTest(gpu_vivante)

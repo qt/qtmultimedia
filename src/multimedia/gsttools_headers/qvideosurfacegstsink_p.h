@@ -45,6 +45,18 @@
 // We mean it.
 //
 
+#include <gst/gst.h>
+
+#if GST_CHECK_VERSION(1,0,0)
+
+#include "qgstvideorenderersink_p.h"
+
+QT_BEGIN_NAMESPACE
+typedef QGstVideoRendererSink QVideoSurfaceGstSink;
+QT_END_NAMESPACE
+
+#else
+
 #include <gst/video/gstvideosink.h>
 
 #include <QtCore/qlist.h>
@@ -116,10 +128,6 @@ public:
     GstVideoSink parent;
 
     static QVideoSurfaceGstSink *createSink(QAbstractVideoSurface *surface);
-    static QVideoSurfaceFormat formatForCaps(GstCaps *caps,
-                                             int *bytesPerLine = 0,
-                                             QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle);
-    static void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
 
 private:
     static GType get_type();
@@ -150,7 +158,6 @@ private:
     QVideoSurfaceFormat *lastSurfaceFormat;
 };
 
-
 class QVideoSurfaceGstSinkClass
 {
 public:
@@ -158,5 +165,7 @@ public:
 };
 
 QT_END_NAMESPACE
+
+#endif
 
 #endif

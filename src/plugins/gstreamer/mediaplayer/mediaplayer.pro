@@ -28,4 +28,3 @@ SOURCES += \
 
 OTHER_FILES += \
     mediaplayer.json
-

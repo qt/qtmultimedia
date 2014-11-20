@@ -79,7 +79,7 @@ config_gstreamer_photography {
         $$PWD/camerabinlocks.cpp \
         $$PWD/camerabinzoom.cpp
 
-    LIBS += -lgstphotography-0.10
+    LIBS += -lgstphotography-$$GST_VERSION
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API
 }
 

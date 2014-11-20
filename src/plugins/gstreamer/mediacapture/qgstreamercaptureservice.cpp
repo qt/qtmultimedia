@@ -62,27 +62,25 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObject *parent):
-    QMediaService(parent)
-{
-    m_captureSession = 0;
-    m_cameraControl = 0;
-    m_metaDataControl = 0;
-
+QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObject *parent)
+    : QMediaService(parent)
+    , m_captureSession(0)
+    , m_cameraControl(0)
 #if defined(USE_GSTREAMER_CAMERA)
-    m_videoInput = 0;
+    , m_videoInput(0)
 #endif
-    m_audioInputSelector = 0;
-    m_videoInputDevice = 0;
-
-    m_videoOutput = 0;
-    m_videoRenderer = 0;
-    m_videoWindow = 0;
+    , m_metaDataControl(0)
+    , m_audioInputSelector(0)
+    , m_videoInputDevice(0)
+    , m_videoOutput(0)
+    , m_videoRenderer(0)
+    , m_videoWindow(0)
 #if defined(HAVE_WIDGETS)
-    m_videoWidgetControl = 0;
+    , m_videoWidgetControl(0)
 #endif
-    m_imageCaptureControl = 0;
-
+    , m_imageCaptureControl(0)
+    , m_audioProbeControl(0)
+{
     if (service == Q_MEDIASERVICE_AUDIOSOURCE) {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
     }
@@ -163,12 +161,12 @@ QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
         return m_imageCaptureControl;
 
     if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
-        if (m_captureSession) {
-            QGstreamerAudioProbeControl *probe = new QGstreamerAudioProbeControl(this);
-            m_captureSession->addProbe(probe);
-            return probe;
+        if (!m_audioProbeControl) {
+            m_audioProbeControl = new QGstreamerAudioProbeControl(this);
+            m_captureSession->addProbe(m_audioProbeControl);
         }
-        return 0;
+        m_audioProbeControl->ref.ref();
+        return m_audioProbeControl;
     }
 
     if (!m_videoOutput) {
@@ -194,17 +192,15 @@ QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
 
 void QGstreamerCaptureService::releaseControl(QMediaControl *control)
 {
-    if (control && control == m_videoOutput) {
+    if (!control) {
+        return;
+    } else if (control == m_videoOutput) {
         m_videoOutput = 0;
         m_captureSession->setVideoPreview(0);
-    }
-
-    QGstreamerAudioProbeControl* audioProbe = qobject_cast<QGstreamerAudioProbeControl*>(control);
-    if (audioProbe) {
-        if (m_captureSession)
-            m_captureSession->removeProbe(audioProbe);
-        delete audioProbe;
-        return;
+    } else if (control == m_audioProbeControl && !m_audioProbeControl->ref.deref()) {
+        m_captureSession->removeProbe(m_audioProbeControl);
+        delete m_audioProbeControl;
+        m_audioProbeControl = 0;
     }
 }
 

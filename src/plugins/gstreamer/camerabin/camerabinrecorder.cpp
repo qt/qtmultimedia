@@ -110,9 +110,10 @@ void CameraBinRecorder::updateStatus()
             m_state = QMediaRecorder::StoppedState;
             m_session->stopVideoRecording();
         }
-        m_status = m_session->pendingState() == QCamera::ActiveState ?
-                    QMediaRecorder::LoadingStatus :
-                    QMediaRecorder::UnloadedStatus;
+        m_status = m_session->pendingState() == QCamera::ActiveState
+                    && m_session->captureMode().testFlag(QCamera::CaptureVideo)
+                ? QMediaRecorder::LoadingStatus
+                : QMediaRecorder::UnloadedStatus;
     }
 
     if (m_state != oldState)
@@ -161,8 +162,6 @@ void CameraBinRecorder::applySettings()
 
                 QVideoEncoderSettings videoSettings = videoEncoderControl->videoSettings();
                 videoSettings.setCodec(candidate[1]);
-                if (videoSettings.resolution().isEmpty())
-                    videoSettings.setResolution(640, 480);
                 videoEncoderControl->setActualVideoSettings(videoSettings);
 
                 QAudioEncoderSettings audioSettings = audioEncoderControl->audioSettings();

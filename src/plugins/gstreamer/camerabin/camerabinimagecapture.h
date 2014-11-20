@@ -38,6 +38,14 @@
 #include <qcameraimagecapturecontrol.h>
 #include "camerabinsession.h"
 
+#include <qvideosurfaceformat.h>
+
+#include <private/qgstreamerbufferprobe_p.h>
+
+#if GST_CHECK_VERSION(1,0,0)
+#include <gst/video/video.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class CameraBinImageCapture : public QCameraImageCaptureControl, public QGstreamerBusMessageFilter
@@ -61,15 +69,47 @@ private slots:
     void updateState();
 
 private:
-    static gboolean metadataEventProbe(GstPad *pad, GstEvent *event, CameraBinImageCapture *);
-    static gboolean uncompressedBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *);
-    static gboolean jpegBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *);
+#if GST_CHECK_VERSION(1,0,0)
+    static GstPadProbeReturn encoderEventProbe(GstPad *, GstPadProbeInfo *info, gpointer user_data);
+#else
+    static gboolean encoderEventProbe(GstElement *, GstEvent *event, gpointer user_data);
+#endif
 
+    class EncoderProbe : public QGstreamerBufferProbe
+    {
+    public:
+        EncoderProbe(CameraBinImageCapture *capture) : capture(capture) {}
+        void probeCaps(GstCaps *caps);
+        bool probeBuffer(GstBuffer *buffer);
+
+    private:
+        CameraBinImageCapture * const capture;
+    } m_encoderProbe;
+
+    class MuxerProbe : public QGstreamerBufferProbe
+    {
+    public:
+        MuxerProbe(CameraBinImageCapture *capture) : capture(capture) {}
+        void probeCaps(GstCaps *caps);
+        bool probeBuffer(GstBuffer *buffer);
+
+    private:
+        CameraBinImageCapture * const capture;
+
+    } m_muxerProbe;
+
+    QVideoSurfaceFormat m_bufferFormat;
+    QSize m_jpegResolution;
     CameraBinSession *m_session;
-    bool m_ready;
-    int m_requestId;
     GstElement *m_jpegEncoderElement;
     GstElement *m_metadataMuxerElement;
+#if GST_CHECK_VERSION(1,0,0)
+    GstVideoInfo m_videoInfo;
+#else
+    int m_bytesPerLine;
+#endif
+    int m_requestId;
+    bool m_ready;
 };
 
 QT_END_NAMESPACE

@@ -38,23 +38,32 @@
 #include <qmediaaudioprobecontrol.h>
 #include <QtCore/qmutex.h>
 #include <qaudiobuffer.h>
+#include <qshareddata.h>
+
+#include <private/qgstreamerbufferprobe_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerAudioProbeControl : public QMediaAudioProbeControl
+class QGstreamerAudioProbeControl
+    : public QMediaAudioProbeControl
+    , public QGstreamerBufferProbe
+    , public QSharedData
 {
     Q_OBJECT
 public:
     explicit QGstreamerAudioProbeControl(QObject *parent);
     virtual ~QGstreamerAudioProbeControl();
 
-    void bufferProbed(GstBuffer* buffer);
+protected:
+    void probeCaps(GstCaps *caps);
+    bool probeBuffer(GstBuffer *buffer);
 
 private slots:
     void bufferProbed();
 
 private:
     QAudioBuffer m_pendingBuffer;
+    QAudioFormat m_format;
     QMutex m_bufferMutex;
 };
 

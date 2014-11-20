@@ -35,8 +35,7 @@
 #include <private/qvideosurfacegstsink_p.h>
 #include <private/qgstutils_p.h>
 #include <qabstractvideosurface.h>
-
-#include <QDebug>
+#include <QtCore/qdebug.h>
 
 #include <gst/gst.h>
 

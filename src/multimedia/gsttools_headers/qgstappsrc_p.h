@@ -39,7 +39,10 @@
 
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
+
+#if GST_VERSION_MAJOR < 1
 #include <gst/app/gstappbuffer.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 

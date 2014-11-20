@@ -92,7 +92,7 @@ public:
     qint64 position() const;
     qint64 duration() const;
 
-    static GstFlowReturn new_buffer(GstAppSink *sink, gpointer user_data);
+    static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
 
 signals:
     void stateChanged(QAudioDecoder::State newState);

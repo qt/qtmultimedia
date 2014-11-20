@@ -34,7 +34,7 @@
 #include "qgstreamervideoencode.h"
 #include "qgstreamercapturesession.h"
 #include "qgstreamermediacontainercontrol.h"
-
+#include <private/qgstutils_p.h>
 #include <QtCore/qdebug.h>
 
 #include <math.h>
@@ -147,7 +147,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
     GstElement *capsFilter = gst_element_factory_make("capsfilter", "capsfilter-video");
     gst_bin_add(encoderBin, capsFilter);
 
-    GstElement *colorspace = gst_element_factory_make("ffmpegcolorspace", NULL);
+    GstElement *colorspace = gst_element_factory_make(QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME, NULL);
     gst_bin_add(encoderBin, colorspace);
     gst_bin_add(encoderBin, encoderElement);
 
@@ -252,27 +252,22 @@ GstElement *QGstreamerVideoEncode::createEncoder()
     }
 
     if (!m_videoSettings.resolution().isEmpty() || m_videoSettings.frameRate() > 0.001) {
-        GstCaps *caps = gst_caps_new_empty();
-        QStringList structureTypes;
-        structureTypes << "video/x-raw-yuv" << "video/x-raw-rgb";
+        GstCaps *caps = QGstUtils::videoFilterCaps();
 
-        foreach(const QString &structureType, structureTypes) {
-            GstStructure *structure = gst_structure_new(structureType.toLatin1().constData(), NULL);
+        if (!m_videoSettings.resolution().isEmpty()) {
+            gst_caps_set_simple(
+                        caps,
+                        "width", G_TYPE_INT, m_videoSettings.resolution().width(),
+                        "height", G_TYPE_INT, m_videoSettings.resolution().height(),
+                        NULL);
+        }
 
-            if (!m_videoSettings.resolution().isEmpty()) {
-                gst_structure_set(structure, "width", G_TYPE_INT, m_videoSettings.resolution().width(), NULL);
-                gst_structure_set(structure, "height", G_TYPE_INT, m_videoSettings.resolution().height(), NULL);
-            }
-
-            if (m_videoSettings.frameRate() > 0.001) {
-                QPair<int,int> rate = rateAsRational();
-
-                //qDebug() << "frame rate:" << num << denum;
-
-                gst_structure_set(structure, "framerate", GST_TYPE_FRACTION, rate.first, rate.second, NULL);
-            }
-
-            gst_caps_append_structure(caps,structure);
+        if (m_videoSettings.frameRate() > 0.001) {
+            QPair<int,int> rate = rateAsRational();
+            gst_caps_set_simple(
+                        caps,
+                        "framerate", GST_TYPE_FRACTION, rate.first, rate.second,
+                        NULL);
         }
 
         //qDebug() << "set video caps filter:" << gst_caps_to_string(caps);

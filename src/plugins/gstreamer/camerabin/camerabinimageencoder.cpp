@@ -49,7 +49,6 @@ CameraBinImageEncoder::~CameraBinImageEncoder()
 
 QList<QSize> CameraBinImageEncoder::supportedResolutions(const QImageEncoderSettings &, bool *continuous) const
 {
-    qDebug() << "CameraBinImageEncoder::supportedResolutions()";
     if (continuous)
         *continuous = false;
 

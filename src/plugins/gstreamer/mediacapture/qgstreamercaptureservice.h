@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 class QAudioInputSelectorControl;
 class QVideoDeviceSelectorControl;
 
+class QGstreamerAudioProbeControl;
 class QGstreamerCaptureSession;
 class QGstreamerCameraControl;
 class QGstreamerMessage;
@@ -86,6 +87,8 @@ private:
     QMediaControl *m_videoWidgetControl;
 #endif
     QGstreamerImageCaptureControl *m_imageCaptureControl;
+
+    QGstreamerAudioProbeControl *m_audioProbeControl;
 };
 
 QT_END_NAMESPACE

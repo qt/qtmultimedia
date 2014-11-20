@@ -53,11 +53,13 @@ QT_BEGIN_NAMESPACE
 
 CameraBinImageCapture::CameraBinImageCapture(CameraBinSession *session)
     :QCameraImageCaptureControl(session)
+    , m_encoderProbe(this)
+    , m_muxerProbe(this)
     , m_session(session)
-    , m_ready(false)
-    , m_requestId(0)
     , m_jpegEncoderElement(0)
     , m_metadataMuxerElement(0)
+    , m_requestId(0)
+    , m_ready(false)
 {
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
     connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
@@ -108,11 +110,18 @@ void CameraBinImageCapture::updateState()
     }
 }
 
-gboolean CameraBinImageCapture::metadataEventProbe(GstPad *pad, GstEvent *event, CameraBinImageCapture *self)
+#if GST_CHECK_VERSION(1,0,0)
+GstPadProbeReturn CameraBinImageCapture::encoderEventProbe(
+        GstPad *, GstPadProbeInfo *info, gpointer user_data)
 {
-    Q_UNUSED(pad);
-
-    if (GST_EVENT_TYPE(event) == GST_EVENT_TAG) {
+    GstEvent * const event = gst_pad_probe_info_get_event(info);
+#else
+gboolean CameraBinImageCapture::encoderEventProbe(
+        GstElement *, GstEvent *event, gpointer user_data)
+{
+#endif
+    CameraBinImageCapture  * const self = static_cast<CameraBinImageCapture *>(user_data);
+    if (event && GST_EVENT_TYPE(event) == GST_EVENT_TAG) {
         GstTagList *gstTags;
         gst_event_parse_tag(event, &gstTags);
         QMap<QByteArray, QVariant> extendedTags = QGstUtils::gstTagListToMap(gstTags);
@@ -146,17 +155,31 @@ gboolean CameraBinImageCapture::metadataEventProbe(GstPad *pad, GstEvent *event,
             }
         }
     }
-
-    return true;
+#if GST_CHECK_VERSION(1,0,0)
+    return GST_PAD_PROBE_OK;
+#else
+    return TRUE;
+#endif
 }
 
-gboolean CameraBinImageCapture::uncompressedBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *self)
+void CameraBinImageCapture::EncoderProbe::probeCaps(GstCaps *caps)
 {
-    Q_UNUSED(pad);
-    CameraBinSession *session = self->m_session;
+#if GST_CHECK_VERSION(1,0,0)
+    capture->m_bufferFormat = QGstUtils::formatForCaps(caps, &capture->m_videoInfo);
+#else
+    int bytesPerLine = 0;
+    QVideoSurfaceFormat format = QGstUtils::formatForCaps(caps, &bytesPerLine);
+    capture->m_bytesPerLine = bytesPerLine;
+    capture->m_bufferFormat = format;
+#endif
+}
+
+bool CameraBinImageCapture::EncoderProbe::probeBuffer(GstBuffer *buffer)
+{
+    CameraBinSession * const session = capture->m_session;
 
 #ifdef DEBUG_CAPTURE
-    qDebug() << "Uncompressed buffer probe" << gst_caps_to_string(GST_BUFFER_CAPS(buffer));
+    qDebug() << "Uncompressed buffer probe";
 #endif
 
     QCameraImageCapture::CaptureDestinations destination =
@@ -165,21 +188,23 @@ gboolean CameraBinImageCapture::uncompressedBufferProbe(GstPad *pad, GstBuffer *
 
     if (destination & QCameraImageCapture::CaptureToBuffer) {
         if (format != QVideoFrame::Format_Jpeg) {
-            GstCaps *caps = GST_BUFFER_CAPS(buffer);
-            int bytesPerLine = -1;
-            QVideoSurfaceFormat format = QVideoSurfaceGstSink::formatForCaps(caps, &bytesPerLine);
 #ifdef DEBUG_CAPTURE
             qDebug() << "imageAvailable(uncompressed):" << format;
 #endif
-            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, bytesPerLine);
+#if GST_CHECK_VERSION(1,0,0)
+            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, capture->m_videoInfo);
+#else
+            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, capture->m_bytesPerLine);
+#endif
 
-            QVideoFrame frame(videoBuffer,
-                              format.frameSize(),
-                              format.pixelFormat());
+            QVideoFrame frame(
+                        videoBuffer,
+                        capture->m_bufferFormat.frameSize(),
+                        capture->m_bufferFormat.pixelFormat());
 
-            QMetaObject::invokeMethod(self, "imageAvailable",
+            QMetaObject::invokeMethod(capture, "imageAvailable",
                                       Qt::QueuedConnection,
-                                      Q_ARG(int, self->m_requestId),
+                                      Q_ARG(int, capture->m_requestId),
                                       Q_ARG(QVideoFrame, frame));
         }
     }
@@ -192,25 +217,40 @@ gboolean CameraBinImageCapture::uncompressedBufferProbe(GstPad *pad, GstBuffer *
     return keepBuffer;
 }
 
-gboolean CameraBinImageCapture::jpegBufferProbe(GstPad *pad, GstBuffer *buffer, CameraBinImageCapture *self)
+void CameraBinImageCapture::MuxerProbe::probeCaps(GstCaps *caps)
 {
-    Q_UNUSED(pad);
-    CameraBinSession *session = self->m_session;
+    capture->m_jpegResolution = QGstUtils::capsCorrectedResolution(caps);
+}
 
-#ifdef DEBUG_CAPTURE
-    qDebug() << "Jpeg buffer probe" << gst_caps_to_string(GST_BUFFER_CAPS(buffer));
-#endif
+bool CameraBinImageCapture::MuxerProbe::probeBuffer(GstBuffer *buffer)
+{
+    CameraBinSession * const session = capture->m_session;
 
     QCameraImageCapture::CaptureDestinations destination =
             session->captureDestinationControl()->captureDestination();
 
     if ((destination & QCameraImageCapture::CaptureToBuffer) &&
          session->captureBufferFormatControl()->bufferFormat() == QVideoFrame::Format_Jpeg) {
-        QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer,
-                                                           -1); //bytesPerLine is not available for jpegs
 
-        QSize resolution = QGstUtils::capsCorrectedResolution(GST_BUFFER_CAPS(buffer));
+        QSize resolution = capture->m_jpegResolution;
         //if resolution is not presented in caps, try to find it from encoded jpeg data:
+#if GST_CHECK_VERSION(1,0,0)
+        GstMapInfo mapInfo;
+        if (resolution.isEmpty() && gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
+            QBuffer data;
+            data.setData(reinterpret_cast<const char*>(mapInfo.data), mapInfo.size);
+
+            QImageReader reader(&data, "JPEG");
+            resolution = reader.size();
+
+            gst_buffer_unmap(buffer, &mapInfo);
+        }
+
+        GstVideoInfo info;
+        gst_video_info_set_format(
+                    &info, GST_VIDEO_FORMAT_ENCODED, resolution.width(), resolution.height());
+        QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, info);
+#else
         if (resolution.isEmpty()) {
             QBuffer data;
             data.setData(reinterpret_cast<const char*>(GST_BUFFER_DATA(buffer)), GST_BUFFER_SIZE(buffer));
@@ -218,19 +258,27 @@ gboolean CameraBinImageCapture::jpegBufferProbe(GstPad *pad, GstBuffer *buffer, 
             resolution = reader.size();
         }
 
+        QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer,
+                                                           -1); //bytesPerLine is not available for jpegs
+#endif
+
+
         QVideoFrame frame(videoBuffer,
                           resolution,
                           QVideoFrame::Format_Jpeg);
-
-        QMetaObject::invokeMethod(self, "imageAvailable",
+        QMetaObject::invokeMethod(capture, "imageAvailable",
                                   Qt::QueuedConnection,
-                                  Q_ARG(int, self->m_requestId),
+                                  Q_ARG(int, capture->m_requestId),
                                   Q_ARG(QVideoFrame, frame));
     }
 
-    //drop the buffer if capture to file was disabled
-    return destination & QCameraImageCapture::CaptureToFile;
+
+    // Theoretically we could drop the buffer here when don't want to capture to file but that
+    // prevents camerabin from recognizing that capture has been completed and returning
+    // to its idle state.
+    return true;
 }
+
 
 bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
 {
@@ -252,9 +300,10 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
                 return false;
 
             QString elementName = QString::fromLatin1(gst_element_get_name(element));
+#if !GST_CHECK_VERSION(1,0,0)
             GstElementClass *elementClass = GST_ELEMENT_GET_CLASS(element);
             QString elementLongName = elementClass->details.longname;
-
+#endif
             if (elementName.contains("jpegenc") && element != m_jpegEncoderElement) {
                 m_jpegEncoderElement = element;
                 GstPad *sinkpad = gst_element_get_static_pad(element, "sink");
@@ -264,21 +313,23 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
 #ifdef DEBUG_CAPTURE
                 qDebug() << "install metadata probe";
 #endif
-                gst_pad_add_event_probe(sinkpad,
-                                        G_CALLBACK(CameraBinImageCapture::metadataEventProbe),
-                                        this);
-
+#if GST_CHECK_VERSION(1,0,0)
+                gst_pad_add_probe(
+                            sinkpad, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, encoderEventProbe, this, NULL);
+#else
+                gst_pad_add_event_probe(sinkpad, G_CALLBACK(encoderEventProbe), this);
+#endif
 #ifdef DEBUG_CAPTURE
                 qDebug() << "install uncompressed buffer probe";
 #endif
-                gst_pad_add_buffer_probe(sinkpad,
-                                         G_CALLBACK(CameraBinImageCapture::uncompressedBufferProbe),
-                                         this);
+                m_encoderProbe.addProbeToPad(sinkpad, true);
 
                 gst_object_unref(sinkpad);
-            } else if ((elementName.contains("jifmux") ||
-                        elementName.startsWith("metadatamux") ||
-                        elementLongName == QLatin1String("JPEG stream muxer"))
+            } else if ((elementName.contains("jifmux")
+#if !GST_CHECK_VERSION(1,0,0)
+                        || elementLongName == QLatin1String("JPEG stream muxer")
+#endif
+                        || elementName.startsWith("metadatamux"))
                        && element != m_metadataMuxerElement) {
                 //Jpeg encoded buffer probe is added after jifmux/metadatamux
                 //element to ensure the resulting jpeg buffer contains capture metadata
@@ -288,9 +339,8 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
 #ifdef DEBUG_CAPTURE
                 qDebug() << "install jpeg buffer probe";
 #endif
-                gst_pad_add_buffer_probe(srcpad,
-                                         G_CALLBACK(CameraBinImageCapture::jpegBufferProbe),
-                                         this);
+                m_muxerProbe.addProbeToPad(srcpad);
+
                 gst_object_unref(srcpad);
             }
         }

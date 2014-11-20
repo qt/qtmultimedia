@@ -96,7 +96,7 @@ Rectangle {
 
         videoRecorder {
              resolution: "640x480"
-             frameRate: 15
+             frameRate: 30
         }
     }
 

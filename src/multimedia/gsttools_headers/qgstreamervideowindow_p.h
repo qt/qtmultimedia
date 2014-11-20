@@ -38,6 +38,7 @@
 
 #include "qgstreamervideorendererinterface_p.h"
 #include <private/qgstreamerbushelper_p.h>
+#include <private/qgstreamerbufferprobe_p.h>
 #include <QtGui/qcolor.h>
 
 QT_BEGIN_NAMESPACE
@@ -45,7 +46,8 @@ class QAbstractVideoSurface;
 
 class QGstreamerVideoWindow : public QVideoWindowControl,
         public QGstreamerVideoRendererInterface,
-        public QGstreamerSyncMessageFilter
+        public QGstreamerSyncMessageFilter,
+        private QGstreamerBufferProbe
 {
     Q_OBJECT
     Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter)
@@ -101,10 +103,10 @@ signals:
     void readyChanged(bool);
 
 private slots:
-    void updateNativeVideoSize();
+    void updateNativeVideoSize(const QSize &size);
 
 private:
-    static void padBufferProbe(GstPad *pad, GstBuffer *buffer, gpointer user_data);
+    void probeCaps(GstCaps *caps);
 
     GstElement *m_videoSink;
     WId m_windowId;
@@ -113,7 +115,6 @@ private:
     bool m_fullScreen;
     QSize m_nativeSize;
     mutable QColor m_colorKey;
-    int m_bufferProbeId;
 };
 
 QT_END_NAMESPACE

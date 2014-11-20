@@ -37,6 +37,10 @@
 
 #include <QDebug>
 
+#if !GST_CHECK_VERSION(1,0,0)
+typedef GstFlashMode GstPhotographyFlashMode;
+#endif
+
 QT_BEGIN_NAMESPACE
 
 CameraBinFlash::CameraBinFlash(CameraBinSession *session)
@@ -51,7 +55,7 @@ CameraBinFlash::~CameraBinFlash()
 
 QCameraExposure::FlashModes CameraBinFlash::flashMode() const
 {
-    GstFlashMode flashMode;
+    GstPhotographyFlashMode flashMode;
     gst_photography_get_flash_mode(m_session->photography(), &flashMode);
 
     QCameraExposure::FlashModes modes;
@@ -70,7 +74,7 @@ QCameraExposure::FlashModes CameraBinFlash::flashMode() const
 
 void CameraBinFlash::setFlashMode(QCameraExposure::FlashModes mode)
 {
-    GstFlashMode flashMode;
+    GstPhotographyFlashMode flashMode;
     gst_photography_get_flash_mode(m_session->photography(), &flashMode);
 
     if (mode.testFlag(QCameraExposure::FlashAuto)) flashMode = GST_PHOTOGRAPHY_FLASH_MODE_AUTO;

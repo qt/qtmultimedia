@@ -32,7 +32,7 @@
 ****************************************************************************/
 
 #include "qgstcodecsinfo_p.h"
-
+#include "qgstutils_p.h"
 #include <QtCore/qset.h>
 
 #ifdef QMEDIA_GSTREAMER_CAMERABIN
@@ -146,7 +146,7 @@ GstCaps* QGstCodecsInfo::supportedElementCaps(GstElementFactoryListType elementT
                     if (fakeEncoderMimeTypes.contains(gst_structure_get_name(structure)))
                         continue;
 
-                    GstStructure *newStructure = gst_structure_new(gst_structure_get_name(structure), NULL);
+                    GstStructure *newStructure = qt_gst_structure_new_empty(gst_structure_get_name(structure));
 
                     //add structure fields to distinguish between formats with similar mime types,
                     //like audio/mpeg
@@ -166,7 +166,11 @@ GstCaps* QGstCodecsInfo::supportedElementCaps(GstElementFactoryListType elementT
                         }
                     }
 
+#if GST_CHECK_VERSION(1,0,0)
+                    res =
+#endif
                     gst_caps_merge_structure(res, newStructure);
+
                 }
                 gst_caps_unref(caps);
             }
