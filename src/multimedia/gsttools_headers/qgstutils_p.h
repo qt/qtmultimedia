@@ -65,6 +65,7 @@ namespace QGstUtils {
         QString description;
         int orientation;
         QCamera::Position position;
+        QByteArray driver;
     };
 
     QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
@@ -84,6 +85,7 @@ namespace QGstUtils {
     QString cameraDescription(const QString &device, GstElementFactory * factory = 0);
     QCamera::Position cameraPosition(const QString &device, GstElementFactory * factory = 0);
     int cameraOrientation(const QString &device, GstElementFactory * factory = 0);
+    QByteArray cameraDriver(const QString &device, GstElementFactory * factory = 0);
 }
 
 void qt_gst_object_ref_sink(gpointer object);

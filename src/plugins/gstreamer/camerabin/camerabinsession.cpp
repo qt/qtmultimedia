@@ -412,9 +412,41 @@ GstElement *CameraBinSession::buildCameraSource()
         if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "video-source")) {
             GstElement *src = 0;
 
-            if (m_videoInputFactory)
+            /* QT_GSTREAMER_CAMERABIN_VIDEOSRC can be used to set the video source element.
+
+               --- Usage
+
+                 QT_GSTREAMER_CAMERABIN_VIDEOSRC=[drivername=elementname[,drivername2=elementname2 ...],][elementname]
+
+               --- Examples
+
+                 Always use 'somevideosrc':
+                 QT_GSTREAMER_CAMERABIN_VIDEOSRC="somevideosrc"
+
+                 Use 'somevideosrc' when the device driver is 'somedriver', otherwise use default:
+                 QT_GSTREAMER_CAMERABIN_VIDEOSRC="somedriver=somevideosrc"
+
+                 Use 'somevideosrc' when the device driver is 'somedriver', otherwise use 'somevideosrc2'
+                 QT_GSTREAMER_CAMERABIN_VIDEOSRC="somedriver=somevideosrc,somevideosrc2"
+            */
+            const QByteArray envVideoSource = qgetenv("QT_GSTREAMER_CAMERABIN_VIDEOSRC");
+            if (!envVideoSource.isEmpty()) {
+                QList<QByteArray> sources = envVideoSource.split(',');
+                foreach (const QByteArray &source, sources) {
+                    QList<QByteArray> keyValue = source.split('=');
+                    if (keyValue.count() == 1) {
+                        src = gst_element_factory_make(keyValue.at(0), "camera_source");
+                        break;
+                    } else if (keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice, m_sourceFactory)) {
+                        src = gst_element_factory_make(keyValue.at(1), "camera_source");
+                        break;
+                    }
+                }
+            } else if (m_videoInputFactory) {
                 src = m_videoInputFactory->buildElement();
-            else
+            }
+
+            if (!src)
                 src = gst_element_factory_make("v4l2src", "camera_source");
 
             if (src) {

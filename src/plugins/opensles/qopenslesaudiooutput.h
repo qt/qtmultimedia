@@ -79,6 +79,7 @@ private:
     friend class SLIODevicePrivate;
 
     Q_INVOKABLE void onEOSEvent();
+    Q_INVOKABLE void onBytesProcessed(qint64 bytes);
     void bufferAvailable(quint32 count, quint32 playIndex);
 
     static void playCallback(SLPlayItf playItf, void *ctx, SLuint32 event);

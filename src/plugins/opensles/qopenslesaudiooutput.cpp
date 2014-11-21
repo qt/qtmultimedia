@@ -157,7 +157,7 @@ int QOpenSLESAudioOutput::bytesFree() const
     if (m_state != QAudio::ActiveState && m_state != QAudio::IdleState)
         return 0;
 
-    return m_availableBuffers.load() ? m_bufferSize : 0;
+    return m_availableBuffers.loadAcquire() ? m_bufferSize : 0;
 }
 
 int QOpenSLESAudioOutput::periodSize() const
@@ -343,6 +343,11 @@ void QOpenSLESAudioOutput::onEOSEvent()
     setError(QAudio::UnderrunError);
 }
 
+void QOpenSLESAudioOutput::onBytesProcessed(qint64 bytes)
+{
+    m_processedBytes += bytes;
+}
+
 void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
 {
     Q_UNUSED(count);
@@ -351,11 +356,13 @@ void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
     if (m_state == QAudio::StoppedState)
         return;
 
-    if (!m_pullMode) {
-        m_availableBuffers.fetchAndAddRelaxed(1);
+    if (!m_pullMode) { // We're in push mode.
+        // Signal that there is a new open slot in the buffer and return
+        m_availableBuffers.fetchAndAddRelease(1);
         return;
     }
 
+    // We're in pull mode.
     const int index = m_nextBuffer * m_bufferSize;
     const qint64 readSize = m_audioSource->read(m_buffers + index, m_bufferSize);
 
@@ -370,8 +377,8 @@ void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
         return;
     }
 
-    m_processedBytes += readSize;
     m_nextBuffer = (m_nextBuffer + 1) % BUFFER_COUNT;
+    QMetaObject::invokeMethod(this, "onBytesProcessed", Qt::QueuedConnection, Q_ARG(qint64, readSize));
 }
 
 void QOpenSLESAudioOutput::playCallback(SLPlayItf player, void *ctx, SLuint32 event)
@@ -570,7 +577,7 @@ void QOpenSLESAudioOutput::destroyPlayer()
     m_buffers = Q_NULLPTR;
     m_processedBytes = 0;
     m_nextBuffer = 0;
-    m_availableBuffers = BUFFER_COUNT;
+    m_availableBuffers.storeRelease(BUFFER_COUNT);
     m_playItf = Q_NULLPTR;
     m_volumeItf = Q_NULLPTR;
     m_bufferQueueItf = Q_NULLPTR;
@@ -599,11 +606,20 @@ void QOpenSLESAudioOutput::startPlayer()
 
 qint64 QOpenSLESAudioOutput::writeData(const char *data, qint64 len)
 {
-    if (!len || !m_availableBuffers.load())
+    if (!len)
         return 0;
 
     if (len > m_bufferSize)
         len = m_bufferSize;
+
+    // Acquire one slot in the buffer
+    const int before = m_availableBuffers.fetchAndAddAcquire(-1);
+
+    // If there where no vacant slots, then we just overdrew the buffer account...
+    if (before < 1) {
+        m_availableBuffers.fetchAndAddRelease(1);
+        return 0;
+    }
 
     const int index = m_nextBuffer * m_bufferSize;
     ::memcpy(m_buffers + index, data, len);
@@ -611,8 +627,11 @@ qint64 QOpenSLESAudioOutput::writeData(const char *data, qint64 len)
                                                       m_buffers + index,
                                                       len);
 
-    if (res == SL_RESULT_BUFFER_INSUFFICIENT)
+    // If we where unable to enqueue a new buffer, give back the acquired slot.
+    if (res == SL_RESULT_BUFFER_INSUFFICIENT) {
+        m_availableBuffers.fetchAndAddRelease(1);
         return 0;
+    }
 
     if (res != SL_RESULT_SUCCESS) {
         setError(QAudio::FatalError);
@@ -621,7 +640,6 @@ qint64 QOpenSLESAudioOutput::writeData(const char *data, qint64 len)
     }
 
     m_processedBytes += len;
-    m_availableBuffers.fetchAndAddRelaxed(-1);
     setState(QAudio::ActiveState);
     setError(QAudio::NoError);
     m_nextBuffer = (m_nextBuffer + 1) % BUFFER_COUNT;

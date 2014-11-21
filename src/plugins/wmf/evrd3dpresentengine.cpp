@@ -184,8 +184,12 @@ D3DPresentEngine::~D3DPresentEngine()
         m_egl->destroySurface(m_eglDisplay, m_eglSurface);
         m_eglSurface = NULL;
     }
-    if (m_glTexture)
-        QOpenGLContext::currentContext()->functions()->glDeleteTextures(1, &m_glTexture);
+    if (m_glTexture) {
+        if (QOpenGLContext *current = QOpenGLContext::currentContext())
+            current->functions()->glDeleteTextures(1, &m_glTexture);
+        else
+            qWarning() << "D3DPresentEngine: Cannot obtain GL context, unable to delete textures";
+    }
 
     delete m_glContext;
     delete m_offscreenSurface;
