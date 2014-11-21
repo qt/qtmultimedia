@@ -47,7 +47,7 @@
 
 #include <QtGui/QOpenGLContext>
 
-#if defined(Q_OS_WIN) && (defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_DYNAMIC))
+#if defined(Q_OS_WIN) && !defined(Q_OS_WINRT) && (defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_DYNAMIC))
 #include <EGL/egl.h>
 #endif
 
