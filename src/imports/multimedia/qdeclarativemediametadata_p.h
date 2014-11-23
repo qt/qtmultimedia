@@ -289,7 +289,13 @@ public:
         setMetaData(QMediaMetaData::CameraManufacturer, manufacturer); }
     QVariant cameraModel() const { return m_mediaObject->metaData(QMediaMetaData::CameraModel); }
     void setCameraModel(const QVariant &model) { setMetaData(QMediaMetaData::CameraModel, model); }
+
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_GCC("-Woverloaded-virtual")
+QT_WARNING_DISABLE_CLANG("-Woverloaded-virtual")
     QVariant event() const { return m_mediaObject->metaData(QMediaMetaData::Event); }
+QT_WARNING_POP
+
     void setEvent(const QVariant &event) { setMetaData(QMediaMetaData::Event, event); }
     QVariant subject() const { return m_mediaObject->metaData(QMediaMetaData::Subject); }
     void setSubject(const QVariant &subject) { setMetaData(QMediaMetaData::Subject, subject); }
