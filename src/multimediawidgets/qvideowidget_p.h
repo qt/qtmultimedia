@@ -208,7 +208,6 @@ private:
     QMediaService *m_service;
     QVideoWindowControl *m_windowControl;
     QWidget *m_widget;
-    Qt::AspectRatioMode m_aspectRatioMode;
     QSize m_pixelAspectRatio;
 };
 
