@@ -37,6 +37,8 @@
 #include <qcamera.h>
 #include <qcameralockscontrol.h>
 
+#include <QtCore/qbasictimer.h>
+
 #include <gst/gst.h>
 #include <glib.h>
 
@@ -60,12 +62,29 @@ public:
     void searchAndLock(QCamera::LockTypes locks);
     void unlock(QCamera::LockTypes locks);
 
+protected:
+#if GST_CHECK_VERSION(1, 2, 0)
+    void timerEvent(QTimerEvent *event);
+#endif
+
 private slots:
     void updateFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
 
 private:
+#if GST_CHECK_VERSION(1, 2, 0)
+    bool isExposureLocked() const;
+    void lockExposure(QCamera::LockChangeReason reason);
+    void unlockExposure(QCamera::LockStatus status, QCamera::LockChangeReason reason);
+
+    bool isWhiteBalanceLocked() const;
+    void lockWhiteBalance(QCamera::LockChangeReason reason);
+    void unlockWhiteBalance(QCamera::LockStatus status, QCamera::LockChangeReason reason);
+#endif
+
     CameraBinSession *m_session;
     CameraBinFocus *m_focus;
+    QBasicTimer m_lockTimer;
+    QCamera::LockTypes m_pendingLocks;
 };
 
 QT_END_NAMESPACE

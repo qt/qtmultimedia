@@ -44,15 +44,17 @@ QT_BEGIN_NAMESPACE
 
 CameraBinImageProcessing::CameraBinImageProcessing(CameraBinSession *session)
     :QCameraImageProcessingControl(session),
-     m_session(session)
+     m_session(session),
+     m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
 {
 #ifdef HAVE_GST_PHOTOGRAPHY
-    m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_AUTO] = QCameraImageProcessing::WhiteBalanceAuto;
-    m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_DAYLIGHT] = QCameraImageProcessing::WhiteBalanceSunlight;
-    m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_CLOUDY] = QCameraImageProcessing::WhiteBalanceCloudy;
-    m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_SUNSET] = QCameraImageProcessing::WhiteBalanceSunset;
-    m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_TUNGSTEN] = QCameraImageProcessing::WhiteBalanceTungsten;
-    m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_FLUORESCENT] = QCameraImageProcessing::WhiteBalanceFluorescent;
+      m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_AUTO] = QCameraImageProcessing::WhiteBalanceAuto;
+      m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_DAYLIGHT] = QCameraImageProcessing::WhiteBalanceSunlight;
+      m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_CLOUDY] = QCameraImageProcessing::WhiteBalanceCloudy;
+      m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_SUNSET] = QCameraImageProcessing::WhiteBalanceSunset;
+      m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_TUNGSTEN] = QCameraImageProcessing::WhiteBalanceTungsten;
+      m_mappedWbValues[GST_PHOTOGRAPHY_WB_MODE_FLUORESCENT] = QCameraImageProcessing::WhiteBalanceFluorescent;
+      unlockWhiteBalance();
 #endif
 
     updateColorBalanceValues();
@@ -129,20 +131,23 @@ bool CameraBinImageProcessing::setColorBalanceValue(const QString& channel, qrea
 
 QCameraImageProcessing::WhiteBalanceMode CameraBinImageProcessing::whiteBalanceMode() const
 {
-#ifdef HAVE_GST_PHOTOGRAPHY
-    GstPhotographyWhiteBalanceMode wbMode;
-    gst_photography_get_white_balance_mode(m_session->photography(), &wbMode);
-    return m_mappedWbValues[wbMode];
-#else
-    return QCameraImageProcessing::WhiteBalanceAuto;
-#endif
+    return m_whiteBalanceMode;
 }
 
 void CameraBinImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
 {
 #ifdef HAVE_GST_PHOTOGRAPHY
-    if (isWhiteBalanceModeSupported(mode))
-        gst_photography_set_white_balance_mode(m_session->photography(), m_mappedWbValues.key(mode));
+    if (isWhiteBalanceModeSupported(mode)) {
+        m_whiteBalanceMode = mode;
+#if GST_CHECK_VERSION(1, 2, 0)
+        GstPhotographyWhiteBalanceMode currentMode;
+        if (gst_photography_get_white_balance_mode(m_session->photography(), &currentMode)
+                && currentMode != GST_PHOTOGRAPHY_WB_MODE_MANUAL)
+#endif
+        {
+            unlockWhiteBalance();
+        }
+    }
 #else
     Q_UNUSED(mode);
 #endif
@@ -214,5 +219,24 @@ void CameraBinImageProcessing::setParameter(QCameraImageProcessingControl::Proce
 
     updateColorBalanceValues();
 }
+
+#ifdef HAVE_GST_PHOTOGRAPHY
+void CameraBinImageProcessing::lockWhiteBalance()
+{
+#if GST_CHECK_VERSION(1, 2, 0)
+    if (GstPhotography *photography = m_session->photography()) {
+        gst_photography_set_white_balance_mode(photography, GST_PHOTOGRAPHY_WB_MODE_MANUAL);
+    }
+#endif
+}
+
+void CameraBinImageProcessing::unlockWhiteBalance()
+{
+    if (GstPhotography *photography = m_session->photography()) {
+        gst_photography_set_white_balance_mode(
+                photography, m_mappedWbValues.key(m_whiteBalanceMode));
+    }
+}
+#endif
 
 QT_END_NAMESPACE

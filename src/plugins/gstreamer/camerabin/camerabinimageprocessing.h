@@ -68,6 +68,11 @@ public:
     QVariant parameter(ProcessingParameter parameter) const;
     void setParameter(ProcessingParameter parameter, const QVariant &value);
 
+#ifdef HAVE_GST_PHOTOGRAPHY
+    void lockWhiteBalance();
+    void unlockWhiteBalance();
+#endif
+
 private:
     bool setColorBalanceValue(const QString& channel, qreal value);
     void updateColorBalanceValues();
@@ -78,6 +83,7 @@ private:
 #ifdef HAVE_GST_PHOTOGRAPHY
     QMap<GstPhotographyWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
 #endif
+    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
 };
 
 QT_END_NAMESPACE
