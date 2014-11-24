@@ -344,13 +344,13 @@ void tst_QCamera::testSimpleCameraLock()
     QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
 
     camera.searchAndLock();
-    QCOMPARE(camera.lockStatus(), QCamera::Locked);
-    QCOMPARE(camera.lockStatus(QCamera::LockExposure), QCamera::Locked);
-    QCOMPARE(camera.lockStatus(QCamera::LockFocus), QCamera::Locked);
-    QCOMPARE(camera.lockStatus(QCamera::LockWhiteBalance), QCamera::Locked);
-    QCOMPARE(lockedSignal.count(), 1);
+    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
+    QCOMPARE(camera.lockStatus(QCamera::LockExposure), QCamera::Unlocked);
+    QCOMPARE(camera.lockStatus(QCamera::LockFocus), QCamera::Unlocked);
+    QCOMPARE(camera.lockStatus(QCamera::LockWhiteBalance), QCamera::Unlocked);
+    QCOMPARE(lockedSignal.count(), 0);
     QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
+    QCOMPARE(lockStatusChangedSignal.count(), 0);
 
     lockedSignal.clear();
     lockFailedSignal.clear();
@@ -364,7 +364,7 @@ void tst_QCamera::testSimpleCameraLock()
 
     QCOMPARE(lockedSignal.count(), 0);
     QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
+    QCOMPARE(lockStatusChangedSignal.count(), 0);
 }
 
 void tst_QCamera::testSimpleCaptureDestination()
@@ -1264,18 +1264,18 @@ void tst_QCamera::testRequestedLocks()
 
     camera.unlock();
     camera.searchAndLock(QCamera::LockWhiteBalance);
-    QCOMPARE(camera.requestedLocks(),QCamera::LockWhiteBalance);
+    QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
 
     camera.unlock();
     camera.searchAndLock(QCamera::LockExposure |QCamera::LockFocus );
     QCOMPARE(camera.requestedLocks(),QCamera::LockExposure |QCamera::LockFocus );
     camera.searchAndLock(QCamera::LockWhiteBalance);
-    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure |QCamera::LockFocus|QCamera::LockWhiteBalance );
+    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure |QCamera::LockFocus);
     camera.unlock(QCamera::LockExposure);
-    QCOMPARE(camera.requestedLocks(),QCamera::LockFocus|QCamera::LockWhiteBalance );
+    QCOMPARE(camera.requestedLocks(),QCamera::LockFocus);
     camera.unlock(QCamera::LockFocus);
     camera.searchAndLock(QCamera::LockExposure |QCamera::LockWhiteBalance );
-    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure|QCamera::LockWhiteBalance );
+    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure);
 }
 
 /* Test case for supportedLocks() */

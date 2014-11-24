@@ -72,7 +72,6 @@ public:
         capture(0),
         state(QCamera::UnloadedState),
         error(QCamera::NoError),
-        supportedLocks(QCamera::NoLock),
         requestedLocks(QCamera::NoLock),
         lockStatus(QCamera::Unlocked),
         lockChangeReason(QCamera::UserRequest),
@@ -105,7 +104,6 @@ public:
     QCamera::Error error;
     QString errorString;
 
-    QCamera::LockTypes supportedLocks;
     QCamera::LockTypes requestedLocks;
 
     QCamera::LockStatus lockStatus;

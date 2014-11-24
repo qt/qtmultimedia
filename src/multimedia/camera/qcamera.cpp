@@ -163,8 +163,6 @@ void QCameraPrivate::initControls()
 {
     Q_Q(QCamera);
 
-    supportedLocks = 0;
-
     if (service) {
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
         locksControl = qobject_cast<QCameraLocksControl *>(service->requestControl(QCameraLocksControl_iid));
@@ -183,7 +181,6 @@ void QCameraPrivate::initControls()
         if (locksControl) {
             q->connect(locksControl, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)),
                        q, SLOT(_q_updateLockStatus(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
-            supportedLocks = locksControl->supportedLocks();
         }
 
         error = QCamera::NoError;
@@ -225,7 +222,6 @@ void QCameraPrivate::clear()
     deviceControl = 0;
     infoControl = 0;
     service = 0;
-    supportedLocks = 0;
 }
 
 void QCameraPrivate::updateLockStatus()
@@ -236,8 +232,8 @@ void QCameraPrivate::updateLockStatus()
 
     QMap<QCamera::LockStatus, int> lockStatusPriority;
     lockStatusPriority.insert(QCamera::Locked, 1);
-    lockStatusPriority.insert(QCamera::Searching, 2);
-    lockStatusPriority.insert(QCamera::Unlocked, 3);
+    lockStatusPriority.insert(QCamera::Unlocked, 2);
+    lockStatusPriority.insert(QCamera::Searching, 3);
 
     lockStatus = requestedLocks ? QCamera::Locked : QCamera::Unlocked;
     int priority = 0;
@@ -673,7 +669,11 @@ QCamera::Status QCamera::status() const
 */
 QCamera::LockTypes QCamera::supportedLocks() const
 {
-    return d_func()->supportedLocks;
+    Q_D(const QCamera);
+
+    return d->locksControl
+            ? d->locksControl->supportedLocks()
+            : QCamera::LockTypes();
 }
 
 /*!
@@ -699,16 +699,13 @@ QCamera::LockStatus QCamera::lockStatus(QCamera::LockType lockType) const
 {
     const QCameraPrivate *d = d_func();
 
-    if (!(lockType & d->supportedLocks))
-        return lockType & d->requestedLocks ? QCamera::Locked : QCamera::Unlocked;
-
     if (!(lockType & d->requestedLocks))
         return QCamera::Unlocked;
 
     if (d->locksControl)
         return d->locksControl->lockStatus(lockType);
 
-    return QCamera::Unlocked;
+    return QCamera::Locked;
 }
 
 /*!
@@ -743,12 +740,11 @@ void QCamera::searchAndLock(QCamera::LockTypes locks)
     QCamera::LockStatus oldStatus = d->lockStatus;
     d->supressLockChangedSignal = true;
 
-    d->requestedLocks |= locks;
-
-    locks &= d->supportedLocks;
-
-    if (d->locksControl)
+    if (d->locksControl) {
+        locks &= d->locksControl->supportedLocks();
+        d->requestedLocks |= locks;
         d->locksControl->searchAndLock(locks);
+    }
 
     d->supressLockChangedSignal = false;
 
@@ -776,10 +772,10 @@ void QCamera::unlock(QCamera::LockTypes locks)
 
     d->requestedLocks &= ~locks;
 
-    locks &= d->supportedLocks;
-
-    if (d->locksControl)
+    if (d->locksControl) {
+        locks &= d->locksControl->supportedLocks();
         d->locksControl->unlock(locks);
+    }
 
     d->supressLockChangedSignal = false;
 
