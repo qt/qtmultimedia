@@ -43,8 +43,6 @@
 
 QT_BEGIN_NAMESPACE
 
-const QLatin1String QSGVideoNodeFactoryPluginKey("sgvideonodes");
-
 class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNode : public QSGGeometryNode
 {
 public:

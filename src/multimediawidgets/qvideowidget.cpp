@@ -306,7 +306,6 @@ QWindowVideoWidgetBackend::QWindowVideoWidgetBackend(
     : m_service(service)
     , m_windowControl(control)
     , m_widget(widget)
-    , m_aspectRatioMode(Qt::KeepAspectRatio)
 {
     connect(control, SIGNAL(brightnessChanged(int)), m_widget, SLOT(_q_brightnessChanged(int)));
     connect(control, SIGNAL(contrastChanged(int)), m_widget, SLOT(_q_contrastChanged(int)));

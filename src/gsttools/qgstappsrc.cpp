@@ -141,7 +141,7 @@ void QGstAppSrc::pushDataToAppSrc()
 
     if (m_dataRequested && !m_enoughData) {
         qint64 size;
-        if (m_dataRequestSize == ~0)
+        if (m_dataRequestSize == ~0u)
             size = qMin(m_stream->bytesAvailable(), queueSize());
         else
             size = qMin(m_stream->bytesAvailable(), (qint64)m_dataRequestSize);

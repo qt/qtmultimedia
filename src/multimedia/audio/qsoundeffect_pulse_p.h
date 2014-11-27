@@ -163,13 +163,6 @@ private:
     int m_position;
     QSoundEffectRef *m_ref;
 
-    enum ResourceStatus {
-        NoResources,
-        WaitingResources,
-        GrantedResources,
-        DeniedResources
-    };
-    ResourceStatus m_resourceStatus;
     bool m_resourcesAvailable;
 
     QMediaPlayerResourceSetInterface *m_resources;
