@@ -35,6 +35,7 @@
 
 #include "qopenslesengine.h"
 #include <qbuffer.h>
+#include <private/qaudiohelpers_p.h>
 #include <qdebug.h>
 
 #ifdef ANDROID
@@ -70,6 +71,7 @@ QOpenSLESAudioInput::QOpenSLESAudioInput(const QByteArray &device)
     , m_errorState(QAudio::NoError)
     , m_deviceState(QAudio::StoppedState)
     , m_lastNotifyTime(0)
+    , m_volume(1.0)
     , m_bufferSize(0)
     , m_periodSize(0)
     , m_intervalTime(1000)
@@ -395,9 +397,19 @@ void QOpenSLESAudioInput::writeDataToDevice(const char *data, int size)
 {
     m_processedBytes += size;
 
+    QByteArray outData;
+
+    // Apply volume
+    if (m_volume < 1.0f) {
+        outData.resize(size);
+        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, outData.data(), size);
+    } else {
+        outData.append(data, size);
+    }
+
     if (m_pullMode) {
         // write buffer to the QIODevice
-        if (m_audioSource->write(data, size) < 0) {
+        if (m_audioSource->write(outData) < 0) {
             stop();
             m_errorState = QAudio::IOError;
             Q_EMIT errorChanged(m_errorState);
@@ -405,7 +417,7 @@ void QOpenSLESAudioInput::writeDataToDevice(const char *data, int size)
     } else {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
         if (m_bufferIODevice != 0) {
-            m_pushBuffer.append(data, size);
+            m_pushBuffer.append(outData);
             Q_EMIT m_bufferIODevice->readyRead();
         }
     }
@@ -478,13 +490,12 @@ qint64 QOpenSLESAudioInput::elapsedUSecs() const
 
 void QOpenSLESAudioInput::setVolume(qreal vol)
 {
-    // Volume interface is not available for the recorder on Android
-    Q_UNUSED(vol);
+    m_volume = vol;
 }
 
 qreal QOpenSLESAudioInput::volume() const
 {
-    return qreal(1.0);
+    return m_volume;
 }
 
 void QOpenSLESAudioInput::reset()

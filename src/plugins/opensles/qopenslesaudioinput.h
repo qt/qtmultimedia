@@ -113,6 +113,7 @@ private:
     QAudio::State m_deviceState;
     QTime m_clockStamp;
     qint64 m_lastNotifyTime;
+    qreal m_volume;
     int m_bufferSize;
     int m_periodSize;
     int m_intervalTime;
