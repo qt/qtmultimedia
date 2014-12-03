@@ -119,6 +119,7 @@ protected:
 
 private Q_SLOTS:
     void _q_updateMediaObject();
+    void _q_updateCameraInfo();
     void _q_updateNativeSize();
     void _q_updateGeometry();
     void _q_screenOrientationChanged(int);
