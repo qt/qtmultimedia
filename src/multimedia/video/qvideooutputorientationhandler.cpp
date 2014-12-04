@@ -35,7 +35,6 @@
 
 #include <QGuiApplication>
 #include <QScreen>
-#include <qpa/qplatformscreen.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -63,9 +62,8 @@ int QVideoOutputOrientationHandler::currentOrientation() const
 void QVideoOutputOrientationHandler::screenOrientationChanged(Qt::ScreenOrientation orientation)
 {
     const QScreen *screen = QGuiApplication::primaryScreen();
-    const QPlatformScreen *platformScreen = screen->handle();
 
-    const int angle = (360 - screen->angleBetween(platformScreen->nativeOrientation(), orientation)) % 360;
+    const int angle = (360 - screen->angleBetween(screen->nativeOrientation(), orientation)) % 360;
 
     if (angle == m_currentOrientation)
         return;
