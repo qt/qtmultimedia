@@ -510,6 +510,8 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
             } else {
                 driver = QByteArray((const char*)vcap.driver);
                 name = QString::fromUtf8((const char*)vcap.card);
+                if (name.isEmpty())
+                    name = entryInfo.fileName();
             }
             //qDebug() << "found camera: " << name;
 
