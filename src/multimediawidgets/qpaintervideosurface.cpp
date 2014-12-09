@@ -96,7 +96,9 @@ QVideoSurfaceGenericPainter::QVideoSurfaceGenericPainter()
         << QVideoFrame::Format_ARGB32
         << QVideoFrame::Format_RGB565;
     // The raster formats should be a subset of the GL formats.
+#ifndef QT_NO_OPENGL
     if (QOpenGLContext::openGLModuleType() != QOpenGLContext::LibGLES)
+#endif
         m_imagePixelFormats << QVideoFrame::Format_RGB24;
 }
 
@@ -137,7 +139,9 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::start(const QVideoSurf
     const QAbstractVideoBuffer::HandleType t = format.handleType();
     if (t == QAbstractVideoBuffer::NoHandle) {
         bool ok = m_imageFormat != QImage::Format_Invalid && !m_imageSize.isEmpty();
+#ifndef QT_NO_OPENGL
         if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES)
+#endif
             ok &= format.pixelFormat() != QVideoFrame::Format_RGB24;
         if (ok)
             return QAbstractVideoSurface::NoError;
