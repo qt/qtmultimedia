@@ -194,28 +194,19 @@ void AVFImageCaptureControl::cancelCapture()
 
 void AVFImageCaptureControl::updateCaptureConnection()
 {
-    if (!m_videoConnection &&
-            m_cameraControl->captureMode().testFlag(QCamera::CaptureStillImage)) {
+    if (m_cameraControl->captureMode().testFlag(QCamera::CaptureStillImage)) {
         qDebugCamera() << Q_FUNC_INFO;
         AVCaptureSession *captureSession = m_session->captureSession();
 
-        if ([captureSession canAddOutput:m_stillImageOutput]) {
-            [captureSession addOutput:m_stillImageOutput];
-
-            for (AVCaptureConnection *connection in m_stillImageOutput.connections) {
-                for (AVCaptureInputPort *port in [connection inputPorts]) {
-                    if ([[port mediaType] isEqual:AVMediaTypeVideo] ) {
-                        m_videoConnection = connection;
-                        break;
-                    }
-                }
-
-                if (m_videoConnection)
-                    break;
+        if (![captureSession.outputs containsObject:m_stillImageOutput]) {
+            if ([captureSession canAddOutput:m_stillImageOutput]) {
+                [captureSession addOutput:m_stillImageOutput];
+                m_videoConnection = [m_stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
+                updateReadyStatus();
             }
+        } else {
+            m_videoConnection = [m_stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
         }
-
-        updateReadyStatus();
     }
 }
 
