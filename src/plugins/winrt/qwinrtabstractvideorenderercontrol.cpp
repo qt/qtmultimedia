@@ -310,6 +310,16 @@ void QWinRTAbstractVideoRendererControl::setSize(const QSize &size)
     d->dirtyState = TextureDirty;
 }
 
+void QWinRTAbstractVideoRendererControl::setScanLineDirection(QVideoSurfaceFormat::Direction scanLineDirection)
+{
+    Q_D(QWinRTAbstractVideoRendererControl);
+
+    if (d->format.scanLineDirection() == scanLineDirection)
+        return;
+
+    d->format.setScanLineDirection(scanLineDirection);
+}
+
 void QWinRTAbstractVideoRendererControl::setActive(bool active)
 {
     Q_D(QWinRTAbstractVideoRendererControl);
