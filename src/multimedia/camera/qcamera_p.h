@@ -56,6 +56,8 @@ class QCameraControl;
 class QVideoDeviceSelectorControl;
 class QCameraLocksControl;
 class QCameraInfoControl;
+class QCameraViewfinderSettingsControl;
+class QCameraViewfinderSettingsControl2;
 
 class QCameraPrivate : public QMediaObjectPrivate
 {
@@ -68,6 +70,8 @@ public:
         deviceControl(0),
         locksControl(0),
         infoControl(0),
+        viewfinderSettingsControl(0),
+        viewfinderSettingsControl2(0),
         viewfinder(0),
         capture(0),
         state(QCamera::UnloadedState),
@@ -91,6 +95,8 @@ public:
     QVideoDeviceSelectorControl *deviceControl;
     QCameraLocksControl *locksControl;
     QCameraInfoControl *infoControl;
+    QCameraViewfinderSettingsControl *viewfinderSettingsControl;
+    QCameraViewfinderSettingsControl2 *viewfinderSettingsControl2;
 
     QCameraExposure *cameraExposure;
     QCameraFocus *cameraFocus;

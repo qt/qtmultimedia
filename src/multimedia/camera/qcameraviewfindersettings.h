@@ -31,60 +31,56 @@
 **
 ****************************************************************************/
 
-#ifndef QCAMERACONTROL_H
-#define QCAMERACONTROL_H
+#ifndef QCAMERAVIEWFINDERSETTINGS_H
+#define QCAMERAVIEWFINDERSETTINGS_H
 
-#include <QtMultimedia/qmediacontrol.h>
-#include <QtMultimedia/qmediaobject.h>
-
-#include <QtMultimedia/qcamera.h>
+#include <QtCore/qsharedpointer.h>
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
+class QCameraViewfinderSettingsPrivate;
 
-class Q_MULTIMEDIA_EXPORT QCameraControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettings
 {
-    Q_OBJECT
-
 public:
-    enum PropertyChangeType {
-        CaptureMode = 1,
-        ImageEncodingSettings = 2,
-        VideoEncodingSettings = 3,
-        Viewfinder = 4,
-        ViewfinderSettings = 5
-    };
+    QCameraViewfinderSettings();
+    QCameraViewfinderSettings(const QCameraViewfinderSettings& other);
 
-    ~QCameraControl();
+    ~QCameraViewfinderSettings();
 
-    virtual QCamera::State state() const = 0;
-    virtual void setState(QCamera::State state) = 0;
+    QCameraViewfinderSettings& operator=(const QCameraViewfinderSettings &other);
+    bool operator==(const QCameraViewfinderSettings &other) const;
+    bool operator!=(const QCameraViewfinderSettings &other) const;
 
-    virtual QCamera::Status status() const = 0;
+    bool isNull() const;
 
-    virtual QCamera::CaptureModes captureMode() const = 0;
-    virtual void setCaptureMode(QCamera::CaptureModes) = 0;
-    virtual bool isCaptureModeSupported(QCamera::CaptureModes mode) const = 0;
+    QSize resolution() const;
+    void setResolution(const QSize &);
+    inline void setResolution(int width, int height)
+    { setResolution(QSize(width, height)); }
 
-    virtual bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const = 0;
+    qreal minimumFrameRate() const;
+    void setMinimumFrameRate(qreal rate);
 
-Q_SIGNALS:
-    void stateChanged(QCamera::State);
-    void statusChanged(QCamera::Status);
-    void error(int error, const QString &errorString);
-    void captureModeChanged(QCamera::CaptureModes);
+    qreal maximumFrameRate() const;
+    void setMaximumFrameRate(qreal rate);
 
-protected:
-    QCameraControl(QObject* parent = 0);
+    QVideoFrame::PixelFormat pixelFormat() const;
+    void setPixelFormat(QVideoFrame::PixelFormat format);
+
+    QSize pixelAspectRatio() const;
+    void setPixelAspectRatio(const QSize &ratio);
+    inline void setPixelAspectRatio(int horizontal, int vertical)
+    { setPixelAspectRatio(QSize(horizontal, vertical)); }
+
+private:
+    QSharedDataPointer<QCameraViewfinderSettingsPrivate> d;
 };
-
-#define QCameraControl_iid "org.qt-project.qt.cameracontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraControl, QCameraControl_iid)
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QCameraViewfinderSettings)
 
-#endif  // QCAMERACONTROL_H
-
+#endif // QCAMERAVIEWFINDERSETTINGS_H

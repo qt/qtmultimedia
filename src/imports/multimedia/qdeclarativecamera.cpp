@@ -989,20 +989,34 @@ QDeclarativeMediaMetaData *QDeclarativeCamera::metaData()
 }
 
 /*!
+    \qmlpropertygroup QtMultimedia::Camera::viewfinder
     \qmlproperty size QtMultimedia::Camera::viewfinder.resolution
-
-    This property holds the resolution of the camera viewfinder. If no
-    resolution is given the backend will use a default value.
-
-    \since 5.4
-*/
-
-/*!
     \qmlproperty real QtMultimedia::Camera::viewfinder.minimumFrameRate
     \qmlproperty real QtMultimedia::Camera::viewfinder.maximumFrameRate
 
-    These properties hold the limits of the preferred frame rate for the
-    viewfinder in frames per second.
+    These properties hold the viewfinder settings.
+
+    \c viewfinder.resolution holds the resolution of the camera viewfinder. If no
+    resolution is given or if it is empty, the backend uses a default value.
+
+    \c viewfinder.minimumFrameRate holds the minimum frame rate for the viewfinder in
+    frames per second. If no value is given or if set to \c 0, the backend uses a default value.
+
+    \c viewfinder.maximumFrameRate holds the maximum frame rate for the viewfinder in
+    frames per second. If no value is given or if set to \c 0, the backend uses a default value.
+
+    If \c viewfinder.minimumFrameRate is equal to \c viewfinder.maximumFrameRate, the frame rate is
+    fixed. If not, the actual frame rate fluctuates between the two values.
+
+    Changing the viewfinder settings while the camera is in the \c Camera.ActiveState state may
+    cause the camera to be restarted.
+
+    If the camera is used to capture videos or images, the viewfinder settings might be
+    ignored if they conflict with the capture settings. You can check the actual viewfinder settings
+    once the camera is in the \c Camera.ActiveStatus status.
+
+    Supported values can be retrieved with supportedViewfinderResolutions() and
+    supportedViewfinderFrameRateRanges().
 
     \since 5.4
  */
@@ -1013,6 +1027,79 @@ QDeclarativeCameraViewfinder *QDeclarativeCamera::viewfinder()
         m_viewfinder = new QDeclarativeCameraViewfinder(m_camera);
 
     return m_viewfinder;
+}
+
+/*!
+    \qmlmethod list<size> QtMultimedia::Camera::supportedViewfinderResolutions(real minimumFrameRate = undefined, real maximumFrameRate = undefined)
+
+    Returns a list of supported viewfinder resolutions.
+
+    If both optional parameters \a minimumFrameRate and \a maximumFrameRate are specified, the
+    returned list is reduced to resolutions supported for the given frame rate range.
+
+    The camera must be loaded before calling this function, otherwise the returned list
+    is empty.
+
+    \sa {QtMultimedia::Camera::viewfinder}{viewfinder}
+
+    \since 5.5
+*/
+QJSValue QDeclarativeCamera::supportedViewfinderResolutions(qreal minimumFrameRate, qreal maximumFrameRate)
+{
+    QQmlEngine *engine = qmlEngine(this);
+
+    QCameraViewfinderSettings settings;
+    settings.setMinimumFrameRate(minimumFrameRate);
+    settings.setMaximumFrameRate(maximumFrameRate);
+    QList<QSize> resolutions = m_camera->supportedViewfinderResolutions(settings);
+
+    QJSValue supportedResolutions = engine->newArray(resolutions.count());
+    int i = 0;
+    Q_FOREACH (const QSize &resolution, resolutions) {
+        QJSValue size = engine->newObject();
+        size.setProperty(QStringLiteral("width"), resolution.width());
+        size.setProperty(QStringLiteral("height"), resolution.height());
+        supportedResolutions.setProperty(i++, size);
+    }
+
+    return supportedResolutions;
+}
+
+/*!
+    \qmlmethod list<object> QtMultimedia::Camera::supportedViewfinderFrameRateRanges(size resolution = undefined)
+
+    Returns a list of supported viewfinder frame rate ranges.
+
+    Each range object in the list has the \c minimumFrameRate and \c maximumFrameRate properties.
+
+    If the optional parameter \a resolution is specified, the returned list is reduced to frame rate
+    ranges supported for the given \a resolution.
+
+    The camera must be loaded before calling this function, otherwise the returned list
+    is empty.
+
+    \sa {QtMultimedia::Camera::viewfinder}{viewfinder}
+
+    \since 5.5
+*/
+QJSValue QDeclarativeCamera::supportedViewfinderFrameRateRanges(const QSize &resolution)
+{
+    QQmlEngine *engine = qmlEngine(this);
+
+    QCameraViewfinderSettings settings;
+    settings.setResolution(resolution);
+    QList<QCamera::FrameRateRange> frameRateRanges = m_camera->supportedViewfinderFrameRateRanges(settings);
+
+    QJSValue supportedFrameRateRanges = engine->newArray(frameRateRanges.count());
+    int i = 0;
+    Q_FOREACH (const QCamera::FrameRateRange &frameRateRange, frameRateRanges) {
+        QJSValue range = engine->newObject();
+        range.setProperty(QStringLiteral("minimumFrameRate"), frameRateRange.first);
+        range.setProperty(QStringLiteral("maximumFrameRate"), frameRateRange.second);
+        supportedFrameRateRanges.setProperty(i++, range);
+    }
+
+    return supportedFrameRateRanges;
 }
 
 QT_END_NAMESPACE

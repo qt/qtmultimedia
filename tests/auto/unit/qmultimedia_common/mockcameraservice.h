@@ -51,6 +51,7 @@
 #include "../qmultimedia_common/mockvideowindowcontrol.h"
 #include "../qmultimedia_common/mockvideodeviceselectorcontrol.h"
 #include "../qmultimedia_common/mockcamerainfocontrol.h"
+#include "../qmultimedia_common/mockcameraviewfindersettingscontrol.h"
 
 class MockSimpleCameraService : public QMediaService
 {
@@ -101,6 +102,7 @@ public:
         windowControl = new MockVideoWindowControl(this);
         mockVideoDeviceSelectorControl = new MockVideoDeviceSelectorControl(this);
         mockCameraInfoControl = new MockCameraInfoControl(this);
+        mockViewfinderSettingsControl = new MockCameraViewfinderSettingsControl(this);
         rendererRef = 0;
         windowRef = 0;
     }
@@ -162,6 +164,11 @@ public:
                 return windowControl;
             }
         }
+
+        if (qstrcmp(iid, QCameraViewfinderSettingsControl2_iid) == 0) {
+            return mockViewfinderSettingsControl;
+        }
+
         return 0;
     }
 
@@ -188,6 +195,7 @@ public:
     MockVideoWindowControl *windowControl;
     MockVideoDeviceSelectorControl *mockVideoDeviceSelectorControl;
     MockCameraInfoControl *mockCameraInfoControl;
+    MockCameraViewfinderSettingsControl *mockViewfinderSettingsControl;
     int rendererRef;
     int windowRef;
 };

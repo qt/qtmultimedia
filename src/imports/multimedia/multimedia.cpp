@@ -105,6 +105,7 @@ public:
 
         // 5.5 types
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 1>(uri, 5, 5, "CameraImageProcessing", trUtf8("CameraImageProcessing is provided by Camera"));
+        qmlRegisterRevision<QDeclarativeCamera, 2>(uri, 5, 5);
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
     }

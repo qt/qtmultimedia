@@ -3,7 +3,7 @@
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,60 +31,38 @@
 **
 ****************************************************************************/
 
-#ifndef QCAMERACONTROL_H
-#define QCAMERACONTROL_H
+#ifndef MOCKCAMERAVIEWFINDERSETTINGSCONTROL_H
+#define MOCKCAMERAVIEWFINDERSETTINGSCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
-#include <QtMultimedia/qmediaobject.h>
+#include "qcameraviewfindersettingscontrol.h"
 
-#include <QtMultimedia/qcamera.h>
-
-QT_BEGIN_NAMESPACE
-
-// Required for QDoc workaround
-class QString;
-
-class Q_MULTIMEDIA_EXPORT QCameraControl : public QMediaControl
+class MockCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl2
 {
     Q_OBJECT
-
 public:
-    enum PropertyChangeType {
-        CaptureMode = 1,
-        ImageEncodingSettings = 2,
-        VideoEncodingSettings = 3,
-        Viewfinder = 4,
-        ViewfinderSettings = 5
-    };
+    MockCameraViewfinderSettingsControl(QObject *parent = 0):
+            QCameraViewfinderSettingsControl2(parent)
+    {
+    }
 
-    ~QCameraControl();
+    ~MockCameraViewfinderSettingsControl() {}
 
-    virtual QCamera::State state() const = 0;
-    virtual void setState(QCamera::State state) = 0;
+    QCameraViewfinderSettings viewfinderSettings() const
+    {
+        return settings;
+    }
 
-    virtual QCamera::Status status() const = 0;
+    void setViewfinderSettings(const QCameraViewfinderSettings &s)
+    {
+        settings = s;
+    }
 
-    virtual QCamera::CaptureModes captureMode() const = 0;
-    virtual void setCaptureMode(QCamera::CaptureModes) = 0;
-    virtual bool isCaptureModeSupported(QCamera::CaptureModes mode) const = 0;
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const
+    {
+        return QList<QCameraViewfinderSettings>();
+    }
 
-    virtual bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const = 0;
-
-Q_SIGNALS:
-    void stateChanged(QCamera::State);
-    void statusChanged(QCamera::Status);
-    void error(int error, const QString &errorString);
-    void captureModeChanged(QCamera::CaptureModes);
-
-protected:
-    QCameraControl(QObject* parent = 0);
+    QCameraViewfinderSettings settings;
 };
 
-#define QCameraControl_iid "org.qt-project.qt.cameracontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraControl, QCameraControl_iid)
-
-QT_END_NAMESPACE
-
-
-#endif  // QCAMERACONTROL_H
-
+#endif // MOCKCAMERAVIEWFINDERSETTINGSCONTROL_H

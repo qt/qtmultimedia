@@ -47,6 +47,7 @@
 #include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcamerafocus.h>
 #include <QtMultimedia/qcameraimageprocessing.h>
+#include <QtMultimedia/qcameraviewfindersettings.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>
 
@@ -76,6 +77,8 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QMediaObject
     Q_ENUMS(LockType)
     Q_ENUMS(Position)
 public:
+    typedef QPair<qreal, qreal> FrameRateRange;
+
     enum Status {
         UnavailableStatus,
         UnloadedStatus,
@@ -168,6 +171,21 @@ public:
     void setViewfinder(QVideoWidget *viewfinder);
     void setViewfinder(QGraphicsVideoItem *viewfinder);
     void setViewfinder(QAbstractVideoSurface *surface);
+
+    QCameraViewfinderSettings viewfinderSettings() const;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
+
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings(
+            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
+
+    QList<QSize> supportedViewfinderResolutions(
+            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
+
+    QList<FrameRateRange> supportedViewfinderFrameRateRanges(
+            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
+
+    QList<QVideoFrame::PixelFormat> supportedViewfinderPixelFormats(
+            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
 
     Error error() const;
     QString errorString() const;

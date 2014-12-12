@@ -36,6 +36,7 @@
 #include "qcamera.h"
 #include "qcamerainfo.h"
 #include "qcameraviewfinder.h"
+#include "qcameraviewfindersettings.h"
 #include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
 #include "qcameraimageprocessing.h"
@@ -272,4 +273,16 @@ void camerafocus()
         }
     }
     //! [Camera focus zones]
+}
+
+void camera_viewfindersettings()
+{
+    //! [Camera viewfinder settings]
+    QCameraViewfinderSettings viewfinderSettings;
+    viewfinderSettings.setResolution(640, 480);
+    viewfinderSettings.setMinimumFrameRate(15.0);
+    viewfinderSettings.setMaximumFrameRate(30.0);
+
+    camera->setViewfinderSettings(viewfinderSettings);
+    //! [Camera viewfinder settings]
 }

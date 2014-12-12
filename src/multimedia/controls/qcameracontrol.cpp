@@ -190,6 +190,7 @@ QCameraControl::~QCameraControl()
   \value VideoEncodingSettings
         Video encoder settings are changed, including audio, video and container settings.
   \value Viewfinder Viewfinder is changed.
+  \value ViewfinderSettings Viewfinder settings are changed.
 */
 
 #include "moc_qcameracontrol.cpp"

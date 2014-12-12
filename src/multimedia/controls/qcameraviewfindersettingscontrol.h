@@ -37,6 +37,7 @@
 #define QCAMERAVIEWFINDERSETTINGSCONTROL_H
 
 #include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -68,6 +69,28 @@ protected:
 
 #define QCameraViewfinderSettingsControl_iid "org.qt-project.qt.cameraviewfindersettingscontrol/5.0"
 Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderSettingsControl, QCameraViewfinderSettingsControl_iid)
+
+
+// Required for QDoc workaround
+class QString;
+
+class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl2 : public QMediaControl
+{
+    Q_OBJECT
+public:
+    virtual ~QCameraViewfinderSettingsControl2();
+
+    virtual QList<QCameraViewfinderSettings> supportedViewfinderSettings() const = 0;
+
+    virtual QCameraViewfinderSettings viewfinderSettings() const = 0;
+    virtual void setViewfinderSettings(const QCameraViewfinderSettings &settings) = 0;
+
+protected:
+    QCameraViewfinderSettingsControl2(QObject *parent = 0);
+};
+
+#define QCameraViewfinderSettingsControl2_iid "org.qt-project.qt.cameraviewfindersettingscontrol2/5.5"
+Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderSettingsControl2, QCameraViewfinderSettingsControl2_iid)
 
 QT_END_NAMESPACE
 

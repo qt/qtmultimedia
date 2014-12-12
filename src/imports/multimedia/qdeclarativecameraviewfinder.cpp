@@ -42,65 +42,73 @@ QT_BEGIN_NAMESPACE
 QDeclarativeCameraViewfinder::QDeclarativeCameraViewfinder(QCamera *camera, QObject *parent)
     : QObject(parent)
     , m_camera(camera)
-    , m_control(0)
 {
-    if (QMediaService *service = m_camera->service())
-        m_control = service->requestControl<QCameraViewfinderSettingsControl *>();
+    connect(m_camera, &QCamera::statusChanged,
+            this, &QDeclarativeCameraViewfinder::_q_cameraStatusChanged);
 }
 
 QDeclarativeCameraViewfinder::~QDeclarativeCameraViewfinder()
 {
-    if (m_control) {
-        if (QMediaService *service = m_camera->service())
-            service->releaseControl(m_control);
-    }
 }
 
 QSize QDeclarativeCameraViewfinder::resolution() const
 {
-    return m_control
-            ? m_control->viewfinderParameter(QCameraViewfinderSettingsControl::Resolution).value<QSize>()
-            : QSize();
+    return m_settings.resolution();
 }
 
-void QDeclarativeCameraViewfinder::setResolution(const QSize &resolution)
+void QDeclarativeCameraViewfinder::setResolution(const QSize &res)
 {
-    if (m_control) {
-        m_control->setViewfinderParameter(
-                    QCameraViewfinderSettingsControl::Resolution, resolution);
+    if (res != m_settings.resolution()) {
+        m_settings = m_camera->viewfinderSettings();
+        m_settings.setResolution(res);
+        m_camera->setViewfinderSettings(m_settings);
         emit resolutionChanged();
     }
 }
 
 qreal QDeclarativeCameraViewfinder::minimumFrameRate() const
 {
-    return m_control
-            ? m_control->viewfinderParameter(QCameraViewfinderSettingsControl::MinimumFrameRate).value<qreal>()
-            : 0.0;
+    return m_settings.minimumFrameRate();
 }
 
 void QDeclarativeCameraViewfinder::setMinimumFrameRate(qreal frameRate)
 {
-    if (m_control) {
-        m_control->setViewfinderParameter(
-                    QCameraViewfinderSettingsControl::MinimumFrameRate, frameRate);
+    if (frameRate != minimumFrameRate()) {
+        m_settings = m_camera->viewfinderSettings();
+        m_settings.setMinimumFrameRate(frameRate);
+        m_camera->setViewfinderSettings(m_settings);
         emit minimumFrameRateChanged();
     }
 }
 
 qreal QDeclarativeCameraViewfinder::maximumFrameRate() const
 {
-    return m_control
-            ? m_control->viewfinderParameter(QCameraViewfinderSettingsControl::MaximumFrameRate).value<qreal>()
-            : 0.0;
+    return m_settings.maximumFrameRate();
 }
 
 void QDeclarativeCameraViewfinder::setMaximumFrameRate(qreal frameRate)
 {
-    if (m_control) {
-        m_control->setViewfinderParameter(
-                    QCameraViewfinderSettingsControl::MaximumFrameRate, frameRate);
+    if (frameRate != maximumFrameRate()) {
+        m_settings = m_camera->viewfinderSettings();
+        m_settings.setMaximumFrameRate(frameRate);
+        m_camera->setViewfinderSettings(m_settings);
         emit maximumFrameRateChanged();
+    }
+}
+
+void QDeclarativeCameraViewfinder::_q_cameraStatusChanged(QCamera::Status status)
+{
+    // Settings values might change when the camera starts, for example if the settings are
+    // undefined, if unsupported values were set or if the settings conflict with capture settings.
+    if (status == QCamera::ActiveStatus) {
+        QCameraViewfinderSettings oldSettings = m_settings;
+        m_settings = m_camera->viewfinderSettings();
+        if (oldSettings.resolution() != m_settings.resolution())
+            emit resolutionChanged();
+        if (oldSettings.minimumFrameRate() != m_settings.minimumFrameRate())
+            emit minimumFrameRateChanged();
+        if (oldSettings.maximumFrameRate() != m_settings.maximumFrameRate())
+            emit maximumFrameRateChanged();
     }
 }
 

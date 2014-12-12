@@ -294,6 +294,11 @@ public Q_SLOTS:
     void setOpticalZoom(qreal);
     void setDigitalZoom(qreal);
 
+    Q_REVISION(2) QJSValue supportedViewfinderResolutions(qreal minimumFrameRate = 0.0,
+                                                          qreal maximumFrameRate = 0.0);
+
+    Q_REVISION(2) QJSValue supportedViewfinderFrameRateRanges(const QSize &resolution = QSize());
+
 Q_SIGNALS:
     void errorChanged();
     void error(QDeclarativeCamera::Error errorCode, const QString &errorString);

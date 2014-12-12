@@ -88,6 +88,8 @@ private slots:
     void testCameraCapture();
     void testCameraCaptureMetadata();
     void testImageSettings();
+    void testViewfinderSettings();
+    void testViewfinderSettingsChange();
     void testCameraLock();
     void testCameraLockCancel();
     void testCameraEncodingProperyChange();
@@ -872,6 +874,174 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings1 == settings2);
     settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(2));
     QVERIFY(settings1 != settings2);
+}
+
+void tst_QCamera::testViewfinderSettings()
+{
+    QCameraViewfinderSettings settings;
+    QVERIFY(settings.isNull());
+    QVERIFY(settings == QCameraViewfinderSettings());
+
+    QCOMPARE(settings.resolution(), QSize());
+    settings.setResolution(QSize(640, 480));
+    QCOMPARE(settings.resolution(), QSize(640, 480));
+    settings.setResolution(1280, 720);
+    QCOMPARE(settings.resolution(), QSize(1280, 720));
+    QVERIFY(!settings.isNull());
+    QVERIFY(settings != QCameraViewfinderSettings());
+
+    settings = QCameraViewfinderSettings();
+    QVERIFY(qFuzzyIsNull(settings.minimumFrameRate()));
+    settings.setMinimumFrameRate(10.0);
+    QVERIFY(qFuzzyCompare(settings.minimumFrameRate(), 10.0));
+    QVERIFY(qFuzzyIsNull(settings.maximumFrameRate()));
+    settings.setMaximumFrameRate(20.0);
+    QVERIFY(qFuzzyCompare(settings.maximumFrameRate(), 20.0));
+    QVERIFY(!settings.isNull());
+
+    settings = QCameraViewfinderSettings();
+    QCOMPARE(settings.pixelFormat(), QVideoFrame::Format_Invalid);
+    settings.setPixelFormat(QVideoFrame::Format_RGB32);
+    QCOMPARE(settings.pixelFormat(), QVideoFrame::Format_RGB32);
+    QVERIFY(!settings.isNull());
+
+    settings = QCameraViewfinderSettings();
+    QCOMPARE(settings.pixelAspectRatio(), QSize(1, 1));
+    settings.setPixelAspectRatio(QSize(2, 1));
+    QCOMPARE(settings.pixelAspectRatio(), QSize(2, 1));
+    settings.setPixelAspectRatio(3, 2);
+    QCOMPARE(settings.pixelAspectRatio(), QSize(3, 2));
+    QVERIFY(!settings.isNull());
+
+    settings = QCameraViewfinderSettings();
+
+    {
+        QCameraViewfinderSettings settings1;
+        QCameraViewfinderSettings settings2;
+        QCOMPARE(settings2, settings1);
+
+        settings2 = settings1;
+        QCOMPARE(settings2, settings1);
+        QVERIFY(settings2.isNull());
+
+        settings1.setResolution(800, 600);
+
+        QVERIFY(settings2.isNull());
+        QVERIFY(!settings1.isNull());
+        QVERIFY(settings1 != settings2);
+    }
+
+    {
+        QCameraViewfinderSettings settings1;
+        QCameraViewfinderSettings settings2(settings1);
+        QCOMPARE(settings2, settings1);
+
+        settings2 = settings1;
+        QCOMPARE(settings2, settings1);
+        QVERIFY(settings2.isNull());
+
+        settings1.setResolution(800, 600);
+
+        QVERIFY(settings2.isNull());
+        QVERIFY(!settings1.isNull());
+        QVERIFY(settings1 != settings2);
+    }
+
+    QCameraViewfinderSettings settings1;
+    QCameraViewfinderSettings settings2;
+
+    settings1 = QCameraViewfinderSettings();
+    settings1.setResolution(800,600);
+    settings2 = QCameraViewfinderSettings();
+    settings2.setResolution(QSize(800,600));
+    QVERIFY(settings1 == settings2);
+    settings2.setResolution(QSize(400,300));
+    QVERIFY(settings1 != settings2);
+
+    settings1 = QCameraViewfinderSettings();
+    settings1.setMinimumFrameRate(10.0);
+    settings2 = QCameraViewfinderSettings();
+    settings2.setMinimumFrameRate(10.0);
+    QVERIFY(settings1 == settings2);
+    settings2.setMinimumFrameRate(15.0);
+    QVERIFY(settings1 != settings2);
+
+    settings1 = QCameraViewfinderSettings();
+    settings1.setMaximumFrameRate(30.0);
+    settings2 = QCameraViewfinderSettings();
+    settings2.setMaximumFrameRate(30.0);
+    QVERIFY(settings1 == settings2);
+    settings2.setMaximumFrameRate(15.0);
+    QVERIFY(settings1 != settings2);
+
+    settings1 = QCameraViewfinderSettings();
+    settings1.setPixelFormat(QVideoFrame::Format_YV12);
+    settings2 = QCameraViewfinderSettings();
+    settings2.setPixelFormat(QVideoFrame::Format_YV12);
+    QVERIFY(settings1 == settings2);
+    settings2.setPixelFormat(QVideoFrame::Format_NV21);
+    QVERIFY(settings1 != settings2);
+
+    settings1 = QCameraViewfinderSettings();
+    settings1.setPixelAspectRatio(2,1);
+    settings2 = QCameraViewfinderSettings();
+    settings2.setPixelAspectRatio(QSize(2,1));
+    QVERIFY(settings1 == settings2);
+    settings2.setPixelAspectRatio(QSize(1,2));
+    QVERIFY(settings1 != settings2);
+}
+
+void tst_QCamera::testViewfinderSettingsChange()
+{
+    QCamera camera;
+
+    QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
+    QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
+
+    camera.start();
+    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QCOMPARE(camera.status(), QCamera::ActiveStatus);
+
+    QCOMPARE(stateChangedSignal.count(), 1);
+    QCOMPARE(statusChangedSignal.count(), 1);
+    stateChangedSignal.clear();
+    statusChangedSignal.clear();
+
+    //the settings change should trigger camera stop/start
+    camera.setViewfinderSettings(QCameraViewfinderSettings());
+    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QCOMPARE(camera.status(), QCamera::LoadedStatus);
+
+    QCOMPARE(stateChangedSignal.count(), 0);
+    QCOMPARE(statusChangedSignal.count(), 1);
+    stateChangedSignal.clear();
+    statusChangedSignal.clear();
+
+    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+
+    QCOMPARE(stateChangedSignal.count(), 0);
+    QCOMPARE(statusChangedSignal.count(), 1);
+    stateChangedSignal.clear();
+    statusChangedSignal.clear();
+
+    //the settings change should trigger camera stop/start only once
+    camera.setViewfinderSettings(QCameraViewfinderSettings());
+    camera.setViewfinderSettings(QCameraViewfinderSettings());
+
+    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QCOMPARE(camera.status(), QCamera::LoadedStatus);
+
+    QCOMPARE(stateChangedSignal.count(), 0);
+    QCOMPARE(statusChangedSignal.count(), 1);
+    stateChangedSignal.clear();
+    statusChangedSignal.clear();
+
+    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+
+    QCOMPARE(stateChangedSignal.count(), 0);
+    QCOMPARE(statusChangedSignal.count(), 1);
 }
 
 void tst_QCamera::testCameraLock()

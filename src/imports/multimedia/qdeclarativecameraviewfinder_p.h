@@ -78,9 +78,12 @@ Q_SIGNALS:
     void minimumFrameRateChanged();
     void maximumFrameRateChanged();
 
+private Q_SLOTS:
+    void _q_cameraStatusChanged(QCamera::Status status);
+
 private:
     QCamera *m_camera;
-    QCameraViewfinderSettingsControl *m_control;
+    QCameraViewfinderSettings m_settings;
 };
 
 QT_END_NAMESPACE
