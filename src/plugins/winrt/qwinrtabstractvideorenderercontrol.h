@@ -43,6 +43,7 @@
 #define QWINRTABSTRACTVIDEORENDERERCONTROL_H
 
 #include <QtMultimedia/QVideoRendererControl>
+#include <QtMultimedia/QVideoSurfaceFormat>
 
 struct ID3D11Device;
 struct ID3D11Texture2D;
@@ -62,6 +63,8 @@ public:
 
     QSize size() const;
     void setSize(const QSize &size);
+
+    void setScanLineDirection(QVideoSurfaceFormat::Direction direction);
 
     void setActive(bool active);
 

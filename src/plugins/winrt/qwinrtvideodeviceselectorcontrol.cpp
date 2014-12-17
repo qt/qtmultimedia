@@ -337,7 +337,17 @@ QCamera::Position QWinRTVideoDeviceSelectorControl::cameraPosition(const QString
 
 int QWinRTVideoDeviceSelectorControl::cameraOrientation(const QString &deviceName)
 {
+#ifdef Q_OS_WINPHONE
+    switch (cameraPosition(deviceName)) {
+    case QCamera::FrontFace:
+    case QCamera::BackFace:
+        return 270;
+    default:
+        break;
+    }
+#else
     Q_UNUSED(deviceName);
+#endif
     return 0;
 }
 

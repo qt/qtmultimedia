@@ -44,6 +44,7 @@
 #include <QtCore/qfunctions_winrt.h>
 #include <QtCore/QGlobalStatic>
 #include <QtCore/QMetaMethod>
+#include <QtCore/QPointer>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLTexture>
 #include <QtMultimedia/QAbstractVideoBuffer>
@@ -181,7 +182,7 @@ enum DirtyState {
 class QWinRTAbstractVideoRendererControlPrivate
 {
 public:
-    QAbstractVideoSurface *surface;
+    QPointer<QAbstractVideoSurface> surface;
     QVideoSurfaceFormat format;
 
     DirtyState dirtyState;
@@ -219,7 +220,6 @@ QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSi
 {
     Q_D(QWinRTAbstractVideoRendererControl);
 
-    d->surface = Q_NULLPTR;
     d->format = QVideoSurfaceFormat(size, QVideoFrame::Format_BGRA32,
                                     QAbstractVideoBuffer::GLTextureHandle);
     d->dirtyState = TextureDirty;
@@ -310,6 +310,16 @@ void QWinRTAbstractVideoRendererControl::setSize(const QSize &size)
     d->dirtyState = TextureDirty;
 }
 
+void QWinRTAbstractVideoRendererControl::setScanLineDirection(QVideoSurfaceFormat::Direction scanLineDirection)
+{
+    Q_D(QWinRTAbstractVideoRendererControl);
+
+    if (d->format.scanLineDirection() == scanLineDirection)
+        return;
+
+    d->format.setScanLineDirection(scanLineDirection);
+}
+
 void QWinRTAbstractVideoRendererControl::setActive(bool active)
 {
     Q_D(QWinRTAbstractVideoRendererControl);
@@ -330,6 +340,8 @@ void QWinRTAbstractVideoRendererControl::setActive(bool active)
     }
 
     d->renderThread.requestInterruption();
+    if (d->surface && d->surface->isActive())
+        d->surface->stop();
 }
 
 void QWinRTAbstractVideoRendererControl::present()

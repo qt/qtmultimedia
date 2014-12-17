@@ -677,6 +677,9 @@ HRESULT QWinRTCameraControl::initialize()
         return E_FAIL;
     }
 
+    if (d->videoDeviceSelector->cameraPosition(deviceName) == QCamera::FrontFace)
+        d->videoRenderer->setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+
     ComPtr<IMediaCaptureInitializationSettings> settings;
     hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_Capture_MediaCaptureInitializationSettings).Get(),
                             &settings);
@@ -708,7 +711,20 @@ HRESULT QWinRTCameraControl::initialize()
     hr = videoDeviceController.As(&deviceController);
     Q_ASSERT_SUCCEEDED(hr);
     ComPtr<IVectorView<IMediaEncodingProperties *>> encodingPropertiesList;
-    hr = deviceController->GetAvailableMediaStreamProperties(MediaStreamType_Photo, &encodingPropertiesList);
+    MediaStreamType mediaStreamType;
+    switch (d->captureMode) {
+    default:
+    case QCamera::CaptureViewfinder:
+        mediaStreamType = MediaStreamType_VideoPreview;
+        break;
+    case QCamera::CaptureStillImage:
+        mediaStreamType = MediaStreamType_Photo;
+        break;
+    case QCamera::CaptureVideo:
+        mediaStreamType = MediaStreamType_VideoRecord;
+        break;
+    }
+    hr = deviceController->GetAvailableMediaStreamProperties(mediaStreamType, &encodingPropertiesList);
     Q_ASSERT_SUCCEEDED(hr);
 
     d->size = QSize();
@@ -721,12 +737,12 @@ HRESULT QWinRTCameraControl::initialize()
         hr = encodingPropertiesList->GetAt(i, &properties);
         Q_ASSERT_SUCCEEDED(hr);
         ComPtr<IVideoEncodingProperties> videoProperties;
-        hr = properties.As(&videoEncodingProperties);
+        hr = properties.As(&videoProperties);
         Q_ASSERT_SUCCEEDED(hr);
         UINT32 width, height;
-        hr = videoEncodingProperties->get_Width(&width);
+        hr = videoProperties->get_Width(&width);
         Q_ASSERT_SUCCEEDED(hr);
-        hr = videoEncodingProperties->get_Height(&height);
+        hr = videoProperties->get_Height(&height);
         Q_ASSERT_SUCCEEDED(hr);
         // Choose the highest-quality format
         if (int(width * height) > d->size.width() * d->size.height()) {
