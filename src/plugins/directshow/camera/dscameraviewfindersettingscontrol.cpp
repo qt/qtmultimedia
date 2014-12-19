@@ -31,71 +31,30 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qvariant.h>
-#include <QtCore/qdebug.h>
-
-#include "dscameraservice.h"
-#include "dscameracontrol.h"
-#include "dscamerasession.h"
-#include "dsvideorenderer.h"
-#include "dsvideodevicecontrol.h"
-#include "dsimagecapturecontrol.h"
 #include "dscameraviewfindersettingscontrol.h"
+#include "dscamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-DSCameraService::DSCameraService(QObject *parent):
-    QMediaService(parent)
-  , m_videoRenderer(0)
+DSCameraViewfinderSettingsControl::DSCameraViewfinderSettingsControl(DSCameraSession *session)
+    : QCameraViewfinderSettingsControl2(session)
+    , m_session(session)
 {
-    m_session = new DSCameraSession(this);
-    m_control = new DSCameraControl(m_session);
-    m_videoDevice = new DSVideoDeviceControl(m_session);
-    m_imageCapture = new DSImageCaptureControl(m_session);
-    m_viewfinderSettings = new DSCameraViewfinderSettingsControl(m_session);
 }
 
-DSCameraService::~DSCameraService()
+QList<QCameraViewfinderSettings> DSCameraViewfinderSettingsControl::supportedViewfinderSettings() const
 {
-    delete m_control;
-    delete m_viewfinderSettings;
-    delete m_videoDevice;
-    delete m_videoRenderer;
-    delete m_imageCapture;
-    delete m_session;
+    return m_session->supportedViewfinderSettings();
 }
 
-QMediaControl* DSCameraService::requestControl(const char *name)
+QCameraViewfinderSettings DSCameraViewfinderSettingsControl::viewfinderSettings() const
 {
-    if(qstrcmp(name,QCameraControl_iid) == 0)
-        return m_control;
-
-    if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
-        return m_imageCapture;
-
-    if (qstrcmp(name,QVideoRendererControl_iid) == 0) {
-        if (!m_videoRenderer) {
-            m_videoRenderer = new DSVideoRendererControl(m_session, this);
-            return m_videoRenderer;
-        }
-    }
-
-    if (qstrcmp(name,QVideoDeviceSelectorControl_iid) == 0)
-        return m_videoDevice;
-
-    if (qstrcmp(name, QCameraViewfinderSettingsControl2_iid) == 0)
-        return m_viewfinderSettings;
-
-    return 0;
+    return m_session->viewfinderSettings();
 }
 
-void DSCameraService::releaseControl(QMediaControl *control)
+void DSCameraViewfinderSettingsControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
 {
-    if (control == m_videoRenderer) {
-        delete m_videoRenderer;
-        m_videoRenderer = 0;
-        return;
-    }
+    m_session->setViewfinderSettings(settings);
 }
 
 QT_END_NAMESPACE

@@ -31,43 +31,29 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
+#ifndef DSCAMERAVIEWFINDERSETTINGSCONTROL_H
+#define DSCAMERAVIEWFINDERSETTINGSCONTROL_H
 
-#include <QtCore/qobject.h>
-
-#include <qmediaservice.h>
+#include <qcameraviewfindersettingscontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
 class DSCameraSession;
-class DSVideoOutputControl;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
 
-class DSCameraService : public QMediaService
+class DSCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl2
 {
-    Q_OBJECT
-
 public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService();
+    DSCameraViewfinderSettingsControl(DSCameraSession *session);
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const;
+
+    QCameraViewfinderSettings viewfinderSettings() const;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
 
 private:
-    DSCameraControl        *m_control;
-    DSCameraSession        *m_session;
-    DSVideoOutputControl   *m_videoOutput;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
+    DSCameraSession *m_session;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // DSCAMERAVIEWFINDERSETTINGSCONTROL_H
