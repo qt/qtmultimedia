@@ -36,12 +36,15 @@
 #include "qdeclarativevideooutput_p.h"
 #include <QtMultimedia/qvideorenderercontrol.h>
 #include <QtMultimedia/qmediaservice.h>
+#include <QtCore/qloggingcategory.h>
 #include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>
 
 #include <QtGui/QOpenGLContext>
 
 QT_BEGIN_NAMESPACE
+
+Q_DECLARE_LOGGING_CATEGORY(qLcVideo)
 
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
         (QSGVideoNodeFactoryInterface_iid, QLatin1String("video/videonode"), Qt::CaseInsensitive))
@@ -66,9 +69,7 @@ QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeV
                 m_videoNodeFactories.prepend(plugin);
             else
                 m_videoNodeFactories.append(plugin);
-#ifdef DEBUG_VIDEOITEM
-            qDebug() << "found videonode plugin" << key << plugin;
-#endif
+            qCDebug(qLcVideo) << "found videonode plugin" << key << plugin;
         }
     }
 
@@ -217,17 +218,13 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 
     if (m_frameChanged) {
         if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
-#ifdef DEBUG_VIDEOITEM
-            qDebug() << "updatePaintNode: deleting old video node because frame format changed...";
-#endif
+            qCDebug(qLcVideo) << "updatePaintNode: deleting old video node because frame format changed";
             delete videoNode;
             videoNode = 0;
         }
 
         if (!m_frame.isValid()) {
-#ifdef DEBUG_VIDEOITEM
-            qDebug() << "updatePaintNode: no frames yet... aborting...";
-#endif
+            qCDebug(qLcVideo) << "updatePaintNode: no frames yet";
             m_frameChanged = false;
             return 0;
         }
@@ -236,9 +233,9 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
             foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
                 videoNode = factory->createNode(m_surface->surfaceFormat());
                 if (videoNode) {
-#ifdef DEBUG_VIDEOITEM
-                    qDebug() << "using video node from factory" << factory;
-#endif
+                    qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType()
+                                     << " Supported formats for the handle by this node:"
+                                     << factory->supportedPixelFormats(m_frame.handleType());
                     break;
                 }
             }
@@ -327,9 +324,7 @@ QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
 
 bool QSGVideoItemSurface::start(const QVideoSurfaceFormat &format)
 {
-#ifdef DEBUG_VIDEOITEM
-    qDebug() << Q_FUNC_INFO << format << supportedPixelFormats(format.handleType());
-#endif
+    qCDebug(qLcVideo) << "Video surface format:" << format << "all supported formats:" << supportedPixelFormats(format.handleType());
 
     if (!supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
         return false;

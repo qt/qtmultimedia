@@ -39,10 +39,11 @@
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <private/qmediapluginloader_p.h>
-
-//#define DEBUG_VIDEOITEM
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 /*!
     \qmltype VideoOutput
@@ -154,9 +155,7 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
 
 void QDeclarativeVideoOutput::setSource(QObject *source)
 {
-#ifdef DEBUG_VIDEOITEM
-    qDebug() << Q_FUNC_INFO << source;
-#endif
+    qCDebug(qLcVideo) << "source is" << source;
 
     if (source == m_source.data())
         return;
@@ -273,9 +272,7 @@ void QDeclarativeVideoOutput::_q_updateMediaObject()
     if (m_source)
         mediaObject = qobject_cast<QMediaObject*>(m_source.data()->property("mediaObject").value<QObject*>());
 
-#ifdef DEBUG_VIDEOITEM
-    qDebug() << Q_FUNC_INFO << mediaObject;
-#endif
+    qCDebug(qLcVideo) << "media object is" << mediaObject;
 
     if (m_mediaObject.data() == mediaObject)
         return;
