@@ -59,3 +59,9 @@ OBJECTIVE_SOURCES += \
     avfcamerafocuscontrol.mm \
     avfcameraexposurecontrol.mm
 
+ios {
+
+HEADERS += avfcamerazoomcontrol.h
+OBJECTIVE_SOURCES += avfcamerazoomcontrol.mm
+
+}

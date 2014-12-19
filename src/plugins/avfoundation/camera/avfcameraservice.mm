@@ -59,6 +59,10 @@
 #include "avfcamerafocuscontrol.h"
 #include "avfcameraexposurecontrol.h"
 
+#ifdef Q_OS_IOS
+#include "avfcamerazoomcontrol.h"
+#endif
+
 #include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
 
@@ -83,6 +87,11 @@ AVFCameraService::AVFCameraService(QObject *parent):
     if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_8_0)
         m_cameraExposureControl = new AVFCameraExposureControl(this);
 #endif
+
+    m_cameraZoomControl = 0;
+#ifdef Q_OS_IOS
+    m_cameraZoomControl = new AVFCameraZoomControl(this);
+#endif
 }
 
 AVFCameraService::~AVFCameraService()
@@ -103,7 +112,9 @@ AVFCameraService::~AVFCameraService()
     delete m_cameraControl;
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
-
+#ifdef Q_OS_IOS
+    delete m_cameraZoomControl;
+#endif
     delete m_session;
 }
 
@@ -143,6 +154,12 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
         m_session->addProbe(videoProbe);
         return videoProbe;
     }
+
+#ifdef Q_OS_IOS
+    if (qstrcmp(name, QCameraZoomControl_iid) == 0)
+        return m_cameraZoomControl;
+#endif
+
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0)
             m_videoOutput = new AVFCameraRendererControl(this);
