@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 
 class QPulseAudioOutput : public QAbstractAudioOutput
 {
-    friend class OutputPrivate;
+    friend class PulseOutputPrivate;
     Q_OBJECT
 
 public:
@@ -139,14 +139,14 @@ private:
     pa_sample_spec m_spec;
 };
 
-class OutputPrivate : public QIODevice
+class PulseOutputPrivate : public QIODevice
 {
     friend class QPulseAudioOutput;
     Q_OBJECT
 
 public:
-    OutputPrivate(QPulseAudioOutput *audio);
-    virtual ~OutputPrivate() {}
+    PulseOutputPrivate(QPulseAudioOutput *audio);
+    virtual ~PulseOutputPrivate() {}
 
 protected:
     qint64 readData(char *data, qint64 len);

@@ -59,7 +59,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class InputPrivate;
+class PulseInputPrivate;
 
 class QPulseAudioInput : public QAbstractAudioInput
 {
@@ -138,12 +138,12 @@ private:
     pa_sample_spec m_spec;
 };
 
-class InputPrivate : public QIODevice
+class PulseInputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    InputPrivate(QPulseAudioInput *audio);
-    ~InputPrivate() {};
+    PulseInputPrivate(QPulseAudioInput *audio);
+    ~PulseInputPrivate() {};
 
     qint64 readData(char *data, qint64 len);
     qint64 writeData(const char *data, qint64 len);

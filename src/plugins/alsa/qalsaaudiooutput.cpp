@@ -247,7 +247,7 @@ QIODevice* QAlsaAudioOutput::start()
 
     close();
 
-    audioSource = new OutputPrivate(this);
+    audioSource = new AlsaOutputPrivate(this);
     audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
     pullMode = false;
 
@@ -785,14 +785,14 @@ void QAlsaAudioOutput::reset()
     stop();
 }
 
-OutputPrivate::OutputPrivate(QAlsaAudioOutput* audio)
+AlsaOutputPrivate::AlsaOutputPrivate(QAlsaAudioOutput* audio)
 {
     audioDevice = qobject_cast<QAlsaAudioOutput*>(audio);
 }
 
-OutputPrivate::~OutputPrivate() {}
+AlsaOutputPrivate::~AlsaOutputPrivate() {}
 
-qint64 OutputPrivate::readData( char* data, qint64 len)
+qint64 AlsaOutputPrivate::readData( char* data, qint64 len)
 {
     Q_UNUSED(data)
     Q_UNUSED(len)
@@ -800,7 +800,7 @@ qint64 OutputPrivate::readData( char* data, qint64 len)
     return 0;
 }
 
-qint64 OutputPrivate::writeData(const char* data, qint64 len)
+qint64 AlsaOutputPrivate::writeData(const char* data, qint64 len)
 {
     int retry = 0;
     qint64 written = 0;
