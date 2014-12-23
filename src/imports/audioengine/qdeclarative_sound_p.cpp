@@ -239,7 +239,7 @@ QDeclarativeSound::PlayType QDeclarativeSound::playType() const
 void QDeclarativeSound::setPlayType(PlayType playType)
 {
     if (m_complete) {
-        qWarning("Sound: playType not changable after initialization.");
+        qWarning("Sound: playType not changeable after initialization.");
         return;
     }
     m_playType = playType;
@@ -258,7 +258,7 @@ QString QDeclarativeSound::category() const
 void QDeclarativeSound::setCategory(const QString& category)
 {
     if (m_complete) {
-        qWarning("Sound: category not changable after initialization.");
+        qWarning("Sound: category not changeable after initialization.");
         return;
     }
     m_category = category;
@@ -278,7 +278,7 @@ QString QDeclarativeSound::name() const
 void QDeclarativeSound::setName(const QString& name)
 {
     if (m_complete) {
-        qWarning("Sound: category not changable after initialization.");
+        qWarning("Sound: category not changeable after initialization.");
         return;
     }
     m_name = name;
@@ -322,7 +322,7 @@ QDeclarativePlayVariation* QDeclarativeSound::getVariation(int index)
 void QDeclarativeSound::setAttenuationModel(QString attenuationModel)
 {
     if (m_complete) {
-        qWarning("Sound: attenuationModel not changable after initialization.");
+        qWarning("Sound: attenuationModel not changeable after initialization.");
         return;
     }
     m_attenuationModel = attenuationModel;

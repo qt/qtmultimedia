@@ -114,7 +114,7 @@ QUrl QDeclarativeAudioSample::source() const
 void QDeclarativeAudioSample::setSource(const QUrl& url)
 {
     if (m_complete) {
-        qWarning("AudioSample: source not changable after initialization.");
+        qWarning("AudioSample: source not changeable after initialization.");
         return;
     }
     m_url = url;
@@ -170,7 +170,7 @@ void QDeclarativeAudioSample::load()
 void QDeclarativeAudioSample::setPreloaded(bool preloaded)
 {
     if (m_complete) {
-        qWarning("AudioSample: preloaded not changable after initialization.");
+        qWarning("AudioSample: preloaded not changeable after initialization.");
         return;
     }
     m_preloaded = preloaded;
@@ -179,7 +179,7 @@ void QDeclarativeAudioSample::setPreloaded(bool preloaded)
 void QDeclarativeAudioSample::setStreaming(bool streaming)
 {
     if (m_complete) {
-        qWarning("AudioSample: streaming not changable after initialization.");
+        qWarning("AudioSample: streaming not changeable after initialization.");
         return;
     }
     m_streaming = streaming;
@@ -199,7 +199,7 @@ QString QDeclarativeAudioSample::name() const
 void QDeclarativeAudioSample::setName(const QString& name)
 {
     if (m_complete) {
-        qWarning("AudioSample: name not changable after initialization.");
+        qWarning("AudioSample: name not changeable after initialization.");
         return;
     }
     m_name = name;
