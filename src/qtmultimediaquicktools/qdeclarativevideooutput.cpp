@@ -161,8 +161,10 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     if (source == m_source.data())
         return;
 
-    if (m_source && m_sourceType == MediaObjectSource)
+    if (m_source && m_sourceType == MediaObjectSource) {
         disconnect(m_source.data(), 0, this, SLOT(_q_updateMediaObject()));
+        disconnect(m_source.data(), 0, this, SLOT(_q_updateCameraInfo()));
+    }
 
     if (m_backend)
         m_backend->releaseSource();
@@ -183,6 +185,20 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
                                      Qt::DirectConnection, 0);
 
             }
+
+            int deviceIdPropertyIndex = metaObject->indexOfProperty("deviceId");
+            if (deviceIdPropertyIndex != -1) { // Camera source
+                const QMetaProperty deviceIdProperty = metaObject->property(deviceIdPropertyIndex);
+
+                if (deviceIdProperty.hasNotifySignal()) {
+                    QMetaMethod method = deviceIdProperty.notifySignal();
+                    QMetaObject::connect(m_source.data(), method.methodIndex(),
+                                         this, this->metaObject()->indexOfSlot("_q_updateCameraInfo()"),
+                                         Qt::DirectConnection, 0);
+
+                }
+            }
+
             m_sourceType = MediaObjectSource;
         } else if (metaObject->indexOfProperty("videoSurface") != -1) {
             // Make sure our backend is a QDeclarativeVideoRendererBackend
@@ -269,24 +285,37 @@ void QDeclarativeVideoOutput::_q_updateMediaObject()
 
     m_mediaObject.clear();
     m_service.clear();
-    m_cameraInfo = QCameraInfo();
 
     if (mediaObject) {
         if (QMediaService *service = mediaObject->service()) {
             if (createBackend(service)) {
                 m_service = service;
                 m_mediaObject = mediaObject;
-                const QCamera *camera = qobject_cast<const QCamera *>(mediaObject);
-                if (camera) {
-                    m_cameraInfo = QCameraInfo(*camera);
-
-                    // The camera position and orientation need to be taken into account for
-                    // the viewport auto orientation
-                    if (m_autoOrientation)
-                        _q_screenOrientationChanged(m_screenOrientationHandler->currentOrientation());
-                }
             }
         }
+    }
+
+    _q_updateCameraInfo();
+}
+
+void QDeclarativeVideoOutput::_q_updateCameraInfo()
+{
+    if (m_mediaObject) {
+        const QCamera *camera = qobject_cast<const QCamera *>(m_mediaObject);
+        if (camera) {
+            QCameraInfo info(*camera);
+
+            if (m_cameraInfo != info) {
+                m_cameraInfo = info;
+
+                // The camera position and orientation need to be taken into account for
+                // the viewport auto orientation
+                if (m_autoOrientation)
+                    _q_screenOrientationChanged(m_screenOrientationHandler->currentOrientation());
+            }
+        }
+    } else {
+        m_cameraInfo = QCameraInfo();
     }
 }
 
