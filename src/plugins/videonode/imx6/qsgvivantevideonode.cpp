@@ -61,6 +61,7 @@ void QSGVivanteVideoNode::setCurrentFrame(const QVideoFrame &frame)
 const QMap<QVideoFrame::PixelFormat, GLenum>& QSGVivanteVideoNode::getVideoFormat2GLFormatMap()
 {
     if (static_VideoFormat2GLFormatMap.isEmpty()) {
+        static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_YUV420P,  GL_VIV_I420);
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_YV12,     GL_VIV_YV12);
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_NV12,     GL_VIV_NV12);
         static_VideoFormat2GLFormatMap.insert(QVideoFrame::Format_NV21,     GL_VIV_NV21);
