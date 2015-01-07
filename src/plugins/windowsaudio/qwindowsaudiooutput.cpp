@@ -44,6 +44,7 @@
 
 #include "qwindowsaudiooutput.h"
 #include <QtEndian>
+#include <QtCore/QDataStream>
 
 #ifndef SPEAKER_FRONT_LEFT
     #define SPEAKER_FRONT_LEFT            0x00000001

@@ -45,6 +45,8 @@
 
 #include "qwindowsaudioinput.h"
 
+#include <QtCore/QDataStream>
+
 QT_BEGIN_NAMESPACE
 
 //#define DEBUG_AUDIO 1

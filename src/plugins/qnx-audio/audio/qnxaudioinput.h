@@ -37,6 +37,7 @@
 #include "qaudiosystem.h"
 
 #include <QSocketNotifier>
+#include <QIODevice>
 #include <QTime>
 #include <QTimer>
 

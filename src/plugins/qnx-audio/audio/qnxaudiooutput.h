@@ -38,6 +38,7 @@
 
 #include <QTime>
 #include <QTimer>
+#include <QIODevice>
 
 #include <sys/asoundlib.h>
 

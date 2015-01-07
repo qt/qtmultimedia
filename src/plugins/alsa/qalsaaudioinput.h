@@ -54,6 +54,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qiodevice.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>

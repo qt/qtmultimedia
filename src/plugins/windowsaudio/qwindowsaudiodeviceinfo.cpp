@@ -44,6 +44,7 @@
 
 
 #include <QtCore/qt_windows.h>
+#include <QtCore/QDataStream>
 #include <mmsystem.h>
 #include "qwindowsaudiodeviceinfo.h"
 

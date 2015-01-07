@@ -39,6 +39,7 @@
 #include <qbytearray.h>
 #include <qmap.h>
 #include <QTime>
+#include <QIODevice>
 
 QT_BEGIN_NAMESPACE
 
