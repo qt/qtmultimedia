@@ -52,9 +52,13 @@ public:
     void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value);
 
     QSize resolution() const;
+    qreal minimumFrameRate() const;
+    qreal maximumFrameRate() const;
 
 private:
     QSize m_resolution;
+    qreal m_minimumFrameRate;
+    qreal m_maximumFrameRate;
 };
 
 QT_END_NAMESPACE

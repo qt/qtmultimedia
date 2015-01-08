@@ -338,6 +338,17 @@ void CameraBinSession::setupCaptureResolution()
         g_object_set(m_camerabin, VIDEO_CAPTURE_CAPS_PROPERTY, NULL, NULL);
     }
 
+    GstElement *mfw_v4lsrc = 0;
+    if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "video-source")) {
+        GstElement *videoSrc = 0;
+        g_object_get(G_OBJECT(m_videoSrc), "video-source", &videoSrc, NULL);
+        if (videoSrc) {
+            const char *name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(gst_element_get_factory(videoSrc)));
+            if (!qstrcmp(name, "mfw_v4lsrc"))
+                mfw_v4lsrc = videoSrc;
+        }
+    }
+
     resolution = m_viewfinderSettingsControl->resolution();
     if (!resolution.isEmpty()) {
         GstCaps *caps = resolutionToCaps(resolution);
@@ -346,8 +357,33 @@ void CameraBinSession::setupCaptureResolution()
 #endif
         g_object_set(m_camerabin, VIEWFINDER_CAPS_PROPERTY, caps, NULL);
         gst_caps_unref(caps);
+
+        if (mfw_v4lsrc) {
+            int capMode = 0;
+            if (resolution == QSize(320, 240))
+                capMode = 1;
+            else if (resolution == QSize(720, 480))
+                capMode = 2;
+            else if (resolution == QSize(720, 576))
+                capMode = 3;
+            else if (resolution == QSize(1280, 720))
+                capMode = 4;
+            else if (resolution == QSize(1920, 1080))
+                capMode = 5;
+            g_object_set(G_OBJECT(mfw_v4lsrc), "capture-mode", capMode, NULL);
+        }
     } else {
         g_object_set(m_camerabin, VIEWFINDER_CAPS_PROPERTY, NULL, NULL);
+    }
+
+    const qreal maxFps = m_viewfinderSettingsControl->maximumFrameRate();
+    if (!qFuzzyIsNull(maxFps)) {
+        if (mfw_v4lsrc) {
+            int n, d;
+            gst_util_double_to_fraction(maxFps, &n, &d);
+            g_object_set(G_OBJECT(mfw_v4lsrc), "fps-n", n, NULL);
+            g_object_set(G_OBJECT(mfw_v4lsrc), "fps-d", d, NULL);
+        }
     }
 
     if (m_videoEncoder)
