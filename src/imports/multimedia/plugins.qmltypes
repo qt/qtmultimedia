@@ -1225,6 +1225,7 @@ Module {
         Property { name: "orientation"; type: "int" }
         Property { name: "sourceRect"; type: "QRectF"; isReadonly: true }
         Property { name: "contentRect"; type: "QRectF"; isReadonly: true }
+        Property { name: "filters"; isList: true; isReadonly: true }
         Signal {
             name: "fillModeChanged"
             Parameter { type: "QDeclarativeVideoOutput::FillMode" }

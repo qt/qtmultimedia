@@ -74,8 +74,9 @@ public:
     QSGVideoNode_EGL(const QVideoSurfaceFormat &format);
     ~QSGVideoNode_EGL();
 
-    void setCurrentFrame(const QVideoFrame &frame);
+    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
     QVideoFrame::PixelFormat pixelFormat() const;
+    QAbstractVideoBuffer::HandleType handleType() const;
 
 private:
     QSGVideoMaterial_EGL m_material;

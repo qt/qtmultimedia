@@ -369,6 +369,23 @@ QVideoFrame &QVideoFrame::operator =(const QVideoFrame &other)
 }
 
 /*!
+  \return \c true if this QVideoFrame and \a other reflect the same frame.
+ */
+bool QVideoFrame::operator==(const QVideoFrame &other) const
+{
+    // Due to explicit sharing we just compare the QSharedData which in turn compares the pointers.
+    return d == other.d;
+}
+
+/*!
+  \return \c true if this QVideoFrame and \a other do not reflect the same frame.
+ */
+bool QVideoFrame::operator!=(const QVideoFrame &other) const
+{
+    return d != other.d;
+}
+
+/*!
     Destroys a video frame.
 */
 QVideoFrame::~QVideoFrame()

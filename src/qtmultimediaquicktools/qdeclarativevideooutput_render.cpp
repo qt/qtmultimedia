@@ -34,6 +34,7 @@
 
 #include "qdeclarativevideooutput_render_p.h"
 #include "qdeclarativevideooutput_p.h"
+#include <QtMultimedia/qabstractvideofilter.h>
 #include <QtMultimedia/qvideorenderercontrol.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <QtCore/qloggingcategory.h>
@@ -41,6 +42,8 @@
 #include <private/qsgvideonode_p.h>
 
 #include <QtGui/QOpenGLContext>
+#include <QtQuick/QQuickWindow>
+#include <QtCore/QRunnable>
 
 QT_BEGIN_NAMESPACE
 
@@ -103,11 +106,79 @@ bool QDeclarativeVideoRendererBackend::init(QMediaService *service)
     return false;
 }
 
+void QDeclarativeVideoRendererBackend::appendFilter(QAbstractVideoFilter *filter)
+{
+    QMutexLocker lock(&m_frameMutex);
+    m_filters.append(Filter(filter));
+}
+
+void QDeclarativeVideoRendererBackend::clearFilters()
+{
+    QMutexLocker lock(&m_frameMutex);
+    scheduleDeleteFilterResources();
+    m_filters.clear();
+}
+
+class FilterRunnableDeleter : public QRunnable
+{
+public:
+    FilterRunnableDeleter(const QList<QVideoFilterRunnable *> &runnables) : m_runnables(runnables) { }
+    void run() Q_DECL_OVERRIDE {
+        foreach (QVideoFilterRunnable *runnable, m_runnables)
+            delete runnable;
+    }
+private:
+    QList<QVideoFilterRunnable *> m_runnables;
+};
+
+void QDeclarativeVideoRendererBackend::scheduleDeleteFilterResources()
+{
+    if (!q->window())
+        return;
+
+    QList<QVideoFilterRunnable *> runnables;
+    for (int i = 0; i < m_filters.count(); ++i) {
+        if (m_filters[i].runnable) {
+            runnables.append(m_filters[i].runnable);
+            m_filters[i].runnable = 0;
+        }
+    }
+
+    if (!runnables.isEmpty()) {
+        // Request the scenegraph to run our cleanup job on the render thread.
+        // The execution of our QRunnable may happen after the QML tree including the QAbstractVideoFilter instance is
+        // destroyed on the main thread so no references to it must be used during cleanup.
+        q->window()->scheduleRenderJob(new FilterRunnableDeleter(runnables), QQuickWindow::BeforeSynchronizingStage);
+    }
+}
+
+void QDeclarativeVideoRendererBackend::releaseResources()
+{
+    // Called on the gui thread when the window is closed or changed.
+    QMutexLocker lock(&m_frameMutex);
+    scheduleDeleteFilterResources();
+}
+
+void QDeclarativeVideoRendererBackend::invalidateSceneGraph()
+{
+    // Called on the render thread, e.g. when the context is lost.
+    QMutexLocker lock(&m_frameMutex);
+    for (int i = 0; i < m_filters.count(); ++i) {
+        if (m_filters[i].runnable) {
+            delete m_filters[i].runnable;
+            m_filters[i].runnable = 0;
+        }
+    }
+}
+
 void QDeclarativeVideoRendererBackend::itemChange(QQuickItem::ItemChange change,
                                       const QQuickItem::ItemChangeData &changeData)
 {
-    Q_UNUSED(change);
-    Q_UNUSED(changeData);
+    if (change == QQuickItem::ItemSceneChange) {
+        if (changeData.window)
+            QObject::connect(changeData.window, SIGNAL(sceneGraphInvalidated()),
+                             q, SLOT(_q_invalidateSceneGraph()), Qt::DirectConnection);
+    }
 }
 
 void QDeclarativeVideoRendererBackend::releaseSource()
@@ -216,8 +287,36 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     }
 #endif
 
+    bool isFrameModified = false;
     if (m_frameChanged) {
-        if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
+        // Run the VideoFilter if there is one. This must be done before potentially changing the videonode below.
+        if (m_frame.isValid() && !m_filters.isEmpty()) {
+            const QVideoSurfaceFormat surfaceFormat = videoSurface()->surfaceFormat();
+            for (int i = 0; i < m_filters.count(); ++i) {
+                QAbstractVideoFilter *filter = m_filters[i].filter;
+                QVideoFilterRunnable *&runnable = m_filters[i].runnable;
+                if (filter && filter->isActive()) {
+                    // Create the filter runnable if not yet done. Ownership is taken and is tied to this thread, on which rendering happens.
+                    if (!runnable)
+                        runnable = filter->createFilterRunnable();
+                    if (!runnable)
+                        continue;
+
+                    QVideoFilterRunnable::RunFlags flags = 0;
+                    if (i == m_filters.count() - 1)
+                        flags |= QVideoFilterRunnable::LastInChain;
+
+                    QVideoFrame newFrame = runnable->run(&m_frame, surfaceFormat, flags);
+
+                    if (newFrame.isValid() && newFrame != m_frame) {
+                        isFrameModified = true;
+                        m_frame = newFrame;
+                    }
+                }
+            }
+        }
+
+        if (videoNode && (videoNode->pixelFormat() != m_frame.pixelFormat() || videoNode->handleType() != m_frame.handleType())) {
             qCDebug(qLcVideo) << "updatePaintNode: deleting old video node because frame format changed";
             delete videoNode;
             videoNode = 0;
@@ -231,7 +330,9 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 
         if (!videoNode) {
             foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
-                videoNode = factory->createNode(m_surface->surfaceFormat());
+                // Get a node that supports our frame. The surface is irrelevant, our
+                // QSGVideoItemSurface supports (logically) anything.
+                videoNode = factory->createNode(QVideoSurfaceFormat(m_frame.size(), m_frame.pixelFormat(), m_frame.handleType()));
                 if (videoNode) {
                     qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType()
                                      << " Supported formats for the handle by this node:"
@@ -252,7 +353,10 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
                                        qNormalizedOrientation(q->orientation()));
     if (m_frameChanged) {
-        videoNode->setCurrentFrame(m_frame);
+        QSGVideoNode::FrameFlags flags = 0;
+        if (isFrameModified)
+            flags |= QSGVideoNode::FrameFiltered;
+        videoNode->setCurrentFrame(m_frame, flags);
         //don't keep the frame for more than really necessary
         m_frameChanged = false;
         m_frame = QVideoFrame();

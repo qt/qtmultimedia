@@ -165,7 +165,7 @@ QAndroidSGVideoNode::~QAndroidSGVideoNode()
     m_frame = QVideoFrame();
 }
 
-void QAndroidSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
+void QAndroidSGVideoNode::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {
     QMutexLocker lock(&m_frameMutex);
     m_frame = frame;

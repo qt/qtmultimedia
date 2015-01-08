@@ -107,6 +107,8 @@ public:
     ~QVideoFrame();
 
     QVideoFrame &operator =(const QVideoFrame &other);
+    bool operator==(const QVideoFrame &other) const;
+    bool operator!=(const QVideoFrame &other) const;
 
     bool isValid() const;
 

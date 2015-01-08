@@ -278,7 +278,7 @@ QSGVideoNode_RGB::~QSGVideoNode_RGB()
 {
 }
 
-void QSGVideoNode_RGB::setCurrentFrame(const QVideoFrame &frame)
+void QSGVideoNode_RGB::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {
     m_material->setVideoFrame(frame);
     markDirty(DirtyMaterial);

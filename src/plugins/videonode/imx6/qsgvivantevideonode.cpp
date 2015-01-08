@@ -52,9 +52,9 @@ QSGVivanteVideoNode::~QSGVivanteVideoNode()
 {
 }
 
-void QSGVivanteVideoNode::setCurrentFrame(const QVideoFrame &frame)
+void QSGVivanteVideoNode::setCurrentFrame(const QVideoFrame &frame, FrameFlags flags)
 {
-    mMaterial->setCurrentFrame(frame);
+    mMaterial->setCurrentFrame(frame, flags);
     markDirty(DirtyMaterial);
 }
 

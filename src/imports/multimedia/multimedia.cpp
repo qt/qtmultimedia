@@ -38,6 +38,7 @@
 #include "qsoundeffect.h"
 
 #include <private/qdeclarativevideooutput_p.h>
+#include "qabstractvideofilter.h"
 
 #include "qdeclarativemultimediaglobal_p.h"
 #include "qdeclarativemediametadata_p.h"
@@ -108,6 +109,7 @@ public:
         qmlRegisterRevision<QDeclarativeCamera, 2>(uri, 5, 5);
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
+        qmlRegisterType<QAbstractVideoFilter>();
     }
 
     void initializeEngine(QQmlEngine *engine, const char *uri)

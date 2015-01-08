@@ -1,0 +1,18 @@
+This example performs some simple OpenCL operations on camera or video input which
+is assumed to be provided in RGB format. The OpenCL operation is done on an
+OpenGL texture using CL-GL interop, without any further readbacks or copies
+(except for the initial texture upload, when necessary).
+
+Currently only OS X and Windows with desktop OpenGL (opengl32.dll) are supported.
+On Windows you may need to edit testplugin.pro to specify the location of the OpenCL
+headers and libraries.
+
+Note that an OpenCL implementation with GPU support is required.
+The platform and device selection logic supports NVIDIA and Intel.
+Porting to other platforms is probably simple, see clCreateContextFromType.
+Note however that YUV formats, that are commonly used also for camera input
+on some platforms, are not supported in this example.
+
+Pass the name of a video file to perform video playback or launch without
+arguments to use the camera.
+

@@ -44,8 +44,9 @@ public:
     QSGVivanteVideoNode(const QVideoSurfaceFormat &format);
     ~QSGVivanteVideoNode();
 
-    virtual QVideoFrame::PixelFormat pixelFormat() const { return mFormat.pixelFormat(); }
-    void setCurrentFrame(const QVideoFrame &frame);
+    QVideoFrame::PixelFormat pixelFormat() const { return mFormat.pixelFormat(); }
+    QAbstractVideoBuffer::HandleType handleType() const { return QAbstractVideoBuffer::NoHandle; }
+    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
     static const QMap<QVideoFrame::PixelFormat, GLenum>& getVideoFormat2GLFormatMap();
 

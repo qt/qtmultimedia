@@ -41,6 +41,7 @@
 #include <QVideoFrame>
 #include <QMutex>
 
+#include <private/qsgvideonode_p.h>
 
 class QSGVivanteVideoMaterial : public QSGMaterial
 {
@@ -52,7 +53,7 @@ public:
     virtual QSGMaterialShader *createShader() const;
     virtual int compare(const QSGMaterial *other) const;
     void updateBlending();
-    void setCurrentFrame(const QVideoFrame &frame);
+    void setCurrentFrame(const QVideoFrame &frame, QSGVideoNode::FrameFlags flags);
 
     void bind();
     GLuint vivanteMapping(QVideoFrame texIdVideoFramePair);
@@ -60,6 +61,8 @@ public:
     void setOpacity(float o) { mOpacity = o; }
 
 private:
+    void clearTextures();
+
     qreal mOpacity;
 
     int mWidth;
@@ -69,8 +72,12 @@ private:
     QMap<const uchar*, GLuint> mBitsToTextureMap;
     QVideoFrame mCurrentFrame, mNextFrame;
     GLuint mCurrentTexture;
+    bool mMappable;
 
     QMutex mFrameMutex;
+
+    GLuint mTexDirectTexture;
+    GLvoid *mTexDirectPlanes[3];
 };
 
 #endif // QSGVIDEOMATERIAL_VIVMAP_H

@@ -46,10 +46,16 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNode : public QSGGeometryNode
 {
 public:
+    enum FrameFlag {
+        FrameFiltered = 0x01
+    };
+    Q_DECLARE_FLAGS(FrameFlags, FrameFlag)
+
     QSGVideoNode();
 
-    virtual void setCurrentFrame(const QVideoFrame &frame) = 0;
+    virtual void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) = 0;
     virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
+    virtual QAbstractVideoBuffer::HandleType handleType() const = 0;
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
@@ -58,6 +64,8 @@ private:
     QRectF m_textureRect;
     int m_orientation;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QSGVideoNode::FrameFlags)
 
 class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryInterface
 {

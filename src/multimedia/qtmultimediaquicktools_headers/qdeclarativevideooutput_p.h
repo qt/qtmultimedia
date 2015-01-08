@@ -40,6 +40,7 @@
 #include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
 #include <QtMultimedia/qcamerainfo.h>
+#include <QtMultimedia/qabstractvideofilter.h>
 
 #include <private/qtmultimediaquickdefs_p.h>
 
@@ -60,6 +61,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
     Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged REVISION 2)
     Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
+    Q_PROPERTY(QQmlListProperty<QAbstractVideoFilter> filters READ filters);
     Q_ENUMS(FillMode)
 
 public:
@@ -104,6 +106,8 @@ public:
     };
     SourceType sourceType() const;
 
+    QQmlListProperty<QAbstractVideoFilter> filters();
+
 Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QDeclarativeVideoOutput::FillMode);
@@ -116,6 +120,7 @@ protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *);
     void itemChange(ItemChange change, const ItemChangeData &changeData);
     void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
+    void releaseResources();
 
 private Q_SLOTS:
     void _q_updateMediaObject();
@@ -123,9 +128,15 @@ private Q_SLOTS:
     void _q_updateNativeSize();
     void _q_updateGeometry();
     void _q_screenOrientationChanged(int);
+    void _q_invalidateSceneGraph();
 
 private:
     bool createBackend(QMediaService *service);
+
+    static void filter_append(QQmlListProperty<QAbstractVideoFilter> *property, QAbstractVideoFilter *value);
+    static int filter_count(QQmlListProperty<QAbstractVideoFilter> *property);
+    static QAbstractVideoFilter *filter_at(QQmlListProperty<QAbstractVideoFilter> *property, int index);
+    static void filter_clear(QQmlListProperty<QAbstractVideoFilter> *property);
 
     SourceType m_sourceType;
 
@@ -145,6 +156,8 @@ private:
     QVideoOutputOrientationHandler *m_screenOrientationHandler;
 
     QScopedPointer<QDeclarativeVideoBackend> m_backend;
+
+    QList<QAbstractVideoFilter *> m_filters;
 };
 
 QT_END_NAMESPACE

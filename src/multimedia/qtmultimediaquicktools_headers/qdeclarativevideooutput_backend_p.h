@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 class QDeclarativeVideoOutput;
 class QMediaService;
+class QAbstractVideoFilter;
 
 class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoBackend
 {
@@ -69,6 +70,12 @@ public:
 
     // The viewport, adjusted for the pixel aspect ratio
     virtual QRectF adjustedViewport() const = 0;
+
+    virtual void appendFilter(QAbstractVideoFilter *filter) { Q_UNUSED(filter); }
+    virtual void clearFilters() { }
+
+    virtual void releaseResources() { }
+    virtual void invalidateSceneGraph() { }
 
 protected:
     QDeclarativeVideoOutput *q;

@@ -49,7 +49,10 @@ public:
     virtual QVideoFrame::PixelFormat pixelFormat() const {
         return m_format.pixelFormat();
     }
-    void setCurrentFrame(const QVideoFrame &frame);
+    QAbstractVideoBuffer::HandleType handleType() const {
+        return QAbstractVideoBuffer::NoHandle;
+    }
+    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
 private:
     void bindTexture(int id, int unit, int w, int h, const uchar *bits);

@@ -50,7 +50,10 @@ public:
     virtual QVideoFrame::PixelFormat pixelFormat() const {
         return m_format.pixelFormat();
     }
-    void setCurrentFrame(const QVideoFrame &frame);
+    QAbstractVideoBuffer::HandleType handleType() const {
+        return QAbstractVideoBuffer::NoHandle;
+    }
+    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
 private:
     QVideoSurfaceFormat m_format;

@@ -235,7 +235,7 @@ QSGVideoNode_Texture::~QSGVideoNode_Texture()
 {
 }
 
-void QSGVideoNode_Texture::setCurrentFrame(const QVideoFrame &frame)
+void QSGVideoNode_Texture::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {
     m_material->setVideoFrame(frame);
     markDirty(DirtyMaterial);

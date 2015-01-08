@@ -311,7 +311,7 @@ QSGVideoNode_I420::~QSGVideoNode_I420()
 {
 }
 
-void QSGVideoNode_I420::setCurrentFrame(const QVideoFrame &frame)
+void QSGVideoNode_I420::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {
     m_material->setCurrentFrame(frame);
     markDirty(DirtyMaterial);

@@ -48,6 +48,8 @@ QT_BEGIN_NAMESPACE
 class QSGVideoItemSurface;
 class QVideoRendererControl;
 class QOpenGLContext;
+class QAbstractVideoFilter;
+class QVideoFilterRunnable;
 
 class QDeclarativeVideoRendererBackend : public QDeclarativeVideoBackend
 {
@@ -70,7 +72,14 @@ public:
     void present(const QVideoFrame &frame);
     void stop();
 
+    void appendFilter(QAbstractVideoFilter *filter) Q_DECL_OVERRIDE;
+    void clearFilters() Q_DECL_OVERRIDE;
+    void releaseResources() Q_DECL_OVERRIDE;
+    void invalidateSceneGraph() Q_DECL_OVERRIDE;
+
 private:
+    void scheduleDeleteFilterResources();
+
     QPointer<QVideoRendererControl> m_rendererControl;
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
@@ -83,6 +92,14 @@ private:
     QMutex m_frameMutex;
     QRectF m_renderedRect;         // Destination pixel coordinates, clipped
     QRectF m_sourceTextureRect;    // Source texture coordinates
+
+    struct Filter {
+        Filter() : filter(0), runnable(0) { }
+        Filter(QAbstractVideoFilter *filter) : filter(filter), runnable(0) { }
+        QAbstractVideoFilter *filter;
+        QVideoFilterRunnable *runnable;
+    };
+    QList<Filter> m_filters;
 };
 
 class QSGVideoItemSurface : public QAbstractVideoSurface

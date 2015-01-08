@@ -187,7 +187,7 @@ QSGVideoNode_EGL::~QSGVideoNode_EGL()
 {
 }
 
-void QSGVideoNode_EGL::setCurrentFrame(const QVideoFrame &frame)
+void QSGVideoNode_EGL::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {
     EGLImageKHR image = frame.handle().value<void *>();
     m_material.setImage(image);
@@ -197,6 +197,11 @@ void QSGVideoNode_EGL::setCurrentFrame(const QVideoFrame &frame)
 QVideoFrame::PixelFormat QSGVideoNode_EGL::pixelFormat() const
 {
     return m_pixelFormat;
+}
+
+QAbstractVideoBuffer::HandleType QSGVideoNode_EGL::handleType() const
+{
+    return QAbstractVideoBuffer::EGLImageHandle;
 }
 
 static bool isExtensionSupported()

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Toolkit.
@@ -31,35 +31,55 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDSGVIDEONODE_H
-#define QANDROIDSGVIDEONODE_H
+#ifndef QABSTRACTVIDEOFILTER_H
+#define QABSTRACTVIDEOFILTER_H
 
-#include <private/qsgvideonode_p.h>
-#include <qmutex.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidSGVideoNodeMaterial;
+class QAbstractVideoFilterPrivate;
 
-class QAndroidSGVideoNode : public QSGVideoNode
+class Q_MULTIMEDIA_EXPORT QVideoFilterRunnable
 {
 public:
-    QAndroidSGVideoNode(const QVideoSurfaceFormat &format);
-    ~QAndroidSGVideoNode();
+    enum RunFlag {
+        LastInChain = 0x01
+    };
+    Q_DECLARE_FLAGS(RunFlags, RunFlag)
 
-    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
-    QVideoFrame::PixelFormat pixelFormat() const { return m_format.pixelFormat(); }
-    QAbstractVideoBuffer::HandleType handleType() const { return QAbstractVideoBuffer::GLTextureHandle; }
+    virtual ~QVideoFilterRunnable();
+    virtual QVideoFrame run(QVideoFrame *input, const QVideoSurfaceFormat &surfaceFormat, RunFlags flags) = 0;
+};
 
-    void preprocess();
+Q_DECLARE_OPERATORS_FOR_FLAGS(QVideoFilterRunnable::RunFlags)
+
+class Q_MULTIMEDIA_EXPORT QAbstractVideoFilter : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
+
+public:
+    QAbstractVideoFilter(QObject *parent = 0);
+    ~QAbstractVideoFilter();
+
+    bool isActive() const;
+    void setActive(bool v);
+
+    virtual QVideoFilterRunnable *createFilterRunnable() = 0;
+
+Q_SIGNALS:
+    void activeChanged();
 
 private:
-    QAndroidSGVideoNodeMaterial *m_material;
-    QMutex m_frameMutex;
-    QVideoFrame m_frame;
-    QVideoSurfaceFormat m_format;
+    Q_DECLARE_PRIVATE(QAbstractVideoFilter)
+    Q_DISABLE_COPY(QAbstractVideoFilter)
+
+    QAbstractVideoFilterPrivate *d_ptr;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDSGVIDEONODE_H
+#endif // QABSTRACTVIDEOFILTER_H
