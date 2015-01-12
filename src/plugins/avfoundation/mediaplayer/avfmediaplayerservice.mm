@@ -43,25 +43,38 @@
 #include "avfmediaplayersession.h"
 #include "avfmediaplayercontrol.h"
 #include "avfmediaplayermetadatacontrol.h"
-#if defined(Q_OS_OSX)
-# include "avfvideooutput.h"
-# include "avfvideorenderercontrol.h"
-#endif
+#include "avfvideooutput.h"
+#include "avfvideorenderercontrol.h"
 #ifndef QT_NO_WIDGETS
 # include "avfvideowidgetcontrol.h"
 #endif
 #include "avfvideowindowcontrol.h"
+
+#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_8, __IPHONE_6_0)
+#import <AVFoundation/AVFoundation.h>
+#endif
 
 QT_USE_NAMESPACE
 
 AVFMediaPlayerService::AVFMediaPlayerService(QObject *parent)
     : QMediaService(parent)
     , m_videoOutput(0)
+    , m_enableRenderControl(true)
 {
     m_session = new AVFMediaPlayerSession(this);
     m_control = new AVFMediaPlayerControl(this);
     m_control->setSession(m_session);
     m_playerMetaDataControl = new AVFMediaPlayerMetaDataControl(m_session, this);
+
+#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_8, __IPHONE_6_0)
+    // AVPlayerItemVideoOutput is available in SDK
+    #if QT_MAC_DEPLOYMENT_TARGET_BELOW(__MAC_10_8, __IPHONE_6_0)
+    // might not be available at runtime
+        #if defined(Q_OS_IOS)
+            m_enableRenderControl = [AVPlayerItemVideoOutput class] != 0;
+        #endif
+    #endif
+#endif
 
     connect(m_control, SIGNAL(mediaChanged(QMediaContent)), m_playerMetaDataControl, SLOT(updateTags()));
 }
@@ -85,15 +98,16 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
 
     if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
         return m_playerMetaDataControl;
-#if defined(Q_OS_OSX)
-    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
+
+
+    if (m_enableRenderControl && (qstrcmp(name, QVideoRendererControl_iid) == 0)) {
         if (!m_videoOutput)
             m_videoOutput = new AVFVideoRendererControl(this);
 
         m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
         return m_videoOutput;
     }
-#endif
+
 #ifndef QT_NO_WIDGETS
     if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
         if (!m_videoOutput)
@@ -119,11 +133,11 @@ void AVFMediaPlayerService::releaseControl(QMediaControl *control)
     qDebug() << Q_FUNC_INFO << control;
 #endif
     if (m_videoOutput == control) {
-#if defined(Q_OS_OSX)
         AVFVideoRendererControl *renderControl = qobject_cast<AVFVideoRendererControl*>(m_videoOutput);
+
         if (renderControl)
             renderControl->setSurface(0);
-#endif
+
         m_videoOutput = 0;
         m_session->setVideoOutput(0);
 

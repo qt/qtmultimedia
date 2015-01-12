@@ -57,6 +57,7 @@ private:
     AVFMediaPlayerControl *m_control;
     QMediaControl *m_videoOutput;
     AVFMediaPlayerMetaDataControl *m_playerMetaDataControl;
+    bool m_enableRenderControl;
 };
 
 QT_END_NAMESPACE

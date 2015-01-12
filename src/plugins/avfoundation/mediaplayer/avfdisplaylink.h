@@ -37,7 +37,11 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
 
+#if defined(Q_OS_IOS)
+#include <CoreVideo/CVBase.h>
+#else
 #include <QuartzCore/CVDisplayLink.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -64,7 +68,11 @@ protected:
     virtual bool event(QEvent *);
 
 private:
+#if defined(Q_OS_IOS)
+    void *m_displayLink;
+#else
     CVDisplayLinkRef m_displayLink;
+#endif
     QMutex m_displayLinkMutex;
     bool m_pendingDisplayLinkEvent;
     bool m_isActive;

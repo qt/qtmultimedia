@@ -44,21 +44,31 @@ OBJECTIVE_SOURCES += \
             avfvideowidget.mm
     }
 
-!ios {
-    LIBS += -framework QuartzCore -framework AppKit
+ios {
+    contains(QT_CONFIG, opengl.*) {
+        HEADERS += \
+            avfvideoframerenderer_ios.h \
+            avfvideorenderercontrol.h \
+            avfdisplaylink.h
 
-    HEADERS += \
-        avfvideorenderercontrol.h \
-        avfdisplaylink.h
-    OBJECTIVE_SOURCES += \
-        avfvideorenderercontrol.mm \
-        avfdisplaylink.mm
+        OBJECTIVE_SOURCES += \
+            avfvideoframerenderer_ios.mm \
+            avfvideorenderercontrol.mm \
+            avfdisplaylink.mm
+    }
+} else {
+    LIBS += -framework QuartzCore -framework AppKit
 
     contains(QT_CONFIG, opengl.*) {
         HEADERS += \
-            avfvideoframerenderer.h
+            avfvideoframerenderer.h \
+            avfvideorenderercontrol.h \
+            avfdisplaylink.h
+
         OBJECTIVE_SOURCES += \
-            avfvideoframerenderer.mm
+            avfvideoframerenderer.mm \
+            avfvideorenderercontrol.mm \
+            avfdisplaylink.mm
     }
 }
 
