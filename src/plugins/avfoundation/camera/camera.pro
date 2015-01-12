@@ -25,30 +25,32 @@ HEADERS += \
     avfcameradebug.h \
     avfcameraserviceplugin.h \
     avfcameracontrol.h \
-    avfvideorenderercontrol.h \
     avfcamerametadatacontrol.h \
     avfimagecapturecontrol.h \
     avfmediarecordercontrol.h \
     avfcameraservice.h \
     avfcamerasession.h \
     avfstoragelocation.h \
-    avfvideodevicecontrol.h \
     avfaudioinputselectorcontrol.h \
     avfcamerainfocontrol.h \
-    avfmediavideoprobecontrol.h
+    avfmediavideoprobecontrol.h \
+    avfcamerainfocontrol.h \
+    avfcamerarenderercontrol.h \
+    avfcameradevicecontrol.h
 
 OBJECTIVE_SOURCES += \
     avfcameraserviceplugin.mm \
     avfcameracontrol.mm \
-    avfvideorenderercontrol.mm \
     avfcamerametadatacontrol.mm \
     avfimagecapturecontrol.mm \
     avfmediarecordercontrol.mm \
     avfcameraservice.mm \
     avfcamerasession.mm \
     avfstoragelocation.mm \
-    avfvideodevicecontrol.mm \
     avfaudioinputselectorcontrol.mm \
     avfcamerainfocontrol.mm \
-    avfmediavideoprobecontrol.mm
+    avfmediavideoprobecontrol.mm \
+    avfcamerainfocontrol.mm \
+    avfcameradevicecontrol.mm \
+    avfcamerarenderercontrol.mm
 

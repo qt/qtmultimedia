@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 class AVFCameraControl;
 class AVFCameraService;
-class AVFVideoRendererControl;
+class AVFCameraRendererControl;
 class AVFMediaVideoProbeControl;
 
 struct AVFCameraInfo
@@ -70,7 +70,7 @@ public:
     static const QList<QByteArray> &availableCameraDevices();
     static AVFCameraInfo cameraDeviceInfo(const QByteArray &device);
 
-    void setVideoOutput(AVFVideoRendererControl *output);
+    void setVideoOutput(AVFCameraRendererControl *output);
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
 
@@ -104,7 +104,7 @@ private:
     static QMap<QByteArray, AVFCameraInfo> m_cameraInfo;
 
     AVFCameraService *m_service;
-    AVFVideoRendererControl *m_videoOutput;
+    AVFCameraRendererControl *m_videoOutput;
 
     QCamera::State m_state;
     bool m_active;

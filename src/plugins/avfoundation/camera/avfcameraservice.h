@@ -46,11 +46,11 @@ class AVFCameraInfoControl;
 class AVFCameraMetaDataControl;
 class AVFVideoWindowControl;
 class AVFVideoWidgetControl;
-class AVFVideoRendererControl;
+class AVFCameraRendererControl;
 class AVFMediaRecorderControl;
 class AVFImageCaptureControl;
 class AVFCameraSession;
-class AVFVideoDeviceControl;
+class AVFCameraDeviceControl;
 class AVFAudioInputSelectorControl;
 
 class AVFCameraService : public QMediaService
@@ -65,7 +65,7 @@ public:
 
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *cameraControl() const { return m_cameraControl; }
-    AVFVideoDeviceControl *videoDeviceControl() const { return m_videoDeviceControl; }
+    AVFCameraDeviceControl *videoDeviceControl() const { return m_videoDeviceControl; }
     AVFAudioInputSelectorControl *audioInputSelectorControl() const { return m_audioInputSelectorControl; }
     AVFCameraMetaDataControl *metaDataControl() const { return m_metaDataControl; }
     AVFMediaRecorderControl *recorderControl() const { return m_recorderControl; }
@@ -76,9 +76,9 @@ private:
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     AVFCameraInfoControl *m_cameraInfoControl;
-    AVFVideoDeviceControl *m_videoDeviceControl;
+    AVFCameraDeviceControl *m_videoDeviceControl;
     AVFAudioInputSelectorControl *m_audioInputSelectorControl;
-    AVFVideoRendererControl *m_videoOutput;
+    AVFCameraRendererControl *m_videoOutput;
     AVFCameraMetaDataControl *m_metaDataControl;
     AVFMediaRecorderControl *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;

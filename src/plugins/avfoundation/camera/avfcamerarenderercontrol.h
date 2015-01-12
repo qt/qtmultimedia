@@ -31,47 +31,53 @@
 **
 ****************************************************************************/
 
-#ifndef AVFVIDEODEVICECONTROL_H
-#define AVFVIDEODEVICECONTROL_H
+#ifndef AVFCAMERARENDERERCONTROL_H
+#define AVFCAMERARENDERERCONTROL_H
 
-#include <QtMultimedia/qvideodeviceselectorcontrol.h>
-#include <QtCore/qstringlist.h>
+#include <QtMultimedia/qvideorenderercontrol.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtCore/qmutex.h>
 
 #import <AVFoundation/AVFoundation.h>
+
+@class AVFCaptureFramesDelegate;
 
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
+class AVFCameraRendererControl;
 
-class AVFVideoDeviceControl : public QVideoDeviceSelectorControl
+class AVFCameraRendererControl : public QVideoRendererControl
 {
 Q_OBJECT
 public:
-    AVFVideoDeviceControl(AVFCameraService *service, QObject *parent = 0);
-    ~AVFVideoDeviceControl();
+    AVFCameraRendererControl(QObject *parent = 0);
+    ~AVFCameraRendererControl();
 
-    int deviceCount() const;
+    QAbstractVideoSurface *surface() const;
+    void setSurface(QAbstractVideoSurface *surface);
 
-    QString deviceName(int index) const;
-    QString deviceDescription(int index) const;
+    void configureAVCaptureSession(AVFCameraSession *cameraSession);
+    void syncHandleViewfinderFrame(const QVideoFrame &frame);
 
-    int defaultDevice() const;
-    int selectedDevice() const;
+Q_SIGNALS:
+    void surfaceChanged(QAbstractVideoSurface *surface);
 
-public Q_SLOTS:
-    void setSelectedDevice(int index);
-
-public:
-    //device changed since the last createCaptureDevice()
-    bool isDirty() const { return m_dirty; }
-    AVCaptureDevice *createCaptureDevice();
+private Q_SLOTS:
+    void handleViewfinderFrame();
+    void updateCaptureConnection();
 
 private:
-    AVFCameraService *m_service;
+    QAbstractVideoSurface *m_surface;
+    AVFCaptureFramesDelegate *m_viewfinderFramesDelegate;
+    AVFCameraSession *m_cameraSession;
+    AVCaptureVideoDataOutput *m_videoDataOutput;
 
-    int m_selectedDevice;
-    bool m_dirty;
+    bool m_needsHorizontalMirroring;
+
+    QVideoFrame m_lastViewfinderFrame;
+    QMutex m_vfMutex;
 };
 
 QT_END_NAMESPACE

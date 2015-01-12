@@ -40,30 +40,31 @@
 ****************************************************************************/
 
 #include "avfcameradebug.h"
-#include "avfvideodevicecontrol.h"
+#include "avfcameradevicecontrol.h"
 #include "avfcameraservice.h"
 #include "avfcamerasession.h"
 
 QT_USE_NAMESPACE
 
-AVFVideoDeviceControl::AVFVideoDeviceControl(AVFCameraService *service, QObject *parent)
+AVFCameraDeviceControl::AVFCameraDeviceControl(AVFCameraService *service, QObject *parent)
    : QVideoDeviceSelectorControl(parent)
    , m_service(service)
    , m_selectedDevice(0)
    , m_dirty(true)
 {
+    Q_UNUSED(m_service);
 }
 
-AVFVideoDeviceControl::~AVFVideoDeviceControl()
+AVFCameraDeviceControl::~AVFCameraDeviceControl()
 {
 }
 
-int AVFVideoDeviceControl::deviceCount() const
+int AVFCameraDeviceControl::deviceCount() const
 {
     return AVFCameraSession::availableCameraDevices().count();
 }
 
-QString AVFVideoDeviceControl::deviceName(int index) const
+QString AVFCameraDeviceControl::deviceName(int index) const
 {
     const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
     if (index < 0 || index >= devices.count())
@@ -72,7 +73,7 @@ QString AVFVideoDeviceControl::deviceName(int index) const
     return QString::fromUtf8(devices.at(index));
 }
 
-QString AVFVideoDeviceControl::deviceDescription(int index) const
+QString AVFCameraDeviceControl::deviceDescription(int index) const
 {
     const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
     if (index < 0 || index >= devices.count())
@@ -81,17 +82,17 @@ QString AVFVideoDeviceControl::deviceDescription(int index) const
     return AVFCameraSession::cameraDeviceInfo(devices.at(index)).description;
 }
 
-int AVFVideoDeviceControl::defaultDevice() const
+int AVFCameraDeviceControl::defaultDevice() const
 {
     return AVFCameraSession::availableCameraDevices().indexOf(AVFCameraSession::defaultCameraDevice());
 }
 
-int AVFVideoDeviceControl::selectedDevice() const
+int AVFCameraDeviceControl::selectedDevice() const
 {
     return m_selectedDevice;
 }
 
-void AVFVideoDeviceControl::setSelectedDevice(int index)
+void AVFCameraDeviceControl::setSelectedDevice(int index)
 {
     if (index >= 0 &&
             index < deviceCount() &&
@@ -103,7 +104,7 @@ void AVFVideoDeviceControl::setSelectedDevice(int index)
     }
 }
 
-AVCaptureDevice *AVFVideoDeviceControl::createCaptureDevice()
+AVCaptureDevice *AVFCameraDeviceControl::createCaptureDevice()
 {
     m_dirty = false;
     AVCaptureDevice *device = 0;
@@ -121,4 +122,4 @@ AVCaptureDevice *AVFVideoDeviceControl::createCaptureDevice()
     return device;
 }
 
-#include "moc_avfvideodevicecontrol.cpp"
+#include "moc_avfcameradevicecontrol.cpp"

@@ -46,12 +46,12 @@
 #include "avfcameracontrol.h"
 #include "avfcamerainfocontrol.h"
 #include "avfcamerasession.h"
-#include "avfvideodevicecontrol.h"
+#include "avfcameradevicecontrol.h"
 #include "avfaudioinputselectorcontrol.h"
 #include "avfcamerametadatacontrol.h"
 #include "avfmediarecordercontrol.h"
 #include "avfimagecapturecontrol.h"
-#include "avfvideorenderercontrol.h"
+#include "avfcamerarenderercontrol.h"
 #include "avfmediarecordercontrol.h"
 #include "avfimagecapturecontrol.h"
 #include "avfmediavideoprobecontrol.h"
@@ -68,7 +68,7 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);
     m_cameraInfoControl = new AVFCameraInfoControl(this);
-    m_videoDeviceControl = new AVFVideoDeviceControl(this);
+    m_videoDeviceControl = new AVFCameraDeviceControl(this);
     m_audioInputSelectorControl = new AVFAudioInputSelectorControl(this);
 
     m_metaDataControl = new AVFCameraMetaDataControl(this);
@@ -128,7 +128,7 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
     }
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0)
-            m_videoOutput = new AVFVideoRendererControl(this);
+            m_videoOutput = new AVFCameraRendererControl(this);
 
         if (m_videoOutput) {
             m_session->setVideoOutput(m_videoOutput);

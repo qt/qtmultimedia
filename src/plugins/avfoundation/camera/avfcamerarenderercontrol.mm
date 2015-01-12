@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "avfvideorenderercontrol.h"
+#include "avfcamerarenderercontrol.h"
 #include "avfcamerasession.h"
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
@@ -103,10 +103,10 @@ private:
 @interface AVFCaptureFramesDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 {
 @private
-    AVFVideoRendererControl *m_renderer;
+    AVFCameraRendererControl *m_renderer;
 }
 
-- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFVideoRendererControl*)renderer;
+- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRendererControl*)renderer;
 
 - (void) captureOutput:(AVCaptureOutput *)captureOutput
          didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
@@ -115,7 +115,7 @@ private:
 
 @implementation AVFCaptureFramesDelegate
 
-- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFVideoRendererControl*)renderer
+- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRendererControl*)renderer
 {
     if (!(self = [super init]))
         return nil;
@@ -143,7 +143,7 @@ private:
 @end
 
 
-AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
+AVFCameraRendererControl::AVFCameraRendererControl(QObject *parent)
    : QVideoRendererControl(parent)
    , m_surface(0)
    , m_needsHorizontalMirroring(false)
@@ -151,18 +151,18 @@ AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
 }
 
-AVFVideoRendererControl::~AVFVideoRendererControl()
+AVFCameraRendererControl::~AVFCameraRendererControl()
 {
     [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
     [m_viewfinderFramesDelegate release];
 }
 
-QAbstractVideoSurface *AVFVideoRendererControl::surface() const
+QAbstractVideoSurface *AVFCameraRendererControl::surface() const
 {
     return m_surface;
 }
 
-void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+void AVFCameraRendererControl::setSurface(QAbstractVideoSurface *surface)
 {
     if (m_surface != surface) {
         m_surface = surface;
@@ -170,7 +170,7 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     }
 }
 
-void AVFVideoRendererControl::configureAVCaptureSession(AVFCameraSession *cameraSession)
+void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *cameraSession)
 {
     m_cameraSession = cameraSession;
     connect(m_cameraSession, SIGNAL(readyToConfigureConnections()),
@@ -196,7 +196,7 @@ void AVFVideoRendererControl::configureAVCaptureSession(AVFCameraSession *camera
     [m_cameraSession->captureSession() addOutput:m_videoDataOutput];
 }
 
-void AVFVideoRendererControl::updateCaptureConnection()
+void AVFCameraRendererControl::updateCaptureConnection()
 {
     AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
     if (connection == nil || !m_cameraSession->videoCaptureDevice())
@@ -213,7 +213,7 @@ void AVFVideoRendererControl::updateCaptureConnection()
 }
 
 //can be called from non main thread
-void AVFVideoRendererControl::syncHandleViewfinderFrame(const QVideoFrame &frame)
+void AVFCameraRendererControl::syncHandleViewfinderFrame(const QVideoFrame &frame)
 {
     QMutexLocker lock(&m_vfMutex);
     if (!m_lastViewfinderFrame.isValid()) {
@@ -244,7 +244,7 @@ void AVFVideoRendererControl::syncHandleViewfinderFrame(const QVideoFrame &frame
         m_cameraSession->onCameraFrameFetched(m_lastViewfinderFrame);
 }
 
-void AVFVideoRendererControl::handleViewfinderFrame()
+void AVFCameraRendererControl::handleViewfinderFrame()
 {
     QVideoFrame frame;
     {
@@ -273,4 +273,4 @@ void AVFVideoRendererControl::handleViewfinderFrame()
 }
 
 
-#include "moc_avfvideorenderercontrol.cpp"
+#include "moc_avfcamerarenderercontrol.cpp"
