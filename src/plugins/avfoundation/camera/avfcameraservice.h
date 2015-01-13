@@ -52,6 +52,7 @@ class AVFImageCaptureControl;
 class AVFCameraSession;
 class AVFCameraDeviceControl;
 class AVFAudioInputSelectorControl;
+class AVFCameraFocusControl;
 
 class AVFCameraService : public QMediaService
 {
@@ -70,7 +71,7 @@ public:
     AVFCameraMetaDataControl *metaDataControl() const { return m_metaDataControl; }
     AVFMediaRecorderControl *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
-
+    AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -82,6 +83,7 @@ private:
     AVFCameraMetaDataControl *m_metaDataControl;
     AVFMediaRecorderControl *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;
+    AVFCameraFocusControl *m_cameraFocusControl;
 };
 
 QT_END_NAMESPACE

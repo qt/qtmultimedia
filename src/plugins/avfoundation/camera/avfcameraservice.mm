@@ -55,6 +55,7 @@
 #include "avfmediarecordercontrol.h"
 #include "avfimagecapturecontrol.h"
 #include "avfmediavideoprobecontrol.h"
+#include "avfcamerafocuscontrol.h"
 
 #include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
@@ -74,6 +75,8 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_metaDataControl = new AVFCameraMetaDataControl(this);
     m_recorderControl = new AVFMediaRecorderControl(this);
     m_imageCaptureControl = new AVFImageCaptureControl(this);
+
+    m_cameraFocusControl = new AVFCameraFocusControl(this);
 }
 
 AVFCameraService::~AVFCameraService()
@@ -92,6 +95,7 @@ AVFCameraService::~AVFCameraService()
     //delete m_recorderControl;
     delete m_metaDataControl;
     delete m_cameraControl;
+    delete m_cameraFocusControl;
 
     delete m_session;
 }
@@ -119,6 +123,9 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
+
+    if (qstrcmp(name, QCameraFocusControl_iid) == 0)
+        return m_cameraFocusControl;
 
     if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
         AVFMediaVideoProbeControl *videoProbe = 0;

@@ -36,7 +36,9 @@ HEADERS += \
     avfmediavideoprobecontrol.h \
     avfcamerainfocontrol.h \
     avfcamerarenderercontrol.h \
-    avfcameradevicecontrol.h
+    avfcameradevicecontrol.h \
+    avfcamerafocuscontrol.h \
+    avfconfigurationlock.h
 
 OBJECTIVE_SOURCES += \
     avfcameraserviceplugin.mm \
@@ -52,5 +54,6 @@ OBJECTIVE_SOURCES += \
     avfmediavideoprobecontrol.mm \
     avfcamerainfocontrol.mm \
     avfcameradevicecontrol.mm \
-    avfcamerarenderercontrol.mm
+    avfcamerarenderercontrol.mm \
+    avfcamerafocuscontrol.mm
 
