@@ -38,6 +38,7 @@ HEADERS += \
     avfcamerarenderercontrol.h \
     avfcameradevicecontrol.h \
     avfcamerafocuscontrol.h \
+    avfcameraexposurecontrol.h \
     avfconfigurationlock.h
 
 OBJECTIVE_SOURCES += \
@@ -55,5 +56,6 @@ OBJECTIVE_SOURCES += \
     avfcamerainfocontrol.mm \
     avfcameradevicecontrol.mm \
     avfcamerarenderercontrol.mm \
-    avfcamerafocuscontrol.mm
+    avfcamerafocuscontrol.mm \
+    avfcameraexposurecontrol.mm
 
