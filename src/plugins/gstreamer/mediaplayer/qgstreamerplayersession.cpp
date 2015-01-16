@@ -110,10 +110,10 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_pendingState(QMediaPlayer::StoppedState),
      m_busHelper(0),
      m_playbin(0),
+     m_videoSink(0),
 #if !GST_CHECK_VERSION(1,0,0)
      m_usingColorspaceElement(false),
 #endif
-     m_videoSink(0),
      m_pendingVideoSink(0),
      m_nullVideoSink(0),
      m_audioSink(0),
