@@ -45,6 +45,7 @@
 #endif
 
 #include <private/qgstreamerbushelper_p.h>
+#include <private/qgstreamerbufferprobe_p.h>
 #include "qcamera.h"
 
 QT_BEGIN_NAMESPACE
@@ -73,7 +74,6 @@ class QGstreamerElementFactory
 public:
     virtual GstElement *buildElement() = 0;
 };
-
 
 class CameraBinSession : public QObject,
                          public QGstreamerBusMessageFilter,
@@ -131,7 +131,6 @@ public:
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
     CameraBinCaptureDestination *captureDestinationControl() const { return m_captureDestinationControl; }
     CameraBinCaptureBufferFormat *captureBufferFormatControl() const { return m_captureBufferFormatControl; }
-    CameraBinViewfinderSettings *viewfinderSettingsControl() const { return m_viewfinderSettingsControl; }
 
     CameraBinRecorder *recorderControl() const { return m_recorderControl; }
     CameraBinContainer *mediaContainerControl() const { return m_mediaContainerControl; }
@@ -145,6 +144,10 @@ public:
 
     QObject *viewfinder() const { return m_viewfinder; }
     void setViewfinder(QObject *viewfinder);
+
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const;
+    QCameraViewfinderSettings viewfinderSettings() const;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings) { m_viewfinderSettings = settings; }
 
     void captureImage(int requestId, const QString &fileName);
 
@@ -197,6 +200,7 @@ private:
     bool setupCameraBin();
     void setupCaptureResolution();
     void setAudioCaptureCaps();
+    void updateSupportedViewfinderSettings();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
     static void elementAdded(GstBin *bin, GstElement *element, CameraBinSession *session);
@@ -219,6 +223,9 @@ private:
     QGstreamerElementFactory *m_videoInputFactory;
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
+    QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
+    QCameraViewfinderSettings m_viewfinderSettings;
+    QCameraViewfinderSettings m_actualViewfinderSettings;
 
     CameraBinControl *m_cameraControl;
     CameraBinAudioEncoder *m_audioEncodeControl;
@@ -237,16 +244,30 @@ private:
     CameraBinImageProcessing *m_imageProcessingControl;
     CameraBinCaptureDestination *m_captureDestinationControl;
     CameraBinCaptureBufferFormat *m_captureBufferFormatControl;
-    CameraBinViewfinderSettings *m_viewfinderSettingsControl;
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;
     GstElement *m_camerabin;
+    GstElement *m_cameraSrc;
     GstElement *m_videoSrc;
     GstElement *m_viewfinderElement;
     GstElementFactory *m_sourceFactory;
     bool m_viewfinderHasChanged;
-    bool m_videoInputHasChanged;
+    bool m_inputDeviceHasChanged;
+    bool m_usingWrapperCameraBinSrc;
+
+    class ViewfinderProbe : public QGstreamerBufferProbe {
+    public:
+        ViewfinderProbe(CameraBinSession *s)
+            : QGstreamerBufferProbe(QGstreamerBufferProbe::ProbeCaps)
+            , session(s)
+        {}
+
+        void probeCaps(GstCaps *caps);
+
+    private:
+        CameraBinSession * const session;
+    } m_viewfinderProbe;
 
     GstElement *m_audioSrc;
     GstElement *m_audioConvert;

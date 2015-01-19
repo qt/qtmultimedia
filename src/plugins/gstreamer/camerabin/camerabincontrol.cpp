@@ -256,6 +256,7 @@ bool CameraBinControl::canChangeProperty(PropertyChangeType changeType, QCamera:
     case QCameraControl::VideoEncodingSettings:
     case QCameraControl::Viewfinder:
         return true;
+    case QCameraControl::ViewfinderSettings:
     default:
         return false;
     }

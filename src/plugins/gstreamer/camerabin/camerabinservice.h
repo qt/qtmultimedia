@@ -53,6 +53,8 @@ class QGstreamerElementFactory;
 class CameraBinMetaData;
 class CameraBinImageCapture;
 class CameraBinMetaData;
+class CameraBinViewfinderSettings;
+class CameraBinViewfinderSettings2;
 
 class CameraBinService : public QMediaService
 {
@@ -85,6 +87,9 @@ private:
 #endif
     CameraBinImageCapture *m_imageCaptureControl;
     QMediaControl *m_cameraInfoControl;
+
+    CameraBinViewfinderSettings *m_viewfinderSettingsControl;
+    CameraBinViewfinderSettings2 *m_viewfinderSettingsControl2;
 };
 
 QT_END_NAMESPACE

@@ -31,6 +31,7 @@ HEADERS += \
     $$PWD/camerabincapturedestination.h \
     $$PWD/camerabincapturebufferformat.h \
     $$PWD/camerabinviewfindersettings.h \
+    $$PWD/camerabinviewfindersettings2.h \
     $$PWD/camerabininfocontrol.h
 
 SOURCES += \
@@ -49,6 +50,7 @@ SOURCES += \
     $$PWD/camerabinresourcepolicy.cpp \
     $$PWD/camerabincapturedestination.cpp \
     $$PWD/camerabinviewfindersettings.cpp \
+    $$PWD/camerabinviewfindersettings2.cpp \
     $$PWD/camerabincapturebufferformat.cpp \
     $$PWD/camerabininfocontrol.cpp
 
