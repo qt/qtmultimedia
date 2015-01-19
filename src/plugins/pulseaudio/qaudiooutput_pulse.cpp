@@ -237,7 +237,7 @@ QIODevice *QPulseAudioOutput::start()
     if (!open())
         return Q_NULLPTR;
 
-    m_audioSource = new OutputPrivate(this);
+    m_audioSource = new PulseOutputPrivate(this);
     m_audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
     m_pullMode = false;
 
@@ -604,12 +604,12 @@ void QPulseAudioOutput::reset()
     stop();
 }
 
-OutputPrivate::OutputPrivate(QPulseAudioOutput *audio)
+PulseOutputPrivate::PulseOutputPrivate(QPulseAudioOutput *audio)
 {
     m_audioDevice = qobject_cast<QPulseAudioOutput*>(audio);
 }
 
-qint64 OutputPrivate::readData(char *data, qint64 len)
+qint64 PulseOutputPrivate::readData(char *data, qint64 len)
 {
     Q_UNUSED(data)
     Q_UNUSED(len)
@@ -617,7 +617,7 @@ qint64 OutputPrivate::readData(char *data, qint64 len)
     return 0;
 }
 
-qint64 OutputPrivate::writeData(const char *data, qint64 len)
+qint64 PulseOutputPrivate::writeData(const char *data, qint64 len)
 {
     int retry = 0;
     qint64 written = 0;

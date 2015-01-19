@@ -244,7 +244,7 @@ QIODevice* QAlsaAudioInput::start()
         delete audioSource;
 
     pullMode = false;
-    audioSource = new InputPrivate(this);
+    audioSource = new AlsaInputPrivate(this);
     audioSource->open(QIODevice::ReadOnly | QIODevice::Unbuffered);
 
     deviceState = QAudio::IdleState;
@@ -725,7 +725,7 @@ bool QAlsaAudioInput::deviceReady()
         read(0, buffer_size);
     } else {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
-        InputPrivate* a = qobject_cast<InputPrivate*>(audioSource);
+        AlsaInputPrivate* a = qobject_cast<AlsaInputPrivate*>(audioSource);
         a->trigger();
     }
     bytesAvailable = checkBytesReady();
@@ -777,28 +777,28 @@ void QAlsaAudioInput::drain()
         snd_pcm_drain(handle);
 }
 
-InputPrivate::InputPrivate(QAlsaAudioInput* audio)
+AlsaInputPrivate::AlsaInputPrivate(QAlsaAudioInput* audio)
 {
     audioDevice = qobject_cast<QAlsaAudioInput*>(audio);
 }
 
-InputPrivate::~InputPrivate()
+AlsaInputPrivate::~AlsaInputPrivate()
 {
 }
 
-qint64 InputPrivate::readData( char* data, qint64 len)
+qint64 AlsaInputPrivate::readData( char* data, qint64 len)
 {
     return audioDevice->read(data,len);
 }
 
-qint64 InputPrivate::writeData(const char* data, qint64 len)
+qint64 AlsaInputPrivate::writeData(const char* data, qint64 len)
 {
     Q_UNUSED(data)
     Q_UNUSED(len)
     return 0;
 }
 
-void InputPrivate::trigger()
+void AlsaInputPrivate::trigger()
 {
     emit readyRead();
 }
