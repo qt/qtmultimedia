@@ -148,7 +148,7 @@ public:
 
     void captureImage(int requestId, const QString &fileName);
 
-    QCamera::State state() const;
+    QCamera::Status status() const;
     QCamera::State pendingState() const;
     bool isBusy() const;
 
@@ -163,7 +163,7 @@ public:
     bool processBusMessage(const QGstreamerMessage &message);
 
 signals:
-    void stateChanged(QCamera::State state);
+    void statusChanged(QCamera::Status status);
     void pendingStateChanged(QCamera::State state);
     void durationChanged(qint64 duration);
     void error(int error, const QString &errorString);
@@ -185,6 +185,15 @@ private slots:
     void handleViewfinderChange();
 
 private:
+    void load();
+    void unload();
+    void start();
+    void stop();
+
+    void setStatus(QCamera::Status status);
+    void setStateHelper(QCamera::State state);
+    void setError(int error, const QString &errorString);
+
     bool setupCameraBin();
     void setupCaptureResolution();
     void setAudioCaptureCaps();
@@ -197,7 +206,7 @@ private:
     QUrl m_actualSink;
     bool m_recordingActive;
     QString m_captureDevice;
-    QCamera::State m_state;
+    QCamera::Status m_status;
     QCamera::State m_pendingState;
     QString m_inputDevice;
     bool m_muted;

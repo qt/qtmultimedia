@@ -49,7 +49,7 @@ CameraBinRecorder::CameraBinRecorder(CameraBinSession *session)
      m_state(QMediaRecorder::StoppedState),
      m_status(QMediaRecorder::UnloadedStatus)
 {
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
+    connect(m_session, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateStatus()));
     connect(m_session, SIGNAL(pendingStateChanged(QCamera::State)), SLOT(updateStatus()));
     connect(m_session, SIGNAL(busyChanged(bool)), SLOT(updateStatus()));
 
@@ -86,12 +86,12 @@ QMediaRecorder::Status CameraBinRecorder::status() const
 
 void CameraBinRecorder::updateStatus()
 {
-    QCamera::State sessionState = m_session->state();
+    QCamera::Status sessionStatus = m_session->status();
 
     QMediaRecorder::State oldState = m_state;
     QMediaRecorder::Status oldStatus = m_status;
 
-    if (sessionState == QCamera::ActiveState &&
+    if (sessionStatus == QCamera::ActiveStatus &&
             m_session->captureMode().testFlag(QCamera::CaptureVideo)) {
 
         if (!m_session->cameraControl()->resourcePolicy()->canCapture()) {
@@ -214,7 +214,7 @@ void CameraBinRecorder::setState(QMediaRecorder::State state)
         break;
     case QMediaRecorder::RecordingState:
 
-        if (m_session->state() != QCamera::ActiveState) {
+        if (m_session->status() != QCamera::ActiveStatus) {
             emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
         } else if (!m_session->cameraControl()->resourcePolicy()->canCapture()) {
             emit error(QMediaRecorder::ResourceError, tr("Recording permissions are not available"));

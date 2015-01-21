@@ -106,17 +106,12 @@
 #define PREVIEW_CAPS_4_3 \
     "video/x-raw-rgb, width = (int) 640, height = (int) 480"
 
-//using GST_STATE_READY for QCamera::LoadedState
-//may not work reliably at least with some webcams.
-
-//#define USE_READY_STATE_ON_LOADED
-
 QT_BEGIN_NAMESPACE
 
 CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *parent)
     :QObject(parent),
      m_recordingActive(false),
-     m_state(QCamera::UnloadedState),
+     m_status(QCamera::UnloadedStatus),
      m_pendingState(QCamera::UnloadedState),
      m_muted(false),
      m_busy(false),
@@ -230,9 +225,6 @@ CameraBinSession::CameraRole CameraBinSession::cameraRole() const
     return BackCamera;
 }
 
-/*
-  Configure camera during Loaded->Active states stansition.
-*/
 bool CameraBinSession::setupCameraBin()
 {
     if (!buildCameraSource())
@@ -248,7 +240,8 @@ bool CameraBinSession::setupCameraBin()
 #endif
         m_viewfinderHasChanged = false;
         if (!m_viewfinderElement) {
-            qWarning() << "Staring camera without viewfinder available";
+            if (m_pendingState == QCamera::ActiveState)
+                qWarning() << "Starting camera without viewfinder available";
             m_viewfinderElement = gst_element_factory_make("fakesink", NULL);
         }
         g_object_set(G_OBJECT(m_viewfinderElement), "sync", FALSE, NULL);
@@ -663,9 +656,20 @@ void CameraBinSession::handleViewfinderChange()
     emit viewfinderChanged();
 }
 
-QCamera::State CameraBinSession::state() const
+void CameraBinSession::setStatus(QCamera::Status status)
 {
-    return m_state;
+    if (m_status == status)
+        return;
+
+    m_status = status;
+    emit statusChanged(m_status);
+
+    setStateHelper(m_pendingState);
+}
+
+QCamera::Status CameraBinSession::status() const
+{
+    return m_status;
 }
 
 QCamera::State CameraBinSession::pendingState() const
@@ -685,64 +689,112 @@ void CameraBinSession::setState(QCamera::State newState)
     qDebug() << Q_FUNC_INFO << newState;
 #endif
 
-    switch (newState) {
+    setStateHelper(newState);
+}
+
+void CameraBinSession::setStateHelper(QCamera::State state)
+{
+    switch (state) {
     case QCamera::UnloadedState:
-        if (m_recordingActive)
-            stopVideoRecording();
-
-        if (m_viewfinderInterface)
-            m_viewfinderInterface->stopRenderer();
-
-        gst_element_set_state(m_camerabin, GST_STATE_NULL);
-        m_state = newState;
-        if (m_busy)
-            emit busyChanged(m_busy = false);
-
-        emit stateChanged(m_state);
+        unload();
         break;
     case QCamera::LoadedState:
-        if (m_recordingActive)
-            stopVideoRecording();
-
-        if (m_videoInputHasChanged) {
-            if (m_viewfinderInterface)
-                m_viewfinderInterface->stopRenderer();
-
-            gst_element_set_state(m_camerabin, GST_STATE_NULL);
-            buildCameraSource();
-        }
-#ifdef USE_READY_STATE_ON_LOADED
-        gst_element_set_state(m_camerabin, GST_STATE_READY);
-#else
-        m_state = QCamera::LoadedState;
-        if (m_viewfinderInterface)
-            m_viewfinderInterface->stopRenderer();
-        gst_element_set_state(m_camerabin, GST_STATE_NULL);
-        emit stateChanged(m_state);
-#endif
+        if (m_status == QCamera::ActiveStatus)
+            stop();
+        else if (m_status == QCamera::UnloadedStatus)
+            load();
         break;
     case QCamera::ActiveState:
-        if (setupCameraBin()) {
-            GstState binState = GST_STATE_NULL;
-            GstState pending = GST_STATE_NULL;
-            gst_element_get_state(m_camerabin, &binState, &pending, 0);
-
-            m_recorderControl->applySettings();
-
-            GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
-            g_object_set (G_OBJECT(m_camerabin),
-                          "video-profile",
-                          profile,
-                          NULL);
-            gst_encoding_profile_unref(profile);
-
-            setAudioCaptureCaps();
-
-            setupCaptureResolution();
-
-            gst_element_set_state(m_camerabin, GST_STATE_PLAYING);
-        }
+        // If the viewfinder changed while in the loaded state, we need to reload the pipeline
+        if (m_status == QCamera::LoadedStatus && !m_viewfinderHasChanged)
+            start();
+        else if (m_status == QCamera::UnloadedStatus || m_viewfinderHasChanged)
+            load();
     }
+}
+
+void CameraBinSession::setError(int err, const QString &errorString)
+{
+    m_pendingState = QCamera::UnloadedState;
+    emit error(err, errorString);
+    setStatus(QCamera::UnloadedStatus);
+}
+
+void CameraBinSession::load()
+{
+    if (m_status != QCamera::UnloadedStatus && !m_viewfinderHasChanged)
+        return;
+
+    setStatus(QCamera::LoadingStatus);
+
+    gst_element_set_state(m_camerabin, GST_STATE_NULL);
+
+    if (!setupCameraBin()) {
+        setError(QCamera::CameraError, QStringLiteral("No camera source available"));
+        return;
+    }
+
+    gst_element_set_state(m_camerabin, GST_STATE_READY);
+}
+
+void CameraBinSession::unload()
+{
+    if (m_status == QCamera::UnloadedStatus || m_status == QCamera::UnloadingStatus)
+        return;
+
+    setStatus(QCamera::UnloadingStatus);
+
+    if (m_recordingActive)
+        stopVideoRecording();
+
+    if (m_viewfinderInterface)
+        m_viewfinderInterface->stopRenderer();
+
+    gst_element_set_state(m_camerabin, GST_STATE_NULL);
+
+    if (m_busy)
+        emit busyChanged(m_busy = false);
+
+    setStatus(QCamera::UnloadedStatus);
+}
+
+void CameraBinSession::start()
+{
+    if (m_status != QCamera::LoadedStatus)
+        return;
+
+    setStatus(QCamera::StartingStatus);
+
+    m_recorderControl->applySettings();
+
+    GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
+    g_object_set (G_OBJECT(m_camerabin),
+                  "video-profile",
+                  profile,
+                  NULL);
+    gst_encoding_profile_unref(profile);
+
+    setAudioCaptureCaps();
+
+    setupCaptureResolution();
+
+    gst_element_set_state(m_camerabin, GST_STATE_PLAYING);
+}
+
+void CameraBinSession::stop()
+{
+    if (m_status != QCamera::ActiveStatus)
+        return;
+
+    setStatus(QCamera::StoppingStatus);
+
+    if (m_recordingActive)
+        stopVideoRecording();
+
+    if (m_viewfinderInterface)
+        m_viewfinderInterface->stopRenderer();
+
+    gst_element_set_state(m_camerabin, GST_STATE_READY);
 }
 
 bool CameraBinSession::isBusy() const
@@ -889,7 +941,7 @@ bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
                 if (message.isEmpty())
                     message = tr("Camera error");
 
-                emit error(int(QMediaRecorder::ResourceError), message);
+                setError(int(QMediaRecorder::ResourceError), message);
             }
 
 #ifdef CAMERABIN_DEBUG_DUMP_BIN
@@ -955,17 +1007,17 @@ bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
                     switch (newState) {
                     case GST_STATE_VOID_PENDING:
                     case GST_STATE_NULL:
-                        if (m_state != QCamera::UnloadedState)
-                            emit stateChanged(m_state = QCamera::UnloadedState);
+                        setStatus(QCamera::UnloadedStatus);
                         break;
                     case GST_STATE_READY:
                         setMetaData(m_metaData);
-                        if (m_state != QCamera::LoadedState)
-                            emit stateChanged(m_state = QCamera::LoadedState);
+                        setStatus(QCamera::LoadedStatus);
+                        break;
+                    case GST_STATE_PLAYING:
+                        setStatus(QCamera::ActiveStatus);
                         break;
                     case GST_STATE_PAUSED:
-                    case GST_STATE_PLAYING:
-                        emit stateChanged(m_state = QCamera::ActiveState);
+                    default:
                         break;
                     }
                 }
@@ -973,7 +1025,6 @@ bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
             default:
                 break;
             }
-            //qDebug() << "New session state:" << ENUM_NAME(CameraBinSession,"State",m_state);
         }
     }
 

@@ -56,7 +56,7 @@ CameraBinFocus::CameraBinFocus(CameraBinSession *session)
      QGstreamerBufferProbe(ProbeBuffers),
 #endif
      m_session(session),
-     m_cameraState(QCamera::UnloadedState),
+     m_cameraStatus(QCamera::UnloadedStatus),
      m_focusMode(QCameraFocus::AutoFocus),
      m_focusPointMode(QCameraFocus::FocusPointAuto),
      m_focusStatus(QCamera::Unlocked),
@@ -68,8 +68,8 @@ CameraBinFocus::CameraBinFocus(CameraBinSession *session)
 
     gst_photography_set_focus_mode(m_session->photography(), GST_PHOTOGRAPHY_FOCUS_MODE_AUTO);
 
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)),
-            this, SLOT(_q_handleCameraStateChange(QCamera::State)));
+    connect(m_session, SIGNAL(statusChanged(QCamera::Status)),
+            this, SLOT(_q_handleCameraStatusChange(QCamera::Status)));
 }
 
 CameraBinFocus::~CameraBinFocus()
@@ -319,10 +319,10 @@ void CameraBinFocus::_q_setFocusStatus(QCamera::LockStatus status, QCamera::Lock
     }
 }
 
-void CameraBinFocus::_q_handleCameraStateChange(QCamera::State state)
+void CameraBinFocus::_q_handleCameraStatusChange(QCamera::Status status)
 {
-    m_cameraState = state;
-    if (state == QCamera::ActiveState) {
+    m_cameraStatus = status;
+    if (status == QCamera::ActiveStatus) {
         if (GstPad *pad = gst_element_get_static_pad(m_session->cameraSource(), "vfsrc")) {
             if (GstCaps *caps = qt_gst_pad_get_current_caps(pad)) {
                 if (GstStructure *structure = gst_caps_get_structure(caps, 0)) {
@@ -415,7 +415,7 @@ void CameraBinFocus::updateRegionOfInterest(const QRectF &rectangle)
 
 void CameraBinFocus::updateRegionOfInterest(const QVector<QRect> &rectangles)
 {
-    if (m_cameraState != QCamera::ActiveState)
+    if (m_cameraStatus != QCamera::ActiveStatus)
         return;
 
     GstElement * const cameraSource = m_session->cameraSource();
