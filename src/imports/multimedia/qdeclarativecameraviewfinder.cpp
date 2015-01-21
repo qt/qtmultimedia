@@ -100,7 +100,9 @@ void QDeclarativeCameraViewfinder::_q_cameraStatusChanged(QCamera::Status status
 {
     // Settings values might change when the camera starts, for example if the settings are
     // undefined, if unsupported values were set or if the settings conflict with capture settings.
-    if (status == QCamera::ActiveStatus) {
+    // They might also change on LoadedStatus, for example reverting to values that were set by the
+    // user.
+    if (status == QCamera::ActiveStatus || status == QCamera::LoadedStatus) {
         QCameraViewfinderSettings oldSettings = m_settings;
         m_settings = m_camera->viewfinderSettings();
         if (oldSettings.resolution() != m_settings.resolution())
