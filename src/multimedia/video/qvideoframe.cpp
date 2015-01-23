@@ -902,10 +902,13 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format 
 {
     switch (format) {
     case QImage::Format_RGB32:
+    case QImage::Format_RGBX8888:
         return Format_RGB32;
     case QImage::Format_ARGB32:
+    case QImage::Format_RGBA8888:
         return Format_ARGB32;
     case QImage::Format_ARGB32_Premultiplied:
+    case QImage::Format_RGBA8888_Premultiplied:
         return Format_ARGB32_Premultiplied;
     case QImage::Format_RGB16:
         return Format_RGB565;

@@ -38,7 +38,9 @@
 QT_BEGIN_NAMESPACE
 
 CameraBinViewfinderSettings::CameraBinViewfinderSettings(QObject *parent)
-    : QCameraViewfinderSettingsControl(parent)
+    : QCameraViewfinderSettingsControl(parent),
+      m_minimumFrameRate(0),
+      m_maximumFrameRate(0)
 {
 }
 
@@ -50,10 +52,10 @@ bool CameraBinViewfinderSettings::isViewfinderParameterSupported(ViewfinderParam
 {
     switch (parameter) {
     case Resolution:
-        return true;
-    case PixelAspectRatio:
     case MinimumFrameRate:
     case MaximumFrameRate:
+        return true;
+    case PixelAspectRatio:
     case PixelFormat:
     case UserParameter:
         return false;
@@ -66,9 +68,11 @@ QVariant CameraBinViewfinderSettings::viewfinderParameter(ViewfinderParameter pa
     switch (parameter) {
     case Resolution:
         return m_resolution;
-    case PixelAspectRatio:
     case MinimumFrameRate:
+        return m_minimumFrameRate;
     case MaximumFrameRate:
+        return m_maximumFrameRate;
+    case PixelAspectRatio:
     case PixelFormat:
     case UserParameter:
         return QVariant();
@@ -82,9 +86,13 @@ void CameraBinViewfinderSettings::setViewfinderParameter(ViewfinderParameter par
     case Resolution:
         m_resolution = value.toSize();
         break;
-    case PixelAspectRatio:
     case MinimumFrameRate:
+        m_minimumFrameRate = value.toFloat();
+        break;
     case MaximumFrameRate:
+        m_maximumFrameRate = value.toFloat();
+        break;
+    case PixelAspectRatio:
     case PixelFormat:
     case UserParameter:
         break;
@@ -94,6 +102,16 @@ void CameraBinViewfinderSettings::setViewfinderParameter(ViewfinderParameter par
 QSize CameraBinViewfinderSettings::resolution() const
 {
     return m_resolution;
+}
+
+qreal CameraBinViewfinderSettings::minimumFrameRate() const
+{
+    return m_minimumFrameRate;
+}
+
+qreal CameraBinViewfinderSettings::maximumFrameRate() const
+{
+    return m_maximumFrameRate;
 }
 
 QT_END_NAMESPACE

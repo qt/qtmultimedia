@@ -63,7 +63,7 @@
 QT_BEGIN_NAMESPACE
 
 
-class InputPrivate;
+class AlsaInputPrivate;
 
 class RingBuffer
 {
@@ -158,12 +158,12 @@ private:
     qreal m_volume;
 };
 
-class InputPrivate : public QIODevice
+class AlsaInputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    InputPrivate(QAlsaAudioInput* audio);
-    ~InputPrivate();
+    AlsaInputPrivate(QAlsaAudioInput* audio);
+    ~AlsaInputPrivate();
 
     qint64 readData( char* data, qint64 len);
     qint64 writeData(const char* data, qint64 len);

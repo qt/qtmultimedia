@@ -248,7 +248,7 @@ QIODevice *QPulseAudioInput::start()
         return Q_NULLPTR;
 
     m_pullMode = false;
-    m_audioSource = new InputPrivate(this);
+    m_audioSource = new PulseInputPrivate(this);
     m_audioSource->open(QIODevice::ReadOnly | QIODevice::Unbuffered);
 
     setState(QAudio::IdleState);
@@ -661,7 +661,7 @@ bool QPulseAudioInput::deviceReady()
     } else {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
         if (m_audioSource != 0) {
-            InputPrivate *a = qobject_cast<InputPrivate*>(m_audioSource);
+            PulseInputPrivate *a = qobject_cast<PulseInputPrivate*>(m_audioSource);
             a->trigger();
         }
     }
@@ -701,24 +701,24 @@ void QPulseAudioInput::onPulseContextFailed()
     setState(QAudio::StoppedState);
 }
 
-InputPrivate::InputPrivate(QPulseAudioInput *audio)
+PulseInputPrivate::PulseInputPrivate(QPulseAudioInput *audio)
 {
     m_audioDevice = qobject_cast<QPulseAudioInput*>(audio);
 }
 
-qint64 InputPrivate::readData(char *data, qint64 len)
+qint64 PulseInputPrivate::readData(char *data, qint64 len)
 {
     return m_audioDevice->read(data, len);
 }
 
-qint64 InputPrivate::writeData(const char *data, qint64 len)
+qint64 PulseInputPrivate::writeData(const char *data, qint64 len)
 {
     Q_UNUSED(data)
     Q_UNUSED(len)
     return 0;
 }
 
-void InputPrivate::trigger()
+void PulseInputPrivate::trigger()
 {
     emit readyRead();
 }
