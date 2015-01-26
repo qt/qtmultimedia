@@ -1058,7 +1058,7 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
                         handleType);
 
             if (info->fps_d > 0)
-                format.setFrameRate(qreal(info->fps_d) / info->fps_n);
+                format.setFrameRate(qreal(info->fps_n) / info->fps_d);
 
             if (info->par_d > 0)
                 format.setPixelAspectRatio(info->par_n, info->par_d);
