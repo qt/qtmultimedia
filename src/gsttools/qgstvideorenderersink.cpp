@@ -114,10 +114,9 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surfac
     , m_activeRenderer(0)
     , m_surfaceCaps(0)
     , m_startCaps(0)
-    , m_lastBuffer(0)
+    , m_renderBuffer(0)
     , m_notified(false)
     , m_stop(false)
-    , m_render(false)
     , m_flush(false)
 {
     foreach (QObject *instance, rendererLoader()->instances(QGstVideoRendererPluginKey)) {
@@ -137,6 +136,8 @@ QVideoSurfaceGstDelegate::~QVideoSurfaceGstDelegate()
 
     if (m_surfaceCaps)
         gst_caps_unref(m_surfaceCaps);
+    if (m_startCaps)
+        gst_caps_unref(m_startCaps);
 }
 
 GstCaps *QVideoSurfaceGstDelegate::caps()
@@ -155,13 +156,6 @@ bool QVideoSurfaceGstDelegate::start(GstCaps *caps)
     if (m_activeRenderer) {
         m_flush = true;
         m_stop = true;
-    }
-
-    m_render = false;
-
-    if (m_lastBuffer) {
-        gst_buffer_unref(m_lastBuffer);
-        m_lastBuffer = 0;
     }
 
     if (m_startCaps)
@@ -204,11 +198,6 @@ void QVideoSurfaceGstDelegate::stop()
         m_startCaps = 0;
     }
 
-    if (m_lastBuffer) {
-        gst_buffer_unref(m_lastBuffer);
-        m_lastBuffer = 0;
-    }
-
     waitForAsyncEvent(&locker, &m_setupCondition, 500);
 }
 
@@ -225,68 +214,19 @@ bool QVideoSurfaceGstDelegate::proposeAllocation(GstQuery *query)
     }
 }
 
-void QVideoSurfaceGstDelegate::flush()
+GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 {
     QMutexLocker locker(&m_mutex);
 
-    m_flush = true;
-    m_render = false;
+    m_renderBuffer = buffer;
 
-    if (m_lastBuffer) {
-        gst_buffer_unref(m_lastBuffer);
-        m_lastBuffer = 0;
-    }
+    GstFlowReturn flowReturn = waitForAsyncEvent(&locker, &m_renderCondition, 300)
+                                                ? m_renderReturn
+                                                : GST_FLOW_ERROR;
 
-    notify();
-}
+    m_renderBuffer = 0;
 
-GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer, bool show)
-{
-    QMutexLocker locker(&m_mutex);
-
-    if (m_lastBuffer)
-        gst_buffer_unref(m_lastBuffer);
-    m_lastBuffer = buffer;
-    gst_buffer_ref(m_lastBuffer);
-
-    if (show) {
-        m_render = true;
-
-        return waitForAsyncEvent(&locker, &m_renderCondition, 300)
-                ? m_renderReturn
-                : GST_FLOW_ERROR;
-    } else {
-        return GST_FLOW_OK;
-    }
-}
-
-void QVideoSurfaceGstDelegate::handleShowPrerollChange(GObject *object, GParamSpec *, gpointer d)
-{
-    QVideoSurfaceGstDelegate * const delegate = static_cast<QVideoSurfaceGstDelegate *>(d);
-
-    gboolean showPreroll = true; // "show-preroll-frame" property is true by default
-    g_object_get(object, "show-preroll-frame", &showPreroll, NULL);
-
-    GstState state = GST_STATE_NULL;
-    GstState pendingState = GST_STATE_NULL;
-    gst_element_get_state(GST_ELEMENT(object), &state, &pendingState, 0);
-
-    const bool paused
-                = (pendingState == GST_STATE_VOID_PENDING && state == GST_STATE_PAUSED)
-                || pendingState == GST_STATE_PAUSED;
-
-    if (paused) {
-        QMutexLocker locker(&delegate->m_mutex);
-
-        if (!showPreroll && delegate->m_lastBuffer) {
-            delegate->m_render = false;
-            delegate->m_flush = true;
-            delegate->notify();
-        } else if (delegate->m_lastBuffer) {
-            delegate->m_render = true;
-            delegate->notify();
-        }
-    }
+    return flowReturn;
 }
 
 bool QVideoSurfaceGstDelegate::event(QEvent *event)
@@ -350,11 +290,9 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker *locker)
         }
 
         gst_caps_unref(startCaps);
-    } else if (m_render) {
-        m_render = false;
-
-        if (m_activeRenderer && m_surface && m_lastBuffer) {
-            GstBuffer *buffer = m_lastBuffer;
+    } else if (m_renderBuffer) {
+        if (m_activeRenderer && m_surface) {
+            GstBuffer *buffer = m_renderBuffer;
             gst_buffer_ref(buffer);
 
             locker->unlock();
@@ -442,12 +380,6 @@ QGstVideoRendererSink *QGstVideoRendererSink::createSink(QAbstractVideoSurface *
 
     sink->delegate = new QVideoSurfaceGstDelegate(surface);
 
-    g_signal_connect(
-                G_OBJECT(sink),
-                "notify::show-preroll-frame",
-                G_CALLBACK(QVideoSurfaceGstDelegate::handleShowPrerollChange),
-                sink->delegate);
-
     return sink;
 }
 
@@ -487,7 +419,7 @@ void QGstVideoRendererSink::class_init(gpointer g_class, gpointer class_data)
     base_sink_class->get_caps = QGstVideoRendererSink::get_caps;
     base_sink_class->set_caps = QGstVideoRendererSink::set_caps;
     base_sink_class->propose_allocation = QGstVideoRendererSink::propose_allocation;
-    base_sink_class->preroll = QGstVideoRendererSink::preroll;
+    base_sink_class->stop = QGstVideoRendererSink::stop;
     base_sink_class->render = QGstVideoRendererSink::render;
 
     GstElementClass *element_class = reinterpret_cast<GstElementClass *>(g_class);
@@ -578,20 +510,17 @@ gboolean QGstVideoRendererSink::propose_allocation(GstBaseSink *base, GstQuery *
     return sink->delegate->proposeAllocation(query);
 }
 
-GstFlowReturn QGstVideoRendererSink::preroll(GstBaseSink *base, GstBuffer *buffer)
+gboolean QGstVideoRendererSink::stop(GstBaseSink *base)
 {
     VO_SINK(base);
-
-    gboolean showPreroll = true; // "show-preroll-frame" property is true by default
-    g_object_get(G_OBJECT(base), "show-preroll-frame", &showPreroll, NULL);
-
-    return sink->delegate->render(buffer, showPreroll); // display frame
+    sink->delegate->stop();
+    return TRUE;
 }
 
 GstFlowReturn QGstVideoRendererSink::render(GstBaseSink *base, GstBuffer *buffer)
 {
     VO_SINK(base);
-    return sink->delegate->render(buffer, true);
+    return sink->delegate->render(buffer);
 }
 
 QT_END_NAMESPACE
