@@ -98,6 +98,7 @@ Q_SIGNALS:
 private:
     static void updateCameraDevices();
     void attachInputDevices();
+    void applyViewfinderSettings();
 
     static QByteArray m_defaultCameraDevice;
     static QList<QByteArray> m_cameraDevices;

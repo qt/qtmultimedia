@@ -39,7 +39,8 @@ HEADERS += \
     avfcameradevicecontrol.h \
     avfcamerafocuscontrol.h \
     avfcameraexposurecontrol.h \
-    avfcamerautility.h
+    avfcamerautility.h \
+    avfcameraviewfindersettingscontrol.h
 
 OBJECTIVE_SOURCES += \
     avfcameraserviceplugin.mm \
@@ -58,7 +59,8 @@ OBJECTIVE_SOURCES += \
     avfcamerarenderercontrol.mm \
     avfcamerafocuscontrol.mm \
     avfcameraexposurecontrol.mm \
-    avfcamerautility.mm
+    avfcamerautility.mm \
+    avfcameraviewfindersettingscontrol.mm
 
 ios {
 
