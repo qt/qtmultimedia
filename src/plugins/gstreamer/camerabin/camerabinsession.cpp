@@ -461,7 +461,7 @@ GstElement *CameraBinSession::buildCameraSource()
     GstElement *camSrc = 0;
     g_object_get(G_OBJECT(m_camerabin), CAMERA_SOURCE_PROPERTY, &camSrc, NULL);
 
-    if (m_sourceFactory)
+    if (!m_cameraSrc && m_sourceFactory)
         m_cameraSrc = gst_element_factory_create(m_sourceFactory, "camera_source");
 
     // If gstreamer has set a default source use it.
@@ -477,50 +477,51 @@ GstElement *CameraBinSession::buildCameraSource()
         m_usingWrapperCameraBinSrc = qstrcmp(cameraSrcName, "wrappercamerabinsrc") == 0;
 
         if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_cameraSrc), "video-source")) {
-            GstElement *src = 0;
+            if (!m_videoSrc) {
+                /* QT_GSTREAMER_CAMERABIN_VIDEOSRC can be used to set the video source element.
 
-            /* QT_GSTREAMER_CAMERABIN_VIDEOSRC can be used to set the video source element.
+                   --- Usage
 
-               --- Usage
+                     QT_GSTREAMER_CAMERABIN_VIDEOSRC=[drivername=elementname[,drivername2=elementname2 ...],][elementname]
 
-                 QT_GSTREAMER_CAMERABIN_VIDEOSRC=[drivername=elementname[,drivername2=elementname2 ...],][elementname]
+                   --- Examples
 
-               --- Examples
+                     Always use 'somevideosrc':
+                     QT_GSTREAMER_CAMERABIN_VIDEOSRC="somevideosrc"
 
-                 Always use 'somevideosrc':
-                 QT_GSTREAMER_CAMERABIN_VIDEOSRC="somevideosrc"
+                     Use 'somevideosrc' when the device driver is 'somedriver', otherwise use default:
+                     QT_GSTREAMER_CAMERABIN_VIDEOSRC="somedriver=somevideosrc"
 
-                 Use 'somevideosrc' when the device driver is 'somedriver', otherwise use default:
-                 QT_GSTREAMER_CAMERABIN_VIDEOSRC="somedriver=somevideosrc"
+                     Use 'somevideosrc' when the device driver is 'somedriver', otherwise use 'somevideosrc2'
+                     QT_GSTREAMER_CAMERABIN_VIDEOSRC="somedriver=somevideosrc,somevideosrc2"
+                */
+                const QByteArray envVideoSource = qgetenv("QT_GSTREAMER_CAMERABIN_VIDEOSRC");
 
-                 Use 'somevideosrc' when the device driver is 'somedriver', otherwise use 'somevideosrc2'
-                 QT_GSTREAMER_CAMERABIN_VIDEOSRC="somedriver=somevideosrc,somevideosrc2"
-            */
-            const QByteArray envVideoSource = qgetenv("QT_GSTREAMER_CAMERABIN_VIDEOSRC");
-            if (!envVideoSource.isEmpty()) {
-                QList<QByteArray> sources = envVideoSource.split(',');
-                foreach (const QByteArray &source, sources) {
-                    QList<QByteArray> keyValue = source.split('=');
-                    if (keyValue.count() == 1) {
-                        src = gst_element_factory_make(keyValue.at(0), "camera_source");
-                        break;
-                    } else if (keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice, m_sourceFactory)) {
-                        src = gst_element_factory_make(keyValue.at(1), "camera_source");
-                        break;
+                if (!envVideoSource.isEmpty()) {
+                    QList<QByteArray> sources = envVideoSource.split(',');
+                    foreach (const QByteArray &source, sources) {
+                        QList<QByteArray> keyValue = source.split('=');
+                        if (keyValue.count() == 1) {
+                            m_videoSrc = gst_element_factory_make(keyValue.at(0), "camera_source");
+                            break;
+                        } else if (keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice, m_sourceFactory)) {
+                            m_videoSrc = gst_element_factory_make(keyValue.at(1), "camera_source");
+                            break;
+                        }
                     }
+                } else if (m_videoInputFactory) {
+                    m_videoSrc = m_videoInputFactory->buildElement();
                 }
-            } else if (m_videoInputFactory) {
-                src = m_videoInputFactory->buildElement();
+
+                if (!m_videoSrc)
+                    m_videoSrc = gst_element_factory_make("v4l2src", "camera_source");
+
+                g_object_set(G_OBJECT(m_cameraSrc), "video-source", m_videoSrc, NULL);
             }
 
-            if (!src)
-                src = gst_element_factory_make("v4l2src", "camera_source");
+            if (m_videoSrc)
+                g_object_set(G_OBJECT(m_videoSrc), "device", m_inputDevice.toUtf8().constData(), NULL);
 
-            if (src) {
-                g_object_set(G_OBJECT(src), "device", m_inputDevice.toUtf8().constData(), NULL);
-                g_object_set(G_OBJECT(m_cameraSrc), "video-source", src, NULL);
-                m_videoSrc = src;
-            }
         } else if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_cameraSrc), "camera-device")) {
             if (m_inputDevice == QLatin1String("secondary")) {
                 g_object_set(G_OBJECT(m_cameraSrc), "camera-device", 1, NULL);
