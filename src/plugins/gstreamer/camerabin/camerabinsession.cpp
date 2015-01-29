@@ -43,9 +43,9 @@
 #include "camerabinflash.h"
 #include "camerabinfocus.h"
 #include "camerabinlocks.h"
-#include "camerabinzoom.h"
 #endif
 
+#include "camerabinzoom.h"
 #include "camerabinimageprocessing.h"
 #include "camerabinviewfindersettings.h"
 
@@ -121,6 +121,12 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
      m_videoInputFactory(0),
      m_viewfinder(0),
      m_viewfinderInterface(0),
+#ifdef HAVE_GST_PHOTOGRAPHY
+     m_cameraExposureControl(0),
+     m_cameraFlashControl(0),
+     m_cameraFocusControl(0),
+     m_cameraLocksControl(0),
+#endif
      m_cameraSrc(0),
      m_videoSrc(0),
      m_viewfinderElement(0),
@@ -157,14 +163,7 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
     m_imageEncodeControl = new CameraBinImageEncoder(this);
     m_recorderControl = new CameraBinRecorder(this);
     m_mediaContainerControl = new CameraBinContainer(this);
-
-#ifdef HAVE_GST_PHOTOGRAPHY
-    m_cameraExposureControl = new CameraBinExposure(this);
-    m_cameraFlashControl = new CameraBinFlash(this);
-    m_cameraFocusControl = new CameraBinFocus(this);
-    m_cameraLocksControl = new CameraBinLocks(this);
     m_cameraZoomControl = new CameraBinZoom(this);
-#endif
     m_imageProcessingControl = new CameraBinImageProcessing(this);
     m_captureDestinationControl = new CameraBinCaptureDestination(this);
     m_captureBufferFormatControl = new CameraBinCaptureBufferFormat(this);
@@ -220,6 +219,34 @@ GstPhotography *CameraBinSession::photography()
         return GST_PHOTOGRAPHY(source);
 
     return 0;
+}
+
+CameraBinExposure *CameraBinSession::cameraExposureControl()
+{
+    if (!m_cameraExposureControl && photography())
+        m_cameraExposureControl = new CameraBinExposure(this);
+    return m_cameraExposureControl;
+}
+
+CameraBinFlash *CameraBinSession::cameraFlashControl()
+{
+    if (!m_cameraFlashControl && photography())
+        m_cameraFlashControl = new CameraBinFlash(this);
+    return m_cameraFlashControl;
+}
+
+CameraBinFocus *CameraBinSession::cameraFocusControl()
+{
+    if (!m_cameraFocusControl && photography())
+        m_cameraFocusControl = new CameraBinFocus(this);
+    return m_cameraFocusControl;
+}
+
+CameraBinLocks *CameraBinSession::cameraLocksControl()
+{
+    if (!m_cameraLocksControl && photography())
+        m_cameraLocksControl = new CameraBinLocks(this);
+    return m_cameraLocksControl;
 }
 #endif
 

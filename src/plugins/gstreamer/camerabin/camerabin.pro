@@ -24,6 +24,7 @@ HEADERS += \
     $$PWD/camerabinrecorder.h \
     $$PWD/camerabincontainer.h \
     $$PWD/camerabinimagecapture.h \
+    $$PWD/camerabinzoom.h \
     $$PWD/camerabinimageprocessing.h \
     $$PWD/camerabinmetadata.h \
     $$PWD/camerabinvideoencoder.h \
@@ -43,6 +44,7 @@ SOURCES += \
     $$PWD/camerabincontainer.cpp \
     $$PWD/camerabinimagecapture.cpp \
     $$PWD/camerabinimageencoder.cpp \
+    $$PWD/camerabinzoom.cpp \
     $$PWD/camerabinimageprocessing.cpp \
     $$PWD/camerabinmetadata.cpp \
     $$PWD/camerabinrecorder.cpp \
@@ -71,15 +73,13 @@ config_gstreamer_photography {
         $$PWD/camerabinfocus.h \
         $$PWD/camerabinexposure.h \
         $$PWD/camerabinflash.h \
-        $$PWD/camerabinlocks.h \
-        $$PWD/camerabinzoom.h
+        $$PWD/camerabinlocks.h
 
     SOURCES += \
         $$PWD/camerabinexposure.cpp \
         $$PWD/camerabinflash.cpp \
         $$PWD/camerabinfocus.cpp \
-        $$PWD/camerabinlocks.cpp \
-        $$PWD/camerabinzoom.cpp
+        $$PWD/camerabinlocks.cpp
 
     LIBS += -lgstphotography-$$GST_VERSION
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API

@@ -121,13 +121,13 @@ public:
     CameraBinImageEncoder *imageEncodeControl() const { return m_imageEncodeControl; }
 
 #ifdef HAVE_GST_PHOTOGRAPHY
-    CameraBinExposure *cameraExposureControl() const  { return m_cameraExposureControl; }
-    CameraBinFlash *cameraFlashControl() const  { return m_cameraFlashControl; }
-    CameraBinFocus *cameraFocusControl() const  { return m_cameraFocusControl; }
-    CameraBinLocks *cameraLocksControl() const { return m_cameraLocksControl; }
-    CameraBinZoom *cameraZoomControl() const { return m_cameraZoomControl; }
+    CameraBinExposure *cameraExposureControl();
+    CameraBinFlash *cameraFlashControl();
+    CameraBinFocus *cameraFocusControl();
+    CameraBinLocks *cameraLocksControl();
 #endif
 
+    CameraBinZoom *cameraZoomControl() const { return m_cameraZoomControl; }
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
     CameraBinCaptureDestination *captureDestinationControl() const { return m_captureDestinationControl; }
     CameraBinCaptureBufferFormat *captureBufferFormatControl() const { return m_captureBufferFormatControl; }
@@ -238,9 +238,8 @@ private:
     CameraBinFlash *m_cameraFlashControl;
     CameraBinFocus *m_cameraFocusControl;
     CameraBinLocks *m_cameraLocksControl;
-    CameraBinZoom *m_cameraZoomControl;
 #endif
-
+    CameraBinZoom *m_cameraZoomControl;
     CameraBinImageProcessing *m_imageProcessingControl;
     CameraBinCaptureDestination *m_captureDestinationControl;
     CameraBinCaptureBufferFormat *m_captureBufferFormatControl;
