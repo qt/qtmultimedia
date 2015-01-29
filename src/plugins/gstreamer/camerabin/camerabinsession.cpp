@@ -250,11 +250,6 @@ CameraBinLocks *CameraBinSession::cameraLocksControl()
 }
 #endif
 
-CameraBinSession::CameraRole CameraBinSession::cameraRole() const
-{
-    return BackCamera;
-}
-
 bool CameraBinSession::setupCameraBin()
 {
     if (!buildCameraSource())

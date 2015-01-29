@@ -83,11 +83,6 @@ class CameraBinSession : public QObject,
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_INTERFACES(QGstreamerBusMessageFilter QGstreamerSyncMessageFilter)
 public:
-    enum CameraRole {
-       FrontCamera, // Secondary camera
-       BackCamera // Main photo camera
-    };
-
     CameraBinSession(GstElementFactory *sourceFactory, QObject *parent);
     ~CameraBinSession();
 
@@ -97,8 +92,6 @@ public:
     GstElement *cameraBin() { return m_camerabin; }
     GstElement *cameraSource() { return m_videoSrc; }
     QGstreamerBusHelper *bus() { return m_busHelper; }
-
-    CameraRole cameraRole() const;
 
     QList< QPair<int,int> > supportedFrameRates(const QSize &frameSize, bool *continuous) const;
     QList<QSize> supportedResolutions(QPair<int,int> rate, bool *continuous, QCamera::CaptureModes mode) const;
