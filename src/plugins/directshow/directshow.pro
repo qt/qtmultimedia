@@ -1,5 +1,5 @@
 TARGET = dsengine
-win32:!qtHaveModule(opengl) {
+win32:!qtHaveModule(opengl)|contains(QT_CONFIG,dynamicgl) {
     LIBS_PRIVATE += -lgdi32 -luser32
 }
 PLUGIN_TYPE=mediaservice
