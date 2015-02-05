@@ -249,16 +249,14 @@ bool CameraBinControl::canChangeProperty(PropertyChangeType changeType, QCamera:
     Q_UNUSED(status);
 
     switch (changeType) {
-    case QCameraControl::CaptureMode:
-        return status != QCamera::ActiveStatus;
-        break;
-    case QCameraControl::ImageEncodingSettings:
-    case QCameraControl::VideoEncodingSettings:
     case QCameraControl::Viewfinder:
         return true;
+    case QCameraControl::CaptureMode:
+    case QCameraControl::ImageEncodingSettings:
+    case QCameraControl::VideoEncodingSettings:
     case QCameraControl::ViewfinderSettings:
     default:
-        return false;
+        return status != QCamera::ActiveStatus;
     }
 }
 

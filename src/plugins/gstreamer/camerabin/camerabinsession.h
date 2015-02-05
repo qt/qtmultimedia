@@ -179,6 +179,7 @@ public slots:
 
 private slots:
     void handleViewfinderChange();
+    void setupCaptureResolution();
 
 private:
     void load();
@@ -191,8 +192,8 @@ private:
     void setError(int error, const QString &errorString);
 
     bool setupCameraBin();
-    void setupCaptureResolution();
     void setAudioCaptureCaps();
+    GstCaps *supportedCaps(QCamera::CaptureModes mode) const;
     void updateSupportedViewfinderSettings();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 

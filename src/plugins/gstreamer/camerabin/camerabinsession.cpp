@@ -1174,14 +1174,47 @@ static bool rateLessThan(const QPair<int,int> &r1, const QPair<int,int> &r2)
      return r1.first*r2.second < r2.first*r1.second;
 }
 
+GstCaps *CameraBinSession::supportedCaps(QCamera::CaptureModes mode) const
+{
+    GstCaps *supportedCaps = 0;
+
+    // When using wrappercamerabinsrc, get the supported caps directly from the video source element.
+    // This makes sure we only get the caps actually supported by the video source element.
+    if (m_videoSrc) {
+        GstPad *pad = gst_element_get_static_pad(m_videoSrc, "src");
+        if (pad) {
+            supportedCaps = qt_gst_pad_get_caps(pad);
+            gst_object_unref(GST_OBJECT(pad));
+        }
+    }
+
+    // Otherwise, let the camerabin handle this.
+    if (!supportedCaps) {
+        const gchar *prop;
+        switch (mode) {
+        case QCamera::CaptureStillImage:
+            prop = SUPPORTED_IMAGE_CAPTURE_CAPS_PROPERTY;
+            break;
+        case QCamera::CaptureVideo:
+            prop = SUPPORTED_VIDEO_CAPTURE_CAPS_PROPERTY;
+            break;
+        case QCamera::CaptureViewfinder:
+        default:
+            prop = SUPPORTED_VIEWFINDER_CAPS_PROPERTY;
+            break;
+        }
+
+        g_object_get(G_OBJECT(m_camerabin), prop, &supportedCaps, NULL);
+    }
+
+    return supportedCaps;
+}
+
 QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frameSize, bool *continuous) const
 {
     QList< QPair<int,int> > res;
 
-    GstCaps *supportedCaps = 0;
-    g_object_get(G_OBJECT(m_camerabin),
-                 SUPPORTED_VIDEO_CAPTURE_CAPS_PROPERTY,
-                 &supportedCaps, NULL);
+    GstCaps *supportedCaps = this->supportedCaps(QCamera::CaptureVideo);
 
     if (!supportedCaps)
         return res;
@@ -1284,11 +1317,7 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
     if (continuous)
         *continuous = false;
 
-    GstCaps *supportedCaps = 0;
-    g_object_get(G_OBJECT(m_camerabin),
-                 (mode == QCamera::CaptureStillImage) ?
-                     SUPPORTED_IMAGE_CAPTURE_CAPS_PROPERTY : SUPPORTED_VIDEO_CAPTURE_CAPS_PROPERTY,
-                 &supportedCaps, NULL);
+    GstCaps *supportedCaps = this->supportedCaps(mode);
 
 #if CAMERABIN_DEBUG
     qDebug() << "Source caps:" << supportedCaps;
@@ -1422,21 +1451,7 @@ void CameraBinSession::updateSupportedViewfinderSettings()
 {
     m_supportedViewfinderSettings.clear();
 
-    GstCaps *supportedCaps = 0;
-
-    // When using wrappercamerabinsrc, get the supported caps directly from the video source element.
-    // This makes sure we only get the caps actually supported by the video source element.
-    if (m_videoSrc) {
-        GstPad *pad = gst_element_get_static_pad(m_videoSrc, "src");
-        if (pad) {
-            supportedCaps = qt_gst_pad_get_caps(pad);
-            gst_object_unref(GST_OBJECT(pad));
-        }
-    }
-
-    // Otherwise, let the camerabin handle this.
-    if (!supportedCaps)
-        g_object_get(G_OBJECT(m_camerabin), SUPPORTED_VIEWFINDER_CAPS_PROPERTY, &supportedCaps, NULL);
+    GstCaps *supportedCaps = this->supportedCaps(QCamera::CaptureViewfinder);
 
     // Convert caps to QCameraViewfinderSettings
     if (supportedCaps) {
