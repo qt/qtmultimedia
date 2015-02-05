@@ -453,7 +453,9 @@ QList<QByteArray> QWindowsAudioDeviceInfo::availableDevices(QAudio::Mode mode)
                 pPropBag->Release();
                 pMoniker->Release();
             }
+            pEnum->Release();
         }
+        pDevEnum->Release();
     }
     CoUninitialize();
 #else // Q_OS_WINCE
