@@ -420,7 +420,7 @@ void CameraBinSession::setAudioCaptureCaps()
     const int sampleRate = settings.sampleRate();
     const int channelCount = settings.channelCount();
 
-    if (sampleRate == -1 && channelCount == -1)
+    if (sampleRate <= 0 && channelCount <=0)
         return;
 
 #if GST_CHECK_VERSION(1,0,0)
@@ -434,9 +434,9 @@ void CameraBinSession::setAudioCaptureCaps()
                 "depth", G_TYPE_INT, 16,
                 NULL);
 #endif
-    if (sampleRate != -1)
+    if (sampleRate > 0)
         gst_structure_set(structure, "rate", G_TYPE_INT, sampleRate, NULL);
-    if (channelCount != -1)
+    if (channelCount > 0)
         gst_structure_set(structure, "channels", G_TYPE_INT, channelCount, NULL);
 
     GstCaps *caps = gst_caps_new_full(structure, NULL);
