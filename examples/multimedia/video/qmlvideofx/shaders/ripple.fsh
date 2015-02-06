@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-// Based on http://blog.qt.digia.com/blog/2011/03/22/the-convenient-power-of-qml-scene-graph/
+// Based on http://blog.qt.io/blog/2011/03/22/the-convenient-power-of-qml-scene-graph/
 
 uniform float dividerValue;
 uniform float targetWidth;
