@@ -38,6 +38,7 @@
 #include <QtMultimedia/qcameraviewfindersettings.h>
 #include <QtMultimedia/qvideoframe.h>
 
+#include <QtCore/qpointer.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qsize.h>
 
@@ -56,6 +57,7 @@ class AVFCameraViewfinderSettingsControl2 : public QCameraViewfinderSettingsCont
     Q_OBJECT
 
     friend class AVFCameraSession;
+    friend class AVFCameraViewfinderSettingsControl;
 public:
     AVFCameraViewfinderSettingsControl2(AVFCameraService *service);
 
@@ -84,6 +86,27 @@ private:
     mutable AVCaptureDevice *m_captureDevice;
     mutable AVCaptureVideoDataOutput *m_videoOutput;
     mutable AVCaptureConnection *m_videoConnection;
+};
+
+class AVFCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl
+{
+    Q_OBJECT
+public:
+    AVFCameraViewfinderSettingsControl(AVFCameraService *service);
+
+    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const Q_DECL_OVERRIDE;
+    QVariant viewfinderParameter(ViewfinderParameter parameter) const Q_DECL_OVERRIDE;
+    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) Q_DECL_OVERRIDE;
+
+private:
+    void setResolution(const QVariant &resolution);
+    void setAspectRatio(const QVariant &aspectRatio);
+    void setFrameRate(const QVariant &fps, bool max);
+    void setPixelFormat(const QVariant &pf);
+    bool initSettingsControl() const;
+
+    AVFCameraService *m_service;
+    mutable QPointer<AVFCameraViewfinderSettingsControl2> m_settingsControl;
 };
 
 QT_END_NAMESPACE

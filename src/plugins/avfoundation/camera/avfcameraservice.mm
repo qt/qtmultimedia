@@ -86,6 +86,7 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_cameraZoomControl = new AVFCameraZoomControl(this);
 #endif
     m_viewfinderSettingsControl2 = new AVFCameraViewfinderSettingsControl2(this);
+    m_viewfinderSettingsControl = new AVFCameraViewfinderSettingsControl(this);
 }
 
 AVFCameraService::~AVFCameraService()
@@ -110,6 +111,7 @@ AVFCameraService::~AVFCameraService()
     delete m_cameraZoomControl;
 #endif
     delete m_viewfinderSettingsControl2;
+    delete m_viewfinderSettingsControl;
 
     delete m_session;
 }
@@ -146,6 +148,9 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraViewfinderSettingsControl2_iid) == 0)
         return m_viewfinderSettingsControl2;
+
+    if (qstrcmp(name, QCameraViewfinderSettingsControl_iid) == 0)
+        return m_viewfinderSettingsControl;
 
     if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
         AVFMediaVideoProbeControl *videoProbe = 0;

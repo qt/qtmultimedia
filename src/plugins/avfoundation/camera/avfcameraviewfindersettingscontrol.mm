@@ -574,6 +574,159 @@ bool AVFCameraViewfinderSettingsControl2::updateAVFoundationObjects() const
     return true;
 }
 
+AVFCameraViewfinderSettingsControl::AVFCameraViewfinderSettingsControl(AVFCameraService *service)
+    : m_service(service)
+{
+    // Legacy viewfinder settings control.
+    Q_ASSERT(service);
+    initSettingsControl();
+}
+
+bool AVFCameraViewfinderSettingsControl::isViewfinderParameterSupported(ViewfinderParameter parameter) const
+{
+    return parameter == Resolution
+           || parameter == PixelAspectRatio
+           || parameter == MinimumFrameRate
+           || parameter == MaximumFrameRate
+           || parameter == PixelFormat;
+}
+
+QVariant AVFCameraViewfinderSettingsControl::viewfinderParameter(ViewfinderParameter parameter) const
+{
+    if (!isViewfinderParameterSupported(parameter)) {
+        qDebugCamera() << Q_FUNC_INFO << "parameter is not supported";
+        return QVariant();
+    }
+
+    if (!initSettingsControl()) {
+        qDebugCamera() << Q_FUNC_INFO << "initialization failed";
+        return QVariant();
+    }
+
+    const QCameraViewfinderSettings settings(m_settingsControl->viewfinderSettings());
+    if (parameter == Resolution)
+        return settings.resolution();
+    if (parameter == PixelAspectRatio)
+        return settings.pixelAspectRatio();
+    if (parameter == MinimumFrameRate)
+        return settings.minimumFrameRate();
+    if (parameter == MaximumFrameRate)
+        return settings.maximumFrameRate();
+    if (parameter == PixelFormat)
+        return QVariant::fromValue(settings.pixelFormat());
+
+    return QVariant();
+}
+
+void AVFCameraViewfinderSettingsControl::setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value)
+{
+    if (!isViewfinderParameterSupported(parameter)) {
+        qDebugCamera() << Q_FUNC_INFO << "parameter is not supported";
+        return;
+    }
+
+    if (parameter == Resolution)
+        setResolution(value);
+    if (parameter == PixelAspectRatio)
+        setAspectRatio(value);
+    if (parameter == MinimumFrameRate)
+        setFrameRate(value, false);
+    if (parameter == MaximumFrameRate)
+        setFrameRate(value, true);
+    if (parameter == PixelFormat)
+        setPixelFormat(value);
+}
+
+void AVFCameraViewfinderSettingsControl::setResolution(const QVariant &newValue)
+{
+    if (!newValue.canConvert<QSize>()) {
+        qDebugCamera() << Q_FUNC_INFO << "QSize type expected";
+        return;
+    }
+
+    if (!initSettingsControl()) {
+        qDebugCamera() << Q_FUNC_INFO << "initialization failed";
+        return;
+    }
+
+    const QSize res(newValue.toSize());
+    if (res.isNull() || !res.isValid()) {
+        qDebugCamera() << Q_FUNC_INFO << "invalid resolution:" << res;
+        return;
+    }
+
+    QCameraViewfinderSettings settings(m_settingsControl->viewfinderSettings());
+    settings.setResolution(res);
+    m_settingsControl->setViewfinderSettings(settings);
+}
+
+void AVFCameraViewfinderSettingsControl::setAspectRatio(const QVariant &newValue)
+{
+    if (!newValue.canConvert<QSize>()) {
+        qDebugCamera() << Q_FUNC_INFO << "QSize type expected";
+        return;
+    }
+
+    if (!initSettingsControl()) {
+        qDebugCamera() << Q_FUNC_INFO << "initialization failed";
+        return;
+    }
+
+    const QSize par(newValue.value<QSize>());
+    if (par.isNull() || !par.isValid()) {
+        qDebugCamera() << Q_FUNC_INFO << "invalid pixel aspect ratio:" << par;
+        return;
+    }
+
+    QCameraViewfinderSettings settings(m_settingsControl->viewfinderSettings());
+    settings.setPixelAspectRatio(par);
+    m_settingsControl->setViewfinderSettings(settings);
+}
+
+void AVFCameraViewfinderSettingsControl::setFrameRate(const QVariant &newValue, bool max)
+{
+    if (!newValue.canConvert<qreal>()) {
+        qDebugCamera() << Q_FUNC_INFO << "qreal type expected";
+        return;
+    }
+
+    if (!initSettingsControl()) {
+        qDebugCamera() << Q_FUNC_INFO << "initialization failed";
+        return;
+    }
+
+    const qreal fps(newValue.toReal());
+    QCameraViewfinderSettings settings(m_settingsControl->viewfinderSettings());
+    max ? settings.setMaximumFrameRate(fps) : settings.setMinimumFrameRate(fps);
+    m_settingsControl->setViewfinderSettings(settings);
+}
+
+void AVFCameraViewfinderSettingsControl::setPixelFormat(const QVariant &newValue)
+{
+    if (!newValue.canConvert<QVideoFrame::PixelFormat>()) {
+        qDebugCamera() << Q_FUNC_INFO
+                       << "QVideoFrame::PixelFormat type expected";
+        return;
+    }
+
+    if (!initSettingsControl()) {
+        qDebugCamera() << Q_FUNC_INFO << "initialization failed";
+        return;
+    }
+
+    QCameraViewfinderSettings settings(m_settingsControl->viewfinderSettings());
+    settings.setPixelFormat(newValue.value<QVideoFrame::PixelFormat>());
+    m_settingsControl->setViewfinderSettings(settings);
+}
+
+bool AVFCameraViewfinderSettingsControl::initSettingsControl()const
+{
+    if (!m_settingsControl)
+        m_settingsControl = m_service->viewfinderSettingsControl2();
+
+    return !m_settingsControl.isNull();
+}
+
 QT_END_NAMESPACE
 
 #include "moc_avfcameraviewfindersettingscontrol.cpp"
