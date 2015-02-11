@@ -102,10 +102,25 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
             m_videoInput->setDevice(m_videoInputDevice->deviceName(m_videoInputDevice->selectedDevice()));
 
         m_videoRenderer = new QGstreamerVideoRenderer(this);
+
         m_videoWindow = new QGstreamerVideoWindow(this);
+        // If the GStreamer sink element is not available (xvimagesink), don't provide
+        // the video window control since it won't work anyway.
+        if (!m_videoWindow->videoSink()) {
+            delete m_videoWindow;
+            m_videoWindow = 0;
+        }
 
 #if defined(HAVE_WIDGETS)
         m_videoWidgetControl = new QGstreamerVideoWidgetControl(this);
+
+        // If the GStreamer sink element is not available (xvimagesink or ximagesink), don't provide
+        // the video widget control since it won't work anyway.
+        // QVideoWidget will fall back to QVideoRendererControl in that case.
+        if (!m_videoWidgetControl->videoSink()) {
+            delete m_videoWidgetControl;
+            m_videoWidgetControl = 0;
+        }
 #endif
         m_imageCaptureControl = new QGstreamerImageCaptureControl(m_captureSession);
     }

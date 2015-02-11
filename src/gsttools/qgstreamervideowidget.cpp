@@ -93,6 +93,22 @@ QGstreamerVideoWidgetControl::QGstreamerVideoWidgetControl(QObject *parent)
     , m_widget(0)
     , m_fullScreen(false)
 {
+    m_videoSink = gst_element_factory_make ("xvimagesink", NULL);
+
+    if (!m_videoSink)
+        m_videoSink = gst_element_factory_make ("ximagesink", NULL);
+
+    if (m_videoSink) {
+        // Check if the xv sink is usable
+        if (gst_element_set_state(m_videoSink, GST_STATE_READY) != GST_STATE_CHANGE_SUCCESS) {
+            gst_object_unref(GST_OBJECT(m_videoSink));
+            m_videoSink = 0;
+        } else {
+            gst_element_set_state(m_videoSink, GST_STATE_NULL);
+            g_object_set(G_OBJECT(m_videoSink), "force-aspect-ratio", 1, (const char*)NULL);
+            qt_gst_object_ref_sink(GST_OBJECT (m_videoSink)); //Take ownership
+        }
+    }
 }
 
 QGstreamerVideoWidgetControl::~QGstreamerVideoWidgetControl()
@@ -105,38 +121,17 @@ QGstreamerVideoWidgetControl::~QGstreamerVideoWidgetControl()
 
 void QGstreamerVideoWidgetControl::createVideoWidget()
 {
-    if (m_widget)
+    if (!m_videoSink || m_widget)
         return;
 
     m_widget = new QGstreamerVideoWidget;
 
     m_widget->installEventFilter(this);
     m_windowId = m_widget->winId();
-
-    m_videoSink = gst_element_factory_make ("xvimagesink", NULL);
-    if (m_videoSink) {
-        // Check if the xv sink is usable
-        if (gst_element_set_state(m_videoSink, GST_STATE_READY) != GST_STATE_CHANGE_SUCCESS) {
-            gst_object_unref(GST_OBJECT(m_videoSink));
-            m_videoSink = 0;
-        } else {
-            gst_element_set_state(m_videoSink, GST_STATE_NULL);
-
-            g_object_set(G_OBJECT(m_videoSink), "force-aspect-ratio", 1, (const char*)NULL);
-        }
-    }
-
-    if (!m_videoSink)
-        m_videoSink = gst_element_factory_make ("ximagesink", NULL);
-
-    qt_gst_object_ref_sink(GST_OBJECT (m_videoSink)); //Take ownership
-
-
 }
 
 GstElement *QGstreamerVideoWidgetControl::videoSink()
 {
-    createVideoWidget();
     return m_videoSink;
 }
 

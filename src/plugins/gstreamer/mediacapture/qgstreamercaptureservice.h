@@ -48,6 +48,7 @@ class QGstreamerCameraControl;
 class QGstreamerMessage;
 class QGstreamerBusHelper;
 class QGstreamerVideoRenderer;
+class QGstreamerVideoWindow;
 class QGstreamerVideoWidgetControl;
 class QGstreamerElementFactory;
 class QGstreamerCaptureMetaDataControl;
@@ -81,9 +82,9 @@ private:
     QMediaControl *m_videoOutput;
 
     QGstreamerVideoRenderer *m_videoRenderer;
-    QMediaControl *m_videoWindow;
+    QGstreamerVideoWindow *m_videoWindow;
 #if defined(HAVE_WIDGETS)
-    QMediaControl *m_videoWidgetControl;
+    QGstreamerVideoWidgetControl *m_videoWidgetControl;
 #endif
     QGstreamerImageCaptureControl *m_imageCaptureControl;
 };
