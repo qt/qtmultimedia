@@ -335,7 +335,7 @@ void QMediaPlayerPrivate::setPlaylistMedia()
             return;
         } else if (control != 0) {
             // If we've just switched to a new playlist,
-            // then last emited currentMediaChanged was a playlist.
+            // then last emitted currentMediaChanged was a playlist.
             // Make sure we emit currentMediaChanged if new playlist has
             // the same media as the previous one:
             // sample.m3u

@@ -925,7 +925,7 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsLongitude
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsAltitude
 
-    These properties hold the the geographic position in decimal degrees of the
+    These properties hold the geographic position in decimal degrees of the
     camera at time of capture.
 
     \sa {QMediaMetaData}

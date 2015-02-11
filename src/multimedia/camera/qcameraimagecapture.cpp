@@ -520,7 +520,7 @@ bool QCameraImageCapture::isReadyForCapture() const
     the default directory, with a full path reported with imageCaptured() and imageSaved() signals.
 
     QCamera saves all the capture parameters like exposure settings or
-    image processing parameters, so changes to camera paramaters after
+    image processing parameters, so changes to camera parameters after
     capture() is called do not affect previous capture requests.
 
     QCameraImageCapture::capture returns the capture Id parameter, used with

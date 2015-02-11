@@ -153,7 +153,7 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
     for video.
 
     Camera saves all the capture parameters like exposure settings or
-    image processing parameters, so changes to camera paramaters after
+    image processing parameters, so changes to camera parameters after
     capture() is called do not affect previous capture requests.
 
     capture() returns the capture requestId parameter, used with

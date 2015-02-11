@@ -111,7 +111,7 @@ QCameraImageCaptureControl::~QCameraImageCaptureControl()
 
     The Camera service should save all the capture parameters
     like exposure settings or image processing parameters,
-    so changes to camera paramaters after capture() is called
+    so changes to camera parameters after capture() is called
     do not affect previous capture requests.
 
     Returns the capture request id number, which is used later
