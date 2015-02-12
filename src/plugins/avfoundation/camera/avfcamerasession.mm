@@ -40,6 +40,7 @@
 #include "avfaudioinputselectorcontrol.h"
 #include "avfmediavideoprobecontrol.h"
 #include "avfcameraviewfindersettingscontrol.h"
+#include "avfimageencodercontrol.h"
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
@@ -276,6 +277,7 @@ void AVFCameraSession::setState(QCamera::State newState)
         Q_EMIT readyToConfigureConnections();
         [m_captureSession commitConfiguration];
         [m_captureSession startRunning];
+        applyImageEncoderSettings();
         applyViewfinderSettings();
     }
 
@@ -366,12 +368,27 @@ void AVFCameraSession::attachInputDevices()
     }
 }
 
+void AVFCameraSession::applyImageEncoderSettings()
+{
+    if (AVFImageEncoderControl *control = m_service->imageEncoderControl())
+        control->applySettings();
+}
+
 void AVFCameraSession::applyViewfinderSettings()
 {
-    if (AVFCameraViewfinderSettingsControl2 *control = m_service->viewfinderSettingsControl2()) {
-        QCameraViewfinderSettings settings(control->requestedSettings());
-        // TODO: Adjust the resolution (from image encoder control), updating 'settings'.
-        control->setViewfinderSettings(settings);
+    if (AVFCameraViewfinderSettingsControl2 *vfControl = m_service->viewfinderSettingsControl2()) {
+        QCameraViewfinderSettings vfSettings(vfControl->requestedSettings());
+        if (AVFImageEncoderControl *imControl = m_service->imageEncoderControl()) {
+            const QSize imageResolution(imControl->imageSettings().resolution());
+            if (!imageResolution.isNull() && imageResolution.isValid()) {
+                vfSettings.setResolution(imageResolution);
+                vfControl->setViewfinderSettings(vfSettings);
+                return;
+            }
+        }
+
+        if (!vfSettings.isNull())
+            vfControl->applySettings();
     }
 }
 

@@ -31,50 +31,46 @@
 **
 ****************************************************************************/
 
-#ifndef AVFIMAGECAPTURECONTROL_H
-#define AVFIMAGECAPTURECONTROL_H
+#ifndef AVFIMAGEENCODERCONTROL_H
+#define AVFIMAGEENCODERCONTROL_H
 
-#import <AVFoundation/AVFoundation.h>
+#include <QtMultimedia/qmediaencodersettings.h>
+#include <QtMultimedia/qimageencodercontrol.h>
 
-#include <QtMultimedia/qcameraimagecapturecontrol.h>
-#include "avfstoragelocation.h"
+#include <QtCore/qglobal.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qlist.h>
+
+@class AVCaptureDeviceFormat;
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraSession;
 class AVFCameraService;
-class AVFCameraControl;
 
-class AVFImageCaptureControl : public QCameraImageCaptureControl
+class AVFImageEncoderControl : public QImageEncoderControl
 {
-Q_OBJECT
+    Q_OBJECT
+
+    friend class AVFCameraSession;
 public:
-    AVFImageCaptureControl(AVFCameraService *service, QObject *parent = 0);
-    ~AVFImageCaptureControl();
+    AVFImageEncoderControl(AVFCameraService *service);
 
-    bool isReadyForCapture() const;
-
-    QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode ) {}
-    AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
-
-    int capture(const QString &fileName);
-    void cancelCapture();
-
-private Q_SLOTS:
-    void updateCaptureConnection();
-    void updateReadyStatus();
+    QStringList supportedImageCodecs() const Q_DECL_OVERRIDE;
+    QString imageCodecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
+    QList<QSize> supportedResolutions(const QImageEncoderSettings &settings,
+                                      bool *continuous) const Q_DECL_OVERRIDE;
+    QImageEncoderSettings imageSettings() const Q_DECL_OVERRIDE;
+    void setImageSettings(const QImageEncoderSettings &settings) Q_DECL_OVERRIDE;
 
 private:
     AVFCameraService *m_service;
-    AVFCameraSession *m_session;
-    AVFCameraControl *m_cameraControl;
-    bool m_ready;
-    int m_lastCaptureId;
-    AVCaptureStillImageOutput *m_stillImageOutput;
-    AVCaptureConnection *m_videoConnection;
-    AVFStorageLocation m_storageLocation;
+    QImageEncoderSettings m_settings;
+
+    void applySettings();
+    bool videoCaptureDeviceIsValid() const;
 };
+
+QSize qt_image_high_resolution(AVCaptureDeviceFormat *fomat);
 
 QT_END_NAMESPACE
 
