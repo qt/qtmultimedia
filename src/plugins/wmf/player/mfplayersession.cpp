@@ -1296,7 +1296,7 @@ void MFPlayerSession::commitRateChange(qreal rate, BOOL isThin)
             // (which might be earlier than the last decoded key frame)
             resetPosition = true;
         } else if (cmdNow == CmdPause) {
-            // If paused, dont reset the position until we resume, otherwise
+            // If paused, don't reset the position until we resume, otherwise
             // a new frame will be rendered
             m_presentationClock->GetCorrelatedTime(0, &hnsClockTime, &hnsSystemTime);
             m_request.setCommand(CmdSeekResume);

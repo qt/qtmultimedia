@@ -34,7 +34,7 @@
 #ifndef QVIDEOPROBE_H
 #define QVIDEOPROBE_H
 
-#include <QObject>
+#include <QtCore/QObject>
 #include <QtMultimedia/qvideoframe.h>
 
 QT_BEGIN_NAMESPACE

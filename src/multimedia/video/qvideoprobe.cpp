@@ -51,7 +51,7 @@
 
         player->setVideoOutput(myVideoSurface);
         player->setMedia(QUrl::fromLocalFile("observation.mp4"));
-        player->play(); // Start receving frames as they get presented to myVideoSurface
+        player->play(); // Start receiving frames as they get presented to myVideoSurface
     \endcode
 
     This same approach works with the QCamera object as well, to receive viewfinder or video
