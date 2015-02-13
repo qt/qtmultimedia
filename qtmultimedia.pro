@@ -15,8 +15,8 @@ win32 {
 } else:qnx {
     qtCompileTest(mmrenderer)
 } else {
-    qtCompileTest(alsa)
-    qtCompileTest(pulseaudio)
+    contains(QT_CONFIG, alsa):qtCompileTest(alsa)
+    contains(QT_CONFIG, pulseaudio):qtCompileTest(pulseaudio)
     qtCompileTest(gstreamer) {
         qtCompileTest(gstreamer_photography)
         qtCompileTest(gstreamer_encodingprofiles)
