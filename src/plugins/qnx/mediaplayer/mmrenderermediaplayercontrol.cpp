@@ -162,22 +162,6 @@ QByteArray MmRendererMediaPlayerControl::resourcePathForUrl(const QUrl &url)
         const QFileInfo fileInfo(relativeFilePath);
         return QFile::encodeName(QStringLiteral("file://") + fileInfo.absoluteFilePath());
 
-    // QRC, copy to temporary file, as mmrenderer does not support resource files
-    } else if (url.scheme() == QStringLiteral("qrc")) {
-        const QString qrcPath = ':' + url.path();
-        const QFileInfo resourceFileInfo(qrcPath);
-        m_tempMediaFileName = QDir::tempPath() + QStringLiteral("/qtmedia_") +
-                              QUuid::createUuid().toString() + QStringLiteral(".") +
-                              resourceFileInfo.suffix();
-        if (!QFile::copy(qrcPath, m_tempMediaFileName)) {
-            const QString errorMsg = QString("Failed to copy resource file to temporary file "
-                                             "%1 for playback").arg(m_tempMediaFileName);
-            qDebug() << errorMsg;
-            emit error(0, errorMsg);
-            return QByteArray();
-        }
-        return QFile::encodeName(m_tempMediaFileName);
-
     // HTTP or similar URL
     } else {
         return url.toEncoded();
@@ -187,7 +171,7 @@ QByteArray MmRendererMediaPlayerControl::resourcePathForUrl(const QUrl &url)
 void MmRendererMediaPlayerControl::attach()
 {
     // Should only be called in detached state
-    Q_ASSERT(m_audioId == -1 && !m_inputAttached && m_tempMediaFileName.isEmpty());
+    Q_ASSERT(m_audioId == -1 && !m_inputAttached);
 
     if (m_media.isNull() || !m_context) {
         setMediaStatus(QMediaPlayer::NoMedia);
@@ -251,10 +235,6 @@ void MmRendererMediaPlayerControl::detach()
         }
     }
 
-    if (!m_tempMediaFileName.isEmpty()) {
-        QFile::remove(m_tempMediaFileName);
-        m_tempMediaFileName.clear();
-    }
     m_loadingTimer.stop();
 }
 

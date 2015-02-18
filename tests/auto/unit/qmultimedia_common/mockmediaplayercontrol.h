@@ -91,11 +91,10 @@ public:
     {
         _stream = stream;
         _media = content;
-        if (_state != QMediaPlayer::StoppedState) {
-            _mediaStatus = _media.isNull() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia;
+        _mediaStatus = _media.isNull() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia;
+        if (_state != QMediaPlayer::StoppedState)
             emit stateChanged(_state = QMediaPlayer::StoppedState);
-            emit mediaStatusChanged(_mediaStatus);
-        }
+        emit mediaStatusChanged(_mediaStatus);
         emit mediaChanged(_media = content);
     }
     QIODevice *mediaStream() const { return _stream; }

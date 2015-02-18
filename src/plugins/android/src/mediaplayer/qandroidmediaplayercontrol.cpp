@@ -318,8 +318,6 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
     if ((mState & (AndroidMediaPlayer::Idle | AndroidMediaPlayer::Uninitialized)) == 0)
         mMediaPlayer->release();
 
-    QString mediaPath;
-
     if (mediaContent.isNull()) {
         setMediaStatus(QMediaPlayer::NoMedia);
     } else {
@@ -330,29 +328,17 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
             return;
         }
 
-        const QUrl url = mediaContent.canonicalUrl();
-        if (url.scheme() == QLatin1String("qrc")) {
-            const QString path = url.toString().mid(3);
-            mTempFile.reset(QTemporaryFile::createNativeFile(path));
-            if (!mTempFile.isNull())
-                mediaPath = QStringLiteral("file://") + mTempFile->fileName();
-        } else {
-            mediaPath = url.toString(QUrl::FullyEncoded);
-        }
-
         if (mVideoSize.isValid() && mVideoOutput)
             mVideoOutput->setVideoSize(mVideoSize);
 
         if ((mMediaPlayer->display() == 0) && mVideoOutput)
             mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
-        mMediaPlayer->setDataSource(mediaPath);
+        mMediaPlayer->setDataSource(mediaContent.canonicalUrl().toString(QUrl::FullyEncoded));
         mMediaPlayer->prepareAsync();
     }
 
-    if (!mReloadingMedia) {
+    if (!mReloadingMedia)
         Q_EMIT mediaChanged(mMediaContent);
-        Q_EMIT actualMediaLocationChanged(mediaPath);
-    }
 
     resetBufferingProgress();
 

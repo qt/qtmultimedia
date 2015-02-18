@@ -127,15 +127,4 @@ private:
     QMutex m_mutex;
 };
 
-class DirectShowRcSource : public DirectShowIOSource
-{
-public:
-    DirectShowRcSource(DirectShowEventLoop *loop);
-
-    bool open(const QUrl &url);
-
-private:
-    QFile m_file;
-};
-
 #endif

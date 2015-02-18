@@ -53,6 +53,8 @@ public:
     virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
     virtual void releaseService(QMediaService *service) = 0;
 
+    virtual QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *service) const;
+
     virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
                                              const QString &mimeType,
                                              const QStringList& codecs,

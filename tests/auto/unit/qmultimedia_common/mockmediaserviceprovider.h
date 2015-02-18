@@ -61,6 +61,16 @@ public:
         }
     }
 
+    QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *) const
+    {
+        return features;
+    }
+
+    void setSupportedFeatures(QMediaServiceProviderHint::Features f)
+    {
+        features = f;
+    }
+
     QByteArray defaultDevice(const QByteArray &serviceType) const
     {
         if (serviceType == Q_MEDIASERVICE_CAMERA)
@@ -97,6 +107,7 @@ public:
 
     QMediaService *service;
     bool deleteServiceOnRelease;
+    QMediaServiceProviderHint::Features features;
 };
 
 #endif // MOCKMEDIASERVICEPROVIDER_H

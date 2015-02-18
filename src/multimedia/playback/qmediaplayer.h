@@ -202,6 +202,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateMedia(const QMediaContent&))
     Q_PRIVATE_SLOT(d_func(), void _q_playlistDestroyed())
+    Q_PRIVATE_SLOT(d_func(), void _q_handleMediaChanged(const QMediaContent&))
     Q_PRIVATE_SLOT(d_func(), void _q_handlePlaylistLoaded())
     Q_PRIVATE_SLOT(d_func(), void _q_handlePlaylistLoadFailed())
 };
