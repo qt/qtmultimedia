@@ -32,7 +32,7 @@
 ****************************************************************************/
 
 #include "avfcameraexposurecontrol.h"
-#include "avfconfigurationlock.h"
+#include "avfcamerautility.h"
 #include "avfcamerasession.h"
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
