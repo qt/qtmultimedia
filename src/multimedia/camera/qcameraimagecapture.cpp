@@ -488,11 +488,8 @@ void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDest
   \property QCameraImageCapture::readyForCapture
   \brief whether the service is ready to capture a an image immediately.
 
-   It's permissible to call capture() while the camera status is QCamera::ActiveStatus
-   regardless of isReadyForCapture property value.
-   If camera is not ready to capture image immediately,
-   the capture request is queued with all the related camera settings
-   to be executed as soon as possible.
+  Calling capture() while \e readyForCapture is \c false is not permitted and
+  results in an error.
 */
 
 bool QCameraImageCapture::isReadyForCapture() const
@@ -523,11 +520,13 @@ bool QCameraImageCapture::isReadyForCapture() const
     the default directory, with a full path reported with imageCaptured() and imageSaved() signals.
 
     QCamera saves all the capture parameters like exposure settings or
-    image processing parameters, so changes to camera paramaters after
+    image processing parameters, so changes to camera parameters after
     capture() is called do not affect previous capture requests.
 
     QCameraImageCapture::capture returns the capture Id parameter, used with
     imageExposed(), imageCaptured() and imageSaved() signals.
+
+    \sa isReadyForCapture()
 */
 int QCameraImageCapture::capture(const QString &file)
 {

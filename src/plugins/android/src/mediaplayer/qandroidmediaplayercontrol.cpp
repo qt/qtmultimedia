@@ -337,7 +337,7 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
             if (!mTempFile.isNull())
                 mediaPath = QStringLiteral("file://") + mTempFile->fileName();
         } else {
-            mediaPath = url.toString();
+            mediaPath = url.toString(QUrl::FullyEncoded);
         }
 
         if (mVideoSize.isValid() && mVideoOutput)

@@ -276,33 +276,38 @@ void QAndroidCameraSession::adjustViewfinderSize(const QSize &captureSize, bool 
     if (!m_camera)
         return;
 
-    QSize viewfinderResolution = m_camera->previewSize();
+    QSize currentViewfinderResolution = m_camera->previewSize();
     const qreal aspectRatio = qreal(captureSize.width()) / qreal(captureSize.height());
-    if (viewfinderResolution.isValid() &&
-            qFuzzyCompare(aspectRatio,
-                          qreal(viewfinderResolution.width()) / viewfinderResolution.height())) {
+    if (currentViewfinderResolution.isValid() &&
+            qAbs(aspectRatio - (qreal(currentViewfinderResolution.width()) / currentViewfinderResolution.height())) < 0.01) {
         return;
     }
 
+    QSize adjustedViewfinderResolution;
     QList<QSize> previewSizes = m_camera->getSupportedPreviewSizes();
     for (int i = previewSizes.count() - 1; i >= 0; --i) {
         const QSize &size = previewSizes.at(i);
         // search for viewfinder resolution with the same aspect ratio
-        if (qFuzzyCompare(aspectRatio, (static_cast<qreal>(size.width())/static_cast<qreal>(size.height())))) {
-            viewfinderResolution = size;
+        if (qAbs(aspectRatio - (qreal(size.width()) / size.height())) < 0.01) {
+            adjustedViewfinderResolution = size;
             break;
         }
     }
 
-    if (m_camera->previewSize() != viewfinderResolution) {
+    if (!adjustedViewfinderResolution.isValid()) {
+        qWarning("Cannot find a viewfinder resolution matching the capture aspect ratio.");
+        return;
+    }
+
+    if (currentViewfinderResolution != adjustedViewfinderResolution) {
         if (m_videoOutput)
-            m_videoOutput->setVideoSize(viewfinderResolution);
+            m_videoOutput->setVideoSize(adjustedViewfinderResolution);
 
         // if preview is started, we have to stop it first before changing its size
         if (m_previewStarted && restartPreview)
             m_camera->stopPreview();
 
-        m_camera->setPreviewSize(viewfinderResolution);
+        m_camera->setPreviewSize(adjustedViewfinderResolution);
 
         // restart preview
         if (m_previewStarted && restartPreview)

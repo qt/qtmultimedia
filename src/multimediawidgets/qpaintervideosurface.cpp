@@ -141,8 +141,8 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::start(const QVideoSurf
         bool ok = m_imageFormat != QImage::Format_Invalid && !m_imageSize.isEmpty();
 #ifndef QT_NO_OPENGL
         if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES)
-#endif
             ok &= format.pixelFormat() != QVideoFrame::Format_RGB24;
+#endif
         if (ok)
             return QAbstractVideoSurface::NoError;
     } else if (t == QAbstractVideoBuffer::QPixmapHandle) {

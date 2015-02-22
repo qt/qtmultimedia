@@ -39,6 +39,7 @@
 #include "dsvideodevicecontrol.h"
 
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
+#include <QtCore/QElapsedTimer>
 #include <dshow.h>
 #include "dscameraservice.h"
 #endif
@@ -121,8 +122,7 @@ QByteArray DSServicePlugin::defaultDevice(const QByteArray &service) const
 {
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
+        updateDevices();
 
         return m_defaultCameraDevice;
     }
@@ -135,8 +135,7 @@ QList<QByteArray> DSServicePlugin::devices(const QByteArray &service) const
 {
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
+        updateDevices();
 
         return m_cameraDevices;
     }
@@ -149,8 +148,7 @@ QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByt
 {
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
-        if (m_cameraDevices.isEmpty())
-            updateDevices();
+        updateDevices();
 
         for (int i=0; i<m_cameraDevices.count(); i++)
             if (m_cameraDevices[i] == device)
@@ -164,6 +162,10 @@ QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByt
 
 void DSServicePlugin::updateDevices() const
 {
+    static QElapsedTimer timer;
+    if (timer.isValid() && timer.elapsed() < 500) // ms
+        return;
+
     addRefCount();
 
     m_defaultCameraDevice.clear();
@@ -176,6 +178,7 @@ void DSServicePlugin::updateDevices() const
     }
 
     releaseRefCount();
+    timer.restart();
 }
 #endif
 
