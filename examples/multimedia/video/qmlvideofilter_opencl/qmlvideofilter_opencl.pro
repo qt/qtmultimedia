@@ -12,10 +12,10 @@ OTHER_FILES = main.qml
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/video/qmlvideofilter_opencl
 INSTALLS += target
 
-# Edit these as necessary
-osx {
-    LIBS += -framework OpenCL
-} else {
+osx: LIBS += -framework OpenCL
+unix: !osx: LIBS += -lOpenCL
+win32:!winrt {
+    # Edit these as necessary
     INCLUDEPATH += c:/cuda/include
     LIBPATH += c:/cuda/lib/x64
     LIBS += -lopengl32 -lOpenCL

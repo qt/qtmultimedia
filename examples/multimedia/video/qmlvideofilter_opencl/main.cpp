@@ -46,6 +46,10 @@
 #include <CL/opencl.h>
 #endif
 
+#ifdef Q_OS_LINUX
+#include <QtPlatformHeaders/QGLXNativeContext>
+#endif
+
 #include "rgbframehelper.h"
 
 static const char *openclSrc =
@@ -119,10 +123,17 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
 
     // Set up OpenCL.
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
-    cl_int err;
     cl_uint n;
-    if (clGetPlatformIDs(0, 0, &n) != CL_SUCCESS) {
-        qWarning("Failed to get platform ID count");
+    cl_int err = clGetPlatformIDs(0, 0, &n);
+    if (err != CL_SUCCESS) {
+        qWarning("Failed to get platform ID count (error %d)", err);
+        if (err == -1001) {
+            qDebug("Could not find OpenCL implementation. ICD missing?"
+#ifdef Q_OS_LINUX
+                   " Check /etc/OpenCL/vendors."
+#endif
+                );
+        }
         return;
     }
     if (n == 0) {
@@ -140,6 +151,7 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
     qDebug("GL_VENDOR: %s", vendor);
     const bool isNV = vendor && strstr(vendor, "NVIDIA");
     const bool isIntel = vendor && strstr(vendor, "Intel");
+    const bool isAMD = vendor && strstr(vendor, "ATI");
     qDebug("Found %u OpenCL platforms:", n);
     for (cl_uint i = 0; i < n; ++i) {
         QByteArray name;
@@ -153,6 +165,8 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
             platform = platformIds[i];
         else if (isIntel && name.contains(QByteArrayLiteral("Intel")))
             platform = platformIds[i];
+        else if (isAMD && name.contains(QByteArrayLiteral("AMD")))
+            platform = platformIds[i];
     }
     qDebug("Using platform %p", platform);
 
@@ -165,6 +179,18 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
     cl_context_properties contextProps[] = { CL_CONTEXT_PLATFORM, (cl_context_properties) platform,
                                              CL_GL_CONTEXT_KHR, (cl_context_properties) wglGetCurrentContext(),
                                              CL_WGL_HDC_KHR, (cl_context_properties) wglGetCurrentDC(),
+                                             0 };
+#elif defined(Q_OS_LINUX)
+    // An elegant alternative to glXGetCurrentContext. This will even survive
+    // (without interop) when using something other than GLX.
+    QVariant nativeGLXHandle = QOpenGLContext::currentContext()->nativeHandle();
+    QGLXNativeContext nativeGLXContext;
+    if (!nativeGLXHandle.isNull() && nativeGLXHandle.canConvert<QGLXNativeContext>())
+        nativeGLXContext = nativeGLXHandle.value<QGLXNativeContext>();
+    else
+        qWarning("Failed to get the underlying GLX context from the current QOpenGLContext");
+    cl_context_properties contextProps[] = { CL_CONTEXT_PLATFORM, (cl_context_properties) platform,
+                                             CL_GL_CONTEXT_KHR, (cl_context_properties) nativeGLXContext.context(),
                                              0 };
 #endif
 
