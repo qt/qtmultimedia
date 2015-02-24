@@ -719,14 +719,17 @@ void AVFMediaPlayerSession::setVolume(int volume)
     if (m_volume == volume)
         return;
 
-    m_volume = volume;
-
-#if defined(Q_OS_OSX)
     AVPlayer *player = [(AVFMediaPlayerSessionObserver*)m_observer player];
-    if (player) {
-        [[(AVFMediaPlayerSessionObserver*)m_observer player] setVolume:m_volume / 100.0f];
+    if (!player)
+        return;
+
+    if (![player respondsToSelector:@selector(setVolume:)]) {
+        qWarning("%s not implemented, requires iOS 7 or later", Q_FUNC_INFO);
+        return;
     }
-#endif
+
+    [player setVolume:m_volume / 100.0f];
+    m_volume = volume;
 
     Q_EMIT volumeChanged(m_volume);
 }
@@ -739,10 +742,19 @@ void AVFMediaPlayerSession::setMuted(bool muted)
     if (m_muted == muted)
         return;
 
+    AVPlayer *player = [(AVFMediaPlayerSessionObserver*)m_observer player];
+    if (!player)
+        return;
+
+    // iOS: setMuted exists since iOS 7.0, thus check if it exists
+    if (![player respondsToSelector:@selector(setMuted:)]) {
+        qWarning("%s not implemented, requires iOS 7 or later", Q_FUNC_INFO);
+        return;
+    }
+
+    [player setMuted:m_muted];
     m_muted = muted;
-#if defined(Q_OS_OSX)
-    [[(AVFMediaPlayerSessionObserver*)m_observer player] setMuted:m_muted];
-#endif
+
     Q_EMIT mutedChanged(muted);
 }
 
