@@ -56,7 +56,7 @@ public:
     QCamera::State state() const;
     void setState(QCamera::State state);
 
-    QCamera::Status status() const { return m_status; }
+    QCamera::Status status() const;
 
     QCamera::CaptureModes captureMode() const;
     void setCaptureMode(QCamera::CaptureModes mode);
@@ -72,7 +72,6 @@ public slots:
     void setViewfinderColorSpaceConversion(bool enabled);
 
 private slots:
-    void updateStatus();
     void delayedReload();
 
     void handleResourcesGranted();
@@ -86,7 +85,6 @@ private:
 
     CameraBinSession *m_session;
     QCamera::State m_state;
-    QCamera::Status m_status;
     CamerabinResourcePolicy *m_resourcePolicy;
 
     bool m_reloadPending;

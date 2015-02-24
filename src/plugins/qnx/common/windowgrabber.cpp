@@ -127,30 +127,6 @@ void WindowGrabber::start()
 
     int result = 0;
 
-#ifdef Q_OS_BLACKBERRY_TABLET
-
-    // HACK: On the Playbook, screen_read_window() will fail for invisible windows.
-    //       To workaround this, make the window visible again, but set a global
-    //       alpha of less than 255. The global alpha makes the window completely invisible
-    //       (due to a bug?), but screen_read_window() will work again.
-
-    errno = 0;
-    int val = 200; // anything less than 255
-    result = screen_set_window_property_iv(m_window, SCREEN_PROPERTY_GLOBAL_ALPHA, &val);
-    if (result != 0) {
-        qWarning() << "WindowGrabber: unable to set global alpha:" << strerror(errno);
-        return;
-    }
-
-    errno = 0;
-    val = 1;
-    result = screen_set_window_property_iv(m_window, SCREEN_PROPERTY_VISIBLE, &val);
-    if (result != 0) {
-        qWarning() << "WindowGrabber: unable to make window visible:" << strerror(errno);
-        return;
-    }
-#endif
-
     result = screen_create_context(&m_screenContext, SCREEN_APPLICATION_CONTEXT);
     if (result != 0) {
         qWarning() << "WindowGrabber: cannot create screen context:" << strerror(errno);

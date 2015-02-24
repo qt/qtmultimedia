@@ -34,8 +34,6 @@
 #include "camerabinzoom.h"
 #include "camerabinsession.h"
 
-#include <gst/interfaces/photography.h>
-
 #define ZOOM_PROPERTY "zoom"
 #define MAX_ZOOM_PROPERTY "max-zoom"
 

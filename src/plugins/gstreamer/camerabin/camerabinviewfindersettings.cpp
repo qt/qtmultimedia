@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2013 Jolla Ltd.
+** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -33,14 +34,14 @@
 
 
 #include "camerabinviewfindersettings.h"
-
+#include "camerabinsession.h"
 
 QT_BEGIN_NAMESPACE
 
-CameraBinViewfinderSettings::CameraBinViewfinderSettings(QObject *parent)
-    : QCameraViewfinderSettingsControl(parent),
-      m_minimumFrameRate(0),
-      m_maximumFrameRate(0)
+
+CameraBinViewfinderSettings::CameraBinViewfinderSettings(CameraBinSession *session)
+    : QCameraViewfinderSettingsControl(session)
+    , m_session(session)
 {
 }
 
@@ -52,11 +53,11 @@ bool CameraBinViewfinderSettings::isViewfinderParameterSupported(ViewfinderParam
 {
     switch (parameter) {
     case Resolution:
+    case PixelAspectRatio:
     case MinimumFrameRate:
     case MaximumFrameRate:
-        return true;
-    case PixelAspectRatio:
     case PixelFormat:
+        return true;
     case UserParameter:
         return false;
     }
@@ -67,13 +68,15 @@ QVariant CameraBinViewfinderSettings::viewfinderParameter(ViewfinderParameter pa
 {
     switch (parameter) {
     case Resolution:
-        return m_resolution;
-    case MinimumFrameRate:
-        return m_minimumFrameRate;
-    case MaximumFrameRate:
-        return m_maximumFrameRate;
+        return m_session->viewfinderSettings().resolution();
     case PixelAspectRatio:
+        return m_session->viewfinderSettings().pixelAspectRatio();
+    case MinimumFrameRate:
+        return m_session->viewfinderSettings().minimumFrameRate();
+    case MaximumFrameRate:
+        return m_session->viewfinderSettings().maximumFrameRate();
     case PixelFormat:
+        return m_session->viewfinderSettings().pixelFormat();
     case UserParameter:
         return QVariant();
     }
@@ -82,36 +85,28 @@ QVariant CameraBinViewfinderSettings::viewfinderParameter(ViewfinderParameter pa
 
 void CameraBinViewfinderSettings::setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value)
 {
+    QCameraViewfinderSettings settings = m_session->viewfinderSettings();
+
     switch (parameter) {
     case Resolution:
-        m_resolution = value.toSize();
-        break;
-    case MinimumFrameRate:
-        m_minimumFrameRate = value.toFloat();
-        break;
-    case MaximumFrameRate:
-        m_maximumFrameRate = value.toFloat();
+        settings.setResolution(value.toSize());
         break;
     case PixelAspectRatio:
+        settings.setPixelAspectRatio(value.toSize());
+        break;
+    case MinimumFrameRate:
+        settings.setMinimumFrameRate(value.toReal());
+        break;
+    case MaximumFrameRate:
+        settings.setMaximumFrameRate(value.toReal());
+        break;
     case PixelFormat:
+        settings.setPixelFormat(qvariant_cast<QVideoFrame::PixelFormat>(value));
     case UserParameter:
         break;
     }
-}
 
-QSize CameraBinViewfinderSettings::resolution() const
-{
-    return m_resolution;
-}
-
-qreal CameraBinViewfinderSettings::minimumFrameRate() const
-{
-    return m_minimumFrameRate;
-}
-
-qreal CameraBinViewfinderSettings::maximumFrameRate() const
-{
-    return m_maximumFrameRate;
+    m_session->setViewfinderSettings(settings);
 }
 
 QT_END_NAMESPACE

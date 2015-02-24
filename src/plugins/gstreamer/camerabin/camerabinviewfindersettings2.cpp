@@ -1,6 +1,5 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Jolla Ltd.
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
@@ -32,30 +31,37 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINVIEWFINDERSETTINGS_H
-#define CAMERABINVIEWFINDERSETTINGS_H
-
-#include <qcameraviewfindersettingscontrol.h>
+#include "camerabinviewfindersettings2.h"
+#include "camerabinsession.h"
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinSession;
-
-class CameraBinViewfinderSettings : public QCameraViewfinderSettingsControl
+CameraBinViewfinderSettings2::CameraBinViewfinderSettings2(CameraBinSession *session)
+    : QCameraViewfinderSettingsControl2(session)
+    , m_session(session)
 {
-    Q_OBJECT
-public:
-    CameraBinViewfinderSettings(CameraBinSession *session);
-    ~CameraBinViewfinderSettings();
 
-    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const;
-    QVariant viewfinderParameter(ViewfinderParameter parameter) const;
-    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value);
+}
 
-private:
-    CameraBinSession *m_session;
-};
+CameraBinViewfinderSettings2::~CameraBinViewfinderSettings2()
+{
+
+}
+
+QList<QCameraViewfinderSettings> CameraBinViewfinderSettings2::supportedViewfinderSettings() const
+{
+    return m_session->supportedViewfinderSettings();
+}
+
+QCameraViewfinderSettings CameraBinViewfinderSettings2::viewfinderSettings() const
+{
+    return m_session->viewfinderSettings();
+}
+
+void CameraBinViewfinderSettings2::setViewfinderSettings(const QCameraViewfinderSettings &settings)
+{
+    m_session->setViewfinderSettings(settings);
+}
 
 QT_END_NAMESPACE
 
-#endif

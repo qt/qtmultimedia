@@ -61,7 +61,7 @@ CameraBinImageCapture::CameraBinImageCapture(CameraBinSession *session)
     , m_requestId(0)
     , m_ready(false)
 {
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateState()));
+    connect(m_session, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateState()));
     connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
     connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
     connect(m_session->cameraControl()->resourcePolicy(), SIGNAL(canCaptureChanged()), this, SLOT(updateState()));
@@ -100,7 +100,7 @@ void CameraBinImageCapture::cancelCapture()
 
 void CameraBinImageCapture::updateState()
 {
-    bool ready = m_session->state() == QCamera::ActiveState
+    bool ready = m_session->status() == QCamera::ActiveStatus
             && m_session->cameraControl()->resourcePolicy()->canCapture();
     if (m_ready != ready) {
 #ifdef DEBUG_CAPTURE

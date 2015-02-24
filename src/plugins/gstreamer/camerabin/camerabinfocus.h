@@ -93,7 +93,7 @@ protected:
 
 private Q_SLOTS:
     void _q_setFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
-    void _q_handleCameraStateChange(QCamera::State state);
+    void _q_handleCameraStatusChange(QCamera::Status status);
 
 #if GST_CHECK_VERSION(1,0,0)
     void _q_updateFaces();
@@ -109,7 +109,7 @@ private:
 #endif
 
     CameraBinSession *m_session;
-    QCamera::State m_cameraState;
+    QCamera::Status m_cameraStatus;
     QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QCamera::LockStatus m_focusStatus;

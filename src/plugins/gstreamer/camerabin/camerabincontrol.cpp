@@ -51,11 +51,10 @@ CameraBinControl::CameraBinControl(CameraBinSession *session)
     :QCameraControl(session),
     m_session(session),
     m_state(QCamera::UnloadedState),
-    m_status(QCamera::UnloadedStatus),
     m_reloadPending(false)
 {
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)),
-            this, SLOT(updateStatus()));
+    connect(m_session, SIGNAL(statusChanged(QCamera::Status)),
+            this, SIGNAL(statusChanged(QCamera::Status)));
 
     connect(m_session, SIGNAL(viewfinderChanged()),
             SLOT(reloadLater()));
@@ -116,7 +115,7 @@ void CameraBinControl::setState(QCamera::State state)
         //special case for stopping the camera while it's busy,
         //it should be delayed until the camera is idle
         if (state == QCamera::LoadedState &&
-                m_session->state() == QCamera::ActiveState &&
+                m_session->status() == QCamera::ActiveStatus &&
                 m_session->isBusy()) {
 #ifdef CAMEABIN_DEBUG
             qDebug() << Q_FUNC_INFO << "Camera is busy, QCamera::stop() is delayed";
@@ -165,52 +164,9 @@ QCamera::State CameraBinControl::state() const
     return m_state;
 }
 
-void CameraBinControl::updateStatus()
+QCamera::Status CameraBinControl::status() const
 {
-    QCamera::State sessionState = m_session->state();
-    QCamera::Status oldStatus = m_status;
-
-    switch (m_state) {
-    case QCamera::UnloadedState:
-        m_status = QCamera::UnloadedStatus;
-        break;
-    case QCamera::LoadedState:
-        switch (sessionState) {
-        case QCamera::UnloadedState:
-            m_status = m_resourcePolicy->isResourcesGranted()
-                    ? QCamera::LoadingStatus
-                    : QCamera::UnavailableStatus;
-            break;
-        case QCamera::LoadedState:
-            m_status = QCamera::LoadedStatus;
-            break;
-        case QCamera::ActiveState:
-            m_status = QCamera::ActiveStatus;
-            break;
-        }
-        break;
-    case QCamera::ActiveState:
-        switch (sessionState) {
-        case QCamera::UnloadedState:
-            m_status = m_resourcePolicy->isResourcesGranted()
-                    ? QCamera::LoadingStatus
-                    : QCamera::UnavailableStatus;
-            break;
-        case QCamera::LoadedState:
-            m_status = QCamera::StartingStatus;
-            break;
-        case QCamera::ActiveState:
-            m_status = QCamera::ActiveStatus;
-            break;
-        }
-    }
-
-    if (m_status != oldStatus) {
-#ifdef CAMEABIN_DEBUG
-        qDebug() << "Camera status changed" << ENUM_NAME(QCamera, "Status", m_status);
-#endif
-        emit statusChanged(m_status);
-    }
+    return m_session->status();
 }
 
 void CameraBinControl::reloadLater()
@@ -254,7 +210,7 @@ void CameraBinControl::handleResourcesGranted()
 
 void CameraBinControl::handleBusyChanged(bool busy)
 {
-    if (!busy && m_session->state() == QCamera::ActiveState) {
+    if (!busy && m_session->status() == QCamera::ActiveStatus) {
         if (m_state == QCamera::LoadedState) {
             //handle delayed stop() because of busy camera
             m_resourcePolicy->setResourceSet(CamerabinResourcePolicy::LoadedResources);
@@ -293,15 +249,14 @@ bool CameraBinControl::canChangeProperty(PropertyChangeType changeType, QCamera:
     Q_UNUSED(status);
 
     switch (changeType) {
-    case QCameraControl::CaptureMode:
-        return status != QCamera::ActiveStatus;
-        break;
-    case QCameraControl::ImageEncodingSettings:
-    case QCameraControl::VideoEncodingSettings:
     case QCameraControl::Viewfinder:
         return true;
+    case QCameraControl::CaptureMode:
+    case QCameraControl::ImageEncodingSettings:
+    case QCameraControl::VideoEncodingSettings:
+    case QCameraControl::ViewfinderSettings:
     default:
-        return false;
+        return status != QCamera::ActiveStatus;
     }
 }
 

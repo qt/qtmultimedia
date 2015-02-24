@@ -430,7 +430,7 @@ void QWindowsAudioInput::initMixer()
         return;
     mixerID = (HMIXEROBJ)mixerIntID;
 
-    // Get the Destination (Recording) Line Infomation
+    // Get the Destination (Recording) Line Information
     MIXERLINE mixerLine;
     mixerLine.cbStruct = sizeof(MIXERLINE);
     mixerLine.dwComponentType = MIXERLINE_COMPONENTTYPE_DST_WAVEIN;

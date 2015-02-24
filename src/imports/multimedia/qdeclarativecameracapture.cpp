@@ -123,9 +123,8 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
     This property holds a bool value indicating whether the camera
     is ready to capture photos or not.
 
-   If camera is not ready to capture image immediately,
-   the capture request is queued with all the related camera settings,
-   and the request will be executed as soon as possible.
+    Calling capture() while \e ready is \c false is not permitted and
+    results in an error.
 */
 
 /*!
@@ -134,11 +133,8 @@ QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
     This property holds a bool value indicating whether the camera
     is ready to capture photos or not.
 
-   It's permissible to call capture() while the camera is active
-   regardless of the \e ready property value.
-   If camera is not ready to capture image immediately,
-   the capture request is queued with all the related camera settings,
-   and the request will be executed as soon as possible.
+    Calling capture() while \e ready is \c false is not permitted and
+    results in an error.
 */
 bool QDeclarativeCameraCapture::isReadyForCapture() const
 {
@@ -157,11 +153,13 @@ bool QDeclarativeCameraCapture::isReadyForCapture() const
     for video.
 
     Camera saves all the capture parameters like exposure settings or
-    image processing parameters, so changes to camera paramaters after
+    image processing parameters, so changes to camera parameters after
     capture() is called do not affect previous capture requests.
 
-    CameraCapture::capture returns the capture requestId parameter, used with
+    capture() returns the capture requestId parameter, used with
     imageExposed(), imageCaptured(), imageMetadataAvailable() and imageSaved() signals.
+
+    \sa ready
 */
 int QDeclarativeCameraCapture::capture()
 {

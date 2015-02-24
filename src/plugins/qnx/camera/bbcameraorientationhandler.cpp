@@ -63,11 +63,9 @@ BbCameraOrientationHandler::BbCameraOrientationHandler(QObject *parent)
 
 BbCameraOrientationHandler::~BbCameraOrientationHandler()
 {
-#ifndef Q_OS_BLACKBERRY_TABLET
     const int result = orientation_stop_events(0);
     if (result == BPS_FAILURE)
         qWarning() << "Unable to unregister for orientation change events";
-#endif
 
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
 }
@@ -80,10 +78,9 @@ bool BbCameraOrientationHandler::nativeEventFilter(const QByteArray&, void *mess
 
     const int angle = orientation_event_get_angle(event);
     if (angle != m_orientation) {
-#ifndef Q_OS_BLACKBERRY_TABLET
         if (angle == 180) // The screen does not rotate at 180 degrees
             return false;
-#endif
+
         m_orientation = angle;
         emit orientationChanged(m_orientation);
     }

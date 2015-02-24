@@ -48,8 +48,5 @@ SOURCES += \
     $$PWD/bbvideodeviceselectorcontrol.cpp \
     $$PWD/bbvideorenderercontrol.cpp
 
-LIBS += -lcamapi
+LIBS += -lcamapi -laudio_manager
 
-!blackberry-playbook {
-    LIBS += -laudio_manager
-}

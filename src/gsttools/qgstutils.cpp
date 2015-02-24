@@ -149,15 +149,10 @@ QMap<QByteArray, QVariant> QGstUtils::gstTagListToMap(const GstTagList *tags)
 */
 QSize QGstUtils::capsResolution(const GstCaps *caps)
 {
-    QSize size;
+    if (gst_caps_get_size(caps) == 0)
+        return QSize();
 
-    if (caps) {
-        const GstStructure *structure = gst_caps_get_structure(caps, 0);
-        gst_structure_get_int(structure, "width", &size.rwidth());
-        gst_structure_get_int(structure, "height", &size.rheight());
-    }
-
-    return size;
+    return structureResolution(gst_caps_get_structure(caps, 0));
 }
 
 /*!
@@ -169,14 +164,12 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
     QSize size;
 
     if (caps) {
-        const GstStructure *structure = gst_caps_get_structure(caps, 0);
-        gst_structure_get_int(structure, "width", &size.rwidth());
-        gst_structure_get_int(structure, "height", &size.rheight());
+        size = capsResolution(caps);
 
         gint aspectNum = 0;
         gint aspectDenum = 0;
         if (!size.isEmpty() && gst_structure_get_fraction(
-                    structure, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
+                    gst_caps_get_structure(caps, 0), "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
             if (aspectDenum > 0)
                 size.setWidth(size.width()*aspectNum/aspectDenum);
         }
@@ -1048,20 +1041,23 @@ static int indexOfRgbColor(
 QVideoSurfaceFormat QGstUtils::formatForCaps(
         GstCaps *caps, GstVideoInfo *info, QAbstractVideoBuffer::HandleType handleType)
 {
-    if (gst_video_info_from_caps(info, caps)) {
-        int index = indexOfVideoFormat(info->finfo->format);
+    GstVideoInfo vidInfo;
+    GstVideoInfo *infoPtr = info ? info : &vidInfo;
+
+    if (gst_video_info_from_caps(infoPtr, caps)) {
+        int index = indexOfVideoFormat(infoPtr->finfo->format);
 
         if (index != -1) {
             QVideoSurfaceFormat format(
-                        QSize(info->width, info->height),
+                        QSize(infoPtr->width, infoPtr->height),
                         qt_videoFormatLookup[index].pixelFormat,
                         handleType);
 
-            if (info->fps_d > 0)
-                format.setFrameRate(qreal(info->fps_d) / info->fps_n);
+            if (infoPtr->fps_d > 0)
+                format.setFrameRate(qreal(infoPtr->fps_n) / infoPtr->fps_d);
 
-            if (info->par_d > 0)
-                format.setPixelAspectRatio(info->par_n, info->par_d);
+            if (infoPtr->par_d > 0)
+                format.setPixelAspectRatio(infoPtr->par_n, infoPtr->par_d);
 
             return format;
         }
@@ -1076,60 +1072,18 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
 {
     const GstStructure *structure = gst_caps_get_structure(caps, 0);
 
-    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
     int bitsPerPixel = 0;
-
-    QSize size;
-    gst_structure_get_int(structure, "width", &size.rwidth());
-    gst_structure_get_int(structure, "height", &size.rheight());
-
-    if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-yuv") == 0) {
-        guint32 fourcc = 0;
-        gst_structure_get_fourcc(structure, "format", &fourcc);
-
-        int index = indexOfYuvColor(fourcc);
-        if (index != -1) {
-            pixelFormat = qt_yuvColorLookup[index].pixelFormat;
-            bitsPerPixel = qt_yuvColorLookup[index].bitsPerPixel;
-        }
-    } else if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-rgb") == 0) {
-        int depth = 0;
-        int endianness = 0;
-        int red = 0;
-        int green = 0;
-        int blue = 0;
-        int alpha = 0;
-
-        gst_structure_get_int(structure, "bpp", &bitsPerPixel);
-        gst_structure_get_int(structure, "depth", &depth);
-        gst_structure_get_int(structure, "endianness", &endianness);
-        gst_structure_get_int(structure, "red_mask", &red);
-        gst_structure_get_int(structure, "green_mask", &green);
-        gst_structure_get_int(structure, "blue_mask", &blue);
-        gst_structure_get_int(structure, "alpha_mask", &alpha);
-
-        int index = indexOfRgbColor(bitsPerPixel, depth, endianness, red, green, blue, alpha);
-
-        if (index != -1)
-            pixelFormat = qt_rgbColorLookup[index].pixelFormat;
-    }
+    QSize size = structureResolution(structure);
+    QVideoFrame::PixelFormat pixelFormat = structurePixelFormat(structure, &bitsPerPixel);
 
     if (pixelFormat != QVideoFrame::Format_Invalid) {
         QVideoSurfaceFormat format(size, pixelFormat, handleType);
 
-        QPair<int, int> rate;
-        gst_structure_get_fraction(structure, "framerate", &rate.first, &rate.second);
-
+        QPair<qreal, qreal> rate = structureFrameRateRange(structure);
         if (rate.second)
-            format.setFrameRate(qreal(rate.first)/rate.second);
+            format.setFrameRate(rate.second);
 
-        gint aspectNum = 0;
-        gint aspectDenum = 0;
-        if (gst_structure_get_fraction(
-                structure, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
-            if (aspectDenum > 0)
-                format.setPixelAspectRatio(aspectNum, aspectDenum);
-        }
+        format.setPixelAspectRatio(structurePixelAspectRatio(structure));
 
         if (bytesPerLine)
             *bytesPerLine = ((size.width() * bitsPerPixel / 8) + 3) & ~3;
@@ -1304,6 +1258,118 @@ GstCaps *QGstUtils::videoFilterCaps()
     return gst_caps_make_writable(gst_static_caps_get(&staticCaps));
 }
 
+QSize QGstUtils::structureResolution(const GstStructure *s)
+{
+    QSize size;
+
+    int w, h;
+    if (s && gst_structure_get_int(s, "width", &w) && gst_structure_get_int(s, "height", &h)) {
+        size.rwidth() = w;
+        size.rheight() = h;
+    }
+
+    return size;
+}
+
+QVideoFrame::PixelFormat QGstUtils::structurePixelFormat(const GstStructure *structure, int *bpp)
+{
+    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+
+    if (!structure)
+        return pixelFormat;
+
+#if GST_CHECK_VERSION(1,0,0)
+    Q_UNUSED(bpp);
+
+    if (gst_structure_has_name(structure, "video/x-raw")) {
+        const gchar *s = gst_structure_get_string(structure, "format");
+        if (s) {
+            GstVideoFormat format = gst_video_format_from_string(s);
+            int index = indexOfVideoFormat(format);
+
+            if (index != -1)
+                pixelFormat = qt_videoFormatLookup[index].pixelFormat;
+        }
+    }
+#else
+    if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-yuv") == 0) {
+        guint32 fourcc = 0;
+        gst_structure_get_fourcc(structure, "format", &fourcc);
+
+        int index = indexOfYuvColor(fourcc);
+        if (index != -1) {
+            pixelFormat = qt_yuvColorLookup[index].pixelFormat;
+            if (bpp)
+                *bpp = qt_yuvColorLookup[index].bitsPerPixel;
+        }
+    } else if (qstrcmp(gst_structure_get_name(structure), "video/x-raw-rgb") == 0) {
+        int bitsPerPixel = 0;
+        int depth = 0;
+        int endianness = 0;
+        int red = 0;
+        int green = 0;
+        int blue = 0;
+        int alpha = 0;
+
+        gst_structure_get_int(structure, "bpp", &bitsPerPixel);
+        gst_structure_get_int(structure, "depth", &depth);
+        gst_structure_get_int(structure, "endianness", &endianness);
+        gst_structure_get_int(structure, "red_mask", &red);
+        gst_structure_get_int(structure, "green_mask", &green);
+        gst_structure_get_int(structure, "blue_mask", &blue);
+        gst_structure_get_int(structure, "alpha_mask", &alpha);
+
+        int index = indexOfRgbColor(bitsPerPixel, depth, endianness, red, green, blue, alpha);
+
+        if (index != -1) {
+            pixelFormat = qt_rgbColorLookup[index].pixelFormat;
+            if (bpp)
+                *bpp = qt_rgbColorLookup[index].bitsPerPixel;
+        }
+    }
+#endif
+
+    return pixelFormat;
+}
+
+QSize QGstUtils::structurePixelAspectRatio(const GstStructure *s)
+{
+    QSize ratio(1, 1);
+
+    gint aspectNum = 0;
+    gint aspectDenum = 0;
+    if (s && gst_structure_get_fraction(s, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
+        if (aspectDenum > 0) {
+            ratio.rwidth() = aspectNum;
+            ratio.rheight() = aspectDenum;
+        }
+    }
+
+    return ratio;
+}
+
+QPair<qreal, qreal> QGstUtils::structureFrameRateRange(const GstStructure *s)
+{
+    QPair<qreal, qreal> rate;
+
+    if (!s)
+        return rate;
+
+    int n, d;
+    if (gst_structure_get_fraction(s, "framerate", &n, &d)) {
+        rate.second = qreal(n) / d;
+        rate.first = rate.second;
+    } else if (gst_structure_get_fraction(s, "max-framerate", &n, &d)) {
+        rate.second = qreal(n) / d;
+        if (gst_structure_get_fraction(s, "min-framerate", &n, &d))
+            rate.first = qreal(n) / d;
+        else
+            rate.first = qreal(1);
+    }
+
+    return rate;
+}
+
 void qt_gst_object_ref_sink(gpointer object)
 {
 #if GST_CHECK_VERSION(0,10,24)
@@ -1331,6 +1397,15 @@ GstCaps *qt_gst_pad_get_current_caps(GstPad *pad)
 #endif
 }
 
+GstCaps *qt_gst_pad_get_caps(GstPad *pad)
+{
+#if GST_CHECK_VERSION(1,0,0)
+    return gst_pad_query_caps(pad, NULL);
+#else
+    return gst_pad_get_caps_reffed(pad);
+#endif
+}
+
 GstStructure *qt_gst_structure_new_empty(const char *name)
 {
 #if GST_CHECK_VERSION(1,0,0)
@@ -1355,6 +1430,19 @@ gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gi
     return gst_element_query_duration(element, format, cur);
 #else
     return gst_element_query_duration(element, &format, cur);
+#endif
+}
+
+GstCaps *qt_gst_caps_normalize(GstCaps *caps)
+{
+#if GST_CHECK_VERSION(1,0,0)
+    // gst_caps_normalize() takes ownership of the argument in 1.0
+    return gst_caps_normalize(caps);
+#else
+    // in 0.10, it doesn't. Unref the argument to mimic the 1.0 behavior
+    GstCaps *res = gst_caps_normalize(caps);
+    gst_caps_unref(caps);
+    return res;
 #endif
 }
 

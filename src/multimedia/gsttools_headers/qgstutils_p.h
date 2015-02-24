@@ -115,7 +115,7 @@ namespace QGstUtils {
     QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
     QVideoSurfaceFormat formatForCaps(
             GstCaps *caps,
-            GstVideoInfo *info,
+            GstVideoInfo *info = 0,
             QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle);
 #else
     QImage bufferToImage(GstBuffer *buffer);
@@ -133,13 +133,20 @@ namespace QGstUtils {
 
     GstCaps *videoFilterCaps();
 
+    QSize structureResolution(const GstStructure *s);
+    QVideoFrame::PixelFormat structurePixelFormat(const GstStructure *s, int *bpp = 0);
+    QSize structurePixelAspectRatio(const GstStructure *s);
+    QPair<qreal, qreal> structureFrameRateRange(const GstStructure *s);
+
 }
 
 void qt_gst_object_ref_sink(gpointer object);
 GstCaps *qt_gst_pad_get_current_caps(GstPad *pad);
+GstCaps *qt_gst_pad_get_caps(GstPad *pad);
 GstStructure *qt_gst_structure_new_empty(const char *name);
 gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur);
 gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur);
+GstCaps *qt_gst_caps_normalize(GstCaps *caps);
 
 QDebug operator <<(QDebug debug, GstCaps *caps);
 

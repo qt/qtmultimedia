@@ -98,13 +98,9 @@ public:
     void stop();
     bool proposeAllocation(GstQuery *query);
 
-    void flush();
-
-    GstFlowReturn render(GstBuffer *buffer, bool show);
+    GstFlowReturn render(GstBuffer *buffer);
 
     bool event(QEvent *event);
-
-    static void handleShowPrerollChange(GObject *o, GParamSpec *p, gpointer d);
 
 private slots:
     bool handleEvent(QMutexLocker *locker);
@@ -126,11 +122,10 @@ private:
 
     GstCaps *m_surfaceCaps;
     GstCaps *m_startCaps;
-    GstBuffer *m_lastBuffer;
+    GstBuffer *m_renderBuffer;
 
     bool m_notified;
     bool m_stop;
-    bool m_render;
     bool m_flush;
 };
 
@@ -156,7 +151,8 @@ private:
 
     static gboolean propose_allocation(GstBaseSink *sink, GstQuery *query);
 
-    static GstFlowReturn preroll(GstBaseSink *sink, GstBuffer *buffer);
+    static gboolean stop(GstBaseSink *sink);
+
     static GstFlowReturn render(GstBaseSink *sink, GstBuffer *buffer);
 
 private:

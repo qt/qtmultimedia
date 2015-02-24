@@ -55,6 +55,7 @@
 #include "camerabincapturebufferformat.h"
 #include "camerabincapturedestination.h"
 #include "camerabinviewfindersettings.h"
+#include "camerabinviewfindersettings2.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstutils_p.h>
 
@@ -84,7 +85,9 @@ QT_BEGIN_NAMESPACE
 
 CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *parent):
     QMediaService(parent),
-    m_cameraInfoControl(0)
+    m_cameraInfoControl(0),
+    m_viewfinderSettingsControl(0),
+    m_viewfinderSettingsControl2(0)
 {
     m_captureSession = 0;
     m_metaDataControl = 0;
@@ -224,8 +227,17 @@ QMediaControl *CameraBinService::requestControl(const char *name)
     if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
         return m_captureSession->captureBufferFormatControl();
 
-    if (qstrcmp(name, QCameraViewfinderSettingsControl_iid) == 0)
-        return m_captureSession->viewfinderSettingsControl();
+    if (qstrcmp(name, QCameraViewfinderSettingsControl_iid) == 0) {
+        if (!m_viewfinderSettingsControl)
+            m_viewfinderSettingsControl = new CameraBinViewfinderSettings(m_captureSession);
+        return m_viewfinderSettingsControl;
+    }
+
+    if (qstrcmp(name, QCameraViewfinderSettingsControl2_iid) == 0) {
+        if (!m_viewfinderSettingsControl2)
+            m_viewfinderSettingsControl2 = new CameraBinViewfinderSettings2(m_captureSession);
+        return m_viewfinderSettingsControl2;
+    }
 
     if (qstrcmp(name, QCameraInfoControl_iid) == 0) {
         if (!m_cameraInfoControl)
