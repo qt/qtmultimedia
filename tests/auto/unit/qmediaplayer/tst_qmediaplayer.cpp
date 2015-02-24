@@ -81,31 +81,46 @@ class tst_QMediaPlayer: public QObject
     Q_OBJECT
 
 public slots:
-    void initTestCase_data();
     void initTestCase();
     void cleanupTestCase();
     void init();
     void cleanup();
 
 private slots:
+    void testNullService_data();
     void testNullService();
     void testValid();
+    void testMedia_data();
     void testMedia();
+    void testDuration_data();
     void testDuration();
+    void testPosition_data();
     void testPosition();
+    void testVolume_data();
     void testVolume();
+    void testMuted_data();
     void testMuted();
     void testIsAvailable();
+    void testVideoAvailable_data();
     void testVideoAvailable();
+    void testBufferStatus_data();
     void testBufferStatus();
+    void testSeekable_data();
     void testSeekable();
+    void testPlaybackRate_data();
     void testPlaybackRate();
+    void testError_data();
     void testError();
+    void testErrorString_data();
     void testErrorString();
     void testService();
+    void testPlay_data();
     void testPlay();
+    void testPause_data();
     void testPause();
+    void testStop_data();
     void testStop();
+    void testMediaStatus_data();
     void testMediaStatus();
     void testPlaylist();
     void testNetworkAccess();
@@ -120,12 +135,14 @@ private slots:
     void testSupportedMimeTypes();
 
 private:
+    void setupCommonTestData();
+
     MockMediaServiceProvider *mockProvider;
     MockMediaPlayerService  *mockService;
     QMediaPlayer *player;
 };
 
-void tst_QMediaPlayer::initTestCase_data()
+void tst_QMediaPlayer::setupCommonTestData()
 {
     QTest::addColumn<bool>("valid");
     QTest::addColumn<QMediaPlayer::State>("state");
@@ -193,6 +210,11 @@ void tst_QMediaPlayer::cleanup()
     delete mockService;
 }
 
+void tst_QMediaPlayer::testNullService_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testNullService()
 {
     mockProvider->service = 0;
@@ -217,7 +239,7 @@ void tst_QMediaPlayer::testNullService()
     QCOMPARE(player.availability(), QMultimedia::ServiceMissing);
 
     {
-        QFETCH_GLOBAL(QMediaContent, mediaContent);
+        QFETCH(QMediaContent, mediaContent);
 
         QSignalSpy spy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
         QFile file;
@@ -249,8 +271,8 @@ void tst_QMediaPlayer::testNullService()
         QCOMPARE(stateSpy.count(), 0);
         QCOMPARE(statusSpy.count(), 0);
     } {
-        QFETCH_GLOBAL(int, volume);
-        QFETCH_GLOBAL(bool, muted);
+        QFETCH(int, volume);
+        QFETCH(bool, muted);
 
         QSignalSpy volumeSpy(&player, SIGNAL(volumeChanged(int)));
         QSignalSpy mutingSpy(&player, SIGNAL(mutedChanged(bool)));
@@ -263,7 +285,7 @@ void tst_QMediaPlayer::testNullService()
         QCOMPARE(player.isMuted(), false);
         QCOMPARE(mutingSpy.count(), 0);
     } {
-        QFETCH_GLOBAL(qint64, position);
+        QFETCH(qint64, position);
 
         QSignalSpy spy(&player, SIGNAL(positionChanged(qint64)));
 
@@ -271,7 +293,7 @@ void tst_QMediaPlayer::testNullService()
         QCOMPARE(player.position(), qint64(0));
         QCOMPARE(spy.count(), 0);
     } {
-        QFETCH_GLOBAL(qreal, playbackRate);
+        QFETCH(qreal, playbackRate);
 
         QSignalSpy spy(&player, SIGNAL(playbackRateChanged(qreal)));
 
@@ -307,16 +329,21 @@ void tst_QMediaPlayer::testNullService()
 void tst_QMediaPlayer::testValid()
 {
     /*
-    QFETCH_GLOBAL(bool, valid);
+    QFETCH(bool, valid);
 
     mockService->setIsValid(valid);
     QCOMPARE(player->isValid(), valid);
     */
 }
 
+void tst_QMediaPlayer::testMedia_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testMedia()
 {
-    QFETCH_GLOBAL(QMediaContent, mediaContent);
+    QFETCH(QMediaContent, mediaContent);
 
     mockService->setMedia(mediaContent);
     QCOMPARE(player->currentMedia(), mediaContent);
@@ -327,20 +354,30 @@ void tst_QMediaPlayer::testMedia()
     QCOMPARE((QBuffer*)player->mediaStream(), &stream);
 }
 
+void tst_QMediaPlayer::testDuration_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testDuration()
 {
-    QFETCH_GLOBAL(qint64, duration);
+    QFETCH(qint64, duration);
 
     mockService->setDuration(duration);
     QVERIFY(player->duration() == duration);
 }
 
+void tst_QMediaPlayer::testPosition_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testPosition()
 {
-    QFETCH_GLOBAL(bool, valid);
-    QFETCH_GLOBAL(bool, seekable);
-    QFETCH_GLOBAL(qint64, position);
-    QFETCH_GLOBAL(qint64, duration);
+    QFETCH(bool, valid);
+    QFETCH(bool, seekable);
+    QFETCH(qint64, position);
+    QFETCH(qint64, duration);
 
     mockService->setIsValid(valid);
     mockService->setSeekable(seekable);
@@ -384,10 +421,15 @@ void tst_QMediaPlayer::testPosition()
     }
 }
 
+void tst_QMediaPlayer::testVolume_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testVolume()
 {
-    QFETCH_GLOBAL(bool, valid);
-    QFETCH_GLOBAL(int, volume);
+    QFETCH(bool, valid);
+    QFETCH(int, volume);
 
     mockService->setVolume(volume);
     QVERIFY(player->volume() == volume);
@@ -415,11 +457,16 @@ void tst_QMediaPlayer::testVolume()
     }
 }
 
+void tst_QMediaPlayer::testMuted_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testMuted()
 {
-    QFETCH_GLOBAL(bool, valid);
-    QFETCH_GLOBAL(bool, muted);
-    QFETCH_GLOBAL(int, volume);
+    QFETCH(bool, valid);
+    QFETCH(bool, muted);
+    QFETCH(int, volume);
 
     if (valid) {
         mockService->setMuted(muted);
@@ -434,34 +481,54 @@ void tst_QMediaPlayer::testMuted()
     }
 }
 
+void tst_QMediaPlayer::testVideoAvailable_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testVideoAvailable()
 {
-    QFETCH_GLOBAL(bool, videoAvailable);
+    QFETCH(bool, videoAvailable);
 
     mockService->setVideoAvailable(videoAvailable);
     QVERIFY(player->isVideoAvailable() == videoAvailable);
 }
 
+void tst_QMediaPlayer::testBufferStatus_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testBufferStatus()
 {
-    QFETCH_GLOBAL(int, bufferStatus);
+    QFETCH(int, bufferStatus);
 
     mockService->setBufferStatus(bufferStatus);
     QVERIFY(player->bufferStatus() == bufferStatus);
 }
 
+void tst_QMediaPlayer::testSeekable_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testSeekable()
 {
-    QFETCH_GLOBAL(bool, seekable);
+    QFETCH(bool, seekable);
 
     mockService->setSeekable(seekable);
     QVERIFY(player->isSeekable() == seekable);
 }
 
+void tst_QMediaPlayer::testPlaybackRate_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testPlaybackRate()
 {
-    QFETCH_GLOBAL(bool, valid);
-    QFETCH_GLOBAL(qreal, playbackRate);
+    QFETCH(bool, valid);
+    QFETCH(qreal, playbackRate);
 
     if (valid) {
         mockService->setPlaybackRate(playbackRate);
@@ -474,17 +541,27 @@ void tst_QMediaPlayer::testPlaybackRate()
     }
 }
 
+void tst_QMediaPlayer::testError_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testError()
 {
-    QFETCH_GLOBAL(QMediaPlayer::Error, error);
+    QFETCH(QMediaPlayer::Error, error);
 
     mockService->setError(error);
     QVERIFY(player->error() == error);
 }
 
+void tst_QMediaPlayer::testErrorString_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testErrorString()
 {
-    QFETCH_GLOBAL(QString, errorString);
+    QFETCH(QString, errorString);
 
     mockService->setErrorString(errorString);
     QVERIFY(player->errorString() == errorString);
@@ -499,7 +576,7 @@ void tst_QMediaPlayer::testIsAvailable()
 void tst_QMediaPlayer::testService()
 {
     /*
-    QFETCH_GLOBAL(bool, valid);
+    QFETCH(bool, valid);
 
     mockService->setIsValid(valid);
 
@@ -510,11 +587,16 @@ void tst_QMediaPlayer::testService()
         */
 }
 
+void tst_QMediaPlayer::testPlay_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testPlay()
 {
-    QFETCH_GLOBAL(bool, valid);
-    QFETCH_GLOBAL(QMediaContent, mediaContent);
-    QFETCH_GLOBAL(QMediaPlayer::State, state);
+    QFETCH(bool, valid);
+    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QMediaPlayer::State, state);
 
     mockService->setIsValid(valid);
     mockService->setState(state);
@@ -536,11 +618,16 @@ void tst_QMediaPlayer::testPlay()
     }
 }
 
+void tst_QMediaPlayer::testPause_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testPause()
 {
-    QFETCH_GLOBAL(bool, valid);
-    QFETCH_GLOBAL(QMediaContent, mediaContent);
-    QFETCH_GLOBAL(QMediaPlayer::State, state);
+    QFETCH(bool, valid);
+    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QMediaPlayer::State, state);
 
     mockService->setIsValid(valid);
     mockService->setState(state);
@@ -562,10 +649,15 @@ void tst_QMediaPlayer::testPause()
     }
 }
 
+void tst_QMediaPlayer::testStop_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testStop()
 {
-    QFETCH_GLOBAL(QMediaContent, mediaContent);
-    QFETCH_GLOBAL(QMediaPlayer::State, state);
+    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QMediaPlayer::State, state);
 
     mockService->setState(state);
     mockService->setMedia(mediaContent);
@@ -586,9 +678,14 @@ void tst_QMediaPlayer::testStop()
     }
 }
 
+void tst_QMediaPlayer::testMediaStatus_data()
+{
+    setupCommonTestData();
+}
+
 void tst_QMediaPlayer::testMediaStatus()
 {
-    QFETCH_GLOBAL(int, bufferStatus);
+    QFETCH(int, bufferStatus);
     int bufferSignals = 0;
 
     player->setNotifyInterval(10);
