@@ -6,7 +6,11 @@
 
 TEMPLATE = subdirs
 
-SUBDIRS += m3u videonode
+SUBDIRS += m3u
+
+qtHaveModule(quick) {
+   SUBDIRS += videonode
+}
 
 android {
    SUBDIRS += android opensles
