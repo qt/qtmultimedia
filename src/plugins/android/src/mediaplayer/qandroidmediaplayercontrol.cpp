@@ -307,7 +307,7 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
 {
     StateChangeNotifier notifier(this);
 
-    mReloadingMedia = (mMediaContent == mediaContent);
+    mReloadingMedia = (mMediaContent == mediaContent) && !mPendingSetMedia;
 
     if (!mReloadingMedia) {
         mMediaContent = mediaContent;
@@ -712,8 +712,8 @@ void QAndroidMediaPlayerControl::resetBufferingProgress()
 void QAndroidMediaPlayerControl::flushPendingStates()
 {
     if (mPendingSetMedia) {
-        mPendingSetMedia = false;
         setMedia(mMediaContent, 0);
+        mPendingSetMedia = false;
         return;
     }
 
