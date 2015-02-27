@@ -508,6 +508,9 @@ void MmRendererMediaPlayerControl::play()
         return;
     }
 
+    if (m_mediaStatus == QMediaPlayer::EndOfMedia)
+        m_position = 0;
+
     setPositionInternal(m_position);
     setVolumeInternal(m_muted ? 0 : m_volume);
     setPlaybackRateInternal(m_rate);
