@@ -50,6 +50,7 @@ class QGstreamerPlayerSession;
 class QGstreamerMetaDataProvider;
 class QGstreamerStreamsControl;
 class QGstreamerVideoRenderer;
+class QGstreamerVideoWindow;
 class QGstreamerVideoWidgetControl;
 class QGStreamerAvailabilityControl;
 class QGstreamerAudioProbeControl;
@@ -77,9 +78,9 @@ private:
 
     QMediaControl *m_videoOutput;
     QMediaControl *m_videoRenderer;
-    QMediaControl *m_videoWindow;
+    QGstreamerVideoWindow *m_videoWindow;
 #if defined(HAVE_WIDGETS)
-    QMediaControl *m_videoWidget;
+    QGstreamerVideoWidgetControl *m_videoWidget;
 #endif
 
     void increaseVideoRef();

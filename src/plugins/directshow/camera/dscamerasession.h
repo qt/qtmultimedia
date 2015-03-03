@@ -91,6 +91,12 @@ public:
 
     void setSurface(QAbstractVideoSurface* surface);
 
+    QCameraViewfinderSettings viewfinderSettings() const;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
+
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const
+    { return m_supportedViewfinderSettings; }
+
 Q_SIGNALS:
     void statusChanged(QCamera::Status);
     void imageExposed(int id);
@@ -105,7 +111,6 @@ private Q_SLOTS:
 
 private:
     void setStatus(QCamera::Status status);
-    void populateCommonResolutions();
 
     void onFrameAvailable(const char *frameData, long len);
     void saveCapturedImage(int id, const QImage &image, const QString &path);
@@ -126,9 +131,10 @@ private:
     // Source (camera)
     QString m_sourceDeviceName;
     IBaseFilter* m_sourceFilter;
-    AM_MEDIA_TYPE m_sourcePreferredFormat;
-    QSize m_sourcePreferredResolution;
     bool m_needsHorizontalMirroring;
+    QList<AM_MEDIA_TYPE> m_supportedFormats;
+    QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
+    AM_MEDIA_TYPE m_sourceFormat;
 
     // Preview
     IBaseFilter *m_previewFilter;
@@ -140,6 +146,8 @@ private:
     QVideoSurfaceFormat m_previewSurfaceFormat;
     QVideoFrame::PixelFormat m_previewPixelFormat;
     QSize m_previewSize;
+    QCameraViewfinderSettings m_viewfinderSettings;
+    QCameraViewfinderSettings m_actualViewfinderSettings;
 
     // Image capture
     QString m_imageCaptureFileName;

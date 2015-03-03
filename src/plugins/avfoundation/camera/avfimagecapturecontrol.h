@@ -56,6 +56,7 @@ public:
 
     QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
     void setDriveMode(QCameraImageCapture::DriveMode ) {}
+    AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
 
     int capture(const QString &fileName);
     void cancelCapture();

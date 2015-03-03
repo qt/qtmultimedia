@@ -31,68 +31,30 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINCAPTURESERVICE_H
-#define CAMERABINCAPTURESERVICE_H
-
-#include <qmediaservice.h>
-
-#include <gst/gst.h>
+#include "dscameraviewfindersettingscontrol.h"
+#include "dscamerasession.h"
 
 QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
-class QVideoDeviceSelectorControl;
 
-
-class CameraBinSession;
-class CameraBinControl;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoWindow;
-class QGstreamerVideoWidgetControl;
-class QGstreamerElementFactory;
-class CameraBinMetaData;
-class CameraBinImageCapture;
-class CameraBinMetaData;
-class CameraBinViewfinderSettings;
-class CameraBinViewfinderSettings2;
-
-class CameraBinService : public QMediaService
+DSCameraViewfinderSettingsControl::DSCameraViewfinderSettingsControl(DSCameraSession *session)
+    : QCameraViewfinderSettingsControl2(session)
+    , m_session(session)
 {
-    Q_OBJECT
+}
 
-public:
-    CameraBinService(GstElementFactory *sourceFactory, QObject *parent = 0);
-    virtual ~CameraBinService();
+QList<QCameraViewfinderSettings> DSCameraViewfinderSettingsControl::supportedViewfinderSettings() const
+{
+    return m_session->supportedViewfinderSettings();
+}
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+QCameraViewfinderSettings DSCameraViewfinderSettingsControl::viewfinderSettings() const
+{
+    return m_session->viewfinderSettings();
+}
 
-    static bool isCameraBinAvailable();
-
-private:
-    void setAudioPreview(GstElement*);
-
-    CameraBinSession *m_captureSession;
-    CameraBinMetaData *m_metaDataControl;
-
-    QAudioInputSelectorControl *m_audioInputSelector;
-    QVideoDeviceSelectorControl *m_videoInputDevice;
-
-    QMediaControl *m_videoOutput;
-
-    QMediaControl *m_videoRenderer;
-    QGstreamerVideoWindow *m_videoWindow;
-#if defined(HAVE_WIDGETS)
-    QGstreamerVideoWidgetControl *m_videoWidgetControl;
-#endif
-    CameraBinImageCapture *m_imageCaptureControl;
-    QMediaControl *m_cameraInfoControl;
-
-    CameraBinViewfinderSettings *m_viewfinderSettingsControl;
-    CameraBinViewfinderSettings2 *m_viewfinderSettingsControl2;
-};
+void DSCameraViewfinderSettingsControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
+{
+    m_session->setViewfinderSettings(settings);
+}
 
 QT_END_NAMESPACE
-
-#endif // CAMERABINCAPTURESERVICE_H

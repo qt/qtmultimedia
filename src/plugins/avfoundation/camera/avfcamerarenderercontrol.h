@@ -61,6 +61,8 @@ public:
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);
 
+    AVCaptureVideoDataOutput *videoDataOutput() const;
+
 Q_SIGNALS:
     void surfaceChanged(QAbstractVideoSurface *surface);
 

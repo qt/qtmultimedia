@@ -850,19 +850,19 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 /*!
     \since 5.3
 
-    \fn QMediaServiceSupportedDevicesInterface::defaultDevice(const QByteArray &service) const
+    \fn QByteArray QMediaServiceSupportedDevicesInterface::defaultDevice(const QByteArray &service) const
 
     Returns the default device for a \a service type.
 */
 
 /*!
-    \fn QMediaServiceSupportedDevicesInterface::devices(const QByteArray &service) const
+    \fn QList<QByteArray> QMediaServiceSupportedDevicesInterface::devices(const QByteArray &service) const
 
     Returns a list of devices available for a \a service type.
 */
 
 /*!
-    \fn QMediaServiceSupportedDevicesInterface::deviceDescription(const QByteArray &service, const QByteArray &device)
+    \fn QString QMediaServiceSupportedDevicesInterface::deviceDescription(const QByteArray &service, const QByteArray &device)
 
     Returns the description of a \a device available for a \a service type.
 */

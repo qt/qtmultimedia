@@ -240,14 +240,16 @@ void AVFVideoFrameRenderer::initRenderer()
     //Need current context
     m_glContext->makeCurrent(m_offscreenSurface);
 
-    //  Create a new open gl texture cache
-    CVReturn err = CVOGLTextureCacheCreate(kCFAllocatorDefault, NULL,
-        [EAGLContext currentContext],
-        NULL, &m_textureCache);
-
-    if (err) {
-#ifdef QT_DEBUG_AVF
-        qWarning("Error at CVOGLTextureCacheCreate %d", err);
-#endif
+    if (!m_textureCache) {
+        //  Create a new open gl texture cache
+        CVReturn err = CVOGLTextureCacheCreate(kCFAllocatorDefault, NULL,
+            [EAGLContext currentContext],
+            NULL, &m_textureCache);
+        if (err) {
+    #ifdef QT_DEBUG_AVF
+            qWarning("Error at CVOGLTextureCacheCreate %d", err);
+    #endif
+        }
     }
+
 }

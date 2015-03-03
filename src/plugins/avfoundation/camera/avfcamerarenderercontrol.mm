@@ -31,6 +31,7 @@
 **
 ****************************************************************************/
 
+#include "avfcameraviewfindersettingscontrol.h"
 #include "avfcamerarenderercontrol.h"
 #include "avfcamerasession.h"
 #include "avfcameraservice.h"
@@ -129,7 +130,17 @@ private:
     int height = CVPixelBufferGetHeight(imageBuffer);
 
     QAbstractVideoBuffer *buffer = new CVPixelBufferVideoBuffer(imageBuffer);
-    QVideoFrame frame(buffer, QSize(width, height), QVideoFrame::Format_RGB32);
+
+    QVideoFrame::PixelFormat format = QVideoFrame::Format_RGB32;
+    if ([captureOutput isKindOfClass:[AVCaptureVideoDataOutput class]]) {
+        NSDictionary *settings = ((AVCaptureVideoDataOutput *)captureOutput).videoSettings;
+        if (settings && [settings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey]) {
+            NSNumber *avf = [settings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey];
+            format = AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat([avf unsignedIntValue]);
+        }
+    }
+
+    QVideoFrame frame(buffer, QSize(width, height), format);
     m_renderer->syncHandleViewfinderFrame(frame);
 }
 @end
@@ -234,6 +245,11 @@ void AVFCameraRendererControl::syncHandleViewfinderFrame(const QVideoFrame &fram
     }
     if (m_cameraSession && m_lastViewfinderFrame.isValid())
         m_cameraSession->onCameraFrameFetched(m_lastViewfinderFrame);
+}
+
+AVCaptureVideoDataOutput *AVFCameraRendererControl::videoDataOutput() const
+{
+    return m_videoDataOutput;
 }
 
 void AVFCameraRendererControl::handleViewfinderFrame()

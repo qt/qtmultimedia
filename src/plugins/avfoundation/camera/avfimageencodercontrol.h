@@ -31,67 +31,47 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERCAPTURESERVICE_H
-#define QGSTREAMERCAPTURESERVICE_H
+#ifndef AVFIMAGEENCODERCONTROL_H
+#define AVFIMAGEENCODERCONTROL_H
 
-#include <qmediaservice.h>
-#include <qmediacontrol.h>
+#include <QtMultimedia/qmediaencodersettings.h>
+#include <QtMultimedia/qimageencodercontrol.h>
 
-#include <gst/gst.h>
+#include <QtCore/qglobal.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qlist.h>
+
+@class AVCaptureDeviceFormat;
 
 QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
-class QVideoDeviceSelectorControl;
 
-class QGstreamerAudioProbeControl;
-class QGstreamerCaptureSession;
-class QGstreamerCameraControl;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoWindow;
-class QGstreamerVideoWidgetControl;
-class QGstreamerElementFactory;
-class QGstreamerCaptureMetaDataControl;
-class QGstreamerImageCaptureControl;
-class QGstreamerV4L2Input;
+class AVFCameraService;
 
-class QGstreamerCaptureService : public QMediaService
+class AVFImageEncoderControl : public QImageEncoderControl
 {
     Q_OBJECT
 
+    friend class AVFCameraSession;
 public:
-    QGstreamerCaptureService(const QString &service, QObject *parent = 0);
-    virtual ~QGstreamerCaptureService();
+    AVFImageEncoderControl(AVFCameraService *service);
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+    QStringList supportedImageCodecs() const Q_DECL_OVERRIDE;
+    QString imageCodecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
+    QList<QSize> supportedResolutions(const QImageEncoderSettings &settings,
+                                      bool *continuous) const Q_DECL_OVERRIDE;
+    QImageEncoderSettings imageSettings() const Q_DECL_OVERRIDE;
+    void setImageSettings(const QImageEncoderSettings &settings) Q_DECL_OVERRIDE;
 
 private:
-    void setAudioPreview(GstElement *);
+    AVFCameraService *m_service;
+    QImageEncoderSettings m_settings;
 
-    QGstreamerCaptureSession *m_captureSession;
-    QGstreamerCameraControl *m_cameraControl;
-#if defined(USE_GSTREAMER_CAMERA)
-    QGstreamerV4L2Input *m_videoInput;
-#endif
-    QGstreamerCaptureMetaDataControl *m_metaDataControl;
-
-    QAudioInputSelectorControl *m_audioInputSelector;
-    QVideoDeviceSelectorControl *m_videoInputDevice;
-
-    QMediaControl *m_videoOutput;
-
-    QGstreamerVideoRenderer *m_videoRenderer;
-    QGstreamerVideoWindow *m_videoWindow;
-#if defined(HAVE_WIDGETS)
-    QGstreamerVideoWidgetControl *m_videoWidgetControl;
-#endif
-    QGstreamerImageCaptureControl *m_imageCaptureControl;
-
-    QGstreamerAudioProbeControl *m_audioProbeControl;
+    void applySettings();
+    bool videoCaptureDeviceIsValid() const;
 };
+
+QSize qt_image_high_resolution(AVCaptureDeviceFormat *fomat);
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURESERVICE_H
+#endif

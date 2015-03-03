@@ -31,15 +31,20 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCONFIGURATIONLOCK_H
-#define AVFCONFIGURATIONLOCK_H
+#ifndef AVFCAMERAUTILITY_H
+#define AVFCAMERAUTILITY_H
 
+#include <QtCore/qsysinfo.h>
 #include <QtCore/qglobal.h>
+#include <QtCore/qvector.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qsize.h>
+#include <QtCore/qpair.h>
 
 #include <AVFoundation/AVFoundation.h>
 
-@class AVCaptureDevice;
+// In case we have SDK below 10.7/7.0:
+@class AVCaptureDeviceFormat;
 
 QT_BEGIN_NAMESPACE
 
@@ -72,6 +77,36 @@ private:
     AVCaptureDevice *m_captureDevice;
     bool m_locked;
 };
+
+inline QSysInfo::MacVersion qt_OS_limit(QSysInfo::MacVersion osxVersion,
+                                        QSysInfo::MacVersion iosVersion)
+{
+#ifdef Q_OS_OSX
+    Q_UNUSED(iosVersion)
+    return osxVersion;
+#else
+    Q_UNUSED(osxVersion)
+    return iosVersion;
+#endif
+}
+
+typedef QPair<qreal, qreal> AVFPSRange;
+AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
+typedef QPair<int, int> AVFRational;
+AVFRational qt_float_to_rational(qreal par, int limit);
+
+#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
+
+bool qt_is_video_range_subtype(AVCaptureDeviceFormat *format);
+QSize qt_device_format_resolution(AVCaptureDeviceFormat *format);
+QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format);
+QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format);
+QVector<AVFPSRange> qt_device_format_framerates(AVCaptureDeviceFormat *format);
+AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &res);
+AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice, Float64 fps);
+AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *format, Float64 fps);
+
+#endif
 
 QT_END_NAMESPACE
 

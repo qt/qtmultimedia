@@ -259,7 +259,7 @@ QVideoFilterRunnable::~QVideoFilterRunnable()
 }
 
 /*!
-  Constructs a new QAbstractVideoFilter instance.
+  Constructs a new QAbstractVideoFilter instance with parent object \a parent.
  */
 QAbstractVideoFilter::QAbstractVideoFilter(QObject *parent) :
     QObject(parent),

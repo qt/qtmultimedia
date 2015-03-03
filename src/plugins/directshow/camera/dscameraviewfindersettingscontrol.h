@@ -31,67 +31,29 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERCAPTURESERVICE_H
-#define QGSTREAMERCAPTURESERVICE_H
+#ifndef DSCAMERAVIEWFINDERSETTINGSCONTROL_H
+#define DSCAMERAVIEWFINDERSETTINGSCONTROL_H
 
-#include <qmediaservice.h>
-#include <qmediacontrol.h>
-
-#include <gst/gst.h>
+#include <qcameraviewfindersettingscontrol.h>
 
 QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
-class QVideoDeviceSelectorControl;
 
-class QGstreamerAudioProbeControl;
-class QGstreamerCaptureSession;
-class QGstreamerCameraControl;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoWindow;
-class QGstreamerVideoWidgetControl;
-class QGstreamerElementFactory;
-class QGstreamerCaptureMetaDataControl;
-class QGstreamerImageCaptureControl;
-class QGstreamerV4L2Input;
+class DSCameraSession;
 
-class QGstreamerCaptureService : public QMediaService
+class DSCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl2
 {
-    Q_OBJECT
-
 public:
-    QGstreamerCaptureService(const QString &service, QObject *parent = 0);
-    virtual ~QGstreamerCaptureService();
+    DSCameraViewfinderSettingsControl(DSCameraSession *session);
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const;
+
+    QCameraViewfinderSettings viewfinderSettings() const;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
 
 private:
-    void setAudioPreview(GstElement *);
-
-    QGstreamerCaptureSession *m_captureSession;
-    QGstreamerCameraControl *m_cameraControl;
-#if defined(USE_GSTREAMER_CAMERA)
-    QGstreamerV4L2Input *m_videoInput;
-#endif
-    QGstreamerCaptureMetaDataControl *m_metaDataControl;
-
-    QAudioInputSelectorControl *m_audioInputSelector;
-    QVideoDeviceSelectorControl *m_videoInputDevice;
-
-    QMediaControl *m_videoOutput;
-
-    QGstreamerVideoRenderer *m_videoRenderer;
-    QGstreamerVideoWindow *m_videoWindow;
-#if defined(HAVE_WIDGETS)
-    QGstreamerVideoWidgetControl *m_videoWidgetControl;
-#endif
-    QGstreamerImageCaptureControl *m_imageCaptureControl;
-
-    QGstreamerAudioProbeControl *m_audioProbeControl;
+    DSCameraSession *m_session;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURESERVICE_H
+#endif // DSCAMERAVIEWFINDERSETTINGSCONTROL_H

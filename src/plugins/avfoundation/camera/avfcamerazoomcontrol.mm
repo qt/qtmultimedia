@@ -32,8 +32,8 @@
 ****************************************************************************/
 
 #include "avfcamerazoomcontrol.h"
-#include "avfconfigurationlock.h"
 #include "avfcameraservice.h"
+#include "avfcamerautility.h"
 #include "avfcamerasession.h"
 #include "avfcameracontrol.h"
 #include "avfcameradebug.h"
