@@ -279,9 +279,11 @@ QList<QCameraViewfinderSettings> AVFCameraViewfinderSettingsControl2::supportedV
             return supportedSettings;
         }
 
-        for (AVCaptureDeviceFormat *format in m_captureDevice.formats) {
-            if (qt_is_video_range_subtype(format))
-                continue;
+        const QVector<AVCaptureDeviceFormat *> formats(qt_unique_device_formats(m_captureDevice,
+                                                       m_session->defaultCodec()));
+        for (int i = 0; i < formats.size(); ++i) {
+            AVCaptureDeviceFormat *format = formats[i];
+
             const QSize res(qt_device_format_resolution(format));
             if (res.isNull() || !res.isValid())
                 continue;
@@ -435,12 +437,14 @@ AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
         Q_ASSERT(m_captureDevice);
+        Q_ASSERT(m_session);
 
         const QSize &resolution = settings.resolution();
         if (!resolution.isNull() && resolution.isValid()) {
             // Either the exact match (including high resolution for images on iOS)
             // or a format with a resolution close to the requested one.
-            return qt_find_best_resolution_match(m_captureDevice, resolution);
+            return qt_find_best_resolution_match(m_captureDevice, resolution,
+                                                 m_session->defaultCodec());
         }
 
         // No resolution requested, what about framerates?
@@ -453,7 +457,8 @@ AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(
         const qreal minFPS(settings.minimumFrameRate());
         const qreal maxFPS(settings.maximumFrameRate());
         if (minFPS || maxFPS)
-            return qt_find_best_framerate_match(m_captureDevice, maxFPS ? maxFPS : minFPS);
+            return qt_find_best_framerate_match(m_captureDevice, maxFPS ? maxFPS : minFPS,
+                                                m_session->defaultCodec());
         // Ignore PAR for the moment (PAR without resolution can
         // pick a format with really bad resolution).
         // No need to test pixel format, just return settings.

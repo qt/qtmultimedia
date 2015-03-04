@@ -97,13 +97,17 @@ AVFRational qt_float_to_rational(qreal par, int limit);
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
 
-bool qt_is_video_range_subtype(AVCaptureDeviceFormat *format);
+QVector<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
+                                                          FourCharCode preferredFormat);
 QSize qt_device_format_resolution(AVCaptureDeviceFormat *format);
 QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format);
 QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format);
 QVector<AVFPSRange> qt_device_format_framerates(AVCaptureDeviceFormat *format);
-AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &res);
-AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice, Float64 fps);
+AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &res,
+                                                     FourCharCode preferredFormat);
+AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice,
+                                                    FourCharCode preferredFormat,
+                                                    Float64 fps);
 AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *format, Float64 fps);
 
 #endif

@@ -41,6 +41,7 @@
 #include "avfmediavideoprobecontrol.h"
 #include "avfcameraviewfindersettingscontrol.h"
 #include "avfimageencodercontrol.h"
+#include "avfcamerautility.h"
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
@@ -143,6 +144,7 @@ AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
    , m_active(false)
    , m_videoInput(nil)
    , m_audioInput(nil)
+   , m_defaultCodec(0)
 {
     m_captureSession = [[AVCaptureSession alloc] init];
     m_observer = [[AVFCameraSessionObserver alloc] initWithCameraSession:this];
@@ -277,6 +279,8 @@ void AVFCameraSession::setState(QCamera::State newState)
         Q_EMIT readyToConfigureConnections();
         [m_captureSession commitConfiguration];
         [m_captureSession startRunning];
+        m_defaultCodec = 0;
+        defaultCodec();
         applyImageEncoderSettings();
         applyViewfinderSettings();
     }
@@ -405,6 +409,25 @@ void AVFCameraSession::removeProbe(AVFMediaVideoProbeControl *probe)
     m_videoProbesMutex.lock();
     m_videoProbes.remove(probe);
     m_videoProbesMutex.unlock();
+}
+
+FourCharCode AVFCameraSession::defaultCodec()
+{
+    if (!m_defaultCodec) {
+#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
+        if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
+            if (AVCaptureDevice *device = videoCaptureDevice()) {
+                AVCaptureDeviceFormat *format = device.activeFormat;
+                if (!format || !format.formatDescription)
+                    return m_defaultCodec;
+                m_defaultCodec = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
+            }
+        }
+#else
+    // TODO: extract media subtype.
+#endif
+    }
+    return m_defaultCodec;
 }
 
 void AVFCameraSession::onCameraFrameFetched(const QVideoFrame &frame)

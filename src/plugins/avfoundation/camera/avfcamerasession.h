@@ -80,6 +80,7 @@ public:
 
     void addProbe(AVFMediaVideoProbeControl *probe);
     void removeProbe(AVFMediaVideoProbeControl *probe);
+    FourCharCode defaultCodec();
 
 public Q_SLOTS:
     void setState(QCamera::State state);
@@ -119,6 +120,7 @@ private:
     QSet<AVFMediaVideoProbeControl *> m_videoProbes;
     QMutex m_videoProbesMutex;
 
+    FourCharCode m_defaultCodec;
 };
 
 QT_END_NAMESPACE
