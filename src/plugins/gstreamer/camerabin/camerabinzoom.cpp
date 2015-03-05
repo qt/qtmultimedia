@@ -51,7 +51,9 @@ CameraBinZoom::CameraBinZoom(CameraBinSession *session)
     , m_requestedOpticalZoom(1.0)
     , m_requestedDigitalZoom(1.0)
 {
-
+    GstElement *camerabin = m_session->cameraBin();
+    g_signal_connect(G_OBJECT(camerabin), "notify::zoom", G_CALLBACK(updateZoom), this);
+    g_signal_connect(G_OBJECT(camerabin), "notify::max-zoom", G_CALLBACK(updateMaxZoom), this);
 }
 
 CameraBinZoom::~CameraBinZoom()
@@ -112,6 +114,34 @@ void CameraBinZoom::zoomTo(qreal optical, qreal digital)
     qreal newDigitalZoom = currentDigitalZoom();
     if (!qFuzzyCompare(oldDigitalZoom, newDigitalZoom))
         emit currentDigitalZoomChanged(digital);
+}
+
+void CameraBinZoom::updateZoom(GObject *o, GParamSpec *p, gpointer d)
+{
+    Q_UNUSED(p);
+
+    gfloat zoomFactor = 1.0;
+    g_object_get(o, ZOOM_PROPERTY, &zoomFactor, NULL);
+
+    CameraBinZoom *zoom = reinterpret_cast<CameraBinZoom *>(d);
+
+    QMetaObject::invokeMethod(zoom, "currentDigitalZoomChanged",
+                              Qt::QueuedConnection,
+                              Q_ARG(qreal, zoomFactor));
+}
+
+void CameraBinZoom::updateMaxZoom(GObject *o, GParamSpec *p, gpointer d)
+{
+    Q_UNUSED(p);
+
+    gfloat zoomFactor = 1.0;
+    g_object_get(o, MAX_ZOOM_PROPERTY, &zoomFactor, NULL);
+
+    CameraBinZoom *zoom = reinterpret_cast<CameraBinZoom *>(d);
+
+    QMetaObject::invokeMethod(zoom, "maximumDigitalZoomChanged",
+                              Qt::QueuedConnection,
+                              Q_ARG(qreal, zoomFactor));
 }
 
 QT_END_NAMESPACE
