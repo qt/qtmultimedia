@@ -39,8 +39,12 @@
 class QSGVivanteVideoMaterialShader : public QSGMaterialShader
 {
 public:
+    QSGVivanteVideoMaterialShader();
+
     void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial);
     virtual char const *const *attributeNames() const;
+
+    void setUVScale(float uScale, float vScale);
 
 protected:
     virtual const char *vertexShader() const;
@@ -51,6 +55,11 @@ private:
     int mIdMatrix;
     int mIdTexture;
     int mIdOpacity;
+    int mIdUVScale;
+
+    float mUScale;
+    float mVScale;
+    bool mNewUVScale;
 };
 
 #endif // QSGVIDEOMATERIALSHADER_VIVANTE_H

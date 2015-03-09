@@ -78,4 +78,23 @@ const QMap<QVideoFrame::PixelFormat, GLenum>& QSGVivanteVideoNode::getVideoForma
 }
 
 
+int QSGVivanteVideoNode::getBytesForPixelFormat(QVideoFrame::PixelFormat pixelformat)
+{
+    switch (pixelformat) {
+    case QVideoFrame::Format_YUV420P: return 1;
+    case QVideoFrame::Format_YV12: return 1;
+    case QVideoFrame::Format_NV12: return 1;
+    case QVideoFrame::Format_NV21: return 1;
+    case QVideoFrame::Format_UYVY: return 2;
+    case QVideoFrame::Format_YUYV: return 2;
+    case QVideoFrame::Format_RGB32: return 4;
+    case QVideoFrame::Format_ARGB32: return 4;
+    case QVideoFrame::Format_BGR32: return 4;
+    case QVideoFrame::Format_BGRA32: return 4;
+    case QVideoFrame::Format_RGB565: return 2;
+    default: return 1;
+    }
+}
+
+
 

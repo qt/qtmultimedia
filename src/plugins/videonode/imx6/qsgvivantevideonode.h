@@ -49,6 +49,7 @@ public:
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
     static const QMap<QVideoFrame::PixelFormat, GLenum>& getVideoFormat2GLFormatMap();
+    static int getBytesForPixelFormat(QVideoFrame::PixelFormat pixelformat);
 
 private:
     QVideoSurfaceFormat mFormat;

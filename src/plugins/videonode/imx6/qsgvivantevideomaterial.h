@@ -43,6 +43,8 @@
 
 #include <private/qsgvideonode_p.h>
 
+class QSGVivanteVideoMaterialShader;
+
 class QSGVivanteVideoMaterial : public QSGMaterial
 {
 public:
@@ -78,6 +80,8 @@ private:
 
     GLuint mTexDirectTexture;
     GLvoid *mTexDirectPlanes[3];
+
+    QSGVivanteVideoMaterialShader *mShader;
 };
 
 #endif // QSGVIDEOMATERIAL_VIVMAP_H
