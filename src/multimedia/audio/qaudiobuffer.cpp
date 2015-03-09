@@ -264,6 +264,8 @@ QAudioBuffer::QAudioBuffer(int numFrames, const QAudioFormat &format, qint64 sta
 QAudioBuffer &QAudioBuffer::operator =(const QAudioBuffer &other)
 {
     if (this->d != other.d) {
+        if (d)
+            d->deref();
         d = QAudioBufferPrivate::acquire(other.d);
     }
     return *this;
