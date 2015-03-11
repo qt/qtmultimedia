@@ -34,7 +34,7 @@
 #include "playlistfileparser_p.h"
 #include <qfileinfo.h>
 #include <QtNetwork/QNetworkReply>
-#include "qmediaobject_p.h"
+#include <private/qobject_p.h>
 #include "qmediametadata.h"
 
 QT_BEGIN_NAMESPACE
@@ -238,10 +238,9 @@ Version=2
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-class QPlaylistFileParserPrivate : public QObject
+class QPlaylistFileParserPrivate : public QObjectPrivate
 {
-    Q_OBJECT
-    Q_DECLARE_NON_CONST_PUBLIC(QPlaylistFileParser)
+    Q_DECLARE_PUBLIC(QPlaylistFileParser)
 public:
     QPlaylistFileParserPrivate()
         : m_source(0)
@@ -268,8 +267,6 @@ public:
     ParserBase     *m_currentParser;
     QNetworkAccessManager m_mgr;
 
-    QPlaylistFileParser *q_ptr;
-
 private:
     void processLine(int startIndex, int length);
 };
@@ -290,25 +287,25 @@ void QPlaylistFileParserPrivate::processLine(int startIndex, int length)
 
         switch (m_type) {
         case QPlaylistFileParser::UNKNOWN:
-            emit q->error(QPlaylistFileParser::FormatError, QString(tr("%1 playlist type is unknown")).arg(m_root.toString()));
+            emit q->error(QPlaylistFileParser::FormatError, QString(QObject::tr("%1 playlist type is unknown")).arg(m_root.toString()));
             q->stop();
             return;
         case QPlaylistFileParser::M3U:
-            m_currentParser = new M3UParser(this);
+            m_currentParser = new M3UParser(q);
             break;
         case QPlaylistFileParser::M3U8:
-            m_currentParser = new M3UParser(this);
+            m_currentParser = new M3UParser(q);
             m_utf8 = true;
             break;
         case QPlaylistFileParser::PLS:
-            m_currentParser = new PLSParser(this);
+            m_currentParser = new PLSParser(q);
             break;
         }
         Q_ASSERT(m_currentParser);
-        connect(m_currentParser, SIGNAL(newItem(QVariant)), q, SIGNAL(newItem(QVariant)));
-        connect(m_currentParser, SIGNAL(finished()), q, SLOT(_q_handleParserFinished()));
-        connect(m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError,QString)),
-                q, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError,QString)));
+        QObject::connect(m_currentParser, SIGNAL(newItem(QVariant)), q, SIGNAL(newItem(QVariant)));
+        QObject::connect(m_currentParser, SIGNAL(finished()), q, SLOT(_q_handleParserFinished()));
+        QObject::connect(m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError,QString)),
+                         q, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError,QString)));
     }
 
     QString line;
@@ -350,7 +347,7 @@ void QPlaylistFileParserPrivate::_q_handleData()
 
         if (m_buffer.length() - processedBytes >= LINE_LIMIT) {
             qWarning() << "error parsing playlist["<< m_root << "] with line content >= 4096 bytes.";
-            emit q->error(QPlaylistFileParser::FormatError, tr("invalid line in playlist file"));
+            emit q->error(QPlaylistFileParser::FormatError, QObject::tr("invalid line in playlist file"));
             q->stop();
             return;
         }
@@ -398,7 +395,7 @@ void QPlaylistFileParserPrivate::_q_handleParserFinished()
     Q_Q(QPlaylistFileParser);
     bool isParserValid = (m_currentParser != 0);
     if (!isParserValid)
-        emit q->error(QPlaylistFileParser::FormatNotSupportedError, tr("Empty file provided"));
+        emit q->error(QPlaylistFileParser::FormatNotSupportedError, QObject::tr("Empty file provided"));
 
     q->stop();
 
@@ -408,9 +405,9 @@ void QPlaylistFileParserPrivate::_q_handleParserFinished()
 
 
 QPlaylistFileParser::QPlaylistFileParser(QObject *parent)
-    :QObject(parent), d_ptr(new QPlaylistFileParserPrivate)
+    : QObject(*new QPlaylistFileParserPrivate, parent)
 {
-    d_func()->q_ptr = this;
+
 }
 
 QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QString& uri, const QString& mime, const void *data, quint32 size)
