@@ -3,13 +3,10 @@ which is assumed to be provided in RGB format. The OpenCL operation is done on
 an OpenGL texture using CL-GL interop, without any further readbacks or copies
 (except for the initial texture upload, when necessary).
 
-Currently OS X, Windows with real OpenGL (opengl32.dll) and Linux (GLX only) are
+Currently OS X, Windows with real OpenGL (opengl32.dll) and Linux (GLX) are
 supported. Note that an OpenCL implementation with GPU support is required. The
 platform and device selection logic supports NVIDIA, AMD and Intel. Porting to
 other platforms is probably simple, see clCreateContextFromType.
-
-On Windows you may need to edit testplugin.pro to specify the location of the
-OpenCL headers and libraries.
 
 YUV formats are not supported in this example. This is probably not an issue an
 OS X and Windows, but will most likely disable the example on Linux.
