@@ -813,7 +813,7 @@ namespace
                     case QVideoFrame::Format_RGB32:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
                         break;
-                    case QVideoFrame::Format_RGB24:
+                    case QVideoFrame::Format_BGR24: // MFVideoFormat_RGB24 has a BGR layout
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB24);
                         break;
                     case QVideoFrame::Format_RGB565:
@@ -1082,6 +1082,7 @@ namespace
                 return format.frameWidth() * 4;
             // 24 bpp packed formats.
             case QVideoFrame::Format_RGB24:
+            case QVideoFrame::Format_BGR24:
                 return PAD_TO_DWORD(format.frameWidth() * 3);
             // 16 bpp packed formats.
             case QVideoFrame::Format_RGB565:
