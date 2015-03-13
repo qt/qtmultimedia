@@ -57,7 +57,6 @@
 
 QT_BEGIN_NAMESPACE
 
-
 const unsigned int MAX_SAMPLE_RATES = 5;
 const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
 
@@ -91,14 +90,13 @@ private:
     QAudio::Mode mode;
     QString device;
     quint32 devId;
-    QAudioFormat nearest;
     QList<int> sampleRatez;
     QList<int> channelz;
     QList<int> sizez;
-    QList<QAudioFormat::Endian> byteOrderz;
-    QStringList codecz;
     QList<QAudioFormat::SampleType> typez;
 };
+
+
 
 QT_END_NAMESPACE
 
