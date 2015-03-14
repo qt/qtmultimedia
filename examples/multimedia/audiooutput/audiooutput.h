@@ -91,7 +91,7 @@ private:
     void createAudioOutput();
 
 private:
-    QTimer *m_pullTimer;
+    QTimer *m_pushTimer;
 
     // Owned by layout
     QPushButton *m_modeButton;
@@ -110,7 +110,7 @@ private:
     QByteArray m_buffer;
 
 private slots:
-    void pullTimerExpired();
+    void pushTimerExpired();
     void toggleMode();
     void toggleSuspendResume();
     void deviceChanged(int index);

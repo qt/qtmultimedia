@@ -159,7 +159,7 @@ qint64 Generator::bytesAvailable() const
 }
 
 AudioTest::AudioTest()
-    :   m_pullTimer(new QTimer(this))
+    :   m_pushTimer(new QTimer(this))
     ,   m_modeButton(0)
     ,   m_suspendResumeButton(0)
     ,   m_deviceBox(0)
@@ -220,7 +220,7 @@ void AudioTest::initializeWindow()
 
 void AudioTest::initializeAudio()
 {
-    connect(m_pullTimer, SIGNAL(timeout()), SLOT(pullTimerExpired()));
+    connect(m_pushTimer, SIGNAL(timeout()), SLOT(pushTimerExpired()));
 
     m_pullMode = true;
 
@@ -259,7 +259,7 @@ AudioTest::~AudioTest()
 
 void AudioTest::deviceChanged(int index)
 {
-    m_pullTimer->stop();
+    m_pushTimer->stop();
     m_generator->stop();
     m_audioOutput->stop();
     m_audioOutput->disconnect(this);
@@ -273,7 +273,7 @@ void AudioTest::volumeChanged(int value)
         m_audioOutput->setVolume(qreal(value/100.0f));
 }
 
-void AudioTest::pullTimerExpired()
+void AudioTest::pushTimerExpired()
 {
     if (m_audioOutput && m_audioOutput->state() != QAudio::StoppedState) {
         int chunks = m_audioOutput->bytesFree()/m_audioOutput->periodSize();
@@ -290,15 +290,17 @@ void AudioTest::pullTimerExpired()
 
 void AudioTest::toggleMode()
 {
-    m_pullTimer->stop();
+    m_pushTimer->stop();
     m_audioOutput->stop();
 
     if (m_pullMode) {
+        //switch to push mode (periodically push to QAudioOutput using a timer)
         m_modeButton->setText(tr(PULL_MODE_LABEL));
         m_output = m_audioOutput->start();
         m_pullMode = false;
-        m_pullTimer->start(20);
+        m_pushTimer->start(20);
     } else {
+        //switch to pull mode (QAudioOutput pulls from Generator as needed)
         m_modeButton->setText(tr(PUSH_MODE_LABEL));
         m_pullMode = true;
         m_audioOutput->start(m_generator);
