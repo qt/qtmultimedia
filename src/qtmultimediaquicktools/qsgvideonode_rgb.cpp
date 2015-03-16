@@ -46,11 +46,11 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_RGB::supportedPixelFormats(
     QList<QVideoFrame::PixelFormat> pixelFormats;
 
     if (handleType == QAbstractVideoBuffer::NoHandle) {
-        pixelFormats.append(QVideoFrame::Format_RGB565);
         pixelFormats.append(QVideoFrame::Format_RGB32);
         pixelFormats.append(QVideoFrame::Format_ARGB32);
         pixelFormats.append(QVideoFrame::Format_BGR32);
         pixelFormats.append(QVideoFrame::Format_BGRA32);
+        pixelFormats.append(QVideoFrame::Format_RGB565);
     }
 
     return pixelFormats;
