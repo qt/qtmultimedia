@@ -37,6 +37,7 @@
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
 
+#include <functional>
 #include <algorithm>
 #include <limits>
 
@@ -107,19 +108,6 @@ AVFRational qt_float_to_rational(qreal par, int limit)
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
 
-bool qt_is_video_range_subtype(AVCaptureDeviceFormat *format)
-{
-    Q_ASSERT(format);
-#ifdef Q_OS_IOS
-    // Use only 420f on iOS, not 420v.
-    const FourCharCode subType = CMFormatDescriptionGetMediaSubType(format.formatDescription);
-    return subType == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
-#else
-    Q_UNUSED(format)
-#endif
-    return false;
-}
-
 namespace {
 
 inline bool qt_area_sane(const QSize &size)
@@ -128,40 +116,25 @@ inline bool qt_area_sane(const QSize &size)
            && std::numeric_limits<int>::max() / size.width() >= size.height();
 }
 
-inline bool avf_format_compare(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2)
+struct ResolutionPredicate : std::binary_function<AVCaptureDeviceFormat *, AVCaptureDeviceFormat *, bool>
 {
-    Q_ASSERT(f1);
-    Q_ASSERT(f2);
-    const QSize r1(qt_device_format_resolution(f1));
-    const QSize r2(qt_device_format_resolution(f2));
-    return r1.width() > r2.width() && r1.height() > r2.height();
-}
-
-QVector<AVCaptureDeviceFormat *> qt_sort_device_formats(AVCaptureDevice *captureDevice)
-{
-    // Select only formats with framerate ranges + sort them by resoluions,
-    Q_ASSERT(captureDevice);
-
-    QVector<AVCaptureDeviceFormat *>sorted;
-
-    NSArray *formats = captureDevice.formats;
-    if (!formats || !formats.count)
-        return sorted;
-
-    sorted.reserve(formats.count);
-    for (AVCaptureDeviceFormat *format in formats) {
-        if (qt_is_video_range_subtype(format))
-            continue;
-        if (format.videoSupportedFrameRateRanges && format.videoSupportedFrameRateRanges.count) {
-            const QSize resolution(qt_device_format_resolution(format));
-            if (!resolution.isNull() && resolution.isValid())
-                sorted << format;
-        }
+    bool operator() (AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2)const
+    {
+        Q_ASSERT(f1 && f2);
+        const QSize r1(qt_device_format_resolution(f1));
+        const QSize r2(qt_device_format_resolution(f2));
+        return r1.width() < r2.width() || (r2.width() == r1.width() && r1.height() < r2.height());
     }
+};
 
-    std::sort(sorted.begin(), sorted.end(), avf_format_compare);
-    return sorted;
-}
+struct FormatHasNoFPSRange : std::unary_function<AVCaptureDeviceFormat *, bool>
+{
+    bool operator() (AVCaptureDeviceFormat *format)
+    {
+        Q_ASSERT(format);
+        return !format.videoSupportedFrameRateRanges || !format.videoSupportedFrameRateRanges.count;
+    }
+};
 
 Float64 qt_find_min_framerate_distance(AVCaptureDeviceFormat *format, Float64 fps)
 {
@@ -179,6 +152,50 @@ Float64 qt_find_min_framerate_distance(AVCaptureDeviceFormat *format, Float64 fp
 }
 
 } // Unnamed namespace.
+
+QVector<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice, FourCharCode filter)
+{
+    // 'filter' is the format we prefer if we have duplicates.
+    Q_ASSERT(captureDevice);
+
+    QVector<AVCaptureDeviceFormat *> formats;
+
+    if (!captureDevice.formats || !captureDevice.formats.count)
+        return formats;
+
+    formats.reserve(captureDevice.formats.count);
+    for (AVCaptureDeviceFormat *format in captureDevice.formats) {
+        const QSize resolution(qt_device_format_resolution(format));
+        if (resolution.isNull() || !resolution.isValid())
+            continue;
+        formats << format;
+    }
+
+    if (!formats.size())
+        return formats;
+
+    std::sort(formats.begin(), formats.end(), ResolutionPredicate());
+
+    QSize size(qt_device_format_resolution(formats[0]));
+    FourCharCode codec = CMVideoFormatDescriptionGetCodecType(formats[0].formatDescription);
+    int last = 0;
+    for (int i = 1; i < formats.size(); ++i) {
+        const QSize nextSize(qt_device_format_resolution(formats[i]));
+        if (nextSize == size) {
+            if (codec == filter)
+                continue;
+            formats[last] = formats[i];
+        } else {
+            ++last;
+            formats[last] = formats[i];
+            size = nextSize;
+        }
+        codec = CMVideoFormatDescriptionGetCodecType(formats[i].formatDescription);
+    }
+    formats.resize(last + 1);
+
+    return formats;
+}
 
 QSize qt_device_format_resolution(AVCaptureDeviceFormat *format)
 {
@@ -246,7 +263,9 @@ QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format)
     return QSize(asRatio.first, asRatio.second);
 }
 
-AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &request)
+AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice,
+                                                     const QSize &request,
+                                                     FourCharCode filter)
 {
     Q_ASSERT(captureDevice);
     Q_ASSERT(!request.isNull() && request.isValid());
@@ -254,9 +273,10 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
     if (!captureDevice.formats || !captureDevice.formats.count)
         return 0;
 
-    for (AVCaptureDeviceFormat *format in captureDevice.formats) {
-        if (qt_is_video_range_subtype(format))
-            continue;
+    QVector<AVCaptureDeviceFormat *> formats(qt_unique_device_formats(captureDevice, filter));
+
+    for (int i = 0; i < formats.size(); ++i) {
+        AVCaptureDeviceFormat *format = formats[i];
         if (qt_device_format_resolution(format) == request)
             return format;
         // iOS only (still images).
@@ -269,31 +289,30 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
 
     typedef QPair<QSize, AVCaptureDeviceFormat *> FormatPair;
 
-    QVector<FormatPair> formats;
-    formats.reserve(captureDevice.formats.count);
+    QVector<FormatPair> pairs; // default|HR sizes
+    pairs.reserve(formats.size());
 
-    for (AVCaptureDeviceFormat *format in captureDevice.formats) {
-        if (qt_is_video_range_subtype(format))
-            continue;
+    for (int i = 0; i < formats.size(); ++i) {
+        AVCaptureDeviceFormat *format = formats[i];
         const QSize res(qt_device_format_resolution(format));
         if (!res.isNull() && res.isValid() && qt_area_sane(res))
-            formats << FormatPair(res, format);
+            pairs << FormatPair(res, format);
         const QSize highRes(qt_device_format_high_resolution(format));
         if (!highRes.isNull() && highRes.isValid() && qt_area_sane(highRes))
-            formats << FormatPair(highRes, format);
+            pairs << FormatPair(highRes, format);
     }
 
-    if (!formats.size())
+    if (!pairs.size())
         return 0;
 
-    AVCaptureDeviceFormat *best = formats[0].second;
-    QSize next(formats[0].first);
+    AVCaptureDeviceFormat *best = pairs[0].second;
+    QSize next(pairs[0].first);
     int wDiff = qAbs(request.width() - next.width());
     int hDiff = qAbs(request.height() - next.height());
     const int area = request.width() * request.height();
     int areaDiff = qAbs(area - next.width() * next.height());
-    for (int i = 1; i < formats.size(); ++i) {
-        next = formats[i].first;
+    for (int i = 1; i < pairs.size(); ++i) {
+        next = pairs[i].first;
         const int newWDiff = qAbs(next.width() - request.width());
         const int newHDiff = qAbs(next.height() - request.height());
         const int newAreaDiff = qAbs(area - next.width() * next.height());
@@ -302,7 +321,7 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
             || ((newWDiff <= wDiff || newHDiff <= hDiff) && newAreaDiff <= areaDiff)) {
             wDiff = newWDiff;
             hDiff = newHDiff;
-            best = formats[i].second;
+            best = pairs[i].second;
             areaDiff = newAreaDiff;
         }
     }
@@ -310,15 +329,21 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
     return best;
 }
 
-AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice, Float64 fps)
+AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice,
+                                                    FourCharCode filter,
+                                                    Float64 fps)
 {
     Q_ASSERT(captureDevice);
     Q_ASSERT(fps > 0.);
 
     const qreal epsilon = 0.1;
 
-    // Sort formats by their resolution.
-    const QVector<AVCaptureDeviceFormat *> sorted(qt_sort_device_formats(captureDevice));
+    QVector<AVCaptureDeviceFormat *>sorted(qt_unique_device_formats(captureDevice, filter));
+    // Sort formats by their resolution in decreasing order:
+    std::sort(sorted.begin(), sorted.end(), std::not2(ResolutionPredicate()));
+    // We can use only formats with framerate ranges:
+    sorted.erase(std::remove_if(sorted.begin(), sorted.end(), FormatHasNoFPSRange()), sorted.end());
+
     if (!sorted.size())
         return nil;
 

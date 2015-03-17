@@ -181,8 +181,6 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
                                              CL_WGL_HDC_KHR, (cl_context_properties) wglGetCurrentDC(),
                                              0 };
 #elif defined(Q_OS_LINUX)
-    // An elegant alternative to glXGetCurrentContext. This will even survive
-    // (without interop) when using something other than GLX.
     QVariant nativeGLXHandle = QOpenGLContext::currentContext()->nativeHandle();
     QGLXNativeContext nativeGLXContext;
     if (!nativeGLXHandle.isNull() && nativeGLXHandle.canConvert<QGLXNativeContext>())
@@ -191,6 +189,7 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
         qWarning("Failed to get the underlying GLX context from the current QOpenGLContext");
     cl_context_properties contextProps[] = { CL_CONTEXT_PLATFORM, (cl_context_properties) platform,
                                              CL_GL_CONTEXT_KHR, (cl_context_properties) nativeGLXContext.context(),
+                                             CL_GLX_DISPLAY_KHR, (cl_context_properties) glXGetCurrentDisplay(),
                                              0 };
 #endif
 
@@ -203,16 +202,22 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
     // Get the GPU device id
 #if defined(Q_OS_OSX)
     // On OS X, get the "online" device/GPU. This is required for OpenCL/OpenGL context sharing.
-    if (clGetGLContextInfoAPPLE(m_clContext, CGLGetCurrentContext(),
-                                CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE,
-                                sizeof(cl_device_id), &m_clDeviceId, NULL) != CL_SUCCESS) {
+    err = clGetGLContextInfoAPPLE(m_clContext, CGLGetCurrentContext(),
+                                  CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE,
+                                  sizeof(cl_device_id), &m_clDeviceId, 0);
+    if (err != CL_SUCCESS) {
         qWarning("Failed to get OpenCL device for current screen: %d", err);
         return;
     }
 #else
-    if (clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &m_clDeviceId, 0) != CL_SUCCESS) {
-        qWarning("Failed to get OpenCL device");
-        return;
+    clGetGLContextInfoKHR_fn getGLContextInfo = (clGetGLContextInfoKHR_fn) clGetExtensionFunctionAddress("clGetGLContextInfoKHR");
+    if (!getGLContextInfo || getGLContextInfo(contextProps, CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR,
+                                              sizeof(cl_device_id), &m_clDeviceId, 0) != CL_SUCCESS) {
+        err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &m_clDeviceId, 0);
+        if (err != CL_SUCCESS) {
+            qWarning("Failed to get OpenCL device: %d", err);
+            return;
+        }
     }
 #endif
 
@@ -291,14 +296,8 @@ QVideoFrame CLFilterRunnable::run(QVideoFrame *input, const QVideoSurfaceFormat 
     Q_UNUSED(flags);
 
     // This example supports RGB data only, either in system memory (typical with cameras on all
-    // platforms) or as an OpenGL texture (e.g. video playback on OS X or on Windows with ANGLE).
+    // platforms) or as an OpenGL texture (e.g. video playback on OS X).
     // The latter is the fast path where everything happens on GPU. THe former involves a texture upload.
-
-    // ANGLE is not compatible with this example since we only do CL-GL interop, not D3D9/11.
-    if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES) {
-        qWarning("ANGLE is not supported");
-        return *input;
-    }
 
     if (!input->isValid()
             || (input->handleType() != QAbstractVideoBuffer::NoHandle
@@ -483,6 +482,9 @@ QVideoFrame InfoFilterRunnable::run(QVideoFrame *input, const QVideoSurfaceForma
 
 int main(int argc, char **argv)
 {
+#ifdef Q_OS_WIN // avoid ANGLE on Windows
+    QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+#endif
     QGuiApplication app(argc, argv);
 
     qmlRegisterType<CLFilter>("qmlvideofilter.cl.test", 1, 0, "CLFilter");

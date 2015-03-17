@@ -42,6 +42,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtGui/qimage.h>
 #include <qaudioformat.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 #include <gst/audio/audio.h>
@@ -510,6 +511,10 @@ Q_GLOBAL_STATIC(FactoryCameraInfoMap, qt_camera_device_info);
 
 QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *factory)
 {
+    static QElapsedTimer camerasCacheAgeTimer;
+    if (camerasCacheAgeTimer.isValid() && camerasCacheAgeTimer.elapsed() > 500) // ms
+        qt_camera_device_info()->clear();
+
     FactoryCameraInfoMap::const_iterator it = qt_camera_device_info()->constFind(factory);
     if (it != qt_camera_device_info()->constEnd())
         return *it;
@@ -568,6 +573,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         }
 
         if (!devices.isEmpty() || !hasVideoSource) {
+            camerasCacheAgeTimer.restart();
             return devices;
         }
     }
@@ -626,6 +632,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         }
         qt_safe_close(fd);
     }
+    camerasCacheAgeTimer.restart();
 #endif // USE_V4L
 
     return devices;

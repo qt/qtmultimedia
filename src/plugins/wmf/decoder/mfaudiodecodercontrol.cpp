@@ -41,7 +41,11 @@ MFAudioDecoderControl::MFAudioDecoderControl(QObject *parent)
     , m_resampler(0)
     , m_state(QAudioDecoder::StoppedState)
     , m_device(0)
+    , m_mfInputStreamID(0)
+    , m_mfOutputStreamID(0)
     , m_bufferReady(false)
+    , m_duration(0)
+    , m_position(0)
     , m_loadingSource(false)
     , m_mfOutputType(0)
     , m_convertSample(0)
@@ -53,8 +57,6 @@ MFAudioDecoderControl::MFAudioDecoderControl(QObject *parent)
         qCritical("MFAudioDecoderControl: Failed to create resampler(CLSID_CResamplerMediaObject)!");
         return;
     }
-    m_mfInputStreamID = 0;
-    m_mfOutputStreamID = 0;
     m_resampler->AddInputStreams(1, &m_mfInputStreamID);
 
     connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
