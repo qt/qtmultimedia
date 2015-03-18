@@ -95,9 +95,6 @@ QGstreamerVideoWidgetControl::QGstreamerVideoWidgetControl(QObject *parent)
 {
     m_videoSink = gst_element_factory_make ("xvimagesink", NULL);
 
-    if (!m_videoSink)
-        m_videoSink = gst_element_factory_make ("ximagesink", NULL);
-
     if (m_videoSink) {
         // Check if the xv sink is usable
         if (gst_element_set_state(m_videoSink, GST_STATE_READY) != GST_STATE_CHANGE_SUCCESS) {
