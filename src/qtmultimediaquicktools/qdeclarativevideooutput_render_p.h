@@ -36,7 +36,7 @@
 #define QDECLARATIVEVIDEOOUTPUT_RENDER_P_H
 
 #include "qdeclarativevideooutput_backend_p.h"
-#include "qsgvideonode_i420.h"
+#include "qsgvideonode_yuv.h"
 #include "qsgvideonode_rgb.h"
 #include "qsgvideonode_texture.h"
 
@@ -86,7 +86,7 @@ private:
     QOpenGLContext *m_glContext;
     QVideoFrame m_frame;
     bool m_frameChanged;
-    QSGVideoNodeFactory_I420 m_i420Factory;
+    QSGVideoNodeFactory_YUV m_i420Factory;
     QSGVideoNodeFactory_RGB m_rgbFactory;
     QSGVideoNodeFactory_Texture m_textureFactory;
     QMutex m_frameMutex;

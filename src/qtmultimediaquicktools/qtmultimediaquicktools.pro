@@ -21,7 +21,7 @@ SOURCES += \
     qdeclarativevideooutput.cpp \
     qdeclarativevideooutput_render.cpp \
     qdeclarativevideooutput_window.cpp \
-    qsgvideonode_i420.cpp \
+    qsgvideonode_yuv.cpp \
     qsgvideonode_rgb.cpp \
     qsgvideonode_texture.cpp
 
@@ -29,6 +29,6 @@ HEADERS += \
     $$PRIVATE_HEADERS \
     qdeclarativevideooutput_render_p.h \
     qdeclarativevideooutput_window_p.h \
-    qsgvideonode_i420.h \
+    qsgvideonode_yuv.h \
     qsgvideonode_rgb.h \
     qsgvideonode_texture.h
