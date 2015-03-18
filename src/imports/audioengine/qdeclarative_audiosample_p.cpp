@@ -106,6 +106,11 @@ void QDeclarativeAudioSample::componentComplete()
     m_complete = true;
 }
 
+/*!
+    \qmlproperty url QtAudioEngine::AudioSample::source
+
+    This property holds the source URL of the audio sample.
+*/
 QUrl QDeclarativeAudioSample::source() const
 {
     return m_url;
