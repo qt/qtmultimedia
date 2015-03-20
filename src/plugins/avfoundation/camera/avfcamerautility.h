@@ -78,6 +78,74 @@ private:
     bool m_locked;
 };
 
+struct AVFObjectDeleter {
+    static void cleanup(NSObject *obj)
+    {
+        if (obj)
+            [obj release];
+    }
+};
+
+template<class T>
+class AVFScopedPointer : public QScopedPointer<NSObject, AVFObjectDeleter>
+{
+public:
+    AVFScopedPointer() {}
+    explicit AVFScopedPointer(T *ptr) : QScopedPointer(ptr) {}
+    operator T*() const
+    {
+        // Quite handy operator to enable Obj-C messages: [ptr someMethod];
+        return data();
+    }
+
+    T *data() const
+    {
+        return static_cast<T *>(QScopedPointer::data());
+    }
+
+    T *take()
+    {
+        return static_cast<T *>(QScopedPointer::take());
+    }
+};
+
+template<>
+class AVFScopedPointer<dispatch_queue_t>
+{
+public:
+    AVFScopedPointer() : m_queue(0) {}
+    explicit AVFScopedPointer(dispatch_queue_t q) : m_queue(q) {}
+
+    ~AVFScopedPointer()
+    {
+        if (m_queue)
+            dispatch_release(m_queue);
+    }
+
+    operator dispatch_queue_t() const
+    {
+        // Quite handy operator to enable Obj-C messages: [ptr someMethod];
+        return m_queue;
+    }
+
+    dispatch_queue_t data() const
+    {
+        return m_queue;
+    }
+
+    void reset(dispatch_queue_t q = 0)
+    {
+        if (m_queue)
+            dispatch_release(m_queue);
+        m_queue = q;
+    }
+
+private:
+    dispatch_queue_t m_queue;
+
+    Q_DISABLE_COPY(AVFScopedPointer);
+};
+
 inline QSysInfo::MacVersion qt_OS_limit(QSysInfo::MacVersion osxVersion,
                                         QSysInfo::MacVersion iosVersion)
 {

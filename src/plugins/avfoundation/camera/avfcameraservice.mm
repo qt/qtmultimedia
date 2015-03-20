@@ -56,6 +56,7 @@
 
 #ifdef Q_OS_IOS
 #include "avfcamerazoomcontrol.h"
+#include "avfmediarecordercontrol_ios.h"
 #endif
 
 #include <private/qmediaplaylistnavigator_p.h>
@@ -74,7 +75,14 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_audioInputSelectorControl = new AVFAudioInputSelectorControl(this);
 
     m_metaDataControl = new AVFCameraMetaDataControl(this);
+#ifndef Q_OS_IOS
+    // This will connect a slot to 'captureModeChanged'
+    // and will break viewfinder by attaching AVCaptureMovieFileOutput
+    // in this slot.
     m_recorderControl = new AVFMediaRecorderControl(this);
+#else
+    m_recorderControl = new AVFMediaRecorderControlIOS(this);
+#endif
     m_imageCaptureControl = new AVFImageCaptureControl(this);
     m_cameraFocusControl = new AVFCameraFocusControl(this);
     m_cameraExposureControl = 0;
@@ -96,6 +104,10 @@ AVFCameraService::AVFCameraService(QObject *parent):
 AVFCameraService::~AVFCameraService()
 {
     m_cameraControl->setState(QCamera::UnloadedState);
+
+#ifdef Q_OS_IOS
+    delete m_recorderControl;
+#endif
 
     if (m_videoOutput) {
         m_session->setVideoOutput(0);
@@ -204,5 +216,24 @@ void AVFCameraService::releaseControl(QMediaControl *control)
     }
 
 }
+
+AVFMediaRecorderControl *AVFCameraService::recorderControl() const
+{
+#ifdef Q_OS_IOS
+    return 0;
+#else
+    return static_cast<AVFMediaRecorderControl *>(m_recorderControl);
+#endif
+}
+
+AVFMediaRecorderControlIOS *AVFCameraService::recorderControlIOS() const
+{
+#ifdef Q_OS_OSX
+    return 0;
+#else
+    return static_cast<AVFMediaRecorderControlIOS *>(m_recorderControl);
+#endif
+}
+
 
 #include "moc_avfcameraservice.cpp"

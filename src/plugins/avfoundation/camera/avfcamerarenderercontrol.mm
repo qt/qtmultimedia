@@ -143,6 +143,7 @@ private:
 - (void) captureOutput:(AVCaptureOutput *)captureOutput
          didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
          fromConnection:(AVCaptureConnection *)connection;
+
 @end
 
 @implementation AVFCaptureFramesDelegate
@@ -163,6 +164,9 @@ private:
     Q_UNUSED(connection);
     Q_UNUSED(captureOutput);
 
+    // NB: on iOS captureOutput/connection can be nil (when recording a video -
+    // avfmediaassetwriter).
+
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
 
     int width = CVPixelBufferGetWidth(imageBuffer);
@@ -176,6 +180,7 @@ private:
     QVideoFrame frame(new CVPixelBufferVideoBuffer(imageBuffer), QSize(width, height), format);
     m_renderer->syncHandleViewfinderFrame(frame);
 }
+
 @end
 
 
@@ -191,6 +196,8 @@ AVFCameraRendererControl::~AVFCameraRendererControl()
 {
     [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
     [m_viewfinderFramesDelegate release];
+    if (m_delegateQueue)
+        dispatch_release(m_delegateQueue);
 }
 
 QAbstractVideoSurface *AVFCameraRendererControl::surface() const
@@ -217,11 +224,10 @@ void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *camer
     m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
 
     // Configure video output
-    dispatch_queue_t queue = dispatch_queue_create("vf_queue", NULL);
+    m_delegateQueue = dispatch_queue_create("vf_queue", NULL);
     [m_videoDataOutput
             setSampleBufferDelegate:m_viewfinderFramesDelegate
-            queue:queue];
-    dispatch_release(queue);
+            queue:m_delegateQueue];
 
     [m_cameraSession->captureSession() addOutput:m_videoDataOutput];
 }
@@ -278,6 +284,20 @@ AVCaptureVideoDataOutput *AVFCameraRendererControl::videoDataOutput() const
 {
     return m_videoDataOutput;
 }
+
+#ifdef Q_OS_IOS
+
+AVFCaptureFramesDelegate *AVFCameraRendererControl::captureDelegate() const
+{
+    return m_viewfinderFramesDelegate;
+}
+
+void AVFCameraRendererControl::resetCaptureDelegate() const
+{
+    [m_videoDataOutput setSampleBufferDelegate:m_viewfinderFramesDelegate queue:m_delegateQueue];
+}
+
+#endif
 
 void AVFCameraRendererControl::handleViewfinderFrame()
 {
