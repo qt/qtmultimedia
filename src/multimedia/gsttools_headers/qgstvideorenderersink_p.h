@@ -153,7 +153,7 @@ private:
 
     static gboolean stop(GstBaseSink *sink);
 
-    static GstFlowReturn render(GstBaseSink *sink, GstBuffer *buffer);
+    static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
 
 private:
     QVideoSurfaceGstDelegate *delegate;

@@ -415,12 +415,14 @@ void QGstVideoRendererSink::class_init(gpointer g_class, gpointer class_data)
 
     sink_parent_class = reinterpret_cast<GstVideoSinkClass *>(g_type_class_peek_parent(g_class));
 
+    GstVideoSinkClass *video_sink_class = reinterpret_cast<GstVideoSinkClass *>(g_class);
+    video_sink_class->show_frame = QGstVideoRendererSink::show_frame;
+
     GstBaseSinkClass *base_sink_class = reinterpret_cast<GstBaseSinkClass *>(g_class);
     base_sink_class->get_caps = QGstVideoRendererSink::get_caps;
     base_sink_class->set_caps = QGstVideoRendererSink::set_caps;
     base_sink_class->propose_allocation = QGstVideoRendererSink::propose_allocation;
     base_sink_class->stop = QGstVideoRendererSink::stop;
-    base_sink_class->render = QGstVideoRendererSink::render;
 
     GstElementClass *element_class = reinterpret_cast<GstElementClass *>(g_class);
     element_class->change_state = QGstVideoRendererSink::change_state;
@@ -517,7 +519,7 @@ gboolean QGstVideoRendererSink::stop(GstBaseSink *base)
     return TRUE;
 }
 
-GstFlowReturn QGstVideoRendererSink::render(GstBaseSink *base, GstBuffer *buffer)
+GstFlowReturn QGstVideoRendererSink::show_frame(GstVideoSink *base, GstBuffer *buffer)
 {
     VO_SINK(base);
     return sink->delegate->render(buffer);
