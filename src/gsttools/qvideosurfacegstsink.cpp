@@ -162,6 +162,15 @@ void QVideoSurfaceGstDelegate::stop()
     m_started = false;
 }
 
+void QVideoSurfaceGstDelegate::unlock()
+{
+    QMutexLocker locker(&m_mutex);
+
+    m_startCanceled = true;
+    m_setupCondition.wakeAll();
+    m_renderCondition.wakeAll();
+}
+
 bool QVideoSurfaceGstDelegate::isActive()
 {
     QMutexLocker locker(&m_mutex);
@@ -218,8 +227,9 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 
 void QVideoSurfaceGstDelegate::queuedStart()
 {
+    QMutexLocker locker(&m_mutex);
+
     if (!m_startCanceled) {
-        QMutexLocker locker(&m_mutex);
         m_started = m_surface->start(m_format);
         m_setupCondition.wakeAll();
     }
@@ -237,6 +247,9 @@ void QVideoSurfaceGstDelegate::queuedStop()
 void QVideoSurfaceGstDelegate::queuedRender()
 {
     QMutexLocker locker(&m_mutex);
+
+    if (!m_frame.isValid())
+        return;
 
     if (m_surface.isNull()) {
         qWarning() << "Rendering video frame to deleted surface, skip the frame";
@@ -347,6 +360,7 @@ void QVideoSurfaceGstSink::class_init(gpointer g_class, gpointer class_data)
     base_sink_class->buffer_alloc = QVideoSurfaceGstSink::buffer_alloc;
     base_sink_class->start = QVideoSurfaceGstSink::start;
     base_sink_class->stop = QVideoSurfaceGstSink::stop;
+    base_sink_class->unlock = QVideoSurfaceGstSink::unlock;
 
     GstElementClass *element_class = reinterpret_cast<GstElementClass *>(g_class);
     element_class->change_state = QVideoSurfaceGstSink::change_state;
@@ -598,6 +612,13 @@ gboolean QVideoSurfaceGstSink::stop(GstBaseSink *base)
     VO_SINK(base);
     sink->delegate->clearPoolBuffers();
 
+    return TRUE;
+}
+
+gboolean QVideoSurfaceGstSink::unlock(GstBaseSink *base)
+{
+    VO_SINK(base);
+    sink->delegate->unlock();
     return TRUE;
 }
 

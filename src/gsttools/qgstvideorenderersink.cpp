@@ -201,6 +201,14 @@ void QVideoSurfaceGstDelegate::stop()
     waitForAsyncEvent(&locker, &m_setupCondition, 500);
 }
 
+void QVideoSurfaceGstDelegate::unlock()
+{
+    QMutexLocker locker(&m_mutex);
+
+    m_setupCondition.wakeAll();
+    m_renderCondition.wakeAll();
+}
+
 bool QVideoSurfaceGstDelegate::proposeAllocation(GstQuery *query)
 {
     QMutexLocker locker(&m_mutex);
@@ -218,6 +226,7 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 {
     QMutexLocker locker(&m_mutex);
 
+    m_renderReturn = GST_FLOW_OK;
     m_renderBuffer = buffer;
 
     GstFlowReturn flowReturn = waitForAsyncEvent(&locker, &m_renderCondition, 300)
@@ -423,6 +432,7 @@ void QGstVideoRendererSink::class_init(gpointer g_class, gpointer class_data)
     base_sink_class->set_caps = QGstVideoRendererSink::set_caps;
     base_sink_class->propose_allocation = QGstVideoRendererSink::propose_allocation;
     base_sink_class->stop = QGstVideoRendererSink::stop;
+    base_sink_class->unlock = QGstVideoRendererSink::unlock;
 
     GstElementClass *element_class = reinterpret_cast<GstElementClass *>(g_class);
     element_class->change_state = QGstVideoRendererSink::change_state;
@@ -516,6 +526,13 @@ gboolean QGstVideoRendererSink::stop(GstBaseSink *base)
 {
     VO_SINK(base);
     sink->delegate->stop();
+    return TRUE;
+}
+
+gboolean QGstVideoRendererSink::unlock(GstBaseSink *base)
+{
+    VO_SINK(base);
+    sink->delegate->unlock();
     return TRUE;
 }
 

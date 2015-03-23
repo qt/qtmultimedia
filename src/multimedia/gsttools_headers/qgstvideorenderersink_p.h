@@ -96,6 +96,7 @@ public:
 
     bool start(GstCaps *caps);
     void stop();
+    void unlock();
     bool proposeAllocation(GstQuery *query);
 
     GstFlowReturn render(GstBuffer *buffer);
@@ -152,6 +153,8 @@ private:
     static gboolean propose_allocation(GstBaseSink *sink, GstQuery *query);
 
     static gboolean stop(GstBaseSink *sink);
+
+    static gboolean unlock(GstBaseSink *sink);
 
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
 
