@@ -300,8 +300,11 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker *locker)
 
         gst_caps_unref(startCaps);
     } else if (m_renderBuffer) {
+        GstBuffer *buffer = m_renderBuffer;
+        m_renderBuffer = 0;
+        m_renderReturn = GST_FLOW_ERROR;
+
         if (m_activeRenderer && m_surface) {
-            GstBuffer *buffer = m_renderBuffer;
             gst_buffer_ref(buffer);
 
             locker->unlock();
@@ -312,15 +315,11 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker *locker)
 
             locker->relock();
 
-            m_renderReturn = rendered
-                    ? GST_FLOW_OK
-                    : GST_FLOW_ERROR;
-
-            m_renderCondition.wakeAll();
-        } else {
-            m_renderReturn = GST_FLOW_ERROR;
-            m_renderCondition.wakeAll();
+            if (rendered)
+                m_renderReturn = GST_FLOW_OK;
         }
+
+        m_renderCondition.wakeAll();
     } else {
         m_setupCondition.wakeAll();
 
