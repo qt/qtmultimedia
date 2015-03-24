@@ -222,6 +222,17 @@ bool QVideoSurfaceGstDelegate::proposeAllocation(GstQuery *query)
     }
 }
 
+void QVideoSurfaceGstDelegate::flush()
+{
+    QMutexLocker locker(&m_mutex);
+
+    m_flush = true;
+    m_renderBuffer = 0;
+    m_renderCondition.wakeAll();
+
+    notify();
+}
+
 GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 {
     QMutexLocker locker(&m_mutex);
@@ -388,6 +399,8 @@ QGstVideoRendererSink *QGstVideoRendererSink::createSink(QAbstractVideoSurface *
 
     sink->delegate = new QVideoSurfaceGstDelegate(surface);
 
+    g_signal_connect(G_OBJECT(sink), "notify::show-preroll-frame", G_CALLBACK(handleShowPrerollChange), sink);
+
     return sink;
 }
 
@@ -472,13 +485,41 @@ void QGstVideoRendererSink::finalize(GObject *object)
     G_OBJECT_CLASS(sink_parent_class)->finalize(object);
 }
 
+void QGstVideoRendererSink::handleShowPrerollChange(GObject *o, GParamSpec *p, gpointer d)
+{
+    Q_UNUSED(o);
+    Q_UNUSED(p);
+    QGstVideoRendererSink *sink = reinterpret_cast<QGstVideoRendererSink *>(d);
+
+    gboolean showPrerollFrame = true; // "show-preroll-frame" property is true by default
+    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, NULL);
+
+    if (!showPrerollFrame) {
+        GstState state = GST_STATE_VOID_PENDING;
+        gst_element_get_state(GST_ELEMENT(sink), &state, NULL, GST_CLOCK_TIME_NONE);
+        // show-preroll-frame being set to 'false' while in GST_STATE_PAUSED means
+        // the QMediaPlayer was stopped from the paused state.
+        // We need to flush the current frame.
+        if (state == GST_STATE_PAUSED)
+            sink->delegate->flush();
+    }
+}
+
 GstStateChangeReturn QGstVideoRendererSink::change_state(
         GstElement *element, GstStateChange transition)
 {
-    Q_UNUSED(element);
+    QGstVideoRendererSink *sink = reinterpret_cast<QGstVideoRendererSink *>(element);
 
-    return GST_ELEMENT_CLASS(sink_parent_class)->change_state(
-            element, transition);
+    gboolean showPrerollFrame = true; // "show-preroll-frame" property is true by default
+    g_object_get(G_OBJECT(element), "show-preroll-frame", &showPrerollFrame, NULL);
+
+    // If show-preroll-frame is 'false' when transitioning from GST_STATE_PLAYING to
+    // GST_STATE_PAUSED, it means the QMediaPlayer was stopped.
+    // We need to flush the current frame.
+    if (transition == GST_STATE_CHANGE_PLAYING_TO_PAUSED && !showPrerollFrame)
+        sink->delegate->flush();
+
+    return GST_ELEMENT_CLASS(sink_parent_class)->change_state(element, transition);
 }
 
 GstCaps *QGstVideoRendererSink::get_caps(GstBaseSink *base, GstCaps *filter)
