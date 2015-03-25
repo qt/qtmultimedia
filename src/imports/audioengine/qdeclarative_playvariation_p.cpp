@@ -55,7 +55,9 @@ QT_USE_NAMESPACE
 
     This type is part of the \b{QtAudioEngine 1.0} module.
 
-    PlayVariation must be defined inside a \l Sound.
+    PlayVariation must be defined inside a \l Sound or be added to it using
+    \l{QtAudioEngine::Sound::addPlayVariation()}{Sound.addPlayVariation()}
+    if PlayVariation is created dynamically.
 
     \qml
     import QtQuick 2.0
@@ -100,13 +102,13 @@ QT_USE_NAMESPACE
 */
 QDeclarativePlayVariation::QDeclarativePlayVariation(QObject *parent)
     : QObject(parent)
-    , m_complete(false)
     , m_looping(false)
     , m_maxGain(1)
     , m_minGain(1)
     , m_maxPitch(1)
     , m_minPitch(1)
     , m_sampleObject(0)
+    , m_engine(0)
 {
 }
 
@@ -114,15 +116,7 @@ QDeclarativePlayVariation::~QDeclarativePlayVariation()
 {
 }
 
-void QDeclarativePlayVariation::classBegin()
-{
-    if (!parent() || !parent()->inherits("QDeclarativeSound")) {
-        qWarning("PlayVariation must be defined inside Sound!");
-        return;
-    }
-}
-
-void QDeclarativePlayVariation::componentComplete()
+void QDeclarativePlayVariation::setEngine(QDeclarativeAudioEngine *engine)
 {
     if (m_maxGain < m_minGain) {
         qWarning("PlayVariation: maxGain must be no less than minGain");
@@ -132,7 +126,7 @@ void QDeclarativePlayVariation::componentComplete()
         qWarning("PlayVariation: maxPitch must be no less than minPitch");
         qSwap(m_minPitch, m_maxPitch);
     }
-    m_complete = true;
+    m_engine = engine;
 }
 
 /*!
@@ -147,7 +141,7 @@ QString QDeclarativePlayVariation::sample() const
 
 void QDeclarativePlayVariation::setSample(const QString& sample)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("PlayVariation: cannot change properties after initialization.");
         return;
     }
@@ -166,7 +160,7 @@ bool QDeclarativePlayVariation::isLooping() const
 
 void QDeclarativePlayVariation::setLooping(bool looping)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("PlayVariation: cannot change properties after initialization.");
         return;
     }
@@ -185,7 +179,7 @@ qreal QDeclarativePlayVariation::maxGain() const
 
 void QDeclarativePlayVariation::setMaxGain(qreal maxGain)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("PlayVariation: cannot change properties after initialization.");
         return;
     }
@@ -208,7 +202,7 @@ qreal QDeclarativePlayVariation::minGain() const
 
 void QDeclarativePlayVariation::setMinGain(qreal minGain)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("PlayVariation: cannot change properties after initialization.");
         return;
     }
@@ -231,7 +225,7 @@ qreal QDeclarativePlayVariation::maxPitch() const
 
 void QDeclarativePlayVariation::setMaxPitch(qreal maxPitch)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("PlayVariation: cannot change properties after initialization.");
         return;
     }
@@ -254,7 +248,7 @@ qreal QDeclarativePlayVariation::minPitch() const
 
 void QDeclarativePlayVariation::setMinPitch(qreal minPitch)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("PlayVariation: cannot change properties after initialization.");
         return;
     }

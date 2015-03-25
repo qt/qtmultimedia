@@ -51,7 +51,9 @@ QT_USE_NAMESPACE
     This type is part of the \b{QtAudioEngine 1.0} module.
 
     An instance of AudioCategory can be accessed through \l {QtAudioEngine::AudioEngine::categories}
-    {AudioEngine.categories} with its unique name and must be defined inside AudioEngine.
+    {AudioEngine.categories} with its unique name and must be defined inside AudioEngine or be added
+    to it using \l{QtAudioEngine::AudioEngine::addAudioCategory()}{AudioEngine.addAudioCategory()} if
+    AudioCategory is created dynamically.
 
     \qml
     import QtQuick 2.0
@@ -103,8 +105,8 @@ QT_USE_NAMESPACE
 */
 QDeclarativeAudioCategory::QDeclarativeAudioCategory(QObject *parent)
     : QObject(parent)
-    , m_complete(false)
     , m_volume(1)
+    , m_engine(0)
 {
 }
 
@@ -112,21 +114,9 @@ QDeclarativeAudioCategory::~QDeclarativeAudioCategory()
 {
 }
 
-void QDeclarativeAudioCategory::classBegin()
+void QDeclarativeAudioCategory::setEngine(QDeclarativeAudioEngine *engine)
 {
-    if (!parent() || !parent()->inherits("QDeclarativeAudioEngine")) {
-        qWarning("AudioCategory must be defined inside AudioEngine!");
-        return;
-    }
-}
-
-void QDeclarativeAudioCategory::componentComplete()
-{
-    if (m_name.isEmpty()) {
-        qWarning("AudioCategory must have a name!");
-        return;
-    }
-    m_complete = true;
+    m_engine = engine;
 }
 
 /*!
@@ -159,7 +149,7 @@ void QDeclarativeAudioCategory::setVolume(qreal volume)
 */
 void QDeclarativeAudioCategory::setName(const QString& name)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("AudioCategory: you can not change name after initialization.");
         return;
     }

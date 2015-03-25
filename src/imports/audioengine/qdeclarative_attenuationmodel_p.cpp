@@ -32,6 +32,7 @@
 ****************************************************************************/
 
 #include "qdeclarative_attenuationmodel_p.h"
+#include "qdeclarative_audioengine_p.h"
 #include "qdebug.h"
 
 #define DEBUG_AUDIOENGINE
@@ -40,7 +41,7 @@ QT_USE_NAMESPACE
 
 QDeclarativeAttenuationModel::QDeclarativeAttenuationModel(QObject *parent)
     : QObject(parent)
-    , m_complete(false)
+    , m_engine(0)
 {
 }
 
@@ -48,22 +49,9 @@ QDeclarativeAttenuationModel::~QDeclarativeAttenuationModel()
 {
 }
 
-void QDeclarativeAttenuationModel::classBegin()
+void QDeclarativeAttenuationModel::setEngine(QDeclarativeAudioEngine *engine)
 {
-    if (!parent() || !parent()->inherits("QDeclarativeAudioEngine")) {
-        qWarning("AttenuationModel must be defined inside AudioEngine!");
-        //TODO: COMPILE_EXCEPTION ?
-        return;
-    }
-}
-
-void QDeclarativeAttenuationModel::componentComplete()
-{
-    if (m_name.isEmpty()) {
-        qWarning("AttenuationModel must have a name!");
-        return;
-    }
-    m_complete = true;
+    m_engine = engine;
 }
 
 QString QDeclarativeAttenuationModel::name() const
@@ -73,7 +61,7 @@ QString QDeclarativeAttenuationModel::name() const
 
 void QDeclarativeAttenuationModel::setName(const QString& name)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning("AttenuationModel: you can not change name after initialization.");
         return;
     }
@@ -93,7 +81,9 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
 
     This type is part of the \b{QtAudioEngine 1.0} module.
 
-    AttenuationModelLinear must be defined inside \l AudioEngine.
+    AttenuationModelLinear must be defined inside \l AudioEngine or be added to it using
+    \l{QtAudioEngine::AudioEngine::addAttenuationModel()}{AudioEngine.addAttenuationModel()}
+    if AttenuationModelLinear is created dynamically.
 
     \qml
     import QtQuick 2.0
@@ -144,13 +134,13 @@ QDeclarativeAttenuationModelLinear::QDeclarativeAttenuationModelLinear(QObject *
 {
 }
 
-void QDeclarativeAttenuationModelLinear::componentComplete()
+void QDeclarativeAttenuationModelLinear::setEngine(QDeclarativeAudioEngine *engine)
 {
     if (m_start > m_end) {
         qSwap(m_start, m_end);
         qWarning() << "AttenuationModelLinear[" << m_name << "]: start must be less or equal than end.";
     }
-    QDeclarativeAttenuationModel::componentComplete();
+    QDeclarativeAttenuationModel::setEngine(engine);
 }
 
 /*!
@@ -167,7 +157,7 @@ qreal QDeclarativeAttenuationModelLinear::startDistance() const
 
 void QDeclarativeAttenuationModelLinear::setStartDistance(qreal startDist)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning() << "AttenuationModelLinear[" << m_name << "]: you can not change properties after initialization.";
         return;
     }
@@ -192,7 +182,7 @@ qreal QDeclarativeAttenuationModelLinear::endDistance() const
 
 void QDeclarativeAttenuationModelLinear::setEndDistance(qreal endDist)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning() << "AttenuationModelLinear[" << m_name << "]: you can not change properties after initialization.";
         return;
     }
@@ -226,7 +216,9 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
 
     This type is part of the \b{QtAudioEngine 1.0} module.
 
-    AttenuationModelInverse must be defined inside AudioEngine.
+    AttenuationModelInverse must be defined inside \l AudioEngine or be added to it using
+    \l{QtAudioEngine::AudioEngine::addAttenuationModel()}{AudioEngine.addAttenuationModel()}
+    if AttenuationModelInverse is created dynamically.
 
     \qml
     import QtQuick 2.0
@@ -309,13 +301,13 @@ QDeclarativeAttenuationModelInverse::QDeclarativeAttenuationModelInverse(QObject
 {
 }
 
-void QDeclarativeAttenuationModelInverse::componentComplete()
+void QDeclarativeAttenuationModelInverse::setEngine(QDeclarativeAudioEngine *engine)
 {
     if (m_ref > m_max) {
         qSwap(m_ref, m_max);
         qWarning() << "AttenuationModelInverse[" << m_name << "]: referenceDistance must be less or equal than maxDistance.";
     }
-    QDeclarativeAttenuationModel::componentComplete();
+    QDeclarativeAttenuationModel::setEngine(engine);
 }
 
 qreal QDeclarativeAttenuationModelInverse::referenceDistance() const
@@ -325,7 +317,7 @@ qreal QDeclarativeAttenuationModelInverse::referenceDistance() const
 
 void QDeclarativeAttenuationModelInverse::setReferenceDistance(qreal referenceDistance)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning() << "AttenuationModelInverse[" << m_name << "]: you can not change properties after initialization.";
         return;
     }
@@ -343,7 +335,7 @@ qreal QDeclarativeAttenuationModelInverse::maxDistance() const
 
 void QDeclarativeAttenuationModelInverse::setMaxDistance(qreal maxDistance)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning() << "AttenuationModelInverse[" << m_name << "]: you can not change properties after initialization.";
         return;
     }
@@ -361,7 +353,7 @@ qreal QDeclarativeAttenuationModelInverse::rolloffFactor() const
 
 void QDeclarativeAttenuationModelInverse::setRolloffFactor(qreal rolloffFactor)
 {
-    if (m_complete) {
+    if (m_engine) {
         qWarning() << "AttenuationModelInverse[" << m_name << "]: you can not change properties after initialization.";
         return;
     }

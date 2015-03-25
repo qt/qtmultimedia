@@ -35,32 +35,31 @@
 #define QDECLARATIVEATTENUATIONMODEL_P_H
 
 #include <QtQml/qqml.h>
-#include <QtQml/qqmlcomponent.h>
 #include <QVector3D>
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeAttenuationModel : public QObject, public QQmlParserStatus
+class QDeclarativeAudioEngine;
+
+class QDeclarativeAttenuationModel : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString name READ name WRITE setName)
 
 public:
     QDeclarativeAttenuationModel(QObject *parent = 0);
     ~QDeclarativeAttenuationModel();
 
-    void classBegin();
-    void componentComplete();
-
     QString name() const;
     void setName(const QString& name);
 
     virtual qreal calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const = 0;
 
+    virtual void setEngine(QDeclarativeAudioEngine *engine);
+
 protected:
-    bool m_complete;
     QString m_name;
+    QDeclarativeAudioEngine *m_engine;
 
 private:
     Q_DISABLE_COPY(QDeclarativeAttenuationModel);
@@ -75,8 +74,6 @@ class QDeclarativeAttenuationModelLinear : public QDeclarativeAttenuationModel
 public:
     QDeclarativeAttenuationModelLinear(QObject *parent = 0);
 
-    void componentComplete();
-
     qreal startDistance() const;
     void setStartDistance(qreal startDist);
 
@@ -84,6 +81,8 @@ public:
     void setEndDistance(qreal endDist);
 
     qreal calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const;
+
+    void setEngine(QDeclarativeAudioEngine *engine);
 
 private:
     Q_DISABLE_COPY(QDeclarativeAttenuationModelLinear);
@@ -101,8 +100,6 @@ class QDeclarativeAttenuationModelInverse : public QDeclarativeAttenuationModel
 public:
     QDeclarativeAttenuationModelInverse(QObject *parent = 0);
 
-    void componentComplete();
-
     qreal referenceDistance() const;
     void setReferenceDistance(qreal referenceDistance);
 
@@ -113,6 +110,8 @@ public:
     void setRolloffFactor(qreal rolloffFactor);
 
     qreal calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const;
+
+    void setEngine(QDeclarativeAudioEngine *engine);
 
 private:
     Q_DISABLE_COPY(QDeclarativeAttenuationModelInverse);

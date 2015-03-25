@@ -35,7 +35,6 @@
 #define QDECLARATIVESOUND_P_H
 
 #include <QtQml/qqml.h>
-#include <QtQml/qqmlcomponent.h>
 #include <QtCore/qlist.h>
 #include "qdeclarative_playvariation_p.h"
 
@@ -44,6 +43,7 @@ QT_BEGIN_NAMESPACE
 class QDeclarativeAudioCategory;
 class QDeclarativeAttenuationModel;
 class QDeclarativeSoundInstance;
+class QDeclarativeAudioEngine;
 
 class QDeclarativeSoundCone : public QObject
 {
@@ -65,21 +65,21 @@ public:
     qreal outerGain() const;
     void setOuterGain(qreal outerGain);
 
-    void componentComplete();
+    void setEngine(QDeclarativeAudioEngine *engine);
 
 private:
     Q_DISABLE_COPY(QDeclarativeSoundCone)
     qreal m_innerAngle;
     qreal m_outerAngle;
     qreal m_outerGain;
+    QDeclarativeAudioEngine *m_engine;
 };
 
-class QDeclarativeSound : public QObject, public QQmlParserStatus
+class QDeclarativeSound : public QObject
 {
     friend class QDeclarativeSoundCone;
 
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString name READ name WRITE setName)
     Q_PROPERTY(PlayType playType READ playType WRITE setPlayType)
     Q_PROPERTY(QString category READ category WRITE setCategory)
@@ -99,9 +99,6 @@ public:
     QDeclarativeSound(QObject *parent = 0);
     ~QDeclarativeSound();
 
-    void classBegin();
-    void componentComplete();
-
     PlayType playType() const;
     void setPlayType(PlayType playType);
 
@@ -113,6 +110,9 @@ public:
 
     QString attenuationModel() const;
     void setAttenuationModel(const QString &attenuationModel);
+
+    QDeclarativeAudioEngine *engine() const;
+    void setEngine(QDeclarativeAudioEngine *);
 
     QDeclarativeSoundCone* cone() const;
 
@@ -127,6 +127,8 @@ public:
     //This is used for tracking new PlayVariation declared inside Sound
     QQmlListProperty<QDeclarativePlayVariation> playVariationlist();
     QList<QDeclarativePlayVariation*>& playlist();
+
+    Q_INVOKABLE Q_REVISION(1) void addPlayVariation(QDeclarativePlayVariation*);
 
 public Q_SLOTS:
     void play();
@@ -147,7 +149,6 @@ private:
     Q_DISABLE_COPY(QDeclarativeSound)
     QDeclarativeSoundInstance* newInstance(bool managed);
     static void appendFunction(QQmlListProperty<QDeclarativePlayVariation> *property, QDeclarativePlayVariation *value);
-    bool m_complete;
     PlayType m_playType;
     QString m_name;
     QString m_category;
@@ -157,6 +158,7 @@ private:
 
     QDeclarativeAttenuationModel *m_attenuationModelObject;
     QDeclarativeAudioCategory *m_categoryObject;
+    QDeclarativeAudioEngine *m_engine;
 };
 
 QT_END_NAMESPACE

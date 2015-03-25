@@ -221,6 +221,222 @@ void QDeclarativeAudioEngine::releaseSoundInstance(QSoundInstance* instance)
     emit liveInstanceCountChanged();
 }
 
+void QDeclarativeAudioEngine::initAudioSample(QDeclarativeAudioSample *sample)
+{
+    sample->init();
+}
+
+void QDeclarativeAudioEngine::initSound(QDeclarativeSound *sound)
+{
+    QDeclarativeAudioCategory *category = m_defaultCategory;
+    if (m_categories.contains(sound->category())) {
+        category = qobject_cast<QDeclarativeAudioCategory*>(
+                   qvariant_cast<QObject*>(m_categories[sound->category()]));
+    }
+    sound->setCategoryObject(category);
+
+    QDeclarativeAttenuationModel *attenuationModel = 0;
+    if (sound->attenuationModel().isEmpty()) {
+        if (m_defaultAttenuationModel)
+            attenuationModel = m_defaultAttenuationModel;
+    } else if (m_attenuationModels.contains(sound->attenuationModel())){
+        attenuationModel = m_attenuationModels[sound->attenuationModel()];
+    } else {
+        qWarning() << "Sound[" << sound->name() << "] contains invalid attenuationModel["
+                   << sound->attenuationModel() << "]";
+    }
+    sound->setAttenuationModelObject(attenuationModel);
+
+    foreach (QDeclarativePlayVariation *playVariation, sound->playlist()) {
+        if (m_samples.contains(playVariation->sample())) {
+            playVariation->setSampleObject(
+                        qobject_cast<QDeclarativeAudioSample*>(
+                        qvariant_cast<QObject*>(m_samples[playVariation->sample()])));
+        } else {
+            qWarning() << "Sound[" << sound->name() << "] contains invalid sample["
+                       << playVariation->sample() << "] for its playVarations";
+        }
+    }
+}
+
+/*!
+    \qmlmethod QtAudioEngine::AudioEngine::addAudioSample(AudioSample sample)
+
+    Adds the given \a sample to the engine.
+    This can be used when the AudioSample is created dynamically:
+
+    \qml
+    import QtAudioEngine 1.1
+
+    AudioEngine {
+        id: engine
+
+        Component.onCompleted: {
+            var sample = Qt.createQmlObject('import QtAudioEngine 1.1; AudioSample {}', engine);
+            sample.name = "example";
+            sample.source = "example.wav";
+            engine.addAudioSample(sample);
+        }
+    }
+    \endqml
+*/
+void QDeclarativeAudioEngine::addAudioSample(QDeclarativeAudioSample *sample)
+{
+#ifdef DEBUG_AUDIOENGINE
+    qDebug() << "add QDeclarativeAudioSample[" << sample->name() << "]";
+#endif
+    if (sample->name().isEmpty()) {
+        qWarning("AudioSample must have a name!");
+        return;
+    }
+
+    if (m_samples.contains(sample->name())) {
+        qWarning() << "Failed to add AudioSample[" << sample->name() << "], already exists!";
+        return;
+    }
+    m_samples.insert(sample->name(), QVariant::fromValue(sample));
+    sample->setEngine(this);
+
+    if (m_complete) { initAudioSample(sample); }
+}
+
+/*!
+    \qmlmethod QtAudioEngine::AudioEngine::addSound(Sound sound)
+
+    Adds the given \a sound to the engine.
+    This can be used when the Sound is created dynamically:
+
+    \qml
+    import QtAudioEngine 1.1
+
+    AudioEngine {
+        id: engine
+
+        Component.onCompleted: {
+            var sound = Qt.createQmlObject('import QtAudioEngine 1.1; Sound {}', engine);
+            sound.name = "example";
+            engine.addSound(sound);
+        }
+    }
+    \endqml
+*/
+void QDeclarativeAudioEngine::addSound(QDeclarativeSound *sound)
+{
+#ifdef DEBUG_AUDIOENGINE
+    qDebug() << "add QDeclarativeSound[" << sound->name() << "]";
+#endif
+    if (sound->name().isEmpty()) {
+        qWarning("Sound must have a name!");
+        return;
+    }
+
+    if (m_sounds.contains(sound->name())) {
+        qWarning() << "Failed to add Sound[" << sound->name() << "], already exists!";
+        return;
+    }
+    m_sounds.insert(sound->name(), QVariant::fromValue(sound));
+    sound->setEngine(this);
+
+    if (m_complete) { initSound(sound); }
+
+}
+
+/*!
+    \qmlmethod QtAudioEngine::AudioEngine::addAudioCategory(AudioCategory category)
+
+    Adds the given \a category to the engine.
+    This can be used when the AudioCategory is created dynamically:
+
+    \qml
+    import QtAudioEngine 1.1
+
+    AudioEngine {
+        id: engine
+
+        Component.onCompleted: {
+            var category = Qt.createQmlObject('import QtAudioEngine 1.1; AudioCategory {}', engine);
+            category.name = "sample";
+            category.volume = 0.9;
+            engine.addAudioCategory(category);
+        }
+    }
+    \endqml
+*/
+void QDeclarativeAudioEngine::addAudioCategory(QDeclarativeAudioCategory *category)
+{
+#ifdef DEBUG_AUDIOENGINE
+    qDebug() << "add QDeclarativeAudioCategory[" << category->name() << "]";
+#endif
+    if (category->name().isEmpty()) {
+        qWarning("AudioCategory must have a name!");
+        return;
+    }
+
+    if (m_categories.contains(category->name())) {
+        qWarning() << "Failed to add AudioCategory[" << category->name() << "], already exists!";
+        return;
+    }
+    m_categories.insert(category->name(), QVariant::fromValue(category));
+    if (category->name() == QLatin1String("default")) {
+        if (!m_complete) {
+            m_defaultCategory = category;
+        } else {
+            qWarning() << "Can not change default category after initializing engine";
+        }
+    }
+
+    category->setEngine(this);
+}
+
+/*!
+    \qmlmethod QtAudioEngine::AudioEngine::addAttenuationModel(AttenuationModel attenuationModel)
+
+    Adds the given \a attenuationModel to the engine.
+    This can be used when the AttenuationModelLinear / AttenuationModelInverse is created dynamically:
+
+    \qml
+    import QtAudioEngine 1.1
+
+    AudioEngine {
+        id: engine
+
+        Component.onCompleted: {
+            var attenuationModel = Qt.createQmlObject('import QtAudioEngine 1.1; AttenuationModelLinear {}', engine);
+            attenuationModel.name ="linear"
+            attenuationModel.start = 20
+            attenuationModel.end = 180
+            engine.addAttenuationModel(attenuationModel);
+        }
+    }
+    \endqml
+*/
+void QDeclarativeAudioEngine::addAttenuationModel(QDeclarativeAttenuationModel *attenModel)
+{
+#ifdef DEBUG_AUDIOENGINE
+    qDebug() << "add AttenuationModel[" << attenModel->name() << "]";
+#endif
+    if (attenModel->name().isEmpty()) {
+        qWarning("AttenuationModel must have a name!");
+        return;
+    }
+
+    if (m_attenuationModels.contains(attenModel->name())) {
+        qWarning() << "Failed to add AttenuationModel[" << attenModel->name() << "], already exists!";
+        return;
+    }
+    m_attenuationModels.insert(attenModel->name(), attenModel);
+
+    if (attenModel->name() == QLatin1String("default")) {
+        if (!m_complete) {
+            m_defaultAttenuationModel = attenModel;
+        } else {
+            qWarning() << "Can not change default attenuation model after initializing engine";
+        }
+    }
+
+    attenModel->setEngine(this);
+}
+
 void QDeclarativeAudioEngine::componentComplete()
 {
 #ifdef DEBUG_AUDIOENGINE
@@ -231,10 +447,9 @@ void QDeclarativeAudioEngine::componentComplete()
         qDebug() << "creating default category";
 #endif
         m_defaultCategory = new QDeclarativeAudioCategory(this);
-        m_defaultCategory->classBegin();
         m_defaultCategory->setName(QString::fromLatin1("default"));
         m_defaultCategory->setVolume(1);
-        m_defaultCategory->componentComplete();
+        m_defaultCategory->setEngine(this);
     }
 #ifdef DEBUG_AUDIOENGINE
         qDebug() << "init samples" << m_samples.keys().count();
@@ -246,7 +461,8 @@ void QDeclarativeAudioEngine::componentComplete()
             qWarning() << "accessing invalid sample[" << key << "]";
             continue;
         }
-        sample->init();
+
+        initAudioSample(sample);
     }
 
 #ifdef DEBUG_AUDIOENGINE
@@ -260,35 +476,8 @@ void QDeclarativeAudioEngine::componentComplete()
             qWarning() << "accessing invalid sound[" << key << "]";
             continue;
         }
-        QDeclarativeAudioCategory *category = m_defaultCategory;
-        if (m_categories.contains(sound->category())) {
-            category = qobject_cast<QDeclarativeAudioCategory*>(
-                       qvariant_cast<QObject*>(m_categories[sound->category()]));
-        }
-        sound->setCategoryObject(category);
 
-        QDeclarativeAttenuationModel *attenuationModel = 0;
-        if (sound->attenuationModel().isEmpty()) {
-            if (m_defaultAttenuationModel)
-                attenuationModel = m_defaultAttenuationModel;
-        } else if (m_attenuationModels.contains(sound->attenuationModel())){
-            attenuationModel = m_attenuationModels[sound->attenuationModel()];
-        } else {
-            qWarning() << "Sound[" << sound->name() << "] contains invalid attenuationModel["
-                       << sound->attenuationModel() << "]";
-        }
-        sound->setAttenuationModelObject(attenuationModel);
-
-        foreach (QDeclarativePlayVariation* playVariation, sound->playlist()) {
-            if (m_samples.contains(playVariation->sample())) {
-                playVariation->setSampleObject(
-                            qobject_cast<QDeclarativeAudioSample*>(
-                            qvariant_cast<QObject*>(m_samples[playVariation->sample()])));
-            } else {
-                qWarning() << "Sound[" << sound->name() << "] contains invalid sample["
-                           << playVariation->sample() << "] for its playVarations";
-            }
-        }
+        initSound(sound);
     }
     m_complete = true;
 #ifdef DEBUG_AUDIOENGINE
@@ -330,65 +519,30 @@ void QDeclarativeAudioEngine::appendFunction(QQmlListProperty<QObject> *property
 {
     QDeclarativeAudioEngine* engine = static_cast<QDeclarativeAudioEngine*>(property->object);
     if (engine->m_complete) {
-        qWarning("AudioEngine: cannot add child after initialization!");
         return;
     }
 
     QDeclarativeSound *sound = qobject_cast<QDeclarativeSound*>(value);
     if (sound) {
-#ifdef DEBUG_AUDIOENGINE
-        qDebug() << "add QDeclarativeSound[" << sound->name() << "]";
-#endif
-        if (engine->m_sounds.contains(sound->name())) {
-            qWarning() << "Failed to add Sound[" << sound->name() << "], already exists!";
-            return;
-        }
-        engine->m_sounds.insert(sound->name(), QVariant::fromValue(value));
+        engine->addSound(sound);
         return;
     }
 
     QDeclarativeAudioSample *sample = qobject_cast<QDeclarativeAudioSample*>(value);
     if (sample) {
-#ifdef DEBUG_AUDIOENGINE
-        qDebug() << "add QDeclarativeAudioSample[" << sample->name() << "]";
-#endif
-        if (engine->m_samples.contains(sample->name())) {
-            qWarning() << "Failed to add AudioSample[" << sample->name() << "], already exists!";
-            return;
-        }
-        engine->m_samples.insert(sample->name(), QVariant::fromValue(value));
+        engine->addAudioSample(sample);
         return;
     }
 
     QDeclarativeAudioCategory *category = qobject_cast<QDeclarativeAudioCategory*>(value);
     if (category) {
-#ifdef DEBUG_AUDIOENGINE
-        qDebug() << "add QDeclarativeAudioCategory[" << category->name() << "]";
-#endif
-        if (engine->m_categories.contains(category->name())) {
-            qWarning() << "Failed to add AudioCategory[" << category->name() << "], already exists!";
-            return;
-        }
-        engine->m_categories.insert(category->name(), QVariant::fromValue(value));
-        if (category->name() == QLatin1String("default")) {
-            engine->m_defaultCategory = category;
-        }
+        engine->addAudioCategory(category);
         return;
     }
 
     QDeclarativeAttenuationModel *attenModel = qobject_cast<QDeclarativeAttenuationModel*>(value);
     if (attenModel) {
-#ifdef DEBUG_AUDIOENGINE
-        qDebug() << "add AttenuationModel[" << attenModel->name() << "]";
-#endif
-        if (attenModel->name() == QLatin1String("default")) {
-            engine->m_defaultAttenuationModel = attenModel;
-        }
-        if (engine->m_attenuationModels.contains(attenModel->name())) {
-            qWarning() << "Failed to add AttenuationModel[" << attenModel->name() << "], already exists!";
-            return;
-        }
-        engine->m_attenuationModels.insert(attenModel->name(), attenModel);
+        engine->addAttenuationModel(attenModel);
         return;
     }
 
