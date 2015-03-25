@@ -1721,10 +1721,17 @@ void MFPlayerSession::updatePendingCommands(Command command)
     if (m_state.command != command || m_pendingState == NoPending)
         return;
 
-    // The current pending command has completed.
+    // Seek while paused completed
     if (m_pendingState == SeekPending && m_state.prevCmd == CmdPause) {
         m_pendingState = NoPending;
-        m_state.setCommand(CmdPause);
+        // A seek operation actually restarts playback. If scrubbing is possible, playback rate
+        // is set to 0.0 at this point and we just need to reset the current state to Pause.
+        // If scrubbing is not possible, the playback rate was not changed and we explicitly need
+        // to re-pause playback.
+        if (!canScrub())
+            pause();
+        else
+            m_state.setCommand(CmdPause);
     }
 
     m_pendingState = NoPending;
