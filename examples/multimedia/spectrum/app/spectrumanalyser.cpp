@@ -135,8 +135,8 @@ void SpectrumAnalyserThread::calculateSpectrum(const QByteArray &buffer,
         if (i>0 && i<m_numSamples/2)
             imag = m_output[m_numSamples/2 + i];
 
-        const qreal magnitude = sqrt(real*real + imag*imag);
-        qreal amplitude = SpectrumAnalyserMultiplier * log(magnitude);
+        const qreal magnitude = qSqrt(real*real + imag*imag);
+        qreal amplitude = SpectrumAnalyserMultiplier * qLn(magnitude);
 
         // Bound amplitude to [0.0, 1.0]
         m_spectrum[i].clipped = (amplitude > 1.0);
