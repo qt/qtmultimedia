@@ -44,8 +44,8 @@
 
 #include <QtCore/qcoreapplication.h>
 #include <qaudioformat.h>
-#include <QtNetwork>
 #include <QTime>
+#include <QTimer>
 
 #include "qsoundeffect_pulse_p.h"
 

@@ -45,8 +45,8 @@
 // We mean it.
 //
 
-#include <QtNetwork>
 #include "qtmultimediadefs.h"
+#include <QtNetwork/QNetworkRequest>
 
 QT_BEGIN_NAMESPACE
 
