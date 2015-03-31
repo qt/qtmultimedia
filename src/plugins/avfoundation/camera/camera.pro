@@ -41,7 +41,8 @@ HEADERS += \
     avfcameraexposurecontrol.h \
     avfcamerautility.h \
     avfcameraviewfindersettingscontrol.h \
-    avfimageencodercontrol.h
+    avfimageencodercontrol.h \
+    avfcameraflashcontrol.h
 
 OBJECTIVE_SOURCES += \
     avfcameraserviceplugin.mm \
@@ -62,7 +63,8 @@ OBJECTIVE_SOURCES += \
     avfcameraexposurecontrol.mm \
     avfcamerautility.mm \
     avfcameraviewfindersettingscontrol.mm \
-    avfimageencodercontrol.mm
+    avfimageencodercontrol.mm \
+    avfcameraflashcontrol.mm
 
 ios {
 

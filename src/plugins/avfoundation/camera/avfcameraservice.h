@@ -58,6 +58,7 @@ class AVFCameraZoomControl;
 class AVFCameraViewfinderSettingsControl2;
 class AVFCameraViewfinderSettingsControl;
 class AVFImageEncoderControl;
+class AVFCameraFlashControl;
 
 class AVFCameraService : public QMediaService
 {
@@ -83,6 +84,7 @@ public:
     AVFCameraViewfinderSettingsControl2 *viewfinderSettingsControl2() const {return m_viewfinderSettingsControl2; }
     AVFCameraViewfinderSettingsControl *viewfinderSettingsControl() const {return m_viewfinderSettingsControl; }
     AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
+    AVFCameraFlashControl *flashControl() const {return m_flashControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -100,6 +102,7 @@ private:
     AVFCameraViewfinderSettingsControl2 *m_viewfinderSettingsControl2;
     AVFCameraViewfinderSettingsControl *m_viewfinderSettingsControl;
     AVFImageEncoderControl *m_imageEncoderControl;
+    AVFCameraFlashControl *m_flashControl;
 };
 
 QT_END_NAMESPACE
