@@ -160,3 +160,5 @@ void MmRendererMetaDataReaderControl::setMetaData(const MmRendererMetaData &data
     if (metaDataAvailable != oldMetaDataAvailable)
         emit metaDataAvailableChanged(metaDataAvailable);
 }
+
+QT_END_NAMESPACE
