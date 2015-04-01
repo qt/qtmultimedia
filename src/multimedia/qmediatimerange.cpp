@@ -705,11 +705,13 @@ QMediaTimeRange operator-(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, const QMediaTimeRange &range)
 {
-    dbg.nospace() << "QMediaTimeRange( ";
-    foreach (const QMediaTimeInterval &interval, range.intervals()) {
-        dbg.nospace() << "(" <<  interval.start() << ", " << interval.end() << ") ";
-    }
-    dbg.space() << ")";
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    dbg << "QMediaTimeRange( ";
+    foreach (const QMediaTimeInterval &interval, range.intervals())
+        dbg << '(' <<  interval.start() << ", " << interval.end() << ") ";
+    dbg.space();
+    dbg << ')';
     return dbg;
 }
 #endif

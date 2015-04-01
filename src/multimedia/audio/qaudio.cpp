@@ -86,59 +86,62 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAudio::Error error)
 {
-    QDebug nospace = dbg.nospace();
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (error) {
         case QAudio::NoError:
-            nospace << "NoError";
+            dbg << "NoError";
             break;
         case QAudio::OpenError:
-            nospace << "OpenError";
+            dbg << "OpenError";
             break;
         case QAudio::IOError:
-            nospace << "IOError";
+            dbg << "IOError";
             break;
         case QAudio::UnderrunError:
-            nospace << "UnderrunError";
+            dbg << "UnderrunError";
             break;
         case QAudio::FatalError:
-            nospace << "FatalError";
+            dbg << "FatalError";
             break;
     }
-    return nospace;
+    return dbg;
 }
 
 QDebug operator<<(QDebug dbg, QAudio::State state)
 {
-    QDebug nospace = dbg.nospace();
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (state) {
         case QAudio::ActiveState:
-            nospace << "ActiveState";
+            dbg << "ActiveState";
             break;
         case QAudio::SuspendedState:
-            nospace << "SuspendedState";
+            dbg << "SuspendedState";
             break;
         case QAudio::StoppedState:
-            nospace << "StoppedState";
+            dbg << "StoppedState";
             break;
         case QAudio::IdleState:
-            nospace << "IdleState";
+            dbg << "IdleState";
             break;
     }
-    return nospace;
+    return dbg;
 }
 
 QDebug operator<<(QDebug dbg, QAudio::Mode mode)
 {
-    QDebug nospace = dbg.nospace();
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (mode) {
         case QAudio::AudioInput:
-            nospace << "AudioInput";
+            dbg << "AudioInput";
             break;
         case QAudio::AudioOutput:
-            nospace << "AudioOutput";
+            dbg << "AudioOutput";
             break;
     }
-    return nospace;
+    return dbg;
 }
 #endif
 

@@ -459,49 +459,50 @@ int QAudioFormat::bytesPerFrame() const
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAudioFormat::Endian endian)
 {
-    QDebug nospace = dbg.nospace();
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (endian) {
         case QAudioFormat::BigEndian:
-            nospace << "BigEndian";
+            dbg << "BigEndian";
             break;
         case QAudioFormat::LittleEndian:
-            nospace << "LittleEndian";
+            dbg << "LittleEndian";
             break;
     }
-    return nospace;
+    return dbg;
 }
 
 QDebug operator<<(QDebug dbg, QAudioFormat::SampleType type)
 {
-    QDebug nospace = dbg.nospace();
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (type) {
         case QAudioFormat::SignedInt:
-            nospace << "SignedInt";
+            dbg << "SignedInt";
             break;
         case QAudioFormat::UnSignedInt:
-            nospace << "UnSignedInt";
+            dbg << "UnSignedInt";
             break;
         case QAudioFormat::Float:
-            nospace << "Float";
+            dbg << "Float";
             break;
        default:
-            nospace << "Unknown";
+            dbg << "Unknown";
             break;
     }
-    return nospace;
+    return dbg;
 }
 
 QDebug operator<<(QDebug dbg, const QAudioFormat &f)
 {
-    dbg.nospace() << "QAudioFormat(" << f.sampleRate();
-    dbg.nospace() << "Hz, " << f.sampleSize();
-    dbg.nospace() << "bit, channelCount=" << f.channelCount();
-    dbg.nospace() << ", sampleType=" << f.sampleType();
-    dbg.nospace() << ", byteOrder=" << f.byteOrder();
-    dbg.nospace() << ", codec=" << f.codec();
-    dbg.nospace() << ")";
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    dbg << "QAudioFormat(" << f.sampleRate() << "Hz, "
+        << f.sampleSize() << "bit, channelCount=" << f.channelCount()
+        << ", sampleType=" << f.sampleType() << ", byteOrder=" << f.byteOrder()
+        << ", codec=" << f.codec() << ')';
 
-    return dbg.space();
+    return dbg;
 }
 #endif
 

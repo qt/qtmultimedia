@@ -62,8 +62,9 @@ struct PtrWrapper
 template <typename T>
 inline QDebug& operator<<(QDebug &debug, const Trace::PtrWrapper<T> &wrapper)
 {
-    debug.nospace() << "[" << (void*)wrapper.m_ptr << "]";
-    return debug.space();
+    QDebugStateSaver saver(debug);
+    debug.nospace() << '[' << static_cast<const void *>(wrapper.m_ptr) << ']';
+    return debug;
 }
 
 template<typename T>

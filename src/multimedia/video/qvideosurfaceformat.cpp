@@ -569,61 +569,62 @@ void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
 {
-    QDebug nospace = dbg.nospace();
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (cs) {
         case QVideoSurfaceFormat::YCbCr_BT601:
-            nospace << "YCbCr_BT601";
+            dbg << "YCbCr_BT601";
             break;
         case QVideoSurfaceFormat::YCbCr_BT709:
-            nospace << "YCbCr_BT709";
+            dbg << "YCbCr_BT709";
             break;
         case QVideoSurfaceFormat::YCbCr_JPEG:
-            nospace << "YCbCr_JPEG";
+            dbg << "YCbCr_JPEG";
             break;
         case QVideoSurfaceFormat::YCbCr_xvYCC601:
-            nospace << "YCbCr_xvYCC601";
+            dbg << "YCbCr_xvYCC601";
             break;
         case QVideoSurfaceFormat::YCbCr_xvYCC709:
-            nospace << "YCbCr_xvYCC709";
+            dbg << "YCbCr_xvYCC709";
             break;
         case QVideoSurfaceFormat::YCbCr_CustomMatrix:
-            nospace << "YCbCr_CustomMatrix";
+            dbg << "YCbCr_CustomMatrix";
             break;
         default:
-            nospace << "YCbCr_Undefined";
+            dbg << "YCbCr_Undefined";
             break;
     }
-    return nospace;
+    return dbg;
 }
 
 QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::Direction dir)
 {
-    QDebug nospace = dbg.nospace();
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (dir) {
         case QVideoSurfaceFormat::BottomToTop:
-            nospace << "BottomToTop";
+            dbg << "BottomToTop";
             break;
         case QVideoSurfaceFormat::TopToBottom:
-            nospace << "TopToBottom";
+            dbg << "TopToBottom";
             break;
     }
-    return nospace;
+    return dbg;
 }
 
 QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)
 {
-    dbg.nospace() << "QVideoSurfaceFormat(" << f.pixelFormat();
-    dbg.nospace() << ", " << f.frameSize();
-    dbg.nospace() << ", viewport=" << f.viewport();
-    dbg.nospace() << ", pixelAspectRatio=" << f.pixelAspectRatio();
-    dbg.nospace() << ", handleType=" << f.handleType();
-    dbg.nospace() << ", yCbCrColorSpace=" << f.yCbCrColorSpace();
-    dbg.nospace() << ")";
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    dbg << "QVideoSurfaceFormat(" << f.pixelFormat() << ", " << f.frameSize()
+        << ", viewport=" << f.viewport() << ", pixelAspectRatio=" << f.pixelAspectRatio()
+        << ", handleType=" << f.handleType() <<  ", yCbCrColorSpace=" << f.yCbCrColorSpace()
+        << ')';
 
     foreach(const QByteArray& propertyName, f.propertyNames())
         dbg << "\n    " << propertyName.data() << " = " << f.property(propertyName.data());
 
-    return dbg.space();
+    return dbg;
 }
 #endif
 
