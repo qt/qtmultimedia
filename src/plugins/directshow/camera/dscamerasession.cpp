@@ -32,7 +32,6 @@
 ****************************************************************************/
 
 #include <QtCore/qdebug.h>
-#include <QWidget>
 #include <QFile>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QtMultimedia/qabstractvideobuffer.h>

@@ -43,7 +43,7 @@
 #include <QtCore/qbuffer.h>
 
 #include "mfplayercontrol.h"
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
 #include "evr9videowindowcontrol.h"
 #endif
 #include "mfvideorenderercontrol.h"
@@ -140,7 +140,7 @@ void MFPlayerSession::close()
 
     if (m_playerService->videoRendererControl()) {
         m_playerService->videoRendererControl()->releaseActivate();
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (m_playerService->videoWindowControl()) {
         m_playerService->videoWindowControl()->releaseActivate();
 #endif
@@ -404,7 +404,7 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
                 mediaType = Video;
                 if (m_playerService->videoRendererControl()) {
                     activate = m_playerService->videoRendererControl()->createActivate();
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
                 } else if (m_playerService->videoWindowControl()) {
                     activate = m_playerService->videoWindowControl()->createActivate();
 #endif
@@ -1577,7 +1577,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         }
 
         updatePendingCommands(CmdStart);
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
         // playback started, we can now set again the procAmpValues if they have been
         // changed previously (these are lost when loading a new media)
         if (m_playerService->videoWindowControl()) {
