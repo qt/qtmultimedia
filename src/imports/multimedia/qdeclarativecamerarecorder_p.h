@@ -83,7 +83,7 @@ class QDeclarativeCameraRecorder : public QObject
     Q_PROPERTY(QString actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY error)
-    Q_PROPERTY(QString errorCode READ errorCode NOTIFY error)
+    Q_PROPERTY(Error errorCode READ errorCode NOTIFY error)
 
 public:
     enum RecorderState
