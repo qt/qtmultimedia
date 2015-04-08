@@ -57,6 +57,12 @@ QML_DECLARE_TYPE(QSoundEffect)
 
 QT_BEGIN_NAMESPACE
 
+static QObject *multimedia_global_object(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
+{
+    Q_UNUSED(qmlEngine)
+    return new QDeclarativeMultimediaGlobal(jsEngine);
+}
+
 class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 {
     Q_OBJECT
@@ -98,7 +104,7 @@ public:
         qmlRegisterType<QSoundEffect>(uri, 5, 3, "SoundEffect");
 
         // 5.4 types
-        qmlRegisterSingletonType(uri, 5, 4, "QtMultimedia", QDeclarativeMultimedia::initGlobalObject);
+        qmlRegisterSingletonType<QDeclarativeMultimediaGlobal>(uri, 5, 4, "QtMultimedia", multimedia_global_object);
         qmlRegisterRevision<QDeclarativeCamera, 1>(uri, 5, 4);
         qmlRegisterUncreatableType<QDeclarativeCameraViewfinder>(uri, 5, 4, "CameraViewfinder",
                                 trUtf8("CameraViewfinder is provided by Camera"));
