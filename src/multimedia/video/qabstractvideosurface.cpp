@@ -353,18 +353,26 @@ void QAbstractVideoSurface::setNativeResolution(const QSize &resolution)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, const QAbstractVideoSurface::Error& error)
 {
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (error) {
     case QAbstractVideoSurface::UnsupportedFormatError:
-        return dbg.nospace() << "UnsupportedFormatError";
+        dbg << "UnsupportedFormatError";
+        break;
     case QAbstractVideoSurface::IncorrectFormatError:
-        return dbg.nospace() << "IncorrectFormatError";
+        dbg << "IncorrectFormatError";
+        break;
     case QAbstractVideoSurface::StoppedError:
-        return dbg.nospace() << "StoppedError";
+        dbg << "StoppedError";
+        break;
     case QAbstractVideoSurface::ResourceError:
-        return dbg.nospace() << "ResourceError";
+        dbg << "ResourceError";
+        break;
     default:
-        return dbg.nospace() << "NoError";
+        dbg << "NoError";
+        break;
     }
+    return dbg;
 }
 #endif
 

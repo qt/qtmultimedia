@@ -37,7 +37,6 @@
 #include <qglobal.h>
 #include <QMediaPlayerControl>
 #include <qsize.h>
-#include <QtCore/QTemporaryFile>
 
 QT_BEGIN_NAMESPACE
 
@@ -72,7 +71,6 @@ public:
 
 Q_SIGNALS:
     void metaDataUpdated();
-    void actualMediaLocationChanged(const QString &url);
 
 public Q_SLOTS:
     void setPosition(qint64 position) Q_DECL_OVERRIDE;
@@ -112,7 +110,6 @@ private:
     int mPendingVolume;
     int mPendingMute;
     bool mReloadingMedia;
-    QScopedPointer<QTemporaryFile> mTempFile;
     int mActiveStateChangeNotifiers;
 
     void setState(QMediaPlayer::State state);

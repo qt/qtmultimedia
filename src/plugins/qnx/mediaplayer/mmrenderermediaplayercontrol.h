@@ -156,7 +156,6 @@ private:
     bool m_inputAttached;
     int m_stopEventsToIgnore;
     int m_bufferLevel;
-    QString m_tempMediaFileName;
     QTimer m_loadingTimer;
 };
 

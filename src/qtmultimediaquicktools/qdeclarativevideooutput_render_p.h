@@ -36,7 +36,7 @@
 #define QDECLARATIVEVIDEOOUTPUT_RENDER_P_H
 
 #include "qdeclarativevideooutput_backend_p.h"
-#include "qsgvideonode_i420.h"
+#include "qsgvideonode_yuv.h"
 #include "qsgvideonode_rgb.h"
 #include "qsgvideonode_texture.h"
 
@@ -57,14 +57,14 @@ public:
     QDeclarativeVideoRendererBackend(QDeclarativeVideoOutput *parent);
     ~QDeclarativeVideoRendererBackend();
 
-    bool init(QMediaService *service);
-    void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &changeData);
-    void releaseSource();
-    void releaseControl();
-    QSize nativeSize() const;
-    void updateGeometry();
-    QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data);
-    QAbstractVideoSurface *videoSurface() const;
+    bool init(QMediaService *service) Q_DECL_OVERRIDE;
+    void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &changeData) Q_DECL_OVERRIDE;
+    void releaseSource() Q_DECL_OVERRIDE;
+    void releaseControl() Q_DECL_OVERRIDE;
+    QSize nativeSize() const Q_DECL_OVERRIDE;
+    void updateGeometry() Q_DECL_OVERRIDE;
+    QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) Q_DECL_OVERRIDE;
+    QAbstractVideoSurface *videoSurface() const Q_DECL_OVERRIDE;
     QRectF adjustedViewport() const Q_DECL_OVERRIDE;
     QOpenGLContext *glContext() const;
 
@@ -86,7 +86,7 @@ private:
     QOpenGLContext *m_glContext;
     QVideoFrame m_frame;
     bool m_frameChanged;
-    QSGVideoNodeFactory_I420 m_i420Factory;
+    QSGVideoNodeFactory_YUV m_i420Factory;
     QSGVideoNodeFactory_RGB m_rgbFactory;
     QSGVideoNodeFactory_Texture m_textureFactory;
     QMutex m_frameMutex;

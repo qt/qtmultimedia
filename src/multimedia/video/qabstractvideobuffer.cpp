@@ -350,33 +350,37 @@ uchar *QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPe
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::HandleType type)
 {
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (type) {
     case QAbstractVideoBuffer::NoHandle:
-        return dbg.nospace() << "NoHandle";
+        return dbg << "NoHandle";
     case QAbstractVideoBuffer::GLTextureHandle:
-        return dbg.nospace() << "GLTextureHandle";
+        return dbg << "GLTextureHandle";
     case QAbstractVideoBuffer::XvShmImageHandle:
-        return dbg.nospace() << "XvShmImageHandle";
+        return dbg << "XvShmImageHandle";
     case QAbstractVideoBuffer::CoreImageHandle:
-        return dbg.nospace() << "CoreImageHandle";
+        return dbg << "CoreImageHandle";
     case QAbstractVideoBuffer::QPixmapHandle:
-        return dbg.nospace() << "QPixmapHandle";
+        return dbg << "QPixmapHandle";
     default:
-        return dbg.nospace() << QString(QLatin1String("UserHandle(%1)")).arg(int(type)).toLatin1().constData();
+        return dbg << "UserHandle(" << int(type) << ')';
     }
 }
 
 QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::MapMode mode)
 {
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
     switch (mode) {
     case QAbstractVideoBuffer::ReadOnly:
-        return dbg.nospace() << "ReadOnly";
+        return dbg << "ReadOnly";
     case QAbstractVideoBuffer::ReadWrite:
-        return dbg.nospace() << "ReadWrite";
+        return dbg << "ReadWrite";
     case QAbstractVideoBuffer::WriteOnly:
-        return dbg.nospace() << "WriteOnly";
+        return dbg << "WriteOnly";
     default:
-        return dbg.nospace() << "NotMapped";
+        return dbg << "NotMapped";
     }
 }
 #endif

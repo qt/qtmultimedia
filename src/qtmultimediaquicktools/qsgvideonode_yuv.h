@@ -31,20 +31,20 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_I420_H
-#define QSGVIDEONODE_I420_H
+#ifndef QSGVIDEONODE_YUV_H
+#define QSGVIDEONODE_YUV_H
 
 #include <private/qsgvideonode_p.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSGVideoMaterial_YUV420;
-class QSGVideoNode_I420 : public QSGVideoNode
+class QSGVideoMaterial_YUV;
+class QSGVideoNode_YUV : public QSGVideoNode
 {
 public:
-    QSGVideoNode_I420(const QVideoSurfaceFormat &format);
-    ~QSGVideoNode_I420();
+    QSGVideoNode_YUV(const QVideoSurfaceFormat &format);
+    ~QSGVideoNode_YUV();
 
     virtual QVideoFrame::PixelFormat pixelFormat() const {
         return m_format.pixelFormat();
@@ -58,10 +58,10 @@ private:
     void bindTexture(int id, int unit, int w, int h, const uchar *bits);
 
     QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_YUV420 *m_material;
+    QSGVideoMaterial_YUV *m_material;
 };
 
-class QSGVideoNodeFactory_I420 : public QSGVideoNodeFactoryInterface {
+class QSGVideoNodeFactory_YUV : public QSGVideoNodeFactoryInterface {
 public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
@@ -69,4 +69,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // QSGVIDEONODE_I420_H
+#endif // QSGVIDEONODE_YUV_H

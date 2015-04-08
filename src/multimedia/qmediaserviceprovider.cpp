@@ -299,7 +299,14 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, loader,
 
 class QPluginServiceProvider : public QMediaServiceProvider
 {
-    QMap<QMediaService*, QMediaServiceProviderPlugin*> pluginMap;
+    struct MediaServiceData {
+        QByteArray type;
+        QMediaServiceProviderPlugin *plugin;
+
+        MediaServiceData() : plugin(0) { }
+    };
+
+    QMap<const QMediaService*, MediaServiceData> mediaServiceData;
 
 public:
     QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint)
@@ -416,8 +423,12 @@ public:
 
             if (plugin != 0) {
                 QMediaService *service = plugin->create(key);
-                if (service != 0)
-                    pluginMap.insert(service, plugin);
+                if (service != 0) {
+                    MediaServiceData d;
+                    d.type = type;
+                    d.plugin = plugin;
+                    mediaServiceData.insert(service, d);
+                }
 
                 return service;
             }
@@ -430,11 +441,28 @@ public:
     void releaseService(QMediaService *service)
     {
         if (service != 0) {
-            QMediaServiceProviderPlugin *plugin = pluginMap.take(service);
+            MediaServiceData d = mediaServiceData.take(service);
 
-            if (plugin != 0)
-                plugin->release(service);
+            if (d.plugin != 0)
+                d.plugin->release(service);
         }
+    }
+
+    QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *service) const
+    {
+        if (service) {
+            MediaServiceData d = mediaServiceData.value(service);
+
+            if (d.plugin) {
+                QMediaServiceFeaturesInterface *iface =
+                        qobject_cast<QMediaServiceFeaturesInterface*>(d.plugin);
+
+                if (iface)
+                    return iface->supportedFeatures(d.type);
+            }
+        }
+
+        return QMediaServiceProviderHint::Features();
     }
 
     QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
@@ -659,6 +687,18 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 
     Releases a media \a service requested with requestService().
 */
+
+/*!
+    \fn QMediaServiceProvider::supportedFeatures(const QMediaService *service) const
+
+    Returns the features supported by a given \a service.
+*/
+QMediaServiceProviderHint::Features QMediaServiceProvider::supportedFeatures(const QMediaService *service) const
+{
+    Q_UNUSED(service);
+
+    return QMediaServiceProviderHint::Features(0);
+}
 
 /*!
     \fn QMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray &serviceType, const QString &mimeType, const QStringList& codecs, int flags) const

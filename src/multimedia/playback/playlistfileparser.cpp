@@ -33,7 +33,9 @@
 
 #include "playlistfileparser_p.h"
 #include <qfileinfo.h>
+#include <QtCore/QDebug>
 #include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkRequest>
 #include "qmediaobject_p.h"
 #include "qmediametadata.h"
 

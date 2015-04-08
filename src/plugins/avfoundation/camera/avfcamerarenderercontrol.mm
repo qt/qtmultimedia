@@ -32,6 +32,7 @@
 ****************************************************************************/
 
 #include "avfcameraviewfindersettingscontrol.h"
+#include "private/qabstractvideobuffer_p.h"
 #include "avfcamerarenderercontrol.h"
 #include "avfcamerasession.h"
 #include "avfcameraservice.h"
@@ -39,15 +40,17 @@
 
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtMultimedia/qabstractvideobuffer.h>
+
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_USE_NAMESPACE
 
-class CVPixelBufferVideoBuffer : public QAbstractVideoBuffer
+class CVPixelBufferVideoBuffer : public QAbstractPlanarVideoBuffer
 {
+    friend class CVPixelBufferVideoBufferPrivate;
 public:
     CVPixelBufferVideoBuffer(CVPixelBufferRef buffer)
-        : QAbstractVideoBuffer(NoHandle)
+        : QAbstractPlanarVideoBuffer(NoHandle)
         , m_buffer(buffer)
         , m_mode(NotMapped)
     {
@@ -61,6 +64,42 @@ public:
 
     MapMode mapMode() const { return m_mode; }
 
+    int map(QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
+    {
+        // We only support RGBA or NV12 (or Apple's version of NV12),
+        // they are either 0 planes or 2.
+        const size_t nPlanes = CVPixelBufferGetPlaneCount(m_buffer);
+        Q_ASSERT(nPlanes <= 2);
+
+        if (!nPlanes) {
+            data[0] = map(mode, numBytes, bytesPerLine);
+            return data[0] ? 1 : 0;
+        }
+
+        // For a bi-planar format we have to set the parameters correctly:
+        if (mode != QAbstractVideoBuffer::NotMapped && m_mode == QAbstractVideoBuffer::NotMapped) {
+            CVPixelBufferLockBaseAddress(m_buffer, 0);
+
+            if (numBytes)
+                *numBytes = CVPixelBufferGetDataSize(m_buffer);
+
+            if (bytesPerLine) {
+                // At the moment we handle only bi-planar format.
+                bytesPerLine[0] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, 0);
+                bytesPerLine[1] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, 1);
+            }
+
+            if (data) {
+                data[0] = (uchar *)CVPixelBufferGetBaseAddressOfPlane(m_buffer, 0);
+                data[1] = (uchar *)CVPixelBufferGetBaseAddressOfPlane(m_buffer, 1);
+            }
+
+            m_mode = mode;
+        }
+
+        return nPlanes;
+    }
+
     uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
     {
         if (mode != NotMapped && m_mode == NotMapped) {
@@ -73,7 +112,6 @@ public:
                 *bytesPerLine = CVPixelBufferGetBytesPerRow(m_buffer);
 
             m_mode = mode;
-
             return (uchar*)CVPixelBufferGetBaseAddress(m_buffer);
         } else {
             return 0;
@@ -92,6 +130,7 @@ private:
     CVPixelBufferRef m_buffer;
     MapMode m_mode;
 };
+
 
 @interface AVFCaptureFramesDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 {

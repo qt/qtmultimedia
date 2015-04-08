@@ -88,6 +88,8 @@ public:
     bool start(const QVideoSurfaceFormat &format, int bytesPerLine);
     void stop();
 
+    void unlock();
+
     bool isActive();
 
     QGstBufferPoolInterface *pool() { return m_pool; }
@@ -147,6 +149,8 @@ private:
 
     static gboolean start(GstBaseSink *sink);
     static gboolean stop(GstBaseSink *sink);
+
+    static gboolean unlock(GstBaseSink *sink);
 
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
 

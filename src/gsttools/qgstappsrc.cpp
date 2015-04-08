@@ -34,7 +34,6 @@
 #include <QDebug>
 
 #include "qgstappsrc_p.h"
-#include <QtNetwork>
 
 QGstAppSrc::QGstAppSrc(QObject *parent)
     :QObject(parent)

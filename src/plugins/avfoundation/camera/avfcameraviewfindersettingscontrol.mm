@@ -38,6 +38,8 @@
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
 
+#include <QtMultimedia/qabstractvideosurface.h>
+
 #include <QtCore/qvariant.h>
 #include <QtCore/qsysinfo.h>
 #include <QtCore/qvector.h>
@@ -51,28 +53,6 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
-
-QVector<QVideoFrame::PixelFormat> qt_viewfinder_pixel_formats(AVCaptureVideoDataOutput *videoOutput)
-{
-    Q_ASSERT(videoOutput);
-
-    QVector<QVideoFrame::PixelFormat> qtFormats;
-
-    NSArray *pixelFormats = [videoOutput availableVideoCVPixelFormatTypes];
-    for (NSObject *obj in pixelFormats) {
-        if (![obj isKindOfClass:[NSNumber class]])
-            continue;
-
-        NSNumber *formatAsNSNumber = static_cast<NSNumber *>(obj);
-        // It's actually FourCharCode (== UInt32):
-        const QVideoFrame::PixelFormat qtFormat(AVFCameraViewfinderSettingsControl2::
-                                                QtPixelFormatFromCVFormat([formatAsNSNumber unsignedIntValue]));
-        if (qtFormat != QVideoFrame::Format_Invalid)
-            qtFormats << qtFormat;
-    }
-
-    return qtFormats;
-}
 
 bool qt_framerates_sane(const QCameraViewfinderSettings &settings)
 {
@@ -269,7 +249,8 @@ QList<QCameraViewfinderSettings> AVFCameraViewfinderSettingsControl2::supportedV
 
     QVector<AVFPSRange> framerates;
 
-    QVector<QVideoFrame::PixelFormat> pixelFormats(qt_viewfinder_pixel_formats(m_videoOutput));
+    QVector<QVideoFrame::PixelFormat> pixelFormats(viewfinderPixelFormats());
+
     if (!pixelFormats.size())
         pixelFormats << QVideoFrame::Format_Invalid; // The default value.
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
@@ -397,6 +378,9 @@ QVideoFrame::PixelFormat AVFCameraViewfinderSettingsControl2::QtPixelFormatFromC
         return QVideoFrame::Format_RGB24;
     case kCVPixelFormatType_24BGR:
         return QVideoFrame::Format_BGR24;
+    case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+    case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+        return QVideoFrame::Format_NV12;
     default:
         return QVideoFrame::Format_Invalid;
     }
@@ -413,6 +397,9 @@ bool AVFCameraViewfinderSettingsControl2::CVPixelFormatFromQtFormat(QVideoFrame:
         break;
     case QVideoFrame::Format_BGRA32:
         conv = kCVPixelFormatType_32ARGB;
+        break;
+    case QVideoFrame::Format_NV12:
+        conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
         break;
     // These two formats below are not supported
     // by QSGVideoNodeFactory_RGB, so for now I have to
@@ -467,7 +454,37 @@ AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(
     return nil;
 }
 
-bool AVFCameraViewfinderSettingsControl2::convertPixelFormatIfSupported(QVideoFrame::PixelFormat qtFormat, unsigned &avfFormat)const
+QVector<QVideoFrame::PixelFormat> AVFCameraViewfinderSettingsControl2::viewfinderPixelFormats() const
+{
+    Q_ASSERT(m_videoOutput);
+
+    QVector<QVideoFrame::PixelFormat> qtFormats;
+    QList<QVideoFrame::PixelFormat> filter;
+
+    NSArray *pixelFormats = [m_videoOutput availableVideoCVPixelFormatTypes];
+    const QAbstractVideoSurface *surface = m_service->videoOutput() ? m_service->videoOutput()->surface() : 0;
+
+    if (surface)
+        filter = surface->supportedPixelFormats();
+
+    for (NSObject *obj in pixelFormats) {
+        if (![obj isKindOfClass:[NSNumber class]])
+            continue;
+
+        NSNumber *formatAsNSNumber = static_cast<NSNumber *>(obj);
+        // It's actually FourCharCode (== UInt32):
+        const QVideoFrame::PixelFormat qtFormat(QtPixelFormatFromCVFormat([formatAsNSNumber unsignedIntValue]));
+        if (qtFormat != QVideoFrame::Format_Invalid && (!surface || filter.contains(qtFormat))
+            && !qtFormats.contains(qtFormat)) { // Can happen, for example, with 8BiPlanar existing in video/full range.
+            qtFormats << qtFormat;
+        }
+    }
+
+    return qtFormats;
+}
+
+bool AVFCameraViewfinderSettingsControl2::convertPixelFormatIfSupported(QVideoFrame::PixelFormat qtFormat,
+                                                                        unsigned &avfFormat)const
 {
     Q_ASSERT(m_videoOutput);
 
@@ -479,17 +496,25 @@ bool AVFCameraViewfinderSettingsControl2::convertPixelFormatIfSupported(QVideoFr
     if (!formats || !formats.count)
         return false;
 
+    if (m_service->videoOutput() && m_service->videoOutput()->surface()) {
+        const QAbstractVideoSurface *surface = m_service->videoOutput()->surface();
+        if (!surface->supportedPixelFormats().contains(qtFormat))
+            return false;
+    }
+
+    bool found = false;
     for (NSObject *obj in formats) {
         if (![obj isKindOfClass:[NSNumber class]])
             continue;
+
         NSNumber *nsNum = static_cast<NSNumber *>(obj);
         if ([nsNum unsignedIntValue] == conv) {
             avfFormat = conv;
-            return true;
+            found = true;
         }
     }
 
-    return false;
+    return found;
 }
 
 void AVFCameraViewfinderSettingsControl2::applySettings()

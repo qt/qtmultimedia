@@ -33,8 +33,12 @@
 
 #include "qsamplecache_p.h"
 #include "qwavedecoder_p.h"
-#include <QtNetwork>
 
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkRequest>
+
+#include <QtCore/QDebug>
 //#define QT_SAMPLECACHE_DEBUG
 
 QT_BEGIN_NAMESPACE

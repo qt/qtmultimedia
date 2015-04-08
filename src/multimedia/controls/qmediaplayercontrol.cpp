@@ -315,6 +315,11 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
     Setting the media to a null QMediaContent will cause the control to discard all
     information relating to the current media source and to cease all I/O operations related
     to that media.
+
+    Qt resource files are never passed as is. If the service supports
+    QMediaServiceProviderHint::StreamPlayback, a \a stream is supplied, pointing to an opened
+    QFile. Otherwise, the resource is copied into a temporary file and \a media contains the
+    url to that file.
 */
 
 /*!

@@ -116,7 +116,6 @@ private:
     void pushState();
     void popAndNotifyState();
 
-    bool m_ownStream;
     QGstreamerPlayerSession *m_session;
     QMediaPlayer::State m_userRequestedState;
     QMediaPlayer::State m_currentState;

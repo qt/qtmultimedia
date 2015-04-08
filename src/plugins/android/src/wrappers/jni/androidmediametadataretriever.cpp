@@ -83,15 +83,14 @@ void AndroidMediaMetadataRetriever::release()
     m_metadataRetriever.callMethod<void>("release");
 }
 
-bool AndroidMediaMetadataRetriever::setDataSource(const QString &urlString)
+bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
 {
     if (!m_metadataRetriever.isValid())
         return false;
 
     QJNIEnvironmentPrivate env;
-    QUrl url(urlString);
 
-    if (url.isLocalFile()) { // also includes qrc files (copied to a temp file)
+    if (url.isLocalFile()) { // also includes qrc files (copied to a temp file by QMediaPlayer)
         QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.path());
         QJNIObjectPrivate fileInputStream("java/io/FileInputStream",
                                           "(Ljava/lang/String;)V",
@@ -153,7 +152,7 @@ bool AndroidMediaMetadataRetriever::setDataSource(const QString &urlString)
             return false;
     } else if (QtAndroidPrivate::androidSdkVersion() >= 14) {
         // On API levels >= 14, only setDataSource(String, Map<String, String>) accepts remote media
-        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(urlString);
+        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.toString(QUrl::FullyEncoded));
         QJNIObjectPrivate hash("java/util/HashMap");
 
         m_metadataRetriever.callMethod<void>("setDataSource",
@@ -165,7 +164,7 @@ bool AndroidMediaMetadataRetriever::setDataSource(const QString &urlString)
     } else {
         // While on API levels < 14, only setDataSource(Context, Uri) is available and works for
         // remote media...
-        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(urlString);
+        QJNIObjectPrivate string = QJNIObjectPrivate::fromString(url.toString(QUrl::FullyEncoded));
         QJNIObjectPrivate uri = m_metadataRetriever.callStaticObjectMethod("android/net/Uri",
                                                                            "parse",
                                                                            "(Ljava/lang/String;)Landroid/net/Uri;",

@@ -72,7 +72,7 @@ public:
 
     QString extractMetadata(MetadataKey key);
     void release();
-    bool setDataSource(const QString &url);
+    bool setDataSource(const QUrl &url);
 
 private:
     QJNIObjectPrivate m_metadataRetriever;

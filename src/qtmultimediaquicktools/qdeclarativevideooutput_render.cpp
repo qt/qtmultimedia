@@ -444,10 +444,6 @@ void QSGVideoItemSurface::stop()
 
 bool QSGVideoItemSurface::present(const QVideoFrame &frame)
 {
-    if (!frame.isValid()) {
-        qWarning() << Q_FUNC_INFO << "I'm getting bad frames here...";
-        return false;
-    }
     m_backend->present(frame);
     return true;
 }

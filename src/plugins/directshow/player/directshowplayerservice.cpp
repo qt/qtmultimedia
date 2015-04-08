@@ -289,15 +289,6 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             fileSource->Release();
             locker->relock();
         }
-    } else if (m_url.scheme() == QLatin1String("qrc")) {
-        DirectShowRcSource *rcSource = new DirectShowRcSource(m_loop);
-
-        locker->unlock();
-        if (rcSource->open(m_url) && SUCCEEDED(hr = m_graph->AddFilter(rcSource, L"Source")))
-            source = rcSource;
-        else
-            rcSource->Release();
-        locker->relock();
     }
 
     if (!SUCCEEDED(hr)) {

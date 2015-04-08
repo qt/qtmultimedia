@@ -605,21 +605,3 @@ HRESULT DirectShowIOSource::QueryDirection(PIN_DIRECTION *pPinDir)
         return S_OK;
     }
 }
-
-DirectShowRcSource::DirectShowRcSource(DirectShowEventLoop *loop)
-    : DirectShowIOSource(loop)
-{
-}
-
-bool DirectShowRcSource::open(const QUrl &url)
-{
-    m_file.moveToThread(QCoreApplication::instance()->thread());
-    m_file.setFileName(QLatin1Char(':') + url.path());
-
-    if (m_file.open(QIODevice::ReadOnly)) {
-        setDevice(&m_file);
-        return true;
-    } else {
-        return false;
-    }
-}

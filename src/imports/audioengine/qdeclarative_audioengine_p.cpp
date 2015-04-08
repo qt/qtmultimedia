@@ -373,6 +373,7 @@ void QDeclarativeAudioEngine::appendFunction(QQmlListProperty<QObject> *property
         if (category->name() == QLatin1String("default")) {
             engine->m_defaultCategory = category;
         }
+        return;
     }
 
     QDeclarativeAttenuationModel *attenModel = qobject_cast<QDeclarativeAttenuationModel*>(value);
