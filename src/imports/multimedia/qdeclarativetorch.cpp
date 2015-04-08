@@ -74,7 +74,7 @@ QDeclarativeTorch::QDeclarativeTorch(QObject *parent)
     m_flash = service ? service->requestControl<QCameraFlashControl*>() : 0;
 
     if (m_exposure)
-        connect(m_exposure, SIGNAL(valueChanged(int)), SLOT(parameterChanged(int)));
+        connect(m_exposure, SIGNAL(actualValueChanged(int)), SLOT(parameterChanged(int)));
 
     // XXX There's no signal for flash mode changed
 }
