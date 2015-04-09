@@ -52,6 +52,7 @@ struct AVFCameraInfo
     AVFCameraInfo() : position(QCamera::UnspecifiedPosition), orientation(0)
     { }
 
+    QByteArray deviceId;
     QString description;
     QCamera::Position position;
     int orientation;
@@ -64,8 +65,8 @@ public:
     AVFCameraSession(AVFCameraService *service, QObject *parent = 0);
     ~AVFCameraSession();
 
-    static const QByteArray &defaultCameraDevice();
-    static const QList<QByteArray> &availableCameraDevices();
+    static int defaultCameraIndex();
+    static const QList<AVFCameraInfo> &availableCameraDevices();
     static AVFCameraInfo cameraDeviceInfo(const QByteArray &device);
 
     void setVideoOutput(AVFVideoRendererControl *output);
@@ -93,9 +94,8 @@ private:
     static void updateCameraDevices();
     void attachInputDevices();
 
-    static QByteArray m_defaultCameraDevice;
-    static QList<QByteArray> m_cameraDevices;
-    static QMap<QByteArray, AVFCameraInfo> m_cameraInfo;
+    static int m_defaultCameraIndex;
+    static QList<AVFCameraInfo> m_cameraDevices;
 
     AVFCameraService *m_service;
     AVFVideoRendererControl *m_videoOutput;
