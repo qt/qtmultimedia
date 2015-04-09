@@ -340,7 +340,7 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
         if (!file->open(QFile::ReadOnly)) {
             QMetaObject::invokeMethod(q, "_q_error", Qt::QueuedConnection,
                                       Q_ARG(int, QMediaPlayer::ResourceError),
-                                      Q_ARG(QString, QObject::tr("Attempting to play invalid Qt resource")));
+                                      Q_ARG(QString, QMediaPlayer::tr("Attempting to play invalid Qt resource")));
             QMetaObject::invokeMethod(q, "_q_mediaStatusChanged", Qt::QueuedConnection,
                                       Q_ARG(QMediaPlayer::MediaStatus, QMediaPlayer::InvalidMedia));
             file.reset();
