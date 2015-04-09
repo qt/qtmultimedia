@@ -39,7 +39,6 @@
 #include "dsvideodevicecontrol.h"
 
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
-#include <QtCore/QElapsedTimer>
 #include <dshow.h>
 #include "dscameraservice.h"
 #endif
@@ -122,9 +121,9 @@ QByteArray DSServicePlugin::defaultDevice(const QByteArray &service) const
 {
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
-        updateDevices();
-
-        return m_defaultCameraDevice;
+        const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
+        if (!devs.isEmpty())
+            return devs.first().first;
     }
 #endif
 
@@ -133,52 +132,29 @@ QByteArray DSServicePlugin::defaultDevice(const QByteArray &service) const
 
 QList<QByteArray> DSServicePlugin::devices(const QByteArray &service) const
 {
+    QList<QByteArray> result;
+
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
-        updateDevices();
-
-        return m_cameraDevices;
+        const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
+        Q_FOREACH (const DSVideoDeviceInfo &info, devs)
+            result.append(info.first);
     }
 #endif
 
-    return QList<QByteArray>();
+    return result;
 }
 
 QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
-        updateDevices();
-
-        for (int i=0; i<m_cameraDevices.count(); i++)
-            if (m_cameraDevices[i] == device)
-                return m_cameraDescriptions[i];
+        const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
+        Q_FOREACH (const DSVideoDeviceInfo &info, devs) {
+            if (info.first == device)
+                return info.second;
+        }
     }
 #endif
     return QString();
 }
-
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
-
-void DSServicePlugin::updateDevices() const
-{
-    static QElapsedTimer timer;
-    if (timer.isValid() && timer.elapsed() < 500) // ms
-        return;
-
-    addRefCount();
-
-    m_defaultCameraDevice.clear();
-    DSVideoDeviceControl::enumerateDevices(&m_cameraDevices, &m_cameraDescriptions);
-
-    if (m_cameraDevices.isEmpty()) {
-        qWarning() << "No camera devices found";
-    } else {
-        m_defaultCameraDevice = m_cameraDevices.first();
-    }
-
-    releaseRefCount();
-    timer.restart();
-}
-#endif
-
