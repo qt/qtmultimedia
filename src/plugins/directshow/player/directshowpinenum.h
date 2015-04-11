@@ -42,7 +42,7 @@ class DirectShowPinEnum : public IEnumPins
 {
 public:
     DirectShowPinEnum(const QList<IPin *> &pins);
-    ~DirectShowPinEnum();
+    virtual ~DirectShowPinEnum();
 
     // IUnknown
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);

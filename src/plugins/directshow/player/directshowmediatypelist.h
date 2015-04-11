@@ -42,6 +42,7 @@ class DirectShowMediaTypeList : public IUnknown
 {
 public:
     DirectShowMediaTypeList();
+    virtual ~DirectShowMediaTypeList();
 
     IEnumMediaTypes *createMediaTypeEnum();
 
