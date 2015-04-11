@@ -89,7 +89,12 @@ public:
     {
         if (m_sample)
             m_sample->release();
-        alDeleteBuffers(1, &m_alBuffer);
+
+        if (m_alBuffer != 0) {
+            alGetError(); // clear error
+            alDeleteBuffers(1, &m_alBuffer);
+            QAudioEnginePrivate::checkNoError("delete buffer");
+        }
     }
 
     void bindToSource(ALuint alSource)
@@ -160,25 +165,34 @@ public Q_SLOTS:
 
         alGenBuffers(1, &m_alBuffer);
         if (!QAudioEnginePrivate::checkNoError("create buffer")) {
+            decoderError();
             return;
         }
         alBufferData(m_alBuffer, alFormat, m_sample->data().data(),
                      m_sample->data().size(), m_sample->format().sampleRate());
 
         if (!QAudioEnginePrivate::checkNoError("fill buffer")) {
+            decoderError();
             return;
         }
-        m_isReady = true;
-        emit ready();
 
         m_sample->release();
         m_sample = 0;
+
+        m_isReady = true;
+        emit ready();
     }
 
     void decoderError()
     {
         qWarning() << "loading [" << m_url << "] failed";
+
         disconnect(m_sample, SIGNAL(error()), this, SLOT(decoderError()));
+        disconnect(m_sample, SIGNAL(ready()), this, SLOT(sampleReady()));
+
+        m_sample->release();
+        m_sample = 0;
+
         emit error();
     }
 
@@ -245,7 +259,6 @@ QAudioEnginePrivate::~QAudioEnginePrivate()
 #ifdef DEBUG_AUDIOENGINE
     qDebug() << "QAudioEnginePrivate::dtor";
 #endif
-    delete m_sampleLoader;
     QObjectList children = this->children();
     foreach (QObject *child, children) {
         QSoundSourcePrivate* s = qobject_cast<QSoundSourcePrivate*>(child);
@@ -258,6 +271,8 @@ QAudioEnginePrivate::~QAudioEnginePrivate()
         delete buffer;
     }
     m_staticBufferPool.clear();
+
+    delete m_sampleLoader;
 
     ALCcontext* context = alcGetCurrentContext();
     ALCdevice *device = alcGetContextsDevice(context);
