@@ -169,13 +169,14 @@ void QDeclarativeSoundCone::componentComplete()
 
             Sound {
                 name:"explosion"
+                playType: Sound.Random
                 PlayVariation {
                     sample:"explosion01"
                     minPitch: 0.8
                     maxPitch: 1.1
                 }
                 PlayVariation {
-                    sample:"explosion01"
+                    sample:"explosion02"
                     minGain: 1.1
                     maxGain: 1.5
                 }
