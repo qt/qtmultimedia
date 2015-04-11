@@ -99,6 +99,9 @@ void DirectShowIOSource::setDevice(QIODevice *device)
 
 void DirectShowIOSource::setAllocator(IMemAllocator *allocator)
 {
+    if (m_allocator == allocator)
+        return;
+
     if (m_allocator)
         m_allocator->Release();
 
