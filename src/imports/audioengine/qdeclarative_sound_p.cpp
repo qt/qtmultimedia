@@ -320,7 +320,7 @@ QDeclarativePlayVariation* QDeclarativeSound::getVariation(int index)
     return m_playlist[index];
 }
 
-void QDeclarativeSound::setAttenuationModel(QString attenuationModel)
+void QDeclarativeSound::setAttenuationModel(const QString &attenuationModel)
 {
     if (m_complete) {
         qWarning("Sound: attenuationModel not changeable after initialization.");
