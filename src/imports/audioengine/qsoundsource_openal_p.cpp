@@ -85,7 +85,7 @@ void QSoundSourcePrivate::release()
 void QSoundSourcePrivate::bindBuffer(QSoundBuffer* soundBuffer)
 {
     unbindBuffer();
-    Q_ASSERT(soundBuffer->isReady());
+    Q_ASSERT(soundBuffer->state() == QSoundBuffer::Ready);
     m_bindBuffer = qobject_cast<QSoundBufferPrivateAL*>(soundBuffer);
     m_bindBuffer->bindToSource(m_alSource);
     m_isReady = true;

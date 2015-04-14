@@ -74,8 +74,9 @@ public:
     StaticSoundBufferAL(QObject *parent, const QUrl &url, QSampleCache *sampleLoader);
     ~StaticSoundBufferAL();
 
+    State state() const Q_DECL_OVERRIDE;
+
     void load() Q_DECL_OVERRIDE;
-    bool isReady() const Q_DECL_OVERRIDE;
 
     void bindToSource(ALuint alSource) Q_DECL_OVERRIDE;
     void unbindFromSource(ALuint alSource) Q_DECL_OVERRIDE;
@@ -92,7 +93,7 @@ private:
     long m_ref;
     QUrl m_url;
     ALuint m_alBuffer;
-    bool m_isReady;
+    State m_state;
     QSample *m_sample;
     QSampleCache *m_sampleLoader;
 };

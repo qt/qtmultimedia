@@ -153,7 +153,7 @@ bool QDeclarativeAudioSample::isLoaded() const
 {
     if (!m_soundBuffer)
         return false;
-    return m_soundBuffer->isReady();
+    return m_soundBuffer->state() == QSoundBuffer::Ready;
 }
 
 /*!
@@ -163,13 +163,12 @@ bool QDeclarativeAudioSample::isLoaded() const
 */
 void QDeclarativeAudioSample::load()
 {
-    if (isLoaded())
-        return;
     if (!m_soundBuffer) {
         m_preloaded = true;
         return;
     }
-    m_soundBuffer->load();
+    if (m_soundBuffer->state() != QSoundBuffer::Loading && m_soundBuffer->state() != QSoundBuffer::Ready)
+        m_soundBuffer->load();
 }
 
 void QDeclarativeAudioSample::setPreloaded(bool preloaded)
@@ -218,7 +217,7 @@ void QDeclarativeAudioSample::init()
     } else {
         m_soundBuffer =
             qobject_cast<QDeclarativeAudioEngine*>(parent())->engine()->getStaticSoundBuffer(m_url);
-        if (m_soundBuffer->isReady()) {
+        if (m_soundBuffer->state() == QSoundBuffer::Ready) {
             emit loadedChanged();
         } else {
             connect(m_soundBuffer, SIGNAL(ready()), this, SIGNAL(loadedChanged()));

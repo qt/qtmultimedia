@@ -58,7 +58,7 @@ StaticSoundBufferAL::StaticSoundBufferAL(QObject *parent, const QUrl &url, QSamp
       m_ref(1),
       m_url(url),
       m_alBuffer(0),
-      m_isReady(false),
+      m_state(Creating),
       m_sample(0),
       m_sampleLoader(sampleLoader)
 {
@@ -79,10 +79,19 @@ StaticSoundBufferAL::~StaticSoundBufferAL()
     }
 }
 
+QSoundBuffer::State StaticSoundBufferAL::state() const
+{
+    return m_state;
+}
+
 void StaticSoundBufferAL::load()
 {
-    if (m_sample)
+    if (m_state == Loading || m_state == Ready)
         return;
+
+    m_state = Loading;
+    emit stateChanged(m_state);
+
     m_sample = m_sampleLoader->requestSample(m_url);
     connect(m_sample, SIGNAL(error()), this, SLOT(decoderError()));
     connect(m_sample, SIGNAL(ready()), this, SLOT(sampleReady()));
@@ -96,11 +105,6 @@ void StaticSoundBufferAL::load()
     default:
         break;
     }
-}
-
-bool StaticSoundBufferAL::isReady() const
-{
-    return m_isReady;
 }
 
 void StaticSoundBufferAL::bindToSource(ALuint alSource)
@@ -162,7 +166,8 @@ void StaticSoundBufferAL::sampleReady()
     m_sample->release();
     m_sample = 0;
 
-    m_isReady = true;
+    m_state = Ready;
+    emit stateChanged(m_state);
     emit ready();
 }
 
@@ -176,6 +181,8 @@ void StaticSoundBufferAL::decoderError()
     m_sample->release();
     m_sample = 0;
 
+    m_state = Error;
+    emit stateChanged(m_state);
     emit error();
 }
 
