@@ -45,8 +45,7 @@
 #ifndef QWINDOWSAUDIOOUTPUT_H
 #define QWINDOWSAUDIOOUTPUT_H
 
-#include <QtCore/qt_windows.h>
-#include <mmsystem.h>
+#include "qwindowsaudioutils.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qtimer.h>
@@ -132,7 +131,7 @@ private:
     bool open();
     void close();
 
-    WAVEFORMATEX wfx;
+    WAVEFORMATEXTENSIBLE wfx;
     HWAVEOUT hWaveOut;
     MMRESULT result;
     WAVEHDR header;

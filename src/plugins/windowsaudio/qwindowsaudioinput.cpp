@@ -298,18 +298,9 @@ bool QWindowsAudioInput::open()
 
     period_size = 0;
 
-    if (!settings.isValid()) {
+    if (!qt_convertFormat(settings, &wfx)) {
         qWarning("QAudioInput: open error, invalid format.");
-    } else if (settings.channelCount() <= 0) {
-        qWarning("QAudioInput: open error, invalid number of channels (%d).",
-                 settings.channelCount());
-    } else if (settings.sampleSize() <= 0) {
-        qWarning("QAudioInput: open error, invalid sample size (%d).",
-                 settings.sampleSize());
-    } else if (settings.sampleRate() < 8000 || settings.sampleRate() > 96000) {
-        qWarning("QAudioInput: open error, sample rate out of range (%d).", settings.sampleRate());
     } else if (buffer_size == 0) {
-
         buffer_size
                 = (settings.sampleRate()
                 * settings.channelCount()
@@ -329,20 +320,12 @@ bool QWindowsAudioInput::open()
 
     timeStamp.restart();
     elapsedTimeOffset = 0;
-    wfx.nSamplesPerSec = settings.sampleRate();
-    wfx.wBitsPerSample = settings.sampleSize();
-    wfx.nChannels = settings.channelCount();
-    wfx.cbSize = 0;
-
-    wfx.wFormatTag = WAVE_FORMAT_PCM;
-    wfx.nBlockAlign = (wfx.wBitsPerSample >> 3) * wfx.nChannels;
-    wfx.nAvgBytesPerSec = wfx.nBlockAlign * wfx.nSamplesPerSec;
 
     QDataStream ds(&m_device, QIODevice::ReadOnly);
     quint32 deviceId;
     ds >> deviceId;
 
-    if (waveInOpen(&hWaveIn, UINT_PTR(deviceId), &wfx,
+    if (waveInOpen(&hWaveIn, UINT_PTR(deviceId), &wfx.Format,
                 (DWORD_PTR)&waveInProc,
                 (DWORD_PTR) this,
                 CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {

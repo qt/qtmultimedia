@@ -153,27 +153,6 @@ Camera {
     \endqml
 */
 
-namespace QDeclarativeMultimedia {
-
-#define FREEZE_SOURCE "(function deepFreeze(o) { "\
-                      "    var prop, propKey;" \
-                      "    Object.freeze(o);" \
-                      "    for (propKey in o) {" \
-                      "        prop = o[propKey];" \
-                      "        if (!o.hasOwnProperty(propKey) || !(typeof prop === \"object\") || " \
-                      "            Object.isFrozen(prop)) {" \
-                      "            continue;" \
-                      "        }" \
-                      "        deepFreeze(prop);" \
-                      "    }" \
-                      "})"
-
-static void deepFreeze(QJSEngine *jsEngine, const QJSValue &obj)
-{
-    QJSValue freezeFunc = jsEngine->evaluate(QString::fromUtf8(FREEZE_SOURCE));
-    freezeFunc.call(QJSValueList() << obj);
-}
-
 static QJSValue cameraInfoToJSValue(QJSEngine *jsEngine, const QCameraInfo &camera)
 {
     QJSValue o = jsEngine->newObject();
@@ -184,29 +163,24 @@ static QJSValue cameraInfoToJSValue(QJSEngine *jsEngine, const QCameraInfo &came
     return o;
 }
 
-QJSValue initGlobalObject(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
+QDeclarativeMultimediaGlobal::QDeclarativeMultimediaGlobal(QJSEngine *engine, QObject *parent)
+    : QObject(parent)
+    , m_engine(engine)
 {
-    Q_UNUSED(qmlEngine)
-
-    QJSValue globalObject = jsEngine->newObject();
-
-    // property object defaultCamera
-    globalObject.setProperty(QStringLiteral("defaultCamera"),
-                             cameraInfoToJSValue(jsEngine, QCameraInfo::defaultCamera()));
-
-    // property list<object> availableCameras
-    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
-    QJSValue availableCameras = jsEngine->newArray(cameras.count());
-    for (int i = 0; i < cameras.count(); ++i)
-        availableCameras.setProperty(i, cameraInfoToJSValue(jsEngine, cameras.at(i)));
-    globalObject.setProperty(QStringLiteral("availableCameras"), availableCameras);
-
-    // freeze global object to prevent properties to be modified from QML
-    deepFreeze(jsEngine, globalObject);
-
-    return globalObject;
 }
 
+QJSValue QDeclarativeMultimediaGlobal::defaultCamera() const
+{
+    return cameraInfoToJSValue(m_engine, QCameraInfo::defaultCamera());
+}
+
+QJSValue QDeclarativeMultimediaGlobal::availableCameras() const
+{
+    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    QJSValue availableCameras = m_engine->newArray(cameras.count());
+    for (int i = 0; i < cameras.count(); ++i)
+        availableCameras.setProperty(i, cameraInfoToJSValue(m_engine, cameras.at(i)));
+    return availableCameras;
 }
 
 QT_END_NAMESPACE

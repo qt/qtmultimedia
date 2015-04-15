@@ -36,6 +36,10 @@
 #import <AVFoundation/AVAudioSession.h>
 #import <Foundation/Foundation.h>
 
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+#include <AudioToolbox/AudioToolbox.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 @interface CoreAudioSessionObserver : NSObject
@@ -71,19 +75,24 @@ QT_BEGIN_NAMESPACE
         self->m_sessionManager = sessionManager;
         self->m_audioSession = [AVAudioSession sharedInstance];
 
-        //Set up observers
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(audioSessionInterruption:)
-                                                     name:AVAudioSessionInterruptionNotification
-                                                   object:self->m_audioSession];
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(audioSessionMediaServicesWereReset:)
-                                                     name:AVAudioSessionMediaServicesWereResetNotification
-                                                   object:self->m_audioSession];
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(audioSessionRouteChange:)
-                                                     name:AVAudioSessionRouteChangeNotification
-                                                   object:self->m_audioSession];
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+        if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_6_0)
+#endif
+        {
+            //Set up observers
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(audioSessionInterruption:)
+                                                         name:AVAudioSessionInterruptionNotification
+                                                       object:self->m_audioSession];
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(audioSessionMediaServicesWereReset:)
+                                                         name:AVAudioSessionMediaServicesWereResetNotification
+                                                       object:self->m_audioSession];
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(audioSessionRouteChange:)
+                                                         name:AVAudioSessionRouteChangeNotification
+                                                       object:self->m_audioSession];
+        }
 
         return self;
 }
@@ -93,15 +102,22 @@ QT_BEGIN_NAMESPACE
 #ifdef QT_DEBUG_COREAUDIO
     qDebug() << Q_FUNC_INFO;
 #endif
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVAudioSessionInterruptionNotification
-                                                  object:self->m_audioSession];
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVAudioSessionMediaServicesWereResetNotification
-                                                  object:self->m_audioSession];
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVAudioSessionRouteChangeNotification
-                                                  object:self->m_audioSession];
+
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_6_0)
+#endif
+    {
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:AVAudioSessionInterruptionNotification
+                                                      object:self->m_audioSession];
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:AVAudioSessionMediaServicesWereResetNotification
+                                                      object:self->m_audioSession];
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:AVAudioSessionRouteChangeNotification
+                                                      object:self->m_audioSession];
+    }
+
     [super dealloc];
 }
 
@@ -261,6 +277,9 @@ bool CoreAudioSessionManager::setCategory(CoreAudioSessionManager::AudioSessionC
         targetCategory = AVAudioSessionCategoryAudioProcessing;
         break;
     case CoreAudioSessionManager::MultiRoute:
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+        if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_6_0)
+#endif
         targetCategory = AVAudioSessionCategoryMultiRoute;
         break;
     }
@@ -268,9 +287,16 @@ bool CoreAudioSessionManager::setCategory(CoreAudioSessionManager::AudioSessionC
     if (targetCategory == nil)
         return false;
 
-    return [[m_sessionObserver audioSession] setCategory:targetCategory
-                                             withOptions:(AVAudioSessionCategoryOptions)options
-                                                   error:nil];
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+    if (QSysInfo::MacintoshVersion < QSysInfo::MV_IOS_6_0) {
+        return [[m_sessionObserver audioSession] setCategory:targetCategory error:nil];
+    } else
+#endif
+    {
+        return [[m_sessionObserver audioSession] setCategory:targetCategory
+                                                 withOptions:(AVAudioSessionCategoryOptions)options
+                                                       error:nil];
+    }
 }
 
 bool CoreAudioSessionManager::setMode(CoreAudioSessionManager::AudioSessionModes mode)
@@ -293,6 +319,9 @@ bool CoreAudioSessionManager::setMode(CoreAudioSessionManager::AudioSessionModes
         targetMode = AVAudioSessionModeMeasurement;
         break;
     case CoreAudioSessionManager::MoviePlayback:
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+        if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_6_0)
+#endif
         targetMode = AVAudioSessionModeMoviePlayback;
         break;
     }
@@ -321,7 +350,11 @@ CoreAudioSessionManager::AudioSessionCategorys CoreAudioSessionManager::category
         localCategory = PlayAndRecord;
     } else if (category == AVAudioSessionCategoryAudioProcessing) {
         localCategory = AudioProcessing;
-    } else if (category == AVAudioSessionCategoryMultiRoute) {
+    } else if (
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+               QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_6_0 &&
+#endif
+               category == AVAudioSessionCategoryMultiRoute) {
         localCategory = MultiRoute;
     }
 
@@ -343,7 +376,11 @@ CoreAudioSessionManager::AudioSessionModes CoreAudioSessionManager::mode()
         localMode = VideoRecording;
     } else if (mode == AVAudioSessionModeMeasurement) {
         localMode = Measurement;
-    } else if (mode == AVAudioSessionModeMoviePlayback) {
+    } else if (
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+               QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_6_0 &&
+#endif
+               mode == AVAudioSessionModeMoviePlayback) {
         localMode = MoviePlayback;
     }
 
@@ -372,12 +409,32 @@ QList<QByteArray> CoreAudioSessionManager::outputDevices()
 
 float CoreAudioSessionManager::currentIOBufferDuration()
 {
-    return [[m_sessionObserver audioSession] IOBufferDuration];
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+    if (QSysInfo::MacintoshVersion < QSysInfo::MV_IOS_6_0) {
+        Float32 duration;
+        UInt32 size = sizeof(duration);
+        AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareIOBufferDuration, &size, &duration);
+        return duration;
+    } else
+#endif
+    {
+        return [[m_sessionObserver audioSession] IOBufferDuration];
+    }
 }
 
 float CoreAudioSessionManager::preferredSampleRate()
 {
-    return [[m_sessionObserver audioSession] preferredSampleRate];
+#if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
+    if (QSysInfo::MacintoshVersion < QSysInfo::MV_IOS_6_0) {
+        Float64 sampleRate;
+        UInt32 size = sizeof(sampleRate);
+        AudioSessionGetProperty(kAudioSessionProperty_PreferredHardwareSampleRate, &size, &sampleRate);
+        return sampleRate;
+    } else
+#endif
+    {
+        return [[m_sessionObserver audioSession] preferredSampleRate];
+    }
 }
 
 #ifdef QT_DEBUG_COREAUDIO

@@ -65,15 +65,6 @@ public:
     QByteArray defaultDevice(const QByteArray &service) const;
     QList<QByteArray> devices(const QByteArray &service) const;
     QString deviceDescription(const QByteArray &service, const QByteArray &device);
-
-private:
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
-    void updateDevices() const;
-
-    mutable QByteArray m_defaultCameraDevice;
-    mutable QList<QByteArray> m_cameraDevices;
-    mutable QStringList m_cameraDescriptions;
-#endif
 };
 
 #endif // DSSERVICEPLUGIN_H

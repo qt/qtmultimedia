@@ -195,17 +195,6 @@ void MFAudioDecoderControl::handleMediaSourceReady()
     if (mediaType) {
         m_sourceOutputFormat = m_audioFormat;
         QAudioFormat af = m_audioFormat;
-        GUID subType;
-        if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subType))) {
-            if (subType == MFAudioFormat_Float) {
-                m_sourceOutputFormat.setSampleType(QAudioFormat::Float);
-            } else {
-                m_sourceOutputFormat.setSampleType(QAudioFormat::SignedInt);
-            }
-        }
-        if (m_sourceOutputFormat.sampleType() != QAudioFormat::Float) {
-            m_sourceOutputFormat.setByteOrder(QAudioFormat::LittleEndian);
-        }
 
         UINT32 val = 0;
         if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &val))) {
@@ -216,6 +205,20 @@ void MFAudioDecoderControl::handleMediaSourceReady()
         }
         if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &val))) {
             m_sourceOutputFormat.setSampleSize(int(val));
+        }
+
+        GUID subType;
+        if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subType))) {
+            if (subType == MFAudioFormat_Float) {
+                m_sourceOutputFormat.setSampleType(QAudioFormat::Float);
+            } else if (m_sourceOutputFormat.sampleSize() == 8) {
+                m_sourceOutputFormat.setSampleType(QAudioFormat::UnSignedInt);
+            } else {
+                m_sourceOutputFormat.setSampleType(QAudioFormat::SignedInt);
+            }
+        }
+        if (m_sourceOutputFormat.sampleType() != QAudioFormat::Float) {
+            m_sourceOutputFormat.setByteOrder(QAudioFormat::LittleEndian);
         }
 
         if (m_audioFormat.sampleType() != QAudioFormat::Float
