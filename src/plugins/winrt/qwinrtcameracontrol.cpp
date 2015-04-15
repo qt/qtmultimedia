@@ -48,6 +48,11 @@
 #include <windows.media.capture.h>
 #include <windows.storage.streams.h>
 
+#ifdef Q_OS_WINPHONE
+#include <Windows.Security.ExchangeActiveSyncProvisioning.h>
+using namespace ABI::Windows::Security::ExchangeActiveSyncProvisioning;
+#endif
+
 using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;
 using namespace ABI::Windows::Devices::Enumeration;
@@ -85,9 +90,21 @@ private:
 
 class MediaStream : public RuntimeClass<RuntimeClassFlags<WinRtClassicComMix>, IMFStreamSink, IMFMediaEventGenerator, IMFMediaTypeHandler>
 {
+    enum Flags { NoFlag = 0, BufferLockRequired = 1 };
+
+    template <int n>
+    static Flags bufferLockRequired(const wchar_t (&blackListName)[n], const HString &deviceModel)
+    {
+        quint32 deviceNameLength;
+        const wchar_t *deviceName = deviceModel.GetRawBuffer(&deviceNameLength);
+        if (n - 1 <= deviceNameLength && !wmemcmp(blackListName, deviceName, n - 1))
+            return BufferLockRequired;
+        return NoFlag;
+    }
+
 public:
     MediaStream(IMFMediaType *type, IMFMediaSink *mediaSink, QWinRTCameraVideoRendererControl *videoRenderer)
-        : m_type(type), m_sink(mediaSink), m_videoRenderer(videoRenderer)
+        : m_type(type), m_sink(mediaSink), m_videoRenderer(videoRenderer), m_flags(NoFlag)
     {
         Q_ASSERT(m_videoRenderer);
 
@@ -98,6 +115,18 @@ public:
         Q_ASSERT_SUCCEEDED(hr);
         hr = MFAllocateSerialWorkQueue(MFASYNC_CALLBACK_QUEUE_STANDARD, &m_workQueueId);
         Q_ASSERT_SUCCEEDED(hr);
+
+#ifdef Q_OS_WINPHONE
+        // Workaround for certain devices which fail to blit software buffers without first mapping them
+        ComPtr<IEasClientDeviceInformation> deviceInfo;
+        hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Security_ExchangeActiveSyncProvisioning_EasClientDeviceInformation).Get(),
+                                &deviceInfo);
+        Q_ASSERT_SUCCEEDED(hr);
+        HString deviceModel;
+        hr = deviceInfo->get_SystemSku(deviceModel.GetAddressOf());
+        Q_ASSERT_SUCCEEDED(hr);
+        m_flags |= bufferLockRequired(L"NOKIA RM-976", deviceModel);
+#endif
     }
 
     ~MediaStream()
@@ -171,6 +200,16 @@ public:
         hr = buffer.As(&buffer2d);
         RETURN_HR_IF_FAILED("Failed to cast camera sample buffer to 2D buffer");
 
+#ifdef Q_OS_WINPHONE
+        if (m_flags & BufferLockRequired) {
+            BYTE *bytes;
+            LONG stride;
+            hr = buffer2d->Lock2D(&bytes, &stride);
+            RETURN_HR_IF_FAILED("Failed to lock camera frame buffer");
+            hr = buffer2d->Unlock2D();
+            RETURN_HR_IF_FAILED("Failed to unlock camera frame buffer");
+        }
+#endif
         m_pendingSamples.deref();
         m_videoRenderer->queueBuffer(buffer2d.Get());
 
@@ -244,6 +283,7 @@ private:
 
     QWinRTCameraVideoRendererControl *m_videoRenderer;
     QAtomicInt m_pendingSamples;
+    quint32 m_flags;
 };
 
 class MediaSink : public RuntimeClass<RuntimeClassFlags<WinRtClassicComMix>, IMediaExtension, IMFMediaSink, IMFClockStateSink>
