@@ -389,7 +389,8 @@ void MFAudioDecoderControl::handleSampleAdded()
             s->Release();
         }
     }
-    m_cachedAudioBuffer = QAudioBuffer(abuf, m_audioFormat, qint64(sampleStartTime / 10000));
+    // WMF uses 100-nanosecond units, QAudioDecoder uses milliseconds, QAudioBuffer uses microseconds...
+    m_cachedAudioBuffer = QAudioBuffer(abuf, m_audioFormat, qint64(sampleStartTime / 10));
     m_bufferReady = true;
     emit positionChanged(m_position);
     emit bufferAvailableChanged(m_bufferReady);
