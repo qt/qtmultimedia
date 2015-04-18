@@ -45,8 +45,7 @@
 #ifndef QWINDOWSAUDIOINPUT_H
 #define QWINDOWSAUDIOINPUT_H
 
-#include <QtCore/qt_windows.h>
-#include <mmsystem.h>
+#include "qwindowsaudioutils.h"
 
 #include <QtCore/qfile.h>
 #include <QtCore/qdebug.h>
@@ -121,7 +120,7 @@ private:
     qint64 totalTimeValue;
     bool pullMode;
     bool resuming;
-    WAVEFORMATEX wfx;
+    WAVEFORMATEXTENSIBLE wfx;
     HWAVEIN hWaveIn;
     MMRESULT result;
     WAVEHDR* waveBlocks;

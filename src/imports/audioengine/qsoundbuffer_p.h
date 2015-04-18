@@ -41,11 +41,22 @@ QT_BEGIN_NAMESPACE
 class QSoundBuffer : public QObject
 {
     Q_OBJECT
+
 public:
-    virtual bool isReady() const = 0;
+    enum State
+    {
+        Creating,
+        Loading,
+        Error,
+        Ready
+    };
+
+    virtual State state() const = 0;
+
     virtual void load() = 0;
 
 Q_SIGNALS:
+    void stateChanged(State state);
     void ready();
     void error();
 

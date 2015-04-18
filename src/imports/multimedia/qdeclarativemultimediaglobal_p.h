@@ -46,12 +46,32 @@
 //
 
 #include <QtQml/qqml.h>
+#include <QtQml/qjsvalue.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace QDeclarativeMultimedia {
-    QJSValue initGlobalObject(QQmlEngine *, QJSEngine *);
-}
+class QDeclarativeMultimediaGlobal : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(QJSValue defaultCamera READ defaultCamera NOTIFY defaultCameraChanged)
+    Q_PROPERTY(QJSValue availableCameras READ availableCameras NOTIFY availableCamerasChanged)
+
+public:
+    explicit QDeclarativeMultimediaGlobal(QJSEngine *engine, QObject *parent = 0);
+
+    QJSValue defaultCamera() const;
+    QJSValue availableCameras() const;
+
+Q_SIGNALS:
+    // Unused at the moment. QCameraInfo doesn't notify when cameras are added or removed,
+    // but it might change in the future.
+    void defaultCameraChanged();
+    void availableCamerasChanged();
+
+private:
+    QJSEngine *m_engine;
+};
 
 QT_END_NAMESPACE
 

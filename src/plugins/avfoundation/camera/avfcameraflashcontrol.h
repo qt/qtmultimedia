@@ -31,32 +31,47 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWMEDIATYPELIST_H
-#define DIRECTSHOWMEDIATYPELIST_H
+#ifndef AVFCAMERAFLASHCONTROL_H
+#define AVFCAMERAFLASHCONTROL_H
 
-#include <QtCore/qvector.h>
+#include <QtMultimedia/qcameraflashcontrol.h>
+#include <QtMultimedia/qcamera.h>
 
-#include <dshow.h>
+#include <QtCore/qlist.h>
 
-class DirectShowMediaTypeList : public IUnknown
+QT_BEGIN_NAMESPACE
+
+class AVFCameraService;
+class AVFCameraSession;
+
+class AVFCameraFlashControl : public QCameraFlashControl
 {
+    Q_OBJECT
 public:
-    DirectShowMediaTypeList();
-    virtual ~DirectShowMediaTypeList();
+    AVFCameraFlashControl(AVFCameraService *service);
 
-    IEnumMediaTypes *createMediaTypeEnum();
+    QCameraExposure::FlashModes flashMode() const Q_DECL_OVERRIDE;
+    void setFlashMode(QCameraExposure::FlashModes mode) Q_DECL_OVERRIDE;
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const Q_DECL_OVERRIDE;
+    bool isFlashReady() const Q_DECL_OVERRIDE;
 
-    void setMediaTypes(const QVector<AM_MEDIA_TYPE> &types);
-
-    virtual int currentMediaTypeToken();
-    virtual HRESULT nextMediaType(
-            int token, int *index, ULONG count, AM_MEDIA_TYPE **types, ULONG *fetchedCount);
-    virtual HRESULT skipMediaType(int token, int *index, ULONG count);
-    virtual HRESULT cloneMediaType(int token, int index, IEnumMediaTypes **enumeration);
+private Q_SLOTS:
+    void cameraStateChanged(QCamera::State newState);
 
 private:
-    int m_mediaTypeToken;
-    QVector<AM_MEDIA_TYPE> m_mediaTypes;
+    bool applyFlashSettings();
+
+    AVFCameraService *m_service;
+    AVFCameraSession *m_session;
+
+    // Set of bits:
+    QCameraExposure::FlashModes m_supportedModes;
+    // Only one bit set actually:
+    QCameraExposure::FlashModes m_flashMode;
 };
 
-#endif
+QT_END_NAMESPACE
+
+
+#endif // AVFCAMERAFLASHCONTROL_H
+

@@ -41,7 +41,7 @@ class DirectShowMediaTypeEnum : public IEnumMediaTypes
 {
 public:
     DirectShowMediaTypeEnum(DirectShowMediaTypeList *list, int token, int index = 0);
-    ~DirectShowMediaTypeEnum();
+    virtual ~DirectShowMediaTypeEnum();
 
     // IUnknown
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
@@ -140,6 +140,10 @@ HRESULT DirectShowMediaTypeEnum::Clone(IEnumMediaTypes **ppEnum)
 
 DirectShowMediaTypeList::DirectShowMediaTypeList()
     : m_mediaTypeToken(0)
+{
+}
+
+DirectShowMediaTypeList::~DirectShowMediaTypeList()
 {
 }
 

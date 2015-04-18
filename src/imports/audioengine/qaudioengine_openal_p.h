@@ -38,6 +38,7 @@
 #include <QList>
 #include <QMap>
 #include <QTimer>
+#include <QUrl>
 
 #if defined(HEADER_OPENAL_PREFIX)
 #include <OpenAL/al.h>
@@ -52,6 +53,9 @@
 
 QT_BEGIN_NAMESPACE
 
+class QSample;
+class QSampleCache;
+
 class QSoundBufferPrivateAL : public QSoundBuffer
 {
     Q_OBJECT
@@ -60,6 +64,40 @@ public:
     virtual void bindToSource(ALuint alSource) = 0;
     virtual void unbindFromSource(ALuint alSource) = 0;
 };
+
+
+class StaticSoundBufferAL : public QSoundBufferPrivateAL
+{
+    Q_OBJECT
+
+public:
+    StaticSoundBufferAL(QObject *parent, const QUrl &url, QSampleCache *sampleLoader);
+    ~StaticSoundBufferAL();
+
+    State state() const Q_DECL_OVERRIDE;
+
+    void load() Q_DECL_OVERRIDE;
+
+    void bindToSource(ALuint alSource) Q_DECL_OVERRIDE;
+    void unbindFromSource(ALuint alSource) Q_DECL_OVERRIDE;
+
+    inline long addRef() { return ++m_ref; }
+    inline long release() { return --m_ref; }
+    inline long refCount() const { return m_ref; }
+
+public Q_SLOTS:
+    void sampleReady();
+    void decoderError();
+
+private:
+    long m_ref;
+    QUrl m_url;
+    ALuint m_alBuffer;
+    State m_state;
+    QSample *m_sample;
+    QSampleCache *m_sampleLoader;
+};
+
 
 class QSoundSourcePrivate : public QSoundSource
 {
@@ -113,7 +151,7 @@ private:
     qreal   m_coneOuterGain;
 };
 
-class QSampleCache;
+
 class QAudioEnginePrivate : public QObject
 {
     Q_OBJECT

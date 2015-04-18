@@ -68,22 +68,18 @@ AudioEngine {
     }
 
     AudioSample {
-        name:"fire"
-        source: "fire-03-loop.wav"
+        name:"engine"
+        source: "engine-loop.wav"
         preloaded:true
     }
 
     AudioSample {
-        name:"explosion"
-        source: "explosion-02.wav"
+        name:"horn"
+        source: "horn.wav"
     }
     AudioSample {
-        name:"lava"
-        source: "lava-bubbling-01.wav"
-    }
-    AudioSample {
-        name:"water"
-        source: "running-water-01.wav"
+        name:"whistle"
+        source: "whistle.wav"
     }
     Sound {
         name:"shipengine"
@@ -91,7 +87,7 @@ AudioEngine {
         category:"sfx"
         PlayVariation {
             looping:true
-            sample:"fire"
+            sample:"engine"
             maxGain:0.9
             minGain:0.8
         }
@@ -101,23 +97,14 @@ AudioEngine {
         name:"effects"
         category:"sfx"
         PlayVariation {
-            sample:"lava"
-            maxGain:1.5
-            minGain:1.2
-            maxPitch:2.0
-            minPitch:0.5
+            sample:"horn"
+            maxGain:2.0
+            minGain:0.9
         }
         PlayVariation {
-            sample:"explosion"
-            maxGain:1.1
-            minGain:0.7
-            maxPitch:1.5
-            minPitch:0.5
-        }
-        PlayVariation {
-            sample:"water"
-            maxGain:1.5
-            minGain:1.2
+            sample:"whistle"
+            maxGain:1.0
+            minGain:0.8
         }
     }
 

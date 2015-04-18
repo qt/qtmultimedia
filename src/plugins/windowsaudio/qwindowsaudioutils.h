@@ -31,32 +31,37 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWMEDIATYPELIST_H
-#define DIRECTSHOWMEDIATYPELIST_H
+#ifndef QWINDOWSAUDIOUTILS_H
+#define QWINDOWSAUDIOUTILS_H
 
-#include <QtCore/qvector.h>
+#include <qaudioformat.h>
+#include <QtCore/qt_windows.h>
+#include <mmsystem.h>
 
-#include <dshow.h>
+#ifndef _WAVEFORMATEXTENSIBLE_
 
-class DirectShowMediaTypeList : public IUnknown
-{
-public:
-    DirectShowMediaTypeList();
-    virtual ~DirectShowMediaTypeList();
-
-    IEnumMediaTypes *createMediaTypeEnum();
-
-    void setMediaTypes(const QVector<AM_MEDIA_TYPE> &types);
-
-    virtual int currentMediaTypeToken();
-    virtual HRESULT nextMediaType(
-            int token, int *index, ULONG count, AM_MEDIA_TYPE **types, ULONG *fetchedCount);
-    virtual HRESULT skipMediaType(int token, int *index, ULONG count);
-    virtual HRESULT cloneMediaType(int token, int index, IEnumMediaTypes **enumeration);
-
-private:
-    int m_mediaTypeToken;
-    QVector<AM_MEDIA_TYPE> m_mediaTypes;
-};
+    #define _WAVEFORMATEXTENSIBLE_
+    typedef struct
+    {
+        WAVEFORMATEX Format;          // Base WAVEFORMATEX data
+        union
+        {
+            WORD wValidBitsPerSample; // Valid bits in each sample container
+            WORD wSamplesPerBlock;    // Samples per block of audio data; valid
+                                      // if wBitsPerSample=0 (but rarely used).
+            WORD wReserved;           // Zero if neither case above applies.
+        } Samples;
+        DWORD dwChannelMask;          // Positions of the audio channels
+        GUID SubFormat;               // Format identifier GUID
+    } WAVEFORMATEXTENSIBLE, *PWAVEFORMATEXTENSIBLE, *LPPWAVEFORMATEXTENSIBLE;
+    typedef const WAVEFORMATEXTENSIBLE* LPCWAVEFORMATEXTENSIBLE;
 
 #endif
+
+QT_BEGIN_NAMESPACE
+
+bool qt_convertFormat(const QAudioFormat &format, WAVEFORMATEXTENSIBLE *wfx);
+
+QT_END_NAMESPACE
+
+#endif // QWINDOWSAUDIOUTILS_H

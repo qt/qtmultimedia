@@ -63,18 +63,26 @@ void AVFServicePlugin::release(QMediaService *service)
 
 QByteArray AVFServicePlugin::defaultDevice(const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return AVFCameraSession::defaultCameraDevice();
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        int i = AVFCameraSession::defaultCameraIndex();
+        if (i != -1)
+            return AVFCameraSession::availableCameraDevices().at(i).deviceId;
+    }
 
     return QByteArray();
 }
 
 QList<QByteArray> AVFServicePlugin::devices(const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return AVFCameraSession::availableCameraDevices();
+    QList<QByteArray> devs;
 
-    return QList<QByteArray>();
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        const QList<AVFCameraInfo> &cameras = AVFCameraSession::availableCameraDevices();
+        Q_FOREACH (const AVFCameraInfo &info, cameras)
+            devs.append(info.deviceId);
+    }
+
+    return devs;
 }
 
 QString AVFServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)

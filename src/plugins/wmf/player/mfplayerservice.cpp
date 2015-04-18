@@ -50,7 +50,7 @@
 MFPlayerService::MFPlayerService(QObject *parent)
     : QMediaService(parent)
     , m_session(0)
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     , m_videoWindowControl(0)
 #endif
     , m_videoRendererControl(0)
@@ -65,7 +65,7 @@ MFPlayerService::~MFPlayerService()
 {
     m_session->close();
 
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     if (m_videoWindowControl)
         delete m_videoWindowControl;
 #endif

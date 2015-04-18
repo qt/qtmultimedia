@@ -42,6 +42,8 @@ class DSCameraSession;
 
 //QTM_USE_NAMESPACE
 
+typedef QPair<QByteArray, QString> DSVideoDeviceInfo;
+
 class DSVideoDeviceControl : public QVideoDeviceSelectorControl
 {
     Q_OBJECT
@@ -54,17 +56,15 @@ public:
     int defaultDevice() const;
     int selectedDevice() const;
 
-    static void enumerateDevices(QList<QByteArray> *devices, QStringList *descriptions);
+    static const QList<DSVideoDeviceInfo> &availableDevices();
 
 public Q_SLOTS:
     void setSelectedDevice(int index);
 
 private:
+    static void updateDevices();
+
     DSCameraSession* m_session;
-
-    QList<QByteArray> m_devices;
-    QStringList m_descriptions;
-
     int selected;
 };
 

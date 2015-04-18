@@ -65,7 +65,7 @@ Rectangle {
             loops: Animation.Infinite
             running: true
             NumberAnimation {
-            duration: 8000
+            duration: 12000
             from: 0
             to: 1
             }
@@ -113,7 +113,7 @@ Rectangle {
         }
         velocity: {
             var speed = root.twoPi * root.radius / 4;
-            return shipSound.direction * speed;
+            return shipSound.direction.times(speed);
         }
 
         Component.onCompleted: shipSound.play()
@@ -137,7 +137,7 @@ Rectangle {
             color: "lightgreen"
         }
         Text {
-            text: " volume:" + volumeBar.volumeCtrl.volume * 100 +"%";
+            text: " volume:" + Math.round(volumeBar.volumeCtrl.volume * 100) +"%";
             font.pointSize: 16;
             font.italic: true;
             color: "black"

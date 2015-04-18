@@ -112,7 +112,7 @@ public:
     void setName(const QString& name);
 
     QString attenuationModel() const;
-    void setAttenuationModel(QString attenuationModel);
+    void setAttenuationModel(const QString &attenuationModel);
 
     QDeclarativeSoundCone* cone() const;
 

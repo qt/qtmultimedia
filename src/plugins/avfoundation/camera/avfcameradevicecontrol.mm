@@ -58,25 +58,25 @@ int AVFCameraDeviceControl::deviceCount() const
 
 QString AVFCameraDeviceControl::deviceName(int index) const
 {
-    const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
+    const QList<AVFCameraInfo> &devices = AVFCameraSession::availableCameraDevices();
     if (index < 0 || index >= devices.count())
         return QString();
 
-    return QString::fromUtf8(devices.at(index));
+    return QString::fromUtf8(devices.at(index).deviceId);
 }
 
 QString AVFCameraDeviceControl::deviceDescription(int index) const
 {
-    const QList<QByteArray> &devices = AVFCameraSession::availableCameraDevices();
+    const QList<AVFCameraInfo> &devices = AVFCameraSession::availableCameraDevices();
     if (index < 0 || index >= devices.count())
         return QString();
 
-    return AVFCameraSession::cameraDeviceInfo(devices.at(index)).description;
+    return devices.at(index).description;
 }
 
 int AVFCameraDeviceControl::defaultDevice() const
 {
-    return AVFCameraSession::availableCameraDevices().indexOf(AVFCameraSession::defaultCameraDevice());
+    return AVFCameraSession::defaultCameraIndex();
 }
 
 int AVFCameraDeviceControl::selectedDevice() const

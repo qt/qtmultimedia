@@ -84,9 +84,6 @@ Q_SIGNALS:
     void finished();
     void error(QPlaylistFileParser::ParserError err, const QString& errorMsg);
 
-protected:
-    QPlaylistFileParserPrivate *d_ptr;
-
 private:
     Q_DISABLE_COPY(QPlaylistFileParser)
     Q_DECLARE_PRIVATE(QPlaylistFileParser)

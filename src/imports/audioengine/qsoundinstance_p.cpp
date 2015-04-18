@@ -144,7 +144,7 @@ void QSoundInstance::prepareNewVariation()
     detach();
 
     m_bindBuffer = playVar->sampleObject()->soundBuffer();
-    if (m_bindBuffer->isReady()) {
+    if (m_bindBuffer->state() == QSoundBuffer::Ready) {
         Q_ASSERT(m_soundSource);
         m_soundSource->bindBuffer(m_bindBuffer);
         m_isReady = true;

@@ -49,7 +49,7 @@ class DirectShowIOSource
 {
 public:
     DirectShowIOSource(DirectShowEventLoop *loop);
-    ~DirectShowIOSource();
+    virtual ~DirectShowIOSource();
 
     void setDevice(QIODevice *device);
     void setAllocator(IMemAllocator *allocator);

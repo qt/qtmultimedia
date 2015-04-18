@@ -327,7 +327,7 @@ void QDeclarativeSoundInstance::play()
 }
 
 /*!
-    \qmlmethod QtAudioEngine::SoundInstance::play()
+    \qmlmethod QtAudioEngine::SoundInstance::stop()
 
     Stops current playback.
 */
@@ -343,7 +343,7 @@ void QDeclarativeSoundInstance::stop()
 }
 
 /*!
-    \qmlmethod QtAudioEngine::SoundInstance::play()
+    \qmlmethod QtAudioEngine::SoundInstance::pause()
 
     Pauses current playback.
 */

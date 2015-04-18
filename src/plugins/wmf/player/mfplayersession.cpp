@@ -43,7 +43,7 @@
 #include <QtCore/qbuffer.h>
 
 #include "mfplayercontrol.h"
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
 #include "evr9videowindowcontrol.h"
 #endif
 #include "mfvideorenderercontrol.h"
@@ -140,7 +140,7 @@ void MFPlayerSession::close()
 
     if (m_playerService->videoRendererControl()) {
         m_playerService->videoRendererControl()->releaseActivate();
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (m_playerService->videoWindowControl()) {
         m_playerService->videoWindowControl()->releaseActivate();
 #endif
@@ -404,7 +404,7 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc,
                 mediaType = Video;
                 if (m_playerService->videoRendererControl()) {
                     activate = m_playerService->videoRendererControl()->createActivate();
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
                 } else if (m_playerService->videoWindowControl()) {
                     activate = m_playerService->videoWindowControl()->createActivate();
 #endif
@@ -556,7 +556,10 @@ QAudioFormat MFPlayerSession::audioFormatForMFMediaType(IMFMediaType *mediaType)
     format.setSampleSize(wfx->wBitsPerSample);
     format.setCodec("audio/pcm");
     format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::SignedInt);
+    if (format.sampleSize() == 8)
+        format.setSampleType(QAudioFormat::UnSignedInt);
+    else
+        format.setSampleType(QAudioFormat::SignedInt);
 
     CoTaskMemFree(wfx);
     return format;
@@ -1577,7 +1580,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         }
 
         updatePendingCommands(CmdStart);
-#ifndef Q_WS_SIMULATOR
+#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
         // playback started, we can now set again the procAmpValues if they have been
         // changed previously (these are lost when loading a new media)
         if (m_playerService->videoWindowControl()) {
@@ -1721,10 +1724,17 @@ void MFPlayerSession::updatePendingCommands(Command command)
     if (m_state.command != command || m_pendingState == NoPending)
         return;
 
-    // The current pending command has completed.
+    // Seek while paused completed
     if (m_pendingState == SeekPending && m_state.prevCmd == CmdPause) {
         m_pendingState = NoPending;
-        m_state.setCommand(CmdPause);
+        // A seek operation actually restarts playback. If scrubbing is possible, playback rate
+        // is set to 0.0 at this point and we just need to reset the current state to Pause.
+        // If scrubbing is not possible, the playback rate was not changed and we explicitly need
+        // to re-pause playback.
+        if (!canScrub())
+            pause();
+        else
+            m_state.setCommand(CmdPause);
     }
 
     m_pendingState = NoPending;
