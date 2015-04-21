@@ -92,7 +92,7 @@ Q_SIGNALS:
 
 private:
     static void updateCameraDevices();
-    void attachInputDevices();
+    void attachVideoInputDevice();
 
     static int m_defaultCameraIndex;
     static QList<AVFCameraInfo> m_cameraDevices;
@@ -105,7 +105,6 @@ private:
 
     AVCaptureSession *m_captureSession;
     AVCaptureDeviceInput *m_videoInput;
-    AVCaptureDeviceInput *m_audioInput;
     AVFCameraSessionObserver *m_observer;
 };
 

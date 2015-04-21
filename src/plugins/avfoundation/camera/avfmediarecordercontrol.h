@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraControl;
+class AVFAudioInputSelectorControl;
 class AVFCameraService;
 
 class AVFMediaRecorderControl : public QMediaRecorderControl
@@ -78,11 +79,12 @@ public Q_SLOTS:
     void handleRecordingFailed(const QString &message);
 
 private Q_SLOTS:
-    void reconnectMovieOutput();
+    void setupSessionForCapture();
     void updateStatus();
 
 private:
     AVFCameraControl *m_cameraControl;
+    AVFAudioInputSelectorControl *m_audioInputControl;
     AVFCameraSession *m_session;
 
     bool m_connected;
@@ -96,6 +98,7 @@ private:
     bool m_muted;
     qreal m_volume;
 
+    AVCaptureDeviceInput *m_audioInput;
     AVCaptureMovieFileOutput *m_movieOutput;
     AVFMediaRecorderDelegate *m_recorderDelagate;
     AVFStorageLocation m_storageLocation;
