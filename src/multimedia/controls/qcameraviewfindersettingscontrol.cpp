@@ -96,7 +96,7 @@ QCameraViewfinderSettingsControl::~QCameraViewfinderSettingsControl()
          Viewfinder pixel format, QVideoFrame::PixelFormat
   \value UserParameter
          The base value for platform specific extended parameters.
-         For such parameters the sequential values starting from UserParameter shuld be used.
+         For such parameters the sequential values starting from UserParameter should be used.
 */
 
 /*!
