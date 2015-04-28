@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/qtmultimediaquicktools">
+        <file>shaders/rgbvideo.vert</file>
+        <file>shaders/rgbvideo.frag</file>
+        <file>shaders/rgbvideo_swizzle.frag</file>
+        <file>shaders/rgbvideo_padded.vert</file>
+        <file>shaders/biplanaryuvvideo.frag</file>
+        <file>shaders/biplanaryuvvideo.vert</file>
+        <file>shaders/biplanaryuvvideo_swizzle.frag</file>
+        <file>shaders/triplanaryuvvideo.frag</file>
+        <file>shaders/triplanaryuvvideo.vert</file>
+    </qresource>
+</RCC>

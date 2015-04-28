@@ -32,3 +32,17 @@ HEADERS += \
     qsgvideonode_yuv.h \
     qsgvideonode_rgb.h \
     qsgvideonode_texture.h
+
+RESOURCES += \
+    qtmultimediaquicktools.qrc
+
+OTHER_FILES += \
+    shaders/rgbvideo.vert \
+    shaders/rgbvideo_padded.vert \
+    shaders/rgbvideo.frag \
+    shaders/rgbvideo_swizzle.frag \
+    shaders/biplanaryuvvideo.vert \
+    shaders/biplanaryuvvideo.frag \
+    shaders/biplanaryuvvideo_swizzle.frag \
+    shaders/triplanaryuvvideo.vert \
+    shaders/triplanaryuvvideo.frag
