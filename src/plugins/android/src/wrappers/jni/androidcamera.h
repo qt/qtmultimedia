@@ -155,6 +155,7 @@ public:
 
     void takePicture();
 
+    void setupPreviewFrameCallback();
     void fetchEachFrame(bool fetch);
     void fetchLastPreviewFrame();
     QJNIObjectPrivate getCameraObject();

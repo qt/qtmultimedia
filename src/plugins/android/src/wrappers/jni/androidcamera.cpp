@@ -204,6 +204,7 @@ public:
 
     Q_INVOKABLE void takePicture();
 
+    Q_INVOKABLE void setupPreviewFrameCallback();
     Q_INVOKABLE void fetchEachFrame(bool fetch);
     Q_INVOKABLE void fetchLastPreviewFrame();
 
@@ -631,6 +632,12 @@ void AndroidCamera::takePicture()
 {
     Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "takePicture", Qt::BlockingQueuedConnection);
+}
+
+void AndroidCamera::setupPreviewFrameCallback()
+{
+    Q_D(AndroidCamera);
+    QMetaObject::invokeMethod(d, "setupPreviewFrameCallback");
 }
 
 void AndroidCamera::fetchEachFrame(bool fetch)
@@ -1307,17 +1314,7 @@ void AndroidCameraPrivate::setJpegQuality(int quality)
 
 void AndroidCameraPrivate::startPreview()
 {
-    //We need to clear preview buffers queue here, but there is no method to do it
-    //Though just resetting preview callback do the trick
-    m_camera.callMethod<void>("setPreviewCallbackWithBuffer",
-                              "(Landroid/hardware/Camera$PreviewCallback;)V",
-                              jobject(0));
-    m_cameraListener.callMethod<void>("preparePreviewBuffer", "(Landroid/hardware/Camera;)V", m_camera.object());
-    QJNIObjectPrivate buffer = m_cameraListener.callObjectMethod<jbyteArray>("callbackBuffer");
-    m_camera.callMethod<void>("addCallbackBuffer", "([B)V", buffer.object());
-    m_camera.callMethod<void>("setPreviewCallbackWithBuffer",
-                              "(Landroid/hardware/Camera$PreviewCallback;)V",
-                              m_cameraListener.object());
+    setupPreviewFrameCallback();
     m_camera.callMethod<void>("startPreview");
     emit previewStarted();
 }
@@ -1336,6 +1333,21 @@ void AndroidCameraPrivate::takePicture()
                                               m_cameraListener.object(),
                                               jobject(0),
                                               m_cameraListener.object());
+}
+
+void AndroidCameraPrivate::setupPreviewFrameCallback()
+{
+    //We need to clear preview buffers queue here, but there is no method to do it
+    //Though just resetting preview callback do the trick
+    m_camera.callMethod<void>("setPreviewCallbackWithBuffer",
+                              "(Landroid/hardware/Camera$PreviewCallback;)V",
+                              jobject(0));
+    m_cameraListener.callMethod<void>("preparePreviewBuffer", "(Landroid/hardware/Camera;)V", m_camera.object());
+    QJNIObjectPrivate buffer = m_cameraListener.callObjectMethod<jbyteArray>("callbackBuffer");
+    m_camera.callMethod<void>("addCallbackBuffer", "([B)V", buffer.object());
+    m_camera.callMethod<void>("setPreviewCallbackWithBuffer",
+                              "(Landroid/hardware/Camera$PreviewCallback;)V",
+                              m_cameraListener.object());
 }
 
 void AndroidCameraPrivate::fetchEachFrame(bool fetch)
