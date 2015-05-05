@@ -786,6 +786,9 @@ QSize AndroidCameraPrivate::getPreferredPreviewSizeForVideo()
     QJNIObjectPrivate size = m_parameters.callObjectMethod("getPreferredPreviewSizeForVideo",
                                                            "()Landroid/hardware/Camera$Size;");
 
+    if (!size.isValid())
+        return QSize();
+
     return QSize(size.getField<jint>("width"), size.getField<jint>("height"));
 }
 

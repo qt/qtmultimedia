@@ -48,7 +48,6 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
     , m_duration(0)
     , m_state(QMediaRecorder::StoppedState)
     , m_status(QMediaRecorder::UnloadedStatus)
-    , m_resolutionDirty(false)
     , m_containerFormatDirty(true)
     , m_videoSettingsDirty(true)
     , m_audioSettingsDirty(true)
@@ -321,9 +320,6 @@ void QAndroidCaptureSession::setVideoSettings(const QVideoEncoderSettings &setti
     if (!m_cameraSession || m_videoSettings == settings)
         return;
 
-    if (m_videoSettings.resolution() != settings.resolution())
-        m_resolutionDirty = true;
-
     m_videoSettings = settings;
     m_videoSettingsDirty = true;
 }
@@ -376,7 +372,6 @@ void QAndroidCaptureSession::applySettings()
     if (m_cameraSession && m_cameraSession->camera() && m_videoSettingsDirty) {
         if (m_videoSettings.resolution().isEmpty()) {
             m_videoSettings.setResolution(m_defaultSettings.videoResolution);
-            m_resolutionDirty = true;
         } else if (!m_supportedResolutions.contains(m_videoSettings.resolution())) {
             // if the requested resolution is not supported, find the closest one
             QSize reqSize = m_videoSettings.resolution();
@@ -388,7 +383,6 @@ void QAndroidCaptureSession::applySettings()
             }
             int closestIndex = qt_findClosestValue(supportedPixelCounts, reqPixelCount);
             m_videoSettings.setResolution(m_supportedResolutions.at(closestIndex));
-            m_resolutionDirty = true;
         }
 
         if (m_videoSettings.frameRate() <= 0)
@@ -413,12 +407,8 @@ void QAndroidCaptureSession::applySettings()
 
 void QAndroidCaptureSession::updateViewfinder()
 {
-    if (!m_resolutionDirty)
-        return;
-
     m_cameraSession->camera()->stopPreview();
     m_cameraSession->adjustViewfinderSize(m_videoSettings.resolution(), false);
-    m_resolutionDirty = false;
 }
 
 void QAndroidCaptureSession::restartViewfinder()
