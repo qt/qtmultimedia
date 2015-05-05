@@ -69,6 +69,7 @@ private:
 
     QString m_activeInput;
     bool m_dirty;
+    QString m_defaultDevice;
     QStringList m_devices;
     QMap<QString, QString> m_deviceDescriptions;
 };
