@@ -38,63 +38,87 @@ import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 import java.lang.Math;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class QtCameraListener implements Camera.ShutterCallback,
                                          Camera.PictureCallback,
                                          Camera.AutoFocusCallback,
                                          Camera.PreviewCallback
 {
-    private int m_cameraId = -1;
-    private byte[][] m_cameraPreviewBuffer = null;
-    private volatile int m_actualPreviewBuffer = 0;
-    private final ReentrantLock m_buffersLock = new ReentrantLock();
-    private boolean m_fetchEachFrame = false;
-
     private static final String TAG = "Qt Camera";
+
+    private static final int BUFFER_POOL_SIZE = 2;
+
+    private int m_cameraId = -1;
+
+    private boolean m_notifyNewFrames = false;
+    private byte[][] m_previewBuffers = null;
+    private byte[] m_lastPreviewBuffer = null;
+    private Camera.Size m_previewSize = null;
 
     private QtCameraListener(int id)
     {
         m_cameraId = id;
     }
 
-    public void preparePreviewBuffer(Camera camera)
+    public void notifyNewFrames(boolean notify)
     {
-        Camera.Size previewSize = camera.getParameters().getPreviewSize();
-        double bytesPerPixel = ImageFormat.getBitsPerPixel(camera.getParameters().getPreviewFormat()) / 8.0;
-        int bufferSizeNeeded = (int)Math.ceil(bytesPerPixel*previewSize.width*previewSize.height);
-        m_buffersLock.lock();
-        if (m_cameraPreviewBuffer == null || m_cameraPreviewBuffer[0].length < bufferSizeNeeded)
-            m_cameraPreviewBuffer = new byte[2][bufferSizeNeeded];
-        m_buffersLock.unlock();
+        m_notifyNewFrames = notify;
     }
 
-    public void fetchEachFrame(boolean fetch)
+    public byte[] lastPreviewBuffer()
     {
-        m_fetchEachFrame = fetch;
+        return m_lastPreviewBuffer;
     }
 
-    public byte[] lockAndFetchPreviewBuffer()
+    public int previewWidth()
     {
-        //This method should always be followed by unlockPreviewBuffer()
-        //This method is not just a getter. It also marks last preview as already seen one.
-        //We should reset actualBuffer flag here to make sure we will not use old preview with future captures
-        byte[] result = null;
-        m_buffersLock.lock();
-        result = m_cameraPreviewBuffer[(m_actualPreviewBuffer == 1) ? 0 : 1];
-        m_actualPreviewBuffer = 0;
-        return result;
+        if (m_previewSize == null)
+            return -1;
+
+        return m_previewSize.width;
     }
 
-    public void unlockPreviewBuffer()
+    public int previewHeight()
     {
-        if (m_buffersLock.isHeldByCurrentThread())
-            m_buffersLock.unlock();
+        if (m_previewSize == null)
+            return -1;
+
+        return m_previewSize.height;
     }
 
-    public byte[] callbackBuffer()
+    public void setupPreviewCallback(Camera camera)
     {
-        return m_cameraPreviewBuffer[(m_actualPreviewBuffer == 1) ? 1 : 0];
+        // Clear previous callback (also clears added buffers)
+        m_lastPreviewBuffer = null;
+        camera.setPreviewCallbackWithBuffer(null);
+
+        final Camera.Parameters params = camera.getParameters();
+        m_previewSize = params.getPreviewSize();
+        double bytesPerPixel = ImageFormat.getBitsPerPixel(params.getPreviewFormat()) / 8.0;
+        int bufferSizeNeeded = (int) Math.ceil(bytesPerPixel * m_previewSize.width * m_previewSize.height);
+
+        // We could keep the same buffers when they are already bigger than the required size
+        // but the Android doc says the size must match, so in doubt just replace them.
+        if (m_previewBuffers == null || m_previewBuffers[0].length != bufferSizeNeeded)
+            m_previewBuffers = new byte[BUFFER_POOL_SIZE][bufferSizeNeeded];
+
+        // Add callback and queue all buffers
+        camera.setPreviewCallbackWithBuffer(this);
+        for (byte[] buffer : m_previewBuffers)
+            camera.addCallbackBuffer(buffer);
+    }
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera)
+    {
+        // Re-enqueue the last buffer
+        if (m_lastPreviewBuffer != null)
+            camera.addCallbackBuffer(m_lastPreviewBuffer);
+
+        m_lastPreviewBuffer = data;
+
+        if (data != null && m_notifyNewFrames)
+            notifyNewPreviewFrame(m_cameraId, data, m_previewSize.width, m_previewSize.height);
     }
 
     @Override
@@ -110,24 +134,6 @@ public class QtCameraListener implements Camera.ShutterCallback,
     }
 
     @Override
-    public void onPreviewFrame(byte[] data, Camera camera)
-    {
-        m_buffersLock.lock();
-
-        if (data != null && m_fetchEachFrame)
-            notifyFrameFetched(m_cameraId, data);
-
-        if (data == m_cameraPreviewBuffer[0])
-            m_actualPreviewBuffer = 1;
-        else if (data == m_cameraPreviewBuffer[1])
-            m_actualPreviewBuffer = 2;
-        else
-            m_actualPreviewBuffer = 0;
-        camera.addCallbackBuffer(m_cameraPreviewBuffer[(m_actualPreviewBuffer == 1) ? 1 : 0]);
-        m_buffersLock.unlock();
-    }
-
-    @Override
     public void onAutoFocus(boolean success, Camera camera)
     {
         notifyAutoFocusComplete(m_cameraId, success);
@@ -136,5 +142,5 @@ public class QtCameraListener implements Camera.ShutterCallback,
     private static native void notifyAutoFocusComplete(int id, boolean success);
     private static native void notifyPictureExposed(int id);
     private static native void notifyPictureCaptured(int id, byte[] data);
-    private static native void notifyFrameFetched(int id, byte[] data);
+    private static native void notifyNewPreviewFrame(int id, byte[] data, int width, int height);
 }

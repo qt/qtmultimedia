@@ -114,7 +114,7 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
     }
 }
 
-static void notifyFrameFetched(JNIEnv *env, jobject, int id, jbyteArray data)
+static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data, int width, int height)
 {
     QMutexLocker locker(&g_cameraMapMutex);
     AndroidCamera *obj = g_cameraMap->value(id, 0);
@@ -123,7 +123,7 @@ static void notifyFrameFetched(JNIEnv *env, jobject, int id, jbyteArray data)
         QByteArray bytes(arrayLength, Qt::Uninitialized);
         env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
 
-        Q_EMIT obj->frameFetched(bytes);
+        Q_EMIT obj->newPreviewFrame(bytes, width, height);
     }
 }
 
@@ -205,7 +205,7 @@ public:
     Q_INVOKABLE void takePicture();
 
     Q_INVOKABLE void setupPreviewFrameCallback();
-    Q_INVOKABLE void fetchEachFrame(bool fetch);
+    Q_INVOKABLE void notifyNewFrames(bool notify);
     Q_INVOKABLE void fetchLastPreviewFrame();
 
     Q_INVOKABLE void applyParameters();
@@ -230,7 +230,7 @@ Q_SIGNALS:
 
     void whiteBalanceChanged();
 
-    void previewFetched(const QByteArray &preview);
+    void lastPreviewFrameFetched(const QByteArray &preview, int width, int height);
 };
 
 AndroidCamera::AndroidCamera(AndroidCameraPrivate *d, QThread *worker)
@@ -248,7 +248,7 @@ AndroidCamera::AndroidCamera(AndroidCameraPrivate *d, QThread *worker)
     connect(d, &AndroidCameraPrivate::previewStopped, this, &AndroidCamera::previewStopped);
     connect(d, &AndroidCameraPrivate::autoFocusStarted, this, &AndroidCamera::autoFocusStarted);
     connect(d, &AndroidCameraPrivate::whiteBalanceChanged, this, &AndroidCamera::whiteBalanceChanged);
-    connect(d, &AndroidCameraPrivate::previewFetched, this, &AndroidCamera::previewFetched);
+    connect(d, &AndroidCameraPrivate::lastPreviewFrameFetched, this, &AndroidCamera::lastPreviewFrameFetched);
 }
 
 AndroidCamera::~AndroidCamera()
@@ -640,10 +640,10 @@ void AndroidCamera::setupPreviewFrameCallback()
     QMetaObject::invokeMethod(d, "setupPreviewFrameCallback");
 }
 
-void AndroidCamera::fetchEachFrame(bool fetch)
+void AndroidCamera::notifyNewFrames(bool notify)
 {
     Q_D(AndroidCamera);
-    QMetaObject::invokeMethod(d, "fetchEachFrame", Q_ARG(bool, fetch));
+    QMetaObject::invokeMethod(d, "notifyNewFrames", Q_ARG(bool, notify));
 }
 
 void AndroidCamera::fetchLastPreviewFrame()
@@ -1337,41 +1337,32 @@ void AndroidCameraPrivate::takePicture()
 
 void AndroidCameraPrivate::setupPreviewFrameCallback()
 {
-    //We need to clear preview buffers queue here, but there is no method to do it
-    //Though just resetting preview callback do the trick
-    m_camera.callMethod<void>("setPreviewCallbackWithBuffer",
-                              "(Landroid/hardware/Camera$PreviewCallback;)V",
-                              jobject(0));
-    m_cameraListener.callMethod<void>("preparePreviewBuffer", "(Landroid/hardware/Camera;)V", m_camera.object());
-    QJNIObjectPrivate buffer = m_cameraListener.callObjectMethod<jbyteArray>("callbackBuffer");
-    m_camera.callMethod<void>("addCallbackBuffer", "([B)V", buffer.object());
-    m_camera.callMethod<void>("setPreviewCallbackWithBuffer",
-                              "(Landroid/hardware/Camera$PreviewCallback;)V",
-                              m_cameraListener.object());
+    m_cameraListener.callMethod<void>("setupPreviewCallback", "(Landroid/hardware/Camera;)V", m_camera.object());
 }
 
-void AndroidCameraPrivate::fetchEachFrame(bool fetch)
+void AndroidCameraPrivate::notifyNewFrames(bool notify)
 {
-    m_cameraListener.callMethod<void>("fetchEachFrame", "(Z)V", fetch);
+    m_cameraListener.callMethod<void>("notifyNewFrames", "(Z)V", notify);
 }
 
 void AndroidCameraPrivate::fetchLastPreviewFrame()
 {
     QJNIEnvironmentPrivate env;
-    QJNIObjectPrivate data = m_cameraListener.callObjectMethod("lockAndFetchPreviewBuffer", "()[B");
-    if (!data.isValid()) {
-        m_cameraListener.callMethod<void>("unlockPreviewBuffer");
+    QJNIObjectPrivate data = m_cameraListener.callObjectMethod("lastPreviewBuffer", "()[B");
+
+    if (!data.isValid())
         return;
-    }
+
     const int arrayLength = env->GetArrayLength(static_cast<jbyteArray>(data.object()));
     QByteArray bytes(arrayLength, Qt::Uninitialized);
     env->GetByteArrayRegion(static_cast<jbyteArray>(data.object()),
                             0,
                             arrayLength,
                             reinterpret_cast<jbyte *>(bytes.data()));
-    m_cameraListener.callMethod<void>("unlockPreviewBuffer");
 
-    emit previewFetched(bytes);
+    emit lastPreviewFrameFetched(bytes,
+                                 m_cameraListener.callMethod<jint>("previewWidth"),
+                                 m_cameraListener.callMethod<jint>("previewHeight"));
 }
 
 void AndroidCameraPrivate::applyParameters()
@@ -1416,7 +1407,7 @@ bool AndroidCamera::initJNI(JNIEnv *env)
         {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
         {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
         {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
-        {"notifyFrameFetched", "(I[B)V", (void *)notifyFrameFetched}
+        {"notifyNewPreviewFrame", "(I[BII)V", (void *)notifyNewPreviewFrame}
     };
 
     if (clazz && env->RegisterNatives(clazz,
