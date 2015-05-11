@@ -143,7 +143,6 @@ AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
    , m_state(QCamera::UnloadedState)
    , m_active(false)
    , m_videoInput(nil)
-   , m_audioInput(nil)
    , m_defaultCodec(0)
 {
     m_captureSession = [[AVCaptureSession alloc] init];
@@ -158,11 +157,6 @@ AVFCameraSession::~AVFCameraSession()
     if (m_videoInput) {
         [m_captureSession removeInput:m_videoInput];
         [m_videoInput release];
-    }
-
-    if (m_audioInput) {
-        [m_captureSession removeInput:m_audioInput];
-        [m_audioInput release];
     }
 
     [m_observer release];
@@ -283,10 +277,9 @@ void AVFCameraSession::setState(QCamera::State newState)
     QCamera::State oldState = m_state;
     m_state = newState;
 
-    //attach audio and video inputs during Unloaded->Loaded transition
-    if (oldState == QCamera::UnloadedState) {
-        attachInputDevices();
-    }
+    //attach video input during Unloaded->Loaded transition
+    if (oldState == QCamera::UnloadedState)
+        attachVideoInputDevice();
 
     if (m_state == QCamera::ActiveState) {
         Q_EMIT readyToConfigureConnections();
@@ -332,7 +325,7 @@ void AVFCameraSession::processSessionStopped()
     }
 }
 
-void AVFCameraSession::attachInputDevices()
+void AVFCameraSession::attachVideoInputDevice()
 {
     //Attach video input device:
     if (m_service->videoDeviceControl()->isDirty()) {
@@ -358,29 +351,6 @@ void AVFCameraSession::attachInputDevices()
             } else {
                 qWarning() << "Failed to connect video device input";
             }
-        }
-    }
-
-    //Attach audio input device:
-    if (m_service->audioInputSelectorControl()->isDirty()) {
-        if (m_audioInput) {
-            [m_captureSession removeInput:m_audioInput];
-            [m_audioInput release];
-            m_audioInput = 0;
-        }
-
-        AVCaptureDevice *audioDevice = m_service->audioInputSelectorControl()->createCaptureDevice();
-
-        NSError *error = nil;
-        m_audioInput = [AVCaptureDeviceInput
-                deviceInputWithDevice:audioDevice
-                error:&error];
-
-        if (!m_audioInput) {
-            qWarning() << "Failed to create audio device input";
-        } else {
-            [m_audioInput retain];
-            [m_captureSession addInput:m_audioInput];
         }
     }
 }

@@ -130,7 +130,7 @@ private:
 
     CaptureProfile getProfile(int id);
 
-    bool start();
+    void start();
     void stop(bool error = false);
 
     void setStatus(QMediaRecorder::Status status);

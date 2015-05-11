@@ -132,11 +132,14 @@ private:
     ComPtr<ID3D11VideoProcessorOutputView> m_outputView;
 };
 
+#define CAMERA_SAMPLE_QUEUE_SIZE 5
 class QWinRTCameraVideoRendererControlPrivate
 {
 public:
     QScopedPointer<D3DVideoBlitter> blitter;
-    QVector<ComPtr<IMF2DBuffer>> buffers;
+    ComPtr<IMF2DBuffer> buffers[CAMERA_SAMPLE_QUEUE_SIZE];
+    QAtomicInteger<quint16> writeIndex;
+    QAtomicInteger<quint16> readIndex;
 };
 
 QWinRTCameraVideoRendererControl::QWinRTCameraVideoRendererControl(const QSize &size, QObject *parent)
@@ -153,13 +156,17 @@ bool QWinRTCameraVideoRendererControl::render(ID3D11Texture2D *target)
 {
     Q_D(QWinRTCameraVideoRendererControl);
 
-    if (d->buffers.isEmpty()) {
+    const quint16 readIndex = d->readIndex;
+    if (readIndex == d->writeIndex) {
         emit bufferRequested();
         return false;
     }
 
     HRESULT hr;
-    ComPtr<IMF2DBuffer> buffer = d->buffers.takeFirst();
+    ComPtr<IMF2DBuffer> buffer = d->buffers[readIndex];
+    Q_ASSERT(buffer);
+    d->buffers[readIndex].Reset();
+    d->readIndex = (readIndex + 1) % CAMERA_SAMPLE_QUEUE_SIZE;
 
     ComPtr<ID3D11Texture2D> sourceTexture;
     ComPtr<IMFDXGIBuffer> dxgiBuffer;
@@ -186,11 +193,17 @@ void QWinRTCameraVideoRendererControl::queueBuffer(IMF2DBuffer *buffer)
 {
     Q_D(QWinRTCameraVideoRendererControl);
     Q_ASSERT(buffer);
-    d->buffers.append(buffer);
+    const quint16 writeIndex = (d->writeIndex + 1) % CAMERA_SAMPLE_QUEUE_SIZE;
+    if (d->readIndex == writeIndex) // Drop new sample if queue is full
+        return;
+    d->buffers[d->writeIndex] = buffer;
+    d->writeIndex = writeIndex;
 }
 
 void QWinRTCameraVideoRendererControl::discardBuffers()
 {
     Q_D(QWinRTCameraVideoRendererControl);
-    d->buffers.clear();
+    d->writeIndex = d->readIndex = 0;
+    for (ComPtr<IMF2DBuffer> &buffer : d->buffers)
+        buffer.Reset();
 }

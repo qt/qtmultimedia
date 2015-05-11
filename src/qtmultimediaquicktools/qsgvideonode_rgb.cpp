@@ -68,14 +68,15 @@ QSGVideoNode *QSGVideoNodeFactory_RGB::createNode(const QVideoSurfaceFormat &for
 class QSGVideoMaterialShader_RGB : public QSGMaterialShader
 {
 public:
-    QSGVideoMaterialShader_RGB(QVideoFrame::PixelFormat pixelFormat)
+    QSGVideoMaterialShader_RGB()
         : QSGMaterialShader(),
           m_id_matrix(-1),
           m_id_width(-1),
           m_id_rgbTexture(-1),
-          m_id_opacity(-1),
-          m_pixelFormat(pixelFormat)
+          m_id_opacity(-1)
     {
+        setShaderSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo_padded.vert"));
+        setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo.frag"));
     }
 
     void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial);
@@ -90,54 +91,6 @@ public:
     }
 
 protected:
-
-    virtual const char *vertexShader() const {
-        const char *shader =
-        "uniform highp mat4 qt_Matrix;                      \n"
-        "uniform highp float width;                         \n"
-        "attribute highp vec4 qt_VertexPosition;            \n"
-        "attribute highp vec2 qt_VertexTexCoord;            \n"
-        "varying highp vec2 qt_TexCoord;                    \n"
-        "void main() {                                      \n"
-        "    qt_TexCoord = qt_VertexTexCoord * vec2(width, 1);\n"
-        "    gl_Position = qt_Matrix * qt_VertexPosition;   \n"
-        "}";
-        return shader;
-    }
-
-    virtual const char *fragmentShader() const {
-        static const char *shader =
-        "uniform sampler2D rgbTexture;"
-        "uniform lowp float opacity;"
-        ""
-        "varying highp vec2 qt_TexCoord;"
-        ""
-        "void main()"
-        "{"
-        "    gl_FragColor = texture2D(rgbTexture, qt_TexCoord) * opacity;"
-        "}";
-
-        static const char *colorsSwapShader =
-        "uniform sampler2D rgbTexture;"
-        "uniform lowp float opacity;"
-        ""
-        "varying highp vec2 qt_TexCoord;"
-        ""
-        "void main()"
-        "{"
-        "    gl_FragColor =  vec4(texture2D(rgbTexture, qt_TexCoord).bgr, 1.0) * opacity;"
-        "}";
-
-
-        switch (m_pixelFormat) {
-            case QVideoFrame::Format_RGB32:
-            case QVideoFrame::Format_ARGB32:
-                return colorsSwapShader;
-            default:
-                return shader;
-        }
-    }
-
     virtual void initialize() {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
         m_id_width = program()->uniformLocation("width");
@@ -149,7 +102,16 @@ protected:
     int m_id_width;
     int m_id_rgbTexture;
     int m_id_opacity;
-    QVideoFrame::PixelFormat m_pixelFormat;
+};
+
+class QSGVideoMaterialShader_RGB_swizzle : public QSGVideoMaterialShader_RGB
+{
+public:
+    QSGVideoMaterialShader_RGB_swizzle()
+        : QSGVideoMaterialShader_RGB()
+    {
+        setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo_swizzle.frag"));
+    }
 };
 
 
@@ -172,12 +134,13 @@ public:
     }
 
     virtual QSGMaterialType *type() const {
-        static QSGMaterialType theType;
-        return &theType;
+        static QSGMaterialType normalType, swizzleType;
+        return needsSwizzling() ? &swizzleType : &normalType;
     }
 
     virtual QSGMaterialShader *createShader() const {
-        return new QSGVideoMaterialShader_RGB(m_format.pixelFormat());
+        return needsSwizzling() ? new QSGVideoMaterialShader_RGB_swizzle
+                                : new QSGVideoMaterialShader_RGB;
     }
 
     virtual int compare(const QSGMaterial *other) const {
@@ -263,6 +226,12 @@ public:
     GLuint m_textureId;
     qreal m_opacity;
     GLfloat m_width;
+
+private:
+    bool needsSwizzling() const {
+        return m_format.pixelFormat() == QVideoFrame::Format_RGB32
+                || m_format.pixelFormat() == QVideoFrame::Format_ARGB32;
+    }
 };
 
 

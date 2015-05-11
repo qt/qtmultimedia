@@ -99,7 +99,7 @@ Q_SIGNALS:
 
 private:
     static void updateCameraDevices();
-    void attachInputDevices();
+    void attachVideoInputDevice();
     void applyImageEncoderSettings();
     void applyViewfinderSettings();
 
@@ -114,7 +114,6 @@ private:
 
     AVCaptureSession *m_captureSession;
     AVCaptureDeviceInput *m_videoInput;
-    AVCaptureDeviceInput *m_audioInput;
     AVFCameraSessionObserver *m_observer;
 
     QSet<AVFMediaVideoProbeControl *> m_videoProbes;

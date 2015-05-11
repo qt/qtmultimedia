@@ -14,7 +14,7 @@ win32 {
     qtCompileTest(avfoundation)
 } else:qnx {
     qtCompileTest(mmrenderer)
-} else {
+} else:!android {
     contains(QT_CONFIG, alsa):qtCompileTest(alsa)
     contains(QT_CONFIG, pulseaudio):qtCompileTest(pulseaudio)
 
