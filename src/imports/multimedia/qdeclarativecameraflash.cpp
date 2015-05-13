@@ -113,7 +113,10 @@ bool QDeclarativeCameraFlash::isFlashReady() const
     \row \li Camera.FlashAuto            \li Automatic flash.
     \row \li Camera.FlashRedEyeReduction \li Red eye reduction flash.
     \row \li Camera.FlashFill            \li Use flash to fillin shadows.
-    \row \li Camera.FlashTorch           \li Constant light source, useful for focusing and video capture.
+    \row \li Camera.FlashTorch           \li Constant light source. If supported, torch can be
+                                             enabled without loading the camera.
+    \row \li Camera.FlashVideoLight      \li Constant light source, useful for video capture.
+                                             The light is turned on only while the camera is active.
     \row \li Camera.FlashSlowSyncFrontCurtain
                                 \li Use the flash in conjunction with a slow shutter speed.
                                 This mode allows better exposure of distant objects and/or motion blur effect.
