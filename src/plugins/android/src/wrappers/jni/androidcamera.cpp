@@ -744,6 +744,12 @@ void AndroidCamera::stopPreview()
     QMetaObject::invokeMethod(d, "stopPreview");
 }
 
+void AndroidCamera::stopPreviewSynchronous()
+{
+    Q_D(AndroidCamera);
+    QMetaObject::invokeMethod(d, "stopPreview", Qt::BlockingQueuedConnection);
+}
+
 AndroidCameraPrivate::AndroidCameraPrivate()
     : QObject(),
       m_parametersMutex(QMutex::Recursive)

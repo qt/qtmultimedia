@@ -34,6 +34,8 @@
 #include "androidmediarecorder.h"
 
 #include "androidcamera.h"
+#include "androidsurfacetexture.h"
+#include "androidsurfaceview.h"
 #include <QtCore/private/qjni_p.h>
 #include <qmap.h>
 
@@ -338,6 +340,41 @@ void AndroidMediaRecorder::setOutputFile(const QString &path)
         env->ExceptionClear();
     }
 }
+
+void AndroidMediaRecorder::setSurfaceTexture(AndroidSurfaceTexture *texture)
+{
+    QJNIEnvironmentPrivate env;
+    m_mediaRecorder.callMethod<void>("setPreviewDisplay",
+                                     "(Landroid/view/Surface;)V",
+                                     texture->surface());
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
+        env->ExceptionClear();
+    }
+}
+
+void AndroidMediaRecorder::setSurfaceHolder(AndroidSurfaceHolder *holder)
+{
+    QJNIEnvironmentPrivate env;
+    QJNIObjectPrivate surfaceHolder(holder->surfaceHolder());
+    QJNIObjectPrivate surface = surfaceHolder.callObjectMethod("getSurface",
+                                                               "()Landroid/view/Surface;");
+    if (!surface.isValid())
+        return;
+
+    m_mediaRecorder.callMethod<void>("setPreviewDisplay",
+                                     "(Landroid/view/Surface;)V",
+                                     surface.object());
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
+        env->ExceptionClear();
+    }
+}
+
 
 bool AndroidMediaRecorder::initJNI(JNIEnv *env)
 {

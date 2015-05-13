@@ -50,7 +50,7 @@ public:
 
     int textureID() const { return m_texID; }
     jobject surfaceTexture();
-    jobject surfaceView();
+    jobject surface();
     jobject surfaceHolder();
     inline bool isValid() const { return m_surfaceTexture.isValid(); }
 
@@ -66,7 +66,7 @@ Q_SIGNALS:
 private:
     int m_texID;
     QJNIObjectPrivate m_surfaceTexture;
-    QJNIObjectPrivate m_surfaceView;
+    QJNIObjectPrivate m_surface;
     QJNIObjectPrivate m_surfaceHolder;
 };
 

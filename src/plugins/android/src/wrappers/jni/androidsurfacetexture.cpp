@@ -78,8 +78,8 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(unsigned int texName)
 
 AndroidSurfaceTexture::~AndroidSurfaceTexture()
 {
-    if (QtAndroidPrivate::androidSdkVersion() > 13 && m_surfaceView.isValid())
-        m_surfaceView.callMethod<void>("release");
+    if (QtAndroidPrivate::androidSdkVersion() > 13 && m_surface.isValid())
+        m_surface.callMethod<void>("release");
 
     if (m_surfaceTexture.isValid()) {
         release();
@@ -124,21 +124,23 @@ jobject AndroidSurfaceTexture::surfaceTexture()
     return m_surfaceTexture.object();
 }
 
-jobject AndroidSurfaceTexture::surfaceView()
+jobject AndroidSurfaceTexture::surface()
 {
-    return m_surfaceView.object();
+    if (!m_surface.isValid()) {
+        m_surface = QJNIObjectPrivate("android/view/Surface",
+                                      "(Landroid/graphics/SurfaceTexture;)V",
+                                      m_surfaceTexture.object());
+    }
+
+    return m_surface.object();
 }
 
 jobject AndroidSurfaceTexture::surfaceHolder()
 {
     if (!m_surfaceHolder.isValid()) {
-        m_surfaceView = QJNIObjectPrivate("android/view/Surface",
-                                          "(Landroid/graphics/SurfaceTexture;)V",
-                                          m_surfaceTexture.object());
-
         m_surfaceHolder = QJNIObjectPrivate("org/qtproject/qt5/android/multimedia/QtSurfaceTextureHolder",
                                             "(Landroid/view/Surface;)V",
-                                            m_surfaceView.object());
+                                            surface());
     }
 
     return m_surfaceHolder.object();

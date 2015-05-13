@@ -155,6 +155,7 @@ public:
 
     void startPreview();
     void stopPreview();
+    void stopPreviewSynchronous();
 
     void takePicture();
 

@@ -68,6 +68,7 @@ public:
     void setCaptureMode(QCamera::CaptureModes mode);
     bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
 
+    QAndroidVideoOutput *videoOutput() const { return m_videoOutput; }
     void setVideoOutput(QAndroidVideoOutput *output);
     void adjustViewfinderSize(const QSize &captureSize, bool restartPreview = true);
 

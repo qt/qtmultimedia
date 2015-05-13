@@ -41,6 +41,8 @@
 QT_BEGIN_NAMESPACE
 
 class AndroidCamera;
+class AndroidSurfaceTexture;
+class AndroidSurfaceHolder;
 
 class AndroidCamcorderProfile
 {
@@ -148,6 +150,9 @@ public:
 
     void setOutputFormat(OutputFormat format);
     void setOutputFile(const QString &path);
+
+    void setSurfaceTexture(AndroidSurfaceTexture *texture);
+    void setSurfaceHolder(AndroidSurfaceHolder *holder);
 
     static bool initJNI(JNIEnv *env);
 
