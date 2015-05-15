@@ -41,6 +41,10 @@
 #include <private/qmediapluginloader_p.h>
 #include <QtCore/qloggingcategory.h>
 
+static void initResource() {
+    Q_INIT_RESOURCE(qtmultimediaquicktools);
+}
+
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
@@ -130,6 +134,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     m_autoOrientation(false),
     m_screenOrientationHandler(0)
 {
+    initResource();
     setFlag(ItemHasContents, true);
 }
 
