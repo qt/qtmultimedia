@@ -28,11 +28,13 @@
 /*!
     \example declarative-radio
     \title Declarative Radio Example
-    \brief Demonstrates the radio functionality
+    \brief Demonstrates using the Radio QML type from Qt Multimedia.
     \ingroup multimedia_examples
 
     This examples uses the \l{Qt Multimedia} \l Radio QML type to list the
     available channels on the FM frequency.
+
+    \image declarative-radio-example.png
 
     \include examples-run.qdocinc
 */
