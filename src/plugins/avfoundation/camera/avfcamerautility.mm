@@ -59,13 +59,20 @@ AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection)
         }
     }
 
-    if (videoConnection.supportsVideoMaxFrameDuration) {
-        const CMTime cmMax = videoConnection.videoMaxFrameDuration;
-        if (CMTimeCompare(cmMax, kCMTimeInvalid)) {
-            if (const Float64 maxSeconds = CMTimeGetSeconds(cmMax))
-                newRange.first = 1. / maxSeconds;
+#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9, __IPHONE_5_0)
+#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
+    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_9)
+#endif
+    {
+        if (videoConnection.supportsVideoMaxFrameDuration) {
+            const CMTime cmMax = videoConnection.videoMaxFrameDuration;
+            if (CMTimeCompare(cmMax, kCMTimeInvalid)) {
+                if (const Float64 maxSeconds = CMTimeGetSeconds(cmMax))
+                    newRange.first = 1. / maxSeconds;
+            }
         }
     }
+#endif
 
     return newRange;
 }

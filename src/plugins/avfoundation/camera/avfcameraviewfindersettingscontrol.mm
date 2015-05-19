@@ -76,31 +76,40 @@ void qt_set_framerate_limits(AVCaptureConnection *videoConnection,
         return;
     }
 
-    const qreal minFPS = settings.minimumFrameRate();
     const qreal maxFPS = settings.maximumFrameRate();
-
     CMTime minDuration = kCMTimeInvalid;
-    CMTime maxDuration = kCMTimeInvalid;
-    if (minFPS > 0. || maxFPS > 0.) {
-        if (maxFPS) {
-            if (!videoConnection.supportsVideoMinFrameDuration)
-                qDebugCamera() << Q_FUNC_INFO << "maximum framerate is not supported";
-            else
-                minDuration = CMTimeMake(1, maxFPS);
-        }
+    if (maxFPS > 0.) {
+        if (!videoConnection.supportsVideoMinFrameDuration)
+            qDebugCamera() << Q_FUNC_INFO << "maximum framerate is not supported";
+        else
+            minDuration = CMTimeMake(1, maxFPS);
+    }
+    if (videoConnection.supportsVideoMinFrameDuration)
+        videoConnection.videoMinFrameDuration = minDuration;
 
-        if (minFPS) {
+    const qreal minFPS = settings.minimumFrameRate();
+#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9, __IPHONE_5_0)
+#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
+    if (QSysInfo::MacintoshVersion < QSysInfo::MV_10_9) {
+        if (minFPS > 0.)
+            qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
+    } else
+#endif
+    {
+        CMTime maxDuration = kCMTimeInvalid;
+        if (minFPS > 0.) {
             if (!videoConnection.supportsVideoMaxFrameDuration)
                 qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
             else
                 maxDuration = CMTimeMake(1, minFPS);
         }
+        if (videoConnection.supportsVideoMaxFrameDuration)
+            videoConnection.videoMaxFrameDuration = maxDuration;
     }
-
-    if (videoConnection.supportsVideoMinFrameDuration)
-        videoConnection.videoMinFrameDuration = minDuration;
-    if (videoConnection.supportsVideoMaxFrameDuration)
-        videoConnection.videoMaxFrameDuration = maxDuration;
+#else
+    if (minFPS > 0.)
+        qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
+#endif
 }
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
