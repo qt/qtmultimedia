@@ -485,13 +485,7 @@ QVector<QVideoFrame::PixelFormat> AVFCameraViewfinderSettingsControl2::viewfinde
     Q_ASSERT(m_videoOutput);
 
     QVector<QVideoFrame::PixelFormat> qtFormats;
-    QList<QVideoFrame::PixelFormat> filter;
-
     NSArray *pixelFormats = [m_videoOutput availableVideoCVPixelFormatTypes];
-    const QAbstractVideoSurface *surface = m_service->videoOutput() ? m_service->videoOutput()->surface() : 0;
-
-    if (surface)
-        filter = surface->supportedPixelFormats();
 
     for (NSObject *obj in pixelFormats) {
         if (![obj isKindOfClass:[NSNumber class]])
@@ -500,8 +494,8 @@ QVector<QVideoFrame::PixelFormat> AVFCameraViewfinderSettingsControl2::viewfinde
         NSNumber *formatAsNSNumber = static_cast<NSNumber *>(obj);
         // It's actually FourCharCode (== UInt32):
         const QVideoFrame::PixelFormat qtFormat(QtPixelFormatFromCVFormat([formatAsNSNumber unsignedIntValue]));
-        if (qtFormat != QVideoFrame::Format_Invalid && (!surface || filter.contains(qtFormat))
-            && !qtFormats.contains(qtFormat)) { // Can happen, for example, with 8BiPlanar existing in video/full range.
+        if (qtFormat != QVideoFrame::Format_Invalid
+                && !qtFormats.contains(qtFormat)) { // Can happen, for example, with 8BiPlanar existing in video/full range.
             qtFormats << qtFormat;
         }
     }
@@ -576,22 +570,33 @@ void AVFCameraViewfinderSettingsControl2::applySettings()
 #endif
 
     unsigned avfPixelFormat = 0;
-    if (m_settings.pixelFormat() != QVideoFrame::Format_Invalid  &&
-        convertPixelFormatIfSupported(m_settings.pixelFormat(), avfPixelFormat)) {
-        [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
-                          forKey:(id)kCVPixelBufferPixelFormatTypeKey];
-    } else {
-        // We have to set the pixel format, otherwise AVFoundation can change it to something we do not support.
-        if (NSObject *oldFormat = [m_videoOutput.videoSettings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey]) {
-            [videoSettings setObject:oldFormat forKey:(id)kCVPixelBufferPixelFormatTypeKey];
-        } else {
-            [videoSettings setObject:[NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA]
-                              forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+    if (!convertPixelFormatIfSupported(m_settings.pixelFormat(), avfPixelFormat)) {
+        // If the the pixel format is not specified or invalid, pick the preferred video surface
+        // format, or if no surface is set, the preferred capture device format
+        const QVector<QVideoFrame::PixelFormat> deviceFormats = viewfinderPixelFormats();
+        QList<QVideoFrame::PixelFormat> surfaceFormats;
+        if (m_service->videoOutput() && m_service->videoOutput()->surface())
+            surfaceFormats = m_service->videoOutput()->surface()->supportedPixelFormats();
+
+        QVideoFrame::PixelFormat format = deviceFormats.first();
+
+        for (int i = 0; i < surfaceFormats.count(); ++i) {
+            const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
+            if (deviceFormats.contains(surfaceFormat)) {
+                format = surfaceFormat;
+                break;
+            }
         }
+
+        CVPixelFormatFromQtFormat(format, avfPixelFormat);
     }
 
-    if (videoSettings.count)
+    if (avfPixelFormat != 0) {
+        [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
+                          forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+
         m_videoOutput.videoSettings = videoSettings;
+    }
 
     qt_set_framerate_limits(m_captureDevice, m_videoConnection, m_settings);
 }

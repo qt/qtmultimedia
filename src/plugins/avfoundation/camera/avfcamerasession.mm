@@ -283,12 +283,12 @@ void AVFCameraSession::setState(QCamera::State newState)
 
     if (m_state == QCamera::ActiveState) {
         Q_EMIT readyToConfigureConnections();
-        [m_captureSession commitConfiguration];
-        [m_captureSession startRunning];
         m_defaultCodec = 0;
         defaultCodec();
         applyImageEncoderSettings();
         applyViewfinderSettings();
+        [m_captureSession commitConfiguration];
+        [m_captureSession startRunning];
     }
 
     if (oldState == QCamera::ActiveState) {
@@ -374,8 +374,7 @@ void AVFCameraSession::applyViewfinderSettings()
             }
         }
 
-        if (!vfSettings.isNull())
-            vfControl->applySettings();
+        vfControl->applySettings();
     }
 }
 

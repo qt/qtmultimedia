@@ -167,19 +167,13 @@ private:
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
+    QVideoFrame::PixelFormat format =
+            AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
 
-    QAbstractVideoBuffer *buffer = new CVPixelBufferVideoBuffer(imageBuffer);
+    if (format == QVideoFrame::Format_Invalid)
+        return;
 
-    QVideoFrame::PixelFormat format = QVideoFrame::Format_RGB32;
-    if ([captureOutput isKindOfClass:[AVCaptureVideoDataOutput class]]) {
-        NSDictionary *settings = ((AVCaptureVideoDataOutput *)captureOutput).videoSettings;
-        if (settings && [settings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey]) {
-            NSNumber *avf = [settings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey];
-            format = AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat([avf unsignedIntValue]);
-        }
-    }
-
-    QVideoFrame frame(buffer, QSize(width, height), format);
+    QVideoFrame frame(new CVPixelBufferVideoBuffer(imageBuffer), QSize(width, height), format);
     m_renderer->syncHandleViewfinderFrame(frame);
 }
 @end
@@ -228,12 +222,6 @@ void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *camer
             setSampleBufferDelegate:m_viewfinderFramesDelegate
             queue:queue];
     dispatch_release(queue);
-
-    // Specify the pixel format
-    m_videoDataOutput.videoSettings =
-            [NSDictionary dictionaryWithObject:
-            [NSNumber numberWithInt:kCVPixelFormatType_32BGRA]
-            forKey:(id)kCVPixelBufferPixelFormatTypeKey];
 
     [m_cameraSession->captureSession() addOutput:m_videoDataOutput];
 }
