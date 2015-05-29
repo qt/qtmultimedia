@@ -573,22 +573,29 @@ void AVFCameraViewfinderSettingsControl2::applySettings()
     if (!convertPixelFormatIfSupported(m_settings.pixelFormat(), avfPixelFormat)) {
         // If the the pixel format is not specified or invalid, pick the preferred video surface
         // format, or if no surface is set, the preferred capture device format
+
         const QVector<QVideoFrame::PixelFormat> deviceFormats = viewfinderPixelFormats();
-        QList<QVideoFrame::PixelFormat> surfaceFormats;
-        if (m_service->videoOutput() && m_service->videoOutput()->surface())
-            surfaceFormats = m_service->videoOutput()->surface()->supportedPixelFormats();
+        QVideoFrame::PixelFormat pickedFormat = deviceFormats.first();
 
-        QVideoFrame::PixelFormat format = deviceFormats.first();
+        QAbstractVideoSurface *surface = m_service->videoOutput() ? m_service->videoOutput()->surface()
+                                                                  : 0;
+        if (surface) {
+            if (m_service->videoOutput()->supportsTextures()) {
+                pickedFormat = QVideoFrame::Format_ARGB32;
+            } else {
+                QList<QVideoFrame::PixelFormat> surfaceFormats = m_service->videoOutput()->surface()->supportedPixelFormats();
 
-        for (int i = 0; i < surfaceFormats.count(); ++i) {
-            const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
-            if (deviceFormats.contains(surfaceFormat)) {
-                format = surfaceFormat;
-                break;
+                for (int i = 0; i < surfaceFormats.count(); ++i) {
+                    const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
+                    if (deviceFormats.contains(surfaceFormat)) {
+                        pickedFormat = surfaceFormat;
+                        break;
+                    }
+                }
             }
         }
 
-        CVPixelFormatFromQtFormat(format, avfPixelFormat);
+        CVPixelFormatFromQtFormat(pickedFormat, avfPixelFormat);
     }
 
     if (avfPixelFormat != 0) {
