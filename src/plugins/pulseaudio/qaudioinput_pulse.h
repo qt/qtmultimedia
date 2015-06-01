@@ -116,8 +116,6 @@ private:
     void close();
     void setPulseVolume();
 
-    static QMap<void *, QPulseAudioInput*> s_inputsMap;
-
     static void sourceInfoCallback(pa_context *c, const pa_source_info *i, int eol, void *userdata);
     static void inputVolumeCallback(pa_context *context, int success, void *userdata);
 
