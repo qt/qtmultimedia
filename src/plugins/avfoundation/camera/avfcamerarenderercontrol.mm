@@ -309,8 +309,10 @@ void AVFCameraRendererControl::handleViewfinderFrame()
     }
 
     if (m_surface && frame.isValid()) {
-        if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
+        if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
+                                      || m_surface->surfaceFormat().frameSize() != frame.size())) {
             m_surface->stop();
+        }
 
         if (!m_surface->isActive()) {
             QVideoSurfaceFormat format(frame.size(), frame.pixelFormat());
