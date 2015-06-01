@@ -129,6 +129,7 @@ public:
         hr = deviceInfo->get_SystemSku(deviceModel.GetAddressOf());
         Q_ASSERT_SUCCEEDED(hr);
         m_flags |= bufferLockRequired(L"NOKIA RM-976", deviceModel);
+        m_flags |= bufferLockRequired(L"NOKIA RM-1019", deviceModel);
 #endif
     }
 
