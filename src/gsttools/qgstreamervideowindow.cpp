@@ -71,8 +71,6 @@ QGstreamerVideoWindow::QGstreamerVideoWindow(QObject *parent, const char *elemen
         addProbeToPad(pad);
         gst_object_unref(GST_OBJECT(pad));
     }
-    else
-        qDebug() << "No m_videoSink available!";
 }
 
 QGstreamerVideoWindow::~QGstreamerVideoWindow()
