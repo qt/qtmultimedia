@@ -70,32 +70,32 @@ QT_END_NAMESPACE
 @private
     AVFCameraService *m_service;
 
-    QT_MANGLE_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_cameraWriterInput;
-    QT_MANGLE_NAMESPACE(AVFScopedPointer)<AVCaptureDeviceInput> m_audioInput;
-    QT_MANGLE_NAMESPACE(AVFScopedPointer)<AVCaptureAudioDataOutput> m_audioOutput;
-    QT_MANGLE_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_audioWriterInput;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_cameraWriterInput;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureDeviceInput> m_audioInput;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureAudioDataOutput> m_audioOutput;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_audioWriterInput;
 
     // High priority serial queue for video output:
-    QT_MANGLE_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_videoQueue;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_videoQueue;
     // Serial queue for audio output:
-    QT_MANGLE_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_audioQueue;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_audioQueue;
     // Queue to write sample buffers:
     __weak dispatch_queue_t m_writerQueue;
 
-    QT_MANGLE_NAMESPACE(AVFScopedPointer)<AVAssetWriter> m_assetWriter;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriter> m_assetWriter;
     // Delegate's queue.
     __weak dispatch_queue_t m_delegateQueue;
     // TODO: QPointer??
     QT_PREPEND_NAMESPACE(AVFMediaAssetWriterDelegate) *m_delegate;
 
     bool m_setStartTime;
-    QT_MANGLE_NAMESPACE(AVFAtomicBool) m_stopped;
+    QT_PREPEND_NAMESPACE(AVFAtomicBool) m_stopped;
     bool m_stoppedInternal;
     bool m_aborted;
 
-    QT_MANGLE_NAMESPACE(QMutex) m_writerMutex;
+    QT_PREPEND_NAMESPACE(QMutex) m_writerMutex;
 @public
-    QT_MANGLE_NAMESPACE(AVFAtomicInt64) m_durationInMs;
+    QT_PREPEND_NAMESPACE(AVFAtomicInt64) m_durationInMs;
 @private
     CMTime m_startTime;
     CMTime m_lastTimeStamp;
