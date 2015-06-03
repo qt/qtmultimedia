@@ -521,7 +521,8 @@ void tst_QVideoSurfaceFormat::staticPropertyNames()
     QVERIFY(propertyNames.contains("pixelAspectRatio"));
     QVERIFY(propertyNames.contains("yCbCrColorSpace"));
     QVERIFY(propertyNames.contains("sizeHint"));
-    QCOMPARE(propertyNames.count(), 10);
+    QVERIFY(propertyNames.contains("mirrored"));
+    QCOMPARE(propertyNames.count(), 11);
 }
 
 void tst_QVideoSurfaceFormat::dynamicProperty()

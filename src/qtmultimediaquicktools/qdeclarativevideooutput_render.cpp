@@ -255,6 +255,12 @@ void QDeclarativeVideoRendererBackend::updateGeometry()
         m_sourceTextureRect.setTop(m_sourceTextureRect.bottom());
         m_sourceTextureRect.setBottom(top);
     }
+
+    if (videoSurface()->surfaceFormat().property("mirrored").toBool()) {
+        qreal left = m_sourceTextureRect.left();
+        m_sourceTextureRect.setLeft(m_sourceTextureRect.right());
+        m_sourceTextureRect.setRight(left);
+    }
 }
 
 QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
