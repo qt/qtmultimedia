@@ -161,7 +161,6 @@ private:
     QString m_containerFormat;
     QAudioEncoderSettings m_audioSettings;
     QVideoEncoderSettings m_videoSettings;
-    bool m_resolutionDirty;
     bool m_containerFormatDirty;
     bool m_videoSettingsDirty;
     bool m_audioSettingsDirty;

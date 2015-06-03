@@ -60,6 +60,8 @@ QSGVivanteVideoMaterial::QSGVivanteVideoMaterial() :
 #endif
 
     setFlag(Blending, false);
+
+    mShader = new QSGVivanteVideoMaterialShader;
 }
 
 QSGVivanteVideoMaterial::~QSGVivanteVideoMaterial()
@@ -73,7 +75,7 @@ QSGMaterialType *QSGVivanteVideoMaterial::type() const {
 }
 
 QSGMaterialShader *QSGVivanteVideoMaterial::createShader() const {
-    return new QSGVivanteVideoMaterialShader;
+    return mShader;
 }
 
 int QSGVivanteVideoMaterial::compare(const QSGMaterial *other) const {
@@ -175,18 +177,49 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
                 glGenTextures(1, &tmpTexId);
                 mBitsToTextureMap.insert(vF.bits(), tmpTexId);
 
+                // Determine the full width & height. Full means: actual width/height plus extra padding pixels.
+                // The full width can be deduced from the bytesPerLine value. The full height is calculated
+                // by calculating the distance between the start of the first and second planes, and dividing
+                // it by the stride (= the bytesPerLine). If there is only one plane, we don't worry about
+                // extra padding rows, since there are no adjacent extra planes.
+                // XXX: This assumes the distance between bits(1) and bits(0) is exactly the size of the first
+                // plane (the Y plane in the case of YUV data). A better way would be to have a dedicated
+                // planeSize() or planeOffset() getter.
+                // Also, this assumes that planes are tightly packed, that is, there is no space between them.
+                // It is okay to assume this here though, because the Vivante direct textures also assume that.
+                // In other words, if the planes aren't tightly packed, then the direct textures won't be able
+                // to render the frame correctly anyway.
+                int fullWidth = vF.bytesPerLine() / QSGVivanteVideoNode::getBytesForPixelFormat(vF.pixelFormat());
+                int fullHeight = (vF.planeCount() > 1) ? ((vF.bits(1) - vF.bits(0)) / vF.bytesPerLine()) : vF.height();
+
+                // The uscale is the ratio of actual width to the full width (same for vscale and height).
+                // Since the vivante direct textures do not offer a way to explicitly specify the amount of padding
+                // columns and rows, we use a trick. We show the full frame - including the padding pixels - in the
+                // texture, but render only a subset of that texture. This subset goes from (0,0) to (uScale, vScale).
+                // In the shader, the texture coordinates (which go from (0.0, 0.0) to (1.0, 1.0)) are multiplied by
+                // the u/v scale values. Since 1.0 * x = x, this effectively limits the texture coordinates from
+                // (0.0, 0.0) - (1.0, 1.0) to (0.0, 0.0) - (uScale, vScale).
+                float uScale = float(vF.width()) / float(fullWidth);
+                float vScale = float(vF.height()) / float(fullHeight);
+                mShader->setUVScale(uScale, vScale);
+
                 const uchar *constBits = vF.bits();
                 void *bits = (void*)constBits;
 
 #ifdef QT_VIVANTE_VIDEO_DEBUG
-                qDebug() << Q_FUNC_INFO << "new texture, texId: " << tmpTexId << "; constBits: " << constBits;
+                qDebug() << Q_FUNC_INFO
+                         << "new texture, texId: " << tmpTexId
+                         << "; constBits: " << constBits
+                         << "; actual/full width: " << vF.width() << "/" << fullWidth
+                         << "; actual/full height: " << vF.height() << "/" << fullHeight
+                         << "; UV scale: U " << uScale << " V " << vScale;
 #endif
 
                 GLuint physical = ~0U;
 
                 glBindTexture(GL_TEXTURE_2D, tmpTexId);
                 glTexDirectVIVMap_LOCAL(GL_TEXTURE_2D,
-                                        vF.width(), vF.height(),
+                                        fullWidth, fullHeight,
                                         QSGVivanteVideoNode::getVideoFormat2GLFormatMap().value(vF.pixelFormat()),
                                         &bits, &physical);
 

@@ -277,26 +277,28 @@ void QAndroidCameraSession::adjustViewfinderSize(const QSize &captureSize, bool 
         return;
 
     QSize currentViewfinderResolution = m_camera->previewSize();
-    const qreal aspectRatio = qreal(captureSize.width()) / qreal(captureSize.height());
-    if (currentViewfinderResolution.isValid() &&
-            qAbs(aspectRatio - (qreal(currentViewfinderResolution.width()) / currentViewfinderResolution.height())) < 0.01) {
-        return;
-    }
-
     QSize adjustedViewfinderResolution;
-    QList<QSize> previewSizes = m_camera->getSupportedPreviewSizes();
-    for (int i = previewSizes.count() - 1; i >= 0; --i) {
-        const QSize &size = previewSizes.at(i);
-        // search for viewfinder resolution with the same aspect ratio
-        if (qAbs(aspectRatio - (qreal(size.width()) / size.height())) < 0.01) {
-            adjustedViewfinderResolution = size;
-            break;
-        }
-    }
 
-    if (!adjustedViewfinderResolution.isValid()) {
-        qWarning("Cannot find a viewfinder resolution matching the capture aspect ratio.");
-        return;
+    if (m_captureMode.testFlag(QCamera::CaptureVideo) && m_camera->getPreferredPreviewSizeForVideo().isEmpty()) {
+        // According to the Android doc, if getPreferredPreviewSizeForVideo() returns null, it means
+        // the preview size cannot be different from the capture size
+        adjustedViewfinderResolution = captureSize;
+    } else {
+        // search for viewfinder resolution with the same aspect ratio
+        const qreal aspectRatio = qreal(captureSize.width()) / qreal(captureSize.height());
+        QList<QSize> previewSizes = m_camera->getSupportedPreviewSizes();
+        for (int i = previewSizes.count() - 1; i >= 0; --i) {
+            const QSize &size = previewSizes.at(i);
+            if (qAbs(aspectRatio - (qreal(size.width()) / size.height())) < 0.01) {
+                adjustedViewfinderResolution = size;
+                break;
+            }
+        }
+
+        if (!adjustedViewfinderResolution.isValid()) {
+            qWarning("Cannot find a viewfinder resolution matching the capture aspect ratio.");
+            return;
+        }
     }
 
     if (currentViewfinderResolution != adjustedViewfinderResolution) {

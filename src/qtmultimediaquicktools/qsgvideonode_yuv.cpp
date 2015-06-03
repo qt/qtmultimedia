@@ -318,7 +318,8 @@ void QSGVideoMaterial_YUV::bind()
 
         m_frame = QVideoFrame();
     } else {
-        for (int i = 0; i < m_planeCount; ++i) {
+        // Go backwards to finish with GL_TEXTURE0
+        for (int i = m_planeCount - 1; i >= 0; --i) {
             functions->glActiveTexture(GL_TEXTURE0 + i);
             functions->glBindTexture(GL_TEXTURE_2D, m_textureIds[i]);
         }

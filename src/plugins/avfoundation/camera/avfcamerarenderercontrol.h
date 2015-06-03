@@ -63,6 +63,11 @@ public:
 
     AVCaptureVideoDataOutput *videoDataOutput() const;
 
+#ifdef Q_OS_IOS
+    AVFCaptureFramesDelegate *captureDelegate() const;
+    void resetCaptureDelegate() const;
+#endif
+
 Q_SIGNALS:
     void surfaceChanged(QAbstractVideoSurface *surface);
 
@@ -80,6 +85,7 @@ private:
 
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;
+    dispatch_queue_t m_delegateQueue;
 };
 
 QT_END_NAMESPACE

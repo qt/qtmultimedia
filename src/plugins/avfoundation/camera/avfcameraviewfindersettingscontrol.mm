@@ -76,31 +76,40 @@ void qt_set_framerate_limits(AVCaptureConnection *videoConnection,
         return;
     }
 
-    const qreal minFPS = settings.minimumFrameRate();
     const qreal maxFPS = settings.maximumFrameRate();
-
     CMTime minDuration = kCMTimeInvalid;
-    CMTime maxDuration = kCMTimeInvalid;
-    if (minFPS > 0. || maxFPS > 0.) {
-        if (maxFPS) {
-            if (!videoConnection.supportsVideoMinFrameDuration)
-                qDebugCamera() << Q_FUNC_INFO << "maximum framerate is not supported";
-            else
-                minDuration = CMTimeMake(1, maxFPS);
-        }
+    if (maxFPS > 0.) {
+        if (!videoConnection.supportsVideoMinFrameDuration)
+            qDebugCamera() << Q_FUNC_INFO << "maximum framerate is not supported";
+        else
+            minDuration = CMTimeMake(1, maxFPS);
+    }
+    if (videoConnection.supportsVideoMinFrameDuration)
+        videoConnection.videoMinFrameDuration = minDuration;
 
-        if (minFPS) {
+    const qreal minFPS = settings.minimumFrameRate();
+#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9, __IPHONE_5_0)
+#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
+    if (QSysInfo::MacintoshVersion < QSysInfo::MV_10_9) {
+        if (minFPS > 0.)
+            qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
+    } else
+#endif
+    {
+        CMTime maxDuration = kCMTimeInvalid;
+        if (minFPS > 0.) {
             if (!videoConnection.supportsVideoMaxFrameDuration)
                 qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
             else
                 maxDuration = CMTimeMake(1, minFPS);
         }
+        if (videoConnection.supportsVideoMaxFrameDuration)
+            videoConnection.videoMaxFrameDuration = maxDuration;
     }
-
-    if (videoConnection.supportsVideoMinFrameDuration)
-        videoConnection.videoMinFrameDuration = minDuration;
-    if (videoConnection.supportsVideoMaxFrameDuration)
-        videoConnection.videoMaxFrameDuration = maxDuration;
+#else
+    if (minFPS > 0.)
+        qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
+#endif
 }
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
@@ -171,12 +180,21 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice,
 #ifdef Q_OS_IOS
     [captureDevice setActiveVideoMinFrameDuration:minFrameDuration];
     [captureDevice setActiveVideoMaxFrameDuration:maxFrameDuration];
-#else
+#else // Q_OS_OSX
+
     if (CMTimeCompare(minFrameDuration, kCMTimeInvalid))
         [captureDevice setActiveVideoMinFrameDuration:minFrameDuration];
-    if (CMTimeCompare(maxFrameDuration, kCMTimeInvalid))
-        [captureDevice setActiveVideoMaxFrameDuration:maxFrameDuration];
+
+#if QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
+#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
+    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_9)
 #endif
+    {
+        if (CMTimeCompare(maxFrameDuration, kCMTimeInvalid))
+            [captureDevice setActiveVideoMaxFrameDuration:maxFrameDuration];
+    }
+#endif // QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
+#endif // Q_OS_OSX
 }
 
 #endif // Platform SDK >= 10.9, >= 7.0.
@@ -197,15 +215,23 @@ AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnec
                 fps.second = 1. / minSeconds; // Max FPS = 1 / MinDuration.
         }
 
-        const CMTime maxDuration = captureDevice.activeVideoMaxFrameDuration;
-        if (CMTimeCompare(maxDuration, kCMTimeInvalid)) {
-            if (const Float64 maxSeconds = CMTimeGetSeconds(maxDuration))
-                fps.first = 1. / maxSeconds; // Min FPS = 1 / MaxDuration.
-        }
-    } else {
-#else
-    {
+#if QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
+#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
+        if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_9)
 #endif
+        {
+            const CMTime maxDuration = captureDevice.activeVideoMaxFrameDuration;
+            if (CMTimeCompare(maxDuration, kCMTimeInvalid)) {
+                if (const Float64 maxSeconds = CMTimeGetSeconds(maxDuration))
+                    fps.first = 1. / maxSeconds; // Min FPS = 1 / MaxDuration.
+            }
+        }
+#endif // QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
+
+    } else {
+#else // OSX < 10.7 or iOS < 7.0
+    {
+#endif // QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
         fps = qt_connection_framerates(videoConnection);
     }
 
@@ -459,13 +485,7 @@ QVector<QVideoFrame::PixelFormat> AVFCameraViewfinderSettingsControl2::viewfinde
     Q_ASSERT(m_videoOutput);
 
     QVector<QVideoFrame::PixelFormat> qtFormats;
-    QList<QVideoFrame::PixelFormat> filter;
-
     NSArray *pixelFormats = [m_videoOutput availableVideoCVPixelFormatTypes];
-    const QAbstractVideoSurface *surface = m_service->videoOutput() ? m_service->videoOutput()->surface() : 0;
-
-    if (surface)
-        filter = surface->supportedPixelFormats();
 
     for (NSObject *obj in pixelFormats) {
         if (![obj isKindOfClass:[NSNumber class]])
@@ -474,8 +494,8 @@ QVector<QVideoFrame::PixelFormat> AVFCameraViewfinderSettingsControl2::viewfinde
         NSNumber *formatAsNSNumber = static_cast<NSNumber *>(obj);
         // It's actually FourCharCode (== UInt32):
         const QVideoFrame::PixelFormat qtFormat(QtPixelFormatFromCVFormat([formatAsNSNumber unsignedIntValue]));
-        if (qtFormat != QVideoFrame::Format_Invalid && (!surface || filter.contains(qtFormat))
-            && !qtFormats.contains(qtFormat)) { // Can happen, for example, with 8BiPlanar existing in video/full range.
+        if (qtFormat != QVideoFrame::Format_Invalid
+                && !qtFormats.contains(qtFormat)) { // Can happen, for example, with 8BiPlanar existing in video/full range.
             qtFormats << qtFormat;
         }
     }
@@ -550,22 +570,33 @@ void AVFCameraViewfinderSettingsControl2::applySettings()
 #endif
 
     unsigned avfPixelFormat = 0;
-    if (m_settings.pixelFormat() != QVideoFrame::Format_Invalid  &&
-        convertPixelFormatIfSupported(m_settings.pixelFormat(), avfPixelFormat)) {
-        [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
-                          forKey:(id)kCVPixelBufferPixelFormatTypeKey];
-    } else {
-        // We have to set the pixel format, otherwise AVFoundation can change it to something we do not support.
-        if (NSObject *oldFormat = [m_videoOutput.videoSettings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey]) {
-            [videoSettings setObject:oldFormat forKey:(id)kCVPixelBufferPixelFormatTypeKey];
-        } else {
-            [videoSettings setObject:[NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA]
-                              forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+    if (!convertPixelFormatIfSupported(m_settings.pixelFormat(), avfPixelFormat)) {
+        // If the the pixel format is not specified or invalid, pick the preferred video surface
+        // format, or if no surface is set, the preferred capture device format
+        const QVector<QVideoFrame::PixelFormat> deviceFormats = viewfinderPixelFormats();
+        QList<QVideoFrame::PixelFormat> surfaceFormats;
+        if (m_service->videoOutput() && m_service->videoOutput()->surface())
+            surfaceFormats = m_service->videoOutput()->surface()->supportedPixelFormats();
+
+        QVideoFrame::PixelFormat format = deviceFormats.first();
+
+        for (int i = 0; i < surfaceFormats.count(); ++i) {
+            const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
+            if (deviceFormats.contains(surfaceFormat)) {
+                format = surfaceFormat;
+                break;
+            }
         }
+
+        CVPixelFormatFromQtFormat(format, avfPixelFormat);
     }
 
-    if (videoSettings.count)
+    if (avfPixelFormat != 0) {
+        [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
+                          forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+
         m_videoOutput.videoSettings = videoSettings;
+    }
 
     qt_set_framerate_limits(m_captureDevice, m_videoConnection, m_settings);
 }

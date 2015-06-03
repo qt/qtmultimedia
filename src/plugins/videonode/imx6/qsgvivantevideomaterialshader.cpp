@@ -35,6 +35,13 @@
 #include "qsgvivantevideonode.h"
 #include "qsgvivantevideomaterial.h"
 
+QSGVivanteVideoMaterialShader::QSGVivanteVideoMaterialShader() :
+    mUScale(1),
+    mVScale(1),
+    mNewUVScale(true)
+{
+}
+
 void QSGVivanteVideoMaterialShader::updateState(const RenderState &state,
                                                 QSGMaterial *newMaterial,
                                                 QSGMaterial *oldMaterial)
@@ -48,6 +55,10 @@ void QSGVivanteVideoMaterialShader::updateState(const RenderState &state,
         mat->setOpacity(state.opacity());
         program()->setUniformValue(mIdOpacity, state.opacity());
     }
+    if (mNewUVScale) {
+        program()->setUniformValue(mIdUVScale, mUScale, mVScale);
+        mNewUVScale = false;
+    }
     if (state.isMatrixDirty())
         program()->setUniformValue(mIdMatrix, state.combinedMatrix());
 }
@@ -59,6 +70,13 @@ const char * const *QSGVivanteVideoMaterialShader::attributeNames() const {
         0
     };
     return names;
+}
+
+void QSGVivanteVideoMaterialShader::setUVScale(float uScale, float vScale)
+{
+    mUScale = uScale;
+    mVScale = vScale;
+    mNewUVScale = true;
 }
 
 const char *QSGVivanteVideoMaterialShader::vertexShader() const {
@@ -78,12 +96,13 @@ const char *QSGVivanteVideoMaterialShader::fragmentShader() const {
     static const char *shader =
             "uniform sampler2D texture;"
             "uniform lowp float opacity;"
+            "uniform highp vec2 uvScale;"
             ""
             "varying highp vec2 qt_TexCoord;"
             ""
             "void main()"
             "{"
-            "  gl_FragColor = vec4(texture2D( texture, qt_TexCoord ).rgb, 1.0) * opacity;\n"
+            "  gl_FragColor = vec4(texture2D( texture, qt_TexCoord * uvScale ).rgb, 1.0) * opacity;\n"
             "}";
     return shader;
 }
@@ -93,4 +112,5 @@ void QSGVivanteVideoMaterialShader::initialize() {
     mIdMatrix = program()->uniformLocation("qt_Matrix");
     mIdTexture = program()->uniformLocation("texture");
     mIdOpacity = program()->uniformLocation("opacity");
+    mIdUVScale = program()->uniformLocation("uvScale");
 }

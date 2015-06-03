@@ -98,7 +98,10 @@ QGstreamerVideoWidgetControl::QGstreamerVideoWidgetControl(QObject *parent)
     , m_widget(0)
     , m_fullScreen(false)
 {
-    m_videoSink = gst_element_factory_make ("xvimagesink", NULL);
+    // The QWidget needs to have a native X window handle to be able to use xvimagesink.
+    // Bail out if Qt is not using xcb (the control will then be ignored by the plugin)
+    if (QGuiApplication::platformName().compare(QLatin1String("xcb"), Qt::CaseInsensitive) == 0)
+        m_videoSink = gst_element_factory_make ("xvimagesink", NULL);
 
     if (m_videoSink) {
         // Check if the xv sink is usable

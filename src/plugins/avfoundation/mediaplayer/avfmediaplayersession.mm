@@ -728,7 +728,7 @@ void AVFMediaPlayerSession::setVolume(int volume)
         return;
     }
 
-    [player setVolume:m_volume / 100.0f];
+    [player setVolume:volume / 100.0f];
     m_volume = volume;
 
     Q_EMIT volumeChanged(m_volume);
@@ -752,7 +752,7 @@ void AVFMediaPlayerSession::setMuted(bool muted)
         return;
     }
 
-    [player setMuted:m_muted];
+    [player setMuted:muted];
     m_muted = muted;
 
     Q_EMIT mutedChanged(muted);

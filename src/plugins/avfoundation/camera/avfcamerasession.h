@@ -83,6 +83,8 @@ public:
     void removeProbe(AVFMediaVideoProbeControl *probe);
     FourCharCode defaultCodec();
 
+    AVCaptureDeviceInput *videoInput() const {return m_videoInput;}
+
 public Q_SLOTS:
     void setState(QCamera::State state);
 

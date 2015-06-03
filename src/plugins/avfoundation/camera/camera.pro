@@ -27,7 +27,6 @@ HEADERS += \
     avfcameracontrol.h \
     avfcamerametadatacontrol.h \
     avfimagecapturecontrol.h \
-    avfmediarecordercontrol.h \
     avfcameraservice.h \
     avfcamerasession.h \
     avfstoragelocation.h \
@@ -49,7 +48,6 @@ OBJECTIVE_SOURCES += \
     avfcameracontrol.mm \
     avfcamerametadatacontrol.mm \
     avfimagecapturecontrol.mm \
-    avfmediarecordercontrol.mm \
     avfcameraservice.mm \
     avfcamerasession.mm \
     avfstoragelocation.mm \
@@ -66,9 +64,20 @@ OBJECTIVE_SOURCES += \
     avfimageencodercontrol.mm \
     avfcameraflashcontrol.mm
 
+osx {
+
+HEADERS += avfmediarecordercontrol.h
+OBJECTIVE_SOURCES += avfmediarecordercontrol.mm
+
+}
+
 ios {
 
-HEADERS += avfcamerazoomcontrol.h
-OBJECTIVE_SOURCES += avfcamerazoomcontrol.mm
+HEADERS += avfcamerazoomcontrol.h \
+           avfmediaassetwriter.h \
+           avfmediarecordercontrol_ios.h
+OBJECTIVE_SOURCES += avfcamerazoomcontrol.mm \
+                     avfmediaassetwriter.mm \
+                     avfmediarecordercontrol_ios.mm
 
 }

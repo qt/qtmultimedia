@@ -130,6 +130,11 @@
      \endlist
 
     \section2 Platform Notes
+
+    The \l{Qt Multimedia Backends} wiki provides a summary of features
+    supported by each platform plugin made available by this module. The
+    following topics provide more platform-specific information.
+
      \list
       \li \l{Qt Multimedia on BlackBerry}{BlackBerry}
       \li \l{Qt Multimedia on Windows}{Windows}

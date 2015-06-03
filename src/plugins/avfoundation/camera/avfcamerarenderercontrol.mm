@@ -143,6 +143,7 @@ private:
 - (void) captureOutput:(AVCaptureOutput *)captureOutput
          didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
          fromConnection:(AVCaptureConnection *)connection;
+
 @end
 
 @implementation AVFCaptureFramesDelegate
@@ -163,25 +164,23 @@ private:
     Q_UNUSED(connection);
     Q_UNUSED(captureOutput);
 
+    // NB: on iOS captureOutput/connection can be nil (when recording a video -
+    // avfmediaassetwriter).
+
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
+    QVideoFrame::PixelFormat format =
+            AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
 
-    QAbstractVideoBuffer *buffer = new CVPixelBufferVideoBuffer(imageBuffer);
+    if (format == QVideoFrame::Format_Invalid)
+        return;
 
-    QVideoFrame::PixelFormat format = QVideoFrame::Format_RGB32;
-    if ([captureOutput isKindOfClass:[AVCaptureVideoDataOutput class]]) {
-        NSDictionary *settings = ((AVCaptureVideoDataOutput *)captureOutput).videoSettings;
-        if (settings && [settings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey]) {
-            NSNumber *avf = [settings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey];
-            format = AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat([avf unsignedIntValue]);
-        }
-    }
-
-    QVideoFrame frame(buffer, QSize(width, height), format);
+    QVideoFrame frame(new CVPixelBufferVideoBuffer(imageBuffer), QSize(width, height), format);
     m_renderer->syncHandleViewfinderFrame(frame);
 }
+
 @end
 
 
@@ -197,6 +196,8 @@ AVFCameraRendererControl::~AVFCameraRendererControl()
 {
     [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
     [m_viewfinderFramesDelegate release];
+    if (m_delegateQueue)
+        dispatch_release(m_delegateQueue);
 }
 
 QAbstractVideoSurface *AVFCameraRendererControl::surface() const
@@ -223,17 +224,10 @@ void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *camer
     m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
 
     // Configure video output
-    dispatch_queue_t queue = dispatch_queue_create("vf_queue", NULL);
+    m_delegateQueue = dispatch_queue_create("vf_queue", NULL);
     [m_videoDataOutput
             setSampleBufferDelegate:m_viewfinderFramesDelegate
-            queue:queue];
-    dispatch_release(queue);
-
-    // Specify the pixel format
-    m_videoDataOutput.videoSettings =
-            [NSDictionary dictionaryWithObject:
-            [NSNumber numberWithInt:kCVPixelFormatType_32BGRA]
-            forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+            queue:m_delegateQueue];
 
     [m_cameraSession->captureSession() addOutput:m_videoDataOutput];
 }
@@ -291,6 +285,20 @@ AVCaptureVideoDataOutput *AVFCameraRendererControl::videoDataOutput() const
     return m_videoDataOutput;
 }
 
+#ifdef Q_OS_IOS
+
+AVFCaptureFramesDelegate *AVFCameraRendererControl::captureDelegate() const
+{
+    return m_viewfinderFramesDelegate;
+}
+
+void AVFCameraRendererControl::resetCaptureDelegate() const
+{
+    [m_videoDataOutput setSampleBufferDelegate:m_viewfinderFramesDelegate queue:m_delegateQueue];
+}
+
+#endif
+
 void AVFCameraRendererControl::handleViewfinderFrame()
 {
     QVideoFrame frame;
@@ -301,8 +309,10 @@ void AVFCameraRendererControl::handleViewfinderFrame()
     }
 
     if (m_surface && frame.isValid()) {
-        if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
+        if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
+                                      || m_surface->surfaceFormat().frameSize() != frame.size())) {
             m_surface->stop();
+        }
 
         if (!m_surface->isActive()) {
             QVideoSurfaceFormat format(frame.size(), frame.pixelFormat());
