@@ -67,7 +67,7 @@ using namespace ABI::Windows::Media::Devices;
 using namespace ABI::Windows::Media::MediaProperties;
 using namespace ABI::Windows::Storage::Streams;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 #define RETURN_VOID_AND_EMIT_ERROR(msg) \
     if (FAILED(hr)) { \
@@ -833,3 +833,5 @@ HRESULT QWinRTCameraControl::onRecordLimitationExceeded(IMediaCapture *)
     setState(QCamera::LoadedState);
     return S_OK;
 }
+
+QT_END_NAMESPACE

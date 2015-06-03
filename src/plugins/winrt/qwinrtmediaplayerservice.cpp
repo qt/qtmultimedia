@@ -47,7 +47,7 @@
 
 using namespace Microsoft::WRL;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QWinRTMediaPlayerServicePrivate
 {
@@ -104,3 +104,5 @@ void QWinRTMediaPlayerService::releaseControl(QMediaControl *control)
     if (control == d->player)
         d->player->deleteLater();
 }
+
+QT_END_NAMESPACE

@@ -45,7 +45,7 @@
 #include <QtMultimedia/QVideoRendererControl>
 #include <QtMultimedia/QVideoDeviceSelectorControl>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QWinRTCameraServicePrivate
 {
@@ -97,3 +97,5 @@ void QWinRTCameraService::releaseControl(QMediaControl *control)
 {
     Q_UNUSED(control);
 }
+
+QT_END_NAMESPACE

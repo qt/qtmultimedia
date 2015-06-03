@@ -39,7 +39,7 @@
 
 #include <QtMultimedia/QMediaServiceProviderPlugin>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QWinRTServicePlugin : public QMediaServiceProviderPlugin
         , public QMediaServiceFeaturesInterface
@@ -67,5 +67,7 @@ public:
 
     QByteArray defaultDevice(const QByteArray &service) const Q_DECL_OVERRIDE;
 };
+
+QT_END_NAMESPACE
 
 #endif // QWINRTSERVICEPLUGIN_H
