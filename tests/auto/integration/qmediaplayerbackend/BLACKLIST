@@ -1,0 +1,48 @@
+# QTBUG-46368
+
+osx-10.9
+osx-10.10
+windows 32bit developer-build
+
+[construction]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+
+[loadMedia]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+windows 64bit developer-build
+
+[unloadMedia]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+windows 64bit developer-build
+
+[playPauseStop]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+ubuntu-14.04 64bit
+windows 64bit developer-build
+
+[processEOS]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+windows 64bit developer-build
+
+[deleteLaterAtEOS]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+windows 64bit developer-build
+
+[volumeAndMuted]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+
+[initialVolume]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+windows 64bit developer-build
+
+[playlist]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6

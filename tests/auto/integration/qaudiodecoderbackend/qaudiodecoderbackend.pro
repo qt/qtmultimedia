@@ -3,7 +3,7 @@ TARGET = tst_qaudiodecoderbackend
 QT += multimedia multimedia-private testlib
 
 # This is more of a system test
-CONFIG += testcase insignificant_test
+CONFIG += testcase
 TESTDATA += testdata/*
 
 INCLUDEPATH += \
