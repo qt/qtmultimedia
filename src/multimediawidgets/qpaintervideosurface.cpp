@@ -38,6 +38,7 @@
 #include <qpainter.h>
 #include <qvariant.h>
 #include <qvideosurfaceformat.h>
+#include <private/qmediaopenglhelper_p.h>
 
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
 #include <qglshaderprogram.h>
@@ -260,6 +261,12 @@ protected:
     void initRgbTextureInfo(GLenum internalFormat, GLuint format, GLenum type, const QSize &size);
     void initYuv420PTextureInfo(const QSize &size);
     void initYv12TextureInfo(const QSize &size);
+
+    bool needsSwizzling(const QVideoSurfaceFormat &format) const {
+        return !QMediaOpenGLHelper::isANGLE()
+                && (format.pixelFormat() == QVideoFrame::Format_RGB32
+                    || format.pixelFormat() == QVideoFrame::Format_ARGB32);
+    }
 
 #if !defined(QT_OPENGL_ES) && !defined(QT_OPENGL_DYNAMIC)
     typedef void (APIENTRY *_glActiveTexture) (GLenum);
@@ -702,7 +709,9 @@ QVideoSurfaceArbFpPainter::QVideoSurfaceArbFpPainter(QGLContext *context)
             << QVideoFrame::Format_YUV420P;
     m_glPixelFormats
             << QVideoFrame::Format_RGB32
-            << QVideoFrame::Format_ARGB32;
+            << QVideoFrame::Format_ARGB32
+            << QVideoFrame::Format_BGR32
+            << QVideoFrame::Format_BGRA32;
 }
 
 QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::start(const QVideoSurfaceFormat &format)
@@ -766,9 +775,14 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::start(const QVideoSurfac
         switch (format.pixelFormat()) {
         case QVideoFrame::Format_RGB32:
         case QVideoFrame::Format_ARGB32:
+        case QVideoFrame::Format_BGR32:
+        case QVideoFrame::Format_BGRA32:
             m_yuv = false;
             m_textureCount = 1;
-            program = qt_arbfp_rgbShaderProgram;
+            if (needsSwizzling(format))
+                program = qt_arbfp_xrgbShaderProgram;
+            else
+                program = qt_arbfp_rgbShaderProgram;
             break;
         default:
             break;
@@ -1070,7 +1084,9 @@ QVideoSurfaceGlslPainter::QVideoSurfaceGlslPainter(QGLContext *context)
             << QVideoFrame::Format_YUV420P;
     m_glPixelFormats
             << QVideoFrame::Format_RGB32
-            << QVideoFrame::Format_ARGB32;
+            << QVideoFrame::Format_ARGB32
+            << QVideoFrame::Format_BGR32
+            << QVideoFrame::Format_BGRA32;
 }
 
 QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::start(const QVideoSurfaceFormat &format)
@@ -1138,9 +1154,14 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::start(const QVideoSurface
         switch (format.pixelFormat()) {
         case QVideoFrame::Format_RGB32:
         case QVideoFrame::Format_ARGB32:
+        case QVideoFrame::Format_BGR32:
+        case QVideoFrame::Format_BGRA32:
             m_yuv = false;
             m_textureCount = 1;
-            fragmentProgram = qt_glsl_rgbShaderProgram;
+            if (needsSwizzling(format))
+                fragmentProgram = qt_glsl_xrgbShaderProgram;
+            else
+                fragmentProgram = qt_glsl_rgbShaderProgram;
             break;
         default:
             break;
