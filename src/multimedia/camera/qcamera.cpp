@@ -72,7 +72,7 @@ static bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
 
 static bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2)
 {
-    return s1.second < s2.second;
+    return s1.maximumFrameRate < s2.maximumFrameRate;
 }
 
 /*!
@@ -1028,15 +1028,29 @@ void QCamera::unlock()
 
 
 /*!
-    \typedef QCamera::FrameRateRange
+    \class QCamera::FrameRateRange
+    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_camera
+    \since 5.5
 
-    This is a typedef for QPair<qreal, qreal>.
+    \brief A FrameRateRange represents a range of frame rates as minimum and maximum rate.
 
-    A frame rate range contains a minimum and a maximum frame rate, respectively the first and
-    second element of the pair. If the minimum frame rate is equal to the maximum frame rate, the
-    frame rate is fixed. If not, the actual frame rate fluctuates between the minimum and the maximum.
+    If the minimum frame rate is equal to the maximum frame rate, the frame rate is fixed.
+    If not, the actual frame rate fluctuates between the minimum and the maximum.
+
+    \sa QCamera::supportedViewfinderFrameRateRanges(), QCameraViewfinderSettings
 */
 
+/*!
+    \variable QCamera::FrameRateRange::minimumFrameRate
+    The minimum frame rate supported by the range, in frames per second.
+*/
+
+/*!
+    \variable QCamera::FrameRateRange::maximumFrameRate
+    The maximum frame rate supported by the range, in frames per second.
+*/
 
 /*!
     \enum QCamera::State

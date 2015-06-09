@@ -1094,8 +1094,8 @@ QJSValue QDeclarativeCamera::supportedViewfinderFrameRateRanges(const QSize &res
     int i = 0;
     Q_FOREACH (const QCamera::FrameRateRange &frameRateRange, frameRateRanges) {
         QJSValue range = engine->newObject();
-        range.setProperty(QStringLiteral("minimumFrameRate"), frameRateRange.first);
-        range.setProperty(QStringLiteral("maximumFrameRate"), frameRateRange.second);
+        range.setProperty(QStringLiteral("minimumFrameRate"), frameRateRange.minimumFrameRate);
+        range.setProperty(QStringLiteral("maximumFrameRate"), frameRateRange.maximumFrameRate);
         supportedFrameRateRanges.setProperty(i++, range);
     }
 

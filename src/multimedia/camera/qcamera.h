@@ -77,7 +77,21 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QMediaObject
     Q_ENUMS(LockType)
     Q_ENUMS(Position)
 public:
-    typedef QPair<qreal, qreal> FrameRateRange;
+    struct FrameRateRange
+    {
+        Q_DECL_CONSTEXPR FrameRateRange() Q_DECL_NOTHROW
+            : minimumFrameRate(0)
+            , maximumFrameRate(0)
+        { }
+
+        Q_DECL_CONSTEXPR FrameRateRange(qreal minimum, qreal maximum) Q_DECL_NOTHROW
+            : minimumFrameRate(minimum)
+            , maximumFrameRate(maximum)
+        { }
+
+        qreal minimumFrameRate;
+        qreal maximumFrameRate;
+    };
 
     enum Status {
         UnavailableStatus,
@@ -236,6 +250,14 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::LockTypes)
+
+Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator==(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
+{ return r1.minimumFrameRate == r2.minimumFrameRate && r1.maximumFrameRate == r2.maximumFrameRate; }
+
+Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator!=(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
+{ return !(r1 == r2); }
+
+Q_DECLARE_TYPEINFO(QCamera::FrameRateRange, Q_PRIMITIVE_TYPE);
 
 QT_END_NAMESPACE
 
