@@ -52,6 +52,12 @@ public:
     ~QCameraViewfinderSettings();
 
     QCameraViewfinderSettings& operator=(const QCameraViewfinderSettings &other);
+#ifdef Q_COMPILER_RVALUE_REFS
+    QCameraViewfinderSettings &operator=(QCameraViewfinderSettings &&other) Q_DECL_NOTHROW
+    { swap(other); return *this; }
+#endif
+
+    void swap(QCameraViewfinderSettings &other) Q_DECL_NOTHROW { d.swap(other.d); }
 
     friend Q_MULTIMEDIA_EXPORT bool operator==(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs) Q_DECL_NOTHROW;
     bool isNull() const;
@@ -78,6 +84,7 @@ public:
 private:
     QSharedDataPointer<QCameraViewfinderSettingsPrivate> d;
 };
+Q_DECLARE_SHARED(QCameraViewfinderSettings)
 
 inline bool operator!=(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs) Q_DECL_NOTHROW
 { return !operator==(lhs, rhs); }
