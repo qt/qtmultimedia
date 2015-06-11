@@ -52,9 +52,8 @@ public:
     ~QCameraViewfinderSettings();
 
     QCameraViewfinderSettings& operator=(const QCameraViewfinderSettings &other);
-    bool operator==(const QCameraViewfinderSettings &other) const;
-    bool operator!=(const QCameraViewfinderSettings &other) const;
 
+    friend Q_MULTIMEDIA_EXPORT bool operator==(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs) Q_DECL_NOTHROW;
     bool isNull() const;
 
     QSize resolution() const;
@@ -79,6 +78,10 @@ public:
 private:
     QSharedDataPointer<QCameraViewfinderSettingsPrivate> d;
 };
+
+inline bool operator!=(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs) Q_DECL_NOTHROW
+{ return !operator==(lhs, rhs); }
+
 
 QT_END_NAMESPACE
 
