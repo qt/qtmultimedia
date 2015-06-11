@@ -38,6 +38,7 @@
 #include <QtMultimedia/qvideoframe.h>
 
 #include <QtCore/qshareddata.h>
+#include <QtCore/qsize.h>
 
 QT_BEGIN_NAMESPACE
 
