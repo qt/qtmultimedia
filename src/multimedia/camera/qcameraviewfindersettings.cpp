@@ -149,8 +149,8 @@ bool operator==(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSet
     return (lhs.d == rhs.d) ||
            (lhs.d->isNull == rhs.d->isNull &&
             lhs.d->resolution == rhs.d->resolution &&
-            qFuzzyCompare(lhs.d->minimumFrameRate, rhs.d->minimumFrameRate) &&
-            qFuzzyCompare(lhs.d->maximumFrameRate, rhs.d->maximumFrameRate) &&
+            lhs.d->minimumFrameRate == rhs.d->minimumFrameRate &&
+            lhs.d->maximumFrameRate == rhs.d->maximumFrameRate &&
             lhs.d->pixelFormat == rhs.d->pixelFormat &&
             lhs.d->pixelAspectRatio == rhs.d->pixelAspectRatio);
 }
