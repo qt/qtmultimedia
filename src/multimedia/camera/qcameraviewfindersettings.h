@@ -34,9 +34,10 @@
 #ifndef QCAMERAVIEWFINDERSETTINGS_H
 #define QCAMERAVIEWFINDERSETTINGS_H
 
-#include <QtCore/qsharedpointer.h>
 #include <QtMultimedia/qtmultimediadefs.h>
 #include <QtMultimedia/qvideoframe.h>
+
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 
