@@ -38,6 +38,7 @@
 #include "qwinrtcameravideorenderercontrol.h"
 #include "qwinrtvideodeviceselectorcontrol.h"
 #include "qwinrtcameraimagecapturecontrol.h"
+#include "qwinrtimageencodercontrol.h"
 
 #include <QtCore/qfunctions_winrt.h>
 #include <QtCore/QCoreApplication>
@@ -74,6 +75,10 @@ QT_USE_NAMESPACE
         emit error(QCamera::CameraError, qt_error_string(hr)); \
         RETURN_VOID_IF_FAILED(msg); \
     }
+
+inline uint qHash (const QSize &key) {
+    return key.width() * key.height();
+}
 
 class CriticalSectionLocker
 {
@@ -453,6 +458,7 @@ public:
     QPointer<QWinRTCameraVideoRendererControl> videoRenderer;
     QPointer<QWinRTVideoDeviceSelectorControl> videoDeviceSelector;
     QPointer<QWinRTCameraImageCaptureControl> imageCaptureControl;
+    QPointer<QWinRTImageEncoderControl> imageEncoderControl;
 };
 
 QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
@@ -470,6 +476,7 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
             this, &QWinRTCameraControl::onBufferRequested);
     d->videoDeviceSelector = new QWinRTVideoDeviceSelectorControl(this);
     d->imageCaptureControl = new QWinRTCameraImageCaptureControl(this);
+    d->imageEncoderControl = new QWinRTImageEncoderControl(this);
 }
 
 QWinRTCameraControl::~QWinRTCameraControl()
@@ -654,16 +661,16 @@ QCameraImageCaptureControl *QWinRTCameraControl::imageCaptureControl() const
     return d->imageCaptureControl;
 }
 
+QImageEncoderControl *QWinRTCameraControl::imageEncoderControl() const
+{
+    Q_D(const QWinRTCameraControl);
+    return d->imageEncoderControl;
+}
+
 IMediaCapture *QWinRTCameraControl::handle() const
 {
     Q_D(const QWinRTCameraControl);
     return d->capture.Get();
-}
-
-QSize QWinRTCameraControl::imageSize() const
-{
-    Q_D(const QWinRTCameraControl);
-    return d->size;
 }
 
 void QWinRTCameraControl::onBufferRequested()
@@ -763,10 +770,11 @@ HRESULT QWinRTCameraControl::initialize()
     Q_ASSERT_SUCCEEDED(hr);
 
     d->size = QSize();
-    ComPtr<IVideoEncodingProperties> videoEncodingProperties;
     quint32 encodingPropertiesListSize;
     hr = encodingPropertiesList->get_Size(&encodingPropertiesListSize);
     Q_ASSERT_SUCCEEDED(hr);
+    QHash<QSize, ComPtr<IVideoEncodingProperties>> videoEncodingPropertiesList;
+    int pixelCount = 0;
     for (quint32 i = 0; i < encodingPropertiesListSize; ++i) {
         ComPtr<IMediaEncodingProperties> properties;
         hr = encodingPropertiesList->GetAt(i, &properties);
@@ -779,21 +787,33 @@ HRESULT QWinRTCameraControl::initialize()
         Q_ASSERT_SUCCEEDED(hr);
         hr = videoProperties->get_Height(&height);
         Q_ASSERT_SUCCEEDED(hr);
-        // Choose the highest-quality format
-        if (int(width * height) > d->size.width() * d->size.height()) {
-            d->size = QSize(width, height);
-            videoEncodingProperties = videoProperties;
+        if (d->captureMode != QCamera::CaptureStillImage && int(width * height) > pixelCount) {
+            d->size = QSize(width, height);// Choose the Highest-quality format
+            pixelCount = d->size.width() * d->size.height();
         }
+        videoEncodingPropertiesList.insert(QSize(width, height), videoProperties);
     }
 
-    if (!videoEncodingProperties || d->size.isEmpty()) {
+    if (videoEncodingPropertiesList.isEmpty()) {
         hr = MF_E_INVALID_FORMAT;
         RETURN_HR_IF_FAILED("Failed to find a suitable video format");
+    }
+
+    if (d->captureMode == QCamera::CaptureStillImage) {
+        d->imageEncoderControl->setSupportedResolutionsList(videoEncodingPropertiesList.keys());
+        d->size = d->imageEncoderControl->imageSettings().resolution();
     }
 
     hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_MediaProperties_MediaEncodingProfile).Get(),
                             &d->encodingProfile);
     Q_ASSERT_SUCCEEDED(hr);
+
+    const ComPtr<IVideoEncodingProperties> videoEncodingProperties = videoEncodingPropertiesList[d->size];
+    if (!videoEncodingProperties) {
+        hr = MF_E_INVALID_FORMAT;
+        RETURN_HR_IF_FAILED("Failed to find a suitable video format properties");
+    }
+
     hr = d->encodingProfile->put_Video(videoEncodingProperties.Get());
     Q_ASSERT_SUCCEEDED(hr);
     if (d->videoRenderer)

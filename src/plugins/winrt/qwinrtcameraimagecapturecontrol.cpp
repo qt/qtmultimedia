@@ -36,6 +36,7 @@
 
 #include "qwinrtcameraimagecapturecontrol.h"
 #include "qwinrtcameracontrol.h"
+#include "qwinrtimageencodercontrol.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
@@ -166,7 +167,7 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
     hr = g->encodingPropertiesFactory->CreateBmp(&request.imageFormat);
     Q_ASSERT_SUCCEEDED(hr);
 
-    const QSize imageSize = d->cameraControl->imageSize();
+    const QSize imageSize = static_cast<QWinRTImageEncoderControl*>(d->cameraControl->imageEncoderControl())->imageSettings().resolution();
     hr = request.imageFormat->put_Width(imageSize.width());
     Q_ASSERT_SUCCEEDED(hr);
     hr = request.imageFormat->put_Height(imageSize.height());
@@ -174,6 +175,10 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
 
     hr = capture->CapturePhotoToStreamAsync(request.imageFormat.Get(), request.stream.Get(), &request.op);
     Q_ASSERT_SUCCEEDED(hr);
+    if (!request.op) {
+        qErrnoWarning("Camera photo capture failed.");
+        return -1;
+    }
     d->requests.insert(request.op.Get(), request);
 
     hr = request.op->put_Completed(Callback<IAsyncActionCompletedHandler>(
@@ -266,7 +271,28 @@ HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncI
     const QImage image(pixelData, pixelWidth, pixelHeight, QImage::Format_RGBA8888,
                        reinterpret_cast<QImageCleanupFunction>(&CoTaskMemFree), pixelData);
     emit imageCaptured(request.id, image);
-    if (image.save(request.fileName))
+
+    QWinRTImageEncoderControl *imageEncoderControl = static_cast<QWinRTImageEncoderControl*>(d->cameraControl->imageEncoderControl());
+    int imageQuality = 100;
+    switch (imageEncoderControl->imageSettings().quality()) {
+    case QMultimedia::VeryLowQuality:
+        imageQuality = 20;
+        break;
+    case QMultimedia::LowQuality:
+        imageQuality = 40;
+        break;
+    case QMultimedia::NormalQuality:
+        imageQuality = 60;
+        break;
+    case QMultimedia::HighQuality:
+        imageQuality = 80;
+        break;
+    case QMultimedia::VeryHighQuality:
+        imageQuality = 100;
+        break;
+    }
+
+    if (image.save(request.fileName, imageEncoderControl->imageSettings().codec().toLatin1().data(), imageQuality))
         emit imageSaved(request.id, request.fileName);
     else
         emit error(request.id, QCameraImageCapture::ResourceError, tr("Image saving failed"));

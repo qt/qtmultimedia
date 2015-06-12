@@ -44,6 +44,7 @@
 #include <QtMultimedia/QCameraImageCaptureControl>
 #include <QtMultimedia/QVideoRendererControl>
 #include <QtMultimedia/QVideoDeviceSelectorControl>
+#include <QtMultimedia/QImageEncoderControl>
 
 QT_USE_NAMESPACE
 
@@ -88,6 +89,11 @@ QMediaControl *QWinRTCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0) {
         if (d->cameraControl)
             return d->cameraControl->imageCaptureControl();
+    }
+
+    if (qstrcmp(name, QImageEncoderControl_iid) == 0) {
+        if (d->cameraControl)
+            return d->cameraControl->imageEncoderControl();
     }
 
     return Q_NULLPTR;
