@@ -15,6 +15,4 @@ unix:!mac {
 
 TESTDATA += test.wav
 
-win32:CONFIG += insignificant_test # QTBUG-26509
-linux-*:CONFIG += insignificant_test # QTBUG-26748
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

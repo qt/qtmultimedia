@@ -1,0 +1,5 @@
+# QTBUG-46689
+
+[testLooping]
+ubuntu-14.04 64bit
+redhatenterpriselinuxworkstation-6.6
