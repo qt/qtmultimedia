@@ -157,7 +157,7 @@ void AVFCameraFlashControl::cameraStateChanged(QCamera::State newState)
 
 bool AVFCameraFlashControl::applyFlashSettings()
 {
-    Q_ASSERT(m_session->state() == QCamera::ActiveState);
+    Q_ASSERT(m_session->requestedState() == QCamera::ActiveState);
 
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice) {

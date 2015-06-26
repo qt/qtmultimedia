@@ -56,7 +56,7 @@
 
 using namespace Microsoft::WRL;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 #define BREAK_IF_FAILED(msg) RETURN_IF_FAILED(msg, break)
 #define CONTINUE_IF_FAILED(msg) RETURN_IF_FAILED(msg, continue)
@@ -408,3 +408,5 @@ void QWinRTAbstractVideoRendererControl::present()
     QVideoFrame frame(d->videoBuffer, d->format.frameSize(), d->format.pixelFormat());
     d->surface->present(frame);
 }
+
+QT_END_NAMESPACE

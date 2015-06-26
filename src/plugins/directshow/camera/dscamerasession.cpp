@@ -789,7 +789,7 @@ void DSCameraSession::disconnectGraph()
 
 static bool qt_frameRateRangeGreaterThan(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2)
 {
-    return r1.second > r2.second;
+    return r1.maximumFrameRate > r2.maximumFrameRate;
 }
 
 void DSCameraSession::updateSourceCapabilities()
@@ -896,8 +896,8 @@ void DSCameraSession::updateSourceCapabilities()
                 Q_FOREACH (const QCamera::FrameRateRange &frameRateRange, frameRateRanges) {
                     QCameraViewfinderSettings settings;
                     settings.setResolution(resolution);
-                    settings.setMinimumFrameRate(frameRateRange.first);
-                    settings.setMaximumFrameRate(frameRateRange.second);
+                    settings.setMinimumFrameRate(frameRateRange.minimumFrameRate);
+                    settings.setMaximumFrameRate(frameRateRange.maximumFrameRate);
                     settings.setPixelFormat(pixelFormat);
                     m_supportedViewfinderSettings.append(settings);
 

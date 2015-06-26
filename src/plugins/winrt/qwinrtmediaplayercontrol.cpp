@@ -55,7 +55,7 @@
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 #define QT_WINRT_MEDIAPLAYER_STREAM_ID "__qtmultimedia_winrt_player_stream"
 
@@ -892,3 +892,5 @@ void QWinRTMediaPlayerControl::finishRead()
     Q_D(QWinRTMediaPlayerControl);
     d->streamProvider->finishRead();
 }
+
+QT_END_NAMESPACE

@@ -34,9 +34,11 @@
 #ifndef QCAMERAVIEWFINDERSETTINGS_H
 #define QCAMERAVIEWFINDERSETTINGS_H
 
-#include <QtCore/qsharedpointer.h>
 #include <QtMultimedia/qtmultimediadefs.h>
 #include <QtMultimedia/qvideoframe.h>
+
+#include <QtCore/qshareddata.h>
+#include <QtCore/qsize.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -51,9 +53,14 @@ public:
     ~QCameraViewfinderSettings();
 
     QCameraViewfinderSettings& operator=(const QCameraViewfinderSettings &other);
-    bool operator==(const QCameraViewfinderSettings &other) const;
-    bool operator!=(const QCameraViewfinderSettings &other) const;
+#ifdef Q_COMPILER_RVALUE_REFS
+    QCameraViewfinderSettings &operator=(QCameraViewfinderSettings &&other) Q_DECL_NOTHROW
+    { swap(other); return *this; }
+#endif
 
+    void swap(QCameraViewfinderSettings &other) Q_DECL_NOTHROW { d.swap(other.d); }
+
+    friend Q_MULTIMEDIA_EXPORT bool operator==(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs) Q_DECL_NOTHROW;
     bool isNull() const;
 
     QSize resolution() const;
@@ -78,6 +85,11 @@ public:
 private:
     QSharedDataPointer<QCameraViewfinderSettingsPrivate> d;
 };
+Q_DECLARE_SHARED(QCameraViewfinderSettings)
+
+inline bool operator!=(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs) Q_DECL_NOTHROW
+{ return !operator==(lhs, rhs); }
+
 
 QT_END_NAMESPACE
 

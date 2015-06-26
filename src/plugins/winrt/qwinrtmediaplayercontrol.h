@@ -41,7 +41,7 @@
 
 struct IMFMediaEngineClassFactory;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class QVideoRendererControl;
 
@@ -95,5 +95,7 @@ private:
     QScopedPointer<QWinRTMediaPlayerControlPrivate, QWinRTMediaPlayerControlPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QWinRTMediaPlayerControl)
 };
+
+QT_END_NAMESPACE
 
 #endif // QWINRTMEDIAPLAYERCONTROL_H

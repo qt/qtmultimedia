@@ -65,7 +65,7 @@ using namespace ABI::Windows::Media::MediaProperties;
 using namespace ABI::Windows::Storage::Streams;
 using namespace ABI::Windows::Graphics::Imaging;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 #define wchar(str) reinterpret_cast<const wchar_t *>(str.utf16())
 
@@ -299,3 +299,5 @@ HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncI
 
     return S_OK;
 }
+
+QT_END_NAMESPACE
