@@ -136,32 +136,35 @@ QCameraViewfinderSettings &QCameraViewfinderSettings::operator=(const QCameraVie
 }
 
 /*!
-    Determines if \a other is of equal value to a viewfinder settings object.
+    \relates QCameraViewfinderSettings
+    \since 5.5
+
+    Determines if \a lhs is of equal value to \a rhs.
 
     Returns true if the settings objects are of equal value, and false if they
     are not of equal value.
 */
-bool QCameraViewfinderSettings::operator==(const QCameraViewfinderSettings &other) const
+bool operator==(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs) Q_DECL_NOTHROW
 {
-    return (d == other.d) ||
-           (d->isNull == other.d->isNull &&
-            d->resolution == other.d->resolution &&
-            qFuzzyCompare(d->minimumFrameRate, other.d->minimumFrameRate) &&
-            qFuzzyCompare(d->maximumFrameRate, other.d->maximumFrameRate) &&
-            d->pixelFormat == other.d->pixelFormat &&
-            d->pixelAspectRatio == other.d->pixelAspectRatio);
+    return (lhs.d == rhs.d) ||
+           (lhs.d->isNull == rhs.d->isNull &&
+            lhs.d->resolution == rhs.d->resolution &&
+            lhs.d->minimumFrameRate == rhs.d->minimumFrameRate &&
+            lhs.d->maximumFrameRate == rhs.d->maximumFrameRate &&
+            lhs.d->pixelFormat == rhs.d->pixelFormat &&
+            lhs.d->pixelAspectRatio == rhs.d->pixelAspectRatio);
 }
 
 /*!
-    Determines if \a other is of equal value to a viewfinder settings object.
+    \fn bool operator!=(const QCameraViewfinderSettings &lhs, const QCameraViewfinderSettings &rhs)
+    \relates QCameraViewfinderSettings
+    \since 5.5
+
+    Determines if \a lhs is of equal value to \a rhs.
 
     Returns true if the settings objects are not of equal value, and false if
     they are of equal value.
 */
-bool QCameraViewfinderSettings::operator!=(const QCameraViewfinderSettings &other) const
-{
-    return !(*this == other);
-}
 
 /*!
     Identifies if a viewfinder settings object is uninitalized.

@@ -45,7 +45,7 @@
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class D3DVideoBlitter
 {
@@ -210,3 +210,5 @@ void QWinRTCameraVideoRendererControl::discardBuffers()
     for (ComPtr<IMF2DBuffer> &buffer : d->buffers)
         buffer.Reset();
 }
+
+QT_END_NAMESPACE

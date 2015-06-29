@@ -42,7 +42,7 @@
 #include "qwinrtcameraservice.h"
 #include "qwinrtvideodeviceselectorcontrol.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 QMediaService *QWinRTServicePlugin::create(QString const &key)
 {
@@ -102,3 +102,5 @@ QByteArray QWinRTServicePlugin::defaultDevice(const QByteArray &service) const
 
     return QByteArray();
 }
+
+QT_END_NAMESPACE

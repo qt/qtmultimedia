@@ -55,7 +55,7 @@ typedef ITypedEventHandler<DeviceWatcher *, DeviceInformation *> DeviceInformati
 typedef ITypedEventHandler<DeviceWatcher *, DeviceInformationUpdate *> DeviceInformationUpdateHandler;
 typedef ITypedEventHandler<DeviceWatcher *, IInspectable *> DeviceEnumerationCompletedHandler;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 static QString deviceName(IDeviceInformation *device)
 {
@@ -386,3 +386,5 @@ void QWinRTVideoDeviceSelectorControl::setSelectedDevice(int index)
         emit selectedDeviceChanged(deviceName(d->selectedDevice));
     }
 }
+
+QT_END_NAMESPACE
