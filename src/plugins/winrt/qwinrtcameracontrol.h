@@ -60,6 +60,7 @@ QT_BEGIN_NAMESPACE
 class QVideoRendererControl;
 class QVideoDeviceSelectorControl;
 class QCameraImageCaptureControl;
+class QImageEncoderControl;
 
 class QWinRTCameraControlPrivate;
 class QWinRTCameraControl : public QCameraControl
@@ -83,9 +84,9 @@ public:
     QVideoRendererControl *videoRenderer() const;
     QVideoDeviceSelectorControl *videoDeviceSelector() const;
     QCameraImageCaptureControl *imageCaptureControl() const;
+    QImageEncoderControl *imageEncoderControl() const;
 
     ABI::Windows::Media::Capture::IMediaCapture *handle() const;
-    QSize imageSize() const;
 
 private slots:
     void onBufferRequested();

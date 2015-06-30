@@ -420,6 +420,17 @@ QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
 {
     QList<QVideoFrame::PixelFormat> formats;
 
+    static bool noGLTextures = false;
+    static bool noGLTexturesChecked = false;
+    if (handleType == QAbstractVideoBuffer::GLTextureHandle) {
+        if (!noGLTexturesChecked) {
+            noGLTexturesChecked = true;
+            noGLTextures = qEnvironmentVariableIsSet("QT_QUICK_NO_TEXTURE_VIDEOFRAMES");
+        }
+        if (noGLTextures)
+            return formats;
+    }
+
     foreach (QSGVideoNodeFactoryInterface* factory, m_backend->m_videoNodeFactories)
         formats.append(factory->supportedPixelFormats(handleType));
 

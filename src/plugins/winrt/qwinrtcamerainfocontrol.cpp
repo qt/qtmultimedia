@@ -37,7 +37,7 @@
 #include "qwinrtcamerainfocontrol.h"
 #include "qwinrtvideodeviceselectorcontrol.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 QWinRTCameraInfoControl::QWinRTCameraInfoControl(QObject *parent)
     : QCameraInfoControl(parent)
@@ -53,3 +53,5 @@ int QWinRTCameraInfoControl::cameraOrientation(const QString &deviceName) const
 {
     return QWinRTVideoDeviceSelectorControl::cameraOrientation(deviceName);
 }
+
+QT_END_NAMESPACE

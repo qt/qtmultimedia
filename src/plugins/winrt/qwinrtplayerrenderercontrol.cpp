@@ -54,7 +54,7 @@
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 template <typename T>
 class D3DDeviceLocker
@@ -149,3 +149,5 @@ bool QWinRTPlayerRendererControl::render(ID3D11Texture2D *texture)
     RETURN_FALSE_IF_FAILED("Failed to transfer video frame to DXGI surface");
     return true;
 }
+
+QT_END_NAMESPACE

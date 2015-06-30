@@ -18,7 +18,8 @@ HEADERS += \
     qwinrtmediaplayerservice.h \
     qwinrtplayerrenderercontrol.h \
     qwinrtserviceplugin.h \
-    qwinrtvideodeviceselectorcontrol.h
+    qwinrtvideodeviceselectorcontrol.h \
+    qwinrtimageencodercontrol.h
 
 SOURCES += \
     qwinrtabstractvideorenderercontrol.cpp \
@@ -31,7 +32,8 @@ SOURCES += \
     qwinrtmediaplayerservice.cpp \
     qwinrtplayerrenderercontrol.cpp \
     qwinrtserviceplugin.cpp \
-    qwinrtvideodeviceselectorcontrol.cpp
+    qwinrtvideodeviceselectorcontrol.cpp \
+    qwinrtimageencodercontrol.cpp
 
 OTHER_FILES += \
     winrt.json
