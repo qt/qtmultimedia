@@ -1304,7 +1304,7 @@ static QPair<int,int> valueRange(const GValue *value, bool *continuous)
 
 static bool resolutionLessThan(const QSize &r1, const QSize &r2)
 {
-     return r1.width()*r1.height() < r2.width()*r2.height();
+     return qlonglong(r1.width()) * r1.height() < qlonglong(r2.width()) * r2.height();
 }
 
 
