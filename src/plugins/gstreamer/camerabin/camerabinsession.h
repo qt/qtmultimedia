@@ -46,6 +46,7 @@
 
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamerbufferprobe_p.h>
+#include <private/qmediastoragelocation_p.h>
 #include "qcamera.h"
 
 QT_BEGIN_NAMESPACE
@@ -101,9 +102,6 @@ public:
 
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl& sink);
-
-    QDir defaultDir(QCamera::CaptureModes mode) const;
-    QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
     GstElement *buildCameraSource();
     GstElementFactory *sourceFactory() const { return m_sourceFactory; }
@@ -209,6 +207,7 @@ private:
     QString m_inputDevice;
     bool m_muted;
     bool m_busy;
+    QMediaStorageLocation m_mediaStorageLocation;
 
     QCamera::CaptureModes m_captureMode;
     QMap<QByteArray, QVariant> m_metaData;
