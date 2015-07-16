@@ -128,7 +128,7 @@ void tst_QAudioDecoder::read()
     QVERIFY(!b.isValid());
 
     // Wait a while
-    QTRY_COMPARE(d.bufferAvailable(), 1);
+    QTRY_VERIFY(d.bufferAvailable());
 
     QVERIFY(d.bufferAvailable());
 
@@ -189,7 +189,7 @@ void tst_QAudioDecoder::stop()
     QVERIFY(!b.isValid());
 
     // Wait a while
-    QTRY_COMPARE(d.bufferAvailable(), 1);
+    QTRY_VERIFY(d.bufferAvailable());
 
     QVERIFY(d.bufferAvailable());
 
@@ -231,7 +231,7 @@ void tst_QAudioDecoder::format()
     QVERIFY(!b.isValid());
 
     // Wait a while
-    QTRY_COMPARE(d.bufferAvailable(), 1);
+    QTRY_VERIFY(d.bufferAvailable());
 
     b = d.read();
     QVERIFY(d.audioFormat() == b.format());
@@ -251,7 +251,7 @@ void tst_QAudioDecoder::format()
 
     // Decode again
     d.start();
-    QTRY_COMPARE(d.bufferAvailable(), 1);
+    QTRY_VERIFY(d.bufferAvailable());
 
     b = d.read();
     QVERIFY(d.audioFormat() == f);
