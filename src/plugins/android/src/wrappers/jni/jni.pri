@@ -1,4 +1,4 @@
-QT += platformsupport-private
+QT += core-private
 
 INCLUDEPATH += $$PWD
 
