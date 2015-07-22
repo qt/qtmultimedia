@@ -125,21 +125,13 @@ Q_GLOBAL_STATIC(QWinRTVideoRendererControlGlobal, g)
 class QWinRTVideoBuffer : public QAbstractVideoBuffer, public QOpenGLTexture
 {
 public:
-    QWinRTVideoBuffer()
+    QWinRTVideoBuffer(const QSize &size, TextureFormat format)
         : QAbstractVideoBuffer(QAbstractVideoBuffer::GLTextureHandle)
         , QOpenGLTexture(QOpenGLTexture::Target2D)
     {
-    }
-
-    void addRef()
-    {
-        refCount.ref();
-    }
-
-    void release() Q_DECL_OVERRIDE
-    {
-        if (!refCount.deref())
-            delete this;
+        setSize(size.width(), size.height());
+        setFormat(format);
+        create();
     }
 
     MapMode mapMode() const Q_DECL_OVERRIDE
@@ -163,9 +155,6 @@ public:
     {
         return QVariant::fromValue(textureId());
     }
-
-private:
-    QAtomicInt refCount;
 };
 
 enum DirtyState {
@@ -189,7 +178,7 @@ public:
     EGLConfig eglConfig;
     EGLSurface eglSurface;
 
-    QWinRTVideoBuffer *videoBuffer;
+    QVideoFrame presentFrame;
 
     QThread renderThread;
     bool active;
@@ -223,8 +212,6 @@ QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSi
     d->eglConfig = 0;
     d->eglSurface = EGL_NO_SURFACE;
     d->active = false;
-
-    d->videoBuffer = new QWinRTVideoBuffer;
 
     connect(&d->renderThread, &QThread::started,
             this, &QWinRTAbstractVideoRendererControl::syncAndRender,
@@ -390,23 +377,19 @@ void QWinRTAbstractVideoRendererControl::present()
             return;
         }
 
-        d->videoBuffer->setFormat(QOpenGLTexture::RGBAFormat);
-        d->videoBuffer->setSize(d->format.frameWidth(), d->format.frameHeight());
-        if (!d->videoBuffer->isCreated())
-            d->videoBuffer->create();
+        QWinRTVideoBuffer *videoBuffer = new QWinRTVideoBuffer(d->format.frameSize(), QOpenGLTexture::RGBAFormat);
+        d->presentFrame = QVideoFrame(videoBuffer, d->format.frameSize(), d->format.pixelFormat());
 
         // bind the pbuffer surface to the texture
-        d->videoBuffer->bind();
+        videoBuffer->bind();
         eglBindTexImage(d->eglDisplay, d->eglSurface, EGL_BACK_BUFFER);
-        static_cast<QOpenGLTexture *>(d->videoBuffer)->release();
+        static_cast<QOpenGLTexture *>(videoBuffer)->release();
 
         d->dirtyState = NotDirty;
     }
 
     // Present the frame
-    d->videoBuffer->addRef();
-    QVideoFrame frame(d->videoBuffer, d->format.frameSize(), d->format.pixelFormat());
-    d->surface->present(frame);
+    d->surface->present(d->presentFrame);
 }
 
 QT_END_NAMESPACE
