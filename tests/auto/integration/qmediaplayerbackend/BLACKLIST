@@ -39,6 +39,10 @@ windows 64bit developer-build
 opensuse-13.1 64bit
 redhatenterpriselinuxworkstation-6.6
 
+[volumeAcrossFiles]
+opensuse-13.1 64bit
+redhatenterpriselinuxworkstation-6.6
+
 [initialVolume]
 opensuse-13.1 64bit
 redhatenterpriselinuxworkstation-6.6
