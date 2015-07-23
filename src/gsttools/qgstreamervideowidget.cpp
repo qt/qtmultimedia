@@ -32,21 +32,10 @@
 ****************************************************************************/
 
 #include "qgstreamervideowidget_p.h"
-#include <private/qgstutils_p.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qdebug.h>
-#include <QtWidgets/qapplication.h>
 #include <QtGui/qpainter.h>
-
-#include <gst/gst.h>
-
-#if !GST_CHECK_VERSION(1,0,0)
-#include <gst/interfaces/xoverlay.h>
-#include <gst/interfaces/propertyprobe.h>
-#else
-#include <gst/video/videooverlay.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -82,167 +71,133 @@ public:
         }
     }
 
-protected:
-    void paintEvent(QPaintEvent *)
+    void paint_helper()
     {
         QPainter painter(this);
         painter.fillRect(rect(), palette().background());
     }
 
+protected:
+    void paintEvent(QPaintEvent *)
+    {
+        paint_helper();
+    }
+
     QSize m_nativeSize;
 };
 
-QGstreamerVideoWidgetControl::QGstreamerVideoWidgetControl(QObject *parent)
+QGstreamerVideoWidgetControl::QGstreamerVideoWidgetControl(QObject *parent, const QByteArray &elementName)
     : QVideoWidgetControl(parent)
-    , m_videoSink(0)
+    , m_videoOverlay(this, !elementName.isEmpty() ? elementName : qgetenv("QT_GSTREAMER_WIDGET_VIDEOSINK"))
     , m_widget(0)
+    , m_stopped(false)
+    , m_windowId(0)
     , m_fullScreen(false)
 {
-    // The QWidget needs to have a native X window handle to be able to use xvimagesink.
-    // Bail out if Qt is not using xcb (the control will then be ignored by the plugin)
-    if (QGuiApplication::platformName().compare(QLatin1String("xcb"), Qt::CaseInsensitive) == 0)
-        m_videoSink = gst_element_factory_make ("xvimagesink", NULL);
-
-    if (m_videoSink) {
-        // Check if the xv sink is usable
-        if (gst_element_set_state(m_videoSink, GST_STATE_READY) != GST_STATE_CHANGE_SUCCESS) {
-            gst_object_unref(GST_OBJECT(m_videoSink));
-            m_videoSink = 0;
-        } else {
-            gst_element_set_state(m_videoSink, GST_STATE_NULL);
-            g_object_set(G_OBJECT(m_videoSink), "force-aspect-ratio", 1, (const char*)NULL);
-            qt_gst_object_ref_sink(GST_OBJECT (m_videoSink)); //Take ownership
-        }
-    }
+    connect(&m_videoOverlay, &QGstreamerVideoOverlay::activeChanged,
+            this, &QGstreamerVideoWidgetControl::onOverlayActiveChanged);
+    connect(&m_videoOverlay, &QGstreamerVideoOverlay::nativeVideoSizeChanged,
+            this, &QGstreamerVideoWidgetControl::onNativeVideoSizeChanged);
+    connect(&m_videoOverlay, &QGstreamerVideoOverlay::brightnessChanged,
+            this, &QGstreamerVideoWidgetControl::brightnessChanged);
+    connect(&m_videoOverlay, &QGstreamerVideoOverlay::contrastChanged,
+            this, &QGstreamerVideoWidgetControl::contrastChanged);
+    connect(&m_videoOverlay, &QGstreamerVideoOverlay::hueChanged,
+            this, &QGstreamerVideoWidgetControl::hueChanged);
+    connect(&m_videoOverlay, &QGstreamerVideoOverlay::saturationChanged,
+            this, &QGstreamerVideoWidgetControl::saturationChanged);
 }
 
 QGstreamerVideoWidgetControl::~QGstreamerVideoWidgetControl()
 {
-    if (m_videoSink)
-        gst_object_unref(GST_OBJECT(m_videoSink));
-
     delete m_widget;
 }
 
 void QGstreamerVideoWidgetControl::createVideoWidget()
 {
-    if (!m_videoSink || m_widget)
+    if (m_widget)
         return;
 
     m_widget = new QGstreamerVideoWidget;
 
     m_widget->installEventFilter(this);
-    m_windowId = m_widget->winId();
+    m_videoOverlay.setWindowHandle(m_windowId = m_widget->winId());
 }
 
 GstElement *QGstreamerVideoWidgetControl::videoSink()
 {
-    return m_videoSink;
+    return m_videoOverlay.videoSink();
+}
+
+void QGstreamerVideoWidgetControl::onOverlayActiveChanged()
+{
+    updateWidgetAttributes();
+}
+
+void QGstreamerVideoWidgetControl::stopRenderer()
+{
+    m_stopped = true;
+    updateWidgetAttributes();
+    m_widget->setNativeSize(QSize());
+}
+
+void QGstreamerVideoWidgetControl::onNativeVideoSizeChanged()
+{
+    const QSize &size = m_videoOverlay.nativeVideoSize();
+
+    if (size.isValid())
+        m_stopped = false;
+
+    if (m_widget)
+        m_widget->setNativeSize(size);
 }
 
 bool QGstreamerVideoWidgetControl::eventFilter(QObject *object, QEvent *e)
 {
     if (m_widget && object == m_widget) {
-        if (e->type() == QEvent::ParentChange || e->type() == QEvent::Show) {
+        if (e->type() == QEvent::ParentChange || e->type() == QEvent::Show || e->type() == QEvent::WinIdChange) {
             WId newWId = m_widget->winId();
-            if (newWId != m_windowId) {
-                m_windowId = newWId;
-                setOverlay();
-            }
+            if (newWId != m_windowId)
+                m_videoOverlay.setWindowHandle(m_windowId = newWId);
         }
 
-        if (e->type() == QEvent::Show) {
-            // Setting these values ensures smooth resizing since it
-            // will prevent the system from clearing the background
-            m_widget->setAttribute(Qt::WA_NoSystemBackground, true);
-        } else if (e->type() == QEvent::Resize) {
-            // This is a workaround for missing background repaints
-            // when reducing window size
-            windowExposed();
+        if (e->type() == QEvent::Paint) {
+            if (m_videoOverlay.isActive())
+                m_videoOverlay.expose(); // triggers a repaint of the last frame
+            else
+                m_widget->paint_helper(); // paints the black background
+
+            return true;
         }
     }
 
     return false;
+}
+
+void QGstreamerVideoWidgetControl::updateWidgetAttributes()
+{
+    // When frames are being rendered (sink is active), we need the WA_PaintOnScreen attribute to
+    // be set in order to avoid flickering when the widget is repainted (for example when resized).
+    // We need to clear that flag when the the sink is inactive to allow the widget to paint its
+    // background, otherwise some garbage will be displayed.
+    if (m_videoOverlay.isActive() && !m_stopped) {
+        m_widget->setAttribute(Qt::WA_NoSystemBackground, true);
+        m_widget->setAttribute(Qt::WA_PaintOnScreen, true);
+    } else {
+        m_widget->setAttribute(Qt::WA_NoSystemBackground, false);
+        m_widget->setAttribute(Qt::WA_PaintOnScreen, false);
+        m_widget->update();
+    }
 }
 
 bool QGstreamerVideoWidgetControl::processSyncMessage(const QGstreamerMessage &message)
 {
-    GstMessage* gm = message.rawMessage();
-
-#if !GST_CHECK_VERSION(1,0,0)
-    if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
-            gst_structure_has_name(gm->structure, "prepare-xwindow-id")) {
-#else
-      if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
-              gst_structure_has_name(gst_message_get_structure(gm), "prepare-window-handle")) {
-#endif
-        setOverlay();
-        QMetaObject::invokeMethod(this, "updateNativeVideoSize", Qt::QueuedConnection);
-        return true;
-    }
-
-    return false;
+    return m_videoOverlay.processSyncMessage(message);
 }
 
 bool QGstreamerVideoWidgetControl::processBusMessage(const QGstreamerMessage &message)
 {
-    GstMessage* gm = message.rawMessage();
-
-    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED &&
-            GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoSink)) {
-        GstState oldState;
-        GstState newState;
-        gst_message_parse_state_changed(gm, &oldState, &newState, 0);
-
-        if (oldState == GST_STATE_READY && newState == GST_STATE_PAUSED)
-            updateNativeVideoSize();
-    }
-
-    return false;
-}
-
-void QGstreamerVideoWidgetControl::setOverlay()
-{
-#if !GST_CHECK_VERSION(1,0,0)
-    if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink)) {
-        gst_x_overlay_set_xwindow_id(GST_X_OVERLAY(m_videoSink), m_windowId);
-    }
-#else
-    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink)) {
-        gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink), m_windowId);
-    }
-#endif
-}
-
-void QGstreamerVideoWidgetControl::updateNativeVideoSize()
-{
-    if (m_videoSink) {
-        //find video native size to update video widget size hint
-        GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-        GstCaps *caps = qt_gst_pad_get_current_caps(pad);
-
-        gst_object_unref(GST_OBJECT(pad));
-
-        if (caps) {
-            m_widget->setNativeSize(QGstUtils::capsCorrectedResolution(caps));
-            gst_caps_unref(caps);
-        }
-    } else {
-        if (m_widget)
-            m_widget->setNativeSize(QSize());
-    }
-}
-
-
-void QGstreamerVideoWidgetControl::windowExposed()
-{
-#if !GST_CHECK_VERSION(1,0,0)
-    if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink))
-        gst_x_overlay_expose(GST_X_OVERLAY(m_videoSink));
-#else
-    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink))
-        gst_video_overlay_expose(GST_VIDEO_OVERLAY(m_videoSink));
-#endif
+    return m_videoOverlay.processBusMessage(message);
 }
 
 QWidget *QGstreamerVideoWidgetControl::videoWidget()
@@ -253,19 +208,12 @@ QWidget *QGstreamerVideoWidgetControl::videoWidget()
 
 Qt::AspectRatioMode QGstreamerVideoWidgetControl::aspectRatioMode() const
 {
-    return m_aspectRatioMode;
+    return m_videoOverlay.aspectRatioMode();
 }
 
 void QGstreamerVideoWidgetControl::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
-    if (m_videoSink) {
-        g_object_set(G_OBJECT(m_videoSink),
-                     "force-aspect-ratio",
-                     (mode == Qt::KeepAspectRatio),
-                     (const char*)NULL);
-    }
-
-    m_aspectRatioMode = mode;
+    m_videoOverlay.setAspectRatioMode(mode);
 }
 
 bool QGstreamerVideoWidgetControl::isFullScreen() const
@@ -280,78 +228,42 @@ void QGstreamerVideoWidgetControl::setFullScreen(bool fullScreen)
 
 int QGstreamerVideoWidgetControl::brightness() const
 {
-    int brightness = 0;
-
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "brightness"))
-        g_object_get(G_OBJECT(m_videoSink), "brightness", &brightness, NULL);
-
-    return brightness / 10;
+    return m_videoOverlay.brightness();
 }
 
 void QGstreamerVideoWidgetControl::setBrightness(int brightness)
 {
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "brightness")) {
-        g_object_set(G_OBJECT(m_videoSink), "brightness", brightness * 10, NULL);
-
-        emit brightnessChanged(brightness);
-    }
+    m_videoOverlay.setBrightness(brightness);
 }
 
 int QGstreamerVideoWidgetControl::contrast() const
 {
-    int contrast = 0;
-
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "contrast"))
-        g_object_get(G_OBJECT(m_videoSink), "contrast", &contrast, NULL);
-
-    return contrast / 10;
+    return m_videoOverlay.contrast();
 }
 
 void QGstreamerVideoWidgetControl::setContrast(int contrast)
 {
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "contrast")) {
-        g_object_set(G_OBJECT(m_videoSink), "contrast", contrast * 10, NULL);
-
-        emit contrastChanged(contrast);
-    }
+    m_videoOverlay.setContrast(contrast);
 }
 
 int QGstreamerVideoWidgetControl::hue() const
 {
-    int hue = 0;
-
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "hue"))
-        g_object_get(G_OBJECT(m_videoSink), "hue", &hue, NULL);
-
-    return hue / 10;
+    return m_videoOverlay.hue();
 }
 
 void QGstreamerVideoWidgetControl::setHue(int hue)
 {
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "hue")) {
-        g_object_set(G_OBJECT(m_videoSink), "hue", hue * 10, NULL);
-
-        emit hueChanged(hue);
-    }
+    m_videoOverlay.setHue(hue);
 }
 
 int QGstreamerVideoWidgetControl::saturation() const
 {
-    int saturation = 0;
-
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "saturation"))
-        g_object_get(G_OBJECT(m_videoSink), "saturation", &saturation, NULL);
-
-    return saturation / 10;
+    return m_videoOverlay.saturation();
 }
 
 void QGstreamerVideoWidgetControl::setSaturation(int saturation)
 {
-    if (m_videoSink && g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "saturation")) {
-        g_object_set(G_OBJECT(m_videoSink), "saturation", saturation * 10, NULL);
-
-        emit saturationChanged(saturation);
-    }
+    m_videoOverlay.setSaturation(saturation);
 }
 
 QT_END_NAMESPACE
