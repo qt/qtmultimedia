@@ -147,6 +147,7 @@ GstStructure *qt_gst_structure_new_empty(const char *name);
 gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur);
 gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur);
 GstCaps *qt_gst_caps_normalize(GstCaps *caps);
+const gchar *qt_gst_element_get_factory_name(GstElement *element);
 
 QDebug operator <<(QDebug debug, GstCaps *caps);
 

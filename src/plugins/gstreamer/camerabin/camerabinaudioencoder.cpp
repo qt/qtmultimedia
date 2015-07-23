@@ -34,6 +34,7 @@
 #include "camerabinaudioencoder.h"
 #include "camerabincontainer.h"
 #include <private/qgstcodecsinfo_p.h>
+#include <private/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>
 
@@ -120,8 +121,7 @@ GstEncodingProfile *CameraBinAudioEncoder::createProfile()
 void CameraBinAudioEncoder::applySettings(GstElement *encoder)
 {
     GObjectClass * const objectClass = G_OBJECT_GET_CLASS(encoder);
-    const char * const name = gst_plugin_feature_get_name(
-                GST_PLUGIN_FEATURE(gst_element_get_factory(encoder)));
+    const char * const name = qt_gst_element_get_factory_name(encoder);
 
     const bool isVorbis = qstrcmp(name, "vorbisenc") == 0;
 

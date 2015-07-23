@@ -34,6 +34,7 @@
 #include "camerabinvideoencoder.h"
 #include "camerabinsession.h"
 #include "camerabincontainer.h"
+#include <private/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>
 
@@ -178,8 +179,7 @@ GstEncodingProfile *CameraBinVideoEncoder::createProfile()
 void CameraBinVideoEncoder::applySettings(GstElement *encoder)
 {
     GObjectClass * const objectClass = G_OBJECT_GET_CLASS(encoder);
-    const char * const name = gst_plugin_feature_get_name(
-                GST_PLUGIN_FEATURE(gst_element_get_factory(encoder)));
+    const char * const name = qt_gst_element_get_factory_name(encoder);
 
     const int bitRate = m_actualVideoSettings.bitRate();
     if (bitRate == -1) {
