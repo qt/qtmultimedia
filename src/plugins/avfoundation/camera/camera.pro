@@ -33,7 +33,6 @@ HEADERS += \
     avfaudioinputselectorcontrol.h \
     avfcamerainfocontrol.h \
     avfmediavideoprobecontrol.h \
-    avfcamerainfocontrol.h \
     avfcamerarenderercontrol.h \
     avfcameradevicecontrol.h \
     avfcamerafocuscontrol.h \
@@ -54,7 +53,6 @@ OBJECTIVE_SOURCES += \
     avfaudioinputselectorcontrol.mm \
     avfcamerainfocontrol.mm \
     avfmediavideoprobecontrol.mm \
-    avfcamerainfocontrol.mm \
     avfcameradevicecontrol.mm \
     avfcamerarenderercontrol.mm \
     avfcamerafocuscontrol.mm \
