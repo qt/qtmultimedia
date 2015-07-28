@@ -41,9 +41,9 @@ QT_USE_NAMESPACE
 
 AVFAudioInputSelectorControl::AVFAudioInputSelectorControl(AVFCameraService *service, QObject *parent)
    : QAudioInputSelectorControl(parent)
-   , m_service(service)
    , m_dirty(true)
 {
+    Q_UNUSED(service);
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeAudio];
     for (AVCaptureDevice *device in videoDevices) {
         QString deviceId = QString::fromUtf8([[device uniqueID] UTF8String]);

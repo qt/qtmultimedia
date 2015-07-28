@@ -40,12 +40,12 @@ QT_USE_NAMESPACE
 
 AVFCameraControl::AVFCameraControl(AVFCameraService *service, QObject *parent)
    : QCameraControl(parent)
-   , m_service(service)
    , m_session(service->session())
    , m_state(QCamera::UnloadedState)
    , m_lastStatus(QCamera::UnloadedStatus)
    , m_captureMode(QCamera::CaptureStillImage)
 {
+    Q_UNUSED(service);
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
 }
 

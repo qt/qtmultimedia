@@ -66,7 +66,6 @@ private Q_SLOTS:
     void updateReadyStatus();
 
 private:
-    AVFCameraService *m_service;
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     bool m_ready;

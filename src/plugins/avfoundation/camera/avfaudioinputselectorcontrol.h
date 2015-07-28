@@ -65,8 +65,6 @@ public:
     AVCaptureDevice *createCaptureDevice();
 
 private:
-    AVFCameraService *m_service;
-
     QString m_activeInput;
     bool m_dirty;
     QString m_defaultDevice;

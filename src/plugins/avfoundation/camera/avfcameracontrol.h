@@ -65,7 +65,6 @@ private Q_SLOTS:
     void updateStatus();
 
 private:
-    AVFCameraService *m_service;
     AVFCameraSession *m_session;
 
     QCamera::State m_state;
