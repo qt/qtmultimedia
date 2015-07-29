@@ -37,6 +37,8 @@
 #include "qwinrtcameraservice.h"
 #include "qwinrtcameracontrol.h"
 #include "qwinrtcamerainfocontrol.h"
+#include "qwinrtvideoprobecontrol.h"
+#include "qwinrtcameravideorenderercontrol.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/qfunctions_winrt.h>
@@ -47,6 +49,7 @@
 #include <QtMultimedia/QImageEncoderControl>
 #include <QtMultimedia/QCameraFocusControl>
 #include <QtMultimedia/QCameraLocksControl>
+#include <QtMultimedia/QMediaVideoProbeControl>
 
 QT_BEGIN_NAMESPACE
 
@@ -98,12 +101,17 @@ QMediaControl *QWinRTCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraLocksControl_iid) == 0)
         return d->cameraControl->cameraLocksControl();
 
+    if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0)
+        return new QWinRTVideoProbeControl(qobject_cast<QWinRTCameraVideoRendererControl *>(d->cameraControl->videoRenderer()));
+
     return nullptr;
 }
 
 void QWinRTCameraService::releaseControl(QMediaControl *control)
 {
-    Q_UNUSED(control);
+    Q_ASSERT(control);
+    if (QWinRTVideoProbeControl *videoProbe = qobject_cast<QWinRTVideoProbeControl *>(control))
+        videoProbe->deleteLater();
 }
 
 QT_END_NAMESPACE

@@ -630,6 +630,7 @@ void QWinRTCameraControl::setState(QCamera::State state)
         emit stateChanged(d->state);
         d->status = QCamera::ActiveStatus;
         emit statusChanged(d->status);
+        d->mediaSink->RequestSample();
         break;
     }
     case QCamera::LoadedState: {

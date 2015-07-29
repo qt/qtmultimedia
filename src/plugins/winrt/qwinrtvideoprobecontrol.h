@@ -33,43 +33,22 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QWINRTVIDEOPROBECONTROL_H
+#define QWINRTVIDEOPROBECONTROL_H
 
-#ifndef QWINRTCAMERAVIDEORENDERERCONTROL_H
-#define QWINRTCAMERAVIDEORENDERERCONTROL_H
-
-#include "qwinrtabstractvideorenderercontrol.h"
-
-#include <QVideoFrame>
-
-struct IMF2DBuffer;
+#include <qmediavideoprobecontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWinRTVideoProbeControl;
-class QVideoSurfaceFormat;
-class QWinRTCameraVideoRendererControlPrivate;
-class QWinRTCameraVideoRendererControl : public QWinRTAbstractVideoRendererControl
+class QWinRTCameraVideoRendererControl;
+class QWinRTVideoProbeControl : public QMediaVideoProbeControl
 {
     Q_OBJECT
 public:
-    explicit QWinRTCameraVideoRendererControl(const QSize &size, QObject *parent);
-    ~QWinRTCameraVideoRendererControl();
-
-    bool render(ID3D11Texture2D *texture) Q_DECL_OVERRIDE;
-    void queueBuffer(IMF2DBuffer *buffer);
-    void discardBuffers();
-    void incrementProbe();
-    void decrementProbe();
-
-signals:
-    void bufferRequested();
-    void videoFrameProbed(const QVideoFrame &frame);
-
-private:
-    QScopedPointer<QWinRTCameraVideoRendererControlPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(QWinRTCameraVideoRendererControl)
+    explicit QWinRTVideoProbeControl(QWinRTCameraVideoRendererControl *parent);
+    ~QWinRTVideoProbeControl();
 };
 
 QT_END_NAMESPACE
 
-#endif // QWINRTCAMERAVIDEORENDERERCONTROL_H
+#endif // QWINRTVIDEOPROBECONTROL_H
