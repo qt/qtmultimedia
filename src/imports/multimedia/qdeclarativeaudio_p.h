@@ -48,6 +48,7 @@
 #include <QtCore/qbasictimer.h>
 #include <QtQml/qqmlparserstatus.h>
 #include <QtQml/qqml.h>
+#include <QtQml/qjsvalue.h>
 
 #include <qmediaplayer.h>
 
@@ -87,11 +88,13 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
     Q_PROPERTY(QObject *mediaObject READ mediaObject NOTIFY mediaObjectChanged SCRIPTABLE false DESIGNABLE false)
     Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
+    Q_PROPERTY(AudioRole audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged REVISION 1)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
     Q_ENUMS(Loop)
     Q_ENUMS(PlaybackState)
     Q_ENUMS(Availability)
+    Q_ENUMS(AudioRole)
     Q_INTERFACES(QQmlParserStatus)
 public:
     enum Status
@@ -136,6 +139,19 @@ public:
         ResourceMissing = QMultimedia::ResourceError
     };
 
+    enum AudioRole {
+        UnknownRole = QAudio::UnknownRole,
+        AccessibilityRole = QAudio::AccessibilityRole,
+        AlarmRole = QAudio::AlarmRole,
+        GameRole = QAudio::GameRole,
+        MusicRole = QAudio::MusicRole,
+        NotificationRole = QAudio::NotificationRole,
+        RingtoneRole = QAudio::RingtoneRole,
+        SonificationRole = QAudio::SonificationRole,
+        VideoRole = QAudio::VideoRole,
+        VoiceCommunicationRole = QAudio::VoiceCommunicationRole
+    };
+
     QDeclarativeAudio(QObject *parent = 0);
     ~QDeclarativeAudio();
 
@@ -153,6 +169,9 @@ public:
     QObject *mediaObject() { return m_player; }
 
     Availability availability() const;
+
+    AudioRole audioRole() const;
+    void setAudioRole(AudioRole audioRole);
 
     QUrl source() const;
     void setSource(const QUrl &url);
@@ -196,6 +215,8 @@ public Q_SLOTS:
     void stop();
     void seek(int position);
 
+    Q_REVISION(1) QJSValue supportedAudioRoles() const;
+
 Q_SIGNALS:
     Q_REVISION(1) void playlistChanged();
 
@@ -225,6 +246,8 @@ Q_SIGNALS:
     void seekableChanged();
     void playbackRateChanged();
 
+    Q_REVISION(1) void audioRoleChanged();
+
     void availabilityChanged(Availability availability);
 
     void errorChanged();
@@ -253,6 +276,7 @@ private:
     int m_position;
     qreal m_vol;
     qreal m_playbackRate;
+    AudioRole m_audioRole;
 
     QMediaPlayer::State m_playbackState;
     QMediaPlayer::MediaStatus m_status;

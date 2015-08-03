@@ -135,6 +135,7 @@ private slots:
     void testSupportedMimeTypes();
     void testQrc_data();
     void testQrc();
+    void testAudioRole();
 
 private:
     void setupCommonTestData();
@@ -1294,6 +1295,46 @@ void tst_QMediaPlayer::testQrc()
     // Check the media actually passed to the backend
     QCOMPARE(mockService->mockControl->media().canonicalUrl().scheme(), backendMediaContentScheme);
     QCOMPARE(bool(mockService->mockControl->mediaStream()), backendHasStream);
+}
+
+void tst_QMediaPlayer::testAudioRole()
+{
+    {
+        mockService->setHasAudioRole(false);
+        QMediaPlayer player;
+
+        QCOMPARE(player.audioRole(), QAudio::UnknownRole);
+        QVERIFY(player.supportedAudioRoles().isEmpty());
+
+        QSignalSpy spy(&player, SIGNAL(audioRoleChanged(QAudio::Role)));
+        player.setAudioRole(QAudio::MusicRole);
+        QCOMPARE(player.audioRole(), QAudio::UnknownRole);
+        QCOMPARE(spy.count(), 0);
+    }
+
+    {
+        mockService->reset();
+        mockService->setHasAudioRole(true);
+        QMediaPlayer player;
+        QSignalSpy spy(&player, SIGNAL(audioRoleChanged(QAudio::Role)));
+
+        QCOMPARE(player.audioRole(), QAudio::UnknownRole);
+        QVERIFY(!player.supportedAudioRoles().isEmpty());
+
+        player.setAudioRole(QAudio::MusicRole);
+        QCOMPARE(player.audioRole(), QAudio::MusicRole);
+        QCOMPARE(mockService->mockAudioRoleControl->audioRole(), QAudio::MusicRole);
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::MusicRole);
+
+        spy.clear();
+
+        player.setProperty("audioRole", qVariantFromValue(QAudio::AlarmRole));
+        QCOMPARE(qvariant_cast<QAudio::Role>(player.property("audioRole")), QAudio::AlarmRole);
+        QCOMPARE(mockService->mockAudioRoleControl->audioRole(), QAudio::AlarmRole);
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::AlarmRole);
+    }
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaPlayer)

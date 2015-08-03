@@ -42,6 +42,7 @@
 #include <qmediaplaylistcontrol_p.h>
 #include <qmediaplaylistsourcecontrol_p.h>
 #include <qmedianetworkaccesscontrol.h>
+#include <qaudiorolecontrol.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -104,6 +105,7 @@ public:
     QMediaPlayerPrivate()
         : provider(0)
         , control(0)
+        , audioRoleControl(0)
         , state(QMediaPlayer::StoppedState)
         , status(QMediaPlayer::UnknownMediaStatus)
         , error(QMediaPlayer::NoError)
@@ -116,6 +118,7 @@ public:
 
     QMediaServiceProvider *provider;
     QMediaPlayerControl* control;
+    QAudioRoleControl *audioRoleControl;
     QMediaPlayer::State state;
     QMediaPlayer::MediaStatus status;
     QMediaPlayer::Error error;
@@ -596,6 +599,12 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
                 addPropertyWatch("bufferStatus");
 
             d->hasStreamPlaybackFeature = d->provider->supportedFeatures(d->service).testFlag(QMediaServiceProviderHint::StreamPlayback);
+
+            d->audioRoleControl = qobject_cast<QAudioRoleControl*>(d->service->requestControl(QAudioRoleControl_iid));
+            if (d->audioRoleControl) {
+                connect(d->audioRoleControl, &QAudioRoleControl::audioRoleChanged,
+                        this, &QMediaPlayer::audioRoleChanged);
+            }
         }
         if (d->networkAccessControl != 0) {
             connect(d->networkAccessControl, SIGNAL(configurationChanged(QNetworkConfiguration)),
@@ -616,6 +625,8 @@ QMediaPlayer::~QMediaPlayer()
     if (d->service) {
         if (d->control)
             d->service->releaseControl(d->control);
+        if (d->audioRoleControl)
+            d->service->releaseControl(d->audioRoleControl);
 
         d->provider->releaseService(d->service);
     }
@@ -1109,6 +1120,41 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
     return QMediaObject::availability();
 }
 
+QAudio::Role QMediaPlayer::audioRole() const
+{
+    Q_D(const QMediaPlayer);
+
+    if (d->audioRoleControl != NULL)
+        return d->audioRoleControl->audioRole();
+
+    return QAudio::UnknownRole;
+}
+
+void QMediaPlayer::setAudioRole(QAudio::Role audioRole)
+{
+    Q_D(QMediaPlayer);
+
+    if (d->audioRoleControl)
+        d->audioRoleControl->setAudioRole(audioRole);
+}
+
+/*!
+    Returns a list of supported audio roles.
+
+    If setting the audio role is not supported, an empty list is returned.
+
+    \since 5.6
+    \sa audioRole
+*/
+QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
+{
+    Q_D(const QMediaPlayer);
+
+    if (d->audioRoleControl)
+        return d->audioRoleControl->supportedAudioRoles();
+
+    return QList<QAudio::Role>();
+}
 
 // Enums
 /*!
@@ -1207,6 +1253,14 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
     \fn void QMediaPlayer::seekableChanged(bool seekable);
 
     Signals the \a seekable status of the player object has changed.
+*/
+
+/*!
+    \fn void QMediaPlayer::audioRoleChanged(QAudio::Role role)
+
+    Signals that the audio \a role of the media player has changed.
+
+    \since 5.6
 */
 
 // Properties
@@ -1374,6 +1428,19 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
     Not all playback services support change of the playback rate. It is
     framework defined as to the status and quality of audio and video
     while fast forwarding or rewinding.
+*/
+
+/*!
+    \property QMediaPlayer::audioRole
+    \brief the role of the audio stream played by the media player.
+
+    It can be set to specify the type of audio being played, allowing the system to make
+    appropriate decisions when it comes to volume, routing or post-processing.
+
+    The audio role must be set before calling setMedia().
+
+    \since 5.6
+    \sa supportedAudioRoles()
 */
 
 /*!

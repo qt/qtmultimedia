@@ -42,6 +42,7 @@ static void qRegisterAudioMetaTypes()
     qRegisterMetaType<QAudio::Error>();
     qRegisterMetaType<QAudio::State>();
     qRegisterMetaType<QAudio::Mode>();
+    qRegisterMetaType<QAudio::Role>();
 }
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
@@ -81,6 +82,26 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
 
     \value AudioOutput   audio output device
     \value AudioInput    audio input device
+*/
+
+/*!
+    \enum QAudio::Role
+
+    This enum describes the role of an audio stream.
+
+    \value UnknownRole              The role is unknown or undefined
+    \value MusicRole                Music
+    \value VideoRole                Soundtrack from a movie or a video
+    \value VoiceCommunicationRole   Voice communications, such as telephony
+    \value AlarmRole                Alarm
+    \value NotificationRole         Notification, such as an incoming e-mail or a chat request
+    \value RingtoneRole             Ringtone
+    \value AccessibilityRole        For accessibility, such as with a screen reader
+    \value SonificationRole         Sonification, such as with user interface sounds
+    \value GameRole                 Game audio
+
+    \since 5.6
+    \sa QMediaPlayer::setAudioRole()
 */
 
 #ifndef QT_NO_DEBUG_STREAM
@@ -140,6 +161,45 @@ QDebug operator<<(QDebug dbg, QAudio::Mode mode)
         case QAudio::AudioOutput:
             dbg << "AudioOutput";
             break;
+    }
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, QAudio::Role role)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    switch (role) {
+    case QAudio::UnknownRole:
+        dbg << "UnknownRole";
+        break;
+    case QAudio::AccessibilityRole:
+        dbg << "AccessibilityRole";
+        break;
+    case QAudio::AlarmRole:
+        dbg << "AlarmRole";
+        break;
+    case QAudio::GameRole:
+        dbg << "GameRole";
+        break;
+    case QAudio::MusicRole:
+        dbg << "MusicRole";
+        break;
+    case QAudio::NotificationRole:
+        dbg << "NotificationRole";
+        break;
+    case QAudio::RingtoneRole:
+        dbg << "RingtoneRole";
+        break;
+    case QAudio::SonificationRole:
+        dbg << "SonificationRole";
+        break;
+    case QAudio::VideoRole:
+        dbg << "VideoRole";
+        break;
+    case QAudio::VoiceCommunicationRole:
+        dbg << "VoiceCommunicationRole";
+        break;
     }
     return dbg;
 }

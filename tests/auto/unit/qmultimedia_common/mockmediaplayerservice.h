@@ -42,6 +42,7 @@
 #include "mockvideorenderercontrol.h"
 #include "mockvideoprobecontrol.h"
 #include "mockvideowindowcontrol.h"
+#include "mockaudiorolecontrol.h"
 
 class MockMediaPlayerService : public QMediaService
 {
@@ -51,6 +52,7 @@ public:
     MockMediaPlayerService():QMediaService(0)
     {
         mockControl = new MockMediaPlayerControl;
+        mockAudioRoleControl = new MockAudioRoleControl;
         mockStreamsControl = new MockStreamsControl;
         mockNetworkControl = new MockNetworkAccessControl;
         rendererControl = new MockVideoRendererControl;
@@ -58,11 +60,13 @@ public:
         mockVideoProbeControl = new MockVideoProbeControl;
         windowControl = new MockVideoWindowControl;
         windowRef = 0;
+        enableAudioRole = true;
     }
 
     ~MockMediaPlayerService()
     {
         delete mockControl;
+        delete mockAudioRoleControl;
         delete mockStreamsControl;
         delete mockNetworkControl;
         delete rendererControl;
@@ -87,6 +91,8 @@ public:
                 windowRef += 1;
                 return windowControl;
             }
+        } else if (enableAudioRole && qstrcmp(iid, QAudioRoleControl_iid) == 0) {
+            return mockAudioRoleControl;
         }
 
         if (qstrcmp(iid, QMediaNetworkAccessControl_iid) == 0)
@@ -125,6 +131,8 @@ public:
 
     void selectCurrentConfiguration(QNetworkConfiguration config) { mockNetworkControl->setCurrentConfiguration(config); }
 
+    void setHasAudioRole(bool enable) { enableAudioRole = enable; }
+
     void reset()
     {
         mockControl->_state = QMediaPlayer::StoppedState;
@@ -143,11 +151,15 @@ public:
         mockControl->_isValid = false;
         mockControl->_errorString = QString();
 
+        enableAudioRole = true;
+        mockAudioRoleControl->m_audioRole = QAudio::UnknownRole;
+
         mockNetworkControl->_current = QNetworkConfiguration();
         mockNetworkControl->_configurations = QList<QNetworkConfiguration>();
     }
 
     MockMediaPlayerControl *mockControl;
+    MockAudioRoleControl *mockAudioRoleControl;
     MockStreamsControl *mockStreamsControl;
     MockNetworkAccessControl *mockNetworkControl;
     MockVideoRendererControl *rendererControl;
@@ -155,6 +167,7 @@ public:
     MockVideoWindowControl *windowControl;
     int windowRef;
     int rendererRef;
+    bool enableAudioRole;
 };
 
 

@@ -31,53 +31,39 @@
 **
 ****************************************************************************/
 
+#ifndef QAUDIOROLECONTROL_H
+#define QAUDIOROLECONTROL_H
 
-#ifndef QAUDIO_H
-#define QAUDIO_H
-
-#include <QtMultimedia/qtmultimediadefs.h>
-#include <QtMultimedia/qmultimedia.h>
-
-#include <QtCore/qmetatype.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-//QTM_SYNC_HEADER_EXPORT QAudio
-
 // Class forward declaration required for QDoc bug
 class QString;
-namespace QAudio
+
+class Q_MULTIMEDIA_EXPORT QAudioRoleControl : public QMediaControl
 {
-    enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };
-    enum State { ActiveState, SuspendedState, StoppedState, IdleState };
-    enum Mode { AudioInput, AudioOutput };
+    Q_OBJECT
 
-    enum Role {
-        UnknownRole,
-        MusicRole,
-        VideoRole,
-        VoiceCommunicationRole,
-        AlarmRole,
-        NotificationRole,
-        RingtoneRole,
-        AccessibilityRole,
-        SonificationRole,
-        GameRole
-    };
-}
+public:
+    virtual ~QAudioRoleControl();
 
-#ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Error error);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::State state);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Mode mode);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Role role);
-#endif
+    virtual QAudio::Role audioRole() const = 0;
+    virtual void setAudioRole(QAudio::Role role) = 0;
+
+    virtual QList<QAudio::Role> supportedAudioRoles() const = 0;
+
+Q_SIGNALS:
+    void audioRoleChanged(QAudio::Role role);
+
+protected:
+    explicit QAudioRoleControl(QObject *parent = 0);
+};
+
+#define QAudioRoleControl_iid "org.qt-project.qt.audiorolecontrol/5.6"
+Q_MEDIA_DECLARE_CONTROL(QAudioRoleControl, QAudioRoleControl_iid)
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QAudio::Error)
-Q_DECLARE_METATYPE(QAudio::State)
-Q_DECLARE_METATYPE(QAudio::Mode)
-Q_DECLARE_METATYPE(QAudio::Role)
-
-#endif // QAUDIO_H
+#endif // QAUDIOROLECONTROL_H

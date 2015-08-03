@@ -13,3 +13,7 @@ SOURCES += \
 
 INCLUDEPATH += ../../../../src/imports/multimedia
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
+
+include (../qmultimedia_common/mock.pri)
+include (../qmultimedia_common/mockplayer.pri)
+

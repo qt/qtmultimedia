@@ -111,6 +111,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
     Returns the status of the current media.
 */
 
+
 /*!
     \fn QMediaPlayerControl::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 

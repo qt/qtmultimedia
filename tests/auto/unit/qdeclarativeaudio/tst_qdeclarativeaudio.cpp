@@ -38,6 +38,9 @@
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativemediametadata_p.h"
 
+#include "mockmediaserviceprovider.h"
+#include "mockmediaplayerservice.h"
+
 #include <QtMultimedia/qmediametadata.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
@@ -45,6 +48,8 @@
 #include <qmetadatareadercontrol.h>
 
 #include <QtGui/qguiapplication.h>
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlcomponent.h>
 
 class tst_QDeclarativeAudio : public QObject
 {
@@ -73,9 +78,11 @@ private slots:
     void metaData();
     void error();
     void loops();
+    void audioRole();
 };
 
 Q_DECLARE_METATYPE(QDeclarativeAudio::Error);
+Q_DECLARE_METATYPE(QDeclarativeAudio::AudioRole);
 
 class QtTestMediaPlayerControl : public QMediaPlayerControl
 {
@@ -285,6 +292,7 @@ public:
 void tst_QDeclarativeAudio::initTestCase()
 {
     qRegisterMetaType<QDeclarativeAudio::Error>();
+    qRegisterMetaType<QDeclarativeAudio::AudioRole>();
 }
 
 void tst_QDeclarativeAudio::nullPlayerControl()
@@ -1005,6 +1013,47 @@ void tst_QDeclarativeAudio::loops()
     QCOMPARE(stoppedSpy.count(), ++stoppedCount);
 
     qDebug() << "Testing version 5";
+}
+
+void tst_QDeclarativeAudio::audioRole()
+{
+    MockMediaPlayerService mockService;
+    MockMediaServiceProvider mockProvider(&mockService);
+    QMediaServiceProvider::setDefaultServiceProvider(&mockProvider);
+
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    component.setData("import QtQuick 2.0 \n import QtMultimedia 5.6 \n Audio { }", QUrl());
+
+    {
+        mockService.setHasAudioRole(false);
+        QDeclarativeAudio *audio = static_cast<QDeclarativeAudio*>(component.create());
+
+        QCOMPARE(audio->audioRole(), QDeclarativeAudio::UnknownRole);
+        QVERIFY(audio->supportedAudioRoles().isArray());
+        QVERIFY(audio->supportedAudioRoles().toVariant().toList().isEmpty());
+
+        QSignalSpy spy(audio, SIGNAL(audioRoleChanged()));
+        audio->setAudioRole(QDeclarativeAudio::MusicRole);
+        QCOMPARE(audio->audioRole(), QDeclarativeAudio::UnknownRole);
+        QCOMPARE(spy.count(), 0);
+    }
+
+    {
+        mockService.reset();
+        mockService.setHasAudioRole(true);
+        QDeclarativeAudio *audio = static_cast<QDeclarativeAudio*>(component.create());
+        QSignalSpy spy(audio, SIGNAL(audioRoleChanged()));
+
+        QCOMPARE(audio->audioRole(), QDeclarativeAudio::UnknownRole);
+        QVERIFY(audio->supportedAudioRoles().isArray());
+        QVERIFY(!audio->supportedAudioRoles().toVariant().toList().isEmpty());
+
+        audio->setAudioRole(QDeclarativeAudio::MusicRole);
+        QCOMPARE(audio->audioRole(), QDeclarativeAudio::MusicRole);
+        QCOMPARE(mockService.mockAudioRoleControl->audioRole(), QAudio::MusicRole);
+        QCOMPARE(spy.count(), 1);
+    }
 }
 
 QTEST_MAIN(tst_QDeclarativeAudio)

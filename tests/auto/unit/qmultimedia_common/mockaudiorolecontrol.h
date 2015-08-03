@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,53 +31,42 @@
 **
 ****************************************************************************/
 
+#ifndef MOCKAUDIOROLECONTROL_H
+#define MOCKAUDIOROLECONTROL_H
 
-#ifndef QAUDIO_H
-#define QAUDIO_H
+#include <qaudiorolecontrol.h>
 
-#include <QtMultimedia/qtmultimediadefs.h>
-#include <QtMultimedia/qmultimedia.h>
-
-#include <QtCore/qmetatype.h>
-
-QT_BEGIN_NAMESPACE
-
-//QTM_SYNC_HEADER_EXPORT QAudio
-
-// Class forward declaration required for QDoc bug
-class QString;
-namespace QAudio
+class MockAudioRoleControl : public QAudioRoleControl
 {
-    enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };
-    enum State { ActiveState, SuspendedState, StoppedState, IdleState };
-    enum Mode { AudioInput, AudioOutput };
+    friend class MockMediaPlayerService;
 
-    enum Role {
-        UnknownRole,
-        MusicRole,
-        VideoRole,
-        VoiceCommunicationRole,
-        AlarmRole,
-        NotificationRole,
-        RingtoneRole,
-        AccessibilityRole,
-        SonificationRole,
-        GameRole
-    };
-}
+public:
+    MockAudioRoleControl()
+        : QAudioRoleControl()
+        , m_audioRole(QAudio::UnknownRole)
+    {
+    }
 
-#ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Error error);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::State state);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Mode mode);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Role role);
-#endif
+    QAudio::Role audioRole() const
+    {
+        return m_audioRole;
+    }
 
-QT_END_NAMESPACE
+    void setAudioRole(QAudio::Role role)
+    {
+        if (role != m_audioRole)
+            emit audioRoleChanged(m_audioRole = role);
+    }
 
-Q_DECLARE_METATYPE(QAudio::Error)
-Q_DECLARE_METATYPE(QAudio::State)
-Q_DECLARE_METATYPE(QAudio::Mode)
-Q_DECLARE_METATYPE(QAudio::Role)
+    QList<QAudio::Role> supportedAudioRoles() const
+    {
+        return QList<QAudio::Role>() << QAudio::MusicRole
+                                     << QAudio::AlarmRole
+                                     << QAudio::NotificationRole;
+    }
 
-#endif // QAUDIO_H
+    QAudio::Role m_audioRole;
+};
+
+#endif // MOCKAUDIOROLECONTROL_H
+

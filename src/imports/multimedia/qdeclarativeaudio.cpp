@@ -46,6 +46,7 @@
 #include "qdeclarativemediametadata_p.h"
 
 #include <QTimerEvent>
+#include <QtQml/qqmlengine.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -112,6 +113,7 @@ QDeclarativeAudio::QDeclarativeAudio(QObject *parent)
     , m_position(0)
     , m_vol(1.0)
     , m_playbackRate(1.0)
+    , m_audioRole(UnknownRole)
     , m_playbackState(QMediaPlayer::StoppedState)
     , m_status(QMediaPlayer::NoMedia)
     , m_error(QMediaPlayer::ServiceMissingError)
@@ -150,6 +152,78 @@ QDeclarativeAudio::Availability QDeclarativeAudio::availability() const
     if (!m_player)
         return Unavailable;
     return Availability(m_player->availability());
+}
+
+/*!
+    \qmlproperty enumeration QtMultimedia::Audio::audioRole
+
+    This property holds the role of the audio stream. It can be set to specify the type of audio
+    being played, allowing the system to make appropriate decisions when it comes to volume,
+    routing or post-processing.
+
+    The audio role must be set before setting the source property.
+
+    Supported values can be retrieved with supportedAudioRoles().
+
+    The value can be one of:
+    \list
+    \li UnknownRole - the role is unknown or undefined.
+    \li MusicRole - music.
+    \li VideoRole - soundtrack from a movie or a video.
+    \li VoiceCommunicationRole - voice communications, such as telephony.
+    \li AlarmRole - alarm.
+    \li NotificationRole - notification, such as an incoming e-mail or a chat request.
+    \li RingtoneRole - ringtone.
+    \li AccessibilityRole - for accessibility, such as with a screen reader.
+    \li SonificationRole - sonification, such as with user interface sounds.
+    \li GameRole - game audio.
+    \endlist
+
+    \since 5.6
+*/
+QDeclarativeAudio::AudioRole QDeclarativeAudio::audioRole() const
+{
+    return !m_complete ? m_audioRole : AudioRole(m_player->audioRole());
+}
+
+void QDeclarativeAudio::setAudioRole(QDeclarativeAudio::AudioRole audioRole)
+{
+    if (this->audioRole() == audioRole)
+        return;
+
+    if (m_complete) {
+        m_player->setAudioRole(QAudio::Role(audioRole));
+    } else {
+        m_audioRole = audioRole;
+        emit audioRoleChanged();
+    }
+}
+
+/*!
+    \qmlmethod list<int> QtMultimedia::Audio::supportedAudioRoles()
+
+    Returns a list of supported audio roles.
+
+    If setting the audio role is not supported, an empty list is returned.
+
+    \since 5.6
+    \sa audioRole
+*/
+QJSValue QDeclarativeAudio::supportedAudioRoles() const
+{
+    QJSEngine *engine = qmlEngine(this);
+
+    if (!m_complete)
+        return engine->newArray();
+
+    QList<QAudio::Role> roles = m_player->supportedAudioRoles();
+    int size = roles.size();
+
+    QJSValue result = engine->newArray(size);
+    for (int i = 0; i < size; ++i)
+        result.setProperty(i, roles.at(i));
+
+    return result;
 }
 
 QUrl QDeclarativeAudio::source() const
@@ -734,6 +808,8 @@ void QDeclarativeAudio::classBegin()
             this, SIGNAL(hasAudioChanged()));
     connect(m_player, SIGNAL(videoAvailableChanged(bool)),
             this, SIGNAL(hasVideoChanged()));
+    connect(m_player, SIGNAL(audioRoleChanged(QAudio::Role)),
+            this, SIGNAL(audioRoleChanged()));
 
     m_error = m_player->availability() == QMultimedia::ServiceMissing ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
 
@@ -756,6 +832,8 @@ void QDeclarativeAudio::componentComplete()
         m_player->setMuted(m_muted);
     if (!qFuzzyCompare(m_playbackRate, qreal(1.0)))
         m_player->setPlaybackRate(m_playbackRate);
+    if (m_audioRole != UnknownRole)
+        m_player->setAudioRole(QAudio::Role(m_audioRole));
 
     if (!m_content.isNull() && (m_autoLoad || m_autoPlay)) {
         m_player->setMedia(m_content, 0);
@@ -1288,6 +1366,45 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
            be used.  It may be possible to try again at a later time.
     \endtable
  */
+
+/*!
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::audioRole
+
+    This property holds the role of the audio stream. It can be set to specify the type of audio
+    being played, allowing the system to make appropriate decisions when it comes to volume,
+    routing or post-processing.
+
+    The audio role must be set before setting the source property.
+
+    Supported values can be retrieved with supportedAudioRoles().
+
+    The value can be one of:
+    \list
+    \li UnknownRole - the role is unknown or undefined.
+    \li MusicRole - music.
+    \li VideoRole - soundtrack from a movie or a video.
+    \li VoiceCommunicationRole - voice communications, such as telephony.
+    \li AlarmRole - alarm.
+    \li NotificationRole - notification, such as an incoming e-mail or a chat request.
+    \li RingtoneRole - ringtone.
+    \li AccessibilityRole - for accessibility, such as with a screen reader.
+    \li SonificationRole - sonification, such as with user interface sounds.
+    \li GameRole - game audio.
+    \endlist
+
+    \since 5.6
+*/
+
+/*!
+    \qmlmethod list<int> QtMultimedia::MediaPlayer::supportedAudioRoles()
+
+    Returns a list of supported audio roles.
+
+    If setting the audio role is not supported, an empty list is returned.
+
+    \since 5.6
+    \sa audioRole
+*/
 
 /*!
     \qmlmethod QtMultimedia::MediaPlayer::play()
