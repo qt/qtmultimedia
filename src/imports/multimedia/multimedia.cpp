@@ -45,6 +45,7 @@
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativeradio_p.h"
 #include "qdeclarativeradiodata_p.h"
+#include "qdeclarativeplaylist_p.h"
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
 #include "qdeclarativecameraexposure_p.h"
@@ -113,6 +114,11 @@ public:
         // 5.5 types
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 1>(uri, 5, 5, "CameraImageProcessing", trUtf8("CameraImageProcessing is provided by Camera"));
         qmlRegisterRevision<QDeclarativeCamera, 2>(uri, 5, 5);
+
+        // 5.6 types
+        qmlRegisterRevision<QDeclarativeAudio, 1>(uri, 5, 6);
+        qmlRegisterType<QDeclarativePlaylist>(uri, 5, 6, "Playlist");
+        qmlRegisterType<QDeclarativePlaylistItem>(uri, 5, 6, "PlaylistItem");
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();

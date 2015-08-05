@@ -3,6 +3,7 @@ QT += qml quick network multimedia-private qtmultimediaquicktools-private
 HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediametadata_p.h \
+        qdeclarativeplaylist_p.h \
         qdeclarativeradio_p.h \
         qdeclarativeradiodata_p.h \
         qdeclarativecamera_p.h \
@@ -20,6 +21,7 @@ HEADERS += \
 SOURCES += \
         multimedia.cpp \
         qdeclarativeaudio.cpp \
+        qdeclarativeplaylist.cpp \
         qdeclarativeradio.cpp \
         qdeclarativeradiodata.cpp \
         qdeclarativecamera.cpp \

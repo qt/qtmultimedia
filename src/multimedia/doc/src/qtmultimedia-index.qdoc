@@ -79,6 +79,9 @@
      \li \l {QtMultimedia::Audio}{Audio}
      \li Add audio playback functionality to a scene
     \row
+     \li \l {QtMultimedia::Playlist}{Playlist}
+     \li For specifying a list of media to be played.
+    \row
      \li \l {QtMultimedia::Camera}{Camera}
      \li Access camera viewfinder frames
     \row
@@ -110,6 +113,9 @@
     \row
      \li QMediaPlayer
      \li Playback media from a source.
+    \row
+     \li QMediaPlaylist
+     \li List of media to be played.
     \row
      \li QRadioTuner
      \li Access radio device.

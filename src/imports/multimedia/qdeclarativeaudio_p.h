@@ -58,6 +58,7 @@ class QMediaPlayerControl;
 class QMediaService;
 class QMediaServiceProvider;
 class QMetaDataReaderControl;
+class QDeclarativePlaylist;
 class QDeclarativeMediaBaseAnimation;
 class QDeclarativeMediaMetaData;
 class QMediaAvailabilityControl;
@@ -66,6 +67,7 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QDeclarativePlaylist *playlist READ playlist WRITE setPlaylist NOTIFY playlistChanged REVISION 1)
     Q_PROPERTY(int loops READ loopCount WRITE setLoopCount NOTIFY loopCountChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
     Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
@@ -155,6 +157,9 @@ public:
     QUrl source() const;
     void setSource(const QUrl &url);
 
+    QDeclarativePlaylist *playlist() const;
+    void setPlaylist(QDeclarativePlaylist *playlist);
+
     int loopCount() const;
     void setLoopCount(int loopCount);
 
@@ -192,6 +197,8 @@ public Q_SLOTS:
     void seek(int position);
 
 Q_SIGNALS:
+    Q_REVISION(1) void playlistChanged();
+
     void sourceChanged();
     void autoLoadChanged();
     void loopCountChanged();
@@ -229,15 +236,18 @@ private Q_SLOTS:
     void _q_error(QMediaPlayer::Error);
     void _q_availabilityChanged(QMultimedia::AvailabilityStatus);
     void _q_statusChanged();
+    void _q_mediaChanged(const QMediaContent&);
 
 private:
     Q_DISABLE_COPY(QDeclarativeAudio)
 
+    QDeclarativePlaylist *m_playlist;
     bool m_autoPlay;
     bool m_autoLoad;
     bool m_loaded;
     bool m_muted;
     bool m_complete;
+    bool m_emitPlaylistChanged;
     int m_loopCount;
     int m_runningCount;
     int m_position;
