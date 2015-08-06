@@ -776,11 +776,11 @@ void QGstreamerCaptureSession::setState(QGstreamerCaptureSession::State newState
             if (!m_waitingForEos) {
                 m_waitingForEos = true;
                 //qDebug() << "Waiting for EOS";
+                // Unless gstreamer is in GST_STATE_PLAYING our EOS message will not be received.
+                gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
                 //with live sources it's necessary to send EOS even to pipeline
                 //before going to STOPPED state
                 gst_element_send_event(m_pipeline, gst_event_new_eos());
-                // Unless gstreamer is in GST_STATE_PLAYING our EOS message will not be received.
-                gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
 
                 return;
             } else {
