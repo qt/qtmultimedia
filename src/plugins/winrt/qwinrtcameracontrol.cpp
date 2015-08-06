@@ -39,6 +39,8 @@
 #include "qwinrtvideodeviceselectorcontrol.h"
 #include "qwinrtcameraimagecapturecontrol.h"
 #include "qwinrtimageencodercontrol.h"
+#include "qwinrtcamerafocuscontrol.h"
+#include "qwinrtcameralockscontrol.h"
 
 #include <QtCore/qfunctions_winrt.h>
 #include <QtCore/QCoreApplication>
@@ -51,6 +53,7 @@
 #include <windows.devices.enumeration.h>
 #include <windows.media.capture.h>
 #include <windows.storage.streams.h>
+#include <windows.media.devices.h>
 
 #ifdef Q_OS_WINPHONE
 #include <Windows.Security.ExchangeActiveSyncProvisioning.h>
@@ -76,9 +79,98 @@ QT_BEGIN_NAMESPACE
         RETURN_VOID_IF_FAILED(msg); \
     }
 
+#define FOCUS_RECT_SIZE         0.01f
+#define FOCUS_RECT_HALF_SIZE    0.005f // FOCUS_RECT_SIZE / 2
+#define FOCUS_RECT_BOUNDARY     1.0f
+#define FOCUS_RECT_POSITION_MIN 0.0f
+#define FOCUS_RECT_POSITION_MAX 0.995f // FOCUS_RECT_BOUNDARY - FOCUS_RECT_HALF_SIZE
+
 inline uint qHash (const QSize &key) {
     return key.width() * key.height();
 }
+
+template<typename T, size_t typeSize> struct CustomPropertyValue;
+
+inline static ComPtr<IPropertyValueStatics> propertyValueStatics()
+{
+    ComPtr<IPropertyValueStatics> valueStatics;
+    GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Foundation_PropertyValue).Get(), &valueStatics);
+    return valueStatics;
+}
+
+template <typename T>
+struct CustomPropertyValue<T, 4>
+{
+    static ComPtr<IReference<T>> create(T value)
+    {
+        ComPtr<IInspectable> propertyValueObject;
+        HRESULT hr = propertyValueStatics()->CreateUInt32(value, &propertyValueObject);
+        ComPtr<IReference<UINT32>> uint32Object;
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = propertyValueObject.As(&uint32Object);
+        Q_ASSERT_SUCCEEDED(hr);
+        return reinterpret_cast<IReference<T> *>(uint32Object.Get());
+    }
+};
+
+template <typename T>
+struct CustomPropertyValue<T, 8>
+{
+    static ComPtr<IReference<T>> create(T value)
+    {
+        ComPtr<IInspectable> propertyValueObject;
+        HRESULT hr = propertyValueStatics()->CreateUInt64(value, &propertyValueObject);
+        ComPtr<IReference<UINT64>> uint64Object;
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = propertyValueObject.As(&uint64Object);
+        Q_ASSERT_SUCCEEDED(hr);
+        return reinterpret_cast<IReference<T> *>(uint64Object.Get());
+    }
+};
+
+// Required camera point focus
+class WindowsRegionOfInterestIterableIterator : public RuntimeClass<IIterator<RegionOfInterest *>>
+{
+public:
+    explicit WindowsRegionOfInterestIterableIterator(const ComPtr<IRegionOfInterest> &item)
+    {
+        regionOfInterest = item;
+    }
+    HRESULT __stdcall get_Current(IRegionOfInterest **current)
+    {
+        *current = regionOfInterest.Detach();
+        return S_OK;
+    }
+    HRESULT __stdcall get_HasCurrent(boolean *hasCurrent)
+    {
+        *hasCurrent = true;
+        return S_OK;
+    }
+    HRESULT __stdcall MoveNext(boolean *hasCurrent)
+    {
+        *hasCurrent = false;
+        return S_OK;
+    }
+private:
+    ComPtr<IRegionOfInterest> regionOfInterest;
+};
+
+class WindowsRegionOfInterestIterable : public RuntimeClass<IIterable<RegionOfInterest *>>
+{
+public:
+    explicit WindowsRegionOfInterestIterable(const ComPtr<IRegionOfInterest> &item)
+    {
+        regionOfInterest = item;
+    }
+    HRESULT __stdcall First(IIterator<RegionOfInterest *> **first)
+    {
+        ComPtr<WindowsRegionOfInterestIterableIterator> iterator = Make<WindowsRegionOfInterestIterableIterator>(regionOfInterest);
+        *first = iterator.Detach();
+        return S_OK;
+    }
+private:
+    ComPtr<IRegionOfInterest> regionOfInterest;
+};
 
 class CriticalSectionLocker
 {
@@ -454,12 +546,16 @@ public:
 
     ComPtr<IMediaEncodingProfile> encodingProfile;
     ComPtr<MediaSink> mediaSink;
+    ComPtr<IFocusControl> focusControl;
+    ComPtr<IRegionsOfInterestControl> regionsOfInterestControl;
 
     QSize size;
     QPointer<QWinRTCameraVideoRendererControl> videoRenderer;
     QPointer<QWinRTVideoDeviceSelectorControl> videoDeviceSelector;
     QPointer<QWinRTCameraImageCaptureControl> imageCaptureControl;
     QPointer<QWinRTImageEncoderControl> imageEncoderControl;
+    QPointer<QWinRTCameraFocusControl> cameraFocusControl;
+    QPointer<QWinRTCameraLocksControl> cameraLocksControl;
 };
 
 QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
@@ -478,6 +574,8 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
     d->videoDeviceSelector = new QWinRTVideoDeviceSelectorControl(this);
     d->imageCaptureControl = new QWinRTCameraImageCaptureControl(this);
     d->imageEncoderControl = new QWinRTImageEncoderControl(this);
+    d->cameraFocusControl = new QWinRTCameraFocusControl(this);
+    d->cameraLocksControl = new QWinRTCameraLocksControl(this);
 }
 
 QWinRTCameraControl::~QWinRTCameraControl()
@@ -523,6 +621,10 @@ void QWinRTCameraControl::setState(QCamera::State state)
             setState(QCamera::UnloadedState); // Unload everything, as initialize() will need be called again
             return;
         }
+
+        QCameraFocus::FocusModes focusMode = d->cameraFocusControl->focusMode();
+        if (setFocus(focusMode) && focusMode == QCameraFocus::ContinuousFocus)
+            focus();
 
         d->state = QCamera::ActiveState;
         emit stateChanged(d->state);
@@ -668,6 +770,18 @@ QImageEncoderControl *QWinRTCameraControl::imageEncoderControl() const
     return d->imageEncoderControl;
 }
 
+QCameraFocusControl *QWinRTCameraControl::cameraFocusControl() const
+{
+    Q_D(const QWinRTCameraControl);
+    return d->cameraFocusControl;
+}
+
+QCameraLocksControl *QWinRTCameraControl::cameraLocksControl() const
+{
+    Q_D(const QWinRTCameraControl);
+    return d->cameraLocksControl;
+}
+
 IMediaCapture *QWinRTCameraControl::handle() const
 {
     Q_D(const QWinRTCameraControl);
@@ -749,6 +863,26 @@ HRESULT QWinRTCameraControl::initialize()
 
     ComPtr<IVideoDeviceController> videoDeviceController;
     hr = d->capture->get_VideoDeviceController(&videoDeviceController);
+    ComPtr<IAdvancedVideoCaptureDeviceController2> advancedVideoDeviceController;
+    hr = videoDeviceController.As(&advancedVideoDeviceController);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = advancedVideoDeviceController->get_FocusControl(&d->focusControl);
+    Q_ASSERT_SUCCEEDED(hr);
+
+    boolean isFocusSupported;
+    hr = d->focusControl->get_Supported(&isFocusSupported);
+    Q_ASSERT_SUCCEEDED(hr);
+    if (isFocusSupported) {
+        hr = advancedVideoDeviceController->get_RegionsOfInterestControl(&d->regionsOfInterestControl);
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = initializeFocus();
+        Q_ASSERT_SUCCEEDED(hr);
+    } else {
+        d->cameraFocusControl->setSupportedFocusMode(0);
+        d->cameraFocusControl->setSupportedFocusPointMode(QSet<QCameraFocus::FocusPointMode>());
+    }
+    d->cameraLocksControl->initialize();
+
     Q_ASSERT_SUCCEEDED(hr);
     ComPtr<IMediaDeviceController> deviceController;
     hr = videoDeviceController.As(&deviceController);
@@ -831,6 +965,278 @@ HRESULT QWinRTCameraControl::initialize()
     return hr;
 }
 
+#ifdef Q_OS_WINPHONE
+
+HRESULT QWinRTCameraControl::initializeFocus()
+{
+    Q_D(QWinRTCameraControl);
+    ComPtr<IFocusControl2> focusControl2;
+    HRESULT hr = d->focusControl.As(&focusControl2);
+    Q_ASSERT_SUCCEEDED(hr);
+    ComPtr<IVectorView<enum FocusMode>> focusModes;
+    hr = focusControl2->get_SupportedFocusModes(&focusModes);
+    if (FAILED(hr)) {
+        d->cameraFocusControl->setSupportedFocusMode(0);
+        d->cameraFocusControl->setSupportedFocusPointMode(QSet<QCameraFocus::FocusPointMode>());
+        qErrnoWarning(hr, "Failed to get camera supported focus mode list");
+        return hr;
+    }
+    quint32 size;
+    hr = focusModes->get_Size(&size);
+    Q_ASSERT_SUCCEEDED(hr);
+    QCameraFocus::FocusModes supportedModeFlag = 0;
+    for (quint32 i = 0; i < size; ++i) {
+        FocusMode mode;
+        hr = focusModes->GetAt(i, &mode);
+        Q_ASSERT_SUCCEEDED(hr);
+        switch (mode) {
+        case FocusMode_Continuous:
+            supportedModeFlag |= QCameraFocus::ContinuousFocus;
+            break;
+        case FocusMode_Single:
+            supportedModeFlag |= QCameraFocus::AutoFocus;
+            break;
+        default:
+            break;
+        }
+    }
+
+    ComPtr<IVectorView<enum AutoFocusRange>> focusRange;
+    hr = focusControl2->get_SupportedFocusRanges(&focusRange);
+    if (FAILED(hr)) {
+        qErrnoWarning(hr, "Failed to get camera supported focus range list");
+    } else {
+        hr = focusRange->get_Size(&size);
+        Q_ASSERT_SUCCEEDED(hr);
+        for (quint32 i = 0; i < size; ++i) {
+            AutoFocusRange range;
+            hr = focusRange->GetAt(i, &range);
+            Q_ASSERT_SUCCEEDED(hr);
+            switch (range) {
+            case AutoFocusRange_Macro:
+                supportedModeFlag |= QCameraFocus::MacroFocus;
+                break;
+            case AutoFocusRange_FullRange:
+                supportedModeFlag |= QCameraFocus::InfinityFocus;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    d->cameraFocusControl->setSupportedFocusMode(supportedModeFlag);
+    if (!d->regionsOfInterestControl) {
+        d->cameraFocusControl->setSupportedFocusPointMode(QSet<QCameraFocus::FocusPointMode>());
+        return S_OK;
+    }
+    boolean isRegionsfocusSupported = false;
+    hr = d->regionsOfInterestControl->get_AutoFocusSupported(&isRegionsfocusSupported);
+    Q_ASSERT_SUCCEEDED(hr);
+    UINT32 maxRegions;
+    hr = d->regionsOfInterestControl->get_MaxRegions(&maxRegions);
+    Q_ASSERT_SUCCEEDED(hr);
+    if (!isRegionsfocusSupported || maxRegions == 0) {
+        d->cameraFocusControl->setSupportedFocusPointMode(QSet<QCameraFocus::FocusPointMode>());
+        return S_OK;
+    }
+    QSet<QCameraFocus::FocusPointMode> supportedFocusPointModes;
+    supportedFocusPointModes << QCameraFocus::FocusPointCustom
+                             << QCameraFocus::FocusPointCenter
+                             << QCameraFocus::FocusPointAuto;
+    d->cameraFocusControl->setSupportedFocusPointMode(supportedFocusPointModes);
+    return S_OK;
+}
+
+bool QWinRTCameraControl::setFocus(QCameraFocus::FocusModes modes)
+{
+    Q_D(QWinRTCameraControl);
+    if (d->status == QCamera::UnloadedStatus)
+        return false;
+
+    ComPtr<IFocusSettings> focusSettings;
+    ComPtr<IInspectable> focusSettingsObject;
+    HRESULT hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_Devices_FocusSettings).Get(), &focusSettingsObject);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = focusSettingsObject.As(&focusSettings);
+    Q_ASSERT_SUCCEEDED(hr);
+    FocusMode mode;
+    if (modes.testFlag(QCameraFocus::ContinuousFocus)) {
+        mode = FocusMode_Continuous;
+    } else if (modes.testFlag(QCameraFocus::AutoFocus)
+               || modes.testFlag(QCameraFocus::MacroFocus)
+               || modes.testFlag(QCameraFocus::InfinityFocus)) {
+        // The Macro and infinity focus modes are only supported in auto focus mode on WinRT.
+        // QML camera focus doesn't support combined focus flags settings. In the case of macro
+        // and infinity Focus modes, the auto focus setting is applied.
+        mode = FocusMode_Single;
+    } else {
+        emit error(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera focus modes."));
+        return false;
+    }
+    hr = focusSettings->put_Mode(mode);
+    Q_ASSERT_SUCCEEDED(hr);
+    AutoFocusRange range = AutoFocusRange_Normal;
+    if (modes.testFlag(QCameraFocus::MacroFocus))
+        range = AutoFocusRange_Macro;
+    else if (modes.testFlag(QCameraFocus::InfinityFocus))
+        range = AutoFocusRange_FullRange;
+    hr = focusSettings->put_AutoFocusRange(range);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = focusSettings->put_WaitForFocus(true);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = focusSettings->put_DisableDriverFallback(false);
+    Q_ASSERT_SUCCEEDED(hr);
+
+    ComPtr<IFocusControl2> focusControl2;
+    hr = d->focusControl.As(&focusControl2);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = focusControl2->Configure(focusSettings.Get());
+    RETURN_FALSE_IF_FAILED("Failed to configure camera focus control");
+    return true;
+}
+
+bool QWinRTCameraControl::setFocusPoint(const QPointF &focusPoint)
+{
+    Q_D(QWinRTCameraControl);
+    if (focusPoint.x() < FOCUS_RECT_POSITION_MIN || focusPoint.x() > FOCUS_RECT_BOUNDARY) {
+        emit error(QCamera::CameraError, QStringLiteral("Focus horizontal location should be between 0.0 and 1.0."));
+        return false;
+    }
+
+    if (focusPoint.y() < FOCUS_RECT_POSITION_MIN || focusPoint.y() > FOCUS_RECT_BOUNDARY) {
+        emit error(QCamera::CameraError, QStringLiteral("Focus vertical location should be between 0.0 and 1.0."));
+        return false;
+    }
+
+    ABI::Windows::Foundation::Rect rect;
+    rect.X = qBound<float>(FOCUS_RECT_POSITION_MIN, focusPoint.x() - FOCUS_RECT_HALF_SIZE, FOCUS_RECT_POSITION_MAX);
+    rect.Y = qBound<float>(FOCUS_RECT_POSITION_MIN, focusPoint.y() - FOCUS_RECT_HALF_SIZE, FOCUS_RECT_POSITION_MAX);
+    rect.Width  = (rect.X + FOCUS_RECT_SIZE) < FOCUS_RECT_BOUNDARY ? FOCUS_RECT_SIZE : FOCUS_RECT_BOUNDARY - rect.X;
+    rect.Height = (rect.Y + FOCUS_RECT_SIZE) < FOCUS_RECT_BOUNDARY ? FOCUS_RECT_SIZE : FOCUS_RECT_BOUNDARY - rect.Y;
+
+    ComPtr<IRegionOfInterest> regionOfInterest;
+    ComPtr<IInspectable> regionOfInterestObject;
+    HRESULT hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_Devices_RegionOfInterest).Get(), &regionOfInterestObject);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = regionOfInterestObject.As(&regionOfInterest);
+    Q_ASSERT_SUCCEEDED(hr);
+    ComPtr<IRegionOfInterest2> regionOfInterest2;
+    hr = regionOfInterestObject.As(&regionOfInterest2);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = regionOfInterest2->put_BoundsNormalized(true);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = regionOfInterest2->put_Weight(1);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = regionOfInterest2->put_Type(RegionOfInterestType_Unknown);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = regionOfInterest->put_AutoFocusEnabled(true);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = regionOfInterest->put_Bounds(rect);
+    Q_ASSERT_SUCCEEDED(hr);
+
+    ComPtr<WindowsRegionOfInterestIterable> regionOfInterestIterable = Make<WindowsRegionOfInterestIterable>(regionOfInterest);
+    ComPtr<IAsyncAction> op;
+    hr = d->regionsOfInterestControl->SetRegionsAsync(regionOfInterestIterable.Get(), &op);
+    Q_ASSERT_SUCCEEDED(hr);
+    return QWinRTFunctions::await(op) == S_OK;
+}
+
+bool QWinRTCameraControl::focus()
+{
+    Q_D(QWinRTCameraControl);
+    if (!d->focusControl)
+        return false;
+    ComPtr<IAsyncAction> op;
+    HRESULT hr = d->focusControl->FocusAsync(&op);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = QWinRTFunctions::await(op);
+    Q_ASSERT_SUCCEEDED(hr);
+    return hr == S_OK;
+}
+
+void QWinRTCameraControl::clearFocusPoint()
+{
+    Q_D(QWinRTCameraControl);
+    if (!d->focusControl)
+        return;
+    ComPtr<IAsyncAction> op;
+    HRESULT hr = d->regionsOfInterestControl->ClearRegionsAsync(&op);
+    Q_ASSERT_SUCCEEDED(hr);
+    hr = QWinRTFunctions::await(op);
+    Q_ASSERT_SUCCEEDED(hr);
+}
+
+bool QWinRTCameraControl::lockFocus()
+{
+    Q_D(QWinRTCameraControl);
+    if (!d->focusControl)
+        return false;
+    ComPtr<IFocusControl2> focusControl2;
+    HRESULT hr = d->focusControl.As(&focusControl2);
+    Q_ASSERT_SUCCEEDED(hr);
+    ComPtr<IAsyncAction> op;
+    hr = focusControl2->LockAsync(&op);
+    Q_ASSERT_SUCCEEDED(hr);
+    return QWinRTFunctions::await(op) == S_OK;
+}
+
+bool QWinRTCameraControl::unlockFocus()
+{
+    Q_D(QWinRTCameraControl);
+    if (!d->focusControl)
+        return false;
+    ComPtr<IFocusControl2> focusControl2;
+    HRESULT hr = d->focusControl.As(&focusControl2);
+    Q_ASSERT_SUCCEEDED(hr);
+    ComPtr<IAsyncAction> op;
+    hr = focusControl2->UnlockAsync(&op);
+    Q_ASSERT_SUCCEEDED(hr);
+    return QWinRTFunctions::await(op) == S_OK;
+}
+
+#else // Q_OS_WINPHONE
+
+HRESULT QWinRTCameraControl::initializeFocus()
+{
+    Q_D(QWinRTCameraControl);
+    d->cameraFocusControl->setSupportedFocusMode(0);
+    d->cameraFocusControl->setSupportedFocusPointMode(QSet<QCameraFocus::FocusPointMode>());
+    return S_OK;
+}
+
+bool QWinRTCameraControl::setFocus(QCameraFocus::FocusModes modes)
+{
+    Q_UNUSED(modes)
+    return false;
+}
+
+bool QWinRTCameraControl::setFocusPoint(const QPointF &focusPoint)
+{
+    Q_UNUSED(focusPoint)
+    return false;
+}
+
+bool QWinRTCameraControl::focus()
+{
+    return false;
+}
+
+void QWinRTCameraControl::clearFocusPoint()
+{
+}
+
+bool QWinRTCameraControl::lockFocus()
+{
+    return false;
+}
+
+bool QWinRTCameraControl::unlockFocus()
+{
+    return false;
+}
+
+#endif // !Q_OS_WINPHONE
+
 HRESULT QWinRTCameraControl::onCaptureFailed(IMediaCapture *, IMediaCaptureFailedEventArgs *args)
 {
     HRESULT hr;
@@ -852,6 +1258,11 @@ HRESULT QWinRTCameraControl::onRecordLimitationExceeded(IMediaCapture *)
     emit error(QCamera::CameraError, QStringLiteral("Recording limit exceeded."));
     setState(QCamera::LoadedState);
     return S_OK;
+}
+
+void QWinRTCameraControl::emitError(int errorCode, const QString &errorString)
+{
+    emit error(errorCode, errorString);
 }
 
 QT_END_NAMESPACE

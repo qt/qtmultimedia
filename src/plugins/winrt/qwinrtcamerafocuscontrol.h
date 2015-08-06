@@ -34,51 +34,44 @@
 **
 ****************************************************************************/
 
-#ifndef QWINRTCAMERAIMAGECAPTURECONTROL_H
-#define QWINRTCAMERAIMAGECAPTURECONTROL_H
-
-#include <QtMultimedia/QCameraImageCaptureControl>
-#include <QtCore/qt_windows.h>
-
-namespace ABI {
-    namespace Windows {
-        namespace Foundation {
-            struct IAsyncAction;
-            enum class AsyncStatus;
-        }
-    }
-}
+#ifndef QWINRTCAMERAFOCUSCONTROL_H
+#define QWINRTCAMERAFOCUSCONTROL_H
+#include <qcamerafocuscontrol.h>
 
 QT_BEGIN_NAMESPACE
 
 class QWinRTCameraControl;
-
-class QWinRTCameraImageCaptureControlPrivate;
-class QWinRTCameraImageCaptureControl : public QCameraImageCaptureControl
+class QWinRTCameraFocusControlPrivate;
+class QWinRTCameraFocusControl : public QCameraFocusControl
 {
     Q_OBJECT
 public:
-    explicit QWinRTCameraImageCaptureControl(QWinRTCameraControl *parent);
+    explicit QWinRTCameraFocusControl(QWinRTCameraControl *parent);
 
-    bool isReadyForCapture() const Q_DECL_OVERRIDE;
+    QCameraFocus::FocusModes focusMode() const Q_DECL_OVERRIDE;
+    void setFocusMode(QCameraFocus::FocusModes mode) Q_DECL_OVERRIDE;
+    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const Q_DECL_OVERRIDE;
+    QCameraFocus::FocusPointMode focusPointMode() const Q_DECL_OVERRIDE;
+    void setFocusPointMode(QCameraFocus::FocusPointMode mode) Q_DECL_OVERRIDE;
+    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const Q_DECL_OVERRIDE;
+    QPointF customFocusPoint() const Q_DECL_OVERRIDE;
+    void setCustomFocusPoint(const QPointF &point) Q_DECL_OVERRIDE;
+    QCameraFocusZoneList focusZones() const Q_DECL_OVERRIDE;
 
-    QCameraImageCapture::DriveMode driveMode() const Q_DECL_OVERRIDE;
-    void setDriveMode(QCameraImageCapture::DriveMode mode) Q_DECL_OVERRIDE;
+    void setSupportedFocusMode(QCameraFocus::FocusModes flag);
+    void setSupportedFocusPointMode(const QSet<QCameraFocus::FocusPointMode> &supportedFocusPointModes);
 
-    int capture(const QString &fileName) Q_DECL_OVERRIDE;
-    void cancelCapture() Q_DECL_OVERRIDE;
-
-signals:
-    void captureQueueChanged(bool isEmpty);
+private slots:
+    void imageCaptureQueueChanged(bool isEmpty);
 
 private:
-    HRESULT onCaptureCompleted(ABI::Windows::Foundation::IAsyncAction *,
-                               ABI::Windows::Foundation::AsyncStatus);
+    Q_INVOKABLE void applyFocusCustomPoint(const QPointF &point);
+    Q_INVOKABLE void applyFocusMode(QCameraFocus::FocusModes modes);
+    Q_INVOKABLE void applyFocusPointMode(QCameraFocus::FocusPointMode mode);
+    bool changeFocusCustomPoint(const QPointF &point);
 
-    QScopedPointer<QWinRTCameraImageCaptureControlPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(QWinRTCameraImageCaptureControl)
+    QScopedPointer<QWinRTCameraFocusControlPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QWinRTCameraFocusControl)
 };
 
-QT_END_NAMESPACE
-
-#endif // QWINRTCAMERAIMAGECAPTURECONTROL_H
+#endif // QWINRTCAMERAFOCUSCONTROL_H

@@ -179,6 +179,7 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
         qErrnoWarning("Camera photo capture failed.");
         return -1;
     }
+    emit captureQueueChanged(false);
     d->requests.insert(request.op.Get(), request);
 
     hr = request.op->put_Completed(Callback<IAsyncActionCompletedHandler>(
@@ -199,6 +200,7 @@ void QWinRTCameraImageCaptureControl::cancelCapture()
         info->Cancel();
         it = d->requests.erase(it);
     }
+    emit captureQueueChanged(true);
 }
 
 HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncInfo, AsyncStatus status)
@@ -209,7 +211,7 @@ HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncI
         return S_OK;
 
     CaptureRequest request = d->requests.take(asyncInfo);
-
+    emit captureQueueChanged(d->requests.isEmpty());
     HRESULT hr;
     if (status == Error) {
         hr = asyncInfo->GetResults();

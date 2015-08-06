@@ -61,6 +61,8 @@ class QVideoRendererControl;
 class QVideoDeviceSelectorControl;
 class QCameraImageCaptureControl;
 class QImageEncoderControl;
+class QCameraFocusControl;
+class QCameraLocksControl;
 
 class QWinRTCameraControlPrivate;
 class QWinRTCameraControl : public QCameraControl
@@ -85,8 +87,18 @@ public:
     QVideoDeviceSelectorControl *videoDeviceSelector() const;
     QCameraImageCaptureControl *imageCaptureControl() const;
     QImageEncoderControl *imageEncoderControl() const;
+    QCameraFocusControl *cameraFocusControl() const;
+    QCameraLocksControl *cameraLocksControl() const;
 
     ABI::Windows::Media::Capture::IMediaCapture *handle() const;
+
+    bool setFocus(QCameraFocus::FocusModes mode);
+    bool setFocusPoint(const QPointF &point);
+    bool focus();
+    void clearFocusPoint();
+    void emitError(int errorCode, const QString &errorString);
+    bool lockFocus();
+    bool unlockFocus();
 
 private slots:
     void onBufferRequested();
@@ -94,6 +106,7 @@ private slots:
 private:
     HRESULT enumerateDevices();
     HRESULT initialize();
+    HRESULT initializeFocus();
     HRESULT onCaptureFailed(ABI::Windows::Media::Capture::IMediaCapture *,
                             ABI::Windows::Media::Capture::IMediaCaptureFailedEventArgs *);
     HRESULT onRecordLimitationExceeded(ABI::Windows::Media::Capture::IMediaCapture *);

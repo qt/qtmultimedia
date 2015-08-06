@@ -34,51 +34,33 @@
 **
 ****************************************************************************/
 
-#ifndef QWINRTCAMERAIMAGECAPTURECONTROL_H
-#define QWINRTCAMERAIMAGECAPTURECONTROL_H
+#ifndef QWINRTCAMERALOCKSCONTROL_H
+#define QWINRTCAMERALOCKSCONTROL_H
 
-#include <QtMultimedia/QCameraImageCaptureControl>
-#include <QtCore/qt_windows.h>
-
-namespace ABI {
-    namespace Windows {
-        namespace Foundation {
-            struct IAsyncAction;
-            enum class AsyncStatus;
-        }
-    }
-}
+#include <QCameraLocksControl>
 
 QT_BEGIN_NAMESPACE
 
 class QWinRTCameraControl;
-
-class QWinRTCameraImageCaptureControlPrivate;
-class QWinRTCameraImageCaptureControl : public QCameraImageCaptureControl
+class QWinRTCameraLocksControl : public QCameraLocksControl
 {
     Q_OBJECT
 public:
-    explicit QWinRTCameraImageCaptureControl(QWinRTCameraControl *parent);
+    explicit QWinRTCameraLocksControl(QObject *parent);
 
-    bool isReadyForCapture() const Q_DECL_OVERRIDE;
-
-    QCameraImageCapture::DriveMode driveMode() const Q_DECL_OVERRIDE;
-    void setDriveMode(QCameraImageCapture::DriveMode mode) Q_DECL_OVERRIDE;
-
-    int capture(const QString &fileName) Q_DECL_OVERRIDE;
-    void cancelCapture() Q_DECL_OVERRIDE;
-
-signals:
-    void captureQueueChanged(bool isEmpty);
+    QCamera::LockTypes supportedLocks() const Q_DECL_OVERRIDE;
+    QCamera::LockStatus lockStatus(QCamera::LockType lock) const Q_DECL_OVERRIDE;
+    void searchAndLock(QCamera::LockTypes locks) Q_DECL_OVERRIDE;
+    void unlock(QCamera::LockTypes locks) Q_DECL_OVERRIDE;
+    void initialize();
 
 private:
-    HRESULT onCaptureCompleted(ABI::Windows::Foundation::IAsyncAction *,
-                               ABI::Windows::Foundation::AsyncStatus);
-
-    QScopedPointer<QWinRTCameraImageCaptureControlPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(QWinRTCameraImageCaptureControl)
+    Q_INVOKABLE void searchAndLockFocus();
+    Q_INVOKABLE void unlockFocus();
+    QCamera::LockTypes m_supportedLocks;
+    QCamera::LockStatus m_focusLockStatus;
 };
 
 QT_END_NAMESPACE
 
-#endif // QWINRTCAMERAIMAGECAPTURECONTROL_H
+#endif // QWINRTCAMERALOCKSCONTROL_H
