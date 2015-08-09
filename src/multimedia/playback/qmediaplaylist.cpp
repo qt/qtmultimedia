@@ -106,7 +106,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlaylistMetaTypes)
 
 
 /*!
-  Create a new playlist object for with the given \a parent.
+  Create a new playlist object with the given \a parent.
 */
 
 QMediaPlaylist::QMediaPlaylist(QObject *parent)
@@ -302,7 +302,7 @@ int QMediaPlaylist::mediaCount() const
 }
 
 /*!
-  Returns true if the playlist contains no items; otherwise returns false.
+  Returns true if the playlist contains no items, otherwise returns false.
 
   \sa mediaCount()
   */
@@ -312,7 +312,7 @@ bool QMediaPlaylist::isEmpty() const
 }
 
 /*!
-  Returns true if the playlist can be modified; otherwise returns false.
+  Returns true if the playlist can be modified, otherwise returns false.
 
   \sa mediaCount()
   */
@@ -333,7 +333,7 @@ QMediaContent QMediaPlaylist::media(int index) const
 /*!
   Append the media \a content to the playlist.
 
-  Returns true if the operation is successful, otherwise return false.
+  Returns true if the operation is successful, otherwise returns false.
   */
 bool QMediaPlaylist::addMedia(const QMediaContent &content)
 {
@@ -343,7 +343,7 @@ bool QMediaPlaylist::addMedia(const QMediaContent &content)
 /*!
   Append multiple media content \a items to the playlist.
 
-  Returns true if the operation is successful, otherwise return false.
+  Returns true if the operation is successful, otherwise returns false.
   */
 bool QMediaPlaylist::addMedia(const QList<QMediaContent> &items)
 {
@@ -353,7 +353,7 @@ bool QMediaPlaylist::addMedia(const QList<QMediaContent> &items)
 /*!
   Insert the media \a content to the playlist at position \a pos.
 
-  Returns true if the operation is successful, otherwise false.
+  Returns true if the operation is successful, otherwise returns false.
 */
 
 bool QMediaPlaylist::insertMedia(int pos, const QMediaContent &content)
@@ -364,7 +364,7 @@ bool QMediaPlaylist::insertMedia(int pos, const QMediaContent &content)
 /*!
   Insert multiple media content \a items to the playlist at position \a pos.
 
-  Returns true if the operation is successful, otherwise false.
+  Returns true if the operation is successful, otherwise returns false.
 */
 
 bool QMediaPlaylist::insertMedia(int pos, const QList<QMediaContent> &items)
