@@ -234,6 +234,71 @@ void tst_QMediaPlaylist::insert()
     playlist.insertMedia(1, QList<QMediaContent>());
     QCOMPARE(aboutToBeInsertedSignalSpy.count(), 0);
     QCOMPARE(insertedSignalSpy.count(), 0);
+
+    playlist.clear();
+    playlist.addMedia(content1);
+    aboutToBeInsertedSignalSpy.clear();
+    insertedSignalSpy.clear();
+
+    playlist.insertMedia(-10, content2);
+    QCOMPARE(playlist.media(0), content2);
+    QCOMPARE(playlist.media(1), content1);
+    QCOMPARE(aboutToBeInsertedSignalSpy.count(), 1);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[1].toInt(), 0);
+    QCOMPARE(insertedSignalSpy.count(), 1);
+    QCOMPARE(insertedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(insertedSignalSpy.first()[1].toInt(), 0);
+
+    aboutToBeInsertedSignalSpy.clear();
+    insertedSignalSpy.clear();
+
+    playlist.insertMedia(10, content3);
+    QCOMPARE(playlist.media(0), content2);
+    QCOMPARE(playlist.media(1), content1);
+    QCOMPARE(playlist.media(2), content3);
+    QCOMPARE(aboutToBeInsertedSignalSpy.count(), 1);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[0].toInt(), 2);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[1].toInt(), 2);
+    QCOMPARE(insertedSignalSpy.count(), 1);
+    QCOMPARE(insertedSignalSpy.first()[0].toInt(), 2);
+    QCOMPARE(insertedSignalSpy.first()[1].toInt(), 2);
+
+    aboutToBeInsertedSignalSpy.clear();
+    insertedSignalSpy.clear();
+
+    playlist.insertMedia(-10, QList<QMediaContent>() << content4 << content5);
+    QCOMPARE(playlist.media(0), content4);
+    QCOMPARE(playlist.media(1), content5);
+    QCOMPARE(playlist.media(2), content2);
+    QCOMPARE(playlist.media(3), content1);
+    QCOMPARE(playlist.media(4), content3);
+    QCOMPARE(aboutToBeInsertedSignalSpy.count(), 1);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[1].toInt(), 1);
+    QCOMPARE(insertedSignalSpy.count(), 1);
+    QCOMPARE(insertedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(insertedSignalSpy.first()[1].toInt(), 1);
+
+    aboutToBeInsertedSignalSpy.clear();
+    insertedSignalSpy.clear();
+
+    QMediaContent content6(QUrl(QLatin1String("file:///6")));
+    QMediaContent content7(QUrl(QLatin1String("file:///7")));
+    playlist.insertMedia(10, QList<QMediaContent>() << content6 << content7);
+    QCOMPARE(playlist.media(0), content4);
+    QCOMPARE(playlist.media(1), content5);
+    QCOMPARE(playlist.media(2), content2);
+    QCOMPARE(playlist.media(3), content1);
+    QCOMPARE(playlist.media(4), content3);
+    QCOMPARE(playlist.media(5), content6);
+    QCOMPARE(playlist.media(6), content7);
+    QCOMPARE(aboutToBeInsertedSignalSpy.count(), 1);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[0].toInt(), 5);
+    QCOMPARE(aboutToBeInsertedSignalSpy.first()[1].toInt(), 6);
+    QCOMPARE(insertedSignalSpy.count(), 1);
+    QCOMPARE(insertedSignalSpy.first()[0].toInt(), 5);
+    QCOMPARE(insertedSignalSpy.first()[1].toInt(), 6);
 }
 
 
@@ -329,6 +394,58 @@ void tst_QMediaPlaylist::removeMedia()
     playlist.removeMedia(0,1);
     QCOMPARE(playlist.mediaCount(), 1);
     QCOMPARE(playlist.media(0), content3);
+
+    QCOMPARE(playlist.removeMedia(-1), false);
+    QCOMPARE(playlist.removeMedia(1), false);
+
+    playlist.addMedia(content1);
+    aboutToBeRemovedSignalSpy.clear();
+    removedSignalSpy.clear();
+
+    playlist.removeMedia(-10, 10);
+    QCOMPARE(aboutToBeRemovedSignalSpy.count(), 1);
+    QCOMPARE(aboutToBeRemovedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(aboutToBeRemovedSignalSpy.first()[1].toInt(), 1);
+    QCOMPARE(removedSignalSpy.count(), 1);
+    QCOMPARE(removedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(removedSignalSpy.first()[1].toInt(), 1);
+
+    playlist.addMedia(content1);
+    playlist.addMedia(content2);
+    playlist.addMedia(content3);
+    aboutToBeRemovedSignalSpy.clear();
+    removedSignalSpy.clear();
+
+    QCOMPARE(playlist.removeMedia(10, -10), false);
+    QCOMPARE(aboutToBeRemovedSignalSpy.count(), 0);
+    QCOMPARE(removedSignalSpy.count(), 0);
+    QCOMPARE(playlist.removeMedia(-10, -5), false);
+    QCOMPARE(aboutToBeRemovedSignalSpy.count(), 0);
+    QCOMPARE(removedSignalSpy.count(), 0);
+    QCOMPARE(playlist.removeMedia(5, 10), false);
+    QCOMPARE(aboutToBeRemovedSignalSpy.count(), 0);
+    QCOMPARE(removedSignalSpy.count(), 0);
+
+    playlist.removeMedia(1, 10);
+    QCOMPARE(aboutToBeRemovedSignalSpy.count(), 1);
+    QCOMPARE(aboutToBeRemovedSignalSpy.first()[0].toInt(), 1);
+    QCOMPARE(aboutToBeRemovedSignalSpy.first()[1].toInt(), 2);
+    QCOMPARE(removedSignalSpy.count(), 1);
+    QCOMPARE(removedSignalSpy.first()[0].toInt(), 1);
+    QCOMPARE(removedSignalSpy.first()[1].toInt(), 2);
+
+    playlist.addMedia(content2);
+    playlist.addMedia(content3);
+    aboutToBeRemovedSignalSpy.clear();
+    removedSignalSpy.clear();
+
+    playlist.removeMedia(-10, 1);
+    QCOMPARE(aboutToBeRemovedSignalSpy.count(), 1);
+    QCOMPARE(aboutToBeRemovedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(aboutToBeRemovedSignalSpy.first()[1].toInt(), 1);
+    QCOMPARE(removedSignalSpy.count(), 1);
+    QCOMPARE(removedSignalSpy.first()[0].toInt(), 0);
+    QCOMPARE(removedSignalSpy.first()[1].toInt(), 1);
 }
 
 void tst_QMediaPlaylist::saveAndLoad()

@@ -358,7 +358,8 @@ bool QMediaPlaylist::addMedia(const QList<QMediaContent> &items)
 
 bool QMediaPlaylist::insertMedia(int pos, const QMediaContent &content)
 {
-    return d_func()->playlist()->insertMedia(pos, content);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    return playlist->insertMedia(qBound(0, pos, playlist->mediaCount()), content);
 }
 
 /*!
@@ -369,7 +370,8 @@ bool QMediaPlaylist::insertMedia(int pos, const QMediaContent &content)
 
 bool QMediaPlaylist::insertMedia(int pos, const QList<QMediaContent> &items)
 {
-    return d_func()->playlist()->insertMedia(pos, items);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    return playlist->insertMedia(qBound(0, pos, playlist->mediaCount()), items);
 }
 
 /*!
@@ -379,8 +381,11 @@ bool QMediaPlaylist::insertMedia(int pos, const QList<QMediaContent> &items)
   */
 bool QMediaPlaylist::removeMedia(int pos)
 {
-    Q_D(QMediaPlaylist);
-    return d->playlist()->removeMedia(pos);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    if (pos >= 0 && pos < playlist->mediaCount())
+        return playlist->removeMedia(pos);
+    else
+        return false;
 }
 
 /*!
@@ -390,8 +395,13 @@ bool QMediaPlaylist::removeMedia(int pos)
   */
 bool QMediaPlaylist::removeMedia(int start, int end)
 {
-    Q_D(QMediaPlaylist);
-    return d->playlist()->removeMedia(start, end);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    start = qMax(0, start);
+    end = qMin(end, playlist->mediaCount() - 1);
+    if (start <= end)
+        return playlist->removeMedia(start, end);
+    else
+        return false;
 }
 
 /*!
