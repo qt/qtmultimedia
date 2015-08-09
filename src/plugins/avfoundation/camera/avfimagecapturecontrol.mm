@@ -46,13 +46,13 @@ QT_USE_NAMESPACE
 
 AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObject *parent)
    : QCameraImageCaptureControl(parent)
-   , m_service(service)
    , m_session(service->session())
    , m_cameraControl(service->cameraControl())
    , m_ready(false)
    , m_lastCaptureId(0)
    , m_videoConnection(nil)
 {
+    Q_UNUSED(service);
     m_stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
 
     NSDictionary *outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys:

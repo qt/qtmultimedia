@@ -40,8 +40,9 @@ QT_USE_NAMESPACE
 //metadata support is not implemented yet
 
 AVFCameraMetaDataControl::AVFCameraMetaDataControl(AVFCameraService *service, QObject *parent)
-    :QMetaDataWriterControl(parent), m_service(service)
+    :QMetaDataWriterControl(parent)
 {
+    Q_UNUSED(service);
 }
 
 AVFCameraMetaDataControl::~AVFCameraMetaDataControl()

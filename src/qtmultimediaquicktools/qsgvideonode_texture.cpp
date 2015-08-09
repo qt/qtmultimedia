@@ -138,6 +138,10 @@ public:
 
     virtual int compare(const QSGMaterial *other) const {
         const QSGVideoMaterial_Texture *m = static_cast<const QSGVideoMaterial_Texture *>(other);
+
+        if (!m_textureId)
+            return 1;
+
         int diff = m_textureId - m->m_textureId;
         if (diff)
             return diff;

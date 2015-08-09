@@ -61,6 +61,7 @@ public:
         , pixelAspectRatio(1, 1)
         , ycbcrColorSpace(QVideoSurfaceFormat::YCbCr_Undefined)
         , frameRate(0.0)
+        , mirrored(false)
     {
     }
 
@@ -76,6 +77,7 @@ public:
         , ycbcrColorSpace(QVideoSurfaceFormat::YCbCr_Undefined)
         , viewport(QPoint(0, 0), size)
         , frameRate(0.0)
+        , mirrored(false)
     {
     }
 
@@ -89,6 +91,7 @@ public:
         , ycbcrColorSpace(other.ycbcrColorSpace)
         , viewport(other.viewport)
         , frameRate(other.frameRate)
+        , mirrored(other.mirrored)
         , propertyNames(other.propertyNames)
         , propertyValues(other.propertyValues)
     {
@@ -104,6 +107,7 @@ public:
             && viewport == other.viewport
             && frameRatesEqual(frameRate, other.frameRate)
             && ycbcrColorSpace == other.ycbcrColorSpace
+            && mirrored == other.mirrored
             && propertyNames.count() == other.propertyNames.count()) {
             for (int i = 0; i < propertyNames.count(); ++i) {
                 int j = other.propertyNames.indexOf(propertyNames.at(i));
@@ -130,6 +134,7 @@ public:
     QVideoSurfaceFormat::YCbCrColorSpace ycbcrColorSpace;
     QRect viewport;
     qreal frameRate;
+    bool mirrored;
     QList<QByteArray> propertyNames;
     QList<QVariant> propertyValues;
 };
@@ -468,7 +473,8 @@ QList<QByteArray> QVideoSurfaceFormat::propertyNames() const
             << "frameRate"
             << "pixelAspectRatio"
             << "sizeHint"
-            << "yCbCrColorSpace")
+            << "yCbCrColorSpace"
+            << "mirrored")
             + d->propertyNames;
 }
 
@@ -499,6 +505,8 @@ QVariant QVideoSurfaceFormat::property(const char *name) const
         return sizeHint();
     } else if (qstrcmp(name, "yCbCrColorSpace") == 0) {
         return qVariantFromValue(d->ycbcrColorSpace);
+    } else if (qstrcmp(name, "mirrored") == 0) {
+        return d->mirrored;
     } else {
         int id = 0;
         for (; id < d->propertyNames.count() && d->propertyNames.at(id) != name; ++id) {}
@@ -547,6 +555,9 @@ void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
     } else if (qstrcmp(name, "yCbCrColorSpace") == 0) {
           if (value.canConvert<YCbCrColorSpace>())
               d->ycbcrColorSpace = qvariant_cast<YCbCrColorSpace>(value);
+    } else if (qstrcmp(name, "mirrored") == 0) {
+        if (value.canConvert<bool>())
+            d->mirrored = qvariant_cast<bool>(value);
     } else {
         int id = 0;
         for (; id < d->propertyNames.count() && d->propertyNames.at(id) != name; ++id) {}

@@ -55,7 +55,6 @@ public:
     QStringList availableMetaData() const;
 
 private:
-    AVFCameraService *m_service;
     QMap<QString, QVariant> m_tags;
 };
 
