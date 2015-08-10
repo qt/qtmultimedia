@@ -276,10 +276,13 @@ QAbstractVideoFilter::~QAbstractVideoFilter()
 }
 
 /*!
-  \return \c true if the filter is active.
+    \property QAbstractVideoFilter::active
+    \brief the active status of the filter.
 
-  By default filters are active. When set to \c false, the filter will be
-  ignored by the VideoOutput type.
+    This is true if the filter is active, false otherwise.
+
+    By default filters are active. When set to \c false, the filter will be
+    ignored by the VideoOutput type.
  */
 bool QAbstractVideoFilter::isActive() const
 {
@@ -287,9 +290,6 @@ bool QAbstractVideoFilter::isActive() const
     return d->active;
 }
 
-/*!
-  \internal
- */
 void QAbstractVideoFilter::setActive(bool v)
 {
     Q_D(QAbstractVideoFilter);

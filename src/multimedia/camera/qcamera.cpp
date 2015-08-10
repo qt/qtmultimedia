@@ -1043,6 +1043,19 @@ void QCamera::unlock()
 */
 
 /*!
+    \fn QCamera::FrameRateRange::FrameRateRange()
+
+    Constructs a null frame rate range, with both minimumFrameRate and maximumFrameRate
+    equal to \c 0.0.
+*/
+
+/*!
+    \fn QCamera::FrameRateRange::FrameRateRange(qreal minimum, qreal maximum)
+
+    Constructs a frame rate range with the given \a minimum and \a maximum frame rates.
+*/
+
+/*!
     \variable QCamera::FrameRateRange::minimumFrameRate
     The minimum frame rate supported by the range, in frames per second.
 */

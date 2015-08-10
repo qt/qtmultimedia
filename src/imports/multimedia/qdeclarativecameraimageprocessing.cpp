@@ -218,7 +218,7 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 }
 
 /*!
-    \qmlproperty QtMultimedia::CameraImageProcessing::colorFilter
+    \qmlproperty enumeration QtMultimedia::CameraImageProcessing::colorFilter
 
     This property holds which color filter if any will be applied to image data captured by the camera.
 

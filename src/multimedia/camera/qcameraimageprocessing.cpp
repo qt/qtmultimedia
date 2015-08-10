@@ -319,7 +319,7 @@ void QCameraImageProcessing::setDenoisingLevel(qreal level)
 */
 
 /*!
-    \enum QCameraImageProcessing::Filter
+    \enum QCameraImageProcessing::ColorFilter
 
     \value ColorFilterNone               No filter is applied to images.
     \value ColorFilterGrayscale          A grayscale filter.
