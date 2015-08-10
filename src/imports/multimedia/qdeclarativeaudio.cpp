@@ -774,19 +774,18 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia::Audio::metaData.title
+    \qmlproperty variant QtMultimedia::Audio::mediaObject
 
-    This property holds the title of the media.
+    This property holds the native media object.
 
-    \sa {QMediaMetaData}
-*/
+    It can be used to get a pointer to a QMediaPlayer object in order to intergrate with C++ code.
 
-/*!
-    \qmlproperty variant QtMultimedia::Audio::metaData.subTitle
+    \code
+        QObject *qmlAudio; // The QML Audio object
+        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlAudio->property("mediaObject"));
+    \endcode
 
-    This property holds the sub-title of the media.
-
-    \sa {QMediaMetaData}
+    \note This property is not accessible from QML.
 */
 
 /*!
@@ -1470,19 +1469,18 @@ void QDeclarativeAudio::_q_statusChanged()
 */
 
 /*!
-    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.title
+    \qmlproperty variant QtMultimedia::MediaPlayer::mediaObject
 
-    This property holds the title of the media.
+    This property holds the native media object.
 
-    \sa {QMediaMetaData}
-*/
+    It can be used to get a pointer to a QMediaPlayer object in order to intergrate with C++ code.
 
-/*!
-    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.subTitle
+    \code
+        QObject *qmlMediaPlayer; // The QML MediaPlayer object
+        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlMediaPlayer->property("mediaObject"));
+    \endcode
 
-    This property holds the sub-title of the media.
-
-    \sa {QMediaMetaData}
+    \note This property is not accessible from QML.
 */
 
 /*!
