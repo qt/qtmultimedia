@@ -51,9 +51,6 @@ It is not instantiable; to use it, call the members of the global \c QtMultimedi
 For example:
 
 \qml
-import QtQuick 2.0
-import QtMultimedia 5.4
-
 Camera {
     deviceId: QtMultimedia.defaultCamera.deviceId
 }
@@ -121,9 +118,6 @@ Camera {
     the active camera by selecting one of the items in the list.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.4
-
     Item {
 
         Camera {

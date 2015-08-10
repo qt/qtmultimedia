@@ -57,12 +57,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
 
-    This type is part of the \b{QtMultimedia 5.0} module.
-
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Text {
         text: "Click Me!";
         font.pointSize: 24;
@@ -1148,12 +1143,7 @@ void QDeclarativeAudio::_q_statusChanged()
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
 
-    MediaPlayer is part of the \b{QtMultimedia 5.0} module.
-
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Text {
         text: "Click Me!";
         font.pointSize: 24;
@@ -1175,9 +1165,6 @@ void QDeclarativeAudio::_q_statusChanged()
     or you can use it in conjunction with a \l VideoOutput for rendering video.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Item {
         MediaPlayer {
             id: mediaplayer

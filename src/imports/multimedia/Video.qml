@@ -48,9 +48,6 @@ import QtMultimedia 5.0
     types.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Video {
         id: video
         width : 800

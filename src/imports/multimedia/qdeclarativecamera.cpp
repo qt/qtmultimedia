@@ -84,10 +84,6 @@ void QDeclarativeCamera::_q_availabilityChanged(QMultimedia::AvailabilityStatus 
     viewfinder you can use \l VideoOutput with the Camera set as the source.
 
     \qml
-
-    import QtQuick 2.0
-    import QtMultimedia 5.4
-
     Item {
         width: 640
         height: 360
