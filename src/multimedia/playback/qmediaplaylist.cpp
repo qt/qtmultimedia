@@ -214,8 +214,10 @@ bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
         connect(d->control, SIGNAL(currentMediaChanged(QMediaContent)),
                 this, SIGNAL(currentMediaChanged(QMediaContent)));
 
-        if (oldSize)
+        if (oldSize) {
+            emit mediaAboutToBeRemoved(0, oldSize-1);
             emit mediaRemoved(0, oldSize-1);
+        }
 
         if (playlist->mediaCount()) {
             emit mediaAboutToBeInserted(0,playlist->mediaCount()-1);
