@@ -871,116 +871,42 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 */
 
 /*!
+    \qmlpropertygroup QtMultimedia::Camera::metaData
     \qmlproperty variant QtMultimedia::Camera::metaData.cameraManufacturer
-
-    This property holds the name of the manufacturer of the camera.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.cameraModel
-
-    This property holds the name of the model of the camera.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.event
-
-    This property holds the event during which the photo or video is to be captured.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.subject
-
-    This property holds the name of the subject of the capture or recording.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.orientation
-
-    This property holds the clockwise rotation of the camera at time of capture.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.dateTimeOriginal
-
-    This property holds the initial time at which the photo or video is
-    captured.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsLatitude
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsLongitude
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsAltitude
-
-    These properties hold the geographic position in decimal degrees of the
-    camera at time of capture.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsTimestamp
-
-    This property holds the timestamp of the GPS position data.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsTrack
-
-    This property holds direction of movement of the camera at the time of
-    capture. It is measured in degrees clockwise from north.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsSpeed
-
-    This property holds the velocity in kilometers per hour of the camera at
-    time of capture.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsImgDirection
-
-    This property holds direction the camera is facing at the time of capture.
-    It is measured in degrees clockwise from north.
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Camera::metaData.gpsProcessingMethod
 
-    This property holds the name of the method for determining the GPS position
-    data.
+    These properties hold the meta data for the camera captures.
+
+    \list
+    \li \c metaData.cameraManufacturer holds the name of the manufacturer of the camera.
+    \li \c metaData.cameraModel holds the name of the model of the camera.
+    \li \c metaData.event holds the event during which the photo or video is to be captured.
+    \li \c metaData.subject holds the name of the subject of the capture or recording.
+    \li \c metaData.orientation holds the clockwise rotation of the camera at time of capture.
+    \li \c metaData.dateTimeOriginal holds the initial time at which the photo or video is captured.
+    \li \c metaData.gpsLatitude holds the latitude of the camera in decimal degrees at time of capture.
+    \li \c metaData.gpsLongitude holds the longitude of the camera in decimal degrees at time of capture.
+    \li \c metaData.gpsAltitude holds the altitude of the camera in meters at time of capture.
+    \li \c metaData.gpsTimestamp holds the timestamp of the GPS position data.
+    \li \c metaData.gpsTrack holds direction of movement of the camera at the time of
+           capture. It is measured in degrees clockwise from north.
+    \li \c metaData.gpsSpeed holds the velocity in kilometers per hour of the camera at time of capture.
+    \li \c metaData.gpsImgDirection holds direction the camera is facing at the time of capture.
+           It is measured in degrees clockwise from north.
+    \li \c metaData.gpsProcessingMethod holds the name of the method for determining the GPS position.
+    \endlist
 
     \sa {QMediaMetaData}
     \since 5.4
