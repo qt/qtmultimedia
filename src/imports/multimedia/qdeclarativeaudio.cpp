@@ -773,7 +773,7 @@ void QDeclarativeAudio::_q_statusChanged()
 
     This property holds the native media object.
 
-    It can be used to get a pointer to a QMediaPlayer object in order to intergrate with C++ code.
+    It can be used to get a pointer to a QMediaPlayer object in order to integrate with C++ code.
 
     \code
         QObject *qmlAudio; // The QML Audio object
@@ -1216,7 +1216,7 @@ void QDeclarativeAudio::_q_statusChanged()
 
     This property holds the native media object.
 
-    It can be used to get a pointer to a QMediaPlayer object in order to intergrate with C++ code.
+    It can be used to get a pointer to a QMediaPlayer object in order to integrate with C++ code.
 
     \code
         QObject *qmlMediaPlayer; // The QML MediaPlayer object

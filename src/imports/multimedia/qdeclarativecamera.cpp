@@ -776,7 +776,7 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 
     This property holds the native media object for the camera.
 
-    It can be used to get a pointer to a QCamera object in order to intergrate with C++ code.
+    It can be used to get a pointer to a QCamera object in order to integrate with C++ code.
 
     \code
         QObject *qmlCamera; // The QML Camera object
