@@ -359,19 +359,14 @@ public:
                 }
                 break;
             case QMediaServiceProviderHint::Device: {
+                    plugin = plugins[0];
                     foreach (QMediaServiceProviderPlugin *currentPlugin, plugins) {
                         QMediaServiceSupportedDevicesInterface *iface =
                                 qobject_cast<QMediaServiceSupportedDevicesInterface*>(currentPlugin);
 
-                        if (!iface) {
-                            // the plugin may support the device,
-                            // but this choice still can be overridden
+                        if (iface && iface->devices(type).contains(hint.device())) {
                             plugin = currentPlugin;
-                        } else {
-                            if (iface->devices(type).contains(hint.device())) {
-                                plugin = currentPlugin;
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
