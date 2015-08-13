@@ -646,7 +646,8 @@ bool DSCameraSession::configurePreviewFormat()
         if ((m_viewfinderSettings.resolution().isEmpty() || m_viewfinderSettings.resolution() == s.resolution())
                 && (qFuzzyIsNull(m_viewfinderSettings.minimumFrameRate()) || qFuzzyCompare((float)m_viewfinderSettings.minimumFrameRate(), (float)s.minimumFrameRate()))
                 && (qFuzzyIsNull(m_viewfinderSettings.maximumFrameRate()) || qFuzzyCompare((float)m_viewfinderSettings.maximumFrameRate(), (float)s.maximumFrameRate()))
-                && (m_viewfinderSettings.pixelFormat() == QVideoFrame::Format_Invalid || m_viewfinderSettings.pixelFormat() == s.pixelFormat())) {
+                && (m_viewfinderSettings.pixelFormat() == QVideoFrame::Format_Invalid || m_viewfinderSettings.pixelFormat() == s.pixelFormat())
+                && (m_viewfinderSettings.pixelAspectRatio().isEmpty() || m_viewfinderSettings.pixelAspectRatio() == s.pixelAspectRatio())) {
             resolvedViewfinderSettings = s;
             break;
         }
@@ -899,6 +900,7 @@ void DSCameraSession::updateSourceCapabilities()
                     settings.setMinimumFrameRate(frameRateRange.minimumFrameRate);
                     settings.setMaximumFrameRate(frameRateRange.maximumFrameRate);
                     settings.setPixelFormat(pixelFormat);
+                    settings.setPixelAspectRatio(1, 1);
                     m_supportedViewfinderSettings.append(settings);
 
                     AM_MEDIA_TYPE format;

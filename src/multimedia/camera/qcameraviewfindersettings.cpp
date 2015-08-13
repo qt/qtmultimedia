@@ -50,8 +50,7 @@ public:
         isNull(true),
         minimumFrameRate(0.0),
         maximumFrameRate(0.0),
-        pixelFormat(QVideoFrame::Format_Invalid),
-        pixelAspectRatio(1, 1)
+        pixelFormat(QVideoFrame::Format_Invalid)
     {
     }
 

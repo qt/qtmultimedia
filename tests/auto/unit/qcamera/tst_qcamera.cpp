@@ -90,6 +90,14 @@ private slots:
     void testImageSettings();
     void testViewfinderSettings();
     void testViewfinderSettingsChange();
+    void testSupportedViewfinderSettings_data();
+    void testSupportedViewfinderSettings();
+    void testSupportedViewfinderResolutions_data();
+    void testSupportedViewfinderResolutions();
+    void testSupportedViewfinderFrameRateRanges_data();
+    void testSupportedViewfinderFrameRateRanges();
+    void testSupportedViewfinderPixelFormats_data();
+    void testSupportedViewfinderPixelFormats();
     void testCameraLock();
     void testCameraLockCancel();
     void testCameraEncodingProperyChange();
@@ -163,8 +171,11 @@ private:
     MockMediaServiceProvider *provider;
 };
 
+Q_DECLARE_METATYPE(QCamera::FrameRateRange)
+
 void tst_QCamera::initTestCase()
 {
+    qRegisterMetaType<QCamera::FrameRateRange>("FrameRateRange");
 }
 
 void tst_QCamera::init()
@@ -906,7 +917,7 @@ void tst_QCamera::testViewfinderSettings()
     QVERIFY(!settings.isNull());
 
     settings = QCameraViewfinderSettings();
-    QCOMPARE(settings.pixelAspectRatio(), QSize(1, 1));
+    QCOMPARE(settings.pixelAspectRatio(), QSize());
     settings.setPixelAspectRatio(QSize(2, 1));
     QCOMPARE(settings.pixelAspectRatio(), QSize(2, 1));
     settings.setPixelAspectRatio(3, 2);
@@ -1042,6 +1053,404 @@ void tst_QCamera::testViewfinderSettingsChange()
 
     QCOMPARE(stateChangedSignal.count(), 0);
     QCOMPARE(statusChangedSignal.count(), 1);
+}
+
+class ViewfinderSettingsBuilder
+{
+public:
+    ViewfinderSettingsBuilder &setResolution(int width, int height) {
+        m_settings.setResolution(width, height);
+        return *this;
+    }
+
+    ViewfinderSettingsBuilder &setMinimumFrameRate(qreal r) {
+        m_settings.setMinimumFrameRate(r);
+        return *this;
+    }
+
+    ViewfinderSettingsBuilder &setMaximumFrameRate(qreal r) {
+        m_settings.setMaximumFrameRate(r);
+        return *this;
+    }
+
+    ViewfinderSettingsBuilder &setPixelFormat(QVideoFrame::PixelFormat f) {
+        m_settings.setPixelFormat(f);
+        return *this;
+    }
+
+    ViewfinderSettingsBuilder &setPixelAspectRatio(int h, int v) {
+        m_settings.setPixelAspectRatio(h, v);
+        return *this;
+    }
+
+    QCameraViewfinderSettings build() {
+        QCameraViewfinderSettings s = m_settings;
+        m_settings = QCameraViewfinderSettings();
+        return s;
+    }
+
+private:
+    QCameraViewfinderSettings m_settings;
+};
+
+void tst_QCamera::testSupportedViewfinderSettings_data()
+{
+    // see mockcameraviewfindersettingscontrol.h for expected values
+
+    ViewfinderSettingsBuilder builder;
+
+    QTest::addColumn<QCameraViewfinderSettings>("settings");
+    QTest::addColumn< QList<int> >("expectedSupportedSettings");
+
+    QTest::newRow("all supported settings") << QCameraViewfinderSettings()
+                                            << (QList<int>() << 0 << 1 << 2 << 3 << 4 << 5);
+
+    QTest::newRow("invalid resolution") << builder.setResolution(452472, 44453).build()
+                                        << QList<int>();
+
+    QTest::newRow("resolution (1)") << builder.setResolution(640, 480).build()
+                                    << (QList<int>() << 0);
+
+    QTest::newRow("resolution (2)") << builder.setResolution(1280, 720).build()
+                                    << (QList<int>() << 1 << 3 << 4);
+
+    QTest::newRow("invalid minimum frame rate") << builder.setMinimumFrameRate(2).build()
+                                                << QList<int>();
+
+    QTest::newRow("minimum frame rate (1)") << builder.setMinimumFrameRate(5).build()
+                                            << (QList<int>() << 2);
+
+    QTest::newRow("minimum frame rate (2)") << builder.setMinimumFrameRate(10).build()
+                                            << (QList<int>() << 1 << 3);
+
+    QTest::newRow("minimum frame rate (3)") << builder.setMinimumFrameRate(30).build()
+                                            << (QList<int>() << 0 << 4 << 5);
+
+    QTest::newRow("invalid maximum frame rate") << builder.setMaximumFrameRate(2).build()
+                                                << QList<int>();
+
+    QTest::newRow("maximum frame rate (1)") << builder.setMaximumFrameRate(10).build()
+                                            << (QList<int>() << 1 << 2 << 3);
+
+    QTest::newRow("maximum frame rate (2)") << builder.setMaximumFrameRate(30).build()
+                                            << (QList<int>() << 0 << 4 << 5);
+
+    QTest::newRow("invalid pixel format") << builder.setPixelFormat(QVideoFrame::Format_CameraRaw).build()
+                                          << QList<int>();
+
+    QTest::newRow("pixel format (1)") << builder.setPixelFormat(QVideoFrame::Format_BGR32).build()
+                                      << (QList<int>() << 2);
+
+    QTest::newRow("pixel format (2)") << builder.setPixelFormat(QVideoFrame::Format_YV12).build()
+                                      << (QList<int>() << 3 << 4);
+
+    QTest::newRow("pixel format (3)") << builder.setPixelFormat(QVideoFrame::Format_NV12).build()
+                                      << (QList<int>() << 0 << 1 << 5);
+
+    QTest::newRow("invalid pixel aspect ratio") << builder.setPixelAspectRatio(5, 3).build()
+                                                << QList<int>();
+
+    QTest::newRow("pixel aspect ratio (1)") << builder.setPixelAspectRatio(2, 1).build()
+                                            << (QList<int>() << 2);
+
+    QTest::newRow("pixel aspect ratio (2)") << builder.setPixelAspectRatio(1, 1).build()
+                                            << (QList<int>() << 0 << 1 << 3 << 4 << 5);
+
+    QTest::newRow("invalid multi settings") << builder.setResolution(640, 480)
+                                                      .setMinimumFrameRate(10)
+                                                      .setMaximumFrameRate(10)
+                                                      .build()
+                                            << QList<int>();
+
+    QTest::newRow("multi settings (1)") << builder.setResolution(640, 480)
+                                                  .setMinimumFrameRate(30)
+                                                  .setMaximumFrameRate(30)
+                                                  .build()
+                                        << (QList<int>() << 0);
+
+    QTest::newRow("multi settings (2)") << builder.setResolution(1280, 720)
+                                                  .setMinimumFrameRate(10)
+                                                  .setMaximumFrameRate(10)
+                                                  .build()
+                                        << (QList<int>() << 1 << 3);
+
+    QTest::newRow("multi settings (3)") << builder.setPixelFormat(QVideoFrame::Format_NV12)
+                                                  .setMinimumFrameRate(30)
+                                                  .build()
+                                        << (QList<int>() << 0 << 5);
+
+    QTest::newRow("multi settings (4)") << builder.setPixelAspectRatio(1, 1)
+                                                  .setMaximumFrameRate(10)
+                                                  .build()
+                                        << (QList<int>() << 1 << 3);
+}
+
+void tst_QCamera::testSupportedViewfinderSettings()
+{
+    QFETCH(QCameraViewfinderSettings, settings);
+    QFETCH(QList<int>, expectedSupportedSettings);
+
+    QList<QCameraViewfinderSettings> actualSupportedSettings = QCamera().supportedViewfinderSettings(settings);
+    QCOMPARE(actualSupportedSettings.size(), expectedSupportedSettings.size());
+    for (int i = 0; i < expectedSupportedSettings.size(); ++i) {
+        QCameraViewfinderSettings expectedSettings = mockCameraService->mockViewfinderSettingsControl->supportedSettings.at(expectedSupportedSettings.at(i));
+        QCOMPARE(actualSupportedSettings.at(i), expectedSettings);
+    }
+}
+
+void tst_QCamera::testSupportedViewfinderResolutions_data()
+{
+    // see mockcameraviewfindersettingscontrol.h for expected values
+
+    typedef QList<QSize> SizeList;
+    ViewfinderSettingsBuilder builder;
+
+    QTest::addColumn<QCameraViewfinderSettings>("settings");
+    QTest::addColumn<SizeList>("expectedResolutions");
+
+    QTest::newRow("empty settings") << QCameraViewfinderSettings()
+                                    << (SizeList() << QSize(320, 240)
+                                                   << QSize(640, 480)
+                                                   << QSize(1280, 720)
+                                                   << QSize(1920, 1080));
+
+    QTest::newRow("invalid minimum frame rate") << builder.setMinimumFrameRate(2).build()
+                                                << SizeList();
+
+    QTest::newRow("minimum frame rate (1)") << builder.setMinimumFrameRate(5).build()
+                                            << (SizeList() << QSize(1920, 1080));
+
+    QTest::newRow("minimum frame rate (2)") << builder.setMinimumFrameRate(10).build()
+                                            << (SizeList() << QSize(1280, 720));
+
+    QTest::newRow("minimum frame rate (3)") << builder.setMinimumFrameRate(30).build()
+                                            << (SizeList() << QSize(320, 240)
+                                                           << QSize(640, 480)
+                                                           << QSize(1280, 720));
+
+    QTest::newRow("invalid maximum frame rate") << builder.setMaximumFrameRate(2).build()
+                                                << SizeList();
+
+    QTest::newRow("maximum frame rate") << builder.setMaximumFrameRate(10).build()
+                                        << (SizeList() << QSize(1280, 720)
+                                                       << QSize(1920, 1080));
+
+    QTest::newRow("invalid pixel format") << builder.setPixelFormat(QVideoFrame::Format_CameraRaw).build()
+                                          << SizeList();
+
+    QTest::newRow("pixel format (1)") << builder.setPixelFormat(QVideoFrame::Format_BGR32).build()
+                                      << (SizeList() << QSize(1920, 1080));
+
+    QTest::newRow("pixel format (2)") << builder.setPixelFormat(QVideoFrame::Format_YV12).build()
+                                      << (SizeList() << QSize(1280, 720));
+
+    QTest::newRow("pixel format (3)") << builder.setPixelFormat(QVideoFrame::Format_NV12).build()
+                                      << (SizeList() << QSize(320, 240)
+                                                     << QSize(640, 480)
+                                                     << QSize(1280, 720));
+
+    QTest::newRow("invalid pixel aspect ratio") << builder.setPixelAspectRatio(7, 2).build()
+                                                << SizeList();
+
+    QTest::newRow("pixel aspect ratio (1") << builder.setPixelAspectRatio(2, 1).build()
+                                           << (SizeList() << QSize(1920, 1080));
+
+    QTest::newRow("pixel aspect ratio (2") << builder.setPixelAspectRatio(1, 1).build()
+                                           << (SizeList() << QSize(320, 240)
+                                                          << QSize(640, 480)
+                                                          << QSize(1280, 720));
+
+    QTest::newRow("invalid multi settings (1)") << builder.setMinimumFrameRate(2)
+                                                          .setMaximumFrameRate(3)
+                                                          .build()
+                                                << SizeList();
+
+    QTest::newRow("invalid multi settings (2)") << builder.setMinimumFrameRate(5)
+                                                          .setMaximumFrameRate(11)
+                                                          .build()
+                                                << SizeList();
+
+    QTest::newRow("multi settings (1)") << builder.setMinimumFrameRate(10)
+                                                  .setMaximumFrameRate(10)
+                                                  .build()
+                                        << (SizeList() << QSize(1280, 720));
+
+    QTest::newRow("multi settings (2)") << builder.setMinimumFrameRate(30)
+                                                  .setMaximumFrameRate(30)
+                                                  .build()
+                                        << (SizeList() << QSize(320, 240)
+                                                       << QSize(640, 480)
+                                                       << QSize(1280, 720));
+
+    QTest::newRow("multi settings (3)") << builder.setPixelFormat(QVideoFrame::Format_NV12)
+                                                  .setMinimumFrameRate(30)
+                                                  .build()
+                                        << (SizeList() << QSize(320, 240)
+                                                       << QSize(640, 480));
+
+    QTest::newRow("multi settings (4)") << builder.setPixelAspectRatio(1, 1)
+                                                  .setMaximumFrameRate(10)
+                                                  .build()
+                                        << (SizeList() << QSize(1280, 720));
+}
+
+void tst_QCamera::testSupportedViewfinderResolutions()
+{
+    QFETCH(QCameraViewfinderSettings, settings);
+    QFETCH(QList<QSize>, expectedResolutions);
+
+    QList<QSize> actualResolutions = QCamera().supportedViewfinderResolutions(settings);
+    QCOMPARE(actualResolutions.size(), expectedResolutions.size());
+    for (int i = 0; i < actualResolutions.size(); ++i)
+        QCOMPARE(actualResolutions.at(i), expectedResolutions.at(i));
+}
+
+void tst_QCamera::testSupportedViewfinderFrameRateRanges_data()
+{
+    // see mockcameraviewfindersettingscontrol.h for expected values
+
+    typedef QList<QCamera::FrameRateRange> RangeList;
+    ViewfinderSettingsBuilder builder;
+
+    QTest::addColumn<QCameraViewfinderSettings>("settings");
+    QTest::addColumn<RangeList>("expectedFrameRateRanges");
+
+    QTest::newRow("empty settings") << QCameraViewfinderSettings()
+                                    << (RangeList() << QCamera::FrameRateRange(5, 10)
+                                                    << QCamera::FrameRateRange(10, 10)
+                                                    << QCamera::FrameRateRange(30, 30));
+
+    QTest::newRow("invalid resolution") << builder.setResolution(452472, 444534).build()
+                                        << RangeList();
+
+    QTest::newRow("resolution (1)") << builder.setResolution(320, 240).build()
+                                    << (RangeList() << QCamera::FrameRateRange(30, 30));
+
+    QTest::newRow("resolution (2)") << builder.setResolution(1280, 720).build()
+                                    << (RangeList() << QCamera::FrameRateRange(10, 10)
+                                                    << QCamera::FrameRateRange(30, 30));
+
+    QTest::newRow("resolution (3)") << builder.setResolution(1920, 1080).build()
+                                    << (RangeList() << QCamera::FrameRateRange(5, 10));
+
+    QTest::newRow("invalid minimum frame rate") << builder.setMinimumFrameRate(2).build()
+                                                << RangeList();
+
+    QTest::newRow("minimum frame rate (1)") << builder.setMinimumFrameRate(5).build()
+                                            << (RangeList() << QCamera::FrameRateRange(5, 10));
+
+    QTest::newRow("minimum frame rate (2)") << builder.setMinimumFrameRate(10).build()
+                                            << (RangeList() << QCamera::FrameRateRange(10, 10));
+
+    QTest::newRow("invalid maximum frame rate") << builder.setMaximumFrameRate(2).build()
+                                                << RangeList();
+
+    QTest::newRow("maximum frame rate (1)") << builder.setMaximumFrameRate(10).build()
+                                            << (RangeList() << QCamera::FrameRateRange(5, 10)
+                                                            << QCamera::FrameRateRange(10, 10));
+
+    QTest::newRow("maximum frame rate (2)") << builder.setMaximumFrameRate(30).build()
+                                            << (RangeList() << QCamera::FrameRateRange(30, 30));
+
+    QTest::newRow("invalid pixel format") << builder.setPixelFormat(QVideoFrame::Format_IMC1).build()
+                                          << RangeList();
+
+    QTest::newRow("pixel format (1)") << builder.setPixelFormat(QVideoFrame::Format_BGR32).build()
+                                            << (RangeList() << QCamera::FrameRateRange(5, 10));
+
+    QTest::newRow("pixel format (2)") << builder.setPixelFormat(QVideoFrame::Format_NV12).build()
+                                      << (RangeList() << QCamera::FrameRateRange(10, 10)
+                                                      << QCamera::FrameRateRange(30, 30));
+
+    QTest::newRow("invalid pixel aspect ratio") << builder.setPixelAspectRatio(2, 3).build()
+                                                << RangeList();
+
+    QTest::newRow("pixel aspect ratio (1)") << builder.setPixelAspectRatio(2, 1).build()
+                                            << (RangeList() << QCamera::FrameRateRange(5, 10));
+
+    QTest::newRow("pixel aspect ratio (2)") << builder.setPixelAspectRatio(1, 1).build()
+                                            << (RangeList() << QCamera::FrameRateRange(10, 10)
+                                                            << QCamera::FrameRateRange(30, 30));
+}
+
+void tst_QCamera::testSupportedViewfinderFrameRateRanges()
+{
+    QFETCH(QCameraViewfinderSettings, settings);
+    QFETCH(QList<QCamera::FrameRateRange>, expectedFrameRateRanges);
+
+    QList<QCamera::FrameRateRange> actualFrameRateRanges = QCamera().supportedViewfinderFrameRateRanges(settings);
+    QCOMPARE(actualFrameRateRanges.size(), expectedFrameRateRanges.size());
+    for (int i = 0; i < actualFrameRateRanges.size(); ++i)
+        QCOMPARE(actualFrameRateRanges.at(i), expectedFrameRateRanges.at(i));
+}
+
+void tst_QCamera::testSupportedViewfinderPixelFormats_data()
+{
+    // see mockcameraviewfindersettingscontrol.h for expected values
+
+    typedef QList<QVideoFrame::PixelFormat> FormatList;
+    ViewfinderSettingsBuilder builder;
+
+    QTest::addColumn<QCameraViewfinderSettings>("settings");
+    QTest::addColumn<FormatList>("expectedPixelFormats");
+
+    QTest::newRow("empty settings") << QCameraViewfinderSettings()
+                                    << (FormatList() << QVideoFrame::Format_NV12
+                                                     << QVideoFrame::Format_BGR32
+                                                     << QVideoFrame::Format_YV12);
+
+    QTest::newRow("invalid resolution") << builder.setResolution(452472, 444534).build()
+                                        << FormatList();
+
+    QTest::newRow("resolution (1)") << builder.setResolution(640, 480).build()
+                                    << (FormatList() << QVideoFrame::Format_NV12);
+
+    QTest::newRow("resolution (2)") << builder.setResolution(1280, 720).build()
+                                    << (FormatList() << QVideoFrame::Format_NV12
+                                                     << QVideoFrame::Format_YV12);
+
+    QTest::newRow("invalid minimum frame rate") << builder.setMinimumFrameRate(2).build()
+                                                << FormatList();
+
+    QTest::newRow("minimum frame rate (1)") << builder.setMinimumFrameRate(5).build()
+                                            << (FormatList() << QVideoFrame::Format_BGR32);
+
+    QTest::newRow("minimum frame rate (2)") << builder.setMinimumFrameRate(10).build()
+                                            << (FormatList() << QVideoFrame::Format_NV12
+                                                             << QVideoFrame::Format_YV12);
+
+    QTest::newRow("invalid maximum frame rate") << builder.setMaximumFrameRate(2).build()
+                                                << FormatList();
+
+    QTest::newRow("maximum frame rate (1)") << builder.setMaximumFrameRate(10).build()
+                                            << (FormatList() << QVideoFrame::Format_NV12
+                                                             << QVideoFrame::Format_BGR32
+                                                             << QVideoFrame::Format_YV12);
+
+    QTest::newRow("maximum frame rate (2)") << builder.setMinimumFrameRate(30).build()
+                                            << (FormatList() << QVideoFrame::Format_NV12
+                                                             << QVideoFrame::Format_YV12);
+
+    QTest::newRow("invalid pixel aspect ratio") << builder.setPixelAspectRatio(2, 3).build()
+                                                << FormatList();
+
+    QTest::newRow("pixel aspect ratio (1)") << builder.setPixelAspectRatio(2, 1).build()
+                                            << (FormatList() << QVideoFrame::Format_BGR32);
+
+    QTest::newRow("pixel aspect ratio (2)") << builder.setPixelAspectRatio(1, 1).build()
+                                            << (FormatList() << QVideoFrame::Format_NV12
+                                                             << QVideoFrame::Format_YV12);
+}
+
+void tst_QCamera::testSupportedViewfinderPixelFormats()
+{
+    QFETCH(QCameraViewfinderSettings, settings);
+    QFETCH(QList<QVideoFrame::PixelFormat>, expectedPixelFormats);
+
+    QList<QVideoFrame::PixelFormat> actualPixelFormats = QCamera().supportedViewfinderPixelFormats(settings);
+    QCOMPARE(actualPixelFormats.size(), expectedPixelFormats.size());
+    for (int i = 0; i < actualPixelFormats.size(); ++i)
+        QCOMPARE(actualPixelFormats.at(i), expectedPixelFormats.at(i));
 }
 
 void tst_QCamera::testCameraLock()

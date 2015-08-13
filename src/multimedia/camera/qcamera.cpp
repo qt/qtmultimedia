@@ -72,6 +72,9 @@ static bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
 
 static bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2)
 {
+    if (s1.maximumFrameRate == s2.maximumFrameRate)
+        return s1.minimumFrameRate < s2.minimumFrameRate;
+
     return s1.maximumFrameRate < s2.maximumFrameRate;
 }
 
@@ -658,7 +661,7 @@ QList<QCameraViewfinderSettings> QCamera::supportedViewfinderSettings(const QCam
                 && (qFuzzyIsNull(settings.minimumFrameRate()) || qFuzzyCompare((float)settings.minimumFrameRate(), (float)s.minimumFrameRate()))
                 && (qFuzzyIsNull(settings.maximumFrameRate()) || qFuzzyCompare((float)settings.maximumFrameRate(), (float)s.maximumFrameRate()))
                 && (settings.pixelFormat() == QVideoFrame::Format_Invalid || settings.pixelFormat() == s.pixelFormat())
-                && (settings.pixelAspectRatio() == QSize(1, 1) || settings.pixelAspectRatio() == s.pixelAspectRatio())) {
+                && (settings.pixelAspectRatio().isEmpty() || settings.pixelAspectRatio() == s.pixelAspectRatio())) {
             results.append(s);
         }
     }
