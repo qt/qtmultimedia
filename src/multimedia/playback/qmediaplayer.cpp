@@ -615,6 +615,8 @@ QMediaPlayer::~QMediaPlayer()
 {
     Q_D(QMediaPlayer);
 
+    d->disconnectPlaylist();
+
     if (d->service) {
         if (d->control)
             d->service->releaseControl(d->control);
