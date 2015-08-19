@@ -290,7 +290,8 @@ void QPlaylistFileParserPrivate::processLine(int startIndex, int length)
 
         switch (m_type) {
         case QPlaylistFileParser::UNKNOWN:
-            emit q->error(QPlaylistFileParser::FormatError, QString(QObject::tr("%1 playlist type is unknown")).arg(m_root.toString()));
+            emit q->error(QPlaylistFileParser::FormatError,
+                          QPlaylistFileParser::tr("%1 playlist type is unknown").arg(m_root.toString()));
             q->stop();
             return;
         case QPlaylistFileParser::M3U:
