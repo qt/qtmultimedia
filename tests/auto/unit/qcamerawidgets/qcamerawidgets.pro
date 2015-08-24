@@ -9,4 +9,3 @@ include (../qmultimedia_common/mockcamera.pri)
 SOURCES += tst_qcamerawidgets.cpp
 
 QT+=widgets
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

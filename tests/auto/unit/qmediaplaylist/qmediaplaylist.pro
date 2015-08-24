@@ -15,4 +15,3 @@ SOURCES += \
 INCLUDEPATH += ../../../../src/plugins/m3u
 
 TESTDATA += testdata/*
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

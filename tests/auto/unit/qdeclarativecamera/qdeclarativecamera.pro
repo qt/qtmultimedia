@@ -9,7 +9,6 @@ include (../qmultimedia_common/mockcamera.pri)
 SOURCES += \
         tst_qdeclarativecamera.cpp
 
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 
 OTHER_FILES += \
     tst_qdeclarativecamera.qml

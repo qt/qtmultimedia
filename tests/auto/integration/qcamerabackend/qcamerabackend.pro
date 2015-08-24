@@ -7,5 +7,4 @@ QT += multimedia-private widgets testlib
 CONFIG += testcase
 
 SOURCES += tst_qcamerabackend.cpp
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 

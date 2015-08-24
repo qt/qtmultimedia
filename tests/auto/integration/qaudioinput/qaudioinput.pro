@@ -7,4 +7,3 @@ CONFIG += testcase insignificant_test
 
 HEADERS += wavheader.h
 SOURCES += wavheader.cpp tst_qaudioinput.cpp
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

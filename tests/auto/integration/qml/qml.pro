@@ -8,4 +8,3 @@ importFiles.files = soundeffect
 
 importFiles.path = .
 DEPLOYMENT += importFiles
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

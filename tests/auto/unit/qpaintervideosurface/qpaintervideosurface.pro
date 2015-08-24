@@ -11,7 +11,6 @@ qtHaveModule(opengl) {
 SOURCES += tst_qpaintervideosurface.cpp
 
 QT+=widgets
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 
 linux-*:system(". /etc/lsb-release && [ $DISTRIB_CODENAME = precise ]"):DEFINES+=UBUNTU_PRECISE_PANGOLIN
 

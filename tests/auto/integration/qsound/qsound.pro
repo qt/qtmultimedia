@@ -10,4 +10,3 @@ SOURCES += tst_qsound.cpp
 TESTDATA += test.wav
 
 win32: CONFIG += insignificant_test
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

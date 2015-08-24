@@ -7,4 +7,3 @@ CONFIG += testcase
 
 SOURCES += tst_qaudiodeviceinfo.cpp
 
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

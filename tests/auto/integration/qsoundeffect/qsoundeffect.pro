@@ -15,6 +15,5 @@ unix:!mac {
 
 TESTDATA += test.wav
 
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 
 config_pulseaudio: CONFIG += insignificant_testcase # Crashes in QSoundEffectPrivate::sampleReady with bufferAttr == 0
