@@ -556,6 +556,8 @@ void QDeclarativeAudio::seek(int position)
     This property holds the playlist used by the media player.
 
     Setting the \l playlist property resets the \l source to an empty string.
+
+    \since 5.6
 */
 
 /*!
@@ -1186,6 +1188,8 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
     This property holds the playlist used by the media player.
 
     Setting the \l playlist property resets the \l source to an empty string.
+
+    \since 5.6
 */
 
 /*!

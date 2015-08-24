@@ -327,6 +327,8 @@ Item {
         This property holds the playlist used by the media player.
 
         Setting the \l playlist property resets the \l source to an empty string.
+
+        \since 5.6
     */
     property alias playlist:        player.playlist
 
