@@ -931,7 +931,7 @@ QCamera::LockStatus QCamera::lockStatus() const
 }
 
 /*!
-    Returns the status of camera settings \a lock.
+    Returns the lock status for a given \a lockType.
 */
 QCamera::LockStatus QCamera::lockStatus(QCamera::LockType lockType) const
 {
