@@ -31,42 +31,39 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEOWIDGET_H
-#define QGSTREAMERVIDEOWIDGET_H
+#ifndef QGSTREAMERVIDEOOVERLAY_P_H
+#define QGSTREAMERVIDEOOVERLAY_P_H
 
-#include <qvideowidgetcontrol.h>
-
-#include "qgstreamervideorendererinterface_p.h"
 #include <private/qgstreamerbushelper_p.h>
-#include <private/qgstreamervideooverlay_p.h>
+#include <private/qgstreamerbufferprobe_p.h>
+#include <QtGui/qwindowdefs.h>
+#include <QtCore/qsize.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoWidget;
-
-class QGstreamerVideoWidgetControl
-        : public QVideoWidgetControl
-        , public QGstreamerVideoRendererInterface
+class QGstreamerVideoOverlay
+        : public QObject
         , public QGstreamerSyncMessageFilter
         , public QGstreamerBusMessageFilter
+        , private QGstreamerBufferProbe
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
+    Q_INTERFACES(QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 public:
-    explicit QGstreamerVideoWidgetControl(QObject *parent = 0, const QByteArray &elementName = QByteArray());
-    virtual ~QGstreamerVideoWidgetControl();
+    explicit QGstreamerVideoOverlay(QObject *parent = 0, const QByteArray &elementName = QByteArray());
+    virtual ~QGstreamerVideoOverlay();
 
-    GstElement *videoSink();
+    GstElement *videoSink() const;
+    QSize nativeVideoSize() const;
 
-    QWidget *videoWidget();
+    void setWindowHandle(WId id);
+    void expose();
+    void setRenderRectangle(const QRect &rect);
 
-    void stopRenderer();
+    bool isActive() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    bool isFullScreen() const;
-    void setFullScreen(bool fullScreen);
 
     int brightness() const;
     void setBrightness(int brightness);
@@ -80,30 +77,44 @@ public:
     int saturation() const;
     void setSaturation(int saturation);
 
-    bool eventFilter(QObject *object, QEvent *event);
-
-signals:
-    void sinkChanged();
-    void readyChanged(bool);
-
-private Q_SLOTS:
-    void onOverlayActiveChanged();
-    void onNativeVideoSizeChanged();
-
-private:
-    void createVideoWidget();
-    void updateWidgetAttributes();
-
     bool processSyncMessage(const QGstreamerMessage &message);
     bool processBusMessage(const QGstreamerMessage &message);
 
-    QGstreamerVideoOverlay m_videoOverlay;
-    QGstreamerVideoWidget *m_widget;
-    bool m_stopped;
+Q_SIGNALS:
+    void nativeVideoSizeChanged();
+    void activeChanged();
+    void brightnessChanged(int brightness);
+    void contrastChanged(int contrast);
+    void hueChanged(int hue);
+    void saturationChanged(int saturation);
+
+private:
+    GstElement *findBestVideoSink() const;
+    void setWindowHandle_helper(WId id);
+    void updateIsActive();
+    void probeCaps(GstCaps *caps);
+    static void showPrerollFrameChanged(GObject *, GParamSpec *, QGstreamerVideoOverlay *);
+
+    GstElement *m_videoSink;
+    QSize m_nativeVideoSize;
+    bool m_isActive;
+
+    bool m_hasForceAspectRatio;
+    bool m_hasBrightness;
+    bool m_hasContrast;
+    bool m_hasHue;
+    bool m_hasSaturation;
+    bool m_hasShowPrerollFrame;
+
     WId m_windowId;
-    bool m_fullScreen;
+    Qt::AspectRatioMode m_aspectRatioMode;
+    int m_brightness;
+    int m_contrast;
+    int m_hue;
+    int m_saturation;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERVIDEOWIDGET_H
+#endif // QGSTREAMERVIDEOOVERLAY_P_H
+

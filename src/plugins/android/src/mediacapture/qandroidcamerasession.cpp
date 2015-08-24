@@ -206,9 +206,10 @@ bool QAndroidCameraSession::open()
 
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
-        connect(m_camera, SIGNAL(previewFetched(QByteArray)), this, SLOT(onCameraPreviewFetched(QByteArray)));
-        connect(m_camera, SIGNAL(frameFetched(QByteArray)),
-                this, SLOT(onCameraFrameFetched(QByteArray)),
+        connect(m_camera, SIGNAL(lastPreviewFrameFetched(QByteArray,int,int)),
+                this, SLOT(onLastPreviewFrameFetched(QByteArray,int,int)));
+        connect(m_camera, SIGNAL(newPreviewFrame(QByteArray,int,int)),
+                this, SLOT(onNewPreviewFrame(QByteArray,int,int)),
                 Qt::DirectConnection);
         connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
         connect(m_camera, SIGNAL(previewStarted()), this, SLOT(onCameraPreviewStarted()));
@@ -221,7 +222,7 @@ bool QAndroidCameraSession::open()
         if (m_camera->getPreviewFormat() != AndroidCamera::NV21)
             m_camera->setPreviewFormat(AndroidCamera::NV21);
 
-        m_camera->fetchEachFrame(m_videoProbes.count());
+        m_camera->notifyNewFrames(m_videoProbes.count());
 
         emit opened();
     } else {
@@ -410,7 +411,7 @@ void QAndroidCameraSession::addProbe(QAndroidMediaVideoProbeControl *probe)
     if (probe)
         m_videoProbes << probe;
     if (m_camera)
-        m_camera->fetchEachFrame(m_videoProbes.count());
+        m_camera->notifyNewFrames(m_videoProbes.count());
     m_videoProbesMutex.unlock();
 }
 
@@ -419,7 +420,7 @@ void QAndroidCameraSession::removeProbe(QAndroidMediaVideoProbeControl *probe)
     m_videoProbesMutex.lock();
     m_videoProbes.remove(probe);
     if (m_camera)
-        m_camera->fetchEachFrame(m_videoProbes.count());
+        m_camera->notifyNewFrames(m_videoProbes.count());
     m_videoProbesMutex.unlock();
 }
 
@@ -562,25 +563,54 @@ void QAndroidCameraSession::onCameraPictureExposed()
     m_camera->fetchLastPreviewFrame();
 }
 
-void QAndroidCameraSession::onCameraPreviewFetched(const QByteArray &preview)
+void QAndroidCameraSession::onLastPreviewFrameFetched(const QByteArray &preview, int width, int height)
 {
     if (preview.size()) {
         QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
                           m_currentImageCaptureId,
                           preview,
+                          width,
+                          height,
                           m_camera->getRotation());
     }
 }
 
-void QAndroidCameraSession::onCameraFrameFetched(const QByteArray &frame)
+void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data, int width, int height, int rotation)
+{
+    emit imageCaptured(id, prepareImageFromPreviewData(data, width, height, rotation));
+}
+
+QImage QAndroidCameraSession::prepareImageFromPreviewData(const QByteArray &data, int width, int height, int rotation)
+{
+    QImage result(width, height, QImage::Format_ARGB32);
+    qt_convert_NV21_to_ARGB32((const uchar *)data.constData(),
+                              (quint32 *)result.bits(),
+                              width,
+                              height);
+
+    QTransform transform;
+
+    // Preview display of front-facing cameras is flipped horizontally, but the frame data
+    // we get here is not. Flip it ourselves if the camera is front-facing to match what the user
+    // sees on the viewfinder.
+    if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
+        transform.scale(-1, 1);
+
+    transform.rotate(rotation);
+
+    result = result.transformed(transform);
+
+    return result;
+}
+
+void QAndroidCameraSession::onNewPreviewFrame(const QByteArray &frame, int width, int height)
 {
     m_videoProbesMutex.lock();
     if (frame.size() && m_videoProbes.count()) {
-        const QSize frameSize = m_camera->previewSize();
         // Bytes per line should be only for the first plane. For NV21, the Y plane has 8 bits
         // per sample, so bpl == width
-        QVideoFrame videoFrame(new DataVideoBuffer(frame, frameSize.width()),
-                               frameSize,
+        QVideoFrame videoFrame(new DataVideoBuffer(frame, width),
+                               QSize(width, height),
                                QVideoFrame::Format_NV21);
         foreach (QAndroidMediaVideoProbeControl *probe, m_videoProbes)
             probe->newFrameProbed(videoFrame);
@@ -664,35 +694,6 @@ void QAndroidCameraSession::processCapturedImage(int id,
         QVideoFrame frame(new DataVideoBuffer(data), resolution, QVideoFrame::Format_Jpeg);
         emit imageAvailable(id, frame);
     }
-}
-
-void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data, int rotation)
-{
-    emit imageCaptured(id, prepareImageFromPreviewData(data, rotation));
-}
-
-QImage QAndroidCameraSession::prepareImageFromPreviewData(const QByteArray &data, int rotation)
-{
-    QSize frameSize = m_camera->previewSize();
-    QImage result(frameSize, QImage::Format_ARGB32);
-    qt_convert_NV21_to_ARGB32((const uchar *)data.constData(),
-                              (quint32 *)result.bits(),
-                              frameSize.width(),
-                              frameSize.height());
-
-    QTransform transform;
-
-    // Preview display of front-facing cameras is flipped horizontally, but the frame data
-    // we get here is not. Flip it ourselves if the camera is front-facing to match what the user
-    // sees on the viewfinder.
-    if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
-        transform.scale(-1, 1);
-
-    transform.rotate(rotation);
-
-    result = result.transformed(transform);
-
-    return result;
 }
 
 void QAndroidCameraSession::onVideoOutputReady(bool ready)

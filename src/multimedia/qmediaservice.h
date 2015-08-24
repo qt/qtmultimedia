@@ -53,7 +53,6 @@ public:
 
     virtual QMediaControl* requestControl(const char *name) = 0;
 
-#ifndef QT_NO_MEMBER_TEMPLATES
     template <typename T> inline T requestControl() {
         if (QMediaControl *control = requestControl(qmediacontrol_iid<T>())) {
             if (T typedControl = qobject_cast<T>(control))
@@ -62,7 +61,6 @@ public:
         }
         return 0;
     }
-#endif
 
     virtual void releaseControl(QMediaControl *control) = 0;
 

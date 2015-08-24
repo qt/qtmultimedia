@@ -106,7 +106,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlaylistMetaTypes)
 
 
 /*!
-  Create a new playlist object for with the given \a parent.
+  Create a new playlist object with the given \a parent.
 */
 
 QMediaPlaylist::QMediaPlaylist(QObject *parent)
@@ -214,8 +214,10 @@ bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
         connect(d->control, SIGNAL(currentMediaChanged(QMediaContent)),
                 this, SIGNAL(currentMediaChanged(QMediaContent)));
 
-        if (oldSize)
+        if (oldSize) {
+            emit mediaAboutToBeRemoved(0, oldSize-1);
             emit mediaRemoved(0, oldSize-1);
+        }
 
         if (playlist->mediaCount()) {
             emit mediaAboutToBeInserted(0,playlist->mediaCount()-1);
@@ -302,7 +304,7 @@ int QMediaPlaylist::mediaCount() const
 }
 
 /*!
-  Returns true if the playlist contains no items; otherwise returns false.
+  Returns true if the playlist contains no items, otherwise returns false.
 
   \sa mediaCount()
   */
@@ -312,7 +314,7 @@ bool QMediaPlaylist::isEmpty() const
 }
 
 /*!
-  Returns true if the playlist can be modified; otherwise returns false.
+  Returns true if the playlist can be modified, otherwise returns false.
 
   \sa mediaCount()
   */
@@ -333,7 +335,7 @@ QMediaContent QMediaPlaylist::media(int index) const
 /*!
   Append the media \a content to the playlist.
 
-  Returns true if the operation is successful, otherwise return false.
+  Returns true if the operation is successful, otherwise returns false.
   */
 bool QMediaPlaylist::addMedia(const QMediaContent &content)
 {
@@ -343,7 +345,7 @@ bool QMediaPlaylist::addMedia(const QMediaContent &content)
 /*!
   Append multiple media content \a items to the playlist.
 
-  Returns true if the operation is successful, otherwise return false.
+  Returns true if the operation is successful, otherwise returns false.
   */
 bool QMediaPlaylist::addMedia(const QList<QMediaContent> &items)
 {
@@ -353,23 +355,25 @@ bool QMediaPlaylist::addMedia(const QList<QMediaContent> &items)
 /*!
   Insert the media \a content to the playlist at position \a pos.
 
-  Returns true if the operation is successful, otherwise false.
+  Returns true if the operation is successful, otherwise returns false.
 */
 
 bool QMediaPlaylist::insertMedia(int pos, const QMediaContent &content)
 {
-    return d_func()->playlist()->insertMedia(pos, content);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    return playlist->insertMedia(qBound(0, pos, playlist->mediaCount()), content);
 }
 
 /*!
   Insert multiple media content \a items to the playlist at position \a pos.
 
-  Returns true if the operation is successful, otherwise false.
+  Returns true if the operation is successful, otherwise returns false.
 */
 
 bool QMediaPlaylist::insertMedia(int pos, const QList<QMediaContent> &items)
 {
-    return d_func()->playlist()->insertMedia(pos, items);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    return playlist->insertMedia(qBound(0, pos, playlist->mediaCount()), items);
 }
 
 /*!
@@ -379,8 +383,11 @@ bool QMediaPlaylist::insertMedia(int pos, const QList<QMediaContent> &items)
   */
 bool QMediaPlaylist::removeMedia(int pos)
 {
-    Q_D(QMediaPlaylist);
-    return d->playlist()->removeMedia(pos);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    if (pos >= 0 && pos < playlist->mediaCount())
+        return playlist->removeMedia(pos);
+    else
+        return false;
 }
 
 /*!
@@ -390,8 +397,13 @@ bool QMediaPlaylist::removeMedia(int pos)
   */
 bool QMediaPlaylist::removeMedia(int start, int end)
 {
-    Q_D(QMediaPlaylist);
-    return d->playlist()->removeMedia(start, end);
+    QMediaPlaylistProvider *playlist = d_func()->playlist();
+    start = qMax(0, start);
+    end = qMin(end, playlist->mediaCount() - 1);
+    if (start <= end)
+        return playlist->removeMedia(start, end);
+    else
+        return false;
 }
 
 /*!

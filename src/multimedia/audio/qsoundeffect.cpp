@@ -83,8 +83,6 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio_qml
     \inqmlmodule QtMultimedia
 
-    SoundEffect is part of the \b{QtMultimedia 5.0} module.
-
     This type allows you to play uncompressed audio files (typically WAV files) in
     a generally lower latency way, and is suitable for "feedback" type sounds in
     response to user actions (e.g. virtual keyboard sounds, positive or negative

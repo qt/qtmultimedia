@@ -359,19 +359,14 @@ public:
                 }
                 break;
             case QMediaServiceProviderHint::Device: {
+                    plugin = plugins[0];
                     foreach (QMediaServiceProviderPlugin *currentPlugin, plugins) {
                         QMediaServiceSupportedDevicesInterface *iface =
                                 qobject_cast<QMediaServiceSupportedDevicesInterface*>(currentPlugin);
 
-                        if (!iface) {
-                            // the plugin may support the device,
-                            // but this choice still can be overridden
+                        if (iface && iface->devices(type).contains(hint.device())) {
                             plugin = currentPlugin;
-                        } else {
-                            if (iface->devices(type).contains(hint.device())) {
-                                plugin = currentPlugin;
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
@@ -888,14 +883,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 */
 
 /*!
-    \since 5.3
-
-    \fn QByteArray QMediaServiceSupportedDevicesInterface::defaultDevice(const QByteArray &service) const
-
-    Returns the default device for a \a service type.
-*/
-
-/*!
     \fn QList<QByteArray> QMediaServiceSupportedDevicesInterface::devices(const QByteArray &service) const
 
     Returns a list of devices available for a \a service type.
@@ -908,6 +895,29 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 */
 
 /*!
+    \class QMediaServiceDefaultDeviceInterface
+    \inmodule QtMultimedia
+    \brief The QMediaServiceDefaultDeviceInterface class interface
+    identifies the default device used by a media service plug-in.
+
+    A QMediaServiceProviderPlugin may implement this interface.
+
+    \since 5.3
+*/
+
+/*!
+    \fn QMediaServiceDefaultDeviceInterface::~QMediaServiceDefaultDeviceInterface()
+
+    Destroys a media service default device interface.
+*/
+
+/*!
+    \fn QByteArray QMediaServiceDefaultDeviceInterface::defaultDevice(const QByteArray &service) const
+
+    Returns the default device for a \a service type.
+*/
+
+/*!
     \class QMediaServiceCameraInfoInterface
     \inmodule QtMultimedia
     \since 5.3
@@ -916,6 +926,12 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
     A QMediaServiceProviderPlugin may implement this interface, in that case it also needs to
     implement the QMediaServiceSupportedDevicesInterface.
+*/
+
+/*!
+    \fn QMediaServiceCameraInfoInterface::~QMediaServiceCameraInfoInterface()
+
+    Destroys a media service camera info interface.
 */
 
 /*!

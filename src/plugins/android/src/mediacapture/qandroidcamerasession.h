@@ -113,9 +113,9 @@ private Q_SLOTS:
     void onApplicationStateChanged(Qt::ApplicationState state);
 
     void onCameraPictureExposed();
-    void onCameraPreviewFetched(const QByteArray &preview);
-    void onCameraFrameFetched(const QByteArray &frame);
     void onCameraPictureCaptured(const QByteArray &data);
+    void onLastPreviewFrameFetched(const QByteArray &preview, int width, int height);
+    void onNewPreviewFrame(const QByteArray &frame, int width, int height);
     void onCameraPreviewStarted();
     void onCameraPreviewStopped();
 
@@ -129,8 +129,8 @@ private:
     void stopPreview();
 
     void applyImageSettings();
-    void processPreviewImage(int id, const QByteArray &data, int rotation);
-    QImage prepareImageFromPreviewData(const QByteArray &data, int rotation);
+    void processPreviewImage(int id, const QByteArray &data, int width, int height, int rotation);
+    QImage prepareImageFromPreviewData(const QByteArray &data, int width, int height, int rotation);
     void processCapturedImage(int id,
                               const QByteArray &data,
                               const QSize &resolution,

@@ -61,11 +61,13 @@
 # define QT_GSTREAMER_CAMERABIN_ELEMENT_NAME "camerabin"
 # define QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME "videoconvert"
 # define QT_GSTREAMER_RAW_AUDIO_MIME "audio/x-raw"
+# define QT_GSTREAMER_VIDEOOVERLAY_INTERFACE_NAME "GstVideoOverlay"
 #else
 # define QT_GSTREAMER_PLAYBIN_ELEMENT_NAME "playbin2"
 # define QT_GSTREAMER_CAMERABIN_ELEMENT_NAME "camerabin2"
 # define QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME "ffmpegcolorspace"
 # define QT_GSTREAMER_RAW_AUDIO_MIME "audio/x-raw-int"
+# define QT_GSTREAMER_VIDEOOVERLAY_INTERFACE_NAME "GstXOverlay"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -147,6 +149,7 @@ GstStructure *qt_gst_structure_new_empty(const char *name);
 gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur);
 gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur);
 GstCaps *qt_gst_caps_normalize(GstCaps *caps);
+const gchar *qt_gst_element_get_factory_name(GstElement *element);
 
 QDebug operator <<(QDebug debug, GstCaps *caps);
 

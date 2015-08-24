@@ -45,12 +45,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_radio_qml
     \inherits Item
 
-    Radio is part of the \b{QtMultimedia 5.0} module.
-
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Rectangle {
         width: 320
         height: 480

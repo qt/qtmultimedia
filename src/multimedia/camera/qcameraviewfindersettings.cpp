@@ -50,8 +50,7 @@ public:
         isNull(true),
         minimumFrameRate(0.0),
         maximumFrameRate(0.0),
-        pixelFormat(QVideoFrame::Format_Invalid),
-        pixelAspectRatio(1, 1)
+        pixelFormat(QVideoFrame::Format_Invalid)
     {
     }
 
@@ -134,6 +133,18 @@ QCameraViewfinderSettings &QCameraViewfinderSettings::operator=(const QCameraVie
     d = other.d;
     return *this;
 }
+
+/*! \fn QCameraViewfinderSettings &QCameraViewfinderSettings::operator=(QCameraViewfinderSettings &&other)
+
+    Moves \a other to this viewfinder settings object and returns a reference to this object.
+*/
+
+/*!
+    \fn void QCameraViewfinderSettings::swap(QCameraViewfinderSettings &other)
+
+    Swaps this viewfinder settings object with \a other. This
+    function is very fast and never fails.
+*/
 
 /*!
     \relates QCameraViewfinderSettings

@@ -59,12 +59,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
 
-    This type is part of the \b{QtMultimedia 5.0} module.
-
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Text {
         text: "Click Me!";
         font.pointSize: 24;
@@ -919,368 +914,123 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 */
 
 /*!
+    \qmlproperty variant QtMultimedia::Audio::mediaObject
+
+    This property holds the native media object.
+
+    It can be used to get a pointer to a QMediaPlayer object in order to integrate with C++ code.
+
+    \code
+        QObject *qmlAudio; // The QML Audio object
+        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlAudio->property("mediaObject"));
+    \endcode
+
+    \note This property is not accessible from QML.
+*/
+
+/*!
+    \qmlpropertygroup QtMultimedia::Audio::metaData
     \qmlproperty variant QtMultimedia::Audio::metaData.title
-
-    This property holds the title of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.subTitle
-
-    This property holds the sub-title of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.author
-
-    This property holds the author of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.comment
-
-    This property holds a user comment about the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.description
-
-    This property holds a description of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.category
-
-    This property holds the category of the media
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.genre
-
-    This property holds the genre of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.year
-
-    This property holds the year of release of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.date
-
-    This property holds the date of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.userRating
-
-    This property holds a user rating of the media in the range of 0 to 100.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.keywords
-
-    This property holds a list of keywords describing the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.language
-
-    This property holds the language of the media, as an ISO 639-2 code.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.publisher
-
-    This property holds the publisher of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.copyright
-
-    This property holds the media's copyright notice.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.parentalRating
-
-    This property holds the parental rating of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.ratingOrganization
-
-    This property holds the name of the rating organization responsible for the
-    parental rating of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.size
-
-    This property property holds the size of the media in bytes.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.mediaType
-
-    This property holds the type of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.audioBitRate
-
-    This property holds the bit rate of the media's audio stream in bits per
-    second.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.audioCodec
-
-    This property holds the encoding of the media audio stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.averageLevel
-
-    This property holds the average volume level of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.channelCount
-
-    This property holds the number of channels in the media's audio stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.peakValue
-
-    This property holds the peak volume of media's audio stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.sampleRate
-
-    This property holds the sample rate of the media's audio stream in hertz.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.albumTitle
-
-    This property holds the title of the album the media belongs to.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.albumArtist
-
-    This property holds the name of the principal artist of the album the media
-    belongs to.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.contributingArtist
-
-    This property holds the names of artists contributing to the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.composer
-
-    This property holds the composer of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.conductor
-
-    This property holds the conductor of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.lyrics
-
-    This property holds the lyrics to the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.mood
-
-    This property holds the mood of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.trackNumber
-
-    This property holds the track number of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.trackCount
-
-    This property holds the number of tracks on the album containing the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlSmall
-
-    This property holds the URL of a small cover art image.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlLarge
-
-    This property holds the URL of a large cover art image.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.resolution
-
-    This property holds the dimension of an image or video.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.pixelAspectRatio
-
-    This property holds the pixel aspect ratio of an image or video.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.videoFrameRate
-
-    This property holds the frame rate of the media's video stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.videoBitRate
-
-    This property holds the bit rate of the media's video stream in bits per
-    second.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.videoCodec
-
-    This property holds the encoding of the media's video stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.posterUrl
-
-    This property holds the URL of a poster image.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.chapterNumber
-
-    This property holds the chapter number of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.director
-
-    This property holds the director of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.leadPerformer
-
-    This property holds the lead performer in the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::Audio::metaData.writer
 
-    This property holds the writer of the media.
+    These properties hold the meta data for the current media.
+
+    \list
+    \li \c metaData.title - the title of the media.
+    \li \c metaData.subTitle - the sub-title of the media.
+    \li \c metaData.author - the author of the media.
+    \li \c metaData.comment - a user comment about the media.
+    \li \c metaData.description - a description of the media.
+    \li \c metaData.category - the category of the media.
+    \li \c metaData.genre - the genre of the media.
+    \li \c metaData.year - the year of release of the media.
+    \li \c metaData.date - the date of the media.
+    \li \c metaData.userRating - a user rating of the media in the range of 0 to 100.
+    \li \c metaData.keywords - a list of keywords describing the media.
+    \li \c metaData.language - the language of the media, as an ISO 639-2 code.
+    \li \c metaData.publisher - the publisher of the media.
+    \li \c metaData.copyright - the media's copyright notice.
+    \li \c metaData.parentalRating - the parental rating of the media.
+    \li \c metaData.ratingOrganization - the name of the rating organization responsible for the
+                                         parental rating of the media.
+    \li \c metaData.size - the size of the media in bytes.
+    \li \c metaData.mediaType - the type of the media.
+    \li \c metaData.audioBitRate - the bit rate of the media's audio stream in bits per second.
+    \li \c metaData.audioCodec - the encoding of the media audio stream.
+    \li \c metaData.averageLevel - the average volume level of the media.
+    \li \c metaData.channelCount - the number of channels in the media's audio stream.
+    \li \c metaData.peakValue - the peak volume of media's audio stream.
+    \li \c metaData.sampleRate - the sample rate of the media's audio stream in hertz.
+    \li \c metaData.albumTitle - the title of the album the media belongs to.
+    \li \c metaData.albumArtist - the name of the principal artist of the album the media
+                                  belongs to.
+    \li \c metaData.contributingArtist - the names of artists contributing to the media.
+    \li \c metaData.composer - the composer of the media.
+    \li \c metaData.conductor - the conductor of the media.
+    \li \c metaData.lyrics - the lyrics to the media.
+    \li \c metaData.mood - the mood of the media.
+    \li \c metaData.trackNumber - the track number of the media.
+    \li \c metaData.trackCount - the number of tracks on the album containing the media.
+    \li \c metaData.coverArtUrlSmall - the URL of a small cover art image.
+    \li \c metaData.coverArtUrlLarge - the URL of a large cover art image.
+    \li \c metaData.resolution - the dimension of an image or video.
+    \li \c metaData.pixelAspectRatio - the pixel aspect ratio of an image or video.
+    \li \c metaData.videoFrameRate - the frame rate of the media's video stream.
+    \li \c metaData.videoBitRate - the bit rate of the media's video stream in bits per second.
+    \li \c metaData.videoCodec - the encoding of the media's video stream.
+    \li \c metaData.posterUrl - the URL of a poster image.
+    \li \c metaData.chapterNumber - the chapter number of the media.
+    \li \c metaData.director - the director of the media.
+    \li \c metaData.leadPerformer - the lead performer in the media.
+    \li \c metaData.writer - the writer of the media.
+    \endlist
 
     \sa {QMediaMetaData}
 */
+
 
 ///////////// MediaPlayer Docs /////////////
 
@@ -1294,12 +1044,7 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
 
-    MediaPlayer is part of the \b{QtMultimedia 5.0} module.
-
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Text {
         text: "Click Me!";
         font.pointSize: 24;
@@ -1321,9 +1066,6 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
     or you can use it in conjunction with a \l VideoOutput for rendering video.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Item {
         MediaPlayer {
             id: mediaplayer
@@ -1664,365 +1406,119 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 */
 
 /*!
+    \qmlproperty variant QtMultimedia::MediaPlayer::mediaObject
+
+    This property holds the native media object.
+
+    It can be used to get a pointer to a QMediaPlayer object in order to integrate with C++ code.
+
+    \code
+        QObject *qmlMediaPlayer; // The QML MediaPlayer object
+        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlMediaPlayer->property("mediaObject"));
+    \endcode
+
+    \note This property is not accessible from QML.
+*/
+
+/*!
+    \qmlpropertygroup QtMultimedia::MediaPlayer::metaData
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.title
-
-    This property holds the title of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.subTitle
-
-    This property holds the sub-title of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.author
-
-    This property holds the author of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.comment
-
-    This property holds a user comment about the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.description
-
-    This property holds a description of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.category
-
-    This property holds the category of the media
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.genre
-
-    This property holds the genre of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.year
-
-    This property holds the year of release of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.date
-
-    This property holds the date of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.userRating
-
-    This property holds a user rating of the media in the range of 0 to 100.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.keywords
-
-    This property holds a list of keywords describing the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.language
-
-    This property holds the language of the media, as an ISO 639-2 code.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.publisher
-
-    This property holds the publisher of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.copyright
-
-    This property holds the media's copyright notice.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.parentalRating
-
-    This property holds the parental rating of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.ratingOrganization
-
-    This property holds the name of the rating organization responsible for the
-    parental rating of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.size
-
-    This property property holds the size of the media in bytes.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.mediaType
-
-    This property holds the type of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.audioBitRate
-
-    This property holds the bit rate of the media's audio stream in bits per
-    second.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.audioCodec
-
-    This property holds the encoding of the media audio stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.averageLevel
-
-    This property holds the average volume level of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.channelCount
-
-    This property holds the number of channels in the media's audio stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.peakValue
-
-    This property holds the peak volume of media's audio stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.sampleRate
-
-    This property holds the sample rate of the media's audio stream in hertz.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.albumTitle
-
-    This property holds the title of the album the media belongs to.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.albumArtist
-
-    This property holds the name of the principal artist of the album the media
-    belongs to.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.contributingArtist
-
-    This property holds the names of artists contributing to the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.composer
-
-    This property holds the composer of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.conductor
-
-    This property holds the conductor of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.lyrics
-
-    This property holds the lyrics to the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.mood
-
-    This property holds the mood of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.trackNumber
-
-    This property holds the track number of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.trackCount
-
-    This property holds the number of tracks on the album containing the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.coverArtUrlSmall
-
-    This property holds the URL of a small cover art image.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.coverArtUrlLarge
-
-    This property holds the URL of a large cover art image.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.resolution
-
-    This property holds the dimension of an image or video.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.pixelAspectRatio
-
-    This property holds the pixel aspect ratio of an image or video.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoFrameRate
-
-    This property holds the frame rate of the media's video stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoBitRate
-
-    This property holds the bit rate of the media's video stream in bits per
-    second.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoCodec
-
-    This property holds the encoding of the media's video stream.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.posterUrl
-
-    This property holds the URL of a poster image.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.chapterNumber
-
-    This property holds the chapter number of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.director
-
-    This property holds the director of the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.leadPerformer
-
-    This property holds the lead performer in the media.
-
-    \sa {QMediaMetaData}
-*/
-
-/*!
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.writer
 
-    This property holds the writer of the media.
+    These properties hold the meta data for the current media.
+
+    \list
+    \li \c metaData.title - the title of the media.
+    \li \c metaData.subTitle - the sub-title of the media.
+    \li \c metaData.author - the author of the media.
+    \li \c metaData.comment - a user comment about the media.
+    \li \c metaData.description - a description of the media.
+    \li \c metaData.category - the category of the media.
+    \li \c metaData.genre - the genre of the media.
+    \li \c metaData.year - the year of release of the media.
+    \li \c metaData.date - the date of the media.
+    \li \c metaData.userRating - a user rating of the media in the range of 0 to 100.
+    \li \c metaData.keywords - a list of keywords describing the media.
+    \li \c metaData.language - the language of the media, as an ISO 639-2 code.
+    \li \c metaData.publisher - the publisher of the media.
+    \li \c metaData.copyright - the media's copyright notice.
+    \li \c metaData.parentalRating - the parental rating of the media.
+    \li \c metaData.ratingOrganization - the name of the rating organization responsible for the
+                                         parental rating of the media.
+    \li \c metaData.size - the size of the media in bytes.
+    \li \c metaData.mediaType - the type of the media.
+    \li \c metaData.audioBitRate - the bit rate of the media's audio stream in bits per second.
+    \li \c metaData.audioCodec - the encoding of the media audio stream.
+    \li \c metaData.averageLevel - the average volume level of the media.
+    \li \c metaData.channelCount - the number of channels in the media's audio stream.
+    \li \c metaData.peakValue - the peak volume of media's audio stream.
+    \li \c metaData.sampleRate - the sample rate of the media's audio stream in hertz.
+    \li \c metaData.albumTitle - the title of the album the media belongs to.
+    \li \c metaData.albumArtist - the name of the principal artist of the album the media
+                                  belongs to.
+    \li \c metaData.contributingArtist - the names of artists contributing to the media.
+    \li \c metaData.composer - the composer of the media.
+    \li \c metaData.conductor - the conductor of the media.
+    \li \c metaData.lyrics - the lyrics to the media.
+    \li \c metaData.mood - the mood of the media.
+    \li \c metaData.trackNumber - the track number of the media.
+    \li \c metaData.trackCount - the number of tracks on the album containing the media.
+    \li \c metaData.coverArtUrlSmall - the URL of a small cover art image.
+    \li \c metaData.coverArtUrlLarge - the URL of a large cover art image.
+    \li \c metaData.resolution - the dimension of an image or video.
+    \li \c metaData.pixelAspectRatio - the pixel aspect ratio of an image or video.
+    \li \c metaData.videoFrameRate - the frame rate of the media's video stream.
+    \li \c metaData.videoBitRate - the bit rate of the media's video stream in bits per second.
+    \li \c metaData.videoCodec - the encoding of the media's video stream.
+    \li \c metaData.posterUrl - the URL of a poster image.
+    \li \c metaData.chapterNumber - the chapter number of the media.
+    \li \c metaData.director - the director of the media.
+    \li \c metaData.leadPerformer - the lead performer in the media.
+    \li \c metaData.writer - the writer of the media.
+    \endlist
 
     \sa {QMediaMetaData}
 */

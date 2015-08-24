@@ -46,7 +46,7 @@
     import statement in your \c {.qml} file.
 
     \code
-     import QtMultimedia 5.4
+     import QtMultimedia 5.5
     \endcode
 
     If you intend to use the C++ classes in your application, include the C++
@@ -105,11 +105,17 @@
      \li QAudioOutput
      \li Sends audio data to an audio output device
     \row
+     \li QAudioRecorder
+     \li Record media content from an audio source.
+    \row
      \li QCamera
      \li Access camera viewfinder.
     \row
      \li QCameraImageCapture
-     \li Record media content. Intended to be used with QCamera to record media.
+     \li Capture still images with a camera.
+    \row
+     \li QMediaRecorder
+     \li Record media content from a camera or radio tuner source.
     \row
      \li QMediaPlayer
      \li Playback media from a source.
@@ -120,8 +126,8 @@
      \li QRadioTuner
      \li Access radio device.
     \row
-     \li QVideoRendererControl
-     \li Control video data.
+     \li QAbstractVideoSurface
+     \li Base class for video presentation.
     \endtable
 
     \section1 Related Information

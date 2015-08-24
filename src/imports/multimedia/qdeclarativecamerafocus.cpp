@@ -44,8 +44,6 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    CameraFocus is part of the \b{QtMultimedia 5.0} module.
-
     This type allows control over manual and automatic
     focus settings, including information about any parts of the
     camera frame that are selected for autofocusing.
@@ -54,8 +52,6 @@ QT_BEGIN_NAMESPACE
     \c focus property of a \l Camera should be used.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
 
     Item {
         width: 640

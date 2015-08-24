@@ -72,6 +72,9 @@ static bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
 
 static bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2)
 {
+    if (s1.maximumFrameRate == s2.maximumFrameRate)
+        return s1.minimumFrameRate < s2.minimumFrameRate;
+
     return s1.maximumFrameRate < s2.maximumFrameRate;
 }
 
@@ -658,7 +661,7 @@ QList<QCameraViewfinderSettings> QCamera::supportedViewfinderSettings(const QCam
                 && (qFuzzyIsNull(settings.minimumFrameRate()) || qFuzzyCompare((float)settings.minimumFrameRate(), (float)s.minimumFrameRate()))
                 && (qFuzzyIsNull(settings.maximumFrameRate()) || qFuzzyCompare((float)settings.maximumFrameRate(), (float)s.maximumFrameRate()))
                 && (settings.pixelFormat() == QVideoFrame::Format_Invalid || settings.pixelFormat() == s.pixelFormat())
-                && (settings.pixelAspectRatio() == QSize(1, 1) || settings.pixelAspectRatio() == s.pixelAspectRatio())) {
+                && (settings.pixelAspectRatio().isEmpty() || settings.pixelAspectRatio() == s.pixelAspectRatio())) {
             results.append(s);
         }
     }
@@ -1040,6 +1043,19 @@ void QCamera::unlock()
     If not, the actual frame rate fluctuates between the minimum and the maximum.
 
     \sa QCamera::supportedViewfinderFrameRateRanges(), QCameraViewfinderSettings
+*/
+
+/*!
+    \fn QCamera::FrameRateRange::FrameRateRange()
+
+    Constructs a null frame rate range, with both minimumFrameRate and maximumFrameRate
+    equal to \c 0.0.
+*/
+
+/*!
+    \fn QCamera::FrameRateRange::FrameRateRange(qreal minimum, qreal maximum)
+
+    Constructs a frame rate range with the given \a minimum and \a maximum frame rates.
 */
 
 /*!
