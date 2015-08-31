@@ -44,17 +44,12 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_radio_qml
     \inherits Item
 
-    This type is part of the \b{QtMultimedia 5.0} module.
-
     \c RadioData is your gateway to all the data available through RDS. RDS is the Radio Data System
     which allows radio stations to broadcast information like the \l stationId, \l programType, \l programTypeName,
     \l stationName, and \l radioText. This information can be read from the \c RadioData. It also allows
     you to set whether the radio should tune to alternative frequencies if the current signal strength falls too much.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Rectangle {
         width: 480
         height: 320

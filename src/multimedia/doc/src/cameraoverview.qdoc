@@ -102,9 +102,6 @@ In QML, use the \l{QtMultimedia::QtMultimedia::availableCameras}{QtMultimedia.av
 property:
 
 \qml
-import QtQuick 2.0
-import QtMultimedia 5.4
-
 Item {
     property bool isCameraAvailable: QtMultimedia.availableCameras.length > 0
 }
@@ -163,9 +160,6 @@ In QML, you can use \l Camera and \l VideoOutput together to show a
 simple viewfinder:
 
 \qml
-import QtQuick 2.0
-import QtMultimedia 5.4
-
 VideoOutput {
     source: camera
 

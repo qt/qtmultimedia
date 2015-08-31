@@ -155,7 +155,8 @@ public:
 
     void takePicture();
 
-    void fetchEachFrame(bool fetch);
+    void setupPreviewFrameCallback();
+    void notifyNewFrames(bool notify);
     void fetchLastPreviewFrame();
     QJNIObjectPrivate getCameraObject();
 
@@ -176,8 +177,8 @@ Q_SIGNALS:
 
     void pictureExposed();
     void pictureCaptured(const QByteArray &data);
-    void previewFetched(const QByteArray &preview);
-    void frameFetched(const QByteArray &frame);
+    void lastPreviewFrameFetched(const QByteArray &preview, int width, int height);
+    void newPreviewFrame(const QByteArray &frame, int width, int height);
 
 private:
     AndroidCamera(AndroidCameraPrivate *d, QThread *worker);

@@ -46,16 +46,12 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia_qml
 
-    \c Torch is part of the \b{QtMultimedia 5.0} module.
-
     In many cases the torch hardware is shared with camera flash functionality,
     and might be automatically controlled by the device.  You have control over
     the power level (of course, higher power levels are brighter but reduce
     battery life significantly).
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
 
     Torch {
         power: 75       // 75% of full power

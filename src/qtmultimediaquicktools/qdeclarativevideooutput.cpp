@@ -58,11 +58,7 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
     \ingroup multimedia_video_qml
     \inqmlmodule QtMultimedia
 
-    \c VideoOutput is part of the \b{QtMultimedia 5.0} module.
-
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
 
     Rectangle {
         width: 800

@@ -1453,6 +1453,17 @@ GstCaps *qt_gst_caps_normalize(GstCaps *caps)
 #endif
 }
 
+const gchar *qt_gst_element_get_factory_name(GstElement *element)
+{
+    const gchar *name = 0;
+    const GstElementFactory *factory = 0;
+
+    if (element && (factory = gst_element_get_factory(element)))
+        name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
+
+    return name;
+}
+
 QDebug operator <<(QDebug debug, GstCaps *caps)
 {
     if (caps) {

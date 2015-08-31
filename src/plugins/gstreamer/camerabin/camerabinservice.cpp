@@ -124,8 +124,8 @@ CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *pa
 #else
     m_videoWindow = new QGstreamerVideoWindow(this);
 #endif
-    // If the GStreamer sink element is not available (xvimagesink), don't provide
-    // the video window control since it won't work anyway.
+    // If the GStreamer video sink is not available, don't provide the video window control since
+    // it won't work anyway.
     if (!m_videoWindow->videoSink()) {
         delete m_videoWindow;
         m_videoWindow = 0;
@@ -133,9 +133,8 @@ CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *pa
 #if defined(HAVE_WIDGETS)
     m_videoWidgetControl = new QGstreamerVideoWidgetControl(this);
 
-    // If the GStreamer sink element is not available (xvimagesink or ximagesink), don't provide
-    // the video widget control since it won't work anyway.
-    // QVideoWidget will fall back to QVideoRendererControl in that case.
+    // If the GStreamer video sink is not available, don't provide the video widget control since
+    // it won't work anyway. QVideoWidget will fall back to QVideoRendererControl in that case.
     if (!m_videoWidgetControl->videoSink()) {
         delete m_videoWidgetControl;
         m_videoWidgetControl = 0;

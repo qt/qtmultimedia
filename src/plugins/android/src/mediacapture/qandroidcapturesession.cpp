@@ -233,8 +233,13 @@ void QAndroidCaptureSession::start()
     m_notifyTimer.start();
     updateDuration();
 
-    if (m_cameraSession)
+    if (m_cameraSession) {
         m_cameraSession->setReadyForCapture(false);
+
+        // Preview frame callback is cleared when setting up the camera with the media recorder.
+        // We need to reset it.
+        m_cameraSession->camera()->setupPreviewFrameCallback();
+    }
 
     m_state = QMediaRecorder::RecordingState;
     emit stateChanged(m_state);

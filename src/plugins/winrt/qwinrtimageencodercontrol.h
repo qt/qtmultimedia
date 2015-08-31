@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 class QWinRTImageEncoderControlPrivate;
 class QWinRTImageEncoderControl : public QImageEncoderControl
 {
+    Q_OBJECT
 public:
     explicit QWinRTImageEncoderControl(QObject *parent = 0);
 

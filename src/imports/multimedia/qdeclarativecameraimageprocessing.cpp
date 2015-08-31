@@ -52,8 +52,6 @@ QT_BEGIN_NAMESPACE
     \c imageProcessing property of a \l Camera should be used.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
 
     Camera {
         id: camera
@@ -220,7 +218,7 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 }
 
 /*!
-    \qmlproperty QtMultimedia::CameraImageProcessing::colorFilter
+    \qmlproperty enumeration QtMultimedia::CameraImageProcessing::colorFilter
 
     This property holds which color filter if any will be applied to image data captured by the camera.
 

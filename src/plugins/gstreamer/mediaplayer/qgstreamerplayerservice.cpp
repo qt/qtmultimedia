@@ -99,8 +99,8 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
 #else
     m_videoWindow = new QGstreamerVideoWindow(this);
 #endif
-    // If the GStreamer sink element is not available (xvimagesink), don't provide
-    // the video window control since it won't work anyway.
+    // If the GStreamer video sink is not available, don't provide the video window control since
+    // it won't work anyway.
     if (!m_videoWindow->videoSink()) {
         delete m_videoWindow;
         m_videoWindow = 0;
@@ -109,8 +109,8 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
 #if defined(HAVE_WIDGETS)
     m_videoWidget = new QGstreamerVideoWidgetControl(this);
 
-    // If the GStreamer sink element is not available (xvimagesink or ximagesink), don't provide
-    // the video widget control since it won't work anyway.
+    // If the GStreamer video sink is not available, don't provide the video widget control since
+    // it won't work anyway.
     // QVideoWidget will fall back to QVideoRendererControl in that case.
     if (!m_videoWidget->videoSink()) {
         delete m_videoWidget;

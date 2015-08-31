@@ -43,6 +43,48 @@ public:
     MockCameraViewfinderSettingsControl(QObject *parent = 0):
             QCameraViewfinderSettingsControl2(parent)
     {
+        QCameraViewfinderSettings s;
+        s.setResolution(640, 480);
+        s.setMinimumFrameRate(30);
+        s.setMaximumFrameRate(30);
+        s.setPixelFormat(QVideoFrame::Format_NV12);
+        s.setPixelAspectRatio(1, 1);
+        supportedSettings.append(s);
+
+        s.setResolution(1280, 720);
+        s.setMinimumFrameRate(10);
+        s.setMaximumFrameRate(10);
+        s.setPixelFormat(QVideoFrame::Format_NV12);
+        s.setPixelAspectRatio(1, 1);
+        supportedSettings.append(s);
+
+        s.setResolution(1920, 1080);
+        s.setMinimumFrameRate(5);
+        s.setMaximumFrameRate(10);
+        s.setPixelFormat(QVideoFrame::Format_BGR32);
+        s.setPixelAspectRatio(2, 1);
+        supportedSettings.append(s);
+
+        s.setResolution(1280, 720);
+        s.setMinimumFrameRate(10);
+        s.setMaximumFrameRate(10);
+        s.setPixelFormat(QVideoFrame::Format_YV12);
+        s.setPixelAspectRatio(1, 1);
+        supportedSettings.append(s);
+
+        s.setResolution(1280, 720);
+        s.setMinimumFrameRate(30);
+        s.setMaximumFrameRate(30);
+        s.setPixelFormat(QVideoFrame::Format_YV12);
+        s.setPixelAspectRatio(1, 1);
+        supportedSettings.append(s);
+
+        s.setResolution(320, 240);
+        s.setMinimumFrameRate(30);
+        s.setMaximumFrameRate(30);
+        s.setPixelFormat(QVideoFrame::Format_NV12);
+        s.setPixelAspectRatio(1, 1);
+        supportedSettings.append(s);
     }
 
     ~MockCameraViewfinderSettingsControl() {}
@@ -59,10 +101,11 @@ public:
 
     QList<QCameraViewfinderSettings> supportedViewfinderSettings() const
     {
-        return QList<QCameraViewfinderSettings>();
+        return supportedSettings;
     }
 
     QCameraViewfinderSettings settings;
+    QList<QCameraViewfinderSettings> supportedSettings;
 };
 
 #endif // MOCKCAMERAVIEWFINDERSETTINGSCONTROL_H

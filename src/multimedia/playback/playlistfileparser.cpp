@@ -290,7 +290,8 @@ void QPlaylistFileParserPrivate::processLine(int startIndex, int length)
 
         switch (m_type) {
         case QPlaylistFileParser::UNKNOWN:
-            emit q->error(QPlaylistFileParser::FormatError, QString(QObject::tr("%1 playlist type is unknown")).arg(m_root.toString()));
+            emit q->error(QPlaylistFileParser::FormatError,
+                          QPlaylistFileParser::tr("%1 playlist type is unknown").arg(m_root.toString()));
             q->stop();
             return;
         case QPlaylistFileParser::M3U:
@@ -350,7 +351,7 @@ void QPlaylistFileParserPrivate::_q_handleData()
 
         if (m_buffer.length() - processedBytes >= LINE_LIMIT) {
             qWarning() << "error parsing playlist["<< m_root << "] with line content >= 4096 bytes.";
-            emit q->error(QPlaylistFileParser::FormatError, QObject::tr("invalid line in playlist file"));
+            emit q->error(QPlaylistFileParser::FormatError, QPlaylistFileParser::tr("invalid line in playlist file"));
             q->stop();
             return;
         }
@@ -398,7 +399,7 @@ void QPlaylistFileParserPrivate::_q_handleParserFinished()
     Q_Q(QPlaylistFileParser);
     bool isParserValid = (m_currentParser != 0);
     if (!isParserValid)
-        emit q->error(QPlaylistFileParser::FormatNotSupportedError, QObject::tr("Empty file provided"));
+        emit q->error(QPlaylistFileParser::FormatNotSupportedError, QPlaylistFileParser::tr("Empty file provided"));
 
     q->stop();
 

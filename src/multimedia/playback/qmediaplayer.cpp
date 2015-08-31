@@ -468,6 +468,7 @@ void QMediaPlayerPrivate::disconnectPlaylist()
         QObject::disconnect(playlist, SIGNAL(currentMediaChanged(QMediaContent)),
                             q, SLOT(_q_updateMedia(QMediaContent)));
         QObject::disconnect(playlist, SIGNAL(destroyed()), q, SLOT(_q_playlistDestroyed()));
+        q->unbind(playlist);
     }
 }
 
@@ -475,6 +476,7 @@ void QMediaPlayerPrivate::connectPlaylist()
 {
     Q_Q(QMediaPlayer);
     if (playlist) {
+        q->bind(playlist);
         QObject::connect(playlist, SIGNAL(currentMediaChanged(QMediaContent)),
                          q, SLOT(_q_updateMedia(QMediaContent)));
         QObject::connect(playlist, SIGNAL(destroyed()), q, SLOT(_q_playlistDestroyed()));
@@ -621,6 +623,8 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
 QMediaPlayer::~QMediaPlayer()
 {
     Q_D(QMediaPlayer);
+
+    d->disconnectPlaylist();
 
     if (d->service) {
         if (d->control)

@@ -57,9 +57,6 @@ QT_BEGIN_NAMESPACE
     and cannot be created directly.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
-
     Item {
         width: 640
         height: 360

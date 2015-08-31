@@ -38,23 +38,22 @@
 
 #include "qgstreamervideorendererinterface_p.h"
 #include <private/qgstreamerbushelper_p.h>
-#include <private/qgstreamerbufferprobe_p.h>
+#include <private/qgstreamervideooverlay_p.h>
 #include <QtGui/qcolor.h>
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 
-class QGstreamerVideoWindow : public QVideoWindowControl,
+class QGstreamerVideoWindow :
+        public QVideoWindowControl,
         public QGstreamerVideoRendererInterface,
         public QGstreamerSyncMessageFilter,
-        private QGstreamerBufferProbe
+        public QGstreamerBusMessageFilter
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter)
-    Q_PROPERTY(QColor colorKey READ colorKey WRITE setColorKey)
-    Q_PROPERTY(bool autopaintColorKey READ autopaintColorKey WRITE setAutopaintColorKey)
+    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 public:
-    QGstreamerVideoWindow(QObject *parent = 0, const char *elementName = 0);
+    explicit QGstreamerVideoWindow(QObject *parent = 0, const QByteArray &elementName = QByteArray());
     ~QGstreamerVideoWindow();
 
     WId winId() const;
@@ -70,12 +69,6 @@ public:
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    QColor colorKey() const;
-    void setColorKey(const QColor &);
-
-    bool autopaintColorKey() const;
-    void setAutopaintColorKey(bool);
 
     void repaint();
 
@@ -96,24 +89,18 @@ public:
     GstElement *videoSink();
 
     bool processSyncMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message);
     bool isReady() const { return m_windowId != 0; }
 
 signals:
     void sinkChanged();
     void readyChanged(bool);
 
-private slots:
-    void updateNativeVideoSize(const QSize &size);
-
 private:
-    void probeCaps(GstCaps *caps);
-
-    GstElement *m_videoSink;
+    QGstreamerVideoOverlay m_videoOverlay;
     WId m_windowId;
-    Qt::AspectRatioMode m_aspectRatioMode;
     QRect m_displayRect;
     bool m_fullScreen;
-    QSize m_nativeSize;
     mutable QColor m_colorKey;
 };
 

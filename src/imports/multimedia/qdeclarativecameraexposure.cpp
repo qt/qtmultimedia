@@ -44,8 +44,6 @@ QT_BEGIN_NAMESPACE
     \ingroup camera_qml
     \inqmlmodule QtMultimedia
 
-    This type is part of the \b{QtMultimedia 5.0} module.
-
     CameraExposure allows you to adjust exposure related settings
     like aperture and shutter speed, metering and ISO speed.
 
@@ -53,8 +51,6 @@ QT_BEGIN_NAMESPACE
     \c exposure property of the a \l Camera should be used.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
 
     Camera {
         id: camera

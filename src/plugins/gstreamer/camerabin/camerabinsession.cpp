@@ -388,7 +388,7 @@ void CameraBinSession::setupCaptureResolution()
     gst_caps_unref(caps);
 
     // Special case when using mfw_v4lsrc
-    if (m_videoSrc && qstrcmp(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(gst_element_get_factory(m_videoSrc))), "mfw_v4lsrc") == 0) {
+    if (m_videoSrc && qstrcmp(qt_gst_element_get_factory_name(m_videoSrc), "mfw_v4lsrc") == 0) {
         int capMode = 0;
         if (viewfinderResolution == QSize(320, 240))
             capMode = 1;
@@ -472,9 +472,7 @@ GstElement *CameraBinSession::buildCameraSource()
 #if CAMERABIN_DEBUG
         qDebug() << "set camera device" << m_inputDevice;
 #endif
-        const char *const cameraSrcName = gst_plugin_feature_get_name(
-                    GST_PLUGIN_FEATURE(gst_element_get_factory(m_cameraSrc)));
-        m_usingWrapperCameraBinSrc = qstrcmp(cameraSrcName, "wrappercamerabinsrc") == 0;
+        m_usingWrapperCameraBinSrc = qstrcmp(qt_gst_element_get_factory_name(m_cameraSrc), "wrappercamerabinsrc") == 0;
 
         if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_cameraSrc), "video-source")) {
             if (!m_videoSrc) {

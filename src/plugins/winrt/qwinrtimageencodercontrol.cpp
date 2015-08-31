@@ -99,23 +99,23 @@ void QWinRTImageEncoderControl::setSupportedResolutionsList(const QList<QSize> r
 void QWinRTImageEncoderControl::applySettings()
 {
     Q_D(QWinRTImageEncoderControl);
-    d->imageEncoderSetting.setCodec(QStringLiteral("jpeg"));
+    if (d->imageEncoderSetting.codec().isEmpty())
+        d->imageEncoderSetting.setCodec(QStringLiteral("jpeg"));
 
     QSize requestResolution = d->imageEncoderSetting.resolution();
     if (d->supportedResolutions.isEmpty() || d->supportedResolutions.contains(requestResolution))
         return;
 
-    if (!requestResolution.isValid())
-        requestResolution = QSize(0, 0);// Find the minimal available resolution
-
     // Find closest resolution from the list
     const int pixelCount = requestResolution.width() * requestResolution.height();
-    int minPixelCountGap = -1;
-    for (int i = 0; i < d->supportedResolutions.size(); ++i) {
-        int gap = qAbs(pixelCount - d->supportedResolutions.at(i).width() * d->supportedResolutions.at(i).height());
-        if (gap < minPixelCountGap || minPixelCountGap < 0) {
-            minPixelCountGap = gap;
-            requestResolution = d->supportedResolutions.at(i);
+    int minimumGap = std::numeric_limits<int>::max();
+    foreach (const QSize &size, d->supportedResolutions) {
+        int gap = qAbs(pixelCount - size.width() * size.height());
+        if (gap < minimumGap) {
+            minimumGap = gap;
+            requestResolution = size;
+            if (gap == 0)
+                break;
         }
     }
     d->imageEncoderSetting.setResolution(requestResolution);

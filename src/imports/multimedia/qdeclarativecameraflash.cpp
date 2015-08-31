@@ -44,8 +44,6 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup camera_qml
 
-    CameraFlash is part of the \b{QtMultimedia 5.0} module.
-
     This type allows you to operate the camera flash
     hardware and control the flash mode used.  Not all cameras have
     flash hardware (and in some cases it is shared with the
@@ -55,8 +53,6 @@ QT_BEGIN_NAMESPACE
     \c flash property of a \l Camera should be used.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.0
 
     Camera {
         id: camera
@@ -81,11 +77,7 @@ QDeclarativeCameraFlash::QDeclarativeCameraFlash(QCamera *camera, QObject *paren
 QDeclarativeCameraFlash::~QDeclarativeCameraFlash()
 {
 }
-/*!
-    \property bool QDeclarativeCameraFlash::ready
 
-    This property indicates whether the flash is charged.
-*/
 /*!
     \qmlproperty bool QtMultimedia::CameraFlash::ready
 
@@ -95,11 +87,7 @@ bool QDeclarativeCameraFlash::isFlashReady() const
 {
     return m_exposure->isFlashReady();
 }
-/*!
-    \property QDeclarativeCameraFlash::mode
 
-    This property holds the camera flash mode. The mode can be one of the constants in \l QCameraExposure::FlashMode.
-*/
 /*!
     \qmlproperty enumeration QtMultimedia::CameraFlash::mode
 
