@@ -106,6 +106,7 @@ Q_SIGNALS:
     void mutedChanged(bool muted);
     void audioAvailableChanged(bool audioAvailable);
     void videoAvailableChanged(bool videoAvailable);
+    void playbackRateChanged(qreal rate);
     void error(int error, const QString &errorString);
 
 private:
