@@ -121,18 +121,27 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 
 - (void) unloadMedia
 {
-    if (m_player)
-        [m_player setRate:0.0];
     if (m_playerItem) {
         [m_playerItem removeObserver:self forKeyPath:AVF_STATUS_KEY];
 
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemDidPlayToEndTimeNotification
-                                                  object:m_playerItem];
+                                                    object:m_playerItem];
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemTimeJumpedNotification
                                                     object:m_playerItem];
         m_playerItem = 0;
+    }
+    if (m_player) {
+        [m_player setRate:0.0];
+        [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
+        [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
+        [m_player release];
+        m_player = 0;
+    }
+    if (m_playerLayer) {
+        [m_playerLayer release];
+        m_playerLayer = 0;
     }
 }
 
@@ -202,21 +211,6 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
                                              selector:@selector(playerItemTimeJumped:)
                                                  name:AVPlayerItemTimeJumpedNotification
                                                object:m_playerItem];
-
-
-    //Clean up old player if we have one
-    if (m_player) {
-        [m_player setRate:0.0];
-        [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
-        [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
-        [m_player release];
-        m_player = 0;
-
-        if (m_playerLayer) {
-            [m_playerLayer release];
-            m_playerLayer = 0; //Will have been released
-        }
-    }
 
     //Get a new AVPlayer initialized to play the specified player item.
     m_player = [AVPlayer playerWithPlayerItem:m_playerItem];
@@ -354,18 +348,6 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 #endif
     [self unloadMedia];
 
-    if (m_player) {
-        [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
-        [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
-        [m_player release];
-        m_player = 0;
-    }
-
-    if (m_playerLayer) {
-        [m_playerLayer release];
-        m_playerLayer = 0;
-    }
-
     if (m_URL) {
         [m_URL release];
     }
@@ -464,6 +446,8 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
     qDebug() << Q_FUNC_INFO << content.canonicalUrl();
 #endif
 
+    [(AVFMediaPlayerSessionObserver*)m_observer unloadMedia];
+
     m_resources = content;
     m_mediaStream = stream;
 
@@ -475,7 +459,6 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
     QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatus;
 
     if (content.isNull() || content.canonicalUrl().isEmpty()) {
-        [(AVFMediaPlayerSessionObserver*)m_observer unloadMedia];
         m_mediaStatus = QMediaPlayer::NoMedia;
         if (m_state != QMediaPlayer::StoppedState)
             Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
