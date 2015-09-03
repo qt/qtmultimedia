@@ -166,6 +166,7 @@ private:
     bool m_tryingAsync;
     int m_volume;
     qreal m_rate;
+    qint64 m_requestedPosition;
 
     qint64 m_duration;
     bool m_videoAvailable;

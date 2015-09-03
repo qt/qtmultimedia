@@ -391,6 +391,7 @@ AVFMediaPlayerSession::AVFMediaPlayerSession(AVFMediaPlayerService *service, QOb
     , m_tryingAsync(false)
     , m_volume(100)
     , m_rate(1.0)
+    , m_requestedPosition(-1)
     , m_duration(0)
     , m_videoAvailable(false)
     , m_audioAvailable(false)
@@ -468,6 +469,8 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
 
     setAudioAvailable(false);
     setVideoAvailable(false);
+    m_requestedPosition = -1;
+    Q_EMIT positionChanged(position());
 
     QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatus;
 
@@ -479,7 +482,6 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
 
         if (m_mediaStatus != oldMediaStatus)
             Q_EMIT mediaStatusChanged(m_mediaStatus);
-        Q_EMIT positionChanged(position());
         return;
     } else {
 
@@ -487,6 +489,7 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
         if (m_mediaStatus != oldMediaStatus)
             Q_EMIT mediaStatusChanged(m_mediaStatus);
     }
+
     //Load AVURLAsset
     //initialize asset using content's URL
     NSString *urlString = [NSString stringWithUTF8String:content.canonicalUrl().toEncoded().constData()];
@@ -499,7 +502,7 @@ qint64 AVFMediaPlayerSession::position() const
     AVPlayerItem *playerItem = [(AVFMediaPlayerSessionObserver*)m_observer playerItem];
 
     if (!playerItem)
-        return 0;
+        return m_requestedPosition != -1 ? m_requestedPosition : 0;
 
     CMTime time = [playerItem currentTime];
     return static_cast<quint64>(float(time.value) / float(time.timescale) * 1000.0f);
@@ -619,14 +622,23 @@ void AVFMediaPlayerSession::setPosition(qint64 pos)
     qDebug() << Q_FUNC_INFO << pos;
 #endif
 
-    if ( !isSeekable() || pos == position())
+    if (pos == position())
         return;
 
     AVPlayerItem *playerItem = [(AVFMediaPlayerSessionObserver*)m_observer playerItem];
-
-    if (!playerItem)
+    if (!playerItem) {
+        m_requestedPosition = pos;
+        Q_EMIT positionChanged(m_requestedPosition);
         return;
+    } else if (!isSeekable()) {
+        if (m_requestedPosition != -1) {
+            m_requestedPosition = -1;
+            Q_EMIT positionChanged(position());
+        }
+        return;
+    }
 
+    pos = qMax(qint64(0), pos);
     if (duration() > 0)
         pos = qMin(pos, duration());
 
@@ -823,6 +835,11 @@ void AVFMediaPlayerSession::processLoadStateChange()
         if (m_duration != currentDuration)
             Q_EMIT durationChanged(m_duration = currentDuration);
 
+        if (m_requestedPosition != -1) {
+            setPosition(m_requestedPosition);
+            m_requestedPosition = -1;
+        }
+
         newStatus = isPlaying ? QMediaPlayer::BufferedMedia : QMediaPlayer::LoadedMedia;
 
         if (m_state == QMediaPlayer::PlayingState && [(AVFMediaPlayerSessionObserver*)m_observer player]) {
@@ -842,6 +859,10 @@ void AVFMediaPlayerSession::processPositionChange()
 
 void AVFMediaPlayerSession::processMediaLoadError()
 {
+    if (m_requestedPosition != -1) {
+        m_requestedPosition = -1;
+        Q_EMIT positionChanged(position());
+    }
     Q_EMIT error(QMediaPlayer::FormatError, tr("Failed to load media"));
     Q_EMIT mediaStatusChanged(m_mediaStatus = QMediaPlayer::InvalidMedia);
     Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
