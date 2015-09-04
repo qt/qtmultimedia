@@ -220,7 +220,7 @@ void AVFCameraSession::updateCameraDevices()
         //     the screen when held in portrait ==> 270 degrees clockwise angle
         //   - Front-facing cameras have the top side of the sensor aligned with the left side of
         //     the screen when held in portrait ==> 270 degrees clockwise angle
-        // On Mac OS, the position will always be unspecified and the sensor orientation unknown.
+        // On OS X, the position will always be unspecified and the sensor orientation unknown.
         switch (device.position) {
         case AVCaptureDevicePositionBack:
             info.position = QCamera::BackFace;
