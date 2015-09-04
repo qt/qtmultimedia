@@ -767,6 +767,11 @@ void AVFMediaPlayerSession::processEOS()
     Q_EMIT positionChanged(position());
     m_mediaStatus = QMediaPlayer::EndOfMedia;
 
+    // At this point, frames should not be rendered anymore.
+    // Clear the output layer to make sure of that.
+    if (m_videoOutput)
+        m_videoOutput->setLayer(0);
+
     Q_EMIT stateChanged(m_state = QMediaPlayer::StoppedState);
     Q_EMIT mediaStatusChanged(m_mediaStatus);
 }
