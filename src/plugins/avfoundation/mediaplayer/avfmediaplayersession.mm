@@ -377,6 +377,7 @@ AVFMediaPlayerSession::AVFMediaPlayerSession(AVFMediaPlayerService *service, QOb
     , m_duration(0)
     , m_videoAvailable(false)
     , m_audioAvailable(false)
+    , m_seekable(false)
 {
     m_observer = [[AVFMediaPlayerSessionObserver alloc] initWithMediaPlayerSession:this];
 }
@@ -453,6 +454,7 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
 
     setAudioAvailable(false);
     setVideoAvailable(false);
+    setSeekable(false);
     m_requestedPosition = -1;
     Q_EMIT positionChanged(position());
 
@@ -554,7 +556,16 @@ bool AVFMediaPlayerSession::isVideoAvailable() const
 
 bool AVFMediaPlayerSession::isSeekable() const
 {
-    return true;
+    return m_seekable;
+}
+
+void AVFMediaPlayerSession::setSeekable(bool seekable)
+{
+    if (m_seekable == seekable)
+        return;
+
+    m_seekable = seekable;
+    Q_EMIT seekableChanged(seekable);
 }
 
 QMediaTimeRange AVFMediaPlayerSession::availablePlaybackRanges() const
@@ -805,6 +816,8 @@ void AVFMediaPlayerSession::processLoadStateChange()
                     }
                 }
             }
+
+            setSeekable([[playerItem seekableTimeRanges] count] > 0);
 
             // Get the native size of the video, and reset the bounds of the player layer
             AVPlayerLayer *playerLayer = [(AVFMediaPlayerSessionObserver*)m_observer playerLayer];

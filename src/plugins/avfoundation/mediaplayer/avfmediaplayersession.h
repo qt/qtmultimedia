@@ -109,6 +109,7 @@ Q_SIGNALS:
     void audioAvailableChanged(bool audioAvailable);
     void videoAvailableChanged(bool videoAvailable);
     void playbackRateChanged(qreal rate);
+    void seekableChanged(bool seekable);
     void error(int error, const QString &errorString);
 
 private:
@@ -151,6 +152,7 @@ private:
 
     void setAudioAvailable(bool available);
     void setVideoAvailable(bool available);
+    void setSeekable(bool seekable);
 
     AVFMediaPlayerService *m_service;
     AVFVideoOutput *m_videoOutput;
@@ -171,6 +173,7 @@ private:
     qint64 m_duration;
     bool m_videoAvailable;
     bool m_audioAvailable;
+    bool m_seekable;
 
     void *m_observer;
 };
