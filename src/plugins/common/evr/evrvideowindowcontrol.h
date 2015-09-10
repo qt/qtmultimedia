@@ -31,52 +31,71 @@
 **
 ****************************************************************************/
 
-#ifndef MFPLAYERSERVICE_H
-#define MFPLAYERSERVICE_H
+#ifndef EVRVIDEOWINDOWCONTROL_H
+#define EVRVIDEOWINDOWCONTROL_H
 
-#include <mfapi.h>
-#include <mfidl.h>
+#include "qvideowindowcontrol.h"
 
-#include "qmediaplayer.h"
-#include "qmediaresource.h"
-#include "qmediaservice.h"
-#include "qmediatimerange.h"
-
-QT_BEGIN_NAMESPACE
-class QMediaContent;
-QT_END_NAMESPACE
+#include "evrdefs.h"
 
 QT_USE_NAMESPACE
 
-class MFEvrVideoWindowControl;
-class MFAudioEndpointControl;
-class MFVideoRendererControl;
-class MFPlayerControl;
-class MFMetaDataControl;
-class MFPlayerSession;
-
-class MFPlayerService : public QMediaService
+class EvrVideoWindowControl : public QVideoWindowControl
 {
     Q_OBJECT
 public:
-    MFPlayerService(QObject *parent = 0);
-    ~MFPlayerService();
+    EvrVideoWindowControl(QObject *parent = 0);
+    ~EvrVideoWindowControl();
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    bool setEvr(IUnknown *evr);
 
-    MFAudioEndpointControl* audioEndpointControl() const;
-    MFVideoRendererControl* videoRendererControl() const;
-    MFEvrVideoWindowControl* videoWindowControl() const;
-    MFMetaDataControl* metaDataControl() const;
+    WId winId() const;
+    void setWinId(WId id);
+
+    QRect displayRect() const;
+    void setDisplayRect(const QRect &rect);
+
+    bool isFullScreen() const;
+    void setFullScreen(bool fullScreen);
+
+    void repaint();
+
+    QSize nativeSize() const;
+
+    Qt::AspectRatioMode aspectRatioMode() const;
+    void setAspectRatioMode(Qt::AspectRatioMode mode);
+
+    int brightness() const;
+    void setBrightness(int brightness);
+
+    int contrast() const;
+    void setContrast(int contrast);
+
+    int hue() const;
+    void setHue(int hue);
+
+    int saturation() const;
+    void setSaturation(int saturation);
+
+    void applyImageControls();
 
 private:
-    MFPlayerSession *m_session;
-    MFVideoRendererControl *m_videoRendererControl;
-    MFAudioEndpointControl *m_audioEndpointControl;
-    MFEvrVideoWindowControl *m_videoWindowControl;
-    MFPlayerControl        *m_player;
-    MFMetaDataControl      *m_metaDataControl;
+    void clear();
+    DXVA2_Fixed32 scaleProcAmpValue(DWORD prop, int value) const;
+
+    WId m_windowId;
+    COLORREF m_windowColor;
+    DWORD m_dirtyValues;
+    Qt::AspectRatioMode m_aspectRatioMode;
+    QRect m_displayRect;
+    int m_brightness;
+    int m_contrast;
+    int m_hue;
+    int m_saturation;
+    bool m_fullScreen;
+
+    IMFVideoDisplayControl *m_displayControl;
+    IMFVideoProcessor *m_processor;
 };
 
 #endif

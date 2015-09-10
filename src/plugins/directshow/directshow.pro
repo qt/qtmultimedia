@@ -13,11 +13,6 @@ SOURCES += dsserviceplugin.cpp
 
 !config_wmsdk: DEFINES += QT_NO_WMSDK
 
-qtHaveModule(widgets) {
-    QT += multimediawidgets
-    DEFINES += HAVE_WIDGETS
-}
-
 mingw: DEFINES += NO_DSHOW_STRSAFE
 
 !config_wmf: include(player/player.pri)

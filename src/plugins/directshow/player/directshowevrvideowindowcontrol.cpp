@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,52 +31,33 @@
 **
 ****************************************************************************/
 
-#ifndef MFPLAYERSERVICE_H
-#define MFPLAYERSERVICE_H
+#include "directshowevrvideowindowcontrol.h"
 
-#include <mfapi.h>
-#include <mfidl.h>
+#include "directshowglobal.h"
 
-#include "qmediaplayer.h"
-#include "qmediaresource.h"
-#include "qmediaservice.h"
-#include "qmediatimerange.h"
-
-QT_BEGIN_NAMESPACE
-class QMediaContent;
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
-
-class MFEvrVideoWindowControl;
-class MFAudioEndpointControl;
-class MFVideoRendererControl;
-class MFPlayerControl;
-class MFMetaDataControl;
-class MFPlayerSession;
-
-class MFPlayerService : public QMediaService
+DirectShowEvrVideoWindowControl::DirectShowEvrVideoWindowControl(QObject *parent)
+    : EvrVideoWindowControl(parent)
+    , m_evrFilter(NULL)
 {
-    Q_OBJECT
-public:
-    MFPlayerService(QObject *parent = 0);
-    ~MFPlayerService();
+}
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+DirectShowEvrVideoWindowControl::~DirectShowEvrVideoWindowControl()
+{
+    if (m_evrFilter)
+        m_evrFilter->Release();
+}
 
-    MFAudioEndpointControl* audioEndpointControl() const;
-    MFVideoRendererControl* videoRendererControl() const;
-    MFEvrVideoWindowControl* videoWindowControl() const;
-    MFMetaDataControl* metaDataControl() const;
+IBaseFilter *DirectShowEvrVideoWindowControl::filter()
+{
+    static const GUID clsid_EnhancendVideoRenderer = { 0xfa10746c, 0x9b63, 0x4b6c, {0xbc, 0x49, 0xfc, 0x30, 0xe, 0xa5, 0xf2, 0x56} };
 
-private:
-    MFPlayerSession *m_session;
-    MFVideoRendererControl *m_videoRendererControl;
-    MFAudioEndpointControl *m_audioEndpointControl;
-    MFEvrVideoWindowControl *m_videoWindowControl;
-    MFPlayerControl        *m_player;
-    MFMetaDataControl      *m_metaDataControl;
-};
+    if (!m_evrFilter) {
+        m_evrFilter = com_new<IBaseFilter>(clsid_EnhancendVideoRenderer);
+        if (!setEvr(m_evrFilter)) {
+            m_evrFilter->Release();
+            m_evrFilter = NULL;
+        }
+    }
 
-#endif
+    return m_evrFilter;
+}

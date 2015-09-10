@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,52 +31,27 @@
 **
 ****************************************************************************/
 
-#ifndef MFPLAYERSERVICE_H
-#define MFPLAYERSERVICE_H
+#ifndef MFEVRVIDEOWINDOWCONTROL_H
+#define MFEVRVIDEOWINDOWCONTROL_H
 
-#include <mfapi.h>
-#include <mfidl.h>
-
-#include "qmediaplayer.h"
-#include "qmediaresource.h"
-#include "qmediaservice.h"
-#include "qmediatimerange.h"
-
-QT_BEGIN_NAMESPACE
-class QMediaContent;
-QT_END_NAMESPACE
+#include "evrvideowindowcontrol.h"
 
 QT_USE_NAMESPACE
 
-class MFEvrVideoWindowControl;
-class MFAudioEndpointControl;
-class MFVideoRendererControl;
-class MFPlayerControl;
-class MFMetaDataControl;
-class MFPlayerSession;
-
-class MFPlayerService : public QMediaService
+class MFEvrVideoWindowControl : public EvrVideoWindowControl
 {
-    Q_OBJECT
 public:
-    MFPlayerService(QObject *parent = 0);
-    ~MFPlayerService();
+    MFEvrVideoWindowControl(QObject *parent = 0);
+    ~MFEvrVideoWindowControl();
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
-
-    MFAudioEndpointControl* audioEndpointControl() const;
-    MFVideoRendererControl* videoRendererControl() const;
-    MFEvrVideoWindowControl* videoWindowControl() const;
-    MFMetaDataControl* metaDataControl() const;
+    IMFActivate* createActivate();
+    void releaseActivate();
 
 private:
-    MFPlayerSession *m_session;
-    MFVideoRendererControl *m_videoRendererControl;
-    MFAudioEndpointControl *m_audioEndpointControl;
-    MFEvrVideoWindowControl *m_videoWindowControl;
-    MFPlayerControl        *m_player;
-    MFMetaDataControl      *m_metaDataControl;
+    void clear();
+
+    IMFActivate *m_currentActivate;
+    IMFMediaSink *m_evrSink;
 };
 
-#endif
+#endif // MFEVRVIDEOWINDOWCONTROL_H

@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,76 +31,25 @@
 **
 ****************************************************************************/
 
-#ifndef EVR9VIDEOWINDOWCONTROL_H
-#define EVR9VIDEOWINDOWCONTROL_H
+#ifndef DIRECTSHOWEVRVIDEOWINDOWCONTROL_H
+#define DIRECTSHOWEVRVIDEOWINDOWCONTROL_H
 
-#include "qvideowindowcontrol.h"
+#include "evrvideowindowcontrol.h"
 
-#include <Mfidl.h>
-#include <d3d9.h>
-#include <Evr9.h>
+struct IBaseFilter;
 
 QT_USE_NAMESPACE
 
-class Evr9VideoWindowControl : public QVideoWindowControl
+class DirectShowEvrVideoWindowControl : public EvrVideoWindowControl
 {
-    Q_OBJECT
 public:
-    Evr9VideoWindowControl(QObject *parent = 0);
-    ~Evr9VideoWindowControl();
+    DirectShowEvrVideoWindowControl(QObject *parent = 0);
+    ~DirectShowEvrVideoWindowControl();
 
-    WId winId() const;
-    void setWinId(WId id);
-
-    QRect displayRect() const;
-    void setDisplayRect(const QRect &rect);
-
-    bool isFullScreen() const;
-    void setFullScreen(bool fullScreen);
-
-    void repaint();
-
-    QSize nativeSize() const;
-
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    int brightness() const;
-    void setBrightness(int brightness);
-
-    int contrast() const;
-    void setContrast(int contrast);
-
-    int hue() const;
-    void setHue(int hue);
-
-    int saturation() const;
-    void setSaturation(int saturation);
-
-    IMFActivate* createActivate();
-    void releaseActivate();
-
-    void setProcAmpValues();
+    IBaseFilter *filter();
 
 private:
-    void clear();
-    DXVA2_Fixed32 scaleProcAmpValue(DWORD prop, int value) const;
-
-    WId m_windowId;
-    COLORREF m_windowColor;
-    DWORD m_dirtyValues;
-    Qt::AspectRatioMode m_aspectRatioMode;
-    QRect m_displayRect;
-    int m_brightness;
-    int m_contrast;
-    int m_hue;
-    int m_saturation;
-    bool m_fullScreen;
-
-    IMFActivate *m_currentActivate;
-    IMFMediaSink *m_evrSink;
-    IMFVideoDisplayControl *m_displayControl;
-    IMFVideoProcessor *m_processor;
+    IBaseFilter *m_evrFilter;
 };
 
-#endif
+#endif // DIRECTSHOWEVRVIDEOWINDOWCONTROL_H

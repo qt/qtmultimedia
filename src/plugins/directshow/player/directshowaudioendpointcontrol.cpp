@@ -44,7 +44,7 @@ DirectShowAudioEndpointControl::DirectShowAudioEndpointControl(
     , m_deviceEnumerator(0)
 {
     if (CreateBindCtx(0, &m_bindContext) == S_OK) {
-        m_deviceEnumerator = com_new<ICreateDevEnum>(CLSID_SystemDeviceEnum, IID_ICreateDevEnum);
+        m_deviceEnumerator = com_new<ICreateDevEnum>(CLSID_SystemDeviceEnum);
 
         updateEndpoints();
 

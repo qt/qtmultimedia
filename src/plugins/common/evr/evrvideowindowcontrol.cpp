@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,14 +31,16 @@
 **
 ****************************************************************************/
 
-#include "evr9videowindowcontrol.h"
-#include <QtWidgets/qwidget.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qglobal.h>
+#include "evrvideowindowcontrol.h"
 
-Evr9VideoWindowControl::Evr9VideoWindowControl(QObject *parent)
+#ifndef QT_NO_WIDGETS
+#include <qwidget.h>
+#endif
+
+EvrVideoWindowControl::EvrVideoWindowControl(QObject *parent)
     : QVideoWindowControl(parent)
     , m_windowId(0)
+    , m_windowColor(RGB(0, 0, 0))
     , m_dirtyValues(0)
     , m_aspectRatioMode(Qt::KeepAspectRatio)
     , m_brightness(0)
@@ -46,68 +48,83 @@ Evr9VideoWindowControl::Evr9VideoWindowControl(QObject *parent)
     , m_hue(0)
     , m_saturation(0)
     , m_fullScreen(false)
-    , m_currentActivate(0)
-    , m_evrSink(0)
     , m_displayControl(0)
     , m_processor(0)
 {
 }
 
-Evr9VideoWindowControl::~Evr9VideoWindowControl()
+EvrVideoWindowControl::~EvrVideoWindowControl()
 {
    clear();
 }
 
-void Evr9VideoWindowControl::clear()
-{
-    if (m_processor)
-        m_processor->Release();
-    if (m_displayControl)
-        m_displayControl->Release();
-    if (m_evrSink)
-        m_evrSink->Release();
-    if (m_currentActivate) {
-        m_currentActivate->ShutdownObject();
-        m_currentActivate->Release();
-    }
-
-    m_processor = NULL;
-    m_displayControl = NULL;
-    m_evrSink = NULL;
-    m_currentActivate = NULL;
-}
-
-void Evr9VideoWindowControl::releaseActivate()
+bool EvrVideoWindowControl::setEvr(IUnknown *evr)
 {
     clear();
+
+    if (!evr)
+        return true;
+
+    static const GUID mr_VIDEO_RENDER_SERVICE = { 0x1092a86c, 0xab1a, 0x459a, {0xa3, 0x36, 0x83, 0x1f, 0xbc, 0x4d, 0x11, 0xff} };
+    static const GUID mr_VIDEO_MIXER_SERVICE = { 0x73cd2fc, 0x6cf4, 0x40b7, {0x88, 0x59, 0xe8, 0x95, 0x52, 0xc8, 0x41, 0xf8} };
+    IMFGetService *service = NULL;
+
+    if (SUCCEEDED(evr->QueryInterface(IID_PPV_ARGS(&service)))
+            && SUCCEEDED(service->GetService(mr_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_displayControl)))) {
+
+        service->GetService(mr_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_processor));
+
+        setWinId(m_windowId);
+        setDisplayRect(m_displayRect);
+        setAspectRatioMode(m_aspectRatioMode);
+        m_dirtyValues = DXVA2_ProcAmp_Brightness | DXVA2_ProcAmp_Contrast | DXVA2_ProcAmp_Hue | DXVA2_ProcAmp_Saturation;
+        applyImageControls();
+    }
+
+    if (service)
+        service->Release();
+
+    return m_displayControl != NULL;
 }
 
-WId Evr9VideoWindowControl::winId() const
+void EvrVideoWindowControl::clear()
+{
+    if (m_displayControl)
+        m_displayControl->Release();
+    m_displayControl = NULL;
+
+    if (m_processor)
+        m_processor->Release();
+    m_processor = NULL;
+}
+
+WId EvrVideoWindowControl::winId() const
 {
     return m_windowId;
 }
 
-void Evr9VideoWindowControl::setWinId(WId id)
+void EvrVideoWindowControl::setWinId(WId id)
 {
     m_windowId = id;
 
+#ifndef QT_NO_WIDGETS
     if (QWidget *widget = QWidget::find(m_windowId)) {
         const QColor color = widget->palette().color(QPalette::Window);
 
         m_windowColor = RGB(color.red(), color.green(), color.blue());
     }
+#endif
 
-    if (m_displayControl) {
+    if (m_displayControl)
         m_displayControl->SetVideoWindow(HWND(m_windowId));
-    }
 }
 
-QRect Evr9VideoWindowControl::displayRect() const
+QRect EvrVideoWindowControl::displayRect() const
 {
     return m_displayRect;
 }
 
-void Evr9VideoWindowControl::setDisplayRect(const QRect &rect)
+void EvrVideoWindowControl::setDisplayRect(const QRect &rect)
 {
     m_displayRect = rect;
 
@@ -140,19 +157,19 @@ void Evr9VideoWindowControl::setDisplayRect(const QRect &rect)
     }
 }
 
-bool Evr9VideoWindowControl::isFullScreen() const
+bool EvrVideoWindowControl::isFullScreen() const
 {
     return m_fullScreen;
 }
 
-void Evr9VideoWindowControl::setFullScreen(bool fullScreen)
+void EvrVideoWindowControl::setFullScreen(bool fullScreen)
 {
     if (m_fullScreen == fullScreen)
         return;
     emit fullScreenChanged(m_fullScreen = fullScreen);
 }
 
-void Evr9VideoWindowControl::repaint()
+void EvrVideoWindowControl::repaint()
 {
     QSize size = nativeSize();
     if (size.width() > 0 && size.height() > 0
@@ -181,7 +198,7 @@ void Evr9VideoWindowControl::repaint()
     }
 }
 
-QSize Evr9VideoWindowControl::nativeSize() const
+QSize EvrVideoWindowControl::nativeSize() const
 {
     QSize size;
     if (m_displayControl) {
@@ -192,12 +209,12 @@ QSize Evr9VideoWindowControl::nativeSize() const
     return size;
 }
 
-Qt::AspectRatioMode Evr9VideoWindowControl::aspectRatioMode() const
+Qt::AspectRatioMode EvrVideoWindowControl::aspectRatioMode() const
 {
     return m_aspectRatioMode;
 }
 
-void Evr9VideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
+void EvrVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     m_aspectRatioMode = mode;
 
@@ -222,12 +239,12 @@ void Evr9VideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
     }
 }
 
-int Evr9VideoWindowControl::brightness() const
+int EvrVideoWindowControl::brightness() const
 {
     return m_brightness;
 }
 
-void Evr9VideoWindowControl::setBrightness(int brightness)
+void EvrVideoWindowControl::setBrightness(int brightness)
 {
     if (m_brightness == brightness)
         return;
@@ -236,17 +253,17 @@ void Evr9VideoWindowControl::setBrightness(int brightness)
 
     m_dirtyValues |= DXVA2_ProcAmp_Brightness;
 
-    setProcAmpValues();
+    applyImageControls();
 
     emit brightnessChanged(brightness);
 }
 
-int Evr9VideoWindowControl::contrast() const
+int EvrVideoWindowControl::contrast() const
 {
     return m_contrast;
 }
 
-void Evr9VideoWindowControl::setContrast(int contrast)
+void EvrVideoWindowControl::setContrast(int contrast)
 {
     if (m_contrast == contrast)
         return;
@@ -255,17 +272,17 @@ void Evr9VideoWindowControl::setContrast(int contrast)
 
     m_dirtyValues |= DXVA2_ProcAmp_Contrast;
 
-    setProcAmpValues();
+    applyImageControls();
 
     emit contrastChanged(contrast);
 }
 
-int Evr9VideoWindowControl::hue() const
+int EvrVideoWindowControl::hue() const
 {
     return m_hue;
 }
 
-void Evr9VideoWindowControl::setHue(int hue)
+void EvrVideoWindowControl::setHue(int hue)
 {
     if (m_hue == hue)
         return;
@@ -274,17 +291,17 @@ void Evr9VideoWindowControl::setHue(int hue)
 
     m_dirtyValues |= DXVA2_ProcAmp_Hue;
 
-    setProcAmpValues();
+    applyImageControls();
 
     emit hueChanged(hue);
 }
 
-int Evr9VideoWindowControl::saturation() const
+int EvrVideoWindowControl::saturation() const
 {
     return m_saturation;
 }
 
-void Evr9VideoWindowControl::setSaturation(int saturation)
+void EvrVideoWindowControl::setSaturation(int saturation)
 {
     if (m_saturation == saturation)
         return;
@@ -293,41 +310,12 @@ void Evr9VideoWindowControl::setSaturation(int saturation)
 
     m_dirtyValues |= DXVA2_ProcAmp_Saturation;
 
-    setProcAmpValues();
+    applyImageControls();
 
     emit saturationChanged(saturation);
 }
 
-IMFActivate* Evr9VideoWindowControl::createActivate()
-{
-    clear();
-
-    if (FAILED(MFCreateVideoRendererActivate(0, &m_currentActivate))) {
-        qWarning() << "Failed to create evr video renderer activate!";
-        return 0;
-    }
-    if (FAILED(m_currentActivate->ActivateObject(IID_IMFMediaSink, (LPVOID*)(&m_evrSink)))) {
-        qWarning() << "Failed to activate evr media sink!";
-        return 0;
-    }
-    if (FAILED(MFGetService(m_evrSink, MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_displayControl)))) {
-        qWarning() << "Failed to get display control from evr media sink!";
-        return 0;
-    }
-    if (FAILED(MFGetService(m_evrSink,  MR_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_processor)))) {
-        qWarning() << "Failed to get video processor from evr media sink!";
-        return 0;
-    }
-
-    setWinId(m_windowId);
-    setDisplayRect(m_displayRect);
-    setAspectRatioMode(m_aspectRatioMode);
-    m_dirtyValues = DXVA2_ProcAmp_Brightness | DXVA2_ProcAmp_Contrast | DXVA2_ProcAmp_Hue | DXVA2_ProcAmp_Saturation;
-
-    return m_currentActivate;
-}
-
-void Evr9VideoWindowControl::setProcAmpValues()
+void EvrVideoWindowControl::applyImageControls()
 {
     if (m_processor) {
         DXVA2_ProcAmpValues values;
@@ -350,7 +338,7 @@ void Evr9VideoWindowControl::setProcAmpValues()
     }
 }
 
-DXVA2_Fixed32 Evr9VideoWindowControl::scaleProcAmpValue(DWORD prop, int value) const
+DXVA2_Fixed32 EvrVideoWindowControl::scaleProcAmpValue(DWORD prop, int value) const
 {
     float scaledValue = 0.0;
 

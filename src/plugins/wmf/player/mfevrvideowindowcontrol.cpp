@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,52 +31,55 @@
 **
 ****************************************************************************/
 
-#ifndef MFPLAYERSERVICE_H
-#define MFPLAYERSERVICE_H
+#include "mfevrvideowindowcontrol.h"
 
-#include <mfapi.h>
-#include <mfidl.h>
+#include <qdebug.h>
 
-#include "qmediaplayer.h"
-#include "qmediaresource.h"
-#include "qmediaservice.h"
-#include "qmediatimerange.h"
-
-QT_BEGIN_NAMESPACE
-class QMediaContent;
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
-
-class MFEvrVideoWindowControl;
-class MFAudioEndpointControl;
-class MFVideoRendererControl;
-class MFPlayerControl;
-class MFMetaDataControl;
-class MFPlayerSession;
-
-class MFPlayerService : public QMediaService
+MFEvrVideoWindowControl::MFEvrVideoWindowControl(QObject *parent)
+    : EvrVideoWindowControl(parent)
+    , m_currentActivate(NULL)
+    , m_evrSink(NULL)
 {
-    Q_OBJECT
-public:
-    MFPlayerService(QObject *parent = 0);
-    ~MFPlayerService();
+}
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+MFEvrVideoWindowControl::~MFEvrVideoWindowControl()
+{
+   clear();
+}
 
-    MFAudioEndpointControl* audioEndpointControl() const;
-    MFVideoRendererControl* videoRendererControl() const;
-    MFEvrVideoWindowControl* videoWindowControl() const;
-    MFMetaDataControl* metaDataControl() const;
+void MFEvrVideoWindowControl::clear()
+{
+    setEvr(NULL);
 
-private:
-    MFPlayerSession *m_session;
-    MFVideoRendererControl *m_videoRendererControl;
-    MFAudioEndpointControl *m_audioEndpointControl;
-    MFEvrVideoWindowControl *m_videoWindowControl;
-    MFPlayerControl        *m_player;
-    MFMetaDataControl      *m_metaDataControl;
-};
+    if (m_evrSink)
+        m_evrSink->Release();
+    if (m_currentActivate) {
+        m_currentActivate->ShutdownObject();
+        m_currentActivate->Release();
+    }
+    m_evrSink = NULL;
+    m_currentActivate = NULL;
+}
 
-#endif
+IMFActivate* MFEvrVideoWindowControl::createActivate()
+{
+    clear();
+
+    if (FAILED(MFCreateVideoRendererActivate(0, &m_currentActivate))) {
+        qWarning() << "Failed to create evr video renderer activate!";
+        return NULL;
+    }
+    if (FAILED(m_currentActivate->ActivateObject(IID_IMFMediaSink, (LPVOID*)(&m_evrSink)))) {
+        qWarning() << "Failed to activate evr media sink!";
+        return NULL;
+    }
+    if (!setEvr(m_evrSink))
+        return NULL;
+
+    return m_currentActivate;
+}
+
+void MFEvrVideoWindowControl::releaseActivate()
+{
+    clear();
+}

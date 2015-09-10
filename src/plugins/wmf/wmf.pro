@@ -1,9 +1,6 @@
 TARGET = wmfengine
 QT += multimedia-private network
-qtHaveModule(widgets) {
-    QT += multimediawidgets-private
-    DEFINES += HAVE_WIDGETS
-}
+
 win32:!qtHaveModule(opengl) {
     LIBS_PRIVATE += -lgdi32 -luser32
 }
@@ -37,14 +34,13 @@ contains(QT_CONFIG, angle)|contains(QT_CONFIG, dynamicgl) {
     QT += gui-private
 
     HEADERS += \
-        evrcustompresenter.h \
-        evrd3dpresentengine.h
+        $$PWD/evrcustompresenter.h \
+        $$PWD/evrd3dpresentengine.h
 
     SOURCES += \
-        evrcustompresenter.cpp \
-        evrd3dpresentengine.cpp
+        $$PWD/evrcustompresenter.cpp \
+        $$PWD/evrd3dpresentengine.cpp
 }
-
 
 include (player/player.pri)
 include (decoder/decoder.pri)

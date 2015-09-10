@@ -35,13 +35,16 @@
 
 #include "directshowglobal.h"
 
+#ifndef QT_NO_WIDGETS
 #include <QtGui/QPalette>
 #include <QtWidgets/QWidget>
+#endif
 
 Vmr9VideoWindowControl::Vmr9VideoWindowControl(QObject *parent)
     : QVideoWindowControl(parent)
-    , m_filter(com_new<IBaseFilter>(CLSID_VideoMixingRenderer9, IID_IBaseFilter))
+    , m_filter(com_new<IBaseFilter>(CLSID_VideoMixingRenderer9))
     , m_windowId(0)
+    , m_windowColor(RGB(0, 0, 0))
     , m_dirtyValues(0)
     , m_aspectRatioMode(Qt::KeepAspectRatio)
     , m_brightness(0)
@@ -74,11 +77,13 @@ void Vmr9VideoWindowControl::setWinId(WId id)
 {
     m_windowId = id;
 
+#ifndef QT_NO_WIDGETS
     if (QWidget *widget = QWidget::find(m_windowId)) {
         const QColor color = widget->palette().color(QPalette::Window);
 
         m_windowColor = RGB(color.red(), color.green(), color.blue());
     }
+#endif
 
     if (IVMRWindowlessControl9 *control = com_cast<IVMRWindowlessControl9>(
             m_filter, IID_IVMRWindowlessControl9)) {
