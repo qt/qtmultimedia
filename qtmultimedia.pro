@@ -7,7 +7,6 @@ win32 {
         qtCompileTest(wshellitem)
     }
     qtCompileTest(wmsdk)
-    qtCompileTest(wmp)
     contains(QT_CONFIG, wmf-backend): qtCompileTest(wmf)
     qtCompileTest(evr)
 } else:mac {
