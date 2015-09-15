@@ -146,8 +146,13 @@ Module {
     Component {
         name: "QDeclarativeAudio"
         prototype: "QObject"
-        exports: ["QtMultimedia/Audio 5.0", "QtMultimedia/MediaPlayer 5.0"]
-        exportMetaObjectRevisions: [0, 0]
+        exports: [
+            "QtMultimedia/Audio 5.0",
+            "QtMultimedia/Audio 5.6",
+            "QtMultimedia/MediaPlayer 5.0",
+            "QtMultimedia/MediaPlayer 5.6"
+        ]
+        exportMetaObjectRevisions: [0, 1, 0, 1]
         Enum {
             name: "Status"
             values: {
@@ -212,6 +217,7 @@ Module {
             }
         }
         Property { name: "source"; type: "QUrl" }
+        Property { name: "playlist"; revision: 1; type: "QDeclarativePlaylist"; isPointer: true }
         Property { name: "loops"; type: "int" }
         Property { name: "playbackState"; type: "PlaybackState"; isReadonly: true }
         Property { name: "autoPlay"; type: "bool" }
@@ -237,6 +243,7 @@ Module {
         Property { name: "mediaObject"; type: "QObject"; isReadonly: true; isPointer: true }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
         Property { name: "audioRole"; revision: 1; type: "AudioRole" }
+        Signal { name: "playlistChanged"; revision: 1 }
         Signal { name: "loopCountChanged" }
         Signal { name: "paused" }
         Signal { name: "stopped" }
@@ -1227,6 +1234,137 @@ Module {
         exportMetaObjectRevisions: [0]
         Property { name: "defaultCamera"; type: "QJSValue"; isReadonly: true }
         Property { name: "availableCameras"; type: "QJSValue"; isReadonly: true }
+    }
+    Component {
+        name: "QDeclarativePlaylist"
+        defaultProperty: "items"
+        prototype: "QAbstractListModel"
+        exports: ["QtMultimedia/Playlist 5.6"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "PlaybackMode"
+            values: {
+                "CurrentItemOnce": 0,
+                "CurrentItemInLoop": 1,
+                "Sequential": 2,
+                "Loop": 3,
+                "Random": 4
+            }
+        }
+        Enum {
+            name: "Error"
+            values: {
+                "NoError": 0,
+                "FormatError": 1,
+                "FormatNotSupportedError": 2,
+                "NetworkError": 3,
+                "AccessDeniedError": 4
+            }
+        }
+        Property { name: "playbackMode"; type: "PlaybackMode" }
+        Property { name: "currentItemSource"; type: "QUrl"; isReadonly: true }
+        Property { name: "currentIndex"; type: "int" }
+        Property { name: "itemCount"; type: "int"; isReadonly: true }
+        Property { name: "readOnly"; type: "bool"; isReadonly: true }
+        Property { name: "error"; type: "Error"; isReadonly: true }
+        Property { name: "errorString"; type: "string"; isReadonly: true }
+        Property { name: "items"; type: "QDeclarativePlaylistItem"; isList: true; isReadonly: true }
+        Signal {
+            name: "itemAboutToBeInserted"
+            Parameter { name: "start"; type: "int" }
+            Parameter { name: "end"; type: "int" }
+        }
+        Signal {
+            name: "itemInserted"
+            Parameter { name: "start"; type: "int" }
+            Parameter { name: "end"; type: "int" }
+        }
+        Signal {
+            name: "itemAboutToBeRemoved"
+            Parameter { name: "start"; type: "int" }
+            Parameter { name: "end"; type: "int" }
+        }
+        Signal {
+            name: "itemRemoved"
+            Parameter { name: "start"; type: "int" }
+            Parameter { name: "end"; type: "int" }
+        }
+        Signal {
+            name: "itemChanged"
+            Parameter { name: "start"; type: "int" }
+            Parameter { name: "end"; type: "int" }
+        }
+        Signal { name: "loaded" }
+        Signal { name: "loadFailed" }
+        Signal {
+            name: "error"
+            Parameter { name: "error"; type: "QDeclarativePlaylist::Error" }
+            Parameter { name: "errorString"; type: "string" }
+        }
+        Method {
+            name: "itemSource"
+            type: "QUrl"
+            Parameter { name: "index"; type: "int" }
+        }
+        Method {
+            name: "nextIndex"
+            type: "int"
+            Parameter { name: "steps"; type: "int" }
+        }
+        Method { name: "nextIndex"; type: "int" }
+        Method {
+            name: "previousIndex"
+            type: "int"
+            Parameter { name: "steps"; type: "int" }
+        }
+        Method { name: "previousIndex"; type: "int" }
+        Method { name: "next" }
+        Method { name: "previous" }
+        Method { name: "shuffle" }
+        Method {
+            name: "load"
+            Parameter { name: "location"; type: "QUrl" }
+            Parameter { name: "format"; type: "string" }
+        }
+        Method {
+            name: "load"
+            Parameter { name: "location"; type: "QUrl" }
+        }
+        Method {
+            name: "save"
+            type: "bool"
+            Parameter { name: "location"; type: "QUrl" }
+            Parameter { name: "format"; type: "string" }
+        }
+        Method {
+            name: "save"
+            type: "bool"
+            Parameter { name: "location"; type: "QUrl" }
+        }
+        Method {
+            name: "addItem"
+            type: "bool"
+            Parameter { name: "source"; type: "QUrl" }
+        }
+        Method {
+            name: "insertItem"
+            type: "bool"
+            Parameter { name: "index"; type: "int" }
+            Parameter { name: "source"; type: "QUrl" }
+        }
+        Method {
+            name: "removeItem"
+            type: "bool"
+            Parameter { name: "index"; type: "int" }
+        }
+        Method { name: "clear"; type: "bool" }
+    }
+    Component {
+        name: "QDeclarativePlaylistItem"
+        prototype: "QObject"
+        exports: ["QtMultimedia/PlaylistItem 5.6"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "source"; type: "QUrl" }
     }
     Component {
         name: "QDeclarativeRadio"

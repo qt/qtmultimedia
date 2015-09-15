@@ -116,7 +116,8 @@ public:
         qmlRegisterRevision<QDeclarativeCamera, 2>(uri, 5, 5);
 
         // 5.6 types
-        qmlRegisterRevision<QDeclarativeAudio, 1>(uri, 5, 6);
+        qmlRegisterType<QDeclarativeAudio, 1>(uri, 5, 6, "Audio");
+        qmlRegisterType<QDeclarativeAudio, 1>(uri, 5, 6, "MediaPlayer");
         qmlRegisterType<QDeclarativePlaylist>(uri, 5, 6, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 5, 6, "PlaylistItem");
 
