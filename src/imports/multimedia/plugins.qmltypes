@@ -1,4 +1,4 @@
-import QtQuick.tooling 1.1
+import QtQuick.tooling 1.2
 
 // This file describes the plugin-supplied types contained in the library.
 // It is used for QML tooling purposes only.
@@ -7,6 +7,7 @@ import QtQuick.tooling 1.1
 // 'qmlplugindump -nonrelocatable QtMultimedia 5.5'
 
 Module {
+    dependencies: ["QtQuick 2.0"]
     Component {
         name: "QAbstractVideoFilter"
         prototype: "QObject"
@@ -244,8 +245,12 @@ Module {
     Component {
         name: "QDeclarativeCamera"
         prototype: "QObject"
-        exports: ["QtMultimedia/Camera 5.0"]
-        exportMetaObjectRevisions: [0]
+        exports: [
+            "QtMultimedia/Camera 5.0",
+            "QtMultimedia/Camera 5.4",
+            "QtMultimedia/Camera 5.5"
+        ]
+        exportMetaObjectRevisions: [0, 1, 2]
         Enum {
             name: "Position"
             values: {
@@ -517,7 +522,7 @@ Module {
             name: "supportedViewfinderFrameRateRanges"
             revision: 2
             type: "QJSValue"
-            Parameter { name: "resolution"; type: "QSize" }
+            Parameter { name: "resolution"; type: "QJSValue" }
         }
         Method { name: "supportedViewfinderFrameRateRanges"; revision: 2; type: "QJSValue" }
     }
@@ -1497,8 +1502,11 @@ Module {
         name: "QDeclarativeVideoOutput"
         defaultProperty: "data"
         prototype: "QQuickItem"
-        exports: ["QtMultimedia/VideoOutput 5.0"]
-        exportMetaObjectRevisions: [0]
+        exports: [
+            "QtMultimedia/VideoOutput 5.0",
+            "QtMultimedia/VideoOutput 5.2"
+        ]
+        exportMetaObjectRevisions: [0, 2]
         Enum {
             name: "FillMode"
             values: {
