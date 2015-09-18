@@ -55,6 +55,8 @@ SOURCES += \
     qmediastoragelocation.cpp \
     qmultimedia.cpp
 
+CONFIG += simd optimize_full
+
 include(audio/audio.pri)
 include(camera/camera.pri)
 include(controls/controls.pri)

@@ -31,21 +31,52 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMULTIMEDIAUTILS_H
-#define QANDROIDMULTIMEDIAUTILS_H
+#include "qvideoframeconversionhelper_p.h"
 
-#include <qglobal.h>
-#include <qsize.h>
+#ifdef QT_COMPILER_SUPPORTS_SSSE3
 
 QT_BEGIN_NAMESPACE
 
-// return the index of the closest value to <value> in <list>
-// (binary search)
-int qt_findClosestValue(const QList<int> &list, int value);
+void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_ssse3(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_PACKED(frame)
+    MERGE_LOOPS(width, height, stride, 4)
+    quint32 *argb = reinterpret_cast<quint32*>(output);
 
-bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
+    __m128i shuffleMask = _mm_set_epi8(12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3);
 
+    for (int y = 0; y < height; ++y) {
+        const quint32 *bgra = reinterpret_cast<const quint32*>(src);
+
+        int x = 0;
+        ALIGN(16, argb, x, width) {
+            *argb = qConvertBGRA32ToARGB32(*bgra);
+            ++bgra;
+            ++argb;
+        }
+
+        for (; x < width - 7; x += 8) {
+            __m128i pixelData = _mm_loadu_si128(reinterpret_cast<const __m128i*>(bgra));
+            __m128i pixelData2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(bgra + 4));
+            bgra += 8;
+            pixelData = _mm_shuffle_epi8(pixelData, shuffleMask);
+            pixelData2 = _mm_shuffle_epi8(pixelData2, shuffleMask);
+            _mm_store_si128(reinterpret_cast<__m128i*>(argb), pixelData);
+            _mm_store_si128(reinterpret_cast<__m128i*>(argb + 4), pixelData2);
+            argb += 8;
+        }
+
+        // leftovers
+        for (; x < width; ++x) {
+            *argb = qConvertBGRA32ToARGB32(*bgra);
+            ++bgra;
+            ++argb;
+        }
+
+        src += stride;
+    }
+}
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMULTIMEDIAUTILS_H
+#endif

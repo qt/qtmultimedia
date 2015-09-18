@@ -43,6 +43,8 @@
 #include <qguiapplication.h>
 #include <qdebug.h>
 #include <qvideoframe.h>
+#include <private/qmemoryvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -582,11 +584,10 @@ void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data, 
 
 QImage QAndroidCameraSession::prepareImageFromPreviewData(const QByteArray &data, int width, int height, int rotation)
 {
-    QImage result(width, height, QImage::Format_ARGB32);
-    qt_convert_NV21_to_ARGB32((const uchar *)data.constData(),
-                              (quint32 *)result.bits(),
-                              width,
-                              height);
+    QVideoFrame frame(new QMemoryVideoBuffer(data, width),
+                      QSize(width, height), QVideoFrame::Format_NV21);
+
+    QImage result = qt_imageFromVideoFrame(frame);
 
     QTransform transform;
 

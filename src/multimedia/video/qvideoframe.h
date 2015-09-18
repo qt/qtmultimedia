@@ -96,6 +96,9 @@ public:
         Format_CameraRaw,
         Format_AdobeDng,
 
+#ifndef Q_QDOC
+        NPixelFormats,
+#endif
         Format_User = 1000
     };
 
