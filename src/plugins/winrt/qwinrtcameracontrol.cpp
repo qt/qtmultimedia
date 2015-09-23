@@ -198,22 +198,6 @@ private:
     ComPtr<IRegionOfInterest> regionOfInterest;
 };
 
-class CriticalSectionLocker
-{
-public:
-    CriticalSectionLocker(CRITICAL_SECTION *section)
-        : m_section(section)
-    {
-        EnterCriticalSection(m_section);
-    }
-    ~CriticalSectionLocker()
-    {
-        LeaveCriticalSection(m_section);
-    }
-private:
-    CRITICAL_SECTION *m_section;
-};
-
 class MediaStream : public RuntimeClass<RuntimeClassFlags<WinRtClassicComMix>, IMFStreamSink, IMFMediaEventGenerator, IMFMediaTypeHandler>
 {
     enum Flags { NoFlag = 0, BufferLockRequired = 1 };

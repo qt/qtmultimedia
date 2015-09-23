@@ -201,12 +201,15 @@ public:
     QVideoFrame::PixelFormat cameraSampleformat;
     int cameraSampleSize;
     uint videoProbesCounter;
-    bool getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer);
+    bool getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer,
+                             QWinRTAbstractVideoRendererControl::BlitMode *mode);
     ComPtr<IMF2DBuffer> dequeueBuffer();
 };
 
-bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer)
+bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer,
+                                                                  QWinRTAbstractVideoRendererControl::BlitMode *mode)
 {
+    Q_ASSERT(mode);
     ComPtr<ID3D11Texture2D> sourceTexture;
     ComPtr<IMFDXGIBuffer> dxgiBuffer;
     HRESULT hr = buffer.As(&dxgiBuffer);
@@ -219,6 +222,10 @@ bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<I
     }
     D3D11_TEXTURE2D_DESC desc;
     sourceTexture->GetDesc(&desc);
+
+    if (!(desc.MiscFlags & D3D11_RESOURCE_MISC_SHARED))
+        *mode = QWinRTAbstractVideoRendererControl::MediaFoundation;
+
     switch (desc.Format) {
     case DXGI_FORMAT_R8G8B8A8_TYPELESS:
         cameraSampleformat = QVideoFrame::Format_ARGB32;
@@ -281,20 +288,39 @@ bool QWinRTCameraVideoRendererControl::render(ID3D11Texture2D *target)
     return true;
 }
 
+bool QWinRTCameraVideoRendererControl::dequeueFrame(QVideoFrame *frame)
+{
+    Q_ASSERT(frame);
+    Q_D(QWinRTCameraVideoRendererControl);
+
+    ComPtr<IMF2DBuffer> buffer = d->dequeueBuffer();
+    if (!buffer || d->cameraSampleformat == QVideoFrame::Format_Invalid) {
+        emit bufferRequested();
+        return false;
+    }
+
+    QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer.Get(), d->cameraSampleSize);
+    *frame = QVideoFrame(videoBuffer, size(), d->cameraSampleformat);
+
+    emit bufferRequested();
+    return true;
+}
+
 void QWinRTCameraVideoRendererControl::queueBuffer(IMF2DBuffer *buffer)
 {
     Q_D(QWinRTCameraVideoRendererControl);
     Q_ASSERT(buffer);
 
-    if (d->videoProbesCounter > 0) {
-        if (d->cameraSampleformat == QVideoFrame::Format_User)
-            d->getCameraSampleInfo(buffer);
+    if (d->cameraSampleformat == QVideoFrame::Format_User) {
+        BlitMode mode = blitMode();
+        d->getCameraSampleInfo(buffer, &mode);
+        setBlitMode(mode);
+    }
 
-        if (d->cameraSampleformat != QVideoFrame::Format_Invalid) {
-            QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer, d->cameraSampleSize);
-            QVideoFrame frame(videoBuffer, size(), d->cameraSampleformat);
-            emit videoFrameProbed(frame);
-        }
+    if (d->videoProbesCounter > 0 && d->cameraSampleformat != QVideoFrame::Format_Invalid) {
+        QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer, d->cameraSampleSize);
+        QVideoFrame frame(videoBuffer, size(), d->cameraSampleformat);
+        emit videoFrameProbed(frame);
     }
 
     const quint16 writeIndex = (d->writeIndex + 1) % CAMERA_SAMPLE_QUEUE_SIZE;

@@ -182,6 +182,8 @@ public:
 
     QThread renderThread;
     bool active;
+    QWinRTAbstractVideoRendererControl::BlitMode blitMode;
+    CRITICAL_SECTION mutex;
 };
 
 ID3D11Device *QWinRTAbstractVideoRendererControl::d3dDevice()
@@ -212,6 +214,8 @@ QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSi
     d->eglConfig = 0;
     d->eglSurface = EGL_NO_SURFACE;
     d->active = false;
+    d->blitMode = DirectVideo;
+    InitializeCriticalSectionEx(&d->mutex, 0, 0);
 
     connect(&d->renderThread, &QThread::started,
             this, &QWinRTAbstractVideoRendererControl::syncAndRender,
@@ -220,7 +224,11 @@ QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSi
 
 QWinRTAbstractVideoRendererControl::~QWinRTAbstractVideoRendererControl()
 {
+    Q_D(QWinRTAbstractVideoRendererControl);
+    CriticalSectionLocker locker(&d->mutex);
     shutdown();
+    DeleteCriticalSection(&d->mutex);
+    eglDestroySurface(d->eglDisplay, d->eglSurface);
 }
 
 QAbstractVideoSurface *QWinRTAbstractVideoRendererControl::surface() const
@@ -244,31 +252,45 @@ void QWinRTAbstractVideoRendererControl::syncAndRender()
     forever {
         if (currentThread->isInterruptionRequested())
             break;
+        {
+            CriticalSectionLocker lock(&d->mutex);
+            HRESULT hr;
+            if (d->dirtyState == TextureDirty) {
+                CD3D11_TEXTURE2D_DESC desc(DXGI_FORMAT_B8G8R8A8_UNORM, d->format.frameWidth(), d->format.frameHeight(), 1, 1);
+                desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+                desc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+                hr = g->device->CreateTexture2D(&desc, NULL, d->texture.ReleaseAndGetAddressOf());
+                BREAK_IF_FAILED("Failed to get create video texture");
+                ComPtr<IDXGIResource> resource;
+                hr = d->texture.As(&resource);
+                BREAK_IF_FAILED("Failed to cast texture to resource");
+                hr = resource->GetSharedHandle(&d->shareHandle);
+                BREAK_IF_FAILED("Failed to get texture share handle");
+                d->dirtyState = SurfaceDirty;
+            }
 
-        HRESULT hr;
-        if (d->dirtyState == TextureDirty) {
-            CD3D11_TEXTURE2D_DESC desc(DXGI_FORMAT_B8G8R8A8_UNORM, d->format.frameWidth(), d->format.frameHeight(), 1, 1);
-            desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-            desc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
-            hr = g->device->CreateTexture2D(&desc, NULL, d->texture.ReleaseAndGetAddressOf());
-            BREAK_IF_FAILED("Failed to get create video texture");
-            ComPtr<IDXGIResource> resource;
-            hr = d->texture.As(&resource);
-            BREAK_IF_FAILED("Failed to cast texture to resource");
-            hr = resource->GetSharedHandle(&d->shareHandle);
-            BREAK_IF_FAILED("Failed to get texture share handle");
-            d->dirtyState = SurfaceDirty;
+            hr = g->output->WaitForVBlank();
+            CONTINUE_IF_FAILED("Failed to wait for vertical blank");
+
+            bool success = false;
+            switch (d->blitMode) {
+            case DirectVideo:
+                success = render(d->texture.Get());
+                break;
+            case MediaFoundation:
+                success = dequeueFrame(&d->presentFrame);
+                break;
+            default:
+                success = false;
+            }
+
+            if (!success)
+                continue;
+
+            // Queue to the control's thread for presentation
+            present.invoke(this, Qt::QueuedConnection);
+            currentThread->eventDispatcher()->processEvents(QEventLoop::AllEvents);
         }
-
-        hr = g->output->WaitForVBlank();
-        CONTINUE_IF_FAILED("Failed to wait for vertical blank");
-
-        if (!render(d->texture.Get()))
-            continue;
-
-        // Queue to the control's thread for presentation
-        present.invoke(this, Qt::QueuedConnection);
-        currentThread->eventDispatcher()->processEvents(QEventLoop::AllEvents);
     }
 
     // All done, exit render loop
@@ -326,7 +348,44 @@ void QWinRTAbstractVideoRendererControl::setActive(bool active)
         d->surface->stop();
 }
 
-void QWinRTAbstractVideoRendererControl::present()
+QWinRTAbstractVideoRendererControl::BlitMode QWinRTAbstractVideoRendererControl::blitMode() const
+{
+    Q_D(const QWinRTAbstractVideoRendererControl);
+    return d->blitMode;
+}
+
+void QWinRTAbstractVideoRendererControl::setBlitMode(QWinRTAbstractVideoRendererControl::BlitMode mode)
+{
+    Q_D(QWinRTAbstractVideoRendererControl);
+    CriticalSectionLocker lock(&d->mutex);
+
+    if (d->blitMode == mode)
+        return;
+
+    d->blitMode = mode;
+    d->dirtyState = d->blitMode == MediaFoundation ? NotDirty : TextureDirty;
+
+    if (d->blitMode == DirectVideo)
+        return;
+
+    if (d->texture) {
+        d->texture.Reset();
+        d->shareHandle = 0;
+    }
+
+    if (d->eglSurface) {
+        eglDestroySurface(d->eglDisplay, d->eglSurface);
+        d->eglSurface = EGL_NO_SURFACE;
+    }
+}
+
+bool QWinRTAbstractVideoRendererControl::dequeueFrame(QVideoFrame *frame)
+{
+    Q_UNUSED(frame)
+    return false;
+}
+
+void QWinRTAbstractVideoRendererControl::textureToFrame()
 {
     Q_D(QWinRTAbstractVideoRendererControl);
 
@@ -387,6 +446,13 @@ void QWinRTAbstractVideoRendererControl::present()
 
         d->dirtyState = NotDirty;
     }
+}
+
+void QWinRTAbstractVideoRendererControl::present()
+{
+    Q_D(QWinRTAbstractVideoRendererControl);
+    if (d->blitMode == DirectVideo)
+        textureToFrame();
 
     // Present the frame
     d->surface->present(d->presentFrame);

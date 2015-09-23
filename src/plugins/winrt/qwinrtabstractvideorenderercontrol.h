@@ -40,6 +40,8 @@
 #include <QtMultimedia/QVideoRendererControl>
 #include <QtMultimedia/QVideoSurfaceFormat>
 
+#include <qt_windows.h>
+
 struct ID3D11Device;
 struct ID3D11Texture2D;
 
@@ -53,6 +55,11 @@ public:
     explicit QWinRTAbstractVideoRendererControl(const QSize &size, QObject *parent = 0);
     ~QWinRTAbstractVideoRendererControl();
 
+    enum BlitMode {
+        DirectVideo,
+        MediaFoundation
+    };
+
     QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
     void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
 
@@ -63,7 +70,11 @@ public:
 
     void setActive(bool active);
 
+    BlitMode blitMode() const;
+    void setBlitMode(BlitMode mode);
+
     virtual bool render(ID3D11Texture2D *texture) = 0;
+    virtual bool dequeueFrame(QVideoFrame *frame);
 
     static ID3D11Device *d3dDevice();
 
@@ -74,10 +85,27 @@ private slots:
     void syncAndRender();
 
 private:
+    void textureToFrame();
     Q_INVOKABLE void present();
 
     QScopedPointer<QWinRTAbstractVideoRendererControlPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QWinRTAbstractVideoRendererControl)
+};
+
+class CriticalSectionLocker
+{
+public:
+    CriticalSectionLocker(CRITICAL_SECTION *section)
+        : m_section(section)
+    {
+        EnterCriticalSection(m_section);
+    }
+    ~CriticalSectionLocker()
+    {
+        LeaveCriticalSection(m_section);
+    }
+private:
+    CRITICAL_SECTION *m_section;
 };
 
 QT_END_NAMESPACE
