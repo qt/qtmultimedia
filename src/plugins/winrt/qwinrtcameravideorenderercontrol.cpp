@@ -105,18 +105,13 @@ private:
 class D3DVideoBlitter
 {
 public:
-    D3DVideoBlitter(ID3D11Device *device, ID3D11Texture2D *target)
-        : m_d3dDevice(device), m_target(target)
+    D3DVideoBlitter(ID3D11Texture2D *target)
+        : m_target(target)
     {
+        Q_ASSERT(target);
+        target->GetDevice(&m_d3dDevice);
+        Q_ASSERT(m_d3dDevice);
         HRESULT hr;
-        ComPtr<IDXGIResource> targetResource;
-        hr = target->QueryInterface(IID_PPV_ARGS(&targetResource));
-        Q_ASSERT_SUCCEEDED(hr);
-        HANDLE sharedHandle;
-        hr = targetResource->GetSharedHandle(&sharedHandle);
-        Q_ASSERT_SUCCEEDED(hr);
-        hr = m_d3dDevice->OpenSharedResource(sharedHandle, IID_PPV_ARGS(&m_targetTexture));
-        Q_ASSERT_SUCCEEDED(hr);
         hr = m_d3dDevice.As(&m_videoDevice);
         Q_ASSERT_SUCCEEDED(hr);
     }
@@ -141,7 +136,7 @@ public:
                 D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE,
                 { 0 }, desc.Width, desc.Height,
                 { 0 }, desc.Width, desc.Height,
-                D3D11_VIDEO_USAGE_PLAYBACK_NORMAL
+                D3D11_VIDEO_USAGE_OPTIMAL_SPEED
             };
             hr = m_videoDevice->CreateVideoProcessorEnumerator(&videoProcessorDesc, &m_videoEnumerator);
             RETURN_VOID_IF_FAILED("Failed to create video enumerator");
@@ -155,16 +150,26 @@ public:
         if (!m_outputView) {
             D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC outputDesc = { D3D11_VPOV_DIMENSION_TEXTURE2D };
             hr = m_videoDevice->CreateVideoProcessorOutputView(
-                        m_targetTexture.Get(), m_videoEnumerator.Get(), &outputDesc, &m_outputView);
+                        m_target, m_videoEnumerator.Get(), &outputDesc, &m_outputView);
             RETURN_VOID_IF_FAILED("Failed to create video output view");
         }
+
+        ComPtr<IDXGIResource> sourceResource;
+        hr = texture->QueryInterface(IID_PPV_ARGS(&sourceResource));
+        Q_ASSERT_SUCCEEDED(hr);
+        HANDLE sharedHandle;
+        hr = sourceResource->GetSharedHandle(&sharedHandle);
+        Q_ASSERT_SUCCEEDED(hr);
+        ComPtr<ID3D11Texture2D> sharedTexture;
+        hr = m_d3dDevice->OpenSharedResource(sharedHandle, IID_PPV_ARGS(&sharedTexture));
+        Q_ASSERT_SUCCEEDED(hr);
 
         D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC inputViewDesc = {
             0, D3D11_VPIV_DIMENSION_TEXTURE2D, { 0, 0 }
         };
         ComPtr<ID3D11VideoProcessorInputView> inputView;
         hr = m_videoDevice->CreateVideoProcessorInputView(
-                    texture, m_videoEnumerator.Get(), &inputViewDesc, &inputView);
+                    sharedTexture.Get(), m_videoEnumerator.Get(), &inputViewDesc, &inputView);
         RETURN_VOID_IF_FAILED("Failed to create video input view");
 
         ComPtr<ID3D11DeviceContext> context;
@@ -182,7 +187,6 @@ public:
 
 private:
     ComPtr<ID3D11Device> m_d3dDevice;
-    ComPtr<ID3D11Texture2D> m_targetTexture;
     ID3D11Texture2D *m_target;
     ComPtr<ID3D11VideoDevice> m_videoDevice;
     ComPtr<ID3D11VideoProcessorEnumerator> m_videoEnumerator;
@@ -277,10 +281,8 @@ bool QWinRTCameraVideoRendererControl::render(ID3D11Texture2D *target)
         return false;
     }
 
-    ComPtr<ID3D11Device> device;
-    sourceTexture->GetDevice(&device);
-    if (!d->blitter || d->blitter->device() != device.Get() || d->blitter->target() != target)
-        d->blitter.reset(new D3DVideoBlitter(device.Get(), target));
+    if (!d->blitter || d->blitter->target() != target)
+        d->blitter.reset(new D3DVideoBlitter(target));
 
     d->blitter->blit(sourceTexture.Get());
 
