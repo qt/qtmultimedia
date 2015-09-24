@@ -121,7 +121,7 @@ void CameraBinControl::setState(QCamera::State state)
 
         //special case for stopping the camera while it's busy,
         //it should be delayed until the camera is idle
-        if (state == QCamera::LoadedState &&
+        if ((state == QCamera::LoadedState || state == QCamera::UnloadedState) &&
                 m_session->status() == QCamera::ActiveStatus &&
                 m_session->isBusy()) {
 #ifdef CAMEABIN_DEBUG
