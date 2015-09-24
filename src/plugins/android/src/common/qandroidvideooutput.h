@@ -34,19 +34,27 @@
 #ifndef QANDROIDVIDEOOUTPUT_H
 #define QANDROIDVIDEOOUTPUT_H
 
-#include <qglobal.h>
+#include <qobject.h>
 #include <qsize.h>
+#include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
 class AndroidSurfaceTexture;
+class AndroidSurfaceHolder;
+class QOpenGLFramebufferObject;
+class QOpenGLShaderProgram;
+class OpenGLResourcesDeleter;
+class QAbstractVideoSurface;
 
-class QAndroidVideoOutput
+class QAndroidVideoOutput : public QObject
 {
+    Q_OBJECT
 public:
     virtual ~QAndroidVideoOutput() { }
 
     virtual AndroidSurfaceTexture *surfaceTexture() { return 0; }
+    virtual AndroidSurfaceHolder *surfaceHolder() { return 0; }
 
     virtual bool isReady() { return true; }
 
@@ -54,12 +62,56 @@ public:
     virtual void stop() { }
     virtual void reset() { }
 
-    // signals:
-    // void readyChanged(bool);
+Q_SIGNALS:
+    void readyChanged(bool);
+
+protected:
+    QAndroidVideoOutput(QObject *parent) : QObject(parent) { }
 };
 
-#define QAndroidVideoOutput_iid "org.qt-project.qt.qandroidvideooutput/5.0"
-Q_DECLARE_INTERFACE(QAndroidVideoOutput, QAndroidVideoOutput_iid)
+
+class QAndroidTextureVideoOutput : public QAndroidVideoOutput
+{
+    Q_OBJECT
+public:
+    explicit QAndroidTextureVideoOutput(QObject *parent = 0);
+    ~QAndroidTextureVideoOutput() Q_DECL_OVERRIDE;
+
+    QAbstractVideoSurface *surface() const;
+    void setSurface(QAbstractVideoSurface *surface);
+
+    AndroidSurfaceTexture *surfaceTexture() Q_DECL_OVERRIDE;
+
+    bool isReady() Q_DECL_OVERRIDE;
+    void setVideoSize(const QSize &) Q_DECL_OVERRIDE;
+    void stop() Q_DECL_OVERRIDE;
+    void reset() Q_DECL_OVERRIDE;
+
+    void customEvent(QEvent *) Q_DECL_OVERRIDE;
+
+private Q_SLOTS:
+    void onFrameAvailable();
+
+private:
+    bool initSurfaceTexture();
+    void renderFrameToFbo();
+    void createGLResources();
+
+    QMutex m_mutex;
+    void clearSurfaceTexture();
+
+    QAbstractVideoSurface *m_surface;
+    QSize m_nativeSize;
+
+    AndroidSurfaceTexture *m_surfaceTexture;
+
+    quint32 m_externalTex;
+    QOpenGLFramebufferObject *m_fbo;
+    QOpenGLShaderProgram *m_program;
+    OpenGLResourcesDeleter *m_glDeleter;
+
+    friend class AndroidTextureVideoBuffer;
+};
 
 QT_END_NAMESPACE
 

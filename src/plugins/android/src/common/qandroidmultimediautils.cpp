@@ -68,5 +68,40 @@ bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
     return s1.width() * s1.height() < s2.width() * s2.height();
 }
 
+QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f)
+{
+    switch (f) {
+    case AndroidCamera::NV21:
+        return QVideoFrame::Format_NV21;
+    case AndroidCamera::YV12:
+        return QVideoFrame::Format_YV12;
+    case AndroidCamera::RGB565:
+        return QVideoFrame::Format_RGB565;
+    case AndroidCamera::YUY2:
+        return QVideoFrame::Format_YUYV;
+    case AndroidCamera::JPEG:
+        return QVideoFrame::Format_Jpeg;
+    default:
+        return QVideoFrame::Format_Invalid;
+    }
+}
+
+AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f)
+{
+    switch (f) {
+    case QVideoFrame::Format_NV21:
+        return AndroidCamera::NV21;
+    case QVideoFrame::Format_YV12:
+        return AndroidCamera::YV12;
+    case QVideoFrame::Format_RGB565:
+        return AndroidCamera::RGB565;
+    case QVideoFrame::Format_YUYV:
+        return AndroidCamera::YUY2;
+    case QVideoFrame::Format_Jpeg:
+        return AndroidCamera::JPEG;
+    default:
+        return AndroidCamera::UnknownImageFormat;
+    }
+}
 
 QT_END_NAMESPACE

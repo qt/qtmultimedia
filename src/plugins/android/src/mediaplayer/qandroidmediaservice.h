@@ -40,6 +40,7 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidMediaPlayerControl;
 class QAndroidMetaDataReaderControl;
+class QAndroidMediaPlayerVideoRendererControl;
 
 class QAndroidMediaService : public QMediaService
 {
@@ -54,7 +55,7 @@ public:
 private:
     QAndroidMediaPlayerControl *mMediaControl;
     QAndroidMetaDataReaderControl *mMetadataControl;
-    QMediaControl *mVideoRendererControl;
+    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl;
 };
 
 QT_END_NAMESPACE

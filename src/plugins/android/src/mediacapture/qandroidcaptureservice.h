@@ -46,7 +46,7 @@ class QAndroidCameraInfoControl;
 class QAndroidVideoDeviceSelectorControl;
 class QAndroidAudioInputSelectorControl;
 class QAndroidCameraSession;
-class QAndroidVideoRendererControl;
+class QAndroidCameraVideoRendererControl;
 class QAndroidCameraZoomControl;
 class QAndroidCameraExposureControl;
 class QAndroidCameraFlashControl;
@@ -82,7 +82,7 @@ private:
     QAndroidVideoDeviceSelectorControl *m_videoInputControl;
     QAndroidAudioInputSelectorControl *m_audioInputControl;
     QAndroidCameraSession *m_cameraSession;
-    QMediaControl *m_videoRendererControl;
+    QAndroidCameraVideoRendererControl *m_videoRendererControl;
     QAndroidCameraZoomControl *m_cameraZoomControl;
     QAndroidCameraExposureControl *m_cameraExposureControl;
     QAndroidCameraFlashControl *m_cameraFlashControl;

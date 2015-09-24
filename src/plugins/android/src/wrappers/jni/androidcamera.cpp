@@ -33,6 +33,7 @@
 
 #include "androidcamera.h"
 #include "androidsurfacetexture.h"
+#include "androidsurfaceview.h"
 #include "qandroidmultimediautils.h"
 
 #include <qstringlist.h>
@@ -41,6 +42,7 @@
 #include <QtCore/qthread.h>
 #include <QtCore/qreadwritelock.h>
 #include <QtCore/qmutex.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -121,7 +123,8 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
     Q_EMIT (*it)->pictureCaptured(bytes);
 }
 
-static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data, int width, int height)
+static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
+                                  int width, int height, int format, int bpl)
 {
     QReadLocker locker(rwLock);
     const auto it = cameras->constFind(id);
@@ -129,10 +132,17 @@ static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
         return;
 
     const int arrayLength = env->GetArrayLength(data);
+    if (arrayLength == 0)
+        return;
+
     QByteArray bytes(arrayLength, Qt::Uninitialized);
     env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
 
-    Q_EMIT (*it)->newPreviewFrame(bytes, width, height);
+    QVideoFrame frame(new QMemoryVideoBuffer(bytes, bpl),
+                      QSize(width, height),
+                      qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format)));
+
+    Q_EMIT (*it)->newPreviewFrame(frame);
 }
 
 class AndroidCameraPrivate : public QObject
@@ -157,10 +167,12 @@ public:
 
     Q_INVOKABLE AndroidCamera::ImageFormat getPreviewFormat();
     Q_INVOKABLE void setPreviewFormat(AndroidCamera::ImageFormat fmt);
+    Q_INVOKABLE QList<AndroidCamera::ImageFormat> getSupportedPreviewFormats();
 
     Q_INVOKABLE QSize previewSize() const { return m_previewSize; }
     Q_INVOKABLE void updatePreviewSize();
     Q_INVOKABLE bool setPreviewTexture(void *surfaceTexture);
+    Q_INVOKABLE bool setPreviewDisplay(void *surfaceHolder);
 
     Q_INVOKABLE bool isZoomSupported();
     Q_INVOKABLE int getMaxZoom();
@@ -238,7 +250,7 @@ Q_SIGNALS:
 
     void whiteBalanceChanged();
 
-    void lastPreviewFrameFetched(const QByteArray &preview, int width, int height);
+    void lastPreviewFrameFetched(const QVideoFrame &frame);
 };
 
 AndroidCamera::AndroidCamera(AndroidCameraPrivate *d, QThread *worker)
@@ -250,6 +262,7 @@ AndroidCamera::AndroidCamera(AndroidCameraPrivate *d, QThread *worker)
     qRegisterMetaType<QList<int> >();
     qRegisterMetaType<QList<QSize> >();
     qRegisterMetaType<QList<QRect> >();
+    qRegisterMetaType<ImageFormat>();
 
     connect(d, &AndroidCameraPrivate::previewSizeChanged, this, &AndroidCamera::previewSizeChanged);
     connect(d, &AndroidCameraPrivate::previewStarted, this, &AndroidCamera::previewStarted);
@@ -368,6 +381,12 @@ void AndroidCamera::setPreviewFormat(ImageFormat fmt)
     QMetaObject::invokeMethod(d, "setPreviewFormat", Q_ARG(AndroidCamera::ImageFormat, fmt));
 }
 
+QList<AndroidCamera::ImageFormat> AndroidCamera::getSupportedPreviewFormats()
+{
+    Q_D(AndroidCamera);
+    return d->getSupportedPreviewFormats();
+}
+
 QSize AndroidCamera::previewSize() const
 {
     Q_D(const AndroidCamera);
@@ -396,6 +415,18 @@ bool AndroidCamera::setPreviewTexture(AndroidSurfaceTexture *surfaceTexture)
                               Qt::BlockingQueuedConnection,
                               Q_RETURN_ARG(bool, ok),
                               Q_ARG(void *, surfaceTexture ? surfaceTexture->surfaceTexture() : 0));
+    return ok;
+}
+
+bool AndroidCamera::setPreviewDisplay(AndroidSurfaceHolder *surfaceHolder)
+{
+    Q_D(AndroidCamera);
+    bool ok = true;
+    QMetaObject::invokeMethod(d,
+                              "setPreviewDisplay",
+                              Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(bool, ok),
+                              Q_ARG(void *, surfaceHolder ? surfaceHolder->surfaceHolder() : 0));
     return ok;
 }
 
@@ -834,7 +865,7 @@ AndroidCamera::ImageFormat AndroidCameraPrivate::getPreviewFormat()
     QMutexLocker parametersLocker(&m_parametersMutex);
 
     if (!m_parameters.isValid())
-        return AndroidCamera::Unknown;
+        return AndroidCamera::UnknownImageFormat;
 
     return AndroidCamera::ImageFormat(m_parameters.callMethod<jint>("getPreviewFormat"));
 }
@@ -848,6 +879,27 @@ void AndroidCameraPrivate::setPreviewFormat(AndroidCamera::ImageFormat fmt)
 
     m_parameters.callMethod<void>("setPreviewFormat", "(I)V", jint(fmt));
     applyParameters();
+}
+
+QList<AndroidCamera::ImageFormat> AndroidCameraPrivate::getSupportedPreviewFormats()
+{
+    QList<AndroidCamera::ImageFormat> list;
+
+    QMutexLocker parametersLocker(&m_parametersMutex);
+
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate formatList = m_parameters.callObjectMethod("getSupportedPreviewFormats",
+                                                                     "()Ljava/util/List;");
+        int count = formatList.callMethod<jint>("size");
+        for (int i = 0; i < count; ++i) {
+            QJNIObjectPrivate format = formatList.callObjectMethod("get",
+                                                                   "(I)Ljava/lang/Object;",
+                                                                   i);
+            list.append(AndroidCamera::ImageFormat(format.callMethod<jint>("intValue")));
+        }
+    }
+
+    return list;
 }
 
 void AndroidCameraPrivate::updatePreviewSize()
@@ -868,6 +920,15 @@ bool AndroidCameraPrivate::setPreviewTexture(void *surfaceTexture)
     m_camera.callMethod<void>("setPreviewTexture",
                               "(Landroid/graphics/SurfaceTexture;)V",
                               static_cast<jobject>(surfaceTexture));
+    return !exceptionCheckAndClear(env);
+}
+
+bool AndroidCameraPrivate::setPreviewDisplay(void *surfaceHolder)
+{
+    QJNIEnvironmentPrivate env;
+    m_camera.callMethod<void>("setPreviewDisplay",
+                              "(Landroid/view/SurfaceHolder;)V",
+                              static_cast<jobject>(surfaceHolder));
     return !exceptionCheckAndClear(env);
 }
 
@@ -1361,15 +1422,25 @@ void AndroidCameraPrivate::fetchLastPreviewFrame()
         return;
 
     const int arrayLength = env->GetArrayLength(static_cast<jbyteArray>(data.object()));
+    if (arrayLength == 0)
+        return;
+
     QByteArray bytes(arrayLength, Qt::Uninitialized);
     env->GetByteArrayRegion(static_cast<jbyteArray>(data.object()),
                             0,
                             arrayLength,
                             reinterpret_cast<jbyte *>(bytes.data()));
 
-    emit lastPreviewFrameFetched(bytes,
-                                 m_cameraListener.callMethod<jint>("previewWidth"),
-                                 m_cameraListener.callMethod<jint>("previewHeight"));
+    const int width = m_cameraListener.callMethod<jint>("previewWidth");
+    const int height = m_cameraListener.callMethod<jint>("previewHeight");
+    const int format = m_cameraListener.callMethod<jint>("previewFormat");
+    const int bpl = m_cameraListener.callMethod<jint>("previewBytesPerLine");
+
+    QVideoFrame frame(new QMemoryVideoBuffer(bytes, bpl),
+                      QSize(width, height),
+                      qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format)));
+
+    emit lastPreviewFrameFetched(frame);
 }
 
 void AndroidCameraPrivate::applyParameters()
@@ -1414,7 +1485,7 @@ bool AndroidCamera::initJNI(JNIEnv *env)
         {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
         {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
         {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
-        {"notifyNewPreviewFrame", "(I[BII)V", (void *)notifyNewPreviewFrame}
+        {"notifyNewPreviewFrame", "(I[BIIII)V", (void *)notifyNewPreviewFrame}
     };
 
     if (clazz && env->RegisterNatives(clazz,

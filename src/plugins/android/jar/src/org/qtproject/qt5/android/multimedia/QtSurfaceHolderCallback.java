@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the QtMultimedia of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,24 +31,37 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMULTIMEDIAUTILS_H
-#define QANDROIDMULTIMEDIAUTILS_H
+package org.qtproject.qt5.android.multimedia;
 
-#include <qglobal.h>
-#include <qsize.h>
-#include "androidcamera.h"
+import android.view.SurfaceHolder;
 
-QT_BEGIN_NAMESPACE
+public class QtSurfaceHolderCallback implements SurfaceHolder.Callback
+{
+    private long m_id = -1;
 
-// return the index of the closest value to <value> in <list>
-// (binary search)
-int qt_findClosestValue(const QList<int> &list, int value);
+    public QtSurfaceHolderCallback(long id)
+    {
+        m_id = id;
+    }
 
-bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+    {
+    }
 
-QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
-AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
+    @Override
+    public void surfaceCreated(SurfaceHolder holder)
+    {
+        notifySurfaceCreated(m_id);
+    }
 
-QT_END_NAMESPACE
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder)
+    {
+        notifySurfaceDestroyed(m_id);
+    }
 
-#endif // QANDROIDMULTIMEDIAUTILS_H
+
+    private static native void notifySurfaceCreated(long id);
+    private static native void notifySurfaceDestroyed(long id);
+}

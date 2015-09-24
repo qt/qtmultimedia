@@ -31,24 +31,32 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMULTIMEDIAUTILS_H
-#define QANDROIDMULTIMEDIAUTILS_H
+#ifndef QANDROIDMEDIAPLAYERVIDEORENDERERCONTROL_H
+#define QANDROIDMEDIAPLAYERVIDEORENDERERCONTROL_H
 
-#include <qglobal.h>
-#include <qsize.h>
-#include "androidcamera.h"
+#include <qvideorenderercontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-// return the index of the closest value to <value> in <list>
-// (binary search)
-int qt_findClosestValue(const QList<int> &list, int value);
+class QAndroidMediaPlayerControl;
+class QAndroidTextureVideoOutput;
 
-bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
+class QAndroidMediaPlayerVideoRendererControl : public QVideoRendererControl
+{
+    Q_OBJECT
+public:
+    QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent = 0);
+    ~QAndroidMediaPlayerVideoRendererControl() Q_DECL_OVERRIDE;
 
-QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
-AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
+    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
+    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+
+private:
+    QAndroidMediaPlayerControl *m_mediaPlayerControl;
+    QAbstractVideoSurface *m_surface;
+    QAndroidTextureVideoOutput *m_textureOutput;
+};
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMULTIMEDIAUTILS_H
+#endif // QANDROIDMEDIAPLAYERVIDEORENDERERCONTROL_H

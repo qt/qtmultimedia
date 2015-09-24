@@ -43,6 +43,7 @@
 #include "androidcamera.h"
 #include "androidmultimediautils.h"
 #include "androidmediarecorder.h"
+#include "androidsurfaceview.h"
 #include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
@@ -160,7 +161,8 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     if (!AndroidMediaPlayer::initJNI(jniEnv) ||
         !AndroidCamera::initJNI(jniEnv) ||
-        !AndroidMediaRecorder::initJNI(jniEnv)) {
+        !AndroidMediaRecorder::initJNI(jniEnv) ||
+        !AndroidSurfaceHolder::initJNI(jniEnv)) {
         return JNI_ERR;
     }
 

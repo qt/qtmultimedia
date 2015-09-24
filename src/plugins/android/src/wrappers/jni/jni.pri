@@ -8,7 +8,8 @@ HEADERS += \
     $$PWD/androidmediametadataretriever.h \
     $$PWD/androidcamera.h \
     $$PWD/androidmultimediautils.h \
-    $$PWD/androidmediarecorder.h
+    $$PWD/androidmediarecorder.h \
+    $$PWD/androidsurfaceview.h
 
 SOURCES += \
     $$PWD/androidmediaplayer.cpp \
@@ -16,4 +17,5 @@ SOURCES += \
     $$PWD/androidmediametadataretriever.cpp \
     $$PWD/androidcamera.cpp \
     $$PWD/androidmultimediautils.cpp \
-    $$PWD/androidmediarecorder.cpp
+    $$PWD/androidmediarecorder.cpp \
+    $$PWD/androidsurfaceview.cpp

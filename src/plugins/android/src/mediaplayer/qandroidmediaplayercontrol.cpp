@@ -345,7 +345,7 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
     mReloadingMedia = false;
 }
 
-void QAndroidMediaPlayerControl::setVideoOutput(QObject *videoOutput)
+void QAndroidMediaPlayerControl::setVideoOutput(QAndroidVideoOutput *videoOutput)
 {
     if (mVideoOutput) {
         mMediaPlayer->setDisplay(0);
@@ -353,7 +353,7 @@ void QAndroidMediaPlayerControl::setVideoOutput(QObject *videoOutput)
         mVideoOutput->reset();
     }
 
-    mVideoOutput = qobject_cast<QAndroidVideoOutput *>(videoOutput);
+    mVideoOutput = videoOutput;
 
     if (!mVideoOutput)
         return;

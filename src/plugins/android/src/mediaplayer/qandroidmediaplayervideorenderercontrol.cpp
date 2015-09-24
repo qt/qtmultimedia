@@ -31,24 +31,40 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMULTIMEDIAUTILS_H
-#define QANDROIDMULTIMEDIAUTILS_H
+#include "qandroidmediaplayervideorenderercontrol.h"
 
-#include <qglobal.h>
-#include <qsize.h>
-#include "androidcamera.h"
+#include "qandroidmediaplayercontrol.h"
+#include "qandroidvideooutput.h"
+#include <qabstractvideosurface.h>
 
 QT_BEGIN_NAMESPACE
 
-// return the index of the closest value to <value> in <list>
-// (binary search)
-int qt_findClosestValue(const QList<int> &list, int value);
+QAndroidMediaPlayerVideoRendererControl::QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent)
+    : QVideoRendererControl(parent)
+    , m_mediaPlayerControl(mediaPlayer)
+    , m_surface(0)
+    , m_textureOutput(new QAndroidTextureVideoOutput(this))
+{
+    m_mediaPlayerControl->setVideoOutput(m_textureOutput);
+}
 
-bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
+QAndroidMediaPlayerVideoRendererControl::~QAndroidMediaPlayerVideoRendererControl()
+{
+    m_mediaPlayerControl->setVideoOutput(0);
+}
 
-QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
-AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
+QAbstractVideoSurface *QAndroidMediaPlayerVideoRendererControl::surface() const
+{
+    return m_surface;
+}
+
+void QAndroidMediaPlayerVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+{
+    if (m_surface == surface)
+        return;
+
+    m_surface = surface;
+    m_textureOutput->setSurface(m_surface);
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDMULTIMEDIAUTILS_H

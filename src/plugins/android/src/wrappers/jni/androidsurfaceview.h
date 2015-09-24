@@ -31,24 +31,71 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMULTIMEDIAUTILS_H
-#define QANDROIDMULTIMEDIAUTILS_H
+#ifndef ANDROIDSURFACEVIEW_H
+#define ANDROIDSURFACEVIEW_H
 
-#include <qglobal.h>
-#include <qsize.h>
-#include "androidcamera.h"
+#include <QtCore/private/qjni_p.h>
+#include <qrect.h>
+#include <QtCore/qrunnable.h>
 
 QT_BEGIN_NAMESPACE
 
-// return the index of the closest value to <value> in <list>
-// (binary search)
-int qt_findClosestValue(const QList<int> &list, int value);
+class QWindow;
 
-bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
+class AndroidSurfaceHolder : public QObject
+{
+    Q_OBJECT
+public:
+    ~AndroidSurfaceHolder();
 
-QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
-AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
+    jobject surfaceHolder() const;
+    bool isSurfaceCreated() const;
+
+    static bool initJNI(JNIEnv *env);
+
+Q_SIGNALS:
+    void surfaceCreated();
+
+private:
+    AndroidSurfaceHolder(QJNIObjectPrivate object);
+
+    static void handleSurfaceCreated(JNIEnv*, jobject, jlong id);
+    static void handleSurfaceDestroyed(JNIEnv*, jobject, jlong id);
+
+    QJNIObjectPrivate m_surfaceHolder;
+    bool m_surfaceCreated;
+
+    friend class AndroidSurfaceView;
+};
+
+class AndroidSurfaceView : public QObject, public QRunnable
+{
+    Q_OBJECT
+public:
+    AndroidSurfaceView();
+    ~AndroidSurfaceView();
+
+    AndroidSurfaceHolder *holder() const;
+
+    void setVisible(bool v);
+    void setGeometry(int x, int y, int width, int height);
+
+    bool event(QEvent *);
+
+Q_SIGNALS:
+    void surfaceCreated();
+
+protected:
+    void run() override;
+
+private:
+    QJNIObjectPrivate m_surfaceView;
+    QWindow *m_window;
+    AndroidSurfaceHolder *m_surfaceHolder;
+    int m_pendingVisible;
+    QRect m_pendingGeometry;
+};
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMULTIMEDIAUTILS_H
+#endif // ANDROIDSURFACEVIEW_H
