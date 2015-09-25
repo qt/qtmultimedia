@@ -44,9 +44,26 @@
 #include <d3d11.h>
 #include <mfapi.h>
 #include <wrl.h>
+
+#ifdef Q_OS_WINPHONE
+#include <Windows.Security.ExchangeActiveSyncProvisioning.h>
+using namespace ABI::Windows::Security::ExchangeActiveSyncProvisioning;
+#endif
+
 using namespace Microsoft::WRL;
+using namespace Microsoft::WRL::Wrappers;
 
 QT_BEGIN_NAMESPACE
+
+#ifdef Q_OS_WINPHONE
+template <int n>
+static bool blacklisted(const wchar_t (&blackListName)[n], const HString &deviceModel)
+{
+    quint32 deviceNameLength;
+    const wchar_t *deviceName = deviceModel.GetRawBuffer(&deviceNameLength);
+    return n - 1 <= deviceNameLength && !wmemcmp(blackListName, deviceName, n - 1);
+}
+#endif
 
 class QWinRTCameraVideoBuffer : public QAbstractVideoBuffer
 {
@@ -255,6 +272,19 @@ QWinRTCameraVideoRendererControl::QWinRTCameraVideoRendererControl(const QSize &
     Q_D(QWinRTCameraVideoRendererControl);
     d->cameraSampleformat = QVideoFrame::Format_User;
     d->videoProbesCounter = 0;
+
+#ifdef Q_OS_WINPHONE
+    // Workaround for certain devices which fail to blit.
+    ComPtr<IEasClientDeviceInformation> deviceInfo;
+    HRESULT hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Security_ExchangeActiveSyncProvisioning_EasClientDeviceInformation).Get(),
+                                    &deviceInfo);
+    Q_ASSERT_SUCCEEDED(hr);
+    HString deviceModel;
+    hr = deviceInfo->get_SystemProductName(deviceModel.GetAddressOf());
+    Q_ASSERT_SUCCEEDED(hr);
+    // Blacklist Lumia 1520
+    setBlitMode(blacklisted(L"RM-937", deviceModel) ? MediaFoundation : DirectVideo);
+#endif
 }
 
 QWinRTCameraVideoRendererControl::~QWinRTCameraVideoRendererControl()
