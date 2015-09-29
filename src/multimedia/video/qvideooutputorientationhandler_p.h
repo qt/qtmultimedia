@@ -48,10 +48,10 @@ public:
 
     int currentOrientation() const;
 
-signals:
+Q_SIGNALS:
     void orientationChanged(int angle);
 
-private slots:
+private Q_SLOTS:
     void screenOrientationChanged(Qt::ScreenOrientation orientation);
 
 private:
