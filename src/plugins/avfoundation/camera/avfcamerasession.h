@@ -70,6 +70,7 @@ public:
     static int defaultCameraIndex();
     static const QList<AVFCameraInfo> &availableCameraDevices();
     static AVFCameraInfo cameraDeviceInfo(const QByteArray &device);
+    AVFCameraInfo activeCameraInfo() const { return m_activeCameraInfo; }
 
     void setVideoOutput(AVFCameraRendererControl *output);
     AVCaptureSession *captureSession() const { return m_captureSession; }
@@ -93,10 +94,12 @@ public Q_SLOTS:
     void processSessionStopped();
 
     void onCameraFrameFetched(const QVideoFrame &frame);
+
 Q_SIGNALS:
     void readyToConfigureConnections();
     void stateChanged(QCamera::State newState);
     void activeChanged(bool);
+    void newViewfinderFrame(const QVideoFrame &frame);
     void error(int error, const QString &errorString);
 
 private:
@@ -107,6 +110,7 @@ private:
 
     static int m_defaultCameraIndex;
     static QList<AVFCameraInfo> m_cameraDevices;
+    AVFCameraInfo m_activeCameraInfo;
 
     AVFCameraService *m_service;
     AVFCameraRendererControl *m_videoOutput;
