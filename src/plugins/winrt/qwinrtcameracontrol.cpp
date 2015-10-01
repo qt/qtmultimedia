@@ -1118,7 +1118,7 @@ bool QWinRTCameraControl::focus()
     ComPtr<IAsyncAction> op;
     HRESULT hr = d->focusControl->FocusAsync(&op);
     Q_ASSERT_SUCCEEDED(hr);
-    hr = QWinRTFunctions::await(op);
+    hr = QWinRTFunctions::await(op, QWinRTFunctions::ProcessThreadEvents);
     Q_ASSERT_SUCCEEDED(hr);
     return hr == S_OK;
 }
