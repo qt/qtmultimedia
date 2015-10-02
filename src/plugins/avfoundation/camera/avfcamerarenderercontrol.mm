@@ -38,6 +38,10 @@
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
 
+#ifdef Q_OS_IOS
+#include <QtGui/qopengl.h>
+#endif
+
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtMultimedia/qabstractvideobuffer.h>
 
@@ -45,20 +49,32 @@
 
 QT_USE_NAMESPACE
 
-class CVPixelBufferVideoBuffer : public QAbstractPlanarVideoBuffer
+class CVImageVideoBuffer : public QAbstractPlanarVideoBuffer
 {
-    friend class CVPixelBufferVideoBufferPrivate;
 public:
-    CVPixelBufferVideoBuffer(CVPixelBufferRef buffer)
+    CVImageVideoBuffer(CVImageBufferRef buffer, AVFCameraRendererControl *renderer)
+#ifndef Q_OS_IOS
         : QAbstractPlanarVideoBuffer(NoHandle)
+#else
+        : QAbstractPlanarVideoBuffer(renderer->supportsTextures()
+                                     && CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA
+                                     ? GLTextureHandle : NoHandle)
+        , m_texture(0)
+#endif
         , m_buffer(buffer)
+        , m_renderer(renderer)
         , m_mode(NotMapped)
     {
         CVPixelBufferRetain(m_buffer);
     }
 
-    virtual ~CVPixelBufferVideoBuffer()
+    ~CVImageVideoBuffer()
     {
+        CVImageVideoBuffer::unmap();
+#ifdef Q_OS_IOS
+        if (m_texture)
+            CFRelease(m_texture);
+#endif
         CVPixelBufferRelease(m_buffer);
     }
 
@@ -78,7 +94,9 @@ public:
 
         // For a bi-planar format we have to set the parameters correctly:
         if (mode != QAbstractVideoBuffer::NotMapped && m_mode == QAbstractVideoBuffer::NotMapped) {
-            CVPixelBufferLockBaseAddress(m_buffer, 0);
+            CVPixelBufferLockBaseAddress(m_buffer, mode == QAbstractVideoBuffer::ReadOnly
+                                                               ? kCVPixelBufferLock_ReadOnly
+                                                               : 0);
 
             if (numBytes)
                 *numBytes = CVPixelBufferGetDataSize(m_buffer);
@@ -103,8 +121,9 @@ public:
     uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
     {
         if (mode != NotMapped && m_mode == NotMapped) {
-            CVPixelBufferLockBaseAddress(m_buffer, 0);
-
+            CVPixelBufferLockBaseAddress(m_buffer, mode == QAbstractVideoBuffer::ReadOnly
+                                                               ? kCVPixelBufferLock_ReadOnly
+                                                               : 0);
             if (numBytes)
                 *numBytes = CVPixelBufferGetDataSize(m_buffer);
 
@@ -121,13 +140,63 @@ public:
     void unmap()
     {
         if (m_mode != NotMapped) {
+            CVPixelBufferUnlockBaseAddress(m_buffer, m_mode == QAbstractVideoBuffer::ReadOnly
+                                                                   ? kCVPixelBufferLock_ReadOnly
+                                                                   : 0);
             m_mode = NotMapped;
-            CVPixelBufferUnlockBaseAddress(m_buffer, 0);
         }
     }
 
+    QVariant handle() const
+    {
+#ifdef Q_OS_IOS
+        // Called from the render thread, so there is a current OpenGL context
+
+        if (!m_renderer->m_textureCache) {
+            CVReturn err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault,
+                                                        NULL,
+                                                        [EAGLContext currentContext],
+                                                        NULL,
+                                                        &m_renderer->m_textureCache);
+
+            if (err != kCVReturnSuccess)
+                qWarning("Error creating texture cache");
+        }
+
+        if (m_renderer->m_textureCache && !m_texture) {
+            CVOpenGLESTextureCacheFlush(m_renderer->m_textureCache, 0);
+
+            CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                                        m_renderer->m_textureCache,
+                                                                        m_buffer,
+                                                                        NULL,
+                                                                        GL_TEXTURE_2D,
+                                                                        GL_RGBA,
+                                                                        CVPixelBufferGetWidth(m_buffer),
+                                                                        CVPixelBufferGetHeight(m_buffer),
+                                                                        GL_BGRA,
+                                                                        GL_UNSIGNED_BYTE,
+                                                                        0,
+                                                                        &m_texture);
+            if (err != kCVReturnSuccess)
+                qWarning("Error creating texture from buffer");
+        }
+
+        if (m_texture)
+            return CVOpenGLESTextureGetName(m_texture);
+        else
+            return 0;
+#else
+        return QVariant();
+#endif
+    }
+
 private:
-    CVPixelBufferRef m_buffer;
+#ifdef Q_OS_IOS
+    mutable CVOpenGLESTextureRef m_texture;
+#endif
+    CVImageBufferRef m_buffer;
+    AVFCameraRendererControl *m_renderer;
     MapMode m_mode;
 };
 
@@ -171,13 +240,25 @@ private:
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
-    QVideoFrame::PixelFormat format =
-            AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
+    QVideoFrame::PixelFormat format;
+
+#ifdef Q_OS_IOS
+    bool useTexture = m_renderer->supportsTextures()
+            && CVPixelBufferGetPixelFormatType(imageBuffer) == kCVPixelFormatType_32BGRA;
+
+    if (useTexture)
+        format = QVideoFrame::Format_BGRA32;
+    else
+#endif
+    format = AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
 
     if (format == QVideoFrame::Format_Invalid)
         return;
 
-    QVideoFrame frame(new CVPixelBufferVideoBuffer(imageBuffer), QSize(width, height), format);
+    QVideoFrame frame(new CVImageVideoBuffer(imageBuffer, m_renderer),
+                      QSize(width, height),
+                      format);
+
     m_renderer->syncHandleViewfinderFrame(frame);
 }
 
@@ -187,7 +268,11 @@ private:
 AVFCameraRendererControl::AVFCameraRendererControl(QObject *parent)
    : QVideoRendererControl(parent)
    , m_surface(0)
+   , m_supportsTextures(false)
    , m_needsHorizontalMirroring(false)
+#ifdef Q_OS_IOS
+   , m_textureCache(0)
+#endif
 {
     m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
 }
@@ -198,6 +283,10 @@ AVFCameraRendererControl::~AVFCameraRendererControl()
     [m_viewfinderFramesDelegate release];
     if (m_delegateQueue)
         dispatch_release(m_delegateQueue);
+#ifdef Q_OS_IOS
+    if (m_textureCache)
+        CFRelease(m_textureCache);
+#endif
 }
 
 QAbstractVideoSurface *AVFCameraRendererControl::surface() const
@@ -209,6 +298,11 @@ void AVFCameraRendererControl::setSurface(QAbstractVideoSurface *surface)
 {
     if (m_surface != surface) {
         m_surface = surface;
+#ifdef Q_OS_IOS
+        m_supportsTextures = m_surface
+                ? m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGRA32)
+                : false;
+#endif
         Q_EMIT surfaceChanged(surface);
     }
 }
@@ -261,21 +355,6 @@ void AVFCameraRendererControl::syncHandleViewfinderFrame(const QVideoFrame &fram
 
     m_lastViewfinderFrame = frame;
 
-    if (m_needsHorizontalMirroring) {
-        m_lastViewfinderFrame.map(QAbstractVideoBuffer::ReadOnly);
-
-        // no deep copy
-        QImage image(m_lastViewfinderFrame.bits(),
-                     m_lastViewfinderFrame.size().width(),
-                     m_lastViewfinderFrame.size().height(),
-                     m_lastViewfinderFrame.bytesPerLine(),
-                     QImage::Format_RGB32);
-
-        QImage mirrored = image.mirrored(true, false);
-
-        m_lastViewfinderFrame.unmap();
-        m_lastViewfinderFrame = QVideoFrame(mirrored);
-    }
     if (m_cameraSession && m_lastViewfinderFrame.isValid())
         m_cameraSession->onCameraFrameFetched(m_lastViewfinderFrame);
 }
@@ -315,7 +394,9 @@ void AVFCameraRendererControl::handleViewfinderFrame()
         }
 
         if (!m_surface->isActive()) {
-            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat());
+            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), frame.handleType());
+            if (m_needsHorizontalMirroring)
+                format.setProperty("mirrored", true);
 
             if (!m_surface->start(format)) {
                 qWarning() << "Failed to start viewfinder m_surface, format:" << format;

@@ -63,6 +63,10 @@ void AVFMediaPlayerControl::setSession(AVFMediaPlayerSession *session)
     connect(m_session, SIGNAL(audioAvailableChanged(bool)), this, SIGNAL(audioAvailableChanged(bool)));
     connect(m_session, SIGNAL(videoAvailableChanged(bool)), this, SIGNAL(videoAvailableChanged(bool)));
     connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+    connect(m_session, &AVFMediaPlayerSession::playbackRateChanged,
+            this, &AVFMediaPlayerControl::playbackRateChanged);
+    connect(m_session, &AVFMediaPlayerSession::seekableChanged,
+            this, &AVFMediaPlayerControl::seekableChanged);
 }
 
 QMediaPlayer::State AVFMediaPlayerControl::state() const

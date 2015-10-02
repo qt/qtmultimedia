@@ -297,6 +297,7 @@ void QSoundEffectPrivate::setCategory(const QString &category)
 }
 
 PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate* s):
+    QIODevice(s),
     m_loopCount(1),
     m_runningCount(0),
     m_playing(false),

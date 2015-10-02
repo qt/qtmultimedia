@@ -73,29 +73,60 @@ public:
         : QAbstractVideoBuffer(GLTextureHandle)
         , m_control(control)
         , m_textureUpdated(false)
+        , m_mapMode(NotMapped)
     {
     }
 
     virtual ~AndroidTextureVideoBuffer() {}
 
-    MapMode mapMode() const { return NotMapped; }
-    uchar *map(MapMode, int*, int*) { return 0; }
-    void unmap() {}
+    MapMode mapMode() const { return m_mapMode; }
+
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
+    {
+        if (m_mapMode == NotMapped && mode == ReadOnly) {
+            updateFrame();
+            m_mapMode = mode;
+            m_image = m_control->m_fbo->toImage();
+
+            if (numBytes)
+                *numBytes = m_image.byteCount();
+
+            if (bytesPerLine)
+                *bytesPerLine = m_image.bytesPerLine();
+
+            return m_image.bits();
+        } else {
+            return 0;
+        }
+    }
+
+    void unmap()
+    {
+        m_image = QImage();
+        m_mapMode = NotMapped;
+    }
 
     QVariant handle() const
+    {
+        AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
+        that->updateFrame();
+        return m_control->m_fbo->texture();
+    }
+
+private:
+    void updateFrame()
     {
         if (!m_textureUpdated) {
             // update the video texture (called from the render thread)
             m_control->renderFrameToFbo();
             m_textureUpdated = true;
         }
-
-        return m_control->m_fbo->texture();
     }
 
-private:
-    mutable QAndroidVideoRendererControl *m_control;
-    mutable bool m_textureUpdated;
+    QAndroidVideoRendererControl *m_control;
+    bool m_textureUpdated;
+    MapMode m_mapMode;
+    QImage m_image;
 };
 
 QAndroidVideoRendererControl::QAndroidVideoRendererControl(QObject *parent)
