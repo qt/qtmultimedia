@@ -1013,12 +1013,17 @@ QJSValue QDeclarativeCamera::supportedViewfinderResolutions(qreal minimumFrameRa
 
     \since 5.5
 */
-QJSValue QDeclarativeCamera::supportedViewfinderFrameRateRanges(const QSize &resolution)
+QJSValue QDeclarativeCamera::supportedViewfinderFrameRateRanges(const QJSValue &resolution)
 {
     QQmlEngine *engine = qmlEngine(this);
 
     QCameraViewfinderSettings settings;
-    settings.setResolution(resolution);
+    if (!resolution.isUndefined()) {
+        QJSValue width = resolution.property(QStringLiteral("width"));
+        QJSValue height = resolution.property(QStringLiteral("height"));
+        if (width.isNumber() && height.isNumber())
+            settings.setResolution(width.toInt(), height.toInt());
+    }
     QList<QCamera::FrameRateRange> frameRateRanges = m_camera->supportedViewfinderFrameRateRanges(settings);
 
     QJSValue supportedFrameRateRanges = engine->newArray(frameRateRanges.count());

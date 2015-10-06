@@ -57,6 +57,7 @@
 #include <QtCore/qdatetime.h>
 #include <QtQml/qqmlparserstatus.h>
 #include <QtQml/qqml.h>
+#include <QtQml/qjsvalue.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -297,7 +298,7 @@ public Q_SLOTS:
     Q_REVISION(2) QJSValue supportedViewfinderResolutions(qreal minimumFrameRate = 0.0,
                                                           qreal maximumFrameRate = 0.0);
 
-    Q_REVISION(2) QJSValue supportedViewfinderFrameRateRanges(const QSize &resolution = QSize());
+    Q_REVISION(2) QJSValue supportedViewfinderFrameRateRanges(const QJSValue &resolution = QJSValue());
 
 Q_SIGNALS:
     void errorChanged();
