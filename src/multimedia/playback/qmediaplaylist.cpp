@@ -168,10 +168,13 @@ bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
         newControl = d->networkPlaylistControl;
 
     if (d->control != newControl) {
-        int oldSize = 0;
+        int removedStart = -1;
+        int removedEnd = -1;
+        int insertedStart = -1;
+        int insertedEnd = -1;
+
         if (d->control) {
             QMediaPlaylistProvider *playlist = d->control->playlistProvider();
-            oldSize = playlist->mediaCount();
             disconnect(playlist, SIGNAL(loadFailed(QMediaPlaylist::Error,QString)),
                     this, SLOT(_q_loadFailed(QMediaPlaylist::Error,QString)));
 
@@ -189,6 +192,12 @@ bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
                     this, SIGNAL(currentIndexChanged(int)));
             disconnect(d->control, SIGNAL(currentMediaChanged(QMediaContent)),
                     this, SIGNAL(currentMediaChanged(QMediaContent)));
+
+            // Copy playlist items, sync playback mode and sync current index between
+            // old control and new control
+            d->syncControls(d->control, newControl,
+                            &removedStart, &removedEnd,
+                            &insertedStart, &insertedEnd);
 
             if (d->mediaObject)
                 d->mediaObject->service()->releaseControl(d->control);
@@ -214,14 +223,14 @@ bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
         connect(d->control, SIGNAL(currentMediaChanged(QMediaContent)),
                 this, SIGNAL(currentMediaChanged(QMediaContent)));
 
-        if (oldSize) {
-            emit mediaAboutToBeRemoved(0, oldSize-1);
-            emit mediaRemoved(0, oldSize-1);
+        if (removedStart != -1 && removedEnd != -1) {
+            emit mediaAboutToBeRemoved(removedStart, removedEnd);
+            emit mediaRemoved(removedStart, removedEnd);
         }
 
-        if (playlist->mediaCount()) {
-            emit mediaAboutToBeInserted(0,playlist->mediaCount()-1);
-            emit mediaInserted(0,playlist->mediaCount()-1);
+        if (insertedStart != -1 && insertedEnd != -1) {
+            emit mediaAboutToBeInserted(insertedStart, insertedEnd);
+            emit mediaInserted(insertedStart, insertedEnd);
         }
     }
 
@@ -433,6 +442,53 @@ bool QMediaPlaylistPrivate::writeItems(QMediaPlaylistWriter *writer)
     }
     writer->close();
     return true;
+}
+
+/*!
+ * \internal
+ * Copy playlist items, sync playback mode and sync current index between old control and new control
+*/
+void QMediaPlaylistPrivate::syncControls(QMediaPlaylistControl *oldControl, QMediaPlaylistControl *newControl,
+                                         int *removedStart, int *removedEnd,
+                                         int *insertedStart, int *insertedEnd)
+{
+    Q_ASSERT(oldControl != NULL && newControl != NULL);
+    Q_ASSERT(removedStart != NULL && removedEnd != NULL
+            && insertedStart != NULL && insertedEnd != NULL);
+
+    QMediaPlaylistProvider *oldPlaylist = oldControl->playlistProvider();
+    QMediaPlaylistProvider *newPlaylist = newControl->playlistProvider();
+
+    Q_ASSERT(oldPlaylist != NULL && newPlaylist != NULL);
+
+    *removedStart = -1;
+    *removedEnd = -1;
+    *insertedStart = -1;
+    *insertedEnd = -1;
+
+    if (newPlaylist->isReadOnly()) {
+        // we can't transfer the items from the old control.
+        // Report these items as removed.
+        if (oldPlaylist->mediaCount() > 0) {
+            *removedStart = 0;
+            *removedEnd = oldPlaylist->mediaCount() - 1;
+        }
+        // The new control might have some items that can't be cleared.
+        // Report these as inserted.
+        if (newPlaylist->mediaCount() > 0) {
+            *insertedStart = 0;
+            *insertedEnd = newPlaylist->mediaCount() - 1;
+        }
+    } else {
+        const int oldPlaylistSize = oldPlaylist->mediaCount();
+
+        newPlaylist->clear();
+        for (int i = 0; i < oldPlaylistSize; ++i)
+            newPlaylist->addMedia(oldPlaylist->media(i));
+    }
+
+    newControl->setPlaybackMode(oldControl->playbackMode());
+    newControl->setCurrentIndex(oldControl->currentIndex());
 }
 
 /*!
