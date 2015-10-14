@@ -99,6 +99,8 @@ public:
     void emitError(int errorCode, const QString &errorString);
     bool lockFocus();
     bool unlockFocus();
+    void frameMapped();
+    void frameUnmapped();
 
 private slots:
     void onBufferRequested();

@@ -38,12 +38,15 @@
 
 #include <QtCore/qfunctions_winrt.h>
 #include <QtCore/QSize>
+#include <QtCore/QPointer>
 #include <QtCore/QVector>
 #include <QVideoFrame>
 
 #include <d3d11.h>
 #include <mfapi.h>
 #include <wrl.h>
+
+#include "qwinrtcameracontrol.h"
 
 #ifdef Q_OS_WINPHONE
 #include <Windows.Security.ExchangeActiveSyncProvisioning.h>
@@ -68,12 +71,14 @@ static bool blacklisted(const wchar_t (&blackListName)[n], const HString &device
 class QWinRTCameraVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QWinRTCameraVideoBuffer(IMF2DBuffer *buffer, int size)
+    QWinRTCameraVideoBuffer(IMF2DBuffer *buffer, int size, QWinRTCameraControl *control)
         : QAbstractVideoBuffer(NoHandle)
         , currentMode(NotMapped)
         , buffer(buffer)
         , size(size)
+        , control(control)
     {
+        Q_ASSERT(control);
     }
 
     ~QWinRTCameraVideoBuffer()
@@ -88,13 +93,14 @@ public:
 
     uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) Q_DECL_OVERRIDE
     {
-        if (currentMode != NotMapped || mode == NotMapped)
+        if (currentMode != NotMapped || mode == NotMapped || control && control->state() != QCamera::ActiveState)
             return nullptr;
 
         BYTE *bytes;
         LONG stride;
         HRESULT hr = buffer->Lock2D(&bytes, &stride);
         RETURN_IF_FAILED("Failed to lock camera frame buffer", nullptr);
+        control->frameMapped();
 
         if (bytesPerLine)
             *bytesPerLine = stride;
@@ -111,12 +117,15 @@ public:
         HRESULT hr = buffer->Unlock2D();
         RETURN_VOID_IF_FAILED("Failed to unlock camera frame buffer");
         currentMode = NotMapped;
+        if (control)
+            control->frameUnmapped();
     }
 
 private:
     ComPtr<IMF2DBuffer> buffer;
     MapMode currentMode;
     int size;
+    QPointer<QWinRTCameraControl> control;
 };
 
 class D3DVideoBlitter
@@ -331,7 +340,9 @@ bool QWinRTCameraVideoRendererControl::dequeueFrame(QVideoFrame *frame)
         return false;
     }
 
-    QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer.Get(), d->cameraSampleSize);
+    QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer.Get(),
+                                                                       d->cameraSampleSize,
+                                                                       static_cast<QWinRTCameraControl *>(parent()));
     *frame = QVideoFrame(videoBuffer, size(), d->cameraSampleformat);
 
     emit bufferRequested();
@@ -350,7 +361,9 @@ void QWinRTCameraVideoRendererControl::queueBuffer(IMF2DBuffer *buffer)
     }
 
     if (d->videoProbesCounter > 0 && d->cameraSampleformat != QVideoFrame::Format_Invalid) {
-        QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer, d->cameraSampleSize);
+        QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer,
+                                                                           d->cameraSampleSize,
+                                                                           static_cast<QWinRTCameraControl *>(parent()));
         QVideoFrame frame(videoBuffer, size(), d->cameraSampleformat);
         emit videoFrameProbed(frame);
     }

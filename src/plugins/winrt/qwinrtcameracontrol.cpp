@@ -524,6 +524,8 @@ public:
     QPointer<QWinRTImageEncoderControl> imageEncoderControl;
     QPointer<QWinRTCameraFocusControl> cameraFocusControl;
     QPointer<QWinRTCameraLocksControl> cameraLocksControl;
+    QAtomicInt framesMapped;
+    QEventLoop *delayClose;
 };
 
 QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
@@ -531,6 +533,7 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
 {
     Q_D(QWinRTCameraControl);
 
+    d->delayClose = nullptr;
     d->state = QCamera::UnloadedState;
     d->status = QCamera::UnloadedStatus;
     d->captureMode = QCamera::CaptureStillImage;
@@ -612,6 +615,14 @@ void QWinRTCameraControl::setState(QCamera::State state)
     case QCamera::UnloadedState: {
         // Stop the camera if it is running (transition to LoadedState)
         if (d->status == QCamera::ActiveStatus) {
+            if (d->framesMapped > 0) {
+                qWarning("%d QVideoFrame(s) mapped when closing down camera. Camera will wait for unmap before closing down.",
+                         d->framesMapped);
+                if (!d->delayClose)
+                    d->delayClose = new QEventLoop(this);
+                d->delayClose->exec();
+            }
+
             ComPtr<IAsyncAction> op;
             hr = d->capturePreview->StopPreviewAsync(&op);
             RETURN_VOID_AND_EMIT_ERROR("Failed to stop camera preview");
@@ -1207,6 +1218,21 @@ bool QWinRTCameraControl::unlockFocus()
 }
 
 #endif // !Q_OS_WINPHONE
+
+void QWinRTCameraControl::frameMapped()
+{
+    Q_D(QWinRTCameraControl);
+    ++d->framesMapped;
+}
+
+void QWinRTCameraControl::frameUnmapped()
+{
+    Q_D(QWinRTCameraControl);
+    --d->framesMapped;
+    Q_ASSERT(d->framesMapped >= 0);
+    if (!d->framesMapped && d->delayClose && d->delayClose->isRunning())
+        d->delayClose->exit();
+}
 
 HRESULT QWinRTCameraControl::onCaptureFailed(IMediaCapture *, IMediaCaptureFailedEventArgs *args)
 {
