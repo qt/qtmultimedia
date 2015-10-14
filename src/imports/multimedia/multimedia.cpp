@@ -98,7 +98,7 @@ public:
                                 trUtf8("CameraImageProcessing is provided by Camera"));
 
         // 5.2 types
-        qmlRegisterRevision<QDeclarativeVideoOutput, 2>(uri, 5, 2);
+        qmlRegisterType<QDeclarativeVideoOutput, 2>(uri, 5, 2, "VideoOutput");
 
         // 5.3 types
         // Nothing changed, but adding "import QtMultimedia 5.3" in QML will fail unless at
@@ -107,16 +107,17 @@ public:
 
         // 5.4 types
         qmlRegisterSingletonType<QDeclarativeMultimediaGlobal>(uri, 5, 4, "QtMultimedia", multimedia_global_object);
-        qmlRegisterRevision<QDeclarativeCamera, 1>(uri, 5, 4);
+        qmlRegisterType<QDeclarativeCamera, 1>(uri, 5, 4, "Camera");
         qmlRegisterUncreatableType<QDeclarativeCameraViewfinder>(uri, 5, 4, "CameraViewfinder",
                                 trUtf8("CameraViewfinder is provided by Camera"));
 
         // 5.5 types
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 1>(uri, 5, 5, "CameraImageProcessing", trUtf8("CameraImageProcessing is provided by Camera"));
-        qmlRegisterRevision<QDeclarativeCamera, 2>(uri, 5, 5);
+        qmlRegisterType<QDeclarativeCamera, 2>(uri, 5, 5, "Camera");
 
         // 5.6 types
-        qmlRegisterRevision<QDeclarativeAudio, 1>(uri, 5, 6);
+        qmlRegisterType<QDeclarativeAudio, 1>(uri, 5, 6, "Audio");
+        qmlRegisterType<QDeclarativeAudio, 1>(uri, 5, 6, "MediaPlayer");
         qmlRegisterType<QDeclarativePlaylist>(uri, 5, 6, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 5, 6, "PlaylistItem");
 

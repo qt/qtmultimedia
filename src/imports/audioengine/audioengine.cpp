@@ -70,8 +70,8 @@ public:
         qmlRegisterType<QDeclarativeAttenuationModelInverse>(uri, 1, 0, "AttenuationModelInverse");
 
         // Dynamically adding audio engine related objects is only supported through revision 1
-        qmlRegisterRevision<QDeclarativeAudioEngine, 1>(uri, 1, 1);
-        qmlRegisterRevision<QDeclarativeSound, 1>(uri, 1, 1);
+        qmlRegisterType<QDeclarativeAudioEngine, 1>(uri, 1, 1, "AudioEngine");
+        qmlRegisterType<QDeclarativeSound, 1>(uri, 1, 1, "Sound");
     }
 };
 

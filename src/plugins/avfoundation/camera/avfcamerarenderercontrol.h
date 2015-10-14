@@ -63,6 +63,8 @@ public:
 
     AVCaptureVideoDataOutput *videoDataOutput() const;
 
+    bool supportsTextures() const { return m_supportsTextures; }
+
 #ifdef Q_OS_IOS
     AVFCaptureFramesDelegate *captureDelegate() const;
     void resetCaptureDelegate() const;
@@ -81,11 +83,18 @@ private:
     AVFCameraSession *m_cameraSession;
     AVCaptureVideoDataOutput *m_videoDataOutput;
 
+    bool m_supportsTextures;
     bool m_needsHorizontalMirroring;
+
+#ifdef Q_OS_IOS
+    CVOpenGLESTextureCacheRef m_textureCache;
+#endif
 
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;
     dispatch_queue_t m_delegateQueue;
+
+    friend class CVImageVideoBuffer;
 };
 
 QT_END_NAMESPACE

@@ -80,6 +80,8 @@ public:
 
     qreal playbackRate() const;
 
+    inline bool isVolumeSupported() const { return m_volumeSupported; }
+
 public Q_SLOTS:
     void setPlaybackRate(qreal rate);
 
@@ -106,6 +108,8 @@ Q_SIGNALS:
     void mutedChanged(bool muted);
     void audioAvailableChanged(bool audioAvailable);
     void videoAvailableChanged(bool videoAvailable);
+    void playbackRateChanged(qreal rate);
+    void seekableChanged(bool seekable);
     void error(int error, const QString &errorString);
 
 private:
@@ -148,6 +152,7 @@ private:
 
     void setAudioAvailable(bool available);
     void setVideoAvailable(bool available);
+    void setSeekable(bool seekable);
 
     AVFMediaPlayerService *m_service;
     AVFVideoOutput *m_videoOutput;
@@ -158,14 +163,17 @@ private:
     QMediaContent m_resources;
     ResourceHandler m_resourceHandler;
 
+    const bool m_volumeSupported;
     bool m_muted;
     bool m_tryingAsync;
     int m_volume;
     qreal m_rate;
+    qint64 m_requestedPosition;
 
     qint64 m_duration;
     bool m_videoAvailable;
     bool m_audioAvailable;
+    bool m_seekable;
 
     void *m_observer;
 };

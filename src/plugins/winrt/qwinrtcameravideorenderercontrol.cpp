@@ -44,9 +44,26 @@
 #include <d3d11.h>
 #include <mfapi.h>
 #include <wrl.h>
+
+#ifdef Q_OS_WINPHONE
+#include <Windows.Security.ExchangeActiveSyncProvisioning.h>
+using namespace ABI::Windows::Security::ExchangeActiveSyncProvisioning;
+#endif
+
 using namespace Microsoft::WRL;
+using namespace Microsoft::WRL::Wrappers;
 
 QT_BEGIN_NAMESPACE
+
+#ifdef Q_OS_WINPHONE
+template <int n>
+static bool blacklisted(const wchar_t (&blackListName)[n], const HString &deviceModel)
+{
+    quint32 deviceNameLength;
+    const wchar_t *deviceName = deviceModel.GetRawBuffer(&deviceNameLength);
+    return n - 1 <= deviceNameLength && !wmemcmp(blackListName, deviceName, n - 1);
+}
+#endif
 
 class QWinRTCameraVideoBuffer : public QAbstractVideoBuffer
 {
@@ -105,18 +122,13 @@ private:
 class D3DVideoBlitter
 {
 public:
-    D3DVideoBlitter(ID3D11Device *device, ID3D11Texture2D *target)
-        : m_d3dDevice(device), m_target(target)
+    D3DVideoBlitter(ID3D11Texture2D *target)
+        : m_target(target)
     {
+        Q_ASSERT(target);
+        target->GetDevice(&m_d3dDevice);
+        Q_ASSERT(m_d3dDevice);
         HRESULT hr;
-        ComPtr<IDXGIResource> targetResource;
-        hr = target->QueryInterface(IID_PPV_ARGS(&targetResource));
-        Q_ASSERT_SUCCEEDED(hr);
-        HANDLE sharedHandle;
-        hr = targetResource->GetSharedHandle(&sharedHandle);
-        Q_ASSERT_SUCCEEDED(hr);
-        hr = m_d3dDevice->OpenSharedResource(sharedHandle, IID_PPV_ARGS(&m_targetTexture));
-        Q_ASSERT_SUCCEEDED(hr);
         hr = m_d3dDevice.As(&m_videoDevice);
         Q_ASSERT_SUCCEEDED(hr);
     }
@@ -141,7 +153,7 @@ public:
                 D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE,
                 { 0 }, desc.Width, desc.Height,
                 { 0 }, desc.Width, desc.Height,
-                D3D11_VIDEO_USAGE_PLAYBACK_NORMAL
+                D3D11_VIDEO_USAGE_OPTIMAL_SPEED
             };
             hr = m_videoDevice->CreateVideoProcessorEnumerator(&videoProcessorDesc, &m_videoEnumerator);
             RETURN_VOID_IF_FAILED("Failed to create video enumerator");
@@ -155,16 +167,26 @@ public:
         if (!m_outputView) {
             D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC outputDesc = { D3D11_VPOV_DIMENSION_TEXTURE2D };
             hr = m_videoDevice->CreateVideoProcessorOutputView(
-                        m_targetTexture.Get(), m_videoEnumerator.Get(), &outputDesc, &m_outputView);
+                        m_target, m_videoEnumerator.Get(), &outputDesc, &m_outputView);
             RETURN_VOID_IF_FAILED("Failed to create video output view");
         }
+
+        ComPtr<IDXGIResource> sourceResource;
+        hr = texture->QueryInterface(IID_PPV_ARGS(&sourceResource));
+        Q_ASSERT_SUCCEEDED(hr);
+        HANDLE sharedHandle;
+        hr = sourceResource->GetSharedHandle(&sharedHandle);
+        Q_ASSERT_SUCCEEDED(hr);
+        ComPtr<ID3D11Texture2D> sharedTexture;
+        hr = m_d3dDevice->OpenSharedResource(sharedHandle, IID_PPV_ARGS(&sharedTexture));
+        Q_ASSERT_SUCCEEDED(hr);
 
         D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC inputViewDesc = {
             0, D3D11_VPIV_DIMENSION_TEXTURE2D, { 0, 0 }
         };
         ComPtr<ID3D11VideoProcessorInputView> inputView;
         hr = m_videoDevice->CreateVideoProcessorInputView(
-                    texture, m_videoEnumerator.Get(), &inputViewDesc, &inputView);
+                    sharedTexture.Get(), m_videoEnumerator.Get(), &inputViewDesc, &inputView);
         RETURN_VOID_IF_FAILED("Failed to create video input view");
 
         ComPtr<ID3D11DeviceContext> context;
@@ -182,7 +204,6 @@ public:
 
 private:
     ComPtr<ID3D11Device> m_d3dDevice;
-    ComPtr<ID3D11Texture2D> m_targetTexture;
     ID3D11Texture2D *m_target;
     ComPtr<ID3D11VideoDevice> m_videoDevice;
     ComPtr<ID3D11VideoProcessorEnumerator> m_videoEnumerator;
@@ -201,12 +222,15 @@ public:
     QVideoFrame::PixelFormat cameraSampleformat;
     int cameraSampleSize;
     uint videoProbesCounter;
-    bool getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer);
+    bool getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer,
+                             QWinRTAbstractVideoRendererControl::BlitMode *mode);
     ComPtr<IMF2DBuffer> dequeueBuffer();
 };
 
-bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer)
+bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<IMF2DBuffer> &buffer,
+                                                                  QWinRTAbstractVideoRendererControl::BlitMode *mode)
 {
+    Q_ASSERT(mode);
     ComPtr<ID3D11Texture2D> sourceTexture;
     ComPtr<IMFDXGIBuffer> dxgiBuffer;
     HRESULT hr = buffer.As(&dxgiBuffer);
@@ -219,6 +243,10 @@ bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<I
     }
     D3D11_TEXTURE2D_DESC desc;
     sourceTexture->GetDesc(&desc);
+
+    if (!(desc.MiscFlags & D3D11_RESOURCE_MISC_SHARED))
+        *mode = QWinRTAbstractVideoRendererControl::MediaFoundation;
+
     switch (desc.Format) {
     case DXGI_FORMAT_R8G8B8A8_TYPELESS:
         cameraSampleformat = QVideoFrame::Format_ARGB32;
@@ -244,6 +272,19 @@ QWinRTCameraVideoRendererControl::QWinRTCameraVideoRendererControl(const QSize &
     Q_D(QWinRTCameraVideoRendererControl);
     d->cameraSampleformat = QVideoFrame::Format_User;
     d->videoProbesCounter = 0;
+
+#ifdef Q_OS_WINPHONE
+    // Workaround for certain devices which fail to blit.
+    ComPtr<IEasClientDeviceInformation> deviceInfo;
+    HRESULT hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Security_ExchangeActiveSyncProvisioning_EasClientDeviceInformation).Get(),
+                                    &deviceInfo);
+    Q_ASSERT_SUCCEEDED(hr);
+    HString deviceModel;
+    hr = deviceInfo->get_SystemProductName(deviceModel.GetAddressOf());
+    Q_ASSERT_SUCCEEDED(hr);
+    // Blacklist Lumia 1520
+    setBlitMode(blacklisted(L"RM-937", deviceModel) ? MediaFoundation : DirectVideo);
+#endif
 }
 
 QWinRTCameraVideoRendererControl::~QWinRTCameraVideoRendererControl()
@@ -270,12 +311,28 @@ bool QWinRTCameraVideoRendererControl::render(ID3D11Texture2D *target)
         return false;
     }
 
-    ComPtr<ID3D11Device> device;
-    sourceTexture->GetDevice(&device);
-    if (!d->blitter || d->blitter->device() != device.Get() || d->blitter->target() != target)
-        d->blitter.reset(new D3DVideoBlitter(device.Get(), target));
+    if (!d->blitter || d->blitter->target() != target)
+        d->blitter.reset(new D3DVideoBlitter(target));
 
     d->blitter->blit(sourceTexture.Get());
+
+    emit bufferRequested();
+    return true;
+}
+
+bool QWinRTCameraVideoRendererControl::dequeueFrame(QVideoFrame *frame)
+{
+    Q_ASSERT(frame);
+    Q_D(QWinRTCameraVideoRendererControl);
+
+    ComPtr<IMF2DBuffer> buffer = d->dequeueBuffer();
+    if (!buffer || d->cameraSampleformat == QVideoFrame::Format_Invalid) {
+        emit bufferRequested();
+        return false;
+    }
+
+    QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer.Get(), d->cameraSampleSize);
+    *frame = QVideoFrame(videoBuffer, size(), d->cameraSampleformat);
 
     emit bufferRequested();
     return true;
@@ -286,15 +343,16 @@ void QWinRTCameraVideoRendererControl::queueBuffer(IMF2DBuffer *buffer)
     Q_D(QWinRTCameraVideoRendererControl);
     Q_ASSERT(buffer);
 
-    if (d->videoProbesCounter > 0) {
-        if (d->cameraSampleformat == QVideoFrame::Format_User)
-            d->getCameraSampleInfo(buffer);
+    if (d->cameraSampleformat == QVideoFrame::Format_User) {
+        BlitMode mode = blitMode();
+        d->getCameraSampleInfo(buffer, &mode);
+        setBlitMode(mode);
+    }
 
-        if (d->cameraSampleformat != QVideoFrame::Format_Invalid) {
-            QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer, d->cameraSampleSize);
-            QVideoFrame frame(videoBuffer, size(), d->cameraSampleformat);
-            emit videoFrameProbed(frame);
-        }
+    if (d->videoProbesCounter > 0 && d->cameraSampleformat != QVideoFrame::Format_Invalid) {
+        QWinRTCameraVideoBuffer *videoBuffer = new QWinRTCameraVideoBuffer(buffer, d->cameraSampleSize);
+        QVideoFrame frame(videoBuffer, size(), d->cameraSampleformat);
+        emit videoFrameProbed(frame);
     }
 
     const quint16 writeIndex = (d->writeIndex + 1) % CAMERA_SAMPLE_QUEUE_SIZE;

@@ -20,6 +20,9 @@ qtHaveModule(quick) {
     src_imports.subdir = imports
     src_imports.depends = multimedia src_qtmultimediaquicktools
 
+    # For the videonode plugin
+    src_plugins.depends += src_qtmultimediaquicktools
+
     SUBDIRS += \
         src_qtmultimediaquicktools \
         src_imports

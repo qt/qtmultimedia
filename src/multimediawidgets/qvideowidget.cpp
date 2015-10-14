@@ -734,7 +734,7 @@ void QVideoWidget::setFullScreen(bool fullScreen)
 
     Signals that the \a fullScreen mode of a video widget has changed.
 
-    \sa fullScreen()
+    \sa isFullScreen()
 */
 
 /*!

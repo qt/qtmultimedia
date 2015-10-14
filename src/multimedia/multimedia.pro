@@ -7,7 +7,8 @@ MODULE_PLUGIN_TYPES = \
     video/bufferpool \
     video/gstvideorenderer \
     video/videonode \
-    playlistformats
+    playlistformats \
+    resourcepolicy
 
 QMAKE_DOCS = $$PWD/doc/qtmultimedia.qdocconf
 

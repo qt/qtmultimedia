@@ -144,4 +144,158 @@ TestCase {
 
         cameraLoader.sourceComponent = undefined;
     }
+
+    function test_supportedViewfinderResolutions_data() {
+        // see mockcameraviewfindersettingscontrol.h for expected values
+
+        return [
+            {
+                tag: "all",
+                minimumFrameRate: 0, maximumFrameRate: 0,
+                expectedResolutions: [
+                    { width: 320, height: 240 },
+                    { width: 640, height: 480 },
+                    { width: 1280, height: 720 },
+                    { width: 1920, height: 1080 }
+                ]
+            },
+            {
+                tag: "invalid minimumFrameRate",
+                minimumFrameRate: 2, maximumFrameRate: 0,
+                expectedResolutions: [ ]
+            },
+            {
+                tag: "minimumFrameRate=5",
+                minimumFrameRate: 5, maximumFrameRate: 0,
+                expectedResolutions: [
+                    { width: 1920, height: 1080 }
+                ]
+            },
+            {
+                tag: "minimumFrameRate=10",
+                minimumFrameRate: 10, maximumFrameRate: 0,
+                expectedResolutions: [
+                    { width: 1280, height: 720 }
+                ]
+            },
+            {
+                tag: "minimumFrameRate=30",
+                minimumFrameRate: 30, maximumFrameRate: 0,
+                expectedResolutions: [
+                    { width: 320, height: 240 },
+                    { width: 640, height: 480 },
+                    { width: 1280, height: 720 }
+                ]
+            },
+            {
+                tag: "invalid maximumFrameRate",
+                minimumFrameRate: 0, maximumFrameRate: 2,
+                expectedResolutions: [ ]
+            },
+            {
+                tag: "maximumFrameRate=10",
+                minimumFrameRate: 0, maximumFrameRate: 10,
+                expectedResolutions: [
+                    { width: 1280, height: 720 },
+                    { width: 1920, height: 1080 }
+                ]
+            },
+            {
+                tag: "minimumFrameRate=10, maximumFrameRate=10",
+                minimumFrameRate: 10, maximumFrameRate: 10,
+                expectedResolutions: [
+                    { width: 1280, height: 720 }
+                ]
+            },
+            {
+                tag: "minimumFrameRate=30, maximumFrameRate=30",
+                minimumFrameRate: 30, maximumFrameRate: 30,
+                expectedResolutions: [
+                    { width: 320, height: 240 },
+                    { width: 640, height: 480 },
+                    { width: 1280, height: 720 }
+                ]
+            }
+        ]
+    }
+
+    function test_supportedViewfinderResolutions(data) {
+        cameraLoader.sourceComponent = cameraComponent;
+        var camera = cameraLoader.item;
+
+        var actualResolutions = camera.supportedViewfinderResolutions(data.minimumFrameRate, data.maximumFrameRate);
+        compare(actualResolutions.length, data.expectedResolutions.length);
+        for (var i = 0; i < actualResolutions.length; ++i) {
+            compare(actualResolutions[i].width, data.expectedResolutions[i].width);
+            compare(actualResolutions[i].height, data.expectedResolutions[i].height);
+        }
+
+        cameraLoader.sourceComponent = undefined;
+    }
+
+    function test_supportedViewfinderFrameRateRanges_data() {
+        // see mockcameraviewfindersettingscontrol.h for expected values
+        return [
+            {
+                tag: "all",
+                expectedFrameRateRanges: [
+                    { minimumFrameRate: 5, maximumFrameRate: 10 },
+                    { minimumFrameRate: 10, maximumFrameRate: 10 },
+                    { minimumFrameRate: 30, maximumFrameRate: 30 }
+                ]
+            },
+            {
+                tag: "invalid",
+                resolution: { width: 452472, height: 444534 },
+                expectedFrameRateRanges: [ ]
+            },
+            {
+                tag: "320, 240",
+                resolution: { width: 320, height: 240 },
+                expectedFrameRateRanges: [
+                    { minimumFrameRate: 30, maximumFrameRate: 30 }
+                ]
+            },
+            {
+                tag: "1280, 720",
+                resolution: { width: 1280, height: 720 },
+                expectedFrameRateRanges: [
+                    { minimumFrameRate: 10, maximumFrameRate: 10 },
+                    { minimumFrameRate: 30, maximumFrameRate: 30 }
+                ]
+            },
+            {
+                tag: "1920, 1080",
+                resolution: { width: 1920, height: 1080 },
+                expectedFrameRateRanges: [
+                    { minimumFrameRate: 5, maximumFrameRate: 10 }
+                ]
+            }
+        ]
+    }
+
+    function test_supportedViewfinderFrameRateRanges(data) {
+        cameraLoader.sourceComponent = cameraComponent;
+        var camera = cameraLoader.item;
+
+        // Pass the resolution as an object
+        var actualFrameRateRanges = camera.supportedViewfinderFrameRateRanges(data.resolution);
+        compare(actualFrameRateRanges.length, data.expectedFrameRateRanges.length);
+        for (var i = 0; i < actualFrameRateRanges.length; ++i) {
+            compare(actualFrameRateRanges[i].minimumFrameRate, data.expectedFrameRateRanges[i].minimumFrameRate);
+            compare(actualFrameRateRanges[i].maximumFrameRate, data.expectedFrameRateRanges[i].maximumFrameRate);
+        }
+
+        // Pass the resolution as a size
+        if (typeof data.resolution !== 'undefined') {
+            actualFrameRateRanges = camera.supportedViewfinderFrameRateRanges(Qt.size(data.resolution.width, data.resolution.height));
+            compare(actualFrameRateRanges.length, data.expectedFrameRateRanges.length);
+            for (i = 0; i < actualFrameRateRanges.length; ++i) {
+                compare(actualFrameRateRanges[i].minimumFrameRate, data.expectedFrameRateRanges[i].minimumFrameRate);
+                compare(actualFrameRateRanges[i].maximumFrameRate, data.expectedFrameRateRanges[i].maximumFrameRate);
+            }
+        }
+
+        cameraLoader.sourceComponent = undefined;
+    }
 }
