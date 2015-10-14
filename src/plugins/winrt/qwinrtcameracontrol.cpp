@@ -445,7 +445,7 @@ public:
     {
         m_stream->Flush();
         m_videoRenderer->setActive(false);
-        return m_presentationClock->Stop();
+        return m_presentationClock ? m_presentationClock->Stop() : S_OK;
     }
 
     HRESULT __stdcall OnClockStart(MFTIME systemTime, LONGLONG clockStartOffset) Q_DECL_OVERRIDE
@@ -624,8 +624,10 @@ void QWinRTCameraControl::setState(QCamera::State state)
             if (FAILED(hr))
                 emit error(QCamera::InvalidRequestError, qt_error_string(hr));
 
-            d->mediaSink->Shutdown();
-            d->mediaSink.Reset();
+            if (d->mediaSink) {
+                d->mediaSink->Shutdown();
+                d->mediaSink.Reset();
+            }
 
             d->state = QCamera::LoadedState;
             emit stateChanged(d->state);
