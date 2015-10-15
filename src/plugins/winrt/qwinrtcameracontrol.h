@@ -104,6 +104,7 @@ public:
 
 private slots:
     void onBufferRequested();
+    void onApplicationStateChanged(Qt::ApplicationState state);
 
 private:
     HRESULT enumerateDevices();

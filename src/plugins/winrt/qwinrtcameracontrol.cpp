@@ -43,8 +43,8 @@
 #include "qwinrtcameralockscontrol.h"
 
 #include <QtCore/qfunctions_winrt.h>
-#include <QtCore/QCoreApplication>
 #include <QtCore/QPointer>
+#include <QtGui/QGuiApplication>
 
 #include <mfapi.h>
 #include <mferror.h>
@@ -547,6 +547,11 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
     d->imageEncoderControl = new QWinRTImageEncoderControl(this);
     d->cameraFocusControl = new QWinRTCameraFocusControl(this);
     d->cameraLocksControl = new QWinRTCameraLocksControl(this);
+
+    if (qGuiApp) {
+        connect(qGuiApp, &QGuiApplication::applicationStateChanged,
+                this, &QWinRTCameraControl::onApplicationStateChanged);
+    }
 }
 
 QWinRTCameraControl::~QWinRTCameraControl()
@@ -776,6 +781,25 @@ void QWinRTCameraControl::onBufferRequested()
 
     if (d->mediaSink)
         d->mediaSink->RequestSample();
+}
+
+void QWinRTCameraControl::onApplicationStateChanged(Qt::ApplicationState state)
+{
+    Q_D(QWinRTCameraControl);
+    static QCamera::State savedState = d->state;
+    switch (state) {
+    case Qt::ApplicationInactive:
+        if (d->state != QCamera::UnloadedState) {
+            savedState = d->state;
+            setState(QCamera::UnloadedState);
+        }
+        break;
+    case Qt::ApplicationActive:
+        setState(QCamera::State(savedState));
+        break;
+    default:
+        break;
+    }
 }
 
 HRESULT QWinRTCameraControl::initialize()
