@@ -376,9 +376,6 @@ void QVideoSurfaceGstSink::class_init(gpointer g_class, gpointer class_data)
 
     sink_parent_class = reinterpret_cast<GstVideoSinkClass *>(g_type_class_peek_parent(g_class));
 
-    GstVideoSinkClass *video_sink_class = reinterpret_cast<GstVideoSinkClass *>(g_class);
-    video_sink_class->show_frame = QVideoSurfaceGstSink::show_frame;
-
     GstBaseSinkClass *base_sink_class = reinterpret_cast<GstBaseSinkClass *>(g_class);
     base_sink_class->get_caps = QVideoSurfaceGstSink::get_caps;
     base_sink_class->set_caps = QVideoSurfaceGstSink::set_caps;
@@ -386,6 +383,14 @@ void QVideoSurfaceGstSink::class_init(gpointer g_class, gpointer class_data)
     base_sink_class->start = QVideoSurfaceGstSink::start;
     base_sink_class->stop = QVideoSurfaceGstSink::stop;
     base_sink_class->unlock = QVideoSurfaceGstSink::unlock;
+
+#if GST_CHECK_VERSION(0, 10, 25)
+    GstVideoSinkClass *video_sink_class = reinterpret_cast<GstVideoSinkClass *>(g_class);
+    video_sink_class->show_frame = QVideoSurfaceGstSink::show_frame;
+#else
+    base_sink_class->preroll = QVideoSurfaceGstSink::preroll;
+    base_sink_class->render = QVideoSurfaceGstSink::render;
+#endif
 
     GstElementClass *element_class = reinterpret_cast<GstElementClass *>(g_class);
     element_class->change_state = QVideoSurfaceGstSink::change_state;
@@ -674,10 +679,30 @@ gboolean QVideoSurfaceGstSink::unlock(GstBaseSink *base)
     return TRUE;
 }
 
+#if GST_CHECK_VERSION(0, 10, 25)
 GstFlowReturn QVideoSurfaceGstSink::show_frame(GstVideoSink *base, GstBuffer *buffer)
 {
     VO_SINK(base);
     return sink->delegate->render(buffer);
 }
+#else
+GstFlowReturn QVideoSurfaceGstSink::preroll(GstBaseSink *base, GstBuffer *buffer)
+{
+    VO_SINK(base);
+    gboolean showPrerollFrame = true;
+    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, NULL);
+
+    if (showPrerollFrame)
+        return sink->delegate->render(buffer);
+
+    return GST_FLOW_OK;
+}
+
+GstFlowReturn QVideoSurfaceGstSink::render(GstBaseSink *base, GstBuffer *buffer)
+{
+    VO_SINK(base);
+    return sink->delegate->render(buffer);
+}
+#endif
 
 QT_END_NAMESPACE

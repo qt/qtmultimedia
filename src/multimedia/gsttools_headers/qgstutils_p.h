@@ -150,6 +150,8 @@ gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gi
 gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur);
 GstCaps *qt_gst_caps_normalize(GstCaps *caps);
 const gchar *qt_gst_element_get_factory_name(GstElement *element);
+gboolean qt_gst_caps_can_intersect(const GstCaps * caps1, const GstCaps * caps2);
+GList *qt_gst_video_sinks();
 
 QDebug operator <<(QDebug debug, GstCaps *caps);
 

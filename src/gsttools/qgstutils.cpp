@@ -774,6 +774,7 @@ QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFac
     return supportedMimeTypes;
 }
 
+#if GST_CHECK_VERSION(1, 0, 0)
 namespace {
 
 struct ColorFormat { QImage::Format imageFormat; GstVideoFormat gstFormat; };
@@ -786,6 +787,7 @@ static const ColorFormat qt_colorLookup[] =
 };
 
 }
+#endif
 
 #if GST_CHECK_VERSION(1,0,0)
 QImage QGstUtils::bufferToImage(GstBuffer *buffer, const GstVideoInfo &videoInfo)
@@ -1212,6 +1214,7 @@ void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant
                     tagValue.toDouble(),
                     NULL);
                 break;
+#if GST_CHECK_VERSION(0, 10, 31)
             case QVariant::DateTime: {
                 QDateTime date = tagValue.toDateTime().toLocalTime();
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
@@ -1223,6 +1226,7 @@ void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant
                     NULL);
                 break;
             }
+#endif
             default:
                 break;
         }
@@ -1408,8 +1412,10 @@ GstCaps *qt_gst_pad_get_caps(GstPad *pad)
 {
 #if GST_CHECK_VERSION(1,0,0)
     return gst_pad_query_caps(pad, NULL);
-#else
+#elif GST_CHECK_VERSION(0, 10, 26)
     return gst_pad_get_caps_reffed(pad);
+#else
+    return gst_pad_get_caps(pad);
 #endif
 }
 
@@ -1462,6 +1468,67 @@ const gchar *qt_gst_element_get_factory_name(GstElement *element)
         name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
 
     return name;
+}
+
+gboolean qt_gst_caps_can_intersect(const GstCaps * caps1, const GstCaps * caps2)
+{
+#if GST_CHECK_VERSION(0, 10, 25)
+    return gst_caps_can_intersect(caps1, caps2);
+#else
+    GstCaps *intersection = gst_caps_intersect(caps1, caps2);
+    gboolean res = !gst_caps_is_empty(intersection);
+    gst_caps_unref(intersection);
+    return res;
+#endif
+}
+
+#if !GST_CHECK_VERSION(0, 10, 31)
+static gboolean qt_gst_videosink_factory_filter(GstPluginFeature *feature, gpointer)
+{
+  guint rank;
+  const gchar *klass;
+
+  if (!GST_IS_ELEMENT_FACTORY(feature))
+    return FALSE;
+
+  klass = gst_element_factory_get_klass(GST_ELEMENT_FACTORY(feature));
+  if (!(strstr(klass, "Sink") && strstr(klass, "Video")))
+    return FALSE;
+
+  rank = gst_plugin_feature_get_rank(feature);
+  if (rank < GST_RANK_MARGINAL)
+    return FALSE;
+
+  return TRUE;
+}
+
+static gint qt_gst_compare_ranks(GstPluginFeature *f1, GstPluginFeature *f2)
+{
+  gint diff;
+
+  diff = gst_plugin_feature_get_rank(f2) - gst_plugin_feature_get_rank(f1);
+  if (diff != 0)
+    return diff;
+
+  return strcmp(gst_plugin_feature_get_name(f2), gst_plugin_feature_get_name (f1));
+}
+#endif
+
+GList *qt_gst_video_sinks()
+{
+    GList *list = NULL;
+
+#if GST_CHECK_VERSION(0, 10, 31)
+    list = gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_SINK | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO,
+                                                 GST_RANK_MARGINAL);
+#else
+    list = gst_registry_feature_filter(gst_registry_get_default(),
+                                       (GstPluginFeatureFilter)qt_gst_videosink_factory_filter,
+                                       FALSE, NULL);
+    list = g_list_sort(list, (GCompareFunc)qt_gst_compare_ranks);
+#endif
+
+    return list;
 }
 
 QDebug operator <<(QDebug debug, GstCaps *caps)
