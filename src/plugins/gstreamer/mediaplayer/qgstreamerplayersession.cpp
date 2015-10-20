@@ -388,7 +388,7 @@ QMediaTimeRange QGstreamerPlayerSession::availablePlaybackRanges() const
     if (duration() <= 0)
         return ranges;
 
-#if (GST_VERSION_MAJOR >= 0) &&  (GST_VERSION_MINOR >= 10) && (GST_VERSION_MICRO >= 31)
+#if GST_CHECK_VERSION(0, 10, 31)
     //GST_FORMAT_TIME would be more appropriate, but unfortunately it's not supported.
     //with GST_FORMAT_PERCENT media is treated as encoded with constant bitrate.
     GstQuery* query = gst_query_new_buffering(GST_FORMAT_PERCENT);
@@ -1637,7 +1637,7 @@ void QGstreamerPlayerSession::updateMuted()
     }
 }
 
-#if (GST_VERSION_MAJOR == 0) && ((GST_VERSION_MINOR < 10) || (GST_VERSION_MICRO < 33))
+#if !GST_CHECK_VERSION(0, 10, 33)
 static gboolean factory_can_src_any_caps (GstElementFactory *factory, const GstCaps *caps)
 {
     GList *templates;
@@ -1653,7 +1653,7 @@ static gboolean factory_can_src_any_caps (GstElementFactory *factory, const GstC
         if (templ->direction == GST_PAD_SRC) {
             GstCaps *templcaps = gst_static_caps_get(&templ->static_caps);
 
-            if (gst_caps_can_intersect(caps, templcaps)) {
+            if (qt_gst_caps_can_intersect(caps, templcaps)) {
                 gst_caps_unref(templcaps);
                 return TRUE;
             }
@@ -1685,7 +1685,7 @@ GstAutoplugSelectResult QGstreamerPlayerSession::handleAutoplugSelect(GstBin *bi
         GstCaps *sinkCaps = gst_pad_get_caps(sinkPad);
 #endif
 
-#if (GST_VERSION_MAJOR == 0) && ((GST_VERSION_MINOR < 10) || (GST_VERSION_MICRO < 33))
+#if !GST_CHECK_VERSION(0, 10, 33)
         if (!factory_can_src_any_caps(factory, sinkCaps))
 #else
         if (!gst_element_factory_can_src_any_caps(factory, sinkCaps))
