@@ -1154,6 +1154,8 @@ bool QWinRTCameraControl::focus()
         return false;
     ComPtr<IAsyncAction> op;
     HRESULT hr = d->focusControl->FocusAsync(&op);
+    if (HRESULT_CODE(hr) == ERROR_OPERATION_IN_PROGRESS)
+        return true;
     Q_ASSERT_SUCCEEDED(hr);
     hr = QWinRTFunctions::await(op, QWinRTFunctions::ProcessThreadEvents);
     Q_ASSERT_SUCCEEDED(hr);
