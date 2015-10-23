@@ -180,21 +180,15 @@ void AVFImageCaptureControl::onNewViewfinderFrame(const QVideoFrame &frame)
     QtConcurrent::run(this, &AVFImageCaptureControl::makeCapturePreview,
                       request,
                       frame,
-                      m_session->activeCameraInfo(),
-                      m_orientationHandler.currentOrientation());
+                      0 /* rotation */);
 }
 
 void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
                                                 const QVideoFrame &frame,
-                                                AVFCameraInfo cameraInfo,
-                                                int screenOrientation)
+                                                int rotation)
 {
     QTransform transform;
-    screenOrientation = 360 - screenOrientation;
-    if (cameraInfo.position == QCamera::FrontFace)
-        transform.rotate((screenOrientation + cameraInfo.orientation) % 360);
-    else
-        transform.rotate((screenOrientation + (360 - cameraInfo.orientation)) % 360);
+    transform.rotate(rotation);
 
     Q_EMIT imageCaptured(request.captureId, qt_imageFromVideoFrame(frame).transformed(transform));
 

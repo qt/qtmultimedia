@@ -39,7 +39,6 @@
 #include <QtCore/qqueue.h>
 #include <QtCore/qsemaphore.h>
 #include <QtMultimedia/qcameraimagecapturecontrol.h>
-#include <private/qvideooutputorientationhandler_p.h>
 #include "avfcamerasession.h"
 #include "avfstoragelocation.h"
 
@@ -72,7 +71,7 @@ private Q_SLOTS:
     void onNewViewfinderFrame(const QVideoFrame &frame);
 
 private:
-    void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, AVFCameraInfo cameraInfo, int screenOrientation);
+    void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
 
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
@@ -81,7 +80,6 @@ private:
     AVCaptureStillImageOutput *m_stillImageOutput;
     AVCaptureConnection *m_videoConnection;
     AVFStorageLocation m_storageLocation;
-    QVideoOutputOrientationHandler m_orientationHandler;
 
     QMutex m_requestsMutex;
     QQueue<CaptureRequest> m_captureRequests;
