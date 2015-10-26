@@ -421,6 +421,29 @@ bool QDeclarativePlaylist::addItem(const QUrl &source)
 }
 
 /*!
+    \qmlmethod bool QtMultimedia::Playlist::addItems(sources)
+
+    Appends the list of URLs in \a sources to the playlist.
+
+    Returns true if the \a sources are added successfully.
+
+    \since 5.7
+*/
+bool QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
+{
+    if (sources.isEmpty())
+        return false;
+
+    QList<QMediaContent> contents;
+    QList<QUrl>::const_iterator it = sources.constBegin();
+    while (it != sources.constEnd()) {
+        contents.push_back(QMediaContent(*it));
+        ++it;
+    }
+    return m_playlist->addMedia(contents);
+}
+
+/*!
     \qmlmethod bool QtMultimedia::Playlist::insertItem(index, source)
 
     Inserts the \a source URL to the playlist at the given \a index.

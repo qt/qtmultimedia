@@ -152,6 +152,7 @@ public Q_SLOTS:
     void load(const QUrl &location, const QString &format = QString());
     bool save(const QUrl &location, const QString &format = QString());
     bool addItem(const QUrl &source);
+    bool addItems(const QList<QUrl> &sources);
     bool insertItem(int index, const QUrl &source);
     bool removeItem(int index);
     bool clear();
