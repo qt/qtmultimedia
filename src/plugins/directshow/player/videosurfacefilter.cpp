@@ -147,6 +147,14 @@ HRESULT VideoSurfaceFilter::Stop()
 
     m_sampleScheduler.stop();
 
+    if (thread() == QThread::currentThread()) {
+        flush();
+    } else {
+        QMutexLocker locker(&m_mutex);
+        m_loop->postEvent(this, new QEvent(QEvent::Type(FlushSurface)));
+        m_wait.wait(&m_mutex);
+    }
+
     return S_OK;
 }
 
