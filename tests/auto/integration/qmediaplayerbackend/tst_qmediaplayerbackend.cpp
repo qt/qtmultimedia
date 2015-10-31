@@ -720,7 +720,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     player.pause();
     QTRY_COMPARE(player.state(), QMediaPlayer::PausedState); // it might take some time for the operation to be completed
-    QTRY_COMPARE(surface->m_frameList.size(), 1); // we must see a frame at position 7000 here
+    QTRY_VERIFY(!surface->m_frameList.isEmpty()); // we must see a frame at position 7000 here
 
     {
         QVideoFrame frame = surface->m_frameList.back();
@@ -739,12 +739,13 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         frame.unmap();
     }
 
+    surface->m_frameList.clear();
     positionSpy.clear();
     position = 12000;
     player.setPosition(position);
     QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - position) < (qint64)500);
     QCOMPARE(player.state(), QMediaPlayer::PausedState);
-    QCOMPARE(surface->m_frameList.size(), 2);
+    QVERIFY(!surface->m_frameList.isEmpty());
 
     {
         QVideoFrame frame = surface->m_frameList.back();
