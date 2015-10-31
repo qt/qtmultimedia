@@ -116,6 +116,7 @@ private:
 
     void scheduleUpdate(int properties);
     void emitPropertyChanges();
+    void setVolumeHelper(int volume);
 
     DirectShowPlayerService *m_service;
     IBasicAudio *m_audio;
@@ -125,7 +126,8 @@ private:
     QMediaPlayer::MediaStatus m_status;
     QMediaPlayer::Error m_error;
     int m_streamTypes;
-    int m_muteVolume;
+    int m_volume;
+    bool m_muted;
     qint64 m_position;
     qint64 m_pendingPosition;
     qint64 m_duration;

@@ -73,7 +73,8 @@ DirectShowPlayerControl::DirectShowPlayerControl(DirectShowPlayerService *servic
     , m_status(QMediaPlayer::NoMedia)
     , m_error(QMediaPlayer::NoError)
     , m_streamTypes(0)
-    , m_muteVolume(-1)
+    , m_volume(100)
+    , m_muted(false)
     , m_position(0)
     , m_pendingPosition(-1)
     , m_duration(0)
@@ -125,63 +126,47 @@ void DirectShowPlayerControl::setPosition(qint64 position)
 
 int DirectShowPlayerControl::volume() const
 {
-    if (m_muteVolume >= 0) {
-        return m_muteVolume;
-    } else if (m_audio) {
-        long dB = 0;
-
-        m_audio->get_Volume(&dB);
-
-        return decibelsToVolume(dB);
-    } else {
-        return 0;
-    }
+    return m_volume;
 }
 
 void DirectShowPlayerControl::setVolume(int volume)
 {
     int boundedVolume = qBound(0, volume, 100);
 
-    if (m_muteVolume >= 0) {
-        m_muteVolume = boundedVolume;
+    if (m_volume == boundedVolume)
+        return;
 
-        emit volumeChanged(m_muteVolume);
-    } else if (m_audio) {
-        m_audio->put_Volume(volumeToDecibels(volume));
+    m_volume = boundedVolume;
 
-        emit volumeChanged(boundedVolume);
-    }
+    if (!m_muted)
+        setVolumeHelper(m_volume);
+
+    emit volumeChanged(m_volume);
 }
 
 bool DirectShowPlayerControl::isMuted() const
 {
-    return m_muteVolume >= 0;
+    return m_muted;
 }
 
 void DirectShowPlayerControl::setMuted(bool muted)
 {
-    if (muted && m_muteVolume < 0) {
-        if (m_audio) {
-            long dB = 0;
+    if (m_muted == muted)
+        return;
 
-            m_audio->get_Volume(&dB);
+    m_muted = muted;
 
-            m_muteVolume = decibelsToVolume(dB);
+    setVolumeHelper(m_muted ? 0 : m_volume);
 
-            m_audio->put_Volume(-10000);
-        } else {
-            m_muteVolume = 0;
-        }
+    emit mutedChanged(m_muted);
+}
 
-        emit mutedChanged(muted);
-    } else if (!muted && m_muteVolume >= 0) {
-        if (m_audio) {
-            m_audio->put_Volume(volumeToDecibels(m_muteVolume));
-        }
-        m_muteVolume = -1;
+void DirectShowPlayerControl::setVolumeHelper(int volume)
+{
+    if (!m_audio)
+        return;
 
-        emit mutedChanged(muted);
-    }
+    m_audio->put_Volume(volumeToDecibels(volume));
 }
 
 int DirectShowPlayerControl::bufferStatus() const
@@ -389,6 +374,7 @@ void DirectShowPlayerControl::updateAudioOutput(IBaseFilter *filter)
         m_audio->Release();
 
     m_audio = com_cast<IBasicAudio>(filter, IID_IBasicAudio);
+    setVolumeHelper(m_muted ? 0 : m_volume);
 }
 
 void DirectShowPlayerControl::updateError(QMediaPlayer::Error error, const QString &errorString)
