@@ -45,7 +45,8 @@ DirectShowVideoRendererControl::DirectShowVideoRendererControl(DirectShowEventLo
 
 DirectShowVideoRendererControl::~DirectShowVideoRendererControl()
 {
-    delete m_filter;
+    if (m_filter)
+        m_filter->Release();
 }
 
 QAbstractVideoSurface *DirectShowVideoRendererControl::surface() const
@@ -68,7 +69,8 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
         emit filterChanged();
 
-        delete existingFilter;
+        if (existingFilter)
+            existingFilter->Release();
     }
 }
 
