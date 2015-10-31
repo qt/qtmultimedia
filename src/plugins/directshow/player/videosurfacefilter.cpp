@@ -606,10 +606,24 @@ void VideoSurfaceFilter::sampleReady()
     IMediaSample *sample = m_sampleScheduler.takeSample(&eos);
 
     if (sample) {
-        m_surface->present(QVideoFrame(
-                new MediaSampleVideoBuffer(sample, m_bytesPerLine),
-                m_surfaceFormat.frameSize(),
-                m_surfaceFormat.pixelFormat()));
+        QVideoFrame frame(new MediaSampleVideoBuffer(sample, m_bytesPerLine),
+                          m_surfaceFormat.frameSize(),
+                          m_surfaceFormat.pixelFormat());
+
+        if (IMediaSeeking *seeking = com_cast<IMediaSeeking>(m_graph, IID_IMediaSeeking)) {
+            LONGLONG position = 0;
+            seeking->GetCurrentPosition(&position);
+            seeking->Release();
+
+            frame.setStartTime(position * 0.1);
+
+            REFERENCE_TIME startTime = -1;
+            REFERENCE_TIME endTime = -1;
+            if (sample->GetTime(&startTime, &endTime) == S_OK)
+                frame.setEndTime(frame.startTime() + (endTime - startTime) * 0.1);
+        }
+
+        m_surface->present(frame);
 
         sample->Release();
 
