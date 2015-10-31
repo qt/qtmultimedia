@@ -114,6 +114,8 @@ private:
         PropertiesChanged = QEvent::User
     };
 
+    void playOrPause(QMediaPlayer::State state);
+
     void scheduleUpdate(int properties);
     void emitPropertyChanges();
     void setVolumeHelper(int volume);

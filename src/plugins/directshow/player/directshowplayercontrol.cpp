@@ -225,6 +225,8 @@ const QIODevice *DirectShowPlayerControl::mediaStream() const
 
 void DirectShowPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
 {
+    m_pendingPosition = -1;
+
     m_media = media;
     m_stream = stream;
 
@@ -238,30 +240,35 @@ void DirectShowPlayerControl::setMedia(const QMediaContent &media, QIODevice *st
 
 void DirectShowPlayerControl::play()
 {
-    if (m_status == QMediaPlayer::NoMedia)
-        return;
-    if (m_status == QMediaPlayer::InvalidMedia) {
-        setMedia(m_media, m_stream);
-        if (m_error != QMediaPlayer::NoError)
-            return;
-    }
-    m_service->play();
-    if (m_pendingPosition != -1)
-        setPosition(m_pendingPosition);
-    emit stateChanged(m_state = QMediaPlayer::PlayingState);
+    playOrPause(QMediaPlayer::PlayingState);
 }
 
 void DirectShowPlayerControl::pause()
 {
-    if (m_status == QMediaPlayer::NoMedia)
+    playOrPause(QMediaPlayer::PausedState);
+}
+
+void DirectShowPlayerControl::playOrPause(QMediaPlayer::State state)
+{
+    if (m_status == QMediaPlayer::NoMedia || state == QMediaPlayer::StoppedState)
         return;
     if (m_status == QMediaPlayer::InvalidMedia) {
         setMedia(m_media, m_stream);
         if (m_error != QMediaPlayer::NoError)
             return;
     }
-    m_service->pause();
-    emit stateChanged(m_state = QMediaPlayer::PausedState);
+
+    m_state = state;
+
+    if (m_pendingPosition != -1)
+        setPosition(m_pendingPosition);
+
+    if (state == QMediaPlayer::PausedState)
+        m_service->pause();
+    else
+        m_service->play();
+
+    emit stateChanged(m_state);
 }
 
 void DirectShowPlayerControl::stop()
