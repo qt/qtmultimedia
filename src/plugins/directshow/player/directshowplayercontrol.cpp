@@ -114,6 +114,11 @@ qint64 DirectShowPlayerControl::position() const
 
 void DirectShowPlayerControl::setPosition(qint64 position)
 {
+    if (m_status == QMediaPlayer::EndOfMedia) {
+        m_status = QMediaPlayer::LoadedMedia;
+        emit mediaStatusChanged(m_status);
+    }
+
     if (m_state == QMediaPlayer::StoppedState && m_pendingPosition != position) {
         m_pendingPosition = position;
         emit positionChanged(m_pendingPosition);
