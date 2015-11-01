@@ -231,7 +231,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     m_seekable = false;
     m_atEnd = false;
     m_dontCacheNextSeekResult = false;
-    m_metaDataControl->updateGraph(0, 0);
+    m_metaDataControl->reset();
 
     if (m_resources.isEmpty() && !stream) {
         m_pendingTasks = 0;
@@ -569,9 +569,6 @@ void DirectShowPlayerService::doReleaseGraph(QMutexLocker *locker)
         control->Stop();
         control->Release();
     }
-
-    //release m_headerInfo -> decrease ref counter of m_source
-    m_metaDataControl->updateGraph(0, 0);
 
     if (m_source) {
         m_source->Release();
@@ -1138,7 +1135,7 @@ void DirectShowPlayerService::customEvent(QEvent *event)
         QMutexLocker locker(&m_mutex);
 
         m_playerControl->updateMediaInfo(m_duration, m_streamTypes, m_seekable);
-        m_metaDataControl->updateGraph(m_graph, m_source, m_url.toString());
+        m_metaDataControl->updateMetadata(m_graph, m_source, m_url.toString());
 
         updateStatus();
     } else if (event->type() == QEvent::Type(Error)) {
