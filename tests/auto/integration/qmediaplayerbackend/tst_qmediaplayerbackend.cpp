@@ -478,7 +478,7 @@ void tst_QMediaPlayerBackend::processEOS()
 
     //position is reset to start
     QTRY_VERIFY(player.position() < 100);
-    QVERIFY(positionSpy.count() > 0);
+    QTRY_VERIFY(positionSpy.count() > 0);
     QCOMPARE(positionSpy.first()[0].value<qint64>(), 0);
 
     QCOMPARE(player.state(), QMediaPlayer::PlayingState);
