@@ -220,13 +220,13 @@ void tst_QMediaPlayerBackend::initTestCase()
     qRegisterMetaType<QMediaContent>();
 
     QStringList mediaCandidates;
-    mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
     mediaCandidates << QFINDTESTDATA("testdata/colors.mp4");
+    mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
     localVideoFile = selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
-    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mkv");
     mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mp3");
+    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mkv");
     localCompressedSoundFile = selectMediaFile(mediaCandidates);
 
     localFileWithMetadata = selectMediaFile(QStringList() << QFINDTESTDATA("testdata/nokia-tune.mp3"));
