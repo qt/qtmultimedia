@@ -103,6 +103,7 @@ DirectShowPlayerService::DirectShowPlayerService(QObject *parent)
     , m_buffering(false)
     , m_seekable(false)
     , m_atEnd(false)
+    , m_dontCacheNextSeekResult(false)
 {
     m_playerControl = new DirectShowPlayerControl(this);
     m_metaDataControl = new DirectShowMetaDataControl(this);
@@ -229,6 +230,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     m_buffering = false;
     m_seekable = false;
     m_atEnd = false;
+    m_dontCacheNextSeekResult = false;
     m_metaDataControl->updateGraph(0, 0);
 
     if (m_resources.isEmpty() && !stream) {
@@ -672,7 +674,9 @@ void DirectShowPlayerService::play()
         if (m_executedTasks & Stop) {
             m_atEnd = false;
             if (m_seekPosition == -1) {
+                m_dontCacheNextSeekResult = true;
                 m_seekPosition = 0;
+                m_position = 0;
                 m_pendingTasks |= Seek;
             }
             m_executedTasks ^= Stop;
@@ -718,7 +722,9 @@ void DirectShowPlayerService::pause()
         if (m_executedTasks & Stop) {
             m_atEnd = false;
             if (m_seekPosition == -1) {
+                m_dontCacheNextSeekResult = true;
                 m_seekPosition = 0;
+                m_position = 0;
                 m_pendingTasks |= Seek;
             }
             m_executedTasks ^= Stop;
@@ -791,6 +797,8 @@ void DirectShowPlayerService::doStop(QMutexLocker *locker)
         }
 
         m_seekPosition = 0;
+        m_position = 0;
+        m_dontCacheNextSeekResult = true;
         m_pendingTasks |= Seek;
 
         m_executedTasks &= ~(Play | Pause);
@@ -913,8 +921,10 @@ void DirectShowPlayerService::doSeek(QMutexLocker *locker)
         // Cache current values as we can't query IMediaSeeking during a seek due to the
         // possibility of a deadlock when flushing the VideoSurfaceFilter.
         LONGLONG currentPosition = 0;
-        seeking->GetCurrentPosition(&currentPosition);
-        m_position = currentPosition / qt_directShowTimeScale;
+        if (!m_dontCacheNextSeekResult) {
+            seeking->GetCurrentPosition(&currentPosition);
+            m_position = currentPosition / qt_directShowTimeScale;
+        }
 
         LONGLONG minimum = 0;
         LONGLONG maximum = 0;
@@ -928,8 +938,10 @@ void DirectShowPlayerService::doSeek(QMutexLocker *locker)
                 &seekPosition, AM_SEEKING_AbsolutePositioning, 0, AM_SEEKING_NoPositioning);
         locker->relock();
 
-        seeking->GetCurrentPosition(&currentPosition);
-        m_position = currentPosition / qt_directShowTimeScale;
+        if (!m_dontCacheNextSeekResult) {
+            seeking->GetCurrentPosition(&currentPosition);
+            m_position = currentPosition / qt_directShowTimeScale;
+        }
 
         seeking->Release();
 
@@ -937,6 +949,7 @@ void DirectShowPlayerService::doSeek(QMutexLocker *locker)
     }
 
     m_seekPosition = -1;
+    m_dontCacheNextSeekResult = false;
 }
 
 int DirectShowPlayerService::bufferStatus() const
