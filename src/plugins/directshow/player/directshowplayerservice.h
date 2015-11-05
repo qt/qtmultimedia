@@ -194,6 +194,7 @@ private:
     int m_streamTypes;
     qreal m_rate;
     qint64 m_position;
+    qint64 m_seekPosition;
     qint64 m_duration;
     bool m_buffering;
     bool m_seekable;

@@ -31,21 +31,27 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMULTIMEDIAUTILS_H
-#define QANDROIDMULTIMEDIAUTILS_H
+#ifndef QVIDEOFRAME_P_H
+#define QVIDEOFRAME_P_H
 
-#include <qglobal.h>
-#include <qsize.h>
+#include <QtMultimedia/qvideoframe.h>
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
 QT_BEGIN_NAMESPACE
 
-// return the index of the closest value to <value> in <list>
-// (binary search)
-int qt_findClosestValue(const QList<int> &list, int value);
-
-bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
-
+Q_MULTIMEDIA_EXPORT QImage qt_imageFromVideoFrame(const QVideoFrame &frame);
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMULTIMEDIAUTILS_H
+#endif // QVIDEOFRAME_P_H
+

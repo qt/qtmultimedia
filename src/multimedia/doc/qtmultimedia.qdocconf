@@ -32,7 +32,7 @@ exampledirs += ../../../examples/multimedia \
                snippets
 
 # Specify example install dir under QT_INSTALL_EXAMPLES
-examplesinstallpath = multimedia
+examplesinstallpath = qtmultimedia/multimedia
 
 headerdirs += ../..
 

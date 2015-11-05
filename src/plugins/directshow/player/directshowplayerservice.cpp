@@ -98,6 +98,7 @@ DirectShowPlayerService::DirectShowPlayerService(QObject *parent)
     , m_videoOutput(0)
     , m_rate(1.0)
     , m_position(0)
+    , m_seekPosition(-1)
     , m_duration(0)
     , m_buffering(false)
     , m_seekable(false)
@@ -217,6 +218,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     m_error = QMediaPlayer::NoError;
     m_errorString = QString();
     m_position = 0;
+    m_seekPosition = -1;
     m_duration = 0;
     m_streamTypes = 0;
     m_executedTasks = 0;
@@ -665,8 +667,10 @@ void DirectShowPlayerService::play()
     if (m_executedTasks & Render) {
         if (m_executedTasks & Stop) {
             m_atEnd = false;
-            m_position = 0;
-            m_pendingTasks |= Seek;
+            if (m_seekPosition == -1) {
+                m_seekPosition = 0;
+                m_pendingTasks |= Seek;
+            }
             m_executedTasks ^= Stop;
         }
 
@@ -709,8 +713,10 @@ void DirectShowPlayerService::pause()
     if (m_executedTasks & Render) {
         if (m_executedTasks & Stop) {
             m_atEnd = false;
-            m_position = 0;
-            m_pendingTasks |= Seek;
+            if (m_seekPosition == -1) {
+                m_seekPosition = 0;
+                m_pendingTasks |= Seek;
+            }
             m_executedTasks ^= Stop;
         }
 
@@ -780,7 +786,7 @@ void DirectShowPlayerService::doStop(QMutexLocker *locker)
             control->Release();
         }
 
-        m_position = 0;
+        m_seekPosition = 0;
         m_pendingTasks |= Seek;
 
         m_executedTasks &= ~(Play | Pause);
@@ -884,7 +890,7 @@ void DirectShowPlayerService::seek(qint64 position)
 {
     QMutexLocker locker(&m_mutex);
 
-    m_position = position;
+    m_seekPosition = position;
 
     m_pendingTasks |= Seek;
 
@@ -894,8 +900,11 @@ void DirectShowPlayerService::seek(qint64 position)
 
 void DirectShowPlayerService::doSeek(QMutexLocker *locker)
 {
+    if (m_seekPosition == -1)
+        return;
+
     if (IMediaSeeking *seeking = com_cast<IMediaSeeking>(m_graph, IID_IMediaSeeking)) {
-        LONGLONG seekPosition = LONGLONG(m_position) * qt_directShowTimeScale;
+        LONGLONG seekPosition = LONGLONG(m_seekPosition) * qt_directShowTimeScale;
 
         // Cache current values as we can't query IMediaSeeking during a seek due to the
         // possibility of a deadlock when flushing the VideoSurfaceFilter.
@@ -919,11 +928,11 @@ void DirectShowPlayerService::doSeek(QMutexLocker *locker)
         m_position = currentPosition / qt_directShowTimeScale;
 
         seeking->Release();
-    } else {
-        m_position = 0;
+
+        QCoreApplication::postEvent(this, new QEvent(QEvent::Type(PositionChange)));
     }
 
-    QCoreApplication::postEvent(this, new QEvent(QEvent::Type(PositionChange)));
+    m_seekPosition = -1;
 }
 
 int DirectShowPlayerService::bufferStatus() const

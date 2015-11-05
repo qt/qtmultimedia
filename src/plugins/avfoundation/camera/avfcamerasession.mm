@@ -333,6 +333,7 @@ void AVFCameraSession::attachVideoInputDevice()
             [m_captureSession removeInput:m_videoInput];
             [m_videoInput release];
             m_videoInput = 0;
+            m_activeCameraInfo = AVFCameraInfo();
         }
 
         AVCaptureDevice *videoDevice = m_service->videoDeviceControl()->createCaptureDevice();
@@ -346,6 +347,7 @@ void AVFCameraSession::attachVideoInputDevice()
             qWarning() << "Failed to create video device input";
         } else {
             if ([m_captureSession canAddInput:m_videoInput]) {
+                m_activeCameraInfo = m_cameraDevices.at(m_service->videoDeviceControl()->selectedDevice());
                 [m_videoInput retain];
                 [m_captureSession addInput:m_videoInput];
             } else {
@@ -414,6 +416,8 @@ FourCharCode AVFCameraSession::defaultCodec()
 
 void AVFCameraSession::onCameraFrameFetched(const QVideoFrame &frame)
 {
+    Q_EMIT newViewfinderFrame(frame);
+
     m_videoProbesMutex.lock();
     QSet<AVFMediaVideoProbeControl *>::const_iterator i = m_videoProbes.constBegin();
     while (i != m_videoProbes.constEnd()) {

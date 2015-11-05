@@ -157,7 +157,12 @@ private:
 
     static gboolean unlock(GstBaseSink *sink);
 
+#if GST_CHECK_VERSION(0, 10, 25)
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
+#else
+    static GstFlowReturn preroll(GstBaseSink *sink, GstBuffer *buffer);
+    static GstFlowReturn render(GstBaseSink *sink, GstBuffer *buffer);
+#endif
 
 private:
     QVideoSurfaceGstDelegate *delegate;

@@ -33,14 +33,15 @@
 
 #include "avfcameradebug.h"
 #include "avfimagecapturecontrol.h"
-#include "avfcamerasession.h"
 #include "avfcameraservice.h"
 #include "avfcameracontrol.h"
 
 #include <QtCore/qurl.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qbuffer.h>
+#include <QtConcurrent/qtconcurrentrun.h>
 #include <QtGui/qimagereader.h>
+#include <private/qvideoframe_p.h>
 
 QT_USE_NAMESPACE
 
@@ -65,6 +66,10 @@ AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObjec
     connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateReadyStatus()));
 
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
+
+    connect(m_session, &AVFCameraSession::newViewfinderFrame,
+            this, &AVFImageCaptureControl::onNewViewfinderFrame,
+            Qt::DirectConnection);
 }
 
 AVFImageCaptureControl::~AVFImageCaptureControl()
@@ -106,9 +111,18 @@ int AVFImageCaptureControl::capture(const QString &fileName)
 
     qDebugCamera() << "Capture image to" << actualFileName;
 
-    int captureId = m_lastCaptureId;
+    CaptureRequest request = { m_lastCaptureId, new QSemaphore };
+    m_requestsMutex.lock();
+    m_captureRequests.enqueue(request);
+    m_requestsMutex.unlock();
+
     [m_stillImageOutput captureStillImageAsynchronouslyFromConnection:m_videoConnection
                         completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
+
+        // Wait for the preview to be generated before saving the JPEG
+        request.previewReady->acquire();
+        delete request.previewReady;
+
         if (error) {
             QStringList messageParts;
             messageParts << QString::fromUtf8([[error localizedDescription] UTF8String]);
@@ -119,64 +133,66 @@ int AVFImageCaptureControl::capture(const QString &fileName)
             qDebugCamera() << "Image capture failed:" << errorMessage;
 
             QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                      Q_ARG(int, captureId),
+                                      Q_ARG(int, request.captureId),
                                       Q_ARG(int, QCameraImageCapture::ResourceError),
                                       Q_ARG(QString, errorMessage));
         } else {
-            qDebugCamera() << "Image captured:" << actualFileName;
-            //we can't find the exact time the image is exposed,
-            //but image capture is very fast on desktop, so emit it here
-            QMetaObject::invokeMethod(this, "imageExposed", Qt::QueuedConnection,
-                                      Q_ARG(int, captureId));
+            qDebugCamera() << "Image capture completed:" << actualFileName;
 
             NSData *nsJpgData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
             QByteArray jpgData = QByteArray::fromRawData((const char *)[nsJpgData bytes], [nsJpgData length]);
-
-            //Generate snap preview as downscalled image
-            {
-                QBuffer buffer(&jpgData);
-                QImageReader imageReader(&buffer);
-                QSize imgSize = imageReader.size();
-                int downScaleSteps = 0;
-                while (imgSize.width() > 800 && downScaleSteps < 8) {
-                    imgSize.rwidth() /= 2;
-                    imgSize.rheight() /= 2;
-                    downScaleSteps++;
-                }
-
-                imageReader.setScaledSize(imgSize);
-                QImage snapPreview = imageReader.read();
-
-                QMetaObject::invokeMethod(this, "imageCaptured", Qt::QueuedConnection,
-                                          Q_ARG(int, captureId),
-                                          Q_ARG(QImage, snapPreview));
-            }
-
-            qDebugCamera() << "Image captured" << actualFileName;
 
             QFile f(actualFileName);
             if (f.open(QFile::WriteOnly)) {
                 if (f.write(jpgData) != -1) {
                     QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
-                                              Q_ARG(int, captureId),
+                                              Q_ARG(int, request.captureId),
                                               Q_ARG(QString, actualFileName));
                 } else {
                     QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                              Q_ARG(int, captureId),
+                                              Q_ARG(int, request.captureId),
                                               Q_ARG(int, QCameraImageCapture::OutOfSpaceError),
                                               Q_ARG(QString, f.errorString()));
                 }
             } else {
                 QString errorMessage = tr("Could not open destination file:\n%1").arg(actualFileName);
                 QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                          Q_ARG(int, captureId),
+                                          Q_ARG(int, request.captureId),
                                           Q_ARG(int, QCameraImageCapture::ResourceError),
                                           Q_ARG(QString, errorMessage));
             }
         }
     }];
 
-    return captureId;
+    return request.captureId;
+}
+
+void AVFImageCaptureControl::onNewViewfinderFrame(const QVideoFrame &frame)
+{
+    QMutexLocker locker(&m_requestsMutex);
+
+    if (m_captureRequests.isEmpty())
+        return;
+
+    CaptureRequest request = m_captureRequests.dequeue();
+    Q_EMIT imageExposed(request.captureId);
+
+    QtConcurrent::run(this, &AVFImageCaptureControl::makeCapturePreview,
+                      request,
+                      frame,
+                      0 /* rotation */);
+}
+
+void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
+                                                const QVideoFrame &frame,
+                                                int rotation)
+{
+    QTransform transform;
+    transform.rotate(rotation);
+
+    Q_EMIT imageCaptured(request.captureId, qt_imageFromVideoFrame(frame).transformed(transform));
+
+    request.previewReady->release();
 }
 
 void AVFImageCaptureControl::cancelCapture()

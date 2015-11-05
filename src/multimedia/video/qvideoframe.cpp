@@ -33,8 +33,10 @@
 
 #include "qvideoframe.h"
 
+#include "qvideoframe_p.h"
 #include "qimagevideobuffer_p.h"
 #include "qmemoryvideobuffer_p.h"
+#include "qvideoframeconversionhelper_p.h"
 
 #include <qimage.h>
 #include <qpair.h>
@@ -654,6 +656,8 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
         d->data[2] = d->data[1] + (d->bytesPerLine[1] * d->size.height() / 2);
         break;
     }
+    default:
+        break;
     }
 
     d->mappedCount++;
@@ -994,9 +998,131 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
     case Format_AdobeDng:
         return QImage::Format_Invalid;
     case Format_User:
+    default:
         return QImage::Format_Invalid;
     }
     return QImage::Format_Invalid;
+}
+
+
+extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_BGR24_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_BGR565_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_BGR555_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_AYUV444_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_YUV444_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_YUV420P_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_YV12_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_UYVY_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_YUYV_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_NV12_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_NV21_to_ARGB32(const QVideoFrame&, uchar*);
+
+static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
+    /* Format_Invalid */                Q_NULLPTR, // Not needed
+    /* Format_ARGB32 */                 Q_NULLPTR, // Not needed
+    /* Format_ARGB32_Premultiplied */   Q_NULLPTR, // Not needed
+    /* Format_RGB32 */                  Q_NULLPTR, // Not needed
+    /* Format_RGB24 */                  Q_NULLPTR, // Not needed
+    /* Format_RGB565 */                 Q_NULLPTR, // Not needed
+    /* Format_RGB555 */                 Q_NULLPTR, // Not needed
+    /* Format_ARGB8565_Premultiplied */ Q_NULLPTR, // Not needed
+    /* Format_BGRA32 */                 qt_convert_BGRA32_to_ARGB32,
+    /* Format_BGRA32_Premultiplied */   qt_convert_BGRA32_to_ARGB32,
+    /* Format_BGR32 */                  qt_convert_BGRA32_to_ARGB32,
+    /* Format_BGR24 */                  qt_convert_BGR24_to_ARGB32,
+    /* Format_BGR565 */                 qt_convert_BGR565_to_ARGB32,
+    /* Format_BGR555 */                 qt_convert_BGR555_to_ARGB32,
+    /* Format_BGRA5658_Premultiplied */ Q_NULLPTR,
+    /* Format_AYUV444 */                qt_convert_AYUV444_to_ARGB32,
+    /* Format_AYUV444_Premultiplied */  Q_NULLPTR,
+    /* Format_YUV444 */                 qt_convert_YUV444_to_ARGB32,
+    /* Format_YUV420P */                qt_convert_YUV420P_to_ARGB32,
+    /* Format_YV12 */                   qt_convert_YV12_to_ARGB32,
+    /* Format_UYVY */                   qt_convert_UYVY_to_ARGB32,
+    /* Format_YUYV */                   qt_convert_YUYV_to_ARGB32,
+    /* Format_NV12 */                   qt_convert_NV12_to_ARGB32,
+    /* Format_NV21 */                   qt_convert_NV21_to_ARGB32,
+    /* Format_IMC1 */                   Q_NULLPTR,
+    /* Format_IMC2 */                   Q_NULLPTR,
+    /* Format_IMC3 */                   Q_NULLPTR,
+    /* Format_IMC4 */                   Q_NULLPTR,
+    /* Format_Y8 */                     Q_NULLPTR,
+    /* Format_Y16 */                    Q_NULLPTR,
+    /* Format_Jpeg */                   Q_NULLPTR, // Not needed
+    /* Format_CameraRaw */              Q_NULLPTR,
+    /* Format_AdobeDng */               Q_NULLPTR
+};
+
+static void qInitConvertFuncsAsm()
+{
+#ifdef QT_COMPILER_SUPPORTS_SSE2
+    extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_sse2(const QVideoFrame&, uchar*);
+    if (qCpuHasFeature(SSE2)){
+        qConvertFuncs[QVideoFrame::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrame::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrame::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_sse2;
+    }
+#endif
+#ifdef QT_COMPILER_SUPPORTS_SSSE3
+    extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_ssse3(const QVideoFrame&, uchar*);
+    if (qCpuHasFeature(SSSE3)){
+        qConvertFuncs[QVideoFrame::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrame::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrame::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_ssse3;
+    }
+#endif
+#ifdef QT_COMPILER_SUPPORTS_AVX2
+    extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_avx2(const QVideoFrame&, uchar*);
+    if (qCpuHasFeature(AVX2)){
+        qConvertFuncs[QVideoFrame::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrame::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrame::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_avx2;
+    }
+#endif
+}
+
+/*!
+    \internal
+*/
+QImage qt_imageFromVideoFrame(const QVideoFrame &f)
+{
+    QVideoFrame &frame = const_cast<QVideoFrame&>(f);
+    QImage result;
+
+    if (!frame.isValid() || !frame.map(QAbstractVideoBuffer::ReadOnly))
+        return result;
+
+    // Formats supported by QImage don't need conversion
+    QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
+    if (imageFormat != QImage::Format_Invalid) {
+        result = QImage(frame.bits(), frame.width(), frame.height(), imageFormat).copy();
+    }
+
+    // Load from JPG
+    else if (frame.pixelFormat() == QVideoFrame::Format_Jpeg) {
+        result.loadFromData(frame.bits(), frame.mappedBytes(), "JPG");
+    }
+
+    // Need conversion
+    else {
+        static bool initAsmFuncsDone = false;
+        if (!initAsmFuncsDone) {
+            qInitConvertFuncsAsm();
+            initAsmFuncsDone = true;
+        }
+        VideoFrameConvertFunc convert = qConvertFuncs[frame.pixelFormat()];
+        if (!convert) {
+            qWarning() << Q_FUNC_INFO << ": unsupported pixel format" << frame.pixelFormat();
+        } else {
+            result = QImage(frame.width(), frame.height(), QImage::Format_ARGB32);
+            convert(frame, result.bits());
+        }
+    }
+
+    frame.unmap();
+
+    return result;
 }
 
 #ifndef QT_NO_DEBUG_STREAM

@@ -99,9 +99,12 @@ public:
     void emitError(int errorCode, const QString &errorString);
     bool lockFocus();
     bool unlockFocus();
+    void frameMapped();
+    void frameUnmapped();
 
 private slots:
     void onBufferRequested();
+    void onApplicationStateChanged(Qt::ApplicationState state);
 
 private:
     HRESULT enumerateDevices();

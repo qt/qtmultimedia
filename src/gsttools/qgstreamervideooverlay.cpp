@@ -148,9 +148,7 @@ GstElement *QGstreamerVideoOverlay::findBestVideoSink() const
 
     // If none of the known video sinks are available, try to find one that implements the
     // GstVideoOverlay interface and has autoplugging rank.
-    GList *list = gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_SINK | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO,
-                                                        GST_RANK_MARGINAL);
-
+    GList *list = qt_gst_video_sinks();
     for (GList *item = list; item != NULL; item = item->next) {
         GstElementFactory *f = GST_ELEMENT_FACTORY(item->data);
 
@@ -242,12 +240,17 @@ void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
         h = rect.height();
     }
 
-#if !GST_CHECK_VERSION(1,0,0)
+#if GST_CHECK_VERSION(1,0,0)
+    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink))
+        gst_video_overlay_set_render_rectangle(GST_VIDEO_OVERLAY(m_videoSink), x, y, w, h);
+#elif GST_CHECK_VERSION(0, 10, 29)
     if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink))
         gst_x_overlay_set_render_rectangle(GST_X_OVERLAY(m_videoSink), x, y , w , h);
 #else
-    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink))
-        gst_video_overlay_set_render_rectangle(GST_VIDEO_OVERLAY(m_videoSink), x, y, w, h);
+    Q_UNUSED(x)
+    Q_UNUSED(y)
+    Q_UNUSED(w)
+    Q_UNUSED(h)
 #endif
 }
 

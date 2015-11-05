@@ -174,7 +174,7 @@ public:
                                                                         GL_RGBA,
                                                                         CVPixelBufferGetWidth(m_buffer),
                                                                         CVPixelBufferGetHeight(m_buffer),
-                                                                        GL_BGRA,
+                                                                        GL_RGBA,
                                                                         GL_UNSIGNED_BYTE,
                                                                         0,
                                                                         &m_texture);
@@ -240,18 +240,8 @@ private:
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
-    QVideoFrame::PixelFormat format;
-
-#ifdef Q_OS_IOS
-    bool useTexture = m_renderer->supportsTextures()
-            && CVPixelBufferGetPixelFormatType(imageBuffer) == kCVPixelFormatType_32BGRA;
-
-    if (useTexture)
-        format = QVideoFrame::Format_BGRA32;
-    else
-#endif
-    format = AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
-
+    QVideoFrame::PixelFormat format =
+            AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
     if (format == QVideoFrame::Format_Invalid)
         return;
 

@@ -36,19 +36,23 @@
 
 #import <AVFoundation/AVFoundation.h>
 
+#include <QtCore/qqueue.h>
+#include <QtCore/qsemaphore.h>
 #include <QtMultimedia/qcameraimagecapturecontrol.h>
+#include "avfcamerasession.h"
 #include "avfstoragelocation.h"
 
 QT_BEGIN_NAMESPACE
-
-class AVFCameraSession;
-class AVFCameraService;
-class AVFCameraControl;
 
 class AVFImageCaptureControl : public QCameraImageCaptureControl
 {
 Q_OBJECT
 public:
+    struct CaptureRequest {
+        int captureId;
+        QSemaphore *previewReady;
+    };
+
     AVFImageCaptureControl(AVFCameraService *service, QObject *parent = 0);
     ~AVFImageCaptureControl();
 
@@ -64,8 +68,11 @@ public:
 private Q_SLOTS:
     void updateCaptureConnection();
     void updateReadyStatus();
+    void onNewViewfinderFrame(const QVideoFrame &frame);
 
 private:
+    void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
+
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     bool m_ready;
@@ -73,7 +80,12 @@ private:
     AVCaptureStillImageOutput *m_stillImageOutput;
     AVCaptureConnection *m_videoConnection;
     AVFStorageLocation m_storageLocation;
+
+    QMutex m_requestsMutex;
+    QQueue<CaptureRequest> m_captureRequests;
 };
+
+Q_DECLARE_TYPEINFO(AVFImageCaptureControl::CaptureRequest, Q_PRIMITIVE_TYPE);
 
 QT_END_NAMESPACE
 

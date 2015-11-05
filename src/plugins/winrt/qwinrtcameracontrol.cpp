@@ -43,8 +43,8 @@
 #include "qwinrtcameralockscontrol.h"
 
 #include <QtCore/qfunctions_winrt.h>
-#include <QtCore/QCoreApplication>
 #include <QtCore/QPointer>
+#include <QtGui/QGuiApplication>
 
 #include <mfapi.h>
 #include <mferror.h>
@@ -524,6 +524,8 @@ public:
     QPointer<QWinRTImageEncoderControl> imageEncoderControl;
     QPointer<QWinRTCameraFocusControl> cameraFocusControl;
     QPointer<QWinRTCameraLocksControl> cameraLocksControl;
+    QAtomicInt framesMapped;
+    QEventLoop *delayClose;
 };
 
 QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
@@ -531,6 +533,7 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
 {
     Q_D(QWinRTCameraControl);
 
+    d->delayClose = nullptr;
     d->state = QCamera::UnloadedState;
     d->status = QCamera::UnloadedStatus;
     d->captureMode = QCamera::CaptureStillImage;
@@ -544,6 +547,11 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
     d->imageEncoderControl = new QWinRTImageEncoderControl(this);
     d->cameraFocusControl = new QWinRTCameraFocusControl(this);
     d->cameraLocksControl = new QWinRTCameraLocksControl(this);
+
+    if (qGuiApp) {
+        connect(qGuiApp, &QGuiApplication::applicationStateChanged,
+                this, &QWinRTCameraControl::onApplicationStateChanged);
+    }
 }
 
 QWinRTCameraControl::~QWinRTCameraControl()
@@ -612,6 +620,14 @@ void QWinRTCameraControl::setState(QCamera::State state)
     case QCamera::UnloadedState: {
         // Stop the camera if it is running (transition to LoadedState)
         if (d->status == QCamera::ActiveStatus) {
+            if (d->framesMapped > 0) {
+                qWarning("%d QVideoFrame(s) mapped when closing down camera. Camera will wait for unmap before closing down.",
+                         d->framesMapped);
+                if (!d->delayClose)
+                    d->delayClose = new QEventLoop(this);
+                d->delayClose->exec();
+            }
+
             ComPtr<IAsyncAction> op;
             hr = d->capturePreview->StopPreviewAsync(&op);
             RETURN_VOID_AND_EMIT_ERROR("Failed to stop camera preview");
@@ -765,6 +781,25 @@ void QWinRTCameraControl::onBufferRequested()
 
     if (d->mediaSink)
         d->mediaSink->RequestSample();
+}
+
+void QWinRTCameraControl::onApplicationStateChanged(Qt::ApplicationState state)
+{
+    Q_D(QWinRTCameraControl);
+    static QCamera::State savedState = d->state;
+    switch (state) {
+    case Qt::ApplicationInactive:
+        if (d->state != QCamera::UnloadedState) {
+            savedState = d->state;
+            setState(QCamera::UnloadedState);
+        }
+        break;
+    case Qt::ApplicationActive:
+        setState(QCamera::State(savedState));
+        break;
+    default:
+        break;
+    }
 }
 
 HRESULT QWinRTCameraControl::initialize()
@@ -1119,6 +1154,8 @@ bool QWinRTCameraControl::focus()
         return false;
     ComPtr<IAsyncAction> op;
     HRESULT hr = d->focusControl->FocusAsync(&op);
+    if (HRESULT_CODE(hr) == ERROR_OPERATION_IN_PROGRESS)
+        return true;
     Q_ASSERT_SUCCEEDED(hr);
     hr = QWinRTFunctions::await(op, QWinRTFunctions::ProcessThreadEvents);
     Q_ASSERT_SUCCEEDED(hr);
@@ -1207,6 +1244,21 @@ bool QWinRTCameraControl::unlockFocus()
 }
 
 #endif // !Q_OS_WINPHONE
+
+void QWinRTCameraControl::frameMapped()
+{
+    Q_D(QWinRTCameraControl);
+    ++d->framesMapped;
+}
+
+void QWinRTCameraControl::frameUnmapped()
+{
+    Q_D(QWinRTCameraControl);
+    --d->framesMapped;
+    Q_ASSERT(d->framesMapped >= 0);
+    if (!d->framesMapped && d->delayClose && d->delayClose->isRunning())
+        d->delayClose->exit();
+}
 
 HRESULT QWinRTCameraControl::onCaptureFailed(IMediaCapture *, IMediaCaptureFailedEventArgs *args)
 {

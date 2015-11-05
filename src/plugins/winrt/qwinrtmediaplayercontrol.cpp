@@ -51,7 +51,6 @@
 #include <mfapi.h>
 #include <mfmediaengine.h>
 
-#include <comdef.h>
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
