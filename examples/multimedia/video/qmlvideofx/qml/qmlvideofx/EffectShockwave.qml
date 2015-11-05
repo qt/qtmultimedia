@@ -40,11 +40,18 @@ Effect {
             name: "Amplitude"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+        granularity = parameters.get(0).value * 20;
+        weight = parameters.get(0).value;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real granularity: parameters.get(0).value * 20
-    property real weight: parameters.get(0).value
+    property real granularity: 0.5 * 20
+    property real weight: 0.5
 
     property real centerX
     property real centerY

@@ -39,10 +39,15 @@ Effect {
             name: "Threshold"
             value: 0.5
         }
+        onDataChanged: updateThreshold()
     }
 
+    function updateThreshold()
+    {
+            threshold = parameters.get(0).value;
+    }
     // Transform slider values, and bind result to shader uniforms
-    property real threshold: parameters.get(0).value
+    property real threshold: 0.5
 
     fragmentShaderFilename: "blackandwhite.fsh"
 }

@@ -39,10 +39,16 @@ Effect {
             name: "Gamma"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+            gamma = parameters.get(0).value;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real gamma: parameters.get(0).value
+    property real gamma: 0.5
 
     property real numColors: 8.0
 

@@ -44,17 +44,37 @@ Item {
             name: "Radius"
             value: 0.5
         }
+        onDataChanged: updateBlurSize()
+    }
+
+    function updateBlurSize()
+    {
+        if ((targetHeight > 0) && (targetWidth > 0))
+        {
+            verticalBlurSize = 4.0 * parameters.get(0).value / targetHeight;
+            horizontalBlurSize = 4.0 * parameters.get(0).value / targetWidth;
+        }
     }
 
     property alias targetWidth: verticalShader.targetWidth
     property alias targetHeight: verticalShader.targetHeight
     property alias source: verticalShader.source
+    property alias horizontalBlurSize: horizontalShader.blurSize
+    property alias verticalBlurSize: verticalShader.blurSize
+
 
     Effect {
         id: verticalShader
         anchors.fill:  parent
         dividerValue: parent.dividerValue
-        property real blurSize: 4.0 * parent.parameters.get(0).value / targetHeight
+        property real blurSize: 0.0
+
+        onTargetHeightChanged: {
+            updateBlurSize()
+        }
+        onTargetWidthChanged: {
+            updateBlurSize()
+        }
         fragmentShaderFilename: "gaussianblur_v.fsh"
     }
 
@@ -62,7 +82,7 @@ Item {
         id: horizontalShader
         anchors.fill: parent
         dividerValue: parent.dividerValue
-        property real blurSize: 4.0 * parent.parameters.get(0).value / parent.targetWidth
+        property real blurSize: 0.0
         fragmentShaderFilename: "gaussianblur_h.fsh"
         source: horizontalShaderSource
 

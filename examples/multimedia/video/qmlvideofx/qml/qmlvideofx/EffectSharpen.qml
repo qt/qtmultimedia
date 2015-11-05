@@ -39,10 +39,16 @@ Effect {
             name: "Sharpness"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+        amount = parameters.get(0).value * 18;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real amount: parameters.get(0).value * 18
+    property real amount: 0.5 * 18
 
     fragmentShaderFilename: "sharpen.fsh"
 }

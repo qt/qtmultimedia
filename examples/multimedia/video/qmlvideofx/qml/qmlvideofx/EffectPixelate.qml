@@ -39,10 +39,16 @@ Effect {
             name: "Granularity"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+            granularity = parameters.get(0).value * 20.0;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real granularity: parameters.get(0).value * 20
+    property real granularity: 0.5 * 20
 
     fragmentShaderFilename: "pixelate.fsh"
 }
