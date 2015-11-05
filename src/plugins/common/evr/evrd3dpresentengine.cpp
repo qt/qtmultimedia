@@ -33,7 +33,7 @@
 
 #include "evrd3dpresentengine.h"
 
-#include "mfglobal.h"
+#include "evrhelpers.h"
 
 #include <qtgui/qguiapplication.h>
 #include <qpa/qplatformnativeinterface.h>
@@ -53,9 +53,7 @@
 #include <WinUser.h>
 #include <evr.h>
 
-QT_USE_NAMESPACE
-
-static const DWORD PRESENTER_BUFFER_COUNT = 3;
+static const int PRESENTER_BUFFER_COUNT = 3;
 
 class TextureVideoBuffer : public QAbstractVideoBuffer
 {
@@ -174,10 +172,10 @@ D3DPresentEngine::D3DPresentEngine()
 
 D3DPresentEngine::~D3DPresentEngine()
 {
-    qt_wmf_safeRelease(&m_texture);
-    qt_wmf_safeRelease(&m_device);
-    qt_wmf_safeRelease(&m_deviceManager);
-    qt_wmf_safeRelease(&m_D3D9);
+    qt_evr_safe_release(&m_texture);
+    qt_evr_safe_release(&m_device);
+    qt_evr_safe_release(&m_deviceManager);
+    qt_evr_safe_release(&m_D3D9);
 
     if (m_eglSurface) {
         m_egl->releaseTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
@@ -309,16 +307,16 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
         if (FAILED(hr))
             goto done;
 
-        qt_wmf_safeRelease(&videoSample);
-        qt_wmf_safeRelease(&swapChain);
+        qt_evr_safe_release(&videoSample);
+        qt_evr_safe_release(&swapChain);
     }
 
 done:
     if (FAILED(hr))
         releaseResources();
 
-    qt_wmf_safeRelease(&swapChain);
-    qt_wmf_safeRelease(&videoSample);
+    qt_evr_safe_release(&swapChain);
+    qt_evr_safe_release(&videoSample);
     return hr;
 }
 
@@ -342,7 +340,7 @@ void D3DPresentEngine::presentSample(void *opaque, qint64)
                 goto done;
 
             // Get the surface from the buffer.
-            hr = MFGetService(buffer, MR_BUFFER_SERVICE, IID_PPV_ARGS(&surface));
+            hr = MFGetService(buffer, mr_BUFFER_SERVICE, IID_PPV_ARGS(&surface));
             if (FAILED(hr))
                 goto done;
         }
@@ -367,9 +365,9 @@ void D3DPresentEngine::presentSample(void *opaque, qint64)
     }
 
 done:
-    qt_wmf_safeRelease(&surface);
-    qt_wmf_safeRelease(&buffer);
-    qt_wmf_safeRelease(&sample);
+    qt_evr_safe_release(&surface);
+    qt_evr_safe_release(&buffer);
+    qt_evr_safe_release(&sample);
 }
 
 void D3DPresentEngine::setSurface(QAbstractVideoSurface *surface)
@@ -492,7 +490,7 @@ bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
         m_egl->bindTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
 
 done:
-    qt_wmf_safeRelease(&dest);
+    qt_evr_safe_release(&dest);
 
     if (m_glContext)
         m_glContext->doneCurrent();
@@ -577,13 +575,13 @@ HRESULT D3DPresentEngine::createD3DDevice()
     if (FAILED(hr))
         goto done;
 
-    qt_wmf_safeRelease(&m_device);
+    qt_evr_safe_release(&m_device);
 
     m_device = device;
     m_device->AddRef();
 
 done:
-    qt_wmf_safeRelease(&device);
+    qt_evr_safe_release(&device);
     return hr;
 }
 
@@ -612,8 +610,8 @@ HRESULT D3DPresentEngine::createD3DSample(IDirect3DSwapChain9 *swapChain, IMFSam
     (*videoSample)->AddRef();
 
 done:
-    qt_wmf_safeRelease(&surface);
-    qt_wmf_safeRelease(&sample);
+    qt_evr_safe_release(&surface);
+    qt_evr_safe_release(&sample);
     return hr;
 }
 
@@ -631,7 +629,7 @@ HRESULT D3DPresentEngine::getSwapChainPresentParameters(IMFMediaType *type, D3DP
 
     DWORD d3dFormat = 0;
 
-    hr = qt_wmf_getFourCC(type, &d3dFormat);
+    hr = qt_evr_getFourCC(type, &d3dFormat);
     if (FAILED(hr))
         return hr;
 

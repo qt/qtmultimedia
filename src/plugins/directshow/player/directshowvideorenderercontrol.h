@@ -41,6 +41,10 @@
 class DirectShowEventLoop;
 class VideoSurfaceFilter;
 
+#ifdef CUSTOM_EVR_PRESENTER
+class EVRCustomPresenter;
+#endif
+
 QT_USE_NAMESPACE
 
 class DirectShowVideoRendererControl : public QVideoRendererControl
@@ -61,7 +65,11 @@ Q_SIGNALS:
 private:
     DirectShowEventLoop *m_loop;
     QAbstractVideoSurface *m_surface;
-    VideoSurfaceFilter *m_filter;
+    IBaseFilter *m_filter;
+
+#ifdef CUSTOM_EVR_PRESENTER
+    EVRCustomPresenter *m_evrPresenter;
+#endif
 };
 
 #endif

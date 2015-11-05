@@ -38,13 +38,11 @@
 #include <mfapi.h>
 #include <mfidl.h>
 
-QT_BEGIN_NAMESPACE
-
-class EVRCustomPresenterActivate;
-
-QT_END_NAMESPACE
-
 QT_USE_NAMESPACE
+
+#ifdef CUSTOM_EVR_PRESENTER
+class EVRCustomPresenterActivate;
+#endif
 
 class MFVideoRendererControl : public QVideoRendererControl
 {
@@ -73,7 +71,9 @@ private:
     IMFActivate *m_currentActivate;
     IMFSampleGrabberSinkCallback *m_callback;
 
+#ifdef CUSTOM_EVR_PRESENTER
     EVRCustomPresenterActivate *m_presenterActivate;
+#endif
 };
 
 #endif

@@ -37,13 +37,66 @@
 #include <QObject>
 #include <qmutex.h>
 #include <qqueue.h>
-#include <evr.h>
-#include "mfactivate.h"
 
-QT_BEGIN_NAMESPACE
+#include "evrdefs.h"
+
+QT_USE_NAMESPACE
 
 class D3DPresentEngine;
 class QAbstractVideoSurface;
+
+template<class T>
+class AsyncCallback : public IMFAsyncCallback
+{
+public:
+    typedef HRESULT (T::*InvokeFn)(IMFAsyncResult *asyncResult);
+
+    AsyncCallback(T *parent, InvokeFn fn) : m_parent(parent), m_invokeFn(fn)
+    {
+    }
+
+    // IUnknown
+    STDMETHODIMP QueryInterface(REFIID iid, void** ppv)
+    {
+        if (!ppv)
+            return E_POINTER;
+
+        if (iid == __uuidof(IUnknown)) {
+            *ppv = static_cast<IUnknown*>(static_cast<IMFAsyncCallback*>(this));
+        } else if (iid == __uuidof(IMFAsyncCallback)) {
+            *ppv = static_cast<IMFAsyncCallback*>(this);
+        } else {
+            *ppv = NULL;
+            return E_NOINTERFACE;
+        }
+        AddRef();
+        return S_OK;
+    }
+
+    STDMETHODIMP_(ULONG) AddRef() {
+        // Delegate to parent class.
+        return m_parent->AddRef();
+    }
+    STDMETHODIMP_(ULONG) Release() {
+        // Delegate to parent class.
+        return m_parent->Release();
+    }
+
+    // IMFAsyncCallback methods
+    STDMETHODIMP GetParameters(DWORD*, DWORD*)
+    {
+        // Implementation of this method is optional.
+        return E_NOTIMPL;
+    }
+
+    STDMETHODIMP Invoke(IMFAsyncResult* asyncResult)
+    {
+        return (m_parent->*m_invokeFn)(asyncResult);
+    }
+
+    T *m_parent;
+    InvokeFn m_invokeFn;
+};
 
 class Scheduler
 {
@@ -250,7 +303,7 @@ private:
 
     // Callback when a video sample is released.
     HRESULT onSampleFree(IMFAsyncResult *result);
-    AsyncCallback<EVRCustomPresenter>   m_sampleFreeCB;
+    AsyncCallback<EVRCustomPresenter> m_sampleFreeCB;
 
     // Holds information related to frame-stepping.
     struct FrameStep
@@ -258,7 +311,7 @@ private:
         FrameStep()
             : state(FrameStepNone)
             , steps(0)
-            , sampleNoRef(NULL)
+            , sampleNoRef(0)
         {
         }
 
@@ -300,26 +353,6 @@ private:
     QList<DWORD> m_supportedGLFormats;
 };
 
-class EVRCustomPresenterActivate : public MFAbstractActivate
-{
-public:
-    EVRCustomPresenterActivate();
-    ~EVRCustomPresenterActivate()
-    { }
-
-    STDMETHODIMP ActivateObject(REFIID riid, void **ppv);
-    STDMETHODIMP ShutdownObject();
-    STDMETHODIMP DetachObject();
-
-    void setSurface(QAbstractVideoSurface *surface);
-    void supportedFormatsChanged();
-
-private:
-    EVRCustomPresenter *m_presenter;
-    QAbstractVideoSurface *m_surface;
-    QMutex m_mutex;
-};
-
-QT_END_NAMESPACE
+bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter);
 
 #endif // EVRCUSTOMPRESENTER_H

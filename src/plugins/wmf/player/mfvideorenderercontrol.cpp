@@ -32,13 +32,9 @@
 ****************************************************************************/
 
 #include "mfvideorenderercontrol.h"
-#include "mfglobal.h"
+#include "mfactivate.h"
 
-#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_DYNAMIC)
-#define MAYBE_ANGLE
-#endif
-
-#ifdef MAYBE_ANGLE
+#ifdef CUSTOM_EVR_PRESENTER
 #include "evrcustompresenter.h"
 #endif
 
@@ -2226,12 +2222,37 @@ namespace
     };
 }
 
+#ifdef CUSTOM_EVR_PRESENTER
+
+class EVRCustomPresenterActivate : public MFAbstractActivate
+{
+public:
+    EVRCustomPresenterActivate();
+    ~EVRCustomPresenterActivate()
+    { }
+
+    STDMETHODIMP ActivateObject(REFIID riid, void **ppv);
+    STDMETHODIMP ShutdownObject();
+    STDMETHODIMP DetachObject();
+
+    void setSurface(QAbstractVideoSurface *surface);
+
+private:
+    EVRCustomPresenter *m_presenter;
+    QAbstractVideoSurface *m_surface;
+    QMutex m_mutex;
+};
+
+#endif // CUSTOM_EVR_PRESENTER
+
 MFVideoRendererControl::MFVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
     , m_surface(0)
     , m_currentActivate(0)
     , m_callback(0)
+#ifdef CUSTOM_EVR_PRESENTER
     , m_presenterActivate(0)
+#endif
 {
 }
 
@@ -2245,7 +2266,7 @@ void MFVideoRendererControl::clear()
     if (m_surface)
         m_surface->stop();
 
-#ifdef MAYBE_ANGLE
+#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate) {
         m_presenterActivate->ShutdownObject();
         m_presenterActivate->Release();
@@ -2280,7 +2301,7 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
         connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
     }
 
-#ifdef MAYBE_ANGLE
+#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate)
         m_presenterActivate->setSurface(m_surface);
     else
@@ -2291,8 +2312,10 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
 void MFVideoRendererControl::customEvent(QEvent *event)
 {
+#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate)
         return;
+#endif
 
     if (!m_currentActivate)
         return;
@@ -2323,19 +2346,16 @@ void MFVideoRendererControl::customEvent(QEvent *event)
 
 void MFVideoRendererControl::supportedFormatsChanged()
 {
-#ifdef MAYBE_ANGLE
-    if (m_presenterActivate)
-        m_presenterActivate->supportedFormatsChanged();
-    else
-#endif
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->supportedFormatsChanged();
 }
 
 void MFVideoRendererControl::present()
 {
+#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate)
         return;
+#endif
 
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->present();
@@ -2347,7 +2367,7 @@ IMFActivate* MFVideoRendererControl::createActivate()
 
     clear();
 
-#ifdef MAYBE_ANGLE
+#ifdef CUSTOM_EVR_PRESENTER
     // We can use the EVR with our custom presenter only if the surface supports OpenGL
     // texture handles. We also require ANGLE (due to the D3D interop).
     if (!m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()
@@ -2367,6 +2387,58 @@ IMFActivate* MFVideoRendererControl::createActivate()
 
     return m_currentActivate;
 }
+
+#ifdef CUSTOM_EVR_PRESENTER
+
+EVRCustomPresenterActivate::EVRCustomPresenterActivate()
+    : MFAbstractActivate()
+    , m_presenter(0)
+    , m_surface(0)
+{ }
+
+HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
+{
+    if (!ppv)
+        return E_INVALIDARG;
+    QMutexLocker locker(&m_mutex);
+    if (!m_presenter) {
+        m_presenter = new EVRCustomPresenter;
+        if (m_surface)
+            m_presenter->setSurface(m_surface);
+    }
+    return m_presenter->QueryInterface(riid, ppv);
+}
+
+HRESULT EVRCustomPresenterActivate::ShutdownObject()
+{
+    // The presenter does not implement IMFShutdown so
+    // this function is the same as DetachObject()
+    return DetachObject();
+}
+
+HRESULT EVRCustomPresenterActivate::DetachObject()
+{
+    QMutexLocker locker(&m_mutex);
+    if (m_presenter) {
+        m_presenter->Release();
+        m_presenter = 0;
+    }
+    return S_OK;
+}
+
+void EVRCustomPresenterActivate::setSurface(QAbstractVideoSurface *surface)
+{
+    QMutexLocker locker(&m_mutex);
+    if (m_surface == surface)
+        return;
+
+    m_surface = surface;
+
+    if (m_presenter)
+        m_presenter->setSurface(surface);
+}
+
+#endif // CUSTOM_EVR_PRESENTER
 
 #include "moc_mfvideorenderercontrol.cpp"
 #include "mfvideorenderercontrol.moc"

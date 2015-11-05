@@ -35,11 +35,21 @@
 
 #include "videosurfacefilter.h"
 
+#ifdef CUSTOM_EVR_PRESENTER
+#include "evrcustompresenter.h"
+#endif
+
+#include <qabstractvideosurface.h>
+#include <QtMultimedia/private/qmediaopenglhelper_p.h>
+
 DirectShowVideoRendererControl::DirectShowVideoRendererControl(DirectShowEventLoop *loop, QObject *parent)
     : QVideoRendererControl(parent)
     , m_loop(loop)
     , m_surface(0)
     , m_filter(0)
+#ifdef CUSTOM_EVR_PRESENTER
+    , m_evrPresenter(0)
+#endif
 {
 }
 
@@ -47,6 +57,10 @@ DirectShowVideoRendererControl::~DirectShowVideoRendererControl()
 {
     if (m_filter)
         m_filter->Release();
+#ifdef CUSTOM_EVR_PRESENTER
+    if (m_evrPresenter)
+        m_evrPresenter->Release();
+#endif
 }
 
 QAbstractVideoSurface *DirectShowVideoRendererControl::surface() const
@@ -59,18 +73,34 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (surface != m_surface) {
         m_surface = surface;
 
-        VideoSurfaceFilter *existingFilter = m_filter;
+        IBaseFilter *currentFilter = m_filter;
+        m_filter = 0;
 
         if (surface) {
-            m_filter = new VideoSurfaceFilter(surface, m_loop);
-        } else {
-            m_filter = 0;
+#ifdef CUSTOM_EVR_PRESENTER
+            if (!surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()
+                    && QMediaOpenGLHelper::isANGLE()) {
+                m_evrPresenter = new EVRCustomPresenter;
+                m_evrPresenter->setSurface(surface);
+                m_filter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
+                if (!qt_evr_setCustomPresenter(m_filter, m_evrPresenter)) {
+                    m_evrPresenter->Release();
+                    m_evrPresenter = 0;
+                    m_filter->Release();
+                    m_filter = 0;
+                }
+            }
+            if (!m_filter)
+#endif
+            {
+                m_filter = new VideoSurfaceFilter(surface, m_loop);
+            }
         }
 
         emit filterChanged();
 
-        if (existingFilter)
-            existingFilter->Release();
+        if (currentFilter)
+            currentFilter->Release();
     }
 }
 

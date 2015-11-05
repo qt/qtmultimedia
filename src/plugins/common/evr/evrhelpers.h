@@ -31,31 +31,55 @@
 **
 ****************************************************************************/
 
-#include "directshowevrvideowindowcontrol.h"
+#ifndef EVRHELPERS_H
+#define EVRHELPERS_H
 
-#include "directshowglobal.h"
+#include "evrdefs.h"
 
-DirectShowEvrVideoWindowControl::DirectShowEvrVideoWindowControl(QObject *parent)
-    : EvrVideoWindowControl(parent)
-    , m_evrFilter(NULL)
+template<class T>
+static inline void qt_evr_safe_release(T **unk)
 {
-}
-
-DirectShowEvrVideoWindowControl::~DirectShowEvrVideoWindowControl()
-{
-    if (m_evrFilter)
-        m_evrFilter->Release();
-}
-
-IBaseFilter *DirectShowEvrVideoWindowControl::filter()
-{
-    if (!m_evrFilter) {
-        m_evrFilter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
-        if (!setEvr(m_evrFilter)) {
-            m_evrFilter->Release();
-            m_evrFilter = NULL;
-        }
+    if (*unk) {
+        (*unk)->Release();
+        *unk = NULL;
     }
-
-    return m_evrFilter;
 }
+
+HRESULT qt_evr_getFourCC(IMFMediaType *type, DWORD *fourCC);
+
+bool qt_evr_areMediaTypesEqual(IMFMediaType *type1, IMFMediaType *type2);
+
+HRESULT qt_evr_validateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 height);
+
+bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample);
+
+inline float qt_evr_MFOffsetToFloat(const MFOffset& offset)
+{
+    return offset.value + (float(offset.fract) / 65536);
+}
+
+inline MFOffset qt_evr_makeMFOffset(float v)
+{
+    MFOffset offset;
+    offset.value = short(v);
+    offset.fract = WORD(65536 * (v-offset.value));
+    return offset;
+}
+
+inline MFVideoArea qt_evr_makeMFArea(float x, float y, DWORD width, DWORD height)
+{
+    MFVideoArea area;
+    area.OffsetX = qt_evr_makeMFOffset(x);
+    area.OffsetY = qt_evr_makeMFOffset(y);
+    area.Area.cx = width;
+    area.Area.cy = height;
+    return area;
+}
+
+inline HRESULT qt_evr_getFrameRate(IMFMediaType *pType, MFRatio *pRatio)
+{
+    return MFGetAttributeRatio(pType, MF_MT_FRAME_RATE, (UINT32*)&pRatio->Numerator, (UINT32*)&pRatio->Denominator);
+}
+
+#endif // EVRHELPERS_H
+

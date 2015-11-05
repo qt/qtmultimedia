@@ -31,9 +31,9 @@
 **
 ****************************************************************************/
 
-#include "mfglobal.h"
+#include "evrhelpers.h"
 
-HRESULT qt_wmf_getFourCC(IMFMediaType *type, DWORD *fourCC)
+HRESULT qt_evr_getFourCC(IMFMediaType *type, DWORD *fourCC)
 {
     if (!fourCC)
         return E_POINTER;
@@ -50,20 +50,7 @@ HRESULT qt_wmf_getFourCC(IMFMediaType *type, DWORD *fourCC)
     return hr;
 }
 
-MFRatio qt_wmf_getPixelAspectRatio(IMFMediaType *type)
-{
-    MFRatio ratio = { 0, 0 };
-    HRESULT hr = S_OK;
-
-    hr = MFGetAttributeRatio(type, MF_MT_PIXEL_ASPECT_RATIO, (UINT32*)&ratio.Numerator, (UINT32*)&ratio.Denominator);
-    if (FAILED(hr)) {
-        ratio.Numerator = 1;
-        ratio.Denominator = 1;
-    }
-    return ratio;
-}
-
-bool qt_wmf_areMediaTypesEqual(IMFMediaType *type1, IMFMediaType *type2)
+bool qt_evr_areMediaTypesEqual(IMFMediaType *type1, IMFMediaType *type2)
 {
     if (!type1 && !type2)
         return true;
@@ -76,10 +63,10 @@ bool qt_wmf_areMediaTypesEqual(IMFMediaType *type1, IMFMediaType *type2)
     return (hr == S_OK);
 }
 
-HRESULT qt_wmf_validateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 height)
+HRESULT qt_evr_validateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 height)
 {
-    float fOffsetX = qt_wmf_MFOffsetToFloat(area.OffsetX);
-    float fOffsetY = qt_wmf_MFOffsetToFloat(area.OffsetY);
+    float fOffsetX = qt_evr_MFOffsetToFloat(area.OffsetX);
+    float fOffsetY = qt_evr_MFOffsetToFloat(area.OffsetY);
 
     if ( ((LONG)fOffsetX + area.Area.cx > (LONG)width) ||
          ((LONG)fOffsetY + area.Area.cy > (LONG)height) )
@@ -88,7 +75,7 @@ HRESULT qt_wmf_validateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 h
         return S_OK;
 }
 
-bool qt_wmf_isSampleTimePassed(IMFClock *clock, IMFSample *sample)
+bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample)
 {
     if (!sample || !clock)
         return false;

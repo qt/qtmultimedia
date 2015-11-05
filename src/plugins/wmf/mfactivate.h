@@ -34,8 +34,6 @@
 #ifndef MFACTIVATE_H
 #define MFACTIVATE_H
 
-#include "mfglobal.h"
-
 #include <mfidl.h>
 
 class MFAbstractActivate : public IMFActivate

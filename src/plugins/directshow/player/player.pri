@@ -46,8 +46,11 @@ config_evr {
 
     include($$PWD/../../common/evr.pri)
 
-    HEADERS += $$PWD/directshowevrvideowindowcontrol.h
-    SOURCES += $$PWD/directshowevrvideowindowcontrol.cpp
+    HEADERS += \
+        $$PWD/directshowevrvideowindowcontrol.h
+
+    SOURCES += \
+        $$PWD/directshowevrvideowindowcontrol.cpp
 }
 
 config_wshellitem {

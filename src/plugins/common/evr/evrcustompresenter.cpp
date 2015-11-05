@@ -33,8 +33,8 @@
 
 #include "evrcustompresenter.h"
 
-#include "mfglobal.h"
 #include "evrd3dpresentengine.h"
+#include "evrhelpers.h"
 
 #include <QtCore/qmutex.h>
 #include <QtCore/qvarlengtharray.h>
@@ -44,10 +44,8 @@
 #include <qcoreapplication.h>
 #include <qmath.h>
 #include <QtCore/qdebug.h>
-#include <d3d9.h>
-#include <dshow.h>
-
-QT_USE_NAMESPACE
+#include <float.h>
+#include <evcode.h>
 
 const static MFRatio g_DefaultFrameRate = { 30, 1 };
 static const DWORD SCHEDULER_TIMEOUT = 5000;
@@ -66,24 +64,39 @@ static inline LONG MFTimeToMsec(const LONGLONG& time)
     return (LONG)(time / (ONE_SECOND / ONE_MSEC));
 }
 
+bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter)
+{
+    if (!evr || !presenter)
+        return false;
+
+    HRESULT result = E_FAIL;
+
+    IMFVideoRenderer *renderer = NULL;
+    if (SUCCEEDED(evr->QueryInterface(IID_PPV_ARGS(&renderer)))) {
+        result = renderer->InitializeRenderer(NULL, presenter);
+        renderer->Release();
+    }
+
+    return result == S_OK;
+}
 
 Scheduler::Scheduler()
-    : m_CB(NULL)
-    , m_clock(NULL)
+    : m_clock(NULL)
+    , m_CB(NULL)
     , m_threadID(0)
     , m_schedulerThread(0)
     , m_threadReadyEvent(0)
     , m_flushEvent(0)
     , m_playbackRate(1.0f)
-    , m_lastSampleTime(0)
     , m_perFrameInterval(0)
     , m_perFrame_1_4th(0)
+    , m_lastSampleTime(0)
 {
 }
 
 Scheduler::~Scheduler()
 {
-    qt_wmf_safeRelease(&m_clock);
+    qt_evr_safe_release(&m_clock);
     for (int i = 0; i < m_scheduledSamples.size(); ++i)
         m_scheduledSamples[i]->Release();
     m_scheduledSamples.clear();
@@ -109,8 +122,14 @@ HRESULT Scheduler::startScheduler(IMFClock *clock)
 
     HRESULT hr = S_OK;
     DWORD dwID = 0;
+    HANDLE hObjects[2];
+    DWORD dwWait = 0;
 
-    qt_wmf_copyComPointer(m_clock, clock);
+    if (m_clock)
+        m_clock->Release();
+    m_clock = clock;
+    if (m_clock)
+        m_clock->AddRef();
 
     // Set a high the timer resolution (ie, short timer period).
     timeBeginPeriod(1);
@@ -136,10 +155,9 @@ HRESULT Scheduler::startScheduler(IMFClock *clock)
         goto done;
     }
 
-    HANDLE hObjects[] = { m_threadReadyEvent, m_schedulerThread };
-    DWORD dwWait = 0;
-
     // Wait for the thread to signal the "thread ready" event.
+    hObjects[0] = m_threadReadyEvent;
+    hObjects[1] = m_schedulerThread;
     dwWait = WaitForMultipleObjects(2, hObjects, FALSE, INFINITE);  // Wait for EITHER of these handles.
     if (WAIT_OBJECT_0 != dwWait) {
         // The thread terminated early for some reason. This is an error condition.
@@ -262,7 +280,7 @@ HRESULT Scheduler::processSamplesInQueue(LONG *nextSleep)
         // means the scheduler should sleep for that amount of time.
 
         hr = processSample(sample, &wait);
-        qt_wmf_safeRelease(&sample);
+        qt_evr_safe_release(&sample);
 
         if (FAILED(hr) || wait > 0)
             break;
@@ -401,7 +419,7 @@ DWORD Scheduler::schedulerThreadProcPrivate()
                     hr = processSamplesInQueue(&wait);
                     if (FAILED(hr))
                         exitThread = true;
-                    processSamples = (wait != INFINITE);
+                    processSamples = (wait != (LONG)INFINITE);
                 }
                 break;
             }
@@ -551,10 +569,10 @@ EVRCustomPresenter::EVRCustomPresenter()
 
 EVRCustomPresenter::~EVRCustomPresenter()
 {
-    qt_wmf_safeRelease(&m_clock);
-    qt_wmf_safeRelease(&m_mixer);
-    qt_wmf_safeRelease(&m_mediaEventSink);
-    qt_wmf_safeRelease(&m_mediaType);
+    qt_evr_safe_release(&m_clock);
+    qt_evr_safe_release(&m_mixer);
+    qt_evr_safe_release(&m_mediaEventSink);
+    qt_evr_safe_release(&m_mediaType);
 
     m_D3DPresentEngine->deleteLater();
 }
@@ -606,7 +624,7 @@ HRESULT EVRCustomPresenter::GetService(REFGUID guidService, REFIID riid, LPVOID 
         return E_POINTER;
 
     // The only service GUID that we support is MR_VIDEO_RENDER_SERVICE.
-    if (guidService != MR_VIDEO_RENDER_SERVICE)
+    if (guidService != mr_VIDEO_RENDER_SERVICE)
         return MF_E_UNSUPPORTED_SERVICE;
 
     // First try to get the service interface from the D3DPresentEngine object.
@@ -623,7 +641,7 @@ HRESULT EVRCustomPresenter::GetDeviceID(IID* deviceID)
     if (!deviceID)
         return E_POINTER;
 
-    *deviceID = IID_IDirect3DDevice9;
+    *deviceID = iid_IDirect3DDevice9;
 
     return S_OK;
 }
@@ -642,15 +660,15 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     if (isActive())
         return MF_E_INVALIDREQUEST;
 
-    qt_wmf_safeRelease(&m_clock);
-    qt_wmf_safeRelease(&m_mixer);
-    qt_wmf_safeRelease(&m_mediaEventSink);
+    qt_evr_safe_release(&m_clock);
+    qt_evr_safe_release(&m_mixer);
+    qt_evr_safe_release(&m_mediaEventSink);
 
     // Ask for the clock. Optional, because the EVR might not have a clock.
     objectCount = 1;
 
     lookup->LookupService(MF_SERVICE_LOOKUP_GLOBAL, 0,
-                          MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_clock),
+                          mr_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_clock),
                           &objectCount
                           );
 
@@ -658,7 +676,7 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     objectCount = 1;
 
     hr = lookup->LookupService(MF_SERVICE_LOOKUP_GLOBAL, 0,
-                               MR_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_mixer),
+                               mr_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_mixer),
                                &objectCount
                                );
 
@@ -674,7 +692,7 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     objectCount = 1;
 
     hr = lookup->LookupService(MF_SERVICE_LOOKUP_GLOBAL, 0,
-                               MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_mediaEventSink),
+                               mr_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_mediaEventSink),
                                &objectCount
                                );
 
@@ -700,9 +718,9 @@ HRESULT EVRCustomPresenter::ReleaseServicePointers()
     setMediaType(NULL);
 
     // Release all services that were acquired from InitServicePointers.
-    qt_wmf_safeRelease(&m_clock);
-    qt_wmf_safeRelease(&m_mixer);
-    qt_wmf_safeRelease(&m_mediaEventSink);
+    qt_evr_safe_release(&m_clock);
+    qt_evr_safe_release(&m_mixer);
+    qt_evr_safe_release(&m_mediaEventSink);
 
     return S_OK;
 }
@@ -1019,10 +1037,20 @@ void EVRCustomPresenter::setSurface(QAbstractVideoSurface *surface)
 {
     m_mutex.lock();
 
+    if (m_surface) {
+        disconnect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged,
+                   this, &EVRCustomPresenter::supportedFormatsChanged);
+    }
+
     m_surface = surface;
 
     if (m_D3DPresentEngine)
         m_D3DPresentEngine->setSurface(surface);
+
+    if (m_surface) {
+        connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged,
+                this, &EVRCustomPresenter::supportedFormatsChanged);
+    }
 
     m_mutex.unlock();
 
@@ -1049,8 +1077,8 @@ HRESULT EVRCustomPresenter::renegotiateMediaType()
     // Loop through all of the mixer's proposed output types.
     DWORD typeIndex = 0;
     while (!foundMediaType && (hr != MF_E_NO_MORE_TYPES)) {
-        qt_wmf_safeRelease(&mixerType);
-        qt_wmf_safeRelease(&optimalType);
+        qt_evr_safe_release(&mixerType);
+        qt_evr_safe_release(&optimalType);
 
         // Step 1. Get the next media type supported by mixer.
         hr = m_mixer->GetOutputAvailableType(0, typeIndex++, &mixerType);
@@ -1089,8 +1117,8 @@ HRESULT EVRCustomPresenter::renegotiateMediaType()
             foundMediaType = true;
     }
 
-    qt_wmf_safeRelease(&mixerType);
-    qt_wmf_safeRelease(&optimalType);
+    qt_evr_safe_release(&mixerType);
+    qt_evr_safe_release(&optimalType);
 
     return hr;
 }
@@ -1218,7 +1246,7 @@ HRESULT EVRCustomPresenter::startFrameStep()
             if (FAILED(hr))
                 goto done;
 
-            qt_wmf_safeRelease(&sample);
+            qt_evr_safe_release(&sample);
 
             // We break from this loop when:
             //   (a) the frame-step queue is empty, or
@@ -1234,12 +1262,12 @@ HRESULT EVRCustomPresenter::startFrameStep()
             if (FAILED(hr))
                 goto done;
 
-            qt_wmf_safeRelease(&sample);
+            qt_evr_safe_release(&sample);
         }
     }
 
 done:
-    qt_wmf_safeRelease(&sample);
+    qt_evr_safe_release(&sample);
     return hr;
 }
 
@@ -1251,7 +1279,7 @@ HRESULT EVRCustomPresenter::completeFrameStep(IMFSample *sample)
 
     // Update our state.
     m_frameStep.state = FrameStepComplete;
-    m_frameStep.sampleNoRef = NULL;
+    m_frameStep.sampleNoRef = 0;
 
     // Notify the EVR that the frame-step is complete.
     notifyEvent(EC_STEP_COMPLETE, FALSE, 0); // FALSE = completed (not cancelled)
@@ -1279,7 +1307,7 @@ HRESULT EVRCustomPresenter::cancelFrameStep()
 
     m_frameStep.state = FrameStepNone;
     m_frameStep.steps = 0;
-    m_frameStep.sampleNoRef = NULL;
+    m_frameStep.sampleNoRef = 0;
     // Don't clear the frame-step queue yet, because we might frame step again.
 
     if (oldState > FrameStepNone && oldState < FrameStepComplete) {
@@ -1302,6 +1330,10 @@ HRESULT EVRCustomPresenter::createOptimalVideoType(IMFMediaType *proposedType, I
 
     IMFMediaType *mtOptimal = NULL;
 
+    UINT64 size;
+    int width;
+    int height;
+
     // Clone the proposed type.
 
     hr = MFCreateMediaType(&mtOptimal);
@@ -1315,21 +1347,22 @@ HRESULT EVRCustomPresenter::createOptimalVideoType(IMFMediaType *proposedType, I
     // Modify the new type.
 
     // Set the pixel aspect ratio (PAR) to 1:1 (see assumption #1, above)
-    hr = MFSetAttributeRatio(mtOptimal, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
+    // The ratio is packed in a single UINT64. A helper function is normally available for
+    // that (MFSetAttributeRatio) but it's not correctly defined in MinGW 4.9.1.
+    hr = mtOptimal->SetUINT64(MF_MT_PIXEL_ASPECT_RATIO, (((UINT64) 1) << 32) | ((UINT64) 1));
     if (FAILED(hr))
         goto done;
 
-    UINT64 size;
     hr = proposedType->GetUINT64(MF_MT_FRAME_SIZE, &size);
-    int width = int(HI32(size));
-    int height = int(LO32(size));
+    width = int(HI32(size));
+    height = int(LO32(size));
     rcOutput.left = 0;
     rcOutput.top = 0;
     rcOutput.right = width;
     rcOutput.bottom = height;
 
     // Set the geometric aperture, and disable pan/scan.
-    displayArea = qt_wmf_makeMFArea(0, 0, rcOutput.right, rcOutput.bottom);
+    displayArea = qt_evr_makeMFArea(0, 0, rcOutput.right, rcOutput.bottom);
 
     hr = mtOptimal->SetUINT32(MF_MT_PAN_SCAN_ENABLED, FALSE);
     if (FAILED(hr))
@@ -1355,7 +1388,7 @@ HRESULT EVRCustomPresenter::createOptimalVideoType(IMFMediaType *proposedType, I
     (*optimalType)->AddRef();
 
 done:
-    qt_wmf_safeRelease(&mtOptimal);
+    qt_evr_safe_release(&mtOptimal);
     return hr;
 
 }
@@ -1366,7 +1399,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
 
     // Clearing the media type is allowed in any state (including shutdown).
     if (!mediaType) {
-        qt_wmf_safeRelease(&m_mediaType);
+        qt_evr_safe_release(&m_mediaType);
         releaseResources();
         m_D3DPresentEngine->setSurfaceFormat(QVideoSurfaceFormat());
         return S_OK;
@@ -1378,6 +1411,9 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     IMFSample *sample = NULL;
 
     QVideoSurfaceFormat surfaceFormat;
+    UINT64 size;
+    int width;
+    int height;
 
     // Cannot set the media type after shutdown.
     HRESULT hr = checkShutdown();
@@ -1386,11 +1422,11 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
 
     // Check if the new type is actually different.
     // Note: This function safely handles NULL input parameters.
-    if (qt_wmf_areMediaTypesEqual(m_mediaType, mediaType))
+    if (qt_evr_areMediaTypesEqual(m_mediaType, mediaType))
         goto done; // Nothing more to do.
 
     // We're really changing the type. First get rid of the old type.
-    qt_wmf_safeRelease(&m_mediaType);
+    qt_evr_safe_release(&m_mediaType);
     releaseResources();
 
     // Initialize the presenter engine with the new media type.
@@ -1416,7 +1452,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
         goto done;
 
     // Set the frame rate on the scheduler.
-    if (SUCCEEDED(qt_wmf_getFrameRate(mediaType, &fps)) && (fps.Numerator != 0) && (fps.Denominator != 0)) {
+    if (SUCCEEDED(qt_evr_getFrameRate(mediaType, &fps)) && (fps.Numerator != 0) && (fps.Denominator != 0)) {
         m_scheduler.setFrameRate(fps);
     } else {
         // NOTE: The mixer's proposed type might not have a frame rate, in which case
@@ -1430,10 +1466,9 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     m_mediaType->AddRef();
 
     // Create the surface format
-    UINT64 size;
     hr = m_mediaType->GetUINT64(MF_MT_FRAME_SIZE, &size);
-    int width = int(HI32(size));
-    int height = int(LO32(size));
+    width = int(HI32(size));
+    height = int(LO32(size));
     surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
                                         pixelFormatFromMediaType(m_mediaType),
                                         QAbstractVideoBuffer::GLTextureHandle);
@@ -1454,7 +1489,7 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     UINT32 width = 0, height = 0;
 
     // Validate the format.
-    HRESULT hr = qt_wmf_getFourCC(proposed, (DWORD*)&d3dFormat);
+    HRESULT hr = qt_evr_getFourCC(proposed, (DWORD*)&d3dFormat);
     if (FAILED(hr))
         return hr;
 
@@ -1493,13 +1528,13 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     // we ignore it. We just want to reject invalid apertures.
 
     if (SUCCEEDED(proposed->GetBlob(MF_MT_PAN_SCAN_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
-        hr = qt_wmf_validateVideoArea(videoCropArea, width, height);
+        hr = qt_evr_validateVideoArea(videoCropArea, width, height);
 
     if (SUCCEEDED(proposed->GetBlob(MF_MT_GEOMETRIC_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
-        hr = qt_wmf_validateVideoArea(videoCropArea, width, height);
+        hr = qt_evr_validateVideoArea(videoCropArea, width, height);
 
     if (SUCCEEDED(proposed->GetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
-        hr = qt_wmf_validateVideoArea(videoCropArea, width, height);
+        hr = qt_evr_validateVideoArea(videoCropArea, width, height);
 
     return hr;
 }
@@ -1640,10 +1675,10 @@ HRESULT EVRCustomPresenter::processOutput()
     }
 
 done:
-    qt_wmf_safeRelease(&sample);
+    qt_evr_safe_release(&sample);
 
     // Important: Release any events returned from the ProcessOutput method.
-    qt_wmf_safeRelease(&dataBuffer.pEvents);
+    qt_evr_safe_release(&dataBuffer.pEvents);
     return hr;
 }
 
@@ -1673,7 +1708,7 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
     IUnknown *unk = NULL;
 
     // For rate 0, discard any sample that ends earlier than the clock time.
-    if (isScrubbing() && m_clock && qt_wmf_isSampleTimePassed(m_clock, sample)) {
+    if (isScrubbing() && m_clock && qt_evr_isSampleTimePassed(m_clock, sample)) {
         // Discard this sample.
     } else if (m_frameStep.state >= FrameStepScheduled) {
         // A frame was already submitted. Put this sample on the frame-step queue,
@@ -1719,7 +1754,7 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
         }
     }
 done:
-    qt_wmf_safeRelease(&unk);
+    qt_evr_safe_release(&unk);
     return hr;
 }
 
@@ -1732,7 +1767,7 @@ HRESULT EVRCustomPresenter::trackSample(IMFSample *sample)
     if (SUCCEEDED(hr))
         hr = tracked->SetAllocator(&m_sampleFreeCB, NULL);
 
-    qt_wmf_safeRelease(&tracked);
+    qt_evr_safe_release(&tracked);
     return hr;
 }
 
@@ -1761,6 +1796,7 @@ HRESULT EVRCustomPresenter::onSampleFree(IMFAsyncResult *result)
     IUnknown *object = NULL;
     IMFSample *sample = NULL;
     IUnknown *unk = NULL;
+    UINT32 token;
 
     // Get the sample from the async result object.
     HRESULT hr = result->GetObject(&object);
@@ -1795,7 +1831,7 @@ HRESULT EVRCustomPresenter::onSampleFree(IMFAsyncResult *result)
 
     m_mutex.lock();
 
-    UINT32 token = MFGetAttributeUINT32(sample, MFSamplePresenter_SampleCounter, (UINT32)-1);
+    token = MFGetAttributeUINT32(sample, MFSamplePresenter_SampleCounter, (UINT32)-1);
 
     if (token == m_tokenCounter) {
         // Return the sample to the sample pool.
@@ -1811,9 +1847,9 @@ HRESULT EVRCustomPresenter::onSampleFree(IMFAsyncResult *result)
 done:
     if (FAILED(hr))
         notifyEvent(EC_ERRORABORT, hr, 0);
-    qt_wmf_safeRelease(&object);
-    qt_wmf_safeRelease(&sample);
-    qt_wmf_safeRelease(&unk);
+    qt_evr_safe_release(&object);
+    qt_evr_safe_release(&sample);
+    qt_evr_safe_release(&unk);
     return hr;
 }
 
@@ -1843,7 +1879,7 @@ float EVRCustomPresenter::getMaxRate(bool thin)
     UINT monitorRateHz = 0;
 
     if (!thin && m_mediaType) {
-        qt_wmf_getFrameRate(m_mediaType, &fps);
+        qt_evr_getFrameRate(m_mediaType, &fps);
         monitorRateHz = m_D3DPresentEngine->refreshRate();
 
         if (fps.Denominator && fps.Numerator && monitorRateHz) {
@@ -1867,7 +1903,7 @@ HRESULT setDesiredSampleTime(IMFSample *sample, const LONGLONG &sampleTime, cons
     if (SUCCEEDED(hr))
         desired->SetDesiredSampleTimeAndDuration(sampleTime, duration);
 
-    qt_wmf_safeRelease(&desired);
+    qt_evr_safe_release(&desired);
     return hr;
 }
 
@@ -1907,8 +1943,8 @@ HRESULT clearDesiredSampleTime(IMFSample *sample)
     }
 
 done:
-    qt_wmf_safeRelease(&unkSwapChain);
-    qt_wmf_safeRelease(&desired);
+    qt_evr_safe_release(&unkSwapChain);
+    qt_evr_safe_release(&desired);
     return hr;
 }
 
@@ -1921,7 +1957,7 @@ HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect &sou
 
     HRESULT hr = mixer->GetAttributes(&attributes);
     if (SUCCEEDED(hr)) {
-        hr = attributes->SetBlob(VIDEO_ZOOM_RECT, (const UINT8*)&sourceRect, sizeof(sourceRect));
+        hr = attributes->SetBlob(video_ZOOM_RECT, (const UINT8*)&sourceRect, sizeof(sourceRect));
         attributes->Release();
     }
     return hr;
@@ -1985,61 +2021,4 @@ static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
         return QVideoFrame::Format_RGB32;
 
     return QVideoFrame::Format_Invalid;
-}
-
-
-EVRCustomPresenterActivate::EVRCustomPresenterActivate()
-    : MFAbstractActivate()
-    , m_presenter(0)
-    , m_surface(0)
-{ }
-
-HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
-{
-    if (!ppv)
-        return E_INVALIDARG;
-    QMutexLocker locker(&m_mutex);
-    if (!m_presenter) {
-        m_presenter = new EVRCustomPresenter;
-        if (m_surface)
-            m_presenter->setSurface(m_surface);
-    }
-    return m_presenter->QueryInterface(riid, ppv);
-}
-
-HRESULT EVRCustomPresenterActivate::ShutdownObject()
-{
-    // The presenter does not implement IMFShutdown so
-    // this function is the same as DetachObject()
-    return DetachObject();
-}
-
-HRESULT EVRCustomPresenterActivate::DetachObject()
-{
-    QMutexLocker locker(&m_mutex);
-    if (m_presenter) {
-        m_presenter->Release();
-        m_presenter = 0;
-    }
-    return S_OK;
-}
-
-void EVRCustomPresenterActivate::setSurface(QAbstractVideoSurface *surface)
-{
-    QMutexLocker locker(&m_mutex);
-    if (m_surface == surface)
-        return;
-
-    m_surface = surface;
-
-    if (m_presenter)
-        m_presenter->setSurface(surface);
-}
-
-void EVRCustomPresenterActivate::supportedFormatsChanged()
-{
-    QMutexLocker locker(&m_mutex);
-
-    if (m_presenter)
-        m_presenter->supportedFormatsChanged();
 }

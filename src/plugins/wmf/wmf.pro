@@ -17,7 +17,6 @@ HEADERS += \
     sourceresolver.h \
     samplegrabber.h \
     mftvideo.h \
-    mfglobal.h \
     mfactivate.h
 
 SOURCES += \
@@ -26,21 +25,7 @@ SOURCES += \
     sourceresolver.cpp \
     samplegrabber.cpp \
     mftvideo.cpp \
-    mfactivate.cpp \
-    mfglobal.cpp
-
-contains(QT_CONFIG, angle)|contains(QT_CONFIG, dynamicgl) {
-    LIBS += -ld3d9 -ldxva2 -lwinmm -levr
-    QT += gui-private
-
-    HEADERS += \
-        $$PWD/evrcustompresenter.h \
-        $$PWD/evrd3dpresentengine.h
-
-    SOURCES += \
-        $$PWD/evrcustompresenter.cpp \
-        $$PWD/evrd3dpresentengine.cpp
-}
+    mfactivate.cpp
 
 include (player/player.pri)
 include (decoder/decoder.pri)

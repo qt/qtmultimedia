@@ -57,7 +57,7 @@ static const GUID MFSamplePresenter_SampleCounter =
 static const GUID MFSamplePresenter_SampleSwapChain =
 { 0xad885bd1, 0x7def, 0x414a, { 0xb5, 0xb0, 0xd3, 0xd2, 0x63, 0xd6, 0xe9, 0x6d } };
 
-QT_BEGIN_NAMESPACE
+QT_USE_NAMESPACE
 
 class QAbstractVideoSurface;
 class QOpenGLContext;
@@ -142,7 +142,5 @@ private:
     IDirect3DTexture9 *m_texture;
     EGLWrapper *m_egl;
 };
-
-QT_END_NAMESPACE
 
 #endif // EVRD3DPRESENTENGINE_H
