@@ -327,6 +327,7 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             m_error = QMediaPlayer::FormatError;
             m_errorString = QString();
             break;
+        case E_FAIL:
         case E_OUTOFMEMORY:
         case VFW_E_CANNOT_LOAD_SOURCE_FILTER:
         case VFW_E_NOT_FOUND:
