@@ -215,9 +215,10 @@ private:
 
     void createSession();
     void setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD);
+    MediaType getStreamType(IMFStreamDescriptor *stream) const;
     IMFTopologyNode* addSourceNode(IMFTopology* topology, IMFMediaSource* source,
         IMFPresentationDescriptor* presentationDesc, IMFStreamDescriptor *streamDesc);
-    IMFTopologyNode* addOutputNode(IMFStreamDescriptor *streamDesc, MediaType& mediaType, IMFTopology* topology, DWORD sinkID);
+    IMFTopologyNode* addOutputNode(MediaType mediaType, IMFTopology* topology, DWORD sinkID);
 
     bool addAudioSampleGrabberNode(IMFTopology* topology);
     bool setupAudioSampleGrabber(IMFTopology *topology, IMFTopologyNode *sourceNode, IMFTopologyNode *outputNode);
