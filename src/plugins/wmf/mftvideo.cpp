@@ -172,9 +172,12 @@ STDMETHODIMP MFTransform::GetInputStreamInfo(DWORD dwInputStreamID, MFT_INPUT_ST
 
     pStreamInfo->cbSize = 0;
     pStreamInfo->hnsMaxLatency = 0;
-    pStreamInfo->dwFlags = MFT_INPUT_STREAM_WHOLE_SAMPLES | MFT_INPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER;
     pStreamInfo->cbMaxLookahead = 0;
     pStreamInfo->cbAlignment = 0;
+    pStreamInfo->dwFlags = MFT_INPUT_STREAM_WHOLE_SAMPLES
+                            | MFT_INPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER
+                            | MFT_INPUT_STREAM_PROCESSES_IN_PLACE;
+
     return S_OK;
 }
 
@@ -189,8 +192,11 @@ STDMETHODIMP MFTransform::GetOutputStreamInfo(DWORD dwOutputStreamID, MFT_OUTPUT
         return E_POINTER;
 
     pStreamInfo->cbSize = 0;
-    pStreamInfo->dwFlags = MFT_OUTPUT_STREAM_WHOLE_SAMPLES | MFT_OUTPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER;
     pStreamInfo->cbAlignment = 0;
+    pStreamInfo->dwFlags = MFT_OUTPUT_STREAM_WHOLE_SAMPLES
+                            | MFT_OUTPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER
+                            | MFT_OUTPUT_STREAM_PROVIDES_SAMPLES
+                            | MFT_OUTPUT_STREAM_DISCARDABLE;
 
     return S_OK;
 }
@@ -505,23 +511,11 @@ STDMETHODIMP MFTransform::ProcessInput(DWORD dwInputStreamID, IMFSample *pSample
     m_sample = pSample;
     m_sample->AddRef();
 
-    QMutexLocker lockerProbe(&m_videoProbeMutex);
-
-    if (!m_videoProbes.isEmpty()) {
-        QVideoFrame frame = makeVideoFrame();
-
-        foreach (MFVideoProbeControl* probe, m_videoProbes)
-            probe->bufferProbed(frame);
-    }
-
     return S_OK;
 }
 
 STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount, MFT_OUTPUT_DATA_BUFFER *pOutputSamples, DWORD *pdwStatus)
 {
-    if (dwFlags != 0)
-        return E_INVALIDARG;
-
     if (pOutputSamples == NULL || pdwStatus == NULL)
         return E_POINTER;
 
@@ -538,57 +532,36 @@ STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount,
         return MF_E_TRANSFORM_STREAM_CHANGE;
     }
 
-    if (!m_sample)
-        return MF_E_TRANSFORM_NEED_MORE_INPUT;
-
     IMFMediaBuffer *input = NULL;
     IMFMediaBuffer *output = NULL;
 
-    DWORD sampleLength = 0;
-    m_sample->GetTotalLength(&sampleLength);
+    if (dwFlags == MFT_PROCESS_OUTPUT_DISCARD_WHEN_NO_BUFFER)
+        goto done;
+    else if (dwFlags != 0)
+        return E_INVALIDARG;
 
-    // If the sample length is null, it means we're getting DXVA buffers.
-    // In that case just pass on the sample we got as input.
-    // Otherwise we need to copy the input buffer into the buffer the sink
-    // is giving us.
-    if (pOutputSamples[0].pSample && sampleLength > 0) {
+    if (!m_sample)
+        return MF_E_TRANSFORM_NEED_MORE_INPUT;
 
-        if (FAILED(m_sample->ConvertToContiguousBuffer(&input)))
-            goto done;
+    // Since the MFT_OUTPUT_STREAM_PROVIDES_SAMPLES flag is set, the client
+    // should not be providing samples here
+    if (pOutputSamples[0].pSample != NULL)
+        return E_INVALIDARG;
 
-        if (FAILED(pOutputSamples[0].pSample->ConvertToContiguousBuffer(&output)))
-            goto done;
+    pOutputSamples[0].pSample = m_sample;
+    pOutputSamples[0].pSample->AddRef();
 
-        DWORD inputLength = 0;
-        DWORD outputLength = 0;
-        input->GetMaxLength(&inputLength);
-        output->GetMaxLength(&outputLength);
+    // Send video frame to probes
+    // We do it here (instead of inside ProcessInput) to make sure samples discarded by the renderer
+    // are not sent.
+    m_videoProbeMutex.lock();
+    if (!m_videoProbes.isEmpty()) {
+        QVideoFrame frame = makeVideoFrame();
 
-        if (outputLength < inputLength) {
-            pOutputSamples[0].pSample->RemoveAllBuffers();
-            output->Release();
-            output = NULL;
-            if (SUCCEEDED(MFCreateMemoryBuffer(inputLength, &output)))
-                pOutputSamples[0].pSample->AddBuffer(output);
-        }
-
-        if (output)
-            m_sample->CopyToBuffer(output);
-
-        LONGLONG hnsDuration = 0;
-        LONGLONG hnsTime = 0;
-        if (SUCCEEDED(m_sample->GetSampleDuration(&hnsDuration)))
-            pOutputSamples[0].pSample->SetSampleDuration(hnsDuration);
-        if (SUCCEEDED(m_sample->GetSampleTime(&hnsTime)))
-            pOutputSamples[0].pSample->SetSampleTime(hnsTime);
-
-
-    } else {
-        if (pOutputSamples[0].pSample)
-            pOutputSamples[0].pSample->Release();
-        pOutputSamples[0].pSample = m_sample;
-        pOutputSamples[0].pSample->AddRef();
+        foreach (MFVideoProbeControl* probe, m_videoProbes)
+            probe->bufferProbed(frame);
     }
+    m_videoProbeMutex.unlock();
 
 done:
     pOutputSamples[0].dwStatus = 0;
