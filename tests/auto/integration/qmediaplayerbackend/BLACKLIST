@@ -8,16 +8,13 @@ windows 64bit developer-build
 
 [construction]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 
 [loadMedia]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 windows 64bit developer-build
 
 [unloadMedia]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 windows 64bit developer-build
 
 [playPauseStop]
@@ -28,25 +25,20 @@ windows 64bit developer-build
 
 [processEOS]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 windows 64bit developer-build
 
 [deleteLaterAtEOS]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 windows 64bit developer-build
 
 [volumeAndMuted]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 
 [volumeAcrossFiles]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 
 [initialVolume]
 opensuse-13.1 64bit
-redhatenterpriselinuxworkstation-6.6
 windows 64bit developer-build
 
 [playlist]
