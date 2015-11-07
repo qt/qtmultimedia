@@ -34,6 +34,10 @@
 #include "camerabinimageprocessing.h"
 #include "camerabinsession.h"
 
+#ifdef USE_V4L
+#include "camerabinv4limageprocessing.h"
+#endif
+
 #if GST_CHECK_VERSION(1,0,0)
 # include <gst/video/colorbalance.h>
 #else
@@ -43,9 +47,12 @@
 QT_BEGIN_NAMESPACE
 
 CameraBinImageProcessing::CameraBinImageProcessing(CameraBinSession *session)
-    :QCameraImageProcessingControl(session),
-     m_session(session),
-     m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
+    : QCameraImageProcessingControl(session)
+    , m_session(session)
+    , m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
+#ifdef USE_V4L
+    , m_v4lImageControl(Q_NULLPTR)
+#endif
 {
 #ifdef HAVE_GST_PHOTOGRAPHY
     if (m_session->photography()) {
@@ -81,6 +88,12 @@ CameraBinImageProcessing::CameraBinImageProcessing(CameraBinSession *session)
           m_filterMap.insert(QCameraImageProcessing::ColorFilterSolarize, GST_PHOTOGRAPHY_COLOUR_TONE_MODE_SOLARIZE);
       }
 #endif
+#endif
+
+#ifdef USE_V4L
+      m_v4lImageControl = new CameraBinV4LImageProcessing(m_session);
+      connect(m_session, &CameraBinSession::statusChanged,
+              m_v4lImageControl, &CameraBinV4LImageProcessing::updateParametersInfo);
 #endif
 
     updateColorBalanceValues();
@@ -160,7 +173,7 @@ QCameraImageProcessing::WhiteBalanceMode CameraBinImageProcessing::whiteBalanceM
     return m_whiteBalanceMode;
 }
 
-void CameraBinImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
+bool CameraBinImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
 {
 #ifdef HAVE_GST_PHOTOGRAPHY
     if (isWhiteBalanceModeSupported(mode)) {
@@ -172,11 +185,13 @@ void CameraBinImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::White
 #endif
         {
             unlockWhiteBalance();
+            return true;
         }
     }
 #else
     Q_UNUSED(mode);
 #endif
+    return false;
 }
 
 bool CameraBinImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const
@@ -184,7 +199,8 @@ bool CameraBinImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessin
 #ifdef HAVE_GST_PHOTOGRAPHY
     return m_mappedWbValues.values().contains(mode);
 #else
-    return mode == QCameraImageProcessing::WhiteBalanceAuto;
+    Q_UNUSED(mode);
+    return false;
 #endif
 }
 
@@ -192,15 +208,23 @@ bool CameraBinImageProcessing::isParameterSupported(QCameraImageProcessingContro
 {
 #ifdef HAVE_GST_PHOTOGRAPHY
     if (parameter == QCameraImageProcessingControl::WhiteBalancePreset
-            || parameter == QCameraImageProcessingControl::ColorFilter)
-        return m_session->photography();
+            || parameter == QCameraImageProcessingControl::ColorFilter) {
+        if (m_session->photography())
+            return true;
+    }
 #endif
 
     if (parameter == QCameraImageProcessingControl::Contrast
             || parameter == QCameraImageProcessingControl::Brightness
             || parameter == QCameraImageProcessingControl::Saturation) {
-        return GST_IS_COLOR_BALANCE(m_session->cameraBin());
+        if (GST_IS_COLOR_BALANCE(m_session->cameraBin()))
+            return true;
     }
+
+#ifdef USE_V4L
+    if (m_v4lImageControl->isParameterSupported(parameter))
+        return true;
+#endif
 
     return false;
 }
@@ -212,8 +236,23 @@ bool CameraBinImageProcessing::isParameterValueSupported(QCameraImageProcessingC
     case BrightnessAdjustment:
     case SaturationAdjustment:
         return GST_IS_COLOR_BALANCE(m_session->cameraBin()) && qAbs(value.toReal()) <= 1.0;
-    case WhiteBalancePreset:
-        return isWhiteBalanceModeSupported(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+    case WhiteBalancePreset: {
+        const QCameraImageProcessing::WhiteBalanceMode mode =
+                value.value<QCameraImageProcessing::WhiteBalanceMode>();
+        const bool isPhotographyWhiteBalanceSupported = isWhiteBalanceModeSupported(mode);
+#ifdef USE_V4L
+        if (!isPhotographyWhiteBalanceSupported)
+            return m_v4lImageControl->isParameterValueSupported(parameter, value);
+#endif
+        return isPhotographyWhiteBalanceSupported;
+    }
+    case ColorTemperature: {
+#ifdef USE_V4L
+        return m_v4lImageControl->isParameterValueSupported(parameter, value);
+#else
+        return false;
+#endif
+    }
     case ColorFilter: {
         const QCameraImageProcessing::ColorFilter filter = value.value<QCameraImageProcessing::ColorFilter>();
 #ifdef HAVE_GST_PHOTOGRAPHY
@@ -233,8 +272,23 @@ QVariant CameraBinImageProcessing::parameter(
         QCameraImageProcessingControl::ProcessingParameter parameter) const
 {
     switch (parameter) {
-    case QCameraImageProcessingControl::WhiteBalancePreset:
-        return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(whiteBalanceMode());
+    case QCameraImageProcessingControl::WhiteBalancePreset: {
+        const QCameraImageProcessing::WhiteBalanceMode mode = whiteBalanceMode();
+#ifdef USE_V4L
+        if (mode == QCameraImageProcessing::WhiteBalanceAuto
+                || mode == QCameraImageProcessing::WhiteBalanceManual) {
+            return m_v4lImageControl->parameter(parameter);
+        }
+#endif
+        return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode);
+    }
+    case QCameraImageProcessingControl::ColorTemperature: {
+#ifdef USE_V4L
+        return m_v4lImageControl->parameter(parameter);
+#else
+        return QVariant();
+#endif
+    }
     case QCameraImageProcessingControl::ColorFilter:
 #ifdef HAVE_GST_PHOTOGRAPHY
         if (GstPhotography *photography = m_session->photography()) {
@@ -269,9 +323,26 @@ void CameraBinImageProcessing::setParameter(QCameraImageProcessingControl::Proce
     case SaturationAdjustment:
         setColorBalanceValue("saturation", value.toReal());
         break;
-    case WhiteBalancePreset:
-        setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+    case WhiteBalancePreset: {
+        if (!setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>())) {
+#ifdef USE_V4L
+            const QCameraImageProcessing::WhiteBalanceMode mode =
+                    value.value<QCameraImageProcessing::WhiteBalanceMode>();
+            if (mode == QCameraImageProcessing::WhiteBalanceAuto
+                    || mode == QCameraImageProcessing::WhiteBalanceManual) {
+                m_v4lImageControl->setParameter(parameter, value);
+                return;
+            }
+#endif
+        }
+    }
         break;
+    case QCameraImageProcessingControl::ColorTemperature: {
+#ifdef USE_V4L
+        m_v4lImageControl->setParameter(parameter, value);
+#endif
+        break;
+    }
     case QCameraImageProcessingControl::ColorFilter:
 #ifdef HAVE_GST_PHOTOGRAPHY
         if (GstPhotography *photography = m_session->photography()) {

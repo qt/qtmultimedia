@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -31,71 +31,50 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINIMAGEPROCESSINGCONTROL_H
-#define CAMERABINIMAGEPROCESSINGCONTROL_H
+#ifndef CAMERABINV4LIMAGEPROCESSINGCONTROL_H
+#define CAMERABINV4LIMAGEPROCESSINGCONTROL_H
 
 #include <qcamera.h>
 #include <qcameraimageprocessingcontrol.h>
 
-#include <gst/gst.h>
-#include <glib.h>
-
-#ifdef HAVE_GST_PHOTOGRAPHY
-# include <gst/interfaces/photography.h>
-# if !GST_CHECK_VERSION(1,0,0)
-typedef GstWhiteBalanceMode GstPhotographyWhiteBalanceMode;
-typedef GstColourToneMode GstPhotographyColorToneMode;
-# endif
-#endif
-
 QT_BEGIN_NAMESPACE
-
-#ifdef USE_V4L
-class CameraBinV4LImageProcessing;
-#endif
 
 class CameraBinSession;
 
-class CameraBinImageProcessing : public QCameraImageProcessingControl
+class CameraBinV4LImageProcessing : public QCameraImageProcessingControl
 {
     Q_OBJECT
 
 public:
-    CameraBinImageProcessing(CameraBinSession *session);
-    virtual ~CameraBinImageProcessing();
-
-    QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const;
-    bool setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
-    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
+    CameraBinV4LImageProcessing(CameraBinSession *session);
+    virtual ~CameraBinV4LImageProcessing();
 
     bool isParameterSupported(ProcessingParameter) const;
     bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const;
     QVariant parameter(ProcessingParameter parameter) const;
     void setParameter(ProcessingParameter parameter, const QVariant &value);
 
-#ifdef HAVE_GST_PHOTOGRAPHY
-    void lockWhiteBalance();
-    void unlockWhiteBalance();
-#endif
+public slots:
+    void updateParametersInfo(QCamera::Status cameraStatus);
 
 private:
-    bool setColorBalanceValue(const QString& channel, qreal value);
-    void updateColorBalanceValues();
+    struct SourceParameterValueInfo {
+        SourceParameterValueInfo()
+            : cid(0)
+        {
+        }
+
+        qint32 defaultValue;
+        qint32 minimumValue;
+        qint32 maximumValue;
+        quint32 cid; // V4L control id
+    };
 
 private:
     CameraBinSession *m_session;
-    QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
-#ifdef HAVE_GST_PHOTOGRAPHY
-    QMap<GstPhotographyWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
-    QMap<QCameraImageProcessing::ColorFilter, GstPhotographyColorToneMode> m_filterMap;
-#endif
-    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
-
-#ifdef USE_V4L
-    CameraBinV4LImageProcessing *m_v4lImageControl;
-#endif
+    QMap<ProcessingParameter, SourceParameterValueInfo> m_parametersInfo;
 };
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINIMAGEPROCESSINGCONTROL_H
+#endif // CAMERABINV4LIMAGEPROCESSINGCONTROL_H
