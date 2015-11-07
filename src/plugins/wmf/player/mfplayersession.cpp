@@ -692,7 +692,6 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
             IUnknown *element = 0;
             IMFTopologyNode *node = 0;
             IUnknown *outputObject = 0;
-            IMFMediaTypeHandler *videoSink = 0;
             IMFTopologyNode *inputNode = 0;
             IMFTopologyNode *mftNode = 0;
             bool mftAdded = false;
@@ -711,22 +710,10 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
                 if (id != outputNodeId)
                     break;
 
-                // Use output supported media types for the MFT
                 if (FAILED(node->GetObject(&outputObject)))
                     break;
 
-                if (FAILED(outputObject->QueryInterface(IID_IMFMediaTypeHandler, (void**)&videoSink)))
-                    break;
-
-                DWORD mtCount;
-                if (FAILED(videoSink->GetMediaTypeCount(&mtCount)))
-                    break;
-
-                for (DWORD i = 0; i < mtCount; ++i) {
-                    IMFMediaType *type = 0;
-                    if (SUCCEEDED(videoSink->GetMediaTypeByIndex(i, &type)))
-                        m_videoProbeMFT->addSupportedMediaType(type);
-                }
+                m_videoProbeMFT->setVideoSink(outputObject);
 
                 // Insert MFT between the output node and the node connected to it.
                 DWORD outputIndex = 0;
@@ -760,13 +747,13 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
                 node->Release();
             if (element)
                 element->Release();
-            if (videoSink)
-                videoSink->Release();
             if (outputObject)
                 outputObject->Release();
 
             if (mftAdded)
                 break;
+            else
+                m_videoProbeMFT->setVideoSink(NULL);
         }
     } while (false);
 
