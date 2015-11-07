@@ -52,3 +52,15 @@ windows 64bit developer-build
 [playlist]
 opensuse-13.1 64bit
 redhatenterpriselinuxworkstation-6.6
+
+[seekPauseSeek]
+redhatenterpriselinuxworkstation-6.6
+
+[subsequentPlayback]
+redhatenterpriselinuxworkstation-6.6
+
+[probes]
+redhatenterpriselinuxworkstation-6.6
+
+[surfaceTest]
+redhatenterpriselinuxworkstation-6.6
