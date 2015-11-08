@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -31,45 +31,44 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
-
-#include <QtCore/qobject.h>
-
-#include <qmediaservice.h>
+#include "dscameraimageprocessingcontrol.h"
+#include "dscamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
-class DSCameraSession;
-class DSVideoOutputControl;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
-class DSCameraImageProcessingControl;
-
-class DSCameraService : public QMediaService
+DSCameraImageProcessingControl::DSCameraImageProcessingControl(DSCameraSession *session)
+    : QCameraImageProcessingControl(session)
+    , m_session(session)
 {
-    Q_OBJECT
+}
 
-public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService();
+DSCameraImageProcessingControl::~DSCameraImageProcessingControl()
+{
+}
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+bool DSCameraImageProcessingControl::isParameterSupported(
+        QCameraImageProcessingControl::ProcessingParameter parameter) const
+{
+    return m_session->isImageProcessingParameterSupported(parameter);
+}
 
-private:
-    DSCameraControl        *m_control;
-    DSCameraSession        *m_session;
-    DSVideoOutputControl   *m_videoOutput;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
-    DSCameraImageProcessingControl *m_imageProcessingControl;
-};
+bool DSCameraImageProcessingControl::isParameterValueSupported(
+        QCameraImageProcessingControl::ProcessingParameter parameter,
+        const QVariant &value) const
+{
+    return m_session->isImageProcessingParameterValueSupported(parameter, value);
+}
+
+QVariant DSCameraImageProcessingControl::parameter(
+        QCameraImageProcessingControl::ProcessingParameter parameter) const
+{
+    return m_session->imageProcessingParameter(parameter);
+}
+
+void DSCameraImageProcessingControl::setParameter(QCameraImageProcessingControl::ProcessingParameter parameter,
+                                                  const QVariant &value)
+{
+    m_session->setImageProcessingParameter(parameter, value);
+}
 
 QT_END_NAMESPACE
-
-#endif

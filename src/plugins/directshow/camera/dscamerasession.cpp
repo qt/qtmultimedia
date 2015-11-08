@@ -230,6 +230,162 @@ void DSCameraSession::setViewfinderSettings(const QCameraViewfinderSettings &set
     m_viewfinderSettings = settings;
 }
 
+qreal DSCameraSession::scaledImageProcessingParameterValue(
+        qint32 sourceValue, const ImageProcessingParameterInfo &sourceValueInfo)
+{
+    if (sourceValue == sourceValueInfo.defaultValue) {
+        return 0.0f;
+    } else if (sourceValue < sourceValueInfo.defaultValue) {
+        return ((sourceValue - sourceValueInfo.minimumValue)
+                / qreal(sourceValueInfo.defaultValue - sourceValueInfo.minimumValue))
+                + (-1.0f);
+    } else {
+        return ((sourceValue - sourceValueInfo.defaultValue)
+                / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
+    }
+}
+
+qint32 DSCameraSession::sourceImageProcessingParameterValue(
+        qreal scaledValue, const ImageProcessingParameterInfo &valueRange)
+{
+    if (qFuzzyIsNull(scaledValue)) {
+        return valueRange.defaultValue;
+    } else if (scaledValue < 0.0f) {
+        return ((scaledValue - (-1.0f)) * (valueRange.defaultValue - valueRange.minimumValue))
+                + valueRange.minimumValue;
+    } else {
+        return (scaledValue * (valueRange.maximumValue - valueRange.defaultValue))
+                + valueRange.defaultValue;
+    }
+}
+
+bool DSCameraSession::isImageProcessingParameterSupported(
+        QCameraImageProcessingControl::ProcessingParameter parameter) const
+{
+    return m_imageProcessingParametersInfos.contains(parameter);
+}
+
+bool DSCameraSession::isImageProcessingParameterValueSupported(
+        QCameraImageProcessingControl::ProcessingParameter parameter,
+        const QVariant &value) const
+{
+    QMap<QCameraImageProcessingControl::ProcessingParameter,
+            ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
+            m_imageProcessingParametersInfos.constFind(parameter);
+
+    if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
+        return false;
+
+    // This conversion is required only for сontrast, saturation
+    // brightness, and sharpening.
+    const qint32 sourceValue = sourceImageProcessingParameterValue(
+                value.toReal(), (*sourceValueInfo));
+    if (sourceValue < (*sourceValueInfo).minimumValue
+            || sourceValue > (*sourceValueInfo).maximumValue)
+        return false;
+
+    return true;
+}
+
+QVariant DSCameraSession::imageProcessingParameter(
+        QCameraImageProcessingControl::ProcessingParameter parameter) const
+{
+    if (!m_graphBuilder) {
+        qWarning() << "failed to access to the graph builder";
+        return QVariant();
+    }
+
+    QMap<QCameraImageProcessingControl::ProcessingParameter,
+            ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
+            m_imageProcessingParametersInfos.constFind(parameter);
+
+    if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
+        return QVariant();
+
+    IAMVideoProcAmp *pVideoProcAmp = NULL;
+    HRESULT hr = m_graphBuilder->FindInterface(
+                NULL,
+                NULL,
+                m_sourceFilter,
+                IID_IAMVideoProcAmp,
+                reinterpret_cast<void**>(&pVideoProcAmp)
+                );
+
+    if (FAILED(hr) || !pVideoProcAmp) {
+        qWarning() << "failed to find the video proc amp";
+        return QVariant();
+    }
+
+    LONG sourceValue = 0;
+    LONG valueFlags = 0;
+
+    hr = pVideoProcAmp->Get(
+                (*sourceValueInfo).videoProcAmpProperty,
+                &sourceValue,
+                &valueFlags);
+
+    pVideoProcAmp->Release();
+
+    if (FAILED(hr)) {
+        qWarning() << "failed to get the parameter value";
+        return QVariant();
+    }
+
+    // This conversion is required only for сontrast, saturation
+    // brightness, and sharpening.
+    return scaledImageProcessingParameterValue(
+                sourceValue, (*sourceValueInfo));
+}
+
+void DSCameraSession::setImageProcessingParameter(
+        QCameraImageProcessingControl::ProcessingParameter parameter,
+        const QVariant &value)
+{
+    if (!m_graphBuilder) {
+        qWarning() << "failed to access to the graph builder";
+        return;
+    }
+
+    QMap<QCameraImageProcessingControl::ProcessingParameter,
+            ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
+            m_imageProcessingParametersInfos.constFind(parameter);
+
+    if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
+        return;
+
+    LONG sourceValue = 0;
+    LONG valueFlags = VideoProcAmp_Flags_Manual;
+
+    // This conversion is required only for сontrast, saturation
+    // brightness, and sharpening.
+    sourceValue = sourceImageProcessingParameterValue(
+                value.toReal(), (*sourceValueInfo));
+
+    IAMVideoProcAmp *pVideoProcAmp = NULL;
+    HRESULT hr = m_graphBuilder->FindInterface(
+                NULL,
+                NULL,
+                m_sourceFilter,
+                IID_IAMVideoProcAmp,
+                reinterpret_cast<void**>(&pVideoProcAmp)
+                );
+
+    if (FAILED(hr) || !pVideoProcAmp) {
+        qWarning() << "failed to find the video proc amp";
+        return;
+    }
+
+    hr = pVideoProcAmp->Set(
+                (*sourceValueInfo).videoProcAmpProperty,
+                sourceValue,
+                valueFlags);
+
+    pVideoProcAmp->Release();
+
+    if (FAILED(hr))
+        qWarning() << "failed to set the parameter value";
+}
+
 bool DSCameraSession::load()
 {
     unload();
@@ -720,6 +876,71 @@ bool DSCameraSession::configurePreviewFormat()
     return true;
 }
 
+void DSCameraSession::updateImageProcessingParametersInfos()
+{
+    if (!m_graphBuilder) {
+        qWarning() << "failed to access to the graph builder";
+        return;
+    }
+
+    IAMVideoProcAmp *pVideoProcAmp = NULL;
+    const HRESULT hr = m_graphBuilder->FindInterface(
+                NULL,
+                NULL,
+                m_sourceFilter,
+                IID_IAMVideoProcAmp,
+                reinterpret_cast<void**>(&pVideoProcAmp)
+                );
+
+    if (FAILED(hr) || !pVideoProcAmp) {
+        qWarning() << "failed to find the video proc amp";
+        return;
+    }
+
+    for (int property = VideoProcAmp_Brightness; property <= VideoProcAmp_Gain; ++property) {
+
+        QCameraImageProcessingControl::ProcessingParameter processingParameter; // not initialized
+
+        switch (property) {
+        case VideoProcAmp_Brightness:
+            processingParameter = QCameraImageProcessingControl::BrightnessAdjustment;
+            break;
+        case VideoProcAmp_Contrast:
+            processingParameter = QCameraImageProcessingControl::ContrastAdjustment;
+            break;
+        case VideoProcAmp_Saturation:
+            processingParameter = QCameraImageProcessingControl::SaturationAdjustment;
+            break;
+        case VideoProcAmp_Sharpness:
+            processingParameter = QCameraImageProcessingControl::SharpeningAdjustment;
+            break;
+        default: // unsupported or not implemented yet parameter
+            continue;
+        }
+
+        ImageProcessingParameterInfo sourceValueInfo;
+        LONG steppingDelta = 0;
+        LONG capsFlags = 0;
+
+        const HRESULT hr = pVideoProcAmp->GetRange(
+                    property,
+                    &sourceValueInfo.minimumValue,
+                    &sourceValueInfo.maximumValue,
+                    &steppingDelta,
+                    &sourceValueInfo.defaultValue,
+                    &capsFlags);
+
+        if (FAILED(hr))
+            continue;
+
+        sourceValueInfo.videoProcAmpProperty = static_cast<VideoProcAmpProperty>(property);
+
+        m_imageProcessingParametersInfos.insert(processingParameter, sourceValueInfo);
+    }
+
+    pVideoProcAmp->Release();
+}
+
 bool DSCameraSession::connectGraph()
 {
     HRESULT hr = m_filterGraph->AddFilter(m_sourceFilter, L"Capture Filter");
@@ -806,6 +1027,7 @@ void DSCameraSession::updateSourceCapabilities()
     Q_FOREACH (AM_MEDIA_TYPE f, m_supportedFormats)
         _FreeMediaType(f);
     m_supportedFormats.clear();
+    m_imageProcessingParametersInfos.clear();
 
     IAMVideoControl *pVideoControl = 0;
     hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
@@ -915,6 +1137,8 @@ void DSCameraSession::updateSourceCapabilities()
     }
 
     pConfig->Release();
+
+    updateImageProcessingParametersInfos();
 }
 
 HRESULT getPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin)
