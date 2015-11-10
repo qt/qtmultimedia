@@ -168,6 +168,7 @@ public:
 Q_SIGNALS:
     void previewSizeChanged();
     void previewStarted();
+    void previewFailedToStart();
     void previewStopped();
 
     void autoFocusStarted();
@@ -175,6 +176,7 @@ Q_SIGNALS:
 
     void whiteBalanceChanged();
 
+    void takePictureFailed();
     void pictureExposed();
     void pictureCaptured(const QByteArray &data);
     void lastPreviewFrameFetched(const QByteArray &preview, int width, int height);

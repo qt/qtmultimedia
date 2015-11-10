@@ -224,11 +224,14 @@ public:
 Q_SIGNALS:
     void previewSizeChanged();
     void previewStarted();
+    void previewFailedToStart();
     void previewStopped();
 
     void autoFocusStarted();
 
     void whiteBalanceChanged();
+
+    void takePictureFailed();
 
     void lastPreviewFrameFetched(const QByteArray &preview, int width, int height);
 };
@@ -245,9 +248,11 @@ AndroidCamera::AndroidCamera(AndroidCameraPrivate *d, QThread *worker)
 
     connect(d, &AndroidCameraPrivate::previewSizeChanged, this, &AndroidCamera::previewSizeChanged);
     connect(d, &AndroidCameraPrivate::previewStarted, this, &AndroidCamera::previewStarted);
+    connect(d, &AndroidCameraPrivate::previewFailedToStart, this, &AndroidCamera::previewFailedToStart);
     connect(d, &AndroidCameraPrivate::previewStopped, this, &AndroidCamera::previewStopped);
     connect(d, &AndroidCameraPrivate::autoFocusStarted, this, &AndroidCamera::autoFocusStarted);
     connect(d, &AndroidCameraPrivate::whiteBalanceChanged, this, &AndroidCamera::whiteBalanceChanged);
+    connect(d, &AndroidCameraPrivate::takePictureFailed, this, &AndroidCamera::takePictureFailed);
     connect(d, &AndroidCameraPrivate::lastPreviewFrameFetched, this, &AndroidCamera::lastPreviewFrameFetched);
 }
 
@@ -1057,15 +1062,21 @@ void AndroidCameraPrivate::setFocusAreas(const QList<QRect> &areas)
 
 void AndroidCameraPrivate::autoFocus()
 {
+    QJNIEnvironmentPrivate env;
+
     m_camera.callMethod<void>("autoFocus",
                               "(Landroid/hardware/Camera$AutoFocusCallback;)V",
                               m_cameraListener.object());
-    emit autoFocusStarted();
+
+    if (!exceptionCheckAndClear(env))
+        emit autoFocusStarted();
 }
 
 void AndroidCameraPrivate::cancelAutoFocus()
 {
+    QJNIEnvironmentPrivate env;
     m_camera.callMethod<void>("cancelAutoFocus");
+    exceptionCheckAndClear(env);
 }
 
 bool AndroidCameraPrivate::isAutoExposureLockSupported()
@@ -1314,25 +1325,40 @@ void AndroidCameraPrivate::setJpegQuality(int quality)
 
 void AndroidCameraPrivate::startPreview()
 {
+    QJNIEnvironmentPrivate env;
+
     setupPreviewFrameCallback();
     m_camera.callMethod<void>("startPreview");
-    emit previewStarted();
+
+    if (exceptionCheckAndClear(env))
+        emit previewFailedToStart();
+    else
+        emit previewStarted();
 }
 
 void AndroidCameraPrivate::stopPreview()
 {
+    QJNIEnvironmentPrivate env;
+
     m_camera.callMethod<void>("stopPreview");
+
+    exceptionCheckAndClear(env);
     emit previewStopped();
 }
 
 void AndroidCameraPrivate::takePicture()
 {
+    QJNIEnvironmentPrivate env;
+
     m_camera.callMethod<void>("takePicture", "(Landroid/hardware/Camera$ShutterCallback;"
                                              "Landroid/hardware/Camera$PictureCallback;"
                                              "Landroid/hardware/Camera$PictureCallback;)V",
                                               m_cameraListener.object(),
                                               jobject(0),
                                               m_cameraListener.object());
+
+    if (exceptionCheckAndClear(env))
+        emit takePictureFailed();
 }
 
 void AndroidCameraPrivate::setupPreviewFrameCallback()
