@@ -104,10 +104,10 @@ void QWinRTCameraLocksControl::searchAndLockFocus()
     } else {
         m_focusLockStatus = QCamera::Searching;
         emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::LockAcquired);
-        cameraControl->focus();
-        cameraControl->lockFocus();
-        m_focusLockStatus = QCamera::Locked;
-        emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::LockAcquired);
+        if (cameraControl->focus()) {
+            m_focusLockStatus = cameraControl->lockFocus() ? QCamera::Locked : QCamera::Unlocked;
+            emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::LockAcquired);
+        }
     }
 }
 
@@ -117,8 +117,7 @@ void QWinRTCameraLocksControl::unlockFocus()
         return;
     QWinRTCameraControl *cameraControl = qobject_cast<QWinRTCameraControl *>(parent());
     Q_ASSERT(cameraControl);
-    cameraControl->unlockFocus();
-    m_focusLockStatus = QCamera::Unlocked;
+    m_focusLockStatus = cameraControl->unlockFocus() ? QCamera::Unlocked : QCamera::Locked;
     emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::UserRequest);
 }
 

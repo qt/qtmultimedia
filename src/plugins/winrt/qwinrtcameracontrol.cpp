@@ -1154,8 +1154,11 @@ bool QWinRTCameraControl::focus()
         return false;
     ComPtr<IAsyncAction> op;
     HRESULT hr = d->focusControl->FocusAsync(&op);
-    if (HRESULT_CODE(hr) == ERROR_OPERATION_IN_PROGRESS)
-        return true;
+    const long errorCode = HRESULT_CODE(hr);
+    if (errorCode == ERROR_OPERATION_IN_PROGRESS
+        || errorCode == ERROR_WRITE_PROTECT) {
+        return false;
+    }
     Q_ASSERT_SUCCEEDED(hr);
     hr = QWinRTFunctions::await(op, QWinRTFunctions::ProcessThreadEvents);
     Q_ASSERT_SUCCEEDED(hr);
@@ -1184,6 +1187,8 @@ bool QWinRTCameraControl::lockFocus()
     Q_ASSERT_SUCCEEDED(hr);
     ComPtr<IAsyncAction> op;
     hr = focusControl2->LockAsync(&op);
+    if (HRESULT_CODE(hr) == ERROR_WRITE_PROTECT)
+        return false;
     Q_ASSERT_SUCCEEDED(hr);
     return QWinRTFunctions::await(op) == S_OK;
 }
@@ -1198,6 +1203,8 @@ bool QWinRTCameraControl::unlockFocus()
     Q_ASSERT_SUCCEEDED(hr);
     ComPtr<IAsyncAction> op;
     hr = focusControl2->UnlockAsync(&op);
+    if (HRESULT_CODE(hr) == ERROR_WRITE_PROTECT)
+        return false;
     Q_ASSERT_SUCCEEDED(hr);
     return QWinRTFunctions::await(op) == S_OK;
 }
