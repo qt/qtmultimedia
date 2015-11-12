@@ -91,6 +91,9 @@ public:
     qreal manualWhiteBalance() const;
     void setManualWhiteBalance(qreal colorTemperature);
 
+    qreal brightness() const;
+    void setBrightness(qreal value);
+
     qreal contrast() const;
     void setContrast(qreal value);
 

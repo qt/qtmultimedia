@@ -138,6 +138,25 @@ void QDeclarativeCameraImageProcessing::setManualWhiteBalance(qreal colorTemp) c
 }
 
 /*!
+    \qmlproperty qreal QtMultimedia::CameraImageProcessing::brightness
+
+    Image brightness adjustment.
+    Valid brightness adjustment values range between -1.0 and 1.0, with a default of 0.
+*/
+qreal QDeclarativeCameraImageProcessing::brightness() const
+{
+    return m_imageProcessing->brightness();
+}
+
+void QDeclarativeCameraImageProcessing::setBrightness(qreal value)
+{
+    if (value != brightness()) {
+        m_imageProcessing->setBrightness(value);
+        emit brightnessChanged(brightness());
+    }
+}
+
+/*!
     \qmlproperty qreal QtMultimedia::CameraImageProcessing::contrast
 
     Image contrast adjustment.

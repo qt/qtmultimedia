@@ -220,6 +220,25 @@ void QCameraImageProcessing::setManualWhiteBalance(qreal colorTemperature)
 }
 
 /*!
+    Returns the brightness adjustment setting.
+ */
+qreal QCameraImageProcessing::brightness() const
+{
+    return d_func()->imageControl->parameter(QCameraImageProcessingControl::BrightnessAdjustment).toReal();
+}
+
+/*!
+    Set the brightness adjustment to \a value.
+
+    Valid brightness adjustment values range between -1.0 and 1.0, with a default of 0.
+ */
+void QCameraImageProcessing::setBrightness(qreal value)
+{
+    d_func()->imageControl->setParameter(QCameraImageProcessingControl::BrightnessAdjustment,
+                                         QVariant(value));
+}
+
+/*!
     Returns the contrast adjustment setting.
 */
 qreal QCameraImageProcessing::contrast() const

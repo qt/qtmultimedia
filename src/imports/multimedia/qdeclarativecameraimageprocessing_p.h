@@ -60,6 +60,7 @@ class QDeclarativeCameraImageProcessing : public QObject
 
     Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
     Q_PROPERTY(qreal manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
+    Q_PROPERTY(qreal brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
     Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
     Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
     Q_PROPERTY(qreal sharpeningLevel READ sharpeningLevel WRITE setSharpeningLevel NOTIFY sharpeningLevelChanged)
@@ -97,6 +98,7 @@ public:
     WhiteBalanceMode whiteBalanceMode() const;
     qreal manualWhiteBalance() const;
 
+    qreal brightness() const;
     qreal contrast() const;
     qreal saturation() const;
     qreal sharpeningLevel() const;
@@ -108,6 +110,7 @@ public Q_SLOTS:
     void setWhiteBalanceMode(QDeclarativeCameraImageProcessing::WhiteBalanceMode mode) const;
     void setManualWhiteBalance(qreal colorTemp) const;
 
+    void setBrightness(qreal value);
     void setContrast(qreal value);
     void setSaturation(qreal value);
     void setSharpeningLevel(qreal value);
@@ -119,6 +122,7 @@ Q_SIGNALS:
     void whiteBalanceModeChanged(QDeclarativeCameraImageProcessing::WhiteBalanceMode) const;
     void manualWhiteBalanceChanged(qreal) const;
 
+    void brightnessChanged(qreal);
     void contrastChanged(qreal);
     void saturationChanged(qreal);
     void sharpeningLevelChanged(qreal);
