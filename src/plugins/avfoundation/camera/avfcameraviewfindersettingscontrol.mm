@@ -206,7 +206,6 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice,
 AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection)
 {
     Q_ASSERT(captureDevice);
-    Q_ASSERT(videoConnection);
 
     AVFPSRange fps;
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
@@ -234,7 +233,8 @@ AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnec
 #else // OSX < 10.7 or iOS < 7.0
     {
 #endif // QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
-        fps = qt_connection_framerates(videoConnection);
+        if (videoConnection)
+            fps = qt_connection_framerates(videoConnection);
     }
 
     return fps;
@@ -244,24 +244,20 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection
                              const QCameraViewfinderSettings &settings)
 {
     Q_ASSERT(captureDevice);
-    Q_ASSERT(videoConnection);
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_9, QSysInfo::MV_IOS_7_0))
         qt_set_framerate_limits(captureDevice, settings);
     else
-        qt_set_framerate_limits(videoConnection, settings);
-#else
-    qt_set_framerate_limits(videoConnection, settings);
 #endif
+    if (videoConnection)
+        qt_set_framerate_limits(videoConnection, settings);
+
 }
 
 } // Unnamed namespace.
 
 AVFCameraViewfinderSettingsControl2::AVFCameraViewfinderSettingsControl2(AVFCameraService *service)
-    : m_service(service),
-      m_captureDevice(0),
-      m_videoOutput(0),
-      m_videoConnection(0)
+    : m_service(service)
 {
     Q_ASSERT(service);
 }
@@ -270,8 +266,9 @@ QList<QCameraViewfinderSettings> AVFCameraViewfinderSettingsControl2::supportedV
 {
     QList<QCameraViewfinderSettings> supportedSettings;
 
-    if (!updateAVFoundationObjects()) {
-        qDebugCamera() << Q_FUNC_INFO << "no capture device or video output found";
+    AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
+    if (!captureDevice) {
+        qDebugCamera() << Q_FUNC_INFO << "no capture device found";
         return supportedSettings;
     }
 
@@ -281,15 +278,16 @@ QList<QCameraViewfinderSettings> AVFCameraViewfinderSettingsControl2::supportedV
 
     if (!pixelFormats.size())
         pixelFormats << QVideoFrame::Format_Invalid; // The default value.
+
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
-        if (!m_captureDevice.formats || !m_captureDevice.formats.count) {
+        if (!captureDevice.formats || !captureDevice.formats.count) {
             qDebugCamera() << Q_FUNC_INFO << "no capture device formats found";
             return supportedSettings;
         }
 
-        const QVector<AVCaptureDeviceFormat *> formats(qt_unique_device_formats(m_captureDevice,
-                                                       m_session->defaultCodec()));
+        const QVector<AVCaptureDeviceFormat *> formats(qt_unique_device_formats(captureDevice,
+                                                       m_service->session()->defaultCodec()));
         for (int i = 0; i < formats.size(); ++i) {
             AVCaptureDeviceFormat *format = formats[i];
 
@@ -320,15 +318,18 @@ QList<QCameraViewfinderSettings> AVFCameraViewfinderSettingsControl2::supportedV
 #else
     {
 #endif
-        // TODO: resolution and PAR.
-        framerates << qt_connection_framerates(m_videoConnection);
-        for (int i = 0; i < pixelFormats.size(); ++i) {
-            for (int j = 0; j < framerates.size(); ++j) {
-                QCameraViewfinderSettings newSet;
-                newSet.setPixelFormat(pixelFormats[i]);
-                newSet.setMinimumFrameRate(framerates[j].first);
-                newSet.setMaximumFrameRate(framerates[j].second);
-                supportedSettings << newSet;
+        AVCaptureConnection *connection = videoConnection();
+        if (connection) {
+            // TODO: resolution and PAR.
+            framerates << qt_connection_framerates(connection);
+            for (int i = 0; i < pixelFormats.size(); ++i) {
+                for (int j = 0; j < framerates.size(); ++j) {
+                    QCameraViewfinderSettings newSet;
+                    newSet.setPixelFormat(pixelFormats[i]);
+                    newSet.setMinimumFrameRate(framerates[j].first);
+                    newSet.setMaximumFrameRate(framerates[j].second);
+                    supportedSettings << newSet;
+                }
             }
         }
     }
@@ -340,20 +341,21 @@ QCameraViewfinderSettings AVFCameraViewfinderSettingsControl2::viewfinderSetting
 {
     QCameraViewfinderSettings settings;
 
-    if (!updateAVFoundationObjects()) {
-        qDebugCamera() << Q_FUNC_INFO << "no capture device or video output found";
+    AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
+    if (!captureDevice) {
+        qDebugCamera() << Q_FUNC_INFO << "no capture device found";
         return settings;
     }
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
-        if (!m_captureDevice.activeFormat) {
+        if (!captureDevice.activeFormat) {
             qDebugCamera() << Q_FUNC_INFO << "no active capture device format";
             return settings;
         }
 
-        const QSize res(qt_device_format_resolution(m_captureDevice.activeFormat));
-        const QSize par(qt_device_format_pixel_aspect_ratio(m_captureDevice.activeFormat));
+        const QSize res(qt_device_format_resolution(captureDevice.activeFormat));
+        const QSize par(qt_device_format_pixel_aspect_ratio(captureDevice.activeFormat));
         if (res.isNull() || !res.isValid() || par.isNull() || !par.isValid()) {
             qDebugCamera() << Q_FUNC_INFO << "failed to obtain resolution/pixel aspect ratio";
             return settings;
@@ -364,12 +366,14 @@ QCameraViewfinderSettings AVFCameraViewfinderSettingsControl2::viewfinderSetting
     }
 #endif
     // TODO: resolution and PAR before 7.0.
-    const AVFPSRange fps = qt_current_framerates(m_captureDevice, m_videoConnection);
+    const AVFPSRange fps = qt_current_framerates(captureDevice, videoConnection());
     settings.setMinimumFrameRate(fps.first);
     settings.setMaximumFrameRate(fps.second);
 
-    if (NSObject *obj = [m_videoOutput.videoSettings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey]) {
-        if ([obj isKindOfClass:[NSNumber class]]) {
+    AVCaptureVideoDataOutput *videoOutput = m_service->videoOutput() ? m_service->videoOutput()->videoDataOutput() : 0;
+    if (videoOutput) {
+        NSObject *obj = [videoOutput.videoSettings objectForKey:(id)kCVPixelBufferPixelFormatTypeKey];
+        if (obj && [obj isKindOfClass:[NSNumber class]]) {
             NSNumber *nsNum = static_cast<NSNumber *>(obj);
             settings.setPixelFormat(QtPixelFormatFromCVFormat([nsNum unsignedIntValue]));
         }
@@ -449,17 +453,19 @@ bool AVFCameraViewfinderSettingsControl2::CVPixelFormatFromQtFormat(QVideoFrame:
 
 AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(const QCameraViewfinderSettings &settings) const
 {
+    AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
+    if (!captureDevice)
+        return nil;
+
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
-        Q_ASSERT(m_captureDevice);
-        Q_ASSERT(m_session);
 
         const QSize &resolution = settings.resolution();
         if (!resolution.isNull() && resolution.isValid()) {
             // Either the exact match (including high resolution for images on iOS)
             // or a format with a resolution close to the requested one.
-            return qt_find_best_resolution_match(m_captureDevice, resolution,
-                                                 m_session->defaultCodec());
+            return qt_find_best_resolution_match(captureDevice, resolution,
+                                                 m_service->session()->defaultCodec());
         }
 
         // No resolution requested, what about framerates?
@@ -472,22 +478,28 @@ AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(
         const qreal minFPS(settings.minimumFrameRate());
         const qreal maxFPS(settings.maximumFrameRate());
         if (minFPS || maxFPS)
-            return qt_find_best_framerate_match(m_captureDevice, maxFPS ? maxFPS : minFPS,
-                                                m_session->defaultCodec());
+            return qt_find_best_framerate_match(captureDevice, maxFPS ? maxFPS : minFPS,
+                                                m_service->session()->defaultCodec());
         // Ignore PAR for the moment (PAR without resolution can
         // pick a format with really bad resolution).
         // No need to test pixel format, just return settings.
     }
 #endif
+
     return nil;
 }
 
 QVector<QVideoFrame::PixelFormat> AVFCameraViewfinderSettingsControl2::viewfinderPixelFormats() const
 {
-    Q_ASSERT(m_videoOutput);
-
     QVector<QVideoFrame::PixelFormat> qtFormats;
-    NSArray *pixelFormats = [m_videoOutput availableVideoCVPixelFormatTypes];
+
+    AVCaptureVideoDataOutput *videoOutput = m_service->videoOutput() ? m_service->videoOutput()->videoDataOutput() : 0;
+    if (!videoOutput) {
+        qDebugCamera() << Q_FUNC_INFO << "no video output found";
+        return qtFormats;
+    }
+
+    NSArray *pixelFormats = [videoOutput availableVideoCVPixelFormatTypes];
 
     for (NSObject *obj in pixelFormats) {
         if (![obj isKindOfClass:[NSNumber class]])
@@ -508,17 +520,19 @@ QVector<QVideoFrame::PixelFormat> AVFCameraViewfinderSettingsControl2::viewfinde
 bool AVFCameraViewfinderSettingsControl2::convertPixelFormatIfSupported(QVideoFrame::PixelFormat qtFormat,
                                                                         unsigned &avfFormat)const
 {
-    Q_ASSERT(m_videoOutput);
+    AVCaptureVideoDataOutput *videoOutput = m_service->videoOutput() ? m_service->videoOutput()->videoDataOutput() : 0;
+    if (!videoOutput)
+        return false;
 
     unsigned conv = 0;
     if (!CVPixelFormatFromQtFormat(qtFormat, conv))
         return false;
 
-    NSArray *formats = [m_videoOutput availableVideoCVPixelFormatTypes];
+    NSArray *formats = [videoOutput availableVideoCVPixelFormatTypes];
     if (!formats || !formats.count)
         return false;
 
-    if (m_service->videoOutput() && m_service->videoOutput()->surface()) {
+    if (m_service->videoOutput()->surface()) {
         const QAbstractVideoSurface *surface = m_service->videoOutput()->surface();
         if (!surface->supportedPixelFormats().contains(qtFormat))
             return false;
@@ -544,26 +558,27 @@ void AVFCameraViewfinderSettingsControl2::applySettings()
     if (m_settings.isNull())
         return;
 
-    if (!updateAVFoundationObjects())
-        return;
-
-    if (m_session->state() != QCamera::LoadedState &&
-        m_session->state() != QCamera::ActiveState) {
+    if (m_service->session()->state() != QCamera::LoadedState &&
+        m_service->session()->state() != QCamera::ActiveState) {
         return;
     }
+
+    AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
+    if (!captureDevice)
+        return;
 
     NSMutableDictionary *videoSettings = [NSMutableDictionary dictionaryWithCapacity:1];
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     AVCaptureDeviceFormat *match = findBestFormatMatch(m_settings);
     if (match) {
-        if (match != m_captureDevice.activeFormat) {
-            const AVFConfigurationLock lock(m_captureDevice);
+        if (match != captureDevice.activeFormat) {
+            const AVFConfigurationLock lock(captureDevice);
             if (!lock) {
                 qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
                 return;
             }
 
-            m_captureDevice.activeFormat = match;
+            captureDevice.activeFormat = match;
         }
     } else {
         qDebugCamera() << Q_FUNC_INFO << "matching device format not found";
@@ -571,43 +586,45 @@ void AVFCameraViewfinderSettingsControl2::applySettings()
     }
 #endif
 
-    unsigned avfPixelFormat = 0;
-    if (!convertPixelFormatIfSupported(m_settings.pixelFormat(), avfPixelFormat)) {
-        // If the the pixel format is not specified or invalid, pick the preferred video surface
-        // format, or if no surface is set, the preferred capture device format
+    AVCaptureVideoDataOutput *videoOutput = m_service->videoOutput() ? m_service->videoOutput()->videoDataOutput() : 0;
+    if (videoOutput) {
+        unsigned avfPixelFormat = 0;
+        if (!convertPixelFormatIfSupported(m_settings.pixelFormat(), avfPixelFormat)) {
+            // If the the pixel format is not specified or invalid, pick the preferred video surface
+            // format, or if no surface is set, the preferred capture device format
 
-        const QVector<QVideoFrame::PixelFormat> deviceFormats = viewfinderPixelFormats();
-        QVideoFrame::PixelFormat pickedFormat = deviceFormats.first();
+            const QVector<QVideoFrame::PixelFormat> deviceFormats = viewfinderPixelFormats();
+            QVideoFrame::PixelFormat pickedFormat = deviceFormats.first();
 
-        QAbstractVideoSurface *surface = m_service->videoOutput() ? m_service->videoOutput()->surface()
-                                                                  : 0;
-        if (surface) {
-            if (m_service->videoOutput()->supportsTextures()) {
-                pickedFormat = QVideoFrame::Format_ARGB32;
-            } else {
-                QList<QVideoFrame::PixelFormat> surfaceFormats = m_service->videoOutput()->surface()->supportedPixelFormats();
+            QAbstractVideoSurface *surface = m_service->videoOutput()->surface();
+            if (surface) {
+                if (m_service->videoOutput()->supportsTextures()) {
+                    pickedFormat = QVideoFrame::Format_ARGB32;
+                } else {
+                    QList<QVideoFrame::PixelFormat> surfaceFormats = surface->supportedPixelFormats();
 
-                for (int i = 0; i < surfaceFormats.count(); ++i) {
-                    const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
-                    if (deviceFormats.contains(surfaceFormat)) {
-                        pickedFormat = surfaceFormat;
-                        break;
+                    for (int i = 0; i < surfaceFormats.count(); ++i) {
+                        const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
+                        if (deviceFormats.contains(surfaceFormat)) {
+                            pickedFormat = surfaceFormat;
+                            break;
+                        }
                     }
                 }
             }
+
+            CVPixelFormatFromQtFormat(pickedFormat, avfPixelFormat);
         }
 
-        CVPixelFormatFromQtFormat(pickedFormat, avfPixelFormat);
+        if (avfPixelFormat != 0) {
+            [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
+                                      forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+
+            videoOutput.videoSettings = videoSettings;
+        }
     }
 
-    if (avfPixelFormat != 0) {
-        [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
-                          forKey:(id)kCVPixelBufferPixelFormatTypeKey];
-
-        m_videoOutput.videoSettings = videoSettings;
-    }
-
-    qt_set_framerate_limits(m_captureDevice, m_videoConnection, m_settings);
+    qt_set_framerate_limits(captureDevice, videoConnection(), m_settings);
 }
 
 QCameraViewfinderSettings AVFCameraViewfinderSettingsControl2::requestedSettings() const
@@ -615,33 +632,12 @@ QCameraViewfinderSettings AVFCameraViewfinderSettingsControl2::requestedSettings
     return m_settings;
 }
 
-bool AVFCameraViewfinderSettingsControl2::updateAVFoundationObjects() const
+AVCaptureConnection *AVFCameraViewfinderSettingsControl2::videoConnection() const
 {
-    m_session = 0;
-    m_captureDevice = 0;
-    m_videoOutput = 0;
-    m_videoConnection = 0;
-
-    if (!m_service->session())
-        return false;
-
-    if (!m_service->session()->videoCaptureDevice())
-        return false;
-
     if (!m_service->videoOutput() || !m_service->videoOutput()->videoDataOutput())
-        return false;
+        return nil;
 
-    AVCaptureVideoDataOutput *output = m_service->videoOutput()->videoDataOutput();
-    AVCaptureConnection *connection = [output connectionWithMediaType:AVMediaTypeVideo];
-    if (!connection)
-        return false;
-
-    m_session = m_service->session();
-    m_captureDevice = m_session->videoCaptureDevice();
-    m_videoOutput = output;
-    m_videoConnection = connection;
-
-    return true;
+    return [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
 }
 
 AVFCameraViewfinderSettingsControl::AVFCameraViewfinderSettingsControl(AVFCameraService *service)
