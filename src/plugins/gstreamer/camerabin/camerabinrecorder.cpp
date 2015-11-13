@@ -39,7 +39,6 @@
 #include "camerabincontainer.h"
 #include <QtCore/QDebug>
 
-#include <gst/pbutils/encoding-profile.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -131,6 +130,7 @@ qint64 CameraBinRecorder::duration() const
 
 void CameraBinRecorder::applySettings()
 {
+#ifdef HAVE_GST_ENCODING_PROFILES
     CameraBinContainer *containerControl = m_session->mediaContainerControl();
     CameraBinAudioEncoder *audioEncoderControl = m_session->audioEncodeControl();
     CameraBinVideoEncoder *videoEncoderControl = m_session->videoEncodeControl();
@@ -172,7 +172,10 @@ void CameraBinRecorder::applySettings()
             }
         }
     }
+#endif
 }
+
+#ifdef HAVE_GST_ENCODING_PROFILES
 
 GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
 {
@@ -194,6 +197,8 @@ GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
 
     return containerProfile;
 }
+
+#endif
 
 void CameraBinRecorder::setState(QMediaRecorder::State state)
 {

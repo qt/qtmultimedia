@@ -37,7 +37,10 @@
 
 #include <qmediarecordercontrol.h>
 #include "camerabinsession.h"
+
+#ifdef HAVE_GST_ENCODING_PROFILES
 #include <gst/pbutils/encoding-profile.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -61,7 +64,10 @@ public:
     qreal volume() const;
 
     void applySettings();
+
+#ifdef HAVE_GST_ENCODING_PROFILES
     GstEncodingContainerProfile *videoProfile();
+#endif
 
 public slots:
     void setState(QMediaRecorder::State state);

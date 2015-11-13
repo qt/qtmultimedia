@@ -39,8 +39,10 @@
 QT_BEGIN_NAMESPACE
 
 CameraBinContainer::CameraBinContainer(QObject *parent)
-    :QMediaContainerControl(parent),
-      m_supportedContainers(QGstCodecsInfo::Muxer)
+    :QMediaContainerControl(parent)
+#ifdef HAVE_GST_ENCODING_PROFILES
+    , m_supportedContainers(QGstCodecsInfo::Muxer)
+#endif
 {
     //extension for containers hard to guess from mimetype
     m_fileExtensions["video/x-matroska"] = "mkv";
@@ -54,12 +56,21 @@ CameraBinContainer::CameraBinContainer(QObject *parent)
 
 QStringList CameraBinContainer::supportedContainers() const
 {
+#ifdef HAVE_GST_ENCODING_PROFILES
     return m_supportedContainers.supportedCodecs();
+#else
+    return QStringList();
+#endif
 }
 
 QString CameraBinContainer::containerDescription(const QString &formatMimeType) const
 {
+#ifdef HAVE_GST_ENCODING_PROFILES
     return m_supportedContainers.codecDescription(formatMimeType);
+#else
+    Q_UNUSED(formatMimeType)
+    return QString();
+#endif
 }
 
 QString CameraBinContainer::containerFormat() const
@@ -69,11 +80,13 @@ QString CameraBinContainer::containerFormat() const
 
 void CameraBinContainer::setContainerFormat(const QString &format)
 {
+#ifdef HAVE_GST_ENCODING_PROFILES
     if (m_format != format) {
         m_format = format;
         m_actualFormat = format;
         emit settingsChanged();
     }
+#endif
 }
 
 QString CameraBinContainer::actualContainerFormat() const
@@ -83,13 +96,17 @@ QString CameraBinContainer::actualContainerFormat() const
 
 void CameraBinContainer::setActualContainerFormat(const QString &containerFormat)
 {
+#ifdef HAVE_GST_ENCODING_PROFILES
     m_actualFormat = containerFormat;
+#endif
 }
 
 void CameraBinContainer::resetActualContainerFormat()
 {
     m_actualFormat = m_format;
 }
+
+#ifdef HAVE_GST_ENCODING_PROFILES
 
 GstEncodingContainerProfile *CameraBinContainer::createProfile()
 {
@@ -126,6 +143,8 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
 
     return profile;
 }
+
+#endif
 
 /*!
   Suggest file extension for current container mimetype.
