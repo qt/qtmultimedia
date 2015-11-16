@@ -96,11 +96,19 @@ public:
 
     void setCaptureDevice(const QString &deviceName);
 
+    void setVolume(qreal v);
+    qreal volume() const;
+
+    void setMuted(bool muted);
+    bool isMuted() const;
+
 signals:
     void stateChanged(QMediaRecorder::State state);
     void statusChanged(QMediaRecorder::Status status);
     void positionChanged(qint64 position);
     void actualLocationChanged(const QUrl &location);
+    void volumeChanged(qreal volume);
+    void mutedChanged(bool muted);
     void error(int error, const QString &errorString);
 
 private slots:
@@ -113,6 +121,8 @@ private:
     void stop();
 
     void setStatus(QMediaRecorder::Status status);
+
+    void setVolumeHelper(qreal volume);
 
     QDir defaultDir() const;
     QString generateFileName(const QString &requestedName,
@@ -129,6 +139,8 @@ private:
     QAudioDeviceInfo m_deviceInfo;
     QAudioFormat m_format;
     bool m_wavFile;
+    qreal m_volume;
+    bool m_muted;
 
     // WAV header stuff
 

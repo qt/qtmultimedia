@@ -88,6 +88,8 @@ AudioCaptureSession::AudioCaptureSession(QObject *parent)
     , m_audioInput(0)
     , m_deviceInfo(QAudioDeviceInfo::defaultInputDevice())
     , m_wavFile(true)
+    , m_volume(1.0)
+    , m_muted(false)
 {
     m_format = m_deviceInfo.preferredFormat();
 }
@@ -312,6 +314,8 @@ void AudioCaptureSession::record()
                 file.write((char*)&header,sizeof(CombinedHeader));
             }
 
+            setVolumeHelper(m_muted ? 0 : m_volume);
+
             file.startProbes(m_format);
             m_audioInput->start(qobject_cast<QIODevice*>(&file));
         } else {
@@ -399,5 +403,52 @@ void AudioCaptureSession::setCaptureDevice(const QString &deviceName)
     }
     m_deviceInfo = QAudioDeviceInfo::defaultInputDevice();
 }
+
+qreal AudioCaptureSession::volume() const
+{
+    return m_volume;
+}
+
+bool AudioCaptureSession::isMuted() const
+{
+    return m_muted;
+}
+
+void AudioCaptureSession::setVolume(qreal v)
+{
+    qreal boundedVolume = qBound(qreal(0), v, qreal(1));
+
+    if (m_volume == boundedVolume)
+        return;
+
+    m_volume = boundedVolume;
+
+    if (!m_muted)
+        setVolumeHelper(m_volume);
+
+    emit volumeChanged(m_volume);
+}
+
+void AudioCaptureSession::setMuted(bool muted)
+{
+    if (m_muted == muted)
+        return;
+
+    m_muted = muted;
+
+    setVolumeHelper(m_muted ? 0 : m_volume);
+
+    emit mutedChanged(m_muted);
+}
+
+void AudioCaptureSession::setVolumeHelper(qreal volume)
+{
+    if (!m_audioInput)
+        return;
+
+    m_audioInput->setVolume(volume);
+}
+
+
 
 QT_END_NAMESPACE
