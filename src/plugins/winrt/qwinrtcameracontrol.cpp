@@ -840,9 +840,9 @@ HRESULT QWinRTCameraControl::initialize()
         return E_FAIL;
     }
 
-    if (d->videoDeviceSelector->cameraPosition(deviceName) == QCamera::FrontFace)
-        d->videoRenderer->setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
-
+    const QCamera::Position position = d->videoDeviceSelector->cameraPosition(deviceName);
+    d->videoRenderer->setScanLineDirection(position == QCamera::BackFace ? QVideoSurfaceFormat::TopToBottom
+                                                                         : QVideoSurfaceFormat::BottomToTop);
     ComPtr<IMediaCaptureInitializationSettings> settings;
     hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_Capture_MediaCaptureInitializationSettings).Get(),
                             &settings);
