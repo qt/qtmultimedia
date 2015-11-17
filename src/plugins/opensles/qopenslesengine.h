@@ -45,6 +45,8 @@ QT_BEGIN_NAMESPACE
 class QOpenSLESEngine
 {
 public:
+    enum OutputValue { FramesPerBuffer, SampleRate };
+
     QOpenSLESEngine();
     ~QOpenSLESEngine();
 
@@ -57,6 +59,12 @@ public:
     QList<QByteArray> availableDevices(QAudio::Mode mode) const;
     QList<int> supportedChannelCounts(QAudio::Mode mode) const;
     QList<int> supportedSampleRates(QAudio::Mode mode) const;
+
+    static int getOutputValue(OutputValue type, int defaultValue = 0);
+    static int getDefaultBufferSize(const QAudioFormat &format);
+    static int getLowLatencyBufferSize(const QAudioFormat &format);
+    static bool supportsLowLatency();
+    static bool printDebugInfo();
 
 private:
     void checkSupportedInputFormats();

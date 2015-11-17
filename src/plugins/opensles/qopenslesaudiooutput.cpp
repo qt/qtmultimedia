@@ -42,12 +42,22 @@
 #endif // ANDROID
 
 #define BUFFER_COUNT 2
-#define DEFAULT_PERIOD_TIME_MS 50
-#define MINIMUM_PERIOD_TIME_MS 5
 #define EBASE 2.302585093
 #define LOG10(x) qLn(x)/qreal(EBASE)
 
 QT_BEGIN_NAMESPACE
+
+static inline void openSlDebugInfo()
+{
+    const QAudioFormat &format = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
+    qDebug() << "======= OpenSL ES Device info ======="
+             << "\nSupports low-latency playback: " << (QOpenSLESEngine::supportsLowLatency() ? "YES" : "NO")
+             << "\nPreferred sample rate: " << QOpenSLESEngine::getOutputValue(QOpenSLESEngine::SampleRate, -1)
+             << "\nFrames per buffer: " << QOpenSLESEngine::getOutputValue(QOpenSLESEngine::FramesPerBuffer, -1)
+             << "\nPreferred Format: "  << format
+             << "\nLow-latency buffer size: " << QOpenSLESEngine::getLowLatencyBufferSize(format)
+             << "\nDefault buffer size: " << QOpenSLESEngine::getDefaultBufferSize(format);
+}
 
 QMap<QString, qint32> QOpenSLESAudioOutput::m_categories;
 
@@ -531,13 +541,17 @@ bool QOpenSLESAudioOutput::preparePlayer()
 
     setVolume(m_volume);
 
+    const int lowLatencyBufferSize = QOpenSLESEngine::getLowLatencyBufferSize(m_format);
+    const int defaultBufferSize = QOpenSLESEngine::getDefaultBufferSize(m_format);
+
     // Buffer size
     if (m_bufferSize <= 0) {
-        m_bufferSize = m_format.bytesForDuration(DEFAULT_PERIOD_TIME_MS * 1000);
-    } else {
-        const int minimumBufSize = m_format.bytesForDuration(MINIMUM_PERIOD_TIME_MS * 1000);
-        if (m_bufferSize < minimumBufSize)
-            m_bufferSize = minimumBufSize;
+        m_bufferSize = defaultBufferSize;
+    } else if (QOpenSLESEngine::supportsLowLatency()) {
+        if (m_bufferSize < lowLatencyBufferSize)
+            m_bufferSize = lowLatencyBufferSize;
+    } else if (m_bufferSize < defaultBufferSize) {
+        m_bufferSize = defaultBufferSize;
     }
 
     m_periodSize = m_bufferSize;
@@ -598,6 +612,9 @@ void QOpenSLESAudioOutput::stopPlayer()
 
 void QOpenSLESAudioOutput::startPlayer()
 {
+    if (QOpenSLESEngine::printDebugInfo())
+        openSlDebugInfo();
+
     if (SL_RESULT_SUCCESS != (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_PLAYING)) {
         setError(QAudio::FatalError);
         destroyPlayer();

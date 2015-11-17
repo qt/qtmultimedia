@@ -61,7 +61,7 @@ QAudioFormat QOpenSLESDeviceInfo::preferredFormat() const
     format.setCodec(QStringLiteral("audio/pcm"));
     format.setSampleSize(16);
     format.setSampleType(QAudioFormat::SignedInt);
-    format.setSampleRate(44100);
+    format.setSampleRate(QOpenSLESEngine::getOutputValue(QOpenSLESEngine::SampleRate, 48000));
     format.setChannelCount(m_mode == QAudio::AudioInput ? 1 : 2);
     return format;
 }
