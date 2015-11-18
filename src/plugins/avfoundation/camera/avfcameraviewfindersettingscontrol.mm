@@ -45,6 +45,7 @@
 #include <QtCore/qvector.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qlist.h>
+#include <private/qmultimediautils_p.h>
 
 #include <algorithm>
 
@@ -129,8 +130,9 @@ CMTime qt_adjusted_frame_duration(AVFrameRateRange *range, qreal fps)
     if (fps >= range.maxFrameRate)
         return range.minFrameDuration;
 
-    const AVFRational timeAsRational(qt_float_to_rational(1. / fps, 1000));
-    return CMTimeMake(timeAsRational.first, timeAsRational.second);
+    int n, d;
+    qt_real_to_fraction(1. / fps, &n, &d);
+    return CMTimeMake(n, d);
 }
 
 void qt_set_framerate_limits(AVCaptureDevice *captureDevice,

@@ -36,6 +36,7 @@
 
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
+#include <private/qmultimediautils_p.h>
 
 #include <functional>
 #include <algorithm>
@@ -75,42 +76,6 @@ AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection)
 #endif
 
     return newRange;
-}
-
-AVFRational qt_float_to_rational(qreal par, int limit)
-{
-    Q_ASSERT(limit > 0);
-
-    // In Qt we represent pixel aspect ratio
-    // as a rational number (we use QSize).
-    // AVFoundation describes dimensions in pixels
-    // and in pixels with width multiplied by PAR.
-    // Represent this PAR as a ratio.
-    int a = 0, b = 1, c = 1, d = 1;
-    qreal mid = 0.;
-    while (b <= limit && d <= limit) {
-        mid = qreal(a + c) / (b + d);
-
-        if (qAbs(par - mid) < 0.000001) {
-            if (b + d <= limit)
-                return AVFRational(a + c, b + d);
-            else if (d > b)
-                return AVFRational(c, d);
-            else
-                return AVFRational(a, b);
-        } else if (par > mid) {
-            a = a + c;
-            b = b + d;
-        } else {
-            c = a + c;
-            d = b + d;
-        }
-    }
-
-    if (b > limit)
-        return AVFRational(c, d);
-
-    return AVFRational(a, b);
 }
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
@@ -264,10 +229,13 @@ QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format)
     if (!res.width || !resPAR.width)
         return QSize();
 
-    const AVFRational asRatio(qt_float_to_rational(resPAR.width > res.width
-                                                   ? res.width / qreal(resPAR.width)
-                                                   : resPAR.width / qreal(res.width), 200));
-    return QSize(asRatio.first, asRatio.second);
+    int n, d;
+    qt_real_to_fraction(resPAR.width > res.width
+                        ? res.width / qreal(resPAR.width)
+                        : resPAR.width / qreal(res.width),
+                        &n, &d);
+
+    return QSize(n, d);
 }
 
 AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice,
