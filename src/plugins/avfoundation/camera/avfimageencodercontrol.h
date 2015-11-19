@@ -68,7 +68,7 @@ private:
     AVFCameraService *m_service;
     QImageEncoderSettings m_settings;
 
-    void applySettings();
+    bool applySettings();
     bool videoCaptureDeviceIsValid() const;
 };
 

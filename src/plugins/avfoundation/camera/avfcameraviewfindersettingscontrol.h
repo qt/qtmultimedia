@@ -76,7 +76,7 @@ private:
     AVCaptureDeviceFormat *findBestFormatMatch(const QCameraViewfinderSettings &settings) const;
     QVector<QVideoFrame::PixelFormat> viewfinderPixelFormats() const;
     bool convertPixelFormatIfSupported(QVideoFrame::PixelFormat format, unsigned &avfFormat) const;
-    void applySettings();
+    bool applySettings();
     QCameraViewfinderSettings requestedSettings() const;
 
     AVCaptureConnection *videoConnection() const;

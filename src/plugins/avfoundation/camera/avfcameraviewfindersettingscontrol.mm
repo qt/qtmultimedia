@@ -384,11 +384,6 @@ QCameraViewfinderSettings AVFCameraViewfinderSettingsControl2::viewfinderSetting
 
 void AVFCameraViewfinderSettingsControl2::setViewfinderSettings(const QCameraViewfinderSettings &settings)
 {
-    if (settings.isNull()) {
-        qDebugCamera() << Q_FUNC_INFO << "empty viewfinder settings";
-        return;
-    }
-
     if (m_settings == settings)
         return;
 
@@ -454,7 +449,7 @@ bool AVFCameraViewfinderSettingsControl2::CVPixelFormatFromQtFormat(QVideoFrame:
 AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(const QCameraViewfinderSettings &settings) const
 {
     AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
-    if (!captureDevice)
+    if (!captureDevice || settings.isNull())
         return nil;
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
@@ -553,32 +548,30 @@ bool AVFCameraViewfinderSettingsControl2::convertPixelFormatIfSupported(QVideoFr
     return found;
 }
 
-void AVFCameraViewfinderSettingsControl2::applySettings()
+bool AVFCameraViewfinderSettingsControl2::applySettings()
 {
-    if (m_settings.isNull())
-        return;
-
     if (m_service->session()->state() != QCamera::LoadedState &&
         m_service->session()->state() != QCamera::ActiveState) {
-        return;
+        return false;
     }
 
     AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
     if (!captureDevice)
-        return;
+        return false;
 
-    NSMutableDictionary *videoSettings = [NSMutableDictionary dictionaryWithCapacity:1];
+    bool activeFormatChanged = false;
+
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     AVCaptureDeviceFormat *match = findBestFormatMatch(m_settings);
     if (match) {
         if (match != captureDevice.activeFormat) {
             const AVFConfigurationLock lock(captureDevice);
-            if (!lock) {
+            if (lock) {
+                captureDevice.activeFormat = match;
+                activeFormatChanged = true;
+            } else {
                 qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
-                return;
             }
-
-            captureDevice.activeFormat = match;
         }
     } else {
         qDebugCamera() << Q_FUNC_INFO << "matching device format not found";
@@ -617,6 +610,7 @@ void AVFCameraViewfinderSettingsControl2::applySettings()
         }
 
         if (avfPixelFormat != 0) {
+            NSMutableDictionary *videoSettings = [NSMutableDictionary dictionaryWithCapacity:1];
             [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
                                       forKey:(id)kCVPixelBufferPixelFormatTypeKey];
 
@@ -625,6 +619,8 @@ void AVFCameraViewfinderSettingsControl2::applySettings()
     }
 
     qt_set_framerate_limits(captureDevice, videoConnection(), m_settings);
+
+    return activeFormatChanged;
 }
 
 QCameraViewfinderSettings AVFCameraViewfinderSettingsControl2::requestedSettings() const
