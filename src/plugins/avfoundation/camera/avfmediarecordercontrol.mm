@@ -359,7 +359,7 @@ void AVFMediaRecorderControl::setupSessionForCapture()
         }
     } else if (m_connected
                && (!m_cameraControl->captureMode().testFlag(QCamera::CaptureVideo)
-                   || m_session->state() != QCamera::ActiveState)) {
+                   || m_session->state() == QCamera::UnloadedState)) {
 
         [captureSession removeOutput:m_movieOutput];
 
