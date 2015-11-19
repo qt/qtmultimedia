@@ -563,6 +563,7 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
         } else {
             onBufferingChanged(100);
         }
+        Q_EMIT metaDataUpdated();
         setAudioAvailable(true);
         flushPendingStates();
         break;

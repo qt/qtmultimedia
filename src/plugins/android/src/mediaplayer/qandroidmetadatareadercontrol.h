@@ -36,6 +36,7 @@
 
 #include <QMetaDataReaderControl>
 #include <qmediacontent.h>
+#include <QMutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,13 +59,13 @@ public Q_SLOTS:
     void onUpdateMetaData();
 
 private:
-    void updateData();
+    void updateData(const QVariantMap &metadata, const QUrl &url);
+    static void extractMetadata(QAndroidMetaDataReaderControl *caller, const QUrl &url);
 
+    mutable QMutex m_mtx;
     QMediaContent m_mediaContent;
     bool m_available;
     QVariantMap m_metadata;
-
-    AndroidMediaMetadataRetriever *m_retriever;
 };
 
 QT_END_NAMESPACE
