@@ -365,8 +365,10 @@ void AVFCameraSession::applyViewfinderSettings()
 {
     if (AVFCameraViewfinderSettingsControl2 *vfControl = m_service->viewfinderSettingsControl2()) {
         QCameraViewfinderSettings vfSettings(vfControl->requestedSettings());
+        // Viewfinder and image capture solutions must be the same, if an image capture
+        // resolution is set, it takes precedence over the viewfinder resolution.
         if (AVFImageEncoderControl *imControl = m_service->imageEncoderControl()) {
-            const QSize imageResolution(imControl->imageSettings().resolution());
+            const QSize imageResolution(imControl->requestedSettings().resolution());
             if (!imageResolution.isNull() && imageResolution.isValid()) {
                 vfSettings.setResolution(imageResolution);
                 vfControl->setViewfinderSettings(vfSettings);

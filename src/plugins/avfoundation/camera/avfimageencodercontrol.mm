@@ -115,6 +115,11 @@ QList<QSize> AVFImageEncoderControl::supportedResolutions(const QImageEncoderSet
     return resolutions;
 }
 
+QImageEncoderSettings AVFImageEncoderControl::requestedSettings() const
+{
+    return m_settings;
+}
+
 QImageEncoderSettings AVFImageEncoderControl::imageSettings() const
 {
     QImageEncoderSettings settings;
