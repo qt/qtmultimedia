@@ -195,6 +195,8 @@ private:
     void updateSupportedViewfinderSettings();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
+    QString currentContainerFormat() const;
+
     static void elementAdded(GstBin *bin, GstElement *element, CameraBinSession *session);
     static void elementRemoved(GstBin *bin, GstElement *element, CameraBinSession *session);
 

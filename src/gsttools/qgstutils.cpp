@@ -44,6 +44,7 @@
 #include <qaudioformat.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
+#include <private/qmultimediautils_p.h>
 
 #include <gst/audio/audio.h>
 #include <gst/video/video.h>
@@ -1529,6 +1530,15 @@ GList *qt_gst_video_sinks()
 #endif
 
     return list;
+}
+
+void qt_gst_util_double_to_fraction(gdouble src, gint *dest_n, gint *dest_d)
+{
+#if GST_CHECK_VERSION(0, 10, 26)
+    gst_util_double_to_fraction(src, dest_n, dest_d);
+#else
+    qt_real_to_fraction(src, dest_n, dest_d);
+#endif
 }
 
 QDebug operator <<(QDebug debug, GstCaps *caps)

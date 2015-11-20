@@ -42,6 +42,8 @@
 
 QT_BEGIN_NAMESPACE
 
+#if GST_CHECK_VERSION(0,10,30)
+
 static QVariant fromGStreamerOrientation(const QVariant &value)
 {
     // Note gstreamer tokens either describe the counter clockwise rotation of the
@@ -57,6 +59,8 @@ static QVariant fromGStreamerOrientation(const QVariant &value)
     else
         return 0;
 }
+
+#endif
 
 static QVariant toGStreamerOrientation(const QVariant &value)
 {
@@ -97,7 +101,9 @@ static const QGStreamerMetaDataKeys *qt_gstreamerMetaDataKeys()
         //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::SubTitle, 0, QVariant::String));
         //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Author, 0, QVariant::String));
         metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Comment, GST_TAG_COMMENT, QVariant::String));
+#if GST_CHECK_VERSION(0,10,31)
         metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Date, GST_TAG_DATE_TIME, QVariant::DateTime));
+#endif
         metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Description, GST_TAG_DESCRIPTION, QVariant::String));
         //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Category, 0, QVariant::String));
         metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Genre, GST_TAG_GENRE, QVariant::String));
@@ -182,12 +188,14 @@ CameraBinMetaData::CameraBinMetaData(QObject *parent)
 
 QVariant CameraBinMetaData::metaData(const QString &key) const
 {
+#if GST_CHECK_VERSION(0,10,30)
     if (key == QMediaMetaData::Orientation) {
         return fromGStreamerOrientation(m_values.value(QByteArray(GST_TAG_IMAGE_ORIENTATION)));
     } else if (key == QMediaMetaData::GPSSpeed) {
         const double metersPerSec = m_values.value(QByteArray(GST_TAG_GEO_LOCATION_MOVEMENT_SPEED)).toDouble();
         return (metersPerSec * 3600) / 1000;
     }
+#endif
 
     Q_FOREACH (const QGStreamerMetaDataKey &metadataKey, *qt_gstreamerMetaDataKeys()) {
         if (metadataKey.qtName == key)

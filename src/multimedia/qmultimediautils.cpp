@@ -31,60 +31,51 @@
 **
 ****************************************************************************/
 
-
-#ifndef CAMERABINMEDIACONTAINERCONTROL_H
-#define CAMERABINMEDIACONTAINERCONTROL_H
-
-#include <qmediacontainercontrol.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qset.h>
-
-#include <gst/gst.h>
-#include <gst/pbutils/pbutils.h>
-
-#ifdef HAVE_GST_ENCODING_PROFILES
-#include <gst/pbutils/encoding-profile.h>
-#include <private/qgstcodecsinfo_p.h>
-#endif
+#include "qmultimediautils_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinContainer : public QMediaContainerControl
+void qt_real_to_fraction(qreal value, int *numerator, int *denominator)
 {
-Q_OBJECT
-public:
-    CameraBinContainer(QObject *parent);
-    virtual ~CameraBinContainer() {}
+    if (!numerator || !denominator)
+        return;
 
-    virtual QStringList supportedContainers() const;
-    virtual QString containerDescription(const QString &formatMimeType) const;
+    const int dMax = 1000;
+    int n1 = 0, d1 = 1, n2 = 1, d2 = 1;
+    qreal mid = 0.;
+    while (d1 <= dMax && d2 <= dMax) {
+        mid = qreal(n1 + n2) / (d1 + d2);
 
-    virtual QString containerFormat() const;
-    virtual void setContainerFormat(const QString &format);
+        if (qAbs(value - mid) < 0.000001) {
+            if (d1 + d2 <= dMax) {
+                *numerator = n1 + n2;
+                *denominator = d1 + d2;
+                return;
+            } else if (d2 > d1) {
+                *numerator = n2;
+                *denominator = d2;
+                return;
+            } else {
+                *numerator = n1;
+                *denominator = d1;
+                return;
+            }
+        } else if (value > mid) {
+            n1 = n1 + n2;
+            d1 = d1 + d2;
+        } else {
+            n2 = n1 + n2;
+            d2 = d1 + d2;
+        }
+    }
 
-    QString actualContainerFormat() const;
-    void setActualContainerFormat(const QString &containerFormat);
-    void resetActualContainerFormat();
-
-    QString suggestedFileExtension(const QString &containerFormat) const;
-
-#ifdef HAVE_GST_ENCODING_PROFILES
-    GstEncodingContainerProfile *createProfile();
-#endif
-
-Q_SIGNALS:
-    void settingsChanged();
-
-private:
-    QString m_format;
-    QString m_actualFormat;
-    QMap<QString, QString> m_fileExtensions;
-
-#ifdef HAVE_GST_ENCODING_PROFILES
-    QGstCodecsInfo m_supportedContainers;
-#endif
-};
+    if (d1 > dMax) {
+        *numerator = n2;
+        *denominator = d2;
+    } else {
+        *numerator = n1;
+        *denominator = d1;
+    }
+}
 
 QT_END_NAMESPACE
-
-#endif // CAMERABINMEDIACONTAINERCONTROL_H

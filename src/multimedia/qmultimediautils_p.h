@@ -31,60 +31,27 @@
 **
 ****************************************************************************/
 
+#ifndef QMULTIMEDIAUTILS_P_H
+#define QMULTIMEDIAUTILS_P_H
 
-#ifndef CAMERABINMEDIACONTAINERCONTROL_H
-#define CAMERABINMEDIACONTAINERCONTROL_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <qmediacontainercontrol.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qset.h>
-
-#include <gst/gst.h>
-#include <gst/pbutils/pbutils.h>
-
-#ifdef HAVE_GST_ENCODING_PROFILES
-#include <gst/pbutils/encoding-profile.h>
-#include <private/qgstcodecsinfo_p.h>
-#endif
+#include <QtMultimedia/qmultimedia.h>
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinContainer : public QMediaContainerControl
-{
-Q_OBJECT
-public:
-    CameraBinContainer(QObject *parent);
-    virtual ~CameraBinContainer() {}
-
-    virtual QStringList supportedContainers() const;
-    virtual QString containerDescription(const QString &formatMimeType) const;
-
-    virtual QString containerFormat() const;
-    virtual void setContainerFormat(const QString &format);
-
-    QString actualContainerFormat() const;
-    void setActualContainerFormat(const QString &containerFormat);
-    void resetActualContainerFormat();
-
-    QString suggestedFileExtension(const QString &containerFormat) const;
-
-#ifdef HAVE_GST_ENCODING_PROFILES
-    GstEncodingContainerProfile *createProfile();
-#endif
-
-Q_SIGNALS:
-    void settingsChanged();
-
-private:
-    QString m_format;
-    QString m_actualFormat;
-    QMap<QString, QString> m_fileExtensions;
-
-#ifdef HAVE_GST_ENCODING_PROFILES
-    QGstCodecsInfo m_supportedContainers;
-#endif
-};
+Q_MULTIMEDIA_EXPORT void qt_real_to_fraction(qreal value, int *numerator, int *denominator);
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINMEDIACONTAINERCONTROL_H
+#endif // QMULTIMEDIAUTILS_P_H
+
