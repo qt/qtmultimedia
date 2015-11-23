@@ -13,5 +13,3 @@ SOURCES += tst_qpaintervideosurface.cpp
 QT+=widgets
 
 linux-*:system(". /etc/lsb-release && [ $DISTRIB_CODENAME = precise ]"):DEFINES+=UBUNTU_PRECISE_PANGOLIN
-
-win32:contains(QT_CONFIG, angle): CONFIG += insignificant_test # QTBUG-28542
