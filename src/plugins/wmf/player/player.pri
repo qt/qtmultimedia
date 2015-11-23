@@ -12,7 +12,8 @@ HEADERS += \
     $$PWD/mfaudioendpointcontrol.h \
     $$PWD/mfmetadatacontrol.h \
     $$PWD/mfaudioprobecontrol.h \
-    $$PWD/mfvideoprobecontrol.h
+    $$PWD/mfvideoprobecontrol.h \
+    $$PWD/mfevrvideowindowcontrol.h
 
 SOURCES += \
     $$PWD/mfplayerservice.cpp \
@@ -22,9 +23,7 @@ SOURCES += \
     $$PWD/mfaudioendpointcontrol.cpp \
     $$PWD/mfmetadatacontrol.cpp \
     $$PWD/mfaudioprobecontrol.cpp \
-    $$PWD/mfvideoprobecontrol.cpp
+    $$PWD/mfvideoprobecontrol.cpp \
+    $$PWD/mfevrvideowindowcontrol.cpp
 
-qtHaveModule(widgets):!simulator {
-    HEADERS += $$PWD/evr9videowindowcontrol.h
-    SOURCES += $$PWD/evr9videowindowcontrol.cpp
-}
+include($$PWD/../../common/evr.pri)

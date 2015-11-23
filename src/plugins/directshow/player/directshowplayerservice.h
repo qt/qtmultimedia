@@ -51,12 +51,10 @@ class DirectShowAudioEndpointControl;
 class DirectShowMetaDataControl;
 class DirectShowPlayerControl;
 class DirectShowVideoRendererControl;
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
-class Vmr9VideoWindowControl;
-#endif
 
 QT_BEGIN_NAMESPACE
 class QMediaContent;
+class QVideoWindowControl;
 QT_END_NAMESPACE
 
 QT_USE_NAMESPACE
@@ -172,9 +170,7 @@ private:
     DirectShowPlayerControl *m_playerControl;
     DirectShowMetaDataControl *m_metaDataControl;
     DirectShowVideoRendererControl *m_videoRendererControl;
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
-    Vmr9VideoWindowControl *m_videoWindowControl;
-#endif
+    QVideoWindowControl *m_videoWindowControl;
     DirectShowAudioEndpointControl *m_audioEndpointControl;
 
     QThread *m_taskThread;

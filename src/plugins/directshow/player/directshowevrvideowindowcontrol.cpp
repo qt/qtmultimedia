@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,24 +31,33 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+#include "directshowevrvideowindowcontrol.h"
 
-Effect {
-    parameters: ListModel {
-        ListElement {
-            name: "Sharpness"
-            value: 0.5
+#include "directshowglobal.h"
+
+DirectShowEvrVideoWindowControl::DirectShowEvrVideoWindowControl(QObject *parent)
+    : EvrVideoWindowControl(parent)
+    , m_evrFilter(NULL)
+{
+}
+
+DirectShowEvrVideoWindowControl::~DirectShowEvrVideoWindowControl()
+{
+    if (m_evrFilter)
+        m_evrFilter->Release();
+}
+
+IBaseFilter *DirectShowEvrVideoWindowControl::filter()
+{
+    static const GUID clsid_EnhancendVideoRenderer = { 0xfa10746c, 0x9b63, 0x4b6c, {0xbc, 0x49, 0xfc, 0x30, 0xe, 0xa5, 0xf2, 0x56} };
+
+    if (!m_evrFilter) {
+        m_evrFilter = com_new<IBaseFilter>(clsid_EnhancendVideoRenderer);
+        if (!setEvr(m_evrFilter)) {
+            m_evrFilter->Release();
+            m_evrFilter = NULL;
         }
-        onDataChanged: updateParameters()
     }
 
-    function updateParameters()
-    {
-        amount = parameters.get(0).value * 18;
-    }
-
-    // Transform slider values, and bind result to shader uniforms
-    property real amount: 0.5 * 18
-
-    fragmentShaderFilename: "sharpen.fsh"
+    return m_evrFilter;
 }

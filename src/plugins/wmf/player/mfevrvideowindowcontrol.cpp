@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -30,13 +30,56 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef _WIN32_WCE
-#include <wmp.h>
-#else
-#include <wmpcore.h>
-#endif
 
-int main(int, char**)
+#include "mfevrvideowindowcontrol.h"
+
+#include <qdebug.h>
+
+MFEvrVideoWindowControl::MFEvrVideoWindowControl(QObject *parent)
+    : EvrVideoWindowControl(parent)
+    , m_currentActivate(NULL)
+    , m_evrSink(NULL)
 {
-    return 0;
+}
+
+MFEvrVideoWindowControl::~MFEvrVideoWindowControl()
+{
+   clear();
+}
+
+void MFEvrVideoWindowControl::clear()
+{
+    setEvr(NULL);
+
+    if (m_evrSink)
+        m_evrSink->Release();
+    if (m_currentActivate) {
+        m_currentActivate->ShutdownObject();
+        m_currentActivate->Release();
+    }
+    m_evrSink = NULL;
+    m_currentActivate = NULL;
+}
+
+IMFActivate* MFEvrVideoWindowControl::createActivate()
+{
+    clear();
+
+    if (FAILED(MFCreateVideoRendererActivate(0, &m_currentActivate))) {
+        qWarning() << "Failed to create evr video renderer activate!";
+        return NULL;
+    }
+    if (FAILED(m_currentActivate->ActivateObject(IID_IMFMediaSink, (LPVOID*)(&m_evrSink)))) {
+        qWarning() << "Failed to activate evr media sink!";
+        return NULL;
+    }
+    if (!setEvr(m_evrSink))
+        return NULL;
+
+    return m_currentActivate;
+}
+
+void MFEvrVideoWindowControl::releaseActivate()
+{
+    clear();
 }

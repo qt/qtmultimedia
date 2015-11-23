@@ -160,8 +160,6 @@ inline QSysInfo::MacVersion qt_OS_limit(QSysInfo::MacVersion osxVersion,
 
 typedef QPair<qreal, qreal> AVFPSRange;
 AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
-typedef QPair<int, int> AVFRational;
-AVFRational qt_float_to_rational(qreal par, int limit);
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
 

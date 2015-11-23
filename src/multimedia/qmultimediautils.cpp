@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,24 +31,51 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+#include "qmultimediautils_p.h"
 
-Effect {
-    parameters: ListModel {
-        ListElement {
-            name: "Sharpness"
-            value: 0.5
+QT_BEGIN_NAMESPACE
+
+void qt_real_to_fraction(qreal value, int *numerator, int *denominator)
+{
+    if (!numerator || !denominator)
+        return;
+
+    const int dMax = 1000;
+    int n1 = 0, d1 = 1, n2 = 1, d2 = 1;
+    qreal mid = 0.;
+    while (d1 <= dMax && d2 <= dMax) {
+        mid = qreal(n1 + n2) / (d1 + d2);
+
+        if (qAbs(value - mid) < 0.000001) {
+            if (d1 + d2 <= dMax) {
+                *numerator = n1 + n2;
+                *denominator = d1 + d2;
+                return;
+            } else if (d2 > d1) {
+                *numerator = n2;
+                *denominator = d2;
+                return;
+            } else {
+                *numerator = n1;
+                *denominator = d1;
+                return;
+            }
+        } else if (value > mid) {
+            n1 = n1 + n2;
+            d1 = d1 + d2;
+        } else {
+            n2 = n1 + n2;
+            d2 = d1 + d2;
         }
-        onDataChanged: updateParameters()
     }
 
-    function updateParameters()
-    {
-        amount = parameters.get(0).value * 18;
+    if (d1 > dMax) {
+        *numerator = n2;
+        *denominator = d2;
+    } else {
+        *numerator = n1;
+        *denominator = d1;
     }
-
-    // Transform slider values, and bind result to shader uniforms
-    property real amount: 0.5 * 18
-
-    fragmentShaderFilename: "sharpen.fsh"
 }
+
+QT_END_NAMESPACE

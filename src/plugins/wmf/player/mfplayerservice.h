@@ -48,9 +48,7 @@ QT_END_NAMESPACE
 
 QT_USE_NAMESPACE
 
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
-class Evr9VideoWindowControl;
-#endif
+class MFEvrVideoWindowControl;
 class MFAudioEndpointControl;
 class MFVideoRendererControl;
 class MFPlayerControl;
@@ -69,18 +67,14 @@ public:
 
     MFAudioEndpointControl* audioEndpointControl() const;
     MFVideoRendererControl* videoRendererControl() const;
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
-    Evr9VideoWindowControl* videoWindowControl() const;
-#endif
+    MFEvrVideoWindowControl* videoWindowControl() const;
     MFMetaDataControl* metaDataControl() const;
 
 private:
     MFPlayerSession *m_session;
     MFVideoRendererControl *m_videoRendererControl;
     MFAudioEndpointControl *m_audioEndpointControl;
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
-    Evr9VideoWindowControl *m_videoWindowControl;
-#endif
+    MFEvrVideoWindowControl *m_videoWindowControl;
     MFPlayerControl        *m_player;
     MFMetaDataControl      *m_metaDataControl;
 };

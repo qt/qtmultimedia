@@ -46,6 +46,13 @@ Effect {
             name: "Diffraction"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+        radius   = parameters.get(0).value * 100;
+        diffractionIndex = parameters.get(1).value;
     }
 
     property real posX: -1
@@ -59,8 +66,8 @@ Effect {
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real radius: parameters.get(0).value * 100
-    property real diffractionIndex: parameters.get(1).value
+    property real radius: 0.5 * 100
+    property real diffractionIndex: 0.5
 
     onTargetWidthChanged: {
         if (posX == -1)

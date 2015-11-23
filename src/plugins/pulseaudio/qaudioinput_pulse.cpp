@@ -150,6 +150,7 @@ QPulseAudioInput::QPulseAudioInput(const QByteArray &device)
     , m_errorState(QAudio::NoError)
     , m_deviceState(QAudio::StoppedState)
     , m_volume(qreal(1.0f))
+    , m_customVolumeRequired(false)
     , m_pullMode(true)
     , m_opened(false)
     , m_bytesAvailable(0)
@@ -355,7 +356,8 @@ bool QPulseAudioInput::open()
     if (actualBufferAttr->tlength != (uint32_t)-1)
         m_bufferSize = actualBufferAttr->tlength;
 
-    setPulseVolume();
+    if (m_customVolumeRequired)
+        setPulseVolume();
 
     pulseEngine->unlock();
 
@@ -568,6 +570,7 @@ void QPulseAudioInput::setVolume(qreal vol)
     if (vol >= 0.0 && vol <= 1.0) {
         QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
         pulseEngine->lock();
+        m_customVolumeRequired = true;
         if (!qFuzzyCompare(m_volume, vol)) {
             m_volume = vol;
             if (m_opened) {

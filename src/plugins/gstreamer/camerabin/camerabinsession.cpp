@@ -308,7 +308,7 @@ static GstCaps *resolutionToCaps(const QSize &resolution,
     if (frameRate > 0.0) {
         gint numerator;
         gint denominator;
-        gst_util_double_to_fraction(frameRate, &numerator, &denominator);
+        qt_gst_util_double_to_fraction(frameRate, &numerator, &denominator);
 
         gst_caps_set_simple(
                     caps,
@@ -404,7 +404,7 @@ void CameraBinSession::setupCaptureResolution()
 
         if (!qFuzzyIsNull(viewfinderFrameRate)) {
             int n, d;
-            gst_util_double_to_fraction(viewfinderFrameRate, &n, &d);
+            qt_gst_util_double_to_fraction(viewfinderFrameRate, &n, &d);
             g_object_set(G_OBJECT(m_videoSrc), "fps-n", n, NULL);
             g_object_set(G_OBJECT(m_videoSrc), "fps-d", d, NULL);
         }
@@ -798,12 +798,14 @@ void CameraBinSession::start()
 
     m_recorderControl->applySettings();
 
+#ifdef HAVE_GST_ENCODING_PROFILES
     GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
     g_object_set (G_OBJECT(m_camerabin),
                   "video-profile",
                   profile,
                   NULL);
     gst_encoding_profile_unref(profile);
+#endif
 
     setAudioCaptureCaps();
 
@@ -1065,13 +1067,38 @@ bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
     return false;
 }
 
+QString CameraBinSession::currentContainerFormat() const
+{
+    if (!m_muxer)
+        return QString();
+
+    QString format;
+
+    if (GstPad *srcPad = gst_element_get_static_pad(m_muxer, "src")) {
+        if (GstCaps *caps = qt_gst_pad_get_caps(srcPad)) {
+            gchar *capsString = gst_caps_to_string(caps);
+            format = QString::fromLatin1(capsString);
+            if (capsString)
+                g_free(capsString);
+            gst_caps_unref(caps);
+        }
+        gst_object_unref(GST_OBJECT(srcPad));
+    }
+
+    return format;
+}
+
 void CameraBinSession::recordVideo()
 {
+    QString format = currentContainerFormat();
+    if (format.isEmpty())
+        format = m_mediaContainerControl->actualContainerFormat();
+
     const QString actualFileName = m_mediaStorageLocation.generateFileName(m_sink.isLocalFile() ? m_sink.toLocalFile()
                                                                                                 : m_sink.toString(),
                                       QMediaStorageLocation::Movies,
                                       QLatin1String("clip_"),
-                                      m_mediaContainerControl->suggestedFileExtension(m_mediaContainerControl->actualContainerFormat()));
+                                      m_mediaContainerControl->suggestedFileExtension(format));
 
     m_recordingActive = true;
     m_actualSink = QUrl::fromLocalFile(actualFileName);
@@ -1433,14 +1460,28 @@ void CameraBinSession::elementAdded(GstBin *, GstElement *element, CameraBinSess
         g_signal_connect(G_OBJECT(element), "element-removed",  G_CALLBACK(elementRemoved), session);
     } else if (!factory) {
         // no-op
+#if GST_CHECK_VERSION(0,10,31)
     } else if (gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_AUDIO_ENCODER)) {
+#else
+    } else if (strstr(gst_element_factory_get_klass(factory), "Encoder/Audio") != NULL) {
+#endif
         session->m_audioEncoder = element;
 
         session->m_audioEncodeControl->applySettings(element);
+#if GST_CHECK_VERSION(0,10,31)
     } else if (gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER)) {
+#else
+    } else if (strstr(gst_element_factory_get_klass(factory), "Encoder/Video") != NULL) {
+#endif
         session->m_videoEncoder = element;
 
         session->m_videoEncodeControl->applySettings(element);
+#if GST_CHECK_VERSION(0,10,31)
+    } else if (gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_MUXER)) {
+#else
+    } else if (strstr(gst_element_factory_get_klass(factory), "Muxer") != NULL) {
+#endif
+        session->m_muxer = element;
     }
 }
 
@@ -1450,6 +1491,8 @@ void CameraBinSession::elementRemoved(GstBin *, GstElement *element, CameraBinSe
         session->m_audioEncoder = 0;
     else if (element == session->m_videoEncoder)
         session->m_videoEncoder = 0;
+    else if (element == session->m_muxer)
+        session->m_muxer = 0;
 }
 
 QT_END_NAMESPACE

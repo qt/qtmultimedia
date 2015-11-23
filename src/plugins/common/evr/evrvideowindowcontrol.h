@@ -31,24 +31,71 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+#ifndef EVRVIDEOWINDOWCONTROL_H
+#define EVRVIDEOWINDOWCONTROL_H
 
-Effect {
-    parameters: ListModel {
-        ListElement {
-            name: "Sharpness"
-            value: 0.5
-        }
-        onDataChanged: updateParameters()
-    }
+#include "qvideowindowcontrol.h"
 
-    function updateParameters()
-    {
-        amount = parameters.get(0).value * 18;
-    }
+#include "evrdefs.h"
 
-    // Transform slider values, and bind result to shader uniforms
-    property real amount: 0.5 * 18
+QT_USE_NAMESPACE
 
-    fragmentShaderFilename: "sharpen.fsh"
-}
+class EvrVideoWindowControl : public QVideoWindowControl
+{
+    Q_OBJECT
+public:
+    EvrVideoWindowControl(QObject *parent = 0);
+    ~EvrVideoWindowControl();
+
+    bool setEvr(IUnknown *evr);
+
+    WId winId() const;
+    void setWinId(WId id);
+
+    QRect displayRect() const;
+    void setDisplayRect(const QRect &rect);
+
+    bool isFullScreen() const;
+    void setFullScreen(bool fullScreen);
+
+    void repaint();
+
+    QSize nativeSize() const;
+
+    Qt::AspectRatioMode aspectRatioMode() const;
+    void setAspectRatioMode(Qt::AspectRatioMode mode);
+
+    int brightness() const;
+    void setBrightness(int brightness);
+
+    int contrast() const;
+    void setContrast(int contrast);
+
+    int hue() const;
+    void setHue(int hue);
+
+    int saturation() const;
+    void setSaturation(int saturation);
+
+    void applyImageControls();
+
+private:
+    void clear();
+    DXVA2_Fixed32 scaleProcAmpValue(DWORD prop, int value) const;
+
+    WId m_windowId;
+    COLORREF m_windowColor;
+    DWORD m_dirtyValues;
+    Qt::AspectRatioMode m_aspectRatioMode;
+    QRect m_displayRect;
+    int m_brightness;
+    int m_contrast;
+    int m_hue;
+    int m_saturation;
+    bool m_fullScreen;
+
+    IMFVideoDisplayControl *m_displayControl;
+    IMFVideoProcessor *m_processor;
+};
+
+#endif

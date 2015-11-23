@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,24 +31,27 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+#ifndef MFEVRVIDEOWINDOWCONTROL_H
+#define MFEVRVIDEOWINDOWCONTROL_H
 
-Effect {
-    parameters: ListModel {
-        ListElement {
-            name: "Sharpness"
-            value: 0.5
-        }
-        onDataChanged: updateParameters()
-    }
+#include "evrvideowindowcontrol.h"
 
-    function updateParameters()
-    {
-        amount = parameters.get(0).value * 18;
-    }
+QT_USE_NAMESPACE
 
-    // Transform slider values, and bind result to shader uniforms
-    property real amount: 0.5 * 18
+class MFEvrVideoWindowControl : public EvrVideoWindowControl
+{
+public:
+    MFEvrVideoWindowControl(QObject *parent = 0);
+    ~MFEvrVideoWindowControl();
 
-    fragmentShaderFilename: "sharpen.fsh"
-}
+    IMFActivate* createActivate();
+    void releaseActivate();
+
+private:
+    void clear();
+
+    IMFActivate *m_currentActivate;
+    IMFMediaSink *m_evrSink;
+};
+
+#endif // MFEVRVIDEOWINDOWCONTROL_H

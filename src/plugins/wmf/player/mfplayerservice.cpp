@@ -36,9 +36,7 @@
 #include <QtCore/qdebug.h>
 
 #include "mfplayercontrol.h"
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
-#include "evr9videowindowcontrol.h"
-#endif
+#include "mfevrvideowindowcontrol.h"
 #include "mfvideorenderercontrol.h"
 #include "mfaudioendpointcontrol.h"
 #include "mfaudioprobecontrol.h"
@@ -50,9 +48,7 @@
 MFPlayerService::MFPlayerService(QObject *parent)
     : QMediaService(parent)
     , m_session(0)
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     , m_videoWindowControl(0)
-#endif
     , m_videoRendererControl(0)
 {
     m_audioEndpointControl = new MFAudioEndpointControl(this);
@@ -65,10 +61,8 @@ MFPlayerService::~MFPlayerService()
 {
     m_session->close();
 
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     if (m_videoWindowControl)
         delete m_videoWindowControl;
-#endif
 
     if (m_videoRendererControl)
         delete m_videoRendererControl;
@@ -85,21 +79,15 @@ QMediaControl* MFPlayerService::requestControl(const char *name)
     } else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
         return m_metaDataControl;
     } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
         if (!m_videoRendererControl && !m_videoWindowControl) {
-#else
-        if (!m_videoRendererControl) {
-#endif
             m_videoRendererControl = new MFVideoRendererControl;
             return m_videoRendererControl;
         }
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoRendererControl && !m_videoWindowControl) {
-            m_videoWindowControl = new Evr9VideoWindowControl;
+            m_videoWindowControl = new MFEvrVideoWindowControl;
             return m_videoWindowControl;
         }
-#endif
     } else if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
         if (m_session) {
             MFAudioProbeControl *probe = new MFAudioProbeControl(this);
@@ -129,12 +117,10 @@ void MFPlayerService::releaseControl(QMediaControl *control)
         delete m_videoRendererControl;
         m_videoRendererControl = 0;
         return;
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
     } else if (control == m_videoWindowControl) {
         delete m_videoWindowControl;
         m_videoWindowControl = 0;
         return;
-#endif
     }
 
     MFAudioProbeControl* audioProbe = qobject_cast<MFAudioProbeControl*>(control);
@@ -164,12 +150,10 @@ MFVideoRendererControl* MFPlayerService::videoRendererControl() const
     return m_videoRendererControl;
 }
 
-#if defined(HAVE_WIDGETS) && !defined(Q_WS_SIMULATOR)
-Evr9VideoWindowControl* MFPlayerService::videoWindowControl() const
+MFEvrVideoWindowControl* MFPlayerService::videoWindowControl() const
 {
     return m_videoWindowControl;
 }
-#endif
 
 MFMetaDataControl* MFPlayerService::metaDataControl() const
 {

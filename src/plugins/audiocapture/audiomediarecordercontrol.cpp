@@ -50,6 +50,10 @@ AudioMediaRecorderControl::AudioMediaRecorderControl(QObject *parent)
             this, SIGNAL(statusChanged(QMediaRecorder::Status)));
     connect(m_session, SIGNAL(actualLocationChanged(QUrl)),
             this, SIGNAL(actualLocationChanged(QUrl)));
+    connect(m_session, &AudioCaptureSession::volumeChanged,
+            this, &AudioMediaRecorderControl::volumeChanged);
+    connect(m_session, &AudioCaptureSession::mutedChanged,
+            this, &AudioMediaRecorderControl::mutedChanged);
     connect(m_session, SIGNAL(error(int,QString)),
             this, SIGNAL(error(int,QString)));
 }
@@ -85,13 +89,12 @@ qint64 AudioMediaRecorderControl::duration() const
 
 bool AudioMediaRecorderControl::isMuted() const
 {
-    return false;
+    return m_session->isMuted();
 }
 
 qreal AudioMediaRecorderControl::volume() const
 {
-    //TODO: implement muting and audio gain
-    return 1.0;
+    return m_session->volume();
 }
 
 void AudioMediaRecorderControl::setState(QMediaRecorder::State state)
@@ -101,14 +104,12 @@ void AudioMediaRecorderControl::setState(QMediaRecorder::State state)
 
 void AudioMediaRecorderControl::setMuted(bool muted)
 {
-    if (muted)
-        qWarning("Muting the audio recording is not supported.");
+    m_session->setMuted(muted);
 }
 
 void AudioMediaRecorderControl::setVolume(qreal volume)
 {
-    if (!qFuzzyCompare(volume, qreal(1.0)))
-        qWarning("Changing the audio recording volume is not supported.");
+    m_session->setVolume(volume);
 }
 
 QT_END_NAMESPACE

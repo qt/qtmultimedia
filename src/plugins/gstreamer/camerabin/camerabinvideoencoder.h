@@ -42,8 +42,11 @@
 
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
+
+#ifdef HAVE_GST_ENCODING_PROFILES
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -74,7 +77,9 @@ public:
     void setActualVideoSettings(const QVideoEncoderSettings&);
     void resetActualSettings();
 
+#ifdef HAVE_GST_ENCODING_PROFILES
     GstEncodingProfile *createProfile();
+#endif
 
     void applySettings(GstElement *encoder);
 
@@ -84,7 +89,9 @@ Q_SIGNALS:
 private:
     CameraBinSession *m_session;
 
+#ifdef HAVE_GST_ENCODING_PROFILES
     QGstCodecsInfo m_codecs;
+#endif
 
     QVideoEncoderSettings m_actualVideoSettings;
     QVideoEncoderSettings m_videoSettings;

@@ -40,10 +40,16 @@ Effect {
             name: "Extent"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+            curlExtent = 1.0 - parameters.get(0).value;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real curlExtent: 1.0 - parameters.get(0).value
+    property real curlExtent: 0.5
 
     fragmentShaderFilename: "pagecurl.fsh"
 }

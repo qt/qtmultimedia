@@ -39,10 +39,16 @@ Effect {
             name: "Threshold"
             value: 0.5
         }
+        onDataChanged: updateMixLevel()
+    }
+
+    function updateMixLevel()
+    {
+            mixLevel = parameters.get(0).value;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real mixLevel: parameters.get(0).value
+    property real mixLevel: 0.5
     property real targetSize: 250 - (200 * mixLevel) // TODO: fix ...
     property real resS: targetSize
     property real resT: targetSize

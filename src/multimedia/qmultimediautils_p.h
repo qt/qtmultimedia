@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
@@ -31,24 +31,27 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+#ifndef QMULTIMEDIAUTILS_P_H
+#define QMULTIMEDIAUTILS_P_H
 
-Effect {
-    parameters: ListModel {
-        ListElement {
-            name: "Sharpness"
-            value: 0.5
-        }
-        onDataChanged: updateParameters()
-    }
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-    function updateParameters()
-    {
-        amount = parameters.get(0).value * 18;
-    }
+#include <QtMultimedia/qmultimedia.h>
 
-    // Transform slider values, and bind result to shader uniforms
-    property real amount: 0.5 * 18
+QT_BEGIN_NAMESPACE
 
-    fragmentShaderFilename: "sharpen.fsh"
-}
+Q_MULTIMEDIA_EXPORT void qt_real_to_fraction(qreal value, int *numerator, int *denominator);
+
+QT_END_NAMESPACE
+
+#endif // QMULTIMEDIAUTILS_P_H
+

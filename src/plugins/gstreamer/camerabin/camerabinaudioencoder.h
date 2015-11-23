@@ -42,10 +42,13 @@
 
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
+
+#ifdef HAVE_GST_ENCODING_PROFILES
 #include <gst/pbutils/encoding-profile.h>
+#include <private/qgstcodecsinfo_p.h>
+#endif
 
 #include <qaudioformat.h>
-#include <private/qgstcodecsinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 class CameraBinSession;
@@ -76,7 +79,9 @@ public:
     void setActualAudioSettings(const QAudioEncoderSettings&);
     void resetActualSettings();
 
+#ifdef HAVE_GST_ENCODING_PROFILES
     GstEncodingProfile *createProfile();
+#endif
 
     void applySettings(GstElement *element);
 
@@ -84,7 +89,9 @@ Q_SIGNALS:
     void settingsChanged();
 
 private:
+#ifdef HAVE_GST_ENCODING_PROFILES
     QGstCodecsInfo m_codecs;
+#endif
 
     QAudioEncoderSettings m_actualAudioSettings;
     QAudioEncoderSettings m_audioSettings;

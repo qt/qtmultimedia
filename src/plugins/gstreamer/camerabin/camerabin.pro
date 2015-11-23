@@ -85,6 +85,10 @@ config_gstreamer_photography {
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API
 }
 
+config_gstreamer_encodingprofiles {
+    DEFINES += HAVE_GST_ENCODING_PROFILES
+}
+
 OTHER_FILES += \
     camerabin.json
 

@@ -100,6 +100,7 @@ public:
     QAudio::Error m_errorState;
     QAudio::State m_deviceState;
     qreal m_volume;
+    bool m_customVolumeRequired;
     pa_cvolume m_chVolume;
 
 private slots:

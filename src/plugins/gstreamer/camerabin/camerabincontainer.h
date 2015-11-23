@@ -41,9 +41,11 @@
 
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
-#include <gst/pbutils/encoding-profile.h>
 
+#ifdef HAVE_GST_ENCODING_PROFILES
+#include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -66,7 +68,9 @@ public:
 
     QString suggestedFileExtension(const QString &containerFormat) const;
 
+#ifdef HAVE_GST_ENCODING_PROFILES
     GstEncodingContainerProfile *createProfile();
+#endif
 
 Q_SIGNALS:
     void settingsChanged();
@@ -76,7 +80,9 @@ private:
     QString m_actualFormat;
     QMap<QString, QString> m_fileExtensions;
 
+#ifdef HAVE_GST_ENCODING_PROFILES
     QGstCodecsInfo m_supportedContainers;
+#endif
 };
 
 QT_END_NAMESPACE

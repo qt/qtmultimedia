@@ -44,11 +44,18 @@ Effect {
             name: "Frequency"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+        amplitude = parameters.get(0).value * 0.03;
+        n = parameters.get(1).value * 7;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real amplitude: parameters.get(0).value * 0.03
-    property real n: parameters.get(1).value * 7
+    property real amplitude: 0.5 * 0.03
+    property real n: 0.5 * 7
     property real pixDens: Screen.pixelDensity
 
     property real time: 0

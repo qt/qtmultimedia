@@ -39,10 +39,16 @@ Effect {
             name: "Grid Spacing"
             value: 0.5
         }
+        onDataChanged: updateGrid()
+    }
+
+    function updateGrid()
+    {
+            grid = parameters.get(0).value * 10;
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real grid: parameters.get(0).value * 10
+    property real grid: 5.0
 
     property real step_x: 0.0015625
     property real step_y: targetHeight ? (step_x * targetWidth / targetHeight) : 0.0

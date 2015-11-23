@@ -46,6 +46,18 @@ template <typename T> T *com_cast(IUnknown *unknown, const IID &iid)
         : 0;
 }
 
+template <typename T> T *com_new(const IID &clsid)
+{
+    T *object = 0;
+    return CoCreateInstance(
+            clsid,
+            NULL,
+            CLSCTX_INPROC_SERVER,
+            IID_PPV_ARGS(&object)) == S_OK
+        ? object
+        : 0;
+}
+
 template <typename T> T *com_new(const IID &clsid, const IID &iid)
 {
     T *object = 0;

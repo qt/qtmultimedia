@@ -132,7 +132,7 @@ HRESULT DirectShowIOReader::RequestAllocator(
 
             return S_OK;
         } else {
-            *ppActual = com_new<IMemAllocator>(CLSID_MemoryAllocator, IID_IMemAllocator);
+            *ppActual = com_new<IMemAllocator>(CLSID_MemoryAllocator);
 
             if (*ppActual) {
                 if ((*ppActual)->SetProperties(pProps, &actualProperties) != S_OK) {

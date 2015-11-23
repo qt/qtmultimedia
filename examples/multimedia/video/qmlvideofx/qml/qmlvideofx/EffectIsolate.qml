@@ -43,11 +43,18 @@ Effect {
             name: "Width"
             value: 0.5
         }
+        onDataChanged: updateParameters()
+    }
+
+    function updateParameters()
+    {
+        targetHue   = parameters.get(0).value * 360
+        windowWidth = parameters.get(1).value * 60
     }
 
     // Transform slider values, and bind result to shader uniforms
-    property real targetHue: parameters.get(0).value * 360
-    property real windowWidth: parameters.get(1).value * 60
+    property real targetHue: 0.5 * 360
+    property real windowWidth: 0.5 * 60
 
     fragmentShaderFilename: "isolate.fsh"
 }

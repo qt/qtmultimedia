@@ -413,7 +413,7 @@ HRESULT DirectShowIOSource::tryConnect(IPin *pin, const AM_MEDIA_TYPE *type)
         hr = VFW_E_NO_TRANSPORT;
 
         if (IMemInputPin *memPin = com_cast<IMemInputPin>(pin, IID_IMemInputPin)) {
-            if ((m_allocator = com_new<IMemAllocator>(CLSID_MemoryAllocator, IID_IMemAllocator))) {
+            if ((m_allocator = com_new<IMemAllocator>(CLSID_MemoryAllocator))) {
                 ALLOCATOR_PROPERTIES properties;
                 if (memPin->GetAllocatorRequirements(&properties) == S_OK
                         || m_allocator->GetProperties(&properties) == S_OK) {

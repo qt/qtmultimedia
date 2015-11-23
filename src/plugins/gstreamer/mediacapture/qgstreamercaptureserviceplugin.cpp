@@ -88,7 +88,7 @@ QList<QByteArray> QGstreamerCaptureServicePlugin::devices(const QByteArray &serv
 
 QString QGstreamerCaptureServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
-    return service == Q_MEDIASERVICE_CAMERA ? QGstUtils::cameraDescription(deviceName) : QString();
+    return service == Q_MEDIASERVICE_CAMERA ? QGstUtils::cameraDescription(device) : QString();
 }
 
 QVariant QGstreamerCaptureServicePlugin::deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property)

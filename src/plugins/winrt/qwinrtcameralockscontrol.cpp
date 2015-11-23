@@ -66,13 +66,14 @@ QCamera::LockStatus QWinRTCameraLocksControl::lockStatus(QCamera::LockType lock)
 
 void QWinRTCameraLocksControl::searchAndLock(QCamera::LockTypes locks)
 {
-    if (locks.testFlag(QCamera::LockFocus)) {
+    QWinRTCameraControl *cameraControl = qobject_cast<QWinRTCameraControl *>(parent());
+    Q_ASSERT(cameraControl);
+    if (cameraControl->state() != QCamera::ActiveState)
+        return;
+    else if (locks.testFlag(QCamera::LockFocus))
         QMetaObject::invokeMethod(this, "searchAndLockFocus", Qt::QueuedConnection);
-    } else {
-        QWinRTCameraControl *cameraControl = qobject_cast<QWinRTCameraControl *>(parent());
-        Q_ASSERT(cameraControl);
+    else
         cameraControl->emitError(QCamera::InvalidRequestError, QStringLiteral("Unsupported camera lock type."));
-    }
 }
 
 void QWinRTCameraLocksControl::unlock(QCamera::LockTypes locks)
@@ -104,10 +105,10 @@ void QWinRTCameraLocksControl::searchAndLockFocus()
     } else {
         m_focusLockStatus = QCamera::Searching;
         emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::LockAcquired);
-        cameraControl->focus();
-        cameraControl->lockFocus();
-        m_focusLockStatus = QCamera::Locked;
-        emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::LockAcquired);
+        if (cameraControl->focus()) {
+            m_focusLockStatus = cameraControl->lockFocus() ? QCamera::Locked : QCamera::Unlocked;
+            emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::LockAcquired);
+        }
     }
 }
 
@@ -117,8 +118,7 @@ void QWinRTCameraLocksControl::unlockFocus()
         return;
     QWinRTCameraControl *cameraControl = qobject_cast<QWinRTCameraControl *>(parent());
     Q_ASSERT(cameraControl);
-    cameraControl->unlockFocus();
-    m_focusLockStatus = QCamera::Unlocked;
+    m_focusLockStatus = cameraControl->unlockFocus() ? QCamera::Unlocked : QCamera::Locked;
     emit lockStatusChanged(QCamera::LockFocus, m_focusLockStatus, QCamera::UserRequest);
 }
 
