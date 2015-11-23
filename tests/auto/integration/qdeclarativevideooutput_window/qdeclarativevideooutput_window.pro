@@ -7,5 +7,3 @@ SOURCES += \
         tst_qdeclarativevideooutput_window.cpp
 
 INCLUDEPATH += ../../../../src/imports/multimedia
-
-win32:contains(QT_CONFIG, angle): CONFIG += insignificant_test # QTBUG-28541
