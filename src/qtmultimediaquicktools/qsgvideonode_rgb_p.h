@@ -31,20 +31,32 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_YUV_H
-#define QSGVIDEONODE_YUV_H
+#ifndef QSGVIDEONODE_RGB_H
+#define QSGVIDEONODE_RGB_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
 #include <private/qsgvideonode_p.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSGVideoMaterial_YUV;
-class QSGVideoNode_YUV : public QSGVideoNode
+class QSGVideoMaterial_RGB;
+
+class QSGVideoNode_RGB : public QSGVideoNode
 {
 public:
-    QSGVideoNode_YUV(const QVideoSurfaceFormat &format);
-    ~QSGVideoNode_YUV();
+    QSGVideoNode_RGB(const QVideoSurfaceFormat &format);
+    ~QSGVideoNode_RGB();
 
     virtual QVideoFrame::PixelFormat pixelFormat() const {
         return m_format.pixelFormat();
@@ -55,13 +67,12 @@ public:
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
 private:
-    void bindTexture(int id, int unit, int w, int h, const uchar *bits);
-
     QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_YUV *m_material;
+    QSGVideoMaterial_RGB *m_material;
+    QVideoFrame m_frame;
 };
 
-class QSGVideoNodeFactory_YUV : public QSGVideoNodeFactoryInterface {
+class QSGVideoNodeFactory_RGB : public QSGVideoNodeFactoryInterface {
 public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
@@ -69,4 +80,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // QSGVIDEONODE_YUV_H
+#endif // QSGVIDEONODE_RGB_H

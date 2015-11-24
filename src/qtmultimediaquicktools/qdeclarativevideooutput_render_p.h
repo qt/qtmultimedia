@@ -46,10 +46,10 @@
 // We mean it.
 //
 
-#include "qdeclarativevideooutput_backend_p.h"
-#include "qsgvideonode_yuv.h"
-#include "qsgvideonode_rgb.h"
-#include "qsgvideonode_texture.h"
+#include <private/qdeclarativevideooutput_backend_p.h>
+#include <private/qsgvideonode_yuv_p.h>
+#include <private/qsgvideonode_rgb_p.h>
+#include <private/qsgvideonode_texture_p.h>
 
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/qabstractvideosurface.h>
