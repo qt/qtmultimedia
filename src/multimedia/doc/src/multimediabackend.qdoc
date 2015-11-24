@@ -37,14 +37,14 @@
 
 \section1 Overview
 
-A multimedia backend provides the glue between platform specific libraries, and
+A multimedia backend provides the glue between platform-specific libraries, and
 Qt Multimedia. In some cases the available cross-platform Multimedia APIs or
 implementations are not sufficient, or not immediately available on a certain
 platform. Alternatively, the multimedia implementation on a platform might expose
 certain extra properties or functionality that other platforms do not, or a finer
 degree of control might be possible.  For these cases, it is possible to use
 extended controls directly.
-
+\omit
 In addition, if you plan to port the Qt Multimedia APIs to a new platform, you do
 this by implementing certain control and service classes, as detailed below.
 
@@ -94,7 +94,6 @@ In general, adding a new media service provider is outside the scope of this doc
 For best results, consult the existing provider source code, and seek assistance on the relevant
 mailing lists and IRC channels.
 
-\omit
 The base class for creating new service providers is \l{QMediaServiceProvider}.
 The user must implement the \l{QMediaServiceProvider::requestService()}{requestService()}
 function
