@@ -142,9 +142,6 @@ void QGstreamerAudioDecoderSession::configureAppSrcElement(GObject* object, GObj
     if (!self->appsrc())
         return;
 
-    if (self->appsrc()->isReady())
-        return;
-
     GstElement *appsrc;
     g_object_get(orig, "source", &appsrc, NULL);
 
@@ -350,9 +347,8 @@ void QGstreamerAudioDecoderSession::start()
             return;
         }
 
-        if (m_appSrc)
-            m_appSrc->deleteLater();
-        m_appSrc = new QGstAppSrc(this);
+        if (!m_appSrc)
+            m_appSrc = new QGstAppSrc(this);
         m_appSrc->setStream(mDevice);
 
         g_object_set(G_OBJECT(m_playbin), "uri", "appsrc://", NULL);
