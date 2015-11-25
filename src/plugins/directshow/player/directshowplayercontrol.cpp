@@ -53,17 +53,6 @@ static int volumeToDecibels(int volume)
     }
 }
 
-static int decibelsToVolume(int dB)
-{
-    if (dB == -10000) {
-        return 0;
-    } else if (dB == 0) {
-        return 100;
-    } else {
-        return qRound(100 * qPow(10, qreal(dB) / 5000));
-    }
-}
-
 DirectShowPlayerControl::DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent)
     : QMediaPlayerControl(parent)
     , m_service(service)
