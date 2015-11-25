@@ -154,7 +154,9 @@ public Q_SLOTS:
     bool addItem(const QUrl &source);
     bool addItems(const QList<QUrl> &sources);
     bool insertItem(int index, const QUrl &source);
+    bool insertItems(int index, const QList<QUrl> &sources);
     bool removeItem(int index);
+    bool removeItems(int start, int end);
     bool clear();
 
 Q_SIGNALS:
