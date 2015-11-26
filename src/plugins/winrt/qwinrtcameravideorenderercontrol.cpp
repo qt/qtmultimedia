@@ -291,8 +291,9 @@ QWinRTCameraVideoRendererControl::QWinRTCameraVideoRendererControl(const QSize &
     HString deviceModel;
     hr = deviceInfo->get_SystemProductName(deviceModel.GetAddressOf());
     Q_ASSERT_SUCCEEDED(hr);
-    // Blacklist Lumia 1520
-    setBlitMode(blacklisted(L"RM-937", deviceModel) ? MediaFoundation : DirectVideo);
+    const bool blacklist = blacklisted(L"RM-1045", deviceModel) // Lumia  930
+                        || blacklisted(L"RM-937", deviceModel); // Lumia 1520
+    setBlitMode(blacklist ? MediaFoundation : DirectVideo);
 #endif
 }
 
