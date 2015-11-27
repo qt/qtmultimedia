@@ -479,6 +479,20 @@ bool QDeclarativePlaylist::insertItems(int index, const QList<QUrl> &sources)
 }
 
 /*!
+    \qmlmethod bool QtMultimedia::Playlist::moveItem(from, to)
+
+    Moves the item at index position \a from to index position \a to.
+
+    Returns true if the item is moved successfully.
+
+    \since 5.7
+*/
+bool QDeclarativePlaylist::moveItem(int from, int to)
+{
+    return m_playlist->moveMedia(from, to);
+}
+
+/*!
     \qmlmethod bool QtMultimedia::Playlist::removeItem(index)
 
     Removed the item at the given \a index from the playlist.

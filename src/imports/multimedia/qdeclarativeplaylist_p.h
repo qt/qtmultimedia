@@ -155,6 +155,7 @@ public Q_SLOTS:
     bool addItems(const QList<QUrl> &sources);
     bool insertItem(int index, const QUrl &source);
     bool insertItems(int index, const QList<QUrl> &sources);
+    bool moveItem(int from, int to);
     bool removeItem(int index);
     bool removeItems(int start, int end);
     bool clear();

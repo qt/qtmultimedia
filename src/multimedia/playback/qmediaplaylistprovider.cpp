@@ -207,6 +207,20 @@ bool QMediaPlaylistProvider::insertMedia(int position, const QList<QMediaContent
     return true;
 }
 
+/*!
+  Move the media from position \a from to position \a to.
+
+  Returns true if the operation is successful, otherwise false.
+
+  \since 5.7
+*/
+bool QMediaPlaylistProvider::moveMedia(int from, int to)
+{
+    Q_UNUSED(from);
+    Q_UNUSED(to);
+
+    return false;
+}
 
 /*!
     Removes the media at \a position from a playlist.

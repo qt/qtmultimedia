@@ -85,6 +85,7 @@ public:
     bool addMedia(const QList<QMediaContent> &items);
     bool insertMedia(int index, const QMediaContent &content);
     bool insertMedia(int index, const QList<QMediaContent> &items);
+    bool moveMedia(int from, int to);
     bool removeMedia(int pos);
     bool removeMedia(int start, int end);
     bool clear();

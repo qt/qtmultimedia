@@ -81,6 +81,7 @@ public:
     virtual bool addMedia(const QList<QMediaContent> &contentList);
     virtual bool insertMedia(int index, const QMediaContent &content);
     virtual bool insertMedia(int index, const QList<QMediaContent> &content);
+    virtual bool moveMedia(int from, int to);
     virtual bool removeMedia(int pos);
     virtual bool removeMedia(int start, int end);
     virtual bool clear();
