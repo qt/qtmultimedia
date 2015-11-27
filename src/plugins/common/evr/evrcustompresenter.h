@@ -37,13 +37,19 @@
 #include <QObject>
 #include <qmutex.h>
 #include <qqueue.h>
+#include <qevent.h>
+#include <qvideosurfaceformat.h>
 
 #include "evrdefs.h"
 
+QT_BEGIN_NAMESPACE
+class QAbstractVideoSurface;
+QT_END_NAMESPACE
+
 QT_USE_NAMESPACE
 
+class EVRCustomPresenter;
 class D3DPresentEngine;
-class QAbstractVideoSurface;
 
 template<class T>
 class AsyncCallback : public IMFAsyncCallback
@@ -108,12 +114,8 @@ public:
         Flush =        WM_USER + 2
     };
 
-    Scheduler();
+    Scheduler(EVRCustomPresenter *presenter);
     ~Scheduler();
-
-    void setCallback(QObject *cb) {
-        m_CB = cb;
-    }
 
     void setFrameRate(const MFRatio &fps);
     void setClockRate(float rate) { m_playbackRate = rate; }
@@ -135,10 +137,11 @@ public:
 private:
     DWORD schedulerThreadProcPrivate();
 
+    EVRCustomPresenter *m_presenter;
+
     QQueue<IMFSample*> m_scheduledSamples; // Samples waiting to be presented.
 
     IMFClock *m_clock; // Presentation clock. Can be NULL.
-    QObject *m_CB; // Weak reference; do not delete.
 
     DWORD m_threadID;
     HANDLE m_schedulerThread;
@@ -181,8 +184,6 @@ class EVRCustomPresenter
         , public IMFGetService
         , public IMFTopologyServiceLookupClient
 {
-    Q_OBJECT
-
 public:
     // Defines the state of the presenter.
     enum RenderState
@@ -203,8 +204,17 @@ public:
         FrameStepComplete          // Sample was rendered.
     };
 
-    EVRCustomPresenter();
+    enum PresenterEvents
+    {
+        StartSurface = QEvent::User,
+        StopSurface = QEvent::User + 1,
+        PresentSample = QEvent::User + 2
+    };
+
+    EVRCustomPresenter(QAbstractVideoSurface *surface = 0);
     ~EVRCustomPresenter();
+
+    bool isValid() const;
 
     // IUnknown methods
     STDMETHODIMP QueryInterface(REFIID riid, void ** ppv);
@@ -240,9 +250,11 @@ public:
     void supportedFormatsChanged();
     void setSurface(QAbstractVideoSurface *surface);
 
-private Q_SLOTS:
     void startSurface();
     void stopSurface();
+    void presentSample(IMFSample *sample);
+
+    bool event(QEvent *);
 
 private:
     HRESULT checkShutdown() const
@@ -342,7 +354,7 @@ private:
     MFVideoNormalizedRect m_sourceRect;
     float m_playbackRate;
 
-    D3DPresentEngine *m_D3DPresentEngine; // Rendering engine. (Never null if the constructor succeeds.)
+    D3DPresentEngine *m_presentEngine; // Rendering engine. (Never null if the constructor succeeds.)
 
     IMFClock *m_clock; // The EVR's clock.
     IMFTransform *m_mixer; // The EVR's mixer.
@@ -350,7 +362,9 @@ private:
     IMFMediaType *m_mediaType; // Output media type
 
     QAbstractVideoSurface *m_surface;
-    QList<DWORD> m_supportedGLFormats;
+    bool m_canRenderToSurface;
+
+    IMFSample *m_sampleToPresent;
 };
 
 bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter);

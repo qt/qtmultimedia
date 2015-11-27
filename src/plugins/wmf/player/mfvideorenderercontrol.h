@@ -40,9 +40,7 @@
 
 QT_USE_NAMESPACE
 
-#ifdef CUSTOM_EVR_PRESENTER
 class EVRCustomPresenterActivate;
-#endif
 
 class MFVideoRendererControl : public QVideoRendererControl
 {
@@ -71,9 +69,7 @@ private:
     IMFActivate *m_currentActivate;
     IMFSampleGrabberSinkCallback *m_callback;
 
-#ifdef CUSTOM_EVR_PRESENTER
     EVRCustomPresenterActivate *m_presenterActivate;
-#endif
 };
 
 #endif

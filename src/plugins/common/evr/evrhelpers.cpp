@@ -33,6 +33,13 @@
 
 #include "evrhelpers.h"
 
+#ifndef D3DFMT_YV12
+#define D3DFMT_YV12 (D3DFORMAT)MAKEFOURCC ('Y', 'V', '1', '2')
+#endif
+#ifndef D3DFMT_NV12
+#define D3DFMT_NV12 (D3DFORMAT)MAKEFOURCC ('N', 'V', '1', '2')
+#endif
+
 HRESULT qt_evr_getFourCC(IMFMediaType *type, DWORD *fourCC)
 {
     if (!fourCC)
@@ -100,4 +107,70 @@ bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample)
     }
 
     return false;
+}
+
+QVideoFrame::PixelFormat qt_evr_pixelFormatFromD3DFormat(D3DFORMAT format)
+{
+    switch (format) {
+    case D3DFMT_R8G8B8:
+        return QVideoFrame::Format_RGB24;
+    case D3DFMT_A8R8G8B8:
+        return QVideoFrame::Format_ARGB32;
+    case D3DFMT_X8R8G8B8:
+        return QVideoFrame::Format_RGB32;
+    case D3DFMT_R5G6B5:
+        return QVideoFrame::Format_RGB565;
+    case D3DFMT_X1R5G5B5:
+        return QVideoFrame::Format_RGB555;
+    case D3DFMT_A8:
+        return QVideoFrame::Format_Y8;
+    case D3DFMT_A8B8G8R8:
+        return QVideoFrame::Format_BGRA32;
+    case D3DFMT_X8B8G8R8:
+        return QVideoFrame::Format_BGR32;
+    case D3DFMT_UYVY:
+        return QVideoFrame::Format_UYVY;
+    case D3DFMT_YUY2:
+        return QVideoFrame::Format_YUYV;
+    case D3DFMT_NV12:
+        return QVideoFrame::Format_NV12;
+    case D3DFMT_YV12:
+        return QVideoFrame::Format_YV12;
+    case D3DFMT_UNKNOWN:
+    default:
+        return QVideoFrame::Format_Invalid;
+    }
+}
+
+D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrame::PixelFormat format)
+{
+    switch (format) {
+    case QVideoFrame::Format_RGB24:
+        return D3DFMT_R8G8B8;
+    case QVideoFrame::Format_ARGB32:
+        return D3DFMT_A8R8G8B8;
+    case QVideoFrame::Format_RGB32:
+        return D3DFMT_X8R8G8B8;
+    case QVideoFrame::Format_RGB565:
+        return D3DFMT_R5G6B5;
+    case QVideoFrame::Format_RGB555:
+        return D3DFMT_X1R5G5B5;
+    case QVideoFrame::Format_Y8:
+        return D3DFMT_A8;
+    case QVideoFrame::Format_BGRA32:
+        return D3DFMT_A8B8G8R8;
+    case QVideoFrame::Format_BGR32:
+        return D3DFMT_X8B8G8R8;
+    case QVideoFrame::Format_UYVY:
+        return D3DFMT_UYVY;
+    case QVideoFrame::Format_YUYV:
+        return D3DFMT_YUY2;
+    case QVideoFrame::Format_NV12:
+        return D3DFMT_NV12;
+    case QVideoFrame::Format_YV12:
+        return D3DFMT_YV12;
+    case QVideoFrame::Format_Invalid:
+    default:
+        return D3DFMT_UNKNOWN;
+    }
 }

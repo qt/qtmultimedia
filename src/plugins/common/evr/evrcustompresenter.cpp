@@ -56,7 +56,6 @@ static const LONG   ONE_MSEC = 1000;
 static HRESULT setDesiredSampleTime(IMFSample *sample, const LONGLONG& hnsSampleTime, const LONGLONG& hnsDuration);
 static HRESULT clearDesiredSampleTime(IMFSample *sample);
 static HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect& nrcSource);
-static DWORD getFourCCFromPixelFormat(QVideoFrame::PixelFormat pixelFormat);
 static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type);
 
 static inline LONG MFTimeToMsec(const LONGLONG& time)
@@ -80,9 +79,32 @@ bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter)
     return result == S_OK;
 }
 
-Scheduler::Scheduler()
-    : m_clock(NULL)
-    , m_CB(NULL)
+class PresentSampleEvent : public QEvent
+{
+public:
+    PresentSampleEvent(IMFSample *sample)
+        : QEvent(QEvent::Type(EVRCustomPresenter::PresentSample))
+        , m_sample(sample)
+    {
+        if (m_sample)
+            m_sample->AddRef();
+    }
+
+    ~PresentSampleEvent()
+    {
+        if (m_sample)
+            m_sample->Release();
+    }
+
+    IMFSample *sample() const { return m_sample; }
+
+private:
+    IMFSample *m_sample;
+};
+
+Scheduler::Scheduler(EVRCustomPresenter *presenter)
+    : m_presenter(presenter)
+    , m_clock(NULL)
     , m_threadID(0)
     , m_schedulerThread(0)
     , m_threadReadyEvent(0)
@@ -228,9 +250,6 @@ HRESULT Scheduler::flush()
 
 HRESULT Scheduler::scheduleSample(IMFSample *sample, bool presentNow)
 {
-    if (!m_CB)
-        return MF_E_NOT_INITIALIZED;
-
     if (!m_schedulerThread)
         return MF_E_NOT_INITIALIZED;
 
@@ -242,13 +261,7 @@ HRESULT Scheduler::scheduleSample(IMFSample *sample, bool presentNow)
         return E_FAIL;
 
     if (presentNow || !m_clock) {
-        // Present the sample immediately.
-        sample->AddRef();
-        QMetaObject::invokeMethod(m_CB,
-                                  "presentSample",
-                                  Qt::QueuedConnection,
-                                  Q_ARG(void*, sample),
-                                  Q_ARG(qint64, 0));
+        m_presenter->presentSample(sample);
     } else {
         // Queue the sample and ask the scheduler thread to wake up.
         m_mutex.lock();
@@ -344,12 +357,7 @@ HRESULT Scheduler::processSample(IMFSample *sample, LONG *pNextSleep)
     }
 
     if (presentNow) {
-        sample->AddRef();
-        QMetaObject::invokeMethod(m_CB,
-                                  "presentSample",
-                                  Qt::QueuedConnection,
-                                  Q_ARG(void*, sample),
-                                  Q_ARG(qint64, hnsPresentationTime));
+        m_presenter->presentSample(sample);
     } else {
         // The sample is not ready yet. Return it to the queue.
         m_mutex.lock();
@@ -538,24 +546,27 @@ HRESULT SamplePool::clear()
 }
 
 
-EVRCustomPresenter::EVRCustomPresenter()
+EVRCustomPresenter::EVRCustomPresenter(QAbstractVideoSurface *surface)
     : QObject()
     , m_sampleFreeCB(this, &EVRCustomPresenter::onSampleFree)
     , m_refCount(1)
     , m_renderState(RenderShutdown)
     , m_mutex(QMutex::Recursive)
+    , m_scheduler(this)
     , m_tokenCounter(0)
     , m_sampleNotify(false)
     , m_repaint(false)
     , m_prerolled(false)
     , m_endStreaming(false)
     , m_playbackRate(1.0f)
-    , m_D3DPresentEngine(0)
+    , m_presentEngine(new D3DPresentEngine)
     , m_clock(0)
     , m_mixer(0)
     , m_mediaEventSink(0)
     , m_mediaType(0)
     , m_surface(0)
+    , m_canRenderToSurface(false)
+    , m_sampleToPresent(0)
 {
     // Initial source rectangle = (0,0,1,1)
     m_sourceRect.top = 0;
@@ -563,18 +574,21 @@ EVRCustomPresenter::EVRCustomPresenter()
     m_sourceRect.bottom = 1;
     m_sourceRect.right = 1;
 
-    m_D3DPresentEngine = new D3DPresentEngine;
-    m_scheduler.setCallback(m_D3DPresentEngine);
+    setSurface(surface);
 }
 
 EVRCustomPresenter::~EVRCustomPresenter()
 {
+    m_scheduler.flush();
+    m_scheduler.stopScheduler();
+    m_samplePool.clear();
+
     qt_evr_safe_release(&m_clock);
     qt_evr_safe_release(&m_mixer);
     qt_evr_safe_release(&m_mediaEventSink);
     qt_evr_safe_release(&m_mediaType);
 
-    m_D3DPresentEngine->deleteLater();
+    delete m_presentEngine;
 }
 
 HRESULT EVRCustomPresenter::QueryInterface(REFIID riid, void ** ppvObject)
@@ -628,7 +642,7 @@ HRESULT EVRCustomPresenter::GetService(REFGUID guidService, REFIID riid, LPVOID 
         return MF_E_UNSUPPORTED_SERVICE;
 
     // First try to get the service interface from the D3DPresentEngine object.
-    hr = m_D3DPresentEngine->getService(guidService, riid, ppvObject);
+    hr = m_presentEngine->getService(guidService, riid, ppvObject);
     if (FAILED(hr))
         // Next, check if this object supports the interface.
         hr = QueryInterface(riid, ppvObject);
@@ -723,6 +737,11 @@ HRESULT EVRCustomPresenter::ReleaseServicePointers()
     qt_evr_safe_release(&m_mediaEventSink);
 
     return S_OK;
+}
+
+bool EVRCustomPresenter::isValid() const
+{
+    return m_presentEngine->isValid() && m_canRenderToSurface;
 }
 
 HRESULT EVRCustomPresenter::ProcessMessage(MFVP_MESSAGE_TYPE message, ULONG_PTR param)
@@ -837,11 +856,7 @@ HRESULT EVRCustomPresenter::OnClockStart(MFTIME, LONGLONG clockStartOffset)
             return hr;
     }
 
-    // Start the video surface in the main thread
-    if (thread() == QThread::currentThread())
-        startSurface();
-    else
-        QMetaObject::invokeMethod(this, "startSurface", Qt::QueuedConnection);
+    startSurface();
 
     // Now try to get new output samples from the mixer.
     processOutputLoop();
@@ -890,11 +905,7 @@ HRESULT EVRCustomPresenter::OnClockStop(MFTIME)
             cancelFrameStep();
     }
 
-    // Stop the video surface in the main thread
-    if (thread() == QThread::currentThread())
-        stopSurface();
-    else
-        QMetaObject::invokeMethod(this, "stopSurface", Qt::QueuedConnection);
+    stopSurface();
 
     return S_OK;
 }
@@ -1021,16 +1032,27 @@ void EVRCustomPresenter::supportedFormatsChanged()
 {
     QMutexLocker locker(&m_mutex);
 
-    m_supportedGLFormats.clear();
-    if (!m_surface)
-        return;
+    m_canRenderToSurface = false;
+    m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, false);
 
-    QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle);
-    for (int i = 0; i < formats.size(); ++i) {
-        DWORD fourCC = getFourCCFromPixelFormat(formats.at(i));
-        if (fourCC)
-            m_supportedGLFormats.append(fourCC);
+    // check if we can render to the surface (compatible formats)
+    if (m_surface) {
+        QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle);
+        if (m_presentEngine->supportsTextureRendering() && formats.contains(QVideoFrame::Format_RGB32)) {
+            m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, true);
+            m_canRenderToSurface = true;
+        } else {
+            formats = m_surface->supportedPixelFormats(QAbstractVideoBuffer::NoHandle);
+            Q_FOREACH (QVideoFrame::PixelFormat format, formats) {
+                if (SUCCEEDED(m_presentEngine->checkFormat(qt_evr_D3DFormatFromPixelFormat(format)))) {
+                    m_canRenderToSurface = true;
+                    break;
+                }
+            }
+        }
     }
+
+    // TODO: if media type already set, renegotiate?
 }
 
 void EVRCustomPresenter::setSurface(QAbstractVideoSurface *surface)
@@ -1043,9 +1065,6 @@ void EVRCustomPresenter::setSurface(QAbstractVideoSurface *surface)
     }
 
     m_surface = surface;
-
-    if (m_D3DPresentEngine)
-        m_D3DPresentEngine->setSurface(surface);
 
     if (m_surface) {
         connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged,
@@ -1140,11 +1159,7 @@ HRESULT EVRCustomPresenter::flush()
 
     if (m_renderState == RenderStopped) {
         // Repaint with black.
-        QMetaObject::invokeMethod(m_D3DPresentEngine,
-                                  "presentSample",
-                                  Qt::QueuedConnection,
-                                  Q_ARG(void*, 0),
-                                  Q_ARG(qint64, 0));
+        presentSample(NULL);
     }
 
     return S_OK;
@@ -1401,7 +1416,6 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     if (!mediaType) {
         qt_evr_safe_release(&m_mediaType);
         releaseResources();
-        m_D3DPresentEngine->setSurfaceFormat(QVideoSurfaceFormat());
         return S_OK;
     }
 
@@ -1409,11 +1423,6 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     QList<IMFSample*> sampleQueue;
 
     IMFSample *sample = NULL;
-
-    QVideoSurfaceFormat surfaceFormat;
-    UINT64 size;
-    int width;
-    int height;
 
     // Cannot set the media type after shutdown.
     HRESULT hr = checkShutdown();
@@ -1432,7 +1441,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     // Initialize the presenter engine with the new media type.
     // The presenter engine allocates the samples.
 
-    hr = m_D3DPresentEngine->createVideoSamples(mediaType, sampleQueue);
+    hr = m_presentEngine->createVideoSamples(mediaType, sampleQueue);
     if (FAILED(hr))
         goto done;
 
@@ -1465,15 +1474,6 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     m_mediaType = mediaType;
     m_mediaType->AddRef();
 
-    // Create the surface format
-    hr = m_mediaType->GetUINT64(MF_MT_FRAME_SIZE, &size);
-    width = int(HI32(size));
-    height = int(LO32(size));
-    surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
-                                        pixelFormatFromMediaType(m_mediaType),
-                                        QAbstractVideoBuffer::GLTextureHandle);
-    m_D3DPresentEngine->setSurfaceFormat(surfaceFormat);
-
 done:
     if (FAILED(hr))
         releaseResources();
@@ -1493,9 +1493,16 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     if (FAILED(hr))
         return hr;
 
-    // Only accept pixel formats supported by the video surface
-    if (!m_supportedGLFormats.contains((DWORD)d3dFormat))
+    QVideoFrame::PixelFormat pixelFormat = pixelFormatFromMediaType(proposed);
+    if (pixelFormat == QVideoFrame::Format_Invalid)
         return MF_E_INVALIDMEDIATYPE;
+
+    // When not rendering to texture, only accept pixel formats supported by the video surface
+    if (!m_presentEngine->isTextureRenderingEnabled()
+            && m_surface
+            && !m_surface->supportedPixelFormats().contains(pixelFormat)) {
+        return MF_E_INVALIDMEDIATYPE;
+    }
 
     // Reject compressed media types.
     hr = proposed->IsCompressedFormat(&compressed);
@@ -1505,9 +1512,8 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     if (compressed)
         return MF_E_INVALIDMEDIATYPE;
 
-    // The D3DPresentEngine checks whether the format can be used as
-    // the back-buffer format for the swap chains.
-    hr = m_D3DPresentEngine->checkFormat(d3dFormat);
+    // The D3DPresentEngine checks whether surfaces can be created using this format
+    hr = m_presentEngine->checkFormat(d3dFormat);
     if (FAILED(hr))
         return hr;
 
@@ -1788,7 +1794,7 @@ void EVRCustomPresenter::releaseResources()
 
     m_samplePool.clear();
 
-    m_D3DPresentEngine->releaseResources();
+    m_presentEngine->releaseResources();
 }
 
 HRESULT EVRCustomPresenter::onSampleFree(IMFAsyncResult *result)
@@ -1853,18 +1859,6 @@ done:
     return hr;
 }
 
-void EVRCustomPresenter::startSurface()
-{
-    if (m_D3DPresentEngine)
-        m_D3DPresentEngine->start();
-}
-
-void EVRCustomPresenter::stopSurface()
-{
-    if (m_D3DPresentEngine)
-        m_D3DPresentEngine->stop();
-}
-
 float EVRCustomPresenter::getMaxRate(bool thin)
 {
     // Non-thinned:
@@ -1880,7 +1874,7 @@ float EVRCustomPresenter::getMaxRate(bool thin)
 
     if (!thin && m_mediaType) {
         qt_evr_getFrameRate(m_mediaType, &fps);
-        monitorRateHz = m_D3DPresentEngine->refreshRate();
+        monitorRateHz = m_presentEngine->refreshRate();
 
         if (fps.Denominator && fps.Numerator && monitorRateHz) {
             // Max Rate = Refresh Rate / Frame Rate
@@ -1889,6 +1883,74 @@ float EVRCustomPresenter::getMaxRate(bool thin)
     }
 
     return maxRate;
+}
+
+bool EVRCustomPresenter::event(QEvent *e)
+{
+    if (e->type() == StartSurface) {
+        startSurface();
+        return true;
+    } else if (e->type() == StopSurface) {
+        stopSurface();
+        return true;
+    } else if (e->type() == PresentSample) {
+        PresentSampleEvent *ev = static_cast<PresentSampleEvent *>(e);
+        presentSample(ev->sample());
+        return true;
+    }
+
+    return QObject::event(e);
+}
+
+void EVRCustomPresenter::startSurface()
+{
+    if (thread() != QThread::currentThread()) {
+        QCoreApplication::postEvent(this, new QEvent(QEvent::Type(StartSurface)));
+        return;
+    }
+
+    if (!m_surface || m_surface->isActive())
+        return;
+
+    QVideoSurfaceFormat format = m_presentEngine->videoSurfaceFormat();
+    if (!format.isValid())
+        return;
+
+    m_surface->start(format);
+}
+
+void EVRCustomPresenter::stopSurface()
+{
+    if (thread() != QThread::currentThread()) {
+        QCoreApplication::postEvent(this, new QEvent(QEvent::Type(StopSurface)));
+        return;
+    }
+
+    if (!m_surface || !m_surface->isActive())
+        return;
+
+    m_surface->stop();
+}
+
+void EVRCustomPresenter::presentSample(IMFSample *sample)
+{
+    if (thread() != QThread::currentThread()) {
+        QCoreApplication::postEvent(this, new PresentSampleEvent(sample));
+        return;
+    }
+
+    if (!m_surface || !m_surface->isActive() || !m_presentEngine->videoSurfaceFormat().isValid())
+        return;
+
+    QVideoFrame frame = m_presentEngine->makeVideoFrame(sample);
+
+    if (m_surface->isActive() && m_surface->surfaceFormat() != m_presentEngine->videoSurfaceFormat()) {
+        m_surface->stop();
+        if (!m_surface->start(m_presentEngine->videoSurfaceFormat()))
+            return;
+    }
+
+    m_surface->present(frame);
 }
 
 HRESULT setDesiredSampleTime(IMFSample *sample, const LONGLONG &sampleTime, const LONGLONG &duration)
@@ -1925,8 +1987,6 @@ HRESULT clearDesiredSampleTime(IMFSample *sample)
 
     UINT32 counter = MFGetAttributeUINT32(sample, MFSamplePresenter_SampleCounter, (UINT32)-1);
 
-    sample->GetUnknown(MFSamplePresenter_SampleSwapChain, IID_IUnknown, (void**)&unkSwapChain);
-
     hr = sample->QueryInterface(IID_PPV_ARGS(&desired));
     if (SUCCEEDED(hr)) {
         desired->Clear();
@@ -1934,12 +1994,6 @@ HRESULT clearDesiredSampleTime(IMFSample *sample)
         hr = sample->SetUINT32(MFSamplePresenter_SampleCounter, counter);
         if (FAILED(hr))
             goto done;
-
-        if (unkSwapChain) {
-            hr = sample->SetUnknown(MFSamplePresenter_SampleSwapChain, unkSwapChain);
-            if (FAILED(hr))
-                goto done;
-        }
     }
 
 done:
@@ -1963,48 +2017,6 @@ HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect &sou
     return hr;
 }
 
-DWORD getFourCCFromPixelFormat(QVideoFrame::PixelFormat pixelFormat)
-{
-    DWORD fourCC = 0;
-    switch (pixelFormat) {
-        case QVideoFrame::Format_ARGB32:
-        case QVideoFrame::Format_ARGB32_Premultiplied:
-            fourCC = MFVideoFormat_ARGB32.Data1;
-            break;
-        case QVideoFrame::Format_RGB32:
-            fourCC = MFVideoFormat_RGB32.Data1;
-            break;
-        case QVideoFrame::Format_RGB24:
-            fourCC = MFVideoFormat_RGB24.Data1;
-            break;
-        case QVideoFrame::Format_RGB565:
-            fourCC = MFVideoFormat_RGB565.Data1;
-            break;
-        case QVideoFrame::Format_RGB555:
-            fourCC = MFVideoFormat_RGB555.Data1;
-            break;
-        case QVideoFrame::Format_AYUV444:
-        case QVideoFrame::Format_AYUV444_Premultiplied:
-            fourCC = MFVideoFormat_AYUV.Data1;
-            break;
-        case QVideoFrame::Format_YUV420P:
-            fourCC = MFVideoFormat_I420.Data1;
-            break;
-        case QVideoFrame::Format_UYVY:
-            fourCC = MFVideoFormat_UYVY.Data1;
-            break;
-        case QVideoFrame::Format_YV12:
-            fourCC = MFVideoFormat_YV12.Data1;
-            break;
-        case QVideoFrame::Format_NV12:
-            fourCC = MFVideoFormat_NV12.Data1;
-            break;
-        default:
-            break;
-    }
-    return fourCC;
-}
-
 static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
 {
     GUID majorType;
@@ -2013,12 +2025,30 @@ static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
     if (majorType != MFMediaType_Video)
         return QVideoFrame::Format_Invalid;
 
-    GUID subType;
-    if (FAILED(type->GetGUID(MF_MT_SUBTYPE, &subType)))
+    GUID subtype;
+    if (FAILED(type->GetGUID(MF_MT_SUBTYPE, &subtype)))
         return QVideoFrame::Format_Invalid;
 
-    if (subType == MFVideoFormat_RGB32)
+    if (subtype == MFVideoFormat_RGB32)
         return QVideoFrame::Format_RGB32;
+    else if (subtype == MFVideoFormat_ARGB32)
+        return QVideoFrame::Format_ARGB32;
+    else if (subtype == MFVideoFormat_RGB24)
+        return QVideoFrame::Format_RGB24;
+    else if (subtype == MFVideoFormat_RGB565)
+        return QVideoFrame::Format_RGB565;
+    else if (subtype == MFVideoFormat_RGB555)
+        return QVideoFrame::Format_RGB555;
+    else if (subtype == MFVideoFormat_AYUV)
+        return QVideoFrame::Format_AYUV444;
+    else if (subtype == MFVideoFormat_I420)
+        return QVideoFrame::Format_YUV420P;
+    else if (subtype == MFVideoFormat_UYVY)
+        return QVideoFrame::Format_UYVY;
+    else if (subtype == MFVideoFormat_YV12)
+        return QVideoFrame::Format_YV12;
+    else if (subtype == MFVideoFormat_NV12)
+        return QVideoFrame::Format_NV12;
 
     return QVideoFrame::Format_Invalid;
 }

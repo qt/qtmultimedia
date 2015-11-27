@@ -34,9 +34,7 @@
 #include "mfvideorenderercontrol.h"
 #include "mfactivate.h"
 
-#ifdef CUSTOM_EVR_PRESENTER
 #include "evrcustompresenter.h"
-#endif
 
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
@@ -2222,7 +2220,6 @@ namespace
     };
 }
 
-#ifdef CUSTOM_EVR_PRESENTER
 
 class EVRCustomPresenterActivate : public MFAbstractActivate
 {
@@ -2243,16 +2240,13 @@ private:
     QMutex m_mutex;
 };
 
-#endif // CUSTOM_EVR_PRESENTER
 
 MFVideoRendererControl::MFVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
     , m_surface(0)
     , m_currentActivate(0)
     , m_callback(0)
-#ifdef CUSTOM_EVR_PRESENTER
     , m_presenterActivate(0)
-#endif
 {
 }
 
@@ -2266,13 +2260,11 @@ void MFVideoRendererControl::clear()
     if (m_surface)
         m_surface->stop();
 
-#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate) {
         m_presenterActivate->ShutdownObject();
         m_presenterActivate->Release();
         m_presenterActivate = NULL;
     }
-#endif
 
     if (m_currentActivate) {
         m_currentActivate->ShutdownObject();
@@ -2301,21 +2293,16 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
         connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
     }
 
-#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate)
         m_presenterActivate->setSurface(m_surface);
-    else
-#endif
-    if (m_currentActivate)
+    else if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->setSurface(m_surface);
 }
 
 void MFVideoRendererControl::customEvent(QEvent *event)
 {
-#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate)
         return;
-#endif
 
     if (!m_currentActivate)
         return;
@@ -2346,16 +2333,17 @@ void MFVideoRendererControl::customEvent(QEvent *event)
 
 void MFVideoRendererControl::supportedFormatsChanged()
 {
+    if (m_presenterActivate)
+        return;
+
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->supportedFormatsChanged();
 }
 
 void MFVideoRendererControl::present()
 {
-#ifdef CUSTOM_EVR_PRESENTER
     if (m_presenterActivate)
         return;
-#endif
 
     if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->present();
@@ -2367,28 +2355,19 @@ IMFActivate* MFVideoRendererControl::createActivate()
 
     clear();
 
-#ifdef CUSTOM_EVR_PRESENTER
-    // We can use the EVR with our custom presenter only if the surface supports OpenGL
-    // texture handles. We also require ANGLE (due to the D3D interop).
-    if (!m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()
-        && QMediaOpenGLHelper::isANGLE()) {
-        // Create the EVR media sink, but replace the presenter with our own
-        if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
-            m_presenterActivate = new EVRCustomPresenterActivate;
-            m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
-        }
-    }
-#endif
-
-    if (!m_currentActivate)
+    // Create the EVR media sink, but replace the presenter with our own
+    if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
+        m_presenterActivate = new EVRCustomPresenterActivate;
+        m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
+    } else {
         m_currentActivate = new VideoRendererActivate(this);
+    }
 
     setSurface(m_surface);
 
     return m_currentActivate;
 }
 
-#ifdef CUSTOM_EVR_PRESENTER
 
 EVRCustomPresenterActivate::EVRCustomPresenterActivate()
     : MFAbstractActivate()
@@ -2437,8 +2416,6 @@ void EVRCustomPresenterActivate::setSurface(QAbstractVideoSurface *surface)
     if (m_presenter)
         m_presenter->setSurface(surface);
 }
-
-#endif // CUSTOM_EVR_PRESENTER
 
 #include "moc_mfvideorenderercontrol.cpp"
 #include "mfvideorenderercontrol.moc"

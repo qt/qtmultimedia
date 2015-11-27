@@ -39,11 +39,6 @@
 #include <dshow.h>
 
 class DirectShowEventLoop;
-class VideoSurfaceFilter;
-
-#ifdef CUSTOM_EVR_PRESENTER
-class EVRCustomPresenter;
-#endif
 
 QT_USE_NAMESPACE
 
@@ -66,10 +61,6 @@ private:
     DirectShowEventLoop *m_loop;
     QAbstractVideoSurface *m_surface;
     IBaseFilter *m_filter;
-
-#ifdef CUSTOM_EVR_PRESENTER
-    EVRCustomPresenter *m_evrPresenter;
-#endif
 };
 
 #endif

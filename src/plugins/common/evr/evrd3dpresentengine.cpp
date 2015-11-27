@@ -35,48 +35,23 @@
 
 #include "evrhelpers.h"
 
-#include <qtgui/qguiapplication.h>
-#include <qpa/qplatformnativeinterface.h>
-#include <qtgui/qopenglcontext.h>
 #include <qabstractvideobuffer.h>
 #include <QAbstractVideoSurface>
 #include <qvideoframe.h>
 #include <QDebug>
-#include <qopenglcontext.h>
-#include <qopenglfunctions.h>
-#include <qwindow.h>
+#include <qthread.h>
+#include <private/qmediaopenglhelper_p.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <d3d9.h>
-#include <dxva2api.h>
-#include <WinUser.h>
-#include <evr.h>
+#ifdef MAYBE_ANGLE
+# include <qtgui/qguiapplication.h>
+# include <qpa/qplatformnativeinterface.h>
+# include <qopenglfunctions.h>
+# include <EGL/eglext.h>
+#endif
 
 static const int PRESENTER_BUFFER_COUNT = 3;
 
-class TextureVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    TextureVideoBuffer(GLuint textureId)
-        : QAbstractVideoBuffer(GLTextureHandle)
-        , m_textureId(textureId)
-    {}
-
-    ~TextureVideoBuffer() {}
-
-    MapMode mapMode() const { return NotMapped; }
-    uchar *map(MapMode, int*, int*) { return 0; }
-    void unmap() {}
-
-    QVariant handle() const
-    {
-        return QVariant::fromValue<unsigned int>(m_textureId);
-    }
-
-private:
-    GLuint m_textureId;
-};
+#ifdef MAYBE_ANGLE
 
 EGLWrapper::EGLWrapper()
 {
@@ -140,22 +115,160 @@ EGLBoolean EGLWrapper::releaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLin
     return m_eglReleaseTexImage(dpy, surface, buffer);
 }
 
+
+class OpenGLResources : public QObject
+{
+public:
+    OpenGLResources()
+        : egl(new EGLWrapper)
+        , eglDisplay(0)
+        , eglSurface(0)
+        , glTexture(0)
+    {}
+
+    void release()
+    {
+        if (thread() == QThread::currentThread())
+            delete this;
+        else
+            deleteLater();
+    }
+
+    EGLWrapper *egl;
+    EGLDisplay *eglDisplay;
+    EGLSurface eglSurface;
+    unsigned int glTexture;
+
+private:
+    ~OpenGLResources()
+    {
+        Q_ASSERT(QOpenGLContext::currentContext() != NULL);
+
+        if (eglSurface && egl) {
+            egl->releaseTexImage(eglDisplay, eglSurface, EGL_BACK_BUFFER);
+            egl->destroySurface(eglDisplay, eglSurface);
+        }
+        if (glTexture)
+            QOpenGLContext::currentContext()->functions()->glDeleteTextures(1, &glTexture);
+
+        delete egl;
+    }
+};
+
+#endif // MAYBE_ANGLE
+
+
+class IMFSampleVideoBuffer: public QAbstractVideoBuffer
+{
+public:
+    IMFSampleVideoBuffer(D3DPresentEngine *engine, IMFSample *sample, QAbstractVideoBuffer::HandleType handleType)
+        : QAbstractVideoBuffer(handleType)
+        , m_engine(engine)
+        , m_sample(sample)
+        , m_surface(0)
+        , m_mapMode(NotMapped)
+        , m_textureUpdated(false)
+    {
+        if (m_sample) {
+            m_sample->AddRef();
+
+            IMFMediaBuffer *buffer;
+            if (SUCCEEDED(m_sample->GetBufferByIndex(0, &buffer))) {
+                MFGetService(buffer,
+                             mr_BUFFER_SERVICE,
+                             iid_IDirect3DSurface9,
+                             reinterpret_cast<void **>(&m_surface));
+                buffer->Release();
+            }
+        }
+    }
+
+    ~IMFSampleVideoBuffer()
+    {
+        if (m_surface) {
+            if (m_mapMode != NotMapped)
+                m_surface->UnlockRect();
+            m_surface->Release();
+        }
+        if (m_sample)
+            m_sample->Release();
+    }
+
+    QVariant handle() const;
+
+    MapMode mapMode() const { return m_mapMode; }
+    uchar *map(MapMode, int*, int*);
+    void unmap();
+
+private:
+    mutable D3DPresentEngine *m_engine;
+    IMFSample *m_sample;
+    IDirect3DSurface9 *m_surface;
+    MapMode m_mapMode;
+    mutable bool m_textureUpdated;
+};
+
+uchar *IMFSampleVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
+{
+    if (!m_surface || m_mapMode != NotMapped)
+        return 0;
+
+    D3DSURFACE_DESC desc;
+    if (FAILED(m_surface->GetDesc(&desc)))
+        return 0;
+
+    D3DLOCKED_RECT rect;
+    if (FAILED(m_surface->LockRect(&rect, NULL, mode == ReadOnly ? D3DLOCK_READONLY : 0)))
+        return 0;
+
+    m_mapMode = mode;
+
+    if (numBytes)
+        *numBytes = (int)(rect.Pitch * desc.Height);
+
+    if (bytesPerLine)
+        *bytesPerLine = (int)rect.Pitch;
+
+    return reinterpret_cast<uchar *>(rect.pBits);
+}
+
+void IMFSampleVideoBuffer::unmap()
+{
+    if (m_mapMode == NotMapped)
+        return;
+
+    m_mapMode = NotMapped;
+    m_surface->UnlockRect();
+}
+
+QVariant IMFSampleVideoBuffer::handle() const
+{
+    QVariant handle;
+
+#ifdef MAYBE_ANGLE
+    if (handleType() != GLTextureHandle)
+        return handle;
+
+    if (m_textureUpdated || m_engine->updateTexture(m_surface)) {
+        m_textureUpdated = true;
+        handle = QVariant::fromValue<unsigned int>(m_engine->m_glResources->glTexture);
+    }
+#endif
+
+    return handle;
+}
+
+
 D3DPresentEngine::D3DPresentEngine()
-    : QObject()
-    , m_mutex(QMutex::Recursive)
-    , m_deviceResetToken(0)
+    : m_deviceResetToken(0)
     , m_D3D9(0)
     , m_device(0)
     , m_deviceManager(0)
-    , m_surface(0)
-    , m_glContext(0)
-    , m_offscreenSurface(0)
-    , m_eglDisplay(0)
-    , m_eglConfig(0)
-    , m_eglSurface(0)
-    , m_glTexture(0)
+    , m_useTextureRendering(false)
+#ifdef MAYBE_ANGLE
+    , m_glResources(0)
     , m_texture(0)
-    , m_egl(0)
+#endif
 {
     ZeroMemory(&m_displayMode, sizeof(m_displayMode));
 
@@ -172,330 +285,11 @@ D3DPresentEngine::D3DPresentEngine()
 
 D3DPresentEngine::~D3DPresentEngine()
 {
-    qt_evr_safe_release(&m_texture);
+    releaseResources();
+
     qt_evr_safe_release(&m_device);
     qt_evr_safe_release(&m_deviceManager);
     qt_evr_safe_release(&m_D3D9);
-
-    if (m_eglSurface) {
-        m_egl->releaseTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
-        m_egl->destroySurface(m_eglDisplay, m_eglSurface);
-        m_eglSurface = NULL;
-    }
-    if (m_glTexture) {
-        if (QOpenGLContext *current = QOpenGLContext::currentContext())
-            current->functions()->glDeleteTextures(1, &m_glTexture);
-        else
-            qWarning() << "D3DPresentEngine: Cannot obtain GL context, unable to delete textures";
-    }
-
-    delete m_glContext;
-    delete m_offscreenSurface;
-    delete m_egl;
-}
-
-void D3DPresentEngine::start()
-{
-    QMutexLocker locker(&m_mutex);
-
-    if (!m_surfaceFormat.isValid())
-        return;
-
-    if (!m_texture)
-        createOffscreenTexture();
-
-    if (m_surface && !m_surface->isActive())
-        m_surface->start(m_surfaceFormat);
-}
-
-void D3DPresentEngine::stop()
-{
-    QMutexLocker locker(&m_mutex);
-    if (m_surface && m_surface->isActive())
-        m_surface->stop();
-}
-
-HRESULT D3DPresentEngine::getService(REFGUID, REFIID riid, void** ppv)
-{
-    HRESULT hr = S_OK;
-
-    if (riid == __uuidof(IDirect3DDeviceManager9)) {
-        if (m_deviceManager == NULL) {
-            hr = MF_E_UNSUPPORTED_SERVICE;
-        } else {
-            *ppv = m_deviceManager;
-            m_deviceManager->AddRef();
-        }
-    } else {
-        hr = MF_E_UNSUPPORTED_SERVICE;
-    }
-
-    return hr;
-}
-
-HRESULT D3DPresentEngine::checkFormat(D3DFORMAT format)
-{
-    HRESULT hr = S_OK;
-
-    UINT uAdapter = D3DADAPTER_DEFAULT;
-    D3DDEVTYPE type = D3DDEVTYPE_HAL;
-
-    D3DDISPLAYMODE mode;
-    D3DDEVICE_CREATION_PARAMETERS params;
-
-    // Our shared D3D/EGL surface only supports RGB32,
-    // reject all other formats
-    if (format != D3DFMT_X8R8G8B8)
-        return MF_E_INVALIDMEDIATYPE;
-
-    if (m_device) {
-        hr = m_device->GetCreationParameters(&params);
-        if (FAILED(hr))
-            return hr;
-
-        uAdapter = params.AdapterOrdinal;
-        type = params.DeviceType;
-    }
-
-    hr = m_D3D9->GetAdapterDisplayMode(uAdapter, &mode);
-    if (FAILED(hr))
-        return hr;
-
-    return m_D3D9->CheckDeviceType(uAdapter, type, mode.Format, format, TRUE);
-}
-
-HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSample*> &videoSampleQueue)
-{
-    if (!format)
-        return MF_E_UNEXPECTED;
-
-    HRESULT hr = S_OK;
-    D3DPRESENT_PARAMETERS pp;
-
-    IDirect3DSwapChain9 *swapChain = NULL;
-    IMFSample *videoSample = NULL;
-
-    QMutexLocker locker(&m_mutex);
-
-    releaseResources();
-
-    // Get the swap chain parameters from the media type.
-    hr = getSwapChainPresentParameters(format, &pp);
-    if (FAILED(hr))
-        goto done;
-
-    // Create the video samples.
-    for (int i = 0; i < PRESENTER_BUFFER_COUNT; i++) {
-        // Create a new swap chain.
-        hr = m_device->CreateAdditionalSwapChain(&pp, &swapChain);
-        if (FAILED(hr))
-            goto done;
-
-        // Create the video sample from the swap chain.
-        hr = createD3DSample(swapChain, &videoSample);
-        if (FAILED(hr))
-            goto done;
-
-        // Add it to the list.
-        videoSample->AddRef();
-        videoSampleQueue.append(videoSample);
-
-        // Set the swap chain pointer as a custom attribute on the sample. This keeps
-        // a reference count on the swap chain, so that the swap chain is kept alive
-        // for the duration of the sample's lifetime.
-        hr = videoSample->SetUnknown(MFSamplePresenter_SampleSwapChain, swapChain);
-        if (FAILED(hr))
-            goto done;
-
-        qt_evr_safe_release(&videoSample);
-        qt_evr_safe_release(&swapChain);
-    }
-
-done:
-    if (FAILED(hr))
-        releaseResources();
-
-    qt_evr_safe_release(&swapChain);
-    qt_evr_safe_release(&videoSample);
-    return hr;
-}
-
-void D3DPresentEngine::releaseResources()
-{
-}
-
-void D3DPresentEngine::presentSample(void *opaque, qint64)
-{
-    HRESULT hr = S_OK;
-
-    IMFSample *sample = reinterpret_cast<IMFSample*>(opaque);
-    IMFMediaBuffer* buffer = NULL;
-    IDirect3DSurface9* surface = NULL;
-
-    if (m_surface && m_surface->isActive()) {
-        if (sample) {
-            // Get the buffer from the sample.
-            hr = sample->GetBufferByIndex(0, &buffer);
-            if (FAILED(hr))
-                goto done;
-
-            // Get the surface from the buffer.
-            hr = MFGetService(buffer, mr_BUFFER_SERVICE, IID_PPV_ARGS(&surface));
-            if (FAILED(hr))
-                goto done;
-        }
-
-        if (surface && updateTexture(surface)) {
-            QVideoFrame frame = QVideoFrame(new TextureVideoBuffer(m_glTexture),
-                                            m_surfaceFormat.frameSize(),
-                                            m_surfaceFormat.pixelFormat());
-
-            // WMF uses 100-nanosecond units, Qt uses microseconds
-            LONGLONG startTime = -1;
-            if (SUCCEEDED(sample->GetSampleTime(&startTime))) {
-                frame.setStartTime(startTime * 0.1);
-
-                LONGLONG duration = -1;
-                if (SUCCEEDED(sample->GetSampleDuration(&duration)))
-                    frame.setEndTime((startTime + duration) * 0.1);
-            }
-
-            m_surface->present(frame);
-        }
-    }
-
-done:
-    qt_evr_safe_release(&surface);
-    qt_evr_safe_release(&buffer);
-    qt_evr_safe_release(&sample);
-}
-
-void D3DPresentEngine::setSurface(QAbstractVideoSurface *surface)
-{
-    QMutexLocker locker(&m_mutex);
-    m_surface = surface;
-}
-
-void D3DPresentEngine::setSurfaceFormat(const QVideoSurfaceFormat &format)
-{
-    QMutexLocker locker(&m_mutex);
-    m_surfaceFormat = format;
-}
-
-void D3DPresentEngine::createOffscreenTexture()
-{
-    // First, check if we have a context on this thread
-    QOpenGLContext *currentContext = QOpenGLContext::currentContext();
-
-    if (!currentContext) {
-        //Create OpenGL context and set share context from surface
-        QOpenGLContext *shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
-        if (!shareContext)
-            return;
-
-        m_offscreenSurface = new QWindow;
-        m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
-        //Needs geometry to be a valid surface, but size is not important
-        m_offscreenSurface->setGeometry(-1, -1, 1, 1);
-        m_offscreenSurface->create();
-
-        m_glContext = new QOpenGLContext;
-        m_glContext->setFormat(m_offscreenSurface->requestedFormat());
-        m_glContext->setShareContext(shareContext);
-
-        if (!m_glContext->create()) {
-            delete m_glContext;
-            delete m_offscreenSurface;
-            m_glContext = 0;
-            m_offscreenSurface = 0;
-            return;
-        }
-
-        currentContext = m_glContext;
-    }
-
-    if (m_glContext)
-        m_glContext->makeCurrent(m_offscreenSurface);
-
-    if (!m_egl)
-        m_egl = new EGLWrapper;
-
-    QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
-    m_eglDisplay = static_cast<EGLDisplay*>(
-                nativeInterface->nativeResourceForContext("eglDisplay", currentContext));
-    m_eglConfig = static_cast<EGLConfig*>(
-                nativeInterface->nativeResourceForContext("eglConfig", currentContext));
-
-    currentContext->functions()->glGenTextures(1, &m_glTexture);
-
-    int w = m_surfaceFormat.frameWidth();
-    int h = m_surfaceFormat.frameHeight();
-    bool hasAlpha = currentContext->format().hasAlpha();
-
-    EGLint attribs[] = {
-        EGL_WIDTH, w,
-        EGL_HEIGHT, h,
-        EGL_TEXTURE_FORMAT, hasAlpha ? EGL_TEXTURE_RGBA : EGL_TEXTURE_RGB,
-        EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
-        EGL_NONE
-    };
-
-    EGLSurface pbuffer = m_egl->createPbufferSurface(m_eglDisplay, m_eglConfig, attribs);
-
-    HANDLE share_handle = 0;
-    PFNEGLQUERYSURFACEPOINTERANGLEPROC eglQuerySurfacePointerANGLE =
-            reinterpret_cast<PFNEGLQUERYSURFACEPOINTERANGLEPROC>(m_egl->getProcAddress("eglQuerySurfacePointerANGLE"));
-    Q_ASSERT(eglQuerySurfacePointerANGLE);
-    eglQuerySurfacePointerANGLE(
-                m_eglDisplay,
-                pbuffer,
-                EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE, &share_handle);
-
-
-    m_device->CreateTexture(w, h, 1,
-                            D3DUSAGE_RENDERTARGET,
-                            hasAlpha ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8,
-                            D3DPOOL_DEFAULT,
-                            &m_texture,
-                            &share_handle);
-
-    m_eglSurface = pbuffer;
-
-    if (m_glContext)
-        m_glContext->doneCurrent();
-}
-
-bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
-{
-    if (!m_texture)
-        return false;
-
-    if (m_glContext)
-        m_glContext->makeCurrent(m_offscreenSurface);
-
-    QOpenGLContext::currentContext()->functions()->glBindTexture(GL_TEXTURE_2D, m_glTexture);
-
-    IDirect3DSurface9 *dest = NULL;
-
-    // Copy the sample surface to the shared D3D/EGL surface
-    HRESULT hr = m_texture->GetSurfaceLevel(0, &dest);
-    if (FAILED(hr))
-        goto done;
-
-    hr = m_device->StretchRect(src, NULL, dest, NULL, D3DTEXF_NONE);
-    if (FAILED(hr))
-        qWarning("Failed to copy D3D surface");
-
-    if (hr == S_OK)
-        m_egl->bindTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
-
-done:
-    qt_evr_safe_release(&dest);
-
-    if (m_glContext)
-        m_glContext->doneCurrent();
-
-    return SUCCEEDED(hr);
 }
 
 HRESULT D3DPresentEngine::initializeD3D()
@@ -520,17 +314,10 @@ HRESULT D3DPresentEngine::createD3DDevice()
 
     IDirect3DDevice9Ex* device = NULL;
 
-    // Hold the lock because we might be discarding an existing device.
-    QMutexLocker locker(&m_mutex);
-
     if (!m_D3D9 || !m_deviceManager)
         return MF_E_NOT_INITIALIZED;
 
     hwnd = ::GetShellWindow();
-
-    // Note: The presenter creates additional swap chains to present the
-    // video frames. Therefore, it does not use the device's implicit
-    // swap chain, so the size of the back buffer here is 1 x 1.
 
     D3DPRESENT_PARAMETERS pp;
     ZeroMemory(&pp, sizeof(pp));
@@ -585,71 +372,267 @@ done:
     return hr;
 }
 
-HRESULT D3DPresentEngine::createD3DSample(IDirect3DSwapChain9 *swapChain, IMFSample **videoSample)
+bool D3DPresentEngine::isValid() const
 {
-    D3DCOLOR clrBlack = D3DCOLOR_ARGB(0xFF, 0x00, 0x00, 0x00);
+    return m_device != NULL;
+}
 
-    IDirect3DSurface9* surface = NULL;
-    IMFSample* sample = NULL;
+void D3DPresentEngine::releaseResources()
+{
+    m_surfaceFormat = QVideoSurfaceFormat();
 
-    // Get the back buffer surface.
-    HRESULT hr = swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &surface);
-    if (FAILED(hr))
-        goto done;
+#ifdef MAYBE_ANGLE
+    qt_evr_safe_release(&m_texture);
 
-    // Fill it with black.
-    hr = m_device->ColorFill(surface, NULL, clrBlack);
-    if (FAILED(hr))
-        goto done;
+    if (m_glResources) {
+        m_glResources->release(); // deleted in GL thread
+        m_glResources = NULL;
+    }
+#endif
+}
 
-    hr = MFCreateVideoSampleFromSurface(surface, &sample);
-    if (FAILED(hr))
-        goto done;
+HRESULT D3DPresentEngine::getService(REFGUID, REFIID riid, void** ppv)
+{
+    HRESULT hr = S_OK;
 
-    *videoSample = sample;
-    (*videoSample)->AddRef();
+    if (riid == __uuidof(IDirect3DDeviceManager9)) {
+        if (m_deviceManager == NULL) {
+            hr = MF_E_UNSUPPORTED_SERVICE;
+        } else {
+            *ppv = m_deviceManager;
+            m_deviceManager->AddRef();
+        }
+    } else {
+        hr = MF_E_UNSUPPORTED_SERVICE;
+    }
 
-done:
-    qt_evr_safe_release(&surface);
-    qt_evr_safe_release(&sample);
     return hr;
 }
 
-HRESULT D3DPresentEngine::getSwapChainPresentParameters(IMFMediaType *type, D3DPRESENT_PARAMETERS* pp)
+HRESULT D3DPresentEngine::checkFormat(D3DFORMAT format)
 {
-    ZeroMemory(pp, sizeof(D3DPRESENT_PARAMETERS));
+    if (!m_D3D9 || !m_device)
+        return E_FAIL;
 
-    // Get some information about the video format.
+    HRESULT hr = S_OK;
 
-    UINT32 width = 0, height = 0;
-
-    HRESULT hr = MFGetAttributeSize(type, MF_MT_FRAME_SIZE, &width, &height);
-    if (FAILED(hr))
-        return hr;
-
-    DWORD d3dFormat = 0;
-
-    hr = qt_evr_getFourCC(type, &d3dFormat);
-    if (FAILED(hr))
-        return hr;
-
-    ZeroMemory(pp, sizeof(D3DPRESENT_PARAMETERS));
-    pp->BackBufferWidth = width;
-    pp->BackBufferHeight = height;
-    pp->Windowed = TRUE;
-    pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-    pp->BackBufferFormat = (D3DFORMAT)d3dFormat;
-    pp->hDeviceWindow = ::GetShellWindow();
-    pp->Flags = D3DPRESENTFLAG_VIDEO;
-    pp->PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
-
+    D3DDISPLAYMODE mode;
     D3DDEVICE_CREATION_PARAMETERS params;
+
     hr = m_device->GetCreationParameters(&params);
     if (FAILED(hr))
         return hr;
 
-    if (params.DeviceType != D3DDEVTYPE_HAL)
-        pp->Flags |= D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
+    UINT uAdapter = params.AdapterOrdinal;
+    D3DDEVTYPE type = params.DeviceType;
 
-    return S_OK;
+    hr = m_D3D9->GetAdapterDisplayMode(uAdapter, &mode);
+    if (FAILED(hr))
+        return hr;
+
+    hr = m_D3D9->CheckDeviceFormat(uAdapter, type, mode.Format,
+                                   D3DUSAGE_RENDERTARGET,
+                                   D3DRTYPE_SURFACE,
+                                   format);
+
+    if (m_useTextureRendering && format != D3DFMT_X8R8G8B8 && format != D3DFMT_A8R8G8B8) {
+        // The texture is always in RGB32 so the d3d driver must support conversion from the
+        // requested format to RGB32.
+        hr = m_D3D9->CheckDeviceFormatConversion(uAdapter, type, format, D3DFMT_X8R8G8B8);
+    }
+
+    return hr;
 }
+
+bool D3DPresentEngine::supportsTextureRendering() const
+{
+#ifdef MAYBE_ANGLE
+    return QMediaOpenGLHelper::isANGLE();
+#else
+    return false;
+#endif
+}
+
+void D3DPresentEngine::setHint(Hint hint, bool enable)
+{
+    if (hint == RenderToTexture)
+        m_useTextureRendering = enable && supportsTextureRendering();
+}
+
+HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSample*> &videoSampleQueue)
+{
+    if (!format)
+        return MF_E_UNEXPECTED;
+
+    HRESULT hr = S_OK;
+
+    IDirect3DSurface9 *surface = NULL;
+    IMFSample *videoSample = NULL;
+
+    releaseResources();
+
+    UINT32 width = 0, height = 0;
+    hr = MFGetAttributeSize(format, MF_MT_FRAME_SIZE, &width, &height);
+    if (FAILED(hr))
+        return hr;
+
+    DWORD d3dFormat = 0;
+    hr = qt_evr_getFourCC(format, &d3dFormat);
+    if (FAILED(hr))
+        return hr;
+
+    // Create the video samples.
+    for (int i = 0; i < PRESENTER_BUFFER_COUNT; i++) {
+        hr = m_device->CreateRenderTarget(width, height,
+                                          (D3DFORMAT)d3dFormat,
+                                          D3DMULTISAMPLE_NONE,
+                                          0,
+                                          TRUE,
+                                          &surface, NULL);
+        if (FAILED(hr))
+            goto done;
+
+        hr = MFCreateVideoSampleFromSurface(surface, &videoSample);
+        if (FAILED(hr))
+            goto done;
+
+        videoSample->AddRef();
+        videoSampleQueue.append(videoSample);
+
+        qt_evr_safe_release(&videoSample);
+        qt_evr_safe_release(&surface);
+    }
+
+done:
+    if (SUCCEEDED(hr)) {
+        m_surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
+                                              m_useTextureRendering ? QVideoFrame::Format_RGB32
+                                                                    : qt_evr_pixelFormatFromD3DFormat((D3DFORMAT)d3dFormat),
+                                              m_useTextureRendering ? QAbstractVideoBuffer::GLTextureHandle
+                                                                    : QAbstractVideoBuffer::NoHandle);
+    } else {
+        releaseResources();
+    }
+
+    qt_evr_safe_release(&videoSample);
+    qt_evr_safe_release(&surface);
+    return hr;
+}
+
+QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
+{
+    if (!sample)
+        return QVideoFrame();
+
+    QVideoFrame frame(new IMFSampleVideoBuffer(this, sample, m_surfaceFormat.handleType()),
+                      m_surfaceFormat.frameSize(),
+                      m_surfaceFormat.pixelFormat());
+
+    // WMF uses 100-nanosecond units, Qt uses microseconds
+    LONGLONG startTime = -1;
+    if (SUCCEEDED(sample->GetSampleTime(&startTime))) {
+        frame.setStartTime(startTime * 0.1);
+
+        LONGLONG duration = -1;
+        if (SUCCEEDED(sample->GetSampleDuration(&duration)))
+            frame.setEndTime((startTime + duration) * 0.1);
+    }
+
+    return frame;
+}
+
+#ifdef MAYBE_ANGLE
+
+bool D3DPresentEngine::createRenderTexture()
+{
+    if (m_texture)
+        return true;
+
+    Q_ASSERT(QOpenGLContext::currentContext() != NULL);
+
+    if (!m_glResources)
+        m_glResources = new OpenGLResources;
+
+    QOpenGLContext *currentContext = QOpenGLContext::currentContext();
+    if (!currentContext)
+        return false;
+
+    QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
+    m_glResources->eglDisplay = static_cast<EGLDisplay*>(
+                nativeInterface->nativeResourceForContext("eglDisplay", currentContext));
+    EGLConfig *eglConfig = static_cast<EGLConfig*>(
+                nativeInterface->nativeResourceForContext("eglConfig", currentContext));
+
+    currentContext->functions()->glGenTextures(1, &m_glResources->glTexture);
+
+    bool hasAlpha = currentContext->format().hasAlpha();
+
+    EGLint attribs[] = {
+        EGL_WIDTH, m_surfaceFormat.frameWidth(),
+        EGL_HEIGHT, m_surfaceFormat.frameHeight(),
+        EGL_TEXTURE_FORMAT, hasAlpha ? EGL_TEXTURE_RGBA : EGL_TEXTURE_RGB,
+        EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
+        EGL_NONE
+    };
+
+    EGLSurface pbuffer = m_glResources->egl->createPbufferSurface(m_glResources->eglDisplay, eglConfig, attribs);
+
+    HANDLE share_handle = 0;
+    PFNEGLQUERYSURFACEPOINTERANGLEPROC eglQuerySurfacePointerANGLE =
+            reinterpret_cast<PFNEGLQUERYSURFACEPOINTERANGLEPROC>(m_glResources->egl->getProcAddress("eglQuerySurfacePointerANGLE"));
+    Q_ASSERT(eglQuerySurfacePointerANGLE);
+    eglQuerySurfacePointerANGLE(
+                m_glResources->eglDisplay,
+                pbuffer,
+                EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE, &share_handle);
+
+
+    m_device->CreateTexture(m_surfaceFormat.frameWidth(), m_surfaceFormat.frameHeight(), 1,
+                            D3DUSAGE_RENDERTARGET,
+                            hasAlpha ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8,
+                            D3DPOOL_DEFAULT,
+                            &m_texture,
+                            &share_handle);
+
+    m_glResources->eglSurface = pbuffer;
+
+    QOpenGLContext::currentContext()->functions()->glBindTexture(GL_TEXTURE_2D, m_glResources->glTexture);
+    m_glResources->egl->bindTexImage(m_glResources->eglDisplay, m_glResources->eglSurface, EGL_BACK_BUFFER);
+
+    return m_texture != NULL;
+}
+
+bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
+{
+    if (!m_texture && !createRenderTexture())
+        return false;
+
+    IDirect3DSurface9 *dest = NULL;
+
+    // Copy the sample surface to the shared D3D/EGL surface
+    HRESULT hr = m_texture->GetSurfaceLevel(0, &dest);
+    if (FAILED(hr))
+        goto done;
+
+    hr = m_device->StretchRect(src, NULL, dest, NULL, D3DTEXF_NONE);
+    if (FAILED(hr)) {
+        qWarning("Failed to copy D3D surface");
+    } else {
+        // Shared surfaces are not synchronized, there's no guarantee that
+        // StretchRect is complete when the texture is later rendered by Qt.
+        // To make sure the next rendered frame is up to date, flush the command pipeline
+        // using an event query.
+        IDirect3DQuery9 *eventQuery = NULL;
+        m_device->CreateQuery(D3DQUERYTYPE_EVENT, &eventQuery);
+        eventQuery->Issue(D3DISSUE_END);
+        while (eventQuery->GetData(NULL, 0, D3DGETDATA_FLUSH) == S_FALSE);
+        eventQuery->Release();
+    }
+
+done:
+    qt_evr_safe_release(&dest);
+
+    return SUCCEEDED(hr);
+}
+
+#endif // MAYBE_ANGLE
