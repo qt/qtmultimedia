@@ -37,29 +37,34 @@
 #include <QtCore/private/qjni_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
 #include "androidsurfacetexture.h"
-#include <QMap>
+#include <QVector>
+#include <QReadWriteLock>
 
 static const char QtAndroidMediaPlayerClassName[] = "org/qtproject/qt5/android/multimedia/QtAndroidMediaPlayer";
-typedef QMap<jlong, AndroidMediaPlayer *> MediaPlayerMap;
-Q_GLOBAL_STATIC(MediaPlayerMap, mediaPlayers)
+typedef QVector<AndroidMediaPlayer *> MediaPlayerList;
+Q_GLOBAL_STATIC(MediaPlayerList, mediaPlayers)
+Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 QT_BEGIN_NAMESPACE
 
 AndroidMediaPlayer::AndroidMediaPlayer()
     : QObject()
 {
-
+    QWriteLocker locker(rwLock);
     const jlong id = reinterpret_cast<jlong>(this);
     mMediaPlayer = QJNIObjectPrivate(QtAndroidMediaPlayerClassName,
                                      "(Landroid/app/Activity;J)V",
                                      QtAndroidPrivate::activity(),
                                      id);
-    (*mediaPlayers)[id] = this;
+    mediaPlayers->append(this);
 }
 
 AndroidMediaPlayer::~AndroidMediaPlayer()
 {
-    mediaPlayers->remove(reinterpret_cast<jlong>(this));
+    QWriteLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(this);
+    Q_ASSERT(i != -1);
+    mediaPlayers->remove(i);
 }
 
 void AndroidMediaPlayer::release()
@@ -154,66 +159,72 @@ static void onErrorNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlon
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    AndroidMediaPlayer *const mp = (*mediaPlayers)[id];
-    if (!mp)
+    QReadLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(reinterpret_cast<AndroidMediaPlayer *>(id));
+    if (Q_UNLIKELY(i == -1))
         return;
 
-    Q_EMIT mp->error(what, extra);
+    Q_EMIT (*mediaPlayers)[i]->error(what, extra);
 }
 
 static void onBufferingUpdateNative(JNIEnv *env, jobject thiz, jint percent, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    AndroidMediaPlayer *const mp = (*mediaPlayers)[id];
-    if (!mp)
+    QReadLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(reinterpret_cast<AndroidMediaPlayer *>(id));
+    if (Q_UNLIKELY(i == -1))
         return;
 
-    Q_EMIT mp->bufferingChanged(percent);
+    Q_EMIT (*mediaPlayers)[i]->bufferingChanged(percent);
 }
 
 static void onProgressUpdateNative(JNIEnv *env, jobject thiz, jint progress, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    AndroidMediaPlayer *const mp = (*mediaPlayers)[id];
-    if (!mp)
+    QReadLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(reinterpret_cast<AndroidMediaPlayer *>(id));
+    if (Q_UNLIKELY(i == -1))
         return;
 
-    Q_EMIT mp->progressChanged(progress);
+    Q_EMIT (*mediaPlayers)[i]->progressChanged(progress);
 }
 
 static void onDurationChangedNative(JNIEnv *env, jobject thiz, jint duration, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    AndroidMediaPlayer *const mp = (*mediaPlayers)[id];
-    if (!mp)
+    QReadLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(reinterpret_cast<AndroidMediaPlayer *>(id));
+    if (Q_UNLIKELY(i == -1))
         return;
 
-    Q_EMIT mp->durationChanged(duration);
+    Q_EMIT (*mediaPlayers)[i]->durationChanged(duration);
 }
 
 static void onInfoNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    AndroidMediaPlayer *const mp = (*mediaPlayers)[id];
-    if (!mp)
+    QReadLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(reinterpret_cast<AndroidMediaPlayer *>(id));
+    if (Q_UNLIKELY(i == -1))
         return;
 
-    Q_EMIT mp->info(what, extra);
+    Q_EMIT (*mediaPlayers)[i]->info(what, extra);
 }
 
 static void onStateChangedNative(JNIEnv *env, jobject thiz, jint state, jlong id)
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    AndroidMediaPlayer *const mp = (*mediaPlayers)[id];
-    if (!mp)
+    QReadLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(reinterpret_cast<AndroidMediaPlayer *>(id));
+    if (Q_UNLIKELY(i == -1))
         return;
 
-    Q_EMIT mp->stateChanged(state);
+    Q_EMIT (*mediaPlayers)[i]->stateChanged(state);
 }
 
 static void onVideoSizeChangedNative(JNIEnv *env,
@@ -224,11 +235,12 @@ static void onVideoSizeChangedNative(JNIEnv *env,
 {
     Q_UNUSED(env);
     Q_UNUSED(thiz);
-    AndroidMediaPlayer *const mp = (*mediaPlayers)[id];
-    if (!mp)
+    QReadLocker locker(rwLock);
+    const int i = mediaPlayers->indexOf(reinterpret_cast<AndroidMediaPlayer *>(id));
+    if (Q_UNLIKELY(i == -1))
         return;
 
-    Q_EMIT mp->videoSizeChanged(width, height);
+    Q_EMIT (*mediaPlayers)[i]->videoSizeChanged(width, height);
 }
 
 bool AndroidMediaPlayer::initJNI(JNIEnv *env)
