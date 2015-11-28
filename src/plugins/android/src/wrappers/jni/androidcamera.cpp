@@ -37,16 +37,18 @@
 
 #include <qstringlist.h>
 #include <qdebug.h>
-#include <qmutex.h>
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/qthread.h>
+#include <QtCore/qreadwritelock.h>
+#include <QtCore/qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
 static const char QtCameraListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtCameraListener";
-static QMutex g_cameraMapMutex;
-typedef QMap<int, AndroidCamera *> CameraMap;
-Q_GLOBAL_STATIC(CameraMap, g_cameraMap)
+
+typedef QHash<int, AndroidCamera *> CameraMap;
+Q_GLOBAL_STATIC(CameraMap, cameras)
+Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 static inline bool exceptionCheckAndClear(JNIEnv *env)
 {
@@ -88,43 +90,49 @@ static QJNIObjectPrivate rectToArea(const QRect &rect)
 // native method for QtCameraLisener.java
 static void notifyAutoFocusComplete(JNIEnv* , jobject, int id, jboolean success)
 {
-    QMutexLocker locker(&g_cameraMapMutex);
-    AndroidCamera *obj = g_cameraMap->value(id, 0);
-    if (obj)
-        Q_EMIT obj->autoFocusComplete(success);
+    QReadLocker locker(rwLock);
+    const auto it = cameras->constFind(id);
+    if (Q_UNLIKELY(it == cameras->cend()))
+        return;
+
+    Q_EMIT (*it)->autoFocusComplete(success);
 }
 
 static void notifyPictureExposed(JNIEnv* , jobject, int id)
 {
-    QMutexLocker locker(&g_cameraMapMutex);
-    AndroidCamera *obj = g_cameraMap->value(id, 0);
-    if (obj)
-        Q_EMIT obj->pictureExposed();
+    QReadLocker locker(rwLock);
+    const auto it = cameras->constFind(id);
+    if (Q_UNLIKELY(it == cameras->cend()))
+        return;
+
+    Q_EMIT (*it)->pictureExposed();
 }
 
 static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 {
-    QMutexLocker locker(&g_cameraMapMutex);
-    AndroidCamera *obj = g_cameraMap->value(id, 0);
-    if (obj) {
-        const int arrayLength = env->GetArrayLength(data);
-        QByteArray bytes(arrayLength, Qt::Uninitialized);
-        env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
-        Q_EMIT obj->pictureCaptured(bytes);
-    }
+    QReadLocker locker(rwLock);
+    const auto it = cameras->constFind(id);
+    if (Q_UNLIKELY(it == cameras->cend()))
+        return;
+
+    const int arrayLength = env->GetArrayLength(data);
+    QByteArray bytes(arrayLength, Qt::Uninitialized);
+    env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
+    Q_EMIT (*it)->pictureCaptured(bytes);
 }
 
 static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data, int width, int height)
 {
-    QMutexLocker locker(&g_cameraMapMutex);
-    AndroidCamera *obj = g_cameraMap->value(id, 0);
-    if (obj) {
-        const int arrayLength = env->GetArrayLength(data);
-        QByteArray bytes(arrayLength, Qt::Uninitialized);
-        env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
+    QReadLocker locker(rwLock);
+    const auto it = cameras->constFind(id);
+    if (Q_UNLIKELY(it == cameras->cend()))
+        return;
 
-        Q_EMIT obj->newPreviewFrame(bytes, width, height);
-    }
+    const int arrayLength = env->GetArrayLength(data);
+    QByteArray bytes(arrayLength, Qt::Uninitialized);
+    env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
+
+    Q_EMIT (*it)->newPreviewFrame(bytes, width, height);
 }
 
 class AndroidCameraPrivate : public QObject
@@ -255,12 +263,11 @@ AndroidCamera::~AndroidCamera()
 {
     Q_D(AndroidCamera);
     if (d->m_camera.isValid()) {
-        g_cameraMapMutex.lock();
-        g_cameraMap->remove(d->m_cameraId);
-        g_cameraMapMutex.unlock();
+        release();
+        QWriteLocker locker(rwLock);
+        cameras->remove(cameraId());
     }
 
-    release();
     m_worker->exit();
     m_worker->wait(5000);
 }
@@ -283,9 +290,9 @@ AndroidCamera *AndroidCamera::open(int cameraId)
     }
 
     AndroidCamera *q = new AndroidCamera(d, worker);
-    g_cameraMapMutex.lock();
-    g_cameraMap->insert(cameraId, q);
-    g_cameraMapMutex.unlock();
+    QWriteLocker locker(rwLock);
+    cameras->insert(cameraId, q);
+
     return q;
 }
 
