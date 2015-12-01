@@ -27,16 +27,33 @@
 
 /*!
     \module QtMultimedia
-    \title Qt Multimedia C++ Classes
+    \title Qt Multimedia Module C++ Classes
     \ingroup modules
     \qtvariable multimedia
 
     \brief The \l {Qt Multimedia} module provides audio, video, radio and camera
     functionality.
+*/
+
+/*!
+    \page qtmultimedia-modules.html
+    \title Qt Multimedia C++ Classes
+    \brief Provides C++ class for multimedia use cases.
 
     The C++ classes provide more control over the multimedia content than the
     QML alternatives. If your application is serving complex use cases such as
     decoding media files, accessing video or audio buffers, use the C++
     alternative. For more details about the complex audio, video, and camera use
     cases supported by the C++ classes, refer to \l {Multimedia}{Multimedia Overview}.
+
+    \section1 Namespaces
+    \annotatedlist multimedia-namespaces
+
+    \section1 Classes
+
+    \section2 Qt Multimedia Module
+    \generatelist {classesbymodule QtMultimedia}
+
+    \section2 Qt Multimedia Widgets Module
+    \generatelist {classesbymodule QtMultimediaWidgets}
 */

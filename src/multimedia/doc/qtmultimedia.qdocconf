@@ -18,17 +18,23 @@ qhp.QtMultimedia.indexTitle = Qt Multimedia
 qhp.QtMultimedia.virtualFolder  = qtmultimedia
 
 # For listing child nodes in Qt Creator or Assistant.
-qhp.QtMultimedia.subprojects = classes qmltypes
+qhp.QtMultimedia.subprojects = classes qmltypes examples
 qhp.QtMultimedia.subprojects.classes.title = C++ Classes
 qhp.QtMultimedia.subprojects.classes.indexTitle = Qt Multimedia C++ Classes
 qhp.QtMultimedia.subprojects.classes.selectors = class fake:headerfile
 qhp.QtMultimedia.subprojects.classes.sortPages = true
+
 qhp.QtMultimedia.subprojects.qmltypes.title = QML Types
 qhp.QtMultimedia.subprojects.qmltypes.indexTitle = Qt Multimedia QML Types
 qhp.QtMultimedia.subprojects.qmltypes.selectors = qmlclass
 qhp.QtMultimedia.subprojects.qmltypes.sortPages = true
 
-exampledirs += ../../../examples/multimedia \
+qhp.QtMultimedia.subprojects.examples.title = Examples
+qhp.QtMultimedia.subprojects.examples.indexTitle = Qt Multimedia Examples
+qhp.QtMultimedia.subprojects.examples.selectors = doc:example
+qhp.QtMultimedia.subprojects.examples.sortPages = true
+
+exampledirs += ../../../examples \
                snippets
 
 # Specify example install dir under QT_INSTALL_EXAMPLES
@@ -40,9 +46,9 @@ imagedirs += src/images \
 
 sourcedirs += ../..
 
-excludedirs += ../../multimediawidgets
+#excludedirs += ../../multimediawidgets
 
-depends                 += qtcore qtdoc qtgui qtquick qtqml qtmultimediawidgets qtwidgets
+depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets
 
 navigation.landingpage = "Qt Multimedia"
 navigation.cppclassespage = "Qt Multimedia C++ Classes"

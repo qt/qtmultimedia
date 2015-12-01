@@ -7,8 +7,6 @@ qtHaveModule(opengl):!contains(QT_CONFIG, opengles1) {
    DEFINES += QT_NO_OPENGL
 }
 
-QMAKE_DOCS = $$PWD/doc/qtmultimediawidgets.qdocconf
-
 load(qt_module)
 
 PRIVATE_HEADERS += \

@@ -49,6 +49,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
 
 /*!
     \namespace QAudio
+    \ingroup multimedia-namespaces
     \brief The QAudio namespace contains enums used by the audio classes.
     \inmodule QtMultimedia
     \ingroup multimedia
