@@ -8,5 +8,3 @@ CONFIG += testcase
 SOURCES += tst_qsound.cpp
 
 TESTDATA += test.wav
-
-win32: CONFIG += insignificant_test
