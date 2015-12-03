@@ -194,8 +194,9 @@ void QSampleCache::setCapacity(qint64 capacity)
             if (sample->m_ref == 0) {
                 unloadSample(sample);
                 it = m_samples.erase(it);
-            } else
-                it++;
+            } else {
+                ++it;
+            }
         }
     }
 
