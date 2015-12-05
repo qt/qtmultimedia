@@ -130,6 +130,9 @@ private:
             : minimumValue(0)
             , maximumValue(0)
             , defaultValue(0)
+            , currentValue(0)
+            , capsFlags(0)
+            , hasBeenExplicitlySet(false)
             , videoProcAmpProperty(VideoProcAmp_Brightness)
         {
         }
@@ -137,6 +140,9 @@ private:
         LONG minimumValue;
         LONG maximumValue;
         LONG defaultValue;
+        LONG currentValue;
+        LONG capsFlags;
+        bool hasBeenExplicitlySet;
         VideoProcAmpProperty videoProcAmpProperty;
     };
 

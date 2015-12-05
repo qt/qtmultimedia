@@ -259,30 +259,74 @@ qint32 DSCameraSession::sourceImageProcessingParameterValue(
     }
 }
 
+static QCameraImageProcessingControl::ProcessingParameter searchRelatedResultingParameter(
+        QCameraImageProcessingControl::ProcessingParameter sourceParameter)
+{
+    if (sourceParameter == QCameraImageProcessingControl::WhiteBalancePreset)
+        return QCameraImageProcessingControl::ColorTemperature;
+    return sourceParameter;
+}
+
 bool DSCameraSession::isImageProcessingParameterSupported(
         QCameraImageProcessingControl::ProcessingParameter parameter) const
 {
-    return m_imageProcessingParametersInfos.contains(parameter);
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
+    return m_imageProcessingParametersInfos.contains(resultingParameter);
 }
 
 bool DSCameraSession::isImageProcessingParameterValueSupported(
         QCameraImageProcessingControl::ProcessingParameter parameter,
         const QVariant &value) const
 {
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
     QMap<QCameraImageProcessingControl::ProcessingParameter,
             ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
-            m_imageProcessingParametersInfos.constFind(parameter);
+            m_imageProcessingParametersInfos.constFind(resultingParameter);
 
     if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
         return false;
 
-    // This conversion is required only for сontrast, saturation
-    // brightness, and sharpening.
-    const qint32 sourceValue = sourceImageProcessingParameterValue(
-                value.toReal(), (*sourceValueInfo));
-    if (sourceValue < (*sourceValueInfo).minimumValue
-            || sourceValue > (*sourceValueInfo).maximumValue)
+    switch (parameter) {
+
+    case QCameraImageProcessingControl::WhiteBalancePreset: {
+        const QCameraImageProcessing::WhiteBalanceMode checkedValue =
+                value.value<QCameraImageProcessing::WhiteBalanceMode>();
+        // Supports only the Manual and the Auto values
+        if (checkedValue != QCameraImageProcessing::WhiteBalanceManual
+                && checkedValue != QCameraImageProcessing::WhiteBalanceAuto) {
+            return false;
+        }
+    }
+        break;
+
+    case QCameraImageProcessingControl::ColorTemperature: {
+        const qint32 checkedValue = value.toInt();
+        if (checkedValue < (*sourceValueInfo).minimumValue
+                || checkedValue > (*sourceValueInfo).maximumValue) {
+            return false;
+        }
+    }
+        break;
+
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment: {
+        const qint32 sourceValue = sourceImageProcessingParameterValue(
+                    value.toReal(), (*sourceValueInfo));
+        if (sourceValue < (*sourceValueInfo).minimumValue
+                || sourceValue > (*sourceValueInfo).maximumValue)
+            return false;
+    }
+        break;
+
+    default:
         return false;
+    }
 
     return true;
 }
@@ -295,9 +339,12 @@ QVariant DSCameraSession::imageProcessingParameter(
         return QVariant();
     }
 
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
     QMap<QCameraImageProcessingControl::ProcessingParameter,
             ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
-            m_imageProcessingParametersInfos.constFind(parameter);
+            m_imageProcessingParametersInfos.constFind(resultingParameter);
 
     if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
         return QVariant();
@@ -317,12 +364,12 @@ QVariant DSCameraSession::imageProcessingParameter(
     }
 
     LONG sourceValue = 0;
-    LONG valueFlags = 0;
+    LONG capsFlags = 0;
 
     hr = pVideoProcAmp->Get(
                 (*sourceValueInfo).videoProcAmpProperty,
                 &sourceValue,
-                &valueFlags);
+                &capsFlags);
 
     pVideoProcAmp->Release();
 
@@ -331,10 +378,27 @@ QVariant DSCameraSession::imageProcessingParameter(
         return QVariant();
     }
 
-    // This conversion is required only for сontrast, saturation
-    // brightness, and sharpening.
-    return scaledImageProcessingParameterValue(
-                sourceValue, (*sourceValueInfo));
+    switch (parameter) {
+
+    case QCameraImageProcessingControl::WhiteBalancePreset:
+        return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(
+                    capsFlags == VideoProcAmp_Flags_Auto
+                    ? QCameraImageProcessing::WhiteBalanceAuto
+                    : QCameraImageProcessing::WhiteBalanceManual);
+
+    case QCameraImageProcessingControl::ColorTemperature:
+        return QVariant::fromValue<qint32>(sourceValue);
+
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment:
+        return scaledImageProcessingParameterValue(
+                    sourceValue, (*sourceValueInfo));
+
+    default:
+        return QVariant();
+    }
 }
 
 void DSCameraSession::setImageProcessingParameter(
@@ -346,20 +410,59 @@ void DSCameraSession::setImageProcessingParameter(
         return;
     }
 
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
     QMap<QCameraImageProcessingControl::ProcessingParameter,
-            ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
-            m_imageProcessingParametersInfos.constFind(parameter);
+            ImageProcessingParameterInfo>::iterator sourceValueInfo =
+            m_imageProcessingParametersInfos.find(resultingParameter);
 
     if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
         return;
 
     LONG sourceValue = 0;
-    LONG valueFlags = VideoProcAmp_Flags_Manual;
+    LONG capsFlags = VideoProcAmp_Flags_Manual;
 
-    // This conversion is required only for сontrast, saturation
-    // brightness, and sharpening.
-    sourceValue = sourceImageProcessingParameterValue(
-                value.toReal(), (*sourceValueInfo));
+    switch (parameter) {
+
+    case QCameraImageProcessingControl::WhiteBalancePreset: {
+        const QCameraImageProcessing::WhiteBalanceMode checkedValue =
+                value.value<QCameraImageProcessing::WhiteBalanceMode>();
+        // Supports only the Manual and the Auto values
+        if (checkedValue == QCameraImageProcessing::WhiteBalanceManual)
+            capsFlags = VideoProcAmp_Flags_Manual;
+        else if (checkedValue == QCameraImageProcessing::WhiteBalanceAuto)
+            capsFlags = VideoProcAmp_Flags_Auto;
+        else
+            return;
+
+        sourceValue = ((*sourceValueInfo).hasBeenExplicitlySet)
+                ? (*sourceValueInfo).currentValue
+                : (*sourceValueInfo).defaultValue;
+    }
+        break;
+
+    case QCameraImageProcessingControl::ColorTemperature:
+        sourceValue = value.isValid() ?
+                    value.value<qint32>() : (*sourceValueInfo).defaultValue;
+        capsFlags = (*sourceValueInfo).capsFlags;
+        break;
+
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment:
+        if (value.isValid()) {
+            sourceValue = sourceImageProcessingParameterValue(
+                        value.toReal(), (*sourceValueInfo));
+        } else {
+            sourceValue = (*sourceValueInfo).defaultValue;
+        }
+        break;
+
+    default:
+        return;
+    }
 
     IAMVideoProcAmp *pVideoProcAmp = NULL;
     HRESULT hr = m_graphBuilder->FindInterface(
@@ -378,12 +481,17 @@ void DSCameraSession::setImageProcessingParameter(
     hr = pVideoProcAmp->Set(
                 (*sourceValueInfo).videoProcAmpProperty,
                 sourceValue,
-                valueFlags);
+                capsFlags);
 
     pVideoProcAmp->Release();
 
-    if (FAILED(hr))
+    if (FAILED(hr)) {
         qWarning() << "failed to set the parameter value";
+    } else {
+        (*sourceValueInfo).capsFlags = capsFlags;
+        (*sourceValueInfo).hasBeenExplicitlySet = true;
+        (*sourceValueInfo).currentValue = sourceValue;
+    }
 }
 
 bool DSCameraSession::load()
@@ -914,13 +1022,15 @@ void DSCameraSession::updateImageProcessingParametersInfos()
         case VideoProcAmp_Sharpness:
             processingParameter = QCameraImageProcessingControl::SharpeningAdjustment;
             break;
+        case VideoProcAmp_WhiteBalance:
+            processingParameter = QCameraImageProcessingControl::ColorTemperature;
+            break;
         default: // unsupported or not implemented yet parameter
             continue;
         }
 
         ImageProcessingParameterInfo sourceValueInfo;
         LONG steppingDelta = 0;
-        LONG capsFlags = 0;
 
         const HRESULT hr = pVideoProcAmp->GetRange(
                     property,
@@ -928,7 +1038,7 @@ void DSCameraSession::updateImageProcessingParametersInfos()
                     &sourceValueInfo.maximumValue,
                     &steppingDelta,
                     &sourceValueInfo.defaultValue,
-                    &capsFlags);
+                    &sourceValueInfo.capsFlags);
 
         if (FAILED(hr))
             continue;
