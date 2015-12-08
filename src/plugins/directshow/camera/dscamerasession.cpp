@@ -231,16 +231,16 @@ void DSCameraSession::setViewfinderSettings(const QCameraViewfinderSettings &set
 }
 
 qreal DSCameraSession::scaledImageProcessingParameterValue(
-        qint32 sourceValue, const ImageProcessingParameterInfo &sourceValueInfo)
+        const ImageProcessingParameterInfo &sourceValueInfo)
 {
-    if (sourceValue == sourceValueInfo.defaultValue) {
+    if (sourceValueInfo.currentValue == sourceValueInfo.defaultValue) {
         return 0.0f;
-    } else if (sourceValue < sourceValueInfo.defaultValue) {
-        return ((sourceValue - sourceValueInfo.minimumValue)
+    } else if (sourceValueInfo.currentValue < sourceValueInfo.defaultValue) {
+        return ((sourceValueInfo.currentValue - sourceValueInfo.minimumValue)
                 / qreal(sourceValueInfo.defaultValue - sourceValueInfo.minimumValue))
                 + (-1.0f);
     } else {
-        return ((sourceValue - sourceValueInfo.defaultValue)
+        return ((sourceValueInfo.currentValue - sourceValueInfo.defaultValue)
                 / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
     }
 }
@@ -349,52 +349,22 @@ QVariant DSCameraSession::imageProcessingParameter(
     if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
         return QVariant();
 
-    IAMVideoProcAmp *pVideoProcAmp = NULL;
-    HRESULT hr = m_graphBuilder->FindInterface(
-                NULL,
-                NULL,
-                m_sourceFilter,
-                IID_IAMVideoProcAmp,
-                reinterpret_cast<void**>(&pVideoProcAmp)
-                );
-
-    if (FAILED(hr) || !pVideoProcAmp) {
-        qWarning() << "failed to find the video proc amp";
-        return QVariant();
-    }
-
-    LONG sourceValue = 0;
-    LONG capsFlags = 0;
-
-    hr = pVideoProcAmp->Get(
-                (*sourceValueInfo).videoProcAmpProperty,
-                &sourceValue,
-                &capsFlags);
-
-    pVideoProcAmp->Release();
-
-    if (FAILED(hr)) {
-        qWarning() << "failed to get the parameter value";
-        return QVariant();
-    }
-
     switch (parameter) {
 
     case QCameraImageProcessingControl::WhiteBalancePreset:
         return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(
-                    capsFlags == VideoProcAmp_Flags_Auto
+                    (*sourceValueInfo).capsFlags == VideoProcAmp_Flags_Auto
                     ? QCameraImageProcessing::WhiteBalanceAuto
                     : QCameraImageProcessing::WhiteBalanceManual);
 
     case QCameraImageProcessingControl::ColorTemperature:
-        return QVariant::fromValue<qint32>(sourceValue);
+        return QVariant::fromValue<qint32>((*sourceValueInfo).currentValue);
 
     case QCameraImageProcessingControl::ContrastAdjustment: // falling back
     case QCameraImageProcessingControl::SaturationAdjustment: // falling back
     case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
     case QCameraImageProcessingControl::SharpeningAdjustment:
-        return scaledImageProcessingParameterValue(
-                    sourceValue, (*sourceValueInfo));
+        return scaledImageProcessingParameterValue((*sourceValueInfo));
 
     default:
         return QVariant();
@@ -1032,12 +1002,20 @@ void DSCameraSession::updateImageProcessingParametersInfos()
         ImageProcessingParameterInfo sourceValueInfo;
         LONG steppingDelta = 0;
 
-        const HRESULT hr = pVideoProcAmp->GetRange(
+        HRESULT hr = pVideoProcAmp->GetRange(
                     property,
                     &sourceValueInfo.minimumValue,
                     &sourceValueInfo.maximumValue,
                     &steppingDelta,
                     &sourceValueInfo.defaultValue,
+                    &sourceValueInfo.capsFlags);
+
+        if (FAILED(hr))
+            continue;
+
+        hr = pVideoProcAmp->Get(
+                    property,
+                    &sourceValueInfo.currentValue,
                     &sourceValueInfo.capsFlags);
 
         if (FAILED(hr))
