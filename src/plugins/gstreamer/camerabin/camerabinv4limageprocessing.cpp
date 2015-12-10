@@ -92,6 +92,19 @@ bool CameraBinV4LImageProcessing::isParameterValueSupported(
     }
         break;
 
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment: {
+        const qint32 sourceValue = sourceImageProcessingParameterValue(
+                    value.toReal(), (*sourceValueInfo));
+        if (sourceValue < (*sourceValueInfo).minimumValue
+                || sourceValue > (*sourceValueInfo).maximumValue) {
+            return false;
+        }
+    }
+        break;
+
     default:
         return false;
     }
@@ -140,6 +153,14 @@ QVariant CameraBinV4LImageProcessing::parameter(
     case QCameraImageProcessingControl::ColorTemperature:
         return QVariant::fromValue<qint32>(control.value);
 
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment: {
+        return scaledImageProcessingParameterValue(
+                    control.value, (*sourceValueInfo));
+    }
+
     default:
         return QVariant();
     }
@@ -184,6 +205,14 @@ void CameraBinV4LImageProcessing::setParameter(
         control.value = value.toInt();
         break;
 
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment:
+        control.value = sourceImageProcessingParameterValue(
+                    value.toReal(), (*sourceValueInfo));
+        break;
+
     default:
         return;
     }
@@ -213,7 +242,11 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
             QCameraImageProcessingControl::ProcessingParameter parameter;
         } supportedParametersEntries[] = {
             { V4L2_CID_AUTO_WHITE_BALANCE, QCameraImageProcessingControl::WhiteBalancePreset },
-            { V4L2_CID_WHITE_BALANCE_TEMPERATURE, QCameraImageProcessingControl::ColorTemperature }
+            { V4L2_CID_WHITE_BALANCE_TEMPERATURE, QCameraImageProcessingControl::ColorTemperature },
+            { V4L2_CID_CONTRAST, QCameraImageProcessingControl::ContrastAdjustment },
+            { V4L2_CID_SATURATION, QCameraImageProcessingControl::SaturationAdjustment },
+            { V4L2_CID_BRIGHTNESS, QCameraImageProcessingControl::BrightnessAdjustment },
+            { V4L2_CID_SHARPNESS, QCameraImageProcessingControl::SharpeningAdjustment }
         };
 
         for (int i = 0; i < int(sizeof(supportedParametersEntries) / sizeof(SupportedParameterEntry)); ++i) {
@@ -236,6 +269,35 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
         }
 
         qt_safe_close(fd);
+    }
+}
+
+qreal CameraBinV4LImageProcessing::scaledImageProcessingParameterValue(
+        qint32 sourceValue, const SourceParameterValueInfo &sourceValueInfo)
+{
+    if (sourceValue == sourceValueInfo.defaultValue) {
+        return 0.0f;
+    } else if (sourceValue < sourceValueInfo.defaultValue) {
+        return ((sourceValue - sourceValueInfo.minimumValue)
+                / qreal(sourceValueInfo.defaultValue - sourceValueInfo.minimumValue))
+                + (-1.0f);
+    } else {
+        return ((sourceValue - sourceValueInfo.defaultValue)
+                / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
+    }
+}
+
+qint32 CameraBinV4LImageProcessing::sourceImageProcessingParameterValue(
+        qreal scaledValue, const SourceParameterValueInfo &valueRange)
+{
+    if (qFuzzyIsNull(scaledValue)) {
+        return valueRange.defaultValue;
+    } else if (scaledValue < 0.0f) {
+        return ((scaledValue - (-1.0f)) * (valueRange.defaultValue - valueRange.minimumValue))
+                + valueRange.minimumValue;
+    } else {
+        return (scaledValue * (valueRange.maximumValue - valueRange.defaultValue))
+                + valueRange.defaultValue;
     }
 }
 

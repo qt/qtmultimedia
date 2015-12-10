@@ -70,6 +70,10 @@ private:
         quint32 cid; // V4L control id
     };
 
+    static qreal scaledImageProcessingParameterValue(
+            qint32 sourceValue, const SourceParameterValueInfo &sourceValueInfo);
+    static qint32 sourceImageProcessingParameterValue(
+            qreal scaledValue, const SourceParameterValueInfo &valueRange);
 private:
     CameraBinSession *m_session;
     QMap<ProcessingParameter, SourceParameterValueInfo> m_parametersInfo;

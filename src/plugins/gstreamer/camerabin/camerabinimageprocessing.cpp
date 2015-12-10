@@ -234,8 +234,22 @@ bool CameraBinImageProcessing::isParameterValueSupported(QCameraImageProcessingC
     switch (parameter) {
     case ContrastAdjustment:
     case BrightnessAdjustment:
-    case SaturationAdjustment:
-        return GST_IS_COLOR_BALANCE(m_session->cameraBin()) && qAbs(value.toReal()) <= 1.0;
+    case SaturationAdjustment: {
+        const bool isGstColorBalanceValueSupported = GST_IS_COLOR_BALANCE(m_session->cameraBin())
+                && qAbs(value.toReal()) <= 1.0;
+#ifdef USE_V4L
+        if (!isGstColorBalanceValueSupported)
+            return m_v4lImageControl->isParameterValueSupported(parameter, value);
+#endif
+        return isGstColorBalanceValueSupported;
+    }
+    case SharpeningAdjustment: {
+#ifdef USE_V4L
+        return m_v4lImageControl->isParameterValueSupported(parameter, value);
+#else
+        return false;
+#endif
+    }
     case WhiteBalancePreset: {
         const QCameraImageProcessing::WhiteBalanceMode mode =
                 value.value<QCameraImageProcessing::WhiteBalanceMode>();
@@ -303,10 +317,22 @@ QVariant CameraBinImageProcessing::parameter(
         }
 #endif
         return QVariant::fromValue(QCameraImageProcessing::ColorFilterNone);
-    default:
-        return m_values.contains(parameter)
+    default: {
+        const bool isGstParameterSupported = m_values.contains(parameter);
+#ifdef USE_V4L
+        if (!isGstParameterSupported) {
+            if (parameter == QCameraImageProcessingControl::BrightnessAdjustment
+                    || parameter == QCameraImageProcessingControl::ContrastAdjustment
+                    || parameter == QCameraImageProcessingControl::SaturationAdjustment
+                    || parameter == QCameraImageProcessingControl::SharpeningAdjustment) {
+                return m_v4lImageControl->parameter(parameter);
+            }
+        }
+#endif
+        return isGstParameterSupported
                 ? QVariant(m_values.value(parameter))
                 : QVariant();
+    }
     }
 }
 
@@ -314,14 +340,35 @@ void CameraBinImageProcessing::setParameter(QCameraImageProcessingControl::Proce
         const QVariant &value)
 {
     switch (parameter) {
-    case ContrastAdjustment:
-        setColorBalanceValue("contrast", value.toReal());
+    case ContrastAdjustment: {
+        if (!setColorBalanceValue("contrast", value.toReal())) {
+#ifdef USE_V4L
+            m_v4lImageControl->setParameter(parameter, value);
+#endif
+        }
+    }
         break;
-    case BrightnessAdjustment:
-        setColorBalanceValue("brightness", value.toReal());
+    case BrightnessAdjustment: {
+        if (!setColorBalanceValue("brightness", value.toReal())) {
+#ifdef USE_V4L
+            m_v4lImageControl->setParameter(parameter, value);
+#endif
+        }
+    }
         break;
-    case SaturationAdjustment:
-        setColorBalanceValue("saturation", value.toReal());
+    case SaturationAdjustment: {
+        if (!setColorBalanceValue("saturation", value.toReal())) {
+#ifdef USE_V4L
+            m_v4lImageControl->setParameter(parameter, value);
+#endif
+        }
+    }
+        break;
+    case SharpeningAdjustment: {
+#ifdef USE_V4L
+        m_v4lImageControl->setParameter(parameter, value);
+#endif
+    }
         break;
     case WhiteBalancePreset: {
         if (!setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>())) {
