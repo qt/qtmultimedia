@@ -34,7 +34,7 @@
 #include "avfvideorenderercontrol.h"
 #include "avfdisplaylink.h"
 
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 #include "avfvideoframerenderer_ios.h"
 #else
 #include "avfvideoframerenderer.h"
@@ -52,7 +52,7 @@
 
 QT_USE_NAMESPACE
 
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 class TextureCacheVideoBuffer : public QAbstractVideoBuffer
 {
 public:
@@ -164,7 +164,7 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
     //Surface changed, so we need a new frame renderer
     m_frameRenderer = new AVFVideoFrameRenderer(m_surface, this);
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
     if (m_playerLayer) {
         m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(m_playerLayer));
     }
@@ -195,7 +195,7 @@ void AVFVideoRendererControl::setLayer(void *playerLayer)
     if (m_surface && m_surface->isActive())
         m_surface->stop();
 
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
     if (m_frameRenderer) {
         m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(playerLayer));
     }
@@ -230,7 +230,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
         return;
 
     if (m_enableOpenGL) {
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
         CVOGLTextureRef tex = m_frameRenderer->renderLayerToTexture(playerLayer);
 
         //Make sure we got a valid texture
@@ -254,7 +254,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 
             if (!m_surface->isActive()) {
                 QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::GLTextureHandle);
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
                 format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
 #else
                 format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);

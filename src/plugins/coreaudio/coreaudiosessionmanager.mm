@@ -274,7 +274,9 @@ bool CoreAudioSessionManager::setCategory(CoreAudioSessionManager::AudioSessionC
         targetCategory = AVAudioSessionCategoryPlayAndRecord;
         break;
     case CoreAudioSessionManager::AudioProcessing:
+#ifndef Q_OS_TVOS
         targetCategory = AVAudioSessionCategoryAudioProcessing;
+#endif
         break;
     case CoreAudioSessionManager::MultiRoute:
 #if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
@@ -348,8 +350,10 @@ CoreAudioSessionManager::AudioSessionCategorys CoreAudioSessionManager::category
         localCategory = Record;
     } else if (category == AVAudioSessionCategoryPlayAndRecord) {
         localCategory = PlayAndRecord;
+#ifndef Q_OS_TVOS
     } else if (category == AVAudioSessionCategoryAudioProcessing) {
         localCategory = AudioProcessing;
+#endif
     } else if (
 #if QT_IOS_DEPLOYMENT_TARGET_BELOW(__IPHONE_6_0)
                QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_6_0 &&

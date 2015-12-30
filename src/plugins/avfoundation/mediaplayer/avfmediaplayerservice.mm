@@ -62,7 +62,7 @@ AVFMediaPlayerService::AVFMediaPlayerService(QObject *parent)
     // AVPlayerItemVideoOutput is available in SDK
     #if QT_MAC_DEPLOYMENT_TARGET_BELOW(__MAC_10_8, __IPHONE_6_0)
     // might not be available at runtime
-        #if defined(Q_OS_IOS)
+        #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
             m_enableRenderControl = [AVPlayerItemVideoOutput class] != 0;
         #endif
     #endif

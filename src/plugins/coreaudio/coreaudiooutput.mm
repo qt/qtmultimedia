@@ -45,7 +45,7 @@
 # include <CoreServices/CoreServices.h>
 #endif
 
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 # include <QtMultimedia/private/qaudiohelpers_p.h>
 #endif
 
@@ -504,7 +504,7 @@ OSStatus CoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFl
         if (framesRead > 0) {
             ioData->mBuffers[0].mDataByteSize = framesRead * bytesPerFrame;
             d->m_totalFrames += framesRead;
-#ifdef Q_OS_IOS
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
         // on iOS we have to adjust the sound volume ourselves
         if (!qFuzzyCompare(d->m_cachedVolume, qreal(1.0f))) {
             QAudioHelperInternal::qMultiplySamples(d->m_cachedVolume,

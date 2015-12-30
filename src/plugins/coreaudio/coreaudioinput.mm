@@ -39,7 +39,7 @@
 # include <CoreServices/CoreServices.h>
 #endif
 
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 # include "coreaudiosessionmanager.h"
 #endif
 

@@ -53,7 +53,7 @@ class QAbstractVideoSurface;
 typedef struct __CVBuffer *CVBufferRef;
 typedef CVBufferRef CVImageBufferRef;
 typedef CVImageBufferRef CVPixelBufferRef;
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 typedef struct __CVOpenGLESTextureCache *CVOpenGLESTextureCacheRef;
 typedef CVImageBufferRef CVOpenGLESTextureRef;
 // helpers to avoid boring if def

@@ -37,7 +37,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
 
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 #include <CoreVideo/CVBase.h>
 #else
 #include <QuartzCore/CVDisplayLink.h>
@@ -68,7 +68,7 @@ protected:
     virtual bool event(QEvent *);
 
 private:
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
     void *m_displayLink;
 #else
     CVDisplayLinkRef m_displayLink;

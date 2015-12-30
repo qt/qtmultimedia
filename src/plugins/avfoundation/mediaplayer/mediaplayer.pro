@@ -11,7 +11,7 @@ PLUGIN_TYPE = mediaservice
 PLUGIN_CLASS_NAME = AVFMediaPlayerServicePlugin
 load(qt_plugin)
 
-LIBS += -framework AVFoundation -framework CoreMedia
+LIBS += -framework AVFoundation -framework CoreMedia -framework CoreVideo -framework QuartzCore
 
 DEFINES += QMEDIA_AVF_MEDIAPLAYER
 
@@ -44,7 +44,7 @@ OBJECTIVE_SOURCES += \
             avfvideowidget.mm
     }
 
-ios {
+ios|tvos {
     contains(QT_CONFIG, opengl.*) {
         HEADERS += \
             avfvideoframerenderer_ios.h \
@@ -56,8 +56,9 @@ ios {
             avfvideorenderercontrol.mm \
             avfdisplaylink.mm
     }
+    LIBS += -framework Foundation
 } else {
-    LIBS += -framework QuartzCore -framework AppKit
+    LIBS += -framework AppKit
 
     contains(QT_CONFIG, opengl.*) {
         HEADERS += \
