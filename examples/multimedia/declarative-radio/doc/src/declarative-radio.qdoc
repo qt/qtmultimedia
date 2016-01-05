@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example declarative-radio
+    \example multimedia/declarative-radio
     \title Declarative Radio Example
     \brief Demonstrates using the Radio QML type from Qt Multimedia.
     \ingroup multimedia_examples

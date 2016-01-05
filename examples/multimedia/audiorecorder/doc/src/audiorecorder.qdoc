@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example audiorecorder
+    \example multimedia/audiorecorder
     \title Audio Recorder Example
     \ingroup multimedia_examples
     \brief Discovering the available devices and supported codecs.
