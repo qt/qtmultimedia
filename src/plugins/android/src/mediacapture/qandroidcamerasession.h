@@ -121,11 +121,13 @@ private Q_SLOTS:
 
     void onApplicationStateChanged(Qt::ApplicationState state);
 
+    void onCameraTakePictureFailed();
     void onCameraPictureExposed();
     void onCameraPictureCaptured(const QByteArray &data);
     void onLastPreviewFrameFetched(const QVideoFrame &frame);
     void onNewPreviewFrame(const QVideoFrame &frame);
     void onCameraPreviewStarted();
+    void onCameraPreviewFailedToStart();
     void onCameraPreviewStopped();
 
 private:

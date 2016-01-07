@@ -182,6 +182,8 @@ bool QAndroidCameraSession::open()
         connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
         connect(m_camera, SIGNAL(previewStarted()), this, SLOT(onCameraPreviewStarted()));
         connect(m_camera, SIGNAL(previewStopped()), this, SLOT(onCameraPreviewStopped()));
+        connect(m_camera, &AndroidCamera::previewFailedToStart, this, &QAndroidCameraSession::onCameraPreviewFailedToStart);
+        connect(m_camera, &AndroidCamera::takePictureFailed, this, &QAndroidCameraSession::onCameraTakePictureFailed);
 
         m_nativeOrientation = m_camera->getNativeOrientation();
 
@@ -546,6 +548,12 @@ void QAndroidCameraSession::cancelCapture()
     m_captureCanceled = true;
 }
 
+void QAndroidCameraSession::onCameraTakePictureFailed()
+{
+    emit imageCaptureError(m_currentImageCaptureId, QCameraImageCapture::ResourceError,
+                           tr("Failed to capture image"));
+}
+
 void QAndroidCameraSession::onCameraPictureExposed()
 {
     if (m_captureCanceled)
@@ -615,6 +623,27 @@ void QAndroidCameraSession::onCameraPreviewStarted()
     }
 
     setReadyForCapture(true);
+}
+
+void QAndroidCameraSession::onCameraPreviewFailedToStart()
+{
+    if (m_status == QCamera::StartingStatus) {
+        Q_EMIT error(QCamera::CameraError, tr("Camera preview failed to start."));
+
+        AndroidMultimediaUtils::enableOrientationListener(false);
+        m_camera->setPreviewSize(QSize());
+        m_camera->setPreviewTexture(0);
+        if (m_videoOutput) {
+            m_videoOutput->stop();
+            m_videoOutput->reset();
+        }
+        m_previewStarted = false;
+
+        m_status = QCamera::LoadedStatus;
+        emit statusChanged(m_status);
+
+        setReadyForCapture(false);
+    }
 }
 
 void QAndroidCameraSession::onCameraPreviewStopped()

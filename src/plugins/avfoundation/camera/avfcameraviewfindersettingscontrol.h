@@ -76,17 +76,13 @@ private:
     AVCaptureDeviceFormat *findBestFormatMatch(const QCameraViewfinderSettings &settings) const;
     QVector<QVideoFrame::PixelFormat> viewfinderPixelFormats() const;
     bool convertPixelFormatIfSupported(QVideoFrame::PixelFormat format, unsigned &avfFormat) const;
-    void applySettings();
+    bool applySettings();
     QCameraViewfinderSettings requestedSettings() const;
-    // Aux. function to extract things like captureDevice, videoOutput, etc.
-    bool updateAVFoundationObjects() const;
+
+    AVCaptureConnection *videoConnection() const;
 
     AVFCameraService *m_service;
-    mutable AVFCameraSession *m_session;
     QCameraViewfinderSettings m_settings;
-    mutable AVCaptureDevice *m_captureDevice;
-    mutable AVCaptureVideoDataOutput *m_videoOutput;
-    mutable AVCaptureConnection *m_videoConnection;
 };
 
 class AVFCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl

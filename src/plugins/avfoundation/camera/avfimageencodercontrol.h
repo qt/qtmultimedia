@@ -62,11 +62,13 @@ public:
     QImageEncoderSettings imageSettings() const Q_DECL_OVERRIDE;
     void setImageSettings(const QImageEncoderSettings &settings) Q_DECL_OVERRIDE;
 
+    QImageEncoderSettings requestedSettings() const;
+
 private:
     AVFCameraService *m_service;
     QImageEncoderSettings m_settings;
 
-    void applySettings();
+    bool applySettings();
     bool videoCaptureDeviceIsValid() const;
 };
 

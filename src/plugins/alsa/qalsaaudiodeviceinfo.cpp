@@ -141,7 +141,7 @@ bool QAlsaAudioDeviceInfo::open()
     QList<QByteArray> devices = availableDevices(mode);
 
     if(dev.compare(QLatin1String("default")) == 0) {
-#if(SND_LIB_MAJOR == 1 && SND_LIB_MINOR == 0 && SND_LIB_SUBMINOR >= 14)
+#if (SND_LIB_MAJOR == 1 && (SND_LIB_MINOR > 0 || SND_LIB_SUBMINOR >= 14))
         if (devices.size() > 0)
             dev = QLatin1String(devices.first().constData());
         else
@@ -150,7 +150,7 @@ bool QAlsaAudioDeviceInfo::open()
         dev = QLatin1String("hw:0,0");
 #endif
     } else {
-#if(SND_LIB_MAJOR == 1 && SND_LIB_MINOR == 0 && SND_LIB_SUBMINOR >= 14)
+#if (SND_LIB_MAJOR == 1 && (SND_LIB_MINOR > 0 || SND_LIB_SUBMINOR >= 14))
         dev = device;
 #else
         int idx = 0;
@@ -194,7 +194,7 @@ bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     snd_pcm_hw_params_t *params;
     QString dev;
 
-#if(SND_LIB_MAJOR == 1 && SND_LIB_MINOR == 0 && SND_LIB_SUBMINOR >= 14)
+#if (SND_LIB_MAJOR == 1 && (SND_LIB_MINOR > 0 || SND_LIB_SUBMINOR >= 14))
     dev = device;
     if (dev.compare(QLatin1String("default")) == 0) {
         QList<QByteArray> devices = availableDevices(QAudio::AudioOutput);
@@ -335,7 +335,7 @@ QList<QByteArray> QAlsaAudioDeviceInfo::availableDevices(QAudio::Mode mode)
     QList<QByteArray> devices;
     QByteArray filter;
 
-#if(SND_LIB_MAJOR == 1 && SND_LIB_MINOR == 0 && SND_LIB_SUBMINOR >= 14)
+#if (SND_LIB_MAJOR == 1 && (SND_LIB_MINOR > 0 || SND_LIB_SUBMINOR >= 14))
     // Create a list of all current audio devices that support mode
     void **hints, **n;
     char *name, *descr, *io;

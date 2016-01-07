@@ -105,8 +105,8 @@ Q_SIGNALS:
 private:
     static void updateCameraDevices();
     void attachVideoInputDevice();
-    void applyImageEncoderSettings();
-    void applyViewfinderSettings();
+    bool applyImageEncoderSettings();
+    bool applyViewfinderSettings();
 
     static int m_defaultCameraIndex;
     static QList<AVFCameraInfo> m_cameraDevices;

@@ -285,10 +285,23 @@ void AVFCameraSession::setState(QCamera::State newState)
         Q_EMIT readyToConfigureConnections();
         m_defaultCodec = 0;
         defaultCodec();
-        applyImageEncoderSettings();
-        applyViewfinderSettings();
+
+        bool activeFormatSet = applyImageEncoderSettings();
+        activeFormatSet |= applyViewfinderSettings();
+
         [m_captureSession commitConfiguration];
+
+        if (activeFormatSet) {
+            // According to the doc, the capture device must be locked before
+            // startRunning to prevent the format we set to be overriden by the
+            // session preset.
+            [videoCaptureDevice() lockForConfiguration:nil];
+        }
+
         [m_captureSession startRunning];
+
+        if (activeFormatSet)
+            [videoCaptureDevice() unlockForConfiguration];
     }
 
     if (oldState == QCamera::ActiveState) {
@@ -357,27 +370,32 @@ void AVFCameraSession::attachVideoInputDevice()
     }
 }
 
-void AVFCameraSession::applyImageEncoderSettings()
+bool AVFCameraSession::applyImageEncoderSettings()
 {
     if (AVFImageEncoderControl *control = m_service->imageEncoderControl())
-        control->applySettings();
+        return control->applySettings();
+
+    return false;
 }
 
-void AVFCameraSession::applyViewfinderSettings()
+bool AVFCameraSession::applyViewfinderSettings()
 {
     if (AVFCameraViewfinderSettingsControl2 *vfControl = m_service->viewfinderSettingsControl2()) {
         QCameraViewfinderSettings vfSettings(vfControl->requestedSettings());
+        // Viewfinder and image capture solutions must be the same, if an image capture
+        // resolution is set, it takes precedence over the viewfinder resolution.
         if (AVFImageEncoderControl *imControl = m_service->imageEncoderControl()) {
-            const QSize imageResolution(imControl->imageSettings().resolution());
+            const QSize imageResolution(imControl->requestedSettings().resolution());
             if (!imageResolution.isNull() && imageResolution.isValid()) {
                 vfSettings.setResolution(imageResolution);
                 vfControl->setViewfinderSettings(vfSettings);
-                return;
             }
         }
 
-        vfControl->applySettings();
+        return vfControl->applySettings();
     }
+
+    return false;
 }
 
 void AVFCameraSession::addProbe(AVFMediaVideoProbeControl *probe)

@@ -37,6 +37,7 @@
 #include "avfcameraservice.h"
 #include "avfcameracontrol.h"
 #include "avfaudioinputselectorcontrol.h"
+#include "avfcamerautility.h"
 
 #include <QtCore/qurl.h>
 #include <QtCore/qfileinfo.h>
@@ -330,6 +331,9 @@ void AVFMediaRecorderControl::setupSessionForCapture()
             && m_cameraControl->captureMode().testFlag(QCamera::CaptureVideo)
             && m_session->state() != QCamera::UnloadedState) {
 
+        // Lock the video capture device to make sure the active format is not reset
+        const AVFConfigurationLock lock(m_session->videoCaptureDevice());
+
         // Add audio input
         // Allow recording even if something wrong happens with the audio input initialization
         AVCaptureDevice *audioDevice = m_audioInputControl->createCaptureDevice();
@@ -359,7 +363,10 @@ void AVFMediaRecorderControl::setupSessionForCapture()
         }
     } else if (m_connected
                && (!m_cameraControl->captureMode().testFlag(QCamera::CaptureVideo)
-                   || m_session->state() != QCamera::ActiveState)) {
+                   || m_session->state() == QCamera::UnloadedState)) {
+
+        // Lock the video capture device to make sure the active format is not reset
+        const AVFConfigurationLock lock(m_session->videoCaptureDevice());
 
         [captureSession removeOutput:m_movieOutput];
 
