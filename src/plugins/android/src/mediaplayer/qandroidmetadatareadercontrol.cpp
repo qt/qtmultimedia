@@ -230,8 +230,6 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Year);
         if (!string.isNull())
             metadata.insert(QMediaMetaData::Year, string.toInt());
-
-        retriever.release();
     }
 
     const QMutexLocker lock(g_metaDataReadersMtx);
