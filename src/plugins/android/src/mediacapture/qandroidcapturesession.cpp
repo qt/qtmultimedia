@@ -219,13 +219,15 @@ void QAndroidCaptureSession::start()
 
     if (!m_mediaRecorder->prepare()) {
         emit error(QMediaRecorder::FormatError, QLatin1String("Unable to prepare the media recorder."));
-        restartViewfinder();
+        if (m_cameraSession)
+            restartViewfinder();
         return;
     }
 
     if (!m_mediaRecorder->start()) {
         emit error(QMediaRecorder::FormatError, QLatin1String("Unable to start the media recorder."));
-        restartViewfinder();
+        if (m_cameraSession)
+            restartViewfinder();
         return;
     }
 
@@ -418,6 +420,9 @@ void QAndroidCaptureSession::updateViewfinder()
 
 void QAndroidCaptureSession::restartViewfinder()
 {
+    if (!m_cameraSession)
+        return;
+
     m_cameraSession->camera()->reconnect();
     m_cameraSession->camera()->startPreview();
     m_cameraSession->setReadyForCapture(true);
