@@ -134,7 +134,6 @@ Item {
             verify(sound1.muted == false)
             verify(sound1.playing == false)
             verify(sound1.status == 1) // Status.Loading
-            verify(sound1.category == "")
         }
 
         function test_muting() {
