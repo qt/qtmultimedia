@@ -353,7 +353,8 @@ void PrivateSoundSource::stateChanged(QAudio::State state)
 #ifdef QT_QAUDIO_DEBUG
     qDebug() << this << "stateChanged " << state;
 #endif
-    if (state == QAudio::IdleState && m_runningCount == 0)
+    if ((state == QAudio::IdleState && m_runningCount == 0)
+         || (state == QAudio::StoppedState && m_audioOutput->error() != QAudio::NoError))
         emit soundeffect->stop();
 }
 
