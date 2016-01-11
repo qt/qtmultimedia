@@ -90,7 +90,7 @@ void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
     if(!qAudio)
         return;
 
-    QMutexLocker(&qAudio->mutex);
+    QMutexLocker locker(&qAudio->mutex);
 
     switch(uMsg) {
         case WOM_OPEN:
