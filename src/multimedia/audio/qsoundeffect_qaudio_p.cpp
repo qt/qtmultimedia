@@ -395,6 +395,8 @@ qint64 PrivateSoundSource::readData( char* data, qint64 len)
                 memcpy(data + dataOffset, sampleData + m_offset, sampleSize - m_offset);
                 bytesWritten += sampleSize - m_offset;
                 int wrapLen = periodSize - (sampleSize - m_offset);
+                if (wrapLen > sampleSize)
+                    wrapLen = sampleSize;
 #ifdef QT_QAUDIO_DEBUG
                 qDebug() << "END OF SOUND: bytesWritten=" << bytesWritten << ", offset=" << m_offset
                          << ", part1=" << (sampleSize-m_offset);
