@@ -702,11 +702,11 @@ void tst_QAudioOutput::push()
                 QVERIFY2((audioOutput.state() == QAudio::ActiveState), "didn't transition to ActiveState after receiving data");
                 QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after receiving data");
                 firstBuffer = false;
+                stateSignal.clear();
             }
         } else
             QTest::qWait(20);
     }
-    stateSignal.clear();
 
     // Wait until playback finishes
     QTest::qWait(3000); // 3 seconds should be plenty
