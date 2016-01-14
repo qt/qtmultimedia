@@ -174,7 +174,7 @@ void tst_QSoundEffect::testLooping()
         QVERIFY(readSignal_Remaining.count() > 0);
 
         // wait for the sound to be played several times
-        QTRY_COMPARE(sound->loopsRemaining(), 20);
+        QTRY_VERIFY(sound->loopsRemaining() <= 20);
         QVERIFY(readSignal_Remaining.count() >= 10);
         readSignal_Count.clear();
         readSignal_Remaining.clear();
