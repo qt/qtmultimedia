@@ -244,8 +244,8 @@ QStringList CameraBinMetaData::availableMetaData() const
     }
 
     QStringList res;
-    Q_FOREACH (const QByteArray &key, m_values.keys()) {
-        QString tag = keysMap.value(key);
+    for (auto it = m_values.keyBegin(), end = m_values.keyEnd(); it != end; ++it) {
+        QString tag = keysMap.value(*it);
         if (!tag.isEmpty())
             res.append(tag);
     }

@@ -349,8 +349,9 @@ int QWinRTVideoDeviceSelectorControl::cameraOrientation(const QString &deviceNam
 QList<QByteArray> QWinRTVideoDeviceSelectorControl::deviceNames()
 {
     QList<QByteArray> devices;
-    foreach (const QString &device, g->deviceIndex.keys())
-        devices.append(device.toUtf8());
+    devices.reserve(g->deviceIndex.size());
+    for (auto it = g->deviceIndex.keyBegin(), end = g->deviceIndex.keyEnd(); it != end; ++it)
+        devices.append((*it).toUtf8());
 
     return devices;
 }

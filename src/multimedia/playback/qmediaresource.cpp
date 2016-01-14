@@ -145,14 +145,14 @@ QMediaResource::~QMediaResource()
 bool QMediaResource::operator ==(const QMediaResource &other) const
 {
     // Compare requests directly as QNetworkRequests are "custom types".
-    foreach (int key, values.keys()) {
-        switch (key) {
+    for (auto it = values.cbegin(), end = values.cend(); it != end; ++it) {
+        switch (it.key()) {
         case Request:
             if (request() != other.request())
                 return false;
         break;
         default:
-            if (values.value(key) != other.values.value(key))
+            if (it.value() != other.values.value(it.key()))
                 return false;
         }
     }

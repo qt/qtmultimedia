@@ -142,8 +142,8 @@ void QGstreamerCaptureMetaDataControl::setMetaData(const QString &key, const QVa
 QStringList QGstreamerCaptureMetaDataControl::availableMetaData() const
 {
     QStringList res;
-    foreach (const QByteArray &key, m_values.keys()) {
-        QString tag = qt_gstreamerMetaDataKeys()->key(key);
+    for (auto it = m_values.keyBegin(), end = m_values.keyEnd(); it != end; ++it) {
+        QString tag = qt_gstreamerMetaDataKeys()->key(*it);
         if (!tag.isEmpty())
             res.append(tag);
     }
