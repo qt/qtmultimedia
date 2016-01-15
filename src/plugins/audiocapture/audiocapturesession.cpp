@@ -74,7 +74,7 @@ qint64 FileProbeProxy::writeData(const char *data, qint64 len)
     if (m_format.isValid()) {
         QMutexLocker locker(&m_probeMutex);
 
-        foreach (AudioCaptureProbeControl* probe, m_probes)
+        for (AudioCaptureProbeControl* probe : qAsConst(m_probes))
             probe->bufferProbed(data, len, m_format);
     }
 
@@ -210,7 +210,7 @@ QDir AudioCaptureSession::defaultDir() const
     dirCandidates << QDir::currentPath();
     dirCandidates << QDir::tempPath();
 
-    foreach (const QString &path, dirCandidates) {
+    for (const QString &path : qAsConst(dirCandidates)) {
         QDir dir(path);
         if (dir.exists() && QFileInfo(path).isWritable())
             return dir;
@@ -243,7 +243,8 @@ QString AudioCaptureSession::generateFileName(const QDir &dir,
                                               const QString &ext) const
 {
     int lastClip = 0;
-    foreach(QString fileName, dir.entryList(QStringList() << QString("clip_*.%1").arg(ext))) {
+    const auto list = dir.entryList(QStringList() << QString("clip_*.%1").arg(ext));
+    for (const QString &fileName : list) {
         int imgNumber = fileName.midRef(5, fileName.size()-6-ext.length()).toInt();
         lastClip = qMax(lastClip, imgNumber);
     }

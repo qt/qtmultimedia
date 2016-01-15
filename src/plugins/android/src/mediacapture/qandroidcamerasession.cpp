@@ -613,7 +613,7 @@ void QAndroidCameraSession::onNewPreviewFrame(const QByteArray &frame, int width
         QVideoFrame videoFrame(new DataVideoBuffer(frame, width),
                                QSize(width, height),
                                QVideoFrame::Format_NV21);
-        foreach (QAndroidMediaVideoProbeControl *probe, m_videoProbes)
+        for (QAndroidMediaVideoProbeControl *probe : qAsConst(m_videoProbes))
             probe->newFrameProbed(videoFrame);
     }
     m_videoProbesMutex.unlock();

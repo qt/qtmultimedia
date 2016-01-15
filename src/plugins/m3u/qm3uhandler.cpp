@@ -105,7 +105,7 @@ public:
             candidates << fileUrl;
             candidates << url;
 
-            foreach (const QUrl &candidate, candidates) {
+            for (const QUrl &candidate : qAsConst(candidates)) {
                 if (QFile::exists(candidate.toLocalFile())) {
                     nextResource = candidate;
                     break;
