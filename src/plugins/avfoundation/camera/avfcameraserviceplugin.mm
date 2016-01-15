@@ -78,7 +78,8 @@ QList<QByteArray> AVFServicePlugin::devices(const QByteArray &service) const
 
     if (service == Q_MEDIASERVICE_CAMERA) {
         const QList<AVFCameraInfo> &cameras = AVFCameraSession::availableCameraDevices();
-        Q_FOREACH (const AVFCameraInfo &info, cameras)
+        devs.reserve(cameras.size());
+        for (const AVFCameraInfo &info : cameras)
             devs.append(info.deviceId);
     }
 

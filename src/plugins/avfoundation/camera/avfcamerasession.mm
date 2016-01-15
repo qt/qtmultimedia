@@ -179,7 +179,7 @@ AVFCameraInfo AVFCameraSession::cameraDeviceInfo(const QByteArray &device)
 {
     updateCameraDevices();
 
-    Q_FOREACH (const AVFCameraInfo &info, m_cameraDevices) {
+    for (const AVFCameraInfo &info : qAsConst(m_cameraDevices)) {
         if (info.deviceId == device)
             return info;
     }
