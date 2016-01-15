@@ -158,7 +158,7 @@ private:
         if (isDefault)
             defaultDeviceIndex = index;
 
-        foreach (QWinRTVideoDeviceSelectorControl *watcher, watchers)
+        for (QWinRTVideoDeviceSelectorControl *watcher : qAsConst(watchers))
             emit watcher->devicesChanged();
 
         return S_OK;
@@ -180,7 +180,7 @@ private:
         if (index >= 0)
             devices.remove(index);
 
-        foreach (QWinRTVideoDeviceSelectorControl *watcher, watchers)
+        for (QWinRTVideoDeviceSelectorControl *watcher : qAsConst(watchers))
             emit watcher->devicesChanged();
 
         return S_OK;
@@ -189,7 +189,7 @@ private:
     HRESULT onDeviceUpdated(IDeviceWatcher *, IDeviceInformationUpdate *)
     {
         // A name or description may have changed, so emit devicesChanged
-        foreach (QWinRTVideoDeviceSelectorControl *watcher, watchers)
+        for (QWinRTVideoDeviceSelectorControl *watcher : qAsConst(watchers))
             emit watcher->devicesChanged();
 
         return S_OK;

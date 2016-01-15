@@ -370,8 +370,8 @@ void QWindowsAudioDeviceInfo::updateLists()
 
         // Check more sample sizes
         testFormat = defaultTestFormat;
-        QList<int> testSampleSizes = QList<int>() << 24 << 32 << 48 << 64;
-        Q_FOREACH (int s, testSampleSizes) {
+        const QList<int> testSampleSizes = QList<int>() << 24 << 32 << 48 << 64;
+        for (int s : testSampleSizes) {
             testFormat.setSampleSize(s);
             if (testSettings(testFormat))
                 sizez.append(s);
@@ -379,8 +379,8 @@ void QWindowsAudioDeviceInfo::updateLists()
 
         // Check more sample rates
         testFormat = defaultTestFormat;
-        QList<int> testSampleRates = QList<int>() << 8000 << 16000 << 32000 << 88200 << 192000;
-        Q_FOREACH (int r, testSampleRates) {
+        const QList<int> testSampleRates = QList<int>() << 8000 << 16000 << 32000 << 88200 << 192000;
+        for (int r : testSampleRates) {
             testFormat.setSampleRate(r);
             if (testSettings(testFormat))
                 sampleRatez.append(r);

@@ -109,7 +109,7 @@ void QWinRTImageEncoderControl::applySettings()
     // Find closest resolution from the list
     const int pixelCount = requestResolution.width() * requestResolution.height();
     int minimumGap = std::numeric_limits<int>::max();
-    foreach (const QSize &size, d->supportedResolutions) {
+    for (const QSize &size : qAsConst(d->supportedResolutions)) {
         int gap = qAbs(pixelCount - size.width() * size.height());
         if (gap < minimumGap) {
             minimumGap = gap;

@@ -936,7 +936,7 @@ HRESULT QWinRTCameraControl::initialize()
     // Set preview resolution.
     QVector<QSize> filtered;
     const float captureAspectRatio = float(captureResolution.width()) / captureResolution.height();
-    foreach (const QSize &resolution, previewResolutions) {
+    for (const QSize &resolution : qAsConst(previewResolutions)) {
         const float aspectRatio = float(resolution.width()) / resolution.height();
         if (qAbs(aspectRatio - captureAspectRatio) <= ASPECTRATIO_EPSILON)
             filtered.append(resolution);
