@@ -275,7 +275,7 @@ void QCameraPrivate::updateLockStatus()
         lockStatuses << q->lockStatus(QCamera::LockWhiteBalance);
 
 
-    foreach (QCamera::LockStatus currentStatus, lockStatuses) {
+    for (QCamera::LockStatus currentStatus : qAsConst(lockStatuses)) {
         int currentPriority = lockStatusPriority.value(currentStatus, -1);
         if (currentPriority > priority) {
             priority = currentPriority;
@@ -655,8 +655,8 @@ QList<QCameraViewfinderSettings> QCamera::supportedViewfinderSettings(const QCam
         return d->viewfinderSettingsControl2->supportedViewfinderSettings();
 
     QList<QCameraViewfinderSettings> results;
-    QList<QCameraViewfinderSettings> supported = d->viewfinderSettingsControl2->supportedViewfinderSettings();
-    Q_FOREACH (const QCameraViewfinderSettings &s, supported) {
+    const QList<QCameraViewfinderSettings> supported = d->viewfinderSettingsControl2->supportedViewfinderSettings();
+    for (const QCameraViewfinderSettings &s : supported) {
         if ((settings.resolution().isEmpty() || settings.resolution() == s.resolution())
                 && (qFuzzyIsNull(settings.minimumFrameRate()) || qFuzzyCompare((float)settings.minimumFrameRate(), (float)s.minimumFrameRate()))
                 && (qFuzzyIsNull(settings.maximumFrameRate()) || qFuzzyCompare((float)settings.maximumFrameRate(), (float)s.maximumFrameRate()))
@@ -687,8 +687,8 @@ QList<QCameraViewfinderSettings> QCamera::supportedViewfinderSettings(const QCam
 QList<QSize> QCamera::supportedViewfinderResolutions(const QCameraViewfinderSettings &settings) const
 {
     QList<QSize> resolutions;
-    QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
-    Q_FOREACH (const QCameraViewfinderSettings &s, capabilities) {
+    const QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
+    for (const QCameraViewfinderSettings &s : capabilities) {
         if (!resolutions.contains(s.resolution()))
             resolutions.append(s.resolution());
     }
@@ -716,8 +716,8 @@ QList<QSize> QCamera::supportedViewfinderResolutions(const QCameraViewfinderSett
 QList<QCamera::FrameRateRange> QCamera::supportedViewfinderFrameRateRanges(const QCameraViewfinderSettings &settings) const
 {
     QList<QCamera::FrameRateRange> frameRateRanges;
-    QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
-    Q_FOREACH (const QCameraViewfinderSettings &s, capabilities) {
+    const QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
+    for (const QCameraViewfinderSettings &s : capabilities) {
         QCamera::FrameRateRange range(s.minimumFrameRate(), s.maximumFrameRate());
         if (!frameRateRanges.contains(range))
             frameRateRanges.append(range);
@@ -745,8 +745,8 @@ QList<QCamera::FrameRateRange> QCamera::supportedViewfinderFrameRateRanges(const
 QList<QVideoFrame::PixelFormat> QCamera::supportedViewfinderPixelFormats(const QCameraViewfinderSettings &settings) const
 {
     QList<QVideoFrame::PixelFormat> pixelFormats;
-    QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
-    Q_FOREACH (const QCameraViewfinderSettings &s, capabilities) {
+    const QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
+    for (const QCameraViewfinderSettings &s : capabilities) {
         if (!pixelFormats.contains(s.pixelFormat()))
             pixelFormats.append(s.pixelFormat());
     }

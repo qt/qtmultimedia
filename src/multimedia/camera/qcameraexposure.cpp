@@ -401,8 +401,8 @@ QList<int> QCameraExposure::supportedIsoSensitivities(bool *continuous) const
     if (!control)
         return res;
 
-    foreach (const QVariant &value,
-             control->supportedParameterRange(QCameraExposureControl::ISO, continuous)) {
+    const auto range = control->supportedParameterRange(QCameraExposureControl::ISO, continuous);
+    for (const QVariant &value : range) {
         bool ok = false;
         int intValue = value.toInt(&ok);
         if (ok)
@@ -497,8 +497,8 @@ QList<qreal> QCameraExposure::supportedApertures(bool * continuous) const
     if (!control)
         return res;
 
-    foreach (const QVariant &value,
-             control->supportedParameterRange(QCameraExposureControl::Aperture, continuous)) {
+    const auto range = control->supportedParameterRange(QCameraExposureControl::Aperture, continuous);
+    for (const QVariant &value : range) {
         bool ok = false;
         qreal realValue = value.toReal(&ok);
         if (ok)
@@ -566,8 +566,8 @@ QList<qreal> QCameraExposure::supportedShutterSpeeds(bool *continuous) const
     if (!control)
         return res;
 
-    foreach (const QVariant &value,
-             control->supportedParameterRange(QCameraExposureControl::ShutterSpeed, continuous)) {
+    const auto range = control->supportedParameterRange(QCameraExposureControl::ShutterSpeed, continuous);
+    for (const QVariant &value : range) {
         bool ok = false;
         qreal realValue = value.toReal(&ok);
         if (ok)
