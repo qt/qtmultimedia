@@ -340,7 +340,7 @@ void MFAudioDecoderControl::handleSampleAdded()
     QByteArray abuf;
     if (m_sourceOutputFormat == m_audioFormat) {
         //no need for resampling
-         foreach (IMFSample *s, samples) {
+         for (IMFSample *s : qAsConst(samples)) {
             IMFMediaBuffer *buffer;
             s->ConvertToContiguousBuffer(&buffer);
             DWORD bufLen = 0;
@@ -357,7 +357,7 @@ void MFAudioDecoderControl::handleSampleAdded()
             s->Release();
         }
     } else {
-        foreach (IMFSample *s, samples) {
+        for (IMFSample *s : qAsConst(samples)) {
             HRESULT hr = m_resampler->ProcessInput(m_mfInputStreamID, s, 0);
             if (SUCCEEDED(hr)) {
                 MFT_OUTPUT_DATA_BUFFER outputDataBuffer;

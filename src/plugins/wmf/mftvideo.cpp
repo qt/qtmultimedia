@@ -490,7 +490,7 @@ STDMETHODIMP MFTransform::ProcessInput(DWORD dwInputStreamID, IMFSample *pSample
     if (!m_videoProbes.isEmpty()) {
         QVideoFrame frame = makeVideoFrame();
 
-        foreach (MFVideoProbeControl* probe, m_videoProbes)
+        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
             probe->bufferProbed(frame);
     }
 

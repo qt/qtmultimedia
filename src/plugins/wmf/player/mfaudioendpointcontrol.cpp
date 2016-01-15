@@ -49,8 +49,8 @@ void MFAudioEndpointControl::clear()
 {
     m_activeEndpoint.clear();
 
-    foreach (LPWSTR wstrID, m_devices)
-         CoTaskMemFree(wstrID);
+    for (auto it = m_devices.cbegin(), end = m_devices.cend(); it != end; ++it)
+         CoTaskMemFree(it.value());
 
     m_devices.clear();
 

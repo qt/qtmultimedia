@@ -794,8 +794,8 @@ namespace
             clearMediaTypes();
             if (!m_surface)
                 return;
-            QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats();
-            foreach (QVideoFrame::PixelFormat format, formats) {
+            const QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats();
+            for (QVideoFrame::PixelFormat format : formats) {
                 IMFMediaType *mediaType;
                 if (FAILED(MFCreateMediaType(&mediaType))) {
                     qWarning("Failed to create mf media type!");
@@ -1050,7 +1050,7 @@ namespace
 
         void clearMediaTypes()
         {
-            foreach (IMFMediaType* mediaType, m_mediaTypes)
+            for (IMFMediaType* mediaType : qAsConst(m_mediaTypes))
                 mediaType->Release();
             m_mediaTypes.clear();
         }
@@ -1291,7 +1291,7 @@ namespace
         bool m_prerolling;
 
         void clearSampleQueue() {
-            foreach (IUnknown* sample, m_sampleQueue)
+            for (IUnknown* sample : qAsConst(m_sampleQueue))
                 sample->Release();
             m_sampleQueue.clear();
         }
@@ -1398,7 +1398,7 @@ namespace
 
         void clearBufferCache()
         {
-            foreach (SampleBuffer sb, m_bufferCache)
+            for (SampleBuffer sb : qAsConst(m_bufferCache))
                 sb.m_buffer->Release();
             m_bufferCache.clear();
 
