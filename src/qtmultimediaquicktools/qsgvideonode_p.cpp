@@ -118,4 +118,8 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
     markDirty(DirtyGeometry);
 }
 
+QSGVideoNodeFactoryInterface::~QSGVideoNodeFactoryInterface()
+{
+}
+
 QT_END_NAMESPACE

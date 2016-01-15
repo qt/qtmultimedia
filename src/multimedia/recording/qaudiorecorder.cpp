@@ -64,8 +64,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/media.cpp Audio recorder inputs
 
-    The \l {audiorecorder}{Audio Recorder} example shows how to use this class
-    in more detail.
+    The \l {Audio Recorder Example} shows how to use this class in more detail.
 
     \sa QMediaRecorder, QAudioInputSelectorControl
 */

@@ -34,33 +34,36 @@
 #ifndef EVRD3DPRESENTENGINE_H
 #define EVRD3DPRESENTENGINE_H
 
-#include <QObject>
 #include <EGL/egl.h>
 #include <QMutex>
 #include <d3d9types.h>
 #include <QVideoSurfaceFormat>
 
+#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_DYNAMIC)
+#define MAYBE_ANGLE
+#endif
+
+QT_BEGIN_NAMESPACE
+class QAbstractVideoSurface;
+QT_END_NAMESPACE
+
 struct IDirect3D9Ex;
-struct IDirect3DDevice9;
 struct IDirect3DDevice9Ex;
 struct IDirect3DDeviceManager9;
 struct IDirect3DSurface9;
 struct IDirect3DTexture9;
 struct IMFSample;
 struct IMFMediaType;
-struct IDirect3DSwapChain9;
 
 // Randomly generated GUIDs
 static const GUID MFSamplePresenter_SampleCounter =
 { 0xb0bb83cc, 0xf10f, 0x4e2e, { 0xaa, 0x2b, 0x29, 0xea, 0x5e, 0x92, 0xef, 0x85 } };
 
-static const GUID MFSamplePresenter_SampleSwapChain =
-{ 0xad885bd1, 0x7def, 0x414a, { 0xb5, 0xb0, 0xd3, 0xd2, 0x63, 0xd6, 0xe9, 0x6d } };
+QT_USE_NAMESPACE
 
-QT_BEGIN_NAMESPACE
+#ifdef MAYBE_ANGLE
 
-class QAbstractVideoSurface;
-class QOpenGLContext;
+class OpenGLResources;
 
 class EGLWrapper
 {
@@ -87,40 +90,39 @@ private:
     EglReleaseTexImage m_eglReleaseTexImage;
 };
 
-class D3DPresentEngine : public QObject
+#endif // MAYBE_ANGLE
+
+class D3DPresentEngine
 {
-    Q_OBJECT
 public:
+    enum Hint
+    {
+        RenderToTexture
+    };
+
     D3DPresentEngine();
     virtual ~D3DPresentEngine();
 
-    void start();
-    void stop();
+    bool isValid() const;
+    void setHint(Hint hint, bool enable = true);
 
     HRESULT getService(REFGUID guidService, REFIID riid, void** ppv);
     HRESULT checkFormat(D3DFORMAT format);
-
-    HRESULT createVideoSamples(IMFMediaType *format, QList<IMFSample*>& videoSampleQueue);
-    void releaseResources();
-
     UINT refreshRate() const { return m_displayMode.RefreshRate; }
 
-    void setSurface(QAbstractVideoSurface *surface);
-    void setSurfaceFormat(const QVideoSurfaceFormat &format);
+    bool supportsTextureRendering() const;
+    bool isTextureRenderingEnabled() const { return m_useTextureRendering; }
 
-    void createOffscreenTexture();
-    bool updateTexture(IDirect3DSurface9 *src);
+    HRESULT createVideoSamples(IMFMediaType *format, QList<IMFSample*>& videoSampleQueue);
+    QVideoSurfaceFormat videoSurfaceFormat() const { return m_surfaceFormat; }
+    QVideoFrame makeVideoFrame(IMFSample* sample);
 
-public Q_SLOTS:
-    void presentSample(void* sample, qint64 llTarget);
+    void releaseResources();
 
 private:
     HRESULT initializeD3D();
-    HRESULT getSwapChainPresentParameters(IMFMediaType *type, D3DPRESENT_PARAMETERS *pp);
     HRESULT createD3DDevice();
-    HRESULT createD3DSample(IDirect3DSwapChain9 *swapChain, IMFSample **videoSample);
 
-    QMutex m_mutex;
 
     UINT m_deviceResetToken;
     D3DDISPLAYMODE m_displayMode;
@@ -130,19 +132,18 @@ private:
     IDirect3DDeviceManager9 *m_deviceManager;
 
     QVideoSurfaceFormat m_surfaceFormat;
-    QAbstractVideoSurface *m_surface;
 
-    QOpenGLContext *m_glContext;
-    QWindow *m_offscreenSurface;
+    bool m_useTextureRendering;
 
-    EGLDisplay *m_eglDisplay;
-    EGLConfig *m_eglConfig;
-    EGLSurface m_eglSurface;
-    unsigned int m_glTexture;
+#ifdef MAYBE_ANGLE
+    bool createRenderTexture();
+    bool updateTexture(IDirect3DSurface9 *src);
+
+    OpenGLResources *m_glResources;
     IDirect3DTexture9 *m_texture;
-    EGLWrapper *m_egl;
-};
+#endif
 
-QT_END_NAMESPACE
+    friend class IMFSampleVideoBuffer;
+};
 
 #endif // EVRD3DPRESENTENGINE_H

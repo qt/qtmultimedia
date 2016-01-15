@@ -31,88 +31,36 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDVIDEORENDERCONTROL_H
-#define QANDROIDVIDEORENDERCONTROL_H
+#ifndef QANDROIDCAMERAVIDEORENDERERCONTROL_H
+#define QANDROIDCAMERAVIDEORENDERERCONTROL_H
 
 #include <qvideorenderercontrol.h>
-#include <qmutex.h>
-#include "qandroidvideooutput.h"
 
 QT_BEGIN_NAMESPACE
 
-class QOpenGLTexture;
-class QOpenGLFramebufferObject;
-class QOpenGLShaderProgram;
-class AndroidSurfaceTexture;
+class QAndroidCameraSession;
+class QAndroidTextureVideoOutput;
+class QAndroidCameraDataVideoOutput;
 
-class OpenGLResourcesDeleter : public QObject
+class QAndroidCameraVideoRendererControl : public QVideoRendererControl
 {
     Q_OBJECT
 public:
-    OpenGLResourcesDeleter()
-        : m_textureID(0)
-        , m_fbo(0)
-        , m_program(0)
-    { }
-
-    ~OpenGLResourcesDeleter();
-
-    void setTexture(quint32 id) { m_textureID = id; }
-    void setFbo(QOpenGLFramebufferObject *fbo) { m_fbo = fbo; }
-    void setShaderProgram(QOpenGLShaderProgram *prog) { m_program = prog; }
-
-private:
-    quint32 m_textureID;
-    QOpenGLFramebufferObject *m_fbo;
-    QOpenGLShaderProgram *m_program;
-};
-
-class QAndroidVideoRendererControl : public QVideoRendererControl, public QAndroidVideoOutput
-{
-    Q_OBJECT
-    Q_INTERFACES(QAndroidVideoOutput)
-public:
-    explicit QAndroidVideoRendererControl(QObject *parent = 0);
-    ~QAndroidVideoRendererControl() Q_DECL_OVERRIDE;
+    QAndroidCameraVideoRendererControl(QAndroidCameraSession *session, QObject *parent = 0);
+    ~QAndroidCameraVideoRendererControl() Q_DECL_OVERRIDE;
 
     QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
     void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
 
-    AndroidSurfaceTexture *surfaceTexture() Q_DECL_OVERRIDE;
-    bool isReady() Q_DECL_OVERRIDE;
-    void setVideoSize(const QSize &size) Q_DECL_OVERRIDE;
-    void stop() Q_DECL_OVERRIDE;
-    void reset() Q_DECL_OVERRIDE;
-
-    void customEvent(QEvent *) Q_DECL_OVERRIDE;
-
-Q_SIGNALS:
-    void readyChanged(bool);
-
-private Q_SLOTS:
-    void onFrameAvailable();
+    QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
 
 private:
-    bool initSurfaceTexture();
-    void renderFrameToFbo();
-    void createGLResources();
-
-    QMutex m_mutex;
-    void clearSurfaceTexture();
-
+    QAndroidCameraSession *m_cameraSession;
     QAbstractVideoSurface *m_surface;
-    QSize m_nativeSize;
-
-    AndroidSurfaceTexture *m_surfaceTexture;
-
-    quint32 m_externalTex;
-    QOpenGLFramebufferObject *m_fbo;
-    QOpenGLShaderProgram *m_program;
-    OpenGLResourcesDeleter *m_glDeleter;
-
-    friend class AndroidTextureVideoBuffer;
+    QAndroidTextureVideoOutput *m_textureOutput;
+    QAndroidCameraDataVideoOutput *m_dataOutput;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDVIDEORENDERCONTROL_H
+#endif // QANDROIDCAMERAVIDEORENDERERCONTROL_H

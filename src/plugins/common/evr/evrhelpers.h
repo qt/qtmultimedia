@@ -31,42 +31,61 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_RGB_H
-#define QSGVIDEONODE_RGB_H
+#ifndef EVRHELPERS_H
+#define EVRHELPERS_H
 
-#include <private/qsgvideonode_p.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include "evrdefs.h"
+#include <qvideoframe.h>
 
-QT_BEGIN_NAMESPACE
+QT_USE_NAMESPACE
 
-class QSGVideoMaterial_RGB;
-
-class QSGVideoNode_RGB : public QSGVideoNode
+template<class T>
+static inline void qt_evr_safe_release(T **unk)
 {
-public:
-    QSGVideoNode_RGB(const QVideoSurfaceFormat &format);
-    ~QSGVideoNode_RGB();
-
-    virtual QVideoFrame::PixelFormat pixelFormat() const {
-        return m_format.pixelFormat();
+    if (*unk) {
+        (*unk)->Release();
+        *unk = NULL;
     }
-    QAbstractVideoBuffer::HandleType handleType() const {
-        return QAbstractVideoBuffer::NoHandle;
-    }
-    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
+}
 
-private:
-    QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_RGB *m_material;
-    QVideoFrame m_frame;
-};
+HRESULT qt_evr_getFourCC(IMFMediaType *type, DWORD *fourCC);
 
-class QSGVideoNodeFactory_RGB : public QSGVideoNodeFactoryInterface {
-public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
-};
+bool qt_evr_areMediaTypesEqual(IMFMediaType *type1, IMFMediaType *type2);
 
-QT_END_NAMESPACE
+HRESULT qt_evr_validateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 height);
 
-#endif // QSGVIDEONODE_RGB_H
+bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample);
+
+inline float qt_evr_MFOffsetToFloat(const MFOffset& offset)
+{
+    return offset.value + (float(offset.fract) / 65536);
+}
+
+inline MFOffset qt_evr_makeMFOffset(float v)
+{
+    MFOffset offset;
+    offset.value = short(v);
+    offset.fract = WORD(65536 * (v-offset.value));
+    return offset;
+}
+
+inline MFVideoArea qt_evr_makeMFArea(float x, float y, DWORD width, DWORD height)
+{
+    MFVideoArea area;
+    area.OffsetX = qt_evr_makeMFOffset(x);
+    area.OffsetY = qt_evr_makeMFOffset(y);
+    area.Area.cx = width;
+    area.Area.cy = height;
+    return area;
+}
+
+inline HRESULT qt_evr_getFrameRate(IMFMediaType *pType, MFRatio *pRatio)
+{
+    return MFGetAttributeRatio(pType, MF_MT_FRAME_RATE, (UINT32*)&pRatio->Numerator, (UINT32*)&pRatio->Denominator);
+}
+
+QVideoFrame::PixelFormat qt_evr_pixelFormatFromD3DFormat(D3DFORMAT format);
+D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrame::PixelFormat format);
+
+#endif // EVRHELPERS_H
+

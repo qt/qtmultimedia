@@ -48,42 +48,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class DataVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    DataVideoBuffer(const QByteArray &d, int bpl = -1)
-        : QAbstractVideoBuffer(NoHandle)
-        , data(d)
-        , mode(NotMapped)
-        , bytesPerLine(bpl)
-    { }
-
-    MapMode mapMode() const { return mode; }
-
-    uchar *map(MapMode m, int *numBytes, int *bpl)
-    {
-        if (mode != NotMapped || m == NotMapped)
-            return 0;
-
-        mode = m;
-
-        if (numBytes)
-            *numBytes = data.size();
-
-        if (bpl)
-            *bpl = bytesPerLine;
-
-        return reinterpret_cast<uchar *>(data.data());
-    }
-
-    void unmap() { mode = NotMapped; }
-
-private:
-    QByteArray data;
-    MapMode mode;
-    int bytesPerLine;
-};
-
 Q_GLOBAL_STATIC(QList<AndroidCameraInfo>, g_availableCameras)
 
 QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
@@ -104,6 +68,7 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_readyForCapture(false)
     , m_captureCanceled(false)
     , m_currentImageCaptureId(-1)
+    , m_previewCallback(0)
 {
     m_mediaStorageLocation.addStorageLocation(
                 QMediaStorageLocation::Pictures,
@@ -208,14 +173,17 @@ bool QAndroidCameraSession::open()
 
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
-        connect(m_camera, SIGNAL(lastPreviewFrameFetched(QByteArray,int,int)),
-                this, SLOT(onLastPreviewFrameFetched(QByteArray,int,int)));
-        connect(m_camera, SIGNAL(newPreviewFrame(QByteArray,int,int)),
-                this, SLOT(onNewPreviewFrame(QByteArray,int,int)),
+        connect(m_camera, SIGNAL(lastPreviewFrameFetched(QVideoFrame)),
+                this, SLOT(onLastPreviewFrameFetched(QVideoFrame)),
+                Qt::DirectConnection);
+        connect(m_camera, SIGNAL(newPreviewFrame(QVideoFrame)),
+                this, SLOT(onNewPreviewFrame(QVideoFrame)),
                 Qt::DirectConnection);
         connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
         connect(m_camera, SIGNAL(previewStarted()), this, SLOT(onCameraPreviewStarted()));
         connect(m_camera, SIGNAL(previewStopped()), this, SLOT(onCameraPreviewStopped()));
+        connect(m_camera, &AndroidCamera::previewFailedToStart, this, &QAndroidCameraSession::onCameraPreviewFailedToStart);
+        connect(m_camera, &AndroidCamera::takePictureFailed, this, &QAndroidCameraSession::onCameraTakePictureFailed);
 
         m_nativeOrientation = m_camera->getNativeOrientation();
 
@@ -224,7 +192,7 @@ bool QAndroidCameraSession::open()
         if (m_camera->getPreviewFormat() != AndroidCamera::NV21)
             m_camera->setPreviewFormat(AndroidCamera::NV21);
 
-        m_camera->notifyNewFrames(m_videoProbes.count());
+        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
 
         emit opened();
     } else {
@@ -259,16 +227,19 @@ void QAndroidCameraSession::close()
     emit statusChanged(m_status);
 }
 
-void QAndroidCameraSession::setVideoPreview(QObject *videoOutput)
+void QAndroidCameraSession::setVideoOutput(QAndroidVideoOutput *output)
 {
     if (m_videoOutput) {
         m_videoOutput->stop();
         m_videoOutput->reset();
     }
 
-    if (videoOutput) {
-        connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
-        m_videoOutput = qobject_cast<QAndroidVideoOutput *>(videoOutput);
+    if (output) {
+        m_videoOutput = output;
+        if (m_videoOutput->isReady())
+            onVideoOutputReady(true);
+        else
+            connect(m_videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
     } else {
         m_videoOutput = 0;
     }
@@ -336,7 +307,10 @@ bool QAndroidCameraSession::startPreview()
     if (!m_videoOutput->isReady())
         return true; // delay starting until the video output is ready
 
-    if (!m_camera->setPreviewTexture(m_videoOutput->surfaceTexture()))
+    Q_ASSERT(m_videoOutput->surfaceTexture() || m_videoOutput->surfaceHolder());
+
+    if ((m_videoOutput->surfaceTexture() && !m_camera->setPreviewTexture(m_videoOutput->surfaceTexture()))
+            || (m_videoOutput->surfaceHolder() && !m_camera->setPreviewDisplay(m_videoOutput->surfaceHolder())))
         return false;
 
     m_status = QCamera::StartingStatus;
@@ -366,6 +340,7 @@ void QAndroidCameraSession::stopPreview()
     m_camera->stopPreview();
     m_camera->setPreviewSize(QSize());
     m_camera->setPreviewTexture(0);
+    m_camera->setPreviewDisplay(0);
 
     if (m_videoOutput) {
         m_videoOutput->stop();
@@ -413,7 +388,7 @@ void QAndroidCameraSession::addProbe(QAndroidMediaVideoProbeControl *probe)
     if (probe)
         m_videoProbes << probe;
     if (m_camera)
-        m_camera->notifyNewFrames(m_videoProbes.count());
+        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
     m_videoProbesMutex.unlock();
 }
 
@@ -422,7 +397,24 @@ void QAndroidCameraSession::removeProbe(QAndroidMediaVideoProbeControl *probe)
     m_videoProbesMutex.lock();
     m_videoProbes.remove(probe);
     if (m_camera)
-        m_camera->notifyNewFrames(m_videoProbes.count());
+        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
+    m_videoProbesMutex.unlock();
+}
+
+void QAndroidCameraSession::setPreviewFormat(AndroidCamera::ImageFormat format)
+{
+    if (format == AndroidCamera::UnknownImageFormat)
+        return;
+
+    m_camera->setPreviewFormat(format);
+}
+
+void QAndroidCameraSession::setPreviewCallback(PreviewCallback *callback)
+{
+    m_videoProbesMutex.lock();
+    m_previewCallback = callback;
+    if (m_camera)
+        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
     m_videoProbesMutex.unlock();
 }
 
@@ -556,6 +548,12 @@ void QAndroidCameraSession::cancelCapture()
     m_captureCanceled = true;
 }
 
+void QAndroidCameraSession::onCameraTakePictureFailed()
+{
+    emit imageCaptureError(m_currentImageCaptureId, QCameraImageCapture::ResourceError,
+                           tr("Failed to capture image"));
+}
+
 void QAndroidCameraSession::onCameraPictureExposed()
 {
     if (m_captureCanceled)
@@ -565,57 +563,37 @@ void QAndroidCameraSession::onCameraPictureExposed()
     m_camera->fetchLastPreviewFrame();
 }
 
-void QAndroidCameraSession::onLastPreviewFrameFetched(const QByteArray &preview, int width, int height)
+void QAndroidCameraSession::onLastPreviewFrameFetched(const QVideoFrame &frame)
 {
-    if (preview.size()) {
-        QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
-                          m_currentImageCaptureId,
-                          preview,
-                          width,
-                          height,
-                          m_camera->getRotation());
-    }
+    QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
+                      m_currentImageCaptureId,
+                      frame,
+                      m_camera->getRotation());
 }
 
-void QAndroidCameraSession::processPreviewImage(int id, const QByteArray &data, int width, int height, int rotation)
+void QAndroidCameraSession::processPreviewImage(int id, const QVideoFrame &frame, int rotation)
 {
-    emit imageCaptured(id, prepareImageFromPreviewData(data, width, height, rotation));
-}
-
-QImage QAndroidCameraSession::prepareImageFromPreviewData(const QByteArray &data, int width, int height, int rotation)
-{
-    QVideoFrame frame(new QMemoryVideoBuffer(data, width),
-                      QSize(width, height), QVideoFrame::Format_NV21);
-
-    QImage result = qt_imageFromVideoFrame(frame);
-
-    QTransform transform;
-
     // Preview display of front-facing cameras is flipped horizontally, but the frame data
     // we get here is not. Flip it ourselves if the camera is front-facing to match what the user
     // sees on the viewfinder.
+    QTransform transform;
     if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
         transform.scale(-1, 1);
-
     transform.rotate(rotation);
 
-    result = result.transformed(transform);
-
-    return result;
+    emit imageCaptured(id, qt_imageFromVideoFrame(frame).transformed(transform));
 }
 
-void QAndroidCameraSession::onNewPreviewFrame(const QByteArray &frame, int width, int height)
+void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
 {
     m_videoProbesMutex.lock();
-    if (frame.size() && m_videoProbes.count()) {
-        // Bytes per line should be only for the first plane. For NV21, the Y plane has 8 bits
-        // per sample, so bpl == width
-        QVideoFrame videoFrame(new DataVideoBuffer(frame, width),
-                               QSize(width, height),
-                               QVideoFrame::Format_NV21);
-        for (QAndroidMediaVideoProbeControl *probe : qAsConst(m_videoProbes))
-            probe->newFrameProbed(videoFrame);
-    }
+
+    for (QAndroidMediaVideoProbeControl *probe : qAsConst(m_videoProbes))
+        probe->newFrameProbed(frame);
+
+    if (m_previewCallback)
+        m_previewCallback->onFrameAvailable(frame);
+
     m_videoProbesMutex.unlock();
 }
 
@@ -645,6 +623,27 @@ void QAndroidCameraSession::onCameraPreviewStarted()
     }
 
     setReadyForCapture(true);
+}
+
+void QAndroidCameraSession::onCameraPreviewFailedToStart()
+{
+    if (m_status == QCamera::StartingStatus) {
+        Q_EMIT error(QCamera::CameraError, tr("Camera preview failed to start."));
+
+        AndroidMultimediaUtils::enableOrientationListener(false);
+        m_camera->setPreviewSize(QSize());
+        m_camera->setPreviewTexture(0);
+        if (m_videoOutput) {
+            m_videoOutput->stop();
+            m_videoOutput->reset();
+        }
+        m_previewStarted = false;
+
+        m_status = QCamera::LoadedStatus;
+        emit statusChanged(m_status);
+
+        setReadyForCapture(false);
+    }
 }
 
 void QAndroidCameraSession::onCameraPreviewStopped()
@@ -692,7 +691,7 @@ void QAndroidCameraSession::processCapturedImage(int id,
     }
 
     if (dest & QCameraImageCapture::CaptureToBuffer) {
-        QVideoFrame frame(new DataVideoBuffer(data), resolution, QVideoFrame::Format_Jpeg);
+        QVideoFrame frame(new QMemoryVideoBuffer(data, -1), resolution, QVideoFrame::Format_Jpeg);
         emit imageAvailable(id, frame);
     }
 }

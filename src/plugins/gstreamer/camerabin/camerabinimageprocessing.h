@@ -50,6 +50,10 @@ typedef GstColourToneMode GstPhotographyColorToneMode;
 
 QT_BEGIN_NAMESPACE
 
+#ifdef USE_V4L
+class CameraBinV4LImageProcessing;
+#endif
+
 class CameraBinSession;
 
 class CameraBinImageProcessing : public QCameraImageProcessingControl
@@ -61,7 +65,7 @@ public:
     virtual ~CameraBinImageProcessing();
 
     QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const;
-    void setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
+    bool setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
     bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
 
     bool isParameterSupported(ProcessingParameter) const;
@@ -86,6 +90,10 @@ private:
     QMap<QCameraImageProcessing::ColorFilter, GstPhotographyColorToneMode> m_filterMap;
 #endif
     QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
+
+#ifdef USE_V4L
+    CameraBinV4LImageProcessing *m_v4lImageControl;
+#endif
 };
 
 QT_END_NAMESPACE

@@ -38,7 +38,6 @@
 
 class MockReadOnlyPlaylistProvider : public QMediaPlaylistProvider
 {
-    Q_OBJECT
 public:
     MockReadOnlyPlaylistProvider(QObject *parent)
         :QMediaPlaylistProvider(parent)

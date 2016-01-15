@@ -81,6 +81,8 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QSGVideoNode::FrameFlags)
 class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryInterface
 {
 public:
+    virtual ~QSGVideoNodeFactoryInterface();
+
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
     virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
 };

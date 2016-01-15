@@ -36,6 +36,7 @@
 
 #include <qglobal.h>
 #include <qsize.h>
+#include "androidcamera.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -45,6 +46,8 @@ int qt_findClosestValue(const QList<int> &list, int value);
 
 bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
 
+QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
+AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
 
 QT_END_NAMESPACE
 

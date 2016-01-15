@@ -31,9 +31,9 @@
 **
 ****************************************************************************/
 
-#include "qandroidvideorendercontrol.h"
-#include "androidsurfacetexture.h"
+#include "qandroidvideooutput.h"
 
+#include "androidsurfacetexture.h"
 #include <QAbstractVideoSurface>
 #include <QVideoSurfaceFormat>
 #include <qevent.h>
@@ -59,19 +59,13 @@ static const GLfloat g_texture_data[] = {
     0.f, 1.f
 };
 
-OpenGLResourcesDeleter::~OpenGLResourcesDeleter()
-{
-    glDeleteTextures(1, &m_textureID);
-    delete m_fbo;
-    delete m_program;
-}
 
 class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    AndroidTextureVideoBuffer(QAndroidVideoRendererControl *control)
+    AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output)
         : QAbstractVideoBuffer(GLTextureHandle)
-        , m_control(control)
+        , m_output(output)
         , m_textureUpdated(false)
         , m_mapMode(NotMapped)
     {
@@ -86,7 +80,7 @@ public:
         if (m_mapMode == NotMapped && mode == ReadOnly) {
             updateFrame();
             m_mapMode = mode;
-            m_image = m_control->m_fbo->toImage();
+            m_image = m_output->m_fbo->toImage();
 
             if (numBytes)
                 *numBytes = m_image.byteCount();
@@ -110,7 +104,7 @@ public:
     {
         AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
         that->updateFrame();
-        return m_control->m_fbo->texture();
+        return m_output->m_fbo->texture();
     }
 
 private:
@@ -118,19 +112,47 @@ private:
     {
         if (!m_textureUpdated) {
             // update the video texture (called from the render thread)
-            m_control->renderFrameToFbo();
+            m_output->renderFrameToFbo();
             m_textureUpdated = true;
         }
     }
 
-    QAndroidVideoRendererControl *m_control;
+    QAndroidTextureVideoOutput *m_output;
     bool m_textureUpdated;
     MapMode m_mapMode;
     QImage m_image;
 };
 
-QAndroidVideoRendererControl::QAndroidVideoRendererControl(QObject *parent)
-    : QVideoRendererControl(parent)
+
+class OpenGLResourcesDeleter : public QObject
+{
+public:
+    OpenGLResourcesDeleter()
+        : m_textureID(0)
+        , m_fbo(0)
+        , m_program(0)
+    { }
+
+    ~OpenGLResourcesDeleter()
+    {
+        glDeleteTextures(1, &m_textureID);
+        delete m_fbo;
+        delete m_program;
+    }
+
+    void setTexture(quint32 id) { m_textureID = id; }
+    void setFbo(QOpenGLFramebufferObject *fbo) { m_fbo = fbo; }
+    void setShaderProgram(QOpenGLShaderProgram *prog) { m_program = prog; }
+
+private:
+    quint32 m_textureID;
+    QOpenGLFramebufferObject *m_fbo;
+    QOpenGLShaderProgram *m_program;
+};
+
+
+QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
+    : QAndroidVideoOutput(parent)
     , m_surface(0)
     , m_surfaceTexture(0)
     , m_externalTex(0)
@@ -138,9 +160,10 @@ QAndroidVideoRendererControl::QAndroidVideoRendererControl(QObject *parent)
     , m_program(0)
     , m_glDeleter(0)
 {
+
 }
 
-QAndroidVideoRendererControl::~QAndroidVideoRendererControl()
+QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
     clearSurfaceTexture();
 
@@ -148,12 +171,12 @@ QAndroidVideoRendererControl::~QAndroidVideoRendererControl()
         m_glDeleter->deleteLater();
 }
 
-QAbstractVideoSurface *QAndroidVideoRendererControl::surface() const
+QAbstractVideoSurface *QAndroidTextureVideoOutput::surface() const
 {
     return m_surface;
 }
 
-void QAndroidVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+void QAndroidTextureVideoOutput::setSurface(QAbstractVideoSurface *surface)
 {
     if (surface == m_surface)
         return;
@@ -172,12 +195,12 @@ void QAndroidVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     }
 }
 
-bool QAndroidVideoRendererControl::isReady()
+bool QAndroidTextureVideoOutput::isReady()
 {
     return QOpenGLContext::currentContext() || m_externalTex;
 }
 
-bool QAndroidVideoRendererControl::initSurfaceTexture()
+bool QAndroidTextureVideoOutput::initSurfaceTexture()
 {
     if (m_surfaceTexture)
         return true;
@@ -210,7 +233,7 @@ bool QAndroidVideoRendererControl::initSurfaceTexture()
     return m_surfaceTexture != 0;
 }
 
-void QAndroidVideoRendererControl::clearSurfaceTexture()
+void QAndroidTextureVideoOutput::clearSurfaceTexture()
 {
     if (m_surfaceTexture) {
         delete m_surfaceTexture;
@@ -218,7 +241,7 @@ void QAndroidVideoRendererControl::clearSurfaceTexture()
     }
 }
 
-AndroidSurfaceTexture *QAndroidVideoRendererControl::surfaceTexture()
+AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
 {
     if (!initSurfaceTexture())
         return 0;
@@ -226,7 +249,7 @@ AndroidSurfaceTexture *QAndroidVideoRendererControl::surfaceTexture()
     return m_surfaceTexture;
 }
 
-void QAndroidVideoRendererControl::setVideoSize(const QSize &size)
+void QAndroidTextureVideoOutput::setVideoSize(const QSize &size)
 {
      QMutexLocker locker(&m_mutex);
 
@@ -238,19 +261,19 @@ void QAndroidVideoRendererControl::setVideoSize(const QSize &size)
     m_nativeSize = size;
 }
 
-void QAndroidVideoRendererControl::stop()
+void QAndroidTextureVideoOutput::stop()
 {
     if (m_surface && m_surface->isActive())
         m_surface->stop();
     m_nativeSize = QSize();
 }
 
-void QAndroidVideoRendererControl::reset()
+void QAndroidTextureVideoOutput::reset()
 {
     clearSurfaceTexture();
 }
 
-void QAndroidVideoRendererControl::onFrameAvailable()
+void QAndroidTextureVideoOutput::onFrameAvailable()
 {
     if (!m_nativeSize.isValid() || !m_surface)
         return;
@@ -274,7 +297,7 @@ void QAndroidVideoRendererControl::onFrameAvailable()
         m_surface->present(frame);
 }
 
-void QAndroidVideoRendererControl::renderFrameToFbo()
+void QAndroidTextureVideoOutput::renderFrameToFbo()
 {
     QMutexLocker locker(&m_mutex);
 
@@ -333,7 +356,7 @@ void QAndroidVideoRendererControl::renderFrameToFbo()
         glEnable(GL_BLEND);
 }
 
-void QAndroidVideoRendererControl::createGLResources()
+void QAndroidTextureVideoOutput::createGLResources()
 {
     if (!m_fbo || m_fbo->size() != m_nativeSize) {
         delete m_fbo;
@@ -374,7 +397,7 @@ void QAndroidVideoRendererControl::createGLResources()
     }
 }
 
-void QAndroidVideoRendererControl::customEvent(QEvent *e)
+void QAndroidTextureVideoOutput::customEvent(QEvent *e)
 {
     if (e->type() == QEvent::User) {
         // This is running in the render thread (OpenGL enabled)

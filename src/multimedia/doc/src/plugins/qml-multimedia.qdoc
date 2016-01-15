@@ -26,12 +26,6 @@
 ****************************************************************************/
 
 /*!
-    \group qml-multimedia
-    \title QML Multimedia Plugin
-    QML Support for the Qt Multimedia API.
-*/
-
-/*!
     \page qml-multimedia.html
 
     \title Qt Multimedia QML API

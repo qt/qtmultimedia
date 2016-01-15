@@ -81,52 +81,52 @@ For some quick recipes, look at the overviews above and consult this table:
         \li QSoundEffect
     \row
         \li Playing low latency audio
-        \li \l{audioinput},
-            \l{spectrum}
+        \li \l{Audio Input Example}{audioinput},
+            \l{Spectrum Example}{spectrum}
         \li
         \li QAudioOutput
     \row
         \li Playing encoded audio (MP3, AAC etc)
-        \li \l{player}
+        \li \l{Media Player Example}{player}
         \li \l Audio, \l {MediaPlayer}
         \li QMediaPlayer
     \row
         \li Accessing raw audio input data
-        \li \l{spectrum},
-            \l{audioinput}
+        \li \l{Spectrum Example}{spectrum},
+            \l{Audio Input Example}{audioinput}
         \li
         \li QAudioInput
     \row
         \li Recording encoded audio data
-        \li \l{audiorecorder}
+        \li \l{Audio Recorder Example}{audiorecorder}
         \li
         \li QAudioRecorder
     \row
         \li Discovering raw audio devices
-        \li \l{audiodevices}
+        \li \l{Audio Devices Example}{audiodevices}
         \li
         \li QAudioDeviceInfo
     \row
         \li Video Playback
-        \li \l{player},
-            \l{video/qmlvideo}{qmlvideo},
-            \l{video/qmlvideofx}{qmlvideofx}
+        \li \l{Media Player Example}{player},
+            \l{QML Video Example}{qmlvideo},
+            \l{QML Video Shader Effects Example}{qmlvideofx}
         \li \l MediaPlayer, \l VideoOutput, \l Video
         \li QMediaPlayer, QVideoWidget, QGraphicsVideoItem
     \row
         \li Video Processing
-        \li \l {video/qmlvideofx}{qmlvideofx}
+        \li \l {QML Video Example}{qmlvideofx}
         \li \l {MediaPlayer}, \l VideoOutput
         \li QMediaPlayer, QAbstractVideoSurface, QVideoFrame
     \row
         \li Listening to the radio
-        \li \l {declarative-radio}
+        \li \l {Declarative Radio Example}{declarative-radio}
         \li \l Radio, \l RadioData
         \li QRadioTuner, QRadioData
     \row
         \li Accessing camera viewfinder
         \li \l {Camera Example}{camera},
-            \l {declarative-camera}
+            \l {QML Camera Example}{declarative-camera}
         \li \l Camera, \l VideoOutput
         \li QCamera, QVideoWidget, QGraphicsVideoItem
     \row
@@ -137,13 +137,13 @@ For some quick recipes, look at the overviews above and consult this table:
     \row
         \li Capturing photos
         \li \l {Camera Example}{camera},
-            \l {declarative-camera}
+            \l {QML Camera Example}{declarative-camera}
         \li \l Camera
         \li QCamera, QCameraImageCapture
     \row
         \li Capturing movies
         \li \l {Camera Example}{camera},
-            \l {declarative-camera}
+            \l {QML Camera Example}{declarative-camera}
         \li \l Camera
         \li QCamera, QMediaRecorder
     \row

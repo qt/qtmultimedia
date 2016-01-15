@@ -37,6 +37,8 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <qsize.h>
 #include <QDate>
+#include <QtConcurrent/qtconcurrentrun.h>
+#include <QtCore/qvector.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -63,147 +65,178 @@ static const char* qt_ID3GenreNames[] =
     "Euro-House", "Dance Hall"
 };
 
+typedef QVector<QAndroidMetaDataReaderControl *> AndroidMetaDataReaders;
+Q_GLOBAL_STATIC(AndroidMetaDataReaders, g_metaDataReaders)
+Q_GLOBAL_STATIC(QMutex, g_metaDataReadersMtx)
+
 QAndroidMetaDataReaderControl::QAndroidMetaDataReaderControl(QObject *parent)
     : QMetaDataReaderControl(parent)
     , m_available(false)
-    , m_retriever(new AndroidMediaMetadataRetriever)
 {
 }
 
 QAndroidMetaDataReaderControl::~QAndroidMetaDataReaderControl()
 {
-    if (m_retriever) {
-        m_retriever->release();
-        delete m_retriever;
-    }
+    QMutexLocker l(g_metaDataReadersMtx);
+    const int idx = g_metaDataReaders->indexOf(this);
+    if (idx != -1)
+        g_metaDataReaders->remove(idx);
 }
 
 bool QAndroidMetaDataReaderControl::isMetaDataAvailable() const
 {
-    return m_available;
+    const QMutexLocker l(&m_mtx);
+    return m_available && !m_metadata.isEmpty();
 }
 
 QVariant QAndroidMetaDataReaderControl::metaData(const QString &key) const
 {
+    const QMutexLocker l(&m_mtx);
     return m_metadata.value(key);
 }
 
 QStringList QAndroidMetaDataReaderControl::availableMetaData() const
 {
+    const QMutexLocker l(&m_mtx);
     return m_metadata.keys();
 }
 
 void QAndroidMetaDataReaderControl::onMediaChanged(const QMediaContent &media)
 {
-    if (!m_retriever)
-        return;
-
+    const QMutexLocker l(&m_mtx);
+    m_metadata.clear();
     m_mediaContent = media;
-    updateData();
 }
 
 void QAndroidMetaDataReaderControl::onUpdateMetaData()
 {
-    if (!m_retriever || m_mediaContent.isNull())
-        return;
-
-    updateData();
-}
-
-void QAndroidMetaDataReaderControl::updateData()
-{
-    m_metadata.clear();
-
-    if (!m_mediaContent.isNull()) {
-        if (m_retriever->setDataSource(m_mediaContent.canonicalUrl())) {
-            QString mimeType = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::MimeType);
-            if (!mimeType.isNull())
-                m_metadata.insert(QMediaMetaData::MediaType, mimeType);
-
-            bool isVideo = !m_retriever->extractMetadata(AndroidMediaMetadataRetriever::HasVideo).isNull()
-                           || mimeType.startsWith(QStringLiteral("video"));
-
-            QString string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Album);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::AlbumTitle, string);
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::AlbumArtist);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::AlbumArtist, string);
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Artist);
-            if (!string.isNull()) {
-                m_metadata.insert(isVideo ? QMediaMetaData::LeadPerformer
-                                          : QMediaMetaData::ContributingArtist,
-                                  string.split('/', QString::SkipEmptyParts));
-            }
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Author);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::Author, string.split('/', QString::SkipEmptyParts));
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Bitrate);
-            if (!string.isNull()) {
-                m_metadata.insert(isVideo ? QMediaMetaData::VideoBitRate
-                                          : QMediaMetaData::AudioBitRate,
-                                  string.toInt());
-            }
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::CDTrackNumber);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::TrackNumber, string.toInt());
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Composer);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::Composer, string.split('/', QString::SkipEmptyParts));
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Date);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::Date, QDateTime::fromString(string, QStringLiteral("yyyyMMddTHHmmss.zzzZ")).date());
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Duration);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::Duration, string.toLongLong());
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Genre);
-            if (!string.isNull()) {
-                // The genre can be returned as an ID3v2 id, get the name for it in that case
-                if (string.startsWith('(') && string.endsWith(')')) {
-                    bool ok = false;
-                    int genreId = string.midRef(1, string.length() - 2).toInt(&ok);
-                    if (ok && genreId >= 0 && genreId <= 125)
-                        string = QLatin1String(qt_ID3GenreNames[genreId]);
-                }
-                m_metadata.insert(QMediaMetaData::Genre, string);
-            }
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Title);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::Title, string);
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::VideoHeight);
-            if (!string.isNull()) {
-                int height = string.toInt();
-                int width = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::VideoWidth).toInt();
-                m_metadata.insert(QMediaMetaData::Resolution, QSize(width, height));
-            }
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Writer);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::Writer, string.split('/', QString::SkipEmptyParts));
-
-            string = m_retriever->extractMetadata(AndroidMediaMetadataRetriever::Year);
-            if (!string.isNull())
-                m_metadata.insert(QMediaMetaData::Year, string.toInt());
-        }
+    {
+        const QMutexLocker l(g_metaDataReadersMtx);
+        if (!g_metaDataReaders->contains(this))
+            g_metaDataReaders->append(this);
     }
 
-    bool oldAvailable = m_available;
+    const QMutexLocker ml(&m_mtx);
+    if (m_mediaContent.isNull())
+        return;
+
+    const QUrl &url = m_mediaContent.canonicalUrl();
+    QtConcurrent::run(&extractMetadata, this, url);
+}
+
+void QAndroidMetaDataReaderControl::updateData(const QVariantMap &metadata, const QUrl &url)
+{
+    const QMutexLocker l(&m_mtx);
+
+    if (m_mediaContent.canonicalUrl() != url)
+        return;
+
+    const bool oldAvailable = m_available;
+    m_metadata = metadata;
     m_available = !m_metadata.isEmpty();
+
     if (m_available != oldAvailable)
         Q_EMIT metaDataAvailableChanged(m_available);
 
     Q_EMIT metaDataChanged();
+}
+
+void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderControl *caller,
+                                                    const QUrl &url)
+{
+    QVariantMap metadata;
+
+    if (!url.isEmpty()) {
+        AndroidMediaMetadataRetriever retriever;
+        if (!retriever.setDataSource(url))
+            return;
+
+        QString mimeType = retriever.extractMetadata(AndroidMediaMetadataRetriever::MimeType);
+        if (!mimeType.isNull())
+            metadata.insert(QMediaMetaData::MediaType, mimeType);
+
+        bool isVideo = !retriever.extractMetadata(AndroidMediaMetadataRetriever::HasVideo).isNull()
+                || mimeType.startsWith(QStringLiteral("video"));
+
+        QString string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Album);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::AlbumTitle, string);
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::AlbumArtist);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::AlbumArtist, string);
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Artist);
+        if (!string.isNull()) {
+            metadata.insert(isVideo ? QMediaMetaData::LeadPerformer
+                                    : QMediaMetaData::ContributingArtist,
+                            string.split('/', QString::SkipEmptyParts));
+        }
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Author);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::Author, string.split('/', QString::SkipEmptyParts));
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Bitrate);
+        if (!string.isNull()) {
+            metadata.insert(isVideo ? QMediaMetaData::VideoBitRate
+                                    : QMediaMetaData::AudioBitRate,
+                            string.toInt());
+        }
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::CDTrackNumber);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::TrackNumber, string.toInt());
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Composer);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::Composer, string.split('/', QString::SkipEmptyParts));
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Date);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::Date, QDateTime::fromString(string, QStringLiteral("yyyyMMddTHHmmss.zzzZ")).date());
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Duration);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::Duration, string.toLongLong());
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Genre);
+        if (!string.isNull()) {
+            // The genre can be returned as an ID3v2 id, get the name for it in that case
+            if (string.startsWith('(') && string.endsWith(')')) {
+                bool ok = false;
+                const int genreId = string.midRef(1, string.length() - 2).toInt(&ok);
+                if (ok && genreId >= 0 && genreId <= 125)
+                    string = QLatin1String(qt_ID3GenreNames[genreId]);
+            }
+            metadata.insert(QMediaMetaData::Genre, string);
+        }
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Title);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::Title, string);
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::VideoHeight);
+        if (!string.isNull()) {
+            const int height = string.toInt();
+            const int width = retriever.extractMetadata(AndroidMediaMetadataRetriever::VideoWidth).toInt();
+            metadata.insert(QMediaMetaData::Resolution, QSize(width, height));
+        }
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Writer);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::Writer, string.split('/', QString::SkipEmptyParts));
+
+        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Year);
+        if (!string.isNull())
+            metadata.insert(QMediaMetaData::Year, string.toInt());
+    }
+
+    const QMutexLocker lock(g_metaDataReadersMtx);
+    if (!g_metaDataReaders->contains(caller))
+        return;
+
+    caller->updateData(metadata, url);
 }
 
 QT_END_NAMESPACE

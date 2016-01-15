@@ -68,7 +68,8 @@ public:
     void setCaptureMode(QCamera::CaptureModes mode);
     bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
 
-    void setVideoPreview(QObject *videoOutput);
+    QAndroidVideoOutput *videoOutput() const { return m_videoOutput; }
+    void setVideoOutput(QAndroidVideoOutput *output);
     void adjustViewfinderSize(const QSize &captureSize, bool restartPreview = true);
 
     QImageEncoderSettings imageSettings() const { return m_imageSettings; }
@@ -89,6 +90,14 @@ public:
 
     void addProbe(QAndroidMediaVideoProbeControl *probe);
     void removeProbe(QAndroidMediaVideoProbeControl *probe);
+
+    void setPreviewFormat(AndroidCamera::ImageFormat format);
+
+    struct PreviewCallback
+    {
+        virtual void onFrameAvailable(const QVideoFrame &frame) = 0;
+    };
+    void setPreviewCallback(PreviewCallback *callback);
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status status);
@@ -112,11 +121,13 @@ private Q_SLOTS:
 
     void onApplicationStateChanged(Qt::ApplicationState state);
 
+    void onCameraTakePictureFailed();
     void onCameraPictureExposed();
     void onCameraPictureCaptured(const QByteArray &data);
-    void onLastPreviewFrameFetched(const QByteArray &preview, int width, int height);
-    void onNewPreviewFrame(const QByteArray &frame, int width, int height);
+    void onLastPreviewFrameFetched(const QVideoFrame &frame);
+    void onNewPreviewFrame(const QVideoFrame &frame);
     void onCameraPreviewStarted();
+    void onCameraPreviewFailedToStart();
     void onCameraPreviewStopped();
 
 private:
@@ -129,8 +140,8 @@ private:
     void stopPreview();
 
     void applyImageSettings();
-    void processPreviewImage(int id, const QByteArray &data, int width, int height, int rotation);
-    QImage prepareImageFromPreviewData(const QByteArray &data, int width, int height, int rotation);
+
+    void processPreviewImage(int id, const QVideoFrame &frame, int rotation);
     void processCapturedImage(int id,
                               const QByteArray &data,
                               const QSize &resolution,
@@ -162,6 +173,7 @@ private:
 
     QSet<QAndroidMediaVideoProbeControl *> m_videoProbes;
     QMutex m_videoProbesMutex;
+    PreviewCallback *m_previewCallback;
 };
 
 QT_END_NAMESPACE

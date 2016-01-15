@@ -71,10 +71,10 @@ public:
     ~AndroidMediaMetadataRetriever();
 
     QString extractMetadata(MetadataKey key);
-    void release();
     bool setDataSource(const QUrl &url);
 
 private:
+    void release();
     QJNIObjectPrivate m_metadataRetriever;
 };
 

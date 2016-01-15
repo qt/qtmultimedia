@@ -43,6 +43,7 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qcameraimageprocessingcontrol.h>
 #include <private/qmediastoragelocation_p.h>
 
 #include <tchar.h>
@@ -97,6 +98,20 @@ public:
     QList<QCameraViewfinderSettings> supportedViewfinderSettings() const
     { return m_supportedViewfinderSettings; }
 
+    bool isImageProcessingParameterSupported(
+            QCameraImageProcessingControl::ProcessingParameter) const;
+
+    bool isImageProcessingParameterValueSupported(
+            QCameraImageProcessingControl::ProcessingParameter,
+            const QVariant &) const;
+
+    QVariant imageProcessingParameter(
+            QCameraImageProcessingControl::ProcessingParameter) const;
+
+    void setImageProcessingParameter(
+            QCameraImageProcessingControl::ProcessingParameter,
+            const QVariant &);
+
 Q_SIGNALS:
     void statusChanged(QCamera::Status);
     void imageExposed(int id);
@@ -110,6 +125,27 @@ private Q_SLOTS:
     void updateReadyForCapture();
 
 private:
+    struct ImageProcessingParameterInfo {
+        ImageProcessingParameterInfo()
+            : minimumValue(0)
+            , maximumValue(0)
+            , defaultValue(0)
+            , currentValue(0)
+            , capsFlags(0)
+            , hasBeenExplicitlySet(false)
+            , videoProcAmpProperty(VideoProcAmp_Brightness)
+        {
+        }
+
+        LONG minimumValue;
+        LONG maximumValue;
+        LONG defaultValue;
+        LONG currentValue;
+        LONG capsFlags;
+        bool hasBeenExplicitlySet;
+        VideoProcAmpProperty videoProcAmpProperty;
+    };
+
     void setStatus(QCamera::Status status);
 
     void onFrameAvailable(const char *frameData, long len);
@@ -120,6 +156,14 @@ private:
     void disconnectGraph();
     void updateSourceCapabilities();
     bool configurePreviewFormat();
+    void updateImageProcessingParametersInfos();
+
+    // These static functions are used for scaling of adjustable parameters,
+    // which have the ranges from -1.0 to +1.0 in the QCameraImageProcessing API.
+    static qreal scaledImageProcessingParameterValue(
+            const ImageProcessingParameterInfo &sourceValueInfo);
+    static qint32 sourceImageProcessingParameterValue(
+            qreal scaledValue, const ImageProcessingParameterInfo &sourceValueInfo);
 
     QMutex m_presentMutex;
     QMutex m_captureMutex;
@@ -135,6 +179,7 @@ private:
     QList<AM_MEDIA_TYPE> m_supportedFormats;
     QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
     AM_MEDIA_TYPE m_sourceFormat;
+    QMap<QCameraImageProcessingControl::ProcessingParameter, ImageProcessingParameterInfo> m_imageProcessingParametersInfos;
 
     // Preview
     IBaseFilter *m_previewFilter;

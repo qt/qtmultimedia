@@ -30,7 +30,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qsgvideonode_texture.h"
+#include "qsgvideonode_texture_p.h"
 #include <QtQuick/qsgtexturematerial.h>
 #include <QtQuick/qsgmaterial.h>
 #include <QtCore/qmutex.h>

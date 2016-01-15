@@ -153,6 +153,8 @@ public:
 
     bool isMuted() const;
 
+    QString device() const { return m_inputDevice; }
+
     bool processSyncMessage(const QGstreamerMessage &message);
     bool processBusMessage(const QGstreamerMessage &message);
 

@@ -195,6 +195,7 @@ private:
     bool m_buffering;
     bool m_seekable;
     bool m_atEnd;
+    bool m_dontCacheNextSeekResult;
     QMediaTimeRange m_playbackRange;
     QUrl m_url;
     QMediaResourceList m_resources;

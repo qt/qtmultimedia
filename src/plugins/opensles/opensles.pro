@@ -1,5 +1,5 @@
 TARGET = qtaudio_opensles
-QT += multimedia-private
+QT += multimedia-private core-private
 
 PLUGIN_TYPE = audio
 PLUGIN_CLASS_NAME = QOpenSLESPlugin

@@ -65,8 +65,6 @@ bool EvrVideoWindowControl::setEvr(IUnknown *evr)
     if (!evr)
         return true;
 
-    static const GUID mr_VIDEO_RENDER_SERVICE = { 0x1092a86c, 0xab1a, 0x459a, {0xa3, 0x36, 0x83, 0x1f, 0xbc, 0x4d, 0x11, 0xff} };
-    static const GUID mr_VIDEO_MIXER_SERVICE = { 0x73cd2fc, 0x6cf4, 0x40b7, {0x88, 0x59, 0xe8, 0x95, 0x52, 0xc8, 0x41, 0xf8} };
     IMFGetService *service = NULL;
 
     if (SUCCEEDED(evr->QueryInterface(IID_PPV_ARGS(&service)))

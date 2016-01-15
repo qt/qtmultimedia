@@ -14,7 +14,8 @@ HEADERS += \
     $$PWD/dsimagecapturecontrol.h \
     $$PWD/dscamerasession.h \
     $$PWD/directshowglobal.h \
-    $$PWD/dscameraviewfindersettingscontrol.h
+    $$PWD/dscameraviewfindersettingscontrol.h \
+    $$PWD/dscameraimageprocessingcontrol.h
 
 SOURCES += \
     $$PWD/dscameraservice.cpp \
@@ -23,7 +24,8 @@ SOURCES += \
     $$PWD/dsvideodevicecontrol.cpp \
     $$PWD/dsimagecapturecontrol.cpp \
     $$PWD/dscamerasession.cpp \
-    $$PWD/dscameraviewfindersettingscontrol.cpp
+    $$PWD/dscameraviewfindersettingscontrol.cpp \
+    $$PWD/dscameraimageprocessingcontrol.cpp
 
 *-msvc*:INCLUDEPATH += $$(DXSDK_DIR)/include
 LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32

@@ -45,7 +45,7 @@
 // We mean it.
 //
 
-#include "qdeclarativevideooutput_backend_p.h"
+#include <private/qdeclarativevideooutput_backend_p.h>
 
 QT_BEGIN_NAMESPACE
 

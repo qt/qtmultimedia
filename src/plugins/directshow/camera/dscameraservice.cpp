@@ -41,6 +41,7 @@
 #include "dsvideodevicecontrol.h"
 #include "dsimagecapturecontrol.h"
 #include "dscameraviewfindersettingscontrol.h"
+#include "dscameraimageprocessingcontrol.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -53,12 +54,14 @@ DSCameraService::DSCameraService(QObject *parent):
     m_videoDevice = new DSVideoDeviceControl(m_session);
     m_imageCapture = new DSImageCaptureControl(m_session);
     m_viewfinderSettings = new DSCameraViewfinderSettingsControl(m_session);
+    m_imageProcessingControl = new DSCameraImageProcessingControl(m_session);
 }
 
 DSCameraService::~DSCameraService()
 {
     delete m_control;
     delete m_viewfinderSettings;
+    delete m_imageProcessingControl;
     delete m_videoDevice;
     delete m_videoRenderer;
     delete m_imageCapture;
@@ -85,6 +88,9 @@ QMediaControl* DSCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraViewfinderSettingsControl2_iid) == 0)
         return m_viewfinderSettings;
+
+    if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
+        return m_imageProcessingControl;
 
     return 0;
 }

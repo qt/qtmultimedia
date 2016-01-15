@@ -39,7 +39,6 @@
 #include <dshow.h>
 
 class DirectShowEventLoop;
-class VideoSurfaceFilter;
 
 QT_USE_NAMESPACE
 
@@ -61,7 +60,7 @@ Q_SIGNALS:
 private:
     DirectShowEventLoop *m_loop;
     QAbstractVideoSurface *m_surface;
-    VideoSurfaceFilter *m_filter;
+    IBaseFilter *m_filter;
 };
 
 #endif

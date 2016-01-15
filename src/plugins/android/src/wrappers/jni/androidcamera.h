@@ -46,6 +46,7 @@ class QThread;
 
 class AndroidCameraPrivate;
 class AndroidSurfaceTexture;
+class AndroidSurfaceHolder;
 
 struct AndroidCameraInfo
 {
@@ -67,7 +68,7 @@ public:
     };
 
     enum ImageFormat { // same values as in android.graphics.ImageFormat Java class
-        Unknown = 0,
+        UnknownImageFormat = 0,
         RGB565 = 4,
         NV16 = 16,
         NV21 = 17,
@@ -95,10 +96,12 @@ public:
 
     ImageFormat getPreviewFormat();
     void setPreviewFormat(ImageFormat fmt);
+    QList<ImageFormat> getSupportedPreviewFormats();
 
     QSize previewSize() const;
     void setPreviewSize(const QSize &size);
     bool setPreviewTexture(AndroidSurfaceTexture *surfaceTexture);
+    bool setPreviewDisplay(AndroidSurfaceHolder *surfaceHolder);
 
     bool isZoomSupported();
     int getMaxZoom();
@@ -152,6 +155,7 @@ public:
 
     void startPreview();
     void stopPreview();
+    void stopPreviewSynchronous();
 
     void takePicture();
 
@@ -168,6 +172,7 @@ public:
 Q_SIGNALS:
     void previewSizeChanged();
     void previewStarted();
+    void previewFailedToStart();
     void previewStopped();
 
     void autoFocusStarted();
@@ -175,10 +180,11 @@ Q_SIGNALS:
 
     void whiteBalanceChanged();
 
+    void takePictureFailed();
     void pictureExposed();
     void pictureCaptured(const QByteArray &data);
-    void lastPreviewFrameFetched(const QByteArray &preview, int width, int height);
-    void newPreviewFrame(const QByteArray &frame, int width, int height);
+    void lastPreviewFrameFetched(const QVideoFrame &frame);
+    void newPreviewFrame(const QVideoFrame &frame);
 
 private:
     AndroidCamera(AndroidCameraPrivate *d, QThread *worker);
@@ -187,6 +193,8 @@ private:
     AndroidCameraPrivate *d_ptr;
     QScopedPointer<QThread> m_worker;
 };
+
+Q_DECLARE_METATYPE(AndroidCamera::ImageFormat)
 
 QT_END_NAMESPACE
 

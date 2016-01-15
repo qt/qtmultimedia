@@ -60,6 +60,7 @@ AndroidMediaMetadataRetriever::AndroidMediaMetadataRetriever()
 
 AndroidMediaMetadataRetriever::~AndroidMediaMetadataRetriever()
 {
+    release();
 }
 
 QString AndroidMediaMetadataRetriever::extractMetadata(MetadataKey key)

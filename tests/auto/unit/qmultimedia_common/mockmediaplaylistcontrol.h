@@ -36,24 +36,52 @@
 
 #include <private/qmediaplaylistcontrol_p.h>
 #include <private/qmediaplaylistnavigator_p.h>
+#include <private/qmedianetworkplaylistprovider_p.h>
 
 #include "mockreadonlyplaylistprovider.h"
 
-// Hmm, read only.
 class MockMediaPlaylistControl : public QMediaPlaylistControl
 {
-    Q_OBJECT
 public:
-    MockMediaPlaylistControl(QObject *parent) : QMediaPlaylistControl(parent)
+    MockMediaPlaylistControl(bool readonly = false, QObject *parent = 0)
+        : QMediaPlaylistControl(parent)
+        , m_navigator(0)
+        , m_playlist(0)
+        , m_ownsProvider(false)
+        , m_readOnly(readonly)
     {
-        m_navigator = new QMediaPlaylistNavigator(new MockReadOnlyPlaylistProvider(this), this);
+        reset();
     }
 
     ~MockMediaPlaylistControl()
     {
     }
 
-    QMediaPlaylistProvider* playlistProvider() const { return m_navigator->playlist(); }
+    void reset()
+    {
+        delete m_navigator;
+        if (m_ownsProvider)
+            delete m_playlist;
+
+        if (m_readOnly)
+            m_playlist = new MockReadOnlyPlaylistProvider(this);
+        else
+            m_playlist = new QMediaNetworkPlaylistProvider(this);
+
+        m_ownsProvider = true;
+        m_navigator = new QMediaPlaylistNavigator(m_playlist, this);
+    }
+
+    void setReadOnly(bool ro)
+    {
+        if (m_readOnly == ro)
+            return;
+
+        m_readOnly = ro;
+        reset();
+    }
+
+    QMediaPlaylistProvider* playlistProvider() const { return m_playlist; }
     bool setPlaylistProvider(QMediaPlaylistProvider *newProvider)
     {
         bool bMediaContentChanged = false;
@@ -69,6 +97,11 @@ public:
             emit playlistProviderChanged();
             emit currentMediaChanged(newProvider->media(i));
         }
+
+        if (m_ownsProvider)
+            delete m_playlist;
+        m_playlist = newProvider;
+        m_ownsProvider = false;
 
         m_navigator->setPlaylist(newProvider);
         return true;
@@ -99,6 +132,9 @@ public:
 
 private:
     QMediaPlaylistNavigator *m_navigator;
+    QMediaPlaylistProvider *m_playlist;
+    bool m_ownsProvider;
+    bool m_readOnly;
 };
 
 #endif // MOCKMEDIAPLAYLISTCONTROL_H

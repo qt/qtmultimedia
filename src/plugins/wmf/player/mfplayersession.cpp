@@ -266,6 +266,25 @@ void MFPlayerSession::handleMediaSourceReady()
     }
 }
 
+MFPlayerSession::MediaType MFPlayerSession::getStreamType(IMFStreamDescriptor *stream) const
+{
+    if (!stream)
+        return Unknown;
+
+    IMFMediaTypeHandler *typeHandler = NULL;
+    if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler))) {
+        GUID guidMajorType;
+        if (SUCCEEDED(typeHandler->GetMajorType(&guidMajorType))) {
+            if (guidMajorType == MFMediaType_Audio)
+                return Audio;
+            else if (guidMajorType == MFMediaType_Video)
+                return Video;
+        }
+    }
+
+    return Unknown;
+}
+
 void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD)
 {
     HRESULT hr = S_OK;
@@ -294,45 +313,58 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
     for (DWORD i = 0; i < cSourceStreams; i++)
     {
         BOOL fSelected = FALSE;
+        bool streamAdded = false;
         IMFStreamDescriptor *streamDesc = NULL;
 
         HRESULT hr = sourcePD->GetStreamDescriptorByIndex(i, &fSelected, &streamDesc);
         if (SUCCEEDED(hr)) {
-            MediaType mediaType = Unknown;
-            IMFTopologyNode *sourceNode = addSourceNode(topology, source, sourcePD, streamDesc);
-            if (sourceNode) {
-                IMFTopologyNode *outputNode = addOutputNode(streamDesc, mediaType, topology, 0);
-                if (outputNode) {
-                    bool connected = false;
-                    if (mediaType == Audio) {
-                        if (!m_audioSampleGrabberNode)
-                            connected = setupAudioSampleGrabber(topology, sourceNode, outputNode);
-                    } else if (mediaType == Video && outputNodeId == -1) {
-                        // Remember video output node ID.
-                        outputNode->GetTopoNodeID(&outputNodeId);
-                    }
+            // The media might have multiple audio and video streams,
+            // only use one of each kind, and only if it is selected by default.
+            MediaType mediaType = getStreamType(streamDesc);
+            if (mediaType != Unknown
+                    && ((m_mediaTypes & mediaType) == 0) // Check if this type isn't already added
+                    && fSelected) {
 
-                    if (!connected)
-                        hr = sourceNode->ConnectOutput(0, outputNode, 0);
-                    if (FAILED(hr)) {
-                        emit error(QMediaPlayer::FormatError, tr("Unable to play any stream."), false);
-                    }
-                    else {
-                        succeededCount++;
-                        m_mediaTypes |= mediaType;
-                        switch (mediaType) {
-                        case Audio:
-                            emit audioAvailable();
-                            break;
-                        case Video:
-                            emit videoAvailable();
-                            break;
+                IMFTopologyNode *sourceNode = addSourceNode(topology, source, sourcePD, streamDesc);
+                if (sourceNode) {
+                    IMFTopologyNode *outputNode = addOutputNode(mediaType, topology, 0);
+                    if (outputNode) {
+                        bool connected = false;
+                        if (mediaType == Audio) {
+                            if (!m_audioSampleGrabberNode)
+                                connected = setupAudioSampleGrabber(topology, sourceNode, outputNode);
+                        } else if (mediaType == Video && outputNodeId == -1) {
+                            // Remember video output node ID.
+                            outputNode->GetTopoNodeID(&outputNodeId);
                         }
+
+                        if (!connected)
+                            hr = sourceNode->ConnectOutput(0, outputNode, 0);
+
+                        if (FAILED(hr)) {
+                            emit error(QMediaPlayer::FormatError, tr("Unable to play any stream."), false);
+                        } else {
+                            streamAdded = true;
+                            succeededCount++;
+                            m_mediaTypes |= mediaType;
+                            switch (mediaType) {
+                            case Audio:
+                                emit audioAvailable();
+                                break;
+                            case Video:
+                                emit videoAvailable();
+                                break;
+                            }
+                        }
+                        outputNode->Release();
                     }
-                    outputNode->Release();
+                    sourceNode->Release();
                 }
-                sourceNode->Release();
             }
+
+            if (fSelected && !streamAdded)
+                sourcePD->DeselectStream(i);
+
             streamDesc->Release();
         }
     }
@@ -377,56 +409,38 @@ IMFTopologyNode* MFPlayerSession::addSourceNode(IMFTopology* topology, IMFMediaS
     return NULL;
 }
 
-IMFTopologyNode* MFPlayerSession::addOutputNode(IMFStreamDescriptor *streamDesc, MediaType& mediaType, IMFTopology* topology, DWORD sinkID)
+IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology* topology, DWORD sinkID)
 {
     IMFTopologyNode *node = NULL;
-    HRESULT hr = MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &node);
-    if (FAILED(hr))
+    if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &node)))
         return NULL;
-    node->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
 
-    mediaType = Unknown;
-    IMFMediaTypeHandler *handler = NULL;
-    hr = streamDesc->GetMediaTypeHandler(&handler);
-    if (SUCCEEDED(hr)) {
-        GUID guidMajorType;
-        hr = handler->GetMajorType(&guidMajorType);
-        if (SUCCEEDED(hr)) {
-            IMFActivate *activate = NULL;
-            if (MFMediaType_Audio == guidMajorType) {
-                mediaType = Audio;
-                activate = m_playerService->audioEndpointControl()->createActivate();
-            } else if (MFMediaType_Video == guidMajorType) {
-                mediaType = Video;
-                if (m_playerService->videoRendererControl()) {
-                    activate = m_playerService->videoRendererControl()->createActivate();
-                } else if (m_playerService->videoWindowControl()) {
-                    activate = m_playerService->videoWindowControl()->createActivate();
-                } else {
-                    qWarning() << "no videoWindowControl or videoRendererControl, unable to add output node for video data";
-                }
-            } else {
-                // Unknown stream type.
-                emit error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);
-            }
-
-            if (activate) {
-                hr = node->SetObject(activate);
-                if (SUCCEEDED(hr)) {
-                    hr = node->SetUINT32(MF_TOPONODE_STREAMID, sinkID);
-                    if (SUCCEEDED(hr)) {
-                        if (SUCCEEDED(topology->AddNode(node))) {
-                            handler->Release();
-                            return node;
-                        }
-                    }
-                }
-            }
+    IMFActivate *activate = NULL;
+    if (mediaType == Audio) {
+        activate = m_playerService->audioEndpointControl()->createActivate();
+    } else if (mediaType == Video) {
+        if (m_playerService->videoRendererControl()) {
+            activate = m_playerService->videoRendererControl()->createActivate();
+        } else if (m_playerService->videoWindowControl()) {
+            activate = m_playerService->videoWindowControl()->createActivate();
+        } else {
+            qWarning() << "no videoWindowControl or videoRendererControl, unable to add output node for video data";
         }
-        handler->Release();
+    } else {
+        // Unknown stream type.
+        emit error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);
     }
-    node->Release();
-    return NULL;
+
+    if (!activate
+            || FAILED(node->SetObject(activate))
+            || FAILED(node->SetUINT32(MF_TOPONODE_STREAMID, sinkID))
+            || FAILED(node->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE))
+            || FAILED(topology->AddNode(node))) {
+        node->Release();
+        node = NULL;
+    }
+
+    return node;
 }
 
 bool MFPlayerSession::addAudioSampleGrabberNode(IMFTopology *topology)
@@ -692,7 +706,6 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
             IUnknown *element = 0;
             IMFTopologyNode *node = 0;
             IUnknown *outputObject = 0;
-            IMFMediaTypeHandler *videoSink = 0;
             IMFTopologyNode *inputNode = 0;
             IMFTopologyNode *mftNode = 0;
             bool mftAdded = false;
@@ -711,22 +724,10 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
                 if (id != outputNodeId)
                     break;
 
-                // Use output supported media types for the MFT
                 if (FAILED(node->GetObject(&outputObject)))
                     break;
 
-                if (FAILED(outputObject->QueryInterface(IID_IMFMediaTypeHandler, (void**)&videoSink)))
-                    break;
-
-                DWORD mtCount;
-                if (FAILED(videoSink->GetMediaTypeCount(&mtCount)))
-                    break;
-
-                for (DWORD i = 0; i < mtCount; ++i) {
-                    IMFMediaType *type = 0;
-                    if (SUCCEEDED(videoSink->GetMediaTypeByIndex(i, &type)))
-                        m_videoProbeMFT->addSupportedMediaType(type);
-                }
+                m_videoProbeMFT->setVideoSink(outputObject);
 
                 // Insert MFT between the output node and the node connected to it.
                 DWORD outputIndex = 0;
@@ -760,13 +761,13 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
                 node->Release();
             if (element)
                 element->Release();
-            if (videoSink)
-                videoSink->Release();
             if (outputObject)
                 outputObject->Release();
 
             if (mftAdded)
                 break;
+            else
+                m_videoProbeMFT->setVideoSink(NULL);
         }
     } while (false);
 

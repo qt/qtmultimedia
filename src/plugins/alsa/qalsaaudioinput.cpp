@@ -303,7 +303,7 @@ bool QAlsaAudioInput::open()
     QString dev = QString(QLatin1String(m_device.constData()));
     QList<QByteArray> devices = QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioInput);
     if(dev.compare(QLatin1String("default")) == 0) {
-#if(SND_LIB_MAJOR == 1 && SND_LIB_MINOR == 0 && SND_LIB_SUBMINOR >= 14)
+#if (SND_LIB_MAJOR == 1 && (SND_LIB_MINOR > 0 || SND_LIB_SUBMINOR >= 14))
         if (devices.size() > 0)
             dev = QLatin1String(devices.first());
         else
@@ -312,7 +312,7 @@ bool QAlsaAudioInput::open()
         dev = QLatin1String("hw:0,0");
 #endif
     } else {
-#if(SND_LIB_MAJOR == 1 && SND_LIB_MINOR == 0 && SND_LIB_SUBMINOR >= 14)
+#if (SND_LIB_MAJOR == 1 && (SND_LIB_MINOR > 0 || SND_LIB_SUBMINOR >= 14))
         dev = QLatin1String(m_device);
 #else
         int idx = 0;

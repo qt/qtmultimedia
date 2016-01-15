@@ -160,6 +160,7 @@ Q_DEFINE_METADATA(ThumbnailImage);
 
 /*!
     \namespace QMediaMetaData
+    \ingroup multimedia-namespaces
     \ingroup multimedia
     \inmodule QtMultimedia
 

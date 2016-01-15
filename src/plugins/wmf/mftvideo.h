@@ -53,7 +53,7 @@ public:
     void addProbe(MFVideoProbeControl* probe);
     void removeProbe(MFVideoProbeControl* probe);
 
-    void addSupportedMediaType(IMFMediaType *type);
+    void setVideoSink(IUnknown *videoSink);
 
     // IUnknown methods
     STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
@@ -99,7 +99,7 @@ private:
     IMFSample *m_sample;
     QMutex m_mutex;
 
-    QList<IMFMediaType*> m_mediaTypes;
+    IMFMediaTypeHandler *m_videoSinkTypeHandler;
 
     QList<MFVideoProbeControl*> m_videoProbes;
     QMutex m_videoProbeMutex;

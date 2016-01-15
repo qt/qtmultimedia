@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example audiooutput
+    \example multimedia/audiooutput
     \title Audio Output Example
     \ingroup multimedia_examples
     \brief Enabling audio playback using the QAudioOutput class.

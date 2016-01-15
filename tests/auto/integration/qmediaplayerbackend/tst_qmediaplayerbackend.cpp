@@ -220,13 +220,13 @@ void tst_QMediaPlayerBackend::initTestCase()
     qRegisterMetaType<QMediaContent>();
 
     QStringList mediaCandidates;
-    mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
     mediaCandidates << QFINDTESTDATA("testdata/colors.mp4");
+    mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
     localVideoFile = selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
-    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mkv");
     mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mp3");
+    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mkv");
     localCompressedSoundFile = selectMediaFile(mediaCandidates);
 
     localFileWithMetadata = selectMediaFile(QStringList() << QFINDTESTDATA("testdata/nokia-tune.mp3"));
@@ -478,7 +478,7 @@ void tst_QMediaPlayerBackend::processEOS()
 
     //position is reset to start
     QTRY_VERIFY(player.position() < 100);
-    QVERIFY(positionSpy.count() > 0);
+    QTRY_VERIFY(positionSpy.count() > 0);
     QCOMPARE(positionSpy.first()[0].value<qint64>(), 0);
 
     QCOMPARE(player.state(), QMediaPlayer::PlayingState);
@@ -720,7 +720,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     player.pause();
     QTRY_COMPARE(player.state(), QMediaPlayer::PausedState); // it might take some time for the operation to be completed
-    QTRY_COMPARE(surface->m_frameList.size(), 1); // we must see a frame at position 7000 here
+    QTRY_VERIFY(!surface->m_frameList.isEmpty()); // we must see a frame at position 7000 here
 
     {
         QVideoFrame frame = surface->m_frameList.back();
@@ -739,12 +739,13 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         frame.unmap();
     }
 
+    surface->m_frameList.clear();
     positionSpy.clear();
     position = 12000;
     player.setPosition(position);
     QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - position) < (qint64)500);
     QCOMPARE(player.state(), QMediaPlayer::PausedState);
-    QCOMPARE(surface->m_frameList.size(), 2);
+    QVERIFY(!surface->m_frameList.isEmpty());
 
     {
         QVideoFrame frame = surface->m_frameList.back();

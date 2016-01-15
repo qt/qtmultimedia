@@ -67,7 +67,7 @@ public:
     const QIODevice *mediaStream() const Q_DECL_OVERRIDE;
     void setMedia(const QMediaContent &mediaContent, QIODevice *stream) Q_DECL_OVERRIDE;
 
-    void setVideoOutput(QObject *videoOutput);
+    void setVideoOutput(QAndroidVideoOutput *videoOutput);
 
 Q_SIGNALS:
     void metaDataUpdated();

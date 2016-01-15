@@ -230,6 +230,240 @@ void DSCameraSession::setViewfinderSettings(const QCameraViewfinderSettings &set
     m_viewfinderSettings = settings;
 }
 
+qreal DSCameraSession::scaledImageProcessingParameterValue(
+        const ImageProcessingParameterInfo &sourceValueInfo)
+{
+    if (sourceValueInfo.currentValue == sourceValueInfo.defaultValue) {
+        return 0.0f;
+    } else if (sourceValueInfo.currentValue < sourceValueInfo.defaultValue) {
+        return ((sourceValueInfo.currentValue - sourceValueInfo.minimumValue)
+                / qreal(sourceValueInfo.defaultValue - sourceValueInfo.minimumValue))
+                + (-1.0f);
+    } else {
+        return ((sourceValueInfo.currentValue - sourceValueInfo.defaultValue)
+                / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
+    }
+}
+
+qint32 DSCameraSession::sourceImageProcessingParameterValue(
+        qreal scaledValue, const ImageProcessingParameterInfo &valueRange)
+{
+    if (qFuzzyIsNull(scaledValue)) {
+        return valueRange.defaultValue;
+    } else if (scaledValue < 0.0f) {
+        return ((scaledValue - (-1.0f)) * (valueRange.defaultValue - valueRange.minimumValue))
+                + valueRange.minimumValue;
+    } else {
+        return (scaledValue * (valueRange.maximumValue - valueRange.defaultValue))
+                + valueRange.defaultValue;
+    }
+}
+
+static QCameraImageProcessingControl::ProcessingParameter searchRelatedResultingParameter(
+        QCameraImageProcessingControl::ProcessingParameter sourceParameter)
+{
+    if (sourceParameter == QCameraImageProcessingControl::WhiteBalancePreset)
+        return QCameraImageProcessingControl::ColorTemperature;
+    return sourceParameter;
+}
+
+bool DSCameraSession::isImageProcessingParameterSupported(
+        QCameraImageProcessingControl::ProcessingParameter parameter) const
+{
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
+    return m_imageProcessingParametersInfos.contains(resultingParameter);
+}
+
+bool DSCameraSession::isImageProcessingParameterValueSupported(
+        QCameraImageProcessingControl::ProcessingParameter parameter,
+        const QVariant &value) const
+{
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
+    QMap<QCameraImageProcessingControl::ProcessingParameter,
+            ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
+            m_imageProcessingParametersInfos.constFind(resultingParameter);
+
+    if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
+        return false;
+
+    switch (parameter) {
+
+    case QCameraImageProcessingControl::WhiteBalancePreset: {
+        const QCameraImageProcessing::WhiteBalanceMode checkedValue =
+                value.value<QCameraImageProcessing::WhiteBalanceMode>();
+        // Supports only the Manual and the Auto values
+        if (checkedValue != QCameraImageProcessing::WhiteBalanceManual
+                && checkedValue != QCameraImageProcessing::WhiteBalanceAuto) {
+            return false;
+        }
+    }
+        break;
+
+    case QCameraImageProcessingControl::ColorTemperature: {
+        const qint32 checkedValue = value.toInt();
+        if (checkedValue < (*sourceValueInfo).minimumValue
+                || checkedValue > (*sourceValueInfo).maximumValue) {
+            return false;
+        }
+    }
+        break;
+
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment: {
+        const qint32 sourceValue = sourceImageProcessingParameterValue(
+                    value.toReal(), (*sourceValueInfo));
+        if (sourceValue < (*sourceValueInfo).minimumValue
+                || sourceValue > (*sourceValueInfo).maximumValue)
+            return false;
+    }
+        break;
+
+    default:
+        return false;
+    }
+
+    return true;
+}
+
+QVariant DSCameraSession::imageProcessingParameter(
+        QCameraImageProcessingControl::ProcessingParameter parameter) const
+{
+    if (!m_graphBuilder) {
+        qWarning() << "failed to access to the graph builder";
+        return QVariant();
+    }
+
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
+    QMap<QCameraImageProcessingControl::ProcessingParameter,
+            ImageProcessingParameterInfo>::const_iterator sourceValueInfo =
+            m_imageProcessingParametersInfos.constFind(resultingParameter);
+
+    if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
+        return QVariant();
+
+    switch (parameter) {
+
+    case QCameraImageProcessingControl::WhiteBalancePreset:
+        return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(
+                    (*sourceValueInfo).capsFlags == VideoProcAmp_Flags_Auto
+                    ? QCameraImageProcessing::WhiteBalanceAuto
+                    : QCameraImageProcessing::WhiteBalanceManual);
+
+    case QCameraImageProcessingControl::ColorTemperature:
+        return QVariant::fromValue<qint32>((*sourceValueInfo).currentValue);
+
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment:
+        return scaledImageProcessingParameterValue((*sourceValueInfo));
+
+    default:
+        return QVariant();
+    }
+}
+
+void DSCameraSession::setImageProcessingParameter(
+        QCameraImageProcessingControl::ProcessingParameter parameter,
+        const QVariant &value)
+{
+    if (!m_graphBuilder) {
+        qWarning() << "failed to access to the graph builder";
+        return;
+    }
+
+    const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
+            searchRelatedResultingParameter(parameter);
+
+    QMap<QCameraImageProcessingControl::ProcessingParameter,
+            ImageProcessingParameterInfo>::iterator sourceValueInfo =
+            m_imageProcessingParametersInfos.find(resultingParameter);
+
+    if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
+        return;
+
+    LONG sourceValue = 0;
+    LONG capsFlags = VideoProcAmp_Flags_Manual;
+
+    switch (parameter) {
+
+    case QCameraImageProcessingControl::WhiteBalancePreset: {
+        const QCameraImageProcessing::WhiteBalanceMode checkedValue =
+                value.value<QCameraImageProcessing::WhiteBalanceMode>();
+        // Supports only the Manual and the Auto values
+        if (checkedValue == QCameraImageProcessing::WhiteBalanceManual)
+            capsFlags = VideoProcAmp_Flags_Manual;
+        else if (checkedValue == QCameraImageProcessing::WhiteBalanceAuto)
+            capsFlags = VideoProcAmp_Flags_Auto;
+        else
+            return;
+
+        sourceValue = ((*sourceValueInfo).hasBeenExplicitlySet)
+                ? (*sourceValueInfo).currentValue
+                : (*sourceValueInfo).defaultValue;
+    }
+        break;
+
+    case QCameraImageProcessingControl::ColorTemperature:
+        sourceValue = value.isValid() ?
+                    value.value<qint32>() : (*sourceValueInfo).defaultValue;
+        capsFlags = (*sourceValueInfo).capsFlags;
+        break;
+
+    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
+    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
+    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QCameraImageProcessingControl::SharpeningAdjustment:
+        if (value.isValid()) {
+            sourceValue = sourceImageProcessingParameterValue(
+                        value.toReal(), (*sourceValueInfo));
+        } else {
+            sourceValue = (*sourceValueInfo).defaultValue;
+        }
+        break;
+
+    default:
+        return;
+    }
+
+    IAMVideoProcAmp *pVideoProcAmp = NULL;
+    HRESULT hr = m_graphBuilder->FindInterface(
+                NULL,
+                NULL,
+                m_sourceFilter,
+                IID_IAMVideoProcAmp,
+                reinterpret_cast<void**>(&pVideoProcAmp)
+                );
+
+    if (FAILED(hr) || !pVideoProcAmp) {
+        qWarning() << "failed to find the video proc amp";
+        return;
+    }
+
+    hr = pVideoProcAmp->Set(
+                (*sourceValueInfo).videoProcAmpProperty,
+                sourceValue,
+                capsFlags);
+
+    pVideoProcAmp->Release();
+
+    if (FAILED(hr)) {
+        qWarning() << "failed to set the parameter value";
+    } else {
+        (*sourceValueInfo).capsFlags = capsFlags;
+        (*sourceValueInfo).hasBeenExplicitlySet = true;
+        (*sourceValueInfo).currentValue = sourceValue;
+    }
+}
+
 bool DSCameraSession::load()
 {
     unload();
@@ -720,6 +954,81 @@ bool DSCameraSession::configurePreviewFormat()
     return true;
 }
 
+void DSCameraSession::updateImageProcessingParametersInfos()
+{
+    if (!m_graphBuilder) {
+        qWarning() << "failed to access to the graph builder";
+        return;
+    }
+
+    IAMVideoProcAmp *pVideoProcAmp = NULL;
+    const HRESULT hr = m_graphBuilder->FindInterface(
+                NULL,
+                NULL,
+                m_sourceFilter,
+                IID_IAMVideoProcAmp,
+                reinterpret_cast<void**>(&pVideoProcAmp)
+                );
+
+    if (FAILED(hr) || !pVideoProcAmp) {
+        qWarning() << "failed to find the video proc amp";
+        return;
+    }
+
+    for (int property = VideoProcAmp_Brightness; property <= VideoProcAmp_Gain; ++property) {
+
+        QCameraImageProcessingControl::ProcessingParameter processingParameter; // not initialized
+
+        switch (property) {
+        case VideoProcAmp_Brightness:
+            processingParameter = QCameraImageProcessingControl::BrightnessAdjustment;
+            break;
+        case VideoProcAmp_Contrast:
+            processingParameter = QCameraImageProcessingControl::ContrastAdjustment;
+            break;
+        case VideoProcAmp_Saturation:
+            processingParameter = QCameraImageProcessingControl::SaturationAdjustment;
+            break;
+        case VideoProcAmp_Sharpness:
+            processingParameter = QCameraImageProcessingControl::SharpeningAdjustment;
+            break;
+        case VideoProcAmp_WhiteBalance:
+            processingParameter = QCameraImageProcessingControl::ColorTemperature;
+            break;
+        default: // unsupported or not implemented yet parameter
+            continue;
+        }
+
+        ImageProcessingParameterInfo sourceValueInfo;
+        LONG steppingDelta = 0;
+
+        HRESULT hr = pVideoProcAmp->GetRange(
+                    property,
+                    &sourceValueInfo.minimumValue,
+                    &sourceValueInfo.maximumValue,
+                    &steppingDelta,
+                    &sourceValueInfo.defaultValue,
+                    &sourceValueInfo.capsFlags);
+
+        if (FAILED(hr))
+            continue;
+
+        hr = pVideoProcAmp->Get(
+                    property,
+                    &sourceValueInfo.currentValue,
+                    &sourceValueInfo.capsFlags);
+
+        if (FAILED(hr))
+            continue;
+
+        sourceValueInfo.videoProcAmpProperty = static_cast<VideoProcAmpProperty>(property);
+
+        m_imageProcessingParametersInfos.insert(processingParameter, sourceValueInfo);
+    }
+
+    pVideoProcAmp->Release();
+}
+
 bool DSCameraSession::connectGraph()
 {
     HRESULT hr = m_filterGraph->AddFilter(m_sourceFilter, L"Capture Filter");
@@ -806,6 +1115,7 @@ void DSCameraSession::updateSourceCapabilities()
     for (AM_MEDIA_TYPE f : qAsConst(m_supportedFormats))
         _FreeMediaType(f);
     m_supportedFormats.clear();
+    m_imageProcessingParametersInfos.clear();
 
     IAMVideoControl *pVideoControl = 0;
     hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
@@ -915,6 +1225,8 @@ void DSCameraSession::updateSourceCapabilities()
     }
 
     pConfig->Release();
+
+    updateImageProcessingParametersInfos();
 }
 
 HRESULT getPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin)

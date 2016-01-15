@@ -56,13 +56,16 @@ public:
     QVariant metaData(const QString &key) const;
     QStringList availableMetaData() const;
 
-    void updateGraph(IFilterGraph2 *graph, IBaseFilter *source,
-                     const QString &fileSrc = QString());
+    void reset();
+    void updateMetadata(IFilterGraph2 *graph, IBaseFilter *source,
+                        const QString &fileSrc = QString());
 
 protected:
     void customEvent(QEvent *event);
 
 private:
+    void setMetadataAvailable(bool available);
+
     enum Event
     {
         MetaDataChanged = QEvent::User

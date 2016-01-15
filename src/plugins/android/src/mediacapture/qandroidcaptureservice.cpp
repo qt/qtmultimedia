@@ -40,7 +40,7 @@
 #include "qandroidvideodeviceselectorcontrol.h"
 #include "qandroidaudioinputselectorcontrol.h"
 #include "qandroidcamerasession.h"
-#include "qandroidvideorendercontrol.h"
+#include "qandroidcameravideorenderercontrol.h"
 #include "qandroidcamerazoomcontrol.h"
 #include "qandroidcameraexposurecontrol.h"
 #include "qandroidcameraflashcontrol.h"
@@ -196,8 +196,7 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
     if (qstrcmp(name, QVideoRendererControl_iid) == 0
             && m_service == QLatin1String(Q_MEDIASERVICE_CAMERA)
             && !m_videoRendererControl) {
-        m_videoRendererControl = new QAndroidVideoRendererControl;
-        m_cameraSession->setVideoPreview(m_videoRendererControl);
+        m_videoRendererControl = new QAndroidCameraVideoRendererControl(m_cameraSession);
         return m_videoRendererControl;
     }
 
@@ -217,7 +216,6 @@ void QAndroidCaptureService::releaseControl(QMediaControl *control)
 {
     if (control) {
         if (control == m_videoRendererControl) {
-            m_cameraSession->setVideoPreview(0);
             delete m_videoRendererControl;
             m_videoRendererControl = 0;
             return;

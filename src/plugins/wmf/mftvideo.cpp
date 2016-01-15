@@ -52,6 +52,7 @@ MFTransform::MFTransform():
     m_inputType(0),
     m_outputType(0),
     m_sample(0),
+    m_videoSinkTypeHandler(0),
     m_bytesPerLine(0)
 {
 }
@@ -64,8 +65,8 @@ MFTransform::~MFTransform()
     if (m_outputType)
         m_outputType->Release();
 
-    for (int i = 0; i < m_mediaTypes.size(); ++i)
-        m_mediaTypes[i]->Release();
+    if (m_videoSinkTypeHandler)
+        m_videoSinkTypeHandler->Release();
 }
 
 void MFTransform::addProbe(MFVideoProbeControl *probe)
@@ -84,12 +85,18 @@ void MFTransform::removeProbe(MFVideoProbeControl *probe)
     m_videoProbes.removeOne(probe);
 }
 
-void MFTransform::addSupportedMediaType(IMFMediaType *type)
+void MFTransform::setVideoSink(IUnknown *videoSink)
 {
-    if (!type)
-        return;
-    QMutexLocker locker(&m_mutex);
-    m_mediaTypes.append(type);
+    // This transform supports the same input types as the video sink.
+    // Store its type handler interface in order to report the correct supported types.
+
+    if (m_videoSinkTypeHandler) {
+        m_videoSinkTypeHandler->Release();
+        m_videoSinkTypeHandler = NULL;
+    }
+
+    if (videoSink)
+        videoSink->QueryInterface(IID_PPV_ARGS(&m_videoSinkTypeHandler));
 }
 
 STDMETHODIMP MFTransform::QueryInterface(REFIID riid, void** ppv)
@@ -165,9 +172,12 @@ STDMETHODIMP MFTransform::GetInputStreamInfo(DWORD dwInputStreamID, MFT_INPUT_ST
 
     pStreamInfo->cbSize = 0;
     pStreamInfo->hnsMaxLatency = 0;
-    pStreamInfo->dwFlags = MFT_INPUT_STREAM_WHOLE_SAMPLES | MFT_INPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER;
     pStreamInfo->cbMaxLookahead = 0;
     pStreamInfo->cbAlignment = 0;
+    pStreamInfo->dwFlags = MFT_INPUT_STREAM_WHOLE_SAMPLES
+                            | MFT_INPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER
+                            | MFT_INPUT_STREAM_PROCESSES_IN_PLACE;
+
     return S_OK;
 }
 
@@ -182,8 +192,11 @@ STDMETHODIMP MFTransform::GetOutputStreamInfo(DWORD dwOutputStreamID, MFT_OUTPUT
         return E_POINTER;
 
     pStreamInfo->cbSize = 0;
-    pStreamInfo->dwFlags = MFT_OUTPUT_STREAM_WHOLE_SAMPLES | MFT_OUTPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER;
     pStreamInfo->cbAlignment = 0;
+    pStreamInfo->dwFlags = MFT_OUTPUT_STREAM_WHOLE_SAMPLES
+                            | MFT_OUTPUT_STREAM_SINGLE_SAMPLE_PER_BUFFER
+                            | MFT_OUTPUT_STREAM_PROVIDES_SAMPLES
+                            | MFT_OUTPUT_STREAM_DISCARDABLE;
 
     return S_OK;
 }
@@ -228,20 +241,42 @@ STDMETHODIMP MFTransform::AddInputStreams(DWORD cStreams, DWORD *adwStreamIDs)
 
 STDMETHODIMP MFTransform::GetInputAvailableType(DWORD dwInputStreamID, DWORD dwTypeIndex, IMFMediaType **ppType)
 {
-    // This MFT does not have a list of preferred input types
-    Q_UNUSED(dwInputStreamID);
-    Q_UNUSED(dwTypeIndex);
-    Q_UNUSED(ppType);
-    return E_NOTIMPL;
+    // We support the same input types as the video sink
+    if (!m_videoSinkTypeHandler)
+        return E_NOTIMPL;
+
+    if (dwInputStreamID > 0)
+        return MF_E_INVALIDSTREAMNUMBER;
+
+    if (!ppType)
+        return E_POINTER;
+
+    return m_videoSinkTypeHandler->GetMediaTypeByIndex(dwTypeIndex, ppType);
 }
 
-STDMETHODIMP MFTransform::GetOutputAvailableType(DWORD dwOutputStreamID,DWORD dwTypeIndex, IMFMediaType **ppType)
+STDMETHODIMP MFTransform::GetOutputAvailableType(DWORD dwOutputStreamID, DWORD dwTypeIndex, IMFMediaType **ppType)
 {
-    // This MFT does not have a list of preferred output types
-    Q_UNUSED(dwOutputStreamID);
-    Q_UNUSED(dwTypeIndex);
-    Q_UNUSED(ppType);
-    return E_NOTIMPL;
+    // Since we don't modify the samples, the output type must be the same as the input type.
+    // Report our input type as the only available output type.
+
+    if (dwOutputStreamID > 0)
+        return MF_E_INVALIDSTREAMNUMBER;
+
+    if (!ppType)
+        return E_POINTER;
+
+    // Input type must be set first
+    if (!m_inputType)
+        return MF_E_TRANSFORM_TYPE_NOT_SET;
+
+    if (dwTypeIndex > 0)
+        return MF_E_NO_MORE_TYPES;
+
+    // Return a copy to make sure our type is not modified
+    if (FAILED(MFCreateMediaType(ppType)))
+        return E_OUTOFMEMORY;
+
+    return m_inputType->CopyAllItems(*ppType);
 }
 
 STDMETHODIMP MFTransform::SetInputType(DWORD dwInputStreamID, IMFMediaType *pType, DWORD dwFlags)
@@ -257,17 +292,14 @@ STDMETHODIMP MFTransform::SetInputType(DWORD dwInputStreamID, IMFMediaType *pTyp
     if (!isMediaTypeSupported(pType))
         return MF_E_INVALIDMEDIATYPE;
 
-    DWORD flags = 0;
-    if (pType && !m_inputType && m_outputType && m_outputType->IsEqual(pType, &flags) != S_OK)
-        return MF_E_INVALIDMEDIATYPE;
-
     if (dwFlags == MFT_SET_TYPE_TEST_ONLY)
         return pType ? S_OK : E_POINTER;
 
     if (m_inputType) {
         m_inputType->Release();
         // Input type has changed, discard output type (if it's set) so it's reset later on
-        if (m_outputType &&  m_outputType->IsEqual(pType, &flags) != S_OK) {
+        DWORD flags = 0;
+        if (m_outputType && m_outputType->IsEqual(pType, &flags) != S_OK) {
             m_outputType->Release();
             m_outputType = 0;
         }
@@ -286,29 +318,27 @@ STDMETHODIMP MFTransform::SetOutputType(DWORD dwOutputStreamID, IMFMediaType *pT
     if (dwOutputStreamID > 0)
         return MF_E_INVALIDSTREAMNUMBER;
 
+    if (dwFlags == MFT_SET_TYPE_TEST_ONLY && !pType)
+        return E_POINTER;
+
     QMutexLocker locker(&m_mutex);
+
+    // Input type must be set first
+    if (!m_inputType)
+        return MF_E_TRANSFORM_TYPE_NOT_SET;
 
     if (m_sample)
         return MF_E_TRANSFORM_CANNOT_CHANGE_MEDIATYPE_WHILE_PROCESSING;
 
-    if (!isMediaTypeSupported(pType))
-        return MF_E_INVALIDMEDIATYPE;
-
     DWORD flags = 0;
-    if (pType && !m_outputType && m_inputType && m_inputType->IsEqual(pType, &flags) != S_OK)
+    if (pType && m_inputType->IsEqual(pType, &flags) != S_OK)
         return MF_E_INVALIDMEDIATYPE;
 
     if (dwFlags == MFT_SET_TYPE_TEST_ONLY)
         return pType ? S_OK : E_POINTER;
 
-    if (m_outputType) {
+    if (m_outputType)
         m_outputType->Release();
-        // Output type has changed, discard input type (if it's set) so it's reset later on
-        if (m_inputType &&  m_inputType->IsEqual(pType, &flags) != S_OK) {
-            m_inputType->Release();
-            m_inputType = 0;
-        }
-    }
 
     m_outputType = pType;
 
@@ -333,10 +363,11 @@ STDMETHODIMP MFTransform::GetInputCurrentType(DWORD dwInputStreamID, IMFMediaTyp
     if (!m_inputType)
         return MF_E_TRANSFORM_TYPE_NOT_SET;
 
-    *ppType = m_inputType;
-    (*ppType)->AddRef();
+    // Return a copy to make sure our type is not modified
+    if (FAILED(MFCreateMediaType(ppType)))
+        return E_OUTOFMEMORY;
 
-    return S_OK;
+    return m_inputType->CopyAllItems(*ppType);
 }
 
 STDMETHODIMP MFTransform::GetOutputCurrentType(DWORD dwOutputStreamID, IMFMediaType **ppType)
@@ -349,19 +380,14 @@ STDMETHODIMP MFTransform::GetOutputCurrentType(DWORD dwOutputStreamID, IMFMediaT
 
     QMutexLocker locker(&m_mutex);
 
-    if (!m_outputType) {
-        if (m_inputType) {
-            *ppType = m_inputType;
-            (*ppType)->AddRef();
-            return S_OK;
-        }
+    if (!m_outputType)
         return MF_E_TRANSFORM_TYPE_NOT_SET;
-    }
 
-    *ppType = m_outputType;
-    (*ppType)->AddRef();
+    // Return a copy to make sure our type is not modified
+    if (FAILED(MFCreateMediaType(ppType)))
+        return E_OUTOFMEMORY;
 
-    return S_OK;
+    return m_outputType->CopyAllItems(*ppType);
 }
 
 STDMETHODIMP MFTransform::GetInputStatus(DWORD dwInputStreamID, DWORD *pdwFlags)
@@ -374,7 +400,7 @@ STDMETHODIMP MFTransform::GetInputStatus(DWORD dwInputStreamID, DWORD *pdwFlags)
 
     QMutexLocker locker(&m_mutex);
 
-    if (!m_inputType)
+    if (!m_inputType || !m_outputType)
         return MF_E_TRANSFORM_TYPE_NOT_SET;
 
     if (m_sample)
@@ -392,7 +418,7 @@ STDMETHODIMP MFTransform::GetOutputStatus(DWORD *pdwFlags)
 
     QMutexLocker locker(&m_mutex);
 
-    if (!m_outputType)
+    if (!m_inputType || !m_outputType)
         return MF_E_TRANSFORM_TYPE_NOT_SET;
 
     if (m_sample)
@@ -464,7 +490,7 @@ STDMETHODIMP MFTransform::ProcessInput(DWORD dwInputStreamID, IMFSample *pSample
 
     QMutexLocker locker(&m_mutex);
 
-    if (!m_inputType || !m_outputType)
+    if (!m_inputType)
         return MF_E_TRANSFORM_TYPE_NOT_SET;
 
     if (m_sample)
@@ -499,9 +525,6 @@ STDMETHODIMP MFTransform::ProcessInput(DWORD dwInputStreamID, IMFSample *pSample
 
 STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount, MFT_OUTPUT_DATA_BUFFER *pOutputSamples, DWORD *pdwStatus)
 {
-    if (dwFlags != 0)
-        return E_INVALIDARG;
-
     if (pOutputSamples == NULL || pdwStatus == NULL)
         return E_POINTER;
 
@@ -510,57 +533,44 @@ STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount,
 
     QMutexLocker locker(&m_mutex);
 
-    if (!m_sample)
-        return MF_E_TRANSFORM_NEED_MORE_INPUT;
+    if (!m_inputType)
+        return MF_E_TRANSFORM_TYPE_NOT_SET;
+
+    if (!m_outputType) {
+        pOutputSamples[0].dwStatus = MFT_OUTPUT_DATA_BUFFER_FORMAT_CHANGE;
+        return MF_E_TRANSFORM_STREAM_CHANGE;
+    }
 
     IMFMediaBuffer *input = NULL;
     IMFMediaBuffer *output = NULL;
 
-    DWORD sampleLength = 0;
-    m_sample->GetTotalLength(&sampleLength);
+    if (dwFlags == MFT_PROCESS_OUTPUT_DISCARD_WHEN_NO_BUFFER)
+        goto done;
+    else if (dwFlags != 0)
+        return E_INVALIDARG;
 
-    // If the sample length is null, it means we're getting DXVA buffers.
-    // In that case just pass on the sample we got as input.
-    // Otherwise we need to copy the input buffer into the buffer the sink
-    // is giving us.
-    if (pOutputSamples[0].pSample && sampleLength > 0) {
+    if (!m_sample)
+        return MF_E_TRANSFORM_NEED_MORE_INPUT;
 
-        if (FAILED(m_sample->ConvertToContiguousBuffer(&input)))
-            goto done;
+    // Since the MFT_OUTPUT_STREAM_PROVIDES_SAMPLES flag is set, the client
+    // should not be providing samples here
+    if (pOutputSamples[0].pSample != NULL)
+        return E_INVALIDARG;
 
-        if (FAILED(pOutputSamples[0].pSample->ConvertToContiguousBuffer(&output)))
-            goto done;
+    pOutputSamples[0].pSample = m_sample;
+    pOutputSamples[0].pSample->AddRef();
 
-        DWORD inputLength = 0;
-        DWORD outputLength = 0;
-        input->GetMaxLength(&inputLength);
-        output->GetMaxLength(&outputLength);
+    // Send video frame to probes
+    // We do it here (instead of inside ProcessInput) to make sure samples discarded by the renderer
+    // are not sent.
+    m_videoProbeMutex.lock();
+    if (!m_videoProbes.isEmpty()) {
+        QVideoFrame frame = makeVideoFrame();
 
-        if (outputLength < inputLength) {
-            pOutputSamples[0].pSample->RemoveAllBuffers();
-            output->Release();
-            output = NULL;
-            if (SUCCEEDED(MFCreateMemoryBuffer(inputLength, &output)))
-                pOutputSamples[0].pSample->AddBuffer(output);
-        }
-
-        if (output)
-            m_sample->CopyToBuffer(output);
-
-        LONGLONG hnsDuration = 0;
-        LONGLONG hnsTime = 0;
-        if (SUCCEEDED(m_sample->GetSampleDuration(&hnsDuration)))
-            pOutputSamples[0].pSample->SetSampleDuration(hnsDuration);
-        if (SUCCEEDED(m_sample->GetSampleTime(&hnsTime)))
-            pOutputSamples[0].pSample->SetSampleTime(hnsTime);
-
-
-    } else {
-        if (pOutputSamples[0].pSample)
-            pOutputSamples[0].pSample->Release();
-        pOutputSamples[0].pSample = m_sample;
-        pOutputSamples[0].pSample->AddRef();
+        foreach (MFVideoProbeControl* probe, m_videoProbes)
+            probe->bufferProbed(frame);
     }
+    m_videoProbeMutex.unlock();
 
 done:
     pOutputSamples[0].dwStatus = 0;
@@ -728,16 +738,10 @@ QByteArray MFTransform::dataFromBuffer(IMFMediaBuffer *buffer, int height, int *
 
 bool MFTransform::isMediaTypeSupported(IMFMediaType *type)
 {
-    // if the list is empty, it supports all formats
-    if (!type || m_mediaTypes.isEmpty())
+    // If we don't have the video sink's type handler,
+    // assume it supports anything...
+    if (!m_videoSinkTypeHandler || !type)
         return true;
 
-    for (int i = 0; i < m_mediaTypes.size(); ++i) {
-        DWORD flags = 0;
-        m_mediaTypes.at(i)->IsEqual(type, &flags);
-        if (flags & MF_MEDIATYPE_EQUAL_FORMAT_TYPES)
-            return true;
-    }
-
-    return false;
+    return m_videoSinkTypeHandler->IsMediaTypeSupported(type, NULL) == S_OK;
 }

@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example spectrum
+    \example multimedia/spectrum
     \title Spectrum Example
     \ingroup multimedia_examples
     \brief Analyzing a raw audio stream using the FFTReal library.

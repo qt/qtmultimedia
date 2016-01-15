@@ -54,6 +54,8 @@ public class QtCameraListener implements Camera.ShutterCallback,
     private byte[][] m_previewBuffers = null;
     private byte[] m_lastPreviewBuffer = null;
     private Camera.Size m_previewSize = null;
+    private int m_previewFormat = ImageFormat.NV21; // Default preview format on all devices
+    private int m_previewBytesPerLine = -1;
 
     private QtCameraListener(int id)
     {
@@ -86,6 +88,16 @@ public class QtCameraListener implements Camera.ShutterCallback,
         return m_previewSize.height;
     }
 
+    public int previewFormat()
+    {
+        return m_previewFormat;
+    }
+
+    public int previewBytesPerLine()
+    {
+        return m_previewBytesPerLine;
+    }
+
     public void setupPreviewCallback(Camera camera)
     {
         // Clear previous callback (also clears added buffers)
@@ -94,8 +106,37 @@ public class QtCameraListener implements Camera.ShutterCallback,
 
         final Camera.Parameters params = camera.getParameters();
         m_previewSize = params.getPreviewSize();
-        double bytesPerPixel = ImageFormat.getBitsPerPixel(params.getPreviewFormat()) / 8.0;
-        int bufferSizeNeeded = (int) Math.ceil(bytesPerPixel * m_previewSize.width * m_previewSize.height);
+        m_previewFormat = params.getPreviewFormat();
+
+        int bufferSizeNeeded = 0;
+        if (m_previewFormat == ImageFormat.YV12) {
+            // For YV12, bytes per line must be a multiple of 16
+            final int yStride = (int) Math.ceil(m_previewSize.width / 16.0) * 16;
+            final int uvStride = (int) Math.ceil((yStride / 2) / 16.0) * 16;
+            final int ySize = yStride * m_previewSize.height;
+            final int uvSize = uvStride * m_previewSize.height / 2;
+            bufferSizeNeeded = ySize + uvSize * 2;
+
+            m_previewBytesPerLine = yStride;
+
+        } else {
+            double bytesPerPixel = ImageFormat.getBitsPerPixel(m_previewFormat) / 8.0;
+            bufferSizeNeeded = (int) Math.ceil(bytesPerPixel * m_previewSize.width * m_previewSize.height);
+
+            // bytes per line are calculated only for the first plane
+            switch (m_previewFormat) {
+            case ImageFormat.NV21:
+                m_previewBytesPerLine = m_previewSize.width; // 1 byte per sample and tightly packed
+                break;
+            case ImageFormat.RGB_565:
+            case ImageFormat.YUY2:
+                m_previewBytesPerLine = m_previewSize.width * 2; // 2 bytes per pixel
+                break;
+            default:
+                m_previewBytesPerLine = -1;
+                break;
+            }
+        }
 
         // We could keep the same buffers when they are already bigger than the required size
         // but the Android doc says the size must match, so in doubt just replace them.
@@ -117,8 +158,12 @@ public class QtCameraListener implements Camera.ShutterCallback,
 
         m_lastPreviewBuffer = data;
 
-        if (data != null && m_notifyNewFrames)
-            notifyNewPreviewFrame(m_cameraId, data, m_previewSize.width, m_previewSize.height);
+        if (data != null && m_notifyNewFrames) {
+            notifyNewPreviewFrame(m_cameraId, data,
+                                  m_previewSize.width, m_previewSize.height,
+                                  m_previewFormat,
+                                  m_previewBytesPerLine);
+        }
     }
 
     @Override
@@ -142,5 +187,6 @@ public class QtCameraListener implements Camera.ShutterCallback,
     private static native void notifyAutoFocusComplete(int id, boolean success);
     private static native void notifyPictureExposed(int id);
     private static native void notifyPictureCaptured(int id, byte[] data);
-    private static native void notifyNewPreviewFrame(int id, byte[] data, int width, int height);
+    private static native void notifyNewPreviewFrame(int id, byte[] data, int width, int height,
+                                                     int pixelFormat, int bytesPerLine);
 }

@@ -37,13 +37,72 @@
 #include <QObject>
 #include <qmutex.h>
 #include <qqueue.h>
-#include <evr.h>
-#include "mfactivate.h"
+#include <qevent.h>
+#include <qvideosurfaceformat.h>
+
+#include "evrdefs.h"
 
 QT_BEGIN_NAMESPACE
-
-class D3DPresentEngine;
 class QAbstractVideoSurface;
+QT_END_NAMESPACE
+
+QT_USE_NAMESPACE
+
+class EVRCustomPresenter;
+class D3DPresentEngine;
+
+template<class T>
+class AsyncCallback : public IMFAsyncCallback
+{
+public:
+    typedef HRESULT (T::*InvokeFn)(IMFAsyncResult *asyncResult);
+
+    AsyncCallback(T *parent, InvokeFn fn) : m_parent(parent), m_invokeFn(fn)
+    {
+    }
+
+    // IUnknown
+    STDMETHODIMP QueryInterface(REFIID iid, void** ppv)
+    {
+        if (!ppv)
+            return E_POINTER;
+
+        if (iid == __uuidof(IUnknown)) {
+            *ppv = static_cast<IUnknown*>(static_cast<IMFAsyncCallback*>(this));
+        } else if (iid == __uuidof(IMFAsyncCallback)) {
+            *ppv = static_cast<IMFAsyncCallback*>(this);
+        } else {
+            *ppv = NULL;
+            return E_NOINTERFACE;
+        }
+        AddRef();
+        return S_OK;
+    }
+
+    STDMETHODIMP_(ULONG) AddRef() {
+        // Delegate to parent class.
+        return m_parent->AddRef();
+    }
+    STDMETHODIMP_(ULONG) Release() {
+        // Delegate to parent class.
+        return m_parent->Release();
+    }
+
+    // IMFAsyncCallback methods
+    STDMETHODIMP GetParameters(DWORD*, DWORD*)
+    {
+        // Implementation of this method is optional.
+        return E_NOTIMPL;
+    }
+
+    STDMETHODIMP Invoke(IMFAsyncResult* asyncResult)
+    {
+        return (m_parent->*m_invokeFn)(asyncResult);
+    }
+
+    T *m_parent;
+    InvokeFn m_invokeFn;
+};
 
 class Scheduler
 {
@@ -55,12 +114,8 @@ public:
         Flush =        WM_USER + 2
     };
 
-    Scheduler();
+    Scheduler(EVRCustomPresenter *presenter);
     ~Scheduler();
-
-    void setCallback(QObject *cb) {
-        m_CB = cb;
-    }
 
     void setFrameRate(const MFRatio &fps);
     void setClockRate(float rate) { m_playbackRate = rate; }
@@ -82,10 +137,11 @@ public:
 private:
     DWORD schedulerThreadProcPrivate();
 
+    EVRCustomPresenter *m_presenter;
+
     QQueue<IMFSample*> m_scheduledSamples; // Samples waiting to be presented.
 
     IMFClock *m_clock; // Presentation clock. Can be NULL.
-    QObject *m_CB; // Weak reference; do not delete.
 
     DWORD m_threadID;
     HANDLE m_schedulerThread;
@@ -128,8 +184,6 @@ class EVRCustomPresenter
         , public IMFGetService
         , public IMFTopologyServiceLookupClient
 {
-    Q_OBJECT
-
 public:
     // Defines the state of the presenter.
     enum RenderState
@@ -150,8 +204,17 @@ public:
         FrameStepComplete          // Sample was rendered.
     };
 
-    EVRCustomPresenter();
+    enum PresenterEvents
+    {
+        StartSurface = QEvent::User,
+        StopSurface = QEvent::User + 1,
+        PresentSample = QEvent::User + 2
+    };
+
+    EVRCustomPresenter(QAbstractVideoSurface *surface = 0);
     ~EVRCustomPresenter();
+
+    bool isValid() const;
 
     // IUnknown methods
     STDMETHODIMP QueryInterface(REFIID riid, void ** ppv);
@@ -187,9 +250,11 @@ public:
     void supportedFormatsChanged();
     void setSurface(QAbstractVideoSurface *surface);
 
-private Q_SLOTS:
     void startSurface();
     void stopSurface();
+    void presentSample(IMFSample *sample);
+
+    bool event(QEvent *);
 
 private:
     HRESULT checkShutdown() const
@@ -250,7 +315,7 @@ private:
 
     // Callback when a video sample is released.
     HRESULT onSampleFree(IMFAsyncResult *result);
-    AsyncCallback<EVRCustomPresenter>   m_sampleFreeCB;
+    AsyncCallback<EVRCustomPresenter> m_sampleFreeCB;
 
     // Holds information related to frame-stepping.
     struct FrameStep
@@ -258,7 +323,7 @@ private:
         FrameStep()
             : state(FrameStepNone)
             , steps(0)
-            , sampleNoRef(NULL)
+            , sampleNoRef(0)
         {
         }
 
@@ -289,7 +354,7 @@ private:
     MFVideoNormalizedRect m_sourceRect;
     float m_playbackRate;
 
-    D3DPresentEngine *m_D3DPresentEngine; // Rendering engine. (Never null if the constructor succeeds.)
+    D3DPresentEngine *m_presentEngine; // Rendering engine. (Never null if the constructor succeeds.)
 
     IMFClock *m_clock; // The EVR's clock.
     IMFTransform *m_mixer; // The EVR's mixer.
@@ -297,29 +362,11 @@ private:
     IMFMediaType *m_mediaType; // Output media type
 
     QAbstractVideoSurface *m_surface;
-    QList<DWORD> m_supportedGLFormats;
+    bool m_canRenderToSurface;
+
+    IMFSample *m_sampleToPresent;
 };
 
-class EVRCustomPresenterActivate : public MFAbstractActivate
-{
-public:
-    EVRCustomPresenterActivate();
-    ~EVRCustomPresenterActivate()
-    { }
-
-    STDMETHODIMP ActivateObject(REFIID riid, void **ppv);
-    STDMETHODIMP ShutdownObject();
-    STDMETHODIMP DetachObject();
-
-    void setSurface(QAbstractVideoSurface *surface);
-    void supportedFormatsChanged();
-
-private:
-    EVRCustomPresenter *m_presenter;
-    QAbstractVideoSurface *m_surface;
-    QMutex m_mutex;
-};
-
-QT_END_NAMESPACE
+bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter);
 
 #endif // EVRCUSTOMPRESENTER_H

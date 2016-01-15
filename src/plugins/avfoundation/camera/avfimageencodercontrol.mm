@@ -115,6 +115,11 @@ QList<QSize> AVFImageEncoderControl::supportedResolutions(const QImageEncoderSet
     return resolutions;
 }
 
+QImageEncoderSettings AVFImageEncoderControl::requestedSettings() const
+{
+    return m_settings;
+}
+
 QImageEncoderSettings AVFImageEncoderControl::imageSettings() const
 {
     QImageEncoderSettings settings;
@@ -163,40 +168,40 @@ QImageEncoderSettings AVFImageEncoderControl::imageSettings() const
 
 void AVFImageEncoderControl::setImageSettings(const QImageEncoderSettings &settings)
 {
-    if (m_settings == settings || settings.isNull())
+    if (m_settings == settings)
         return;
 
     m_settings = settings;
     applySettings();
 }
 
-void AVFImageEncoderControl::applySettings()
+bool AVFImageEncoderControl::applySettings()
 {
     if (!videoCaptureDeviceIsValid())
-        return;
+        return false;
 
     AVFCameraSession *session = m_service->session();
     if (!session || (session->state() != QCamera::ActiveState
         && session->state() != QCamera::LoadedState)) {
-        return;
+        return false;
     }
 
     if (!m_service->imageCaptureControl()
         || !m_service->imageCaptureControl()->stillImageOutput()) {
         qDebugCamera() << Q_FUNC_INFO << "no still image output";
-        return;
+        return false;
     }
 
     if (m_settings.codec().size()
         && m_settings.codec() != QLatin1String("jpeg")) {
         qDebugCamera() << Q_FUNC_INFO << "unsupported codec:" << m_settings.codec();
-        return;
+        return false;
     }
 
     QSize res(m_settings.resolution());
     if (res.isNull()) {
         qDebugCamera() << Q_FUNC_INFO << "invalid resolution:" << res;
-        return;
+        return false;
     }
 
     if (!res.isValid()) {
@@ -204,8 +209,10 @@ void AVFImageEncoderControl::applySettings()
         // Here we could choose the best format available, but
         // activeFormat is already equal to 'preset high' by default,
         // which is good enough, otherwise we can end in some format with low framerates.
-        return;
+        return false;
     }
+
+    bool activeFormatChanged = false;
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
@@ -215,16 +222,17 @@ void AVFImageEncoderControl::applySettings()
 
         if (!match) {
             qDebugCamera() << Q_FUNC_INFO << "unsupported resolution:" << res;
-            return;
+            return false;
         }
 
         if (match != captureDevice.activeFormat) {
             const AVFConfigurationLock lock(captureDevice);
             if (!lock) {
                 qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
-                return;
+                return false;
             }
             captureDevice.activeFormat = match;
+            activeFormatChanged = true;
         }
 
 #if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
@@ -242,6 +250,8 @@ void AVFImageEncoderControl::applySettings()
 #endif
         // TODO: resolution without capture device format ...
     }
+
+    return activeFormatChanged;
 }
 
 bool AVFImageEncoderControl::videoCaptureDeviceIsValid() const

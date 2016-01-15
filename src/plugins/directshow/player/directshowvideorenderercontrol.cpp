@@ -35,6 +35,12 @@
 
 #include "videosurfacefilter.h"
 
+#ifdef HAVE_EVR
+#include "evrcustompresenter.h"
+#endif
+
+#include <qabstractvideosurface.h>
+
 DirectShowVideoRendererControl::DirectShowVideoRendererControl(DirectShowEventLoop *loop, QObject *parent)
     : QVideoRendererControl(parent)
     , m_loop(loop)
@@ -56,22 +62,34 @@ QAbstractVideoSurface *DirectShowVideoRendererControl::surface() const
 
 void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 {
-    if (surface != m_surface) {
-        m_surface = surface;
+    if (m_surface == surface)
+        return;
 
-        VideoSurfaceFilter *existingFilter = m_filter;
+    if (m_filter) {
+        m_filter->Release();
+        m_filter = 0;
+    }
 
-        if (surface) {
-            m_filter = new VideoSurfaceFilter(surface, m_loop);
-        } else {
+    m_surface = surface;
+
+    if (m_surface) {
+#ifdef HAVE_EVR
+        m_filter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
+        EVRCustomPresenter *evrPresenter = new EVRCustomPresenter(m_surface);
+        if (!evrPresenter->isValid() || !qt_evr_setCustomPresenter(m_filter, evrPresenter)) {
+            m_filter->Release();
             m_filter = 0;
         }
+        evrPresenter->Release();
 
-        emit filterChanged();
-
-        if (existingFilter)
-            existingFilter->Release();
+        if (!m_filter)
+#endif
+        {
+            m_filter = new VideoSurfaceFilter(m_surface, m_loop);
+        }
     }
+
+    emit filterChanged();
 }
 
 IBaseFilter *DirectShowVideoRendererControl::filter()

@@ -38,13 +38,9 @@
 #include <mfapi.h>
 #include <mfidl.h>
 
-QT_BEGIN_NAMESPACE
+QT_USE_NAMESPACE
 
 class EVRCustomPresenterActivate;
-
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
 
 class MFVideoRendererControl : public QVideoRendererControl
 {

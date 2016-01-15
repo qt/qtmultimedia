@@ -108,6 +108,10 @@ public:
     bool readItems(QMediaPlaylistReader *reader);
     bool writeItems(QMediaPlaylistWriter *writer);
 
+    void syncControls(QMediaPlaylistControl *oldControl, QMediaPlaylistControl *newControl,
+                      int *removedStart, int *removedEnd,
+                      int *insertedStart, int *insertedEnd);
+
     QMediaPlaylist::Error error;
     QString errorString;
 

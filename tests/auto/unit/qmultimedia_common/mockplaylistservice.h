@@ -44,7 +44,7 @@ class MockPlaylistService : public QMediaService
 public:
     MockPlaylistService():QMediaService(0)
     {
-        mockControl = new MockMediaPlaylistControl(this);
+        mockControl = new MockMediaPlaylistControl(false, this);
     }
 
     ~MockPlaylistService()

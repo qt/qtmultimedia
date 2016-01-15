@@ -49,10 +49,8 @@ DirectShowEvrVideoWindowControl::~DirectShowEvrVideoWindowControl()
 
 IBaseFilter *DirectShowEvrVideoWindowControl::filter()
 {
-    static const GUID clsid_EnhancendVideoRenderer = { 0xfa10746c, 0x9b63, 0x4b6c, {0xbc, 0x49, 0xfc, 0x30, 0xe, 0xa5, 0xf2, 0x56} };
-
     if (!m_evrFilter) {
-        m_evrFilter = com_new<IBaseFilter>(clsid_EnhancendVideoRenderer);
+        m_evrFilter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
         if (!setEvr(m_evrFilter)) {
             m_evrFilter->Release();
             m_evrFilter = NULL;

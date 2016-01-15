@@ -46,6 +46,7 @@ class DSVideoOutputControl;
 class DSVideoDeviceControl;
 class DSImageCaptureControl;
 class DSCameraViewfinderSettingsControl;
+class DSCameraImageProcessingControl;
 
 class DSCameraService : public QMediaService
 {
@@ -66,6 +67,7 @@ private:
     QMediaControl          *m_videoRenderer;
     DSImageCaptureControl  *m_imageCapture;
     DSCameraViewfinderSettingsControl *m_viewfinderSettings;
+    DSCameraImageProcessingControl *m_imageProcessingControl;
 };
 
 QT_END_NAMESPACE

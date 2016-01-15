@@ -31,42 +31,12 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_YUV_H
-#define QSGVIDEONODE_YUV_H
+#include "evrdefs.h"
 
-#include <private/qsgvideonode_p.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
-
-QT_BEGIN_NAMESPACE
-
-class QSGVideoMaterial_YUV;
-class QSGVideoNode_YUV : public QSGVideoNode
-{
-public:
-    QSGVideoNode_YUV(const QVideoSurfaceFormat &format);
-    ~QSGVideoNode_YUV();
-
-    virtual QVideoFrame::PixelFormat pixelFormat() const {
-        return m_format.pixelFormat();
-    }
-    QAbstractVideoBuffer::HandleType handleType() const {
-        return QAbstractVideoBuffer::NoHandle;
-    }
-    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
-
-private:
-    void bindTexture(int id, int unit, int w, int h, const uchar *bits);
-
-    QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_YUV *m_material;
-};
-
-class QSGVideoNodeFactory_YUV : public QSGVideoNodeFactoryInterface {
-public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
-};
-
-QT_END_NAMESPACE
-
-#endif // QSGVIDEONODE_YUV_H
+const CLSID clsid_EnhancedVideoRenderer = { 0xfa10746c, 0x9b63, 0x4b6c, {0xbc, 0x49, 0xfc, 0x30, 0xe, 0xa5, 0xf2, 0x56} };
+const GUID mr_VIDEO_RENDER_SERVICE = { 0x1092a86c, 0xab1a, 0x459a, {0xa3, 0x36, 0x83, 0x1f, 0xbc, 0x4d, 0x11, 0xff} };
+const GUID mr_VIDEO_MIXER_SERVICE = { 0x73cd2fc, 0x6cf4, 0x40b7, {0x88, 0x59, 0xe8, 0x95, 0x52, 0xc8, 0x41, 0xf8} };
+const GUID mr_BUFFER_SERVICE = { 0xa562248c, 0x9ac6, 0x4ffc, {0x9f, 0xba, 0x3a, 0xf8, 0xf8, 0xad, 0x1a, 0x4d} };
+const GUID video_ZOOM_RECT = { 0x7aaa1638, 0x1b7f, 0x4c93, {0xbd, 0x89, 0x5b, 0x9c, 0x9f, 0xb6, 0xfc, 0xf0} };
+const GUID iid_IDirect3DDevice9 = { 0xd0223b96, 0xbf7a, 0x43fd, {0x92, 0xbd, 0xa4, 0x3b, 0xd, 0x82, 0xb9, 0xeb} };
+const GUID iid_IDirect3DSurface9 = { 0xcfbaf3a, 0x9ff6, 0x429a, {0x99, 0xb3, 0xa2, 0x79, 0x6a, 0xf8, 0xb8, 0x9b} };
