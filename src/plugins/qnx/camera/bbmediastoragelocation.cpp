@@ -57,7 +57,7 @@ QDir BbMediaStorageLocation::defaultDir(QCamera::CaptureMode mode) const
     dirCandidates << QDir::currentPath();
     dirCandidates << QDir::tempPath();
 
-    Q_FOREACH (const QString &path, dirCandidates) {
+    for (const QString &path : qAsConst(dirCandidates)) {
         if (QFileInfo(path).isWritable())
             return QDir(path);
     }
@@ -83,7 +83,8 @@ QString BbMediaStorageLocation::generateFileName(const QString &prefix, const QD
 
     if (lastMediaIndex == 0) {
         // first run, find the maximum media number during the fist capture
-        Q_FOREACH (const QString &fileName, dir.entryList(QStringList() << QString("%1*.%2").arg(prefix).arg(extension))) {
+        const auto list = dir.entryList(QStringList() << QString("%1*.%2").arg(prefix).arg(extension));
+        for (const QString &fileName : list) {
             const qint64 mediaIndex = fileName.midRef(prefix.length(), fileName.size() - prefix.length() - extension.length() - 1).toInt();
             lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
         }

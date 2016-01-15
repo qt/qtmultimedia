@@ -526,7 +526,7 @@ void BbCameraSession::applyVideoSettings()
 
         QList<QSize> sizes = supportedViewfinderResolutions(QCamera::CaptureVideo);
         std::reverse(sizes.begin(), sizes.end()); // use smallest possible resolution
-        foreach (const QSize &size, sizes) {
+        for (const QSize &size : qAsConst(sizes)) {
             // search for viewfinder resolution with the same aspect ratio
             if (qFuzzyCompare(aspectRatio, (static_cast<qreal>(size.width())/static_cast<qreal>(size.height())))) {
                 viewfinderResolution = size;
@@ -944,7 +944,7 @@ void BbCameraSession::applyConfiguration()
         QSize viewfinderResolution;
         QList<QSize> sizes = supportedViewfinderResolutions(QCamera::CaptureStillImage);
         std::reverse(sizes.begin(), sizes.end()); // use smallest possible resolution
-        foreach (const QSize &size, sizes) {
+        for (const QSize &size : qAsConst(sizes)) {
             // search for viewfinder resolution with the same aspect ratio
             if (qFuzzyCompare(aspectRatio, (static_cast<qreal>(size.width())/static_cast<qreal>(size.height())))) {
                 viewfinderResolution = size;

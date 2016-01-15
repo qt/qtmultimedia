@@ -405,7 +405,8 @@ void MmRendererVideoWindowControl::screenEventHandler(const screen_event_t &scre
 
 QWindow *MmRendererVideoWindowControl::findWindow(WId id) const
 {
-    Q_FOREACH (QWindow *window, QGuiApplication::allWindows())
+    const auto allWindows = QGuiApplication::allWindows();
+    for (QWindow *window : allWindows)
         if (window->winId() == id)
             return window;
     return 0;
