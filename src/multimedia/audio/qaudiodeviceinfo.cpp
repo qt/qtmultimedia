@@ -297,7 +297,7 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
     if (sampleSizesAvailable.contains(settings.sampleSize()))
         testSampleSizes.insert(0,settings.sampleSize());
     sampleSizesAvailable.removeAll(settings.sampleSize());
-    foreach (int size, sampleSizesAvailable) {
+    for (int size : qAsConst(sampleSizesAvailable)) {
         int larger  = (size > settings.sampleSize()) ? size : settings.sampleSize();
         int smaller = (size > settings.sampleSize()) ? settings.sampleSize() : size;
         bool isMultiple = ( 0 == (larger % smaller));
@@ -307,7 +307,7 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
     if (sampleRatesAvailable.contains(settings.sampleRate()))
         testSampleRates.insert(0,settings.sampleRate());
     sampleRatesAvailable.removeAll(settings.sampleRate());
-    foreach (int sampleRate, sampleRatesAvailable) {
+    for (int sampleRate : qAsConst(sampleRatesAvailable)) {
         int larger  = (sampleRate > settings.sampleRate()) ? sampleRate : settings.sampleRate();
         int smaller = (sampleRate > settings.sampleRate()) ? settings.sampleRate() : sampleRate;
         bool isMultiple = ( 0 == (larger % smaller));
@@ -316,17 +316,17 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
     }
 
     // Try to find nearest
-    foreach (QString codec, testCodecs) {
+    for (const QString &codec : qAsConst(testCodecs)) {
         nearest.setCodec(codec);
-        foreach (QAudioFormat::Endian order, testByteOrders) {
+        for (QAudioFormat::Endian order : qAsConst(testByteOrders)) {
             nearest.setByteOrder(order);
-            foreach (QAudioFormat::SampleType sample, testSampleTypes) {
+            for (QAudioFormat::SampleType sample : qAsConst(testSampleTypes)) {
                 nearest.setSampleType(sample);
                 QMapIterator<int, int> sz(testSampleSizes);
                 while (sz.hasNext()) {
                     sz.next();
                     nearest.setSampleSize(sz.value());
-                    foreach (int channel, testChannels) {
+                    for (int channel : qAsConst(testChannels)) {
                         nearest.setChannelCount(channel);
                         QMapIterator<int, int> i(testSampleRates);
                         while (i.hasNext()) {

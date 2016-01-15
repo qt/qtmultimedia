@@ -119,10 +119,12 @@ QList<QAudioDeviceInfo> QAudioDeviceFactory::availableDevices(QAudio::Mode mode)
     QList<QAudioDeviceInfo> devices;
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
     QMediaPluginLoader* l = audioLoader();
-    foreach (const QString& key, l->keys()) {
+    const auto keys = l->keys();
+    for (const QString& key : keys) {
         QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(l->instance(key));
         if (plugin) {
-            foreach (QByteArray const& handle, plugin->availableDevices(mode))
+            const auto availableDevices = plugin->availableDevices(mode);
+            for (const QByteArray& handle : availableDevices)
                 devices << QAudioDeviceInfo(key, handle, mode);
         }
     }
