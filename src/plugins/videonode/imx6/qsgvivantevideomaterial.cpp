@@ -125,7 +125,8 @@ void QSGVivanteVideoMaterial::bind()
 
 void QSGVivanteVideoMaterial::clearTextures()
 {
-    Q_FOREACH (GLuint id, mBitsToTextureMap.values()) {
+    for (auto it = mBitsToTextureMap.cbegin(), end = mBitsToTextureMap.cend(); it != end; ++it) {
+        GLuint id = it.value();
 #ifdef QT_VIVANTE_VIDEO_DEBUG
         qDebug() << "delete texture: " << id;
 #endif
