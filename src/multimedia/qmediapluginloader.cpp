@@ -77,7 +77,8 @@ QList<QObject*> QMediaPluginLoader::instances(QString const &key)
         return QList<QObject*>();
 
     QList<QObject *> objects;
-    foreach (QJsonObject jsonobj, m_metadata.value(key)) {
+    const auto list = m_metadata.value(key);
+    for (const QJsonObject &jsonobj : list) {
         int idx = jsonobj.value(QStringLiteral("index")).toDouble();
         if (idx < 0)
             continue;
@@ -125,7 +126,7 @@ void QMediaPluginLoader::loadMetadata()
         if (arr.isEmpty())
             arr = jsonobj.value(QStringLiteral("Keys")).toArray();
 
-        foreach (QJsonValue value, arr) {
+        for (const QJsonValue &value : qAsConst(arr)) {
             QString key = value.toString();
 
             if (!m_metadata.contains(key)) {

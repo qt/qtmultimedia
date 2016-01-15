@@ -432,8 +432,8 @@ void QGraphicsVideoItem::paint(
         bool obscured = false;
 
         if (scene()) {
-            foreach (QGraphicsItem *item,
-                     scene()->items(mapToScene(boundingRect()), Qt::IntersectsItemBoundingRect) ) {
+            const auto items = scene()->items(mapToScene(boundingRect()), Qt::IntersectsItemBoundingRect);
+            for (QGraphicsItem *item : items) {
                 if (item->flags() & QGraphicsItem::ItemHasNoContents)
                     continue;
 

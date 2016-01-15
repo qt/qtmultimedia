@@ -49,7 +49,7 @@ void QMediaObjectPrivate::_q_notify()
 
     const QMetaObject* m = q->metaObject();
 
-    foreach (int pi, notifyProperties) {
+    for (int pi : qAsConst(notifyProperties)) {
         QMetaProperty p = m->property(pi);
         p.notifySignal().invoke(
             q, QGenericArgument(QMetaType::typeName(p.userType()), p.read(q).data()));

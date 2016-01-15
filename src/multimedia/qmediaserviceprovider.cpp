@@ -314,7 +314,8 @@ public:
         QString key(QLatin1String(type.constData()));
 
         QList<QMediaServiceProviderPlugin *>plugins;
-        foreach (QObject *obj, loader()->instances(key)) {
+        const auto instances = loader()->instances(key);
+        for (QObject *obj : instances) {
             QMediaServiceProviderPlugin *plugin =
                 qobject_cast<QMediaServiceProviderPlugin*>(obj);
             if (plugin)
@@ -331,7 +332,7 @@ public:
                 //prefer services not offering it, since they are likely to support
                 //more formats
                 if (type == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER)) {
-                    foreach (QMediaServiceProviderPlugin *currentPlugin, plugins) {
+                    for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
                         QMediaServiceFeaturesInterface *iface =
                                 qobject_cast<QMediaServiceFeaturesInterface*>(currentPlugin);
 
@@ -346,7 +347,7 @@ public:
                 break;
             case QMediaServiceProviderHint::SupportedFeatures:
                 plugin = plugins[0];
-                foreach (QMediaServiceProviderPlugin *currentPlugin, plugins) {
+                for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
                     QMediaServiceFeaturesInterface *iface =
                             qobject_cast<QMediaServiceFeaturesInterface*>(currentPlugin);
 
@@ -360,7 +361,7 @@ public:
                 break;
             case QMediaServiceProviderHint::Device: {
                     plugin = plugins[0];
-                    foreach (QMediaServiceProviderPlugin *currentPlugin, plugins) {
+                    for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
                         QMediaServiceSupportedDevicesInterface *iface =
                                 qobject_cast<QMediaServiceSupportedDevicesInterface*>(currentPlugin);
 
@@ -375,7 +376,7 @@ public:
                     plugin = plugins[0];
                     if (type == QByteArray(Q_MEDIASERVICE_CAMERA)
                             && hint.cameraPosition() != QCamera::UnspecifiedPosition) {
-                        foreach (QMediaServiceProviderPlugin *currentPlugin, plugins) {
+                        for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
                             const QMediaServiceSupportedDevicesInterface *deviceIface =
                                     qobject_cast<QMediaServiceSupportedDevicesInterface*>(currentPlugin);
                             const QMediaServiceCameraInfoInterface *cameraIface =
@@ -383,7 +384,7 @@ public:
 
                             if (deviceIface && cameraIface) {
                                 const QList<QByteArray> cameras = deviceIface->devices(type);
-                                foreach (const QByteArray &camera, cameras) {
+                                for (const QByteArray &camera : cameras) {
                                     if (cameraIface->cameraPosition(camera) == hint.cameraPosition()) {
                                         plugin = currentPlugin;
                                         break;
@@ -396,7 +397,7 @@ public:
                 break;
             case QMediaServiceProviderHint::ContentType: {
                     QMultimedia::SupportEstimate estimate = QMultimedia::NotSupported;
-                    foreach (QMediaServiceProviderPlugin *currentPlugin, plugins) {
+                    for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
                         QMultimedia::SupportEstimate currentEstimate = QMultimedia::MaybeSupported;
                         QMediaServiceSupportedFormatsInterface *iface =
                                 qobject_cast<QMediaServiceSupportedFormatsInterface*>(currentPlugin);
@@ -465,7 +466,7 @@ public:
                                      const QStringList& codecs,
                                      int flags) const
     {
-        QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
+        const QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
 
         if (instances.isEmpty())
             return QMultimedia::NotSupported;
@@ -473,7 +474,7 @@ public:
         bool allServicesProvideInterface = true;
         QMultimedia::SupportEstimate supportEstimate = QMultimedia::NotSupported;
 
-        foreach(QObject *obj, instances) {
+        for (QObject *obj : instances) {
             QMediaServiceSupportedFormatsInterface *iface =
                     qobject_cast<QMediaServiceSupportedFormatsInterface*>(obj);
 
@@ -517,11 +518,11 @@ public:
 
     QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const
     {
-        QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
+        const QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
 
         QStringList supportedTypes;
 
-        foreach(QObject *obj, instances) {
+        for (QObject *obj : instances) {
             QMediaServiceSupportedFormatsInterface *iface =
                     qobject_cast<QMediaServiceSupportedFormatsInterface*>(obj);
 
@@ -564,7 +565,8 @@ public:
 
     QByteArray defaultDevice(const QByteArray &serviceType) const
     {
-        foreach (QObject *obj, loader()->instances(QLatin1String(serviceType))) {
+        const auto instances = loader()->instances(QLatin1String(serviceType));
+        for (QObject *obj : instances) {
             const QMediaServiceDefaultDeviceInterface *iface =
                     qobject_cast<QMediaServiceDefaultDeviceInterface*>(obj);
 
@@ -585,7 +587,8 @@ public:
     {
         QList<QByteArray> res;
 
-        foreach (QObject *obj, loader()->instances(QLatin1String(serviceType))) {
+        const auto instances = loader()->instances(QLatin1String(serviceType));
+        for (QObject *obj : instances) {
             QMediaServiceSupportedDevicesInterface *iface =
                     qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
 
@@ -599,7 +602,8 @@ public:
 
     QString deviceDescription(const QByteArray &serviceType, const QByteArray &device)
     {
-        foreach (QObject *obj, loader()->instances(QLatin1String(serviceType))) {
+        const auto instances = loader()->instances(QLatin1String(serviceType));
+        for (QObject *obj : instances) {
             QMediaServiceSupportedDevicesInterface *iface =
                     qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
 
@@ -615,7 +619,8 @@ public:
     QCamera::Position cameraPosition(const QByteArray &device) const
     {
         const QByteArray serviceType(Q_MEDIASERVICE_CAMERA);
-        foreach (QObject *obj, loader()->instances(QString::fromLatin1(serviceType))) {
+        const auto instances = loader()->instances(QString::fromLatin1(serviceType));
+        for (QObject *obj : instances) {
             const QMediaServiceSupportedDevicesInterface *deviceIface =
                     qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
             const QMediaServiceCameraInfoInterface *cameraIface =
@@ -634,7 +639,8 @@ public:
     int cameraOrientation(const QByteArray &device) const
     {
         const QByteArray serviceType(Q_MEDIASERVICE_CAMERA);
-        foreach (QObject *obj, loader()->instances(QString::fromLatin1(serviceType))) {
+        const auto instances = loader()->instances(QString::fromLatin1(serviceType));
+        for (QObject *obj : instances) {
             const QMediaServiceSupportedDevicesInterface *deviceIface =
                     qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
             const QMediaServiceCameraInfoInterface *cameraIface =
