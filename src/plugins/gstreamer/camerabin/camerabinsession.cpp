@@ -496,8 +496,8 @@ GstElement *CameraBinSession::buildCameraSource()
                 const QByteArray envVideoSource = qgetenv("QT_GSTREAMER_CAMERABIN_VIDEOSRC");
 
                 if (!envVideoSource.isEmpty()) {
-                    QList<QByteArray> sources = envVideoSource.split(',');
-                    foreach (const QByteArray &source, sources) {
+                    const QList<QByteArray> sources = envVideoSource.split(',');
+                    for (const QByteArray &source : sources) {
                         QList<QByteArray> keyValue = source.split('=');
                         if (keyValue.count() == 1) {
                             m_videoSrc = gst_element_factory_make(keyValue.at(0), "camera_source");
@@ -1363,7 +1363,7 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
     //if the range is continuos, populate is with the common rates
     if (isContinuous && res.size() >= 2) {
         //fill the ragne with common value
-        static QList<QSize> commonSizes =
+        static const QList<QSize> commonSizes =
                 QList<QSize>() << QSize(128, 96)
                                << QSize(160,120)
                                << QSize(176, 144)
@@ -1385,7 +1385,7 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         QSize maxSize = res.last();
         res.clear();
 
-        foreach (const QSize &candidate, commonSizes) {
+        for (const QSize &candidate : commonSizes) {
             int w = candidate.width();
             int h = candidate.height();
 

@@ -77,7 +77,7 @@ QGstreamerAudioEncode::QGstreamerAudioEncode(QObject *parent)
     m_codecOptions["audio/AMR"] = QStringList();
     m_codecOptions["audio/AMR-WB"] = QStringList();
 
-    foreach( const QByteArray& codecName, codecCandidates ) {
+    for (const QByteArray& codecName : qAsConst(codecCandidates)) {
         QByteArray elementName = m_elementNames[codecName];
         GstElementFactory *factory = gst_element_factory_find(elementName.constData());
 

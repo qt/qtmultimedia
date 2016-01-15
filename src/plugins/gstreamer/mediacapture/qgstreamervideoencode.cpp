@@ -59,7 +59,7 @@ QGstreamerVideoEncode::QGstreamerVideoEncode(QGstreamerCaptureSession *session)
     m_codecOptions["video/mpeg2"] = QStringList() << "quantizer";
     m_codecOptions["video/theora"] = QStringList();
 
-    foreach( const QByteArray& codecName, codecCandidates ) {
+    for (const QByteArray& codecName : qAsConst(codecCandidates)) {
         QByteArray elementName = m_elementNames[codecName];
         GstElementFactory *factory = gst_element_factory_find(elementName.constData());
         if (factory) {
@@ -293,7 +293,7 @@ QPair<int,int> QGstreamerVideoEncode::rateAsRational() const
         int num = 1;
         int denum = 1;
 
-        foreach (int curDenum, denumCandidates) {
+        for (int curDenum : qAsConst(denumCandidates)) {
             int curNum = qRound(frameRate*curDenum);
             qreal curError = qAbs(qreal(curNum)/curDenum - frameRate);
 

@@ -127,13 +127,17 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
     }
 
     QSet<ResourcePolicy::ResourceType> currentTypes;
-    foreach (ResourcePolicy::Resource *resource, m_resource->resources())
+    const auto resources = m_resource->resources();
+    currentTypes.reserve(resources.size());
+    for (ResourcePolicy::Resource *resource : resources)
         currentTypes << resource->type();
 
-    foreach (ResourcePolicy::ResourceType resourceType, currentTypes - requestedTypes)
+    const auto diffCurrentWithRequested = currentTypes - requestedTypes;
+    for (ResourcePolicy::ResourceType resourceType : diffCurrentWithRequested)
         m_resource->deleteResource(resourceType);
 
-    foreach (ResourcePolicy::ResourceType resourceType, requestedTypes - currentTypes) {
+    const auto diffRequestedWithCurrent = requestedTypes - currentTypes;
+    for (ResourcePolicy::ResourceType resourceType : diffRequestedWithCurrent) {
         if (resourceType == ResourcePolicy::LensCoverType) {
             ResourcePolicy::LensCoverResource *lensCoverResource = new ResourcePolicy::LensCoverResource;
             lensCoverResource->setOptional(true);
@@ -169,7 +173,8 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
 bool CamerabinResourcePolicy::isResourcesGranted() const
 {
 #ifdef HAVE_RESOURCE_POLICY
-    foreach (ResourcePolicy::Resource *resource, m_resource->resources())
+    const auto resources = m_resource->resources();
+    for (ResourcePolicy::Resource *resource : resources)
         if (!resource->isOptional() && !resource->isGranted())
             return false;
 #endif
@@ -218,7 +223,8 @@ void CamerabinResourcePolicy::updateCanCapture()
     const bool wasAbleToRecord = m_canCapture;
     m_canCapture = (m_resourceSet == VideoCaptureResources) || (m_resourceSet == ImageCaptureResources);
 #ifdef HAVE_RESOURCE_POLICY
-    foreach (ResourcePolicy::Resource *resource, m_resource->resources()) {
+    const auto resources = m_resource->resources();
+    for (ResourcePolicy::Resource *resource : resources) {
         if (resource->type() != ResourcePolicy::LensCoverType)
             m_canCapture = m_canCapture && resource->isGranted();
     }

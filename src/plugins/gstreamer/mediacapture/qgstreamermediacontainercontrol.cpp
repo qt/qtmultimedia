@@ -71,7 +71,7 @@ QGstreamerMediaContainerControl::QGstreamerMediaContainerControl(QObject *parent
 
     QSet<QString> allTypes;
 
-    foreach( const QByteArray& formatName, formatCandidates ) {
+    for (const QByteArray& formatName : qAsConst(formatCandidates)) {
         QByteArray elementName = m_elementNames[formatName];
         GstElementFactory *factory = gst_element_factory_find(elementName.constData());
         if (factory) {

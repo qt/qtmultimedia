@@ -1524,7 +1524,8 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
     if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "extra-headers") != 0) {
         GstStructure *extras = qt_gst_structure_new_empty("extras");
 
-        foreach (const QByteArray &rawHeader, self->m_request.rawHeaderList()) {
+        const auto rawHeaderList = self->m_request.rawHeaderList();
+        for (const QByteArray &rawHeader : rawHeaderList) {
             if (rawHeader == userAgentString) // Filter User-Agent
                 continue;
             else {

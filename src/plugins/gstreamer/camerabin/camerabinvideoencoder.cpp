@@ -71,9 +71,9 @@ QList< qreal > CameraBinVideoEncoder::supportedFrameRates(const QVideoEncoderSet
         *continuous = false;
 
     QList< qreal > res;
-    QPair<int,int> rate;
 
-    foreach(rate, m_session->supportedFrameRates(settings.resolution(), continuous)) {
+    const auto rates = m_session->supportedFrameRates(settings.resolution(), continuous);
+    for (const auto &rate : rates) {
         if (rate.second > 0)
             res << qreal(rate.first)/rate.second;
     }
@@ -141,7 +141,7 @@ QPair<int,int> CameraBinVideoEncoder::rateAsRational(qreal frameRate) const
         int num = 1;
         int denum = 1;
 
-        foreach (int curDenum, denumCandidates) {
+        for (int curDenum : qAsConst(denumCandidates)) {
             int curNum = qRound(frameRate*curDenum);
             qreal curError = qAbs(qreal(curNum)/curDenum - frameRate);
 

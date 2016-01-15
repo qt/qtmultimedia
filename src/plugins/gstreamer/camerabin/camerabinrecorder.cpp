@@ -154,7 +154,7 @@ void CameraBinRecorder::applySettings()
         candidates.append(QStringList() << "video/quicktime" << "video/x-h264" << "audio/mpeg");
         candidates.append(QStringList() << "video/x-msvideo" << "video/x-divx" << "audio/mpeg");
 
-        foreach (const QStringList &candidate, candidates) {
+        for (const QStringList &candidate : qAsConst(candidates)) {
             if (containerControl->supportedContainers().contains(candidate[0]) &&
                     videoEncoderControl->supportedVideoCodecs().contains(candidate[1]) &&
                     audioEncoderControl->supportedAudioCodecs().contains(candidate[2])) {

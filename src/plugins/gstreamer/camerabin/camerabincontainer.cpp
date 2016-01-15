@@ -116,13 +116,13 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
         return 0;
     } else {
         QString format = m_actualFormat;
-        QStringList supportedFormats = m_supportedContainers.supportedCodecs();
+        const QStringList supportedFormats = m_supportedContainers.supportedCodecs();
 
         //if format is not in the list of supported gstreamer mime types,
         //try to find the mime type with matching extension
         if (!supportedFormats.contains(format)) {
             QString extension = suggestedFileExtension(m_actualFormat);
-            foreach (const QString &formatCandidate, supportedFormats) {
+            for (const QString &formatCandidate : supportedFormats) {
                 if (suggestedFileExtension(formatCandidate) == extension) {
                     format = formatCandidate;
                     break;

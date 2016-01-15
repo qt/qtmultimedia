@@ -239,7 +239,7 @@ QCameraFocusZoneList CameraBinFocus::focusZones() const
     if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection) {
         zones.append(QCameraFocusZone(m_focusRect, m_focusZoneStatus));
 #if GST_CHECK_VERSION(1,0,0)
-    } else foreach (const QRect &face, m_faceFocusRects) {
+    } else for (const QRect &face : qAsConst(m_faceFocusRects)) {
         const QRectF normalizedRect(
                     face.x() / qreal(m_viewfinderResolution.width()),
                     face.y() / qreal(m_viewfinderResolution.height()),
@@ -434,7 +434,7 @@ void CameraBinFocus::updateRegionOfInterest(const QVector<QRect> &rectangles)
                     m_viewfinderResolution.width(), m_viewfinderResolution.height()) * 0.3;
         const QRect viewfinderRectangle(QPoint(0, 0), m_viewfinderResolution);
 
-        foreach (const QRect &rectangle, rectangles) {
+        for (const QRect &rectangle : rectangles) {
             QRect paddedRectangle(
                         0,
                         0,

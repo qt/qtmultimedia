@@ -138,7 +138,7 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
 
     //get the list of resolutions:
 
-    foreach (quint32 format, supportedFormats) {
+    for (quint32 format : qAsConst(supportedFormats)) {
         struct v4l2_frmsizeenum formatSize;
         memset(&formatSize, 0, sizeof(formatSize));
         formatSize.pixel_format = format;
@@ -161,7 +161,7 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
                 sizeList.append(QSize(formatSize.discrete.width, formatSize.discrete.height));
             } else {
 
-                foreach (const QSize& candidate, commonSizes) {
+                for (const QSize& candidate : qAsConst(commonSizes)) {
                     if (candidate.width() <= (int)formatSize.stepwise.max_width &&
                         candidate.height() >= (int)formatSize.stepwise.min_width &&
                         candidate.width() % formatSize.stepwise.step_width == 0 &&
@@ -185,7 +185,7 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
 
         //and frameRates for each resolution.
 
-        foreach (const QSize &s, sizeList) {
+        for (const QSize &s : qAsConst(sizeList)) {
             allResolutions.insert(s);
 
             struct v4l2_frmivalenum formatInterval;
@@ -221,7 +221,7 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
                                          formatInterval.stepwise.max.numerator);
 
 
-                    foreach (int candidate, commonRates) {
+                    for (int candidate : qAsConst(commonRates)) {
                         if (candidate >= minRate && candidate <= maxRate)
                             frameRates.append(candidate);
                     }
@@ -242,7 +242,7 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
 
     f.close();
 
-    foreach(int rate, allFrameRates) {
+    for (int rate : qAsConst(allFrameRates)) {
         m_frameRates.append(rate/1000.0);
     }
 
@@ -262,7 +262,9 @@ QList<qreal> QGstreamerV4L2Input::supportedFrameRates(const QSize &frameSize) co
         return m_frameRates;
     else {
         QList<qreal> res;
-        foreach(int rate, m_ratesByResolution[frameSize]) {
+        const auto rates = m_ratesByResolution[frameSize];
+        res.reserve(rates.size());
+        for (int rate : rates) {
             res.append(rate/1000.0);
         }
         return res;

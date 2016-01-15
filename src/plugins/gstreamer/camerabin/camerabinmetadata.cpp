@@ -197,7 +197,8 @@ QVariant CameraBinMetaData::metaData(const QString &key) const
     }
 #endif
 
-    Q_FOREACH (const QGStreamerMetaDataKey &metadataKey, *qt_gstreamerMetaDataKeys()) {
+    const auto keys = *qt_gstreamerMetaDataKeys();
+    for (const QGStreamerMetaDataKey &metadataKey : keys) {
         if (metadataKey.qtName == key)
             return m_values.value(QByteArray::fromRawData(metadataKey.gstName, qstrlen(metadataKey.gstName)));
     }
@@ -216,7 +217,8 @@ void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
         }
     }
 
-    Q_FOREACH (const QGStreamerMetaDataKey &metadataKey, *qt_gstreamerMetaDataKeys()) {
+    const auto keys = *qt_gstreamerMetaDataKeys();
+    for (const QGStreamerMetaDataKey &metadataKey : keys) {
         if (metadataKey.qtName == key) {
             const char *name = metadataKey.gstName;
 
@@ -239,7 +241,8 @@ QStringList CameraBinMetaData::availableMetaData() const
 {
     static QMap<QByteArray, QString> keysMap;
     if (keysMap.isEmpty()) {
-        Q_FOREACH (const QGStreamerMetaDataKey &metadataKey, *qt_gstreamerMetaDataKeys())
+        const auto keys = *qt_gstreamerMetaDataKeys();
+        for (const QGStreamerMetaDataKey &metadataKey : keys)
             keysMap[QByteArray(metadataKey.gstName)] = metadataKey.qtName;
     }
 

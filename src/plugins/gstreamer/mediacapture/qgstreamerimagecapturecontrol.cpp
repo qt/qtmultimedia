@@ -74,7 +74,8 @@ int QGstreamerImageCaptureControl::capture(const QString &fileName)
     if (path.isEmpty()) {
         int lastImage = 0;
         QDir outputDir = QDir::currentPath();
-        foreach(QString fileName, outputDir.entryList(QStringList() << "img_*.jpg")) {
+        const auto list = outputDir.entryList(QStringList() << "img_*.jpg");
+        for (const QString &fileName : list) {
             int imgNumber = fileName.midRef(4, fileName.size()-8).toInt();
             lastImage = qMax(lastImage, imgNumber);
         }
