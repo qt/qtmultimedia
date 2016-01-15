@@ -982,11 +982,11 @@ QJSValue QDeclarativeCamera::supportedViewfinderResolutions(qreal minimumFrameRa
     QCameraViewfinderSettings settings;
     settings.setMinimumFrameRate(minimumFrameRate);
     settings.setMaximumFrameRate(maximumFrameRate);
-    QList<QSize> resolutions = m_camera->supportedViewfinderResolutions(settings);
+    const QList<QSize> resolutions = m_camera->supportedViewfinderResolutions(settings);
 
     QJSValue supportedResolutions = engine->newArray(resolutions.count());
     int i = 0;
-    Q_FOREACH (const QSize &resolution, resolutions) {
+    for (const QSize &resolution : resolutions) {
         QJSValue size = engine->newObject();
         size.setProperty(QStringLiteral("width"), resolution.width());
         size.setProperty(QStringLiteral("height"), resolution.height());
@@ -1024,11 +1024,11 @@ QJSValue QDeclarativeCamera::supportedViewfinderFrameRateRanges(const QJSValue &
         if (width.isNumber() && height.isNumber())
             settings.setResolution(width.toInt(), height.toInt());
     }
-    QList<QCamera::FrameRateRange> frameRateRanges = m_camera->supportedViewfinderFrameRateRanges(settings);
+    const QList<QCamera::FrameRateRange> frameRateRanges = m_camera->supportedViewfinderFrameRateRanges(settings);
 
     QJSValue supportedFrameRateRanges = engine->newArray(frameRateRanges.count());
     int i = 0;
-    Q_FOREACH (const QCamera::FrameRateRange &frameRateRange, frameRateRanges) {
+    for (const QCamera::FrameRateRange &frameRateRange : frameRateRanges) {
         QJSValue range = engine->newObject();
         range.setProperty(QStringLiteral("minimumFrameRate"), frameRateRange.minimumFrameRate);
         range.setProperty(QStringLiteral("maximumFrameRate"), frameRateRange.maximumFrameRate);

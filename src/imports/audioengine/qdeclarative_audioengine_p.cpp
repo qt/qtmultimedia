@@ -247,7 +247,8 @@ void QDeclarativeAudioEngine::initSound(QDeclarativeSound *sound)
     }
     sound->setAttenuationModelObject(attenuationModel);
 
-    foreach (QDeclarativePlayVariation *playVariation, sound->playlist()) {
+    const auto playList = sound->playlist();
+    for (QDeclarativePlayVariation *playVariation : playList) {
         if (m_samples.contains(playVariation->sample())) {
             playVariation->setSampleObject(
                         qobject_cast<QDeclarativeAudioSample*>(
@@ -454,7 +455,8 @@ void QDeclarativeAudioEngine::componentComplete()
 #ifdef DEBUG_AUDIOENGINE
         qDebug() << "init samples" << m_samples.keys().count();
 #endif
-    foreach (const QString& key, m_samples.keys()) {
+    const auto samplesKeys = m_samples.keys();
+    for (const QString& key : samplesKeys) {
         QDeclarativeAudioSample *sample = qobject_cast<QDeclarativeAudioSample*>(
                                           qvariant_cast<QObject*>(m_samples[key]));
         if (!sample) {
@@ -468,7 +470,8 @@ void QDeclarativeAudioEngine::componentComplete()
 #ifdef DEBUG_AUDIOENGINE
         qDebug() << "init sounds" << m_sounds.keys().count();
 #endif
-    foreach (const QString& key, m_sounds.keys()) {
+    const auto soundsKeys = m_sounds.keys();
+    for (const QString& key : soundsKeys) {
         QDeclarativeSound *sound = qobject_cast<QDeclarativeSound*>(
                                    qvariant_cast<QObject*>(m_sounds[key]));
 
@@ -504,7 +507,7 @@ void QDeclarativeAudioEngine::updateSoundInstances()
     }
 
     QVector3D listenerPosition = this->listener()->position();
-    foreach (QSoundInstance *instance, m_activeSoundInstances) {
+    for (QSoundInstance *instance : qAsConst(m_activeSoundInstances)) {
         if (instance->state() == QSoundInstance::PlayingState
             &&  instance->attenuationEnabled()) {
             instance->update3DVolume(listenerPosition);

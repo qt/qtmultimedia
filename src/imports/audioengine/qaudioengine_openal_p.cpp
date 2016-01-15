@@ -235,15 +235,15 @@ QAudioEnginePrivate::~QAudioEnginePrivate()
 #ifdef DEBUG_AUDIOENGINE
     qDebug() << "QAudioEnginePrivate::dtor";
 #endif
-    QObjectList children = this->children();
-    foreach (QObject *child, children) {
+    const QObjectList children = this->children();
+    for (QObject *child : children) {
         QSoundSourcePrivate* s = qobject_cast<QSoundSourcePrivate*>(child);
         if (!s)
             continue;
         s->release();
     }
 
-    foreach (QSoundBufferPrivateAL *buffer, m_staticBufferPool) {
+    for (QSoundBufferPrivateAL *buffer : qAsConst(m_staticBufferPool)) {
         delete buffer;
     }
     m_staticBufferPool.clear();
