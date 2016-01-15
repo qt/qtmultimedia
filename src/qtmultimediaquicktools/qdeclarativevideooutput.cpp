@@ -231,7 +231,8 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
 {
     bool backendAvailable = false;
 
-    foreach (QObject *instance, videoBackendFactoryLoader()->instances(QLatin1String("declarativevideobackend"))) {
+    const auto instances = videoBackendFactoryLoader()->instances(QLatin1String("declarativevideobackend"));
+    for (QObject *instance : instances) {
         if (QDeclarativeVideoBackendFactoryInterface *plugin = qobject_cast<QDeclarativeVideoBackendFactoryInterface*>(instance)) {
             m_backend.reset(plugin->create(this));
             if (m_backend && m_backend->init(service)) {

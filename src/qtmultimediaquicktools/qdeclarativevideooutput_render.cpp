@@ -64,7 +64,8 @@ QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeV
     // Prioritize the plugin requested by the environment
     QString requestedVideoNode = QString::fromLatin1(qgetenv("QT_VIDEONODE"));
 
-    foreach (const QString &key, videoNodeFactoryLoader()->keys()) {
+    const auto keys = videoNodeFactoryLoader()->keys();
+    for (const QString &key : keys) {
         QObject *instance = videoNodeFactoryLoader()->instance(key);
         QSGVideoNodeFactoryInterface* plugin = qobject_cast<QSGVideoNodeFactoryInterface*>(instance);
         if (plugin) {
@@ -124,7 +125,7 @@ class FilterRunnableDeleter : public QRunnable
 public:
     FilterRunnableDeleter(const QList<QVideoFilterRunnable *> &runnables) : m_runnables(runnables) { }
     void run() Q_DECL_OVERRIDE {
-        foreach (QVideoFilterRunnable *runnable, m_runnables)
+        for (QVideoFilterRunnable *runnable : qAsConst(m_runnables))
             delete runnable;
     }
 private:
@@ -335,7 +336,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
         }
 
         if (!videoNode) {
-            foreach (QSGVideoNodeFactoryInterface* factory, m_videoNodeFactories) {
+            for (QSGVideoNodeFactoryInterface* factory : qAsConst(m_videoNodeFactories)) {
                 // Get a node that supports our frame. The surface is irrelevant, our
                 // QSGVideoItemSurface supports (logically) anything.
                 videoNode = factory->createNode(QVideoSurfaceFormat(m_frame.size(), m_frame.pixelFormat(), m_frame.handleType()));
@@ -437,7 +438,7 @@ QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
             return formats;
     }
 
-    foreach (QSGVideoNodeFactoryInterface* factory, m_backend->m_videoNodeFactories)
+    for (QSGVideoNodeFactoryInterface* factory : qAsConst(m_backend->m_videoNodeFactories))
         formats.append(factory->supportedPixelFormats(handleType));
 
     return formats;
