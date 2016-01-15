@@ -39,13 +39,13 @@ DirectShowPinEnum::DirectShowPinEnum(const QList<IPin *> &pins)
     , m_pins(pins)
     , m_index(0)
 {
-    foreach (IPin *pin, m_pins)
+    for (IPin *pin : qAsConst(m_pins))
         pin->AddRef();
 }
 
 DirectShowPinEnum::~DirectShowPinEnum()
 {
-    foreach (IPin *pin, m_pins)
+    for (IPin *pin : qAsConst(m_pins))
         pin->Release();
 }
 

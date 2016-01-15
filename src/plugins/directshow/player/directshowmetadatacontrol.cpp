@@ -493,7 +493,8 @@ void DirectShowMetaDataControl::updateGraph(IFilterGraph2 *graph, IBaseFilter *s
     IWMHeaderInfo *info = com_cast<IWMHeaderInfo>(source, IID_IWMHeaderInfo);
 
     if (info) {
-        Q_FOREACH (const QWMMetaDataKey &key, *qt_wmMetaDataKeys()) {
+        const auto keys = *qt_wmMetaDataKeys();
+        for (const QWMMetaDataKey &key : keys) {
             QVariant var = getValue(info, key.wmName);
             if (var.isValid()) {
                 if (key.qtName == QMediaMetaData::Duration) {

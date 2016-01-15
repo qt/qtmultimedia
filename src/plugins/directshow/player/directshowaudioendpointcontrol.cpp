@@ -54,7 +54,7 @@ DirectShowAudioEndpointControl::DirectShowAudioEndpointControl(
 
 DirectShowAudioEndpointControl::~DirectShowAudioEndpointControl()
 {
-    foreach (IMoniker *moniker, m_devices)
+    for (IMoniker *moniker : qAsConst(m_devices))
         moniker->Release();
 
     if (m_bindContext)

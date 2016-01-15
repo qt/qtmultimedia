@@ -137,7 +137,7 @@ QList<QByteArray> DSServicePlugin::devices(const QByteArray &service) const
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
-        Q_FOREACH (const DSVideoDeviceInfo &info, devs)
+        for (const DSVideoDeviceInfo &info : devs)
             result.append(info.first);
     }
 #endif
@@ -150,7 +150,7 @@ QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByt
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
-        Q_FOREACH (const DSVideoDeviceInfo &info, devs) {
+        for (const DSVideoDeviceInfo &info : devs) {
             if (info.first == device)
                 return info.second;
         }

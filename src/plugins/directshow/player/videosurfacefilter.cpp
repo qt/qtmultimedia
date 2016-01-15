@@ -582,7 +582,7 @@ void VideoSurfaceFilter::supportedFormatsChanged()
     static const GUID none = {
         0xe436eb8e, 0x524f, 0x11ce, {0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70} };
 
-    QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats();
+    const QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats();
 
     QVector<AM_MEDIA_TYPE> mediaTypes;
     mediaTypes.reserve(formats.count());
@@ -597,7 +597,7 @@ void VideoSurfaceFilter::supportedFormatsChanged()
     type.cbFormat = 0;
     type.pbFormat = 0;
 
-    foreach (QVideoFrame::PixelFormat format, formats) {
+    for (QVideoFrame::PixelFormat format : formats) {
         type.subtype = DirectShowMediaType::convertPixelFormat(format);
 
         if (type.subtype != none)

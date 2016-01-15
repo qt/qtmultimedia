@@ -257,7 +257,7 @@ bool DSCameraSession::unload()
 
     m_needsHorizontalMirroring = false;
     m_supportedViewfinderSettings.clear();
-    Q_FOREACH (AM_MEDIA_TYPE f, m_supportedFormats)
+    for (AM_MEDIA_TYPE f : qAsConst(m_supportedFormats))
         _FreeMediaType(f);
     m_supportedFormats.clear();
     SAFE_RELEASE(m_sourceFilter);
@@ -642,7 +642,7 @@ bool DSCameraSession::configurePreviewFormat()
     // Resolve viewfinder settings
     int settingsIndex = 0;
     QCameraViewfinderSettings resolvedViewfinderSettings;
-    Q_FOREACH (const QCameraViewfinderSettings &s, m_supportedViewfinderSettings) {
+    for (const QCameraViewfinderSettings &s : qAsConst(m_supportedViewfinderSettings)) {
         if ((m_viewfinderSettings.resolution().isEmpty() || m_viewfinderSettings.resolution() == s.resolution())
                 && (qFuzzyIsNull(m_viewfinderSettings.minimumFrameRate()) || qFuzzyCompare((float)m_viewfinderSettings.minimumFrameRate(), (float)s.minimumFrameRate()))
                 && (qFuzzyIsNull(m_viewfinderSettings.maximumFrameRate()) || qFuzzyCompare((float)m_viewfinderSettings.maximumFrameRate(), (float)s.maximumFrameRate()))
@@ -803,7 +803,7 @@ void DSCameraSession::updateSourceCapabilities()
 
     m_supportedViewfinderSettings.clear();
     m_needsHorizontalMirroring = false;
-    Q_FOREACH (AM_MEDIA_TYPE f, m_supportedFormats)
+    for (AM_MEDIA_TYPE f : qAsConst(m_supportedFormats))
         _FreeMediaType(f);
     m_supportedFormats.clear();
 
@@ -894,7 +894,7 @@ void DSCameraSession::updateSourceCapabilities()
                                                                    qreal(10000000) / scc.MinFrameInterval));
                 }
 
-                Q_FOREACH (const QCamera::FrameRateRange &frameRateRange, frameRateRanges) {
+                for (const QCamera::FrameRateRange &frameRateRange : qAsConst(frameRateRanges)) {
                     QCameraViewfinderSettings settings;
                     settings.setResolution(resolution);
                     settings.setMinimumFrameRate(frameRateRange.minimumFrameRate);
