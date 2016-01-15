@@ -145,8 +145,8 @@ void QGstreamerAudioInputSelector::updateOssDevices()
 {
     QDir devDir("/dev");
     devDir.setFilter(QDir::System);
-    QFileInfoList entries = devDir.entryInfoList(QStringList() << "dsp*");
-    foreach(const QFileInfo& entryInfo, entries) {
+    const QFileInfoList entries = devDir.entryInfoList(QStringList() << "dsp*");
+    for (const QFileInfo& entryInfo : entries) {
         m_names.append(QLatin1String("oss:")+entryInfo.filePath());
         m_descriptions.append(QString("OSS device %1").arg(entryInfo.fileName()));
     }

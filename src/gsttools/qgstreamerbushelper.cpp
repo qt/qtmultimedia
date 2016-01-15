@@ -117,7 +117,7 @@ private:
 private slots:
     void doProcessMessage(const QGstreamerMessage& msg)
     {
-        foreach (QGstreamerBusMessageFilter *filter, busFilters) {
+        for (QGstreamerBusMessageFilter *filter : qAsConst(busFilters)) {
             if (filter->processBusMessage(msg))
                 break;
         }
@@ -136,7 +136,7 @@ static GstBusSyncReply syncGstBusFilter(GstBus* bus, GstMessage* message, QGstre
     Q_UNUSED(bus);
     QMutexLocker lock(&d->filterMutex);
 
-    foreach (QGstreamerSyncMessageFilter *filter, d->syncFilters) {
+    for (QGstreamerSyncMessageFilter *filter : qAsConst(d->syncFilters)) {
         if (filter->processSyncMessage(QGstreamerMessage(message)))
             return GST_BUS_DROP;
     }

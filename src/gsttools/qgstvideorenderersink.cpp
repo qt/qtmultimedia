@@ -119,7 +119,8 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surfac
     , m_stop(false)
     , m_flush(false)
 {
-    foreach (QObject *instance, rendererLoader()->instances(QGstVideoRendererPluginKey)) {
+    const auto instances = rendererLoader()->instances(QGstVideoRendererPluginKey);
+    for (QObject *instance : instances) {
         QGstVideoRendererInterface* plugin = qobject_cast<QGstVideoRendererInterface*>(instance);
         if (QGstVideoRenderer *renderer = plugin ? plugin->createRenderer() : 0)
             m_renderers.append(renderer);
@@ -369,7 +370,7 @@ void QVideoSurfaceGstDelegate::updateSupportedFormats()
         m_surfaceCaps = 0;
     }
 
-    foreach (QGstVideoRenderer *pool, m_renderers) {
+    for (QGstVideoRenderer *pool : qAsConst(m_renderers)) {
         if (GstCaps *caps = pool->getCaps(m_surface)) {
             if (gst_caps_is_empty(caps)) {
                 gst_caps_unref(caps);

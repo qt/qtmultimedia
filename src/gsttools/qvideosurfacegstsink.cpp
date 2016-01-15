@@ -65,7 +65,8 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     , m_startCanceled(false)
 {
     if (m_surface) {
-        foreach (QObject *instance, bufferPoolLoader()->instances(QGstBufferPoolPluginKey)) {
+        const auto instances = bufferPoolLoader()->instances(QGstBufferPoolPluginKey);
+        for (QObject *instance : instances) {
             QGstBufferPoolInterface* plugin = qobject_cast<QGstBufferPoolInterface*>(instance);
 
             if (plugin) {
@@ -302,7 +303,7 @@ void QVideoSurfaceGstDelegate::queuedRender()
 void QVideoSurfaceGstDelegate::updateSupportedFormats()
 {
     QGstBufferPoolInterface *newPool = 0;
-    foreach (QGstBufferPoolInterface *pool, m_pools) {
+    for (QGstBufferPoolInterface *pool : qAsConst(m_pools)) {
         if (!m_surface->supportedPixelFormats(pool->handleType()).isEmpty()) {
             newPool = pool;
             break;
@@ -503,7 +504,8 @@ GstCaps *QVideoSurfaceGstSink::get_caps(GstBaseSink *base)
     sink->delegate->poolMutex()->unlock();
 
     supportedFormats = poolHandleFormats;
-    foreach (QVideoFrame::PixelFormat format, sink->delegate->supportedPixelFormats()) {
+    const auto supportedPixelFormats = sink->delegate->supportedPixelFormats();
+    for (QVideoFrame::PixelFormat format : supportedPixelFormats) {
         if (!poolHandleFormats.contains(format))
             supportedFormats.append(format);
     }

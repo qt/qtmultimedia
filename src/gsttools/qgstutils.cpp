@@ -480,7 +480,7 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
     }
 
     int supportedCodecCount = 0;
-    foreach (const QString &codec, codecs) {
+    for (const QString &codec : codecs) {
         QString codecLowcase = codec.toLower();
         const char* codecAlias = getCodecAlias(codecLowcase);
         if (codecAlias) {
@@ -583,10 +583,10 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
     QDir devDir(QStringLiteral("/dev"));
     devDir.setFilter(QDir::System);
 
-    QFileInfoList entries = devDir.entryInfoList(QStringList()
+    const QFileInfoList entries = devDir.entryInfoList(QStringList()
                 << QStringLiteral("video*"));
 
-    foreach (const QFileInfo &entryInfo, entries) {
+    for (const QFileInfo &entryInfo : entries) {
         //qDebug() << "Try" << entryInfo.filePath();
 
         int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
@@ -643,7 +643,9 @@ QList<QByteArray> QGstUtils::cameraDevices(GstElementFactory * factory)
 {
     QList<QByteArray> devices;
 
-    foreach (const CameraInfo &camera, enumerateCameras(factory))
+    const auto cameras = enumerateCameras(factory);
+    devices.reserve(cameras.size());
+    for (const CameraInfo &camera : cameras)
         devices.append(camera.name.toUtf8());
 
     return devices;
@@ -651,7 +653,8 @@ QList<QByteArray> QGstUtils::cameraDevices(GstElementFactory * factory)
 
 QString QGstUtils::cameraDescription(const QString &device, GstElementFactory * factory)
 {
-    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+    const auto cameras = enumerateCameras(factory);
+    for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.description;
     }
@@ -660,7 +663,8 @@ QString QGstUtils::cameraDescription(const QString &device, GstElementFactory * 
 
 QCamera::Position QGstUtils::cameraPosition(const QString &device, GstElementFactory * factory)
 {
-    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+    const auto cameras = enumerateCameras(factory);
+    for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.position;
     }
@@ -669,7 +673,8 @@ QCamera::Position QGstUtils::cameraPosition(const QString &device, GstElementFac
 
 int QGstUtils::cameraOrientation(const QString &device, GstElementFactory * factory)
 {
-    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+    const auto cameras = enumerateCameras(factory);
+    for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.orientation;
     }
@@ -678,7 +683,8 @@ int QGstUtils::cameraOrientation(const QString &device, GstElementFactory * fact
 
 QByteArray QGstUtils::cameraDriver(const QString &device, GstElementFactory *factory)
 {
-    foreach (const CameraInfo &camera, enumerateCameras(factory)) {
+    const auto cameras = enumerateCameras(factory);
+    for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.driver;
     }
@@ -749,8 +755,8 @@ QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFac
                             if (value) {
                                 gchar *str = gst_value_serialize(value);
                                 QString versions(str);
-                                QStringList elements = versions.split(QRegExp("\\D+"), QString::SkipEmptyParts);
-                                foreach (const QString &e, elements)
+                                const QStringList elements = versions.split(QRegExp("\\D+"), QString::SkipEmptyParts);
+                                for (const QString &e : elements)
                                     supportedMimeTypes.insert(nameLowcase + e);
                                 g_free(str);
                             }
@@ -768,7 +774,7 @@ QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFac
     QStringList list = supportedMimeTypes.toList();
     list.sort();
     if (qgetenv("QT_DEBUG_PLUGINS").toInt() > 0) {
-        foreach (const QString &type, list)
+        for (const QString &type : qAsConst(list))
             qDebug() << type;
     }
 #endif
@@ -1110,7 +1116,7 @@ GstCaps *QGstUtils::capsForFormats(const QList<QVideoFrame::PixelFormat> &format
     GstCaps *caps = gst_caps_new_empty();
 
 #if GST_CHECK_VERSION(1,0,0)
-    foreach (QVideoFrame::PixelFormat format, formats) {
+    for (QVideoFrame::PixelFormat format : formats) {
         int index = indexOfVideoFormat(format);
 
         if (index != -1) {
@@ -1121,7 +1127,7 @@ GstCaps *QGstUtils::capsForFormats(const QList<QVideoFrame::PixelFormat> &format
         }
     }
 #else
-    foreach (QVideoFrame::PixelFormat format, formats) {
+    for (QVideoFrame::PixelFormat format : formats) {
         int index = indexOfYuvColor(format);
 
         if (index != -1) {
