@@ -475,7 +475,8 @@ void QMediaPlaylist::load(const QNetworkRequest &request, const char *format)
         return;
     }
 
-    foreach (QString const& key, playlistIOLoader()->keys()) {
+    const auto keys = playlistIOLoader()->keys();
+    for (QString const& key : keys) {
         QMediaPlaylistIOInterface* plugin = qobject_cast<QMediaPlaylistIOInterface*>(playlistIOLoader()->instance(key));
         if (plugin && plugin->canRead(request.url(), format)) {
             QMediaPlaylistReader *reader = plugin->createReader(request.url(), QByteArray(format));
@@ -536,7 +537,8 @@ void QMediaPlaylist::load(QIODevice * device, const char *format)
         return;
     }
 
-    foreach (QString const& key, playlistIOLoader()->keys()) {
+    const auto keys = playlistIOLoader()->keys();
+    for (QString const& key : keys) {
         QMediaPlaylistIOInterface* plugin = qobject_cast<QMediaPlaylistIOInterface*>(playlistIOLoader()->instance(key));
         if (plugin && plugin->canRead(device,format)) {
             QMediaPlaylistReader *reader = plugin->createReader(device,QByteArray(format));
@@ -598,7 +600,8 @@ bool QMediaPlaylist::save(QIODevice * device, const char *format)
     if (d->playlist()->save(device,format))
         return true;
 
-    foreach (QString const& key, playlistIOLoader()->keys()) {
+    const auto keys = playlistIOLoader()->keys();
+    for (QString const& key : keys) {
         QMediaPlaylistIOInterface* plugin = qobject_cast<QMediaPlaylistIOInterface*>(playlistIOLoader()->instance(key));
         if (plugin && plugin->canWrite(device,format)) {
             QMediaPlaylistWriter *writer = plugin->createWriter(device,QByteArray(format));

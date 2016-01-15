@@ -632,7 +632,8 @@ QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)
         << ", handleType=" << f.handleType() <<  ", yCbCrColorSpace=" << f.yCbCrColorSpace()
         << ')';
 
-    foreach(const QByteArray& propertyName, f.propertyNames())
+    const auto propertyNames = f.propertyNames();
+    for (const QByteArray& propertyName : propertyNames)
         dbg << "\n    " << propertyName.data() << " = " << f.property(propertyName.data());
 
     return dbg;
