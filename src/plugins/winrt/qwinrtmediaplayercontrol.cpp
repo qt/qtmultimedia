@@ -388,8 +388,13 @@ public:
     HRESULT __stdcall SetCurrentPosition(QWORD position)
     {
         qint64 pos(position);
-        if (pos >= d->stream->size())
-            return E_INVALIDARG;
+        if (pos >= d->stream->size()) {
+            // MSDN states we should return E_INVALIDARG, but that immediately
+            // stops playback and does not play remaining buffers in the queue.
+            // For some formats this can cause losing up to 5 seconds of the
+            // end of the stream.
+            return S_FALSE;
+        }
 
         const bool ok = d->stream->seek(pos);
         return ok ? S_OK : S_FALSE;
