@@ -187,6 +187,7 @@ private:
     QTimer *m_intervalTimer;
     CoreAudioDeviceInfo *m_audioDeviceInfo;
     qreal m_cachedVolume;
+    bool m_pullMode;
 
     QAudio::Error m_errorCode;
     QAudio::State m_stateCode;
