@@ -651,7 +651,7 @@ void QAlsaAudioOutput::resume()
         }
         resuming = true;
 
-        deviceState = QAudio::ActiveState;
+        deviceState = pullMode ? QAudio::ActiveState : QAudio::IdleState;
 
         errorState = QAudio::NoError;
         timer->start(period_time/1000);
