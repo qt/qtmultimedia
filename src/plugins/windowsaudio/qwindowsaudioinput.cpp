@@ -90,7 +90,7 @@ void QT_WIN_CALLBACK QWindowsAudioInput::waveInProc( HWAVEIN hWaveIn, UINT uMsg,
     if(!qAudio)
         return;
 
-    QMutexLocker(&qAudio->mutex);
+    QMutexLocker locker(&qAudio->mutex);
 
     switch(uMsg) {
         case WIM_OPEN:
