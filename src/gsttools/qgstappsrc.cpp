@@ -41,7 +41,6 @@ QGstAppSrc::QGstAppSrc(QObject *parent)
     ,m_appSrc(0)
     ,m_sequential(false)
     ,m_maxBytes(0)
-    ,m_setup(false)
     ,m_dataRequestSize(~0)
     ,m_dataRequested(false)
     ,m_enoughData(false)
@@ -60,11 +59,13 @@ QGstAppSrc::~QGstAppSrc()
 
 bool QGstAppSrc::setup(GstElement* appsrc)
 {
-    if (m_setup || m_stream == 0 || appsrc == 0)
-        return false;
-
-    if (m_appSrc)
+    if (m_appSrc) {
         gst_object_unref(G_OBJECT(m_appSrc));
+        m_appSrc = 0;
+    }
+
+    if (!appsrc || !m_stream)
+        return false;
 
     m_appSrc = GST_APP_SRC(appsrc);
     gst_object_ref(G_OBJECT(m_appSrc));
@@ -79,32 +80,35 @@ bool QGstAppSrc::setup(GstElement* appsrc)
     gst_app_src_set_stream_type(m_appSrc, m_streamType);
     gst_app_src_set_size(m_appSrc, (m_sequential) ? -1 : m_stream->size());
 
-    return  m_setup = true;
+    return true;
 }
 
 void QGstAppSrc::setStream(QIODevice *stream)
 {
-    if (stream == 0)
-        return;
     if (m_stream) {
         disconnect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
         disconnect(m_stream, SIGNAL(destroyed()), this, SLOT(streamDestroyed()));
+        m_stream = 0;
     }
-    if (m_appSrc)
+
+    if (m_appSrc) {
         gst_object_unref(G_OBJECT(m_appSrc));
+        m_appSrc = 0;
+    }
 
     m_dataRequestSize = ~0;
     m_dataRequested = false;
     m_enoughData = false;
     m_forceData = false;
+    m_sequential = false;
     m_maxBytes = 0;
 
-    m_appSrc = 0;
-    m_stream = stream;
-    connect(m_stream, SIGNAL(destroyed()), SLOT(streamDestroyed()));
-    connect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
-    m_sequential = m_stream->isSequential();
-    m_setup = false;
+    if (stream) {
+        m_stream = stream;
+        connect(m_stream, SIGNAL(destroyed()), SLOT(streamDestroyed()));
+        connect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
+        m_sequential = m_stream->isSequential();
+    }
 }
 
 QIODevice *QGstAppSrc::stream() const
@@ -135,7 +139,7 @@ void QGstAppSrc::streamDestroyed()
 
 void QGstAppSrc::pushDataToAppSrc()
 {
-    if (!isStreamValid() || !m_setup)
+    if (!isStreamValid() || !m_appSrc)
         return;
 
     if (m_dataRequested && !m_enoughData) {
@@ -242,6 +246,9 @@ void QGstAppSrc::destroy_notify(gpointer data)
 
 void QGstAppSrc::sendEOS()
 {
+    if (!m_appSrc)
+        return;
+
     gst_app_src_end_of_stream(GST_APP_SRC(m_appSrc));
     if (isStreamValid() && !stream()->isSequential())
         stream()->reset();

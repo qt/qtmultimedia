@@ -248,7 +248,7 @@ void QOpenSLESAudioOutput::resume()
         return;
     }
 
-    setState(QAudio::ActiveState);
+    setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
     setError(QAudio::NoError);
 }
 

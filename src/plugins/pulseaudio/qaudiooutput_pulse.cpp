@@ -555,7 +555,7 @@ void QPulseAudioOutput::resume()
 
         m_tickTimer->start(m_periodTime);
 
-        setState(QAudio::ActiveState);
+        setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
         setError(QAudio::NoError);
     }
 }
