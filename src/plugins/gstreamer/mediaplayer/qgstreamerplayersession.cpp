@@ -247,6 +247,10 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         g_signal_connect(G_OBJECT(m_playbin), "video-changed", G_CALLBACK(handleStreamsChange), this);
         g_signal_connect(G_OBJECT(m_playbin), "audio-changed", G_CALLBACK(handleStreamsChange), this);
         g_signal_connect(G_OBJECT(m_playbin), "text-changed", G_CALLBACK(handleStreamsChange), this);
+
+#if defined(HAVE_GST_APPSRC)
+        g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", G_CALLBACK(configureAppSrcElement), this);
+#endif
     }
 }
 
@@ -280,7 +284,7 @@ void QGstreamerPlayerSession::configureAppSrcElement(GObject* object, GObject *o
     Q_UNUSED(object);
     Q_UNUSED(pspec);
 
-    if (self->appsrc()->isReady())
+    if (!self->appsrc())
         return;
 
     GstElement *appsrc;
@@ -304,16 +308,14 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
     m_lastPosition = 0;
     m_isPlaylist = false;
 
-    if (m_appSrc)
-        m_appSrc->deleteLater();
-    m_appSrc = new QGstAppSrc(this);
+    if (!m_appSrc)
+        m_appSrc = new QGstAppSrc(this);
     m_appSrc->setStream(appSrcStream);
 
     if (m_playbin) {
         m_tags.clear();
         emit tagsChanged();
 
-        g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", (GCallback) &QGstreamerPlayerSession::configureAppSrcElement, (gpointer)this);
         g_object_set(G_OBJECT(m_playbin), "uri", "appsrc://", NULL);
 
         if (!m_streamTypes.isEmpty()) {
@@ -335,6 +337,13 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     m_duration = -1;
     m_lastPosition = 0;
     m_isPlaylist = false;
+
+#if defined(HAVE_GST_APPSRC)
+    if (m_appSrc) {
+        m_appSrc->deleteLater();
+        m_appSrc = 0;
+    }
+#endif
 
     if (m_playbin) {
         m_tags.clear();

@@ -86,6 +86,14 @@ struct QWinRTVideoRendererControlGlobal
         hr = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, flags,
                                featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION,
                                &device, &featureLevel, &context);
+#ifdef _DEBUG
+        if (FAILED(hr)) {
+            qErrnoWarning(hr, "Failed to create D3D device with device debug flag");
+            hr = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_VIDEO_SUPPORT,
+                                   featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION,
+                                   &device, &featureLevel, &context);
+        }
+#endif
         if (FAILED(hr))
             qErrnoWarning(hr, "Failed to create D3D device");
 

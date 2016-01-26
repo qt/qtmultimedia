@@ -228,6 +228,7 @@ CoreAudioOutput::CoreAudioOutput(const QByteArray &device)
     , m_startTime(0)
     , m_audioBuffer(0)
     , m_cachedVolume(1.0)
+    , m_pullMode(false)
     , m_errorCode(QAudio::NoError)
     , m_stateCode(QAudio::StoppedState)
 {
@@ -277,6 +278,7 @@ void CoreAudioOutput::start(QIODevice *device)
         m_stateCode = QAudio::ActiveState;
 
     // Start
+    m_pullMode = true;
     m_errorCode = QAudio::NoError;
     m_totalFrames = 0;
     m_startTime = CoreAudioUtils::currentTime();
@@ -302,6 +304,7 @@ QIODevice *CoreAudioOutput::start()
     m_stateCode = QAudio::IdleState;
 
     // Start
+    m_pullMode = false;
     m_errorCode = QAudio::NoError;
     m_totalFrames = 0;
     m_startTime = CoreAudioUtils::currentTime();
@@ -353,7 +356,7 @@ void CoreAudioOutput::resume()
     if (m_stateCode == QAudio::SuspendedState) {
         audioThreadStart();
 
-        m_stateCode = QAudio::ActiveState;
+        m_stateCode = m_pullMode ? QAudio::ActiveState : QAudio::IdleState;
         m_errorCode = QAudio::NoError;
         emit stateChanged(m_stateCode);
     }

@@ -96,7 +96,7 @@ void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
     if(!qAudio)
         return;
 
-    QMutexLocker(&qAudio->mutex);
+    QMutexLocker locker(&qAudio->mutex);
 
     switch(uMsg) {
         case WOM_OPEN:
@@ -440,7 +440,7 @@ qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
 void QWindowsAudioOutput::resume()
 {
     if(deviceState == QAudio::SuspendedState) {
-        deviceState = QAudio::ActiveState;
+        deviceState = pullMode ? QAudio::ActiveState : QAudio::IdleState;
         errorState = QAudio::NoError;
         waveOutRestart(hWaveOut);
         QTimer::singleShot(10, this, SLOT(feedback()));

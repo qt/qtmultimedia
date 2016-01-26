@@ -40,13 +40,14 @@
 #ifndef EVRD3DPRESENTENGINE_H
 #define EVRD3DPRESENTENGINE_H
 
-#include <EGL/egl.h>
 #include <QMutex>
-#include <d3d9types.h>
 #include <QVideoSurfaceFormat>
 
+#include <d3d9.h>
+
 #if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_DYNAMIC)
-#define MAYBE_ANGLE
+# include <EGL/egl.h>
+# define MAYBE_ANGLE
 #endif
 
 QT_BEGIN_NAMESPACE

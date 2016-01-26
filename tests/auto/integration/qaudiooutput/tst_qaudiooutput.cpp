@@ -697,11 +697,11 @@ void tst_QAudioOutput::push()
                 QVERIFY2((audioOutput.state() == QAudio::ActiveState), "didn't transition to ActiveState after receiving data");
                 QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after receiving data");
                 firstBuffer = false;
+                stateSignal.clear();
             }
         } else
             QTest::qWait(20);
     }
-    stateSignal.clear();
 
     // Wait until playback finishes
     QTest::qWait(3000); // 3 seconds should be plenty
@@ -820,10 +820,10 @@ void tst_QAudioOutput::pushSuspendResume()
     // but not too much or the rest of the file may be processed
     QTest::qWait(20);
 
-    // Check that QAudioOutput immediately transitions to ActiveState
+    // Check that QAudioOutput immediately transitions to IdleState
     QVERIFY2((stateSignal.count() == 1),
              QString("didn't emit signal after resume(), got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
-    QVERIFY2((audioOutput.state() == QAudio::ActiveState), "didn't transition to ActiveState after resume()");
+    QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transition to IdleState after resume()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after resume()");
     stateSignal.clear();
 
@@ -832,6 +832,7 @@ void tst_QAudioOutput::pushSuspendResume()
         if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
             qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
             written += feed->write(buffer.constData(), len);
+            QVERIFY2((audioOutput.state() == QAudio::ActiveState), "didn't transition to ActiveState after writing audio data");
         } else
             QTest::qWait(20);
     }

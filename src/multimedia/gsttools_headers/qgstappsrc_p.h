@@ -71,7 +71,6 @@ public:
     ~QGstAppSrc();
 
     bool setup(GstElement *);
-    bool isReady() const { return m_setup; }
 
     void setStream(QIODevice *);
     QIODevice *stream() const;
@@ -110,7 +109,6 @@ private:
     GstAppStreamType m_streamType;
     GstAppSrcCallbacks m_callbacks;
     qint64 m_maxBytes;
-    bool m_setup;
     unsigned int m_dataRequestSize;
     bool m_dataRequested;
     bool m_enoughData;
