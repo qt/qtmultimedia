@@ -842,8 +842,6 @@ HRESULT EVRCustomPresenter::OnClockStart(MFTIME, LONGLONG clockStartOffset)
             return hr;
     }
 
-    startSurface();
-
     // Now try to get new output samples from the mixer.
     processOutputLoop();
 
@@ -890,8 +888,6 @@ HRESULT EVRCustomPresenter::OnClockStop(MFTIME)
         if (m_frameStep.state != FrameStepNone)
             cancelFrameStep();
     }
-
-    stopSurface();
 
     return S_OK;
 }
@@ -1400,6 +1396,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
 
     // Clearing the media type is allowed in any state (including shutdown).
     if (!mediaType) {
+        stopSurface();
         qt_evr_safe_release(&m_mediaType);
         releaseResources();
         return S_OK;
@@ -1459,6 +1456,8 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     // Store the media type.
     m_mediaType = mediaType;
     m_mediaType->AddRef();
+
+    startSurface();
 
 done:
     if (FAILED(hr))
