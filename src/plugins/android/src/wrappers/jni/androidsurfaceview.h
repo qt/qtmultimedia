@@ -74,7 +74,7 @@ private:
     friend class AndroidSurfaceView;
 };
 
-class AndroidSurfaceView : public QObject, public QRunnable
+class AndroidSurfaceView : public QObject
 {
     Q_OBJECT
 public:
@@ -86,13 +86,8 @@ public:
     void setVisible(bool v);
     void setGeometry(int x, int y, int width, int height);
 
-    bool event(QEvent *);
-
 Q_SIGNALS:
     void surfaceCreated();
-
-protected:
-    void run() override;
 
 private:
     QJNIObjectPrivate m_surfaceView;

@@ -137,8 +137,32 @@ AndroidSurfaceView::AndroidSurfaceView()
     , m_surfaceHolder(0)
     , m_pendingVisible(-1)
 {
-    setAutoDelete(false);
-    QtAndroidPrivate::runOnUiThread(this, QJNIEnvironmentPrivate());
+    QtAndroidPrivate::runOnAndroidThreadSync([this] {
+        m_surfaceView = QJNIObjectPrivate("android/view/SurfaceView",
+                                          "(Landroid/content/Context;)V",
+                                          QtAndroidPrivate::activity());
+    }, QJNIEnvironmentPrivate());
+
+    Q_ASSERT(m_surfaceView.isValid());
+
+    QJNIObjectPrivate holder = m_surfaceView.callObjectMethod("getHolder",
+                                                                "()Landroid/view/SurfaceHolder;");
+    if (!holder.isValid()) {
+        m_surfaceView = QJNIObjectPrivate();
+    } else {
+        m_surfaceHolder = new AndroidSurfaceHolder(holder);
+        connect(m_surfaceHolder, &AndroidSurfaceHolder::surfaceCreated,
+                this, &AndroidSurfaceView::surfaceCreated);
+        { // Lock now to avoid a race with handleSurfaceCreated()
+            QMutexLocker locker(shLock);
+            m_window = QWindow::fromWinId(WId(m_surfaceView.object()));
+
+            if (m_pendingVisible != -1)
+                m_window->setVisible(m_pendingVisible);
+            if (m_pendingGeometry.isValid())
+                m_window->setGeometry(m_pendingGeometry);
+        }
+    }
 }
 
 AndroidSurfaceView::~AndroidSurfaceView()
@@ -166,45 +190,6 @@ void AndroidSurfaceView::setGeometry(int x, int y, int width, int height)
         m_window->setGeometry(x, y, width, height);
     else
         m_pendingGeometry = QRect(x, y, width, height);
-}
-
-bool AndroidSurfaceView::event(QEvent *e)
-{
-    if (e->type() == QEvent::User) {
-        Q_ASSERT(m_surfaceView.isValid());
-
-        QJNIObjectPrivate holder = m_surfaceView.callObjectMethod("getHolder",
-                                                                  "()Landroid/view/SurfaceHolder;");
-        if (!holder.isValid()) {
-            m_surfaceView = QJNIObjectPrivate();
-        } else {
-            m_surfaceHolder = new AndroidSurfaceHolder(holder);
-            connect(m_surfaceHolder, &AndroidSurfaceHolder::surfaceCreated,
-                    this, &AndroidSurfaceView::surfaceCreated);
-            { // Lock now to avoid a race with handleSurfaceCreated()
-                QMutexLocker locker(shLock);
-                m_window = QWindow::fromWinId(WId(m_surfaceView.object()));
-
-                if (m_pendingVisible != -1)
-                    m_window->setVisible(m_pendingVisible);
-                if (m_pendingGeometry.isValid())
-                    m_window->setGeometry(m_pendingGeometry);
-            }
-        }
-
-        return true;
-    }
-
-    return QObject::event(e);
-}
-
-// Called on the Android UI thread.
-void AndroidSurfaceView::run()
-{
-    m_surfaceView = QJNIObjectPrivate("android/view/SurfaceView",
-                                      "(Landroid/content/Context;)V",
-                                      QtAndroidPrivate::activity());
-    QCoreApplication::postEvent(this, new QEvent(QEvent::User));
 }
 
 QT_END_NAMESPACE
