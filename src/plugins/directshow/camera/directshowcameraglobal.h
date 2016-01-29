@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWGLOBAL_H
-#define DIRECTSHOWGLOBAL_H
+#ifndef DIRECTSHOWCAMERAGLOBAL_H
+#define DIRECTSHOWCAMERAGLOBAL_H
 
 #include <QtCore/qglobal.h>
 

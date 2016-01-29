@@ -41,6 +41,7 @@
 
 #include "directshowglobal.h"
 #include "directshowmediatype.h"
+#include "directshowmediatypeenum.h"
 #include "directshowpinenum.h"
 
 #include <QtCore/qcoreapplication.h>
@@ -64,8 +65,6 @@ DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
     , m_peerPin(0)
     , m_pinId(QLatin1String("Data"))
 {
-    QVector<AM_MEDIA_TYPE> mediaTypes;
-
     AM_MEDIA_TYPE type =
     {
         MEDIATYPE_Stream,  // majortype
@@ -83,10 +82,8 @@ DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
 
     for (int i = 0; i < count; ++i) {
         type.subtype = directshow_subtypes[i];
-        mediaTypes.append(type);
+        m_supportedMediaTypes.append(type);
     }
-
-    setMediaTypes(mediaTypes);
 }
 
 DirectShowIOSource::~DirectShowIOSource()
@@ -566,7 +563,7 @@ HRESULT DirectShowIOSource::EnumMediaTypes(IEnumMediaTypes **ppEnum)
     if (!ppEnum) {
         return E_POINTER;
     } else {
-        *ppEnum = createMediaTypeEnum();
+        *ppEnum = new DirectShowMediaTypeEnum(m_supportedMediaTypes);
 
         return S_OK;
     }

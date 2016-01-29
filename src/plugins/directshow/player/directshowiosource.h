@@ -43,13 +43,11 @@
 #include "directshowglobal.h"
 #include "directshowioreader.h"
 #include "directshowmediatype.h"
-#include "directshowmediatypelist.h"
 
 #include <QtCore/qfile.h>
 
 class DirectShowIOSource
-    : public DirectShowMediaTypeList
-    , public IBaseFilter
+    : public IBaseFilter
     , public IAMFilterMiscFlags
     , public IPin
 {
@@ -128,6 +126,7 @@ private:
     IMemAllocator *m_allocator;
     IPin *m_peerPin;
     DirectShowMediaType m_mediaType;
+    QList<DirectShowMediaType> m_supportedMediaTypes;
     QString m_filterName;
     const QString m_pinId;
     QMutex m_mutex;

@@ -12,6 +12,7 @@ SOURCES += dsserviceplugin.cpp
 
 mingw: DEFINES += NO_DSHOW_STRSAFE
 
+include(helpers/helpers.pri)
 !config_wmf: include(player/player.pri)
 include(camera/camera.pri)
 

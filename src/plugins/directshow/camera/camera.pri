@@ -13,7 +13,7 @@ HEADERS += \
     $$PWD/dsvideodevicecontrol.h \
     $$PWD/dsimagecapturecontrol.h \
     $$PWD/dscamerasession.h \
-    $$PWD/directshowglobal.h \
+    $$PWD/directshowcameraglobal.h \
     $$PWD/dscameraviewfindersettingscontrol.h \
     $$PWD/dscameraimageprocessingcontrol.h
 

@@ -62,12 +62,48 @@ namespace
         { QVideoFrame::Format_IMC4,    /*MEDIASUBTYPE_IMC4*/   {0x34434D49, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
         { QVideoFrame::Format_YV12,    /*MEDIASUBTYPE_YV12*/   {0x32315659, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
         { QVideoFrame::Format_NV12,    /*MEDIASUBTYPE_NV12*/   {0x3231564E, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_YUV420P, /*MEDIASUBTYPE_IYUV*/   {0x56555949, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} }
+        { QVideoFrame::Format_YUV420P, /*MEDIASUBTYPE_IYUV*/   {0x56555949, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
+        { QVideoFrame::Format_YUV420P, /*MEDIASUBTYPE_I420*/   {0x30323449, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} }
     };
+}
+
+bool DirectShowMediaType::isPartiallySpecified() const
+{
+    return majortype == GUID_NULL || formattype == GUID_NULL;
+}
+
+bool DirectShowMediaType::isCompatibleWith(const DirectShowMediaType *type) const
+{
+    if (type->majortype != GUID_NULL && majortype != type->majortype)
+        return false;
+
+    if (type->subtype != GUID_NULL && subtype != type->subtype)
+        return false;
+
+    if (type->formattype != GUID_NULL) {
+        if (formattype != type->formattype)
+            return false;
+        if (cbFormat != type->cbFormat)
+            return false;
+        if (cbFormat != 0 && memcmp(pbFormat, type->pbFormat, cbFormat) != 0)
+            return false;
+    }
+
+    return true;
+}
+
+void DirectShowMediaType::init(AM_MEDIA_TYPE *type)
+{
+    ZeroMemory((PVOID)type, sizeof(*type));
+    type->lSampleSize = 1;
+    type->bFixedSizeSamples = TRUE;
 }
 
 void DirectShowMediaType::copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE &source)
 {
+    if (!target)
+        return;
+
     *target = source;
 
     if (source.cbFormat > 0) {
@@ -97,16 +133,13 @@ void DirectShowMediaType::freeData(AM_MEDIA_TYPE *type)
 
 GUID DirectShowMediaType::convertPixelFormat(QVideoFrame::PixelFormat format)
 {
-    // MEDIASUBTYPE_None;
-    static const GUID none = {
-        0xe436eb8e, 0x524f, 0x11ce, {0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70} };
-
     const int count = sizeof(qt_typeLookup) / sizeof(TypeLookup);
 
     for (int i = 0; i < count; ++i)
         if (qt_typeLookup[i].pixelFormat == format)
             return qt_typeLookup[i].mediaType;
-    return none;
+
+    return MEDIASUBTYPE_None;
 }
 
 QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &type)
@@ -147,6 +180,19 @@ QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &typ
     return QVideoSurfaceFormat();
 }
 
+QVideoFrame::PixelFormat DirectShowMediaType::pixelFormatFromType(const AM_MEDIA_TYPE &type)
+{
+    const int count = sizeof(qt_typeLookup) / sizeof(TypeLookup);
+
+    for (int i = 0; i < count; ++i) {
+        if (IsEqualGUID(qt_typeLookup[i].mediaType, type.subtype)) {
+            return qt_typeLookup[i].pixelFormat;
+        }
+    }
+
+    return QVideoFrame::Format_Invalid;
+}
+
 #define PAD_TO_DWORD(x)  (((x) + 3) & ~3)
 int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
 {
@@ -165,14 +211,14 @@ int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
     case QVideoFrame::Format_UYVY:
         return PAD_TO_DWORD(format.frameWidth() * 2);
     // Planar formats.
+    case QVideoFrame::Format_YV12:
+    case QVideoFrame::Format_YUV420P:
     case QVideoFrame::Format_IMC1:
     case QVideoFrame::Format_IMC2:
     case QVideoFrame::Format_IMC3:
     case QVideoFrame::Format_IMC4:
-    case QVideoFrame::Format_YV12:
     case QVideoFrame::Format_NV12:
-    case QVideoFrame::Format_YUV420P:
-        return PAD_TO_DWORD(format.frameWidth());
+        return format.frameWidth();
     default:
         return 0;
     }

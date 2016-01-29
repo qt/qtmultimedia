@@ -37,9 +37,9 @@
 **
 ****************************************************************************/
 
-#include "mediasamplevideobuffer.h"
+#include "directshowvideobuffer.h"
 
-MediaSampleVideoBuffer::MediaSampleVideoBuffer(IMediaSample *sample, int bytesPerLine)
+DirectShowVideoBuffer::DirectShowVideoBuffer(IMediaSample *sample, int bytesPerLine)
     : QAbstractVideoBuffer(NoHandle)
     , m_sample(sample)
     , m_bytesPerLine(bytesPerLine)
@@ -48,12 +48,12 @@ MediaSampleVideoBuffer::MediaSampleVideoBuffer(IMediaSample *sample, int bytesPe
     m_sample->AddRef();
 }
 
-MediaSampleVideoBuffer::~MediaSampleVideoBuffer()
+DirectShowVideoBuffer::~DirectShowVideoBuffer()
 {
     m_sample->Release();
 }
 
-uchar *MediaSampleVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
+uchar *DirectShowVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 {
     if (m_mapMode == NotMapped && mode != NotMapped) {
         if (numBytes)
@@ -73,12 +73,12 @@ uchar *MediaSampleVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLin
     return 0;
 }
 
-void MediaSampleVideoBuffer::unmap()
+void DirectShowVideoBuffer::unmap()
 {
     m_mapMode = NotMapped;
 }
 
-QAbstractVideoBuffer::MapMode MediaSampleVideoBuffer::mapMode() const
+QAbstractVideoBuffer::MapMode DirectShowVideoBuffer::mapMode() const
 {
     return m_mapMode;
 }

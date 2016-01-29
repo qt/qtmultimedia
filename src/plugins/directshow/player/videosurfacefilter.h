@@ -40,135 +40,121 @@
 #ifndef VIDEOSURFACEFILTER_H
 #define VIDEOSURFACEFILTER_H
 
-#include "directshowglobal.h"
-#include "directshowmediatypelist.h"
-#include "directshowsamplescheduler.h"
-#include "directshowmediatype.h"
+#include "directshowbasefilter.h"
 
-#include <QtCore/qbasictimer.h>
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmutex.h>
-#include <QtCore/qsemaphore.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qwaitcondition.h>
-
-#include <dshow.h>
+#include <qreadwritelock.h>
+#include <qsemaphore.h>
+#include <qwaitcondition.h>
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 QT_END_NAMESPACE
 
 class DirectShowEventLoop;
+class VideoSurfaceInputPin;
 
-class VideoSurfaceFilter
-    : public QObject
-    , public DirectShowMediaTypeList
-    , public IBaseFilter
-    , public IAMFilterMiscFlags
-    , public IPin
+class VideoSurfaceFilter : public QObject
+                         , public DirectShowBaseFilter
+                         , public IAMFilterMiscFlags
 {
     Q_OBJECT
+    DIRECTSHOW_OBJECT
 public:
-    VideoSurfaceFilter(
-            QAbstractVideoSurface *surface, DirectShowEventLoop *loop, QObject *parent = 0);
+    VideoSurfaceFilter(QAbstractVideoSurface *surface, DirectShowEventLoop *loop, QObject *parent = 0);
     ~VideoSurfaceFilter();
 
-    // IUnknown
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
-    ULONG STDMETHODCALLTYPE AddRef();
-    ULONG STDMETHODCALLTYPE Release();
+    // DirectShowObject
+    HRESULT getInterface(REFIID riid, void **ppvObject);
+
+    // DirectShowBaseFilter
+    QList<DirectShowPin *> pins();
 
     // IPersist
-    HRESULT STDMETHODCALLTYPE GetClassID(CLSID *pClassID);
+    STDMETHODIMP GetClassID(CLSID *pClassID);
 
     // IMediaFilter
-    HRESULT STDMETHODCALLTYPE Run(REFERENCE_TIME tStart);
-    HRESULT STDMETHODCALLTYPE Pause();
-    HRESULT STDMETHODCALLTYPE Stop();
-
-    HRESULT STDMETHODCALLTYPE GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *pState);
-
-    HRESULT STDMETHODCALLTYPE SetSyncSource(IReferenceClock *pClock);
-    HRESULT STDMETHODCALLTYPE GetSyncSource(IReferenceClock **ppClock);
-
-    // IBaseFilter
-    HRESULT STDMETHODCALLTYPE EnumPins(IEnumPins **ppEnum);
-    HRESULT STDMETHODCALLTYPE FindPin(LPCWSTR Id, IPin **ppPin);
-
-    HRESULT STDMETHODCALLTYPE JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pName);
-
-    HRESULT STDMETHODCALLTYPE QueryFilterInfo(FILTER_INFO *pInfo);
-    HRESULT STDMETHODCALLTYPE QueryVendorInfo(LPWSTR *pVendorInfo);
+    STDMETHODIMP Run(REFERENCE_TIME tStart);
+    STDMETHODIMP Pause();
+    STDMETHODIMP Stop();
 
     // IAMFilterMiscFlags
-    ULONG STDMETHODCALLTYPE GetMiscFlags();
+    STDMETHODIMP_(ULONG) GetMiscFlags();
 
-    // IPin
-    HRESULT STDMETHODCALLTYPE Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt);
-    HRESULT STDMETHODCALLTYPE ReceiveConnection(IPin *pConnector, const AM_MEDIA_TYPE *pmt);
-    HRESULT STDMETHODCALLTYPE Disconnect();
-    HRESULT STDMETHODCALLTYPE ConnectedTo(IPin **ppPin);
+    // DirectShowPin (delegate)
+    bool isMediaTypeSupported(const DirectShowMediaType *type);
+    bool setMediaType(const DirectShowMediaType *type);
+    HRESULT completeConnection(IPin *pin);
+    HRESULT connectionEnded();
 
-    HRESULT STDMETHODCALLTYPE ConnectionMediaType(AM_MEDIA_TYPE *pmt);
+    // IPin (delegate)
+    HRESULT EndOfStream();
+    HRESULT BeginFlush();
+    HRESULT EndFlush();
 
-    HRESULT STDMETHODCALLTYPE QueryPinInfo(PIN_INFO *pInfo);
-    HRESULT STDMETHODCALLTYPE QueryId(LPWSTR *Id);
-
-    HRESULT STDMETHODCALLTYPE QueryAccept(const AM_MEDIA_TYPE *pmt);
-
-    HRESULT STDMETHODCALLTYPE EnumMediaTypes(IEnumMediaTypes **ppEnum);
-
-    HRESULT STDMETHODCALLTYPE QueryInternalConnections(IPin **apPin, ULONG *nPin);
-
-    HRESULT STDMETHODCALLTYPE EndOfStream();
-
-    HRESULT STDMETHODCALLTYPE BeginFlush();
-    HRESULT STDMETHODCALLTYPE EndFlush();
-
-    HRESULT STDMETHODCALLTYPE NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
-
-    HRESULT STDMETHODCALLTYPE QueryDirection(PIN_DIRECTION *pPinDir);
-
-    int currentMediaTypeToken();
-    HRESULT nextMediaType(
-            int token, int *index, ULONG count, AM_MEDIA_TYPE **types, ULONG *fetchedCount);
-    HRESULT skipMediaType(int token, int *index, ULONG count);
-    HRESULT cloneMediaType(int token, int index, IEnumMediaTypes **enumeration);
-
-protected:
-    void customEvent(QEvent *event);
+    // IMemInputPin (delegate)
+    HRESULT Receive(IMediaSample *pMediaSample);
 
 private Q_SLOTS:
     void supportedFormatsChanged();
-    void sampleReady();
+    void checkEOS();
 
 private:
-    HRESULT start();
-    void stop();
-    void flush();
-
-    enum
-    {
+    enum Events {
         StartSurface = QEvent::User,
-        StopSurface,
-        FlushSurface
+        StopSurface = QEvent::User + 1,
+        RestartSurface = QEvent::User + 2,
+        FlushSurface = QEvent::User + 3,
+        RenderSample = QEvent::User + 4
     };
 
-    LONG m_ref;
-    FILTER_STATE m_state;
-    QAbstractVideoSurface *m_surface;
-    DirectShowEventLoop *m_loop;
-    IFilterGraph *m_graph;
-    IPin *m_peerPin;
-    int m_bytesPerLine;
-    HRESULT m_startResult;
-    QString m_name;
-    QString m_pinId;
-    DirectShowMediaType m_mediaType;
-    QVideoSurfaceFormat m_surfaceFormat;
+    bool event(QEvent *);
+
+    bool startSurface();
+    void stopSurface();
+    bool restartSurface();
+    void flushSurface();
+
+    bool scheduleSample(IMediaSample *sample);
+    void unscheduleSample();
+    void renderPendingSample();
+    void clearPendingSample();
+
+    void notifyEOS();
+    void resetEOS();
+    void resetEOSTimer();
+    void onEOSTimerTimeout();
+
+    friend void QT_WIN_CALLBACK EOSTimerCallback(UINT, UINT, DWORD_PTR dwUser, DWORD_PTR, DWORD_PTR);
+
     QMutex m_mutex;
-    QWaitCondition m_wait;
-    DirectShowSampleScheduler m_sampleScheduler;
+
+    DirectShowEventLoop *m_loop;
+    VideoSurfaceInputPin *m_pin;
+
+    QWaitCondition m_waitSurface;
+    QAbstractVideoSurface *m_surface;
+    QVideoSurfaceFormat m_surfaceFormat;
+    int m_bytesPerLine;
+    bool m_surfaceStarted;
+
+    QList<GUID> m_supportedTypes;
+    QReadWriteLock m_typesLock;
+
+    QMutex m_renderMutex;
+    bool m_running;
+    IMediaSample *m_pendingSample;
+    REFERENCE_TIME m_pendingSampleEndTime;
+    HANDLE m_renderEvent;
+    HANDLE m_flushEvent;
+    DWORD_PTR m_adviseCookie;
+
+    bool m_EOS;
+    bool m_EOSDelivered;
+    UINT m_EOSTimer;
+
+    friend class VideoSurfaceInputPin;
 };
 
 #endif

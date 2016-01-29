@@ -37,32 +37,47 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWMEDIATYPELIST_H
-#define DIRECTSHOWMEDIATYPELIST_H
+#include "directshowobject.h"
 
-#include <dshow.h>
-
-#include <QtCore/qvector.h>
-
-class DirectShowMediaTypeList : public IUnknown
+DirectShowObject::DirectShowObject()
+    : m_ref(1)
 {
-public:
-    DirectShowMediaTypeList();
-    virtual ~DirectShowMediaTypeList();
+}
 
-    IEnumMediaTypes *createMediaTypeEnum();
+DirectShowObject::~DirectShowObject()
+{
+    Q_ASSERT(m_ref == 0);
+}
 
-    void setMediaTypes(const QVector<AM_MEDIA_TYPE> &types);
+HRESULT DirectShowObject::getInterface(const IID &riid, void **ppvObject)
+{
+    Q_UNUSED(riid)
+    *ppvObject = NULL;
+    return E_NOINTERFACE;
+}
 
-    virtual int currentMediaTypeToken();
-    virtual HRESULT nextMediaType(
-            int token, int *index, ULONG count, AM_MEDIA_TYPE **types, ULONG *fetchedCount);
-    virtual HRESULT skipMediaType(int token, int *index, ULONG count);
-    virtual HRESULT cloneMediaType(int token, int index, IEnumMediaTypes **enumeration);
+ULONG DirectShowObject::ref()
+{
+    return InterlockedIncrement(&m_ref);
+}
 
-private:
-    int m_mediaTypeToken;
-    QVector<AM_MEDIA_TYPE> m_mediaTypes;
-};
+ULONG DirectShowObject::unref()
+{
+    ULONG ref = InterlockedDecrement(&m_ref);
+    if (ref == 0)
+        delete this;
 
-#endif
+    return ref;
+}
+
+HRESULT GetInterface(IUnknown *pUnk, void **ppv)
+{
+    if (!ppv)
+        return E_POINTER;
+
+    *ppv = pUnk;
+    pUnk->AddRef();
+
+    return S_OK;
+}
+

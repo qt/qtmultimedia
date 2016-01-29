@@ -37,35 +37,49 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWPINENUM_H
-#define DIRECTSHOWPINENUM_H
+#ifndef DIRECTSHOWMEDIATYPE_H
+#define DIRECTSHOWMEDIATYPE_H
 
 #include <dshow.h>
 
-#include <QtCore/qlist.h>
+#include <qvideosurfaceformat.h>
 
+#include <dvdmedia.h>
 
-class DirectShowPinEnum : public IEnumPins
+QT_USE_NAMESPACE
+
+class DirectShowMediaType : public AM_MEDIA_TYPE
 {
 public:
-    DirectShowPinEnum(const QList<IPin *> &pins);
-    virtual ~DirectShowPinEnum();
+    DirectShowMediaType() { init(this); }
+    DirectShowMediaType(const AM_MEDIA_TYPE &type) { copy(this, type); }
+    DirectShowMediaType(const DirectShowMediaType &other) { copy(this, other); }
+    DirectShowMediaType &operator =(const AM_MEDIA_TYPE &type) {
+        freeData(this); copy(this, type); return *this; }
+    DirectShowMediaType &operator =(const DirectShowMediaType &other) {
+        freeData(this); copy(this, other); return *this; }
+    ~DirectShowMediaType() { freeData(this); }
 
-    // IUnknown
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
-    ULONG STDMETHODCALLTYPE AddRef();
-    ULONG STDMETHODCALLTYPE Release();
+    void clear() { freeData(this); init(this); }
 
-    // IEnumPins
-    HRESULT STDMETHODCALLTYPE Next(ULONG cPins, IPin **ppPins, ULONG *pcFetched);
-    HRESULT STDMETHODCALLTYPE Skip(ULONG cPins);
-    HRESULT STDMETHODCALLTYPE Reset();
-    HRESULT STDMETHODCALLTYPE Clone(IEnumPins **ppEnum);
+    bool isPartiallySpecified() const;
+    bool isCompatibleWith(const DirectShowMediaType *type) const;
+
+    static void init(AM_MEDIA_TYPE *type);
+    static void copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE &source);
+    static void freeData(AM_MEDIA_TYPE *type);
+    static void deleteType(AM_MEDIA_TYPE *type);
+
+    static GUID convertPixelFormat(QVideoFrame::PixelFormat format);
+    static QVideoSurfaceFormat formatFromType(const AM_MEDIA_TYPE &type);
+    static QVideoFrame::PixelFormat pixelFormatFromType(const AM_MEDIA_TYPE &type);
+
+    static int bytesPerLine(const QVideoSurfaceFormat &format);
 
 private:
-    LONG m_ref;
-    QList<IPin *> m_pins;
-    int m_index;
+    static QVideoSurfaceFormat::Direction scanLineDirection(QVideoFrame::PixelFormat pixelFormat, const BITMAPINFOHEADER &bmiHeader);
 };
+
+Q_DECLARE_TYPEINFO(DirectShowMediaType, Q_MOVABLE_TYPE);
 
 #endif

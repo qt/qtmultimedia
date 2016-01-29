@@ -38,10 +38,22 @@
 ****************************************************************************/
 
 #include "directshowpinenum.h"
+#include "directshowbasefilter.h"
 
+DirectShowPinEnum::DirectShowPinEnum(DirectShowBaseFilter *filter)
+    : m_filter(filter)
+    , m_index(0)
+{
+    m_filter->AddRef();
+    const QList<DirectShowPin *> pinList = filter->pins();
+    for (DirectShowPin *pin : pinList) {
+        pin->AddRef();
+        m_pins.append(pin);
+    }
+}
 
 DirectShowPinEnum::DirectShowPinEnum(const QList<IPin *> &pins)
-    : m_ref(1)
+    : m_filter(NULL)
     , m_pins(pins)
     , m_index(0)
 {
@@ -53,38 +65,17 @@ DirectShowPinEnum::~DirectShowPinEnum()
 {
     for (IPin *pin : qAsConst(m_pins))
         pin->Release();
+    if (m_filter)
+        m_filter->Release();
 }
 
-HRESULT DirectShowPinEnum::QueryInterface(REFIID riid, void **ppvObject)
+HRESULT DirectShowPinEnum::getInterface(REFIID riid, void **ppvObject)
 {
-    if (riid == IID_IUnknown
-            || riid == IID_IEnumPins) {
-        AddRef();
-
-        *ppvObject = static_cast<IEnumPins *>(this);
-
-        return S_OK;
+    if (riid == IID_IEnumPins) {
+        return GetInterface(static_cast<IEnumPins *>(this), ppvObject);
     } else {
-        *ppvObject = 0;
-
-        return E_NOINTERFACE;
+        return DirectShowObject::getInterface(riid, ppvObject);
     }
-}
-
-ULONG DirectShowPinEnum::AddRef()
-{
-    return InterlockedIncrement(&m_ref);
-}
-
-ULONG DirectShowPinEnum::Release()
-{
-    ULONG ref = InterlockedDecrement(&m_ref);
-
-    if (ref == 0) {
-        delete this;
-    }
-
-    return ref;
 }
 
 HRESULT DirectShowPinEnum::Next(ULONG cPins, IPin **ppPins, ULONG *pcFetched)
@@ -123,7 +114,10 @@ HRESULT DirectShowPinEnum::Reset()
 HRESULT DirectShowPinEnum::Clone(IEnumPins **ppEnum)
 {
     if (ppEnum) {
-        *ppEnum = new DirectShowPinEnum(m_pins);
+        if (m_filter)
+            *ppEnum = new DirectShowPinEnum(m_filter);
+        else
+            *ppEnum = new DirectShowPinEnum(m_pins);
 
         return S_OK;
     } else {

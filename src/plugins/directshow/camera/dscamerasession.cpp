@@ -47,7 +47,7 @@
 
 #include "dscamerasession.h"
 #include "dsvideorenderer.h"
-#include "directshowglobal.h"
+#include "directshowcameraglobal.h"
 
 QT_BEGIN_NAMESPACE
 
