@@ -100,8 +100,6 @@ public:
     QAudio::Error m_errorState;
     QAudio::State m_deviceState;
     qreal m_volume;
-    bool m_customVolumeRequired;
-    pa_cvolume m_chVolume;
 
 private slots:
     void userFeed();
@@ -112,13 +110,11 @@ private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
 
+    void applyVolume(const void *src, void *dest, int len);
+
     int checkBytesReady();
     bool open();
     void close();
-    void setPulseVolume();
-
-    static void sourceInfoCallback(pa_context *c, const pa_source_info *i, int eol, void *userdata);
-    static void inputVolumeCallback(pa_context *context, int success, void *userdata);
 
     bool m_pullMode;
     bool m_opened;
