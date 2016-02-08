@@ -436,7 +436,7 @@ void QAndroidCaptureSession::applySettings()
 void QAndroidCaptureSession::updateViewfinder()
 {
     m_cameraSession->camera()->stopPreviewSynchronous();
-    m_cameraSession->adjustViewfinderSize(m_videoSettings.resolution(), false);
+    m_cameraSession->applyViewfinderSettings(m_videoSettings.resolution(), false);
 }
 
 void QAndroidCaptureSession::restartViewfinder()

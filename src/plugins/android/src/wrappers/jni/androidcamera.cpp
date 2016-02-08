@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Ruslan Baratov
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -171,11 +172,17 @@ public:
     Q_INVOKABLE QSize getPreferredPreviewSizeForVideo();
     Q_INVOKABLE QList<QSize> getSupportedPreviewSizes();
 
+    Q_INVOKABLE QList<AndroidCamera::FpsRange> getSupportedPreviewFpsRange();
+
+    Q_INVOKABLE AndroidCamera::FpsRange getPreviewFpsRange();
+    Q_INVOKABLE void setPreviewFpsRange(int min, int max);
+
     Q_INVOKABLE AndroidCamera::ImageFormat getPreviewFormat();
     Q_INVOKABLE void setPreviewFormat(AndroidCamera::ImageFormat fmt);
     Q_INVOKABLE QList<AndroidCamera::ImageFormat> getSupportedPreviewFormats();
 
     Q_INVOKABLE QSize previewSize() const { return m_previewSize; }
+    Q_INVOKABLE QSize getPreviewSize();
     Q_INVOKABLE void updatePreviewSize();
     Q_INVOKABLE bool setPreviewTexture(void *surfaceTexture);
     Q_INVOKABLE bool setPreviewDisplay(void *surfaceHolder);
@@ -380,6 +387,24 @@ QList<QSize> AndroidCamera::getSupportedPreviewSizes()
     return d->getSupportedPreviewSizes();
 }
 
+QList<AndroidCamera::FpsRange> AndroidCamera::getSupportedPreviewFpsRange()
+{
+    Q_D(AndroidCamera);
+    return d->getSupportedPreviewFpsRange();
+}
+
+AndroidCamera::FpsRange AndroidCamera::getPreviewFpsRange()
+{
+    Q_D(AndroidCamera);
+    return d->getPreviewFpsRange();
+}
+
+void AndroidCamera::setPreviewFpsRange(FpsRange range)
+{
+    Q_D(AndroidCamera);
+    QMetaObject::invokeMethod(d, "setPreviewFpsRange", Q_ARG(int, range.min), Q_ARG(int, range.max));
+}
+
 AndroidCamera::ImageFormat AndroidCamera::getPreviewFormat()
 {
     Q_D(AndroidCamera);
@@ -402,6 +427,12 @@ QSize AndroidCamera::previewSize() const
 {
     Q_D(const AndroidCamera);
     return d->m_previewSize;
+}
+
+QSize AndroidCamera::actualPreviewSize()
+{
+    Q_D(AndroidCamera);
+    return d->getPreviewSize();
 }
 
 void AndroidCamera::setPreviewSize(const QSize &size)
@@ -877,6 +908,80 @@ QList<QSize> AndroidCameraPrivate::getSupportedPreviewSizes()
     return list;
 }
 
+QList<AndroidCamera::FpsRange> AndroidCameraPrivate::getSupportedPreviewFpsRange()
+{
+    QMutexLocker parametersLocker(&m_parametersMutex);
+
+    QJNIEnvironmentPrivate env;
+
+    QList<AndroidCamera::FpsRange> rangeList;
+
+    if (m_parameters.isValid()) {
+        QJNIObjectPrivate rangeListNative = m_parameters.callObjectMethod("getSupportedPreviewFpsRange",
+                                                                          "()Ljava/util/List;");
+        int count = rangeListNative.callMethod<jint>("size");
+
+        rangeList.reserve(count);
+
+        for (int i = 0; i < count; ++i) {
+            QJNIObjectPrivate range = rangeListNative.callObjectMethod("get",
+                                                                       "(I)Ljava/lang/Object;",
+                                                                       i);
+
+            jintArray jRange = static_cast<jintArray>(range.object());
+            jint* rangeArray = env->GetIntArrayElements(jRange, 0);
+
+            AndroidCamera::FpsRange fpsRange;
+
+            fpsRange.min = rangeArray[0];
+            fpsRange.max = rangeArray[1];
+
+            env->ReleaseIntArrayElements(jRange, rangeArray, 0);
+
+            rangeList << fpsRange;
+        }
+    }
+
+    return rangeList;
+}
+
+AndroidCamera::FpsRange AndroidCameraPrivate::getPreviewFpsRange()
+{
+    QMutexLocker parametersLocker(&m_parametersMutex);
+
+    QJNIEnvironmentPrivate env;
+
+    AndroidCamera::FpsRange range;
+
+    if (!m_parameters.isValid())
+        return range;
+
+    jintArray jRangeArray = env->NewIntArray(2);
+    m_parameters.callMethod<void>("getPreviewFpsRange", "([I)V", jRangeArray);
+
+    jint* jRangeElements = env->GetIntArrayElements(jRangeArray, 0);
+
+    range.min = jRangeElements[0];
+    range.max = jRangeElements[1];
+
+    env->ReleaseIntArrayElements(jRangeArray, jRangeElements, 0);
+    env->DeleteLocalRef(jRangeArray);
+
+    return range;
+}
+
+void AndroidCameraPrivate::setPreviewFpsRange(int min, int max)
+{
+    QMutexLocker parametersLocker(&m_parametersMutex);
+
+    if (!m_parameters.isValid())
+        return;
+
+    QJNIEnvironmentPrivate env;
+    m_parameters.callMethod<void>("setPreviewFpsRange", "(II)V", min, max);
+    exceptionCheckAndClear(env);
+}
+
 AndroidCamera::ImageFormat AndroidCameraPrivate::getPreviewFormat()
 {
     QMutexLocker parametersLocker(&m_parametersMutex);
@@ -917,6 +1022,22 @@ QList<AndroidCamera::ImageFormat> AndroidCameraPrivate::getSupportedPreviewForma
     }
 
     return list;
+}
+
+QSize AndroidCameraPrivate::getPreviewSize()
+{
+    QMutexLocker parametersLocker(&m_parametersMutex);
+
+    if (!m_parameters.isValid())
+        return QSize();
+
+    QJNIObjectPrivate size = m_parameters.callObjectMethod("getPreviewSize",
+                                                           "()Landroid/hardware/Camera$Size;");
+
+    if (!size.isValid())
+        return QSize();
+
+    return QSize(size.getField<jint>("width"), size.getField<jint>("height"));
 }
 
 void AndroidCameraPrivate::updatePreviewSize()
