@@ -262,9 +262,26 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
 
         applySettings();
 
-        if ([m_writer setupWithFileURL:nsFileURL cameraService:m_service
-                                                 audioSettings:m_audioSettings
-                                                 videoSettings:m_videoSettings]) {
+        // Make sure the video is recorded in device orientation.
+        // The top of the video will match the side of the device which is on top
+        // when recording starts (regardless of the UI orientation).
+        AVFCameraInfo cameraInfo = m_service->session()->activeCameraInfo();
+        int screenOrientation = 360 - m_orientationHandler.currentOrientation();
+        float rotation = 0;
+        if (cameraInfo.position == QCamera::FrontFace)
+            rotation = (screenOrientation + cameraInfo.orientation) % 360;
+        else
+            rotation = (screenOrientation + (360 - cameraInfo.orientation)) % 360;
+
+        // convert to radians
+        rotation *= M_PI / 180.f;
+
+        if ([m_writer setupWithFileURL:nsFileURL
+                      cameraService:m_service
+                      audioSettings:m_audioSettings
+                      videoSettings:m_videoSettings
+                      transform:CGAffineTransformMakeRotation(rotation)]) {
+
             m_state = QMediaRecorder::RecordingState;
             m_lastStatus = QMediaRecorder::StartingStatus;
 

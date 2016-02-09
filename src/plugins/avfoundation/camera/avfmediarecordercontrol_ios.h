@@ -39,6 +39,7 @@
 #include "avfcamerautility.h"
 
 #include <QtMultimedia/qmediarecordercontrol.h>
+#include <private/qvideooutputorientationhandler_p.h>
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qurl.h>
@@ -102,6 +103,7 @@ private:
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;
+    QVideoOutputOrientationHandler m_orientationHandler;
 };
 
 QT_END_NAMESPACE

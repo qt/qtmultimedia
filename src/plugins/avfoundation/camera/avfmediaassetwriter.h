@@ -98,7 +98,8 @@ QT_END_NAMESPACE
 - (bool)setupWithFileURL:(NSURL *)fileURL
         cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service
         audioSettings:(NSDictionary *)audioSettings
-        videoSettings:(NSDictionary *)videoSettings;
+        videoSettings:(NSDictionary *)videoSettings
+        transform:(CGAffineTransform)transform;
 
 - (void)start;
 - (void)stop;

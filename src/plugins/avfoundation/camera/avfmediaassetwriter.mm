@@ -108,6 +108,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
         cameraService:(AVFCameraService *)service
         audioSettings:(NSDictionary *)audioSettings
         videoSettings:(NSDictionary *)videoSettings
+        transform:(CGAffineTransform)transform
 {
     Q_ASSERT(fileURL);
 
@@ -157,6 +158,9 @@ bool qt_camera_service_isValid(AVFCameraService *service)
         m_assetWriter.reset();
         return false;
     }
+
+    m_cameraWriterInput.data().transform = transform;
+
     // Ready to start ...
     return true;
 }
