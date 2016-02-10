@@ -70,6 +70,7 @@ public:
     qreal volume() const Q_DECL_OVERRIDE;
 
     void applySettings() Q_DECL_OVERRIDE;
+    void unapplySettings();
 
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) Q_DECL_OVERRIDE;
@@ -98,6 +99,8 @@ private:
 
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_lastStatus;
+
+    NSDictionary *m_videoSettings;
 };
 
 QT_END_NAMESPACE

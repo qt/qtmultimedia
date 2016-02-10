@@ -73,7 +73,6 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 - (bool)addAudioCapture;
 - (bool)addWriterInputs;
 - (void)setQueues;
-- (NSDictionary *)videoSettings;
 - (NSDictionary *)audioSettings;
 - (void)updateDuration:(CMTime)newTimeStamp;
 @end
@@ -98,6 +97,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
         m_startTime = kCMTimeInvalid;
         m_lastTimeStamp = kCMTimeInvalid;
         m_durationInMs.store(0);
+        m_videoSettings = nil;
     }
 
     return self;
@@ -105,6 +105,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
         cameraService:(AVFCameraService *)service
+        videoSettings:(NSDictionary *)videoSettings
 {
     Q_ASSERT(fileURL);
 
@@ -114,6 +115,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     }
 
     m_service = service;
+    m_videoSettings = videoSettings;
 
     m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
     if (!m_videoQueue) {
@@ -364,7 +366,9 @@ bool qt_camera_service_isValid(AVFCameraService *service)
              && m_service->videoOutput()->videoDataOutput());
     Q_ASSERT(m_assetWriter);
 
-    m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo outputSettings:[self videoSettings]]);
+    m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo
+                                                          outputSettings:m_videoSettings
+                                                          sourceFormatHint:m_service->session()->videoCaptureDevice().activeFormat.formatDescription]);
     if (!m_cameraWriterInput) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create camera writer input";
         return false;
@@ -409,25 +413,6 @@ bool qt_camera_service_isValid(AVFCameraService *service)
         Q_ASSERT(m_audioQueue);
         [m_audioOutput setSampleBufferDelegate:self queue:m_audioQueue];
     }
-}
-
-
-- (NSDictionary *)videoSettings
-{
-    // TODO: these settings should be taken from
-    // the video encoding settings control.
-    // For now we either take recommended (iOS >= 7.0)
-    // or some hardcoded values - they are still better than nothing (nil).
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_7_0)
-    AVCaptureVideoDataOutput *videoOutput = m_service->videoOutput()->videoDataOutput();
-    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_7_0 && videoOutput)
-        return [videoOutput recommendedVideoSettingsForAssetWriterWithOutputFileType:AVFileTypeQuickTimeMovie];
-#endif
-    NSDictionary *videoSettings = [NSDictionary dictionaryWithObjectsAndKeys:AVVideoCodecH264, AVVideoCodecKey,
-                                   [NSNumber numberWithInt:1280], AVVideoWidthKey,
-                                   [NSNumber numberWithInt:720], AVVideoHeightKey, nil];
-
-    return videoSettings;
 }
 
 - (NSDictionary *)audioSettings

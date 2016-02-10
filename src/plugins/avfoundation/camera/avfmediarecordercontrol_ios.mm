@@ -38,6 +38,8 @@
 #include "avfcameracontrol.h"
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
+#include "avfvideoencodersettingscontrol.h"
+#include "avfcamerautility.h"
 
 #include <QtCore/qdebug.h>
 
@@ -77,6 +79,7 @@ AVFMediaRecorderControlIOS::AVFMediaRecorderControlIOS(AVFCameraService *service
     , m_service(service)
     , m_state(QMediaRecorder::StoppedState)
     , m_lastStatus(QMediaRecorder::UnloadedStatus)
+    , m_videoSettings(nil)
 {
     Q_ASSERT(service);
 
@@ -107,6 +110,9 @@ AVFMediaRecorderControlIOS::AVFMediaRecorderControlIOS(AVFCameraService *service
 AVFMediaRecorderControlIOS::~AVFMediaRecorderControlIOS()
 {
     [m_writer abort];
+
+    if (m_videoSettings)
+        [m_videoSettings release];
 }
 
 QUrl AVFMediaRecorderControlIOS::outputLocation() const
@@ -147,6 +153,32 @@ qreal AVFMediaRecorderControlIOS::volume() const
 
 void AVFMediaRecorderControlIOS::applySettings()
 {
+    AVFCameraSession *session = m_service->session();
+    if (!session)
+        return;
+
+    if (m_state != QMediaRecorder::StoppedState
+            || (session->state() != QCamera::ActiveState && session->state() != QCamera::LoadedState)
+            || !m_service->cameraControl()->captureMode().testFlag(QCamera::CaptureVideo)) {
+        return;
+    }
+
+    AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+
+    m_videoSettings = m_service->videoEncoderSettingsControl()->applySettings(conn);
+    if (m_videoSettings)
+        [m_videoSettings retain];
+}
+
+void AVFMediaRecorderControlIOS::unapplySettings()
+{
+    AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+    m_service->videoEncoderSettingsControl()->unapplySettings(conn);
+
+    if (m_videoSettings) {
+        [m_videoSettings release];
+        m_videoSettings = nil;
+    }
 }
 
 void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
@@ -211,7 +243,9 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
         // generated, will restart in assetWriterStarted.
         [session stopRunning];
 
-        if ([m_writer setupWithFileURL:nsFileURL cameraService:m_service]) {
+        applySettings();
+
+        if ([m_writer setupWithFileURL:nsFileURL cameraService:m_service videoSettings:m_videoSettings]) {
             m_state = QMediaRecorder::RecordingState;
             m_lastStatus = QMediaRecorder::StartingStatus;
 
@@ -269,6 +303,8 @@ void AVFMediaRecorderControlIOS::assetWriterFinished()
         m_lastStatus = QMediaRecorder::LoadedStatus;
     else
         m_lastStatus = QMediaRecorder::UnloadedStatus;
+
+    unapplySettings();
 
     m_service->videoOutput()->resetCaptureDelegate();
     [m_service->session()->captureSession() startRunning];

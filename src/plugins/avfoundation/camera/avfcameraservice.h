@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -61,6 +61,7 @@ class AVFImageEncoderControl;
 class AVFCameraFlashControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
+class AVFVideoEncoderSettingsControl;
 
 class AVFCameraService : public QMediaService
 {
@@ -77,8 +78,7 @@ public:
     AVFCameraDeviceControl *videoDeviceControl() const { return m_videoDeviceControl; }
     AVFAudioInputSelectorControl *audioInputSelectorControl() const { return m_audioInputSelectorControl; }
     AVFCameraMetaDataControl *metaDataControl() const { return m_metaDataControl; }
-    AVFMediaRecorderControl *recorderControl() const;
-    AVFMediaRecorderControlIOS *recorderControlIOS() const;
+    QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const {return m_cameraExposureControl; }
@@ -88,6 +88,7 @@ public:
     AVFCameraViewfinderSettingsControl *viewfinderSettingsControl() const {return m_viewfinderSettingsControl; }
     AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
     AVFCameraFlashControl *flashControl() const {return m_flashControl; }
+    AVFVideoEncoderSettingsControl *videoEncoderSettingsControl() const {return m_videoEncoderSettingsControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -106,6 +107,7 @@ private:
     AVFCameraViewfinderSettingsControl *m_viewfinderSettingsControl;
     AVFImageEncoderControl *m_imageEncoderControl;
     AVFCameraFlashControl *m_flashControl;
+    AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
 };
 
 QT_END_NAMESPACE

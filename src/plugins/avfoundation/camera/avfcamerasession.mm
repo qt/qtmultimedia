@@ -386,13 +386,11 @@ bool AVFCameraSession::applyViewfinderSettings()
         // resolution is set, it takes precedence over the viewfinder resolution.
         if (AVFImageEncoderControl *imControl = m_service->imageEncoderControl()) {
             const QSize imageResolution(imControl->requestedSettings().resolution());
-            if (!imageResolution.isNull() && imageResolution.isValid()) {
+            if (!imageResolution.isNull() && imageResolution.isValid())
                 vfSettings.setResolution(imageResolution);
-                vfControl->setViewfinderSettings(vfSettings);
-            }
         }
 
-        return vfControl->applySettings();
+        return vfControl->applySettings(vfSettings);
     }
 
     return false;

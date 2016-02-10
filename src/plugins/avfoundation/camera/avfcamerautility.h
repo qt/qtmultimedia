@@ -178,6 +178,10 @@ AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *forma
 
 #endif
 
+AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection);
+void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection,
+                             qreal minFPS, qreal maxFPS);
+
 QT_END_NAMESPACE
 
 #endif

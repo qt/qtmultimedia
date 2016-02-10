@@ -86,13 +86,16 @@ QT_END_NAMESPACE
 @private
     CMTime m_startTime;
     CMTime m_lastTimeStamp;
+
+    NSDictionary *m_videoSettings;
 }
 
 - (id)initWithQueue:(dispatch_queue_t)writerQueue
       delegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
-        cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service;
+        cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service
+        videoSettings:(NSDictionary *)videoSettings;
 
 - (void)start;
 - (void)stop;
