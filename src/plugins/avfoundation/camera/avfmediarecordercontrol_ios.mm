@@ -38,6 +38,7 @@
 #include "avfcameracontrol.h"
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
+#include "avfaudioencodersettingscontrol.h"
 #include "avfvideoencodersettingscontrol.h"
 #include "avfmediacontainercontrol.h"
 #include "avfcamerautility.h"
@@ -80,6 +81,7 @@ AVFMediaRecorderControlIOS::AVFMediaRecorderControlIOS(AVFCameraService *service
     , m_service(service)
     , m_state(QMediaRecorder::StoppedState)
     , m_lastStatus(QMediaRecorder::UnloadedStatus)
+    , m_audioSettings(nil)
     , m_videoSettings(nil)
 {
     Q_ASSERT(service);
@@ -112,6 +114,8 @@ AVFMediaRecorderControlIOS::~AVFMediaRecorderControlIOS()
 {
     [m_writer abort];
 
+    if (m_audioSettings)
+        [m_audioSettings release];
     if (m_videoSettings)
         [m_videoSettings release];
 }
@@ -164,8 +168,13 @@ void AVFMediaRecorderControlIOS::applySettings()
         return;
     }
 
-    AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+    // audio settings
+    m_audioSettings = m_service->audioEncoderSettingsControl()->applySettings();
+    if (m_audioSettings)
+        [m_audioSettings retain];
 
+    // video settings
+    AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
     m_videoSettings = m_service->videoEncoderSettingsControl()->applySettings(conn);
     if (m_videoSettings)
         [m_videoSettings retain];
@@ -173,9 +182,15 @@ void AVFMediaRecorderControlIOS::applySettings()
 
 void AVFMediaRecorderControlIOS::unapplySettings()
 {
+    m_service->audioEncoderSettingsControl()->unapplySettings();
+
     AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
     m_service->videoEncoderSettingsControl()->unapplySettings(conn);
 
+    if (m_audioSettings) {
+        [m_audioSettings release];
+        m_audioSettings = nil;
+    }
     if (m_videoSettings) {
         [m_videoSettings release];
         m_videoSettings = nil;
@@ -247,7 +262,9 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
 
         applySettings();
 
-        if ([m_writer setupWithFileURL:nsFileURL cameraService:m_service videoSettings:m_videoSettings]) {
+        if ([m_writer setupWithFileURL:nsFileURL cameraService:m_service
+                                                 audioSettings:m_audioSettings
+                                                 videoSettings:m_videoSettings]) {
             m_state = QMediaRecorder::RecordingState;
             m_lastStatus = QMediaRecorder::StartingStatus;
 

@@ -39,7 +39,8 @@ HEADERS += \
     avfimageencodercontrol.h \
     avfcameraflashcontrol.h \
     avfvideoencodersettingscontrol.h \
-    avfmediacontainercontrol.h
+    avfmediacontainercontrol.h \
+    avfaudioencodersettingscontrol.h
 
 OBJECTIVE_SOURCES += \
     avfcameraserviceplugin.mm \
@@ -61,7 +62,8 @@ OBJECTIVE_SOURCES += \
     avfimageencodercontrol.mm \
     avfcameraflashcontrol.mm \
     avfvideoencodersettingscontrol.mm \
-    avfmediacontainercontrol.mm
+    avfmediacontainercontrol.mm \
+    avfaudioencodersettingscontrol.mm
 
 osx {
 

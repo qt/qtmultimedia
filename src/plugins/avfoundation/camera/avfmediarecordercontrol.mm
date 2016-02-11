@@ -37,6 +37,7 @@
 #include "avfcameraservice.h"
 #include "avfcameracontrol.h"
 #include "avfaudioinputselectorcontrol.h"
+#include "avfaudioencodersettingscontrol.h"
 #include "avfvideoencodersettingscontrol.h"
 #include "avfmediacontainercontrol.h"
 
@@ -234,6 +235,11 @@ void AVFMediaRecorderControl::applySettings()
         return;
     }
 
+    // Configure audio settings
+    [m_movieOutput setOutputSettings:m_service->audioEncoderSettingsControl()->applySettings()
+                   forConnection:[m_movieOutput connectionWithMediaType:AVMediaTypeAudio]];
+
+    // Configure video settings
     AVCaptureConnection *videoConnection = [m_movieOutput connectionWithMediaType:AVMediaTypeVideo];
     NSDictionary *videoSettings = m_service->videoEncoderSettingsControl()->applySettings(videoConnection);
 
@@ -244,6 +250,7 @@ void AVFMediaRecorderControl::applySettings()
 
 void AVFMediaRecorderControl::unapplySettings()
 {
+    m_service->audioEncoderSettingsControl()->unapplySettings();
     m_service->videoEncoderSettingsControl()->unapplySettings([m_movieOutput connectionWithMediaType:AVMediaTypeVideo]);
 }
 

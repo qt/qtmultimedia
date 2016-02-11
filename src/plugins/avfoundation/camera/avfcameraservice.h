@@ -61,6 +61,7 @@ class AVFImageEncoderControl;
 class AVFCameraFlashControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
+class AVFAudioEncoderSettingsControl;
 class AVFVideoEncoderSettingsControl;
 class AVFMediaContainerControl;
 
@@ -89,6 +90,7 @@ public:
     AVFCameraViewfinderSettingsControl *viewfinderSettingsControl() const {return m_viewfinderSettingsControl; }
     AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
     AVFCameraFlashControl *flashControl() const {return m_flashControl; }
+    AVFAudioEncoderSettingsControl *audioEncoderSettingsControl() const { return m_audioEncoderSettingsControl; }
     AVFVideoEncoderSettingsControl *videoEncoderSettingsControl() const {return m_videoEncoderSettingsControl; }
     AVFMediaContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
@@ -109,6 +111,7 @@ private:
     AVFCameraViewfinderSettingsControl *m_viewfinderSettingsControl;
     AVFImageEncoderControl *m_imageEncoderControl;
     AVFCameraFlashControl *m_flashControl;
+    AVFAudioEncoderSettingsControl *m_audioEncoderSettingsControl;
     AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
     AVFMediaContainerControl *m_mediaContainerControl;
 };

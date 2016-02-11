@@ -100,6 +100,7 @@ private:
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_lastStatus;
 
+    NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;
 };
 

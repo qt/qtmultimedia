@@ -53,6 +53,7 @@
 #include "avfcameraviewfindersettingscontrol.h"
 #include "avfimageencodercontrol.h"
 #include "avfcameraflashcontrol.h"
+#include "avfaudioencodersettingscontrol.h"
 #include "avfvideoencodersettingscontrol.h"
 #include "avfmediacontainercontrol.h"
 
@@ -101,6 +102,7 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_viewfinderSettingsControl = new AVFCameraViewfinderSettingsControl(this);
     m_imageEncoderControl = new AVFImageEncoderControl(this);
     m_flashControl = new AVFCameraFlashControl(this);
+    m_audioEncoderSettingsControl = new AVFAudioEncoderSettingsControl(this);
     m_videoEncoderSettingsControl = new AVFVideoEncoderSettingsControl(this);
     m_mediaContainerControl = new AVFMediaContainerControl(this);
 }
@@ -134,6 +136,7 @@ AVFCameraService::~AVFCameraService()
     delete m_viewfinderSettingsControl;
     delete m_imageEncoderControl;
     delete m_flashControl;
+    delete m_audioEncoderSettingsControl;
     delete m_videoEncoderSettingsControl;
     delete m_mediaContainerControl;
 
@@ -181,6 +184,9 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraFlashControl_iid) == 0)
         return m_flashControl;
+
+    if (qstrcmp(name, QAudioEncoderSettingsControl_iid) == 0)
+        return m_audioEncoderSettingsControl;
 
     if (qstrcmp(name, QVideoEncoderSettingsControl_iid) == 0)
         return m_videoEncoderSettingsControl;

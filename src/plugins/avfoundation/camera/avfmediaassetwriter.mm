@@ -74,7 +74,6 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 - (bool)addAudioCapture;
 - (bool)addWriterInputs;
 - (void)setQueues;
-- (NSDictionary *)audioSettings;
 - (void)updateDuration:(CMTime)newTimeStamp;
 @end
 
@@ -98,6 +97,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
         m_startTime = kCMTimeInvalid;
         m_lastTimeStamp = kCMTimeInvalid;
         m_durationInMs.store(0);
+        m_audioSettings = nil;
         m_videoSettings = nil;
     }
 
@@ -106,6 +106,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
         cameraService:(AVFCameraService *)service
+        audioSettings:(NSDictionary *)audioSettings
         videoSettings:(NSDictionary *)videoSettings
 {
     Q_ASSERT(fileURL);
@@ -116,6 +117,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     }
 
     m_service = service;
+    m_audioSettings = audioSettings;
     m_videoSettings = videoSettings;
 
     m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
@@ -150,6 +152,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
             [session removeInput:m_audioInput];
             m_audioOutput.reset();
             m_audioInput.reset();
+            m_audioCaptureDevice = 0;
         }
         m_assetWriter.reset();
         return false;
@@ -327,20 +330,22 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 
     AVCaptureSession *captureSession = m_service->session()->captureSession();
 
-    AVCaptureDevice *audioDevice = m_service->audioInputSelectorControl()->createCaptureDevice();
-    if (!audioDevice) {
+    m_audioCaptureDevice = m_service->audioInputSelectorControl()->createCaptureDevice();
+    if (!m_audioCaptureDevice) {
         qWarning() << Q_FUNC_INFO << "no audio input device available";
         return false;
     } else {
         NSError *error = nil;
-        m_audioInput.reset([[AVCaptureDeviceInput deviceInputWithDevice:audioDevice error:&error] retain]);
+        m_audioInput.reset([[AVCaptureDeviceInput deviceInputWithDevice:m_audioCaptureDevice error:&error] retain]);
 
         if (!m_audioInput || error) {
             qWarning() << Q_FUNC_INFO << "failed to create audio device input";
+            m_audioCaptureDevice = 0;
             m_audioInput.reset();
             return false;
         } else if (![captureSession canAddInput:m_audioInput]) {
             qWarning() << Q_FUNC_INFO << "could not connect the audio input";
+            m_audioCaptureDevice = 0;
             m_audioInput.reset();
             return false;
         } else {
@@ -355,6 +360,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     } else {
         qDebugCamera() << Q_FUNC_INFO << "failed to add audio output";
         [captureSession removeInput:m_audioInput];
+        m_audioCaptureDevice = 0;
         m_audioInput.reset();
         m_audioOutput.reset();
         return false;
@@ -388,7 +394,10 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     m_cameraWriterInput.data().expectsMediaDataInRealTime = YES;
 
     if (m_audioOutput) {
-        m_audioWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio outputSettings:[self audioSettings]]);
+        CMFormatDescriptionRef sourceFormat = m_audioCaptureDevice ? m_audioCaptureDevice.activeFormat.formatDescription : 0;
+        m_audioWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio
+                                                             outputSettings:m_audioSettings
+                                                             sourceFormatHint:sourceFormat]);
         if (!m_audioWriterInput) {
             qDebugCamera() << Q_FUNC_INFO << "failed to create audio writer input";
             // But we still can record video.
@@ -416,20 +425,6 @@ bool qt_camera_service_isValid(AVFCameraService *service)
         Q_ASSERT(m_audioQueue);
         [m_audioOutput setSampleBufferDelegate:self queue:m_audioQueue];
     }
-}
-
-- (NSDictionary *)audioSettings
-{
-    // TODO: these settings should be taken from
-    // the video/audio encoder settings control.
-    // For now we either take recommended (iOS >= 7.0)
-    // or nil - this seems to be good enough.
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_7_0)
-    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_7_0 && m_audioOutput)
-        return [m_audioOutput recommendedAudioSettingsForAssetWriterWithOutputFileType:AVFileTypeQuickTimeMovie];
-#endif
-
-    return nil;
 }
 
 - (void)updateDuration:(CMTime)newTimeStamp
