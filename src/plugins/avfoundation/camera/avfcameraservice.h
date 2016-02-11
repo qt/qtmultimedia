@@ -62,6 +62,7 @@ class AVFCameraFlashControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
 class AVFVideoEncoderSettingsControl;
+class AVFMediaContainerControl;
 
 class AVFCameraService : public QMediaService
 {
@@ -89,6 +90,7 @@ public:
     AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
     AVFCameraFlashControl *flashControl() const {return m_flashControl; }
     AVFVideoEncoderSettingsControl *videoEncoderSettingsControl() const {return m_videoEncoderSettingsControl; }
+    AVFMediaContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -108,6 +110,7 @@ private:
     AVFImageEncoderControl *m_imageEncoderControl;
     AVFCameraFlashControl *m_flashControl;
     AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
+    AVFMediaContainerControl *m_mediaContainerControl;
 };
 
 QT_END_NAMESPACE

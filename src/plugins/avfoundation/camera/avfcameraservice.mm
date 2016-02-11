@@ -54,6 +54,7 @@
 #include "avfimageencodercontrol.h"
 #include "avfcameraflashcontrol.h"
 #include "avfvideoencodersettingscontrol.h"
+#include "avfmediacontainercontrol.h"
 
 #ifdef Q_OS_IOS
 #include "avfcamerazoomcontrol.h"
@@ -101,6 +102,7 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_imageEncoderControl = new AVFImageEncoderControl(this);
     m_flashControl = new AVFCameraFlashControl(this);
     m_videoEncoderSettingsControl = new AVFVideoEncoderSettingsControl(this);
+    m_mediaContainerControl = new AVFMediaContainerControl(this);
 }
 
 AVFCameraService::~AVFCameraService()
@@ -133,6 +135,7 @@ AVFCameraService::~AVFCameraService()
     delete m_imageEncoderControl;
     delete m_flashControl;
     delete m_videoEncoderSettingsControl;
+    delete m_mediaContainerControl;
 
     delete m_session;
 }
@@ -181,6 +184,9 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QVideoEncoderSettingsControl_iid) == 0)
         return m_videoEncoderSettingsControl;
+
+    if (qstrcmp(name, QMediaContainerControl_iid) == 0)
+        return m_mediaContainerControl;
 
     if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
         AVFMediaVideoProbeControl *videoProbe = 0;

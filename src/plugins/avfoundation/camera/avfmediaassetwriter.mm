@@ -38,6 +38,7 @@
 #include "avfcameraservice.h"
 #include "avfcamerasession.h"
 #include "avfcameradebug.h"
+#include "avfmediacontainercontrol.h"
 
 //#include <QtCore/qmutexlocker.h>
 #include <QtCore/qmetaobject.h>
@@ -129,7 +130,9 @@ bool qt_camera_service_isValid(AVFCameraService *service)
         // But we still can write video!
     }
 
-    m_assetWriter.reset([[AVAssetWriter alloc] initWithURL:fileURL fileType:AVFileTypeQuickTimeMovie error:nil]);
+    m_assetWriter.reset([[AVAssetWriter alloc] initWithURL:fileURL
+                                               fileType:m_service->mediaContainerControl()->fileType()
+                                               error:nil]);
     if (!m_assetWriter) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create asset writer";
         return false;

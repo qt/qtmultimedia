@@ -39,6 +39,7 @@
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
 #include "avfvideoencodersettingscontrol.h"
+#include "avfmediacontainercontrol.h"
 #include "avfcamerautility.h"
 
 #include <QtCore/qdebug.h>
@@ -215,7 +216,8 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
         const QString path(m_outputLocation.scheme() == QLatin1String("file") ?
                            m_outputLocation.path() : m_outputLocation.toString());
         const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path, QCamera::CaptureVideo,
-                           QLatin1String("clip_"), QLatin1String("mp4"))));
+                           QLatin1String("clip_"),
+                           m_service->mediaContainerControl()->containerFormat())));
 
         NSURL *nsFileURL = fileURL.toNSURL();
         if (!nsFileURL) {
