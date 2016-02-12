@@ -1,7 +1,7 @@
 TARGET = resourceqt
 
 QT += multimedia-private
-CONFIG += no_private_qt_headers_warning link_pkgconfig
+CONFIG += link_pkgconfig
 PKGCONFIG += libresourceqt5
 
 INCLUDEPATH += $$PWD \

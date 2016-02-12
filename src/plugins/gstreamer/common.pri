@@ -1,6 +1,5 @@
 
 QT += core-private multimedia-private network
-CONFIG += no_private_qt_headers_warning
 
 qtHaveModule(widgets) {
     QT += widgets multimediawidgets-private

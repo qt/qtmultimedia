@@ -1,7 +1,6 @@
 TARGET = qtmedia_qnx_audio
-QT += multimedia-private
-CONFIG += no_private_qt_headers_warning
 
+QT += multimedia-private
 
 LIBS += -lasound
 

@@ -1,4 +1,3 @@
-load(qt_build_config)
 
 #DEFINES += QT_DEBUG_AVF
 # Avoid clash with a variable named `slots' in a Quartz header

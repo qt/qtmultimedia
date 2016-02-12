@@ -1,4 +1,3 @@
-TARGET = mockserviceplugin4
 QT += multimedia-private
 
 HEADERS += ../mockservice.h
