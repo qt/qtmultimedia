@@ -1,9 +1,5 @@
 TARGET = gstaudiodecoder
 
-PLUGIN_TYPE = mediaservice
-PLUGIN_CLASS_NAME = QGstreamerAudioDecoderServicePlugin
-load(qt_plugin)
-
 include(../common.pri)
 
 INCLUDEPATH += $$PWD
@@ -23,3 +19,6 @@ SOURCES += \
 OTHER_FILES += \
     audiodecoder.json
 
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = QGstreamerAudioDecoderServicePlugin
+load(qt_plugin)

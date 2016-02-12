@@ -1,9 +1,5 @@
 TARGET = gstmediacapture
 
-PLUGIN_TYPE = mediaservice
-PLUGIN_CLASS_NAME = QGstreamerCaptureServicePlugin
-load(qt_plugin)
-
 include(../common.pri)
 
 INCLUDEPATH += $$PWD
@@ -50,3 +46,7 @@ use_gstreamer_camera:config_linux_v4l {
     OTHER_FILES += \
         mediacapture.json
 }
+
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = QGstreamerCaptureServicePlugin
+load(qt_plugin)

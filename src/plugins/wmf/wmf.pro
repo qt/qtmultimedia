@@ -5,10 +5,6 @@ win32:!qtHaveModule(opengl) {
     LIBS_PRIVATE += -lgdi32 -luser32
 }
 
-PLUGIN_TYPE=mediaservice
-PLUGIN_CLASS_NAME = WMFServicePlugin
-load(qt_plugin)
-
 INCLUDEPATH += .
 
 HEADERS += \
@@ -32,3 +28,7 @@ include (decoder/decoder.pri)
 
 OTHER_FILES += \
     wmf.json
+
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = WMFServicePlugin
+load(qt_plugin)

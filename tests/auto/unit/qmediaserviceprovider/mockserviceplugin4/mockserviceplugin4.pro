@@ -1,7 +1,13 @@
 TARGET = mockserviceplugin4
 QT += multimedia-private
 
-PLUGIN_TYPE=mediaservice
+HEADERS += ../mockservice.h
+SOURCES += mockserviceplugin4.cpp
+OTHER_FILES += mockserviceplugin4.json
+
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
+
+PLUGIN_TYPE = mediaservice
 PLUGIN_CLASS_NAME = MockServicePlugin4
 load(qt_plugin)
 
@@ -14,10 +20,4 @@ win32 {
     }
 }
 
-HEADERS += ../mockservice.h
-SOURCES += mockserviceplugin4.cpp
-OTHER_FILES += mockserviceplugin4.json
-
 target.path = $$[QT_INSTALL_TESTS]/tst_qmediaserviceprovider/$${PLUGIN_TYPE}
-
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0

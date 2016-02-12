@@ -1,10 +1,6 @@
 TARGET = qtmedia_audioengine
 QT += multimedia-private
 
-PLUGIN_TYPE=mediaservice
-PLUGIN_CLASS_NAME = AudioCaptureServicePlugin
-load(qt_plugin)
-
 HEADERS += audioencodercontrol.h \
     audiocontainercontrol.h \
     audiomediarecordercontrol.h \
@@ -25,3 +21,7 @@ SOURCES += audioencodercontrol.cpp \
 
 OTHER_FILES += \
     audiocapture.json
+
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = AudioCaptureServicePlugin
+load(qt_plugin)

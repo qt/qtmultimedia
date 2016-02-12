@@ -1,10 +1,6 @@
 TARGET = qtaudio_coreaudio
 QT += multimedia-private
 
-PLUGIN_TYPE = audio
-PLUGIN_CLASS_NAME = CoreAudioPlugin
-
-load(qt_plugin)
 OTHER_FILES += \
     coreaudio.json
 
@@ -37,3 +33,7 @@ ios {
 LIBS += \
     -framework CoreAudio \
     -framework AudioToolbox
+
+PLUGIN_TYPE = audio
+PLUGIN_CLASS_NAME = CoreAudioPlugin
+load(qt_plugin)

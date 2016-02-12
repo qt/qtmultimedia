@@ -2,8 +2,6 @@ TARGET = QtMultimediaQuick_p
 QT = core quick multimedia-private
 CONFIG += internal_module
 
-load(qt_module)
-
 DEFINES += QT_BUILD_QTMM_QUICK_LIB
 
 # Header files must go inside source directory of a module
@@ -47,3 +45,5 @@ OTHER_FILES += \
     shaders/biplanaryuvvideo_swizzle.frag \
     shaders/triplanaryuvvideo.vert \
     shaders/triplanaryuvvideo.frag
+
+load(qt_module)

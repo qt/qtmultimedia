@@ -4,10 +4,6 @@ CONFIG += no_keywords
 TARGET = qavfcamera
 QT += multimedia-private network
 
-PLUGIN_TYPE = mediaservice
-PLUGIN_CLASS_NAME = AVFServicePlugin
-load(qt_plugin)
-
 LIBS += -framework AudioToolbox \
         -framework CoreAudio \
         -framework QuartzCore \
@@ -79,3 +75,7 @@ OBJECTIVE_SOURCES += avfcamerazoomcontrol.mm \
                      avfmediarecordercontrol_ios.mm
 
 }
+
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = AVFServicePlugin
+load(qt_plugin)

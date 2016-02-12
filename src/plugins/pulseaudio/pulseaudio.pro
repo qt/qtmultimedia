@@ -1,10 +1,6 @@
 TARGET = qtmedia_pulse
 QT += multimedia-private
 
-PLUGIN_TYPE = audio
-PLUGIN_CLASS_NAME = QPulseAudioPlugin
-load(qt_plugin)
-
 CONFIG += link_pkgconfig
 PKGCONFIG += libpulse
 
@@ -24,3 +20,7 @@ SOURCES += qpulseaudioplugin.cpp \
 
 OTHER_FILES += \
     pulseaudio.json
+
+PLUGIN_TYPE = audio
+PLUGIN_CLASS_NAME = QPulseAudioPlugin
+load(qt_plugin)
