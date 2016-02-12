@@ -1,9 +1,9 @@
+TARGET = qavfmediaplayer
 
 #DEFINES += QT_DEBUG_AVF
 # Avoid clash with a variable named `slots' in a Quartz header
 CONFIG += no_keywords
 
-TARGET = qavfmediaplayer
 QT += multimedia-private network
 
 LIBS += -framework AVFoundation -framework CoreMedia

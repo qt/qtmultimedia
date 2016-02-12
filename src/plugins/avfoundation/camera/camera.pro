@@ -1,7 +1,8 @@
+TARGET = qavfcamera
+
 # Avoid clash with a variable named `slots' in a Quartz header
 CONFIG += no_keywords
 
-TARGET = qavfcamera
 QT += multimedia-private network
 
 LIBS += -framework AudioToolbox \
