@@ -1,8 +1,7 @@
 TARGET = QtMultimediaQuick_p
+
 QT = core quick multimedia-private
 CONFIG += internal_module
-
-DEFINES += QT_BUILD_QTMM_QUICK_LIB
 
 # Header files must go inside source directory of a module
 # to be installed by syncqt.
