@@ -137,6 +137,8 @@ public:
     HRESULT processSample(IMFSample *sample, LONG *nextSleep);
     HRESULT flush();
 
+    bool areSamplesScheduled();
+
     // ThreadProc for the scheduler thread.
     static DWORD WINAPI schedulerThreadProc(LPVOID parameter);
 
@@ -173,13 +175,11 @@ public:
 
     HRESULT getSample(IMFSample **sample);
     HRESULT returnSample(IMFSample *sample);
-    BOOL areSamplesPending();
 
 private:
     QMutex m_mutex;
     QList<IMFSample*> m_videoSampleQueue;
     bool m_initialized;
-    DWORD m_pending;
 };
 
 class EVRCustomPresenter

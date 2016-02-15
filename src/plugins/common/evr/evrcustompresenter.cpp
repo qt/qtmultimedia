@@ -254,6 +254,12 @@ HRESULT Scheduler::flush()
     return S_OK;
 }
 
+bool Scheduler::areSamplesScheduled()
+{
+    QMutexLocker locker(&m_mutex);
+    return m_scheduledSamples.count() > 0;
+}
+
 HRESULT Scheduler::scheduleSample(IMFSample *sample, bool presentNow)
 {
     if (!m_schedulerThread)
@@ -447,7 +453,6 @@ DWORD Scheduler::schedulerThreadProcPrivate()
 
 SamplePool::SamplePool()
     : m_initialized(false)
-    , m_pending(0)
 {
 }
 
@@ -474,8 +479,6 @@ HRESULT SamplePool::getSample(IMFSample **sample)
 
     IMFSample *taken = m_videoSampleQueue.takeFirst();
 
-    m_pending++;
-
     // Give the sample to the caller.
     *sample = taken;
     (*sample)->AddRef();
@@ -495,23 +498,7 @@ HRESULT SamplePool::returnSample(IMFSample *sample)
     m_videoSampleQueue.append(sample);
     sample->AddRef();
 
-    m_pending--;
-
     return S_OK;
-}
-
-BOOL SamplePool::areSamplesPending()
-{
-    QMutexLocker locker(&m_mutex);
-
-    bool ret = false;
-
-    if (!m_initialized)
-        ret = false;
-    else
-        ret = (m_pending > 0);
-
-    return ret;
 }
 
 HRESULT SamplePool::initialize(QList<IMFSample*> &samples)
@@ -546,7 +533,6 @@ HRESULT SamplePool::clear()
         m_videoSampleQueue[i]->Release();
     m_videoSampleQueue.clear();
     m_initialized = false;
-    m_pending = 0;
 
     return S_OK;
 }
@@ -1220,7 +1206,7 @@ HRESULT EVRCustomPresenter::checkEndOfStream()
         return S_OK;
     }
 
-    if (m_samplePool.areSamplesPending()) {
+    if (m_scheduler.areSamplesScheduled()) {
         // Samples are still scheduled for rendering.
         return S_OK;
     }
