@@ -25,7 +25,7 @@ qnx:!blackberry {
     SUBDIRS += qnx-audio
 }
 
-win32:!winrt {
+win32:!winrt:!wince {
     SUBDIRS += audiocapture \
                windowsaudio
 
