@@ -133,6 +133,18 @@ static void outputStreamDrainComplete(pa_stream *stream, int success, void *user
 #endif
 }
 
+static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *userdata)
+{
+    Q_UNUSED(stream);
+    Q_UNUSED(success);
+    Q_UNUSED(userdata);
+
+#ifdef DEBUG_PULSE
+    qDebug() << "Adjust prebuffer completed successfully: " << (bool)success;
+#endif
+}
+
+
 QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
     : m_device(device)
     , m_errorState(QAudio::NoError)
@@ -207,16 +219,18 @@ void QPulseAudioOutput::start(QIODevice *device)
     // Handle change of mode
     if (m_audioSource && !m_pullMode) {
         delete m_audioSource;
-        m_audioSource = 0;
     }
+    m_audioSource = 0;
 
     close();
 
-    if (!open())
-        return;
-
     m_pullMode = true;
     m_audioSource = device;
+
+    if (!open()) {
+        m_audioSource = 0;
+        return;
+    }
 
     setState(QAudio::ActiveState);
 }
@@ -229,17 +243,18 @@ QIODevice *QPulseAudioOutput::start()
     // Handle change of mode
     if (m_audioSource && !m_pullMode) {
         delete m_audioSource;
-        m_audioSource = 0;
     }
+    m_audioSource = 0;
 
     close();
+
+    m_pullMode = false;
 
     if (!open())
         return Q_NULLPTR;
 
     m_audioSource = new PulseOutputPrivate(this);
     m_audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
-    m_pullMode = false;
 
     setState(QAudio::IdleState);
 
@@ -349,6 +364,17 @@ bool QPulseAudioOutput::open()
     m_bufferSize = buffer->tlength;
     m_maxBufferSize = buffer->maxlength;
     m_audioBuffer = new char[m_maxBufferSize];
+
+    const qint64 streamSize = m_audioSource ? m_audioSource->size() : 0;
+    if (m_pullMode && streamSize > 0 && static_cast<qint64>(buffer->prebuf) > streamSize) {
+        pa_buffer_attr newBufferAttr;
+        newBufferAttr = *buffer;
+        newBufferAttr.prebuf = streamSize;
+        pa_operation *o = pa_stream_set_buffer_attr(m_stream, &newBufferAttr, streamAdjustPrebufferCallback, NULL);
+        if (o)
+            pa_operation_unref(o);
+    }
+
 #ifdef DEBUG_PULSE
     qDebug() << "Buffering info:";
     qDebug() << "\tMax length: " << buffer->maxlength;
