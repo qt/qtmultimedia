@@ -51,17 +51,12 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    \c AudioSample is part of the \b{QtAudioEngine 1.0} module.
-
     It can be accessed through QtAudioEngine::AudioEngine::samples with its unique
     name and must be defined inside AudioEngine or be added to it using
     \l{QtAudioEngine::AudioEngine::addAudioSample()}{AudioEngine.addAudioSample()}
     if AudioSample is created dynamically.
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
     Rectangle {
         color:"white"
         width: 300

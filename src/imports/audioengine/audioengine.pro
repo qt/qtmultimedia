@@ -1,7 +1,7 @@
 CXX_MODULE = multimedia
 TARGET  = declarative_audioengine
 TARGETPATH = QtAudioEngine
-IMPORT_VERSION = 1.0
+IMPORT_VERSION = 1.1
 
 QT += quick qml multimedia-private
 

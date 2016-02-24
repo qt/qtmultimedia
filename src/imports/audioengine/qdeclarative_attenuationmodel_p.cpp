@@ -79,17 +79,11 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
     \inherits Item
     \preliminary
 
-    This type is part of the \b{QtAudioEngine 1.0} module.
-
     AttenuationModelLinear must be defined inside \l AudioEngine or be added to it using
     \l{QtAudioEngine::AudioEngine::addAttenuationModel()}{AudioEngine.addAttenuationModel()}
     if AttenuationModelLinear is created dynamically.
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
-
     Rectangle {
         color:"white"
         width: 300
@@ -214,17 +208,11 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
     \inherits Item
     \preliminary
 
-    This type is part of the \b{QtAudioEngine 1.0} module.
-
     AttenuationModelInverse must be defined inside \l AudioEngine or be added to it using
     \l{QtAudioEngine::AudioEngine::addAttenuationModel()}{AudioEngine.addAttenuationModel()}
     if AttenuationModelInverse is created dynamically.
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
-
     Rectangle {
         color:"white"
         width: 300
