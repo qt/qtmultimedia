@@ -85,7 +85,6 @@ static void outputStreamUnderflowCallback(pa_stream *stream, void *userdata)
 {
     Q_UNUSED(stream)
     ((QPulseAudioOutput*)userdata)->streamUnderflowCallback();
-    qWarning() << "Got a buffer underflow!";
 }
 
 static void outputStreamOverflowCallback(pa_stream *stream, void *userdata)
