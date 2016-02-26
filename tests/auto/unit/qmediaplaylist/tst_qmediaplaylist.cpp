@@ -1223,7 +1223,7 @@ void tst_QMediaPlaylist::mediaPlayListControl()
 {
     // To check changes in abstract classe's pure virtual functions
     QObject parent;
-    MockMediaPlaylistControl plylistctrl(&parent);
+    MockMediaPlaylistControl plylistctrl(false, &parent);
 }
 
 // MaemoAPI-1850:test QMediaPlayListSourceControl constructor
