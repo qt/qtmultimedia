@@ -131,7 +131,7 @@ QString QMediaStorageLocation::generateFileName(const QString &prefix,
                                                .arg(extension);
 
         const QString path = dir.absoluteFilePath(name);
-        if (!QFileInfo(path).exists()) {
+        if (!QFileInfo::exists(path)) {
             m_lastUsedIndex[lastMediaKey] = lastMediaIndex + 1;
             return path;
         }
