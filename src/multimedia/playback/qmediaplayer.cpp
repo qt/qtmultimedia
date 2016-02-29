@@ -142,7 +142,7 @@ public:
     QMediaContent rootMedia;
     QMediaContent pendingPlaylist;
     QMediaPlaylist *parentPlaylist(QMediaPlaylist *pls);
-    bool isInChain(QUrl url);
+    bool isInChain(const QUrl &url);
     int nestedPlaylists;
 
     void setMedia(const QMediaContent &media, QIODevice *stream = 0);
@@ -175,7 +175,7 @@ QMediaPlaylist *QMediaPlayerPrivate::parentPlaylist(QMediaPlaylist *pls)
     return 0;
 }
 
-bool QMediaPlayerPrivate::isInChain(QUrl url)
+bool QMediaPlayerPrivate::isInChain(const QUrl &url)
 {
     // Check whether a URL is already in the chain of playlists.
     // Also see a comment in parentPlaylist().
