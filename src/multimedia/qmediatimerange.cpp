@@ -665,16 +665,7 @@ bool QMediaTimeRange::contains(qint64 time) const
 */
 bool operator==(const QMediaTimeRange &a, const QMediaTimeRange &b)
 {
-    if (a.intervals().count() != b.intervals().count())
-        return false;
-
-    for (int i = 0; i < a.intervals().count(); i++)
-    {
-        if(a.intervals()[i] != b.intervals()[i])
-            return false;
-    }
-
-    return true;
+    return a.intervals() == b.intervals();
 }
 
 /*!
