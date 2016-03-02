@@ -129,9 +129,9 @@ public:
     qreal requestedAperture() const;
     qreal requestedShutterSpeed() const;
 
-    QList<int> supportedIsoSensitivities(bool *continuous = 0) const;
-    QList<qreal> supportedApertures(bool * continuous = 0) const;
-    QList<qreal> supportedShutterSpeeds(bool *continuous = 0) const;
+    QList<int> supportedIsoSensitivities(bool *continuous = Q_NULLPTR) const;
+    QList<qreal> supportedApertures(bool *continuous = Q_NULLPTR) const;
+    QList<qreal> supportedShutterSpeeds(bool *continuous = Q_NULLPTR) const;
 
 public Q_SLOTS:
     void setFlashMode(FlashModes mode);
@@ -162,7 +162,7 @@ Q_SIGNALS:
 private:
     friend class QCamera;
     friend class QCameraPrivate;
-    explicit QCameraExposure(QCamera *parent = 0);
+    explicit QCameraExposure(QCamera *parent = Q_NULLPTR);
     virtual ~QCameraExposure();
 
     Q_DISABLE_COPY(QCameraExposure)

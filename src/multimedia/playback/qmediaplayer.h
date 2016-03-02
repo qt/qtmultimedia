@@ -113,13 +113,13 @@ public:
         MediaIsPlaylist
     };
 
-    QMediaPlayer(QObject *parent = 0, Flags flags = 0);
+    explicit QMediaPlayer(QObject *parent = Q_NULLPTR, Flags flags = Flags());
     ~QMediaPlayer();
 
     static QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
                                             const QStringList& codecs = QStringList(),
-                                            Flags flags = 0);
-    static QStringList supportedMimeTypes(Flags flags = 0);
+                                                   Flags flags = Flags());
+    static QStringList supportedMimeTypes(Flags flags = Flags());
 
     void setVideoOutput(QVideoWidget *);
     void setVideoOutput(QGraphicsVideoItem *);
@@ -168,7 +168,7 @@ public Q_SLOTS:
 
     void setPlaybackRate(qreal rate);
 
-    void setMedia(const QMediaContent &media, QIODevice *stream = 0);
+    void setMedia(const QMediaContent &media, QIODevice *stream = Q_NULLPTR);
     void setPlaylist(QMediaPlaylist *playlist);
 
     void setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations);

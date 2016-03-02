@@ -71,7 +71,7 @@ Q_SIGNALS:
     void focusZonesChanged();
 
 protected:
-    QCameraFocusControl(QObject* parent = 0);
+    explicit QCameraFocusControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QCameraFocusControl_iid "org.qt-project.qt.camerafocuscontrol/5.0"

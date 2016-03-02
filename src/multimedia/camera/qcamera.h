@@ -159,10 +159,10 @@ public:
         FrontFace
     };
 
-    QCamera(QObject *parent = 0);
-    QCamera(const QByteArray& deviceName, QObject *parent = 0);
-    QCamera(const QCameraInfo& cameraInfo, QObject *parent = 0);
-    QCamera(QCamera::Position position, QObject *parent = 0);
+    explicit QCamera(QObject *parent = Q_NULLPTR);
+    explicit QCamera(const QByteArray& deviceName, QObject *parent = Q_NULLPTR);
+    explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = Q_NULLPTR);
+    explicit QCamera(QCamera::Position position, QObject *parent = Q_NULLPTR);
     ~QCamera();
 
 #if QT_DEPRECATED_SINCE(5, 3)

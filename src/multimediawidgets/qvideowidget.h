@@ -58,7 +58,7 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaBin
     Q_PROPERTY(int saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
 
 public:
-    QVideoWidget(QWidget *parent = 0);
+    explicit QVideoWidget(QWidget *parent = Q_NULLPTR);
     ~QVideoWidget();
 
     QMediaObject *mediaObject() const;

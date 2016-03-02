@@ -72,7 +72,7 @@ public:
     enum StereoMode { ForceStereo, ForceMono, Auto };
     enum SearchMode { SearchFast, SearchGetStationId };
 
-    QRadioTuner(QObject *parent = 0);
+    explicit QRadioTuner(QObject *parent = Q_NULLPTR);
     ~QRadioTuner();
 
     QMultimedia::AvailabilityStatus availability() const;

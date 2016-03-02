@@ -68,7 +68,7 @@ Q_SIGNALS:
     void metaDataAvailableChanged(bool available);
 
 protected:
-    QMetaDataWriterControl(QObject *parent = 0);
+    explicit QMetaDataWriterControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QMetaDataWriterControl_iid "org.qt-project.qt.metadatawritercontrol/5.0"

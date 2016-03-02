@@ -81,7 +81,7 @@ Q_SIGNALS:
     void parameterRangeChanged(int parameter);
 
 protected:
-    QCameraExposureControl(QObject* parent = 0);
+    explicit QCameraExposureControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QCameraExposureControl_iid "org.qt-project.qt.cameraexposurecontrol/5.0"

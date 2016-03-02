@@ -59,7 +59,7 @@ Q_SIGNALS:
     void configurationChanged(const QNetworkConfiguration& configuration);
 
 protected:
-    QMediaNetworkAccessControl(QObject *parent = 0);
+    explicit QMediaNetworkAccessControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QMediaNetworkAccessControl_iid "org.qt-project.qt.medianetworkaccesscontrol/5.0"

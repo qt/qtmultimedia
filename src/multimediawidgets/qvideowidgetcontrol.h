@@ -79,7 +79,7 @@ Q_SIGNALS:
     void saturationChanged(int saturation);
 
 protected:
-    QVideoWidgetControl(QObject *parent = 0);
+    explicit QVideoWidgetControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QVideoWidgetControl_iid "org.qt-project.qt.videowidgetcontrol/5.0"

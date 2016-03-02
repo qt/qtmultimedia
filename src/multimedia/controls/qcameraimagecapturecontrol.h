@@ -74,7 +74,7 @@ Q_SIGNALS:
     void error(int id, int error, const QString &errorString);
 
 protected:
-    QCameraImageCaptureControl(QObject* parent = 0);
+    explicit QCameraImageCaptureControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QCameraImageCaptureControl_iid "org.qt-project.qt.cameraimagecapturecontrol/5.0"

@@ -65,7 +65,7 @@ Q_SIGNALS:
     void metaDataAvailableChanged(bool available);
 
 protected:
-    QMetaDataReaderControl(QObject *parent = 0);
+    explicit QMetaDataReaderControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QMetaDataReaderControl_iid "org.qt-project.qt.metadatareadercontrol/5.0"

@@ -76,7 +76,7 @@ public:
         College
     };
 
-    QRadioData(QMediaObject *mediaObject, QObject *parent = 0);
+    explicit QRadioData(QMediaObject *mediaObject, QObject *parent = Q_NULLPTR);
     ~QRadioData();
 
     QMultimedia::AvailabilityStatus availability() const;

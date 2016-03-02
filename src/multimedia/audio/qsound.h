@@ -52,7 +52,7 @@ public:
 
     static void play(const QString& filename);
 
-    explicit QSound(const QString& filename, QObject* parent = 0);
+    explicit QSound(const QString &filename, QObject *parent = Q_NULLPTR);
     ~QSound();
 
     int loops() const;

@@ -52,7 +52,7 @@ public:
     virtual int cameraOrientation(const QString &deviceName) const = 0;
 
 protected:
-    QCameraInfoControl(QObject *parent = 0);
+    explicit QCameraInfoControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QCameraInfoControl_iid "org.qt-project.qt.camerainfocontrol/5.3"

@@ -61,7 +61,7 @@ public:
     enum PlaybackMode { CurrentItemOnce, CurrentItemInLoop, Sequential, Loop, Random };
     enum Error { NoError, FormatError, FormatNotSupportedError, NetworkError, AccessDeniedError };
 
-    QMediaPlaylist(QObject *parent = 0);
+    explicit QMediaPlaylist(QObject *parent = Q_NULLPTR);
     virtual ~QMediaPlaylist();
 
     QMediaObject *mediaObject() const;
@@ -89,11 +89,11 @@ public:
     bool removeMedia(int start, int end);
     bool clear();
 
-    void load(const QNetworkRequest &request, const char *format = 0);
-    void load(const QUrl &location, const char *format = 0);
-    void load(QIODevice * device, const char *format = 0);
+    void load(const QNetworkRequest &request, const char *format = Q_NULLPTR);
+    void load(const QUrl &location, const char *format = Q_NULLPTR);
+    void load(QIODevice *device, const char *format = Q_NULLPTR);
 
-    bool save(const QUrl &location, const char *format = 0);
+    bool save(const QUrl &location, const char *format = Q_NULLPTR);
     bool save(QIODevice * device, const char *format);
 
     Error error() const;

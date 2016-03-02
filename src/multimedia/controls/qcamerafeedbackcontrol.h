@@ -78,7 +78,7 @@ public:
     virtual bool setEventFeedbackSound(EventType, const QString &filePath) = 0;
 
 protected:
-    QCameraFeedbackControl(QObject* parent = 0);
+    explicit QCameraFeedbackControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QCameraFeedbackControl_iid "org.qt-project.qt.camerafeedbackcontrol/5.0"

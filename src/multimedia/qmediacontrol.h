@@ -53,8 +53,8 @@ public:
     ~QMediaControl();
 
 protected:
-    QMediaControl(QObject *parent = 0);
-    QMediaControl(QMediaControlPrivate &dd, QObject *parent = 0);
+    explicit QMediaControl(QObject *parent = Q_NULLPTR);
+    explicit QMediaControl(QMediaControlPrivate &dd, QObject *parent = Q_NULLPTR);
 
     QMediaControlPrivate *d_ptr;
 

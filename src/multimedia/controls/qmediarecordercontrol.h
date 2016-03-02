@@ -82,7 +82,7 @@ public Q_SLOTS:
     virtual void setVolume(qreal volume) = 0;
 
 protected:
-    QMediaRecorderControl(QObject* parent = 0);
+    explicit QMediaRecorderControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QMediaRecorderControl_iid "org.qt-project.qt.mediarecordercontrol/5.0"

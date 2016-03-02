@@ -47,7 +47,7 @@ class Q_MULTIMEDIA_EXPORT QAudioProbe : public QObject
 {
     Q_OBJECT
 public:
-    explicit QAudioProbe(QObject *parent = 0);
+    explicit QAudioProbe(QObject *parent = Q_NULLPTR);
     ~QAudioProbe();
 
     bool setSource(QMediaObject *source);

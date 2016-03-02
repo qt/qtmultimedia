@@ -59,10 +59,10 @@ public:
     virtual ~QVideoEncoderSettingsControl();
 
     virtual QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,
-                                              bool *continuous = 0) const = 0;
+                                              bool *continuous = Q_NULLPTR) const = 0;
 
     virtual QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings,
-                                             bool *continuous = 0) const = 0;
+                                             bool *continuous = Q_NULLPTR) const = 0;
 
     virtual QStringList supportedVideoCodecs() const = 0;
     virtual QString videoCodecDescription(const QString &codecName) const = 0;
@@ -71,7 +71,7 @@ public:
     virtual void setVideoSettings(const QVideoEncoderSettings &settings) = 0;
 
 protected:
-    QVideoEncoderSettingsControl(QObject *parent = 0);
+    explicit QVideoEncoderSettingsControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QVideoEncoderSettingsControl_iid "org.qt-project.qt.videoencodersettingscontrol/5.0"

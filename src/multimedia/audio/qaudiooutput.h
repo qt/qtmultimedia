@@ -56,8 +56,8 @@ class Q_MULTIMEDIA_EXPORT QAudioOutput : public QObject
     Q_OBJECT
 
 public:
-    explicit QAudioOutput(const QAudioFormat &format = QAudioFormat(), QObject *parent = 0);
-    explicit QAudioOutput(const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = 0);
+    explicit QAudioOutput(const QAudioFormat &format = QAudioFormat(), QObject *parent = Q_NULLPTR);
+    explicit QAudioOutput(const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = Q_NULLPTR);
     ~QAudioOutput();
 
     QAudioFormat format() const;

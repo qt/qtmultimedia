@@ -61,13 +61,13 @@ public:
     virtual QString codecDescription(const QString &codecName) const = 0;
 
     virtual QList<int> supportedSampleRates(const QAudioEncoderSettings &settings,
-                                            bool *continuous = 0) const = 0;
+                                            bool *continuous = Q_NULLPTR) const = 0;
 
     virtual QAudioEncoderSettings audioSettings() const = 0;
     virtual void setAudioSettings(const QAudioEncoderSettings&) = 0;
 
 protected:
-    QAudioEncoderSettingsControl(QObject *parent = 0);
+    explicit QAudioEncoderSettingsControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QAudioEncoderSettingsControl_iid "org.qt-project.qt.audioencodersettingscontrol/5.0"

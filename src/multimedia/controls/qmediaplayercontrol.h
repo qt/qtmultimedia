@@ -104,7 +104,7 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 protected:
-    QMediaPlayerControl(QObject* parent = 0);
+    explicit QMediaPlayerControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QMediaPlayerControl_iid "org.qt-project.qt.mediaplayercontrol/5.0"

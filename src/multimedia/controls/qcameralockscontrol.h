@@ -61,7 +61,7 @@ Q_SIGNALS:
     void lockStatusChanged(QCamera::LockType type, QCamera::LockStatus status, QCamera::LockChangeReason reason);
 
 protected:
-    QCameraLocksControl(QObject* parent = 0);
+    explicit QCameraLocksControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QCameraLocksControl_iid "org.qt-project.qt.cameralockscontrol/5.0"

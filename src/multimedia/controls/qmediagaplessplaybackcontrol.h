@@ -60,7 +60,7 @@ Q_SIGNALS:
     void advancedToNextMedia();
 
 protected:
-    QMediaGaplessPlaybackControl(QObject* parent = 0);
+    explicit QMediaGaplessPlaybackControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QMediaGaplessPlaybackControl_iid "org.qt-project.qt.mediagaplessplaybackcontrol/5.0"
