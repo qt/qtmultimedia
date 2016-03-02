@@ -35,6 +35,8 @@
 #include <QtCore/qtimer.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qlist.h>
+#include <QtCore/qabstracteventdispatcher.h>
+#include <QtCore/qcoreapplication.h>
 
 #include "qgstreamerbushelper_p.h"
 
@@ -47,31 +49,31 @@ class QGstreamerBusHelperPrivate : public QObject
 public:
     QGstreamerBusHelperPrivate(QGstreamerBusHelper *parent, GstBus* bus) :
         QObject(parent),
+        m_tag(0),
         m_bus(bus),
-        m_helper(parent)
+        m_helper(parent),
+        m_intervalTimer(nullptr)
     {
-#ifdef QT_NO_GLIB
-        Q_UNUSED(bus);
-
-        m_intervalTimer = new QTimer(this);
-        m_intervalTimer->setInterval(250);
-
-        connect(m_intervalTimer, SIGNAL(timeout()), SLOT(interval()));
-        m_intervalTimer->start();
-#else
-        m_tag = gst_bus_add_watch_full(bus, 0, busCallback, this, NULL);
-#endif
-
+        // glib event loop can be disabled either by env variable or QT_NO_GLIB define, so check the dispacher
+        QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
+        const bool hasGlib = dispatcher && dispatcher->inherits("QEventDispatcherGlib");
+        if (!hasGlib) {
+            m_intervalTimer = new QTimer(this);
+            m_intervalTimer->setInterval(250);
+            connect(m_intervalTimer, SIGNAL(timeout()), SLOT(interval()));
+            m_intervalTimer->start();
+        } else {
+            m_tag = gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, NULL);
+        }
     }
 
     ~QGstreamerBusHelperPrivate()
     {
         m_helper = 0;
-#ifdef QT_NO_GLIB
-        m_intervalTimer->stop();
-#else
-        g_source_remove(m_tag);
-#endif
+        delete m_intervalTimer;
+
+        if (m_tag)
+            g_source_remove(m_tag);
     }
 
     GstBus* bus() const { return m_bus; }
@@ -110,9 +112,7 @@ private:
     guint m_tag;
     GstBus* m_bus;
     QGstreamerBusHelper*  m_helper;
-#ifdef QT_NO_GLIB
     QTimer*     m_intervalTimer;
-#endif
 
 private slots:
     void doProcessMessage(const QGstreamerMessage& msg)
