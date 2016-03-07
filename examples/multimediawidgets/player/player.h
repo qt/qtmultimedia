@@ -69,6 +69,10 @@ public:
     Player(QWidget *parent = 0);
     ~Player();
 
+    bool isPlayerAvailable() const;
+
+    void addToPlaylist(const QList<QUrl> urls);
+
 signals:
     void fullScreenChanged(bool fullScreen);
 
@@ -93,7 +97,6 @@ private slots:
 #ifndef PLAYER_NO_COLOROPTIONS
     void showColorDialog();
 #endif
-    void addToPlaylist(const QStringList &fileNames);
 
 private:
     void setTrackInfo(const QString &info);

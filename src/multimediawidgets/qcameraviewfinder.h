@@ -61,7 +61,7 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QCameraViewfinder : public QVideoWidget
 {
     Q_OBJECT
 public:
-    QCameraViewfinder(QWidget *parent = 0);
+    explicit QCameraViewfinder(QWidget *parent = Q_NULLPTR);
     ~QCameraViewfinder();
 
     QMediaObject *mediaObject() const;

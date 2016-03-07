@@ -1,12 +1,9 @@
+TARGET = qavfcamera
+
 # Avoid clash with a variable named `slots' in a Quartz header
 CONFIG += no_keywords
 
-TARGET = qavfcamera
 QT += multimedia-private network
-
-PLUGIN_TYPE = mediaservice
-PLUGIN_CLASS_NAME = AVFServicePlugin
-load(qt_plugin)
 
 LIBS += -framework AudioToolbox \
         -framework CoreAudio \
@@ -79,3 +76,7 @@ OBJECTIVE_SOURCES += avfcamerazoomcontrol.mm \
                      avfmediarecordercontrol_ios.mm
 
 }
+
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = AVFServicePlugin
+load(qt_plugin)

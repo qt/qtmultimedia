@@ -1,10 +1,6 @@
 TARGET = qtaudio_alsa
 QT += multimedia-private
 
-PLUGIN_TYPE = audio
-PLUGIN_CLASS_NAME = QAlsaPlugin
-load(qt_plugin)
-
 LIBS += -lasound
 
 HEADERS += \
@@ -21,3 +17,7 @@ SOURCES += \
 
 OTHER_FILES += \
     alsa.json
+
+PLUGIN_TYPE = audio
+PLUGIN_CLASS_NAME = QAlsaPlugin
+load(qt_plugin)

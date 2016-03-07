@@ -4,6 +4,6 @@ SOURCES += tst_qwavedecoder.cpp \
            ../../../../src/multimedia/audio/qwavedecoder_p.cpp
 
 QT += multimedia-private testlib network
-CONFIG += no_private_qt_headers_warning testcase
+CONFIG += testcase
 
 TESTDATA += data/*

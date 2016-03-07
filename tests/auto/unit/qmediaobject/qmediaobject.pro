@@ -1,4 +1,4 @@
-CONFIG += testcase no_private_qt_headers_warning
+CONFIG += testcase
 TARGET = tst_qmediaobject
 QT += multimedia-private testlib
 

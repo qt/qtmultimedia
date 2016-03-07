@@ -1,11 +1,7 @@
 TARGET = eglvideonode
+
 QT += multimedia-private qtmultimediaquicktools-private
 CONFIG += egl
-
-PLUGIN_TYPE=video/videonode
-PLUGIN_EXTENDS = quick
-PLUGIN_CLASS_NAME = QSGVideoNodeFactory_EGL
-load(qt_plugin)
 
 HEADERS += \
     qsgvideonode_egl.h
@@ -15,3 +11,8 @@ SOURCES += \
 
 OTHER_FILES += \
     egl.json
+
+PLUGIN_TYPE = video/videonode
+PLUGIN_EXTENDS = quick
+PLUGIN_CLASS_NAME = QSGVideoNodeFactory_EGL
+load(qt_plugin)

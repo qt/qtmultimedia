@@ -1,10 +1,6 @@
 TARGET = imx6vivantevideonode
-QT += multimedia-private qtmultimediaquicktools-private
 
-PLUGIN_TYPE=video/videonode
-PLUGIN_EXTENDS = quick
-PLUGIN_CLASS_NAME = QSGVivanteVideoNodeFactory
-load(qt_plugin)
+QT += multimedia-private qtmultimediaquicktools-private
 
 HEADERS += \
     qsgvivantevideonode.h \
@@ -20,3 +16,8 @@ SOURCES += \
 
 OTHER_FILES += \
     imx6.json
+
+PLUGIN_TYPE = video/videonode
+PLUGIN_EXTENDS = quick
+PLUGIN_CLASS_NAME = QSGVivanteVideoNodeFactory
+load(qt_plugin)

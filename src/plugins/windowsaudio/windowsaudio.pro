@@ -1,10 +1,6 @@
 TARGET = qtaudio_windows
 QT += multimedia-private
 
-PLUGIN_TYPE = audio
-PLUGIN_CLASS_NAME = QWindowsAudioPlugin
-load(qt_plugin)
-
 LIBS += -lstrmiids -lole32 -loleaut32
 !wince*:LIBS += -lwinmm
 
@@ -24,3 +20,7 @@ SOURCES += \
 
 OTHER_FILES += \
     windowsaudio.json
+
+PLUGIN_TYPE = audio
+PLUGIN_CLASS_NAME = QWindowsAudioPlugin
+load(qt_plugin)

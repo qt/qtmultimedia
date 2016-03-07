@@ -1,15 +1,10 @@
-load(qt_build_config)
+TARGET = qavfmediaplayer
 
 #DEFINES += QT_DEBUG_AVF
 # Avoid clash with a variable named `slots' in a Quartz header
 CONFIG += no_keywords
 
-TARGET = qavfmediaplayer
 QT += multimedia-private network
-
-PLUGIN_TYPE = mediaservice
-PLUGIN_CLASS_NAME = AVFMediaPlayerServicePlugin
-load(qt_plugin)
 
 LIBS += -framework AVFoundation -framework CoreMedia -framework CoreVideo -framework QuartzCore
 
@@ -75,3 +70,7 @@ ios|tvos {
 
 OTHER_FILES += \
     avfmediaplayer.json
+
+PLUGIN_TYPE = mediaservice
+PLUGIN_CLASS_NAME = AVFMediaPlayerServicePlugin
+load(qt_plugin)

@@ -87,7 +87,7 @@ public:
     };
     Q_DECLARE_FLAGS(CaptureDestinations, CaptureDestination)
 
-    QCameraImageCapture(QMediaObject *mediaObject, QObject *parent = 0);
+    explicit QCameraImageCapture(QMediaObject *mediaObject, QObject *parent = Q_NULLPTR);
     ~QCameraImageCapture();
 
     bool isAvailable() const;
@@ -104,7 +104,7 @@ public:
     QString imageCodecDescription(const QString &codecName) const;
 
     QList<QSize> supportedResolutions(const QImageEncoderSettings &settings = QImageEncoderSettings(),
-                                      bool *continuous = 0) const;
+                                      bool *continuous = Q_NULLPTR) const;
 
     QImageEncoderSettings encodingSettings() const;
     void setEncodingSettings(const QImageEncoderSettings& settings);
