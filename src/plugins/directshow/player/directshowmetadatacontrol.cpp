@@ -31,13 +31,20 @@
 **
 ****************************************************************************/
 
+#include <dshow.h>
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 #include <QtMultimedia/qmediametadata.h>
 #include <QtCore/qcoreapplication.h>
 #include <QSize>
 #include <qdatetime.h>
 #include <qimage.h>
 
-#include <dshow.h>
 #include <initguid.h>
 #include <qnetwork.h>
 

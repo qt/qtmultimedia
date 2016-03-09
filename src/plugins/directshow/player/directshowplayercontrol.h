@@ -34,6 +34,8 @@
 #ifndef DIRECTSHOWPLAYERCONTROL_H
 #define DIRECTSHOWPLAYERCONTROL_H
 
+#include <dshow.h>
+
 #include "qmediacontent.h"
 #include "qmediaplayercontrol.h"
 

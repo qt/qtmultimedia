@@ -34,6 +34,8 @@
 #ifndef DIRECTSHOWPLAYERSERVICE_H
 #define DIRECTSHOWPLAYERSERVICE_H
 
+#include <dshow.h>
+
 #include "qmediaplayer.h"
 #include "qmediaresource.h"
 #include "qmediaservice.h"
@@ -168,10 +170,14 @@ private:
     };
 
     DirectShowPlayerControl *m_playerControl;
+#ifndef Q_OS_WINCE
     DirectShowMetaDataControl *m_metaDataControl;
+#endif
     DirectShowVideoRendererControl *m_videoRendererControl;
+#ifndef Q_OS_WINCE
     QVideoWindowControl *m_videoWindowControl;
     DirectShowAudioEndpointControl *m_audioEndpointControl;
+#endif
 
     QThread *m_taskThread;
     DirectShowEventLoop *m_loop;

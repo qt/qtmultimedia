@@ -34,11 +34,11 @@
 #ifndef DIRECTSHOWIOREADER_H
 #define DIRECTSHOWIOREADER_H
 
+#include <dshow.h>
+
 #include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qwaitcondition.h>
-
-#include <dshow.h>
 
 QT_BEGIN_NAMESPACE
 class QIODevice;

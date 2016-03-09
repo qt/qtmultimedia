@@ -31,6 +31,8 @@
 **
 ****************************************************************************/
 
+#include <dshow.h>
+
 #include "directshowplayercontrol.h"
 
 #include "directshowplayerservice.h"

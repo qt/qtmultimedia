@@ -34,9 +34,10 @@
 #ifndef DIRECTSHOWMEDIATYPE_H
 #define DIRECTSHOWMEDIATYPE_H
 
+#include <dshow.h>
+
 #include <qvideosurfaceformat.h>
 
-#include <dshow.h>
 #include <dvdmedia.h>
 
 class DirectShowMediaType : public AM_MEDIA_TYPE

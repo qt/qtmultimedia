@@ -34,6 +34,8 @@
 #ifndef DIRECTSHOWMETADATACONTROL_H
 #define DIRECTSHOWMETADATACONTROL_H
 
+#include <dshow.h>
+
 #include <qmetadatareadercontrol.h>
 
 #include "directshowglobal.h"

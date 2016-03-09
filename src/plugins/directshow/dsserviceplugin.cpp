@@ -31,14 +31,16 @@
 **
 ****************************************************************************/
 
+#include <dshow.h>
+
 #include <QtCore/qstring.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/QFile>
 
 #include "dsserviceplugin.h"
-#include "dsvideodevicecontrol.h"
 
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
+#include "dsvideodevicecontrol.h"
 #include <dshow.h>
 #include "dscameraservice.h"
 #endif

@@ -34,9 +34,10 @@
 #ifndef DIRECTSHOWPINENUM_H
 #define DIRECTSHOWPINENUM_H
 
+#include <dshow.h>
+
 #include <QtCore/qlist.h>
 
-#include <dshow.h>
 
 class DirectShowPinEnum : public IEnumPins
 {

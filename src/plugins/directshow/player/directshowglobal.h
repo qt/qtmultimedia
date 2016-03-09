@@ -34,9 +34,9 @@
 #ifndef DIRECTSHOWGLOBAL_H
 #define DIRECTSHOWGLOBAL_H
 
-#include <QtCore/qglobal.h>
-
 #include <dshow.h>
+
+#include <QtCore/qglobal.h>
 
 template <typename T> T *com_cast(IUnknown *unknown, const IID &iid)
 {
@@ -112,6 +112,7 @@ DECLARE_INTERFACE_(IFileSourceFilter ,IUnknown)
 
 #ifndef __IAMOpenProgress_INTERFACE_DEFINED__
 #define __IAMOpenProgress_INTERFACE_DEFINED__
+#undef INTERFACE
 #define INTERFACE IAMOpenProgress
 DECLARE_INTERFACE_(IAMOpenProgress ,IUnknown)
 {

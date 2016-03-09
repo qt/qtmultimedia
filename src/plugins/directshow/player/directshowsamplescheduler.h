@@ -34,11 +34,11 @@
 #ifndef DIRECTSHOWSAMPLESCHEDULER_H
 #define DIRECTSHOWSAMPLESCHEDULER_H
 
+#include <dshow.h>
+
 #include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qsemaphore.h>
-
-#include <dshow.h>
 
 class DirectShowTimedSample;
 
