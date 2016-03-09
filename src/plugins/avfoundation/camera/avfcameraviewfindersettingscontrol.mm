@@ -382,15 +382,7 @@ bool AVFCameraViewfinderSettingsControl2::applySettings(const QCameraViewfinderS
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     AVCaptureDeviceFormat *match = findBestFormatMatch(settings);
     if (match) {
-        if (match != captureDevice.activeFormat) {
-            const AVFConfigurationLock lock(captureDevice);
-            if (lock) {
-                captureDevice.activeFormat = match;
-                activeFormatChanged = true;
-            } else {
-                qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
-            }
-        }
+        activeFormatChanged = qt_set_active_format(captureDevice, match, false);
     } else {
         qDebugCamera() << Q_FUNC_INFO << "matching device format not found";
         // We still can update the pixel format at least.

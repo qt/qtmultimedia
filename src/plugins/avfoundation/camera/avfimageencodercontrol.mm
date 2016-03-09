@@ -227,15 +227,7 @@ bool AVFImageEncoderControl::applySettings()
             return false;
         }
 
-        if (match != captureDevice.activeFormat) {
-            const AVFConfigurationLock lock(captureDevice);
-            if (!lock) {
-                qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
-                return false;
-            }
-            captureDevice.activeFormat = match;
-            activeFormatChanged = true;
-        }
+        activeFormatChanged = qt_set_active_format(captureDevice, match, true);
 
 #if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
         if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_8_0) {

@@ -215,6 +215,10 @@ NSDictionary *AVFVideoEncoderSettingsControl::applySettings(AVCaptureConnection 
     if (!device)
         return nil;
 
+    AVFPSRange currentFps = qt_current_framerates(device, connection);
+    const bool needFpsChange = m_requestedSettings.frameRate() > 0
+                               && m_requestedSettings.frameRate() != currentFps.second;
+
     NSMutableDictionary *videoSettings = [NSMutableDictionary dictionary];
 
     // -- Codec
@@ -234,8 +238,8 @@ NSDictionary *AVFVideoEncoderSettingsControl::applySettings(AVCaptureConnection 
     int h = m_requestedSettings.resolution().height();
 
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
-    if (device.activeFormat) {
-        CMFormatDescriptionRef formatDesc = device.activeFormat.formatDescription;
+    if (AVCaptureDeviceFormat *currentFormat = device.activeFormat) {
+        CMFormatDescriptionRef formatDesc = currentFormat.formatDescription;
         CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
 
         // We have to change the device's activeFormat in 3 cases:
@@ -245,7 +249,7 @@ NSDictionary *AVFVideoEncoderSettingsControl::applySettings(AVCaptureConnection 
         AVCaptureDeviceFormat *newFormat = nil;
         if ((w <= 0 || h <= 0)
                 && m_requestedSettings.frameRate() > 0
-                && !format_supports_framerate(device.activeFormat, m_requestedSettings.frameRate())) {
+                && !format_supports_framerate(currentFormat, m_requestedSettings.frameRate())) {
 
             newFormat = qt_find_best_framerate_match(device,
                                                      m_service->session()->defaultCodec(),
@@ -267,17 +271,10 @@ NSDictionary *AVFVideoEncoderSettingsControl::applySettings(AVCaptureConnection 
             }
         }
 
-        if (newFormat && newFormat != device.activeFormat) {
-            const AVFConfigurationLock lock(device);
-            if (lock) {
-                m_restoreFormat = [device.activeFormat retain];
-                m_restoreFps = qt_current_framerates(device, connection);
-
-                device.activeFormat = newFormat;
-
-                formatDesc = newFormat.formatDescription;
-                dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
-            }
+        if (qt_set_active_format(device, newFormat, !needFpsChange)) {
+            m_restoreFormat = [currentFormat retain];
+            formatDesc = newFormat.formatDescription;
+            dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
         }
 
         if (w > 0 && h > 0) {
@@ -313,14 +310,12 @@ NSDictionary *AVFVideoEncoderSettingsControl::applySettings(AVCaptureConnection 
 
     // -- FPS
 
-    const qreal fps = m_requestedSettings.frameRate();
-    if (fps > qreal(0)) {
-        if (!m_restoreFps.first && !m_restoreFps.second)
-            m_restoreFps = qt_current_framerates(device, connection);
+    if (needFpsChange) {
+        m_restoreFps = currentFps;
+        const qreal fps = m_requestedSettings.frameRate();
         qt_set_framerate_limits(device, connection, fps, fps);
     }
-    AVFPSRange currentFps = qt_current_framerates(device, connection);
-    m_actualSettings.setFrameRate(currentFps.second);
+    m_actualSettings.setFrameRate(qt_current_framerates(device, connection).second);
 
     // -- Codec Settings
 
@@ -379,18 +374,17 @@ void AVFVideoEncoderSettingsControl::unapplySettings(AVCaptureConnection *connec
     if (!device)
         return;
 
+    const bool needFpsChanged = m_restoreFps.first || m_restoreFps.second;
+
 #if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
     if (m_restoreFormat) {
-        const AVFConfigurationLock lock(device);
-        if (lock)
-            device.activeFormat = m_restoreFormat;
-
+        qt_set_active_format(device, m_restoreFormat, !needFpsChanged);
         [m_restoreFormat release];
         m_restoreFormat = nil;
     }
 #endif
 
-    if (m_restoreFps.first || m_restoreFps.second) {
+    if (needFpsChanged) {
         qt_set_framerate_limits(device, connection, m_restoreFps.first, m_restoreFps.second);
         m_restoreFps = AVFPSRange();
     }

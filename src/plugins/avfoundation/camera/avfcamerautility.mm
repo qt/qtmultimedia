@@ -380,6 +380,56 @@ AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *forma
     return match;
 }
 
+bool qt_formats_are_equal(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2)
+{
+    if (f1 == f2)
+        return true;
+
+    if (![f1.mediaType isEqualToString:f2.mediaType])
+        return false;
+
+    return CMFormatDescriptionEqual(f1.formatDescription, f2.formatDescription);
+}
+
+bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat *format, bool preserveFps)
+{
+    static bool firstSet = true;
+
+    if (!captureDevice || !format)
+        return false;
+
+    if (qt_formats_are_equal(captureDevice.activeFormat, format)) {
+        if (firstSet) {
+            // The capture device format is persistent. The first time we set a format, report that
+            // it changed even if the formats are the same.
+            // This prevents the session from resetting the format to the default value.
+            firstSet = false;
+            return true;
+        }
+        return false;
+    }
+
+    firstSet = false;
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qWarning("Failed to set active format (lock failed)");
+        return false;
+    }
+
+    // Changing the activeFormat resets the frame rate.
+    AVFPSRange fps;
+    if (preserveFps)
+        fps = qt_current_framerates(captureDevice, nil);
+
+    captureDevice.activeFormat = format;
+
+    if (preserveFps)
+        qt_set_framerate_limits(captureDevice, nil, fps.first, fps.second);
+
+    return true;
+}
+
 #endif // SDK
 
 void qt_set_framerate_limits(AVCaptureConnection *videoConnection, qreal minFPS, qreal maxFPS)
