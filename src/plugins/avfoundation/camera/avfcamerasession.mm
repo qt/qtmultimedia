@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd and/or its subsidiary(-ies).
+** Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -286,8 +286,8 @@ void AVFCameraSession::setState(QCamera::State newState)
         m_defaultCodec = 0;
         defaultCodec();
 
-        bool activeFormatSet = applyImageEncoderSettings();
-        activeFormatSet |= applyViewfinderSettings();
+        bool activeFormatSet = applyImageEncoderSettings()
+                             | applyViewfinderSettings();
 
         [m_captureSession commitConfiguration];
 
@@ -338,6 +338,17 @@ void AVFCameraSession::processSessionStopped()
     }
 }
 
+void AVFCameraSession::onCaptureModeChanged(QCamera::CaptureModes mode)
+{
+    Q_UNUSED(mode)
+
+    const QCamera::State s = state();
+    if (s == QCamera::LoadedState || s == QCamera::ActiveState) {
+        applyImageEncoderSettings();
+        applyViewfinderSettings();
+    }
+}
+
 void AVFCameraSession::attachVideoInputDevice()
 {
     //Attach video input device:
@@ -381,11 +392,12 @@ bool AVFCameraSession::applyImageEncoderSettings()
 bool AVFCameraSession::applyViewfinderSettings()
 {
     if (AVFCameraViewfinderSettingsControl2 *vfControl = m_service->viewfinderSettingsControl2()) {
+        QCamera::CaptureModes currentMode = m_service->cameraControl()->captureMode();
         QCameraViewfinderSettings vfSettings(vfControl->requestedSettings());
         // Viewfinder and image capture solutions must be the same, if an image capture
         // resolution is set, it takes precedence over the viewfinder resolution.
-        if (AVFImageEncoderControl *imControl = m_service->imageEncoderControl()) {
-            const QSize imageResolution(imControl->requestedSettings().resolution());
+        if (currentMode.testFlag(QCamera::CaptureStillImage)) {
+            const QSize imageResolution(m_service->imageEncoderControl()->requestedSettings().resolution());
             if (!imageResolution.isNull() && imageResolution.isValid())
                 vfSettings.setResolution(imageResolution);
         }

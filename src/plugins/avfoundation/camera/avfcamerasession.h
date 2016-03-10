@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -92,6 +92,8 @@ public Q_SLOTS:
     void processRuntimeError();
     void processSessionStarted();
     void processSessionStopped();
+
+    void onCaptureModeChanged(QCamera::CaptureModes mode);
 
     void onCameraFrameFetched(const QVideoFrame &frame);
 

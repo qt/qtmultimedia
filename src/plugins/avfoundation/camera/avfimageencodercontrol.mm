@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -38,6 +38,7 @@
 #include "avfcamerasession.h"
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
+#include "avfcameracontrol.h"
 
 #include <QtMultimedia/qmediaencodersettings.h>
 
@@ -182,7 +183,8 @@ bool AVFImageEncoderControl::applySettings()
 
     AVFCameraSession *session = m_service->session();
     if (!session || (session->state() != QCamera::ActiveState
-        && session->state() != QCamera::LoadedState)) {
+        && session->state() != QCamera::LoadedState)
+            || !m_service->cameraControl()->captureMode().testFlag(QCamera::CaptureStillImage)) {
         return false;
     }
 
