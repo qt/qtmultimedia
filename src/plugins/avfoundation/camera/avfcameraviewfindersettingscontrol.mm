@@ -339,11 +339,16 @@ QList<QCameraViewfinderSettings> AVFCameraViewfinderSettingsControl2::supportedV
 
 QCameraViewfinderSettings AVFCameraViewfinderSettingsControl2::viewfinderSettings() const
 {
-    QCameraViewfinderSettings settings;
+    QCameraViewfinderSettings settings = m_settings;
 
     AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
     if (!captureDevice) {
         qDebugCamera() << Q_FUNC_INFO << "no capture device found";
+        return settings;
+    }
+
+    if (m_service->session()->state() != QCamera::LoadedState &&
+        m_service->session()->state() != QCamera::ActiveState) {
         return settings;
     }
 
