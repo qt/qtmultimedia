@@ -489,10 +489,17 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, qreal minFPS, qreal
     // settings for this format, kCMTimeInvalid on OS X ends with a runtime
     // exception:
     // "The activeVideoMinFrameDuration passed is not supported by the device."
+    // Instead, use the first item in the supported frame rates.
 #ifdef Q_OS_IOS
     [captureDevice setActiveVideoMinFrameDuration:minFrameDuration];
     [captureDevice setActiveVideoMaxFrameDuration:maxFrameDuration];
 #else // Q_OS_OSX
+    if (CMTimeCompare(minFrameDuration, kCMTimeInvalid) == 0
+            && CMTimeCompare(maxFrameDuration, kCMTimeInvalid) == 0) {
+        AVFrameRateRange *range = captureDevice.activeFormat.videoSupportedFrameRateRanges.firstObject;
+        minFrameDuration = range.minFrameDuration;
+        maxFrameDuration = range.maxFrameDuration;
+    }
 
     if (CMTimeCompare(minFrameDuration, kCMTimeInvalid))
         [captureDevice setActiveVideoMinFrameDuration:minFrameDuration];
