@@ -35,12 +35,12 @@
 #define EVRDEFS_H
 
 #include <d3d9.h>
-#include <Evr9.h>
+#include <evr9.h>
 #include <evr.h>
 #include <dxva2api.h>
 #include <mfapi.h>
 #include <mfidl.h>
-#include <Mferror.h>
+#include <mferror.h>
 
 extern const CLSID clsid_EnhancedVideoRenderer;
 extern const GUID mr_VIDEO_RENDER_SERVICE;
