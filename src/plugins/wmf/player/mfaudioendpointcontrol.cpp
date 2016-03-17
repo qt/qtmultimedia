@@ -34,6 +34,8 @@
 #include "QtCore/qdebug.h"
 #include "mfaudioendpointcontrol.h"
 
+#include <mmdeviceapi.h>
+
 MFAudioEndpointControl::MFAudioEndpointControl(QObject *parent)
     : QAudioOutputSelectorControl(parent)
     , m_currentActivate(0)

@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-\qmlmodule QtAudioEngine 1.0
+\qmlmodule QtAudioEngine 1.1
 \title Qt Audio Engine QML Types
 \ingroup qmlmodules
 \brief Provides QML types for 3D positional audio playback and content management.
@@ -37,7 +37,7 @@ Engine provides types for 3D positional audio playback and content management.
 The QML types can be imported into your application using the following import
 statement in your .qml file:
 \code
-import QtAudioEngine 1.0
+import QtAudioEngine 1.1
 \endcode
 
 \section1 Qt Audio Engine Features
