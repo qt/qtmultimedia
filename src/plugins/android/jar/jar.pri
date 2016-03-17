@@ -1,7 +1,6 @@
 load(qt_build_paths)
 CONFIG += java
 DESTDIR = $$MODULE_BASE_OUTDIR/jar
-API_VERSION = android-11
 
 JAVACLASSPATH += $$PWD/src
 
