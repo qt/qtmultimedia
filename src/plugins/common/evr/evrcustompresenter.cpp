@@ -1872,18 +1872,19 @@ float EVRCustomPresenter::getMaxRate(bool thin)
 
 bool EVRCustomPresenter::event(QEvent *e)
 {
-    if (e->type() == StartSurface) {
+    switch (int(e->type())) {
+    case StartSurface:
         startSurface();
         return true;
-    } else if (e->type() == StopSurface) {
+    case StopSurface:
         stopSurface();
         return true;
-    } else if (e->type() == PresentSample) {
-        PresentSampleEvent *ev = static_cast<PresentSampleEvent *>(e);
-        presentSample(ev->sample());
+    case PresentSample:
+        presentSample(static_cast<PresentSampleEvent *>(e)->sample());
         return true;
+    default:
+        break;
     }
-
     return QObject::event(e);
 }
 
