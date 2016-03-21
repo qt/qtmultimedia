@@ -237,7 +237,7 @@ InputTest::InputTest()
     ,   m_audioInfo(0)
     ,   m_audioInput(0)
     ,   m_input(0)
-    ,   m_pullMode(false)
+    ,   m_pullMode(true)
     ,   m_buffer(BufferSize, 0)
 {
     initializeWindow();
@@ -291,8 +291,6 @@ void InputTest::initializeWindow()
 
 void InputTest::initializeAudio()
 {
-    m_pullMode = true;
-
     m_format.setSampleRate(8000);
     m_format.setChannelCount(1);
     m_format.setSampleSize(16);
@@ -300,12 +298,14 @@ void InputTest::initializeAudio()
     m_format.setByteOrder(QAudioFormat::LittleEndian);
     m_format.setCodec("audio/pcm");
 
-    QAudioDeviceInfo info(QAudioDeviceInfo::defaultInputDevice());
+    QAudioDeviceInfo info(m_device);
     if (!info.isFormatSupported(m_format)) {
         qWarning() << "Default format not supported - trying to use nearest";
         m_format = info.nearestFormat(m_format);
     }
 
+    if (m_audioInfo)
+        delete m_audioInfo;
     m_audioInfo  = new AudioInfo(m_format, this);
     connect(m_audioInfo, SIGNAL(update()), SLOT(refreshDisplay()));
 
@@ -381,7 +381,7 @@ void InputTest::deviceChanged(int index)
     delete m_audioInput;
 
     m_device = m_deviceBox->itemData(index).value<QAudioDeviceInfo>();
-    createAudioInput();
+    initializeAudio();
 }
 
 void InputTest::sliderChanged(int value)

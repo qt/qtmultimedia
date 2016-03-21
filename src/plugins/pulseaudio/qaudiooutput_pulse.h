@@ -141,8 +141,6 @@ private:
     QString m_category;
 
     qreal m_volume;
-    bool m_customVolumeRequired;
-    pa_cvolume m_chVolume;
     pa_sample_spec m_spec;
 };
 

@@ -40,9 +40,9 @@
 #ifndef DIRECTSHOWMEDIATYPELIST_H
 #define DIRECTSHOWMEDIATYPELIST_H
 
-#include <QtCore/qvector.h>
-
 #include <dshow.h>
+
+#include <QtCore/qvector.h>
 
 class DirectShowMediaTypeList : public IUnknown
 {

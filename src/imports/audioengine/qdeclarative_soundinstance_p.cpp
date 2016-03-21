@@ -58,15 +58,10 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This type is part of the \b{QtAudioEngine 1.0} module.
-
     There are two ways to create SoundInstance objects. You can obtain it by calling newInstance
     method of a \l Sound:
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
     Rectangle {
         id:root
         color:"white"
@@ -104,9 +99,6 @@ QT_USE_NAMESPACE
     easier qml bindings:
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
     Rectangle {
         id:root
         color:"white"

@@ -55,15 +55,10 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This type is part of the \b{QtAudioEngine 1.0} module.
-
     AudioListener will have only one global instance and you can either access it through the
     listener property of AudioEngine:
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
     Rectangle {
         color:"white"
         width: 300
@@ -98,9 +93,6 @@ QT_USE_NAMESPACE
     or alternatively, by defining an AudioListener outside AudioEngine:
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
     Rectangle {
         color:"white"
         width: 300

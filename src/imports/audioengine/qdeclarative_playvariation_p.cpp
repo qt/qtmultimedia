@@ -59,16 +59,11 @@ QT_USE_NAMESPACE
     \inherits Item
     \preliminary
 
-    This type is part of the \b{QtAudioEngine 1.0} module.
-
     PlayVariation must be defined inside a \l Sound or be added to it using
     \l{QtAudioEngine::Sound::addPlayVariation()}{Sound.addPlayVariation()}
     if PlayVariation is created dynamically.
 
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
     Rectangle {
         color:"white"
         width: 300

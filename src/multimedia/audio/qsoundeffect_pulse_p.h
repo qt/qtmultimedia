@@ -56,6 +56,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qreadwritelock.h>
 #include <qmediaplayer.h>
 #include <pulse/pulseaudio.h>
 #include "qsamplecache_p.h"
@@ -117,8 +118,6 @@ private Q_SLOTS:
     void prepare();
     void streamReady();
     void emptyComplete(void *stream);
-    void updateVolume();
-    void updateMuted();
 
     void handleAvailabilityChanged(bool available);
 
@@ -129,6 +128,8 @@ private:
     void emptyStream();
     void createPulseStream();
     void unloadPulseStream();
+
+    int writeToStream(const void *data, int size);
 
     void setPlaying(bool playing);
     void setStatus(QSoundEffect::Status status);
@@ -142,8 +143,6 @@ private:
     static void stream_write_done_callback(void *p);
     static void stream_adjust_prebuffer_callback(pa_stream *s, int success, void *userdata);
     static void stream_reset_buffer_callback(pa_stream *s, int success, void *userdata);
-    static void setvolume_callback(pa_context *c, int success, void *userdata);
-    static void setmuted_callback(pa_context *c, int success, void *userdata);
 
     pa_stream *m_pulseStream;
     int        m_sinkInputId;
@@ -171,11 +170,9 @@ private:
 
     bool m_resourcesAvailable;
 
-    QMediaPlayerResourceSetInterface *m_resources;
+    mutable QReadWriteLock m_volumeLock;
 
-#if defined(Q_WS_MAEMO_6) || defined(NEMO_AUDIO)
-    bool m_customVolume;
-#endif
+    QMediaPlayerResourceSetInterface *m_resources;
 };
 
 QT_END_NAMESPACE

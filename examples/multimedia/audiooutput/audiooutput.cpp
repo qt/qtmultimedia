@@ -167,6 +167,7 @@ AudioTest::AudioTest()
     ,   m_generator(0)
     ,   m_audioOutput(0)
     ,   m_output(0)
+    ,   m_pullMode(true)
     ,   m_buffer(BufferSize, 0)
 {
     initializeWindow();
@@ -222,8 +223,6 @@ void AudioTest::initializeAudio()
 {
     connect(m_pushTimer, SIGNAL(timeout()), SLOT(pushTimerExpired()));
 
-    m_pullMode = true;
-
     m_format.setSampleRate(DataSampleRateHz);
     m_format.setChannelCount(1);
     m_format.setSampleSize(16);
@@ -231,12 +230,14 @@ void AudioTest::initializeAudio()
     m_format.setByteOrder(QAudioFormat::LittleEndian);
     m_format.setSampleType(QAudioFormat::SignedInt);
 
-    QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
+    QAudioDeviceInfo info(m_device);
     if (!info.isFormatSupported(m_format)) {
         qWarning() << "Default format not supported - trying to use nearest";
         m_format = info.nearestFormat(m_format);
     }
 
+    if (m_generator)
+        delete m_generator;
     m_generator = new Generator(m_format, DurationSeconds*1000000, ToneSampleRateHz, this);
 
     createAudioOutput();
@@ -264,7 +265,7 @@ void AudioTest::deviceChanged(int index)
     m_audioOutput->stop();
     m_audioOutput->disconnect(this);
     m_device = m_deviceBox->itemData(index).value<QAudioDeviceInfo>();
-    createAudioOutput();
+    initializeAudio();
 }
 
 void AudioTest::volumeChanged(int value)

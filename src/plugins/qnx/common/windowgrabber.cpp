@@ -282,7 +282,8 @@ bool WindowGrabber::handleScreenEvent(screen_event_t screen_event)
         return false;
     }
 
-    if (m_windowId == idString) {
+    // Grab windows that have a non-empty ID string and a matching window id to grab
+    if (idString[0] != '\0' && m_windowId == idString) {
         m_window = window;
         start();
     }

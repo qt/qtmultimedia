@@ -40,9 +40,9 @@
 #ifndef DIRECTSHOWVIDEORENDERERCONTROL_H
 #define DIRECTSHOWVIDEORENDERERCONTROL_H
 
-#include "qvideorenderercontrol.h"
-
 #include <dshow.h>
+
+#include "qvideorenderercontrol.h"
 
 class DirectShowEventLoop;
 

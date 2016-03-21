@@ -63,12 +63,7 @@ QT_BEGIN_NAMESPACE
     \inherits Item
     \preliminary
 
-    \c AudioEngine is part of the \b{QtAudioEngine 1.0} module.
-
     \qml
-    import QtQuick 2.0
-    import QtAudioEngine 1.0
-
     Rectangle {
         color:"white"
         width: 300

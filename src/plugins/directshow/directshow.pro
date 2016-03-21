@@ -13,7 +13,7 @@ SOURCES += dsserviceplugin.cpp
 mingw: DEFINES += NO_DSHOW_STRSAFE
 
 !config_wmf: include(player/player.pri)
-include(camera/camera.pri)
+!wince: include(camera/camera.pri)
 
 OTHER_FILES += \
     directshow.json \
