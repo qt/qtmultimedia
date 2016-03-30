@@ -1092,9 +1092,19 @@ void DSCameraSession::disconnectGraph()
         pPin = NULL;
     }
 
-    m_filterGraph->RemoveFilter(m_nullRendererFilter);
-    m_filterGraph->RemoveFilter(m_previewFilter);
-    m_filterGraph->RemoveFilter(m_sourceFilter);
+    // To avoid increasing the memory usage every time the graph is re-connected it's
+    // important that all filters are released; also the ones added by the "Intelligent Connect".
+    IEnumFilters *enumFilters = NULL;
+    hr = m_filterGraph->EnumFilters(&enumFilters);
+    if (SUCCEEDED(hr))  {
+        IBaseFilter *filter = NULL;
+        while (enumFilters->Next(1, &filter, NULL) == S_OK) {
+                m_filterGraph->RemoveFilter(filter);
+                enumFilters->Reset();
+                filter->Release();
+        }
+        enumFilters->Release();
+    }
 }
 
 static bool qt_frameRateRangeGreaterThan(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2)
