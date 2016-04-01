@@ -218,6 +218,8 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
         return false;
     }
 
+    QMutexLocker locker(&m_mutex);
+
     m_surfaceTexture = new AndroidSurfaceTexture(m_externalTex);
 
     if (m_surfaceTexture->surfaceTexture() != 0) {
@@ -235,6 +237,7 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
 
 void QAndroidTextureVideoOutput::clearSurfaceTexture()
 {
+    QMutexLocker locker(&m_mutex);
     if (m_surfaceTexture) {
         delete m_surfaceTexture;
         m_surfaceTexture = 0;
