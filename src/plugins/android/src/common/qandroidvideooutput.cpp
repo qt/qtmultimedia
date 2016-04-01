@@ -304,6 +304,9 @@ void QAndroidTextureVideoOutput::renderFrameToFbo()
 {
     QMutexLocker locker(&m_mutex);
 
+    if (!m_nativeSize.isValid() || !m_surfaceTexture)
+        return;
+
     createGLResources();
 
     m_surfaceTexture->updateTexImage();
