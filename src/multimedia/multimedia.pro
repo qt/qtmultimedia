@@ -82,6 +82,10 @@ ANDROID_FEATURES += \
     android.hardware.camera.autofocus \
     android.hardware.microphone
 
+MODULE_WINRT_CAPABILITIES_DEVICE += \
+    microphone \
+    webcam
+
 win32: LIBS_PRIVATE += -luuid
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
