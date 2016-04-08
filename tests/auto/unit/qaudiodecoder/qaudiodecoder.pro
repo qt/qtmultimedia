@@ -1,14 +1,8 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2012-02-07T15:27:07
-#
-#-------------------------------------------------
-
 QT += multimedia multimedia-private testlib gui
 
 TARGET = tst_qaudiodecoder
 
-CONFIG += testcase no_private_qt_headers_warning
+CONFIG += testcase
 
 TEMPLATE = app
 

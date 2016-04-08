@@ -40,9 +40,9 @@
 #ifndef MEDIASAMPLEVIDEOBUFFER_H
 #define MEDIASAMPLEVIDEOBUFFER_H
 
-#include <qabstractvideobuffer.h>
-
 #include <dshow.h>
+
+#include <qabstractvideobuffer.h>
 
 class MediaSampleVideoBuffer : public QAbstractVideoBuffer
 {

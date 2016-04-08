@@ -12,8 +12,6 @@ MODULE_PLUGIN_TYPES = \
 
 QMAKE_DOCS = $$PWD/doc/qtmultimedia.qdocconf
 
-load(qt_module)
-
 INCLUDEPATH *= .
 
 PRIVATE_HEADERS += \
@@ -84,6 +82,12 @@ ANDROID_FEATURES += \
     android.hardware.camera.autofocus \
     android.hardware.microphone
 
+MODULE_WINRT_CAPABILITIES_DEVICE += \
+    microphone \
+    webcam
+
 win32: LIBS_PRIVATE += -luuid
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
+
+load(qt_module)

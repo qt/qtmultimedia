@@ -34,7 +34,8 @@ win32:!winrt:!wince {
 }
 
 winrt {
-    SUBDIRS += winrt
+    SUBDIRS += wasapi \
+               winrt
 }
 
 unix:!mac:!android {

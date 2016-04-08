@@ -40,6 +40,7 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmath.h>
+#include <private/qaudiohelpers_p.h>
 
 #include "qaudiooutput_pulse.h"
 #include "qaudiodeviceinfo_pulse.h"
@@ -91,7 +92,6 @@ static void outputStreamUnderflowCallback(pa_stream *stream, void *userdata)
 {
     Q_UNUSED(stream)
     ((QPulseAudioOutput*)userdata)->streamUnderflowCallback();
-    qWarning() << "Got a buffer underflow!";
 }
 
 static void outputStreamOverflowCallback(pa_stream *stream, void *userdata)
@@ -139,6 +139,18 @@ static void outputStreamDrainComplete(pa_stream *stream, int success, void *user
 #endif
 }
 
+static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *userdata)
+{
+    Q_UNUSED(stream);
+    Q_UNUSED(success);
+    Q_UNUSED(userdata);
+
+#ifdef DEBUG_PULSE
+    qDebug() << "Adjust prebuffer completed successfully: " << (bool)success;
+#endif
+}
+
+
 QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
     : m_device(device)
     , m_errorState(QAudio::NoError)
@@ -157,7 +169,6 @@ QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
     , m_audioBuffer(0)
     , m_resuming(false)
     , m_volume(1.0)
-    , m_customVolumeRequired(false)
 {
     connect(m_tickTimer, SIGNAL(timeout()), SLOT(userFeed()));
 }
@@ -213,16 +224,18 @@ void QPulseAudioOutput::start(QIODevice *device)
     // Handle change of mode
     if (m_audioSource && !m_pullMode) {
         delete m_audioSource;
-        m_audioSource = 0;
     }
+    m_audioSource = 0;
 
     close();
 
-    if (!open())
-        return;
-
     m_pullMode = true;
     m_audioSource = device;
+
+    if (!open()) {
+        m_audioSource = 0;
+        return;
+    }
 
     setState(QAudio::ActiveState);
 }
@@ -235,17 +248,18 @@ QIODevice *QPulseAudioOutput::start()
     // Handle change of mode
     if (m_audioSource && !m_pullMode) {
         delete m_audioSource;
-        m_audioSource = 0;
     }
+    m_audioSource = 0;
 
     close();
+
+    m_pullMode = false;
 
     if (!open())
         return Q_NULLPTR;
 
     m_audioSource = new PulseOutputPrivate(this);
     m_audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
-    m_pullMode = false;
 
     setState(QAudio::IdleState);
 
@@ -304,27 +318,6 @@ bool QPulseAudioOutput::open()
     pa_stream_set_overflow_callback(m_stream, outputStreamOverflowCallback, this);
     pa_stream_set_latency_update_callback(m_stream, outputStreamLatencyCallback, this);
 
-    pa_volume_t paVolume;
-
-    /* streams without a custom volume set are expected to already have a
-     * sensible volume set by Pulse, so we don't set it explicitly.
-     *
-     * explicit setting also breaks volume handling on sailfish, where each
-     * stream's volume is set separately inside pulseaudio, with the
-     * exception of streams that already have a volume set (i.e. if we set
-     * it here, we'd ignore system volume).
-     */
-    if (m_customVolumeRequired) {
-        if (qFuzzyCompare(m_volume, 0.0)) {
-            paVolume = PA_VOLUME_MUTED;
-            m_volume = 0.0;
-        } else {
-            paVolume = qFloor(m_volume * PA_VOLUME_NORM + 0.5);
-        }
-
-        pa_cvolume_set(&m_chVolume, m_spec.channels, paVolume);
-    }
-
     if (m_bufferSize <= 0 && m_category == LOW_LATENCY_CATEGORY_NAME) {
         m_bufferSize = bytesPerSecond * LowLatencyBufferSizeMs / qint64(1000);
     }
@@ -336,7 +329,7 @@ bool QPulseAudioOutput::open()
     requestedBuffer.prebuf = (uint32_t)-1;
     requestedBuffer.tlength = m_bufferSize;
 
-    if (pa_stream_connect_playback(m_stream, m_device.data(), (m_bufferSize > 0) ? &requestedBuffer : NULL, (pa_stream_flags_t)0, m_customVolumeRequired ? &m_chVolume : NULL, NULL) < 0) {
+    if (pa_stream_connect_playback(m_stream, m_device.data(), (m_bufferSize > 0) ? &requestedBuffer : NULL, (pa_stream_flags_t)0, NULL, NULL) < 0) {
         qWarning() << "pa_stream_connect_playback() failed!";
         pa_stream_unref(m_stream);
         m_stream = 0;
@@ -355,6 +348,17 @@ bool QPulseAudioOutput::open()
     m_bufferSize = buffer->tlength;
     m_maxBufferSize = buffer->maxlength;
     m_audioBuffer = new char[m_maxBufferSize];
+
+    const qint64 streamSize = m_audioSource ? m_audioSource->size() : 0;
+    if (m_pullMode && streamSize > 0 && static_cast<qint64>(buffer->prebuf) > streamSize) {
+        pa_buffer_attr newBufferAttr;
+        newBufferAttr = *buffer;
+        newBufferAttr.prebuf = streamSize;
+        pa_operation *o = pa_stream_set_buffer_attr(m_stream, &newBufferAttr, streamAdjustPrebufferCallback, NULL);
+        if (o)
+            pa_operation_unref(o);
+    }
+
 #ifdef DEBUG_PULSE
     qDebug() << "Buffering info:";
     qDebug() << "\tMax length: " << buffer->maxlength;
@@ -472,8 +476,33 @@ qint64 QPulseAudioOutput::write(const char *data, qint64 len)
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
 
     pulseEngine->lock();
+
     len = qMin(len, static_cast<qint64>(pa_stream_writable_size(m_stream)));
-    pa_stream_write(m_stream, data, len, 0, 0, PA_SEEK_RELATIVE);
+
+    if (m_volume < 1.0f) {
+        // Don't use PulseAudio volume, as it might affect all other streams of the same category
+        // or even affect the system volume if flat volumes are enabled
+        void *dest = NULL;
+        size_t nbytes = len;
+        if (pa_stream_begin_write(m_stream, &dest, &nbytes) < 0) {
+            qWarning("QAudioOutput(pulseaudio): pa_stream_begin_write, error = %s",
+                     pa_strerror(pa_context_errno(pulseEngine->context())));
+            setError(QAudio::IOError);
+            return 0;
+        }
+
+        len = int(nbytes);
+        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, dest, len);
+        data = reinterpret_cast<char *>(dest);
+    }
+
+    if (pa_stream_write(m_stream, data, len, NULL, 0, PA_SEEK_RELATIVE) < 0) {
+        qWarning("QAudioOutput(pulseaudio): pa_stream_write, error = %s",
+                 pa_strerror(pa_context_errno(pulseEngine->context())));
+        setError(QAudio::IOError);
+        return 0;
+    }
+
     pulseEngine->unlock();
     m_totalTimeValue += len;
 
@@ -645,34 +674,10 @@ qint64 PulseOutputPrivate::writeData(const char *data, qint64 len)
 
 void QPulseAudioOutput::setVolume(qreal vol)
 {
-    if (vol >= 0.0 && vol <= 1.0) {
-        if (!qFuzzyCompare(m_volume, vol)) {
-            m_customVolumeRequired = true;
-            m_volume = vol;
-            if (m_opened) {
-                QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
-                pulseEngine->lock();
-                pa_volume_t paVolume;
-                if (qFuzzyCompare(vol, 0.0)) {
-                    pa_cvolume_mute(&m_chVolume, m_spec.channels);
-                    m_volume = 0.0;
-                } else {
-                    paVolume = qFloor(m_volume * PA_VOLUME_NORM + 0.5);
-                    pa_cvolume_set(&m_chVolume, m_spec.channels, paVolume);
-                }
-                pa_operation *op = pa_context_set_sink_input_volume(pulseEngine->context(),
-                        pa_stream_get_index(m_stream),
-                        &m_chVolume,
-                        NULL,
-                        NULL);
-                if (op == NULL)
-                    qWarning()<<"QAudioOutput: Failed to set volume";
-                else
-                    pa_operation_unref(op);
-                pulseEngine->unlock();
-            }
-        }
-    }
+    if (qFuzzyCompare(m_volume, vol))
+        return;
+
+    m_volume = qBound(qreal(0), vol, qreal(1));
 }
 
 qreal QPulseAudioOutput::volume() const

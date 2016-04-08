@@ -46,6 +46,7 @@
 #include <qpa/qplatformnativeinterface.h>
 
 #include <QOpenGLContext>
+#include <QOpenGLFunctions>
 
 #ifdef Q_OS_BLACKBERRY
 #include <bps/event.h>
@@ -282,7 +283,8 @@ bool WindowGrabber::handleScreenEvent(screen_event_t screen_event)
         return false;
     }
 
-    if (m_windowId == idString) {
+    // Grab windows that have a non-empty ID string and a matching window id to grab
+    if (idString[0] != '\0' && m_windowId == idString) {
         m_window = window;
         start();
     }
@@ -347,6 +349,9 @@ void WindowGrabber::checkForEglImageExtension()
                                                          EGL_EXTENSIONS));
     m_eglImageSupported = m_context->hasExtension(QByteArrayLiteral("GL_OES_EGL_image"))
                           && eglExtensions.contains(QByteArrayLiteral("EGL_KHR_image"));
+
+    if (strstr(reinterpret_cast<const char*>(glGetString(GL_VENDOR)), "VMware"))
+        m_eglImageSupported = false;
 
     m_eglImageCheck = true;
 }

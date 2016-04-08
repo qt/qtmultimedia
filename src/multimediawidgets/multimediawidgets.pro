@@ -7,8 +7,6 @@ qtHaveModule(opengl):!contains(QT_CONFIG, opengles1) {
    DEFINES += QT_NO_OPENGL
 }
 
-load(qt_module)
-
 PRIVATE_HEADERS += \
     qvideowidget_p.h \
     qpaintervideosurface_p.h \
@@ -44,3 +42,5 @@ maemo6 {
 }
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
+
+load(qt_module)

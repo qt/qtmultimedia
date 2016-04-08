@@ -42,7 +42,6 @@
 
 #include <mfapi.h>
 #include <mfidl.h>
-#include <mmdeviceapi.h>
 
 #include "qaudiooutputselectorcontrol.h"
 

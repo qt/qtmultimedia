@@ -71,7 +71,7 @@ Q_SIGNALS:
     void devicesChanged();
 
 protected:
-    QVideoDeviceSelectorControl(QObject *parent = 0);
+    explicit QVideoDeviceSelectorControl(QObject *parent = Q_NULLPTR);
 };
 
 #define QVideoDeviceSelectorControl_iid "org.qt-project.qt.videodeviceselectorcontrol/5.0"
