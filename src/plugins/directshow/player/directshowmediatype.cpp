@@ -198,11 +198,9 @@ QVideoSurfaceFormat::Direction DirectShowMediaType::scanLineDirection(QVideoFram
     case QVideoFrame::Format_BGR24:
     case QVideoFrame::Format_RGB565:
     case QVideoFrame::Format_RGB555:
-#ifndef Q_OS_WINCE
         return bmiHeader.biHeight < 0
             ? QVideoSurfaceFormat::TopToBottom
             : QVideoSurfaceFormat::BottomToTop;
-#endif
     default:
         return QVideoSurfaceFormat::TopToBottom;
     }
