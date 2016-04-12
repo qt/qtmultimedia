@@ -91,7 +91,7 @@ public:
     GstPhotography *photography();
 #endif
     GstElement *cameraBin() { return m_camerabin; }
-    GstElement *cameraSource() { return m_videoSrc; }
+    GstElement *cameraSource() { return m_cameraSrc; }
     QGstreamerBusHelper *bus() { return m_busHelper; }
 
     QList< QPair<int,int> > supportedFrameRates(const QSize &frameSize, bool *continuous) const;

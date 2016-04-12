@@ -65,9 +65,12 @@ QCamera::LockTypes CameraBinLocks::supportedLocks() const
     if (GstPhotography *photography = m_session->photography()) {
         if (gst_photography_get_capabilities(photography) & GST_PHOTOGRAPHY_CAPS_WB_MODE)
             locks |= QCamera::LockWhiteBalance;
-        if (g_object_class_find_property(
-                    G_OBJECT_GET_CLASS(m_session->cameraSource()), "exposure-mode")) {
-            locks |= QCamera::LockExposure;
+
+    if (GstElement *source = m_session->cameraSource()) {
+            if (g_object_class_find_property(
+                        G_OBJECT_GET_CLASS(source), "exposure-mode")) {
+                locks |= QCamera::LockExposure;
+            }
         }
     }
 #endif
@@ -195,9 +198,13 @@ bool CameraBinLocks::isExposureLocked() const
 
 void CameraBinLocks::lockExposure(QCamera::LockChangeReason reason)
 {
+    GstElement *source = m_session->cameraSource();
+    if (!source)
+        return;
+
     m_pendingLocks &= ~QCamera::LockExposure;
     g_object_set(
-                G_OBJECT(m_session->cameraSource()),
+                G_OBJECT(source),
                 "exposure-mode",
                 GST_PHOTOGRAPHY_EXPOSURE_MODE_MANUAL,
                 NULL);
@@ -206,8 +213,12 @@ void CameraBinLocks::lockExposure(QCamera::LockChangeReason reason)
 
 void CameraBinLocks::unlockExposure(QCamera::LockStatus status, QCamera::LockChangeReason reason)
 {
+    GstElement *source = m_session->cameraSource();
+    if (!source)
+        return;
+
     g_object_set(
-                G_OBJECT(m_session->cameraSource()),
+                G_OBJECT(source),
                 "exposure-mode",
                 GST_PHOTOGRAPHY_EXPOSURE_MODE_AUTO,
                 NULL);

@@ -514,7 +514,8 @@ GstElement *CameraBinSession::buildCameraSource()
                 if (!m_videoSrc)
                     m_videoSrc = gst_element_factory_make("v4l2src", "camera_source");
 
-                g_object_set(G_OBJECT(m_cameraSrc), "video-source", m_videoSrc, NULL);
+                if (m_videoSrc)
+                    g_object_set(G_OBJECT(m_cameraSrc), "video-source", m_videoSrc, NULL);
             }
 
             if (m_videoSrc)
