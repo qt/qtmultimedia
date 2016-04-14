@@ -40,6 +40,8 @@
 #include <QtMultimedia/QCameraControl>
 #include <QtCore/qt_windows.h>
 
+#include <wrl.h>
+
 namespace ABI {
     namespace Windows {
         namespace Media {
@@ -90,7 +92,7 @@ public:
     QCameraFocusControl *cameraFocusControl() const;
     QCameraLocksControl *cameraLocksControl() const;
 
-    ABI::Windows::Media::Capture::IMediaCapture *handle() const;
+    Microsoft::WRL::ComPtr<ABI::Windows::Media::Capture::IMediaCapture> handle() const;
 
     bool setFocus(QCameraFocus::FocusModes mode);
     bool setFocusPoint(const QPointF &point);

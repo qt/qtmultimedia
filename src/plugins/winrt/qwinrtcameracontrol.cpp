@@ -775,10 +775,10 @@ QCameraLocksControl *QWinRTCameraControl::cameraLocksControl() const
     return d->cameraLocksControl;
 }
 
-IMediaCapture *QWinRTCameraControl::handle() const
+Microsoft::WRL::ComPtr<ABI::Windows::Media::Capture::IMediaCapture> QWinRTCameraControl::handle() const
 {
     Q_D(const QWinRTCameraControl);
-    return d->capture.Get();
+    return d->capture;
 }
 
 void QWinRTCameraControl::onBufferRequested()

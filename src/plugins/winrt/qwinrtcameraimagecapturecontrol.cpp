@@ -147,7 +147,7 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
     Q_D(QWinRTCameraImageCaptureControl);
 
     ++d->currentCaptureId;
-    IMediaCapture *capture = d->cameraControl->handle();
+    ComPtr<IMediaCapture> capture = d->cameraControl->handle();
     if (!capture) {
         emit error(d->currentCaptureId, QCameraImageCapture::NotReadyError, tr("Camera not ready"));
         return -1;
