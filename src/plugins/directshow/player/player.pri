@@ -1,7 +1,6 @@
 INCLUDEPATH += $$PWD
 
-LIBS += -lstrmiids -ldmoguids -luuid -lole32 -loleaut32
-!wince: LIBS += -lmsdmo -lgdi32
+LIBS += -lstrmiids -ldmoguids -luuid -lole32 -loleaut32 -lmsdmo -lgdi32
 
 
 qtHaveModule(widgets): QT += widgets
@@ -21,7 +20,10 @@ HEADERS += \
         $$PWD/directshowsamplescheduler.h \
         $$PWD/directshowvideorenderercontrol.h \
         $$PWD/mediasamplevideobuffer.h \
-        $$PWD/videosurfacefilter.h
+        $$PWD/videosurfacefilter.h \
+        $$PWD/directshowaudioendpointcontrol.h \
+        $$PWD/directshowmetadatacontrol.h \
+        $$PWD/vmr9videowindowcontrol.h
 
 SOURCES += \
         $$PWD/directshoweventloop.cpp \
@@ -35,19 +37,10 @@ SOURCES += \
         $$PWD/directshowsamplescheduler.cpp \
         $$PWD/directshowvideorenderercontrol.cpp \
         $$PWD/mediasamplevideobuffer.cpp \
-        $$PWD/videosurfacefilter.cpp
-
-!wince {
-HEADERS += \
-        $$PWD/directshowaudioendpointcontrol.h \
-        $$PWD/directshowmetadatacontrol.h \
-        $$PWD/vmr9videowindowcontrol.h
-
-SOURCES += \
+        $$PWD/videosurfacefilter.cpp \
         $$PWD/directshowaudioendpointcontrol.cpp \
         $$PWD/directshowmetadatacontrol.cpp \
         $$PWD/vmr9videowindowcontrol.cpp
-}
 
 config_evr {
     DEFINES += HAVE_EVR

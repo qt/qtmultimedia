@@ -1,8 +1,7 @@
 TARGET = qtaudio_windows
 QT += multimedia-private
 
-LIBS += -lstrmiids -lole32 -loleaut32
-!wince*:LIBS += -lwinmm
+LIBS += -lstrmiids -lole32 -loleaut32 -lwinmm
 
 HEADERS += \
     qwindowsaudioplugin.h \

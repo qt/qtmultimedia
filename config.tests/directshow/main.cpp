@@ -27,10 +27,8 @@
 ****************************************************************************/
 
 #include <dshow.h>
-#ifndef _WIN32_WCE
 #include <d3d9.h>
 #include <vmr9.h>
-#endif
 
 int main(int, char**)
 {
