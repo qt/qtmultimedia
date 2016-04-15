@@ -118,6 +118,7 @@ public:
 QWinRTCameraImageCaptureControl::QWinRTCameraImageCaptureControl(QWinRTCameraControl *parent)
     : QCameraImageCaptureControl(parent), d_ptr(new QWinRTCameraImageCaptureControlPrivate)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << parent;
     Q_D(QWinRTCameraImageCaptureControl);
 
     d->cameraControl = parent;
@@ -144,6 +145,7 @@ void QWinRTCameraImageCaptureControl::setDriveMode(QCameraImageCapture::DriveMod
 
 int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << fileName;
     Q_D(QWinRTCameraImageCaptureControl);
 
     ++d->currentCaptureId;
@@ -191,6 +193,7 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
 
 void QWinRTCameraImageCaptureControl::cancelCapture()
 {
+    qCDebug(lcMMCamera) << __FUNCTION__;
     Q_D(QWinRTCameraImageCaptureControl);
 
     QHash<IAsyncAction *, CaptureRequest>::iterator it = d->requests.begin();
@@ -205,6 +208,7 @@ void QWinRTCameraImageCaptureControl::cancelCapture()
 
 HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncInfo, AsyncStatus status)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__;
     Q_D(QWinRTCameraImageCaptureControl);
 
     if (status == Canceled || !d->requests.contains(asyncInfo))

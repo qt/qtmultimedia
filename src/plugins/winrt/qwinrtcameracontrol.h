@@ -38,6 +38,7 @@
 #define QWINRTCAMERACONTROL_H
 
 #include <QtMultimedia/QCameraControl>
+#include <QtCore/QLoggingCategory>
 #include <QtCore/qt_windows.h>
 
 #include <wrl.h>
@@ -58,6 +59,8 @@ namespace ABI {
 }
 
 QT_BEGIN_NAMESPACE
+
+Q_DECLARE_LOGGING_CATEGORY(lcMMCamera)
 
 class QVideoRendererControl;
 class QVideoDeviceSelectorControl;

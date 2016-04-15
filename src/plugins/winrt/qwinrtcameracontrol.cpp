@@ -81,6 +81,8 @@ QT_BEGIN_NAMESPACE
 #define FOCUS_RECT_POSITION_MAX 0.995f // FOCUS_RECT_BOUNDARY - FOCUS_RECT_HALF_SIZE
 #define ASPECTRATIO_EPSILON 0.01f
 
+Q_LOGGING_CATEGORY(lcMMCamera, "qt.mm.camera")
+
 HRESULT getMediaStreamResolutions(IMediaDeviceController *device,
                                   MediaStreamType type,
                                   IVectorView<IMediaEncodingProperties *> **propertiesList,
@@ -532,6 +534,7 @@ public:
 QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
     : QCameraControl(parent), d_ptr(new QWinRTCameraControlPrivate)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << parent;
     Q_D(QWinRTCameraControl);
 
     d->delayClose = nullptr;
@@ -568,6 +571,7 @@ QCamera::State QWinRTCameraControl::state() const
 
 void QWinRTCameraControl::setState(QCamera::State state)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << state;
     Q_D(QWinRTCameraControl);
 
     if (d->state == state)
@@ -713,6 +717,7 @@ QCamera::CaptureModes QWinRTCameraControl::captureMode() const
 
 void QWinRTCameraControl::setCaptureMode(QCamera::CaptureModes mode)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << mode;
     Q_D(QWinRTCameraControl);
 
     if (d->captureMode == mode)
@@ -791,6 +796,7 @@ void QWinRTCameraControl::onBufferRequested()
 
 void QWinRTCameraControl::onApplicationStateChanged(Qt::ApplicationState state)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << state;
     Q_D(QWinRTCameraControl);
     static QCamera::State savedState = d->state;
     switch (state) {
@@ -810,6 +816,7 @@ void QWinRTCameraControl::onApplicationStateChanged(Qt::ApplicationState state)
 
 HRESULT QWinRTCameraControl::initialize()
 {
+    qCDebug(lcMMCamera) << __FUNCTION__;
     Q_D(QWinRTCameraControl);
 
     if (d->status != QCamera::LoadingStatus) {
@@ -1284,6 +1291,7 @@ void QWinRTCameraControl::frameUnmapped()
 
 HRESULT QWinRTCameraControl::onCaptureFailed(IMediaCapture *, IMediaCaptureFailedEventArgs *args)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << args;
     HRESULT hr;
     UINT32 code;
     hr = args->get_Code(&code);
@@ -1300,6 +1308,7 @@ HRESULT QWinRTCameraControl::onCaptureFailed(IMediaCapture *, IMediaCaptureFaile
 
 HRESULT QWinRTCameraControl::onRecordLimitationExceeded(IMediaCapture *)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__;
     emit error(QCamera::CameraError, QStringLiteral("Recording limit exceeded."));
     setState(QCamera::LoadedState);
     return S_OK;
@@ -1307,6 +1316,7 @@ HRESULT QWinRTCameraControl::onRecordLimitationExceeded(IMediaCapture *)
 
 void QWinRTCameraControl::emitError(int errorCode, const QString &errorString)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << errorString << errorCode;
     emit error(errorCode, errorString);
 }
 
