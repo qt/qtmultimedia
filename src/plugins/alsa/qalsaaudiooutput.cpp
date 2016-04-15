@@ -673,6 +673,7 @@ QAudioFormat QAlsaAudioOutput::format() const
 void QAlsaAudioOutput::suspend()
 {
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState || resuming) {
+        snd_pcm_drain(handle);
         timer->stop();
         deviceState = QAudio::SuspendedState;
         errorState = QAudio::NoError;
