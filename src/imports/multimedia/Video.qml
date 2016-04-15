@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import QtMultimedia 5.6
+import QtMultimedia 5.9
 
 /*!
     \qmltype Video
@@ -372,6 +372,19 @@ Item {
         Setting to \c true also sets \l autoLoad to \c true. The default is \c false.
     */
     property alias autoPlay:        player.autoPlay
+
+    /*!
+        \qmlproperty int Video::notifyInterval
+
+        The interval at which notifiable properties will update.
+
+        The notifiable properties are \l position and \l bufferProgress.
+
+        The interval is expressed in milliseconds, the default value is 1000.
+
+        \since 5.9
+    */
+    property alias notifyInterval:  player.notifyInterval
 
     /*!
         \qmlsignal Video::paused()

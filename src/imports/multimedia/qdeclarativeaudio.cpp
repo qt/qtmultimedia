@@ -119,6 +119,7 @@ QDeclarativeAudio::QDeclarativeAudio(QObject *parent)
     , m_status(QMediaPlayer::NoMedia)
     , m_error(QMediaPlayer::ServiceMissingError)
     , m_player(0)
+    , m_notifyInterval(1000)
 {
 }
 
@@ -198,6 +199,34 @@ void QDeclarativeAudio::setAudioRole(QDeclarativeAudio::AudioRole audioRole)
         m_audioRole = audioRole;
         emit audioRoleChanged();
     }
+}
+
+/*!
+    \qmlproperty int QtMultimedia::Audio::notifyInterval
+
+    The interval at which notifiable properties will update.
+
+    The notifiable properties are \l position and \l bufferProgress.
+
+    The interval is expressed in milliseconds, the default value is 1000.
+
+    \since 5.9
+*/
+int QDeclarativeAudio::notifyInterval() const
+{
+    return m_complete ? m_player->notifyInterval() : m_notifyInterval;
+}
+
+void QDeclarativeAudio::setNotifyInterval(int value)
+{
+    if (notifyInterval() == value)
+        return;
+    if (m_complete) {
+        m_player->setNotifyInterval(value);
+        return;
+    }
+    m_notifyInterval = value;
+    emit notifyIntervalChanged();
 }
 
 /*!
@@ -813,6 +842,8 @@ void QDeclarativeAudio::classBegin()
             this, SIGNAL(hasVideoChanged()));
     connect(m_player, SIGNAL(audioRoleChanged(QAudio::Role)),
             this, SIGNAL(audioRoleChanged()));
+    connect(m_player, SIGNAL(notifyIntervalChanged(int)),
+            this, SIGNAL(notifyIntervalChanged()));
 
     m_error = m_player->availability() == QMultimedia::ServiceMissing ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
 
@@ -837,6 +868,8 @@ void QDeclarativeAudio::componentComplete()
         m_player->setPlaybackRate(m_playbackRate);
     if (m_audioRole != UnknownRole)
         m_player->setAudioRole(QAudio::Role(m_audioRole));
+    if (m_notifyInterval != m_player->notifyInterval())
+        m_player->setNotifyInterval(m_notifyInterval);
 
     if (!m_content.isNull() && (m_autoLoad || m_autoPlay)) {
         m_player->setMedia(m_content, 0);
@@ -1154,6 +1187,18 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 
     \since 5.6
     \sa audioRole
+*/
+
+/*!
+    \qmlproperty int QtMultimedia::MediaPlayer::notifyInterval
+
+    The interval at which notifiable properties will update.
+
+    The notifiable properties are \l position and \l bufferProgress.
+
+    The interval is expressed in milliseconds, the default value is 1000.
+
+    \since 5.9
 */
 
 /*!

@@ -141,6 +141,8 @@ public:
                                 trUtf8("CameraImageProcessing is provided by Camera"));
 
         // 5.9 types
+        qmlRegisterType<QDeclarativeAudio, 2>(uri, 5, 9, "Audio");
+        qmlRegisterType<QDeclarativeAudio, 2>(uri, 5, 9, "MediaPlayer");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture, 1>(uri, 5, 9, "CameraCapture",
                                 trUtf8("CameraCapture is provided by Camera"));
 
