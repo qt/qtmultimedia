@@ -206,8 +206,6 @@ bool QMediaNetworkPlaylistProvider::insertMedia(int pos, const QList<QMediaConte
 
 bool QMediaNetworkPlaylistProvider::moveMedia(int from, int to)
 {
-    Q_D(QMediaNetworkPlaylistProvider);
-
     Q_UNUSED(from);
     Q_UNUSED(to);
 
