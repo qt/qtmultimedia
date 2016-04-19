@@ -204,7 +204,8 @@ public:
         DeviceWatcherStatus status;
         hr = deviceWatcher->get_Status(&status);
         Q_ASSERT_SUCCEEDED(hr);
-        if (status != DeviceWatcherStatus_Started) {
+        if (status != DeviceWatcherStatus_Started &&
+            status != DeviceWatcherStatus_EnumerationCompleted) {
             // We can't immediately Start() if we have just called Stop()
             while (status == DeviceWatcherStatus_Stopping) {
                 QThread::yieldCurrentThread();
