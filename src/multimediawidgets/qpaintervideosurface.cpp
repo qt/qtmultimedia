@@ -218,18 +218,13 @@ void QVideoSurfaceGenericPainter::updateColors(int, int, int, int)
 
 #if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
 
-#ifndef Q_OS_MAC
-# ifndef APIENTRYP
-#   ifdef APIENTRY
-#     define APIENTRYP APIENTRY *
-#   else
-#     define APIENTRY
-#     define APIENTRYP *
-#   endif
-# endif
-#else
-# define APIENTRY
-# define APIENTRYP *
+#ifndef APIENTRYP
+#  ifdef APIENTRY
+#    define APIENTRYP APIENTRY *
+#  else
+#    define APIENTRY
+#    define APIENTRYP *
+#  endif
 #endif
 
 #ifndef GL_TEXTURE0
