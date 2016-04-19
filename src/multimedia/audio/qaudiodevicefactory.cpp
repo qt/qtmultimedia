@@ -41,6 +41,7 @@
 
 #include "qaudiosystem.h"
 #include "qaudiosystemplugin.h"
+#include "qaudiosystempluginext_p.h"
 
 #include "qmediapluginloader_p.h"
 #include "qaudiodevicefactory_p.h"
@@ -139,41 +140,53 @@ QList<QAudioDeviceInfo> QAudioDeviceFactory::availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QAudioDeviceInfo QAudioDeviceFactory::defaultInputDevice()
+QAudioDeviceInfo QAudioDeviceFactory::defaultDevice(QAudio::Mode mode)
 {
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
-    QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(audioLoader()->instance(defaultKey()));
+    QMediaPluginLoader* l = audioLoader();
+
+    // Check if there is a default plugin.
+    QAudioSystemFactoryInterface *plugin = qobject_cast<QAudioSystemFactoryInterface *>(l->instance(defaultKey()));
     if (plugin) {
-        QList<QByteArray> list = plugin->availableDevices(QAudio::AudioInput);
-        if (list.size() > 0)
-            return QAudioDeviceInfo(defaultKey(), list.at(0), QAudio::AudioInput);
+        // Check if the plugin has the extension interface.
+        QAudioSystemPluginExtension *pluginExt = qobject_cast<QAudioSystemPluginExtension *>(l->instance(defaultKey()));
+        // Ask for the default device.
+        if (pluginExt) {
+            const QByteArray &device = pluginExt->defaultDevice(mode);
+            if (!device.isEmpty())
+                return QAudioDeviceInfo(defaultKey(), device, mode);
+        }
+
+        // If there were no default devices, e.g., if the plugin did not implement the extent-ion interface,
+        // then just pick the first device that's available.
+        const auto &devices = plugin->availableDevices(mode);
+        if (!devices.isEmpty())
+            return QAudioDeviceInfo(defaultKey(), devices.first(), mode);
     }
 
-    // if no plugin is marked as default or if the default plugin doesn't have any input device,
-    // return the first input available from other plugins.
-    QList<QAudioDeviceInfo> inputDevices = availableDevices(QAudio::AudioInput);
-    if (!inputDevices.isEmpty())
-        return inputDevices.first();
-#endif
-
-    return QAudioDeviceInfo();
-}
-
-QAudioDeviceInfo QAudioDeviceFactory::defaultOutputDevice()
-{
-#if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
-    QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(audioLoader()->instance(defaultKey()));
-    if (plugin) {
-        QList<QByteArray> list = plugin->availableDevices(QAudio::AudioOutput);
-        if (list.size() > 0)
-            return QAudioDeviceInfo(defaultKey(), list.at(0), QAudio::AudioOutput);
+    // If no plugin is marked as default, check the other plugins.
+    // Note: We're going to prioritize plugins that report a default device.
+    const auto &keys = l->keys();
+    QAudioDeviceInfo fallbackDevice;
+    for (const auto &key : keys) {
+        if (key == defaultKey())
+            continue;
+        QAudioSystemFactoryInterface* plugin = qobject_cast<QAudioSystemFactoryInterface*>(l->instance(key));
+        if (plugin) {
+            // Check if the plugin has the extent-ion interface.
+            QAudioSystemPluginExtension *pluginExt = qobject_cast<QAudioSystemPluginExtension *>(l->instance(key));
+            if (pluginExt) {
+                const QByteArray &device = pluginExt->defaultDevice(mode);
+                if (!device.isEmpty())
+                    return QAudioDeviceInfo(key, device, mode);
+            } else if (fallbackDevice.isNull()) {
+                const auto &devices = plugin->availableDevices(mode);
+                if (!devices.isEmpty())
+                    fallbackDevice = QAudioDeviceInfo(key, devices.first(), mode);
+            }
+        }
     }
 
-    // if no plugin is marked as default or if the default plugin doesn't have any output device,
-    // return the first output available from other plugins.
-    QList<QAudioDeviceInfo> outputDevices = availableDevices(QAudio::AudioOutput);
-    if (!outputDevices.isEmpty())
-        return outputDevices.first();
 #endif
 
     return QAudioDeviceInfo();
@@ -196,12 +209,12 @@ QAbstractAudioDeviceInfo* QAudioDeviceFactory::audioDeviceInfo(const QString &re
 
 QAbstractAudioInput* QAudioDeviceFactory::createDefaultInputDevice(QAudioFormat const &format)
 {
-    return createInputDevice(defaultInputDevice(), format);
+    return createInputDevice(defaultDevice(QAudio::AudioInput), format);
 }
 
 QAbstractAudioOutput* QAudioDeviceFactory::createDefaultOutputDevice(QAudioFormat const &format)
 {
-    return createOutputDevice(defaultOutputDevice(), format);
+    return createOutputDevice(defaultDevice(QAudio::AudioOutput), format);
 }
 
 QAbstractAudioInput* QAudioDeviceFactory::createInputDevice(QAudioDeviceInfo const& deviceInfo, QAudioFormat const &format)

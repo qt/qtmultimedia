@@ -36,47 +36,36 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef IOSAUDIODEVICEINFO_H
-#define IOSAUDIODEVICEINFO_H
 
-#include <qaudiosystem.h>
+#ifndef QAUDIOSYSTEMPLUGINEXT_P_H
+#define QAUDIOSYSTEMPLUGINEXT_P_H
 
-#if defined(Q_OS_OSX)
-# include <CoreAudio/CoreAudio.h>
-#endif
+#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtCore/qplugin.h>
 
 QT_BEGIN_NAMESPACE
 
-class CoreAudioDeviceInfo : public QAbstractAudioDeviceInfo
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+struct Q_MULTIMEDIA_EXPORT QAudioSystemPluginExtension
 {
-    Q_OBJECT
-
-public:
-    CoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
-    ~CoreAudioDeviceInfo() {}
-
-    QAudioFormat preferredFormat() const;
-    bool isFormatSupported(const QAudioFormat &format) const;
-    QString deviceName() const;
-    QStringList supportedCodecs();
-    QList<int> supportedSampleRates();
-    QList<int> supportedChannelCounts();
-    QList<int> supportedSampleSizes();
-    QList<QAudioFormat::Endian> supportedByteOrders();
-    QList<QAudioFormat::SampleType> supportedSampleTypes();
-
-    static QByteArray defaultDevice(QAudio::Mode mode);
-    static QList<QByteArray> availableDevices(QAudio::Mode mode);
-
-private:
-#if defined(Q_OS_OSX)
-    AudioDeviceID m_deviceId;
-#endif
-
-    QString m_device;
-    QAudio::Mode m_mode;
+    virtual QByteArray defaultDevice(QAudio::Mode) const = 0;
+    virtual ~QAudioSystemPluginExtension();
 };
+
+#define QAudioSystemPluginExtension_iid "org.qt-project.qt.audiosystempluginextension"
+Q_DECLARE_INTERFACE(QAudioSystemPluginExtension, QAudioSystemPluginExtension_iid)
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QAUDIOSYSTEMPLUGINEXT_P_H

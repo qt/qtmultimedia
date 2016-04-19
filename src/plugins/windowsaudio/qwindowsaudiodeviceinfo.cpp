@@ -457,22 +457,14 @@ QList<QByteArray> QWindowsAudioDeviceInfo::availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QByteArray QWindowsAudioDeviceInfo::defaultOutputDevice()
+QByteArray QWindowsAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
 {
+    const QString &name = (mode == QAudio::AudioOutput) ? QStringLiteral("Default Output Device")
+                                                        : QStringLiteral("Default Input Device");
     QByteArray defaultDevice;
     QDataStream ds(&defaultDevice, QIODevice::WriteOnly);
     ds << quint32(WAVE_MAPPER) // device ID for default device
-       << QStringLiteral("Default Output Device");
-
-    return defaultDevice;
-}
-
-QByteArray QWindowsAudioDeviceInfo::defaultInputDevice()
-{
-    QByteArray defaultDevice;
-    QDataStream ds(&defaultDevice, QIODevice::WriteOnly);
-    ds << quint32(WAVE_MAPPER) // device ID for default device
-       << QStringLiteral("Default Input Device");
+       << name;
 
     return defaultDevice;
 }

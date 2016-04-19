@@ -53,6 +53,11 @@ QPulseAudioPlugin::QPulseAudioPlugin(QObject *parent)
 {
 }
 
+QByteArray QPulseAudioPlugin::defaultDevice(QAudio::Mode mode) const
+{
+    return m_pulseEngine->defaultDevice(mode);
+}
+
 QList<QByteArray> QPulseAudioPlugin::availableDevices(QAudio::Mode mode) const
 {
     return m_pulseEngine->availableDevices(mode);

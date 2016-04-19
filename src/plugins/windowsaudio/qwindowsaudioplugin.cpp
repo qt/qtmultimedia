@@ -49,6 +49,11 @@ QWindowsAudioPlugin::QWindowsAudioPlugin(QObject *parent)
 {
 }
 
+QByteArray QWindowsAudioPlugin::defaultDevice(QAudio::Mode mode) const
+{
+    return QWindowsAudioDeviceInfo::defaultDevice(mode);
+}
+
 QList<QByteArray> QWindowsAudioPlugin::availableDevices(QAudio::Mode mode) const
 {
     return QWindowsAudioDeviceInfo::availableDevices(mode);

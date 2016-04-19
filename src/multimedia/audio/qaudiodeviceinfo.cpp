@@ -419,7 +419,7 @@ QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
 */
 QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
 {
-    return QAudioDeviceFactory::defaultInputDevice();
+    return QAudioDeviceFactory::defaultDevice(QAudio::AudioInput);
 }
 
 /*!
@@ -428,7 +428,7 @@ QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
 */
 QAudioDeviceInfo QAudioDeviceInfo::defaultOutputDevice()
 {
-    return QAudioDeviceFactory::defaultOutputDevice();
+    return QAudioDeviceFactory::defaultDevice(QAudio::AudioOutput);
 }
 
 /*!

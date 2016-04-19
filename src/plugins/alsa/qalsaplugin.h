@@ -41,19 +41,22 @@
 #define QALSAPLUGIN_H
 
 #include <QtMultimedia/qaudiosystemplugin.h>
+#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAlsaPlugin : public QAudioSystemPlugin
+class QAlsaPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
 {
     Q_OBJECT
 
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "alsa.json")
+    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     QAlsaPlugin(QObject *parent = 0);
     ~QAlsaPlugin() {}
 
+    QByteArray defaultDevice(QAudio::Mode mode) const Q_DECL_OVERRIDE;
     QList<QByteArray> availableDevices(QAudio::Mode mode) const Q_DECL_OVERRIDE;
     QAbstractAudioInput *createInput(const QByteArray &device) Q_DECL_OVERRIDE;
     QAbstractAudioOutput *createOutput(const QByteArray &device) Q_DECL_OVERRIDE;

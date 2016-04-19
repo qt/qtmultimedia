@@ -55,6 +55,11 @@ QnxAudioPlugin::QnxAudioPlugin(QObject *parent)
 {
 }
 
+QByteArray QnxAudioPlugin::defaultDevice(QAudio::Mode mode) const
+{
+    return (mode == QAudio::AudioOutput) ? OUTPUT_ID : INPUT_ID;
+}
+
 QList<QByteArray> QnxAudioPlugin::availableDevices(QAudio::Mode mode) const
 {
     if (mode == QAudio::AudioOutput)

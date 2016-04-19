@@ -134,6 +134,7 @@ namespace QWasapiUtils
     bool convertToNativeFormat(const QAudioFormat &qt, WAVEFORMATEX *native);
     bool convertFromNativeFormat(const WAVEFORMATEX *native, QAudioFormat *qt);
 
+    QByteArray defaultDevice(QAudio::Mode mode);
     QList<QByteArray> availableDevices(QAudio::Mode mode);
     Microsoft::WRL::ComPtr<AudioInterface> createOrGetInterface(const QByteArray &dev, QAudio::Mode mode);
 }

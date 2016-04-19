@@ -39,19 +39,22 @@
 #ifndef IOSAUDIOPLUGIN_H
 #define IOSAUDIOPLUGIN_H
 
-#include <qaudiosystemplugin.h>
+#include <QtMultimedia/qaudiosystemplugin.h>
+#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class CoreAudioPlugin : public QAudioSystemPlugin
+class CoreAudioPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "coreaudio.json")
+    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     explicit CoreAudioPlugin(QObject *parent = 0);
     ~CoreAudioPlugin() {}
 
+    QByteArray defaultDevice(QAudio::Mode mode) const Q_DECL_OVERRIDE;
     QList<QByteArray> availableDevices(QAudio::Mode mode) const Q_DECL_OVERRIDE;
     QAbstractAudioInput *createInput(const QByteArray &device) Q_DECL_OVERRIDE;
     QAbstractAudioOutput *createOutput(const QByteArray &device) Q_DECL_OVERRIDE;

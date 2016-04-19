@@ -175,6 +175,29 @@ bool QWasapiUtils::convertFromNativeFormat(const WAVEFORMATEX *native, QAudioFor
     return true;
 }
 
+QByteArray QWasapiUtils::defaultDevice(QAudio::Mode mode)
+{
+    qCDebug(lcMmUtils) << __FUNCTION__ << mode;
+
+    ComPtr<IMediaDeviceStatics> mediaDeviceStatics;
+    HRESULT hr;
+
+    hr = GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Media_Devices_MediaDevice).Get(), &mediaDeviceStatics);
+    Q_ASSERT_SUCCEEDED(hr);
+
+    HString defaultAudioDevice;
+    quint32 dADSize = 0;
+
+    if (mode == QAudio::AudioOutput)
+        hr = mediaDeviceStatics->GetDefaultAudioRenderId(AudioDeviceRole_Default, defaultAudioDevice.GetAddressOf());
+    else
+        hr = mediaDeviceStatics->GetDefaultAudioCaptureId(AudioDeviceRole_Default, defaultAudioDevice.GetAddressOf());
+
+    const wchar_t *dadWStr = defaultAudioDevice.GetRawBuffer(&dADSize);
+    const QString defaultAudioDeviceId = QString::fromWCharArray(dadWStr, dADSize);
+    return defaultAudioDeviceId.toLocal8Bit();
+}
+
 QList<QByteArray> QWasapiUtils::availableDevices(QAudio::Mode mode)
 {
     qCDebug(lcMmUtils) << __FUNCTION__ << mode;
@@ -185,16 +208,6 @@ QList<QByteArray> QWasapiUtils::availableDevices(QAudio::Mode mode)
     hr = GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Devices_Enumeration_DeviceInformation).Get(),
                               &statics);
     Q_ASSERT_SUCCEEDED(hr);
-
-    ComPtr<IMediaDeviceStatics> mediaDeviceStatics;
-    hr = GetActivationFactory(HString::MakeReference(RuntimeClass_Windows_Media_Devices_MediaDevice).Get(), &mediaDeviceStatics);
-    Q_ASSERT_SUCCEEDED(hr);
-
-    HString defaultAudioRender;
-    quint32 dARSize = 0;
-    hr = mediaDeviceStatics->GetDefaultAudioRenderId(AudioDeviceRole_Default, defaultAudioRender.GetAddressOf());
-    const wchar_t *darWStr = defaultAudioRender.GetRawBuffer(&dARSize);
-    const QString defaultAudioDeviceId = QString::fromWCharArray(darWStr, dARSize);
 
     DeviceClass dc = mode == QAudio::AudioInput ? DeviceClass_AudioCapture : DeviceClass_AudioRender;
 
@@ -245,18 +258,6 @@ QList<QByteArray> QWasapiUtils::availableDevices(QAudio::Mode mode)
         const wchar_t *idWStr = hString.GetRawBuffer(&size);
         const QString deviceId = QString::fromWCharArray(idWStr, size);
 
-        boolean def;
-        hr = item->get_IsDefault(&def);
-        if (FAILED(hr)) {
-            qErrnoWarning(hr, "Could not access audio device default.");
-            continue;
-        }
-
-        // At least on desktop no device is marked as default
-        // Hence use the default audio device string from above
-        if (!def && !defaultAudioDeviceId.isEmpty())
-            def = defaultAudioDeviceId == deviceId;
-
         boolean enabled;
         hr = item->get_IsEnabled(&enabled);
         if (FAILED(hr)) {
@@ -265,14 +266,10 @@ QList<QByteArray> QWasapiUtils::availableDevices(QAudio::Mode mode)
         }
 
         qCDebug(lcMmUtils) << "Audio Device:" << deviceName << " ID:" << deviceId
-                            << " Enabled:" << enabled << " Default:" << def;
-        if (def) {
-            deviceNames.prepend(deviceName.toLocal8Bit());
-            deviceIds.prepend(deviceId);
-        } else {
-            deviceNames.append(deviceName.toLocal8Bit());
-            deviceIds.append(deviceId);
-        }
+                            << " Enabled:" << enabled;
+
+        deviceNames.append(deviceName.toLocal8Bit());
+        deviceIds.append(deviceId);
     }
     return deviceNames;
 }

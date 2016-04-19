@@ -338,14 +338,6 @@ void QPulseAudioEngine::updateDevices()
     pa_operation_unref(operation);
 
     unlock();
-
-    // Swap the default output to index 0
-    m_sinks.removeOne(m_defaultSink);
-    m_sinks.prepend(m_defaultSink);
-
-    // Swap the default input to index 0
-    m_sources.removeOne(m_defaultSource);
-    m_sources.prepend(m_defaultSource);
 }
 
 void QPulseAudioEngine::onContextFailed()
@@ -367,6 +359,11 @@ QPulseAudioEngine *QPulseAudioEngine::instance()
 QList<QByteArray> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
 {
     return mode == QAudio::AudioOutput ? m_sinks : m_sources;
+}
+
+QByteArray QPulseAudioEngine::defaultDevice(QAudio::Mode mode) const
+{
+    return (mode == QAudio::AudioOutput) ? m_defaultSink : m_defaultSource;
 }
 
 QT_END_NAMESPACE

@@ -53,7 +53,7 @@
 
 #include <QtCore/qmap.h>
 #include <QtCore/qbytearray.h>
-#include <qaudiosystemplugin.h>
+#include <QtMultimedia/qaudiosystemplugin.h>
 #include <pulse/pulseaudio.h>
 #include "qpulsehelpers.h"
 #include <qaudioformat.h>
@@ -91,6 +91,7 @@ public:
     }
 
     QList<QByteArray> availableDevices(QAudio::Mode mode) const;
+    QByteArray defaultDevice(QAudio::Mode mode) const;
 
 Q_SIGNALS:
     void contextFailed();

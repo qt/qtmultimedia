@@ -50,6 +50,11 @@ QWasapiPlugin::QWasapiPlugin(QObject *parent)
     qCDebug(lcMmPlugin) << __FUNCTION__;
 }
 
+QByteArray QWasapiPlugin::defaultDevice(QAudio::Mode mode) const
+{
+    return QWasapiUtils::defaultDevice(mode);
+}
+
 QList<QByteArray> QWasapiPlugin::availableDevices(QAudio::Mode mode) const
 {
     qCDebug(lcMmPlugin) << __FUNCTION__ << mode;

@@ -101,6 +101,12 @@ SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &f
 
 }
 
+QByteArray QOpenSLESEngine::defaultDevice(QAudio::Mode mode) const
+{
+    const auto &devices = availableDevices(mode);
+    return !devices.isEmpty() ? devices.first() : QByteArray();
+}
+
 QList<QByteArray> QOpenSLESEngine::availableDevices(QAudio::Mode mode) const
 {
     QList<QByteArray> devices;

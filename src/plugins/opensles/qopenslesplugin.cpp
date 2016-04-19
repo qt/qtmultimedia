@@ -52,6 +52,11 @@ QOpenSLESPlugin::QOpenSLESPlugin(QObject *parent)
 {
 }
 
+QByteArray QOpenSLESPlugin::defaultDevice(QAudio::Mode mode) const
+{
+    return m_engine->defaultDevice(mode);
+}
+
 QList<QByteArray> QOpenSLESPlugin::availableDevices(QAudio::Mode mode) const
 {
     return m_engine->availableDevices(mode);

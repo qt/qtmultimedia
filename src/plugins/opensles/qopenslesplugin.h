@@ -40,22 +40,25 @@
 #ifndef QOPENSLESPLUGIN_H
 #define QOPENSLESPLUGIN_H
 
-#include <qaudiosystemplugin.h>
+#include <QtMultimedia/qaudiosystemplugin.h>
+#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QOpenSLESEngine;
 
-class QOpenSLESPlugin : public QAudioSystemPlugin
+class QOpenSLESPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
 {
     Q_OBJECT
 
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "opensles.json")
+    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     QOpenSLESPlugin(QObject *parent = 0);
     ~QOpenSLESPlugin() {}
 
+    QByteArray defaultDevice(QAudio::Mode mode) const;
     QList<QByteArray> availableDevices(QAudio::Mode mode) const;
     QAbstractAudioInput *createInput(const QByteArray &device);
     QAbstractAudioOutput *createOutput(const QByteArray &device);

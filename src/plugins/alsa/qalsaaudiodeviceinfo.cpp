@@ -140,6 +140,15 @@ QList<QAudioFormat::SampleType> QAlsaAudioDeviceInfo::supportedSampleTypes()
     return typez;
 }
 
+QByteArray QAlsaAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
+{
+    const auto &devices = availableDevices(mode);
+    if (devices.size() == 0)
+        return QByteArray();
+
+    return devices.first();
+}
+
 bool QAlsaAudioDeviceInfo::open()
 {
     int err = 0;
@@ -394,24 +403,6 @@ QList<QByteArray> QAlsaAudioDeviceInfo::availableDevices(QAudio::Mode mode)
         devices.append("default");
 
     return devices;
-}
-
-QByteArray QAlsaAudioDeviceInfo::defaultInputDevice()
-{
-    QList<QByteArray> devices = availableDevices(QAudio::AudioInput);
-    if(devices.size() == 0)
-        return QByteArray();
-
-    return devices.first();
-}
-
-QByteArray QAlsaAudioDeviceInfo::defaultOutputDevice()
-{
-    QList<QByteArray> devices = availableDevices(QAudio::AudioOutput);
-    if(devices.size() == 0)
-        return QByteArray();
-
-    return devices.first();
 }
 
 void QAlsaAudioDeviceInfo::checkSurround()

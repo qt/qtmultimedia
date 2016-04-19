@@ -62,6 +62,7 @@ public:
 
     static SLDataFormat_PCM audioFormatToSLFormatPCM(const QAudioFormat &format);
 
+    QByteArray defaultDevice(QAudio::Mode mode) const;
     QList<QByteArray> availableDevices(QAudio::Mode mode) const;
     QList<int> supportedChannelCounts(QAudio::Mode mode) const;
     QList<int> supportedSampleRates(QAudio::Mode mode) const;

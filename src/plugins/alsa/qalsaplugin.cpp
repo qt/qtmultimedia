@@ -49,6 +49,11 @@ QAlsaPlugin::QAlsaPlugin(QObject *parent)
 {
 }
 
+QByteArray QAlsaPlugin::defaultDevice(QAudio::Mode mode) const
+{
+    return QAlsaAudioDeviceInfo::defaultDevice(mode);
+}
+
 QList<QByteArray> QAlsaPlugin::availableDevices(QAudio::Mode mode) const
 {
     return QAlsaAudioDeviceInfo::availableDevices(mode);

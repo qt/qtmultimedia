@@ -280,47 +280,29 @@ static QByteArray get_device_info(AudioDeviceID audioDevice, QAudio::Mode mode)
 }
 #endif
 
-QByteArray CoreAudioDeviceInfo::defaultInputDevice()
+QByteArray CoreAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
 {
 #if defined(Q_OS_OSX)
     AudioDeviceID audioDevice;
     UInt32 size = sizeof(audioDevice);
-    AudioObjectPropertyAddress defaultInputDevicePropertyAddress = { kAudioHardwarePropertyDefaultInputDevice,
-                                                                     kAudioObjectPropertyScopeGlobal,
-                                                                     kAudioObjectPropertyElementMaster };
+    const AudioObjectPropertySelector selector = (mode == QAudio::AudioOutput) ? kAudioHardwarePropertyDefaultOutputDevice
+                                                                               : kAudioHardwarePropertyDefaultInputDevice;
+    AudioObjectPropertyAddress defaultDevicePropertyAddress = { selector,
+                                                                kAudioObjectPropertyScopeGlobal,
+                                                                kAudioObjectPropertyElementMaster };
 
     if (AudioObjectGetPropertyData(kAudioObjectSystemObject,
-                                   &defaultInputDevicePropertyAddress,
+                                   &defaultDevicePropertyAddress,
                                    0, NULL, &size, &audioDevice) != noErr) {
-        qWarning() << "QAudioDeviceInfo: Unable to find default input device";
+        qWarning("QAudioDeviceInfo: Unable to find default %s device",  (mode == QAudio::AudioOutput) ? "output" : "input");
         return QByteArray();
     }
 
-    return get_device_info(audioDevice, QAudio::AudioInput);
+    return get_device_info(audioDevice, mode);
 #else //iOS
-    return CoreAudioSessionManager::instance().inputDevices().first();
-#endif
-}
-
-QByteArray CoreAudioDeviceInfo::defaultOutputDevice()
-{
-#if defined(Q_OS_OSX)
-    AudioDeviceID audioDevice;
-    UInt32        size = sizeof(audioDevice);
-    AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = { kAudioHardwarePropertyDefaultOutputDevice,
-                                                                     kAudioObjectPropertyScopeGlobal,
-                                                                     kAudioObjectPropertyElementMaster };
-
-    if (AudioObjectGetPropertyData(kAudioObjectSystemObject,
-                                   &defaultOutputDevicePropertyAddress,
-                                   0, NULL, &size, &audioDevice) != noErr) {
-        qWarning() << "QAudioDeviceInfo: Unable to find default output device";
-        return QByteArray();
-    }
-
-    return get_device_info(audioDevice, QAudio::AudioOutput);
-#else //iOS
-    return CoreAudioSessionManager::instance().outputDevices().first();
+    const auto &devices = (mode == QAudio::AudioOutput) ? CoreAudioSessionManager::instance().outputDevices()
+                                                        : CoreAudioSessionManager::instance().inputDevices();
+    return !devices.isEmpty() ? devices.first() : QByteArray();
 #endif
 }
 
@@ -343,15 +325,10 @@ QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
             AudioDeviceID*  audioDevices = new AudioDeviceID[dc];
 
             if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &audioDevicesPropertyAddress, 0, NULL, &propSize, audioDevices) == noErr) {
-                QByteArray defaultDevice = (mode == QAudio::AudioOutput) ? defaultOutputDevice() : defaultInputDevice();
                 for (int i = 0; i < dc; ++i) {
-                    QByteArray info = get_device_info(audioDevices[i], mode);
-                    if (!info.isNull()) {
-                        if (info == defaultDevice)
-                            devices.prepend(info);
-                        else
-                            devices << info;
-                    }
+                    const QByteArray &info = get_device_info(audioDevices[i], mode);
+                    if (!info.isNull())
+                        devices << info;
                 }
             }
 

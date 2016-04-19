@@ -39,22 +39,25 @@
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QList>
-#include <QtMultimedia/QAudioSystemPlugin>
+#include <QtMultimedia/qaudiosystemplugin.h>
+#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
 Q_DECLARE_LOGGING_CATEGORY(lcMmPlugin)
 
-class QWasapiPlugin : public QAudioSystemPlugin
+class QWasapiPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
 {
     Q_OBJECT
 
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "wasapi.json")
+    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     explicit QWasapiPlugin(QObject *parent = 0);
     ~QWasapiPlugin() {}
 
+    QByteArray defaultDevice(QAudio::Mode mode) const Q_DECL_OVERRIDE;
     QList<QByteArray> availableDevices(QAudio::Mode mode) const Q_DECL_OVERRIDE;
     QAbstractAudioInput *createInput(const QByteArray &device) Q_DECL_OVERRIDE;
     QAbstractAudioOutput *createOutput(const QByteArray &device) Q_DECL_OVERRIDE;

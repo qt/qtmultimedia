@@ -49,6 +49,10 @@ CoreAudioPlugin::CoreAudioPlugin(QObject *parent)
 {
 }
 
+QByteArray CoreAudioPlugin::defaultDevice(QAudio::Mode mode) const
+{
+    return CoreAudioDeviceInfo::defaultDevice(mode);
+}
 
 QList<QByteArray> CoreAudioPlugin::availableDevices(QAudio::Mode mode) const
 {
