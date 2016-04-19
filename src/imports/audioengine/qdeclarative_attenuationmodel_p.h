@@ -79,8 +79,8 @@ private:
 class QDeclarativeAttenuationModelLinear : public QDeclarativeAttenuationModel
 {
     Q_OBJECT
-    Q_PROPERTY(qreal start READ startDistance WRITE setStartDistance CONSTANT)
-    Q_PROPERTY(qreal end READ endDistance WRITE setEndDistance CONSTANT)
+    Q_PROPERTY(qreal start READ startDistance WRITE setStartDistance)
+    Q_PROPERTY(qreal end READ endDistance WRITE setEndDistance)
 
 public:
     QDeclarativeAttenuationModelLinear(QObject *parent = 0);
@@ -104,9 +104,9 @@ private:
 class QDeclarativeAttenuationModelInverse : public QDeclarativeAttenuationModel
 {
     Q_OBJECT
-    Q_PROPERTY(qreal start READ referenceDistance WRITE setReferenceDistance CONSTANT)
-    Q_PROPERTY(qreal end READ maxDistance WRITE setMaxDistance CONSTANT)
-    Q_PROPERTY(qreal rolloff READ rolloffFactor WRITE setRolloffFactor CONSTANT)
+    Q_PROPERTY(qreal start READ referenceDistance WRITE setReferenceDistance)
+    Q_PROPERTY(qreal end READ maxDistance WRITE setMaxDistance)
+    Q_PROPERTY(qreal rolloff READ rolloffFactor WRITE setRolloffFactor)
 
 public:
     QDeclarativeAttenuationModelInverse(QObject *parent = 0);
