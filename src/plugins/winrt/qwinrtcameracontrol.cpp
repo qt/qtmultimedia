@@ -42,6 +42,7 @@
 #include "qwinrtvideodeviceselectorcontrol.h"
 #include "qwinrtcameraimagecapturecontrol.h"
 #include "qwinrtimageencodercontrol.h"
+#include "qwinrtcameraflashcontrol.h"
 #include "qwinrtcamerafocuscontrol.h"
 #include "qwinrtcameralockscontrol.h"
 
@@ -554,6 +555,7 @@ public:
     QPointer<QWinRTVideoDeviceSelectorControl> videoDeviceSelector;
     QPointer<QWinRTCameraImageCaptureControl> imageCaptureControl;
     QPointer<QWinRTImageEncoderControl> imageEncoderControl;
+    QPointer<QWinRTCameraFlashControl> cameraFlashControl;
     QPointer<QWinRTCameraFocusControl> cameraFocusControl;
     QPointer<QWinRTCameraLocksControl> cameraLocksControl;
     QAtomicInt framesMapped;
@@ -578,6 +580,7 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
     d->videoDeviceSelector = new QWinRTVideoDeviceSelectorControl(this);
     d->imageCaptureControl = new QWinRTCameraImageCaptureControl(this);
     d->imageEncoderControl = new QWinRTImageEncoderControl(this);
+    d->cameraFlashControl = new QWinRTCameraFlashControl(this);
     d->cameraFocusControl = new QWinRTCameraFocusControl(this);
     d->cameraLocksControl = new QWinRTCameraLocksControl(this);
 
@@ -815,6 +818,12 @@ QImageEncoderControl *QWinRTCameraControl::imageEncoderControl() const
     return d->imageEncoderControl;
 }
 
+QCameraFlashControl *QWinRTCameraControl::cameraFlashControl() const
+{
+    Q_D(const QWinRTCameraControl);
+    return d->cameraFlashControl;
+}
+
 QCameraFocusControl *QWinRTCameraControl::cameraFocusControl() const
 {
     Q_D(const QWinRTCameraControl);
@@ -939,6 +948,8 @@ HRESULT QWinRTCameraControl::initialize()
         Q_ASSERT_SUCCEEDED(hr);
         hr = advancedVideoDeviceController->get_FocusControl(&d->focusControl);
         Q_ASSERT_SUCCEEDED(hr);
+
+        d->cameraFlashControl->initialize(advancedVideoDeviceController);
 
         boolean isFocusSupported;
         hr = d->focusControl->get_Supported(&isFocusSupported);
