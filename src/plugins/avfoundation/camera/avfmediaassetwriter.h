@@ -80,12 +80,12 @@ QT_END_NAMESPACE
     // Serial queue for audio output:
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_audioQueue;
     // Queue to write sample buffers:
-    __weak dispatch_queue_t m_writerQueue;
+    dispatch_queue_t m_writerQueue;
 
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriter> m_assetWriter;
     // Delegate's queue.
-    __weak dispatch_queue_t m_delegateQueue;
-    // TODO: QPointer??
+    dispatch_queue_t m_delegateQueue;
+
     QT_PREPEND_NAMESPACE(AVFMediaAssetWriterDelegate) *m_delegate;
 
     bool m_setStartTime;
