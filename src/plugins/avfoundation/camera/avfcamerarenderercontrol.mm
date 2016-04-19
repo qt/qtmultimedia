@@ -60,11 +60,14 @@ public:
                                      && CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA
                                      ? GLTextureHandle : NoHandle)
         , m_texture(0)
+        , m_renderer(renderer)
 #endif
         , m_buffer(buffer)
-        , m_renderer(renderer)
         , m_mode(NotMapped)
     {
+#ifndef Q_OS_IOS
+        Q_UNUSED(renderer)
+#endif // Q_OS_IOS
         CVPixelBufferRetain(m_buffer);
     }
 
@@ -194,9 +197,9 @@ public:
 private:
 #ifdef Q_OS_IOS
     mutable CVOpenGLESTextureRef m_texture;
+    AVFCameraRendererControl *m_renderer;
 #endif
     CVImageBufferRef m_buffer;
-    AVFCameraRendererControl *m_renderer;
     MapMode m_mode;
 };
 
