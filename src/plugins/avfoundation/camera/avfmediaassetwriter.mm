@@ -32,6 +32,7 @@
 ****************************************************************************/
 
 #include "avfaudioinputselectorcontrol.h"
+#include "avfmediarecordercontrol_ios.h"
 #include "avfcamerarenderercontrol.h"
 #include "avfmediaassetwriter.h"
 #include "avfcameraservice.h"
@@ -39,6 +40,7 @@
 #include "avfcameradebug.h"
 
 //#include <QtCore/qmutexlocker.h>
+#include <QtCore/qmetaobject.h>
 #include <QtCore/qsysinfo.h>
 
 QT_USE_NAMESPACE
@@ -65,11 +67,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     return true;
 }
 
-}
-
-AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
-{
-}
+} // unnamed namespace
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) (PrivateAPI)
 - (bool)addAudioCapture;
@@ -83,21 +81,20 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
 @implementation QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)
 
 - (id)initWithQueue:(dispatch_queue_t)writerQueue
-      delegate:(AVFMediaAssetWriterDelegate *)delegate
-      delegateQueue:(dispatch_queue_t)delegateQueue
+      delegate:(AVFMediaRecorderControlIOS *)delegate
 {
     Q_ASSERT(writerQueue);
     Q_ASSERT(delegate);
-    Q_ASSERT(delegateQueue);
 
     if (self = [super init]) {
-        m_writerQueue = writerQueue;
+        // "Shared" queue:
+        dispatch_retain(writerQueue);
+        m_writerQueue.reset(writerQueue);
+
         m_delegate = delegate;
-        m_delegateQueue = delegateQueue;
         m_setStartTime = true;
         m_stopped.store(true);
-        m_stoppedInternal = false;
-        m_aborted = false;
+        m_aborted.store(false);
         m_startTime = kCMTimeInvalid;
         m_lastTimeStamp = kCMTimeInvalid;
         m_durationInMs.store(0);
@@ -160,14 +157,13 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
 {
     // To be executed on a writer's queue.
     const QMutexLocker lock(&m_writerMutex);
-    if (m_aborted)
+    if (m_aborted.load())
         return;
 
     [self setQueues];
 
     m_setStartTime = true;
     m_stopped.store(false);
-    m_stoppedInternal = false;
     [m_assetWriter startWriting];
     AVCaptureSession *session = m_service->session()->captureSession();
     if (!session.running)
@@ -177,40 +173,41 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
 - (void)stop
 {
     // To be executed on a writer's queue.
+    {
     const QMutexLocker lock(&m_writerMutex);
-    if (m_aborted)
+    if (m_aborted.load())
         return;
 
-    if (m_stopped.load()) {
-        // Should never happen, but ...
-        // if something went wrong in a recorder control
-        // and we set state stopped without starting first ...
-        // m_stoppedIntenal will be false, but m_stopped - true.
+    if (m_stopped.load())
         return;
-    }
 
     m_stopped.store(true);
-    m_stoppedInternal = true;
+    }
+
     [m_assetWriter finishWritingWithCompletionHandler:^{
-        // TODO: make sure the session exist and we can call stop/remove on it.
+        // This block is async, so by the time it's executed,
+        // it's possible that render control was deleted already ...
+        const QMutexLocker lock(&m_writerMutex);
+        if (m_aborted.load())
+            return;
+
         AVCaptureSession *session = m_service->session()->captureSession();
         [session stopRunning];
         [session removeOutput:m_audioOutput];
         [session removeInput:m_audioInput];
-        dispatch_async(m_delegateQueue, ^{
-            m_delegate->assetWriterFinished();
-        });
+        QMetaObject::invokeMethod(m_delegate, "assetWriterFinished", Qt::QueuedConnection);
     }];
 }
 
 - (void)abort
 {
-    // To be executed on any thread, prevents writer from
-    // accessing any external object (probably deleted by this time)
+    // To be executed on any thread (presumably, it's the main thread),
+    // prevents writer from accessing any shared object.
     const QMutexLocker lock(&m_writerMutex);
-    m_aborted = true;
+    m_aborted.store(true);
     if (m_stopped.load())
         return;
+
     [m_assetWriter finishWritingWithCompletionHandler:^{
     }];
 }
@@ -221,9 +218,11 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
     Q_ASSERT(m_setStartTime);
     Q_ASSERT(sampleBuffer);
 
-    dispatch_async(m_delegateQueue, ^{
-        m_delegate->assetWriterStarted();
-    });
+    const QMutexLocker lock(&m_writerMutex);
+    if (m_aborted.load() || m_stopped.load())
+        return;
+
+    QMetaObject::invokeMethod(m_delegate, "assetWriterStarted", Qt::QueuedConnection);
 
     m_durationInMs.store(0);
     m_startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
@@ -236,21 +235,17 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
 {
     Q_ASSERT(sampleBuffer);
 
-    // This code is executed only on a writer's queue, but
-    // it can access potentially deleted objects, so we
-    // need a lock and m_aborted flag test.
-    {
-        const QMutexLocker lock(&m_writerMutex);
-        if (!m_aborted && !m_stoppedInternal) {
-            if (m_setStartTime)
-                [self setStartTimeFrom:sampleBuffer];
+    // This code is executed only on a writer's queue.
+    if (!m_aborted.load() && !m_stopped.load()) {
+        if (m_setStartTime)
+            [self setStartTimeFrom:sampleBuffer];
 
-            if (m_cameraWriterInput.data().readyForMoreMediaData) {
-                [self updateDuration:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
-                [m_cameraWriterInput appendSampleBuffer:sampleBuffer];
-            }
+        if (m_cameraWriterInput.data().readyForMoreMediaData) {
+            [self updateDuration:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
+            [m_cameraWriterInput appendSampleBuffer:sampleBuffer];
         }
     }
+
 
     CFRelease(sampleBuffer);
 }
@@ -261,16 +256,13 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
     // it does not touch any shared/external data.
     Q_ASSERT(sampleBuffer);
 
-    {
-        const QMutexLocker lock(&m_writerMutex);
-        if (!m_aborted && !m_stoppedInternal) {
-            if (m_setStartTime)
-                [self setStartTimeFrom:sampleBuffer];
+    if (!m_aborted.load() && !m_stopped.load()) {
+        if (m_setStartTime)
+            [self setStartTimeFrom:sampleBuffer];
 
-            if (m_audioWriterInput.data().readyForMoreMediaData) {
-                [self updateDuration:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
-                [m_audioWriterInput appendSampleBuffer:sampleBuffer];
-            }
+        if (m_audioWriterInput.data().readyForMoreMediaData) {
+            [self updateDuration:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
+            [m_audioWriterInput appendSampleBuffer:sampleBuffer];
         }
     }
 
@@ -283,12 +275,11 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
 {
     Q_UNUSED(connection)
 
-    // This method can be called on either video or audio queue, never on a writer's
-    // queue - it does not access any shared data except this atomic flag below.
+    // This method can be called on either video or audio queue,
+    // never on a writer's queue, it needs access to a shared data, so
+    // lock is required.
     if (m_stopped.load())
         return;
-
-    // Even if we are stopped now, we still do not access any data.
 
     if (!CMSampleBufferDataIsReady(sampleBuffer)) {
         qDebugCamera() << Q_FUNC_INFO << "sample buffer is not ready, skipping.";
@@ -298,21 +289,18 @@ AVFMediaAssetWriterDelegate::~AVFMediaAssetWriterDelegate()
     CFRetain(sampleBuffer);
 
     if (captureOutput != m_audioOutput.data()) {
-        {
-            const QMutexLocker lock(&m_writerMutex);
-            if (m_aborted || m_stoppedInternal) {
-                CFRelease(sampleBuffer);
-                return;
-            }
-
-            // Find renderercontrol's delegate and invoke its method to
-            // show updated viewfinder's frame.
-            if (m_service && m_service->videoOutput()) {
-                NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *vfDelegate =
-                    (NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *)m_service->videoOutput()->captureDelegate();
-                if (vfDelegate)
-                    [vfDelegate captureOutput:nil didOutputSampleBuffer:sampleBuffer fromConnection:nil];
-            }
+        const QMutexLocker lock(&m_writerMutex);
+        if (m_aborted.load() || m_stopped.load()) {
+            CFRelease(sampleBuffer);
+            return;
+        }
+        // Find renderercontrol's delegate and invoke its method to
+        // show updated viewfinder's frame.
+        if (m_service && m_service->videoOutput()) {
+            NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *vfDelegate =
+                (NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *)m_service->videoOutput()->captureDelegate();
+            if (vfDelegate)
+                [vfDelegate captureOutput:nil didOutputSampleBuffer:sampleBuffer fromConnection:nil];
         }
 
         dispatch_async(m_writerQueue, ^{

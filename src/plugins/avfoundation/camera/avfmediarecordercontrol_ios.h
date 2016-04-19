@@ -51,7 +51,7 @@ class AVFCameraService;
 class QString;
 class QUrl;
 
-class AVFMediaRecorderControlIOS : public QMediaRecorderControl, public AVFMediaAssetWriterDelegate
+class AVFMediaRecorderControlIOS : public QMediaRecorderControl
 {
     Q_OBJECT
 public:
@@ -76,13 +76,10 @@ public Q_SLOTS:
     void setMuted(bool muted) Q_DECL_OVERRIDE;
     void setVolume(qreal volume) Q_DECL_OVERRIDE;
 
-    // Writer delegate:
 private:
 
-    void assetWriterStarted() Q_DECL_OVERRIDE;
-    void assetWriterFailedToStart() Q_DECL_OVERRIDE;
-    void assetWriterFailedToStop() Q_DECL_OVERRIDE;
-    void assetWriterFinished() Q_DECL_OVERRIDE;
+    Q_INVOKABLE void assetWriterStarted();
+    Q_INVOKABLE void assetWriterFinished();
 
 private Q_SLOTS:
     void captureModeChanged(QCamera::CaptureModes);

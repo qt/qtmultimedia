@@ -44,18 +44,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class AVFMediaRecorderControlIOS;
 class AVFCameraService;
-
-class AVFMediaAssetWriterDelegate
-{
-public:
-    virtual ~AVFMediaAssetWriterDelegate();
-
-    virtual void assetWriterStarted() = 0;
-    virtual void assetWriterFailedToStart() = 0;
-    virtual void assetWriterFailedToStop() = 0;
-    virtual void assetWriterFinished() = 0;
-};
 
 typedef QAtomicInteger<bool> AVFAtomicBool;
 typedef QAtomicInteger<qint64> AVFAtomicInt64;
@@ -80,18 +70,15 @@ QT_END_NAMESPACE
     // Serial queue for audio output:
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_audioQueue;
     // Queue to write sample buffers:
-    dispatch_queue_t m_writerQueue;
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_writerQueue;
 
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriter> m_assetWriter;
-    // Delegate's queue.
-    dispatch_queue_t m_delegateQueue;
 
-    QT_PREPEND_NAMESPACE(AVFMediaAssetWriterDelegate) *m_delegate;
+    QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *m_delegate;
 
     bool m_setStartTime;
     QT_PREPEND_NAMESPACE(AVFAtomicBool) m_stopped;
-    bool m_stoppedInternal;
-    bool m_aborted;
+    QT_PREPEND_NAMESPACE(AVFAtomicBool) m_aborted;
 
     QT_PREPEND_NAMESPACE(QMutex) m_writerMutex;
 @public
@@ -102,8 +89,7 @@ QT_END_NAMESPACE
 }
 
 - (id)initWithQueue:(dispatch_queue_t)writerQueue
-      delegate:(QT_PREPEND_NAMESPACE(AVFMediaAssetWriterDelegate) *)delegate
-      delegateQueue:(dispatch_queue_t)delegateQueue;
+      delegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
         cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service;
