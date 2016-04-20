@@ -19,3 +19,7 @@ OTHER_FILES += \
     android/AndroidManifest.xml
 
 QMAKE_INFO_PLIST = Info.plist
+
+EXAMPLE_FILES += \
+    qmlvideofx.png \
+    qmlvideofx.svg
