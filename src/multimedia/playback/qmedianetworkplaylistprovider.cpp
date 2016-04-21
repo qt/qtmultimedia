@@ -206,10 +206,16 @@ bool QMediaNetworkPlaylistProvider::insertMedia(int pos, const QList<QMediaConte
 
 bool QMediaNetworkPlaylistProvider::moveMedia(int from, int to)
 {
-    Q_UNUSED(from);
-    Q_UNUSED(to);
+    Q_D(QMediaNetworkPlaylistProvider);
 
-    return true;
+    Q_ASSERT(from >= 0 && from < mediaCount());
+    Q_ASSERT(to >= 0 && to < mediaCount());
+
+    if (from == to)
+        return false;
+
+    const QMediaContent media = d->resources.at(from);
+    return removeMedia(from, from) && insertMedia(to, media);
 }
 
 bool QMediaNetworkPlaylistProvider::removeMedia(int fromPos, int toPos)
