@@ -823,6 +823,9 @@ void QWinRTCameraControl::onBufferRequested()
 void QWinRTCameraControl::onApplicationStateChanged(Qt::ApplicationState state)
 {
     qCDebug(lcMMCamera) << __FUNCTION__ << state;
+#ifdef _DEBUG
+    return;
+#else // !_DEBUG
     Q_D(QWinRTCameraControl);
     static QCamera::State savedState = d->state;
     switch (state) {
@@ -838,6 +841,7 @@ void QWinRTCameraControl::onApplicationStateChanged(Qt::ApplicationState state)
     default:
         break;
     }
+#endif // _DEBUG
 }
 
 HRESULT QWinRTCameraControl::initialize()
