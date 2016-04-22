@@ -62,7 +62,7 @@ public:
     void customEvent(QEvent *) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
-    void frameGrabbed(const QImage &frame, int);
+    void updateScene(const QSize &size);
 
 private:
     QPointer<QAbstractVideoSurface> m_surface;

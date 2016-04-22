@@ -52,7 +52,7 @@ MmRendererPlayerVideoRendererControl::MmRendererPlayerVideoRendererControl(QObje
     , m_context(0)
     , m_videoId(-1)
 {
-    connect(m_windowGrabber, SIGNAL(frameGrabbed(QImage, int)), SLOT(frameGrabbed(QImage, int)));
+    connect(m_windowGrabber, SIGNAL(updateScene(const QSize &)), SLOT(updateScene(const QSize &)));
 }
 
 MmRendererPlayerVideoRendererControl::~MmRendererPlayerVideoRendererControl()
@@ -136,13 +136,14 @@ void MmRendererPlayerVideoRendererControl::resume()
     m_windowGrabber->resume();
 }
 
-class BBTextureBuffer : public QAbstractVideoBuffer
+class QnxTextureBuffer : public QAbstractVideoBuffer
 {
 public:
-    BBTextureBuffer(int handle) :
+    QnxTextureBuffer(WindowGrabber *windowGrabber) :
         QAbstractVideoBuffer(QAbstractVideoBuffer::GLTextureHandle)
     {
-        m_handle = handle;
+        m_windowGrabber = windowGrabber;
+        m_handle = 0;
     }
     MapMode mapMode() const {
         return QAbstractVideoBuffer::ReadWrite;
@@ -157,54 +158,46 @@ public:
         return 0;
     }
     QVariant handle() const {
+        if (!m_handle) {
+            const_cast<QnxTextureBuffer*>(this)->m_handle = m_windowGrabber->getNextTextureId();
+        }
         return m_handle;
     }
 private:
+    WindowGrabber *m_windowGrabber;
     int m_handle;
 };
 
-void MmRendererPlayerVideoRendererControl::frameGrabbed(const QImage &frame, int handle)
+void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
 {
     if (m_surface) {
         if (!m_surface->isActive()) {
             if (m_windowGrabber->eglImageSupported()) {
-                if (QOpenGLContext::currentContext())
-                    m_windowGrabber->createEglImages();
-                else
-                    m_surface->setProperty("_q_GLThreadCallback", QVariant::fromValue<QObject*>(this));
-
-                m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_BGR32,
-                                                 QAbstractVideoBuffer::GLTextureHandle));
+                m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_BGR32,
+                                                     QAbstractVideoBuffer::GLTextureHandle));
             } else {
-                m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_ARGB32));
+                m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_ARGB32));
             }
         } else {
-            if (m_surface->surfaceFormat().frameSize() != frame.size()) {
-                QAbstractVideoBuffer::HandleType type = m_surface->surfaceFormat().handleType();
+            if (m_surface->surfaceFormat().frameSize() != size) {
                 m_surface->stop();
-                if (type != QAbstractVideoBuffer::NoHandle) {
-                    m_surface->setProperty("_q_GLThreadCallback", QVariant::fromValue<QObject*>(this));
-                    m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_BGR32,
-                                                     QAbstractVideoBuffer::GLTextureHandle));
+                if (m_windowGrabber->eglImageSupported()) {
+                    m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_BGR32,
+                                                         QAbstractVideoBuffer::GLTextureHandle));
                 } else {
-                    m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoFrame::Format_ARGB32));
+                    m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_ARGB32));
                 }
             }
         }
 
         // Depending on the support of EGL images on the current platform we either pass a texture
         // handle or a copy of the image data
-        if (m_surface->surfaceFormat().handleType() != QAbstractVideoBuffer::NoHandle) {
-            if (m_windowGrabber->eglImagesInitialized() &&
-                    m_surface->property("_q_GLThreadCallback") != 0)
-                m_surface->setProperty("_q_GLThreadCallback", 0);
-
-
-            BBTextureBuffer *textBuffer = new BBTextureBuffer(handle);
-            QVideoFrame actualFrame(textBuffer, frame.size(), QVideoFrame::Format_BGR32);
+        if (m_windowGrabber->eglImageSupported()) {
+            QnxTextureBuffer *textBuffer = new QnxTextureBuffer(m_windowGrabber);
+            QVideoFrame actualFrame(textBuffer, size, QVideoFrame::Format_BGR32);
             m_surface->present(actualFrame);
         } else {
-            m_surface->present(frame.copy());
+            m_surface->present(m_windowGrabber->getNextImage().copy());
         }
     }
 }
@@ -214,8 +207,6 @@ void MmRendererPlayerVideoRendererControl::customEvent(QEvent *e)
     // This is running in the render thread (OpenGL enabled)
     if (e->type() == QEvent::User)
         m_windowGrabber->checkForEglImageExtension();
-    else if (e->type() == QEvent::User + 1)
-        m_windowGrabber->createEglImages();
 }
 
 QT_END_NAMESPACE

@@ -41,11 +41,40 @@
 #include <EGL/eglext.h>
 #include <QAbstractNativeEventFilter>
 #include <QObject>
+#include <QSize>
 #include <QTimer>
 
 #include <screen/screen.h>
 
 QT_BEGIN_NAMESPACE
+
+class WindowGrabberImage : public QObject
+{
+    Q_OBJECT
+
+public:
+    WindowGrabberImage();
+    ~WindowGrabberImage();
+
+    bool initialize(screen_context_t screenContext);
+
+    void destroy();
+
+    QImage getImage(screen_window_t window, const QSize &size);
+    GLuint getTexture(screen_window_t window, const QSize &size);
+
+private:
+    bool grab(screen_window_t window);
+    bool resize(const QSize &size);
+
+    QSize m_size;
+    screen_pixmap_t m_pixmap;
+    screen_buffer_t m_pixmapBuffer;
+    EGLImageKHR m_eglImage;
+    GLuint m_glTexture;
+    unsigned char *m_bufferAddress;
+    int m_bufferStride;
+};
 
 class WindowGrabber : public QObject, public QAbstractNativeEventFilter
 {
@@ -56,8 +85,6 @@ public:
     ~WindowGrabber();
 
     void setFrameRate(int frameRate);
-
-    void createEglImages();
 
     void setWindowId(const QByteArray &windowId);
 
@@ -75,17 +102,19 @@ public:
 
     bool eglImageSupported();
     void checkForEglImageExtension();
-    bool eglImagesInitialized();
+
+    int getNextTextureId();
+    QImage getNextImage();
 
 signals:
-    void frameGrabbed(const QImage &frame, int);
+    void updateScene(const QSize &size);
 
 private slots:
-    void grab();
+    void triggerUpdate();
 
 private:
+    bool selectBuffer();
     void cleanup();
-    void updateFrameSize();
 
     QTimer m_timer;
 
@@ -93,24 +122,14 @@ private:
 
     screen_window_t m_window;
     screen_context_t m_screenContext;
-    screen_pixmap_t m_screenPixmaps[2];
-    screen_buffer_t m_screenPixmapBuffers[2];
 
-    char *m_screenBuffers[2];
+    WindowGrabberImage *m_images[2];
+    QSize m_size;
 
-    int m_screenBufferWidth;
-    int m_screenBufferHeight;
-    int m_screenBufferStride;
-
-    bool m_active : 1;
-    bool m_screenContextInitialized : 1;
-    bool m_screenPixmapBuffersInitialized : 1;
+    bool m_active;
     int m_currentFrame;
-    EGLImageKHR img[2];
-    GLuint imgTextures[2];
-    bool m_eglImageSupported : 1;
-    bool m_eglImagesInitialized : 1;
-    bool m_eglImageCheck : 1; // We must not send a grabed frame before this is true
+    bool m_eglImageSupported;
+    bool m_eglImageCheck;       // We must not send a grabed frame before this is true
 };
 
 QT_END_NAMESPACE
