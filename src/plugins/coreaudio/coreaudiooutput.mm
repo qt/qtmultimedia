@@ -42,7 +42,7 @@
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
 #if defined(Q_OS_OSX)
-# include <CoreServices/CoreServices.h>
+# include <AudioUnit/AudioComponent.h>
 #endif
 
 #if defined(Q_OS_IOS)
@@ -543,30 +543,13 @@ bool CoreAudioOutput::open()
     if (m_isOpen)
         return true;
 
-#if defined(Q_OS_OSX)
-    ComponentDescription componentDescription;
-    componentDescription.componentType = kAudioUnitType_Output;
-    componentDescription.componentSubType = kAudioUnitSubType_HALOutput;
-    componentDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
-    componentDescription.componentFlags = 0;
-    componentDescription.componentFlagsMask = 0;
-
-    // Open
-    Component component = FindNextComponent(NULL, &componentDescription);
-    if (component == 0) {
-        qWarning() << "QAudioOutput: Failed to find HAL Output component";
-        return false;
-    }
-
-    if (OpenAComponent(component, &m_audioUnit) != noErr) {
-        qWarning() << "QAudioOutput: Unable to Open Output Component";
-        return false;
-    }
-#else //iOS
-
     AudioComponentDescription componentDescription;
     componentDescription.componentType = kAudioUnitType_Output;
+#if defined(Q_OS_OSX)
+    componentDescription.componentSubType = kAudioUnitSubType_HALOutput;
+#else
     componentDescription.componentSubType = kAudioUnitSubType_RemoteIO;
+#endif
     componentDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
     componentDescription.componentFlags = 0;
     componentDescription.componentFlagsMask = 0;
@@ -581,7 +564,6 @@ bool CoreAudioOutput::open()
         qWarning() << "QAudioOutput: Unable to Open Output Component";
         return false;
     }
-#endif
 
     // register callback
     AURenderCallbackStruct callback;
@@ -673,11 +655,7 @@ void CoreAudioOutput::close()
     if (m_audioUnit != 0) {
         AudioOutputUnitStop(m_audioUnit);
         AudioUnitUninitialize(m_audioUnit);
-#if defined(Q_OS_OSX)
-        CloseComponent(m_audioUnit);
-#else //iOS
         AudioComponentInstanceDispose(m_audioUnit);
-#endif
     }
 
     delete m_audioBuffer;
