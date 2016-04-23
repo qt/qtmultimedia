@@ -414,6 +414,10 @@ QVideoFrame::PixelFormat AVFCameraViewfinderSettingsControl2::QtPixelFormatFromC
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
     case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
         return QVideoFrame::Format_NV12;
+    case kCVPixelFormatType_422YpCbCr8:
+        return QVideoFrame::Format_UYVY;
+    case kCVPixelFormatType_422YpCbCr8_yuvs:
+        return QVideoFrame::Format_YUYV;
     default:
         return QVideoFrame::Format_Invalid;
     }
@@ -433,6 +437,12 @@ bool AVFCameraViewfinderSettingsControl2::CVPixelFormatFromQtFormat(QVideoFrame:
         break;
     case QVideoFrame::Format_NV12:
         conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
+        break;
+    case QVideoFrame::Format_UYVY:
+        conv = kCVPixelFormatType_422YpCbCr8;
+        break;
+    case QVideoFrame::Format_YUYV:
+        conv = kCVPixelFormatType_422YpCbCr8_yuvs;
         break;
     // These two formats below are not supported
     // by QSGVideoNodeFactory_RGB, so for now I have to
