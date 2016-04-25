@@ -1,0 +1,4 @@
+#QTBUG-49736
+[pushSuspendResume]
+rhel-7.2
+
