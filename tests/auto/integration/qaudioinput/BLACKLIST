@@ -1,4 +1,7 @@
 #QTBUG-49736
 [pushSuspendResume]
+redhatenterpriselinuxworkstation-6.6
 rhel-7.2
-
+ubuntu-14.04
+opensuse-13.1
+opensuse-42.1
