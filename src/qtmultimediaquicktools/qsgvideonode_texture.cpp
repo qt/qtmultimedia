@@ -78,7 +78,7 @@ public:
     QSGVideoMaterialShader_Texture()
         : QSGMaterialShader()
     {
-        setShaderSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo.vert"));
+        setShaderSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/qtmultimediaquicktools/shaders/monoplanarvideo.vert"));
         setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo.frag"));
     }
 

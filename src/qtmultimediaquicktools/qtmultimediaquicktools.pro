@@ -35,7 +35,7 @@ RESOURCES += \
     qtmultimediaquicktools.qrc
 
 OTHER_FILES += \
-    shaders/rgbvideo.vert \
+    shaders/monoplanarvideo.vert \
     shaders/rgbvideo_padded.vert \
     shaders/rgbvideo.frag \
     shaders/rgbvideo_swizzle.frag \
@@ -43,6 +43,8 @@ OTHER_FILES += \
     shaders/biplanaryuvvideo.frag \
     shaders/biplanaryuvvideo_swizzle.frag \
     shaders/triplanaryuvvideo.vert \
-    shaders/triplanaryuvvideo.frag
+    shaders/triplanaryuvvideo.frag \
+    shaders/uyvyvideo.frag \
+    shaders/yuyvvideo.frag
 
 load(qt_module)
