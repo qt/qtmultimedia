@@ -135,6 +135,9 @@ public:
         qmlRegisterType<QDeclarativePlaylist>(uri, 5, 6, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 5, 6, "PlaylistItem");
 
+        // 5.7 types
+        qmlRegisterType<QDeclarativePlaylist, 1>(uri, 5, 7, "Playlist");
+
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();
     }
