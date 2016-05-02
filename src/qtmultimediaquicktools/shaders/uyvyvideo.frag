@@ -1,5 +1,5 @@
 uniform sampler2D yuvTexture; // UYVY macropixel texture passed as RGBA format
-uniform float imageWidth; // The UYVY texture appears to the shader with 1/2 the image width since we use the RGBA format to pass UYVY
+uniform mediump float imageWidth; // The UYVY texture appears to the shader with 1/2 the image width since we use the RGBA format to pass UYVY
 uniform mediump mat4 colorMatrix;
 uniform lowp float opacity;
 
