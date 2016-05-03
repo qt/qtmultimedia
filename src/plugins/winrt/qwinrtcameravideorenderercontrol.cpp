@@ -263,6 +263,9 @@ bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<I
     case DXGI_FORMAT_NV12:
         cameraSampleformat = QVideoFrame::Format_NV12;
         break;
+    case DXGI_FORMAT_YUY2:
+        cameraSampleformat = QVideoFrame::Format_YUYV;
+        break;
     default:
         cameraSampleformat = QVideoFrame::Format_Invalid;
         qErrnoWarning("Unsupported camera probe format.");
