@@ -54,20 +54,20 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     QVideoWidget *videoWidget = new QVideoWidget;
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
-    connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
+    connect(openButton, &QAbstractButton::clicked, this, &VideoPlayer::openFile);
 
     playButton = new QPushButton;
     playButton->setEnabled(false);
     playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
-    connect(playButton, SIGNAL(clicked()),
-            this, SLOT(play()));
+    connect(playButton, &QAbstractButton::clicked,
+            this, &VideoPlayer::play);
 
     positionSlider = new QSlider(Qt::Horizontal);
     positionSlider->setRange(0, 0);
 
-    connect(positionSlider, SIGNAL(sliderMoved(int)),
-            this, SLOT(setPosition(int)));
+    connect(positionSlider, &QAbstractSlider::sliderMoved,
+            this, &VideoPlayer::setPosition);
 
     errorLabel = new QLabel;
     errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
@@ -86,11 +86,13 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     setLayout(layout);
 
     mediaPlayer.setVideoOutput(videoWidget);
-    connect(&mediaPlayer, SIGNAL(stateChanged(QMediaPlayer::State)),
-            this, SLOT(mediaStateChanged(QMediaPlayer::State)));
-    connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
-    connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
-    connect(&mediaPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handleError()));
+    connect(&mediaPlayer, &QMediaPlayer::stateChanged,
+            this, &VideoPlayer::mediaStateChanged);
+    connect(&mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
+    connect(&mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
+    typedef void (QMediaPlayer::*ErrorSignal)(QMediaPlayer::Error);
+    connect(&mediaPlayer, static_cast<ErrorSignal>(&QMediaPlayer::error),
+            this, &VideoPlayer::handleError);
 }
 
 VideoPlayer::~VideoPlayer()
@@ -99,14 +101,23 @@ VideoPlayer::~VideoPlayer()
 
 void VideoPlayer::openFile()
 {
-    errorLabel->setText("");
+    QFileDialog fileDialog(this);
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setWindowTitle(tr("Open Movie"));
+    QStringList supportedMimeTypes = mediaPlayer.supportedMimeTypes();
+    if (!supportedMimeTypes.isEmpty())
+        fileDialog.setMimeTypeFilters(supportedMimeTypes);
+    fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
+    if (fileDialog.exec() == QDialog::Accepted)
+        setUrl(fileDialog.selectedUrls().constFirst());
+}
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Movie"),QDir::homePath());
-
-    if (!fileName.isEmpty()) {
-        mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
-        playButton->setEnabled(true);
-    }
+void VideoPlayer::setUrl(const QUrl &url)
+{
+    errorLabel->setText(QString());
+    setWindowFilePath(url.isLocalFile() ? url.toLocalFile() : QString());
+    mediaPlayer.setMedia(url);
+    playButton->setEnabled(true);
 }
 
 void VideoPlayer::play()
@@ -151,5 +162,11 @@ void VideoPlayer::setPosition(int position)
 void VideoPlayer::handleError()
 {
     playButton->setEnabled(false);
-    errorLabel->setText("Error: " + mediaPlayer.errorString());
+    const QString errorString = mediaPlayer.errorString();
+    QString message = "Error: ";
+    if (errorString.isEmpty())
+        message += " #" + QString::number(int(mediaPlayer.error()));
+    else
+        message += errorString;
+    errorLabel->setText(message);
 }
