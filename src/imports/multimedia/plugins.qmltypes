@@ -836,7 +836,7 @@ Module {
             "QtMultimedia/CameraImageProcessing 5.7"
         ]
         isCreatable: false
-        exportMetaObjectRevisions: [0, 1, 1]
+        exportMetaObjectRevisions: [0, 1, 2]
         Enum {
             name: "WhiteBalanceMode"
             values: {
