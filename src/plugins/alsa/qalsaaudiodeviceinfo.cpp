@@ -137,35 +137,18 @@ QList<QAudioFormat::SampleType> QAlsaAudioDeviceInfo::supportedSampleTypes()
 bool QAlsaAudioDeviceInfo::open()
 {
     int err = 0;
-    QString dev = device;
-    QList<QByteArray> devices = availableDevices(mode);
+    QString dev;
 
-    if(dev.compare(QLatin1String("default")) == 0) {
-#if SND_LIB_VERSION >= 0x1000e  // 1.0.14
-        if (devices.size() > 0)
-            dev = QLatin1String(devices.first().constData());
-        else
-            return false;
-#else
-        dev = QLatin1String("hw:0,0");
+    if (!availableDevices(mode).contains(device.toLocal8Bit()))
+        return false;
+
+#if SND_LIB_VERSION < 0x1000e  // 1.0.14
+    if (device.compare(QLatin1String("default")) != 0)
+        dev = deviceFromCardName(device);
+    else
 #endif
-    } else {
-#if SND_LIB_VERSION >= 0x1000e  // 1.0.14
         dev = device;
-#else
-        int idx = 0;
-        char *name;
 
-        QString shortName = device.mid(device.indexOf(QLatin1String("="),0)+1);
-
-        while (snd_card_get_name(idx,&name) == 0) {
-            if(dev.contains(QLatin1String(name)))
-                break;
-            idx++;
-        }
-        dev = QString(QLatin1String("hw:%1,0")).arg(idx);
-#endif
-    }
     if(mode == QAudio::AudioOutput) {
         err=snd_pcm_open( &handle,dev.toLocal8Bit().constData(),SND_PCM_STREAM_PLAYBACK,0);
     } else {
@@ -194,30 +177,12 @@ bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     snd_pcm_hw_params_t *params;
     QString dev;
 
-#if SND_LIB_VERSION >= 0x1000e  // 1.0.14
-    dev = device;
-    if (dev.compare(QLatin1String("default")) == 0) {
-        QList<QByteArray> devices = availableDevices(QAudio::AudioOutput);
-        if (!devices.isEmpty())
-            dev = QLatin1String(devices.first().constData());
-    }
-#else
-    if (dev.compare(QLatin1String("default")) == 0) {
-        dev = QLatin1String("hw:0,0");
-    } else {
-        int idx = 0;
-        char *name;
-
-        QString shortName = device.mid(device.indexOf(QLatin1String("="),0)+1);
-
-        while(snd_card_get_name(idx,&name) == 0) {
-            if(shortName.compare(QLatin1String(name)) == 0)
-                break;
-            idx++;
-        }
-        dev = QString(QLatin1String("hw:%1,0")).arg(idx);
-    }
+#if SND_LIB_VERSION < 0x1000e  // 1.0.14
+    if (device.compare(QLatin1String("default")) != 0)
+        dev = deviceFromCardName(device);
+    else
 #endif
+        dev = device;
 
     snd_pcm_stream_t stream = mode == QAudio::AudioOutput
                             ? SND_PCM_STREAM_PLAYBACK : SND_PCM_STREAM_CAPTURE;
@@ -333,9 +298,11 @@ void QAlsaAudioDeviceInfo::updateLists()
 QList<QByteArray> QAlsaAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 {
     QList<QByteArray> devices;
-    QByteArray filter;
+    bool hasDefault = false;
 
 #if SND_LIB_VERSION >= 0x1000e  // 1.0.14
+    QByteArray filter;
+
     // Create a list of all current audio devices that support mode
     void **hints, **n;
     char *name, *descr, *io;
@@ -359,12 +326,9 @@ QList<QByteArray> QAlsaAudioDeviceInfo::availableDevices(QAudio::Mode mode)
             io = snd_device_name_get_hint(*n, "IOID");
 
             if ((descr != NULL) && ((io == NULL) || (io == filter))) {
-                QString deviceName = QLatin1String(name);
-                QString deviceDescription = QLatin1String(descr);
-                if (deviceDescription.contains(QLatin1String("Default Audio Device")))
-                    devices.prepend(deviceName.toLocal8Bit().constData());
-                else
-                    devices.append(deviceName.toLocal8Bit().constData());
+                devices.append(name);
+                if (strcmp(name, "default") == 0)
+                    hasDefault = true;
             }
 
             free(descr);
@@ -380,12 +344,14 @@ QList<QByteArray> QAlsaAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 
     while(snd_card_get_name(idx,&name) == 0) {
         devices.append(name);
+        if (strcmp(name, "default") == 0)
+            hasDefault = true;
         idx++;
     }
 #endif
 
-    if (devices.size() > 0)
-        devices.append("default");
+    if (!hasDefault && devices.size() > 0)
+        devices.prepend("default");
 
     return devices;
 }
@@ -446,6 +412,22 @@ void QAlsaAudioDeviceInfo::checkSurround()
         ++n;
     }
     snd_device_name_free_hint(hints);
+}
+
+QString QAlsaAudioDeviceInfo::deviceFromCardName(const QString &card)
+{
+    int idx = 0;
+    char *name;
+
+    QStringRef shortName = card.midRef(card.indexOf(QLatin1String("="), 0) + 1);
+
+    while (snd_card_get_name(idx, &name) == 0) {
+        if (shortName.compare(QLatin1String(name)) == 0)
+            break;
+        idx++;
+    }
+
+    return QString(QLatin1String("hw:%1,0")).arg(idx);
 }
 
 QT_END_NAMESPACE
