@@ -47,6 +47,7 @@
 
 #include <QtCore/qmap.h>
 #include <QtCore/qbytearray.h>
+#include <QtCore/qreadwritelock.h>
 #include <qaudiosystemplugin.h>
 #include <pulse/pulseaudio.h>
 #include "qpulsehelpers.h"
@@ -98,12 +99,16 @@ private:
     void release();
 
 public:
-    QList<QByteArray> m_sinks;
-    QList<QByteArray> m_sources;
+    QMap<int, QByteArray> m_sinks;
+    QMap<int, QByteArray> m_sources;
     QMap<QByteArray, QAudioFormat> m_preferredFormats;
 
     QByteArray m_defaultSink;
     QByteArray m_defaultSource;
+
+    mutable QReadWriteLock m_sinkLock;
+    mutable QReadWriteLock m_sourceLock;
+    mutable QReadWriteLock m_serverLock;
 
 private:
     pa_mainloop_api *m_mainLoopApi;
