@@ -58,6 +58,9 @@ public:
     void release(); // API level 14
     void updateTexImage();
 
+    void attachToGLContext(int texName); // API level 16
+    void detachFromGLContext(); // API level 16
+
     static bool initJNI(JNIEnv *env);
 
 Q_SIGNALS:

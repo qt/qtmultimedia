@@ -146,6 +146,22 @@ jobject AndroidSurfaceTexture::surfaceHolder()
     return m_surfaceHolder.object();
 }
 
+void AndroidSurfaceTexture::attachToGLContext(int texName)
+{
+    if (QtAndroidPrivate::androidSdkVersion() < 16 || !m_surfaceTexture.isValid())
+        return;
+
+    m_surfaceTexture.callMethod<void>("attachToGLContext", "(I)V", texName);
+}
+
+void AndroidSurfaceTexture::detachFromGLContext()
+{
+    if (QtAndroidPrivate::androidSdkVersion() < 16 || !m_surfaceTexture.isValid())
+        return;
+
+    m_surfaceTexture.callMethod<void>("detachFromGLContext");
+}
+
 bool AndroidSurfaceTexture::initJNI(JNIEnv *env)
 {
     // SurfaceTexture is available since API 11.
