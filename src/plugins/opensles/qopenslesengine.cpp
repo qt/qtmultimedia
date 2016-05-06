@@ -143,7 +143,7 @@ QList<int> QOpenSLESEngine::supportedSampleRates(QAudio::Mode mode) const
 
 int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defaultValue)
 {
-#if defined(Q_OS_ANDROID) && !defined(Q_OS_ANDROID_NO_SDK)
+#if defined(Q_OS_ANDROID)
     static int sampleRate = 0;
     static int framesPerBuffer = 0;
     static const int sdkVersion = QtAndroidPrivate::androidSdkVersion();
@@ -204,7 +204,7 @@ int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defau
 
 int QOpenSLESEngine::getDefaultBufferSize(const QAudioFormat &format)
 {
-#if defined(Q_OS_ANDROID) && !defined(Q_OS_ANDROID_NO_SDK)
+#if defined(Q_OS_ANDROID)
     if (!format.isValid())
         return 0;
 
@@ -252,7 +252,7 @@ int QOpenSLESEngine::getLowLatencyBufferSize(const QAudioFormat &format)
 
 bool QOpenSLESEngine::supportsLowLatency()
 {
-#if defined(Q_OS_ANDROID) && !defined(Q_OS_ANDROID_NO_SDK)
+#if defined(Q_OS_ANDROID)
     static int isSupported = -1;
 
     if (isSupported != -1)

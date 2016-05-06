@@ -70,8 +70,22 @@
 #include <QtCore/qthread.h>
 #include <QtCore/qvarlengtharray.h>
 
+#ifndef Q_CC_MINGW
+#  include <comdef.h>
+#endif
+
 Q_GLOBAL_STATIC(DirectShowEventLoop, qt_directShowEventLoop)
 
+static QString comError(HRESULT hr)
+{
+#ifndef Q_CC_MINGW // MinGW 5.3 no longer has swprintf_s().
+    _com_error error(hr);
+    return QString::fromWCharArray(error.ErrorMessage());
+#else
+    Q_UNUSED(hr)
+    return QString();
+#endif
+}
 
 // QMediaPlayer uses millisecond time units, direct show uses 100 nanosecond units.
 static const int qt_directShowTimeScale = 10000;
@@ -344,17 +358,11 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             m_error = QMediaPlayer::FormatError;
             m_errorString = QString();
             break;
-        case E_FAIL:
-        case E_OUTOFMEMORY:
-        case VFW_E_CANNOT_LOAD_SOURCE_FILTER:
-        case VFW_E_NOT_FOUND:
-            m_error = QMediaPlayer::ResourceError;
-            m_errorString = QString();
-            break;
         default:
             m_error = QMediaPlayer::ResourceError;
             m_errorString = QString();
-            qWarning("DirectShowPlayerService::doSetUrlSource: Unresolved error code %x", uint(hr));
+            qWarning("DirectShowPlayerService::doSetUrlSource: Unresolved error code 0x%x (%s)",
+                     uint(hr), qPrintable(comError(hr)));
             break;
         }
 
@@ -368,7 +376,8 @@ void DirectShowPlayerService::doSetStreamSource(QMutexLocker *locker)
     DirectShowIOSource *source = new DirectShowIOSource(m_loop);
     source->setDevice(m_stream);
 
-    if (SUCCEEDED(m_graph->AddFilter(source, L"Source"))) {
+    const HRESULT hr = m_graph->AddFilter(source, L"Source");
+    if (SUCCEEDED(hr)) {
         m_executedTasks = SetSource;
         m_pendingTasks |= Render;
 
@@ -389,6 +398,8 @@ void DirectShowPlayerService::doSetStreamSource(QMutexLocker *locker)
 
         m_error = QMediaPlayer::ResourceError;
         m_errorString = QString();
+        qWarning("DirectShowPlayerService::doPlay: Unresolved error code 0x%x (%s)",
+                 uint(hr), qPrintable(comError(hr)));
 
         QCoreApplication::postEvent(this, new QEvent(QEvent::Type(Error)));
     }
@@ -504,8 +515,8 @@ void DirectShowPlayerService::doRender(QMutexLocker *locker)
                 default:
                     m_error = QMediaPlayer::ResourceError;
                     m_errorString = QString();
-                    qWarning("DirectShowPlayerService::doRender: Unresolved error code %x",
-                             uint(renderHr));
+                    qWarning("DirectShowPlayerService::doRender: Unresolved error code 0x%x (%s)",
+                             uint(renderHr), qPrintable(comError(renderHr)));
                 }
             }
 
@@ -716,7 +727,8 @@ void DirectShowPlayerService::doPlay(QMutexLocker *locker)
         } else {
             m_error = QMediaPlayer::ResourceError;
             m_errorString = QString();
-            qWarning("DirectShowPlayerService::doPlay: Unresolved error code %x", uint(hr));
+            qWarning("DirectShowPlayerService::doPlay: Unresolved error code 0x%x (%s)",
+                     uint(hr), qPrintable(comError(hr)));
 
             QCoreApplication::postEvent(this, new QEvent(QEvent::Type(Error)));
         }
@@ -775,7 +787,8 @@ void DirectShowPlayerService::doPause(QMutexLocker *locker)
         } else {
             m_error = QMediaPlayer::ResourceError;
             m_errorString = QString();
-            qWarning("DirectShowPlayerService::doPause: Unresolved error code %x", uint(hr));
+            qWarning("DirectShowPlayerService::doPause: Unresolved error code 0x%x (%s)",
+                     uint(hr), qPrintable(comError(hr)));
 
             QCoreApplication::postEvent(this, new QEvent(QEvent::Type(Error)));
         }

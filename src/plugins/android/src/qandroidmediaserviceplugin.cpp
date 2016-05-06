@@ -148,7 +148,6 @@ int QAndroidMediaServicePlugin::cameraOrientation(const QByteArray &device) cons
 
 QT_END_NAMESPACE
 
-#ifndef Q_OS_ANDROID_NO_SDK
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
     QT_USE_NAMESPACE
@@ -176,4 +175,3 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     return JNI_VERSION_1_4;
 }
-#endif // Q_OS_ANDROID_NO_SDK

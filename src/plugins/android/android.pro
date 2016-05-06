@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += src
-android:!android-no-sdk: SUBDIRS += jar
+android: SUBDIRS += jar
 
 qtHaveModule(quick) {
     SUBDIRS += videonode

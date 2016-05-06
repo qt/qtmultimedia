@@ -135,6 +135,11 @@ public:
         qmlRegisterType<QDeclarativePlaylist>(uri, 5, 6, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 5, 6, "PlaylistItem");
 
+        // 5.7 types
+        qmlRegisterType<QDeclarativePlaylist, 1>(uri, 5, 7, "Playlist");
+        qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 2>(uri, 5, 7, "CameraImageProcessing",
+                                trUtf8("CameraImageProcessing is provided by Camera"));
+
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();
     }

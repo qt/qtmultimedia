@@ -148,6 +148,8 @@ void QDeclarativeCameraImageProcessing::setManualWhiteBalance(qreal colorTemp) c
 
     Image brightness adjustment.
     Valid brightness adjustment values range between -1.0 and 1.0, with a default of 0.
+
+    \since 5.7
 */
 qreal QDeclarativeCameraImageProcessing::brightness() const
 {
