@@ -198,6 +198,10 @@ QMediaContent tst_QMediaPlayerBackend::selectMediaFile(const QStringList& mediaC
 
 void tst_QMediaPlayerBackend::initTestCase()
 {
+    QMediaPlayer player;
+    if (!player.isAvailable())
+        QSKIP("Media player service is not available");
+
     const QString testFileName = QFINDTESTDATA("testdata/test.wav");
     QFileInfo wavFile(testFileName);
 

@@ -64,6 +64,9 @@ void tst_QAudioDecoderBackend::init()
 
 void tst_QAudioDecoderBackend::initTestCase()
 {
+    QAudioDecoder d;
+    if (!d.isAvailable())
+        QSKIP("Audio decoder service is not available");
 }
 
 void tst_QAudioDecoderBackend::cleanup()
