@@ -10,3 +10,6 @@ SUBDIRS += app
 
 TARGET = spectrum
 
+EXAMPLE_FILES += \
+    README.txt \
+    TODO.txt

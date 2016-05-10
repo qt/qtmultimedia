@@ -116,6 +116,8 @@ private:
     QOpenGLShaderProgram *m_program;
     OpenGLResourcesDeleter *m_glDeleter;
 
+    bool m_surfaceTextureCanAttachToContext;
+
     friend class AndroidTextureVideoBuffer;
 };
 

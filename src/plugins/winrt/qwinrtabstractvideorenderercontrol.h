@@ -68,8 +68,6 @@ public:
 
     void setScanLineDirection(QVideoSurfaceFormat::Direction direction);
 
-    void setActive(bool active);
-
     BlitMode blitMode() const;
     void setBlitMode(BlitMode mode);
 
@@ -77,6 +75,9 @@ public:
     virtual bool dequeueFrame(QVideoFrame *frame);
 
     static ID3D11Device *d3dDevice();
+
+public slots:
+    void setActive(bool active);
 
 protected:
     void shutdown();

@@ -48,7 +48,7 @@
 
 #include "qwinrtcameracontrol.h"
 
-#ifdef Q_OS_WINPHONE
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_PHONE_APP)
 #include <Windows.Security.ExchangeActiveSyncProvisioning.h>
 using namespace ABI::Windows::Security::ExchangeActiveSyncProvisioning;
 #endif
@@ -58,7 +58,7 @@ using namespace Microsoft::WRL::Wrappers;
 
 QT_BEGIN_NAMESPACE
 
-#ifdef Q_OS_WINPHONE
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_PHONE_APP)
 template <int n>
 static bool blacklisted(const wchar_t (&blackListName)[n], const HString &deviceModel)
 {
@@ -282,7 +282,7 @@ QWinRTCameraVideoRendererControl::QWinRTCameraVideoRendererControl(const QSize &
     d->cameraSampleformat = QVideoFrame::Format_User;
     d->videoProbesCounter = 0;
 
-#ifdef Q_OS_WINPHONE
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_PHONE_APP)
     // Workaround for certain devices which fail to blit.
     ComPtr<IEasClientDeviceInformation> deviceInfo;
     HRESULT hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Security_ExchangeActiveSyncProvisioning_EasClientDeviceInformation).Get(),

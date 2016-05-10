@@ -92,8 +92,7 @@ AVFMediaRecorderControlIOS::AVFMediaRecorderControlIOS(AVFCameraService *service
         return;
     }
 
-    m_writer.reset([[QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) alloc] initWithQueue:m_writerQueue
-                    delegate:this delegateQueue:dispatch_get_main_queue()]);
+    m_writer.reset([[QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) alloc] initWithQueue:m_writerQueue delegate:this]);
     if (!m_writer) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer";
         return;
@@ -263,14 +262,6 @@ void AVFMediaRecorderControlIOS::assetWriterStarted()
 {
     m_lastStatus = QMediaRecorder::RecordingStatus;
     Q_EMIT statusChanged(QMediaRecorder::RecordingStatus);
-}
-
-void AVFMediaRecorderControlIOS::assetWriterFailedToStart()
-{
-}
-
-void AVFMediaRecorderControlIOS::assetWriterFailedToStop()
-{
 }
 
 void AVFMediaRecorderControlIOS::assetWriterFinished()

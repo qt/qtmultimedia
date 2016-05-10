@@ -46,8 +46,10 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QVector>
 #include <QtCore/qfunctions_winrt.h>
+#include <QtCore/private/qeventdispatcher_winrt_p.h>
 #include <QtMultimedia/private/qmediastoragelocation_p.h>
 
+#include <functional>
 #include <wrl.h>
 #include <windows.media.capture.h>
 #include <windows.media.devices.h>
@@ -118,6 +120,7 @@ public:
 QWinRTCameraImageCaptureControl::QWinRTCameraImageCaptureControl(QWinRTCameraControl *parent)
     : QCameraImageCaptureControl(parent), d_ptr(new QWinRTCameraImageCaptureControlPrivate)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << parent;
     Q_D(QWinRTCameraImageCaptureControl);
 
     d->cameraControl = parent;
@@ -144,10 +147,11 @@ void QWinRTCameraImageCaptureControl::setDriveMode(QCameraImageCapture::DriveMod
 
 int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__ << fileName;
     Q_D(QWinRTCameraImageCaptureControl);
 
     ++d->currentCaptureId;
-    IMediaCapture *capture = d->cameraControl->handle();
+    ComPtr<IMediaCapture> capture = d->cameraControl->handle();
     if (!capture) {
         emit error(d->currentCaptureId, QCameraImageCapture::NotReadyError, tr("Camera not ready"));
         return -1;
@@ -159,38 +163,43 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
                                      fileName.isEmpty() ? QStringLiteral("jpg") : QFileInfo(fileName).suffix())
     };
 
-    HRESULT hr;
-    hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Storage_Streams_InMemoryRandomAccessStream).Get(),
-                            &request.stream);
-    Q_ASSERT_SUCCEEDED(hr);
+    HRESULT hr = QEventDispatcherWinRT::runOnXamlThread([this, d, capture, &request]() {
+        HRESULT hr;
+        hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Storage_Streams_InMemoryRandomAccessStream).Get(),
+                                &request.stream);
+        Q_ASSERT_SUCCEEDED(hr);
 
-    hr = g->encodingPropertiesFactory->CreateBmp(&request.imageFormat);
-    Q_ASSERT_SUCCEEDED(hr);
+        hr = g->encodingPropertiesFactory->CreateBmp(&request.imageFormat);
+        Q_ASSERT_SUCCEEDED(hr);
 
-    const QSize imageSize = static_cast<QWinRTImageEncoderControl*>(d->cameraControl->imageEncoderControl())->imageSettings().resolution();
-    hr = request.imageFormat->put_Width(imageSize.width());
-    Q_ASSERT_SUCCEEDED(hr);
-    hr = request.imageFormat->put_Height(imageSize.height());
-    Q_ASSERT_SUCCEEDED(hr);
+        const QSize imageSize = static_cast<QWinRTImageEncoderControl*>(d->cameraControl->imageEncoderControl())->imageSettings().resolution();
+        hr = request.imageFormat->put_Width(imageSize.width());
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = request.imageFormat->put_Height(imageSize.height());
+        Q_ASSERT_SUCCEEDED(hr);
 
-    hr = capture->CapturePhotoToStreamAsync(request.imageFormat.Get(), request.stream.Get(), &request.op);
-    Q_ASSERT_SUCCEEDED(hr);
-    if (!request.op) {
-        qErrnoWarning("Camera photo capture failed.");
+        hr = capture->CapturePhotoToStreamAsync(request.imageFormat.Get(), request.stream.Get(), &request.op);
+        Q_ASSERT_SUCCEEDED(hr);
+        if (!request.op) {
+            qErrnoWarning("Camera photo capture failed.");
+            return E_FAIL;
+        }
+        emit captureQueueChanged(false);
+        d->requests.insert(request.op.Get(), request);
+
+        hr = request.op->put_Completed(Callback<IAsyncActionCompletedHandler>(
+                                           this, &QWinRTCameraImageCaptureControl::onCaptureCompleted).Get());
+        Q_ASSERT_SUCCEEDED(hr);
+        return hr;
+    });
+    if (FAILED(hr))
         return -1;
-    }
-    emit captureQueueChanged(false);
-    d->requests.insert(request.op.Get(), request);
-
-    hr = request.op->put_Completed(Callback<IAsyncActionCompletedHandler>(
-                                       this, &QWinRTCameraImageCaptureControl::onCaptureCompleted).Get());
-    Q_ASSERT_SUCCEEDED(hr);
-
     return request.id;
 }
 
 void QWinRTCameraImageCaptureControl::cancelCapture()
 {
+    qCDebug(lcMMCamera) << __FUNCTION__;
     Q_D(QWinRTCameraImageCaptureControl);
 
     QHash<IAsyncAction *, CaptureRequest>::iterator it = d->requests.begin();
@@ -205,6 +214,7 @@ void QWinRTCameraImageCaptureControl::cancelCapture()
 
 HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncInfo, AsyncStatus status)
 {
+    qCDebug(lcMMCamera) << __FUNCTION__;
     Q_D(QWinRTCameraImageCaptureControl);
 
     if (status == Canceled || !d->requests.contains(asyncInfo))

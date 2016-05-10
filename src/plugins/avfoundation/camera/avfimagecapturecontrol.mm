@@ -40,6 +40,7 @@
 #include "avfcameradebug.h"
 #include "avfimagecapturecontrol.h"
 #include "avfcameraservice.h"
+#include "avfcamerautility.h"
 #include "avfcameracontrol.h"
 
 #include <QtCore/qurl.h>
@@ -214,6 +215,8 @@ void AVFImageCaptureControl::updateCaptureConnection()
 
         if (![captureSession.outputs containsObject:m_stillImageOutput]) {
             if ([captureSession canAddOutput:m_stillImageOutput]) {
+                // Lock the video capture device to make sure the active format is not reset
+                const AVFConfigurationLock lock(m_session->videoCaptureDevice());
                 [captureSession addOutput:m_stillImageOutput];
                 m_videoConnection = [m_stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
                 updateReadyStatus();
