@@ -632,7 +632,7 @@ void QWinRTCameraControl::setState(QCamera::State state)
         }
 
         QCameraFocus::FocusModes focusMode = d->cameraFocusControl->focusMode();
-        if (setFocus(focusMode) && focusMode == QCameraFocus::ContinuousFocus)
+        if (focusMode != 0 && setFocus(focusMode) && focusMode == QCameraFocus::ContinuousFocus)
             focus();
 
         d->state = QCamera::ActiveState;

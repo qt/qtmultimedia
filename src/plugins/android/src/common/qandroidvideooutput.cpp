@@ -42,6 +42,7 @@
 #include <qopenglfunctions.h>
 #include <qopenglshaderprogram.h>
 #include <qopenglframebufferobject.h>
+#include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -159,6 +160,7 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
     , m_fbo(0)
     , m_program(0)
     , m_glDeleter(0)
+    , m_surfaceTextureCanAttachToContext(QtAndroidPrivate::androidSdkVersion() >= 16)
 {
 
 }
@@ -184,12 +186,14 @@ void QAndroidTextureVideoOutput::setSurface(QAbstractVideoSurface *surface)
     if (m_surface) {
         if (m_surface->isActive())
             m_surface->stop();
-        m_surface->setProperty("_q_GLThreadCallback", QVariant());
+
+        if (!m_surfaceTextureCanAttachToContext)
+            m_surface->setProperty("_q_GLThreadCallback", QVariant());
     }
 
     m_surface = surface;
 
-    if (m_surface) {
+    if (m_surface && !m_surfaceTextureCanAttachToContext) {
         m_surface->setProperty("_q_GLThreadCallback",
                                QVariant::fromValue<QObject*>(this));
     }
@@ -197,7 +201,7 @@ void QAndroidTextureVideoOutput::setSurface(QAbstractVideoSurface *surface)
 
 bool QAndroidTextureVideoOutput::isReady()
 {
-    return QOpenGLContext::currentContext() || m_externalTex;
+    return m_surfaceTextureCanAttachToContext || QOpenGLContext::currentContext() || m_externalTex;
 }
 
 bool QAndroidTextureVideoOutput::initSurfaceTexture()
@@ -208,15 +212,19 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
     if (!m_surface)
         return false;
 
-    // if we have an OpenGL context in the current thread, create a texture. Otherwise, wait
-    // for the GL render thread to call us back to do it.
-    if (QOpenGLContext::currentContext()) {
-        glGenTextures(1, &m_externalTex);
-        m_glDeleter = new OpenGLResourcesDeleter;
-        m_glDeleter->setTexture(m_externalTex);
-    } else if (!m_externalTex) {
-        return false;
+    if (!m_surfaceTextureCanAttachToContext) {
+        // if we have an OpenGL context in the current thread, create a texture. Otherwise, wait
+        // for the GL render thread to call us back to do it.
+        if (QOpenGLContext::currentContext()) {
+            glGenTextures(1, &m_externalTex);
+            m_glDeleter = new OpenGLResourcesDeleter;
+            m_glDeleter->setTexture(m_externalTex);
+        } else if (!m_externalTex) {
+            return false;
+        }
     }
+
+    QMutexLocker locker(&m_mutex);
 
     m_surfaceTexture = new AndroidSurfaceTexture(m_externalTex);
 
@@ -225,7 +233,8 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
     } else {
         delete m_surfaceTexture;
         m_surfaceTexture = 0;
-        m_glDeleter->deleteLater();
+        if (m_glDeleter)
+            m_glDeleter->deleteLater();
         m_externalTex = 0;
         m_glDeleter = 0;
     }
@@ -235,10 +244,15 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
 
 void QAndroidTextureVideoOutput::clearSurfaceTexture()
 {
+    QMutexLocker locker(&m_mutex);
     if (m_surfaceTexture) {
         delete m_surfaceTexture;
         m_surfaceTexture = 0;
     }
+
+    // Also reset the attached OpenGL texture
+    if (m_surfaceTextureCanAttachToContext)
+        m_externalTex = 0;
 }
 
 AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
@@ -301,6 +315,9 @@ void QAndroidTextureVideoOutput::renderFrameToFbo()
 {
     QMutexLocker locker(&m_mutex);
 
+    if (!m_nativeSize.isValid() || !m_surfaceTexture)
+        return;
+
     createGLResources();
 
     m_surfaceTexture->updateTexImage();
@@ -358,6 +375,18 @@ void QAndroidTextureVideoOutput::renderFrameToFbo()
 
 void QAndroidTextureVideoOutput::createGLResources()
 {
+    Q_ASSERT(QOpenGLContext::currentContext() != NULL);
+
+    if (!m_glDeleter)
+        m_glDeleter = new OpenGLResourcesDeleter;
+
+    if (m_surfaceTextureCanAttachToContext && !m_externalTex) {
+        m_surfaceTexture->detachFromGLContext();
+        glGenTextures(1, &m_externalTex);
+        m_surfaceTexture->attachToGLContext(m_externalTex);
+        m_glDeleter->setTexture(m_externalTex);
+    }
+
     if (!m_fbo || m_fbo->size() != m_nativeSize) {
         delete m_fbo;
         m_fbo = new QOpenGLFramebufferObject(m_nativeSize);
@@ -401,7 +430,7 @@ void QAndroidTextureVideoOutput::customEvent(QEvent *e)
 {
     if (e->type() == QEvent::User) {
         // This is running in the render thread (OpenGL enabled)
-        if (!m_externalTex) {
+        if (!m_surfaceTextureCanAttachToContext && !m_externalTex) {
             glGenTextures(1, &m_externalTex);
             m_glDeleter = new OpenGLResourcesDeleter; // will cleanup GL resources in the correct thread
             m_glDeleter->setTexture(m_externalTex);
