@@ -47,6 +47,7 @@
 #include "qaudiooutput.h"
 #include "qaudioprobe.h"
 #include "qaudiodecoder.h"
+#include "qmediaplayer.h"
 
 class AudioInputExample : public QObject {
     Q_OBJECT
@@ -247,3 +248,18 @@ void AudioDecodingExample::decode()
     // Now wait for bufferReady() signal and call decoder->read()
     //! [Local audio decoding]
 }
+
+QMediaPlayer player;
+
+//! [Volume conversion]
+void applyVolume(int volumeSliderValue)
+{
+    // volumeSliderValue is in the range [0..100]
+
+    qreal linearVolume = QAudio::convertVolume(volumeSliderValue / qreal(100.0),
+                                               QAudio::CubicVolumeScale,
+                                               QAudio::LinearVolumeScale);
+
+    player.setVolume(qRound(linearVolume * 100));
+}
+//! [Volume conversion]

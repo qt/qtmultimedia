@@ -39,6 +39,7 @@
 
 
 #include <qaudio.h>
+#include <qmath.h>
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
@@ -49,6 +50,7 @@ static void qRegisterAudioMetaTypes()
     qRegisterMetaType<QAudio::State>();
     qRegisterMetaType<QAudio::Mode>();
     qRegisterMetaType<QAudio::Role>();
+    qRegisterMetaType<QAudio::VolumeScale>();
 }
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
@@ -110,6 +112,98 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
     \since 5.6
     \sa QMediaPlayer::setAudioRole()
 */
+
+/*!
+    \enum QAudio::VolumeScale
+
+    This enum defines the different audio volume scales.
+
+    \value LinearVolumeScale     Linear scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is full
+                                 volume. All Qt Multimedia classes that have an audio volume use a
+                                 linear scale.
+    \value CubicVolumeScale      Cubic scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is full
+                                 volume. UI volume controls should usually use a cubic scale.
+    \value DecibelVolumeScale    Decibel (dB, amplitude) logarithmic scale. \c -200 is silence and
+                                 \c 0 is full volume.
+
+    \since 5.8
+    \sa QAudio::convertVolume()
+*/
+
+namespace QAudio
+{
+
+/*!
+    \fn qreal QAudio::convertVolume(qreal volume, VolumeScale from, VolumeScale to)
+
+    Converts an audio \a volume \a from a volume scale \a to another, and returns the result.
+
+    Depending on the context, different scales are used to represent audio volume. All Qt Multimedia
+    classes that have an audio volume use a linear scale, the reason is that the loudness of a
+    speaker is controlled by modulating its voltage on a linear scale. The human ear on the other
+    hand, perceives loudness in a logarithmic way. That is why the decibel scale, being a logarithmic
+    scale, is typically used to define sound levels. UI volume controls in professional audio
+    applications usually use a decibel scale. The cubic scale is a computationally cheap
+    approximation of a logarithmic scale, most applications should use a cubic scale for their UI
+    volume controls.
+
+    The following example shows how to convert the volume value from a slider control before passing
+    it to a QMediaPlayer. As a result, the perceived increase in volume is the same when increasing
+    the volume slider from 20 to 30 as it is from 50 to 60:
+
+    \snippet multimedia-snippets/audio.cpp Volume conversion
+
+    \since 5.8
+    \sa VolumeScale, QMediaPlayer::setVolume(), QAudioOutput::setVolume(),
+        QAudioInput::setVolume(), QSoundEffect::setVolume(), QMediaRecorder::setVolume()
+*/
+qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
+{
+    switch (from) {
+    case LinearVolumeScale:
+        volume = qMax(qreal(0), volume);
+        switch (to) {
+        case LinearVolumeScale:
+            return volume;
+        case CubicVolumeScale:
+            return qPow(volume, qreal(1 / 3.0));
+        case DecibelVolumeScale:
+            if (volume < 0.001)
+                return qreal(-200);
+            else
+                return qreal(20.0) * std::log10(volume);
+        }
+        break;
+    case CubicVolumeScale:
+        volume = qMax(qreal(0), volume);
+        switch (to) {
+        case LinearVolumeScale:
+            return volume * volume * volume;
+        case CubicVolumeScale:
+            return volume;
+        case DecibelVolumeScale:
+            if (volume < 0.001)
+                return qreal(-200);
+            else
+                return qreal(3.0 * 20.0) * std::log10(volume);
+        }
+        break;
+    case DecibelVolumeScale:
+        switch (to) {
+        case LinearVolumeScale:
+            return qPow(qreal(10.0), volume / qreal(20.0));
+        case CubicVolumeScale:
+            return qPow(qreal(10.0), volume / qreal(3.0 * 20.0));
+        case DecibelVolumeScale:
+            return volume;
+        }
+        break;
+    }
+
+    return volume;
+}
+
+}
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QAudio::Error error)
@@ -210,6 +304,25 @@ QDebug operator<<(QDebug dbg, QAudio::Role role)
     }
     return dbg;
 }
+
+QDebug operator<<(QDebug dbg, QAudio::VolumeScale scale)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    switch (scale) {
+    case QAudio::LinearVolumeScale:
+        dbg << "LinearVolumeScale";
+        break;
+    case QAudio::CubicVolumeScale:
+        dbg << "CubicVolumeScale";
+        break;
+    case QAudio::DecibelVolumeScale:
+        dbg << "DecibelVolumeScale";
+        break;
+    }
+    return dbg;
+}
+
 #endif
 
 

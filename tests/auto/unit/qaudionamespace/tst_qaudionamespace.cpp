@@ -30,7 +30,7 @@
 
 #include <QtTest/QtTest>
 
-#include "qaudio.h"
+#include <QtMultimedia/qaudio.h>
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \
@@ -49,6 +49,10 @@ private slots:
     void debugState_data();
     void debugMode();
     void debugMode_data();
+    void debugVolumeScale();
+    void debugVolumeScale_data();
+    void convertVolume();
+    void convertVolume_data();
 };
 
 void tst_QAudioNamespace::debugError_data()
@@ -109,6 +113,103 @@ void tst_QAudioNamespace::debugMode()
     QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
     qDebug() << mode;
 }
+
+void tst_QAudioNamespace::debugVolumeScale_data()
+{
+    QTest::addColumn<QAudio::VolumeScale>("volumeScale");
+    QTest::addColumn<QString>("stringized");
+
+    ADD_ENUM_TEST(LinearVolumeScale);
+    ADD_ENUM_TEST(CubicVolumeScale);
+    ADD_ENUM_TEST(DecibelVolumeScale);
+}
+
+void tst_QAudioNamespace::debugVolumeScale()
+{
+    QFETCH(QAudio::VolumeScale, volumeScale);
+    QFETCH(QString, stringized);
+
+    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
+    qDebug() << volumeScale;
+}
+
+void tst_QAudioNamespace::convertVolume_data()
+{
+    QTest::addColumn<qreal>("input");
+    QTest::addColumn<QAudio::VolumeScale>("from");
+    QTest::addColumn<QAudio::VolumeScale>("to");
+    QTest::addColumn<qreal>("expectedOutput");
+
+    QTest::newRow("-1.0 from linear to linear") << qreal(-1.0) << QAudio::LinearVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from linear to linear") << qreal(0.0) << QAudio::LinearVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("0.5 from linear to linear") << qreal(0.5) << QAudio::LinearVolumeScale << QAudio::LinearVolumeScale << qreal(0.5);
+    QTest::newRow("1.0 from linear to linear") << qreal(1.0) << QAudio::LinearVolumeScale << QAudio::LinearVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1.0 from linear to cubic") << qreal(-1.0) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from linear to cubic") << qreal(0.0) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("0.33 from linear to cubic") << qreal(0.33) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(0.69);
+    QTest::newRow("0.5 from linear to cubic") << qreal(0.5) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(0.79);
+    QTest::newRow("0.72 from linear to cubic") << qreal(0.72) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(0.89);
+    QTest::newRow("1.0 from linear to cubic") << qreal(1.0) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1.0 from linear to decibel") << qreal(-1.0) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
+    QTest::newRow("0.0 from linear to decibel") << qreal(0.0) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
+    QTest::newRow("0.33 from linear to decibel") << qreal(0.33) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-9.63);
+    QTest::newRow("0.5 from linear to decibel") << qreal(0.5) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-6.02);
+    QTest::newRow("0.72 from linear to decibel") << qreal(0.72) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-2.85);
+    QTest::newRow("1.0 from linear to decibel") << qreal(1.0) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(0);
+
+    QTest::newRow("-1.0 from cubic to linear") << qreal(-1.0) << QAudio::CubicVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from cubic to linear") << qreal(0.0) << QAudio::CubicVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("0.33 from cubic to linear") << qreal(0.33) << QAudio::CubicVolumeScale << QAudio::LinearVolumeScale << qreal(0.04);
+    QTest::newRow("0.5 from cubic to linear") << qreal(0.5) << QAudio::CubicVolumeScale << QAudio::LinearVolumeScale << qreal(0.13);
+    QTest::newRow("0.72 from cubic to linear") << qreal(0.72) << QAudio::CubicVolumeScale << QAudio::LinearVolumeScale << qreal(0.37);
+    QTest::newRow("1.0 from cubic to linear") << qreal(1.0) << QAudio::CubicVolumeScale << QAudio::LinearVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1.0 from cubic to cubic") << qreal(-1.0) << QAudio::CubicVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from cubic to cubic") << qreal(0.0) << QAudio::CubicVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("0.5 from cubic to cubic") << qreal(0.5) << QAudio::CubicVolumeScale << QAudio::CubicVolumeScale << qreal(0.5);
+    QTest::newRow("1.0 from cubic to cubic") << qreal(1.0) << QAudio::CubicVolumeScale << QAudio::CubicVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1.0 from cubic to decibel") << qreal(-1.0) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
+    QTest::newRow("0.0 from cubic to decibel") << qreal(0.0) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
+    QTest::newRow("0.33 from cubic to decibel") << qreal(0.33) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-28.89);
+    QTest::newRow("0.5 from cubic to decibel") << qreal(0.5) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-18.06);
+    QTest::newRow("0.72 from cubic to decibel") << qreal(0.72) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-8.56);
+    QTest::newRow("1.0 from cubic to decibel") << qreal(1.0) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(0);
+
+    QTest::newRow("-1000 from decibel to linear") << qreal(-1000.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("-200 from decibel to linear") << qreal(-200.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("-40 from decibel to linear") << qreal(-40.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(0.01);
+    QTest::newRow("-10 from decibel to linear") << qreal(-10.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(0.32);
+    QTest::newRow("-5 from decibel to linear") << qreal(-5.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(0.56);
+    QTest::newRow("0 from decibel to linear") << qreal(0.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1000 from decibel to cubic") << qreal(-1000.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("-200 from decibel to cubic") << qreal(-200.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("-40 from decibel to cubic") << qreal(-40.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(0.22);
+    QTest::newRow("-10 from decibel to cubic") << qreal(-10.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(0.68);
+    QTest::newRow("-5 from decibel to cubic") << qreal(-5.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(0.83);
+    QTest::newRow("0 from decibel to cubic") << qreal(0.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1000 from decibel to decibel") << qreal(-1000.0) << QAudio::DecibelVolumeScale << QAudio::DecibelVolumeScale << qreal(-1000.0);
+    QTest::newRow("-200 from decibel to decibel") << qreal(-200.0) << QAudio::DecibelVolumeScale << QAudio::DecibelVolumeScale << qreal(-200.0);
+    QTest::newRow("-30 from decibel to decibel") << qreal(-30.0) << QAudio::DecibelVolumeScale << QAudio::DecibelVolumeScale << qreal(-30.0);
+    QTest::newRow("0 from decibel to decibel") << qreal(0.0) << QAudio::DecibelVolumeScale << QAudio::DecibelVolumeScale << qreal(0.0);
+}
+
+void tst_QAudioNamespace::convertVolume()
+{
+    QFETCH(qreal, input);
+    QFETCH(QAudio::VolumeScale, from);
+    QFETCH(QAudio::VolumeScale, to);
+    QFETCH(qreal, expectedOutput);
+
+    qreal actualOutput = QAudio::convertVolume(input, from, to);
+    QVERIFY2(qAbs(actualOutput - expectedOutput) < 0.01,
+             QString("actual: %1, expected: %2").arg(actualOutput).arg(expectedOutput).toLocal8Bit().constData());
+}
+
 QTEST_MAIN(tst_QAudioNamespace)
 
 #include "tst_qaudionamespace.moc"

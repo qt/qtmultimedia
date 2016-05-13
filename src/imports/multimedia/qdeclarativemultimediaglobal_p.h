@@ -53,6 +53,7 @@
 
 #include <QtQml/qqml.h>
 #include <QtQml/qjsvalue.h>
+#include <QtMultimedia/qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -63,11 +64,21 @@ class QDeclarativeMultimediaGlobal : public QObject
     Q_PROPERTY(QJSValue defaultCamera READ defaultCamera NOTIFY defaultCameraChanged)
     Q_PROPERTY(QJSValue availableCameras READ availableCameras NOTIFY availableCamerasChanged)
 
+    Q_ENUMS(VolumeScale)
+
 public:
+    enum VolumeScale {
+        LinearVolumeScale = QAudio::LinearVolumeScale,
+        CubicVolumeScale = QAudio::CubicVolumeScale,
+        DecibelVolumeScale = QAudio::DecibelVolumeScale
+    };
+
     explicit QDeclarativeMultimediaGlobal(QJSEngine *engine, QObject *parent = 0);
 
     QJSValue defaultCamera() const;
     QJSValue availableCameras() const;
+
+    Q_INVOKABLE qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to) const;
 
 Q_SIGNALS:
     // Unused at the moment. QCameraInfo doesn't notify when cameras are added or removed,
