@@ -14,3 +14,7 @@ target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/video/qmlvideofx
 INSTALLS += target
 
 QMAKE_INFO_PLIST = Info.plist
+
+EXAMPLE_FILES += \
+    qmlvideofx.png \
+    qmlvideofx.svg

@@ -707,6 +707,7 @@ qint64 QAlsaAudioInput::processedUSecs() const
 void QAlsaAudioInput::suspend()
 {
     if(deviceState == QAudio::ActiveState||resuming) {
+        snd_pcm_drain(handle);
         timer->stop();
         deviceState = QAudio::SuspendedState;
         emit stateChanged(deviceState);

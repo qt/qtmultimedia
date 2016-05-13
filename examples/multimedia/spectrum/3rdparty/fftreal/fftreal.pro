@@ -42,3 +42,4 @@ EXAMPLE_FILES = bwins/fftreal.def eabi/fftreal.def readme.txt license.txt
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/spectrum
 INSTALLS += target
 
+CONFIG += install_ok  # Do not cargo-cult this!

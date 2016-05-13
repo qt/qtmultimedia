@@ -67,6 +67,7 @@
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qdir.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qvarlengtharray.h>
 
@@ -329,8 +330,10 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
 
     if (!SUCCEEDED(hr)) {
         locker->unlock();
+        const QString urlString = m_url.isLocalFile()
+            ? QDir::toNativeSeparators(m_url.toLocalFile()) : m_url.toString();
         hr = m_graph->AddSourceFilter(
-                reinterpret_cast<const OLECHAR *>(m_url.toString().utf16()), L"Source", &source);
+                reinterpret_cast<const OLECHAR *>(urlString.utf16()), L"Source", &source);
         locker->relock();
     }
 

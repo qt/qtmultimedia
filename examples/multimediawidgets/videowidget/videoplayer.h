@@ -50,6 +50,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractButton;
 class QSlider;
 class QLabel;
+class QUrl;
 QT_END_NAMESPACE
 
 class VideoPlayer : public QWidget
@@ -58,6 +59,8 @@ class VideoPlayer : public QWidget
 public:
     VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
+
+    void setUrl(const QUrl &url);
 
 public slots:
     void openFile();

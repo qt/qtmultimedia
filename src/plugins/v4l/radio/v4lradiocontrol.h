@@ -46,7 +46,11 @@
 
 #include <qradiotunercontrol.h>
 
+#if defined(Q_OS_FREEBSD)
+#include <sys/types.h>
+#else
 #include <linux/types.h>
+#endif
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
