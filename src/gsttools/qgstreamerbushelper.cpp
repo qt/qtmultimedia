@@ -52,7 +52,7 @@ public:
         m_tag(0),
         m_bus(bus),
         m_helper(parent),
-        m_intervalTimer(nullptr)
+        m_intervalTimer(Q_NULLPTR)
     {
         // glib event loop can be disabled either by env variable or QT_NO_GLIB define, so check the dispacher
         QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
