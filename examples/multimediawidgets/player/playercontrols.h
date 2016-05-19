@@ -82,6 +82,7 @@ private slots:
     void playClicked();
     void muteClicked();
     void updateRate();
+    void onVolumeSliderValueChanged();
 
 private:
     QMediaPlayer::State playerState;

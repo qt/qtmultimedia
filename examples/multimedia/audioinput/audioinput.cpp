@@ -315,7 +315,10 @@ void InputTest::initializeAudio()
 void InputTest::createAudioInput()
 {
     m_audioInput = new QAudioInput(m_device, m_format, this);
-    m_volumeSlider->setValue(m_audioInput->volume() * 100);
+    qreal initialVolume = QAudio::convertVolume(m_audioInput->volume(),
+                                                QAudio::LinearVolumeScale,
+                                                QAudio::CubicVolumeScale);
+    m_volumeSlider->setValue(qRound(initialVolume * 100));
     m_audioInfo->start();
     m_audioInput->start(m_audioInfo);
 }
@@ -386,6 +389,11 @@ void InputTest::deviceChanged(int index)
 
 void InputTest::sliderChanged(int value)
 {
-    if (m_audioInput)
-        m_audioInput->setVolume(qreal(value) / 100);
+    if (m_audioInput) {
+        qreal linearVolume =  QAudio::convertVolume(value / qreal(100),
+                                                    QAudio::CubicVolumeScale,
+                                                    QAudio::LinearVolumeScale);
+
+        m_audioInput->setVolume(linearVolume);
+    }
 }

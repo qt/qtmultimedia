@@ -45,6 +45,7 @@
 #include <QStyle>
 #include <QToolButton>
 #include <QComboBox>
+#include <QAudio>
 
 PlayerControls::PlayerControls(QWidget *parent)
     : QWidget(parent)
@@ -87,7 +88,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     volumeSlider = new QSlider(Qt::Horizontal, this);
     volumeSlider->setRange(0, 100);
 
-    connect(volumeSlider, SIGNAL(sliderMoved(int)), this, SIGNAL(changeVolume(int)));
+    connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(onVolumeSliderValueChanged()));
 
     rateBox = new QComboBox(this);
     rateBox->addItem("0.5x", QVariant(0.5));
@@ -138,13 +139,20 @@ void PlayerControls::setState(QMediaPlayer::State state)
 
 int PlayerControls::volume() const
 {
-    return volumeSlider ? volumeSlider->value() : 0;
+    qreal linearVolume =  QAudio::convertVolume(volumeSlider->value() / qreal(100),
+                                                QAudio::CubicVolumeScale,
+                                                QAudio::LinearVolumeScale);
+
+    return qRound(linearVolume * 100);
 }
 
 void PlayerControls::setVolume(int volume)
 {
-    if (volumeSlider)
-        volumeSlider->setValue(volume);
+    qreal cubicVolume = QAudio::convertVolume(volume / qreal(100),
+                                               QAudio::LinearVolumeScale,
+                                               QAudio::CubicVolumeScale);
+
+    volumeSlider->setValue(qRound(cubicVolume * 100));
 }
 
 bool PlayerControls::isMuted() const
@@ -202,4 +210,9 @@ void PlayerControls::setPlaybackRate(float rate)
 void PlayerControls::updateRate()
 {
     emit changeRate(playbackRate());
+}
+
+void PlayerControls::onVolumeSliderValueChanged()
+{
+    emit changeVolume(volume());
 }

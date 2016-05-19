@@ -250,7 +250,11 @@ void AudioTest::createAudioOutput()
     m_audioOutput = new QAudioOutput(m_device, m_format, this);
     m_generator->start();
     m_audioOutput->start(m_generator);
-    m_volumeSlider->setValue(int(m_audioOutput->volume()*100.0f));
+
+    qreal initialVolume = QAudio::convertVolume(m_audioOutput->volume(),
+                                                QAudio::LinearVolumeScale,
+                                                QAudio::CubicVolumeScale);
+    m_volumeSlider->setValue(qRound(initialVolume * 100));
 }
 
 AudioTest::~AudioTest()
@@ -270,8 +274,13 @@ void AudioTest::deviceChanged(int index)
 
 void AudioTest::volumeChanged(int value)
 {
-    if (m_audioOutput)
-        m_audioOutput->setVolume(qreal(value/100.0f));
+    if (m_audioOutput) {
+        qreal linearVolume =  QAudio::convertVolume(value / qreal(100),
+                                                    QAudio::CubicVolumeScale,
+                                                    QAudio::LinearVolumeScale);
+
+        m_audioOutput->setVolume(linearVolume);
+    }
 }
 
 void AudioTest::pushTimerExpired()
