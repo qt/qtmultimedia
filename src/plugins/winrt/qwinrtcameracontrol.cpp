@@ -101,15 +101,30 @@ HRESULT getMediaStreamResolutions(IMediaDeviceController *device,
         ComPtr<IMediaEncodingProperties> properties;
         hr = (*propertiesList)->GetAt(index, &properties);
         Q_ASSERT_SUCCEEDED(hr);
-        ComPtr<IVideoEncodingProperties> videoProperties;
-        hr = properties.As(&videoProperties);
-        Q_ASSERT_SUCCEEDED(hr);
-        UINT32 width, height;
-        hr = videoProperties->get_Width(&width);
-        Q_ASSERT_SUCCEEDED(hr);
-        hr = videoProperties->get_Height(&height);
-        Q_ASSERT_SUCCEEDED(hr);
-        resolutions->append(QSize(width, height));
+        if (type == MediaStreamType_VideoRecord || type == MediaStreamType_VideoPreview) {
+            ComPtr<IVideoEncodingProperties> videoProperties;
+            hr = properties.As(&videoProperties);
+            Q_ASSERT_SUCCEEDED(hr);
+            UINT32 width, height;
+            hr = videoProperties->get_Width(&width);
+            Q_ASSERT_SUCCEEDED(hr);
+            hr = videoProperties->get_Height(&height);
+            Q_ASSERT_SUCCEEDED(hr);
+            resolutions->append(QSize(width, height));
+        } else if (type == MediaStreamType_Photo) {
+            ComPtr<IImageEncodingProperties> imageProperties;
+            hr = properties.As(&imageProperties);
+            // Asking for Photo also returns video resolutions in addition
+            // We skip those, as we are only interested in image Type
+            if (FAILED(hr) || !imageProperties)
+                continue;
+            UINT32 width, height;
+            hr = imageProperties->get_Width(&width);
+            Q_ASSERT_SUCCEEDED(hr);
+            hr = imageProperties->get_Height(&height);
+            Q_ASSERT_SUCCEEDED(hr);
+            resolutions->append(QSize(width, height));
+        }
     }
     return resolutions->isEmpty() ? MF_E_INVALID_FORMAT : hr;
 }
@@ -617,7 +632,7 @@ void QWinRTCameraControl::setState(QCamera::State state)
         }
 
         QCameraFocus::FocusModes focusMode = d->cameraFocusControl->focusMode();
-        if (setFocus(focusMode) && focusMode == QCameraFocus::ContinuousFocus)
+        if (focusMode != 0 && setFocus(focusMode) && focusMode == QCameraFocus::ContinuousFocus)
             focus();
 
         d->state = QCamera::ActiveState;
