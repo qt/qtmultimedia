@@ -302,7 +302,6 @@ AndroidCamera *AndroidCamera::open(int cameraId)
     if (!ok) {
         worker->quit();
         worker->wait(5000);
-        delete d;
         delete worker;
         return 0;
     }
