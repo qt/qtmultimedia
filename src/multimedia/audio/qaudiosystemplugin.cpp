@@ -77,24 +77,15 @@ QAudioSystemPluginExtension::~QAudioSystemPluginExtension()
 
     \sa QAbstractAudioDeviceInfo, QAbstractAudioOutput, QAbstractAudioInput
 
-    Qt supports win32, linux(alsa) and OS X standard (builtin to the
-    QtMultimedia library at compile time).
+    Qt comes with plugins for Windows (WinMM and WASAPI), Linux (ALSA and PulseAudio), OS X / iOS
+    (CoreAudio), Android (OpenSL ES) and QNX.
 
-    You can support other backends other than these predefined ones by
-    creating a plugin subclassing QAudioSystemPlugin, QAbstractAudioDeviceInfo,
-    QAbstractAudioOutput and QAbstractAudioInput.
-
-
-    The builtin backend will only be compiled into the library if the dependencies
-    are installed. eg. alsa-devel package installed for linux.
-
-    If the builtin backend is not compiled into the QtMultimedia library and
-    no audio plugins are available a fallback dummy backend will be used.
+    If no audio plugins are available, a fallback dummy backend will be used.
     This should print out warnings if this is the case when you try and use QAudioInput
-    or QAudioOutput. To fix this problem reconfigure Qt with the required
-    dependencies (e.g. alsa-devel package) available or create your own plugin with a default
-    key to always override the dummy fallback. The easiest way to determine
-    if you have only a dummy backend is to get a list of available audio devices.
+    or QAudioOutput. To fix this problem, make sure the dependencies for the Qt plugins are
+    installed on the system and reconfigure Qt (e.g. alsa-devel package on Linux), or create your
+    own plugin with a default key to always override the dummy fallback. The easiest way to
+    determine if you have only a dummy backend is to get a list of available audio devices.
 
     QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).size() = 0 (dummy backend)
 */
