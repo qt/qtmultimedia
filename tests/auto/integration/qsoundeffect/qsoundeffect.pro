@@ -14,6 +14,3 @@ unix:!mac {
 }
 
 TESTDATA += test.wav
-
-
-config_pulseaudio: CONFIG += insignificant_testcase # Crashes in QSoundEffectPrivate::sampleReady with bufferAttr == 0
