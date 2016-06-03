@@ -58,7 +58,6 @@ QAudioSystemPluginExtension::~QAudioSystemPluginExtension()
     \ingroup multimedia
     \ingroup multimedia_audio
     \inmodule QtMultimedia
-    \internal
 
     Writing a audio plugin is achieved by subclassing this base class,
     reimplementing the pure virtual functions availableDevices(),

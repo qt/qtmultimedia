@@ -48,7 +48,6 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_audio
     \inmodule QtMultimedia
-    \internal
 
     This class implements the audio functionality for
     QAudioDeviceInfo, i.e., QAudioDeviceInfo keeps a
@@ -112,7 +111,6 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia
     \inmodule QtMultimedia
-    \internal
 
     QAbstractAudioOutput implements audio functionality for
     QAudioOutput, i.e., QAudioOutput routes function calls to
@@ -252,7 +250,6 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia
     \inmodule QtMultimedia
-    \internal
 
     QAudioDeviceInput keeps an instance of QAbstractAudioInput and
     routes calls to functions of the same name to QAbstractAudioInput.
