@@ -449,17 +449,6 @@ public class QtAndroidMediaPlayer
        return duration;
    }
 
-   private float adjustVolume(final int volume)
-   {
-       if (volume < 1)
-           return 0.0f;
-
-       if (volume > 98)
-           return 1.0f;
-
-       return (float) (1-(Math.log(100-volume)/Math.log(100)));
-   }
-
    public void setVolume(int volume)
    {
        if (volume < 0)
@@ -487,7 +476,7 @@ public class QtAndroidMediaPlayer
        }
 
        try {
-           float newVolume = adjustVolume(volume);
+           float newVolume = (float)volume / 100;
            mMediaPlayer.setVolume(newVolume, newVolume);
        } catch (final IllegalStateException e) {
            Log.d(TAG, "" + e.getMessage());
