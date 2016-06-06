@@ -48,8 +48,6 @@
 #endif // ANDROID
 
 #define BUFFER_COUNT 2
-#define EBASE 2.302585093
-#define LOG10(x) qLn(x)/qreal(EBASE)
 
 QT_BEGIN_NAMESPACE
 
@@ -696,7 +694,7 @@ inline SLmillibel QOpenSLESAudioOutput::adjustVolume(qreal vol)
     if (qFuzzyCompare(vol, qreal(1.0)))
         return 0;
 
-    return 20 * LOG10(vol) * 100; // I.e., 20 * LOG10(SL_MILLIBEL_MAX * vol / SL_MILLIBEL_MAX)
+    return QAudio::convertVolume(vol, QAudio::LinearVolumeScale, QAudio::DecibelVolumeScale) * 100;
 }
 
 QT_END_NAMESPACE
