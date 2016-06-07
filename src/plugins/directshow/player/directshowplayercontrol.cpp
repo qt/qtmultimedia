@@ -45,21 +45,7 @@
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qmath.h>
-
-static int volumeToDecibels(int volume)
-{
-    if (volume == 0) {
-        return -10000;
-    } else if (volume == 100) {
-        return 0;
-#ifdef QT_USE_MATH_H_FLOATS
-    } else if (sizeof(qreal) == sizeof(float)) {
-        return qRound(::log10f(float(volume) / 100) * 5000);
-#endif
-    } else {
-        return qRound(::log10(qreal(volume) / 100) * 5000);
-    }
-}
+#include <qaudio.h>
 
 DirectShowPlayerControl::DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent)
     : QMediaPlayerControl(parent)
@@ -168,7 +154,18 @@ void DirectShowPlayerControl::setVolumeHelper(int volume)
     if (!m_audio)
         return;
 
-    m_audio->put_Volume(volumeToDecibels(volume));
+    long adjustedVolume;
+    if (volume == 0) {
+        adjustedVolume = -10000; // -100 dB (lower limit for put_Volume())
+    } else if (volume == 100) {
+        adjustedVolume = 0;
+    } else {
+        adjustedVolume = QAudio::convertVolume(volume / qreal(100),
+                                               QAudio::LinearVolumeScale,
+                                               QAudio::DecibelVolumeScale) * 100;
+    }
+
+    m_audio->put_Volume(adjustedVolume);
 }
 
 int DirectShowPlayerControl::bufferStatus() const
