@@ -360,7 +360,7 @@ void QWinRTAbstractVideoRendererControl::setActive(bool active)
         return;
     }
 
-    d->renderThread.requestInterruption();
+    shutdown();
     if (d->surface && d->surface->isActive())
         d->surface->stop();
 }
