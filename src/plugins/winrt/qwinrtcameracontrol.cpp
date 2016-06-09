@@ -101,7 +101,13 @@ HRESULT getMediaStreamResolutions(IMediaDeviceController *device,
         ComPtr<IMediaEncodingProperties> properties;
         hr = (*propertiesList)->GetAt(index, &properties);
         Q_ASSERT_SUCCEEDED(hr);
-        if (type == MediaStreamType_VideoRecord || type == MediaStreamType_VideoPreview) {
+        HString propertyType;
+        hr = properties->get_Type(propertyType.GetAddressOf());
+        Q_ASSERT_SUCCEEDED(hr);
+
+        const HStringReference videoRef = HString::MakeReference(L"Video");
+        const HStringReference imageRef = HString::MakeReference(L"Image");
+        if (propertyType == videoRef) {
             ComPtr<IVideoEncodingProperties> videoProperties;
             hr = properties.As(&videoProperties);
             Q_ASSERT_SUCCEEDED(hr);
@@ -111,13 +117,10 @@ HRESULT getMediaStreamResolutions(IMediaDeviceController *device,
             hr = videoProperties->get_Height(&height);
             Q_ASSERT_SUCCEEDED(hr);
             resolutions->append(QSize(width, height));
-        } else if (type == MediaStreamType_Photo) {
+        } else if (propertyType == imageRef) {
             ComPtr<IImageEncodingProperties> imageProperties;
             hr = properties.As(&imageProperties);
-            // Asking for Photo also returns video resolutions in addition
-            // We skip those, as we are only interested in image Type
-            if (FAILED(hr) || !imageProperties)
-                continue;
+            Q_ASSERT_SUCCEEDED(hr);
             UINT32 width, height;
             hr = imageProperties->get_Width(&width);
             Q_ASSERT_SUCCEEDED(hr);
