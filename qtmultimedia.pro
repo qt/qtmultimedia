@@ -9,6 +9,7 @@ win32 {
     qtCompileTest(evr)
     qtCompileTest(wmsdk)
     contains(QT_CONFIG, wmf-backend): qtCompileTest(wmf)
+    qtCompileTest(wasapi)
 } else:mac {
     qtCompileTest(avfoundation)
 } else:qnx {

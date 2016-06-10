@@ -25,6 +25,10 @@ qnx:!blackberry {
     SUBDIRS += qnx-audio
 }
 
+win32 {
+    config_wasapi: SUBDIRS += wasapi
+}
+
 win32:!winrt {
     SUBDIRS += audiocapture \
                windowsaudio
@@ -34,8 +38,7 @@ win32:!winrt {
 }
 
 winrt {
-    SUBDIRS += wasapi \
-               winrt
+    SUBDIRS += winrt
 }
 
 unix:!mac:!android {
