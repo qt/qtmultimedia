@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Ruslan Baratov
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -51,6 +52,7 @@
 #include "qandroidcameraexposurecontrol.h"
 #include "qandroidcameraflashcontrol.h"
 #include "qandroidcamerafocuscontrol.h"
+#include "qandroidviewfindersettingscontrol.h"
 #include "qandroidcameralockscontrol.h"
 #include "qandroidcameraimageprocessingcontrol.h"
 #include "qandroidimageencodercontrol.h"
@@ -80,6 +82,7 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraExposureControl = new QAndroidCameraExposureControl(m_cameraSession);
         m_cameraFlashControl = new QAndroidCameraFlashControl(m_cameraSession);
         m_cameraFocusControl = new QAndroidCameraFocusControl(m_cameraSession);
+        m_viewfinderSettingsControl2 = new QAndroidViewfinderSettingsControl2(m_cameraSession);
         m_cameraLocksControl = new QAndroidCameraLocksControl(m_cameraSession);
         m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(m_cameraSession);
         m_imageEncoderControl = new QAndroidImageEncoderControl(m_cameraSession);
@@ -96,6 +99,7 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraExposureControl = 0;
         m_cameraFlashControl = 0;
         m_cameraFocusControl = 0;
+        m_viewfinderSettingsControl2 = 0;
         m_cameraLocksControl = 0;
         m_cameraImageProcessingControl = 0;
         m_imageEncoderControl = 0;
@@ -134,6 +138,7 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraExposureControl;
     delete m_cameraFlashControl;
     delete m_cameraFocusControl;
+    delete m_viewfinderSettingsControl2;
     delete m_cameraLocksControl;
     delete m_cameraImageProcessingControl;
     delete m_imageEncoderControl;
@@ -180,6 +185,9 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return m_cameraFocusControl;
+
+    if (qstrcmp(name, QCameraViewfinderSettingsControl2_iid) == 0)
+        return m_viewfinderSettingsControl2;
 
     if (qstrcmp(name, QCameraLocksControl_iid) == 0)
         return m_cameraLocksControl;

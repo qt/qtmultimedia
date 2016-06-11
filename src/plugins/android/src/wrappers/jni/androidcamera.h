@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Ruslan Baratov
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -83,6 +84,26 @@ public:
         YV12 = 842094169
     };
 
+    // http://developer.android.com/reference/android/hardware/Camera.Parameters.html#getSupportedPreviewFpsRange%28%29
+    // "The values are multiplied by 1000 and represented in integers"
+    struct FpsRange {
+        int min;
+        int max;
+
+        FpsRange(): min(0), max(0) {}
+
+        qreal getMinReal() const { return min / 1000.0; }
+        qreal getMaxReal() const { return max / 1000.0; }
+
+        static FpsRange makeFromQReal(qreal min, qreal max)
+        {
+            FpsRange range;
+            range.min = static_cast<int>(min * 1000.0);
+            range.max = static_cast<int>(max * 1000.0);
+            return range;
+        }
+    };
+
     ~AndroidCamera();
 
     static AndroidCamera *open(int cameraId);
@@ -100,11 +121,17 @@ public:
     QSize getPreferredPreviewSizeForVideo();
     QList<QSize> getSupportedPreviewSizes();
 
+    QList<FpsRange> getSupportedPreviewFpsRange();
+
+    FpsRange getPreviewFpsRange();
+    void setPreviewFpsRange(FpsRange);
+
     ImageFormat getPreviewFormat();
     void setPreviewFormat(ImageFormat fmt);
     QList<ImageFormat> getSupportedPreviewFormats();
 
     QSize previewSize() const;
+    QSize actualPreviewSize();
     void setPreviewSize(const QSize &size);
     bool setPreviewTexture(AndroidSurfaceTexture *surfaceTexture);
     bool setPreviewDisplay(AndroidSurfaceHolder *surfaceHolder);
