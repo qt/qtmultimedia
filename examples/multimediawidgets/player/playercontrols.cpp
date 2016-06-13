@@ -140,7 +140,7 @@ void PlayerControls::setState(QMediaPlayer::State state)
 int PlayerControls::volume() const
 {
     qreal linearVolume =  QAudio::convertVolume(volumeSlider->value() / qreal(100),
-                                                QAudio::CubicVolumeScale,
+                                                QAudio::LogarithmicVolumeScale,
                                                 QAudio::LinearVolumeScale);
 
     return qRound(linearVolume * 100);
@@ -148,11 +148,11 @@ int PlayerControls::volume() const
 
 void PlayerControls::setVolume(int volume)
 {
-    qreal cubicVolume = QAudio::convertVolume(volume / qreal(100),
-                                               QAudio::LinearVolumeScale,
-                                               QAudio::CubicVolumeScale);
+    qreal logarithmicVolume = QAudio::convertVolume(volume / qreal(100),
+                                                    QAudio::LinearVolumeScale,
+                                                    QAudio::LogarithmicVolumeScale);
 
-    volumeSlider->setValue(qRound(cubicVolume * 100));
+    volumeSlider->setValue(qRound(logarithmicVolume * 100));
 }
 
 bool PlayerControls::isMuted() const

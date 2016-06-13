@@ -253,7 +253,7 @@ void AudioTest::createAudioOutput()
 
     qreal initialVolume = QAudio::convertVolume(m_audioOutput->volume(),
                                                 QAudio::LinearVolumeScale,
-                                                QAudio::CubicVolumeScale);
+                                                QAudio::LogarithmicVolumeScale);
     m_volumeSlider->setValue(qRound(initialVolume * 100));
 }
 
@@ -276,7 +276,7 @@ void AudioTest::volumeChanged(int value)
 {
     if (m_audioOutput) {
         qreal linearVolume =  QAudio::convertVolume(value / qreal(100),
-                                                    QAudio::CubicVolumeScale,
+                                                    QAudio::LogarithmicVolumeScale,
                                                     QAudio::LinearVolumeScale);
 
         m_audioOutput->setVolume(linearVolume);
