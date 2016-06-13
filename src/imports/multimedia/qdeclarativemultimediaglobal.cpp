@@ -191,18 +191,20 @@ QJSValue QDeclarativeMultimediaGlobal::availableCameras() const
     Depending on the context, different scales are used to represent audio volume. All Qt Multimedia
     classes that have an audio volume use a linear scale, the reason is that the loudness of a
     speaker is controlled by modulating its voltage on a linear scale. The human ear on the other
-    hand, perceives loudness in a logarithmic way. That is why the decibel scale, being a logarithmic
-    scale, is typically used to define sound levels. UI volume controls in professional audio
-    applications usually use a decibel scale. The cubic scale is a computationally cheap
-    approximation of a logarithmic scale, most applications should use a cubic scale for their UI
-    volume controls.
+    hand, perceives loudness in a logarithmic way. Using a logarithmic scale for volume controls
+    is therefore appropriate in most applications. The decibel scale is logarithmic by nature and
+    is commonly used to define sound levels, it is usually used for UI volume controls in
+    professional audio applications. The cubic scale is a computationally cheap approximation of a
+    logarithmic scale, it provides more control over lower volume levels.
 
     Valid values for \a from and \a to are:
     \list
     \li QtMultimedia.LinearVolumeScale - Linear scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is
         full volume. All Qt Multimedia types that have an audio volume use a linear scale.
     \li QtMultimedia.CubicVolumeScale - Cubic scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is full
-        volume. UI volume controls should usually use a cubic scale.
+        volume.
+    \li QtMultimedia.LogarithmicVolumeScale - Logarithmic scale. \c 0.0 (0%) is silence and \c 1.0
+        (100%) is full volume. UI volume controls should usually use a logarithmic scale.
     \li QtMultimedia.DecibelVolumeScale - Decibel (dB, amplitude) logarithmic scale. \c -200 is
         silence and \c 0 is full volume.
     \endlist
@@ -216,7 +218,7 @@ QJSValue QDeclarativeMultimediaGlobal::availableCameras() const
         id: volumeSlider
 
         property real volume: QtMultimedia.convertVolume(volumeSlider.value,
-                                                         QtMultimedia.CubicVolumeScale,
+                                                         QtMultimedia.LogarithmicVolumeScale,
                                                          QtMultimedia.LinearVolumeScale)
     }
 

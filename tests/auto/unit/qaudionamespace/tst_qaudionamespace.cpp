@@ -152,6 +152,13 @@ void tst_QAudioNamespace::convertVolume_data()
     QTest::newRow("0.72 from linear to cubic") << qreal(0.72) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(0.89);
     QTest::newRow("1.0 from linear to cubic") << qreal(1.0) << QAudio::LinearVolumeScale << QAudio::CubicVolumeScale << qreal(1.0);
 
+    QTest::newRow("-1.0 from linear to logarithmic") << qreal(-1.0) << QAudio::LinearVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from linear to logarithmic") << qreal(0.0) << QAudio::LinearVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("0.33 from linear to logarithmic") << qreal(0.33) << QAudio::LinearVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.78);
+    QTest::newRow("0.5 from linear to logarithmic") << qreal(0.5) << QAudio::LinearVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.9);
+    QTest::newRow("0.72 from linear to logarithmic") << qreal(0.72) << QAudio::LinearVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.96);
+    QTest::newRow("1.0 from linear to logarithmic") << qreal(1.0) << QAudio::LinearVolumeScale << QAudio::LogarithmicVolumeScale << qreal(1.0);
+
     QTest::newRow("-1.0 from linear to decibel") << qreal(-1.0) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
     QTest::newRow("0.0 from linear to decibel") << qreal(0.0) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
     QTest::newRow("0.33 from linear to decibel") << qreal(0.33) << QAudio::LinearVolumeScale << QAudio::DecibelVolumeScale << qreal(-9.63);
@@ -171,12 +178,45 @@ void tst_QAudioNamespace::convertVolume_data()
     QTest::newRow("0.5 from cubic to cubic") << qreal(0.5) << QAudio::CubicVolumeScale << QAudio::CubicVolumeScale << qreal(0.5);
     QTest::newRow("1.0 from cubic to cubic") << qreal(1.0) << QAudio::CubicVolumeScale << QAudio::CubicVolumeScale << qreal(1.0);
 
+    QTest::newRow("-1.0 from cubic to logarithmic") << qreal(-1.0) << QAudio::CubicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from cubic to logarithmic") << qreal(0.0) << QAudio::CubicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("0.33 from cubic to logarithmic") << qreal(0.33) << QAudio::CubicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.15);
+    QTest::newRow("0.5 from cubic to logarithmic") << qreal(0.5) << QAudio::CubicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.44);
+    QTest::newRow("0.72 from cubic to logarithmic") << qreal(0.72) << QAudio::CubicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.82);
+    QTest::newRow("1.0 from cubic to logarithmic") << qreal(1.0) << QAudio::CubicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(1.0);
+
     QTest::newRow("-1.0 from cubic to decibel") << qreal(-1.0) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
     QTest::newRow("0.0 from cubic to decibel") << qreal(0.0) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
     QTest::newRow("0.33 from cubic to decibel") << qreal(0.33) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-28.89);
     QTest::newRow("0.5 from cubic to decibel") << qreal(0.5) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-18.06);
     QTest::newRow("0.72 from cubic to decibel") << qreal(0.72) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(-8.56);
     QTest::newRow("1.0 from cubic to decibel") << qreal(1.0) << QAudio::CubicVolumeScale << QAudio::DecibelVolumeScale << qreal(0);
+
+    QTest::newRow("-1.0 from logarithmic to linear") << qreal(-1.0) << QAudio::LogarithmicVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from logarithmic to linear") << qreal(0.0) << QAudio::LogarithmicVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
+    QTest::newRow("0.33 from logarithmic to linear") << qreal(0.33) << QAudio::LogarithmicVolumeScale << QAudio::LinearVolumeScale << qreal(0.09);
+    QTest::newRow("0.5 from logarithmic to linear") << qreal(0.5) << QAudio::LogarithmicVolumeScale << QAudio::LinearVolumeScale << qreal(0.15);
+    QTest::newRow("0.72 from logarithmic to linear") << qreal(0.72) << QAudio::LogarithmicVolumeScale << QAudio::LinearVolumeScale << qreal(0.28);
+    QTest::newRow("1.0 from logarithmic to linear") << qreal(1.0) << QAudio::LogarithmicVolumeScale << QAudio::LinearVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1.0 from logarithmic to cubic") << qreal(-1.0) << QAudio::LogarithmicVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from logarithmic to cubic") << qreal(0.0) << QAudio::LogarithmicVolumeScale << QAudio::CubicVolumeScale << qreal(0.0);
+    QTest::newRow("0.33 from logarithmic to cubic") << qreal(0.33) << QAudio::LogarithmicVolumeScale << QAudio::CubicVolumeScale << qreal(0.44);
+    QTest::newRow("0.5 from logarithmic to cubic") << qreal(0.5) << QAudio::LogarithmicVolumeScale << QAudio::CubicVolumeScale << qreal(0.53);
+    QTest::newRow("0.72 from logarithmic to cubic") << qreal(0.72) << QAudio::LogarithmicVolumeScale << QAudio::CubicVolumeScale << qreal(0.65);
+    QTest::newRow("1.0 from logarithmic to cubic") << qreal(1.0) << QAudio::LogarithmicVolumeScale << QAudio::CubicVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1.0 from logarithmic to logarithmic") << qreal(-1.0) << QAudio::LogarithmicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("0.0 from logarithmic to logarithmic") << qreal(0.0) << QAudio::LogarithmicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("0.5 from logarithmic to logarithmic") << qreal(0.5) << QAudio::LogarithmicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.5);
+    QTest::newRow("1.0 from logarithmic to logarithmic") << qreal(1.0) << QAudio::LogarithmicVolumeScale << QAudio::LogarithmicVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1.0 from logarithmic to decibel") << qreal(-1.0) << QAudio::LogarithmicVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
+    QTest::newRow("0.0 from logarithmic to decibel") << qreal(0.0) << QAudio::LogarithmicVolumeScale << QAudio::DecibelVolumeScale << qreal(-200);
+    QTest::newRow("0.33 from logarithmic to decibel") << qreal(0.33) << QAudio::LogarithmicVolumeScale << QAudio::DecibelVolumeScale << qreal(-21.21);
+    QTest::newRow("0.5 from logarithmic to decibel") << qreal(0.5) << QAudio::LogarithmicVolumeScale << QAudio::DecibelVolumeScale << qreal(-16.45);
+    QTest::newRow("0.72 from logarithmic to decibel") << qreal(0.72) << QAudio::LogarithmicVolumeScale << QAudio::DecibelVolumeScale << qreal(-11.17);
+    QTest::newRow("1.0 from logarithmic to decibel") << qreal(1.0) << QAudio::LogarithmicVolumeScale << QAudio::DecibelVolumeScale << qreal(0);
 
     QTest::newRow("-1000 from decibel to linear") << qreal(-1000.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
     QTest::newRow("-200 from decibel to linear") << qreal(-200.0) << QAudio::DecibelVolumeScale << QAudio::LinearVolumeScale << qreal(0.0);
@@ -191,6 +231,13 @@ void tst_QAudioNamespace::convertVolume_data()
     QTest::newRow("-10 from decibel to cubic") << qreal(-10.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(0.68);
     QTest::newRow("-5 from decibel to cubic") << qreal(-5.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(0.83);
     QTest::newRow("0 from decibel to cubic") << qreal(0.0) << QAudio::DecibelVolumeScale << QAudio::CubicVolumeScale << qreal(1.0);
+
+    QTest::newRow("-1000 from decibel to logarithmic") << qreal(-1000.0) << QAudio::DecibelVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("-200 from decibel to logarithmic") << qreal(-200.0) << QAudio::DecibelVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.0);
+    QTest::newRow("-40 from decibel to logarithmic") << qreal(-40.0) << QAudio::DecibelVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.05);
+    QTest::newRow("-10 from decibel to logarithmic") << qreal(-10.0) << QAudio::DecibelVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.77);
+    QTest::newRow("-5 from decibel to logarithmic") << qreal(-5.0) << QAudio::DecibelVolumeScale << QAudio::LogarithmicVolumeScale << qreal(0.92);
+    QTest::newRow("0 from decibel to logarithmic") << qreal(0.0) << QAudio::DecibelVolumeScale << QAudio::LogarithmicVolumeScale << qreal(1.0);
 
     QTest::newRow("-1000 from decibel to decibel") << qreal(-1000.0) << QAudio::DecibelVolumeScale << QAudio::DecibelVolumeScale << qreal(-1000.0);
     QTest::newRow("-200 from decibel to decibel") << qreal(-200.0) << QAudio::DecibelVolumeScale << QAudio::DecibelVolumeScale << qreal(-200.0);

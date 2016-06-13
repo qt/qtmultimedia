@@ -74,6 +74,7 @@ namespace QAudio
     enum VolumeScale {
         LinearVolumeScale,
         CubicVolumeScale,
+        LogarithmicVolumeScale,
         DecibelVolumeScale
     };
 

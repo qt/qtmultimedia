@@ -70,6 +70,7 @@ public:
     enum VolumeScale {
         LinearVolumeScale = QAudio::LinearVolumeScale,
         CubicVolumeScale = QAudio::CubicVolumeScale,
+        LogarithmicVolumeScale = QAudio::LogarithmicVolumeScale,
         DecibelVolumeScale = QAudio::DecibelVolumeScale
     };
 

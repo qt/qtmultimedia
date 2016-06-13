@@ -77,6 +77,13 @@ TestCase {
             { tag: "0.72 from linear to cubic", input: 0.72, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0.89 },
             { tag: "1.0 from linear to cubic", input: 1.0, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 1.0 },
 
+            { tag: "-1.0 from linear to logarithmic", input: -1, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "0.0 from linear to logarithmic", input: 0, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "0.33 from linear to logarithmic", input: 0.33, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.78 },
+            { tag: "0.5 from linear to logarithmic", input: 0.5, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.9 },
+            { tag: "0.72 from linear to logarithmic", input: 0.72, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.96 },
+            { tag: "1.0 from linear to logarithmic", input: 1.0, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 1.0 },
+
             { tag: "-1.0 from linear to decibel", input: -1, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -200 },
             { tag: "0.0 from linear to decibel", input: 0, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -200 },
             { tag: "0.33 from linear to decibel", input: 0.33, from: QtMultimedia.LinearVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -9.63 },
@@ -96,12 +103,45 @@ TestCase {
             { tag: "0.5 from cubic to cubic", input: 0.5, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0.5 },
             { tag: "1.0 from cubic to cubic", input: 1.0, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 1.0 },
 
+            { tag: "-1.0 from cubic to logarithmic", input: -1, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "0.0 from cubic to logarithmic", input: 0, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "0.33 from cubic to logarithmic", input: 0.33, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.15 },
+            { tag: "0.5 from cubic to logarithmic", input: 0.5, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.44 },
+            { tag: "0.72 from cubic to logarithmic", input: 0.72, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.82 },
+            { tag: "1.0 from cubic to logarithmic", input: 1.0, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 1 },
+
             { tag: "-1.0 from cubic to decibel", input: -1, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -200 },
             { tag: "0.0 from cubic to decibel", input: 0, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -200 },
             { tag: "0.33 from cubic to decibel", input: 0.33, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -28.89 },
             { tag: "0.5 from cubic to decibel", input: 0.5, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -18.06 },
             { tag: "0.72 from cubic to decibel", input: 0.72, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -8.56 },
             { tag: "1.0 from cubic to decibel", input: 1.0, from: QtMultimedia.CubicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: 0 },
+
+            { tag: "-1.0 from logarithmic to linear", input: -1, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 0 },
+            { tag: "0.0 from logarithmic to linear", input: 0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 0 },
+            { tag: "0.33 from logarithmic to linear", input: 0.33, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 0.09 },
+            { tag: "0.5 from logarithmic to linear", input: 0.5, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 0.15 },
+            { tag: "0.72 from logarithmic to linear", input: 0.72, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 0.28 },
+            { tag: "1.0 from logarithmic to linear", input: 1.0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 1.0 },
+
+            { tag: "-1.0 from logarithmic to cubic", input: -1, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0 },
+            { tag: "0.0 from logarithmic to cubic", input: 0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0 },
+            { tag: "0.33 from logarithmic to cubic", input: 0.33, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0.44 },
+            { tag: "0.5 from logarithmic to cubic", input: 0.5, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0.53 },
+            { tag: "0.72 from logarithmic to cubic", input: 0.72, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0.65 },
+            { tag: "1.0 from logarithmic to cubic", input: 1.0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 1.0 },
+
+            { tag: "-1.0 from logarithmic to logarithmic", input: -1, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "0.0 from logarithmic to logarithmic", input: 0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "0.5 from logarithmic to logarithmic", input: 0.5, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.5 },
+            { tag: "1.0 from logarithmic to logarithmic", input: 1.0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 1.0 },
+
+            { tag: "-1.0 from logarithmic to decibel", input: -1, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -200 },
+            { tag: "0.0 from logarithmic to decibel", input: 0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -200 },
+            { tag: "0.33 from logarithmic to decibel", input: 0.33, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -21.21 },
+            { tag: "0.5 from logarithmic to decibel", input: 0.5, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -16.45 },
+            { tag: "0.72 from logarithmic to decibel", input: 0.72, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -11.17 },
+            { tag: "1.0 from logarithmic to decibel", input: 1.0, from: QtMultimedia.LogarithmicVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: 0 },
 
             { tag: "-1000 from decibel to linear", input: -1000, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 0 },
             { tag: "-200 from decibel to linear", input: -200, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LinearVolumeScale, expectedOutput: 0 },
@@ -116,6 +156,13 @@ TestCase {
             { tag: "-10 from decibel to cubic", input: -10, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0.68 },
             { tag: "-5 from decibel to cubic", input: -5, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 0.83 },
             { tag: "0 from decibel to cubic", input: 0, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.CubicVolumeScale, expectedOutput: 1 },
+
+            { tag: "-1000 from decibel to logarithmic", input: -1000, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "-200 from decibel to logarithmic", input: -200, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0 },
+            { tag: "-40 from decibel to logarithmic", input: -40, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.05 },
+            { tag: "-10 from decibel to logarithmic", input: -10, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.77 },
+            { tag: "-5 from decibel to logarithmic", input: -5, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 0.92 },
+            { tag: "0 from decibel to logarithmic", input: 0, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.LogarithmicVolumeScale, expectedOutput: 1 },
 
             { tag: "-1000 from decibel to decibel", input: -1000, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -1000 },
             { tag: "-200 from decibel to decibel", input: -200, from: QtMultimedia.DecibelVolumeScale, to: QtMultimedia.DecibelVolumeScale, expectedOutput: -200 },

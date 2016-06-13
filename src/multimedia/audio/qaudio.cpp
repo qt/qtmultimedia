@@ -44,6 +44,8 @@
 
 QT_BEGIN_NAMESPACE
 
+#define LOG100 4.60517018599
+
 static void qRegisterAudioMetaTypes()
 {
     qRegisterMetaType<QAudio::Error>();
@@ -118,13 +120,16 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
 
     This enum defines the different audio volume scales.
 
-    \value LinearVolumeScale     Linear scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is full
-                                 volume. All Qt Multimedia classes that have an audio volume use a
-                                 linear scale.
-    \value CubicVolumeScale      Cubic scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is full
-                                 volume. UI volume controls should usually use a cubic scale.
-    \value DecibelVolumeScale    Decibel (dB, amplitude) logarithmic scale. \c -200 is silence and
-                                 \c 0 is full volume.
+    \value LinearVolumeScale        Linear scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is full
+                                    volume. All Qt Multimedia classes that have an audio volume use
+                                    a linear scale.
+    \value CubicVolumeScale         Cubic scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is full
+                                    volume.
+    \value LogarithmicVolumeScale   Logarithmic Scale. \c 0.0 (0%) is silence and \c 1.0 (100%) is
+                                    full volume. UI volume controls should usually use a logarithmic
+                                    scale.
+    \value DecibelVolumeScale       Decibel (dB, amplitude) logarithmic scale. \c -200 is silence
+                                    and \c 0 is full volume.
 
     \since 5.8
     \sa QAudio::convertVolume()
@@ -141,11 +146,11 @@ namespace QAudio
     Depending on the context, different scales are used to represent audio volume. All Qt Multimedia
     classes that have an audio volume use a linear scale, the reason is that the loudness of a
     speaker is controlled by modulating its voltage on a linear scale. The human ear on the other
-    hand, perceives loudness in a logarithmic way. That is why the decibel scale, being a logarithmic
-    scale, is typically used to define sound levels. UI volume controls in professional audio
-    applications usually use a decibel scale. The cubic scale is a computationally cheap
-    approximation of a logarithmic scale, most applications should use a cubic scale for their UI
-    volume controls.
+    hand, perceives loudness in a logarithmic way. Using a logarithmic scale for volume controls
+    is therefore appropriate in most applications. The decibel scale is logarithmic by nature and
+    is commonly used to define sound levels, it is usually used for UI volume controls in
+    professional audio applications. The cubic scale is a computationally cheap approximation of a
+    logarithmic scale, it provides more control over lower volume levels.
 
     The following example shows how to convert the volume value from a slider control before passing
     it to a QMediaPlayer. As a result, the perceived increase in volume is the same when increasing
@@ -167,6 +172,8 @@ qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
             return volume;
         case CubicVolumeScale:
             return qPow(volume, qreal(1 / 3.0));
+        case LogarithmicVolumeScale:
+            return 1 - std::exp(-volume * LOG100);
         case DecibelVolumeScale:
             if (volume < 0.001)
                 return qreal(-200);
@@ -181,11 +188,37 @@ qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
             return volume * volume * volume;
         case CubicVolumeScale:
             return volume;
+        case LogarithmicVolumeScale:
+            return 1 - std::exp(-volume * volume * volume * LOG100);
         case DecibelVolumeScale:
             if (volume < 0.001)
                 return qreal(-200);
             else
                 return qreal(3.0 * 20.0) * std::log10(volume);
+        }
+        break;
+    case LogarithmicVolumeScale:
+        volume = qMax(qreal(0), volume);
+        switch (to) {
+        case LinearVolumeScale:
+            if (volume > 0.99)
+                return 1;
+            else
+                return -std::log(1 - volume) / LOG100;
+        case CubicVolumeScale:
+            if (volume > 0.99)
+                return 1;
+            else
+                return qPow(-std::log(1 - volume) / LOG100, qreal(1 / 3.0));
+        case LogarithmicVolumeScale:
+            return volume;
+        case DecibelVolumeScale:
+            if (volume < 0.001)
+                return qreal(-200);
+            else if (volume > 0.99)
+                return 0;
+            else
+                return qreal(20.0) * std::log10(-std::log(1 - volume) / LOG100);
         }
         break;
     case DecibelVolumeScale:
@@ -194,6 +227,11 @@ qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
             return qPow(qreal(10.0), volume / qreal(20.0));
         case CubicVolumeScale:
             return qPow(qreal(10.0), volume / qreal(3.0 * 20.0));
+        case LogarithmicVolumeScale:
+            if (qFuzzyIsNull(volume))
+                return 1;
+            else
+                return 1 - std::exp(-qPow(qreal(10.0), volume / qreal(20.0)) * LOG100);
         case DecibelVolumeScale:
             return volume;
         }
@@ -315,6 +353,9 @@ QDebug operator<<(QDebug dbg, QAudio::VolumeScale scale)
         break;
     case QAudio::CubicVolumeScale:
         dbg << "CubicVolumeScale";
+        break;
+    case QAudio::LogarithmicVolumeScale:
+        dbg << "LogarithmicVolumeScale";
         break;
     case QAudio::DecibelVolumeScale:
         dbg << "DecibelVolumeScale";
