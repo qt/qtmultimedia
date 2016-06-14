@@ -2,6 +2,7 @@
 
 [testLooping]
 ubuntu-14.04 64bit
+ubuntu-16.04
 redhatenterpriselinuxworkstation-6.6
 rhel-7.1
 opensuse-13.1
