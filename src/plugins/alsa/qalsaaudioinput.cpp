@@ -121,6 +121,12 @@ int QAlsaAudioInput::xrun_recovery(int err)
     int  count = 0;
     bool reset = false;
 
+    // ESTRPIPE is not available in all OSes where ALSA is available
+    int estrpipe = EIO;
+#ifdef ESTRPIPE
+    estrpipe = ESTRPIPE;
+#endif
+
     if(err == -EPIPE) {
         errorState = QAudio::UnderrunError;
         err = snd_pcm_prepare(handle);
@@ -131,8 +137,7 @@ int QAlsaAudioInput::xrun_recovery(int err)
             if (bytesAvailable <= 0)
                 reset = true;
         }
-
-    } else if((err == -ESTRPIPE)||(err == -EIO)) {
+    } else if ((err == -estrpipe)||(err == -EIO)) {
         errorState = QAudio::IOError;
         while((err = snd_pcm_resume(handle)) == -EAGAIN){
             usleep(100);
@@ -541,8 +546,10 @@ qint64 QAlsaAudioInput::read(char* data, qint64 len)
                 if(readFrames == -EPIPE) {
                     errorState = QAudio::UnderrunError;
                     err = snd_pcm_prepare(handle);
+#ifdef ESTRPIPE
                 } else if(readFrames == -ESTRPIPE) {
                     err = snd_pcm_prepare(handle);
+#endif
                 }
                 if(err != 0) break;
             }
