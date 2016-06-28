@@ -942,7 +942,8 @@ HRESULT QWinRTCameraControl::initialize()
         Q_ASSERT_SUCCEEDED(hr);
         if (isFocusSupported) {
             hr = advancedVideoDeviceController->get_RegionsOfInterestControl(&d->regionsOfInterestControl);
-            Q_ASSERT_SUCCEEDED(hr);
+            if (FAILED(hr))
+                qCDebug(lcMMCamera) << "Focus supported, but no control for regions of interest available";
             hr = initializeFocus();
             Q_ASSERT_SUCCEEDED(hr);
         } else {
