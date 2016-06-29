@@ -47,12 +47,9 @@ QT_BEGIN_NAMESPACE
 class AVFMediaRecorderControlIOS;
 class AVFCameraService;
 
-typedef QAtomicInteger<bool> AVFAtomicBool;
 typedef QAtomicInteger<qint64> AVFAtomicInt64;
 
 QT_END_NAMESPACE
-
-// TODO: any reasonable error handling requires smart pointers, otherwise it's getting crappy immediately.
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate,
                                                                AVCaptureAudioDataOutputSampleBufferDelegate>
@@ -78,9 +75,8 @@ QT_END_NAMESPACE
     QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *m_delegate;
 
     bool m_setStartTime;
-    QT_PREPEND_NAMESPACE(AVFAtomicBool) m_stopped;
-    QT_PREPEND_NAMESPACE(AVFAtomicBool) m_aborted;
 
+    QT_PREPEND_NAMESPACE(QAtomicInt) m_state;
     QT_PREPEND_NAMESPACE(QMutex) m_writerMutex;
 @public
     QT_PREPEND_NAMESPACE(AVFAtomicInt64) m_durationInMs;

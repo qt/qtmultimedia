@@ -40,7 +40,6 @@
 #include "avfcameradebug.h"
 #include "avfmediacontainercontrol.h"
 
-//#include <QtCore/qmutexlocker.h>
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qsysinfo.h>
 
@@ -68,6 +67,13 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     return true;
 }
 
+enum WriterState
+{
+    WriterStateIdle,
+    WriterStateActive,
+    WriterStateAborted
+};
+
 } // unnamed namespace
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) (PrivateAPI)
@@ -92,8 +98,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 
         m_delegate = delegate;
         m_setStartTime = true;
-        m_stopped.store(true);
-        m_aborted.store(false);
+        m_state.store(WriterStateIdle);
         m_startTime = kCMTimeInvalid;
         m_lastTimeStamp = kCMTimeInvalid;
         m_durationInMs.store(0);
@@ -167,15 +172,22 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 
 - (void)start
 {
-    // To be executed on a writer's queue.
+    // 'start' is executed on a special writer's queue.
+    // We lock a mutex for the whole function body
+    // - render control probably was deleted
+    // 'immediately' after submitting 'start'
+    // and before 'start' is actually executed ...
+    // So if we're starting, render control can not
+    // abort us 'in the middle'.
     const QMutexLocker lock(&m_writerMutex);
-    if (m_aborted.load())
+    if (m_state.load() == WriterStateAborted)
         return;
 
     [self setQueues];
 
     m_setStartTime = true;
-    m_stopped.store(false);
+    m_state.storeRelease(WriterStateActive);
+
     [m_assetWriter startWriting];
     AVCaptureSession *session = m_service->session()->captureSession();
     if (!session.running)
@@ -187,26 +199,23 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     // To be executed on a writer's queue.
     {
     const QMutexLocker lock(&m_writerMutex);
-    if (m_aborted.load())
+    if (m_state.load() != WriterStateActive)
         return;
-
-    if (m_stopped.load())
-        return;
-
-    m_stopped.store(true);
     }
 
     [m_assetWriter finishWritingWithCompletionHandler:^{
         // This block is async, so by the time it's executed,
         // it's possible that render control was deleted already ...
+        // We lock so that nobody can call 'abort' in the middle ...
         const QMutexLocker lock(&m_writerMutex);
-        if (m_aborted.load())
+        if (m_state.load() != WriterStateActive)
             return;
 
         AVCaptureSession *session = m_service->session()->captureSession();
         [session stopRunning];
         [session removeOutput:m_audioOutput];
         [session removeInput:m_audioInput];
+        m_state.storeRelease(WriterStateIdle);
         QMetaObject::invokeMethod(m_delegate, "assetWriterFinished", Qt::QueuedConnection);
     }];
 }
@@ -216,9 +225,10 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     // To be executed on any thread (presumably, it's the main thread),
     // prevents writer from accessing any shared object.
     const QMutexLocker lock(&m_writerMutex);
-    m_aborted.store(true);
-    if (m_stopped.load())
+    if (m_state.fetchAndStoreRelease(WriterStateAborted) != WriterStateActive) {
+        // Not recording, nothing to stop.
         return;
+    }
 
     [m_assetWriter finishWritingWithCompletionHandler:^{
     }];
@@ -231,7 +241,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     Q_ASSERT(sampleBuffer);
 
     const QMutexLocker lock(&m_writerMutex);
-    if (m_aborted.load() || m_stopped.load())
+    if (m_state.load() != WriterStateActive)
         return;
 
     QMetaObject::invokeMethod(m_delegate, "assetWriterStarted", Qt::QueuedConnection);
@@ -248,7 +258,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     Q_ASSERT(sampleBuffer);
 
     // This code is executed only on a writer's queue.
-    if (!m_aborted.load() && !m_stopped.load()) {
+    if (m_state.loadAcquire() == WriterStateActive) {
         if (m_setStartTime)
             [self setStartTimeFrom:sampleBuffer];
 
@@ -264,11 +274,10 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 
 - (void)writeAudioSampleBuffer:(CMSampleBufferRef)sampleBuffer
 {
-    // This code is executed only on a writer's queue.
-    // it does not touch any shared/external data.
     Q_ASSERT(sampleBuffer);
 
-    if (!m_aborted.load() && !m_stopped.load()) {
+    // This code is executed only on a writer's queue.
+    if (m_state.loadAcquire() == WriterStateActive) {
         if (m_setStartTime)
             [self setStartTimeFrom:sampleBuffer];
 
@@ -290,7 +299,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     // This method can be called on either video or audio queue,
     // never on a writer's queue, it needs access to a shared data, so
     // lock is required.
-    if (m_stopped.load())
+    if (m_state.loadAcquire() != WriterStateActive)
         return;
 
     if (!CMSampleBufferDataIsReady(sampleBuffer)) {
@@ -302,7 +311,7 @@ bool qt_camera_service_isValid(AVFCameraService *service)
 
     if (captureOutput != m_audioOutput.data()) {
         const QMutexLocker lock(&m_writerMutex);
-        if (m_aborted.load() || m_stopped.load()) {
+        if (m_state.load() != WriterStateActive) {
             CFRelease(sampleBuffer);
             return;
         }
