@@ -120,6 +120,12 @@ int QAlsaAudioOutput::xrun_recovery(int err)
     int  count = 0;
     bool reset = false;
 
+    // ESTRPIPE is not available in all OSes where ALSA is available
+    int estrpipe = EIO;
+#ifdef ESTRPIPE
+    estrpipe = ESTRPIPE;
+#endif
+
     if(err == -EPIPE) {
         errorState = QAudio::UnderrunError;
         emit errorChanged(errorState);
@@ -127,7 +133,7 @@ int QAlsaAudioOutput::xrun_recovery(int err)
         if(err < 0)
             reset = true;
 
-    } else if((err == -ESTRPIPE)||(err == -EIO)) {
+    } else if ((err == -estrpipe)||(err == -EIO)) {
         errorState = QAudio::IOError;
         emit errorChanged(errorState);
         while((err = snd_pcm_resume(handle)) == -EAGAIN){
@@ -309,34 +315,16 @@ bool QAlsaAudioOutput::open()
         return false;
     }
 
-    QString dev = QString(QLatin1String(m_device.constData()));
-    QList<QByteArray> devices = QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
-    if(dev.compare(QLatin1String("default")) == 0) {
-#if SND_LIB_VERSION >= 0x1000e  // 1.0.14
-        if (devices.size() > 0)
-            dev = QLatin1String(devices.first());
-        else
-            return false;
-#else
-        dev = QLatin1String("hw:0,0");
-#endif
-    } else {
-#if SND_LIB_VERSION >= 0x1000e  // 1.0.14
-        dev = QLatin1String(m_device);
-#else
-        int idx = 0;
-        char *name;
+    if (!QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioOutput).contains(m_device))
+        return false;
 
-        QString shortName = QLatin1String(m_device.mid(m_device.indexOf('=',0)+1).constData());
-
-        while (snd_card_get_name(idx,&name) == 0) {
-            if(qstrncmp(shortName.toLocal8Bit().constData(),name,shortName.length()) == 0)
-                break;
-            idx++;
-        }
-        dev = QString(QLatin1String("hw:%1,0")).arg(idx);
+    QString dev;
+#if SND_LIB_VERSION < 0x1000e  // 1.0.14
+    if (m_device != "default")
+        dev = QAlsaAudioDeviceInfo::deviceFromCardName(m_device);
+    else
 #endif
-    }
+        dev = m_device;
 
     // Step 1: try and open the device
     while((count < 5) && (err < 0)) {

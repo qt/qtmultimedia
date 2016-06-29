@@ -67,6 +67,9 @@ class AVFImageEncoderControl;
 class AVFCameraFlashControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
+class AVFAudioEncoderSettingsControl;
+class AVFVideoEncoderSettingsControl;
+class AVFMediaContainerControl;
 
 class AVFCameraService : public QMediaService
 {
@@ -83,8 +86,7 @@ public:
     AVFCameraDeviceControl *videoDeviceControl() const { return m_videoDeviceControl; }
     AVFAudioInputSelectorControl *audioInputSelectorControl() const { return m_audioInputSelectorControl; }
     AVFCameraMetaDataControl *metaDataControl() const { return m_metaDataControl; }
-    AVFMediaRecorderControl *recorderControl() const;
-    AVFMediaRecorderControlIOS *recorderControlIOS() const;
+    QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const {return m_cameraExposureControl; }
@@ -94,6 +96,9 @@ public:
     AVFCameraViewfinderSettingsControl *viewfinderSettingsControl() const {return m_viewfinderSettingsControl; }
     AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
     AVFCameraFlashControl *flashControl() const {return m_flashControl; }
+    AVFAudioEncoderSettingsControl *audioEncoderSettingsControl() const { return m_audioEncoderSettingsControl; }
+    AVFVideoEncoderSettingsControl *videoEncoderSettingsControl() const {return m_videoEncoderSettingsControl; }
+    AVFMediaContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -112,6 +117,9 @@ private:
     AVFCameraViewfinderSettingsControl *m_viewfinderSettingsControl;
     AVFImageEncoderControl *m_imageEncoderControl;
     AVFCameraFlashControl *m_flashControl;
+    AVFAudioEncoderSettingsControl *m_audioEncoderSettingsControl;
+    AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
+    AVFMediaContainerControl *m_mediaContainerControl;
 };
 
 QT_END_NAMESPACE

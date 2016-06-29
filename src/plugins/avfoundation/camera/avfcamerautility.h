@@ -182,7 +182,14 @@ AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevi
                                                     Float64 fps);
 AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *format, Float64 fps);
 
+bool qt_formats_are_equal(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2);
+bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat *format, bool preserveFps);
+
 #endif
+
+AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection);
+void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection,
+                             qreal minFPS, qreal maxFPS);
 
 QT_END_NAMESPACE
 

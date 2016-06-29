@@ -70,6 +70,7 @@ QT_END_NAMESPACE
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureDeviceInput> m_audioInput;
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureAudioDataOutput> m_audioOutput;
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_audioWriterInput;
+    AVCaptureDevice *m_audioCaptureDevice;
 
     // High priority serial queue for video output:
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_videoQueue;
@@ -92,13 +93,19 @@ QT_END_NAMESPACE
 @private
     CMTime m_startTime;
     CMTime m_lastTimeStamp;
+
+    NSDictionary *m_audioSettings;
+    NSDictionary *m_videoSettings;
 }
 
 - (id)initWithQueue:(dispatch_queue_t)writerQueue
       delegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
-        cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service;
+        cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service
+        audioSettings:(NSDictionary *)audioSettings
+        videoSettings:(NSDictionary *)videoSettings
+        transform:(CGAffineTransform)transform;
 
 - (void)start;
 - (void)stop;

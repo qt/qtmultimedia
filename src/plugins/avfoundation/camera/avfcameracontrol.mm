@@ -53,6 +53,7 @@ AVFCameraControl::AVFCameraControl(AVFCameraService *service, QObject *parent)
 {
     Q_UNUSED(service);
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
+    connect(this, &AVFCameraControl::captureModeChanged, m_session, &AVFCameraSession::onCaptureModeChanged);
 }
 
 AVFCameraControl::~AVFCameraControl()

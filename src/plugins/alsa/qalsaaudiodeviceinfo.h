@@ -91,6 +91,7 @@ public:
     static QByteArray defaultInputDevice();
     static QByteArray defaultOutputDevice();
     static QList<QByteArray> availableDevices(QAudio::Mode);
+    static QString deviceFromCardName(const QString &card);
 
 private:
     bool open();
