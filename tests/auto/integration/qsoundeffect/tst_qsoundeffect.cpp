@@ -188,7 +188,7 @@ void tst_QSoundEffect::testLooping()
 
         // wait for all the loops to be completed
         QTRY_COMPARE(sound->loopsRemaining(), 0);
-        QVERIFY(readSignal_Remaining.count() >= 6);
+        QTRY_VERIFY(readSignal_Remaining.count() >= 6);
         QTRY_VERIFY(!sound->isPlaying());
     }
 
@@ -203,7 +203,7 @@ void tst_QSoundEffect::testLooping()
         QCOMPARE(readSignal_Remaining.count(), 0);
 
         sound->play();
-        QCOMPARE(sound->loopsRemaining(), int(QSoundEffect::Infinite));
+        QTRY_COMPARE(sound->loopsRemaining(), int(QSoundEffect::Infinite));
         QCOMPARE(readSignal_Remaining.count(), 1);
 
         QTest::qWait(1500);
@@ -219,7 +219,7 @@ void tst_QSoundEffect::testLooping()
         QCOMPARE(readSignal_Remaining.count(), 1);
 
         QTRY_COMPARE(sound->loopsRemaining(), 0);
-        QVERIFY(readSignal_Remaining.count() >= 2);
+        QTRY_VERIFY(readSignal_Remaining.count() >= 2);
         QTRY_VERIFY(!sound->isPlaying());
     }
 }
