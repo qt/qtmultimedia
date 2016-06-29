@@ -340,6 +340,8 @@ void MmRendererMediaPlayerControl::setState(QMediaPlayer::State state)
 
 void MmRendererMediaPlayerControl::stopInternal(StopCommand stopCommand)
 {
+    setPosition(0);
+
     if (m_state != QMediaPlayer::StoppedState) {
 
         if (stopCommand == StopMmRenderer) {
@@ -348,11 +350,6 @@ void MmRendererMediaPlayerControl::stopInternal(StopCommand stopCommand)
         }
 
         setState(QMediaPlayer::StoppedState);
-    }
-
-    if (m_position != 0) {
-        m_position = 0;
-        emit positionChanged(0);
     }
 }
 
