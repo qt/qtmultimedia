@@ -34,24 +34,32 @@
 #include "androidsurfacetexture.h"
 #include <QtCore/private/qjni_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
+#include <QtCore/qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
 static const char QtSurfaceTextureListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtSurfaceTextureListener";
-static QMap<int, AndroidSurfaceTexture*> g_objectMap;
+typedef QVector<jlong> SurfaceTextures;
+Q_GLOBAL_STATIC(SurfaceTextures, g_surfaceTextures);
+Q_GLOBAL_STATIC(QMutex, g_textureMutex);
 
 // native method for QtSurfaceTexture.java
-static void notifyFrameAvailable(JNIEnv* , jobject, int id)
+static void notifyFrameAvailable(JNIEnv* , jobject, jlong id)
 {
-    AndroidSurfaceTexture *obj = g_objectMap.value(id, 0);
+    const QMutexLocker lock(g_textureMutex);
+    const int idx = g_surfaceTextures->indexOf(id);
+    if (idx == -1)
+        return;
+
+    AndroidSurfaceTexture *obj = reinterpret_cast<AndroidSurfaceTexture *>(g_surfaceTextures->at(idx));
     if (obj)
         Q_EMIT obj->frameAvailable();
 }
 
 AndroidSurfaceTexture::AndroidSurfaceTexture(unsigned int texName)
     : QObject()
-    , m_texID(int(texName))
 {
+    Q_STATIC_ASSERT(sizeof (jlong) >= sizeof (void *));
     // API level 11 or higher is required
     if (QtAndroidPrivate::androidSdkVersion() < 11) {
         qWarning("Camera preview and video playback require Android 3.0 (API level 11) or later.");
@@ -67,13 +75,13 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(unsigned int texName)
         env->ExceptionClear();
     }
 
-    if (m_surfaceTexture.isValid())
-        g_objectMap.insert(int(texName), this);
+    if (!m_surfaceTexture.isValid())
+        return;
 
-    QJNIObjectPrivate listener(QtSurfaceTextureListenerClassName, "(I)V", jint(texName));
-    m_surfaceTexture.callMethod<void>("setOnFrameAvailableListener",
-                                      "(Landroid/graphics/SurfaceTexture$OnFrameAvailableListener;)V",
-                                      listener.object());
+    const QMutexLocker lock(g_textureMutex);
+    g_surfaceTextures->append(jlong(this));
+    QJNIObjectPrivate listener(QtSurfaceTextureListenerClassName, "(J)V", jlong(this));
+    setOnFrameAvailableListener(listener);
 }
 
 AndroidSurfaceTexture::~AndroidSurfaceTexture()
@@ -83,7 +91,10 @@ AndroidSurfaceTexture::~AndroidSurfaceTexture()
 
     if (m_surfaceTexture.isValid()) {
         release();
-        g_objectMap.remove(m_texID);
+        const QMutexLocker lock(g_textureMutex);
+        const int idx = g_surfaceTextures->indexOf(jlong(this));
+        if (idx != -1)
+            g_surfaceTextures->remove(idx);
     }
 }
 
@@ -172,7 +183,7 @@ bool AndroidSurfaceTexture::initJNI(JNIEnv *env)
                                                      env);
 
     static const JNINativeMethod methods[] = {
-        {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
+        {"notifyFrameAvailable", "(J)V", (void *)notifyFrameAvailable}
     };
 
     if (clazz && env->RegisterNatives(clazz,
@@ -182,6 +193,13 @@ bool AndroidSurfaceTexture::initJNI(JNIEnv *env)
     }
 
     return true;
+}
+
+void AndroidSurfaceTexture::setOnFrameAvailableListener(const QJNIObjectPrivate &listener)
+{
+    m_surfaceTexture.callMethod<void>("setOnFrameAvailableListener",
+                                      "(Landroid/graphics/SurfaceTexture$OnFrameAvailableListener;)V",
+                                      listener.object());
 }
 
 QT_END_NAMESPACE

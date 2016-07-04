@@ -37,18 +37,18 @@ import android.graphics.SurfaceTexture;
 
 public class QtSurfaceTextureListener implements SurfaceTexture.OnFrameAvailableListener
 {
-    private final int texID;
+    private final long m_id;
 
-    public QtSurfaceTextureListener(int texName)
+    public QtSurfaceTextureListener(long id)
     {
-        texID = texName;
+        m_id = id;
     }
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture)
     {
-        notifyFrameAvailable(texID);
+        notifyFrameAvailable(m_id);
     }
 
-    private static native void notifyFrameAvailable(int id);
+    private static native void notifyFrameAvailable(long id);
 }
