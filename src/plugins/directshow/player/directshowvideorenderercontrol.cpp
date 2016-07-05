@@ -46,11 +46,20 @@ DirectShowVideoRendererControl::DirectShowVideoRendererControl(DirectShowEventLo
     , m_loop(loop)
     , m_surface(0)
     , m_filter(0)
+#ifdef HAVE_EVR
+    , m_evrPresenter(0)
+#endif
 {
 }
 
 DirectShowVideoRendererControl::~DirectShowVideoRendererControl()
 {
+#ifdef HAVE_EVR
+    if (m_evrPresenter) {
+        m_evrPresenter->setSurface(Q_NULLPTR);
+        m_evrPresenter->Release();
+    }
+#endif
     if (m_filter)
         m_filter->Release();
 }
@@ -65,6 +74,14 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (m_surface == surface)
         return;
 
+#ifdef HAVE_EVR
+    if (m_evrPresenter) {
+        m_evrPresenter->setSurface(Q_NULLPTR);
+        m_evrPresenter->Release();
+        m_evrPresenter = 0;
+    }
+#endif
+
     if (m_filter) {
         m_filter->Release();
         m_filter = 0;
@@ -75,12 +92,13 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (m_surface) {
 #ifdef HAVE_EVR
         m_filter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
-        EVRCustomPresenter *evrPresenter = new EVRCustomPresenter(m_surface);
-        if (!evrPresenter->isValid() || !qt_evr_setCustomPresenter(m_filter, evrPresenter)) {
+        m_evrPresenter = new EVRCustomPresenter(m_surface);
+        if (!m_evrPresenter->isValid() || !qt_evr_setCustomPresenter(m_filter, m_evrPresenter)) {
             m_filter->Release();
             m_filter = 0;
+            m_evrPresenter->Release();
+            m_evrPresenter = 0;
         }
-        evrPresenter->Release();
 
         if (!m_filter)
 #endif
