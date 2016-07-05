@@ -56,7 +56,7 @@ static void notifyFrameAvailable(JNIEnv* , jobject, jlong id)
         Q_EMIT obj->frameAvailable();
 }
 
-AndroidSurfaceTexture::AndroidSurfaceTexture(unsigned int texName)
+AndroidSurfaceTexture::AndroidSurfaceTexture(quint32 texName)
     : QObject()
 {
     Q_STATIC_ASSERT(sizeof (jlong) >= sizeof (void *));
@@ -157,7 +157,7 @@ jobject AndroidSurfaceTexture::surfaceHolder()
     return m_surfaceHolder.object();
 }
 
-void AndroidSurfaceTexture::attachToGLContext(int texName)
+void AndroidSurfaceTexture::attachToGLContext(quint32 texName)
 {
     if (QtAndroidPrivate::androidSdkVersion() < 16 || !m_surfaceTexture.isValid())
         return;

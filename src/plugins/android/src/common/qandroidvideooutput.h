@@ -44,7 +44,6 @@ class AndroidSurfaceTexture;
 class AndroidSurfaceHolder;
 class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
-class OpenGLResourcesDeleter;
 class QAbstractVideoSurface;
 
 class QAndroidVideoOutput : public QObject
@@ -69,6 +68,19 @@ protected:
     QAndroidVideoOutput(QObject *parent) : QObject(parent) { }
 };
 
+class OpenGLResourcesDeleter : public QObject
+{
+    Q_OBJECT
+public:
+    void deleteTexture(quint32 id) { QMetaObject::invokeMethod(this, "deleteTextureHelper", Qt::AutoConnection, Q_ARG(quint32, id)); }
+    void deleteFbo(QOpenGLFramebufferObject *fbo) { QMetaObject::invokeMethod(this, "deleteFboHelper", Qt::AutoConnection, Q_ARG(void *, fbo)); }
+    void deleteShaderProgram(QOpenGLShaderProgram *prog) { QMetaObject::invokeMethod(this, "deleteShaderProgramHelper", Qt::AutoConnection, Q_ARG(void *, prog)); }
+
+private:
+    Q_INVOKABLE void deleteTextureHelper(quint32 id);
+    Q_INVOKABLE void deleteFboHelper(void *fbo);
+    Q_INVOKABLE void deleteShaderProgramHelper(void *prog);
+};
 
 class QAndroidTextureVideoOutput : public QAndroidVideoOutput
 {
@@ -108,7 +120,7 @@ private:
     quint32 m_externalTex;
     QOpenGLFramebufferObject *m_fbo;
     QOpenGLShaderProgram *m_program;
-    OpenGLResourcesDeleter *m_glDeleter;
+    QScopedPointer<OpenGLResourcesDeleter, QScopedPointerDeleteLater> m_glDeleter;
 
     bool m_surfaceTextureCanAttachToContext;
 
