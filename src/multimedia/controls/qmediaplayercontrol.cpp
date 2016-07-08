@@ -175,6 +175,8 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
     \fn QMediaPlayerControl::setVolume(int volume)
 
     Sets the audio \a volume of a player control.
+
+    The volume is scaled linearly, ranging from \c 0 (silence) to \c 100 (full volume).
 */
 
 /*!
