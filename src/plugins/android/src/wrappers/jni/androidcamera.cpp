@@ -1436,6 +1436,11 @@ void AndroidCameraPrivate::takePicture()
 {
     QJNIEnvironmentPrivate env;
 
+    // We must clear the preview callback before calling takePicture(), otherwise the call will
+    // block and the camera server will be frozen until the next device restart...
+    // That problem only happens on some devices and on the emulator
+    m_cameraListener.callMethod<void>("clearPreviewCallback", "(Landroid/hardware/Camera;)V", m_camera.object());
+
     m_camera.callMethod<void>("takePicture", "(Landroid/hardware/Camera$ShutterCallback;"
                                              "Landroid/hardware/Camera$PictureCallback;"
                                              "Landroid/hardware/Camera$PictureCallback;)V",

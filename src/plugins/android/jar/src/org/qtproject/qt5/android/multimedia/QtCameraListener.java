@@ -104,11 +104,16 @@ public class QtCameraListener implements Camera.ShutterCallback,
         return m_previewBytesPerLine;
     }
 
+    public void clearPreviewCallback(Camera camera)
+    {
+        camera.setPreviewCallbackWithBuffer(null);
+    }
+
     public void setupPreviewCallback(Camera camera)
     {
         // Clear previous callback (also clears added buffers)
+        clearPreviewCallback(camera);
         m_lastPreviewBuffer = null;
-        camera.setPreviewCallbackWithBuffer(null);
 
         final Camera.Parameters params = camera.getParameters();
         m_previewSize = params.getPreviewSize();
