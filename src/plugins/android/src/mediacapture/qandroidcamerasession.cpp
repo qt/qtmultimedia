@@ -563,6 +563,9 @@ void QAndroidCameraSession::onCameraTakePictureFailed()
 {
     emit imageCaptureError(m_currentImageCaptureId, QCameraImageCapture::ResourceError,
                            tr("Failed to capture image"));
+
+    // Preview needs to be restarted and the preview call back must be setup again
+    m_camera->startPreview();
 }
 
 void QAndroidCameraSession::onCameraPictureExposed()
