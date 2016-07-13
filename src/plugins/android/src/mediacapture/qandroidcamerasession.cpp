@@ -576,6 +576,9 @@ void QAndroidCameraSession::onCameraPictureExposed()
 
 void QAndroidCameraSession::onLastPreviewFrameFetched(const QVideoFrame &frame)
 {
+    if (m_captureCanceled)
+        return;
+
     QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
                       m_currentImageCaptureId,
                       frame,
