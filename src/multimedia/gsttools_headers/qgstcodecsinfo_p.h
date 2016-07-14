@@ -63,22 +63,28 @@ class QGstCodecsInfo
 public:
     enum ElementType { AudioEncoder, VideoEncoder, Muxer };
 
+    struct CodecInfo {
+        QString description;
+        QByteArray elementName;
+        GstRank rank;
+    };
+
     QGstCodecsInfo(ElementType elementType);
 
     QStringList supportedCodecs() const;
     QString codecDescription(const QString &codec) const;
-
-#if GST_CHECK_VERSION(0,10,31)
-    static GstCaps* supportedElementCaps(GstElementFactoryListType elementType,
-                                         GstRank minimumRank = GST_RANK_MARGINAL,
-                                         GstPadDirection padDirection = GST_PAD_SRC);
-#endif
+    QByteArray codecElement(const QString &codec) const;
+    QStringList codecOptions(const QString &codec) const;
 
 private:
+    void updateCodecs(ElementType elementType);
+    GList *elementFactories(ElementType elementType) const;
+
     QStringList m_codecs;
-    QMap<QString,QString> m_codecDescriptions;
+    QMap<QString, CodecInfo> m_codecInfo;
 };
 
+Q_DECLARE_TYPEINFO(QGstCodecsInfo::CodecInfo, Q_MOVABLE_TYPE);
 
 QT_END_NAMESPACE
 

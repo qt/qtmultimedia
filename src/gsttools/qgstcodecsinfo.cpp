@@ -41,62 +41,11 @@
 #include "qgstutils_p.h"
 #include <QtCore/qset.h>
 
-#ifdef QMEDIA_GSTREAMER_CAMERABIN
 #include <gst/pbutils/pbutils.h>
-#include <gst/pbutils/encoding-profile.h>
-#endif
-
 
 QGstCodecsInfo::QGstCodecsInfo(QGstCodecsInfo::ElementType elementType)
 {
-
-#if GST_CHECK_VERSION(0,10,31)
-
-    GstElementFactoryListType gstElementType = 0;
-    switch (elementType) {
-    case AudioEncoder:
-        gstElementType = GST_ELEMENT_FACTORY_TYPE_AUDIO_ENCODER;
-        break;
-    case VideoEncoder:
-        gstElementType = GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER;
-        break;
-    case Muxer:
-        gstElementType = GST_ELEMENT_FACTORY_TYPE_MUXER;
-        break;
-    }
-
-    GstCaps *allCaps = supportedElementCaps(gstElementType);
-    GstCaps *caps = gst_caps_new_empty();
-
-    uint codecsCount = gst_caps_get_size(allCaps);
-    for (uint i=0; i<codecsCount; i++) {
-        gst_caps_append_structure(caps, gst_caps_steal_structure(allCaps, 0));
-        gchar * capsString = gst_caps_to_string(caps);
-
-        QString codec = QLatin1String(capsString);
-        m_codecs.append(codec);
-
-#ifdef QMEDIA_GSTREAMER_CAMERABIN
-        gchar *description = gst_pb_utils_get_codec_description(caps);
-        m_codecDescriptions.insert(codec, QString::fromUtf8(description));
-
-        if (description)
-            g_free(description);
-#else
-        m_codecDescriptions.insert(codec, codec);
-#endif
-
-        if (capsString)
-            g_free(capsString);
-
-        gst_caps_remove_structure(caps, 0);
-    }
-
-    gst_caps_unref(caps);
-    gst_caps_unref(allCaps);
-#else
-    Q_UNUSED(elementType);
-#endif // GST_CHECK_VERSION(0,10,31)
+    updateCodecs(elementType);
 }
 
 QStringList QGstCodecsInfo::supportedCodecs() const
@@ -106,23 +55,49 @@ QStringList QGstCodecsInfo::supportedCodecs() const
 
 QString QGstCodecsInfo::codecDescription(const QString &codec) const
 {
-    return m_codecDescriptions.value(codec);
+    return m_codecInfo.value(codec).description;
 }
 
-#if GST_CHECK_VERSION(0,10,31)
+QByteArray QGstCodecsInfo::codecElement(const QString &codec) const
 
-/*!
-  List all supported caps for all installed elements of type \a elementType.
-
-  Caps are simplified to mime type and a few field necessary to distinguish
-  different codecs like mpegversion or layer.
- */
-GstCaps* QGstCodecsInfo::supportedElementCaps(GstElementFactoryListType elementType,
-                                         GstRank minimumRank,
-                                         GstPadDirection padDirection)
 {
-    GList *elements = gst_element_factory_list_get_elements(elementType, minimumRank);
-    GstCaps *res = gst_caps_new_empty();
+    return m_codecInfo.value(codec).elementName;
+}
+
+QStringList QGstCodecsInfo::codecOptions(const QString &codec) const
+{
+    QStringList options;
+
+    QByteArray elementName = m_codecInfo.value(codec).elementName;
+    if (elementName.isEmpty())
+        return options;
+
+    GstElement *element = gst_element_factory_make(elementName, NULL);
+    if (element) {
+        guint numProperties;
+        GParamSpec **properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(element),
+                                                                 &numProperties);
+        for (guint j = 0; j < numProperties; ++j) {
+            GParamSpec *property = properties[j];
+            // ignore some properties
+            if (strcmp(property->name, "name") == 0 || strcmp(property->name, "parent") == 0)
+                continue;
+
+            options.append(QLatin1String(property->name));
+        }
+        g_free(properties);
+        gst_object_unref(element);
+    }
+
+    return options;
+}
+
+void QGstCodecsInfo::updateCodecs(ElementType elementType)
+{
+    m_codecs.clear();
+    m_codecInfo.clear();
+
+    GList *elements = elementFactories(elementType);
 
     QSet<QByteArray> fakeEncoderMimeTypes;
     fakeEncoderMimeTypes << "unknown/unknown"
@@ -143,7 +118,7 @@ GstCaps* QGstCodecsInfo::supportedElementCaps(GstElementFactoryListType elementT
             GstStaticPadTemplate *padTemplate = (GstStaticPadTemplate *)padTemplates->data;
             padTemplates = padTemplates->next;
 
-            if (padTemplate->direction == padDirection) {
+            if (padTemplate->direction == GST_PAD_SRC) {
                 GstCaps *caps = gst_static_caps_get(&padTemplate->static_caps);
                 for (uint i=0; i<gst_caps_get_size(caps); i++) {
                     const GstStructure *structure = gst_caps_get_structure(caps, i);
@@ -172,18 +147,101 @@ GstCaps* QGstCodecsInfo::supportedElementCaps(GstElementFactoryListType elementT
                         }
                     }
 
-#if GST_CHECK_VERSION(1,0,0)
-                    res =
-#endif
-                    gst_caps_merge_structure(res, newStructure);
+                    GstCaps *newCaps = gst_caps_new_full(newStructure, NULL);
 
+                    gchar *capsString = gst_caps_to_string(newCaps);
+                    QString codec = QLatin1String(capsString);
+                    if (capsString)
+                        g_free(capsString);
+                    GstRank rank = GstRank(gst_plugin_feature_get_rank(GST_PLUGIN_FEATURE(factory)));
+
+                    // If two elements provide the same codec, use the highest ranked one
+                    QMap<QString, CodecInfo>::const_iterator it = m_codecInfo.find(codec);
+                    if (it == m_codecInfo.constEnd() || it->rank < rank) {
+                        if (it == m_codecInfo.constEnd())
+                            m_codecs.append(codec);
+
+                        CodecInfo info;
+                        info.elementName = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
+
+                        gchar *description = gst_pb_utils_get_codec_description(newCaps);
+                        info.description = QString::fromUtf8(description);
+                        if (description)
+                            g_free(description);
+
+                        info.rank = rank;
+
+                        m_codecInfo.insert(codec, info);
+                    }
+
+                    gst_caps_unref(newCaps);
                 }
                 gst_caps_unref(caps);
             }
         }
     }
-    gst_plugin_feature_list_free(elements);
 
-    return res;
+    gst_plugin_feature_list_free(elements);
 }
-#endif //GST_CHECK_VERSION(0,10,31)
+
+#if !GST_CHECK_VERSION(0, 10, 31)
+static gboolean element_filter(GstPluginFeature *feature, gpointer user_data)
+{
+    if (Q_UNLIKELY(!GST_IS_ELEMENT_FACTORY(feature)))
+        return FALSE;
+
+    const QGstCodecsInfo::ElementType type = *reinterpret_cast<QGstCodecsInfo::ElementType *>(user_data);
+
+    const gchar *klass = gst_element_factory_get_klass(GST_ELEMENT_FACTORY(feature));
+    if (type == QGstCodecsInfo::AudioEncoder && !(strstr(klass, "Encoder") && strstr(klass, "Audio")))
+        return FALSE;
+    if (type == QGstCodecsInfo::VideoEncoder && !(strstr(klass, "Encoder") && strstr(klass, "Video")))
+        return FALSE;
+    if (type == QGstCodecsInfo::Muxer && !strstr(klass, "Muxer"))
+        return FALSE;
+
+    guint rank = gst_plugin_feature_get_rank(feature);
+    if (rank < GST_RANK_MARGINAL)
+        return FALSE;
+
+    return TRUE;
+}
+
+static gint compare_plugin_func(const void *item1, const void *item2)
+{
+    GstPluginFeature *f1 = reinterpret_cast<GstPluginFeature *>(const_cast<void *>(item1));
+    GstPluginFeature *f2 = reinterpret_cast<GstPluginFeature *>(const_cast<void *>(item2));
+
+    gint diff = gst_plugin_feature_get_rank(f2) - gst_plugin_feature_get_rank(f1);
+    if (diff != 0)
+        return diff;
+
+    return strcmp(gst_plugin_feature_get_name(f1), gst_plugin_feature_get_name (f2));
+}
+#endif
+
+GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
+{
+#if GST_CHECK_VERSION(0,10,31)
+    GstElementFactoryListType gstElementType = 0;
+    switch (elementType) {
+    case AudioEncoder:
+        gstElementType = GST_ELEMENT_FACTORY_TYPE_AUDIO_ENCODER;
+        break;
+    case VideoEncoder:
+        gstElementType = GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER;
+        break;
+    case Muxer:
+        gstElementType = GST_ELEMENT_FACTORY_TYPE_MUXER;
+        break;
+    }
+
+    return gst_element_factory_list_get_elements(gstElementType, GST_RANK_MARGINAL);
+#else
+    GList *result = gst_registry_feature_filter(gst_registry_get_default(),
+                                                element_filter,
+                                                FALSE, &elementType);
+    result = g_list_sort(result, compare_plugin_func);
+    return result;
+#endif
+}
