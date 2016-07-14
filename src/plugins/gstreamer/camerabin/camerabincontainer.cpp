@@ -39,6 +39,7 @@
 
 #include "camerabincontainer.h"
 #include <QtCore/qregexp.h>
+#include <private/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>
 
@@ -50,14 +51,6 @@ CameraBinContainer::CameraBinContainer(QObject *parent)
     , m_supportedContainers(QGstCodecsInfo::Muxer)
 #endif
 {
-    //extension for containers hard to guess from mimetype
-    m_fileExtensions["video/x-matroska"] = "mkv";
-    m_fileExtensions["video/quicktime"] = "mov";
-    m_fileExtensions["video/x-msvideo"] = "avi";
-    m_fileExtensions["video/msvideo"] = "avi";
-    m_fileExtensions["audio/mpeg"] = "mp3";
-    m_fileExtensions["application/x-shockwave-flash"] = "swf";
-    m_fileExtensions["application/x-pn-realmedia"] = "rm";
 }
 
 QStringList CameraBinContainer::supportedContainers() const
@@ -127,9 +120,9 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
         //if format is not in the list of supported gstreamer mime types,
         //try to find the mime type with matching extension
         if (!supportedFormats.contains(format)) {
-            QString extension = suggestedFileExtension(m_actualFormat);
+            QString extension = QGstUtils::fileExtensionForMimeType(m_actualFormat);
             for (const QString &formatCandidate : supportedFormats) {
-                if (suggestedFileExtension(formatCandidate) == extension) {
+                if (QGstUtils::fileExtensionForMimeType(formatCandidate) == extension) {
                     format = formatCandidate;
                     break;
                 }
@@ -151,28 +144,5 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
 }
 
 #endif
-
-/*!
-  Suggest file extension for current container mimetype.
- */
-QString CameraBinContainer::suggestedFileExtension(const QString &containerFormat) const
-{
-    //for container names like avi instead of video/x-msvideo, use it as extension
-    if (!containerFormat.contains('/'))
-        return containerFormat;
-
-    QString format = containerFormat.left(containerFormat.indexOf(','));
-    QString extension = m_fileExtensions.value(format);
-
-    if (!extension.isEmpty() || format.isEmpty())
-        return extension;
-
-    QRegExp rx("[-/]([\\w]+)$");
-
-    if (rx.indexIn(format) != -1)
-        extension = rx.cap(1);
-
-    return extension;
-}
 
 QT_END_NAMESPACE

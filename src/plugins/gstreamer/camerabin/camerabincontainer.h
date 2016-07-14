@@ -72,8 +72,6 @@ public:
     void setActualContainerFormat(const QString &containerFormat);
     void resetActualContainerFormat();
 
-    QString suggestedFileExtension(const QString &containerFormat) const;
-
 #ifdef HAVE_GST_ENCODING_PROFILES
     GstEncodingContainerProfile *createProfile();
 #endif
@@ -84,7 +82,6 @@ Q_SIGNALS:
 private:
     QString m_format;
     QString m_actualFormat;
-    QMap<QString, QString> m_fileExtensions;
 
 #ifdef HAVE_GST_ENCODING_PROFILES
     QGstCodecsInfo m_supportedContainers;

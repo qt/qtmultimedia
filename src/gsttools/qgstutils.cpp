@@ -1429,6 +1429,40 @@ QPair<qreal, qreal> QGstUtils::structureFrameRateRange(const GstStructure *s)
     return rate;
 }
 
+typedef QMap<QString, QString> FileExtensionMap;
+Q_GLOBAL_STATIC(FileExtensionMap, fileExtensionMap)
+
+QString QGstUtils::fileExtensionForMimeType(const QString &mimeType)
+{
+    if (fileExtensionMap->isEmpty()) {
+        //extension for containers hard to guess from mimetype
+        fileExtensionMap->insert("video/x-matroska", "mkv");
+        fileExtensionMap->insert("video/quicktime", "mov");
+        fileExtensionMap->insert("video/x-msvideo", "avi");
+        fileExtensionMap->insert("video/msvideo", "avi");
+        fileExtensionMap->insert("audio/mpeg", "mp3");
+        fileExtensionMap->insert("application/x-shockwave-flash", "swf");
+        fileExtensionMap->insert("application/x-pn-realmedia", "rm");
+    }
+
+    //for container names like avi instead of video/x-msvideo, use it as extension
+    if (!mimeType.contains('/'))
+        return mimeType;
+
+    QString format = mimeType.left(mimeType.indexOf(','));
+    QString extension = fileExtensionMap->value(format);
+
+    if (!extension.isEmpty() || format.isEmpty())
+        return extension;
+
+    QRegExp rx("[-/]([\\w]+)$");
+
+    if (rx.indexIn(format) != -1)
+        extension = rx.cap(1);
+
+    return extension;
+}
+
 void qt_gst_object_ref_sink(gpointer object)
 {
 #if GST_CHECK_VERSION(0,10,24)

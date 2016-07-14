@@ -1105,7 +1105,7 @@ void CameraBinSession::recordVideo()
                                                                                                 : m_sink.toString(),
                                       QMediaStorageLocation::Movies,
                                       QLatin1String("clip_"),
-                                      m_mediaContainerControl->suggestedFileExtension(format));
+                                      QGstUtils::fileExtensionForMimeType(format));
 
     m_recordingActive = true;
     m_actualSink = QUrl::fromLocalFile(actualFileName);

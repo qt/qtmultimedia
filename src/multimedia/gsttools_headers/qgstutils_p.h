@@ -146,6 +146,7 @@ namespace QGstUtils {
     QSize structurePixelAspectRatio(const GstStructure *s);
     QPair<qreal, qreal> structureFrameRateRange(const GstStructure *s);
 
+    QString fileExtensionForMimeType(const QString &mimeType);
 }
 
 void qt_gst_object_ref_sink(gpointer object);
