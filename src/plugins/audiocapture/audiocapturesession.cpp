@@ -342,11 +342,12 @@ void AudioCaptureSession::stop()
         file.stopProbes();
         file.close();
         if (m_wavFile) {
-            qint32 fileSize = file.size()-8;
+            qint32 fileSize = file.size();
             file.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
             file.read((char*)&header,sizeof(CombinedHeader));
-            header.riff.descriptor.size = fileSize; // filesize-8
-            header.data.descriptor.size = fileSize-44; // samples*channels*sampleSize/8
+            header.riff.descriptor.size = fileSize - 8; // The RIFF chunk size is the file size minus
+                                                        // the first two RIFF fields (8 bytes)
+            header.data.descriptor.size = fileSize - 44; // dataSize = fileSize - headerSize (44 bytes)
             file.seek(0);
             file.write((char*)&header,sizeof(CombinedHeader));
             file.close();
