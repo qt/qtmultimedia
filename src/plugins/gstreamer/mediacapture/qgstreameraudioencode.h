@@ -49,6 +49,7 @@
 #include <gst/gst.h>
 
 #include <qaudioformat.h>
+#include <private/qgstcodecsinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -81,10 +82,7 @@ public:
     QSet<QString> supportedStreamTypes(const QString &codecName) const;
 
 private:
-    QStringList m_codecs;
-    QMap<QString,QByteArray> m_elementNames;
-    QMap<QString,QString> m_codecDescriptions;
-    QMap<QString,QStringList> m_codecOptions;
+    QGstCodecsInfo m_codecs;
 
     QMap<QString, QMap<QString, QVariant> > m_options;
 
