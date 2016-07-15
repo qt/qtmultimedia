@@ -46,6 +46,8 @@
 #include <QtCore/qmap.h>
 #include <QtCore/qset.h>
 
+#include <private/qgstcodecsinfo_p.h>
+
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
@@ -84,10 +86,7 @@ public:
 private:
     QGstreamerCaptureSession *m_session;
 
-    QStringList m_codecs;
-    QMap<QString,QString> m_codecDescriptions;
-    QMap<QString,QByteArray> m_elementNames;
-    QMap<QString,QStringList> m_codecOptions;
+    QGstCodecsInfo m_codecs;
 
     QVideoEncoderSettings m_videoSettings;
     QMap<QString, QMap<QString, QVariant> > m_options;

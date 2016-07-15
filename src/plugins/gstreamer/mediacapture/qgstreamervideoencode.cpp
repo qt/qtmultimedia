@@ -47,41 +47,17 @@
 
 QGstreamerVideoEncode::QGstreamerVideoEncode(QGstreamerCaptureSession *session)
     :QVideoEncoderSettingsControl(session), m_session(session)
+    , m_codecs(QGstCodecsInfo::VideoEncoder)
 {
-    QList<QByteArray> codecCandidates;
-    codecCandidates << "video/h264" << "video/xvid" << "video/mpeg4" << "video/mpeg1" << "video/mpeg2" << "video/theora";
-
-    m_elementNames["video/h264"] = "x264enc";
-    m_elementNames["video/xvid"] = "xvidenc";
-    m_elementNames["video/mpeg4"] = "ffenc_mpeg4";
-    m_elementNames["video/mpeg1"] = "ffenc_mpeg1video";
-    m_elementNames["video/mpeg2"] = "ffenc_mpeg2video";
-    m_elementNames["video/theora"] = "theoraenc";
-
-    m_codecOptions["video/h264"] = QStringList() << "quantizer";
-    m_codecOptions["video/xvid"] = QStringList() << "quantizer" << "profile";
-    m_codecOptions["video/mpeg4"] = QStringList() << "quantizer";
-    m_codecOptions["video/mpeg1"] = QStringList() << "quantizer";
-    m_codecOptions["video/mpeg2"] = QStringList() << "quantizer";
-    m_codecOptions["video/theora"] = QStringList();
-
-    for (const QByteArray& codecName : qAsConst(codecCandidates)) {
-        QByteArray elementName = m_elementNames[codecName];
-        GstElementFactory *factory = gst_element_factory_find(elementName.constData());
+    for (const QString& codecName : supportedVideoCodecs()) {
+        GstElementFactory *factory = gst_element_factory_find(m_codecs.codecElement(codecName).constData());
         if (factory) {
-            m_codecs.append(codecName);
-            const gchar *descr = gst_element_factory_get_description(factory);
-            m_codecDescriptions.insert(codecName, QString::fromUtf8(descr));
-
             m_streamTypes.insert(codecName,
                                  QGstreamerMediaContainerControl::supportedStreamTypes(factory, GST_PAD_SRC));
 
             gst_object_unref(GST_OBJECT(factory));
         }
     }
-
-    //if (!m_codecs.isEmpty())
-    //    m_videoSettings.setCodec(m_codecs[0]);
 }
 
 QGstreamerVideoEncode::~QGstreamerVideoEncode()
@@ -106,17 +82,17 @@ QList< qreal > QGstreamerVideoEncode::supportedFrameRates(const QVideoEncoderSet
 
 QStringList QGstreamerVideoEncode::supportedVideoCodecs() const
 {
-    return m_codecs;
+    return m_codecs.supportedCodecs();
 }
 
 QString QGstreamerVideoEncode::videoCodecDescription(const QString &codecName) const
 {
-    return m_codecDescriptions.value(codecName);
+    return m_codecs.codecDescription(codecName);
 }
 
 QStringList QGstreamerVideoEncode::supportedEncodingOptions(const QString &codec) const
 {
-    return m_codecOptions.value(codec);
+    return m_codecs.codecOptions(codec);
 }
 
 QVariant QGstreamerVideoEncode::encodingOption(const QString &codec, const QString &name) const
@@ -143,28 +119,28 @@ void QGstreamerVideoEncode::setVideoSettings(const QVideoEncoderSettings &settin
 GstElement *QGstreamerVideoEncode::createEncoder()
 {
     QString codec = m_videoSettings.codec();
-    //qDebug() << "create encoder for video codec" << codec;
-    GstElement *encoderElement = gst_element_factory_make( m_elementNames.value(codec).constData(), "video-encoder");
+    GstElement *encoderElement = gst_element_factory_make(m_codecs.codecElement(codec).constData(), "video-encoder");
     if (!encoderElement)
         return 0;
 
     GstBin *encoderBin = GST_BIN(gst_bin_new("video-encoder-bin"));
 
-    GstElement *capsFilter = gst_element_factory_make("capsfilter", "capsfilter-video");
-    gst_bin_add(encoderBin, capsFilter);
+    GstElement *sinkCapsFilter = gst_element_factory_make("capsfilter", "capsfilter-video");
+    GstElement *srcCapsFilter = gst_element_factory_make("capsfilter", "capsfilter-video");
+    gst_bin_add_many(encoderBin, sinkCapsFilter, srcCapsFilter, NULL);
 
     GstElement *colorspace = gst_element_factory_make(QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME, NULL);
     gst_bin_add(encoderBin, colorspace);
     gst_bin_add(encoderBin, encoderElement);
 
-    gst_element_link_many(capsFilter, colorspace, encoderElement, NULL);
+    gst_element_link_many(sinkCapsFilter, colorspace, encoderElement, srcCapsFilter, NULL);
 
     // add ghostpads
-    GstPad *pad = gst_element_get_static_pad(capsFilter, "sink");
+    GstPad *pad = gst_element_get_static_pad(sinkCapsFilter, "sink");
     gst_element_add_pad(GST_ELEMENT(encoderBin), gst_ghost_pad_new("sink", pad));
     gst_object_unref(GST_OBJECT(pad));
 
-    pad = gst_element_get_static_pad(encoderElement, "src");
+    pad = gst_element_get_static_pad(srcCapsFilter, "src");
     gst_element_add_pad(GST_ELEMENT(encoderBin), gst_ghost_pad_new("src", pad));
     gst_object_unref(GST_OBJECT(pad));
 
@@ -172,7 +148,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
         if (m_videoSettings.encodingMode() == QMultimedia::ConstantQualityEncoding) {
             QMultimedia::EncodingQuality qualityValue = m_videoSettings.quality();
 
-            if (codec == QLatin1String("video/h264")) {
+            if (codec == QLatin1String("video/x-h264")) {
                 //constant quantizer mode
                 g_object_set(G_OBJECT(encoderElement), "pass", 4, NULL);
                 int qualityTable[] = {
@@ -183,7 +159,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
                     8 //VeryHigh
                 };
                 g_object_set(G_OBJECT(encoderElement), "quantizer", qualityTable[qualityValue], NULL);
-            } else if (codec == QLatin1String("video/xvid")) {
+            } else if (codec == QLatin1String("video/x-xvid")) {
                 //constant quantizer mode
                 g_object_set(G_OBJECT(encoderElement), "pass", 3, NULL);
                 int qualityTable[] = {
@@ -195,9 +171,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
                 };
                 int quant = qualityTable[qualityValue];
                 g_object_set(G_OBJECT(encoderElement), "quantizer", quant, NULL);
-            } else if (codec == QLatin1String("video/mpeg4") ||
-                       codec == QLatin1String("video/mpeg1") ||
-                       codec == QLatin1String("video/mpeg2") ) {
+            } else if (codec.startsWith(QLatin1String("video/mpeg"))) {
                 //constant quantizer mode
                 g_object_set(G_OBJECT(encoderElement), "pass", 2, NULL);
                 //quant from 1 to 30, default ~3
@@ -210,7 +184,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
                 };
                 double quant = qualityTable[qualityValue];
                 g_object_set(G_OBJECT(encoderElement), "quantizer", quant, NULL);
-            } else if (codec == QLatin1String("video/theora")) {
+            } else if (codec == QLatin1String("video/x-theora")) {
                 int qualityTable[] = {
                     8, //VeryLow
                     16, //Low
@@ -278,10 +252,17 @@ GstElement *QGstreamerVideoEncode::createEncoder()
 
         //qDebug() << "set video caps filter:" << gst_caps_to_string(caps);
 
-        g_object_set(G_OBJECT(capsFilter), "caps", caps, NULL);
+        g_object_set(G_OBJECT(sinkCapsFilter), "caps", caps, NULL);
 
         gst_caps_unref(caps);
     }
+
+    // Some encoders support several codecs. Setting a caps filter downstream with the desired
+    // codec (which is actually a string representation of the caps) will make sure we use the
+    // correct codec.
+    GstCaps *caps = gst_caps_from_string(codec.toUtf8().constData());
+    g_object_set(G_OBJECT(srcCapsFilter), "caps", caps, NULL);
+    gst_caps_unref(caps);
 
     return GST_ELEMENT(encoderBin);
 }
