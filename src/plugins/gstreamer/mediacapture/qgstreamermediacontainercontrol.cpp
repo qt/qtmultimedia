@@ -39,53 +39,19 @@
 
 #include "qgstreamermediacontainercontrol.h"
 
+#include <private/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>
 
 QGstreamerMediaContainerControl::QGstreamerMediaContainerControl(QObject *parent)
     :QMediaContainerControl(parent)
+    , m_containers(QGstCodecsInfo::Muxer)
 {
-    QList<QByteArray> formatCandidates;
-    formatCandidates << "matroska" << "ogg" << "mp4" << "wav" << "quicktime" << "avi" << "3gpp";
-    formatCandidates << "flv" << "amr" << "asf" << "dv" << "gif";
-    formatCandidates << "mpeg" << "vob" << "mpegts" << "3g2" << "3gp";
-    formatCandidates << "raw";
-
-    m_elementNames["matroska"] = "matroskamux";
-    m_elementNames["ogg"] = "oggmux";
-    m_elementNames["mp4"] = "ffmux_mp4";
-    m_elementNames["quicktime"] = "ffmux_mov";
-    m_elementNames["avi"] = "avimux";
-    m_elementNames["3gpp"] = "gppmux";
-    m_elementNames["flv"] = "flvmux";
-    m_elementNames["wav"] = "wavenc";
-    m_elementNames["amr"] = "ffmux_amr";
-    m_elementNames["asf"] = "ffmux_asf";
-    m_elementNames["dv"] = "ffmux_dv";
-    m_elementNames["gif"] = "ffmux_gif";
-    m_elementNames["mpeg"] = "ffmux_mpeg";
-    m_elementNames["vob"] = "ffmux_vob";
-    m_elementNames["mpegts"] = "ffmux_mpegts";
-    m_elementNames["3g2"] = "ffmux_3g2";
-    m_elementNames["3gp"] = "ffmux_3gp";
-    m_elementNames["raw"] = "identity";
-
-    m_containerExtensions["matroska"] = "mkv";
-    m_containerExtensions["quicktime"] = "mov";
-    m_containerExtensions["mpegts"] = "m2t";
-    m_containerExtensions["mpeg"] = "mpg";
-
     QSet<QString> allTypes;
 
-    for (const QByteArray& formatName : qAsConst(formatCandidates)) {
-        QByteArray elementName = m_elementNames[formatName];
-        GstElementFactory *factory = gst_element_factory_find(elementName.constData());
+    for (const QString& formatName : supportedContainers()) {
+        GstElementFactory *factory = gst_element_factory_find(m_containers.codecElement(formatName).constData());
         if (factory) {
-            m_supportedContainers.append(formatName);
-            const gchar *descr = gst_element_factory_get_description(factory);
-            m_containerDescriptions.insert(formatName, QString::fromUtf8(descr));
-
-
             if (formatName == QByteArray("raw")) {
                 m_streamTypes.insert(formatName, allTypes);
             } else {
@@ -97,9 +63,6 @@ QGstreamerMediaContainerControl::QGstreamerMediaContainerControl(QObject *parent
             gst_object_unref(GST_OBJECT(factory));
         }
     }
-
-    //if (!m_supportedContainers.isEmpty())
-    //    setContainerFormat(m_supportedContainers[0]);
 }
 
 QSet<QString> QGstreamerMediaContainerControl::supportedStreamTypes(GstElementFactory *factory, GstPadDirection direction)
@@ -129,5 +92,5 @@ QSet<QString> QGstreamerMediaContainerControl::supportedStreamTypes(const QStrin
 
 QString QGstreamerMediaContainerControl::containerExtension() const
 {
-    return m_containerExtensions.value(m_format, m_format);
+    return QGstUtils::fileExtensionForMimeType(m_format);
 }

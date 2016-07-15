@@ -45,6 +45,8 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qset.h>
 
+#include <private/qgstcodecsinfo_p.h>
+
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
@@ -56,13 +58,13 @@ public:
     QGstreamerMediaContainerControl(QObject *parent);
     virtual ~QGstreamerMediaContainerControl() {};
 
-    virtual QStringList supportedContainers() const { return m_supportedContainers; }
+    virtual QStringList supportedContainers() const { return m_containers.supportedCodecs(); }
     virtual QString containerFormat() const { return m_format; }
     virtual void setContainerFormat(const QString &formatMimeType) { m_format = formatMimeType; }
 
-    virtual QString containerDescription(const QString &formatMimeType) const { return m_containerDescriptions.value(formatMimeType); }
+    virtual QString containerDescription(const QString &formatMimeType) const { return m_containers.codecDescription(formatMimeType); }
 
-    QByteArray formatElementName() const { return m_elementNames.value(containerFormat()); }
+    QByteArray formatElementName() const { return m_containers.codecElement(containerFormat()); }
 
     QSet<QString> supportedStreamTypes(const QString &container) const;
 
@@ -72,10 +74,7 @@ public:
 
 private:
     QString m_format;
-    QStringList m_supportedContainers;
-    QMap<QString,QByteArray> m_elementNames;
-    QMap<QString, QString> m_containerDescriptions;
-    QMap<QString, QString> m_containerExtensions;
+    QGstCodecsInfo m_containers;
     QMap<QString, QSet<QString> > m_streamTypes;
 };
 
