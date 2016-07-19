@@ -145,6 +145,16 @@ static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
     Q_EMIT (*it)->newPreviewFrame(frame);
 }
 
+static void notifyFrameAvailable(JNIEnv *, jobject, int id)
+{
+    QReadLocker locker(rwLock);
+    const auto it = cameras->constFind(id);
+    if (Q_UNLIKELY(it == cameras->cend()))
+        return;
+
+    (*it)->fetchLastPreviewFrame();
+}
+
 class AndroidCameraPrivate : public QObject
 {
     Q_OBJECT
@@ -1413,6 +1423,9 @@ void AndroidCameraPrivate::stopPreview()
 {
     QJNIEnvironmentPrivate env;
 
+    // cancel any pending new frame notification
+    m_cameraListener.callMethod<void>("notifyWhenFrameAvailable", "(Z)V", false);
+
     m_camera.callMethod<void>("stopPreview");
 
     exceptionCheckAndClear(env);
@@ -1449,8 +1462,11 @@ void AndroidCameraPrivate::fetchLastPreviewFrame()
     QJNIEnvironmentPrivate env;
     QJNIObjectPrivate data = m_cameraListener.callObjectMethod("lastPreviewBuffer", "()[B");
 
-    if (!data.isValid())
+    if (!data.isValid()) {
+        // If there's no buffer received yet, retry when the next one arrives
+        m_cameraListener.callMethod<void>("notifyWhenFrameAvailable", "(Z)V", true);
         return;
+    }
 
     const int arrayLength = env->GetArrayLength(static_cast<jbyteArray>(data.object()));
     if (arrayLength == 0)
@@ -1516,7 +1532,8 @@ bool AndroidCamera::initJNI(JNIEnv *env)
         {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
         {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
         {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
-        {"notifyNewPreviewFrame", "(I[BIIII)V", (void *)notifyNewPreviewFrame}
+        {"notifyNewPreviewFrame", "(I[BIIII)V", (void *)notifyNewPreviewFrame},
+        {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
     };
 
     if (clazz && env->RegisterNatives(clazz,
