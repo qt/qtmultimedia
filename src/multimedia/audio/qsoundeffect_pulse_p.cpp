@@ -413,7 +413,13 @@ void QSoundEffectPrivate::setSource(const QUrl &url)
 #ifdef QT_PA_DEBUG
     qDebug() << this << "setSource =" << url;
 #endif
+
+    // Make sure the stream is empty before loading a new source (otherwise whatever is there will
+    // be played before the new source)
+    emptyStream();
+
     stop();
+
     if (m_sample) {
         if (!m_sampleReady) {
             disconnect(m_sample, SIGNAL(error()), this, SLOT(decoderError()));
@@ -588,7 +594,7 @@ void QSoundEffectPrivate::playAvailable()
             setLoopsRemaining(0);
             m_playQueued = true;
             Q_ASSERT(m_pulseStream);
-            emptyStream();
+            emptyStream(ReloadSampleWhenDone);
             return;
         }
         setLoopsRemaining(m_loopCount);
@@ -598,18 +604,25 @@ void QSoundEffectPrivate::playAvailable()
     setPlaying(true);
 }
 
-void QSoundEffectPrivate::emptyStream()
+void QSoundEffectPrivate::emptyStream(EmptyStreamOptions options)
 {
 #ifdef QT_PA_DEBUG
     qDebug() << this << "emptyStream";
 #endif
+    if (!m_pulseStream || m_emptying)
+        return;
+
+    const bool reloadSample = options.testFlag(ReloadSampleWhenDone);
+    pa_stream_success_cb_t flushCompleteCb = reloadSample ? stream_flush_reload_callback
+                                                          : stream_flush_callback;
+
     m_emptying = true;
     pa_stream_set_write_callback(m_pulseStream, 0, 0);
     pa_stream_set_underflow_callback(m_pulseStream, 0, 0);
-    pa_operation_unref(pa_stream_flush(m_pulseStream, stream_flush_callback, m_ref->getRef()));
+    pa_operation_unref(pa_stream_flush(m_pulseStream, flushCompleteCb, m_ref->getRef()));
 }
 
-void QSoundEffectPrivate::emptyComplete(void *stream)
+void QSoundEffectPrivate::emptyComplete(void *stream, bool reload)
 {
     PulseDaemonLocker locker;
 #ifdef QT_PA_DEBUG
@@ -619,7 +632,7 @@ void QSoundEffectPrivate::emptyComplete(void *stream)
     m_emptying = false;
 
     if ((pa_stream *)stream == m_pulseStream)
-        pa_operation_unref(pa_stream_cork(m_pulseStream, 1, stream_cork_callback, m_ref->getRef()));
+        pa_operation_unref(pa_stream_cork(m_pulseStream, 1, reload ? stream_cork_callback : 0, m_ref->getRef()));
 }
 
 void QSoundEffectPrivate::sampleReady()
@@ -851,7 +864,7 @@ void QSoundEffectPrivate::stop()
     PulseDaemonLocker locker;
     m_stopping = true;
     if (m_pulseStream) {
-        emptyStream();
+        emptyStream(ReloadSampleWhenDone);
         if (m_reloadCategory) {
             unloadPulseStream(); // upon play we reconnect anyway
         }
@@ -1094,10 +1107,26 @@ void QSoundEffectPrivate::stream_flush_callback(pa_stream *s, int success, void 
 
     if (!success)
         qWarning("QSoundEffect(pulseaudio): faild to drain");
+
+    QMetaObject::invokeMethod(self, "emptyComplete", Qt::QueuedConnection, Q_ARG(void*, s), Q_ARG(bool, false));
+}
+
+void QSoundEffectPrivate::stream_flush_reload_callback(pa_stream *s, int success, void *userdata)
+{
 #ifdef QT_PA_DEBUG
-    qDebug() << self << "stream_flush_callback";
+    qDebug() << "stream_flush_reload_callback";
 #endif
-    QMetaObject::invokeMethod(self, "emptyComplete", Qt::QueuedConnection, Q_ARG(void*, s));
+    Q_UNUSED(s);
+    QSoundEffectRef *ref = reinterpret_cast<QSoundEffectRef*>(userdata);
+    QSoundEffectPrivate *self = ref->soundEffect();
+    ref->release();
+    if (!self)
+        return;
+
+    if (!success)
+        qWarning("QSoundEffect(pulseaudio): faild to drain");
+
+    QMetaObject::invokeMethod(self, "emptyComplete", Qt::QueuedConnection, Q_ARG(void*, s), Q_ARG(bool, true));
 }
 
 void QSoundEffectPrivate::stream_write_done_callback(void *p)
