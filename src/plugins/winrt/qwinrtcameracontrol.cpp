@@ -101,7 +101,13 @@ HRESULT getMediaStreamResolutions(IMediaDeviceController *device,
         ComPtr<IMediaEncodingProperties> properties;
         hr = (*propertiesList)->GetAt(index, &properties);
         Q_ASSERT_SUCCEEDED(hr);
-        if (type == MediaStreamType_VideoRecord || type == MediaStreamType_VideoPreview) {
+        HString propertyType;
+        hr = properties->get_Type(propertyType.GetAddressOf());
+        Q_ASSERT_SUCCEEDED(hr);
+
+        const HStringReference videoRef = HString::MakeReference(L"Video");
+        const HStringReference imageRef = HString::MakeReference(L"Image");
+        if (propertyType == videoRef) {
             ComPtr<IVideoEncodingProperties> videoProperties;
             hr = properties.As(&videoProperties);
             Q_ASSERT_SUCCEEDED(hr);
@@ -111,13 +117,10 @@ HRESULT getMediaStreamResolutions(IMediaDeviceController *device,
             hr = videoProperties->get_Height(&height);
             Q_ASSERT_SUCCEEDED(hr);
             resolutions->append(QSize(width, height));
-        } else if (type == MediaStreamType_Photo) {
+        } else if (propertyType == imageRef) {
             ComPtr<IImageEncodingProperties> imageProperties;
             hr = properties.As(&imageProperties);
-            // Asking for Photo also returns video resolutions in addition
-            // We skip those, as we are only interested in image Type
-            if (FAILED(hr) || !imageProperties)
-                continue;
+            Q_ASSERT_SUCCEEDED(hr);
             UINT32 width, height;
             hr = imageProperties->get_Width(&width);
             Q_ASSERT_SUCCEEDED(hr);
@@ -1121,46 +1124,54 @@ bool QWinRTCameraControl::setFocus(QCameraFocus::FocusModes modes)
     if (d->status == QCamera::UnloadedStatus)
         return false;
 
-    ComPtr<IFocusSettings> focusSettings;
-    ComPtr<IInspectable> focusSettingsObject;
-    HRESULT hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_Devices_FocusSettings).Get(), &focusSettingsObject);
-    Q_ASSERT_SUCCEEDED(hr);
-    hr = focusSettingsObject.As(&focusSettings);
-    Q_ASSERT_SUCCEEDED(hr);
-    FocusMode mode;
-    if (modes.testFlag(QCameraFocus::ContinuousFocus)) {
-        mode = FocusMode_Continuous;
-    } else if (modes.testFlag(QCameraFocus::AutoFocus)
-               || modes.testFlag(QCameraFocus::MacroFocus)
-               || modes.testFlag(QCameraFocus::InfinityFocus)) {
-        // The Macro and infinity focus modes are only supported in auto focus mode on WinRT.
-        // QML camera focus doesn't support combined focus flags settings. In the case of macro
-        // and infinity Focus modes, the auto focus setting is applied.
-        mode = FocusMode_Single;
-    } else {
-        emit error(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera focus modes."));
-        return false;
-    }
-    hr = focusSettings->put_Mode(mode);
-    Q_ASSERT_SUCCEEDED(hr);
-    AutoFocusRange range = AutoFocusRange_Normal;
-    if (modes.testFlag(QCameraFocus::MacroFocus))
-        range = AutoFocusRange_Macro;
-    else if (modes.testFlag(QCameraFocus::InfinityFocus))
-        range = AutoFocusRange_FullRange;
-    hr = focusSettings->put_AutoFocusRange(range);
-    Q_ASSERT_SUCCEEDED(hr);
-    hr = focusSettings->put_WaitForFocus(true);
-    Q_ASSERT_SUCCEEDED(hr);
-    hr = focusSettings->put_DisableDriverFallback(false);
-    Q_ASSERT_SUCCEEDED(hr);
+    bool result = false;
+    HRESULT hr = QEventDispatcherWinRT::runOnXamlThread([modes, &result, d, this]() {
+        ComPtr<IFocusSettings> focusSettings;
+        ComPtr<IInspectable> focusSettingsObject;
+        HRESULT hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_Devices_FocusSettings).Get(), &focusSettingsObject);
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = focusSettingsObject.As(&focusSettings);
+        Q_ASSERT_SUCCEEDED(hr);
+        FocusMode mode;
+        if (modes.testFlag(QCameraFocus::ContinuousFocus)) {
+            mode = FocusMode_Continuous;
+        } else if (modes.testFlag(QCameraFocus::AutoFocus)
+                   || modes.testFlag(QCameraFocus::MacroFocus)
+                   || modes.testFlag(QCameraFocus::InfinityFocus)) {
+            // The Macro and infinity focus modes are only supported in auto focus mode on WinRT.
+            // QML camera focus doesn't support combined focus flags settings. In the case of macro
+            // and infinity Focus modes, the auto focus setting is applied.
+            mode = FocusMode_Single;
+        } else {
+            emit error(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera focus modes."));
+            result = false;
+            return S_OK;
+        }
+        hr = focusSettings->put_Mode(mode);
+        Q_ASSERT_SUCCEEDED(hr);
+        AutoFocusRange range = AutoFocusRange_Normal;
+        if (modes.testFlag(QCameraFocus::MacroFocus))
+            range = AutoFocusRange_Macro;
+        else if (modes.testFlag(QCameraFocus::InfinityFocus))
+            range = AutoFocusRange_FullRange;
+        hr = focusSettings->put_AutoFocusRange(range);
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = focusSettings->put_WaitForFocus(true);
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = focusSettings->put_DisableDriverFallback(false);
+        Q_ASSERT_SUCCEEDED(hr);
 
-    ComPtr<IFocusControl2> focusControl2;
-    hr = d->focusControl.As(&focusControl2);
+        ComPtr<IFocusControl2> focusControl2;
+        hr = d->focusControl.As(&focusControl2);
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = focusControl2->Configure(focusSettings.Get());
+        result = SUCCEEDED(hr);
+        RETURN_OK_IF_FAILED("Failed to configure camera focus control");
+        return S_OK;
+    });
     Q_ASSERT_SUCCEEDED(hr);
-    hr = focusControl2->Configure(focusSettings.Get());
-    RETURN_FALSE_IF_FAILED("Failed to configure camera focus control");
-    return true;
+    Q_UNUSED(hr); // Silence release build
+    return result;
 }
 
 bool QWinRTCameraControl::setFocusPoint(const QPointF &focusPoint)
@@ -1224,7 +1235,11 @@ bool QWinRTCameraControl::focus()
     if (!d->focusControl || status == AsyncStatus::Started)
         return false;
 
-    hr = d->focusControl->FocusAsync(&d->focusOperation);
+    QEventDispatcherWinRT::runOnXamlThread([&d, &hr]() {
+        hr = d->focusControl->FocusAsync(&d->focusOperation);
+        Q_ASSERT_SUCCEEDED(hr);
+        return S_OK;
+    });
     const long errorCode = HRESULT_CODE(hr);
     if (errorCode == ERROR_OPERATION_IN_PROGRESS
         || errorCode == ERROR_WRITE_PROTECT) {

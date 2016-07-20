@@ -290,6 +290,10 @@ void QAndroidTextureVideoOutput::stop()
 
 void QAndroidTextureVideoOutput::reset()
 {
+    // flush pending frame
+    if (m_surface)
+        m_surface->present(QVideoFrame());
+
     clearSurfaceTexture();
 }
 

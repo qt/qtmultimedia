@@ -43,7 +43,9 @@
 #include "avfcameraservice.h"
 #include "avfcameracontrol.h"
 #include "avfaudioinputselectorcontrol.h"
-#include "avfcamerautility.h"
+#include "avfaudioencodersettingscontrol.h"
+#include "avfvideoencodersettingscontrol.h"
+#include "avfmediacontainercontrol.h"
 
 #include <QtCore/qurl.h>
 #include <QtCore/qfileinfo.h>
@@ -121,6 +123,7 @@ QT_USE_NAMESPACE
 
 AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObject *parent)
    : QMediaRecorderControl(parent)
+   , m_service(service)
    , m_cameraControl(service->cameraControl())
    , m_audioInputControl(service->audioInputSelectorControl())
    , m_session(service->session())
@@ -132,6 +135,7 @@ AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObj
    , m_muted(false)
    , m_volume(1.0)
    , m_audioInput(nil)
+   , m_restoreFPS(-1, -1)
 {
     m_movieOutput = [[AVCaptureMovieFileOutput alloc] init];
     m_recorderDelagate = [[AVFMediaRecorderDelegate alloc] initWithRecorder:this];
@@ -231,6 +235,29 @@ qreal AVFMediaRecorderControl::volume() const
 
 void AVFMediaRecorderControl::applySettings()
 {
+    if (m_state != QMediaRecorder::StoppedState
+            || (m_session->state() != QCamera::ActiveState && m_session->state() != QCamera::LoadedState)
+            || !m_service->cameraControl()->captureMode().testFlag(QCamera::CaptureVideo)) {
+        return;
+    }
+
+    // Configure audio settings
+    [m_movieOutput setOutputSettings:m_service->audioEncoderSettingsControl()->applySettings()
+                   forConnection:[m_movieOutput connectionWithMediaType:AVMediaTypeAudio]];
+
+    // Configure video settings
+    AVCaptureConnection *videoConnection = [m_movieOutput connectionWithMediaType:AVMediaTypeVideo];
+    NSDictionary *videoSettings = m_service->videoEncoderSettingsControl()->applySettings(videoConnection);
+
+    const AVFConfigurationLock lock(m_session->videoCaptureDevice()); // prevents activeFormat from being overridden
+
+    [m_movieOutput setOutputSettings:videoSettings forConnection:videoConnection];
+}
+
+void AVFMediaRecorderControl::unapplySettings()
+{
+    m_service->audioEncoderSettingsControl()->unapplySettings();
+    m_service->videoEncoderSettingsControl()->unapplySettings([m_movieOutput connectionWithMediaType:AVMediaTypeVideo]);
 }
 
 void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
@@ -244,23 +271,27 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
     case QMediaRecorder::RecordingState:
     {
         if (m_connected) {
-            m_state = QMediaRecorder::RecordingState;
-            m_recordingStarted = false;
-            m_recordingFinished = false;
-
             QString outputLocationPath = m_outputLocation.scheme() == QLatin1String("file") ?
                         m_outputLocation.path() : m_outputLocation.toString();
+
+            QString extension = m_service->mediaContainerControl()->containerFormat();
 
             QUrl actualLocation = QUrl::fromLocalFile(
                         m_storageLocation.generateFileName(outputLocationPath,
                                                            QCamera::CaptureVideo,
                                                            QLatin1String("clip_"),
-                                                           QLatin1String("mp4")));
+                                                           extension));
 
             qDebugCamera() << "Video capture location:" << actualLocation.toString();
 
+            applySettings();
+
             [m_movieOutput startRecordingToOutputFileURL:actualLocation.toNSURL()
                            recordingDelegate:m_recorderDelagate];
+
+            m_state = QMediaRecorder::RecordingState;
+            m_recordingStarted = false;
+            m_recordingFinished = false;
 
             Q_EMIT actualLocationChanged(actualLocation);
         } else {
@@ -277,6 +308,7 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
     {
         m_state = QMediaRecorder::StoppedState;
         [m_movieOutput stopRecording];
+        unapplySettings();
     }
     }
 

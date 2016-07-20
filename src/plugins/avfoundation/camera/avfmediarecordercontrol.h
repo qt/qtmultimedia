@@ -45,6 +45,7 @@
 
 #import <AVFoundation/AVFoundation.h>
 #include "avfstoragelocation.h"
+#include "avfcamerautility.h"
 
 @class AVFMediaRecorderDelegate;
 
@@ -74,6 +75,7 @@ public:
     qreal volume() const;
 
     void applySettings();
+    void unapplySettings();
 
 public Q_SLOTS:
     void setState(QMediaRecorder::State state);
@@ -89,6 +91,7 @@ private Q_SLOTS:
     void updateStatus();
 
 private:
+    AVFCameraService *m_service;
     AVFCameraControl *m_cameraControl;
     AVFAudioInputSelectorControl *m_audioInputControl;
     AVFCameraSession *m_session;
@@ -108,6 +111,8 @@ private:
     AVCaptureMovieFileOutput *m_movieOutput;
     AVFMediaRecorderDelegate *m_recorderDelagate;
     AVFStorageLocation m_storageLocation;
+
+    AVFPSRange m_restoreFPS;
 };
 
 QT_END_NAMESPACE

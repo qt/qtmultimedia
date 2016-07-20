@@ -169,7 +169,6 @@ void QWasapiAudioInput::setVolume(qreal vol)
         quint32 channelCount;
         HRESULT hr = m_volumeControl->GetChannelCount(&channelCount);
         for (quint32 i = 0; i < channelCount; ++i) {
-            // ### TODO: Use QAudioHelperInternal::qScaleVolumeFromLinear when integrated
             hr = m_volumeControl->SetChannelVolume(i, vol);
             RETURN_VOID_IF_FAILED("Could not set audio volume.");
         }

@@ -90,6 +90,7 @@ public:
     QList<QAudioFormat::SampleType> supportedSampleTypes();
     static QByteArray defaultDevice(QAudio::Mode mode);
     static QList<QByteArray> availableDevices(QAudio::Mode);
+    static QString deviceFromCardName(const QString &card);
 
 private:
     bool open();

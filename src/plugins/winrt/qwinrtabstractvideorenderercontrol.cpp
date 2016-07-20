@@ -38,6 +38,7 @@
 
 #include <QtCore/qfunctions_winrt.h>
 #include <QtCore/QGlobalStatic>
+#include <QtCore/QLoggingCategory>
 #include <QtCore/QMetaMethod>
 #include <QtCore/QPointer>
 #include <QtGui/QOpenGLContext>
@@ -58,6 +59,8 @@ using namespace Microsoft::WRL;
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(lcMMVideoRender, "qt.mm.videorender")
+
 #define BREAK_IF_FAILED(msg) RETURN_IF_FAILED(msg, break)
 #define CONTINUE_IF_FAILED(msg) RETURN_IF_FAILED(msg, continue)
 
@@ -66,6 +69,7 @@ struct QWinRTVideoRendererControlGlobal
 {
     QWinRTVideoRendererControlGlobal()
     {
+        qCDebug(lcMMVideoRender) << __FUNCTION__;
         HRESULT hr;
 
         D3D_FEATURE_LEVEL featureLevels[] =
@@ -202,6 +206,7 @@ ID3D11Device *QWinRTAbstractVideoRendererControl::d3dDevice()
 // This is required so that subclasses can stop the render thread before deletion
 void QWinRTAbstractVideoRendererControl::shutdown()
 {
+    qCDebug(lcMMVideoRender) << __FUNCTION__;
     Q_D(QWinRTAbstractVideoRendererControl);
     if (d->renderThread.isRunning()) {
         d->renderThread.requestInterruption();
@@ -212,6 +217,7 @@ void QWinRTAbstractVideoRendererControl::shutdown()
 QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSize &size, QObject *parent)
     : QVideoRendererControl(parent), d_ptr(new QWinRTAbstractVideoRendererControlPrivate)
 {
+    qCDebug(lcMMVideoRender) << __FUNCTION__;
     Q_D(QWinRTAbstractVideoRendererControl);
 
     d->format = QVideoSurfaceFormat(size, QVideoFrame::Format_BGRA32,
@@ -232,6 +238,7 @@ QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSi
 
 QWinRTAbstractVideoRendererControl::~QWinRTAbstractVideoRendererControl()
 {
+    qCDebug(lcMMVideoRender) << __FUNCTION__;
     Q_D(QWinRTAbstractVideoRendererControl);
     CriticalSectionLocker locker(&d->mutex);
     shutdown();
@@ -253,6 +260,7 @@ void QWinRTAbstractVideoRendererControl::setSurface(QAbstractVideoSurface *surfa
 
 void QWinRTAbstractVideoRendererControl::syncAndRender()
 {
+    qCDebug(lcMMVideoRender) << __FUNCTION__;
     Q_D(QWinRTAbstractVideoRendererControl);
 
     QThread *currentThread = QThread::currentThread();
@@ -334,6 +342,7 @@ void QWinRTAbstractVideoRendererControl::setScanLineDirection(QVideoSurfaceForma
 
 void QWinRTAbstractVideoRendererControl::setActive(bool active)
 {
+    qCDebug(lcMMVideoRender) << __FUNCTION__ << active;
     Q_D(QWinRTAbstractVideoRendererControl);
 
     if (d->active == active)
@@ -351,7 +360,7 @@ void QWinRTAbstractVideoRendererControl::setActive(bool active)
         return;
     }
 
-    d->renderThread.requestInterruption();
+    shutdown();
     if (d->surface && d->surface->isActive())
         d->surface->stop();
 }

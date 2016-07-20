@@ -59,6 +59,9 @@
 #include "avfcameraviewfindersettingscontrol.h"
 #include "avfimageencodercontrol.h"
 #include "avfcameraflashcontrol.h"
+#include "avfaudioencodersettingscontrol.h"
+#include "avfvideoencodersettingscontrol.h"
+#include "avfmediacontainercontrol.h"
 
 #ifdef Q_OS_IOS
 #include "avfcamerazoomcontrol.h"
@@ -105,6 +108,9 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_viewfinderSettingsControl = new AVFCameraViewfinderSettingsControl(this);
     m_imageEncoderControl = new AVFImageEncoderControl(this);
     m_flashControl = new AVFCameraFlashControl(this);
+    m_audioEncoderSettingsControl = new AVFAudioEncoderSettingsControl(this);
+    m_videoEncoderSettingsControl = new AVFVideoEncoderSettingsControl(this);
+    m_mediaContainerControl = new AVFMediaContainerControl(this);
 }
 
 AVFCameraService::~AVFCameraService()
@@ -136,6 +142,9 @@ AVFCameraService::~AVFCameraService()
     delete m_viewfinderSettingsControl;
     delete m_imageEncoderControl;
     delete m_flashControl;
+    delete m_audioEncoderSettingsControl;
+    delete m_videoEncoderSettingsControl;
+    delete m_mediaContainerControl;
 
     delete m_session;
 }
@@ -182,6 +191,15 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraFlashControl_iid) == 0)
         return m_flashControl;
 
+    if (qstrcmp(name, QAudioEncoderSettingsControl_iid) == 0)
+        return m_audioEncoderSettingsControl;
+
+    if (qstrcmp(name, QVideoEncoderSettingsControl_iid) == 0)
+        return m_videoEncoderSettingsControl;
+
+    if (qstrcmp(name, QMediaContainerControl_iid) == 0)
+        return m_mediaContainerControl;
+
     if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
         AVFMediaVideoProbeControl *videoProbe = 0;
         videoProbe = new AVFMediaVideoProbeControl(this);
@@ -218,24 +236,6 @@ void AVFCameraService::releaseControl(QMediaControl *control)
         delete m_videoOutput;
         m_videoOutput = 0;
     }
-}
-
-AVFMediaRecorderControl *AVFCameraService::recorderControl() const
-{
-#ifdef Q_OS_IOS
-    return 0;
-#else
-    return static_cast<AVFMediaRecorderControl *>(m_recorderControl);
-#endif
-}
-
-AVFMediaRecorderControlIOS *AVFCameraService::recorderControlIOS() const
-{
-#ifdef Q_OS_OSX
-    return 0;
-#else
-    return static_cast<AVFMediaRecorderControlIOS *>(m_recorderControl);
-#endif
 }
 
 

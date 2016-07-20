@@ -44,6 +44,10 @@
 #include "avfcameracontrol.h"
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
+#include "avfaudioencodersettingscontrol.h"
+#include "avfvideoencodersettingscontrol.h"
+#include "avfmediacontainercontrol.h"
+#include "avfcamerautility.h"
 
 #include <QtCore/qdebug.h>
 
@@ -83,6 +87,8 @@ AVFMediaRecorderControlIOS::AVFMediaRecorderControlIOS(AVFCameraService *service
     , m_service(service)
     , m_state(QMediaRecorder::StoppedState)
     , m_lastStatus(QMediaRecorder::UnloadedStatus)
+    , m_audioSettings(nil)
+    , m_videoSettings(nil)
 {
     Q_ASSERT(service);
 
@@ -113,6 +119,11 @@ AVFMediaRecorderControlIOS::AVFMediaRecorderControlIOS(AVFCameraService *service
 AVFMediaRecorderControlIOS::~AVFMediaRecorderControlIOS()
 {
     [m_writer abort];
+
+    if (m_audioSettings)
+        [m_audioSettings release];
+    if (m_videoSettings)
+        [m_videoSettings release];
 }
 
 QUrl AVFMediaRecorderControlIOS::outputLocation() const
@@ -153,6 +164,43 @@ qreal AVFMediaRecorderControlIOS::volume() const
 
 void AVFMediaRecorderControlIOS::applySettings()
 {
+    AVFCameraSession *session = m_service->session();
+    if (!session)
+        return;
+
+    if (m_state != QMediaRecorder::StoppedState
+            || (session->state() != QCamera::ActiveState && session->state() != QCamera::LoadedState)
+            || !m_service->cameraControl()->captureMode().testFlag(QCamera::CaptureVideo)) {
+        return;
+    }
+
+    // audio settings
+    m_audioSettings = m_service->audioEncoderSettingsControl()->applySettings();
+    if (m_audioSettings)
+        [m_audioSettings retain];
+
+    // video settings
+    AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+    m_videoSettings = m_service->videoEncoderSettingsControl()->applySettings(conn);
+    if (m_videoSettings)
+        [m_videoSettings retain];
+}
+
+void AVFMediaRecorderControlIOS::unapplySettings()
+{
+    m_service->audioEncoderSettingsControl()->unapplySettings();
+
+    AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+    m_service->videoEncoderSettingsControl()->unapplySettings(conn);
+
+    if (m_audioSettings) {
+        [m_audioSettings release];
+        m_audioSettings = nil;
+    }
+    if (m_videoSettings) {
+        [m_videoSettings release];
+        m_videoSettings = nil;
+    }
 }
 
 void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
@@ -189,7 +237,8 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
         const QString path(m_outputLocation.scheme() == QLatin1String("file") ?
                            m_outputLocation.path() : m_outputLocation.toString());
         const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path, QCamera::CaptureVideo,
-                           QLatin1String("clip_"), QLatin1String("mp4"))));
+                           QLatin1String("clip_"),
+                           m_service->mediaContainerControl()->containerFormat())));
 
         NSURL *nsFileURL = fileURL.toNSURL();
         if (!nsFileURL) {
@@ -217,7 +266,28 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
         // generated, will restart in assetWriterStarted.
         [session stopRunning];
 
-        if ([m_writer setupWithFileURL:nsFileURL cameraService:m_service]) {
+        applySettings();
+
+        // Make sure the video is recorded in device orientation.
+        // The top of the video will match the side of the device which is on top
+        // when recording starts (regardless of the UI orientation).
+        AVFCameraInfo cameraInfo = m_service->session()->activeCameraInfo();
+        int screenOrientation = 360 - m_orientationHandler.currentOrientation();
+        float rotation = 0;
+        if (cameraInfo.position == QCamera::FrontFace)
+            rotation = (screenOrientation + cameraInfo.orientation) % 360;
+        else
+            rotation = (screenOrientation + (360 - cameraInfo.orientation)) % 360;
+
+        // convert to radians
+        rotation *= M_PI / 180.f;
+
+        if ([m_writer setupWithFileURL:nsFileURL
+                      cameraService:m_service
+                      audioSettings:m_audioSettings
+                      videoSettings:m_videoSettings
+                      transform:CGAffineTransformMakeRotation(rotation)]) {
+
             m_state = QMediaRecorder::RecordingState;
             m_lastStatus = QMediaRecorder::StartingStatus;
 
@@ -275,6 +345,8 @@ void AVFMediaRecorderControlIOS::assetWriterFinished()
         m_lastStatus = QMediaRecorder::LoadedStatus;
     else
         m_lastStatus = QMediaRecorder::UnloadedStatus;
+
+    unapplySettings();
 
     m_service->videoOutput()->resetCaptureDelegate();
     [m_service->session()->captureSession() startRunning];

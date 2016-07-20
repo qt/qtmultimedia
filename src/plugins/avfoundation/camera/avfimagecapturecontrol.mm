@@ -73,6 +73,7 @@ AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObjec
     connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateReadyStatus()));
 
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
+    connect(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateCaptureConnection()));
 
     connect(m_session, &AVFCameraSession::newViewfinderFrame,
             this, &AVFImageCaptureControl::onNewViewfinderFrame,

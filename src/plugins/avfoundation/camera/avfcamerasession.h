@@ -99,6 +99,8 @@ public Q_SLOTS:
     void processSessionStarted();
     void processSessionStopped();
 
+    void onCaptureModeChanged(QCamera::CaptureModes mode);
+
     void onCameraFrameFetched(const QVideoFrame &frame);
 
 Q_SIGNALS:

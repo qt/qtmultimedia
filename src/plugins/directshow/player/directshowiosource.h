@@ -115,8 +115,6 @@ public:
     HRESULT STDMETHODCALLTYPE QueryDirection(PIN_DIRECTION *pPinDir);
 
 private:
-    HRESULT tryConnect(IPin *pin, const AM_MEDIA_TYPE *type);
-
     volatile LONG m_ref;
     FILTER_STATE m_state;
     DirectShowIOReader *m_reader;
@@ -125,10 +123,11 @@ private:
     IReferenceClock *m_clock;
     IMemAllocator *m_allocator;
     IPin *m_peerPin;
-    DirectShowMediaType m_mediaType;
+    DirectShowMediaType m_outputType;
     QList<DirectShowMediaType> m_supportedMediaTypes;
     QString m_filterName;
     const QString m_pinId;
+    bool m_queriedForAsyncReader;
     QMutex m_mutex;
 };
 
