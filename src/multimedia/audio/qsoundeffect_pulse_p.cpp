@@ -736,6 +736,10 @@ void QSoundEffectPrivate::prepare()
     if (!m_pulseStream || !m_sampleReady)
         return;
     PulseDaemonLocker locker;
+
+    if (pa_stream_get_state(m_pulseStream) != PA_STREAM_READY)
+        return;
+
     pa_stream_set_write_callback(m_pulseStream, stream_write_callback, this);
     pa_stream_set_underflow_callback(m_pulseStream, stream_underrun_callback, this);
     m_stopping = false;
