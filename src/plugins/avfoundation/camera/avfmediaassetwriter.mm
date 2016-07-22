@@ -85,17 +85,11 @@ enum WriterState
 
 @implementation QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)
 
-- (id)initWithQueue:(dispatch_queue_t)writerQueue
-      delegate:(AVFMediaRecorderControlIOS *)delegate
+- (id)initWithDelegate:(AVFMediaRecorderControlIOS *)delegate
 {
-    Q_ASSERT(writerQueue);
     Q_ASSERT(delegate);
 
     if (self = [super init]) {
-        // "Shared" queue:
-        dispatch_retain(writerQueue);
-        m_writerQueue.reset(writerQueue);
-
         m_delegate = delegate;
         m_setStartTime = true;
         m_state.store(WriterStateIdle);
@@ -125,6 +119,12 @@ enum WriterState
     m_service = service;
     m_audioSettings = audioSettings;
     m_videoSettings = videoSettings;
+
+    m_writerQueue.reset(dispatch_queue_create("asset-writer-queue", DISPATCH_QUEUE_SERIAL));
+    if (!m_writerQueue) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer's queue";
+        return false;
+    }
 
     m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
     if (!m_videoQueue) {
@@ -172,20 +172,10 @@ enum WriterState
 
 - (void)start
 {
-    // 'start' is executed on a special writer's queue.
-    // We lock a mutex for the whole function body
-    // - render control probably was deleted
-    // 'immediately' after submitting 'start'
-    // and before 'start' is actually executed ...
-    // So if we're starting, render control can not
-    // abort us 'in the middle'.
-    const QMutexLocker lock(&m_writerMutex);
-    if (m_state.load() == WriterStateAborted)
-        return;
-
     [self setQueues];
 
     m_setStartTime = true;
+
     m_state.storeRelease(WriterStateActive);
 
     [m_assetWriter startWriting];
@@ -196,39 +186,64 @@ enum WriterState
 
 - (void)stop
 {
-    // To be executed on a writer's queue.
-    {
-    const QMutexLocker lock(&m_writerMutex);
-    if (m_state.load() != WriterStateActive)
+    if (m_state.loadAcquire() != WriterStateActive)
         return;
-    }
 
+    if ([m_assetWriter status] != AVAssetWriterStatusWriting)
+        return;
+
+    // Do this here so that -
+    // 1. '-abort' should not try calling finishWriting again and
+    // 2. async block (see below) will know if recorder control was deleted
+    //    before the block's execution:
+    m_state.storeRelease(WriterStateIdle);
+    // Now, since we have to ensure no sample buffers are
+    // appended after a call to finishWriting, we must
+    // ensure writer's queue sees this change in m_state
+    // _before_ we call finishWriting:
+    dispatch_sync(m_writerQueue, ^{});
+    // Done, but now we also want to prevent video queue
+    // from updating our viewfinder:
+    dispatch_sync(m_videoQueue, ^{});
+
+    // Now we're safe to stop:
     [m_assetWriter finishWritingWithCompletionHandler:^{
         // This block is async, so by the time it's executed,
         // it's possible that render control was deleted already ...
-        // We lock so that nobody can call 'abort' in the middle ...
-        const QMutexLocker lock(&m_writerMutex);
-        if (m_state.load() != WriterStateActive)
+        if (m_state.loadAcquire() == WriterStateAborted)
             return;
 
         AVCaptureSession *session = m_service->session()->captureSession();
-        [session stopRunning];
+        if (session.running)
+            [session stopRunning];
         [session removeOutput:m_audioOutput];
         [session removeInput:m_audioInput];
-        m_state.storeRelease(WriterStateIdle);
         QMetaObject::invokeMethod(m_delegate, "assetWriterFinished", Qt::QueuedConnection);
     }];
 }
 
 - (void)abort
 {
-    // To be executed on any thread (presumably, it's the main thread),
-    // prevents writer from accessing any shared object.
-    const QMutexLocker lock(&m_writerMutex);
+    // -abort is to be called from recorder control's dtor.
+
     if (m_state.fetchAndStoreRelease(WriterStateAborted) != WriterStateActive) {
         // Not recording, nothing to stop.
         return;
     }
+
+    // From Apple's docs:
+    // "To guarantee that all sample buffers are successfully written,
+    //  you must ensure that all calls to appendSampleBuffer: and
+    //  appendPixelBuffer:withPresentationTime: have returned before
+    //  invoking this method."
+    //
+    // The only way we can ensure this is:
+    dispatch_sync(m_writerQueue, ^{});
+    // At this point next block (if any) on the writer's queue
+    // will see m_state preventing it from any further processing.
+    dispatch_sync(m_videoQueue, ^{});
+    // After this point video queue will not try to modify our
+    // viewfider, so we're safe to delete now.
 
     [m_assetWriter finishWritingWithCompletionHandler:^{
     }];
@@ -240,13 +255,12 @@ enum WriterState
     Q_ASSERT(m_setStartTime);
     Q_ASSERT(sampleBuffer);
 
-    const QMutexLocker lock(&m_writerMutex);
-    if (m_state.load() != WriterStateActive)
+    if (m_state.loadAcquire() != WriterStateActive)
         return;
 
     QMetaObject::invokeMethod(m_delegate, "assetWriterStarted", Qt::QueuedConnection);
 
-    m_durationInMs.store(0);
+    m_durationInMs.storeRelease(0);
     m_startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
     m_lastTimeStamp = m_startTime;
     [m_assetWriter startSessionAtSourceTime:m_startTime];
@@ -255,9 +269,9 @@ enum WriterState
 
 - (void)writeVideoSampleBuffer:(CMSampleBufferRef)sampleBuffer
 {
+    // This code is executed only on a writer's queue.
     Q_ASSERT(sampleBuffer);
 
-    // This code is executed only on a writer's queue.
     if (m_state.loadAcquire() == WriterStateActive) {
         if (m_setStartTime)
             [self setStartTimeFrom:sampleBuffer];
@@ -267,7 +281,6 @@ enum WriterState
             [m_cameraWriterInput appendSampleBuffer:sampleBuffer];
         }
     }
-
 
     CFRelease(sampleBuffer);
 }
@@ -296,9 +309,6 @@ enum WriterState
 {
     Q_UNUSED(connection)
 
-    // This method can be called on either video or audio queue,
-    // never on a writer's queue, it needs access to a shared data, so
-    // lock is required.
     if (m_state.loadAcquire() != WriterStateActive)
         return;
 
@@ -310,7 +320,6 @@ enum WriterState
     CFRetain(sampleBuffer);
 
     if (captureOutput != m_audioOutput.data()) {
-        const QMutexLocker lock(&m_writerMutex);
         if (m_state.load() != WriterStateActive) {
             CFRelease(sampleBuffer);
             return;
@@ -450,7 +459,7 @@ enum WriterState
         if (!CMTimeCompare(duration, kCMTimeInvalid))
             return;
 
-        m_durationInMs.store(CMTimeGetSeconds(duration) * 1000);
+        m_durationInMs.storeRelease(CMTimeGetSeconds(duration) * 1000);
         m_lastTimeStamp = newTimeStamp;
     }
 }
