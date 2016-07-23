@@ -40,6 +40,7 @@
 #include "qgstutils_p.h"
 
 #include <QtCore/qdatetime.h>
+#include <QtCore/qtimezone.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qvariant.h>
@@ -123,6 +124,24 @@ static void addTagToMap(const GstTagList *list,
                     if (!map->contains("year"))
                         map->insert("year", year);
                 }
+#if GST_CHECK_VERSION(1,0,0)
+            } else if (G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME) {
+                const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
+                int year = gst_date_time_has_year(dateTime) ? gst_date_time_get_year(dateTime) : 0;
+                int month = gst_date_time_has_month(dateTime) ? gst_date_time_get_month(dateTime) : 0;
+                int day = gst_date_time_has_day(dateTime) ? gst_date_time_get_day(dateTime) : 0;
+                if (gst_date_time_has_time(dateTime)) {
+                    int hour = gst_date_time_get_hour(dateTime);
+                    int minute = gst_date_time_get_minute(dateTime);
+                    int second = gst_date_time_get_second(dateTime);
+                    float tz = gst_date_time_get_time_zone_offset(dateTime);
+                    map->insert(QByteArray(tag), QDateTime(QDate(year,month,day), QTime(hour, minute, second), QTimeZone(tz * 60 * 60)));
+                } else if (year > 0 && month > 0 && day > 0) {
+                    map->insert(QByteArray(tag), QDate(year,month,day));
+                }
+                if (!map->contains("year") && year > 0)
+                    map->insert("year", year);
+#endif
             } else if (G_VALUE_TYPE(&val) == GST_TYPE_FRACTION) {
                 int nom = gst_value_get_fraction_numerator(&val);
                 int denom = gst_value_get_fraction_denominator(&val);
