@@ -141,6 +141,22 @@ static void addTagToMap(const GstTagList *list,
                 }
                 if (!map->contains("year") && year > 0)
                     map->insert("year", year);
+            } else if (G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE) {
+                GstSample *sample = (GstSample *)g_value_get_boxed(&val);
+                GstCaps* caps = gst_sample_get_caps(sample);
+                if (caps && !gst_caps_is_empty(caps)) {
+                    GstStructure *structure = gst_caps_get_structure(caps, 0);
+                    const gchar *name = gst_structure_get_name(structure);
+                    if (QByteArray(name).startsWith("image/")) {
+                        GstBuffer *buffer = gst_sample_get_buffer(sample);
+                        if (buffer) {
+                            GstMapInfo info;
+                            gst_buffer_map(buffer, &info, GST_MAP_READ);
+                            map->insert(QByteArray(tag), QImage::fromData(info.data, info.size, name));
+                            gst_buffer_unmap(buffer, &info);
+                        }
+                    }
+                }
 #endif
             } else if (G_VALUE_TYPE(&val) == GST_TYPE_FRACTION) {
                 int nom = gst_value_get_fraction_numerator(&val);
