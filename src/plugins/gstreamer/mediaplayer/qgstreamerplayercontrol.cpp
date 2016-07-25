@@ -606,18 +606,18 @@ void QGstreamerPlayerControl::popAndNotifyState()
     QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatusStack.pop();
 
     if (m_stateStack.isEmpty()) {
-        if (m_currentState != oldState) {
-#ifdef DEBUG_PLAYBIN
-            qDebug() << "State changed:" << m_currentState;
-#endif
-            emit stateChanged(m_currentState);
-        }
-
         if (m_mediaStatus != oldMediaStatus) {
 #ifdef DEBUG_PLAYBIN
             qDebug() << "Media status changed:" << m_mediaStatus;
 #endif
             emit mediaStatusChanged(m_mediaStatus);
+        }
+
+        if (m_currentState != oldState) {
+#ifdef DEBUG_PLAYBIN
+            qDebug() << "State changed:" << m_currentState;
+#endif
+            emit stateChanged(m_currentState);
         }
     }
 }
