@@ -76,6 +76,7 @@ private slots:
     void subsequentPlayback();
     void probes();
     void playlist();
+    void playlistObject();
     void surfaceTest_data();
     void surfaceTest();
     void metadata();
@@ -994,6 +995,7 @@ void tst_QMediaPlayerBackend::playlist()
     QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QMediaContent)));
     QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
+    QSignalSpy mediaStatusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
     QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
 
     QFileInfo fileInfo(QFINDTESTDATA("testdata/sample.m3u"));
@@ -1002,8 +1004,8 @@ void tst_QMediaPlayerBackend::playlist()
     player.play();
     QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
 
-    if (player.mediaStatus() == QMediaPlayer::InvalidMedia)
-        QSKIP("Media player does not support M3U playlists");
+    if (player.mediaStatus() == QMediaPlayer::InvalidMedia || mediaSpy.count() == 1)
+        QSKIP("QMediaPlayer does not support loading M3U playlists as QMediaPlaylist");
 
     QCOMPARE(mediaSpy.count(), 2);
     // sample.m3u -> sample.m3u resolved -> test.wav ->
@@ -1016,10 +1018,12 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(currentMediaSpy.count(), 11);
     QCOMPARE(stateSpy.count(), 2);
     QCOMPARE(errorSpy.count(), 0);
+    QCOMPARE(mediaStatusSpy.count(), 19); // 6 x (LoadingMedia -> BufferedMedia -> EndOfMedia) + NoMedia
 
     mediaSpy.clear();
     currentMediaSpy.clear();
     stateSpy.clear();
+    mediaStatusSpy.clear();
     errorSpy.clear();
 
     player.play();
@@ -1028,10 +1032,12 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(currentMediaSpy.count(), 8);
     QCOMPARE(stateSpy.count(), 2);
     QCOMPARE(errorSpy.count(), 0);
+    QCOMPARE(mediaStatusSpy.count(), 19); // 6 x (LoadingMedia -> BufferedMedia -> EndOfMedia) + NoMedia
 
     mediaSpy.clear();
     currentMediaSpy.clear();
     stateSpy.clear();
+    mediaStatusSpy.clear();
     errorSpy.clear();
 
     // <<< Invalid - 1st pass >>>
@@ -1046,10 +1052,12 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(currentMediaSpy.count(), 4);
     QCOMPARE(stateSpy.count(), 2);
     QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(mediaStatusSpy.count(), 3); // LoadingMedia -> InvalidMedia -> NoMedia
 
     mediaSpy.clear();
     currentMediaSpy.clear();
     stateSpy.clear();
+    mediaStatusSpy.clear();
     errorSpy.clear();
 
     // <<< Invalid - 2nd pass >>>
@@ -1061,10 +1069,12 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(currentMediaSpy.count(), 3);
     QCOMPARE(stateSpy.count(), 2);
     QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(mediaStatusSpy.count(), 3); // LoadingMedia -> InvalidMedia -> NoMedia
 
     mediaSpy.clear();
     currentMediaSpy.clear();
     stateSpy.clear();
+    mediaStatusSpy.clear();
     errorSpy.clear();
 
     // <<< Invalid2 - 1st pass >>>
@@ -1079,10 +1089,12 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(currentMediaSpy.count(), 6);
     QCOMPARE(stateSpy.count(), 2);
     QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(mediaStatusSpy.count(), 9); // 3 x LoadingMedia + 2 x (BufferedMedia -> EndOfMedia) + InvalidMedia + NoMedia (not in this order)
 
     mediaSpy.clear();
     currentMediaSpy.clear();
     stateSpy.clear();
+    mediaStatusSpy.clear();
     errorSpy.clear();
 
     // <<< Invalid2 - 2nd pass >>>
@@ -1094,10 +1106,12 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(currentMediaSpy.count(), 5);
     QCOMPARE(stateSpy.count(), 2);
     QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(mediaStatusSpy.count(), 9); // 3 x LoadingMedia + 2 x (BufferedMedia -> EndOfMedia) + InvalidMedia + NoMedia (not in this order)
 
     mediaSpy.clear();
     currentMediaSpy.clear();
     stateSpy.clear();
+    mediaStatusSpy.clear();
     errorSpy.clear();
 
     // <<< Recursive - 1st pass >>>
@@ -1116,10 +1130,13 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(stateSpy.count(), 2);
     // there is one invalid media in the master playlist
     QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(mediaStatusSpy.count(), 6); // LoadingMedia -> InvalidMedia -> LoadingMedia -> BufferedMedia
+                                         // -> EndOfMedia -> NoMedia
 
     mediaSpy.clear();
     currentMediaSpy.clear();
     stateSpy.clear();
+    mediaStatusSpy.clear();
     errorSpy.clear();
 
     // <<< Recursive - 2nd pass >>>
@@ -1134,6 +1151,141 @@ void tst_QMediaPlayerBackend::playlist()
     QCOMPARE(stateSpy.count(), 2);
     // there is one invalid media in the master playlist
     QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(mediaStatusSpy.count(), 6); // LoadingMedia -> InvalidMedia -> LoadingMedia -> BufferedMedia
+                                         // -> EndOfMedia -> NoMedia
+}
+
+void tst_QMediaPlayerBackend::playlistObject()
+{
+    QMediaPlayer player;
+
+    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QMediaContent)));
+    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
+    QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
+    QSignalSpy mediaStatusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
+    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+
+    // --- empty playlist
+    QMediaPlaylist emptyPlaylist;
+    player.setPlaylist(&emptyPlaylist);
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+
+    QCOMPARE(mediaSpy.count(), 1);
+    QCOMPARE(currentMediaSpy.count(), 1); // Empty media
+    QCOMPARE(stateSpy.count(), 0);
+    QCOMPARE(errorSpy.count(), 0);
+    QCOMPARE(mediaStatusSpy.count(), 0);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    mediaStatusSpy.clear();
+    errorSpy.clear();
+
+    // --- Valid playlist
+    QMediaPlaylist playlist;
+    playlist.addMedia(QUrl::fromLocalFile(QFileInfo(QFINDTESTDATA("testdata/test.wav")).absoluteFilePath()));
+    playlist.addMedia(QUrl::fromLocalFile(QFileInfo(QFINDTESTDATA("testdata/_test.wav")).absoluteFilePath()));
+    player.setPlaylist(&playlist);
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+
+    QCOMPARE(mediaSpy.count(), 1);
+    QCOMPARE(currentMediaSpy.count(), 3); // test.wav -> _test.wav -> NoMedia
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 0);
+    QCOMPARE(mediaStatusSpy.count(), 7); // 2 x (LoadingMedia -> BufferedMedia -> EndOfMedia) + NoMedia
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    mediaStatusSpy.clear();
+    errorSpy.clear();
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+
+    QCOMPARE(mediaSpy.count(), 0);
+    QCOMPARE(currentMediaSpy.count(), 4); // playlist -> test.wav -> _test.wav -> NoMedia
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 0);
+    QCOMPARE(mediaStatusSpy.count(), 7); // 2 x (LoadingMedia -> BufferedMedia -> EndOfMedia) + NoMedia
+
+    player.setPlaylist(Q_NULLPTR);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    mediaStatusSpy.clear();
+    errorSpy.clear();
+
+    // --- Nested playlist
+    QMediaPlaylist nestedPlaylist;
+    nestedPlaylist.addMedia(QUrl::fromLocalFile(QFileInfo(QFINDTESTDATA("testdata/_test.wav")).absoluteFilePath()));
+    nestedPlaylist.addMedia(QUrl::fromLocalFile(QFileInfo(QFINDTESTDATA("testdata/test.wav")).absoluteFilePath()));
+    nestedPlaylist.addMedia(&playlist);
+    player.setPlaylist(&nestedPlaylist);
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+
+    QCOMPARE(mediaSpy.count(), 1);
+    QCOMPARE(currentMediaSpy.count(), 6); // _test.wav -> test.wav -> nested playlist
+                                          // -> test.wav -> _test.wav -> NoMedia
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 0);
+    QCOMPARE(mediaStatusSpy.count(), 13); // 4 x (LoadingMedia -> BufferedMedia -> EndOfMedia) + NoMedia
+
+    player.setPlaylist(Q_NULLPTR);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    mediaStatusSpy.clear();
+    errorSpy.clear();
+
+    // --- playlist with invalid media
+    QMediaPlaylist invalidPlaylist;
+    invalidPlaylist.addMedia(QUrl("invalid"));
+    invalidPlaylist.addMedia(QUrl::fromLocalFile(QFileInfo(QFINDTESTDATA("testdata/test.wav")).absoluteFilePath()));
+
+    player.setPlaylist(&invalidPlaylist);
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+
+    QCOMPARE(mediaSpy.count(), 1);
+    QCOMPARE(currentMediaSpy.count(), 3); // invalid -> test.wav -> NoMedia
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(mediaStatusSpy.count(), 6); // Loading -> Invalid -> Loading -> Buffered -> EndOfMedia -> NoMedia
+
+    player.setPlaylist(Q_NULLPTR);
+
+    mediaSpy.clear();
+    currentMediaSpy.clear();
+    stateSpy.clear();
+    mediaStatusSpy.clear();
+    errorSpy.clear();
+
+    // --- playlist with only invalid media
+    QMediaPlaylist invalidPlaylist2;
+    invalidPlaylist2.addMedia(QUrl("invalid"));
+    invalidPlaylist2.addMedia(QUrl("invalid2"));
+
+    player.setPlaylist(&invalidPlaylist2);
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.state(), QMediaPlayer::StoppedState, 10000);
+
+    QCOMPARE(mediaSpy.count(), 1);
+    QCOMPARE(currentMediaSpy.count(), 3); // invalid -> invalid2 -> NoMedia
+    QCOMPARE(stateSpy.count(), 2);
+    QCOMPARE(errorSpy.count(), 2);
+    QCOMPARE(mediaStatusSpy.count(), 5); // Loading -> Invalid -> Loading -> Invalid -> NoMedia
 }
 
 void tst_QMediaPlayerBackend::surfaceTest_data()
