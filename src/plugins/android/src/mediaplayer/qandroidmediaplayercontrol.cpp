@@ -53,11 +53,11 @@ public:
         if (--mControl->mActiveStateChangeNotifiers)
             return;
 
-        if (mPreviousState != mControl->state())
-            Q_EMIT mControl->stateChanged(mControl->state());
-
         if (mPreviousMediaStatus != mControl->mediaStatus())
             Q_EMIT mControl->mediaStatusChanged(mControl->mediaStatus());
+
+        if (mPreviousState != mControl->state())
+            Q_EMIT mControl->stateChanged(mControl->state());
     }
 
 private:
