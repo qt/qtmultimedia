@@ -263,18 +263,19 @@ public:
             break;
         }
 
-        if (d->state != newState) {
-            d->state = newState;
-            emit q->stateChanged(d->state);
-        }
-
         if (d->videoRenderer)
             d->videoRenderer->setActive(d->state == QMediaPlayer::PlayingState);
 
-        if (d->mediaStatus != newStatus) {
-            d->mediaStatus = newStatus;
+        const QMediaPlayer::MediaStatus oldMediaStatus = d->mediaStatus;
+        const QMediaPlayer::State oldState = d->state;
+        d->mediaStatus = newStatus;
+        d->state = newState;
+
+        if (d->mediaStatus != oldMediaStatus)
             emit q->mediaStatusChanged(d->mediaStatus);
-        }
+
+        if (d->state != oldState)
+            emit q->stateChanged(d->state);
 
         return S_OK;
     }
@@ -855,16 +856,21 @@ void QWinRTMediaPlayerControl::stop()
 {
     Q_D(QWinRTMediaPlayerControl);
 
-    if (d->state != QMediaPlayer::StoppedState) {
-        d->state = QMediaPlayer::StoppedState;
-        emit stateChanged(d->state);
-    }
+    const QMediaPlayer::MediaStatus oldMediaStatus = d->mediaStatus;
+    const QMediaPlayer::State oldState = d->state;
+
+    d->state = QMediaPlayer::StoppedState;
 
     if (d->mediaStatus == QMediaPlayer::BufferedMedia
             || d->mediaStatus == QMediaPlayer::BufferingMedia) {
         d->mediaStatus = QMediaPlayer::LoadedMedia;
-        emit mediaStatusChanged(d->mediaStatus);
     }
+
+    if (d->mediaStatus != oldMediaStatus)
+        emit mediaStatusChanged(d->mediaStatus);
+
+    if (d->state != oldState)
+        emit stateChanged(d->state);
 
     if (d->media.isNull() && d->stream.isNull())
         return;
