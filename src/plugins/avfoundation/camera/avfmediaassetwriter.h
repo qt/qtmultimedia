@@ -44,7 +44,6 @@
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qatomic.h>
-#include <QtCore/qmutex.h>
 
 #include <AVFoundation/AVFoundation.h>
 
@@ -53,12 +52,9 @@ QT_BEGIN_NAMESPACE
 class AVFMediaRecorderControlIOS;
 class AVFCameraService;
 
-typedef QAtomicInteger<bool> AVFAtomicBool;
 typedef QAtomicInteger<qint64> AVFAtomicInt64;
 
 QT_END_NAMESPACE
-
-// TODO: any reasonable error handling requires smart pointers, otherwise it's getting crappy immediately.
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate,
                                                                AVCaptureAudioDataOutputSampleBufferDelegate>
@@ -72,22 +68,20 @@ QT_END_NAMESPACE
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_audioWriterInput;
     AVCaptureDevice *m_audioCaptureDevice;
 
+    // Queue to write sample buffers:
+    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_writerQueue;
     // High priority serial queue for video output:
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_videoQueue;
     // Serial queue for audio output:
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_audioQueue;
-    // Queue to write sample buffers:
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_writerQueue;
 
     QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriter> m_assetWriter;
 
     QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *m_delegate;
 
     bool m_setStartTime;
-    QT_PREPEND_NAMESPACE(AVFAtomicBool) m_stopped;
-    QT_PREPEND_NAMESPACE(AVFAtomicBool) m_aborted;
 
-    QT_PREPEND_NAMESPACE(QMutex) m_writerMutex;
+    QT_PREPEND_NAMESPACE(QAtomicInt) m_state;
 @public
     QT_PREPEND_NAMESPACE(AVFAtomicInt64) m_durationInMs;
 @private
@@ -98,8 +92,7 @@ QT_END_NAMESPACE
     NSDictionary *m_videoSettings;
 }
 
-- (id)initWithQueue:(dispatch_queue_t)writerQueue
-      delegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;
+- (id)initWithDelegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
         cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service
@@ -107,10 +100,10 @@ QT_END_NAMESPACE
         videoSettings:(NSDictionary *)videoSettings
         transform:(CGAffineTransform)transform;
 
+// This to be called from the recorder control's thread:
 - (void)start;
 - (void)stop;
-// This to be called if control's dtor gets called,
-// on the control's thread.
+// This to be called from the recorder control's dtor:
 - (void)abort;
 
 @end

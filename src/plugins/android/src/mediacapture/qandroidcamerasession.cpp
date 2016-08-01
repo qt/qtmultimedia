@@ -295,16 +295,27 @@ void QAndroidCameraSession::applyViewfinderSettings(const QSize &captureSize, bo
             adjustedViewfinderResolution = vfRes;
         } else if (validCaptureSize) {
             // search for viewfinder resolution with the same aspect ratio
+            qreal minAspectDiff = 1;
+            QSize closestResolution;
             for (int i = previewSizes.count() - 1; i >= 0; --i) {
                 const QSize &size = previewSizes.at(i);
-                if (qAbs(captureAspectRatio - (qreal(size.width()) / size.height())) < 0.01) {
+                const qreal sizeAspect = qreal(size.width()) / size.height();
+                if (qFuzzyCompare(captureAspectRatio, sizeAspect)) {
                     adjustedViewfinderResolution = size;
                     break;
+                } else if (minAspectDiff > qAbs(sizeAspect - captureAspectRatio)) {
+                    closestResolution = size;
+                    minAspectDiff = qAbs(sizeAspect - captureAspectRatio);
                 }
             }
             if (!adjustedViewfinderResolution.isValid()) {
                 qWarning("Cannot find a viewfinder resolution matching the capture aspect ratio.");
-                return;
+                if (closestResolution.isValid()) {
+                    adjustedViewfinderResolution = closestResolution;
+                    qWarning("Using closest viewfinder resolution.");
+                } else {
+                    return;
+                }
             }
         } else {
             adjustedViewfinderResolution = previewSizes.last();

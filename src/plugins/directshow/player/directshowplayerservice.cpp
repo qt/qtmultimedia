@@ -552,8 +552,6 @@ void DirectShowPlayerService::doRender(QMutexLocker *locker)
 
         m_executedTasks |= Render;
     }
-
-    m_loop->wake();
 }
 
 void DirectShowPlayerService::doFinalizeLoad(QMutexLocker *locker)
