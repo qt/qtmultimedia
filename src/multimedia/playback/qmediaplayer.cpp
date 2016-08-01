@@ -853,17 +853,19 @@ void QMediaPlayer::play()
     }
 
     //if playlist control is available, the service should advance itself
-    if (d->rootMedia.playlist() && d->rootMedia.playlist()->currentIndex() == -1 && !d->rootMedia.playlist()->isEmpty()) {
-
+    if (d->rootMedia.playlist() && !d->rootMedia.playlist()->isEmpty()) {
         // switch to playing state
         if (d->state != QMediaPlayer::PlayingState)
             d->_q_stateChanged(QMediaPlayer::PlayingState);
 
-        if (d->playlist != d->rootMedia.playlist())
-            d->setPlaylist(d->rootMedia.playlist());
-        Q_ASSERT(d->playlist == d->rootMedia.playlist());
-        emit currentMediaChanged(d->rootMedia);
-        d->playlist->setCurrentIndex(0);
+        if (d->rootMedia.playlist()->currentIndex() == -1) {
+            if (d->playlist != d->rootMedia.playlist())
+                d->setPlaylist(d->rootMedia.playlist());
+            Q_ASSERT(d->playlist == d->rootMedia.playlist());
+
+            emit currentMediaChanged(d->rootMedia);
+            d->playlist->setCurrentIndex(0);
+        }
     }
 
     // Reset error conditions
