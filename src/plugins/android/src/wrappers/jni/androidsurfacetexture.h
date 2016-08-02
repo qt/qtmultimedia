@@ -54,7 +54,6 @@ public:
     explicit AndroidSurfaceTexture(unsigned int texName);
     ~AndroidSurfaceTexture();
 
-    int textureID() const { return m_texID; }
     jobject surfaceTexture();
     jobject surface();
     jobject surfaceHolder();
@@ -73,7 +72,8 @@ Q_SIGNALS:
     void frameAvailable();
 
 private:
-    int m_texID;
+    void setOnFrameAvailableListener(const QJNIObjectPrivate &listener);
+
     QJNIObjectPrivate m_surfaceTexture;
     QJNIObjectPrivate m_surface;
     QJNIObjectPrivate m_surfaceHolder;

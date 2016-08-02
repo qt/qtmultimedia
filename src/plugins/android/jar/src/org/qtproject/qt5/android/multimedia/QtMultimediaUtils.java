@@ -40,7 +40,6 @@
 package org.qtproject.qt5.android.multimedia;
 
 import android.content.Context;
-import android.app.Activity;
 import android.view.OrientationEventListener;
 import android.os.Environment;
 import android.media.MediaScannerConnection;
@@ -68,13 +67,13 @@ public class QtMultimediaUtils
         }
     }
 
-    static private Activity m_activity = null;
+    static private Context m_context = null;
     static private OrientationListener m_orientationListener = null;
 
-    static public void setActivity(Activity activity, Object activityDelegate)
+    static public void setContext(Context context)
     {
-        m_activity = activity;
-        m_orientationListener = new OrientationListener(activity);
+        m_context = context;
+        m_orientationListener = new OrientationListener(context);
     }
 
     public QtMultimediaUtils()
@@ -129,6 +128,6 @@ public class QtMultimediaUtils
 
     static void registerMediaFile(String file)
     {
-        MediaScannerConnection.scanFile(m_activity, new String[] { file }, null, null);
+        MediaScannerConnection.scanFile(m_context, new String[] { file }, null, null);
     }
 }

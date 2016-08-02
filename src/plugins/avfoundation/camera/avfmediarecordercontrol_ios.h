@@ -97,8 +97,6 @@ private:
     void stopWriter();
 
     AVFCameraService *m_service;
-
-    AVFScopedPointer<dispatch_queue_t> m_writerQueue;
     AVFScopedPointer<QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)> m_writer;
 
     QUrl m_outputLocation;

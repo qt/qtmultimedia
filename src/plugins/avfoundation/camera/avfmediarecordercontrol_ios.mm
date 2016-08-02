@@ -92,13 +92,7 @@ AVFMediaRecorderControlIOS::AVFMediaRecorderControlIOS(AVFCameraService *service
 {
     Q_ASSERT(service);
 
-    m_writerQueue.reset(dispatch_queue_create("asset-writer-queue", DISPATCH_QUEUE_SERIAL));
-    if (!m_writerQueue) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer's queue";
-        return;
-    }
-
-    m_writer.reset([[QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) alloc] initWithQueue:m_writerQueue delegate:this]);
+    m_writer.reset([[QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) alloc] initWithDelegate:this]);
     if (!m_writer) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer";
         return;
@@ -295,9 +289,15 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
             Q_EMIT stateChanged(m_state);
             Q_EMIT statusChanged(m_lastStatus);
 
-            dispatch_async(m_writerQueue, ^{
-                [m_writer start];
-            });
+            // Apple recommends to call startRunning and do all
+            // setup on a special queue, and that's what we had
+            // initially (dispatch_async to writerQueue). Unfortunately,
+            // writer's queue is not the only queue/thread that can
+            // access/modify the session, and as a result we have
+            // all possible data/race-conditions with Obj-C exceptions
+            // at best and something worse in general.
+            // Now we try to only modify session on the same thread.
+            [m_writer start];
         } else {
             [session startRunning];
             Q_EMIT error(QMediaRecorder::FormatError, tr("Failed to start recording"));
@@ -324,7 +324,7 @@ void AVFMediaRecorderControlIOS::setMuted(bool muted)
 
 void AVFMediaRecorderControlIOS::setVolume(qreal volume)
 {
-    Q_UNUSED(volume);
+    Q_UNUSED(volume)
     qDebugCamera() << Q_FUNC_INFO << "not implemented";
 }
 
@@ -409,9 +409,7 @@ void AVFMediaRecorderControlIOS::stopWriter()
         Q_EMIT stateChanged(m_state);
         Q_EMIT statusChanged(m_lastStatus);
 
-        dispatch_async(m_writerQueue, ^{
-            [m_writer stop];
-        });
+        [m_writer stop];
     }
 }
 

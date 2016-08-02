@@ -147,7 +147,13 @@ public:
         delete m_program;
     }
 
-    void setTexture(quint32 id) { m_textureID = id; }
+    void setTexture(quint32 id) {
+        if (m_textureID)
+            glDeleteTextures(1, &m_textureID);
+
+        m_textureID = id;
+    }
+
     void setFbo(QOpenGLFramebufferObject *fbo) { m_fbo = fbo; }
     void setShaderProgram(QOpenGLShaderProgram *prog) { m_program = prog; }
 

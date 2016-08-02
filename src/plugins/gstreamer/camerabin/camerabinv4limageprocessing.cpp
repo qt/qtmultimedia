@@ -200,8 +200,10 @@ void CameraBinV4LImageProcessing::setParameter(
         const QCameraImageProcessing::WhiteBalanceMode m =
                 value.value<QCameraImageProcessing::WhiteBalanceMode>();
         if (m != QCameraImageProcessing::WhiteBalanceAuto
-                && m != QCameraImageProcessing::WhiteBalanceManual)
+                && m != QCameraImageProcessing::WhiteBalanceManual) {
+            qt_safe_close(fd);
             return;
+        }
 
         control.value = (m == QCameraImageProcessing::WhiteBalanceAuto) ? true : false;
     }
@@ -220,6 +222,7 @@ void CameraBinV4LImageProcessing::setParameter(
         break;
 
     default:
+        qt_safe_close(fd);
         return;
     }
 
