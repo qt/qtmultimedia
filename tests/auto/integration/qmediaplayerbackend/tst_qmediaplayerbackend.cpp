@@ -382,7 +382,9 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     stateSpy.clear();
     statusSpy.clear();
+    positionSpy.clear();
 
+    qint64 positionBeforePause = player.position();
     player.pause();
 
     QCOMPARE(player.state(), QMediaPlayer::PausedState);
@@ -390,6 +392,11 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     QCOMPARE(stateSpy.count(), 1);
     QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::State>(), QMediaPlayer::PausedState);
+
+    QTest::qWait(2000);
+
+    QVERIFY(qAbs(player.position() - positionBeforePause) < 100);
+    QCOMPARE(positionSpy.count(), 0);
 
     stateSpy.clear();
     statusSpy.clear();
