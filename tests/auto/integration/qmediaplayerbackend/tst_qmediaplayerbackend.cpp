@@ -332,6 +332,33 @@ void tst_QMediaPlayerBackend::playPauseStop()
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
+    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+
+    // Check play() without a media
+    player.play();
+
+    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
+    QCOMPARE(player.error(), QMediaPlayer::NoError);
+    QCOMPARE(player.position(), 0);
+    QCOMPARE(stateSpy.count(), 0);
+    QCOMPARE(statusSpy.count(), 0);
+    QCOMPARE(positionSpy.count(), 0);
+    QCOMPARE(errorSpy.count(), 0);
+
+    // Check pause() without a media
+    player.pause();
+
+    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
+    QCOMPARE(player.error(), QMediaPlayer::NoError);
+    QCOMPARE(player.position(), 0);
+    QCOMPARE(stateSpy.count(), 0);
+    QCOMPARE(statusSpy.count(), 0);
+    QCOMPARE(positionSpy.count(), 0);
+    QCOMPARE(errorSpy.count(), 0);
+
+    // The rest is with a valid media
 
     player.setMedia(localWavFile);
 
