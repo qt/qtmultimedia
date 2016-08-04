@@ -67,7 +67,7 @@ protected:
         if (url.scheme().isEmpty()) {
             // Resolve it relative to root
             if (root.isLocalFile())
-                return root.resolved(QUrl::fromLocalFile(line));
+                return QUrl::fromUserInput(line, root.adjusted(QUrl::RemoveFilename).toLocalFile(), QUrl::AssumeLocalFile);
             else
                 return root.resolved(url);
         } else if (url.scheme().length() == 1) {
