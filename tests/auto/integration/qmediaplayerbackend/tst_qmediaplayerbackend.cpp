@@ -541,6 +541,32 @@ void tst_QMediaPlayerBackend::processEOS()
     QCOMPARE(stateSpy.count(), 0);
     QTRY_VERIFY(statusSpy.count() > 0 &&
         statusSpy.last()[0].value<QMediaPlayer::MediaStatus>() == QMediaPlayer::LoadedMedia);
+
+    player.play();
+    player.setPosition(900);
+    //wait up to 5 seconds for EOS
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.position(), player.duration());
+
+    stateSpy.clear();
+    statusSpy.clear();
+    positionSpy.clear();
+
+    // pause() should reset position to beginning and status to Buffered
+    player.pause();
+
+    QTRY_COMPARE(player.position(), 0);
+    QTRY_VERIFY(positionSpy.count() > 0);
+    QCOMPARE(positionSpy.first()[0].value<qint64>(), 0);
+
+    QCOMPARE(player.state(), QMediaPlayer::PausedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    QCOMPARE(stateSpy.count(), 1);
+    QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::State>(), QMediaPlayer::PausedState);
+    QVERIFY(statusSpy.count() > 0);
+    QCOMPARE(statusSpy.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::BufferedMedia);
 }
 
 // Helper class for tst_QMediaPlayerBackend::deleteLaterAtEOS()
