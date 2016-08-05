@@ -190,7 +190,7 @@ void tst_QAudioDeviceInfo::supportedSampleRates()
 void tst_QAudioDeviceInfo::assignOperator()
 {
     QAudioDeviceInfo dev;
-    QVERIFY(dev.deviceName() == NULL);
+    QVERIFY(dev.deviceName().isNull());
     QVERIFY(dev.isNull() == true);
 
     QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
@@ -204,7 +204,7 @@ void tst_QAudioDeviceInfo::assignOperator()
 // Returns human readable name of audio device
 void tst_QAudioDeviceInfo::deviceName()
 {
-    QVERIFY(device->deviceName() != NULL);
+    QVERIFY(!device->deviceName().isNull());
     QVERIFY(device->deviceName() == QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).at(0).deviceName());
 }
 
@@ -213,7 +213,7 @@ void tst_QAudioDeviceInfo::defaultConstructor()
 {
     QAudioDeviceInfo dev;
     QVERIFY(dev.isNull() == true);
-    QVERIFY(dev.deviceName() == NULL);
+    QVERIFY(dev.deviceName().isNull());
 }
 
 void tst_QAudioDeviceInfo::equalityOperator()
