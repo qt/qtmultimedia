@@ -639,7 +639,7 @@ void tst_QAudioInput::push()
     QByteArray buffer(AUDIO_BUFFER, 0);
     qint64 len = (audioFormat.sampleRate()*audioFormat.channelCount()*(audioFormat.sampleSize()/8)*2); // 2 seconds
     while (totalBytesRead < len) {
-        QTRY_VERIFY(audioInput.bytesReady() >= audioInput.periodSize());
+        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 10000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
         audioFile->write(buffer.constData(),bytesRead);
         totalBytesRead+=bytesRead;
@@ -720,7 +720,7 @@ void tst_QAudioInput::pushSuspendResume()
     QByteArray buffer(AUDIO_BUFFER, 0);
     qint64 len = (audioFormat.sampleRate()*audioFormat.channelCount()*(audioFormat.sampleSize()/8)); // 1 seconds
     while (totalBytesRead < len) {
-        QTRY_VERIFY(audioInput.bytesReady() >= audioInput.periodSize());
+        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 10000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
         audioFile->write(buffer.constData(),bytesRead);
         totalBytesRead+=bytesRead;
@@ -775,7 +775,7 @@ void tst_QAudioInput::pushSuspendResume()
     totalBytesRead = 0;
     firstBuffer = true;
     while (totalBytesRead < len && audioInput.state() != QAudio::StoppedState) {
-        QTRY_VERIFY(audioInput.bytesReady() >= audioInput.periodSize());
+        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 10000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
         audioFile->write(buffer.constData(),bytesRead);
         totalBytesRead+=bytesRead;
@@ -822,7 +822,7 @@ void tst_QAudioInput::reset()
         QVERIFY2((audioInput.state() == QAudio::IdleState), "didn't transition to IdleState after start()");
         QVERIFY2((audioInput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
         QVERIFY(audioInput.periodSize() > 0);
-        QTRY_VERIFY2((audioInput.bytesReady() > audioInput.periodSize()), "no bytes available after starting");
+        QTRY_VERIFY2_WITH_TIMEOUT((audioInput.bytesReady() > audioInput.periodSize()), "no bytes available after starting", 10000);
 
         // Trigger a read
         QByteArray data = device->read(audioInput.periodSize());
