@@ -288,14 +288,19 @@ void tst_QMediaObject::notifySignals()
     QFETCH(int, count);
 
     QtTestMediaObject object;
+    QSignalSpy spy(&object, SIGNAL(aChanged(int)));
+
     object.setNotifyInterval(interval);
     object.addPropertyWatch("a");
 
-    QSignalSpy spy(&object, SIGNAL(aChanged(int)));
+    QElapsedTimer timer;
+    timer.start();
 
-    QTestEventLoop::instance().enterLoop(1);
+    QTRY_COMPARE(spy.count(), count);
 
-    QCOMPARE(spy.count(), count);
+    qint64 elapsed = timer.elapsed();
+    int expectedElapsed = count * interval * 1.3; // give it some margin of error
+    QVERIFY2(elapsed < expectedElapsed, QString("elapsed: %1, expected: %2").arg(elapsed).arg(expectedElapsed).toLocal8Bit().constData());
 }
 
 void tst_QMediaObject::notifyInterval_data()
