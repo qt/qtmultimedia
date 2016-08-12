@@ -119,7 +119,7 @@ private:
     IReferenceClock *m_clock;
     IMemAllocator *m_allocator;
     IPin *m_peerPin;
-    DirectShowMediaType m_outputType;
+    DirectShowMediaType m_connectionMediaType;
     QString m_filterName;
     const QString m_pinId;
     bool m_queriedForAsyncReader;

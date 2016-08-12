@@ -54,9 +54,11 @@ public:
     virtual HRESULT skipMediaType(int token, int *index, ULONG count);
     virtual HRESULT cloneMediaType(int token, int index, IEnumMediaTypes **enumeration);
 
+protected:
+    QVector<AM_MEDIA_TYPE> m_mediaTypes;
+
 private:
     int m_mediaTypeToken;
-    QVector<AM_MEDIA_TYPE> m_mediaTypes;
 };
 
 #endif
