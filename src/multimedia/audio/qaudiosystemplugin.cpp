@@ -66,7 +66,7 @@ QAudioSystemFactoryInterface::~QAudioSystemFactoryInterface()
 
     \sa QAbstractAudioDeviceInfo, QAbstractAudioOutput, QAbstractAudioInput
 
-    Qt supports win32, linux(alsa) and OS X standard (builtin to the
+    Qt supports win32, linux(alsa) and \macos standard (builtin to the
     QtMultimedia library at compile time).
 
     You can support other backends other than these predefined ones by
