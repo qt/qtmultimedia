@@ -57,6 +57,7 @@ public class QtCameraListener implements Camera.ShutterCallback,
     private int m_cameraId = -1;
 
     private boolean m_notifyNewFrames = false;
+    private boolean m_notifyWhenFrameAvailable = false;
     private byte[][] m_previewBuffers = null;
     private byte[] m_lastPreviewBuffer = null;
     private Camera.Size m_previewSize = null;
@@ -71,6 +72,11 @@ public class QtCameraListener implements Camera.ShutterCallback,
     public void notifyNewFrames(boolean notify)
     {
         m_notifyNewFrames = notify;
+    }
+
+    public void notifyWhenFrameAvailable(boolean notify)
+    {
+        m_notifyWhenFrameAvailable = notify;
     }
 
     public byte[] lastPreviewBuffer()
@@ -104,11 +110,16 @@ public class QtCameraListener implements Camera.ShutterCallback,
         return m_previewBytesPerLine;
     }
 
+    public void clearPreviewCallback(Camera camera)
+    {
+        camera.setPreviewCallbackWithBuffer(null);
+    }
+
     public void setupPreviewCallback(Camera camera)
     {
         // Clear previous callback (also clears added buffers)
+        clearPreviewCallback(camera);
         m_lastPreviewBuffer = null;
-        camera.setPreviewCallbackWithBuffer(null);
 
         final Camera.Parameters params = camera.getParameters();
         m_previewSize = params.getPreviewSize();
@@ -164,11 +175,17 @@ public class QtCameraListener implements Camera.ShutterCallback,
 
         m_lastPreviewBuffer = data;
 
-        if (data != null && m_notifyNewFrames) {
-            notifyNewPreviewFrame(m_cameraId, data,
-                                  m_previewSize.width, m_previewSize.height,
-                                  m_previewFormat,
-                                  m_previewBytesPerLine);
+        if (data != null) {
+            if (m_notifyWhenFrameAvailable) {
+                m_notifyWhenFrameAvailable = false;
+                notifyFrameAvailable(m_cameraId);
+            }
+            if (m_notifyNewFrames) {
+                notifyNewPreviewFrame(m_cameraId, data,
+                                      m_previewSize.width, m_previewSize.height,
+                                      m_previewFormat,
+                                      m_previewBytesPerLine);
+            }
         }
     }
 
@@ -195,4 +212,5 @@ public class QtCameraListener implements Camera.ShutterCallback,
     private static native void notifyPictureCaptured(int id, byte[] data);
     private static native void notifyNewPreviewFrame(int id, byte[] data, int width, int height,
                                                      int pixelFormat, int bytesPerLine);
+    private static native void notifyFrameAvailable(int id);
 }
