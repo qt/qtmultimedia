@@ -51,7 +51,7 @@ class AndroidSurfaceTexture : public QObject
 {
     Q_OBJECT
 public:
-    explicit AndroidSurfaceTexture(unsigned int texName);
+    explicit AndroidSurfaceTexture(quint32 texName);
     ~AndroidSurfaceTexture();
 
     jobject surfaceTexture();
@@ -63,7 +63,7 @@ public:
     void release(); // API level 14
     void updateTexImage();
 
-    void attachToGLContext(int texName); // API level 16
+    void attachToGLContext(quint32 texName); // API level 16
     void detachFromGLContext(); // API level 16
 
     static bool initJNI(JNIEnv *env);
