@@ -1305,7 +1305,9 @@ void tst_QMediaPlayerBackend::surfaceTest_data()
     formatsYUV << QVideoFrame::Format_YUV420P
                << QVideoFrame::Format_YV12
                << QVideoFrame::Format_UYVY
-               << QVideoFrame::Format_YUYV;
+               << QVideoFrame::Format_YUYV
+               << QVideoFrame::Format_NV12
+               << QVideoFrame::Format_NV21;
 
     QTest::newRow("RGB formats")
             << formatsRGB;
