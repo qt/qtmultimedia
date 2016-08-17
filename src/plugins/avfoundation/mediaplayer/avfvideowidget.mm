@@ -39,6 +39,12 @@
 #include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
 
+#if defined(Q_OS_MACOS)
+#import <AppKit/AppKit.h>
+#else
+#import <UIKit/UIKit.h>
+#endif
+
 QT_USE_NAMESPACE
 
 AVFVideoWidget::AVFVideoWidget(QWidget *parent)
