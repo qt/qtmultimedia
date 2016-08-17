@@ -35,6 +35,8 @@
 #include "avfmediaplayerservice.h"
 #include "avfvideooutput.h"
 
+#include <qpointer.h>
+
 #import <AVFoundation/AVFoundation.h>
 
 QT_USE_NAMESPACE
@@ -105,15 +107,23 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
         //Create an asset for inspection of a resource referenced by a given URL.
         //Load the values for the asset keys "tracks", "playable".
 
-        AVURLAsset *asset = [AVURLAsset URLAssetWithURL:m_URL options:nil];
-        NSArray *requestedKeys = [NSArray arrayWithObjects:AVF_TRACKS_KEY, AVF_PLAYABLE_KEY, nil];
+        // use __block to avoid maintaining strong references on variables captured by the
+        // following block callback
+        __block AVURLAsset *asset = [[AVURLAsset URLAssetWithURL:m_URL options:nil] retain];
+        __block NSArray *requestedKeys = [[NSArray arrayWithObjects:AVF_TRACKS_KEY, AVF_PLAYABLE_KEY, nil] retain];
+
+        __block AVFMediaPlayerSessionObserver *blockSelf = self;
+        QPointer<AVFMediaPlayerSession> session(m_session);
 
         // Tells the asset to load the values of any of the specified keys that are not already loaded.
         [asset loadValuesAsynchronouslyForKeys:requestedKeys completionHandler:
          ^{
              dispatch_async( dispatch_get_main_queue(),
                            ^{
-                                [self prepareToPlayAsset:asset withKeys:requestedKeys];
+                                if (session)
+                                    [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
+                                 [asset release];
+                                 [requestedKeys release];
                             });
          }];
     }
