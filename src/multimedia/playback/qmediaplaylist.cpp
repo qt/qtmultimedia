@@ -428,10 +428,12 @@ bool QMediaPlaylist::clear()
 
 bool QMediaPlaylistPrivate::readItems(QMediaPlaylistReader *reader)
 {
-    while (!reader->atEnd())
-        playlist()->addMedia(reader->readItem());
+    QList<QMediaContent> items;
 
-    return true;
+    while (!reader->atEnd())
+        items.append(reader->readItem());
+
+    return playlist()->addMedia(items);
 }
 
 bool QMediaPlaylistPrivate::writeItems(QMediaPlaylistWriter *writer)
