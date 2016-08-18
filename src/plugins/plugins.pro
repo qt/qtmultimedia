@@ -57,7 +57,7 @@ unix:!mac:!android {
     # }
 }
 
-mac:!simulator {
+darwin:!watchos:!simulator {
     SUBDIRS += audiocapture coreaudio
 
     config_avfoundation: SUBDIRS += avfoundation
