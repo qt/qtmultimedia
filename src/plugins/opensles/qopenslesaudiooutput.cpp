@@ -115,6 +115,7 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
 
     m_pullMode = true;
     m_audioSource = device;
+    m_nextBuffer = 0;
     setState(QAudio::ActiveState);
     setError(QAudio::NoError);
 
