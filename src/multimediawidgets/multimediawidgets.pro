@@ -1,11 +1,8 @@
 # distinct from Qt Multimedia
 TARGET = QtMultimediaWidgets
 QT = core gui multimedia-private widgets-private
-qtHaveModule(opengl):!contains(QT_CONFIG, opengles1) {
+qtHaveModule(opengl): \
    QT_PRIVATE += opengl
-} else {
-   DEFINES += QT_NO_OPENGL
-}
 
 PRIVATE_HEADERS += \
     qvideowidget_p.h \
@@ -25,7 +22,7 @@ SOURCES += \
     qvideowidget.cpp
 
 maemo6 {
-    contains(QT_CONFIG, opengles2) {
+    qtConfig(opengles2) {
         PRIVATE_HEADERS += qeglimagetexturesurface_p.h
         SOURCES += qeglimagetexturesurface.cpp
 

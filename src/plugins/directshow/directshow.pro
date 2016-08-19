@@ -1,5 +1,5 @@
 TARGET = dsengine
-win32:!qtHaveModule(opengl)|contains(QT_CONFIG,dynamicgl) {
+win32:!qtHaveModule(opengl)|qtConfig(dynamicgl) {
     LIBS_PRIVATE += -lgdi32 -luser32
 }
 

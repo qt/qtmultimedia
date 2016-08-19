@@ -95,7 +95,7 @@ equals(GST_VERSION,"0.10") {
     maemo6 {
         PKGCONFIG_PRIVATE += qmsystem2
 
-        contains(QT_CONFIG, opengles2):qtHaveModule(widgets) {
+        qtConfig(opengles2):qtHaveModule(widgets) {
             PRIVATE_HEADERS += qgstreamergltexturerenderer_p.h
             SOURCES += qgstreamergltexturerenderer.cpp
             QT += opengl
@@ -113,7 +113,7 @@ equals(GST_VERSION,"0.10") {
 }
 
 mir: {
-    contains(QT_CONFIG, opengles2):qtHaveModule(widgets) {
+    qtConfig(opengles2):qtHaveModule(widgets) {
         PRIVATE_HEADERS += qgstreamermirtexturerenderer_p.h
         SOURCES += qgstreamermirtexturerenderer.cpp
         QT += opengl quick

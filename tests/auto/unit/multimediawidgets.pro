@@ -7,7 +7,7 @@ SUBDIRS += \
 
 # Tests depending on private interfaces should only be built if
 # these interfaces are exported.
-contains (QT_CONFIG, private_tests) {
+qtConfig(private_tests) {
   SUBDIRS += \
     qgraphicsvideoitem \
     qpaintervideosurface \

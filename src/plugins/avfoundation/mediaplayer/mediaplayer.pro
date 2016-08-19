@@ -40,7 +40,7 @@ OBJECTIVE_SOURCES += \
     }
 
 ios|tvos {
-    contains(QT_CONFIG, opengl.*) {
+    qtConfig(opengl) {
         HEADERS += \
             avfvideoframerenderer_ios.h \
             avfvideorenderercontrol.h \
@@ -55,7 +55,7 @@ ios|tvos {
 } else {
     LIBS += -framework AppKit
 
-    contains(QT_CONFIG, opengl.*) {
+    qtConfig(opengl) {
         HEADERS += \
             avfvideoframerenderer.h \
             avfvideorenderercontrol.h \
