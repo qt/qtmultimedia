@@ -116,6 +116,8 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
     m_pullMode = true;
     m_audioSource = device;
     m_nextBuffer = 0;
+    m_processedBytes = 0;
+    m_availableBuffers = BUFFER_COUNT;
     setState(QAudio::ActiveState);
     setError(QAudio::NoError);
 
@@ -144,6 +146,8 @@ QIODevice *QOpenSLESAudioOutput::start()
         return Q_NULLPTR;
 
     m_pullMode = false;
+    m_processedBytes = 0;
+    m_availableBuffers = BUFFER_COUNT;
     m_audioSource = new SLIODevicePrivate(this);
     m_audioSource->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
 
