@@ -140,6 +140,10 @@ public:
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 2>(uri, 5, 7, "CameraImageProcessing",
                                 trUtf8("CameraImageProcessing is provided by Camera"));
 
+        // 5.9 types
+        qmlRegisterUncreatableType<QDeclarativeCameraCapture, 1>(uri, 5, 9, "CameraCapture",
+                                trUtf8("CameraCapture is provided by Camera"));
+
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();
     }

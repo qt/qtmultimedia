@@ -112,6 +112,9 @@ QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera, QObject *p
     connect(m_capture, SIGNAL(error(int,QCameraImageCapture::Error,QString)),
             this, SLOT(_q_captureFailed(int,QCameraImageCapture::Error,QString)));
 
+    connect(m_camera, SIGNAL(statusChanged(QCamera::Status)),
+            this, SLOT(_q_cameraStatusChanged(QCamera::Status)));
+
     QMediaService *service = camera->service();
     m_metadataWriterControl = service ? service->requestControl<QMetaDataWriterControl*>() : 0;
 }
@@ -239,6 +242,15 @@ void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Er
     qWarning() << "QCameraImageCapture error:" << message;
     emit captureFailed(id, message);
 }
+
+void QDeclarativeCameraCapture::_q_cameraStatusChanged(QCamera::Status status)
+{
+    if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus &&
+            status != QCamera::ActiveStatus)
+        return;
+
+    emit supportedResolutionsChanged();
+}
 /*!
     \property QDeclarativeCameraCapture::resolution
 
@@ -251,6 +263,8 @@ void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Er
 
     This property holds the resolution/size of the image to be captured.
     If empty, the system chooses the appropriate resolution.
+
+    \sa supportedResolutions
 */
 
 QSize QDeclarativeCameraCapture::resolution()
@@ -286,6 +300,24 @@ QCameraImageCapture::Error QDeclarativeCameraCapture::error() const
 QString QDeclarativeCameraCapture::errorString() const
 {
     return m_capture->errorString();
+}
+
+/*!
+    \qmlproperty list<size> QtMultimedia::CameraCapture::supportedResolutions
+
+    This property holds a list of resolutions which are supported for capturing.
+    The information can be used to set a valid \e resolution. If the camera isn't
+    loaded, the list will be empty.
+
+    \since 5.9
+    \sa resolution
+ */
+QVariantList QDeclarativeCameraCapture::supportedResolutions()
+{
+    QVariantList supportedResolutions;
+    for (const QSize &res : m_capture->supportedResolutions())
+        supportedResolutions.append(QVariant(res));
+    return supportedResolutions;
 }
 
 /*!
