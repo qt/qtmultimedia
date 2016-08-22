@@ -614,6 +614,12 @@ void QOpenSLESAudioOutput::stopPlayer()
 {
     setState(QAudio::StoppedState);
 
+    if (m_audioSource && !m_pullMode) {
+        m_audioSource->close();
+        delete m_audioSource;
+        m_audioSource = Q_NULLPTR;
+    }
+
     // We need to change the state manually...
     if (m_playItf)
         (*m_playItf)->SetPlayState(m_playItf, SL_PLAYSTATE_STOPPED);
