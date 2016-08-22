@@ -69,8 +69,6 @@ Item {
         anchors.top: parent.top
         visible: opacity > 0
 
-        currentValue: cameraListButton.value
-
         onSelected: popup.toggle()
     }
 }
