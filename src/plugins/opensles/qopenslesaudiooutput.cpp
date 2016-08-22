@@ -110,6 +110,10 @@ QAudio::State QOpenSLESAudioOutput::state() const
 void QOpenSLESAudioOutput::start(QIODevice *device)
 {
     Q_ASSERT(device);
+
+    if (m_state != QAudio::StoppedState)
+        stop();
+
     if (!preparePlayer())
         return;
 
@@ -142,6 +146,9 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
 
 QIODevice *QOpenSLESAudioOutput::start()
 {
+    if (m_state != QAudio::StoppedState)
+        stop();
+
     if (!preparePlayer())
         return Q_NULLPTR;
 
