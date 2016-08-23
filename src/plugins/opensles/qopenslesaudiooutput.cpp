@@ -139,6 +139,9 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
         m_processedBytes += readSize;
     }
 
+    if (m_processedBytes < 1)
+        onEOSEvent();
+
     // Change the state to playing.
     // We need to do this after filling the buffers or processedBytes might get corrupted.
     startPlayer();
@@ -380,7 +383,10 @@ void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
 
     if (!m_pullMode) { // We're in push mode.
         // Signal that there is a new open slot in the buffer and return
-        m_availableBuffers.fetchAndAddRelease(1);
+        const int val = m_availableBuffers.fetchAndAddRelease(1) + 1;
+        if (val == BUFFER_COUNT)
+            QMetaObject::invokeMethod(this, "onEOSEvent", Qt::QueuedConnection);
+
         return;
     }
 
@@ -388,8 +394,11 @@ void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
     const int index = m_nextBuffer * m_bufferSize;
     const qint64 readSize = m_audioSource->read(m_buffers + index, m_bufferSize);
 
-    if (1 > readSize)
+    if (readSize < 1) {
+        QMetaObject::invokeMethod(this, "onEOSEvent", Qt::QueuedConnection);
         return;
+    }
+
 
     if (SL_RESULT_SUCCESS != (*m_bufferQueueItf)->Enqueue(m_bufferQueueItf,
                                                           m_buffers + index,
