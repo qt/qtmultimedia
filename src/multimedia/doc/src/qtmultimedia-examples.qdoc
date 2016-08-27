@@ -32,6 +32,6 @@
     \brief Demonstrates the multimedia functionality provided by Qt.
 
     The \l{Qt Multimedia} module provides low-level audio support on Linux,
-    Windows and OS X. It also provides audio plugin API to allow developers
+    Windows and \macos. It also provides audio plugin API to allow developers
     implement their own audio support for custom devices and platforms.
 */
