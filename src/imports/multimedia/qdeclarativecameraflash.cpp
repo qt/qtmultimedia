@@ -73,11 +73,13 @@ QT_BEGIN_NAMESPACE
 /*!
     Construct a declarative camera flash object using \a parent object.
  */
-QDeclarativeCameraFlash::QDeclarativeCameraFlash(QCamera *camera, QObject *parent) :
-    QObject(parent)
+QDeclarativeCameraFlash::QDeclarativeCameraFlash(QCamera *camera, QObject *parent)
+    : QObject(parent)
 {
     m_exposure = camera->exposure();
     connect(m_exposure, SIGNAL(flashReady(bool)), this, SIGNAL(flashReady(bool)));
+    connect(camera, SIGNAL(statusChanged(QCamera::Status)),
+            this, SLOT(_q_cameraStatusChanged(QCamera::Status)));
 }
 
 QDeclarativeCameraFlash::~QDeclarativeCameraFlash()
@@ -131,6 +133,51 @@ void QDeclarativeCameraFlash::setFlashMode(QDeclarativeCameraFlash::FlashMode mo
         m_exposure->setFlashMode(QCameraExposure::FlashModes(mode));
         emit flashModeChanged(mode);
     }
+}
+
+void QDeclarativeCameraFlash::_q_cameraStatusChanged(QCamera::Status status)
+{
+    if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus &&
+            status != QCamera::ActiveStatus)
+        return;
+
+    emit supportedModesChanged();
+}
+
+/*!
+    \qmlproperty list<FlashMode> QtMultimedia::CameraFlash::supportedModes
+
+    This property holds the supported flash modes of the camera. If the list
+    only contains Camera.FlashOff, no flash is supported.
+
+    \code
+        Camera {
+            id: camera
+            flash {
+                onSupportedModesChanged {
+                    if (flash.supportedModes.length == 1) {
+                        // no flash supported
+                    } else {
+                        // some flash is supported
+                    }
+                }
+            }
+        }
+    \endcode
+
+    \since 5.9
+    \sa mode
+ */
+QVariantList QDeclarativeCameraFlash::supportedModes() const
+{
+    QVariantList supportedModes;
+
+    for (int i=1; i <= (int) QCameraExposure::FlashManual; i = (i << 1)) {
+        if (m_exposure->isFlashModeSupported((QCameraExposure::FlashMode) i))
+            supportedModes.append(QVariant(i));
+    }
+
+    return supportedModes;
 }
 
 /*!

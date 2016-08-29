@@ -145,6 +145,8 @@ public:
         qmlRegisterType<QDeclarativeAudio, 2>(uri, 5, 9, "MediaPlayer");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture, 1>(uri, 5, 9, "CameraCapture",
                                 trUtf8("CameraCapture is provided by Camera"));
+        qmlRegisterUncreatableType<QDeclarativeCameraFlash, 1>(uri, 5, 9, "CameraFlash",
+                                trUtf8("CameraFlash is provided by Camera"));
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();

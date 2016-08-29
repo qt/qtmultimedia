@@ -63,6 +63,7 @@ class QDeclarativeCameraFlash : public QObject
     Q_OBJECT
     Q_PROPERTY(bool ready READ isFlashReady NOTIFY flashReady)
     Q_PROPERTY(FlashMode mode READ flashMode WRITE setFlashMode NOTIFY flashModeChanged)
+    Q_PROPERTY(QVariantList supportedModes READ supportedModes NOTIFY supportedModesChanged REVISION 1)
 
     Q_ENUMS(FlashMode)
 public:
@@ -83,6 +84,7 @@ public:
 
     FlashMode flashMode() const;
     bool isFlashReady() const;
+    QVariantList supportedModes() const;
 
 public Q_SLOTS:
     void setFlashMode(FlashMode);
@@ -90,6 +92,10 @@ public Q_SLOTS:
 Q_SIGNALS:
     void flashReady(bool status);
     void flashModeChanged(FlashMode);
+    void supportedModesChanged();
+
+private slots:
+    void _q_cameraStatusChanged(QCamera::Status status);
 
 private:
     friend class QDeclarativeCamera;
