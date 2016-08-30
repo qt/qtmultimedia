@@ -107,6 +107,14 @@ QDeclarativeCameraExposure::QDeclarativeCameraExposure(QCamera *camera, QObject 
     connect(m_exposure, SIGNAL(shutterSpeedChanged(qreal)), this, SIGNAL(shutterSpeedChanged(qreal)));
 
     connect(m_exposure, SIGNAL(exposureCompensationChanged(qreal)), this, SIGNAL(exposureCompensationChanged(qreal)));
+    connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
+        if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
+            && status != QCamera::ActiveStatus) {
+            return;
+        }
+
+        emit supportedExposureModesChanged();
+    });
 }
 
 QDeclarativeCameraExposure::~QDeclarativeCameraExposure()
@@ -369,6 +377,27 @@ void QDeclarativeCameraExposure::setExposureMode(QDeclarativeCameraExposure::Exp
         emit exposureModeChanged(exposureMode());
     }
 }
+
+/*!
+    \qmlproperty list<ExposureMode> QtMultimedia::CameraExposure::supportedExposureModes
+
+    This property holds the supported exposure modes of the camera.
+
+    \since 5.11
+    \sa exposureMode
+ */
+QVariantList QDeclarativeCameraExposure::supportedExposureModes() const
+{
+    QVariantList supportedModes;
+
+    for (int i = int(ExposureAuto); i <= int(QCameraExposure::ExposureBarcode); ++i) {
+        if (m_exposure->isExposureModeSupported((QCameraExposure::ExposureMode) i))
+            supportedModes.append(QVariant(i));
+    }
+
+    return supportedModes;
+}
+
 /*!
     \property QDeclarativeCameraExposure::spotMeteringPoint
 

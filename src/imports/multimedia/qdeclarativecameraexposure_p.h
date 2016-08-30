@@ -73,6 +73,7 @@ class QDeclarativeCameraExposure : public QObject
     Q_PROPERTY(qreal manualIso READ manualIsoSensitivity WRITE setManualIsoSensitivity NOTIFY manualIsoSensitivityChanged)
 
     Q_PROPERTY(ExposureMode exposureMode READ exposureMode WRITE setExposureMode NOTIFY exposureModeChanged)
+    Q_PROPERTY(QVariantList supportedExposureModes READ supportedExposureModes NOTIFY supportedExposureModesChanged REVISION 1)
 
     Q_PROPERTY(QPointF spotMeteringPoint READ spotMeteringPoint WRITE setSpotMeteringPoint NOTIFY spotMeteringPointChanged)
     Q_PROPERTY(MeteringMode meteringMode READ meteringMode WRITE setMeteringMode NOTIFY meteringModeChanged)
@@ -114,6 +115,7 @@ public:
     ~QDeclarativeCameraExposure();
 
     ExposureMode exposureMode() const;
+    QVariantList supportedExposureModes() const;
     qreal exposureCompensation() const;
 
     int isoSensitivity() const;
@@ -153,6 +155,7 @@ Q_SIGNALS:
 
     void exposureCompensationChanged(qreal);
     void exposureModeChanged(ExposureMode);
+    void supportedExposureModesChanged();
 
     void meteringModeChanged(MeteringMode);
     void spotMeteringPointChanged(QPointF);
