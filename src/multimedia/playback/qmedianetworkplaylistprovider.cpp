@@ -41,7 +41,7 @@
 #include "qmediaplaylistprovider_p.h"
 #include "qmediacontent.h"
 #include "qmediaobject_p.h"
-#include "playlistfileparser_p.h"
+#include "qplaylistfileparser_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -62,8 +62,8 @@ public:
 
 bool QMediaNetworkPlaylistProviderPrivate::load(const QNetworkRequest &request)
 {
-    parser.stop();
-    parser.start(request, false);
+    parser.abort();
+    parser.start(request);
 
     return true;
 }
@@ -83,12 +83,14 @@ void QMediaNetworkPlaylistProviderPrivate::_q_handleParserError(QPlaylistFilePar
     case QPlaylistFileParser::FormatNotSupportedError:
         playlistError = QMediaPlaylist::FormatNotSupportedError;
         break;
+    case QPlaylistFileParser::ResourceError:
+        // fall through
     case QPlaylistFileParser::NetworkError:
         playlistError = QMediaPlaylist::NetworkError;
         break;
     }
 
-    parser.stop();
+    parser.abort();
 
     emit q->loadFailed(playlistError, errorMessage);
 }

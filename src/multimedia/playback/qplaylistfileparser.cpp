@@ -37,31 +37,48 @@
 **
 ****************************************************************************/
 
-#include "playlistfileparser_p.h"
+#include "qplaylistfileparser_p.h"
 #include <qfileinfo.h>
 #include <QtCore/QDebug>
+#include <QtCore/qiodevice.h>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
+#include "qmediaplayer.h"
 #include "qmediaobject_p.h"
-#include <private/qobject_p.h>
 #include "qmediametadata.h"
+#include "qmediacontent.h"
+#include "qmediaresource.h"
 
 QT_BEGIN_NAMESPACE
 
 namespace {
-class ParserBase : public QObject
+
+class ParserBase
 {
-    Q_OBJECT
 public:
-    ParserBase(QObject *parent)
-        : QObject(parent)
+    explicit ParserBase(QPlaylistFileParser *parent)
+        : m_parent(parent)
+        , m_aborted(false)
     {
+        Q_ASSERT(m_parent);
     }
 
-    virtual void parseLine(int lineIndex, const QString& line, const QUrl& root) = 0;
+    bool parseLine(int lineIndex, const QString& line, const QUrl& root)
+    {
+        if (m_aborted)
+            return false;
+
+        const bool ok = parseLineImpl(lineIndex, line, root);
+        return ok && !m_aborted;
+    }
+
+    virtual void abort() { m_aborted = true; }
+    virtual ~ParserBase() { }
 
 protected:
-    QUrl expandToFullPath(const QUrl &root, const QString &line)
+    virtual bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root) = 0;
+
+    static QUrl expandToFullPath(const QUrl &root, const QString &line)
     {
         // On Linux, backslashes are not converted to forward slashes :/
         if (line.startsWith(QLatin1String("//")) || line.startsWith(QLatin1String("\\\\"))) {
@@ -84,21 +101,21 @@ protected:
         return url;
     }
 
-Q_SIGNALS:
-    void newItem(const QVariant& content);
-    void finished();
-    void error(QPlaylistFileParser::ParserError err, const QString& errorMsg);
+    void newItemFound(const QVariant& content) { Q_EMIT m_parent->newItem(content); }
+
+private:
+    QPlaylistFileParser *m_parent;
+    bool m_aborted;
 };
 
 class M3UParser : public ParserBase
 {
 public:
-    M3UParser(QObject *parent)
-        : ParserBase(parent)
+    explicit M3UParser(QPlaylistFileParser *q)
+        : ParserBase(q)
         , m_extendedFormat(false)
     {
     }
-
 
     /*
      *
@@ -117,7 +134,7 @@ public:
     C:\Documents and Settings\I\My Music\Greatest Hits\Example.ogg
 
      */
-    void parseLine(int lineIndex, const QString& line, const QUrl& root)
+    bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root)
     {
         if (line[0] == '#' ) {
             if (m_extendedFormat) {
@@ -149,9 +166,11 @@ public:
             }
         } else {
             m_extraInfo[QLatin1String("url")] = expandToFullPath(root, line);
-            emit newItem(QVariant(m_extraInfo));
+            newItemFound(QVariant(m_extraInfo));
             m_extraInfo.clear();
         }
+
+        return true;
     }
 
     int getSplitIndex(const QString& line, int startPos)
@@ -172,16 +191,15 @@ public:
     }
 
 private:
-    bool            m_extendedFormat;
     QVariantMap     m_extraInfo;
+    bool            m_extendedFormat;
 };
 
 class PLSParser : public ParserBase
 {
-    Q_OBJECT
 public:
-    PLSParser(QObject *parent)
-        : ParserBase(parent)
+    explicit PLSParser(QPlaylistFileParser *q)
+        : ParserBase(q)
     {
     }
 
@@ -223,17 +241,19 @@ NumberOfEntries=2
 
 Version=2
 */
-    void parseLine(int, const QString &line, const QUrl &root)
+    bool parseLineImpl(int, const QString &line, const QUrl &root)
     {
         // We ignore everything but 'File' entries, since that's the only thing we care about.
         if (!line.startsWith(QLatin1String("File")))
-            return;
+            return true;
 
         QString value = getValue(line);
         if (value.isEmpty())
-            return;
+            return true;
 
-        emit newItem(expandToFullPath(root, value));
+        newItemFound(expandToFullPath(root, value));
+
+        return true;
     }
 
     QString getValue(const QString& line) {
@@ -247,75 +267,84 @@ Version=2
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-class QPlaylistFileParserPrivate : public QObjectPrivate
+class QPlaylistFileParserPrivate
 {
     Q_DECLARE_PUBLIC(QPlaylistFileParser)
 public:
-    QPlaylistFileParserPrivate()
-        : m_source(0)
-        , m_scanIndex(0)
-        , m_utf8(false)
-        , m_lineIndex(-1)
+    QPlaylistFileParserPrivate(QPlaylistFileParser *q)
+        : q_ptr(q)
+        , m_stream(0)
         , m_type(QPlaylistFileParser::UNKNOWN)
-        , m_currentParser(0)
+        , m_scanIndex(0)
+        , m_lineIndex(-1)
+        , m_utf8(false)
+        , m_aborted(false)
     {
     }
 
-    void _q_handleData();
-    void _q_handleError();
-    void _q_handleParserError(QPlaylistFileParser::ParserError err, const QString& errorMsg);
-    void _q_handleParserFinished();
+    void handleData();
+    void handleParserFinished();
+    void abort();
+    void reset();
 
-    QNetworkReply  *m_source;
+    QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> m_source;
+    QScopedPointer<ParserBase> m_currentParser;
     QByteArray      m_buffer;
-    int             m_scanIndex;
     QUrl            m_root;
-    bool            m_utf8;
-    int             m_lineIndex;
-    QPlaylistFileParser::FileType m_type;
-    ParserBase     *m_currentParser;
     QNetworkAccessManager m_mgr;
+    QString m_mimeType;
+    QPlaylistFileParser *q_ptr;
+    QIODevice *m_stream;
+    QPlaylistFileParser::FileType m_type;
+    struct ParserJob
+    {
+        QIODevice *m_stream;
+        QMediaResource m_resource;
+        bool isValid() const { return m_stream || !m_resource.isNull(); }
+        void reset() { m_stream = 0; m_resource = QMediaResource(); }
+    } m_pendingJob;
+    int m_scanIndex;
+    int m_lineIndex;
+    bool m_utf8;
+    bool m_aborted;
 
 private:
-    void processLine(int startIndex, int length);
+    bool processLine(int startIndex, int length);
 };
 
 #define LINE_LIMIT  4096
 #define READ_LIMIT  64
 
-void QPlaylistFileParserPrivate::processLine(int startIndex, int length)
+bool QPlaylistFileParserPrivate::processLine(int startIndex, int length)
 {
     Q_Q(QPlaylistFileParser);
     m_lineIndex++;
 
     if (!m_currentParser) {
-        Q_ASSERT(!m_currentParser);
-
-        QString mimeType = m_source->header(QNetworkRequest::ContentTypeHeader).toString();
-        m_type = QPlaylistFileParser::findPlaylistType(m_root.toString(), mimeType, m_buffer.constData(), m_buffer.size());
+        const QString urlString = m_root.toString();
+        const QString &suffix = !urlString.isEmpty() ? QFileInfo(urlString).suffix() : urlString;
+        const QString &mimeType = m_source->header(QNetworkRequest::ContentTypeHeader).toString();
+        m_type = QPlaylistFileParser::findPlaylistType(suffix, !mimeType.isEmpty() ?  mimeType : m_mimeType, m_buffer.constData(), quint32(m_buffer.size()));
 
         switch (m_type) {
         case QPlaylistFileParser::UNKNOWN:
             emit q->error(QPlaylistFileParser::FormatError,
                           QPlaylistFileParser::tr("%1 playlist type is unknown").arg(m_root.toString()));
-            q->stop();
-            return;
+            q->abort();
+            return false;
         case QPlaylistFileParser::M3U:
-            m_currentParser = new M3UParser(q);
+            m_currentParser.reset(new M3UParser(q));
             break;
         case QPlaylistFileParser::M3U8:
-            m_currentParser = new M3UParser(q);
+            m_currentParser.reset(new M3UParser(q));
             m_utf8 = true;
             break;
         case QPlaylistFileParser::PLS:
-            m_currentParser = new PLSParser(q);
+            m_currentParser.reset(new PLSParser(q));
             break;
         }
-        Q_ASSERT(m_currentParser);
-        QObject::connect(m_currentParser, SIGNAL(newItem(QVariant)), q, SIGNAL(newItem(QVariant)));
-        QObject::connect(m_currentParser, SIGNAL(finished()), q, SLOT(_q_handleParserFinished()));
-        QObject::connect(m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError,QString)),
-                         q, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError,QString)));
+
+        Q_ASSERT(!m_currentParser.isNull());
     }
 
     QString line;
@@ -326,26 +355,28 @@ void QPlaylistFileParserPrivate::processLine(int startIndex, int length)
         line = QString::fromLatin1(m_buffer.constData() + startIndex, length).trimmed();
     }
     if (line.isEmpty())
-        return;
+        return true;
 
     Q_ASSERT(m_currentParser);
-    m_currentParser->parseLine(m_lineIndex, line, m_root);
+    return m_currentParser->parseLine(m_lineIndex, line, m_root);
 }
 
-void QPlaylistFileParserPrivate::_q_handleData()
+void QPlaylistFileParserPrivate::handleData()
 {
     Q_Q(QPlaylistFileParser);
-    while (m_source->bytesAvailable()) {
+    while (m_source->bytesAvailable() && !m_aborted) {
         int expectedBytes = qMin(READ_LIMIT, int(qMin(m_source->bytesAvailable(),
                                                       qint64(LINE_LIMIT - m_buffer.size()))));
         m_buffer.push_back(m_source->read(expectedBytes));
         int processedBytes = 0;
-        while (m_scanIndex < m_buffer.length()) {
+        while (m_scanIndex < m_buffer.length() && !m_aborted) {
             char s = m_buffer[m_scanIndex];
             if (s == '\r' || s == '\n') {
                 int l = m_scanIndex - processedBytes;
-                if (l > 0)
-                    processLine(processedBytes, l);
+                if (l > 0) {
+                    if (!processLine(processedBytes, l))
+                        break;
+                }
                 processedBytes = m_scanIndex + 1;
                 if (!m_source) {
                     //some error happened, so exit parsing
@@ -355,11 +386,13 @@ void QPlaylistFileParserPrivate::_q_handleData()
             m_scanIndex++;
         }
 
+        if (m_aborted)
+            break;
+
         if (m_buffer.length() - processedBytes >= LINE_LIMIT) {
-            qWarning() << "error parsing playlist["<< m_root << "] with line content >= 4096 bytes.";
             emit q->error(QPlaylistFileParser::FormatError, QPlaylistFileParser::tr("invalid line in playlist file"));
-            q->stop();
-            return;
+            q->abort();
+            break;
         }
 
         if (m_source->isFinished() && !m_source->bytesAvailable()) {
@@ -382,143 +415,226 @@ void QPlaylistFileParserPrivate::_q_handleData()
         m_scanIndex = 0;
     }
 
-    if (m_source->isFinished()) {
-        _q_handleParserFinished();
-    }
+    handleParserFinished();
 }
-
-void QPlaylistFileParserPrivate::_q_handleError()
-{
-    Q_Q(QPlaylistFileParser);
-    emit q->error(QPlaylistFileParser::NetworkError, m_source->errorString());
-    q->stop();
-}
-
-void QPlaylistFileParserPrivate::_q_handleParserError(QPlaylistFileParser::ParserError err, const QString& errorMsg)
-{
-    Q_Q(QPlaylistFileParser);
-    emit q->error(err, errorMsg);
-}
-
-void QPlaylistFileParserPrivate::_q_handleParserFinished()
-{
-    Q_Q(QPlaylistFileParser);
-    bool isParserValid = (m_currentParser != 0);
-    if (!isParserValid)
-        emit q->error(QPlaylistFileParser::FormatNotSupportedError, QPlaylistFileParser::tr("Empty file provided"));
-
-    q->stop();
-
-    if (isParserValid)
-        emit q->finished();
-}
-
 
 QPlaylistFileParser::QPlaylistFileParser(QObject *parent)
-    : QObject(*new QPlaylistFileParserPrivate, parent)
+    : QObject(parent)
+    , d_ptr(new QPlaylistFileParserPrivate(this))
 {
 
 }
 
-QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QString& uri, const QString& mime, const void *data, quint32 size)
+QPlaylistFileParser::~QPlaylistFileParser()
 {
-    if (!data || !size)
-        return UNKNOWN;
 
-    FileType uriType = UNKNOWN;
-    QString suffix = QFileInfo(uri).suffix().toLower();
-    if (suffix == QLatin1String("m3u"))
-        uriType = M3U;
-    else if (suffix == QLatin1String("m3u8"))
-        uriType = M3U8;
-    else if (suffix == QLatin1String("pls"))
-        uriType = PLS;
+}
 
-    FileType mimeType = UNKNOWN;
+QPlaylistFileParser::FileType QPlaylistFileParser::findByMimeType(const QString &mime)
+{
     if (mime == QLatin1String("text/uri-list") || mime == QLatin1String("audio/x-mpegurl") || mime == QLatin1String("audio/mpegurl"))
-        mimeType = QPlaylistFileParser::M3U;
-    else if (mime == QLatin1String("application/x-mpegURL") || mime == QLatin1String("application/vnd.apple.mpegurl"))
-        mimeType = QPlaylistFileParser::M3U8;
-    else if (mime == QLatin1String("audio/x-scpls"))
-        mimeType = QPlaylistFileParser::PLS;
+        return QPlaylistFileParser::M3U;
 
-    FileType bufferType = UNKNOWN;
-    if (size >= 7 && strncmp((const char*)data, "#EXTM3U", 7) == 0)
-        bufferType = M3U;
-    else if (size >= 10 && strncmp((const char*)data, "[playlist]", 10) == 0)
-        bufferType = PLS;
-    else {
-        // Make sure every line is a text string
-        quint32 n;
-        for (n = 0; n < size; n++)
-            if (!QChar(QLatin1Char(((const char*)data)[n])).isPrint())
-                break;
-        if (n == size)
-            bufferType = M3U;
-    }
+    if (mime == QLatin1String("application/x-mpegURL") || mime == QLatin1String("application/vnd.apple.mpegurl"))
+        return QPlaylistFileParser::M3U8;
 
-    if (bufferType == M3U && (uriType == M3U8 || mimeType == M3U8))
-        bufferType = M3U8;
+    if (mime == QLatin1String("audio/x-scpls"))
+        return QPlaylistFileParser::PLS;
 
-    if (bufferType != UNKNOWN)
-        return bufferType;
+    return QPlaylistFileParser::UNKNOWN;
+}
 
-    if (uriType != UNKNOWN)
-        return uriType;
+QPlaylistFileParser::FileType QPlaylistFileParser::findBySuffixType(const QString &suffix)
+{
+    const QString &s = suffix.toLower();
 
+    if (s == QLatin1String("m3u"))
+        return QPlaylistFileParser::M3U;
+
+    if (s == QLatin1String("m3u8"))
+        return QPlaylistFileParser::M3U8;
+
+    if (s == QLatin1String("pls"))
+        return QPlaylistFileParser::PLS;
+
+    return QPlaylistFileParser::UNKNOWN;
+}
+
+QPlaylistFileParser::FileType QPlaylistFileParser::findByDataHeader(const char *data, quint32 size)
+{
+    if (!data || size == 0)
+        return QPlaylistFileParser::UNKNOWN;
+
+    if (size >= 7 && strncmp(data, "#EXTM3U", 7) == 0)
+        return QPlaylistFileParser::M3U;
+
+    if (size >= 10 && strncmp(data, "[playlist]", 10) == 0)
+        return QPlaylistFileParser::PLS;
+
+    return QPlaylistFileParser::UNKNOWN;
+}
+
+QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QString& suffix,
+                                                                    const QString& mime,
+                                                                    const char *data,
+                                                                    quint32 size)
+{
+
+    FileType dataHeaderType = findByDataHeader(data, size);
+    if (dataHeaderType != UNKNOWN)
+        return dataHeaderType;
+
+    FileType mimeType = findByMimeType(mime);
     if (mimeType != UNKNOWN)
         return mimeType;
+
+    FileType suffixType = findBySuffixType(suffix);
+    if (suffixType != UNKNOWN)
+        return suffixType;
 
     return UNKNOWN;
 }
 
-void QPlaylistFileParser::start(const QNetworkRequest& request, bool utf8)
+/*
+ * Delegating
+ */
+void QPlaylistFileParser::start(const QMediaContent &media, QIODevice *stream)
+{
+    const QMediaResource &mediaResource = media.canonicalResource();
+    const QString &mimeType = mediaResource.mimeType();
+
+    if (stream) {
+        start(stream, mediaResource.mimeType());
+    } else {
+        const QNetworkRequest &request = mediaResource.request();
+        const QUrl &url = mediaResource.url();
+
+        if (request.url().isValid())
+            start(request, mimeType);
+        else
+            start(QNetworkRequest(url), mimeType);
+    }
+}
+
+void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
 {
     Q_D(QPlaylistFileParser);
-    stop();
+    const bool validStream = stream ? (stream->isOpen() && stream->isReadable()) : false;
 
-    d->m_type = UNKNOWN;
-    d->m_utf8 = utf8;
-    d->m_root = request.url();
-
-    if (d->m_root.isLocalFile() && !QFile::exists(d->m_root.toLocalFile())) {
-        emit error(NetworkError, QString(tr("%1 does not exist")).arg(d->m_root.toString()));
+    if (!validStream) {
+        Q_EMIT error(ResourceError, tr("Invalid stream"));
         return;
     }
 
-    d->m_source = d->m_mgr.get(request);
+    if (!d->m_currentParser.isNull()) {
+        abort();
+        d->m_pendingJob = { stream,  QMediaResource(QUrl(), mimeType) };
+        return;
+    }
 
-    connect(d->m_source, SIGNAL(readyRead()), this, SLOT(_q_handleData()));
-    connect(d->m_source, SIGNAL(finished()), this, SLOT(_q_handleData()));
-    connect(d->m_source, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(_q_handleError()));
-
-    d->_q_handleData();
+    d->reset();
+    d->m_mimeType = mimeType;
+    d->m_stream = stream;
+    connect(d->m_stream, SIGNAL(readyRead()), this, SLOT(_q_handleData()));
+    d->handleData();
 }
 
-void QPlaylistFileParser::stop()
+void QPlaylistFileParser::start(const QNetworkRequest& request, const QString &mimeType)
 {
     Q_D(QPlaylistFileParser);
-    if (d->m_currentParser) {
-        disconnect(d->m_currentParser, SIGNAL(newItem(QVariant)), this, SIGNAL(newItem(QVariant)));
-        disconnect(d->m_currentParser, SIGNAL(finished()), this, SLOT(_q_handleParserFinished()));
-        disconnect(d->m_currentParser, SIGNAL(error(QPlaylistFileParser::ParserError,QString)),
-                   this, SLOT(_q_handleParserError(QPlaylistFileParser::ParserError,QString)));
-        d->m_currentParser->deleteLater();
-        d->m_currentParser = 0;
+    const QUrl &url = request.url();
+
+    if (url.isLocalFile() && !QFile::exists(url.toLocalFile())) {
+        emit error(ResourceError, QString(tr("%1 does not exist")).arg(url.toString()));
+        return;
     }
 
-    d->m_buffer.clear();
-    d->m_scanIndex = 0;
-    d->m_lineIndex = -1;
-    if (d->m_source) {
-        disconnect(d->m_source, SIGNAL(readyRead()), this, SLOT(_q_handleData()));
-        disconnect(d->m_source, SIGNAL(finished()), this, SLOT(_q_handleData()));
-        disconnect(d->m_source, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(_q_handleError()));
-        d->m_source->deleteLater();
-        d->m_source = 0;
+    if (!d->m_currentParser.isNull()) {
+        abort();
+        d->m_pendingJob = { Q_NULLPTR, QMediaResource(request, mimeType) };
+        return;
     }
+
+    d->reset();
+    d->m_root = url;
+    d->m_mimeType = mimeType;
+    d->m_source.reset(d->m_mgr.get(request));
+    connect(d->m_source.data(), SIGNAL(readyRead()), this, SLOT(handleData()));
+    connect(d->m_source.data(), SIGNAL(finished()), this, SLOT(handleData()));
+    connect(d->m_source.data(), SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleError()));
+
+    d->handleData();
 }
 
-#include "moc_playlistfileparser_p.cpp"
-#include "playlistfileparser.moc"
+void QPlaylistFileParser::abort()
+{
+    Q_D(QPlaylistFileParser);
+    d->abort();
+
+    if (d->m_source)
+        d->m_source->disconnect();
+
+    if (d->m_stream)
+        disconnect(d->m_stream, SIGNAL(readyRead()), this, SLOT(handleData()));
+}
+
+void QPlaylistFileParser::handleData()
+{
+    Q_D(QPlaylistFileParser);
+    d->handleData();
+}
+
+void QPlaylistFileParserPrivate::handleParserFinished()
+{
+    Q_Q(QPlaylistFileParser);
+    const bool isParserValid = !m_currentParser.isNull();
+    if (!isParserValid && !m_aborted)
+        emit q->error(QPlaylistFileParser::FormatNotSupportedError, QPlaylistFileParser::tr("Empty file provided"));
+
+    if (isParserValid && !m_aborted) {
+        m_currentParser.reset();
+        emit q->finished();
+    }
+
+    if (!m_aborted)
+        q->abort();
+
+    if (!m_source.isNull())
+        m_source.reset();
+
+    if (m_pendingJob.isValid())
+        q->start(m_pendingJob.m_resource, m_pendingJob.m_stream);
+}
+
+void QPlaylistFileParserPrivate::abort()
+{
+    m_aborted = true;
+    if (!m_currentParser.isNull())
+        m_currentParser->abort();
+}
+
+void QPlaylistFileParserPrivate::reset()
+{
+    Q_ASSERT(m_currentParser.isNull());
+    Q_ASSERT(m_source.isNull());
+    m_buffer.clear();
+    m_root.clear();
+    m_mimeType.clear();
+    m_stream = 0;
+    m_type = QPlaylistFileParser::UNKNOWN;
+    m_scanIndex = 0;
+    m_lineIndex = -1;
+    m_utf8 = false;
+    m_aborted = false;
+    m_pendingJob.reset();
+}
+
+void QPlaylistFileParser::handleError()
+{
+    Q_D(QPlaylistFileParser);
+    const QString &errorString = d->m_source->errorString();
+    Q_EMIT error(QPlaylistFileParser::NetworkError, errorString);
+    abort();
+}
+
 QT_END_NAMESPACE

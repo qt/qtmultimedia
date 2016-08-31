@@ -52,9 +52,13 @@
 //
 
 #include "qtmultimediaglobal.h"
-#include <QtNetwork/QNetworkRequest>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
+
+class QIODevice;
+class QMediaContent;
+class QNetworkRequest;
 
 class QPlaylistFileParserPrivate;
 
@@ -63,6 +67,7 @@ class Q_MULTIMEDIA_EXPORT QPlaylistFileParser : public QObject
     Q_OBJECT
 public:
     QPlaylistFileParser(QObject *parent = 0);
+    ~QPlaylistFileParser();
 
     enum FileType
     {
@@ -77,26 +82,39 @@ public:
         NoError,
         FormatError,
         FormatNotSupportedError,
+        ResourceError,
         NetworkError
     };
 
-    static FileType findPlaylistType(const QString& uri, const QString& mime, const void *data, quint32 size);
-
-    void start(const QNetworkRequest &request, bool utf8 = false);
-    void stop();
+    void start(const QMediaContent &media, QIODevice *stream = 0);
+    void start(const QNetworkRequest &request, const QString &mimeType = QString());
+    void abort();
 
 Q_SIGNALS:
     void newItem(const QVariant& content);
     void finished();
     void error(QPlaylistFileParser::ParserError err, const QString& errorMsg);
 
+private Q_SLOTS:
+    void handleData();
+    void handleError();
+
 private:
+    void start(QIODevice *stream, const QString &mimeType = QString());
+
+    static FileType findByMimeType(const QString &mime);
+    static FileType findBySuffixType(const QString &suffix);
+    static FileType findByDataHeader(const char *data, quint32 size);
+    static FileType findPlaylistType(QIODevice *device,
+                                     const QString& mime);
+    static FileType findPlaylistType(const QString &suffix,
+                                     const QString& mime,
+                                     const char *data = 0,
+                                     quint32 size = 0);
+
     Q_DISABLE_COPY(QPlaylistFileParser)
     Q_DECLARE_PRIVATE(QPlaylistFileParser)
-    Q_PRIVATE_SLOT(d_func(), void _q_handleData())
-    Q_PRIVATE_SLOT(d_func(), void _q_handleError())
-    Q_PRIVATE_SLOT(d_func(), void _q_handleParserError(QPlaylistFileParser::ParserError err, const QString& errorMsg))
-    Q_PRIVATE_SLOT(d_func(), void _q_handleParserFinished())
+    QScopedPointer<QPlaylistFileParserPrivate> d_ptr;
 };
 
 QT_END_NAMESPACE

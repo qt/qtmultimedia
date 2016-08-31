@@ -12,7 +12,7 @@ PRIVATE_HEADERS += \
     playback/qmediaplaylistioplugin_p.h \
     playback/qmediaplaylistnavigator_p.h \
     playback/qmedianetworkplaylistprovider_p.h \
-    playback/playlistfileparser_p.h
+    playback/qplaylistfileparser_p.h
 
 SOURCES += \
     playback/qmedianetworkplaylistprovider.cpp \
@@ -23,4 +23,4 @@ SOURCES += \
     playback/qmediaplaylistnavigator.cpp \
     playback/qmediaplaylistprovider.cpp \
     playback/qmediaresource.cpp \
-    playback/playlistfileparser.cpp
+    playback/qplaylistfileparser.cpp
