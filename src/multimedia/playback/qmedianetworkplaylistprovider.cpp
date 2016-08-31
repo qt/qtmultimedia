@@ -68,7 +68,7 @@ void QMediaNetworkPlaylistProviderPrivate::_q_handleParserError(QPlaylistFilePar
 
     QMediaPlaylist::Error playlistError = QMediaPlaylist::NoError;
 
-    switch ((QPlaylistFileParser::ParserError)err) {
+    switch (err) {
     case QPlaylistFileParser::NoError:
         return;
     case QPlaylistFileParser::FormatError:
