@@ -77,7 +77,7 @@ QAudioSystemPluginExtension::~QAudioSystemPluginExtension()
 
     \sa QAbstractAudioDeviceInfo, QAbstractAudioOutput, QAbstractAudioInput
 
-    Qt comes with plugins for Windows (WinMM and WASAPI), Linux (ALSA and PulseAudio), OS X / iOS
+    Qt comes with plugins for Windows (WinMM and WASAPI), Linux (ALSA and PulseAudio), \macos / iOS
     (CoreAudio), Android (OpenSL ES) and QNX.
 
     If no audio plugins are available, a fallback dummy backend will be used.

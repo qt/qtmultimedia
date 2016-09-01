@@ -114,11 +114,18 @@ QAudio::State QOpenSLESAudioOutput::state() const
 void QOpenSLESAudioOutput::start(QIODevice *device)
 {
     Q_ASSERT(device);
+
+    if (m_state != QAudio::StoppedState)
+        stop();
+
     if (!preparePlayer())
         return;
 
     m_pullMode = true;
     m_audioSource = device;
+    m_nextBuffer = 0;
+    m_processedBytes = 0;
+    m_availableBuffers = BUFFER_COUNT;
     setState(QAudio::ActiveState);
     setError(QAudio::NoError);
 
@@ -136,6 +143,9 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
         m_processedBytes += readSize;
     }
 
+    if (m_processedBytes < 1)
+        onEOSEvent();
+
     // Change the state to playing.
     // We need to do this after filling the buffers or processedBytes might get corrupted.
     startPlayer();
@@ -143,10 +153,15 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
 
 QIODevice *QOpenSLESAudioOutput::start()
 {
+    if (m_state != QAudio::StoppedState)
+        stop();
+
     if (!preparePlayer())
         return Q_NULLPTR;
 
     m_pullMode = false;
+    m_processedBytes = 0;
+    m_availableBuffers = BUFFER_COUNT;
     m_audioSource = new SLIODevicePrivate(this);
     m_audioSource->open(QIODevice::WriteOnly | QIODevice::Unbuffered);
 
@@ -372,7 +387,10 @@ void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
 
     if (!m_pullMode) { // We're in push mode.
         // Signal that there is a new open slot in the buffer and return
-        m_availableBuffers.fetchAndAddRelease(1);
+        const int val = m_availableBuffers.fetchAndAddRelease(1) + 1;
+        if (val == BUFFER_COUNT)
+            QMetaObject::invokeMethod(this, "onEOSEvent", Qt::QueuedConnection);
+
         return;
     }
 
@@ -380,8 +398,11 @@ void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
     const int index = m_nextBuffer * m_bufferSize;
     const qint64 readSize = m_audioSource->read(m_buffers + index, m_bufferSize);
 
-    if (1 > readSize)
+    if (readSize < 1) {
+        QMetaObject::invokeMethod(this, "onEOSEvent", Qt::QueuedConnection);
         return;
+    }
+
 
     if (SL_RESULT_SUCCESS != (*m_bufferQueueItf)->Enqueue(m_bufferQueueItf,
                                                           m_buffers + index,
@@ -605,6 +626,12 @@ void QOpenSLESAudioOutput::destroyPlayer()
 void QOpenSLESAudioOutput::stopPlayer()
 {
     setState(QAudio::StoppedState);
+
+    if (m_audioSource && !m_pullMode) {
+        m_audioSource->close();
+        delete m_audioSource;
+        m_audioSource = Q_NULLPTR;
+    }
 
     // We need to change the state manually...
     if (m_playItf)

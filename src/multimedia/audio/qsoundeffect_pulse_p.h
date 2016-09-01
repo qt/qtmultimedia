@@ -117,7 +117,7 @@ private Q_SLOTS:
     void underRun();
     void prepare();
     void streamReady();
-    void emptyComplete(void *stream);
+    void emptyComplete(void *stream, bool reload);
 
     void handleAvailabilityChanged(bool available);
 
@@ -125,7 +125,12 @@ private:
     void playAvailable();
     void playSample();
 
-    void emptyStream();
+    enum EmptyStreamOption {
+        ReloadSampleWhenDone = 0x1
+    };
+    Q_DECLARE_FLAGS(EmptyStreamOptions, EmptyStreamOption)
+    void emptyStream(EmptyStreamOptions options = EmptyStreamOptions());
+
     void createPulseStream();
     void unloadPulseStream();
 
@@ -140,6 +145,7 @@ private:
     static void stream_underrun_callback(pa_stream *s, void *userdata);
     static void stream_cork_callback(pa_stream *s, int success, void *userdata);
     static void stream_flush_callback(pa_stream *s, int success, void *userdata);
+    static void stream_flush_reload_callback(pa_stream *s, int success, void *userdata);
     static void stream_write_done_callback(void *p);
     static void stream_adjust_prebuffer_callback(pa_stream *s, int success, void *userdata);
     static void stream_reset_buffer_callback(pa_stream *s, int success, void *userdata);
