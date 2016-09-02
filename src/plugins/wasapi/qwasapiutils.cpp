@@ -182,6 +182,13 @@ QByteArray QWasapiUtils::defaultDevice(QAudio::Mode mode)
 {
     qCDebug(lcMmUtils) << __FUNCTION__ << mode;
 
+    QList<QByteArray> &deviceNames = mode == QAudio::AudioInput ? gMapping->inputDeviceNames : gMapping->outputDeviceNames;
+    QList<QString> &deviceIds = mode == QAudio::AudioInput ? gMapping->inputDeviceIds : gMapping->outputDeviceIds;
+    if (deviceNames.isEmpty() || deviceIds.isEmpty()) // Initialize
+        availableDevices(mode);
+    if (deviceNames.isEmpty() || deviceIds.isEmpty()) // No audio devices at all
+        return QByteArray();
+
     ComPtr<IMediaDeviceStatics> mediaDeviceStatics;
     HRESULT hr;
 
@@ -198,7 +205,9 @@ QByteArray QWasapiUtils::defaultDevice(QAudio::Mode mode)
 
     const wchar_t *dadWStr = defaultAudioDevice.GetRawBuffer(&dADSize);
     const QString defaultAudioDeviceId = QString::fromWCharArray(dadWStr, dADSize);
-    return defaultAudioDeviceId.toLocal8Bit();
+    Q_ASSERT(deviceIds.indexOf(defaultAudioDeviceId) != -1);
+
+    return deviceNames.at(deviceIds.indexOf(defaultAudioDeviceId));
 }
 
 QList<QByteArray> QWasapiUtils::availableDevices(QAudio::Mode mode)
