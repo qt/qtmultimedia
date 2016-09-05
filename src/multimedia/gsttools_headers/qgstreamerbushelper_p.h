@@ -51,9 +51,11 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <QObject>
 
 #include "qgstreamermessage_p.h"
+
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
@@ -78,7 +80,7 @@ Q_DECLARE_INTERFACE(QGstreamerBusMessageFilter, QGstreamerBusMessageFilter_iid)
 
 class QGstreamerBusHelperPrivate;
 
-class QGstreamerBusHelper : public QObject
+class Q_GSTTOOLS_EXPORT QGstreamerBusHelper : public QObject
 {
     Q_OBJECT
     friend class QGstreamerBusHelperPrivate;

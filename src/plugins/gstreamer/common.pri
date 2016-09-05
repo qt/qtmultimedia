@@ -1,11 +1,9 @@
-QT += core-private multimedia-private network
+QT += core-private multimedia-private multimediagsttools-private network
 
 qtHaveModule(widgets) {
     QT += widgets multimediawidgets-private
     DEFINES += HAVE_WIDGETS
 }
-
-LIBS += -lqgsttools_p
 
 QMAKE_USE += gstreamer
 

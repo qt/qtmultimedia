@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qiodevice.h>
 
@@ -63,7 +64,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstAppSrc  : public QObject
+class Q_GSTTOOLS_EXPORT QGstAppSrc  : public QObject
 {
     Q_OBJECT
 public:

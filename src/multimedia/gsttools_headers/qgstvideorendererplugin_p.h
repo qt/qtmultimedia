@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <qabstractvideobuffer.h>
 #include <qvideosurfaceformat.h>
 #include <QtCore/qobject.h>
@@ -64,7 +65,7 @@ class QAbstractVideoSurface;
 
 const QLatin1String QGstVideoRendererPluginKey("gstvideorenderer");
 
-class QGstVideoRenderer
+class Q_GSTTOOLS_EXPORT QGstVideoRenderer
 {
 public:
     virtual ~QGstVideoRenderer() {}
@@ -81,7 +82,7 @@ public:
 /*
     Abstract interface for video buffers allocation.
 */
-class QGstVideoRendererInterface
+class Q_GSTTOOLS_EXPORT QGstVideoRendererInterface
 {
 public:
     virtual ~QGstVideoRendererInterface() {}
@@ -92,7 +93,7 @@ public:
 #define QGstVideoRendererInterface_iid "org.qt-project.qt.gstvideorenderer/5.4"
 Q_DECLARE_INTERFACE(QGstVideoRendererInterface, QGstVideoRendererInterface_iid)
 
-class QGstVideoRendererPlugin : public QObject, public QGstVideoRendererInterface
+class Q_GSTTOOLS_EXPORT QGstVideoRendererPlugin : public QObject, public QGstVideoRendererInterface
 {
     Q_OBJECT
     Q_INTERFACES(QGstVideoRendererInterface)

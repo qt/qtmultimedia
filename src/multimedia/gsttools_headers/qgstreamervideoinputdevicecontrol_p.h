@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <qvideodeviceselectorcontrol.h>
 #include <QtCore/qstringlist.h>
 
@@ -59,7 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
+class Q_GSTTOOLS_EXPORT QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
 {
 Q_OBJECT
 public:

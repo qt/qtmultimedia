@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <qabstractvideobuffer.h>
 #include <qvideosurfaceformat.h>
 #include <QtCore/qobject.h>
@@ -65,7 +66,7 @@ const QLatin1String QGstBufferPoolPluginKey("bufferpool");
 /*!
     Abstract interface for video buffers allocation.
 */
-class QGstBufferPoolInterface
+class Q_GSTTOOLS_EXPORT QGstBufferPoolInterface
 {
 public:
     virtual ~QGstBufferPoolInterface() {}

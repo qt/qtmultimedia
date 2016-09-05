@@ -51,13 +51,15 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <gst/gst.h>
 
 #include <QtCore/qglobal.h>
 
+
 QT_BEGIN_NAMESPACE
 
-class QGstreamerBufferProbe
+class Q_GSTTOOLS_EXPORT QGstreamerBufferProbe
 {
 public:
     enum Flags

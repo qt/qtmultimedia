@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <QMetaType>
 
 #include <gst/gst.h>
@@ -60,7 +61,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class QGstreamerMessage
+class Q_GSTTOOLS_EXPORT QGstreamerMessage
 {
 public:
     QGstreamerMessage();

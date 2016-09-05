@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <qvideorenderercontrol.h>
 #include <private/qvideosurfacegstsink_p.h>
 #include <qabstractvideosurface.h>
@@ -59,7 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
+class Q_GSTTOOLS_EXPORT QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
 {
     Q_OBJECT
     Q_INTERFACES(QGstreamerVideoRendererInterface)

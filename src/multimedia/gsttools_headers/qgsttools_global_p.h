@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERAUDIOINPUTSELECTOR_H
-#define QGSTREAMERAUDIOINPUTSELECTOR_H
+#ifndef QGSTTOOLS_GLOBAL_H
+#define QGSTTOOLS_GLOBAL_H
 
 //
 //  W A R N I N G
@@ -51,38 +51,20 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <qaudioinputselectorcontrol.h>
-#include <QtCore/qstringlist.h>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerAudioInputSelector : public QAudioInputSelectorControl
-{
-Q_OBJECT
-public:
-    QGstreamerAudioInputSelector(QObject *parent);
-    ~QGstreamerAudioInputSelector();
-
-    QList<QString> availableInputs() const override;
-    QString inputDescription(const QString &name) const override;
-    QString defaultInput() const override;
-    QString activeInput() const override;
-
-public Q_SLOTS:
-    void setActiveInput(const QString &name) override;
-
-private:
-    void update();
-    void updateAlsaDevices();
-    void updateOssDevices();
-    void updatePulseDevices();
-
-    QString     m_audioInput;
-    QList<QString> m_names;
-    QList<QString> m_descriptions;
-};
+#ifndef QT_STATIC
+# if defined(QT_BUILD_MULTIMEDIAGSTTOOLS_LIB)
+#  define Q_GSTTOOLS_EXPORT Q_DECL_EXPORT
+# else
+#  define Q_GSTTOOLS_EXPORT Q_DECL_IMPORT
+# endif
+#else
+# define Q_GSTTOOLS_EXPORT
+#endif
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERAUDIOINPUTSELECTOR_H
+#endif // QGSTTOOLS_GLOBAL_H

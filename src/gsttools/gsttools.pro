@@ -1,7 +1,6 @@
-TEMPLATE = lib
-
-TARGET = qgsttools_p
-QPRO_PWD = $$PWD
+TARGET = QtMultimediaGstTools
+MODULE = multimediagsttools
+CONFIG += internal_module
 
 QT = core-private multimedia-private gui-private
 
@@ -36,7 +35,8 @@ PRIVATE_HEADERS += \
     qgstreamervideoprobecontrol_p.h \
     qgstreameraudioprobecontrol_p.h \
     qgstreamervideowindow_p.h \
-    qgstreamervideooverlay_p.h
+    qgstreamervideooverlay_p.h \
+    qgsttools_global_p.h
 
 SOURCES += \
     qgstreamerbushelper.cpp \
@@ -101,7 +101,4 @@ qtConfig(gstreamer_app) {
 
 HEADERS += $$PRIVATE_HEADERS
 
-DESTDIR = $$QT.multimedia.libs
-target.path = $$[QT_INSTALL_LIBS]
-
-INSTALLS += target
+load(qt_module)

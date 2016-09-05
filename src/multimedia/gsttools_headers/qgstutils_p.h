@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qset.h>
 #include <QtCore/qvector.h>
@@ -85,7 +86,7 @@ class QImage;
 class QVideoSurfaceFormat;
 
 namespace QGstUtils {
-    struct CameraInfo
+    struct Q_GSTTOOLS_EXPORT CameraInfo
     {
         QString name;
         QString description;
@@ -94,74 +95,74 @@ namespace QGstUtils {
         QByteArray driver;
     };
 
-    QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
+    Q_GSTTOOLS_EXPORT QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
 
-    QSize capsResolution(const GstCaps *caps);
-    QSize capsCorrectedResolution(const GstCaps *caps);
-    QAudioFormat audioFormatForCaps(const GstCaps *caps);
+    Q_GSTTOOLS_EXPORT QSize capsResolution(const GstCaps *caps);
+    Q_GSTTOOLS_EXPORT QSize capsCorrectedResolution(const GstCaps *caps);
+    Q_GSTTOOLS_EXPORT QAudioFormat audioFormatForCaps(const GstCaps *caps);
 #if GST_CHECK_VERSION(1,0,0)
-    QAudioFormat audioFormatForSample(GstSample *sample);
+    Q_GSTTOOLS_EXPORT QAudioFormat audioFormatForSample(GstSample *sample);
 #else
-    QAudioFormat audioFormatForBuffer(GstBuffer *buffer);
+    Q_GSTTOOLS_EXPORT QAudioFormat audioFormatForBuffer(GstBuffer *buffer);
 #endif
-    GstCaps *capsForAudioFormat(const QAudioFormat &format);
-    void initializeGst();
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
+    Q_GSTTOOLS_EXPORT GstCaps *capsForAudioFormat(const QAudioFormat &format);
+    Q_GSTTOOLS_EXPORT void initializeGst();
+    Q_GSTTOOLS_EXPORT QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
                                              const QStringList &codecs,
                                              const QSet<QString> &supportedMimeTypeSet);
 
-    QVector<CameraInfo> enumerateCameras(GstElementFactory *factory = 0);
-    QList<QByteArray> cameraDevices(GstElementFactory * factory = 0);
-    QString cameraDescription(const QString &device, GstElementFactory * factory = 0);
-    QCamera::Position cameraPosition(const QString &device, GstElementFactory * factory = 0);
-    int cameraOrientation(const QString &device, GstElementFactory * factory = 0);
-    QByteArray cameraDriver(const QString &device, GstElementFactory * factory = 0);
+    Q_GSTTOOLS_EXPORT QVector<CameraInfo> enumerateCameras(GstElementFactory *factory = 0);
+    Q_GSTTOOLS_EXPORT QList<QByteArray> cameraDevices(GstElementFactory * factory = 0);
+    Q_GSTTOOLS_EXPORT QString cameraDescription(const QString &device, GstElementFactory * factory = 0);
+    Q_GSTTOOLS_EXPORT QCamera::Position cameraPosition(const QString &device, GstElementFactory * factory = 0);
+    Q_GSTTOOLS_EXPORT int cameraOrientation(const QString &device, GstElementFactory * factory = 0);
+    Q_GSTTOOLS_EXPORT QByteArray cameraDriver(const QString &device, GstElementFactory * factory = 0);
 
-    QSet<QString> supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory));
+    Q_GSTTOOLS_EXPORT QSet<QString> supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory));
 
 #if GST_CHECK_VERSION(1,0,0)
-    QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
-    QVideoSurfaceFormat formatForCaps(
+    Q_GSTTOOLS_EXPORT QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
+    Q_GSTTOOLS_EXPORT QVideoSurfaceFormat formatForCaps(
             GstCaps *caps,
             GstVideoInfo *info = 0,
             QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle);
 #else
-    QImage bufferToImage(GstBuffer *buffer);
-    QVideoSurfaceFormat formatForCaps(
+    Q_GSTTOOLS_EXPORT QImage bufferToImage(GstBuffer *buffer);
+    Q_GSTTOOLS_EXPORT QVideoSurfaceFormat formatForCaps(
             GstCaps *caps,
             int *bytesPerLine = 0,
             QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle);
 #endif
 
-    GstCaps *capsForFormats(const QList<QVideoFrame::PixelFormat> &formats);
+    Q_GSTTOOLS_EXPORT GstCaps *capsForFormats(const QList<QVideoFrame::PixelFormat> &formats);
     void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
 
-    void setMetaData(GstElement *element, const QMap<QByteArray, QVariant> &data);
-    void setMetaData(GstBin *bin, const QMap<QByteArray, QVariant> &data);
+    Q_GSTTOOLS_EXPORT void setMetaData(GstElement *element, const QMap<QByteArray, QVariant> &data);
+    Q_GSTTOOLS_EXPORT void setMetaData(GstBin *bin, const QMap<QByteArray, QVariant> &data);
 
-    GstCaps *videoFilterCaps();
+    Q_GSTTOOLS_EXPORT GstCaps *videoFilterCaps();
 
-    QSize structureResolution(const GstStructure *s);
-    QVideoFrame::PixelFormat structurePixelFormat(const GstStructure *s, int *bpp = 0);
-    QSize structurePixelAspectRatio(const GstStructure *s);
-    QPair<qreal, qreal> structureFrameRateRange(const GstStructure *s);
+    Q_GSTTOOLS_EXPORT QSize structureResolution(const GstStructure *s);
+    Q_GSTTOOLS_EXPORT QVideoFrame::PixelFormat structurePixelFormat(const GstStructure *s, int *bpp = 0);
+    Q_GSTTOOLS_EXPORT QSize structurePixelAspectRatio(const GstStructure *s);
+    Q_GSTTOOLS_EXPORT QPair<qreal, qreal> structureFrameRateRange(const GstStructure *s);
 
-    QString fileExtensionForMimeType(const QString &mimeType);
+    Q_GSTTOOLS_EXPORT QString fileExtensionForMimeType(const QString &mimeType);
 }
 
-void qt_gst_object_ref_sink(gpointer object);
-GstCaps *qt_gst_pad_get_current_caps(GstPad *pad);
-GstCaps *qt_gst_pad_get_caps(GstPad *pad);
-GstStructure *qt_gst_structure_new_empty(const char *name);
-gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur);
-gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur);
-GstCaps *qt_gst_caps_normalize(GstCaps *caps);
-const gchar *qt_gst_element_get_factory_name(GstElement *element);
-gboolean qt_gst_caps_can_intersect(const GstCaps * caps1, const GstCaps * caps2);
-GList *qt_gst_video_sinks();
-void qt_gst_util_double_to_fraction(gdouble src, gint *dest_n, gint *dest_d);
+Q_GSTTOOLS_EXPORT void qt_gst_object_ref_sink(gpointer object);
+Q_GSTTOOLS_EXPORT GstCaps *qt_gst_pad_get_current_caps(GstPad *pad);
+Q_GSTTOOLS_EXPORT GstCaps *qt_gst_pad_get_caps(GstPad *pad);
+Q_GSTTOOLS_EXPORT GstStructure *qt_gst_structure_new_empty(const char *name);
+Q_GSTTOOLS_EXPORT gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur);
+Q_GSTTOOLS_EXPORT gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur);
+Q_GSTTOOLS_EXPORT GstCaps *qt_gst_caps_normalize(GstCaps *caps);
+Q_GSTTOOLS_EXPORT const gchar *qt_gst_element_get_factory_name(GstElement *element);
+Q_GSTTOOLS_EXPORT gboolean qt_gst_caps_can_intersect(const GstCaps * caps1, const GstCaps * caps2);
+Q_GSTTOOLS_EXPORT GList *qt_gst_video_sinks();
+Q_GSTTOOLS_EXPORT void qt_gst_util_double_to_fraction(gdouble src, gint *dest_n, gint *dest_d);
 
-QDebug operator <<(QDebug debug, GstCaps *caps);
+Q_GSTTOOLS_EXPORT QDebug operator <<(QDebug debug, GstCaps *caps);
 
 QT_END_NAMESPACE
 

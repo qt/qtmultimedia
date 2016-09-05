@@ -51,6 +51,8 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
+
 #include <gst/gst.h>
 
 G_BEGIN_DECLS
@@ -69,7 +71,7 @@ G_BEGIN_DECLS
 typedef struct _GstVideoConnector GstVideoConnector;
 typedef struct _GstVideoConnectorClass GstVideoConnectorClass;
 
-struct _GstVideoConnector {
+struct Q_GSTTOOLS_EXPORT _GstVideoConnector {
   GstElement element;
 
   GstPad *srcpad;
@@ -81,14 +83,14 @@ struct _GstVideoConnector {
   GstBuffer *latest_buffer;
 };
 
-struct _GstVideoConnectorClass {
+struct Q_GSTTOOLS_EXPORT _GstVideoConnectorClass {
   GstElementClass parent_class;
 
   /* action signal to resend new segment */
   void (*resend_new_segment) (GstElement * element, gboolean emitFailedSignal);
 };
 
-GType gst_video_connector_get_type (void);
+GType Q_GSTTOOLS_EXPORT gst_video_connector_get_type (void);
 
 G_END_DECLS
 

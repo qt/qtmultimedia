@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <qabstractvideobuffer.h>
 #include <QtCore/qvariant.h>
 
@@ -60,14 +61,14 @@
 QT_BEGIN_NAMESPACE
 
 #if GST_CHECK_VERSION(1,0,0)
-class QGstVideoBuffer : public QAbstractPlanarVideoBuffer
+class Q_GSTTOOLS_EXPORT QGstVideoBuffer : public QAbstractPlanarVideoBuffer
 {
 public:
     QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info);
     QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
                     HandleType handleType, const QVariant &handle);
 #else
-class QGstVideoBuffer : public QAbstractVideoBuffer
+class Q_GSTTOOLS_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine);

@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qstringlist.h>
 
@@ -58,7 +59,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstCodecsInfo
+class Q_GSTTOOLS_EXPORT QGstCodecsInfo
 {
 public:
     enum ElementType { AudioEncoder, VideoEncoder, Muxer };

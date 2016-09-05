@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <gst/gst.h>
 #include <qmediaaudioprobecontrol.h>
 #include <QtCore/qmutex.h>
@@ -61,7 +62,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerAudioProbeControl
+class Q_GSTTOOLS_EXPORT QGstreamerAudioProbeControl
     : public QMediaAudioProbeControl
     , public QGstreamerBufferProbe
     , public QSharedData

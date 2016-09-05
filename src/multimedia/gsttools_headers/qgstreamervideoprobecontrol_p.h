@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <gst/gst.h>
 #include <gst/video/video.h>
 #include <qmediavideoprobecontrol.h>
@@ -62,7 +63,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoProbeControl
+class Q_GSTTOOLS_EXPORT QGstreamerVideoProbeControl
     : public QMediaVideoProbeControl
     , public QGstreamerBufferProbe
     , public QSharedData

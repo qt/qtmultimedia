@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qgsttools_global_p.h>
 #include <qvideowidgetcontrol.h>
 
 #include "qgstreamervideorendererinterface_p.h"
@@ -59,9 +60,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoWidget;
+class Q_GSTTOOLS_EXPORT QGstreamerVideoWidget;
 
-class QGstreamerVideoWidgetControl
+class Q_GSTTOOLS_EXPORT QGstreamerVideoWidgetControl
         : public QVideoWidgetControl
         , public QGstreamerVideoRendererInterface
         , public QGstreamerSyncMessageFilter
