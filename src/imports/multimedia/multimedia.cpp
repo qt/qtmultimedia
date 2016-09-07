@@ -140,6 +140,9 @@ public:
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 2>(uri, 5, 7, "CameraImageProcessing",
                                 trUtf8("CameraImageProcessing is provided by Camera"));
 
+        // 5.8 types (nothing new, re-register one of the types)
+        qmlRegisterType<QSoundEffect>(uri, 5, 8, "SoundEffect");
+
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();
     }
