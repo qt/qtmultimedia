@@ -206,13 +206,9 @@ qreal QWasapiAudioOutput::volume() const
 void QWasapiAudioOutput::process()
 {
     qCDebug(lcMmAudioOutput) << __FUNCTION__;
-    const quint32 channelCount = m_currentFormat.channelCount();
-    const quint32 sampleBytes = m_currentFormat.sampleSize() / 8;
-    BYTE* buffer;
-    HRESULT hr;
     DWORD waitRet;
 
-    bool processing = true;
+    m_processing = true;
     do {
         waitRet = WaitForSingleObjectEx(m_event, 2000, FALSE);
         if (waitRet != WAIT_OBJECT_0) {
@@ -224,51 +220,59 @@ void QWasapiAudioOutput::process()
 
         if (m_currentState != QAudio::ActiveState && m_currentState != QAudio::IdleState)
             break;
+        QMetaObject::invokeMethod(this, "processBuffer", Qt::QueuedConnection);
+    } while (m_processing);
+}
 
-        quint32 paddingFrames;
-        hr = m_interface->m_client->GetCurrentPadding(&paddingFrames);
+void QWasapiAudioOutput::processBuffer()
+{
+    QMutexLocker locker(&m_mutex);
 
-        quint32 availableFrames = m_bufferFrames - paddingFrames;
-        hr = m_renderer->GetBuffer(availableFrames, &buffer);
-        if (hr != S_OK) {
-            m_currentError = QAudio::UnderrunError;
-            QMetaObject::invokeMethod(this, "errorChanged", Qt::QueuedConnection,
-                                      Q_ARG(QAudio::Error, QAudio::UnderrunError));
-            // Also Error Buffers need to be released
-            hr = m_renderer->ReleaseBuffer(availableFrames, 0);
-            ResetEvent(m_event);
-            continue; // We will continue trying
-        }
+    const quint32 channelCount = m_currentFormat.channelCount();
+    const quint32 sampleBytes = m_currentFormat.sampleSize() / 8;
+    BYTE* buffer;
+    HRESULT hr;
 
-        const quint32 readBytes = availableFrames * channelCount * sampleBytes;
-        qint64 read = m_eventDevice->read((char*)buffer, readBytes);
-        if (read < static_cast<qint64>(readBytes)) {
-            // Fill the rest of the buffer with zero to avoid audio glitches
-            if (m_currentError != QAudio::UnderrunError) {
-                m_currentError = QAudio::UnderrunError;
-                QMetaObject::invokeMethod(this, "errorChanged", Qt::QueuedConnection,
-                                          Q_ARG(QAudio::Error, QAudio::UnderrunError));
-            }
-            if (m_currentState != QAudio::IdleState) {
-                m_currentState = QAudio::IdleState;
-                QMetaObject::invokeMethod(this, "stateChanged", Qt::QueuedConnection,
-                                          Q_ARG(QAudio::State, QAudio::IdleState));
-            }
-        }
+    quint32 paddingFrames;
+    hr = m_interface->m_client->GetCurrentPadding(&paddingFrames);
 
+    const quint32 availableFrames = m_bufferFrames - paddingFrames;
+    hr = m_renderer->GetBuffer(availableFrames, &buffer);
+    if (hr != S_OK) {
+        m_currentError = QAudio::UnderrunError;
+        emit errorChanged(m_currentError);
+        // Also Error Buffers need to be released
         hr = m_renderer->ReleaseBuffer(availableFrames, 0);
-        if (hr != S_OK)
-            qFatal("Could not release buffer");
         ResetEvent(m_event);
+        return;
+    }
 
-        if (m_interval && m_openTime.elapsed() - m_openTimeOffset > m_interval) {
-            QMetaObject::invokeMethod(this, "notify", Qt::QueuedConnection);
-            m_openTimeOffset = m_openTime.elapsed();
+    const quint32 readBytes = availableFrames * channelCount * sampleBytes;
+    const qint64 read = m_eventDevice->read((char*)buffer, readBytes);
+    if (read < static_cast<qint64>(readBytes)) {
+        // Fill the rest of the buffer with zero to avoid audio glitches
+        if (m_currentError != QAudio::UnderrunError) {
+            m_currentError = QAudio::UnderrunError;
+            emit errorChanged(m_currentError);
         }
+        if (m_currentState != QAudio::IdleState) {
+            m_currentState = QAudio::IdleState;
+            emit stateChanged(m_currentState);
+        }
+    }
 
-        m_bytesProcessed += read;
-        processing = m_currentState == QAudio::ActiveState || m_currentState == QAudio::IdleState;
-    } while (processing);
+    hr = m_renderer->ReleaseBuffer(availableFrames, 0);
+    if (hr != S_OK)
+        qFatal("Could not release buffer");
+    ResetEvent(m_event);
+
+    if (m_interval && m_openTime.elapsed() - m_openTimeOffset > m_interval) {
+        emit notify();
+        m_openTimeOffset = m_openTime.elapsed();
+    }
+
+    m_bytesProcessed += read;
+    m_processing = m_currentState == QAudio::ActiveState || m_currentState == QAudio::IdleState;
 }
 
 bool QWasapiAudioOutput::initStart(bool pull)
