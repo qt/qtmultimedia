@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
+QT_FOR_CONFIG += gui-private
 
 config_gpu_vivante {
     SUBDIRS += imx6
