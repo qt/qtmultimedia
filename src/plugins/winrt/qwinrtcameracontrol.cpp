@@ -884,7 +884,8 @@ HRESULT QWinRTCameraControl::initialize()
         emit statusChanged(d->status);
     }
 
-    HRESULT hr = QEventDispatcherWinRT::runOnXamlThread([this, d]() {
+    boolean isFocusSupported;
+    HRESULT hr = QEventDispatcherWinRT::runOnXamlThread([this, d, &isFocusSupported]() {
         HRESULT hr;
         ComPtr<IInspectable> capture;
         hr = RoActivateInstance(Wrappers::HString::MakeReference(RuntimeClass_Windows_Media_Capture_MediaCapture).Get(),
@@ -951,7 +952,6 @@ HRESULT QWinRTCameraControl::initialize()
 
         d->cameraFlashControl->initialize(advancedVideoDeviceController);
 
-        boolean isFocusSupported;
         hr = d->focusControl->get_Supported(&isFocusSupported);
         Q_ASSERT_SUCCEEDED(hr);
         if (isFocusSupported) {
@@ -960,11 +960,7 @@ HRESULT QWinRTCameraControl::initialize()
                 qCDebug(lcMMCamera) << "Focus supported, but no control for regions of interest available";
             hr = initializeFocus();
             Q_ASSERT_SUCCEEDED(hr);
-        } else {
-            d->cameraFocusControl->setSupportedFocusMode(0);
-            d->cameraFocusControl->setSupportedFocusPointMode(QSet<QCameraFocus::FocusPointMode>());
         }
-        d->cameraLocksControl->initialize();
 
         Q_ASSERT_SUCCEEDED(hr);
         ComPtr<IMediaDeviceController> deviceController;
@@ -1039,6 +1035,12 @@ HRESULT QWinRTCameraControl::initialize()
 
         return S_OK;
     });
+
+    if (!isFocusSupported) {
+        d->cameraFocusControl->setSupportedFocusMode(0);
+        d->cameraFocusControl->setSupportedFocusPointMode(QSet<QCameraFocus::FocusPointMode>());
+    }
+    d->cameraLocksControl->initialize();
 
     if (SUCCEEDED(hr) && d->state != QCamera::LoadedState) {
         d->state = QCamera::LoadedState;
@@ -1239,30 +1241,34 @@ bool QWinRTCameraControl::focus()
 {
     Q_D(QWinRTCameraControl);
     HRESULT hr;
-    AsyncStatus status = AsyncStatus::Completed;
-    if (d->focusOperation) {
-        ComPtr<IAsyncInfo> info;
-        hr = d->focusOperation.As(&info);
-        Q_ASSERT_SUCCEEDED(hr);
-        info->get_Status(&status);
-    }
-
-    if (!d->focusControl || status == AsyncStatus::Started)
+    if (!d->focusControl)
         return false;
 
     QEventDispatcherWinRT::runOnXamlThread([&d, &hr]() {
+        if (d->focusOperation) {
+            ComPtr<IAsyncInfo> info;
+            hr = d->focusOperation.As(&info);
+            Q_ASSERT_SUCCEEDED(hr);
+
+            AsyncStatus status = AsyncStatus::Completed;
+            hr = info->get_Status(&status);
+            Q_ASSERT_SUCCEEDED(hr);
+            if (status == AsyncStatus::Started)
+                return E_ASYNC_OPERATION_NOT_STARTED;
+        }
+
         hr = d->focusControl->FocusAsync(&d->focusOperation);
+        Q_ASSERT_SUCCEEDED(hr);
+
+        const long errorCode = HRESULT_CODE(hr);
+        if (errorCode == ERROR_OPERATION_IN_PROGRESS
+                || errorCode == ERROR_WRITE_PROTECT) {
+            return E_ASYNC_OPERATION_NOT_STARTED;
+        }
         Q_ASSERT_SUCCEEDED(hr);
         return S_OK;
     });
-    const long errorCode = HRESULT_CODE(hr);
-    if (errorCode == ERROR_OPERATION_IN_PROGRESS
-        || errorCode == ERROR_WRITE_PROTECT) {
-        return false;
-    }
-    Q_ASSERT_SUCCEEDED(hr);
-    hr = QWinRTFunctions::await(d->focusOperation, QWinRTFunctions::ProcessThreadEvents);
-    Q_ASSERT_SUCCEEDED(hr);
+
     return hr == S_OK;
 }
 
@@ -1283,15 +1289,22 @@ bool QWinRTCameraControl::lockFocus()
     Q_D(QWinRTCameraControl);
     if (!d->focusControl)
         return false;
-    ComPtr<IFocusControl2> focusControl2;
-    HRESULT hr = d->focusControl.As(&focusControl2);
-    Q_ASSERT_SUCCEEDED(hr);
+
+    bool result = false;
     ComPtr<IAsyncAction> op;
-    hr = focusControl2->LockAsync(&op);
-    if (HRESULT_CODE(hr) == ERROR_WRITE_PROTECT)
-        return false;
-    Q_ASSERT_SUCCEEDED(hr);
-    return QWinRTFunctions::await(op) == S_OK;
+    HRESULT hr;
+    hr = QEventDispatcherWinRT::runOnXamlThread([d, &result, &op]() {
+        ComPtr<IFocusControl2> focusControl2;
+        HRESULT hr = d->focusControl.As(&focusControl2);
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = focusControl2->LockAsync(&op);
+        if (HRESULT_CODE(hr) == ERROR_WRITE_PROTECT)
+            return S_OK;
+        Q_ASSERT_SUCCEEDED(hr);
+        result = true;
+        return hr;
+    });
+    return result ? (QWinRTFunctions::await(op) == S_OK) : false;
 }
 
 bool QWinRTCameraControl::unlockFocus()
@@ -1299,15 +1312,22 @@ bool QWinRTCameraControl::unlockFocus()
     Q_D(QWinRTCameraControl);
     if (!d->focusControl)
         return false;
-    ComPtr<IFocusControl2> focusControl2;
-    HRESULT hr = d->focusControl.As(&focusControl2);
-    Q_ASSERT_SUCCEEDED(hr);
+
+    bool result = false;
     ComPtr<IAsyncAction> op;
-    hr = focusControl2->UnlockAsync(&op);
-    if (HRESULT_CODE(hr) == ERROR_WRITE_PROTECT)
-        return false;
-    Q_ASSERT_SUCCEEDED(hr);
-    return QWinRTFunctions::await(op) == S_OK;
+    HRESULT hr;
+    hr = QEventDispatcherWinRT::runOnXamlThread([d, &result, &op]() {
+        ComPtr<IFocusControl2> focusControl2;
+        HRESULT hr = d->focusControl.As(&focusControl2);
+        Q_ASSERT_SUCCEEDED(hr);
+        hr = focusControl2->UnlockAsync(&op);
+        if (HRESULT_CODE(hr) == ERROR_WRITE_PROTECT)
+            return S_OK;
+        Q_ASSERT_SUCCEEDED(hr);
+        result = true;
+        return hr;
+    });
+    return result ? (QWinRTFunctions::await(op) == S_OK) : false;
 }
 
 #else // !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_PHONE_APP)
