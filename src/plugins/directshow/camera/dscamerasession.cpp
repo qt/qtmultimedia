@@ -174,6 +174,8 @@ QVideoFrame::PixelFormat pixelFormatFromMediaSubtype(GUID uid)
         return QVideoFrame::Format_YUYV;
     else if (uid == MEDIASUBTYPE_NV12)
         return QVideoFrame::Format_NV12;
+    else if (uid == MEDIASUBTYPE_MJPG)
+        return QVideoFrame::Format_Jpeg;
     else if (uid == MEDIASUBTYPE_IMC1)
         return QVideoFrame::Format_IMC1;
     else if (uid == MEDIASUBTYPE_IMC2)
