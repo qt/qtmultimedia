@@ -54,7 +54,7 @@ QWasapiAudioDeviceInfo::QWasapiAudioDeviceInfo(QByteArray dev, QAudio::Mode mode
 
     QAudioFormat referenceFormat = m_interface->m_mixFormat;
 
-    const int rates[] = {8000, 11025, 160000, 22050, 32000, 44100, 48000, 88200, 96000, 192000};
+    const int rates[] = {8000, 11025, 16000, 22050, 32000, 44100, 48000, 88200, 96000, 192000};
     for (int rate : rates) {
         QAudioFormat f = referenceFormat;
         f.setSampleRate(rate);
