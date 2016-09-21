@@ -44,7 +44,6 @@
 #include "avfcameracontrol.h"
 #include "avfcameradebug.h"
 
-#include <QtCore/qsysinfo.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qdebug.h>
 
@@ -98,9 +97,6 @@ void AVFCameraZoomControl::zoomTo(qreal optical, qreal digital)
 {
     Q_UNUSED(optical)
     Q_UNUSED(digital)
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_7_0)
-    if (QSysInfo::MacintoshVersion < QSysInfo::MV_IOS_7_0)
-        return;
 
     if (qFuzzyCompare(CGFloat(digital), m_requestedZoomFactor))
         return;
@@ -109,15 +105,10 @@ void AVFCameraZoomControl::zoomTo(qreal optical, qreal digital)
     Q_EMIT requestedDigitalZoomChanged(digital);
 
     zoomToRequestedDigital();
-#endif
 }
 
 void AVFCameraZoomControl::cameraStateChanged()
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_7_0)
-    if (QSysInfo::MacintoshVersion < QSysInfo::MV_IOS_7_0)
-        return;
-
     const QCamera::State state = m_session->state();
     if (state != QCamera::ActiveState) {
         if (state == QCamera::UnloadedState && m_maxZoomFactor > 1.) {
@@ -146,15 +137,10 @@ void AVFCameraZoomControl::cameraStateChanged()
     }
 
     zoomToRequestedDigital();
-#endif
 }
 
 void AVFCameraZoomControl::zoomToRequestedDigital()
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_7_0)
-    if (QSysInfo::MacintoshVersion < QSysInfo::MV_IOS_7_0)
-        return;
-
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice || !captureDevice.activeFormat)
         return;
@@ -186,7 +172,6 @@ void AVFCameraZoomControl::zoomToRequestedDigital()
         m_zoomFactor = clampedZoom;
         Q_EMIT currentDigitalZoomChanged(clampedZoom);
     }
-#endif
 }
 
 QT_END_NAMESPACE

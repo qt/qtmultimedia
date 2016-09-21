@@ -40,7 +40,6 @@
 #ifndef AVFCAMERAUTILITY_H
 #define AVFCAMERAUTILITY_H
 
-#include <QtCore/qsysinfo.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qvector.h>
 #include <QtCore/qdebug.h>
@@ -152,22 +151,8 @@ private:
     Q_DISABLE_COPY(AVFScopedPointer);
 };
 
-inline QSysInfo::MacVersion qt_OS_limit(QSysInfo::MacVersion osxVersion,
-                                        QSysInfo::MacVersion iosVersion)
-{
-#ifdef Q_OS_OSX
-    Q_UNUSED(iosVersion)
-    return osxVersion;
-#else
-    Q_UNUSED(osxVersion)
-    return iosVersion;
-#endif
-}
-
 typedef QPair<qreal, qreal> AVFPSRange;
 AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
-
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
 
 QVector<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
                                                           FourCharCode preferredFormat);
@@ -184,8 +169,6 @@ AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *forma
 
 bool qt_formats_are_equal(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2);
 bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat *format, bool preserveFps);
-
-#endif
 
 AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection);
 void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection,

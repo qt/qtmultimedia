@@ -47,7 +47,6 @@
 #include "avfmediacontainercontrol.h"
 
 #include <QtCore/qmetaobject.h>
-#include <QtCore/qsysinfo.h>
 
 QT_USE_NAMESPACE
 

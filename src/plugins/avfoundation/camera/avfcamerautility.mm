@@ -40,6 +40,7 @@
 #include "avfcamerautility.h"
 #include "avfcameradebug.h"
 
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
@@ -66,25 +67,16 @@ AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection)
         }
     }
 
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9, __IPHONE_5_0)
-#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
-    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_9)
-#endif
-    {
-        if (videoConnection.supportsVideoMaxFrameDuration) {
-            const CMTime cmMax = videoConnection.videoMaxFrameDuration;
-            if (CMTimeCompare(cmMax, kCMTimeInvalid)) {
-                if (const Float64 maxSeconds = CMTimeGetSeconds(cmMax))
-                    newRange.first = 1. / maxSeconds;
-            }
+    if (videoConnection.supportsVideoMaxFrameDuration) {
+        const CMTime cmMax = videoConnection.videoMaxFrameDuration;
+        if (CMTimeCompare(cmMax, kCMTimeInvalid)) {
+            if (const Float64 maxSeconds = CMTimeGetSeconds(cmMax))
+                newRange.first = 1. / maxSeconds;
         }
     }
-#endif
 
     return newRange;
 }
-
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
 
 namespace {
 
@@ -189,7 +181,7 @@ QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format)
     Q_ASSERT(format);
     QSize res;
 #if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
-    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_8_0) {
+    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::IOS, 8)) {
         const CMVideoDimensions hrDim(format.highResolutionStillImageDimensions);
         res.setWidth(hrDim.width);
         res.setHeight(hrDim.height);
@@ -436,8 +428,6 @@ bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat 
     return true;
 }
 
-#endif // SDK
-
 void qt_set_framerate_limits(AVCaptureConnection *videoConnection, qreal minFPS, qreal maxFPS)
 {
     Q_ASSERT(videoConnection);
@@ -458,31 +448,16 @@ void qt_set_framerate_limits(AVCaptureConnection *videoConnection, qreal minFPS,
     if (videoConnection.supportsVideoMinFrameDuration)
         videoConnection.videoMinFrameDuration = minDuration;
 
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9, __IPHONE_5_0)
-#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
-    if (QSysInfo::MacintoshVersion < QSysInfo::MV_10_9) {
-        if (minFPS > 0.)
+    CMTime maxDuration = kCMTimeInvalid;
+    if (minFPS > 0.) {
+        if (!videoConnection.supportsVideoMaxFrameDuration)
             qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
-    } else
-#endif
-    {
-        CMTime maxDuration = kCMTimeInvalid;
-        if (minFPS > 0.) {
-            if (!videoConnection.supportsVideoMaxFrameDuration)
-                qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
-            else
-                maxDuration = CMTimeMake(1, minFPS);
-        }
-        if (videoConnection.supportsVideoMaxFrameDuration)
-            videoConnection.videoMaxFrameDuration = maxDuration;
+        else
+            maxDuration = CMTimeMake(1, minFPS);
     }
-#else
-    if (minFPS > 0.)
-        qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
-#endif
+    if (videoConnection.supportsVideoMaxFrameDuration)
+        videoConnection.videoMaxFrameDuration = maxDuration;
 }
-
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
 
 CMTime qt_adjusted_frame_duration(AVFrameRateRange *range, qreal fps)
 {
@@ -549,7 +524,7 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, qreal minFPS, qreal
 #ifdef Q_OS_IOS
     [captureDevice setActiveVideoMinFrameDuration:minFrameDuration];
     [captureDevice setActiveVideoMaxFrameDuration:maxFrameDuration];
-#else // Q_OS_OSX
+#elif defined(Q_OS_MACOS)
     if (CMTimeCompare(minFrameDuration, kCMTimeInvalid) == 0
             && CMTimeCompare(maxFrameDuration, kCMTimeInvalid) == 0) {
         AVFrameRateRange *range = captureDevice.activeFormat.videoSupportedFrameRateRanges.firstObject;
@@ -560,32 +535,16 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, qreal minFPS, qreal
     if (CMTimeCompare(minFrameDuration, kCMTimeInvalid))
         [captureDevice setActiveVideoMinFrameDuration:minFrameDuration];
 
-#if QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
-#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
-    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_9)
-#endif
-    {
-        if (CMTimeCompare(maxFrameDuration, kCMTimeInvalid))
-            [captureDevice setActiveVideoMaxFrameDuration:maxFrameDuration];
-    }
-#endif // QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
-#endif // Q_OS_OSX
+    if (CMTimeCompare(maxFrameDuration, kCMTimeInvalid))
+        [captureDevice setActiveVideoMaxFrameDuration:maxFrameDuration];
+#endif // Q_OS_MACOS
 }
-
-#endif // Platform SDK >= 10.9, >= 7.0.
 
 void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection,
                              qreal minFPS, qreal maxFPS)
 {
     Q_ASSERT(captureDevice);
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
-    if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_9, QSysInfo::MV_IOS_7_0))
-        qt_set_framerate_limits(captureDevice, minFPS, maxFPS);
-    else
-#endif
-    if (videoConnection)
-        qt_set_framerate_limits(videoConnection, minFPS, maxFPS);
-
+    qt_set_framerate_limits(captureDevice, minFPS, maxFPS);
 }
 
 AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection)
@@ -593,33 +552,16 @@ AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnec
     Q_ASSERT(captureDevice);
 
     AVFPSRange fps;
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
-    if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
-        const CMTime minDuration = captureDevice.activeVideoMinFrameDuration;
-        if (CMTimeCompare(minDuration, kCMTimeInvalid)) {
-            if (const Float64 minSeconds = CMTimeGetSeconds(minDuration))
-                fps.second = 1. / minSeconds; // Max FPS = 1 / MinDuration.
-        }
+    const CMTime minDuration = captureDevice.activeVideoMinFrameDuration;
+    if (CMTimeCompare(minDuration, kCMTimeInvalid)) {
+        if (const Float64 minSeconds = CMTimeGetSeconds(minDuration))
+            fps.second = 1. / minSeconds; // Max FPS = 1 / MinDuration.
+    }
 
-#if QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
-#if QT_OSX_DEPLOYMENT_TARGET_BELOW(__MAC_10_9)
-        if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_9)
-#endif
-        {
-            const CMTime maxDuration = captureDevice.activeVideoMaxFrameDuration;
-            if (CMTimeCompare(maxDuration, kCMTimeInvalid)) {
-                if (const Float64 maxSeconds = CMTimeGetSeconds(maxDuration))
-                    fps.first = 1. / maxSeconds; // Min FPS = 1 / MaxDuration.
-            }
-        }
-#endif // QT_OSX_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_9)
-
-    } else {
-#else // OSX < 10.7 or iOS < 7.0
-    {
-#endif // QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
-        if (videoConnection)
-            fps = qt_connection_framerates(videoConnection);
+    const CMTime maxDuration = captureDevice.activeVideoMaxFrameDuration;
+    if (CMTimeCompare(maxDuration, kCMTimeInvalid)) {
+        if (const Float64 maxSeconds = CMTimeGetSeconds(maxDuration))
+            fps.first = 1. / maxSeconds; // Min FPS = 1 / MaxDuration.
     }
 
     return fps;

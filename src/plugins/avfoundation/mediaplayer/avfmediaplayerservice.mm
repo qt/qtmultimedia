@@ -48,31 +48,18 @@
 #endif
 #include "avfvideowindowcontrol.h"
 
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_8, __IPHONE_6_0)
 #import <AVFoundation/AVFoundation.h>
-#endif
 
 QT_USE_NAMESPACE
 
 AVFMediaPlayerService::AVFMediaPlayerService(QObject *parent)
     : QMediaService(parent)
     , m_videoOutput(0)
-    , m_enableRenderControl(true)
 {
     m_session = new AVFMediaPlayerSession(this);
     m_control = new AVFMediaPlayerControl(this);
     m_control->setSession(m_session);
     m_playerMetaDataControl = new AVFMediaPlayerMetaDataControl(m_session, this);
-
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_8, __IPHONE_6_0)
-    // AVPlayerItemVideoOutput is available in SDK
-    #if QT_MAC_DEPLOYMENT_TARGET_BELOW(__MAC_10_8, __IPHONE_6_0)
-    // might not be available at runtime
-        #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-            m_enableRenderControl = [AVPlayerItemVideoOutput class] != 0;
-        #endif
-    #endif
-#endif
 
     connect(m_control, SIGNAL(mediaChanged(QMediaContent)), m_playerMetaDataControl, SLOT(updateTags()));
 }
@@ -98,7 +85,7 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
         return m_playerMetaDataControl;
 
 
-    if (m_enableRenderControl && (qstrcmp(name, QVideoRendererControl_iid) == 0)) {
+    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!m_videoOutput)
             m_videoOutput = new AVFVideoRendererControl(this);
 

@@ -432,18 +432,12 @@ void AVFCameraSession::removeProbe(AVFMediaVideoProbeControl *probe)
 FourCharCode AVFCameraSession::defaultCodec()
 {
     if (!m_defaultCodec) {
-#if QT_MAC_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_10_7, __IPHONE_7_0)
-        if (QSysInfo::MacintoshVersion >= qt_OS_limit(QSysInfo::MV_10_7, QSysInfo::MV_IOS_7_0)) {
-            if (AVCaptureDevice *device = videoCaptureDevice()) {
-                AVCaptureDeviceFormat *format = device.activeFormat;
-                if (!format || !format.formatDescription)
-                    return m_defaultCodec;
-                m_defaultCodec = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
-            }
+        if (AVCaptureDevice *device = videoCaptureDevice()) {
+            AVCaptureDeviceFormat *format = device.activeFormat;
+            if (!format || !format.formatDescription)
+                return m_defaultCodec;
+            m_defaultCodec = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
         }
-#else
-    // TODO: extract media subtype.
-#endif
     }
     return m_defaultCodec;
 }

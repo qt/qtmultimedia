@@ -86,8 +86,6 @@ public:
 
     qreal playbackRate() const;
 
-    inline bool isVolumeSupported() const { return m_volumeSupported; }
-
 public Q_SLOTS:
     void setPlaybackRate(qreal rate);
 
@@ -169,7 +167,6 @@ private:
     QMediaContent m_resources;
     ResourceHandler m_resourceHandler;
 
-    const bool m_volumeSupported;
     bool m_muted;
     bool m_tryingAsync;
     int m_volume;

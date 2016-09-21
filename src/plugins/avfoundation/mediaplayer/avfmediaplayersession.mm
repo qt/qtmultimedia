@@ -233,7 +233,7 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
     [m_player retain];
 
     //Set the initial volume on new player object
-    if (self.session && self.session->isVolumeSupported()) {
+    if (self.session) {
         [m_player setVolume:m_session->volume() / 100.0f];
         [m_player setMuted:m_session->isMuted()];
     }
@@ -380,11 +380,6 @@ AVFMediaPlayerSession::AVFMediaPlayerSession(AVFMediaPlayerService *service, QOb
     , m_state(QMediaPlayer::StoppedState)
     , m_mediaStatus(QMediaPlayer::NoMedia)
     , m_mediaStream(0)
-#ifdef Q_OS_IOS
-    , m_volumeSupported(QSysInfo::MacintoshVersion >= QSysInfo::MV_IOS_7_0)
-#else
-    , m_volumeSupported(true)
-#endif
     , m_muted(false)
     , m_tryingAsync(false)
     , m_volume(100)
@@ -749,11 +744,6 @@ void AVFMediaPlayerSession::setVolume(int volume)
     qDebug() << Q_FUNC_INFO << volume;
 #endif
 
-    if (!m_volumeSupported) {
-        qWarning("%s not implemented, requires iOS 7 or later", Q_FUNC_INFO);
-        return;
-    }
-
     if (m_volume == volume)
         return;
 
@@ -771,11 +761,6 @@ void AVFMediaPlayerSession::setMuted(bool muted)
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO << muted;
 #endif
-
-    if (!m_volumeSupported) {
-        qWarning("%s not implemented, requires iOS 7 or later", Q_FUNC_INFO);
-        return;
-    }
 
     if (m_muted == muted)
         return;
