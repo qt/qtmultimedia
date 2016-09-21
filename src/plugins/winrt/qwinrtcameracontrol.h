@@ -69,6 +69,7 @@ class QVideoRendererControl;
 class QVideoDeviceSelectorControl;
 class QCameraImageCaptureControl;
 class QImageEncoderControl;
+class QCameraFlashControl;
 class QCameraFocusControl;
 class QCameraLocksControl;
 
@@ -95,6 +96,7 @@ public:
     QVideoDeviceSelectorControl *videoDeviceSelector() const;
     QCameraImageCaptureControl *imageCaptureControl() const;
     QImageEncoderControl *imageEncoderControl() const;
+    QCameraFlashControl *cameraFlashControl() const;
     QCameraFocusControl *cameraFocusControl() const;
     QCameraLocksControl *cameraLocksControl() const;
 

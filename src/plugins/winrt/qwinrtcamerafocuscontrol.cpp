@@ -79,7 +79,41 @@ QCameraFocus::FocusModes QWinRTCameraFocusControl::focusMode() const
 
 void QWinRTCameraFocusControl::setFocusMode(QCameraFocus::FocusModes modes)
 {
-    QMetaObject::invokeMethod(this, "applyFocusMode", Qt::QueuedConnection, Q_ARG(QCameraFocus::FocusModes, modes));
+    Q_D(QWinRTCameraFocusControl);
+    if (d->focusModes == modes)
+        return;
+    QWinRTCameraControl *cameraControl = static_cast<QWinRTCameraControl *>(parent());
+    Q_ASSERT(cameraControl);
+    if (!modes) {
+        cameraControl->emitError(QCamera::InvalidRequestError, QStringLiteral("Can't set empty camera focus modes."));
+        return;
+    }
+    if (!d->focusModeInitialized) {
+        d->focusModes = modes;
+        emit focusModeChanged(modes);
+        return;
+    }
+    if (!isFocusModeSupported(modes)) {
+        cameraControl->emitError(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera focus modes."));
+        return;
+    }
+    if (modes.testFlag(QCameraFocus::ContinuousFocus)) {
+        if (QCameraFocus::FocusPointCustom == d->focusPointMode) {
+            cameraControl->emitError(QCamera::NotSupportedFeatureError,
+                                     QStringLiteral("Unsupported camera focus modes: ContinuousFocus with FocusPointCustom."));
+            return;
+        } else if (!d->imageCaptureIdle) {
+            cameraControl->emitError(QCamera::NotSupportedFeatureError,
+                                     QStringLiteral("Can't set ContinuousFocus camera focus mode while capturing image."));
+            return;
+        }
+    }
+    if (!cameraControl->setFocus(modes))
+        return;
+    if (modes.testFlag(QCameraFocus::ContinuousFocus) || d->focusModes.testFlag(QCameraFocus::ContinuousFocus))
+        cameraControl->focus();
+    d->focusModes = modes;
+    emit focusModeChanged(modes);
 }
 
 bool QWinRTCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusModes modes) const
@@ -96,7 +130,32 @@ QCameraFocus::FocusPointMode QWinRTCameraFocusControl::focusPointMode() const
 
 void QWinRTCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 {
-    QMetaObject::invokeMethod(this, "applyFocusPointMode", Qt::QueuedConnection, Q_ARG(QCameraFocus::FocusPointMode, mode));
+    Q_D(QWinRTCameraFocusControl);
+    if (d->focusPointMode == mode)
+        return;
+
+    if (!d->focusModeInitialized) {
+        d->focusPointMode = mode;
+        emit focusPointModeChanged(mode);
+        return;
+    }
+    QWinRTCameraControl *cameraControl = static_cast<QWinRTCameraControl *>(parent());
+    Q_ASSERT(cameraControl);
+    if (!d->supportedFocusPointModes.contains(mode)) {
+        cameraControl->emitError(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera point focus mode."));
+        return;
+    }
+    if (QCameraFocus::FocusPointCenter == mode || QCameraFocus::FocusPointAuto == mode)
+        d->focusPoint = QPointF(0.5, 0.5);
+    // Don't apply focus point focus settings if camera is in continuous focus mode
+    if (!d->focusModes.testFlag(QCameraFocus::ContinuousFocus)) {
+        changeFocusCustomPoint(d->focusPoint);
+    } else if (QCameraFocus::FocusPointCustom == mode) {
+        cameraControl->emitError(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera focus modes: ContinuousFocus with FocusPointCustom."));
+        return;
+    }
+    d->focusPointMode = mode;
+    emit focusPointModeChanged(mode);
 }
 
 bool QWinRTCameraFocusControl::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
@@ -113,7 +172,20 @@ QPointF QWinRTCameraFocusControl::customFocusPoint() const
 
 void QWinRTCameraFocusControl::setCustomFocusPoint(const QPointF &point)
 {
-    QMetaObject::invokeMethod(this, "applyFocusCustomPoint", Qt::QueuedConnection, Q_ARG(const QPointF, point));
+    Q_D(QWinRTCameraFocusControl);
+    if (d->focusPointMode != QCameraFocus::FocusPointCustom) {
+        QWinRTCameraControl *cameraControl = static_cast<QWinRTCameraControl *>(parent());
+        Q_ASSERT(cameraControl);
+        cameraControl->emitError(QCamera::InvalidRequestError, QStringLiteral("Custom focus point can be set only in FocusPointCustom focus mode."));
+        return;
+    }
+    if (d->focusPoint == point)
+        return;
+    if (changeFocusCustomPoint(point)) {
+        d->focusPoint = point;
+        emit customFocusPointChanged(point);
+    }
+
 }
 
 QCameraFocusZoneList QWinRTCameraFocusControl::focusZones() const
@@ -174,92 +246,6 @@ void QWinRTCameraFocusControl::imageCaptureQueueChanged(bool isEmpty)
 {
     Q_D(QWinRTCameraFocusControl);
     d->imageCaptureIdle = isEmpty;
-}
-
-void QWinRTCameraFocusControl::applyFocusCustomPoint(const QPointF &point)
-{
-    Q_D(QWinRTCameraFocusControl);
-    if (d->focusPointMode != QCameraFocus::FocusPointCustom) {
-        QWinRTCameraControl *cameraControl = static_cast<QWinRTCameraControl *>(parent());
-        Q_ASSERT(cameraControl);
-        cameraControl->emitError(QCamera::InvalidRequestError, QStringLiteral("Custom focus point can be set only in FocusPointCustom focus mode."));
-        return;
-    }
-    if (d->focusPoint == point)
-        return;
-    if (changeFocusCustomPoint(point)) {
-        d->focusPoint = point;
-        emit customFocusPointChanged(point);
-    }
-}
-
-void QWinRTCameraFocusControl::applyFocusMode(QCameraFocus::FocusModes modes)
-{
-    Q_D(QWinRTCameraFocusControl);
-    if (d->focusModes == modes)
-        return;
-    QWinRTCameraControl *cameraControl = static_cast<QWinRTCameraControl *>(parent());
-    Q_ASSERT(cameraControl);
-    if (!modes) {
-        cameraControl->emitError(QCamera::InvalidRequestError, QStringLiteral("Can't set empty camera focus modes."));
-        return;
-    }
-    if (!d->focusModeInitialized) {
-        d->focusModes = modes;
-        emit focusModeChanged(modes);
-        return;
-    }
-    if (!isFocusModeSupported(modes)) {
-        cameraControl->emitError(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera focus modes."));
-        return;
-    }
-    if (modes.testFlag(QCameraFocus::ContinuousFocus)) {
-        if (QCameraFocus::FocusPointCustom == d->focusPointMode) {
-            cameraControl->emitError(QCamera::NotSupportedFeatureError,
-                                     QStringLiteral("Unsupported camera focus modes: ContinuousFocus with FocusPointCustom."));
-            return;
-        } else if (!d->imageCaptureIdle) {
-            cameraControl->emitError(QCamera::NotSupportedFeatureError,
-                                     QStringLiteral("Can't set ContinuousFocus camera focus mode while capturing image."));
-            return;
-        }
-    }
-    if (!cameraControl->setFocus(modes))
-        return;
-    if (modes.testFlag(QCameraFocus::ContinuousFocus) || d->focusModes.testFlag(QCameraFocus::ContinuousFocus))
-        cameraControl->focus();
-    d->focusModes = modes;
-    emit focusModeChanged(modes);
-}
-
-void QWinRTCameraFocusControl::applyFocusPointMode(QCameraFocus::FocusPointMode mode)
-{
-    Q_D(QWinRTCameraFocusControl);
-    if (d->focusPointMode == mode)
-        return;
-
-    if (!d->focusModeInitialized) {
-        d->focusPointMode = mode;
-        emit focusPointModeChanged(mode);
-        return;
-    }
-    QWinRTCameraControl *cameraControl = static_cast<QWinRTCameraControl *>(parent());
-    Q_ASSERT(cameraControl);
-    if (!d->supportedFocusPointModes.contains(mode)) {
-        cameraControl->emitError(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera point focus mode."));
-        return;
-    }
-    if (QCameraFocus::FocusPointCenter == mode || QCameraFocus::FocusPointAuto == mode)
-        d->focusPoint = QPointF(0.5, 0.5);
-    // Don't apply focus point focus settings if camera is in continuous focus mode
-    if (!d->focusModes.testFlag(QCameraFocus::ContinuousFocus)) {
-        changeFocusCustomPoint(d->focusPoint);
-    } else if (QCameraFocus::FocusPointCustom == mode) {
-        cameraControl->emitError(QCamera::NotSupportedFeatureError, QStringLiteral("Unsupported camera focus modes: ContinuousFocus with FocusPointCustom."));
-        return;
-    }
-    d->focusPointMode = mode;
-    emit focusPointModeChanged(mode);
 }
 
 bool QWinRTCameraFocusControl::changeFocusCustomPoint(const QPointF &point)

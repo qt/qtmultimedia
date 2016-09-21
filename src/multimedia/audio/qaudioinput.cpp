@@ -330,9 +330,14 @@ int QAudioInput::notifyInterval() const
 /*!
     Sets the input volume to \a volume.
 
+    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
+    range will be clamped.
+
     If the device does not support adjusting the input
     volume then \a volume will be ignored and the input
     volume will remain at 1.0.
+
+    The default volume is \c 1.0.
 
     Note: Adjustments to the volume will change the volume of this audio stream, not the global volume.
 */
@@ -342,7 +347,7 @@ void QAudioInput::setVolume(qreal volume)
 }
 
 /*!
-    Returns the input volume (gain).
+    Returns the input volume.
 
     If the device does not support adjusting the input volume
     the returned value will be 1.0.

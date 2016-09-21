@@ -81,7 +81,7 @@ static QObject *multimedia_global_object(QQmlEngine *qmlEngine, QJSEngine *jsEng
 class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface/1.0")
+    Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 
 public:
     QMultimediaDeclarativeModule(QObject *parent = 0) : QQmlExtensionPlugin(parent) { initResources(); }
@@ -139,6 +139,9 @@ public:
         qmlRegisterType<QDeclarativePlaylist, 1>(uri, 5, 7, "Playlist");
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 2>(uri, 5, 7, "CameraImageProcessing",
                                 trUtf8("CameraImageProcessing is provided by Camera"));
+
+        // 5.8 types (nothing new, re-register one of the types)
+        qmlRegisterType<QSoundEffect>(uri, 5, 8, "SoundEffect");
 
         // 5.9 types
         qmlRegisterType<QDeclarativeAudio, 2>(uri, 5, 9, "Audio");

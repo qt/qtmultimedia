@@ -1372,8 +1372,14 @@ QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
     \property QMediaPlayer::volume
     \brief the current playback volume.
 
-    The playback volume is linear in effect and the value can range from 0 -
-    100, values outside this range will be clamped.
+    The playback volume is scaled linearly, ranging from \c 0 (silence) to \c 100 (full volume).
+    Values outside this range will be clamped.
+
+    By default the volume is \c 100.
+
+    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
+    will produce linear changes in perceived loudness, which is what a user would normally expect
+    from a volume control. See QAudio::convertVolume() for more details.
 */
 
 /*!

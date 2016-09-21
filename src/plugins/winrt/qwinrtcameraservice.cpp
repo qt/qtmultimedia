@@ -50,6 +50,7 @@
 #include <QtMultimedia/QVideoRendererControl>
 #include <QtMultimedia/QVideoDeviceSelectorControl>
 #include <QtMultimedia/QImageEncoderControl>
+#include <QtMultimedia/QCameraFlashControl>
 #include <QtMultimedia/QCameraFocusControl>
 #include <QtMultimedia/QCameraLocksControl>
 #include <QtMultimedia/QMediaVideoProbeControl>
@@ -97,6 +98,9 @@ QMediaControl *QWinRTCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QImageEncoderControl_iid) == 0)
         return d->cameraControl->imageEncoderControl();
+
+    if (qstrcmp(name, QCameraFlashControl_iid) == 0)
+        return d->cameraControl->cameraFlashControl();
 
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return d->cameraControl->cameraFocusControl();

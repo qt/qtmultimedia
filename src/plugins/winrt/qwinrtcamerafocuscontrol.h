@@ -68,9 +68,6 @@ private slots:
     void imageCaptureQueueChanged(bool isEmpty);
 
 private:
-    Q_INVOKABLE void applyFocusCustomPoint(const QPointF &point);
-    Q_INVOKABLE void applyFocusMode(QCameraFocus::FocusModes modes);
-    Q_INVOKABLE void applyFocusPointMode(QCameraFocus::FocusPointMode mode);
     bool changeFocusCustomPoint(const QPointF &point);
 
     QScopedPointer<QWinRTCameraFocusControlPrivate> d_ptr;

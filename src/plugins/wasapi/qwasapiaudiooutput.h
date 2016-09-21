@@ -89,6 +89,8 @@ public:
     qreal volume() const Q_DECL_OVERRIDE;
 
     void process();
+public slots:
+    void processBuffer();
 private:
     bool initStart(bool pull);
     friend class WasapiOutputDevicePrivate;
@@ -113,6 +115,7 @@ private:
     quint32 m_bufferBytes;
     HANDLE m_event;
     QWasapiProcessThread *m_eventThread;
+    QAtomicInt m_processing;
     QIODevice *m_eventDevice;
 };
 
