@@ -60,8 +60,19 @@ QMediaService* CameraBinServicePlugin::create(const QString &key)
 {
     QGstUtils::initializeGst();
 
-    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
+    if (key == QLatin1String(Q_MEDIASERVICE_CAMERA)) {
+        if (!CameraBinService::isCameraBinAvailable()) {
+            guint major, minor, micro, nano;
+            gst_version(&major, &minor, &micro, &nano);
+            qWarning("Error: cannot create camera service, the 'camerabin' plugin is missing for "
+                     "GStreamer %u.%u."
+                     "\nPlease install the 'bad' GStreamer plugin package.",
+                     major, minor);
+            return Q_NULLPTR;
+        }
+
         return new CameraBinService(sourceFactory());
+    }
 
     qWarning() << "Gstreamer camerabin service plugin: unsupported key:" << key;
     return 0;
