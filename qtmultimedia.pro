@@ -34,7 +34,7 @@ win32 {
     }
 
     qtCompileTest(resourcepolicy)
-    qtCompileTest(gpu_vivante)
+    contains(QT_CONFIG, opengles2):qtCompileTest(gpu_vivante)
 }
 
 load(qt_parts)
