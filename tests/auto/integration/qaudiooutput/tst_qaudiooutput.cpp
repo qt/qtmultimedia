@@ -844,8 +844,8 @@ void tst_QAudioOutput::pushSuspendResume()
     QTest::qWait(1000); // 1 seconds should be plenty
 
     QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
-    QVERIFY2((stateSignal.count() == 1),
-             QString("didn't emit IdleState signal when at EOF, got %1 signals instead").arg(stateSignal.count()).toLocal8Bit().constData());
+    QVERIFY(stateSignal.count() > 0);
+    QCOMPARE(qvariant_cast<QAudio::State>(stateSignal.last().at(0)), QAudio::IdleState);
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
 
