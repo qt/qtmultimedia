@@ -510,7 +510,7 @@ bool QDeclarativePlaylist::removeItem(int index)
 /*!
     \qmlmethod bool QtMultimedia::Playlist::removeItems(int start, int end)
 
-    Removes items in the playlist from \a start to \end inclusive.
+    Removes items in the playlist from \a start to \a end inclusive.
 
     Returns true if the items are removed successfully.
 
