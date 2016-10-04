@@ -64,7 +64,7 @@ private Q_SLOTS:
 
 private:
     AVFMediaPlayerSession *m_session;
-    QMap<QString, QVariant> m_tags;
+    QVariantMap m_tags;
     void *m_asset;
 
 };

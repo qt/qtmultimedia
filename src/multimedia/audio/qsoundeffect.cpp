@@ -279,11 +279,7 @@ qreal QSoundEffect::volume() const
  */
 void QSoundEffect::setVolume(qreal volume)
 {
-    if (volume < qreal(0.0) || volume > qreal(1.0)) {
-        qWarning("SoundEffect: volume should be between 0.0 and 1.0");
-        return;
-    }
-
+    volume = qBound(qreal(0.0), volume, qreal(1.0));
     if (qFuzzyCompare(d->volume(), volume))
         return;
 
