@@ -1,8 +1,0 @@
-#QTBUG-52673
-[pullSuspendResume]
-redhatenterpriselinuxworkstation-6.6
-rhel-7.1
-ubuntu-14.04
-opensuse-13.1 64bit
-opensuse-42.1
-rhel-7.2

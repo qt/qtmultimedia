@@ -166,7 +166,9 @@ QMediaRecorderControl::~QMediaRecorderControl()
 /*!
     \fn void QMediaRecorderControl::setVolume(qreal gain)
 
-    Sets the linear audio \a gain of a media recorder.
+    Sets the audio \a gain of a media recorder control.
+
+    The gain is scaled linearly, ranging from \c 0 (silence) to \c 100 (full volume).
 */
 
 /*!
