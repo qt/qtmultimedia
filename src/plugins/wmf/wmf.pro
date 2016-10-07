@@ -10,24 +10,19 @@ INCLUDEPATH += .
 HEADERS += \
     wmfserviceplugin.h \
     mfstream.h \
-    sourceresolver.h \
-    samplegrabber.h \
-    mftvideo.h \
-    mfactivate.h
+    sourceresolver.h
 
 SOURCES += \
     wmfserviceplugin.cpp \
     mfstream.cpp \
-    sourceresolver.cpp \
-    samplegrabber.cpp \
-    mftvideo.cpp \
-    mfactivate.cpp
+    sourceresolver.cpp
 
-include (player/player.pri)
+contains(QT_CONFIG, wmf-backend): include (player/player.pri)
 include (decoder/decoder.pri)
 
 OTHER_FILES += \
-    wmf.json
+    wmf.json \
+    wmf_audiodecode.json
 
 PLUGIN_TYPE = mediaservice
 PLUGIN_CLASS_NAME = WMFServicePlugin
