@@ -94,9 +94,6 @@ void QDeclarativePlaylistItem::setSource(const QUrl &source)
     item's source URL can be accessed using the \c source role.
 
     \qml
-    import QtQuick 2.0
-    import QtMultimedia 5.6
-
     Item {
         width: 400;
         height: 300;

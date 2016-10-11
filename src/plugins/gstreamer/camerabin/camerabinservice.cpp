@@ -189,6 +189,9 @@ QMediaControl *CameraBinService::requestControl(const char *name)
         }
     }
 
+    if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0)
+        return m_captureSession->videoProbe();
+
     if (qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
         return m_audioInputSelector;
 
