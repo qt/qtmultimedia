@@ -343,7 +343,8 @@ int QAudioInput::notifyInterval() const
 */
 void QAudioInput::setVolume(qreal volume)
 {
-    d->setVolume(volume);
+    qreal v = qBound(qreal(0.0), volume, qreal(1.0));
+    d->setVolume(v);
 }
 
 /*!
