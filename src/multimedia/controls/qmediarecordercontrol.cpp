@@ -164,7 +164,7 @@ QMediaRecorderControl::~QMediaRecorderControl()
 */
 
 /*!
-    \fn void QMediaRecorderControl::setVolume(qreal gain)
+    \fn void QMediaRecorderControl::setVolume(qreal volume)
 
     Sets the audio \a volume of a media recorder control.
 

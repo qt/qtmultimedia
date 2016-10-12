@@ -578,8 +578,10 @@ void QMediaRecorder::setVolume(qreal volume)
 {
     Q_D(QMediaRecorder);
 
-    if (d->control)
+    if (d->control) {
+        volume = qMax(qreal(0.0), volume);
         d->control->setVolume(volume);
+    }
 }
 
 /*!
