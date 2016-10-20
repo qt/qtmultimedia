@@ -186,6 +186,7 @@ private:
     int m_pendingTasks;
     int m_executingTask;
     int m_executedTasks;
+    int m_streamTypes;
     HANDLE m_taskHandle;
     HANDLE m_eventHandle;
     GraphStatus m_graphStatus;
@@ -195,20 +196,19 @@ private:
     IBaseFilter *m_source;
     IBaseFilter *m_audioOutput;
     IBaseFilter *m_videoOutput;
-    int m_streamTypes;
     qreal m_rate;
     qint64 m_position;
     qint64 m_seekPosition;
     qint64 m_duration;
-    bool m_buffering;
-    bool m_seekable;
-    bool m_atEnd;
-    bool m_dontCacheNextSeekResult;
     QMediaTimeRange m_playbackRange;
     QUrl m_url;
     QMediaResourceList m_resources;
     QString m_errorString;
     QMutex m_mutex;
+    bool m_buffering;
+    bool m_seekable;
+    bool m_atEnd;
+    bool m_dontCacheNextSeekResult;
 
     friend class DirectShowPlayerServiceThread;
 };
