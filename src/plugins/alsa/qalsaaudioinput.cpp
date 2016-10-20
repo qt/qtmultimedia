@@ -49,6 +49,7 @@
 //
 
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include "qalsaaudioinput.h"
 #include "qalsaaudiodeviceinfo.h"
@@ -526,20 +527,22 @@ qint64 QAlsaAudioInput::read(char* data, qint64 len)
 
         int count=0;
         int err = 0;
+        QVarLengthArray<char, 4096> buffer(bytesToRead);
         while(count < 5 && bytesToRead > 0) {
-            char buffer[bytesToRead];
             int chunks = bytesToRead / period_size;
             int frames = chunks * period_frames;
             if (frames > (int)buffer_frames)
                 frames = buffer_frames;
 
-            int readFrames = snd_pcm_readi(handle, buffer, frames);
+            int readFrames = snd_pcm_readi(handle, buffer.data(), frames);
             bytesRead = snd_pcm_frames_to_bytes(handle, readFrames);
             if (m_volume < 1.0f)
-                QAudioHelperInternal::qMultiplySamples(m_volume, settings, buffer, buffer, bytesRead);
+                QAudioHelperInternal::qMultiplySamples(m_volume, settings,
+                                                       buffer.constData(),
+                                                       buffer.data(), bytesRead);
 
             if (readFrames >= 0) {
-                ringBuffer.write(buffer, bytesRead);
+                ringBuffer.write(buffer.data(), bytesRead);
 #ifdef DEBUG_AUDIO
                 qDebug() << QString::fromLatin1("read in bytes = %1 (frames=%2)").arg(bytesRead).arg(readFrames).toLatin1().constData();
 #endif
