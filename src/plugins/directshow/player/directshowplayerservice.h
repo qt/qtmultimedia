@@ -61,6 +61,9 @@ class DirectShowAudioEndpointControl;
 class DirectShowMetaDataControl;
 class DirectShowPlayerControl;
 class DirectShowVideoRendererControl;
+class DirectShowAudioProbeControl;
+class DirectShowVideoProbeControl;
+class DirectShowSampleGrabber;
 
 class QMediaContent;
 class QVideoWindowControl;
@@ -103,9 +106,15 @@ protected:
 private Q_SLOTS:
     void videoOutputChanged();
 
+    void onAudioBufferAvailable(double time, quint8 *buffer, long len);
+    void onVideoBufferAvailable(double time, quint8 *buffer, long len);
+
 private:
     void releaseGraph();
     void updateStatus();
+
+    void updateAudioProbe();
+    void updateVideoProbe();
 
     int findStreamTypes(IBaseFilter *source) const;
     int findStreamType(IPin *pin) const;
@@ -127,29 +136,40 @@ private:
     void doReleaseAudioOutput(QMutexLocker *locker);
     void doReleaseVideoOutput(QMutexLocker *locker);
     void doReleaseGraph(QMutexLocker *locker);
+    void doSetVideoProbe(QMutexLocker *locker);
+    void doSetAudioProbe(QMutexLocker *locker);
+    void doReleaseVideoProbe(QMutexLocker *locker);
+    void doReleaseAudioProbe(QMutexLocker *locker);
 
     void graphEvent(QMutexLocker *locker);
 
     enum Task
     {
-        Shutdown           = 0x0001,
-        SetUrlSource       = 0x0002,
-        SetStreamSource    = 0x0004,
+        Shutdown           = 0x00001,
+        SetUrlSource       = 0x00002,
+        SetStreamSource    = 0x00004,
         SetSource          = SetUrlSource | SetStreamSource,
-        SetAudioOutput     = 0x0008,
-        SetVideoOutput     = 0x0010,
+        SetAudioOutput     = 0x00008,
+        SetVideoOutput     = 0x00010,
         SetOutputs         = SetAudioOutput | SetVideoOutput,
-        Render             = 0x0020,
-        FinalizeLoad       = 0x0040,
-        SetRate            = 0x0080,
-        Seek               = 0x0100,
-        Play               = 0x0200,
-        Pause              = 0x0400,
-        Stop               = 0x0800,
-        ReleaseGraph       = 0x1000,
-        ReleaseAudioOutput = 0x2000,
-        ReleaseVideoOutput = 0x4000,
-        ReleaseFilters     = ReleaseGraph | ReleaseAudioOutput | ReleaseVideoOutput
+        SetAudioProbe      = 0x00020,
+        SetVideoProbe      = 0x00040,
+        SetProbes          = SetAudioProbe | SetVideoProbe,
+        Render             = 0x00080,
+        FinalizeLoad       = 0x00100,
+        SetRate            = 0x00200,
+        Seek               = 0x00400,
+        Play               = 0x00800,
+        Pause              = 0x01000,
+        Stop               = 0x02000,
+        ReleaseGraph       = 0x04000,
+        ReleaseAudioOutput = 0x08000,
+        ReleaseVideoOutput = 0x10000,
+        ReleaseAudioProbe  = 0x20000,
+        ReleaseVideoProbe  = 0x40000,
+        ReleaseFilters     = ReleaseGraph | ReleaseAudioOutput
+                             | ReleaseVideoOutput | ReleaseAudioProbe
+                             | ReleaseVideoProbe
     };
 
     enum Event
@@ -178,6 +198,10 @@ private:
     DirectShowVideoRendererControl *m_videoRendererControl;
     QVideoWindowControl *m_videoWindowControl;
     DirectShowAudioEndpointControl *m_audioEndpointControl;
+    DirectShowAudioProbeControl *m_audioProbeControl;
+    DirectShowVideoProbeControl *m_videoProbeControl;
+    DirectShowSampleGrabber *m_audioSampleGrabber;
+    DirectShowSampleGrabber *m_videoSampleGrabber;
 
     QThread *m_taskThread;
     DirectShowEventLoop *m_loop;

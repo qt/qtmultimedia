@@ -3,6 +3,8 @@ INCLUDEPATH += $$PWD
 QMAKE_USE += directshow
 LIBS += -lgdi32
 
+mingw: LIBS_PRIVATE += -lksuser
+
 qtHaveModule(widgets): QT += widgets
 
 HEADERS += \
