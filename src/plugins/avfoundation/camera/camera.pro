@@ -8,11 +8,12 @@ QT += multimedia-private network
 LIBS += -framework AudioToolbox \
         -framework CoreAudio \
         -framework QuartzCore \
-        -framework AVFoundation \
         -framework CoreMedia
 osx:LIBS += -framework AppKit \
             -framework AudioUnit
 ios:LIBS += -framework CoreVideo
+
+QMAKE_USE += avfoundation
 
 OTHER_FILES += avfcamera.json
 

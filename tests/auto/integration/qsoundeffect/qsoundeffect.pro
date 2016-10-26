@@ -8,7 +8,7 @@ CONFIG += testcase
 SOURCES += tst_qsoundeffect.cpp
 
 unix:!mac {
-    !contains(QT_CONFIG, pulseaudio) {
+    !qtConfig(pulseaudio) {
         DEFINES += QT_MULTIMEDIA_QMEDIAPLAYER
     }
 }

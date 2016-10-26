@@ -1,8 +1,8 @@
 TARGET = resourceqt
 
 QT += multimedia-private
-CONFIG += link_pkgconfig
-PKGCONFIG += libresourceqt5
+
+QMAKE_USE += libresourceqt5
 
 INCLUDEPATH += $$PWD \
     $${SOURCE_DIR}/src/multimedia

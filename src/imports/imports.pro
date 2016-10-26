@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
+QT_FOR_CONFIG += multimedia-private
 
 SUBDIRS += multimedia
-config_openal: SUBDIRS += audioengine
+qtConfig(openal): SUBDIRS += audioengine
 

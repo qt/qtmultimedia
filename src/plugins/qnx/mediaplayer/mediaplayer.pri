@@ -18,7 +18,7 @@ SOURCES += \
     $$PWD/mmrendererutil.cpp \
     $$PWD/mmrenderervideowindowcontrol.cpp
 
-LIBS += -lmmrndclient -lstrm
+QMAKE_USE += mmrenderer
 
 blackberry {
     HEADERS += $$PWD/bpsmediaplayercontrol.h
