@@ -1177,11 +1177,16 @@ void CameraBinSession::recordVideo()
     if (format.isEmpty())
         format = m_mediaContainerControl->actualContainerFormat();
 
-    const QString actualFileName = m_mediaStorageLocation.generateFileName(m_sink.isLocalFile() ? m_sink.toLocalFile()
-                                                                                                : m_sink.toString(),
+    const QString fileName = m_sink.isLocalFile() ? m_sink.toLocalFile() : m_sink.toString();
+    const QFileInfo fileInfo(fileName);
+    const QString extension = fileInfo.suffix().isEmpty()
+                            ? QGstUtils::fileExtensionForMimeType(format)
+                            : fileInfo.suffix();
+
+    const QString actualFileName = m_mediaStorageLocation.generateFileName(fileName,
                                       QMediaStorageLocation::Movies,
                                       QLatin1String("clip_"),
-                                      QGstUtils::fileExtensionForMimeType(format));
+                                      extension);
 
     m_recordingActive = true;
     m_actualSink = QUrl::fromLocalFile(actualFileName);
