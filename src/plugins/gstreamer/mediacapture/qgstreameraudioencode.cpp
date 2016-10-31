@@ -51,23 +51,12 @@ QGstreamerAudioEncode::QGstreamerAudioEncode(QObject *parent)
 {
     QList<QByteArray> codecCandidates;
 
-#if defined(Q_WS_MAEMO_6)
-    codecCandidates << "audio/AAC" << "audio/mpeg" << "audio/vorbis" << "audio/speex" << "audio/GSM"
-                    << "audio/PCM" << "audio/AMR" << "audio/AMR-WB" << "audio/FLAC";
-#else
     codecCandidates << "audio/mpeg" << "audio/vorbis" << "audio/speex" << "audio/GSM"
                     << "audio/PCM" << "audio/AMR" << "audio/AMR-WB" << "audio/FLAC";
-#endif
 
-#if defined(Q_WS_MAEMO_6)
-    m_elementNames["audio/AMR"] = "nokiaamrnbenc";
-    m_elementNames["audio/AMR-WB"] = "nokiaamrwbenc";
-    m_elementNames["audio/AAC"] = "nokiaaacenc";
-#else
     m_elementNames["audio/mpeg"] = "lamemp3enc";
     m_elementNames["audio/AMR"] = "amrnbenc";
     m_elementNames["audio/AMR-WB"] = "amrwbenc";
-#endif
 
     m_elementNames["audio/vorbis"] = "vorbisenc";
     m_elementNames["audio/speex"] = "speexenc";

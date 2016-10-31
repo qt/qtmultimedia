@@ -229,11 +229,6 @@ void tst_QCameraBackend::testCameraStates()
     QTRY_COMPARE(camera.status(), QCamera::UnloadedStatus);
     QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::UnloadedStatus);
 
-#ifdef Q_WS_MAEMO_6
-    //resource policy doesn't work correctly when resource is released and immediately requested again.
-    QTest::qWait(250);
-#endif
-
     camera.start();
     QCOMPARE(camera.state(), QCamera::ActiveState);
     QCOMPARE(stateChangedSignal.last().first().value<QCamera::State>(), QCamera::ActiveState);
@@ -386,10 +381,6 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     camera.load();
 
-#ifdef Q_WS_MAEMO_6
-    QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer));
-#endif
-
     if (!imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer))
         QSKIP("Buffer capture not supported");
 
@@ -454,11 +445,6 @@ void tst_QCameraBackend::testCaptureToBuffer()
     imageAvailableSignal.clear();
     savedSignal.clear();
 
-    //Capture to yuv buffer
-#ifdef Q_WS_MAEMO_6
-    QVERIFY(imageCapture.supportedBufferFormats().contains(QVideoFrame::Format_UYVY));
-#endif
-
     if (imageCapture.supportedBufferFormats().contains(QVideoFrame::Format_UYVY)) {
         imageCapture.setBufferFormat(QVideoFrame::Format_UYVY);
         QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_UYVY);
@@ -493,9 +479,6 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     //Try to capture to both buffer and file
-#ifdef Q_WS_MAEMO_6
-    QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile));
-#endif
     if (imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile)) {
         imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
 
@@ -524,9 +507,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
 void tst_QCameraBackend::testCameraCaptureMetadata()
 {
-#ifndef Q_WS_MAEMO_6
     QSKIP("Capture metadata is supported only on harmattan");
-#endif
 
     QCamera camera;
     QCameraImageCapture imageCapture(&camera);
@@ -547,9 +528,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
 void tst_QCameraBackend::testExposureCompensation()
 {
-#if !defined(Q_WS_MAEMO_6)
     QSKIP("Capture exposure parameters are supported only on mobile platforms");
-#endif
 
     QCamera camera;
     QCameraExposure *exposure = camera.exposure();
@@ -594,16 +573,11 @@ void tst_QCameraBackend::testExposureCompensation()
 
 void tst_QCameraBackend::testExposureMode()
 {
-#if !defined(Q_WS_MAEMO_6)
     QSKIP("Capture exposure parameters are supported only on mobile platforms");
-#endif
 
     QCamera camera;
     QCameraExposure *exposure = camera.exposure();
 
-#ifdef Q_WS_MAEMO_6
-    QEXPECT_FAIL("", "Camerabin reports Manual exposure instead of Auto", Continue);
-#endif
     QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureAuto);
 
     // Night
@@ -615,11 +589,6 @@ void tst_QCameraBackend::testExposureMode()
 
     camera.unload();
     QTRY_COMPARE(camera.status(), QCamera::UnloadedStatus);
-
-#ifdef Q_WS_MAEMO_6
-    //resource policy doesn't work correctly when resource is released and immediately requested again.
-    QTest::qWait(250);
-#endif
 
     // Auto
     exposure->setExposureMode(QCameraExposure::ExposureAuto);

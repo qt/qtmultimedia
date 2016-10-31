@@ -78,17 +78,6 @@ qtConfig(gstreamer_0_10) {
         qgstbufferpoolinterface.cpp \
         qvideosurfacegstsink.cpp \
         gstvideoconnector.c
-
-    maemo6 {
-        PKGCONFIG_PRIVATE += qmsystem2
-
-        qtConfig(opengles2):qtHaveModule(widgets) {
-            PRIVATE_HEADERS += qgstreamergltexturerenderer_p.h
-            SOURCES += qgstreamergltexturerenderer.cpp
-            QT += opengl
-            LIBS_PRIVATE += -lEGL -lgstmeegointerfaces-0.10
-        }
-    }
 } else {
     PRIVATE_HEADERS += \
         qgstvideorendererplugin_p.h \

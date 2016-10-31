@@ -155,10 +155,6 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
     if (m_playbin) {
         //GST_PLAY_FLAG_NATIVE_VIDEO omits configuration of ffmpegcolorspace and videoscale,
         //since those elements are included in the video output bin when necessary.
-#ifdef Q_WS_MAEMO_6
-        int flags = GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_AUDIO |
-                    GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_NATIVE_AUDIO;
-#else
         int flags = GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_AUDIO;
         QByteArray envFlags = qgetenv("QT_GSTREAMER_PLAYBIN_FLAGS");
         if (!envFlags.isEmpty()) {
@@ -168,7 +164,6 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
             flags |= GST_PLAY_FLAG_NATIVE_VIDEO;
 #endif
         }
-#endif
         g_object_set(G_OBJECT(m_playbin), "flags", flags, NULL);
 
         GstElement *audioSink = gst_element_factory_make("autoaudiosink", "audiosink");

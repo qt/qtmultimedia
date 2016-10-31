@@ -62,9 +62,6 @@
 #include <unistd.h>
 
 //#define QT_PA_DEBUG
-#ifndef QTM_PULSEAUDIO_DEFAULTBUFFER
-#define QT_PA_STREAM_BUFFER_SIZE_MAX (1024 * 64)  //64KB is a trade-off for balancing control latency and uploading overhead
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -679,7 +676,6 @@ void QSoundEffectPrivate::sampleReady()
 #ifdef QT_PA_DEBUG
         qDebug() << this << "reuse existing pulsestream";
 #endif
-#ifdef QTM_PULSEAUDIO_DEFAULTBUFFER
         const pa_buffer_attr *bufferAttr = pa_stream_get_buffer_attr(m_pulseStream);
         if (bufferAttr->prebuf > uint32_t(m_sample->data().size())) {
             pa_buffer_attr newBufferAttr;
@@ -693,33 +689,6 @@ void QSoundEffectPrivate::sampleReady()
         } else {
             streamReady();
         }
-#else
-        const pa_buffer_attr *bufferAttr = pa_stream_get_buffer_attr(m_pulseStream);
-        if (bufferAttr->tlength < m_sample->data().size() && bufferAttr->tlength < QT_PA_STREAM_BUFFER_SIZE_MAX) {
-            pa_buffer_attr newBufferAttr;
-            newBufferAttr.maxlength = -1;
-            newBufferAttr.tlength = qMin(m_sample->data().size(), QT_PA_STREAM_BUFFER_SIZE_MAX);
-            newBufferAttr.minreq = bufferAttr->tlength / 2;
-            newBufferAttr.prebuf = -1;
-            newBufferAttr.fragsize = -1;
-            pa_operation *op = pa_stream_set_buffer_attr(m_pulseStream, &newBufferAttr, stream_reset_buffer_callback, m_ref->getRef());
-            if (op)
-                pa_operation_unref(op);
-            else
-                qWarning("QSoundEffect(pulseaudio): failed to adjust pre-buffer attribute");
-        } else if (bufferAttr->prebuf > uint32_t(m_sample->data().size())) {
-            pa_buffer_attr newBufferAttr;
-            newBufferAttr = *bufferAttr;
-            newBufferAttr.prebuf = m_sample->data().size();
-            pa_operation *op = pa_stream_set_buffer_attr(m_pulseStream, &newBufferAttr, stream_adjust_prebuffer_callback, m_ref->getRef());
-            if (op)
-                pa_operation_unref(op);
-            else
-                qWarning("QSoundEffect(pulseaudio): failed to adjust pre-buffer attribute");
-        } else {
-            streamReady();
-        }
-#endif
     } else {
         if (!pulseDaemon()->context() || pa_context_get_state(pulseDaemon()->context()) != PA_CONTEXT_READY) {
             connect(pulseDaemon(), SIGNAL(contextReady()), SLOT(contextReady()));
@@ -963,17 +932,7 @@ void QSoundEffectPrivate::createPulseStream()
     }
     m_pulseStream = stream;
 
-#ifndef QTM_PULSEAUDIO_DEFAULTBUFFER
-    pa_buffer_attr bufferAttr;
-    bufferAttr.tlength = qMin(m_sample->data().size(), QT_PA_STREAM_BUFFER_SIZE_MAX);
-    bufferAttr.maxlength = -1;
-    bufferAttr.minreq = bufferAttr.tlength / 2;
-    bufferAttr.prebuf = -1;
-    bufferAttr.fragsize = -1;
-    if (pa_stream_connect_playback(m_pulseStream, 0, &bufferAttr,
-#else
     if (pa_stream_connect_playback(m_pulseStream, 0, 0,
-#endif
                                    PA_STREAM_START_CORKED, 0, 0) < 0) {
         qWarning("QSoundEffect(pulseaudio): Failed to connect stream, error = %s",
                  pa_strerror(pa_context_errno(pulseDaemon()->context())));
@@ -1045,39 +1004,6 @@ void QSoundEffectPrivate::stream_state_callback(pa_stream *s, void *userdata)
         default:
             qWarning("QSoundEffect(pulseaudio): Error in pulse audio stream");
             break;
-    }
-}
-
-void QSoundEffectPrivate::stream_reset_buffer_callback(pa_stream *s, int success, void *userdata)
-{
-#ifdef QT_PA_DEBUG
-    qDebug() << "stream_reset_buffer_callback";
-#endif
-    Q_UNUSED(s);
-    QSoundEffectRef *ref = reinterpret_cast<QSoundEffectRef*>(userdata);
-    QSoundEffectPrivate *self = ref->soundEffect();
-    ref->release();
-    if (!self)
-        return;
-
-    if (!success)
-        qWarning("QSoundEffect(pulseaudio): failed to reset buffer attribute");
-#ifdef QT_PA_DEBUG
-    qDebug() << self << "stream_reset_buffer_callback";
-#endif
-    const pa_buffer_attr *bufferAttr = pa_stream_get_buffer_attr(self->m_pulseStream);
-    self->m_pulseBufferSize = bufferAttr->tlength;
-    if (bufferAttr->prebuf > uint32_t(self->m_sample->data().size())) {
-        pa_buffer_attr newBufferAttr;
-        newBufferAttr = *bufferAttr;
-        newBufferAttr.prebuf = self->m_sample->data().size();
-        pa_operation *op = pa_stream_set_buffer_attr(self->m_pulseStream, &newBufferAttr, stream_adjust_prebuffer_callback, userdata);
-        if (op)
-            pa_operation_unref(op);
-        else
-            qWarning("QSoundEffect(pulseaudio): failed to adjust pre-buffer attribute");
-    } else {
-        QMetaObject::invokeMethod(self, "streamReady", Qt::QueuedConnection);
     }
 }
 

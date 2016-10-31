@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINEXPOSURECONTROL_MAEMO_H
-#define CAMERABINEXPOSURECONTROL_MAEMO_H
+#ifndef CAMERABINEXPOSURECONTROL_H
+#define CAMERABINEXPOSURECONTROL_H
 
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>
@@ -72,4 +72,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINEXPOSURECONTROL_MAEMO_H
+#endif // CAMERABINEXPOSURECONTROL_H

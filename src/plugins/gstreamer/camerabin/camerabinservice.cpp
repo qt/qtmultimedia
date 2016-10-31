@@ -73,19 +73,10 @@
 #endif
 #include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideorenderer_p.h>
-
-#if defined(Q_WS_MAEMO_6) && defined(__arm__)
-#include "qgstreamergltexturerenderer.h"
-#endif
-
 #include <private/qmediaserviceprovider_p.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qprocess.h>
-
-#if defined(Q_WS_MAEMO_6)
-#include "camerabuttonlistener_meego.h"
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -119,17 +110,9 @@ CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *pa
     if (m_videoInputDevice->deviceCount())
         m_captureSession->setDevice(m_videoInputDevice->deviceName(m_videoInputDevice->selectedDevice()));
 
-#if defined(Q_WS_MAEMO_6) && defined(__arm__) && defined(HAVE_WIDGETS)
-    m_videoRenderer = new QGstreamerGLTextureRenderer(this);
-#else
     m_videoRenderer = new QGstreamerVideoRenderer(this);
-#endif
 
-#ifdef Q_WS_MAEMO_6
-    m_videoWindow = new QGstreamerVideoWindow(this, "omapxvsink");
-#else
     m_videoWindow = new QGstreamerVideoWindow(this);
-#endif
     // If the GStreamer video sink is not available, don't provide the video window control since
     // it won't work anyway.
     if (!m_videoWindow->videoSink()) {
@@ -156,10 +139,6 @@ CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *pa
     m_metaDataControl = new CameraBinMetaData(this);
     connect(m_metaDataControl, SIGNAL(metaDataChanged(QMap<QByteArray,QVariant>)),
             m_captureSession, SLOT(setMetaData(QMap<QByteArray,QVariant>)));
-
-#if defined(Q_WS_MAEMO_6)
-    new CameraButtonListener(this);
-#endif
 }
 
 CameraBinService::~CameraBinService()

@@ -17,26 +17,10 @@ PUBLIC_HEADERS += \
 
 SOURCES += \
     qcameraviewfinder.cpp \
+    qgraphicsvideoitem.cpp \
     qpaintervideosurface.cpp \
     qvideowidgetcontrol.cpp \
     qvideowidget.cpp
-
-maemo6 {
-    qtConfig(opengles2) {
-        PRIVATE_HEADERS += qeglimagetexturesurface_p.h
-        SOURCES += qeglimagetexturesurface.cpp
-
-        SOURCES += qgraphicsvideoitem_maemo6.cpp
-
-        LIBS_PRIVATE += -lX11
-    } else {
-        SOURCES += qgraphicsvideoitem.cpp
-    }
-}
-
-!maemo* {
-    SOURCES += qgraphicsvideoitem.cpp
-}
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
 

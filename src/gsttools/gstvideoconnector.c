@@ -410,11 +410,7 @@ gst_video_connector_chain (GstPad * pad, GstBuffer * buf)
         element->latest_buffer = NULL;
     }
 
-    //don't save the last video buffer on maemo6 because of buffers shortage
-    //with omapxvsink
-#ifndef Q_WS_MAEMO_6
     element->latest_buffer = gst_buffer_ref(buf);
-#endif
 
     gst_buffer_unref(buf);
     gst_object_unref (element);

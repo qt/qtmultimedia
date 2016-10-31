@@ -52,16 +52,6 @@ SOURCES += \
     $$PWD/camerabincapturebufferformat.cpp \
     $$PWD/camerabininfocontrol.cpp
 
-maemo6 {
-    HEADERS += \
-        $$PWD/camerabuttonlistener_meego.h
-
-    SOURCES += \
-        $$PWD/camerabuttonlistener_meego.cpp
-
-    CONFIG += have_gst_photography
-}
-
 qtConfig(gstreamer_photography) {
     DEFINES += HAVE_GST_PHOTOGRAPHY
 

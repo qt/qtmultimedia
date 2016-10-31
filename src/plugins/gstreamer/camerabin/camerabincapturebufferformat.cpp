@@ -57,11 +57,7 @@ QList<QVideoFrame::PixelFormat> CameraBinCaptureBufferFormat::supportedBufferFor
 {
     //the exact YUV format is unknown with camerabin until the first capture is requested
     return QList<QVideoFrame::PixelFormat>()
-            << QVideoFrame::Format_Jpeg
-#ifdef Q_WS_MAEMO_6
-            << QVideoFrame::Format_UYVY
-#endif
-            ;
+            << QVideoFrame::Format_Jpeg;
 }
 
 QVideoFrame::PixelFormat CameraBinCaptureBufferFormat::bufferFormat() const
