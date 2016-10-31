@@ -44,13 +44,7 @@
 #include "mmrendererutil.h"
 #include "mmrenderervideowindowcontrol.h"
 
-#ifdef Q_OS_BLACKBERRY
-#include "bpsmediaplayercontrol.h"
-typedef BpsMediaPlayerControl PlatformSpecificMediaPlayerControl;
-#else
 #include "ppsmediaplayercontrol.h"
-typedef PpsMediaPlayerControl PlatformSpecificMediaPlayerControl;
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -78,7 +72,7 @@ QMediaControl *MmRendererMediaPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         if (!m_mediaPlayerControl) {
-            m_mediaPlayerControl = new PlatformSpecificMediaPlayerControl;
+            m_mediaPlayerControl = new PpsMediaPlayerControl;
             updateControls();
         }
         return m_mediaPlayerControl;

@@ -22,7 +22,7 @@ qnx {
     SUBDIRS += audiocapture
 }
 
-qnx:!blackberry {
+qnx {
     SUBDIRS += qnx-audio
 }
 
