@@ -62,6 +62,7 @@ struct AndroidCameraInfo
     QCamera::Position position;
     int orientation;
 };
+Q_DECLARE_TYPEINFO(AndroidCameraInfo, Q_MOVABLE_TYPE);
 
 class AndroidCamera : public QObject
 {

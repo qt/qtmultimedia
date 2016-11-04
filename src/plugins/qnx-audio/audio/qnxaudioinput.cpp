@@ -282,7 +282,7 @@ bool QnxAudioInput::open()
     }
 
     // Necessary so that bytesFree() which uses the "free" member of the status struct works
-    snd_pcm_plugin_set_disable(m_pcmHandle, PLUGIN_DISABLE_MMAP);
+    snd_pcm_plugin_set_disable(m_pcmHandle, PLUGIN_MMAP);
 
     snd_pcm_channel_info_t info;
     memset(&info, 0, sizeof(info));

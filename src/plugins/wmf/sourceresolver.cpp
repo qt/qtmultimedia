@@ -37,12 +37,13 @@
 **
 ****************************************************************************/
 
-#include "mfplayersession.h"
 #include "mfstream.h"
 #include "sourceresolver.h"
 #include <Mferror.h>
 #include <nserror.h>
 #include <QtCore/qfile.h>
+#include <QtCore/qdebug.h>
+#include <QtMultimedia/qmediaplayer.h>
 
 /*
     SourceResolver is separated from MFPlayerSession to handle the work of resolving a media source

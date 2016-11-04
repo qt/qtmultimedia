@@ -236,7 +236,7 @@ STDMETHODIMP MFStream::Seek(
         break;
     }
     bool seekOK = m_stream->seek(pos);
-    if (*pqwCurrentPosition)
+    if (pqwCurrentPosition)
         *pqwCurrentPosition = pos;
     if (seekOK)
         return S_OK;
