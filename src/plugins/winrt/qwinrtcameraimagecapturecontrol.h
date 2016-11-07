@@ -40,6 +40,7 @@
 #ifndef QWINRTCAMERAIMAGECAPTURECONTROL_H
 #define QWINRTCAMERAIMAGECAPTURECONTROL_H
 
+#include <QtMultimedia/QCamera>
 #include <QtMultimedia/QCameraImageCaptureControl>
 #include <QtCore/qt_windows.h>
 
@@ -70,6 +71,9 @@ public:
 
     int capture(const QString &fileName) Q_DECL_OVERRIDE;
     void cancelCapture() Q_DECL_OVERRIDE;
+
+private slots:
+    void updateReadyForCapture(QCamera::State state);
 
 signals:
     void captureQueueChanged(bool isEmpty);

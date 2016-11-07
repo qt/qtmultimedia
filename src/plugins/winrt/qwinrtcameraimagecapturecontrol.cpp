@@ -128,7 +128,7 @@ QWinRTCameraImageCaptureControl::QWinRTCameraImageCaptureControl(QWinRTCameraCon
 
     d->cameraControl = parent;
     connect(d->cameraControl, &QCameraControl::stateChanged,
-            this, &QWinRTCameraImageCaptureControl::readyForCaptureChanged);
+            this, &QWinRTCameraImageCaptureControl::updateReadyForCapture);
     d->currentCaptureId = 0;
 }
 
@@ -213,6 +213,11 @@ void QWinRTCameraImageCaptureControl::cancelCapture()
         it = d->requests.erase(it);
     }
     emit captureQueueChanged(true);
+}
+
+void QWinRTCameraImageCaptureControl::updateReadyForCapture(QCamera::State state)
+{
+    emit readyForCaptureChanged(state != QCamera::UnloadedState);
 }
 
 HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncInfo, AsyncStatus status)
