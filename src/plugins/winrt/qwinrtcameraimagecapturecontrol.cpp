@@ -109,15 +109,16 @@ struct CaptureRequest
 class QWinRTCameraImageCaptureControlPrivate
 {
 public:
+    QWinRTCameraImageCaptureControlPrivate()
+        : isActive(false)
+    {
+    }
+
     QPointer<QWinRTCameraControl> cameraControl;
     QHash<IAsyncAction *, CaptureRequest> requests;
     quint16 currentCaptureId;
     QMediaStorageLocation location;
-
-    void onCameraStateChanged()
-    {
-
-    }
+    bool isActive;
 };
 
 QWinRTCameraImageCaptureControl::QWinRTCameraImageCaptureControl(QWinRTCameraControl *parent)
@@ -128,14 +129,14 @@ QWinRTCameraImageCaptureControl::QWinRTCameraImageCaptureControl(QWinRTCameraCon
 
     d->cameraControl = parent;
     connect(d->cameraControl, &QCameraControl::stateChanged,
-            this, &QWinRTCameraImageCaptureControl::updateReadyForCapture);
+            this, &QWinRTCameraImageCaptureControl::onCameraStateChanged);
     d->currentCaptureId = 0;
 }
 
 bool QWinRTCameraImageCaptureControl::isReadyForCapture() const
 {
     Q_D(const QWinRTCameraImageCaptureControl);
-    return d->cameraControl->state() == QCamera::ActiveState;
+    return d->isActive;
 }
 
 QCameraImageCapture::DriveMode QWinRTCameraImageCaptureControl::driveMode() const
@@ -215,9 +216,15 @@ void QWinRTCameraImageCaptureControl::cancelCapture()
     emit captureQueueChanged(true);
 }
 
-void QWinRTCameraImageCaptureControl::updateReadyForCapture(QCamera::State state)
+void QWinRTCameraImageCaptureControl::onCameraStateChanged(QCamera::State state)
 {
-    emit readyForCaptureChanged(state != QCamera::UnloadedState);
+    Q_D(QWinRTCameraImageCaptureControl);
+    const bool newActive = state == QCamera::ActiveState;
+    if (d->isActive == newActive)
+        return;
+
+    d->isActive = newActive;
+    emit readyForCaptureChanged(newActive);
 }
 
 HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncInfo, AsyncStatus status)

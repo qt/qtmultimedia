@@ -73,7 +73,7 @@ public:
     void cancelCapture() Q_DECL_OVERRIDE;
 
 private slots:
-    void updateReadyForCapture(QCamera::State state);
+    void onCameraStateChanged(QCamera::State state);
 
 signals:
     void captureQueueChanged(bool isEmpty);
