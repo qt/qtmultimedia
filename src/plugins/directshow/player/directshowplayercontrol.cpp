@@ -200,7 +200,7 @@ qreal DirectShowPlayerControl::playbackRate() const
 
 void DirectShowPlayerControl::setPlaybackRate(qreal rate)
 {
-    if (m_playbackRate != rate) {
+    if (!qFuzzyCompare(m_playbackRate, rate)) {
         m_service->setRate(rate);
 
         emit playbackRateChanged(m_playbackRate = rate);
@@ -370,7 +370,7 @@ void DirectShowPlayerControl::updateMediaInfo(qint64 duration, int streamTypes, 
 
 void DirectShowPlayerControl::updatePlaybackRate(qreal rate)
 {
-    if (m_playbackRate != rate) {
+    if (!qFuzzyCompare(m_playbackRate, rate)) {
         m_playbackRate = rate;
 
         scheduleUpdate(PlaybackRateProperty);
