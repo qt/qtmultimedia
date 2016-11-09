@@ -43,6 +43,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/QFile>
 
+#include "directshowglobal.h"
 #include "dsserviceplugin.h"
 
 #ifdef QMEDIA_DIRECTSHOW_CAMERA
@@ -78,6 +79,8 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 #endif
 
 QT_USE_NAMESPACE
+
+Q_LOGGING_CATEGORY(qtDirectShowPlugin, "qt.multimedia.plugins.directshow")
 
 static int g_refCount = 0;
 void addRefCount()

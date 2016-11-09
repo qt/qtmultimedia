@@ -43,6 +43,13 @@
 #include <dshow.h>
 
 #include <QtCore/qglobal.h>
+#include <QtCore/qloggingcategory.h>
+
+QT_BEGIN_NAMESPACE
+
+Q_DECLARE_LOGGING_CATEGORY(qtDirectShowPlugin)
+
+QT_END_NAMESPACE
 
 template <typename T> T *com_cast(IUnknown *unknown, const IID &iid)
 {
