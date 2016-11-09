@@ -9,7 +9,8 @@ HEADERS += \
     $$PWD/directshowobject.h \
     $$PWD/directshowpin.h \
     $$PWD/directshowpinenum.h \
-    $$PWD/directshowvideobuffer.h
+    $$PWD/directshowvideobuffer.h \
+    $$PWD/directshowutils.h
 
 SOURCES += \
     $$PWD/directshowbasefilter.cpp \
@@ -19,4 +20,5 @@ SOURCES += \
     $$PWD/directshowobject.cpp \
     $$PWD/directshowpin.cpp \
     $$PWD/directshowpinenum.cpp \
-    $$PWD/directshowvideobuffer.cpp
+    $$PWD/directshowvideobuffer.cpp \
+    $$PWD/directshowutils.cpp

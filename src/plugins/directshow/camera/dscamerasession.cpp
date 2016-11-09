@@ -49,10 +49,9 @@
 #include "dsvideorenderer.h"
 #include "directshowcameraglobal.h"
 #include "directshowmediatype.h"
+#include "directshowutils.h"
 
 QT_BEGIN_NAMESPACE
-
-static HRESULT getPin(IBaseFilter *filter, PIN_DIRECTION pinDir, IPin **pin);
 
 class SampleGrabberCallbackPrivate : public ISampleGrabberCB
 {
@@ -1036,8 +1035,7 @@ void DSCameraSession::updateSourceCapabilities()
         qWarning() << "Failed to get the video control";
     } else {
         IPin *pPin = 0;
-        hr = getPin(m_sourceFilter, PINDIR_OUTPUT, &pPin);
-        if (FAILED(hr)) {
+        if (!DirectShowUtils::getPin(m_sourceFilter, PINDIR_OUTPUT, &pPin, &hr)) {
             qWarning() << "Failed to get the pin for the video control";
         } else {
             long supportedModes;
@@ -1089,8 +1087,7 @@ void DSCameraSession::updateSourceCapabilities()
 
                 if (pVideoControl) {
                     IPin *pPin = 0;
-                    hr = getPin(m_sourceFilter, PINDIR_OUTPUT, &pPin);
-                    if (FAILED(hr)) {
+                    if (!DirectShowUtils::getPin(m_sourceFilter, PINDIR_OUTPUT, &pPin, &hr)) {
                         qWarning() << "Failed to get the pin for the video control";
                     } else {
                         long listSize = 0;
@@ -1135,32 +1132,6 @@ void DSCameraSession::updateSourceCapabilities()
     pConfig->Release();
 
     updateImageProcessingParametersInfos();
-}
-
-HRESULT getPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin)
-{
-    *ppPin = 0;
-    IEnumPins *pEnum = 0;
-    IPin *pPin = 0;
-
-    HRESULT hr = pFilter->EnumPins(&pEnum);
-    if (FAILED(hr)) {
-        return hr;
-    }
-
-    pEnum->Reset();
-    while (pEnum->Next(1, &pPin, NULL) == S_OK) {
-        PIN_DIRECTION ThisPinDir;
-        pPin->QueryDirection(&ThisPinDir);
-        if (ThisPinDir == PinDir) {
-            pEnum->Release();
-            *ppPin = pPin;
-            return S_OK;
-        }
-        pPin->Release();
-    }
-    pEnum->Release();
-    return E_FAIL;
 }
 
 QT_END_NAMESPACE
