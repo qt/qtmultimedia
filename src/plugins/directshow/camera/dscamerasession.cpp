@@ -47,75 +47,12 @@
 
 #include "dscamerasession.h"
 #include "dsvideorenderer.h"
+#include "directshowsamplegrabber.h"
 #include "directshowcameraglobal.h"
 #include "directshowmediatype.h"
 #include "directshowutils.h"
 
 QT_BEGIN_NAMESPACE
-
-class SampleGrabberCallbackPrivate : public ISampleGrabberCB
-{
-public:
-    explicit SampleGrabberCallbackPrivate(DSCameraSession *session)
-        : m_ref(1)
-        , m_session(session)
-    { }
-
-    virtual ~SampleGrabberCallbackPrivate() { }
-
-    STDMETHODIMP_(ULONG) AddRef()
-    {
-        return InterlockedIncrement(&m_ref);
-    }
-
-    STDMETHODIMP_(ULONG) Release()
-    {
-        ULONG ref = InterlockedDecrement(&m_ref);
-        if (ref == 0)
-            delete this;
-        return ref;
-    }
-
-    STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject)
-    {
-        if (NULL == ppvObject)
-            return E_POINTER;
-        if (riid == IID_IUnknown /*__uuidof(IUnknown) */ ) {
-            *ppvObject = static_cast<IUnknown*>(this);
-            return S_OK;
-        }
-        if (riid == IID_ISampleGrabberCB /*__uuidof(ISampleGrabberCB)*/ ) {
-            *ppvObject = static_cast<ISampleGrabberCB*>(this);
-            return S_OK;
-        }
-        return E_NOTIMPL;
-    }
-
-    STDMETHODIMP SampleCB(double Time, IMediaSample *pSample)
-    {
-        Q_UNUSED(Time)
-        Q_UNUSED(pSample)
-        return E_NOTIMPL;
-    }
-
-    STDMETHODIMP BufferCB(double time, BYTE *pBuffer, long bufferLen)
-    {
-        // We display frames as they arrive, the presentation time is
-        // irrelevant
-        Q_UNUSED(time);
-
-        if (m_session) {
-           m_session->onFrameAvailable(reinterpret_cast<const char *>(pBuffer),
-                                       bufferLen);
-        }
-
-        return S_OK;
-    }
-
-private:
-    ULONG m_ref;
-    DSCameraSession *m_session;
-};
 
 DSCameraSession::DSCameraSession(QObject *parent)
     : QObject(parent)
@@ -124,7 +61,6 @@ DSCameraSession::DSCameraSession(QObject *parent)
     , m_sourceDeviceName(QLatin1String("default"))
     , m_sourceFilter(Q_NULLPTR)
     , m_needsHorizontalMirroring(false)
-    , m_previewFilter(Q_NULLPTR)
     , m_previewSampleGrabber(Q_NULLPTR)
     , m_nullRendererFilter(Q_NULLPTR)
     , m_previewStarted(false)
@@ -423,12 +359,13 @@ bool DSCameraSession::unload()
 
     setStatus(QCamera::UnloadingStatus);
 
+    m_previewSampleGrabber->deleteLater();
+    m_previewSampleGrabber = nullptr;
+
     m_needsHorizontalMirroring = false;
     m_supportedViewfinderSettings.clear();
     m_supportedFormats.clear();
     SAFE_RELEASE(m_sourceFilter);
-    SAFE_RELEASE(m_previewSampleGrabber);
-    SAFE_RELEASE(m_previewFilter);
     SAFE_RELEASE(m_nullRendererFilter);
     SAFE_RELEASE(m_filterGraph);
     SAFE_RELEASE(m_graphBuilder);
@@ -494,6 +431,9 @@ bool DSCameraSession::stopPreview()
         return true;
 
     setStatus(QCamera::StoppingStatus);
+
+    if (m_previewSampleGrabber)
+        m_previewSampleGrabber->stop();
 
     IMediaControl* pControl = 0;
     HRESULT hr = m_filterGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
@@ -569,12 +509,12 @@ int DSCameraSession::captureImage(const QString &fileName)
     return m_imageIdCounter;
 }
 
-void DSCameraSession::onFrameAvailable(const char *frameData, long len)
+void DSCameraSession::onFrameAvailable(double time, quint8 *buffer, long len)
 {
     // !!! Not called on the main thread
-
+    Q_UNUSED(time);
     // Deep copy, the data might be modified or freed after the callback returns
-    QByteArray data(frameData, len);
+    QByteArray data(reinterpret_cast<const char *>(buffer), len);
 
     m_presentMutex.lock();
 
@@ -763,26 +703,12 @@ bool DSCameraSession::createFilterGraph()
     }
 
     // Sample grabber filter
-    hr = CoCreateInstance(cLSID_SampleGrabber, NULL,CLSCTX_INPROC,
-                          IID_IBaseFilter, (void**)&m_previewFilter);
-    if (FAILED(hr)) {
-        qWarning() << "failed to create sample grabber";
-        goto failed;
+    if (!m_previewSampleGrabber) {
+        m_previewSampleGrabber = new DirectShowSampleGrabber;
+        connect(m_previewSampleGrabber, &DirectShowSampleGrabber::bufferAvailable,
+                this, &DSCameraSession::onFrameAvailable);
     }
 
-    hr = m_previewFilter->QueryInterface(iID_ISampleGrabber, (void**)&m_previewSampleGrabber);
-    if (FAILED(hr)) {
-        qWarning() << "failed to get sample grabber";
-        goto failed;
-    }
-
-    {
-        SampleGrabberCallbackPrivate *callback = new SampleGrabberCallbackPrivate(this);
-        m_previewSampleGrabber->SetCallback(callback, 1);
-        m_previewSampleGrabber->SetOneShot(FALSE);
-        m_previewSampleGrabber->SetBufferSamples(FALSE);
-        callback->Release();
-    }
 
     // Null renderer. Input connected to the sample grabber's output. Simply
     // discard the samples it receives.
@@ -800,8 +726,6 @@ bool DSCameraSession::createFilterGraph()
 failed:
     m_needsHorizontalMirroring = false;
     SAFE_RELEASE(m_sourceFilter);
-    SAFE_RELEASE(m_previewSampleGrabber);
-    SAFE_RELEASE(m_previewFilter);
     SAFE_RELEASE(m_nullRendererFilter);
     SAFE_RELEASE(m_filterGraph);
     SAFE_RELEASE(m_graphBuilder);
@@ -879,9 +803,10 @@ bool DSCameraSession::configurePreviewFormat()
 
     // Set sample grabber format (always RGB32)
     static const AM_MEDIA_TYPE grabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_RGB32, 0, 0, 0, FORMAT_VideoInfo };
-    hr = m_previewSampleGrabber->SetMediaType(&grabberFormat);
-    if (FAILED(hr))
+    if (!m_previewSampleGrabber->setMediaType(&grabberFormat))
         return false;
+
+    m_previewSampleGrabber->start(DirectShowSampleGrabber::CallbackMethod::BufferCB);
 
     return true;
 }
@@ -969,8 +894,7 @@ bool DSCameraSession::connectGraph()
         return false;
     }
 
-    hr = m_filterGraph->AddFilter(m_previewFilter, L"Sample Grabber");
-    if (FAILED(hr)) {
+    if (FAILED(m_filterGraph->AddFilter(m_previewSampleGrabber->filter(), L"Sample Grabber"))) {
         qWarning() << "failed to add sample grabber to graph";
         return false;
     }
@@ -983,7 +907,7 @@ bool DSCameraSession::connectGraph()
 
     hr = m_graphBuilder->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
                                       m_sourceFilter,
-                                      m_previewFilter,
+                                      m_previewSampleGrabber->filter(),
                                       m_nullRendererFilter);
     if (FAILED(hr)) {
         qWarning() << "Graph failed to connect filters" << hr;

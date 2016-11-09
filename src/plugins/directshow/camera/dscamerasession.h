@@ -72,11 +72,10 @@
 #define __IDxtKey_INTERFACE_DEFINED__
 
 struct ICaptureGraphBuilder2;
-struct ISampleGrabber;
 
 QT_BEGIN_NAMESPACE
 
-class SampleGrabberCallbackPrivate;
+class DirectShowSampleGrabber;
 
 class DSCameraSession : public QObject
 {
@@ -155,7 +154,7 @@ private:
 
     void setStatus(QCamera::Status status);
 
-    void onFrameAvailable(const char *frameData, long len);
+    void onFrameAvailable(double time, quint8 *buffer, long len);
     void saveCapturedImage(int id, const QImage &image, const QString &path);
 
     bool createFilterGraph();
@@ -189,8 +188,7 @@ private:
     QMap<QCameraImageProcessingControl::ProcessingParameter, ImageProcessingParameterInfo> m_imageProcessingParametersInfos;
 
     // Preview
-    IBaseFilter *m_previewFilter;
-    ISampleGrabber *m_previewSampleGrabber;
+    DirectShowSampleGrabber *m_previewSampleGrabber;
     IBaseFilter *m_nullRendererFilter;
     QVideoFrame m_currentFrame;
     bool m_previewStarted;
