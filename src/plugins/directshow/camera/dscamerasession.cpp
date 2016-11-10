@@ -1078,40 +1078,10 @@ bool DSCameraSession::connectGraph()
 
 void DSCameraSession::disconnectGraph()
 {
-    IPin *pPin = 0;
-    HRESULT hr = getPin(m_sourceFilter, PINDIR_OUTPUT, &pPin);
-    if (SUCCEEDED(hr)) {
-        m_filterGraph->Disconnect(pPin);
-        pPin->Release();
-        pPin = NULL;
-    }
-
-    hr = getPin(m_previewFilter, PINDIR_INPUT, &pPin);
-    if (SUCCEEDED(hr)) {
-        m_filterGraph->Disconnect(pPin);
-        pPin->Release();
-        pPin = NULL;
-    }
-
-    hr = getPin(m_previewFilter, PINDIR_OUTPUT, &pPin);
-    if (SUCCEEDED(hr)) {
-        m_filterGraph->Disconnect(pPin);
-        pPin->Release();
-        pPin = NULL;
-    }
-
-    hr = getPin(m_nullRendererFilter, PINDIR_INPUT, &pPin);
-    if (SUCCEEDED(hr)) {
-        m_filterGraph->Disconnect(pPin);
-        pPin->Release();
-        pPin = NULL;
-    }
-
     // To avoid increasing the memory usage every time the graph is re-connected it's
     // important that all filters are released; also the ones added by the "Intelligent Connect".
     IEnumFilters *enumFilters = NULL;
-    hr = m_filterGraph->EnumFilters(&enumFilters);
-    if (SUCCEEDED(hr))  {
+    if (SUCCEEDED(m_filterGraph->EnumFilters(&enumFilters)))  {
         IBaseFilter *filter = NULL;
         while (enumFilters->Next(1, &filter, NULL) == S_OK) {
                 m_filterGraph->RemoveFilter(filter);
