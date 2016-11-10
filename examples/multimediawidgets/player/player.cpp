@@ -47,6 +47,7 @@
 #include <QMediaService>
 #include <QMediaPlaylist>
 #include <QVideoProbe>
+#include <QAudioProbe>
 #include <QMediaMetaData>
 #include <QtWidgets>
 
@@ -73,6 +74,7 @@ Player::Player(QWidget *parent)
     connect(player, SIGNAL(bufferStatusChanged(int)), this, SLOT(bufferingProgress(int)));
     connect(player, SIGNAL(videoAvailableChanged(bool)), this, SLOT(videoAvailableChanged(bool)));
     connect(player, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(displayErrorMessage()));
+    connect(player, &QMediaPlayer::stateChanged, this, &Player::stateChanged);
 
 //! [2]
     videoWidget = new VideoWidget(this);
@@ -96,14 +98,20 @@ Player::Player(QWidget *parent)
 
     labelHistogram = new QLabel(this);
     labelHistogram->setText("Histogram:");
-    histogram = new HistogramWidget(this);
+    videoHistogram = new HistogramWidget(this);
+    audioHistogram = new HistogramWidget(this);
     QHBoxLayout *histogramLayout = new QHBoxLayout;
     histogramLayout->addWidget(labelHistogram);
-    histogramLayout->addWidget(histogram, 1);
+    histogramLayout->addWidget(videoHistogram, 1);
+    histogramLayout->addWidget(audioHistogram, 2);
 
-    probe = new QVideoProbe(this);
-    connect(probe, SIGNAL(videoFrameProbed(QVideoFrame)), histogram, SLOT(processFrame(QVideoFrame)));
-    probe->setSource(player);
+    videoProbe = new QVideoProbe(this);
+    connect(videoProbe, SIGNAL(videoFrameProbed(QVideoFrame)), videoHistogram, SLOT(processFrame(QVideoFrame)));
+    videoProbe->setSource(player);
+
+    audioProbe = new QAudioProbe(this);
+    connect(audioProbe, SIGNAL(audioBufferProbed(QAudioBuffer)), audioHistogram, SLOT(processBuffer(QAudioBuffer)));
+    audioProbe->setSource(player);
 
     QPushButton *openButton = new QPushButton(tr("Open"), this);
 
@@ -269,6 +277,7 @@ void Player::jump(const QModelIndex &index)
 
 void Player::playlistPositionChanged(int currentItem)
 {
+    clearHistogram();
     playlistView->setCurrentIndex(playlistModel->index(currentItem, 0));
 }
 
@@ -303,6 +312,12 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
         displayErrorMessage();
         break;
     }
+}
+
+void Player::stateChanged(QMediaPlayer::State state)
+{
+    if (state == QMediaPlayer::StoppedState)
+        clearHistogram();
 }
 
 void Player::handleCursor(QMediaPlayer::MediaStatus status)
@@ -422,4 +437,10 @@ void Player::showColorDialog()
         connect(button, SIGNAL(clicked()), colorDialog, SLOT(close()));
     }
     colorDialog->show();
+}
+
+void Player::clearHistogram()
+{
+    QMetaObject::invokeMethod(videoHistogram, "processFrame", Qt::QueuedConnection, Q_ARG(QVideoFrame, QVideoFrame()));
+    QMetaObject::invokeMethod(audioHistogram, "processBuffer", Qt::QueuedConnection, Q_ARG(QAudioBuffer, QAudioBuffer()));
 }
