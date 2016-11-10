@@ -45,39 +45,48 @@
 #include <qvideosurfaceformat.h>
 
 #include <dvdmedia.h>
+#include <QtCore/qglobal.h>
 
 QT_USE_NAMESPACE
 
-class DirectShowMediaType : public AM_MEDIA_TYPE
+class DirectShowMediaType
 {
 public:
-    DirectShowMediaType() { init(this); }
-    DirectShowMediaType(const AM_MEDIA_TYPE &type) { copy(this, type); }
-    DirectShowMediaType(const DirectShowMediaType &other) { copy(this, other); }
-    DirectShowMediaType &operator =(const AM_MEDIA_TYPE &type) {
-        freeData(this); copy(this, type); return *this; }
-    DirectShowMediaType &operator =(const DirectShowMediaType &other) {
-        freeData(this); copy(this, other); return *this; }
-    ~DirectShowMediaType() { freeData(this); }
+    DirectShowMediaType();
+    DirectShowMediaType(const DirectShowMediaType &other);
+    DirectShowMediaType(DirectShowMediaType &&other);
+    explicit DirectShowMediaType(const AM_MEDIA_TYPE &type);
+    explicit DirectShowMediaType(AM_MEDIA_TYPE &&type);
+    ~DirectShowMediaType() { clear(mediaType); }
 
-    void clear() { freeData(this); init(this); }
+    DirectShowMediaType &operator =(const DirectShowMediaType &other);
+    DirectShowMediaType &operator =(DirectShowMediaType &&other);
 
-    bool isPartiallySpecified() const;
-    bool isCompatibleWith(const DirectShowMediaType *type) const;
+    void clear() { clear(mediaType); }
+
+    inline AM_MEDIA_TYPE *operator &() Q_DECL_NOTHROW { return &mediaType; }
+    inline AM_MEDIA_TYPE *operator ->() Q_DECL_NOTHROW { return &mediaType; }
+
+    inline const AM_MEDIA_TYPE *const operator &() const Q_DECL_NOTHROW { return &mediaType; }
+    inline const AM_MEDIA_TYPE *const operator ->() const Q_DECL_NOTHROW { return &mediaType; }
 
     static void init(AM_MEDIA_TYPE *type);
-    static void copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE &source);
-    static void freeData(AM_MEDIA_TYPE *type);
+    static void copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source);
+    static void move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE **source);
+    static void move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE &source);
+    static void clear(AM_MEDIA_TYPE &type);
     static void deleteType(AM_MEDIA_TYPE *type);
-
+    static bool isPartiallySpecified(const AM_MEDIA_TYPE *mediaType);
+    static bool isCompatible(const AM_MEDIA_TYPE *a, const AM_MEDIA_TYPE *b);
     static GUID convertPixelFormat(QVideoFrame::PixelFormat format);
-    static QVideoSurfaceFormat formatFromType(const AM_MEDIA_TYPE &type);
-    static QVideoFrame::PixelFormat pixelFormatFromType(const AM_MEDIA_TYPE &type);
 
+    static QVideoSurfaceFormat videoFormatFromType(const AM_MEDIA_TYPE *type);
+    static QVideoFrame::PixelFormat pixelFormatFromType(const AM_MEDIA_TYPE *type);
     static int bytesPerLine(const QVideoSurfaceFormat &format);
+    static QVideoSurfaceFormat::Direction scanLineDirection(QVideoFrame::PixelFormat pixelFormat, const BITMAPINFOHEADER &bmiHeader);
 
 private:
-    static QVideoSurfaceFormat::Direction scanLineDirection(QVideoFrame::PixelFormat pixelFormat, const BITMAPINFOHEADER &bmiHeader);
+    AM_MEDIA_TYPE mediaType;
 };
 
 Q_DECLARE_TYPEINFO(DirectShowMediaType, Q_MOVABLE_TYPE);

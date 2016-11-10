@@ -83,8 +83,8 @@ public:
     STDMETHODIMP_(ULONG) GetMiscFlags();
 
     // DirectShowPin (delegate)
-    bool isMediaTypeSupported(const DirectShowMediaType *type);
-    bool setMediaType(const DirectShowMediaType *type);
+    bool isMediaTypeSupported(const AM_MEDIA_TYPE *type);
+    bool setMediaType(const AM_MEDIA_TYPE *type);
     HRESULT completeConnection(IPin *pin);
     HRESULT connectionEnded();
 

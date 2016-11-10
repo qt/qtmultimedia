@@ -81,22 +81,20 @@ HRESULT DirectShowPin::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
     if (pd == m_direction)
         return VFW_E_INVALID_DIRECTION;
 
-    const DirectShowMediaType *type = reinterpret_cast<const DirectShowMediaType*>(pmt);
-
-    if (type != NULL && !type->isPartiallySpecified()) {
+    if (pmt != NULL && DirectShowMediaType::isPartiallySpecified(pmt)) {
         // If the type is fully specified, use it
-        hr = tryConnect(pReceivePin, type);
+        hr = tryConnect(pReceivePin, pmt);
     } else {
         IEnumMediaTypes *enumMediaTypes = NULL;
 
         // First, try the receiving pin's preferred types
         if (SUCCEEDED(pReceivePin->EnumMediaTypes(&enumMediaTypes))) {
-            hr = tryMediaTypes(pReceivePin, type, enumMediaTypes);
+            hr = tryMediaTypes(pReceivePin, pmt, enumMediaTypes);
             enumMediaTypes->Release();
         }
         // Then, try this pin's preferred types
         if (FAILED(hr) && SUCCEEDED(EnumMediaTypes(&enumMediaTypes))) {
-            hr = tryMediaTypes(pReceivePin, type, enumMediaTypes);
+            hr = tryMediaTypes(pReceivePin, pmt, enumMediaTypes);
             enumMediaTypes->Release();
         }
     }
@@ -109,19 +107,19 @@ HRESULT DirectShowPin::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
     return S_OK;
 }
 
-HRESULT DirectShowPin::tryMediaTypes(IPin *pin, const DirectShowMediaType *partialType, IEnumMediaTypes *enumMediaTypes)
+HRESULT DirectShowPin::tryMediaTypes(IPin *pin, const AM_MEDIA_TYPE *partialType, IEnumMediaTypes *enumMediaTypes)
 {
     HRESULT hr = enumMediaTypes->Reset();
     if (FAILED(hr))
         return hr;
 
-    DirectShowMediaType *mediaType = NULL;
+    AM_MEDIA_TYPE *mediaType = NULL;
     ULONG mediaCount = 0;
     HRESULT hrFailure = VFW_E_NO_ACCEPTABLE_TYPES;
 
-    for (; enumMediaTypes->Next(1, reinterpret_cast<AM_MEDIA_TYPE**>(&mediaType), &mediaCount) == S_OK;) {
+    for (; enumMediaTypes->Next(1, &mediaType, &mediaCount) == S_OK;) {
 
-        if (mediaType && (partialType == NULL || mediaType->isCompatibleWith(partialType))) {
+        if (mediaType && (partialType == NULL || DirectShowMediaType::isCompatible(mediaType, partialType))) {
             hr = tryConnect(pin, mediaType);
 
             if (FAILED(hr) && (hr != E_FAIL)
@@ -141,7 +139,7 @@ HRESULT DirectShowPin::tryMediaTypes(IPin *pin, const DirectShowMediaType *parti
     return hrFailure;
 }
 
-HRESULT DirectShowPin::tryConnect(IPin *pin, const DirectShowMediaType *type)
+HRESULT DirectShowPin::tryConnect(IPin *pin, const AM_MEDIA_TYPE *type)
 {
     if (!isMediaTypeSupported(type))
         return VFW_E_TYPE_NOT_ACCEPTED;
@@ -189,15 +187,14 @@ HRESULT DirectShowPin::ReceiveConnection(IPin *pConnector, const AM_MEDIA_TYPE *
     if (pd == m_direction)
         return VFW_E_INVALID_DIRECTION;
 
-    const DirectShowMediaType *type = reinterpret_cast<const DirectShowMediaType*>(pmt);
-    if (!isMediaTypeSupported(type))
+    if (!isMediaTypeSupported(pmt))
         return VFW_E_TYPE_NOT_ACCEPTED;
 
     m_peerPin = pConnector;
     m_peerPin->AddRef();
 
     HRESULT hr;
-    if (!setMediaType(type))
+    if (!setMediaType(pmt))
         hr = VFW_E_TYPE_NOT_ACCEPTED;
     else
         hr = completeConnection(pConnector);
@@ -265,7 +262,7 @@ HRESULT DirectShowPin::ConnectionMediaType(AM_MEDIA_TYPE *pmt)
             DirectShowMediaType::init(pmt);
             return VFW_E_NOT_CONNECTED;
         } else {
-            DirectShowMediaType::copy(pmt, m_mediaType);
+            DirectShowMediaType::copy(pmt, &m_mediaType);
             return S_OK;
         }
     }
@@ -309,7 +306,7 @@ HRESULT DirectShowPin::QueryAccept(const AM_MEDIA_TYPE *pmt)
     if (!pmt)
         return E_POINTER;
 
-    if (!isMediaTypeSupported(reinterpret_cast<const DirectShowMediaType*>(pmt)))
+    if (!isMediaTypeSupported(pmt))
         return S_FALSE;
 
     return S_OK;
@@ -370,12 +367,12 @@ QList<DirectShowMediaType> DirectShowPin::supportedMediaTypes()
     return QList<DirectShowMediaType>();
 }
 
-bool DirectShowPin::setMediaType(const DirectShowMediaType *type)
+bool DirectShowPin::setMediaType(const AM_MEDIA_TYPE *type)
 {
     if (!type)
         m_mediaType.clear();
     else
-        m_mediaType = *type;
+        DirectShowMediaType::copy(&m_mediaType, type);
 
     return true;
 }
@@ -673,7 +670,7 @@ HRESULT DirectShowInputPin::Receive(IMediaSample *pSample)
     if (!(m_sampleProperties.dwSampleFlags & AM_SAMPLE_TYPECHANGED))
         return S_OK;
 
-    if (isMediaTypeSupported(reinterpret_cast<DirectShowMediaType*>(m_sampleProperties.pMediaType)))
+    if (isMediaTypeSupported(m_sampleProperties.pMediaType))
         return S_OK;
 
     m_inErrorState = true;

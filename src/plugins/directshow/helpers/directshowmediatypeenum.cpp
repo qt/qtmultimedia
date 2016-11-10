@@ -72,7 +72,7 @@ HRESULT DirectShowMediaTypeEnum::Next(ULONG cMediaTypes, AM_MEDIA_TYPE **ppMedia
 
         for (ULONG i = 0; i < count; ++i, ++m_index) {
             ppMediaTypes[i] = reinterpret_cast<AM_MEDIA_TYPE *>(CoTaskMemAlloc(sizeof(AM_MEDIA_TYPE)));
-            DirectShowMediaType::copy(ppMediaTypes[i], m_mediaTypes.at(m_index));
+            DirectShowMediaType::copy(ppMediaTypes[i], &m_mediaTypes.at(m_index));
         }
 
         if (pcFetched)

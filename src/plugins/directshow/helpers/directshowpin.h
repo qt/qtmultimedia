@@ -55,9 +55,9 @@ public:
     QString name() const { return m_name; }
     bool isConnected() const { return m_peerPin != NULL; }
 
-    virtual bool isMediaTypeSupported(const DirectShowMediaType *type) = 0;
+    virtual bool isMediaTypeSupported(const AM_MEDIA_TYPE *type) = 0;
     virtual QList<DirectShowMediaType> supportedMediaTypes();
-    virtual bool setMediaType(const DirectShowMediaType *type);
+    virtual bool setMediaType(const AM_MEDIA_TYPE *type);
 
     virtual HRESULT completeConnection(IPin *pin);
     virtual HRESULT connectionEnded();
@@ -107,8 +107,8 @@ protected:
 
 private:
     Q_DISABLE_COPY(DirectShowPin)
-    HRESULT tryMediaTypes(IPin *pin, const DirectShowMediaType *type, IEnumMediaTypes *enumMediaTypes);
-    HRESULT tryConnect(IPin *pin, const DirectShowMediaType *type);
+    HRESULT tryMediaTypes(IPin *pin, const AM_MEDIA_TYPE *type, IEnumMediaTypes *enumMediaTypes);
+    HRESULT tryConnect(IPin *pin, const AM_MEDIA_TYPE *type);
 };
 
 

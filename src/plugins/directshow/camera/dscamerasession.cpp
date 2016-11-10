@@ -48,43 +48,11 @@
 #include "dscamerasession.h"
 #include "dsvideorenderer.h"
 #include "directshowcameraglobal.h"
+#include "directshowmediatype.h"
 
 QT_BEGIN_NAMESPACE
 
-
-namespace {
-// DirectShow helper implementation
-void _CopyMediaType(AM_MEDIA_TYPE *pmtTarget, const AM_MEDIA_TYPE *pmtSource)
-{
-    *pmtTarget = *pmtSource;
-    if (pmtTarget->cbFormat != 0) {
-        pmtTarget->pbFormat = reinterpret_cast<BYTE *>(CoTaskMemAlloc(pmtTarget->cbFormat));
-        if (pmtTarget->pbFormat)
-            memcpy(pmtTarget->pbFormat, pmtSource->pbFormat, pmtTarget->cbFormat);
-    }
-    if (pmtTarget->pUnk != NULL) {
-        // pUnk should not be used.
-        pmtTarget->pUnk->AddRef();
-    }
-}
-
-void _FreeMediaType(AM_MEDIA_TYPE& mt)
-{
-    if (mt.cbFormat != 0) {
-        CoTaskMemFree((PVOID)mt.pbFormat);
-        mt.cbFormat = 0;
-        mt.pbFormat = NULL;
-    }
-    if (mt.pUnk != NULL) {
-        // pUnk should not be used.
-        mt.pUnk->Release();
-        mt.pUnk = NULL;
-    }
-}
-} // end namespace
-
 static HRESULT getPin(IBaseFilter *filter, PIN_DIRECTION pinDir, IPin **pin);
-
 
 class SampleGrabberCallbackPrivate : public ISampleGrabberCB
 {
@@ -150,45 +118,6 @@ private:
     DSCameraSession *m_session;
 };
 
-QVideoFrame::PixelFormat pixelFormatFromMediaSubtype(GUID uid)
-{
-    if (uid == MEDIASUBTYPE_ARGB32)
-        return QVideoFrame::Format_ARGB32;
-    else if (uid == MEDIASUBTYPE_RGB32)
-        return QVideoFrame::Format_RGB32;
-    else if (uid == MEDIASUBTYPE_RGB24)
-        return QVideoFrame::Format_RGB24;
-    else if (uid == MEDIASUBTYPE_RGB565)
-        return QVideoFrame::Format_RGB565;
-    else if (uid == MEDIASUBTYPE_RGB555)
-        return QVideoFrame::Format_RGB555;
-    else if (uid == MEDIASUBTYPE_AYUV)
-        return QVideoFrame::Format_AYUV444;
-    else if (uid == MEDIASUBTYPE_I420 || uid == MEDIASUBTYPE_IYUV)
-        return QVideoFrame::Format_YUV420P;
-    else if (uid == MEDIASUBTYPE_YV12)
-        return QVideoFrame::Format_YV12;
-    else if (uid == MEDIASUBTYPE_UYVY)
-        return QVideoFrame::Format_UYVY;
-    else if (uid == MEDIASUBTYPE_YUYV || uid == MEDIASUBTYPE_YUY2)
-        return QVideoFrame::Format_YUYV;
-    else if (uid == MEDIASUBTYPE_NV12)
-        return QVideoFrame::Format_NV12;
-    else if (uid == MEDIASUBTYPE_MJPG)
-        return QVideoFrame::Format_Jpeg;
-    else if (uid == MEDIASUBTYPE_IMC1)
-        return QVideoFrame::Format_IMC1;
-    else if (uid == MEDIASUBTYPE_IMC2)
-        return QVideoFrame::Format_IMC2;
-    else if (uid == MEDIASUBTYPE_IMC3)
-        return QVideoFrame::Format_IMC3;
-    else if (uid == MEDIASUBTYPE_IMC4)
-        return QVideoFrame::Format_IMC4;
-    else
-        return QVideoFrame::Format_Invalid;
-}
-
-
 DSCameraSession::DSCameraSession(QObject *parent)
     : QObject(parent)
     , m_graphBuilder(Q_NULLPTR)
@@ -207,8 +136,6 @@ DSCameraSession::DSCameraSession(QObject *parent)
     , m_currentImageId(-1)
     , m_status(QCamera::UnloadedStatus)
 {
-    ZeroMemory(&m_sourceFormat, sizeof(m_sourceFormat));
-
     connect(this, SIGNAL(statusChanged(QCamera::Status)),
             this, SLOT(updateReadyForCapture()));
 }
@@ -499,8 +426,6 @@ bool DSCameraSession::unload()
 
     m_needsHorizontalMirroring = false;
     m_supportedViewfinderSettings.clear();
-    for (AM_MEDIA_TYPE f : qAsConst(m_supportedFormats))
-        _FreeMediaType(f);
     m_supportedFormats.clear();
     SAFE_RELEASE(m_sourceFilter);
     SAFE_RELEASE(m_previewSampleGrabber);
@@ -587,8 +512,7 @@ bool DSCameraSession::stopPreview()
 
     disconnectGraph();
 
-    _FreeMediaType(m_sourceFormat);
-    ZeroMemory(&m_sourceFormat, sizeof(m_sourceFormat));
+    m_sourceFormat.clear();
 
     m_previewStarted = false;
     setStatus(QCamera::LoadedStatus);
@@ -910,11 +834,11 @@ bool DSCameraSession::configurePreviewFormat()
 
     m_actualViewfinderSettings = resolvedViewfinderSettings;
 
-    _CopyMediaType(&m_sourceFormat, &m_supportedFormats[settingsIndex]);
+    m_sourceFormat = m_supportedFormats[settingsIndex];
     // Set frame rate.
     // We don't care about the minimumFrameRate, DirectShow only allows to set an
     // average frame rate, so set that to the maximumFrameRate.
-    VIDEOINFOHEADER *videoInfo = reinterpret_cast<VIDEOINFOHEADER*>(m_sourceFormat.pbFormat);
+    VIDEOINFOHEADER *videoInfo = reinterpret_cast<VIDEOINFOHEADER*>(m_sourceFormat->pbFormat);
     videoInfo->AvgTimePerFrame = 10000000 / resolvedViewfinderSettings.maximumFrameRate();
 
     // We only support RGB32, if the capture source doesn't support
@@ -955,16 +879,10 @@ bool DSCameraSession::configurePreviewFormat()
     }
 
     // Set sample grabber format (always RGB32)
-    AM_MEDIA_TYPE grabberFormat;
-    ZeroMemory(&grabberFormat, sizeof(grabberFormat));
-    grabberFormat.majortype = MEDIATYPE_Video;
-    grabberFormat.subtype = MEDIASUBTYPE_RGB32;
-    grabberFormat.formattype = FORMAT_VideoInfo;
+    static const AM_MEDIA_TYPE grabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_RGB32, 0, 0, 0, FORMAT_VideoInfo };
     hr = m_previewSampleGrabber->SetMediaType(&grabberFormat);
-    if (FAILED(hr)) {
-        qWarning() << "Failed to set video format on grabber";
+    if (FAILED(hr))
         return false;
-    }
 
     return true;
 }
@@ -1107,8 +1025,6 @@ void DSCameraSession::updateSourceCapabilities()
 
     m_supportedViewfinderSettings.clear();
     m_needsHorizontalMirroring = false;
-    for (AM_MEDIA_TYPE f : qAsConst(m_supportedFormats))
-        _FreeMediaType(f);
     m_supportedFormats.clear();
     m_imageProcessingParametersInfos.clear();
 
@@ -1160,7 +1076,7 @@ void DSCameraSession::updateSourceCapabilities()
     for (int iIndex = 0; iIndex < iCount; ++iIndex) {
         hr = pConfig->GetStreamCaps(iIndex, &pmt, reinterpret_cast<BYTE*>(&scc));
         if (hr == S_OK) {
-            QVideoFrame::PixelFormat pixelFormat = pixelFormatFromMediaSubtype(pmt->subtype);
+            QVideoFrame::PixelFormat pixelFormat = DirectShowMediaType::pixelFormatFromType(pmt);
 
             if (pmt->majortype == MEDIATYPE_Video
                     && pmt->formattype == FORMAT_VideoInfo
@@ -1207,15 +1123,12 @@ void DSCameraSession::updateSourceCapabilities()
                     settings.setPixelFormat(pixelFormat);
                     settings.setPixelAspectRatio(1, 1);
                     m_supportedViewfinderSettings.append(settings);
-
-                    AM_MEDIA_TYPE format;
-                    _CopyMediaType(&format, pmt);
-                    m_supportedFormats.append(format);
+                    m_supportedFormats.append(DirectShowMediaType(*pmt));
                 }
 
 
             }
-            _FreeMediaType(*pmt);
+            DirectShowMediaType::deleteType(pmt);
         }
     }
 

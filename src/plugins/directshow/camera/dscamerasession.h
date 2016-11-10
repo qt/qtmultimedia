@@ -56,6 +56,7 @@
 #include <dshow.h>
 #include <objbase.h>
 #include <initguid.h>
+#include "directshowmediatype.h"
 #ifdef Q_CC_MSVC
 #  pragma comment(lib, "strmiids.lib")
 #  pragma comment(lib, "ole32.lib")
@@ -182,9 +183,9 @@ private:
     QString m_sourceDeviceName;
     IBaseFilter* m_sourceFilter;
     bool m_needsHorizontalMirroring;
-    QList<AM_MEDIA_TYPE> m_supportedFormats;
+    QList<DirectShowMediaType> m_supportedFormats;
     QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
-    AM_MEDIA_TYPE m_sourceFormat;
+    DirectShowMediaType m_sourceFormat;
     QMap<QCameraImageProcessingControl::ProcessingParameter, ImageProcessingParameterInfo> m_imageProcessingParametersInfos;
 
     // Preview

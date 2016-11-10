@@ -82,7 +82,7 @@ DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
     // The filter works in pull mode, the downstream filter is responsible for requesting
     // samples from this one.
     //
-    AM_MEDIA_TYPE type =
+    AM_MEDIA_TYPE type
     {
         MEDIATYPE_Stream,  // majortype
         MEDIASUBTYPE_NULL, // subtype
@@ -99,7 +99,7 @@ DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
 
     for (int i = 0; i < count; ++i) {
         type.subtype = directshow_subtypes[i];
-        m_supportedMediaTypes.append(type);
+        m_supportedMediaTypes.append(DirectShowMediaType(type));
     }
 }
 
@@ -371,12 +371,12 @@ HRESULT DirectShowIOSource::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
          hr = pReceivePin->ReceiveConnection(this, pmt);
          // Update the media type for the current connection.
          if (SUCCEEDED(hr))
-             m_connectionMediaType = *pmt;
+             DirectShowMediaType::copy(&m_connectionMediaType, pmt);
     } else if (pmt && pmt->subtype == MEDIATYPE_NULL) { // - Partial type (Stream, but no subtype specified).
-        m_connectionMediaType = *pmt;
+        DirectShowMediaType::copy(&m_connectionMediaType, pmt);
         // Check if the receiving pin accepts any of the streaming subtypes.
         for (const DirectShowMediaType &t : qAsConst(m_supportedMediaTypes)) {
-            m_connectionMediaType.subtype = t.subtype;
+            m_connectionMediaType->subtype = t->subtype;
             hr = pReceivePin->ReceiveConnection(this, &m_connectionMediaType);
             if (SUCCEEDED(hr))
                 break;
@@ -477,7 +477,7 @@ HRESULT DirectShowIOSource::ConnectionMediaType(AM_MEDIA_TYPE *pmt)
 
             return VFW_E_NOT_CONNECTED;
         } else {
-            DirectShowMediaType::copy(pmt, m_connectionMediaType);
+            DirectShowMediaType::copy(pmt, &m_connectionMediaType);
 
             return S_OK;
         }

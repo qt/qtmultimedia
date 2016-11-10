@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "directshowmediatype.h"
+#include "directshowglobal.h"
 
 namespace
 {
@@ -49,85 +50,168 @@ namespace
 
     static const TypeLookup qt_typeLookup[] =
     {
-        { QVideoFrame::Format_RGB32,   /*MEDIASUBTYPE_RGB32*/  {0xe436eb7e, 0x524f, 0x11ce, {0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70}} },
-        { QVideoFrame::Format_BGR24,   /*MEDIASUBTYPE_RGB24*/  {0xe436eb7d, 0x524f, 0x11ce, {0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70}} },
-        { QVideoFrame::Format_RGB565,  /*MEDIASUBTYPE_RGB565*/ {0xe436eb7b, 0x524f, 0x11ce, {0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70}} },
-        { QVideoFrame::Format_RGB555,  /*MEDIASUBTYPE_RGB555*/ {0xe436eb7c, 0x524f, 0x11ce, {0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70}} },
-        { QVideoFrame::Format_AYUV444, /*MEDIASUBTYPE_AYUV*/   {0x56555941, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_YUYV,    /*MEDIASUBTYPE_YUY2*/   {0x32595559, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_UYVY,    /*MEDIASUBTYPE_UYVY*/   {0x59565955, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_IMC1,    /*MEDIASUBTYPE_IMC1*/   {0x31434D49, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_IMC2,    /*MEDIASUBTYPE_IMC2*/   {0x32434D49, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_IMC3,    /*MEDIASUBTYPE_IMC3*/   {0x33434D49, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_IMC4,    /*MEDIASUBTYPE_IMC4*/   {0x34434D49, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_YV12,    /*MEDIASUBTYPE_YV12*/   {0x32315659, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_NV12,    /*MEDIASUBTYPE_NV12*/   {0x3231564E, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_YUV420P, /*MEDIASUBTYPE_IYUV*/   {0x56555949, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} },
-        { QVideoFrame::Format_YUV420P, /*MEDIASUBTYPE_I420*/   {0x30323449, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} }
+        { QVideoFrame::Format_ARGB32, MEDIASUBTYPE_ARGB32 },
+        { QVideoFrame::Format_RGB32, MEDIASUBTYPE_RGB32 },
+        { QVideoFrame::Format_RGB24, MEDIASUBTYPE_RGB24 },
+        { QVideoFrame::Format_RGB565, MEDIASUBTYPE_RGB565 },
+        { QVideoFrame::Format_RGB555, MEDIASUBTYPE_RGB555 },
+        { QVideoFrame::Format_AYUV444, MEDIASUBTYPE_AYUV },
+        { QVideoFrame::Format_YUYV, MEDIASUBTYPE_YUY2 },
+        { QVideoFrame::Format_UYVY, MEDIASUBTYPE_UYVY },
+        { QVideoFrame::Format_IMC1, MEDIASUBTYPE_IMC1 },
+        { QVideoFrame::Format_IMC2, MEDIASUBTYPE_IMC2 },
+        { QVideoFrame::Format_IMC3, MEDIASUBTYPE_IMC3 },
+        { QVideoFrame::Format_IMC4, MEDIASUBTYPE_IMC4 },
+        { QVideoFrame::Format_YV12, MEDIASUBTYPE_YV12 },
+        { QVideoFrame::Format_NV12, MEDIASUBTYPE_NV12 },
+        { QVideoFrame::Format_YUV420P, MEDIASUBTYPE_IYUV },
+        { QVideoFrame::Format_YUV420P, MEDIASUBTYPE_I420 },
+        { QVideoFrame::Format_Jpeg, MEDIASUBTYPE_MJPG }
     };
 }
 
-bool DirectShowMediaType::isPartiallySpecified() const
+bool DirectShowMediaType::isPartiallySpecified(const AM_MEDIA_TYPE *mediaType)
 {
-    return majortype == GUID_NULL || formattype == GUID_NULL;
+    return mediaType->majortype == GUID_NULL || mediaType->formattype == GUID_NULL;
 }
 
-bool DirectShowMediaType::isCompatibleWith(const DirectShowMediaType *type) const
+DirectShowMediaType::DirectShowMediaType()
+    : mediaType({ GUID_NULL, GUID_NULL, TRUE, FALSE, 1 })
 {
-    if (type->majortype != GUID_NULL && majortype != type->majortype)
+}
+
+DirectShowMediaType::DirectShowMediaType(const AM_MEDIA_TYPE &type)
+    : DirectShowMediaType()
+{
+    copy(&mediaType, &type);
+}
+
+DirectShowMediaType::DirectShowMediaType(AM_MEDIA_TYPE &&type)
+    : DirectShowMediaType()
+{
+    move(&mediaType, type);
+}
+
+DirectShowMediaType::DirectShowMediaType(const DirectShowMediaType &other)
+    : DirectShowMediaType()
+{
+    copy(&mediaType, &other.mediaType);
+}
+
+DirectShowMediaType::DirectShowMediaType(DirectShowMediaType &&other)
+    : DirectShowMediaType()
+{
+    move(&mediaType, other.mediaType);
+}
+
+DirectShowMediaType &DirectShowMediaType::operator=(const DirectShowMediaType &other)
+{
+    copy(&mediaType, &other.mediaType);
+    return *this;
+}
+
+DirectShowMediaType &DirectShowMediaType::operator=(DirectShowMediaType &&other)
+{
+    move(&mediaType, other.mediaType);
+    return *this;
+}
+
+void DirectShowMediaType::init(AM_MEDIA_TYPE *type)
+{
+    Q_ASSERT(type);
+    SecureZeroMemory(reinterpret_cast<void *>(type), sizeof(AM_MEDIA_TYPE));
+    type->lSampleSize = 1;
+    type->bFixedSizeSamples = TRUE;
+}
+
+void DirectShowMediaType::copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source)
+{
+    if (!(target && source))
+        return;
+
+    if (target == source)
+        return;
+
+    clear(*target);
+
+    *target = *source;
+
+    if (source->cbFormat > 0) {
+        target->pbFormat = reinterpret_cast<PBYTE>(CoTaskMemAlloc(source->cbFormat));
+        memcpy(target->pbFormat, source->pbFormat, source->cbFormat);
+    }
+    if (target->pUnk)
+        target->pUnk->AddRef();
+}
+
+void DirectShowMediaType::move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE **source)
+{
+    if (!target || !source || !(*source))
+        return;
+
+    if (target == *source)
+        return;
+
+    clear(*target);
+    *target = *(*source);
+    SecureZeroMemory(reinterpret_cast<void *>(*source), sizeof(AM_MEDIA_TYPE));
+    *source = nullptr;
+}
+
+void DirectShowMediaType::move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE &source)
+{
+    AM_MEDIA_TYPE *srcPtr = &source;
+    move(target, &srcPtr);
+}
+
+/**
+ * @brief DirectShowMediaType::deleteType - Used for AM_MEDIA_TYPE structures that have
+ *        been allocated by CoTaskMemAlloc or CreateMediaType.
+ * @param type
+ */
+void DirectShowMediaType::deleteType(AM_MEDIA_TYPE *type)
+{
+    if (!type)
+        return;
+
+    clear(*type);
+    CoTaskMemFree(type);
+}
+
+bool DirectShowMediaType::isCompatible(const AM_MEDIA_TYPE *a, const AM_MEDIA_TYPE *b)
+{
+    if (b->majortype != GUID_NULL && a->majortype != b->majortype)
         return false;
 
-    if (type->subtype != GUID_NULL && subtype != type->subtype)
+    if (b->subtype != GUID_NULL && a->subtype != b->subtype)
         return false;
 
-    if (type->formattype != GUID_NULL) {
-        if (formattype != type->formattype)
+    if (b->formattype != GUID_NULL) {
+        if (a->formattype != b->formattype)
             return false;
-        if (cbFormat != type->cbFormat)
+        if (a->cbFormat != b->cbFormat)
             return false;
-        if (cbFormat != 0 && memcmp(pbFormat, type->pbFormat, cbFormat) != 0)
+        if (a->cbFormat != 0 && memcmp(a->pbFormat, b->pbFormat, a->cbFormat) != 0)
             return false;
     }
 
     return true;
 }
 
-void DirectShowMediaType::init(AM_MEDIA_TYPE *type)
+/**
+ * @brief DirectShowMediaType::clear - Clears all member data, and releases allocated buffers.
+ *        Use this to release automatic AM_MEDIA_TYPE structures.
+ * @param type
+ */
+void DirectShowMediaType::clear(AM_MEDIA_TYPE &type)
 {
-    ZeroMemory((PVOID)type, sizeof(*type));
-    type->lSampleSize = 1;
-    type->bFixedSizeSamples = TRUE;
-}
+    if (type.cbFormat > 0)
+        CoTaskMemFree(type.pbFormat);
 
-void DirectShowMediaType::copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE &source)
-{
-    if (!target)
-        return;
+    if (type.pUnk)
+        type.pUnk->Release();
 
-    *target = source;
-
-    if (source.cbFormat > 0) {
-        target->pbFormat = reinterpret_cast<PBYTE>(CoTaskMemAlloc(source.cbFormat));
-        memcpy(target->pbFormat, source.pbFormat, source.cbFormat);
-    }
-    if (target->pUnk)
-        target->pUnk->AddRef();
-}
-
-void DirectShowMediaType::deleteType(AM_MEDIA_TYPE *type)
-{
-    freeData(type);
-
-    CoTaskMemFree(type);
-}
-
-void DirectShowMediaType::freeData(AM_MEDIA_TYPE *type)
-{
-    if (type->cbFormat > 0)
-        CoTaskMemFree(type->pbFormat);
-
-    if (type->pUnk)
-        type->pUnk->Release();
+    SecureZeroMemory(&type, sizeof(type));
 }
 
 
@@ -142,14 +226,17 @@ GUID DirectShowMediaType::convertPixelFormat(QVideoFrame::PixelFormat format)
     return MEDIASUBTYPE_None;
 }
 
-QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &type)
+QVideoSurfaceFormat DirectShowMediaType::videoFormatFromType(const AM_MEDIA_TYPE *type)
 {
+    if (!type)
+        return QVideoSurfaceFormat();
+
     const int count = sizeof(qt_typeLookup) / sizeof(TypeLookup);
 
     for (int i = 0; i < count; ++i) {
-        if (IsEqualGUID(qt_typeLookup[i].mediaType, type.subtype) && type.cbFormat > 0) {
-            if (IsEqualGUID(type.formattype, FORMAT_VideoInfo)) {
-                VIDEOINFOHEADER *header = reinterpret_cast<VIDEOINFOHEADER *>(type.pbFormat);
+        if (IsEqualGUID(qt_typeLookup[i].mediaType, type->subtype) && type->cbFormat > 0) {
+            if (IsEqualGUID(type->formattype, FORMAT_VideoInfo)) {
+                VIDEOINFOHEADER *header = reinterpret_cast<VIDEOINFOHEADER *>(type->pbFormat);
 
                 QVideoSurfaceFormat format(
                         QSize(header->bmiHeader.biWidth, qAbs(header->bmiHeader.biHeight)),
@@ -161,8 +248,8 @@ QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &typ
                 format.setScanLineDirection(scanLineDirection(format.pixelFormat(), header->bmiHeader));
 
                 return format;
-            } else if (IsEqualGUID(type.formattype, FORMAT_VideoInfo2)) {
-                VIDEOINFOHEADER2 *header = reinterpret_cast<VIDEOINFOHEADER2 *>(type.pbFormat);
+            } else if (IsEqualGUID(type->formattype, FORMAT_VideoInfo2)) {
+                VIDEOINFOHEADER2 *header = reinterpret_cast<VIDEOINFOHEADER2 *>(type->pbFormat);
 
                 QVideoSurfaceFormat format(
                         QSize(header->bmiHeader.biWidth, qAbs(header->bmiHeader.biHeight)),
@@ -180,12 +267,15 @@ QVideoSurfaceFormat DirectShowMediaType::formatFromType(const AM_MEDIA_TYPE &typ
     return QVideoSurfaceFormat();
 }
 
-QVideoFrame::PixelFormat DirectShowMediaType::pixelFormatFromType(const AM_MEDIA_TYPE &type)
+QVideoFrame::PixelFormat DirectShowMediaType::pixelFormatFromType(const AM_MEDIA_TYPE *type)
 {
+    if (!type)
+        return QVideoFrame::Format_Invalid;
+
     const int count = sizeof(qt_typeLookup) / sizeof(TypeLookup);
 
     for (int i = 0; i < count; ++i) {
-        if (IsEqualGUID(qt_typeLookup[i].mediaType, type.subtype)) {
+        if (IsEqualGUID(qt_typeLookup[i].mediaType, type->subtype)) {
             return qt_typeLookup[i].pixelFormat;
         }
     }
@@ -198,6 +288,7 @@ int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
 {
     switch (format.pixelFormat()) {
     // 32 bpp packed formats.
+    case QVideoFrame::Format_ARGB32:
     case QVideoFrame::Format_RGB32:
     case QVideoFrame::Format_AYUV444:
         return format.frameWidth() * 4;
@@ -240,8 +331,9 @@ QVideoSurfaceFormat::Direction DirectShowMediaType::scanLineDirection(QVideoFram
      */
     switch (pixelFormat)
     {
+    case QVideoFrame::Format_ARGB32:
     case QVideoFrame::Format_RGB32:
-    case QVideoFrame::Format_BGR24:
+    case QVideoFrame::Format_RGB24:
     case QVideoFrame::Format_RGB565:
     case QVideoFrame::Format_RGB555:
         return bmiHeader.biHeight < 0

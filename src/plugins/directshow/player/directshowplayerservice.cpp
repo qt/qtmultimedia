@@ -627,13 +627,13 @@ int DirectShowPlayerService::findStreamTypes(IBaseFilter *source) const
             for (IPin *pin = 0; pins->Next(1, &pin, 0) == S_OK; pin->Release()) {
                 PIN_DIRECTION direction;
                 if (pin->QueryDirection(&direction) == S_OK && direction == PINDIR_OUTPUT) {
-                    AM_MEDIA_TYPE connectionType;
+                    DirectShowMediaType connectionType;
                     if (SUCCEEDED(pin->ConnectionMediaType(&connectionType))) {
                         IPin *peer = 0;
 
-                        if (connectionType.majortype == MEDIATYPE_Audio) {
+                        if (connectionType->majortype == MEDIATYPE_Audio) {
                             streamTypes |= AudioStream;
-                        } else if (connectionType.majortype == MEDIATYPE_Video) {
+                        } else if (connectionType->majortype == MEDIATYPE_Video) {
                             streamTypes |= VideoStream;
                         } else if (SUCCEEDED(pin->ConnectedTo(&peer))) {
                             PIN_INFO peerInfo;

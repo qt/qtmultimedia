@@ -63,8 +63,8 @@ public:
     VideoSurfaceInputPin(VideoSurfaceFilter *filter);
 
     // DirectShowPin
-    bool isMediaTypeSupported(const DirectShowMediaType *type);
-    bool setMediaType(const DirectShowMediaType *type);
+    bool isMediaTypeSupported(const AM_MEDIA_TYPE *type) override;
+    bool setMediaType(const AM_MEDIA_TYPE *type) override;
 
     HRESULT completeConnection(IPin *pin);
     HRESULT connectionEnded();
@@ -90,12 +90,12 @@ VideoSurfaceInputPin::VideoSurfaceInputPin(VideoSurfaceFilter *filter)
 {
 }
 
-bool VideoSurfaceInputPin::isMediaTypeSupported(const DirectShowMediaType *type)
+bool VideoSurfaceInputPin::isMediaTypeSupported(const AM_MEDIA_TYPE *type)
 {
     return m_videoSurfaceFilter->isMediaTypeSupported(type);
 }
 
-bool VideoSurfaceInputPin::setMediaType(const DirectShowMediaType *type)
+bool VideoSurfaceInputPin::setMediaType(const AM_MEDIA_TYPE *type)
 {
     if (!DirectShowInputPin::setMediaType(type))
         return false;
@@ -282,7 +282,7 @@ void VideoSurfaceFilter::supportedFormatsChanged()
     }
 }
 
-bool VideoSurfaceFilter::isMediaTypeSupported(const DirectShowMediaType *type)
+bool VideoSurfaceFilter::isMediaTypeSupported(const AM_MEDIA_TYPE *type)
 {
     if (type->majortype != MEDIATYPE_Video || type->bFixedSizeSamples == FALSE)
         return false;
@@ -297,7 +297,7 @@ bool VideoSurfaceFilter::isMediaTypeSupported(const DirectShowMediaType *type)
     return false;
 }
 
-bool VideoSurfaceFilter::setMediaType(const DirectShowMediaType *type)
+bool VideoSurfaceFilter::setMediaType(const AM_MEDIA_TYPE *type)
 {
     if (!type) {
         qCDebug(qLcRenderFilter, "clear media type");
@@ -305,7 +305,7 @@ bool VideoSurfaceFilter::setMediaType(const DirectShowMediaType *type)
         m_bytesPerLine = 0;
         return true;
     } else {
-        m_surfaceFormat = DirectShowMediaType::formatFromType(*type);
+        m_surfaceFormat = DirectShowMediaType::videoFormatFromType(type);
         m_bytesPerLine = DirectShowMediaType::bytesPerLine(m_surfaceFormat);
         qCDebug(qLcRenderFilter) << "setMediaType -->" << m_surfaceFormat;
         return m_surfaceFormat.isValid();
@@ -478,7 +478,7 @@ HRESULT VideoSurfaceFilter::Receive(IMediaSample *pMediaSample)
         // If the format dynamically changed, the sample contains information about the new format.
         // We need to reset the format and restart the QAbstractVideoSurface.
         if (m_pin->currentSampleProperties()->pMediaType
-                && (!m_pin->setMediaType(reinterpret_cast<const DirectShowMediaType *>(m_pin->currentSampleProperties()->pMediaType))
+                && (!m_pin->setMediaType(m_pin->currentSampleProperties()->pMediaType)
                     || !restartSurface())) {
                 qCWarning(qLcRenderFilter, "  dynamic format change failed, aborting rendering");
                 NotifyEvent(EC_ERRORABORT, VFW_E_TYPE_NOT_ACCEPTED, 0);
