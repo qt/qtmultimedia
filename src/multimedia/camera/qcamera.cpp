@@ -71,17 +71,15 @@ static void qRegisterCameraMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterCameraMetaTypes)
 
-static bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
+Q_DECL_CONSTEXPR static bool qt_sizeLessThan(const QSize &s1, const QSize &s2) Q_DECL_NOTHROW
 {
     return (s1.width() * s1.height()) < (s2.width() * s2.height());
 }
 
-static bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2)
+Q_DECL_CONSTEXPR static bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2) Q_DECL_NOTHROW
 {
-    if (s1.maximumFrameRate == s2.maximumFrameRate)
-        return s1.minimumFrameRate < s2.minimumFrameRate;
-
-    return s1.maximumFrameRate < s2.maximumFrameRate;
+    return qFuzzyCompare(s1.maximumFrameRate, s2.maximumFrameRate) ? (s1.minimumFrameRate < s2.minimumFrameRate)
+                                                                   : (s1.maximumFrameRate < s2.maximumFrameRate);
 }
 
 /*!

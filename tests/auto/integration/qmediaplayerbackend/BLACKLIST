@@ -7,15 +7,13 @@ osx-10.11
 windows 32bit developer-build
 windows 64bit developer-build
 
-[construction]
+# Media player plugin not built at the moment on this platform
 opensuse-13.1 64bit
 
 [loadMedia]
-opensuse-13.1 64bit
 windows 64bit developer-build
 
 [unloadMedia]
-opensuse-13.1 64bit
 windows 64bit developer-build
 
 [playPauseStop]
@@ -23,25 +21,15 @@ linux
 windows 64bit developer-build
 
 [processEOS]
-opensuse-13.1 64bit
 windows 64bit developer-build
 
 [deleteLaterAtEOS]
-opensuse-13.1 64bit
 windows 64bit developer-build
 
-[volumeAndMuted]
-opensuse-13.1 64bit
-
-[volumeAcrossFiles]
-opensuse-13.1 64bit
-
 [initialVolume]
-opensuse-13.1 64bit
 windows 64bit developer-build
 
 [playlist]
-opensuse-13.1 64bit
 redhatenterpriselinuxworkstation-6.6
 
 [seekPauseSeek]

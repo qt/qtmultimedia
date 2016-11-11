@@ -4,3 +4,6 @@ linux
 #QTBUG-55735
 [testSetSourceWhilePlaying]
 linux
+
+[testSetSourceWhileLoading]
+linux
