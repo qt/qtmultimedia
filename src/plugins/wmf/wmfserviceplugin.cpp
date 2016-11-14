@@ -101,6 +101,8 @@ QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
         return QMediaServiceProviderHint::StreamPlayback;
     else
+#else
+    Q_UNUSED(service);
 #endif
         return QMediaServiceProviderHint::Features();
 }
