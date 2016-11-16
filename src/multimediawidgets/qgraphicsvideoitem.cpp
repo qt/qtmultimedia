@@ -48,7 +48,7 @@
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qpointer.h>
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 #include <QtOpenGL/qgl.h>
 #endif
 
@@ -372,7 +372,7 @@ void QGraphicsVideoItem::paint(
 
     if (d->surface && d->updatePaintDevice) {
         d->updatePaintDevice = false;
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
         if (widget)
             connect(widget, SIGNAL(destroyed()), d->surface, SLOT(viewportDestroyed()));
 

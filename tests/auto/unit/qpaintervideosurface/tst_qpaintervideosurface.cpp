@@ -34,7 +34,7 @@
 #include <QtWidgets/qapplication.h>
 #include <qvideosurfaceformat.h>
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 #include <QtOpenGL/qgl.h>
 #include <QtOpenGL/qglframebufferobject.h>
 #include <QtGui/qopenglfunctions.h>
@@ -57,7 +57,7 @@ private slots:
     void present();
     void presentOpaqueFrame();
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 
     void shaderType();
 
@@ -78,7 +78,7 @@ private slots:
 
 Q_DECLARE_METATYPE(const uchar *)
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 Q_DECLARE_METATYPE(QPainterVideoSurface::ShaderType);
 
 class QtTestGLVideoBuffer : public QAbstractVideoBuffer
@@ -551,7 +551,7 @@ void tst_QPainterVideoSurface::presentOpaqueFrame()
     QCOMPARE(surface.error(), QAbstractVideoSurface::IncorrectFormatError);
 }
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 
 void tst_QPainterVideoSurface::shaderType()
 {

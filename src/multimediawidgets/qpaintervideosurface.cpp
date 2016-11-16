@@ -46,7 +46,7 @@
 #include <qvideosurfaceformat.h>
 #include <private/qmediaopenglhelper_p.h>
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 #include <qglshaderprogram.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
@@ -222,7 +222,7 @@ void QVideoSurfaceGenericPainter::updateColors(int, int, int, int)
 {
 }
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 
 #ifndef APIENTRYP
 #  ifdef APIENTRY
@@ -1362,7 +1362,7 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::paint(
 QPainterVideoSurface::QPainterVideoSurface(QObject *parent)
     : QAbstractVideoSurface(parent)
     , m_painter(0)
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
     , m_glContext(0)
     , m_shaderTypes(NoShaders)
     , m_shaderType(NoShaders)
@@ -1593,7 +1593,7 @@ void QPainterVideoSurface::paint(QPainter *painter, const QRectF &target, const 
     \fn QPainterVideoSurface::frameChanged()
 */
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 
 /*!
 */
@@ -1723,7 +1723,7 @@ void QPainterVideoSurface::createPainter()
 {
     Q_ASSERT(!m_painter);
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
     switch (m_shaderType) {
 #if !defined(QT_OPENGL_ES) && !defined(QT_OPENGL_DYNAMIC)
     case FragmentProgramShader:
