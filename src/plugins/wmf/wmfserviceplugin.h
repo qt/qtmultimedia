@@ -64,4 +64,4 @@ public:
     QString deviceDescription(const QByteArray &service, const QByteArray &device);
 };
 
-#endif // DSSERVICEPLUGIN_H
+#endif // WMFSERVICEPLUGIN_H
