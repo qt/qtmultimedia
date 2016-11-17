@@ -11,7 +11,6 @@ SOURCES += dsserviceplugin.cpp
 mingw: DEFINES += NO_DSHOW_STRSAFE
 
 include(common/common.pri)
-include(helpers/helpers.pri)
 qtConfig(directshow-player): include(player/player.pri)
 include(camera/camera.pri)
 
