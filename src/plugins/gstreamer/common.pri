@@ -9,10 +9,6 @@ LIBS += -lqgsttools_p
 
 QMAKE_USE += gstreamer
 
-mir: {
-    DEFINES += HAVE_MIR
-}
-
 qtConfig(resourcepolicy) {
     QMAKE_USE += libresourceqt5
     DEFINES += HAVE_RESOURCE_POLICY
