@@ -52,6 +52,7 @@
 #include "directshowcameracapturedestinationcontrol.h"
 #include "directshowcameracapturebufferformatcontrol.h"
 #include "directshowvideoprobecontrol.h"
+#include "directshowcamerazoomcontrol.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -68,6 +69,7 @@ DSCameraService::DSCameraService(QObject *parent):
   , m_captureDestinationControl(new DirectShowCameraCaptureDestinationControl(m_session))
   , m_captureBufferFormatControl(new DirectShowCameraCaptureBufferFormatControl)
   , m_videoProbeControl(nullptr)
+  , m_zoomControl(new DirectShowCameraZoomControl(m_session))
 {
 }
 
@@ -84,6 +86,7 @@ DSCameraService::~DSCameraService()
     delete m_captureDestinationControl;
     delete m_captureBufferFormatControl;
     delete m_videoProbeControl;
+    delete m_zoomControl;
 }
 
 QMediaControl* DSCameraService::requestControl(const char *name)
@@ -127,6 +130,9 @@ QMediaControl* DSCameraService::requestControl(const char *name)
         m_session->addVideoProbe(m_videoProbeControl);
         return m_videoProbeControl;
     }
+
+    if (qstrcmp(name, QCameraZoomControl_iid) == 0)
+        return m_zoomControl;
 
     return 0;
 }

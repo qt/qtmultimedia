@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,53 +37,52 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
+#ifndef DIRECTSHOWCAMERAZOOMCONTROL_H
+#define DIRECTSHOWCAMERAZOOMCONTROL_H
 
-#include <QtCore/qobject.h>
-
-#include <qmediaservice.h>
+#include <QtMultimedia/qcamerazoomcontrol.h>
+#include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
 class DSCameraSession;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
-class DSCameraImageProcessingControl;
-class DirectShowCameraExposureControl;
-class DirectShowCameraCaptureDestinationControl;
-class DirectShowCameraCaptureBufferFormatControl;
-class DirectShowVideoProbeControl;
-class DirectShowCameraZoomControl;
 
-class DSCameraService : public QMediaService
+class DirectShowCameraZoomControl : public QCameraZoomControl
 {
     Q_OBJECT
-
 public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService();
+    DirectShowCameraZoomControl(DSCameraSession *session);
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+    qreal maximumOpticalZoom() const override;
+    qreal maximumDigitalZoom() const override;
+    qreal requestedOpticalZoom() const override;
+    qreal requestedDigitalZoom() const override;
+    qreal currentOpticalZoom() const override;
+    qreal currentDigitalZoom() const override;
+    void zoomTo(qreal optical, qreal digital) override;
+
+private Q_SLOTS:
+    void onStatusChanged(QCamera::Status status);
 
 private:
-    DSCameraSession        *m_session;
-    DSCameraControl        *m_control;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
-    DSCameraImageProcessingControl *m_imageProcessingControl;
-    DirectShowCameraExposureControl *m_exposureControl;
-    DirectShowCameraCaptureDestinationControl *m_captureDestinationControl;
-    DirectShowCameraCaptureBufferFormatControl *m_captureBufferFormatControl;
-    DirectShowVideoProbeControl *m_videoProbeControl;
-    DirectShowCameraZoomControl *m_zoomControl;
+    DSCameraSession *m_session;
+    struct ZoomValues
+    {
+        long maxZoom;
+        long minZoom;
+        long stepping;
+        long defaultZoom;
+        long caps;
+    } m_opticalZoom;
+
+    qreal m_currentOpticalZoom;
+    qreal m_requestedOpticalZoom;
+    qreal m_maxOpticalZoom;
+
+    void updateZoomValues();
+    bool opticalZoomToPrivate(qreal value);
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // DIRECTSHOWCAMERAZOOMCONTROL_H
