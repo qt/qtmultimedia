@@ -3,7 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the QtQml module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIASTORAGELOCATION_H
-#define QMEDIASTORAGELOCATION_H
+#ifndef QTMULTIMEDIAGLOBAL_P_H
+#define QTMULTIMEDIAGLOBAL_P_H
 
 //
 //  W A R N I N G
@@ -51,39 +51,8 @@
 // We mean it.
 //
 
-#include <qtmultimediaglobal.h>
-#include <QDir>
-#include <QMap>
-#include <QHash>
-#include <QMutex>
+#include <QtGui/private/qtguiglobal_p.h>
+#include <QtMultimedia/private/qtmultimedia-config_p.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
-QT_BEGIN_NAMESPACE
-
-class Q_MULTIMEDIA_EXPORT QMediaStorageLocation
-{
-public:
-    enum MediaType {
-        Movies,
-        Music,
-        Pictures,
-        Sounds
-    };
-
-    QMediaStorageLocation();
-
-    void addStorageLocation(MediaType type, const QString &location);
-
-    QDir defaultLocation(MediaType type) const;
-
-    QString generateFileName(const QString &requestedName, MediaType type, const QString &prefix, const QString &extension) const;
-    QString generateFileName(const QString &prefix, const QDir &dir, const QString &extension) const;
-
-private:
-    mutable QMutex m_mutex;
-    mutable QHash<QString, qint64> m_lastUsedIndex;
-    QMap<MediaType, QStringList> m_customLocations;
-};
-
-QT_END_NAMESPACE
-
-#endif // QMEDIASTORAGELOCATION_H
+#endif // QTQMLGLOBAL_P_H

@@ -43,7 +43,7 @@
 
 #include <QtCore/qiodevice.h>
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
 
 #include <QtMultimedia/qaudio.h>

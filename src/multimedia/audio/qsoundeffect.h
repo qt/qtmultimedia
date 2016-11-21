@@ -40,7 +40,7 @@
 #ifndef QSOUNDEFFECT_H
 #define QSOUNDEFFECT_H
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>

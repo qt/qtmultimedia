@@ -53,7 +53,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qshareddata.h>
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 #include "qmultimedia.h"
 #include "qmediaserviceproviderplugin.h"
 

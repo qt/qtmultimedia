@@ -40,7 +40,7 @@
 #ifndef QCAMERAVIEWFINDERSETTINGS_H
 #define QCAMERAVIEWFINDERSETTINGS_H
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qvideoframe.h>
 
 #include <QtCore/qshareddata.h>

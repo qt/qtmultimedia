@@ -40,7 +40,7 @@
 #ifndef AVFSTORAGE_H
 #define AVFSTORAGE_H
 
-#include "qtmultimediadefs.h"
+#include "qtmultimediaglobal.h"
 
 #include <QtCore/qdir.h>
 #include <QtMultimedia/qcamera.h>

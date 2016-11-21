@@ -43,7 +43,7 @@
 
 #include <QtMultimedia/qmediacontrol.h>
 #include <QtMultimedia/qmultimedia.h>
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE

@@ -12,7 +12,11 @@
     "qmediametadata.h" => "QMediaMetaData",
     "qmultimedia.h" => "QMultimedia"
 );
-
+%deprecatedheaders = (
+    "QtMultimedia" =>  {
+        "qtmultimediadefs.h" => "QtMultimedia/qtmultimediaglobal.h"
+    },
+);
 # Module dependencies.
 # Every module that is required to build this module should have one entry.
 # Each of the module version specifiers can take one of the following values:

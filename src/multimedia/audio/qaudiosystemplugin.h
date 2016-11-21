@@ -44,7 +44,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qplugin.h>
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
 
 #include <QtMultimedia/qaudioformat.h>

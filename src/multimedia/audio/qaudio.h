@@ -41,7 +41,7 @@
 #ifndef QAUDIO_H
 #define QAUDIO_H
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
 
 #include <QtCore/qmetatype.h>

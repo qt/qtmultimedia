@@ -43,7 +43,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qplugin.h>
 #include <QtMultimedia/qmultimedia.h>
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qcamera.h>
 
 #ifdef Q_MOC_RUN

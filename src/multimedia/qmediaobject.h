@@ -43,7 +43,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qstringlist.h>
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
 
 QT_BEGIN_NAMESPACE

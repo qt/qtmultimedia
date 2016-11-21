@@ -40,7 +40,7 @@
 #ifndef AVFDEBUG_H
 #define AVFDEBUG_H
 
-#include "qtmultimediadefs.h"
+#include "qtmultimediaglobal.h"
 
 #include <QtCore/qdebug.h>
 
