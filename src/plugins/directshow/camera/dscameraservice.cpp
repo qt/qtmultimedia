@@ -48,19 +48,21 @@
 #include "dsimagecapturecontrol.h"
 #include "dscameraviewfindersettingscontrol.h"
 #include "dscameraimageprocessingcontrol.h"
+#include "directshowcameraexposurecontrol.h"
 
 QT_BEGIN_NAMESPACE
 
 DSCameraService::DSCameraService(QObject *parent):
     QMediaService(parent)
+  , m_session(new DSCameraSession(this))
+  , m_control(new DSCameraControl(m_session))
+  , m_videoDevice(new DSVideoDeviceControl(m_session))
   , m_videoRenderer(0)
+  , m_imageCapture(new DSImageCaptureControl(m_session))
+  , m_viewfinderSettings(new DSCameraViewfinderSettingsControl(m_session))
+  , m_imageProcessingControl(new DSCameraImageProcessingControl(m_session))
+  , m_exposureControl(new DirectShowCameraExposureControl(m_session))
 {
-    m_session = new DSCameraSession(this);
-    m_control = new DSCameraControl(m_session);
-    m_videoDevice = new DSVideoDeviceControl(m_session);
-    m_imageCapture = new DSImageCaptureControl(m_session);
-    m_viewfinderSettings = new DSCameraViewfinderSettingsControl(m_session);
-    m_imageProcessingControl = new DSCameraImageProcessingControl(m_session);
 }
 
 DSCameraService::~DSCameraService()
@@ -72,6 +74,7 @@ DSCameraService::~DSCameraService()
     delete m_videoRenderer;
     delete m_imageCapture;
     delete m_session;
+    delete m_exposureControl;
 }
 
 QMediaControl* DSCameraService::requestControl(const char *name)
@@ -97,6 +100,9 @@ QMediaControl* DSCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
         return m_imageProcessingControl;
+
+    if (qstrcmp(name, QCameraExposureControl_iid) == 0)
+        return m_exposureControl;
 
     return 0;
 }

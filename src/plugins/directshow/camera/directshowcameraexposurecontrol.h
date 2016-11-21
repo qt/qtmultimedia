@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,45 +37,64 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
+#ifndef DIRECTSHOWCAMERAEXPOSURECONTROL_H
+#define DIRECTSHOWCAMERAEXPOSURECONTROL_H
 
-#include <QtCore/qobject.h>
+#include <QtMultimedia/qcameraexposurecontrol.h>
 
-#include <qmediaservice.h>
+struct IAMCameraControl;
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
 class DSCameraSession;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
-class DSCameraImageProcessingControl;
-class DirectShowCameraExposureControl;
 
-class DSCameraService : public QMediaService
+class DirectShowCameraExposureControl : public QCameraExposureControl
 {
     Q_OBJECT
-
 public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService();
+    DirectShowCameraExposureControl(DSCameraSession *session);
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+    bool isParameterSupported(ExposureParameter parameter) const override;
+    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const override;
+    QVariant requestedValue(ExposureParameter parameter) const override;
+    QVariant actualValue(ExposureParameter parameter) const override;
+    bool setValue(ExposureParameter parameter, const QVariant &value) override;
+
+private Q_SLOTS:
+    void onStatusChanged(QCamera::Status status);
 
 private:
-    DSCameraSession        *m_session;
-    DSCameraControl        *m_control;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
-    DSCameraImageProcessingControl *m_imageProcessingControl;
-    DirectShowCameraExposureControl *m_exposureControl;
+    DSCameraSession *m_session;
+
+    struct ExposureValues
+    {
+        long caps;
+        long minValue;
+        long maxValue;
+        long stepping;
+        long defaultValue;
+    } m_shutterSpeedValues, m_apertureValues;
+
+    qreal m_requestedShutterSpeed;
+    qreal m_currentShutterSpeed;
+
+    qreal m_requestedAperture;
+    qreal m_currentAperture;
+
+    QVariantList m_supportedShutterSpeeds;
+    QVariantList m_supportedApertureValues;
+    QVariantList m_supportedExposureModes;
+
+    QCameraExposure::ExposureMode m_requestedExposureMode;
+    QCameraExposure::ExposureMode m_currentExposureMode;
+
+    void updateExposureSettings();
+
+    bool setShutterSpeed(IAMCameraControl *cameraControl, qreal shutterSpeed);
+    bool setAperture(IAMCameraControl *cameraControl, qreal aperture);
+    bool setExposureMode(IAMCameraControl *cameraControl, QCameraExposure::ExposureMode mode);
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // DIRECTSHOWCAMERAEXPOSURECONTROL_H
