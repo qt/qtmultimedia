@@ -63,7 +63,7 @@
 #include <wmsdk.h>
 #endif
 
-#ifndef QT_NO_SHELLITEM
+#if QT_CONFIG(wshellitem)
 #include <ShlObj.h>
 #include <propkeydef.h>
 #include <private/qsystemlibrary_p.h>
@@ -292,7 +292,7 @@ static QVariant getValue(IWMHeaderInfo *header, const wchar_t *key)
 }
 #endif
 
-#ifndef QT_NO_SHELLITEM
+#if QT_CONFIG(wshellitem)
 static QVariant convertValue(const PROPVARIANT& var)
 {
     QVariant value;
@@ -392,7 +392,7 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
 {
     m_metadata.clear();
 
-#ifndef QT_NO_SHELLITEM
+#if QT_CONFIG(wshellitem)
     if (!sHCreateItemFromParsingName) {
         QSystemLibrary lib(QStringLiteral("shell32"));
         sHCreateItemFromParsingName = (q_SHCreateItemFromParsingName)(lib.resolve("SHCreateItemFromParsingName"));

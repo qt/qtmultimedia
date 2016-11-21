@@ -40,6 +40,7 @@
 #ifndef WMFSERVICEPLUGIN_H
 #define WMFSERVICEPLUGIN_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qmediaserviceproviderplugin.h"
 
 QT_USE_NAMESPACE
@@ -54,7 +55,7 @@ class WMFServicePlugin
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
-#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
+#if QT_CONFIG(wmf_player)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "wmf.json")
 #else
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "wmf_audiodecode.json")

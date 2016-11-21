@@ -8,17 +8,13 @@ QT = core-private multimedia-private gui-private
 !static:DEFINES += QT_MAKEDLL
 DEFINES += GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
 
-qtConfig(alsa) {
-    DEFINES += HAVE_ALSA
+qtConfig(alsa): \
     QMAKE_USE += alsa
-}
 
 QMAKE_USE += gstreamer
 
-qtConfig(resourcepolicy) {
-    DEFINES += HAVE_RESOURCE_POLICY
+qtConfig(resourcepolicy): \
     QMAKE_USE += libresourceqt5
-}
 
 # Header files must go inside source directory of a module
 # to be installed by syncqt.
@@ -101,10 +97,7 @@ qtConfig(gstreamer_app) {
     QMAKE_USE += gstreamer_app
     PRIVATE_HEADERS += qgstappsrc_p.h
     SOURCES += qgstappsrc.cpp
-    DEFINES += HAVE_GST_APPSRC
 }
-
-qtConfig(linux_v4l): DEFINES += USE_V4L
 
 HEADERS += $$PRIVATE_HEADERS
 

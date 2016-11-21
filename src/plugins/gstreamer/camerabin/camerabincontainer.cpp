@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "camerabincontainer.h"
 #include <QtCore/qregexp.h>
 
@@ -46,7 +47,7 @@ QT_BEGIN_NAMESPACE
 
 CameraBinContainer::CameraBinContainer(QObject *parent)
     :QMediaContainerControl(parent)
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     , m_supportedContainers(QGstCodecsInfo::Muxer)
 #endif
 {
@@ -62,7 +63,7 @@ CameraBinContainer::CameraBinContainer(QObject *parent)
 
 QStringList CameraBinContainer::supportedContainers() const
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_supportedContainers.supportedCodecs();
 #else
     return QStringList();
@@ -71,7 +72,7 @@ QStringList CameraBinContainer::supportedContainers() const
 
 QString CameraBinContainer::containerDescription(const QString &formatMimeType) const
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_supportedContainers.codecDescription(formatMimeType);
 #else
     Q_UNUSED(formatMimeType)
@@ -86,7 +87,7 @@ QString CameraBinContainer::containerFormat() const
 
 void CameraBinContainer::setContainerFormat(const QString &format)
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     if (m_format != format) {
         m_format = format;
         m_actualFormat = format;
@@ -102,7 +103,7 @@ QString CameraBinContainer::actualContainerFormat() const
 
 void CameraBinContainer::setActualContainerFormat(const QString &containerFormat)
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     m_actualFormat = containerFormat;
 #endif
 }
@@ -112,7 +113,7 @@ void CameraBinContainer::resetActualContainerFormat()
     m_actualFormat = m_format;
 }
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 
 GstEncodingContainerProfile *CameraBinContainer::createProfile()
 {

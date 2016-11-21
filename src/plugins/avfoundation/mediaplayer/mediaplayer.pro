@@ -10,8 +10,6 @@ LIBS += -framework CoreMedia -framework CoreVideo -framework QuartzCore
 
 QMAKE_USE += avfoundation
 
-DEFINES += QMEDIA_AVF_MEDIAPLAYER
-
 HEADERS += \
     avfmediaplayercontrol.h \
     avfmediaplayermetadatacontrol.h \

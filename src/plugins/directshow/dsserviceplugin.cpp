@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <dshow.h>
 
 #include <QtCore/qstring.h>
@@ -45,20 +46,15 @@
 
 #include "dsserviceplugin.h"
 
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
 #include "dsvideodevicecontrol.h"
 #include <dshow.h>
 #include "dscameraservice.h"
-#endif
 
-#ifdef QMEDIA_DIRECTSHOW_PLAYER
+#if QT_CONFIG(directshow_player)
 #include "directshowplayerservice.h"
 #endif
 
 #include <qmediaserviceproviderplugin.h>
-
-
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
 
 extern const CLSID CLSID_VideoInputDeviceCategory;
 
@@ -75,7 +71,6 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 #endif // Q_CC_MSVC
 #include <windows.h>
 #include <ocidl.h>
-#endif
 
 QT_USE_NAMESPACE
 
@@ -94,13 +89,11 @@ void releaseRefCount()
 
 QMediaService* DSServicePlugin::create(QString const& key)
 {
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA)) {
         addRefCount();
         return new DSCameraService;
     }
-#endif
-#ifdef QMEDIA_DIRECTSHOW_PLAYER
+#if QT_CONFIG(directshow_player)
     if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
         addRefCount();
         return new DirectShowPlayerService;
@@ -127,14 +120,11 @@ QMediaServiceProviderHint::Features DSServicePlugin::supportedFeatures(
 
 QByteArray DSServicePlugin::defaultDevice(const QByteArray &service) const
 {
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
         if (!devs.isEmpty())
             return devs.first().first;
     }
-#endif
-
     return QByteArray();
 }
 
@@ -142,20 +132,17 @@ QList<QByteArray> DSServicePlugin::devices(const QByteArray &service) const
 {
     QList<QByteArray> result;
 
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
         for (const DSVideoDeviceInfo &info : devs)
             result.append(info.first);
     }
-#endif
 
     return result;
 }
 
 QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
-#ifdef QMEDIA_DIRECTSHOW_CAMERA
     if (service == Q_MEDIASERVICE_CAMERA) {
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
         for (const DSVideoDeviceInfo &info : devs) {
@@ -163,6 +150,5 @@ QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByt
                 return info.second;
         }
     }
-#endif
     return QString();
 }

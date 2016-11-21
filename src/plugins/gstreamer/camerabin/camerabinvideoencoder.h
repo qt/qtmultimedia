@@ -40,6 +40,7 @@
 #ifndef CAMERABINVIDEOENCODE_H
 #define CAMERABINVIDEOENCODE_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qvideoencodersettingscontrol.h>
 
 #include <QtCore/qstringlist.h>
@@ -49,7 +50,7 @@
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
 #endif
@@ -83,7 +84,7 @@ public:
     void setActualVideoSettings(const QVideoEncoderSettings&);
     void resetActualSettings();
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingProfile *createProfile();
 #endif
 
@@ -95,7 +96,7 @@ Q_SIGNALS:
 private:
     CameraBinSession *m_session;
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     QGstCodecsInfo m_codecs;
 #endif
 

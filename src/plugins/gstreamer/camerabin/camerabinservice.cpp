@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "camerabinservice.h"
 #include "camerabinsession.h"
 #include "camerabinrecorder.h"
@@ -48,7 +49,7 @@
 #include "camerabinmetadata.h"
 #include "camerabininfocontrol.h"
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
 #include "camerabinexposure.h"
 #include "camerabinflash.h"
 #include "camerabinfocus.h"
@@ -202,7 +203,7 @@ QMediaControl *CameraBinService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
     if (qstrcmp(name, QCameraExposureControl_iid) == 0)
         return m_captureSession->cameraExposureControl();
 

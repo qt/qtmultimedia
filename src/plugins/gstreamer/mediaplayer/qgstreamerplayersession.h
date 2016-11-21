@@ -40,6 +40,7 @@
 #ifndef QGSTREAMERPLAYERSESSION_H
 #define QGSTREAMERPLAYERSESSION_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QObject>
 #include <QtCore/qmutex.h>
 #include <QtNetwork/qnetworkrequest.h>
@@ -49,7 +50,7 @@
 #include <qmediastreamscontrol.h>
 #include <qaudioformat.h>
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
 #include <private/qgstappsrc_p.h>
 #endif
 
@@ -116,7 +117,7 @@ public:
 
     bool processBusMessage(const QGstreamerMessage &message);
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
     QGstAppSrc *appsrc() const { return m_appSrc; }
     static void configureAppSrcElement(GObject*, GObject*, GParamSpec*,QGstreamerPlayerSession* _this);
 #endif
@@ -218,7 +219,7 @@ private:
     QObject *m_videoOutput;
     QGstreamerVideoRendererInterface *m_renderer;
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
     QGstAppSrc *m_appSrc;
 #endif
 

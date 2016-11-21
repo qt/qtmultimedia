@@ -17,8 +17,6 @@ QMAKE_USE += avfoundation
 
 OTHER_FILES += avfcamera.json
 
-DEFINES += QMEDIA_AVF_CAMERA
-
 HEADERS += \
     avfcameradebug.h \
     avfcameraserviceplugin.h \

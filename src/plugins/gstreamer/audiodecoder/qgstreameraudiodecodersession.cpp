@@ -81,7 +81,7 @@ QGstreamerAudioDecoderSession::QGstreamerAudioDecoderSession(QObject *parent)
      m_outputBin(0),
      m_audioConvert(0),
      m_appSink(0),
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
      m_appSrc(0),
 #endif
      mDevice(0),
@@ -114,7 +114,7 @@ QGstreamerAudioDecoderSession::QGstreamerAudioDecoderSession(QObject *parent)
         gst_object_unref(GST_OBJECT(pad));
 
         g_object_set(G_OBJECT(m_playbin), "audio-sink", m_outputBin, NULL);
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
         g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", (GCallback) &QGstreamerAudioDecoderSession::configureAppSrcElement, (gpointer)this);
 #endif
 
@@ -130,7 +130,7 @@ QGstreamerAudioDecoderSession::~QGstreamerAudioDecoderSession()
         stop();
 
         delete m_busHelper;
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
         delete m_appSrc;
 #endif
         gst_object_unref(GST_OBJECT(m_bus));
@@ -138,7 +138,7 @@ QGstreamerAudioDecoderSession::~QGstreamerAudioDecoderSession()
     }
 }
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
 void QGstreamerAudioDecoderSession::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerAudioDecoderSession* self)
 {
     Q_UNUSED(object);
@@ -307,7 +307,7 @@ void QGstreamerAudioDecoderSession::setSourceFilename(const QString &fileName)
 {
     stop();
     mDevice = 0;
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
     if (m_appSrc)
         m_appSrc->deleteLater();
     m_appSrc = 0;
@@ -346,7 +346,7 @@ void QGstreamerAudioDecoderSession::start()
     if (!mSource.isEmpty()) {
         g_object_set(G_OBJECT(m_playbin), "uri", QUrl::fromLocalFile(mSource).toEncoded().constData(), NULL);
     } else if (mDevice) {
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
         // make sure we can read from device
         if (!mDevice->isOpen() || !mDevice->isReadable()) {
             processInvalidMedia(QAudioDecoder::AccessDeniedError, "Unable to read from specified device");

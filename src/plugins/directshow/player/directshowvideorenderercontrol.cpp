@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "directshowvideorenderercontrol.h"
 
 #include "videosurfacefilter.h"

@@ -40,13 +40,14 @@
 #ifndef CAMERABINCAPTURESESSION_H
 #define CAMERABINCAPTURESESSION_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qmediarecordercontrol.h>
 
 #include <QtCore/qurl.h>
 #include <QtCore/qdir.h>
 
 #include <gst/gst.h>
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
 #include <gst/interfaces/photography.h>
 #endif
 
@@ -93,7 +94,7 @@ public:
     CameraBinSession(GstElementFactory *sourceFactory, QObject *parent);
     ~CameraBinSession();
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
     GstPhotography *photography();
 #endif
     GstElement *cameraBin() { return m_camerabin; }
@@ -117,7 +118,7 @@ public:
     CameraBinVideoEncoder *videoEncodeControl() const { return m_videoEncodeControl; }
     CameraBinImageEncoder *imageEncodeControl() const { return m_imageEncodeControl; }
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
     CameraBinExposure *cameraExposureControl();
     CameraBinFlash *cameraFlashControl();
     CameraBinFocus *cameraFocusControl();
@@ -238,7 +239,7 @@ private:
     CameraBinImageEncoder *m_imageEncodeControl;
     CameraBinRecorder *m_recorderControl;
     CameraBinContainer *m_mediaContainerControl;
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
     CameraBinExposure *m_cameraExposureControl;
     CameraBinFlash *m_cameraFlashControl;
     CameraBinFocus *m_cameraFocusControl;

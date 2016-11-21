@@ -5,8 +5,6 @@ LIBS += -lgdi32
 
 qtHaveModule(widgets): QT += widgets
 
-DEFINES += QMEDIA_DIRECTSHOW_PLAYER
-
 HEADERS += \
         $$PWD/directshowioreader.h \
         $$PWD/directshowiosource.h \
@@ -39,8 +37,5 @@ qtConfig(evr) {
         $$PWD/directshowevrvideowindowcontrol.cpp
 }
 
-qtConfig(wshellitem) {
+qtConfig(wshellitem): \
     QT += core-private
-} else {
-    DEFINES += QT_NO_SHELLITEM
-}

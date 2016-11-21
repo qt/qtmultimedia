@@ -42,12 +42,9 @@ SOURCES += \
 
 qtConfig(pulseaudio) {
     QMAKE_USE_FOR_PRIVATE += pulseaudio
-
-    DEFINES += QT_MULTIMEDIA_PULSEAUDIO
     PRIVATE_HEADERS += audio/qsoundeffect_pulse_p.h
     SOURCES += audio/qsoundeffect_pulse_p.cpp
 } else {
-    DEFINES += QT_MULTIMEDIA_QAUDIO
     PRIVATE_HEADERS += audio/qsoundeffect_qaudio_p.h
     SOURCES += audio/qsoundeffect_qaudio_p.cpp
 }

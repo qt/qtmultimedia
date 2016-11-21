@@ -36,6 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "camerabinsession.h"
 #include "camerabincontrol.h"
 #include "camerabinrecorder.h"
@@ -44,7 +46,7 @@
 #include "camerabinvideoencoder.h"
 #include "camerabinimageencoder.h"
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
 #include "camerabinexposure.h"
 #include "camerabinflash.h"
 #include "camerabinfocus.h"
@@ -63,7 +65,7 @@
 #include <qmediarecorder.h>
 #include <qvideosurfaceformat.h>
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
 #include <gst/interfaces/photography.h>
 #endif
 
@@ -127,7 +129,7 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
      m_videoInputFactory(0),
      m_viewfinder(0),
      m_viewfinderInterface(0),
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
      m_cameraExposureControl(0),
      m_cameraFlashControl(0),
      m_cameraFocusControl(0),
@@ -212,7 +214,7 @@ CameraBinSession::~CameraBinSession()
         gst_object_unref(GST_OBJECT(m_sourceFactory));
 }
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
 GstPhotography *CameraBinSession::photography()
 {
     if (GST_IS_PHOTOGRAPHY(m_camerabin)) {
@@ -807,7 +809,7 @@ void CameraBinSession::start()
 
     m_recorderControl->applySettings();
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
     g_object_set (G_OBJECT(m_camerabin),
                   "video-profile",
@@ -952,7 +954,7 @@ bool CameraBinSession::processSyncMessage(const QGstreamerMessage &message)
             }
             return true;
         }
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
         if (gst_structure_has_name(st, GST_PHOTOGRAPHY_AUTOFOCUS_DONE))
             m_cameraFocusControl->handleFocusMessage(gm);
 #endif

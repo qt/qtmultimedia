@@ -3,8 +3,6 @@ INCLUDEPATH += $$PWD
 LIBS += -lgdi32 -luser32
 QMAKE_USE += wmf
 
-DEFINES += QMEDIA_MEDIAFOUNDATION_PLAYER
-
 HEADERS += \
     $$PWD/mfplayerservice.h \
     $$PWD/mfplayersession.h \

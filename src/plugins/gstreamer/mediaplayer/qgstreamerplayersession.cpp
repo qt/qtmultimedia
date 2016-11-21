@@ -174,7 +174,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_bus(0),
      m_videoOutput(0),
      m_renderer(0),
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
      m_appSrc(0),
 #endif
      m_videoProbe(0),
@@ -287,7 +287,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         g_signal_connect(G_OBJECT(m_playbin), "audio-changed", G_CALLBACK(handleStreamsChange), this);
         g_signal_connect(G_OBJECT(m_playbin), "text-changed", G_CALLBACK(handleStreamsChange), this);
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
         g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", G_CALLBACK(configureAppSrcElement), this);
 #endif
     }
@@ -319,7 +319,7 @@ GstElement *QGstreamerPlayerSession::playbin() const
     return m_playbin;
 }
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
 void QGstreamerPlayerSession::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerPlayerSession* self)
 {
     Q_UNUSED(object);
@@ -340,7 +340,7 @@ void QGstreamerPlayerSession::configureAppSrcElement(GObject* object, GObject *o
 
 void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIODevice *appSrcStream)
 {
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
 #endif
@@ -379,7 +379,7 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     m_lastPosition = 0;
     m_isPlaylist = false;
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
     if (m_appSrc) {
         m_appSrc->deleteLater();
         m_appSrc = 0;

@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "camerabinvideoencoder.h"
 #include "camerabinsession.h"
 #include "camerabincontainer.h"
@@ -49,7 +50,7 @@ QT_BEGIN_NAMESPACE
 CameraBinVideoEncoder::CameraBinVideoEncoder(CameraBinSession *session)
     :QVideoEncoderSettingsControl(session)
     , m_session(session)
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     , m_codecs(QGstCodecsInfo::VideoEncoder)
 #endif
 {
@@ -89,7 +90,7 @@ QList< qreal > CameraBinVideoEncoder::supportedFrameRates(const QVideoEncoderSet
 
 QStringList CameraBinVideoEncoder::supportedVideoCodecs() const
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.supportedCodecs();
 #else
     return QStringList();
@@ -98,7 +99,7 @@ QStringList CameraBinVideoEncoder::supportedVideoCodecs() const
 
 QString CameraBinVideoEncoder::videoCodecDescription(const QString &codecName) const
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.codecDescription(codecName);
 #else
     Q_UNUSED(codecName)
@@ -167,7 +168,7 @@ QPair<int,int> CameraBinVideoEncoder::rateAsRational(qreal frameRate) const
     return QPair<int,int>();
 }
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 
 GstEncodingProfile *CameraBinVideoEncoder::createProfile()
 {

@@ -282,7 +282,7 @@
         "wmsdk": {
             "label": "wmsdk.h",
             "condition": "config.win32 && tests.wmsdk",
-            "output": [ "feature", "privateFeature" ]
+            "output": [ "privateFeature" ]
         },
         "wshellitem": {
             "label": "WShellItem",
