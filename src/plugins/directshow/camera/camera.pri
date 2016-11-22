@@ -12,7 +12,9 @@ HEADERS += \
     $$PWD/directshowcameraglobal.h \
     $$PWD/dscameraviewfindersettingscontrol.h \
     $$PWD/dscameraimageprocessingcontrol.h \
-    $$PWD/directshowcameraexposurecontrol.h
+    $$PWD/directshowcameraexposurecontrol.h \
+    $$PWD/directshowcameracapturedestinationcontrol.h \
+    $$PWD/directshowcameracapturebufferformatcontrol.h
 
 SOURCES += \
     $$PWD/dscameraservice.cpp \
@@ -23,7 +25,9 @@ SOURCES += \
     $$PWD/dscamerasession.cpp \
     $$PWD/dscameraviewfindersettingscontrol.cpp \
     $$PWD/dscameraimageprocessingcontrol.cpp \
-    $$PWD/directshowcameraexposurecontrol.cpp
+    $$PWD/directshowcameraexposurecontrol.cpp \
+    $$PWD/directshowcameracapturedestinationcontrol.cpp \
+    $$PWD/directshowcameracapturebufferformatcontrol.cpp
 
 *-msvc*:INCLUDEPATH += $$(DXSDK_DIR)/include
 QMAKE_USE += directshow

@@ -69,6 +69,7 @@ DSCameraSession::DSCameraSession(QObject *parent)
     , m_readyForCapture(false)
     , m_imageIdCounter(0)
     , m_currentImageId(-1)
+    , m_captureDestinations(QCameraImageCapture::CaptureToFile)
     , m_status(QCamera::UnloadedStatus)
 {
     connect(this, SIGNAL(statusChanged(QCamera::Status)),
@@ -354,6 +355,25 @@ bool DSCameraSession::getCameraControlInterface(IAMCameraControl **cameraControl
     return true;
 }
 
+bool DSCameraSession::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
+{
+    return destination & (QCameraImageCapture::CaptureToFile | QCameraImageCapture::CaptureToBuffer);
+}
+
+QCameraImageCapture::CaptureDestinations DSCameraSession::captureDestination() const
+{
+    return m_captureDestinations;
+}
+
+void DSCameraSession::setCaptureDestination(QCameraImageCapture::CaptureDestinations destinations)
+{
+    if (m_captureDestinations == destinations)
+        return;
+
+    m_captureDestinations = destinations;
+    Q_EMIT captureDestinationChanged(m_captureDestinations);
+}
+
 bool DSCameraSession::load()
 {
     unload();
@@ -586,8 +606,8 @@ void DSCameraSession::presentFrame()
 
         m_capturedFrame.unmap();
 
-        QtConcurrent::run(this, &DSCameraSession::saveCapturedImage,
-                          m_currentImageId, captureImage, m_imageCaptureFileName);
+        QtConcurrent::run(this, &DSCameraSession::processCapturedImage,
+                          m_currentImageId, m_captureDestinations, captureImage, m_imageCaptureFileName);
 
         m_imageCaptureFileName.clear();
         m_currentImageId = -1;
@@ -603,14 +623,22 @@ void DSCameraSession::presentFrame()
     updateReadyForCapture();
 }
 
-void DSCameraSession::saveCapturedImage(int id, const QImage &image, const QString &path)
+void DSCameraSession::processCapturedImage(int id,
+                                           QCameraImageCapture::CaptureDestinations captureDestinations,
+                                           const QImage &image,
+                                           const QString &path)
 {
-    if (image.save(path, "JPG")) {
-        emit imageSaved(id, path);
-    } else {
-        emit captureError(id, QCameraImageCapture::ResourceError,
-                          tr("Could not save image to file."));
+    if (captureDestinations & QCameraImageCapture::CaptureToFile) {
+        if (image.save(path, "JPG")) {
+            Q_EMIT imageSaved(id, path);
+        } else {
+            Q_EMIT captureError(id, QCameraImageCapture::ResourceError,
+                              tr("Could not save image to file."));
+        }
     }
+
+    if (captureDestinations & QCameraImageCapture::CaptureToBuffer)
+        Q_EMIT imageAvailable(id, QVideoFrame(image));
 }
 
 bool DSCameraSession::createFilterGraph()

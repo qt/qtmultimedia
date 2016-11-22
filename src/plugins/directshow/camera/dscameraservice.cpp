@@ -49,6 +49,8 @@
 #include "dscameraviewfindersettingscontrol.h"
 #include "dscameraimageprocessingcontrol.h"
 #include "directshowcameraexposurecontrol.h"
+#include "directshowcameracapturedestinationcontrol.h"
+#include "directshowcameracapturebufferformatcontrol.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -62,6 +64,8 @@ DSCameraService::DSCameraService(QObject *parent):
   , m_viewfinderSettings(new DSCameraViewfinderSettingsControl(m_session))
   , m_imageProcessingControl(new DSCameraImageProcessingControl(m_session))
   , m_exposureControl(new DirectShowCameraExposureControl(m_session))
+  , m_captureDestinationControl(new DirectShowCameraCaptureDestinationControl(m_session))
+  , m_captureBufferFormatControl(new DirectShowCameraCaptureBufferFormatControl)
 {
 }
 
@@ -75,6 +79,8 @@ DSCameraService::~DSCameraService()
     delete m_imageCapture;
     delete m_session;
     delete m_exposureControl;
+    delete m_captureDestinationControl;
+    delete m_captureBufferFormatControl;
 }
 
 QMediaControl* DSCameraService::requestControl(const char *name)
@@ -103,6 +109,12 @@ QMediaControl* DSCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraExposureControl_iid) == 0)
         return m_exposureControl;
+
+    if (qstrcmp(name, QCameraCaptureDestinationControl_iid) == 0)
+        return m_captureDestinationControl;
+
+    if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
+        return m_captureBufferFormatControl;
 
     return 0;
 }

@@ -50,6 +50,7 @@
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 #include <QtMultimedia/qcameraimageprocessingcontrol.h>
+#include <QtMultimedia/qcameraimagecapture.h>
 #include <private/qmediastoragelocation_p.h>
 
 #include <tchar.h>
@@ -120,13 +121,19 @@ public:
 
     bool getCameraControlInterface(IAMCameraControl **cameraControl) const;
 
+    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const;
+    QCameraImageCapture::CaptureDestinations captureDestination() const;
+    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destinations);
+
 Q_SIGNALS:
     void statusChanged(QCamera::Status);
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);
     void imageSaved(int id, const QString &fileName);
+    void imageAvailable(int id, const QVideoFrame &buffer);
     void readyForCaptureChanged(bool);
     void captureError(int id, int error, const QString &errorString);
+    void captureDestinationChanged(QCameraImageCapture::CaptureDestinations);
 
 private Q_SLOTS:
     void presentFrame();
@@ -157,7 +164,7 @@ private:
     void setStatus(QCamera::Status status);
 
     void onFrameAvailable(double time, const QByteArray &data);
-    void saveCapturedImage(int id, const QImage &image, const QString &path);
+    void processCapturedImage(int id, QCameraImageCapture::CaptureDestinations captureDestinations, const QImage &image, const QString &path);
 
     bool createFilterGraph();
     bool connectGraph();
@@ -208,6 +215,7 @@ private:
     int m_imageIdCounter;
     int m_currentImageId;
     QVideoFrame m_capturedFrame;
+    QCameraImageCapture::CaptureDestinations m_captureDestinations;
 
     // Internal state
     QCamera::Status m_status;

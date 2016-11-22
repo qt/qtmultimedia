@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,49 +37,32 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
+#include "directshowcameracapturedestinationcontrol.h"
 
-#include <QtCore/qobject.h>
-
-#include <qmediaservice.h>
+#include "dscamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
-class DSCameraSession;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
-class DSCameraImageProcessingControl;
-class DirectShowCameraExposureControl;
-class DirectShowCameraCaptureDestinationControl;
-class DirectShowCameraCaptureBufferFormatControl;
-
-class DSCameraService : public QMediaService
+DirectShowCameraCaptureDestinationControl::DirectShowCameraCaptureDestinationControl(DSCameraSession *session)
+    : m_session(session)
 {
-    Q_OBJECT
+    connect(m_session, &DSCameraSession::captureDestinationChanged,
+            this, &DirectShowCameraCaptureDestinationControl::captureDestinationChanged);
+}
 
-public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService();
+bool DirectShowCameraCaptureDestinationControl::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
+{
+    return m_session->isCaptureDestinationSupported(destination);
+}
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+QCameraImageCapture::CaptureDestinations DirectShowCameraCaptureDestinationControl::captureDestination() const
+{
+    return m_session->captureDestination();
+}
 
-private:
-    DSCameraSession        *m_session;
-    DSCameraControl        *m_control;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
-    DSCameraImageProcessingControl *m_imageProcessingControl;
-    DirectShowCameraExposureControl *m_exposureControl;
-    DirectShowCameraCaptureDestinationControl *m_captureDestinationControl;
-    DirectShowCameraCaptureBufferFormatControl *m_captureBufferFormatControl;
-};
+void DirectShowCameraCaptureDestinationControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+{
+    m_session->setCaptureDestination(destination);
+}
 
 QT_END_NAMESPACE
-
-#endif

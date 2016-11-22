@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,49 +37,29 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
+#include "directshowcameracapturebufferformatcontrol.h"
 
-#include <QtCore/qobject.h>
-
-#include <qmediaservice.h>
+#include "dscamerasession.h"
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
-class DSCameraSession;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
-class DSCameraImageProcessingControl;
-class DirectShowCameraExposureControl;
-class DirectShowCameraCaptureDestinationControl;
-class DirectShowCameraCaptureBufferFormatControl;
-
-class DSCameraService : public QMediaService
+DirectShowCameraCaptureBufferFormatControl::DirectShowCameraCaptureBufferFormatControl()
 {
-    Q_OBJECT
+}
 
-public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService();
+QList<QVideoFrame::PixelFormat> DirectShowCameraCaptureBufferFormatControl::supportedBufferFormats() const
+{
+    return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB32;
+}
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+QVideoFrame::PixelFormat DirectShowCameraCaptureBufferFormatControl::bufferFormat() const
+{
+    return QVideoFrame::Format_RGB32;
+}
 
-private:
-    DSCameraSession        *m_session;
-    DSCameraControl        *m_control;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
-    DSCameraImageProcessingControl *m_imageProcessingControl;
-    DirectShowCameraExposureControl *m_exposureControl;
-    DirectShowCameraCaptureDestinationControl *m_captureDestinationControl;
-    DirectShowCameraCaptureBufferFormatControl *m_captureBufferFormatControl;
-};
+void DirectShowCameraCaptureBufferFormatControl::setBufferFormat(QVideoFrame::PixelFormat format)
+{
+    Q_UNUSED(format);
+}
 
 QT_END_NAMESPACE
-
-#endif
