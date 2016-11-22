@@ -118,6 +118,8 @@ public:
             QCameraImageProcessingControl::ProcessingParameter,
             const QVariant &);
 
+    bool getCameraControlInterface(IAMCameraControl **cameraControl) const;
+
 Q_SIGNALS:
     void statusChanged(QCamera::Status);
     void imageExposed(int id);
