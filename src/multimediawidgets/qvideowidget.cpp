@@ -55,6 +55,9 @@
 #include <qboxlayout.h>
 #include <qnamespace.h>
 
+#include <qwindow.h>
+#include <private/qhighdpiscaling_p.h>
+
 using namespace Qt;
 
 QT_BEGIN_NAMESPACE
@@ -372,11 +375,23 @@ QSize QWindowVideoWidgetBackend::sizeHint() const
     return m_windowControl->nativeSize();
 }
 
+void QWindowVideoWidgetBackend::updateDisplayRect()
+{
+    QRect rect = m_widget->rect();
+    if (QHighDpiScaling::isActive()) {
+        const qreal factor = QHighDpiScaling::factor(m_widget->windowHandle());
+        if (!qFuzzyCompare(factor, qreal(1))) {
+            rect = QRectF(QPointF(rect.topLeft()) * factor,
+                          QSizeF(rect.size()) * factor).toRect();
+        }
+    }
+    m_windowControl->setDisplayRect(rect);
+}
+
 void QWindowVideoWidgetBackend::showEvent()
 {
     m_windowControl->setWinId(m_widget->winId());
-
-    m_windowControl->setDisplayRect(m_widget->rect());
+    updateDisplayRect();
 
 #if defined(Q_WS_WIN)
     m_widget->setUpdatesEnabled(false);
@@ -392,12 +407,12 @@ void QWindowVideoWidgetBackend::hideEvent(QHideEvent *)
 
 void QWindowVideoWidgetBackend::moveEvent(QMoveEvent *)
 {
-    m_windowControl->setDisplayRect(m_widget->rect());
+    updateDisplayRect();
 }
 
 void QWindowVideoWidgetBackend::resizeEvent(QResizeEvent *)
 {
-    m_windowControl->setDisplayRect(m_widget->rect());
+    updateDisplayRect();
 }
 
 void QWindowVideoWidgetBackend::paintEvent(QPaintEvent *event)

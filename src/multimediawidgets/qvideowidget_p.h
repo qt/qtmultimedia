@@ -211,6 +211,8 @@ public:
 #endif
 
 private:
+    void updateDisplayRect();
+
     QMediaService *m_service;
     QVideoWindowControl *m_windowControl;
     QWidget *m_widget;
