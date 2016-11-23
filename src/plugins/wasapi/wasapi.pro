@@ -20,10 +20,7 @@ OTHER_FILES += \
 
 LIBS += Mmdevapi.lib
 
-win32-* {
-    DEFINES += CLASSIC_APP_BUILD
-    LIBS += runtimeobject.lib
-}
+win32-*: LIBS += runtimeobject.lib
 
 PLUGIN_TYPE = audio
 PLUGIN_CLASS_NAME = QWasapiPlugin

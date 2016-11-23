@@ -98,10 +98,8 @@ private:
     QByteArray m_deviceName;
     Microsoft::WRL::ComPtr<AudioInterface> m_interface;
     Microsoft::WRL::ComPtr<IAudioRenderClient> m_renderer;
-#if defined(CLASSIC_APP_BUILD) || _MSC_VER >= 1900
     Microsoft::WRL::ComPtr<IAudioStreamVolume> m_volumeControl;
     qreal m_volumeCache;
-#endif
     QMutex m_mutex;
     QAudio::State m_currentState;
     QAudio::Error m_currentError;

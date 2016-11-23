@@ -157,9 +157,7 @@ qint64 WasapiOutputDevicePrivate::writeData(const char* data, qint64 len)
 
 QWasapiAudioOutput::QWasapiAudioOutput(const QByteArray &device)
     : m_deviceName(device)
-#if defined(CLASSIC_APP_BUILD) || _MSC_VER >= 1900
     , m_volumeCache(qreal(1.))
-#endif
     , m_currentState(QAudio::StoppedState)
     , m_currentError(QAudio::NoError)
     , m_interval(1000)
@@ -180,7 +178,6 @@ QWasapiAudioOutput::~QWasapiAudioOutput()
 void QWasapiAudioOutput::setVolume(qreal vol)
 {
     qCDebug(lcMmAudioOutput) << __FUNCTION__ << vol;
-#if defined(CLASSIC_APP_BUILD) || _MSC_VER >= 1900 // Volume is only supported MSVC2015 and beyond for WinRT
     m_volumeCache = vol;
     if (m_volumeControl) {
         quint32 channelCount;
@@ -190,17 +187,12 @@ void QWasapiAudioOutput::setVolume(qreal vol)
             RETURN_VOID_IF_FAILED("Could not set audio volume.");
         }
     }
-#endif // defined(CLASSIC_APP_BUILD) || _MSC_VER >= 1900
 }
 
 qreal QWasapiAudioOutput::volume() const
 {
     qCDebug(lcMmAudioOutput) << __FUNCTION__;
-#if defined(CLASSIC_APP_BUILD) || _MSC_VER >= 1900 // Volume is only supported MSVC2015 and beyond for WinRT
     return m_volumeCache;
-#else
-    return qreal(1.0);
-#endif
 }
 
 void QWasapiAudioOutput::process()
@@ -316,11 +308,9 @@ bool QWasapiAudioOutput::initStart(bool pull)
     hr = m_interface->m_client->GetService(IID_PPV_ARGS(&m_renderer));
     EMIT_RETURN_FALSE_IF_FAILED("Could not acquire render service.", QAudio::OpenError)
 
-#if defined(CLASSIC_APP_BUILD) || _MSC_VER >= 1900 // Volume is only supported MSVC2015 and beyond
     hr = m_interface->m_client->GetService(IID_PPV_ARGS(&m_volumeControl));
     if (FAILED(hr))
         qCDebug(lcMmAudioOutput) << "Could not acquire volume control.";
-#endif // defined(CLASSIC_APP_BUILD) || _MSC_VER >= 1900
 
     hr = m_interface->m_client->GetBufferSize(&m_bufferFrames);
     EMIT_RETURN_FALSE_IF_FAILED("Could not access buffer size.", QAudio::OpenError)
