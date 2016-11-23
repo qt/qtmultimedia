@@ -51,8 +51,9 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     , playButton(0)
     , positionSlider(0)
 {
+    const QRect screenGeometry = QApplication::desktop()->screenGeometry(this);
     videoItem = new QGraphicsVideoItem;
-    videoItem->setSize(QSizeF(640, 480));
+    videoItem->setSize(QSizeF(screenGeometry.width() / 3, screenGeometry.height() / 2));
 
     QGraphicsScene *scene = new QGraphicsScene(this);
     QGraphicsView *graphicsView = new QGraphicsView(scene);
@@ -60,27 +61,27 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     scene->addItem(videoItem);
 
     QSlider *rotateSlider = new QSlider(Qt::Horizontal);
+    rotateSlider->setToolTip(tr("Rotate Video"));
     rotateSlider->setRange(-180,  180);
     rotateSlider->setValue(0);
 
-    connect(rotateSlider, SIGNAL(valueChanged(int)),
-            this, SLOT(rotateVideo(int)));
+    connect(rotateSlider, &QAbstractSlider::valueChanged,
+            this, &VideoPlayer::rotateVideo);
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
-    connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
+    connect(openButton, &QAbstractButton::clicked, this, &VideoPlayer::openFile);
 
     playButton = new QPushButton;
     playButton->setEnabled(false);
     playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
-    connect(playButton, SIGNAL(clicked()),
-            this, SLOT(play()));
+    connect(playButton, &QAbstractButton::clicked, this, &VideoPlayer::play);
 
     positionSlider = new QSlider(Qt::Horizontal);
     positionSlider->setRange(0, 0);
 
-    connect(positionSlider, SIGNAL(sliderMoved(int)),
-            this, SLOT(setPosition(int)));
+    connect(positionSlider, &QAbstractSlider::sliderMoved,
+            this, &VideoPlayer::setPosition);
 
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setMargin(0);
@@ -88,34 +89,49 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     controlLayout->addWidget(playButton);
     controlLayout->addWidget(positionSlider);
 
-    QBoxLayout *layout = new QVBoxLayout;
+    QBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(graphicsView);
     layout->addWidget(rotateSlider);
     layout->addLayout(controlLayout);
 
-    setLayout(layout);
-
     mediaPlayer.setVideoOutput(videoItem);
-    connect(&mediaPlayer, SIGNAL(stateChanged(QMediaPlayer::State)),
-            this, SLOT(mediaStateChanged(QMediaPlayer::State)));
-    connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
-    connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
+    connect(&mediaPlayer, &QMediaPlayer::stateChanged,
+            this, &VideoPlayer::mediaStateChanged);
+    connect(&mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
+    connect(&mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
 }
 
 VideoPlayer::~VideoPlayer()
 {
 }
 
+QSize VideoPlayer::sizeHint() const
+{
+    return (videoItem->size() * qreal(3) / qreal(2)).toSize();
+}
+
+bool VideoPlayer::isPlayerAvailable() const
+{
+    return mediaPlayer.isAvailable();
+}
 
 void VideoPlayer::openFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Movie"),QDir::homePath());
+    QFileDialog fileDialog(this);
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setWindowTitle(tr("Open Movie"));
+    const QStringList supportedMimeTypes = mediaPlayer.supportedMimeTypes();
+    if (!supportedMimeTypes.isEmpty())
+        fileDialog.setMimeTypeFilters(supportedMimeTypes);
+    fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
+    if (fileDialog.exec() == QDialog::Accepted)
+        load(fileDialog.selectedUrls().constFirst());
+}
 
-    if (!fileName.isEmpty()) {
-        mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
-
-        playButton->setEnabled(true);
-    }
+void VideoPlayer::load(const QUrl &url)
+{
+    mediaPlayer.setMedia(url);
+    playButton->setEnabled(true);
 }
 
 void VideoPlayer::play()

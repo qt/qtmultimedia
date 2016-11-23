@@ -59,7 +59,10 @@ public:
     VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
 
-    QSize sizeHint() const { return QSize(800, 600); }
+    void load(const QUrl &url);
+    bool isPlayerAvailable() const;
+
+    QSize sizeHint() const Q_DECL_OVERRIDE;
 
 public slots:
     void openFile();
