@@ -44,7 +44,6 @@ import java.lang.String;
 import java.io.FileInputStream;
 
 // API is level is < 9 unless marked otherwise.
-import android.app.Activity;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -68,7 +67,7 @@ public class QtAndroidMediaPlayer
     private MediaPlayer mMediaPlayer = null;
     private Uri mUri = null;
     private final long mID;
-    private final Activity mActivity;
+    private final Context mContext;
     private boolean mMuted = false;
     private int mVolume = 100;
     private static final String TAG = "Qt MediaPlayer";
@@ -207,10 +206,10 @@ public class QtAndroidMediaPlayer
 
     }
 
-    public QtAndroidMediaPlayer(final Activity activity, final long id)
+    public QtAndroidMediaPlayer(final Context context, final long id)
     {
         mID = id;
-        mActivity = activity;
+        mContext = context;
     }
 
     private void setState(int state)
@@ -363,7 +362,7 @@ public class QtAndroidMediaPlayer
             final boolean inAssets = (mUri.getScheme().compareTo("assets") == 0);
             if (inAssets) {
                 final String asset = mUri.getPath().substring(1 /* Remove first '/' */);
-                final AssetManager am = mActivity.getAssets();
+                final AssetManager am = mContext.getAssets();
                 afd = am.openFd(asset);
                 final long offset = afd.getStartOffset();
                 final long length = afd.getLength();
@@ -374,7 +373,7 @@ public class QtAndroidMediaPlayer
                 FileDescriptor fd = fis.getFD();
                 mMediaPlayer.setDataSource(fd);
             } else {
-                mMediaPlayer.setDataSource(mActivity, mUri);
+                mMediaPlayer.setDataSource(mContext, mUri);
             }
             setState(State.Initialized);
         } catch (final IOException e) {
