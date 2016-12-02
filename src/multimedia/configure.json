@@ -282,7 +282,7 @@
             "output": [ "feature", "privateFeature" ]
         },
         "wmf-backend": {
-            "label": "Windows Media Foundation backend for Qt Multimedia",
+            "label": "Windows Media Foundation",
             "emitIf": "config.win32",
             "autoDetect": false,
             "condition": "libraries.wmf",
