@@ -56,7 +56,7 @@ public:
     ~ProgressBar();
 
     void reset();
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 
 public slots:
     void bufferLengthChanged(qint64 length);

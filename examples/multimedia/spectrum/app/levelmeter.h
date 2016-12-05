@@ -57,7 +57,7 @@ public:
     explicit LevelMeter(QWidget *parent = 0);
     ~LevelMeter();
 
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 
 public slots:
     void reset();

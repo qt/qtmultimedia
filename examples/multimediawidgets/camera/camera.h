@@ -100,9 +100,9 @@ private slots:
     void imageSaved(int id, const QString &fileName);
 
 protected:
-    void keyPressEvent(QKeyEvent *event);
-    void keyReleaseEvent(QKeyEvent *event);
-    void closeEvent(QCloseEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     Ui::Camera *ui;

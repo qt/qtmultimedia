@@ -69,7 +69,7 @@ public:
     void setFormat(const QString &format);
 
 protected:
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
 
 private:
     QVariant boxValue(const QComboBox*) const;

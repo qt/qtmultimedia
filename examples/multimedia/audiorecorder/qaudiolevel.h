@@ -53,7 +53,7 @@ public:
     void setLevel(qreal level);
 
 protected:
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     qreal m_level;

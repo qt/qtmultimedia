@@ -60,7 +60,7 @@ public:
     VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
 
-    QSize sizeHint() const { return QSize(800, 600); }
+    QSize sizeHint() const override { return QSize(800, 600); }
 
 public slots:
     void openFile();

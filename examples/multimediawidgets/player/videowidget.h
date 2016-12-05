@@ -51,9 +51,9 @@ public:
     VideoWidget(QWidget *parent = 0);
 
 protected:
-    void keyPressEvent(QKeyEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 };
 
 #endif // VIDEOWIDGET_H

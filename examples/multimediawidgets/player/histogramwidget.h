@@ -70,7 +70,7 @@ public slots:
     void setHistogram(QVector<qreal> histogram);
 
 protected:
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     QVector<qreal> m_histogram;

@@ -60,11 +60,11 @@ public:
     void setParams(int numBars, qreal lowFreq, qreal highFreq);
 
     // QObject
-    void timerEvent(QTimerEvent *event);
+    void timerEvent(QTimerEvent *event) override;
 
     // QWidget
-    void paintEvent(QPaintEvent *event);
-    void mousePressEvent(QMouseEvent *event);
+    void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
 signals:
     void infoMessage(const QString &message, int intervalMs);
