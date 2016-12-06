@@ -77,6 +77,7 @@ struct ICaptureGraphBuilder2;
 QT_BEGIN_NAMESPACE
 
 class DirectShowSampleGrabber;
+class DirectShowVideoProbeControl;
 
 class DSCameraSession : public QObject
 {
@@ -124,6 +125,9 @@ public:
     bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const;
     QCameraImageCapture::CaptureDestinations captureDestination() const;
     void setCaptureDestination(QCameraImageCapture::CaptureDestinations destinations);
+
+    void addVideoProbe(DirectShowVideoProbeControl *probe);
+    void removeVideoProbe(DirectShowVideoProbeControl *probe);
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status);
@@ -216,6 +220,10 @@ private:
     int m_currentImageId;
     QVideoFrame m_capturedFrame;
     QCameraImageCapture::CaptureDestinations m_captureDestinations;
+
+    // Video probe
+    QMutex m_probeMutex;
+    DirectShowVideoProbeControl *m_videoProbeControl;
 
     // Internal state
     QCamera::Status m_status;

@@ -51,6 +51,7 @@
 #include "directshowcameraglobal.h"
 #include "directshowmediatype.h"
 #include "directshowutils.h"
+#include "directshowvideoprobecontrol.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -70,6 +71,7 @@ DSCameraSession::DSCameraSession(QObject *parent)
     , m_imageIdCounter(0)
     , m_currentImageId(-1)
     , m_captureDestinations(QCameraImageCapture::CaptureToFile)
+    , m_videoProbeControl(nullptr)
     , m_status(QCamera::UnloadedStatus)
 {
     connect(this, SIGNAL(statusChanged(QCamera::Status)),
@@ -374,6 +376,20 @@ void DSCameraSession::setCaptureDestination(QCameraImageCapture::CaptureDestinat
     Q_EMIT captureDestinationChanged(m_captureDestinations);
 }
 
+void DSCameraSession::addVideoProbe(DirectShowVideoProbeControl *probe)
+{
+    const QMutexLocker locker(&m_probeMutex);
+    m_videoProbeControl = probe;
+}
+
+void DSCameraSession::removeVideoProbe(DirectShowVideoProbeControl *probe)
+{
+    Q_UNUSED(probe);
+    Q_ASSERT(m_videoProbeControl == probe);
+    const QMutexLocker locker(&m_probeMutex);
+    m_videoProbeControl = nullptr;
+}
+
 bool DSCameraSession::load()
 {
     unload();
@@ -566,6 +582,12 @@ void DSCameraSession::onFrameAvailable(double time, const QByteArray &data)
                                  m_previewPixelFormat);
 
     m_presentMutex.unlock();
+
+    {
+        const QMutexLocker locker(&m_probeMutex);
+        if (m_currentFrame.isValid() && m_videoProbeControl)
+            Q_EMIT m_videoProbeControl->videoFrameProbed(m_currentFrame);
+    }
 
     // Image capture
     QMutexLocker locker(&m_captureMutex);
