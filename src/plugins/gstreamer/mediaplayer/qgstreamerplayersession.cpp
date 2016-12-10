@@ -1894,12 +1894,14 @@ void QGstreamerPlayerSession::playlistTypeFindFunction(GstTypeFind *find, gpoint
 {
     QGstreamerPlayerSession* session = (QGstreamerPlayerSession*)userData;
 
-    const gchar *uri = 0;
+    gchar *strval = 0;
 #if GST_CHECK_VERSION(1,0,0)
-    g_object_get(G_OBJECT(session->m_playbin), "current-uri", &uri, NULL);
+    g_object_get(G_OBJECT(session->m_playbin), "current-uri", &strval, NULL);
 #else
-    g_object_get(G_OBJECT(session->m_playbin), "uri", &uri, NULL);
+    g_object_get(G_OBJECT(session->m_playbin), "uri", &strval, NULL);
 #endif
+    const QString uri(QString::fromUtf8(strval));
+    g_free(strval);
 
     guint64 length = gst_type_find_get_length(find);
     if (!length)
@@ -1910,7 +1912,7 @@ void QGstreamerPlayerSession::playlistTypeFindFunction(GstTypeFind *find, gpoint
     while (length > 0) {
         const guint8 *data = gst_type_find_peek(find, 0, length);
         if (data) {
-            session->m_isPlaylist = (QPlaylistFileParser::findPlaylistType(QString::fromUtf8(uri), 0, data, length) != QPlaylistFileParser::UNKNOWN);
+            session->m_isPlaylist = (QPlaylistFileParser::findPlaylistType(uri, 0, data, length) != QPlaylistFileParser::UNKNOWN);
             return;
         }
         length >>= 1; // for HTTP files length is not available,
