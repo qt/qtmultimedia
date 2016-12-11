@@ -85,7 +85,7 @@ public:
     QAbstractPlanarVideoBufferPrivate()
     {}
 
-    int map(QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]);
+    int map(QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override;
 
 private:
     Q_DECLARE_PUBLIC(QAbstractPlanarVideoBuffer)

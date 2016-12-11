@@ -70,9 +70,9 @@ public:
     QAudioFormat audioFormat() const;
     int duration() const;
 
-    qint64 size() const;
-    bool isSequential() const;
-    qint64 bytesAvailable() const;
+    qint64 size() const override;
+    bool isSequential() const override;
+    qint64 bytesAvailable() const override;
 
 Q_SIGNALS:
     void formatKnown();
@@ -82,8 +82,8 @@ private Q_SLOTS:
     void handleData();
 
 private:
-    qint64 readData(char *data, qint64 maxlen);
-    qint64 writeData(const char *data, qint64 len);
+    qint64 readData(char *data, qint64 maxlen) override;
+    qint64 writeData(const char *data, qint64 len) override;
 
     bool enoughDataAvailable();
     bool findChunk(const char *chunkId);

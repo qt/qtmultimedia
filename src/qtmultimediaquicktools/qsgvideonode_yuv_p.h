@@ -63,13 +63,13 @@ public:
     QSGVideoNode_YUV(const QVideoSurfaceFormat &format);
     ~QSGVideoNode_YUV();
 
-    virtual QVideoFrame::PixelFormat pixelFormat() const {
+    QVideoFrame::PixelFormat pixelFormat() const override {
         return m_format.pixelFormat();
     }
-    QAbstractVideoBuffer::HandleType handleType() const {
+    QAbstractVideoBuffer::HandleType handleType() const override {
         return QAbstractVideoBuffer::NoHandle;
     }
-    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
+    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) override;
 
 private:
     void bindTexture(int id, int unit, int w, int h, const uchar *bits);
@@ -80,8 +80,8 @@ private:
 
 class QSGVideoNodeFactory_YUV : public QSGVideoNodeFactoryInterface {
 public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override;
 };
 
 QT_END_NAMESPACE

@@ -101,8 +101,8 @@ class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryPlugin : public QObject, publi
     Q_OBJECT
     Q_INTERFACES(QSGVideoNodeFactoryInterface)
 public:
-    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const = 0;
-    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override = 0;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override = 0;
 };
 
 QT_END_NAMESPACE

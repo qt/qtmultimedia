@@ -195,8 +195,8 @@ class Q_MULTIMEDIA_EXPORT QMediaServiceProviderPlugin : public QObject, public Q
     Q_INTERFACES(QMediaServiceProviderFactoryInterface)
 
 public:
-    virtual QMediaService* create(const QString& key) = 0;
-    virtual void release(QMediaService *service) = 0;
+    QMediaService* create(const QString& key) override = 0;
+    void release(QMediaService *service) override = 0;
 };
 
 /*!

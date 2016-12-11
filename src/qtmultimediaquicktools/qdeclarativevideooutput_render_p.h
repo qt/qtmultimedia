@@ -125,10 +125,10 @@ class QSGVideoItemSurface : public QAbstractVideoSurface
 public:
     explicit QSGVideoItemSurface(QDeclarativeVideoRendererBackend *backend, QObject *parent = 0);
     ~QSGVideoItemSurface();
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
-    bool start(const QVideoSurfaceFormat &format);
-    void stop();
-    bool present(const QVideoFrame &frame);
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
+    bool start(const QVideoSurfaceFormat &format) override;
+    void stop() override;
+    bool present(const QVideoFrame &frame) override;
     void scheduleOpenGLContextUpdate();
 
 private slots:

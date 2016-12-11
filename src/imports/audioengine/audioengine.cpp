@@ -67,7 +67,7 @@ class QAudioEngineDeclarativeModule : public QQmlExtensionPlugin
 
 public:
     QAudioEngineDeclarativeModule(QObject *parent = 0) : QQmlExtensionPlugin(parent) { initResources(); }
-    virtual void registerTypes(const char *uri)
+    void registerTypes(const char *uri) override
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtAudioEngine"));
 

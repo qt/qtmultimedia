@@ -170,8 +170,8 @@ public:
     PlaybackState playbackState() const;
     void setPlaybackState(QMediaPlayer::State playbackState);
 
-    void classBegin();
-    void componentComplete();
+    void classBegin() override;
+    void componentComplete() override;
 
     QObject *mediaObject() { return m_player; }
 

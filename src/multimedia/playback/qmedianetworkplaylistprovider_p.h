@@ -62,26 +62,26 @@ class Q_MULTIMEDIA_EXPORT QMediaNetworkPlaylistProvider : public QMediaPlaylistP
     Q_OBJECT
 public:
     QMediaNetworkPlaylistProvider(QObject *parent=0);
-    virtual ~QMediaNetworkPlaylistProvider();
+    ~QMediaNetworkPlaylistProvider();
 
-    virtual bool load(const QNetworkRequest &request, const char *format = 0);
+    bool load(const QNetworkRequest &request, const char *format = 0) override;
 
-    virtual int mediaCount() const;
-    virtual QMediaContent media(int pos) const;
+    int mediaCount() const override;
+    QMediaContent media(int pos) const override;
 
-    virtual bool isReadOnly() const;
+    bool isReadOnly() const override;
 
-    virtual bool addMedia(const QMediaContent &content);
-    virtual bool addMedia(const QList<QMediaContent> &items);
-    virtual bool insertMedia(int pos, const QMediaContent &content);
-    virtual bool insertMedia(int pos, const QList<QMediaContent> &items);
-    virtual bool moveMedia(int from, int to);
-    virtual bool removeMedia(int pos);
-    virtual bool removeMedia(int start, int end);
-    virtual bool clear();
+    bool addMedia(const QMediaContent &content) override;
+    bool addMedia(const QList<QMediaContent> &items) override;
+    bool insertMedia(int pos, const QMediaContent &content) override;
+    bool insertMedia(int pos, const QList<QMediaContent> &items) override;
+    bool moveMedia(int from, int to) override;
+    bool removeMedia(int pos) override;
+    bool removeMedia(int start, int end) override;
+    bool clear() override;
 
 public Q_SLOTS:
-    virtual void shuffle();
+    void shuffle() override;
 
 private:
     Q_DISABLE_COPY(QMediaNetworkPlaylistProvider)

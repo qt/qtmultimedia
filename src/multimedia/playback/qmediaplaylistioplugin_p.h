@@ -107,17 +107,17 @@ Q_OBJECT
 Q_INTERFACES(QMediaPlaylistIOInterface)
 public:
     explicit QMediaPlaylistIOPlugin(QObject *parent = 0);
-    virtual ~QMediaPlaylistIOPlugin();
+    ~QMediaPlaylistIOPlugin();
 
-    virtual bool canRead(QIODevice *device, const QByteArray &format = QByteArray() ) const = 0;
-    virtual bool canRead(const QUrl& location, const QByteArray &format = QByteArray()) const = 0;
+    bool canRead(QIODevice *device, const QByteArray &format = QByteArray() ) const override = 0;
+    bool canRead(const QUrl& location, const QByteArray &format = QByteArray()) const override = 0;
 
-    virtual bool canWrite(QIODevice *device, const QByteArray &format) const = 0;
+    bool canWrite(QIODevice *device, const QByteArray &format) const override = 0;
 
-    virtual QMediaPlaylistReader *createReader(QIODevice *device, const QByteArray &format = QByteArray()) = 0;
-    virtual QMediaPlaylistReader *createReader(const QUrl& location, const QByteArray &format = QByteArray()) = 0;
+    QMediaPlaylistReader *createReader(QIODevice *device, const QByteArray &format = QByteArray()) override = 0;
+    QMediaPlaylistReader *createReader(const QUrl& location, const QByteArray &format = QByteArray()) override = 0;
 
-    virtual QMediaPlaylistWriter *createWriter(QIODevice *device, const QByteArray &format) = 0;
+    QMediaPlaylistWriter *createWriter(QIODevice *device, const QByteArray &format) override = 0;
 };
 
 QT_END_NAMESPACE

@@ -81,7 +81,7 @@ public:
     explicit QRadioTuner(QObject *parent = Q_NULLPTR);
     ~QRadioTuner();
 
-    QMultimedia::AvailabilityStatus availability() const;
+    QMultimedia::AvailabilityStatus availability() const override;
 
     State state() const;
 

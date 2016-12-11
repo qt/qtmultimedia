@@ -61,64 +61,64 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, audioLoader,
 class QNullDeviceInfo : public QAbstractAudioDeviceInfo
 {
 public:
-    QAudioFormat preferredFormat() const { qWarning()<<"using null deviceinfo, none available"; return QAudioFormat(); }
-    bool isFormatSupported(const QAudioFormat& ) const { return false; }
+    QAudioFormat preferredFormat() const override { qWarning()<<"using null deviceinfo, none available"; return QAudioFormat(); }
+    bool isFormatSupported(const QAudioFormat& ) const override { return false; }
     QAudioFormat nearestFormat(const QAudioFormat& ) const { return QAudioFormat(); }
-    QString deviceName() const { return QString(); }
-    QStringList supportedCodecs() { return QStringList(); }
-    QList<int> supportedSampleRates()  { return QList<int>(); }
-    QList<int> supportedChannelCounts() { return QList<int>(); }
-    QList<int> supportedSampleSizes() { return QList<int>(); }
-    QList<QAudioFormat::Endian> supportedByteOrders() { return QList<QAudioFormat::Endian>(); }
-    QList<QAudioFormat::SampleType> supportedSampleTypes() { return QList<QAudioFormat::SampleType>(); }
+    QString deviceName() const override { return QString(); }
+    QStringList supportedCodecs() override { return QStringList(); }
+    QList<int> supportedSampleRates() override  { return QList<int>(); }
+    QList<int> supportedChannelCounts() override { return QList<int>(); }
+    QList<int> supportedSampleSizes() override { return QList<int>(); }
+    QList<QAudioFormat::Endian> supportedByteOrders() override { return QList<QAudioFormat::Endian>(); }
+    QList<QAudioFormat::SampleType> supportedSampleTypes() override { return QList<QAudioFormat::SampleType>(); }
 };
 
 class QNullInputDevice : public QAbstractAudioInput
 {
 public:
-    void start(QIODevice*) { qWarning()<<"using null input device, none available";}
-    QIODevice* start() { qWarning()<<"using null input device, none available"; return 0; }
-    void stop() {}
-    void reset() {}
-    void suspend() {}
-    void resume() {}
-    int bytesReady() const { return 0; }
-    int periodSize() const { return 0; }
-    void setBufferSize(int ) {}
-    int bufferSize() const  { return 0; }
-    void setNotifyInterval(int ) {}
-    int notifyInterval() const { return 0; }
-    qint64 processedUSecs() const { return 0; }
-    qint64 elapsedUSecs() const { return 0; }
-    QAudio::Error error() const { return QAudio::OpenError; }
-    QAudio::State state() const { return QAudio::StoppedState; }
-    void setFormat(const QAudioFormat&) {}
-    QAudioFormat format() const { return QAudioFormat(); }
-    void setVolume(qreal) {}
-    qreal volume() const {return 1.0f;}
+    void start(QIODevice*) override { qWarning()<<"using null input device, none available";}
+    QIODevice* start() override { qWarning()<<"using null input device, none available"; return 0; }
+    void stop() override {}
+    void reset() override {}
+    void suspend() override {}
+    void resume() override {}
+    int bytesReady() const override { return 0; }
+    int periodSize() const override { return 0; }
+    void setBufferSize(int ) override {}
+    int bufferSize() const override  { return 0; }
+    void setNotifyInterval(int ) override {}
+    int notifyInterval() const override { return 0; }
+    qint64 processedUSecs() const override { return 0; }
+    qint64 elapsedUSecs() const override { return 0; }
+    QAudio::Error error() const override { return QAudio::OpenError; }
+    QAudio::State state() const override { return QAudio::StoppedState; }
+    void setFormat(const QAudioFormat&) override {}
+    QAudioFormat format() const override { return QAudioFormat(); }
+    void setVolume(qreal) override {}
+    qreal volume() const override {return 1.0f;}
 };
 
 class QNullOutputDevice : public QAbstractAudioOutput
 {
 public:
-    void start(QIODevice*) {qWarning()<<"using null output device, none available";}
-    QIODevice* start() { qWarning()<<"using null output device, none available"; return 0; }
-    void stop() {}
-    void reset() {}
-    void suspend() {}
-    void resume() {}
-    int bytesFree() const { return 0; }
-    int periodSize() const { return 0; }
-    void setBufferSize(int ) {}
-    int bufferSize() const  { return 0; }
-    void setNotifyInterval(int ) {}
-    int notifyInterval() const { return 0; }
-    qint64 processedUSecs() const { return 0; }
-    qint64 elapsedUSecs() const { return 0; }
-    QAudio::Error error() const { return QAudio::OpenError; }
-    QAudio::State state() const { return QAudio::StoppedState; }
-    void setFormat(const QAudioFormat&) {}
-    QAudioFormat format() const { return QAudioFormat(); }
+    void start(QIODevice*) override {qWarning()<<"using null output device, none available";}
+    QIODevice* start() override { qWarning()<<"using null output device, none available"; return 0; }
+    void stop() override {}
+    void reset() override {}
+    void suspend() override {}
+    void resume() override {}
+    int bytesFree() const override { return 0; }
+    int periodSize() const override { return 0; }
+    void setBufferSize(int ) override {}
+    int bufferSize() const override  { return 0; }
+    void setNotifyInterval(int ) override {}
+    int notifyInterval() const override { return 0; }
+    qint64 processedUSecs() const override { return 0; }
+    qint64 elapsedUSecs() const override { return 0; }
+    QAudio::Error error() const override { return QAudio::OpenError; }
+    QAudio::State state() const override { return QAudio::StoppedState; }
+    void setFormat(const QAudioFormat&) override {}
+    QAudioFormat format() const override { return QAudioFormat(); }
 };
 
 QList<QAudioDeviceInfo> QAudioDeviceFactory::availableDevices(QAudio::Mode mode)

@@ -66,7 +66,7 @@ public:
     explicit QGraphicsVideoItem(QGraphicsItem *parent = Q_NULLPTR);
     ~QGraphicsVideoItem();
 
-    QMediaObject *mediaObject() const;
+    QMediaObject *mediaObject() const override;
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
@@ -79,18 +79,18 @@ public:
 
     QSizeF nativeSize() const;
 
-    QRectF boundingRect() const;
+    QRectF boundingRect() const override;
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = Q_NULLPTR);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = Q_NULLPTR) override;
 
 Q_SIGNALS:
     void nativeSizeChanged(const QSizeF &size);
 
 protected:
-    void timerEvent(QTimerEvent *event);
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+    void timerEvent(QTimerEvent *event) override;
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
-    bool setMediaObject(QMediaObject *object);
+    bool setMediaObject(QMediaObject *object) override;
 
     QGraphicsVideoItemPrivate *d_ptr;
 

@@ -93,7 +93,7 @@ public:
     bool isAvailable() const;
     QMultimedia::AvailabilityStatus availability() const;
 
-    QMediaObject *mediaObject() const;
+    QMediaObject *mediaObject() const override;
 
     Error error() const;
     QString errorString() const;
@@ -135,7 +135,7 @@ Q_SIGNALS:
     void imageSaved(int id, const QString &fileName);
 
 protected:
-    bool setMediaObject(QMediaObject *);
+    bool setMediaObject(QMediaObject *) override;
 
     QCameraImageCapturePrivate *d_ptr;
 private:

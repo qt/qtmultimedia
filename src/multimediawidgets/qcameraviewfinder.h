@@ -64,10 +64,10 @@ public:
     explicit QCameraViewfinder(QWidget *parent = Q_NULLPTR);
     ~QCameraViewfinder();
 
-    QMediaObject *mediaObject() const;
+    QMediaObject *mediaObject() const override;
 
 protected:
-    bool setMediaObject(QMediaObject *object);
+    bool setMediaObject(QMediaObject *object) override;
 
 private:
     Q_DISABLE_COPY(QCameraViewfinder)

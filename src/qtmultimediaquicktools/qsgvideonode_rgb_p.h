@@ -64,13 +64,13 @@ public:
     QSGVideoNode_RGB(const QVideoSurfaceFormat &format);
     ~QSGVideoNode_RGB();
 
-    virtual QVideoFrame::PixelFormat pixelFormat() const {
+    QVideoFrame::PixelFormat pixelFormat() const override {
         return m_format.pixelFormat();
     }
-    QAbstractVideoBuffer::HandleType handleType() const {
+    QAbstractVideoBuffer::HandleType handleType() const override {
         return QAbstractVideoBuffer::NoHandle;
     }
-    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
+    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) override;
 
 private:
     QVideoSurfaceFormat m_format;
@@ -80,8 +80,8 @@ private:
 
 class QSGVideoNodeFactory_RGB : public QSGVideoNodeFactoryInterface {
 public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
+    QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override;
 };
 
 QT_END_NAMESPACE

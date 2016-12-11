@@ -70,7 +70,7 @@ public:
     explicit QMediaPlaylist(QObject *parent = Q_NULLPTR);
     virtual ~QMediaPlaylist();
 
-    QMediaObject *mediaObject() const;
+    QMediaObject *mediaObject() const override;
 
     PlaybackMode playbackMode() const;
     void setPlaybackMode(PlaybackMode mode);
@@ -129,7 +129,7 @@ Q_SIGNALS:
     void loadFailed();
 
 protected:
-    bool setMediaObject(QMediaObject *object);
+    bool setMediaObject(QMediaObject *object) override;
     QMediaPlaylistPrivate *d_ptr;
 
 private:

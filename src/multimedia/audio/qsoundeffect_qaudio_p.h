@@ -69,8 +69,8 @@ public:
     PrivateSoundSource(QSoundEffectPrivate* s);
     ~PrivateSoundSource() {}
 
-    qint64 readData( char* data, qint64 len);
-    qint64 writeData(const char* data, qint64 len);
+    qint64 readData( char* data, qint64 len) override;
+    qint64 writeData(const char* data, qint64 len) override;
 
 private Q_SLOTS:
     void sampleReady();

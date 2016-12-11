@@ -176,7 +176,7 @@ public:
     QT_DEPRECATED static QString deviceDescription(const QByteArray &device);
 #endif
 
-    QMultimedia::AvailabilityStatus availability() const;
+    QMultimedia::AvailabilityStatus availability() const override;
 
     State state() const;
     Status status() const;

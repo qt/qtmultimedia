@@ -67,7 +67,7 @@ public:
     explicit QVideoWidget(QWidget *parent = Q_NULLPTR);
     ~QVideoWidget();
 
-    QMediaObject *mediaObject() const;
+    QMediaObject *mediaObject() const override;
 
 #ifdef Q_QDOC
     bool isFullScreen() const;
@@ -80,7 +80,7 @@ public:
     int hue() const;
     int saturation() const;
 
-    QSize sizeHint() const;
+    QSize sizeHint() const override;
 
 public Q_SLOTS:
     void setFullScreen(bool fullScreen);
@@ -98,14 +98,14 @@ Q_SIGNALS:
     void saturationChanged(int saturation);
 
 protected:
-    bool event(QEvent *event);
-    void showEvent(QShowEvent *event);
-    void hideEvent(QHideEvent *event);
-    void resizeEvent(QResizeEvent *event);
-    void moveEvent(QMoveEvent *event);
-    void paintEvent(QPaintEvent *event);
+    bool event(QEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-    bool setMediaObject(QMediaObject *object);
+    bool setMediaObject(QMediaObject *object) override;
 
 #if defined(Q_WS_WIN)
     bool winEvent(MSG *message, long *result);

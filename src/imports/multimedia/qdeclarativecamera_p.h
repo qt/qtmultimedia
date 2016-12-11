@@ -336,8 +336,8 @@ private Q_SLOTS:
     void _q_availabilityChanged(QMultimedia::AvailabilityStatus);
 
 protected:
-    void classBegin();
-    void componentComplete();
+    void classBegin() override;
+    void componentComplete() override;
 
 private:
     Q_DISABLE_COPY(QDeclarativeCamera)

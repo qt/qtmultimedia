@@ -79,9 +79,9 @@ public:
         setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/biplanaryuvvideo.frag"));
     }
 
-    virtual void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial);
+    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
-    virtual char const *const *attributeNames() const {
+    char const *const *attributeNames() const override {
         static const char *names[] = {
             "qt_VertexPosition",
             "qt_VertexTexCoord",
@@ -91,7 +91,7 @@ public:
     }
 
 protected:
-    virtual void initialize() {
+    void initialize() override {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
         m_id_plane1Width = program()->uniformLocation("plane1Width");
         m_id_plane2Width = program()->uniformLocation("plane2Width");
@@ -181,10 +181,10 @@ public:
         setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/triplanaryuvvideo.frag"));
     }
 
-    virtual void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial);
+    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
 protected:
-    virtual void initialize() {
+    void initialize() override {
         m_id_plane3Width = program()->uniformLocation("plane3Width");
         m_id_plane3Texture = program()->uniformLocation("plane3Texture");
         QSGVideoMaterialShader_YUV_BiPlanar::initialize();
@@ -201,7 +201,7 @@ public:
     QSGVideoMaterial_YUV(const QVideoSurfaceFormat &format);
     ~QSGVideoMaterial_YUV();
 
-    virtual QSGMaterialType *type() const {
+    QSGMaterialType *type() const override {
         static QSGMaterialType biPlanarType, biPlanarSwizzleType, triPlanarType, uyvyType, yuyvType;
 
         switch (m_format.pixelFormat()) {
@@ -218,7 +218,7 @@ public:
         }
     }
 
-    virtual QSGMaterialShader *createShader() const {
+    QSGMaterialShader *createShader() const override {
         switch (m_format.pixelFormat()) {
         case QVideoFrame::Format_NV12:
             return new QSGVideoMaterialShader_YUV_BiPlanar;
@@ -233,7 +233,7 @@ public:
         }
     }
 
-    virtual int compare(const QSGMaterial *other) const {
+    int compare(const QSGMaterial *other) const override {
         const QSGVideoMaterial_YUV *m = static_cast<const QSGVideoMaterial_YUV *>(other);
         if (!m_textureIds[0])
             return 1;

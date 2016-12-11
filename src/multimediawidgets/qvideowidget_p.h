@@ -106,15 +106,15 @@ public:
 
     void releaseControl();
 
-    void setBrightness(int brightness);
-    void setContrast(int contrast);
-    void setHue(int hue);
-    void setSaturation(int saturation);
+    void setBrightness(int brightness) override;
+    void setContrast(int contrast) override;
+    void setHue(int hue) override;
+    void setSaturation(int saturation) override;
 
-    void setFullScreen(bool fullScreen);
+    void setFullScreen(bool fullScreen) override;
 
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
 private:
     QMediaService *m_service;
@@ -134,23 +134,23 @@ public:
     void releaseControl();
     void clearSurface();
 
-    void setBrightness(int brightness);
-    void setContrast(int contrast);
-    void setHue(int hue);
-    void setSaturation(int saturation);
+    void setBrightness(int brightness) override;
+    void setContrast(int contrast) override;
+    void setHue(int hue) override;
+    void setSaturation(int saturation) override;
 
-    void setFullScreen(bool fullScreen);
+    void setFullScreen(bool fullScreen) override;
 
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    QSize sizeHint() const;
+    QSize sizeHint() const override;
 
-    void showEvent();
-    void hideEvent(QHideEvent *event);
-    void resizeEvent(QResizeEvent *event);
-    void moveEvent(QMoveEvent *event);
-    void paintEvent(QPaintEvent *event);
+    void showEvent() override;
+    void hideEvent(QHideEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 Q_SIGNALS:
     void fullScreenChanged(bool fullScreen);
@@ -188,23 +188,23 @@ public:
 
     void releaseControl();
 
-    void setBrightness(int brightness);
-    void setContrast(int contrast);
-    void setHue(int hue);
-    void setSaturation(int saturation);
+    void setBrightness(int brightness) override;
+    void setContrast(int contrast) override;
+    void setHue(int hue) override;
+    void setSaturation(int saturation) override;
 
-   void setFullScreen(bool fullScreen);
+   void setFullScreen(bool fullScreen) override;
 
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    QSize sizeHint() const;
+    QSize sizeHint() const override;
 
-    void showEvent();
-    void hideEvent(QHideEvent *event);
-    void resizeEvent(QResizeEvent *event);
-    void moveEvent(QMoveEvent *event);
-    void paintEvent(QPaintEvent *event);
+    void showEvent() override;
+    void hideEvent(QHideEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 #if defined(Q_WS_WIN)
     bool winEvent(MSG *message, long *result);

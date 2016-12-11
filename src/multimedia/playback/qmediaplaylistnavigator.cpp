@@ -50,9 +50,9 @@ class QMediaPlaylistNullProvider : public QMediaPlaylistProvider
 {
 public:
     QMediaPlaylistNullProvider() :QMediaPlaylistProvider() {}
-    virtual ~QMediaPlaylistNullProvider() {}
-    virtual int mediaCount() const {return 0;}
-    virtual QMediaContent media(int) const { return QMediaContent(); }
+    ~QMediaPlaylistNullProvider() {}
+    int mediaCount() const override {return 0;}
+    QMediaContent media(int) const override { return QMediaContent(); }
 };
 
 Q_GLOBAL_STATIC(QMediaPlaylistNullProvider, _q_nullMediaPlaylist)

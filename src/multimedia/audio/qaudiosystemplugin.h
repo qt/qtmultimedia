@@ -81,10 +81,10 @@ public:
     explicit QAudioSystemPlugin(QObject *parent = Q_NULLPTR);
     ~QAudioSystemPlugin();
 
-    virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;
-    virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
-    virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
-    virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
+    QList<QByteArray> availableDevices(QAudio::Mode) const override = 0;
+    QAbstractAudioInput* createInput(const QByteArray& device) override = 0;
+    QAbstractAudioOutput* createOutput(const QByteArray& device) override = 0;
+    QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) override = 0;
 };
 
 QT_END_NAMESPACE

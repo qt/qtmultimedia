@@ -134,10 +134,10 @@ Q_SIGNALS:
     void contentRectChanged();
 
 protected:
-    QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *);
-    void itemChange(ItemChange change, const ItemChangeData &changeData);
-    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
-    void releaseResources();
+    QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
+    void itemChange(ItemChange change, const ItemChangeData &changeData) override;
+    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
+    void releaseResources() override;
 
 private Q_SLOTS:
     void _q_updateMediaObject();

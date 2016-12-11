@@ -141,26 +141,26 @@ public:
         connect(m_navigator, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)), SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)));
     }
 
-    virtual ~QMediaNetworkPlaylistControl() {};
+    ~QMediaNetworkPlaylistControl() {}
 
-    QMediaPlaylistProvider* playlistProvider() const { return m_navigator->playlist(); }
-    bool setPlaylistProvider(QMediaPlaylistProvider *mediaPlaylist)
+    QMediaPlaylistProvider* playlistProvider() const override { return m_navigator->playlist(); }
+    bool setPlaylistProvider(QMediaPlaylistProvider *mediaPlaylist) override
     {
         m_navigator->setPlaylist(mediaPlaylist);
         emit playlistProviderChanged();
         return true;
     }
 
-    int currentIndex() const { return m_navigator->currentIndex(); }
-    void setCurrentIndex(int position) { m_navigator->jump(position); }
-    int nextIndex(int steps) const { return m_navigator->nextIndex(steps); }
-    int previousIndex(int steps) const { return m_navigator->previousIndex(steps); }
+    int currentIndex() const override { return m_navigator->currentIndex(); }
+    void setCurrentIndex(int position) override { m_navigator->jump(position); }
+    int nextIndex(int steps) const override { return m_navigator->nextIndex(steps); }
+    int previousIndex(int steps) const override { return m_navigator->previousIndex(steps); }
 
-    void next() { m_navigator->next(); }
-    void previous() { m_navigator->previous(); }
+    void next() override { m_navigator->next(); }
+    void previous() override { m_navigator->previous(); }
 
-    QMediaPlaylist::PlaybackMode playbackMode() const { return m_navigator->playbackMode(); }
-    void setPlaybackMode(QMediaPlaylist::PlaybackMode mode) { m_navigator->setPlaybackMode(mode); }
+    QMediaPlaylist::PlaybackMode playbackMode() const override { return m_navigator->playbackMode(); }
+    void setPlaybackMode(QMediaPlaylist::PlaybackMode mode) override { m_navigator->setPlaybackMode(mode); }
 
 private:
     QMediaPlaylistNavigator *m_navigator;

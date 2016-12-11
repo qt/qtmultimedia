@@ -120,8 +120,8 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
 
 public:
-    virtual bool bind(QObject *);
-    virtual void unbind(QObject *);
+    bool bind(QObject *) override;
+    void unbind(QObject *) override;
 
 private:
     Q_DISABLE_COPY(QAudioDecoder)

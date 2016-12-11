@@ -134,7 +134,7 @@ public:
     C:\Documents and Settings\I\My Music\Greatest Hits\Example.ogg
 
      */
-    bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root)
+    bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root) override
     {
         if (line[0] == '#' ) {
             if (m_extendedFormat) {
@@ -241,7 +241,7 @@ NumberOfEntries=2
 
 Version=2
 */
-    bool parseLineImpl(int, const QString &line, const QUrl &root)
+    bool parseLineImpl(int, const QString &line, const QUrl &root) override
     {
         // We ignore everything but 'File' entries, since that's the only thing we care about.
         if (!line.startsWith(QLatin1String("File")))

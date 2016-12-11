@@ -85,7 +85,7 @@ class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 
 public:
     QMultimediaDeclarativeModule(QObject *parent = 0) : QQmlExtensionPlugin(parent) { initResources(); }
-    virtual void registerTypes(const char *uri)
+    void registerTypes(const char *uri) override
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia"));
 
@@ -155,7 +155,7 @@ public:
         qmlRegisterType<QAbstractVideoFilter>();
     }
 
-    void initializeEngine(QQmlEngine *engine, const char *uri)
+    void initializeEngine(QQmlEngine *engine, const char *uri) override
     {
         Q_UNUSED(uri);
         engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);

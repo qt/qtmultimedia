@@ -67,10 +67,10 @@ public:
     QImageVideoBuffer(const QImage &image);
     ~QImageVideoBuffer();
 
-    MapMode mapMode() const;
+    MapMode mapMode() const override;
 
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine);
-    void unmap();
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) override;
+    void unmap() override;
 };
 
 QT_END_NAMESPACE

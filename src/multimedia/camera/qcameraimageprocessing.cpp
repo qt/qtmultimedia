@@ -101,10 +101,10 @@ public:
         QCameraImageProcessingControl(parent)
     {}
 
-    bool isParameterSupported(ProcessingParameter) const { return false; }
-    bool isParameterValueSupported(ProcessingParameter, const QVariant &) const { return false; }
-    QVariant parameter(ProcessingParameter) const { return QVariant(); }
-    void setParameter(ProcessingParameter, const QVariant &) {}
+    bool isParameterSupported(ProcessingParameter) const override { return false; }
+    bool isParameterValueSupported(ProcessingParameter, const QVariant &) const override { return false; }
+    QVariant parameter(ProcessingParameter) const override { return QVariant(); }
+    void setParameter(ProcessingParameter, const QVariant &) override {}
 };
 
 

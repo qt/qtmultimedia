@@ -51,24 +51,24 @@ namespace {
         {
         }
 
-        bool isVideoEnabled() const
+        bool isVideoEnabled() const override
         {
             return true;
         }
 
-        bool isGranted() const
+        bool isGranted() const override
         {
             return true;
         }
 
-        bool isAvailable() const
+        bool isAvailable() const override
         {
             return true;
         }
 
-        void acquire() {}
-        void release() {}
-        void setVideoEnabled(bool) {}
+        void acquire() override {}
+        void release() override {}
+        void setVideoEnabled(bool) override {}
     };
 }
 

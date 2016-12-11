@@ -109,7 +109,7 @@ public:
     explicit QMediaRecorder(QMediaObject *mediaObject, QObject *parent = Q_NULLPTR);
     ~QMediaRecorder();
 
-    QMediaObject *mediaObject() const;
+    QMediaObject *mediaObject() const override;
 
     bool isAvailable() const;
     QMultimedia::AvailabilityStatus availability() const;
@@ -194,7 +194,7 @@ Q_SIGNALS:
 
 protected:
     QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = Q_NULLPTR);
-    bool setMediaObject(QMediaObject *object);
+    bool setMediaObject(QMediaObject *object) override;
 
     QMediaRecorderPrivate *d_ptr;
 private:

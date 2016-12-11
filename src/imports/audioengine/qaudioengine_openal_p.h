@@ -123,28 +123,28 @@ public:
     QSoundSourcePrivate(QObject *parent);
     ~QSoundSourcePrivate();
 
-    void play();
-    void pause();
-    void stop();
+    void play() override;
+    void pause() override;
+    void stop() override;
 
-    QSoundSource::State state() const;
+    QSoundSource::State state() const override;
 
     bool isLooping() const;
-    void setLooping(bool looping);
-    void setPosition(const QVector3D& position);
-    void setDirection(const QVector3D& direction);
-    void setVelocity(const QVector3D& velocity);
+    void setLooping(bool looping) override;
+    void setPosition(const QVector3D& position) override;
+    void setDirection(const QVector3D& direction) override;
+    void setVelocity(const QVector3D& velocity) override;
 
-    QVector3D velocity() const;
-    QVector3D position() const;
-    QVector3D direction() const;
+    QVector3D velocity() const override;
+    QVector3D position() const override;
+    QVector3D direction() const override;
 
-    void setGain(qreal gain);
-    void setPitch(qreal pitch);
-    void setCone(qreal innerAngle, qreal outerAngle, qreal outerGain);
+    void setGain(qreal gain) override;
+    void setPitch(qreal pitch) override;
+    void setCone(qreal innerAngle, qreal outerAngle, qreal outerGain) override;
 
-    void bindBuffer(QSoundBuffer*);
-    void unbindBuffer();
+    void bindBuffer(QSoundBuffer*) override;
+    void unbindBuffer() override;
 
     void checkState();
 

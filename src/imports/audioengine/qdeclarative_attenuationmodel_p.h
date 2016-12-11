@@ -97,9 +97,9 @@ public:
     qreal endDistance() const;
     void setEndDistance(qreal endDist);
 
-    qreal calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const;
+    qreal calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const override;
 
-    void setEngine(QDeclarativeAudioEngine *engine);
+    void setEngine(QDeclarativeAudioEngine *engine) override;
 
 private:
     Q_DISABLE_COPY(QDeclarativeAttenuationModelLinear);
@@ -126,9 +126,9 @@ public:
     qreal rolloffFactor() const;
     void setRolloffFactor(qreal rolloffFactor);
 
-    qreal calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const;
+    qreal calculateGain(const QVector3D &listenerPosition, const QVector3D &sourcePosition) const override;
 
-    void setEngine(QDeclarativeAudioEngine *engine);
+    void setEngine(QDeclarativeAudioEngine *engine) override;
 
 private:
     Q_DISABLE_COPY(QDeclarativeAttenuationModelInverse);

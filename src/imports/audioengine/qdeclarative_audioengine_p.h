@@ -90,8 +90,8 @@ public:
     QDeclarativeAudioEngine(QObject *parent = 0);
     ~QDeclarativeAudioEngine();
 
-    void classBegin();
-    void componentComplete();
+    void classBegin() override;
+    void componentComplete() override;
 
     //This is used for tracking all objects declared inside AudioEngine
     //see appendFunction

@@ -157,7 +157,7 @@ public:
 
     QNetworkConfiguration currentNetworkConfiguration() const;
 
-    QMultimedia::AvailabilityStatus availability() const;
+    QMultimedia::AvailabilityStatus availability() const override;
 
     QAudio::Role audioRole() const;
     void setAudioRole(QAudio::Role audioRole);
@@ -205,8 +205,8 @@ Q_SIGNALS:
 
     void networkConfigurationChanged(const QNetworkConfiguration &configuration);
 public:
-    virtual bool bind(QObject *);
-    virtual void unbind(QObject *);
+    bool bind(QObject *) override;
+    void unbind(QObject *) override;
 
 private:
     Q_DISABLE_COPY(QMediaPlayer)

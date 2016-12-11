@@ -315,7 +315,7 @@ class QPluginServiceProvider : public QMediaServiceProvider
     QMap<const QMediaService*, MediaServiceData> mediaServiceData;
 
 public:
-    QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint)
+    QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint) override
     {
         QString key(QLatin1String(type.constData()));
 
@@ -440,7 +440,7 @@ public:
         return 0;
     }
 
-    void releaseService(QMediaService *service)
+    void releaseService(QMediaService *service) override
     {
         if (service != 0) {
             MediaServiceData d = mediaServiceData.take(service);
@@ -450,7 +450,7 @@ public:
         }
     }
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *service) const
+    QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *service) const override
     {
         if (service) {
             MediaServiceData d = mediaServiceData.value(service);
@@ -470,7 +470,7 @@ public:
     QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
                                      const QString &mimeType,
                                      const QStringList& codecs,
-                                     int flags) const
+                                     int flags) const override
     {
         const QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
 
@@ -522,7 +522,7 @@ public:
         return supportEstimate;
     }
 
-    QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const
+    QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const override
     {
         const QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
 
@@ -569,7 +569,7 @@ public:
         return supportedTypes;
     }
 
-    QByteArray defaultDevice(const QByteArray &serviceType) const
+    QByteArray defaultDevice(const QByteArray &serviceType) const override
     {
         const auto instances = loader()->instances(QLatin1String(serviceType));
         for (QObject *obj : instances) {
@@ -589,7 +589,7 @@ public:
         return QByteArray();
     }
 
-    QList<QByteArray> devices(const QByteArray &serviceType) const
+    QList<QByteArray> devices(const QByteArray &serviceType) const override
     {
         QList<QByteArray> res;
 
@@ -606,7 +606,7 @@ public:
         return res;
     }
 
-    QString deviceDescription(const QByteArray &serviceType, const QByteArray &device)
+    QString deviceDescription(const QByteArray &serviceType, const QByteArray &device) override
     {
         const auto instances = loader()->instances(QLatin1String(serviceType));
         for (QObject *obj : instances) {
@@ -622,7 +622,7 @@ public:
         return QString();
     }
 
-    QCamera::Position cameraPosition(const QByteArray &device) const
+    QCamera::Position cameraPosition(const QByteArray &device) const override
     {
         const QByteArray serviceType(Q_MEDIASERVICE_CAMERA);
         const auto instances = loader()->instances(QString::fromLatin1(serviceType));
@@ -642,7 +642,7 @@ public:
         return QCamera::UnspecifiedPosition;
     }
 
-    int cameraOrientation(const QByteArray &device) const
+    int cameraOrientation(const QByteArray &device) const override
     {
         const QByteArray serviceType(Q_MEDIASERVICE_CAMERA);
         const auto instances = loader()->instances(QString::fromLatin1(serviceType));

@@ -82,9 +82,9 @@ public:
         setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo.frag"));
     }
 
-    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial);
+    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
-    virtual char const *const *attributeNames() const {
+    char const *const *attributeNames() const override {
         static const char *names[] = {
             "qt_VertexPosition",
             "qt_VertexTexCoord",
@@ -94,7 +94,7 @@ public:
     }
 
 protected:
-    virtual void initialize() {
+    void initialize() override {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
         m_id_Texture = program()->uniformLocation("rgbTexture");
         m_id_opacity = program()->uniformLocation("opacity");
@@ -132,17 +132,17 @@ public:
         m_frame = QVideoFrame();
     }
 
-    virtual QSGMaterialType *type() const {
+    QSGMaterialType *type() const override {
         static QSGMaterialType normalType, swizzleType;
         return needsSwizzling() ? &swizzleType : &normalType;
     }
 
-    virtual QSGMaterialShader *createShader() const {
+    QSGMaterialShader *createShader() const override {
         return needsSwizzling() ? new QSGVideoMaterialShader_Texture_swizzle
                                 : new QSGVideoMaterialShader_Texture;
     }
 
-    virtual int compare(const QSGMaterial *other) const {
+    int compare(const QSGMaterial *other) const override {
         const QSGVideoMaterial_Texture *m = static_cast<const QSGVideoMaterial_Texture *>(other);
 
         if (!m_textureId)
