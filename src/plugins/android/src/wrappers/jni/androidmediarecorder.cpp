@@ -42,6 +42,8 @@
 #include "androidcamera.h"
 #include "androidsurfacetexture.h"
 #include "androidsurfaceview.h"
+#include "qandroidglobal.h"
+#include "qandroidmultimediautils.h"
 #include <QtCore/private/qjni_p.h>
 #include <qmap.h>
 
@@ -381,6 +383,10 @@ void AndroidMediaRecorder::setSurfaceHolder(AndroidSurfaceHolder *holder)
     }
 }
 
+bool AndroidMediaRecorder::requestRecordingPermission()
+{
+    return qt_androidRequestPermission(QLatin1String("android.permission.RECORD_AUDIO"));
+}
 
 bool AndroidMediaRecorder::initJNI(JNIEnv *env)
 {
