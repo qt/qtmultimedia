@@ -38,8 +38,11 @@
 ****************************************************************************/
 
 #include "qandroidmultimediautils.h"
+#include "qandroidglobal.h"
 
 #include <qlist.h>
+#include <QtCore/private/qjni_p.h>
+#include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -108,6 +111,32 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::Pix
     default:
         return AndroidCamera::UnknownImageFormat;
     }
+}
+
+bool qt_androidRequestPermission(const QString &key)
+{
+    using namespace QtAndroidPrivate;
+
+    if (androidSdkVersion() < 23)
+        return true;
+
+    PermissionsResult res = checkPermission(key);
+    if (res == PermissionsResult::Granted) // Permission already granted?
+        return true;
+
+    QJNIEnvironmentPrivate env;
+    const auto &results = requestPermissionsSync(env, QStringList() << key);
+    if (!results.contains(key)) {
+        qCWarning(qtAndroidMediaPlugin, "No permission found for key: %s", qPrintable(key));
+        return false;
+    }
+
+    if (results[key] == PermissionsResult::Denied) {
+        qCDebug(qtAndroidMediaPlugin, "%s - Permission denied by user!", qPrintable(key));
+        return false;
+    }
+
+    return true;
 }
 
 QT_END_NAMESPACE
