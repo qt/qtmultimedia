@@ -330,10 +330,6 @@ QDir QGstreamerRecorderControl::defaultDir() const
 {
     QStringList dirCandidates;
 
-#if defined(Q_WS_MAEMO_6)
-    dirCandidates << QLatin1String("/home/user/MyDocs");
-#endif
-
     if (m_session->captureMode() & QGstreamerCaptureSession::Video)
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     else

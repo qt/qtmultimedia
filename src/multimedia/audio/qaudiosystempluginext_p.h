@@ -40,7 +40,7 @@
 #ifndef QAUDIOSYSTEMPLUGINEXT_P_H
 #define QAUDIOSYSTEMPLUGINEXT_P_H
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qaudio.h>
 #include <QtCore/qplugin.h>
 

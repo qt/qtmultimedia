@@ -40,7 +40,7 @@
 #ifndef QSOUND_H
 #define QSOUND_H
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE

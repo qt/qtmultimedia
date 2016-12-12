@@ -239,14 +239,6 @@ void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
         setMedia(m_currentResource, m_stream);
     }
 
-#ifdef Q_WS_MAEMO_6
-    //this is a work around for the gstreamer bug,
-    //should be remove once it get fixed
-    if (newState == QMediaPlayer::PlayingState && m_mediaStatus == QMediaPlayer::InvalidMedia) {
-        setMedia(m_currentResource, m_stream);
-    }
-#endif
-
     if (m_mediaStatus == QMediaPlayer::EndOfMedia && m_pendingSeekPosition == -1) {
         m_pendingSeekPosition = 0;
     }
@@ -612,18 +604,18 @@ void QGstreamerPlayerControl::popAndNotifyState()
     QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatusStack.pop();
 
     if (m_stateStack.isEmpty()) {
-        if (m_currentState != oldState) {
-#ifdef DEBUG_PLAYBIN
-            qDebug() << "State changed:" << m_currentState;
-#endif
-            emit stateChanged(m_currentState);
-        }
-
         if (m_mediaStatus != oldMediaStatus) {
 #ifdef DEBUG_PLAYBIN
             qDebug() << "Media status changed:" << m_mediaStatus;
 #endif
             emit mediaStatusChanged(m_mediaStatus);
+        }
+
+        if (m_currentState != oldState) {
+#ifdef DEBUG_PLAYBIN
+            qDebug() << "State changed:" << m_currentState;
+#endif
+            emit stateChanged(m_currentState);
         }
     }
 }

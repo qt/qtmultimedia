@@ -3,7 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the QtQml module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,58 +37,23 @@
 **
 ****************************************************************************/
 
-#include "camerabuttonlistener_meego.h"
+#ifndef QTMULTIMEDIAGLOBAL_H
+#define QTMULTIMEDIAGLOBAL_H
 
-#include <QtWidgets/qapplication.h>
-#include <QtGui/qevent.h>
-#include <QtWidgets/qwidget.h>
-#include <QtCore/qdebug.h>
+#include <QtGui/qtguiglobal.h>
+#include <QtMultimedia/qtmultimedia-config.h>
 
 QT_BEGIN_NAMESPACE
 
-CameraButtonListener::CameraButtonListener(QObject *parent) :
-    QObject(parent),
-    m_focusPressed(false),
-    m_shutterPressed(false)
-{
-    m_keys = new MeeGo::QmKeys(this);
-    connect(m_keys, SIGNAL(keyEvent(MeeGo::QmKeys::Key,MeeGo::QmKeys::State)),
-            this, SLOT(handleQmKeyEvent(MeeGo::QmKeys::Key,MeeGo::QmKeys::State)));
-}
-
-CameraButtonListener::~CameraButtonListener()
-{
-}
-
-void CameraButtonListener::handleQmKeyEvent(MeeGo::QmKeys::Key key, MeeGo::QmKeys::State state)
-{
-    if (key == MeeGo::QmKeys::Camera) {
-        QWidget *window = QApplication::focusWidget();
-
-        bool focusPressed = (state == MeeGo::QmKeys::KeyHalfDown) ||
-                            (state == MeeGo::QmKeys::KeyDown);
-
-        if (m_focusPressed != focusPressed) {
-            m_focusPressed = focusPressed;
-            if (window) {
-                QApplication::postEvent(window,
-                                        new QKeyEvent(focusPressed ? QEvent::KeyPress : QEvent::KeyRelease,
-                                                      Qt::Key_CameraFocus,
-                                                      Qt::NoModifier));
-            }
-        }
-
-        bool shutterPressed = (state == MeeGo::QmKeys::KeyDown);
-        if (m_shutterPressed != shutterPressed) {
-            m_shutterPressed = shutterPressed;
-            if (window) {
-                QApplication::postEvent(window,
-                                        new QKeyEvent(shutterPressed ? QEvent::KeyPress : QEvent::KeyRelease,
-                                                      Qt::Key_Camera,
-                                                      Qt::NoModifier));
-            }
-        }
-    }
-}
+#ifndef QT_STATIC
+#    if defined(QT_BUILD_MULTIMEDIA_LIB)
+#        define Q_MULTIMEDIA_EXPORT Q_DECL_EXPORT
+#    else
+#        define Q_MULTIMEDIA_EXPORT Q_DECL_IMPORT
+#    endif
+#else
+#    define Q_MULTIMEDIA_EXPORT
+#endif
 
 QT_END_NAMESPACE
+#endif // QTQMLGLOBAL_H

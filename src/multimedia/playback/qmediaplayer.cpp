@@ -100,7 +100,6 @@ static void qRegisterMediaPlayerMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlayerMetaTypes)
 
-
 #define MAX_NESTED_PLAYLISTS 16
 
 class QMediaPlayerPrivate : public QMediaObjectPrivate
@@ -112,38 +111,39 @@ public:
         : provider(0)
         , control(0)
         , audioRoleControl(0)
+        , playlist(0)
+        , networkAccessControl(0)
         , state(QMediaPlayer::StoppedState)
         , status(QMediaPlayer::UnknownMediaStatus)
         , error(QMediaPlayer::NoError)
         , ignoreNextStatusChange(-1)
-        , playlist(0)
-        , networkAccessControl(0)
-        , hasStreamPlaybackFeature(false)
         , nestedPlaylists(0)
+        , hasStreamPlaybackFeature(false)
     {}
 
     QMediaServiceProvider *provider;
     QMediaPlayerControl* control;
     QAudioRoleControl *audioRoleControl;
-    QMediaPlayer::State state;
-    QMediaPlayer::MediaStatus status;
-    QMediaPlayer::Error error;
     QString errorString;
-    int ignoreNextStatusChange;
 
     QPointer<QObject> videoOutput;
     QMediaPlaylist *playlist;
     QMediaNetworkAccessControl *networkAccessControl;
     QVideoSurfaceOutput surfaceOutput;
-    bool hasStreamPlaybackFeature;
     QMediaContent qrcMedia;
     QScopedPointer<QFile> qrcFile;
 
     QMediaContent rootMedia;
     QMediaContent pendingPlaylist;
+    QMediaPlayer::State state;
+    QMediaPlayer::MediaStatus status;
+    QMediaPlayer::Error error;
+    int ignoreNextStatusChange;
+    int nestedPlaylists;
+    bool hasStreamPlaybackFeature;
+
     QMediaPlaylist *parentPlaylist(QMediaPlaylist *pls);
     bool isInChain(const QUrl &url);
-    int nestedPlaylists;
 
     void setMedia(const QMediaContent &media, QIODevice *stream = 0);
 

@@ -97,9 +97,13 @@ void WMFServicePlugin::release(QMediaService *service)
 QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
         const QByteArray &service) const
 {
+#ifdef QMEDIA_MEDIAFOUNDATION_PLAYER
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
         return QMediaServiceProviderHint::StreamPlayback;
     else
+#else
+    Q_UNUSED(service);
+#endif
         return QMediaServiceProviderHint::Features();
 }
 

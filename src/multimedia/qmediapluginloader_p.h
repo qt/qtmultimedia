@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>

@@ -54,7 +54,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qplugin.h>
 
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 
 #include "qmediacontent.h"
 

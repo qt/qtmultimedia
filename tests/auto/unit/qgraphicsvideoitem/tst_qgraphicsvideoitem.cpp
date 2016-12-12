@@ -28,7 +28,7 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 #include "qgraphicsvideoitem.h"
 #include <QtTest/QtTest>
 #include "qmediaobject.h"

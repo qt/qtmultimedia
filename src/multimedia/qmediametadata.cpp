@@ -164,7 +164,7 @@ Q_DEFINE_METADATA(ThumbnailImage);
     \ingroup multimedia
     \inmodule QtMultimedia
 
-    This namespace provides identifiers for meta-data attributes.
+    \brief Provides identifiers for meta-data attributes.
 
     \note Not all identifiers are supported on all platforms. Please consult vendor documentation for specific support
     on different platforms.

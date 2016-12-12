@@ -53,6 +53,7 @@
 #include "qwindowsaudioutils.h"
 #include <QtEndian>
 #include <QtCore/QDataStream>
+#include <private/qaudiohelpers_p.h>
 
 //#define DEBUG_AUDIO 1
 
@@ -72,7 +73,7 @@ QWindowsAudioOutput::QWindowsAudioOutput(const QByteArray &device)
     audioSource = 0;
     pullMode = true;
     finished = false;
-    volumeCache = (qreal)1.;
+    volumeCache = qreal(1.0);
 }
 
 QWindowsAudioOutput::~QWindowsAudioOutput()
@@ -280,8 +281,6 @@ bool QWindowsAudioOutput::open()
     timeStampOpened.restart();
     elapsedTimeOffset = 0;
 
-    setVolume(volumeCache);
-
     errorState = QAudio::NoError;
     if(pullMode) {
         deviceState = QAudio::ActiveState;
@@ -407,7 +406,11 @@ qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
             remain = l;
         else
             remain = period_size;
-        memcpy(current->lpData, p, remain);
+
+        if (volumeCache < qreal(1.0))
+            QAudioHelperInternal::qMultiplySamples(volumeCache, settings, p, current->lpData, remain);
+        else
+            memcpy(current->lpData, p, remain);
 
         l -= remain;
         p += remain;
@@ -595,16 +598,10 @@ QAudio::State QWindowsAudioOutput::state() const
 
 void QWindowsAudioOutput::setVolume(qreal v)
 {
-    const qreal normalizedVolume = qBound(qreal(0.0), v, qreal(1.0));
-    if (deviceState != QAudio::ActiveState) {
-        volumeCache = normalizedVolume;
+    if (qFuzzyCompare(volumeCache, v))
         return;
-    }
-    const quint16 scaled = normalizedVolume * 0xFFFF;
-    DWORD vol = MAKELONG(scaled, scaled);
-    MMRESULT res = waveOutSetVolume(hWaveOut, vol);
-    if (res == MMSYSERR_NOERROR)
-        volumeCache = normalizedVolume;
+
+    volumeCache = qBound(qreal(0), v, qreal(1));
 }
 
 qreal QWindowsAudioOutput::volume() const

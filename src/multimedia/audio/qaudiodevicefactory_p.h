@@ -54,7 +54,7 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qlist.h>
 
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 #include <qmultimedia.h>
 
 #include "qaudiodeviceinfo.h"

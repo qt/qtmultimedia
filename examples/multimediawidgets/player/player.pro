@@ -20,9 +20,5 @@ SOURCES = main.cpp \
     videowidget.cpp \
     histogramwidget.cpp
 
-maemo* {
-    DEFINES += PLAYER_NO_COLOROPTIONS
-}
-
 target.path = $$[QT_INSTALL_EXAMPLES]/multimediawidgets/player
 INSTALLS += target

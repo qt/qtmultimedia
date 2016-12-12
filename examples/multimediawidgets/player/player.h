@@ -94,9 +94,7 @@ private slots:
 
     void displayErrorMessage();
 
-#ifndef PLAYER_NO_COLOROPTIONS
     void showColorDialog();
-#endif
 
 private:
     void setTrackInfo(const QString &info);
@@ -111,10 +109,8 @@ private:
     QSlider *slider;
     QLabel *labelDuration;
     QPushButton *fullScreenButton;
-#ifndef PLAYER_NO_COLOROPTIONS
     QPushButton *colorButton;
     QDialog *colorDialog;
-#endif
 
     QLabel *labelHistogram;
     HistogramWidget *histogram;

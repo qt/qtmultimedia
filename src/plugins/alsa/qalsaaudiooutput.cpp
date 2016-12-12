@@ -49,6 +49,7 @@
 //
 
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include "qalsaaudiooutput.h"
 #include "qalsaaudiodeviceinfo.h"
@@ -567,9 +568,9 @@ qint64 QAlsaAudioOutput::write( const char *data, qint64 len )
     frames = snd_pcm_bytes_to_frames(handle, space);
 
     if (m_volume < 1.0f) {
-        char out[space];
-        QAudioHelperInternal::qMultiplySamples(m_volume, settings, data, out, space);
-        err = snd_pcm_writei(handle, out, frames);
+        QVarLengthArray<char, 4096> out(space);
+        QAudioHelperInternal::qMultiplySamples(m_volume, settings, data, out.data(), space);
+        err = snd_pcm_writei(handle, out.constData(), frames);
     } else {
         err = snd_pcm_writei(handle, data, frames);
     }

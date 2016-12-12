@@ -6,7 +6,9 @@ CONFIG += no_keywords
 
 QT += multimedia-private network
 
-LIBS += -framework AVFoundation -framework CoreMedia -framework CoreVideo -framework QuartzCore
+LIBS += -framework CoreMedia -framework CoreVideo -framework QuartzCore
+
+QMAKE_USE += avfoundation
 
 DEFINES += QMEDIA_AVF_MEDIAPLAYER
 

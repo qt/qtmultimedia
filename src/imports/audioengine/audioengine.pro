@@ -5,10 +5,7 @@ IMPORT_VERSION = 1.1
 
 QT += quick qml multimedia-private
 
-win32: LIBS += -lOpenAL32
-unix:!mac:!blackberry: LIBS += -lopenal
-blackberry: LIBS += -lOpenAL
-mac: LIBS += -framework OpenAL
+QMAKE_USE += openal
 mac: DEFINES += HEADER_OPENAL_PREFIX
 
 INCLUDEPATH += ../../multimedia/audio

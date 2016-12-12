@@ -1,6 +1,7 @@
 INCLUDEPATH += $$PWD
 
-LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lgdi32 -luser32 -lole32 -loleaut32 -lMf -lMfuuid -lMfplat -lPropsys
+LIBS += -lgdi32 -luser32
+QMAKE_USE += wmf
 
 DEFINES += QMEDIA_MEDIAFOUNDATION_PLAYER
 
@@ -13,7 +14,10 @@ HEADERS += \
     $$PWD/mfmetadatacontrol.h \
     $$PWD/mfaudioprobecontrol.h \
     $$PWD/mfvideoprobecontrol.h \
-    $$PWD/mfevrvideowindowcontrol.h
+    $$PWD/mfevrvideowindowcontrol.h \
+    $$PWD/samplegrabber.h \
+    $$PWD/mftvideo.h \
+    $$PWD/mfactivate.h
 
 SOURCES += \
     $$PWD/mfplayerservice.cpp \
@@ -24,6 +28,9 @@ SOURCES += \
     $$PWD/mfmetadatacontrol.cpp \
     $$PWD/mfaudioprobecontrol.cpp \
     $$PWD/mfvideoprobecontrol.cpp \
-    $$PWD/mfevrvideowindowcontrol.cpp
+    $$PWD/mfevrvideowindowcontrol.cpp \
+    $$PWD/samplegrabber.cpp \
+    $$PWD/mftvideo.cpp \
+    $$PWD/mfactivate.cpp
 
 include($$PWD/../../common/evr.pri)

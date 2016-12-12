@@ -148,7 +148,6 @@ private:
     static void stream_flush_reload_callback(pa_stream *s, int success, void *userdata);
     static void stream_write_done_callback(void *p);
     static void stream_adjust_prebuffer_callback(pa_stream *s, int success, void *userdata);
-    static void stream_reset_buffer_callback(pa_stream *s, int success, void *userdata);
 
     pa_stream *m_pulseStream;
     int        m_sinkInputId;

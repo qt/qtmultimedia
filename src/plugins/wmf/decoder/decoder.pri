@@ -1,7 +1,7 @@
 INCLUDEPATH += $$PWD
 
-LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32 -lMf -lMfuuid -lMfplat \
-        -lPropsys -lmfreadwrite -lwmcodecdspuuid
+LIBS += -lmfreadwrite -lwmcodecdspuuid
+QMAKE_USE += wmf
 
 HEADERS += \
     $$PWD/mfdecoderservice.h \

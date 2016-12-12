@@ -57,10 +57,11 @@ AndroidMediaPlayer::AndroidMediaPlayer()
     : QObject()
 {
     QWriteLocker locker(rwLock);
+    auto context = QtAndroidPrivate::activity() ? QtAndroidPrivate::activity() : QtAndroidPrivate::service();
     const jlong id = reinterpret_cast<jlong>(this);
     mMediaPlayer = QJNIObjectPrivate(QtAndroidMediaPlayerClassName,
-                                     "(Landroid/app/Activity;J)V",
-                                     QtAndroidPrivate::activity(),
+                                     "(Landroid/content/Context;J)V",
+                                     context,
                                      id);
     mediaPlayers->append(this);
 }

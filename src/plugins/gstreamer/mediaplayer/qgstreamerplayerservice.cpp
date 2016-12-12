@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
 
@@ -56,11 +57,7 @@
 #include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideorenderer_p.h>
 
-#if defined(Q_WS_MAEMO_6) && defined(__arm__)
-#include "private/qgstreamergltexturerenderer.h"
-#endif
-
-#if defined(HAVE_MIR) && defined (__arm__)
+#if QT_CONFIG(mirclient) && defined (__arm__)
 #include "private/qgstreamermirtexturerenderer_p.h"
 #endif
 
@@ -92,20 +89,14 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
     m_streamsControl = new QGstreamerStreamsControl(m_session,this);
     m_availabilityControl = new QGStreamerAvailabilityControl(m_control->resources(), this);
 
-#if defined(Q_WS_MAEMO_6) && defined(__arm__)
-    m_videoRenderer = new QGstreamerGLTextureRenderer(this);
-#elif defined(HAVE_MIR) && defined (__arm__)
+#if QT_CONFIG(mirclient) && defined (__arm__)
     m_videoRenderer = new QGstreamerMirTextureRenderer(this, m_session);
 #else
     m_videoRenderer = new QGstreamerVideoRenderer(this);
 #endif
 
-#ifdef Q_WS_MAEMO_6
-    m_videoWindow = new QGstreamerVideoWindow(this, "omapxvsink");
-#else
     m_videoWindow = new QGstreamerVideoWindow(this);
-#endif
-    // If the GStreamer video sink is not available, don't provide the video window control since
+   // If the GStreamer video sink is not available, don't provide the video window control since
     // it won't work anyway.
     if (!m_videoWindow->videoSink()) {
         delete m_videoWindow;

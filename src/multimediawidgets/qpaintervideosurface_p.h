@@ -125,7 +125,7 @@ public:
 
     void paint(QPainter *painter, const QRectF &target, const QRectF &source = QRectF(0, 0, 1, 1));
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
     const QGLContext *glContext() const;
     void setGLContext(QGLContext *context);
 
@@ -154,7 +154,7 @@ private:
     void createPainter();
 
     QVideoSurfacePainter *m_painter;
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
     QGLContext *m_glContext;
     ShaderTypes m_shaderTypes;
     ShaderType m_shaderType;
@@ -171,7 +171,7 @@ private:
     bool m_ready;
 };
 
-#if !defined(QT_NO_OPENGL) && !defined(QT_OPENGL_ES_1_CL) && !defined(QT_OPENGL_ES_1)
+#if QT_CONFIG(opengl)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QPainterVideoSurface::ShaderTypes)
 #endif
 

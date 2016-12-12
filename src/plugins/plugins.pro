@@ -5,6 +5,7 @@
 ######################################################################
 
 TEMPLATE = subdirs
+QT_FOR_CONFIG += multimedia-private
 
 SUBDIRS += m3u
 
@@ -17,53 +18,53 @@ android {
 }
 
 qnx {
-    config_mmrenderer: SUBDIRS += qnx
+    qtConfig(mmrenderer): SUBDIRS += qnx
     SUBDIRS += audiocapture
 }
 
-qnx:!blackberry {
+qnx {
     SUBDIRS += qnx-audio
 }
 
 win32 {
-    config_wasapi: SUBDIRS += wasapi
+    qtConfig(wasapi): SUBDIRS += wasapi
 }
 
 win32:!winrt {
     SUBDIRS += audiocapture \
                windowsaudio
 
-    config_directshow: SUBDIRS += directshow
-    config_wmf: SUBDIRS += wmf
+    qtConfig(directshow): SUBDIRS += directshow
+    qtConfig(wmf-backend): SUBDIRS += wmf
 }
+
 
 winrt {
     SUBDIRS += winrt
 }
 
 unix:!mac:!android {
-    config_gstreamer {
+    qtConfig(gstreamer) {
        SUBDIRS += gstreamer
     } else {
         SUBDIRS += audiocapture
     }
 
-    config_pulseaudio: SUBDIRS += pulseaudio
-    config_alsa: SUBDIRS += alsa
+    qtConfig(pulseaudio): SUBDIRS += pulseaudio
+    qtConfig(alsa): SUBDIRS += alsa
 
     # v4l is turned off because it is not supported in Qt 5
-    # config_linux_v4l {
-    #     !maemo*:SUBDIRS += v4l
+    # qtConfig(linux_v4l) {
+    #     SUBDIRS += v4l
     # }
 }
 
 darwin:!watchos {
     SUBDIRS += audiocapture coreaudio
-
-    config_avfoundation: SUBDIRS += avfoundation
+    qtConfig(avfoundation): SUBDIRS += avfoundation
 }
 
-config_resourcepolicy {
+qtConfig(resourcepolicy) {
     SUBDIRS += resourcepolicy
 }
 

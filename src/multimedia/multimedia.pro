@@ -15,6 +15,7 @@ QMAKE_DOCS = $$PWD/doc/qtmultimedia.qdocconf
 INCLUDEPATH *= .
 
 PRIVATE_HEADERS += \
+    qtmultimediaglobal_p.h \
     qmediacontrol_p.h \
     qmediaobject_p.h \
     qmediapluginloader_p.h \
@@ -28,6 +29,7 @@ PRIVATE_HEADERS += \
     qmultimediautils_p.h
 
 PUBLIC_HEADERS += \
+    qtmultimediaglobal.h \
     qmediabindableinterface.h \
     qmediacontrol.h \
     qmediaenumdebug.h \
@@ -36,8 +38,7 @@ PUBLIC_HEADERS += \
     qmediaservice.h \
     qmediaserviceproviderplugin.h \
     qmediatimerange.h \
-    qmultimedia.h \
-    qtmultimediadefs.h \
+    qmultimedia.h
 
 SOURCES += \
     qmediabindableinterface.cpp \

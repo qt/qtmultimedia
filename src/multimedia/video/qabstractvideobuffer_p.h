@@ -54,7 +54,7 @@
 #include <QtCore/qshareddata.h>
 #include "qabstractvideobuffer.h"
 
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 #include <qmultimedia.h>
 
 

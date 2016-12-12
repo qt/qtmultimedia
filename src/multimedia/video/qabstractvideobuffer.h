@@ -40,7 +40,7 @@
 #ifndef QABSTRACTVIDEOBUFFER_H
 #define QABSTRACTVIDEOBUFFER_H
 
-#include <QtMultimedia/qtmultimediadefs.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
 
 

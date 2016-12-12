@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINCAPTURESESSION_MAEMO_H
-#define CAMERABINCAPTURESESSION_MAEMO_H
+#ifndef CAMERABINCAPTURESESSION_H
+#define CAMERABINCAPTURESESSION_H
 
 #include <qmediarecordercontrol.h>
 
@@ -288,4 +288,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINCAPTURESESSION_MAEMO_H
+#endif // CAMERABINCAPTURESESSION_H

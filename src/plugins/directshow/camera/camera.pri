@@ -28,4 +28,4 @@ SOURCES += \
     $$PWD/dscameraimageprocessingcontrol.cpp
 
 *-msvc*:INCLUDEPATH += $$(DXSDK_DIR)/include
-LIBS += -lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32
+QMAKE_USE += directshow

@@ -1,7 +1,7 @@
 INCLUDEPATH += $$PWD
 
-LIBS += -lstrmiids -ldmoguids -luuid -lole32 -loleaut32 -lmsdmo -lgdi32
-
+QMAKE_USE += directshow
+LIBS += -lgdi32
 
 qtHaveModule(widgets): QT += widgets
 
@@ -29,7 +29,7 @@ SOURCES += \
         $$PWD/directshowmetadatacontrol.cpp \
         $$PWD/vmr9videowindowcontrol.cpp
 
-config_evr {
+qtConfig(evr) {
     DEFINES += HAVE_EVR
 
     include($$PWD/../../common/evr.pri)
@@ -41,7 +41,7 @@ config_evr {
         $$PWD/directshowevrvideowindowcontrol.cpp
 }
 
-config_wshellitem {
+qtConfig(wshellitem) {
     QT += core-private
 } else {
     DEFINES += QT_NO_SHELLITEM

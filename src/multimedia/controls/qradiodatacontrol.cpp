@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 #include "qradiodatacontrol.h"
 #include "qmediacontrol_p.h"
 

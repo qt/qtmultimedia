@@ -50,7 +50,6 @@ QGstreamerAudioEncode::QGstreamerAudioEncode(QObject *parent)
     :QAudioEncoderSettingsControl(parent)
     , m_codecs(QGstCodecsInfo::AudioEncoder)
 {
-
     for (const QString& codecName : m_codecs.supportedCodecs()) {
         GstElementFactory *factory = gst_element_factory_find(m_codecs.codecElement(codecName).constData());
 

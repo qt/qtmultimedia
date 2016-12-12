@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qtmultimediadefs.h>
+#include <qtmultimediaglobal.h>
 #include <QDir>
 #include <QMap>
 #include <QHash>
