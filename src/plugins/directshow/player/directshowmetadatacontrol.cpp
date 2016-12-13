@@ -57,7 +57,9 @@
 #include "directshowmetadatacontrol.h"
 #include "directshowplayerservice.h"
 
-#ifndef QT_NO_WMSDK
+#include <QtMultimedia/private/qtmultimedia-config_p.h>
+
+#if QT_CONFIG(wmsdk)
 #include <wmsdk.h>
 #endif
 
@@ -108,7 +110,7 @@ typedef HRESULT (WINAPI *q_SHCreateItemFromParsingName)(PCWSTR, IBindCtx *, cons
 static q_SHCreateItemFromParsingName sHCreateItemFromParsingName = 0;
 #endif
 
-#ifndef QT_NO_WMSDK
+#if QT_CONFIG(wmsdk)
 
 namespace
 {
@@ -513,7 +515,7 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
         goto send_event;
 #endif
 
-#ifndef QT_NO_WMSDK
+#if QT_CONFIG(wmsdk)
     IWMHeaderInfo *info = com_cast<IWMHeaderInfo>(source, IID_IWMHeaderInfo);
 
     if (info) {

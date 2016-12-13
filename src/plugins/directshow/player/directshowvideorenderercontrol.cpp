@@ -41,7 +41,7 @@
 
 #include "videosurfacefilter.h"
 
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
 #include "evrcustompresenter.h"
 #endif
 
@@ -52,7 +52,7 @@ DirectShowVideoRendererControl::DirectShowVideoRendererControl(DirectShowEventLo
     , m_loop(loop)
     , m_surface(0)
     , m_filter(0)
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
     , m_evrPresenter(0)
 #endif
 {
@@ -60,7 +60,7 @@ DirectShowVideoRendererControl::DirectShowVideoRendererControl(DirectShowEventLo
 
 DirectShowVideoRendererControl::~DirectShowVideoRendererControl()
 {
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
     if (m_evrPresenter) {
         m_evrPresenter->setSurface(Q_NULLPTR);
         m_evrPresenter->Release();
@@ -80,7 +80,7 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (m_surface == surface)
         return;
 
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
     if (m_evrPresenter) {
         m_evrPresenter->setSurface(Q_NULLPTR);
         m_evrPresenter->Release();
@@ -96,7 +96,7 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     m_surface = surface;
 
     if (m_surface) {
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
         m_filter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
         m_evrPresenter = new EVRCustomPresenter(m_surface);
         if (!m_evrPresenter->isValid() || !qt_evr_setCustomPresenter(m_filter, m_evrPresenter)) {

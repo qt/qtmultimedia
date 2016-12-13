@@ -8,8 +8,6 @@ win32:!qtHaveModule(opengl)|qtConfig(dynamicgl) {
 HEADERS += dsserviceplugin.h
 SOURCES += dsserviceplugin.cpp
 
-!qtConfig(wmsdk): DEFINES += QT_NO_WMSDK
-
 mingw: DEFINES += NO_DSHOW_STRSAFE
 
 include(helpers/helpers.pri)

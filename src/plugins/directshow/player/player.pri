@@ -30,8 +30,6 @@ SOURCES += \
         $$PWD/vmr9videowindowcontrol.cpp
 
 qtConfig(evr) {
-    DEFINES += HAVE_EVR
-
     include($$PWD/../../common/evr.pri)
 
     HEADERS += \

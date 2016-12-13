@@ -55,21 +55,23 @@
 #include "directshowvideorenderercontrol.h"
 
 
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
 #include "directshowevrvideowindowcontrol.h"
 #endif
 
-#ifndef QT_NO_WMSDK
-#include <wmsdk.h>
-#endif
-
 #include "qmediacontent.h"
+
+#include <QtMultimedia/private/qtmultimedia-config_p.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qvarlengtharray.h>
+
+#if QT_CONFIG(wmsdk)
+#  include <wmsdk.h>
+#endif
 
 #ifndef Q_CC_MINGW
 #  include <comdef.h>
@@ -197,7 +199,7 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
         if (!m_videoRendererControl && !m_videoWindowControl) {
             IBaseFilter *filter;
 
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
             DirectShowEvrVideoWindowControl *evrControl = new DirectShowEvrVideoWindowControl;
             if ((filter = evrControl->filter()))
                 m_videoWindowControl = evrControl;
@@ -980,7 +982,7 @@ void DirectShowPlayerService::doSeek(QMutexLocker *locker)
 
 int DirectShowPlayerService::bufferStatus() const
 {
-#ifndef QT_NO_WMSDK
+#if QT_CONFIG(wmsdk)
     QMutexLocker locker(const_cast<QMutex *>(&m_mutex));
 
     if (IWMReaderAdvanced2 *reader = com_cast<IWMReaderAdvanced2>(
