@@ -65,18 +65,18 @@ public:
     CameraBinServicePlugin();
     ~CameraBinServicePlugin();
 
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QMediaService* create(const QString &key) override;
+    void release(QMediaService *service) override;
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
 
-    QByteArray defaultDevice(const QByteArray &service) const;
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
+    QByteArray defaultDevice(const QByteArray &service) const override;
+    QList<QByteArray> devices(const QByteArray &service) const override;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
 
-    QCamera::Position cameraPosition(const QByteArray &device) const;
-    int cameraOrientation(const QByteArray &device) const;
+    QCamera::Position cameraPosition(const QByteArray &device) const override;
+    int cameraOrientation(const QByteArray &device) const override;
 
 private:
     GstElementFactory *sourceFactory() const;

@@ -58,12 +58,12 @@ public:
     CameraBinExposure(CameraBinSession *session);
     virtual ~CameraBinExposure();
 
-    bool isParameterSupported(ExposureParameter parameter) const;
-    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const;
+    bool isParameterSupported(ExposureParameter parameter) const override;
+    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const override;
 
-    QVariant requestedValue(ExposureParameter parameter) const;
-    QVariant actualValue(ExposureParameter parameter) const;
-    bool setValue(ExposureParameter parameter, const QVariant& value);
+    QVariant requestedValue(ExposureParameter parameter) const override;
+    QVariant actualValue(ExposureParameter parameter) const override;
+    bool setValue(ExposureParameter parameter, const QVariant &value) override;
 
 private:
     CameraBinSession *m_session;

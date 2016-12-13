@@ -62,14 +62,14 @@ public:
     CameraBinImageCapture(CameraBinSession *session);
     virtual ~CameraBinImageCapture();
 
-    QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode) {}
+    QCameraImageCapture::DriveMode driveMode() const override { return QCameraImageCapture::SingleImageCapture; }
+    void setDriveMode(QCameraImageCapture::DriveMode) override {}
 
-    bool isReadyForCapture() const;
-    int capture(const QString &fileName);
-    void cancelCapture();
+    bool isReadyForCapture() const override;
+    int capture(const QString &fileName) override;
+    void cancelCapture() override;
 
-    bool processBusMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
 private slots:
     void updateState();
@@ -85,8 +85,8 @@ private:
     {
     public:
         EncoderProbe(CameraBinImageCapture *capture) : capture(capture) {}
-        void probeCaps(GstCaps *caps);
-        bool probeBuffer(GstBuffer *buffer);
+        void probeCaps(GstCaps *caps) override;
+        bool probeBuffer(GstBuffer *buffer) override;
 
     private:
         CameraBinImageCapture * const capture;
@@ -96,8 +96,8 @@ private:
     {
     public:
         MuxerProbe(CameraBinImageCapture *capture) : capture(capture) {}
-        void probeCaps(GstCaps *caps);
-        bool probeBuffer(GstBuffer *buffer);
+        void probeCaps(GstCaps *caps) override;
+        bool probeBuffer(GstBuffer *buffer) override;
 
     private:
         CameraBinImageCapture * const capture;

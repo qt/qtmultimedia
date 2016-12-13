@@ -57,11 +57,11 @@ public:
     CameraBinFlash(CameraBinSession *session);
     virtual ~CameraBinFlash();
 
-    QCameraExposure::FlashModes flashMode() const;
-    void setFlashMode(QCameraExposure::FlashModes mode);
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const;
+    QCameraExposure::FlashModes flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashModes mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const override;
 
-    bool isFlashReady() const;
+    bool isFlashReady() const override;
 
 private:
     CameraBinSession *m_session;

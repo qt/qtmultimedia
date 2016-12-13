@@ -53,10 +53,10 @@ public:
     CameraBinViewfinderSettings2(CameraBinSession *session);
     ~CameraBinViewfinderSettings2();
 
-    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const;
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
 
-    QCameraViewfinderSettings viewfinderSettings() const;
-    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
+    QCameraViewfinderSettings viewfinderSettings() const override;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings) override;
 
 private:
     CameraBinSession *m_session;

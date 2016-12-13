@@ -58,13 +58,13 @@ public:
     virtual ~CameraBinImageEncoder();
 
     QList<QSize> supportedResolutions(const QImageEncoderSettings &settings = QImageEncoderSettings(),
-                                      bool *continuous = 0) const;
+                                      bool *continuous = 0) const override;
 
-    QStringList supportedImageCodecs() const;
-    QString imageCodecDescription(const QString &formatName) const;
+    QStringList supportedImageCodecs() const override;
+    QString imageCodecDescription(const QString &formatName) const override;
 
-    QImageEncoderSettings imageSettings() const;
-    void setImageSettings(const QImageEncoderSettings &settings);
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
 
 Q_SIGNALS:
     void settingsChanged();

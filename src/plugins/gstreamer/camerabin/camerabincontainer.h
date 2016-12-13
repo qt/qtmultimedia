@@ -62,11 +62,11 @@ public:
     CameraBinContainer(QObject *parent);
     virtual ~CameraBinContainer() {}
 
-    virtual QStringList supportedContainers() const;
-    virtual QString containerDescription(const QString &formatMimeType) const;
+    QStringList supportedContainers() const override;
+    QString containerDescription(const QString &formatMimeType) const override;
 
-    virtual QString containerFormat() const;
-    virtual void setContainerFormat(const QString &format);
+    QString containerFormat() const override;
+    void setContainerFormat(const QString &format) override;
 
     QString actualContainerFormat() const;
     void setActualContainerFormat(const QString &containerFormat);

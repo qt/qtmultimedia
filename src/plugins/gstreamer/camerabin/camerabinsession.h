@@ -161,8 +161,8 @@ public:
 
     QString device() const { return m_inputDevice; }
 
-    bool processSyncMessage(const QGstreamerMessage &message);
-    bool processBusMessage(const QGstreamerMessage &message);
+    bool processSyncMessage(const QGstreamerMessage &message) override;
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
     QGstreamerVideoProbeControl *videoProbe();
 

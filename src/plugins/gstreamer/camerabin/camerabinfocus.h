@@ -68,17 +68,17 @@ public:
     CameraBinFocus(CameraBinSession *session);
     virtual ~CameraBinFocus();
 
-    QCameraFocus::FocusModes focusMode() const;
-    void setFocusMode(QCameraFocus::FocusModes mode);
-    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const;
+    QCameraFocus::FocusModes focusMode() const override;
+    void setFocusMode(QCameraFocus::FocusModes mode) override;
+    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const override;
 
-    QCameraFocus::FocusPointMode focusPointMode() const;
-    void setFocusPointMode(QCameraFocus::FocusPointMode mode) ;
-    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode) const;
-    QPointF customFocusPoint() const;
-    void setCustomFocusPoint(const QPointF &point);
+    QCameraFocus::FocusPointMode focusPointMode() const override;
+    void setFocusPointMode(QCameraFocus::FocusPointMode mode) override;
+    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode) const override;
+    QPointF customFocusPoint() const override;
+    void setCustomFocusPoint(const QPointF &point) override;
 
-    QCameraFocusZoneList focusZones() const;
+    QCameraFocusZoneList focusZones() const override;
 
     void handleFocusMessage(GstMessage*);
     QCamera::LockStatus focusStatus() const { return m_focusStatus; }
@@ -94,7 +94,7 @@ public Q_SLOTS:
 
 #if GST_CHECK_VERSION(1,0,0)
 protected:
-    void timerEvent(QTimerEvent *event);
+    void timerEvent(QTimerEvent *event) override;
 #endif
 
 private Q_SLOTS:
@@ -111,7 +111,7 @@ private:
     void updateRegionOfInterest(const QVector<QRect> &rectangles);
 
 #if GST_CHECK_VERSION(1,0,0)
-    bool probeBuffer(GstBuffer *buffer);
+    bool probeBuffer(GstBuffer *buffer) override;
 #endif
 
     CameraBinSession *m_session;

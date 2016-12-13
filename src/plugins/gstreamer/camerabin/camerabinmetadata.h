@@ -52,12 +52,12 @@ public:
     virtual ~CameraBinMetaData() {}
 
 
-    bool isMetaDataAvailable() const { return true; }
-    bool isWritable() const { return true; }
+    bool isMetaDataAvailable() const override { return true; }
+    bool isWritable() const override { return true; }
 
-    QVariant metaData(const QString &key) const;
-    void setMetaData(const QString &key, const QVariant &value);
-    QStringList availableMetaData() const;
+    QVariant metaData(const QString &key) const override;
+    void setMetaData(const QString &key, const QVariant &value) override;
+    QStringList availableMetaData() const override;
 
 Q_SIGNALS:
     void metaDataChanged(const QMap<QByteArray, QVariant>&);

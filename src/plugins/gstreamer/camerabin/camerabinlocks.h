@@ -61,16 +61,16 @@ public:
     CameraBinLocks(CameraBinSession *session);
     virtual ~CameraBinLocks();
 
-    QCamera::LockTypes supportedLocks() const;
+    QCamera::LockTypes supportedLocks() const override;
 
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const;
+    QCamera::LockStatus lockStatus(QCamera::LockType lock) const override;
 
-    void searchAndLock(QCamera::LockTypes locks);
-    void unlock(QCamera::LockTypes locks);
+    void searchAndLock(QCamera::LockTypes locks) override;
+    void unlock(QCamera::LockTypes locks) override;
 
 protected:
 #if GST_CHECK_VERSION(1, 2, 0)
-    void timerEvent(QTimerEvent *event);
+    void timerEvent(QTimerEvent *event) override;
 #endif
 
 private slots:

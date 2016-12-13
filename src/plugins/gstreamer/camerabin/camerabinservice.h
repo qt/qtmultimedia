@@ -71,8 +71,8 @@ public:
     CameraBinService(GstElementFactory *sourceFactory, QObject *parent = 0);
     virtual ~CameraBinService();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+    QMediaControl *requestControl(const char *name) override;
+    void releaseControl(QMediaControl *) override;
 
     static bool isCameraBinAvailable();
 
