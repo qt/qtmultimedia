@@ -73,31 +73,31 @@ public:
     explicit QGstreamerVideoWidgetControl(QObject *parent = 0, const QByteArray &elementName = QByteArray());
     virtual ~QGstreamerVideoWidgetControl();
 
-    GstElement *videoSink();
+    GstElement *videoSink() override;
 
-    QWidget *videoWidget();
+    QWidget *videoWidget() override;
 
-    void stopRenderer();
+    void stopRenderer() override;
 
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    bool isFullScreen() const;
-    void setFullScreen(bool fullScreen);
+    bool isFullScreen() const override;
+    void setFullScreen(bool fullScreen) override;
 
-    int brightness() const;
-    void setBrightness(int brightness);
+    int brightness() const override;
+    void setBrightness(int brightness) override;
 
-    int contrast() const;
-    void setContrast(int contrast);
+    int contrast() const override;
+    void setContrast(int contrast) override;
 
-    int hue() const;
-    void setHue(int hue);
+    int hue() const override;
+    void setHue(int hue) override;
 
-    int saturation() const;
-    void setSaturation(int saturation);
+    int saturation() const override;
+    void setSaturation(int saturation) override;
 
-    bool eventFilter(QObject *object, QEvent *event);
+    bool eventFilter(QObject *object, QEvent *event) override;
 
 signals:
     void sinkChanged();
@@ -111,8 +111,8 @@ private:
     void createVideoWidget();
     void updateWidgetAttributes();
 
-    bool processSyncMessage(const QGstreamerMessage &message);
-    bool processBusMessage(const QGstreamerMessage &message);
+    bool processSyncMessage(const QGstreamerMessage &message) override;
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
     QGstreamerVideoOverlay m_videoOverlay;
     QGstreamerVideoWidget *m_widget;

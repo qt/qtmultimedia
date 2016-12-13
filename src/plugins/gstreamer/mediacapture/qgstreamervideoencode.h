@@ -62,18 +62,18 @@ public:
     virtual ~QGstreamerVideoEncode();
 
     QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                      bool *continuous = 0) const;
+                                      bool *continuous = 0) const override;
 
     QList< qreal > supportedFrameRates(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                       bool *continuous = 0) const;
+                                       bool *continuous = 0) const override;
 
     QPair<int,int> rateAsRational() const;
 
-    QStringList supportedVideoCodecs() const;
-    QString videoCodecDescription(const QString &codecName) const;
+    QStringList supportedVideoCodecs() const override;
+    QString videoCodecDescription(const QString &codecName) const override;
 
-    QVideoEncoderSettings videoSettings() const;
-    void setVideoSettings(const QVideoEncoderSettings &settings);
+    QVideoEncoderSettings videoSettings() const override;
+    void setVideoSettings(const QVideoEncoderSettings &settings) override;
 
     QStringList supportedEncodingOptions(const QString &codec) const;
     QVariant encodingOption(const QString &codec, const QString &name) const;

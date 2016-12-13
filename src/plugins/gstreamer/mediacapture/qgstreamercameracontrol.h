@@ -56,22 +56,22 @@ public:
 
     bool isValid() const { return true; }
 
-    QCamera::State state() const;
-    void setState(QCamera::State state);
+    QCamera::State state() const override;
+    void setState(QCamera::State state) override;
 
-    QCamera::Status status() const { return m_status; }
+    QCamera::Status status() const override { return m_status; }
 
-    QCamera::CaptureModes captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureModes mode);
+    QCamera::CaptureModes captureMode() const override { return m_captureMode; }
+    void setCaptureMode(QCamera::CaptureModes mode) override;
 
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
 
     QCamera::LockTypes supportedLocks() const
     {
         return QCamera::NoLock;
     }
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const;
+    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
 public slots:
     void reloadLater();

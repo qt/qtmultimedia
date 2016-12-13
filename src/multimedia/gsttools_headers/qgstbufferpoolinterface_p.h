@@ -96,11 +96,11 @@ public:
     explicit QGstBufferPoolPlugin(QObject *parent = 0);
     virtual ~QGstBufferPoolPlugin() {}
 
-    virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
-    virtual GstBuffer *takeBuffer(const QVideoSurfaceFormat &format, GstCaps *caps) = 0;
-    virtual void clear() = 0;
+    bool isFormatSupported(const QVideoSurfaceFormat &format) const override = 0;
+    GstBuffer *takeBuffer(const QVideoSurfaceFormat &format, GstCaps *caps) override = 0;
+    void clear() override = 0;
 
-    virtual QAbstractVideoBuffer::HandleType handleType() const = 0;
+    QAbstractVideoBuffer::HandleType handleType() const override = 0;
 
     /*!
       Build an QAbstractVideoBuffer instance from compatible GstBuffer.
@@ -108,7 +108,7 @@ public:
 
       This method is called from gstreamer video sink thread.
      */
-    virtual QAbstractVideoBuffer *prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine) = 0;
+    QAbstractVideoBuffer *prepareVideoBuffer(GstBuffer *buffer, int bytesPerLine) override = 0;
 };
 
 QT_END_NAMESPACE

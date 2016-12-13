@@ -70,8 +70,8 @@ public:
     QGstreamerCaptureService(const QString &service, QObject *parent = 0);
     virtual ~QGstreamerCaptureService();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+    QMediaControl *requestControl(const char *name) override;
+    void releaseControl(QMediaControl *) override;
 
 private:
     void setAudioPreview(GstElement *);

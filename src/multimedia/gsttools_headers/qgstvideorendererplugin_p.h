@@ -100,7 +100,7 @@ public:
     explicit QGstVideoRendererPlugin(QObject *parent = 0);
     virtual ~QGstVideoRendererPlugin() {}
 
-    virtual QGstVideoRenderer *createRenderer() = 0;
+    QGstVideoRenderer *createRenderer() override = 0;
 
 };
 

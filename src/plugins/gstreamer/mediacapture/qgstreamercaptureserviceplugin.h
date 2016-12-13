@@ -69,20 +69,20 @@ class QGstreamerCaptureServicePlugin
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mediacapture.json")
 #endif
 public:
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QMediaService* create(const QString &key) override;
+    void release(QMediaService *service) override;
 
 #if defined(USE_GSTREAMER_CAMERA)
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
 
-    QByteArray defaultDevice(const QByteArray &service) const;
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
+    QByteArray defaultDevice(const QByteArray &service) const override;
+    QList<QByteArray> devices(const QByteArray &service) const override;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
 #endif
 
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
-    QStringList supportedMimeTypes() const;
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList &codecs) const override;
+    QStringList supportedMimeTypes() const override;
 
 private:
     void updateSupportedMimeTypes() const;

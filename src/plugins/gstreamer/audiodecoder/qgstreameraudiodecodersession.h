@@ -73,7 +73,7 @@ public:
     QAudioDecoder::State state() const { return m_state; }
     QAudioDecoder::State pendingState() const { return m_pendingState; }
 
-    bool processBusMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
 #if defined(HAVE_GST_APPSRC)
     QGstAppSrc *appsrc() const { return m_appSrc; }

@@ -64,25 +64,25 @@ public:
     QGstreamerAudioDecoderControl(QGstreamerAudioDecoderSession *session, QObject *parent = 0);
     ~QGstreamerAudioDecoderControl();
 
-    QAudioDecoder::State state() const;
+    QAudioDecoder::State state() const override;
 
-    QString sourceFilename() const;
-    void setSourceFilename(const QString &fileName);
+    QString sourceFilename() const override;
+    void setSourceFilename(const QString &fileName) override;
 
-    QIODevice* sourceDevice() const;
-    void setSourceDevice(QIODevice *device);
+    QIODevice* sourceDevice() const override;
+    void setSourceDevice(QIODevice *device) override;
 
-    void start();
-    void stop();
+    void start() override;
+    void stop() override;
 
-    QAudioFormat audioFormat() const;
-    void setAudioFormat(const QAudioFormat &format);
+    QAudioFormat audioFormat() const override;
+    void setAudioFormat(const QAudioFormat &format) override;
 
-    QAudioBuffer read();
-    bool bufferAvailable() const;
+    QAudioBuffer read() override;
+    bool bufferAvailable() const override;
 
-    qint64 position() const;
-    qint64 duration() const;
+    qint64 position() const override;
+    qint64 duration() const override;
 
 private:
     // Stuff goes here

@@ -56,10 +56,10 @@ public:
     QGstreamerV4L2Input(QObject *parent = 0);
     virtual ~QGstreamerV4L2Input();
 
-    GstElement *buildElement();
+    GstElement *buildElement() override;
 
-    QList<qreal> supportedFrameRates(const QSize &frameSize = QSize()) const;
-    QList<QSize> supportedResolutions(qreal frameRate = -1) const;
+    QList<qreal> supportedFrameRates(const QSize &frameSize = QSize()) const override;
+    QList<QSize> supportedResolutions(qreal frameRate = -1) const override;
 
     QByteArray device() const;
 

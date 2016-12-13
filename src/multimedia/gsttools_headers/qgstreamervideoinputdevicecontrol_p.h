@@ -67,19 +67,19 @@ public:
     QGstreamerVideoInputDeviceControl(GstElementFactory *factory, QObject *parent);
     ~QGstreamerVideoInputDeviceControl();
 
-    int deviceCount() const;
+    int deviceCount() const override;
 
-    QString deviceName(int index) const;
-    QString deviceDescription(int index) const;
+    QString deviceName(int index) const override;
+    QString deviceDescription(int index) const override;
 
-    int defaultDevice() const;
-    int selectedDevice() const;
+    int defaultDevice() const override;
+    int selectedDevice() const override;
 
     static QString primaryCamera() { return tr("Main camera"); }
     static QString secondaryCamera() { return tr("Front camera"); }
 
 public Q_SLOTS:
-    void setSelectedDevice(int index);
+    void setSelectedDevice(int index) override;
 
 private:
     GstElementFactory *m_factory;

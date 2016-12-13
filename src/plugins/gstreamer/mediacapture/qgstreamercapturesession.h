@@ -138,7 +138,7 @@ public:
 
     bool isReady() const;
 
-    bool processBusMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
     void addProbe(QGstreamerAudioProbeControl* probe);
     void removeProbe(QGstreamerAudioProbeControl* probe);
@@ -166,8 +166,8 @@ public slots:
     void setVolume(qreal volume);
 
 private:
-    void probeCaps(GstCaps *caps);
-    bool probeBuffer(GstBuffer *buffer);
+    void probeCaps(GstCaps *caps) override;
+    bool probeBuffer(GstBuffer *buffer) override;
 
     enum PipelineMode { EmptyPipeline, PreviewPipeline, RecordingPipeline, PreviewAndRecordingPipeline };
 

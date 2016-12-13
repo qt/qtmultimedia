@@ -56,8 +56,8 @@ public:
     QGstreamerAudioDecoderService(QObject *parent = 0);
     ~QGstreamerAudioDecoderService();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QMediaControl *requestControl(const char *name) override;
+    void releaseControl(QMediaControl *control) override;
 
 private:
     QGstreamerAudioDecoderControl *m_control;

@@ -72,8 +72,8 @@ public:
     explicit QGstreamerVideoProbeControl(QObject *parent);
     virtual ~QGstreamerVideoProbeControl();
 
-    void probeCaps(GstCaps *caps);
-    bool probeBuffer(GstBuffer *buffer);
+    void probeCaps(GstCaps *caps) override;
+    bool probeBuffer(GstBuffer *buffer) override;
 
     void startFlushing();
     void stopFlushing();

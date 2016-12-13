@@ -73,41 +73,41 @@ public:
     explicit QGstreamerVideoWindow(QObject *parent = 0, const QByteArray &elementName = QByteArray());
     ~QGstreamerVideoWindow();
 
-    WId winId() const;
-    void setWinId(WId id);
+    WId winId() const override;
+    void setWinId(WId id) override;
 
-    QRect displayRect() const;
-    void setDisplayRect(const QRect &rect);
+    QRect displayRect() const override;
+    void setDisplayRect(const QRect &rect) override;
 
-    bool isFullScreen() const;
-    void setFullScreen(bool fullScreen);
+    bool isFullScreen() const override;
+    void setFullScreen(bool fullScreen) override;
 
-    QSize nativeSize() const;
+    QSize nativeSize() const override;
 
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    void repaint();
+    void repaint() override;
 
-    int brightness() const;
-    void setBrightness(int brightness);
+    int brightness() const override;
+    void setBrightness(int brightness) override;
 
-    int contrast() const;
-    void setContrast(int contrast);
+    int contrast() const override;
+    void setContrast(int contrast) override;
 
-    int hue() const;
-    void setHue(int hue);
+    int hue() const override;
+    void setHue(int hue) override;
 
-    int saturation() const;
-    void setSaturation(int saturation);
+    int saturation() const override;
+    void setSaturation(int saturation) override;
 
     QAbstractVideoSurface *surface() const;
 
-    GstElement *videoSink();
+    GstElement *videoSink() override;
 
-    bool processSyncMessage(const QGstreamerMessage &message);
-    bool processBusMessage(const QGstreamerMessage &message);
-    bool isReady() const { return m_windowId != 0; }
+    bool processSyncMessage(const QGstreamerMessage &message) override;
+    bool processBusMessage(const QGstreamerMessage &message) override;
+    bool isReady() const override { return m_windowId != 0; }
 
 signals:
     void sinkChanged();

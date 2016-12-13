@@ -114,7 +114,7 @@ public:
     int activeStream(QMediaStreamsControl::StreamType streamType) const;
     void setActiveStream(QMediaStreamsControl::StreamType streamType, int streamNumber);
 
-    bool processBusMessage(const QGstreamerMessage &message);
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
 #if defined(HAVE_GST_APPSRC)
     QGstAppSrc *appsrc() const { return m_appSrc; }

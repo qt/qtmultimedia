@@ -56,13 +56,13 @@ class QGstreamerMediaContainerControl : public QMediaContainerControl
 Q_OBJECT
 public:
     QGstreamerMediaContainerControl(QObject *parent);
-    virtual ~QGstreamerMediaContainerControl() {};
+    ~QGstreamerMediaContainerControl() {}
 
-    virtual QStringList supportedContainers() const { return m_containers.supportedCodecs(); }
-    virtual QString containerFormat() const { return m_format; }
-    virtual void setContainerFormat(const QString &formatMimeType) { m_format = formatMimeType; }
+    QStringList supportedContainers() const override { return m_containers.supportedCodecs(); }
+    QString containerFormat() const override { return m_format; }
+    void setContainerFormat(const QString &formatMimeType) override { m_format = formatMimeType; }
 
-    virtual QString containerDescription(const QString &formatMimeType) const { return m_containers.codecDescription(formatMimeType); }
+    QString containerDescription(const QString &formatMimeType) const override { return m_containers.codecDescription(formatMimeType); }
 
     QByteArray formatElementName() const { return m_containers.codecElement(containerFormat()); }
 

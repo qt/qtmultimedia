@@ -69,8 +69,8 @@ public:
     QGstreamerPlayerService(QObject *parent = 0);
     ~QGstreamerPlayerService();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QMediaControl *requestControl(const char *name) override;
+    void releaseControl(QMediaControl *control) override;
 
 private:
     QGstreamerPlayerControl *m_control;

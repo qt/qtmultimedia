@@ -72,8 +72,8 @@ public:
     virtual ~QGstreamerAudioProbeControl();
 
 protected:
-    void probeCaps(GstCaps *caps);
-    bool probeBuffer(GstBuffer *buffer);
+    void probeCaps(GstCaps *caps) override;
+    bool probeBuffer(GstBuffer *buffer) override;
 
 private slots:
     void bufferProbed();

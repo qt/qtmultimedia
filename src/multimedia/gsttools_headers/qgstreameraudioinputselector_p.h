@@ -63,13 +63,13 @@ public:
     QGstreamerAudioInputSelector(QObject *parent);
     ~QGstreamerAudioInputSelector();
 
-    QList<QString> availableInputs() const;
-    QString inputDescription(const QString& name) const;
-    QString defaultInput() const;
-    QString activeInput() const;
+    QList<QString> availableInputs() const override;
+    QString inputDescription(const QString &name) const override;
+    QString defaultInput() const override;
+    QString activeInput() const override;
 
 public Q_SLOTS:
-    void setActiveInput(const QString& name);
+    void setActiveInput(const QString &name) override;
 
 private:
     void update();

@@ -53,11 +53,11 @@ public:
     QGstreamerMetaDataProvider( QGstreamerPlayerSession *session, QObject *parent );
     virtual ~QGstreamerMetaDataProvider();
 
-    bool isMetaDataAvailable() const;
+    bool isMetaDataAvailable() const override;
     bool isWritable() const;
 
-    QVariant metaData(const QString &key) const;
-    QStringList availableMetaData() const;
+    QVariant metaData(const QString &key) const override;
+    QStringList availableMetaData() const override;
 
 private slots:
     void updateTags();

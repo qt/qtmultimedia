@@ -59,13 +59,13 @@ public:
     virtual ~QGstreamerImageEncode();
 
     QList<QSize> supportedResolutions(const QImageEncoderSettings &settings = QImageEncoderSettings(),
-                                      bool *continuous = 0) const;
+                                      bool *continuous = 0) const override;
 
-    QStringList supportedImageCodecs() const;
-    QString imageCodecDescription(const QString &codecName) const;
+    QStringList supportedImageCodecs() const override;
+    QString imageCodecDescription(const QString &codecName) const override;
 
-    QImageEncoderSettings imageSettings() const;
-    void setImageSettings(const QImageEncoderSettings &settings);
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
 
 Q_SIGNALS:
     void settingsChanged();

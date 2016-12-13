@@ -55,11 +55,11 @@ class QGstreamerAudioDecoderServicePlugin
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "audiodecoder.json")
 
 public:
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QMediaService* create(const QString &key) override;
+    void release(QMediaService *service) override;
 
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
-    QStringList supportedMimeTypes() const;
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList &codecs) const override;
+    QStringList supportedMimeTypes() const override;
 
 private:
     void updateSupportedMimeTypes() const;

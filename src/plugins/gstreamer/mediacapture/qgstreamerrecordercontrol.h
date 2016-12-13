@@ -56,26 +56,26 @@ public:
     QGstreamerRecorderControl(QGstreamerCaptureSession *session);
     virtual ~QGstreamerRecorderControl();
 
-    QUrl outputLocation() const;
-    bool setOutputLocation(const QUrl &sink);
+    QUrl outputLocation() const override;
+    bool setOutputLocation(const QUrl &sink) override;
 
-    QMediaRecorder::State state() const;
-    QMediaRecorder::Status status() const;
+    QMediaRecorder::State state() const override;
+    QMediaRecorder::Status status() const override;
 
-    qint64 duration() const;
+    qint64 duration() const override;
 
-    bool isMuted() const;
-    qreal volume() const;
+    bool isMuted() const override;
+    qreal volume() const override;
 
-    void applySettings();
+    void applySettings() override;
 
 public slots:
-    void setState(QMediaRecorder::State state);
+    void setState(QMediaRecorder::State state) override;
     void record();
     void pause();
     void stop();
-    void setMuted(bool);
-    void setVolume(qreal volume);
+    void setMuted(bool) override;
+    void setVolume(qreal volume) override;
 
 private slots:
     void updateStatus();

@@ -67,13 +67,13 @@ public:
     QGstreamerVideoRenderer(QObject *parent = 0);
     virtual ~QGstreamerVideoRenderer();
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
-    GstElement *videoSink();
+    GstElement *videoSink() override;
 
-    void stopRenderer();
-    bool isReady() const { return m_surface != 0; }
+    void stopRenderer() override;
+    bool isReady() const override { return m_surface != 0; }
 
 signals:
     void sinkChanged();

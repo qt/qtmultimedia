@@ -76,14 +76,14 @@ public:
     QGstDefaultVideoRenderer();
     ~QGstDefaultVideoRenderer();
 
-    GstCaps *getCaps(QAbstractVideoSurface *surface);
-    bool start(QAbstractVideoSurface *surface, GstCaps *caps);
-    void stop(QAbstractVideoSurface *surface);
+    GstCaps *getCaps(QAbstractVideoSurface *surface) override;
+    bool start(QAbstractVideoSurface *surface, GstCaps *caps) override;
+    void stop(QAbstractVideoSurface *surface) override;
 
-    bool proposeAllocation(GstQuery *query);
+    bool proposeAllocation(GstQuery *query) override;
 
-    bool present(QAbstractVideoSurface *surface, GstBuffer *buffer);
-    void flush(QAbstractVideoSurface *surface);
+    bool present(QAbstractVideoSurface *surface, GstBuffer *buffer) override;
+    void flush(QAbstractVideoSurface *surface) override;
 
 private:
     QVideoSurfaceFormat m_format;
@@ -109,7 +109,7 @@ public:
 
     GstFlowReturn render(GstBuffer *buffer);
 
-    bool event(QEvent *event);
+    bool event(QEvent *event) override;
 
 private slots:
     bool handleEvent(QMutexLocker *locker);

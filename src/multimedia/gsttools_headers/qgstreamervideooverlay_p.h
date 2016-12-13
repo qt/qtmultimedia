@@ -94,8 +94,8 @@ public:
     int saturation() const;
     void setSaturation(int saturation);
 
-    bool processSyncMessage(const QGstreamerMessage &message);
-    bool processBusMessage(const QGstreamerMessage &message);
+    bool processSyncMessage(const QGstreamerMessage &message) override;
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
 Q_SIGNALS:
     void nativeVideoSizeChanged();
@@ -109,7 +109,7 @@ private:
     GstElement *findBestVideoSink() const;
     void setWindowHandle_helper(WId id);
     void updateIsActive();
-    void probeCaps(GstCaps *caps);
+    void probeCaps(GstCaps *caps) override;
     static void showPrerollFrameChanged(GObject *, GParamSpec *, QGstreamerVideoOverlay *);
 
     GstElement *m_videoSink;
