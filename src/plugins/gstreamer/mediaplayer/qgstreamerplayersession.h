@@ -131,6 +131,8 @@ public:
 
     void endOfMediaReset();
 
+    void playlistTypeFindFunction(GstTypeFind *find);
+
 public slots:
     void loadFromUri(const QNetworkRequest &url);
     void loadFromStream(const QNetworkRequest &url, QIODevice *stream);
@@ -191,8 +193,6 @@ private:
     void addAudioBufferProbe();
     void flushVideoProbes();
     void resumeVideoProbes();
-
-    static void playlistTypeFindFunction(GstTypeFind *find, gpointer userData);
 
     QNetworkRequest m_request;
     QMediaPlayer::State m_state;

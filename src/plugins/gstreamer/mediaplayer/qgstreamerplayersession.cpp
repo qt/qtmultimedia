@@ -61,11 +61,58 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
+#include <QtCore/qvector.h>
+#include <QtCore/qmutex.h>
 
 //#define DEBUG_PLAYBIN
 //#define DEBUG_VO_BIN_DUMP
 
 QT_BEGIN_NAMESPACE
+
+class TypefindDelegator
+{
+public:
+    TypefindDelegator()
+    {
+        Q_ASSERT(gst_type_find_register(0, "playlist", GST_RANK_MARGINAL, notifySessions, 0, 0, 0, 0) == TRUE);
+    }
+
+    void add(QGstreamerPlayerSession *session)
+    {
+        QMutexLocker locker(&m_mtx);
+        m_sessions.append(session);
+    }
+
+    void remove(QGstreamerPlayerSession *session)
+    {
+        QMutexLocker locker(&m_mtx);
+        const int idx = m_sessions.indexOf(session);
+        if (idx != -1)
+            m_sessions.remove(idx);
+    }
+
+private:
+    static void notifySessions(GstTypeFind *find, gpointer /* unused */)
+    {
+        QMutexLocker locker(&m_mtx);
+        SessionList::const_iterator it = m_sessions.constBegin();
+        SessionList::const_iterator end = m_sessions.constEnd();
+
+        while (it != end) {
+            (*it)->playlistTypeFindFunction(find);
+            ++it;
+        }
+    }
+
+    typedef QVector<QGstreamerPlayerSession *> SessionList;
+    static SessionList m_sessions;
+    static QMutex m_mtx;
+};
+
+TypefindDelegator::SessionList TypefindDelegator::m_sessions;
+QMutex TypefindDelegator::m_mtx;
+
+Q_GLOBAL_STATIC(TypefindDelegator, g_typeRegister);
 
 static bool usePlaybinVolume()
 {
@@ -147,10 +194,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_isLiveSource(false),
      m_isPlaylist(false)
 {
-    gboolean result = gst_type_find_register(0, "playlist", GST_RANK_MARGINAL, playlistTypeFindFunction, 0, 0, this, 0);
-    Q_ASSERT(result == TRUE);
-    Q_UNUSED(result);
-
+    g_typeRegister->add(this);
     m_playbin = gst_element_factory_make(QT_GSTREAMER_PLAYBIN_ELEMENT_NAME, NULL);
     if (m_playbin) {
         //GST_PLAY_FLAG_NATIVE_VIDEO omits configuration of ffmpegcolorspace and videoscale,
@@ -251,6 +295,8 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
 
 QGstreamerPlayerSession::~QGstreamerPlayerSession()
 {
+    g_typeRegister->remove(this);
+
     if (m_playbin) {
         stop();
 
@@ -1890,15 +1936,13 @@ void QGstreamerPlayerSession::resumeVideoProbes()
         m_videoProbe->stopFlushing();
 }
 
-void QGstreamerPlayerSession::playlistTypeFindFunction(GstTypeFind *find, gpointer userData)
+void QGstreamerPlayerSession::playlistTypeFindFunction(GstTypeFind *find)
 {
-    QGstreamerPlayerSession* session = (QGstreamerPlayerSession*)userData;
-
     gchar *strval = 0;
 #if GST_CHECK_VERSION(1,0,0)
-    g_object_get(G_OBJECT(session->m_playbin), "current-uri", &strval, NULL);
+    g_object_get(G_OBJECT(m_playbin), "current-uri", &strval, NULL);
 #else
-    g_object_get(G_OBJECT(session->m_playbin), "uri", &strval, NULL);
+    g_object_get(G_OBJECT(m_playbin), "uri", &strval, NULL);
 #endif
     const QString uri(QString::fromUtf8(strval));
     g_free(strval);
@@ -1912,7 +1956,7 @@ void QGstreamerPlayerSession::playlistTypeFindFunction(GstTypeFind *find, gpoint
     while (length > 0) {
         const guint8 *data = gst_type_find_peek(find, 0, length);
         if (data) {
-            session->m_isPlaylist = (QPlaylistFileParser::findPlaylistType(uri, 0, data, length) != QPlaylistFileParser::UNKNOWN);
+            m_isPlaylist = (QPlaylistFileParser::findPlaylistType(uri, 0, data, length) != QPlaylistFileParser::UNKNOWN);
             return;
         }
         length >>= 1; // for HTTP files length is not available,
