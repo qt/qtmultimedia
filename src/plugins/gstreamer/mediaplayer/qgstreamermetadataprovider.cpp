@@ -93,7 +93,8 @@ static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
 
         //metadataKeys->insert(0, QMediaMetaData::CoverArtUrlSmall);
         //metadataKeys->insert(0, QMediaMetaData::CoverArtUrlLarge);
-        metadataKeys->insert(GST_TAG_PREVIEW_IMAGE, QMediaMetaData::CoverArtImage);
+        metadataKeys->insert(GST_TAG_PREVIEW_IMAGE, QMediaMetaData::ThumbnailImage);
+        metadataKeys->insert(GST_TAG_IMAGE, QMediaMetaData::CoverArtImage);
 
         // Image/Video
         metadataKeys->insert("resolution", QMediaMetaData::Resolution);
