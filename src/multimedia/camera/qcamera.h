@@ -257,8 +257,14 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::LockTypes)
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_CLANG("-Wfloat-equal")
+QT_WARNING_DISABLE_GCC("-Wfloat-equal")
+
 Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator==(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
 { return r1.minimumFrameRate == r2.minimumFrameRate && r1.maximumFrameRate == r2.maximumFrameRate; }
+
+QT_WARNING_POP
 
 Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator!=(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
 { return !(r1 == r2); }
