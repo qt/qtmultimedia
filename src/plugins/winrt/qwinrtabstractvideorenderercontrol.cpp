@@ -356,6 +356,13 @@ void QWinRTAbstractVideoRendererControl::setActive(bool active)
         if (!d->surface)
             return;
 
+        // This only happens for quick restart scenarios, for instance
+        // when switching cameras.
+        if (d->renderThread.isRunning() && d->renderThread.isInterruptionRequested()) {
+            CriticalSectionLocker lock(&d->mutex);
+            d->renderThread.wait();
+        }
+
         if (!d->surface->isActive())
             d->surface->start(d->format);
 
@@ -363,7 +370,8 @@ void QWinRTAbstractVideoRendererControl::setActive(bool active)
         return;
     }
 
-    shutdown();
+    d->renderThread.requestInterruption();
+
     if (d->surface && d->surface->isActive())
         d->surface->stop();
 }
