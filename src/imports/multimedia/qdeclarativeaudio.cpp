@@ -429,7 +429,7 @@ qreal QDeclarativeAudio::volume() const
 void QDeclarativeAudio::setVolume(qreal volume)
 {
     if (volume < 0 || volume > 1) {
-        qmlInfo(this) << tr("volume should be between 0.0 and 1.0");
+        qmlWarning(this) << tr("volume should be between 0.0 and 1.0");
         return;
     }
 
