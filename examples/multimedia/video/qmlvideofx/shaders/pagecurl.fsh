@@ -58,7 +58,7 @@ varying vec2 qt_TexCoord0;
 
 const float minAmount = -0.16;
 const float maxAmount = 1.3;
-const float PI = 3.141592653589793;
+const float PI = 3.14159265358979323846;
 const float scale = 512.0;
 const float sharpness = 3.0;
 const vec4 bgColor = vec4(1.0, 1.0, 0.8, 1.0);

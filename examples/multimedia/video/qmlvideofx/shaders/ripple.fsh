@@ -59,7 +59,7 @@ uniform sampler2D source;
 uniform lowp float qt_Opacity;
 varying vec2 qt_TexCoord0;
 
-const float PI = 3.1415926535;
+const float PI = 3.14159265358979323846;
 const int ITER = 7;
 const float RATE = 0.1;
 uniform float amplitude;

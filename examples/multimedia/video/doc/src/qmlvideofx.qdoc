@@ -103,7 +103,7 @@ Rectangle {
             void main(void)
             {
                 highp vec2 wiggledTexCoord = qt_TexCoord0;
-                wiggledTexCoord.s += sin(4.0 * 3.141592653589 * wiggledTexCoord.t) * wiggleAmount;
+                wiggledTexCoord.s += sin(4.0 * 3.14159265358979323846 * wiggledTexCoord.t) * wiggleAmount;
                 gl_FragColor = texture2D(source, wiggledTexCoord.st);
             }
         "
