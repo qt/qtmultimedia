@@ -35,7 +35,7 @@ win32:!winrt {
                windowsaudio
 
     qtConfig(directshow): SUBDIRS += directshow
-    qtConfig(wmf-backend): SUBDIRS += wmf
+    qtConfig(wmf): SUBDIRS += wmf
 }
 
 

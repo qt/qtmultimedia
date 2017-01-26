@@ -10,7 +10,8 @@
             "alsa": "boolean",
             "gstreamer": { "type": "optionalString", "values": [ "no", "yes", "0.10", "1.0" ] },
             "pulseaudio": "boolean",
-            "wmf-backend": "boolean"
+            "mediaplayer-backend": { "type": "string", "values": [ "directshow", "wmf" ] },
+            "wmf-backend": { "type": "void", "name": "mediaplayer-backend", "value": "wmf" }
         }
     },
 
@@ -192,6 +193,13 @@
             "condition": "config.win32 && libs.directshow",
             "output": [ "feature", "privateFeature" ]
         },
+        "directshow-player": {
+            "label": "DirectShow",
+            "enable": "input.mediaplayer-backend == 'directshow'",
+            "disable": "input.mediaplayer-backend == 'wmf'",
+            "condition": "features.directshow && !features.wmf-player",
+            "output": [ "privateFeature" ]
+        },
         "evr": {
             "label": "evr.h",
             "condition": "config.win32 && tests.evr",
@@ -281,11 +289,16 @@
             "condition": "config.win32 && features.directshow && tests.wshellitem",
             "output": [ "feature", "privateFeature" ]
         },
-        "wmf-backend": {
+        "wmf": {
             "label": "Windows Media Foundation",
-            "emitIf": "config.win32",
-            "autoDetect": false,
-            "condition": "libraries.wmf",
+            "condition": "config.win32 && libs.wmf",
+            "output": [ "privateFeature" ]
+        },
+        "wmf-player": {
+            "label": "Windows Media Foundation",
+            "enable": "input.mediaplayer-backend == 'wmf'",
+            "disable": "input.mediaplayer-backend != 'wmf'",
+            "condition": "features.wmf",
             "output": [ "privateFeature" ]
         }
     },
@@ -307,7 +320,14 @@
                 "mmrenderer",
                 "avfoundation",
                 "directshow",
-                "wmf-backend"
+                "wmf",
+                {
+                    "message": "Media player backend",
+                    "type": "firstAvailableFeature",
+                    "args": "directshow-player wmf-player",
+                    "condition": "config.win32"
+                }
+
             ]
         }
     ]
