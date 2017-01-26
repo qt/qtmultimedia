@@ -255,7 +255,7 @@ QVariant IMFSampleVideoBuffer::handle() const
     if (handleType() != GLTextureHandle)
         return handle;
 
-    if (m_textureUpdated || m_engine->updateTexture(m_surface)) {
+    if (m_engine->m_glResources && (m_textureUpdated || m_engine->updateTexture(m_surface))) {
         m_textureUpdated = true;
         handle = QVariant::fromValue<unsigned int>(m_engine->m_glResources->glTexture);
     }

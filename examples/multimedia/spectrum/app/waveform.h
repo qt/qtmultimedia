@@ -64,8 +64,8 @@ public:
     ~Waveform();
 
     // QWidget
-    void paintEvent(QPaintEvent *event);
-    void resizeEvent(QResizeEvent *event);
+    void paintEvent(QPaintEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
     void initialize(const QAudioFormat &format, qint64 audioBufferSize, qint64 windowDurationUs);
     void reset();

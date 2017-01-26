@@ -55,16 +55,16 @@ public:
     explicit VideoItem(QGraphicsItem *parentItem = 0);
     ~VideoItem();
 
-    QRectF boundingRect() const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
+    QRectF boundingRect() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0) override;
 
     //video surface
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
+            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override;
 
-    bool start(const QVideoSurfaceFormat &format);
-    void stop();
-    bool present(const QVideoFrame &frame);
+    bool start(const QVideoSurfaceFormat &format) override;
+    void stop() override;
+    bool present(const QVideoFrame &frame) override;
 
 private:
     QImage::Format imageFormat;

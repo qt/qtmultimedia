@@ -75,7 +75,7 @@ public:
     ~MainWidget();
 
     // QObject
-    void timerEvent(QTimerEvent *event);
+    void timerEvent(QTimerEvent *event) override;
 
 public slots:
     void stateChanged(QAudio::Mode mode, QAudio::State state);

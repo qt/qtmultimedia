@@ -64,8 +64,8 @@ public:
 
     qreal level() const { return m_level; }
 
-    qint64 readData(char *data, qint64 maxlen);
-    qint64 writeData(const char *data, qint64 len);
+    qint64 readData(char *data, qint64 maxlen) override;
+    qint64 writeData(const char *data, qint64 len) override;
 
 private:
     const QAudioFormat m_format;
@@ -87,7 +87,7 @@ public:
     void setLevel(qreal value);
 
 protected:
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     qreal m_level;

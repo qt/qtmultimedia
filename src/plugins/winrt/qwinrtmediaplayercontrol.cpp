@@ -267,7 +267,8 @@ public:
         }
 
         if (d->videoRenderer)
-            d->videoRenderer->setActive(d->state == QMediaPlayer::PlayingState);
+            d->videoRenderer->setActive(d->state == QMediaPlayer::PlayingState &&
+                                        d->videoRenderer->size().isValid());
 
         const QMediaPlayer::MediaStatus oldMediaStatus = d->mediaStatus;
         const QMediaPlayer::State oldState = d->state;

@@ -62,7 +62,7 @@ public:
     void load(const QUrl &url);
     bool isPlayerAvailable() const;
 
-    QSize sizeHint() const Q_DECL_OVERRIDE;
+    QSize sizeHint() const override;
 
 public slots:
     void openFile();

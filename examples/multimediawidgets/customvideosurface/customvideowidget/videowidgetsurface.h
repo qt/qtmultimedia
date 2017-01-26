@@ -55,13 +55,13 @@ public:
     VideoWidgetSurface(QWidget *widget, QObject *parent = 0);
 
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
-    bool isFormatSupported(const QVideoSurfaceFormat &format) const;
+            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override;
+    bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
 
-    bool start(const QVideoSurfaceFormat &format);
-    void stop();
+    bool start(const QVideoSurfaceFormat &format) override;
+    void stop() override;
 
-    bool present(const QVideoFrame &frame);
+    bool present(const QVideoFrame &frame) override;
 
     QRect videoRect() const { return targetRect; }
     void updateVideoRect();
