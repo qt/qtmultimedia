@@ -551,7 +551,7 @@ void DSCameraSession::presentFrame()
     m_presentMutex.unlock();
 
     QImage captureImage;
-    int captureId;
+    const int captureId = m_currentImageId;
 
     m_captureMutex.lock();
 
@@ -567,8 +567,6 @@ void DSCameraSession::presentFrame()
         captureImage = captureImage.mirrored(m_needsHorizontalMirroring); // also causes a deep copy of the data
 
         m_capturedFrame.unmap();
-
-        captureId = m_currentImageId;
 
         QtConcurrent::run(this, &DSCameraSession::saveCapturedImage,
                           m_currentImageId, captureImage, m_imageCaptureFileName);
@@ -600,8 +598,6 @@ void DSCameraSession::saveCapturedImage(int id, const QImage &image, const QStri
 bool DSCameraSession::createFilterGraph()
 {
     // Previously containered in <qedit.h>.
-    static const IID iID_ISampleGrabber = { 0x6B652FFF, 0x11FE, 0x4fce, { 0x92, 0xAD, 0x02, 0x66, 0xB5, 0xD7, 0xC7, 0x8F } };
-    static const CLSID cLSID_SampleGrabber = { 0xC1F400A0, 0x3F08, 0x11d3, { 0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37 } };
     static const CLSID cLSID_NullRenderer = { 0xC1F400A4, 0x3F08, 0x11d3, { 0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37 } };
 
     HRESULT hr;
@@ -802,7 +798,7 @@ bool DSCameraSession::configurePreviewFormat()
     }
 
     // Set sample grabber format (always RGB32)
-    static const AM_MEDIA_TYPE grabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_RGB32, 0, 0, 0, FORMAT_VideoInfo };
+    static const AM_MEDIA_TYPE grabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_RGB32, 0, 0, 0, FORMAT_VideoInfo, nullptr, 0, nullptr};
     if (!m_previewSampleGrabber->setMediaType(&grabberFormat))
         return false;
 

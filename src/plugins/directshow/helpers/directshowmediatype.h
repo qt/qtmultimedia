@@ -67,8 +67,8 @@ public:
     inline AM_MEDIA_TYPE *operator &() Q_DECL_NOTHROW { return &mediaType; }
     inline AM_MEDIA_TYPE *operator ->() Q_DECL_NOTHROW { return &mediaType; }
 
-    inline const AM_MEDIA_TYPE *const operator &() const Q_DECL_NOTHROW { return &mediaType; }
-    inline const AM_MEDIA_TYPE *const operator ->() const Q_DECL_NOTHROW { return &mediaType; }
+    inline const AM_MEDIA_TYPE *operator &() const Q_DECL_NOTHROW { return &mediaType; }
+    inline const AM_MEDIA_TYPE *operator ->() const Q_DECL_NOTHROW { return &mediaType; }
 
     static void init(AM_MEDIA_TYPE *type);
     static void copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source);

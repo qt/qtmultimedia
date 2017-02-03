@@ -76,7 +76,7 @@ bool DirectShowMediaType::isPartiallySpecified(const AM_MEDIA_TYPE *mediaType)
 }
 
 DirectShowMediaType::DirectShowMediaType()
-    : mediaType({ GUID_NULL, GUID_NULL, TRUE, FALSE, 1 })
+    : mediaType({ GUID_NULL, GUID_NULL, TRUE, FALSE, 1, GUID_NULL, nullptr, 0, nullptr})
 {
 }
 
