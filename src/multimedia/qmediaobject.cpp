@@ -55,7 +55,13 @@ void QMediaObjectPrivate::_q_notify()
 
     const QMetaObject* m = q->metaObject();
 
-    for (int pi : qAsConst(notifyProperties)) {
+    // QTBUG-57045
+    // we create a copy of notifyProperties container to ensure that if a property is removed
+    // from the original container as a result of invoking propertyChanged signal, the iterator
+    // won't become invalidated
+    QSet<int> properties = notifyProperties;
+
+    for (int pi : qAsConst(properties)) {
         QMetaProperty p = m->property(pi);
         p.notifySignal().invoke(
             q, QGenericArgument(QMetaType::typeName(p.userType()), p.read(q).data()));
