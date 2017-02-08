@@ -160,7 +160,8 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
         }
         g_object_set(G_OBJECT(m_playbin), "flags", flags, NULL);
 
-        GstElement *audioSink = gst_element_factory_make("autoaudiosink", "audiosink");
+        const QByteArray envAudioSink = qgetenv("QT_GSTREAMER_PLAYBIN_AUDIOSINK");
+        GstElement *audioSink = gst_element_factory_make(envAudioSink.isEmpty() ? "autoaudiosink" : envAudioSink, "audiosink");
         if (audioSink) {
             if (usePlaybinVolume()) {
                 m_audioSink = audioSink;
