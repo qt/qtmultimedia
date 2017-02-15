@@ -52,8 +52,10 @@ static const GUID directshow_subtypes[] =
     MEDIASUBTYPE_AU,
     MEDIASUBTYPE_DssVideo,
     MEDIASUBTYPE_MPEG1Audio,
-    MEDIASUBTYPE_MPEG1System,
-    MEDIASUBTYPE_MPEG1VideoCD
+    MEDIASUBTYPE_MPEG1System
+#ifndef Q_OS_WINCE
+    , MEDIASUBTYPE_MPEG1VideoCD
+#endif
 };
 
 DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
