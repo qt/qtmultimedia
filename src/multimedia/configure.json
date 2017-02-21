@@ -178,7 +178,7 @@
     "features": {
         "alsa": {
             "label": "ALSA",
-            "condition": "config.unix && libs.alsa",
+            "condition": "config.unix && !config.qnx && libs.alsa",
             "output": [ "feature", "privateFeature" ]
         },
         "avfoundation": {
