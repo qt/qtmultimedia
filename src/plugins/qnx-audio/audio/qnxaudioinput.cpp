@@ -134,6 +134,8 @@ void QnxAudioInput::reset()
 
 void QnxAudioInput::suspend()
 {
+    snd_pcm_capture_pause(m_pcmHandle);
+
     if (m_pcmNotifier)
         m_pcmNotifier->setEnabled(false);
 
@@ -142,6 +144,8 @@ void QnxAudioInput::suspend()
 
 void QnxAudioInput::resume()
 {
+    snd_pcm_capture_resume(m_pcmHandle);
+
     if (m_pcmNotifier)
         m_pcmNotifier->setEnabled(true);
 

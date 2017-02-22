@@ -125,11 +125,13 @@ void QnxAudioOutput::reset()
 void QnxAudioOutput::suspend()
 {
     m_timer.stop();
+    snd_pcm_playback_pause(m_pcmHandle);
     setState(QAudio::SuspendedState);
 }
 
 void QnxAudioOutput::resume()
 {
+    snd_pcm_playback_resume(m_pcmHandle);
     if (m_pushSource)
         setState(QAudio::IdleState);
     else {
