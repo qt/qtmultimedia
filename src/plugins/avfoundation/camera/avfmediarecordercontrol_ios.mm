@@ -49,6 +49,7 @@
 #include "avfmediacontainercontrol.h"
 #include "avfcamerautility.h"
 
+#include <QtCore/qmath.h>
 #include <QtCore/qdebug.h>
 
 QT_USE_NAMESPACE
@@ -273,14 +274,11 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
         else
             rotation = (screenOrientation + (360 - cameraInfo.orientation)) % 360;
 
-        // convert to radians
-        rotation *= M_PI / 180.f;
-
         if ([m_writer setupWithFileURL:nsFileURL
                       cameraService:m_service
                       audioSettings:m_audioSettings
                       videoSettings:m_videoSettings
-                      transform:CGAffineTransformMakeRotation(rotation)]) {
+                      transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
 
             m_state = QMediaRecorder::RecordingState;
             m_lastStatus = QMediaRecorder::StartingStatus;
