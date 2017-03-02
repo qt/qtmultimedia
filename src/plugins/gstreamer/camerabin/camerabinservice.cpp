@@ -77,7 +77,6 @@
 #include <private/qmediaserviceprovider_p.h>
 
 #include <QtCore/qdebug.h>
-#include <QtCore/qprocess.h>
 
 QT_BEGIN_NAMESPACE
 
