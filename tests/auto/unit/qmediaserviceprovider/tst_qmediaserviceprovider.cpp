@@ -83,7 +83,9 @@ private:
 void tst_QMediaServiceProvider::initTestCase()
 {
 //    QMediaPluginLoader::setStaticPlugins(QLatin1String("mediaservice"), plugins);
+#if QT_CONFIG(library)
     QCoreApplication::setLibraryPaths(QStringList() << QCoreApplication::applicationDirPath());
+#endif
 }
 
 void tst_QMediaServiceProvider::testDefaultProviderAvailable()
