@@ -37,13 +37,13 @@
 **
 ****************************************************************************/
 
+#include "QtMultimedia/private/qtmultimediaglobal_p.h"
 #include "camerabinresourcepolicy.h"
-
 //#define DEBUG_RESOURCE_POLICY
 #include <QtCore/qdebug.h>
 #include <QtCore/qset.h>
 
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
 #include <policy/resource.h>
 #include <policy/resources.h>
 #include <policy/resource-set.h>
@@ -57,7 +57,7 @@ CamerabinResourcePolicy::CamerabinResourcePolicy(QObject *parent) :
     m_releasingResources(false),
     m_canCapture(false)
 {
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
     //loaded resource set is also kept requested for image and video capture sets
     m_resource = new ResourcePolicy::ResourceSet("camera");
     m_resource->setAlwaysReply();
@@ -76,7 +76,7 @@ CamerabinResourcePolicy::CamerabinResourcePolicy(QObject *parent) :
 
 CamerabinResourcePolicy::~CamerabinResourcePolicy()
 {
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
     //ensure the resources are released
     if (m_resourceSet != NoResources)
         setResourceSet(NoResources);
@@ -106,7 +106,7 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
     qDebug() << Q_FUNC_INFO << set;
 #endif
 
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
     QSet<ResourcePolicy::ResourceType> requestedTypes;
 
     switch (set) {
@@ -178,7 +178,7 @@ void CamerabinResourcePolicy::setResourceSet(CamerabinResourcePolicy::ResourceSe
 
 bool CamerabinResourcePolicy::isResourcesGranted() const
 {
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
     const auto resources = m_resource->resources();
     for (ResourcePolicy::Resource *resource : resources)
         if (!resource->isOptional() && !resource->isGranted())
@@ -201,7 +201,7 @@ void CamerabinResourcePolicy::handleResourcesGranted()
 
 void CamerabinResourcePolicy::handleResourcesReleased()
 {
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
 #ifdef DEBUG_RESOURCE_POLICY
     qDebug() << Q_FUNC_INFO;
 #endif
@@ -212,7 +212,7 @@ void CamerabinResourcePolicy::handleResourcesReleased()
 
 void CamerabinResourcePolicy::resourcesAvailable()
 {
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
     if (m_resourceSet != NoResources) {
         m_resource->acquire();
     }
@@ -228,7 +228,7 @@ void CamerabinResourcePolicy::updateCanCapture()
 {
     const bool wasAbleToRecord = m_canCapture;
     m_canCapture = (m_resourceSet == VideoCaptureResources) || (m_resourceSet == ImageCaptureResources);
-#ifdef HAVE_RESOURCE_POLICY
+#if QT_CONFIG(resourcepolicy)
     const auto resources = m_resource->resources();
     for (ResourcePolicy::Resource *resource : resources) {
         if (resource->type() != ResourcePolicy::LensCoverType)

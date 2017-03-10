@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qgstutils_p.h"
 
 #include <QtCore/qdatetime.h>
@@ -58,7 +59,7 @@
 
 template<typename T, int N> static int lengthOf(const T (&)[N]) { return N; }
 
-#ifdef USE_V4L
+#if QT_CONFIG(linux_v4l)
 #  include <private/qcore_unix_p.h>
 #  include <linux/videodev2.h>
 #endif
@@ -620,7 +621,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         }
     }
 
-#ifdef USE_V4L
+#if QT_CONFIG(linux_v4l)
     QDir devDir(QStringLiteral("/dev"));
     devDir.setFilter(QDir::System);
 
@@ -675,7 +676,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         qt_safe_close(fd);
     }
     camerasCacheAgeTimer.restart();
-#endif // USE_V4L
+#endif // linux_v4l
 
     return devices;
 }

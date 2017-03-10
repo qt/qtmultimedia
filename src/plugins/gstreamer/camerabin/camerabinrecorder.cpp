@@ -136,7 +136,7 @@ qint64 CameraBinRecorder::duration() const
 
 void CameraBinRecorder::applySettings()
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     CameraBinContainer *containerControl = m_session->mediaContainerControl();
     CameraBinAudioEncoder *audioEncoderControl = m_session->audioEncodeControl();
     CameraBinVideoEncoder *videoEncoderControl = m_session->videoEncodeControl();
@@ -181,7 +181,7 @@ void CameraBinRecorder::applySettings()
 #endif
 }
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 
 GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
 {

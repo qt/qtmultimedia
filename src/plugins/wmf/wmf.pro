@@ -17,7 +17,7 @@ SOURCES += \
     mfstream.cpp \
     sourceresolver.cpp
 
-contains(QT_CONFIG, wmf-backend): include (player/player.pri)
+qtConfig(wmf-player): include (player/player.pri)
 include (decoder/decoder.pri)
 
 OTHER_FILES += \

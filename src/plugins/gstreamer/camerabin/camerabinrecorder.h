@@ -41,10 +41,11 @@
 #ifndef CAMERABINRECORDERCONTROL_H
 #define CAMERABINRECORDERCONTROL_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qmediarecordercontrol.h>
 #include "camerabinsession.h"
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 #include <gst/pbutils/encoding-profile.h>
 #endif
 
@@ -71,7 +72,7 @@ public:
 
     void applySettings() override;
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingContainerProfile *videoProfile();
 #endif
 

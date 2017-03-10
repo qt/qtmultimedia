@@ -53,8 +53,6 @@ SOURCES += \
     $$PWD/camerabininfocontrol.cpp
 
 qtConfig(gstreamer_photography) {
-    DEFINES += HAVE_GST_PHOTOGRAPHY
-
     HEADERS += \
         $$PWD/camerabinfocus.h \
         $$PWD/camerabinexposure.h \
@@ -71,13 +69,7 @@ qtConfig(gstreamer_photography) {
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API
 }
 
-qtConfig(gstreamer_encodingprofiles) {
-    DEFINES += HAVE_GST_ENCODING_PROFILES
-}
-
 qtConfig(linux_v4l) {
-    DEFINES += USE_V4L
-
     HEADERS += \
         $$PWD/camerabinv4limageprocessing.h
 

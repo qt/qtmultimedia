@@ -40,13 +40,14 @@
 #ifndef QGSTREAMERPLAYERSESSION_H
 #define QGSTREAMERPLAYERSESSION_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QObject>
 #include <QtCore/qmutex.h>
 #include "qgstreameraudiodecodercontrol.h"
 #include <private/qgstreamerbushelper_p.h>
 #include "qaudiodecoder.h"
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
 #include <private/qgstappsrc_p.h>
 #endif
 
@@ -75,7 +76,7 @@ public:
 
     bool processBusMessage(const QGstreamerMessage &message) override;
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
     QGstAppSrc *appsrc() const { return m_appSrc; }
     static void configureAppSrcElement(GObject*, GObject*, GParamSpec*,QGstreamerAudioDecoderSession* _this);
 #endif
@@ -134,7 +135,7 @@ private:
     GstElement *m_audioConvert;
     GstAppSink *m_appSink;
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
     QGstAppSrc *m_appSrc;
 #endif
 

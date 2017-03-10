@@ -158,7 +158,7 @@ HRESULT STDMETHODCALLTYPE SourceResolver::GetParameters(DWORD*, DWORD*)
     return E_NOTIMPL;
 }
 
-void SourceResolver::load(QMediaResourceList& resources, QIODevice* stream)
+void SourceResolver::load(const QMediaResourceList &resources, QIODevice* stream)
 {
     QMutexLocker locker(&m_mutex);
     HRESULT hr = S_OK;
@@ -176,7 +176,7 @@ void SourceResolver::load(QMediaResourceList& resources, QIODevice* stream)
     } else if (stream) {
         QString url;
         if (!resources.isEmpty())
-            url = resources.takeFirst().url().toString();
+            url = resources.constFirst().url().toString();
         m_stream = new MFStream(stream, false);
         hr = m_sourceResolver->BeginCreateObjectFromByteStream(
                     m_stream, url.isEmpty() ? 0 : reinterpret_cast<LPCWSTR>(url.utf16()),
@@ -187,7 +187,7 @@ void SourceResolver::load(QMediaResourceList& resources, QIODevice* stream)
             emit error(hr);
         }
     } else {
-        QMediaResource resource = resources.takeFirst();
+        QMediaResource resource = resources.constFirst();
         QUrl url = resource.url();
 #ifdef DEBUG_MEDIAFOUNDATION
         qDebug() << "loading :" << url;

@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qgstreameraudioinputselector_p.h"
 
 #include <QtCore/QDir>
@@ -44,7 +45,7 @@
 
 #include <gst/gst.h>
 
-#ifdef HAVE_ALSA
+#if QT_CONFIG(alsa)
 #include <alsa/asoundlib.h>
 #endif
 
@@ -115,7 +116,7 @@ void QGstreamerAudioInputSelector::update()
 
 void QGstreamerAudioInputSelector::updateAlsaDevices()
 {
-#ifdef HAVE_ALSA
+#if QT_CONFIG(alsa)
     void **hints, **n;
     if (snd_device_name_hint(-1, "pcm", &hints) < 0) {
         qWarning()<<"no alsa devices available";

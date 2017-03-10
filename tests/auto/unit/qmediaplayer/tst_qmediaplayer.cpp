@@ -118,7 +118,9 @@ private slots:
     void testMediaStatus_data();
     void testMediaStatus();
     void testPlaylist();
+#ifndef QT_NO_BEARERMANAGEMENT
     void testNetworkAccess();
+#endif
     void testSetVideoOutput();
     void testSetVideoOutputNoService();
     void testSetVideoOutputNoControl();
@@ -1063,6 +1065,7 @@ void tst_QMediaPlayer::testDestructor()
     mockProvider->deleteServiceOnRelease = false;
 }
 
+#ifndef QT_NO_BEARERMANAGEMENT
 void tst_QMediaPlayer::testNetworkAccess()
 {
     QNetworkConfigurationManager manager;
@@ -1090,6 +1093,7 @@ void tst_QMediaPlayer::testNetworkAccess()
     QVERIFY(config.isValid() == false);
     QVERIFY(player->currentNetworkConfiguration().isValid() == false);
 }
+#endif
 
 void tst_QMediaPlayer::testSetVideoOutput()
 {
