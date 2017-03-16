@@ -41,7 +41,6 @@
 #include "qgstutils_p.h"
 
 #include <QtCore/qdatetime.h>
-#include <QtCore/qtimezone.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qvariant.h>
@@ -136,7 +135,9 @@ static void addTagToMap(const GstTagList *list,
                     int minute = gst_date_time_get_minute(dateTime);
                     int second = gst_date_time_get_second(dateTime);
                     float tz = gst_date_time_get_time_zone_offset(dateTime);
-                    map->insert(QByteArray(tag), QDateTime(QDate(year,month,day), QTime(hour, minute, second), QTimeZone(tz * 60 * 60)));
+                    QDateTime dateTime(QDate(year, month, day), QTime(hour, minute, second),
+                                       Qt::OffsetFromUTC, tz * 60 * 60);
+                    map->insert(QByteArray(tag), dateTime);
                 } else if (year > 0 && month > 0 && day > 0) {
                     map->insert(QByteArray(tag), QDate(year,month,day));
                 }
