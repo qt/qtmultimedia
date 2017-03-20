@@ -786,8 +786,12 @@ void QWinRTMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *s
     if (d->stream) {
         hr = d->engine->SetSourceFromByteStream(d->streamProvider.Get(),
                                                 reinterpret_cast<BSTR>(urlString.data()));
-        if (FAILED(hr))
+        if (FAILED(hr)) {
             emit error(QMediaPlayer::ResourceError, qt_error_string(hr));
+            return;
+        }
+        if (d->videoRenderer)
+            d->videoRenderer->ensureReady();
         return;
     }
 
