@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "camerabinaudioencoder.h"
 #include "camerabincontainer.h"
 #include <private/qgstutils_p.h>
@@ -47,7 +48,7 @@ QT_BEGIN_NAMESPACE
 
 CameraBinAudioEncoder::CameraBinAudioEncoder(QObject *parent)
     :QAudioEncoderSettingsControl(parent)
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     , m_codecs(QGstCodecsInfo::AudioEncoder)
 #endif
 {
@@ -59,7 +60,7 @@ CameraBinAudioEncoder::~CameraBinAudioEncoder()
 
 QStringList CameraBinAudioEncoder::supportedAudioCodecs() const
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.supportedCodecs();
 #else
     return QStringList();
@@ -68,7 +69,7 @@ QStringList CameraBinAudioEncoder::supportedAudioCodecs() const
 
 QString CameraBinAudioEncoder::codecDescription(const QString &codecName) const
 {
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.codecDescription(codecName);
 #else
     Q_UNUSED(codecName)
@@ -112,7 +113,7 @@ void CameraBinAudioEncoder::resetActualSettings()
     m_actualAudioSettings = m_audioSettings;
 }
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 
 GstEncodingProfile *CameraBinAudioEncoder::createProfile()
 {

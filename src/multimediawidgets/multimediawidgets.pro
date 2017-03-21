@@ -11,16 +11,20 @@ PRIVATE_HEADERS += \
 PUBLIC_HEADERS += \
     qtmultimediawidgetdefs.h \
     qcameraviewfinder.h \
-    qgraphicsvideoitem.h \
     qvideowidgetcontrol.h \
     qvideowidget.h
 
 SOURCES += \
     qcameraviewfinder.cpp \
-    qgraphicsvideoitem.cpp \
     qpaintervideosurface.cpp \
     qvideowidgetcontrol.cpp \
     qvideowidget.cpp
+
+qtConfig(graphicsview) {
+    SOURCES        += qgraphicsvideoitem.cpp
+    PUBLIC_HEADERS += qgraphicsvideoitem.h
+}
+
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
 

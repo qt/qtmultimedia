@@ -40,12 +40,15 @@
 #ifndef DIRECTSHOWVIDEORENDERERCONTROL_H
 #define DIRECTSHOWVIDEORENDERERCONTROL_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <dshow.h>
 
 #include "qvideorenderercontrol.h"
 
+#include <QtMultimedia/private/qtmultimedia-config_p.h>
+
 class DirectShowEventLoop;
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
 class EVRCustomPresenter;
 #endif
 
@@ -70,7 +73,7 @@ private:
     DirectShowEventLoop *m_loop;
     QAbstractVideoSurface *m_surface;
     IBaseFilter *m_filter;
-#ifdef HAVE_EVR
+#if QT_CONFIG(evr)
     EVRCustomPresenter *m_evrPresenter;
 #endif
 };

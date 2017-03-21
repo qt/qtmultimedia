@@ -40,6 +40,7 @@
 #ifndef CAMERABINAUDIOENCODE_H
 #define CAMERABINAUDIOENCODE_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qaudioencodersettingscontrol.h>
 
 #include <QtCore/qstringlist.h>
@@ -49,7 +50,7 @@
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
 #endif
@@ -85,7 +86,7 @@ public:
     void setActualAudioSettings(const QAudioEncoderSettings&);
     void resetActualSettings();
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingProfile *createProfile();
 #endif
 
@@ -95,7 +96,7 @@ Q_SIGNALS:
     void settingsChanged();
 
 private:
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     QGstCodecsInfo m_codecs;
 #endif
 

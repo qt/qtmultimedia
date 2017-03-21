@@ -125,11 +125,13 @@ void QnxAudioOutput::reset()
 void QnxAudioOutput::suspend()
 {
     m_timer.stop();
+    snd_pcm_playback_pause(m_pcmHandle);
     setState(QAudio::SuspendedState);
 }
 
 void QnxAudioOutput::resume()
 {
+    snd_pcm_playback_resume(m_pcmHandle);
     if (m_pushSource)
         setState(QAudio::IdleState);
     else {
@@ -223,7 +225,10 @@ void QnxAudioOutput::pullData()
     if (frames == 0 || bytesAvailable < periodSize())
         return;
 
-    const int bytesRequested = m_format.bytesForFrames(frames);
+    // The buffer is placed on the stack so no more than 64K or 1 frame
+    // whichever is larger.
+    const int maxFrames = qMax(m_format.framesForBytes(64 * 1024), 1);
+    const int bytesRequested = m_format.bytesForFrames(qMin(frames, maxFrames));
 
     char buffer[bytesRequested];
     const int bytesRead = m_source->read(buffer, bytesRequested);

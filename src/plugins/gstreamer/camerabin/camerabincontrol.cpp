@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "camerabincontrol.h"
 #include "camerabincontainer.h"
 #include "camerabinaudioencoder.h"

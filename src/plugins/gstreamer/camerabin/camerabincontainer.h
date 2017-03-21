@@ -41,6 +41,7 @@
 #ifndef CAMERABINMEDIACONTAINERCONTROL_H
 #define CAMERABINMEDIACONTAINERCONTROL_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qmediacontainercontrol.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qset.h>
@@ -48,7 +49,7 @@
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
 #endif
@@ -72,7 +73,7 @@ public:
     void setActualContainerFormat(const QString &containerFormat);
     void resetActualContainerFormat();
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingContainerProfile *createProfile();
 #endif
 
@@ -83,7 +84,7 @@ private:
     QString m_format;
     QString m_actualFormat;
 
-#ifdef HAVE_GST_ENCODING_PROFILES
+#if QT_CONFIG(gstreamer_encodingprofiles)
     QGstCodecsInfo m_supportedContainers;
 #endif
 };

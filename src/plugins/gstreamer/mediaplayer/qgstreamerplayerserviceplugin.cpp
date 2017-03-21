@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/QDir>
@@ -70,7 +71,7 @@ QMediaServiceProviderHint::Features QGstreamerPlayerServicePlugin::supportedFeat
 {
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
         return
-#ifdef HAVE_GST_APPSRC
+#if QT_CONFIG(gstreamer_app)
                 QMediaServiceProviderHint::StreamPlayback |
 #endif
                 QMediaServiceProviderHint::VideoSurface;

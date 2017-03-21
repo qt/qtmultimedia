@@ -45,13 +45,11 @@
 #include <QtMultimediaWidgets/qvideowidget.h>
 #include <QtMultimedia/qmediabindableinterface.h>
 
+#if QT_CONFIG(graphicsview)
+
 QT_BEGIN_NAMESPACE
 
 class QVideoSurfaceFormat;
-QT_END_NAMESPACE
-
-QT_BEGIN_NAMESPACE
-
 class QGraphicsVideoItemPrivate;
 class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaBindableInterface
 {
@@ -103,5 +101,6 @@ private:
 
 QT_END_NAMESPACE
 
+#endif // QT_CONFIG(graphicsview)
 
-#endif
+#endif // QGRAPHICSVIDEOITEM_H

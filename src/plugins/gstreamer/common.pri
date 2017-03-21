@@ -9,13 +9,9 @@ LIBS += -lqgsttools_p
 
 QMAKE_USE += gstreamer
 
-qtConfig(resourcepolicy) {
+qtConfig(resourcepolicy): \
     QMAKE_USE += libresourceqt5
-    DEFINES += HAVE_RESOURCE_POLICY
-}
 
-qtConfig(gstreamer_app) {
+qtConfig(gstreamer_app): \
     QMAKE_USE += gstreamer_app
-    DEFINES += HAVE_GST_APPSRC
-}
 

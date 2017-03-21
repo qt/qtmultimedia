@@ -37,10 +37,10 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qgstutils_p.h"
 
 #include <QtCore/qdatetime.h>
-#include <QtCore/qtimezone.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qvariant.h>
@@ -58,7 +58,7 @@
 
 template<typename T, int N> static int lengthOf(const T (&)[N]) { return N; }
 
-#ifdef USE_V4L
+#if QT_CONFIG(linux_v4l)
 #  include <private/qcore_unix_p.h>
 #  include <linux/videodev2.h>
 #endif
@@ -135,7 +135,9 @@ static void addTagToMap(const GstTagList *list,
                     int minute = gst_date_time_get_minute(dateTime);
                     int second = gst_date_time_get_second(dateTime);
                     float tz = gst_date_time_get_time_zone_offset(dateTime);
-                    map->insert(QByteArray(tag), QDateTime(QDate(year,month,day), QTime(hour, minute, second), QTimeZone(tz * 60 * 60)));
+                    QDateTime dateTime(QDate(year, month, day), QTime(hour, minute, second),
+                                       Qt::OffsetFromUTC, tz * 60 * 60);
+                    map->insert(QByteArray(tag), dateTime);
                 } else if (year > 0 && month > 0 && day > 0) {
                     map->insert(QByteArray(tag), QDate(year,month,day));
                 }
@@ -620,7 +622,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         }
     }
 
-#ifdef USE_V4L
+#if QT_CONFIG(linux_v4l)
     QDir devDir(QStringLiteral("/dev"));
     devDir.setFilter(QDir::System);
 
@@ -675,7 +677,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         qt_safe_close(fd);
     }
     camerasCacheAgeTimer.restart();
-#endif // USE_V4L
+#endif // linux_v4l
 
     return devices;
 }

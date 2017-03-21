@@ -57,11 +57,13 @@
 #include "directshowmetadatacontrol.h"
 #include "directshowplayerservice.h"
 
-#ifndef QT_NO_WMSDK
+#include <QtMultimedia/private/qtmultimedia-config_p.h>
+
+#if QT_CONFIG(wmsdk)
 #include <wmsdk.h>
 #endif
 
-#ifndef QT_NO_SHELLITEM
+#if QT_CONFIG(wshellitem)
 #include <ShlObj.h>
 #include <propkeydef.h>
 #include <private/qsystemlibrary_p.h>
@@ -108,7 +110,7 @@ typedef HRESULT (WINAPI *q_SHCreateItemFromParsingName)(PCWSTR, IBindCtx *, cons
 static q_SHCreateItemFromParsingName sHCreateItemFromParsingName = 0;
 #endif
 
-#ifndef QT_NO_WMSDK
+#if QT_CONFIG(wmsdk)
 
 namespace
 {
@@ -290,7 +292,7 @@ static QVariant getValue(IWMHeaderInfo *header, const wchar_t *key)
 }
 #endif
 
-#ifndef QT_NO_SHELLITEM
+#if QT_CONFIG(wshellitem)
 static QVariant convertValue(const PROPVARIANT& var)
 {
     QVariant value;
@@ -390,7 +392,7 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
 {
     m_metadata.clear();
 
-#ifndef QT_NO_SHELLITEM
+#if QT_CONFIG(wshellitem)
     if (!sHCreateItemFromParsingName) {
         QSystemLibrary lib(QStringLiteral("shell32"));
         sHCreateItemFromParsingName = (q_SHCreateItemFromParsingName)(lib.resolve("SHCreateItemFromParsingName"));
@@ -513,7 +515,7 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
         goto send_event;
 #endif
 
-#ifndef QT_NO_WMSDK
+#if QT_CONFIG(wmsdk)
     IWMHeaderInfo *info = com_cast<IWMHeaderInfo>(source, IID_IWMHeaderInfo);
 
     if (info) {

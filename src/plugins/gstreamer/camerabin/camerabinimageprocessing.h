@@ -40,13 +40,14 @@
 #ifndef CAMERABINIMAGEPROCESSINGCONTROL_H
 #define CAMERABINIMAGEPROCESSINGCONTROL_H
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
 #include <qcameraimageprocessingcontrol.h>
 
 #include <gst/gst.h>
 #include <glib.h>
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
 # include <gst/interfaces/photography.h>
 # if !GST_CHECK_VERSION(1,0,0)
 typedef GstWhiteBalanceMode GstPhotographyWhiteBalanceMode;
@@ -56,7 +57,7 @@ typedef GstColourToneMode GstPhotographyColorToneMode;
 
 QT_BEGIN_NAMESPACE
 
-#ifdef USE_V4L
+#if QT_CONFIG(linux_v4l)
 class CameraBinV4LImageProcessing;
 #endif
 
@@ -79,7 +80,7 @@ public:
     QVariant parameter(ProcessingParameter parameter) const override;
     void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
     void lockWhiteBalance();
     void unlockWhiteBalance();
 #endif
@@ -91,13 +92,13 @@ private:
 private:
     CameraBinSession *m_session;
     QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
-#ifdef HAVE_GST_PHOTOGRAPHY
+#if QT_CONFIG(gstreamer_photography)
     QMap<GstPhotographyWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
     QMap<QCameraImageProcessing::ColorFilter, GstPhotographyColorToneMode> m_filterMap;
 #endif
     QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
 
-#ifdef USE_V4L
+#if QT_CONFIG(linux_v4l)
     CameraBinV4LImageProcessing *m_v4lImageControl;
 #endif
 };

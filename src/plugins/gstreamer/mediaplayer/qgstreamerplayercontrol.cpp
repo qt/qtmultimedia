@@ -379,7 +379,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
         request = content.canonicalRequest();
     }
 
-#if !defined(HAVE_GST_APPSRC)
+#if !QT_CONFIG(gstreamer_app)
     m_session->loadFromUri(request);
 #else
     if (m_stream) {
@@ -397,7 +397,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
         m_session->loadFromUri(request);
 #endif
 
-#if defined(HAVE_GST_APPSRC)
+#if QT_CONFIG(gstreamer_app)
     if (!request.url().isEmpty() || userStreamValid) {
 #else
     if (!request.url().isEmpty()) {
