@@ -51,6 +51,7 @@ typedef struct mmrenderer_monitor mmrenderer_monitor_t;
 
 QT_BEGIN_NAMESPACE
 
+class MmRendererAudioRoleControl;
 class MmRendererMetaDataReaderControl;
 class MmRendererPlayerVideoRendererControl;
 class MmRendererVideoWindowControl;
@@ -102,6 +103,7 @@ public:
     MmRendererVideoWindowControl *videoWindowControl() const;
     void setVideoWindowControl(MmRendererVideoWindowControl *videoControl);
     void setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl);
+    void setAudioRoleControl(MmRendererAudioRoleControl *audioRoleControl);
 
 protected:
     virtual void startMonitoring(int contextId, const QString &contextName) = 0;
@@ -154,6 +156,7 @@ private:
     QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
     QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
     QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
+    QPointer<MmRendererAudioRoleControl> m_audioRoleControl;
     MmRendererMetaData m_metaData;
     int m_id;
     qint64 m_position;

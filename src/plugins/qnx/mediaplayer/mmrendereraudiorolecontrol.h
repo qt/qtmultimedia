@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,41 +36,26 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
-#define MMRENDERERMEDIAPLAYERSERVICE_H
+#ifndef MMRENDERERAUDIOROLECONTROL_H
+#define MMRENDERERAUDIOROLECONTROL_H
 
-#include <qmediaservice.h>
-#include <QtCore/qpointer.h>
+#include <qaudiorolecontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererAudioRoleControl;
-class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
-class MmRendererPlayerVideoRendererControl;
-class MmRendererVideoWindowControl;
-
-class MmRendererMediaPlayerService : public QMediaService
+class MmRendererAudioRoleControl : public QAudioRoleControl
 {
     Q_OBJECT
 public:
-    explicit MmRendererMediaPlayerService(QObject *parent = 0);
-    ~MmRendererMediaPlayerService();
+    explicit MmRendererAudioRoleControl(QObject *parent = 0);
 
-    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
-    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
+    QAudio::Role audioRole() const Q_DECL_OVERRIDE;
+    void setAudioRole(QAudio::Role role) Q_DECL_OVERRIDE;
+
+    QList<QAudio::Role> supportedAudioRoles() const Q_DECL_OVERRIDE;
 
 private:
-    void updateControls();
-
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-    QPointer<MmRendererAudioRoleControl> m_audioRoleControl;
-
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
+    QAudio::Role m_role;
 };
 
 QT_END_NAMESPACE

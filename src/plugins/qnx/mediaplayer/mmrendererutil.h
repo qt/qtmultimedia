@@ -40,6 +40,7 @@
 #define MMRENDERERUTIL_H
 
 #include <QtCore/qglobal.h>
+#include <QtMultimedia/qaudio.h>
 
 typedef struct mmr_context mmr_context_t;
 
@@ -50,6 +51,9 @@ class QString;
 QString mmErrorMessage(const QString &msg, mmr_context_t *context, int * errorCode = 0);
 
 bool checkForDrmPermission();
+
+QString qnxAudioType(QAudio::Role role);
+QList<QAudio::Role> qnxSupportedAudioRoles();
 
 QT_END_NAMESPACE
 

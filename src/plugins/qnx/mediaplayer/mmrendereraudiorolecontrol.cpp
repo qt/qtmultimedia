@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,43 +36,33 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
-#define MMRENDERERMEDIAPLAYERSERVICE_H
-
-#include <qmediaservice.h>
-#include <QtCore/qpointer.h>
+#include "mmrendereraudiorolecontrol.h"
+#include "mmrendererutil.h"
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererAudioRoleControl;
-class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
-class MmRendererPlayerVideoRendererControl;
-class MmRendererVideoWindowControl;
-
-class MmRendererMediaPlayerService : public QMediaService
+MmRendererAudioRoleControl::MmRendererAudioRoleControl(QObject *parent)
+    : QAudioRoleControl(parent)
+    , m_role(QAudio::UnknownRole)
 {
-    Q_OBJECT
-public:
-    explicit MmRendererMediaPlayerService(QObject *parent = 0);
-    ~MmRendererMediaPlayerService();
+}
 
-    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
-    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
+QAudio::Role MmRendererAudioRoleControl::audioRole() const
+{
+    return m_role;
+}
 
-private:
-    void updateControls();
+void MmRendererAudioRoleControl::setAudioRole(QAudio::Role role)
+{
+    if (m_role != role) {
+        m_role = role;
+        emit audioRoleChanged(m_role);
+    }
+}
 
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-    QPointer<MmRendererAudioRoleControl> m_audioRoleControl;
-
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
-};
+QList<QAudio::Role> MmRendererAudioRoleControl::supportedAudioRoles() const
+{
+    return qnxSupportedAudioRoles();
+}
 
 QT_END_NAMESPACE
-
-#endif

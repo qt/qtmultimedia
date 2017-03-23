@@ -1,6 +1,7 @@
 INCLUDEPATH += $$PWD
 
 HEADERS += \
+    $$PWD/mmrendereraudiorolecontrol.h \
     $$PWD/mmrenderermediaplayercontrol.h \
     $$PWD/mmrenderermediaplayerservice.h \
     $$PWD/mmrenderermetadata.h \
@@ -10,6 +11,7 @@ HEADERS += \
     $$PWD/mmrenderervideowindowcontrol.h \
     $$PWD/ppsmediaplayercontrol.h
 SOURCES += \
+    $$PWD/mmrendereraudiorolecontrol.cpp \
     $$PWD/mmrenderermediaplayercontrol.cpp \
     $$PWD/mmrenderermediaplayerservice.cpp \
     $$PWD/mmrenderermetadata.cpp \

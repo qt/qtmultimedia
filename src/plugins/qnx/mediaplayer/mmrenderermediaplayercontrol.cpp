@@ -36,6 +36,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include "mmrendereraudiorolecontrol.h"
 #include "mmrenderermediaplayercontrol.h"
 #include "mmrenderermetadatareadercontrol.h"
 #include "mmrendererplayervideorenderercontrol.h"
@@ -195,6 +196,17 @@ void MmRendererMediaPlayerControl::attach()
     if (m_audioId == -1) {
         emitMmError("mmr_output_attach() for audio failed");
         return;
+    }
+
+    if (m_audioId != -1 && m_audioRoleControl) {
+        QString audioType = qnxAudioType(m_audioRoleControl->audioRole());
+        QByteArray latin1AudioType = audioType.toLatin1();
+        if (!audioType.isEmpty() && latin1AudioType == audioType) {
+            strm_dict_t *dict = strm_dict_new();
+            dict = strm_dict_set(dict, "audio_type", latin1AudioType.constData());
+            if (mmr_output_parameters(m_context, m_audioId, dict) != 0)
+                emitMmError("mmr_output_parameters: Setting audio_type failed");
+        }
     }
 
     const QByteArray resourcePath = resourcePathForUrl(m_media.canonicalUrl());
@@ -559,6 +571,11 @@ void MmRendererMediaPlayerControl::setVideoWindowControl(MmRendererVideoWindowCo
 void MmRendererMediaPlayerControl::setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl)
 {
     m_metaDataReaderControl = metaDataReaderControl;
+}
+
+void MmRendererMediaPlayerControl::setAudioRoleControl(MmRendererAudioRoleControl *audioRoleControl)
+{
+    m_audioRoleControl = audioRoleControl;
 }
 
 void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)
