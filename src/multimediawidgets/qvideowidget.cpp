@@ -51,7 +51,6 @@
 
 #include <qapplication.h>
 #include <qevent.h>
-#include <qdialog.h>
 #include <qboxlayout.h>
 #include <qnamespace.h>
 
