@@ -109,7 +109,9 @@ void MainWidget::stateChanged(QAudio::Mode mode, QAudio::State state)
 
     updateButtonStates();
 
-    if (QAudio::ActiveState != state && QAudio::SuspendedState != state) {
+    if (QAudio::ActiveState != state &&
+        QAudio::SuspendedState != state &&
+        QAudio::InterruptedState != state) {
         m_levelMeter->reset();
         m_spectrograph->reset();
     }
@@ -418,7 +420,8 @@ void MainWidget::updateButtonStates()
     const bool playEnabled = (/*m_engine->dataLength() &&*/
                               (QAudio::AudioOutput != m_engine->mode() ||
                                (QAudio::ActiveState != m_engine->state() &&
-                                QAudio::IdleState != m_engine->state())));
+                                QAudio::IdleState != m_engine->state() &&
+                                QAudio::InterruptedState != m_engine->state())));
     m_playButton->setEnabled(playEnabled);
 }
 

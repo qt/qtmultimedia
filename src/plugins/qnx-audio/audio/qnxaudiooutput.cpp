@@ -43,19 +43,24 @@
 
 #include <private/qaudiohelpers_p.h>
 
+#pragma GCC diagnostic ignored "-Wvla"
+
 QT_BEGIN_NAMESPACE
 
 QnxAudioOutput::QnxAudioOutput()
-    : m_source(0),
-      m_pushSource(false),
-      m_notifyInterval(1000),
-      m_error(QAudio::NoError),
-      m_state(QAudio::StoppedState),
-      m_volume(1.0),
-      m_periodSize(0),
-      m_pcmHandle(0),
-      m_bytesWritten(0),
-      m_intervalOffset(0)
+    : m_source(0)
+    , m_pushSource(false)
+    , m_notifyInterval(1000)
+    , m_error(QAudio::NoError)
+    , m_state(QAudio::StoppedState)
+    , m_volume(1.0)
+    , m_periodSize(0)
+    , m_pcmHandle(0)
+    , m_bytesWritten(0)
+    , m_intervalOffset(0)
+#if _NTO_VERSION >= 700
+    , m_pcmNotifier(0)
+#endif
 {
     m_timer.setSingleShot(false);
     m_timer.setInterval(20);
@@ -124,20 +129,16 @@ void QnxAudioOutput::reset()
 
 void QnxAudioOutput::suspend()
 {
-    m_timer.stop();
     snd_pcm_playback_pause(m_pcmHandle);
-    setState(QAudio::SuspendedState);
+    if (state() != QAudio::InterruptedState)
+        suspendInternal(QAudio::SuspendedState);
 }
 
 void QnxAudioOutput::resume()
 {
     snd_pcm_playback_resume(m_pcmHandle);
-    if (m_pushSource)
-        setState(QAudio::IdleState);
-    else {
-        setState(QAudio::ActiveState);
-        m_timer.start();
-    }
+    if (state() != QAudio::InterruptedState)
+        resumeInternal();
 }
 
 int QnxAudioOutput::bytesFree() const
@@ -146,6 +147,7 @@ int QnxAudioOutput::bytesFree() const
         return 0;
 
     snd_pcm_channel_status_t status;
+    memset(&status, 0, sizeof(status));
     status.channel = SND_PCM_CHANNEL_PLAYBACK;
     const int errorCode = snd_pcm_plugin_status(m_pcmHandle, &status);
 
@@ -226,7 +228,9 @@ QString QnxAudioOutput::category() const
 
 void QnxAudioOutput::pullData()
 {
-    if (m_state == QAudio::StoppedState || m_state == QAudio::SuspendedState)
+    if (m_state == QAudio::StoppedState
+            || m_state == QAudio::SuspendedState
+            || m_state == QAudio::InterruptedState)
         return;
 
     const int bytesAvailable = bytesFree();
@@ -300,6 +304,8 @@ bool QnxAudioOutput::open()
         return false;
     }
 
+    addPcmEventFilter();
+
     // Necessary so that bytesFree() which uses the "free" member of the status struct works
     snd_pcm_plugin_set_disable(m_pcmHandle, PLUGIN_MMAP);
 
@@ -342,12 +348,16 @@ bool QnxAudioOutput::open()
     m_intervalOffset = 0;
     m_bytesWritten = 0;
 
+    createPcmNotifiers();
+
     return true;
 }
 
 void QnxAudioOutput::close()
 {
     m_timer.stop();
+
+    destroyPcmNotifiers();
 
     if (m_pcmHandle) {
         snd_pcm_plugin_flush(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK);
@@ -411,7 +421,61 @@ qint64 QnxAudioOutput::write(const char *data, qint64 len)
     }
 }
 
+void QnxAudioOutput::suspendInternal(QAudio::State suspendState)
+{
+    m_timer.stop();
+    setState(suspendState);
+}
+
+void QnxAudioOutput::resumeInternal()
+{
+    if (m_pushSource) {
+        setState(QAudio::IdleState);
+    } else {
+        setState(QAudio::ActiveState);
+        m_timer.start();
+    }
+}
+
 #if _NTO_VERSION >= 700
+
+QAudio::State suspendState(const snd_pcm_event_t &event)
+{
+    Q_ASSERT(event.type == SND_PCM_EVENT_AUDIOMGMT_STATUS);
+    Q_ASSERT(event.data.audiomgmt_status.new_status == SND_PCM_STATUS_SUSPENDED);
+    return event.data.audiomgmt_status.flags & SND_PCM_STATUS_EVENT_HARD_SUSPEND
+            ? QAudio::InterruptedState : QAudio::SuspendedState;
+}
+
+void QnxAudioOutput::addPcmEventFilter()
+{
+    /* Enable PCM events */
+    snd_pcm_filter_t filter;
+    memset(&filter, 0, sizeof(filter));
+    filter.enable = (1<<SND_PCM_EVENT_AUDIOMGMT_STATUS) |
+                    (1<<SND_PCM_EVENT_AUDIOMGMT_MUTE) |
+                    (1<<SND_PCM_EVENT_OUTPUTCLASS);
+    snd_pcm_set_filter(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK, &filter);
+}
+
+void QnxAudioOutput::createPcmNotifiers()
+{
+    // QSocketNotifier::Read for poll based event dispatcher.  Exception for
+    // select based event dispatcher.
+    m_pcmNotifier = new QSocketNotifier(snd_pcm_file_descriptor(m_pcmHandle,
+                                                                SND_PCM_CHANNEL_PLAYBACK),
+                                        QSocketNotifier::Read, this);
+    connect(m_pcmNotifier, &QSocketNotifier::activated,
+            this, &QnxAudioOutput::pcmNotifierActivated);
+}
+
+void QnxAudioOutput::destroyPcmNotifiers()
+{
+    if (m_pcmNotifier) {
+        delete m_pcmNotifier;
+        m_pcmNotifier = 0;
+    }
+}
 
 void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
 {
@@ -433,8 +497,29 @@ void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
     strcpy(params->audio_type_name, latin1Category.constData());
 }
 
+void QnxAudioOutput::pcmNotifierActivated(int socket)
+{
+    Q_UNUSED(socket);
+
+    snd_pcm_event_t pcm_event;
+    memset(&pcm_event, 0, sizeof(pcm_event));
+    while (snd_pcm_channel_read_event(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK, &pcm_event) == 0) {
+        if (pcm_event.type == SND_PCM_EVENT_AUDIOMGMT_STATUS) {
+            if (pcm_event.data.audiomgmt_status.new_status == SND_PCM_STATUS_SUSPENDED)
+                suspendInternal(suspendState(pcm_event));
+            else if (pcm_event.data.audiomgmt_status.new_status == SND_PCM_STATUS_RUNNING)
+                resumeInternal();
+            else if (pcm_event.data.audiomgmt_status.new_status == SND_PCM_STATUS_PAUSED)
+                suspendInternal(QAudio::SuspendedState);
+        }
+    }
+}
+
 #else
 
+void QnxAudioOutput::addPcmEventFilter() {}
+void QnxAudioOutput::createPcmNotifiers() {}
+void QnxAudioOutput::destroyPcmNotifiers() {}
 void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *) {}
 
 #endif

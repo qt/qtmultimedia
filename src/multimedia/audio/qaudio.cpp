@@ -79,13 +79,18 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
 /*!
     \enum QAudio::State
 
-    \value ActiveState     Audio data is being processed, this state is set after start() is called
-                           and while audio data is available to be processed.
-    \value SuspendedState  The audio device is in a suspended state, this state will only be entered
-                           after suspend() is called.
-    \value StoppedState    The audio device is closed, and is not processing any audio data
-    \value IdleState       The QIODevice passed in has no data and audio system's buffer is empty, this state
-                           is set after start() is called and while no audio data is available to be processed.
+    \value ActiveState       Audio data is being processed, this state is set after start() is called
+                             and while audio data is available to be processed.
+    \value SuspendedState    The audio stream is in a suspended state.  Entered after suspend() is called
+                             or when another stream takes control of the audio device.  In the later case,
+                             a call to resume will return control of the audio device to this stream.  This
+                             should usually only be done upon user request.
+    \value StoppedState      The audio device is closed, and is not processing any audio data
+    \value IdleState         The QIODevice passed in has no data and audio system's buffer is empty, this state
+                             is set after start() is called and while no audio data is available to be processed.
+    \value InterruptedState  This stream is in a suspended state because another higher priority stream currently
+                             has control of the audio device.  Playback cannot resume until the higher priority
+                             stream relinquishes control of the audio device.
 */
 
 /*!
@@ -284,6 +289,9 @@ QDebug operator<<(QDebug dbg, QAudio::State state)
             break;
         case QAudio::IdleState:
             dbg << "IdleState";
+            break;
+        case QAudio::InterruptedState:
+            dbg << "InterruptedState";
             break;
     }
     return dbg;

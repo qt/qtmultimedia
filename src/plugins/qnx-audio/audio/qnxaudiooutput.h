@@ -45,6 +45,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QIODevice>
+#include <QSocketNotifier>
 
 #include <sys/asoundlib.h>
 #include <sys/neutrino.h>
@@ -93,7 +94,13 @@ private:
     void setError(QAudio::Error error);
     void setState(QAudio::State state);
 
+    void addPcmEventFilter();
+    void createPcmNotifiers();
+    void destroyPcmNotifiers();
     void setTypeName(snd_pcm_channel_params_t *params);
+
+    void suspendInternal(QAudio::State suspendState);
+    void resumeInternal();
 
     friend class QnxPushIODevice;
     qint64 write(const char *data, qint64 len);
@@ -115,6 +122,13 @@ private:
     QTime m_startTimeStamp;
     QTime m_intervalTimeStamp;
     qint64 m_intervalOffset;
+
+#if _NTO_VERSION >= 700
+    QSocketNotifier *m_pcmNotifier;
+
+private slots:
+    void pcmNotifierActivated(int socket);
+#endif
 };
 
 class QnxPushIODevice : public QIODevice
