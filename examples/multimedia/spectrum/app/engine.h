@@ -287,6 +287,7 @@ private:
     const QList<QAudioDeviceInfo> m_availableAudioOutputDevices;
     QAudioDeviceInfo    m_audioOutputDevice;
     QAudioOutput*       m_audioOutput;
+    QString             m_audioOutputCategory;
     qint64              m_playPosition;
     QBuffer             m_audioOutputIODevice;
 

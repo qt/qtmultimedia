@@ -103,6 +103,23 @@ Engine::Engine(QObject *parent)
                     this,
                     SLOT(spectrumChanged(FrequencySpectrum)));
 
+    // This code might misinterpret things like "-something -category".  But
+    // it's unlikely that that needs to be supported so we'll let it go.
+    QStringList arguments = QCoreApplication::instance()->arguments();
+    for (int i = 0; i < arguments.count(); ++i) {
+        if (arguments.at(i) == QStringLiteral("--"))
+            break;
+
+        if (arguments.at(i) == QStringLiteral("-category")
+                || arguments.at(i) == QStringLiteral("--category")) {
+            ++i;
+            if (i < arguments.count())
+                m_audioOutputCategory = arguments.at(i);
+            else
+                --i;
+        }
+    }
+
     initialize();
 
 #ifdef DUMP_DATA
@@ -494,6 +511,7 @@ bool Engine::initialize()
             }
             m_audioOutput = new QAudioOutput(m_audioOutputDevice, m_format, this);
             m_audioOutput->setNotifyInterval(NotifyIntervalMs);
+            m_audioOutput->setCategory(m_audioOutputCategory);
         }
     } else {
         if (m_file)
@@ -508,6 +526,7 @@ bool Engine::initialize()
     ENGINE_DEBUG << "Engine::initialize" << "m_bufferLength" << m_bufferLength;
     ENGINE_DEBUG << "Engine::initialize" << "m_dataLength" << m_dataLength;
     ENGINE_DEBUG << "Engine::initialize" << "format" << m_format;
+    ENGINE_DEBUG << "Engine::initialize" << "m_audioOutputCategory" << m_audioOutputCategory;
 
     return result;
 }

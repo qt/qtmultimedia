@@ -214,6 +214,16 @@ qreal QnxAudioOutput::volume() const
     return m_volume;
 }
 
+void QnxAudioOutput::setCategory(const QString &category)
+{
+    m_category = category;
+}
+
+QString QnxAudioOutput::category() const
+{
+    return m_category;
+}
+
 void QnxAudioOutput::pullData()
 {
     if (m_state == QAudio::StoppedState || m_state == QAudio::SuspendedState)
@@ -303,6 +313,7 @@ bool QnxAudioOutput::open()
     }
 
     snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudio::AudioOutput, info.max_fragment_size);
+    setTypeName(&params);
 
     if ((errorCode = snd_pcm_plugin_params(m_pcmHandle, &params)) < 0) {
         qWarning("QnxAudioOutput: open error, couldn't set channel params (0x%x)", -errorCode);
@@ -399,6 +410,34 @@ qint64 QnxAudioOutput::write(const char *data, qint64 len)
         return 0;
     }
 }
+
+#if _NTO_VERSION >= 700
+
+void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
+{
+    if (m_category.isEmpty())
+        return;
+
+    QByteArray latin1Category = m_category.toLatin1();
+
+    if (QString::fromLatin1(latin1Category) != m_category) {
+        qWarning("QnxAudioOutput: audio category name isn't a Latin1 string.");
+        return;
+    }
+
+    if (latin1Category.size() >= static_cast<int>(sizeof(params->audio_type_name))) {
+        qWarning("QnxAudioOutput: audio category name too long.");
+        return;
+    }
+
+    strcpy(params->audio_type_name, latin1Category.constData());
+}
+
+#else
+
+void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *) {}
+
+#endif
 
 QnxPushIODevice::QnxPushIODevice(QnxAudioOutput *output)
     : QIODevice(output),
