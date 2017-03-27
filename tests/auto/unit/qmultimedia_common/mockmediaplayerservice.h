@@ -38,6 +38,7 @@
 #include "mockvideoprobecontrol.h"
 #include "mockvideowindowcontrol.h"
 #include "mockaudiorolecontrol.h"
+#include "mockcustomaudiorolecontrol.h"
 
 class MockMediaPlayerService : public QMediaService
 {
@@ -48,6 +49,7 @@ public:
     {
         mockControl = new MockMediaPlayerControl;
         mockAudioRoleControl = new MockAudioRoleControl;
+        mockCustomAudioRoleControl = new MockCustomAudioRoleControl;
         mockStreamsControl = new MockStreamsControl;
         mockNetworkControl = new MockNetworkAccessControl;
         rendererControl = new MockVideoRendererControl;
@@ -56,12 +58,14 @@ public:
         windowControl = new MockVideoWindowControl;
         windowRef = 0;
         enableAudioRole = true;
+        enableCustomAudioRole = true;
     }
 
     ~MockMediaPlayerService()
     {
         delete mockControl;
         delete mockAudioRoleControl;
+        delete mockCustomAudioRoleControl;
         delete mockStreamsControl;
         delete mockNetworkControl;
         delete rendererControl;
@@ -88,6 +92,8 @@ public:
             }
         } else if (enableAudioRole && qstrcmp(iid, QAudioRoleControl_iid) == 0) {
             return mockAudioRoleControl;
+        } else if (enableCustomAudioRole && qstrcmp(iid, QCustomAudioRoleControl_iid) == 0) {
+            return mockCustomAudioRoleControl;
         }
 
         if (qstrcmp(iid, QMediaNetworkAccessControl_iid) == 0)
@@ -127,6 +133,7 @@ public:
     void selectCurrentConfiguration(QNetworkConfiguration config) { mockNetworkControl->setCurrentConfiguration(config); }
 
     void setHasAudioRole(bool enable) { enableAudioRole = enable; }
+    void setHasCustomAudioRole(bool enable) { enableCustomAudioRole = enable; }
 
     void reset()
     {
@@ -148,6 +155,8 @@ public:
 
         enableAudioRole = true;
         mockAudioRoleControl->m_audioRole = QAudio::UnknownRole;
+        enableCustomAudioRole = true;
+        mockCustomAudioRoleControl->m_customAudioRole.clear();
 
         mockNetworkControl->_current = QNetworkConfiguration();
         mockNetworkControl->_configurations = QList<QNetworkConfiguration>();
@@ -155,6 +164,7 @@ public:
 
     MockMediaPlayerControl *mockControl;
     MockAudioRoleControl *mockAudioRoleControl;
+    MockCustomAudioRoleControl *mockCustomAudioRoleControl;
     MockStreamsControl *mockStreamsControl;
     MockNetworkAccessControl *mockNetworkControl;
     MockVideoRendererControl *rendererControl;
@@ -163,6 +173,7 @@ public:
     int windowRef;
     int rendererRef;
     bool enableAudioRole;
+    bool enableCustomAudioRole;
 };
 
 

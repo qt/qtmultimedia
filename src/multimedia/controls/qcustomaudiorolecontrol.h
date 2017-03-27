@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,65 +37,40 @@
 **
 ****************************************************************************/
 
+#ifndef QCUSTOMAUDIOROLECONTROL_H
+#define QCUSTOMAUDIOROLECONTROL_H
 
-#ifndef QAUDIO_H
-#define QAUDIO_H
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmultimedia.h>
-
-#include <QtCore/qmetatype.h>
+#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-//QTM_SYNC_HEADER_EXPORT QAudio
-
 // Class forward declaration required for QDoc bug
 class QString;
-namespace QAudio
+class QStringList;
+
+class Q_MULTIMEDIA_EXPORT QCustomAudioRoleControl : public QMediaControl
 {
-    enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };
-    enum State { ActiveState, SuspendedState, StoppedState, IdleState, InterruptedState };
-    enum Mode { AudioInput, AudioOutput };
+    Q_OBJECT
 
-    enum Role {
-        UnknownRole,
-        MusicRole,
-        VideoRole,
-        VoiceCommunicationRole,
-        AlarmRole,
-        NotificationRole,
-        RingtoneRole,
-        AccessibilityRole,
-        SonificationRole,
-        GameRole,
-        CustomRole
-    };
+public:
+    virtual ~QCustomAudioRoleControl();
 
-    enum VolumeScale {
-        LinearVolumeScale,
-        CubicVolumeScale,
-        LogarithmicVolumeScale,
-        DecibelVolumeScale
-    };
+    virtual QString customAudioRole() const = 0;
+    virtual void setCustomAudioRole(const QString &role) = 0;
 
-    Q_MULTIMEDIA_EXPORT qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to);
-}
+    virtual QStringList supportedCustomAudioRoles() const = 0;
 
-#ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Error error);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::State state);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Mode mode);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Role role);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::VolumeScale role);
-#endif
+Q_SIGNALS:
+    void customAudioRoleChanged(const QString &role);
+
+protected:
+    explicit QCustomAudioRoleControl(QObject *parent = nullptr);
+};
+
+#define QCustomAudioRoleControl_iid "org.qt-project.qt.customaudiorolecontrol/5.10"
+Q_MEDIA_DECLARE_CONTROL(QCustomAudioRoleControl, QCustomAudioRoleControl_iid)
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QAudio::Error)
-Q_DECLARE_METATYPE(QAudio::State)
-Q_DECLARE_METATYPE(QAudio::Mode)
-Q_DECLARE_METATYPE(QAudio::Role)
-Q_DECLARE_METATYPE(QAudio::VolumeScale)
-
-#endif // QAUDIO_H
+#endif // QCUSTOMAUDIOROLECONTROL_H

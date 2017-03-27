@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -26,41 +26,40 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKAUDIOROLECONTROL_H
-#define MOCKAUDIOROLECONTROL_H
+#ifndef MOCKCUSTOMAUDIOROLECONTROL_H
+#define MOCKCUSTOMAUDIOROLECONTROL_H
 
-#include <qaudiorolecontrol.h>
+#include <qcustomaudiorolecontrol.h>
 
-class MockAudioRoleControl : public QAudioRoleControl
+class MockCustomAudioRoleControl : public QCustomAudioRoleControl
 {
     friend class MockMediaPlayerService;
 
 public:
-    MockAudioRoleControl()
-        : QAudioRoleControl()
-        , m_audioRole(QAudio::UnknownRole)
+    MockCustomAudioRoleControl()
+        : QCustomAudioRoleControl()
+        , m_customAudioRole(QAudio::UnknownRole)
     {
     }
 
-    QAudio::Role audioRole() const
+    QString customAudioRole() const
     {
-        return m_audioRole;
+        return m_customAudioRole;
     }
 
-    void setAudioRole(QAudio::Role role)
+    void setCustomAudioRole(const QString &role)
     {
-        if (role != m_audioRole)
-            emit audioRoleChanged(m_audioRole = role);
+        if (role != m_customAudioRole)
+            emit customAudioRoleChanged(m_customAudioRole = role);
     }
 
-    QList<QAudio::Role> supportedAudioRoles() const
+    QStringList supportedCustomAudioRoles() const
     {
-        return QList<QAudio::Role>() << QAudio::MusicRole
-                                     << QAudio::AlarmRole
-                                     << QAudio::NotificationRole;
+        return QStringList() << QStringLiteral("customRole")
+                             << QStringLiteral("customRole2");
     }
 
-    QAudio::Role m_audioRole;
+    QString m_customAudioRole;
 };
 
-#endif // MOCKAUDIOROLECONTROL_H
+#endif // MOCKCUSTOMAUDIOROLECONTROL_H

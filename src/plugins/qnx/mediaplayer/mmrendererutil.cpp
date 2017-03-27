@@ -92,7 +92,7 @@ static const unsigned int numMmErrors = sizeof(mmErrors) / sizeof(MmError);
 
 static QBasicMutex roleMapMutex;
 static bool roleMapInitialized = false;
-static QString roleMap[QAudio::GameRole + 1];
+static QString roleMap[QAudio::CustomRole + 1];
 
 template <typename T, size_t N>
 constexpr size_t countof(T (&)[N])
@@ -166,9 +166,15 @@ static void loadRoleMap()
                 loadRoleMapping(AccessibilityRole);
                 loadRoleMapping(SonificationRole);
                 loadRoleMapping(GameRole);
+                loadRoleMapping(CustomRole);
             }
 #undef loadRoleMapping
 #pragma GCC diagnostic pop
+
+            if (!roleMap[QAudio::CustomRole].isEmpty()) {
+                qWarning("CustomRole mapping ignored");
+                roleMap[QAudio::CustomRole].clear();
+            }
         }
 
         roleMapInitialized = true;

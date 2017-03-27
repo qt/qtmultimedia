@@ -73,7 +73,8 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaObject
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
     Q_PROPERTY(MediaStatus mediaStatus READ mediaStatus NOTIFY mediaStatusChanged)
-    Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole)
+    Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
+    Q_PROPERTY(QString customAudioRole READ customAudioRole WRITE setCustomAudioRole NOTIFY customAudioRoleChanged)
     Q_PROPERTY(QString error READ errorString)
     Q_ENUMS(State)
     Q_ENUMS(MediaStatus)
@@ -162,6 +163,9 @@ public:
     QAudio::Role audioRole() const;
     void setAudioRole(QAudio::Role audioRole);
     QList<QAudio::Role> supportedAudioRoles() const;
+    QString customAudioRole() const;
+    void setCustomAudioRole(const QString &audioRole);
+    QStringList supportedCustomAudioRoles() const;
 
 public Q_SLOTS:
     void play();
@@ -200,6 +204,7 @@ Q_SIGNALS:
     void playbackRateChanged(qreal rate);
 
     void audioRoleChanged(QAudio::Role role);
+    void customAudioRoleChanged(const QString &role);
 
     void error(QMediaPlayer::Error error);
 
