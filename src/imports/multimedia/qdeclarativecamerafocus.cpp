@@ -101,6 +101,15 @@ QDeclarativeCameraFocus::QDeclarativeCameraFocus(QCamera *camera, QObject *paren
     updateFocusZones();
 
     connect(m_focus, SIGNAL(focusZonesChanged()), SLOT(updateFocusZones()));
+    connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
+        if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
+            && status != QCamera::ActiveStatus) {
+            return;
+        }
+
+        emit supportedFocusModesChanged();
+        emit supportedFocusPointModesChanged();
+    });
 }
 
 QDeclarativeCameraFocus::~QDeclarativeCameraFocus()
@@ -161,7 +170,29 @@ QDeclarativeCameraFocus::FocusMode QDeclarativeCameraFocus::focusMode() const
 }
 
 /*!
+    \qmlproperty list<FocusMode> CameraFocus::supportedFocusModes
+
+    This property holds the supported focus modes of the camera.
+
+    \since 5.11
+    \sa focusMode
+*/
+QVariantList QDeclarativeCameraFocus::supportedFocusModes() const
+{
+    QVariantList supportedModes;
+
+    for (int i = int(FocusManual); i <= int(FocusMacro); ++i) {
+        if (m_focus->isFocusModeSupported((QCameraFocus::FocusMode) i))
+            supportedModes.append(i);
+    }
+
+    return supportedModes;
+}
+
+#if QT_DEPRECATED_SINCE(5, 11)
+/*!
     \qmlmethod bool QtMultimedia::CameraFocus::isFocusModeSupported(mode) const
+    \obsolete
 
     Returns true if the supplied \a mode is a supported focus mode, and
     false otherwise.
@@ -170,6 +201,7 @@ bool QDeclarativeCameraFocus::isFocusModeSupported(QDeclarativeCameraFocus::Focu
 {
     return m_focus->isFocusModeSupported(QCameraFocus::FocusModes(int(mode)));
 }
+#endif
 
 void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCameraFocus::FocusMode mode)
 {
@@ -220,6 +252,26 @@ QDeclarativeCameraFocus::FocusPointMode QDeclarativeCameraFocus::focusPointMode(
     return QDeclarativeCameraFocus::FocusPointMode(m_focus->focusPointMode());
 }
 
+/*!
+    \qmlproperty list<enumeration> CameraFocus::supportedFocusPointModes
+
+    This property holds the supported focus point modes of the camera.
+
+    \since 5.10
+    \sa focusPointMode
+*/
+QVariantList QDeclarativeCameraFocus::supportedFocusPointModes() const
+{
+    QVariantList supportedModes;
+
+    for (int i = int(FocusPointAuto); i <= int(FocusPointCustom); i++) {
+        if (m_focus->isFocusPointModeSupported(QCameraFocus::FocusPointMode(i)))
+            supportedModes.append(i);
+    }
+
+    return supportedModes;
+}
+
 void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCameraFocus::FocusPointMode mode)
 {
     if (mode != focusPointMode()) {
@@ -228,8 +280,10 @@ void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCameraFocus::FocusPo
     }
 }
 
+#if QT_DEPRECATED_SINCE(5, 10)
 /*!
     \qmlmethod bool QtMultimedia::CameraFocus::isFocusPointModeSupported(mode) const
+    \obsolete
 
     Returns true if the supplied \a mode is a supported focus point mode, and
     false otherwise.
@@ -238,6 +292,8 @@ bool QDeclarativeCameraFocus::isFocusPointModeSupported(QDeclarativeCameraFocus:
 {
     return m_focus->isFocusPointModeSupported(QCameraFocus::FocusPointMode(mode));
 }
+#endif
+
 /*!
   \property QDeclarativeCameraFocus::customFocusPoint
 
