@@ -179,7 +179,10 @@ QDeclarativeAudio::Availability QDeclarativeAudio::availability() const
     \li AccessibilityRole - for accessibility, such as with a screen reader.
     \li SonificationRole - sonification, such as with user interface sounds.
     \li GameRole - game audio.
+    \li CustomRole - The role is specified by customAudioRole.
     \endlist
+
+    customAudioRole is cleared when this property is set to anything other than CustomRole.
 
     \since 5.6
 */
@@ -196,8 +199,45 @@ void QDeclarativeAudio::setAudioRole(QDeclarativeAudio::AudioRole audioRole)
     if (m_complete) {
         m_player->setAudioRole(QAudio::Role(audioRole));
     } else {
+        if (!m_customAudioRole.isEmpty()) {
+            m_customAudioRole.clear();
+            emit customAudioRoleChanged();
+        }
         m_audioRole = audioRole;
         emit audioRoleChanged();
+    }
+}
+
+/*!
+    \qmlproperty string QtMultimedia::Audio::customAudioRole
+
+    This property holds the role of the audio stream when the backend supports audio
+    roles unknown to Qt. It can be set to specify the type of audio being played,
+    allowing the system to make appropriate decisions when it comes to volume,
+    routing or post-processing.
+
+    The audio role must be set before setting the source property.
+
+    audioRole is set to CustomRole when this property is set.
+
+    \since 5.11
+*/
+QString QDeclarativeAudio::customAudioRole() const
+{
+    return !m_complete ? m_customAudioRole : m_player->customAudioRole();
+}
+
+void QDeclarativeAudio::setCustomAudioRole(const QString &audioRole)
+{
+    if (this->customAudioRole() == audioRole)
+        return;
+
+    if (m_complete) {
+        m_player->setCustomAudioRole(audioRole);
+    } else {
+        setAudioRole(QDeclarativeAudio::CustomRole);
+        m_customAudioRole = audioRole;
+        emit customAudioRoleChanged();
     }
 }
 
@@ -850,6 +890,8 @@ void QDeclarativeAudio::classBegin()
             this, SIGNAL(hasVideoChanged()));
     connect(m_player, SIGNAL(audioRoleChanged(QAudio::Role)),
             this, SIGNAL(audioRoleChanged()));
+    connect(m_player, SIGNAL(customAudioRoleChanged(const QString &)),
+            this, SIGNAL(customAudioRoleChanged()));
     connect(m_player, SIGNAL(notifyIntervalChanged(int)),
             this, SIGNAL(notifyIntervalChanged()));
 
@@ -876,6 +918,8 @@ void QDeclarativeAudio::componentComplete()
         m_player->setPlaybackRate(m_playbackRate);
     if (m_audioRole != UnknownRole)
         m_player->setAudioRole(QAudio::Role(m_audioRole));
+    if (!m_customAudioRole.isEmpty())
+        m_player->setCustomAudioRole(m_customAudioRole);
     if (m_notifyInterval != m_player->notifyInterval())
         m_player->setNotifyInterval(m_notifyInterval);
 
@@ -1181,9 +1225,27 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
     \li AccessibilityRole - for accessibility, such as with a screen reader.
     \li SonificationRole - sonification, such as with user interface sounds.
     \li GameRole - game audio.
+    \li CustomRole - The role is specified by customAudioRole.
     \endlist
 
+    customAudioRole is cleared when this property is set to anything other than CustomRole.
+
     \since 5.6
+*/
+
+/*!
+    \qmlproperty string QtMultimedia::MediaPlayer::customAudioRole
+
+    This property holds the role of the audio stream when the backend supports audio
+    roles unknown to Qt. It can be set to specify the type of audio being played,
+    allowing the system to make appropriate decisions when it comes to volume,
+    routing or post-processing.
+
+    The audio role must be set before setting the source property.
+
+    audioRole is set to CustomRole when this property is set.
+
+    \since 5.11
 */
 
 /*!

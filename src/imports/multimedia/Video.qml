@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import QtMultimedia 5.9
+import QtMultimedia 5.11
 
 /*!
     \qmltype Video
@@ -302,11 +302,29 @@ Item {
         \li MediaPlayer.AccessibilityRole - for accessibility, such as with a screen reader.
         \li MediaPlayer.SonificationRole - sonification, such as with user interface sounds.
         \li MediaPlayer.GameRole - game audio.
+        \li MediaPlayer.CustomRole - The role is specified by customAudioRole.
         \endlist
+
+        customAudioRole is cleared when this property is set to anything other than CustomRole.
 
         \since 5.6
     */
     property alias audioRole:       player.audioRole
+
+    /*!
+        \qmlproperty string Video::customAudioRole
+
+        This property holds the role of the audio stream when the backend supports audio roles
+        unknown to Qt. It can be set to specify the type of audio being played, allowing the
+        system to make appropriate decisions when it comes to volume, routing or post-processing.
+
+        The audio role must be set before setting the source property.
+
+        audioRole is set to CustomRole when this property is set.
+
+        \since 5.11
+    */
+    property alias customAudioRole: player.customAudioRole
 
     /*!
         \qmlproperty bool Video::seekable
