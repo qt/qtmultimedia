@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,43 +36,26 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
-#define MMRENDERERMEDIAPLAYERSERVICE_H
+#ifndef MMRENDERERCUSTOMAUDIOROLECONTROL_H
+#define MMRENDERERCUSTOMAUDIOROLECONTROL_H
 
-#include <qmediaservice.h>
-#include <QtCore/qpointer.h>
+#include <qcustomaudiorolecontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererAudioRoleControl;
-class MmRendererCustomAudioRoleControl;
-class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
-class MmRendererPlayerVideoRendererControl;
-class MmRendererVideoWindowControl;
-
-class MmRendererMediaPlayerService : public QMediaService
+class MmRendererCustomAudioRoleControl : public QCustomAudioRoleControl
 {
     Q_OBJECT
 public:
-    explicit MmRendererMediaPlayerService(QObject *parent = 0);
-    ~MmRendererMediaPlayerService();
+    explicit MmRendererCustomAudioRoleControl(QObject *parent = 0);
 
-    QMediaControl *requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QString customAudioRole() const Q_DECL_OVERRIDE;
+    void setCustomAudioRole(const QString &role) Q_DECL_OVERRIDE;
+
+    QStringList supportedCustomAudioRoles() const Q_DECL_OVERRIDE;
 
 private:
-    void updateControls();
-
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-    QPointer<MmRendererAudioRoleControl> m_audioRoleControl;
-    QPointer<MmRendererCustomAudioRoleControl> m_customAudioRoleControl;
-
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
+    QString m_role;
 };
 
 QT_END_NAMESPACE

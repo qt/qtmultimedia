@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 #include "mmrendereraudiorolecontrol.h"
+#include "mmrenderercustomaudiorolecontrol.h"
 #include "mmrenderermediaplayercontrol.h"
 #include "mmrenderermetadatareadercontrol.h"
 #include "mmrendererplayervideorenderercontrol.h"
@@ -180,7 +181,10 @@ void MmRendererMediaPlayerControl::attach()
     }
 
     if (m_audioId != -1 && m_audioRoleControl) {
-        QString audioType = qnxAudioType(m_audioRoleControl->audioRole());
+        QAudio::Role audioRole = m_audioRoleControl->audioRole();
+        QString audioType = (audioRole == QAudio::CustomRole && m_customAudioRoleControl)
+                          ? m_customAudioRoleControl->customAudioRole()
+                          : qnxAudioType(audioRole);
         QByteArray latin1AudioType = audioType.toLatin1();
         if (!audioType.isEmpty() && latin1AudioType == audioType) {
             strm_dict_t *dict = strm_dict_new();
@@ -545,6 +549,11 @@ void MmRendererMediaPlayerControl::setMetaDataReaderControl(MmRendererMetaDataRe
 void MmRendererMediaPlayerControl::setAudioRoleControl(MmRendererAudioRoleControl *audioRoleControl)
 {
     m_audioRoleControl = audioRoleControl;
+}
+
+void MmRendererMediaPlayerControl::setCustomAudioRoleControl(MmRendererCustomAudioRoleControl *customAudioRoleControl)
+{
+    m_customAudioRoleControl = customAudioRoleControl;
 }
 
 void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)

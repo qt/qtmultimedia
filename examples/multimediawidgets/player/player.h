@@ -81,6 +81,7 @@ public:
     bool isPlayerAvailable() const;
 
     void addToPlaylist(const QList<QUrl> &urls);
+    void setCustomAudioRole(const QString &role);
 
 signals:
     void fullScreenChanged(bool fullScreen);

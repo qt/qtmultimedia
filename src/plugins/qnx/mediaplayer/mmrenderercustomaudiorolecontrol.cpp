@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,45 +36,32 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
-#define MMRENDERERMEDIAPLAYERSERVICE_H
-
-#include <qmediaservice.h>
-#include <QtCore/qpointer.h>
+#include "mmrenderercustomaudiorolecontrol.h"
+#include "mmrendererutil.h"
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererAudioRoleControl;
-class MmRendererCustomAudioRoleControl;
-class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
-class MmRendererPlayerVideoRendererControl;
-class MmRendererVideoWindowControl;
-
-class MmRendererMediaPlayerService : public QMediaService
+MmRendererCustomAudioRoleControl::MmRendererCustomAudioRoleControl(QObject *parent)
+    : QCustomAudioRoleControl(parent)
 {
-    Q_OBJECT
-public:
-    explicit MmRendererMediaPlayerService(QObject *parent = 0);
-    ~MmRendererMediaPlayerService();
+}
 
-    QMediaControl *requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+QString MmRendererCustomAudioRoleControl::customAudioRole() const
+{
+    return m_role;
+}
 
-private:
-    void updateControls();
+void MmRendererCustomAudioRoleControl::setCustomAudioRole(const QString &role)
+{
+    if (m_role != role) {
+        m_role = role;
+        emit customAudioRoleChanged(m_role);
+    }
+}
 
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-    QPointer<MmRendererAudioRoleControl> m_audioRoleControl;
-    QPointer<MmRendererCustomAudioRoleControl> m_customAudioRoleControl;
-
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
-};
+QStringList MmRendererCustomAudioRoleControl::supportedCustomAudioRoles() const
+{
+    return QStringList();
+}
 
 QT_END_NAMESPACE
-
-#endif
