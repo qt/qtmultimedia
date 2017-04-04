@@ -52,6 +52,7 @@
 #include <qvideoframe.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qvideoframe_p.h>
+#include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -442,6 +443,11 @@ bool QAndroidCameraSession::startPreview()
                                                                                : QSize());
 
     AndroidMultimediaUtils::enableOrientationListener(true);
+
+    // Before API level 24 the orientation was always 0, which is what we're expecting, so
+    // we'll enforce that here.
+    if (QtAndroidPrivate::androidSdkVersion() > 23)
+        m_camera->setDisplayOrientation(0);
 
     m_camera->startPreview();
     m_previewStarted = true;

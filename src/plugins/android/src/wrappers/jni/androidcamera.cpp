@@ -196,6 +196,7 @@ public:
     Q_INVOKABLE void updatePreviewSize();
     Q_INVOKABLE bool setPreviewTexture(void *surfaceTexture);
     Q_INVOKABLE bool setPreviewDisplay(void *surfaceHolder);
+    Q_INVOKABLE void setDisplayOrientation(int degrees);
 
     Q_INVOKABLE bool isZoomSupported();
     Q_INVOKABLE int getMaxZoom();
@@ -479,6 +480,12 @@ bool AndroidCamera::setPreviewDisplay(AndroidSurfaceHolder *surfaceHolder)
                               Q_RETURN_ARG(bool, ok),
                               Q_ARG(void *, surfaceHolder ? surfaceHolder->surfaceHolder() : 0));
     return ok;
+}
+
+void AndroidCamera::setDisplayOrientation(int degrees)
+{
+    Q_D(AndroidCamera);
+    QMetaObject::invokeMethod(d, "setDisplayOrientation", Qt::QueuedConnection, Q_ARG(int, degrees));
 }
 
 bool AndroidCamera::isZoomSupported()
@@ -1077,6 +1084,11 @@ bool AndroidCameraPrivate::setPreviewDisplay(void *surfaceHolder)
                               "(Landroid/view/SurfaceHolder;)V",
                               static_cast<jobject>(surfaceHolder));
     return !exceptionCheckAndClear(env);
+}
+
+void AndroidCameraPrivate::setDisplayOrientation(int degrees)
+{
+    m_camera.callMethod<void>("setDisplayOrientation", "(I)V", degrees);
 }
 
 bool AndroidCameraPrivate::isZoomSupported()
