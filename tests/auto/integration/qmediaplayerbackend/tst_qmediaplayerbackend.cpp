@@ -749,6 +749,10 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     QTRY_COMPARE(player.state(), QMediaPlayer::PausedState); // it might take some time for the operation to be completed
     QTRY_VERIFY(!surface->m_frameList.isEmpty()); // we must see a frame at position 7000 here
 
+    // Make sure that the frame has a timestamp before testing - not all backends provides this
+    if (surface->m_frameList.back().startTime() < 0)
+        QSKIP("No timestamp");
+
     {
         QVideoFrame frame = surface->m_frameList.back();
         const qint64 elapsed = (frame.startTime() / 1000) - position; // frame.startTime() is microsecond, position is milliseconds.
