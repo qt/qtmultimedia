@@ -117,7 +117,6 @@ protected:
     void setMmBufferStatus(const QString &bufferStatus);
     void setMmBufferLevel(const QString &bufferLevel);
     void handleMmStopped();
-    void handleMmStatusUpdate(qint64 position);
 
     // must be called from subclass dtors (calls virtual function stopMonitoring())
     void destroy();

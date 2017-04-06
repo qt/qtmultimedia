@@ -110,21 +110,6 @@ void MmRendererMediaPlayerControl::openConnection()
     startMonitoring(m_id, m_contextName);
 }
 
-void MmRendererMediaPlayerControl::handleMmStatusUpdate(qint64 newPosition)
-{
-    // Prevent spurious position change events from overriding our own position, for example
-    // when setting the position to 0 in stop().
-    // Also, don't change the position while we're loading the media, as then play() would
-    // set a wrong initial position.
-    if (m_state != QMediaPlayer::PlayingState ||
-        m_mediaStatus == QMediaPlayer::LoadingMedia ||
-        m_mediaStatus == QMediaPlayer::NoMedia ||
-        m_mediaStatus == QMediaPlayer::InvalidMedia)
-        return;
-
-    setMmPosition(newPosition);
-}
-
 void MmRendererMediaPlayerControl::handleMmStopped()
 {
     // Only react to stop events that happen when the end of the stream is reached and
