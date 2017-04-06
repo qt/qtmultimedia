@@ -1332,7 +1332,9 @@ void tst_QMediaPlayerBackend::surfaceTest()
     player.setMedia(localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
-    QVERIFY(surface.m_totalFrames >= 25);
+    if (surface.error() == QAbstractVideoSurface::UnsupportedFormatError)
+        QSKIP("None of the pixel formats is supported by the backend");
+    QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
 }
 
 void tst_QMediaPlayerBackend::metadata()
@@ -1392,7 +1394,10 @@ QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
 
 bool TestVideoSurface::start(const QVideoSurfaceFormat &format)
 {
-    if (!isFormatSupported(format)) return false;
+    if (!isFormatSupported(format)) {
+        setError(UnsupportedFormatError);
+        return false;
+    }
 
     return QAbstractVideoSurface::start(format);
 }
