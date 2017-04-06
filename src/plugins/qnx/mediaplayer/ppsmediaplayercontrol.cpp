@@ -151,7 +151,7 @@ void PpsMediaPlayerControl::ppsReadyRead(int fd)
     // nread is the real space necessary, not the amount read.
     if (static_cast<size_t>(nread) > bufferSize - 1) {
         //TODO emit error?
-        qCritical("BBMediaPlayerControl: PPS buffer size too short; need %u.", nread + 1);
+        qCritical("PpsMediaPlayerControl: PPS buffer size too short; need %zd.", nread + 1);
         return;
     }
 
