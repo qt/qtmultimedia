@@ -71,7 +71,6 @@ MmRendererMediaPlayerControl::MmRendererMediaPlayerControl(QObject *parent)
       m_mediaStatus(QMediaPlayer::NoMedia),
       m_playAfterMediaLoaded(false),
       m_inputAttached(false),
-      m_stopEventsToIgnore(0),
       m_bufferLevel(0)
 {
     m_loadingTimer.setSingleShot(true);
@@ -114,11 +113,8 @@ void MmRendererMediaPlayerControl::handleMmStopped()
 {
     // Only react to stop events that happen when the end of the stream is reached and
     // playback is stopped because of this.
-    // Ignore other stop event sources, souch as calling mmr_stop() ourselves and
-    // mmr_input_attach().
-    if (m_stopEventsToIgnore > 0) {
-        --m_stopEventsToIgnore;
-    } else {
+    // Ignore other stop event sources, such as calling mmr_stop() ourselves.
+    if (m_state != QMediaPlayer::StoppedState) {
         setMediaStatus(QMediaPlayer::EndOfMedia);
         stopInternal(IgnoreMmRenderer);
     }
@@ -206,11 +202,6 @@ void MmRendererMediaPlayerControl::attach()
         detach();
         return;
     }
-
-    // For whatever reason, the mmrenderer sends out a MMR_STOPPED event when calling
-    // mmr_input_attach() above. Ignore it, as otherwise we'll trigger stopping right after we
-    // started.
-    m_stopEventsToIgnore++;
 
     m_inputAttached = true;
     setMediaStatus(QMediaPlayer::LoadedMedia);
@@ -348,7 +339,6 @@ void MmRendererMediaPlayerControl::stopInternal(StopCommand stopCommand)
     if (m_state != QMediaPlayer::StoppedState) {
 
         if (stopCommand == StopMmRenderer) {
-            ++m_stopEventsToIgnore;
             mmr_stop(m_context);
         }
 
@@ -521,7 +511,6 @@ void MmRendererMediaPlayerControl::play()
         return;
     }
 
-    m_stopEventsToIgnore = 0;    // once playing, stop events must be proccessed
     setState( QMediaPlayer::PlayingState);
 }
 

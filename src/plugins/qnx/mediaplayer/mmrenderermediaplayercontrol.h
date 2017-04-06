@@ -162,7 +162,6 @@ private:
     QMediaPlayer::MediaStatus m_mediaStatus;
     bool m_playAfterMediaLoaded;
     bool m_inputAttached;
-    int m_stopEventsToIgnore;
     int m_bufferLevel;
     QTimer m_loadingTimer;
 };
