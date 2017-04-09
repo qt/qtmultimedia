@@ -117,6 +117,9 @@ public:
     YCbCrColorSpace yCbCrColorSpace() const;
     void setYCbCrColorSpace(YCbCrColorSpace colorSpace);
 
+    bool isMirrored() const;
+    void setMirrored(bool mirrored);
+
     QSize sizeHint() const;
 
     QList<QByteArray> propertyNames() const;

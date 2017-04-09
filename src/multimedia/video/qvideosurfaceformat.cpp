@@ -450,6 +450,35 @@ void QVideoSurfaceFormat::setYCbCrColorSpace(QVideoSurfaceFormat::YCbCrColorSpac
 }
 
 /*!
+    Returns \c true if the surface is mirrored around its vertical axis.
+    This is typically needed for video frames coming from a front camera of a mobile device.
+
+    \note The mirroring here differs from QImage::mirrored, as a vertically mirrored QImage
+    will be mirrored around its x-axis.
+
+    \since 5.11
+ */
+bool QVideoSurfaceFormat::isMirrored() const
+{
+    return d->mirrored;
+}
+
+/*!
+    Sets if the surface is mirrored around its vertical axis.
+    This is typically needed for video frames coming from a front camera of a mobile device.
+    Default value is false.
+
+    \note The mirroring here differs from QImage::mirrored, as a vertically mirrored QImage
+    will be mirrored around its x-axis.
+
+    \since 5.11
+ */
+void QVideoSurfaceFormat::setMirrored(bool mirrored)
+{
+    d->mirrored = mirrored;
+}
+
+/*!
     Returns a suggested size in pixels for the video stream.
 
     This is the size of the viewport scaled according to the pixel aspect ratio.
