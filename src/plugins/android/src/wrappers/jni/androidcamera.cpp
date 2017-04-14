@@ -797,6 +797,12 @@ void AndroidCamera::getCameraInfo(int id, AndroidCameraInfo *info)
     default:
         break;
     }
+    // Add a number to allow correct access to cameras on systems with two
+    // (and more) front/back cameras
+    if (id > 1) {
+        info->name.append(QByteArray::number(id));
+        info->description.append(QString(" %1").arg(id));
+    }
 }
 
 void AndroidCamera::startPreview()
