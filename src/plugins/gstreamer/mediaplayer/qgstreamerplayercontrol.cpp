@@ -119,6 +119,9 @@ QMediaPlayerResourceSetInterface* QGstreamerPlayerControl::resources() const
 
 qint64 QGstreamerPlayerControl::position() const
 {
+    if (m_mediaStatus == QMediaPlayer::EndOfMedia)
+        return m_session->duration();
+
     return m_pendingSeekPosition != -1 ? m_pendingSeekPosition : m_session->position();
 }
 

@@ -46,6 +46,8 @@
 
 #ifdef ANDROID
 #include <SLES/OpenSLES_AndroidConfiguration.h>
+#include <QtCore/private/qjnihelpers_p.h>
+#include <QtCore/private/qjni_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -55,6 +57,32 @@ QT_BEGIN_NAMESPACE
 #define MINIMUM_PERIOD_TIME_MS 5
 
 #ifdef ANDROID
+static bool hasRecordingPermission()
+{
+    using namespace QtAndroidPrivate;
+    if (androidSdkVersion() < 23)
+        return true;
+
+    const QString key(QLatin1String("android.permission.RECORD_AUDIO"));
+    PermissionsResult res = checkPermission(key);
+    if (res == PermissionsResult::Granted) // Permission already granted?
+        return true;
+
+    QJNIEnvironmentPrivate env;
+    const auto &results = requestPermissionsSync(env, QStringList() << key);
+    if (!results.contains(key)) {
+        qWarning("No permission found for key: %s", qPrintable(key));
+        return false;
+    }
+
+    if (results[key] == PermissionsResult::Denied) {
+        qDebug("%s - Permission denied by user!", qPrintable(key));
+        return false;
+    }
+
+    return true;
+}
+
 static void bufferQueueCallback(SLAndroidSimpleBufferQueueItf, void *context)
 #else
 static void bufferQueueCallback(SLBufferQueueItf, void *context)
@@ -179,6 +207,9 @@ QIODevice *QOpenSLESAudioInput::start()
 
 bool QOpenSLESAudioInput::startRecording()
 {
+    if (!hasRecordingPermission())
+        return false;
+
     m_processedBytes = 0;
     m_clockStamp.restart();
     m_lastNotifyTime = 0;

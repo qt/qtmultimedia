@@ -37,26 +37,16 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMULTIMEDIAUTILS_H
-#define QANDROIDMULTIMEDIAUTILS_H
+#ifndef QANDROIDGLOBAL_H
+#define QANDROIDGLOBAL_H
 
-#include <qglobal.h>
-#include <qsize.h>
-#include "androidcamera.h"
+#include <QtCore/qglobal.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-// return the index of the closest value to <value> in <list>
-// (binary search)
-int qt_findClosestValue(const QList<int> &list, int value);
-
-bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
-
-QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
-AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
-
-bool qt_androidRequestPermission(const QString &key);
+Q_DECLARE_LOGGING_CATEGORY(qtAndroidMediaPlugin)
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMULTIMEDIAUTILS_H
+#endif // QANDROIDGLOBAL_H
