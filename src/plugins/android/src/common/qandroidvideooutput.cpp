@@ -86,11 +86,12 @@ void OpenGLResourcesDeleter::deleteShaderProgramHelper(void *prog)
 class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output)
+    AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output, const QSize &size)
         : QAbstractVideoBuffer(GLTextureHandle)
-        , m_output(output)
-        , m_textureUpdated(false)
         , m_mapMode(NotMapped)
+        , m_output(output)
+        , m_size(size)
+        , m_textureUpdated(false)
     {
     }
 
@@ -100,8 +101,7 @@ public:
 
     uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
     {
-        if (m_mapMode == NotMapped && mode == ReadOnly) {
-            updateFrame();
+        if (m_mapMode == NotMapped && mode == ReadOnly && updateFrame()) {
             m_mapMode = mode;
             m_image = m_output->m_fbo->toImage();
 
@@ -126,24 +126,41 @@ public:
     QVariant handle() const
     {
         AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
-        that->updateFrame();
+        if (!that->updateFrame())
+            return QVariant();
+
         return m_output->m_fbo->texture();
     }
 
 private:
-    void updateFrame()
+    bool updateFrame()
     {
-        if (!m_textureUpdated) {
-            // update the video texture (called from the render thread)
-            m_output->renderFrameToFbo();
-            m_textureUpdated = true;
-        }
+        // Even though the texture was updated in a previous call, we need to re-check
+        // that this has not become a stale buffer, e.g., if the output size changed or
+        // has since became invalid.
+        if (!m_output->m_nativeSize.isValid())
+            return false;
+
+        // Size changed
+        if (m_output->m_nativeSize != m_size)
+            return false;
+
+        // In the unlikely event that we don't have a valid fbo, but have a valid size,
+        // force an update.
+        const bool forceUpdate = !m_output->m_fbo;
+
+        if (m_textureUpdated && !forceUpdate)
+            return true;
+
+        // update the video texture (called from the render thread)
+        return (m_textureUpdated = m_output->renderFrameToFbo());
     }
 
-    QAndroidTextureVideoOutput *m_output;
-    bool m_textureUpdated;
     MapMode m_mapMode;
+    QAndroidTextureVideoOutput *m_output;
     QImage m_image;
+    QSize m_size;
+    bool m_textureUpdated;
 };
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
@@ -267,7 +284,6 @@ AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
 void QAndroidTextureVideoOutput::setVideoSize(const QSize &size)
 {
      QMutexLocker locker(&m_mutex);
-
     if (m_nativeSize == size)
         return;
 
@@ -297,7 +313,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     if (!m_nativeSize.isValid() || !m_surface)
         return;
 
-    QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(this);
+    QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(this, m_nativeSize);
     QVideoFrame frame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
 
     if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
@@ -316,12 +332,12 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
         m_surface->present(frame);
 }
 
-void QAndroidTextureVideoOutput::renderFrameToFbo()
+bool QAndroidTextureVideoOutput::renderFrameToFbo()
 {
     QMutexLocker locker(&m_mutex);
 
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
-        return;
+        return false;
 
     createGLResources();
 
@@ -376,6 +392,8 @@ void QAndroidTextureVideoOutput::renderFrameToFbo()
         glEnable(GL_SCISSOR_TEST);
     if (blendEnabled)
         glEnable(GL_BLEND);
+
+    return true;
 }
 
 void QAndroidTextureVideoOutput::createGLResources()
