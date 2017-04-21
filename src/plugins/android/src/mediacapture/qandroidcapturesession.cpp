@@ -44,6 +44,7 @@
 #include "androidmultimediautils.h"
 #include "qandroidmultimediautils.h"
 #include "qandroidvideooutput.h"
+#include "qandroidglobal.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -177,6 +178,14 @@ void QAndroidCaptureSession::start()
         m_mediaRecorder->release();
         delete m_mediaRecorder;
     }
+
+
+    if (!AndroidMediaRecorder::requestRecordingPermission()) {
+        setStatus(QMediaRecorder::UnavailableStatus);
+        Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Permission denied."));
+        return;
+    }
+
     m_mediaRecorder = new AndroidMediaRecorder;
     connect(m_mediaRecorder, SIGNAL(error(int,int)), this, SLOT(onError(int,int)));
     connect(m_mediaRecorder, SIGNAL(info(int,int)), this, SLOT(onInfo(int,int)));

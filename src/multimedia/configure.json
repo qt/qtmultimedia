@@ -225,20 +225,17 @@
         },
         "gstreamer_app": {
             "label": "GStreamer App",
-            "condition": "(features.gstreamer_1_0 && libs.gstreamer_app_1_0)
-                          || (features.gstreamer_0_10 && libs.gstreamer_app_0_10)",
+            "condition": "(features.gstreamer_1_0 && libs.gstreamer_app_1_0) || (features.gstreamer_0_10 && libs.gstreamer_app_0_10)",
             "output": [ "privateFeature" ]
         },
         "gstreamer_encodingprofiles": {
             "label": "GStreamer encoding-profile.h",
-            "condition": "(features.gstreamer_1_0 && tests.gstreamer_encodingprofiles_1_0)
-                          || (features.gstreamer_0_10 && tests.gstreamer_encodingprofiles_0_10)",
+            "condition": "(features.gstreamer_1_0 && tests.gstreamer_encodingprofiles_1_0) || (features.gstreamer_0_10 && tests.gstreamer_encodingprofiles_0_10)",
             "output": [ "privateFeature" ]
         },
         "gstreamer_photography": {
             "label": "GStreamer Photography",
-            "condition": "(features.gstreamer_1_0 && libs.gstreamer_photography_1_0)
-                          || (features.gstreamer_0_10 && libs.gstreamer_photography_0_10)",
+            "condition": "(features.gstreamer_1_0 && libs.gstreamer_photography_1_0) || (features.gstreamer_0_10 && libs.gstreamer_photography_0_10)",
             "output": [ "privateFeature" ]
         },
         "gpu_vivante": {
@@ -275,7 +272,6 @@
         },
         "wasapi": {
             "label": "Windows Audio Services",
-            "autoDetect": "false",
             "condition": "config.win32 && tests.wasapi",
             "output": [ "privateFeature" ]
         },
@@ -319,6 +315,7 @@
                 "resourcepolicy",
                 "mmrenderer",
                 "avfoundation",
+                "wasapi",
                 "directshow",
                 "wmf",
                 {

@@ -136,6 +136,7 @@ public:
     void setPreviewSize(const QSize &size);
     bool setPreviewTexture(AndroidSurfaceTexture *surfaceTexture);
     bool setPreviewDisplay(AndroidSurfaceHolder *surfaceHolder);
+    void setDisplayOrientation(int degrees);
 
     bool isZoomSupported();
     int getMaxZoom();

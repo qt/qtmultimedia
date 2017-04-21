@@ -50,9 +50,11 @@
 #include "androidmultimediautils.h"
 #include "androidmediarecorder.h"
 #include "androidsurfaceview.h"
-#include <qdebug.h>
+#include "qandroidglobal.h"
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qtAndroidMediaPlugin, "qt.multimedia.plugins.android")
 
 QAndroidMediaServicePlugin::QAndroidMediaServicePlugin()
 {
@@ -72,7 +74,7 @@ QMediaService *QAndroidMediaServicePlugin::create(const QString &key)
         return new QAndroidCaptureService(key);
     }
 
-    qWarning() << "Android service plugin: unsupported key:" << key;
+    qCWarning(qtAndroidMediaPlugin) << "Android service plugin: unsupported key:" << key;
     return 0;
 }
 

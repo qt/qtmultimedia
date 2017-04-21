@@ -153,12 +153,41 @@ void CameraBinRecorder::applySettings()
             videoEncoderControl->videoSettings().codec().isEmpty()) {
 
         QList<QStringList> candidates;
+
+        // By order of preference
+
+        // .mp4 (h264, AAC)
+        candidates.append(QStringList() << "video/quicktime, variant=(string)iso" << "video/x-h264" << "audio/mpeg, mpegversion=(int)4");
+
+        // .mp4 (h264, AC3)
+        candidates.append(QStringList() << "video/quicktime, variant=(string)iso" << "video/x-h264" << "audio/x-ac3");
+
+        // .mp4 (h264, MP3)
+        candidates.append(QStringList() << "video/quicktime, variant=(string)iso" << "video/x-h264" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
+
+        // .mkv (h264, AAC)
         candidates.append(QStringList() << "video/x-matroska" << "video/x-h264" << "audio/mpeg, mpegversion=(int)4");
-        candidates.append(QStringList() << "video/webm" << "video/x-vp8" << "audio/x-vorbis");
-        candidates.append(QStringList() << "application/ogg" << "video/x-theora" << "audio/x-vorbis");
+
+        // .mkv (h264, AC3)
+        candidates.append(QStringList() << "video/x-matroska" << "video/x-h264" << "audio/x-ac3");
+
+        // .mkv (h264, MP3)
+        candidates.append(QStringList() << "video/x-matroska" << "video/x-h264" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
+
+        // .mov (h264, AAC)
         candidates.append(QStringList() << "video/quicktime" << "video/x-h264" << "audio/mpeg, mpegversion=(int)4");
-        candidates.append(QStringList() << "video/quicktime" << "video/x-h264" << "audio/mpeg");
-        candidates.append(QStringList() << "video/x-msvideo" << "video/x-divx" << "audio/mpeg");
+
+        // .mov (h264, MP3)
+        candidates.append(QStringList() << "video/quicktime" << "video/x-h264" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
+
+        // .webm (VP8, Vorbis)
+        candidates.append(QStringList() << "video/webm" << "video/x-vp8" << "audio/x-vorbis");
+
+        // .ogg (Theora, Vorbis)
+        candidates.append(QStringList() << "application/ogg" << "video/x-theora" << "audio/x-vorbis");
+
+        // .avi (DivX, MP3)
+        candidates.append(QStringList() << "video/x-msvideo" << "video/x-divx" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
 
         for (const QStringList &candidate : qAsConst(candidates)) {
             if (containerControl->supportedContainers().contains(candidate[0]) &&

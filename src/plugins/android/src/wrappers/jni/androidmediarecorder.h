@@ -160,6 +160,7 @@ public:
     void setSurfaceTexture(AndroidSurfaceTexture *texture);
     void setSurfaceHolder(AndroidSurfaceHolder *holder);
 
+    static bool requestRecordingPermission();
     static bool initJNI(JNIEnv *env);
 
 Q_SIGNALS:
