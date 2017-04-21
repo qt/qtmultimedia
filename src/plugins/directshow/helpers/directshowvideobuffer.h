@@ -44,6 +44,8 @@
 
 #include <qabstractvideobuffer.h>
 
+QT_BEGIN_NAMESPACE
+
 class DirectShowVideoBuffer : public QAbstractVideoBuffer
 {
 public:
@@ -63,5 +65,6 @@ private:
     MapMode m_mapMode;
 };
 
+QT_END_NAMESPACE
 
 #endif

@@ -47,6 +47,8 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qurl.h>
 
+QT_BEGIN_NAMESPACE
+
 static const GUID directshow_subtypes[] =
 {
     MEDIASUBTYPE_NULL,
@@ -581,3 +583,5 @@ HRESULT DirectShowIOSource::QueryDirection(PIN_DIRECTION *pPinDir)
         return S_OK;
     }
 }
+
+QT_END_NAMESPACE

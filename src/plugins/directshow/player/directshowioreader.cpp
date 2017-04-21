@@ -48,6 +48,8 @@
 #include <QtCore/qiodevice.h>
 #include <QtCore/qthread.h>
 
+QT_BEGIN_NAMESPACE
+
 class DirectShowSampleRequest
 {
 public:
@@ -492,3 +494,5 @@ void DirectShowIOReader::flushRequests()
             m_readyHead = m_readyTail;
     }
 }
+
+QT_END_NAMESPACE

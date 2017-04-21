@@ -49,13 +49,11 @@
 #include "evrdefs.h"
 
 QT_BEGIN_NAMESPACE
-class QAbstractVideoSurface;
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
 
 class EVRCustomPresenter;
 class D3DPresentEngine;
+
+class QAbstractVideoSurface;
 
 template<class T>
 class AsyncCallback : public IMFAsyncCallback
@@ -374,5 +372,7 @@ private:
 };
 
 bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter);
+
+QT_END_NAMESPACE
 
 #endif // EVRCUSTOMPRESENTER_H

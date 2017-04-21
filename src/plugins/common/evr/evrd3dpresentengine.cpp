@@ -57,6 +57,8 @@
 
 static const int PRESENTER_BUFFER_COUNT = 3;
 
+QT_BEGIN_NAMESPACE
+
 #ifdef MAYBE_ANGLE
 
 EGLWrapper::EGLWrapper()
@@ -642,3 +644,5 @@ done:
 }
 
 #endif // MAYBE_ANGLE
+
+QT_END_NAMESPACE

@@ -36,7 +36,7 @@
 
 #include "directshowglobal.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DirectShowObject
 {
@@ -70,5 +70,7 @@ public: \
     STDMETHODIMP_(ULONG) Release() {                                \
         return unref();                                             \
     };
+
+QT_END_NAMESPACE
 
 #endif // DIRECTSHOWOBJECT_H

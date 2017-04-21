@@ -39,6 +39,8 @@
 
 #include "directshowobject.h"
 
+QT_BEGIN_NAMESPACE
+
 DirectShowObject::DirectShowObject()
     : m_ref(1)
 {
@@ -81,3 +83,4 @@ HRESULT GetInterface(IUnknown *pUnk, void **ppv)
     return S_OK;
 }
 
+QT_END_NAMESPACE

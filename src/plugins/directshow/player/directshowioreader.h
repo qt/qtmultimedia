@@ -48,7 +48,6 @@
 
 QT_BEGIN_NAMESPACE
 class QIODevice;
-QT_END_NAMESPACE
 
 class DirectShowEventLoop;
 class DirectShowIOSource;
@@ -114,5 +113,7 @@ private:
     QMutex m_mutex;
     QWaitCondition m_wait;
 };
+
+QT_END_NAMESPACE
 
 #endif

@@ -39,6 +39,8 @@
 
 #include <qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 DirectShowPin::DirectShowPin(DirectShowBaseFilter *filter, const QString &name, PIN_DIRECTION direction)
     : m_mutex(QMutex::Recursive)
     , m_filter(filter)
@@ -728,3 +730,5 @@ HRESULT DirectShowInputPin::ReceiveCanBlock()
 
     return outputPins == 0 ? S_OK : S_FALSE;
 }
+
+QT_END_NAMESPACE

@@ -40,6 +40,8 @@
 #include "directshowpinenum.h"
 #include "directshowbasefilter.h"
 
+QT_BEGIN_NAMESPACE
+
 DirectShowPinEnum::DirectShowPinEnum(DirectShowBaseFilter *filter)
     : m_filter(filter)
     , m_index(0)
@@ -124,3 +126,5 @@ HRESULT DirectShowPinEnum::Clone(IEnumPins **ppEnum)
         return E_POINTER;
     }
 }
+
+QT_END_NAMESPACE

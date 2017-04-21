@@ -48,9 +48,7 @@
 
 #include <QtCore/qcoreevent.h>
 
-class DirectShowPlayerService;
-
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DirectShowMetaDataControl : public QMetaDataReaderControl
 {
@@ -82,5 +80,7 @@ private:
     QVariantMap m_metadata;
     bool m_available;
 };
+
+QT_END_NAMESPACE
 
 #endif

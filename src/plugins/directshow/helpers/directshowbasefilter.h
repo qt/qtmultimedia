@@ -36,7 +36,7 @@
 
 #include "directshowpin.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DirectShowBaseFilter : public DirectShowObject
                            , public IBaseFilter
@@ -89,5 +89,7 @@ protected:
 private:
     Q_DISABLE_COPY(DirectShowBaseFilter)
 };
+
+QT_END_NAMESPACE
 
 #endif // DIRECTSHOWBASEFILTER_H

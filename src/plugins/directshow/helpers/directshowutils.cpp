@@ -39,6 +39,8 @@
 
 #include "directshowutils.h"
 
+QT_BEGIN_NAMESPACE
+
 /**
  * @brief DirectShowUtils::isPinConnected
  * @param pin
@@ -307,3 +309,5 @@ bool DirectShowUtils::connectFilters(IGraphBuilder *graph,
 
     return SUCCEEDED(*hrOut);
 }
+
+QT_END_NAMESPACE

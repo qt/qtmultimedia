@@ -40,7 +40,7 @@
 #include <qstring.h>
 #include <qmutex.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DirectShowBaseFilter;
 
@@ -180,5 +180,7 @@ protected:
 private:
     Q_DISABLE_COPY(DirectShowInputPin)
 };
+
+QT_END_NAMESPACE
 
 #endif // DIRECTSHOWPIN_H

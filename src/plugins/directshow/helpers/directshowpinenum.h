@@ -45,7 +45,7 @@
 #include <QtCore/qlist.h>
 #include "directshowpin.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DirectShowBaseFilter;
 
@@ -75,5 +75,7 @@ private:
     QList<IPin *> m_pins;
     int m_index;
 };
+
+QT_END_NAMESPACE
 
 #endif

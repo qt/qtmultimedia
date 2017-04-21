@@ -75,9 +75,6 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 
 QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(qtDirectShowPlugin, "qt.multimedia.plugins.directshow")
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
 
 static int g_refCount = 0;
 void addRefCount()
@@ -157,3 +154,5 @@ QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByt
     }
     return QString();
 }
+
+QT_END_NAMESPACE

@@ -35,6 +35,8 @@
 
 #include "directshowpinenum.h"
 
+QT_BEGIN_NAMESPACE
+
 DirectShowBaseFilter::DirectShowBaseFilter()
     : m_mutex(QMutex::Recursive)
     , m_state(State_Stopped)
@@ -265,3 +267,5 @@ HRESULT DirectShowBaseFilter::QueryVendorInfo(LPWSTR *pVendorInfo)
     Q_UNUSED(pVendorInfo);
     return E_NOTIMPL;
 }
+
+QT_END_NAMESPACE

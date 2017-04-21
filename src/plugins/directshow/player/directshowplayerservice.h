@@ -55,17 +55,15 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qwaitcondition.h>
 
+QT_BEGIN_NAMESPACE
+
 class DirectShowAudioEndpointControl;
 class DirectShowMetaDataControl;
 class DirectShowPlayerControl;
 class DirectShowVideoRendererControl;
 
-QT_BEGIN_NAMESPACE
 class QMediaContent;
 class QVideoWindowControl;
-QT_END_NAMESPACE
-
-QT_USE_NAMESPACE
 
 class DirectShowPlayerService : public QMediaService
 {
@@ -213,5 +211,6 @@ private:
     friend class DirectShowPlayerServiceThread;
 };
 
+QT_END_NAMESPACE
 
 #endif

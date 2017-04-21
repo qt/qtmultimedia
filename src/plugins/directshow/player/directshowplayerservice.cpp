@@ -77,6 +77,8 @@
 #  include <comdef.h>
 #endif
 
+QT_BEGIN_NAMESPACE
+
 Q_GLOBAL_STATIC(DirectShowEventLoop, qt_directShowEventLoop)
 
 static QString comError(HRESULT hr)
@@ -1454,3 +1456,5 @@ void DirectShowPlayerService::run()
         m_executingTask = 0;
     }
 }
+
+QT_END_NAMESPACE

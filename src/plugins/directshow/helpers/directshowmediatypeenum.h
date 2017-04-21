@@ -37,7 +37,7 @@
 #include "directshowobject.h"
 #include <qlist.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DirectShowPin;
 class DirectShowMediaType;
@@ -68,5 +68,7 @@ private:
     QList<DirectShowMediaType> m_mediaTypes;
     int m_index;
 };
+
+QT_END_NAMESPACE
 
 #endif // DIRECTSHOWMEDIATYPEENUM_H
