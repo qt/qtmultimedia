@@ -72,6 +72,7 @@ public:
 
     static void init(AM_MEDIA_TYPE *type);
     static void copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source);
+    static void copyToUninitialized(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source);
     static void move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE **source);
     static void move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE &source);
     static void clear(AM_MEDIA_TYPE &type);

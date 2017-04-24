@@ -134,6 +134,11 @@ void DirectShowMediaType::copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *sourc
 
     clear(*target);
 
+    copyToUninitialized(target, source);
+}
+
+void DirectShowMediaType::copyToUninitialized(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source)
+{
     *target = *source;
 
     if (source->cbFormat > 0) {
