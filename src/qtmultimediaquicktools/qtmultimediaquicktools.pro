@@ -1,4 +1,4 @@
-TARGET = QtMultimediaQuick_p
+TARGET = QtMultimediaQuick
 
 QT = core quick multimedia-private
 CONFIG += internal_module
