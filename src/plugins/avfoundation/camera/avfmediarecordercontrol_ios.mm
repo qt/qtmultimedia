@@ -340,7 +340,7 @@ void AVFMediaRecorderControlIOS::assetWriterFinished()
     Q_ASSERT(cameraControl);
 
     const QMediaRecorder::Status lastStatus = m_lastStatus;
-
+    const QMediaRecorder::State lastState = m_state;
     if (cameraControl->captureMode() & QCamera::CaptureVideo)
         m_lastStatus = QMediaRecorder::LoadedStatus;
     else
@@ -350,9 +350,11 @@ void AVFMediaRecorderControlIOS::assetWriterFinished()
 
     m_service->videoOutput()->resetCaptureDelegate();
     [m_service->session()->captureSession() startRunning];
-
+    m_state = QMediaRecorder::StoppedState;
     if (m_lastStatus != lastStatus)
         Q_EMIT statusChanged(m_lastStatus);
+    if (m_state != lastState)
+        Q_EMIT stateChanged(m_state);
 }
 
 void AVFMediaRecorderControlIOS::captureModeChanged(QCamera::CaptureModes newMode)
@@ -403,10 +405,8 @@ void AVFMediaRecorderControlIOS::cameraStatusChanged(QCamera::Status newStatus)
 void AVFMediaRecorderControlIOS::stopWriter()
 {
     if (m_lastStatus == QMediaRecorder::RecordingStatus) {
-        m_state = QMediaRecorder::StoppedState;
         m_lastStatus = QMediaRecorder::FinalizingStatus;
 
-        Q_EMIT stateChanged(m_state);
         Q_EMIT statusChanged(m_lastStatus);
 
         [m_writer stop];
