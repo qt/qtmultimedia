@@ -156,7 +156,7 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
                     GstRank rank = GstRank(gst_plugin_feature_get_rank(GST_PLUGIN_FEATURE(factory)));
 
                     // If two elements provide the same codec, use the highest ranked one
-                    QMap<QString, CodecInfo>::const_iterator it = m_codecInfo.find(codec);
+                    QMap<QString, CodecInfo>::const_iterator it = m_codecInfo.constFind(codec);
                     if (it == m_codecInfo.constEnd() || it->rank < rank) {
                         if (it == m_codecInfo.constEnd())
                             m_codecs.append(codec);
