@@ -103,6 +103,7 @@ public:
     bool isPlaying();
     int volume();
     bool isMuted();
+    qreal playbackRate();
     jobject display();
 
     void play();
@@ -113,6 +114,7 @@ public:
     void setDataSource(const QString &path);
     void prepareAsync();
     void setVolume(int volume);
+    bool setPlaybackRate(qreal rate);
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
 
     static bool initJNI(JNIEnv *env);
