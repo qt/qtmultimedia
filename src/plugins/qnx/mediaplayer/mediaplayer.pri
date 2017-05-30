@@ -21,4 +21,4 @@ SOURCES += \
     $$PWD/mmreventmediaplayercontrol.cpp \
     $$PWD/mmreventthread.cpp
 
-QMAKE_USE += mmrenderer pps
+QMAKE_USE += mmrenderer

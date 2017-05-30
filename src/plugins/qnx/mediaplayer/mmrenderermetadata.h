@@ -43,13 +43,15 @@
 #include <QtCore/QSize>
 #include <QtCore/QString>
 
+typedef struct strm_dict strm_dict_t;
+
 QT_BEGIN_NAMESPACE
 
 class MmRendererMetaData
 {
 public:
     MmRendererMetaData();
-    bool parse(const QString &contextName);
+    bool update(const strm_dict_t *dict);
     void clear();
 
     // Duration in milliseconds

@@ -48,6 +48,7 @@
 typedef struct mmr_connection mmr_connection_t;
 typedef struct mmr_context mmr_context_t;
 typedef struct mmrenderer_monitor mmrenderer_monitor_t;
+typedef struct strm_dict strm_dict_t;
 
 QT_BEGIN_NAMESPACE
 
@@ -115,6 +116,7 @@ protected:
     void setMmBufferLevel(const QString &bufferLevel);
     void handleMmStopped();
     void handleMmStatusUpdate(qint64 position);
+    void updateMetaData(const strm_dict_t *dict);
 
     // must be called from subclass dtors (calls virtual function stopMonitoring())
     void destroy();
@@ -131,7 +133,6 @@ private:
     void closeConnection();
     void attach();
     void detach();
-    void updateMetaData();
 
     // All these set the specified value to the backend, but neither emit changed signals
     // nor change the member value.

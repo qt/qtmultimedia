@@ -463,8 +463,8 @@ void MmRendererMediaPlayerControl::setMedia(const QMediaContent &media, QIODevic
 
 void MmRendererMediaPlayerControl::continueLoadMedia()
 {
+    updateMetaData(nullptr);
     attach();
-    updateMetaData();
     if (m_playAfterMediaLoaded)
         play();
 }
@@ -587,12 +587,9 @@ void MmRendererMediaPlayerControl::setMmBufferLevel(const QString &bufferLevel)
     }
 }
 
-void MmRendererMediaPlayerControl::updateMetaData()
+void MmRendererMediaPlayerControl::updateMetaData(const strm_dict *dict)
 {
-    if (m_mediaStatus == QMediaPlayer::LoadedMedia)
-        m_metaData.parse(m_contextName);
-    else
-        m_metaData.clear();
+    m_metaData.update(dict);
 
     if (m_videoWindowControl)
         m_videoWindowControl->setMetaData(m_metaData);
