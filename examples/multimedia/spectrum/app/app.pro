@@ -83,3 +83,4 @@ macx {
         QMAKE_LFLAGS += -Wl,--rpath=\\\$\$ORIGIN
     }
 }
+include(../../../shared/shared.pri)

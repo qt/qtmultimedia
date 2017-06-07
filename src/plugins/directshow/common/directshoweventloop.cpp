@@ -42,6 +42,8 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qcoreevent.h>
 
+QT_BEGIN_NAMESPACE
+
 class DirectShowPostedEvent
 {
 public:
@@ -146,3 +148,5 @@ void DirectShowEventLoop::processEvents()
         locker.relock();
     }
 }
+
+QT_END_NAMESPACE

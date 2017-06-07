@@ -47,12 +47,12 @@
 
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 
+QT_BEGIN_NAMESPACE
+
 class DirectShowEventLoop;
 #if QT_CONFIG(evr)
 class EVRCustomPresenter;
 #endif
-
-QT_USE_NAMESPACE
 
 class DirectShowVideoRendererControl : public QVideoRendererControl
 {
@@ -77,5 +77,7 @@ private:
     EVRCustomPresenter *m_evrPresenter;
 #endif
 };
+
+QT_END_NAMESPACE
 
 #endif

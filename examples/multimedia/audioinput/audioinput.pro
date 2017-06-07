@@ -10,3 +10,4 @@ SOURCES       = audioinput.cpp \
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/audioinput
 INSTALLS += target
+include(../../shared/shared.pri)

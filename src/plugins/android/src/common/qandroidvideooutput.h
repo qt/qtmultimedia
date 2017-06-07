@@ -112,7 +112,7 @@ private Q_SLOTS:
 
 private:
     bool initSurfaceTexture();
-    void renderFrameToFbo();
+    bool renderFrameToFbo();
     void createGLResources();
 
     QMutex m_mutex;

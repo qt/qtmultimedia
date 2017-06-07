@@ -176,7 +176,7 @@ bool QAndroidCameraSession::open()
     m_status = QCamera::LoadingStatus;
     emit statusChanged(m_status);
 
-    m_camera = AndroidCamera::open(m_selectedCamera);
+    m_camera = AndroidCamera::requestCameraPermission() ? AndroidCamera::open(m_selectedCamera) : nullptr;
 
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));

@@ -37,50 +37,50 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWMETADATACONTROL_H
-#define DIRECTSHOWMETADATACONTROL_H
-
-#include <dshow.h>
-
-#include <qmetadatareadercontrol.h>
-
-#include "directshowglobal.h"
-
-#include <QtCore/qcoreevent.h>
+#include "directshowobject.h"
 
 QT_BEGIN_NAMESPACE
 
-class DirectShowMetaDataControl : public QMetaDataReaderControl
+DirectShowObject::DirectShowObject()
+    : m_ref(1)
 {
-    Q_OBJECT
-public:
-    DirectShowMetaDataControl(QObject *parent = 0);
-    ~DirectShowMetaDataControl();
+}
 
-    bool isMetaDataAvailable() const;
+DirectShowObject::~DirectShowObject()
+{
+    Q_ASSERT(m_ref == 0);
+}
 
-    QVariant metaData(const QString &key) const;
-    QStringList availableMetaData() const;
+HRESULT DirectShowObject::getInterface(const IID &riid, void **ppvObject)
+{
+    Q_UNUSED(riid)
+    *ppvObject = NULL;
+    return E_NOINTERFACE;
+}
 
-    void reset();
-    void updateMetadata(IFilterGraph2 *graph, IBaseFilter *source,
-                        const QString &fileSrc = QString());
+ULONG DirectShowObject::ref()
+{
+    return InterlockedIncrement(&m_ref);
+}
 
-protected:
-    void customEvent(QEvent *event);
+ULONG DirectShowObject::unref()
+{
+    ULONG ref = InterlockedDecrement(&m_ref);
+    if (ref == 0)
+        delete this;
 
-private:
-    void setMetadataAvailable(bool available);
+    return ref;
+}
 
-    enum Event
-    {
-        MetaDataChanged = QEvent::User
-    };
+HRESULT GetInterface(IUnknown *pUnk, void **ppv)
+{
+    if (!ppv)
+        return E_POINTER;
 
-    QVariantMap m_metadata;
-    bool m_available;
-};
+    *ppv = pUnk;
+    pUnk->AddRef();
+
+    return S_OK;
+}
 
 QT_END_NAMESPACE
-
-#endif

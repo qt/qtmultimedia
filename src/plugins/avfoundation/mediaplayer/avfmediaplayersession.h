@@ -99,10 +99,12 @@ public Q_SLOTS:
     void setMuted(bool muted);
 
     void processEOS();
-    void processLoadStateChange();
+    void processLoadStateChange(QMediaPlayer::State newState);
     void processPositionChange();
     void processMediaLoadError();
 
+    void processLoadStateChange();
+    void processLoadStateFailure();
 Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);

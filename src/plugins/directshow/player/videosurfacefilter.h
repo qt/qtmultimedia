@@ -49,8 +49,8 @@
 #include <qwaitcondition.h>
 
 QT_BEGIN_NAMESPACE
+
 class QAbstractVideoSurface;
-QT_END_NAMESPACE
 
 class DirectShowEventLoop;
 class VideoSurfaceInputPin;
@@ -156,5 +156,7 @@ private:
 
     friend class VideoSurfaceInputPin;
 };
+
+QT_END_NAMESPACE
 
 #endif

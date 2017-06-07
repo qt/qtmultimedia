@@ -137,16 +137,10 @@
             "type": "compile",
             "test": "evr"
         },
-        "gstreamer_encodingprofiles_1_0": {
+        "gstreamer_encodingprofiles": {
             "label": "GStreamer encoding-profile.h",
             "type": "compile",
-            "use": "gstreamer_1_0",
-            "test": "gstreamer_encodingprofiles"
-        },
-        "gstreamer_encodingprofiles_0_10": {
-            "label": "GStreamer encoding-profile.h",
-            "type": "compile",
-            "use": "gstreamer_0_10",
+            "use": "gstreamer",
             "test": "gstreamer_encodingprofiles"
         },
         "gpu_vivante": {
@@ -230,7 +224,7 @@
         },
         "gstreamer_encodingprofiles": {
             "label": "GStreamer encoding-profile.h",
-            "condition": "(features.gstreamer_1_0 && tests.gstreamer_encodingprofiles_1_0) || (features.gstreamer_0_10 && tests.gstreamer_encodingprofiles_0_10)",
+            "condition": "features.gstreamer && tests.gstreamer_encodingprofiles",
             "output": [ "privateFeature" ]
         },
         "gstreamer_photography": {

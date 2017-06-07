@@ -9,9 +9,13 @@ opensuse-13.1 64bit
 
 [loadMedia]
 windows 64bit developer-build
+# QTBUG-60268
+b2qt
 
 [unloadMedia]
 windows 64bit developer-build
+# QTBUG-60268
+b2qt
 
 [playPauseStop]
 linux
@@ -19,12 +23,18 @@ windows 64bit developer-build
 
 [processEOS]
 windows 64bit developer-build
+# QTBUG-60268
+b2qt
 
 [deleteLaterAtEOS]
 windows 64bit developer-build
+# QTBUG-60268
+b2qt
 
 [initialVolume]
 windows 64bit developer-build
+# QTBUG-60268
+b2qt
 
 [playlist]
 redhatenterpriselinuxworkstation-6.6
@@ -43,3 +53,7 @@ redhatenterpriselinuxworkstation-6.6
 
 [surfaceTest]
 redhatenterpriselinuxworkstation-6.6
+
+[playlistObject]
+# QTBUG-60268
+b2qt

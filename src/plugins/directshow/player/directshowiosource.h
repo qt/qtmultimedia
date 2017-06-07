@@ -46,6 +46,8 @@
 
 #include <QtCore/qfile.h>
 
+QT_BEGIN_NAMESPACE
+
 class DirectShowIOSource
     : public IBaseFilter
     , public IAMFilterMiscFlags
@@ -130,5 +132,7 @@ private:
     bool m_queriedForAsyncReader;
     QMutex m_mutex;
 };
+
+QT_END_NAMESPACE
 
 #endif

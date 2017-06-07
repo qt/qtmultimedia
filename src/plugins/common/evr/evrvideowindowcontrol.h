@@ -44,7 +44,7 @@
 
 #include "evrdefs.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class EvrVideoWindowControl : public QVideoWindowControl
 {
@@ -103,5 +103,7 @@ private:
     IMFVideoDisplayControl *m_displayControl;
     IMFVideoProcessor *m_processor;
 };
+
+QT_END_NAMESPACE
 
 #endif

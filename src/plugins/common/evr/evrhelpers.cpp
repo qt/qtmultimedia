@@ -46,6 +46,8 @@
 #define D3DFMT_NV12 (D3DFORMAT)MAKEFOURCC ('N', 'V', '1', '2')
 #endif
 
+QT_BEGIN_NAMESPACE
+
 HRESULT qt_evr_getFourCC(IMFMediaType *type, DWORD *fourCC)
 {
     if (!fourCC)
@@ -180,3 +182,5 @@ D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrame::PixelFormat format)
         return D3DFMT_UNKNOWN;
     }
 }
+
+QT_END_NAMESPACE

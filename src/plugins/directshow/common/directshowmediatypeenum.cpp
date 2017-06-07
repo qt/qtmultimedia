@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,90 +37,81 @@
 **
 ****************************************************************************/
 
-#include "directshowpinenum.h"
-#include "directshowbasefilter.h"
+#include "directshowmediatypeenum.h"
 
-DirectShowPinEnum::DirectShowPinEnum(DirectShowBaseFilter *filter)
-    : m_filter(filter)
+#include "directshowpin.h"
+
+DirectShowMediaTypeEnum::DirectShowMediaTypeEnum(DirectShowPin *pin)
+    : m_pin(pin)
+    , m_mediaTypes(pin->supportedMediaTypes())
     , m_index(0)
 {
-    m_filter->AddRef();
-    const QList<DirectShowPin *> pinList = filter->pins();
-    for (DirectShowPin *pin : pinList) {
-        pin->AddRef();
-        m_pins.append(pin);
-    }
+    m_pin->AddRef();
 }
 
-DirectShowPinEnum::DirectShowPinEnum(const QList<IPin *> &pins)
-    : m_filter(NULL)
-    , m_pins(pins)
+DirectShowMediaTypeEnum::DirectShowMediaTypeEnum(const QList<DirectShowMediaType> &types)
+    : m_pin(NULL)
+    , m_mediaTypes(types)
     , m_index(0)
 {
-    for (IPin *pin : qAsConst(m_pins))
-        pin->AddRef();
 }
 
-DirectShowPinEnum::~DirectShowPinEnum()
+DirectShowMediaTypeEnum::~DirectShowMediaTypeEnum()
 {
-    for (IPin *pin : qAsConst(m_pins))
-        pin->Release();
-    if (m_filter)
-        m_filter->Release();
+    if (m_pin)
+        m_pin->Release();
 }
 
-HRESULT DirectShowPinEnum::getInterface(REFIID riid, void **ppvObject)
+HRESULT DirectShowMediaTypeEnum::getInterface(REFIID riid, void **ppvObject)
 {
-    if (riid == IID_IEnumPins) {
-        return GetInterface(static_cast<IEnumPins *>(this), ppvObject);
+    if (riid == IID_IEnumMediaTypes) {
+        return GetInterface(static_cast<IEnumMediaTypes *>(this), ppvObject);
     } else {
         return DirectShowObject::getInterface(riid, ppvObject);
     }
 }
 
-HRESULT DirectShowPinEnum::Next(ULONG cPins, IPin **ppPins, ULONG *pcFetched)
+HRESULT DirectShowMediaTypeEnum::Next(ULONG cMediaTypes, AM_MEDIA_TYPE **ppMediaTypes, ULONG *pcFetched)
 {
-    if (ppPins && (pcFetched || cPins == 1)) {
-        ULONG count = qBound<ULONG>(0, cPins, m_pins.count() - m_index);
+    if (ppMediaTypes && (pcFetched || cMediaTypes == 1)) {
+        ULONG count = qBound<ULONG>(0, cMediaTypes, m_mediaTypes.count() - m_index);
 
         for (ULONG i = 0; i < count; ++i, ++m_index) {
-            ppPins[i] = m_pins.at(m_index);
-            ppPins[i]->AddRef();
+            ppMediaTypes[i] = reinterpret_cast<AM_MEDIA_TYPE *>(CoTaskMemAlloc(sizeof(AM_MEDIA_TYPE)));
+            DirectShowMediaType::copyToUninitialized(ppMediaTypes[i], &m_mediaTypes.at(m_index));
         }
 
         if (pcFetched)
             *pcFetched = count;
 
-        return count == cPins ? S_OK : S_FALSE;
+        return count == cMediaTypes ? S_OK : S_FALSE;
     } else {
         return E_POINTER;
     }
 }
 
-HRESULT DirectShowPinEnum::Skip(ULONG cPins)
+HRESULT DirectShowMediaTypeEnum::Skip(ULONG cMediaTypes)
 {
-    m_index = qMin(int(m_index + cPins), m_pins.count());
-
-    return m_index < m_pins.count() ? S_OK : S_FALSE;
+    m_index = qMin(int(m_index + cMediaTypes), m_mediaTypes.count());
+    return m_index < m_mediaTypes.count() ? S_OK : S_FALSE;
 }
 
-HRESULT DirectShowPinEnum::Reset()
+HRESULT DirectShowMediaTypeEnum::Reset()
 {
     m_index = 0;
-
     return S_OK;
 }
 
-HRESULT DirectShowPinEnum::Clone(IEnumPins **ppEnum)
+HRESULT DirectShowMediaTypeEnum::Clone(IEnumMediaTypes **ppEnum)
 {
     if (ppEnum) {
-        if (m_filter)
-            *ppEnum = new DirectShowPinEnum(m_filter);
+        if (m_pin)
+            *ppEnum = new DirectShowMediaTypeEnum(m_pin);
         else
-            *ppEnum = new DirectShowPinEnum(m_pins);
-
+            *ppEnum = new DirectShowMediaTypeEnum(m_mediaTypes);
         return S_OK;
     } else {
         return E_POINTER;
     }
 }
+

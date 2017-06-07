@@ -306,14 +306,16 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
     } break;
     case QMediaRecorder::StoppedState:
     {
-        m_state = QMediaRecorder::StoppedState;
+        m_lastStatus = QMediaRecorder::FinalizingStatus;
+        Q_EMIT statusChanged(m_lastStatus);
         [m_movieOutput stopRecording];
         unapplySettings();
     }
     }
 
     updateStatus();
-    Q_EMIT stateChanged(m_state);
+    if (state != m_state)
+        Q_EMIT stateChanged(m_state);
 }
 
 void AVFMediaRecorderControl::setMuted(bool muted)
@@ -341,6 +343,10 @@ void AVFMediaRecorderControl::handleRecordingStarted()
 void AVFMediaRecorderControl::handleRecordingFinished()
 {
     m_recordingFinished = true;
+    if (m_state != QMediaRecorder::StoppedState) {
+        m_state = QMediaRecorder::StoppedState;
+        Q_EMIT stateChanged(m_state);
+    }
     updateStatus();
 }
 

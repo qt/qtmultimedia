@@ -53,6 +53,8 @@
 #include <float.h>
 #include <evcode.h>
 
+QT_BEGIN_NAMESPACE
+
 const static MFRatio g_DefaultFrameRate = { 30, 1 };
 static const DWORD SCHEDULER_TIMEOUT = 5000;
 static const MFTIME ONE_SECOND = 10000000;
@@ -2044,3 +2046,5 @@ static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
 
     return QVideoFrame::Format_Invalid;
 }
+
+QT_END_NAMESPACE

@@ -362,6 +362,7 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
         } else if (hasStreamPlaybackFeature) {
             control->setMedia(media, file.data());
         } else {
+#if QT_CONFIG(temporaryfile)
             QTemporaryFile *tempFile = new QTemporaryFile;
 
             // Preserve original file extension, some backends might not load the file if it doesn't
@@ -383,6 +384,9 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
 
             file.reset(tempFile);
             control->setMedia(QMediaContent(QUrl::fromLocalFile(file->fileName())), 0);
+#else
+            qWarning("Qt was built with -no-feature-temporaryfile: playback from resource file is not supported!");
+#endif
         }
     } else {
         qrcMedia = QMediaContent();

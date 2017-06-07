@@ -97,9 +97,12 @@ const QIODevice *AVFMediaPlayerControl::mediaStream() const
 
 void AVFMediaPlayerControl::setMedia(const QMediaContent &content, QIODevice *stream)
 {
+    const QMediaContent oldContent = m_session->media();
+
     m_session->setMedia(content, stream);
 
-    Q_EMIT mediaChanged(content);
+    if (content != oldContent)
+        Q_EMIT mediaChanged(content);
 }
 
 qint64 AVFMediaPlayerControl::position() const

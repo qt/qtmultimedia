@@ -46,7 +46,7 @@
 #include <d3d9.h>
 #include <vmr9.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class Vmr9VideoWindowControl : public QVideoWindowControl
 {
@@ -102,5 +102,7 @@ private:
     int m_saturation;
     bool m_fullScreen;
 };
+
+QT_END_NAMESPACE
 
 #endif

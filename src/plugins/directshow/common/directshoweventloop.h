@@ -46,6 +46,8 @@
 
 #include <qt_windows.h>
 
+QT_BEGIN_NAMESPACE
+
 class DirectShowPostedEvent;
 
 class DirectShowEventLoop : public QObject
@@ -72,5 +74,7 @@ private:
     HANDLE m_waitHandle;
     QMutex m_mutex;
 };
+
+QT_END_NAMESPACE
 
 #endif

@@ -39,6 +39,8 @@
 
 #include "directshowvideobuffer.h"
 
+QT_BEGIN_NAMESPACE
+
 DirectShowVideoBuffer::DirectShowVideoBuffer(IMediaSample *sample, int bytesPerLine)
     : QAbstractVideoBuffer(NoHandle)
     , m_sample(sample)
@@ -82,3 +84,5 @@ QAbstractVideoBuffer::MapMode DirectShowVideoBuffer::mapMode() const
 {
     return m_mapMode;
 }
+
+QT_END_NAMESPACE

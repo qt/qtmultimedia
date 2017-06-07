@@ -50,10 +50,6 @@
 # define MAYBE_ANGLE
 #endif
 
-QT_BEGIN_NAMESPACE
-class QAbstractVideoSurface;
-QT_END_NAMESPACE
-
 struct IDirect3D9Ex;
 struct IDirect3DDevice9Ex;
 struct IDirect3DDeviceManager9;
@@ -66,7 +62,9 @@ struct IMFMediaType;
 static const GUID MFSamplePresenter_SampleCounter =
 { 0xb0bb83cc, 0xf10f, 0x4e2e, { 0xaa, 0x2b, 0x29, 0xea, 0x5e, 0x92, 0xef, 0x85 } };
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
+
+class QAbstractVideoSurface;
 
 #ifdef MAYBE_ANGLE
 
@@ -152,5 +150,7 @@ private:
 
     friend class IMFSampleVideoBuffer;
 };
+
+QT_END_NAMESPACE
 
 #endif // EVRD3DPRESENTENGINE_H

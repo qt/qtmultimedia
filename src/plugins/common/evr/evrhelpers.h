@@ -43,7 +43,7 @@
 #include "evrdefs.h"
 #include <qvideoframe.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 template<class T>
 static inline void qt_evr_safe_release(T **unk)
@@ -92,6 +92,8 @@ inline HRESULT qt_evr_getFrameRate(IMFMediaType *pType, MFRatio *pRatio)
 
 QVideoFrame::PixelFormat qt_evr_pixelFormatFromD3DFormat(D3DFORMAT format);
 D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrame::PixelFormat format);
+
+QT_END_NAMESPACE
 
 #endif // EVRHELPERS_H
 

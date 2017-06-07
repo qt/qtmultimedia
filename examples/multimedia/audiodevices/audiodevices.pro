@@ -14,3 +14,4 @@ target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/audiodevices
 INSTALLS += target
 
 QT+=widgets
+include(../../shared/shared.pri)

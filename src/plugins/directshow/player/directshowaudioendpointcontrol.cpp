@@ -42,6 +42,8 @@
 #include "directshowglobal.h"
 #include "directshowplayerservice.h"
 
+QT_BEGIN_NAMESPACE
+
 DirectShowAudioEndpointControl::DirectShowAudioEndpointControl(
         DirectShowPlayerService *service, QObject *parent)
     : QAudioOutputSelectorControl(parent)
@@ -157,3 +159,5 @@ void DirectShowAudioEndpointControl::updateEndpoints()
         oleMalloc->Release();
     }
 }
+
+QT_END_NAMESPACE

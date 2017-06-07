@@ -53,7 +53,11 @@
 #include "directshowiosource.h"
 #include "directshowplayercontrol.h"
 #include "directshowvideorenderercontrol.h"
-
+#include "directshowutils.h"
+#include "directshowglobal.h"
+#include "directshowaudioprobecontrol.h"
+#include "directshowvideoprobecontrol.h"
+#include "directshowsamplegrabber.h"
 
 #if QT_CONFIG(evr)
 #include "directshowevrvideowindowcontrol.h"
@@ -68,6 +72,11 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qvarlengtharray.h>
+#include <QtCore/qsize.h>
+
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 
 #if QT_CONFIG(wmsdk)
 #  include <wmsdk.h>
@@ -76,6 +85,8 @@
 #ifndef Q_CC_MINGW
 #  include <comdef.h>
 #endif
+
+QT_BEGIN_NAMESPACE
 
 Q_GLOBAL_STATIC(DirectShowEventLoop, qt_directShowEventLoop)
 
@@ -115,6 +126,10 @@ DirectShowPlayerService::DirectShowPlayerService(QObject *parent)
     , m_videoRendererControl(0)
     , m_videoWindowControl(0)
     , m_audioEndpointControl(0)
+    , m_audioProbeControl(nullptr)
+    , m_videoProbeControl(nullptr)
+    , m_audioSampleGrabber(nullptr)
+    , m_videoSampleGrabber(nullptr)
     , m_taskThread(0)
     , m_loop(qt_directShowEventLoop())
     , m_pendingTasks(0)
@@ -174,6 +189,8 @@ DirectShowPlayerService::~DirectShowPlayerService()
     delete m_metaDataControl;
     delete m_videoRendererControl;
     delete m_videoWindowControl;
+    delete m_audioProbeControl;
+    delete m_videoProbeControl;
 
     ::CloseHandle(m_taskHandle);
 }
@@ -217,6 +234,18 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
 
             return m_videoWindowControl;
         }
+    } else if (qstrcmp(name, QMediaAudioProbeControl_iid) == 0) {
+        if (!m_audioProbeControl)
+            m_audioProbeControl = new DirectShowAudioProbeControl();
+        m_audioProbeControl->ref();
+        updateAudioProbe();
+        return m_audioProbeControl;
+    } else if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0) {
+        if (!m_videoProbeControl)
+            m_videoProbeControl = new DirectShowVideoProbeControl();
+        m_videoProbeControl->ref();
+        updateVideoProbe();
+        return m_videoProbeControl;
     }
     return 0;
 }
@@ -238,6 +267,20 @@ void DirectShowPlayerService::releaseControl(QMediaControl *control)
         delete m_videoWindowControl;
 
         m_videoWindowControl = 0;
+    } else if (control == m_audioProbeControl) {
+        if (!m_audioProbeControl->deref()) {
+            DirectShowAudioProbeControl *old = m_audioProbeControl;
+            m_audioProbeControl = nullptr;
+            updateAudioProbe();
+            delete old;
+        }
+    } else if (control == m_videoProbeControl) {
+        if (!m_videoProbeControl->deref()) {
+            DirectShowVideoProbeControl *old = m_videoProbeControl;
+            m_videoProbeControl = nullptr;
+            updateVideoProbe();
+            delete old;
+        }
     }
 }
 
@@ -347,6 +390,10 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             m_pendingTasks |= SetAudioOutput;
         if (m_videoOutput)
             m_pendingTasks |= SetVideoOutput;
+        if (m_audioProbeControl)
+            m_pendingTasks |= SetAudioProbe;
+        if (m_videoProbeControl)
+            m_pendingTasks |= SetVideoProbe;
 
         if (m_rate != 1.0)
             m_pendingTasks |= SetRate;
@@ -430,6 +477,18 @@ void DirectShowPlayerService::doRender(QMutexLocker *locker)
 
         m_pendingTasks ^= SetVideoOutput;
         m_executedTasks |= SetVideoOutput;
+    }
+
+    if (m_pendingTasks & SetAudioProbe) {
+        doSetAudioProbe(locker);
+        m_pendingTasks ^= SetAudioProbe;
+        m_executedTasks |= SetAudioProbe;
+    }
+
+    if (m_pendingTasks & SetVideoProbe) {
+        doSetVideoProbe(locker);
+        m_pendingTasks ^= SetVideoProbe;
+        m_executedTasks |= SetVideoProbe;
     }
 
     IFilterGraph2 *graph = m_graph;
@@ -599,6 +658,9 @@ void DirectShowPlayerService::doReleaseGraph(QMutexLocker *locker)
         control->Release();
     }
 
+    doReleaseAudioProbe(locker);
+    doReleaseVideoProbe(locker);
+
     if (m_source) {
         m_source->Release();
         m_source = 0;
@@ -610,6 +672,139 @@ void DirectShowPlayerService::doReleaseGraph(QMutexLocker *locker)
     m_graph = 0;
 
     m_loop->wake();
+}
+
+void DirectShowPlayerService::doSetVideoProbe(QMutexLocker *locker)
+{
+    Q_UNUSED(locker);
+
+    if (!m_graph) {
+        qCWarning(qtDirectShowPlugin, "Attempting to set a video probe without a valid graph!");
+        return;
+    }
+
+    // Create the sample grabber, if necessary.
+    if (!m_videoSampleGrabber) {
+        m_videoSampleGrabber = new DirectShowSampleGrabber;
+        connect(m_videoSampleGrabber, &DirectShowSampleGrabber::bufferAvailable, this, &DirectShowPlayerService::onVideoBufferAvailable);
+    }
+
+    if (FAILED(m_graph->AddFilter(m_videoSampleGrabber->filter(), L"Video Sample Grabber"))) {
+        qCWarning(qtDirectShowPlugin, "Failed to add the video sample grabber into the graph!");
+        return;
+    }
+
+    // TODO: Make util function for getting this, so it's easy to keep it in sync.
+    static const GUID subtypes[] = { MEDIASUBTYPE_ARGB32,
+                                     MEDIASUBTYPE_RGB32,
+                                     MEDIASUBTYPE_RGB24,
+                                     MEDIASUBTYPE_RGB565,
+                                     MEDIASUBTYPE_RGB555,
+                                     MEDIASUBTYPE_AYUV,
+                                     MEDIASUBTYPE_I420,
+                                     MEDIASUBTYPE_IYUV,
+                                     MEDIASUBTYPE_YV12,
+                                     MEDIASUBTYPE_UYVY,
+                                     MEDIASUBTYPE_YUYV,
+                                     MEDIASUBTYPE_YUY2,
+                                     MEDIASUBTYPE_NV12,
+                                     MEDIASUBTYPE_MJPG,
+                                     MEDIASUBTYPE_IMC1,
+                                     MEDIASUBTYPE_IMC2,
+                                     MEDIASUBTYPE_IMC3,
+                                     MEDIASUBTYPE_IMC4 };
+
+    // Negotiate the subtype
+    DirectShowMediaType mediaType(AM_MEDIA_TYPE { MEDIATYPE_Video });
+    const int items = (sizeof subtypes / sizeof(GUID));
+    bool connected = false;
+    for (int i = 0; i != items; ++i) {
+        mediaType->subtype = subtypes[i];
+        m_videoSampleGrabber->setMediaType(&mediaType);
+        if (SUCCEEDED(DirectShowUtils::connectFilters(m_graph, m_source, m_videoSampleGrabber->filter(), true)))
+            connected = true;
+            break;
+    }
+
+    if (!connected) {
+        qCWarning(qtDirectShowPlugin, "Unable to connect the video probe!");
+        return;
+    }
+
+    m_videoSampleGrabber->start(DirectShowSampleGrabber::CallbackMethod::BufferCB);
+}
+
+void DirectShowPlayerService::doSetAudioProbe(QMutexLocker *locker)
+{
+    Q_UNUSED(locker);
+
+    if (!m_graph) {
+        qCWarning(qtDirectShowPlugin, "Attempting to set an audio probe without a valid graph!");
+        return;
+    }
+
+    // Create the sample grabber, if necessary.
+    if (!m_audioSampleGrabber) {
+        m_audioSampleGrabber = new DirectShowSampleGrabber;
+        connect(m_audioSampleGrabber, &DirectShowSampleGrabber::bufferAvailable, this, &DirectShowPlayerService::onAudioBufferAvailable);
+    }
+
+    static const AM_MEDIA_TYPE mediaType { MEDIATYPE_Audio, MEDIASUBTYPE_PCM };
+    m_audioSampleGrabber->setMediaType(&mediaType);
+
+    if (FAILED(m_graph->AddFilter(m_audioSampleGrabber->filter(), L"Audio Sample Grabber"))) {
+        qCWarning(qtDirectShowPlugin, "Failed to add the audio sample grabber into the graph!");
+        return;
+    }
+
+    if (FAILED(DirectShowUtils::connectFilters(m_graph, m_source, m_audioSampleGrabber->filter(), true))) {
+        qCWarning(qtDirectShowPlugin, "Failed to connect the audio sample grabber");
+        return;
+    }
+
+    m_audioSampleGrabber->start(DirectShowSampleGrabber::CallbackMethod::BufferCB);
+}
+
+void DirectShowPlayerService::doReleaseVideoProbe(QMutexLocker *locker)
+{
+    Q_UNUSED(locker);
+
+    if (!m_graph)
+        return;
+
+    if (!m_videoSampleGrabber)
+        return;
+
+    m_videoSampleGrabber->stop();
+    HRESULT hr = m_graph->RemoveFilter(m_videoSampleGrabber->filter());
+    if (FAILED(hr)) {
+        qCWarning(qtDirectShowPlugin, "Failed to remove the video sample grabber!");
+        return;
+    }
+
+    m_videoSampleGrabber->deleteLater();
+    m_videoSampleGrabber = nullptr;
+}
+
+void DirectShowPlayerService::doReleaseAudioProbe(QMutexLocker *locker)
+{
+    Q_UNUSED(locker);
+
+    if (!m_graph)
+        return;
+
+    if (!m_audioSampleGrabber)
+        return;
+
+    m_audioSampleGrabber->stop();
+    HRESULT hr = m_graph->RemoveFilter(m_audioSampleGrabber->filter());
+    if (FAILED(hr)) {
+        qCWarning(qtDirectShowPlugin, "Failed to remove the audio sample grabber!");
+        return;
+    }
+
+    m_audioSampleGrabber->deleteLater();
+    m_audioSampleGrabber = nullptr;
 }
 
 int DirectShowPlayerService::findStreamTypes(IBaseFilter *source) const
@@ -1119,6 +1314,40 @@ void DirectShowPlayerService::setVideoOutput(IBaseFilter *filter)
     }
 }
 
+void DirectShowPlayerService::updateAudioProbe()
+{
+    QMutexLocker locker(&m_mutex);
+
+    // Set/Activate the audio probe.
+    if (m_graph) {
+        // If we don't have a audio probe, then stop and release the audio sample grabber
+        if (!m_audioProbeControl && (m_executedTasks & SetAudioProbe)) {
+            m_pendingTasks |= ReleaseAudioProbe;
+            ::SetEvent(m_taskHandle);
+            m_loop->wait(&m_mutex);
+        } else if (m_audioProbeControl) {
+            m_pendingTasks |= SetAudioProbe;
+        }
+    }
+}
+
+void DirectShowPlayerService::updateVideoProbe()
+{
+    QMutexLocker locker(&m_mutex);
+
+    // Set/Activate the video probe.
+    if (m_graph) {
+        // If we don't have a video probe, then stop and release the video sample grabber
+        if (!m_videoProbeControl && (m_executedTasks & SetVideoProbe)) {
+            m_pendingTasks |= ReleaseVideoProbe;
+            ::SetEvent(m_taskHandle);
+            m_loop->wait(&m_mutex);
+        } else if (m_videoProbeControl){
+            m_pendingTasks |= SetVideoProbe;
+        }
+    }
+}
+
 void DirectShowPlayerService::doReleaseVideoOutput(QMutexLocker *locker)
 {
     Q_UNUSED(locker)
@@ -1213,6 +1442,97 @@ void DirectShowPlayerService::customEvent(QEvent *event)
 void DirectShowPlayerService::videoOutputChanged()
 {
     setVideoOutput(m_videoRendererControl->filter());
+}
+
+void DirectShowPlayerService::onAudioBufferAvailable(double time, quint8 *buffer, long len)
+{
+    QMutexLocker locker(&m_mutex);
+    if (!m_audioProbeControl || !m_audioSampleGrabber)
+        return;
+
+    DirectShowMediaType mt(AM_MEDIA_TYPE { GUID_NULL });
+    const bool ok = m_audioSampleGrabber->getConnectedMediaType(&mt);
+    if (!ok)
+        return;
+
+    if (mt->majortype != MEDIATYPE_Audio)
+        return;
+
+    if (mt->subtype != MEDIASUBTYPE_PCM)
+        return;
+
+    const bool isWfx = ((mt->formattype == FORMAT_WaveFormatEx) && (mt->cbFormat >= sizeof(WAVEFORMATEX)));
+    WAVEFORMATEX *wfx = isWfx ? reinterpret_cast<WAVEFORMATEX *>(mt->pbFormat) : nullptr;
+
+    if (!wfx)
+        return;
+
+    if (wfx->wFormatTag != WAVE_FORMAT_PCM && wfx->wFormatTag != WAVE_FORMAT_EXTENSIBLE)
+        return;
+
+    if ((wfx->wFormatTag == WAVE_FORMAT_EXTENSIBLE) && (wfx->cbSize >= sizeof(WAVEFORMATEXTENSIBLE))) {
+        WAVEFORMATEXTENSIBLE *wfxe = reinterpret_cast<WAVEFORMATEXTENSIBLE *>(wfx);
+        if (wfxe->SubFormat != KSDATAFORMAT_SUBTYPE_PCM)
+            return;
+    }
+
+    QAudioFormat format;
+    format.setSampleRate(wfx->nSamplesPerSec);
+    format.setChannelCount(wfx->nChannels);
+    format.setSampleSize(wfx->wBitsPerSample);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    if (format.sampleSize() == 8)
+        format.setSampleType(QAudioFormat::UnSignedInt);
+    else
+        format.setSampleType(QAudioFormat::SignedInt);
+
+    const quint64 startTime = quint64(time * 1000.);
+    QAudioBuffer audioBuffer(QByteArray(reinterpret_cast<const char *>(buffer), len),
+                             format,
+                             startTime);
+
+    Q_EMIT m_audioProbeControl->audioBufferProbed(audioBuffer);
+}
+
+void DirectShowPlayerService::onVideoBufferAvailable(double time, quint8 *buffer, long len)
+{
+    Q_UNUSED(time);
+    Q_UNUSED(buffer);
+    Q_UNUSED(len);
+
+    QMutexLocker locker(&m_mutex);
+    if (!m_videoProbeControl || !m_videoSampleGrabber)
+        return;
+
+    DirectShowMediaType mt(AM_MEDIA_TYPE { GUID_NULL });
+    const bool ok = m_videoSampleGrabber->getConnectedMediaType(&mt);
+    if (!ok)
+        return;
+
+    if (mt->majortype != MEDIATYPE_Video)
+        return;
+
+    QVideoFrame::PixelFormat format = DirectShowMediaType::pixelFormatFromType(&mt);
+    if (format == QVideoFrame::Format_Invalid) {
+        qCWarning(qtDirectShowPlugin, "Invalid format, stopping video probes!");
+        m_videoSampleGrabber->stop();
+        return;
+    }
+
+    const QVideoSurfaceFormat &videoFormat = DirectShowMediaType::videoFormatFromType(&mt);
+    if (!videoFormat.isValid())
+        return;
+
+    const QSize &size = videoFormat.frameSize();
+
+    const int bytesPerLine = DirectShowMediaType::bytesPerLine(videoFormat);
+    QByteArray data(reinterpret_cast<const char *>(buffer), len);
+    QVideoFrame frame(new QMemoryVideoBuffer(data, bytesPerLine),
+                      size,
+                      format);
+
+    Q_EMIT m_videoProbeControl->videoFrameProbed(frame);
 }
 
 void DirectShowPlayerService::graphEvent(QMutexLocker *locker)
@@ -1403,6 +1723,16 @@ void DirectShowPlayerService::run()
             m_executingTask = ReleaseVideoOutput;
 
             doReleaseVideoOutput(&locker);
+        } else if (m_pendingTasks & ReleaseAudioProbe) {
+            m_pendingTasks ^= ReleaseAudioProbe;
+            m_executingTask = ReleaseAudioProbe;
+
+            doReleaseAudioProbe(&locker);
+        } else if (m_pendingTasks & ReleaseVideoProbe) {
+            m_pendingTasks ^= ReleaseVideoProbe;
+            m_executingTask = ReleaseVideoProbe;
+
+            doReleaseVideoProbe(&locker);
         } else if (m_pendingTasks & SetUrlSource) {
             m_pendingTasks ^= SetUrlSource;
             m_executingTask = SetUrlSource;
@@ -1413,6 +1743,16 @@ void DirectShowPlayerService::run()
             m_executingTask = SetStreamSource;
 
             doSetStreamSource(&locker);
+        } else if (m_pendingTasks & SetAudioProbe) {
+            m_pendingTasks ^= SetAudioProbe;
+            m_executingTask = SetAudioProbe;
+
+            doSetAudioProbe(&locker);
+        } else if (m_pendingTasks & SetVideoProbe) {
+            m_pendingTasks ^= SetVideoProbe;
+            m_executingTask = SetVideoProbe;
+
+            doSetVideoProbe(&locker);
         } else if (m_pendingTasks & Render) {
             m_pendingTasks ^= Render;
             m_executingTask = Render;
@@ -1454,3 +1794,5 @@ void DirectShowPlayerService::run()
         m_executingTask = 0;
     }
 }
+
+QT_END_NAMESPACE

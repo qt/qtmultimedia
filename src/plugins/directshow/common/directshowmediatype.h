@@ -47,7 +47,7 @@
 #include <dvdmedia.h>
 #include <QtCore/qglobal.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DirectShowMediaType
 {
@@ -72,6 +72,7 @@ public:
 
     static void init(AM_MEDIA_TYPE *type);
     static void copy(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source);
+    static void copyToUninitialized(AM_MEDIA_TYPE *target, const AM_MEDIA_TYPE *source);
     static void move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE **source);
     static void move(AM_MEDIA_TYPE *target, AM_MEDIA_TYPE &source);
     static void clear(AM_MEDIA_TYPE &type);
@@ -90,5 +91,7 @@ private:
 };
 
 Q_DECLARE_TYPEINFO(DirectShowMediaType, Q_MOVABLE_TYPE);
+
+QT_END_NAMESPACE
 
 #endif

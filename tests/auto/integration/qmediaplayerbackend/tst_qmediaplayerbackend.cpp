@@ -382,7 +382,9 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     stateSpy.clear();
     statusSpy.clear();
+    positionSpy.clear();
 
+    qint64 positionBeforePause = player.position();
     player.pause();
 
     QCOMPARE(player.state(), QMediaPlayer::PausedState);
@@ -390,6 +392,11 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     QCOMPARE(stateSpy.count(), 1);
     QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::State>(), QMediaPlayer::PausedState);
+
+    QTest::qWait(2000);
+
+    QVERIFY(qAbs(player.position() - positionBeforePause) < 100);
+    QCOMPARE(positionSpy.count(), 0);
 
     stateSpy.clear();
     statusSpy.clear();
@@ -541,6 +548,32 @@ void tst_QMediaPlayerBackend::processEOS()
     QCOMPARE(stateSpy.count(), 0);
     QTRY_VERIFY(statusSpy.count() > 0 &&
         statusSpy.last()[0].value<QMediaPlayer::MediaStatus>() == QMediaPlayer::LoadedMedia);
+
+    player.play();
+    player.setPosition(900);
+    //wait up to 5 seconds for EOS
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.position(), player.duration());
+
+    stateSpy.clear();
+    statusSpy.clear();
+    positionSpy.clear();
+
+    // pause() should reset position to beginning and status to Buffered
+    player.pause();
+
+    QTRY_COMPARE(player.position(), 0);
+    QTRY_VERIFY(positionSpy.count() > 0);
+    QCOMPARE(positionSpy.first()[0].value<qint64>(), 0);
+
+    QCOMPARE(player.state(), QMediaPlayer::PausedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    QCOMPARE(stateSpy.count(), 1);
+    QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::State>(), QMediaPlayer::PausedState);
+    QVERIFY(statusSpy.count() > 0);
+    QCOMPARE(statusSpy.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::BufferedMedia);
 }
 
 // Helper class for tst_QMediaPlayerBackend::deleteLaterAtEOS()
@@ -748,6 +781,10 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     player.pause();
     QTRY_COMPARE(player.state(), QMediaPlayer::PausedState); // it might take some time for the operation to be completed
     QTRY_VERIFY(!surface->m_frameList.isEmpty()); // we must see a frame at position 7000 here
+
+    // Make sure that the frame has a timestamp before testing - not all backends provides this
+    if (surface->m_frameList.back().startTime() < 0)
+        QSKIP("No timestamp");
 
     {
         QVideoFrame frame = surface->m_frameList.back();
@@ -1301,7 +1338,9 @@ void tst_QMediaPlayerBackend::surfaceTest_data()
     formatsYUV << QVideoFrame::Format_YUV420P
                << QVideoFrame::Format_YV12
                << QVideoFrame::Format_UYVY
-               << QVideoFrame::Format_YUYV;
+               << QVideoFrame::Format_YUYV
+               << QVideoFrame::Format_NV12
+               << QVideoFrame::Format_NV21;
 
     QTest::newRow("RGB formats")
             << formatsRGB;
@@ -1328,7 +1367,9 @@ void tst_QMediaPlayerBackend::surfaceTest()
     player.setMedia(localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
-    QVERIFY(surface.m_totalFrames >= 25);
+    if (surface.error() == QAbstractVideoSurface::UnsupportedFormatError)
+        QSKIP("None of the pixel formats is supported by the backend");
+    QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
 }
 
 void tst_QMediaPlayerBackend::metadata()
@@ -1388,7 +1429,10 @@ QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
 
 bool TestVideoSurface::start(const QVideoSurfaceFormat &format)
 {
-    if (!isFormatSupported(format)) return false;
+    if (!isFormatSupported(format)) {
+        setError(UnsupportedFormatError);
+        return false;
+    }
 
     return QAbstractVideoSurface::start(format);
 }

@@ -334,6 +334,26 @@ void DSCameraSession::setImageProcessingParameter(
     }
 }
 
+bool DSCameraSession::getCameraControlInterface(IAMCameraControl **cameraControl) const
+{
+    if (!m_sourceFilter) {
+        qCDebug(qtDirectShowPlugin, "getCameraControlInterface failed: No capture filter!");
+        return false;
+    }
+
+    if (!cameraControl) {
+        qCDebug(qtDirectShowPlugin, "getCameraControlInterface failed: Invalid out argument!");
+        return false;
+    }
+
+    if (FAILED(m_sourceFilter->QueryInterface(IID_IAMCameraControl, reinterpret_cast<void **>(cameraControl)))) {
+        qCDebug(qtDirectShowPlugin, "getCameraControlInterface failed: Querying camera control failed!");
+        return false;
+    }
+
+    return true;
+}
+
 bool DSCameraSession::load()
 {
     unload();

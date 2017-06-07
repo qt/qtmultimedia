@@ -49,6 +49,8 @@
 
 #include <initguid.h>
 
+QT_BEGIN_NAMESPACE
+
 Q_LOGGING_CATEGORY(qLcRenderFilter, "qt.multimedia.plugins.directshow.renderfilter")
 
 // { e23cad72-153d-406c-bf3f-4c4b523d96f2 }
@@ -786,3 +788,5 @@ bool VideoSurfaceFilter::event(QEvent *e)
 
     return QObject::event(e);
 }
+
+QT_END_NAMESPACE

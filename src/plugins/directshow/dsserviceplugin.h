@@ -43,7 +43,7 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qmediaserviceproviderplugin.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class DSServicePlugin
     : public QMediaServiceProviderPlugin
@@ -73,5 +73,7 @@ public:
     QList<QByteArray> devices(const QByteArray &service) const;
     QString deviceDescription(const QByteArray &service, const QByteArray &device);
 };
+
+QT_END_NAMESPACE
 
 #endif // DSSERVICEPLUGIN_H

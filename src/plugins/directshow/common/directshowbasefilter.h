@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,47 +37,65 @@
 **
 ****************************************************************************/
 
-#include "directshowobject.h"
+#ifndef DIRECTSHOWBASEFILTER_H
+#define DIRECTSHOWBASEFILTER_H
 
-DirectShowObject::DirectShowObject()
-    : m_ref(1)
+#include "directshowpin.h"
+
+QT_BEGIN_NAMESPACE
+
+class DirectShowBaseFilter : public DirectShowObject
+                           , public IBaseFilter
 {
-}
+    DIRECTSHOW_OBJECT
 
-DirectShowObject::~DirectShowObject()
-{
-    Q_ASSERT(m_ref == 0);
-}
+public:
+    DirectShowBaseFilter();
+    virtual ~DirectShowBaseFilter();
 
-HRESULT DirectShowObject::getInterface(const IID &riid, void **ppvObject)
-{
-    Q_UNUSED(riid)
-    *ppvObject = NULL;
-    return E_NOINTERFACE;
-}
+    FILTER_STATE state() const { return m_state; }
+    HRESULT NotifyEvent(long eventCode, LONG_PTR eventParam1, LONG_PTR eventParam2);
 
-ULONG DirectShowObject::ref()
-{
-    return InterlockedIncrement(&m_ref);
-}
+    virtual QList<DirectShowPin *> pins() = 0;
 
-ULONG DirectShowObject::unref()
-{
-    ULONG ref = InterlockedDecrement(&m_ref);
-    if (ref == 0)
-        delete this;
+    // DirectShowObject
+    HRESULT getInterface(const IID &riid, void **ppvObject);
 
-    return ref;
-}
+    // IPersist
+    STDMETHODIMP GetClassID(CLSID *pClassID);
 
-HRESULT GetInterface(IUnknown *pUnk, void **ppv)
-{
-    if (!ppv)
-        return E_POINTER;
+    // IMediaFilter
+    STDMETHODIMP Run(REFERENCE_TIME tStart);
+    STDMETHODIMP Pause();
+    STDMETHODIMP Stop();
 
-    *ppv = pUnk;
-    pUnk->AddRef();
+    STDMETHODIMP GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *pState);
 
-    return S_OK;
-}
+    STDMETHODIMP SetSyncSource(IReferenceClock *pClock);
+    STDMETHODIMP GetSyncSource(IReferenceClock **ppClock);
 
+    // IBaseFilter
+    STDMETHODIMP EnumPins(IEnumPins **ppEnum);
+    STDMETHODIMP FindPin(LPCWSTR Id, IPin **ppPin);
+
+    STDMETHODIMP JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pName);
+
+    STDMETHODIMP QueryFilterInfo(FILTER_INFO *pInfo);
+    STDMETHODIMP QueryVendorInfo(LPWSTR *pVendorInfo);
+
+protected:
+    QMutex m_mutex;
+    FILTER_STATE m_state;
+    IFilterGraph *m_graph;
+    IReferenceClock *m_clock;
+    IMediaEventSink *m_sink;
+    QString m_filterName;
+    REFERENCE_TIME m_startTime;
+
+private:
+    Q_DISABLE_COPY(DirectShowBaseFilter)
+};
+
+QT_END_NAMESPACE
+
+#endif // DIRECTSHOWBASEFILTER_H

@@ -42,6 +42,7 @@
 #include "androidsurfacetexture.h"
 #include "androidsurfaceview.h"
 #include "qandroidmultimediautils.h"
+#include "qandroidglobal.h"
 
 #include <qstringlist.h>
 #include <qdebug.h>
@@ -54,6 +55,11 @@
 QT_BEGIN_NAMESPACE
 
 static const char QtCameraListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtCameraListener";
+
+static QString cameraPermissionKey()
+{
+    return QStringLiteral("android.permission.CAMERA");
+}
 
 typedef QHash<int, AndroidCamera *> CameraMap;
 Q_GLOBAL_STATIC(CameraMap, cameras)
@@ -756,6 +762,9 @@ QJNIObjectPrivate AndroidCamera::getCameraObject()
 
 int AndroidCamera::getNumberOfCameras()
 {
+    if (!requestCameraPermission())
+        return 0;
+
     return QJNIObjectPrivate::callStaticMethod<jint>("android/hardware/Camera",
                                                      "getNumberOfCameras");
 }
@@ -788,6 +797,11 @@ void AndroidCamera::getCameraInfo(int id, AndroidCameraInfo *info)
     default:
         break;
     }
+}
+
+bool AndroidCamera::requestCameraPermission()
+{
+    return qt_androidRequestPermission(cameraPermissionKey());
 }
 
 void AndroidCamera::startPreview()

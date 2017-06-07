@@ -37,43 +37,34 @@
 **
 ****************************************************************************/
 
-#ifndef DIRECTSHOWPINENUM_H
-#define DIRECTSHOWPINENUM_H
+#ifndef DIRECTSHOWVIDEOBUFFER_H
+#define DIRECTSHOWVIDEOBUFFER_H
 
 #include <dshow.h>
 
-#include <QtCore/qlist.h>
-#include "directshowpin.h"
+#include <qabstractvideobuffer.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
-class DirectShowBaseFilter;
-
-class DirectShowPinEnum : public DirectShowObject
-                        , public IEnumPins
+class DirectShowVideoBuffer : public QAbstractVideoBuffer
 {
-    DIRECTSHOW_OBJECT
-
 public:
-    DirectShowPinEnum(DirectShowBaseFilter *filter);
-    DirectShowPinEnum(const QList<IPin *> &pins);
-    ~DirectShowPinEnum();
+    DirectShowVideoBuffer(IMediaSample *sample, int bytesPerLine);
+    ~DirectShowVideoBuffer();
 
-    // DirectShowObject
-    HRESULT getInterface(REFIID riid, void **ppvObject);
+    IMediaSample *sample() { return m_sample; }
 
-    // IEnumPins
-    STDMETHODIMP Next(ULONG cPins, IPin **ppPins, ULONG *pcFetched);
-    STDMETHODIMP Skip(ULONG cPins);
-    STDMETHODIMP Reset();
-    STDMETHODIMP Clone(IEnumPins **ppEnum);
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine);
+    void unmap();
+
+    MapMode mapMode() const;
 
 private:
-    Q_DISABLE_COPY(DirectShowPinEnum)
-
-    DirectShowBaseFilter *m_filter;
-    QList<IPin *> m_pins;
-    int m_index;
+    IMediaSample *m_sample;
+    int m_bytesPerLine;
+    MapMode m_mapMode;
 };
+
+QT_END_NAMESPACE
 
 #endif

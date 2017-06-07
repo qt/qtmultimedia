@@ -201,6 +201,7 @@ public:
 
     static int getNumberOfCameras();
     static void getCameraInfo(int id, AndroidCameraInfo *info);
+    static bool requestCameraPermission();
 
     static bool initJNI(JNIEnv *env);
 

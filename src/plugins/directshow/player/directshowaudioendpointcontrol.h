@@ -44,9 +44,9 @@
 
 #include <dshow.h>
 
-class DirectShowPlayerService;
+QT_BEGIN_NAMESPACE
 
-QT_USE_NAMESPACE
+class DirectShowPlayerService;
 
 class DirectShowAudioEndpointControl : public QAudioOutputSelectorControl
 {
@@ -75,6 +75,8 @@ private:
     QString m_defaultEndpoint;
     QString m_activeEndpoint;
 };
+
+QT_END_NAMESPACE
 
 #endif
 
