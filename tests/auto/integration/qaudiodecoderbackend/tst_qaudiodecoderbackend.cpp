@@ -30,6 +30,8 @@
 #include <QDebug>
 #include "qaudiodecoder.h"
 
+#include "../shared/mediafileselector.h"
+
 #define TEST_FILE_NAME "testdata/test.wav"
 #define TEST_UNSUPPORTED_FILE_NAME "testdata/test-unsupported.avi"
 #define TEST_CORRUPTED_FILE_NAME "testdata/test-corrupted.wav"
@@ -56,6 +58,9 @@ private slots:
     void unsupportedFileTest();
     void corruptedFileTest();
     void deviceTest();
+
+private:
+    bool isWavSupported();
 };
 
 void tst_QAudioDecoderBackend::init()
@@ -67,14 +72,28 @@ void tst_QAudioDecoderBackend::initTestCase()
     QAudioDecoder d;
     if (!d.isAvailable())
         QSKIP("Audio decoder service is not available");
+
+    qRegisterMetaType<QMediaContent>();
 }
 
 void tst_QAudioDecoderBackend::cleanup()
 {
 }
 
+bool tst_QAudioDecoderBackend::isWavSupported()
+{
+#ifdef WAV_SUPPORT_NOT_FORCED
+    return !MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA(TEST_FILE_NAME)).isNull();
+#else
+    return true;
+#endif
+}
+
 void tst_QAudioDecoderBackend::fileTest()
 {
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::ServiceMissingError)
         QSKIP("There is no audio decoding support on this platform.");
@@ -411,6 +430,9 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
 
 void tst_QAudioDecoderBackend::deviceTest()
 {
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::ServiceMissingError)
         QSKIP("There is no audio decoding support on this platform.");

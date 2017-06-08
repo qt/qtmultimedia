@@ -17,6 +17,3 @@ qtHaveModule(quick) {
 }
 
 !qtHaveModule(widgets): SUBDIRS -= qcamerabackend
-
-# QTBUG-60268
-boot2qt: SUBDIRS -= qdeclarativevideooutput_window

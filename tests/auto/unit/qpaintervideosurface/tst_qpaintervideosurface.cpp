@@ -557,6 +557,11 @@ void tst_QPainterVideoSurface::shaderType()
 {
     QPainterVideoSurface surface;
     QGLWidget widget;
+    if (!widget.context()
+        || !widget.context()->isValid()) {
+        QSKIP("Platform does not support GLContext");
+    }
+
     widget.show();
     QTest::qWaitForWindowExposed(&widget);
     widget.makeCurrent();
@@ -649,6 +654,11 @@ void tst_QPainterVideoSurface::shaderTypeStarted()
     QFETCH(QPainterVideoSurface::ShaderType, shaderType);
 
     QGLWidget widget;
+    if (!widget.context()
+        || !widget.context()->isValid()) {
+        QSKIP("Platform does not support GLContext");
+    }
+
     widget.show();
     QTest::qWaitForWindowExposed(&widget);
     widget.makeCurrent();
@@ -894,6 +904,11 @@ void tst_QPainterVideoSurface::shaderSupportedFormat()
     QFETCH(bool, supportedFormat);
 
     QGLWidget widget;
+    if (!widget.context()
+        || !widget.context()->isValid()) {
+        QSKIP("Platform does not support GLContext");
+    }
+
     widget.show();
     QTest::qWaitForWindowExposed(&widget);
     widget.makeCurrent();
@@ -1011,6 +1026,11 @@ void tst_QPainterVideoSurface::shaderPresent()
     QFETCH(int, bytesPerLineB);
 
     QGLWidget widget;
+    if (!widget.context()
+        || !widget.context()->isValid()) {
+        QSKIP("Platform does not support GLContext");
+    }
+
     widget.show();
     QTest::qWaitForWindowExposed(&widget);
     widget.makeCurrent();
@@ -1142,6 +1162,11 @@ void tst_QPainterVideoSurface::shaderPresentOpaqueFrame()
     QFETCH(QPainterVideoSurface::ShaderType, shaderType);
 
     QGLWidget widget;
+    if (!widget.context()
+        || !widget.context()->isValid()) {
+        QSKIP("Platform does not support GLContext");
+    }
+
     widget.show();
     QTest::qWaitForWindowExposed(&widget);
     widget.makeCurrent();
@@ -1191,6 +1216,11 @@ void tst_QPainterVideoSurface::shaderPresentGLFrame()
     QFETCH(QPainterVideoSurface::ShaderType, shaderType);
 
     QGLWidget widget;
+    if (!widget.context()
+        || !widget.context()->isValid()) {
+        QSKIP("Platform does not support GLContext");
+    }
+
     widget.show();
     QTest::qWaitForWindowExposed(&widget);
     widget.makeCurrent();
