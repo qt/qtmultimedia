@@ -41,6 +41,7 @@
 #include "qdeclarative_audioengine_p.h"
 #include "qsoundinstance_p.h"
 #include "qdebug.h"
+#include "qrandom.h"
 
 #define DEBUG_AUDIOENGINE
 
@@ -272,7 +273,7 @@ void QDeclarativePlayVariation::setSampleObject(QDeclarativeAudioSample *sampleO
 
 void QDeclarativePlayVariation::applyParameters(QSoundInstance *soundInstance)
 {
-    qreal pitch = qreal(qrand() % 1001) * 0.001f * (m_maxPitch - m_minPitch) + m_minPitch;
-    qreal gain = qreal(qrand() % 1001) * 0.001f * (m_maxGain - m_minGain) + m_minGain;
+    qreal pitch = QRandomGenerator::bounded(1001 * 0.001f) * (m_maxPitch - m_minPitch) + m_minPitch;
+    qreal gain = QRandomGenerator::bounded(1001 * 0.001f) * (m_maxGain - m_minGain) + m_minGain;
     soundInstance->updateVariationParameters(pitch, gain, m_looping);
 }

@@ -43,6 +43,7 @@
 #include "qmediaobject_p.h"
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qrandom.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -124,7 +125,7 @@ int QMediaPlaylistNavigatorPrivate::nextItemPos(int steps) const
                     randomModePositions.append(-1);
                 int res = randomModePositions[randomPositionsOffset+steps];
                 if (res<0 || res >= playlist->mediaCount()) {
-                    res = qrand() % playlist->mediaCount();
+                    res = QRandomGenerator::bounded(playlist->mediaCount());
                     randomModePositions[randomPositionsOffset+steps] = res;
                 }
 
@@ -177,7 +178,7 @@ int QMediaPlaylistNavigatorPrivate::previousItemPos(int steps) const
 
                 int res = randomModePositions[randomPositionsOffset-steps];
                 if (res<0 || res >= playlist->mediaCount()) {
-                    res = qrand() % playlist->mediaCount();
+                    res = QRandomGenerator::bounded(playlist->mediaCount());
                     randomModePositions[randomPositionsOffset-steps] = res;
                 }
 

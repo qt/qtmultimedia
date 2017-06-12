@@ -42,6 +42,7 @@
 #include "qmediacontent.h"
 #include "qmediaobject_p.h"
 #include "qplaylistfileparser_p.h"
+#include "qrandom.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -266,7 +267,7 @@ void QMediaNetworkPlaylistProvider::shuffle()
         QList<QMediaContent> resources;
 
         while (!d->resources.isEmpty()) {
-            resources.append(d->resources.takeAt(qrand() % d->resources.size()));
+            resources.append(d->resources.takeAt(QRandomGenerator::bounded(d->resources.size())));
         }
 
         d->resources = resources;

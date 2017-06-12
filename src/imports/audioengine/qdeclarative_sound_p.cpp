@@ -43,6 +43,7 @@
 #include "qdeclarative_soundinstance_p.h"
 #include "qdeclarative_audioengine_p.h"
 #include "qdebug.h"
+#include "qrandom.h"
 
 #define DEBUG_AUDIOENGINE
 
@@ -316,7 +317,7 @@ int QDeclarativeSound::genVariationIndex(int oldVariationIndex)
         case QDeclarativeSound::Random: {
             if (oldVariationIndex < 0)
                 oldVariationIndex = 0;
-            return (oldVariationIndex + (qrand() % (m_playlist.count() + 1))) % m_playlist.count();
+            return (oldVariationIndex + (QRandomGenerator::bounded(m_playlist.count() + 1))) % m_playlist.count();
         }
         default:
             return (oldVariationIndex + 1) % m_playlist.count();
