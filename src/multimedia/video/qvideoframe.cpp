@@ -227,6 +227,11 @@ private:
     horizontally and vertically sub-sampled, i.e. the height and width of the U and V planes are
     half that of the Y plane.
 
+    \value Format_YUV422P
+    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
+    horizontally sub-sampled, i.e. the width of the U and V planes are
+    half that of the Y plane, and height of U and V planes is the same as Y.
+
     \value Format_YV12
     The frame is stored using an 8-bit per component planar YVU format with the V and U planes
     horizontally and vertically sub-sampled, i.e. the height and width of the V and U planes are
@@ -638,6 +643,7 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
         // Single plane or opaque format.
         break;
     case Format_YUV420P:
+    case Format_YUV422P:
     case Format_YV12: {
         // The UV stride is usually half the Y stride and is 32-bit aligned.
         // However it's not always the case, at least on Windows where the
@@ -646,13 +652,14 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
         // have a correct stride.
         const int height = d->size.height();
         const int yStride = d->bytesPerLine[0];
-        const int uvStride = (d->mappedBytes - (yStride * height)) / height;
+        const int uvHeight = d->pixelFormat == Format_YUV422P ? height : height / 2;
+        const int uvStride = (d->mappedBytes - (yStride * height)) / uvHeight / 2;
 
-        // Three planes, the second and third vertically and horizontally subsampled.
+        // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
         d->planeCount = 3;
         d->bytesPerLine[2] = d->bytesPerLine[1] = uvStride;
         d->data[1] = d->data[0] + (yStride * height);
-        d->data[2] = d->data[1] + (uvStride * height / 2);
+        d->data[2] = d->data[1] + (uvStride * uvHeight);
         break;
     }
     case Format_NV12:
@@ -1001,6 +1008,7 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
     case Format_AYUV444_Premultiplied:
     case Format_YUV444:
     case Format_YUV420P:
+    case Format_YUV422P:
     case Format_YV12:
     case Format_UYVY:
     case Format_YUYV:
@@ -1058,6 +1066,7 @@ static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
     /* Format_AYUV444_Premultiplied */  nullptr,
     /* Format_YUV444 */                 qt_convert_YUV444_to_ARGB32,
     /* Format_YUV420P */                qt_convert_YUV420P_to_ARGB32,
+    /* Format_YUV422P */                nullptr,
     /* Format_YV12 */                   qt_convert_YV12_to_ARGB32,
     /* Format_UYVY */                   qt_convert_UYVY_to_ARGB32,
     /* Format_YUYV */                   qt_convert_YUYV_to_ARGB32,
@@ -1191,6 +1200,8 @@ QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
             return dbg << "Format_YUV444";
         case QVideoFrame::Format_YUV420P:
             return dbg << "Format_YUV420P";
+        case QVideoFrame::Format_YUV422P:
+            return dbg << "Format_YUV422P";
         case QVideoFrame::Format_YV12:
             return dbg << "Format_YV12";
         case QVideoFrame::Format_UYVY:

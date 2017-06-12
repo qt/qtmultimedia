@@ -74,7 +74,7 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_YUV::supportedPixelFormats(
     QList<QVideoFrame::PixelFormat> formats;
 
     if (handleType == QAbstractVideoBuffer::NoHandle) {
-        formats << QVideoFrame::Format_YUV420P << QVideoFrame::Format_YV12
+        formats << QVideoFrame::Format_YUV420P << QVideoFrame::Format_YV12 << QVideoFrame::Format_YUV422P
                 << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21
                 << QVideoFrame::Format_UYVY << QVideoFrame::Format_YUYV;
     }
@@ -235,7 +235,7 @@ public:
             return &uyvyType;
         case QVideoFrame::Format_YUYV:
             return &yuyvType;
-        default: // Currently: YUV420P and YV12
+        default: // Currently: YUV420P, YUV422P and YV12
             return &triPlanarType;
         }
     }
@@ -250,7 +250,7 @@ public:
             return new QSGVideoMaterialShader_UYVY;
         case QVideoFrame::Format_YUYV:
             return new QSGVideoMaterialShader_YUYV;
-        default: // Currently: YUV420P and YV12
+        default: // Currently: YUV420P, YUV422P and YV12
             return new QSGVideoMaterialShader_YUV_TriPlanar;
         }
     }
@@ -308,6 +308,7 @@ QSGVideoMaterial_YUV::QSGVideoMaterial_YUV(const QVideoSurfaceFormat &format) :
         break;
     case QVideoFrame::Format_YUV420P:
     case QVideoFrame::Format_YV12:
+    case QVideoFrame::Format_YUV422P:
         m_planeCount = 3;
         break;
     case QVideoFrame::Format_UYVY:
@@ -408,18 +409,20 @@ void QSGVideoMaterial_YUV::bind()
                 functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
                 bindTexture(m_textureIds[0], m_frame.bytesPerLine(y), fh, m_frame.bits(y), texFormat1);
 
-            } else { // YUV420P || YV12
+            } else { // YUV420P || YV12 || YUV422P
                 const int y = 0;
-                const int u = m_frame.pixelFormat() == QVideoFrame::Format_YUV420P ? 1 : 2;
-                const int v = m_frame.pixelFormat() == QVideoFrame::Format_YUV420P ? 2 : 1;
+                const int u = m_frame.pixelFormat() == QVideoFrame::Format_YV12 ? 2 : 1;
+                const int v = m_frame.pixelFormat() == QVideoFrame::Format_YV12 ? 1 : 2;
 
                 m_planeWidth[0] = qreal(fw) / m_frame.bytesPerLine(y);
                 m_planeWidth[1] = m_planeWidth[2] = qreal(fw) / (2 * m_frame.bytesPerLine(u));
 
+                const int uvHeight = m_frame.pixelFormat() == QVideoFrame::Format_YUV422P ? fh : fh / 2;
+
                 functions->glActiveTexture(GL_TEXTURE1);
-                bindTexture(m_textureIds[1], m_frame.bytesPerLine(u), fh / 2, m_frame.bits(u), texFormat1);
+                bindTexture(m_textureIds[1], m_frame.bytesPerLine(u), uvHeight, m_frame.bits(u), texFormat1);
                 functions->glActiveTexture(GL_TEXTURE2);
-                bindTexture(m_textureIds[2], m_frame.bytesPerLine(v), fh / 2, m_frame.bits(v), texFormat1);
+                bindTexture(m_textureIds[2], m_frame.bytesPerLine(v), uvHeight, m_frame.bits(v), texFormat1);
                 functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
                 bindTexture(m_textureIds[0], m_frame.bytesPerLine(y), fh, m_frame.bits(y), texFormat1);
             }

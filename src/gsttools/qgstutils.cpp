@@ -1034,6 +1034,7 @@ struct VideoFormat
 static const VideoFormat qt_videoFormatLookup[] =
 {
     { QVideoFrame::Format_YUV420P, GST_VIDEO_FORMAT_I420 },
+    { QVideoFrame::Format_YUV422P, GST_VIDEO_FORMAT_Y42B },
     { QVideoFrame::Format_YV12   , GST_VIDEO_FORMAT_YV12 },
     { QVideoFrame::Format_UYVY   , GST_VIDEO_FORMAT_UYVY },
     { QVideoFrame::Format_YUYV   , GST_VIDEO_FORMAT_YUY2 },
@@ -1086,6 +1087,7 @@ struct YuvFormat
 static const YuvFormat qt_yuvColorLookup[] =
 {
     { QVideoFrame::Format_YUV420P, GST_MAKE_FOURCC('I','4','2','0'), 8 },
+    { QVideoFrame::Format_YUV422P, GST_MAKE_FOURCC('Y','4','2','B'), 8 },
     { QVideoFrame::Format_YV12,    GST_MAKE_FOURCC('Y','V','1','2'), 8 },
     { QVideoFrame::Format_UYVY,    GST_MAKE_FOURCC('U','Y','V','Y'), 16 },
     { QVideoFrame::Format_YUYV,    GST_MAKE_FOURCC('Y','U','Y','2'), 16 },
