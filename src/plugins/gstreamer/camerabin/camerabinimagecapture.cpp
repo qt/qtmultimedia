@@ -305,7 +305,9 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
             if (!element)
                 return false;
 
-            QString elementName = QString::fromLatin1(gst_element_get_name(element));
+            gchar *name = gst_element_get_name(element);
+            QString elementName = QString::fromLatin1(name);
+            g_free(name);
 #if !GST_CHECK_VERSION(1,0,0)
             GstElementClass *elementClass = GST_ELEMENT_GET_CLASS(element);
             QString elementLongName = elementClass->details.longname;
