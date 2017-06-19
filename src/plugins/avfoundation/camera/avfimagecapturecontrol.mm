@@ -119,17 +119,13 @@ int AVFImageCaptureControl::capture(const QString &fileName)
 
     qDebugCamera() << "Capture image to" << actualFileName;
 
-    CaptureRequest request = { m_lastCaptureId, new QSemaphore };
+    CaptureRequest request = { m_lastCaptureId, QSharedPointer<QSemaphore>::create()};
     m_requestsMutex.lock();
     m_captureRequests.enqueue(request);
     m_requestsMutex.unlock();
 
     [m_stillImageOutput captureStillImageAsynchronouslyFromConnection:m_videoConnection
                         completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
-
-        // Wait for the preview to be generated before saving the JPEG
-        request.previewReady->acquire();
-        delete request.previewReady;
 
         if (error) {
             QStringList messageParts;
@@ -144,7 +140,18 @@ int AVFImageCaptureControl::capture(const QString &fileName)
                                       Q_ARG(int, request.captureId),
                                       Q_ARG(int, QCameraImageCapture::ResourceError),
                                       Q_ARG(QString, errorMessage));
-        } else {
+            return;
+        }
+
+        // Wait for the preview to be generated before saving the JPEG.
+        // It is possible to stop camera immediately after trying to capture an
+        // image; this can result in a blocked callback's thread, waiting for a
+        // new viewfinder's frame to arrive/semaphore to be released. It is also
+        // unspecified on which thread this callback gets executed, (probably it's
+        // not the same thread that initiated a capture and stopped the camera),
+        // so we cannot reliably check the camera's status. Instead, we wait
+        // with a timeout and treat a failure to acquire a semaphore as an error.
+        if (request.previewReady->tryAcquire(1, 1000)) {
             qDebugCamera() << "Image capture completed:" << actualFileName;
 
             NSData *nsJpgData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
@@ -169,6 +176,14 @@ int AVFImageCaptureControl::capture(const QString &fileName)
                                           Q_ARG(int, QCameraImageCapture::ResourceError),
                                           Q_ARG(QString, errorMessage));
             }
+        } else {
+            const QLatin1String errorMessage("Image capture failed: timed out waiting"
+                                             " for a preview frame.");
+            qDebugCamera() << errorMessage;
+            QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                                      Q_ARG(int, request.captureId),
+                                      Q_ARG(int, QCameraImageCapture::ResourceError),
+                                      Q_ARG(QString, errorMessage));
         }
     }];
 
