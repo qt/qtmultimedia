@@ -724,9 +724,10 @@ void DirectShowPlayerService::doSetVideoProbe(QMutexLocker *locker)
     for (int i = 0; i != items; ++i) {
         mediaType->subtype = subtypes[i];
         m_videoSampleGrabber->setMediaType(&mediaType);
-        if (SUCCEEDED(DirectShowUtils::connectFilters(m_graph, m_source, m_videoSampleGrabber->filter(), true)))
+        if (SUCCEEDED(DirectShowUtils::connectFilters(m_graph, m_source, m_videoSampleGrabber->filter(), true))) {
             connected = true;
             break;
+        }
     }
 
     if (!connected) {
