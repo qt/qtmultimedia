@@ -674,6 +674,9 @@ void DirectShowPlayerService::doReleaseGraph(QMutexLocker *locker)
     m_loop->wake();
 }
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_GCC("-Wmissing-field-initializers")
+
 void DirectShowPlayerService::doSetVideoProbe(QMutexLocker *locker)
 {
     Q_UNUSED(locker);
@@ -764,6 +767,8 @@ void DirectShowPlayerService::doSetAudioProbe(QMutexLocker *locker)
 
     m_audioSampleGrabber->start(DirectShowSampleGrabber::CallbackMethod::BufferCB);
 }
+
+QT_WARNING_POP
 
 void DirectShowPlayerService::doReleaseVideoProbe(QMutexLocker *locker)
 {
@@ -1444,6 +1449,9 @@ void DirectShowPlayerService::videoOutputChanged()
     setVideoOutput(m_videoRendererControl->filter());
 }
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_GCC("-Wmissing-field-initializers")
+
 void DirectShowPlayerService::onAudioBufferAvailable(double time, quint8 *buffer, long len)
 {
     QMutexLocker locker(&m_mutex);
@@ -1534,6 +1542,8 @@ void DirectShowPlayerService::onVideoBufferAvailable(double time, quint8 *buffer
 
     Q_EMIT m_videoProbeControl->videoFrameProbed(frame);
 }
+
+QT_WARNING_POP
 
 void DirectShowPlayerService::graphEvent(QMutexLocker *locker)
 {
