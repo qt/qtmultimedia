@@ -56,16 +56,17 @@ ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent)
 
     //image codecs
     ui->imageCodecBox->addItem(tr("Default image format"), QVariant(QString()));
-    foreach(const QString &codecName, imagecapture->supportedImageCodecs()) {
+    const QStringList supportedImageCodecs = imagecapture->supportedImageCodecs();
+    for (const QString &codecName : supportedImageCodecs) {
         QString description = imagecapture->imageCodecDescription(codecName);
-        ui->imageCodecBox->addItem(codecName+": "+description, QVariant(codecName));
+        ui->imageCodecBox->addItem(codecName + ": " + description, QVariant(codecName));
     }
 
     ui->imageQualitySlider->setRange(0, int(QMultimedia::VeryHighQuality));
 
     ui->imageResolutionBox->addItem(tr("Default Resolution"));
-    QList<QSize> supportedResolutions = imagecapture->supportedResolutions();
-    foreach(const QSize &resolution, supportedResolutions) {
+    const QList<QSize> supportedResolutions = imagecapture->supportedResolutions();
+    for (const QSize &resolution : supportedResolutions) {
         ui->imageResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
                                         QVariant(resolution));
     }

@@ -56,7 +56,7 @@ class ImageSettings : public QDialog
     Q_OBJECT
 
 public:
-    ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent = 0);
+    explicit ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent = nullptr);
     ~ImageSettings();
 
     QAudioEncoderSettings audioSettings() const;
