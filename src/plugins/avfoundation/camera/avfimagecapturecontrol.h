@@ -80,6 +80,7 @@ private Q_SLOTS:
 private:
     void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
 
+    AVFCameraService *m_service;
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     bool m_ready;

@@ -54,6 +54,7 @@ QT_USE_NAMESPACE
 
 AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObject *parent)
    : QCameraImageCaptureControl(parent)
+   , m_service(service)
    , m_session(service->session())
    , m_cameraControl(service->cameraControl())
    , m_ready(false)
@@ -68,7 +69,6 @@ AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObjec
 
     [m_stillImageOutput setOutputSettings:outputSettings];
     [outputSettings release];
-
     connect(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateReadyStatus()));
     connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateReadyStatus()));
 
@@ -143,7 +143,8 @@ int AVFImageCaptureControl::capture(const QString &fileName)
             return;
         }
 
-        // Wait for the preview to be generated before saving the JPEG.
+        // Wait for the preview to be generated before saving the JPEG (but only
+        // if we have AVFCameraRendererControl attached).
         // It is possible to stop camera immediately after trying to capture an
         // image; this can result in a blocked callback's thread, waiting for a
         // new viewfinder's frame to arrive/semaphore to be released. It is also
@@ -151,7 +152,7 @@ int AVFImageCaptureControl::capture(const QString &fileName)
         // not the same thread that initiated a capture and stopped the camera),
         // so we cannot reliably check the camera's status. Instead, we wait
         // with a timeout and treat a failure to acquire a semaphore as an error.
-        if (request.previewReady->tryAcquire(1, 1000)) {
+        if (!m_service->videoOutput() || request.previewReady->tryAcquire(1, 1000)) {
             qDebugCamera() << "Image capture completed:" << actualFileName;
 
             NSData *nsJpgData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
