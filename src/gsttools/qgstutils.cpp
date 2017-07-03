@@ -471,16 +471,16 @@ void QGstUtils::initializeGst()
 namespace {
     const char* getCodecAlias(const QString &codec)
     {
-        if (codec.startsWith("avc1."))
+        if (codec.startsWith(QLatin1String("avc1.")))
             return "video/x-h264";
 
-        if (codec.startsWith("mp4a."))
+        if (codec.startsWith(QLatin1String("mp4a.")))
             return "audio/mpeg4";
 
-        if (codec.startsWith("mp4v.20."))
+        if (codec.startsWith(QLatin1String("mp4v.20.")))
             return "video/mpeg4";
 
-        if (codec == "samr")
+        if (codec == QLatin1String("samr"))
             return "audio/amr";
 
         return 0;
@@ -488,14 +488,14 @@ namespace {
 
     const char* getMimeTypeAlias(const QString &mimeType)
     {
-        if (mimeType == "video/mp4")
+        if (mimeType == QLatin1String("video/mp4"))
             return "video/mpeg4";
 
-        if (mimeType == "audio/mp4")
+        if (mimeType == QLatin1String("audio/mp4"))
             return "audio/mpeg4";
 
-        if (mimeType == "video/ogg"
-            || mimeType == "audio/ogg")
+        if (mimeType == QLatin1String("video/ogg")
+            || mimeType == QLatin1String("audio/ogg"))
             return "application/ogg";
 
         return 0;
@@ -513,12 +513,12 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
     bool containsMimeType = supportedMimeTypeSet.contains(mimeTypeLowcase);
     if (!containsMimeType) {
         const char* mimeTypeAlias = getMimeTypeAlias(mimeTypeLowcase);
-        containsMimeType = supportedMimeTypeSet.contains(mimeTypeAlias);
+        containsMimeType = supportedMimeTypeSet.contains(QLatin1String(mimeTypeAlias));
         if (!containsMimeType) {
-            containsMimeType = supportedMimeTypeSet.contains("video/" + mimeTypeLowcase)
-                               || supportedMimeTypeSet.contains("video/x-" + mimeTypeLowcase)
-                               || supportedMimeTypeSet.contains("audio/" + mimeTypeLowcase)
-                               || supportedMimeTypeSet.contains("audio/x-" + mimeTypeLowcase);
+            containsMimeType = supportedMimeTypeSet.contains(QLatin1String("video/") + mimeTypeLowcase)
+                               || supportedMimeTypeSet.contains(QLatin1String("video/x-") + mimeTypeLowcase)
+                               || supportedMimeTypeSet.contains(QLatin1String("audio/") + mimeTypeLowcase)
+                               || supportedMimeTypeSet.contains(QLatin1String("audio/x-") + mimeTypeLowcase);
         }
     }
 
@@ -527,12 +527,12 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
         QString codecLowcase = codec.toLower();
         const char* codecAlias = getCodecAlias(codecLowcase);
         if (codecAlias) {
-            if (supportedMimeTypeSet.contains(codecAlias))
+            if (supportedMimeTypeSet.contains(QLatin1String(codecAlias)))
                 supportedCodecCount++;
-        } else if (supportedMimeTypeSet.contains("video/" + codecLowcase)
-                   || supportedMimeTypeSet.contains("video/x-" + codecLowcase)
-                   || supportedMimeTypeSet.contains("audio/" + codecLowcase)
-                   || supportedMimeTypeSet.contains("audio/x-" + codecLowcase)) {
+        } else if (supportedMimeTypeSet.contains(QLatin1String("video/") + codecLowcase)
+                   || supportedMimeTypeSet.contains(QLatin1String("video/x-") + codecLowcase)
+                   || supportedMimeTypeSet.contains(QLatin1String("audio/") + codecLowcase)
+                   || supportedMimeTypeSet.contains(QLatin1String("audio/x-") + codecLowcase)) {
             supportedCodecCount++;
         }
     }
@@ -768,8 +768,8 @@ QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFac
             GstElementFactory *factory;
 
             if (GST_IS_TYPE_FIND_FACTORY(feature)) {
-                QString name(gst_plugin_feature_get_name(feature));
-                if (name.contains('/')) //filter out any string without '/' which is obviously not a mime type
+                QString name(QLatin1String(gst_plugin_feature_get_name(feature)));
+                if (name.contains(QLatin1Char('/'))) //filter out any string without '/' which is obviously not a mime type
                     supportedMimeTypes.insert(name.toLower());
                 continue;
             } else if (!GST_IS_ELEMENT_FACTORY (feature)
@@ -787,18 +787,18 @@ QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFac
                     if (gst_caps_is_any(caps) || gst_caps_is_empty(caps)) {
                     } else for (guint i = 0; i < gst_caps_get_size(caps); i++) {
                         GstStructure *structure = gst_caps_get_structure(caps, i);
-                        QString nameLowcase = QString(gst_structure_get_name(structure)).toLower();
+                        QString nameLowcase = QString::fromLatin1(gst_structure_get_name(structure)).toLower();
 
                         supportedMimeTypes.insert(nameLowcase);
-                        if (nameLowcase.contains("mpeg")) {
+                        if (nameLowcase.contains(QLatin1String("mpeg"))) {
                             //Because mpeg version number is only included in the detail
                             //description,  it is necessary to manually extract this information
                             //in order to match the mime type of mpeg4.
                             const GValue *value = gst_structure_get_value(structure, "mpegversion");
                             if (value) {
                                 gchar *str = gst_value_serialize(value);
-                                QString versions(str);
-                                const QStringList elements = versions.split(QRegExp("\\D+"), QString::SkipEmptyParts);
+                                QString versions = QLatin1String(str);
+                                const QStringList elements = versions.split(QRegExp(QLatin1String("\\D+")), QString::SkipEmptyParts);
                                 for (const QString &e : elements)
                                     supportedMimeTypes.insert(nameLowcase + e);
                                 g_free(str);
@@ -1238,7 +1238,7 @@ void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant
     QMapIterator<QByteArray, QVariant> it(data);
     while (it.hasNext()) {
         it.next();
-        const QString tagName = it.key();
+        const QString tagName = QString::fromLatin1(it.key());
         const QVariant tagValue = it.value();
 
         switch (tagValue.type()) {
@@ -1438,26 +1438,26 @@ QString QGstUtils::fileExtensionForMimeType(const QString &mimeType)
 {
     if (fileExtensionMap->isEmpty()) {
         //extension for containers hard to guess from mimetype
-        fileExtensionMap->insert("video/x-matroska", "mkv");
-        fileExtensionMap->insert("video/quicktime", "mov");
-        fileExtensionMap->insert("video/x-msvideo", "avi");
-        fileExtensionMap->insert("video/msvideo", "avi");
-        fileExtensionMap->insert("audio/mpeg", "mp3");
-        fileExtensionMap->insert("application/x-shockwave-flash", "swf");
-        fileExtensionMap->insert("application/x-pn-realmedia", "rm");
+        fileExtensionMap->insert(QStringLiteral("video/x-matroska"), QLatin1String("mkv"));
+        fileExtensionMap->insert(QStringLiteral("video/quicktime"), QLatin1String("mov"));
+        fileExtensionMap->insert(QStringLiteral("video/x-msvideo"), QLatin1String("avi"));
+        fileExtensionMap->insert(QStringLiteral("video/msvideo"), QLatin1String("avi"));
+        fileExtensionMap->insert(QStringLiteral("audio/mpeg"), QLatin1String("mp3"));
+        fileExtensionMap->insert(QStringLiteral("application/x-shockwave-flash"), QLatin1String("swf"));
+        fileExtensionMap->insert(QStringLiteral("application/x-pn-realmedia"), QLatin1String("rm"));
     }
 
     //for container names like avi instead of video/x-msvideo, use it as extension
-    if (!mimeType.contains('/'))
+    if (!mimeType.contains(QLatin1Char('/')))
         return mimeType;
 
-    QString format = mimeType.left(mimeType.indexOf(','));
+    QString format = mimeType.left(mimeType.indexOf(QLatin1Char(',')));
     QString extension = fileExtensionMap->value(format);
 
     if (!extension.isEmpty() || format.isEmpty())
         return extension;
 
-    QRegExp rx("[-/]([\\w]+)$");
+    QRegExp rx(QStringLiteral("[-/]([\\w]+)$"));
 
     if (rx.indexIn(format) != -1)
         extension = rx.cap(1);

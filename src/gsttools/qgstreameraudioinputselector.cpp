@@ -104,7 +104,7 @@ void QGstreamerAudioInputSelector::update()
     m_descriptions.clear();
 
     //use autoaudiosrc as the first default device
-    m_names.append("default:");
+    m_names.append(QLatin1String("default:"));
     m_descriptions.append(tr("System default device"));
 
     updatePulseDevices();
@@ -150,12 +150,12 @@ void QGstreamerAudioInputSelector::updateAlsaDevices()
 
 void QGstreamerAudioInputSelector::updateOssDevices()
 {
-    QDir devDir("/dev");
+    QDir devDir(QStringLiteral("/dev"));
     devDir.setFilter(QDir::System);
-    const QFileInfoList entries = devDir.entryInfoList(QStringList() << "dsp*");
+    const QFileInfoList entries = devDir.entryInfoList(QStringList() << QLatin1String("dsp*"));
     for (const QFileInfo& entryInfo : entries) {
         m_names.append(QLatin1String("oss:")+entryInfo.filePath());
-        m_descriptions.append(QString("OSS device %1").arg(entryInfo.fileName()));
+        m_descriptions.append(QString::fromLatin1("OSS device %1").arg(entryInfo.fileName()));
     }
 }
 
@@ -163,8 +163,8 @@ void QGstreamerAudioInputSelector::updatePulseDevices()
 {
     GstElementFactory *factory = gst_element_factory_find("pulsesrc");
     if (factory) {
-        m_names.append("pulseaudio:");
-        m_descriptions.append("PulseAudio device.");
+        m_names.append(QLatin1String("pulseaudio:"));
+        m_descriptions.append(QLatin1String("PulseAudio device."));
         gst_object_unref(GST_OBJECT(factory));
     }
 }
