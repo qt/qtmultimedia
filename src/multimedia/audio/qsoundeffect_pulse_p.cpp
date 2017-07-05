@@ -190,7 +190,10 @@ private Q_SLOTS:
 
         pa_context_set_state_callback(m_context, context_state_callback, this);
 
-        if (pa_context_connect(m_context, 0, (pa_context_flags_t)0, 0) < 0) {
+        const QByteArray srvStrEnv = qgetenv("QT_PULSE_SERVER_STRING");
+        const char *srvStr = srvStrEnv.isNull() ? 0 : srvStrEnv.constData();
+
+        if (pa_context_connect(m_context, srvStr, (pa_context_flags_t)0, 0) < 0) {
             qWarning("PulseAudioService: pa_context_connect() failed");
             pa_context_unref(m_context);
             unlock();
