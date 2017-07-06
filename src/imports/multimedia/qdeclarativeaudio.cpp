@@ -900,7 +900,7 @@ void QDeclarativeAudio::componentComplete()
 void QDeclarativeAudio::_q_statusChanged()
 {
     if (m_player->mediaStatus() == QMediaPlayer::EndOfMedia && m_runningCount != 0) {
-        m_runningCount -= 1;
+        m_runningCount = std::max(m_runningCount - 1, -2);
         m_player->play();
     }
     const QMediaPlayer::MediaStatus oldStatus = m_status;

@@ -117,7 +117,7 @@ bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample)
     return false;
 }
 
-QVideoFrame::PixelFormat qt_evr_pixelFormatFromD3DFormat(D3DFORMAT format)
+QVideoFrame::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
 {
     switch (format) {
     case D3DFMT_R8G8B8:

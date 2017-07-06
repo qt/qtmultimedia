@@ -624,9 +624,7 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
 #endif
 
 #if QT_CONFIG(wmsdk)
-    IWMHeaderInfo *info = com_cast<IWMHeaderInfo>(source, IID_IWMHeaderInfo);
-
-    if (info) {
+    if (IWMHeaderInfo *info = com_cast<IWMHeaderInfo>(source, IID_IWMHeaderInfo)) {
         const auto keys = *qt_wmMetaDataKeys();
         for (const QWMMetaDataKey &key : keys) {
             QVariant var = getValue(info, key.wmName);

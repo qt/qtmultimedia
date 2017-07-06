@@ -56,7 +56,7 @@ class VideoSettings : public QDialog
     Q_OBJECT
 
 public:
-    VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent = 0);
+    explicit VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent = nullptr);
     ~VideoSettings();
 
     QAudioEncoderSettings audioSettings() const;

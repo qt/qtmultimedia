@@ -44,6 +44,7 @@
 
 #include <QtCore/qqueue.h>
 #include <QtCore/qsemaphore.h>
+#include <QtCore/qsharedpointer.h>
 #include <QtMultimedia/qcameraimagecapturecontrol.h>
 #include "avfcamerasession.h"
 #include "avfstoragelocation.h"
@@ -56,7 +57,7 @@ Q_OBJECT
 public:
     struct CaptureRequest {
         int captureId;
-        QSemaphore *previewReady;
+        QSharedPointer<QSemaphore> previewReady;
     };
 
     AVFImageCaptureControl(AVFCameraService *service, QObject *parent = 0);
@@ -79,6 +80,7 @@ private Q_SLOTS:
 private:
     void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
 
+    AVFCameraService *m_service;
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     bool m_ready;

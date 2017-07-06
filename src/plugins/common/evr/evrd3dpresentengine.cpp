@@ -515,7 +515,7 @@ done:
     if (SUCCEEDED(hr)) {
         m_surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
                                               m_useTextureRendering ? QVideoFrame::Format_RGB32
-                                                                    : qt_evr_pixelFormatFromD3DFormat((D3DFORMAT)d3dFormat),
+                                                                    : qt_evr_pixelFormatFromD3DFormat(d3dFormat),
                                               m_useTextureRendering ? QAbstractVideoBuffer::GLTextureHandle
                                                                     : QAbstractVideoBuffer::NoHandle);
     } else {
