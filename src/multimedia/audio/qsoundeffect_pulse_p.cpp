@@ -181,7 +181,7 @@ private Q_SLOTS:
 
         if (m_context == 0) {
             qWarning("PulseAudioService: Unable to create new pulseaudio context");
-            pa_threaded_mainloop_unlock(m_mainLoop);
+            unlock();
             pa_threaded_mainloop_free(m_mainLoop);
             m_mainLoop = 0;
             onContextFailed();
@@ -193,7 +193,7 @@ private Q_SLOTS:
         if (pa_context_connect(m_context, 0, (pa_context_flags_t)0, 0) < 0) {
             qWarning("PulseAudioService: pa_context_connect() failed");
             pa_context_unref(m_context);
-            pa_threaded_mainloop_unlock(m_mainLoop);
+            unlock();
             pa_threaded_mainloop_free(m_mainLoop);
             m_mainLoop = 0;
             m_context = 0;

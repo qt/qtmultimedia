@@ -355,7 +355,7 @@ int QAudioBuffer::byteCount() const
 /*!
     Returns the duration of audio in this buffer, in microseconds.
 
-    This depends on the /l format(), and the \l frameCount().
+    This depends on the \l format(), and the \l frameCount().
 */
 qint64 QAudioBuffer::duration() const
 {
