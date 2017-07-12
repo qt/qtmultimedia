@@ -192,8 +192,9 @@ private Q_SLOTS:
 
         const QByteArray srvStrEnv = qgetenv("QT_PULSE_SERVER_STRING");
         const char *srvStr = srvStrEnv.isNull() ? 0 : srvStrEnv.constData();
+        pa_context_flags_t flags = qEnvironmentVariableIsSet("QT_PULSE_NOAUTOSPAWN") ? PA_CONTEXT_NOAUTOSPAWN : (pa_context_flags_t)0;
 
-        if (pa_context_connect(m_context, srvStr, (pa_context_flags_t)0, 0) < 0) {
+        if (pa_context_connect(m_context, srvStr, flags, 0) < 0) {
             qWarning("PulseAudioService: pa_context_connect() failed");
             pa_context_unref(m_context);
             unlock();
