@@ -222,7 +222,7 @@ void tst_QAudioInput::initTestCase()
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
     foreach (const QAudioFormat &format, testFormats) {
         const QString fileName = temporaryAudioPath + formatToFileName(format) + QStringLiteral(".wav");
-        audioFiles.append(FilePtr(new QFile(fileName)));
+        audioFiles.append(FilePtr::create(fileName));
     }
     qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
