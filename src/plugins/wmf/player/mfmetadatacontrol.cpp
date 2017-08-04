@@ -193,6 +193,11 @@ QVariant MFMetaDataControl::metaData(const QString &key) const
                 if (m_content && SUCCEEDED(m_content->GetValue(PKEY_Video_FrameWidth, &var)))
                     res.setWidth(convertValue(var).toUInt());
                 value = res;
+            } else if (key == QMediaMetaData::Orientation) {
+                uint orientation = 0;
+                if (m_content && SUCCEEDED(m_content->GetValue(PKEY_Video_Orientation, &var)))
+                    orientation = convertValue(var).toUInt();
+                value = orientation;
             } else if (key == QMediaMetaData::PixelAspectRatio) {
                 QSize aspectRatio;
                 aspectRatio.setWidth(value.toUInt());
@@ -352,6 +357,8 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
                     m_availableMetaDatas.push_back(QMediaMetaData::ThumbnailImage);
                 } else if (key == PKEY_Video_FrameHeight) {
                     m_availableMetaDatas.push_back(QMediaMetaData::Resolution);
+                } else if (key == PKEY_Video_Orientation) {
+                    m_availableMetaDatas.push_back(QMediaMetaData::Orientation);
                 } else if (key == PKEY_Video_HorizontalAspectRatio) {
                     m_availableMetaDatas.push_back(QMediaMetaData::PixelAspectRatio);
                 } else if (key == PKEY_Video_FrameRate) {
