@@ -106,8 +106,8 @@ protected:
 private Q_SLOTS:
     void videoOutputChanged();
 
-    void onAudioBufferAvailable(double time, quint8 *buffer, long len);
-    void onVideoBufferAvailable(double time, quint8 *buffer, long len);
+    void onAudioBufferAvailable(double time, const QByteArray &data);
+    void onVideoBufferAvailable(double time, const QByteArray &data);
 
 private:
     void releaseGraph();

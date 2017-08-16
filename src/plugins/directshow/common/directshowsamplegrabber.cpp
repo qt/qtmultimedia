@@ -99,9 +99,11 @@ public:
 
     STDMETHODIMP BufferCB(double time, BYTE *buffer, long bufferLen)
     {
-        if (m_grabber)
-            Q_EMIT m_grabber->bufferAvailable(time, buffer, bufferLen);
-
+        if (m_grabber) {
+            // Deep copy, the data might be modified or freed after the callback returns
+            QByteArray data(reinterpret_cast<const char *>(buffer), bufferLen);
+            Q_EMIT m_grabber->bufferAvailable(time, data);
+        }
         return S_OK;
     }
 

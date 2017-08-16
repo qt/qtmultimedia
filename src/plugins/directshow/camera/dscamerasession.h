@@ -156,7 +156,7 @@ private:
 
     void setStatus(QCamera::Status status);
 
-    void onFrameAvailable(double time, quint8 *buffer, long len);
+    void onFrameAvailable(double time, const QByteArray &data);
     void saveCapturedImage(int id, const QImage &image, const QString &path);
 
     bool createFilterGraph();
