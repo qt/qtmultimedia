@@ -75,7 +75,7 @@ public:
 
 Q_SIGNALS:
     void sampleAvailable(double time, IMediaSample *sample);
-    void bufferAvailable(double time, quint8 *buffer, long len);
+    void bufferAvailable(double time, const QByteArray &data);
 
 private:
     IBaseFilter *m_filter;

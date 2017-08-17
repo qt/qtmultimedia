@@ -1453,7 +1453,7 @@ void DirectShowPlayerService::videoOutputChanged()
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_GCC("-Wmissing-field-initializers")
 
-void DirectShowPlayerService::onAudioBufferAvailable(double time, quint8 *buffer, long len)
+void DirectShowPlayerService::onAudioBufferAvailable(double time, const QByteArray &data)
 {
     QMutexLocker locker(&m_mutex);
     if (!m_audioProbeControl || !m_audioSampleGrabber)
@@ -1497,18 +1497,16 @@ void DirectShowPlayerService::onAudioBufferAvailable(double time, quint8 *buffer
         format.setSampleType(QAudioFormat::SignedInt);
 
     const quint64 startTime = quint64(time * 1000.);
-    QAudioBuffer audioBuffer(QByteArray(reinterpret_cast<const char *>(buffer), len),
+    QAudioBuffer audioBuffer(data,
                              format,
                              startTime);
 
     Q_EMIT m_audioProbeControl->audioBufferProbed(audioBuffer);
 }
 
-void DirectShowPlayerService::onVideoBufferAvailable(double time, quint8 *buffer, long len)
+void DirectShowPlayerService::onVideoBufferAvailable(double time, const QByteArray &data)
 {
     Q_UNUSED(time);
-    Q_UNUSED(buffer);
-    Q_UNUSED(len);
 
     QMutexLocker locker(&m_mutex);
     if (!m_videoProbeControl || !m_videoSampleGrabber)
@@ -1536,7 +1534,6 @@ void DirectShowPlayerService::onVideoBufferAvailable(double time, quint8 *buffer
     const QSize &size = videoFormat.frameSize();
 
     const int bytesPerLine = DirectShowMediaType::bytesPerLine(videoFormat);
-    QByteArray data(reinterpret_cast<const char *>(buffer), len);
     QVideoFrame frame(new QMemoryVideoBuffer(data, bytesPerLine),
                       size,
                       format);
