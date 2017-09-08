@@ -221,7 +221,9 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     QStringList mediaCandidates;
     mediaCandidates << QFINDTESTDATA("testdata/colors.mp4");
+#ifndef SKIP_OGV_TEST
     mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
+#endif
     localVideoFile = selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
