@@ -312,7 +312,7 @@ bool QAlsaAudioInput::open()
     }
 
 
-    if (!QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioOutput).contains(m_device))
+    if (!QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioInput).contains(m_device))
         return false;
 
     QString dev;
