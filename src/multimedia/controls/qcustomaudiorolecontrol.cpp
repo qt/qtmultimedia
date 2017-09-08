@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
     \class QCustomAudioRoleControl
     \inmodule QtMultimedia
     \ingroup multimedia_control
-    \since 5.10
+    \since 5.11
 
     \brief The QCustomAudioRoleControl class provides control over the audio role of a media object.
 
@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
     The functionality provided by this control is exposed to application code through the
     QMediaPlayer class.
 
-    The interface name of QCustomAudioRoleControl is \c org.qt-project.qt.customaudiorolecontrol/5.10 as
+    The interface name of QCustomAudioRoleControl is \c org.qt-project.qt.customaudiorolecontrol/5.11 as
     defined in QCustomAudioRoleControl_iid.
 
     \sa QMediaService::requestControl(), QMediaPlayer
@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \macro QCustomAudioRoleControl_iid
 
-    \c org.qt-project.qt.customaudiorolecontrol/5.10
+    \c org.qt-project.qt.customaudiorolecontrol/5.11
 
     Defines the interface name of the QCustomAudioRoleControl class.
 

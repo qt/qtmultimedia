@@ -68,7 +68,7 @@ protected:
     explicit QCustomAudioRoleControl(QObject *parent = nullptr);
 };
 
-#define QCustomAudioRoleControl_iid "org.qt-project.qt.customaudiorolecontrol/5.10"
+#define QCustomAudioRoleControl_iid "org.qt-project.qt.customaudiorolecontrol/5.11"
 Q_MEDIA_DECLARE_CONTROL(QCustomAudioRoleControl, QCustomAudioRoleControl_iid)
 
 QT_END_NAMESPACE

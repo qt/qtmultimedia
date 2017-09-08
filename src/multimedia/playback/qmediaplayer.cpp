@@ -1220,7 +1220,7 @@ void QMediaPlayer::setCustomAudioRole(const QString &audioRole)
     indicate that the supported custom audio roles aren't known. The
     list may not be complete.
 
-    \since 5.10
+    \since 5.11
     \sa customAudioRole
 */
 QStringList QMediaPlayer::supportedCustomAudioRoles() const
@@ -1345,7 +1345,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 
     Signals that the audio \a role of the media player has changed.
 
-    \since 5.10
+    \since 5.11
 */
 
 // Properties
@@ -1549,7 +1549,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 
     audioRole is set to QAudio::CustomRole when this property is set.
 
-    \since 5.10
+    \since 5.11
     \sa supportedCustomAudioRoles()
 */
 
