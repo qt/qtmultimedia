@@ -49,7 +49,7 @@ class QAudioLevel : public QWidget
 {
     Q_OBJECT
 public:
-    explicit QAudioLevel(QWidget *parent = 0);
+    explicit QAudioLevel(QWidget *parent = nullptr);
 
     // Using [0; 1.0] range
     void setLevel(qreal level);
@@ -58,12 +58,11 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
-    qreal m_level;
+    qreal m_level = 0;
 };
 
 QAudioLevel::QAudioLevel(QWidget *parent)
-  : QWidget(parent)
-  , m_level(0.0)
+    : QWidget(parent)
 {
     setMinimumHeight(15);
     setMaximumHeight(50);
@@ -91,12 +90,10 @@ void QAudioLevel::paintEvent(QPaintEvent *event)
 
 HistogramWidget::HistogramWidget(QWidget *parent)
     : QWidget(parent)
-    , m_levels(128)
-    , m_isBusy(false)
 {
     m_processor.moveToThread(&m_processorThread);
-    qRegisterMetaType<QVector<qreal> >("QVector<qreal>");
-    connect(&m_processor, SIGNAL(histogramReady(QVector<qreal>)), SLOT(setHistogram(QVector<qreal>)));
+    qRegisterMetaType<QVector<qreal>>("QVector<qreal>");
+    connect(&m_processor, &FrameProcessor::histogramReady, this, &HistogramWidget::setHistogram);
     m_processorThread.start(QThread::LowestPriority);
     setLayout(new QHBoxLayout);
 }
@@ -107,7 +104,7 @@ HistogramWidget::~HistogramWidget()
     m_processorThread.wait(10000);
 }
 
-void HistogramWidget::processFrame(QVideoFrame frame)
+void HistogramWidget::processFrame(const QVideoFrame &frame)
 {
     if (m_isBusy && frame.isValid())
         return; //drop frame
@@ -226,24 +223,24 @@ QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels)
     return max_values;
 }
 
-void HistogramWidget::processBuffer(QAudioBuffer buffer)
+void HistogramWidget::processBuffer(const QAudioBuffer &buffer)
 {
-    if (audioLevels.count() != buffer.format().channelCount()) {
-        qDeleteAll(audioLevels);
-        audioLevels.clear();
+    if (m_audioLevels.count() != buffer.format().channelCount()) {
+        qDeleteAll(m_audioLevels);
+        m_audioLevels.clear();
         for (int i = 0; i < buffer.format().channelCount(); ++i) {
             QAudioLevel *level = new QAudioLevel(this);
-            audioLevels.append(level);
+            m_audioLevels.append(level);
             layout()->addWidget(level);
         }
     }
 
     QVector<qreal> levels = getBufferLevels(buffer);
     for (int i = 0; i < levels.count(); ++i)
-        audioLevels.at(i)->setLevel(levels.at(i));
+        m_audioLevels.at(i)->setLevel(levels.at(i));
 }
 
-void HistogramWidget::setHistogram(QVector<qreal> histogram)
+void HistogramWidget::setHistogram(const QVector<qreal> &histogram)
 {
     m_isBusy = false;
     m_histogram = histogram;
@@ -254,7 +251,7 @@ void HistogramWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
 
-    if (!audioLevels.isEmpty())
+    if (!m_audioLevels.isEmpty())
         return;
 
     QPainter painter(this);
@@ -266,7 +263,7 @@ void HistogramWidget::paintEvent(QPaintEvent *event)
 
     qreal barWidth = width() / (qreal)m_histogram.size();
 
-    for (int i = 0; i < m_histogram.size(); i++) {
+    for (int i = 0; i < m_histogram.size(); ++i) {
         qreal h = m_histogram[i] * height();
         // draw level
         painter.fillRect(barWidth * i, height() - h, barWidth * (i + 1), height(), Qt::red);
@@ -290,7 +287,7 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
             frame.pixelFormat() == QVideoFrame::Format_NV12) {
             // Process YUV data
             uchar *b = frame.bits();
-            for (int y = 0; y < frame.height(); y++) {
+            for (int y = 0; y < frame.height(); ++y) {
                 uchar *lastPixel = b + frame.width();
                 for (uchar *curPixel = b; curPixel < lastPixel; curPixel++)
                     histogram[(*curPixel * levels) >> 8] += 1.0;
@@ -304,7 +301,7 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
                 image = image.convertToFormat(QImage::Format_RGB32);
 
                 const QRgb* b = (const QRgb*)image.bits();
-                for (int y = 0; y < image.height(); y++) {
+                for (int y = 0; y < image.height(); ++y) {
                     const QRgb *lastPixel = b + frame.width();
                     for (const QRgb *curPixel = b; curPixel < lastPixel; curPixel++)
                         histogram[(qGray(*curPixel) * levels) >> 8] += 1.0;

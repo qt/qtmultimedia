@@ -63,16 +63,11 @@ int main(int argc, char *argv[])
 
     if (!parser.positionalArguments().isEmpty() && player.isPlayerAvailable()) {
         QList<QUrl> urls;
-        foreach (const QString &a, parser.positionalArguments())
+        for (auto &a: parser.positionalArguments())
             urls.append(QUrl::fromUserInput(a, QDir::currentPath(), QUrl::AssumeLocalFile));
         player.addToPlaylist(urls);
     }
 
-#if defined(Q_WS_SIMULATOR)
-    player.setAttribute(Qt::WA_LockLandscapeOrientation);
-    player.showMaximized();
-#else
     player.show();
-#endif
     return app.exec();
 }
