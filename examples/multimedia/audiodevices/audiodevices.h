@@ -59,12 +59,11 @@ class AudioTest : public AudioDevicesBase
     Q_OBJECT
 
 public:
-    AudioTest(QWidget *parent = 0);
-    virtual ~AudioTest();
+    explicit AudioTest(QWidget *parent = nullptr);
 
-    QAudioDeviceInfo deviceInfo;
-    QAudioFormat settings;
-    QAudio::Mode mode;
+private:
+    QAudioDeviceInfo m_deviceInfo;
+    QAudioFormat m_settings;
 
 private slots:
     void modeChanged(int idx);
