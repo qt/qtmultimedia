@@ -53,14 +53,14 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QTimer>
+#include <QScopedPointer>
 
 class Generator : public QIODevice
 {
     Q_OBJECT
 
 public:
-    Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate, QObject *parent);
-    ~Generator();
+    Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate);
 
     void start();
     void stop();
@@ -73,7 +73,7 @@ private:
     void generateData(const QAudioFormat &format, qint64 durationUs, int sampleRate);
 
 private:
-    qint64 m_pos;
+    qint64 m_pos = 0;
     QByteArray m_buffer;
 };
 
@@ -87,30 +87,24 @@ public:
 
 private:
     void initializeWindow();
-    void initializeAudio();
-    void createAudioOutput();
+    void initializeAudio(const QAudioDeviceInfo &deviceInfo);
 
 private:
-    QTimer *m_pushTimer;
+    QTimer *m_pushTimer = nullptr;
 
     // Owned by layout
-    QPushButton *m_modeButton;
-    QPushButton *m_suspendResumeButton;
-    QComboBox *m_deviceBox;
-    QLabel *m_volumeLabel;
-    QSlider *m_volumeSlider;
+    QPushButton *m_modeButton = nullptr;
+    QPushButton *m_suspendResumeButton = nullptr;
+    QComboBox *m_deviceBox = nullptr;
+    QLabel *m_volumeLabel = nullptr;
+    QSlider *m_volumeSlider = nullptr;
 
-    QAudioDeviceInfo m_device;
-    Generator *m_generator;
-    QAudioOutput *m_audioOutput;
-    QIODevice *m_output; // not owned
-    QAudioFormat m_format;
+    QScopedPointer<Generator> m_generator;
+    QScopedPointer<QAudioOutput> m_audioOutput;
 
-    bool m_pullMode;
-    QByteArray m_buffer;
+    bool m_pullMode = true;
 
 private slots:
-    void pushTimerExpired();
     void toggleMode();
     void toggleSuspendResume();
     void deviceChanged(int index);
