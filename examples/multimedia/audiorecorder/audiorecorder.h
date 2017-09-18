@@ -52,15 +52,14 @@ class QAudioProbe;
 class QAudioBuffer;
 QT_END_NAMESPACE
 
-class QAudioLevel;
+class AudioLevel;
 
 class AudioRecorder : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    AudioRecorder(QWidget *parent = 0);
-    ~AudioRecorder();
+    AudioRecorder();
 
 public slots:
     void processBuffer(const QAudioBuffer&);
@@ -78,12 +77,12 @@ private slots:
 private:
     void clearAudioLevels();
 
-    Ui::AudioRecorder *ui;
+    Ui::AudioRecorder *ui = nullptr;
 
-    QAudioRecorder *audioRecorder;
-    QAudioProbe *probe;
-    QList<QAudioLevel*> audioLevels;
-    bool outputLocationSet;
+    QAudioRecorder *m_audioRecorder = nullptr;
+    QAudioProbe *m_probe = nullptr;
+    QList<AudioLevel*> m_audioLevels;
+    bool m_outputLocationSet = false;
 
 };
 

@@ -7,12 +7,12 @@ win32:INCLUDEPATH += $$PWD
 
 HEADERS = \
     audiorecorder.h \
-    qaudiolevel.h
+    audiolevel.h
 
 SOURCES = \
     main.cpp \
     audiorecorder.cpp \
-    qaudiolevel.cpp
+    audiolevel.cpp
 
 FORMS += audiorecorder.ui
 

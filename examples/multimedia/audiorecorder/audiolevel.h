@@ -38,16 +38,16 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIOLEVEL_H
-#define QAUDIOLEVEL_H
+#ifndef AUDIOLEVEL_H
+#define AUDIOLEVEL_H
 
 #include <QWidget>
 
-class QAudioLevel : public QWidget
+class AudioLevel : public QWidget
 {
     Q_OBJECT
 public:
-    explicit QAudioLevel(QWidget *parent = 0);
+    explicit AudioLevel(QWidget *parent = 0);
 
     // Using [0; 1.0] range
     void setLevel(qreal level);
@@ -56,7 +56,7 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    qreal m_level;
+    qreal m_level = 0.0;
 };
 
 #endif // QAUDIOLEVEL_H
