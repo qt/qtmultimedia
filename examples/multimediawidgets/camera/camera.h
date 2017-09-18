@@ -44,6 +44,7 @@
 #include <QCamera>
 #include <QCameraImageCapture>
 #include <QMediaRecorder>
+#include <QScopedPointer>
 
 #include <QMainWindow>
 
@@ -56,8 +57,7 @@ class Camera : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit Camera(QWidget *parent = nullptr);
-    ~Camera();
+    Camera();
 
 private slots:
     void setCamera(const QCameraInfo &cameraInfo);
@@ -107,16 +107,16 @@ protected:
 private:
     Ui::Camera *ui;
 
-    QCamera *camera = nullptr;
-    QCameraImageCapture *imageCapture = nullptr;
-    QMediaRecorder* mediaRecorder = nullptr;
+    QScopedPointer<QCamera> m_camera;
+    QScopedPointer<QCameraImageCapture> m_imageCapture;
+    QScopedPointer<QMediaRecorder> m_mediaRecorder;
 
-    QImageEncoderSettings imageSettings;
-    QAudioEncoderSettings audioSettings;
-    QVideoEncoderSettings videoSettings;
-    QString videoContainerFormat;
-    bool isCapturingImage = false;
-    bool applicationExiting = false;
+    QImageEncoderSettings m_imageSettings;
+    QAudioEncoderSettings m_audioSettings;
+    QVideoEncoderSettings m_videoSettings;
+    QString m_videoContainerFormat;
+    bool m_isCapturingImage = false;
+    bool m_applicationExiting = false;
 };
 
 #endif
