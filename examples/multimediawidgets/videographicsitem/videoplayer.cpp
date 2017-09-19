@@ -41,24 +41,20 @@
 #include "videoplayer.h"
 
 #include <QtWidgets>
-#include <QVideoSurfaceFormat>
 #include <QGraphicsVideoItem>
 
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
-    , mediaPlayer(0, QMediaPlayer::VideoSurface)
-    , videoItem(0)
-    , playButton(0)
-    , positionSlider(0)
 {
+    m_mediaPlayer = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
     const QRect screenGeometry = QApplication::desktop()->screenGeometry(this);
-    videoItem = new QGraphicsVideoItem;
-    videoItem->setSize(QSizeF(screenGeometry.width() / 3, screenGeometry.height() / 2));
+    m_videoItem = new QGraphicsVideoItem;
+    m_videoItem->setSize(QSizeF(screenGeometry.width() / 3, screenGeometry.height() / 2));
 
     QGraphicsScene *scene = new QGraphicsScene(this);
     QGraphicsView *graphicsView = new QGraphicsView(scene);
 
-    scene->addItem(videoItem);
+    scene->addItem(m_videoItem);
 
     QSlider *rotateSlider = new QSlider(Qt::Horizontal);
     rotateSlider->setToolTip(tr("Rotate Video"));
@@ -71,34 +67,34 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
     connect(openButton, &QAbstractButton::clicked, this, &VideoPlayer::openFile);
 
-    playButton = new QPushButton;
-    playButton->setEnabled(false);
-    playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    m_playButton = new QPushButton;
+    m_playButton->setEnabled(false);
+    m_playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
-    connect(playButton, &QAbstractButton::clicked, this, &VideoPlayer::play);
+    connect(m_playButton, &QAbstractButton::clicked, this, &VideoPlayer::play);
 
-    positionSlider = new QSlider(Qt::Horizontal);
-    positionSlider->setRange(0, 0);
+    m_positionSlider = new QSlider(Qt::Horizontal);
+    m_positionSlider->setRange(0, 0);
 
-    connect(positionSlider, &QAbstractSlider::sliderMoved,
+    connect(m_positionSlider, &QAbstractSlider::sliderMoved,
             this, &VideoPlayer::setPosition);
 
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setMargin(0);
     controlLayout->addWidget(openButton);
-    controlLayout->addWidget(playButton);
-    controlLayout->addWidget(positionSlider);
+    controlLayout->addWidget(m_playButton);
+    controlLayout->addWidget(m_positionSlider);
 
     QBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(graphicsView);
     layout->addWidget(rotateSlider);
     layout->addLayout(controlLayout);
 
-    mediaPlayer.setVideoOutput(videoItem);
-    connect(&mediaPlayer, &QMediaPlayer::stateChanged,
+    m_mediaPlayer->setVideoOutput(m_videoItem);
+    connect(m_mediaPlayer, &QMediaPlayer::stateChanged,
             this, &VideoPlayer::mediaStateChanged);
-    connect(&mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
-    connect(&mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
+    connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
+    connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
 }
 
 VideoPlayer::~VideoPlayer()
@@ -107,12 +103,12 @@ VideoPlayer::~VideoPlayer()
 
 QSize VideoPlayer::sizeHint() const
 {
-    return (videoItem->size() * qreal(3) / qreal(2)).toSize();
+    return (m_videoItem->size() * qreal(3) / qreal(2)).toSize();
 }
 
 bool VideoPlayer::isPlayerAvailable() const
 {
-    return mediaPlayer.isAvailable();
+    return m_mediaPlayer->isAvailable();
 }
 
 void VideoPlayer::openFile()
@@ -120,7 +116,7 @@ void VideoPlayer::openFile()
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Movie"));
-    const QStringList supportedMimeTypes = mediaPlayer.supportedMimeTypes();
+    const QStringList supportedMimeTypes = m_mediaPlayer->supportedMimeTypes();
     if (!supportedMimeTypes.isEmpty())
         fileDialog.setMimeTypeFilters(supportedMimeTypes);
     fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
@@ -130,18 +126,18 @@ void VideoPlayer::openFile()
 
 void VideoPlayer::load(const QUrl &url)
 {
-    mediaPlayer.setMedia(url);
-    playButton->setEnabled(true);
+    m_mediaPlayer->setMedia(url);
+    m_playButton->setEnabled(true);
 }
 
 void VideoPlayer::play()
 {
-    switch(mediaPlayer.state()) {
+    switch (m_mediaPlayer->state()) {
     case QMediaPlayer::PlayingState:
-        mediaPlayer.pause();
+        m_mediaPlayer->pause();
         break;
     default:
-        mediaPlayer.play();
+        m_mediaPlayer->play();
         break;
     }
 }
@@ -150,34 +146,34 @@ void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
 {
     switch(state) {
     case QMediaPlayer::PlayingState:
-        playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+        m_playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
         break;
     default:
-        playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+        m_playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
         break;
     }
 }
 
 void VideoPlayer::positionChanged(qint64 position)
 {
-    positionSlider->setValue(position);
+    m_positionSlider->setValue(position);
 }
 
 void VideoPlayer::durationChanged(qint64 duration)
 {
-    positionSlider->setRange(0, duration);
+    m_positionSlider->setRange(0, duration);
 }
 
 void VideoPlayer::setPosition(int position)
 {
-    mediaPlayer.setPosition(position);
+    m_mediaPlayer->setPosition(position);
 }
 
 
 void VideoPlayer::rotateVideo(int angle)
 {
     //rotate around the center of video element
-    qreal x = videoItem->boundingRect().width() / 2.0;
-    qreal y = videoItem->boundingRect().height() / 2.0;
-    videoItem->setTransform(QTransform().translate(x, y).rotate(angle).translate(-x, -y));
+    qreal x = m_videoItem->boundingRect().width() / 2.0;
+    qreal y = m_videoItem->boundingRect().height() / 2.0;
+    m_videoItem->setTransform(QTransform().translate(x, y).rotate(angle).translate(-x, -y));
 }
