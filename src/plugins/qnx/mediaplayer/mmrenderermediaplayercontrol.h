@@ -111,14 +111,19 @@ public:
 protected:
     virtual void startMonitoring() = 0;
     virtual void stopMonitoring() = 0;
+    virtual void resetMonitoring() = 0;
 
     void openConnection();
     void emitMmError(const QString &msg);
     void emitPError(const QString &msg);
     void setMmPosition(qint64 newPosition);
     void setMmBufferStatus(const QString &bufferStatus);
-    void setMmBufferLevel(const QString &bufferLevel);
+    void setMmBufferLevel(int level, int capacity);
     void handleMmStopped();
+    void handleMmSuspend(const QString &reason);
+    void handleMmSuspendRemoval(const QString &bufferStatus);
+    void handleMmPause();
+    void handleMmPlay();
     void updateMetaData(const strm_dict_t *dict);
 
     // must be called from subclass dtors (calls virtual function stopMonitoring())

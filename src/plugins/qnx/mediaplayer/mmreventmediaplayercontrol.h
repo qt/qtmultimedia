@@ -56,6 +56,7 @@ public:
 
     void startMonitoring() override;
     void stopMonitoring() override;
+    void resetMonitoring() override;
 
     bool nativeEventFilter(const QByteArray &eventType,
                            void *message,
@@ -66,7 +67,18 @@ private Q_SLOTS:
 
 private:
     MmrEventThread *m_eventThread;
+
+    // status properties.
+    QByteArray m_bufferStatus;
+    int m_bufferLevel;
+    int m_bufferCapacity;
+    qint64 m_position;
+    bool m_suspended;
+    QByteArray m_suspendedReason;
+
+    // state properties.
     mmr_state_t m_state;
+    int m_speed;
 };
 
 QT_END_NAMESPACE

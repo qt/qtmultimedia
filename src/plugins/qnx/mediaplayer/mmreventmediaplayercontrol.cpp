@@ -42,13 +42,39 @@
 #include "mmrenderervideowindowcontrol.h"
 
 #include <mm/renderer.h>
+#include <tuple>
 
 QT_BEGIN_NAMESPACE
+
+static std::tuple<int, int, bool> parseBufferLevel(const QByteArray &value)
+{
+    const int slashPos = value.indexOf('/');
+    if (slashPos <= 0)
+        return std::make_tuple(0, 0, false);
+
+    bool ok = false;
+    const int level = value.left(slashPos).toInt(&ok);
+    if (!ok || level < 0)
+        return std::make_tuple(0, 0, false);
+
+    const int capacity = value.mid(slashPos + 1).toInt(&ok);
+    if (!ok || capacity < 0)
+        return std::make_tuple(0, 0, false);
+
+    return std::make_tuple(level, capacity, true);
+}
 
 MmrEventMediaPlayerControl::MmrEventMediaPlayerControl(QObject *parent)
     : MmRendererMediaPlayerControl(parent)
     , m_eventThread(nullptr)
+    , m_bufferStatus("")
+    , m_bufferLevel(0)
+    , m_bufferCapacity(0)
+    , m_position(0)
+    , m_suspended(false)
+    , m_suspendedReason("unknown")
     , m_state(MMR_STATE_IDLE)
+    , m_speed(0)
 {
     openConnection();
 }
@@ -73,6 +99,18 @@ void MmrEventMediaPlayerControl::stopMonitoring()
 {
     delete m_eventThread;
     m_eventThread = nullptr;
+}
+
+void MmrEventMediaPlayerControl::resetMonitoring()
+{
+    m_bufferStatus = "";
+    m_bufferLevel = 0;
+    m_bufferCapacity = 0;
+    m_position = 0;
+    m_suspended = false;
+    m_suspendedReason = "unknown";
+    m_state = MMR_STATE_IDLE;
+    m_speed = 0;
 }
 
 bool MmrEventMediaPlayerControl::nativeEventFilter(const QByteArray &eventType,
@@ -102,23 +140,60 @@ void MmrEventMediaPlayerControl::readEvents()
             if (event->data) {
                 const strm_string_t *value;
                 value = strm_dict_find_rstr(event->data, "bufferstatus");
-                if (value)
-                    setMmBufferStatus(QString::fromLatin1(strm_string_get(value)));
+                if (value) {
+                    m_bufferStatus = QByteArray(strm_string_get(value));
+                    if (!m_suspended)
+                        setMmBufferStatus(m_bufferStatus);
+                }
 
                 value = strm_dict_find_rstr(event->data, "bufferlevel");
-                if (value)
-                    setMmBufferLevel(QString::fromLatin1(strm_string_get(value)));
+                if (value) {
+                    const char *cstrValue = strm_string_get(value);
+                    int level;
+                    int capacity;
+                    bool ok;
+                    std::tie(level, capacity, ok) = parseBufferLevel(QByteArray(cstrValue));
+                    if (!ok) {
+                        qCritical("Could not parse buffer capacity from '%s'", cstrValue);
+                    } else {
+                        m_bufferLevel = level;
+                        m_bufferCapacity = capacity;
+                        setMmBufferLevel(level, capacity);
+                    }
+                }
+
+                value = strm_dict_find_rstr(event->data, "suspended");
+                if (value) {
+                    if (!m_suspended) {
+                        m_suspended = true;
+                        m_suspendedReason = strm_string_get(value);
+                        handleMmSuspend(m_suspendedReason);
+                    }
+                } else if (m_suspended) {
+                    m_suspended = false;
+                    handleMmSuspendRemoval(m_bufferStatus);
+                }
             }
 
             if (event->pos_str) {
                 const QByteArray valueBa = QByteArray(event->pos_str);
                 bool ok;
-                const qint64 position = valueBa.toLongLong(&ok);
+                m_position = valueBa.toLongLong(&ok);
                 if (!ok) {
                     qCritical("Could not parse position from '%s'", valueBa.constData());
                 } else {
-                    setMmPosition(position);
+                    setMmPosition(m_position);
                 }
+            }
+            break;
+        }
+        case MMR_EVENT_STATE: {
+            if (event->state == MMR_STATE_PLAYING && m_speed != event->speed) {
+                m_speed = event->speed;
+                if (m_speed == 0)
+                    handleMmPause();
+                else
+                    handleMmPlay();
             }
             break;
         }
@@ -127,7 +202,6 @@ void MmrEventMediaPlayerControl::readEvents()
             break;
         }
         case MMR_EVENT_ERROR:
-        case MMR_EVENT_STATE:
         case MMR_EVENT_NONE:
         case MMR_EVENT_OVERFLOW:
         case MMR_EVENT_WARNING:

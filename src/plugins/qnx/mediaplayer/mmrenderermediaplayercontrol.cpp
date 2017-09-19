@@ -121,6 +121,40 @@ void MmRendererMediaPlayerControl::handleMmStopped()
     }
 }
 
+void MmRendererMediaPlayerControl::handleMmSuspend(const QString &reason)
+{
+    if (m_state == QMediaPlayer::StoppedState)
+        return;
+
+    Q_UNUSED(reason);
+    setMediaStatus(QMediaPlayer::StalledMedia);
+}
+
+void MmRendererMediaPlayerControl::handleMmSuspendRemoval(const QString &bufferStatus)
+{
+    if (m_state == QMediaPlayer::StoppedState)
+        return;
+
+    if (bufferStatus == QLatin1String("buffering"))
+        setMediaStatus(QMediaPlayer::BufferingMedia);
+    else
+        setMediaStatus(QMediaPlayer::BufferedMedia);
+}
+
+void MmRendererMediaPlayerControl::handleMmPause()
+{
+    if (m_state == QMediaPlayer::PlayingState) {
+        setState(QMediaPlayer::PausedState);
+    }
+}
+
+void MmRendererMediaPlayerControl::handleMmPlay()
+{
+    if (m_state == QMediaPlayer::PausedState) {
+        setState(QMediaPlayer::PlayingState);
+    }
+}
+
 void MmRendererMediaPlayerControl::closeConnection()
 {
     stopMonitoring();
@@ -166,6 +200,8 @@ void MmRendererMediaPlayerControl::attach()
         setMediaStatus(QMediaPlayer::NoMedia);
         return;
     }
+
+    resetMonitoring();
 
     if (m_videoRendererControl)
         m_videoRendererControl->attachDisplay(m_context);
@@ -338,6 +374,7 @@ void MmRendererMediaPlayerControl::setState(QMediaPlayer::State state)
 
 void MmRendererMediaPlayerControl::stopInternal(StopCommand stopCommand)
 {
+    resetMonitoring();
     setPosition(0);
 
     if (m_state != QMediaPlayer::StoppedState) {
@@ -500,6 +537,7 @@ void MmRendererMediaPlayerControl::play()
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
         m_position = 0;
 
+    resetMonitoring();
     setPositionInternal(m_position);
     setVolumeInternal(m_muted ? 0 : m_volume);
     setPlaybackRateInternal(m_rate);
@@ -573,18 +611,11 @@ void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus
     // ignore "idle" buffer status
 }
 
-void MmRendererMediaPlayerControl::setMmBufferLevel(const QString &bufferLevel)
+void MmRendererMediaPlayerControl::setMmBufferLevel(int level, int capacity)
 {
-    // buffer level has format level/capacity, e.g. "91319/124402"
-    const int slashPos = bufferLevel.indexOf('/');
-    if (slashPos != -1) {
-        const int fill = bufferLevel.leftRef(slashPos).toInt();
-        const int capacity = bufferLevel.midRef(slashPos + 1).toInt();
-        if (capacity != 0) {
-            m_bufferLevel = fill / static_cast<float>(capacity) * 100.0f;
-            emit bufferStatusChanged(m_bufferLevel);
-        }
-    }
+    m_bufferLevel = capacity == 0 ? 0 : level / static_cast<float>(capacity) * 100.0f;
+    m_bufferLevel = qBound(0, m_bufferLevel, 100);
+    emit bufferStatusChanged(m_bufferLevel);
 }
 
 void MmRendererMediaPlayerControl::updateMetaData(const strm_dict *dict)

@@ -62,6 +62,7 @@ class QMediaPlayer;
 class QModelIndex;
 class QPushButton;
 class QSlider;
+class QStatusBar;
 class QVideoProbe;
 class QVideoWidget;
 class QAudioProbe;
@@ -123,6 +124,8 @@ private:
     QPushButton *m_fullScreenButton = nullptr;
     QPushButton *m_colorButton = nullptr;
     QDialog *m_colorDialog = nullptr;
+    QLabel *m_statusLabel = nullptr;
+    QStatusBar *m_statusBar = nullptr;
 
     QLabel *m_labelHistogram = nullptr;
     HistogramWidget *m_videoHistogram = nullptr;
