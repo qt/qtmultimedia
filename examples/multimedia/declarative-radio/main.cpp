@@ -50,7 +50,8 @@ int main(int argc, char ** argv)
 
     QQuickView view;
 
-    view.setSource(QUrl("qrc:view.qml"));
+    view.setSource(QUrl("qrc:/view.qml"));
+    view.setMinimumSize(QSize(400, 100));
     view.show();
 
     return app.exec();

@@ -1,6 +1,6 @@
 /****************************************************************************
  **
- ** Copyright (C) 2015 The Qt Company Ltd.
+ ** Copyright (C) 2017 The Qt Company Ltd.
  ** Contact: http://www.qt.io/licensing/
  **
  ** This file is part of the examples of the Qt Toolkit.
@@ -42,7 +42,16 @@ import QtQuick 2.0
 import QtMultimedia 5.0
 
 Rectangle {
-    width: 400; height: 300;
+    anchors.fill: parent
+    id: root
+    property int margins: 5
+    property int spacing: 10
+
+    QtObject {
+        id: d
+        property int buttonHeight: root.height > root.width ? root.width / 3 : root.height / 3
+        property int buttonWidth: (root.width - spacing * 4) / 4
+    }
 
     Radio {
         id: radio
@@ -51,25 +60,30 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 5
-        spacing: 5
+        anchors.margins: root.margins
 
-        Row {
+        Rectangle {
+            color: root.color
+            width: parent.width
+            height: root.height - d.buttonHeight - 40
 
             Text {
                 id: freq
-
-                width: 150
-                height: 200
-
                 verticalAlignment: Text.AlignVCenter
                 text: "" + radio.frequency / 1000 + " kHz"
+                anchors {
+                    bottom: parent.bottom
+                    margins: root.margins
+                }
             }
             Text {
                 id: sig
+                anchors {
+                    bottom: parent.bottom
+                    right: parent.right
+                    margins: root.margins
 
-                width: 200
-                height: 200
+                }
 
                 verticalAlignment: Text.AlignVCenter
                 text: (radio.availability == Radio.Available ? "No Signal " : "No Radio Found")
@@ -80,112 +94,40 @@ Rectangle {
             spacing: 5
 
             Rectangle {
-                width: 350
-                height: 10
-
+                width: root.width - 10
+                height: 20
                 color: "black"
 
                 Rectangle {
                     width: 5
-                    height: 10
+                    height: 20
                     color: "red"
 
                     y: 0
                     x: (parent.width - 5) * ((radio.frequency - radio.minimumFrequency) / (radio.maximumFrequency -
                     radio.minimumFrequency))
-
                 }
             }
         }
-
-
         Row {
-            spacing: 5
-
-            Rectangle {
-                id: scanDownButton
-                border.color: "black"
-                border.width: 1
-                radius: 2
-
-                width: 90
-                height: 40
-
-                Text {
-                    anchors.fill: parent
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    text: "Scan Down"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: radio.scanDown();
-                }
+            spacing: root.spacing
+            Button {
+                text: "Scan Down"
+                onClicked: radio.scanDown()
             }
-            Rectangle {
-                id: freqDownButton
-                border.color: "black"
-                border.width: 1
-                radius: 2
-
-                width: 90
-                height: 40
-
-                Text {
-                    anchors.fill: parent
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    text: "Freq Down"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: radio.tuneDown();
-                }
+            Button {
+                text: "Freq Down"
+                onClicked: radio.tuneDown()
             }
-            Rectangle {
-                id: freqUpButton
-                border.color: "black"
-                border.width: 1
-                radius: 2
-
-                width: 90
-                height: 40
-
-                Text {
-                    anchors.fill: parent
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    text: "Freq Up"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: radio.tuneUp();
-                }
+            Button {
+                text: "Freq Up"
+                onClicked: radio.tuneUp()
             }
-            Rectangle {
-                id: scanUpButton
-                border.color: "black"
-                border.width: 1
-                radius: 2
-
-                width: 90
-                height: 40
-
-                Text {
-                    anchors.fill: parent
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    text: "Scan Up"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: radio.scanUp();
-                }
+            Button {
+                text: "Scan Up"
+                onClicked: radio.scanUp()
             }
         }
     }
 }
+
