@@ -362,7 +362,8 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     pulseDaemon()->ref();
 
     m_ref = new QSoundEffectRef(this);
-    pa_sample_spec_init(&m_pulseSpec);
+    if (pulseDaemon()->context())
+        pa_sample_spec_init(&m_pulseSpec);
 
     m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>();
     Q_ASSERT(m_resources);
