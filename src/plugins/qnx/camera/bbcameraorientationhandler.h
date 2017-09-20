@@ -51,7 +51,7 @@ public:
     explicit BbCameraOrientationHandler(QObject *parent = 0);
     ~BbCameraOrientationHandler();
 
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
 
     int orientation() const;
 

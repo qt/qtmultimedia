@@ -51,10 +51,10 @@ class BbCameraImageProcessingControl : public QCameraImageProcessingControl
 public:
     explicit BbCameraImageProcessingControl(BbCameraSession *session, QObject *parent = 0);
 
-    bool isParameterSupported(ProcessingParameter) const Q_DECL_OVERRIDE;
-    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const Q_DECL_OVERRIDE;
-    QVariant parameter(ProcessingParameter parameter) const Q_DECL_OVERRIDE;
-    void setParameter(ProcessingParameter parameter, const QVariant &value) Q_DECL_OVERRIDE;
+    bool isParameterSupported(ProcessingParameter) const override;
+    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
+    QVariant parameter(ProcessingParameter parameter) const override;
+    void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
 private:
     BbCameraSession *m_session;

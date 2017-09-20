@@ -51,9 +51,9 @@ class BbCameraCaptureDestinationControl : public QCameraCaptureDestinationContro
 public:
     explicit BbCameraCaptureDestinationControl(BbCameraSession *session, QObject *parent = 0);
 
-    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const Q_DECL_OVERRIDE;
-    QCameraImageCapture::CaptureDestinations captureDestination() const Q_DECL_OVERRIDE;
-    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) Q_DECL_OVERRIDE;
+    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const override;
+    QCameraImageCapture::CaptureDestinations captureDestination() const override;
+    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
 
 private:
     BbCameraSession *m_session;

@@ -52,10 +52,10 @@ class QAndroidMediaContainerControl : public QMediaContainerControl
 public:
     QAndroidMediaContainerControl(QAndroidCaptureSession *session);
 
-    QStringList supportedContainers() const Q_DECL_OVERRIDE;
-    QString containerFormat() const Q_DECL_OVERRIDE;
-    void setContainerFormat(const QString &format) Q_DECL_OVERRIDE;
-    QString containerDescription(const QString &formatMimeType) const Q_DECL_OVERRIDE;
+    QStringList supportedContainers() const override;
+    QString containerFormat() const override;
+    void setContainerFormat(const QString &format) override;
+    QString containerDescription(const QString &formatMimeType) const override;
 
 private:
     QAndroidCaptureSession *m_session;

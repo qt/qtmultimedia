@@ -52,10 +52,10 @@ public:
     explicit PpsMediaPlayerControl(QObject *parent = 0);
     ~PpsMediaPlayerControl();
 
-    void startMonitoring(int contextId, const QString &contextName) Q_DECL_OVERRIDE;
-    void stopMonitoring() Q_DECL_OVERRIDE;
+    void startMonitoring(int contextId, const QString &contextName) override;
+    void stopMonitoring() override;
 
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) Q_DECL_OVERRIDE;
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
 
 private Q_SLOTS:
     void ppsReadyRead(int fd);

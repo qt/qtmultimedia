@@ -56,10 +56,10 @@ class AVFCameraFlashControl : public QCameraFlashControl
 public:
     AVFCameraFlashControl(AVFCameraService *service);
 
-    QCameraExposure::FlashModes flashMode() const Q_DECL_OVERRIDE;
-    void setFlashMode(QCameraExposure::FlashModes mode) Q_DECL_OVERRIDE;
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const Q_DECL_OVERRIDE;
-    bool isFlashReady() const Q_DECL_OVERRIDE;
+    QCameraExposure::FlashModes flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashModes mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const override;
+    bool isFlashReady() const override;
 
 private Q_SLOTS:
     void cameraStateChanged(QCamera::State newState);

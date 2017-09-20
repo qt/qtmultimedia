@@ -50,8 +50,8 @@ class QWinRTCameraInfoControl : public QCameraInfoControl
 public:
     explicit QWinRTCameraInfoControl(QObject *parent = 0);
 
-    QCamera::Position cameraPosition(const QString &deviceName) const Q_DECL_OVERRIDE;
-    int cameraOrientation(const QString &deviceName) const Q_DECL_OVERRIDE;
+    QCamera::Position cameraPosition(const QString &deviceName) const override;
+    int cameraOrientation(const QString &deviceName) const override;
 };
 
 QT_END_NAMESPACE

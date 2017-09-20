@@ -52,13 +52,13 @@ class BbCameraZoomControl : public QCameraZoomControl
 public:
     explicit BbCameraZoomControl(BbCameraSession *session, QObject *parent = 0);
 
-    qreal maximumOpticalZoom() const Q_DECL_OVERRIDE;
-    qreal maximumDigitalZoom() const Q_DECL_OVERRIDE;
-    qreal requestedOpticalZoom() const Q_DECL_OVERRIDE;
-    qreal requestedDigitalZoom() const Q_DECL_OVERRIDE;
-    qreal currentOpticalZoom() const Q_DECL_OVERRIDE;
-    qreal currentDigitalZoom() const Q_DECL_OVERRIDE;
-    void zoomTo(qreal optical, qreal digital) Q_DECL_OVERRIDE;
+    qreal maximumOpticalZoom() const override;
+    qreal maximumDigitalZoom() const override;
+    qreal requestedOpticalZoom() const override;
+    qreal requestedDigitalZoom() const override;
+    qreal currentOpticalZoom() const override;
+    qreal currentDigitalZoom() const override;
+    void zoomTo(qreal optical, qreal digital) override;
 
 private Q_SLOTS:
     void statusChanged(QCamera::Status status);

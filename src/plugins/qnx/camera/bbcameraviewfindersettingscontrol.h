@@ -51,9 +51,9 @@ class BbCameraViewfinderSettingsControl : public QCameraViewfinderSettingsContro
 public:
     explicit BbCameraViewfinderSettingsControl(BbCameraSession *session, QObject *parent = 0);
 
-    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const Q_DECL_OVERRIDE;
-    QVariant viewfinderParameter(ViewfinderParameter parameter) const Q_DECL_OVERRIDE;
-    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) Q_DECL_OVERRIDE;
+    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const override;
+    QVariant viewfinderParameter(ViewfinderParameter parameter) const override;
+    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) override;
 
 private:
     BbCameraSession *m_session;

@@ -53,10 +53,10 @@ class QAndroidCameraVideoRendererControl : public QVideoRendererControl
     Q_OBJECT
 public:
     QAndroidCameraVideoRendererControl(QAndroidCameraSession *session, QObject *parent = 0);
-    ~QAndroidCameraVideoRendererControl() Q_DECL_OVERRIDE;
+    ~QAndroidCameraVideoRendererControl() override;
 
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
     QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
 

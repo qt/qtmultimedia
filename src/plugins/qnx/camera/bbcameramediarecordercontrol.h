@@ -51,19 +51,19 @@ class BbCameraMediaRecorderControl : public QMediaRecorderControl
 public:
     explicit BbCameraMediaRecorderControl(BbCameraSession *session, QObject *parent = 0);
 
-    QUrl outputLocation() const Q_DECL_OVERRIDE;
-    bool setOutputLocation(const QUrl &location) Q_DECL_OVERRIDE;
-    QMediaRecorder::State state() const Q_DECL_OVERRIDE;
-    QMediaRecorder::Status status() const Q_DECL_OVERRIDE;
-    qint64 duration() const Q_DECL_OVERRIDE;
-    bool isMuted() const Q_DECL_OVERRIDE;
-    qreal volume() const Q_DECL_OVERRIDE;
-    void applySettings() Q_DECL_OVERRIDE;
+    QUrl outputLocation() const override;
+    bool setOutputLocation(const QUrl &location) override;
+    QMediaRecorder::State state() const override;
+    QMediaRecorder::Status status() const override;
+    qint64 duration() const override;
+    bool isMuted() const override;
+    qreal volume() const override;
+    void applySettings() override;
 
 public Q_SLOTS:
-    void setState(QMediaRecorder::State state) Q_DECL_OVERRIDE;
-    void setMuted(bool muted) Q_DECL_OVERRIDE;
-    void setVolume(qreal volume) Q_DECL_OVERRIDE;
+    void setState(QMediaRecorder::State state) override;
+    void setMuted(bool muted) override;
+    void setVolume(qreal volume) override;
 
 private:
     BbCameraSession *m_session;

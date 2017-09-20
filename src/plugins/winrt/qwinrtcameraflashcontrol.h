@@ -62,11 +62,11 @@ public:
 
     void initialize(Microsoft::WRL::ComPtr<ABI::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController2> &controller);
 
-    QCameraExposure::FlashModes flashMode() const Q_DECL_OVERRIDE;
-    void setFlashMode(QCameraExposure::FlashModes mode) Q_DECL_OVERRIDE;
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const Q_DECL_OVERRIDE;
+    QCameraExposure::FlashModes flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashModes mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const override;
 
-    bool isFlashReady() const Q_DECL_OVERRIDE;
+    bool isFlashReady() const override;
 
 private:
     QScopedPointer<QWinRTCameraFlashControlPrivate> d_ptr;

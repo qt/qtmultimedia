@@ -58,8 +58,8 @@ public:
     explicit QWinRTCameraVideoRendererControl(const QSize &size, QObject *parent);
     ~QWinRTCameraVideoRendererControl();
 
-    bool render(ID3D11Texture2D *texture) Q_DECL_OVERRIDE;
-    bool dequeueFrame(QVideoFrame *frame) Q_DECL_OVERRIDE;
+    bool render(ID3D11Texture2D *texture) override;
+    bool dequeueFrame(QVideoFrame *frame) override;
     void queueBuffer(IMF2DBuffer *buffer);
     void discardBuffers();
     void incrementProbe();

@@ -53,10 +53,10 @@ class QAndroidMediaService : public QMediaService
     Q_OBJECT
 public:
     explicit QAndroidMediaService(QObject *parent = 0);
-    ~QAndroidMediaService() Q_DECL_OVERRIDE;
+    ~QAndroidMediaService() override;
 
-    QMediaControl* requestControl(const char *name) Q_DECL_OVERRIDE;
-    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
+    QMediaControl* requestControl(const char *name) override;
+    void releaseControl(QMediaControl *control) override;
 
 private:
     QAndroidMediaPlayerControl *mMediaControl;

@@ -67,9 +67,9 @@ class AVFCameraViewfinderSettingsControl2 : public QCameraViewfinderSettingsCont
 public:
     AVFCameraViewfinderSettingsControl2(AVFCameraService *service);
 
-    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const Q_DECL_OVERRIDE;
-    QCameraViewfinderSettings viewfinderSettings() const Q_DECL_OVERRIDE;
-    void setViewfinderSettings(const QCameraViewfinderSettings &settings) Q_DECL_OVERRIDE;
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
+    QCameraViewfinderSettings viewfinderSettings() const override;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings) override;
 
     // "Converters":
     static QVideoFrame::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);
@@ -97,9 +97,9 @@ class AVFCameraViewfinderSettingsControl : public QCameraViewfinderSettingsContr
 public:
     AVFCameraViewfinderSettingsControl(AVFCameraService *service);
 
-    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const Q_DECL_OVERRIDE;
-    QVariant viewfinderParameter(ViewfinderParameter parameter) const Q_DECL_OVERRIDE;
-    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) Q_DECL_OVERRIDE;
+    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const override;
+    QVariant viewfinderParameter(ViewfinderParameter parameter) const override;
+    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) override;
 
 private:
     void setResolution(const QVariant &resolution);

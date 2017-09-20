@@ -63,8 +63,8 @@ public:
         MediaFoundation
     };
 
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
     QSize size() const;
     void setSize(const QSize &size);

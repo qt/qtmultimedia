@@ -59,26 +59,26 @@ public:
     QnxAudioInput();
     ~QnxAudioInput();
 
-    void start(QIODevice*) Q_DECL_OVERRIDE;
-    QIODevice* start() Q_DECL_OVERRIDE;
-    void stop() Q_DECL_OVERRIDE;
-    void reset() Q_DECL_OVERRIDE;
-    void suspend() Q_DECL_OVERRIDE;
-    void resume() Q_DECL_OVERRIDE;
-    int bytesReady() const Q_DECL_OVERRIDE;
-    int periodSize() const Q_DECL_OVERRIDE;
-    void setBufferSize(int ) Q_DECL_OVERRIDE;
-    int bufferSize() const  Q_DECL_OVERRIDE;
-    void setNotifyInterval(int ) Q_DECL_OVERRIDE;
-    int notifyInterval() const Q_DECL_OVERRIDE;
-    qint64 processedUSecs() const Q_DECL_OVERRIDE;
-    qint64 elapsedUSecs() const Q_DECL_OVERRIDE;
-    QAudio::Error error() const Q_DECL_OVERRIDE;
-    QAudio::State state() const Q_DECL_OVERRIDE;
-    void setFormat(const QAudioFormat&) Q_DECL_OVERRIDE;
-    QAudioFormat format() const Q_DECL_OVERRIDE;
-    void setVolume(qreal) Q_DECL_OVERRIDE;
-    qreal volume() const Q_DECL_OVERRIDE;
+    void start(QIODevice*) override;
+    QIODevice* start() override;
+    void stop() override;
+    void reset() override;
+    void suspend() override;
+    void resume() override;
+    int bytesReady() const override;
+    int periodSize() const override;
+    void setBufferSize(int ) override;
+    int bufferSize() const  override;
+    void setNotifyInterval(int ) override;
+    int notifyInterval() const override;
+    qint64 processedUSecs() const override;
+    qint64 elapsedUSecs() const override;
+    QAudio::Error error() const override;
+    QAudio::State state() const override;
+    void setFormat(const QAudioFormat&) override;
+    QAudioFormat format() const override;
+    void setVolume(qreal) override;
+    qreal volume() const override;
 
 private slots:
     void userFeed();
@@ -124,8 +124,8 @@ class InputPrivate : public QIODevice
 public:
     InputPrivate(QnxAudioInput *audio);
 
-    qint64 readData(char *data, qint64 len) Q_DECL_OVERRIDE;
-    qint64 writeData(const char *data, qint64 len) Q_DECL_OVERRIDE;
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
 
     void trigger();
 

@@ -52,11 +52,11 @@ class QAndroidAudioEncoderSettingsControl : public QAudioEncoderSettingsControl
 public:
     explicit QAndroidAudioEncoderSettingsControl(QAndroidCaptureSession *session);
 
-    QStringList supportedAudioCodecs() const Q_DECL_OVERRIDE;
-    QString codecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
-    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
-    QAudioEncoderSettings audioSettings() const Q_DECL_OVERRIDE;
-    void setAudioSettings(const QAudioEncoderSettings &settings) Q_DECL_OVERRIDE;
+    QStringList supportedAudioCodecs() const override;
+    QString codecDescription(const QString &codecName) const override;
+    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous = 0) const override;
+    QAudioEncoderSettings audioSettings() const override;
+    void setAudioSettings(const QAudioEncoderSettings &settings) override;
 
 private:
     QAndroidCaptureSession *m_session;

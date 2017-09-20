@@ -49,10 +49,10 @@ class MmRendererAudioRoleControl : public QAudioRoleControl
 public:
     explicit MmRendererAudioRoleControl(QObject *parent = 0);
 
-    QAudio::Role audioRole() const Q_DECL_OVERRIDE;
-    void setAudioRole(QAudio::Role role) Q_DECL_OVERRIDE;
+    QAudio::Role audioRole() const override;
+    void setAudioRole(QAudio::Role role) override;
 
-    QList<QAudio::Role> supportedAudioRoles() const Q_DECL_OVERRIDE;
+    QList<QAudio::Role> supportedAudioRoles() const override;
 
 private:
     QAudio::Role m_role;

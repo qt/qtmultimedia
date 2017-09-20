@@ -52,9 +52,9 @@ class QAndroidCameraCaptureDestinationControl : public QCameraCaptureDestination
 public:
     explicit QAndroidCameraCaptureDestinationControl(QAndroidCameraSession *session);
 
-    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const Q_DECL_OVERRIDE;
-    QCameraImageCapture::CaptureDestinations captureDestination() const Q_DECL_OVERRIDE;
-    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) Q_DECL_OVERRIDE;
+    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const override;
+    QCameraImageCapture::CaptureDestinations captureDestination() const override;
+    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
 
 private:
     QAndroidCameraSession *m_session;

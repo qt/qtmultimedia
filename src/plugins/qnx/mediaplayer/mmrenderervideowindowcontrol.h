@@ -54,33 +54,33 @@ public:
     explicit MmRendererVideoWindowControl(QObject *parent = 0);
     ~MmRendererVideoWindowControl();
 
-    WId winId() const Q_DECL_OVERRIDE;
-    void setWinId(WId id) Q_DECL_OVERRIDE;
+    WId winId() const override;
+    void setWinId(WId id) override;
 
-    QRect displayRect() const Q_DECL_OVERRIDE;
-    void setDisplayRect(const QRect &rect) Q_DECL_OVERRIDE;
+    QRect displayRect() const override;
+    void setDisplayRect(const QRect &rect) override;
 
-    bool isFullScreen() const Q_DECL_OVERRIDE;
-    void setFullScreen(bool fullScreen) Q_DECL_OVERRIDE;
+    bool isFullScreen() const override;
+    void setFullScreen(bool fullScreen) override;
 
-    void repaint() Q_DECL_OVERRIDE;
+    void repaint() override;
 
-    QSize nativeSize() const Q_DECL_OVERRIDE;
+    QSize nativeSize() const override;
 
-    Qt::AspectRatioMode aspectRatioMode() const Q_DECL_OVERRIDE;
-    void setAspectRatioMode(Qt::AspectRatioMode mode) Q_DECL_OVERRIDE;
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    int brightness() const Q_DECL_OVERRIDE;
-    void setBrightness(int brightness) Q_DECL_OVERRIDE;
+    int brightness() const override;
+    void setBrightness(int brightness) override;
 
-    int contrast() const Q_DECL_OVERRIDE;
-    void setContrast(int contrast) Q_DECL_OVERRIDE;
+    int contrast() const override;
+    void setContrast(int contrast) override;
 
-    int hue() const Q_DECL_OVERRIDE;
-    void setHue(int hue) Q_DECL_OVERRIDE;
+    int hue() const override;
+    void setHue(int hue) override;
 
-    int saturation() const Q_DECL_OVERRIDE;
-    void setSaturation(int saturation) Q_DECL_OVERRIDE;
+    int saturation() const override;
+    void setSaturation(int saturation) override;
 
     //
     // Called by media control

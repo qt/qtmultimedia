@@ -55,11 +55,11 @@ public:
     explicit QnxAudioPlugin(QObject *parent = 0);
     ~QnxAudioPlugin() {}
 
-    QByteArray defaultDevice(QAudio::Mode mode) const Q_DECL_OVERRIDE;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const Q_DECL_OVERRIDE;
-    QAbstractAudioInput *createInput(const QByteArray &device) Q_DECL_OVERRIDE;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) Q_DECL_OVERRIDE;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) Q_DECL_OVERRIDE;
+    QByteArray defaultDevice(QAudio::Mode mode) const override;
+    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
+    QAbstractAudioInput *createInput(const QByteArray &device) override;
+    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
+    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
 };
 
 QT_END_NAMESPACE

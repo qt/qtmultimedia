@@ -51,13 +51,13 @@ class BbCameraImageCaptureControl : public QCameraImageCaptureControl
 public:
     explicit BbCameraImageCaptureControl(BbCameraSession *session, QObject *parent = 0);
 
-    bool isReadyForCapture() const Q_DECL_OVERRIDE;
+    bool isReadyForCapture() const override;
 
-    QCameraImageCapture::DriveMode driveMode() const Q_DECL_OVERRIDE;
-    void setDriveMode(QCameraImageCapture::DriveMode mode) Q_DECL_OVERRIDE;
+    QCameraImageCapture::DriveMode driveMode() const override;
+    void setDriveMode(QCameraImageCapture::DriveMode mode) override;
 
-    int capture(const QString &fileName) Q_DECL_OVERRIDE;
-    void cancelCapture() Q_DECL_OVERRIDE;
+    int capture(const QString &fileName) override;
+    void cancelCapture() override;
 
 private:
     BbCameraSession *m_session;

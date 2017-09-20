@@ -88,7 +88,7 @@ public:
     qreal factor() const { return m_factor; }
     void setFactor(qreal v);
 
-    QVideoFilterRunnable *createFilterRunnable() Q_DECL_OVERRIDE;
+    QVideoFilterRunnable *createFilterRunnable() override;
 
 signals:
     void factorChanged();
@@ -102,7 +102,7 @@ class CLFilterRunnable : public QVideoFilterRunnable
 public:
     CLFilterRunnable(CLFilter *filter);
     ~CLFilterRunnable();
-    QVideoFrame run(QVideoFrame *input, const QVideoSurfaceFormat &surfaceFormat, RunFlags flags) Q_DECL_OVERRIDE;
+    QVideoFrame run(QVideoFrame *input, const QVideoSurfaceFormat &surfaceFormat, RunFlags flags) override;
 
 private:
     void releaseTextures();
@@ -423,7 +423,7 @@ class InfoFilter : public QAbstractVideoFilter
     Q_OBJECT
 
 public:
-    QVideoFilterRunnable *createFilterRunnable() Q_DECL_OVERRIDE;
+    QVideoFilterRunnable *createFilterRunnable() override;
 
 signals:
     void finished(QObject *result);
@@ -436,7 +436,7 @@ class InfoFilterRunnable : public QVideoFilterRunnable
 {
 public:
     InfoFilterRunnable(InfoFilter *filter) : m_filter(filter) { }
-    QVideoFrame run(QVideoFrame *input, const QVideoSurfaceFormat &surfaceFormat, RunFlags flags) Q_DECL_OVERRIDE;
+    QVideoFrame run(QVideoFrame *input, const QVideoSurfaceFormat &surfaceFormat, RunFlags flags) override;
 
 private:
     InfoFilter *m_filter;

@@ -51,16 +51,16 @@ class BbCameraControl : public QCameraControl
 public:
     explicit BbCameraControl(BbCameraSession *session, QObject *parent = 0);
 
-    QCamera::State state() const Q_DECL_OVERRIDE;
-    void setState(QCamera::State state) Q_DECL_OVERRIDE;
+    QCamera::State state() const override;
+    void setState(QCamera::State state) override;
 
-    QCamera::Status status() const Q_DECL_OVERRIDE;
+    QCamera::Status status() const override;
 
-    QCamera::CaptureModes captureMode() const Q_DECL_OVERRIDE;
-    void setCaptureMode(QCamera::CaptureModes) Q_DECL_OVERRIDE;
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const Q_DECL_OVERRIDE;
+    QCamera::CaptureModes captureMode() const override;
+    void setCaptureMode(QCamera::CaptureModes) override;
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const Q_DECL_OVERRIDE;
+    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
 private:
     BbCameraSession *m_session;

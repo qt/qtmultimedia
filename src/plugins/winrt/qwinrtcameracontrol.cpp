@@ -252,7 +252,7 @@ public:
         return S_OK;
     }
 
-    HRESULT __stdcall GetEvent(DWORD flags, IMFMediaEvent **event) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetEvent(DWORD flags, IMFMediaEvent **event) override
     {
         EnterCriticalSection(&m_mutex);
         // Create an extra reference to avoid deadlock
@@ -262,43 +262,43 @@ public:
         return eventQueue->GetEvent(flags, event);
     }
 
-    HRESULT __stdcall BeginGetEvent(IMFAsyncCallback *callback, IUnknown *state) Q_DECL_OVERRIDE
+    HRESULT __stdcall BeginGetEvent(IMFAsyncCallback *callback, IUnknown *state) override
     {
         CriticalSectionLocker locker(&m_mutex);
         HRESULT hr = m_eventQueue->BeginGetEvent(callback, state);
         return hr;
     }
 
-    HRESULT __stdcall EndGetEvent(IMFAsyncResult *result, IMFMediaEvent **event) Q_DECL_OVERRIDE
+    HRESULT __stdcall EndGetEvent(IMFAsyncResult *result, IMFMediaEvent **event) override
     {
         CriticalSectionLocker locker(&m_mutex);
         return m_eventQueue->EndGetEvent(result, event);
     }
 
-    HRESULT __stdcall QueueEvent(MediaEventType eventType, const GUID &extendedType, HRESULT status, const PROPVARIANT *value) Q_DECL_OVERRIDE
+    HRESULT __stdcall QueueEvent(MediaEventType eventType, const GUID &extendedType, HRESULT status, const PROPVARIANT *value) override
     {
         CriticalSectionLocker locker(&m_mutex);
         return m_eventQueue->QueueEventParamVar(eventType, extendedType, status, value);
     }
 
-    HRESULT __stdcall GetMediaSink(IMFMediaSink **mediaSink) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetMediaSink(IMFMediaSink **mediaSink) override
     {
         *mediaSink = m_sink;
         return S_OK;
     }
 
-    HRESULT __stdcall GetIdentifier(DWORD *identifier) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetIdentifier(DWORD *identifier) override
     {
         *identifier = 0;
         return S_OK;
     }
 
-    HRESULT __stdcall GetMediaTypeHandler(IMFMediaTypeHandler **handler) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetMediaTypeHandler(IMFMediaTypeHandler **handler) override
     {
         return QueryInterface(IID_PPV_ARGS(handler));
     }
 
-    HRESULT __stdcall ProcessSample(IMFSample *sample) Q_DECL_OVERRIDE
+    HRESULT __stdcall ProcessSample(IMFSample *sample) override
     {
         ComPtr<IMFMediaBuffer> buffer;
         HRESULT hr = sample->GetBufferByIndex(0, &buffer);
@@ -313,7 +313,7 @@ public:
         return hr;
     }
 
-    HRESULT __stdcall PlaceMarker(MFSTREAMSINK_MARKER_TYPE type, const PROPVARIANT *value, const PROPVARIANT *context) Q_DECL_OVERRIDE
+    HRESULT __stdcall PlaceMarker(MFSTREAMSINK_MARKER_TYPE type, const PROPVARIANT *value, const PROPVARIANT *context) override
     {
         Q_UNUSED(type);
         Q_UNUSED(value);
@@ -321,14 +321,14 @@ public:
         return S_OK;
     }
 
-    HRESULT __stdcall Flush() Q_DECL_OVERRIDE
+    HRESULT __stdcall Flush() override
     {
         m_videoRenderer->discardBuffers();
         m_pendingSamples.store(0);
         return S_OK;
     }
 
-    HRESULT __stdcall IsMediaTypeSupported(IMFMediaType *type, IMFMediaType **) Q_DECL_OVERRIDE
+    HRESULT __stdcall IsMediaTypeSupported(IMFMediaType *type, IMFMediaType **) override
     {
         HRESULT hr;
         GUID majorType;
@@ -339,20 +339,20 @@ public:
         return S_OK;
     }
 
-    HRESULT __stdcall GetMediaTypeCount(DWORD *typeCount) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetMediaTypeCount(DWORD *typeCount) override
     {
         *typeCount = 1;
         return S_OK;
     }
 
-    HRESULT __stdcall GetMediaTypeByIndex(DWORD index, IMFMediaType **type) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetMediaTypeByIndex(DWORD index, IMFMediaType **type) override
     {
         if (index == 0)
             return m_type.CopyTo(type);
         return E_BOUNDS;
     }
 
-    HRESULT __stdcall SetCurrentMediaType(IMFMediaType *type) Q_DECL_OVERRIDE
+    HRESULT __stdcall SetCurrentMediaType(IMFMediaType *type) override
     {
         if (FAILED(IsMediaTypeSupported(type, Q_NULLPTR)))
             return MF_E_INVALIDREQUEST;
@@ -361,12 +361,12 @@ public:
         return S_OK;
     }
 
-    HRESULT __stdcall GetCurrentMediaType(IMFMediaType **type) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetCurrentMediaType(IMFMediaType **type) override
     {
         return m_type.CopyTo(type);
     }
 
-    HRESULT __stdcall GetMajorType(GUID *majorType) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetMajorType(GUID *majorType) override
     {
         return m_type->GetMajorType(majorType);
     }
@@ -407,19 +407,19 @@ public:
         return m_stream->RequestSample();
     }
 
-    HRESULT __stdcall SetProperties(Collections::IPropertySet *configuration) Q_DECL_OVERRIDE
+    HRESULT __stdcall SetProperties(Collections::IPropertySet *configuration) override
     {
         Q_UNUSED(configuration);
         return E_NOTIMPL;
     }
 
-    HRESULT __stdcall GetCharacteristics(DWORD *characteristics) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetCharacteristics(DWORD *characteristics) override
     {
         *characteristics = MEDIASINK_FIXED_STREAMS | MEDIASINK_RATELESS;
         return S_OK;
     }
 
-    HRESULT __stdcall AddStreamSink(DWORD streamSinkIdentifier, IMFMediaType *mediaType, IMFStreamSink **streamSink) Q_DECL_OVERRIDE
+    HRESULT __stdcall AddStreamSink(DWORD streamSinkIdentifier, IMFMediaType *mediaType, IMFStreamSink **streamSink) override
     {
         Q_UNUSED(streamSinkIdentifier);
         Q_UNUSED(mediaType);
@@ -427,33 +427,33 @@ public:
         return E_NOTIMPL;
     }
 
-    HRESULT __stdcall RemoveStreamSink(DWORD streamSinkIdentifier) Q_DECL_OVERRIDE
+    HRESULT __stdcall RemoveStreamSink(DWORD streamSinkIdentifier) override
     {
         Q_UNUSED(streamSinkIdentifier);
         return E_NOTIMPL;
     }
 
-    HRESULT __stdcall GetStreamSinkCount(DWORD *streamSinkCount) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetStreamSinkCount(DWORD *streamSinkCount) override
     {
         *streamSinkCount = 1;
         return S_OK;
     }
 
-    HRESULT __stdcall GetStreamSinkByIndex(DWORD index, IMFStreamSink **streamSink) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetStreamSinkByIndex(DWORD index, IMFStreamSink **streamSink) override
     {
         if (index == 0)
             return m_stream.CopyTo(streamSink);
         return MF_E_INVALIDINDEX;
     }
 
-    HRESULT __stdcall GetStreamSinkById(DWORD streamSinkIdentifier, IMFStreamSink **streamSink) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetStreamSinkById(DWORD streamSinkIdentifier, IMFStreamSink **streamSink) override
     {
         // ID and index are always 0
         HRESULT hr = GetStreamSinkByIndex(streamSinkIdentifier, streamSink);
         return hr == MF_E_INVALIDINDEX ? MF_E_INVALIDSTREAMNUMBER : hr;
     }
 
-    HRESULT __stdcall SetPresentationClock(IMFPresentationClock *presentationClock) Q_DECL_OVERRIDE
+    HRESULT __stdcall SetPresentationClock(IMFPresentationClock *presentationClock) override
     {
         HRESULT hr = S_OK;
         m_presentationClock = presentationClock;
@@ -462,19 +462,19 @@ public:
         return hr;
     }
 
-    HRESULT __stdcall GetPresentationClock(IMFPresentationClock **presentationClock) Q_DECL_OVERRIDE
+    HRESULT __stdcall GetPresentationClock(IMFPresentationClock **presentationClock) override
     {
         return m_presentationClock.CopyTo(presentationClock);
     }
 
-    HRESULT __stdcall Shutdown() Q_DECL_OVERRIDE
+    HRESULT __stdcall Shutdown() override
     {
         m_stream->Flush();
         scheduleSetActive(false);
         return m_presentationClock ? m_presentationClock->Stop() : S_OK;
     }
 
-    HRESULT __stdcall OnClockStart(MFTIME systemTime, LONGLONG clockStartOffset) Q_DECL_OVERRIDE
+    HRESULT __stdcall OnClockStart(MFTIME systemTime, LONGLONG clockStartOffset) override
     {
         Q_UNUSED(systemTime);
         Q_UNUSED(clockStartOffset);
@@ -484,7 +484,7 @@ public:
         return S_OK;
     }
 
-    HRESULT __stdcall OnClockStop(MFTIME systemTime) Q_DECL_OVERRIDE
+    HRESULT __stdcall OnClockStop(MFTIME systemTime) override
     {
         Q_UNUSED(systemTime);
 
@@ -493,7 +493,7 @@ public:
         return m_stream->QueueEvent(MEStreamSinkStopped, GUID_NULL, S_OK, Q_NULLPTR);
     }
 
-    HRESULT __stdcall OnClockPause(MFTIME systemTime) Q_DECL_OVERRIDE
+    HRESULT __stdcall OnClockPause(MFTIME systemTime) override
     {
         Q_UNUSED(systemTime);
 
@@ -502,7 +502,7 @@ public:
         return m_stream->QueueEvent(MEStreamSinkPaused, GUID_NULL, S_OK, Q_NULLPTR);
     }
 
-    HRESULT __stdcall OnClockRestart(MFTIME systemTime) Q_DECL_OVERRIDE
+    HRESULT __stdcall OnClockRestart(MFTIME systemTime) override
     {
         Q_UNUSED(systemTime);
 
@@ -511,7 +511,7 @@ public:
         return m_stream->QueueEvent(MEStreamSinkStarted, GUID_NULL, S_OK, Q_NULLPTR);
     }
 
-    HRESULT __stdcall OnClockSetRate(MFTIME systemTime, float rate) Q_DECL_OVERRIDE
+    HRESULT __stdcall OnClockSetRate(MFTIME systemTime, float rate) override
     {
         Q_UNUSED(systemTime);
         Q_UNUSED(rate);

@@ -58,9 +58,9 @@ class QAndroidViewfinderSettingsControl2 : public QCameraViewfinderSettingsContr
 public:
     explicit QAndroidViewfinderSettingsControl2(QAndroidCameraSession *session);
 
-    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const Q_DECL_OVERRIDE;
-    QCameraViewfinderSettings viewfinderSettings() const Q_DECL_OVERRIDE;
-    void setViewfinderSettings(const QCameraViewfinderSettings &settings) Q_DECL_OVERRIDE;
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
+    QCameraViewfinderSettings viewfinderSettings() const override;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings) override;
 
 private:
     QAndroidCameraSession *m_cameraSession;

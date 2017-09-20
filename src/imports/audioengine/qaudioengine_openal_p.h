@@ -91,12 +91,12 @@ public:
     StaticSoundBufferAL(QObject *parent, const QUrl &url, QSampleCache *sampleLoader);
     ~StaticSoundBufferAL();
 
-    State state() const Q_DECL_OVERRIDE;
+    State state() const override;
 
-    void load() Q_DECL_OVERRIDE;
+    void load() override;
 
-    void bindToSource(ALuint alSource) Q_DECL_OVERRIDE;
-    void unbindFromSource(ALuint alSource) Q_DECL_OVERRIDE;
+    void bindToSource(ALuint alSource) override;
+    void unbindFromSource(ALuint alSource) override;
 
     inline long addRef() { return ++m_ref; }
     inline long release() { return --m_ref; }

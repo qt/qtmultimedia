@@ -120,9 +120,9 @@ public:
         setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/uyvyvideo.frag"));
     }
 
-    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial) Q_DECL_OVERRIDE;
+    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
-    char const *const *attributeNames() const Q_DECL_OVERRIDE {
+    char const *const *attributeNames() const override {
         static const char *names[] = {
             "qt_VertexPosition",
             "qt_VertexTexCoord",
@@ -132,7 +132,7 @@ public:
     }
 
 protected:
-    void initialize() Q_DECL_OVERRIDE {
+    void initialize() override {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
         m_id_yuvtexture = program()->uniformLocation("yuvTexture");
         m_id_imageWidth = program()->uniformLocation("imageWidth");

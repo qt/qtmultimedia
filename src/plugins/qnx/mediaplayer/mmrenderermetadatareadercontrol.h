@@ -50,10 +50,10 @@ class MmRendererMetaDataReaderControl : public QMetaDataReaderControl
 public:
     explicit MmRendererMetaDataReaderControl(QObject *parent = 0);
 
-    bool isMetaDataAvailable() const Q_DECL_OVERRIDE;
+    bool isMetaDataAvailable() const override;
 
-    QVariant metaData(const QString &key) const Q_DECL_OVERRIDE;
-    QStringList availableMetaData() const Q_DECL_OVERRIDE;
+    QVariant metaData(const QString &key) const override;
+    QStringList availableMetaData() const override;
 
     void setMetaData(const MmRendererMetaData &data);
 

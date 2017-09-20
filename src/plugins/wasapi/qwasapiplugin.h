@@ -60,11 +60,11 @@ public:
     explicit QWasapiPlugin(QObject *parent = 0);
     ~QWasapiPlugin() {}
 
-    QByteArray defaultDevice(QAudio::Mode mode) const Q_DECL_OVERRIDE;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const Q_DECL_OVERRIDE;
-    QAbstractAudioInput *createInput(const QByteArray &device) Q_DECL_OVERRIDE;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) Q_DECL_OVERRIDE;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) Q_DECL_OVERRIDE;
+    QByteArray defaultDevice(QAudio::Mode mode) const override;
+    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
+    QAbstractAudioInput *createInput(const QByteArray &device) override;
+    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
+    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
 
 private:
     QList<QByteArray> m_deviceNames;

@@ -52,12 +52,12 @@ class QAndroidVideoEncoderSettingsControl : public QVideoEncoderSettingsControl
 public:
     explicit QAndroidVideoEncoderSettingsControl(QAndroidCaptureSession *session);
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
-    QStringList supportedVideoCodecs() const Q_DECL_OVERRIDE;
-    QString videoCodecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
-    QVideoEncoderSettings videoSettings() const Q_DECL_OVERRIDE;
-    void setVideoSettings(const QVideoEncoderSettings &settings) Q_DECL_OVERRIDE;
+    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous = 0) const override;
+    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const override;
+    QStringList supportedVideoCodecs() const override;
+    QString videoCodecDescription(const QString &codecName) const override;
+    QVideoEncoderSettings videoSettings() const override;
+    void setVideoSettings(const QVideoEncoderSettings &settings) override;
 
 private:
     QAndroidCaptureSession *m_session;

@@ -52,15 +52,15 @@ public:
     QnxAudioDeviceInfo(const QString &deviceName, QAudio::Mode mode);
     ~QnxAudioDeviceInfo();
 
-    QAudioFormat preferredFormat() const Q_DECL_OVERRIDE;
-    bool isFormatSupported(const QAudioFormat &format) const Q_DECL_OVERRIDE;
-    QString deviceName() const Q_DECL_OVERRIDE;
-    QStringList supportedCodecs() Q_DECL_OVERRIDE;
-    QList<int> supportedSampleRates() Q_DECL_OVERRIDE;
-    QList<int> supportedChannelCounts() Q_DECL_OVERRIDE;
-    QList<int> supportedSampleSizes() Q_DECL_OVERRIDE;
-    QList<QAudioFormat::Endian> supportedByteOrders() Q_DECL_OVERRIDE;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() Q_DECL_OVERRIDE;
+    QAudioFormat preferredFormat() const override;
+    bool isFormatSupported(const QAudioFormat &format) const override;
+    QString deviceName() const override;
+    QStringList supportedCodecs() override;
+    QList<int> supportedSampleRates() override;
+    QList<int> supportedChannelCounts() override;
+    QList<int> supportedSampleSizes() override;
+    QList<QAudioFormat::Endian> supportedByteOrders() override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() override;
 
 private:
     const QString m_name;

@@ -63,17 +63,17 @@ public:
     QAndroidMediaServicePlugin();
     ~QAndroidMediaServicePlugin();
 
-    QMediaService* create(QString const& key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
+    QMediaService* create(QString const& key) override;
+    void release(QMediaService *service) override;
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
 
-    QByteArray defaultDevice(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
+    QByteArray defaultDevice(const QByteArray &service) const override;
+    QList<QByteArray> devices(const QByteArray &service) const override;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
 
-    QCamera::Position cameraPosition(const QByteArray &device) const Q_DECL_OVERRIDE;
-    int cameraOrientation(const QByteArray &device) const Q_DECL_OVERRIDE;
+    QCamera::Position cameraPosition(const QByteArray &device) const override;
+    int cameraOrientation(const QByteArray &device) const override;
 };
 
 QT_END_NAMESPACE

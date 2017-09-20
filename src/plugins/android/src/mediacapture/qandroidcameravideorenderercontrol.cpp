@@ -56,13 +56,13 @@ class QAndroidCameraDataVideoOutput : public QAndroidVideoOutput
     Q_OBJECT
 public:
     explicit QAndroidCameraDataVideoOutput(QAndroidCameraVideoRendererControl *control);
-    ~QAndroidCameraDataVideoOutput() Q_DECL_OVERRIDE;
+    ~QAndroidCameraDataVideoOutput() override;
 
-    AndroidSurfaceHolder *surfaceHolder() Q_DECL_OVERRIDE;
+    AndroidSurfaceHolder *surfaceHolder() override;
 
-    bool isReady() Q_DECL_OVERRIDE;
+    bool isReady() override;
 
-    void stop() Q_DECL_OVERRIDE;
+    void stop() override;
 
 private Q_SLOTS:
     void onSurfaceCreated();

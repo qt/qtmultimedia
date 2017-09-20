@@ -52,12 +52,12 @@ class QAndroidCameraExposureControl : public QCameraExposureControl
 public:
     explicit QAndroidCameraExposureControl(QAndroidCameraSession *session);
 
-    bool isParameterSupported(ExposureParameter parameter) const Q_DECL_OVERRIDE;
-    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const Q_DECL_OVERRIDE;
+    bool isParameterSupported(ExposureParameter parameter) const override;
+    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const override;
 
-    QVariant requestedValue(ExposureParameter parameter) const Q_DECL_OVERRIDE;
-    QVariant actualValue(ExposureParameter parameter) const Q_DECL_OVERRIDE;
-    bool setValue(ExposureParameter parameter, const QVariant& value) Q_DECL_OVERRIDE;
+    QVariant requestedValue(ExposureParameter parameter) const override;
+    QVariant actualValue(ExposureParameter parameter) const override;
+    bool setValue(ExposureParameter parameter, const QVariant& value) override;
 
 private Q_SLOTS:
     void onCameraOpened();

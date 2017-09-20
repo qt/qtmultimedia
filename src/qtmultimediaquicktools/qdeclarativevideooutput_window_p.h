@@ -63,15 +63,15 @@ public:
     QDeclarativeVideoWindowBackend(QDeclarativeVideoOutput *parent);
     ~QDeclarativeVideoWindowBackend();
 
-    bool init(QMediaService *service) Q_DECL_OVERRIDE;
-    void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &changeData) Q_DECL_OVERRIDE;
-    void releaseSource() Q_DECL_OVERRIDE;
-    void releaseControl() Q_DECL_OVERRIDE;
-    QSize nativeSize() const Q_DECL_OVERRIDE;
-    void updateGeometry() Q_DECL_OVERRIDE;
-    QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) Q_DECL_OVERRIDE;
-    QAbstractVideoSurface *videoSurface() const Q_DECL_OVERRIDE;
-    QRectF adjustedViewport() const Q_DECL_OVERRIDE;
+    bool init(QMediaService *service) override;
+    void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &changeData) override;
+    void releaseSource() override;
+    void releaseControl() override;
+    QSize nativeSize() const override;
+    void updateGeometry() override;
+    QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) override;
+    QAbstractVideoSurface *videoSurface() const override;
+    QRectF adjustedViewport() const override;
 
 private:
     QPointer<QVideoWindowControl> m_videoWindowControl;

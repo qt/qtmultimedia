@@ -52,10 +52,10 @@ class QAndroidMediaPlayerVideoRendererControl : public QVideoRendererControl
     Q_OBJECT
 public:
     QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent = 0);
-    ~QAndroidMediaPlayerVideoRendererControl() Q_DECL_OVERRIDE;
+    ~QAndroidMediaPlayerVideoRendererControl() override;
 
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
 private:
     QAndroidMediaPlayerControl *m_mediaPlayerControl;

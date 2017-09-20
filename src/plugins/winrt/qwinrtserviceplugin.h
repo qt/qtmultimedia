@@ -62,13 +62,13 @@ public:
 
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
 
-    QCamera::Position cameraPosition(const QByteArray &device) const Q_DECL_OVERRIDE;
-    int cameraOrientation(const QByteArray &device) const Q_DECL_OVERRIDE;
+    QCamera::Position cameraPosition(const QByteArray &device) const override;
+    int cameraOrientation(const QByteArray &device) const override;
 
-    QList<QByteArray> devices(const QByteArray &service) const Q_DECL_OVERRIDE;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) Q_DECL_OVERRIDE;
+    QList<QByteArray> devices(const QByteArray &service) const override;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
 
-    QByteArray defaultDevice(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QByteArray defaultDevice(const QByteArray &service) const override;
 };
 
 QT_END_NAMESPACE

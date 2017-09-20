@@ -57,30 +57,30 @@ public:
     QOpenSLESAudioOutput(const QByteArray &device);
     ~QOpenSLESAudioOutput();
 
-    void start(QIODevice *device) Q_DECL_OVERRIDE;
-    QIODevice *start() Q_DECL_OVERRIDE;
-    void stop() Q_DECL_OVERRIDE;
-    void reset() Q_DECL_OVERRIDE;
-    void suspend() Q_DECL_OVERRIDE;
-    void resume() Q_DECL_OVERRIDE;
-    int bytesFree() const Q_DECL_OVERRIDE;
-    int periodSize() const Q_DECL_OVERRIDE;
-    void setBufferSize(int value) Q_DECL_OVERRIDE;
-    int bufferSize() const Q_DECL_OVERRIDE;
-    void setNotifyInterval(int milliSeconds) Q_DECL_OVERRIDE;
-    int notifyInterval() const Q_DECL_OVERRIDE;
-    qint64 processedUSecs() const Q_DECL_OVERRIDE;
-    qint64 elapsedUSecs() const Q_DECL_OVERRIDE;
-    QAudio::Error error() const Q_DECL_OVERRIDE;
-    QAudio::State state() const Q_DECL_OVERRIDE;
-    void setFormat(const QAudioFormat &format) Q_DECL_OVERRIDE;
-    QAudioFormat format() const Q_DECL_OVERRIDE;
+    void start(QIODevice *device) override;
+    QIODevice *start() override;
+    void stop() override;
+    void reset() override;
+    void suspend() override;
+    void resume() override;
+    int bytesFree() const override;
+    int periodSize() const override;
+    void setBufferSize(int value) override;
+    int bufferSize() const override;
+    void setNotifyInterval(int milliSeconds) override;
+    int notifyInterval() const override;
+    qint64 processedUSecs() const override;
+    qint64 elapsedUSecs() const override;
+    QAudio::Error error() const override;
+    QAudio::State state() const override;
+    void setFormat(const QAudioFormat &format) override;
+    QAudioFormat format() const override;
 
-    void setVolume(qreal volume) Q_DECL_OVERRIDE;
-    qreal volume() const Q_DECL_OVERRIDE;
+    void setVolume(qreal volume) override;
+    qreal volume() const override;
 
-    void setCategory(const QString &category) Q_DECL_OVERRIDE;
-    QString category() const Q_DECL_OVERRIDE;
+    void setCategory(const QString &category) override;
+    QString category() const override;
 
 private:
     friend class SLIODevicePrivate;
@@ -138,11 +138,11 @@ class SLIODevicePrivate : public QIODevice
 
 public:
     inline SLIODevicePrivate(QOpenSLESAudioOutput *audio) : m_audioDevice(audio) {}
-    inline ~SLIODevicePrivate() Q_DECL_OVERRIDE {}
+    inline ~SLIODevicePrivate() override {}
 
 protected:
-    inline qint64 readData(char *, qint64) Q_DECL_OVERRIDE { return 0; }
-    inline qint64 writeData(const char *data, qint64 len) Q_DECL_OVERRIDE;
+    inline qint64 readData(char *, qint64) override { return 0; }
+    inline qint64 writeData(const char *data, qint64 len) override;
 
 private:
     QOpenSLESAudioOutput *m_audioDevice;

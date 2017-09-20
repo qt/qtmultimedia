@@ -53,9 +53,9 @@ class NeutrinoServicePlugin
 public:
     NeutrinoServicePlugin();
 
-    QMediaService *create(const QString &key) Q_DECL_OVERRIDE;
-    void release(QMediaService *service) Q_DECL_OVERRIDE;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const Q_DECL_OVERRIDE;
+    QMediaService *create(const QString &key) override;
+    void release(QMediaService *service) override;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
 };
 
 QT_END_NAMESPACE

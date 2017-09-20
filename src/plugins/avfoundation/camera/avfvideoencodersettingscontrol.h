@@ -59,16 +59,16 @@ public:
     explicit AVFVideoEncoderSettingsControl(AVFCameraService *service);
 
     QList<QSize> supportedResolutions(const QVideoEncoderSettings &requestedVideoSettings,
-                                      bool *continuous = 0) const Q_DECL_OVERRIDE;
+                                      bool *continuous = 0) const override;
 
     QList<qreal> supportedFrameRates(const QVideoEncoderSettings &requestedVideoSettings,
-                                     bool *continuous = 0) const Q_DECL_OVERRIDE;
+                                     bool *continuous = 0) const override;
 
-    QStringList supportedVideoCodecs() const Q_DECL_OVERRIDE;
-    QString videoCodecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
+    QStringList supportedVideoCodecs() const override;
+    QString videoCodecDescription(const QString &codecName) const override;
 
-    QVideoEncoderSettings videoSettings() const Q_DECL_OVERRIDE;
-    void setVideoSettings(const QVideoEncoderSettings &requestedVideoSettings) Q_DECL_OVERRIDE;
+    QVideoEncoderSettings videoSettings() const override;
+    void setVideoSettings(const QVideoEncoderSettings &requestedVideoSettings) override;
 
     NSDictionary *applySettings(AVCaptureConnection *connection);
     void unapplySettings(AVCaptureConnection *connection);

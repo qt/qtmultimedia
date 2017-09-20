@@ -58,7 +58,7 @@ public:
 
     bool ensureReady();
 
-    bool render(ID3D11Texture2D *texture) Q_DECL_OVERRIDE;
+    bool render(ID3D11Texture2D *texture) override;
 
 private:
     QScopedPointer<QWinRTPlayerRendererControlPrivate> d_ptr;

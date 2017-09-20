@@ -51,15 +51,15 @@ class QWinRTCameraFocusControl : public QCameraFocusControl
 public:
     explicit QWinRTCameraFocusControl(QWinRTCameraControl *parent);
 
-    QCameraFocus::FocusModes focusMode() const Q_DECL_OVERRIDE;
-    void setFocusMode(QCameraFocus::FocusModes mode) Q_DECL_OVERRIDE;
-    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const Q_DECL_OVERRIDE;
-    QCameraFocus::FocusPointMode focusPointMode() const Q_DECL_OVERRIDE;
-    void setFocusPointMode(QCameraFocus::FocusPointMode mode) Q_DECL_OVERRIDE;
-    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const Q_DECL_OVERRIDE;
-    QPointF customFocusPoint() const Q_DECL_OVERRIDE;
-    void setCustomFocusPoint(const QPointF &point) Q_DECL_OVERRIDE;
-    QCameraFocusZoneList focusZones() const Q_DECL_OVERRIDE;
+    QCameraFocus::FocusModes focusMode() const override;
+    void setFocusMode(QCameraFocus::FocusModes mode) override;
+    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const override;
+    QCameraFocus::FocusPointMode focusPointMode() const override;
+    void setFocusPointMode(QCameraFocus::FocusPointMode mode) override;
+    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const override;
+    QPointF customFocusPoint() const override;
+    void setCustomFocusPoint(const QPointF &point) override;
+    QCameraFocusZoneList focusZones() const override;
 
     void setSupportedFocusMode(QCameraFocus::FocusModes flag);
     void setSupportedFocusPointMode(const QSet<QCameraFocus::FocusPointMode> &supportedFocusPointModes);

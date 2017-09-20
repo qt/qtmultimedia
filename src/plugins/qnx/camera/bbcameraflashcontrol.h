@@ -51,10 +51,10 @@ class BbCameraFlashControl : public QCameraFlashControl
 public:
     explicit BbCameraFlashControl(BbCameraSession *session, QObject *parent = 0);
 
-    QCameraExposure::FlashModes flashMode() const Q_DECL_OVERRIDE;
-    void setFlashMode(QCameraExposure::FlashModes mode) Q_DECL_OVERRIDE;
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const Q_DECL_OVERRIDE;
-    bool isFlashReady() const Q_DECL_OVERRIDE;
+    QCameraExposure::FlashModes flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashModes mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const override;
+    bool isFlashReady() const override;
 
 private:
     BbCameraSession *m_session;

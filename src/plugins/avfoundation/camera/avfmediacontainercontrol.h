@@ -53,10 +53,10 @@ class AVFMediaContainerControl : public QMediaContainerControl
 public:
     explicit AVFMediaContainerControl(AVFCameraService *service);
 
-    QStringList supportedContainers() const Q_DECL_OVERRIDE;
-    QString containerFormat() const Q_DECL_OVERRIDE;
-    void setContainerFormat(const QString &format) Q_DECL_OVERRIDE;
-    QString containerDescription(const QString &formatMimeType) const Q_DECL_OVERRIDE;
+    QStringList supportedContainers() const override;
+    QString containerFormat() const override;
+    void setContainerFormat(const QString &format) override;
+    QString containerDescription(const QString &formatMimeType) const override;
 
     NSString *fileType() const;
 

@@ -49,9 +49,9 @@ class BbCameraCaptureBufferFormatControl : public QCameraCaptureBufferFormatCont
 public:
     explicit BbCameraCaptureBufferFormatControl(QObject *parent = 0);
 
-    QList<QVideoFrame::PixelFormat> supportedBufferFormats() const Q_DECL_OVERRIDE;
-    QVideoFrame::PixelFormat bufferFormat() const Q_DECL_OVERRIDE;
-    void setBufferFormat(QVideoFrame::PixelFormat format) Q_DECL_OVERRIDE;
+    QList<QVideoFrame::PixelFormat> supportedBufferFormats() const override;
+    QVideoFrame::PixelFormat bufferFormat() const override;
+    void setBufferFormat(QVideoFrame::PixelFormat format) override;
 };
 
 QT_END_NAMESPACE

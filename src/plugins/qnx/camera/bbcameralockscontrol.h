@@ -59,10 +59,10 @@ public:
 
     explicit BbCameraLocksControl(BbCameraSession *session, QObject *parent = 0);
 
-    QCamera::LockTypes supportedLocks() const Q_DECL_OVERRIDE;
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const Q_DECL_OVERRIDE;
-    void searchAndLock(QCamera::LockTypes locks) Q_DECL_OVERRIDE;
-    void unlock(QCamera::LockTypes locks) Q_DECL_OVERRIDE;
+    QCamera::LockTypes supportedLocks() const override;
+    QCamera::LockStatus lockStatus(QCamera::LockType lock) const override;
+    void searchAndLock(QCamera::LockTypes locks) override;
+    void unlock(QCamera::LockTypes locks) override;
 
 private Q_SLOTS:
     void cameraOpened();

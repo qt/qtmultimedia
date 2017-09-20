@@ -130,7 +130,7 @@ class FilterRunnableDeleter : public QRunnable
 {
 public:
     FilterRunnableDeleter(const QList<QVideoFilterRunnable *> &runnables) : m_runnables(runnables) { }
-    void run() Q_DECL_OVERRIDE {
+    void run() override {
         for (QVideoFilterRunnable *runnable : qAsConst(m_runnables))
             delete runnable;
     }

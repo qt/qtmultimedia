@@ -51,12 +51,12 @@ class BbCameraVideoEncoderSettingsControl : public QVideoEncoderSettingsControl
 public:
     explicit BbCameraVideoEncoderSettingsControl(BbCameraSession *session, QObject *parent = 0);
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const Q_DECL_OVERRIDE;
-    QStringList supportedVideoCodecs() const Q_DECL_OVERRIDE;
-    QString videoCodecDescription(const QString &codecName) const Q_DECL_OVERRIDE;
-    QVideoEncoderSettings videoSettings() const Q_DECL_OVERRIDE;
-    void setVideoSettings(const QVideoEncoderSettings &settings) Q_DECL_OVERRIDE;
+    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous = 0) const override;
+    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const override;
+    QStringList supportedVideoCodecs() const override;
+    QString videoCodecDescription(const QString &codecName) const override;
+    QVideoEncoderSettings videoSettings() const override;
+    void setVideoSettings(const QVideoEncoderSettings &settings) override;
 
 private:
     BbCameraSession *m_session;

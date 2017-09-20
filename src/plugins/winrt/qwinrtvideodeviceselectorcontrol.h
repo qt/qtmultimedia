@@ -65,13 +65,13 @@ public:
     explicit QWinRTVideoDeviceSelectorControl(QObject *parent = 0);
     ~QWinRTVideoDeviceSelectorControl();
 
-    int deviceCount() const Q_DECL_OVERRIDE;
+    int deviceCount() const override;
 
-    QString deviceName(int index) const Q_DECL_OVERRIDE;
-    QString deviceDescription(int index) const Q_DECL_OVERRIDE;
+    QString deviceName(int index) const override;
+    QString deviceDescription(int index) const override;
 
-    int defaultDevice() const Q_DECL_OVERRIDE;
-    int selectedDevice() const Q_DECL_OVERRIDE;
+    int defaultDevice() const override;
+    int selectedDevice() const override;
 
     static QCamera::Position cameraPosition(const QString &deviceName);
     static int cameraOrientation(const QString &deviceName);
@@ -80,7 +80,7 @@ public:
     static QByteArray defaultDeviceName();
 
 public slots:
-    void setSelectedDevice(int index) Q_DECL_OVERRIDE;
+    void setSelectedDevice(int index) override;
 
 private:
     QScopedPointer<QWinRTVideoDeviceSelectorControlPrivate> d_ptr;

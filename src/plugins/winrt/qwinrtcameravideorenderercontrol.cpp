@@ -89,12 +89,12 @@ public:
         unmap();
     }
 
-    MapMode mapMode() const Q_DECL_OVERRIDE
+    MapMode mapMode() const override
     {
         return currentMode;
     }
 
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) Q_DECL_OVERRIDE
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) override
     {
         if (currentMode != NotMapped || mode == NotMapped || control && control->state() != QCamera::ActiveState)
             return nullptr;
@@ -113,7 +113,7 @@ public:
         return bytes;
     }
 
-    void unmap() Q_DECL_OVERRIDE
+    void unmap() override
     {
         if (currentMode == NotMapped)
             return;

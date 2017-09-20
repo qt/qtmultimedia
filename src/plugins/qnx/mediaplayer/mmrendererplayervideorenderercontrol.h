@@ -56,8 +56,8 @@ public:
     explicit MmRendererPlayerVideoRendererControl(QObject *parent = 0);
     ~MmRendererPlayerVideoRendererControl();
 
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
     // Called by media control
     void attachDisplay(mmr_context_t *context);
@@ -65,7 +65,7 @@ public:
     void pause();
     void resume();
 
-    void customEvent(QEvent *) Q_DECL_OVERRIDE;
+    void customEvent(QEvent *) override;
 
 private Q_SLOTS:
     void updateScene(const QSize &size);

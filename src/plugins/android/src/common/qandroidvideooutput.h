@@ -93,19 +93,19 @@ class QAndroidTextureVideoOutput : public QAndroidVideoOutput
     Q_OBJECT
 public:
     explicit QAndroidTextureVideoOutput(QObject *parent = 0);
-    ~QAndroidTextureVideoOutput() Q_DECL_OVERRIDE;
+    ~QAndroidTextureVideoOutput() override;
 
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
-    AndroidSurfaceTexture *surfaceTexture() Q_DECL_OVERRIDE;
+    AndroidSurfaceTexture *surfaceTexture() override;
 
-    bool isReady() Q_DECL_OVERRIDE;
-    void setVideoSize(const QSize &) Q_DECL_OVERRIDE;
-    void stop() Q_DECL_OVERRIDE;
-    void reset() Q_DECL_OVERRIDE;
+    bool isReady() override;
+    void setVideoSize(const QSize &) override;
+    void stop() override;
+    void reset() override;
 
-    void customEvent(QEvent *) Q_DECL_OVERRIDE;
+    void customEvent(QEvent *) override;
 
 private Q_SLOTS:
     void onFrameAvailable();

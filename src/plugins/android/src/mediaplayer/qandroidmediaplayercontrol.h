@@ -54,24 +54,24 @@ class QAndroidMediaPlayerControl : public QMediaPlayerControl
     Q_OBJECT
 public:
     explicit QAndroidMediaPlayerControl(QObject *parent = 0);
-    ~QAndroidMediaPlayerControl() Q_DECL_OVERRIDE;
+    ~QAndroidMediaPlayerControl() override;
 
-    QMediaPlayer::State state() const Q_DECL_OVERRIDE;
-    QMediaPlayer::MediaStatus mediaStatus() const Q_DECL_OVERRIDE;
-    qint64 duration() const Q_DECL_OVERRIDE;
-    qint64 position() const Q_DECL_OVERRIDE;
-    int volume() const Q_DECL_OVERRIDE;
-    bool isMuted() const Q_DECL_OVERRIDE;
-    int bufferStatus() const Q_DECL_OVERRIDE;
-    bool isAudioAvailable() const Q_DECL_OVERRIDE;
-    bool isVideoAvailable() const Q_DECL_OVERRIDE;
-    bool isSeekable() const Q_DECL_OVERRIDE;
-    QMediaTimeRange availablePlaybackRanges() const Q_DECL_OVERRIDE;
-    qreal playbackRate() const Q_DECL_OVERRIDE;
-    void setPlaybackRate(qreal rate) Q_DECL_OVERRIDE;
-    QMediaContent media() const Q_DECL_OVERRIDE;
-    const QIODevice *mediaStream() const Q_DECL_OVERRIDE;
-    void setMedia(const QMediaContent &mediaContent, QIODevice *stream) Q_DECL_OVERRIDE;
+    QMediaPlayer::State state() const override;
+    QMediaPlayer::MediaStatus mediaStatus() const override;
+    qint64 duration() const override;
+    qint64 position() const override;
+    int volume() const override;
+    bool isMuted() const override;
+    int bufferStatus() const override;
+    bool isAudioAvailable() const override;
+    bool isVideoAvailable() const override;
+    bool isSeekable() const override;
+    QMediaTimeRange availablePlaybackRanges() const override;
+    qreal playbackRate() const override;
+    void setPlaybackRate(qreal rate) override;
+    QMediaContent media() const override;
+    const QIODevice *mediaStream() const override;
+    void setMedia(const QMediaContent &mediaContent, QIODevice *stream) override;
 
     void setVideoOutput(QAndroidVideoOutput *videoOutput);
 
@@ -79,12 +79,12 @@ Q_SIGNALS:
     void metaDataUpdated();
 
 public Q_SLOTS:
-    void setPosition(qint64 position) Q_DECL_OVERRIDE;
-    void play() Q_DECL_OVERRIDE;
-    void pause() Q_DECL_OVERRIDE;
-    void stop() Q_DECL_OVERRIDE;
-    void setVolume(int volume) Q_DECL_OVERRIDE;
-    void setMuted(bool muted) Q_DECL_OVERRIDE;
+    void setPosition(qint64 position) override;
+    void play() override;
+    void pause() override;
+    void stop() override;
+    void setVolume(int volume) override;
+    void setMuted(bool muted) override;
 
 private Q_SLOTS:
     void onVideoOutputReady(bool ready);

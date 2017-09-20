@@ -51,8 +51,8 @@ class QWinRTCameraService : public QMediaService
 public:
     explicit QWinRTCameraService(QObject *parent = 0);
 
-    QMediaControl *requestControl(const char *name) Q_DECL_OVERRIDE;
-    void releaseControl(QMediaControl *control) Q_DECL_OVERRIDE;
+    QMediaControl *requestControl(const char *name) override;
+    void releaseControl(QMediaControl *control) override;
 
 private:
     QScopedPointer<QWinRTCameraServicePrivate> d_ptr;

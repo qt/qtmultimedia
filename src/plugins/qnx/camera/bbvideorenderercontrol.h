@@ -51,8 +51,8 @@ class BbVideoRendererControl : public QVideoRendererControl
 public:
     explicit BbVideoRendererControl(BbCameraSession *session, QObject *parent = 0);
 
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
 private:
     BbCameraSession *m_session;

@@ -53,12 +53,12 @@ class QAndroidMetaDataReaderControl : public QMetaDataReaderControl
     Q_OBJECT
 public:
     explicit QAndroidMetaDataReaderControl(QObject *parent = 0);
-    ~QAndroidMetaDataReaderControl() Q_DECL_OVERRIDE;
+    ~QAndroidMetaDataReaderControl() override;
 
-    bool isMetaDataAvailable() const Q_DECL_OVERRIDE;
+    bool isMetaDataAvailable() const override;
 
-    QVariant metaData(const QString &key) const Q_DECL_OVERRIDE;
-    QStringList availableMetaData() const Q_DECL_OVERRIDE;
+    QVariant metaData(const QString &key) const override;
+    QStringList availableMetaData() const override;
 
 public Q_SLOTS:
     void onMediaChanged(const QMediaContent &media);

@@ -149,12 +149,12 @@ public:
         create();
     }
 
-    MapMode mapMode() const Q_DECL_OVERRIDE
+    MapMode mapMode() const override
     {
         return NotMapped;
     }
 
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) Q_DECL_OVERRIDE
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) override
     {
         Q_UNUSED(mode);
         Q_UNUSED(numBytes);
@@ -162,11 +162,11 @@ public:
         return 0;
     }
 
-    void unmap() Q_DECL_OVERRIDE
+    void unmap() override
     {
     }
 
-    QVariant handle() const Q_DECL_OVERRIDE
+    QVariant handle() const override
     {
         return QVariant::fromValue(textureId());
     }
