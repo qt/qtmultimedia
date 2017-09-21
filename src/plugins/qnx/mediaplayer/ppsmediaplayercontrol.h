@@ -45,7 +45,7 @@ QT_BEGIN_NAMESPACE
 
 class QSocketNotifier;
 
-class PpsMediaPlayerControl Q_DECL_FINAL : public MmRendererMediaPlayerControl
+class PpsMediaPlayerControl final : public MmRendererMediaPlayerControl
 {
     Q_OBJECT
 public:
