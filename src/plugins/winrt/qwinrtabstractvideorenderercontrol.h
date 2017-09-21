@@ -96,22 +96,6 @@ private:
     Q_DECLARE_PRIVATE(QWinRTAbstractVideoRendererControl)
 };
 
-class CriticalSectionLocker
-{
-public:
-    CriticalSectionLocker(CRITICAL_SECTION *section)
-        : m_section(section)
-    {
-        EnterCriticalSection(m_section);
-    }
-    ~CriticalSectionLocker()
-    {
-        LeaveCriticalSection(m_section);
-    }
-private:
-    CRITICAL_SECTION *m_section;
-};
-
 QT_END_NAMESPACE
 
 #endif // QWINRTABSTRACTVIDEORENDERERCONTROL_H

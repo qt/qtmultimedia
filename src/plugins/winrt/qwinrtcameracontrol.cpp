@@ -47,6 +47,7 @@
 #include "qwinrtcameralockscontrol.h"
 
 #include <QtCore/qfunctions_winrt.h>
+#include <QtCore/QMutex>
 #include <QtCore/QPointer>
 #include <QtGui/QGuiApplication>
 #include <private/qeventdispatcher_winrt_p.h>
@@ -227,8 +228,6 @@ public:
     {
         Q_ASSERT(m_videoRenderer);
 
-        InitializeCriticalSectionEx(&m_mutex, 0, 0);
-
         HRESULT hr;
         hr = MFCreateEventQueue(&m_eventQueue);
         Q_ASSERT_SUCCEEDED(hr);
@@ -238,9 +237,8 @@ public:
 
     ~MediaStream()
     {
-        CriticalSectionLocker locker(&m_mutex);
+        QMutexLocker locker(&m_mutex);
         m_eventQueue->Shutdown();
-        DeleteCriticalSection(&m_mutex);
     }
 
     HRESULT RequestSample()
@@ -254,30 +252,30 @@ public:
 
     HRESULT __stdcall GetEvent(DWORD flags, IMFMediaEvent **event) Q_DECL_OVERRIDE
     {
-        EnterCriticalSection(&m_mutex);
+        QMutexLocker locker(&m_mutex);
         // Create an extra reference to avoid deadlock
         ComPtr<IMFMediaEventQueue> eventQueue = m_eventQueue;
-        LeaveCriticalSection(&m_mutex);
+        locker.unlock();
 
         return eventQueue->GetEvent(flags, event);
     }
 
     HRESULT __stdcall BeginGetEvent(IMFAsyncCallback *callback, IUnknown *state) Q_DECL_OVERRIDE
     {
-        CriticalSectionLocker locker(&m_mutex);
+        QMutexLocker locker(&m_mutex);
         HRESULT hr = m_eventQueue->BeginGetEvent(callback, state);
         return hr;
     }
 
     HRESULT __stdcall EndGetEvent(IMFAsyncResult *result, IMFMediaEvent **event) Q_DECL_OVERRIDE
     {
-        CriticalSectionLocker locker(&m_mutex);
+        QMutexLocker locker(&m_mutex);
         return m_eventQueue->EndGetEvent(result, event);
     }
 
     HRESULT __stdcall QueueEvent(MediaEventType eventType, const GUID &extendedType, HRESULT status, const PROPVARIANT *value) Q_DECL_OVERRIDE
     {
-        CriticalSectionLocker locker(&m_mutex);
+        QMutexLocker locker(&m_mutex);
         return m_eventQueue->QueueEventParamVar(eventType, extendedType, status, value);
     }
 
@@ -372,7 +370,7 @@ public:
     }
 
 private:
-    CRITICAL_SECTION m_mutex;
+    QMutex m_mutex;
     ComPtr<IMFMediaType> m_type;
     IMFMediaSink *m_sink;
     ComPtr<IMFMediaEventQueue> m_eventQueue;
