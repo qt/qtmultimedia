@@ -40,7 +40,6 @@
 #include "avfcamerautility.h"
 #include "avfcameradebug.h"
 
-#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
@@ -180,12 +179,10 @@ QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format)
 {
     Q_ASSERT(format);
     QSize res;
-#if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
-    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::IOS, 8)) {
-        const CMVideoDimensions hrDim(format.highResolutionStillImageDimensions);
-        res.setWidth(hrDim.width);
-        res.setHeight(hrDim.height);
-    }
+#if defined(Q_OS_IOS)
+    const CMVideoDimensions hrDim(format.highResolutionStillImageDimensions);
+    res.setWidth(hrDim.width);
+    res.setHeight(hrDim.height);
 #endif
     return res;
 }
