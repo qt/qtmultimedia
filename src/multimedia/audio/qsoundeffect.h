@@ -80,7 +80,7 @@ public:
         Error
     };
 
-    explicit QSoundEffect(QObject *parent = Q_NULLPTR);
+    explicit QSoundEffect(QObject *parent = nullptr);
     ~QSoundEffect();
 
     static QStringList supportedMimeTypes();

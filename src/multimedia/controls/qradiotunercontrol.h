@@ -107,7 +107,7 @@ Q_SIGNALS:
     void antennaConnectedChanged(bool connectionStatus);
 
 protected:
-    explicit QRadioTunerControl(QObject *parent = Q_NULLPTR);
+    explicit QRadioTunerControl(QObject *parent = nullptr);
 };
 
 #define QRadioTunerControl_iid "org.qt-project.qt.radiotunercontrol/5.0"

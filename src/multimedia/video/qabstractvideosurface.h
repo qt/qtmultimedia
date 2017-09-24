@@ -64,7 +64,7 @@ public:
         ResourceError
     };
 
-    explicit QAbstractVideoSurface(QObject *parent = Q_NULLPTR);
+    explicit QAbstractVideoSurface(QObject *parent = nullptr);
     ~QAbstractVideoSurface();
 
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(

@@ -73,7 +73,7 @@ Q_SIGNALS:
     void activeStreamsChanged();
 
 protected:
-    explicit QMediaStreamsControl(QObject *parent = Q_NULLPTR);
+    explicit QMediaStreamsControl(QObject *parent = nullptr);
 };
 
 #define QMediaStreamsControl_iid "org.qt-project.qt.mediastreamscontrol/5.0"

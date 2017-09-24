@@ -541,7 +541,7 @@ QWinRTMediaPlayerControl::QWinRTMediaPlayerControl(IMFMediaEngineClassFactory *f
     d->seekable = false;
     d->hasAudio = false;
     d->hasVideo = false;
-    d->videoRenderer = Q_NULLPTR;
+    d->videoRenderer = nullptr;
     d->notifier = Make<MediaEngineNotify>(this, d);
 
     HRESULT hr;
@@ -796,7 +796,7 @@ void QWinRTMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *s
     }
 
     // Let Windows handle all other URLs
-    hr = d->engine->SetSource(Q_NULLPTR); // Resets the byte stream
+    hr = d->engine->SetSource(nullptr); // Resets the byte stream
     Q_ASSERT_SUCCEEDED(hr);
     hr = d->engine->Load();
     if (FAILED(hr))

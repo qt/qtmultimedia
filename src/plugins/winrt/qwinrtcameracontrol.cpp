@@ -247,7 +247,7 @@ public:
     {
         if (m_pendingSamples.load() < 3) {
             m_pendingSamples.ref();
-            return QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, Q_NULLPTR);
+            return QueueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, nullptr);
         }
         return S_OK;
     }
@@ -354,7 +354,7 @@ public:
 
     HRESULT __stdcall SetCurrentMediaType(IMFMediaType *type) override
     {
-        if (FAILED(IsMediaTypeSupported(type, Q_NULLPTR)))
+        if (FAILED(IsMediaTypeSupported(type, nullptr)))
             return MF_E_INVALIDREQUEST;
 
         m_type = type;
@@ -490,7 +490,7 @@ public:
 
         scheduleSetActive(false);
 
-        return m_stream->QueueEvent(MEStreamSinkStopped, GUID_NULL, S_OK, Q_NULLPTR);
+        return m_stream->QueueEvent(MEStreamSinkStopped, GUID_NULL, S_OK, nullptr);
     }
 
     HRESULT __stdcall OnClockPause(MFTIME systemTime) override
@@ -499,7 +499,7 @@ public:
 
         scheduleSetActive(false);
 
-        return m_stream->QueueEvent(MEStreamSinkPaused, GUID_NULL, S_OK, Q_NULLPTR);
+        return m_stream->QueueEvent(MEStreamSinkPaused, GUID_NULL, S_OK, nullptr);
     }
 
     HRESULT __stdcall OnClockRestart(MFTIME systemTime) override
@@ -508,7 +508,7 @@ public:
 
         scheduleSetActive(true);
 
-        return m_stream->QueueEvent(MEStreamSinkStarted, GUID_NULL, S_OK, Q_NULLPTR);
+        return m_stream->QueueEvent(MEStreamSinkStarted, GUID_NULL, S_OK, nullptr);
     }
 
     HRESULT __stdcall OnClockSetRate(MFTIME systemTime, float rate) override

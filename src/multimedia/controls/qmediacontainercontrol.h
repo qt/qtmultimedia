@@ -62,7 +62,7 @@ public:
     virtual QString containerDescription(const QString &formatMimeType) const = 0;
 
 protected:
-    explicit QMediaContainerControl(QObject *parent = Q_NULLPTR);
+    explicit QMediaContainerControl(QObject *parent = nullptr);
 };
 
 #define QMediaContainerControl_iid "org.qt-project.qt.mediacontainercontrol/5.0"

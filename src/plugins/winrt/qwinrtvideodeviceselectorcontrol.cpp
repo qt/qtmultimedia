@@ -124,7 +124,7 @@ struct QWinRTVideoDeviceSelectorControlGlobal
             IDeviceInformation *device;
             hr = deviceList->GetAt(i, &device);
             Q_ASSERT_SUCCEEDED(hr);
-            onDeviceAdded(Q_NULLPTR, device);
+            onDeviceAdded(nullptr, device);
         }
 
         // If there is no default device provided by the API, choose the first one

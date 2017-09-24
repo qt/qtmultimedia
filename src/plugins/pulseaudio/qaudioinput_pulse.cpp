@@ -226,7 +226,7 @@ QIODevice *QPulseAudioInput::start()
     close();
 
     if (!open())
-        return Q_NULLPTR;
+        return nullptr;
 
     m_pullMode = false;
     m_audioSource = new PulseInputPrivate(this);

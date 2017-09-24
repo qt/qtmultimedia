@@ -82,7 +82,7 @@ public:
     virtual void setParameter(ProcessingParameter parameter, const QVariant &value) = 0;
 
 protected:
-    explicit QCameraImageProcessingControl(QObject *parent = Q_NULLPTR);
+    explicit QCameraImageProcessingControl(QObject *parent = nullptr);
 };
 
 #define QCameraImageProcessingControl_iid "org.qt-project.qt.cameraimageprocessingcontrol/5.0"

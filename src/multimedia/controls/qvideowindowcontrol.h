@@ -94,7 +94,7 @@ Q_SIGNALS:
     void nativeSizeChanged();
 
 protected:
-    explicit QVideoWindowControl(QObject *parent = Q_NULLPTR);
+    explicit QVideoWindowControl(QObject *parent = nullptr);
 };
 
 #define QVideoWindowControl_iid "org.qt-project.qt.videowindowcontrol/5.0"

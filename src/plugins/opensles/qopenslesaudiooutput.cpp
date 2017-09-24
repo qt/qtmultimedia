@@ -69,13 +69,13 @@ QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
     : m_deviceName(device),
       m_state(QAudio::StoppedState),
       m_error(QAudio::NoError),
-      m_outputMixObject(Q_NULLPTR),
-      m_playerObject(Q_NULLPTR),
-      m_playItf(Q_NULLPTR),
-      m_volumeItf(Q_NULLPTR),
-      m_bufferQueueItf(Q_NULLPTR),
-      m_audioSource(Q_NULLPTR),
-      m_buffers(Q_NULLPTR),
+      m_outputMixObject(nullptr),
+      m_playerObject(nullptr),
+      m_playItf(nullptr),
+      m_volumeItf(nullptr),
+      m_bufferQueueItf(nullptr),
+      m_audioSource(nullptr),
+      m_buffers(nullptr),
       m_volume(1.0),
       m_pullMode(false),
       m_nextBuffer(0),
@@ -157,7 +157,7 @@ QIODevice *QOpenSLESAudioOutput::start()
         stop();
 
     if (!preparePlayer())
-        return Q_NULLPTR;
+        return nullptr;
 
     m_pullMode = false;
     m_processedBytes = 0;
@@ -458,8 +458,8 @@ bool QOpenSLESAudioOutput::preparePlayer()
     if (SL_RESULT_SUCCESS != (*engine)->CreateOutputMix(engine,
                                                         &m_outputMixObject,
                                                         0,
-                                                        Q_NULLPTR,
-                                                        Q_NULLPTR)) {
+                                                        nullptr,
+                                                        nullptr)) {
         qWarning() << "Unable to create output mix";
         setError(QAudio::FatalError);
         return false;
@@ -472,7 +472,7 @@ bool QOpenSLESAudioOutput::preparePlayer()
     }
 
     SLDataLocator_OutputMix outputMixLocator = { SL_DATALOCATOR_OUTPUTMIX, m_outputMixObject };
-    SLDataSink audioSink = { &outputMixLocator, Q_NULLPTR };
+    SLDataSink audioSink = { &outputMixLocator, nullptr };
 
 #ifndef ANDROID
     const int iids = 2;
@@ -598,28 +598,28 @@ void QOpenSLESAudioOutput::destroyPlayer()
 
     if (m_playerObject) {
         (*m_playerObject)->Destroy(m_playerObject);
-        m_playerObject = Q_NULLPTR;
+        m_playerObject = nullptr;
     }
 
     if (m_outputMixObject) {
         (*m_outputMixObject)->Destroy(m_outputMixObject);
-        m_outputMixObject = Q_NULLPTR;
+        m_outputMixObject = nullptr;
     }
 
     if (!m_pullMode && m_audioSource) {
         m_audioSource->close();
         delete m_audioSource;
-        m_audioSource = Q_NULLPTR;
+        m_audioSource = nullptr;
     }
 
     delete [] m_buffers;
-    m_buffers = Q_NULLPTR;
+    m_buffers = nullptr;
     m_processedBytes = 0;
     m_nextBuffer = 0;
     m_availableBuffers.storeRelease(BUFFER_COUNT);
-    m_playItf = Q_NULLPTR;
-    m_volumeItf = Q_NULLPTR;
-    m_bufferQueueItf = Q_NULLPTR;
+    m_playItf = nullptr;
+    m_volumeItf = nullptr;
+    m_bufferQueueItf = nullptr;
     m_startRequiresInit = true;
 }
 
@@ -630,7 +630,7 @@ void QOpenSLESAudioOutput::stopPlayer()
     if (m_audioSource && !m_pullMode) {
         m_audioSource->close();
         delete m_audioSource;
-        m_audioSource = Q_NULLPTR;
+        m_audioSource = nullptr;
     }
 
     // We need to change the state manually...

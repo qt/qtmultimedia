@@ -219,7 +219,7 @@ void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraE
 
 AVFCameraExposureControl::AVFCameraExposureControl(AVFCameraService *service)
     : m_service(service),
-      m_session(Q_NULLPTR)
+      m_session(nullptr)
 {
     Q_ASSERT(service);
     m_session = m_service->session();

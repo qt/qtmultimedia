@@ -58,7 +58,7 @@ Q_SIGNALS:
     void flush();
 
 protected:
-    explicit QMediaVideoProbeControl(QObject *parent = Q_NULLPTR);
+    explicit QMediaVideoProbeControl(QObject *parent = nullptr);
 };
 
 #define QMediaVideoProbeControl_iid "org.qt-project.qt.mediavideoprobecontrol/5.0"

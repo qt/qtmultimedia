@@ -68,7 +68,7 @@ class Q_MULTIMEDIA_EXPORT QAbstractVideoFilter : public QObject
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
 
 public:
-    explicit QAbstractVideoFilter(QObject *parent = Q_NULLPTR);
+    explicit QAbstractVideoFilter(QObject *parent = nullptr);
     ~QAbstractVideoFilter();
 
     bool isActive() const;

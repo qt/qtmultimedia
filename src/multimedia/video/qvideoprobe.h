@@ -53,7 +53,7 @@ class Q_MULTIMEDIA_EXPORT QVideoProbe : public QObject
 {
     Q_OBJECT
 public:
-    explicit QVideoProbe(QObject *parent = Q_NULLPTR);
+    explicit QVideoProbe(QObject *parent = nullptr);
     ~QVideoProbe();
 
     bool setSource(QMediaObject *source);

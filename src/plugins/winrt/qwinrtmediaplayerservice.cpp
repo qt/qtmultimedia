@@ -65,7 +65,7 @@ QWinRTMediaPlayerService::QWinRTMediaPlayerService(QObject *parent)
 {
     Q_D(QWinRTMediaPlayerService);
 
-    d->player = Q_NULLPTR;
+    d->player = nullptr;
 
     HRESULT hr = MFStartup(MF_VERSION);
     Q_ASSERT(SUCCEEDED(hr));
@@ -94,11 +94,11 @@ QMediaControl *QWinRTMediaPlayerService::requestControl(const char *name)
     }
     if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!d->player)
-            return Q_NULLPTR;
+            return nullptr;
         return d->player->videoRendererControl();
     }
 
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void QWinRTMediaPlayerService::releaseControl(QMediaControl *control)

@@ -68,7 +68,7 @@ Q_SIGNALS:
     void availableInputsChanged();
 
 protected:
-    explicit QAudioInputSelectorControl(QObject *parent = Q_NULLPTR);
+    explicit QAudioInputSelectorControl(QObject *parent = nullptr);
 };
 
 #define QAudioInputSelectorControl_iid "org.qt-project.qt.audioinputselectorcontrol/5.0"

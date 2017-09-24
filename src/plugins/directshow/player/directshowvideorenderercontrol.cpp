@@ -63,7 +63,7 @@ DirectShowVideoRendererControl::~DirectShowVideoRendererControl()
 {
 #if QT_CONFIG(evr)
     if (m_evrPresenter) {
-        m_evrPresenter->setSurface(Q_NULLPTR);
+        m_evrPresenter->setSurface(nullptr);
         m_evrPresenter->Release();
     }
 #endif
@@ -83,7 +83,7 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
 #if QT_CONFIG(evr)
     if (m_evrPresenter) {
-        m_evrPresenter->setSurface(Q_NULLPTR);
+        m_evrPresenter->setSurface(nullptr);
         m_evrPresenter->Release();
         m_evrPresenter = 0;
     }

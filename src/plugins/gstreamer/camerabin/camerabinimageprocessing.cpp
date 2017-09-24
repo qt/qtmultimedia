@@ -58,7 +58,7 @@ CameraBinImageProcessing::CameraBinImageProcessing(CameraBinSession *session)
     , m_session(session)
     , m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
 #if QT_CONFIG(linux_v4l)
-    , m_v4lImageControl(Q_NULLPTR)
+    , m_v4lImageControl(nullptr)
 #endif
 {
 #if QT_CONFIG(gstreamer_photography)

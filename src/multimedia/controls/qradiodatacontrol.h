@@ -76,7 +76,7 @@ Q_SIGNALS:
     void error(QRadioData::Error err);
 
 protected:
-    explicit QRadioDataControl(QObject *parent = Q_NULLPTR);
+    explicit QRadioDataControl(QObject *parent = nullptr);
 };
 
 #define QRadioDataControl_iid "org.qt-project.qt.radiodatacontrol/5.0"

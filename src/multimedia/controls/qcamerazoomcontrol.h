@@ -75,7 +75,7 @@ Q_SIGNALS:
     void currentDigitalZoomChanged(qreal digitalZoom);
 
 protected:
-    explicit QCameraZoomControl(QObject *parent = Q_NULLPTR);
+    explicit QCameraZoomControl(QObject *parent = nullptr);
 };
 
 #define QCameraZoomControl_iid "org.qt-project.qt.camerazoomcontrol/5.0"

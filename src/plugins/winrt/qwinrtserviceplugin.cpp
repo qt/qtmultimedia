@@ -55,7 +55,7 @@ QMediaService *QWinRTServicePlugin::create(QString const &key)
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
         return new QWinRTCameraService(this);
 
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void QWinRTServicePlugin::release(QMediaService *service)

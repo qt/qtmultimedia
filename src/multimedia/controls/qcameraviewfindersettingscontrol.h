@@ -70,7 +70,7 @@ public:
     virtual void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) = 0;
 
 protected:
-    explicit QCameraViewfinderSettingsControl(QObject *parent = Q_NULLPTR);
+    explicit QCameraViewfinderSettingsControl(QObject *parent = nullptr);
 };
 
 #define QCameraViewfinderSettingsControl_iid "org.qt-project.qt.cameraviewfindersettingscontrol/5.0"
@@ -92,7 +92,7 @@ public:
     virtual void setViewfinderSettings(const QCameraViewfinderSettings &settings) = 0;
 
 protected:
-    explicit QCameraViewfinderSettingsControl2(QObject *parent = Q_NULLPTR);
+    explicit QCameraViewfinderSettingsControl2(QObject *parent = nullptr);
 };
 
 #define QCameraViewfinderSettingsControl2_iid "org.qt-project.qt.cameraviewfindersettingscontrol2/5.5"

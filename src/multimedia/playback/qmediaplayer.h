@@ -120,7 +120,7 @@ public:
         MediaIsPlaylist
     };
 
-    explicit QMediaPlayer(QObject *parent = Q_NULLPTR, Flags flags = Flags());
+    explicit QMediaPlayer(QObject *parent = nullptr, Flags flags = Flags());
     ~QMediaPlayer();
 
     static QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
@@ -178,7 +178,7 @@ public Q_SLOTS:
 
     void setPlaybackRate(qreal rate);
 
-    void setMedia(const QMediaContent &media, QIODevice *stream = Q_NULLPTR);
+    void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
     void setPlaylist(QMediaPlaylist *playlist);
 
     void setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations);

@@ -56,7 +56,7 @@ public:
     virtual void setSurface(QAbstractVideoSurface *surface) = 0;
 
 protected:
-    explicit QVideoRendererControl(QObject *parent = Q_NULLPTR);
+    explicit QVideoRendererControl(QObject *parent = nullptr);
 };
 
 #define QVideoRendererControl_iid "org.qt-project.qt.videorenderercontrol/5.0"

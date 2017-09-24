@@ -56,7 +56,7 @@ Q_SIGNALS:
     void flush();
 
 protected:
-    explicit QMediaAudioProbeControl(QObject *parent = Q_NULLPTR);
+    explicit QMediaAudioProbeControl(QObject *parent = nullptr);
 };
 
 #define QMediaAudioProbeControl_iid "org.qt-project.qt.mediaaudioprobecontrol/5.0"

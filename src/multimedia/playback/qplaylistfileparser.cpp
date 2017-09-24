@@ -551,7 +551,7 @@ void QPlaylistFileParser::start(const QNetworkRequest& request, const QString &m
 
     if (!d->m_currentParser.isNull()) {
         abort();
-        d->m_pendingJob = { Q_NULLPTR, QMediaResource(request, mimeType) };
+        d->m_pendingJob = { nullptr, QMediaResource(request, mimeType) };
         return;
     }
 

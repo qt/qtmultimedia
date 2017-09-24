@@ -58,7 +58,7 @@ public:
 
     static void play(const QString& filename);
 
-    explicit QSound(const QString &filename, QObject *parent = Q_NULLPTR);
+    explicit QSound(const QString &filename, QObject *parent = nullptr);
     ~QSound();
 
     int loops() const;

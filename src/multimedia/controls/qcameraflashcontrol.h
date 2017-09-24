@@ -68,7 +68,7 @@ Q_SIGNALS:
     void flashReady(bool);
 
 protected:
-    explicit QCameraFlashControl(QObject *parent = Q_NULLPTR);
+    explicit QCameraFlashControl(QObject *parent = nullptr);
 };
 
 #define QCameraFlashControl_iid "org.qt-project.qt.cameraflashcontrol/5.0"

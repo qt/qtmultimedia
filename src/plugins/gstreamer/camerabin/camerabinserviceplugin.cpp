@@ -74,7 +74,7 @@ QMediaService* CameraBinServicePlugin::create(const QString &key)
                      "GStreamer %u.%u."
                      "\nPlease install the 'bad' GStreamer plugin package.",
                      major, minor);
-            return Q_NULLPTR;
+            return nullptr;
         }
 
         return new CameraBinService(sourceFactory());

@@ -62,7 +62,7 @@ Q_SIGNALS:
     void availabilityChanged(QMultimedia::AvailabilityStatus availability);
 
 protected:
-    explicit QMediaAvailabilityControl(QObject *parent = Q_NULLPTR);
+    explicit QMediaAvailabilityControl(QObject *parent = nullptr);
 };
 
 #define QMediaAvailabilityControl_iid "org.qt-project.qt.mediaavailabilitycontrol/5.0"

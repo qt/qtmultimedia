@@ -92,7 +92,7 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
 
 protected:
-    explicit QAudioDecoderControl(QObject *parent = Q_NULLPTR);
+    explicit QAudioDecoderControl(QObject *parent = nullptr);
 };
 
 #define QAudioDecoderControl_iid "org.qt-project.qt.audiodecodercontrol/5.0"

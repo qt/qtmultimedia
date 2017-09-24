@@ -256,7 +256,7 @@ QIODevice *QPulseAudioOutput::start()
     m_pullMode = false;
 
     if (!open())
-        return Q_NULLPTR;
+        return nullptr;
 
     m_audioSource = new PulseOutputPrivate(this);
     m_audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);

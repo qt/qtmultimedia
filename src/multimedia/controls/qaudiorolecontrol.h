@@ -64,7 +64,7 @@ Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
 
 protected:
-    explicit QAudioRoleControl(QObject *parent = Q_NULLPTR);
+    explicit QAudioRoleControl(QObject *parent = nullptr);
 };
 
 #define QAudioRoleControl_iid "org.qt-project.qt.audiorolecontrol/5.6"

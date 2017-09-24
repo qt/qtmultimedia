@@ -68,13 +68,13 @@ public:
     virtual QString imageCodecDescription(const QString &codecName) const = 0;
 
     virtual QList<QSize> supportedResolutions(const QImageEncoderSettings &settings,
-                                              bool *continuous = Q_NULLPTR) const = 0;
+                                              bool *continuous = nullptr) const = 0;
 
     virtual QImageEncoderSettings imageSettings() const = 0;
     virtual void setImageSettings(const QImageEncoderSettings &settings) = 0;
 
 protected:
-    explicit QImageEncoderControl(QObject *parent = Q_NULLPTR);
+    explicit QImageEncoderControl(QObject *parent = nullptr);
 };
 
 #define QImageEncoderControl_iid "org.qt-project.qt.imageencodercontrol/5.0"

@@ -61,7 +61,7 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, pu
     Q_PROPERTY(QSizeF size READ size WRITE setSize)
     Q_PROPERTY(QSizeF nativeSize READ nativeSize NOTIFY nativeSizeChanged)
 public:
-    explicit QGraphicsVideoItem(QGraphicsItem *parent = Q_NULLPTR);
+    explicit QGraphicsVideoItem(QGraphicsItem *parent = nullptr);
     ~QGraphicsVideoItem();
 
     QMediaObject *mediaObject() const override;
@@ -79,7 +79,7 @@ public:
 
     QRectF boundingRect() const override;
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = Q_NULLPTR) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
 Q_SIGNALS:
     void nativeSizeChanged(const QSizeF &size);

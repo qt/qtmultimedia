@@ -83,7 +83,7 @@ Q_SIGNALS:
     void captureModeChanged(QCamera::CaptureModes);
 
 protected:
-    explicit QCameraControl(QObject *parent = Q_NULLPTR);
+    explicit QCameraControl(QObject *parent = nullptr);
 };
 
 #define QCameraControl_iid "org.qt-project.qt.cameracontrol/5.0"

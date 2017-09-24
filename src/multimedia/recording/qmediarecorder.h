@@ -106,7 +106,7 @@ public:
         OutOfSpaceError
     };
 
-    explicit QMediaRecorder(QMediaObject *mediaObject, QObject *parent = Q_NULLPTR);
+    explicit QMediaRecorder(QMediaObject *mediaObject, QObject *parent = nullptr);
     ~QMediaRecorder();
 
     QMediaObject *mediaObject() const override;
@@ -137,16 +137,16 @@ public:
     QString audioCodecDescription(const QString &codecName) const;
 
     QList<int> supportedAudioSampleRates(const QAudioEncoderSettings &settings = QAudioEncoderSettings(),
-                                         bool *continuous = Q_NULLPTR) const;
+                                         bool *continuous = nullptr) const;
 
     QStringList supportedVideoCodecs() const;
     QString videoCodecDescription(const QString &codecName) const;
 
     QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                      bool *continuous = Q_NULLPTR) const;
+                                      bool *continuous = nullptr) const;
 
     QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                     bool *continuous = Q_NULLPTR) const;
+                                     bool *continuous = nullptr) const;
 
     QAudioEncoderSettings audioSettings() const;
     QVideoEncoderSettings videoSettings() const;
@@ -193,7 +193,7 @@ Q_SIGNALS:
     void availabilityChanged(QMultimedia::AvailabilityStatus availability);
 
 protected:
-    QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = Q_NULLPTR);
+    QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = nullptr);
     bool setMediaObject(QMediaObject *object) override;
 
     QMediaRecorderPrivate *d_ptr;

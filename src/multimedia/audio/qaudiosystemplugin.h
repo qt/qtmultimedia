@@ -78,7 +78,7 @@ class Q_MULTIMEDIA_EXPORT QAudioSystemPlugin : public QObject, public QAudioSyst
     Q_INTERFACES(QAudioSystemFactoryInterface)
 
 public:
-    explicit QAudioSystemPlugin(QObject *parent = Q_NULLPTR);
+    explicit QAudioSystemPlugin(QObject *parent = nullptr);
     ~QAudioSystemPlugin();
 
     QList<QByteArray> availableDevices(QAudio::Mode) const override = 0;
