@@ -43,6 +43,7 @@
 #include <QtCore/QGlobalStatic>
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QMetaMethod>
+#include <QtCore/QMutexLocker>
 #include <QtCore/QPointer>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLTexture>
@@ -198,7 +199,7 @@ public:
     QThread renderThread;
     bool active;
     QWinRTAbstractVideoRendererControl::BlitMode blitMode;
-    CRITICAL_SECTION mutex;
+    QMutex mutex;
 };
 
 ID3D11Device *QWinRTAbstractVideoRendererControl::d3dDevice()
@@ -232,7 +233,6 @@ QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSi
     d->eglSurface = EGL_NO_SURFACE;
     d->active = false;
     d->blitMode = DirectVideo;
-    InitializeCriticalSectionEx(&d->mutex, 0, 0);
 
     connect(&d->renderThread, &QThread::started,
             this, &QWinRTAbstractVideoRendererControl::syncAndRender,
@@ -243,9 +243,9 @@ QWinRTAbstractVideoRendererControl::~QWinRTAbstractVideoRendererControl()
 {
     qCDebug(lcMMVideoRender) << __FUNCTION__;
     Q_D(QWinRTAbstractVideoRendererControl);
-    CriticalSectionLocker locker(&d->mutex);
+    QMutexLocker locker(&d->mutex);
     shutdown();
-    DeleteCriticalSection(&d->mutex);
+    locker.unlock();
     eglDestroySurface(d->eglDisplay, d->eglSurface);
 }
 
@@ -272,7 +272,7 @@ void QWinRTAbstractVideoRendererControl::syncAndRender()
         if (currentThread->isInterruptionRequested())
             break;
         {
-            CriticalSectionLocker lock(&d->mutex);
+            QMutexLocker lock(&d->mutex);
             HRESULT hr;
             if (d->dirtyState == TextureDirty) {
                 CD3D11_TEXTURE2D_DESC desc(DXGI_FORMAT_B8G8R8A8_UNORM, d->format.frameWidth(), d->format.frameHeight(), 1, 1);
@@ -359,7 +359,7 @@ void QWinRTAbstractVideoRendererControl::setActive(bool active)
         // This only happens for quick restart scenarios, for instance
         // when switching cameras.
         if (d->renderThread.isRunning() && d->renderThread.isInterruptionRequested()) {
-            CriticalSectionLocker lock(&d->mutex);
+            QMutexLocker lock(&d->mutex);
             d->renderThread.wait();
         }
 
@@ -385,7 +385,7 @@ QWinRTAbstractVideoRendererControl::BlitMode QWinRTAbstractVideoRendererControl:
 void QWinRTAbstractVideoRendererControl::setBlitMode(QWinRTAbstractVideoRendererControl::BlitMode mode)
 {
     Q_D(QWinRTAbstractVideoRendererControl);
-    CriticalSectionLocker lock(&d->mutex);
+    QMutexLocker lock(&d->mutex);
 
     if (d->blitMode == mode)
         return;

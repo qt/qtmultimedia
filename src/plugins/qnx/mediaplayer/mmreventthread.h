@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,65 +37,43 @@
 **
 ****************************************************************************/
 
-#ifndef QWINRTABSTRACTVIDEORENDERERCONTROL_H
-#define QWINRTABSTRACTVIDEORENDERERCONTROL_H
+#ifndef MMREVENTTHREAD_H
+#define MMREVENTTHREAD_H
 
-#include <QtMultimedia/QVideoRendererControl>
-#include <QtMultimedia/QVideoSurfaceFormat>
+#include <QtCore/QThread>
 
-#include <qt_windows.h>
-
-struct ID3D11Device;
-struct ID3D11Texture2D;
+#include <sys/neutrino.h>
+#include <sys/siginfo.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWinRTAbstractVideoRendererControlPrivate;
-class QWinRTAbstractVideoRendererControl : public QVideoRendererControl
+typedef struct mmr_context mmr_context_t;
+
+class MmrEventThread : public QThread
 {
     Q_OBJECT
+
 public:
-    explicit QWinRTAbstractVideoRendererControl(const QSize &size, QObject *parent = 0);
-    ~QWinRTAbstractVideoRendererControl();
+    MmrEventThread(mmr_context_t *context);
+    ~MmrEventThread() override;
 
-    enum BlitMode {
-        DirectVideo,
-        MediaFoundation
-    };
-
-    QAbstractVideoSurface *surface() const Q_DECL_OVERRIDE;
-    void setSurface(QAbstractVideoSurface *surface) Q_DECL_OVERRIDE;
-
-    QSize size() const;
-    void setSize(const QSize &size);
-
-    void setScanLineDirection(QVideoSurfaceFormat::Direction direction);
-
-    BlitMode blitMode() const;
-    void setBlitMode(BlitMode mode);
-
-    virtual bool render(ID3D11Texture2D *texture) = 0;
-    virtual bool dequeueFrame(QVideoFrame *frame);
-
-    static ID3D11Device *d3dDevice();
-
-public slots:
-    void setActive(bool active);
+    void signalRead();
 
 protected:
-    void shutdown();
+    void run() override;
 
-private slots:
-    void syncAndRender();
+Q_SIGNALS:
+    void eventPending();
 
 private:
-    void textureToFrame();
-    Q_INVOKABLE void present();
+    void shutdown();
 
-    QScopedPointer<QWinRTAbstractVideoRendererControlPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(QWinRTAbstractVideoRendererControl)
+    int m_channelId;
+    int m_connectionId;
+    struct sigevent m_mmrEvent;
+    mmr_context_t *m_mmrContext;
 };
 
 QT_END_NAMESPACE
 
-#endif // QWINRTABSTRACTVIDEORENDERERCONTROL_H
+#endif // MMREVENTTHREAD_H

@@ -104,10 +104,9 @@ public:
     void setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl);
 
 protected:
-    virtual void startMonitoring(int contextId, const QString &contextName) = 0;
+    virtual void startMonitoring() = 0;
     virtual void stopMonitoring() = 0;
 
-    QString contextName() const;
     void openConnection();
     void emitMmError(const QString &msg);
     void emitPError(const QString &msg);
@@ -119,6 +118,10 @@ protected:
 
     // must be called from subclass dtors (calls virtual function stopMonitoring())
     void destroy();
+
+    mmr_context_t *m_context;
+    int m_id;
+    QString m_contextName;
 
 private Q_SLOTS:
     void continueLoadMedia();
@@ -144,8 +147,6 @@ private:
 
     QMediaContent m_media;
     mmr_connection_t *m_connection;
-    mmr_context_t *m_context;
-    QString m_contextName;
     int m_audioId;
     QMediaPlayer::State m_state;
     int m_volume;
@@ -155,7 +156,6 @@ private:
     QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
     QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
     MmRendererMetaData m_metaData;
-    int m_id;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;
     bool m_playAfterMediaLoaded;
