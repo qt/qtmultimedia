@@ -72,9 +72,9 @@ ANDROID_JAR_DEPENDENCIES = \
     jar/QtMultimedia.jar:org.qtproject.qt5.android.multimedia.QtMultimediaUtils
 ANDROID_LIB_DEPENDENCIES = \
     plugins/mediaservice/libqtmedia_android.so \
-    lib/libQt5MultimediaQuick_p.so:Qt5Quick
+    lib/libQt5MultimediaQuick.so:Qt5Quick
 ANDROID_BUNDLED_FILES += \
-    lib/libQt5MultimediaQuick_p.so
+    lib/libQt5MultimediaQuick.so
 ANDROID_PERMISSIONS += \
     android.permission.CAMERA \
     android.permission.RECORD_AUDIO
