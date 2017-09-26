@@ -9,7 +9,8 @@ HEADERS += \
     $$PWD/mmrendererplayervideorenderercontrol.h \
     $$PWD/mmrendererutil.h \
     $$PWD/mmrenderervideowindowcontrol.h \
-    $$PWD/ppsmediaplayercontrol.h
+    $$PWD/mmreventmediaplayercontrol.h \
+    $$PWD/mmreventthread.h
 SOURCES += \
     $$PWD/mmrendereraudiorolecontrol.cpp \
     $$PWD/mmrenderermediaplayercontrol.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
     $$PWD/mmrendererplayervideorenderercontrol.cpp \
     $$PWD/mmrendererutil.cpp \
     $$PWD/mmrenderervideowindowcontrol.cpp \
-    $$PWD/ppsmediaplayercontrol.cpp
+    $$PWD/mmreventmediaplayercontrol.cpp \
+    $$PWD/mmreventthread.cpp
 
 QMAKE_USE += mmrenderer pps

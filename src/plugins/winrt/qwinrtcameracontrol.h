@@ -123,6 +123,8 @@ private:
     HRESULT onCaptureFailed(ABI::Windows::Media::Capture::IMediaCapture *,
                             ABI::Windows::Media::Capture::IMediaCaptureFailedEventArgs *);
     HRESULT onRecordLimitationExceeded(ABI::Windows::Media::Capture::IMediaCapture *);
+    HRESULT onInitializationCompleted(ABI::Windows::Foundation::IAsyncAction *,
+                                      ABI::Windows::Foundation::AsyncStatus);
 
     QScopedPointer<QWinRTCameraControlPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QWinRTCameraControl)

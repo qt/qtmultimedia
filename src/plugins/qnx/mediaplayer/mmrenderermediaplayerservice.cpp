@@ -45,7 +45,7 @@
 #include "mmrendererutil.h"
 #include "mmrenderervideowindowcontrol.h"
 
-#include "ppsmediaplayercontrol.h"
+#include "mmreventmediaplayercontrol.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -74,7 +74,7 @@ QMediaControl *MmRendererMediaPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         if (!m_mediaPlayerControl) {
-            m_mediaPlayerControl = new PpsMediaPlayerControl;
+            m_mediaPlayerControl = new MmrEventMediaPlayerControl;
             updateControls();
         }
         return m_mediaPlayerControl;

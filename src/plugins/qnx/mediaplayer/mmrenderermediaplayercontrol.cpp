@@ -59,14 +59,14 @@ static int idCounter = 0;
 
 MmRendererMediaPlayerControl::MmRendererMediaPlayerControl(QObject *parent)
     : QMediaPlayerControl(parent),
-      m_connection(0),
       m_context(0),
+      m_id(-1),
+      m_connection(0),
       m_audioId(-1),
       m_state(QMediaPlayer::StoppedState),
       m_volume(100),
       m_muted(false),
       m_rate(1),
-      m_id(-1),
       m_position(0),
       m_mediaStatus(QMediaPlayer::NoMedia),
       m_playAfterMediaLoaded(false),
@@ -106,7 +106,7 @@ void MmRendererMediaPlayerControl::openConnection()
         return;
     }
 
-    startMonitoring(m_id, m_contextName);
+    startMonitoring();
 }
 
 void MmRendererMediaPlayerControl::handleMmStopped()
@@ -454,11 +454,6 @@ void MmRendererMediaPlayerControl::continueLoadMedia()
     updateMetaData();
     if (m_playAfterMediaLoaded)
         play();
-}
-
-QString MmRendererMediaPlayerControl::contextName() const
-{
-    return m_contextName;
 }
 
 MmRendererVideoWindowControl *MmRendererMediaPlayerControl::videoWindowControl() const

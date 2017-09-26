@@ -247,13 +247,11 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
     m_renderReturn = GST_FLOW_OK;
     m_renderBuffer = buffer;
 
-    GstFlowReturn flowReturn = waitForAsyncEvent(&locker, &m_renderCondition, 300)
-                                                ? m_renderReturn
-                                                : GST_FLOW_ERROR;
+    waitForAsyncEvent(&locker, &m_renderCondition, 300);
 
     m_renderBuffer = 0;
 
-    return flowReturn;
+    return m_renderReturn;
 }
 
 bool QVideoSurfaceGstDelegate::event(QEvent *event)
