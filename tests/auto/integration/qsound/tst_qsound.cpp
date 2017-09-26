@@ -88,9 +88,7 @@ void tst_QSound::testLooping()
     QVERIFY(!sound->isFinished());
 
     // test.wav is about 200ms, wait until it has finished playing 5 times
-    QTest::qWait(3000);
-
-    QVERIFY(sound->isFinished());
+    QTRY_VERIFY(sound->isFinished());
     QCOMPARE(sound->loopsRemaining(),0);
 }
 
@@ -99,8 +97,7 @@ void tst_QSound::testPlay()
     sound->setLoops(1);
     sound->play();
     QVERIFY(!sound->isFinished());
-    QTest::qWait(1000);
-    QVERIFY(sound->isFinished());
+    QTRY_VERIFY(sound->isFinished());
 }
 
 void tst_QSound::testStop()
@@ -110,8 +107,7 @@ void tst_QSound::testStop()
     QVERIFY(!sound->isFinished());
     QTest::qWait(1000);
     sound->stop();
-    QTest::qWait(1000);
-    QVERIFY(sound->isFinished());
+    QTRY_VERIFY(sound->isFinished());
 }
 
 void tst_QSound::testStaticPlay()
