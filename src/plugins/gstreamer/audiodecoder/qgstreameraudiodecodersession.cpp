@@ -478,6 +478,7 @@ QAudioBuffer QGstreamerAudioDecoderSession::read()
             }
         }
 #if GST_CHECK_VERSION(1,0,0)
+        gst_buffer_unmap(buffer, &mapInfo);
         gst_sample_unref(sample);
 #else
         gst_buffer_unref(buffer);
