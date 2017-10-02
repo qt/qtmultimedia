@@ -642,7 +642,8 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
         memset(&input, 0, sizeof(input));
         for (; ::ioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0; ++input.index) {
             if (input.type == V4L2_INPUT_TYPE_CAMERA || input.type == 0) {
-                isCamera = ::ioctl(fd, VIDIOC_S_INPUT, input.index) != 0;
+                const int ret = ::ioctl(fd, VIDIOC_S_INPUT, &input.index);
+                isCamera = (ret == 0 || errno == ENOTTY);
                 break;
             }
         }
