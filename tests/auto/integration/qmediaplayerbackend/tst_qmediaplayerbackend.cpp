@@ -1246,7 +1246,7 @@ void tst_QMediaPlayerBackend::playlistObject()
     QCOMPARE(errorSpy.count(), 0);
     QCOMPARE(mediaStatusSpy.count(), 7); // 2 x (LoadingMedia -> BufferedMedia -> EndOfMedia) + NoMedia
 
-    player.setPlaylist(Q_NULLPTR);
+    player.setPlaylist(nullptr);
 
     mediaSpy.clear();
     currentMediaSpy.clear();
@@ -1271,7 +1271,7 @@ void tst_QMediaPlayerBackend::playlistObject()
     QCOMPARE(errorSpy.count(), 0);
     QCOMPARE(mediaStatusSpy.count(), 13); // 4 x (LoadingMedia -> BufferedMedia -> EndOfMedia) + NoMedia
 
-    player.setPlaylist(Q_NULLPTR);
+    player.setPlaylist(nullptr);
 
     mediaSpy.clear();
     currentMediaSpy.clear();
@@ -1295,7 +1295,7 @@ void tst_QMediaPlayerBackend::playlistObject()
     QCOMPARE(errorSpy.count(), 1);
     QCOMPARE(mediaStatusSpy.count(), 6); // Loading -> Invalid -> Loading -> Buffered -> EndOfMedia -> NoMedia
 
-    player.setPlaylist(Q_NULLPTR);
+    player.setPlaylist(nullptr);
 
     mediaSpy.clear();
     currentMediaSpy.clear();
