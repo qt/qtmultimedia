@@ -147,6 +147,7 @@ private:
     void closeMixer();
     HMIXEROBJ mixerID;
     MIXERLINECONTROLS mixerLineControls;
+    qreal cachedVolume;
 
 private slots:
     void feedback();
