@@ -90,6 +90,26 @@ struct DeviceMapping {
 Q_GLOBAL_STATIC(DeviceMapping, gMapping)
 }
 
+struct CoInitializer
+{
+    CoInitializer()
+    {
+        const bool isGuiThread = QCoreApplication::instance() &&
+                QThread::currentThread() == QCoreApplication::instance()->thread();
+        CoInitializeEx(NULL, isGuiThread ? COINIT_APARTMENTTHREADED : COINIT_MULTITHREADED);
+    }
+
+    ~CoInitializer()
+    {
+        CoUninitialize();
+    }
+};
+
+static void CoInitIfNeeded()
+{
+    static CoInitializer initializer;
+}
+
 AudioInterface::AudioInterface()
 {
     qCDebug(lcMmAudioInterface) << __FUNCTION__;
@@ -182,6 +202,7 @@ QByteArray QWasapiUtils::defaultDevice(QAudio::Mode mode)
 {
     qCDebug(lcMmUtils) << __FUNCTION__ << mode;
 
+    CoInitIfNeeded();
     QList<QByteArray> &deviceNames = mode == QAudio::AudioInput ? gMapping->inputDeviceNames : gMapping->outputDeviceNames;
     QList<QString> &deviceIds = mode == QAudio::AudioInput ? gMapping->inputDeviceIds : gMapping->outputDeviceIds;
     if (deviceNames.isEmpty() || deviceIds.isEmpty()) // Initialize
@@ -214,6 +235,7 @@ QList<QByteArray> QWasapiUtils::availableDevices(QAudio::Mode mode)
 {
     qCDebug(lcMmUtils) << __FUNCTION__ << mode;
 
+    CoInitIfNeeded();
     ComPtr<IDeviceInformationStatics> statics;
     HRESULT hr;
 
@@ -290,6 +312,7 @@ Microsoft::WRL::ComPtr<AudioInterface> QWasapiUtils::createOrGetInterface(const 
 {
     qCDebug(lcMmUtils) << __FUNCTION__ << dev << mode;
     Q_ASSERT((mode == QAudio::AudioInput ? gMapping->inputDeviceNames.indexOf(dev) : gMapping->outputDeviceNames.indexOf(dev)) != -1);
+    CoInitIfNeeded();
 
     Microsoft::WRL::ComPtr<AudioInterface> result;
     HRESULT hr = QEventDispatcherWinRT::runOnXamlThread([dev, mode, &result]() {
