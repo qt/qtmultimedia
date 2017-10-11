@@ -59,6 +59,7 @@ private slots:
     void construction();
     void loadMedia();
     void unloadMedia();
+    void loadMediaInLoadingState();
     void playPauseStop();
     void processEOS();
     void deleteLaterAtEOS();
@@ -325,6 +326,16 @@ void tst_QMediaPlayerBackend::unloadMedia()
     QVERIFY(!positionSpy.isEmpty());
 }
 
+void tst_QMediaPlayerBackend::loadMediaInLoadingState()
+{
+    const QUrl url("http://unavailable.media/");
+    QMediaPlayer player;
+    player.setMedia(QMediaContent(url));
+    player.play();
+    // Sets new media while old has not been finished.
+    player.setMedia(QMediaContent(url));
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::InvalidMedia);
+}
 
 void tst_QMediaPlayerBackend::playPauseStop()
 {
