@@ -28,4 +28,6 @@ qtConfig(graphicsview) {
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
 
+msvc:lessThan(QMAKE_MSC_VER, 1900): QMAKE_CXXFLAGS += -Zm200
+
 load(qt_module)
