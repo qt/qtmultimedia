@@ -318,17 +318,14 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
         m_graphStatus = InvalidMedia;
         m_error = QMediaPlayer::ResourceError;
     } else {
-        // {36b73882-c2c8-11cf-8b46-00805f6cef60}
-        static const GUID iid_IFilterGraph2 = {
-            0x36b73882, 0xc2c8, 0x11cf, {0x8b, 0x46, 0x00, 0x80, 0x5f, 0x6c, 0xef, 0x60} };
         m_graphStatus = Loading;
-
-        m_graph = com_new<IFilterGraph2>(CLSID_FilterGraph, iid_IFilterGraph2);
 
         if (stream)
             m_pendingTasks = SetStreamSource;
         else
             m_pendingTasks = SetUrlSource;
+
+        m_pendingTasks |= CreateGraph;
 
         ::SetEvent(m_taskHandle);
     }
@@ -338,6 +335,17 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     m_playerControl->updateState(QMediaPlayer::StoppedState);
     m_playerControl->updatePosition(m_position);
     updateStatus();
+}
+
+void DirectShowPlayerService::doCreateGraph(QMutexLocker *locker)
+{
+    Q_UNUSED(locker);
+
+    // {36b73882-c2c8-11cf-8b46-00805f6cef60}
+    static const GUID iid_IFilterGraph2 = {
+        0x36b73882, 0xc2c8, 0x11cf, {0x8b, 0x46, 0x00, 0x80, 0x5f, 0x6c, 0xef, 0x60} };
+
+    m_graph = com_new<IFilterGraph2>(CLSID_FilterGraphNoThread, iid_IFilterGraph2);
 }
 
 void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
@@ -1686,6 +1694,8 @@ void DirectShowPlayerService::run()
 {
     QMutexLocker locker(&m_mutex);
 
+    CoInitialize(NULL);
+
     for (;;) {
         while (m_pendingTasks == 0) {
             DWORD result = 0;
@@ -1700,12 +1710,17 @@ void DirectShowPlayerService::run()
             }
             locker.relock();
 
-            if (result == WAIT_OBJECT_0 + 1) {
+            if (m_graph && result == WAIT_OBJECT_0 + 1) {
                 graphEvent(&locker);
             }
         }
 
-        if (m_pendingTasks & ReleaseGraph) {
+        if (m_pendingTasks & CreateGraph) {
+            m_pendingTasks ^= CreateGraph;
+            m_executingTask = CreateGraph;
+
+            doCreateGraph(&locker);
+        } else if (m_pendingTasks & ReleaseGraph) {
             m_pendingTasks ^= ReleaseGraph;
             m_executingTask = ReleaseGraph;
 
@@ -1798,6 +1813,8 @@ void DirectShowPlayerService::run()
         }
         m_executingTask = 0;
     }
+
+    CoUninitialize();
 }
 
 QT_END_NAMESPACE
