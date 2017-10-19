@@ -49,30 +49,23 @@ pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format)
 
     spec.rate = format.sampleRate();
     spec.channels = format.channelCount();
+    spec.format = PA_SAMPLE_INVALID;
+    const bool isBigEndian = (format.byteOrder() == QAudioFormat::BigEndian);
 
-    if (format.sampleSize() == 8) {
-        spec.format = PA_SAMPLE_U8;
-    } else if (format.sampleSize() == 16) {
-        switch (format.byteOrder()) {
-        case QAudioFormat::BigEndian: spec.format = PA_SAMPLE_S16BE; break;
-        case QAudioFormat::LittleEndian: spec.format = PA_SAMPLE_S16LE; break;
+    if (format.sampleType() == QAudioFormat::UnSignedInt) {
+        if (format.sampleSize() == 8)
+            spec.format = PA_SAMPLE_U8;
+    } else if (format.sampleType() == QAudioFormat::SignedInt) {
+        if (format.sampleSize() == 16) {
+            spec.format = isBigEndian ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE;
+        } else if (format.sampleSize() == 24) {
+            spec.format = isBigEndian ? PA_SAMPLE_S24BE : PA_SAMPLE_S24LE;
+        } else if (format.sampleSize() == 32) {
+            spec.format = isBigEndian ? PA_SAMPLE_S32BE : PA_SAMPLE_S32LE;
         }
-    } else if (format.sampleSize() == 24) {
-        switch (format.byteOrder()) {
-        case QAudioFormat::BigEndian: spec.format = PA_SAMPLE_S24BE; break;
-        case QAudioFormat::LittleEndian: spec.format = PA_SAMPLE_S24LE; break;
-        }
-    } else if (format.sampleSize() == 32) {
-        switch (format.byteOrder()) {
-        case QAudioFormat::BigEndian:
-            format.sampleType() == QAudioFormat::Float ? spec.format = PA_SAMPLE_FLOAT32BE : spec.format = PA_SAMPLE_S32BE;
-            break;
-        case QAudioFormat::LittleEndian:
-            format.sampleType() == QAudioFormat::Float ? spec.format = PA_SAMPLE_FLOAT32LE : spec.format = PA_SAMPLE_S32LE;
-            break;
-        }
-    } else {
-        spec.format = PA_SAMPLE_INVALID;
+    } else if (format.sampleType() == QAudioFormat::Float) {
+        if (format.sampleSize() == 32)
+            spec.format = isBigEndian ? PA_SAMPLE_FLOAT32BE : PA_SAMPLE_FLOAT32LE;
     }
 
     return spec;

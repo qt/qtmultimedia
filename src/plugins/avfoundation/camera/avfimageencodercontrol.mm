@@ -48,7 +48,6 @@
 
 #include <QtMultimedia/qmediaencodersettings.h>
 
-#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qdebug.h>
 
 #include <AVFoundation/AVFoundation.h>
@@ -94,17 +93,15 @@ QList<QSize> AVFImageEncoderControl::supportedResolutions(const QImageEncoderSet
         const QSize res(qt_device_format_resolution(format));
         if (!res.isNull() && res.isValid())
             resolutions << res;
-#if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
-        if (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::IOS, 8)) {
-            // From Apple's docs (iOS):
-            // By default, AVCaptureStillImageOutput emits images with the same dimensions as
-            // its source AVCaptureDevice instance’s activeFormat.formatDescription. However,
-            // if you set this property to YES, the receiver emits still images at the capture
-            // device’s highResolutionStillImageDimensions value.
-            const QSize hrRes(qt_device_format_high_resolution(format));
-            if (!hrRes.isNull() && hrRes.isValid())
-                resolutions << res;
-        }
+#ifdef Q_OS_IOS
+        // From Apple's docs (iOS):
+        // By default, AVCaptureStillImageOutput emits images with the same dimensions as
+        // its source AVCaptureDevice instance’s activeFormat.formatDescription. However,
+        // if you set this property to YES, the receiver emits still images at the capture
+        // device’s highResolutionStillImageDimensions value.
+        const QSize hrRes(qt_device_format_high_resolution(format));
+        if (!hrRes.isNull() && hrRes.isValid())
+            resolutions << res;
 #endif
     }
 
@@ -133,17 +130,15 @@ QImageEncoderSettings AVFImageEncoderControl::imageSettings() const
     }
 
     QSize res(qt_device_format_resolution(captureDevice.activeFormat));
-#if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
-    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::IOS, 8)) {
-        if (!m_service->imageCaptureControl() || !m_service->imageCaptureControl()->stillImageOutput()) {
-            qDebugCamera() << Q_FUNC_INFO << "no still image output";
-            return settings;
-        }
-
-        AVCaptureStillImageOutput *stillImageOutput = m_service->imageCaptureControl()->stillImageOutput();
-        if (stillImageOutput.highResolutionStillImageOutputEnabled)
-            res = qt_device_format_high_resolution(captureDevice.activeFormat);
+#ifdef Q_OS_IOS
+    if (!m_service->imageCaptureControl() || !m_service->imageCaptureControl()->stillImageOutput()) {
+        qDebugCamera() << Q_FUNC_INFO << "no still image output";
+        return settings;
     }
+
+    AVCaptureStillImageOutput *stillImageOutput = m_service->imageCaptureControl()->stillImageOutput();
+    if (stillImageOutput.highResolutionStillImageOutputEnabled)
+        res = qt_device_format_high_resolution(captureDevice.activeFormat);
 #endif
     if (res.isNull() || !res.isValid()) {
         qDebugCamera() << Q_FUNC_INFO << "failed to exctract the image resolution";
@@ -217,14 +212,12 @@ bool AVFImageEncoderControl::applySettings()
 
     activeFormatChanged = qt_set_active_format(captureDevice, match, true);
 
-#if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
-    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::IOS, 8)) {
-        AVCaptureStillImageOutput *imageOutput = m_service->imageCaptureControl()->stillImageOutput();
-        if (res == qt_device_format_high_resolution(captureDevice.activeFormat))
-            imageOutput.highResolutionStillImageOutputEnabled = YES;
-        else
-            imageOutput.highResolutionStillImageOutputEnabled = NO;
-    }
+#ifdef Q_OS_IOS
+    AVCaptureStillImageOutput *imageOutput = m_service->imageCaptureControl()->stillImageOutput();
+    if (res == qt_device_format_high_resolution(captureDevice.activeFormat))
+        imageOutput.highResolutionStillImageOutputEnabled = YES;
+    else
+        imageOutput.highResolutionStillImageOutputEnabled = NO;
 #endif
 
     return activeFormatChanged;

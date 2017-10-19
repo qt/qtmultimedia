@@ -42,7 +42,6 @@
 #define VIDEOPLAYER_H
 
 #include <QMediaPlayer>
-#include <QMovie>
 #include <QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -56,7 +55,7 @@ class VideoPlayer : public QWidget
     Q_OBJECT
 
 public:
-    VideoPlayer(QWidget *parent = 0);
+    VideoPlayer(QWidget *parent = nullptr);
     ~VideoPlayer();
 
     void load(const QUrl &url);
@@ -76,10 +75,10 @@ private slots:
     void rotateVideo(int angle);
 
 private:
-    QMediaPlayer mediaPlayer;
-    QGraphicsVideoItem *videoItem;
-    QAbstractButton *playButton;
-    QSlider *positionSlider;
+    QMediaPlayer *m_mediaPlayer = nullptr;
+    QGraphicsVideoItem *m_videoItem = nullptr;
+    QAbstractButton *m_playButton = nullptr;
+    QSlider *m_positionSlider = nullptr;
 };
 
 #endif

@@ -41,8 +41,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "videowidget.h"
-
 #include <QWidget>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
@@ -67,12 +65,12 @@ class Player : public QWidget
     Q_OBJECT
 
 public:
-    Player(QWidget *parent = 0);
+    explicit Player(QWidget *parent = nullptr);
     ~Player();
 
     bool isPlayerAvailable() const;
 
-    void addToPlaylist(const QList<QUrl> urls);
+    void addToPlaylist(const QList<QUrl> &urls);
 
 signals:
     void fullScreenChanged(bool fullScreen);
@@ -105,27 +103,27 @@ private:
     void handleCursor(QMediaPlayer::MediaStatus status);
     void updateDurationInfo(qint64 currentInfo);
 
-    QMediaPlayer *player;
-    QMediaPlaylist *playlist;
-    VideoWidget *videoWidget;
-    QLabel *coverLabel;
-    QSlider *slider;
-    QLabel *labelDuration;
-    QPushButton *fullScreenButton;
-    QPushButton *colorButton;
-    QDialog *colorDialog;
+    QMediaPlayer *m_player = nullptr;
+    QMediaPlaylist *m_playlist = nullptr;
+    QVideoWidget *m_videoWidget = nullptr;
+    QLabel *m_coverLabel = nullptr;
+    QSlider *m_slider = nullptr;
+    QLabel *m_labelDuration = nullptr;
+    QPushButton *m_fullScreenButton = nullptr;
+    QPushButton *m_colorButton = nullptr;
+    QDialog *m_colorDialog = nullptr;
 
-    QLabel *labelHistogram;
-    HistogramWidget *videoHistogram;
-    HistogramWidget *audioHistogram;
-    QVideoProbe *videoProbe;
-    QAudioProbe *audioProbe;
+    QLabel *m_labelHistogram = nullptr;
+    HistogramWidget *m_videoHistogram = nullptr;
+    HistogramWidget *m_audioHistogram = nullptr;
+    QVideoProbe *m_videoProbe = nullptr;
+    QAudioProbe *m_audioProbe = nullptr;
 
-    PlaylistModel *playlistModel;
-    QAbstractItemView *playlistView;
-    QString trackInfo;
-    QString statusInfo;
-    qint64 duration;
+    PlaylistModel *m_playlistModel = nullptr;
+    QAbstractItemView *m_playlistView = nullptr;
+    QString m_trackInfo;
+    QString m_statusInfo;
+    qint64 m_duration;
 };
 
 #endif // PLAYER_H

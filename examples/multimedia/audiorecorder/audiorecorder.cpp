@@ -38,16 +38,16 @@
 **
 ****************************************************************************/
 
+#include "audiorecorder.h"
+#include "audiolevel.h"
+
+#include "ui_audiorecorder.h"
+
 #include <QAudioProbe>
 #include <QAudioRecorder>
 #include <QDir>
 #include <QFileDialog>
 #include <QMediaRecorder>
-
-#include "audiorecorder.h"
-#include "qaudiolevel.h"
-
-#include "ui_audiorecorder.h"
 
 static qreal getPeakValue(const QAudioFormat &format);
 static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
@@ -55,40 +55,38 @@ static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
 template <class T>
 static QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels);
 
-AudioRecorder::AudioRecorder(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::AudioRecorder),
-    outputLocationSet(false)
+AudioRecorder::AudioRecorder()
+    : ui(new Ui::AudioRecorder)
 {
     ui->setupUi(this);
 
-    audioRecorder = new QAudioRecorder(this);
-    probe = new QAudioProbe;
-    connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)),
-            this, SLOT(processBuffer(QAudioBuffer)));
-    probe->setSource(audioRecorder);
+    m_audioRecorder = new QAudioRecorder(this);
+    m_probe = new QAudioProbe(this);
+    connect(m_probe, &QAudioProbe::audioBufferProbed,
+            this, &AudioRecorder::processBuffer);
+    m_probe->setSource(m_audioRecorder);
 
     //audio devices
     ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
-    foreach (const QString &device, audioRecorder->audioInputs()) {
+    for (auto &device: m_audioRecorder->audioInputs()) {
         ui->audioDeviceBox->addItem(device, QVariant(device));
     }
 
     //audio codecs
     ui->audioCodecBox->addItem(tr("Default"), QVariant(QString()));
-    foreach (const QString &codecName, audioRecorder->supportedAudioCodecs()) {
+    for (auto &codecName: m_audioRecorder->supportedAudioCodecs()) {
         ui->audioCodecBox->addItem(codecName, QVariant(codecName));
     }
 
     //containers
     ui->containerBox->addItem(tr("Default"), QVariant(QString()));
-    foreach (const QString &containerName, audioRecorder->supportedContainers()) {
+    for (auto &containerName: m_audioRecorder->supportedContainers()) {
         ui->containerBox->addItem(containerName, QVariant(containerName));
     }
 
     //sample rate
     ui->sampleRateBox->addItem(tr("Default"), QVariant(0));
-    foreach (int sampleRate, audioRecorder->supportedAudioSampleRates()) {
+    for (int sampleRate: m_audioRecorder->supportedAudioSampleRates()) {
         ui->sampleRateBox->addItem(QString::number(sampleRate), QVariant(
                 sampleRate));
     }
@@ -110,25 +108,16 @@ AudioRecorder::AudioRecorder(QWidget *parent) :
     ui->bitrateBox->addItem(QStringLiteral("96000"), QVariant(96000));
     ui->bitrateBox->addItem(QStringLiteral("128000"), QVariant(128000));
 
-    connect(audioRecorder, SIGNAL(durationChanged(qint64)), this,
-            SLOT(updateProgress(qint64)));
-    connect(audioRecorder, SIGNAL(statusChanged(QMediaRecorder::Status)), this,
-            SLOT(updateStatus(QMediaRecorder::Status)));
-    connect(audioRecorder, SIGNAL(stateChanged(QMediaRecorder::State)),
-            this, SLOT(onStateChanged(QMediaRecorder::State)));
-    connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this,
-            SLOT(displayErrorMessage()));
-}
-
-AudioRecorder::~AudioRecorder()
-{
-    delete audioRecorder;
-    delete probe;
+    connect(m_audioRecorder, &QAudioRecorder::durationChanged, this, &AudioRecorder::updateProgress);
+    connect(m_audioRecorder, &QAudioRecorder::statusChanged, this, &AudioRecorder::updateStatus);
+    connect(m_audioRecorder, &QAudioRecorder::stateChanged, this, &AudioRecorder::onStateChanged);
+    connect(m_audioRecorder, QOverload<QMediaRecorder::Error>::of(&QAudioRecorder::error), this,
+            &AudioRecorder::displayErrorMessage);
 }
 
 void AudioRecorder::updateProgress(qint64 duration)
 {
-    if (audioRecorder->error() != QMediaRecorder::NoError || duration < 2000)
+    if (m_audioRecorder->error() != QMediaRecorder::NoError || duration < 2000)
         return;
 
     ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
@@ -140,7 +129,7 @@ void AudioRecorder::updateStatus(QMediaRecorder::Status status)
 
     switch (status) {
     case QMediaRecorder::RecordingStatus:
-        statusMessage = tr("Recording to %1").arg(audioRecorder->actualLocation().toString());
+        statusMessage = tr("Recording to %1").arg(m_audioRecorder->actualLocation().toString());
         break;
     case QMediaRecorder::PausedStatus:
         clearAudioLevels();
@@ -154,7 +143,7 @@ void AudioRecorder::updateStatus(QMediaRecorder::Status status)
         break;
     }
 
-    if (audioRecorder->error() == QMediaRecorder::NoError)
+    if (m_audioRecorder->error() == QMediaRecorder::NoError)
         ui->statusbar->showMessage(statusMessage);
 }
 
@@ -175,7 +164,7 @@ void AudioRecorder::onStateChanged(QMediaRecorder::State state)
         break;
     }
 
-    ui->pauseButton->setEnabled(audioRecorder->state() != QMediaRecorder::StoppedState);
+    ui->pauseButton->setEnabled(m_audioRecorder->state() != QMediaRecorder::StoppedState);
 }
 
 static QVariant boxValue(const QComboBox *box)
@@ -189,8 +178,8 @@ static QVariant boxValue(const QComboBox *box)
 
 void AudioRecorder::toggleRecord()
 {
-    if (audioRecorder->state() == QMediaRecorder::StoppedState) {
-        audioRecorder->setAudioInput(boxValue(ui->audioDeviceBox).toString());
+    if (m_audioRecorder->state() == QMediaRecorder::StoppedState) {
+        m_audioRecorder->setAudioInput(boxValue(ui->audioDeviceBox).toString());
 
         QAudioEncoderSettings settings;
         settings.setCodec(boxValue(ui->audioCodecBox).toString());
@@ -204,38 +193,38 @@ void AudioRecorder::toggleRecord()
 
         QString container = boxValue(ui->containerBox).toString();
 
-        audioRecorder->setEncodingSettings(settings, QVideoEncoderSettings(), container);
-        audioRecorder->record();
+        m_audioRecorder->setEncodingSettings(settings, QVideoEncoderSettings(), container);
+        m_audioRecorder->record();
     }
     else {
-        audioRecorder->stop();
+        m_audioRecorder->stop();
     }
 }
 
 void AudioRecorder::togglePause()
 {
-    if (audioRecorder->state() != QMediaRecorder::PausedState)
-        audioRecorder->pause();
+    if (m_audioRecorder->state() != QMediaRecorder::PausedState)
+        m_audioRecorder->pause();
     else
-        audioRecorder->record();
+        m_audioRecorder->record();
 }
 
 void AudioRecorder::setOutputLocation()
 {
     QString fileName = QFileDialog::getSaveFileName();
-    audioRecorder->setOutputLocation(QUrl::fromLocalFile(fileName));
-    outputLocationSet = true;
+    m_audioRecorder->setOutputLocation(QUrl::fromLocalFile(fileName));
+    m_outputLocationSet = true;
 }
 
 void AudioRecorder::displayErrorMessage()
 {
-    ui->statusbar->showMessage(audioRecorder->errorString());
+    ui->statusbar->showMessage(m_audioRecorder->errorString());
 }
 
 void AudioRecorder::clearAudioLevels()
 {
-    for (int i = 0; i < audioLevels.size(); ++i)
-        audioLevels.at(i)->setLevel(0);
+    for (int i = 0; i < m_audioLevels.size(); ++i)
+        m_audioLevels.at(i)->setLevel(0);
 }
 
 // This function returns the maximum possible sample value for a given audio format
@@ -346,17 +335,17 @@ QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels)
 
 void AudioRecorder::processBuffer(const QAudioBuffer& buffer)
 {
-    if (audioLevels.count() != buffer.format().channelCount()) {
-        qDeleteAll(audioLevels);
-        audioLevels.clear();
+    if (m_audioLevels.count() != buffer.format().channelCount()) {
+        qDeleteAll(m_audioLevels);
+        m_audioLevels.clear();
         for (int i = 0; i < buffer.format().channelCount(); ++i) {
-            QAudioLevel *level = new QAudioLevel(ui->centralwidget);
-            audioLevels.append(level);
+            AudioLevel *level = new AudioLevel(ui->centralwidget);
+            m_audioLevels.append(level);
             ui->levelsLayout->addWidget(level);
         }
     }
 
     QVector<qreal> levels = getBufferLevels(buffer);
     for (int i = 0; i < levels.count(); ++i)
-        audioLevels.at(i)->setLevel(levels.at(i));
+        m_audioLevels.at(i)->setLevel(levels.at(i));
 }

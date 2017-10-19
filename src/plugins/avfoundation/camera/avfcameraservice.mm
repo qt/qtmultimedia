@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 
-#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qdebug.h>
 
@@ -95,9 +94,8 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_imageCaptureControl = new AVFImageCaptureControl(this);
     m_cameraFocusControl = new AVFCameraFocusControl(this);
     m_cameraExposureControl = 0;
-#if defined(Q_OS_IOS) && QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
-    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::IOS, 8))
-        m_cameraExposureControl = new AVFCameraExposureControl(this);
+#ifdef Q_OS_IOS
+    m_cameraExposureControl = new AVFCameraExposureControl(this);
 #endif
 
     m_cameraZoomControl = 0;

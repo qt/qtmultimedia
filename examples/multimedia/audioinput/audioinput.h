@@ -50,14 +50,14 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QWidget>
+#include <QScopedPointer>
 
 class AudioInfo : public QIODevice
 {
     Q_OBJECT
 
 public:
-    AudioInfo(const QAudioFormat &format, QObject *parent);
-    ~AudioInfo();
+    AudioInfo(const QAudioFormat &format);
 
     void start();
     void stop();
@@ -69,8 +69,8 @@ public:
 
 private:
     const QAudioFormat m_format;
-    quint32 m_maxAmplitude;
-    qreal m_level; // 0.0 <= m_level <= 1.0
+    quint32 m_maxAmplitude = 0;
+    qreal m_level = 0.0; // 0.0 <= m_level <= 1.0
 
 signals:
     void update();
@@ -82,7 +82,7 @@ class RenderArea : public QWidget
     Q_OBJECT
 
 public:
-    RenderArea(QWidget *parent = 0);
+    explicit RenderArea(QWidget *parent = nullptr);
 
     void setLevel(qreal value);
 
@@ -90,7 +90,7 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    qreal m_level;
+    qreal m_level = 0;
     QPixmap m_pixmap;
 };
 
@@ -101,16 +101,12 @@ class InputTest : public QMainWindow
 
 public:
     InputTest();
-    ~InputTest();
 
 private:
     void initializeWindow();
-    void initializeAudio();
-    void createAudioInput();
+    void initializeAudio(const QAudioDeviceInfo &deviceInfo);
 
 private slots:
-    void refreshDisplay();
-    void readMore();
     void toggleMode();
     void toggleSuspend();
     void deviceChanged(int index);
@@ -118,19 +114,15 @@ private slots:
 
 private:
     // Owned by layout
-    RenderArea *m_canvas;
-    QPushButton *m_modeButton;
-    QPushButton *m_suspendResumeButton;
-    QComboBox *m_deviceBox;
-    QSlider *m_volumeSlider;
+    RenderArea *m_canvas = nullptr;
+    QPushButton *m_modeButton = nullptr;
+    QPushButton *m_suspendResumeButton = nullptr;
+    QComboBox *m_deviceBox = nullptr;
+    QSlider *m_volumeSlider = nullptr;
 
-    QAudioDeviceInfo m_device;
-    AudioInfo *m_audioInfo;
-    QAudioFormat m_format;
-    QAudioInput *m_audioInput;
-    QIODevice *m_input;
-    bool m_pullMode;
-    QByteArray m_buffer;
+    QScopedPointer<AudioInfo> m_audioInfo;
+    QScopedPointer<QAudioInput> m_audioInput;
+    bool m_pullMode = true;
 };
 
 #endif // AUDIOINPUT_H

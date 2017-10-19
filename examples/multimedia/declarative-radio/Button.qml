@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -38,46 +38,34 @@
 **
 ****************************************************************************/
 
-#ifndef AUDIODEVICES_H
-#define AUDIODEVICES_H
+import QtQuick 2.0
 
-#include <QAudioDeviceInfo>
-#include <QMainWindow>
-#include <QObject>
+Rectangle {
+    id: button
+    border.color: "black"
+    border.width: 1
+    radius: 5
 
-#include "ui_audiodevicesbase.h"
+    property string text
+    signal clicked
 
-class AudioDevicesBase : public QMainWindow, public Ui::AudioDevicesBase
-{
-public:
-    AudioDevicesBase(QWidget *parent = 0);
-    virtual ~AudioDevicesBase();
-};
+    width: d.buttonWidth
+    height: d.buttonHeight
 
-class AudioTest : public AudioDevicesBase
-{
-    Q_OBJECT
+    anchors {
+        margins: root.margins
+        top: parent.top
+    }
 
-public:
-    explicit AudioTest(QWidget *parent = nullptr);
+    Text {
+        anchors.fill: parent
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
+        text: button.text
+    }
 
-private:
-    QAudioDeviceInfo m_deviceInfo;
-    QAudioFormat m_settings;
-
-private slots:
-    void modeChanged(int idx);
-    void deviceChanged(int idx);
-    void sampleRateChanged(int idx);
-    void channelChanged(int idx);
-    void codecChanged(int idx);
-    void sampleSizeChanged(int idx);
-    void sampleTypeChanged(int idx);
-    void endianChanged(int idx);
-    void test();
-    void populateTable();
-
-};
-
-#endif
-
+    MouseArea {
+        anchors.fill: parent
+        onClicked: button.clicked();
+    }
+}

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2017 QNX Software Systems. All rights reserved.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,36 +36,37 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef PPSMEDIAPLAYERCONTROL_H
-#define PPSMEDIAPLAYERCONTROL_H
+#ifndef MMREVENTMEDIAPLAYERCONTROL_H
+#define MMREVENTMEDIAPLAYERCONTROL_H
 
 #include "mmrenderermediaplayercontrol.h"
 
+#include <mm/renderer/events.h>
+
 QT_BEGIN_NAMESPACE
 
-class QSocketNotifier;
+class MmrEventThread;
 
-class PpsMediaPlayerControl final : public MmRendererMediaPlayerControl
+class MmrEventMediaPlayerControl final : public MmRendererMediaPlayerControl
 {
     Q_OBJECT
 public:
-    explicit PpsMediaPlayerControl(QObject *parent = 0);
-    ~PpsMediaPlayerControl();
+    explicit MmrEventMediaPlayerControl(QObject *parent = 0);
+    ~MmrEventMediaPlayerControl() override;
 
-    void startMonitoring(int contextId, const QString &contextName) override;
+    void startMonitoring() override;
     void stopMonitoring() override;
 
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
+    bool nativeEventFilter(const QByteArray &eventType,
+                           void *message,
+                           long *result) override;
 
 private Q_SLOTS:
-    void ppsReadyRead(int fd);
+    void readEvents();
 
 private:
-    QSocketNotifier *m_ppsStatusNotifier;
-    int m_ppsStatusFd;
-    QSocketNotifier *m_ppsStateNotifier;
-    int m_ppsStateFd;
-    QByteArray m_previouslySeenState;
+    MmrEventThread *m_eventThread;
+    mmr_state_t m_state;
 };
 
 QT_END_NAMESPACE

@@ -38,6 +38,8 @@
 **
 ****************************************************************************/
 
+#include "audioinput.h"
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -49,21 +51,8 @@
 #include <QAudioInput>
 #include <qendian.h>
 
-#include "audioinput.h"
-
-#define PUSH_MODE_LABEL "Enable push mode"
-#define PULL_MODE_LABEL "Enable pull mode"
-#define SUSPEND_LABEL   "Suspend recording"
-#define RESUME_LABEL    "Resume recording"
-
-const int BufferSize = 4096;
-
-AudioInfo::AudioInfo(const QAudioFormat &format, QObject *parent)
-    :   QIODevice(parent)
-    ,   m_format(format)
-    ,   m_maxAmplitude(0)
-    ,   m_level(0.0)
-
+AudioInfo::AudioInfo(const QAudioFormat &format)
+    : m_format(format)
 {
     switch (m_format.sampleSize()) {
     case 8:
@@ -109,10 +98,6 @@ AudioInfo::AudioInfo(const QAudioFormat &format, QObject *parent)
     default:
         break;
     }
-}
-
-AudioInfo::~AudioInfo()
-{
 }
 
 void AudioInfo::start()
@@ -196,7 +181,6 @@ RenderArea::RenderArea(QWidget *parent)
     setBackgroundRole(QPalette::Base);
     setAutoFillBackground(true);
 
-    m_level = 0;
     setMinimumHeight(30);
     setMinimumWidth(200);
 }
@@ -229,27 +213,16 @@ void RenderArea::setLevel(qreal value)
 
 
 InputTest::InputTest()
-    :   m_canvas(0)
-    ,   m_modeButton(0)
-    ,   m_suspendResumeButton(0)
-    ,   m_deviceBox(0)
-    ,   m_device(QAudioDeviceInfo::defaultInputDevice())
-    ,   m_audioInfo(0)
-    ,   m_audioInput(0)
-    ,   m_input(0)
-    ,   m_pullMode(true)
-    ,   m_buffer(BufferSize, 0)
 {
     initializeWindow();
-    initializeAudio();
+    initializeAudio(QAudioDeviceInfo::defaultInputDevice());
 }
 
-InputTest::~InputTest() {}
 
 void InputTest::initializeWindow()
 {
-    QScopedPointer<QWidget> window(new QWidget);
-    QScopedPointer<QVBoxLayout> layout(new QVBoxLayout);
+    QWidget *window = new QWidget;
+    QVBoxLayout *layout = new QVBoxLayout;
 
     m_canvas = new RenderArea(this);
     layout->addWidget(m_canvas);
@@ -257,123 +230,104 @@ void InputTest::initializeWindow()
     m_deviceBox = new QComboBox(this);
     const QAudioDeviceInfo &defaultDeviceInfo = QAudioDeviceInfo::defaultInputDevice();
     m_deviceBox->addItem(defaultDeviceInfo.deviceName(), qVariantFromValue(defaultDeviceInfo));
-    foreach (const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
+    for (auto &deviceInfo: QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
         if (deviceInfo != defaultDeviceInfo)
             m_deviceBox->addItem(deviceInfo.deviceName(), qVariantFromValue(deviceInfo));
     }
 
-    connect(m_deviceBox, SIGNAL(activated(int)), SLOT(deviceChanged(int)));
+    connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this, &InputTest::deviceChanged);
     layout->addWidget(m_deviceBox);
 
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
     m_volumeSlider->setRange(0, 100);
     m_volumeSlider->setValue(100);
-    connect(m_volumeSlider, SIGNAL(valueChanged(int)), SLOT(sliderChanged(int)));
+    connect(m_volumeSlider, &QSlider::valueChanged, this, &InputTest::sliderChanged);
     layout->addWidget(m_volumeSlider);
 
     m_modeButton = new QPushButton(this);
-    m_modeButton->setText(tr(PUSH_MODE_LABEL));
-    connect(m_modeButton, SIGNAL(clicked()), SLOT(toggleMode()));
+    connect(m_modeButton, &QPushButton::clicked, this, &InputTest::toggleMode);
     layout->addWidget(m_modeButton);
 
     m_suspendResumeButton = new QPushButton(this);
-    m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
-    connect(m_suspendResumeButton, SIGNAL(clicked()), SLOT(toggleSuspend()));
+    connect(m_suspendResumeButton, &QPushButton::clicked, this, &InputTest::toggleSuspend);
     layout->addWidget(m_suspendResumeButton);
 
-    window->setLayout(layout.data());
-    layout.take(); // ownership transferred
+    window->setLayout(layout);
 
-    setCentralWidget(window.data());
-    QWidget *const windowPtr = window.take(); // ownership transferred
-    windowPtr->show();
+    setCentralWidget(window);
+    window->show();
 }
 
-void InputTest::initializeAudio()
+void InputTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
 {
-    m_format.setSampleRate(8000);
-    m_format.setChannelCount(1);
-    m_format.setSampleSize(16);
-    m_format.setSampleType(QAudioFormat::SignedInt);
-    m_format.setByteOrder(QAudioFormat::LittleEndian);
-    m_format.setCodec("audio/pcm");
+    QAudioFormat format;
+    format.setSampleRate(8000);
+    format.setChannelCount(1);
+    format.setSampleSize(16);
+    format.setSampleType(QAudioFormat::SignedInt);
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setCodec("audio/pcm");
 
-    QAudioDeviceInfo info(m_device);
-    if (!info.isFormatSupported(m_format)) {
+    if (!deviceInfo.isFormatSupported(format)) {
         qWarning() << "Default format not supported - trying to use nearest";
-        m_format = info.nearestFormat(m_format);
+        format = deviceInfo.nearestFormat(format);
     }
 
-    if (m_audioInfo)
-        delete m_audioInfo;
-    m_audioInfo  = new AudioInfo(m_format, this);
-    connect(m_audioInfo, SIGNAL(update()), SLOT(refreshDisplay()));
+    m_audioInfo.reset(new AudioInfo(format));
+    connect(m_audioInfo.data(), &AudioInfo::update, [this]() {
+        m_canvas->setLevel(m_audioInfo->level());
+    });
 
-    createAudioInput();
-}
-
-void InputTest::createAudioInput()
-{
-    m_audioInput = new QAudioInput(m_device, m_format, this);
+    m_audioInput.reset(new QAudioInput(deviceInfo, format));
     qreal initialVolume = QAudio::convertVolume(m_audioInput->volume(),
                                                 QAudio::LinearVolumeScale,
                                                 QAudio::LogarithmicVolumeScale);
     m_volumeSlider->setValue(qRound(initialVolume * 100));
     m_audioInfo->start();
-    m_audioInput->start(m_audioInfo);
-}
-
-void InputTest::readMore()
-{
-    if (!m_audioInput)
-        return;
-    qint64 len = m_audioInput->bytesReady();
-    if (len > BufferSize)
-        len = BufferSize;
-    qint64 l = m_input->read(m_buffer.data(), len);
-    if (l > 0)
-        m_audioInfo->write(m_buffer.constData(), l);
+    toggleMode();
 }
 
 void InputTest::toggleMode()
 {
-    // Change bewteen pull and push modes
     m_audioInput->stop();
+    toggleSuspend();
 
+    // Change bewteen pull and push modes
     if (m_pullMode) {
-        m_modeButton->setText(tr(PULL_MODE_LABEL));
-        m_input = m_audioInput->start();
-        connect(m_input, SIGNAL(readyRead()), SLOT(readMore()));
-        m_pullMode = false;
+        m_modeButton->setText(tr("Enable push mode"));
+        m_audioInput->start(m_audioInfo.data());
     } else {
-        m_modeButton->setText(tr(PUSH_MODE_LABEL));
-        m_pullMode = true;
-        m_audioInput->start(m_audioInfo);
+        m_modeButton->setText(tr("Enable pull mode"));
+        auto io = m_audioInput->start();
+        connect(io, &QIODevice::readyRead,
+            [&, io]() {
+                qint64 len = m_audioInput->bytesReady();
+                const int BufferSize = 4096;
+                if (len > BufferSize)
+                    len = BufferSize;
+
+                QByteArray buffer(len, 0);
+                qint64 l = io->read(buffer.data(), len);
+                if (l > 0)
+                    m_audioInfo->write(buffer.constData(), l);
+            });
     }
 
-    m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
+    m_pullMode = !m_pullMode;
 }
 
 void InputTest::toggleSuspend()
 {
     // toggle suspend/resume
-    if (m_audioInput->state() == QAudio::SuspendedState) {
+    if (m_audioInput->state() == QAudio::SuspendedState || m_audioInput->state() == QAudio::StoppedState) {
         m_audioInput->resume();
-        m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
+        m_suspendResumeButton->setText(tr("Suspend recording"));
     } else if (m_audioInput->state() == QAudio::ActiveState) {
         m_audioInput->suspend();
-        m_suspendResumeButton->setText(tr(RESUME_LABEL));
-    } else if (m_audioInput->state() == QAudio::StoppedState) {
-        m_audioInput->resume();
-        m_suspendResumeButton->setText(tr(SUSPEND_LABEL));
+        m_suspendResumeButton->setText(tr("Resume recording"));
     } else if (m_audioInput->state() == QAudio::IdleState) {
         // no-op
     }
-}
-
-void InputTest::refreshDisplay()
-{
-    m_canvas->setLevel(m_audioInfo->level());
 }
 
 void InputTest::deviceChanged(int index)
@@ -381,19 +335,15 @@ void InputTest::deviceChanged(int index)
     m_audioInfo->stop();
     m_audioInput->stop();
     m_audioInput->disconnect(this);
-    delete m_audioInput;
 
-    m_device = m_deviceBox->itemData(index).value<QAudioDeviceInfo>();
-    initializeAudio();
+    initializeAudio(m_deviceBox->itemData(index).value<QAudioDeviceInfo>());
 }
 
 void InputTest::sliderChanged(int value)
 {
-    if (m_audioInput) {
-        qreal linearVolume =  QAudio::convertVolume(value / qreal(100),
-                                                    QAudio::LogarithmicVolumeScale,
-                                                    QAudio::LinearVolumeScale);
+    qreal linearVolume = QAudio::convertVolume(value / qreal(100),
+                                               QAudio::LogarithmicVolumeScale,
+                                               QAudio::LinearVolumeScale);
 
-        m_audioInput->setVolume(linearVolume);
-    }
+    m_audioInput->setVolume(linearVolume);
 }

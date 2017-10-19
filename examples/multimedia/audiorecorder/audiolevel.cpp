@@ -38,18 +38,17 @@
 **
 ****************************************************************************/
 
-#include "qaudiolevel.h"
+#include "audiolevel.h"
 #include <QPainter>
 
-QAudioLevel::QAudioLevel(QWidget *parent)
+AudioLevel::AudioLevel(QWidget *parent)
   : QWidget(parent)
-  , m_level(0.0)
 {
     setMinimumHeight(15);
     setMaximumHeight(50);
 }
 
-void QAudioLevel::setLevel(qreal level)
+void AudioLevel::setLevel(qreal level)
 {
     if (m_level != level) {
         m_level = level;
@@ -57,7 +56,7 @@ void QAudioLevel::setLevel(qreal level)
     }
 }
 
-void QAudioLevel::paintEvent(QPaintEvent *event)
+void AudioLevel::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
 
