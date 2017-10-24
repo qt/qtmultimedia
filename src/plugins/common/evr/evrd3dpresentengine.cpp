@@ -47,6 +47,7 @@
 #include <QDebug>
 #include <qthread.h>
 #include <private/qmediaopenglhelper_p.h>
+#include <QOffscreenSurface>
 
 #ifdef MAYBE_ANGLE
 # include <qtgui/qguiapplication.h>
@@ -128,11 +129,65 @@ class OpenGLResources : public QObject
 {
 public:
     OpenGLResources()
-        : egl(new EGLWrapper)
-        , eglDisplay(0)
-        , eglSurface(0)
-        , glTexture(0)
-    {}
+        : m_egl(new EGLWrapper)
+        , m_eglDisplay(nullptr)
+        , m_eglSurface(nullptr)
+        , m_glTexture(0)
+        , m_glContext(QOpenGLContext::currentContext())
+    {
+        Q_ASSERT(m_glContext);
+    }
+
+    unsigned int glTexture() const
+    {
+        return m_glTexture;
+    }
+
+    bool createTexture(const QVideoSurfaceFormat &format, IDirect3DDevice9Ex *device,
+        IDirect3DTexture9 **texture)
+    {
+        if (!m_glContext)
+            return false;
+
+        m_glContext->functions()->glGenTextures(1, &m_glTexture);
+        QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
+        m_eglDisplay = static_cast<EGLDisplay*>(
+            nativeInterface->nativeResourceForContext("eglDisplay", m_glContext));
+        EGLConfig *eglConfig = static_cast<EGLConfig*>(
+            nativeInterface->nativeResourceForContext("eglConfig", m_glContext));
+
+        const bool hasAlpha = m_glContext->format().hasAlpha();
+
+        EGLint attribs[] = {
+            EGL_WIDTH, format.frameWidth(),
+            EGL_HEIGHT, format.frameHeight(),
+            EGL_TEXTURE_FORMAT, (hasAlpha ? EGL_TEXTURE_RGBA : EGL_TEXTURE_RGB),
+            EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
+            EGL_NONE
+        };
+
+        m_eglSurface = m_egl->createPbufferSurface(m_eglDisplay, eglConfig, attribs);
+
+        HANDLE share_handle = 0;
+        PFNEGLQUERYSURFACEPOINTERANGLEPROC eglQuerySurfacePointerANGLE =
+            reinterpret_cast<PFNEGLQUERYSURFACEPOINTERANGLEPROC>(
+                m_egl->getProcAddress("eglQuerySurfacePointerANGLE"));
+        Q_ASSERT(eglQuerySurfacePointerANGLE);
+        eglQuerySurfacePointerANGLE(
+            m_eglDisplay,
+            m_eglSurface,
+            EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE, &share_handle);
+
+        device->CreateTexture(format.frameWidth(), format.frameHeight(), 1,
+            D3DUSAGE_RENDERTARGET,
+            (hasAlpha ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8),
+            D3DPOOL_DEFAULT, texture, &share_handle);
+
+        m_glContext->functions()->glBindTexture(GL_TEXTURE_2D, m_glTexture);
+        m_egl->bindTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
+
+        return texture != NULL;
+    }
 
     void release()
     {
@@ -142,24 +197,32 @@ public:
             deleteLater();
     }
 
-    EGLWrapper *egl;
-    EGLDisplay *eglDisplay;
-    EGLSurface eglSurface;
-    unsigned int glTexture;
-
 private:
+    EGLWrapper *m_egl;
+    EGLDisplay *m_eglDisplay;
+    EGLSurface m_eglSurface;
+    unsigned int m_glTexture;
+    QOpenGLContext *m_glContext;
+
     ~OpenGLResources()
     {
-        Q_ASSERT(QOpenGLContext::currentContext() != NULL);
-
-        if (eglSurface && egl) {
-            egl->releaseTexImage(eglDisplay, eglSurface, EGL_BACK_BUFFER);
-            egl->destroySurface(eglDisplay, eglSurface);
+        QScopedPointer<QOffscreenSurface> surface;
+        if (m_glContext != QOpenGLContext::currentContext()) {
+            surface.reset(new QOffscreenSurface);
+            surface->create();
+            m_glContext->makeCurrent(surface.data());
         }
-        if (glTexture)
-            QOpenGLContext::currentContext()->functions()->glDeleteTextures(1, &glTexture);
 
-        delete egl;
+        if (m_eglSurface && m_egl) {
+            m_egl->releaseTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
+            m_egl->destroySurface(m_eglDisplay, m_eglSurface);
+        }
+        if (m_glTexture)
+            m_glContext->functions()->glDeleteTextures(1, &m_glTexture);
+
+        delete m_egl;
+        if (surface)
+            m_glContext->doneCurrent();
     }
 };
 
@@ -257,9 +320,9 @@ QVariant IMFSampleVideoBuffer::handle() const
     if (handleType() != GLTextureHandle)
         return handle;
 
-    if (m_engine->m_glResources && (m_textureUpdated || m_engine->updateTexture(m_surface))) {
+    if (m_textureUpdated || m_engine->updateTexture(m_surface)) {
         m_textureUpdated = true;
-        handle = QVariant::fromValue<unsigned int>(m_engine->m_glResources->glTexture);
+        handle = QVariant::fromValue<unsigned int>(m_engine->m_glResources->glTexture());
     }
 #endif
 
@@ -553,61 +616,11 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
 
 bool D3DPresentEngine::createRenderTexture()
 {
-    if (m_texture)
-        return true;
+    if (m_glResources)
+        m_glResources->release();
 
-    Q_ASSERT(QOpenGLContext::currentContext() != NULL);
-
-    if (!m_glResources)
-        m_glResources = new OpenGLResources;
-
-    QOpenGLContext *currentContext = QOpenGLContext::currentContext();
-    if (!currentContext)
-        return false;
-
-    QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
-    m_glResources->eglDisplay = static_cast<EGLDisplay*>(
-                nativeInterface->nativeResourceForContext("eglDisplay", currentContext));
-    EGLConfig *eglConfig = static_cast<EGLConfig*>(
-                nativeInterface->nativeResourceForContext("eglConfig", currentContext));
-
-    currentContext->functions()->glGenTextures(1, &m_glResources->glTexture);
-
-    bool hasAlpha = currentContext->format().hasAlpha();
-
-    EGLint attribs[] = {
-        EGL_WIDTH, m_surfaceFormat.frameWidth(),
-        EGL_HEIGHT, m_surfaceFormat.frameHeight(),
-        EGL_TEXTURE_FORMAT, hasAlpha ? EGL_TEXTURE_RGBA : EGL_TEXTURE_RGB,
-        EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
-        EGL_NONE
-    };
-
-    EGLSurface pbuffer = m_glResources->egl->createPbufferSurface(m_glResources->eglDisplay, eglConfig, attribs);
-
-    HANDLE share_handle = 0;
-    PFNEGLQUERYSURFACEPOINTERANGLEPROC eglQuerySurfacePointerANGLE =
-            reinterpret_cast<PFNEGLQUERYSURFACEPOINTERANGLEPROC>(m_glResources->egl->getProcAddress("eglQuerySurfacePointerANGLE"));
-    Q_ASSERT(eglQuerySurfacePointerANGLE);
-    eglQuerySurfacePointerANGLE(
-                m_glResources->eglDisplay,
-                pbuffer,
-                EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE, &share_handle);
-
-
-    m_device->CreateTexture(m_surfaceFormat.frameWidth(), m_surfaceFormat.frameHeight(), 1,
-                            D3DUSAGE_RENDERTARGET,
-                            hasAlpha ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8,
-                            D3DPOOL_DEFAULT,
-                            &m_texture,
-                            &share_handle);
-
-    m_glResources->eglSurface = pbuffer;
-
-    QOpenGLContext::currentContext()->functions()->glBindTexture(GL_TEXTURE_2D, m_glResources->glTexture);
-    m_glResources->egl->bindTexImage(m_glResources->eglDisplay, m_glResources->eglSurface, EGL_BACK_BUFFER);
-
-    return m_texture != NULL;
+    m_glResources = new OpenGLResources;
+    return m_glResources->createTexture(m_surfaceFormat, m_device, &m_texture);
 }
 
 bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
