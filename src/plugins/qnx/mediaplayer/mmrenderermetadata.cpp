@@ -42,6 +42,13 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qstringlist.h>
 
+#include <sys/strm.h>
+
+static const char *strm_string_getx(const strm_string_t *sstr, const char *defaultValue)
+{
+    return sstr ? strm_string_get(sstr) : defaultValue;
+}
+
 QT_BEGIN_NAMESPACE
 
 MmRendererMetaData::MmRendererMetaData()
@@ -69,91 +76,72 @@ static const char * seekableKey = "md_title_seekable";
 static const int mediaTypeAudioFlag = 4;
 static const int mediaTypeVideoFlag = 2;
 
-bool MmRendererMetaData::parse(const QString &contextName)
+bool MmRendererMetaData::update(const strm_dict_t *dict)
 {
-    clear();
-    QString fileName =
-            QString("/pps/services/multimedia/renderer/context/%1/metadata").arg(contextName);
-
-    // In newer OS versions, the filename is "metadata0", not metadata, so try both.
-    if (!QFile::exists(fileName))
-        fileName += '0';
-
-    QFile metaDataFile(fileName);
-    if (!metaDataFile.open(QFile::ReadOnly)) {
-        qWarning() << "Unable to open media metadata file" << fileName << ":"
-                   << metaDataFile.errorString();
-        return false;
+    if (!dict) {
+        clear();
+        return true;
     }
 
-    const QString separator("::");
-    QTextStream stream(&metaDataFile);
-    Q_FOREVER {
-        const QString line = stream.readLine();
-        if (line.isNull())
-            break;
+    const strm_string_t *value;
 
-        const int separatorPos = line.indexOf(separator);
-        if (separatorPos != -1) {
-            const QStringRef key = line.leftRef(separatorPos);
-            const QStringRef value = line.midRef(separatorPos + separator.length());
+    value = strm_dict_find_rstr(dict, durationKey);
+    m_duration = QByteArray(strm_string_getx(value, "0")).toLongLong();
 
-            if (key == durationKey)
-                m_duration = value.toLongLong();
-            else if (key == widthKey)
-                m_width = value.toInt();
-            else if (key == heightKey)
-                m_height = value.toInt();
-            else if (key == mediaTypeKey)
-                m_mediaType = value.toInt();
-            else if (key == pixelWidthKey)
-                m_pixelWidth = value.toFloat();
-            else if (key == pixelHeightKey)
-                m_pixelHeight = value.toFloat();
-            else if (key == titleKey)
-                m_title = value.toString();
-            else if (key == seekableKey)
-                m_seekable = !(value == QLatin1String("0"));
-            else if (key == artistKey)
-                m_artist = value.toString();
-            else if (key == commentKey)
-                m_comment = value.toString();
-            else if (key == genreKey)
-                m_genre = value.toString();
-            else if (key == yearKey)
-                m_year = value.toInt();
-            else if (key == bitRateKey)
-                m_audioBitRate = value.toInt();
-            else if (key == sampleKey)
-                m_sampleRate = value.toInt();
-            else if (key == albumKey)
-                m_album = value.toString();
-            else if (key == trackKey)
-                m_track = value.toInt();
-        }
-    }
+    value = strm_dict_find_rstr(dict, widthKey);
+    m_width = QByteArray(strm_string_getx(value, "0")).toInt();
+
+    value = strm_dict_find_rstr(dict, heightKey);
+    m_height = QByteArray(strm_string_getx(value, "0")).toInt();
+
+    value = strm_dict_find_rstr(dict, mediaTypeKey);
+    m_mediaType = QByteArray(strm_string_getx(value, "-1")).toInt();
+
+    value = strm_dict_find_rstr(dict, pixelWidthKey);
+    m_pixelWidth = QByteArray(strm_string_getx(value, "1")).toFloat();
+
+    value = strm_dict_find_rstr(dict, pixelHeightKey);
+    m_pixelHeight = QByteArray(strm_string_getx(value, "1")).toFloat();
+
+    value = strm_dict_find_rstr(dict, titleKey);
+    m_title = QString::fromLatin1(QByteArray(strm_string_getx(value, nullptr)));
+
+    value = strm_dict_find_rstr(dict, seekableKey);
+    m_seekable = (strcmp(strm_string_getx(value, "1"), "0") != 0);
+
+    value = strm_dict_find_rstr(dict, artistKey);
+    m_artist = QString::fromLatin1(QByteArray(strm_string_getx(value, nullptr)));
+
+    value = strm_dict_find_rstr(dict, commentKey);
+    m_comment = QString::fromLatin1(QByteArray(strm_string_getx(value, nullptr)));
+
+    value = strm_dict_find_rstr(dict, genreKey);
+    m_genre = QString::fromLatin1(QByteArray(strm_string_getx(value, nullptr)));
+
+    value = strm_dict_find_rstr(dict, yearKey);
+    m_year = QByteArray(strm_string_getx(value, "0")).toInt();
+
+    value = strm_dict_find_rstr(dict, bitRateKey);
+    m_audioBitRate = QByteArray(strm_string_getx(value, "0")).toInt();
+
+    value = strm_dict_find_rstr(dict, sampleKey);
+    m_sampleRate = QByteArray(strm_string_getx(value, "0")).toInt();
+
+    value = strm_dict_find_rstr(dict, albumKey);
+    m_album = QString::fromLatin1(QByteArray(strm_string_getx(value, nullptr)));
+
+    value = strm_dict_find_rstr(dict, trackKey);
+    m_track = QByteArray(strm_string_getx(value, "0")).toInt();
 
     return true;
 }
 
 void MmRendererMetaData::clear()
 {
-    m_duration = 0;
-    m_height = 0;
-    m_width = 0;
-    m_mediaType = -1;
-    m_pixelWidth = 1;
-    m_pixelHeight = 1;
-    m_seekable = true;
-    m_title.clear();
-    m_artist.clear();
-    m_comment.clear();
-    m_genre.clear();
-    m_year = 0;
-    m_audioBitRate = 0;
-    m_sampleRate = 0;
-    m_album.clear();
-    m_track = 0;
+    strm_dict_t *dict;
+    dict = strm_dict_new();
+    update(dict);
+    strm_dict_destroy(dict);
 }
 
 qlonglong MmRendererMetaData::duration() const

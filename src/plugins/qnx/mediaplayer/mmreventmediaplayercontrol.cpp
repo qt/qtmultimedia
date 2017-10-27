@@ -122,12 +122,15 @@ void MmrEventMediaPlayerControl::readEvents()
             }
             break;
         }
+        case MMR_EVENT_METADATA: {
+            updateMetaData(event->data);
+            break;
+        }
         case MMR_EVENT_ERROR:
         case MMR_EVENT_STATE:
         case MMR_EVENT_NONE:
         case MMR_EVENT_OVERFLOW:
         case MMR_EVENT_WARNING:
-        case MMR_EVENT_METADATA:
         case MMR_EVENT_PLAYLIST:
         case MMR_EVENT_INPUT:
         case MMR_EVENT_OUTPUT:

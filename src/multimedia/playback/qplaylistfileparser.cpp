@@ -563,7 +563,8 @@ void QPlaylistFileParser::start(const QNetworkRequest& request, const QString &m
     connect(d->m_source.data(), SIGNAL(finished()), this, SLOT(handleData()));
     connect(d->m_source.data(), SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(handleError()));
 
-    d->handleData();
+    if (url.isLocalFile())
+        d->handleData();
 }
 
 void QPlaylistFileParser::abort()

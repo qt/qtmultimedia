@@ -8,7 +8,13 @@ win32:!qtHaveModule(opengl)|qtConfig(dynamicgl) {
 HEADERS += dsserviceplugin.h
 SOURCES += dsserviceplugin.cpp
 
-mingw: DEFINES += NO_DSHOW_STRSAFE
+# Remove WINVER/_WIN32_WINNT definitions added to qt_build_config.prf
+# by qtbase/d57a7c41712f8627a462d893329dc3f0dbb52d32 since the multimedia
+# headers of MinGW 5.3/7.1 are too broken to compile with 0x0601.
+mingw {
+    DEFINES -= WINVER=0x0601 _WIN32_WINNT=0x0601
+    DEFINES += NO_DSHOW_STRSAFE
+}
 
 include(common/common.pri)
 qtConfig(directshow-player): include(player/player.pri)
