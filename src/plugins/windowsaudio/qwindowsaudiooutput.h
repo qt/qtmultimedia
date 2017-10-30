@@ -116,7 +116,6 @@ private slots:
 
 private:
     QByteArray m_device;
-    bool resuming;
     int bytesAvailable;
     QTime timeStamp;
     qint64 elapsedTimeOffset;
@@ -139,8 +138,6 @@ private:
 
     WAVEFORMATEXTENSIBLE wfx;
     HWAVEOUT hWaveOut;
-    MMRESULT result;
-    WAVEHDR header;
     WAVEHDR* waveBlocks;
     volatile bool finished;
     volatile int waveFreeBlockCount;

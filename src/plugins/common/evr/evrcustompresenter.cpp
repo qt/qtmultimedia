@@ -560,7 +560,6 @@ EVRCustomPresenter::EVRCustomPresenter(QAbstractVideoSurface *surface)
     , m_mediaType(0)
     , m_surface(0)
     , m_canRenderToSurface(false)
-    , m_sampleToPresent(0)
 {
     // Initial source rectangle = (0,0,1,1)
     m_sourceRect.top = 0;
