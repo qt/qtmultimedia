@@ -718,7 +718,17 @@ void QMediaPlayer::setNetworkConfigurations(const QList<QNetworkConfiguration> &
 
 QMediaPlayer::State QMediaPlayer::state() const
 {
-    return d_func()->state;
+    Q_D(const QMediaPlayer);
+
+    // In case if EndOfMedia status is already received
+    // but state is not.
+    if (d->control != 0
+        && d->status == QMediaPlayer::EndOfMedia
+        && d->state != d->control->state()) {
+        return d->control->state();
+    }
+
+    return d->state;
 }
 
 QMediaPlayer::MediaStatus QMediaPlayer::mediaStatus() const
