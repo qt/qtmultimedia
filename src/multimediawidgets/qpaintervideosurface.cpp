@@ -191,6 +191,10 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::paint(
                 m_imageSize.height(),
                 m_frame.bytesPerLine(),
                 m_imageFormat);
+        // Do not render into ARGB32 images using QPainter.
+        // Using QImage::Format_ARGB32_Premultiplied is significantly faster.
+        if (m_imageFormat == QImage::Format_ARGB32)
+            image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;
