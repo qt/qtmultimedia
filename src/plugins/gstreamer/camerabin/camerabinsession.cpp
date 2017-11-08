@@ -212,6 +212,12 @@ CameraBinSession::~CameraBinSession()
 
     if (m_sourceFactory)
         gst_object_unref(GST_OBJECT(m_sourceFactory));
+
+    if (m_cameraSrc)
+        gst_object_unref(GST_OBJECT(m_cameraSrc));
+
+    if (m_videoSrc)
+        gst_object_unref(GST_OBJECT(m_videoSrc));
 }
 
 #if QT_CONFIG(gstreamer_photography)
@@ -538,11 +544,12 @@ GstElement *CameraBinSession::buildCameraSource()
         }
     }
 
-    if (m_cameraSrc != camSrc)
+    if (m_cameraSrc != camSrc) {
         g_object_set(G_OBJECT(m_camerabin), CAMERA_SOURCE_PROPERTY, m_cameraSrc, NULL);
-
-    if (camSrc)
-        gst_object_unref(GST_OBJECT(camSrc));
+        // Unref only if camSrc is not m_cameraSrc to prevent double unrefing.
+        if (camSrc)
+            gst_object_unref(GST_OBJECT(camSrc));
+    }
 
     return m_cameraSrc;
 }
