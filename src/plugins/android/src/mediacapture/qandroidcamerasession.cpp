@@ -697,7 +697,7 @@ void QAndroidCameraSession::onCameraTakePictureFailed()
 
 void QAndroidCameraSession::onCameraPictureExposed()
 {
-    if (m_captureCanceled)
+    if (m_captureCanceled || !m_camera)
         return;
 
     emit imageExposed(m_currentImageCaptureId);
@@ -706,7 +706,7 @@ void QAndroidCameraSession::onCameraPictureExposed()
 
 void QAndroidCameraSession::onLastPreviewFrameFetched(const QVideoFrame &frame)
 {
-    if (m_captureCanceled)
+    if (m_captureCanceled || !m_camera)
         return;
 
     QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
@@ -730,6 +730,9 @@ void QAndroidCameraSession::processPreviewImage(int id, const QVideoFrame &frame
 
 void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
 {
+    if (!m_camera)
+        return;
+
     m_videoProbesMutex.lock();
 
     for (QAndroidMediaVideoProbeControl *probe : qAsConst(m_videoProbes))
@@ -756,7 +759,8 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
     m_captureCanceled = false;
 
     // Preview needs to be restarted after taking a picture
-    m_camera->startPreview();
+    if (m_camera)
+        m_camera->startPreview();
 }
 
 void QAndroidCameraSession::onCameraPreviewStarted()
