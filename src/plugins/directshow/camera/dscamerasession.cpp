@@ -441,30 +441,33 @@ bool DSCameraSession::startPreview()
 
     setStatus(QCamera::StartingStatus);
 
+    QString errorString;
     HRESULT hr = S_OK;
     IMediaControl* pControl = 0;
 
     if (!configurePreviewFormat()) {
-        qWarning() << "Failed to configure preview format";
+        errorString = tr("Failed to configure preview format");
         goto failed;
     }
 
-    if (!connectGraph())
+    if (!connectGraph()) {
+        errorString = tr("Failed to connect graph");
         goto failed;
+    }
 
     if (m_surface)
         m_surface->start(m_previewSurfaceFormat);
 
     hr = m_filterGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
     if (FAILED(hr)) {
-        qWarning() << "failed to get stream control";
+        errorString = tr("Failed to get stream control");
         goto failed;
     }
     hr = pControl->Run();
     pControl->Release();
 
     if (FAILED(hr)) {
-        qWarning() << "failed to start";
+        errorString = tr("Failed to start");
         goto failed;
     }
 
@@ -477,7 +480,7 @@ failed:
     if (m_surface && m_surface->isActive())
         m_surface->stop();
     disconnectGraph();
-    setStatus(QCamera::LoadedStatus);
+    setError(QCamera::CameraError, errorString);
     return false;
 }
 
@@ -491,17 +494,18 @@ bool DSCameraSession::stopPreview()
     if (m_previewSampleGrabber)
         m_previewSampleGrabber->stop();
 
+    QString errorString;
     IMediaControl* pControl = 0;
     HRESULT hr = m_filterGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
     if (FAILED(hr)) {
-        qWarning() << "failed to get stream control";
+        errorString = tr("Failed to get stream control");
         goto failed;
     }
 
     hr = pControl->Stop();
     pControl->Release();
     if (FAILED(hr)) {
-        qWarning() << "failed to stop";
+        errorString = tr("Failed to stop");
         goto failed;
     }
 
@@ -514,8 +518,14 @@ bool DSCameraSession::stopPreview()
     return true;
 
 failed:
-    setStatus(QCamera::ActiveStatus);
+    setError(QCamera::CameraError, errorString);
     return false;
+}
+
+void DSCameraSession::setError(int error, const QString &errorString)
+{
+    emit cameraError(error, errorString);
+    setStatus(QCamera::UnloadedStatus);
 }
 
 void DSCameraSession::setStatus(QCamera::Status status)
@@ -668,6 +678,7 @@ bool DSCameraSession::createFilterGraph()
     // Previously containered in <qedit.h>.
     static const CLSID cLSID_NullRenderer = { 0xC1F400A4, 0x3F08, 0x11d3, { 0x9F, 0x0B, 0x00, 0x60, 0x08, 0x03, 0x9E, 0x37 } };
 
+    QString errorString;
     HRESULT hr;
     IMoniker* pMoniker = NULL;
     ICreateDevEnum* pDevEnum = NULL;
@@ -677,7 +688,7 @@ bool DSCameraSession::createFilterGraph()
     hr = CoCreateInstance(CLSID_FilterGraph,NULL,CLSCTX_INPROC,
             IID_IGraphBuilder, (void**)&m_filterGraph);
     if (FAILED(hr)) {
-        qWarning() << "failed to create filter graph";
+        errorString = tr("Failed to create filter graph");
         goto failed;
     }
 
@@ -685,14 +696,14 @@ bool DSCameraSession::createFilterGraph()
     hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC,
                           IID_ICaptureGraphBuilder2, (void**)&m_graphBuilder);
     if (FAILED(hr)) {
-        qWarning() << "failed to create graph builder";
+        errorString = tr("Failed to create graph builder");
         goto failed;
     }
 
     // Attach the filter graph to the capture graph
     hr = m_graphBuilder->SetFiltergraph(m_filterGraph);
     if (FAILED(hr)) {
-        qWarning() << "failed to connect capture graph and filter graph";
+        errorString = tr("Failed to connect capture graph and filter graph");
         goto failed;
     }
 
@@ -762,7 +773,7 @@ bool DSCameraSession::createFilterGraph()
     }
 
     if (!m_sourceFilter) {
-        qWarning() << "No capture device found";
+        errorString = tr("No capture device found");
         goto failed;
     }
 
@@ -779,7 +790,7 @@ bool DSCameraSession::createFilterGraph()
     hr = CoCreateInstance(cLSID_NullRenderer, NULL, CLSCTX_INPROC,
                           IID_IBaseFilter, (void**)&m_nullRendererFilter);
     if (FAILED(hr)) {
-        qWarning() << "failed to create null renderer";
+        errorString = tr("Failed to create null renderer");
         goto failed;
     }
 
@@ -793,6 +804,7 @@ failed:
     SAFE_RELEASE(m_nullRendererFilter);
     SAFE_RELEASE(m_filterGraph);
     SAFE_RELEASE(m_graphBuilder);
+    setError(QCamera::CameraError, errorString);
 
     return false;
 }

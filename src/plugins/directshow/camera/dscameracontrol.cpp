@@ -53,6 +53,8 @@ DSCameraControl::DSCameraControl(QObject *parent)
     m_session = qobject_cast<DSCameraSession*>(parent);
     connect(m_session, SIGNAL(statusChanged(QCamera::Status)),
             this, SIGNAL(statusChanged(QCamera::Status)));
+    connect(m_session, &DSCameraSession::cameraError,
+            this, &DSCameraControl::error);
 }
 
 DSCameraControl::~DSCameraControl()

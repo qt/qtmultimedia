@@ -138,6 +138,7 @@ Q_SIGNALS:
     void readyForCaptureChanged(bool);
     void captureError(int id, int error, const QString &errorString);
     void captureDestinationChanged(QCameraImageCapture::CaptureDestinations);
+    void cameraError(int error, const QString &errorString);
 
 private Q_SLOTS:
     void presentFrame();
@@ -176,6 +177,7 @@ private:
     void updateSourceCapabilities();
     bool configurePreviewFormat();
     void updateImageProcessingParametersInfos();
+    void setError(int error, const QString &errorString);
 
     // These static functions are used for scaling of adjustable parameters,
     // which have the ranges from -1.0 to +1.0 in the QCameraImageProcessing API.
