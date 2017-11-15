@@ -59,7 +59,7 @@ public:
 
     HRESULT STDMETHODCALLTYPE GetParameters(DWORD*, DWORD*);
 
-    void load(const QMediaResourceList &resources, QIODevice* stream);
+    void load(const QUrl &url, QIODevice* stream);
 
     void cancel();
 

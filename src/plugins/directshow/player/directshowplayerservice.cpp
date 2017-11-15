@@ -297,7 +297,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     if (m_graph)
         releaseGraph();
 
-    m_resources = media.resources();
+    m_url = media.canonicalUrl();
     m_stream = stream;
     m_error = QMediaPlayer::NoError;
     m_errorString = QString();
@@ -312,11 +312,9 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     m_dontCacheNextSeekResult = false;
     m_metaDataControl->reset();
 
-    if (m_resources.isEmpty() && !stream) {
+    if (m_url.isEmpty() && !stream) {
         m_pendingTasks = 0;
         m_graphStatus = NoMedia;
-
-        m_url.clear();
     } else if (stream && (!stream->isReadable() || stream->isSequential())) {
         m_pendingTasks = 0;
         m_graphStatus = InvalidMedia;
@@ -347,9 +345,6 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
 void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
 {
     IBaseFilter *source = 0;
-
-    QMediaResource resource = m_resources.takeFirst();
-    m_url = resource.url();
 
     HRESULT hr = E_FAIL;
     if (m_url.scheme() == QLatin1String("http") || m_url.scheme() == QLatin1String("https")) {
@@ -403,7 +398,7 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             m_pendingTasks |= SetRate;
 
         m_source = source;
-    } else if (!m_resources.isEmpty()) {
+    } else if (!m_url.isEmpty()) {
         m_pendingTasks |= SetUrlSource;
     } else {
         m_graphStatus = InvalidMedia;

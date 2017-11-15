@@ -299,9 +299,10 @@ public:
     struct ParserJob
     {
         QIODevice *m_stream;
-        QMediaResource m_resource;
-        bool isValid() const { return m_stream || !m_resource.isNull(); }
-        void reset() { m_stream = 0; m_resource = QMediaResource(); }
+        QMediaContent m_media;
+        QString m_mimeType;
+        bool isValid() const { return m_stream || !m_media.isNull(); }
+        void reset() { m_stream = 0; m_media = QMediaContent(); m_mimeType = QString(); }
     } m_pendingJob;
     int m_scanIndex;
     int m_lineIndex;
@@ -498,22 +499,12 @@ QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QStrin
 /*
  * Delegating
  */
-void QPlaylistFileParser::start(const QMediaContent &media, QIODevice *stream)
+void QPlaylistFileParser::start(const QMediaContent &media, QIODevice *stream, const QString &mimeType)
 {
-    const QMediaResource &mediaResource = media.canonicalResource();
-    const QString &mimeType = mediaResource.mimeType();
-
-    if (stream) {
-        start(stream, mediaResource.mimeType());
-    } else {
-        const QNetworkRequest &request = mediaResource.request();
-        const QUrl &url = mediaResource.url();
-
-        if (request.url().isValid())
-            start(request, mimeType);
-        else
-            start(QNetworkRequest(url), mimeType);
-    }
+    if (stream)
+        start(stream, mimeType);
+    else
+        start(media.canonicalRequest(), mimeType);
 }
 
 void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
@@ -528,7 +519,7 @@ void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
 
     if (!d->m_currentParser.isNull()) {
         abort();
-        d->m_pendingJob = { stream,  QMediaResource(QUrl(), mimeType) };
+        d->m_pendingJob = { stream, QUrl(), mimeType };
         return;
     }
 
@@ -551,7 +542,7 @@ void QPlaylistFileParser::start(const QNetworkRequest& request, const QString &m
 
     if (!d->m_currentParser.isNull()) {
         abort();
-        d->m_pendingJob = { nullptr, QMediaResource(request, mimeType) };
+        d->m_pendingJob = { nullptr, request, mimeType };
         return;
     }
 
@@ -604,7 +595,7 @@ void QPlaylistFileParserPrivate::handleParserFinished()
         m_source.reset();
 
     if (m_pendingJob.isValid())
-        q->start(m_pendingJob.m_resource, m_pendingJob.m_stream);
+        q->start(m_pendingJob.m_media, m_pendingJob.m_stream, m_pendingJob.m_mimeType);
 }
 
 void QPlaylistFileParserPrivate::abort()

@@ -197,12 +197,12 @@ void MFPlayerSession::load(const QMediaContent &media, QIODevice *stream)
     qDebug() << "load";
 #endif
     clear();
-    QMediaResourceList resources = media.resources();
+    QUrl url = media.canonicalUrl();
 
     if (m_status == QMediaPlayer::LoadingMedia && m_sourceResolver)
         m_sourceResolver->cancel();
 
-    if (resources.isEmpty() && !stream) {
+    if (url.isEmpty() && !stream) {
         changeStatus(QMediaPlayer::NoMedia);
     } else if (stream && (!stream->isReadable())) {
         changeStatus(QMediaPlayer::InvalidMedia);
@@ -210,7 +210,7 @@ void MFPlayerSession::load(const QMediaContent &media, QIODevice *stream)
     } else {
         createSession();
         changeStatus(QMediaPlayer::LoadingMedia);
-        m_sourceResolver->load(resources, stream);
+        m_sourceResolver->load(url, stream);
     }
     emit positionChanged(position());
 }

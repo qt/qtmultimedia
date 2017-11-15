@@ -86,7 +86,7 @@ public:
         NetworkError
     };
 
-    void start(const QMediaContent &media, QIODevice *stream = 0);
+    void start(const QMediaContent &media, QIODevice *stream = 0, const QString &mimeType = QString());
     void start(const QNetworkRequest &request, const QString &mimeType = QString());
     void abort();
 

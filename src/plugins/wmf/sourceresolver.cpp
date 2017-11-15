@@ -158,7 +158,7 @@ HRESULT STDMETHODCALLTYPE SourceResolver::GetParameters(DWORD*, DWORD*)
     return E_NOTIMPL;
 }
 
-void SourceResolver::load(const QMediaResourceList &resources, QIODevice* stream)
+void SourceResolver::load(const QUrl &url, QIODevice* stream)
 {
     QMutexLocker locker(&m_mutex);
     HRESULT hr = S_OK;
@@ -174,12 +174,10 @@ void SourceResolver::load(const QMediaResourceList &resources, QIODevice* stream
         qWarning() << "Failed to create Source Resolver!";
         emit error(hr);
     } else if (stream) {
-        QString url;
-        if (!resources.isEmpty())
-            url = resources.constFirst().url().toString();
+        QString urlString = url.toString();
         m_stream = new MFStream(stream, false);
         hr = m_sourceResolver->BeginCreateObjectFromByteStream(
-                    m_stream, url.isEmpty() ? 0 : reinterpret_cast<LPCWSTR>(url.utf16()),
+                    m_stream, urlString.isEmpty() ? 0 : reinterpret_cast<LPCWSTR>(urlString.utf16()),
                     MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE
                     , NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
         if (FAILED(hr)) {
@@ -187,8 +185,6 @@ void SourceResolver::load(const QMediaResourceList &resources, QIODevice* stream
             emit error(hr);
         }
     } else {
-        QMediaResource resource = resources.constFirst();
-        QUrl url = resource.url();
 #ifdef DEBUG_MEDIAFOUNDATION
         qDebug() << "loading :" << url;
         qDebug() << "url path =" << url.path().mid(1);
