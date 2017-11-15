@@ -767,7 +767,11 @@ void CameraBinSession::setStateHelper(QCamera::State state)
 
 void CameraBinSession::setError(int err, const QString &errorString)
 {
-    m_pendingState = QCamera::UnloadedState;
+    // Emit only first error
+    if (m_pendingState == QCamera::UnloadedState)
+        return;
+
+    setState(QCamera::UnloadedState);
     emit error(err, errorString);
     setStatus(QCamera::UnloadedStatus);
 }
@@ -990,10 +994,14 @@ bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
             if (err && err->message) {
                 message = QString::fromUtf8(err->message);
                 qWarning() << "CameraBin error:" << message;
+#if CAMERABIN_DEBUG
+                qWarning() << QString::fromUtf8(debug);
+#endif
             }
 
-            //only report error messager from camerabin
-            if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_camerabin)) {
+            // Only report error messages from camerabin or video source
+            if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_camerabin)
+                || GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoSrc)) {
                 if (message.isEmpty())
                     message = tr("Camera error");
 
