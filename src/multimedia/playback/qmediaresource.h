@@ -46,6 +46,8 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 
+#if QT_DEPRECATED_SINCE(6, 0)
+
 QT_BEGIN_NAMESPACE
 
 // Class forward declaration required for QDoc bug
@@ -123,5 +125,7 @@ QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QMediaResource)
 Q_DECLARE_METATYPE(QMediaResourceList)
+
+#endif // #if QT_DEPRECATED_SINCE(6, 0)
 
 #endif

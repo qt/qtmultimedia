@@ -39,6 +39,8 @@
 
 #include "qmediaresource.h"
 
+#if QT_DEPRECATED_SINCE(6, 0)
+
 #include <QtCore/qsize.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qvariant.h>
@@ -61,6 +63,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaResourceMetaTypes)
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_playback
+    \obsolete
 
     A media resource is composed of a \l {url()}{URL} containing the
     location of the resource and a set of properties that describe the
@@ -418,3 +421,4 @@ void QMediaResource::setResolution(int width, int height)
 }
 QT_END_NAMESPACE
 
+#endif // #if QT_DEPRECATED_SINCE(6, 0)

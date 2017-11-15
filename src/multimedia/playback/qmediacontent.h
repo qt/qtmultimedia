@@ -58,8 +58,10 @@ public:
     QMediaContent();
     QMediaContent(const QUrl &contentUrl);
     QMediaContent(const QNetworkRequest &contentRequest);
-    QMediaContent(const QMediaResource &contentResource);
-    QMediaContent(const QMediaResourceList &resources);
+#if QT_DEPRECATED_SINCE(6, 0)
+    QT_DEPRECATED QMediaContent(const QMediaResource &contentResource);
+    QT_DEPRECATED QMediaContent(const QMediaResourceList &resources);
+#endif
     QMediaContent(const QMediaContent &other);
     QMediaContent(QMediaPlaylist *playlist, const QUrl &contentUrl = QUrl(), bool takeOwnership = false);
     ~QMediaContent();
@@ -73,9 +75,10 @@ public:
 
     QUrl canonicalUrl() const;
     QNetworkRequest canonicalRequest() const;
-    QMediaResource canonicalResource() const;
-
-    QMediaResourceList resources() const;
+#if QT_DEPRECATED_SINCE(6, 0)
+    QT_DEPRECATED QMediaResource canonicalResource() const;
+    QT_DEPRECATED QMediaResourceList resources() const;
+#endif
 
     QMediaPlaylist *playlist() const;
 private:

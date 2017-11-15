@@ -61,14 +61,20 @@ public:
         isPlaylistOwned(false)
     {}
 
+#if QT_DEPRECATED_SINCE(6, 0)
     QMediaContentPrivate(const QMediaResourceList &r):
         resources(r),
         isPlaylistOwned(false)
     {}
+#endif
 
     QMediaContentPrivate(const QMediaContentPrivate &other):
         QSharedData(other),
+#if QT_DEPRECATED_SINCE(6, 0)
         resources(other.resources),
+#else
+        request(other.request),
+#endif
         playlist(other.playlist),
         isPlaylistOwned(false)
     {}
@@ -77,7 +83,11 @@ public:
         playlist(pls),
         isPlaylistOwned(isOwn)
     {
+#if QT_DEPRECATED_SINCE(6, 0)
         resources << QMediaResource(url);
+#else
+        request.setUrl(url);
+#endif
     }
 
     ~QMediaContentPrivate()
@@ -88,10 +98,18 @@ public:
 
     bool operator ==(const QMediaContentPrivate &other) const
     {
+#if QT_DEPRECATED_SINCE(6, 0)
         return resources == other.resources && playlist == other.playlist;
+#else
+        return request == other.request && playlist == other.playlist;
+#endif
     }
 
+#if QT_DEPRECATED_SINCE(6, 0)
     QMediaResourceList resources;
+#else
+    QNetworkRequest request;
+#endif
 
     QPointer<QMediaPlaylist> playlist;
     bool isPlaylistOwned;
@@ -139,7 +157,11 @@ QMediaContent::QMediaContent()
 QMediaContent::QMediaContent(const QUrl &url):
     d(new QMediaContentPrivate)
 {
+#if QT_DEPRECATED_SINCE(6, 0)
     d->resources << QMediaResource(url);
+#else
+    d->request.setUrl(url);
+#endif
 }
 
 /*!
@@ -152,10 +174,17 @@ QMediaContent::QMediaContent(const QUrl &url):
 QMediaContent::QMediaContent(const QNetworkRequest &request):
     d(new QMediaContentPrivate)
 {
+#if QT_DEPRECATED_SINCE(6, 0)
     d->resources << QMediaResource(request);
+#else
+    d->request = request;
+#endif
 }
 
+#if QT_DEPRECATED_SINCE(6, 0)
 /*!
+    \obsolete
+
     Constructs a media content with \a resource providing a reference to the content.
 */
 
@@ -166,6 +195,8 @@ QMediaContent::QMediaContent(const QMediaResource &resource):
 }
 
 /*!
+    \obsolete
+
     Constructs a media content with \a resources providing a reference to the content.
 */
 
@@ -173,6 +204,7 @@ QMediaContent::QMediaContent(const QMediaResourceList &resources):
     d(new QMediaContentPrivate(resources))
 {
 }
+#endif
 
 /*!
     Constructs a copy of the media content \a other.
@@ -250,7 +282,11 @@ bool QMediaContent::isNull() const
 
 QUrl QMediaContent::canonicalUrl() const
 {
+#if QT_DEPRECATED_SINCE(6, 0)
     return canonicalResource().url();
+#else
+    return canonicalRequest().url();
+#endif
 }
 
 /*!
@@ -259,10 +295,17 @@ QUrl QMediaContent::canonicalUrl() const
 
 QNetworkRequest QMediaContent::canonicalRequest() const
 {
+#if QT_DEPRECATED_SINCE(6, 0)
     return canonicalResource().request();
+#else
+    return d.constData() != 0 ? d->request : QNetworkRequest();
+#endif
 }
 
+#if QT_DEPRECATED_SINCE(6, 0)
 /*!
+    \obsolete
+
     Returns a QMediaResource that represents that canonical resource for this media content.
 */
 
@@ -274,6 +317,8 @@ QMediaResource QMediaContent::canonicalResource() const
 }
 
 /*!
+    \obsolete
+
     Returns a list of alternative resources for this media content.  The first item in this list
     is always the canonical resource.
 */
@@ -284,6 +329,7 @@ QMediaResourceList QMediaContent::resources() const
             ? d->resources
             : QMediaResourceList();
 }
+#endif // #if QT_DEPRECATED_SINCE(6, 0)
 
 /*!
     Returns a playlist for this media content or 0 if this QMediaContent is not a playlist.
