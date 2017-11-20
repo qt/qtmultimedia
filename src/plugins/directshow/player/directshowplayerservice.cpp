@@ -402,7 +402,6 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
     } else if (!m_resources.isEmpty()) {
         m_pendingTasks |= SetUrlSource;
     } else {
-        m_pendingTasks = 0;
         m_graphStatus = InvalidMedia;
 
         switch (hr) {
@@ -1688,8 +1687,6 @@ void DirectShowPlayerService::run()
     QMutexLocker locker(&m_mutex);
 
     for (;;) {
-        ::ResetEvent(m_taskHandle);
-
         while (m_pendingTasks == 0) {
             DWORD result = 0;
 
