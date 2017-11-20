@@ -125,7 +125,7 @@ int QMediaPlaylistNavigatorPrivate::nextItemPos(int steps) const
                     randomModePositions.append(-1);
                 int res = randomModePositions[randomPositionsOffset+steps];
                 if (res<0 || res >= playlist->mediaCount()) {
-                    res = QRandomGenerator::bounded(playlist->mediaCount());
+                    res = QRandomGenerator::global()->bounded(playlist->mediaCount());
                     randomModePositions[randomPositionsOffset+steps] = res;
                 }
 
@@ -178,7 +178,7 @@ int QMediaPlaylistNavigatorPrivate::previousItemPos(int steps) const
 
                 int res = randomModePositions[randomPositionsOffset-steps];
                 if (res<0 || res >= playlist->mediaCount()) {
-                    res = QRandomGenerator::bounded(playlist->mediaCount());
+                    res = QRandomGenerator::global()->bounded(playlist->mediaCount());
                     randomModePositions[randomPositionsOffset-steps] = res;
                 }
 

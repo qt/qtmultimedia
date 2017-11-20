@@ -273,7 +273,7 @@ void QDeclarativePlayVariation::setSampleObject(QDeclarativeAudioSample *sampleO
 
 void QDeclarativePlayVariation::applyParameters(QSoundInstance *soundInstance)
 {
-    qreal pitch = QRandomGenerator::bounded(1001 * 0.001f) * (m_maxPitch - m_minPitch) + m_minPitch;
-    qreal gain = QRandomGenerator::bounded(1001 * 0.001f) * (m_maxGain - m_minGain) + m_minGain;
+    qreal pitch = QRandomGenerator::global()->bounded(1001 * 0.001f) * (m_maxPitch - m_minPitch) + m_minPitch;
+    qreal gain = QRandomGenerator::global()->bounded(1001 * 0.001f) * (m_maxGain - m_minGain) + m_minGain;
     soundInstance->updateVariationParameters(pitch, gain, m_looping);
 }

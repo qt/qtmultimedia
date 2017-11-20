@@ -367,8 +367,6 @@ private:
 
     QAbstractVideoSurface *m_surface;
     bool m_canRenderToSurface;
-
-    IMFSample *m_sampleToPresent;
 };
 
 bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter);

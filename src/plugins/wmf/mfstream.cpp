@@ -231,6 +231,8 @@ STDMETHODIMP MFStream::Seek(
 
     qint64 pos = qint64(llSeekOffset);
     switch (SeekOrigin) {
+    case msoBegin:
+        break;
     case msoCurrent:
         pos += m_stream->pos();
         break;

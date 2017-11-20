@@ -49,7 +49,7 @@
 #include <private/qmediaopenglhelper_p.h>
 
 #ifdef MAYBE_ANGLE
-# include <qtgui/qguiapplication.h>
+# include <qguiapplication.h>
 # include <qpa/qplatformnativeinterface.h>
 # include <qopenglfunctions.h>
 # include <EGL/eglext.h>
