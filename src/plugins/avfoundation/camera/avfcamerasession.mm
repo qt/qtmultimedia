@@ -234,7 +234,7 @@ void AVFCameraSession::updateCameraDevices()
             break;
         case AVCaptureDevicePositionFront:
             info.position = QCamera::FrontFace;
-            info.orientation = 270;
+            info.orientation = 90;
             break;
         default:
             info.position = QCamera::UnspecifiedPosition;
