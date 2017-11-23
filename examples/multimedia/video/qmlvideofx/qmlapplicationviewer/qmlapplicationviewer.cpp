@@ -90,7 +90,7 @@ QmlApplicationViewer::QmlApplicationViewer(QWindow *parent)
     : QQuickView(parent)
     , d(new QmlApplicationViewerPrivate(this))
 {
-    connect(engine(), SIGNAL(quit()), QCoreApplication::instance(), SLOT(quit()));
+    connect(engine(), &QQmlEngine::quit, QCoreApplication::instance(), &QCoreApplication::quit);
     setResizeMode(QQuickView::SizeRootObjectToView);
 }
 
@@ -98,7 +98,7 @@ QmlApplicationViewer::QmlApplicationViewer(QQuickView *view, QWindow *parent)
     : QQuickView(parent)
     , d(new QmlApplicationViewerPrivate(view))
 {
-    connect(view->engine(), SIGNAL(quit()), QCoreApplication::instance(), SLOT(quit()));
+    connect(view->engine(), &QQmlEngine::quit, QCoreApplication::instance(), &QCoreApplication::quit);
     view->setResizeMode(QQuickView::SizeRootObjectToView);
 }
 

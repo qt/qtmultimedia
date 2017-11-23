@@ -67,15 +67,23 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
     format.setSampleType(QAudioFormat::SignedInt);
     m_decoder.setAudioFormat(format);
 
-    connect(&m_decoder, SIGNAL(bufferReady()), this, SLOT(bufferReady()));
-    connect(&m_decoder, SIGNAL(error(QAudioDecoder::Error)), this, SLOT(error(QAudioDecoder::Error)));
-    connect(&m_decoder, SIGNAL(stateChanged(QAudioDecoder::State)), this, SLOT(stateChanged(QAudioDecoder::State)));
-    connect(&m_decoder, SIGNAL(finished()), this, SLOT(finished()));
-    connect(&m_decoder, SIGNAL(positionChanged(qint64)), this, SLOT(updateProgress()));
-    connect(&m_decoder, SIGNAL(durationChanged(qint64)), this, SLOT(updateProgress()));
+    connect(&m_decoder, &QAudioDecoder::bufferReady,
+            this, &AudioDecoder::bufferReady);
+    connect(&m_decoder, QOverload<QAudioDecoder::Error>::of(&QAudioDecoder::error),
+            this, QOverload<QAudioDecoder::Error>::of(&AudioDecoder::error));
+    connect(&m_decoder, &QAudioDecoder::stateChanged,
+            this, &AudioDecoder::stateChanged);
+    connect(&m_decoder, &QAudioDecoder::finished,
+            this, &AudioDecoder::finished);
+    connect(&m_decoder, &QAudioDecoder::positionChanged,
+            this, &AudioDecoder::updateProgress);
+    connect(&m_decoder, &QAudioDecoder::durationChanged,
+            this, &AudioDecoder::updateProgress);
 
-    connect(&m_soundEffect, SIGNAL(statusChanged()), this, SLOT(playbackStatusChanged()));
-    connect(&m_soundEffect, SIGNAL(playingChanged()), this, SLOT(playingChanged()));
+    connect(&m_soundEffect, &QSoundEffect::statusChanged,
+            this, &AudioDecoder::playbackStatusChanged);
+    connect(&m_soundEffect, &QSoundEffect::playingChanged,
+            this, &AudioDecoder::playingChanged);
 
     m_progress = -1.0;
 }

@@ -77,7 +77,8 @@ LevelMeter::LevelMeter(QWidget *parent)
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     setMinimumWidth(30);
 
-    connect(m_redrawTimer, SIGNAL(timeout()), this, SLOT(redrawTimerExpired()));
+    connect(m_redrawTimer, &QTimer::timeout,
+            this, &LevelMeter::redrawTimerExpired);
     m_redrawTimer->start(RedrawInterval);
 }
 
