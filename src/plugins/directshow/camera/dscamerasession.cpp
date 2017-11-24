@@ -815,8 +815,8 @@ bool DSCameraSession::configurePreviewFormat()
         return false;
     }
 
-    // Set sample grabber format (always RGB32)
-    static const AM_MEDIA_TYPE grabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_RGB32, 0, 0, 0, FORMAT_VideoInfo, nullptr, 0, nullptr};
+    // Set sample grabber format
+    static const AM_MEDIA_TYPE grabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_ARGB32, 0, 0, 0, FORMAT_VideoInfo, nullptr, 0, nullptr};
     if (!m_previewSampleGrabber->setMediaType(&grabberFormat))
         return false;
 
