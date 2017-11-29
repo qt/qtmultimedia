@@ -143,8 +143,10 @@ static GstBusSyncReply syncGstBusFilter(GstBus* bus, GstMessage* message, QGstre
     QMutexLocker lock(&d->filterMutex);
 
     for (QGstreamerSyncMessageFilter *filter : qAsConst(d->syncFilters)) {
-        if (filter->processSyncMessage(QGstreamerMessage(message)))
+        if (filter->processSyncMessage(QGstreamerMessage(message))) {
+            gst_message_unref(message);
             return GST_BUS_DROP;
+        }
     }
 
     return GST_BUS_PASS;
