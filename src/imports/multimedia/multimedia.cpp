@@ -158,6 +158,8 @@ public:
                                 trUtf8("CameraFocus is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraExposure, 1>(uri, 5, 11, "CameraExposure",
                                 trUtf8("CameraExposure is provided by Camera"));
+        qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 3>(uri, 5, 11, "CameraImageProcessing",
+                                trUtf8("CameraImageProcessing is provided by Camera"));
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();

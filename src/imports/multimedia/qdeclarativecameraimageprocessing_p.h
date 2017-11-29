@@ -72,6 +72,11 @@ class QDeclarativeCameraImageProcessing : public QObject
     Q_PROPERTY(qreal sharpeningLevel READ sharpeningLevel WRITE setSharpeningLevel NOTIFY sharpeningLevelChanged)
     Q_PROPERTY(qreal denoisingLevel READ denoisingLevel WRITE setDenoisingLevel NOTIFY denoisingLevelChanged)
     Q_PROPERTY(ColorFilter colorFilter READ colorFilter WRITE setColorFilter NOTIFY colorFilterChanged REVISION 1)
+    Q_PROPERTY(bool available READ isAvailable NOTIFY availableChanged REVISION 3)
+    Q_PROPERTY(QVariantList supportedColorFilters READ supportedColorFilters
+               NOTIFY supportedColorFiltersChanged REVISION 3)
+    Q_PROPERTY(QVariantList supportedWhiteBalanceModes READ supportedWhiteBalanceModes
+               NOTIFY supportedWhiteBalanceModesChanged REVISION 3)
 public:
     enum WhiteBalanceMode {
         WhiteBalanceAuto = QCameraImageProcessing::WhiteBalanceAuto,
@@ -112,6 +117,10 @@ public:
 
     ColorFilter colorFilter() const;
 
+    bool isAvailable() const;
+    QVariantList supportedColorFilters() const;
+    QVariantList supportedWhiteBalanceModes() const;
+
 public Q_SLOTS:
     void setWhiteBalanceMode(QDeclarativeCameraImageProcessing::WhiteBalanceMode mode) const;
     void setManualWhiteBalance(qreal colorTemp) const;
@@ -135,6 +144,10 @@ Q_SIGNALS:
     void denoisingLevelChanged(qreal);
 
     void colorFilterChanged();
+
+    void availableChanged();
+    void supportedColorFiltersChanged();
+    void supportedWhiteBalanceModesChanged();
 
 private:
     friend class QDeclarativeCamera;

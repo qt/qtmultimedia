@@ -84,6 +84,18 @@ QDeclarativeCameraImageProcessing::QDeclarativeCameraImageProcessing(QCamera *ca
     QObject(parent)
 {
     m_imageProcessing = camera->imageProcessing();
+
+    connect(camera, QOverload<bool>::of(&QCamera::availabilityChanged),
+            this, &QDeclarativeCameraImageProcessing::availableChanged);
+    connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
+        if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
+            && status != QCamera::ActiveStatus) {
+            return;
+        }
+
+        emit supportedColorFiltersChanged();
+        emit supportedWhiteBalanceModesChanged();
+    });
 }
 
 QDeclarativeCameraImageProcessing::~QDeclarativeCameraImageProcessing()
@@ -270,6 +282,56 @@ void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
 QDeclarativeCameraImageProcessing::ColorFilter QDeclarativeCameraImageProcessing::colorFilter() const
 {
     return ColorFilter(m_imageProcessing->colorFilter());
+}
+
+/*!
+    \qmlproperty bool QtMultimedia::CameraImageProcessing::isAvailable
+
+    This property holds if image processing related settings are supported by this camera.
+
+    \since 5.11
+*/
+bool QDeclarativeCameraImageProcessing::isAvailable() const
+{
+    return m_imageProcessing->isAvailable();
+}
+
+/*!
+    \qmlproperty list<ColorFilter> QtMultimedia::CameraImageProcessing::supportedColorFilters
+
+    This property holds the supported color filters by this camera.
+
+    \since 5.11
+*/
+QVariantList QDeclarativeCameraImageProcessing::supportedColorFilters() const
+{
+    QVariantList supportedFilters;
+
+    for (int i = int(ColorFilterNone); i <= int(ColorFilterVendor); ++i) {
+        if (m_imageProcessing->isColorFilterSupported((QCameraImageProcessing::ColorFilter) i))
+            supportedFilters.append(i);
+    }
+
+    return supportedFilters;
+}
+
+/*!
+    \qmlproperty list<WhiteBalanceMode> QtMultimedia::CameraImageProcessing::supportedWhiteBalanceModes
+
+    This property holds the supported white balance modes by this camera.
+
+    \since 5.11
+*/
+QVariantList QDeclarativeCameraImageProcessing::supportedWhiteBalanceModes() const
+{
+    QVariantList supportedModes;
+
+    for (int i = int(WhiteBalanceAuto); i <= int(WhiteBalanceVendor); i++) {
+        if (m_imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode(i)))
+            supportedModes.append(i);
+    }
+
+    return supportedModes;
 }
 
 void QDeclarativeCameraImageProcessing::setColorFilter(ColorFilter filter)
