@@ -237,10 +237,8 @@ void QRendererVideoWidgetBackend::paintEvent(QPaintEvent *event)
 
         QBrush brush = m_widget->palette().window();
 
-        QVector<QRect> rects = borderRegion.rects();
-        for (QVector<QRect>::iterator it = rects.begin(), end = rects.end(); it != end; ++it) {
-            painter.fillRect(*it, brush);
-        }
+        for (const QRect &r : borderRegion)
+            painter.fillRect(r, brush);
     }
 
     if (m_surface->isActive() && m_boundingRect.intersects(event->rect())) {
