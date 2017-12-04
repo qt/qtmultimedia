@@ -466,6 +466,9 @@ GstElement *CameraBinSession::buildCameraSource()
 #if CAMERABIN_DEBUG
     qDebug() << Q_FUNC_INFO;
 #endif
+    if (m_inputDevice.isEmpty())
+        return nullptr;
+
     if (!m_inputDeviceHasChanged)
         return m_cameraSrc;
 
@@ -482,7 +485,7 @@ GstElement *CameraBinSession::buildCameraSource()
     if (!m_cameraSrc)
         m_cameraSrc = camSrc;
 
-    if (m_cameraSrc && !m_inputDevice.isEmpty()) {
+    if (m_cameraSrc) {
 #if CAMERABIN_DEBUG
         qDebug() << "set camera device" << m_inputDevice;
 #endif
