@@ -60,6 +60,7 @@ void AVFMediaPlayerControl::setSession(AVFMediaPlayerSession *session)
 
     connect(m_session, SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
     connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
+    connect(m_session, SIGNAL(bufferStatusChanged(int)), this, SIGNAL(bufferStatusChanged(int)));
     connect(m_session, SIGNAL(stateChanged(QMediaPlayer::State)),
             this, SIGNAL(stateChanged(QMediaPlayer::State)));
     connect(m_session, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
