@@ -316,9 +316,6 @@ bool QAlsaAudioOutput::open()
         return false;
     }
 
-    if (!QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioOutput).contains(m_device))
-        return false;
-
     QString dev;
 #if SND_LIB_VERSION < 0x1000e  // 1.0.14
     if (m_device != "default")
