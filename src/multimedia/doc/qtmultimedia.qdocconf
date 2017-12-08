@@ -43,6 +43,9 @@ qhp.QtMultimedia.subprojects.examples.sortPages = true
 exampledirs += ../../../examples \
                snippets
 
+manifestmeta.highlighted.names  = "QtMultimedia/QML Video Shader Effects Example" \
+                                  "QtMultimedia/Media Player Example"
+
 headerdirs += ../..
 
 imagedirs += src/images \

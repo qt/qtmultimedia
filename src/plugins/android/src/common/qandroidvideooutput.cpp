@@ -324,7 +324,6 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     if (!m_surface->isActive()) {
         QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(),
                                    QAbstractVideoBuffer::GLTextureHandle);
-        format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
 
         m_surface->start(format);
     }
