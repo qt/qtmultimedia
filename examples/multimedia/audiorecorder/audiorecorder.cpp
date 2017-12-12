@@ -58,6 +58,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QMediaRecorder>
+#include <QStandardPaths>
 
 static qreal getPeakValue(const QAudioFormat &format);
 static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
@@ -221,7 +222,17 @@ void AudioRecorder::togglePause()
 
 void AudioRecorder::setOutputLocation()
 {
+#ifdef Q_OS_WINRT
+    // UWP does not allow to store outside the sandbox
+    const QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    if (!QDir().mkpath(cacheDir)) {
+        qWarning() << "Failed to create cache directory";
+        return;
+    }
+    QString fileName = cacheDir + QLatin1String("/output.wav");
+#else
     QString fileName = QFileDialog::getSaveFileName();
+#endif
     m_audioRecorder->setOutputLocation(QUrl::fromLocalFile(fileName));
     m_outputLocationSet = true;
 }
