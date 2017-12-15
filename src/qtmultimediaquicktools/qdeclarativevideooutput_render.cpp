@@ -382,9 +382,9 @@ QAbstractVideoSurface *QDeclarativeVideoRendererBackend::videoSurface() const
 QRectF QDeclarativeVideoRendererBackend::adjustedViewport() const
 {
     const QRectF viewport = m_surface->surfaceFormat().viewport();
-    const QSize pixelAspectRatio = m_surface->surfaceFormat().pixelAspectRatio();
+    const QSizeF pixelAspectRatio = m_surface->surfaceFormat().pixelAspectRatio();
 
-    if (pixelAspectRatio.height() != 0) {
+    if (pixelAspectRatio.isValid()) {
         const qreal ratio = pixelAspectRatio.width() / pixelAspectRatio.height();
         QRectF result = viewport;
         result.setX(result.x() * ratio);
