@@ -54,13 +54,12 @@ static QAudioFormat audioSettingsToAudioFormat(const QAudioEncoderSettings &sett
     fmt.setCodec(settings.codec());
     fmt.setChannelCount(settings.channelCount());
     fmt.setSampleRate(settings.sampleRate());
-    if (settings.sampleRate() == 8000 && settings.bitRate() == 8000) {
-        fmt.setSampleType(QAudioFormat::UnSignedInt);
-        fmt.setSampleSize(8);
-    } else {
-        fmt.setSampleSize(16);
-        fmt.setSampleType(QAudioFormat::SignedInt);
-    }
+    int sampleSize = 16;
+    if (settings.bitRate() && settings.channelCount() && settings.sampleRate())
+        sampleSize = settings.bitRate() / settings.channelCount() / settings.sampleRate();
+    fmt.setSampleSize(sampleSize);
+    fmt.setSampleType(sampleSize == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
+
     fmt.setByteOrder(QAudioDeviceInfo::defaultInputDevice().preferredFormat().byteOrder());
     return fmt;
 }
