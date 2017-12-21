@@ -531,32 +531,32 @@ void *QAudioBuffer::data()
 */
 
 /*!
-    \fn QAudioBuffer::StereoFrame::StereoFrame()
+    \fn template <typename T> QAudioBuffer::StereoFrame<T>::StereoFrame()
 
     Constructs a new frame with the "silent" value for this
     sample format (0 for signed formats and floats, 0x8* for unsigned formats).
 */
 
 /*!
-    \fn QAudioBuffer::StereoFrame::StereoFrame(T leftSample, T rightSample)
+    \fn template <typename T> QAudioBuffer::StereoFrame<T>::StereoFrame(T leftSample, T rightSample)
 
     Constructs a new frame with the supplied \a leftSample and \a rightSample values.
 */
 
 /*!
-    \fn QAudioBuffer::StereoFrame::operator=(const StereoFrame &other)
+    \fn template <typename T> QAudioBuffer::StereoFrame<T>::operator=(const StereoFrame &other)
 
     Assigns \a other to this frame.
  */
 
 
 /*!
-    \fn QAudioBuffer::StereoFrame::average() const
+    \fn template <typename T> QAudioBuffer::StereoFrame<T>::average() const
 
     Returns the arithmetic average of the left and right samples.
  */
 
-/*! \fn QAudioBuffer::StereoFrame::clear()
+/*! \fn template <typename T> QAudioBuffer::StereoFrame<T>::clear()
 
     Sets the values of this frame to the "silent" value.
 */
