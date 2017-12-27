@@ -584,10 +584,13 @@ int DSCameraSession::captureImage(const QString &fileName)
         return m_imageIdCounter;
     }
 
+    const QString ext = !m_imageEncoderSettings.codec().isEmpty()
+        ? m_imageEncoderSettings.codec().toLower()
+        : QLatin1String("jpg");
     m_imageCaptureFileName = m_fileNameGenerator.generateFileName(fileName,
                                                          QMediaStorageLocation::Pictures,
                                                          QLatin1String("IMG_"),
-                                                         QLatin1String("jpg"));
+                                                         ext);
 
     updateReadyForCapture();
 
@@ -687,8 +690,9 @@ void DSCameraSession::processCapturedImage(int id,
                                            const QImage &image,
                                            const QString &path)
 {
+    const QString format = m_imageEncoderSettings.codec();
     if (captureDestinations & QCameraImageCapture::CaptureToFile) {
-        if (image.save(path, "JPG")) {
+        if (image.save(path, !format.isEmpty() ? format.toUtf8().constData() : "JPG")) {
             Q_EMIT imageSaved(id, path);
         } else {
             Q_EMIT captureError(id, QCameraImageCapture::ResourceError,
@@ -844,9 +848,11 @@ bool DSCameraSession::configurePreviewFormat()
 {
     // Resolve viewfinder settings
     int settingsIndex = 0;
+    const QSize captureResolution = m_imageEncoderSettings.resolution();
+    const QSize resolution = captureResolution.isValid() ? captureResolution : m_viewfinderSettings.resolution();
     QCameraViewfinderSettings resolvedViewfinderSettings;
     for (const QCameraViewfinderSettings &s : qAsConst(m_supportedViewfinderSettings)) {
-        if ((m_viewfinderSettings.resolution().isEmpty() || m_viewfinderSettings.resolution() == s.resolution())
+        if ((resolution.isEmpty() || resolution == s.resolution())
                 && (qFuzzyIsNull(m_viewfinderSettings.minimumFrameRate()) || qFuzzyCompare((float)m_viewfinderSettings.minimumFrameRate(), (float)s.minimumFrameRate()))
                 && (qFuzzyIsNull(m_viewfinderSettings.maximumFrameRate()) || qFuzzyCompare((float)m_viewfinderSettings.maximumFrameRate(), (float)s.maximumFrameRate()))
                 && (m_viewfinderSettings.pixelFormat() == QVideoFrame::Format_Invalid || m_viewfinderSettings.pixelFormat() == s.pixelFormat())
@@ -1169,6 +1175,25 @@ void DSCameraSession::updateSourceCapabilities()
     pConfig->Release();
 
     updateImageProcessingParametersInfos();
+}
+
+QList<QSize> DSCameraSession::supportedResolutions(bool *continuous) const
+{
+    if (continuous)
+        *continuous = false;
+
+    QList<QSize> res;
+    for (auto &settings : m_supportedViewfinderSettings) {
+        auto size = settings.resolution();
+        if (!res.contains(size))
+            res << size;
+    }
+
+    std::sort(res.begin(), res.end(), [](const QSize &r1, const QSize &r2) {
+        return qlonglong(r1.width()) * r1.height() < qlonglong(r2.width()) * r2.height();
+    });
+
+    return res;
 }
 
 QT_END_NAMESPACE

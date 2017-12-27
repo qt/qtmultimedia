@@ -51,6 +51,7 @@
 #include <QtMultimedia/qvideosurfaceformat.h>
 #include <QtMultimedia/qcameraimageprocessingcontrol.h>
 #include <QtMultimedia/qcameraimagecapture.h>
+#include <QtMultimedia/qmediaencodersettings.h>
 #include <private/qmediastoragelocation_p.h>
 
 #include <tchar.h>
@@ -128,6 +129,11 @@ public:
 
     void addVideoProbe(DirectShowVideoProbeControl *probe);
     void removeVideoProbe(DirectShowVideoProbeControl *probe);
+
+    QList<QSize> supportedResolutions(bool *continuous) const;
+    QImageEncoderSettings imageEncoderSettings() const { return m_imageEncoderSettings; }
+    void setImageEncoderSettings(const QImageEncoderSettings &settings)
+    { m_imageEncoderSettings = settings; }
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status);
@@ -216,6 +222,8 @@ private:
     // Video probe
     QMutex m_probeMutex;
     DirectShowVideoProbeControl *m_videoProbeControl;
+
+    QImageEncoderSettings m_imageEncoderSettings;
 
     // Internal state
     QCamera::Status m_status;

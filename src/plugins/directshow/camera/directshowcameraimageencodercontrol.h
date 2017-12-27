@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,55 +37,34 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
+#ifndef DIRECTSHOWCAMERAIMAGEENCODERCONTROL_H
+#define DIRECTSHOWCAMERAIMAGEENCODERCONTROL_H
 
-#include <QtCore/qobject.h>
-
-#include <qmediaservice.h>
+#include <qimageencodercontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
 class DSCameraSession;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
-class DSCameraImageProcessingControl;
-class DirectShowCameraExposureControl;
-class DirectShowCameraCaptureDestinationControl;
-class DirectShowCameraCaptureBufferFormatControl;
-class DirectShowVideoProbeControl;
-class DirectShowCameraZoomControl;
-class DirectShowCameraImageEncoderControl;
-
-class DSCameraService : public QMediaService
+class DirectShowCameraImageEncoderControl : public QImageEncoderControl
 {
     Q_OBJECT
-
 public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService() override;
+    DirectShowCameraImageEncoderControl(DSCameraSession *session);
 
-    QMediaControl* requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QList<QSize> supportedResolutions(
+        const QImageEncoderSettings &settings = QImageEncoderSettings(),
+        bool *continuous = nullptr) const override;
+
+    QStringList supportedImageCodecs() const override;
+    QString imageCodecDescription(const QString &formatName) const override;
+
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
 
 private:
-    DSCameraSession        *m_session;
-    DSCameraControl        *m_control;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
-    DSCameraImageProcessingControl *m_imageProcessingControl;
-    DirectShowCameraExposureControl *m_exposureControl;
-    DirectShowCameraCaptureDestinationControl *m_captureDestinationControl;
-    DirectShowCameraCaptureBufferFormatControl *m_captureBufferFormatControl;
-    DirectShowVideoProbeControl *m_videoProbeControl;
-    DirectShowCameraZoomControl *m_zoomControl;
-    DirectShowCameraImageEncoderControl *m_imageEncoderControl;
+    DSCameraSession *m_session;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // DIRECTSHOWCAMERAIMAGEENCODERCONTROL_H

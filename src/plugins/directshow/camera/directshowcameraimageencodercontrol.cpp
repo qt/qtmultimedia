@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,55 +37,59 @@
 **
 ****************************************************************************/
 
-#ifndef DSCAMERASERVICE_H
-#define DSCAMERASERVICE_H
-
-#include <QtCore/qobject.h>
-
-#include <qmediaservice.h>
+#include "directshowcameraimageencodercontrol.h"
+#include "dscamerasession.h"
+#include <QImageWriter>
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraControl;
-class DSCameraSession;
-class DSVideoDeviceControl;
-class DSImageCaptureControl;
-class DSCameraViewfinderSettingsControl;
-class DSCameraImageProcessingControl;
-class DirectShowCameraExposureControl;
-class DirectShowCameraCaptureDestinationControl;
-class DirectShowCameraCaptureBufferFormatControl;
-class DirectShowVideoProbeControl;
-class DirectShowCameraZoomControl;
-class DirectShowCameraImageEncoderControl;
-
-class DSCameraService : public QMediaService
+DirectShowCameraImageEncoderControl::DirectShowCameraImageEncoderControl(DSCameraSession *session)
+    : QImageEncoderControl(session)
+    , m_session(session)
 {
-    Q_OBJECT
+}
 
-public:
-    DSCameraService(QObject *parent = 0);
-    ~DSCameraService() override;
+QList<QSize> DirectShowCameraImageEncoderControl::supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const
+{
+    QList<QSize> res;
+    if (!settings.codec().isEmpty() && !supportedImageCodecs().contains(settings.codec(), Qt::CaseInsensitive))
+        return res;
 
-    QMediaControl* requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QList<QSize> resolutions = m_session->supportedResolutions(continuous);
+    QSize r = settings.resolution();
+    if (!r.isValid())
+        return resolutions;
 
-private:
-    DSCameraSession        *m_session;
-    DSCameraControl        *m_control;
-    DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
-    DSImageCaptureControl  *m_imageCapture;
-    DSCameraViewfinderSettingsControl *m_viewfinderSettings;
-    DSCameraImageProcessingControl *m_imageProcessingControl;
-    DirectShowCameraExposureControl *m_exposureControl;
-    DirectShowCameraCaptureDestinationControl *m_captureDestinationControl;
-    DirectShowCameraCaptureBufferFormatControl *m_captureBufferFormatControl;
-    DirectShowVideoProbeControl *m_videoProbeControl;
-    DirectShowCameraZoomControl *m_zoomControl;
-    DirectShowCameraImageEncoderControl *m_imageEncoderControl;
-};
+    if (resolutions.contains(r))
+        res << settings.resolution();
+
+    return res;
+}
+
+QStringList DirectShowCameraImageEncoderControl::supportedImageCodecs() const
+{
+    QStringList supportedCodecs;
+    for (const QByteArray &type: QImageWriter::supportedImageFormats()) {
+        supportedCodecs << type;
+    }
+
+    return supportedCodecs;
+}
+
+QString DirectShowCameraImageEncoderControl::imageCodecDescription(const QString &codecName) const
+{
+    Q_UNUSED(codecName);
+    return QString();
+}
+
+QImageEncoderSettings DirectShowCameraImageEncoderControl::imageSettings() const
+{
+    return m_session->imageEncoderSettings();
+}
+
+void DirectShowCameraImageEncoderControl::setImageSettings(const QImageEncoderSettings &settings)
+{
+    m_session->setImageEncoderSettings(settings);
+}
 
 QT_END_NAMESPACE
-
-#endif
