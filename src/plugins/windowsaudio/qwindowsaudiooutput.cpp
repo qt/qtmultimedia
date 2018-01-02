@@ -241,6 +241,10 @@ bool QWindowsAudioOutput::open()
         period_size = buffer_size / 5;
     }
 
+    // Make even size of wave block to prevent crackling
+    // due to waveOutWrite() does not like odd buffer length
+    period_size &= ~1;
+
     if (period_size == 0) {
         errorState = QAudio::OpenError;
         deviceState = QAudio::StoppedState;
