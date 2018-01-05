@@ -1,8 +1,7 @@
 # QTBUG-46368
 
 osx
-windows 32bit developer-build
-windows 64bit developer-build
+windows
 
 # Media player plugin not built at the moment on this platform
 opensuse-13.1 64bit
