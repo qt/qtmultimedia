@@ -140,8 +140,11 @@ void QSampleCache::loadingRelease()
     QMutexLocker locker(&m_loadingMutex);
     m_loadingRefCount--;
     if (m_loadingRefCount == 0) {
-        if (m_loadingThread.isRunning())
+        if (m_loadingThread.isRunning()) {
+            m_networkAccessManager->deleteLater();
+            m_networkAccessManager = nullptr;
             m_loadingThread.exit();
+        }
     }
 }
 

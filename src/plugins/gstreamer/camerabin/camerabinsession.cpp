@@ -732,18 +732,21 @@ void CameraBinSession::setState(QCamera::State newState)
     if (newState == m_pendingState)
         return;
 
-    m_pendingState = newState;
-    emit pendingStateChanged(m_pendingState);
+    emit pendingStateChanged(newState);
 
 #if CAMERABIN_DEBUG
     qDebug() << Q_FUNC_INFO << newState;
 #endif
 
     setStateHelper(newState);
+    m_pendingState = newState;
 }
 
 void CameraBinSession::setStateHelper(QCamera::State state)
 {
+    if (state == m_pendingState)
+        return;
+
     switch (state) {
     case QCamera::UnloadedState:
         unload();

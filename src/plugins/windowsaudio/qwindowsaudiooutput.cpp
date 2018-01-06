@@ -298,10 +298,7 @@ void QWindowsAudioOutput::close()
 
     deviceState = QAudio::StoppedState;
     errorState = QAudio::NoError;
-    int delay = (buffer_size-bytesFree())*1000/(settings.sampleRate()
-                  *settings.channelCount()*(settings.sampleSize()/8));
     waveOutReset(hWaveOut);
-    Sleep(delay+10);
 
     freeBlocks(waveBlocks);
     waveOutClose(hWaveOut);
