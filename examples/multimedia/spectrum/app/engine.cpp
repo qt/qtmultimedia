@@ -108,10 +108,8 @@ Engine::Engine(QObject *parent)
 {
     qRegisterMetaType<FrequencySpectrum>("FrequencySpectrum");
     qRegisterMetaType<WindowFunction>("WindowFunction");
-    CHECKED_CONNECT(&m_spectrumAnalyser,
-                    SIGNAL(spectrumChanged(FrequencySpectrum)),
-                    this,
-                    SLOT(spectrumChanged(FrequencySpectrum)));
+    connect(&m_spectrumAnalyser, QOverload<const FrequencySpectrum&>::of(&SpectrumAnalyser::spectrumChanged),
+            this, QOverload<const FrequencySpectrum&>::of(&Engine::spectrumChanged));
 
     // This code might misinterpret things like "-something -category".  But
     // it's unlikely that that needs to be supported so we'll let it go.
@@ -243,16 +241,17 @@ void Engine::startRecording()
             setRecordPosition(0, true);
             stopPlayback();
             m_mode = QAudio::AudioInput;
-            CHECKED_CONNECT(m_audioInput, SIGNAL(stateChanged(QAudio::State)),
-                            this, SLOT(audioStateChanged(QAudio::State)));
-            CHECKED_CONNECT(m_audioInput, SIGNAL(notify()),
-                            this, SLOT(audioNotify()));
+            connect(m_audioInput, &QAudioInput::stateChanged,
+                    this, &Engine::audioStateChanged);
+            connect(m_audioInput, &QAudioInput::notify,
+                    this, &Engine::audioNotify);
+
             m_count = 0;
             m_dataLength = 0;
             emit dataLengthChanged(0);
             m_audioInputIODevice = m_audioInput->start();
-            CHECKED_CONNECT(m_audioInputIODevice, SIGNAL(readyRead()),
-                            this, SLOT(audioDataReady()));
+            connect(m_audioInputIODevice, &QIODevice::readyRead,
+                    this, &Engine::audioDataReady);
         }
     }
 }
@@ -275,10 +274,11 @@ void Engine::startPlayback()
             setPlayPosition(0, true);
             stopRecording();
             m_mode = QAudio::AudioOutput;
-            CHECKED_CONNECT(m_audioOutput, SIGNAL(stateChanged(QAudio::State)),
-                            this, SLOT(audioStateChanged(QAudio::State)));
-            CHECKED_CONNECT(m_audioOutput, SIGNAL(notify()),
-                            this, SLOT(audioNotify()));
+            connect(m_audioOutput, &QAudioOutput::stateChanged,
+                    this, &Engine::audioStateChanged);
+            connect(m_audioOutput, &QAudioOutput::notify,
+                    this, &Engine::audioNotify);
+
             m_count = 0;
             if (m_file) {
                 m_file->seek(0);

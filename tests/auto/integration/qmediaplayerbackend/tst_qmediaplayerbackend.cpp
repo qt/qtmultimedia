@@ -77,6 +77,7 @@ private slots:
     void surfaceTest_data();
     void surfaceTest();
     void metadata();
+    void playerStateAtEOS();
 
 private:
     QMediaContent selectVideoFile(const QStringList& mediaCandidates);
@@ -1410,6 +1411,28 @@ void tst_QMediaPlayerBackend::metadata()
     QVERIFY(!metadataAvailableSpy.last()[0].toBool());
     QCOMPARE(metadataChangedSpy.count(), 1);
     QVERIFY(player.availableMetaData().isEmpty());
+}
+
+void tst_QMediaPlayerBackend::playerStateAtEOS()
+{
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
+    QMediaPlayer player;
+
+    bool endOfMediaReceived = false;
+    connect(&player, &QMediaPlayer::mediaStatusChanged, [&](QMediaPlayer::MediaStatus status) {
+        if (status == QMediaPlayer::EndOfMedia) {
+            QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+            endOfMediaReceived = true;
+        }
+    });
+
+    player.setMedia(localWavFile);
+    player.play();
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QVERIFY(endOfMediaReceived);
 }
 
 TestVideoSurface::TestVideoSurface(bool storeFrames):

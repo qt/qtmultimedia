@@ -1254,8 +1254,8 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::paint(
         if (scissorTestEnabled)
             glEnable(GL_SCISSOR_TEST);
 
-        const int width = QOpenGLContext::currentContext()->surface()->size().width();
-        const int height = QOpenGLContext::currentContext()->surface()->size().height();
+        const int width = painter->viewport().width();
+        const int height = painter->viewport().height();
 
         const QTransform transform = painter->deviceTransform();
 

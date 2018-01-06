@@ -53,7 +53,8 @@
 Radio::Radio()
 {
     radio = new QRadioTuner;
-    connect(radio, SIGNAL(error(QRadioTuner::Error)), this, SLOT(error(QRadioTuner::Error)));
+    connect(radio, QOverload<QRadioTuner::Error>::of(&QRadioTuner::error),
+            this, QOverload<QRadioTuner::Error>::of(&Radio::error));
 
     if (radio->isBandSupported(QRadioTuner::FM))
         radio->setBand(QRadioTuner::FM);
@@ -68,7 +69,8 @@ Radio::Radio()
     freq = new QLabel;
     freq->setText(QString("%1 kHz").arg(radio->frequency()/1000));
     topBar->addWidget(freq);
-    connect(radio, SIGNAL(frequencyChanged(int)), SLOT(freqChanged(int)));
+    connect(radio, &QRadioTuner::frequencyChanged,
+            this, &Radio::freqChanged);
 
     signal = new QLabel;
     if (radio->isAvailable())
@@ -76,34 +78,40 @@ Radio::Radio()
     else
         signal->setText(tr("No radio found"));
     topBar->addWidget(signal);
-    connect(radio, SIGNAL(signalStrengthChanged(int)), SLOT(signalChanged(int)));
+    connect(radio, &QRadioTuner::signalStrengthChanged,
+            this, &Radio::signalChanged);
 
     volumeSlider = new QSlider(Qt::Vertical,this);
     volumeSlider->setRange(0, 100);
     volumeSlider->setValue(50);
-    connect(volumeSlider, SIGNAL(valueChanged(int)), SLOT(updateVolume(int)));
+    connect(volumeSlider, &QSlider::valueChanged,
+            this, &Radio::updateVolume);
     topBar->addWidget(volumeSlider);
 
     layout->addLayout(buttonBar);
 
     searchLeft = new QPushButton;
     searchLeft->setText(tr("scan Down"));
-    connect(searchLeft, SIGNAL(clicked()), SLOT(searchDown()));
+    connect(searchLeft, &QPushButton::clicked,
+            this, &Radio::searchDown);
     buttonBar->addWidget(searchLeft);
 
     left = new QPushButton;
     left->setText(tr("Freq Down"));
-    connect(left, SIGNAL(clicked()), SLOT(freqDown()));
+    connect(left, &QPushButton::clicked,
+            this, &Radio::freqDown);
     buttonBar->addWidget(left);
 
     right = new QPushButton;
-    connect(right, SIGNAL(clicked()), SLOT(freqUp()));
+    connect(right, &QPushButton::clicked,
+            this, &Radio::freqUp);
     right->setText(tr("Freq Up"));
     buttonBar->addWidget(right);
 
     searchRight = new QPushButton;
     searchRight->setText(tr("scan Up"));
-    connect(searchRight, SIGNAL(clicked()), SLOT(searchUp()));
+    connect(searchRight, &QPushButton::clicked,
+            this, &Radio::searchUp);
     buttonBar->addWidget(searchRight);
 
     window->setLayout(layout);

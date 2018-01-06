@@ -238,21 +238,16 @@ void QWindowsAudioDeviceInfo::updateLists()
     if (!sizez.isEmpty())
         return;
 
-    bool hasCaps = false;
     DWORD fmt = 0;
 
     if(mode == QAudio::AudioOutput) {
         WAVEOUTCAPS woc;
-        if (waveOutGetDevCaps(devId, &woc, sizeof(WAVEOUTCAPS)) == MMSYSERR_NOERROR) {
-            hasCaps = true;
+        if (waveOutGetDevCaps(devId, &woc, sizeof(WAVEOUTCAPS)) == MMSYSERR_NOERROR)
             fmt = woc.dwFormats;
-        }
     } else {
         WAVEINCAPS woc;
-        if (waveInGetDevCaps(devId, &woc, sizeof(WAVEINCAPS)) == MMSYSERR_NOERROR) {
-            hasCaps = true;
+        if (waveInGetDevCaps(devId, &woc, sizeof(WAVEINCAPS)) == MMSYSERR_NOERROR)
             fmt = woc.dwFormats;
-        }
     }
 
     sizez.clear();
@@ -260,7 +255,7 @@ void QWindowsAudioDeviceInfo::updateLists()
     channelz.clear();
     typez.clear();
 
-    if (hasCaps) {
+    if (fmt) {
         // Check sample size
         if ((fmt & WAVE_FORMAT_1M08)
             || (fmt & WAVE_FORMAT_1S08)

@@ -535,31 +535,34 @@ void QSoundEffectPrivate::setLoopCount(int loopCount)
 
 qreal QSoundEffectPrivate::volume() const
 {
-    QReadLocker locker(&m_volumeLock);
+    QMutexLocker locker(&m_volumeLock);
     return m_volume;
 }
 
 void QSoundEffectPrivate::setVolume(qreal volume)
 {
-    QWriteLocker locker(&m_volumeLock);
+    QMutexLocker locker(&m_volumeLock);
 
     if (qFuzzyCompare(m_volume, volume))
         return;
 
     m_volume = qBound(qreal(0), volume, qreal(1));
+    locker.unlock();
     emit volumeChanged();
 }
 
 bool QSoundEffectPrivate::isMuted() const
 {
-    QReadLocker locker(&m_volumeLock);
+    QMutexLocker locker(&m_volumeLock);
     return m_muted;
 }
 
 void QSoundEffectPrivate::setMuted(bool muted)
 {
-    QWriteLocker locker(&m_volumeLock);
+    m_volumeLock.lock();
     m_muted = muted;
+    m_volumeLock.unlock();
+
     emit mutedChanged();
 }
 
@@ -884,7 +887,7 @@ int QSoundEffectPrivate::writeToStream(const void *data, int size)
     if (size < 1)
         return 0;
 
-    m_volumeLock.lockForRead();
+    m_volumeLock.lock();
     qreal volume = m_muted ? 0 : m_volume;
     m_volumeLock.unlock();
     pa_free_cb_t writeDoneCb = stream_write_done_callback;

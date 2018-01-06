@@ -105,18 +105,18 @@ FrequencyMonitorPrivate::FrequencyMonitorPrivate(FrequencyMonitor *parent)
 ,   m_stalledTimer(new QTimer(this))
 {
     m_instantaneousElapsed.start();
-    connect(m_averageTimer, SIGNAL(timeout()),
-            this, SLOT(calculateAverageFrequency()));
+    connect(m_averageTimer, &QTimer::timeout,
+            this, &FrequencyMonitorPrivate::calculateAverageFrequency);
     if (DefaultSamplingInterval)
         m_averageTimer->start(DefaultSamplingInterval);
     m_averageElapsed.start();
-    connect(m_traceTimer, SIGNAL(timeout()),
-            q_ptr, SLOT(trace()));
+    connect(m_traceTimer, &QTimer::timeout,
+            q_ptr, &FrequencyMonitor::trace);
     if (DefaultTraceInterval)
         m_traceTimer->start(DefaultTraceInterval);
     m_stalledTimer->setSingleShot(true);
-    connect(m_stalledTimer, SIGNAL(timeout()),
-            this, SLOT(stalled()));
+    connect(m_stalledTimer, &QTimer::timeout,
+            this, &FrequencyMonitorPrivate::stalled);
 }
 
 void FrequencyMonitorPrivate::calculateInstantaneousFrequency()

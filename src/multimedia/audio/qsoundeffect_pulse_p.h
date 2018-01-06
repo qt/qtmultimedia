@@ -56,7 +56,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qdatetime.h>
-#include <QtCore/qreadwritelock.h>
+#include <QtCore/qmutex.h>
 #include <qmediaplayer.h>
 #include <pulse/pulseaudio.h>
 #include "qsamplecache_p.h"
@@ -175,7 +175,8 @@ private:
 
     bool m_resourcesAvailable;
 
-    mutable QReadWriteLock m_volumeLock;
+    // Protects volume while PuseAudio is accessing it
+    mutable QMutex m_volumeLock;
 
     QMediaPlayerResourceSetInterface *m_resources;
 };

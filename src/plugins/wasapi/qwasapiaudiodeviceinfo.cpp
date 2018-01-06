@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(lcMmDeviceInfo, "qt.multimedia.deviceinfo")
 
 QWasapiAudioDeviceInfo::QWasapiAudioDeviceInfo(QByteArray dev, QAudio::Mode mode)
-    : m_deviceName(dev)
+    : m_deviceName(QString::fromLocal8Bit(dev))
 {
     qCDebug(lcMmDeviceInfo) << __FUNCTION__ << dev << mode;
     m_interface = QWasapiUtils::createOrGetInterface(dev, mode);

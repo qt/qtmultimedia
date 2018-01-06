@@ -114,12 +114,12 @@ SettingsDialog::SettingsDialog(
     windowFunctionLayout.take(); // ownership transferred to dialogLayout
 
     // Connect
-    CHECKED_CONNECT(m_inputDeviceComboBox, SIGNAL(activated(int)),
-                    this, SLOT(inputDeviceChanged(int)));
-    CHECKED_CONNECT(m_outputDeviceComboBox, SIGNAL(activated(int)),
-                    this, SLOT(outputDeviceChanged(int)));
-    CHECKED_CONNECT(m_windowFunctionComboBox, SIGNAL(activated(int)),
-                    this, SLOT(windowFunctionChanged(int)));
+    connect(m_inputDeviceComboBox, QOverload<int>::of(&QComboBox::activated),
+            this, &SettingsDialog::inputDeviceChanged);
+    connect(m_outputDeviceComboBox, QOverload<int>::of(&QComboBox::activated),
+            this, &SettingsDialog::outputDeviceChanged);
+    connect(m_windowFunctionComboBox, QOverload<int>::of(&QComboBox::activated),
+            this, &SettingsDialog::windowFunctionChanged);
 
     // Add standard buttons to layout
     QDialogButtonBox *buttonBox = new QDialogButtonBox(this);
@@ -127,10 +127,10 @@ SettingsDialog::SettingsDialog(
     dialogLayout->addWidget(buttonBox);
 
     // Connect standard buttons
-    CHECKED_CONNECT(buttonBox->button(QDialogButtonBox::Ok), SIGNAL(clicked()),
-                    this, SLOT(accept()));
-    CHECKED_CONNECT(buttonBox->button(QDialogButtonBox::Cancel), SIGNAL(clicked()),
-                    this, SLOT(reject()));
+    connect(buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked,
+            this, &SettingsDialog::accept);
+    connect(buttonBox->button(QDialogButtonBox::Cancel), &QPushButton::clicked,
+            this, &SettingsDialog::reject);
 
     setLayout(dialogLayout);
 }

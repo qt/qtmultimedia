@@ -108,11 +108,19 @@ protected:
 class QSGVideoMaterialShader_Texture_swizzle : public QSGVideoMaterialShader_Texture
 {
 public:
-    QSGVideoMaterialShader_Texture_swizzle()
-        : QSGVideoMaterialShader_Texture()
+    QSGVideoMaterialShader_Texture_swizzle(bool hasAlpha)
+        : m_hasAlpha(hasAlpha)
     {
         setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo_swizzle.frag"));
     }
+
+protected:
+    void initialize() override {
+        QSGVideoMaterialShader_Texture::initialize();
+        program()->setUniformValue(program()->uniformLocation("hasAlpha"), GLboolean(m_hasAlpha));
+    }
+
+    int m_hasAlpha;
 };
 
 
@@ -138,7 +146,8 @@ public:
     }
 
     QSGMaterialShader *createShader() const override {
-        return needsSwizzling() ? new QSGVideoMaterialShader_Texture_swizzle
+        const bool hasAlpha = m_format.pixelFormat() == QVideoFrame::Format_ARGB32;
+        return needsSwizzling() ? new QSGVideoMaterialShader_Texture_swizzle(hasAlpha)
                                 : new QSGVideoMaterialShader_Texture;
     }
 

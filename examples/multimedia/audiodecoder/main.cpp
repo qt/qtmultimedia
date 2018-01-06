@@ -95,7 +95,8 @@ int main(int argc, char *argv[])
         targetFile.setFile(sourceFile.dir().absoluteFilePath("out.wav"));
 
     AudioDecoder decoder(isPlayback, isDelete);
-    QObject::connect(&decoder, SIGNAL(done()), &app, SLOT(quit()));
+    QObject::connect(&decoder, &AudioDecoder::done,
+                     &app, &QCoreApplication::quit);
     decoder.setSourceFilename(sourceFile.absoluteFilePath());
     decoder.setTargetFilename(targetFile.absoluteFilePath());
     decoder.start();

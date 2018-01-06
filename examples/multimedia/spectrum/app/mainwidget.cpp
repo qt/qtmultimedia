@@ -339,62 +339,62 @@ void MainWidget::createUi()
 
 void MainWidget::connectUi()
 {
-    CHECKED_CONNECT(m_recordButton, SIGNAL(clicked()),
-            m_engine, SLOT(startRecording()));
+    connect(m_recordButton, &QPushButton::clicked,
+            m_engine, &Engine::startRecording);
 
-    CHECKED_CONNECT(m_pauseButton, SIGNAL(clicked()),
-            m_engine, SLOT(suspend()));
+    connect(m_pauseButton, &QPushButton::clicked,
+            m_engine, &Engine::suspend);
 
-    CHECKED_CONNECT(m_playButton, SIGNAL(clicked()),
-            m_engine, SLOT(startPlayback()));
+    connect(m_playButton, &QPushButton::clicked,
+            m_engine, &Engine::startPlayback);
 
-    CHECKED_CONNECT(m_settingsButton, SIGNAL(clicked()),
-            this, SLOT(showSettingsDialog()));
+    connect(m_settingsButton, &QPushButton::clicked,
+            this, &MainWidget::showSettingsDialog);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(stateChanged(QAudio::Mode,QAudio::State)),
-            this, SLOT(stateChanged(QAudio::Mode,QAudio::State)));
+    connect(m_engine, &Engine::stateChanged,
+            this, &MainWidget::stateChanged);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(formatChanged(const QAudioFormat &)),
-            this, SLOT(formatChanged(const QAudioFormat &)));
+    connect(m_engine, &Engine::formatChanged,
+            this, &MainWidget::formatChanged);
 
     m_progressBar->bufferLengthChanged(m_engine->bufferLength());
 
-    CHECKED_CONNECT(m_engine, SIGNAL(bufferLengthChanged(qint64)),
-            this, SLOT(bufferLengthChanged(qint64)));
+    connect(m_engine, &Engine::bufferLengthChanged,
+            this, &MainWidget::bufferLengthChanged);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(dataLengthChanged(qint64)),
-            this, SLOT(updateButtonStates()));
+    connect(m_engine, &Engine::dataLengthChanged,
+            this, &MainWidget::updateButtonStates);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(recordPositionChanged(qint64)),
-            m_progressBar, SLOT(recordPositionChanged(qint64)));
+    connect(m_engine, &Engine::recordPositionChanged,
+            m_progressBar, &ProgressBar::recordPositionChanged);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(playPositionChanged(qint64)),
-            m_progressBar, SLOT(playPositionChanged(qint64)));
+    connect(m_engine, &Engine::playPositionChanged,
+            m_progressBar, &ProgressBar::playPositionChanged);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(recordPositionChanged(qint64)),
-            this, SLOT(audioPositionChanged(qint64)));
+    connect(m_engine, &Engine::recordPositionChanged,
+            this, &MainWidget::audioPositionChanged);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(playPositionChanged(qint64)),
-            this, SLOT(audioPositionChanged(qint64)));
+    connect(m_engine, &Engine::playPositionChanged,
+            this, &MainWidget::audioPositionChanged);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(levelChanged(qreal, qreal, int)),
-            m_levelMeter, SLOT(levelChanged(qreal, qreal, int)));
+    connect(m_engine, &Engine::levelChanged,
+            m_levelMeter, &LevelMeter::levelChanged);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(spectrumChanged(qint64, qint64, const FrequencySpectrum &)),
-            this, SLOT(spectrumChanged(qint64, qint64, const FrequencySpectrum &)));
+    connect(m_engine, QOverload<qint64, qint64, const FrequencySpectrum&>::of(&Engine::spectrumChanged),
+            this, QOverload<qint64, qint64, const FrequencySpectrum&>::of(&MainWidget::spectrumChanged));
 
-    CHECKED_CONNECT(m_engine, SIGNAL(infoMessage(QString, int)),
-            this, SLOT(infoMessage(QString, int)));
+    connect(m_engine, &Engine::infoMessage,
+            this, &MainWidget::infoMessage);
 
-    CHECKED_CONNECT(m_engine, SIGNAL(errorMessage(QString, QString)),
-            this, SLOT(errorMessage(QString, QString)));
+    connect(m_engine, &Engine::errorMessage,
+            this, &MainWidget::errorMessage);
 
-    CHECKED_CONNECT(m_spectrograph, SIGNAL(infoMessage(QString, int)),
-            this, SLOT(infoMessage(QString, int)));
+    connect(m_spectrograph, &Spectrograph::infoMessage,
+            this, &MainWidget::infoMessage);
 
 #ifndef DISABLE_WAVEFORM
-    CHECKED_CONNECT(m_engine, SIGNAL(bufferChanged(qint64, qint64, const QByteArray &)),
-            m_waveform, SLOT(bufferChanged(qint64, qint64, const QByteArray &)));
+    connect(m_engine, &Engine::bufferChanged,
+            m_waveform, &Waveform::bufferChanged);
 #endif
 }
 
@@ -410,9 +410,9 @@ void MainWidget::createMenus()
     m_generateToneAction->setCheckable(true);
     m_recordAction->setCheckable(true);
 
-    connect(m_loadFileAction, SIGNAL(triggered(bool)), this, SLOT(showFileDialog()));
-    connect(m_generateToneAction, SIGNAL(triggered(bool)), this, SLOT(showToneGeneratorDialog()));
-    connect(m_recordAction, SIGNAL(triggered(bool)), this, SLOT(initializeRecord()));
+    connect(m_loadFileAction, &QAction::triggered, this, &MainWidget::showFileDialog);
+    connect(m_generateToneAction, &QAction::triggered, this, &MainWidget::showToneGeneratorDialog);
+    connect(m_recordAction, &QAction::triggered, this, &MainWidget::initializeRecord);
 }
 
 void MainWidget::updateButtonStates()

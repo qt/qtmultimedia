@@ -40,7 +40,8 @@ win32:!winrt {
 
 
 winrt {
-    SUBDIRS += winrt
+    SUBDIRS += winrt \
+               audiocapture
 }
 
 unix:!mac:!android {

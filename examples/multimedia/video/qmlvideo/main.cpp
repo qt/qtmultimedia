@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 
     QQuickView viewer;
     viewer.setSource(QUrl("qrc:///qml/qmlvideo/main.qml"));
-    QObject::connect(viewer.engine(), SIGNAL(quit()), &viewer, SLOT(close()));
+    QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QQuickView::close);
 
     QQuickItem *rootObject = viewer.rootObject();
     rootObject->setProperty("source1", url1);

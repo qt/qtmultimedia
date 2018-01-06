@@ -64,20 +64,21 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     VideoWidget *videoWidget = new VideoWidget;
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
-    connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
+    connect(openButton, &QAbstractButton::clicked,
+            this, &VideoPlayer::openFile);
 
     playButton = new QPushButton;
     playButton->setEnabled(false);
     playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
-    connect(playButton, SIGNAL(clicked()),
-            this, SLOT(play()));
+    connect(playButton, &QAbstractButton::clicked,
+            this, &VideoPlayer::play);
 
     positionSlider = new QSlider(Qt::Horizontal);
     positionSlider->setRange(0, 0);
 
-    connect(positionSlider, SIGNAL(sliderMoved(int)),
-            this, SLOT(setPosition(int)));
+    connect(positionSlider, &QSlider::sliderMoved,
+            this, &VideoPlayer::setPosition);
 
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setMargin(0);
@@ -92,10 +93,10 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     setLayout(layout);
 
     mediaPlayer.setVideoOutput(videoWidget->videoSurface());
-    connect(&mediaPlayer, SIGNAL(stateChanged(QMediaPlayer::State)),
-            this, SLOT(mediaStateChanged(QMediaPlayer::State)));
-    connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
-    connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
+    connect(&mediaPlayer, &QMediaPlayer::stateChanged,
+            this, &VideoPlayer::mediaStateChanged);
+    connect(&mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
+    connect(&mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
 }
 
 VideoPlayer::~VideoPlayer()

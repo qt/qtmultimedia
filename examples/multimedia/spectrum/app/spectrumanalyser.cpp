@@ -172,8 +172,8 @@ SpectrumAnalyser::SpectrumAnalyser(QObject *parent)
     ,   m_count(0)
 #endif
 {
-    CHECKED_CONNECT(m_thread, SIGNAL(calculationComplete(FrequencySpectrum)),
-                    this, SLOT(calculationComplete(FrequencySpectrum)));
+    connect(m_thread, &SpectrumAnalyserThread::calculationComplete,
+            this, &SpectrumAnalyser::calculationComplete);
 }
 
 SpectrumAnalyser::~SpectrumAnalyser()

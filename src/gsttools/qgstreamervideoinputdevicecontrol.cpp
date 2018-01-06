@@ -90,9 +90,8 @@ int QGstreamerVideoInputDeviceControl::selectedDevice() const
 
 void QGstreamerVideoInputDeviceControl::setSelectedDevice(int index)
 {
-    if (index != m_selectedDevice) {
-        m_selectedDevice = index;
-        emit selectedDeviceChanged(index);
-        emit selectedDeviceChanged(deviceName(index));
-    }
+    // Always update selected device and proxy it to clients
+    m_selectedDevice = index;
+    emit selectedDeviceChanged(index);
+    emit selectedDeviceChanged(deviceName(index));
 }

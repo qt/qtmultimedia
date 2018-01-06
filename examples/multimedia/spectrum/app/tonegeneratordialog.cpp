@@ -106,12 +106,12 @@ ToneGeneratorDialog::ToneGeneratorDialog(QWidget *parent)
     dialogLayout->addWidget(m_toneGeneratorControl);
 
     // Connect
-    CHECKED_CONNECT(m_toneGeneratorSweepCheckBox, SIGNAL(toggled(bool)),
-                    this, SLOT(frequencySweepEnabled(bool)));
-    CHECKED_CONNECT(m_frequencySlider, SIGNAL(valueChanged(int)),
-                    m_frequencySpinBox, SLOT(setValue(int)));
-    CHECKED_CONNECT(m_frequencySpinBox, SIGNAL(valueChanged(int)),
-                    m_frequencySlider, SLOT(setValue(int)));
+    connect(m_toneGeneratorSweepCheckBox, &QCheckBox::toggled,
+            this, &ToneGeneratorDialog::frequencySweepEnabled);
+    connect(m_frequencySlider, &QSlider::valueChanged,
+            m_frequencySpinBox, &QSpinBox::setValue);
+    connect(m_frequencySpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+            m_frequencySlider, &QSlider::setValue);
 
     // Add standard buttons to layout
     QDialogButtonBox *buttonBox = new QDialogButtonBox(this);
@@ -119,10 +119,10 @@ ToneGeneratorDialog::ToneGeneratorDialog(QWidget *parent)
     dialogLayout->addWidget(buttonBox);
 
     // Connect standard buttons
-    CHECKED_CONNECT(buttonBox->button(QDialogButtonBox::Ok), SIGNAL(clicked()),
-                    this, SLOT(accept()));
-    CHECKED_CONNECT(buttonBox->button(QDialogButtonBox::Cancel), SIGNAL(clicked()),
-                    this, SLOT(reject()));
+    connect(buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked,
+            this, &ToneGeneratorDialog::accept);
+    connect(buttonBox->button(QDialogButtonBox::Cancel), &QPushButton::clicked,
+            this, &ToneGeneratorDialog::reject);
 
     setLayout(dialogLayout);
 }
