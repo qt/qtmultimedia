@@ -124,7 +124,6 @@ private:
 
     void run();
 
-    void doCreateGraph(QMutexLocker *locker);
     void doSetUrlSource(QMutexLocker *locker);
     void doSetStreamSource(QMutexLocker *locker);
     void doRender(QMutexLocker *locker);
@@ -170,8 +169,7 @@ private:
         ReleaseVideoProbe  = 0x40000,
         ReleaseFilters     = ReleaseGraph | ReleaseAudioOutput
                              | ReleaseVideoOutput | ReleaseAudioProbe
-                             | ReleaseVideoProbe,
-        CreateGraph        = 0x80000
+                             | ReleaseVideoProbe
     };
 
     enum Event
