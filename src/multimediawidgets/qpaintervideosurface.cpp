@@ -202,12 +202,13 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::paint(
         if (m_scanLineDirection == QVideoSurfaceFormat::BottomToTop) {
             transform.scale(1, -1);
             transform.translate(0, -target.bottom());
-            targetRect.setY(0);
+            targetRect = QRectF(target.x(), 0, target.width(), target.height());
         }
+
         if (m_mirrored) {
             transform.scale(-1, 1);
             transform.translate(-target.right(), 0);
-            targetRect.setX(0);
+            targetRect = QRectF(0, targetRect.y(), target.width(), target.height());
         }
         painter->setTransform(transform);
         painter->drawImage(targetRect, image, source);
