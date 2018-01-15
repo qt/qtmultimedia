@@ -132,6 +132,13 @@ void QSoundEffectPrivate::setSource(const QUrl &url)
         d->m_sample = nullptr;
     }
 
+    if (d->m_audioOutput) {
+        disconnect(d->m_audioOutput, &QAudioOutput::stateChanged, d, &PrivateSoundSource::stateChanged);
+        d->m_audioOutput->stop();
+        d->m_audioOutput->deleteLater();
+        d->m_audioOutput = nullptr;
+    }
+
     setStatus(QSoundEffect::Loading);
     d->m_sample = sampleCache()->requestSample(url);
     connect(d->m_sample, &QSample::error, d, &PrivateSoundSource::decoderError);
