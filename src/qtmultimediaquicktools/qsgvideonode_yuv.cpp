@@ -134,16 +134,16 @@ public:
 protected:
     void initialize() Q_DECL_OVERRIDE {
         m_id_matrix = program()->uniformLocation("qt_Matrix");
-        m_id_yuvtexture = program()->uniformLocation("yuvTexture");
-        m_id_imageWidth = program()->uniformLocation("imageWidth");
+        m_id_yTexture = program()->uniformLocation("yTexture");
+        m_id_uvTexture = program()->uniformLocation("uvTexture");
         m_id_colorMatrix = program()->uniformLocation("colorMatrix");
         m_id_opacity = program()->uniformLocation("opacity");
         QSGMaterialShader::initialize();
     }
 
     int m_id_matrix;
-    int m_id_yuvtexture;
-    int m_id_imageWidth;
+    int m_id_yTexture;
+    int m_id_uvTexture;
     int m_id_colorMatrix;
     int m_id_opacity;
 };
@@ -291,7 +291,7 @@ QSGVideoMaterial_YUV::QSGVideoMaterial_YUV(const QVideoSurfaceFormat &format) :
     case QVideoFrame::Format_UYVY:
     case QVideoFrame::Format_YUYV:
     default:
-        m_planeCount = 1;
+        m_planeCount = 2;
         break;
     }
 
@@ -355,12 +355,19 @@ void QSGVideoMaterial_YUV::bind()
 
              if (m_format.pixelFormat() == QVideoFrame::Format_UYVY
               || m_format.pixelFormat() == QVideoFrame::Format_YUYV) {
-                int fw = m_frame.width() / 2;
+                int fw = m_frame.width();
                 m_planeWidth[0] = fw;
-
-                functions->glActiveTexture(GL_TEXTURE0);
-                bindTexture(m_textureIds[0], fw, m_frame.height(), m_frame.bits(), GL_RGBA);
-
+                 // In YUYV texture the UV plane appears with the 1/2 of image and Y width.
+                m_planeWidth[1] = fw / 2;
+                functions->glActiveTexture(GL_TEXTURE1);
+                // Either r,b (YUYV) or g,a (UYVY) values are used as source of YV.
+                // Additionally Y and V are set per 2 pixels hence only 1/2 of image with is used.
+                // Interpreting this properly in shaders allows to not copy or not make conditionals inside shaders,
+                // only interpretation of data changes.
+                bindTexture(m_textureIds[1], m_planeWidth[1], m_frame.height(), m_frame.bits(), GL_RGBA);
+                functions->glActiveTexture(GL_TEXTURE0); // Finish with 0 as default texture unit
+                // Either red (YUYV) or alpha (UYVY) values are used as source of Y
+                bindTexture(m_textureIds[0], m_planeWidth[0], m_frame.height(), m_frame.bits(), GL_LUMINANCE_ALPHA);
             } else if (m_format.pixelFormat() == QVideoFrame::Format_NV12
                     || m_format.pixelFormat() == QVideoFrame::Format_NV21) {
                 const int y = 0;
@@ -473,13 +480,12 @@ void QSGVideoMaterialShader_UYVY::updateState(const RenderState &state,
     Q_UNUSED(oldMaterial);
 
     QSGVideoMaterial_YUV *mat = static_cast<QSGVideoMaterial_YUV *>(newMaterial);
-
-    program()->setUniformValue(m_id_yuvtexture, 0);
+    program()->setUniformValue(m_id_yTexture, 0);
+    program()->setUniformValue(m_id_uvTexture, 1);
 
     mat->bind();
 
     program()->setUniformValue(m_id_colorMatrix, mat->m_colorMatrix);
-    program()->setUniformValue(m_id_imageWidth, mat->m_frame.width());
 
     if (state.isOpacityDirty()) {
         mat->m_opacity = state.opacity();
