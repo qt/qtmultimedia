@@ -108,6 +108,8 @@ public Q_SLOTS:
 
     void processBufferStateChange(int bufferStatus);
 
+    void processDurationChange(qint64 duration);
+
 Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);

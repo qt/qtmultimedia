@@ -56,13 +56,15 @@ static NSString* const AVF_STATUS_KEY                   = @"status";
 static NSString* const AVF_BUFFER_LIKELY_KEEP_UP_KEY    = @"playbackLikelyToKeepUp";
 
 //AVPlayer keys
-static NSString* const AVF_RATE_KEY         = @"rate";
-static NSString* const AVF_CURRENT_ITEM_KEY = @"currentItem";
+static NSString* const AVF_RATE_KEY                     = @"rate";
+static NSString* const AVF_CURRENT_ITEM_KEY             = @"currentItem";
+static NSString* const AVF_CURRENT_ITEM_DURATION_KEY    = @"currentItem.duration";
 
 static void *AVFMediaPlayerSessionObserverRateObservationContext = &AVFMediaPlayerSessionObserverRateObservationContext;
 static void *AVFMediaPlayerSessionObserverStatusObservationContext = &AVFMediaPlayerSessionObserverStatusObservationContext;
 static void *AVFMediaPlayerSessionObserverBufferLikelyToKeepUpContext = &AVFMediaPlayerSessionObserverBufferLikelyToKeepUpContext;
 static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMediaPlayerSessionObserverCurrentItemObservationContext;
+static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext = &AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext;
 
 @interface AVFMediaPlayerSessionObserver : NSObject
 {
@@ -155,6 +157,7 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
     }
     if (m_player) {
         [m_player setRate:0.0];
+        [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_DURATION_KEY];
         [m_player removeObserver:self forKeyPath:AVF_CURRENT_ITEM_KEY];
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
         [m_player release];
@@ -271,6 +274,12 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
                           options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
                           context:AVFMediaPlayerSessionObserverRateObservationContext];
 
+    //Observe the duration for getting the buffer state
+    [m_player addObserver:self
+                          forKeyPath:AVF_CURRENT_ITEM_DURATION_KEY
+                          options:0
+                          context:AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext];
+
 }
 
 -(void) assetFailedToPrepareForPlayback:(NSError *)error
@@ -361,6 +370,13 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
         AVPlayerItem *newPlayerItem = [change objectForKey:NSKeyValueChangeNewKey];
         if (m_playerItem != newPlayerItem)
             m_playerItem = newPlayerItem;
+    }
+    else if (context == AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext)
+    {
+        const CMTime time = [m_playerItem duration];
+        const qint64 duration =  static_cast<qint64>(float(time.value) / float(time.timescale) * 1000.0f);
+        if (self.session)
+            QMetaObject::invokeMethod(m_session, "processDurationChange",  Qt::AutoConnection, Q_ARG(qint64, duration));
     }
     else
     {
@@ -535,13 +551,7 @@ qint64 AVFMediaPlayerSession::duration() const
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
-    AVPlayerItem *playerItem = [(AVFMediaPlayerSessionObserver*)m_observer playerItem];
-
-    if (!playerItem)
-        return 0;
-
-    CMTime time = [playerItem duration];
-    return static_cast<quint64>(float(time.value) / float(time.timescale) * 1000.0f);
+    return m_duration;
 }
 
 int AVFMediaPlayerSession::bufferStatus() const
@@ -875,10 +885,6 @@ void AVFMediaPlayerSession::processLoadStateChange(QMediaPlayer::State newState)
                 }
             }
 
-            qint64 currentDuration = duration();
-            if (m_duration != currentDuration)
-                Q_EMIT durationChanged(m_duration = currentDuration);
-
             if (m_requestedPosition != -1) {
                 setPosition(m_requestedPosition);
                 m_requestedPosition = -1;
@@ -918,6 +924,15 @@ void AVFMediaPlayerSession::processBufferStateChange(int bufferStatus)
 
     m_bufferStatus = bufferStatus;
     Q_EMIT bufferStatusChanged(bufferStatus);
+}
+
+void AVFMediaPlayerSession::processDurationChange(qint64 duration)
+{
+    if (duration == m_duration)
+        return;
+
+    m_duration = duration;
+    Q_EMIT durationChanged(duration);
 }
 
 void AVFMediaPlayerSession::processPositionChange()

@@ -5,6 +5,6 @@ uniform bool hasAlpha;
 
 void main()
 {
-    vec4 v = texture2D(rgbTexture, qt_TexCoord);
+    lowp vec4 v = texture2D(rgbTexture, qt_TexCoord);
     gl_FragColor = vec4(v.bgr, hasAlpha ? v.a : 1.0) * opacity;
 }
