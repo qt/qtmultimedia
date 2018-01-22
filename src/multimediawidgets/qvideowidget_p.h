@@ -206,10 +206,6 @@ public:
     void moveEvent(QMoveEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
-#if defined(Q_WS_WIN)
-    bool winEvent(MSG *message, long *result);
-#endif
-
 private:
     void updateDisplayRect();
 

@@ -323,6 +323,9 @@ QWindowVideoWidgetBackend::QWindowVideoWidgetBackend(
     connect(control, SIGNAL(nativeSizeChanged()), m_widget, SLOT(_q_dimensionsChanged()));
 
     control->setWinId(widget->winId());
+#if defined(Q_OS_WIN)
+    m_widget->setUpdatesEnabled(false);
+#endif
 }
 
 QWindowVideoWidgetBackend::~QWindowVideoWidgetBackend()
@@ -392,16 +395,13 @@ void QWindowVideoWidgetBackend::showEvent()
     m_windowControl->setWinId(m_widget->winId());
     updateDisplayRect();
 
-#if defined(Q_WS_WIN)
-    m_widget->setUpdatesEnabled(false);
+#if defined(Q_OS_WIN)
+    m_windowControl->repaint();
 #endif
 }
 
 void QWindowVideoWidgetBackend::hideEvent(QHideEvent *)
 {
-#if defined(Q_WS_WIN)
-    m_widget->setUpdatesEnabled(true);
-#endif
 }
 
 void QWindowVideoWidgetBackend::moveEvent(QMoveEvent *)
@@ -426,16 +426,6 @@ void QWindowVideoWidgetBackend::paintEvent(QPaintEvent *event)
 
     event->accept();
 }
-
-#if defined(Q_WS_WIN)
-bool QWindowVideoWidgetBackend::winEvent(MSG *message, long *)
-{
-    if (message->message == WM_PAINT)
-        m_windowControl->repaint();
-
-    return false;
-}
-#endif
 
 void QVideoWidgetPrivate::setCurrentControl(QVideoWidgetControlInterface *control)
 {
@@ -1010,20 +1000,6 @@ void QVideoWidget::paintEvent(QPaintEvent *event)
         painter.fillRect(event->rect(), palette().window());
     }
 }
-
-
-#if defined(Q_WS_WIN)
-/*!
-    \internal
-*/
-bool QVideoWidget::winEvent(MSG *message, long *result)
-{
-    return d_func()->windowBackend && d_func()->windowBackend->winEvent(message, result)
-            ? true
-            : QWidget::winEvent(message, result);
-}
-#endif
-
 
 #include "moc_qvideowidget.cpp"
 #include "moc_qvideowidget_p.cpp"
