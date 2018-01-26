@@ -76,7 +76,9 @@ QVideoWidgetControlBackend::QVideoWidgetControlBackend(
     layout->setMargin(0);
     layout->setSpacing(0);
 
-    layout->addWidget(control->videoWidget());
+    QWidget *videoWidget = control->videoWidget();
+    videoWidget->setMouseTracking(widget->hasMouseTracking());
+    layout->addWidget(videoWidget);
 
     widget->setLayout(layout);
 }
