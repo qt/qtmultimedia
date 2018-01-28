@@ -1541,10 +1541,17 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
     //set timeout property to 30 seconds
     const int timeout = 30;
     if (qstrcmp(G_OBJECT_CLASS_NAME(G_OBJECT_GET_CLASS(source)), "GstUDPSrc") == 0) {
-        //udpsrc timeout unit = microsecond
-        //The udpsrc is always a live source.
-        g_object_set(G_OBJECT(source), "timeout", G_GUINT64_CONSTANT(timeout*1000000), NULL);
+        quint64 convertedTimeout = timeout;
+#if GST_CHECK_VERSION(1,0,0)
+        // Gst 1.x -> nanosecond
+        convertedTimeout *= 1000000000;
+#else
+        // Gst 0.10 -> microsecond
+        convertedTimeout *= 1000000;
+#endif
+        g_object_set(G_OBJECT(source), "timeout", convertedTimeout, NULL);
         self->m_sourceType = UDPSrc;
+        //The udpsrc is always a live source.
         self->m_isLiveSource = true;
     } else if (qstrcmp(G_OBJECT_CLASS_NAME(G_OBJECT_GET_CLASS(source)), "GstSoupHTTPSrc") == 0) {
         //souphttpsrc timeout unit = second
