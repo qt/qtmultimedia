@@ -50,7 +50,7 @@ QT += multimediawidgets
 
 \section1 Licenses and Attributions
 
-The Qt Quick Multimedia Widgets module is available under commercial licenses from \l{The Qt Company}.
+The Qt Multimedia Widgets module is available under commercial licenses from \l{The Qt Company}.
 In addition, it is available under free software licenses. Since Qt 5.4,
 these free software licenses are
 \l{GNU Lesser General Public License, version 3}, or
