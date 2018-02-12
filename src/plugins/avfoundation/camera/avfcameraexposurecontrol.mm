@@ -56,10 +56,9 @@ QT_BEGIN_NAMESPACE
 
 namespace {
 
-// All these methods to work with exposure/ISO/SS in custom mode
-// are quite new (iOS 8 or later and no OS X support).
+// All these methods to work with exposure/ISO/SS in custom mode do not support macOS.
 
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
 
 // Misc. helpers to check values/ranges:
 
@@ -213,7 +212,7 @@ void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraE
                                    completionHandler:completionHandler];
 }
 
-#endif // QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#endif // defined(Q_OS_IOS)
 
 } // Unnamed namespace.
 
@@ -230,7 +229,7 @@ AVFCameraExposureControl::AVFCameraExposureControl(AVFCameraService *service)
 
 bool AVFCameraExposureControl::isParameterSupported(ExposureParameter parameter) const
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice)
         return false;
@@ -250,7 +249,7 @@ QVariantList AVFCameraExposureControl::supportedParameterRange(ExposureParameter
                                                                bool *continuous) const
 {
     QVariantList parameterRange;
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
 
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice || !isParameterSupported(parameter)) {
@@ -333,7 +332,7 @@ QVariant AVFCameraExposureControl::requestedValue(ExposureParameter parameter) c
 
 QVariant AVFCameraExposureControl::actualValue(ExposureParameter parameter) const
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice || !isParameterSupported(parameter)) {
         // Actually, at the moment !captiredevice => !isParameterSupported.
@@ -386,7 +385,7 @@ bool AVFCameraExposureControl::setValue(ExposureParameter parameter, const QVari
 
 bool AVFCameraExposureControl::setExposureMode(const QVariant &value)
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
     if (!value.canConvert<QCameraExposure::ExposureMode>()) {
         qDebugCamera() << Q_FUNC_INFO << "invalid exposure mode value,"
                        << "QCameraExposure::ExposureMode expected";
@@ -433,7 +432,7 @@ bool AVFCameraExposureControl::setExposureMode(const QVariant &value)
 
 bool AVFCameraExposureControl::setExposureCompensation(const QVariant &value)
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
     if (!value.canConvert<qreal>()) {
         qDebugCamera() << Q_FUNC_INFO << "invalid exposure compensation"
                        <<"value, floating point number expected";
@@ -474,7 +473,7 @@ bool AVFCameraExposureControl::setExposureCompensation(const QVariant &value)
 
 bool AVFCameraExposureControl::setShutterSpeed(const QVariant &value)
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
     if (value.isNull())
         return setExposureMode(QVariant::fromValue(QCameraExposure::ExposureAuto));
 
@@ -521,7 +520,7 @@ bool AVFCameraExposureControl::setShutterSpeed(const QVariant &value)
 
 bool AVFCameraExposureControl::setISO(const QVariant &value)
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
     if (value.isNull())
         return setExposureMode(QVariant::fromValue(QCameraExposure::ExposureAuto));
 
@@ -565,7 +564,7 @@ bool AVFCameraExposureControl::setISO(const QVariant &value)
 
 void AVFCameraExposureControl::cameraStateChanged()
 {
-#if QT_IOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__IPHONE_8_0)
+#ifdef Q_OS_IOS
     if (m_session->state() != QCamera::ActiveState)
         return;
 
