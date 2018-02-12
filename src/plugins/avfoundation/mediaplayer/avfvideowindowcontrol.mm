@@ -41,6 +41,14 @@
 
 #include <AVFoundation/AVFoundation.h>
 
+#if QT_HAS_INCLUDE(<AppKit/AppKit.h>)
+#include <AppKit/AppKit.h>
+#endif
+
+#if QT_HAS_INCLUDE(<UIKit/UIKit.h>)
+#include <UIKit/UIKit.h>
+#endif
+
 QT_USE_NAMESPACE
 
 AVFVideoWindowControl::AVFVideoWindowControl(QObject *parent)
