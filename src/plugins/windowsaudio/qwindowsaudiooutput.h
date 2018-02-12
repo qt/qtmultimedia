@@ -115,6 +115,7 @@ private slots:
     bool deviceReady();
 
 private:
+    void pauseAndSleep();
     QByteArray m_device;
     int bytesAvailable;
     QTime timeStamp;

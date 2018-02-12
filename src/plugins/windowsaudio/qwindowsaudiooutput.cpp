@@ -291,11 +291,22 @@ bool QWindowsAudioOutput::open()
     return true;
 }
 
+void QWindowsAudioOutput::pauseAndSleep()
+{
+    waveOutPause(hWaveOut);
+    int bitrate = settings.sampleRate() * settings.channelCount() * settings.sampleSize() / 8;
+    // Time of written data.
+    int delay = (buffer_size - bytesFree()) * 1000 / bitrate;
+    Sleep(delay + 10);
+}
+
 void QWindowsAudioOutput::close()
 {
     if(deviceState == QAudio::StoppedState)
         return;
 
+    // Pause playback before reset to avoid uneeded crackling at the end.
+    pauseAndSleep();
     deviceState = QAudio::StoppedState;
     errorState = QAudio::NoError;
     waveOutReset(hWaveOut);
@@ -451,10 +462,7 @@ void QWindowsAudioOutput::resume()
 void QWindowsAudioOutput::suspend()
 {
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState) {
-        int delay = (buffer_size-bytesFree())*1000/(settings.sampleRate()
-                *settings.channelCount()*(settings.sampleSize()/8));
-        waveOutPause(hWaveOut);
-        Sleep(delay+10);
+        pauseAndSleep();
         deviceState = QAudio::SuspendedState;
         errorState = QAudio::NoError;
         emit stateChanged(deviceState);
