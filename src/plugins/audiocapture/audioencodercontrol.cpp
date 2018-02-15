@@ -44,6 +44,8 @@
 
 #include <QtCore/qdebug.h>
 
+#include <algorithm>
+
 QT_BEGIN_NAMESPACE
 
 static QAudioFormat audioSettingsToAudioFormat(const QAudioEncoderSettings &settings)
@@ -167,7 +169,7 @@ void AudioEncoderControl::update()
                 m_sampleRates.append(rate);
         }
     }
-    qSort(m_sampleRates);
+    std::sort(m_sampleRates.begin(), m_sampleRates.end());
 }
 
 QT_END_NAMESPACE
