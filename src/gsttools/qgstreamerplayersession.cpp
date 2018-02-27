@@ -206,13 +206,26 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
     m_videoOutputBin = gst_bin_new("video-output-bin");
     // might not get a parent, take ownership to avoid leak
     qt_gst_object_ref_sink(GST_OBJECT(m_videoOutputBin));
+
+    GstElement *videoOutputSink = m_videoIdentity;
+#if QT_CONFIG(gstreamer_gl)
+    if (QGstUtils::useOpenGL()) {
+        videoOutputSink = gst_element_factory_make("glupload", NULL);
+        GstElement *colorConvert = gst_element_factory_make("glcolorconvert", NULL);
+        gst_bin_add_many(GST_BIN(m_videoOutputBin), videoOutputSink, colorConvert, m_videoIdentity, m_nullVideoSink, NULL);
+        gst_element_link_many(videoOutputSink, colorConvert, m_videoIdentity, NULL);
+    } else {
+        gst_bin_add_many(GST_BIN(m_videoOutputBin), m_videoIdentity, m_nullVideoSink, NULL);
+    }
+#else
     gst_bin_add_many(GST_BIN(m_videoOutputBin), m_videoIdentity, m_nullVideoSink, NULL);
+#endif
     gst_element_link(m_videoIdentity, m_nullVideoSink);
 
     m_videoSink = m_nullVideoSink;
 
     // add ghostpads
-    GstPad *pad = gst_element_get_static_pad(m_videoIdentity,"sink");
+    GstPad *pad = gst_element_get_static_pad(videoOutputSink, "sink");
     gst_element_add_pad(GST_ELEMENT(m_videoOutputBin), gst_ghost_pad_new("sink", pad));
     gst_object_unref(GST_OBJECT(pad));
 

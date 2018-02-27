@@ -1045,11 +1045,13 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoFrame::Format_RGB32 ,  GST_VIDEO_FORMAT_BGRx },
     { QVideoFrame::Format_BGR32 ,  GST_VIDEO_FORMAT_RGBx },
     { QVideoFrame::Format_ARGB32,  GST_VIDEO_FORMAT_BGRA },
+    { QVideoFrame::Format_ABGR32,  GST_VIDEO_FORMAT_RGBA },
     { QVideoFrame::Format_BGRA32,  GST_VIDEO_FORMAT_ARGB },
 #else
     { QVideoFrame::Format_RGB32 ,  GST_VIDEO_FORMAT_xRGB },
     { QVideoFrame::Format_BGR32 ,  GST_VIDEO_FORMAT_xBGR },
     { QVideoFrame::Format_ARGB32,  GST_VIDEO_FORMAT_ARGB },
+    { QVideoFrame::Format_ABGR32,  GST_VIDEO_FORMAT_ABGR },
     { QVideoFrame::Format_BGRA32,  GST_VIDEO_FORMAT_BGRA },
 #endif
     { QVideoFrame::Format_RGB24 ,  GST_VIDEO_FORMAT_RGB },
@@ -1567,6 +1569,12 @@ QVariant QGstUtils::toGStreamerOrientation(const QVariant &value)
     }
 }
 #endif
+
+bool QGstUtils::useOpenGL()
+{
+    static bool result = qEnvironmentVariableIntValue("QT_GSTREAMER_USE_OPENGL_PLUGIN");
+    return result;
+}
 
 void qt_gst_object_ref_sink(gpointer object)
 {

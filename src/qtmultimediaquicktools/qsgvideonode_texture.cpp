@@ -58,6 +58,7 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelForma
         pixelFormats.append(QVideoFrame::Format_ARGB32);
         pixelFormats.append(QVideoFrame::Format_BGR32);
         pixelFormats.append(QVideoFrame::Format_BGRA32);
+        pixelFormats.append(QVideoFrame::Format_ABGR32);
     }
 
     return pixelFormats;

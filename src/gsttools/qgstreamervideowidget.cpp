@@ -173,6 +173,8 @@ bool QGstreamerVideoWidgetControl::eventFilter(QObject *object, QEvent *e)
         }
 
         if (e->type() == QEvent::Paint) {
+            // Update overlay by new size if any.
+            m_videoOverlay.setRenderRectangle(QRect(0, 0, m_widget->width(), m_widget->height()));
             if (m_videoOverlay.isActive())
                 m_videoOverlay.expose(); // triggers a repaint of the last frame
             else

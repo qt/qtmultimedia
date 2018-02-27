@@ -95,6 +95,17 @@
                 { "libs": "-lgstphotography-1.0" }
             ]
         },
+        "gstreamer_gl_1_0": {
+            "label": "GStreamer OpenGL 1.0",
+            "export": "gstreamer_gl",
+            "test":  {
+                "include": "gst/gl/gl.h"
+            },
+            "use": "gstreamer_1_0",
+            "sources": [
+                { "type": "pkgConfig", "args": "gstreamer-gl-1.0" }
+            ]
+        },
         "libresourceqt5": {
             "label": "libresourceqt5",
             "test": "resourcepolicy",
@@ -227,6 +238,11 @@
         "gstreamer_photography": {
             "label": "GStreamer Photography",
             "condition": "(features.gstreamer_1_0 && libs.gstreamer_photography_1_0) || (features.gstreamer_0_10 && libs.gstreamer_photography_0_10)",
+            "output": [ "privateFeature" ]
+        },
+        "gstreamer_gl": {
+            "label": "GStreamer OpenGL",
+            "condition": "features.gstreamer_1_0 && libs.gstreamer_gl_1_0",
             "output": [ "privateFeature" ]
         },
         "gpu_vivante": {

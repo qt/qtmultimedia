@@ -153,6 +153,8 @@ namespace QGstUtils {
     Q_GSTTOOLS_EXPORT QVariant fromGStreamerOrientation(const QVariant &value);
     Q_GSTTOOLS_EXPORT QVariant toGStreamerOrientation(const QVariant &value);
 #endif
+
+    Q_GSTTOOLS_EXPORT bool useOpenGL();
 }
 
 Q_GSTTOOLS_EXPORT void qt_gst_object_ref_sink(gpointer object);

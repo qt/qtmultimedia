@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <gst/video/gstvideosink.h>
 #include <gst/video/video.h>
 
@@ -66,6 +67,13 @@
 #include "qgstvideorendererplugin_p.h"
 
 #include "qgstvideorendererplugin_p.h"
+
+#if QT_CONFIG(gstreamer_gl)
+#ifndef GST_USE_UNSTABLE_API
+#define GST_USE_UNSTABLE_API
+#endif
+#include <gst/gl/gl.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
@@ -89,6 +97,7 @@ private:
     QVideoSurfaceFormat m_format;
     GstVideoInfo m_videoInfo;
     bool m_flushed;
+    QAbstractVideoBuffer::HandleType m_handleType;
 };
 
 class QVideoSurfaceGstDelegate : public QObject
@@ -110,6 +119,7 @@ public:
     GstFlowReturn render(GstBuffer *buffer);
 
     bool event(QEvent *event) override;
+    bool query(GstQuery *query);
 
 private slots:
     bool handleEvent(QMutexLocker *locker);
@@ -132,6 +142,9 @@ private:
     GstCaps *m_surfaceCaps;
     GstCaps *m_startCaps;
     GstBuffer *m_renderBuffer;
+#if QT_CONFIG(gstreamer_gl)
+    GstGLContext *m_gstGLDisplayContext = nullptr;
+#endif
 
     bool m_notified;
     bool m_stop;
@@ -168,6 +181,7 @@ private:
     static gboolean unlock(GstBaseSink *sink);
 
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
+    static gboolean query(GstBaseSink *element, GstQuery *query);
 
 private:
     QVideoSurfaceGstDelegate *delegate;

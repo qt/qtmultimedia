@@ -48,6 +48,8 @@
 #include <gst/video/videooverlay.h>
 #endif
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+
 QT_BEGIN_NAMESPACE
 
 struct ElementMap
@@ -59,6 +61,9 @@ struct ElementMap
 // Ordered by descending priority
 static const ElementMap elementMap[] =
 {
+#if QT_CONFIG(gstreamer_gl)
+    { "xcb", "glimagesink" },
+#endif
     { "xcb", "vaapisink" },
     { "xcb", "xvimagesink" },
     { "xcb", "ximagesink" }
@@ -340,6 +345,10 @@ static GstElement *findBestVideoSink()
 
     // First, try some known video sinks, depending on the Qt platform plugin in use.
     for (quint32 i = 0; i < (sizeof(elementMap) / sizeof(ElementMap)); ++i) {
+#if QT_CONFIG(gstreamer_gl)
+        if (!QGstUtils::useOpenGL() && qstrcmp(elementMap[i].gstreamerElement, "glimagesink") == 0)
+            continue;
+#endif
         if (platform == QLatin1String(elementMap[i].qtPlatform)
                 && (choice = gst_element_factory_make(elementMap[i].gstreamerElement, NULL))) {
 

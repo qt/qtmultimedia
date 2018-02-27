@@ -82,6 +82,8 @@ qtConfig(gstreamer_0_10) {
         qgstvideorenderersink.cpp
 }
 
+qtConfig(gstreamer_gl): QMAKE_USE += gstreamer_gl
+
 qtConfig(gstreamer_app) {
     QMAKE_USE += gstreamer_app
     PRIVATE_HEADERS += qgstappsrc_p.h
