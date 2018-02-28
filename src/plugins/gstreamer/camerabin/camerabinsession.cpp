@@ -80,6 +80,8 @@
 #include <QtGui/qimage.h>
 #include <QtCore/qdatetime.h>
 
+#include <algorithm>
+
 //#define CAMERABIN_DEBUG 1
 //#define CAMERABIN_DEBUG_DUMP_BIN 1
 #define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
@@ -732,21 +734,18 @@ void CameraBinSession::setState(QCamera::State newState)
     if (newState == m_pendingState)
         return;
 
-    emit pendingStateChanged(newState);
+    m_pendingState = newState;
+    emit pendingStateChanged(m_pendingState);
 
 #if CAMERABIN_DEBUG
     qDebug() << Q_FUNC_INFO << newState;
 #endif
 
     setStateHelper(newState);
-    m_pendingState = newState;
 }
 
 void CameraBinSession::setStateHelper(QCamera::State state)
 {
-    if (state == m_pendingState)
-        return;
-
     switch (state) {
     case QCamera::UnloadedState:
         unload();
@@ -1260,7 +1259,7 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
         readValue(rateValue, &res, continuous);
     }
 
-    qSort(res.begin(), res.end(), rateLessThan);
+    std::sort(res.begin(), res.end(), rateLessThan);
 
 #if CAMERABIN_DEBUG
     qDebug() << "Supported rates:" << caps;
@@ -1387,7 +1386,7 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
     }
 
 
-    qSort(res.begin(), res.end(), resolutionLessThan);
+    std::sort(res.begin(), res.end(), resolutionLessThan);
 
     //if the range is continuos, populate is with the common rates
     if (isContinuous && res.size() >= 2) {

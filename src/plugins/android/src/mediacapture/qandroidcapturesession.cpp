@@ -46,6 +46,8 @@
 #include "qandroidvideooutput.h"
 #include "qandroidglobal.h"
 
+#include <algorithm>
+
 QT_BEGIN_NAMESPACE
 
 QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSession)
@@ -495,8 +497,8 @@ void QAndroidCaptureSession::onCameraOpened()
         }
     }
 
-    qSort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
-    qSort(m_supportedFramerates.begin(), m_supportedFramerates.end());
+    std::sort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
+    std::sort(m_supportedFramerates.begin(), m_supportedFramerates.end());
 
     applySettings();
 }

@@ -62,6 +62,8 @@
 #include <windows.storage.streams.h>
 #include <windows.media.devices.h>
 
+#include <algorithm>
+
 using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;
 using namespace ABI::Windows::Devices::Enumeration;
@@ -1416,9 +1418,8 @@ HRESULT QWinRTCameraControl::onInitializationCompleted(IAsyncAction *, AsyncStat
         if (qAbs(aspectRatio - captureAspectRatio) <= ASPECTRATIO_EPSILON)
             filtered.append(resolution);
     }
-    qSort(filtered.begin(),
-          filtered.end(),
-          [](QSize size1, QSize size2) { return size1.width() * size1.height() < size2.width() * size2.height(); });
+    std::sort(filtered.begin(), filtered.end(),
+              [](QSize size1, QSize size2) { return size1.width() * size1.height() < size2.width() * size2.height(); });
 
     const QSize &viewfinderResolution = filtered.first();
     const quint32 viewfinderResolutionIndex = previewResolutions.indexOf(viewfinderResolution);

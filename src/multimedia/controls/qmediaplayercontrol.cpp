@@ -353,7 +353,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 
     Pauses playback of the current media.
 
-    If sucessful the player control will immediately enter the \l {QMediaPlayer::PausedState}
+    If successful the player control will immediately enter the \l {QMediaPlayer::PausedState}
     {paused} state.
 
     \sa state(), play(), stop()

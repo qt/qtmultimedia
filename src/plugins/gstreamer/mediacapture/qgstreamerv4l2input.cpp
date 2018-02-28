@@ -45,6 +45,8 @@
 #include <private/qcore_unix_p.h>
 #include <linux/videodev2.h>
 
+#include <algorithm>
+
 QT_BEGIN_NAMESPACE
 static inline uint qHash(const QSize& key) { return uint(key.width()*256+key.height()); }
 
@@ -252,10 +254,10 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
         m_frameRates.append(rate/1000.0);
     }
 
-    qSort(m_frameRates);
+    std::sort(m_frameRates.begin(), m_frameRates.end());
 
     m_resolutions = allResolutions.toList();
-    qSort(m_resolutions);
+    std::sort(m_resolutions.begin(), m_resolutions.end());
 
     //qDebug() << "frame rates:" << m_frameRates;
     //qDebug() << "resolutions:" << m_resolutions;
