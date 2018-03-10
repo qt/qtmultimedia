@@ -563,7 +563,7 @@ void tst_QPainterVideoSurface::shaderType()
     }
 
     widget.show();
-    QTest::qWaitForWindowExposed(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.makeCurrent();
 
     QCOMPARE(surface.shaderType(), QPainterVideoSurface::NoShaders);
@@ -660,7 +660,7 @@ void tst_QPainterVideoSurface::shaderTypeStarted()
     }
 
     widget.show();
-    QTest::qWaitForWindowExposed(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.makeCurrent();
 
     QPainterVideoSurface surface;
@@ -910,7 +910,7 @@ void tst_QPainterVideoSurface::shaderSupportedFormat()
     }
 
     widget.show();
-    QTest::qWaitForWindowExposed(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.makeCurrent();
 
     QPainterVideoSurface surface;
@@ -1032,7 +1032,7 @@ void tst_QPainterVideoSurface::shaderPresent()
     }
 
     widget.show();
-    QTest::qWaitForWindowExposed(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.makeCurrent();
 
     QPainterVideoSurface surface;
@@ -1168,7 +1168,7 @@ void tst_QPainterVideoSurface::shaderPresentOpaqueFrame()
     }
 
     widget.show();
-    QTest::qWaitForWindowExposed(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.makeCurrent();
 
     QPainterVideoSurface surface;
@@ -1222,7 +1222,7 @@ void tst_QPainterVideoSurface::shaderPresentGLFrame()
     }
 
     widget.show();
-    QTest::qWaitForWindowExposed(&widget);
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.makeCurrent();
 
     QPainterVideoSurface surface;
