@@ -92,7 +92,7 @@
 */
 void QSound::play(const QString& filename)
 {
-    // Object destruction is generaly handled via deleteOnComplete
+    // Object destruction is generally handled via deleteOnComplete
     // Unexpected cases will be handled via parenting of QSound objects to qApp
     QSound *sound = new QSound(filename, qApp);
     sound->connect(sound->m_soundEffect, &QSoundEffect::playingChanged,
@@ -159,7 +159,7 @@ void QSound::play()
 */
 int QSound::loops() const
 {
-    // retain old API value for infite loops
+    // retain old API value for infinite loops
     int loopCount = m_soundEffect->loopCount();
     if (loopCount == QSoundEffect::Infinite)
         loopCount = Infinite;
@@ -176,7 +176,7 @@ int QSound::loops() const
 */
 int QSound::loopsRemaining() const
 {
-    // retain old API value for infite loops
+    // retain old API value for infinite loops
     int loopsRemaining = m_soundEffect->loopsRemaining();
     if (loopsRemaining == QSoundEffect::Infinite)
         loopsRemaining = Infinite;
