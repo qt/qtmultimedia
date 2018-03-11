@@ -303,17 +303,7 @@ void QSoundEffectPrivate::setCategory(const QString &category)
 }
 
 PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate* s):
-    QIODevice(s),
-    m_loopCount(1),
-    m_runningCount(0),
-    m_playing(false),
-    m_status(QSoundEffect::Null),
-    m_audioOutput(nullptr),
-    m_sample(nullptr),
-    m_muted(false),
-    m_volume(1.0),
-    m_sampleReady(false),
-    m_offset(0)
+    QIODevice(s)
 {
     soundeffect = s;
     m_category = QLatin1String("game");

@@ -100,8 +100,6 @@ class PulseDaemon : public QObject
     Q_OBJECT
 public:
     PulseDaemon()
-        : m_prepared(false)
-        , m_lockCount(0)
     {
         prepare();
     }
@@ -256,11 +254,11 @@ private:
         }
     }
 
-    bool m_prepared;
-    pa_context *m_context;
-    pa_threaded_mainloop *m_mainLoop;
-    pa_mainloop_api *m_mainLoopApi;
-    uint m_lockCount;
+    bool m_prepared = false;
+    pa_context *m_context = nullptr;
+    pa_threaded_mainloop *m_mainLoop = nullptr;
+    pa_mainloop_api *m_mainLoopApi = nullptr;
+    uint m_lockCount = 0;
     QAtomicInt m_ref;
 };
 
@@ -290,8 +288,7 @@ class QSoundEffectRef
 {
 public:
     QSoundEffectRef(QSoundEffectPrivate *target)
-        : m_ref(1)
-        , m_target(target)
+        : m_target(target)
     {
 #ifdef QT_PA_DEBUG
         qDebug() << "QSoundEffectRef(" << this << ") ctor";
@@ -342,29 +339,13 @@ public:
     }
 
 private:
-    int m_ref;
+    int m_ref = 1;
     mutable QMutex m_mutex;
-    QSoundEffectPrivate *m_target;
+    QSoundEffectPrivate *m_target = nullptr;
 };
 
 QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
-    QObject(parent),
-    m_pulseStream(nullptr),
-    m_sinkInputId(-1),
-    m_emptying(false),
-    m_sampleReady(false),
-    m_playing(false),
-    m_status(QSoundEffect::Null),
-    m_muted(false),
-    m_playQueued(false),
-    m_stopping(false),
-    m_volume(1.0),
-    m_loopCount(1),
-    m_runningCount(0),
-    m_reloadCategory(false),
-    m_sample(nullptr),
-    m_position(0),
-    m_resourcesAvailable(false)
+    QObject(parent)
 {
     pulseDaemon()->ref();
 

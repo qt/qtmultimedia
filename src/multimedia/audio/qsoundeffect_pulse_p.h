@@ -149,36 +149,36 @@ private:
     static void stream_write_done_callback(void *p);
     static void stream_adjust_prebuffer_callback(pa_stream *s, int success, void *userdata);
 
-    pa_stream *m_pulseStream;
-    int        m_sinkInputId;
+    pa_stream *m_pulseStream = nullptr;
+    int m_sinkInputId = -1;
     pa_sample_spec m_pulseSpec;
-    int        m_pulseBufferSize;
+    int m_pulseBufferSize = 0;
 
-    bool    m_emptying;
-    bool    m_sampleReady;
-    bool    m_playing;
-    QSoundEffect::Status  m_status;
-    bool    m_muted;
-    bool    m_playQueued;
-    bool    m_stopping;
-    qreal     m_volume;
-    int     m_loopCount;
-    int     m_runningCount;
-    QUrl    m_source;
+    bool m_emptying = false;
+    bool m_sampleReady = false;
+    bool m_playing = false;
+    QSoundEffect::Status m_status = QSoundEffect::Null;
+    bool m_muted = false;
+    bool m_playQueued = false;
+    bool m_stopping = false;
+    qreal m_volume = 1.0;
+    int m_loopCount = 1;
+    int m_runningCount = 0;
+    QUrl m_source;
     QByteArray m_name;
     QString m_category;
-    bool m_reloadCategory;
+    bool m_reloadCategory = false;
 
-    QSample *m_sample;
-    int m_position;
-    QSoundEffectRef *m_ref;
+    QSample *m_sample = nullptr;
+    int m_position = 0;
+    QSoundEffectRef *m_ref = nullptr;
 
-    bool m_resourcesAvailable;
+    bool m_resourcesAvailable = false;
 
     // Protects volume while PuseAudio is accessing it
     mutable QMutex m_volumeLock;
 
-    QMediaPlayerResourceSetInterface *m_resources;
+    QMediaPlayerResourceSetInterface *m_resources = nullptr;
 };
 
 QT_END_NAMESPACE

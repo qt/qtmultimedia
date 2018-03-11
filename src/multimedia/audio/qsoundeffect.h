@@ -123,7 +123,7 @@ public Q_SLOTS:
 
 private:
     Q_DISABLE_COPY(QSoundEffect)
-    QSoundEffectPrivate* d;
+    QSoundEffectPrivate *d = nullptr;
 };
 
 QT_END_NAMESPACE
