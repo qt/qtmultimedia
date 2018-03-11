@@ -95,7 +95,7 @@
 
     \sa stop(), loopsRemaining(), isFinished()
 */
-void QSound::play(const QString& filename)
+void QSound::play(const QString &filename)
 {
     // Object destruction is generally handled via deleteOnComplete
     // Unexpected cases will be handled via parenting of QSound objects to qApp
@@ -113,7 +113,7 @@ void QSound::play(const QString& filename)
 
     \sa play()
 */
-QSound::QSound(const QString& filename, QObject* parent)
+QSound::QSound(const QString &filename, QObject *parent)
     : QObject(parent)
 {
     m_soundEffect = new QSoundEffect(this);

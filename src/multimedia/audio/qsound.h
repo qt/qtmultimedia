@@ -56,7 +56,7 @@ public:
         Infinite = -1
     };
 
-    static void play(const QString& filename);
+    static void play(const QString &filename);
 
     explicit QSound(const QString &filename, QObject *parent = nullptr);
     ~QSound();

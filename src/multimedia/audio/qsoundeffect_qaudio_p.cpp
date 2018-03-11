@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
 
 Q_GLOBAL_STATIC(QSampleCache, sampleCache)
 
-QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
+QSoundEffectPrivate::QSoundEffectPrivate(QObject *parent):
     QObject(parent),
     d(new PrivateSoundSource(this))
 {
@@ -302,7 +302,7 @@ void QSoundEffectPrivate::setCategory(const QString &category)
     }
 }
 
-PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate* s):
+PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate *s):
     QIODevice(s)
 {
     soundeffect = s;
@@ -354,7 +354,7 @@ void PrivateSoundSource::stateChanged(QAudio::State state)
         emit soundeffect->stop();
 }
 
-qint64 PrivateSoundSource::readData( char* data, qint64 len)
+qint64 PrivateSoundSource::readData(char *data, qint64 len)
 {
     if ((m_runningCount > 0  || m_runningCount == QSoundEffect::Infinite) && m_playing) {
 
@@ -428,7 +428,7 @@ qint64 PrivateSoundSource::readData( char* data, qint64 len)
     return 0;
 }
 
-qint64 PrivateSoundSource::writeData(const char* data, qint64 len)
+qint64 PrivateSoundSource::writeData(const char *data, qint64 len)
 {
     Q_UNUSED(data)
     Q_UNUSED(len)
