@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-#include "qobject.h"
+#include "qpushbutton.h"
 #include "qsound.h"
 #include "qsoundeffect.h"
 
@@ -74,7 +74,7 @@ void qsoundeffectsnippet() {
     //! [2]
 }
 
-QObject *clickSource;
+QPushButton *clickSource;
 
 class MyGame : public QObject {
     Q_OBJECT
@@ -87,7 +87,7 @@ public:
         m_explosion.setVolume(0.25f);
 
         // Set up click handling etc.
-        connect(clickSource, SIGNAL(clicked()), &m_explosion, SLOT(play()));
+        connect(clickSource, &QPushButton::clicked, &m_explosion, &QSoundEffect::play);
     }
 private:
     QSoundEffect m_explosion;
