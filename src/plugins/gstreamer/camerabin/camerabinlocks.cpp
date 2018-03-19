@@ -102,8 +102,6 @@ QCamera::LockStatus CameraBinLocks::lockStatus(QCamera::LockType lock) const
     default:
         return QCamera::Unlocked;
     }
-
-    return lock == QCamera::LockFocus ? m_focus->focusStatus() : QCamera::Unlocked;
 }
 
 void CameraBinLocks::searchAndLock(QCamera::LockTypes locks)
