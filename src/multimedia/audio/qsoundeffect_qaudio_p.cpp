@@ -129,7 +129,7 @@ void QSoundEffectPrivate::setSource(const QUrl &url)
             disconnect(d->m_sample, SIGNAL(ready()), d, SLOT(sampleReady()));
         }
         d->m_sample->release();
-        d->m_sample = 0;
+        d->m_sample = nullptr;
     }
 
     setStatus(QSoundEffect::Loading);
@@ -308,8 +308,8 @@ PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate* s):
     m_runningCount(0),
     m_playing(false),
     m_status(QSoundEffect::Null),
-    m_audioOutput(0),
-    m_sample(0),
+    m_audioOutput(nullptr),
+    m_sample(nullptr),
     m_muted(false),
     m_volume(1.0),
     m_sampleReady(false),

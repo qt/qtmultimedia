@@ -76,6 +76,7 @@ private slots:
     void testCtorWithPosition();
 
     void testCameraStates();
+    void testCameraStartError();
     void testCaptureMode();
     void testCameraCapture();
     void testCaptureToBuffer();
@@ -249,6 +250,27 @@ void tst_QCameraBackend::testCameraStates()
 
     QCOMPARE(camera.errorString(), QString());
     QCOMPARE(errorSignal.count(), 0);
+}
+
+void tst_QCameraBackend::testCameraStartError()
+{
+    QCamera camera1(QCameraInfo::defaultCamera());
+    QCamera camera2(QCameraInfo::defaultCamera());
+    QSignalSpy errorSpy1(&camera1, QOverload<QCamera::Error>::of(&QCamera::error));
+    QSignalSpy errorSpy2(&camera2, QOverload<QCamera::Error>::of(&QCamera::error));
+
+    camera1.start();
+    camera2.start();
+
+    QCOMPARE(camera1.state(), QCamera::ActiveState);
+    QTRY_COMPARE(camera1.status(), QCamera::ActiveStatus);
+    QCOMPARE(camera1.error(), QCamera::NoError);
+    QCOMPARE(camera2.state(), QCamera::UnloadedState);
+    QCOMPARE(camera2.status(), QCamera::UnloadedStatus);
+    QCOMPARE(camera2.error(), QCamera::CameraError);
+
+    QCOMPARE(errorSpy1.count(), 0);
+    QCOMPARE(errorSpy2.count(), 1);
 }
 
 void tst_QCameraBackend::testCaptureMode()

@@ -43,6 +43,49 @@
 
 QT_BEGIN_NAMESPACE
 
+// Base implementation of 24 bits number.
+// Used to adjust 3 bytes values by a factor.
+// TODO: Uses little-endian only.
+class Int24
+{
+public:
+    quint8 data[3];
+    Int24(qint32 v) {
+        data[0] = v & 0xFF;
+        data[1] = (v & 0xFF00) >> 8;
+        data[2] = (v & 0xFF0000) >> 16;
+    }
+    template<class T>
+    T multiply(qreal factor, T v = 0) const {
+        v |= data[0];
+        v |= data[1] << 8;
+        v |= data[2] << 16;
+        v *= factor;
+        return v;
+    }
+};
+
+class qint24: public Int24
+{
+public:
+    qint24(qint32 v): Int24(v) {}
+    qint24 operator*(qreal factor) const {
+        // Checks if it is a signed value.
+        qint32 v = (data[2] & 0x80) ? 0xFF000000 : 0;
+        return multiply(factor, v);
+    }
+};
+
+class quint24: public Int24
+{
+public:
+    quint24(quint32 v): Int24(v) {}
+    quint24 operator*(qreal factor) const {
+        return multiply<quint32>(factor);
+    }
+};
+
+
 namespace QAudioHelperInternal
 {
 
@@ -100,6 +143,12 @@ void qMultiplySamples(qreal factor, const QAudioFormat &format, const void* src,
             QAudioHelperInternal::adjustSamples<qint16>(factor,src,dest,samplesCount);
         else if (format.sampleType() == QAudioFormat::UnSignedInt)
             QAudioHelperInternal::adjustUnsignedSamples<quint16>(factor,src,dest,samplesCount);
+        break;
+    case 24:
+        if (format.sampleType() == QAudioFormat::SignedInt)
+            QAudioHelperInternal::adjustSamples<qint24>(factor,src,dest,samplesCount);
+        else if (format.sampleType() == QAudioFormat::UnSignedInt)
+            QAudioHelperInternal::adjustSamples<quint24>(factor,src,dest,samplesCount);
         break;
     default:
         if (format.sampleType() == QAudioFormat::SignedInt)

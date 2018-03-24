@@ -1071,8 +1071,11 @@ void DirectShowPlayerService::doSetRate(QMutexLocker *locker)
         locker->relock();
 
         if (!SUCCEEDED(hr)) {
+            qWarning("%s: Audio device or filter does not support rate: %.2f. " \
+                     "Falling back to previous value.", __FUNCTION__, m_rate);
+
             double rate = 0.0;
-            m_rate = seeking->GetRate(&rate)
+            m_rate = SUCCEEDED(seeking->GetRate(&rate))
                     ? rate
                     : 1.0;
         }
