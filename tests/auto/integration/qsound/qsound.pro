@@ -8,3 +8,6 @@ CONFIG += testcase
 SOURCES += tst_qsound.cpp
 
 TESTDATA += test.wav
+
+RESOURCES += \
+    resources.qrc

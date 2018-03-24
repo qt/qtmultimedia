@@ -46,6 +46,9 @@ private slots:
    void testPlay();
    void testStop();
 
+   void testPlayResource_data();
+   void testPlayResource();
+
    void testStaticPlay();
 
 private:
@@ -108,6 +111,25 @@ void tst_QSound::testStop()
     QTest::qWait(1000);
     sound->stop();
     QTRY_VERIFY(sound->isFinished());
+}
+
+void tst_QSound::testPlayResource_data()
+{
+    QTest::addColumn<QString>("filePath");
+
+    QTest::newRow("prefix :/") << ":/test.wav";
+    QTest::newRow("prefix qrc:") << "qrc:test.wav";
+    QTest::newRow("prefix qrc:///") << "qrc:///test.wav";
+}
+
+void tst_QSound::testPlayResource()
+{
+    QFETCH(QString, filePath);
+
+    QSound snd(filePath);
+    snd.play();
+    QVERIFY(!snd.isFinished());
+    QTRY_VERIFY(snd.isFinished());
 }
 
 void tst_QSound::testStaticPlay()
