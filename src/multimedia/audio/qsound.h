@@ -76,7 +76,7 @@ private Q_SLOTS:
     void deleteOnComplete();
 
 private:
-    QSoundEffect *m_soundEffect;
+    QSoundEffect *m_soundEffect = nullptr;
 };
 
 QT_END_NAMESPACE
