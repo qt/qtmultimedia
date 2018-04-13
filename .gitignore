@@ -1,4 +1,5 @@
 Makefile*
+*.pch
 *.pdb
 *.exe
 *.dll
@@ -15,12 +16,16 @@ qrc_*.cpp
 *.moc
 .qmake.cache
 config.log
-*.pro.user
+*.pro.user*
 tmp
 *.o
 *.app
 *.dylib
 *.framework
+*_wrapper.*
+*-config.*
+*-config_p.h
+*.version*
 
 #
 # Includes
