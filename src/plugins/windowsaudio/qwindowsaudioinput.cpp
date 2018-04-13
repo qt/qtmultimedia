@@ -415,9 +415,10 @@ void QWindowsAudioInput::initMixer()
 
     // Get the Mixer ID from the Sound Device ID
     UINT mixerIntID = 0;
-    if (mixerGetID((HMIXEROBJ)(quintptr(inputDevice)), &mixerIntID, MIXER_OBJECTF_WAVEIN) != MMSYSERR_NOERROR)
+    if (mixerGetID(reinterpret_cast<HMIXEROBJ>(quintptr(inputDevice)),
+        &mixerIntID, MIXER_OBJECTF_WAVEIN) != MMSYSERR_NOERROR)
         return;
-    mixerID = (HMIXEROBJ)mixerIntID;
+    mixerID = reinterpret_cast<HMIXEROBJ>(quintptr(mixerIntID));
 
     // Get the Destination (Recording) Line Information
     MIXERLINE mixerLine;
