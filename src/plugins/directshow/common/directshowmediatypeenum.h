@@ -48,18 +48,15 @@ QT_BEGIN_NAMESPACE
 class DirectShowPin;
 class DirectShowMediaType;
 
-class DirectShowMediaTypeEnum : public DirectShowObject
-                              , public IEnumMediaTypes
+class DirectShowMediaTypeEnum : public IEnumMediaTypes
 {
-    DIRECTSHOW_OBJECT
-
+    COM_REF_MIXIN
 public:
     DirectShowMediaTypeEnum(DirectShowPin *pin);
     DirectShowMediaTypeEnum(const QList<DirectShowMediaType> &types);
-    ~DirectShowMediaTypeEnum();
+    virtual ~DirectShowMediaTypeEnum();
 
-    // DirectShowObject
-    HRESULT getInterface(REFIID riid, void **ppvObject);
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override;
 
     // IEnumMediaTypes
     STDMETHODIMP Next(ULONG cMediaTypes, AM_MEDIA_TYPE **ppMediaTypes, ULONG *pcFetched);

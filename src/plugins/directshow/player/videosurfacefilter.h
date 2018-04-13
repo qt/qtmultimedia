@@ -60,13 +60,12 @@ class VideoSurfaceFilter : public QObject
                          , public IAMFilterMiscFlags
 {
     Q_OBJECT
-    DIRECTSHOW_OBJECT
+    COM_REF_MIXIN
 public:
     VideoSurfaceFilter(QAbstractVideoSurface *surface, DirectShowEventLoop *loop, QObject *parent = 0);
     ~VideoSurfaceFilter();
 
-    // DirectShowObject
-    HRESULT getInterface(REFIID riid, void **ppvObject);
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override;
 
     // DirectShowBaseFilter
     QList<DirectShowPin *> pins();

@@ -20,7 +20,6 @@ SOURCES += \
     $$PWD/directshoweventloop.cpp \
     $$PWD/directshowmediatype.cpp \
     $$PWD/directshowmediatypeenum.cpp \
-    $$PWD/directshowobject.cpp \
     $$PWD/directshowpin.cpp \
     $$PWD/directshowpinenum.cpp \
     $$PWD/directshowvideobuffer.cpp \

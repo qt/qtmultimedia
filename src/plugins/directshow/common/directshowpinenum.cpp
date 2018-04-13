@@ -71,13 +71,18 @@ DirectShowPinEnum::~DirectShowPinEnum()
         m_filter->Release();
 }
 
-HRESULT DirectShowPinEnum::getInterface(REFIID riid, void **ppvObject)
+HRESULT DirectShowPinEnum::QueryInterface(REFIID riid, void **ppv)
 {
-    if (riid == IID_IEnumPins) {
-        return GetInterface(static_cast<IEnumPins *>(this), ppvObject);
-    } else {
-        return DirectShowObject::getInterface(riid, ppvObject);
-    }
+    if (ppv == nullptr)
+        return E_POINTER;
+    if (riid == IID_IUnknown)
+        *ppv = static_cast<IUnknown *>(this);
+    else if (riid == IID_IEnumPins)
+        *ppv = static_cast<IEnumPins *>(this);
+    else
+        return E_NOINTERFACE;
+    AddRef();
+    return S_OK;
 }
 
 HRESULT DirectShowPinEnum::Next(ULONG cPins, IPin **ppPins, ULONG *pcFetched)

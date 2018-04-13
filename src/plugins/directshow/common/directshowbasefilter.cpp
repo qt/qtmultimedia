@@ -61,17 +61,6 @@ DirectShowBaseFilter::~DirectShowBaseFilter()
     }
 }
 
-HRESULT DirectShowBaseFilter::getInterface(REFIID riid, void **ppvObject)
-{
-    if (riid == IID_IPersist
-            || riid == IID_IMediaFilter
-            || riid == IID_IBaseFilter) {
-        return GetInterface(static_cast<IBaseFilter *>(this), ppvObject);
-    } else {
-        return DirectShowObject::getInterface(riid, ppvObject);
-    }
-}
-
 HRESULT DirectShowBaseFilter::GetClassID(CLSID *pClassID)
 {
     *pClassID = CLSID_NULL;

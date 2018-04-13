@@ -59,12 +59,12 @@ DEFINE_GUID(CLSID_VideoSurfaceFilter,
 
 class VideoSurfaceInputPin : public DirectShowInputPin
 {
-    DIRECTSHOW_OBJECT
-
+    COM_REF_MIXIN
 public:
     VideoSurfaceInputPin(VideoSurfaceFilter *filter);
 
-    // DirectShowPin
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override;
+
     bool isMediaTypeSupported(const AM_MEDIA_TYPE *type) override;
     bool setMediaType(const AM_MEDIA_TYPE *type) override;
 
@@ -90,6 +90,22 @@ VideoSurfaceInputPin::VideoSurfaceInputPin(VideoSurfaceFilter *filter)
     : DirectShowInputPin(filter, QStringLiteral("Input"))
     , m_videoSurfaceFilter(filter)
 {
+}
+
+HRESULT VideoSurfaceInputPin::QueryInterface(REFIID riid, void **ppv)
+{
+    if (ppv == nullptr)
+        return E_POINTER;
+    if (riid == IID_IUnknown)
+        *ppv = static_cast<IUnknown *>(static_cast<DirectShowPin *>(this));
+    else if (riid == IID_IPin)
+        *ppv = static_cast<IPin *>(this);
+    else if (riid == IID_IMemInputPin)
+        *ppv =static_cast<IMemInputPin*>(this);
+    else
+        return E_NOINTERFACE;
+    AddRef();
+    return S_OK;
 }
 
 bool VideoSurfaceInputPin::isMediaTypeSupported(const AM_MEDIA_TYPE *type)
@@ -237,12 +253,20 @@ VideoSurfaceFilter::~VideoSurfaceFilter()
     CloseHandle(m_renderEvent);
 }
 
-HRESULT VideoSurfaceFilter::getInterface(const IID &riid, void **ppvObject)
+HRESULT VideoSurfaceFilter::QueryInterface(REFIID riid, void **ppv)
 {
-    if (riid == IID_IAMFilterMiscFlags)
-        return GetInterface(static_cast<IAMFilterMiscFlags*>(this), ppvObject);
+    if (ppv == nullptr)
+        return E_POINTER;
+    if (riid == IID_IUnknown)
+        *ppv = static_cast<IUnknown *>(static_cast<DirectShowBaseFilter *>(this));
+    else if (riid == IID_IPersist || riid == IID_IMediaFilter || riid == IID_IBaseFilter)
+        *ppv = static_cast<IBaseFilter *>(this);
+    else if (riid == IID_IAMFilterMiscFlags)
+        *ppv = static_cast<IAMFilterMiscFlags *>(this);
     else
-        return DirectShowBaseFilter::getInterface(riid, ppvObject);
+        return E_NOINTERFACE;
+    AddRef();
+    return S_OK;
 }
 
 QList<DirectShowPin *> VideoSurfaceFilter::pins()

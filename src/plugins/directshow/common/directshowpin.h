@@ -50,11 +50,8 @@ QT_BEGIN_NAMESPACE
 
 class DirectShowBaseFilter;
 
-class DirectShowPin : public DirectShowObject
-                    , public IPin
+class DirectShowPin : public IPin
 {
-    DIRECTSHOW_OBJECT
-
 public:
     virtual ~DirectShowPin();
 
@@ -69,9 +66,6 @@ public:
     virtual HRESULT connectionEnded();
 
     virtual HRESULT setActive(bool active);
-
-    // DirectShowObject
-    HRESULT getInterface(REFIID riid, void **ppvObject);
 
     // IPin
     STDMETHODIMP Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt);
@@ -120,8 +114,6 @@ private:
 
 class DirectShowOutputPin : public DirectShowPin
 {
-    DIRECTSHOW_OBJECT
-
 public:
     virtual ~DirectShowOutputPin();
 
@@ -147,15 +139,10 @@ private:
 class DirectShowInputPin : public DirectShowPin
                          , public IMemInputPin
 {
-    DIRECTSHOW_OBJECT
-
 public:
     virtual ~DirectShowInputPin();
 
     const AM_SAMPLE2_PROPERTIES *currentSampleProperties() const { return &m_sampleProperties; }
-
-    // DirectShowObject
-    HRESULT getInterface(REFIID riid, void **ppvObject);
 
     // DirectShowPin
     HRESULT connectionEnded();

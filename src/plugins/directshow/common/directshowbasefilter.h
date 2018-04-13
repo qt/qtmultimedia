@@ -44,11 +44,8 @@
 
 QT_BEGIN_NAMESPACE
 
-class DirectShowBaseFilter : public DirectShowObject
-                           , public IBaseFilter
+class DirectShowBaseFilter : public IBaseFilter
 {
-    DIRECTSHOW_OBJECT
-
 public:
     DirectShowBaseFilter();
     virtual ~DirectShowBaseFilter();
@@ -57,9 +54,6 @@ public:
     HRESULT NotifyEvent(long eventCode, LONG_PTR eventParam1, LONG_PTR eventParam2);
 
     virtual QList<DirectShowPin *> pins() = 0;
-
-    // DirectShowObject
-    HRESULT getInterface(const IID &riid, void **ppvObject);
 
     // IPersist
     STDMETHODIMP GetClassID(CLSID *pClassID);
