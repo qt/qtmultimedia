@@ -276,6 +276,7 @@ bool QPulseAudioOutput::open()
     if (!pulseEngine->context() || pa_context_get_state(pulseEngine->context()) != PA_CONTEXT_READY) {
         setError(QAudio::FatalError);
         setState(QAudio::StoppedState);
+        emit stateChanged(m_deviceState);
         return false;
     }
 
@@ -284,6 +285,7 @@ bool QPulseAudioOutput::open()
     if (!pa_sample_spec_valid(&spec)) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
+        emit stateChanged(m_deviceState);
         return false;
     }
 
@@ -336,6 +338,7 @@ bool QPulseAudioOutput::open()
         pulseEngine->unlock();
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
+        emit stateChanged(m_deviceState);
         return false;
     }
 
