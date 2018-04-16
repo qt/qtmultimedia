@@ -285,7 +285,7 @@ bool DirectShowUtils::connectFilters(IGraphBuilder *graph,
 
     // Try to connect to the upstream filter first.
     if (findAndConnect(upstreamFilter))
-        return S_OK;
+        return false;
 
     const auto getFilters = [graph, hrOut]() -> IEnumFilters * {
         IEnumFilters *f = nullptr;
@@ -304,10 +304,10 @@ bool DirectShowUtils::connectFilters(IGraphBuilder *graph,
     while (S_OK == filters->Next(1, &nextFilter, 0)) {
         const ScopedSafeRelease<IBaseFilter> releaseNextFilter { &nextFilter };
         if (nextFilter && findAndConnect(nextFilter))
-            break;
+            return true;
     }
 
-    return SUCCEEDED(*hrOut);
+    return false;
 }
 
 QT_END_NAMESPACE
