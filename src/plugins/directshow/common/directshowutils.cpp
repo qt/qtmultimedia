@@ -150,7 +150,7 @@ bool DirectShowUtils::matchPin(IPin *pin, PIN_DIRECTION pinDirection, BOOL shoul
     if (isConnected == shouldBeConnected)
         return hasPinDirection(pin, pinDirection, hrOut);
 
-    return SUCCEEDED(*hrOut);
+    return false;
 }
 
 /**
