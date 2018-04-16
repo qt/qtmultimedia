@@ -183,9 +183,6 @@ bool DirectShowUtils::findUnconnectedPin(IBaseFilter *filter, PIN_DIRECTION pinD
             (*pin)->AddRef();
             return true;
         }
-
-        if (FAILED(*hrOut))
-            return false;
     }
 
     qCDebug(qtDirectShowPlugin, "No unconnected pins found");
