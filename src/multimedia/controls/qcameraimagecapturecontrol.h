@@ -69,13 +69,13 @@ public:
     virtual void cancelCapture() = 0;
 
 Q_SIGNALS:
-    void readyForCaptureChanged(bool);
+    void readyForCaptureChanged(bool ready);
 
-    void imageExposed(int id);
-    void imageCaptured(int id, const QImage &preview);
+    void imageExposed(int requestId);
+    void imageCaptured(int requestId, const QImage &preview);
     void imageMetadataAvailable(int id, const QString &key, const QVariant &value);
-    void imageAvailable(int id, const QVideoFrame &buffer);
-    void imageSaved(int id, const QString &fileName);
+    void imageAvailable(int requestId, const QVideoFrame &buffer);
+    void imageSaved(int requestId, const QString &fileName);
 
     void error(int id, int error, const QString &errorString);
 

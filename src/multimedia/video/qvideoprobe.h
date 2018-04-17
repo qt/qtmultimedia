@@ -62,7 +62,7 @@ public:
     bool isActive() const;
 
 Q_SIGNALS:
-    void videoFrameProbed(const QVideoFrame &videoFrame);
+    void videoFrameProbed(const QVideoFrame &frame);
     void flush();
 
 private:

@@ -708,8 +708,6 @@ QMediaServiceProviderHint::Features QMediaServiceProvider::supportedFeatures(con
 }
 
 /*!
-    \fn QMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray &serviceType, const QString &mimeType, const QStringList& codecs, int flags) const
-
     Returns how confident a media service provider is that is can provide a \a
     serviceType service that is able to play media of a specific \a mimeType
     that is encoded using the listed \a codecs while adhering to constraints

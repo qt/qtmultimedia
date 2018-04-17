@@ -104,9 +104,9 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 */
 
 /*!
-    \fn QMediaPlayerControl::stateChanged(QMediaPlayer::State state)
+    \fn QMediaPlayerControl::stateChanged(QMediaPlayer::State newState)
 
-    Signals that the \a state of a player control has changed.
+    Signals that the state of a player control has changed to \a newState.
 
     \sa state()
 */
@@ -231,9 +231,9 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 */
 
 /*!
-    \fn QMediaPlayerControl::audioAvailableChanged(bool audio)
+    \fn QMediaPlayerControl::audioAvailableChanged(bool audioAvailable)
 
-    Signals that there has been a change in the availability of \a audio output.
+    Signals that there has been a change in the availability of audio output \a audioAvailable.
 
     \sa isAudioAvailable()
 */

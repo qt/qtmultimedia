@@ -95,7 +95,7 @@ public:
     QAudio::State state() const;
 
 Q_SIGNALS:
-    void stateChanged(QAudio::State);
+    void stateChanged(QAudio::State state);
     void notify();
 
 private:

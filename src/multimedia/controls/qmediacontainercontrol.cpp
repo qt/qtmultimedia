@@ -111,9 +111,9 @@ QMediaContainerControl::~QMediaContainerControl()
 */
 
 /*!
-    \fn QMediaContainerControl::containerDescription(const QString &format) const
+    \fn QMediaContainerControl::containerDescription(const QString &formatMimeType) const
 
-    Returns a description of the container \a format.
+    Returns a description of the container \a formatMimeType.
 */
 
 #include "moc_qmediacontainercontrol.cpp"

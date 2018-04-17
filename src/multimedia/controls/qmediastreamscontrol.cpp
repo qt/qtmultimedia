@@ -113,30 +113,30 @@ QMediaStreamsControl::~QMediaStreamsControl()
 */
 
 /*!
-    \fn QMediaStreamsControl::streamType(int stream)
+    \fn QMediaStreamsControl::streamType(int streamNumber)
 
-    Return the type of a media \a stream.
+    Return the type of media stream \a streamNumber.
 */
 
 /*!
-    \fn QMediaStreamsControl::metaData(int stream, const QString &key)
+    \fn QMediaStreamsControl::metaData(int streamNumber, const QString &key)
 
-    Returns the meta-data value of \a key for a given \a stream.
+    Returns the meta-data value of \a key for the given \a streamNumber.
 
     Useful metadata keys are QMediaMetaData::Title,
     QMediaMetaData::Description and QMediaMetaData::Language.
 */
 
 /*!
-    \fn QMediaStreamsControl::isActive(int stream)
+    \fn QMediaStreamsControl::isActive(int streamNumber)
 
-    Returns true if the media \a stream is active.
+    Returns true if the media stream \a streamNumber is active.
 */
 
 /*!
-    \fn QMediaStreamsControl::setActive(int stream, bool state)
+    \fn QMediaStreamsControl::setActive(int streamNumber, bool state)
 
-    Sets the active \a state of a media \a stream.
+    Sets the active \a state of media stream \a streamNumber.
 
     Setting the active state of a media stream to true will activate it.  If any other stream
     of the same type was previously active it will be deactivated. Setting the active state fo a

@@ -232,15 +232,15 @@ public Q_SLOTS:
     void unlock(QCamera::LockTypes locks);
 
 Q_SIGNALS:
-    void stateChanged(QCamera::State);
+    void stateChanged(QCamera::State state);
     void captureModeChanged(QCamera::CaptureModes);
-    void statusChanged(QCamera::Status);
+    void statusChanged(QCamera::Status status);
 
     void locked();
     void lockFailed();
 
-    void lockStatusChanged(QCamera::LockStatus, QCamera::LockChangeReason);
-    void lockStatusChanged(QCamera::LockType, QCamera::LockStatus, QCamera::LockChangeReason);
+    void lockStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason);
+    void lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason);
 
     void error(QCamera::Error);
 

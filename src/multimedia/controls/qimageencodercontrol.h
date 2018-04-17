@@ -54,9 +54,6 @@ QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
-
 class Q_MULTIMEDIA_EXPORT QImageEncoderControl : public QMediaControl
 {
     Q_OBJECT
@@ -65,7 +62,7 @@ public:
     virtual ~QImageEncoderControl();
 
     virtual QStringList supportedImageCodecs() const = 0;
-    virtual QString imageCodecDescription(const QString &codecName) const = 0;
+    virtual QString imageCodecDescription(const QString &codec) const = 0;
 
     virtual QList<QSize> supportedResolutions(const QImageEncoderSettings &settings,
                                               bool *continuous = nullptr) const = 0;

@@ -184,7 +184,6 @@ QMediaTimeInterval QMediaTimeInterval::translated(qint64 offset) const
 }
 
 /*!
-    \fn operator==(const QMediaTimeInterval &a, const QMediaTimeInterval &b)
     \relates QMediaTimeRange
 
     Returns true if \a a is exactly equal to \a b.
@@ -195,7 +194,6 @@ bool operator==(const QMediaTimeInterval &a, const QMediaTimeInterval &b)
 }
 
 /*!
-    \fn operator!=(const QMediaTimeInterval &a, const QMediaTimeInterval &b)
     \relates QMediaTimeRange
 
     Returns true if \a a is not exactly equal to \a b.
@@ -396,8 +394,6 @@ QMediaTimeRange::~QMediaTimeRange()
 }
 
 /*!
-    \fn QMediaTimeRange::operator=(const QMediaTimeRange &other)
-
     Takes a copy of the \a other time range and returns itself.
 */
 QMediaTimeRange &QMediaTimeRange::operator=(const QMediaTimeRange &other)
@@ -407,8 +403,6 @@ QMediaTimeRange &QMediaTimeRange::operator=(const QMediaTimeRange &other)
 }
 
 /*!
-    \fn QMediaTimeRange::operator=(const QMediaTimeInterval &interval)
-
     Sets the time range to a single continuous interval, \a interval.
 */
 QMediaTimeRange &QMediaTimeRange::operator=(const QMediaTimeInterval &interval)
@@ -486,8 +480,6 @@ void QMediaTimeRange::addInterval(const QMediaTimeInterval &interval)
 }
 
 /*!
-    \fn QMediaTimeRange::addTimeRange(const QMediaTimeRange &range)
-
     Adds each of the intervals in \a range to this time range.
 
     Equivalent to calling addInterval() for each interval in \a range.
@@ -536,8 +528,6 @@ void QMediaTimeRange::removeInterval(const QMediaTimeInterval &interval)
 }
 
 /*!
-    \fn QMediaTimeRange::removeTimeRange(const QMediaTimeRange &range)
-
     Removes each of the intervals in \a range from this time range.
 
     Equivalent to calling removeInterval() for each interval in \a range.
@@ -551,8 +541,6 @@ void QMediaTimeRange::removeTimeRange(const QMediaTimeRange &range)
 }
 
 /*!
-    \fn QMediaTimeRange::operator+=(const QMediaTimeRange &other)
-
     Adds each interval in \a other to the time range and returns the result.
 */
 QMediaTimeRange& QMediaTimeRange::operator+=(const QMediaTimeRange &other)
@@ -562,8 +550,6 @@ QMediaTimeRange& QMediaTimeRange::operator+=(const QMediaTimeRange &other)
 }
 
 /*!
-    \fn QMediaTimeRange::operator+=(const QMediaTimeInterval &interval)
-
     Adds the specified \a interval to the time range and returns the result.
 */
 QMediaTimeRange& QMediaTimeRange::operator+=(const QMediaTimeInterval &interval)
@@ -573,8 +559,6 @@ QMediaTimeRange& QMediaTimeRange::operator+=(const QMediaTimeInterval &interval)
 }
 
 /*!
-    \fn QMediaTimeRange::operator-=(const QMediaTimeRange &other)
-
     Removes each interval in \a other from the time range and returns the result.
 */
 QMediaTimeRange& QMediaTimeRange::operator-=(const QMediaTimeRange &other)
@@ -584,8 +568,6 @@ QMediaTimeRange& QMediaTimeRange::operator-=(const QMediaTimeRange &other)
 }
 
 /*!
-    \fn QMediaTimeRange::operator-=(const QMediaTimeInterval &interval)
-
     Removes the specified \a interval from the time range and returns the result.
 */
 QMediaTimeRange& QMediaTimeRange::operator-=(const QMediaTimeInterval &interval)
@@ -658,7 +640,6 @@ bool QMediaTimeRange::contains(qint64 time) const
 }
 
 /*!
-    \fn operator==(const QMediaTimeRange &a, const QMediaTimeRange &b)
     \relates QMediaTimeRange
 
     Returns true if all intervals in \a a are present in \a b.
@@ -669,7 +650,6 @@ bool operator==(const QMediaTimeRange &a, const QMediaTimeRange &b)
 }
 
 /*!
-    \fn operator!=(const QMediaTimeRange &a, const QMediaTimeRange &b)
     \relates QMediaTimeRange
 
     Returns true if one or more intervals in \a a are not present in \a b.
@@ -680,7 +660,6 @@ bool operator!=(const QMediaTimeRange &a, const QMediaTimeRange &b)
 }
 
 /*!
-    \fn operator+(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
     \relates QMediaTimeRange
 
     Returns a time range containing the union between \a r1 and \a r2.
@@ -691,7 +670,6 @@ QMediaTimeRange operator+(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
 }
 
 /*!
-    \fn operator-(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
     \relates QMediaTimeRange
 
     Returns a time range containing \a r2 subtracted from \a r1.

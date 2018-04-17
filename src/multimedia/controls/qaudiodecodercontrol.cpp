@@ -96,9 +96,9 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
 */
 
 /*!
-    \fn QAudioDecoderControl::stateChanged(QAudioDecoder::State state)
+    \fn QAudioDecoderControl::stateChanged(QAudioDecoder::State newState)
 
-    Signals that the \a state of a player control has changed.
+    Signals that the state of a player control has changed to \a newState.
 
     \sa state()
 */

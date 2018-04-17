@@ -98,7 +98,7 @@ public:
     void setCategory(const QString &category);
 
 Q_SIGNALS:
-    void stateChanged(QAudio::State);
+    void stateChanged(QAudio::State state);
     void notify();
 
 private:

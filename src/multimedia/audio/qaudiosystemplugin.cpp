@@ -90,7 +90,9 @@ QAudioSystemPluginExtension::~QAudioSystemPluginExtension()
 */
 
 /*!
-    Construct a new audio plugin with \a parent.
+    \fn QAudioSystemPlugin::QAudioSystemPlugin(QObject* parent)
+
+    Constructs a new audio plugin with \a parent.
     This is invoked automatically by the Q_PLUGIN_METADATA() macro.
 */
 
@@ -99,9 +101,10 @@ QAudioSystemPlugin::QAudioSystemPlugin(QObject* parent) :
 {}
 
 /*!
-   Destroy the audio plugin
+    \fn QAudioSystemPlugin::~QAudioSystemPlugin()
 
-   You never have to call this explicitly. Qt destroys a plugin automatically when it is no longer used.
+    Destroys the audio plugin.
+    You never have to call this explicitly. Qt destroys a plugin automatically when it is no longer used.
 */
 
 QAudioSystemPlugin::~QAudioSystemPlugin()
