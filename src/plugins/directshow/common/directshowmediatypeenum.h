@@ -59,10 +59,10 @@ public:
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override;
 
     // IEnumMediaTypes
-    STDMETHODIMP Next(ULONG cMediaTypes, AM_MEDIA_TYPE **ppMediaTypes, ULONG *pcFetched);
-    STDMETHODIMP Skip(ULONG cMediaTypes);
-    STDMETHODIMP Reset();
-    STDMETHODIMP Clone(IEnumMediaTypes **ppEnum);
+    STDMETHODIMP Next(ULONG cMediaTypes, AM_MEDIA_TYPE **ppMediaTypes, ULONG *pcFetched) override;
+    STDMETHODIMP Skip(ULONG cMediaTypes) override;
+    STDMETHODIMP Reset() override;
+    STDMETHODIMP Clone(IEnumMediaTypes **ppEnum) override;
 
 private:
     Q_DISABLE_COPY(DirectShowMediaTypeEnum)

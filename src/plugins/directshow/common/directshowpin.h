@@ -115,15 +115,15 @@ private:
 class DirectShowOutputPin : public DirectShowPin
 {
 public:
-    virtual ~DirectShowOutputPin();
+    ~DirectShowOutputPin() override;
 
     // DirectShowPin
-    virtual HRESULT completeConnection(IPin *pin);
-    virtual HRESULT connectionEnded();
-    virtual HRESULT setActive(bool active);
+    HRESULT completeConnection(IPin *pin) override;
+    HRESULT connectionEnded() override;
+    HRESULT setActive(bool active) override;
 
     // IPin
-    STDMETHODIMP EndOfStream();
+    STDMETHODIMP EndOfStream() override;
 
 protected:
     DirectShowOutputPin(DirectShowBaseFilter *filter, const QString &name);

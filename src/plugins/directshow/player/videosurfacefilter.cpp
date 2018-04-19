@@ -68,19 +68,19 @@ public:
     bool isMediaTypeSupported(const AM_MEDIA_TYPE *type) override;
     bool setMediaType(const AM_MEDIA_TYPE *type) override;
 
-    HRESULT completeConnection(IPin *pin);
-    HRESULT connectionEnded();
+    HRESULT completeConnection(IPin *pin) override;
+    HRESULT connectionEnded() override;
 
     // IPin
-    STDMETHODIMP ReceiveConnection(IPin *pConnector, const AM_MEDIA_TYPE *pmt);
-    STDMETHODIMP Disconnect();
-    STDMETHODIMP EndOfStream();
-    STDMETHODIMP BeginFlush();
-    STDMETHODIMP EndFlush();
+    STDMETHODIMP ReceiveConnection(IPin *pConnector, const AM_MEDIA_TYPE *pmt) override;
+    STDMETHODIMP Disconnect() override;
+    STDMETHODIMP EndOfStream() override;
+    STDMETHODIMP BeginFlush() override;
+    STDMETHODIMP EndFlush() override;
 
     // IMemInputPin
-    STDMETHODIMP GetAllocatorRequirements(ALLOCATOR_PROPERTIES *pProps);
-    STDMETHODIMP Receive(IMediaSample *pMediaSample);
+    STDMETHODIMP GetAllocatorRequirements(ALLOCATOR_PROPERTIES *pProps) override;
+    STDMETHODIMP Receive(IMediaSample *pMediaSample) override;
 
 private:
     VideoSurfaceFilter *m_videoSurfaceFilter;

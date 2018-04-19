@@ -68,18 +68,18 @@ public:
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override;
 
     // DirectShowBaseFilter
-    QList<DirectShowPin *> pins();
+    QList<DirectShowPin *> pins() override;
 
     // IPersist
-    STDMETHODIMP GetClassID(CLSID *pClassID);
+    STDMETHODIMP GetClassID(CLSID *pClassID) override;
 
     // IMediaFilter
-    STDMETHODIMP Run(REFERENCE_TIME tStart);
-    STDMETHODIMP Pause();
-    STDMETHODIMP Stop();
+    STDMETHODIMP Run(REFERENCE_TIME tStart) override;
+    STDMETHODIMP Pause() override;
+    STDMETHODIMP Stop() override;
 
     // IAMFilterMiscFlags
-    STDMETHODIMP_(ULONG) GetMiscFlags();
+    STDMETHODIMP_(ULONG) GetMiscFlags() override;
 
     // DirectShowPin (delegate)
     bool isMediaTypeSupported(const AM_MEDIA_TYPE *type);
@@ -108,7 +108,7 @@ private:
         RenderSample = QEvent::User + 4
     };
 
-    bool event(QEvent *);
+    bool event(QEvent *) override;
 
     bool startSurface();
     void stopSurface();

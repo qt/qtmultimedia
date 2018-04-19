@@ -48,7 +48,7 @@ class DirectShowBaseFilter : public IBaseFilter
 {
 public:
     DirectShowBaseFilter();
-    virtual ~DirectShowBaseFilter();
+    ~DirectShowBaseFilter();
 
     FILTER_STATE state() const { return m_state; }
     HRESULT NotifyEvent(long eventCode, LONG_PTR eventParam1, LONG_PTR eventParam2);
