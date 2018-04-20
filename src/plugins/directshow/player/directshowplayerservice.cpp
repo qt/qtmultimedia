@@ -521,9 +521,9 @@ void DirectShowPlayerService::doRender(QMutexLocker *locker)
                         peer->Release();
                     } else {
                         locker->unlock();
-                        HRESULT hr;
-                        if (SUCCEEDED(hr = graph->RenderEx(
-                                pin, /*AM_RENDEREX_RENDERTOEXISTINGRENDERERS*/ 1, 0))) {
+                        HRESULT hr = graph->RenderEx(pin, /*AM_RENDEREX_RENDERTOEXISTINGRENDERERS*/ 1, 0);
+                        // Do not return an error if no video output is set yet.
+                        if (SUCCEEDED(hr) || !(m_executedTasks & SetVideoOutput)) {
                             rendered = true;
                         } else if (renderHr == S_OK || renderHr == VFW_E_NO_DECOMPRESSOR){
                             renderHr = hr;
