@@ -51,9 +51,6 @@ QT_BEGIN_NAMESPACE
 
 class QIODevice;
 
-// Required for QDoc workaround
-class QString;
-
 class Q_MULTIMEDIA_EXPORT QAbstractAudioDeviceInfo : public QObject
 {
     Q_OBJECT
@@ -99,8 +96,8 @@ public:
     virtual void setCategory(const QString &) { }
 
 Q_SIGNALS:
-    void errorChanged(QAudio::Error);
-    void stateChanged(QAudio::State);
+    void errorChanged(QAudio::Error error);
+    void stateChanged(QAudio::State state);
     void notify();
 };
 
@@ -131,8 +128,8 @@ public:
     virtual qreal volume() const = 0;
 
 Q_SIGNALS:
-    void errorChanged(QAudio::Error);
-    void stateChanged(QAudio::State);
+    void errorChanged(QAudio::Error error);
+    void stateChanged(QAudio::State state);
     void notify();
 };
 

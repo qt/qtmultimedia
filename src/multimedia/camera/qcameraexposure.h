@@ -160,7 +160,7 @@ Q_SIGNALS:
 
     void apertureChanged(qreal);
     void apertureRangeChanged();
-    void shutterSpeedChanged(qreal);
+    void shutterSpeedChanged(qreal speed);
     void shutterSpeedRangeChanged();
     void isoSensitivityChanged(int);
     void exposureCompensationChanged(qreal);

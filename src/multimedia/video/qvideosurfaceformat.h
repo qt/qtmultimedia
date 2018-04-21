@@ -71,7 +71,7 @@ public:
         YCbCr_xvYCC601,
         YCbCr_xvYCC709,
         YCbCr_JPEG,
-#ifndef qdoc
+#ifndef Q_QDOC
         YCbCr_CustomMatrix
 #endif
     };

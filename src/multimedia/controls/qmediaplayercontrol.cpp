@@ -104,9 +104,9 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 */
 
 /*!
-    \fn QMediaPlayerControl::stateChanged(QMediaPlayer::State state)
+    \fn QMediaPlayerControl::stateChanged(QMediaPlayer::State newState)
 
-    Signals that the \a state of a player control has changed.
+    Signals that the state of a player control has changed to \a newState.
 
     \sa state()
 */
@@ -215,9 +215,9 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 */
 
 /*!
-    \fn QMediaPlayerControl::bufferStatusChanged(int progress)
+    \fn QMediaPlayerControl::bufferStatusChanged(int percentFilled)
 
-    Signals that buffering \a progress has changed.
+    Signal the amount of the local buffer filled as a percentage by \a percentFilled.
 
     \sa bufferStatus()
 */
@@ -231,9 +231,9 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 */
 
 /*!
-    \fn QMediaPlayerControl::audioAvailableChanged(bool audio)
+    \fn QMediaPlayerControl::audioAvailableChanged(bool audioAvailable)
 
-    Signals that there has been a change in the availability of \a audio output.
+    Signals that there has been a change in the availability of audio output \a audioAvailable.
 
     \sa isAudioAvailable()
 */
@@ -247,9 +247,9 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 */
 
 /*!
-    \fn QMediaPlayerControl::videoAvailableChanged(bool video)
+    \fn QMediaPlayerControl::videoAvailableChanged(bool videoAvailable)
 
-    Signals that there has been a change in the availability of \a video output.
+    Signal that the availability of visual content has changed to \a videoAvailable.
 
     \sa isVideoAvailable()
 */

@@ -175,6 +175,11 @@ static void addTagToMap(const GstTagList *list,
 }
 
 /*!
+    \class QGstUtils
+    \internal
+/*
+
+/*!
   Convert GstTagList structure to QMap<QByteArray, QVariant>.
 
   Mapping to int, bool, char, string, fractions and date are supported.
@@ -190,7 +195,7 @@ QMap<QByteArray, QVariant> QGstUtils::gstTagListToMap(const GstTagList *tags)
 
 /*!
   Returns resolution of \a caps.
-  If caps doesn't have a valid size, and ampty QSize is returned.
+  If caps doesn't have a valid size, an empty QSize is returned.
 */
 QSize QGstUtils::capsResolution(const GstCaps *caps)
 {
@@ -361,7 +366,7 @@ QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
 }
 
 #if GST_CHECK_VERSION(1,0,0)
-/*!
+/*
   Returns audio format for a sample.
   If the buffer doesn't have a valid audio format, an empty QAudioFormat is returned.
 */

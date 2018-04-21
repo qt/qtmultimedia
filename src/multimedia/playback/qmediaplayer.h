@@ -61,7 +61,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaObject
     Q_OBJECT
     Q_PROPERTY(QMediaContent media READ media WRITE setMedia NOTIFY mediaChanged)
     Q_PROPERTY(QMediaContent currentMedia READ currentMedia NOTIFY currentMediaChanged)
-    Q_PROPERTY(QMediaPlaylist * playlist READ playlist WRITE setPlaylist)
+    Q_PROPERTY(QMediaPlaylist* playlist READ playlist WRITE setPlaylist)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)

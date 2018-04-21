@@ -62,7 +62,7 @@ public:
     bool isActive() const;
 
 Q_SIGNALS:
-    void audioBufferProbed(const QAudioBuffer &audioBuffer);
+    void audioBufferProbed(const QAudioBuffer &buffer);
     void flush();
 
 private:

@@ -124,14 +124,14 @@ public Q_SLOTS:
 Q_SIGNALS:
     void error(int id, QCameraImageCapture::Error error, const QString &errorString);
 
-    void readyForCaptureChanged(bool);
-    void bufferFormatChanged(QVideoFrame::PixelFormat);
-    void captureDestinationChanged(QCameraImageCapture::CaptureDestinations);
+    void readyForCaptureChanged(bool ready);
+    void bufferFormatChanged(QVideoFrame::PixelFormat format);
+    void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
 
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);
     void imageMetadataAvailable(int id, const QString &key, const QVariant &value);
-    void imageAvailable(int id, const QVideoFrame &image);
+    void imageAvailable(int id, const QVideoFrame &frame);
     void imageSaved(int id, const QString &fileName);
 
 protected:

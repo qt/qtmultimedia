@@ -478,11 +478,11 @@ QCameraImageProcessing *QCamera::imageProcessing() const
 }
 
 /*!
-  Sets the QVideoWidget based camera \a viewfinder.
-  The previously set viewfinder is detached.
-*/
+    Sets the QVideoWidget based camera \a viewfinder.
+    The previously set viewfinder is detached.
 
-// QVideoWidget is forward declared
+    //! QVideoWidget is forward declared.
+*/
 void QCamera::setViewfinder(QVideoWidget *viewfinder)
 {
     Q_D(QCamera);
@@ -498,10 +498,11 @@ void QCamera::setViewfinder(QVideoWidget *viewfinder)
 }
 
 /*!
-  Sets the QGraphicsVideoItem based camera \a viewfinder.
-  The previously set viewfinder is detached.
+    Sets the QGraphicsVideoItem based camera \a viewfinder.
+    The previously set viewfinder is detached.
+
+    //! QGraphicsVideoItem is forward declared.
 */
-// QGraphicsVideoItem is forward declared
 void QCamera::setViewfinder(QGraphicsVideoItem *viewfinder)
 {
     Q_D(QCamera);

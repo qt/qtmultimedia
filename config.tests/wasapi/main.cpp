@@ -29,6 +29,7 @@
 #include <Audioclient.h>
 #include <wrl.h>
 #include <mmdeviceapi.h>
+#include <windows.devices.enumeration.h> // clang-cl 6.0.0 chokes on this
 
 class AudioInterface : public Microsoft::WRL::RuntimeClass<Microsoft::WRL::RuntimeClassFlags
         <Microsoft::WRL::Delegate>, Microsoft::WRL::FtmBase, IActivateAudioInterfaceCompletionHandler>

@@ -71,7 +71,7 @@ public:
                                              bool *continuous = nullptr) const = 0;
 
     virtual QStringList supportedVideoCodecs() const = 0;
-    virtual QString videoCodecDescription(const QString &codecName) const = 0;
+    virtual QString videoCodecDescription(const QString &codec) const = 0;
 
     virtual QVideoEncoderSettings videoSettings() const = 0;
     virtual void setVideoSettings(const QVideoEncoderSettings &settings) = 0;

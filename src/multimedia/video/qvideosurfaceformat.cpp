@@ -464,7 +464,7 @@ bool QVideoSurfaceFormat::isMirrored() const
 }
 
 /*!
-    Sets if the surface is mirrored around its vertical axis.
+    Sets if the surface is \a mirrored around its vertical axis.
     This is typically needed for video frames coming from a front camera of a mobile device.
     Default value is false.
 

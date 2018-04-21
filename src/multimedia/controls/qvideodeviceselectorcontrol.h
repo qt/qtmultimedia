@@ -67,7 +67,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void selectedDeviceChanged(int index);
-    void selectedDeviceChanged(const QString &deviceName);
+    void selectedDeviceChanged(const QString &name);
     void devicesChanged();
 
 protected:

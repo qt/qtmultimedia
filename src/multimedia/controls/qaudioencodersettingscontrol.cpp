@@ -98,9 +98,9 @@ QAudioEncoderSettingsControl::~QAudioEncoderSettingsControl()
 */
 
 /*!
-  \fn QAudioEncoderSettingsControl::codecDescription(const QString &codec) const
+  \fn QAudioEncoderSettingsControl::codecDescription(const QString &codecName) const
 
-  Returns description of audio \a codec.
+  Returns the description of audio codec \a codecName.
 */
 
 /*!

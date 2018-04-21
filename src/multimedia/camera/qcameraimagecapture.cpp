@@ -632,9 +632,9 @@ void QCameraImageCapture::cancelCapture()
 */
 
 /*!
-    \fn QCameraImageCapture::imageAvailable(int id, const QVideoFrame &buffer)
+    \fn QCameraImageCapture::imageAvailable(int id, const QVideoFrame &frame)
 
-    Signal emitted when the frame with request \a id is available as \a buffer.
+    Signal emitted when the \a frame with request \a id is available.
 */
 
 /*!

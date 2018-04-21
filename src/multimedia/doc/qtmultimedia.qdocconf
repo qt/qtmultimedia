@@ -4,6 +4,9 @@ project                 = QtMultimedia
 description             = Qt Multimedia Documentation
 version                 = $QT_VERSION
 
+moduleheader            = QtMultimediaDoc
+includepaths            = -I .
+
 # The following parameters are for creating a qhp file, the qhelpgenerator
 # program can convert the qhp file into a qch file which can be opened in
 # Qt Assistant and/or Qt Creator.
