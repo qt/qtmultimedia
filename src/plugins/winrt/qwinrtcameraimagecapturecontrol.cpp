@@ -106,6 +106,12 @@ struct CaptureRequest
     ComPtr<IAsyncAction> op;
 };
 
+// Do not use CoTaskMemFree directly for image cleanup as it leads to crashes in release
+static void freeImageData(void *data)
+{
+    CoTaskMemFree(data);
+}
+
 class QWinRTCameraImageCaptureControlPrivate
 {
 public:
@@ -296,7 +302,7 @@ HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncI
     hr = frame->get_PixelWidth(&pixelWidth);
     Q_ASSERT_SUCCEEDED(hr);
     const QImage image(pixelData, pixelWidth, pixelHeight, QImage::Format_RGBA8888,
-                       reinterpret_cast<QImageCleanupFunction>(&CoTaskMemFree), pixelData);
+                       reinterpret_cast<QImageCleanupFunction>(&freeImageData), pixelData);
     emit imageCaptured(request.id, image);
 
     QWinRTImageEncoderControl *imageEncoderControl = static_cast<QWinRTImageEncoderControl*>(d->cameraControl->imageEncoderControl());
