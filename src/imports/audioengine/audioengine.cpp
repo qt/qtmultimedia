@@ -51,13 +51,6 @@
 #include "qdeclarative_audiosample_p.h"
 #include "qdeclarative_attenuationmodel_p.h"
 
-static void initResources()
-{
-#ifdef QT_STATIC
-    Q_INIT_RESOURCE(qmake_QtAudioEngine);
-#endif
-}
-
 QT_BEGIN_NAMESPACE
 
 class QAudioEngineDeclarativeModule : public QQmlExtensionPlugin
@@ -66,7 +59,7 @@ class QAudioEngineDeclarativeModule : public QQmlExtensionPlugin
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 
 public:
-    QAudioEngineDeclarativeModule(QObject *parent = 0) : QQmlExtensionPlugin(parent) { initResources(); }
+    QAudioEngineDeclarativeModule(QObject *parent = 0) : QQmlExtensionPlugin(parent) { }
     void registerTypes(const char *uri) override
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtAudioEngine"));

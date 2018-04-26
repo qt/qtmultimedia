@@ -63,13 +63,6 @@
 
 QML_DECLARE_TYPE(QSoundEffect)
 
-static void initResources()
-{
-#ifdef QT_STATIC
-    Q_INIT_RESOURCE(qmake_QtMultimedia);
-#endif
-}
-
 QT_BEGIN_NAMESPACE
 
 static QObject *multimedia_global_object(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
@@ -84,7 +77,7 @@ class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 
 public:
-    QMultimediaDeclarativeModule(QObject *parent = 0) : QQmlExtensionPlugin(parent) { initResources(); }
+    QMultimediaDeclarativeModule(QObject *parent = 0) : QQmlExtensionPlugin(parent) { }
     void registerTypes(const char *uri) override
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia"));
