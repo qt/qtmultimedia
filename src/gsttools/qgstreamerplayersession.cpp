@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamerplayersession.h"
+#include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamerbushelper_p.h>
 
 #include <private/qgstreameraudioprobecontrol_p.h>

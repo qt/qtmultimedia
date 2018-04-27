@@ -37,14 +37,25 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERPLAYERSESSION_H
-#define QGSTREAMERPLAYERSESSION_H
+#ifndef QGSTREAMERPLAYERSESSION_P_H
+#define QGSTREAMERPLAYERSESSION_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QObject>
 #include <QtCore/qmutex.h>
 #include <QtNetwork/qnetworkrequest.h>
-#include "qgstreamerplayercontrol.h"
+#include <private/qgstreamerplayercontrol_p.h>
 #include <private/qgstreamerbushelper_p.h>
 #include <qmediaplayer.h>
 #include <qmediastreamscontrol.h>
@@ -71,8 +82,9 @@ typedef enum {
   GST_AUTOPLUG_SELECT_SKIP
 } GstAutoplugSelectResult;
 
-class QGstreamerPlayerSession : public QObject,
-                                public QGstreamerBusMessageFilter
+class Q_GSTTOOLS_EXPORT QGstreamerPlayerSession
+    : public QObject
+    , public QGstreamerBusMessageFilter
 {
 Q_OBJECT
 Q_INTERFACES(QGstreamerBusMessageFilter)
