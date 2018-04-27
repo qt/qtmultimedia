@@ -177,7 +177,7 @@ static void addTagToMap(const GstTagList *list,
 /*!
     \class QGstUtils
     \internal
-/*
+*/
 
 /*!
   Convert GstTagList structure to QMap<QByteArray, QVariant>.
