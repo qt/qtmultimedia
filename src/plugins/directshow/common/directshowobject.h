@@ -44,38 +44,20 @@
 
 QT_BEGIN_NAMESPACE
 
-class DirectShowObject
-{
-public:
-    DirectShowObject();
-    virtual ~DirectShowObject();
-
-    virtual HRESULT getInterface(REFIID riid, void **ppvObject);
-    ULONG ref();
-    ULONG unref();
-
-private:
-    Q_DISABLE_COPY(DirectShowObject)
-
-    volatile LONG m_ref;
-};
-
-HRESULT GetInterface(IUnknown *pUnk, void **ppv);
-
-#define DIRECTSHOW_OBJECT \
-public: \
-    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) {          \
-        if (riid == IID_IUnknown)                                   \
-            return GetInterface(reinterpret_cast<IUnknown*>(this), ppv); \
-        else                                                        \
-            return getInterface(riid, ppv);                         \
-    };                                                              \
-    STDMETHODIMP_(ULONG) AddRef() {                                 \
-        return ref();                                               \
-    };                                                              \
-    STDMETHODIMP_(ULONG) Release() {                                \
-        return unref();                                             \
-    };
+#define COM_REF_MIXIN \
+    volatile ULONG m_ref = 1;                              \
+public:                                                    \
+    STDMETHODIMP_(ULONG) AddRef() override                 \
+    {                                                      \
+        return InterlockedIncrement(&m_ref);               \
+    }                                                      \
+    STDMETHODIMP_(ULONG) Release() override                \
+    {                                                      \
+        const ULONG ref = InterlockedDecrement(&m_ref);    \
+        if (ref == 0)                                      \
+            delete this;                                   \
+        return ref;                                        \
+    }
 
 QT_END_NAMESPACE
 

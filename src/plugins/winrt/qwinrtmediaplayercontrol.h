@@ -93,8 +93,6 @@ public:
     QVideoRendererControl *videoRendererControl();
 
 private:
-    Q_INVOKABLE void finishRead();
-
     QScopedPointer<QWinRTMediaPlayerControlPrivate, QWinRTMediaPlayerControlPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QWinRTMediaPlayerControl)
 };

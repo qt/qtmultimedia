@@ -66,11 +66,11 @@ class PrivateSoundSource : public QIODevice
     friend class QSoundEffectPrivate;
     Q_OBJECT
 public:
-    PrivateSoundSource(QSoundEffectPrivate* s);
+    PrivateSoundSource(QSoundEffectPrivate *s);
     ~PrivateSoundSource() {}
 
-    qint64 readData( char* data, qint64 len) override;
-    qint64 writeData(const char* data, qint64 len) override;
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
 
 private Q_SLOTS:
     void sampleReady();
@@ -101,7 +101,7 @@ class QSoundEffectPrivate : public QObject
     Q_OBJECT
 public:
 
-    explicit QSoundEffectPrivate(QObject* parent);
+    explicit QSoundEffectPrivate(QObject *parent);
     ~QSoundEffectPrivate();
 
     static QStringList supportedMimeTypes();

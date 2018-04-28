@@ -423,7 +423,7 @@ public:
         HRESULT hr;
         hr = MFCreateAsyncResult(readResult.Get(), callback, state, &asyncResult);
         RETURN_HR_IF_FAILED("Failed to create read callback result");
-        QMetaObject::invokeMethod(q, "finishRead", Qt::QueuedConnection);
+        finishRead();
         return S_OK;
     }
 
@@ -904,12 +904,6 @@ QVideoRendererControl *QWinRTMediaPlayerControl::videoRendererControl()
     }
 
     return d->videoRenderer;
-}
-
-void QWinRTMediaPlayerControl::finishRead()
-{
-    Q_D(QWinRTMediaPlayerControl);
-    d->streamProvider->finishRead();
 }
 
 QT_END_NAMESPACE

@@ -61,16 +61,6 @@ DirectShowPin::~DirectShowPin()
 
 }
 
-HRESULT DirectShowPin::getInterface(const IID &riid, void **ppvObject)
-{
-    if (riid == IID_IPin)
-        return GetInterface(static_cast<IPin*>(this), ppvObject);
-    else
-        return DirectShowObject::getInterface(riid, ppvObject);
-}
-
-
-
 HRESULT DirectShowPin::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
 {
     if (!pReceivePin)
@@ -524,14 +514,6 @@ DirectShowInputPin::DirectShowInputPin(DirectShowBaseFilter *filter, const QStri
 DirectShowInputPin::~DirectShowInputPin()
 {
 
-}
-
-HRESULT DirectShowInputPin::getInterface(const IID &riid, void **ppvObject)
-{
-    if (riid == IID_IMemInputPin)
-        return GetInterface(static_cast<IMemInputPin*>(this), ppvObject);
-    else
-        return DirectShowPin::getInterface(riid, ppvObject);
 }
 
 HRESULT DirectShowInputPin::connectionEnded()

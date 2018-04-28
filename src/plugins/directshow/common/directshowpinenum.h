@@ -49,24 +49,21 @@ QT_BEGIN_NAMESPACE
 
 class DirectShowBaseFilter;
 
-class DirectShowPinEnum : public DirectShowObject
-                        , public IEnumPins
+class DirectShowPinEnum : public IEnumPins
 {
-    DIRECTSHOW_OBJECT
-
+    COM_REF_MIXIN
 public:
     DirectShowPinEnum(DirectShowBaseFilter *filter);
     DirectShowPinEnum(const QList<IPin *> &pins);
-    ~DirectShowPinEnum();
+    virtual ~DirectShowPinEnum();
 
-    // DirectShowObject
-    HRESULT getInterface(REFIID riid, void **ppvObject);
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override;
 
     // IEnumPins
-    STDMETHODIMP Next(ULONG cPins, IPin **ppPins, ULONG *pcFetched);
-    STDMETHODIMP Skip(ULONG cPins);
-    STDMETHODIMP Reset();
-    STDMETHODIMP Clone(IEnumPins **ppEnum);
+    STDMETHODIMP Next(ULONG cPins, IPin **ppPins, ULONG *pcFetched) override;
+    STDMETHODIMP Skip(ULONG cPins) override;
+    STDMETHODIMP Reset() override;
+    STDMETHODIMP Clone(IEnumPins **ppEnum) override;
 
 private:
     Q_DISABLE_COPY(DirectShowPinEnum)

@@ -46,6 +46,7 @@
 #include <QVideoFrame>
 
 #include <d3d11.h>
+#include <D3D11_1.h>
 #include <mfapi.h>
 #include <wrl.h>
 
@@ -183,15 +184,18 @@ public:
             RETURN_VOID_IF_FAILED("Failed to create video output view");
         }
 
-        ComPtr<IDXGIResource> sourceResource;
+        ComPtr<IDXGIResource1> sourceResource;
         hr = texture->QueryInterface(IID_PPV_ARGS(&sourceResource));
-        Q_ASSERT_SUCCEEDED(hr);
-        HANDLE sharedHandle;
-        hr = sourceResource->GetSharedHandle(&sharedHandle);
-        Q_ASSERT_SUCCEEDED(hr);
+        RETURN_VOID_IF_FAILED("Failed to query interface IDXGIResource1");
+        HANDLE sharedHandle = NULL;
+        hr = sourceResource->CreateSharedHandle(NULL, DXGI_SHARED_RESOURCE_READ, NULL, &sharedHandle);
+        RETURN_VOID_IF_FAILED("Failed to create shared handle");
+        ComPtr<ID3D11Device1> dev;
+        hr = m_d3dDevice.As(&dev);
+        RETURN_VOID_IF_FAILED("Failed to cast from ID3D11Device to ID3D11Device1");
         ComPtr<ID3D11Texture2D> sharedTexture;
-        hr = m_d3dDevice->OpenSharedResource(sharedHandle, IID_PPV_ARGS(&sharedTexture));
-        Q_ASSERT_SUCCEEDED(hr);
+        hr = dev->OpenSharedResource1(sharedHandle, IID_PPV_ARGS(&sharedTexture));
+        RETURN_VOID_IF_FAILED("Failed to open shared resource");
 
         D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC inputViewDesc = {
             0, D3D11_VPIV_DIMENSION_TEXTURE2D, { 0, 0 }
@@ -199,6 +203,7 @@ public:
         ComPtr<ID3D11VideoProcessorInputView> inputView;
         hr = m_videoDevice->CreateVideoProcessorInputView(
                     sharedTexture.Get(), m_videoEnumerator.Get(), &inputViewDesc, &inputView);
+        CloseHandle(sharedHandle);
         RETURN_VOID_IF_FAILED("Failed to create video input view");
 
         ComPtr<ID3D11DeviceContext> context;
