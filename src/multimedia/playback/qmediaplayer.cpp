@@ -564,8 +564,9 @@ static QMediaService *playerService(QMediaPlayer::Flags flags)
 
         return provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER,
                                         QMediaServiceProviderHint(features));
-    } else
-        return provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER);
+    }
+
+    return provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER);
 }
 
 
