@@ -1345,7 +1345,7 @@ HRESULT QWinRTCameraControl::onInitializationCompleted(IAsyncAction *, AsyncStat
 
     if (status != Completed) {
         d->initializing = false;
-        d->initialized = true;
+        d->initialized = false;
         return S_OK;
     }
 
