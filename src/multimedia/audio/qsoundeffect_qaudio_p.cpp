@@ -338,7 +338,7 @@ void PrivateSoundSource::sampleReady()
     m_sampleReady = true;
     soundeffect->setStatus(QSoundEffect::Ready);
 
-    if (m_playing)
+    if (m_playing && m_audioOutput->state() == QAudio::StoppedState)
         m_audioOutput->start(this);
 }
 
