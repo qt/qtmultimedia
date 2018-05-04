@@ -283,6 +283,7 @@ public:
 
     HRESULT __stdcall GetMediaSink(IMFMediaSink **mediaSink) override
     {
+        m_sink->AddRef();
         *mediaSink = m_sink;
         return S_OK;
     }
