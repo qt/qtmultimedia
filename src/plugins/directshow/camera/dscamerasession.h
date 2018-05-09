@@ -44,7 +44,7 @@
 #include <QTime>
 #include <QUrl>
 #include <QMutex>
-
+#include <QTimer>
 #include <qcamera.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qabstractvideosurface.h>
@@ -229,6 +229,7 @@ private:
 
     // Internal state
     QCamera::Status m_status;
+    QTimer m_deviceLostEventTimer;
 
     QMap<QCameraImageProcessingControl::ProcessingParameter, QVariant> m_pendingImageProcessingParametrs;
 

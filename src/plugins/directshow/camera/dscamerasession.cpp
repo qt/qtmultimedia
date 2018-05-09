@@ -76,6 +76,30 @@ DSCameraSession::DSCameraSession(QObject *parent)
 {
     connect(this, SIGNAL(statusChanged(QCamera::Status)),
             this, SLOT(updateReadyForCapture()));
+
+    m_deviceLostEventTimer.setSingleShot(true);
+    connect(&m_deviceLostEventTimer, &QTimer::timeout, [&]() {
+        IMediaEvent *pEvent = com_cast<IMediaEvent>(m_filterGraph, IID_IMediaEvent);
+        if (!pEvent)
+            return;
+
+        long eventCode;
+        LONG_PTR param1;
+        LONG_PTR param2;
+        while (pEvent->GetEvent(&eventCode, &param1, &param2, 0) == S_OK) {
+            switch (eventCode) {
+            case EC_DEVICE_LOST:
+                unload();
+                break;
+            default:
+                break;
+            }
+
+            pEvent->FreeEventParams(eventCode, param1, param2);
+        }
+
+        pEvent->Release();
+    });
 }
 
 DSCameraSession::~DSCameraSession()
@@ -581,6 +605,10 @@ void DSCameraSession::onFrameAvailable(double time, const QByteArray &data)
     Q_UNUSED(time);
 
     m_presentMutex.lock();
+
+    // If no frames provided from ISampleGrabber for some time
+    // the device might be potentially unplugged.
+    m_deviceLostEventTimer.start(100);
 
     // (We should be getting only RGB32 data)
     int stride = m_previewSize.width() * 4;
