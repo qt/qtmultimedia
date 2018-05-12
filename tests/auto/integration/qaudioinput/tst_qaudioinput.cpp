@@ -887,6 +887,12 @@ void tst_QAudioInput::volume()
     QTest::qWait(500);
     QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 10);
 
+    audioInput.setVolume(half);
+    audioInput.start();
+    QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 5);
+    audioInput.setVolume(one);
+    QTRY_VERIFY(qRound(audioInput.volume()*10.0f) == 10);
+
     audioInput.setVolume(volume);
 }
 

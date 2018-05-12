@@ -263,17 +263,16 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
             backendAvailable = true;
     }
 
-    if (!backendAvailable) {
-        qWarning() << Q_FUNC_INFO << "Media service has neither renderer nor window control available.";
-        m_backend.reset();
-    } else if (!m_geometryDirty) {
-        m_backend->updateGeometry();
-    }
+    if (backendAvailable) {
+        // Since new backend has been created needs to update its geometry.
+        m_geometryDirty = true;
 
-    if (m_backend) {
         m_backend->clearFilters();
         for (int i = 0; i < m_filters.count(); ++i)
             m_backend->appendFilter(m_filters[i]);
+    } else {
+        qWarning() << Q_FUNC_INFO << "Media service has neither renderer nor window control available.";
+        m_backend.reset();
     }
 
     return backendAvailable;

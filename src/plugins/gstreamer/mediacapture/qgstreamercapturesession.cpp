@@ -103,6 +103,9 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
     m_videoEncodeControl = new QGstreamerVideoEncode(this);
     m_imageEncodeControl = new QGstreamerImageEncode(this);
     m_recorderControl = new QGstreamerRecorderControl(this);
+    connect(m_recorderControl, &QGstreamerRecorderControl::error, [](int e, const QString &str) {
+        qWarning() << QMediaRecorder::Error(e) << ":" << str.toLatin1().constData();
+    });
     m_mediaContainerControl = new QGstreamerMediaContainerControl(this);
 
     setState(StoppedState);

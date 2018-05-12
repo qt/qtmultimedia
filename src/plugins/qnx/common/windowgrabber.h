@@ -126,6 +126,7 @@ private:
 
     QByteArray m_windowId;
 
+    screen_window_t m_windowParent;
     screen_window_t m_window;
     screen_context_t m_screenContext;
 

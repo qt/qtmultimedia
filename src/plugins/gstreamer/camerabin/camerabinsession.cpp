@@ -363,9 +363,9 @@ void CameraBinSession::setupCaptureResolution()
                 Both = 0x4
             };
             quint8 found = Nothing;
-
-            for (int i = 0; i < m_supportedViewfinderSettings.count() && !(found & Both); ++i) {
-                const QCameraViewfinderSettings &s = m_supportedViewfinderSettings.at(i);
+            auto viewfinderSettings = supportedViewfinderSettings();
+            for (int i = 0; i < viewfinderSettings.count() && !(found & Both); ++i) {
+                const QCameraViewfinderSettings &s = viewfinderSettings.at(i);
                 if (s.resolution() == viewfinderResolution) {
                     if ((qFuzzyIsNull(viewfinderFrameRate) || s.maximumFrameRate() == viewfinderFrameRate)
                             && (viewfinderPixelFormat == QVideoFrame::Format_Invalid || s.pixelFormat() == viewfinderPixelFormat))
@@ -676,8 +676,46 @@ void CameraBinSession::setViewfinder(QObject *viewfinder)
     }
 }
 
+static QList<QCameraViewfinderSettings> capsToViewfinderSettings(GstCaps *supportedCaps)
+{
+    QList<QCameraViewfinderSettings> settings;
+
+    if (!supportedCaps)
+        return settings;
+
+    supportedCaps = qt_gst_caps_normalize(supportedCaps);
+
+    // Convert caps to QCameraViewfinderSettings
+    for (uint i = 0; i < gst_caps_get_size(supportedCaps); ++i) {
+        const GstStructure *structure = gst_caps_get_structure(supportedCaps, i);
+
+        QCameraViewfinderSettings s;
+        s.setResolution(QGstUtils::structureResolution(structure));
+        s.setPixelFormat(QGstUtils::structurePixelFormat(structure));
+        s.setPixelAspectRatio(QGstUtils::structurePixelAspectRatio(structure));
+
+        QPair<qreal, qreal> frameRateRange = QGstUtils::structureFrameRateRange(structure);
+        s.setMinimumFrameRate(frameRateRange.first);
+        s.setMaximumFrameRate(frameRateRange.second);
+
+        if (!s.resolution().isEmpty()
+            && s.pixelFormat() != QVideoFrame::Format_Invalid
+            && !settings.contains(s)) {
+            settings.append(s);
+        }
+    }
+
+    gst_caps_unref(supportedCaps);
+    return settings;
+}
+
 QList<QCameraViewfinderSettings> CameraBinSession::supportedViewfinderSettings() const
 {
+    if (m_status == QCamera::LoadedStatus && m_supportedViewfinderSettings.isEmpty()) {
+        m_supportedViewfinderSettings =
+            capsToViewfinderSettings(supportedCaps(QCamera::CaptureViewfinder));
+    }
+
     return m_supportedViewfinderSettings;
 }
 
@@ -1075,7 +1113,7 @@ bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
                         break;
                     case GST_STATE_READY:
                         if (oldState == GST_STATE_NULL)
-                            updateSupportedViewfinderSettings();
+                            m_supportedViewfinderSettings.clear();
 
                         setMetaData(m_metaData);
                         setStatus(QCamera::LoadedStatus);
@@ -1451,40 +1489,6 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         *continuous = isContinuous;
 
     return res;
-}
-
-void CameraBinSession::updateSupportedViewfinderSettings()
-{
-    m_supportedViewfinderSettings.clear();
-
-    GstCaps *supportedCaps = this->supportedCaps(QCamera::CaptureViewfinder);
-
-    // Convert caps to QCameraViewfinderSettings
-    if (supportedCaps) {
-        supportedCaps = qt_gst_caps_normalize(supportedCaps);
-
-        for (uint i = 0; i < gst_caps_get_size(supportedCaps); i++) {
-            const GstStructure *structure = gst_caps_get_structure(supportedCaps, i);
-
-            QCameraViewfinderSettings s;
-            s.setResolution(QGstUtils::structureResolution(structure));
-            s.setPixelFormat(QGstUtils::structurePixelFormat(structure));
-            s.setPixelAspectRatio(QGstUtils::structurePixelAspectRatio(structure));
-
-            QPair<qreal, qreal> frameRateRange = QGstUtils::structureFrameRateRange(structure);
-            s.setMinimumFrameRate(frameRateRange.first);
-            s.setMaximumFrameRate(frameRateRange.second);
-
-            if (!s.resolution().isEmpty()
-                    && s.pixelFormat() != QVideoFrame::Format_Invalid
-                    && !m_supportedViewfinderSettings.contains(s)) {
-
-                m_supportedViewfinderSettings.append(s);
-            }
-        }
-
-        gst_caps_unref(supportedCaps);
-    }
 }
 
 void CameraBinSession::elementAdded(GstBin *, GstElement *element, CameraBinSession *session)

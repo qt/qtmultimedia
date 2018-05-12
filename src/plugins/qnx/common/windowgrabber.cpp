@@ -58,6 +58,7 @@ static PFNEGLDESTROYIMAGEKHRPROC s_eglDestroyImageKHR;
 
 WindowGrabber::WindowGrabber(QObject *parent)
     : QObject(parent),
+      m_windowParent(nullptr),
       m_screenContext(0),
       m_active(false),
       m_currentFrame(0),
@@ -81,10 +82,26 @@ WindowGrabber::WindowGrabber(QObject *parent)
         s_eglCreateImageKHR = reinterpret_cast<PFNEGLCREATEIMAGEKHRPROC>(eglGetProcAddress("eglCreateImageKHR"));
         s_eglDestroyImageKHR = reinterpret_cast<PFNEGLDESTROYIMAGEKHRPROC>(eglGetProcAddress("eglDestroyImageKHR"));
     }
+
+    QPlatformNativeInterface *const nativeInterface = QGuiApplication::platformNativeInterface();
+    if (nativeInterface) {
+        m_screenContext = static_cast<screen_context_t>(
+            nativeInterface->nativeResourceForIntegration("screenContext"));
+    }
+
+    // Create a parent window for the window whose content will be grabbed. Since the
+    // window is only a buffer conduit, the characteristics of the parent window are
+    // irrelevant.  The contents of the window can be grabbed so long as the window
+    // joins the parent window's group and the parent window is in this process.
+    // Using the window that displays this content isn't possible because there's no
+    // way to reliably retrieve it from this code or any calling code.
+    screen_create_window(&m_windowParent, m_screenContext);
+    screen_create_window_group(m_windowParent, nullptr);
 }
 
 WindowGrabber::~WindowGrabber()
 {
+    screen_destroy_window(m_windowParent);
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
     cleanup();
 }
@@ -184,24 +201,13 @@ bool WindowGrabber::nativeEventFilter(const QByteArray &eventType, void *message
 
 QByteArray WindowGrabber::windowGroupId() const
 {
-    QWindow *window = QGuiApplication::allWindows().isEmpty() ? 0 : QGuiApplication::allWindows().first();
-    if (!window)
-        return QByteArray();
-
-    QPlatformNativeInterface * const nativeInterface = QGuiApplication::platformNativeInterface();
-    if (!nativeInterface) {
-        qWarning() << "WindowGrabber: Unable to get platform native interface";
-        return QByteArray();
-    }
-
-    const char * const groupIdData = static_cast<const char *>(
-        nativeInterface->nativeResourceForWindow("windowGroup", window));
-    if (!groupIdData) {
-        qWarning() << "WindowGrabber: Unable to find window group for window" << window;
-        return QByteArray();
-    }
-
-    return QByteArray(groupIdData);
+    char groupName[256];
+    memset(groupName, 0, sizeof(groupName));
+    screen_get_window_property_cv(m_windowParent,
+                                  SCREEN_PROPERTY_GROUP,
+                                  sizeof(groupName) - 1,
+                                  groupName);
+    return QByteArray(groupName);
 }
 
 bool WindowGrabber::eglImageSupported()

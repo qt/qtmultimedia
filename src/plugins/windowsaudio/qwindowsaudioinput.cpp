@@ -74,14 +74,13 @@ QWindowsAudioInput::QWindowsAudioInput(const QByteArray &device)
     waveBlockOffset = 0;
 
     mixerID = 0;
+    cachedVolume = 1.0f;
     memset(&mixerLineControls, 0, sizeof(mixerLineControls));
-    initMixer();
 }
 
 QWindowsAudioInput::~QWindowsAudioInput()
 {
     stop();
-    closeMixer();
 }
 
 void QT_WIN_CALLBACK QWindowsAudioInput::waveInProc( HWAVEIN hWaveIn, UINT uMsg,
@@ -183,6 +182,7 @@ QAudio::State QWindowsAudioInput::state() const
 
 void QWindowsAudioInput::setVolume(qreal volume)
 {
+    cachedVolume = volume;
     for (DWORD i = 0; i < mixerLineControls.cControls; i++) {
 
         MIXERCONTROLDETAILS controlDetails;
@@ -204,7 +204,6 @@ void QWindowsAudioInput::setVolume(qreal volume)
 
 qreal QWindowsAudioInput::volume() const
 {
-    DWORD volume = 0;
     for (DWORD i = 0; i < mixerLineControls.cControls; i++) {
         if ((mixerLineControls.pamxctrl[i].dwControlType != MIXERCONTROL_CONTROLTYPE_FADER) &&
             (mixerLineControls.pamxctrl[i].dwControlType != MIXERCONTROL_CONTROLTYPE_VOLUME)) {
@@ -226,11 +225,10 @@ qreal QWindowsAudioInput::volume() const
             continue;
         if (controlDetails.cbDetails < sizeof(MIXERCONTROLDETAILS_UNSIGNED))
             continue;
-        volume = detailsUnsigned.dwValue;
-        break;
+        return detailsUnsigned.dwValue / 65535.0;
     }
 
-    return volume / 65535.0;
+    return cachedVolume;
 }
 
 void QWindowsAudioInput::setFormat(const QAudioFormat& fmt)
@@ -378,6 +376,7 @@ bool QWindowsAudioInput::open()
     elapsedTimeOffset = 0;
     totalTimeValue = 0;
     errorState  = QAudio::NoError;
+    initMixer();
     return true;
 }
 
@@ -396,6 +395,7 @@ void QWindowsAudioInput::close()
     mutex.unlock();
 
     waveInClose(hWaveIn);
+    closeMixer();
 
     int count = 0;
     while(!finished && count < 500) {
@@ -406,17 +406,10 @@ void QWindowsAudioInput::close()
 
 void QWindowsAudioInput::initMixer()
 {
-    QDataStream ds(&m_device, QIODevice::ReadOnly);
-    quint32 inputDevice;
-    ds >> inputDevice;
-
-    if (int(inputDevice) < 0)
-        return;
-
     // Get the Mixer ID from the Sound Device ID
     UINT mixerIntID = 0;
-    if (mixerGetID(reinterpret_cast<HMIXEROBJ>(quintptr(inputDevice)),
-        &mixerIntID, MIXER_OBJECTF_WAVEIN) != MMSYSERR_NOERROR)
+    if (mixerGetID(reinterpret_cast<HMIXEROBJ>(hWaveIn),
+        &mixerIntID, MIXER_OBJECTF_HWAVEIN) != MMSYSERR_NOERROR)
         return;
     mixerID = reinterpret_cast<HMIXEROBJ>(quintptr(mixerIntID));
 
@@ -436,6 +429,8 @@ void QWindowsAudioInput::initMixer()
         mixerLineControls.pamxctrl = new MIXERCONTROL[mixerLineControls.cControls];
         if (mixerGetLineControls(mixerID, &mixerLineControls, MIXER_GETLINECONTROLSF_ALL) != MMSYSERR_NOERROR)
             closeMixer();
+        else
+            setVolume(cachedVolume);
     }
 }
 

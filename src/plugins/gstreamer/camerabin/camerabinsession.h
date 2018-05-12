@@ -203,7 +203,6 @@ private:
     bool setupCameraBin();
     void setAudioCaptureCaps();
     GstCaps *supportedCaps(QCamera::CaptureModes mode) const;
-    void updateSupportedViewfinderSettings();
     static void updateBusyStatus(GObject *o, GParamSpec *p, gpointer d);
 
     QString currentContainerFormat() const;
@@ -229,7 +228,7 @@ private:
     QGstreamerElementFactory *m_videoInputFactory;
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
-    QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
+    mutable QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
     QCameraViewfinderSettings m_viewfinderSettings;
     QCameraViewfinderSettings m_actualViewfinderSettings;
 
