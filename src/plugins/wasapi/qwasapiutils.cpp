@@ -94,9 +94,7 @@ struct CoInitializer
 {
     CoInitializer()
     {
-        const bool isGuiThread = QCoreApplication::instance() &&
-                QThread::currentThread() == QCoreApplication::instance()->thread();
-        CoInitializeEx(NULL, isGuiThread ? COINIT_APARTMENTTHREADED : COINIT_MULTITHREADED);
+        CoInitializeEx(NULL, COINIT_MULTITHREADED);
     }
 
     ~CoInitializer()
