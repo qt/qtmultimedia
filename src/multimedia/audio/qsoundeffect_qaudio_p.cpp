@@ -66,6 +66,12 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject *parent):
 {
 }
 
+QSoundEffectPrivate::QSoundEffectPrivate(const QAudioDeviceInfo &audioDevice, QObject *parent)
+    : QObject(parent)
+    , d(new PrivateSoundSource(this, audioDevice))
+{
+}
+
 QSoundEffectPrivate::~QSoundEffectPrivate()
 {
 }
@@ -309,8 +315,9 @@ void QSoundEffectPrivate::setCategory(const QString &category)
     }
 }
 
-PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate *s):
-    QIODevice(s)
+PrivateSoundSource::PrivateSoundSource(QSoundEffectPrivate *s, const QAudioDeviceInfo &audioDevice)
+    : QIODevice(s)
+    , m_audioDevice(audioDevice)
 {
     soundeffect = s;
     m_category = QLatin1String("game");
@@ -328,7 +335,10 @@ void PrivateSoundSource::sampleReady()
     disconnect(m_sample, &QSample::error, this, &PrivateSoundSource::decoderError);
     disconnect(m_sample, &QSample::ready, this, &PrivateSoundSource::sampleReady);
     if (!m_audioOutput) {
-        m_audioOutput = new QAudioOutput(m_sample->format());
+        if (m_audioDevice.isNull())
+            m_audioOutput = new QAudioOutput(m_sample->format());
+        else
+            m_audioOutput = new QAudioOutput(m_audioDevice, m_sample->format());
         connect(m_audioOutput, &QAudioOutput::stateChanged, this, &PrivateSoundSource::stateChanged);
         if (!m_muted)
             m_audioOutput->setVolume(m_volume);

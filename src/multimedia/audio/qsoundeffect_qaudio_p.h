@@ -66,7 +66,7 @@ class PrivateSoundSource : public QIODevice
     friend class QSoundEffectPrivate;
     Q_OBJECT
 public:
-    PrivateSoundSource(QSoundEffectPrivate *s);
+    PrivateSoundSource(QSoundEffectPrivate *s, const QAudioDeviceInfo &audioDevice = QAudioDeviceInfo());
     ~PrivateSoundSource() {}
 
     qint64 readData(char *data, qint64 len) override;
@@ -90,7 +90,7 @@ private:
     bool m_sampleReady = false;
     qint64 m_offset = 0;
     QString m_category;
-
+    QAudioDeviceInfo m_audioDevice;
     QSoundEffectPrivate *soundeffect = nullptr;
 };
 
@@ -102,6 +102,7 @@ class QSoundEffectPrivate : public QObject
 public:
 
     explicit QSoundEffectPrivate(QObject *parent);
+    explicit QSoundEffectPrivate(const QAudioDeviceInfo &audioDevice, QObject *parent);
     ~QSoundEffectPrivate();
 
     static QStringList supportedMimeTypes();

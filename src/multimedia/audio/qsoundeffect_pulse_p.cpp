@@ -58,7 +58,7 @@
 #include <private/qaudiohelpers_p.h>
 #include <private/qmediaresourcepolicy_p.h>
 #include <private/qmediaresourceset_p.h>
-
+#include <QAudioDeviceInfo>
 #include <unistd.h>
 
 //#define QT_PA_DEBUG
@@ -358,6 +358,12 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     m_resourcesAvailable = m_resources->isAvailable();
     connect(m_resources, &QMediaPlayerResourceSetInterface::availabilityChanged,
             this, &QSoundEffectPrivate::handleAvailabilityChanged);
+}
+
+QSoundEffectPrivate::QSoundEffectPrivate(const QAudioDeviceInfo &audioDevice, QObject *parent)
+    : QSoundEffectPrivate(parent)
+{
+    m_sinkName = audioDevice.deviceName();
 }
 
 void QSoundEffectPrivate::handleAvailabilityChanged(bool available)
@@ -1005,8 +1011,9 @@ void QSoundEffectPrivate::createPulseStream()
     }
     m_pulseStream = stream;
 
-    if (pa_stream_connect_playback(m_pulseStream, nullptr, nullptr,
-                                   PA_STREAM_START_CORKED, nullptr, nullptr) < 0) {
+    if (pa_stream_connect_playback(m_pulseStream,
+                                   m_sinkName.isEmpty() ? nullptr : m_sinkName.toLatin1().constData(),
+                                   nullptr, PA_STREAM_START_CORKED, nullptr, nullptr) < 0) {
         qWarning("QSoundEffect(pulseaudio): Failed to connect stream, error = %s",
                  pa_strerror(pa_context_errno(pulseDaemon()->context())));
     }

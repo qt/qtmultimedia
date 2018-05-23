@@ -60,6 +60,7 @@ private slots:
 
     void testSetSourceWhileLoading();
     void testSetSourceWhilePlaying();
+    void testSupportedMimeTypes_data();
     void testSupportedMimeTypes();
     void testCorruptFile();
     void testPlaying24Bits();
@@ -387,9 +388,19 @@ void tst_QSoundEffect::testSetSourceWhilePlaying()
     }
 }
 
+void tst_QSoundEffect::testSupportedMimeTypes_data()
+{
+    // Verify also passing of audio device info as parameter
+    QTest::addColumn<QSoundEffect*>("instance");
+    QTest::newRow("without QAudioDeviceInfo") << sound;
+    QAudioDeviceInfo deviceInfo(QAudioDeviceInfo::defaultOutputDevice());
+    QTest::newRow("with QAudioDeviceInfo")    << new QSoundEffect(deviceInfo, this);
+}
+
 void tst_QSoundEffect::testSupportedMimeTypes()
 {
-    QStringList mimeTypes = sound->supportedMimeTypes();
+    QFETCH(QSoundEffect*, instance);
+    QStringList mimeTypes = instance->supportedMimeTypes();
     QVERIFY(!mimeTypes.empty());
     QVERIFY(mimeTypes.indexOf(QLatin1String("audio/wav")) != -1 ||
             mimeTypes.indexOf(QLatin1String("audio/x-wav")) != -1 ||

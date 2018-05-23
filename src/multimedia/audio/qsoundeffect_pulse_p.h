@@ -73,6 +73,7 @@ class QSoundEffectPrivate : public QObject
     Q_OBJECT
 public:
     explicit QSoundEffectPrivate(QObject* parent);
+    explicit QSoundEffectPrivate(const QAudioDeviceInfo &audioDevice, QObject *parent);
     ~QSoundEffectPrivate();
 
     static QStringList supportedMimeTypes();
@@ -150,6 +151,7 @@ private:
     static void stream_adjust_prebuffer_callback(pa_stream *s, int success, void *userdata);
 
     pa_stream *m_pulseStream = nullptr;
+    QString m_sinkName;
     int m_sinkInputId = -1;
     pa_sample_spec m_pulseSpec;
     int m_pulseBufferSize = 0;
