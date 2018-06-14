@@ -33,6 +33,16 @@
 
     \brief The \l {Qt Multimedia} module provides audio, video, radio and camera
     functionality.
+
+    To enable Qt Multimedia in a project, add this directive into the
+    C++ files:
+
+    \snippet doc_src_qtmultimedia.cpp 0
+
+    To link against the C++ libraries, add the following to your \c qmake project
+    file:
+
+    \snippet doc_src_qtmultimedia.pro 0
 */
 
 /*!

@@ -35,14 +35,11 @@ These classes are part of the \l{Qt Multimedia Widgets} module.
 
 To enable Qt Multimedia Widgets in a project, add this directive into the
 C++ files:
-\code
-#include <QtMultimediaWidgets>
-\endcode
+
+\snippet doc_src_qtmultimediawidgets.cpp 0
 
 To link against the C++ libraries, add the following to your \c qmake project
 file:
-\code
-QT += multimediawidgets
-\endcode
 
+\snippet doc_src_qtmultimediawidgets.pro 0
 */
