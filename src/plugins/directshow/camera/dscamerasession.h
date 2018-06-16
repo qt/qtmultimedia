@@ -207,6 +207,7 @@ private:
     QVideoSurfaceFormat m_previewSurfaceFormat;
     QVideoFrame::PixelFormat m_previewPixelFormat;
     QSize m_previewSize;
+    int m_stride;
     QCameraViewfinderSettings m_viewfinderSettings;
     QCameraViewfinderSettings m_actualViewfinderSettings;
 
