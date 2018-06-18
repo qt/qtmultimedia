@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype CameraCapture
     \instantiates QDeclarativeCameraCapture
-    \brief An interface for capturing camera images
+    \brief An interface for capturing camera images.
     \ingroup multimedia_qml
     \inqmlmodule QtMultimedia
     \ingroup camera_qml
