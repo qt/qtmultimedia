@@ -226,7 +226,8 @@ void AVFImageCaptureControl::cancelCapture()
 
 void AVFImageCaptureControl::updateCaptureConnection()
 {
-    if (m_cameraControl->captureMode().testFlag(QCamera::CaptureStillImage)) {
+    if (m_session->videoCaptureDevice()
+        && m_cameraControl->captureMode().testFlag(QCamera::CaptureStillImage)) {
         qDebugCamera() << Q_FUNC_INFO;
         AVCaptureSession *captureSession = m_session->captureSession();
 
