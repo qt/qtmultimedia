@@ -583,6 +583,8 @@ QWinRTCameraControl::QWinRTCameraControl(QObject *parent)
     connect(d->videoRenderer, &QWinRTCameraVideoRendererControl::bufferRequested,
             this, &QWinRTCameraControl::onBufferRequested);
     d->videoDeviceSelector = new QWinRTVideoDeviceSelectorControl(this);
+    connect(d->videoDeviceSelector, QOverload<int>::of(&QWinRTVideoDeviceSelectorControl::selectedDeviceChanged),
+            d->videoRenderer, &QWinRTCameraVideoRendererControl::resetSampleFormat);
     d->imageCaptureControl = new QWinRTCameraImageCaptureControl(this);
     d->imageEncoderControl = new QWinRTImageEncoderControl(this);
     d->cameraFlashControl = new QWinRTCameraFlashControl(this);

@@ -426,4 +426,10 @@ void QWinRTCameraVideoRendererControl::decrementProbe()
     --d->videoProbesCounter;
 }
 
+void QWinRTCameraVideoRendererControl::resetSampleFormat()
+{
+    Q_D(QWinRTCameraVideoRendererControl);
+    d->cameraSampleformat = QVideoFrame::Format_User;
+}
+
 QT_END_NAMESPACE
