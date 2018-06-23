@@ -44,7 +44,8 @@ qhp.QtMultimedia.subprojects.examples.selectors = doc:example
 qhp.QtMultimedia.subprojects.examples.sortPages = true
 
 exampledirs += ../../../examples \
-               snippets
+               snippets \
+               ../../multimediawidgets/doc/snippets
 
 manifestmeta.highlighted.names  = "QtMultimedia/QML Video Shader Effects Example" \
                                   "QtMultimedia/Media Player Example"

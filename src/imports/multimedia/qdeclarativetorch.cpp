@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
     \qmltype Torch
     \instantiates QDeclarativeTorch
     \inqmlmodule QtMultimedia
-    \brief Simple control over torch functionality
+    \brief Simple control over torch functionality.
 
     \ingroup multimedia_qml
 

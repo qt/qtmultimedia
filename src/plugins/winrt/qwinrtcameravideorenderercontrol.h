@@ -69,6 +69,9 @@ signals:
     void bufferRequested();
     void videoFrameProbed(const QVideoFrame &frame);
 
+public slots:
+    void resetSampleFormat();
+
 private:
     QScopedPointer<QWinRTCameraVideoRendererControlPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QWinRTCameraVideoRendererControl)

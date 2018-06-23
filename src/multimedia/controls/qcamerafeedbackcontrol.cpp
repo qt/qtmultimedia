@@ -45,7 +45,7 @@
 /*!
     \class QCameraFeedbackControl
 
-    \brief The QCameraFeedbackControl class allows controlling feedback (sounds etc) during camera operation
+    \brief The QCameraFeedbackControl class allows controlling feedback (sounds etc) during camera operation.
 
     \inmodule QtMultimedia
 

@@ -518,11 +518,19 @@ GstElement *CameraBinSession::buildCameraSource()
                     const QList<QByteArray> sources = envVideoSource.split(',');
                     for (const QByteArray &source : sources) {
                         QList<QByteArray> keyValue = source.split('=');
-                        if (keyValue.count() == 1) {
-                            m_videoSrc = gst_element_factory_make(keyValue.at(0), "camera_source");
-                            break;
-                        } else if (keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice, m_sourceFactory)) {
-                            m_videoSrc = gst_element_factory_make(keyValue.at(1), "camera_source");
+                        QByteArray name = keyValue.at(0);
+                        if (keyValue.count() > 1 && keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice, m_sourceFactory))
+                            name = keyValue.at(1);
+
+                        GError *error = NULL;
+                        GstElement *element = gst_parse_launch(name, &error);
+
+                        if (error) {
+                            g_printerr("ERROR: %s: %s\n", name.constData(), GST_STR_NULL(error->message));
+                            g_clear_error(&error);
+                        }
+                        if (element) {
+                            m_videoSrc = element;
                             break;
                         }
                     }
