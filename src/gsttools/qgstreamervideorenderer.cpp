@@ -45,25 +45,44 @@
 
 #include <gst/gst.h>
 
+static inline void resetSink(GstElement *&element, GstElement *v = nullptr)
+{
+    if (element)
+        gst_object_unref(GST_OBJECT(element));
+
+    if (v)
+        qt_gst_object_ref_sink(GST_OBJECT(v));
+
+    element = v;
+}
+
 QGstreamerVideoRenderer::QGstreamerVideoRenderer(QObject *parent)
-    :QVideoRendererControl(parent),m_videoSink(0), m_surface(0)
+    : QVideoRendererControl(parent)
 {
 }
 
 QGstreamerVideoRenderer::~QGstreamerVideoRenderer()
 {
-    if (m_videoSink)
-        gst_object_unref(GST_OBJECT(m_videoSink));
+    resetSink(m_videoSink);
+}
+
+void QGstreamerVideoRenderer::setVideoSink(GstElement *sink)
+{
+    if (!sink)
+        return;
+
+    resetSink(m_videoSink, sink);
+    emit sinkChanged();
 }
 
 GstElement *QGstreamerVideoRenderer::videoSink()
 {
     if (!m_videoSink && m_surface) {
-        m_videoSink = QVideoSurfaceGstSink::createSink(m_surface);
-        qt_gst_object_ref_sink(GST_OBJECT(m_videoSink)); //Take ownership
+        auto sink = reinterpret_cast<GstElement *>(QVideoSurfaceGstSink::createSink(m_surface));
+        resetSink(m_videoSink, sink);
     }
 
-    return reinterpret_cast<GstElement*>(m_videoSink);
+    return m_videoSink;
 }
 
 void QGstreamerVideoRenderer::stopRenderer()
@@ -80,11 +99,7 @@ QAbstractVideoSurface *QGstreamerVideoRenderer::surface() const
 void QGstreamerVideoRenderer::setSurface(QAbstractVideoSurface *surface)
 {
     if (m_surface != surface) {
-        //qDebug() << Q_FUNC_INFO << surface;
-        if (m_videoSink)
-            gst_object_unref(GST_OBJECT(m_videoSink));
-
-        m_videoSink = 0;
+        resetSink(m_videoSink);
 
         if (m_surface) {
             disconnect(m_surface.data(), SIGNAL(supportedFormatsChanged()),
@@ -98,6 +113,7 @@ void QGstreamerVideoRenderer::setSurface(QAbstractVideoSurface *surface)
         if (m_surface) {
             connect(m_surface.data(), SIGNAL(supportedFormatsChanged()),
                     this, SLOT(handleFormatChange()));
+            QGstVideoRendererSink::setSurface(m_surface);
         }
 
         if (wasReady != isReady())
@@ -109,11 +125,5 @@ void QGstreamerVideoRenderer::setSurface(QAbstractVideoSurface *surface)
 
 void QGstreamerVideoRenderer::handleFormatChange()
 {
-    //qDebug() << "Supported formats list has changed, reload video output";
-
-    if (m_videoSink)
-        gst_object_unref(GST_OBJECT(m_videoSink));
-
-    m_videoSink = 0;
-    emit sinkChanged();
+    setVideoSink(nullptr);
 }

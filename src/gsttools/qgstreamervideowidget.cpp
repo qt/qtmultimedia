@@ -135,6 +135,11 @@ GstElement *QGstreamerVideoWidgetControl::videoSink()
     return m_videoOverlay.videoSink();
 }
 
+void QGstreamerVideoWidgetControl::setVideoSink(GstElement *sink)
+{
+    m_videoOverlay.setVideoSink(sink);
+}
+
 void QGstreamerVideoWidgetControl::onOverlayActiveChanged()
 {
     updateWidgetAttributes();

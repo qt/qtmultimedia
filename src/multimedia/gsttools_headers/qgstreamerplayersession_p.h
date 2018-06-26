@@ -94,6 +94,8 @@ public:
     virtual ~QGstreamerPlayerSession();
 
     GstElement *playbin() const;
+    void setPipeline(GstElement *pipeline);
+    GstElement *pipeline() const { return m_pipeline; }
     QGstreamerBusHelper *bus() const { return m_busHelper; }
 
     QNetworkRequest request() const;
@@ -110,6 +112,7 @@ public:
     bool isAudioAvailable() const;
 
     void setVideoRenderer(QObject *renderer);
+    QGstreamerVideoRendererInterface *renderer() const { return m_renderer; }
     bool isVideoAvailable() const;
 
     bool isSeekable() const;
@@ -174,6 +177,7 @@ signals:
     void error(int error, const QString &errorString);
     void invalidMedia();
     void playbackRateChanged(qreal);
+    void rendererChanged();
 
 private slots:
     void getStreamsInfo();
@@ -209,7 +213,8 @@ private:
     QMediaPlayer::State m_state;
     QMediaPlayer::State m_pendingState;
     QGstreamerBusHelper* m_busHelper;
-    GstElement* m_playbin;
+    GstElement *m_playbin = nullptr; // Can be null
+    GstElement *m_pipeline = nullptr; // Never null
 
     GstElement* m_videoSink;
 

@@ -394,19 +394,25 @@ void QVideoSurfaceGstDelegate::updateSupportedFormats()
 }
 
 static GstVideoSinkClass *sink_parent_class;
+static QAbstractVideoSurface *current_surface;
 
 #define VO_SINK(s) QGstVideoRendererSink *sink(reinterpret_cast<QGstVideoRendererSink *>(s))
 
 QGstVideoRendererSink *QGstVideoRendererSink::createSink(QAbstractVideoSurface *surface)
 {
+    setSurface(surface);
     QGstVideoRendererSink *sink = reinterpret_cast<QGstVideoRendererSink *>(
             g_object_new(QGstVideoRendererSink::get_type(), 0));
-
-    sink->delegate = new QVideoSurfaceGstDelegate(surface);
 
     g_signal_connect(G_OBJECT(sink), "notify::show-preroll-frame", G_CALLBACK(handleShowPrerollChange), sink);
 
     return sink;
+}
+
+void QGstVideoRendererSink::setSurface(QAbstractVideoSurface *surface)
+{
+    current_surface = surface;
+    get_type();
 }
 
 GType QGstVideoRendererSink::get_type()
@@ -430,6 +436,10 @@ GType QGstVideoRendererSink::get_type()
 
         type = g_type_register_static(
                 GST_TYPE_VIDEO_SINK, "QGstVideoRendererSink", &info, GTypeFlags(0));
+
+        // Register the sink type to be used in custom piplines.
+        // When surface is ready the sink can be used.
+        gst_element_register(nullptr, "qtvideosink", GST_RANK_PRIMARY, type);
     }
 
     return type;
@@ -453,6 +463,11 @@ void QGstVideoRendererSink::class_init(gpointer g_class, gpointer class_data)
 
     GstElementClass *element_class = reinterpret_cast<GstElementClass *>(g_class);
     element_class->change_state = QGstVideoRendererSink::change_state;
+    gst_element_class_set_metadata(element_class,
+        "Qt built-in video renderer sink",
+        "Sink/Video",
+        "Qt default built-in video renderer sink",
+        "The Qt Company");
 
     GObjectClass *object_class = reinterpret_cast<GObjectClass *>(g_class);
     object_class->finalize = QGstVideoRendererSink::finalize;
@@ -476,8 +491,8 @@ void QGstVideoRendererSink::instance_init(GTypeInstance *instance, gpointer g_cl
     VO_SINK(instance);
 
     Q_UNUSED(g_class);
-
-    sink->delegate = 0;
+    sink->delegate = new QVideoSurfaceGstDelegate(current_surface);
+    sink->delegate->moveToThread(current_surface->thread());
 }
 
 void QGstVideoRendererSink::finalize(GObject *object)
