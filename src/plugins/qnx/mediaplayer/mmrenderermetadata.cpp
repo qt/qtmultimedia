@@ -42,12 +42,21 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qstringlist.h>
 
+#include <mm/renderer/events.h>
+#include <sys/neutrino.h>
 #include <sys/strm.h>
 
 static const char *strm_string_getx(const strm_string_t *sstr, const char *defaultValue)
 {
     return sstr ? strm_string_get(sstr) : defaultValue;
 }
+
+#if _NTO_VERSION < 700
+static strm_dict_t *mmr_metadata_split(strm_dict_t const *, const char *, unsigned)
+{
+    return nullptr;
+}
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -72,6 +81,12 @@ static const char * mediaTypeKey = "md_title_mediatype";
 static const char * pixelWidthKey = "md_video_pixel_width";
 static const char * pixelHeightKey = "md_video_pixel_height";
 static const char * seekableKey = "md_title_seekable";
+static const char * trackSampleKey = "sample_rate";
+static const char * trackBitRateKey = "bitrate";
+static const char * trackWidthKey = "width";
+static const char * trackHeightKey = "height";
+static const char * trackPixelWidthKey = "pixel_width";
+static const char * trackPixelHeightKey = "pixel_height";
 
 static const int mediaTypeAudioFlag = 4;
 static const int mediaTypeVideoFlag = 2;
@@ -88,20 +103,8 @@ bool MmRendererMetaData::update(const strm_dict_t *dict)
     value = strm_dict_find_rstr(dict, durationKey);
     m_duration = QByteArray(strm_string_getx(value, "0")).toLongLong();
 
-    value = strm_dict_find_rstr(dict, widthKey);
-    m_width = QByteArray(strm_string_getx(value, "0")).toInt();
-
-    value = strm_dict_find_rstr(dict, heightKey);
-    m_height = QByteArray(strm_string_getx(value, "0")).toInt();
-
     value = strm_dict_find_rstr(dict, mediaTypeKey);
     m_mediaType = QByteArray(strm_string_getx(value, "-1")).toInt();
-
-    value = strm_dict_find_rstr(dict, pixelWidthKey);
-    m_pixelWidth = QByteArray(strm_string_getx(value, "1")).toFloat();
-
-    value = strm_dict_find_rstr(dict, pixelHeightKey);
-    m_pixelHeight = QByteArray(strm_string_getx(value, "1")).toFloat();
 
     value = strm_dict_find_rstr(dict, titleKey);
     m_title = QString::fromLatin1(QByteArray(strm_string_getx(value, nullptr)));
@@ -121,17 +124,57 @@ bool MmRendererMetaData::update(const strm_dict_t *dict)
     value = strm_dict_find_rstr(dict, yearKey);
     m_year = QByteArray(strm_string_getx(value, "0")).toInt();
 
-    value = strm_dict_find_rstr(dict, bitRateKey);
-    m_audioBitRate = QByteArray(strm_string_getx(value, "0")).toInt();
-
-    value = strm_dict_find_rstr(dict, sampleKey);
-    m_sampleRate = QByteArray(strm_string_getx(value, "0")).toInt();
-
     value = strm_dict_find_rstr(dict, albumKey);
     m_album = QString::fromLatin1(QByteArray(strm_string_getx(value, nullptr)));
 
     value = strm_dict_find_rstr(dict, trackKey);
     m_track = QByteArray(strm_string_getx(value, "0")).toInt();
+
+    strm_dict_t *at = mmr_metadata_split(dict, "audio", 0);
+    if (at) {
+        value = strm_dict_find_rstr(at, trackSampleKey);
+        m_sampleRate = QByteArray(strm_string_getx(value, "0")).toInt();
+
+        value = strm_dict_find_rstr(at, trackBitRateKey);
+        m_audioBitRate = QByteArray(strm_string_getx(value, "0")).toInt();
+
+        strm_dict_destroy(at);
+    } else {
+        value = strm_dict_find_rstr(dict, sampleKey);
+        m_sampleRate = QByteArray(strm_string_getx(value, "0")).toInt();
+
+        value = strm_dict_find_rstr(dict, bitRateKey);
+        m_audioBitRate = QByteArray(strm_string_getx(value, "0")).toInt();
+    }
+
+    strm_dict_t *vt = mmr_metadata_split(dict, "video", 0);
+    if (vt) {
+        value = strm_dict_find_rstr(vt, trackWidthKey);
+        m_width = QByteArray(strm_string_getx(value, "0")).toInt();
+
+        value = strm_dict_find_rstr(vt, trackHeightKey);
+        m_height = QByteArray(strm_string_getx(value, "0")).toInt();
+
+        value = strm_dict_find_rstr(vt, trackPixelWidthKey);
+        m_pixelWidth = QByteArray(strm_string_getx(value, "1")).toFloat();
+
+        value = strm_dict_find_rstr(vt, trackPixelHeightKey);
+        m_pixelHeight = QByteArray(strm_string_getx(value, "1")).toFloat();
+
+        strm_dict_destroy(vt);
+    } else {
+        value = strm_dict_find_rstr(dict, widthKey);
+        m_width = QByteArray(strm_string_getx(value, "0")).toInt();
+
+        value = strm_dict_find_rstr(dict, heightKey);
+        m_height = QByteArray(strm_string_getx(value, "0")).toInt();
+
+        value = strm_dict_find_rstr(dict, pixelWidthKey);
+        m_pixelWidth = QByteArray(strm_string_getx(value, "1")).toFloat();
+
+        value = strm_dict_find_rstr(dict, pixelHeightKey);
+        m_pixelHeight = QByteArray(strm_string_getx(value, "1")).toFloat();
+    }
 
     return true;
 }
