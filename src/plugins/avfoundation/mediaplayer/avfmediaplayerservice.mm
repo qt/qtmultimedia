@@ -42,7 +42,9 @@
 #include "avfmediaplayercontrol.h"
 #include "avfmediaplayermetadatacontrol.h"
 #include "avfvideooutput.h"
+#if QT_CONFIG(opengl)
 #include "avfvideorenderercontrol.h"
+#endif
 #ifndef QT_NO_WIDGETS
 # include "avfvideowidgetcontrol.h"
 #endif
@@ -84,7 +86,7 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
     if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
         return m_playerMetaDataControl;
 
-
+#if QT_CONFIG(opengl)
     if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!m_videoOutput)
             m_videoOutput = new AVFVideoRendererControl(this);
@@ -92,7 +94,7 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
         m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
         return m_videoOutput;
     }
-
+#endif
 #ifndef QT_NO_WIDGETS
     if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
         if (!m_videoOutput)
@@ -118,11 +120,12 @@ void AVFMediaPlayerService::releaseControl(QMediaControl *control)
     qDebug() << Q_FUNC_INFO << control;
 #endif
     if (m_videoOutput == control) {
+#if QT_CONFIG(opengl)
         AVFVideoRendererControl *renderControl = qobject_cast<AVFVideoRendererControl*>(m_videoOutput);
 
         if (renderControl)
             renderControl->setSurface(0);
-
+#endif
         m_videoOutput = 0;
         m_session->setVideoOutput(0);
 

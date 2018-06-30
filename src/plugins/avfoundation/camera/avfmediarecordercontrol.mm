@@ -364,6 +364,9 @@ void AVFMediaRecorderControl::handleRecordingFailed(const QString &message)
 
 void AVFMediaRecorderControl::setupSessionForCapture()
 {
+    if (!m_session->videoCaptureDevice())
+        return;
+
     //adding movie output causes high CPU usage even when while recording is not active,
     //connect it only while video capture mode is enabled.
     // Similarly, connect the Audio input only in that mode, since it's only necessary
