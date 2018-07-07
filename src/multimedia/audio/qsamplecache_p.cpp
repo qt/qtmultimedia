@@ -132,8 +132,7 @@ QSampleCache::~QSampleCache()
     for (QSample* sample : copyStaleSamples)
         delete sample;
 
-    if (m_networkAccessManager)
-        m_networkAccessManager->deleteLater();
+    delete m_networkAccessManager;
 }
 
 void QSampleCache::loadingRelease()
