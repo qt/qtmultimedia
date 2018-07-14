@@ -7,3 +7,4 @@ Multimedia options:
                          With no parameter, 1.0 is tried first, then 0.10.
   -mediaplayer-backend <name> ... Select media player backend (Windows only)
                                   Supported backends: directshow (default), wmf
+  -evr ................. Enables EVR in DirectShow and WMF [auto]

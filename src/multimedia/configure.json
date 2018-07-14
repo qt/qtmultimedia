@@ -8,6 +8,7 @@
     "commandline": {
         "options": {
             "alsa": "boolean",
+            "evr": { "type": "boolean" },
             "gstreamer": { "type": "optionalString", "values": [ "no", "yes", "0.10", "1.0" ] },
             "pulseaudio": "boolean",
             "mediaplayer-backend": { "type": "string", "values": [ "directshow", "wmf" ] },
