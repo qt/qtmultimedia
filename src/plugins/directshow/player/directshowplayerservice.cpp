@@ -61,6 +61,8 @@
 
 #if QT_CONFIG(evr)
 #include "directshowevrvideowindowcontrol.h"
+#else
+#include <mmreg.h>
 #endif
 
 #include "qmediacontent.h"

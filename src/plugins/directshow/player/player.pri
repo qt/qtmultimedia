@@ -37,6 +37,8 @@ qtConfig(evr) {
 
     SOURCES += \
         $$PWD/directshowevrvideowindowcontrol.cpp
+} else {
+    LIBS += -lwinmm
 }
 
 qtConfig(wshellitem): \
