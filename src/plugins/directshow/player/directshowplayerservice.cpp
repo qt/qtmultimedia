@@ -219,11 +219,13 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
             IBaseFilter *filter;
 
 #if QT_CONFIG(evr)
-            DirectShowEvrVideoWindowControl *evrControl = new DirectShowEvrVideoWindowControl;
-            if ((filter = evrControl->filter()))
-                m_videoWindowControl = evrControl;
-            else
-                delete evrControl;
+            if (!qgetenv("QT_DIRECTSHOW_NO_EVR").toInt()) {
+                DirectShowEvrVideoWindowControl *evrControl = new DirectShowEvrVideoWindowControl;
+                if ((filter = evrControl->filter()))
+                    m_videoWindowControl = evrControl;
+                else
+                    delete evrControl;
+            }
 #endif
             // Fall back to the VMR9 if the EVR is not available
             if (!m_videoWindowControl) {

@@ -98,13 +98,15 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
     if (m_surface) {
 #if QT_CONFIG(evr)
-        m_filter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
-        m_evrPresenter = new EVRCustomPresenter(m_surface);
-        if (!m_evrPresenter->isValid() || !qt_evr_setCustomPresenter(m_filter, m_evrPresenter)) {
-            m_filter->Release();
-            m_filter = 0;
-            m_evrPresenter->Release();
-            m_evrPresenter = 0;
+        if (!qgetenv("QT_DIRECTSHOW_NO_EVR").toInt()) {
+            m_filter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
+            m_evrPresenter = new EVRCustomPresenter(m_surface);
+            if (!m_evrPresenter->isValid() || !qt_evr_setCustomPresenter(m_filter, m_evrPresenter)) {
+                m_filter->Release();
+                m_filter = 0;
+                m_evrPresenter->Release();
+                m_evrPresenter = 0;
+            }
         }
 
         if (!m_filter)
