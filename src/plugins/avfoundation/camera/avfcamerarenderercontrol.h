@@ -58,11 +58,11 @@ class AVFCameraRendererControl : public QVideoRendererControl
 {
 Q_OBJECT
 public:
-    AVFCameraRendererControl(QObject *parent = 0);
+    AVFCameraRendererControl(QObject *parent = nullptr);
     ~AVFCameraRendererControl();
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);

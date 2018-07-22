@@ -262,7 +262,7 @@ AVCaptureDevice *AVFCameraSession::videoCaptureDevice() const
     if (m_videoInput)
         return m_videoInput.device;
 
-    return 0;
+    return nullptr;
 }
 
 QCamera::State AVFCameraSession::state() const
@@ -362,7 +362,7 @@ void AVFCameraSession::attachVideoInputDevice()
         if (m_videoInput) {
             [m_captureSession removeInput:m_videoInput];
             [m_videoInput release];
-            m_videoInput = 0;
+            m_videoInput = nullptr;
             m_activeCameraInfo = AVFCameraInfo();
         }
 

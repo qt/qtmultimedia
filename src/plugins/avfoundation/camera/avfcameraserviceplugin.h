@@ -60,15 +60,15 @@ class AVFServicePlugin : public QMediaServiceProviderPlugin,
 public:
     AVFServicePlugin();
 
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QMediaService* create(QString const &key) override;
+    void release(QMediaService *service) override;
 
-    QByteArray defaultDevice(const QByteArray &service) const;
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
+    QByteArray defaultDevice(const QByteArray &service) const override;
+    QList<QByteArray> devices(const QByteArray &service) const override;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
 
-    QCamera::Position cameraPosition(const QByteArray &device) const;
-    int cameraOrientation(const QByteArray &device) const;
+    QCamera::Position cameraPosition(const QByteArray &device) const override;
+    int cameraOrientation(const QByteArray &device) const override;
 };
 
 QT_END_NAMESPACE

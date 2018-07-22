@@ -59,7 +59,7 @@ QMediaService* AVFServicePlugin::create(QString const& key)
     else
         qWarning() << "unsupported key:" << key;
 
-    return 0;
+    return nullptr;
 }
 
 void AVFServicePlugin::release(QMediaService *service)

@@ -240,7 +240,7 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
     Q_ASSERT(!request.isNull() && request.isValid());
 
     if (!captureDevice.formats || !captureDevice.formats.count)
-        return 0;
+        return nullptr;
 
     QVector<AVCaptureDeviceFormat *> formats(qt_unique_device_formats(captureDevice, filter));
 
@@ -254,7 +254,7 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
     }
 
     if (!qt_area_sane(request))
-        return 0;
+        return nullptr;
 
     typedef QPair<QSize, AVCaptureDeviceFormat *> FormatPair;
 
@@ -272,7 +272,7 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
     }
 
     if (!pairs.size())
-        return 0;
+        return nullptr;
 
     AVCaptureDeviceFormat *best = pairs[0].second;
     QSize next(pairs[0].first);

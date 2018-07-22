@@ -62,8 +62,8 @@ class AVFMediaRecorderControlIOS : public QMediaRecorderControl
 {
     Q_OBJECT
 public:
-    AVFMediaRecorderControlIOS(AVFCameraService *service, QObject *parent = 0);
-    ~AVFMediaRecorderControlIOS();
+    AVFMediaRecorderControlIOS(AVFCameraService *service, QObject *parent = nullptr);
+    ~AVFMediaRecorderControlIOS() override;
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;

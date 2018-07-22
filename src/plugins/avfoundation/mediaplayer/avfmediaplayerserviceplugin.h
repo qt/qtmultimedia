@@ -59,12 +59,12 @@ class AVFMediaPlayerServicePlugin
 public:
     explicit AVFMediaPlayerServicePlugin();
 
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QMediaService* create(QString const& key) override;
+    void release(QMediaService *service) override;
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const;
-    QStringList supportedMimeTypes() const;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
+    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const override;
+    QStringList supportedMimeTypes() const override;
 
 private:
     void buildSupportedTypes();

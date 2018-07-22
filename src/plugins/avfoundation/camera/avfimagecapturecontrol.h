@@ -60,17 +60,17 @@ public:
         QSharedPointer<QSemaphore> previewReady;
     };
 
-    AVFImageCaptureControl(AVFCameraService *service, QObject *parent = 0);
+    AVFImageCaptureControl(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFImageCaptureControl();
 
-    bool isReadyForCapture() const;
+    bool isReadyForCapture() const override;
 
-    QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode ) {}
+    QCameraImageCapture::DriveMode driveMode() const override { return QCameraImageCapture::SingleImageCapture; }
+    void setDriveMode(QCameraImageCapture::DriveMode ) override {}
     AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
 
-    int capture(const QString &fileName);
-    void cancelCapture();
+    int capture(const QString &fileName) override;
+    void cancelCapture() override;
 
 private Q_SLOTS:
     void updateCaptureConnection();

@@ -60,8 +60,8 @@ AVFVideoWindowControl::AVFVideoWindowControl(QObject *parent)
     , m_hue(0)
     , m_saturation(0)
     , m_aspectRatioMode(Qt::IgnoreAspectRatio)
-    , m_playerLayer(0)
-    , m_nativeView(0)
+    , m_playerLayer(nullptr)
+    , m_nativeView(nullptr)
 {
 }
 
@@ -188,7 +188,7 @@ void AVFVideoWindowControl::setSaturation(int saturation)
 
 void AVFVideoWindowControl::setLayer(void *playerLayer)
 {
-    AVPlayerLayer *layer = (AVPlayerLayer*)playerLayer;
+    AVPlayerLayer *layer = static_cast<AVPlayerLayer*>(playerLayer);
     if (m_playerLayer == layer)
         return;
 

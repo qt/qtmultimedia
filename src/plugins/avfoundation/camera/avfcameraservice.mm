@@ -74,7 +74,7 @@ QT_USE_NAMESPACE
 
 AVFCameraService::AVFCameraService(QObject *parent):
     QMediaService(parent),
-    m_videoOutput(0)
+    m_videoOutput(nullptr)
 {
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);
@@ -93,12 +93,12 @@ AVFCameraService::AVFCameraService(QObject *parent):
 #endif
     m_imageCaptureControl = new AVFImageCaptureControl(this);
     m_cameraFocusControl = new AVFCameraFocusControl(this);
-    m_cameraExposureControl = 0;
+    m_cameraExposureControl = nullptr;
 #ifdef Q_OS_IOS
     m_cameraExposureControl = new AVFCameraExposureControl(this);
 #endif
 
-    m_cameraZoomControl = 0;
+    m_cameraZoomControl = nullptr;
 #ifdef Q_OS_IOS
     m_cameraZoomControl = new AVFCameraZoomControl(this);
 #endif
@@ -120,9 +120,9 @@ AVFCameraService::~AVFCameraService()
 #endif
 
     if (m_videoOutput) {
-        m_session->setVideoOutput(0);
+        m_session->setVideoOutput(nullptr);
         delete m_videoOutput;
-        m_videoOutput = 0;
+        m_videoOutput = nullptr;
     }
 
     //delete controls before session,
@@ -199,7 +199,7 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
         return m_mediaContainerControl;
 
     if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
-        AVFMediaVideoProbeControl *videoProbe = 0;
+        AVFMediaVideoProbeControl *videoProbe = nullptr;
         videoProbe = new AVFMediaVideoProbeControl(this);
         m_session->addProbe(videoProbe);
         return videoProbe;
@@ -220,7 +220,7 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 void AVFCameraService::releaseControl(QMediaControl *control)
@@ -230,9 +230,9 @@ void AVFCameraService::releaseControl(QMediaControl *control)
         m_session->removeProbe(videoProbe);
         delete videoProbe;
     } else if (m_videoOutput == control) {
-        m_session->setVideoOutput(0);
+        m_session->setVideoOutput(nullptr);
         delete m_videoOutput;
-        m_videoOutput = 0;
+        m_videoOutput = nullptr;
     }
 }
 

@@ -58,13 +58,13 @@ class AVFVideoRendererControl : public QVideoRendererControl, public AVFVideoOut
     Q_OBJECT
     Q_INTERFACES(AVFVideoOutput)
 public:
-    explicit AVFVideoRendererControl(QObject *parent = 0);
+    explicit AVFVideoRendererControl(QObject *parent = nullptr);
     virtual ~AVFVideoRendererControl();
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
-    void setLayer(void *playerLayer);
+    void setLayer(void *playerLayer) override;
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);

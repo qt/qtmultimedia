@@ -118,7 +118,7 @@ template<>
 class AVFScopedPointer<dispatch_queue_t>
 {
 public:
-    AVFScopedPointer() : m_queue(0) {}
+    AVFScopedPointer() : m_queue(nullptr) {}
     explicit AVFScopedPointer(dispatch_queue_t q) : m_queue(q) {}
 
     ~AVFScopedPointer()
@@ -138,7 +138,7 @@ public:
         return m_queue;
     }
 
-    void reset(dispatch_queue_t q = 0)
+    void reset(dispatch_queue_t q = nullptr)
     {
         if (m_queue)
             dispatch_release(m_queue);
@@ -148,7 +148,7 @@ public:
 private:
     dispatch_queue_t m_queue;
 
-    Q_DISABLE_COPY(AVFScopedPointer);
+    Q_DISABLE_COPY(AVFScopedPointer)
 };
 
 typedef QPair<qreal, qreal> AVFPSRange;

@@ -52,11 +52,11 @@ class AVFVideoOutput;
 class AVFMediaPlayerService : public QMediaService
 {
 public:
-    explicit AVFMediaPlayerService(QObject *parent = 0);
+    explicit AVFMediaPlayerService(QObject *parent = nullptr);
     ~AVFMediaPlayerService();
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QMediaControl* requestControl(const char *name) override;
+    void releaseControl(QMediaControl *control) override;
 
 private:
     AVFMediaPlayerSession *m_session;

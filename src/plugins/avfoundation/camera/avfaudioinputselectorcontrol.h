@@ -54,16 +54,16 @@ class AVFAudioInputSelectorControl : public QAudioInputSelectorControl
 {
 Q_OBJECT
 public:
-    AVFAudioInputSelectorControl(AVFCameraService *service, QObject *parent = 0);
+    AVFAudioInputSelectorControl(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFAudioInputSelectorControl();
 
-    QList<QString> availableInputs() const;
-    QString inputDescription(const QString &name) const;
-    QString defaultInput() const;
-    QString activeInput() const;
+    QList<QString> availableInputs() const override;
+    QString inputDescription(const QString &name) const override;
+    QString defaultInput() const override;
+    QString activeInput() const override;
 
 public Q_SLOTS:
-    void setActiveInput(const QString &name);
+    void setActiveInput(const QString &name) override;
 
 public:
     //device changed since the last createCaptureDevice()

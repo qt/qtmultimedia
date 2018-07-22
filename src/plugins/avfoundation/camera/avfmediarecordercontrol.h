@@ -60,27 +60,27 @@ class AVFMediaRecorderControl : public QMediaRecorderControl
 {
 Q_OBJECT
 public:
-    AVFMediaRecorderControl(AVFCameraService *service, QObject *parent = 0);
+    AVFMediaRecorderControl(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFMediaRecorderControl();
 
-    QUrl outputLocation() const;
-    bool setOutputLocation(const QUrl &location);
+    QUrl outputLocation() const override;
+    bool setOutputLocation(const QUrl &location) override;
 
-    QMediaRecorder::State state() const;
-    QMediaRecorder::Status status() const;
+    QMediaRecorder::State state() const override;
+    QMediaRecorder::Status status() const override;
 
-    qint64 duration() const;
+    qint64 duration() const override;
 
-    bool isMuted() const;
-    qreal volume() const;
+    bool isMuted() const override;
+    qreal volume() const override;
 
-    void applySettings();
+    void applySettings() override;
     void unapplySettings();
 
 public Q_SLOTS:
-    void setState(QMediaRecorder::State state);
-    void setMuted(bool muted);
-    void setVolume(qreal volume);
+    void setState(QMediaRecorder::State state) override;
+    void setMuted(bool muted) override;
+    void setVolume(qreal volume) override;
 
     void handleRecordingStarted();
     void handleRecordingFinished();

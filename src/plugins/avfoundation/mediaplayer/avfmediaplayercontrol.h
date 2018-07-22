@@ -51,44 +51,44 @@ class AVFMediaPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
 public:
-    explicit AVFMediaPlayerControl(QObject *parent = 0);
+    explicit AVFMediaPlayerControl(QObject *parent = nullptr);
     ~AVFMediaPlayerControl();
 
     void setSession(AVFMediaPlayerSession *session);
 
-    QMediaPlayer::State state() const;
-    QMediaPlayer::MediaStatus mediaStatus() const;
+    QMediaPlayer::State state() const override;
+    QMediaPlayer::MediaStatus mediaStatus() const override;
 
-    QMediaContent media() const;
-    const QIODevice *mediaStream() const;
-    void setMedia(const QMediaContent &content, QIODevice *stream);
+    QMediaContent media() const override;
+    const QIODevice *mediaStream() const override;
+    void setMedia(const QMediaContent &content, QIODevice *stream) override;
 
-    qint64 position() const;
-    qint64 duration() const;
+    qint64 position() const override;
+    qint64 duration() const override;
 
-    int bufferStatus() const;
+    int bufferStatus() const override;
 
-    int volume() const;
-    bool isMuted() const;
+    int volume() const override;
+    bool isMuted() const override;
 
-    bool isAudioAvailable() const;
-    bool isVideoAvailable() const;
+    bool isAudioAvailable() const override;
+    bool isVideoAvailable() const override;
 
-    bool isSeekable() const;
-    QMediaTimeRange availablePlaybackRanges() const;
+    bool isSeekable() const override;
+    QMediaTimeRange availablePlaybackRanges() const override;
 
-    qreal playbackRate() const;
-    void setPlaybackRate(qreal rate);
+    qreal playbackRate() const override;
+    void setPlaybackRate(qreal rate) override;
 
 public Q_SLOTS:
-    void setPosition(qint64 pos);
+    void setPosition(qint64 pos) override;
 
-    void play();
-    void pause();
-    void stop();
+    void play() override;
+    void pause() override;
+    void stop() override;
 
-    void setVolume(int volume);
-    void setMuted(bool muted);
+    void setVolume(int volume) override;
+    void setMuted(bool muted) override;
 
 private:
     AVFMediaPlayerSession *m_session;

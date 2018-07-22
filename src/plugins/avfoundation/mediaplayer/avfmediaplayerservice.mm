@@ -56,7 +56,7 @@ QT_USE_NAMESPACE
 
 AVFMediaPlayerService::AVFMediaPlayerService(QObject *parent)
     : QMediaService(parent)
-    , m_videoOutput(0)
+    , m_videoOutput(nullptr)
 {
     m_session = new AVFMediaPlayerSession(this);
     m_control = new AVFMediaPlayerControl(this);
@@ -111,7 +111,7 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
         m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
         return m_videoOutput;
     }
-    return 0;
+    return nullptr;
 }
 
 void AVFMediaPlayerService::releaseControl(QMediaControl *control)
@@ -124,10 +124,10 @@ void AVFMediaPlayerService::releaseControl(QMediaControl *control)
         AVFVideoRendererControl *renderControl = qobject_cast<AVFVideoRendererControl*>(m_videoOutput);
 
         if (renderControl)
-            renderControl->setSurface(0);
+            renderControl->setSurface(nullptr);
 #endif
-        m_videoOutput = 0;
-        m_session->setVideoOutput(0);
+        m_videoOutput = nullptr;
+        m_session->setVideoOutput(nullptr);
 
         delete control;
     }

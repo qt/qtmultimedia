@@ -48,7 +48,7 @@ class AVFMediaVideoProbeControl : public QMediaVideoProbeControl
 {
     Q_OBJECT
 public:
-    explicit AVFMediaVideoProbeControl(QObject *parent = 0);
+    explicit AVFMediaVideoProbeControl(QObject *parent = nullptr);
     ~AVFMediaVideoProbeControl();
 
     void newFrameProbed(const QVideoFrame& frame);

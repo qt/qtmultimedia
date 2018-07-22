@@ -56,7 +56,7 @@ AVFVideoWidgetControl::AVFVideoWidgetControl(QObject *parent)
     , m_hue(0)
     , m_saturation(0)
 {
-    m_videoWidget = new AVFVideoWidget(0);
+    m_videoWidget = new AVFVideoWidget(nullptr);
 }
 
 AVFVideoWidgetControl::~AVFVideoWidgetControl()
@@ -73,7 +73,7 @@ void AVFVideoWidgetControl::setLayer(void *playerLayer)
     qDebug() << Q_FUNC_INFO << playerLayer;
 #endif
 
-    m_videoWidget->setPlayerLayer((AVPlayerLayer*)playerLayer);
+    m_videoWidget->setPlayerLayer(static_cast<AVPlayerLayer*>(playerLayer));
 
 }
 

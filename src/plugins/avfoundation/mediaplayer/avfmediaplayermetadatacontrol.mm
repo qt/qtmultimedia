@@ -49,7 +49,7 @@ QT_USE_NAMESPACE
 AVFMediaPlayerMetaDataControl::AVFMediaPlayerMetaDataControl(AVFMediaPlayerSession *session, QObject *parent)
     : QMetaDataReaderControl(parent)
     , m_session(session)
-    , m_asset(0)
+    , m_asset(nullptr)
 {
     QObject::connect(m_session, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(updateTags()));
 }
@@ -121,7 +121,7 @@ void AVFMediaPlayerMetaDataControl::updateTags()
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
-    AVAsset *currentAsset = (AVAsset*)m_session->currentAssetHandle();
+    AVAsset *currentAsset = static_cast<AVAsset*>(m_session->currentAssetHandle());
 
     //Don't read the tags from the same asset more than once
     if (currentAsset == m_asset)

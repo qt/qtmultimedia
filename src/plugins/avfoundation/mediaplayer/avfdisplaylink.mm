@@ -84,7 +84,7 @@ QT_USE_NAMESPACE
 {
     if (m_displayLink) {
         [m_displayLink release];
-        m_displayLink = NULL;
+        m_displayLink = nullptr;
     }
 
     [super dealloc];
@@ -129,7 +129,7 @@ static CVReturn CVDisplayLinkCallback(CVDisplayLinkRef displayLink,
 
 AVFDisplayLink::AVFDisplayLink(QObject *parent)
     : QObject(parent)
-    , m_displayLink(0)
+    , m_displayLink(nullptr)
     , m_pendingDisplayLinkEvent(false)
     , m_isActive(false)
 {
@@ -161,13 +161,13 @@ AVFDisplayLink::~AVFDisplayLink()
 #else
         CVDisplayLinkRelease(m_displayLink);
 #endif
-        m_displayLink = NULL;
+        m_displayLink = nullptr;
     }
 }
 
 bool AVFDisplayLink::isValid() const
 {
-    return m_displayLink != 0;
+    return m_displayLink != nullptr;
 }
 
 bool AVFDisplayLink::isActive() const

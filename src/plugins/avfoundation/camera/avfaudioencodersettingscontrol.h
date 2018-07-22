@@ -56,7 +56,7 @@ public:
 
     QStringList supportedAudioCodecs() const override;
     QString codecDescription(const QString &codecName) const override;
-    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous = 0) const override;
+    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous = nullptr) const override;
     QAudioEncoderSettings audioSettings() const override;
     void setAudioSettings(const QAudioEncoderSettings &settings) override;
 

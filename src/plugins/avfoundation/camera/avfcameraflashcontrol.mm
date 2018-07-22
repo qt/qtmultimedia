@@ -50,7 +50,7 @@
 
 AVFCameraFlashControl::AVFCameraFlashControl(AVFCameraService *service)
     : m_service(service)
-    , m_session(0)
+    , m_session(nullptr)
     , m_supportedModes(QCameraExposure::FlashOff)
     , m_flashMode(QCameraExposure::FlashOff)
 {

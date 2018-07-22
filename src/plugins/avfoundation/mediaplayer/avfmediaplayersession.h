@@ -57,7 +57,7 @@ class AVFMediaPlayerSession : public QObject
 {
     Q_OBJECT
 public:
-    AVFMediaPlayerSession(AVFMediaPlayerService *service, QObject *parent = 0);
+    AVFMediaPlayerSession(AVFMediaPlayerService *service, QObject *parent = nullptr);
     virtual ~AVFMediaPlayerSession();
 
     void setVideoOutput(AVFVideoOutput *output);
@@ -127,7 +127,7 @@ Q_SIGNALS:
 private:
     class ResourceHandler {
     public:
-        ResourceHandler():resource(0) {}
+        ResourceHandler() : resource(nullptr) {}
         ~ResourceHandler() { clear(); }
         void setResourceFile(const QString &file) {
             if (resource) {
@@ -138,10 +138,10 @@ private:
             }
             resource = new QResource(file);
         }
-        bool isValid() const { return resource && resource->isValid() && resource->data() != 0; }
+        bool isValid() const { return resource && resource->isValid() && resource->data() != nullptr; }
         const uchar *data() {
             if (!isValid())
-                return 0;
+                return nullptr;
             if (resource->isCompressed()) {
                 if (rawData.size() == 0)
                     rawData = qUncompress(resource->data(), resource->size());
@@ -150,7 +150,7 @@ private:
             return resource->data();
         }
         qint64 size() {
-            if (data() == 0)
+            if (data() == nullptr)
                 return 0;
             return resource->isCompressed() ? rawData.size() : resource->size();
         }

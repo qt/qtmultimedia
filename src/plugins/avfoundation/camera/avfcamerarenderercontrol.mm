@@ -65,7 +65,7 @@ public:
         : QAbstractPlanarVideoBuffer(renderer->supportsTextures()
                                      && CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA
                                      ? GLTextureHandle : NoHandle)
-        , m_texture(0)
+        , m_texture(nullptr)
         , m_renderer(renderer)
 #endif
         , m_buffer(buffer)
@@ -117,8 +117,8 @@ public:
             }
 
             if (data) {
-                data[0] = (uchar *)CVPixelBufferGetBaseAddressOfPlane(m_buffer, 0);
-                data[1] = (uchar *)CVPixelBufferGetBaseAddressOfPlane(m_buffer, 1);
+                data[0] = static_cast<uchar*>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, 0));
+                data[1] = static_cast<uchar*>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, 1));
             }
 
             m_mode = mode;
@@ -140,9 +140,9 @@ public:
                 *bytesPerLine = CVPixelBufferGetBytesPerRow(m_buffer);
 
             m_mode = mode;
-            return (uchar*)CVPixelBufferGetBaseAddress(m_buffer);
+            return static_cast<uchar*>(CVPixelBufferGetBaseAddress(m_buffer));
         } else {
-            return 0;
+            return nullptr;
         }
     }
 
@@ -163,9 +163,9 @@ public:
 
         if (!m_renderer->m_textureCache) {
             CVReturn err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault,
-                                                        NULL,
+                                                        nullptr,
                                                         [EAGLContext currentContext],
-                                                        NULL,
+                                                        nullptr,
                                                         &m_renderer->m_textureCache);
 
             if (err != kCVReturnSuccess)
@@ -178,7 +178,7 @@ public:
             CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
                                                                         m_renderer->m_textureCache,
                                                                         m_buffer,
-                                                                        NULL,
+                                                                        nullptr,
                                                                         GL_TEXTURE_2D,
                                                                         GL_RGBA,
                                                                         CVPixelBufferGetWidth(m_buffer),
@@ -266,11 +266,11 @@ private:
 
 AVFCameraRendererControl::AVFCameraRendererControl(QObject *parent)
    : QVideoRendererControl(parent)
-   , m_surface(0)
+   , m_surface(nullptr)
    , m_supportsTextures(false)
    , m_needsHorizontalMirroring(false)
 #ifdef Q_OS_IOS
-   , m_textureCache(0)
+   , m_textureCache(nullptr)
 #endif
 {
     m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
@@ -317,7 +317,7 @@ void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *camer
     m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
 
     // Configure video output
-    m_delegateQueue = dispatch_queue_create("vf_queue", NULL);
+    m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);
     [m_videoDataOutput
             setSampleBufferDelegate:m_viewfinderFramesDelegate
             queue:m_delegateQueue];

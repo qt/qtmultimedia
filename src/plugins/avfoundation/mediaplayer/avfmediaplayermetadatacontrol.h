@@ -50,14 +50,14 @@ class AVFMediaPlayerMetaDataControl : public QMetaDataReaderControl
 {
     Q_OBJECT
 public:
-    explicit AVFMediaPlayerMetaDataControl(AVFMediaPlayerSession *session, QObject *parent = 0);
+    explicit AVFMediaPlayerMetaDataControl(AVFMediaPlayerSession *session, QObject *parent = nullptr);
     virtual ~AVFMediaPlayerMetaDataControl();
 
-    bool isMetaDataAvailable() const;
+    bool isMetaDataAvailable() const override;
     bool isWritable() const;
 
-    QVariant metaData(const QString &key) const;
-    QStringList availableMetaData() const;
+    QVariant metaData(const QString &key) const override;
+    QStringList availableMetaData() const override;
 
 private Q_SLOTS:
     void updateTags();

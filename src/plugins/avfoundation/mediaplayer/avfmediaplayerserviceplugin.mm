@@ -60,7 +60,7 @@ QMediaService *AVFMediaPlayerServicePlugin::create(const QString &key)
         return new AVFMediaPlayerService;
 
     qWarning() << "unsupported key: " << key;
-    return 0;
+    return nullptr;
 }
 
 void AVFMediaPlayerServicePlugin::release(QMediaService *service)

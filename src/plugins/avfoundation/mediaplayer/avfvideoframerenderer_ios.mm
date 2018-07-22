@@ -54,11 +54,11 @@ QT_USE_NAMESPACE
 
 AVFVideoFrameRenderer::AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QObject *parent)
     : QObject(parent)
-    , m_glContext(0)
-    , m_offscreenSurface(0)
+    , m_glContext(nullptr)
+    , m_offscreenSurface(nullptr)
     , m_surface(surface)
-    , m_textureCache(0)
-    , m_videoOutput(0)
+    , m_textureCache(nullptr)
+    , m_videoOutput(nullptr)
     , m_isContextShared(true)
 {
 }
@@ -81,7 +81,7 @@ void AVFVideoFrameRenderer::setPlayerLayer(AVPlayerLayer *layer)
     Q_UNUSED(layer)
     if (m_videoOutput) {
         [m_videoOutput release];
-        m_videoOutput = 0;
+        m_videoOutput = nullptr;
         // will be re-created in first call to copyPixelBufferFromLayer
     }
 }
@@ -92,7 +92,7 @@ CVOGLTextureRef AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer
 
     // If the glContext isn't shared, it doesn't make sense to return a texture for us
     if (!m_isContextShared)
-        return 0;
+        return nullptr;
 
     size_t dummyWidth = 0, dummyHeight = 0;
     return createCacheTextureFromLayer(layer, dummyWidth, dummyHeight);
@@ -111,7 +111,7 @@ CVPixelBufferRef AVFVideoFrameRenderer::copyPixelBufferFromLayer(AVPlayerLayer *
 #ifdef QT_DEBUG_AVF
         qWarning("copyPixelBufferFromLayer: invalid layer");
 #endif
-        return 0;
+        return nullptr;
     }
 
     if (!m_videoOutput) {
@@ -125,7 +125,7 @@ CVPixelBufferRef AVFVideoFrameRenderer::copyPixelBufferFromLayer(AVPlayerLayer *
     CMTime currentCMFrameTime =  [m_videoOutput itemTimeForHostTime:currentCAFrameTime];
     // happens when buffering / loading
     if (CMTimeCompare(currentCMFrameTime, kCMTimeZero) < 0) {
-        return 0;
+        return nullptr;
     }
 
     CVPixelBufferRef pixelBuffer = [m_videoOutput copyPixelBufferForItemTime:currentCMFrameTime
@@ -135,7 +135,7 @@ CVPixelBufferRef AVFVideoFrameRenderer::copyPixelBufferFromLayer(AVPlayerLayer *
         qWarning("copyPixelBufferForItemTime returned nil");
         CMTimeShow(currentCMFrameTime);
 #endif
-        return 0;
+        return nullptr;
     }
 
     width = CVPixelBufferGetWidth(pixelBuffer);
@@ -149,12 +149,12 @@ CVOGLTextureRef AVFVideoFrameRenderer::createCacheTextureFromLayer(AVPlayerLayer
     CVPixelBufferRef pixelBuffer = copyPixelBufferFromLayer(layer, width, height);
 
     if (!pixelBuffer)
-        return 0;
+        return nullptr;
 
     CVOGLTextureCacheFlush(m_textureCache, 0);
 
-    CVOGLTextureRef texture = 0;
-    CVReturn err = CVOGLTextureCacheCreateTextureFromImage(kCFAllocatorDefault, m_textureCache, pixelBuffer, NULL,
+    CVOGLTextureRef texture = nullptr;
+    CVReturn err = CVOGLTextureCacheCreateTextureFromImage(kCFAllocatorDefault, m_textureCache, pixelBuffer, nullptr,
                                                            GL_TEXTURE_2D, GL_RGBA,
                                                            (GLsizei) width, (GLsizei) height,
                                                            GL_BGRA, GL_UNSIGNED_BYTE, 0,
@@ -214,7 +214,7 @@ void AVFVideoFrameRenderer::initRenderer()
     //Make sure we have an OpenGL context to make current
     if (!m_glContext) {
         //Create OpenGL context and set share context from surface
-        QOpenGLContext *shareContext = 0;
+        QOpenGLContext *shareContext = nullptr;
         if (m_surface) {
             shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
         }
@@ -248,9 +248,9 @@ void AVFVideoFrameRenderer::initRenderer()
 
     if (!m_textureCache) {
         //  Create a new open gl texture cache
-        CVReturn err = CVOGLTextureCacheCreate(kCFAllocatorDefault, NULL,
+        CVReturn err = CVOGLTextureCacheCreate(kCFAllocatorDefault, nullptr,
             [EAGLContext currentContext],
-            NULL, &m_textureCache);
+            nullptr, &m_textureCache);
         if (err) {
     #ifdef QT_DEBUG_AVF
             qWarning("Error at CVOGLTextureCacheCreate %d", err);

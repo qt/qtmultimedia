@@ -75,7 +75,7 @@ class AVFCameraService : public QMediaService
 {
 Q_OBJECT
 public:
-    AVFCameraService(QObject *parent = 0);
+    AVFCameraService(QObject *parent = nullptr);
     ~AVFCameraService();
 
     QMediaControl* requestControl(const char *name);

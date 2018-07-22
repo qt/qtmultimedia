@@ -70,7 +70,7 @@ class AVFCameraSession : public QObject
 {
     Q_OBJECT
 public:
-    AVFCameraSession(AVFCameraService *service, QObject *parent = 0);
+    AVFCameraSession(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFCameraSession();
 
     static int defaultCameraIndex();

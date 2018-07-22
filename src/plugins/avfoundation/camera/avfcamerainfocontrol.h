@@ -48,10 +48,10 @@ class AVFCameraInfoControl : public QCameraInfoControl
 {
     Q_OBJECT
 public:
-    explicit AVFCameraInfoControl(QObject *parent = 0);
+    explicit AVFCameraInfoControl(QObject *parent = nullptr);
 
-    QCamera::Position cameraPosition(const QString &deviceName) const;
-    int cameraOrientation(const QString &deviceName) const;
+    QCamera::Position cameraPosition(const QString &deviceName) const override;
+    int cameraOrientation(const QString &deviceName) const override;
 };
 
 QT_END_NAMESPACE

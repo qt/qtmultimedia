@@ -394,7 +394,7 @@ void AVFMediaRecorderControl::setupSessionForCapture()
                 qWarning() << "Failed to create audio device input";
             } else if (![captureSession canAddInput:m_audioInput]) {
                 qWarning() << "Could not connect the audio input";
-                m_audioInput = 0;
+                m_audioInput = nullptr;
             } else {
                 [m_audioInput retain];
                 [captureSession addInput:m_audioInput];

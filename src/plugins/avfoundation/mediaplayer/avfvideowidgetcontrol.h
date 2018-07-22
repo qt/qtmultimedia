@@ -54,30 +54,30 @@ class AVFVideoWidgetControl : public QVideoWidgetControl, public AVFVideoOutput
     Q_OBJECT
     Q_INTERFACES(AVFVideoOutput)
 public:
-    AVFVideoWidgetControl(QObject *parent = 0);
+    AVFVideoWidgetControl(QObject *parent = nullptr);
     virtual ~AVFVideoWidgetControl();
 
-    void setLayer(void *playerLayer);
+    void setLayer(void *playerLayer) override;
 
-    QWidget *videoWidget();
+    QWidget *videoWidget() override;
 
-    bool isFullScreen() const;
-    void setFullScreen(bool fullScreen);
+    bool isFullScreen() const override;
+    void setFullScreen(bool fullScreen) override;
 
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    int brightness() const;
-    void setBrightness(int brightness);
+    int brightness() const override;
+    void setBrightness(int brightness) override;
 
-    int contrast() const;
-    void setContrast(int contrast);
+    int contrast() const override;
+    void setContrast(int contrast) override;
 
-    int hue() const;
-    void setHue(int hue);
+    int hue() const override;
+    void setHue(int hue) override;
 
-    int saturation() const;
-    void setSaturation(int saturation);
+    int saturation() const override;
+    void setSaturation(int saturation) override;
 
 private:
     AVFVideoWidget *m_videoWidget;
