@@ -127,7 +127,7 @@ QMediaObject::~QMediaObject()
 
 QMultimedia::AvailabilityStatus QMediaObject::availability() const
 {
-    if (d_func()->service == 0)
+    if (d_func()->service == nullptr)
         return QMultimedia::ServiceMissing;
 
     if (d_func()->availabilityControl)
@@ -216,7 +216,7 @@ void QMediaObject::unbind(QObject *object)
     QMediaBindableInterface *helper = qobject_cast<QMediaBindableInterface*>(object);
 
     if (helper && helper->mediaObject() == this)
-        helper->setMediaObject(0);
+        helper->setMediaObject(nullptr);
     else
         qWarning() << "QMediaObject: Trying to unbind not connected helper object";
 }
@@ -395,7 +395,7 @@ void QMediaObject::setupControls()
 {
     Q_D(QMediaObject);
 
-    if (d->service != 0) {
+    if (d->service != nullptr) {
         d->metaDataControl = qobject_cast<QMetaDataReaderControl*>(
                 d->service->requestControl(QMetaDataReaderControl_iid));
 

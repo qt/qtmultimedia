@@ -84,7 +84,7 @@ QObject* QMediaResourcePolicy::createResourceSet(const QString& interfaceId)
     QMediaResourceSetFactoryInterface *factory =
             qobject_cast<QMediaResourceSetFactoryInterface*>(resourcePolicyLoader()
                                                              ->instance(QLatin1String("default")));
-    QObject* obj = 0;
+    QObject *obj = nullptr;
     if (factory)
         obj = factory->create(interfaceId);
 

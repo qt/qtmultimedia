@@ -68,11 +68,11 @@ QStringList QMediaPluginLoader::keys() const
 QObject* QMediaPluginLoader::instance(QString const &key)
 {
     if (!m_metadata.contains(key))
-        return 0;
+        return nullptr;
 
     int idx = m_metadata.value(key).first().value(QStringLiteral("index")).toDouble();
     if (idx < 0)
-        return 0;
+        return nullptr;
 
     return m_factoryLoader->instance(idx);
 }

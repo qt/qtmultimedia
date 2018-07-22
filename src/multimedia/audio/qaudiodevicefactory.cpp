@@ -77,7 +77,7 @@ class QNullInputDevice : public QAbstractAudioInput
 {
 public:
     void start(QIODevice*) override { qWarning()<<"using null input device, none available";}
-    QIODevice* start() override { qWarning()<<"using null input device, none available"; return 0; }
+    QIODevice *start() override { qWarning()<<"using null input device, none available"; return nullptr; }
     void stop() override {}
     void reset() override {}
     void suspend() override {}
@@ -102,7 +102,7 @@ class QNullOutputDevice : public QAbstractAudioOutput
 {
 public:
     void start(QIODevice*) override {qWarning()<<"using null output device, none available";}
-    QIODevice* start() override { qWarning()<<"using null output device, none available"; return 0; }
+    QIODevice *start() override { qWarning()<<"using null output device, none available"; return nullptr; }
     void stop() override {}
     void reset() override {}
     void suspend() override {}
@@ -194,7 +194,7 @@ QAudioDeviceInfo QAudioDeviceFactory::defaultDevice(QAudio::Mode mode)
 
 QAbstractAudioDeviceInfo* QAudioDeviceFactory::audioDeviceInfo(const QString &realm, const QByteArray &handle, QAudio::Mode mode)
 {
-    QAbstractAudioDeviceInfo *rc = 0;
+    QAbstractAudioDeviceInfo *rc = nullptr;
 
 #if !defined (QT_NO_LIBRARY) && !defined(QT_NO_SETTINGS)
     QAudioSystemFactoryInterface* plugin =
@@ -204,7 +204,7 @@ QAbstractAudioDeviceInfo* QAudioDeviceFactory::audioDeviceInfo(const QString &re
         rc = plugin->createDeviceInfo(handle, mode);
 #endif
 
-    return rc == 0 ? new QNullDeviceInfo() : rc;
+    return rc == nullptr ? new QNullDeviceInfo() : rc;
 }
 
 QAbstractAudioInput* QAudioDeviceFactory::createDefaultInputDevice(QAudioFormat const &format)

@@ -90,7 +90,7 @@ Q_SIGNALS:
     void playbackModeChanged(QMediaPlaylist::PlaybackMode mode);
 
 protected:
-    QMediaPlaylistControl(QObject* parent = 0);
+    QMediaPlaylistControl(QObject *parent = nullptr);
 };
 
 #define QMediaPlaylistControl_iid "org.qt-project.qt.mediaplaylistcontrol/5.0"

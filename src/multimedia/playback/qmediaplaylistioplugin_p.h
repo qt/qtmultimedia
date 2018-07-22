@@ -106,7 +106,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlaylistIOPlugin : public QObject, public QMedia
 Q_OBJECT
 Q_INTERFACES(QMediaPlaylistIOInterface)
 public:
-    explicit QMediaPlaylistIOPlugin(QObject *parent = 0);
+    explicit QMediaPlaylistIOPlugin(QObject *parent = nullptr);
     ~QMediaPlaylistIOPlugin();
 
     bool canRead(QIODevice *device, const QByteArray &format = QByteArray() ) const override = 0;

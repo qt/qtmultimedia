@@ -67,7 +67,7 @@ class QVideoSurfaceOutput : public QObject, public QMediaBindableInterface
     Q_OBJECT
     Q_INTERFACES(QMediaBindableInterface)
 public:
-    QVideoSurfaceOutput(QObject*parent = 0);
+    QVideoSurfaceOutput(QObject *parent = nullptr);
     ~QVideoSurfaceOutput();
 
     QMediaObject *mediaObject() const override;

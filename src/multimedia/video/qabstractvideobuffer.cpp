@@ -126,7 +126,7 @@ int QAbstractVideoBufferPrivate::map(
     Constructs an abstract video buffer of the given \a type.
 */
 QAbstractVideoBuffer::QAbstractVideoBuffer(HandleType type)
-    : d_ptr(0)
+    : d_ptr(nullptr)
     , m_type(type)
 {
 }
@@ -328,7 +328,7 @@ uchar *QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPe
             *bytesPerLine = strides[0];
         return data[0];
     } else {
-        return 0;
+        return nullptr;
     }
 }
 

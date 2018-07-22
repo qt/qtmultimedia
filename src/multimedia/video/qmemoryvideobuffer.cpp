@@ -112,7 +112,7 @@ uchar *QMemoryVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 
         return reinterpret_cast<uchar *>(d->data.data());
     } else {
-        return 0;
+        return nullptr;
     }
 }
 

@@ -73,7 +73,7 @@ Q_SIGNALS:
     void playlistChanged(QMediaPlaylist* playlist);
 
 protected:
-    QMediaPlaylistSourceControl(QObject* parent = 0);
+    QMediaPlaylistSourceControl(QObject *parent = nullptr);
 };
 
 #define QMediaPlaylistSourceControl_iid "org.qt-project.qt.mediaplaylistsourcecontrol/5.0"

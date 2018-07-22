@@ -95,14 +95,14 @@ public:
 };
 
 QRadioDataPrivate::QRadioDataPrivate()
-    : mediaObject(0)
-    , control(0)
+    : mediaObject(nullptr)
+    , control(nullptr)
 {}
 
 void QRadioDataPrivate::_q_serviceDestroyed()
 {
-    mediaObject = 0;
-    control = 0;
+    mediaObject = nullptr;
+    control = nullptr;
 }
 
 /*!
@@ -211,8 +211,8 @@ bool QRadioData::setMediaObject(QMediaObject *mediaObject)
     }
 
     // without QRadioDataControl discard the media object
-    d->mediaObject = 0;
-    d->control = 0;
+    d->mediaObject = nullptr;
+    d->control = nullptr;
 
     return false;
 }
@@ -228,7 +228,7 @@ QMultimedia::AvailabilityStatus QRadioData::availability() const
 {
     Q_D(const QRadioData);
 
-    if (d->control == 0)
+    if (d->control == nullptr)
         return QMultimedia::ServiceMissing;
 
     return d->mediaObject->availability();
@@ -244,7 +244,7 @@ QString QRadioData::stationId() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->stationId();
     return QString();
 }
@@ -259,7 +259,7 @@ QRadioData::ProgramType QRadioData::programType() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->programType();
 
     return QRadioData::Undefined;
@@ -275,7 +275,7 @@ QString QRadioData::programTypeName() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->programTypeName();
     return QString();
 }
@@ -290,7 +290,7 @@ QString QRadioData::stationName() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->stationName();
     return QString();
 }
@@ -305,7 +305,7 @@ QString QRadioData::radioText() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->radioText();
     return QString();
 }
@@ -320,7 +320,7 @@ bool QRadioData::isAlternativeFrequenciesEnabled() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->isAlternativeFrequenciesEnabled();
     return false;
 }
@@ -329,7 +329,7 @@ void QRadioData::setAlternativeFrequenciesEnabled( bool enabled )
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->setAlternativeFrequenciesEnabled(enabled);
 }
 
@@ -343,7 +343,7 @@ QRadioData::Error QRadioData::error() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->error();
     return QRadioData::ResourceError;
 }
@@ -357,7 +357,7 @@ QString QRadioData::errorString() const
 {
     Q_D(const QRadioData);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         return d->control->errorString();
     return QString();
 }

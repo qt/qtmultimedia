@@ -339,8 +339,8 @@ void QCameraFocusPrivate::initControls()
 {
     Q_Q(QCameraFocus);
 
-    focusControl = 0;
-    zoomControl = 0;
+    focusControl = nullptr;
+    zoomControl = nullptr;
 
     QMediaService *service = camera->service();
     if (service) {
@@ -348,7 +348,7 @@ void QCameraFocusPrivate::initControls()
         zoomControl = qobject_cast<QCameraZoomControl *>(service->requestControl(QCameraZoomControl_iid));
     }
 
-    available = focusControl != 0;
+    available = focusControl != nullptr;
 
     if (!focusControl)
         focusControl = new QCameraFocusFakeFocusControl(q);

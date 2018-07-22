@@ -253,8 +253,8 @@ QMediaContent& QMediaContent::operator=(const QMediaContent &other)
 
 bool QMediaContent::operator==(const QMediaContent &other) const
 {
-    return (d.constData() == 0 && other.d.constData() == 0) ||
-            (d.constData() != 0 && other.d.constData() != 0 &&
+    return (d.constData() == 0 && other.d.constData() == nullptr) ||
+            (d.constData() != 0 && other.d.constData() != nullptr &&
              *d.constData() == *other.d.constData());
 }
 
@@ -273,7 +273,7 @@ bool QMediaContent::operator!=(const QMediaContent &other) const
 
 bool QMediaContent::isNull() const
 {
-    return d.constData() == 0;
+    return d.constData() == nullptr;
 }
 
 /*!
@@ -311,7 +311,7 @@ QNetworkRequest QMediaContent::canonicalRequest() const
 
 QMediaResource QMediaContent::canonicalResource() const
 {
-    return d.constData() != 0
+    return d.constData() != nullptr
             ?  d->resources.value(0)
             : QMediaResource();
 }
@@ -325,7 +325,7 @@ QMediaResource QMediaContent::canonicalResource() const
 
 QMediaResourceList QMediaContent::resources() const
 {
-    return d.constData() != 0
+    return d.constData() != nullptr
             ? d->resources
             : QMediaResourceList();
 }
@@ -337,9 +337,9 @@ QMediaResourceList QMediaContent::resources() const
 
 QMediaPlaylist *QMediaContent::playlist() const
 {
-    return d.constData() != 0
+    return d.constData() != nullptr
             ? d->playlist.data()
-            : 0;
+            : nullptr;
 }
 
 QT_END_NAMESPACE

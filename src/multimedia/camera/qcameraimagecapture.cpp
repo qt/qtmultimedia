@@ -117,11 +117,11 @@ public:
 };
 
 QCameraImageCapturePrivate::QCameraImageCapturePrivate():
-     mediaObject(0),
-     control(0),
-     encoderControl(0),
-     captureDestinationControl(0),
-     bufferFormatControl(0),
+     mediaObject(nullptr),
+     control(nullptr),
+     encoderControl(nullptr),
+     captureDestinationControl(nullptr),
+     bufferFormatControl(nullptr),
      error(QCameraImageCapture::NoError)
 {
 }
@@ -144,11 +144,11 @@ void QCameraImageCapturePrivate::_q_readyChanged(bool ready)
 
 void QCameraImageCapturePrivate::_q_serviceDestroyed()
 {
-    mediaObject = 0;
-    control = 0;
-    encoderControl = 0;
-    captureDestinationControl = 0;
-    bufferFormatControl = 0;
+    mediaObject = nullptr;
+    control = nullptr;
+    encoderControl = nullptr;
+    captureDestinationControl = nullptr;
+    bufferFormatControl = nullptr;
 }
 
 /*!
@@ -284,11 +284,11 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
     }
 
     // without QCameraImageCaptureControl discard the media object
-    d->mediaObject = 0;
-    d->control = 0;
-    d->encoderControl = 0;
-    d->captureDestinationControl = 0;
-    d->bufferFormatControl = 0;
+    d->mediaObject = nullptr;
+    d->control = nullptr;
+    d->encoderControl = nullptr;
+    d->captureDestinationControl = nullptr;
+    d->bufferFormatControl = nullptr;
 
     return false;
 }
@@ -298,7 +298,7 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
 */
 bool QCameraImageCapture::isAvailable() const
 {
-    if (d_func()->control != NULL)
+    if (d_func()->control != nullptr)
         return true;
     else
         return false;
@@ -309,7 +309,7 @@ bool QCameraImageCapture::isAvailable() const
 */
 QMultimedia::AvailabilityStatus QCameraImageCapture::availability() const
 {
-    if (d_func()->control != NULL)
+    if (d_func()->control != nullptr)
         return QMultimedia::Available;
     else
         return QMultimedia::ServiceMissing;

@@ -80,7 +80,7 @@ Q_SIGNALS:
     void availabilityChanged(bool available);
 
 protected:
-    QMediaPlayerResourceSetInterface(QObject *parent = 0);
+    QMediaPlayerResourceSetInterface(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE

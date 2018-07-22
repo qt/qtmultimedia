@@ -97,7 +97,7 @@ QT_BEGIN_NAMESPACE
 
 QSampleCache::QSampleCache(QObject *parent)
     : QObject(parent)
-    , m_networkAccessManager(0)
+    , m_networkAccessManager(nullptr)
     , m_mutex(QMutex::Recursive)
     , m_capacity(0)
     , m_usage(0)
@@ -327,8 +327,8 @@ void QSample::cleanup()
     if (m_stream)
         m_stream->deleteLater();
 
-    m_waveDecoder = 0;
-    m_stream = 0;
+    m_waveDecoder = nullptr;
+    m_stream = nullptr;
 }
 
 // Called in application thread
@@ -429,8 +429,8 @@ void QSample::onReady()
 // Called in application thread, then moved to loader thread
 QSample::QSample(const QUrl& url, QSampleCache *parent)
     : m_parent(parent)
-    , m_stream(0)
-    , m_waveDecoder(0)
+    , m_stream(nullptr)
+    , m_waveDecoder(nullptr)
     , m_url(url)
     , m_sampleReadLength(0)
     , m_state(Creating)

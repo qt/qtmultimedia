@@ -127,7 +127,7 @@ class Q_MULTIMEDIA_EXPORT QSampleCache : public QObject
 public:
     friend class QSample;
 
-    QSampleCache(QObject *parent = 0);
+    QSampleCache(QObject *parent = nullptr);
     ~QSampleCache();
 
     QSample* requestSample(const QUrl& url);

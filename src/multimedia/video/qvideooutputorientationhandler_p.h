@@ -61,7 +61,7 @@ class Q_MULTIMEDIA_EXPORT QVideoOutputOrientationHandler : public QObject
 {
     Q_OBJECT
 public:
-    explicit QVideoOutputOrientationHandler(QObject *parent = 0);
+    explicit QVideoOutputOrientationHandler(QObject *parent = nullptr);
 
     int currentOrientation() const;
 

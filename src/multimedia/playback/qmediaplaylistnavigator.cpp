@@ -63,7 +63,7 @@ class QMediaPlaylistNavigatorPrivate
     Q_DECLARE_NON_CONST_PUBLIC(QMediaPlaylistNavigator)
 public:
     QMediaPlaylistNavigatorPrivate()
-        :playlist(0),
+        :playlist(nullptr),
         currentPos(-1),
         lastValidPos(-1),
         playbackMode(QMediaPlaylist::Sequential),

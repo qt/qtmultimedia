@@ -64,7 +64,7 @@ class QWaveDecoder : public QIODevice
     Q_OBJECT
 
 public:
-    explicit QWaveDecoder(QIODevice *source, QObject *parent = 0);
+    explicit QWaveDecoder(QIODevice *source, QObject *parent = nullptr);
     ~QWaveDecoder();
 
     QAudioFormat audioFormat() const;

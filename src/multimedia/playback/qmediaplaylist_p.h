@@ -78,9 +78,9 @@ class QMediaPlaylistPrivate
     Q_DECLARE_PUBLIC(QMediaPlaylist)
 public:
     QMediaPlaylistPrivate()
-        :mediaObject(0),
-        control(0),
-        networkPlaylistControl(0),
+        :mediaObject(nullptr),
+        control(nullptr),
+        networkPlaylistControl(nullptr),
         error(QMediaPlaylist::NoError)
     {
     }
@@ -98,10 +98,10 @@ public:
     void _q_mediaObjectDeleted()
     {
         Q_Q(QMediaPlaylist);
-        mediaObject = 0;
+        mediaObject = nullptr;
         if (control != networkPlaylistControl)
-            control = 0;
-        q->setMediaObject(0);
+            control = nullptr;
+        q->setMediaObject(nullptr);
     }
 
     QMediaObject *mediaObject;

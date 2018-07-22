@@ -84,8 +84,8 @@ class QAudioDecoderPrivate : public QMediaObjectPrivate
 
 public:
     QAudioDecoderPrivate()
-        : provider(0)
-        , control(0)
+        : provider(nullptr)
+        , control(nullptr)
         , state(QAudioDecoder::StoppedState)
         , error(QAudioDecoder::NoError)
     {}
@@ -135,7 +135,7 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
     d->provider = QMediaServiceProvider::defaultServiceProvider();
     if (d->service) {
         d->control = qobject_cast<QAudioDecoderControl*>(d->service->requestControl(QAudioDecoderControl_iid));
-        if (d->control != 0) {
+        if (d->control != nullptr) {
             connect(d->control, SIGNAL(stateChanged(QAudioDecoder::State)), SLOT(_q_stateChanged(QAudioDecoder::State)));
             connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
 
@@ -205,7 +205,7 @@ void QAudioDecoder::start()
 {
     Q_D(QAudioDecoder);
 
-    if (d->control == 0) {
+    if (d->control == nullptr) {
         QMetaObject::invokeMethod(this, "_q_error", Qt::QueuedConnection,
                                     Q_ARG(int, QAudioDecoder::ServiceMissingError),
                                     Q_ARG(QString, tr("The QAudioDecoder object does not have a valid service")));
@@ -226,7 +226,7 @@ void QAudioDecoder::stop()
 {
     Q_D(QAudioDecoder);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         d->control->stop();
 }
 
@@ -256,7 +256,7 @@ void QAudioDecoder::setSourceFilename(const QString &fileName)
 {
     Q_D(QAudioDecoder);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         d_func()->control->setSourceFilename(fileName);
 }
 
@@ -269,7 +269,7 @@ QIODevice *QAudioDecoder::sourceDevice() const
     Q_D(const QAudioDecoder);
     if (d->control)
         return d->control->sourceDevice();
-    return 0;
+    return nullptr;
 }
 
 /*!
@@ -285,7 +285,7 @@ void QAudioDecoder::setSourceDevice(QIODevice *device)
 {
     Q_D(QAudioDecoder);
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         d_func()->control->setSourceDevice(device);
 }
 
@@ -327,7 +327,7 @@ void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
     if (state() != QAudioDecoder::StoppedState)
         return;
 
-    if (d->control != 0)
+    if (d->control != nullptr)
         d_func()->control->setAudioFormat(format);
 }
 

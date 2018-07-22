@@ -273,7 +273,7 @@ class QPlaylistFileParserPrivate
 public:
     QPlaylistFileParserPrivate(QPlaylistFileParser *q)
         : q_ptr(q)
-        , m_stream(0)
+        , m_stream(nullptr)
         , m_type(QPlaylistFileParser::UNKNOWN)
         , m_scanIndex(0)
         , m_lineIndex(-1)
@@ -302,7 +302,7 @@ public:
         QMediaContent m_media;
         QString m_mimeType;
         bool isValid() const { return m_stream || !m_media.isNull(); }
-        void reset() { m_stream = 0; m_media = QMediaContent(); m_mimeType = QString(); }
+        void reset() { m_stream = nullptr; m_media = QMediaContent(); m_mimeType = QString(); }
     } m_pendingJob;
     int m_scanIndex;
     int m_lineIndex;

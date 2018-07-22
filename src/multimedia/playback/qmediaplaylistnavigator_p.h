@@ -67,7 +67,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlaylistNavigator : public QObject
     Q_PROPERTY(QMediaContent currentItem READ currentItem)
 
 public:
-    QMediaPlaylistNavigator(QMediaPlaylistProvider *playlist, QObject *parent = 0);
+    QMediaPlaylistNavigator(QMediaPlaylistProvider *playlist, QObject *parent = nullptr);
     virtual ~QMediaPlaylistNavigator();
 
     QMediaPlaylistProvider *playlist() const;

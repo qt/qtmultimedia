@@ -66,7 +66,7 @@ class Q_MULTIMEDIA_EXPORT QPlaylistFileParser : public QObject
 {
     Q_OBJECT
 public:
-    QPlaylistFileParser(QObject *parent = 0);
+    QPlaylistFileParser(QObject *parent = nullptr);
     ~QPlaylistFileParser();
 
     enum FileType
@@ -86,7 +86,7 @@ public:
         NetworkError
     };
 
-    void start(const QMediaContent &media, QIODevice *stream = 0, const QString &mimeType = QString());
+    void start(const QMediaContent &media, QIODevice *stream = nullptr, const QString &mimeType = QString());
     void start(const QNetworkRequest &request, const QString &mimeType = QString());
     void abort();
 
@@ -109,7 +109,7 @@ private:
                                      const QString& mime);
     static FileType findPlaylistType(const QString &suffix,
                                      const QString& mime,
-                                     const char *data = 0,
+                                     const char *data = nullptr,
                                      quint32 size = 0);
 
     Q_DISABLE_COPY(QPlaylistFileParser)

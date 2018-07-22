@@ -72,7 +72,7 @@ class Q_MULTIMEDIA_EXPORT QMediaResourcePolicyPlugin : public QObject, public QM
     Q_INTERFACES(QMediaResourceSetFactoryInterface)
 
 public:
-    QMediaResourcePolicyPlugin(QObject *parent = 0);
+    QMediaResourcePolicyPlugin(QObject *parent = nullptr);
     ~QMediaResourcePolicyPlugin();
 };
 

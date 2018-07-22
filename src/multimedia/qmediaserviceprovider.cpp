@@ -56,7 +56,7 @@ class QMediaServiceProviderHintPrivate : public QSharedData
 {
 public:
     QMediaServiceProviderHintPrivate(QMediaServiceProviderHint::Type type)
-        :type(type), cameraPosition(QCamera::UnspecifiedPosition), features(0)
+        :type(type), cameraPosition(QCamera::UnspecifiedPosition), features(nullptr)
     {
     }
 
@@ -309,7 +309,7 @@ class QPluginServiceProvider : public QMediaServiceProvider
         QByteArray type;
         QMediaServiceProviderPlugin *plugin;
 
-        MediaServiceData() : plugin(0) { }
+        MediaServiceData() : plugin(nullptr) { }
     };
 
     QMap<const QMediaService*, MediaServiceData> mediaServiceData;
@@ -329,7 +329,7 @@ public:
         }
 
         if (!plugins.isEmpty()) {
-            QMediaServiceProviderPlugin *plugin = 0;
+            QMediaServiceProviderPlugin *plugin = nullptr;
 
             switch (hint.type()) {
             case QMediaServiceProviderHint::Null:
@@ -423,9 +423,9 @@ public:
                 break;
             }
 
-            if (plugin != 0) {
+            if (plugin != nullptr) {
                 QMediaService *service = plugin->create(key);
-                if (service != 0) {
+                if (service != nullptr) {
                     MediaServiceData d;
                     d.type = type;
                     d.plugin = plugin;
@@ -437,15 +437,15 @@ public:
         }
 
         qWarning() << "defaultServiceProvider::requestService(): no service found for -" << key;
-        return 0;
+        return nullptr;
     }
 
     void releaseService(QMediaService *service) override
     {
-        if (service != 0) {
+        if (service != nullptr) {
             MediaServiceData d = mediaServiceData.take(service);
 
-            if (d.plugin != 0)
+            if (d.plugin != nullptr)
                 d.plugin->release(service);
         }
     }
@@ -704,7 +704,7 @@ QMediaServiceProviderHint::Features QMediaServiceProvider::supportedFeatures(con
 {
     Q_UNUSED(service);
 
-    return QMediaServiceProviderHint::Features(0);
+    return QMediaServiceProviderHint::Features(nullptr);
 }
 
 /*!
@@ -798,7 +798,7 @@ int QMediaServiceProvider::cameraOrientation(const QByteArray &device) const
     return 0;
 }
 
-static QMediaServiceProvider *qt_defaultMediaServiceProvider = 0;
+static QMediaServiceProvider *qt_defaultMediaServiceProvider = nullptr;
 
 /*!
     Sets a media service \a provider as the default.
@@ -817,7 +817,7 @@ void QMediaServiceProvider::setDefaultServiceProvider(QMediaServiceProvider *pro
 */
 QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 {
-    return qt_defaultMediaServiceProvider != 0
+    return qt_defaultMediaServiceProvider != nullptr
             ? qt_defaultMediaServiceProvider
             : static_cast<QMediaServiceProvider *>(pluginProvider());
 }

@@ -68,7 +68,7 @@ private:
     Q_DECLARE_PRIVATE(QMediaControl)
 };
 
-template <typename T> const char *qmediacontrol_iid() { return 0; }
+template <typename T> const char *qmediacontrol_iid() { return nullptr; }
 
 #define Q_MEDIA_DECLARE_CONTROL(Class, IId) \
     template <> inline const char *qmediacontrol_iid<Class *>() { return IId; }

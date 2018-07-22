@@ -61,10 +61,10 @@ class Q_MULTIMEDIA_EXPORT QMediaNetworkPlaylistProvider : public QMediaPlaylistP
 {
     Q_OBJECT
 public:
-    QMediaNetworkPlaylistProvider(QObject *parent=0);
+    QMediaNetworkPlaylistProvider(QObject *parent = nullptr);
     ~QMediaNetworkPlaylistProvider();
 
-    bool load(const QNetworkRequest &request, const char *format = 0) override;
+    bool load(const QNetworkRequest &request, const char *format = nullptr) override;
 
     int mediaCount() const override;
     QMediaContent media(int pos) const override;

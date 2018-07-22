@@ -73,7 +73,7 @@ class QMediaObjectPrivate
     Q_DECLARE_PUBLIC(QMediaObject)
 
 public:
-    QMediaObjectPrivate(): service(0), metaDataControl(0), availabilityControl(0), notifyTimer(0), q_ptr(0) {}
+    QMediaObjectPrivate() : service(nullptr), metaDataControl(nullptr), availabilityControl(nullptr), notifyTimer(nullptr), q_ptr(nullptr) {}
     virtual ~QMediaObjectPrivate() {}
 
     void _q_notify();

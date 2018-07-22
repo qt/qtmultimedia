@@ -57,7 +57,7 @@ class QAudioDeviceInfoPrivate : public QSharedData
 public:
     QAudioDeviceInfoPrivate()
         : mode(QAudio::AudioOutput)
-        , info(0)
+        , info(nullptr)
     {
     }
 
@@ -67,7 +67,7 @@ public:
         if (!handle.isEmpty())
             info = QAudioDeviceFactory::audioDeviceInfo(realm, handle, mode);
         else
-            info = NULL;
+            info = nullptr;
     }
 
     QAudioDeviceInfoPrivate(const QAudioDeviceInfoPrivate &other):
@@ -213,7 +213,7 @@ bool QAudioDeviceInfo::operator !=(const QAudioDeviceInfo &other) const
 */
 bool QAudioDeviceInfo::isNull() const
 {
-    return d->info == 0;
+    return d->info == nullptr;
 }
 
 /*!
