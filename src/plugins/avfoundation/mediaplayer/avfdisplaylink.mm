@@ -55,10 +55,6 @@ QT_USE_NAMESPACE
 
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 @interface DisplayLinkObserver : NSObject
-{
-    AVFDisplayLink *m_avfDisplayLink;
-    CADisplayLink *m_displayLink;
-}
 
 - (void)start;
 - (void)stop;
@@ -67,6 +63,10 @@ QT_USE_NAMESPACE
 @end
 
 @implementation DisplayLinkObserver
+{
+    AVFDisplayLink *m_avfDisplayLink;
+    CADisplayLink *m_displayLink;
+}
 
 - (id)initWithAVFDisplayLink:(AVFDisplayLink *)link
 {

@@ -211,10 +211,6 @@ private:
 
 
 @interface AVFCaptureFramesDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
-{
-@private
-    AVFCameraRendererControl *m_renderer;
-}
 
 - (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRendererControl*)renderer;
 
@@ -225,6 +221,10 @@ private:
 @end
 
 @implementation AVFCaptureFramesDelegate
+{
+@private
+    AVFCameraRendererControl *m_renderer;
+}
 
 - (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRendererControl*)renderer
 {

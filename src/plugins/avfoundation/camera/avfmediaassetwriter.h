@@ -59,37 +59,8 @@ QT_END_NAMESPACE
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate,
                                                                AVCaptureAudioDataOutputSampleBufferDelegate>
 {
-@private
-    AVFCameraService *m_service;
-
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_cameraWriterInput;
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureDeviceInput> m_audioInput;
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureAudioDataOutput> m_audioOutput;
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_audioWriterInput;
-    AVCaptureDevice *m_audioCaptureDevice;
-
-    // Queue to write sample buffers:
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_writerQueue;
-    // High priority serial queue for video output:
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_videoQueue;
-    // Serial queue for audio output:
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_audioQueue;
-
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriter> m_assetWriter;
-
-    QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *m_delegate;
-
-    bool m_setStartTime;
-
-    QT_PREPEND_NAMESPACE(QAtomicInt) m_state;
 @public
     QT_PREPEND_NAMESPACE(AVFAtomicInt64) m_durationInMs;
-@private
-    CMTime m_startTime;
-    CMTime m_lastTimeStamp;
-
-    NSDictionary *m_audioSettings;
-    NSDictionary *m_videoSettings;
 }
 
 - (id)initWithDelegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;

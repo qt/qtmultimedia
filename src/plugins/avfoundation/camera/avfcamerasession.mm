@@ -64,11 +64,6 @@ int AVFCameraSession::m_defaultCameraIndex;
 QList<AVFCameraInfo> AVFCameraSession::m_cameraDevices;
 
 @interface AVFCameraSessionObserver : NSObject
-{
-@private
-    AVFCameraSession *m_session;
-    AVCaptureSession *m_captureSession;
-}
 
 - (AVFCameraSessionObserver *) initWithCameraSession:(AVFCameraSession*)session;
 - (void) processRuntimeError:(NSNotification *)notification;
@@ -78,6 +73,11 @@ QList<AVFCameraInfo> AVFCameraSession::m_cameraDevices;
 @end
 
 @implementation AVFCameraSessionObserver
+{
+@private
+    AVFCameraSession *m_session;
+    AVCaptureSession *m_captureSession;
+}
 
 - (AVFCameraSessionObserver *) initWithCameraSession:(AVFCameraSession*)session
 {

@@ -67,15 +67,6 @@ static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMe
 static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext = &AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext;
 
 @interface AVFMediaPlayerSessionObserver : NSObject
-{
-@private
-    AVFMediaPlayerSession *m_session;
-    AVPlayer *m_player;
-    AVPlayerItem *m_playerItem;
-    AVPlayerLayer *m_playerLayer;
-    NSURL *m_URL;
-    BOOL m_bufferIsLikelyToKeepUp;
-}
 
 @property (readonly, getter=player) AVPlayer* m_player;
 @property (readonly, getter=playerItem) AVPlayerItem* m_playerItem;
@@ -96,6 +87,15 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
 @end
 
 @implementation AVFMediaPlayerSessionObserver
+{
+@private
+    AVFMediaPlayerSession *m_session;
+    AVPlayer *m_player;
+    AVPlayerItem *m_playerItem;
+    AVPlayerLayer *m_playerLayer;
+    NSURL *m_URL;
+    BOOL m_bufferIsLikelyToKeepUp;
+}
 
 @synthesize m_player, m_playerItem, m_playerLayer, m_session;
 
