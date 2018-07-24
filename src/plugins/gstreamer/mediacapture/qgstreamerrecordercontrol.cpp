@@ -115,6 +115,9 @@ void QGstreamerRecorderControl::updateStatus()
     if (m_status != newStatus) {
         m_status = newStatus;
         emit statusChanged(m_status);
+        // If stop has been called and session state became stopped.
+        if (m_status == QMediaRecorder::LoadedStatus)
+            emit stateChanged(m_state);
     }
 }
 
@@ -204,7 +207,6 @@ void QGstreamerRecorderControl::stop()
             m_session->setState(QGstreamerCaptureSession::PreviewState);
     }
 
-    emit stateChanged(m_state);
     updateStatus();
 }
 
