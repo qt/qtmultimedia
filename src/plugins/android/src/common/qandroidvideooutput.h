@@ -51,6 +51,8 @@ class AndroidSurfaceHolder;
 class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
 class QAbstractVideoSurface;
+class QWindow;
+class QOpenGLContext;
 
 class QAndroidVideoOutput : public QObject
 {
@@ -131,6 +133,9 @@ private:
     OpenGLResourcesDeleter *m_glDeleter;
 
     bool m_surfaceTextureCanAttachToContext;
+
+    QWindow *m_offscreenSurface = nullptr;
+    QOpenGLContext *m_glContext = nullptr;
 
     friend class AndroidTextureVideoBuffer;
 };

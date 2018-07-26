@@ -49,6 +49,8 @@
 #include <qopenglshaderprogram.h>
 #include <qopenglframebufferobject.h>
 #include <QtCore/private/qjnihelpers_p.h>
+#include <QtGui/QWindow>
+#include <QtGui/QOffscreenSurface>
 
 QT_BEGIN_NAMESPACE
 
@@ -182,6 +184,8 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
+    delete m_offscreenSurface;
+    delete m_glContext;
     clearSurfaceTexture();
 
     if (m_glDeleter) { // Make sure all of these are deleted on the render thread.
@@ -344,6 +348,35 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
 
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
         return false;
+
+    // Make sure we have an OpenGL context to make current.
+    if (!QOpenGLContext::currentContext() && !m_glContext) {
+        // Create Hidden QWindow surface to create context in this thread.
+        m_offscreenSurface = new QWindow();
+        m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
+        // Needs geometry to be a valid surface, but size is not important.
+        m_offscreenSurface->setGeometry(0, 0, 1, 1);
+        m_offscreenSurface->create();
+
+        // Create OpenGL context and set share context from surface.
+        m_glContext = new QOpenGLContext();
+        m_glContext->setFormat(m_offscreenSurface->requestedFormat());
+
+        auto surface = qobject_cast<QAbstractVideoSurface *>(m_surface->property("videoSurface").value<QObject *>());
+        if (!surface)
+            surface = m_surface;
+        auto shareContext = qobject_cast<QOpenGLContext *>(surface->property("GLContext").value<QObject *>());
+        if (shareContext)
+            m_glContext->setShareContext(shareContext);
+
+        if (!m_glContext->create()) {
+            qWarning("Failed to create QOpenGLContext");
+            return false;
+        }
+    }
+
+    if (m_glContext)
+        m_glContext->makeCurrent(m_offscreenSurface);
 
     createGLResources();
 
