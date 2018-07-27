@@ -230,6 +230,8 @@ private:
     // Internal state
     QCamera::Status m_status;
 
+    QMap<QCameraImageProcessingControl::ProcessingParameter, QVariant> m_pendingImageProcessingParametrs;
+
     friend class SampleGrabberCallbackPrivate;
 };
 

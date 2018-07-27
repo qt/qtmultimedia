@@ -208,8 +208,8 @@ QVariant DSCameraSession::imageProcessingParameter(
         QCameraImageProcessingControl::ProcessingParameter parameter) const
 {
     if (!m_graphBuilder) {
-        qWarning() << "failed to access to the graph builder";
-        return QVariant();
+        auto it = m_pendingImageProcessingParametrs.find(parameter);
+        return it != m_pendingImageProcessingParametrs.end() ? it.value() : QVariant();
     }
 
     const QCameraImageProcessingControl::ProcessingParameter resultingParameter =
@@ -249,7 +249,7 @@ void DSCameraSession::setImageProcessingParameter(
         const QVariant &value)
 {
     if (!m_graphBuilder) {
-        qWarning() << "failed to access to the graph builder";
+        m_pendingImageProcessingParametrs.insert(parameter, value);
         return;
     }
 
@@ -960,6 +960,13 @@ void DSCameraSession::updateImageProcessingParametersInfos()
     }
 
     pVideoProcAmp->Release();
+
+    for (auto it = m_pendingImageProcessingParametrs.cbegin();
+        it != m_pendingImageProcessingParametrs.cend();
+        ++it) {
+        setImageProcessingParameter(it.key(), it.value());
+    }
+    m_pendingImageProcessingParametrs.clear();
 }
 
 bool DSCameraSession::connectGraph()
