@@ -79,7 +79,11 @@ public:
         delete m_intervalTimer;
 
         if (m_tag)
+#if GST_CHECK_VERSION(1, 6, 0)
+            gst_bus_remove_watch(m_bus);
+#else
             g_source_remove(m_tag);
+#endif
     }
 
     GstBus* bus() const { return m_bus; }
