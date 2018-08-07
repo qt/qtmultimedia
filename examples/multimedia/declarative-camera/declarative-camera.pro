@@ -8,4 +8,4 @@ RESOURCES += declarative-camera.qrc
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/declarative-camera
 INSTALLS += target
-include(../../shared/shared.pri)
+include(../shared/shared.pri)

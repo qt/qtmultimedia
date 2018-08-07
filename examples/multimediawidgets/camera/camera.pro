@@ -25,4 +25,4 @@ target.path = $$[QT_INSTALL_EXAMPLES]/multimediawidgets/camera
 INSTALLS += target
 
 QT+=widgets
-include(../../shared/shared.pri)
+include(../../multimedia/shared/shared.pri)

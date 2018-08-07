@@ -20,4 +20,4 @@ target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/audiorecorder
 INSTALLS += target
 
 QT+=widgets
-include(../../shared/shared.pri)
+include(../shared/shared.pri)
