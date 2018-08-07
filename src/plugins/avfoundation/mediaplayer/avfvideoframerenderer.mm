@@ -126,8 +126,14 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
     //Get size from AVPlayerLayer
     m_targetSize = QSize(layer.bounds.size.width, layer.bounds.size.height);
 
+    QOpenGLContext *shareContext = !m_glContext && m_surface
+        ? qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>())
+        : nullptr;
+
     //Make sure we have an OpenGL context to make current
-    if (!QOpenGLContext::currentContext() && !m_glContext) {
+    if ((shareContext && shareContext != QOpenGLContext::currentContext())
+        || (!QOpenGLContext::currentContext() && !m_glContext)) {
+
         //Create Hidden QWindow surface to create context in this thread
         m_offscreenSurface = new QWindow();
         m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
@@ -135,12 +141,6 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
         m_offscreenSurface->setGeometry(0, 0, 1, 1);
         m_offscreenSurface->create();
 
-        //Create OpenGL context and set share context from surface
-        QOpenGLContext *shareContext = 0;
-        if (m_surface) {
-            //QOpenGLContext *renderThreadContext = 0;
-            shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
-        }
         m_glContext = new QOpenGLContext();
         m_glContext->setFormat(m_offscreenSurface->requestedFormat());
 
