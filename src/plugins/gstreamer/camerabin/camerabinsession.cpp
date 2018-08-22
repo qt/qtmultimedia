@@ -836,6 +836,17 @@ void CameraBinSession::load()
         return;
     }
 
+#if QT_CONFIG(gstreamer_encodingprofiles)
+    GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
+    if (profile) {
+        g_object_set (G_OBJECT(m_camerabin),
+                      "video-profile",
+                      profile,
+                      NULL);
+        gst_encoding_profile_unref(profile);
+    }
+#endif
+
     gst_element_set_state(m_camerabin, GST_STATE_READY);
 }
 
@@ -870,15 +881,6 @@ void CameraBinSession::start()
     setStatus(QCamera::StartingStatus);
 
     m_recorderControl->applySettings();
-
-#if QT_CONFIG(gstreamer_encodingprofiles)
-    GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
-    g_object_set (G_OBJECT(m_camerabin),
-                  "video-profile",
-                  profile,
-                  NULL);
-    gst_encoding_profile_unref(profile);
-#endif
 
     setAudioCaptureCaps();
 
