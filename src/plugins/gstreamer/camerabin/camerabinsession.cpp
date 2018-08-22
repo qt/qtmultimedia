@@ -997,7 +997,6 @@ bool CameraBinSession::processSyncMessage(const QGstreamerMessage &message)
             GstVideoInfo previewInfo;
             if (gst_video_info_from_caps(&previewInfo, previewCaps))
                 image = QGstUtils::bufferToImage(buffer, previewInfo);
-            gst_sample_unref(sample);
 #else
             image = QGstUtils::bufferToImage(buffer);
             gst_buffer_unref(buffer);
