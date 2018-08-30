@@ -156,6 +156,9 @@ public:
 
         qmlRegisterType<QDeclarativeMediaMetaData>();
         qmlRegisterType<QAbstractVideoFilter>();
+
+        // Auto-increment the import to stay in sync with ALL future QtQuick minor versions from 5.11 onward
+        qmlRegisterModule(uri, 5, QT_VERSION_MINOR);
     }
 
     void initializeEngine(QQmlEngine *engine, const char *uri) override
