@@ -836,6 +836,17 @@ void CameraBinSession::load()
         return;
     }
 
+#if QT_CONFIG(gstreamer_encodingprofiles)
+    GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
+    if (profile) {
+        g_object_set (G_OBJECT(m_camerabin),
+                      "video-profile",
+                      profile,
+                      NULL);
+        gst_encoding_profile_unref(profile);
+    }
+#endif
+
     gst_element_set_state(m_camerabin, GST_STATE_READY);
 }
 
@@ -870,15 +881,6 @@ void CameraBinSession::start()
     setStatus(QCamera::StartingStatus);
 
     m_recorderControl->applySettings();
-
-#if QT_CONFIG(gstreamer_encodingprofiles)
-    GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
-    g_object_set (G_OBJECT(m_camerabin),
-                  "video-profile",
-                  profile,
-                  NULL);
-    gst_encoding_profile_unref(profile);
-#endif
 
     setAudioCaptureCaps();
 
@@ -997,7 +999,6 @@ bool CameraBinSession::processSyncMessage(const QGstreamerMessage &message)
             GstVideoInfo previewInfo;
             if (gst_video_info_from_caps(&previewInfo, previewCaps))
                 image = QGstUtils::bufferToImage(buffer, previewInfo);
-            gst_sample_unref(sample);
 #else
             image = QGstUtils::bufferToImage(buffer);
             gst_buffer_unref(buffer);
@@ -1294,6 +1295,9 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
         GstStructure *structure = gst_caps_get_structure(caps, i);
         gst_structure_set_name(structure, "video/x-raw");
         const GValue *oldRate = gst_structure_get_value(structure, "framerate");
+        if (!oldRate)
+            continue;
+
         GValue rate;
         memset(&rate, 0, sizeof(rate));
         g_value_init(&rate, G_VALUE_TYPE(oldRate));
@@ -1310,6 +1314,9 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
     for (uint i=0; i<gst_caps_get_size(caps); i++) {
         GstStructure *structure = gst_caps_get_structure(caps, i);
         const GValue *rateValue = gst_structure_get_value(structure, "framerate");
+        if (!rateValue)
+            continue;
+
         readValue(rateValue, &res, continuous);
     }
 
@@ -1401,6 +1408,9 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         gst_structure_set_name(structure, "video/x-raw");
         const GValue *oldW = gst_structure_get_value(structure, "width");
         const GValue *oldH = gst_structure_get_value(structure, "height");
+        if (!oldW || !oldH)
+            continue;
+
         GValue w;
         memset(&w, 0, sizeof(GValue));
         GValue h;
@@ -1425,6 +1435,8 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         GstStructure *structure = gst_caps_get_structure(caps, i);
         const GValue *wValue = gst_structure_get_value(structure, "width");
         const GValue *hValue = gst_structure_get_value(structure, "height");
+        if (!wValue || !hValue)
+            continue;
 
         QPair<int,int> wRange = valueRange(wValue, &isContinuous);
         QPair<int,int> hRange = valueRange(hValue, &isContinuous);
