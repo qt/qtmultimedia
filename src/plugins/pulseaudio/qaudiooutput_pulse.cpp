@@ -447,7 +447,7 @@ void QPulseAudioOutput::userFeed()
 
         int audioBytesPulled = m_audioSource->read(m_audioBuffer, input);
         Q_ASSERT(audioBytesPulled <= input);
-        if (audioBytesPulled > 0) {
+        if (m_audioBuffer && audioBytesPulled > 0) {
             if (audioBytesPulled > input) {
                 qWarning() << "QPulseAudioOutput::userFeed() - Invalid audio data size provided from user:"
                            << audioBytesPulled << "should be less than" << input;
