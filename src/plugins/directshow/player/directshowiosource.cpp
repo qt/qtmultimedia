@@ -99,8 +99,8 @@ DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
 
     static const int count = sizeof(directshow_subtypes) / sizeof(GUID);
 
-    for (int i = 0; i < count; ++i) {
-        type.subtype = directshow_subtypes[i];
+    for (const auto &directshowSubtype : directshow_subtypes) {
+        type.subtype = directshowSubtype;
         m_supportedMediaTypes.append(DirectShowMediaType(type));
     }
 }

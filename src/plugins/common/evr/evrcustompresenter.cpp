@@ -510,19 +510,16 @@ HRESULT SamplePool::initialize(QList<IMFSample*> &samples)
     if (m_initialized)
         return MF_E_INVALIDREQUEST;
 
-    IMFSample *sample = NULL;
-
     // Move these samples into our allocated queue.
-    for (int i = 0; i < samples.size(); ++i) {
-        sample = samples.at(i);
+    for (auto sample : qAsConst(samples)) {
         sample->AddRef();
         m_videoSampleQueue.append(sample);
     }
 
     m_initialized = true;
 
-    for (int i = 0; i < samples.size(); ++i)
-        samples[i]->Release();
+    for (auto sample : qAsConst(samples))
+        sample->Release();
     samples.clear();
     return S_OK;
 }
@@ -531,8 +528,8 @@ HRESULT SamplePool::clear()
 {
     QMutexLocker locker(&m_mutex);
 
-    for (int i = 0; i < m_videoSampleQueue.size(); ++i)
-        m_videoSampleQueue[i]->Release();
+    for (auto sample : qAsConst(m_videoSampleQueue))
+        sample->Release();
     m_videoSampleQueue.clear();
     m_initialized = false;
 
@@ -928,8 +925,8 @@ HRESULT EVRCustomPresenter::OnClockSetRate(MFTIME, float rate)
     // frame-step operation.
     if ((m_playbackRate == 0.0f) && (rate != 0.0f)) {
         cancelFrameStep();
-        for (int i = 0; i < m_frameStep.samples.size(); ++i)
-            m_frameStep.samples[i]->Release();
+        for (auto sample : qAsConst(m_frameStep.samples))
+            sample->Release();
         m_frameStep.samples.clear();
     }
 
@@ -1142,8 +1139,8 @@ HRESULT EVRCustomPresenter::flush()
     m_scheduler.flush();
 
     // Flush the frame-step queue.
-    for (int i = 0; i < m_frameStep.samples.size(); ++i)
-        m_frameStep.samples[i]->Release();
+    for (auto sample : qAsConst(m_frameStep.samples))
+        sample->Release();
     m_frameStep.samples.clear();
 
     if (m_renderState == RenderStopped) {
@@ -1408,8 +1405,6 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     MFRatio fps = { 0, 0 };
     QList<IMFSample*> sampleQueue;
 
-    IMFSample *sample = NULL;
-
     // Cannot set the media type after shutdown.
     HRESULT hr = checkShutdown();
     if (FAILED(hr))
@@ -1433,9 +1428,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
 
     // Mark each sample with our token counter. If this batch of samples becomes
     // invalid, we increment the counter, so that we know they should be discarded.
-    for (int i = 0; i < sampleQueue.size(); ++i) {
-        sample = sampleQueue.at(i);
-
+    for (auto sample : qAsConst(sampleQueue)) {
         hr = sample->SetUINT32(MFSamplePresenter_SampleCounter, m_tokenCounter);
         if (FAILED(hr))
             goto done;
