@@ -46,14 +46,14 @@
 #include <QVideoFrame>
 
 #include <d3d11.h>
-#include <D3D11_1.h>
+#include <d3d11_1.h>
 #include <mfapi.h>
 #include <wrl.h>
 
 #include "qwinrtcameracontrol.h"
 
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_PHONE_APP)
-#include <Windows.Security.ExchangeActiveSyncProvisioning.h>
+#include <windows.security.exchangeactivesyncprovisioning.h>
 using namespace ABI::Windows::Security::ExchangeActiveSyncProvisioning;
 #endif
 
@@ -77,15 +77,15 @@ class QWinRTCameraVideoBuffer : public QAbstractVideoBuffer
 public:
     QWinRTCameraVideoBuffer(IMF2DBuffer *buffer, int size, QWinRTCameraControl *control)
         : QAbstractVideoBuffer(NoHandle)
-        , currentMode(NotMapped)
         , buffer(buffer)
+        , currentMode(NotMapped)
         , size(size)
         , control(control)
     {
         Q_ASSERT(control);
     }
 
-    ~QWinRTCameraVideoBuffer()
+    ~QWinRTCameraVideoBuffer() override
     {
         unmap();
     }
@@ -97,13 +97,13 @@ public:
 
     uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) override
     {
-        if (currentMode != NotMapped || mode == NotMapped || control && control->state() != QCamera::ActiveState)
+        if (currentMode != NotMapped || mode == NotMapped || (control && control->state() != QCamera::ActiveState))
             return nullptr;
 
         BYTE *bytes;
         LONG stride;
         HRESULT hr = buffer->Lock2D(&bytes, &stride);
-        RETURN_IF_FAILED("Failed to lock camera frame buffer", nullptr);
+        RETURN_IF_FAILED("Failed to lock camera frame buffer", return nullptr);
         control->frameMapped();
 
         if (bytesPerLine)
@@ -164,8 +164,8 @@ public:
         if (!m_videoEnumerator) {
             D3D11_VIDEO_PROCESSOR_CONTENT_DESC videoProcessorDesc = {
                 D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE,
-                { 0 }, desc.Width, desc.Height,
-                { 0 }, desc.Width, desc.Height,
+                { 0, 0}, desc.Width, desc.Height,
+                { 0, 0}, desc.Width, desc.Height,
                 D3D11_VIDEO_USAGE_OPTIMAL_SPEED
             };
             hr = m_videoDevice->CreateVideoProcessorEnumerator(&videoProcessorDesc, &m_videoEnumerator);
@@ -178,7 +178,7 @@ public:
         }
 
         if (!m_outputView) {
-            D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC outputDesc = { D3D11_VPOV_DIMENSION_TEXTURE2D };
+            D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC outputDesc = { D3D11_VPOV_DIMENSION_TEXTURE2D, {{ 0 }} };
             hr = m_videoDevice->CreateVideoProcessorOutputView(
                         m_target, m_videoEnumerator.Get(), &outputDesc, &m_outputView);
             RETURN_VOID_IF_FAILED("Failed to create video output view");
@@ -187,8 +187,8 @@ public:
         ComPtr<IDXGIResource1> sourceResource;
         hr = texture->QueryInterface(IID_PPV_ARGS(&sourceResource));
         RETURN_VOID_IF_FAILED("Failed to query interface IDXGIResource1");
-        HANDLE sharedHandle = NULL;
-        hr = sourceResource->CreateSharedHandle(NULL, DXGI_SHARED_RESOURCE_READ, NULL, &sharedHandle);
+        HANDLE sharedHandle = nullptr;
+        hr = sourceResource->CreateSharedHandle(nullptr, DXGI_SHARED_RESOURCE_READ, nullptr, &sharedHandle);
         RETURN_VOID_IF_FAILED("Failed to create shared handle");
         ComPtr<ID3D11Device1> dev;
         hr = m_d3dDevice.As(&dev);
@@ -212,7 +212,9 @@ public:
         hr = context.As(&videoContext);
         RETURN_VOID_IF_FAILED("Failed to get video context");
 
-        D3D11_VIDEO_PROCESSOR_STREAM stream = { TRUE };
+        D3D11_VIDEO_PROCESSOR_STREAM stream = { TRUE, 0, 0, 0, 0, nullptr,
+                                                nullptr, nullptr, nullptr,
+                                                nullptr, nullptr};
         stream.pInputSurface = inputView.Get();
         hr = videoContext->VideoProcessorBlt(
                     m_videoProcessor.Get(), m_outputView.Get(), 0, 1, &stream);
@@ -282,7 +284,7 @@ bool QWinRTCameraVideoRendererControlPrivate::getCameraSampleInfo(const ComPtr<I
     DWORD pcbLength;
     hr = buffer->GetContiguousLength(&pcbLength);
     Q_ASSERT_SUCCEEDED(hr);
-    cameraSampleSize = pcbLength;
+    cameraSampleSize = int(pcbLength);
     return true;
 }
 

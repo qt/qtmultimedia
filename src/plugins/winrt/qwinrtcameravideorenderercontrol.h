@@ -56,7 +56,7 @@ class QWinRTCameraVideoRendererControl : public QWinRTAbstractVideoRendererContr
     Q_OBJECT
 public:
     explicit QWinRTCameraVideoRendererControl(const QSize &size, QObject *parent);
-    ~QWinRTCameraVideoRendererControl();
+    ~QWinRTCameraVideoRendererControl() override;
 
     bool render(ID3D11Texture2D *texture) override;
     bool dequeueFrame(QVideoFrame *frame) override;

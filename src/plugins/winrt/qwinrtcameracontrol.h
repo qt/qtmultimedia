@@ -78,8 +78,8 @@ class QWinRTCameraControl : public QCameraControl
 {
     Q_OBJECT
 public:
-    explicit QWinRTCameraControl(QObject *parent = 0);
-    ~QWinRTCameraControl();
+    explicit QWinRTCameraControl(QObject *parent = nullptr);
+    ~QWinRTCameraControl() override;
 
     QCamera::State state() const override;
     void setState(QCamera::State state) override;

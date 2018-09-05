@@ -200,7 +200,7 @@ void QWinRTCameraFocusControl::setSupportedFocusMode(QCameraFocus::FocusModes mo
     d->focusModeInitialized = true;
     if (isFocusModeSupported(d->focusModes))
         return;
-    d->focusModes = 0;
+    d->focusModes = nullptr;
     if (!modes) {
         emit focusModeChanged(d->focusModes);
         return;

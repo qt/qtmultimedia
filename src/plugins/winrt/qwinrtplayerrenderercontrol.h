@@ -54,7 +54,7 @@ class QWinRTPlayerRendererControl : public QWinRTAbstractVideoRendererControl
     Q_OBJECT
 public:
     explicit QWinRTPlayerRendererControl(IMFMediaEngineEx *engine, IMFDXGIDeviceManager *manager, quint32 resetToken, QObject *parent);
-    ~QWinRTPlayerRendererControl();
+    ~QWinRTPlayerRendererControl() override;
 
     bool ensureReady();
 

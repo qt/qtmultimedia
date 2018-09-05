@@ -91,7 +91,7 @@ struct QWinRTVideoRendererControlGlobal
 #ifdef _DEBUG
         flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-        hr = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, flags,
+        hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags,
                                featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION,
                                &device, &featureLevel, &context);
 #ifdef _DEBUG
@@ -106,7 +106,7 @@ struct QWinRTVideoRendererControlGlobal
             qErrnoWarning(hr, "Failed to create D3D device");
 
         if (!device || FAILED(hr)) {
-            hr = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_WARP, NULL, flags,
+            hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_WARP, nullptr, flags,
                                    featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION,
                                    &device, &featureLevel, &context);
             if (FAILED(hr)) {
@@ -160,7 +160,7 @@ public:
         Q_UNUSED(mode);
         Q_UNUSED(numBytes);
         Q_UNUSED(bytesPerLine);
-        return 0;
+        return nullptr;
     }
 
     void unmap() override
@@ -227,9 +227,9 @@ QWinRTAbstractVideoRendererControl::QWinRTAbstractVideoRendererControl(const QSi
     d->format = QVideoSurfaceFormat(size, QVideoFrame::Format_BGRA32,
                                     QAbstractVideoBuffer::GLTextureHandle);
     d->dirtyState = TextureDirty;
-    d->shareHandle = 0;
+    d->shareHandle = nullptr;
     d->eglDisplay = EGL_NO_DISPLAY;
-    d->eglConfig = 0;
+    d->eglConfig = nullptr;
     d->eglSurface = EGL_NO_SURFACE;
     d->active = false;
     d->blitMode = DirectVideo;
@@ -278,7 +278,7 @@ void QWinRTAbstractVideoRendererControl::syncAndRender()
                 CD3D11_TEXTURE2D_DESC desc(DXGI_FORMAT_B8G8R8A8_UNORM, d->format.frameWidth(), d->format.frameHeight(), 1, 1);
                 desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
                 desc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
-                hr = g->device->CreateTexture2D(&desc, NULL, d->texture.ReleaseAndGetAddressOf());
+                hr = g->device->CreateTexture2D(&desc, nullptr, d->texture.ReleaseAndGetAddressOf());
                 BREAK_IF_FAILED("Failed to get create video texture");
                 ComPtr<IDXGIResource> resource;
                 hr = d->texture.As(&resource);
@@ -398,7 +398,7 @@ void QWinRTAbstractVideoRendererControl::setBlitMode(QWinRTAbstractVideoRenderer
 
     if (d->texture) {
         d->texture.Reset();
-        d->shareHandle = 0;
+        d->shareHandle = nullptr;
     }
 
     if (d->eglSurface) {
