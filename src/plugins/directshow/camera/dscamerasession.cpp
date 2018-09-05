@@ -482,7 +482,7 @@ bool DSCameraSession::startPreview()
     if (m_surface)
         m_surface->start(m_previewSurfaceFormat);
 
-    hr = m_filterGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
+    hr = m_filterGraph->QueryInterface(IID_IMediaControl, reinterpret_cast<void**>(&pControl));
     if (FAILED(hr)) {
         errorString = tr("Failed to get stream control");
         goto failed;
@@ -520,7 +520,8 @@ bool DSCameraSession::stopPreview()
 
     QString errorString;
     IMediaControl* pControl = 0;
-    HRESULT hr = m_filterGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
+    HRESULT hr = m_filterGraph->QueryInterface(IID_IMediaControl,
+                                               reinterpret_cast<void**>(&pControl));
     if (FAILED(hr)) {
         errorString = tr("Failed to get stream control");
         goto failed;
@@ -714,7 +715,7 @@ bool DSCameraSession::createFilterGraph()
 
     // Create the filter graph
     hr = CoCreateInstance(CLSID_FilterGraph,NULL,CLSCTX_INPROC,
-            IID_IGraphBuilder, (void**)&m_filterGraph);
+                          IID_IGraphBuilder, reinterpret_cast<void**>(*&m_filterGraph));
     if (FAILED(hr)) {
         errorString = tr("Failed to create filter graph");
         goto failed;
@@ -722,7 +723,8 @@ bool DSCameraSession::createFilterGraph()
 
     // Create the capture graph builder
     hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC,
-                          IID_ICaptureGraphBuilder2, (void**)&m_graphBuilder);
+                          IID_ICaptureGraphBuilder2,
+                          reinterpret_cast<void**>(&m_graphBuilder));
     if (FAILED(hr)) {
         errorString = tr("Failed to create graph builder");
         goto failed;
@@ -756,7 +758,8 @@ bool DSCameraSession::createFilterGraph()
                     QString output = QString::fromWCharArray(strName);
                     mallocInterface->Free(strName);
                     if (m_sourceDeviceName.contains(output)) {
-                        hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&m_sourceFilter);
+                        hr = pMoniker->BindToObject(nullptr, nullptr, IID_IBaseFilter,
+                                                    reinterpret_cast<void**>(&m_sourceFilter));
                         if (SUCCEEDED(hr)) {
                             pMoniker->Release();
                             break;
@@ -775,7 +778,8 @@ bool DSCameraSession::createFilterGraph()
                     while (pEnum->Next(1, &pMoniker, NULL) == S_OK) {
                         IPropertyBag *pPropBag = 0;
 
-                        hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void**)(&pPropBag));
+                        hr = pMoniker->BindToStorage(nullptr, nullptr, IID_IPropertyBag,
+                                                     reinterpret_cast<void**>(&pPropBag));
                         if (FAILED(hr)) {
                             pMoniker->Release();
                             continue; // Don't panic yet
@@ -783,7 +787,8 @@ bool DSCameraSession::createFilterGraph()
 
                         // No need to get the description, just grab it
 
-                        hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)&m_sourceFilter);
+                        hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter,
+                                                    reinterpret_cast<void**>(&m_sourceFilter));
                         pPropBag->Release();
                         pMoniker->Release();
                         if (SUCCEEDED(hr)) {
@@ -887,10 +892,9 @@ bool DSCameraSession::configurePreviewFormat()
 
     HRESULT hr;
     IAMStreamConfig* pConfig = 0;
-    hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE,
-                                       &MEDIATYPE_Video,
-                                       m_sourceFilter,
-                                       IID_IAMStreamConfig, (void**)&pConfig);
+    hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
+                                       m_sourceFilter, IID_IAMStreamConfig,
+                                       reinterpret_cast<void**>(&pConfig));
     if (FAILED(hr)) {
         qWarning() << "Failed to get config for capture device";
         return false;
@@ -1064,8 +1068,8 @@ void DSCameraSession::updateSourceCapabilities()
 
     IAMVideoControl *pVideoControl = 0;
     hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
-                                       m_sourceFilter,
-                                       IID_IAMVideoControl, (void**)&pVideoControl);
+                                       m_sourceFilter, IID_IAMVideoControl,
+                                       reinterpret_cast<void**>(&pVideoControl));
     if (FAILED(hr)) {
         qWarning() << "Failed to get the video control";
     } else {
@@ -1091,8 +1095,8 @@ void DSCameraSession::updateSourceCapabilities()
     }
 
     hr = m_graphBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
-                                       m_sourceFilter,
-                                       IID_IAMStreamConfig, (void**)&pConfig);
+                                       m_sourceFilter, IID_IAMStreamConfig,
+                                       reinterpret_cast<void**>(&pConfig));
     if (FAILED(hr)) {
         qWarning() << "failed to get config on capture device";
         return;

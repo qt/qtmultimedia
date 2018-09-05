@@ -622,7 +622,8 @@ HRESULT DirectShowInputPin::Receive(IMediaSample *pSample)
 
     IMediaSample2 *sample2;
     if (SUCCEEDED(pSample->QueryInterface(IID_PPV_ARGS(&sample2)))) {
-        hr = sample2->GetProperties(sizeof(m_sampleProperties), (PBYTE)&m_sampleProperties);
+        hr = sample2->GetProperties(sizeof(m_sampleProperties),
+                                    reinterpret_cast<PBYTE>(&m_sampleProperties));
         sample2->Release();
         if (FAILED(hr))
             return hr;

@@ -156,7 +156,8 @@ void DSVideoDeviceControl::updateDevices()
                     devInfo.first = output.toUtf8();
 
                     IPropertyBag *pPropBag;
-                    hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void**)(&pPropBag));
+                    hr = pMoniker->BindToStorage(nullptr, nullptr, IID_IPropertyBag,
+                                                 reinterpret_cast<void**>(&pPropBag));
                     if (SUCCEEDED(hr)) {
                         // Find the description
                         VARIANT varName;

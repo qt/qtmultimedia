@@ -87,7 +87,9 @@ inline MFVideoArea qt_evr_makeMFArea(float x, float y, DWORD width, DWORD height
 
 inline HRESULT qt_evr_getFrameRate(IMFMediaType *pType, MFRatio *pRatio)
 {
-    return MFGetAttributeRatio(pType, MF_MT_FRAME_RATE, (UINT32*)&pRatio->Numerator, (UINT32*)&pRatio->Denominator);
+    return MFGetAttributeRatio(pType, MF_MT_FRAME_RATE,
+                               reinterpret_cast<UINT32*>(&pRatio->Numerator),
+                               reinterpret_cast<UINT32*>(&pRatio->Denominator));
 }
 
 QVideoFrame::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format);

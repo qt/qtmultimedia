@@ -1365,18 +1365,21 @@ HRESULT EVRCustomPresenter::createOptimalVideoType(IMFMediaType *proposedType, I
     if (FAILED(hr))
         goto done;
 
-    hr = mtOptimal->SetBlob(MF_MT_GEOMETRIC_APERTURE, (UINT8*)&displayArea, sizeof(displayArea));
+    hr = mtOptimal->SetBlob(MF_MT_GEOMETRIC_APERTURE, reinterpret_cast<UINT8*>(&displayArea),
+                            sizeof(displayArea));
     if (FAILED(hr))
         goto done;
 
     // Set the pan/scan aperture and the minimum display aperture. We don't care
     // about them per se, but the mixer will reject the type if these exceed the
     // frame dimentions.
-    hr = mtOptimal->SetBlob(MF_MT_PAN_SCAN_APERTURE, (UINT8*)&displayArea, sizeof(displayArea));
+    hr = mtOptimal->SetBlob(MF_MT_PAN_SCAN_APERTURE, reinterpret_cast<UINT8*>(&displayArea),
+                            sizeof(displayArea));
     if (FAILED(hr))
         goto done;
 
-    hr = mtOptimal->SetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE, (UINT8*)&displayArea, sizeof(displayArea));
+    hr = mtOptimal->SetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE, reinterpret_cast<UINT8*>(&displayArea),
+                            sizeof(displayArea));
     if (FAILED(hr))
         goto done;
 
@@ -1474,7 +1477,7 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     UINT32 width = 0, height = 0;
 
     // Validate the format.
-    HRESULT hr = qt_evr_getFourCC(proposed, (DWORD*)&d3dFormat);
+    HRESULT hr = qt_evr_getFourCC(proposed, reinterpret_cast<DWORD*>(&d3dFormat));
     if (FAILED(hr))
         return hr;
 
@@ -1503,7 +1506,7 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
         return hr;
 
     // Reject interlaced formats.
-    hr = proposed->GetUINT32(MF_MT_INTERLACE_MODE, (UINT32*)&interlaceMode);
+    hr = proposed->GetUINT32(MF_MT_INTERLACE_MODE, reinterpret_cast<UINT32*>(&interlaceMode));
     if (FAILED(hr))
         return hr;
 
@@ -1518,15 +1521,21 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     // Any of these apertures may be unspecified in the media type, in which case
     // we ignore it. We just want to reject invalid apertures.
 
-    if (SUCCEEDED(proposed->GetBlob(MF_MT_PAN_SCAN_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
+    if (SUCCEEDED(proposed->GetBlob(MF_MT_PAN_SCAN_APERTURE,
+                                    reinterpret_cast<UINT8*>(&videoCropArea),
+                                    sizeof(videoCropArea), nullptr))) {
         hr = qt_evr_validateVideoArea(videoCropArea, width, height);
-
-    if (SUCCEEDED(proposed->GetBlob(MF_MT_GEOMETRIC_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
+    }
+    if (SUCCEEDED(proposed->GetBlob(MF_MT_GEOMETRIC_APERTURE,
+                                    reinterpret_cast<UINT8*>(&videoCropArea),
+                                    sizeof(videoCropArea), nullptr))) {
         hr = qt_evr_validateVideoArea(videoCropArea, width, height);
-
-    if (SUCCEEDED(proposed->GetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
+    }
+    if (SUCCEEDED(proposed->GetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE,
+                                    reinterpret_cast<UINT8*>(&videoCropArea),
+                                    sizeof(videoCropArea), nullptr))) {
         hr = qt_evr_validateVideoArea(videoCropArea, width, height);
-
+    }
     return hr;
 }
 
@@ -1642,7 +1651,7 @@ HRESULT EVRCustomPresenter::processOutput()
             m_clock->GetCorrelatedTime(0, &mixerEndTime, &systemTime);
 
             LONGLONG latencyTime = mixerEndTime - mixerStartTime;
-            notifyEvent(EC_PROCESSING_LATENCY, (LONG_PTR)&latencyTime, 0);
+            notifyEvent(EC_PROCESSING_LATENCY, reinterpret_cast<LONG_PTR>(&latencyTime), 0);
         }
 
         // Set up notification for when the sample is released.
@@ -1734,7 +1743,7 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
             if (FAILED(hr))
                 goto done;
 
-            m_frameStep.sampleNoRef = (DWORD_PTR)unk; // No add-ref.
+            m_frameStep.sampleNoRef = reinterpret_cast<DWORD_PTR>(unk); // No add-ref.
 
             // NOTE: We do not AddRef the IUnknown pointer, because that would prevent the
             // sample from invoking the OnSampleFree callback after the sample is presented.
@@ -1807,7 +1816,7 @@ HRESULT EVRCustomPresenter::onSampleFree(IMFAsyncResult *result)
         if (FAILED(hr))
             goto done;
 
-        if (m_frameStep.sampleNoRef == (DWORD_PTR)unk) {
+        if (m_frameStep.sampleNoRef == reinterpret_cast<DWORD_PTR>(unk)) {
             // Notify the EVR.
             hr = completeFrameStep(sample);
             if (FAILED(hr))
@@ -1997,7 +2006,8 @@ HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect &sou
 
     HRESULT hr = mixer->GetAttributes(&attributes);
     if (SUCCEEDED(hr)) {
-        hr = attributes->SetBlob(video_ZOOM_RECT, (const UINT8*)&sourceRect, sizeof(sourceRect));
+        hr = attributes->SetBlob(video_ZOOM_RECT, reinterpret_cast<const UINT8*>(&sourceRect),
+                                 sizeof(sourceRect));
         attributes->Release();
     }
     return hr;
