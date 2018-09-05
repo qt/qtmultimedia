@@ -53,16 +53,16 @@ class DirectShowAudioEndpointControl : public QAudioOutputSelectorControl
     Q_OBJECT
 public:
     DirectShowAudioEndpointControl(DirectShowPlayerService *service, QObject *parent = 0);
-    ~DirectShowAudioEndpointControl();
+    ~DirectShowAudioEndpointControl() override;
 
-    QList<QString> availableOutputs() const;
+    QList<QString> availableOutputs() const override;
 
-    QString outputDescription(const QString &name) const;
+    QString outputDescription(const QString &name) const override;
 
-    QString defaultOutput() const;
-    QString activeOutput() const;
+    QString defaultOutput() const override;
+    QString activeOutput() const override;
 
-    void setActiveOutput(const QString& name);
+    void setActiveOutput(const QString& name) override;
 
 private:
     void updateEndpoints();

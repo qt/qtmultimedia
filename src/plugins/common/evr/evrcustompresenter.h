@@ -58,6 +58,7 @@ class QAbstractVideoSurface;
 template<class T>
 class AsyncCallback : public IMFAsyncCallback
 {
+    Q_DISABLE_COPY(AsyncCallback)
 public:
     typedef HRESULT (T::*InvokeFn)(IMFAsyncResult *asyncResult);
 
@@ -66,7 +67,7 @@ public:
     }
 
     // IUnknown
-    STDMETHODIMP QueryInterface(REFIID iid, void** ppv)
+    STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override
     {
         if (!ppv)
             return E_POINTER;
@@ -83,23 +84,23 @@ public:
         return S_OK;
     }
 
-    STDMETHODIMP_(ULONG) AddRef() {
+    STDMETHODIMP_(ULONG) AddRef() override {
         // Delegate to parent class.
         return m_parent->AddRef();
     }
-    STDMETHODIMP_(ULONG) Release() {
+    STDMETHODIMP_(ULONG) Release() override {
         // Delegate to parent class.
         return m_parent->Release();
     }
 
     // IMFAsyncCallback methods
-    STDMETHODIMP GetParameters(DWORD*, DWORD*)
+    STDMETHODIMP GetParameters(DWORD*, DWORD*) override
     {
         // Implementation of this method is optional.
         return E_NOTIMPL;
     }
 
-    STDMETHODIMP Invoke(IMFAsyncResult* asyncResult)
+    STDMETHODIMP Invoke(IMFAsyncResult* asyncResult) override
     {
         return (m_parent->*m_invokeFn)(asyncResult);
     }
@@ -110,6 +111,7 @@ public:
 
 class Scheduler
 {
+    Q_DISABLE_COPY(Scheduler)
 public:
     enum ScheduleEvent
     {
@@ -164,6 +166,7 @@ private:
 
 class SamplePool
 {
+    Q_DISABLE_COPY(SamplePool)
 public:
     SamplePool();
     ~SamplePool();
@@ -188,6 +191,7 @@ class EVRCustomPresenter
         , public IMFGetService
         , public IMFTopologyServiceLookupClient
 {
+    Q_DISABLE_COPY(EVRCustomPresenter)
 public:
     // Defines the state of the presenter.
     enum RenderState
@@ -216,40 +220,40 @@ public:
     };
 
     EVRCustomPresenter(QAbstractVideoSurface *surface = 0);
-    ~EVRCustomPresenter();
+    ~EVRCustomPresenter() override;
 
     bool isValid() const;
 
     // IUnknown methods
-    STDMETHODIMP QueryInterface(REFIID riid, void ** ppv);
-    STDMETHODIMP_(ULONG) AddRef();
-    STDMETHODIMP_(ULONG) Release();
+    STDMETHODIMP QueryInterface(REFIID riid, void ** ppv) override;
+    STDMETHODIMP_(ULONG) AddRef() override;
+    STDMETHODIMP_(ULONG) Release() override;
 
     // IMFGetService methods
-    STDMETHODIMP GetService(REFGUID guidService, REFIID riid, LPVOID *ppvObject);
+    STDMETHODIMP GetService(REFGUID guidService, REFIID riid, LPVOID *ppvObject) override;
 
     // IMFVideoPresenter methods
-    STDMETHODIMP ProcessMessage(MFVP_MESSAGE_TYPE message, ULONG_PTR param);
-    STDMETHODIMP GetCurrentMediaType(IMFVideoMediaType** mediaType);
+    STDMETHODIMP ProcessMessage(MFVP_MESSAGE_TYPE message, ULONG_PTR param) override;
+    STDMETHODIMP GetCurrentMediaType(IMFVideoMediaType** mediaType) override;
 
     // IMFClockStateSink methods
-    STDMETHODIMP OnClockStart(MFTIME systemTime, LONGLONG clockStartOffset);
-    STDMETHODIMP OnClockStop(MFTIME systemTime);
-    STDMETHODIMP OnClockPause(MFTIME systemTime);
-    STDMETHODIMP OnClockRestart(MFTIME systemTime);
-    STDMETHODIMP OnClockSetRate(MFTIME systemTime, float rate);
+    STDMETHODIMP OnClockStart(MFTIME systemTime, LONGLONG clockStartOffset) override;
+    STDMETHODIMP OnClockStop(MFTIME systemTime) override;
+    STDMETHODIMP OnClockPause(MFTIME systemTime) override;
+    STDMETHODIMP OnClockRestart(MFTIME systemTime) override;
+    STDMETHODIMP OnClockSetRate(MFTIME systemTime, float rate) override;
 
     // IMFRateSupport methods
-    STDMETHODIMP GetSlowestRate(MFRATE_DIRECTION direction, BOOL thin, float *rate);
-    STDMETHODIMP GetFastestRate(MFRATE_DIRECTION direction, BOOL thin, float *rate);
-    STDMETHODIMP IsRateSupported(BOOL thin, float rate, float *nearestSupportedRate);
+    STDMETHODIMP GetSlowestRate(MFRATE_DIRECTION direction, BOOL thin, float *rate) override;
+    STDMETHODIMP GetFastestRate(MFRATE_DIRECTION direction, BOOL thin, float *rate) override;
+    STDMETHODIMP IsRateSupported(BOOL thin, float rate, float *nearestSupportedRate) override;
 
     // IMFVideoDeviceID methods
-    STDMETHODIMP GetDeviceID(IID* deviceID);
+    STDMETHODIMP GetDeviceID(IID* deviceID) override;
 
     // IMFTopologyServiceLookupClient methods
-    STDMETHODIMP InitServicePointers(IMFTopologyServiceLookup *lookup);
-    STDMETHODIMP ReleaseServicePointers();
+    STDMETHODIMP InitServicePointers(IMFTopologyServiceLookup *lookup) override;
+    STDMETHODIMP ReleaseServicePointers() override;
 
     void supportedFormatsChanged();
     void setSurface(QAbstractVideoSurface *surface);
@@ -258,7 +262,7 @@ public:
     void stopSurface();
     void presentSample(IMFSample *sample);
 
-    bool event(QEvent *);
+    bool event(QEvent *) override;
 
 private:
     HRESULT checkShutdown() const
@@ -324,17 +328,10 @@ private:
     // Holds information related to frame-stepping.
     struct FrameStep
     {
-        FrameStep()
-            : state(FrameStepNone)
-            , steps(0)
-            , sampleNoRef(0)
-        {
-        }
-
-        FrameStepState state;
+        FrameStepState state = FrameStepNone;
         QList<IMFSample*> samples;
-        DWORD steps;
-        DWORD_PTR sampleNoRef;
+        DWORD steps = 0;
+        DWORD_PTR sampleNoRef = 0;
     };
 
     long m_refCount;

@@ -115,7 +115,7 @@ public:
     }
 
 protected:
-    void run() { m_service->run(); }
+    void run() override { m_service->run(); }
 
 private:
     DirectShowPlayerService *m_service;

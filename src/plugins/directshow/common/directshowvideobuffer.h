@@ -50,14 +50,14 @@ class DirectShowVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     DirectShowVideoBuffer(IMediaSample *sample, int bytesPerLine);
-    ~DirectShowVideoBuffer();
+    ~DirectShowVideoBuffer() override;
 
     IMediaSample *sample() { return m_sample; }
 
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine);
-    void unmap();
+    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) override;
+    void unmap() override;
 
-    MapMode mapMode() const;
+    MapMode mapMode() const override;
 
 private:
     IMediaSample *m_sample;

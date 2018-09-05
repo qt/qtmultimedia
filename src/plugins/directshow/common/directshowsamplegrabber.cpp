@@ -51,20 +51,21 @@ static const CLSID cLSID_SampleGrabber = { 0xC1F400A0, 0x3F08, 0x11d3, { 0x9F, 0
 
 class SampleGrabberCallbackPrivate : public ISampleGrabberCB
 {
+    Q_DISABLE_COPY(SampleGrabberCallbackPrivate)
 public:
     explicit SampleGrabberCallbackPrivate(DirectShowSampleGrabber *grabber)
         : m_ref(1)
         , m_grabber(grabber)
     { }
 
-    virtual ~SampleGrabberCallbackPrivate() { }
+    virtual ~SampleGrabberCallbackPrivate() = default;
 
-    STDMETHODIMP_(ULONG) AddRef()
+    STDMETHODIMP_(ULONG) AddRef() override
     {
         return InterlockedIncrement(&m_ref);
     }
 
-    STDMETHODIMP_(ULONG) Release()
+    STDMETHODIMP_(ULONG) Release() override
     {
         ULONG ref = InterlockedDecrement(&m_ref);
         if (ref == 0)
@@ -72,7 +73,7 @@ public:
         return ref;
     }
 
-    STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject)
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject) override
     {
         if (NULL == ppvObject)
             return E_POINTER;
@@ -89,7 +90,7 @@ public:
         return E_NOTIMPL;
     }
 
-    STDMETHODIMP SampleCB(double time, IMediaSample *mediaSample)
+    STDMETHODIMP SampleCB(double time, IMediaSample *mediaSample) override
     {
         if (m_grabber)
             Q_EMIT m_grabber->sampleAvailable(time, mediaSample);
@@ -97,7 +98,7 @@ public:
         return S_OK;
     }
 
-    STDMETHODIMP BufferCB(double time, BYTE *buffer, long bufferLen)
+    STDMETHODIMP BufferCB(double time, BYTE *buffer, long bufferLen) override
     {
         if (m_grabber) {
             // Deep copy, the data might be modified or freed after the callback returns

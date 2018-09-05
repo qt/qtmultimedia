@@ -64,10 +64,10 @@ class DSCameraService : public QMediaService
 
 public:
     DSCameraService(QObject *parent = 0);
-    ~DSCameraService();
+    ~DSCameraService() override;
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+    QMediaControl* requestControl(const char *name) override;
+    void releaseControl(QMediaControl *control) override;
 
 private:
     DSCameraSession        *m_session;

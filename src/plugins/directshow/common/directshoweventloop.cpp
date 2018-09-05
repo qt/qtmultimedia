@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 
 class DirectShowPostedEvent
 {
+    Q_DISABLE_COPY(DirectShowPostedEvent)
 public:
     DirectShowPostedEvent(QObject *receiver, QEvent *event)
         : receiver(receiver)

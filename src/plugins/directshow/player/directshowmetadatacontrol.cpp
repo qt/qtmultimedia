@@ -451,9 +451,7 @@ DirectShowMetaDataControl::DirectShowMetaDataControl(QObject *parent)
 {
 }
 
-DirectShowMetaDataControl::~DirectShowMetaDataControl()
-{
-}
+DirectShowMetaDataControl::~DirectShowMetaDataControl() = default;
 
 bool DirectShowMetaDataControl::isMetaDataAvailable() const
 {

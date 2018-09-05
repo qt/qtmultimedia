@@ -98,7 +98,7 @@ DirectShowMediaType::DirectShowMediaType(const DirectShowMediaType &other)
     copy(&mediaType, &other.mediaType);
 }
 
-DirectShowMediaType::DirectShowMediaType(DirectShowMediaType &&other)
+DirectShowMediaType::DirectShowMediaType(DirectShowMediaType &&other) noexcept
     : DirectShowMediaType()
 {
     move(&mediaType, other.mediaType);
@@ -110,7 +110,7 @@ DirectShowMediaType &DirectShowMediaType::operator=(const DirectShowMediaType &o
     return *this;
 }
 
-DirectShowMediaType &DirectShowMediaType::operator=(DirectShowMediaType &&other)
+DirectShowMediaType &DirectShowMediaType::operator=(DirectShowMediaType &&other) noexcept
 {
     move(&mediaType, other.mediaType);
     return *this;

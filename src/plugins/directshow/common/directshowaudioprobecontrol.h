@@ -51,7 +51,7 @@ class DirectShowAudioProbeControl : public QMediaAudioProbeControl
     Q_OBJECT
 public:
     explicit DirectShowAudioProbeControl(QObject *p = nullptr);
-    ~DirectShowAudioProbeControl();
+    ~DirectShowAudioProbeControl() override;
 
     bool ref() { return m_ref.ref(); }
     bool deref() { return m_ref.deref(); }

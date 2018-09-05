@@ -56,10 +56,7 @@ DirectShowPin::DirectShowPin(DirectShowBaseFilter *filter, const QString &name, 
 {
 }
 
-DirectShowPin::~DirectShowPin()
-{
-
-}
+DirectShowPin::~DirectShowPin() = default;
 
 HRESULT DirectShowPin::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
 {
@@ -403,9 +400,7 @@ DirectShowOutputPin::DirectShowOutputPin(DirectShowBaseFilter *filter, const QSt
 
 }
 
-DirectShowOutputPin::~DirectShowOutputPin()
-{
-}
+DirectShowOutputPin::~DirectShowOutputPin() = default;
 
 HRESULT DirectShowOutputPin::completeConnection(IPin *pin)
 {
@@ -511,10 +506,7 @@ DirectShowInputPin::DirectShowInputPin(DirectShowBaseFilter *filter, const QStri
     ZeroMemory(&m_sampleProperties, sizeof(m_sampleProperties));
 }
 
-DirectShowInputPin::~DirectShowInputPin()
-{
-
-}
+DirectShowInputPin::~DirectShowInputPin() = default;
 
 HRESULT DirectShowInputPin::connectionEnded()
 {

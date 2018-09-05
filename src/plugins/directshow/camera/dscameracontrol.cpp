@@ -61,9 +61,7 @@ DSCameraControl::DSCameraControl(QObject *parent)
             this, &DSCameraControl::error);
 }
 
-DSCameraControl::~DSCameraControl()
-{
-}
+DSCameraControl::~DSCameraControl() = default;
 
 void DSCameraControl::setState(QCamera::State state)
 {

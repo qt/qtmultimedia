@@ -48,9 +48,7 @@ DSCameraImageProcessingControl::DSCameraImageProcessingControl(DSCameraSession *
 {
 }
 
-DSCameraImageProcessingControl::~DSCameraImageProcessingControl()
-{
-}
+DSCameraImageProcessingControl::~DSCameraImageProcessingControl() = default;
 
 bool DSCameraImageProcessingControl::isParameterSupported(
         QCameraImageProcessingControl::ProcessingParameter parameter) const

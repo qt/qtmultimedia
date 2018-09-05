@@ -45,7 +45,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class DSCameraService;
 class DSCameraSession;
 
 
@@ -54,22 +53,22 @@ class DSCameraControl : public QCameraControl
     Q_OBJECT
 public:
     DSCameraControl(QObject *parent = 0);
-    ~DSCameraControl();
+    ~DSCameraControl() override;
 
-    QCamera::State state() const { return m_state; }
+    QCamera::State state() const override { return m_state; }
 
-    QCamera::CaptureModes captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureModes mode);
+    QCamera::CaptureModes captureMode() const override { return m_captureMode; }
+    void setCaptureMode(QCamera::CaptureModes mode) override;
 
-    void setState(QCamera::State state);
+    void setState(QCamera::State state) override;
 
-    QCamera::Status status() const;
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
-    bool canChangeProperty(PropertyChangeType /* changeType */, QCamera::Status /* status */) const {return false; }
+    QCamera::Status status() const override;
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
+    bool canChangeProperty(PropertyChangeType, QCamera::Status) const override
+    { return false; }
 
 private:
     DSCameraSession *m_session;
-    DSCameraService *m_service;
     QCamera::State m_state;
     QCamera::CaptureModes m_captureMode;
 };

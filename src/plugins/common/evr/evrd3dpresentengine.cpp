@@ -204,7 +204,7 @@ private:
     unsigned int m_glTexture;
     QOpenGLContext *m_glContext;
 
-    ~OpenGLResources()
+    ~OpenGLResources() override
     {
         QScopedPointer<QOffscreenSurface> surface;
         if (m_glContext != QOpenGLContext::currentContext()) {
@@ -254,7 +254,7 @@ public:
         }
     }
 
-    ~IMFSampleVideoBuffer()
+    ~IMFSampleVideoBuffer() override
     {
         if (m_surface) {
             if (m_mapMode != NotMapped)
@@ -265,11 +265,11 @@ public:
             m_sample->Release();
     }
 
-    QVariant handle() const;
+    QVariant handle() const override;
 
-    MapMode mapMode() const { return m_mapMode; }
-    uchar *map(MapMode, int*, int*);
-    void unmap();
+    MapMode mapMode() const override { return m_mapMode; }
+    uchar *map(MapMode, int*, int*) override;
+    void unmap() override;
 
 private:
     mutable D3DPresentEngine *m_engine;

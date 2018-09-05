@@ -98,7 +98,7 @@ public:
             m_sample->AddRef();
     }
 
-    ~PresentSampleEvent()
+    ~PresentSampleEvent() override
     {
         if (m_sample)
             m_sample->Release();

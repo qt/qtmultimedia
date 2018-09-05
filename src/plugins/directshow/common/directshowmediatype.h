@@ -54,13 +54,13 @@ class DirectShowMediaType
 public:
     DirectShowMediaType();
     DirectShowMediaType(const DirectShowMediaType &other);
-    DirectShowMediaType(DirectShowMediaType &&other);
+    DirectShowMediaType(DirectShowMediaType &&other) noexcept;
     explicit DirectShowMediaType(const AM_MEDIA_TYPE &type);
     explicit DirectShowMediaType(AM_MEDIA_TYPE &&type);
     ~DirectShowMediaType() { clear(mediaType); }
 
     DirectShowMediaType &operator =(const DirectShowMediaType &other);
-    DirectShowMediaType &operator =(DirectShowMediaType &&other);
+    DirectShowMediaType &operator =(DirectShowMediaType &&other) noexcept;
 
     void clear() { clear(mediaType); }
 
