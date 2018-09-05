@@ -1582,12 +1582,10 @@ HRESULT EVRCustomPresenter::processOutput()
 
     // Try to get a free sample from the video sample pool.
     hr = m_samplePool.getSample(&sample);
-    if (hr == MF_E_SAMPLEALLOCATOR_EMPTY) {
-        // No free samples. Try again when a sample is released.
+    if (hr == MF_E_SAMPLEALLOCATOR_EMPTY) // No free samples. Try again when a sample is released.
         return S_FALSE;
-    } else if (FAILED(hr)) {
+    if (FAILED(hr))
         return hr;
-    }
 
     // From now on, we have a valid video sample pointer, where the mixer will
     // write the video data.
@@ -2020,23 +2018,23 @@ static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
 
     if (subtype == MFVideoFormat_RGB32)
         return QVideoFrame::Format_RGB32;
-    else if (subtype == MFVideoFormat_ARGB32)
+    if (subtype == MFVideoFormat_ARGB32)
         return QVideoFrame::Format_ARGB32;
-    else if (subtype == MFVideoFormat_RGB24)
+    if (subtype == MFVideoFormat_RGB24)
         return QVideoFrame::Format_RGB24;
-    else if (subtype == MFVideoFormat_RGB565)
+    if (subtype == MFVideoFormat_RGB565)
         return QVideoFrame::Format_RGB565;
-    else if (subtype == MFVideoFormat_RGB555)
+    if (subtype == MFVideoFormat_RGB555)
         return QVideoFrame::Format_RGB555;
-    else if (subtype == MFVideoFormat_AYUV)
+    if (subtype == MFVideoFormat_AYUV)
         return QVideoFrame::Format_AYUV444;
-    else if (subtype == MFVideoFormat_I420)
+    if (subtype == MFVideoFormat_I420)
         return QVideoFrame::Format_YUV420P;
-    else if (subtype == MFVideoFormat_UYVY)
+    if (subtype == MFVideoFormat_UYVY)
         return QVideoFrame::Format_UYVY;
-    else if (subtype == MFVideoFormat_YV12)
+    if (subtype == MFVideoFormat_YV12)
         return QVideoFrame::Format_YV12;
-    else if (subtype == MFVideoFormat_NV12)
+    if (subtype == MFVideoFormat_NV12)
         return QVideoFrame::Format_NV12;
 
     return QVideoFrame::Format_Invalid;

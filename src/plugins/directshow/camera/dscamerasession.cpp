@@ -130,30 +130,28 @@ void DSCameraSession::setViewfinderSettings(const QCameraViewfinderSettings &set
 qreal DSCameraSession::scaledImageProcessingParameterValue(
         const ImageProcessingParameterInfo &sourceValueInfo)
 {
-    if (sourceValueInfo.currentValue == sourceValueInfo.defaultValue) {
+    if (sourceValueInfo.currentValue == sourceValueInfo.defaultValue)
         return 0.0f;
-    } else if (sourceValueInfo.currentValue < sourceValueInfo.defaultValue) {
+    if (sourceValueInfo.currentValue < sourceValueInfo.defaultValue) {
         return ((sourceValueInfo.currentValue - sourceValueInfo.minimumValue)
                 / qreal(sourceValueInfo.defaultValue - sourceValueInfo.minimumValue))
                 + (-1.0f);
-    } else {
-        return ((sourceValueInfo.currentValue - sourceValueInfo.defaultValue)
-                / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
     }
+    return ((sourceValueInfo.currentValue - sourceValueInfo.defaultValue)
+            / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
 }
 
 qint32 DSCameraSession::sourceImageProcessingParameterValue(
         qreal scaledValue, const ImageProcessingParameterInfo &valueRange)
 {
-    if (qFuzzyIsNull(scaledValue)) {
+    if (qFuzzyIsNull(scaledValue))
         return valueRange.defaultValue;
-    } else if (scaledValue < 0.0f) {
+    if (scaledValue < 0.0f) {
         return ((scaledValue - (-1.0f)) * (valueRange.defaultValue - valueRange.minimumValue))
                 + valueRange.minimumValue;
-    } else {
-        return (scaledValue * (valueRange.maximumValue - valueRange.defaultValue))
-                + valueRange.defaultValue;
     }
+    return (scaledValue * (valueRange.maximumValue - valueRange.defaultValue))
+            + valueRange.defaultValue;
 }
 
 static QCameraImageProcessingControl::ProcessingParameter searchRelatedResultingParameter(

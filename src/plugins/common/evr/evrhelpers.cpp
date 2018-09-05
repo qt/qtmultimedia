@@ -69,7 +69,7 @@ bool qt_evr_areMediaTypesEqual(IMFMediaType *type1, IMFMediaType *type2)
 {
     if (!type1 && !type2)
         return true;
-    else if (!type1 || !type2)
+    if (!type1 || !type2)
         return false;
 
     DWORD dwFlags = 0;
@@ -84,10 +84,10 @@ HRESULT qt_evr_validateVideoArea(const MFVideoArea& area, UINT32 width, UINT32 h
     float fOffsetY = qt_evr_MFOffsetToFloat(area.OffsetY);
 
     if ( ((LONG)fOffsetX + area.Area.cx > (LONG)width) ||
-         ((LONG)fOffsetY + area.Area.cy > (LONG)height) )
+         ((LONG)fOffsetY + area.Area.cy > (LONG)height) ) {
         return MF_E_INVALIDMEDIATYPE;
-    else
-        return S_OK;
+    }
+    return S_OK;
 }
 
 bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample)

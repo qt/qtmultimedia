@@ -140,12 +140,11 @@ HRESULT DirectShowIOSource::QueryInterface(REFIID riid, void **ppvObject)
     static const GUID iid_IAmFilterMiscFlags = {
         0x2dd74950, 0xa890, 0x11d1, {0xab, 0xe8, 0x00, 0xa0, 0xc9, 0x05, 0xf3, 0x75}};
 
-    if (!ppvObject) {
+    if (!ppvObject)
         return E_POINTER;
-    } else if (riid == IID_IUnknown
-            || riid == IID_IPersist
-            || riid == IID_IMediaFilter
-            || riid == IID_IBaseFilter) {
+
+    if (riid == IID_IUnknown || riid == IID_IPersist || riid == IID_IMediaFilter
+        || riid == IID_IBaseFilter) {
         *ppvObject = static_cast<IBaseFilter *>(this);
     } else if (riid == iid_IAmFilterMiscFlags) {
         *ppvObject = static_cast<IAMFilterMiscFlags *>(this);
@@ -222,15 +221,12 @@ HRESULT DirectShowIOSource::GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *pSt
 {
     Q_UNUSED(dwMilliSecsTimeout);
 
-    if (!pState) {
+    if (!pState)
         return E_POINTER;
-    } else {
-        QMutexLocker locker(&m_mutex);
 
-        *pState = m_state;
-
-        return S_OK;
-    }
+    QMutexLocker locker(&m_mutex);
+    *pState = m_state;
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::SetSyncSource(IReferenceClock *pClock)
@@ -250,53 +246,41 @@ HRESULT DirectShowIOSource::SetSyncSource(IReferenceClock *pClock)
 
 HRESULT DirectShowIOSource::GetSyncSource(IReferenceClock **ppClock)
 {
-    if (!ppClock) {
+    if (!ppClock)
         return E_POINTER;
-    } else {
-        if (!m_clock) {
-            *ppClock = 0;
 
-            return S_FALSE;
-        } else {
-            m_clock->AddRef();
-
-            *ppClock = m_clock;
-
-            return S_OK;
-        }
+    if (!m_clock) {
+        *ppClock = nullptr;
+        return S_FALSE;
     }
+    m_clock->AddRef();
+    *ppClock = m_clock;
+    return S_OK;
 }
 
 // IBaseFilter
 HRESULT DirectShowIOSource::EnumPins(IEnumPins **ppEnum)
 {
-    if (!ppEnum) {
+    if (!ppEnum)
         return E_POINTER;
-    } else {
-        *ppEnum = new DirectShowPinEnum(QList<IPin *>() << this);
 
-        return S_OK;
-    }
+    *ppEnum = new DirectShowPinEnum(QList<IPin *>() << this);
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::FindPin(LPCWSTR Id, IPin **ppPin)
 {
-    if (!ppPin || !Id) {
+    if (!ppPin || !Id)
         return E_POINTER;
-    } else {
-        QMutexLocker locker(&m_mutex);
-        if (QString::fromWCharArray(Id) == m_pinId) {
-            AddRef();
 
-            *ppPin = this;
-
-            return S_OK;
-        } else {
-            *ppPin = 0;
-
-            return VFW_E_NOT_FOUND;
-        }
+    QMutexLocker locker(&m_mutex);
+    if (m_pinId == QStringView(Id)) {
+        AddRef();
+        *ppPin = this;
+        return S_OK;
     }
+    *ppPin = nullptr;
+    return VFW_E_NOT_FOUND;
 }
 
 HRESULT DirectShowIOSource::JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pName)
@@ -311,24 +295,22 @@ HRESULT DirectShowIOSource::JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pName)
 
 HRESULT DirectShowIOSource::QueryFilterInfo(FILTER_INFO *pInfo)
 {
-    if (!pInfo) {
+    if (!pInfo)
         return E_POINTER;
-    } else {
-        QString name = m_filterName;
 
-        if (name.length() >= MAX_FILTER_NAME)
-            name.truncate(MAX_FILTER_NAME - 1);
+    QString name = m_filterName;
+    if (name.length() >= MAX_FILTER_NAME)
+        name.truncate(MAX_FILTER_NAME - 1);
 
-        int length = name.toWCharArray(pInfo->achName);
-        pInfo->achName[length] = '\0';
+    int length = name.toWCharArray(pInfo->achName);
+    pInfo->achName[length] = '\0';
 
-        if (m_graph)
-            m_graph->AddRef();
+    if (m_graph)
+        m_graph->AddRef();
 
-        pInfo->pGraph = m_graph;
+    pInfo->pGraph = m_graph;
 
-        return S_OK;
-    }
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::QueryVendorInfo(LPWSTR *pVendorInfo)
@@ -424,121 +406,96 @@ HRESULT DirectShowIOSource::Disconnect()
 {
     QMutexLocker locker(&m_mutex);
 
-    if (!m_peerPin) {
+    if (!m_peerPin)
         return S_FALSE;
-    } else if (m_state != State_Stopped) {
+    if (m_state != State_Stopped)
         return VFW_E_NOT_STOPPED;
-    } else {
-        HRESULT hr = m_peerPin->Disconnect();
 
-        if (!SUCCEEDED(hr))
-            return hr;
+    HRESULT hr = m_peerPin->Disconnect();
+    if (!SUCCEEDED(hr))
+        return hr;
 
-        if (m_allocator) {
-            m_allocator->Release();
-            m_allocator = 0;
-        }
-
-        m_peerPin->Release();
-        m_peerPin = 0;
-
-        return S_OK;
+    if (m_allocator) {
+        m_allocator->Release();
+        m_allocator = nullptr;
     }
+
+    m_peerPin->Release();
+    m_peerPin = nullptr;
+
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::ConnectedTo(IPin **ppPin)
 {
-    if (!ppPin) {
+    if (!ppPin)
         return E_POINTER;
-    } else {
-        QMutexLocker locker(&m_mutex);
 
-        if (!m_peerPin) {
-            *ppPin = 0;
-
-            return VFW_E_NOT_CONNECTED;
-        } else {
-            m_peerPin->AddRef();
-
-            *ppPin = m_peerPin;
-
-            return S_OK;
-        }
+    QMutexLocker locker(&m_mutex);
+    if (!m_peerPin) {
+        *ppPin = nullptr;
+        return VFW_E_NOT_CONNECTED;
     }
+    m_peerPin->AddRef();
+    *ppPin = m_peerPin;
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::ConnectionMediaType(AM_MEDIA_TYPE *pmt)
 {
-    if (!pmt) {
+    if (!pmt)
         return E_POINTER;
-    } else {
-        QMutexLocker locker(&m_mutex);
 
-        if (!m_peerPin) {
-            pmt = 0;
-
-            return VFW_E_NOT_CONNECTED;
-        } else {
-            DirectShowMediaType::copy(pmt, &m_connectionMediaType);
-
-            return S_OK;
-        }
+    QMutexLocker locker(&m_mutex);
+    if (!m_peerPin) {
+        pmt = nullptr;
+        return VFW_E_NOT_CONNECTED;
     }
+    DirectShowMediaType::copy(pmt, &m_connectionMediaType);
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::QueryPinInfo(PIN_INFO *pInfo)
 {
-    if (!pInfo) {
+    if (!pInfo)
         return E_POINTER;
-    } else {
-        AddRef();
 
-        pInfo->pFilter = this;
-        pInfo->dir = PINDIR_OUTPUT;
+    AddRef();
 
-        const int bytes = qMin(MAX_FILTER_NAME, (m_pinId.length() + 1) * 2);
+    pInfo->pFilter = this;
+    pInfo->dir = PINDIR_OUTPUT;
 
-        ::memcpy(pInfo->achName, m_pinId.utf16(), bytes);
+    const int bytes = qMin(MAX_FILTER_NAME, (m_pinId.length() + 1) * 2);
 
-        return S_OK;
-    }
+    ::memcpy(pInfo->achName, m_pinId.utf16(), bytes);
+
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::QueryId(LPWSTR *Id)
 {
-    if (!Id) {
+    if (!Id)
         return E_POINTER;
-    } else {
-        const int bytes = (m_pinId.length() + 1) * 2;
 
-        *Id = static_cast<LPWSTR>(::CoTaskMemAlloc(bytes));
-
-        ::memcpy(*Id, m_pinId.utf16(), bytes);
-
-        return S_OK;
-    }
+    const int bytes = (m_pinId.length() + 1) * 2;
+    *Id = static_cast<LPWSTR>(::CoTaskMemAlloc(bytes));
+    ::memcpy(*Id, m_pinId.utf16(), bytes);
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::QueryAccept(const AM_MEDIA_TYPE *pmt)
 {
-    if (!pmt) {
+    if (!pmt)
         return E_POINTER;
-    } else if (pmt->majortype == MEDIATYPE_Stream) {
-        return S_OK;
-    } else {
-        return S_FALSE;
-    }
+    return pmt->majortype == MEDIATYPE_Stream ? S_OK : S_FALSE;
 }
 
 HRESULT DirectShowIOSource::EnumMediaTypes(IEnumMediaTypes **ppEnum)
 {
-    if (!ppEnum) {
+    if (!ppEnum)
         return E_POINTER;
-    } else {
-        *ppEnum = new DirectShowMediaTypeEnum(m_supportedMediaTypes);
-
-        return S_OK;
-    }
+    *ppEnum = new DirectShowMediaTypeEnum(m_supportedMediaTypes);
+    return S_OK;
 }
 
 HRESULT DirectShowIOSource::QueryInternalConnections(IPin **apPin, ULONG *nPin)
@@ -575,13 +532,10 @@ HRESULT DirectShowIOSource::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tSt
 
 HRESULT DirectShowIOSource::QueryDirection(PIN_DIRECTION *pPinDir)
 {
-    if (!pPinDir) {
+    if (!pPinDir)
         return E_POINTER;
-    } else {
-        *pPinDir = PINDIR_OUTPUT;
-
-        return S_OK;
-    }
+    *pPinDir = PINDIR_OUTPUT;
+    return S_OK;
 }
 
 QT_END_NAMESPACE

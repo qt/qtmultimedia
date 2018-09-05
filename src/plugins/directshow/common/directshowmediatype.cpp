@@ -250,7 +250,8 @@ QVideoSurfaceFormat DirectShowMediaType::videoFormatFromType(const AM_MEDIA_TYPE
                 format.setScanLineDirection(scanLineDirection(format.pixelFormat(), header->bmiHeader));
 
                 return format;
-            } else if (IsEqualGUID(type->formattype, FORMAT_VideoInfo2)) {
+            }
+            if (IsEqualGUID(type->formattype, FORMAT_VideoInfo2)) {
                 VIDEOINFOHEADER2 *header = reinterpret_cast<VIDEOINFOHEADER2 *>(type->pbFormat);
 
                 QVideoSurfaceFormat format(

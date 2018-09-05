@@ -78,21 +78,20 @@ HRESULT DirectShowMediaTypeEnum::QueryInterface(REFIID riid, void **ppv)
 
 HRESULT DirectShowMediaTypeEnum::Next(ULONG cMediaTypes, AM_MEDIA_TYPE **ppMediaTypes, ULONG *pcFetched)
 {
-    if (ppMediaTypes && (pcFetched || cMediaTypes == 1)) {
-        ULONG count = qBound<ULONG>(0, cMediaTypes, m_mediaTypes.count() - m_index);
-
-        for (ULONG i = 0; i < count; ++i, ++m_index) {
-            ppMediaTypes[i] = reinterpret_cast<AM_MEDIA_TYPE *>(CoTaskMemAlloc(sizeof(AM_MEDIA_TYPE)));
-            DirectShowMediaType::copyToUninitialized(ppMediaTypes[i], &m_mediaTypes.at(m_index));
-        }
-
-        if (pcFetched)
-            *pcFetched = count;
-
-        return count == cMediaTypes ? S_OK : S_FALSE;
-    } else {
+    if (!ppMediaTypes || (!pcFetched && cMediaTypes != 1))
         return E_POINTER;
+
+    ULONG count = qBound<ULONG>(0, cMediaTypes, m_mediaTypes.count() - m_index);
+
+    for (ULONG i = 0; i < count; ++i, ++m_index) {
+        ppMediaTypes[i] = reinterpret_cast<AM_MEDIA_TYPE *>(CoTaskMemAlloc(sizeof(AM_MEDIA_TYPE)));
+        DirectShowMediaType::copyToUninitialized(ppMediaTypes[i], &m_mediaTypes.at(m_index));
     }
+
+    if (pcFetched)
+        *pcFetched = count;
+
+    return count == cMediaTypes ? S_OK : S_FALSE;
 }
 
 HRESULT DirectShowMediaTypeEnum::Skip(ULONG cMediaTypes)
@@ -109,14 +108,9 @@ HRESULT DirectShowMediaTypeEnum::Reset()
 
 HRESULT DirectShowMediaTypeEnum::Clone(IEnumMediaTypes **ppEnum)
 {
-    if (ppEnum) {
-        if (m_pin)
-            *ppEnum = new DirectShowMediaTypeEnum(m_pin);
-        else
-            *ppEnum = new DirectShowMediaTypeEnum(m_mediaTypes);
-        return S_OK;
-    } else {
+    if (!ppEnum)
         return E_POINTER;
-    }
+    *ppEnum = m_pin ? new DirectShowMediaTypeEnum(m_pin) : new DirectShowMediaTypeEnum(m_mediaTypes);
+    return S_OK;
 }
 
