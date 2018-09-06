@@ -100,7 +100,7 @@ QWinRTPlayerRendererControl::QWinRTPlayerRendererControl(IMFMediaEngineEx *engin
     d->engine = engine;
     d->manager = manager;
     d->resetToken = resetToken;
-    d->deviceHandle = 0;
+    d->deviceHandle = nullptr;
 }
 
 QWinRTPlayerRendererControl::~QWinRTPlayerRendererControl()

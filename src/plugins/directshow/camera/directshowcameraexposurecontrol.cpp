@@ -68,13 +68,16 @@ DirectShowCameraExposureControl::DirectShowCameraExposureControl(DSCameraSession
 
 bool DirectShowCameraExposureControl::isParameterSupported(QCameraExposureControl::ExposureParameter parameter) const
 {
-    if (parameter == ShutterSpeed)
-        return (m_shutterSpeedValues.caps & CameraControl_Flags_Manual);
-    if (parameter == Aperture)
+    switch (parameter) {
+    case QCameraExposureControl::Aperture:
         return (m_apertureValues.caps & CameraControl_Flags_Manual);
-    if (parameter == ExposureMode)
+    case QCameraExposureControl::ShutterSpeed:
+        return (m_shutterSpeedValues.caps & CameraControl_Flags_Manual);
+    case QCameraExposureControl::ExposureMode:
         return true;
-
+    default:
+        break;
+    }
     return false;
 }
 
@@ -156,10 +159,9 @@ bool DirectShowCameraExposureControl::setValue(QCameraExposureControl::ExposureP
         if (parameter == ShutterSpeed) {
             m_requestedShutterSpeed = newValue;
             return setShutterSpeed(cameraControl, m_requestedShutterSpeed);
-        } else {
-            m_requestedAperture = newValue;
-            return setAperture(cameraControl, m_requestedAperture);
         }
+        m_requestedAperture = newValue;
+        return setAperture(cameraControl, m_requestedAperture);
     }
 
     if (parameter == ExposureMode) {

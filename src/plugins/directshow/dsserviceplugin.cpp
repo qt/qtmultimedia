@@ -114,10 +114,9 @@ void DSServicePlugin::release(QMediaService *service)
 QMediaServiceProviderHint::Features DSServicePlugin::supportedFeatures(
         const QByteArray &service) const
 {
-    if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface;
-    else
-        return QMediaServiceProviderHint::Features();
+    return service == Q_MEDIASERVICE_MEDIAPLAYER
+        ? (QMediaServiceProviderHint::StreamPlayback | QMediaServiceProviderHint::VideoSurface)
+        : QMediaServiceProviderHint::Features();
 }
 
 QByteArray DSServicePlugin::defaultDevice(const QByteArray &service) const

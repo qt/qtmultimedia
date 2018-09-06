@@ -43,8 +43,6 @@
 #include <qvideorenderercontrol.h>
 #include "dscamerasession.h"
 
-class CameraFormatConverter;
-
 QT_BEGIN_NAMESPACE
 
 
@@ -53,17 +51,16 @@ class DSVideoRendererControl : public QVideoRendererControl
     Q_OBJECT
 public:
     DSVideoRendererControl(DSCameraSession* session, QObject *parent = 0);
-    ~DSVideoRendererControl();
+    ~DSVideoRendererControl() override;
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
     void setSession(DSCameraSession* session);
 
 private:
     QAbstractVideoSurface* m_surface;
     DSCameraSession* m_session;
-    CameraFormatConverter* converter;
 };
 
 QT_END_NAMESPACE

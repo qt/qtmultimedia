@@ -106,7 +106,7 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
 
     QSet<QByteArray> fieldsToAdd;
     fieldsToAdd << "mpegversion" << "layer" << "layout" << "raversion"
-                << "wmaversion" << "wmvversion" << "variant";
+                << "wmaversion" << "wmvversion" << "variant" << "systemstream";
 
     GList *element = elements;
     while (element) {

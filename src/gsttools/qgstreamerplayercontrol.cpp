@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qgstreamerplayercontrol.h"
-#include "qgstreamerplayersession.h"
+#include <private/qgstreamerplayercontrol_p.h>
+#include <private/qgstreamerplayersession_p.h>
 
 #include <private/qmediaplaylistnavigator_p.h>
 #include <private/qmediaresourcepolicy_p.h>

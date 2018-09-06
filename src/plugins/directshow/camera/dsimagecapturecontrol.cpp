@@ -61,9 +61,7 @@ DSImageCaptureControl::DSImageCaptureControl(DSCameraSession *session)
             this, &DSImageCaptureControl::imageAvailable);
 }
 
-DSImageCaptureControl::~DSImageCaptureControl()
-{
-}
+DSImageCaptureControl::~DSImageCaptureControl() = default;
 
 bool DSImageCaptureControl::isReadyForCapture() const
 {

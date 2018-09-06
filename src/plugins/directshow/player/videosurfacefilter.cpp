@@ -330,12 +330,11 @@ bool VideoSurfaceFilter::setMediaType(const AM_MEDIA_TYPE *type)
         m_surfaceFormat = QVideoSurfaceFormat();
         m_bytesPerLine = 0;
         return true;
-    } else {
-        m_surfaceFormat = DirectShowMediaType::videoFormatFromType(type);
-        m_bytesPerLine = DirectShowMediaType::bytesPerLine(m_surfaceFormat);
-        qCDebug(qLcRenderFilter) << "setMediaType -->" << m_surfaceFormat;
-        return m_surfaceFormat.isValid();
     }
+    m_surfaceFormat = DirectShowMediaType::videoFormatFromType(type);
+    m_bytesPerLine = DirectShowMediaType::bytesPerLine(m_surfaceFormat);
+    qCDebug(qLcRenderFilter) << "setMediaType -->" << m_surfaceFormat;
+    return m_surfaceFormat.isValid();
 }
 
 HRESULT VideoSurfaceFilter::completeConnection(IPin *pin)
@@ -344,10 +343,7 @@ HRESULT VideoSurfaceFilter::completeConnection(IPin *pin)
 
     qCDebug(qLcRenderFilter, "completeConnection");
 
-    if (!startSurface())
-        return VFW_E_TYPE_NOT_ACCEPTED;
-    else
-        return S_OK;
+    return startSurface() ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
 
 HRESULT VideoSurfaceFilter::connectionEnded()
@@ -783,31 +779,39 @@ void VideoSurfaceFilter::renderPendingSample()
 
 bool VideoSurfaceFilter::event(QEvent *e)
 {
-    if (e->type() == QEvent::Type(StartSurface)) {
+    switch (e->type()) {
+    case StartSurface: {
         QMutexLocker locker(&m_mutex);
         startSurface();
         m_waitSurface.wakeAll();
         return true;
-    } else if (e->type() == QEvent::Type(StopSurface)) {
+    }
+    case StopSurface: {
         QMutexLocker locker(&m_mutex);
         stopSurface();
         m_waitSurface.wakeAll();
         return true;
-    } else if (e->type() == QEvent::Type(RestartSurface)) {
+    }
+    case RestartSurface: {
         QMutexLocker locker(&m_mutex);
         restartSurface();
         m_waitSurface.wakeAll();
         return true;
-    } else if (e->type() == QEvent::Type(FlushSurface)) {
+    }
+    case FlushSurface: {
         QMutexLocker locker(&m_mutex);
         flushSurface();
         m_waitSurface.wakeAll();
         return true;
-    } else if (e->type() == QEvent::Type(RenderSample)) {
+    }
+    case RenderSample: {
         QMutexLocker locker(&m_mutex);
         renderPendingSample();
         m_waitSurface.wakeAll();
         return true;
+    }
+    default:
+        break;
     }
 
     return QObject::event(e);

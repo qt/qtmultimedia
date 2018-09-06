@@ -115,7 +115,7 @@ public:
     }
 
 protected:
-    void run() { m_service->run(); }
+    void run() override { m_service->run(); }
 
 private:
     DirectShowPlayerService *m_service;
@@ -1091,9 +1091,9 @@ qint64 DirectShowPlayerService::position() const
     QMutexLocker locker(const_cast<QMutex *>(&m_mutex));
 
     if (m_graphStatus == Loaded) {
-        if (m_executingTask == Seek || m_executingTask == SetRate || (m_pendingTasks & Seek)) {
+        if (m_executingTask == Seek || m_executingTask == SetRate || (m_pendingTasks & Seek))
             return m_position;
-        } else if (IMediaSeeking *seeking = com_cast<IMediaSeeking>(m_graph, IID_IMediaSeeking)) {
+        if (IMediaSeeking *seeking = com_cast<IMediaSeeking>(m_graph, IID_IMediaSeeking)) {
             LONGLONG position = 0;
 
             seeking->GetCurrentPosition(&position);
@@ -1112,9 +1112,9 @@ QMediaTimeRange DirectShowPlayerService::availablePlaybackRanges() const
     QMutexLocker locker(const_cast<QMutex *>(&m_mutex));
 
     if (m_graphStatus == Loaded) {
-        if (m_executingTask == Seek || m_executingTask == SetRate || (m_pendingTasks & Seek)) {
+        if (m_executingTask == Seek || m_executingTask == SetRate || (m_pendingTasks & Seek))
             return m_playbackRange;
-        } else if (IMediaSeeking *seeking = com_cast<IMediaSeeking>(m_graph, IID_IMediaSeeking)) {
+        if (IMediaSeeking *seeking = com_cast<IMediaSeeking>(m_graph, IID_IMediaSeeking)) {
             LONGLONG minimum = 0;
             LONGLONG maximum = 0;
 
@@ -1195,9 +1195,8 @@ int DirectShowPlayerService::bufferStatus() const
         reader->Release();
 
         return percentage;
-    } else {
-        return 0;
     }
+    return 0;
 #else
     return 0;
 #endif

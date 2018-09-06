@@ -72,6 +72,7 @@ public:
     virtual ~QGstreamerVideoOverlay();
 
     GstElement *videoSink() const;
+    void setVideoSink(GstElement *);
     QSize nativeVideoSize() const;
 
     void setWindowHandle(WId id);

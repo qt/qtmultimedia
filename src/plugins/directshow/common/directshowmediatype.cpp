@@ -98,7 +98,7 @@ DirectShowMediaType::DirectShowMediaType(const DirectShowMediaType &other)
     copy(&mediaType, &other.mediaType);
 }
 
-DirectShowMediaType::DirectShowMediaType(DirectShowMediaType &&other)
+DirectShowMediaType::DirectShowMediaType(DirectShowMediaType &&other) noexcept
     : DirectShowMediaType()
 {
     move(&mediaType, other.mediaType);
@@ -110,7 +110,7 @@ DirectShowMediaType &DirectShowMediaType::operator=(const DirectShowMediaType &o
     return *this;
 }
 
-DirectShowMediaType &DirectShowMediaType::operator=(DirectShowMediaType &&other)
+DirectShowMediaType &DirectShowMediaType::operator=(DirectShowMediaType &&other) noexcept
 {
     move(&mediaType, other.mediaType);
     return *this;
@@ -222,11 +222,10 @@ void DirectShowMediaType::clear(AM_MEDIA_TYPE &type)
 
 GUID DirectShowMediaType::convertPixelFormat(QVideoFrame::PixelFormat format)
 {
-    const int count = sizeof(qt_typeLookup) / sizeof(TypeLookup);
-
-    for (int i = 0; i < count; ++i)
-        if (qt_typeLookup[i].pixelFormat == format)
-            return qt_typeLookup[i].mediaType;
+    for (const auto &lookupType : qt_typeLookup) {
+        if (lookupType.pixelFormat == format)
+            return lookupType.mediaType;
+    }
 
     return MEDIASUBTYPE_None;
 }
@@ -236,16 +235,14 @@ QVideoSurfaceFormat DirectShowMediaType::videoFormatFromType(const AM_MEDIA_TYPE
     if (!type)
         return QVideoSurfaceFormat();
 
-    const int count = sizeof(qt_typeLookup) / sizeof(TypeLookup);
-
-    for (int i = 0; i < count; ++i) {
-        if (IsEqualGUID(qt_typeLookup[i].mediaType, type->subtype) && type->cbFormat > 0) {
+    for (const auto &lookupType : qt_typeLookup) {
+        if (IsEqualGUID(lookupType.mediaType, type->subtype) && type->cbFormat > 0) {
             if (IsEqualGUID(type->formattype, FORMAT_VideoInfo)) {
                 VIDEOINFOHEADER *header = reinterpret_cast<VIDEOINFOHEADER *>(type->pbFormat);
 
                 QVideoSurfaceFormat format(
                         QSize(header->bmiHeader.biWidth, qAbs(header->bmiHeader.biHeight)),
-                        qt_typeLookup[i].pixelFormat);
+                        lookupType.pixelFormat);
 
                 if (header->AvgTimePerFrame > 0)
                     format.setFrameRate(10000 /header->AvgTimePerFrame);
@@ -253,12 +250,13 @@ QVideoSurfaceFormat DirectShowMediaType::videoFormatFromType(const AM_MEDIA_TYPE
                 format.setScanLineDirection(scanLineDirection(format.pixelFormat(), header->bmiHeader));
 
                 return format;
-            } else if (IsEqualGUID(type->formattype, FORMAT_VideoInfo2)) {
+            }
+            if (IsEqualGUID(type->formattype, FORMAT_VideoInfo2)) {
                 VIDEOINFOHEADER2 *header = reinterpret_cast<VIDEOINFOHEADER2 *>(type->pbFormat);
 
                 QVideoSurfaceFormat format(
                         QSize(header->bmiHeader.biWidth, qAbs(header->bmiHeader.biHeight)),
-                        qt_typeLookup[i].pixelFormat);
+                        lookupType.pixelFormat);
 
                 if (header->AvgTimePerFrame > 0)
                     format.setFrameRate(10000 / header->AvgTimePerFrame);
@@ -277,12 +275,9 @@ QVideoFrame::PixelFormat DirectShowMediaType::pixelFormatFromType(const AM_MEDIA
     if (!type)
         return QVideoFrame::Format_Invalid;
 
-    const int count = sizeof(qt_typeLookup) / sizeof(TypeLookup);
-
-    for (int i = 0; i < count; ++i) {
-        if (IsEqualGUID(qt_typeLookup[i].mediaType, type->subtype)) {
-            return qt_typeLookup[i].pixelFormat;
-        }
+    for (const auto &lookupType : qt_typeLookup) {
+        if (IsEqualGUID(lookupType.mediaType, type->subtype))
+            return lookupType.pixelFormat;
     }
 
     return QVideoFrame::Format_Invalid;

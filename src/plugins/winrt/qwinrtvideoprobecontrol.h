@@ -49,7 +49,7 @@ class QWinRTVideoProbeControl : public QMediaVideoProbeControl
     Q_OBJECT
 public:
     explicit QWinRTVideoProbeControl(QWinRTCameraVideoRendererControl *parent);
-    ~QWinRTVideoProbeControl();
+    ~QWinRTVideoProbeControl() override;
 };
 
 QT_END_NAMESPACE

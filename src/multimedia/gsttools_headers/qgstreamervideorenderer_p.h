@@ -72,6 +72,7 @@ public:
     void setSurface(QAbstractVideoSurface *surface) override;
 
     GstElement *videoSink() override;
+    void setVideoSink(GstElement *) override;
 
     void stopRenderer() override;
     bool isReady() const override { return m_surface != 0; }
@@ -84,7 +85,7 @@ private slots:
     void handleFormatChange();
 
 private:
-    QVideoSurfaceGstSink *m_videoSink;
+    GstElement *m_videoSink = nullptr;
     QPointer<QAbstractVideoSurface> m_surface;
 };
 

@@ -170,7 +170,8 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
     CaptureRequest request = {
         d->currentCaptureId,
         d->location.generateFileName(fileName, QMediaStorageLocation::Pictures, QStringLiteral("IMG_"),
-                                     fileName.isEmpty() ? QStringLiteral("jpg") : QFileInfo(fileName).suffix())
+                                     fileName.isEmpty() ? QStringLiteral("jpg") : QFileInfo(fileName).suffix()),
+        nullptr, nullptr, nullptr
     };
 
     HRESULT hr = QEventDispatcherWinRT::runOnXamlThread([this, d, capture, &request]() {
@@ -183,9 +184,9 @@ int QWinRTCameraImageCaptureControl::capture(const QString &fileName)
         Q_ASSERT_SUCCEEDED(hr);
 
         const QSize imageSize = static_cast<QWinRTImageEncoderControl*>(d->cameraControl->imageEncoderControl())->imageSettings().resolution();
-        hr = request.imageFormat->put_Width(imageSize.width());
+        hr = request.imageFormat->put_Width(UINT32(imageSize.width()));
         Q_ASSERT_SUCCEEDED(hr);
-        hr = request.imageFormat->put_Height(imageSize.height());
+        hr = request.imageFormat->put_Height(UINT32(imageSize.height()));
         Q_ASSERT_SUCCEEDED(hr);
 
         hr = capture->CapturePhotoToStreamAsync(request.imageFormat.Get(), request.stream.Get(), &request.op);
@@ -301,7 +302,8 @@ HRESULT QWinRTCameraImageCaptureControl::onCaptureCompleted(IAsyncAction *asyncI
     UINT32 pixelWidth;
     hr = frame->get_PixelWidth(&pixelWidth);
     Q_ASSERT_SUCCEEDED(hr);
-    const QImage image(pixelData, pixelWidth, pixelHeight, QImage::Format_RGBA8888,
+    const QImage image(pixelData, int(pixelWidth), int(pixelHeight),
+                       QImage::Format_RGBA8888,
                        reinterpret_cast<QImageCleanupFunction>(&freeImageData), pixelData);
     emit imageCaptured(request.id, image);
 

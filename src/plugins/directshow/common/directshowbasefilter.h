@@ -48,7 +48,7 @@ class DirectShowBaseFilter : public IBaseFilter
 {
 public:
     DirectShowBaseFilter();
-    ~DirectShowBaseFilter();
+    virtual ~DirectShowBaseFilter();
 
     FILTER_STATE state() const { return m_state; }
     HRESULT NotifyEvent(long eventCode, LONG_PTR eventParam1, LONG_PTR eventParam2);
@@ -56,26 +56,26 @@ public:
     virtual QList<DirectShowPin *> pins() = 0;
 
     // IPersist
-    STDMETHODIMP GetClassID(CLSID *pClassID);
+    STDMETHODIMP GetClassID(CLSID *pClassID) override;
 
     // IMediaFilter
-    STDMETHODIMP Run(REFERENCE_TIME tStart);
-    STDMETHODIMP Pause();
-    STDMETHODIMP Stop();
+    STDMETHODIMP Run(REFERENCE_TIME tStart) override;
+    STDMETHODIMP Pause() override;
+    STDMETHODIMP Stop() override;
 
-    STDMETHODIMP GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *pState);
+    STDMETHODIMP GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *pState) override;
 
-    STDMETHODIMP SetSyncSource(IReferenceClock *pClock);
-    STDMETHODIMP GetSyncSource(IReferenceClock **ppClock);
+    STDMETHODIMP SetSyncSource(IReferenceClock *pClock) override;
+    STDMETHODIMP GetSyncSource(IReferenceClock **ppClock) override;
 
     // IBaseFilter
-    STDMETHODIMP EnumPins(IEnumPins **ppEnum);
-    STDMETHODIMP FindPin(LPCWSTR Id, IPin **ppPin);
+    STDMETHODIMP EnumPins(IEnumPins **ppEnum) override;
+    STDMETHODIMP FindPin(LPCWSTR Id, IPin **ppPin) override;
 
-    STDMETHODIMP JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pName);
+    STDMETHODIMP JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pName) override;
 
-    STDMETHODIMP QueryFilterInfo(FILTER_INFO *pInfo);
-    STDMETHODIMP QueryVendorInfo(LPWSTR *pVendorInfo);
+    STDMETHODIMP QueryFilterInfo(FILTER_INFO *pInfo) override;
+    STDMETHODIMP QueryVendorInfo(LPWSTR *pVendorInfo) override;
 
 protected:
     QMutex m_mutex;

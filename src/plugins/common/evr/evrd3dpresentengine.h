@@ -72,6 +72,7 @@ class OpenGLResources;
 
 class EGLWrapper
 {
+    Q_DISABLE_COPY(EGLWrapper)
 public:
     EGLWrapper();
 
@@ -99,6 +100,7 @@ private:
 
 class D3DPresentEngine
 {
+    Q_DISABLE_COPY(D3DPresentEngine)
 public:
     enum Hint
     {

@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamerplayersession.h"
+#include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamerbushelper_p.h>
 
 #include <private/qgstreameraudioprobecontrol_p.h>
@@ -114,7 +114,6 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_state(QMediaPlayer::StoppedState),
      m_pendingState(QMediaPlayer::StoppedState),
      m_busHelper(0),
-     m_playbin(0),
      m_videoSink(0),
 #if !GST_CHECK_VERSION(1,0,0)
      m_usingColorspaceElement(false),
@@ -241,12 +240,15 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
 #if QT_CONFIG(gstreamer_app)
         g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", G_CALLBACK(configureAppSrcElement), this);
 #endif
+
+        m_pipeline = m_playbin;
+        gst_object_ref(GST_OBJECT(m_pipeline));
     }
 }
 
 QGstreamerPlayerSession::~QGstreamerPlayerSession()
 {
-    if (m_playbin) {
+    if (m_pipeline) {
         stop();
 
         removeVideoBufferProbe();
@@ -254,7 +256,9 @@ QGstreamerPlayerSession::~QGstreamerPlayerSession()
 
         delete m_busHelper;
         gst_object_unref(GST_OBJECT(m_bus));
-        gst_object_unref(GST_OBJECT(m_playbin));
+        if (m_playbin)
+            gst_object_unref(GST_OBJECT(m_playbin));
+        gst_object_unref(GST_OBJECT(m_pipeline));
 #if !GST_CHECK_VERSION(1,0,0)
         gst_object_unref(GST_OBJECT(m_colorSpace));
 #endif
@@ -266,6 +270,33 @@ QGstreamerPlayerSession::~QGstreamerPlayerSession()
 GstElement *QGstreamerPlayerSession::playbin() const
 {
     return m_playbin;
+}
+
+void QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
+{
+    GstBus *bus = pipeline ? gst_element_get_bus(pipeline) : nullptr;
+    if (!bus)
+        return;
+
+    gst_object_unref(GST_OBJECT(m_pipeline));
+    m_pipeline = pipeline;
+    gst_object_unref(GST_OBJECT(m_bus));
+    m_bus = bus;
+    delete m_busHelper;
+    m_busHelper = new QGstreamerBusHelper(m_bus, this);
+    m_busHelper->installMessageFilter(this);
+
+    if (m_videoOutput)
+        m_busHelper->installMessageFilter(m_videoOutput);
+
+    if (m_playbin) {
+        gst_element_set_state(m_playbin, GST_STATE_NULL);
+        gst_object_unref(GST_OBJECT(m_playbin));
+    }
+
+    m_playbin = nullptr;
+    m_volumeElement = nullptr;
+    m_videoIdentity = nullptr;
 }
 
 #if QT_CONFIG(gstreamer_app)
@@ -357,7 +388,7 @@ qint64 QGstreamerPlayerSession::position() const
 {
     gint64      position = 0;
 
-    if (m_playbin && qt_gst_element_query_position(m_playbin, GST_FORMAT_TIME, &position))
+    if (m_pipeline && qt_gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position))
         m_lastPosition = position / 1000000;
     return m_lastPosition;
 }
@@ -374,8 +405,8 @@ void QGstreamerPlayerSession::setPlaybackRate(qreal rate)
 #endif
     if (!qFuzzyCompare(m_playbackRate, rate)) {
         m_playbackRate = rate;
-        if (m_playbin && m_seekable) {
-            gst_element_seek(m_playbin, rate, GST_FORMAT_TIME,
+        if (m_pipeline && m_seekable) {
+            gst_element_seek(m_pipeline, rate, GST_FORMAT_TIME,
                              GstSeekFlags(GST_SEEK_FLAG_FLUSH),
                              GST_SEEK_TYPE_NONE,0,
                              GST_SEEK_TYPE_NONE,0 );
@@ -396,7 +427,7 @@ QMediaTimeRange QGstreamerPlayerSession::availablePlaybackRanges() const
     //with GST_FORMAT_PERCENT media is treated as encoded with constant bitrate.
     GstQuery* query = gst_query_new_buffering(GST_FORMAT_PERCENT);
 
-    if (!gst_element_query(m_playbin, query)) {
+    if (!gst_element_query(m_pipeline, query)) {
         gst_query_unref(query);
         return ranges;
     }
@@ -551,6 +582,14 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
 
     m_renderer = renderer;
 
+    // If custom pipeline is considered to use video sink from the renderer
+    // need to create the pipeline when the renderer is ready.
+    emit rendererChanged();
+
+    // No sense to continue if custom pipeline requested.
+    if (!m_playbin)
+        return;
+
 #ifdef DEBUG_VO_BIN_DUMP
     gst_debug_bin_to_dot_file_with_ts(GST_BIN(m_playbin),
                                   GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL /* GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES*/),
@@ -684,7 +723,7 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
 
 void QGstreamerPlayerSession::finishVideoOutputChange()
 {
-    if (!m_pendingVideoSink)
+    if (!m_playbin || !m_pendingVideoSink)
         return;
 
 #ifdef DEBUG_PLAYBIN
@@ -889,9 +928,9 @@ bool QGstreamerPlayerSession::play()
 #endif
 
     m_everPlayed = false;
-    if (m_playbin) {
+    if (m_pipeline) {
         m_pendingState = QMediaPlayer::PlayingState;
-        if (gst_element_set_state(m_playbin, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+        if (gst_element_set_state(m_pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
             qWarning() << "GStreamer; Unable to play -" << m_request.url().toString();
             m_pendingState = m_state = QMediaPlayer::StoppedState;
             emit stateChanged(m_state);
@@ -909,12 +948,12 @@ bool QGstreamerPlayerSession::pause()
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
 #endif
-    if (m_playbin) {
+    if (m_pipeline) {
         m_pendingState = QMediaPlayer::PausedState;
         if (m_pendingVideoSink != 0)
             return true;
 
-        if (gst_element_set_state(m_playbin, GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE) {
+        if (gst_element_set_state(m_pipeline, GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE) {
             qWarning() << "GStreamer; Unable to pause -" << m_request.url().toString();
             m_pendingState = m_state = QMediaPlayer::StoppedState;
             emit stateChanged(m_state);
@@ -933,13 +972,13 @@ void QGstreamerPlayerSession::stop()
     qDebug() << Q_FUNC_INFO;
 #endif
     m_everPlayed = false;
-    if (m_playbin) {
+    if (m_pipeline) {
 
         if (m_renderer)
             m_renderer->stopRenderer();
 
         flushVideoProbes();
-        gst_element_set_state(m_playbin, GST_STATE_NULL);
+        gst_element_set_state(m_pipeline, GST_STATE_NULL);
 
         m_lastPosition = 0;
         QMediaPlayer::State oldState = m_state;
@@ -960,10 +999,10 @@ bool QGstreamerPlayerSession::seek(qint64 ms)
     qDebug() << Q_FUNC_INFO << ms;
 #endif
     //seek locks when the video output sink is changing and pad is blocked
-    if (m_playbin && !m_pendingVideoSink && m_state != QMediaPlayer::StoppedState && m_seekable) {
+    if (m_pipeline && !m_pendingVideoSink && m_state != QMediaPlayer::StoppedState && m_seekable) {
         ms = qMax(ms,qint64(0));
         gint64  position = ms * 1000000;
-        bool isSeeking = gst_element_seek(m_playbin,
+        bool isSeeking = gst_element_seek(m_pipeline,
                                           m_playbackRate,
                                           GST_FORMAT_TIME,
                                           GstSeekFlags(GST_SEEK_FLAG_FLUSH),
@@ -1061,7 +1100,7 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
         }
 
         bool handlePlaybin2 = false;
-        if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_playbin)) {
+        if (GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_pipeline)) {
             switch (GST_MESSAGE_TYPE(gm))  {
             case GST_MESSAGE_STATE_CHANGED:
                 {
@@ -1217,7 +1256,7 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
             case GST_MESSAGE_ASYNC_DONE:
             {
                 gint64      position = 0;
-                if (qt_gst_element_query_position(m_playbin, GST_FORMAT_TIME, &position)) {
+                if (qt_gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position)) {
                     position /= 1000000;
                     m_lastPosition = position;
                     emit positionChanged(position);
@@ -1317,6 +1356,9 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
 
 void QGstreamerPlayerSession::getStreamsInfo()
 {
+    if (!m_playbin)
+        return;
+
     QList< QMap<QString,QVariant> > oldProperties = m_streamProperties;
     QList<QMediaStreamsControl::StreamType> oldTypes = m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> oldOffset = m_playbin2StreamOffset;
@@ -1408,6 +1450,9 @@ void QGstreamerPlayerSession::getStreamsInfo()
 
 void QGstreamerPlayerSession::updateVideoResolutionTag()
 {
+    if (!m_videoIdentity)
+        return;
+
 #ifdef DEBUG_PLAYBIN
         qDebug() << Q_FUNC_INFO;
 #endif
@@ -1457,7 +1502,7 @@ void QGstreamerPlayerSession::updateDuration()
     gint64 gstDuration = 0;
     int duration = -1;
 
-    if (m_playbin && qt_gst_element_query_duration(m_playbin, GST_FORMAT_TIME, &gstDuration))
+    if (m_pipeline && qt_gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &gstDuration))
         duration = gstDuration / 1000000;
 
     if (m_duration != duration) {
@@ -1469,7 +1514,7 @@ void QGstreamerPlayerSession::updateDuration()
     if (m_duration > 0) {
         m_durationQueries = 0;
         GstQuery *query = gst_query_new_seeking(GST_FORMAT_TIME);
-        if (gst_element_query(m_playbin, query))
+        if (gst_element_query(m_pipeline, query))
             gst_query_parse_seeking(query, 0, &seekable, 0, 0);
         gst_query_unref(query);
     }
@@ -1802,7 +1847,7 @@ void QGstreamerPlayerSession::endOfMediaReset()
         m_renderer->stopRenderer();
 
     flushVideoProbes();
-    gst_element_set_state(m_playbin, GST_STATE_NULL);
+    gst_element_set_state(m_pipeline, GST_STATE_NULL);
 
     QMediaPlayer::State oldState = m_state;
     m_pendingState = m_state = QMediaPlayer::StoppedState;

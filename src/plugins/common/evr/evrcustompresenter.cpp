@@ -98,7 +98,7 @@ public:
             m_sample->AddRef();
     }
 
-    ~PresentSampleEvent()
+    ~PresentSampleEvent() override
     {
         if (m_sample)
             m_sample->Release();
@@ -510,19 +510,16 @@ HRESULT SamplePool::initialize(QList<IMFSample*> &samples)
     if (m_initialized)
         return MF_E_INVALIDREQUEST;
 
-    IMFSample *sample = NULL;
-
     // Move these samples into our allocated queue.
-    for (int i = 0; i < samples.size(); ++i) {
-        sample = samples.at(i);
+    for (auto sample : qAsConst(samples)) {
         sample->AddRef();
         m_videoSampleQueue.append(sample);
     }
 
     m_initialized = true;
 
-    for (int i = 0; i < samples.size(); ++i)
-        samples[i]->Release();
+    for (auto sample : qAsConst(samples))
+        sample->Release();
     samples.clear();
     return S_OK;
 }
@@ -531,8 +528,8 @@ HRESULT SamplePool::clear()
 {
     QMutexLocker locker(&m_mutex);
 
-    for (int i = 0; i < m_videoSampleQueue.size(); ++i)
-        m_videoSampleQueue[i]->Release();
+    for (auto sample : qAsConst(m_videoSampleQueue))
+        sample->Release();
     m_videoSampleQueue.clear();
     m_initialized = false;
 
@@ -928,8 +925,8 @@ HRESULT EVRCustomPresenter::OnClockSetRate(MFTIME, float rate)
     // frame-step operation.
     if ((m_playbackRate == 0.0f) && (rate != 0.0f)) {
         cancelFrameStep();
-        for (int i = 0; i < m_frameStep.samples.size(); ++i)
-            m_frameStep.samples[i]->Release();
+        for (auto sample : qAsConst(m_frameStep.samples))
+            sample->Release();
         m_frameStep.samples.clear();
     }
 
@@ -1142,8 +1139,8 @@ HRESULT EVRCustomPresenter::flush()
     m_scheduler.flush();
 
     // Flush the frame-step queue.
-    for (int i = 0; i < m_frameStep.samples.size(); ++i)
-        m_frameStep.samples[i]->Release();
+    for (auto sample : qAsConst(m_frameStep.samples))
+        sample->Release();
     m_frameStep.samples.clear();
 
     if (m_renderState == RenderStopped) {
@@ -1365,18 +1362,21 @@ HRESULT EVRCustomPresenter::createOptimalVideoType(IMFMediaType *proposedType, I
     if (FAILED(hr))
         goto done;
 
-    hr = mtOptimal->SetBlob(MF_MT_GEOMETRIC_APERTURE, (UINT8*)&displayArea, sizeof(displayArea));
+    hr = mtOptimal->SetBlob(MF_MT_GEOMETRIC_APERTURE, reinterpret_cast<UINT8*>(&displayArea),
+                            sizeof(displayArea));
     if (FAILED(hr))
         goto done;
 
     // Set the pan/scan aperture and the minimum display aperture. We don't care
     // about them per se, but the mixer will reject the type if these exceed the
     // frame dimentions.
-    hr = mtOptimal->SetBlob(MF_MT_PAN_SCAN_APERTURE, (UINT8*)&displayArea, sizeof(displayArea));
+    hr = mtOptimal->SetBlob(MF_MT_PAN_SCAN_APERTURE, reinterpret_cast<UINT8*>(&displayArea),
+                            sizeof(displayArea));
     if (FAILED(hr))
         goto done;
 
-    hr = mtOptimal->SetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE, (UINT8*)&displayArea, sizeof(displayArea));
+    hr = mtOptimal->SetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE, reinterpret_cast<UINT8*>(&displayArea),
+                            sizeof(displayArea));
     if (FAILED(hr))
         goto done;
 
@@ -1405,8 +1405,6 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     MFRatio fps = { 0, 0 };
     QList<IMFSample*> sampleQueue;
 
-    IMFSample *sample = NULL;
-
     // Cannot set the media type after shutdown.
     HRESULT hr = checkShutdown();
     if (FAILED(hr))
@@ -1430,9 +1428,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
 
     // Mark each sample with our token counter. If this batch of samples becomes
     // invalid, we increment the counter, so that we know they should be discarded.
-    for (int i = 0; i < sampleQueue.size(); ++i) {
-        sample = sampleQueue.at(i);
-
+    for (auto sample : qAsConst(sampleQueue)) {
         hr = sample->SetUINT32(MFSamplePresenter_SampleCounter, m_tokenCounter);
         if (FAILED(hr))
             goto done;
@@ -1474,7 +1470,7 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     UINT32 width = 0, height = 0;
 
     // Validate the format.
-    HRESULT hr = qt_evr_getFourCC(proposed, (DWORD*)&d3dFormat);
+    HRESULT hr = qt_evr_getFourCC(proposed, reinterpret_cast<DWORD*>(&d3dFormat));
     if (FAILED(hr))
         return hr;
 
@@ -1503,7 +1499,7 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
         return hr;
 
     // Reject interlaced formats.
-    hr = proposed->GetUINT32(MF_MT_INTERLACE_MODE, (UINT32*)&interlaceMode);
+    hr = proposed->GetUINT32(MF_MT_INTERLACE_MODE, reinterpret_cast<UINT32*>(&interlaceMode));
     if (FAILED(hr))
         return hr;
 
@@ -1518,15 +1514,21 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     // Any of these apertures may be unspecified in the media type, in which case
     // we ignore it. We just want to reject invalid apertures.
 
-    if (SUCCEEDED(proposed->GetBlob(MF_MT_PAN_SCAN_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
+    if (SUCCEEDED(proposed->GetBlob(MF_MT_PAN_SCAN_APERTURE,
+                                    reinterpret_cast<UINT8*>(&videoCropArea),
+                                    sizeof(videoCropArea), nullptr))) {
         hr = qt_evr_validateVideoArea(videoCropArea, width, height);
-
-    if (SUCCEEDED(proposed->GetBlob(MF_MT_GEOMETRIC_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
+    }
+    if (SUCCEEDED(proposed->GetBlob(MF_MT_GEOMETRIC_APERTURE,
+                                    reinterpret_cast<UINT8*>(&videoCropArea),
+                                    sizeof(videoCropArea), nullptr))) {
         hr = qt_evr_validateVideoArea(videoCropArea, width, height);
-
-    if (SUCCEEDED(proposed->GetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE, (UINT8*)&videoCropArea, sizeof(videoCropArea), NULL)))
+    }
+    if (SUCCEEDED(proposed->GetBlob(MF_MT_MINIMUM_DISPLAY_APERTURE,
+                                    reinterpret_cast<UINT8*>(&videoCropArea),
+                                    sizeof(videoCropArea), nullptr))) {
         hr = qt_evr_validateVideoArea(videoCropArea, width, height);
-
+    }
     return hr;
 }
 
@@ -1580,12 +1582,10 @@ HRESULT EVRCustomPresenter::processOutput()
 
     // Try to get a free sample from the video sample pool.
     hr = m_samplePool.getSample(&sample);
-    if (hr == MF_E_SAMPLEALLOCATOR_EMPTY) {
-        // No free samples. Try again when a sample is released.
+    if (hr == MF_E_SAMPLEALLOCATOR_EMPTY) // No free samples. Try again when a sample is released.
         return S_FALSE;
-    } else if (FAILED(hr)) {
+    if (FAILED(hr))
         return hr;
-    }
 
     // From now on, we have a valid video sample pointer, where the mixer will
     // write the video data.
@@ -1642,7 +1642,7 @@ HRESULT EVRCustomPresenter::processOutput()
             m_clock->GetCorrelatedTime(0, &mixerEndTime, &systemTime);
 
             LONGLONG latencyTime = mixerEndTime - mixerStartTime;
-            notifyEvent(EC_PROCESSING_LATENCY, (LONG_PTR)&latencyTime, 0);
+            notifyEvent(EC_PROCESSING_LATENCY, reinterpret_cast<LONG_PTR>(&latencyTime), 0);
         }
 
         // Set up notification for when the sample is released.
@@ -1734,7 +1734,7 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
             if (FAILED(hr))
                 goto done;
 
-            m_frameStep.sampleNoRef = (DWORD_PTR)unk; // No add-ref.
+            m_frameStep.sampleNoRef = reinterpret_cast<DWORD_PTR>(unk); // No add-ref.
 
             // NOTE: We do not AddRef the IUnknown pointer, because that would prevent the
             // sample from invoking the OnSampleFree callback after the sample is presented.
@@ -1807,7 +1807,7 @@ HRESULT EVRCustomPresenter::onSampleFree(IMFAsyncResult *result)
         if (FAILED(hr))
             goto done;
 
-        if (m_frameStep.sampleNoRef == (DWORD_PTR)unk) {
+        if (m_frameStep.sampleNoRef == reinterpret_cast<DWORD_PTR>(unk)) {
             // Notify the EVR.
             hr = completeFrameStep(sample);
             if (FAILED(hr))
@@ -1997,7 +1997,8 @@ HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect &sou
 
     HRESULT hr = mixer->GetAttributes(&attributes);
     if (SUCCEEDED(hr)) {
-        hr = attributes->SetBlob(video_ZOOM_RECT, (const UINT8*)&sourceRect, sizeof(sourceRect));
+        hr = attributes->SetBlob(video_ZOOM_RECT, reinterpret_cast<const UINT8*>(&sourceRect),
+                                 sizeof(sourceRect));
         attributes->Release();
     }
     return hr;
@@ -2017,23 +2018,23 @@ static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
 
     if (subtype == MFVideoFormat_RGB32)
         return QVideoFrame::Format_RGB32;
-    else if (subtype == MFVideoFormat_ARGB32)
+    if (subtype == MFVideoFormat_ARGB32)
         return QVideoFrame::Format_ARGB32;
-    else if (subtype == MFVideoFormat_RGB24)
+    if (subtype == MFVideoFormat_RGB24)
         return QVideoFrame::Format_RGB24;
-    else if (subtype == MFVideoFormat_RGB565)
+    if (subtype == MFVideoFormat_RGB565)
         return QVideoFrame::Format_RGB565;
-    else if (subtype == MFVideoFormat_RGB555)
+    if (subtype == MFVideoFormat_RGB555)
         return QVideoFrame::Format_RGB555;
-    else if (subtype == MFVideoFormat_AYUV)
+    if (subtype == MFVideoFormat_AYUV)
         return QVideoFrame::Format_AYUV444;
-    else if (subtype == MFVideoFormat_I420)
+    if (subtype == MFVideoFormat_I420)
         return QVideoFrame::Format_YUV420P;
-    else if (subtype == MFVideoFormat_UYVY)
+    if (subtype == MFVideoFormat_UYVY)
         return QVideoFrame::Format_UYVY;
-    else if (subtype == MFVideoFormat_YV12)
+    if (subtype == MFVideoFormat_YV12)
         return QVideoFrame::Format_YV12;
-    else if (subtype == MFVideoFormat_NV12)
+    if (subtype == MFVideoFormat_NV12)
         return QVideoFrame::Format_NV12;
 
     return QVideoFrame::Format_Invalid;

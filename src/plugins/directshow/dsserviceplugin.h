@@ -64,14 +64,14 @@ class DSServicePlugin
 #endif
 
 public:
-    QMediaService* create(QString const& key);
-    void release(QMediaService *service);
+    QMediaService* create(QString const& key) override;
+    void release(QMediaService *service) override;
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
 
-    QByteArray defaultDevice(const QByteArray &service) const;
-    QList<QByteArray> devices(const QByteArray &service) const;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device);
+    QByteArray defaultDevice(const QByteArray &service) const override;
+    QList<QByteArray> devices(const QByteArray &service) const override;
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
 };
 
 QT_END_NAMESPACE

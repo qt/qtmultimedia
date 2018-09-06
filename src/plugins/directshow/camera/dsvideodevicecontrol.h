@@ -56,16 +56,16 @@ class DSVideoDeviceControl : public QVideoDeviceSelectorControl
 public:
     DSVideoDeviceControl(QObject *parent = 0);
 
-    int deviceCount() const;
-    QString deviceName(int index) const;
-    QString deviceDescription(int index) const;
-    int defaultDevice() const;
-    int selectedDevice() const;
+    int deviceCount() const override;
+    QString deviceName(int index) const override;
+    QString deviceDescription(int index) const override;
+    int defaultDevice() const override;
+    int selectedDevice() const override;
 
     static const QList<DSVideoDeviceInfo> &availableDevices();
 
 public Q_SLOTS:
-    void setSelectedDevice(int index);
+    void setSelectedDevice(int index) override;
 
 private:
     static void updateDevices();

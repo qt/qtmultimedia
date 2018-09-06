@@ -84,7 +84,7 @@ class DSCameraSession : public QObject
     Q_OBJECT
 public:
     DSCameraSession(QObject *parent = 0);
-    ~DSCameraSession();
+    ~DSCameraSession() override;
 
     QCamera::Status status() const { return m_status; }
 
@@ -145,25 +145,15 @@ private Q_SLOTS:
     void updateReadyForCapture();
 
 private:
-    struct ImageProcessingParameterInfo {
-        ImageProcessingParameterInfo()
-            : minimumValue(0)
-            , maximumValue(0)
-            , defaultValue(0)
-            , currentValue(0)
-            , capsFlags(0)
-            , hasBeenExplicitlySet(false)
-            , videoProcAmpProperty(VideoProcAmp_Brightness)
-        {
-        }
-
-        LONG minimumValue;
-        LONG maximumValue;
-        LONG defaultValue;
-        LONG currentValue;
-        LONG capsFlags;
-        bool hasBeenExplicitlySet;
-        VideoProcAmpProperty videoProcAmpProperty;
+    struct ImageProcessingParameterInfo
+    {
+        LONG minimumValue = 0;
+        LONG maximumValue = 0;
+        LONG defaultValue = 0;
+        LONG currentValue = 0;
+        LONG capsFlags = 0;
+        bool hasBeenExplicitlySet = false;
+        VideoProcAmpProperty videoProcAmpProperty = VideoProcAmp_Brightness;
     };
 
     void setStatus(QCamera::Status status);

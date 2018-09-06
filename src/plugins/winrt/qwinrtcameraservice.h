@@ -49,7 +49,7 @@ class QWinRTCameraService : public QMediaService
 {
     Q_OBJECT
 public:
-    explicit QWinRTCameraService(QObject *parent = 0);
+    explicit QWinRTCameraService(QObject *parent = nullptr);
 
     QMediaControl *requestControl(const char *name) override;
     void releaseControl(QMediaControl *control) override;

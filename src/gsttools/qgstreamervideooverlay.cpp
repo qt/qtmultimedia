@@ -379,27 +379,13 @@ QGstreamerVideoOverlay::QGstreamerVideoOverlay(QObject *parent, const QByteArray
     : QObject(parent)
     , QGstreamerBufferProbe(QGstreamerBufferProbe::ProbeCaps)
 {
+    GstElement *sink = nullptr;
     if (!elementName.isEmpty())
-        m_videoSink = gst_element_factory_make(elementName.constData(), NULL);
+        sink = gst_element_factory_make(elementName.constData(), NULL);
     else
-        m_videoSink = findBestVideoSink();
+        sink = findBestVideoSink();
 
-    if (m_videoSink) {
-        qt_gst_object_ref_sink(GST_OBJECT(m_videoSink)); //Take ownership
-
-        GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-        addProbeToPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
-
-        QString sinkName(QLatin1String(GST_OBJECT_NAME(m_videoSink)));
-        bool isVaapi = sinkName.startsWith(QLatin1String("vaapisink"));
-        m_sinkProperties = isVaapi ? new QVaapiSinkProperties(m_videoSink) : new QXVImageSinkProperties(m_videoSink);
-
-        if (m_sinkProperties->hasShowPrerollFrame()) {
-            g_signal_connect(m_videoSink, "notify::show-preroll-frame",
-                             G_CALLBACK(showPrerollFrameChanged), this);
-        }
-    }
+    setVideoSink(sink);
 }
 
 QGstreamerVideoOverlay::~QGstreamerVideoOverlay()
@@ -416,6 +402,31 @@ QGstreamerVideoOverlay::~QGstreamerVideoOverlay()
 GstElement *QGstreamerVideoOverlay::videoSink() const
 {
     return m_videoSink;
+}
+
+void QGstreamerVideoOverlay::setVideoSink(GstElement *sink)
+{
+    if (!sink)
+        return;
+
+    if (m_videoSink)
+        gst_object_unref(GST_OBJECT(m_videoSink));
+
+    m_videoSink = sink;
+    qt_gst_object_ref_sink(GST_OBJECT(m_videoSink));
+
+    GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
+    addProbeToPad(pad);
+    gst_object_unref(GST_OBJECT(pad));
+
+    QString sinkName(QLatin1String(GST_OBJECT_NAME(sink)));
+    bool isVaapi = sinkName.startsWith(QLatin1String("vaapisink"));
+    delete m_sinkProperties;
+    m_sinkProperties = isVaapi ? new QVaapiSinkProperties(sink) : new QXVImageSinkProperties(sink);
+
+    if (m_sinkProperties->hasShowPrerollFrame())
+        g_signal_connect(m_videoSink, "notify::show-preroll-frame",
+                         G_CALLBACK(showPrerollFrameChanged), this);
 }
 
 QSize QGstreamerVideoOverlay::nativeVideoSize() const

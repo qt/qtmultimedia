@@ -123,76 +123,65 @@ ULONG DirectShowIOReader::Release()
 HRESULT DirectShowIOReader::RequestAllocator(
         IMemAllocator *pPreferred, ALLOCATOR_PROPERTIES *pProps, IMemAllocator **ppActual)
 {
-    if (!ppActual || !pProps) {
+    if (!ppActual || !pProps)
         return E_POINTER;
-    } else {
-        ALLOCATOR_PROPERTIES actualProperties;
 
-        if (pProps->cbAlign == 0)
-            pProps->cbAlign = 1;
+    ALLOCATOR_PROPERTIES actualProperties;
 
-        if (pPreferred && pPreferred->SetProperties(pProps, &actualProperties) == S_OK) {
-            pPreferred->AddRef();
+    if (pProps->cbAlign == 0)
+        pProps->cbAlign = 1;
 
-            *ppActual = pPreferred;
+    if (pPreferred && pPreferred->SetProperties(pProps, &actualProperties) == S_OK) {
+        pPreferred->AddRef();
 
-            m_source->setAllocator(*ppActual);
-
-            return S_OK;
-        } else {
-            *ppActual = com_new<IMemAllocator>(CLSID_MemoryAllocator);
-
-            if (*ppActual) {
-                if ((*ppActual)->SetProperties(pProps, &actualProperties) != S_OK) {
-                    (*ppActual)->Release();
-                } else {
-                    m_source->setAllocator(*ppActual);
-
-                    return S_OK;
-                }
-            }
-        }
-        ppActual = 0;
-
-        return E_FAIL;
+        *ppActual = pPreferred;
+        m_source->setAllocator(*ppActual);
+        return S_OK;
     }
+
+    *ppActual = com_new<IMemAllocator>(CLSID_MemoryAllocator);
+    if (*ppActual) {
+        if ((*ppActual)->SetProperties(pProps, &actualProperties) == S_OK) {
+            m_source->setAllocator(*ppActual);
+            return S_OK;
+        }
+        (*ppActual)->Release();
+    }
+    ppActual = nullptr;
+    return E_FAIL;
 }
 
 HRESULT DirectShowIOReader::Request(IMediaSample *pSample, DWORD_PTR dwUser)
 {
     QMutexLocker locker(&m_mutex);
 
-    if (!pSample) {
+    if (!pSample)
         return E_POINTER;
-    } else if (m_flushing) {
+    if (m_flushing)
         return VFW_E_WRONG_STATE;
-    } else {
-        REFERENCE_TIME startTime = 0;
-        REFERENCE_TIME endTime = 0;
-        BYTE *buffer;
 
-        if (pSample->GetTime(&startTime, &endTime) != S_OK
-                || pSample->GetPointer(&buffer) != S_OK) {
-            return VFW_E_SAMPLE_TIME_NOT_SET;
-        } else {
-            LONGLONG position = startTime / 10000000;
-            LONG length = (endTime - startTime) / 10000000;
+    REFERENCE_TIME startTime = 0;
+    REFERENCE_TIME endTime = 0;
+    BYTE *buffer;
 
-            DirectShowSampleRequest *request = new DirectShowSampleRequest(
-                    pSample, dwUser, position, length, buffer);
-
-            if (m_pendingTail) {
-                m_pendingTail->next = request;
-            } else {
-                m_pendingHead = request;
-
-                m_loop->postEvent(this, new QEvent(QEvent::User));
-            }
-            m_pendingTail = request;
-
-            return S_OK;
-        }
+    if (pSample->GetTime(&startTime, &endTime) != S_OK
+        || pSample->GetPointer(&buffer) != S_OK) {
+        return VFW_E_SAMPLE_TIME_NOT_SET;
     }
+    LONGLONG position = startTime / 10000000;
+    LONG length = (endTime - startTime) / 10000000;
+
+    auto request = new DirectShowSampleRequest(pSample, dwUser, position, length, buffer);
+
+    if (m_pendingTail) {
+        m_pendingTail->next = request;
+    } else {
+        m_pendingHead = request;
+        m_loop->postEvent(this, new QEvent(QEvent::User));
+    }
+    m_pendingTail = request;
+
+    return S_OK;
 }
 
 HRESULT DirectShowIOReader::WaitForNext(
@@ -220,7 +209,8 @@ HRESULT DirectShowIOReader::WaitForNext(
             delete request;
 
             return hr;
-        } else if (m_flushing) {
+        }
+        if (m_flushing) {
             *ppSample = 0;
             *pdwUser = 0;
 
@@ -236,90 +226,80 @@ HRESULT DirectShowIOReader::WaitForNext(
 
 HRESULT DirectShowIOReader::SyncReadAligned(IMediaSample *pSample)
 {
-    if (!pSample) {
+    if (!pSample)
         return E_POINTER;
-    } else {
-        REFERENCE_TIME startTime = 0;
-        REFERENCE_TIME endTime = 0;
-        BYTE *buffer;
 
-        if (pSample->GetTime(&startTime, &endTime) != S_OK
-                || pSample->GetPointer(&buffer) != S_OK) {
-            return VFW_E_SAMPLE_TIME_NOT_SET;
-        } else {
-            LONGLONG position = startTime / 10000000;
-            LONG length = (endTime - startTime) / 10000000;
+    REFERENCE_TIME startTime = 0;
+    REFERENCE_TIME endTime = 0;
+    BYTE *buffer;
 
-            QMutexLocker locker(&m_mutex);
-
-            if (thread() == QThread::currentThread()) {
-                qint64 bytesRead = 0;
-
-                HRESULT hr = blockingRead(position, length, buffer, &bytesRead);
-
-                if (SUCCEEDED(hr))
-                    pSample->SetActualDataLength(bytesRead);
-
-                return hr;
-            } else {
-                m_synchronousPosition = position;
-                m_synchronousLength = length;
-                m_synchronousBuffer = buffer;
-
-                m_loop->postEvent(this, new QEvent(QEvent::User));
-
-                m_wait.wait(&m_mutex);
-
-                m_synchronousBuffer = 0;
-
-                if (SUCCEEDED(m_synchronousResult))
-                    pSample->SetActualDataLength(m_synchronousBytesRead);
-
-                return m_synchronousResult;
-            }
-        }
+    if (pSample->GetTime(&startTime, &endTime) != S_OK
+        || pSample->GetPointer(&buffer) != S_OK) {
+        return VFW_E_SAMPLE_TIME_NOT_SET;
     }
+    LONGLONG position = startTime / 10000000;
+    LONG length = (endTime - startTime) / 10000000;
+
+    QMutexLocker locker(&m_mutex);
+
+    if (thread() == QThread::currentThread()) {
+        qint64 bytesRead = 0;
+
+        HRESULT hr = blockingRead(position, length, buffer, &bytesRead);
+        if (SUCCEEDED(hr))
+            pSample->SetActualDataLength(bytesRead);
+
+        return hr;
+    }
+    m_synchronousPosition = position;
+    m_synchronousLength = length;
+    m_synchronousBuffer = buffer;
+
+    m_loop->postEvent(this, new QEvent(QEvent::User));
+
+    m_wait.wait(&m_mutex);
+
+    m_synchronousBuffer = nullptr;
+
+    if (SUCCEEDED(m_synchronousResult))
+        pSample->SetActualDataLength(m_synchronousBytesRead);
+
+    return m_synchronousResult;
 }
 
 HRESULT DirectShowIOReader::SyncRead(LONGLONG llPosition, LONG lLength, BYTE *pBuffer)
 {
-    if (!pBuffer) {
+    if (!pBuffer)
         return E_POINTER;
-    } else {
-        if (thread() == QThread::currentThread()) {
-            qint64 bytesRead;
 
-            return blockingRead(llPosition, lLength, pBuffer, &bytesRead);
-        } else {
-            QMutexLocker locker(&m_mutex);
-
-            m_synchronousPosition = llPosition;
-            m_synchronousLength = lLength;
-            m_synchronousBuffer = pBuffer;
-
-            m_loop->postEvent(this, new QEvent(QEvent::User));
-
-            m_wait.wait(&m_mutex);
-
-            m_synchronousBuffer = 0;
-
-            return m_synchronousResult;
-        }
+    if (thread() == QThread::currentThread()) {
+        qint64 bytesRead;
+        return blockingRead(llPosition, lLength, pBuffer, &bytesRead);
     }
+    QMutexLocker locker(&m_mutex);
+
+    m_synchronousPosition = llPosition;
+    m_synchronousLength = lLength;
+    m_synchronousBuffer = pBuffer;
+
+    m_loop->postEvent(this, new QEvent(QEvent::User));
+
+    m_wait.wait(&m_mutex);
+
+    m_synchronousBuffer = nullptr;
+
+    return m_synchronousResult;
 }
 
 HRESULT DirectShowIOReader::Length(LONGLONG *pTotal, LONGLONG *pAvailable)
 {
-    if (!pTotal || !pAvailable) {
+    if (!pTotal || !pAvailable)
         return E_POINTER;
-    } else {
-        QMutexLocker locker(&m_mutex);
 
-        *pTotal = m_totalLength;
-        *pAvailable = m_availableLength;
-
-        return S_OK;
-    }
+    QMutexLocker locker(&m_mutex);
+    *pTotal = m_totalLength;
+    *pAvailable = m_availableLength;
+    return S_OK;
 }
 
 
@@ -432,9 +412,8 @@ HRESULT DirectShowIOReader::blockingRead(
         ::memset(buffer + *bytesRead, 0, length - *bytesRead);
 
         return S_FALSE;
-    } else {
-        return S_OK;
     }
+    return S_OK;
 }
 
 bool DirectShowIOReader::nonBlockingRead(
@@ -447,30 +426,29 @@ bool DirectShowIOReader::nonBlockingRead(
         *result = S_FALSE;
 
         return true;
-    } else if (m_device->bytesAvailable() + m_device->pos() >= maxSize) {
+    }
+    if (m_device->bytesAvailable() + m_device->pos() >= maxSize) {
         if (m_device->pos() != position && !m_device->seek(position)) {
             *bytesRead = 0;
             *result = S_FALSE;
 
             return true;
-        } else {
-            const qint64 maxBytes = qMin<qint64>(length, m_device->bytesAvailable());
-
-            *bytesRead = m_device->read(reinterpret_cast<char *>(buffer), maxBytes);
-
-            if (*bytesRead != length) {
-                ::memset(buffer + *bytesRead, 0, length - *bytesRead);
-
-                *result = S_FALSE;
-            } else {
-                *result = S_OK;
-            }
-
-            return true;
         }
-    } else {
-        return false;
+        const qint64 maxBytes = qMin<qint64>(length, m_device->bytesAvailable());
+
+        *bytesRead = m_device->read(reinterpret_cast<char *>(buffer), maxBytes);
+
+        if (*bytesRead != length) {
+            ::memset(buffer + *bytesRead, 0, length - *bytesRead);
+
+            *result = S_FALSE;
+        } else {
+            *result = S_OK;
+        }
+
+        return true;
     }
+    return false;
 }
 
 void DirectShowIOReader::flushRequests()

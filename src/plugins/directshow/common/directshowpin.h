@@ -68,30 +68,30 @@ public:
     virtual HRESULT setActive(bool active);
 
     // IPin
-    STDMETHODIMP Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt);
-    STDMETHODIMP ReceiveConnection(IPin *pConnector, const AM_MEDIA_TYPE *pmt);
-    STDMETHODIMP Disconnect();
-    STDMETHODIMP ConnectedTo(IPin **ppPin);
+    STDMETHODIMP Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt) override;
+    STDMETHODIMP ReceiveConnection(IPin *pConnector, const AM_MEDIA_TYPE *pmt) override;
+    STDMETHODIMP Disconnect() override;
+    STDMETHODIMP ConnectedTo(IPin **ppPin) override;
 
-    STDMETHODIMP ConnectionMediaType(AM_MEDIA_TYPE *pmt);
+    STDMETHODIMP ConnectionMediaType(AM_MEDIA_TYPE *pmt) override;
 
-    STDMETHODIMP QueryPinInfo(PIN_INFO *pInfo);
-    STDMETHODIMP QueryId(LPWSTR *Id);
+    STDMETHODIMP QueryPinInfo(PIN_INFO *pInfo) override;
+    STDMETHODIMP QueryId(LPWSTR *Id) override;
 
-    STDMETHODIMP QueryAccept(const AM_MEDIA_TYPE *pmt);
+    STDMETHODIMP QueryAccept(const AM_MEDIA_TYPE *pmt) override;
 
-    STDMETHODIMP EnumMediaTypes(IEnumMediaTypes **ppEnum);
+    STDMETHODIMP EnumMediaTypes(IEnumMediaTypes **ppEnum) override;
 
-    STDMETHODIMP QueryInternalConnections(IPin **apPin, ULONG *nPin);
+    STDMETHODIMP QueryInternalConnections(IPin **apPin, ULONG *nPin) override;
 
-    STDMETHODIMP EndOfStream();
+    STDMETHODIMP EndOfStream() override;
 
-    STDMETHODIMP BeginFlush();
-    STDMETHODIMP EndFlush();
+    STDMETHODIMP BeginFlush() override;
+    STDMETHODIMP EndFlush() override;
 
-    STDMETHODIMP NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
+    STDMETHODIMP NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate) override;
 
-    STDMETHODIMP QueryDirection(PIN_DIRECTION *pPinDir);
+    STDMETHODIMP QueryDirection(PIN_DIRECTION *pPinDir) override;
 
 protected:
     DirectShowPin(DirectShowBaseFilter *filter, const QString &name, PIN_DIRECTION direction);
@@ -140,27 +140,28 @@ class DirectShowInputPin : public DirectShowPin
                          , public IMemInputPin
 {
 public:
-    virtual ~DirectShowInputPin();
+     ~DirectShowInputPin() override;
 
     const AM_SAMPLE2_PROPERTIES *currentSampleProperties() const { return &m_sampleProperties; }
 
     // DirectShowPin
-    HRESULT connectionEnded();
-    HRESULT setActive(bool active);
+    HRESULT connectionEnded() override;
+    HRESULT setActive(bool active) override;
 
     // IPin
-    STDMETHODIMP EndOfStream();
-    STDMETHODIMP BeginFlush();
-    STDMETHODIMP EndFlush();
+    STDMETHODIMP EndOfStream() override;
+    STDMETHODIMP BeginFlush() override;
+    STDMETHODIMP EndFlush() override;
 
     // IMemInputPin
-    STDMETHODIMP GetAllocator(IMemAllocator **ppAllocator);
-    STDMETHODIMP NotifyAllocator(IMemAllocator *pAllocator, BOOL bReadOnly);
-    STDMETHODIMP GetAllocatorRequirements(ALLOCATOR_PROPERTIES *pProps);
+    STDMETHODIMP GetAllocator(IMemAllocator **ppAllocator) override;
+    STDMETHODIMP NotifyAllocator(IMemAllocator *pAllocator, BOOL bReadOnly) override;
+    STDMETHODIMP GetAllocatorRequirements(ALLOCATOR_PROPERTIES *pProps) override;
 
-    STDMETHODIMP Receive(IMediaSample *pSample);
-    STDMETHODIMP ReceiveMultiple(IMediaSample **pSamples, long nSamples, long *nSamplesProcessed);
-    STDMETHODIMP ReceiveCanBlock();
+    STDMETHODIMP Receive(IMediaSample *pSample) override;
+    STDMETHODIMP ReceiveMultiple(IMediaSample **pSamples, long nSamples,
+                                 long *nSamplesProcessed) override;
+    STDMETHODIMP ReceiveCanBlock() override;
 
 protected:
     DirectShowInputPin(DirectShowBaseFilter *filter, const QString &name);

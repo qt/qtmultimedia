@@ -56,42 +56,42 @@ class DirectShowPlayerControl : public QMediaPlayerControl
     Q_OBJECT
 public:
     DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent = 0);
-    ~DirectShowPlayerControl();
+    ~DirectShowPlayerControl() override;
 
-    QMediaPlayer::State state() const;
+    QMediaPlayer::State state() const override;
 
-    QMediaPlayer::MediaStatus mediaStatus() const;
+    QMediaPlayer::MediaStatus mediaStatus() const override;
 
-    qint64 duration() const;
+    qint64 duration() const override;
 
-    qint64 position() const;
-    void setPosition(qint64 position);
+    qint64 position() const override;
+    void setPosition(qint64 position) override;
 
-    int volume() const;
-    void setVolume(int volume);
+    int volume() const override;
+    void setVolume(int volume) override;
 
-    bool isMuted() const;
-    void setMuted(bool muted);
+    bool isMuted() const override;
+    void setMuted(bool muted) override;
 
-    int bufferStatus() const;
+    int bufferStatus() const override;
 
-    bool isAudioAvailable() const;
-    bool isVideoAvailable() const;
+    bool isAudioAvailable() const override;
+    bool isVideoAvailable() const override;
 
-    bool isSeekable() const;
+    bool isSeekable() const override;
 
-    QMediaTimeRange availablePlaybackRanges() const;
+    QMediaTimeRange availablePlaybackRanges() const override;
 
-    qreal playbackRate() const;
-    void setPlaybackRate(qreal rate);
+    qreal playbackRate() const override;
+    void setPlaybackRate(qreal rate) override;
 
-    QMediaContent media() const;
-    const QIODevice *mediaStream() const;
-    void setMedia(const QMediaContent &media, QIODevice *stream);
+    QMediaContent media() const override;
+    const QIODevice *mediaStream() const override;
+    void setMedia(const QMediaContent &media, QIODevice *stream) override;
 
-    void play();
-    void pause();
-    void stop();
+    void play() override;
+    void pause() override;
+    void stop() override;
 
     void updateState(QMediaPlayer::State state);
     void updateStatus(QMediaPlayer::MediaStatus status);
@@ -102,7 +102,7 @@ public:
     void updatePosition(qint64 position);
 
 protected:
-    void customEvent(QEvent *event);
+    void customEvent(QEvent *event) override;
 
 private:
     enum Properties

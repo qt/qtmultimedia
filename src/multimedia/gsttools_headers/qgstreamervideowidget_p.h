@@ -75,6 +75,7 @@ public:
     virtual ~QGstreamerVideoWidgetControl();
 
     GstElement *videoSink() override;
+    void setVideoSink(GstElement *) override;
 
     QWidget *videoWidget() override;
 

@@ -50,9 +50,7 @@ DSVideoRendererControl::DSVideoRendererControl(DSCameraSession* session, QObject
 {
 }
 
-DSVideoRendererControl::~DSVideoRendererControl()
-{
-}
+DSVideoRendererControl::~DSVideoRendererControl() = default;
 
 QAbstractVideoSurface* DSVideoRendererControl::surface() const
 {

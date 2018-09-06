@@ -138,12 +138,13 @@ private:
     bool m_flush;
 };
 
-class QGstVideoRendererSink
+class Q_GSTTOOLS_EXPORT QGstVideoRendererSink
 {
 public:
     GstVideoSink parent;
 
     static QGstVideoRendererSink *createSink(QAbstractVideoSurface *surface);
+    static void setSurface(QAbstractVideoSurface *surface);
 
 private:
     static GType get_type();

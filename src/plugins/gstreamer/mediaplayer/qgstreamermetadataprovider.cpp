@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamermetadataprovider.h"
-#include "qgstreamerplayersession.h"
+#include <private/qgstreamerplayersession_p.h>
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
 

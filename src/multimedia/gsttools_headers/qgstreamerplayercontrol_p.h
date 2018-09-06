@@ -37,35 +37,37 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERPLAYERCONTROL_H
-#define QGSTREAMERPLAYERCONTROL_H
+#ifndef QGSTREAMERPLAYERCONTROL_P_H
+#define QGSTREAMERPLAYERCONTROL_P_H
 
-#include <QtCore/qobject.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include <QtCore/qstack.h>
-
 #include <qmediaplayercontrol.h>
-#include <qmediaplayer.h>
-
-#include <limits.h>
+#include <private/qgsttools_global_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QMediaPlayerResourceSetInterface;
-
-class QMediaPlaylist;
-class QMediaPlaylistNavigator;
-class QSocketNotifier;
-
 class QGstreamerPlayerSession;
-class QGstreamerPlayerService;
-
-class QGstreamerPlayerControl : public QMediaPlayerControl
+class Q_GSTTOOLS_EXPORT QGstreamerPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
 
 public:
     QGstreamerPlayerControl(QGstreamerPlayerSession *session, QObject *parent = 0);
     ~QGstreamerPlayerControl();
+
+    QGstreamerPlayerSession *session() { return m_session; }
 
     QMediaPlayer::State state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;

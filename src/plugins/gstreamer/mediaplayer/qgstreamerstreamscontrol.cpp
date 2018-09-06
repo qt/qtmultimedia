@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamerstreamscontrol.h"
-#include "qgstreamerplayersession.h"
+#include <private/qgstreamerplayersession_p.h>
 
 QGstreamerStreamsControl::QGstreamerStreamsControl(QGstreamerPlayerSession *session, QObject *parent)
     :QMediaStreamsControl(parent), m_session(session)

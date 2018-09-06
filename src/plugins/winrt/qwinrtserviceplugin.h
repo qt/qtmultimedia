@@ -57,10 +57,10 @@ class QWinRTServicePlugin : public QMediaServiceProviderPlugin
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "winrt.json")
 public:
-    QMediaService *create(QString const &key);
-    void release(QMediaService *service);
+    QMediaService *create(QString const &key) override;
+    void release(QMediaService *service) override;
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const;
+    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
 
     QCamera::Position cameraPosition(const QByteArray &device) const override;
     int cameraOrientation(const QByteArray &device) const override;

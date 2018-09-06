@@ -53,8 +53,8 @@ class QWinRTMediaPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
 public:
-    QWinRTMediaPlayerControl(IMFMediaEngineClassFactory *factory, QObject *parent = 0);
-    ~QWinRTMediaPlayerControl();
+    QWinRTMediaPlayerControl(IMFMediaEngineClassFactory *factory, QObject *parent = nullptr);
+    ~QWinRTMediaPlayerControl() override = default;
 
     QMediaPlayer::State state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;

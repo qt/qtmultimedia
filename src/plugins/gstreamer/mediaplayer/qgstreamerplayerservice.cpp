@@ -46,8 +46,6 @@
 #endif
 
 #include "qgstreamerplayerservice.h"
-#include "qgstreamerplayercontrol.h"
-#include "qgstreamerplayersession.h"
 #include "qgstreamermetadataprovider.h"
 #include "qgstreameravailabilitycontrol.h"
 
@@ -64,6 +62,8 @@
 #include "qgstreamerstreamscontrol.h"
 #include <private/qgstreameraudioprobecontrol_p.h>
 #include <private/qgstreamervideoprobecontrol_p.h>
+#include <private/qgstreamerplayersession_p.h>
+#include <private/qgstreamerplayercontrol_p.h>
 
 #include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>

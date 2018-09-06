@@ -79,10 +79,10 @@ public:
     };
 
     DirectShowPlayerService(QObject *parent = 0);
-    ~DirectShowPlayerService();
+    ~DirectShowPlayerService() override;
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QMediaControl *requestControl(const char *name) override;
+    void releaseControl(QMediaControl *control) override;
 
     void load(const QMediaContent &media, QIODevice *stream);
     void play();
@@ -101,7 +101,7 @@ public:
     void setVideoOutput(IBaseFilter *filter);
 
 protected:
-    void customEvent(QEvent *event);
+    void customEvent(QEvent *event) override;
 
 private Q_SLOTS:
     void videoOutputChanged();

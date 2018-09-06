@@ -62,8 +62,8 @@ class QWinRTVideoDeviceSelectorControl : public QVideoDeviceSelectorControl
 {
     Q_OBJECT
 public:
-    explicit QWinRTVideoDeviceSelectorControl(QObject *parent = 0);
-    ~QWinRTVideoDeviceSelectorControl();
+    explicit QWinRTVideoDeviceSelectorControl(QObject *parent = nullptr);
+    ~QWinRTVideoDeviceSelectorControl() override;
 
     int deviceCount() const override;
 

@@ -55,8 +55,8 @@ class QWinRTAbstractVideoRendererControl : public QVideoRendererControl
 {
     Q_OBJECT
 public:
-    explicit QWinRTAbstractVideoRendererControl(const QSize &size, QObject *parent = 0);
-    ~QWinRTAbstractVideoRendererControl();
+    explicit QWinRTAbstractVideoRendererControl(const QSize &size, QObject *parent = nullptr);
+    ~QWinRTAbstractVideoRendererControl() override;
 
     enum BlitMode {
         DirectVideo,

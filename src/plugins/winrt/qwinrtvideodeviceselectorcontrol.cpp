@@ -68,7 +68,7 @@ static QString deviceName(IDeviceInformation *device)
     Q_ASSERT_SUCCEEDED(hr);
     quint32 length;
     const wchar_t *buffer = id.GetRawBuffer(&length);
-    return QString::fromWCharArray(buffer, length);
+    return QString::fromWCharArray(buffer, int(length));
 }
 
 static QString deviceDescription(IDeviceInformation *device)
@@ -79,7 +79,7 @@ static QString deviceDescription(IDeviceInformation *device)
     Q_ASSERT_SUCCEEDED(hr);
     quint32 length;
     const wchar_t *buffer = name.GetRawBuffer(&length);
-    return QString::fromWCharArray(buffer, length);
+    return QString::fromWCharArray(buffer, int(length));
 }
 
 struct QWinRTVideoDeviceSelectorControlGlobal
@@ -179,7 +179,7 @@ private:
         Q_ASSERT_SUCCEEDED(hr);
         quint32 nameLength;
         const wchar_t *nameString = name.GetRawBuffer(&nameLength);
-        const int index = deviceIndex.take(QString::fromWCharArray(nameString, nameLength));
+        const int index = deviceIndex.take(QString::fromWCharArray(nameString, int(nameLength)));
         if (index >= 0)
             devices.remove(index);
 
@@ -356,7 +356,7 @@ int QWinRTVideoDeviceSelectorControl::cameraOrientation(const QString &deviceNam
     quint32 rotation;
     hr = enclosure2->get_RotationAngleInDegreesClockwise(&rotation);
     RETURN_IF_FAILED("Failed to get camera rotation angle", return 0);
-    return rotation;
+    return int(rotation);
 }
 
 QList<QByteArray> QWinRTVideoDeviceSelectorControl::deviceNames()
