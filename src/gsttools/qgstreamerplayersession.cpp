@@ -137,7 +137,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
      m_videoAvailable(false),
      m_seekable(false),
      m_lastPosition(0),
-     m_duration(-1),
+     m_duration(0),
      m_durationQueries(0),
      m_displayPrerolledFrame(true),
      m_sourceType(UnknownSrc),
@@ -325,7 +325,7 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
     qDebug() << Q_FUNC_INFO;
 #endif
     m_request = request;
-    m_duration = -1;
+    m_duration = 0;
     m_lastPosition = 0;
 
     if (!m_appSrc)
@@ -354,7 +354,7 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     qDebug() << Q_FUNC_INFO << request.url();
 #endif
     m_request = request;
-    m_duration = -1;
+    m_duration = 0;
     m_lastPosition = 0;
 
 #if QT_CONFIG(gstreamer_app)
@@ -1500,7 +1500,7 @@ void QGstreamerPlayerSession::updateVideoResolutionTag()
 void QGstreamerPlayerSession::updateDuration()
 {
     gint64 gstDuration = 0;
-    int duration = -1;
+    int duration = 0;
 
     if (m_pipeline && qt_gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &gstDuration))
         duration = gstDuration / 1000000;
