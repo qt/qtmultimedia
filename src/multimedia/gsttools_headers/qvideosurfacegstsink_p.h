@@ -139,6 +139,7 @@ public:
     GstVideoSink parent;
 
     static QVideoSurfaceGstSink *createSink(QAbstractVideoSurface *surface);
+    static void setSurface(QAbstractVideoSurface *surface) { Q_UNUSED(surface); }
 
 private:
     static GType get_type();
