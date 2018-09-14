@@ -48,7 +48,7 @@ QList<QVideoFrame::PixelFormat> QAndroidSGVideoNodeFactoryPlugin::supportedPixel
     QList<QVideoFrame::PixelFormat> pixelFormats;
 
     if (handleType == QAbstractVideoBuffer::GLTextureHandle)
-        pixelFormats.append(QVideoFrame::Format_BGR32);
+        pixelFormats.append(QVideoFrame::Format_ABGR32);
 
     return pixelFormats;
 }

@@ -195,6 +195,9 @@ private:
     \value Format_BGRA32_Premultiplied
     The frame is stored using a premultiplied 32bit BGRA format.
 
+    \value Format_ABGR32
+    The frame is stored using a 32-bit ABGR format (0xAABBGGRR).
+
     \value Format_BGR32
     The frame is stored using a 32-bit BGR format (0xBBGGRRff).
 
