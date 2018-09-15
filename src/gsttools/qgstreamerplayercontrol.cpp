@@ -308,7 +308,12 @@ void QGstreamerPlayerControl::stop()
     if (m_currentState != QMediaPlayer::StoppedState) {
         m_currentState = QMediaPlayer::StoppedState;
         m_session->showPrerollFrames(false); // stop showing prerolled frames in stop state
-        if (m_resources->isGranted())
+        // Since gst is not going to send GST_STATE_PAUSED
+        // when pipeline is already paused,
+        // needs to update media status directly.
+        if (m_session->state() == QMediaPlayer::PausedState)
+            updateMediaStatus();
+        else if (m_resources->isGranted())
             m_session->pause();
 
         if (m_mediaStatus != QMediaPlayer::EndOfMedia) {
