@@ -205,18 +205,11 @@ void MmRendererVideoWindowControl::attachDisplay(mmr_context_t *context)
         return;
     }
 
-    QWindow *windowForGroup = window;
-
-    //According to mmr_output_attach() documentation, the window group name of the
-    //application's top-level window is expected.
-    while (windowForGroup->parent())
-        windowForGroup = windowForGroup->parent();
-
     const char * const groupNameData = static_cast<const char *>(
-        nativeInterface->nativeResourceForWindow("windowGroup", windowForGroup));
+        nativeInterface->nativeResourceForWindow("windowGroup", window));
     if (!groupNameData) {
         qDebug() << "MmRendererVideoWindowControl: Unable to find window group for window"
-                 << windowForGroup;
+                 << window;
         return;
     }
 
@@ -250,9 +243,7 @@ void MmRendererVideoWindowControl::updateVideoPosition()
 {
     QWindow * const window = findWindow(m_winId);
     if (m_context && m_videoId != -1 && window) {
-        QPoint topLeft = m_fullscreen ?
-                                   QPoint(0,0) :
-                                   window->mapToGlobal(m_displayRect.topLeft());
+        QPoint topLeft = m_displayRect.topLeft();
 
         QScreen * const screen = window->screen();
         int width = m_fullscreen ?
@@ -262,7 +253,8 @@ void MmRendererVideoWindowControl::updateVideoPosition()
                         screen->size().height() :
                         m_displayRect.height();
 
-        if (m_metaData.hasVideo()) { // We need the source size to do aspect ratio scaling
+        if (m_metaData.hasVideo() && m_metaData.width() > 0 && m_metaData.height() > 0) {
+            // We need the source size to do aspect ratio scaling
             const qreal sourceRatio = m_metaData.width() / static_cast<float>(m_metaData.height());
             const qreal targetRatio = width / static_cast<float>(height);
 

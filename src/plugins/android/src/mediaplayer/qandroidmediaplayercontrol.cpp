@@ -379,6 +379,9 @@ void QAndroidMediaPlayerControl::play()
         setMedia(mMediaContent, mMediaStream);
     }
 
+    if (!mMediaContent.isNull())
+        setState(QMediaPlayer::PlayingState);
+
     if ((mState & (AndroidMediaPlayer::Prepared
                    | AndroidMediaPlayer::Started
                    | AndroidMediaPlayer::Paused
@@ -387,7 +390,6 @@ void QAndroidMediaPlayerControl::play()
         return;
     }
 
-    setState(QMediaPlayer::PlayingState);
     mMediaPlayer->play();
 }
 
