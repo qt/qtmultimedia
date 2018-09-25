@@ -81,6 +81,7 @@ private:
     QVideoFrame mCurrentFrame, mNextFrame;
     GLuint mCurrentTexture;
     bool mMappable;
+    GLenum mMapError = GL_NO_ERROR;
 
     QMutex mFrameMutex;
 
