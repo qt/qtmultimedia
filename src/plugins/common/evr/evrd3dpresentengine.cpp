@@ -186,7 +186,7 @@ public:
         m_glContext->functions()->glBindTexture(GL_TEXTURE_2D, m_glTexture);
         m_egl->bindTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
 
-        return texture != NULL;
+        return *texture != NULL;
     }
 
     void release()
