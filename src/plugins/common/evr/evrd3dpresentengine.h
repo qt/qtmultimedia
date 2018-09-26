@@ -141,8 +141,7 @@ private:
     bool m_useTextureRendering;
 
 #ifdef MAYBE_ANGLE
-    bool createRenderTexture();
-    bool updateTexture(IDirect3DSurface9 *src);
+    unsigned int updateTexture(IDirect3DSurface9 *src);
 
     OpenGLResources *m_glResources;
     IDirect3DTexture9 *m_texture;
