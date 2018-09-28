@@ -226,6 +226,9 @@ void Camera::configureVideoSettings()
                     m_audioSettings,
                     m_videoSettings,
                     m_videoContainerFormat);
+
+        m_camera->unload();
+        m_camera->start();
     }
 }
 
