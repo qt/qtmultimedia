@@ -173,15 +173,12 @@ QPair<int,int> CameraBinVideoEncoder::rateAsRational(qreal frameRate) const
 GstEncodingProfile *CameraBinVideoEncoder::createProfile()
 {
     QString codec = m_actualVideoSettings.codec();
+    GstCaps *caps = !codec.isEmpty() ? gst_caps_from_string(codec.toLatin1()) : nullptr;
+
+    if (!caps)
+        return nullptr;
+
     QString preset = m_actualVideoSettings.encodingOption(QStringLiteral("preset")).toString();
-
-    GstCaps *caps;
-
-    if (codec.isEmpty())
-        caps = 0;
-    else
-        caps = gst_caps_from_string(codec.toLatin1());
-
     GstEncodingVideoProfile *profile = gst_encoding_video_profile_new(
                 caps,
                 !preset.isEmpty() ? preset.toLatin1().constData() : NULL, //preset
