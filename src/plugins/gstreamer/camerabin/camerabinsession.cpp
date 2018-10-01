@@ -836,6 +836,8 @@ void CameraBinSession::load()
         return;
     }
 
+    m_recorderControl->applySettings();
+
 #if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingContainerProfile *profile = m_recorderControl->videoProfile();
     if (profile) {
@@ -879,8 +881,6 @@ void CameraBinSession::start()
         return;
 
     setStatus(QCamera::StartingStatus);
-
-    m_recorderControl->applySettings();
 
     setAudioCaptureCaps();
 
