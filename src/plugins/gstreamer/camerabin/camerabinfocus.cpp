@@ -509,6 +509,7 @@ bool CameraBinFocus::probeBuffer(GstBuffer *buffer)
 {
     QVector<QRect> faces;
 
+#if GST_CHECK_VERSION(1,1,3)
     gpointer state = NULL;
     const GstMetaInfo *info = GST_VIDEO_REGION_OF_INTEREST_META_INFO;
 
@@ -520,6 +521,9 @@ bool CameraBinFocus::probeBuffer(GstBuffer *buffer)
 
         faces.append(QRect(region->x, region->y, region->w, region->h));
     }
+#else
+    Q_UNUSED(buffer);
+#endif
 
     QMutexLocker locker(&m_mutex);
 
