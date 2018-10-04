@@ -717,7 +717,7 @@ bool DSCameraSession::createFilterGraph()
 
     // Create the filter graph
     hr = CoCreateInstance(CLSID_FilterGraph,NULL,CLSCTX_INPROC,
-                          IID_IGraphBuilder, reinterpret_cast<void**>(*&m_filterGraph));
+                          IID_IGraphBuilder, reinterpret_cast<void**>(&m_filterGraph));
     if (FAILED(hr)) {
         errorString = tr("Failed to create filter graph");
         goto failed;
