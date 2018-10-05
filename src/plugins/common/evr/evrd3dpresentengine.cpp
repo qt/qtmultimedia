@@ -143,11 +143,11 @@ public:
         return m_glTexture;
     }
 
-    bool createTexture(const QVideoSurfaceFormat &format, IDirect3DDevice9Ex *device,
+    void createTexture(const QVideoSurfaceFormat &format, IDirect3DDevice9Ex *device,
         IDirect3DTexture9 **texture)
     {
         if (!m_glContext)
-            return false;
+            return;
 
         m_glContext->functions()->glGenTextures(1, &m_glTexture);
         QPlatformNativeInterface *nativeInterface = QGuiApplication::platformNativeInterface();
@@ -185,8 +185,6 @@ public:
 
         m_glContext->functions()->glBindTexture(GL_TEXTURE_2D, m_glTexture);
         m_egl->bindTexImage(m_eglDisplay, m_eglSurface, EGL_BACK_BUFFER);
-
-        return texture != NULL;
     }
 
     void release()
@@ -238,7 +236,6 @@ public:
         , m_sample(sample)
         , m_surface(0)
         , m_mapMode(NotMapped)
-        , m_textureUpdated(false)
     {
         if (m_sample) {
             m_sample->AddRef();
@@ -276,7 +273,7 @@ private:
     IMFSample *m_sample;
     IDirect3DSurface9 *m_surface;
     MapMode m_mapMode;
-    mutable bool m_textureUpdated;
+    mutable unsigned int m_textureId = 0;
 };
 
 uchar *IMFSampleVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
@@ -314,19 +311,12 @@ void IMFSampleVideoBuffer::unmap()
 
 QVariant IMFSampleVideoBuffer::handle() const
 {
-    QVariant handle;
-
 #ifdef MAYBE_ANGLE
-    if (handleType() != GLTextureHandle)
-        return handle;
-
-    if (m_textureUpdated || m_engine->updateTexture(m_surface)) {
-        m_textureUpdated = true;
-        handle = QVariant::fromValue<unsigned int>(m_engine->m_glResources->glTexture());
-    }
+    if (handleType() == GLTextureHandle && !m_textureId)
+        m_textureId = m_engine->updateTexture(m_surface);
 #endif
 
-    return handle;
+    return m_textureId;
 }
 
 
@@ -618,24 +608,20 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
 
 #ifdef MAYBE_ANGLE
 
-bool D3DPresentEngine::createRenderTexture()
+unsigned int D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
 {
-    if (m_glResources)
-        m_glResources->release();
+    if (!m_texture) {
+        if (m_glResources)
+            m_glResources->release();
 
-    m_glResources = new OpenGLResources;
-    return m_glResources->createTexture(m_surfaceFormat, m_device, &m_texture);
-}
-
-bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
-{
-    if (!m_texture && !createRenderTexture())
-        return false;
+        m_glResources = new OpenGLResources;
+        m_glResources->createTexture(m_surfaceFormat, m_device, &m_texture);
+    }
 
     IDirect3DSurface9 *dest = NULL;
 
     // Copy the sample surface to the shared D3D/EGL surface
-    HRESULT hr = m_texture->GetSurfaceLevel(0, &dest);
+    HRESULT hr = m_texture ? m_texture->GetSurfaceLevel(0, &dest) : E_FAIL;
     if (FAILED(hr))
         goto done;
 
@@ -657,7 +643,7 @@ bool D3DPresentEngine::updateTexture(IDirect3DSurface9 *src)
 done:
     qt_evr_safe_release(&dest);
 
-    return SUCCEEDED(hr);
+    return (SUCCEEDED(hr) && m_glResources) ? m_glResources->glTexture() : 0;
 }
 
 #endif // MAYBE_ANGLE

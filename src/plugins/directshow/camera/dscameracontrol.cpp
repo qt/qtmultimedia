@@ -51,7 +51,7 @@ DSCameraControl::DSCameraControl(QObject *parent)
     , m_captureMode(QCamera::CaptureStillImage)
 {
     m_session = qobject_cast<DSCameraSession*>(parent);
-    connect(m_session, &DSCameraSession::statusChanged,
+    connect(m_session, &DSCameraSession::statusChanged, this,
             [&](QCamera::Status status) {
                 if (status == QCamera::UnloadedStatus)
                     m_state = QCamera::UnloadedState;
