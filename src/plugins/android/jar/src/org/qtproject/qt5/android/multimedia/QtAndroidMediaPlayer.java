@@ -212,6 +212,11 @@ public class QtAndroidMediaPlayer
         mContext = context;
     }
 
+    public MediaPlayer getMediaPlayerHandle()
+    {
+        return mMediaPlayer;
+    }
+
     private void setState(int state)
     {
         if (mState == state)

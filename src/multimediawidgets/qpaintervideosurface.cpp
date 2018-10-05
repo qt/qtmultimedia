@@ -143,6 +143,11 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::start(const QVideoSurf
 {
     m_frame = QVideoFrame();
     m_imageFormat = QVideoFrame::imageFormatFromPixelFormat(format.pixelFormat());
+    // Do not render into ARGB32 images using QPainter.
+    // Using QImage::Format_ARGB32_Premultiplied is significantly faster.
+    if (m_imageFormat == QImage::Format_ARGB32)
+        m_imageFormat = QImage::Format_ARGB32_Premultiplied;
+
     m_imageSize = format.frameSize();
     m_scanLineDirection = format.scanLineDirection();
     m_mirrored = format.property("mirrored").toBool();
@@ -191,10 +196,6 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::paint(
                 m_imageSize.height(),
                 m_frame.bytesPerLine(),
                 m_imageFormat);
-        // Do not render into ARGB32 images using QPainter.
-        // Using QImage::Format_ARGB32_Premultiplied is significantly faster.
-        if (m_imageFormat == QImage::Format_ARGB32)
-            image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;

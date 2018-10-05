@@ -109,6 +109,33 @@ bool AndroidMediaPlayer::isMuted()
     return mMediaPlayer.callMethod<jboolean>("isMuted");
 }
 
+qreal AndroidMediaPlayer::playbackRate()
+{
+    qreal rate(1.0);
+
+    if (QtAndroidPrivate::androidSdkVersion() < 23)
+        return rate;
+
+    QJNIObjectPrivate player = mMediaPlayer.callObjectMethod("getMediaPlayerHandle", "()Landroid/media/MediaPlayer;");
+    if (player.isValid()) {
+        QJNIObjectPrivate playbackParams = player.callObjectMethod("getPlaybackParams", "()Landroid/media/PlaybackParams;");
+        if (playbackParams.isValid()) {
+            const qreal speed = playbackParams.callMethod<jfloat>("getSpeed", "()F");
+            QJNIEnvironmentPrivate env;
+            if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+                env->ExceptionDescribe();
+#endif // QT_DEBUG
+                env->ExceptionClear();
+            } else {
+                rate = speed;
+            }
+        }
+    }
+
+    return rate;
+}
+
 jobject AndroidMediaPlayer::display()
 {
     return mMediaPlayer.callObjectMethod("display", "()Landroid/view/SurfaceHolder;").object();
@@ -153,6 +180,40 @@ void AndroidMediaPlayer::prepareAsync()
 void AndroidMediaPlayer::setVolume(int volume)
 {
     mMediaPlayer.callMethod<void>("setVolume", "(I)V", jint(volume));
+}
+
+bool AndroidMediaPlayer::setPlaybackRate(qreal rate)
+{
+    if (QtAndroidPrivate::androidSdkVersion() < 23) {
+        qWarning("Setting the playback rate on a media player requires Android 6.0 (API level 23) or later");
+        return false;
+    }
+
+    QJNIEnvironmentPrivate env;
+
+    QJNIObjectPrivate player = mMediaPlayer.callObjectMethod("getMediaPlayerHandle", "()Landroid/media/MediaPlayer;");
+    if (player.isValid()) {
+        QJNIObjectPrivate playbackParams = player.callObjectMethod("getPlaybackParams", "()Landroid/media/PlaybackParams;");
+        if (playbackParams.isValid()) {
+            playbackParams.callObjectMethod("setSpeed", "(F)Landroid/media/PlaybackParams;", jfloat(rate));
+            // pitch can only be > 0
+            if (!qFuzzyIsNull(rate))
+                playbackParams.callObjectMethod("setPitch", "(F)Landroid/media/PlaybackParams;", jfloat(qAbs(rate)));
+            player.callMethod<void>("setPlaybackParams", "(Landroid/media/PlaybackParams;)V", playbackParams.object());
+            if (Q_UNLIKELY(env->ExceptionCheck())) {
+#ifdef QT_DEBUG
+                env->ExceptionDescribe();
+#endif // QT_DEBUG
+                env->ExceptionClear();
+                qWarning() << "Invalid playback rate" << rate;
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void AndroidMediaPlayer::setDisplay(AndroidSurfaceTexture *surfaceTexture)

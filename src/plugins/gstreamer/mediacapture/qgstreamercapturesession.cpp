@@ -107,8 +107,6 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
         qWarning() << QMediaRecorder::Error(e) << ":" << str.toLatin1().constData();
     });
     m_mediaContainerControl = new QGstreamerMediaContainerControl(this);
-
-    setState(StoppedState);
 }
 
 QGstreamerCaptureSession::~QGstreamerCaptureSession()

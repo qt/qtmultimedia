@@ -117,6 +117,8 @@ private:
     int mPendingMute;
     bool mReloadingMedia;
     int mActiveStateChangeNotifiers;
+    qreal mPendingPlaybackRate;
+    bool mHasPendingPlaybackRate; // we need this because the rate can theoretically be negative
 
     void setState(QMediaPlayer::State state);
     void setMediaStatus(QMediaPlayer::MediaStatus status);

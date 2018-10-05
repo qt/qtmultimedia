@@ -103,7 +103,7 @@ void QSGVivanteVideoMaterial::setCurrentFrame(const QVideoFrame &frame, QSGVideo
 {
     QMutexLocker lock(&mFrameMutex);
     mNextFrame = frame;
-    mMappable = !flags.testFlag(QSGVideoNode::FrameFiltered);
+    mMappable = mMapError == GL_NO_ERROR && !flags.testFlag(QSGVideoNode::FrameFiltered);
 
 #ifdef QT_VIVANTE_VIDEO_DEBUG
     qDebug() << Q_FUNC_INFO << " new frame: " << frame;
@@ -172,6 +172,7 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
         mWidth = vF.width();
         mHeight = vF.height();
         mFormat = vF.pixelFormat();
+        mMapError = GL_NO_ERROR;
         clearTextures();
     }
 
@@ -236,7 +237,12 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 glTexDirectInvalidateVIV_LOCAL(GL_TEXTURE_2D);
 
-                return tmpTexId;
+                mMapError = glGetError();
+                if (mMapError == GL_NO_ERROR)
+                    return tmpTexId;
+
+                // Error occurred.
+                // Fallback to copying data.
             } else {
                 // Fastest path: already seen this logical address. Just
                 // indicate that the data belonging to the texture has changed.
@@ -244,40 +250,40 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
                 glTexDirectInvalidateVIV_LOCAL(GL_TEXTURE_2D);
                 return mBitsToTextureMap.value(vF.bits());
             }
-        } else {
-            // Cannot map. So copy.
-            if (!mTexDirectTexture) {
-                glGenTextures(1, &mTexDirectTexture);
-                glBindTexture(GL_TEXTURE_2D, mTexDirectTexture);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexDirectVIV_LOCAL(GL_TEXTURE_2D, mCurrentFrame.width(), mCurrentFrame.height(),
-                                     QSGVivanteVideoNode::getVideoFormat2GLFormatMap().value(mCurrentFrame.pixelFormat()),
-                                     (GLvoid **) &mTexDirectPlanes);
-            } else {
-                glBindTexture(GL_TEXTURE_2D, mTexDirectTexture);
-            }
-            switch (mCurrentFrame.pixelFormat()) {
-            case QVideoFrame::Format_YUV420P:
-            case QVideoFrame::Format_YV12:
-                memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
-                memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(1));
-                memcpy(mTexDirectPlanes[2], mCurrentFrame.bits(2), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(2));
-                break;
-            case QVideoFrame::Format_NV12:
-            case QVideoFrame::Format_NV21:
-                memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
-                memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(1));
-                break;
-            default:
-                memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(), mCurrentFrame.height() * mCurrentFrame.bytesPerLine());
-                break;
-            }
-            glTexDirectInvalidateVIV_LOCAL(GL_TEXTURE_2D);
-            return mTexDirectTexture;
         }
+
+        // Cannot map. So copy.
+        if (!mTexDirectTexture) {
+            glGenTextures(1, &mTexDirectTexture);
+            glBindTexture(GL_TEXTURE_2D, mTexDirectTexture);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexDirectVIV_LOCAL(GL_TEXTURE_2D, mCurrentFrame.width(), mCurrentFrame.height(),
+                                 QSGVivanteVideoNode::getVideoFormat2GLFormatMap().value(mCurrentFrame.pixelFormat()),
+                                 (GLvoid **) &mTexDirectPlanes);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, mTexDirectTexture);
+        }
+        switch (mCurrentFrame.pixelFormat()) {
+        case QVideoFrame::Format_YUV420P:
+        case QVideoFrame::Format_YV12:
+            memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
+            memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(1));
+            memcpy(mTexDirectPlanes[2], mCurrentFrame.bits(2), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(2));
+            break;
+        case QVideoFrame::Format_NV12:
+        case QVideoFrame::Format_NV21:
+            memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
+            memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(1));
+            break;
+        default:
+            memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(), mCurrentFrame.height() * mCurrentFrame.bytesPerLine());
+            break;
+        }
+        glTexDirectInvalidateVIV_LOCAL(GL_TEXTURE_2D);
+        return mTexDirectTexture;
     }
     else {
 #ifdef QT_VIVANTE_VIDEO_DEBUG
