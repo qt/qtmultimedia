@@ -123,6 +123,7 @@ private:
     QTime timeStampOpened;
     qint32 buffer_size;
     qint32 period_size;
+    qint32 blocks_count;
     qint64 totalTimeValue;
     bool pullMode;
     int intervalTime;
