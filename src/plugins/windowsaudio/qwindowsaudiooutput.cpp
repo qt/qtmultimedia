@@ -74,6 +74,7 @@ QWindowsAudioOutput::QWindowsAudioOutput(const QByteArray &device)
     pullMode = true;
     finished = false;
     volumeCache = qreal(1.0);
+    blocks_count = 5;
 }
 
 QWindowsAudioOutput::~QWindowsAudioOutput()
@@ -110,8 +111,9 @@ void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
                 return;
             }
             qAudio->waveFreeBlockCount++;
-            if(qAudio->waveFreeBlockCount >= qAudio->buffer_size/qAudio->period_size)
-                qAudio->waveFreeBlockCount = qAudio->buffer_size/qAudio->period_size;
+            if (qAudio->waveFreeBlockCount >= qAudio->blocks_count)
+                qAudio->waveFreeBlockCount = qAudio->blocks_count;
+
             qAudio->feedback();
             break;
         default:
@@ -144,10 +146,7 @@ WAVEHDR* QWindowsAudioOutput::allocateBlocks(int size, int count)
 void QWindowsAudioOutput::freeBlocks(WAVEHDR* blockArray)
 {
     WAVEHDR* blocks = blockArray;
-
-    int count = buffer_size/period_size;
-
-    for(int i = 0; i < count; i++) {
+    for (int i = 0; i < blocks_count; ++i) {
         waveOutUnprepareHeader(hWaveOut,blocks, sizeof(WAVEHDR));
         blocks++;
     }
@@ -252,16 +251,26 @@ bool QWindowsAudioOutput::open()
         return false;
     }
 
-    waveBlocks = allocateBlocks(period_size, buffer_size/period_size);
+    const int periods = buffer_size / period_size;
+    bool ok = false;
+    static int wave_buffers = qEnvironmentVariableIntValue("QT_WAVE_BUFFERS", &ok);
+    if (wave_buffers < periods) {
+        if (ok)
+            qWarning("Number of WAVE buffers (QT_WAVE_BUFFERS=%d) cannot be less than %d.", wave_buffers, periods);
+        wave_buffers = periods;
+    }
+
+    blocks_count = wave_buffers;
+    waveBlocks = allocateBlocks(period_size, blocks_count);
 
     mutex.lock();
-    waveFreeBlockCount = buffer_size/period_size;
+    waveFreeBlockCount = blocks_count;
     mutex.unlock();
 
     waveCurrentBlock = 0;
 
     if(audioBuffer == 0)
-        audioBuffer = new char[buffer_size];
+        audioBuffer = new char[blocks_count * period_size];
 
     timeStamp.restart();
     elapsedTimeOffset = 0;
@@ -440,7 +449,7 @@ qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
 
         totalTimeValue += current->dwBufferLength;
         waveCurrentBlock++;
-        waveCurrentBlock %= buffer_size/period_size;
+        waveCurrentBlock %= blocks_count;
         current = &waveBlocks[waveCurrentBlock];
         current->dwUser = 0;
         errorState = QAudio::NoError;
@@ -547,7 +556,7 @@ bool QWindowsAudioOutput::deviceReady()
             check = waveFreeBlockCount;
             mutex.unlock();
 
-            if(check == buffer_size/period_size) {
+            if (check == blocks_count) {
                 if (deviceState != QAudio::IdleState) {
                     errorState = QAudio::UnderrunError;
                     deviceState = QAudio::IdleState;
@@ -567,7 +576,7 @@ bool QWindowsAudioOutput::deviceReady()
         buffered = waveFreeBlockCount;
         mutex.unlock();
 
-        if (buffered >= buffer_size/period_size && deviceState == QAudio::ActiveState) {
+        if (buffered >= blocks_count && deviceState == QAudio::ActiveState) {
             if (deviceState != QAudio::IdleState) {
                 errorState = QAudio::UnderrunError;
                 deviceState = QAudio::IdleState;

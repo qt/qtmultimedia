@@ -378,7 +378,7 @@ public class QtAndroidMediaPlayer
                 FileDescriptor fd = fis.getFD();
                 mMediaPlayer.setDataSource(fd);
             } else {
-                mMediaPlayer.setDataSource(mContext, mUri);
+                mMediaPlayer.setDataSource(path);
             }
             setState(State.Initialized);
         } catch (final IOException e) {
