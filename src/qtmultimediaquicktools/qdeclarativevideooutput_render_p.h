@@ -100,8 +100,10 @@ private:
     QPointer<QVideoRendererControl> m_rendererControl;
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
+    QVideoSurfaceFormat m_surfaceFormat;
     QOpenGLContext *m_glContext;
     QVideoFrame m_frame;
+    QVideoFrame m_frameOnFlush;
     bool m_frameChanged;
     QSGVideoNodeFactory_YUV m_i420Factory;
     QSGVideoNodeFactory_RGB m_rgbFactory;

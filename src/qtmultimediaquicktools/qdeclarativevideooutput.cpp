@@ -878,4 +878,28 @@ void QDeclarativeVideoOutput::_q_invalidateSceneGraph()
         m_backend->invalidateSceneGraph();
 }
 
+/*!
+    \qmlproperty enumeration QtMultimedia::VideoOutput::flushMode
+
+    Set this property to define what \c VideoOutput should show
+    when playback is finished or stopped.
+
+    \list
+    \li EmptyFrame - clears video output.
+    \li FirstFrame - shows the first valid frame.
+    \li LastFrame - shows the last valid frame.
+    \endlist
+
+    The default flush mode is EmptyFrame.
+*/
+
+void QDeclarativeVideoOutput::setFlushMode(FlushMode mode)
+{
+    if (m_flushMode == mode)
+        return;
+
+    m_flushMode = mode;
+    emit flushModeChanged();
+}
+
 QT_END_NAMESPACE

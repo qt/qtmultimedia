@@ -79,9 +79,19 @@ class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
     Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
     Q_PROPERTY(QQmlListProperty<QAbstractVideoFilter> filters READ filters);
+    Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged)
+    Q_ENUMS(FlushMode)
     Q_ENUMS(FillMode)
 
 public:
+
+    enum FlushMode
+    {
+        EmptyFrame,
+        FirstFrame,
+        LastFrame
+    };
+
     enum FillMode
     {
         Stretch            = Qt::IgnoreAspectRatio,
@@ -125,6 +135,9 @@ public:
 
     QQmlListProperty<QAbstractVideoFilter> filters();
 
+    FlushMode flushMode() const { return m_flushMode; }
+    void setFlushMode(FlushMode mode);
+
 Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QDeclarativeVideoOutput::FillMode);
@@ -132,6 +145,7 @@ Q_SIGNALS:
     void autoOrientationChanged();
     void sourceRectChanged();
     void contentRectChanged();
+    void flushModeChanged();
 
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
@@ -175,6 +189,7 @@ private:
     QScopedPointer<QDeclarativeVideoBackend> m_backend;
 
     QList<QAbstractVideoFilter *> m_filters;
+    FlushMode m_flushMode = EmptyFrame;
 };
 
 QT_END_NAMESPACE

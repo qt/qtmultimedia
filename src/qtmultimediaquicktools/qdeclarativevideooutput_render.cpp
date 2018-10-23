@@ -210,13 +210,13 @@ void QDeclarativeVideoRendererBackend::releaseControl()
 
 QSize QDeclarativeVideoRendererBackend::nativeSize() const
 {
-    return m_surface->surfaceFormat().sizeHint();
+    return m_surfaceFormat.sizeHint();
 }
 
 void QDeclarativeVideoRendererBackend::updateGeometry()
 {
-    const QRectF viewport = videoSurface()->surfaceFormat().viewport();
-    const QSizeF frameSize = videoSurface()->surfaceFormat().frameSize();
+    const QRectF viewport = m_surfaceFormat.viewport();
+    const QSizeF frameSize = m_surfaceFormat.frameSize();
     const QRectF normalizedViewport(viewport.x() / frameSize.width(),
                                     viewport.y() / frameSize.height(),
                                     viewport.width() / frameSize.width(),
@@ -257,13 +257,13 @@ void QDeclarativeVideoRendererBackend::updateGeometry()
         }
     }
 
-    if (videoSurface()->surfaceFormat().scanLineDirection() == QVideoSurfaceFormat::BottomToTop) {
+    if (m_surfaceFormat.scanLineDirection() == QVideoSurfaceFormat::BottomToTop) {
         qreal top = m_sourceTextureRect.top();
         m_sourceTextureRect.setTop(m_sourceTextureRect.bottom());
         m_sourceTextureRect.setBottom(top);
     }
 
-    if (videoSurface()->surfaceFormat().property("mirrored").toBool()) {
+    if (m_surfaceFormat.property("mirrored").toBool()) {
         qreal left = m_sourceTextureRect.left();
         m_sourceTextureRect.setLeft(m_sourceTextureRect.right());
         m_sourceTextureRect.setRight(left);
@@ -294,7 +294,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     if (m_frameChanged) {
         // Run the VideoFilter if there is one. This must be done before potentially changing the videonode below.
         if (m_frame.isValid() && !m_filters.isEmpty()) {
-            const QVideoSurfaceFormat surfaceFormat = videoSurface()->surfaceFormat();
+            const QVideoSurfaceFormat surfaceFormat = m_surfaceFormat;
             for (int i = 0; i < m_filters.count(); ++i) {
                 QAbstractVideoFilter *filter = m_filters[i].filter;
                 QVideoFilterRunnable *&runnable = m_filters[i].runnable;
@@ -367,6 +367,12 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
         if (isFrameModified)
             flags |= QSGVideoNode::FrameFiltered;
         videoNode->setCurrentFrame(m_frame, flags);
+
+        if ((q->flushMode() == QDeclarativeVideoOutput::FirstFrame && !m_frameOnFlush.isValid())
+            || q->flushMode() == QDeclarativeVideoOutput::LastFrame) {
+            m_frameOnFlush = m_frame;
+        }
+
         //don't keep the frame for more than really necessary
         m_frameChanged = false;
         m_frame = QVideoFrame();
@@ -403,7 +409,7 @@ QOpenGLContext *QDeclarativeVideoRendererBackend::glContext() const
 void QDeclarativeVideoRendererBackend::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
-    m_frame = frame;
+    m_frame = frame.isValid() ? frame : m_frameOnFlush;
     m_frameChanged = true;
     m_frameMutex.unlock();
 
@@ -450,10 +456,12 @@ QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
 bool QSGVideoItemSurface::start(const QVideoSurfaceFormat &format)
 {
     qCDebug(qLcVideo) << "Video surface format:" << format << "all supported formats:" << supportedPixelFormats(format.handleType());
+    m_backend->m_frameOnFlush = QVideoFrame();
 
     if (!supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
         return false;
 
+    m_backend->m_surfaceFormat = format;
     return QAbstractVideoSurface::start(format);
 }
 
