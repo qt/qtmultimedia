@@ -81,6 +81,9 @@ public:
     int saturation() const;
 
     QSize sizeHint() const override;
+#if defined(Q_OS_WIN)
+    bool nativeEvent(const QByteArray &eventType, void *message, long *result) override;
+#endif
 
 public Q_SLOTS:
     void setFullScreen(bool fullScreen);

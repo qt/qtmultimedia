@@ -324,6 +324,7 @@ QWindowVideoWidgetBackend::QWindowVideoWidgetBackend(
 
     control->setWinId(widget->winId());
 #if defined(Q_OS_WIN)
+    // Disable updates to avoid flickering while resizing/moving.
     m_widget->setUpdatesEnabled(false);
 #endif
 }
@@ -1000,6 +1001,23 @@ void QVideoWidget::paintEvent(QPaintEvent *event)
         painter.fillRect(event->rect(), palette().window());
     }
 }
+
+#if defined(Q_OS_WIN)
+bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, long *result)
+{
+    Q_D(QVideoWidget);
+    Q_UNUSED(eventType);
+    Q_UNUSED(result);
+
+    MSG *mes = reinterpret_cast<MSG *>(message);
+    if (mes->message == WM_PAINT || mes->message == WM_ERASEBKGND) {
+        if (d->windowBackend)
+            d->windowBackend->showEvent();
+    }
+
+    return false;
+}
+#endif
 
 #include "moc_qvideowidget.cpp"
 #include "moc_qvideowidget_p.cpp"

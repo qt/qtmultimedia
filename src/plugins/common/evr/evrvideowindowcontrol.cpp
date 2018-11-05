@@ -158,6 +158,9 @@ void EvrVideoWindowControl::setDisplayRect(const QRect &rect)
         } else {
             m_displayControl->SetVideoPosition(NULL, &displayRect);
         }
+
+        // To refresh content immediately.
+        repaint();
     }
 }
 
