@@ -1208,6 +1208,8 @@ HRESULT EVRCustomPresenter::checkEndOfStream()
     // Everything is complete. Now we can tell the EVR that we are done.
     notifyEvent(EC_COMPLETE, (LONG_PTR)S_OK, 0);
     m_endStreaming = false;
+
+    stopSurface();
     return S_OK;
 }
 

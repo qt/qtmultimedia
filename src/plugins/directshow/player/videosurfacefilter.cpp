@@ -462,6 +462,7 @@ HRESULT VideoSurfaceFilter::EndOfStream()
     if (!m_pendingSample && m_running)
         checkEOS();
 
+    stopSurface();
     return S_OK;
 }
 
