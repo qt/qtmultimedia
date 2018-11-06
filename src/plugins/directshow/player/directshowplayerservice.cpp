@@ -216,7 +216,7 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
         }
     } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoRendererControl && !m_videoWindowControl) {
-            IBaseFilter *filter;
+            IBaseFilter *filter{};
 
 #if QT_CONFIG(evr)
             if (!qgetenv("QT_DIRECTSHOW_NO_EVR").toInt()) {
