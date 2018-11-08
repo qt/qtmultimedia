@@ -228,6 +228,7 @@ CoreAudioOutput::CoreAudioOutput(const QByteArray &device)
     , m_startTime(0)
     , m_audioBuffer(0)
     , m_cachedVolume(1.0)
+    , m_volume(1.0)
     , m_pullMode(false)
     , m_errorCode(QAudio::NoError)
     , m_stateCode(QAudio::StoppedState)
@@ -435,11 +436,9 @@ QAudioFormat CoreAudioOutput::format() const
 
 void CoreAudioOutput::setVolume(qreal volume)
 {
-    const qreal normalizedVolume = qBound(qreal(0.0), volume, qreal(1.0));
-    if (!m_isOpen) {
-        m_cachedVolume = normalizedVolume;
+    m_cachedVolume = qBound(qreal(0.0), volume, qreal(1.0));
+    if (!m_isOpen)
         return;
-    }
 
 #if defined(Q_OS_OSX)
     //on OS X the volume can be set directly on the AudioUnit
@@ -447,11 +446,9 @@ void CoreAudioOutput::setVolume(qreal volume)
                               kHALOutputParam_Volume,
                               kAudioUnitScope_Global,
                               0 /* bus */,
-                              (float)normalizedVolume,
+                              m_cachedVolume,
                               0) == noErr)
-        m_cachedVolume = normalizedVolume;
-#else
-    m_cachedVolume = normalizedVolume;
+        m_volume = m_cachedVolume;
 #endif
 }
 
@@ -513,15 +510,24 @@ OSStatus CoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFl
         if (framesRead > 0) {
             ioData->mBuffers[0].mDataByteSize = framesRead * bytesPerFrame;
             d->m_totalFrames += framesRead;
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-        // on iOS we have to adjust the sound volume ourselves
-        if (!qFuzzyCompare(d->m_cachedVolume, qreal(1.0f))) {
-            QAudioHelperInternal::qMultiplySamples(d->m_cachedVolume,
-                                                   d->m_audioFormat,
-                                                   ioData->mBuffers[0].mData, /* input */
-                                                   ioData->mBuffers[0].mData, /* output */
-                                                   ioData->mBuffers[0].mDataByteSize);
-        }
+
+#if defined(Q_OS_MACOS)
+            // If playback is already stopped.
+            if (threadState != Running) {
+                qreal oldVolume = d->m_cachedVolume;
+                // Decrease volume smoothly.
+                d->setVolume(d->m_volume / 2);
+                d->m_cachedVolume = oldVolume;
+            }
+#elif defined(Q_OS_IOS) || defined(Q_OS_TVOS)
+            // on iOS we have to adjust the sound volume ourselves
+            if (!qFuzzyCompare(d->m_cachedVolume, qreal(1.0f))) {
+                QAudioHelperInternal::qMultiplySamples(d->m_cachedVolume,
+                                                       d->m_audioFormat,
+                                                       ioData->mBuffers[0].mData, /* input */
+                                                       ioData->mBuffers[0].mData, /* output */
+                                                       ioData->mBuffers[0].mDataByteSize);
+            }
 #endif
 
         }
@@ -546,8 +552,10 @@ bool CoreAudioOutput::open()
     if (m_errorCode != QAudio::NoError)
         return false;
 
-    if (m_isOpen)
+    if (m_isOpen) {
+        setVolume(m_cachedVolume);
         return true;
+    }
 
     AudioComponentDescription componentDescription;
     componentDescription.componentType = kAudioUnitType_Output;
