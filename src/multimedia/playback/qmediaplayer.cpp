@@ -648,6 +648,9 @@ QMediaPlayer::~QMediaPlayer()
     Q_D(QMediaPlayer);
 
     d->disconnectPlaylist();
+    // Disconnect everything to prevent notifying
+    // when a receiver is already destroyed.
+    disconnect();
 
     if (d->service) {
         if (d->control)
