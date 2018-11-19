@@ -173,7 +173,7 @@ private:
     void updateSourceCapabilities();
     bool configurePreviewFormat();
     void updateImageProcessingParametersInfos();
-    void setError(int error, const QString &errorString);
+    void setError(int error, const QString &errorString, HRESULT hr);
 
     // These static functions are used for scaling of adjustable parameters,
     // which have the ranges from -1.0 to +1.0 in the QCameraImageProcessing API.

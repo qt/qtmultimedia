@@ -502,7 +502,7 @@ failed:
     if (m_surface && m_surface->isActive())
         m_surface->stop();
     disconnectGraph();
-    setError(QCamera::CameraError, errorString);
+    setError(QCamera::CameraError, errorString, hr);
     return false;
 }
 
@@ -541,12 +541,13 @@ bool DSCameraSession::stopPreview()
     return true;
 
 failed:
-    setError(QCamera::CameraError, errorString);
+    setError(QCamera::CameraError, errorString, hr);
     return false;
 }
 
-void DSCameraSession::setError(int error, const QString &errorString)
+void DSCameraSession::setError(int error, const QString &errorString, HRESULT hr)
 {
+    qErrnoWarning(hr, "[0x%x] %s", hr, qPrintable(errorString));
     emit cameraError(error, errorString);
     setStatus(QCamera::UnloadedStatus);
 }
@@ -839,7 +840,7 @@ failed:
     SAFE_RELEASE(m_nullRendererFilter);
     SAFE_RELEASE(m_filterGraph);
     SAFE_RELEASE(m_graphBuilder);
-    setError(QCamera::CameraError, errorString);
+    setError(QCamera::CameraError, errorString, hr);
 
     return false;
 }
