@@ -46,6 +46,7 @@
 #include <QtCore/qloggingcategory.h>
 #include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>
+#include <private/qvideoframe_p.h>
 
 #include <QtGui/QOpenGLContext>
 #include <QtQuick/QQuickWindow>
@@ -294,7 +295,6 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     if (m_frameChanged) {
         // Run the VideoFilter if there is one. This must be done before potentially changing the videonode below.
         if (m_frame.isValid() && !m_filters.isEmpty()) {
-            const QVideoSurfaceFormat surfaceFormat = m_surfaceFormat;
             for (int i = 0; i < m_filters.count(); ++i) {
                 QAbstractVideoFilter *filter = m_filters[i].filter;
                 QVideoFilterRunnable *&runnable = m_filters[i].runnable;
@@ -309,7 +309,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
                     if (i == m_filters.count() - 1)
                         flags |= QVideoFilterRunnable::LastInChain;
 
-                    QVideoFrame newFrame = runnable->run(&m_frame, surfaceFormat, flags);
+                    QVideoFrame newFrame = runnable->run(&m_frame, m_surfaceFormat, flags);
 
                     if (newFrame.isValid() && newFrame != m_frame) {
                         isFrameModified = true;
@@ -336,12 +336,13 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
                 // Get a node that supports our frame. The surface is irrelevant, our
                 // QSGVideoItemSurface supports (logically) anything.
                 QVideoSurfaceFormat nodeFormat(m_frame.size(), m_frame.pixelFormat(), m_frame.handleType());
-                const QVideoSurfaceFormat surfaceFormat = m_surface->surfaceFormat();
-                nodeFormat.setYCbCrColorSpace(surfaceFormat.yCbCrColorSpace());
-                nodeFormat.setPixelAspectRatio(surfaceFormat.pixelAspectRatio());
-                nodeFormat.setScanLineDirection(surfaceFormat.scanLineDirection());
-                nodeFormat.setViewport(surfaceFormat.viewport());
-                nodeFormat.setFrameRate(surfaceFormat.frameRate());
+                nodeFormat.setYCbCrColorSpace(m_surfaceFormat.yCbCrColorSpace());
+                nodeFormat.setPixelAspectRatio(m_surfaceFormat.pixelAspectRatio());
+                nodeFormat.setScanLineDirection(m_surfaceFormat.scanLineDirection());
+                nodeFormat.setViewport(m_surfaceFormat.viewport());
+                nodeFormat.setFrameRate(m_surfaceFormat.frameRate());
+                // Update current surface format if something has changed.
+                m_surfaceFormat = nodeFormat;
                 videoNode = factory->createNode(nodeFormat);
                 if (videoNode) {
                     qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType()
@@ -370,7 +371,9 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 
         if ((q->flushMode() == QDeclarativeVideoOutput::FirstFrame && !m_frameOnFlush.isValid())
             || q->flushMode() == QDeclarativeVideoOutput::LastFrame) {
-            m_frameOnFlush = m_frame;
+            m_frameOnFlush = m_surfaceFormat.handleType() == QAbstractVideoBuffer::NoHandle
+                ? m_frame
+                : qt_imageFromVideoFrame(m_frame);
         }
 
         //don't keep the frame for more than really necessary
