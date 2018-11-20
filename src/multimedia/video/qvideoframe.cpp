@@ -1107,7 +1107,7 @@ QImage qt_imageFromVideoFrame(const QVideoFrame &f)
     // Formats supported by QImage don't need conversion
     QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
     if (imageFormat != QImage::Format_Invalid) {
-        result = QImage(frame.bits(), frame.width(), frame.height(), imageFormat).copy();
+        result = QImage(frame.bits(), frame.width(), frame.height(), frame.bytesPerLine(), imageFormat).copy();
     }
 
     // Load from JPG
