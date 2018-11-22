@@ -477,21 +477,14 @@ static QString convertBSTR(BSTR *string)
     return value;
 }
 
-void DirectShowMetaDataControl::reset()
+void DirectShowMetaDataControl::setMetadata(const QVariantMap &metadata)
 {
-    bool hadMetadata = !m_metadata.isEmpty();
-    m_metadata.clear();
-
-    setMetadataAvailable(false);
-
-    if (hadMetadata)
-        emit metaDataChanged();
+    m_metadata = metadata;
+    setMetadataAvailable(!m_metadata.isEmpty());
 }
 
-void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter *source, const QString &fileSrc)
+void DirectShowMetaDataControl::updateMetadata(const QString &fileSrc, QVariantMap &metadata)
 {
-    m_metadata.clear();
-
 #if QT_CONFIG(wshellitem)
     if (!sHCreateItemFromParsingName) {
         QSystemLibrary lib(QStringLiteral("shell32"));
@@ -518,90 +511,90 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
                             continue;
 
                         if (IsEqualPropertyKey(key, PKEY_Author)) {
-                            m_metadata.insert(QMediaMetaData::Author, convertValue(var));
+                            metadata.insert(QMediaMetaData::Author, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Title)) {
-                            m_metadata.insert(QMediaMetaData::Title, convertValue(var));
+                            metadata.insert(QMediaMetaData::Title, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_SubTitle)) {
-                            m_metadata.insert(QMediaMetaData::SubTitle, convertValue(var));
+                            metadata.insert(QMediaMetaData::SubTitle, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_ParentalRating)) {
-                            m_metadata.insert(QMediaMetaData::ParentalRating, convertValue(var));
+                            metadata.insert(QMediaMetaData::ParentalRating, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Comment)) {
-                            m_metadata.insert(QMediaMetaData::Description, convertValue(var));
+                            metadata.insert(QMediaMetaData::Description, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Copyright)) {
-                            m_metadata.insert(QMediaMetaData::Copyright, convertValue(var));
+                            metadata.insert(QMediaMetaData::Copyright, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_ProviderStyle)) {
-                            m_metadata.insert(QMediaMetaData::Genre, convertValue(var));
+                            metadata.insert(QMediaMetaData::Genre, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_Year)) {
-                            m_metadata.insert(QMediaMetaData::Year, convertValue(var));
+                            metadata.insert(QMediaMetaData::Year, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_DateEncoded)) {
-                            m_metadata.insert(QMediaMetaData::Date, convertValue(var));
+                            metadata.insert(QMediaMetaData::Date, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Rating)) {
-                            m_metadata.insert(QMediaMetaData::UserRating,
+                            metadata.insert(QMediaMetaData::UserRating,
                                               int((convertValue(var).toUInt() - 1) / qreal(98) * 100));
                         } else if (IsEqualPropertyKey(key, PKEY_Keywords)) {
-                            m_metadata.insert(QMediaMetaData::Keywords, convertValue(var));
+                            metadata.insert(QMediaMetaData::Keywords, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Language)) {
-                            m_metadata.insert(QMediaMetaData::Language, convertValue(var));
+                            metadata.insert(QMediaMetaData::Language, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_Publisher)) {
-                            m_metadata.insert(QMediaMetaData::Publisher, convertValue(var));
+                            metadata.insert(QMediaMetaData::Publisher, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_Duration)) {
-                            m_metadata.insert(QMediaMetaData::Duration,
+                            metadata.insert(QMediaMetaData::Duration,
                                               (convertValue(var).toLongLong() + 10000) / 10000);
                         } else if (IsEqualPropertyKey(key, PKEY_Audio_EncodingBitrate)) {
-                            m_metadata.insert(QMediaMetaData::AudioBitRate, convertValue(var));
+                            metadata.insert(QMediaMetaData::AudioBitRate, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_AverageLevel)) {
-                            m_metadata.insert(QMediaMetaData::AverageLevel, convertValue(var));
+                            metadata.insert(QMediaMetaData::AverageLevel, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Audio_ChannelCount)) {
-                            m_metadata.insert(QMediaMetaData::ChannelCount, convertValue(var));
+                            metadata.insert(QMediaMetaData::ChannelCount, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Audio_PeakValue)) {
-                            m_metadata.insert(QMediaMetaData::PeakValue, convertValue(var));
+                            metadata.insert(QMediaMetaData::PeakValue, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Audio_SampleRate)) {
-                            m_metadata.insert(QMediaMetaData::SampleRate, convertValue(var));
+                            metadata.insert(QMediaMetaData::SampleRate, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_AlbumTitle)) {
-                            m_metadata.insert(QMediaMetaData::AlbumTitle, convertValue(var));
+                            metadata.insert(QMediaMetaData::AlbumTitle, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_AlbumArtist)) {
-                            m_metadata.insert(QMediaMetaData::AlbumArtist, convertValue(var));
+                            metadata.insert(QMediaMetaData::AlbumArtist, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_Artist)) {
-                            m_metadata.insert(QMediaMetaData::ContributingArtist, convertValue(var));
+                            metadata.insert(QMediaMetaData::ContributingArtist, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_Composer)) {
-                            m_metadata.insert(QMediaMetaData::Composer, convertValue(var));
+                            metadata.insert(QMediaMetaData::Composer, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_Conductor)) {
-                            m_metadata.insert(QMediaMetaData::Conductor, convertValue(var));
+                            metadata.insert(QMediaMetaData::Conductor, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_Lyrics)) {
-                            m_metadata.insert(QMediaMetaData::Lyrics, convertValue(var));
+                            metadata.insert(QMediaMetaData::Lyrics, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_Mood)) {
-                            m_metadata.insert(QMediaMetaData::Mood, convertValue(var));
+                            metadata.insert(QMediaMetaData::Mood, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_TrackNumber)) {
-                            m_metadata.insert(QMediaMetaData::TrackNumber, convertValue(var));
+                            metadata.insert(QMediaMetaData::TrackNumber, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Music_Genre)) {
-                            m_metadata.insert(QMediaMetaData::Genre, convertValue(var));
+                            metadata.insert(QMediaMetaData::Genre, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_ThumbnailStream)) {
-                            m_metadata.insert(QMediaMetaData::ThumbnailImage, convertValue(var));
+                            metadata.insert(QMediaMetaData::ThumbnailImage, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Video_FrameHeight)) {
                             QSize res;
                             res.setHeight(convertValue(var).toUInt());
                             if (SUCCEEDED(pStore->GetValue(PKEY_Video_FrameWidth, &var)))
                                 res.setWidth(convertValue(var).toUInt());
-                            m_metadata.insert(QMediaMetaData::Resolution, res);
+                            metadata.insert(QMediaMetaData::Resolution, res);
                         } else if (IsEqualPropertyKey(key, PKEY_Video_HorizontalAspectRatio)) {
                             QSize aspectRatio;
                             aspectRatio.setWidth(convertValue(var).toUInt());
                             if (SUCCEEDED(pStore->GetValue(PKEY_Video_VerticalAspectRatio, &var)))
                                 aspectRatio.setHeight(convertValue(var).toUInt());
-                            m_metadata.insert(QMediaMetaData::PixelAspectRatio, aspectRatio);
+                            metadata.insert(QMediaMetaData::PixelAspectRatio, aspectRatio);
                         } else if (IsEqualPropertyKey(key, PKEY_Video_FrameRate)) {
-                            m_metadata.insert(QMediaMetaData::VideoFrameRate,
+                            metadata.insert(QMediaMetaData::VideoFrameRate,
                                               convertValue(var).toReal() / 1000);
                         } else if (IsEqualPropertyKey(key, PKEY_Video_EncodingBitrate)) {
-                            m_metadata.insert(QMediaMetaData::VideoBitRate, convertValue(var));
+                            metadata.insert(QMediaMetaData::VideoBitRate, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Video_Director)) {
-                            m_metadata.insert(QMediaMetaData::Director, convertValue(var));
+                            metadata.insert(QMediaMetaData::Director, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Media_Writer)) {
-                            m_metadata.insert(QMediaMetaData::Writer, convertValue(var));
+                            metadata.insert(QMediaMetaData::Writer, convertValue(var));
                         } else if (IsEqualPropertyKey(key, PKEY_Video_Compression)) {
-                            m_metadata.insert(QMediaMetaData::VideoCodec, nameForGUIDString(convertValue(var).toString()));
+                            metadata.insert(QMediaMetaData::VideoCodec, nameForGUIDString(convertValue(var).toString()));
                         } else if (IsEqualPropertyKey(key, PKEY_Audio_Format)) {
-                            m_metadata.insert(QMediaMetaData::AudioCodec, nameForGUIDString(convertValue(var).toString()));
+                            metadata.insert(QMediaMetaData::AudioCodec, nameForGUIDString(convertValue(var).toString()));
                         }
 
                         PropVariantClear(&var);
@@ -614,11 +607,14 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
             shellItem->Release();
         }
     }
-
-    if (!m_metadata.isEmpty())
-        goto send_event;
+#else
+    Q_UNUSED(fileSrc);
+    Q_UNUSED(metadata);
 #endif
+}
 
+void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter *source, QVariantMap &metadata)
+{
 #if QT_CONFIG(wmsdk)
     if (IWMHeaderInfo *info = com_cast<IWMHeaderInfo>(source, IID_IWMHeaderInfo)) {
         const auto keys = *qt_wmMetaDataKeys();
@@ -644,15 +640,15 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
                     var = (var.toUInt() - 1) / qreal(98) * 100;
                 }
 
-                m_metadata.insert(key.qtName, var);
+                metadata.insert(key.qtName, var);
             }
         }
 
         info->Release();
     }
 
-    if (!m_metadata.isEmpty())
-        goto send_event;
+    if (!metadata.isEmpty())
+        return;
 #endif
     {
         IAMMediaContent *content = 0;
@@ -668,40 +664,22 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
             BSTR string = 0;
 
             if (content->get_AuthorName(&string) == S_OK)
-                m_metadata.insert(QMediaMetaData::Author, convertBSTR(&string));
+                metadata.insert(QMediaMetaData::Author, convertBSTR(&string));
 
             if (content->get_Title(&string) == S_OK)
-                m_metadata.insert(QMediaMetaData::Title, convertBSTR(&string));
+                metadata.insert(QMediaMetaData::Title, convertBSTR(&string));
 
             if (content->get_Description(&string) == S_OK)
-                m_metadata.insert(QMediaMetaData::Description, convertBSTR(&string));
+                metadata.insert(QMediaMetaData::Description, convertBSTR(&string));
 
             if (content->get_Rating(&string) == S_OK)
-                m_metadata.insert(QMediaMetaData::UserRating, convertBSTR(&string));
+                metadata.insert(QMediaMetaData::UserRating, convertBSTR(&string));
 
             if (content->get_Copyright(&string) == S_OK)
-                m_metadata.insert(QMediaMetaData::Copyright, convertBSTR(&string));
+                metadata.insert(QMediaMetaData::Copyright, convertBSTR(&string));
 
             content->Release();
         }
-    }
-
-send_event:
-    // DirectShowMediaPlayerService holds a lock at this point so defer emitting signals to a later
-    // time.
-    QCoreApplication::postEvent(this, new QEvent(QEvent::Type(MetaDataChanged)));
-}
-
-void DirectShowMetaDataControl::customEvent(QEvent *event)
-{
-    if (event->type() == QEvent::Type(MetaDataChanged)) {
-        event->accept();
-
-        setMetadataAvailable(!m_metadata.isEmpty());
-
-        emit metaDataChanged();
-    } else {
-        QMetaDataReaderControl::customEvent(event);
     }
 }
 
@@ -711,5 +689,10 @@ void DirectShowMetaDataControl::setMetadataAvailable(bool available)
         return;
 
     m_available = available;
-    emit metaDataAvailableChanged(m_available);
+
+    // If the metadata is not available, notify about it immediately.
+    Qt::ConnectionType type = m_available ? Qt::QueuedConnection : Qt::AutoConnection;
+    QMetaObject::invokeMethod(this, "metaDataAvailableChanged", type, Q_ARG(bool, m_available));
+    // Currently the metadata is changed only with its availability.
+    QMetaObject::invokeMethod(this, "metaDataChanged", type);
 }

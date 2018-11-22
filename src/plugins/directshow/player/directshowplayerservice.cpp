@@ -310,7 +310,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     m_seekable = false;
     m_atEnd = false;
     m_dontCacheNextSeekResult = false;
-    m_metaDataControl->reset();
+    m_metaDataControl->setMetadata(QVariantMap());
 
     if (m_url.isEmpty() && !stream) {
         m_pendingTasks = 0;
@@ -591,7 +591,6 @@ void DirectShowPlayerService::doRender(QMutexLocker *locker)
 
 void DirectShowPlayerService::doFinalizeLoad(QMutexLocker *locker)
 {
-    Q_UNUSED(locker)
     if (m_graphStatus != Loaded) {
         if (IMediaEvent *event = com_cast<IMediaEvent>(m_graph, IID_IMediaEvent)) {
             event->GetEventHandle(reinterpret_cast<OAEVENT *>(&m_eventHandle));
@@ -619,6 +618,11 @@ void DirectShowPlayerService::doFinalizeLoad(QMutexLocker *locker)
     m_executedTasks |= FinalizeLoad;
 
     m_graphStatus = Loaded;
+
+    // Do not block gui thread while updating metadata from file.
+    locker->unlock();
+    DirectShowMetaDataControl::updateMetadata(m_url.toString(), m_metadata);
+    locker->relock();
 
     QCoreApplication::postEvent(this, new QEvent(QEvent::Type(FinalizedLoad)));
 }
@@ -1401,7 +1405,11 @@ void DirectShowPlayerService::customEvent(QEvent *event)
         QMutexLocker locker(&m_mutex);
 
         m_playerControl->updateMediaInfo(m_duration, m_streamTypes, m_seekable);
-        m_metaDataControl->updateMetadata(m_graph, m_source, m_url.toString());
+        if (m_metadata.isEmpty())
+            DirectShowMetaDataControl::updateMetadata(m_graph, m_source, m_metadata);
+
+        m_metaDataControl->setMetadata(m_metadata);
+        m_metadata.clear();
 
         updateStatus();
     } else if (event->type() == QEvent::Type(Error)) {

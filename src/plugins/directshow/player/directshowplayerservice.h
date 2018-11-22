@@ -230,6 +230,7 @@ private:
     bool m_seekable;
     bool m_atEnd;
     bool m_dontCacheNextSeekResult;
+    QVariantMap m_metadata;
 
     friend class DirectShowPlayerServiceThread;
 };
