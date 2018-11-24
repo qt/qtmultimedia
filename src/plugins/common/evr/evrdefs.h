@@ -83,7 +83,8 @@ HRESULT WINAPI Direct3DCreate9Ex(UINT SDKVersion, IDirect3D9Ex**);
 #define MF_E_TRANSFORM_NEED_MORE_INPUT ((HRESULT)0xC00D6D72L)
 #endif
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(_MFVideoNormalizedRect_)
+#define _MFVideoNormalizedRect_
 typedef struct MFVideoNormalizedRect {
     float left;
     float top;
