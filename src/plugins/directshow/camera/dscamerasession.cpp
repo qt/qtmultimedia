@@ -611,10 +611,6 @@ void DSCameraSession::onFrameAvailable(double time, const QByteArray &data)
 
     m_presentMutex.lock();
 
-    // If no frames provided from ISampleGrabber for some time
-    // the device might be potentially unplugged.
-    m_deviceLostEventTimer.start(100);
-
     // In case the source produces frames faster than we can display them,
     // only keep the most recent one
     m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(data, m_stride),
@@ -641,6 +637,10 @@ void DSCameraSession::onFrameAvailable(double time, const QByteArray &data)
 
 void DSCameraSession::presentFrame()
 {
+    // If no frames provided from ISampleGrabber for some time
+    // the device might be potentially unplugged.
+    m_deviceLostEventTimer.start(100);
+
     m_presentMutex.lock();
 
     if (m_currentFrame.isValid() && m_surface) {
@@ -810,7 +810,7 @@ bool DSCameraSession::createFilterGraph()
     if (!m_previewSampleGrabber) {
         m_previewSampleGrabber = new DirectShowSampleGrabber;
         connect(m_previewSampleGrabber, &DirectShowSampleGrabber::bufferAvailable,
-                this, &DSCameraSession::onFrameAvailable);
+                this, &DSCameraSession::onFrameAvailable, Qt::DirectConnection);
     }
 
 
