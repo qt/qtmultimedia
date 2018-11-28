@@ -215,6 +215,7 @@ private:
     QMediaPlayer::Error m_error;
     QIODevice *m_stream;
     IFilterGraph2 *m_graph;
+    ICaptureGraphBuilder2 *m_graphBuilder;
     IBaseFilter *m_source;
     IBaseFilter *m_audioOutput;
     IBaseFilter *m_videoOutput;

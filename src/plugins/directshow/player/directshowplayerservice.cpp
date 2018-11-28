@@ -142,6 +142,7 @@ DirectShowPlayerService::DirectShowPlayerService(QObject *parent)
     , m_graphStatus(NoMedia)
     , m_stream(0)
     , m_graph(0)
+    , m_graphBuilder(nullptr)
     , m_source(0)
     , m_audioOutput(0)
     , m_videoOutput(0)
@@ -326,6 +327,15 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
         m_graphStatus = Loading;
 
         m_graph = com_new<IFilterGraph2>(CLSID_FilterGraph, iid_IFilterGraph2);
+        m_graphBuilder = com_new<ICaptureGraphBuilder2>(CLSID_CaptureGraphBuilder2, IID_ICaptureGraphBuilder2);
+
+        // Attach the filter graph to the capture graph.
+        HRESULT hr = m_graphBuilder->SetFiltergraph(m_graph);
+        if (FAILED(hr)) {
+            qCWarning(qtDirectShowPlugin, "[0x%x] Failed to attach filter to capture graph", hr);
+            m_graphBuilder->Release();
+            m_graphBuilder = nullptr;
+        }
 
         if (stream)
             m_pendingTasks = SetStreamSource;
@@ -673,6 +683,11 @@ void DirectShowPlayerService::doReleaseGraph(QMutexLocker *locker)
     m_graph->Release();
     m_graph = 0;
 
+    if (m_graphBuilder) {
+        m_graphBuilder->Release();
+        m_graphBuilder = nullptr;
+    }
+
     m_loop->wake();
 }
 
@@ -683,7 +698,7 @@ void DirectShowPlayerService::doSetVideoProbe(QMutexLocker *locker)
 {
     Q_UNUSED(locker);
 
-    if (!m_graph) {
+    if (!m_graph || !m_graphBuilder) {
         qCWarning(qtDirectShowPlugin, "Attempting to set a video probe without a valid graph!");
         return;
     }
@@ -699,41 +714,14 @@ void DirectShowPlayerService::doSetVideoProbe(QMutexLocker *locker)
         return;
     }
 
-    // TODO: Make util function for getting this, so it's easy to keep it in sync.
-    static const GUID subtypes[] = { MEDIASUBTYPE_ARGB32,
-                                     MEDIASUBTYPE_RGB32,
-                                     MEDIASUBTYPE_RGB24,
-                                     MEDIASUBTYPE_RGB565,
-                                     MEDIASUBTYPE_RGB555,
-                                     MEDIASUBTYPE_AYUV,
-                                     MEDIASUBTYPE_I420,
-                                     MEDIASUBTYPE_IYUV,
-                                     MEDIASUBTYPE_YV12,
-                                     MEDIASUBTYPE_UYVY,
-                                     MEDIASUBTYPE_YUYV,
-                                     MEDIASUBTYPE_YUY2,
-                                     MEDIASUBTYPE_NV12,
-                                     MEDIASUBTYPE_MJPG,
-                                     MEDIASUBTYPE_IMC1,
-                                     MEDIASUBTYPE_IMC2,
-                                     MEDIASUBTYPE_IMC3,
-                                     MEDIASUBTYPE_IMC4 };
+    DirectShowMediaType mediaType({ MEDIATYPE_Video, MEDIASUBTYPE_ARGB32 });
+    m_videoSampleGrabber->setMediaType(&mediaType);
 
-    // Negotiate the subtype
-    DirectShowMediaType mediaType(AM_MEDIA_TYPE { MEDIATYPE_Video });
-    const int items = (sizeof subtypes / sizeof(GUID));
-    bool connected = false;
-    for (int i = 0; i != items; ++i) {
-        mediaType->subtype = subtypes[i];
-        m_videoSampleGrabber->setMediaType(&mediaType);
-        if (DirectShowUtils::connectFilters(m_graph, m_source, m_videoSampleGrabber->filter(), true)) {
-            connected = true;
-            break;
-        }
-    }
-
-    if (!connected) {
-        qCWarning(qtDirectShowPlugin, "Unable to connect the video probe!");
+    // Connect source filter to sample grabber filter.
+    HRESULT hr = m_graphBuilder->RenderStream(nullptr, &MEDIATYPE_Video,
+                                              m_source, nullptr, m_videoSampleGrabber->filter());
+    if (FAILED(hr)) {
+        qCWarning(qtDirectShowPlugin, "[0x%x] Failed to connect the video sample grabber", hr);
         return;
     }
 
@@ -764,8 +752,15 @@ void DirectShowPlayerService::doSetAudioProbe(QMutexLocker *locker)
     }
 
     if (!DirectShowUtils::connectFilters(m_graph, m_source, m_audioSampleGrabber->filter(), true)) {
-        qCWarning(qtDirectShowPlugin, "Failed to connect the audio sample grabber");
-        return;
+        // Connect source filter to sample grabber filter.
+        HRESULT hr = m_graphBuilder
+            ? m_graphBuilder->RenderStream(nullptr, &MEDIATYPE_Audio,
+                                           m_source, nullptr, m_audioSampleGrabber->filter())
+            : E_FAIL;
+        if (FAILED(hr)) {
+            qCWarning(qtDirectShowPlugin, "[0x%x] Failed to connect the audio sample grabber", hr);
+            return;
+        }
     }
 
     m_audioSampleGrabber->start(DirectShowSampleGrabber::CallbackMethod::BufferCB);

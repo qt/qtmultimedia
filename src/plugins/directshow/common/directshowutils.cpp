@@ -56,8 +56,10 @@ bool DirectShowUtils::isPinConnected(IPin *pin, HRESULT *hrOut)
         hrOut = &hr;
 
     *hrOut = pin->ConnectedTo(&connectedPin);
-    if (*hrOut == VFW_E_NOT_CONNECTED) // Not an error in this case
+    if (*hrOut == VFW_E_NOT_CONNECTED) { // Not an error in this case
         *hrOut = S_OK;
+        return false;
+    }
 
     if (FAILED(*hrOut)) {
         qCDebug(qtDirectShowPlugin, "Querying pin connection failed!");
@@ -282,7 +284,7 @@ bool DirectShowUtils::connectFilters(IGraphBuilder *graph,
 
     // Try to connect to the upstream filter first.
     if (findAndConnect(upstreamFilter))
-        return false;
+        return true;
 
     const auto getFilters = [graph, hrOut]() -> IEnumFilters * {
         IEnumFilters *f = nullptr;
