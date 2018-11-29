@@ -1925,12 +1925,12 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
         return;
     }
 
-    if (!m_surface || !m_surface->isActive() || !m_presentEngine->videoSurfaceFormat().isValid())
+    if (!m_surface || !m_presentEngine->videoSurfaceFormat().isValid())
         return;
 
     QVideoFrame frame = m_presentEngine->makeVideoFrame(sample);
 
-    if (m_surface->isActive() && m_surface->surfaceFormat() != m_presentEngine->videoSurfaceFormat()) {
+    if (!m_surface->isActive() || m_surface->surfaceFormat() != m_presentEngine->videoSurfaceFormat()) {
         m_surface->stop();
         if (!m_surface->start(m_presentEngine->videoSurfaceFormat()))
             return;
