@@ -105,6 +105,7 @@ Q_DEFINE_METADATA(CoverArtUrlLarge);
 // Image/Video
 Q_DEFINE_METADATA(Resolution);
 Q_DEFINE_METADATA(PixelAspectRatio);
+Q_DEFINE_METADATA(Orientation);
 
 // Video
 Q_DEFINE_METADATA(VideoFrameRate);
@@ -124,7 +125,6 @@ Q_DEFINE_METADATA(CameraManufacturer);
 Q_DEFINE_METADATA(CameraModel);
 Q_DEFINE_METADATA(Event);
 Q_DEFINE_METADATA(Subject);
-Q_DEFINE_METADATA(Orientation);
 Q_DEFINE_METADATA(ExposureTime);
 Q_DEFINE_METADATA(FNumber);
 Q_DEFINE_METADATA(ExposureProgram);
@@ -239,6 +239,7 @@ Q_DEFINE_METADATA(ThumbnailImage);
     Image and video attributes
     \row \li Resolution \li The dimensions of an image or video. \li QSize
     \row \li PixelAspectRatio \li The pixel aspect ratio of an image or video. \li QSize
+    \row \li Orientation \li Orientation of an image or video. \li int (degrees)
 
     \header \li {3,1}
     Video attributes
@@ -262,7 +263,6 @@ Q_DEFINE_METADATA(ThumbnailImage);
     \row \li CameraModel \li The model of the camera used to capture the media.  \li QString
     \row \li Event \li The event during which the media was captured.  \li QString
     \row \li Subject \li The subject of the media.  \li QString
-    \row \li Orientation \li Orientation of image.  \li int (degrees)
     \row \li ExposureTime \li Exposure time, given in seconds.  \li qreal
     \row \li FNumber \li The F Number.  \li int
     \row \li ExposureProgram

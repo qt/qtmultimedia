@@ -43,6 +43,7 @@
 #include <QtMultimedia/qmediametadata.h>
 
 #include <gst/gstversion.h>
+#include <private/qgstutils_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -99,6 +100,9 @@ static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
         // Image/Video
         metadataKeys->insert("resolution", QMediaMetaData::Resolution);
         metadataKeys->insert("pixel-aspect-ratio", QMediaMetaData::PixelAspectRatio);
+#if GST_CHECK_VERSION(0,10,30)
+        metadataKeys->insert(GST_TAG_IMAGE_ORIENTATION, QMediaMetaData::Orientation);
+#endif
 
         // Video
         //metadataKeys->insert(0, QMediaMetaData::VideoFrameRate);
@@ -145,6 +149,10 @@ bool QGstreamerMetaDataProvider::isWritable() const
 
 QVariant QGstreamerMetaDataProvider::metaData(const QString &key) const
 {
+#if GST_CHECK_VERSION(0,10,30)
+    if (key == QMediaMetaData::Orientation)
+        return QGstUtils::fromGStreamerOrientation(m_tags.value(key));
+#endif
     return m_tags.value(key);
 }
 

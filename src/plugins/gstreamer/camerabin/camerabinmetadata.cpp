@@ -43,44 +43,11 @@
 
 #include <gst/gst.h>
 #include <gst/gstversion.h>
+#include <private/qgstutils_p.h>
 
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
-
-#if GST_CHECK_VERSION(0,10,30)
-
-static QVariant fromGStreamerOrientation(const QVariant &value)
-{
-    // Note gstreamer tokens either describe the counter clockwise rotation of the
-    // image or the clockwise transform to apply to correct the image.  The orientation
-    // value returned is the clockwise rotation of the image.
-    const QString token = value.toString();
-    if (token == QStringLiteral("rotate-90"))
-        return 270;
-    else if (token == QStringLiteral("rotate-180"))
-        return 180;
-    else if (token == QStringLiteral("rotate-270"))
-        return 90;
-    else
-        return 0;
-}
-
-#endif
-
-static QVariant toGStreamerOrientation(const QVariant &value)
-{
-    switch (value.toInt()) {
-    case 90:
-        return QStringLiteral("rotate-270");
-    case 180:
-        return QStringLiteral("rotate-180");
-    case 270:
-        return QStringLiteral("rotate-90");
-    default:
-        return QStringLiteral("rotate-0");
-    }
-}
 
 namespace {
     struct QGStreamerMetaDataKey
@@ -196,7 +163,7 @@ QVariant CameraBinMetaData::metaData(const QString &key) const
 {
 #if GST_CHECK_VERSION(0,10,30)
     if (key == QMediaMetaData::Orientation) {
-        return fromGStreamerOrientation(m_values.value(QByteArray(GST_TAG_IMAGE_ORIENTATION)));
+        return QGstUtils::fromGStreamerOrientation(m_values.value(QByteArray(GST_TAG_IMAGE_ORIENTATION)));
     } else if (key == QMediaMetaData::GPSSpeed) {
         const double metersPerSec = m_values.value(QByteArray(GST_TAG_GEO_LOCATION_MOVEMENT_SPEED)).toDouble();
         return (metersPerSec * 3600) / 1000;
@@ -214,14 +181,16 @@ QVariant CameraBinMetaData::metaData(const QString &key) const
 void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
 {
     QVariant correctedValue = value;
+#if GST_CHECK_VERSION(0,10,30)
     if (value.isValid()) {
         if (key == QMediaMetaData::Orientation) {
-            correctedValue = toGStreamerOrientation(value);
+            correctedValue = QGstUtils::toGStreamerOrientation(value);
         } else if (key == QMediaMetaData::GPSSpeed) {
             // kilometers per hour to meters per second.
             correctedValue = (value.toDouble() * 1000) / 3600;
         }
     }
+#endif
 
     const auto keys = *qt_gstreamerMetaDataKeys();
     for (const QGStreamerMetaDataKey &metadataKey : keys) {
