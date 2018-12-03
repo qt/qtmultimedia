@@ -347,17 +347,26 @@ QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
     Q_D(QCamera);
     d->init();
 
-    if (d->service != 0) {
-        //pass device name to service
-        if (d->deviceControl) {
-            const QString name = QString::fromLatin1(deviceName);
-            for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
-                if (d->deviceControl->deviceName(i) == name) {
-                    d->deviceControl->setSelectedDevice(i);
-                    break;
-                }
+    bool found = false;
+    // Pass device name to service.
+    if (d->deviceControl) {
+        const QString name = QString::fromLatin1(deviceName);
+        for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
+            if (d->deviceControl->deviceName(i) == name) {
+                d->deviceControl->setSelectedDevice(i);
+                found = true;
+                break;
             }
         }
+    }
+
+    // The camera should not be used if device with requested name does not exist.
+    if (!found) {
+        if (d->service && d->control)
+            d->service->releaseControl(d->control);
+        d->control = nullptr;
+        d->error = QCamera::ServiceMissingError;
+        d->errorString = QCamera::tr("The camera service is missing");
     }
 }
 
@@ -368,22 +377,8 @@ QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
 */
 
 QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
-    : QMediaObject(*new QCameraPrivate,
-                   parent,
-                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA,
-                                                                                   QMediaServiceProviderHint(cameraInfo.deviceName().toLatin1())))
+    : QCamera(cameraInfo.deviceName().toLatin1(), parent)
 {
-    Q_D(QCamera);
-    d->init();
-
-    if (d->service != 0 && d->deviceControl) {
-        for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
-            if (d->deviceControl->deviceName(i) == cameraInfo.deviceName()) {
-                d->deviceControl->setSelectedDevice(i);
-                break;
-            }
-        }
-    }
 }
 
 /*!
