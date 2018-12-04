@@ -272,33 +272,6 @@ GstElement *QGstreamerPlayerSession::playbin() const
     return m_playbin;
 }
 
-void QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
-{
-    GstBus *bus = pipeline ? gst_element_get_bus(pipeline) : nullptr;
-    if (!bus)
-        return;
-
-    gst_object_unref(GST_OBJECT(m_pipeline));
-    m_pipeline = pipeline;
-    gst_object_unref(GST_OBJECT(m_bus));
-    m_bus = bus;
-    delete m_busHelper;
-    m_busHelper = new QGstreamerBusHelper(m_bus, this);
-    m_busHelper->installMessageFilter(this);
-
-    if (m_videoOutput)
-        m_busHelper->installMessageFilter(m_videoOutput);
-
-    if (m_playbin) {
-        gst_element_set_state(m_playbin, GST_STATE_NULL);
-        gst_object_unref(GST_OBJECT(m_playbin));
-    }
-
-    m_playbin = nullptr;
-    m_volumeElement = nullptr;
-    m_videoIdentity = nullptr;
-}
-
 #if QT_CONFIG(gstreamer_app)
 void QGstreamerPlayerSession::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerPlayerSession* self)
 {
@@ -364,6 +337,22 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     }
 #endif
 
+    if (m_request.url().scheme() == QLatin1String("gst-pipeline")) {
+        QString url = m_request.url().toString(QUrl::RemoveScheme);
+        QString pipeline = QUrl::fromPercentEncoding(url.toLatin1().constData());
+        GError *err = nullptr;
+        GstElement *element = gst_parse_launch(pipeline.toLatin1().constData(), &err);
+        if (err) {
+            auto errstr = QLatin1String(err->message);
+            qWarning() << "Error:" << pipeline << ":" << errstr;
+            emit error(QMediaPlayer::FormatError, errstr);
+            g_clear_error(&err);
+        }
+
+        setPipeline(element);
+        return;
+    }
+
     if (m_playbin) {
         m_tags.clear();
         emit tagsChanged();
@@ -377,6 +366,48 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
             emit streamsChanged();
         }
     }
+}
+
+void QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
+{
+    GstBus *bus = pipeline ? gst_element_get_bus(pipeline) : nullptr;
+    if (!bus)
+        return;
+
+    gst_object_unref(GST_OBJECT(m_pipeline));
+    m_pipeline = pipeline;
+    gst_object_unref(GST_OBJECT(m_bus));
+    m_bus = bus;
+    delete m_busHelper;
+    m_busHelper = new QGstreamerBusHelper(m_bus, this);
+    m_busHelper->installMessageFilter(this);
+
+    if (m_videoOutput)
+        m_busHelper->installMessageFilter(m_videoOutput);
+
+    if (m_playbin) {
+        gst_element_set_state(m_playbin, GST_STATE_NULL);
+        gst_object_unref(GST_OBJECT(m_playbin));
+    }
+
+    m_playbin = nullptr;
+    m_volumeElement = nullptr;
+    m_videoIdentity = nullptr;
+
+    if (m_renderer) {
+        auto it = gst_bin_iterate_sinks(GST_BIN(pipeline));
+        GValue data = { 0, 0 };
+        while (gst_iterator_next (it, &data) == GST_ITERATOR_OK) {
+            auto child = static_cast<GstElement*>(g_value_get_object(&data));
+            if (QLatin1String(GST_OBJECT_NAME(child)) == QLatin1String("qtvideosink")) {
+                m_renderer->setVideoSink(child);
+                break;
+            }
+        }
+        gst_iterator_free(it);
+    }
+
+    emit pipelineChanged();
 }
 
 qint64 QGstreamerPlayerSession::duration() const
@@ -581,9 +612,6 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
     QGstreamerVideoRendererInterface* renderer = qobject_cast<QGstreamerVideoRendererInterface*>(videoOutput);
 
     m_renderer = renderer;
-
-    // If custom pipeline is considered to use video sink from the renderer
-    // need to create the pipeline when the renderer is ready.
     emit rendererChanged();
 
     // No sense to continue if custom pipeline requested.
