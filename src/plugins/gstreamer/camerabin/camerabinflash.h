@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 class CameraBinSession;
 
-class Q_MULTIMEDIA_EXPORT CameraBinFlash : public QCameraFlashControl
+class CameraBinFlash : public QCameraFlashControl
 {
     Q_OBJECT
 public:
