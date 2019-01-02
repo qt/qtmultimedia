@@ -64,7 +64,7 @@ VideoWidget::VideoWidget(QWidget *parent)
     setAttribute(Qt::WA_NoSystemBackground, true);
 
     QPalette palette = this->palette();
-    palette.setColor(QPalette::Background, Qt::black);
+    palette.setColor(QPalette::Window, Qt::black);
     setPalette(palette);
 
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);

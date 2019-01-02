@@ -53,7 +53,7 @@ public:
     {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         QPalette palette;
-        palette.setColor(QPalette::Background, Qt::black);
+        palette.setColor(QPalette::Window, Qt::black);
         setPalette(palette);
     }
 
@@ -80,7 +80,7 @@ public:
     void paint_helper()
     {
         QPainter painter(this);
-        painter.fillRect(rect(), palette().background());
+        painter.fillRect(rect(), palette().window());
     }
 
 protected:

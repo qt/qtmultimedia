@@ -623,7 +623,7 @@ QVideoWidget::QVideoWidget(QVideoWidgetPrivate &dd, QWidget *parent)
     d_ptr->q_ptr = this;
 
     QPalette palette = QWidget::palette();
-    palette.setColor(QPalette::Background, Qt::black);
+    palette.setColor(QPalette::Window, Qt::black);
     setPalette(palette);
 }
 
