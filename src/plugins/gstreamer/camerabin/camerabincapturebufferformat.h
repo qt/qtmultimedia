@@ -52,7 +52,7 @@ class CameraBinSession;
 
 QT_USE_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT CameraBinCaptureBufferFormat : public QCameraCaptureBufferFormatControl
+class CameraBinCaptureBufferFormat : public QCameraCaptureBufferFormatControl
 {
     Q_OBJECT
 public:

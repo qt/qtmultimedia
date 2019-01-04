@@ -1308,7 +1308,8 @@ void QGstUtils::setMetaData(GstBin *bin, const QMap<QByteArray, QVariant> &data)
 
 GstCaps *QGstUtils::videoFilterCaps()
 {
-    static GstStaticCaps staticCaps = GST_STATIC_CAPS(
+    static GstStaticCaps staticCaps = {
+        NULL,
 #if GST_CHECK_VERSION(1,2,0)
         "video/x-raw(ANY);"
 #elif GST_CHECK_VERSION(1,0,0)
@@ -1320,7 +1321,9 @@ GstCaps *QGstUtils::videoFilterCaps()
         "video/x-android-buffer;"
 #endif
         "image/jpeg;"
-        "video/x-h264");
+        "video/x-h264",
+        GST_PADDING_INIT
+    };
 
     return gst_caps_make_writable(gst_static_caps_get(&staticCaps));
 }

@@ -1500,7 +1500,7 @@ void tst_QCamera::testCameraLockCancel()
 {
     MockCameraService service;
     provider->service = &service;
-    QCamera camera(0, provider);
+    QCamera camera;
 
     camera.focus()->setFocusMode(QCameraFocus::AutoFocus);
 

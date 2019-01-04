@@ -44,6 +44,7 @@
 #include <QtMultimedia/qvideosurfaceformat.h>
 #include <QtMultimedia/qcameraimagecapture.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qvideoframe_p.h>
 
 #include "dscamerasession.h"
 #include "dsvideorenderer.h"
@@ -67,6 +68,7 @@ DSCameraSession::DSCameraSession(QObject *parent)
     , m_previewStarted(false)
     , m_surface(nullptr)
     , m_previewPixelFormat(QVideoFrame::Format_Invalid)
+    , m_stride(-1)
     , m_readyForCapture(false)
     , m_imageIdCounter(0)
     , m_currentImageId(-1)
@@ -502,7 +504,7 @@ failed:
     if (m_surface && m_surface->isActive())
         m_surface->stop();
     disconnectGraph();
-    setError(QCamera::CameraError, errorString);
+    setError(QCamera::CameraError, errorString, hr);
     return false;
 }
 
@@ -541,12 +543,13 @@ bool DSCameraSession::stopPreview()
     return true;
 
 failed:
-    setError(QCamera::CameraError, errorString);
+    setError(QCamera::CameraError, errorString, hr);
     return false;
 }
 
-void DSCameraSession::setError(int error, const QString &errorString)
+void DSCameraSession::setError(int error, const QString &errorString, HRESULT hr)
 {
+    qErrnoWarning(hr, "[0x%x] %s", hr, qPrintable(errorString));
     emit cameraError(error, errorString);
     setStatus(QCamera::UnloadedStatus);
 }
@@ -608,16 +611,9 @@ void DSCameraSession::onFrameAvailable(double time, const QByteArray &data)
 
     m_presentMutex.lock();
 
-    // If no frames provided from ISampleGrabber for some time
-    // the device might be potentially unplugged.
-    m_deviceLostEventTimer.start(100);
-
-    // (We should be getting only RGB32 data)
-    int stride = m_previewSize.width() * 4;
-
     // In case the source produces frames faster than we can display them,
     // only keep the most recent one
-    m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(data, stride),
+    m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(data, m_stride),
                                  m_previewSize,
                                  m_previewPixelFormat);
 
@@ -641,6 +637,10 @@ void DSCameraSession::onFrameAvailable(double time, const QByteArray &data)
 
 void DSCameraSession::presentFrame()
 {
+    // If no frames provided from ISampleGrabber for some time
+    // the device might be potentially unplugged.
+    m_deviceLostEventTimer.start(100);
+
     m_presentMutex.lock();
 
     if (m_currentFrame.isValid() && m_surface) {
@@ -656,17 +656,11 @@ void DSCameraSession::presentFrame()
     m_captureMutex.lock();
 
     if (m_capturedFrame.isValid()) {
-        Q_ASSERT(m_previewPixelFormat == QVideoFrame::Format_RGB32);
 
-        m_capturedFrame.map(QAbstractVideoBuffer::ReadOnly);
+        captureImage = qt_imageFromVideoFrame(m_capturedFrame);
 
-        captureImage = QImage(m_capturedFrame.bits(),
-                                m_previewSize.width(), m_previewSize.height(),
-                                QImage::Format_RGB32);
-
-        captureImage = captureImage.mirrored(m_needsHorizontalMirroring); // also causes a deep copy of the data
-
-        m_capturedFrame.unmap();
+        const bool needsVerticalMirroring = m_previewSurfaceFormat.scanLineDirection() != QVideoSurfaceFormat::TopToBottom;
+        captureImage = captureImage.mirrored(m_needsHorizontalMirroring, needsVerticalMirroring); // also causes a deep copy of the data
 
         QtConcurrent::run(this, &DSCameraSession::processCapturedImage,
                           m_currentImageId, m_captureDestinations, captureImage, m_imageCaptureFileName);
@@ -816,7 +810,7 @@ bool DSCameraSession::createFilterGraph()
     if (!m_previewSampleGrabber) {
         m_previewSampleGrabber = new DirectShowSampleGrabber;
         connect(m_previewSampleGrabber, &DirectShowSampleGrabber::bufferAvailable,
-                this, &DSCameraSession::onFrameAvailable);
+                this, &DSCameraSession::onFrameAvailable, Qt::DirectConnection);
     }
 
 
@@ -839,7 +833,7 @@ failed:
     SAFE_RELEASE(m_nullRendererFilter);
     SAFE_RELEASE(m_filterGraph);
     SAFE_RELEASE(m_graphBuilder);
-    setError(QCamera::CameraError, errorString);
+    setError(QCamera::CameraError, errorString, hr);
 
     return false;
 }
@@ -877,22 +871,34 @@ bool DSCameraSession::configurePreviewFormat()
     VIDEOINFOHEADER *videoInfo = reinterpret_cast<VIDEOINFOHEADER*>(m_sourceFormat->pbFormat);
     videoInfo->AvgTimePerFrame = 10000000 / resolvedViewfinderSettings.maximumFrameRate();
 
-    // We only support RGB32, if the capture source doesn't support
-    // that format, the graph builder will automatically insert a
-    // converter.
+    m_previewPixelFormat = resolvedViewfinderSettings.pixelFormat();
+    const AM_MEDIA_TYPE *resolvedGrabberFormat = &m_sourceFormat;
 
-    if (m_surface && !m_surface->supportedPixelFormats(QAbstractVideoBuffer::NoHandle)
-            .contains(QVideoFrame::Format_RGB32)) {
-        qWarning() << "Video surface needs to support RGB32 pixel format";
-        return false;
+    if (m_surface) {
+        const auto surfaceFormats = m_surface->supportedPixelFormats(QAbstractVideoBuffer::NoHandle);
+        if (!surfaceFormats.contains(m_previewPixelFormat)) {
+            if (surfaceFormats.contains(QVideoFrame::Format_RGB32)) {
+                // As a fallback, we support RGB32, if the capture source doesn't support
+                // that format, the graph builder will automatically insert a
+                // converter (when possible).
+
+                static const AM_MEDIA_TYPE rgb32GrabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_ARGB32, 0, 0, 0, FORMAT_VideoInfo, nullptr, 0, nullptr};
+                resolvedGrabberFormat = &rgb32GrabberFormat;
+                m_previewPixelFormat = QVideoFrame::Format_RGB32;
+
+            } else {
+                qWarning() << "Video surface needs to support at least RGB32 pixel format";
+                return false;
+            }
+        }
     }
 
-    m_previewPixelFormat = QVideoFrame::Format_RGB32;
     m_previewSize = resolvedViewfinderSettings.resolution();
     m_previewSurfaceFormat = QVideoSurfaceFormat(m_previewSize,
                                                  m_previewPixelFormat,
                                                  QAbstractVideoBuffer::NoHandle);
-    m_previewSurfaceFormat.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    m_previewSurfaceFormat.setScanLineDirection(DirectShowMediaType::scanLineDirection(m_previewPixelFormat, videoInfo->bmiHeader));
+    m_stride = DirectShowMediaType::bytesPerLine(m_previewSurfaceFormat);
 
     HRESULT hr;
     IAMStreamConfig* pConfig = 0;
@@ -913,9 +919,7 @@ bool DSCameraSession::configurePreviewFormat()
         return false;
     }
 
-    // Set sample grabber format
-    static const AM_MEDIA_TYPE grabberFormat { MEDIATYPE_Video, MEDIASUBTYPE_ARGB32, 0, 0, 0, FORMAT_VideoInfo, nullptr, 0, nullptr};
-    if (!m_previewSampleGrabber->setMediaType(&grabberFormat))
+    if (!m_previewSampleGrabber->setMediaType(resolvedGrabberFormat))
         return false;
 
     m_previewSampleGrabber->start(DirectShowSampleGrabber::CallbackMethod::BufferCB);

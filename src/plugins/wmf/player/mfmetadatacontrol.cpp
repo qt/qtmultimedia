@@ -299,7 +299,7 @@ void MFMetaDataControl::updateSource(IMFPresentationDescriptor* sourcePD, IMFMed
                     m_availableMetaDatas.push_back(QMediaMetaData::SubTitle);
                 } else if (key == PKEY_ParentalRating) {
                     m_availableMetaDatas.push_back(QMediaMetaData::ParentalRating);
-                } else if (key == PKEY_Comment) {
+                } else if (key == PKEY_Media_EncodingSettings) {
                     m_availableMetaDatas.push_back(QMediaMetaData::Description);
                 } else if (key == PKEY_Copyright) {
                     m_availableMetaDatas.push_back(QMediaMetaData::Copyright);

@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 class CameraBinSession;
 
-class Q_MULTIMEDIA_EXPORT CameraBinExposure : public QCameraExposureControl
+class CameraBinExposure : public QCameraExposureControl
 {
     Q_OBJECT
 
