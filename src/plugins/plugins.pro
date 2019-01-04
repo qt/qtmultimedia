@@ -44,12 +44,10 @@ winrt {
                audiocapture
 }
 
+qtConfig(gstreamer): SUBDIRS += gstreamer
+
 unix:!mac:!android {
-    qtConfig(gstreamer) {
-       SUBDIRS += gstreamer
-    } else {
-        SUBDIRS += audiocapture
-    }
+    !qtConfig(gstreamer): SUBDIRS += audiocapture
 
     qtConfig(pulseaudio): SUBDIRS += pulseaudio
     qtConfig(alsa): SUBDIRS += alsa
