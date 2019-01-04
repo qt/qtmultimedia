@@ -685,6 +685,51 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
     camerasCacheAgeTimer.restart();
 #endif // linux_v4l
 
+#if defined(Q_OS_WIN) && GST_CHECK_VERSION(1,4,0)
+    QGstUtils::initializeGst();
+    GstDeviceMonitor *monitor = gst_device_monitor_new();
+    auto caps = gst_caps_new_empty_simple("video/x-raw");
+    gst_device_monitor_add_filter(monitor, "Video/Source", caps);
+    gst_caps_unref(caps);
+
+    GList *devs = gst_device_monitor_get_devices(monitor);
+    while (devs) {
+        GstDevice *dev = reinterpret_cast<GstDevice*>(devs->data);
+        gchar *name = gst_device_get_display_name(dev);
+        gchar *desc = nullptr;
+
+        GstElement *element = gst_device_create_element(dev, nullptr);
+        if (element) {
+            GParamSpec *prop = g_object_class_find_property(G_OBJECT_GET_CLASS(element), "device-path");
+            if (prop) {
+                GValue value = G_VALUE_INIT;
+                g_value_init(&value, prop->value_type);
+                g_object_get_property(G_OBJECT(element), prop->name, &value);
+                desc = g_value_dup_string(&value);
+                g_value_unset(&value);
+
+                CameraInfo device = {
+                    desc,
+                    name,
+                    0,
+                    QCamera::UnspecifiedPosition,
+                    QByteArray()
+                };
+
+                devices.append(device);
+            }
+
+            gst_object_unref(element);
+        }
+
+        g_free(desc);
+        g_free(name);
+        gst_object_unref(dev);
+        devs = g_list_delete_link(devs, devs);
+    }
+    gst_object_unref(monitor);
+#endif // #if defined(Q_OS_WIN) && GST_CHECK_VERSION(1,4,0)
+
     return devices;
 }
 
