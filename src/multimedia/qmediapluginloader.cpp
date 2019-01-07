@@ -82,6 +82,7 @@ QList<QObject*> QMediaPluginLoader::instances(QString const &key)
     if (!m_metadata.contains(key))
         return QList<QObject*>();
 
+    QList<QString> keys;
     QList<QObject *> objects;
     const auto list = m_metadata.value(key);
     for (const QJsonObject &jsonobj : list) {
@@ -91,9 +92,38 @@ QList<QObject*> QMediaPluginLoader::instances(QString const &key)
 
         QObject *object = m_factoryLoader->instance(idx);
         if (!objects.contains(object)) {
+            QJsonArray arr = jsonobj.value(QStringLiteral("Keys")).toArray();
+            keys.append(!arr.isEmpty() ? arr.at(0).toString() : QStringLiteral(""));
             objects.append(object);
         }
     }
+
+    static const bool showDebug = qEnvironmentVariableIntValue("QT_DEBUG_PLUGINS");
+    static const QStringList preferredPlugins =
+        qEnvironmentVariable("QT_MULTIMEDIA_PREFERRED_PLUGINS").split(QLatin1Char(','), QString::SkipEmptyParts);
+    for (int i = preferredPlugins.size() - 1; i >= 0; --i) {
+        auto name = preferredPlugins[i];
+        bool found = false;
+        for (int j = 0; j < keys.size(); ++j) {
+            if (!keys[j].startsWith(name))
+                continue;
+
+            auto obj = objects[j];
+            objects.removeAt(j);
+            objects.prepend(obj);
+            auto k = keys[j];
+            keys.removeAt(j);
+            keys.prepend(k);
+            found = true;
+            break;
+        }
+
+        if (showDebug && !found)
+            qWarning() << "QMediaPluginLoader: pattern" << name << "did not match any loaded plugin";
+    }
+
+    if (showDebug)
+        qDebug() << "QMediaPluginLoader: loaded plugins for key" << key << ":" << keys;
 
     return objects;
 }
