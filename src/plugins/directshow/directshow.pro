@@ -17,12 +17,11 @@ mingw {
 }
 
 include(common/common.pri)
-qtConfig(directshow-player): include(player/player.pri)
+include(player/player.pri)
 include(camera/camera.pri)
 
 OTHER_FILES += \
-    directshow.json \
-    directshow_camera.json
+    directshow.json
 
 PLUGIN_TYPE = mediaservice
 PLUGIN_CLASS_NAME = DSServicePlugin

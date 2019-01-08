@@ -51,9 +51,7 @@
 #include <dshow.h>
 #include "dscameraservice.h"
 
-#if QT_CONFIG(directshow_player)
 #include "directshowplayerservice.h"
-#endif
 
 #include <qmediaserviceproviderplugin.h>
 
@@ -95,12 +93,11 @@ QMediaService* DSServicePlugin::create(QString const& key)
         addRefCount();
         return new DSCameraService;
     }
-#if QT_CONFIG(directshow_player)
+
     if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
         addRefCount();
         return new DirectShowPlayerService;
     }
-#endif
 
     return 0;
 }

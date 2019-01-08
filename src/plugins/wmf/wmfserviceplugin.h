@@ -55,11 +55,8 @@ class WMFServicePlugin
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
-#if QT_CONFIG(wmf_player)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "wmf.json")
-#else
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "wmf_audiodecode.json")
-#endif
+
 public:
     QMediaService* create(QString const& key);
     void release(QMediaService *service);

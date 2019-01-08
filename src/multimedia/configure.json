@@ -12,9 +12,7 @@
             "directshow": { "type": "boolean" },
             "wmf": { "type": "boolean" },
             "gstreamer": { "type": "optionalString", "values": [ "no", "yes", "0.10", "1.0" ] },
-            "pulseaudio": "boolean",
-            "mediaplayer-backend": { "type": "string", "values": [ "directshow", "wmf" ] },
-            "wmf-backend": { "type": "void", "name": "mediaplayer-backend", "value": "wmf" }
+            "pulseaudio": "boolean"
         }
     },
 
@@ -190,13 +188,6 @@
             "condition": "config.win32 && libs.directshow",
             "output": [ "feature", "privateFeature" ]
         },
-        "directshow-player": {
-            "label": "DirectShow",
-            "enable": "input.mediaplayer-backend == 'directshow'",
-            "disable": "input.mediaplayer-backend == 'wmf'",
-            "condition": "features.directshow && !features.wmf-player",
-            "output": [ "privateFeature" ]
-        },
         "evr": {
             "label": "evr.h",
             "condition": "config.win32 && tests.evr",
@@ -286,13 +277,6 @@
             "label": "Windows Media Foundation",
             "condition": "config.win32 && libs.wmf",
             "output": [ "privateFeature" ]
-        },
-        "wmf-player": {
-            "label": "Windows Media Foundation",
-            "enable": "input.mediaplayer-backend == 'wmf'",
-            "disable": "input.mediaplayer-backend != 'wmf'",
-            "condition": "features.wmf",
-            "output": [ "privateFeature" ]
         }
     },
 
@@ -314,14 +298,7 @@
                 "avfoundation",
                 "wasapi",
                 "directshow",
-                "wmf",
-                {
-                    "message": "Media player backend",
-                    "type": "firstAvailableFeature",
-                    "args": "directshow-player wmf-player",
-                    "condition": "config.win32"
-                }
-
+                "wmf"
             ]
         }
     ]

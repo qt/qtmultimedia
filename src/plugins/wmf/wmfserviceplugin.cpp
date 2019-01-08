@@ -42,9 +42,7 @@
 #include <QtCore/QFile>
 
 #include "wmfserviceplugin.h"
-#if QT_CONFIG(wmf_player)
 #include "mfplayerservice.h"
-#endif
 #include "mfdecoderservice.h"
 
 #include <mfapi.h>
@@ -74,12 +72,11 @@ void releaseRefCount()
 
 QMediaService* WMFServicePlugin::create(QString const& key)
 {
-#if QT_CONFIG(wmf_player)
     if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
         addRefCount();
         return new MFPlayerService;
     }
-#endif
+
     if (key == QLatin1String(Q_MEDIASERVICE_AUDIODECODER)) {
         addRefCount();
         return new MFAudioDecoderService;
@@ -97,13 +94,9 @@ void WMFServicePlugin::release(QMediaService *service)
 QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
         const QByteArray &service) const
 {
-#if QT_CONFIG(wmf_player)
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
         return QMediaServiceProviderHint::StreamPlayback;
     else
-#else
-    Q_UNUSED(service);
-#endif
         return QMediaServiceProviderHint::Features();
 }
 

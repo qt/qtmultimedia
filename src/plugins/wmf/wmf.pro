@@ -17,12 +17,11 @@ SOURCES += \
     mfstream.cpp \
     sourceresolver.cpp
 
-qtConfig(wmf-player): include (player/player.pri)
+include (player/player.pri)
 include (decoder/decoder.pri)
 
 OTHER_FILES += \
-    wmf.json \
-    wmf_audiodecode.json
+    wmf.json
 
 PLUGIN_TYPE = mediaservice
 PLUGIN_CLASS_NAME = WMFServicePlugin

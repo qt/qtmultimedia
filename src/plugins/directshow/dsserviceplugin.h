@@ -55,13 +55,7 @@ class DSServicePlugin
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
-    // The player service provided by the WMF-plugin should preferably be used.
-    // DirectShow should then only provide the camera (see QTBUG-29172, QTBUG-29175).
-#if QT_CONFIG(directshow_player)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "directshow.json")
-#else
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "directshow_camera.json")
-#endif
 
 public:
     QMediaService* create(QString const& key) override;

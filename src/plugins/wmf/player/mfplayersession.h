@@ -62,9 +62,6 @@ QT_END_NAMESPACE
 QT_USE_NAMESPACE
 
 class SourceResolver;
-#ifndef Q_WS_SIMULATOR
-class EvrVideoWindowControl;
-#endif
 class MFAudioEndpointControl;
 class MFVideoRendererControl;
 class MFPlayerControl;
