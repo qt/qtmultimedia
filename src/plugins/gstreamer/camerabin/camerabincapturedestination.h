@@ -49,7 +49,7 @@ class CameraBinSession;
 
 QT_USE_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT CameraBinCaptureDestination : public QCameraCaptureDestinationControl
+class CameraBinCaptureDestination : public QCameraCaptureDestinationControl
 {
     Q_OBJECT
 public:

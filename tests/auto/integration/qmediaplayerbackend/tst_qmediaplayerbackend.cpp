@@ -308,13 +308,17 @@ void tst_QMediaPlayerBackend::unloadMedia()
 
 void tst_QMediaPlayerBackend::loadMediaInLoadingState()
 {
-    const QUrl url("http://unavailable.media/");
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
     QMediaPlayer player;
-    player.setMedia(QMediaContent(url));
+    player.setMedia(localWavFile);
     player.play();
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::LoadingMedia);
     // Sets new media while old has not been finished.
-    player.setMedia(QMediaContent(url));
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::InvalidMedia);
+    player.setMedia(localWavFile);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::LoadingMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 }
 
 void tst_QMediaPlayerBackend::playPauseStop()
