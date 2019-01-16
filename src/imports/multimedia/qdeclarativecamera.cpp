@@ -181,8 +181,8 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_pendingState(ActiveState),
     m_componentComplete(false)
 {
-    m_camera = new QCamera;
-    m_currentCameraInfo = QCameraInfo(*m_camera);
+    m_currentCameraInfo = QCameraInfo::defaultCamera();
+    m_camera = new QCamera(m_currentCameraInfo);
 
     m_imageCapture = new QDeclarativeCameraCapture(m_camera);
     m_videoRecorder = new QDeclarativeCameraRecorder(m_camera);

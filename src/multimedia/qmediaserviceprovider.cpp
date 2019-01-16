@@ -576,8 +576,11 @@ public:
             const QMediaServiceDefaultDeviceInterface *iface =
                     qobject_cast<QMediaServiceDefaultDeviceInterface*>(obj);
 
-            if (iface)
-                return iface->defaultDevice(serviceType);
+            if (iface) {
+                QByteArray name = iface->defaultDevice(serviceType);
+                if (!name.isEmpty())
+                    return name;
+            }
         }
 
         // if QMediaServiceDefaultDeviceInterface is not implemented, return the
