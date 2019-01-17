@@ -49,6 +49,7 @@
 #include <qcameraimagecapture.h>
 #include <qvideorenderercontrol.h>
 #include <private/qmediaserviceprovider_p.h>
+#include <private/qvideoframe_p.h>
 
 QT_USE_NAMESPACE
 
@@ -408,8 +409,6 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
 
-    QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_Jpeg);
-
     QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToFile));
     QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer));
     QVERIFY(imageCapture.isCaptureDestinationSupported(
@@ -446,23 +445,9 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
 
     QVideoFrame frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-    QVERIFY(frame.isValid());
-    QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_Jpeg);
-    QVERIFY(!frame.size().isEmpty());
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
-    QByteArray data((const char *)frame.bits(), frame.mappedBytes());
-    frame.unmap();
+    QVERIFY(!qt_imageFromVideoFrame(frame).isNull());
+
     frame = QVideoFrame();
-
-    QVERIFY(!data.isEmpty());
-    QBuffer buffer;
-    buffer.setData(data);
-    buffer.open(QIODevice::ReadOnly);
-    QImageReader reader(&buffer, "JPG");
-    reader.setScaledSize(QSize(640,480));
-    QImage img(reader.read());
-    QVERIFY(!img.isNull());
-
     capturedSignal.clear();
     imageAvailableSignal.clear();
     savedSignal.clear();
@@ -518,9 +503,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
         QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
 
         frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-        QVERIFY(frame.isValid());
-        QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_Jpeg);
-        QVERIFY(!frame.size().isEmpty());
+        QVERIFY(!qt_imageFromVideoFrame(frame).isNull());
 
         QString fileName = savedSignal.first().last().toString();
         QVERIFY(QFileInfo(fileName).exists());
