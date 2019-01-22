@@ -49,9 +49,6 @@
 ****************************************************************************/
 
 #include <qendian.h>
-#include <QVector>
-#include <QDebug>
-#include "utils.h"
 #include "wavfile.h"
 
 struct chunk
@@ -109,7 +106,7 @@ const QAudioFormat &WavFile::fileFormat() const
 
 qint64 WavFile::headerLength() const
 {
-return m_headerLength;
+    return m_headerLength;
 }
 
 bool WavFile::readHeader()

@@ -44,6 +44,7 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qvariant.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qset.h>
 #include <QtCore/qstringlist.h>
@@ -849,7 +850,7 @@ QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFac
                             if (value) {
                                 gchar *str = gst_value_serialize(value);
                                 QString versions = QLatin1String(str);
-                                const QStringList elements = versions.split(QRegExp(QLatin1String("\\D+")), QString::SkipEmptyParts);
+                                const QStringList elements = versions.split(QRegularExpression(QLatin1String("\\D+")), QString::SkipEmptyParts);
                                 for (const QString &e : elements)
                                     supportedMimeTypes.insert(nameLowcase + e);
                                 g_free(str);
@@ -1511,10 +1512,11 @@ QString QGstUtils::fileExtensionForMimeType(const QString &mimeType)
     if (!extension.isEmpty() || format.isEmpty())
         return extension;
 
-    QRegExp rx(QStringLiteral("[-/]([\\w]+)$"));
+    QRegularExpression rx(QStringLiteral("[-/]([\\w]+)$"));
+    QRegularExpressionMatch match = rx.match(format);
 
-    if (rx.indexIn(format) != -1)
-        extension = rx.cap(1);
+    if (match.hasMatch())
+        extension = match.captured(1);
 
     return extension;
 }
