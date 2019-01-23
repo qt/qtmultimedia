@@ -55,7 +55,7 @@
 #include <QtCore/qtimer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qdatetime.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
 
 #include "qaudio.h"
@@ -131,11 +131,11 @@ private:
     int m_periodSize;
     int m_bufferSize;
     int m_maxBufferSize;
-    QTime m_clockStamp;
+    QElapsedTimer m_clockStamp;
     qint64 m_totalTimeValue;
     QTimer *m_tickTimer;
     char *m_audioBuffer;
-    QTime m_timeStamp;
+    QElapsedTimer m_timeStamp;
     qint64 m_elapsedTimeOffset;
     bool m_resuming;
     QString m_category;

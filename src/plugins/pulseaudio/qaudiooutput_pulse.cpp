@@ -496,8 +496,7 @@ void QPulseAudioOutput::userFeed()
 
     if (m_notifyInterval && (m_timeStamp.elapsed() + m_elapsedTimeOffset) > m_notifyInterval) {
         emit notify();
-        m_elapsedTimeOffset = m_timeStamp.elapsed() + m_elapsedTimeOffset - m_notifyInterval;
-        m_timeStamp.restart();
+        m_elapsedTimeOffset = m_timeStamp.restart() + m_elapsedTimeOffset - m_notifyInterval;
     }
 }
 
