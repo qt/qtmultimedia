@@ -686,7 +686,25 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
     camerasCacheAgeTimer.restart();
 #endif // linux_v4l
 
-#if defined(Q_OS_WIN) && GST_CHECK_VERSION(1,4,0)
+#if GST_CHECK_VERSION(1,4,0) && (defined(Q_OS_WIN) || defined(Q_OS_MACOS))
+    if (!devices.isEmpty())
+        return devices;
+
+#if defined(Q_OS_WIN)
+    const char *propName = "device-path";
+    auto deviceDesc = [](GValue *value) {
+        gchar *desc = g_value_dup_string(value);
+        const QString id = QLatin1String(desc);
+        g_free(desc);
+        return id;
+    };
+#elif defined(Q_OS_MACOS)
+    const char *propName = "device-index";
+    auto deviceDesc = [](GValue *value) {
+        return QString::number(g_value_get_int(value));
+    };
+#endif
+
     QGstUtils::initializeGst();
     GstDeviceMonitor *monitor = gst_device_monitor_new();
     auto caps = gst_caps_new_empty_simple("video/x-raw");
@@ -696,22 +714,22 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
     GList *devs = gst_device_monitor_get_devices(monitor);
     while (devs) {
         GstDevice *dev = reinterpret_cast<GstDevice*>(devs->data);
-        gchar *name = gst_device_get_display_name(dev);
-        gchar *desc = nullptr;
-
         GstElement *element = gst_device_create_element(dev, nullptr);
         if (element) {
-            GParamSpec *prop = g_object_class_find_property(G_OBJECT_GET_CLASS(element), "device-path");
+            gchar *name = gst_device_get_display_name(dev);
+            const QString deviceName = QLatin1String(name);
+            g_free(name);
+            GParamSpec *prop = g_object_class_find_property(G_OBJECT_GET_CLASS(element), propName);
             if (prop) {
                 GValue value = G_VALUE_INIT;
                 g_value_init(&value, prop->value_type);
                 g_object_get_property(G_OBJECT(element), prop->name, &value);
-                desc = g_value_dup_string(&value);
+                const QString deviceId = deviceDesc(&value);
                 g_value_unset(&value);
 
                 CameraInfo device = {
-                    desc,
-                    name,
+                    deviceId,
+                    deviceName,
                     0,
                     QCamera::UnspecifiedPosition,
                     QByteArray()
@@ -723,13 +741,11 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
             gst_object_unref(element);
         }
 
-        g_free(desc);
-        g_free(name);
         gst_object_unref(dev);
         devs = g_list_delete_link(devs, devs);
     }
     gst_object_unref(monitor);
-#endif // #if defined(Q_OS_WIN) && GST_CHECK_VERSION(1,4,0)
+#endif // GST_CHECK_VERSION(1,4,0) && (defined(Q_OS_WIN) || defined(Q_OS_MACOS))
 
     return devices;
 }

@@ -544,6 +544,9 @@ GstElement *CameraBinSession::buildCameraSource()
                 if (!m_videoSrc)
                     m_videoSrc = gst_element_factory_make("ksvideosrc", "camera_source");
 
+                if (!m_videoSrc)
+                    m_videoSrc = gst_element_factory_make("avfvideosrc", "camera_source");
+
                 if (m_videoSrc)
                     g_object_set(G_OBJECT(m_cameraSrc), "video-source", m_videoSrc, NULL);
             }
@@ -554,6 +557,9 @@ GstElement *CameraBinSession::buildCameraSource()
 
                 if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "device-path"))
                     g_object_set(G_OBJECT(m_videoSrc), "device-path", m_inputDevice.toUtf8().constData(), NULL);
+
+                if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "device-index"))
+                    g_object_set(G_OBJECT(m_videoSrc), "device-index", m_inputDevice.toInt(), NULL);
             }
         } else if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_cameraSrc), "camera-device")) {
             if (m_inputDevice == QLatin1String("secondary")) {
