@@ -78,6 +78,7 @@ public:
 
     ~QGstVideoBuffer();
 
+    GstBuffer *buffer() const { return m_buffer; }
     MapMode mapMode() const override;
 
 #if GST_CHECK_VERSION(1,0,0)
