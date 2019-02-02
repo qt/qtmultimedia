@@ -148,6 +148,11 @@ namespace QGstUtils {
     Q_GSTTOOLS_EXPORT QPair<qreal, qreal> structureFrameRateRange(const GstStructure *s);
 
     Q_GSTTOOLS_EXPORT QString fileExtensionForMimeType(const QString &mimeType);
+
+#if GST_CHECK_VERSION(0,10,30)
+    Q_GSTTOOLS_EXPORT QVariant fromGStreamerOrientation(const QVariant &value);
+    Q_GSTTOOLS_EXPORT QVariant toGStreamerOrientation(const QVariant &value);
+#endif
 }
 
 Q_GSTTOOLS_EXPORT void qt_gst_object_ref_sink(gpointer object);

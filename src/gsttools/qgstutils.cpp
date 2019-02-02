@@ -1521,6 +1521,37 @@ QString QGstUtils::fileExtensionForMimeType(const QString &mimeType)
     return extension;
 }
 
+#if GST_CHECK_VERSION(0,10,30)
+QVariant QGstUtils::fromGStreamerOrientation(const QVariant &value)
+{
+    // Note gstreamer tokens either describe the counter clockwise rotation of the
+    // image or the clockwise transform to apply to correct the image.  The orientation
+    // value returned is the clockwise rotation of the image.
+    const QString token = value.toString();
+    if (token == QStringLiteral("rotate-90"))
+        return 270;
+    if (token == QStringLiteral("rotate-180"))
+        return 180;
+    if (token == QStringLiteral("rotate-270"))
+        return 90;
+    return 0;
+}
+
+QVariant QGstUtils::toGStreamerOrientation(const QVariant &value)
+{
+    switch (value.toInt()) {
+    case 90:
+        return QStringLiteral("rotate-270");
+    case 180:
+        return QStringLiteral("rotate-180");
+    case 270:
+        return QStringLiteral("rotate-90");
+    default:
+        return QStringLiteral("rotate-0");
+    }
+}
+#endif
+
 void qt_gst_object_ref_sink(gpointer object)
 {
 #if GST_CHECK_VERSION(0,10,24)

@@ -124,6 +124,10 @@ Scene {
                 color: "#e0e0e0"
                 text: "Seekable:" + content.contentItem().metaData.seekable
             }
+            Text {
+                color: "#e0e0e0"
+                text: "Orientation:" + content.contentItem().metaData.orientation
+            }
         }
     }
 
