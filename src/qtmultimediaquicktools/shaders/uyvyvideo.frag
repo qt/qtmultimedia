@@ -1,3 +1,4 @@
+// Reference: qgsvideonode_yuv.cpp:387 to 398
 uniform sampler2D yTexture; // Y component passed as GL_LUMINANCE_ALPHA, in uyvy Y = a
 uniform sampler2D uvTexture; // UV component passed as RGBA macropixel, in uyvy U = r, V = b
 uniform mediump mat4 colorMatrix;
