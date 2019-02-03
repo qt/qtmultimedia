@@ -57,6 +57,10 @@
 #include <qwindow.h>
 #include <private/qhighdpiscaling_p.h>
 
+#ifdef Q_OS_WIN
+#include <QtCore/qt_windows.h>
+#endif
+
 using namespace Qt;
 
 QT_BEGIN_NAMESPACE
