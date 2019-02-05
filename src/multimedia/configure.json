@@ -235,7 +235,7 @@
         },
         "gpu_vivante": {
             "label": "Vivante GPU",
-            "condition": "features.opengles2 && tests.gpu_vivante",
+            "condition": "features.gui && features.opengles2 && tests.gpu_vivante",
             "output": [ "privateFeature" ]
         },
         "resourcepolicy": {
