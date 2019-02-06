@@ -42,6 +42,7 @@
 
 #include <QObject>
 #include <QtCore/private/qjni_p.h>
+#include <QAudio>
 
 QT_BEGIN_NAMESPACE
 
@@ -116,6 +117,8 @@ public:
     void setVolume(int volume);
     bool setPlaybackRate(qreal rate);
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
+    void setAudioRole(QAudio::Role role);
+    void setCustomAudioRole(const QString &role);
 
     static bool initJNI(JNIEnv *env);
 

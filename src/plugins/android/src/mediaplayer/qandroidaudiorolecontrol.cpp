@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,37 +37,41 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASERVICE_H
-#define QANDROIDMEDIASERVICE_H
-
-#include <QMediaService>
+#include "qandroidaudiorolecontrol.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaPlayerControl;
-class QAndroidMetaDataReaderControl;
-class QAndroidAudioRoleControl;
-class QAndroidCustomAudioRoleControl;
-class QAndroidMediaPlayerVideoRendererControl;
-
-class QAndroidMediaService : public QMediaService
+QAndroidAudioRoleControl::QAndroidAudioRoleControl(QObject *parent)
+    : QAudioRoleControl(parent)
 {
-    Q_OBJECT
-public:
-    explicit QAndroidMediaService(QObject *parent = 0);
-    ~QAndroidMediaService() override;
+}
 
-    QMediaControl* requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+QAudio::Role QAndroidAudioRoleControl::audioRole() const
+{
+    return m_role;
+}
 
-private:
-    QAndroidMediaPlayerControl *mMediaControl;
-    QAndroidMetaDataReaderControl *mMetadataControl;
-    QAndroidAudioRoleControl *mAudioRoleControl;
-    QAndroidCustomAudioRoleControl *mCustomAudioRoleControl;
-    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl;
-};
+void QAndroidAudioRoleControl::setAudioRole(QAudio::Role role)
+{
+    if (m_role == role)
+        return;
+
+    m_role = role;
+    emit audioRoleChanged(m_role);
+}
+
+QList<QAudio::Role> QAndroidAudioRoleControl::supportedAudioRoles() const
+{
+    return QList<QAudio::Role>()
+        << QAudio::VoiceCommunicationRole
+        << QAudio::MusicRole
+        << QAudio::VideoRole
+        << QAudio::SonificationRole
+        << QAudio::AlarmRole
+        << QAudio::NotificationRole
+        << QAudio::RingtoneRole
+        << QAudio::AccessibilityRole
+        << QAudio::GameRole;
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDMEDIASERVICE_H

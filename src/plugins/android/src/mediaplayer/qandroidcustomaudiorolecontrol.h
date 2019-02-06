@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,37 +37,27 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASERVICE_H
-#define QANDROIDMEDIASERVICE_H
+#ifndef QANDROIDCUSTOMAUDIOROLECONTROL_H
+#define QANDROIDCUSTOMAUDIOROLECONTROL_H
 
-#include <QMediaService>
+#include <qcustomaudiorolecontrol.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaPlayerControl;
-class QAndroidMetaDataReaderControl;
-class QAndroidAudioRoleControl;
-class QAndroidCustomAudioRoleControl;
-class QAndroidMediaPlayerVideoRendererControl;
-
-class QAndroidMediaService : public QMediaService
+class QAndroidCustomAudioRoleControl : public QCustomAudioRoleControl
 {
     Q_OBJECT
 public:
-    explicit QAndroidMediaService(QObject *parent = 0);
-    ~QAndroidMediaService() override;
+    explicit QAndroidCustomAudioRoleControl(QObject *parent = nullptr);
 
-    QMediaControl* requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QString customAudioRole() const override;
+    void setCustomAudioRole(const QString &role) override;
+    QStringList supportedCustomAudioRoles() const override;
 
 private:
-    QAndroidMediaPlayerControl *mMediaControl;
-    QAndroidMetaDataReaderControl *mMetadataControl;
-    QAndroidAudioRoleControl *mAudioRoleControl;
-    QAndroidCustomAudioRoleControl *mCustomAudioRoleControl;
-    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl;
+    QString m_role;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMEDIASERVICE_H
+#endif // QANDROIDCUSTOMAUDIOROLECONTROL_H

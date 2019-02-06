@@ -85,6 +85,8 @@ public Q_SLOTS:
     void stop() override;
     void setVolume(int volume) override;
     void setMuted(bool muted) override;
+    void setAudioRole(QAudio::Role role);
+    void setCustomAudioRole(const QString &role);
 
 private Q_SLOTS:
     void onVideoOutputReady(bool ready);

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,37 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASERVICE_H
-#define QANDROIDMEDIASERVICE_H
-
-#include <QMediaService>
+#include "qandroidcustomaudiorolecontrol.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaPlayerControl;
-class QAndroidMetaDataReaderControl;
-class QAndroidAudioRoleControl;
-class QAndroidCustomAudioRoleControl;
-class QAndroidMediaPlayerVideoRendererControl;
-
-class QAndroidMediaService : public QMediaService
+QAndroidCustomAudioRoleControl::QAndroidCustomAudioRoleControl(QObject *parent)
+    : QCustomAudioRoleControl(parent)
 {
-    Q_OBJECT
-public:
-    explicit QAndroidMediaService(QObject *parent = 0);
-    ~QAndroidMediaService() override;
+}
 
-    QMediaControl* requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+QString QAndroidCustomAudioRoleControl::customAudioRole() const
+{
+    return m_role;
+}
 
-private:
-    QAndroidMediaPlayerControl *mMediaControl;
-    QAndroidMetaDataReaderControl *mMetadataControl;
-    QAndroidAudioRoleControl *mAudioRoleControl;
-    QAndroidCustomAudioRoleControl *mCustomAudioRoleControl;
-    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl;
-};
+void QAndroidCustomAudioRoleControl::setCustomAudioRole(const QString &role)
+{
+    if (m_role == role)
+        return;
+
+    m_role = role;
+    emit customAudioRoleChanged(m_role);
+}
+
+QStringList QAndroidCustomAudioRoleControl::supportedCustomAudioRoles() const
+{
+    return QStringList()
+        << "CONTENT_TYPE_MOVIE"
+        << "CONTENT_TYPE_MUSIC"
+        << "CONTENT_TYPE_SONIFICATION"
+        << "CONTENT_TYPE_SPEECH"
+        << "USAGE_ALARM"
+        << "USAGE_ASSISTANCE_ACCESSIBILITY"
+        << "USAGE_ASSISTANCE_NAVIGATION_GUIDANCE"
+        << "USAGE_ASSISTANCE_SONIFICATION"
+        << "USAGE_ASSISTANT"
+        << "USAGE_GAME"
+        << "USAGE_MEDIA"
+        << "USAGE_NOTIFICATION"
+        << "USAGE_NOTIFICATION_COMMUNICATION_DELAYED"
+        << "USAGE_NOTIFICATION_COMMUNICATION_INSTANT"
+        << "USAGE_NOTIFICATION_COMMUNICATION_REQUEST"
+        << "USAGE_NOTIFICATION_EVENT"
+        << "USAGE_NOTIFICATION_RINGTONE"
+        << "USAGE_VOICE_COMMUNICATION"
+        << "USAGE_VOICE_COMMUNICATION_SIGNALLING";
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDMEDIASERVICE_H
