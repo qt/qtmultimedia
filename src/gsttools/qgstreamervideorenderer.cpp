@@ -113,7 +113,6 @@ void QGstreamerVideoRenderer::setSurface(QAbstractVideoSurface *surface)
         if (m_surface) {
             connect(m_surface.data(), SIGNAL(supportedFormatsChanged()),
                     this, SLOT(handleFormatChange()));
-            QVideoSurfaceGstSink::setSurface(m_surface);
         }
 
         if (wasReady != isReady())
