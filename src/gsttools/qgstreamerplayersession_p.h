@@ -94,7 +94,6 @@ public:
     virtual ~QGstreamerPlayerSession();
 
     GstElement *playbin() const;
-    void setPipeline(GstElement *pipeline);
     GstElement *pipeline() const { return m_pipeline; }
     QGstreamerBusHelper *bus() const { return m_busHelper; }
 
@@ -178,6 +177,7 @@ signals:
     void invalidMedia();
     void playbackRateChanged(qreal);
     void rendererChanged();
+    void pipelineChanged();
 
 private slots:
     void getStreamsInfo();
@@ -208,6 +208,7 @@ private:
     void addAudioBufferProbe();
     void flushVideoProbes();
     void resumeVideoProbes();
+    void setPipeline(GstElement *pipeline);
 
     QNetworkRequest m_request;
     QMediaPlayer::State m_state;

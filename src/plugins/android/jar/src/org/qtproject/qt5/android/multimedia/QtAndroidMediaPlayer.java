@@ -46,6 +46,7 @@ import java.io.FileInputStream;
 // API is level is < 9 unless marked otherwise.
 import android.content.Context;
 import android.media.MediaPlayer;
+import android.media.AudioAttributes;
 import android.net.Uri;
 import android.util.Log;
 import java.io.FileDescriptor;
@@ -65,6 +66,7 @@ public class QtAndroidMediaPlayer
     native public void onStateChangedNative(int state, long id);
 
     private MediaPlayer mMediaPlayer = null;
+    private AudioAttributes mAudioAttributes = null;
     private Uri mUri = null;
     private final long mID;
     private final Context mContext;
@@ -235,6 +237,7 @@ public class QtAndroidMediaPlayer
             setState(State.Idle);
             // Make sure the new media player has the volume that was set on the QMediaPlayer
             setVolumeHelper(mMuted ? 0 : mVolume);
+            setAudioAttributes(mMediaPlayer, mAudioAttributes);
         }
     }
 
@@ -546,5 +549,27 @@ public class QtAndroidMediaPlayer
         }
 
         setState(State.Uninitialized);
+    }
+
+    public void setAudioAttributes(int type, int usage)
+    {
+        mAudioAttributes = new AudioAttributes.Builder()
+            .setUsage(usage)
+            .setContentType(type)
+            .build();
+
+        setAudioAttributes(mMediaPlayer, mAudioAttributes);
+    }
+
+    static private void setAudioAttributes(MediaPlayer player, AudioAttributes attr)
+    {
+        if (player == null || attr == null)
+            return;
+
+        try {
+            player.setAudioAttributes(attr);
+        } catch (final IllegalArgumentException e) {
+            Log.d(TAG, "" + e.getMessage());
+        }
     }
 }

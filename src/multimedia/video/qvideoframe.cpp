@@ -404,6 +404,15 @@ QVideoFrame::~QVideoFrame()
 }
 
 /*!
+    \return underlying video buffer or \c null if there is none.
+    \since 5.13
+*/
+QAbstractVideoBuffer *QVideoFrame::buffer() const
+{
+    return d->buffer;
+}
+
+/*!
     Identifies whether a video frame is valid.
 
     An invalid frame has no video buffer associated with it.

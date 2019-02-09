@@ -1,5 +1,6 @@
 #version 150 core
-uniform sampler2D yTexture; // Y component passed as GL_LUMINANCE_ALPHA, in uyvy Y = a
+// Reference: qgsvideonode_yuv.cpp:387 to 398
+uniform sampler2D yTexture; // Y component passed as GL_RG, in uyvy Y = a
 uniform sampler2D uvTexture; // UV component passed as RGBA macropixel, in uyvy U = r, V = b
 uniform mat4 colorMatrix;
 uniform float opacity;

@@ -250,6 +250,16 @@ void QAndroidMediaPlayerControl::setMuted(bool muted)
     Q_EMIT mutedChanged(muted);
 }
 
+void QAndroidMediaPlayerControl::setAudioRole(QAudio::Role role)
+{
+    mMediaPlayer->setAudioRole(role);
+}
+
+void QAndroidMediaPlayerControl::setCustomAudioRole(const QString &role)
+{
+    mMediaPlayer->setCustomAudioRole(role);
+}
+
 int QAndroidMediaPlayerControl::bufferStatus() const
 {
     return mBufferFilled ? 100 : 0;

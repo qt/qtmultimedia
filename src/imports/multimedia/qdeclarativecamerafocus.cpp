@@ -397,10 +397,6 @@ void QDeclarativeCameraFocus::updateFocusZones()
 FocusZonesModel::FocusZonesModel(QObject *parent)
     :QAbstractListModel(parent)
 {
-    QHash<int, QByteArray> roles;
-    roles[StatusRole] = "status";
-    roles[AreaRole] = "area";
-    setRoleNames(roles);
 }
 
 int FocusZonesModel::rowCount(const QModelIndex &parent) const
@@ -425,6 +421,12 @@ QVariant FocusZonesModel::data(const QModelIndex &index, int role) const
         return zone.area();
 
     return QVariant();
+}
+
+QHash<int,QByteArray> FocusZonesModel::roleNames() const
+{
+    return {{StatusRole, QByteArrayLiteral("status")},
+            {AreaRole, QByteArrayLiteral("area")}};
 }
 
 void FocusZonesModel::setFocusZones(const QCameraFocusZoneList &zones)

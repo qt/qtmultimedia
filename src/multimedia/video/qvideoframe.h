@@ -120,6 +120,7 @@ public:
     bool operator==(const QVideoFrame &other) const;
     bool operator!=(const QVideoFrame &other) const;
 
+    QAbstractVideoBuffer *buffer() const;
     bool isValid() const;
 
     PixelFormat pixelFormat() const;

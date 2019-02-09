@@ -388,8 +388,8 @@ void QSGVideoMaterial_YUV::bind()
                  // In YUYV texture the UV plane appears with the 1/2 of image and Y width.
                 m_planeWidth[1] = fw / 2;
                 functions->glActiveTexture(GL_TEXTURE1);
-                // Either r,b (YUYV) or g,a (UYVY) values are used as source of YV.
-                // Additionally Y and V are set per 2 pixels hence only 1/2 of image with is used.
+                // Either r,b (YUYV) or g,a (UYVY) values are used as source of UV.
+                // Additionally U and V are set per 2 pixels hence only 1/2 of image width is used.
                 // Interpreting this properly in shaders allows to not copy or not make conditionals inside shaders,
                 // only interpretation of data changes.
                 bindTexture(m_textureIds[1], m_planeWidth[1], m_frame.height(), m_frame.bits(), GL_RGBA);

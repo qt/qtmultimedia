@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,71 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTVIDEOBUFFER_P_H
-#define QGSTVIDEOBUFFER_P_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qgsttools_global_p.h>
-#include <qabstractvideobuffer.h>
-#include <QtCore/qvariant.h>
-
-#include <gst/gst.h>
-#include <gst/video/video.h>
+#include "qandroidcustomaudiorolecontrol.h"
 
 QT_BEGIN_NAMESPACE
 
-#if GST_CHECK_VERSION(1,0,0)
-class Q_GSTTOOLS_EXPORT QGstVideoBuffer : public QAbstractPlanarVideoBuffer
+QAndroidCustomAudioRoleControl::QAndroidCustomAudioRoleControl(QObject *parent)
+    : QCustomAudioRoleControl(parent)
 {
-public:
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info);
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
-                    HandleType handleType, const QVariant &handle);
-#else
-class Q_GSTTOOLS_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
+}
+
+QString QAndroidCustomAudioRoleControl::customAudioRole() const
 {
-public:
-    QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine);
-    QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine,
-                    HandleType handleType, const QVariant &handle);
-#endif
+    return m_role;
+}
 
-    ~QGstVideoBuffer();
+void QAndroidCustomAudioRoleControl::setCustomAudioRole(const QString &role)
+{
+    if (m_role == role)
+        return;
 
-    GstBuffer *buffer() const { return m_buffer; }
-    MapMode mapMode() const override;
+    m_role = role;
+    emit customAudioRoleChanged(m_role);
+}
 
-#if GST_CHECK_VERSION(1,0,0)
-    int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override;
-#else
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) override;
-#endif
-
-    void unmap() override;
-
-    QVariant handle() const override { return m_handle; }
-private:
-#if GST_CHECK_VERSION(1,0,0)
-    GstVideoInfo m_videoInfo;
-    GstVideoFrame m_frame;
-#else
-    int m_bytesPerLine;
-#endif
-    GstBuffer *m_buffer;
-    MapMode m_mode;
-    QVariant m_handle;
-};
+QStringList QAndroidCustomAudioRoleControl::supportedCustomAudioRoles() const
+{
+    return QStringList()
+        << "CONTENT_TYPE_MOVIE"
+        << "CONTENT_TYPE_MUSIC"
+        << "CONTENT_TYPE_SONIFICATION"
+        << "CONTENT_TYPE_SPEECH"
+        << "USAGE_ALARM"
+        << "USAGE_ASSISTANCE_ACCESSIBILITY"
+        << "USAGE_ASSISTANCE_NAVIGATION_GUIDANCE"
+        << "USAGE_ASSISTANCE_SONIFICATION"
+        << "USAGE_ASSISTANT"
+        << "USAGE_GAME"
+        << "USAGE_MEDIA"
+        << "USAGE_NOTIFICATION"
+        << "USAGE_NOTIFICATION_COMMUNICATION_DELAYED"
+        << "USAGE_NOTIFICATION_COMMUNICATION_INSTANT"
+        << "USAGE_NOTIFICATION_COMMUNICATION_REQUEST"
+        << "USAGE_NOTIFICATION_EVENT"
+        << "USAGE_NOTIFICATION_RINGTONE"
+        << "USAGE_VOICE_COMMUNICATION"
+        << "USAGE_VOICE_COMMUNICATION_SIGNALLING";
+}
 
 QT_END_NAMESPACE
-
-#endif
