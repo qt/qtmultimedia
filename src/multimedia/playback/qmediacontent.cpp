@@ -63,18 +63,22 @@ public:
 
 #if QT_DEPRECATED_SINCE(6, 0)
     QMediaContentPrivate(const QMediaResourceList &r):
-        resources(r),
         isPlaylistOwned(false)
-    {}
+    {
+        for (auto &item : r)
+            requests << item.request();
+    }
 #endif
+
+    QMediaContentPrivate(const QNetworkRequest &r):
+        isPlaylistOwned(false)
+    {
+        requests << r;
+    }
 
     QMediaContentPrivate(const QMediaContentPrivate &other):
         QSharedData(other),
-#if QT_DEPRECATED_SINCE(6, 0)
-        resources(other.resources),
-#else
-        request(other.request),
-#endif
+        requests(other.requests),
         playlist(other.playlist),
         isPlaylistOwned(false)
     {}
@@ -83,11 +87,7 @@ public:
         playlist(pls),
         isPlaylistOwned(isOwn)
     {
-#if QT_DEPRECATED_SINCE(6, 0)
-        resources << QMediaResource(url);
-#else
-        request.setUrl(url);
-#endif
+        requests << QNetworkRequest(url);
     }
 
     ~QMediaContentPrivate()
@@ -98,19 +98,10 @@ public:
 
     bool operator ==(const QMediaContentPrivate &other) const
     {
-#if QT_DEPRECATED_SINCE(6, 0)
-        return resources == other.resources && playlist == other.playlist;
-#else
-        return request == other.request && playlist == other.playlist;
-#endif
+        return requests == other.requests && playlist == other.playlist;
     }
 
-#if QT_DEPRECATED_SINCE(6, 0)
-    QMediaResourceList resources;
-#else
-    QNetworkRequest request;
-#endif
-
+    QList<QNetworkRequest> requests;
     QPointer<QMediaPlaylist> playlist;
     bool isPlaylistOwned;
 private:
@@ -121,20 +112,19 @@ private:
 /*!
     \class QMediaContent
 
-    \brief The QMediaContent class provides access to the resources relating to a media content.
+    \brief The QMediaContent class provides access to the resource relating to a media content.
 
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_playback
 
     QMediaContent is used within the multimedia framework as the logical handle
-    to media content.  A QMediaContent object is composed of one or more
-    \l {QMediaResource}s where each resource provides the URL and format
-    information of a different encoding of the content.
+    to media content. A QMediaContent object contains a \l {QNetworkRequest}
+    which provides the URL of the content.
 
-    A non-null QMediaContent will always have a primary or canonical reference to
-    the content available through the canonicalUrl() or canonicalResource()
-    methods, any additional resources are optional.
+    A non-null QMediaContent will always have a reference to
+    the content available through the canonicalUrl() or canonicalRequest()
+    methods.
 
     Alternatively QMediaContent can represent a playlist and contain a pointer to a
     valid QMediaPlaylist object. In this case URL is optional and can either be empty
@@ -157,11 +147,7 @@ QMediaContent::QMediaContent()
 QMediaContent::QMediaContent(const QUrl &url):
     d(new QMediaContentPrivate)
 {
-#if QT_DEPRECATED_SINCE(6, 0)
-    d->resources << QMediaResource(url);
-#else
-    d->request.setUrl(url);
-#endif
+    d->requests << QNetworkRequest(url);
 }
 
 /*!
@@ -174,11 +160,7 @@ QMediaContent::QMediaContent(const QUrl &url):
 QMediaContent::QMediaContent(const QNetworkRequest &request):
     d(new QMediaContentPrivate)
 {
-#if QT_DEPRECATED_SINCE(6, 0)
-    d->resources << QMediaResource(request);
-#else
-    d->request = request;
-#endif
+    d->requests << request;
 }
 
 #if QT_DEPRECATED_SINCE(6, 0)
@@ -191,7 +173,7 @@ QMediaContent::QMediaContent(const QNetworkRequest &request):
 QMediaContent::QMediaContent(const QMediaResource &resource):
     d(new QMediaContentPrivate)
 {
-    d->resources << resource;
+    d->requests << resource.request();
 }
 
 /*!
@@ -282,11 +264,7 @@ bool QMediaContent::isNull() const
 
 QUrl QMediaContent::canonicalUrl() const
 {
-#if QT_DEPRECATED_SINCE(6, 0)
-    return canonicalResource().url();
-#else
     return canonicalRequest().url();
-#endif
 }
 
 /*!
@@ -295,11 +273,7 @@ QUrl QMediaContent::canonicalUrl() const
 
 QNetworkRequest QMediaContent::canonicalRequest() const
 {
-#if QT_DEPRECATED_SINCE(6, 0)
-    return canonicalResource().request();
-#else
-    return d.constData() != 0 ? d->request : QNetworkRequest();
-#endif
+    return (d && !d->requests.isEmpty()) ? d->requests.first() : QNetworkRequest();
 }
 
 #if QT_DEPRECATED_SINCE(6, 0)
@@ -311,9 +285,7 @@ QNetworkRequest QMediaContent::canonicalRequest() const
 
 QMediaResource QMediaContent::canonicalResource() const
 {
-    return d.constData() != nullptr
-            ?  d->resources.value(0)
-            : QMediaResource();
+    return (d && !d->requests.isEmpty()) ? d->requests.first() : QMediaResource();
 }
 
 /*!
@@ -325,9 +297,12 @@ QMediaResource QMediaContent::canonicalResource() const
 
 QMediaResourceList QMediaContent::resources() const
 {
-    return d.constData() != nullptr
-            ? d->resources
-            : QMediaResourceList();
+    QMediaResourceList list;
+    if (d) {
+        for (auto &item : d->requests)
+            list << item;
+    }
+    return list;
 }
 #endif // #if QT_DEPRECATED_SINCE(6, 0)
 
