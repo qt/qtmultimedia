@@ -439,9 +439,6 @@ bool DSCameraSession::unload()
 
     setStatus(QCamera::UnloadingStatus);
 
-    m_previewSampleGrabber->deleteLater();
-    m_previewSampleGrabber = nullptr;
-
     m_needsHorizontalMirroring = false;
     m_supportedViewfinderSettings.clear();
     m_supportedFormats.clear();
@@ -808,7 +805,7 @@ bool DSCameraSession::createFilterGraph()
 
     // Sample grabber filter
     if (!m_previewSampleGrabber) {
-        m_previewSampleGrabber = new DirectShowSampleGrabber;
+        m_previewSampleGrabber = new DirectShowSampleGrabber(this);
         connect(m_previewSampleGrabber, &DirectShowSampleGrabber::bufferAvailable,
                 this, &DSCameraSession::onFrameAvailable, Qt::DirectConnection);
     }
