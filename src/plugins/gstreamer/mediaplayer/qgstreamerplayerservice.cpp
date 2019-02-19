@@ -55,10 +55,6 @@
 #include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideorenderer_p.h>
 
-#if QT_CONFIG(mirclient) && defined (__arm__)
-#include "private/qgstreamermirtexturerenderer_p.h"
-#endif
-
 #include "qgstreamerstreamscontrol.h"
 #include <private/qgstreameraudioprobecontrol_p.h>
 #include <private/qgstreamervideoprobecontrol_p.h>
@@ -88,13 +84,7 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
     m_metaData = new QGstreamerMetaDataProvider(m_session, this);
     m_streamsControl = new QGstreamerStreamsControl(m_session,this);
     m_availabilityControl = new QGStreamerAvailabilityControl(m_control->resources(), this);
-
-#if QT_CONFIG(mirclient) && defined (__arm__)
-    m_videoRenderer = new QGstreamerMirTextureRenderer(this, m_session);
-#else
     m_videoRenderer = new QGstreamerVideoRenderer(this);
-#endif
-
     m_videoWindow = new QGstreamerVideoWindow(this);
    // If the GStreamer video sink is not available, don't provide the video window control since
     // it won't work anyway.

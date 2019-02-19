@@ -82,15 +82,6 @@ qtConfig(gstreamer_0_10) {
         qgstvideorenderersink.cpp
 }
 
-qtConfig(mirclient): {
-    qtConfig(opengles2):qtHaveModule(widgets) {
-        PRIVATE_HEADERS += qgstreamermirtexturerenderer_p.h
-        SOURCES += qgstreamermirtexturerenderer.cpp
-        QT += opengl quick
-        LIBS += -lEGL
-    }
-}
-
 qtConfig(gstreamer_app) {
     QMAKE_USE += gstreamer_app
     PRIVATE_HEADERS += qgstappsrc_p.h
