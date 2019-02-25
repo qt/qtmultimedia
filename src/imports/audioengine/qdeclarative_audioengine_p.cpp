@@ -267,8 +267,8 @@ void QDeclarativeAudioEngine::initSound(QDeclarativeSound *sound)
     Adds the given \a sample to the engine.
     This can be used when the AudioSample is created dynamically:
 
-    \qml
-    import QtAudioEngine 1.1
+    \qml \QtMinorVersion
+    import QtAudioEngine 1.\1
 
     AudioEngine {
         id: engine

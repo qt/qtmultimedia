@@ -79,6 +79,8 @@ public:
         // Dynamically adding audio engine related objects is only supported through revision 1
         qmlRegisterType<QDeclarativeAudioEngine, 1>(uri, 1, 1, "AudioEngine");
         qmlRegisterType<QDeclarativeSound, 1>(uri, 1, 1, "Sound");
+
+        qmlRegisterModule(uri, 1, QT_VERSION_MINOR);
     }
 };
 
