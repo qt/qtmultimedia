@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-\qmlmodule QtMultimedia 5.8
+\qmlmodule QtMultimedia 5.\QtMinorVersion
 \title Qt Multimedia QML Types
 \ingroup qmlmodules
 \brief Provides QML types for multimedia support.
