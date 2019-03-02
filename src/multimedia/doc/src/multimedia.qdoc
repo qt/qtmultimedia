@@ -181,9 +181,9 @@ import QtMultimedia 5.8
 \endcode
 \annotatedlist multimedia_qml
 The following types are accessed by using \l{Qt Audio Engine QML Types}{Qt Audio Engine}:
-\code
-import QtAudioEngine 1.1
-\endcode
+\qml \QtMinorVersion
+import QtAudioEngine 1.\1
+\endqml
 \annotatedlist multimedia_audioengine
 
 \section2 Multimedia Classes

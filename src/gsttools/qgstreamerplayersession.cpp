@@ -47,7 +47,7 @@
 #include <private/gstvideoconnector_p.h>
 #endif
 #include <private/qgstutils_p.h>
-#include <private/qgstutils_p.h>
+#include <private/qvideosurfacegstsink_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>
@@ -60,6 +60,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
+#include <qvideorenderercontrol.h>
 
 //#define DEBUG_PLAYBIN
 //#define DEBUG_VO_BIN_DUMP
@@ -338,6 +339,11 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
 #endif
 
     if (m_request.url().scheme() == QLatin1String("gst-pipeline")) {
+        // Set current surface to video sink before creating a pipeline.
+        auto renderer = qobject_cast<QVideoRendererControl*>(m_videoOutput);
+        if (renderer)
+            QVideoSurfaceGstSink::setSurface(renderer->surface());
+
         QString url = m_request.url().toString(QUrl::RemoveScheme);
         QString pipeline = QUrl::fromPercentEncoding(url.toLatin1().constData());
         GError *err = nullptr;

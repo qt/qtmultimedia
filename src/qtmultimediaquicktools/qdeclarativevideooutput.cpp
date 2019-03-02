@@ -880,6 +880,7 @@ void QDeclarativeVideoOutput::_q_invalidateSceneGraph()
 
 /*!
     \qmlproperty enumeration QtMultimedia::VideoOutput::flushMode
+    \since QtMultimedia 5.13
 
     Set this property to define what \c VideoOutput should show
     when playback is finished or stopped.
