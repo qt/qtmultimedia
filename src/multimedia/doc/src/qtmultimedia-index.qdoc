@@ -53,9 +53,9 @@
     The QML types can be imported into your applciation using the following
     import statement in your \c {.qml} file.
 
-    \code
-     import QtMultimedia 5.8
-    \endcode
+    \qml \QtMinorVersion
+     import QtMultimedia 5.\1
+    \endqml
 
     If you intend to use the C++ classes in your application, include the C++
     definitions using the following directive:
