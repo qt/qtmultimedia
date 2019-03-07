@@ -166,9 +166,17 @@ void AndroidMediaPlayer::setMuted(bool mute)
     mMediaPlayer.callMethod<void>("mute", "(Z)V", jboolean(mute));
 }
 
-void AndroidMediaPlayer::setDataSource(const QString &path)
+void AndroidMediaPlayer::setDataSource(const QNetworkRequest &request)
 {
-    QJNIObjectPrivate string = QJNIObjectPrivate::fromString(path);
+    QJNIObjectPrivate string = QJNIObjectPrivate::fromString(request.url().toString(QUrl::FullyEncoded));
+
+    mMediaPlayer.callMethod<void>("initHeaders", "()V");
+    for (auto &header : request.rawHeaderList()) {
+        auto value = request.rawHeader(header);
+        mMediaPlayer.callMethod<void>("setHeader", "(Ljava/lang/String;Ljava/lang/String;)V",
+            QJNIObjectPrivate::fromString(header).object(),  QJNIObjectPrivate::fromString(value).object());
+    }
+
     mMediaPlayer.callMethod<void>("setDataSource", "(Ljava/lang/String;)V", string.object());
 }
 

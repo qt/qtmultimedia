@@ -41,6 +41,7 @@ package org.qtproject.qt5.android.multimedia;
 
 import java.io.IOException;
 import java.lang.String;
+import java.util.HashMap;
 import java.io.FileInputStream;
 
 // API is level is < 9 unless marked otherwise.
@@ -67,6 +68,7 @@ public class QtAndroidMediaPlayer
 
     private MediaPlayer mMediaPlayer = null;
     private AudioAttributes mAudioAttributes = null;
+    private HashMap<String, String> mHeaders = null;
     private Uri mUri = null;
     private final long mID;
     private final Context mContext;
@@ -344,6 +346,16 @@ public class QtAndroidMediaPlayer
         }
     }
 
+    public void initHeaders()
+    {
+        mHeaders = new HashMap<String, String>();
+    }
+
+    public void setHeader(final String header, final String value)
+    {
+        mHeaders.put(header, value);
+    }
+
     public void setDataSource(final String path)
     {
         if ((mState & State.Uninitialized) != 0)
@@ -381,7 +393,10 @@ public class QtAndroidMediaPlayer
                 FileDescriptor fd = fis.getFD();
                 mMediaPlayer.setDataSource(fd);
             } else {
-                mMediaPlayer.setDataSource(path);
+                if (mHeaders.isEmpty())
+                    mMediaPlayer.setDataSource(path);
+                else
+                    mMediaPlayer.setDataSource(mContext, mUri, mHeaders);
             }
             setState(State.Initialized);
         } catch (final IOException e) {

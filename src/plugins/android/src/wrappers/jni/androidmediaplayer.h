@@ -41,6 +41,7 @@
 #define ANDROIDMEDIAPLAYER_H
 
 #include <QObject>
+#include <QNetworkRequest>
 #include <QtCore/private/qjni_p.h>
 #include <QAudio>
 
@@ -112,7 +113,7 @@ public:
     void stop();
     void seekTo(qint32 msec);
     void setMuted(bool mute);
-    void setDataSource(const QString &path);
+    void setDataSource(const QNetworkRequest &request);
     void prepareAsync();
     void setVolume(int volume);
     bool setPlaybackRate(qreal rate);

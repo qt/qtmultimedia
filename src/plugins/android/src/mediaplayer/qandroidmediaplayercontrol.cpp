@@ -384,7 +384,7 @@ void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
 
         if ((mMediaPlayer->display() == 0) && mVideoOutput)
             mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
-        mMediaPlayer->setDataSource(mediaContent.canonicalUrl().toString(QUrl::FullyEncoded));
+        mMediaPlayer->setDataSource(mediaContent.canonicalRequest());
         mMediaPlayer->prepareAsync();
     }
 
