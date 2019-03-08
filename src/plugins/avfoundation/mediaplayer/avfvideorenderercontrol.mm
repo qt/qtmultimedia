@@ -191,10 +191,9 @@ void AVFVideoRendererControl::setLayer(void *playerLayer)
     if (m_playerLayer == playerLayer)
         return;
 
-    [static_cast<AVPlayerLayer*>(playerLayer) retain];
-    [static_cast<AVPlayerLayer*>(playerLayer) release];
+    [static_cast<AVPlayerLayer*>(m_playerLayer) release];
 
-    m_playerLayer = playerLayer;
+    m_playerLayer = [static_cast<AVPlayerLayer*>(playerLayer) retain];
 
     //If there is an active surface, make sure it has been stopped so that
     //we can update it's state with the new content.
@@ -225,7 +224,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 {
     Q_UNUSED(ts)
 
-    AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(playerLayer);
+    AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(m_playerLayer);
 
     if (!playerLayer) {
         qWarning("updateVideoFrame called without AVPlayerLayer (which shouldn't happen");
@@ -305,7 +304,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 
 void AVFVideoRendererControl::setupVideoOutput()
 {
-    AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(playerLayer);
+    AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(m_playerLayer);
     if (playerLayer)
         m_nativeSize = QSize(playerLayer.bounds.size.width, playerLayer.bounds.size.height);
 }
