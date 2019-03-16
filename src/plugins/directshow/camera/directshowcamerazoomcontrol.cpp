@@ -176,7 +176,7 @@ void DirectShowCameraZoomControl::updateZoomValues()
     }
 
     // Check if there is a pending zoom value.
-    if (!qFuzzyCompare(m_currentOpticalZoom, m_requestedOpticalZoom))
+    if (!qFuzzyCompare(m_currentOpticalZoom, m_requestedOpticalZoom) && !qFuzzyIsNull(m_requestedOpticalZoom))
         opticalZoomToPrivate(m_requestedOpticalZoom);
 }
 
