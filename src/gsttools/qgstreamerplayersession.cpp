@@ -402,9 +402,14 @@ void QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
 
     if (m_renderer) {
         auto it = gst_bin_iterate_sinks(GST_BIN(pipeline));
+#if GST_CHECK_VERSION(1,0,0)
         GValue data = { 0, 0 };
         while (gst_iterator_next (it, &data) == GST_ITERATOR_OK) {
             auto child = static_cast<GstElement*>(g_value_get_object(&data));
+#else
+       GstElement *child = nullptr;
+       while (gst_iterator_next(it, reinterpret_cast<gpointer *>(&child)) == GST_ITERATOR_OK) {
+#endif
             if (QLatin1String(GST_OBJECT_NAME(child)) == QLatin1String("qtvideosink")) {
                 m_renderer->setVideoSink(child);
                 break;
