@@ -105,8 +105,15 @@ void QWinRTImageEncoderControl::applySettings()
     if (d->imageEncoderSetting.codec().isEmpty())
         d->imageEncoderSetting.setCodec(QStringLiteral("jpeg"));
 
+    if (d->supportedResolutions.isEmpty())
+        return;
+
     QSize requestResolution = d->imageEncoderSetting.resolution();
-    if (d->supportedResolutions.isEmpty() || d->supportedResolutions.contains(requestResolution))
+    if (!requestResolution.isValid()) {
+        d->imageEncoderSetting.setResolution(d->supportedResolutions.last());
+        return;
+    }
+    if (d->supportedResolutions.contains(requestResolution))
         return;
 
     // Find closest resolution from the list

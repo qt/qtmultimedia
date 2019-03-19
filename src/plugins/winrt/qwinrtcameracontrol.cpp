@@ -1398,6 +1398,10 @@ HRESULT QWinRTCameraControl::onInitializationCompleted(IAsyncAction *, AsyncStat
                                    &captureResolutions);
     RETURN_HR_IF_FAILED("Failed to find a suitable video format");
 
+    std::sort(captureResolutions.begin(), captureResolutions.end(), [](QSize size1, QSize size2) {
+        return size1.width() * size1.height() < size2.width() * size2.height();
+    });
+
     // Set capture resolutions.
     d->imageEncoderControl->setSupportedResolutionsList(captureResolutions.toList());
     const QSize captureResolution = d->imageEncoderControl->imageSettings().resolution();
@@ -1412,17 +1416,17 @@ HRESULT QWinRTCameraControl::onInitializationCompleted(IAsyncAction *, AsyncStat
     Q_ASSERT_SUCCEEDED(hr);
 
     // Set preview resolution.
-    QVector<QSize> filtered;
+    QSize maxSize;
     const float captureAspectRatio = float(captureResolution.width()) / captureResolution.height();
     for (const QSize &resolution : qAsConst(previewResolutions)) {
         const float aspectRatio = float(resolution.width()) / resolution.height();
-        if (qAbs(aspectRatio - captureAspectRatio) <= ASPECTRATIO_EPSILON)
-            filtered.append(resolution);
+        if ((qAbs(aspectRatio - captureAspectRatio) <= ASPECTRATIO_EPSILON)
+                && (maxSize.width() * maxSize.height() < resolution.width() * resolution.height())) {
+            maxSize = resolution;
+        }
     }
-    std::sort(filtered.begin(), filtered.end(),
-              [](QSize size1, QSize size2) { return size1.width() * size1.height() < size2.width() * size2.height(); });
 
-    const QSize &viewfinderResolution = filtered.first();
+    const QSize &viewfinderResolution = maxSize;
     const quint32 viewfinderResolutionIndex = quint32(previewResolutions.indexOf(viewfinderResolution));
     hr = RoActivateInstance(HString::MakeReference(RuntimeClass_Windows_Media_MediaProperties_MediaEncodingProfile).Get(),
                             &d->encodingProfile);
