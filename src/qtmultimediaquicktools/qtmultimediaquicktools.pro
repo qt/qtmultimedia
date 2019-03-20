@@ -3,11 +3,6 @@ TARGET = QtMultimediaQuick
 QT = core quick multimedia-private
 CONFIG += internal_module
 
-# Header files must go inside source directory of a module
-# to be installed by syncqt.
-INCLUDEPATH += ../multimedia/qtmultimediaquicktools_headers/
-VPATH += ../multimedia/qtmultimediaquicktools_headers/
-
 PRIVATE_HEADERS += \
     qdeclarativevideooutput_p.h \
     qdeclarativevideooutput_backend_p.h \

@@ -1,6 +1,6 @@
 TARGET = tst_qdeclarativevideooutput
 
-QT += multimedia-private qml testlib quick
+QT += multimedia-private qml testlib quick qtmultimediaquicktools-private
 CONFIG += testcase
 
 RESOURCES += qml.qrc
