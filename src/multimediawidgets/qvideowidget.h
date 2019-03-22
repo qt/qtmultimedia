@@ -82,7 +82,11 @@ public:
 
     QSize sizeHint() const override;
 #if defined(Q_OS_WIN)
+#  if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
+#  else
     bool nativeEvent(const QByteArray &eventType, void *message, long *result) override;
+#  endif
 #endif
 
 public Q_SLOTS:
