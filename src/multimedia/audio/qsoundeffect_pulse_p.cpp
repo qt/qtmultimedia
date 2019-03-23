@@ -744,7 +744,7 @@ void QSoundEffectPrivate::sampleReady()
 
 void QSoundEffectPrivate::decoderError()
 {
-    qWarning("QSoundEffect(pulseaudio): Error decoding source");
+    qWarning("QSoundEffect(pulseaudio): Error decoding source %ls", qUtf16Printable(m_source.toString()));
     disconnect(m_sample, &QSample::error, this, &QSoundEffectPrivate::decoderError);
     bool playingDirty = false;
     if (m_playing) {

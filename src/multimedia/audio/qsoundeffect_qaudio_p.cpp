@@ -344,7 +344,7 @@ void PrivateSoundSource::sampleReady()
 
 void PrivateSoundSource::decoderError()
 {
-    qWarning("QSoundEffect(qaudio): Error decoding source");
+    qWarning("QSoundEffect(qaudio): Error decoding source %ls", qUtf16Printable(m_url.toString()));
     disconnect(m_sample, &QSample::ready, this, &PrivateSoundSource::sampleReady);
     disconnect(m_sample, &QSample::error, this, &PrivateSoundSource::decoderError);
     m_playing = false;
