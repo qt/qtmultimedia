@@ -165,6 +165,8 @@ private:
     static QVideoFrame::PixelFormat QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat);
     static AndroidCamera::ImageFormat AndroidImageFormatFromQtPixelFormat(QVideoFrame::PixelFormat);
 
+    void setStateHelper(QCamera::State state);
+
     int m_selectedCamera;
     AndroidCamera *m_camera;
     int m_nativeOrientation;
