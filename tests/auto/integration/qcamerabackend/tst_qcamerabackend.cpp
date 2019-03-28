@@ -378,7 +378,7 @@ void tst_QCameraBackend::testCameraCapture()
 
     QTRY_VERIFY(!savedSignal.isEmpty());
 
-    QCOMPARE(capturedSignal.size(), 1);
+    QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(capturedSignal.last().first().toInt(), id);
     QCOMPARE(errorSignal.size(), 0);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
@@ -436,7 +436,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QTRY_VERIFY(!imageAvailableSignal.isEmpty());
 
     QVERIFY(errorSignal.isEmpty());
-    QVERIFY(!capturedSignal.isEmpty());
+    QTRY_VERIFY(!capturedSignal.isEmpty());
     QVERIFY(!imageAvailableSignal.isEmpty());
 
     QTest::qWait(2000);
