@@ -45,6 +45,8 @@
 #include "qandroidvideooutput.h"
 #include "qandroidmediavideoprobecontrol.h"
 #include "qandroidmultimediautils.h"
+#include "qandroidcameravideorenderercontrol.h"
+#include <qabstractvideosurface.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>
 #include <qguiapplication.h>
@@ -415,27 +417,46 @@ QList<AndroidCamera::FpsRange> QAndroidCameraSession::getSupportedPreviewFpsRang
     return m_camera ? m_camera->getSupportedPreviewFpsRange() : QList<AndroidCamera::FpsRange>();
 }
 
+struct NullSurface : QAbstractVideoSurface
+{
+    NullSurface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+        QAbstractVideoBuffer::HandleType type = QAbstractVideoBuffer::NoHandle) const override
+    {
+        QList<QVideoFrame::PixelFormat> result;
+        if (type == QAbstractVideoBuffer::NoHandle)
+            result << QVideoFrame::Format_NV21;
+
+        return result;
+    }
+
+    bool present(const QVideoFrame &)  { return false; }
+};
+
 bool QAndroidCameraSession::startPreview()
 {
     if (!m_camera)
         return false;
 
-    if (!m_videoOutput) {
-        Q_EMIT error(QCamera::InvalidRequestError, tr("Camera cannot be started without a viewfinder."));
-        return false;
-    }
-
     if (m_previewStarted)
         return true;
 
-    if (!m_videoOutput->isReady())
-        return true; // delay starting until the video output is ready
+    if (m_videoOutput) {
+        if (!m_videoOutput->isReady())
+            return true; // delay starting until the video output is ready
 
-    Q_ASSERT(m_videoOutput->surfaceTexture() || m_videoOutput->surfaceHolder());
+        Q_ASSERT(m_videoOutput->surfaceTexture() || m_videoOutput->surfaceHolder());
 
-    if ((m_videoOutput->surfaceTexture() && !m_camera->setPreviewTexture(m_videoOutput->surfaceTexture()))
-            || (m_videoOutput->surfaceHolder() && !m_camera->setPreviewDisplay(m_videoOutput->surfaceHolder())))
-        return false;
+        if ((m_videoOutput->surfaceTexture() && !m_camera->setPreviewTexture(m_videoOutput->surfaceTexture()))
+                || (m_videoOutput->surfaceHolder() && !m_camera->setPreviewDisplay(m_videoOutput->surfaceHolder())))
+            return false;
+    } else {
+        auto control = new QAndroidCameraVideoRendererControl(this, this);
+        control->setSurface(new NullSurface(this));
+        qWarning() << "Starting camera without viewfinder available";
+
+        return true;
+    }
 
     m_status = QCamera::StartingStatus;
     emit statusChanged(m_status);
