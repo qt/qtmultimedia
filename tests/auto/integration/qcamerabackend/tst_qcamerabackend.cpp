@@ -672,9 +672,16 @@ void tst_QCameraBackend::testVideoRecording()
     QTRY_COMPARE(recorder.status(), QMediaRecorder::RecordingStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
     QTest::qWait(5000);
+    recorderStatusSignal.clear();
     recorder.stop();
-    QCOMPARE(recorder.status(), QMediaRecorder::FinalizingStatus);
-    QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
+    bool foundFinalizingStatus = false;
+    for (auto &list : recorderStatusSignal) {
+        if (list.contains(QVariant(QMediaRecorder::FinalizingStatus))) {
+            foundFinalizingStatus = true;
+            break;
+        }
+    }
+    QVERIFY(foundFinalizingStatus);
     QTRY_COMPARE(recorder.status(), QMediaRecorder::LoadedStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
 
