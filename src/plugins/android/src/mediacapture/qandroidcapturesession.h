@@ -97,7 +97,6 @@ Q_SIGNALS:
 private Q_SLOTS:
     void updateDuration();
     void onCameraOpened();
-    void updateStatus();
 
     void onError(int what, int extra);
     void onInfo(int what, int extra);
