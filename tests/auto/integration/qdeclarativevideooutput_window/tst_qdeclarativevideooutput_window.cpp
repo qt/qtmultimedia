@@ -193,22 +193,8 @@ void tst_QDeclarativeVideoOutputWindow::initTestCase()
 {
     qRegisterMetaType<QDeclarativeVideoOutput::FillMode>();
 
-    const QByteArray qmlSource =
-            "import QtQuick 2.0\n"
-            "import QtMultimedia 5.0\n\n"
-            "Item {"
-            "    width: 200;"
-            "    height: 200;"
-            "    VideoOutput {"
-            "        objectName: \"videoOutput\";"
-            "        x: 25; y: 50;"
-            "        width: 150;"
-            "        height: 100;"
-            "    }"
-            "}";
-
     QQmlComponent component(&m_engine);
-    component.setData(qmlSource, QUrl());
+    component.loadUrl(QUrl("qrc:/main.qml"));
 
     m_rootItem.reset(qobject_cast<QQuickItem *>(component.create()));
     m_videoItem = m_rootItem->findChild<QQuickItem *>("videoOutput");
