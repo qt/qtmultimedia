@@ -569,6 +569,12 @@ bool QOpenSLESAudioOutput::preparePlayer()
     const int lowLatencyBufferSize = QOpenSLESEngine::getLowLatencyBufferSize(m_format);
     const int defaultBufferSize = QOpenSLESEngine::getDefaultBufferSize(m_format);
 
+    if (defaultBufferSize <= 0) {
+        qWarning() << "Unable to get minimum buffer size, returned" << defaultBufferSize;
+        setError(QAudio::FatalError);
+        return false;
+    }
+
     // Buffer size
     if (m_bufferSize <= 0) {
         m_bufferSize = defaultBufferSize;

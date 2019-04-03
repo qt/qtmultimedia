@@ -239,12 +239,13 @@ int QOpenSLESEngine::getDefaultBufferSize(const QAudioFormat &format)
     }();
 
     const int sampleRate = format.sampleRate();
-    return QJNIObjectPrivate::callStaticMethod<jint>("android/media/AudioTrack",
-                                                     "getMinBufferSize",
-                                                     "(III)I",
-                                                     sampleRate,
-                                                     channelConfig,
-                                                     audioFormat);
+    const int minBufferSize = QJNIObjectPrivate::callStaticMethod<jint>("android/media/AudioTrack",
+                                                                        "getMinBufferSize",
+                                                                        "(III)I",
+                                                                        sampleRate,
+                                                                        channelConfig,
+                                                                        audioFormat);
+    return minBufferSize > 0 ? minBufferSize : format.bytesForDuration(DEFAULT_PERIOD_TIME_MS);
 #else
     return format.bytesForDuration(DEFAULT_PERIOD_TIME_MS);
 #endif // Q_OS_ANDROID
