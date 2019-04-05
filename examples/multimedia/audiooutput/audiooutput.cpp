@@ -169,10 +169,10 @@ void AudioTest::initializeWindow()
 
     m_deviceBox = new QComboBox(this);
     const QAudioDeviceInfo &defaultDeviceInfo = QAudioDeviceInfo::defaultOutputDevice();
-    m_deviceBox->addItem(defaultDeviceInfo.deviceName(), qVariantFromValue(defaultDeviceInfo));
+    m_deviceBox->addItem(defaultDeviceInfo.deviceName(), QVariant::fromValue(defaultDeviceInfo));
     for (auto &deviceInfo: QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)) {
         if (deviceInfo != defaultDeviceInfo)
-            m_deviceBox->addItem(deviceInfo.deviceName(), qVariantFromValue(deviceInfo));
+            m_deviceBox->addItem(deviceInfo.deviceName(), QVariant::fromValue(deviceInfo));
     }
     connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
     layout->addWidget(m_deviceBox);

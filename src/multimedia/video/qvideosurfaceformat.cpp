@@ -519,9 +519,9 @@ QList<QByteArray> QVideoSurfaceFormat::propertyNames() const
 QVariant QVideoSurfaceFormat::property(const char *name) const
 {
     if (qstrcmp(name, "handleType") == 0) {
-        return qVariantFromValue(d->handleType);
+        return QVariant::fromValue(d->handleType);
     } else if (qstrcmp(name, "pixelFormat") == 0) {
-        return qVariantFromValue(d->pixelFormat);
+        return QVariant::fromValue(d->pixelFormat);
     } else if (qstrcmp(name, "frameSize") == 0) {
         return d->frameSize;
     } else if (qstrcmp(name, "frameWidth") == 0) {
@@ -531,15 +531,15 @@ QVariant QVideoSurfaceFormat::property(const char *name) const
     } else if (qstrcmp(name, "viewport") == 0) {
         return d->viewport;
     } else if (qstrcmp(name, "scanLineDirection") == 0) {
-        return qVariantFromValue(d->scanLineDirection);
+        return QVariant::fromValue(d->scanLineDirection);
     } else if (qstrcmp(name, "frameRate") == 0) {
-        return qVariantFromValue(d->frameRate);
+        return QVariant::fromValue(d->frameRate);
     } else if (qstrcmp(name, "pixelAspectRatio") == 0) {
-        return qVariantFromValue(d->pixelAspectRatio);
+        return QVariant::fromValue(d->pixelAspectRatio);
     } else if (qstrcmp(name, "sizeHint") == 0) {
         return sizeHint();
     } else if (qstrcmp(name, "yCbCrColorSpace") == 0) {
-        return qVariantFromValue(d->ycbcrColorSpace);
+        return QVariant::fromValue(d->ycbcrColorSpace);
     } else if (qstrcmp(name, "mirrored") == 0) {
         return d->mirrored;
     } else {

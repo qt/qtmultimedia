@@ -1329,7 +1329,7 @@ void tst_QMediaPlayer::testAudioRole()
 
         spy.clear();
 
-        player.setProperty("audioRole", qVariantFromValue(QAudio::AlarmRole));
+        player.setProperty("audioRole", QVariant::fromValue(QAudio::AlarmRole));
         QCOMPARE(qvariant_cast<QAudio::Role>(player.property("audioRole")), QAudio::AlarmRole);
         QCOMPARE(mockService->mockAudioRoleControl->audioRole(), QAudio::AlarmRole);
         QCOMPARE(spy.count(), 1);
@@ -1397,7 +1397,7 @@ void tst_QMediaPlayer::testCustomAudioRole()
         spyCustomRole.clear();
 
         QString customRole2(QStringLiteral("customRole2"));
-        player.setProperty("customAudioRole", qVariantFromValue(customRole2));
+        player.setProperty("customAudioRole", QVariant::fromValue(customRole2));
         QCOMPARE(qvariant_cast<QString>(player.property("customAudioRole")), customRole2);
         QCOMPARE(mockService->mockCustomAudioRoleControl->customAudioRole(), customRole2);
         QCOMPARE(spyRole.count(), 0);

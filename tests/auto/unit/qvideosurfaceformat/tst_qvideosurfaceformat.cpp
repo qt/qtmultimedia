@@ -321,7 +321,7 @@ void tst_QVideoSurfaceFormat::scanLineDirection()
     {
         QVideoSurfaceFormat format(QSize(16, 16), QVideoFrame::Format_RGB32);
 
-        format.setProperty("scanLineDirection", qVariantFromValue(direction));
+        format.setProperty("scanLineDirection", QVariant::fromValue(direction));
 
         QCOMPARE(format.scanLineDirection(), direction);
         QCOMPARE(
@@ -363,7 +363,7 @@ void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum()
     }
     {
         QVideoSurfaceFormat format(QSize(64, 64), QVideoFrame::Format_RGB32);
-        format.setProperty("yCbCrColorSpace", qVariantFromValue(colorspace));
+        format.setProperty("yCbCrColorSpace", QVariant::fromValue(colorspace));
 
         QCOMPARE(format.yCbCrColorSpace(), colorspace);
         QCOMPARE(qvariant_cast<QVideoSurfaceFormat::YCbCrColorSpace>(format.property("yCbCrColorSpace")),

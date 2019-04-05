@@ -239,10 +239,10 @@ void InputTest::initializeWindow()
 
     m_deviceBox = new QComboBox(this);
     const QAudioDeviceInfo &defaultDeviceInfo = QAudioDeviceInfo::defaultInputDevice();
-    m_deviceBox->addItem(defaultDeviceInfo.deviceName(), qVariantFromValue(defaultDeviceInfo));
+    m_deviceBox->addItem(defaultDeviceInfo.deviceName(), QVariant::fromValue(defaultDeviceInfo));
     for (auto &deviceInfo: QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
         if (deviceInfo != defaultDeviceInfo)
-            m_deviceBox->addItem(deviceInfo.deviceName(), qVariantFromValue(deviceInfo));
+            m_deviceBox->addItem(deviceInfo.deviceName(), QVariant::fromValue(deviceInfo));
     }
 
     connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this, &InputTest::deviceChanged);
