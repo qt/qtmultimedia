@@ -100,7 +100,7 @@ void VideoWidget::paintEvent(QPaintEvent *event)
             QRegion region = event->region();
             region = region.subtracted(videoRect);
 
-            QBrush brush = palette().background();
+            QBrush brush = palette().window();
 
             for (const QRect &rect : region)
                 painter.fillRect(rect, brush);
@@ -108,7 +108,7 @@ void VideoWidget::paintEvent(QPaintEvent *event)
 
         surface->paint(&painter);
     } else {
-        painter.fillRect(event->rect(), palette().background());
+        painter.fillRect(event->rect(), palette().window());
     }
 }
 //! [3]
