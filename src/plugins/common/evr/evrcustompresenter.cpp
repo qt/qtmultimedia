@@ -1143,7 +1143,7 @@ HRESULT EVRCustomPresenter::flush()
         sample->Release();
     m_frameStep.samples.clear();
 
-    if (m_renderState == RenderStopped) {
+    if (m_renderState == RenderStopped && m_surface->isActive()) {
         // Repaint with black.
         presentSample(NULL);
     }
