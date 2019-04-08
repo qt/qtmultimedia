@@ -74,7 +74,7 @@ QWindowsAudioInput::QWindowsAudioInput(const QByteArray &device)
     waveBlockOffset = 0;
 
     mixerID = 0;
-    cachedVolume = 1.0f;
+    cachedVolume = -1.0f;
     memset(&mixerLineControls, 0, sizeof(mixerLineControls));
 }
 
@@ -228,7 +228,7 @@ qreal QWindowsAudioInput::volume() const
         return detailsUnsigned.dwValue / 65535.0;
     }
 
-    return cachedVolume;
+    return qFuzzyCompare(cachedVolume, qreal(-1.0f)) ? 1.0f : cachedVolume;
 }
 
 void QWindowsAudioInput::setFormat(const QAudioFormat& fmt)
@@ -429,7 +429,7 @@ void QWindowsAudioInput::initMixer()
         mixerLineControls.pamxctrl = new MIXERCONTROL[mixerLineControls.cControls];
         if (mixerGetLineControls(mixerID, &mixerLineControls, MIXER_GETLINECONTROLSF_ALL) != MMSYSERR_NOERROR)
             closeMixer();
-        else
+        else if (!qFuzzyCompare(cachedVolume, qreal(-1.0f)))
             setVolume(cachedVolume);
     }
 }
