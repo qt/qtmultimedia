@@ -1617,7 +1617,7 @@ void DirectShowPlayerService::updateStatus()
         m_playerControl->updateStatus(QMediaPlayer::LoadingMedia);
         break;
     case Loaded:
-        if ((m_pendingTasks | m_executingTask | m_executedTasks) & (Play | Pause)) {
+        if ((m_executingTask | m_executedTasks) & (Play | Pause)) {
             if (m_buffering)
                 m_playerControl->updateStatus(QMediaPlayer::BufferingMedia);
             else
