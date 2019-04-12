@@ -403,8 +403,6 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             m_pendingTasks |= SetRate;
 
         m_source = source;
-    } else if (!m_resources.isEmpty()) {
-        m_pendingTasks |= SetUrlSource;
     } else {
         m_graphStatus = InvalidMedia;
 
