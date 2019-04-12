@@ -224,7 +224,6 @@ private:
     qint64 m_duration;
     QMediaTimeRange m_playbackRange;
     QUrl m_url;
-    QMediaResourceList m_resources;
     QString m_errorString;
     QMutex m_mutex;
     bool m_buffering;
