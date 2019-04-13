@@ -14,3 +14,6 @@ unix:!mac {
 }
 
 TESTDATA += test.wav
+
+RESOURCES += \
+    resources.qrc

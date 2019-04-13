@@ -73,16 +73,41 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
                 QMediaStorageLocation::Sounds,
                 AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::Sounds));
 
-    connect(this, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(updateStatus()));
-
     if (cameraSession) {
         connect(cameraSession, SIGNAL(opened()), this, SLOT(onCameraOpened()));
-        connect(cameraSession, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(updateStatus()));
-        connect(cameraSession, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
-                this, SLOT(updateStatus()));
-        connect(cameraSession, SIGNAL(readyForCaptureChanged(bool)), this, SLOT(updateStatus()));
+        connect(cameraSession, &QAndroidCameraSession::statusChanged, this,
+            [this](QCamera::Status status) {
+                if (status == QCamera::UnavailableStatus) {
+                    setState(QMediaRecorder::StoppedState);
+                    setStatus(QMediaRecorder::UnavailableStatus);
+                    return;
+                }
+
+                // Stop recording when stopping the camera.
+                if (status == QCamera::StoppingStatus) {
+                    setState(QMediaRecorder::StoppedState);
+                    setStatus(QMediaRecorder::UnloadedStatus);
+                    return;
+                }
+
+                if (status == QCamera::LoadingStatus)
+                    setStatus(QMediaRecorder::LoadingStatus);
+            });
+        connect(cameraSession, &QAndroidCameraSession::captureModeChanged, this,
+            [this](QCamera::CaptureModes mode) {
+                if (!mode.testFlag(QCamera::CaptureVideo)) {
+                    setState(QMediaRecorder::StoppedState);
+                    setStatus(QMediaRecorder::UnloadedStatus);
+                }
+            });
+        connect(cameraSession, &QAndroidCameraSession::readyForCaptureChanged, this,
+            [this](bool ready) {
+                if (ready)
+                    setStatus(QMediaRecorder::LoadedStatus);
+            });
     } else {
-        updateStatus();
+        // Audio-only recording.
+        setStatus(QMediaRecorder::LoadedStatus);
     }
 
     m_notifyTimer.setInterval(1000);
@@ -277,6 +302,7 @@ void QAndroidCaptureSession::start()
 
     m_state = QMediaRecorder::RecordingState;
     emit stateChanged(m_state);
+    setStatus(QMediaRecorder::RecordingStatus);
 }
 
 void QAndroidCaptureSession::stop(bool error)
@@ -315,6 +341,8 @@ void QAndroidCaptureSession::stop(bool error)
 
     m_state = QMediaRecorder::StoppedState;
     emit stateChanged(m_state);
+    if (!m_cameraSession)
+        setStatus(QMediaRecorder::LoadedStatus);
 }
 
 void QAndroidCaptureSession::setStatus(QMediaRecorder::Status status)
@@ -537,43 +565,6 @@ QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id
     }
 
     return profile;
-}
-
-void QAndroidCaptureSession::updateStatus()
-{
-    if (m_cameraSession) {
-        // Video recording
-
-        // stop recording when stopping the camera
-        if (m_cameraSession->status() == QCamera::StoppingStatus
-                || !m_cameraSession->captureMode().testFlag(QCamera::CaptureVideo)) {
-            setState(QMediaRecorder::StoppedState);
-            return;
-        }
-
-        if (m_state == QMediaRecorder::RecordingState) {
-            setStatus(QMediaRecorder::RecordingStatus);
-        } else if (m_cameraSession->status() == QCamera::UnavailableStatus) {
-            setStatus(QMediaRecorder::UnavailableStatus);
-        } else if (m_cameraSession->captureMode().testFlag(QCamera::CaptureVideo)
-                   && m_cameraSession->isReadyForCapture()) {
-            if (m_cameraSession->status() == QCamera::StartingStatus)
-                setStatus(QMediaRecorder::LoadingStatus);
-            else if (m_cameraSession->status() == QCamera::ActiveStatus)
-                setStatus(QMediaRecorder::LoadedStatus);
-            else
-                setStatus(QMediaRecorder::UnloadedStatus);
-        } else {
-            setStatus(QMediaRecorder::UnloadedStatus);
-        }
-
-    } else {
-        // Audio-only recording
-        if (m_state == QMediaRecorder::RecordingState)
-            setStatus(QMediaRecorder::RecordingStatus);
-        else
-            setStatus(QMediaRecorder::LoadedStatus);
-    }
 }
 
 void QAndroidCaptureSession::onError(int what, int extra)

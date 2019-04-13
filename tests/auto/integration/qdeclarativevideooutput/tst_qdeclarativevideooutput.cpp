@@ -124,7 +124,6 @@ private slots:
 
 private:
     QQmlEngine m_engine;
-    QByteArray m_plainQML;
 
     // Variables used for the mapping test
     QQmlComponent *m_mappingComponent;
@@ -139,17 +138,9 @@ private:
 
 void tst_QDeclarativeVideoOutput::initTestCase()
 {
-    m_plainQML = \
-            "import QtQuick 2.0\n" \
-            "import QtMultimedia 5.0\n" \
-            "VideoOutput {" \
-            "    width: 150;" \
-            "    height: 100;" \
-            "}";
-
     // We initialize the mapping vars here
     m_mappingComponent = new QQmlComponent(&m_engine);
-    m_mappingComponent->setData(m_plainQML, QUrl());
+    m_mappingComponent->loadUrl(QUrl("qrc:/main.qml"));
     m_mappingSurface = new SurfaceHolder(this);
 
     m_mappingOutput = m_mappingComponent->create();
@@ -175,7 +166,7 @@ tst_QDeclarativeVideoOutput::tst_QDeclarativeVideoOutput()
 void tst_QDeclarativeVideoOutput::fillMode()
 {
     QQmlComponent component(&m_engine);
-    component.setData(m_plainQML, QUrl());
+    component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != 0);
@@ -204,7 +195,7 @@ void tst_QDeclarativeVideoOutput::fillMode()
 void tst_QDeclarativeVideoOutput::flushMode()
 {
     QQmlComponent component(&m_engine);
-    component.setData(m_plainQML, QUrl());
+    component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != 0);
@@ -222,7 +213,7 @@ void tst_QDeclarativeVideoOutput::flushMode()
 void tst_QDeclarativeVideoOutput::orientation()
 {
     QQmlComponent component(&m_engine);
-    component.setData(m_plainQML, QUrl());
+    component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != 0);
@@ -275,7 +266,7 @@ void tst_QDeclarativeVideoOutput::orientation()
 void tst_QDeclarativeVideoOutput::surfaceSource()
 {
     QQmlComponent component(&m_engine);
-    component.setData(m_plainQML, QUrl());
+    component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != 0);
@@ -361,7 +352,7 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
 void tst_QDeclarativeVideoOutput::sourceRect()
 {
     QQmlComponent component(&m_engine);
-    component.setData(m_plainQML, QUrl());
+    component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != 0);
