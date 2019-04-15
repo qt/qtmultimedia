@@ -306,7 +306,7 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
         m_appSrc = new QGstAppSrc(this);
     m_appSrc->setStream(appSrcStream);
 
-    if (m_playbin) {
+    if (!parsePipeline() && m_playbin) {
         m_tags.clear();
         emit tagsChanged();
 
@@ -338,28 +338,7 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     }
 #endif
 
-    if (m_request.url().scheme() == QLatin1String("gst-pipeline")) {
-        // Set current surface to video sink before creating a pipeline.
-        auto renderer = qobject_cast<QVideoRendererControl*>(m_videoOutput);
-        if (renderer)
-            QVideoSurfaceGstSink::setSurface(renderer->surface());
-
-        QString url = m_request.url().toString(QUrl::RemoveScheme);
-        QString pipeline = QUrl::fromPercentEncoding(url.toLatin1().constData());
-        GError *err = nullptr;
-        GstElement *element = gst_parse_launch(pipeline.toLatin1().constData(), &err);
-        if (err) {
-            auto errstr = QLatin1String(err->message);
-            qWarning() << "Error:" << pipeline << ":" << errstr;
-            emit error(QMediaPlayer::FormatError, errstr);
-            g_clear_error(&err);
-        }
-
-        setPipeline(element);
-        return;
-    }
-
-    if (m_playbin) {
+    if (!parsePipeline() && m_playbin) {
         m_tags.clear();
         emit tagsChanged();
 
@@ -374,11 +353,55 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     }
 }
 
-void QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
+bool QGstreamerPlayerSession::parsePipeline()
+{
+    if (m_request.url().scheme() != QLatin1String("gst-pipeline"))
+        return false;
+
+    // Set current surface to video sink before creating a pipeline.
+    auto renderer = qobject_cast<QVideoRendererControl *>(m_videoOutput);
+    if (renderer)
+        QVideoSurfaceGstSink::setSurface(renderer->surface());
+
+    QString url = m_request.url().toString(QUrl::RemoveScheme);
+    QString desc = QUrl::fromPercentEncoding(url.toLatin1().constData());
+    GError *err = nullptr;
+    GstElement *pipeline = gst_parse_launch(desc.toLatin1().constData(), &err);
+    if (err) {
+        auto errstr = QLatin1String(err->message);
+        qWarning() << "Error:" << desc << ":" << errstr;
+        emit error(QMediaPlayer::FormatError, errstr);
+        g_clear_error(&err);
+    }
+
+    return setPipeline(pipeline);
+}
+
+static void gst_foreach(GstIterator *it, const std::function<bool(GstElement *)> &cmp)
+{
+#if GST_CHECK_VERSION(1,0,0)
+    GValue value = G_VALUE_INIT;
+    while (gst_iterator_next (it, &value) == GST_ITERATOR_OK) {
+        auto child = static_cast<GstElement*>(g_value_get_object(&value));
+#else
+    GstElement *child = nullptr;
+    while (gst_iterator_next(it, reinterpret_cast<gpointer *>(&child)) == GST_ITERATOR_OK) {
+#endif
+        if (cmp(child))
+            break;
+    }
+
+    gst_iterator_free(it);
+#if GST_CHECK_VERSION(1,0,0)
+    g_value_unset(&value);
+#endif
+}
+
+bool QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
 {
     GstBus *bus = pipeline ? gst_element_get_bus(pipeline) : nullptr;
     if (!bus)
-        return;
+        return false;
 
     gst_object_unref(GST_OBJECT(m_pipeline));
     m_pipeline = pipeline;
@@ -401,24 +424,31 @@ void QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
     m_videoIdentity = nullptr;
 
     if (m_renderer) {
-        auto it = gst_bin_iterate_sinks(GST_BIN(pipeline));
-#if GST_CHECK_VERSION(1,0,0)
-        GValue data = { 0, 0 };
-        while (gst_iterator_next (it, &data) == GST_ITERATOR_OK) {
-            auto child = static_cast<GstElement*>(g_value_get_object(&data));
-#else
-       GstElement *child = nullptr;
-       while (gst_iterator_next(it, reinterpret_cast<gpointer *>(&child)) == GST_ITERATOR_OK) {
-#endif
-            if (QLatin1String(GST_OBJECT_NAME(child)) == QLatin1String("qtvideosink")) {
-                m_renderer->setVideoSink(child);
-                break;
-            }
-        }
-        gst_iterator_free(it);
+        gst_foreach(gst_bin_iterate_sinks(GST_BIN(pipeline)),
+            [this](GstElement *child) {
+                if (qstrcmp(GST_OBJECT_NAME(child), "qtvideosink") == 0) {
+                    m_renderer->setVideoSink(child);
+                    return true;
+                }
+                return false;
+            });
     }
 
+#if QT_CONFIG(gstreamer_app)
+    if (m_appSrc) {
+        gst_foreach(gst_bin_iterate_sources(GST_BIN(pipeline)),
+            [this](GstElement *child) {
+                if (qstrcmp(qt_gst_element_get_factory_name(child), "appsrc") == 0) {
+                    m_appSrc->setup(child);
+                    return true;
+                }
+                return false;
+            });
+    }
+#endif
+
     emit pipelineChanged();
+    return true;
 }
 
 qint64 QGstreamerPlayerSession::duration() const

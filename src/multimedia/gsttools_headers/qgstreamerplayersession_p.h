@@ -208,7 +208,8 @@ private:
     void addAudioBufferProbe();
     void flushVideoProbes();
     void resumeVideoProbes();
-    void setPipeline(GstElement *pipeline);
+    bool parsePipeline();
+    bool setPipeline(GstElement *pipeline);
 
     QNetworkRequest m_request;
     QMediaPlayer::State m_state;
